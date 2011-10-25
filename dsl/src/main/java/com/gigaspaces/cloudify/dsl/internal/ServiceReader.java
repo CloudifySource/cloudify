@@ -277,10 +277,10 @@ public class ServiceReader {
 					+ " could not be read", e);
 		} catch (MissingMethodException e) {
 			throw new IllegalArgumentException(
-					"Coud not resolve DSL entry with name: " + e.getMethod(), e);
+					"Could not resolve DSL entry with name: " + e.getMethod(), e);
 		} catch (MissingPropertyException e) {
 			throw new IllegalArgumentException(
-					"Coud not resolve DSL entry with name: " + e.getProperty(),
+					"Could not resolve DSL entry with name: " + e.getProperty(),
 					e);
 		} finally {
 			if (reader != null) {
