@@ -1,0 +1,762 @@
+{
+  "protocol" : "Cassandra",
+  "namespace" : "org.apache.cassandra.avro",
+  "types" : [ {
+    "type" : "record",
+    "name" : "ColumnPath",
+    "fields" : [ {
+      "name" : "column_family",
+      "type" : "string"
+    }, {
+      "name" : "super_column",
+      "type" : [ "bytes", "null" ]
+    }, {
+      "name" : "column",
+      "type" : [ "bytes", "null" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "ColumnParent",
+    "fields" : [ {
+      "name" : "column_family",
+      "type" : "string"
+    }, {
+      "name" : "super_column",
+      "type" : [ "bytes", "null" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Column",
+    "fields" : [ {
+      "name" : "name",
+      "type" : "bytes"
+    }, {
+      "name" : "value",
+      "type" : "bytes"
+    }, {
+      "name" : "timestamp",
+      "type" : "long"
+    }, {
+      "name" : "ttl",
+      "type" : [ "int", "null" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "SuperColumn",
+    "fields" : [ {
+      "name" : "name",
+      "type" : "bytes"
+    }, {
+      "name" : "columns",
+      "type" : {
+        "type" : "array",
+        "items" : "Column"
+      }
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "ColumnOrSuperColumn",
+    "fields" : [ {
+      "name" : "column",
+      "type" : [ "Column", "null" ]
+    }, {
+      "name" : "super_column",
+      "type" : [ "SuperColumn", "null" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "SliceRange",
+    "fields" : [ {
+      "name" : "start",
+      "type" : "bytes"
+    }, {
+      "name" : "finish",
+      "type" : "bytes"
+    }, {
+      "name" : "reversed",
+      "type" : "boolean"
+    }, {
+      "name" : "count",
+      "type" : "int"
+    }, {
+      "name" : "bitmasks",
+      "type" : [ {
+        "type" : "array",
+        "items" : "bytes"
+      }, "null" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "SlicePredicate",
+    "fields" : [ {
+      "name" : "column_names",
+      "type" : [ {
+        "type" : "array",
+        "items" : "bytes"
+      }, "null" ]
+    }, {
+      "name" : "slice_range",
+      "type" : [ "SliceRange", "null" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "TokenRange",
+    "fields" : [ {
+      "name" : "start_token",
+      "type" : "string"
+    }, {
+      "name" : "end_token",
+      "type" : "string"
+    }, {
+      "name" : "endpoints",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    } ]
+  }, {
+    "type" : "enum",
+    "name" : "IndexOperator",
+    "symbols" : [ "EQ", "GTE", "GT", "LTE", "LT" ]
+  }, {
+    "type" : "record",
+    "name" : "IndexExpression",
+    "fields" : [ {
+      "name" : "column_name",
+      "type" : "bytes"
+    }, {
+      "name" : "op",
+      "type" : "IndexOperator"
+    }, {
+      "name" : "value",
+      "type" : "bytes"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "IndexClause",
+    "fields" : [ {
+      "name" : "expressions",
+      "type" : {
+        "type" : "array",
+        "items" : "IndexExpression"
+      }
+    }, {
+      "name" : "start_key",
+      "type" : "bytes"
+    }, {
+      "name" : "count",
+      "type" : "int"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "KeyRange",
+    "fields" : [ {
+      "name" : "start_key",
+      "type" : [ "bytes", "null" ]
+    }, {
+      "name" : "end_key",
+      "type" : [ "bytes", "null" ]
+    }, {
+      "name" : "start_token",
+      "type" : [ "string", "null" ]
+    }, {
+      "name" : "end_token",
+      "type" : [ "string", "null" ]
+    }, {
+      "name" : "count",
+      "type" : "int"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "KeySlice",
+    "fields" : [ {
+      "name" : "key",
+      "type" : "bytes"
+    }, {
+      "name" : "columns",
+      "type" : {
+        "type" : "array",
+        "items" : "ColumnOrSuperColumn"
+      }
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Deletion",
+    "fields" : [ {
+      "name" : "timestamp",
+      "type" : "long"
+    }, {
+      "name" : "super_column",
+      "type" : [ "bytes", "null" ]
+    }, {
+      "name" : "predicate",
+      "type" : [ "SlicePredicate", "null" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Mutation",
+    "fields" : [ {
+      "name" : "column_or_supercolumn",
+      "type" : [ "ColumnOrSuperColumn", "null" ]
+    }, {
+      "name" : "deletion",
+      "type" : [ "Deletion", "null" ]
+    } ]
+  }, {
+    "type" : "enum",
+    "name" : "IndexType",
+    "symbols" : [ "KEYS" ],
+    "aliases" : [ "org.apache.cassandra.config.avro.IndexType" ]
+  }, {
+    "type" : "record",
+    "name" : "ColumnDef",
+    "fields" : [ {
+      "name" : "name",
+      "type" : "bytes"
+    }, {
+      "name" : "validation_class",
+      "type" : "string"
+    }, {
+      "name" : "index_type",
+      "type" : [ "IndexType", "null" ]
+    }, {
+      "name" : "index_name",
+      "type" : [ "string", "null" ]
+    } ],
+    "aliases" : [ "org.apache.cassandra.config.avro.ColumnDef" ]
+  }, {
+    "type" : "record",
+    "name" : "CfDef",
+    "fields" : [ {
+      "name" : "keyspace",
+      "type" : "string"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "column_type",
+      "type" : [ "string", "null" ]
+    }, {
+      "name" : "comparator_type",
+      "type" : [ "string", "null" ]
+    }, {
+      "name" : "subcomparator_type",
+      "type" : [ "string", "null" ]
+    }, {
+      "name" : "comment",
+      "type" : [ "string", "null" ]
+    }, {
+      "name" : "row_cache_size",
+      "type" : [ "double", "null" ]
+    }, {
+      "name" : "key_cache_size",
+      "type" : [ "double", "null" ]
+    }, {
+      "name" : "read_repair_chance",
+      "type" : [ "double", "null" ]
+    }, {
+      "name" : "gc_grace_seconds",
+      "type" : [ "int", "null" ]
+    }, {
+      "name" : "default_validation_class",
+      "type" : [ "null", "string" ],
+      "default" : null
+    }, {
+      "name" : "min_compaction_threshold",
+      "type" : [ "null", "int" ],
+      "default" : null
+    }, {
+      "name" : "max_compaction_threshold",
+      "type" : [ "null", "int" ],
+      "default" : null
+    }, {
+      "name" : "row_cache_save_period_in_seconds",
+      "type" : [ "int", "null" ],
+      "default" : 0
+    }, {
+      "name" : "key_cache_save_period_in_seconds",
+      "type" : [ "int", "null" ],
+      "default" : 3600
+    }, {
+      "name" : "memtable_flush_after_mins",
+      "type" : [ "int", "null" ],
+      "default" : 60
+    }, {
+      "name" : "memtable_throughput_in_mb",
+      "type" : [ "null", "int" ],
+      "default" : null
+    }, {
+      "name" : "memtable_operations_in_millions",
+      "type" : [ "null", "double" ],
+      "default" : null
+    }, {
+      "name" : "id",
+      "type" : [ "int", "null" ]
+    }, {
+      "name" : "column_metadata",
+      "type" : [ {
+        "type" : "array",
+        "items" : "ColumnDef"
+      }, "null" ]
+    } ],
+    "aliases" : [ "org.apache.cassandra.config.avro.CfDef" ]
+  }, {
+    "type" : "record",
+    "name" : "KsDef",
+    "fields" : [ {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "strategy_class",
+      "type" : "string"
+    }, {
+      "name" : "strategy_options",
+      "type" : [ {
+        "type" : "map",
+        "values" : "string"
+      }, "null" ]
+    }, {
+      "name" : "replication_factor",
+      "type" : "int"
+    }, {
+      "name" : "cf_defs",
+      "type" : {
+        "type" : "array",
+        "items" : "CfDef"
+      }
+    } ],
+    "aliases" : [ "org.apache.cassandra.config.avro.KsDef" ]
+  }, {
+    "type" : "record",
+    "name" : "StreamingMutation",
+    "fields" : [ {
+      "name" : "key",
+      "type" : "bytes"
+    }, {
+      "name" : "mutation",
+      "type" : "Mutation"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "MutationsMapEntry",
+    "fields" : [ {
+      "name" : "key",
+      "type" : "bytes"
+    }, {
+      "name" : "mutations",
+      "type" : {
+        "type" : "map",
+        "values" : {
+          "type" : "array",
+          "items" : "Mutation"
+        }
+      }
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "CoscsMapEntry",
+    "fields" : [ {
+      "name" : "key",
+      "type" : "bytes"
+    }, {
+      "name" : "columns",
+      "type" : {
+        "type" : "array",
+        "items" : "ColumnOrSuperColumn"
+      }
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "KeyCountMapEntry",
+    "fields" : [ {
+      "name" : "key",
+      "type" : "bytes"
+    }, {
+      "name" : "count",
+      "type" : "int"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "AuthenticationRequest",
+    "fields" : [ {
+      "name" : "credentials",
+      "type" : {
+        "type" : "map",
+        "values" : "string"
+      }
+    } ]
+  }, {
+    "type" : "enum",
+    "name" : "ConsistencyLevel",
+    "symbols" : [ "ONE", "QUORUM", "LOCAL_QUORUM", "EACH_QUORUM", "ALL" ]
+  }, {
+    "type" : "error",
+    "name" : "InvalidRequestException",
+    "fields" : [ {
+      "name" : "why",
+      "type" : [ "string", "null" ]
+    } ]
+  }, {
+    "type" : "error",
+    "name" : "NotFoundException",
+    "fields" : [ {
+      "name" : "why",
+      "type" : [ "string", "null" ]
+    } ]
+  }, {
+    "type" : "error",
+    "name" : "UnavailableException",
+    "fields" : [ {
+      "name" : "why",
+      "type" : [ "string", "null" ]
+    } ]
+  }, {
+    "type" : "error",
+    "name" : "TimedOutException",
+    "fields" : [ {
+      "name" : "why",
+      "type" : [ "string", "null" ]
+    } ]
+  }, {
+    "type" : "error",
+    "name" : "AuthenticationException",
+    "fields" : [ {
+      "name" : "why",
+      "type" : [ "string", "null" ]
+    } ]
+  }, {
+    "type" : "error",
+    "name" : "AuthorizationException",
+    "fields" : [ {
+      "name" : "why",
+      "type" : [ "string", "null" ]
+    } ]
+  } ],
+  "messages" : {
+    "login" : {
+      "request" : [ {
+        "name" : "auth_request",
+        "type" : "AuthenticationRequest"
+      } ],
+      "response" : "null",
+      "errors" : [ "AuthenticationException", "AuthorizationException" ]
+    },
+    "set_keyspace" : {
+      "request" : [ {
+        "name" : "keyspace",
+        "type" : "string"
+      } ],
+      "response" : "null",
+      "errors" : [ "InvalidRequestException" ]
+    },
+    "get" : {
+      "request" : [ {
+        "name" : "key",
+        "type" : "bytes"
+      }, {
+        "name" : "column_path",
+        "type" : "ColumnPath"
+      }, {
+        "name" : "consistency_level",
+        "type" : "ConsistencyLevel"
+      } ],
+      "response" : "ColumnOrSuperColumn",
+      "errors" : [ "InvalidRequestException", "NotFoundException", "UnavailableException", "TimedOutException" ]
+    },
+    "get_slice" : {
+      "request" : [ {
+        "name" : "key",
+        "type" : "bytes"
+      }, {
+        "name" : "column_parent",
+        "type" : "ColumnParent"
+      }, {
+        "name" : "predicate",
+        "type" : "SlicePredicate"
+      }, {
+        "name" : "consistency_level",
+        "type" : "ConsistencyLevel"
+      } ],
+      "response" : {
+        "type" : "array",
+        "items" : "ColumnOrSuperColumn"
+      },
+      "errors" : [ "InvalidRequestException", "UnavailableException", "TimedOutException" ]
+    },
+    "multiget_slice" : {
+      "request" : [ {
+        "name" : "keys",
+        "type" : {
+          "type" : "array",
+          "items" : "bytes"
+        }
+      }, {
+        "name" : "column_parent",
+        "type" : "ColumnParent"
+      }, {
+        "name" : "predicate",
+        "type" : "SlicePredicate"
+      }, {
+        "name" : "consistency_level",
+        "type" : "ConsistencyLevel"
+      } ],
+      "response" : {
+        "type" : "array",
+        "items" : "CoscsMapEntry"
+      },
+      "errors" : [ "InvalidRequestException", "UnavailableException", "TimedOutException" ]
+    },
+    "multiget_count" : {
+      "request" : [ {
+        "name" : "keys",
+        "type" : {
+          "type" : "array",
+          "items" : "bytes"
+        }
+      }, {
+        "name" : "column_parent",
+        "type" : "ColumnParent"
+      }, {
+        "name" : "predicate",
+        "type" : "SlicePredicate"
+      }, {
+        "name" : "consistency_level",
+        "type" : "ConsistencyLevel"
+      } ],
+      "response" : {
+        "type" : "array",
+        "items" : "KeyCountMapEntry"
+      },
+      "errors" : [ "InvalidRequestException", "UnavailableException", "TimedOutException" ]
+    },
+    "get_indexed_slices" : {
+      "request" : [ {
+        "name" : "column_parent",
+        "type" : "ColumnParent"
+      }, {
+        "name" : "index_clause",
+        "type" : "IndexClause"
+      }, {
+        "name" : "column_predicate",
+        "type" : "SlicePredicate"
+      }, {
+        "name" : "consistency_level",
+        "type" : "ConsistencyLevel"
+      } ],
+      "response" : {
+        "type" : "array",
+        "items" : "KeySlice"
+      },
+      "errors" : [ "InvalidRequestException", "UnavailableException", "TimedOutException" ]
+    },
+    "get_count" : {
+      "request" : [ {
+        "name" : "key",
+        "type" : "bytes"
+      }, {
+        "name" : "column_parent",
+        "type" : "ColumnParent"
+      }, {
+        "name" : "predicate",
+        "type" : "SlicePredicate"
+      }, {
+        "name" : "consistency_level",
+        "type" : "ConsistencyLevel"
+      } ],
+      "response" : "int",
+      "errors" : [ "InvalidRequestException", "UnavailableException", "TimedOutException" ]
+    },
+    "insert" : {
+      "request" : [ {
+        "name" : "key",
+        "type" : "bytes"
+      }, {
+        "name" : "column_parent",
+        "type" : "ColumnParent"
+      }, {
+        "name" : "column",
+        "type" : "Column"
+      }, {
+        "name" : "consistency_level",
+        "type" : "ConsistencyLevel"
+      } ],
+      "response" : "null",
+      "errors" : [ "InvalidRequestException", "UnavailableException", "TimedOutException" ]
+    },
+    "remove" : {
+      "request" : [ {
+        "name" : "key",
+        "type" : "bytes"
+      }, {
+        "name" : "column_path",
+        "type" : "ColumnPath"
+      }, {
+        "name" : "timestamp",
+        "type" : "long"
+      }, {
+        "name" : "consistency_level",
+        "type" : "ConsistencyLevel"
+      } ],
+      "response" : "null",
+      "errors" : [ "InvalidRequestException", "UnavailableException", "TimedOutException" ]
+    },
+    "batch_mutate" : {
+      "request" : [ {
+        "name" : "mutation_map",
+        "type" : {
+          "type" : "array",
+          "items" : "MutationsMapEntry"
+        }
+      }, {
+        "name" : "consistency_level",
+        "type" : "ConsistencyLevel"
+      } ],
+      "response" : "null",
+      "errors" : [ "InvalidRequestException", "UnavailableException", "TimedOutException" ]
+    },
+    "truncate" : {
+      "request" : [ {
+        "name" : "column_family",
+        "type" : "string"
+      } ],
+      "response" : "null",
+      "errors" : [ "InvalidRequestException", "UnavailableException" ]
+    },
+    "check_schema_agreement" : {
+      "request" : [ ],
+      "response" : {
+        "type" : "map",
+        "values" : {
+          "type" : "array",
+          "items" : "string"
+        }
+      },
+      "errors" : [ "InvalidRequestException" ]
+    },
+    "system_add_column_family" : {
+      "request" : [ {
+        "name" : "cf_def",
+        "type" : "CfDef"
+      } ],
+      "response" : "string",
+      "errors" : [ "InvalidRequestException" ]
+    },
+    "system_add_keyspace" : {
+      "request" : [ {
+        "name" : "ks_def",
+        "type" : "KsDef"
+      } ],
+      "response" : "string",
+      "errors" : [ "InvalidRequestException" ]
+    },
+    "system_drop_column_family" : {
+      "request" : [ {
+        "name" : "column_family",
+        "type" : "string"
+      } ],
+      "response" : "string",
+      "errors" : [ "InvalidRequestException" ]
+    },
+    "system_drop_keyspace" : {
+      "request" : [ {
+        "name" : "keyspace",
+        "type" : "string"
+      } ],
+      "response" : "string",
+      "errors" : [ "InvalidRequestException" ]
+    },
+    "system_update_column_family" : {
+      "request" : [ {
+        "name" : "cf_def",
+        "type" : "CfDef"
+      } ],
+      "response" : "string",
+      "errors" : [ "InvalidRequestException" ]
+    },
+    "system_update_keyspace" : {
+      "request" : [ {
+        "name" : "ks_def",
+        "type" : "KsDef"
+      } ],
+      "response" : "string",
+      "errors" : [ "InvalidRequestException" ]
+    },
+    "describe_keyspaces" : {
+      "request" : [ ],
+      "response" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    },
+    "describe_keyspace" : {
+      "request" : [ {
+        "name" : "keyspace",
+        "type" : "string"
+      } ],
+      "response" : "KsDef",
+      "errors" : [ "NotFoundException" ]
+    },
+    "describe_cluster_name" : {
+      "request" : [ ],
+      "response" : "string"
+    },
+    "describe_version" : {
+      "request" : [ ],
+      "response" : "string"
+    },
+    "describe_partitioner" : {
+      "request" : [ ],
+      "response" : "string"
+    },
+    "describe_splits" : {
+      "request" : [ {
+        "name" : "cfName",
+        "type" : "string"
+      }, {
+        "name" : "start_token",
+        "type" : "string"
+      }, {
+        "name" : "end_token",
+        "type" : "string"
+      }, {
+        "name" : "keys_per_split",
+        "type" : "int"
+      } ],
+      "response" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    },
+    "describe_ring" : {
+      "request" : [ {
+        "name" : "keyspace",
+        "type" : "string"
+      } ],
+      "response" : {
+        "type" : "array",
+        "items" : "TokenRange"
+      },
+      "errors" : [ "InvalidRequestException" ]
+    },
+    "get_range_slices" : {
+      "request" : [ {
+        "name" : "column_parent",
+        "type" : "ColumnParent"
+      }, {
+        "name" : "predicate",
+        "type" : "SlicePredicate"
+      }, {
+        "name" : "range",
+        "type" : "KeyRange"
+      }, {
+        "name" : "consistency_level",
+        "type" : "ConsistencyLevel"
+      } ],
+      "response" : {
+        "type" : "array",
+        "items" : "KeySlice"
+      },
+      "errors" : [ "InvalidRequestException", "UnavailableException", "TimedOutException" ]
+    }
+  }
+}

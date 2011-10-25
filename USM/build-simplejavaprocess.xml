@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<project name="simplejavaprocess" default="dist" basedir=".">
+		
+	<property name="target.dir" value="${basedir}/target/simplejavaprocess"/>
+	<property name="classes.dir" value="${target.dir}/test-classes"/>
+	<property name="sources.dir" value="${basedir}/src/test/java/"/>
+	<property name="dist.dir" value="${target.dir}"/>
+	<property name="jar-name" value="simplejavaprocess.jar"/>
+	<property name="main-class"  value="org.openspaces.usm.examples.simplejavaprocess.SimpleBlockingJavaProcess"/>
+	
+	<target name="clean">
+        <delete dir="${target.dir}"/>				
+        <delete dir="${dist.dir}"/>				
+    </target>
+	
+	<target name="dist" depends="clean, build">
+		<mkdir dir="${dist.dir}"/>
+        <jar basedir="${classes.dir}" jarfile="${dist.dir}/${jar-name}">
+			<manifest>
+		        <attribute name="Main-Class" value="${main-class}"/>
+		    </manifest>
+    	</jar>
+    </target>   
+	
+	<target name="build">
+		<build src="${sources.dir}" classes="${classes.dir}"/>
+	</target>
+	
+	<macrodef name="build">
+        <attribute name="src"/>
+        <attribute name="classes"/>
+        <sequential>
+            <mkdir dir="@{classes}"/>
+
+            <javac destdir="@{classes}" source="1.5" target="1.5" debug="on"
+                   deprecation="false" optimize="false" failonerror="true">
+                <src path="@{src}" />
+            	<include name="org/openspaces/usm/examples/simplejavaprocess/**"/>
+            </javac>
+        </sequential>
+    </macrodef>
+</project>

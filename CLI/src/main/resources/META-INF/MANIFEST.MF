@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Archiver-Version: Plexus Archiver
+Created-By: Apache Maven
+Built-By: guy
+Build-Jdk: 1.5.0_22
+Main: org.openspaces.cloud.shell.GigaShellMain
+

@@ -1,0 +1,2 @@
+org.openspaces.cloud.shell.commands.BootstrapCloud
+org.openspaces.cloud.shell.commands.TeardownCloud

@@ -1,0 +1,1 @@
+mvndebug compile exec:java -Djava.util.logging.config.file=logging.properties

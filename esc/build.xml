@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="zip" name="Create jar and zip for project gs-rackspace-public" >
+
+    <target name="jar">
+        <jar destfile="target/esm.jar">
+            <fileset dir="bin"/>
+			<fileset dir="" includes="config/**.*" />
+        </jar>
+    	
+    </target>
+	
+    <target name="zip" depends="jar" >
+    	<delete file="target/esm.zip" />
+        <zip destfile="target/esm.zip">
+            <fileset dir="lib" >
+            	<exclude name="src.zip"/>
+            </fileset>
+        	<fileset dir="target">
+        		<include name="esm.jar" />	
+        	</fileset>
+        </zip>
+    	<copy file="target/esm.zip" tofile="C:/docBaseAws/esm.zip" />
+    	<copy file="target/esm.zip" tofile="C:/docBaseRackspace/esm.zip" />
+    </target>
+	
+    <target name="src">
+        <zip destfile="lib/src.zip" >
+        	<fileset dir="" includes="src/**/*" />        	
+        	<fileset dir="" includes="config/**.*" />
+    	</zip>
+    </target>
+	
+	<target name="export-zip" >
+	    	<delete file="gs-rackspace-public.zip" />
+	        <zip destfile="gs-rackspace-public.zip">
+	            <fileset dir="" includes="lib/*" >
+	            	<exclude name="lib/src.zip"/>
+	            	<exclude name="lib/esm.zip"/>
+	            </fileset>
+	        	<fileset dir="" includes="src/**/*" />        	
+	        	<fileset dir="" includes="config/**.*" />
+	        	<fileset file="log4j.xml"/> 
+	        	<fileset file="build.xml"/>
+	        	<fileset file="rackspace.properties"/>
+	        </zip>
+	 </target>
+
+</project>

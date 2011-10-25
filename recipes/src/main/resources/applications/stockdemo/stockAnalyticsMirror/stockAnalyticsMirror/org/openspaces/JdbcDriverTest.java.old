@@ -1,0 +1,205 @@
+package com.test;
+/*
+ * 
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ * 
+ */
+
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import junit.framework.TestCase;
+
+import org.junit.Test;
+
+/**
+ * Test case for unit test of various methods of JDBC implementation.
+ */
+public class JdbcDriverTest extends TestCase
+{
+    private java.sql.Connection con = null;
+    static boolean schemaLoaded = false;
+    /** SetUp */
+    @Override
+    protected void setUp()
+    {
+        try
+        {
+		    Class.forName("org.apache.cassandra.cql.jdbc.CassandraDriver");
+
+		      String url = "jdbc:cassandra:username/password@127.0.0.1:9160/TEST";
+		      con = DriverManager.getConnection(url);
+//		      clearData(con);            
+		      defineSchema(con);
+		      for (int i=0;i<10;i++)
+		      {
+	            String updateQ = "INSERT INTO User (KEY,'first','last') VALUES ("+i +",'shay"+i+"','hassidim"+i+"')";
+	            executeNoResults(con, updateQ);
+		      }
+        }
+        catch (Exception e)
+        {
+        	e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+
+    /** Method to test statement. */
+    @Test
+    public void testWithStatement()
+    {
+        try
+        {
+            String selectQ = "SELECT KEY,'first','last' FROM User WHERE KEY='0'";
+            Statement stmt = con.createStatement();
+            scrollResultset(stmt.executeQuery(selectQ), "KEY", "first", "last");
+        }
+        catch (SQLException e)
+        {
+        	e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+
+   /** Method to test with prepared statement.*/
+   @Test
+    public void testWithPreparedStatement()
+    {
+        try
+        {
+            final String selectQ = "SELECT 'first','last' FROM User WHERE KEY='0'";
+            scrollResultset(executePreparedStatementWithResults(con, selectQ), "first", "last");
+        }
+        catch (SQLException e)
+        {
+        	e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+
+    /** Method to test with update statement.*/
+    @Test
+    public void testWithUpdateStatement()
+    {
+        try
+        {
+            final String updateQ = "UPDATE User SET 'first'='XXX','last'='YYY' WHERE KEY = '0'";
+            executeNoResults(con, updateQ);
+            final String updateSelect = "SELECT 'first','last' FROM User WHERE KEY='0'";
+            scrollResultset(executePreparedStatementWithResults(con, updateSelect), "first", "last");
+        }
+        catch (SQLException e)
+        {
+        	e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+    /* Method to test with Delete statement. */
+
+    @Test
+    public void testWithDeleteStatement()
+    {
+        try
+        {
+            // Delete
+            final String deleteQ = "DELETE 'first','last' FROM User WHERE KEY='0'";
+            executeNoResults(con, deleteQ);
+            String updateSelect = "SELECT 'first','last' FROM User WHERE KEY='0'";
+            scrollResultset(executePreparedStatementWithResults(con, updateSelect), "first", "last");
+        } 
+        catch (SQLException e)
+        {
+            fail(e.getMessage());
+        }
+    }
+
+    static void clearData(Connection con)
+    {
+        try
+        {
+            if (con != null)
+            {
+                final String updateQ = "TRUNCATE User";
+                executeNoResults(con, updateQ);
+                con.close();
+                con = null;
+            }
+        } 
+        catch (SQLException e)
+        {
+            fail(e.getMessage());
+        }
+    }
+
+    /** iterates over a result set checking columns */
+    private static void scrollResultset(final ResultSet rSet, final String... columnNames) throws SQLException
+    {
+        assertNotNull(rSet);
+        while (rSet.next())
+        {
+            for (String colName : columnNames)
+            {
+            	if (colName.equals("KEY"))
+            	{
+	            	String v = rSet.getObject(colName).toString();
+	            	System.out.println("colName:"+colName + " " +v);
+            	}
+            	else
+            	{
+	            	String v = rSet.getString(colName);
+	            	System.out.println("colName:"+colName + " " +v);
+            	}
+            }
+        }
+    }
+    
+    /** executes a prepared statement */
+    private static ResultSet executePreparedStatementWithResults(final Connection con, final String selectQ) throws SQLException
+    {
+        PreparedStatement statement = con.prepareStatement(selectQ);
+        return statement.executeQuery();
+    }
+
+    /** executes an prepared statement */
+    private static void executeNoResults(final Connection con, final String cql) throws SQLException
+    {
+        PreparedStatement statement = con.prepareStatement(cql);
+        statement.execute();
+    }
+    
+    private static void defineSchema(final Connection con) throws Exception
+    {
+    	if (schemaLoaded) return;
+    	try
+    	{
+	    	String s1 = "DROP COLUMNFAMILY User";
+	        PreparedStatement statement = con.prepareStatement(s1);
+	        statement.execute();
+    	}
+    	catch (Exception e)
+    	{}
+    	String s2 = "CREATE COLUMNFAMILY User (KEY 'text' PRIMARY KEY ,'first' 'text' , 'last' 'text', 'age' 'int')";
+    	PreparedStatement statement = con.prepareStatement(s2);
+        statement.execute();
+    	schemaLoaded = true;
+    }
+}

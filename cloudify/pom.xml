@@ -1,0 +1,28 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.gigaspaces.cloudify</groupId>
+	<artifactId>cloudify</artifactId>
+	<version>2.0</version>
+	<packaging>pom</packaging>
+
+	<properties>
+		<gsVersion>8.0.5-rc-5995-69</gsVersion>
+		<springVersion>3.0.5.RELEASE</springVersion>
+		<junitVersion>4.8.2</junitVersion>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<cloudifyVersion>${project.version}</cloudifyVersion>
+	</properties>
+
+	<modules>
+		<module>../azure/azure</module>
+		<module>../CLI</module>
+		<module>../esc</module>
+		<module>../esc-commands</module>
+		<module>../USM</module>
+		<module>../restful</module>
+		<module>../dsl</module>
+		<module>../recipes</module>
+	</modules>
+
+</project>

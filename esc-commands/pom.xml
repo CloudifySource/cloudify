@@ -1,0 +1,62 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<artifactId>cloudify</artifactId>
+		<groupId>com.gigaspaces.cloudify</groupId>
+		<version>2.0</version>
+		<relativePath>../cloudify</relativePath>
+	</parent>
+
+	<artifactId>esc-commands</artifactId>
+
+	<build>
+		<finalName>esc-commands</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+				<version>2.3.2</version>
+			</plugin>
+		</plugins>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>maven</id>
+			<url>http://repo1.maven.org/maven2/</url>
+		</repository>
+		<repository>
+			<id>org.openspaces</id>
+			<url>http://maven-repository.openspaces.org</url>
+		</repository>
+		<repository>
+			<id>codehaus</id>
+			<url>http://repository.codehaus.org</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.gigaspaces</groupId>
+			<artifactId>gs-openspaces</artifactId>
+			<version>${gsVersion}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.gigaspaces.cloudify</groupId>
+			<artifactId>CLI</artifactId>
+			<version>${cloudifyVersion}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.gigaspaces.cloudify</groupId>
+			<artifactId>esc</artifactId>
+			<version>${cloudifyVersion}</version>
+		</dependency>
+	</dependencies>
+
+</project>
