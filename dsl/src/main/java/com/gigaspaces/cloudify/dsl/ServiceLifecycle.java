@@ -30,7 +30,7 @@ public class ServiceLifecycle implements Serializable {
 	private Object preServiceStop;
 	
 	private Object startDetection;
-	private Map<String, Object> monitor;
+	private Map<String, Object> monitors;
 	private Map<String, Object> details;
 	
 	private int startDetectionTimeoutSecs = 90;
@@ -164,12 +164,12 @@ public class ServiceLifecycle implements Serializable {
 		return this.startDetection;
 	}
 	
-	public void setMonitor(Map<String, Object> monitor) {
-		this.monitor = monitor;
+	public void setMonitors(Map<String, Object> monitors) {
+		this.monitors = monitors;
 	}
 	
-	public Map<String, Object> getMonitor() {
-		return monitor;
+	public Map<String, Object> getMonitors() {
+		return this.monitors;
 	}
 	
 	public void setDetails(Map<String, Object> details) {

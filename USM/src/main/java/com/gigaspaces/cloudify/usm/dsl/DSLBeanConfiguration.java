@@ -339,7 +339,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 	@Bean
 	public USMComponent getMonitor() {
 		final Map<String, Object> monitor = this.service.getLifecycle()
-				.getMonitor();
+				.getMonitors();
 		if (monitor == null) {
 			return null;
 		}
