@@ -20,6 +20,9 @@ import org.openspaces.rest.util.PrimitiveWrapper;
  *
  */
 public class OutputUtils {
+	
+	private static String hostAddress;
+	private static String hostContext;
 
 	private static HashSet<String> getBlackList() {
 		HashSet<String> blackList = new HashSet<String>();
@@ -68,8 +71,19 @@ public class OutputUtils {
 			uriPathArray[i] = completeURL.concat("/" + i);
 		}
 		String[] commands = completeURL.split("/");
-		outputMap.put(commands[commands.length - 1] + "-Elements", uriPathArray);
+		outputMap.put(commands[commands.length - 1] + "-Elements", getRelativePathURLS(uriPathArray));
 		outputMap.put(commands[commands.length - 1] + "-Size", arrayLength);
+	}
+
+	private static String[] getRelativePathURLS(String[] uriPathArray) {
+		String[] returnURLS = new String[uriPathArray.length];
+		for (int i = 0; i < uriPathArray.length; i++) {
+			int contextIndex = uriPathArray[i].indexOf(getHostContext());
+			String relativePath = uriPathArray[i].substring(contextIndex);
+			String newUrlPath = getHostAddress() + relativePath;
+			returnURLS[i] = newUrlPath;
+		}
+		return returnURLS;
 	}
 
 	//Helps in dealing with primitive type arrays. returns an Object Array.
@@ -108,7 +122,7 @@ public class OutputUtils {
 			i++;
 		}
 		String[] commands = completeURL.split("/");
-		outputMap.put(commands[commands.length - 1].concat("-Elements"), uriPathArray);
+		outputMap.put(commands[commands.length - 1].concat("-Elements"), getRelativePathURLS(uriPathArray));
 	}
 
 	public static void outputObjectToMap(CommandManager manager, Map<String, Object> outputMap){
@@ -298,5 +312,21 @@ public class OutputUtils {
 			throw new RuntimeException("Cannot execute getter function " + method.getName() + ". Reason: " + e.getMessage(), e);
 		}
 		return retval == null ? NULL_OBJECT_DENOTER : retval;
+	}
+
+	public static void setHostAddress(String hostAddress) {
+		OutputUtils.hostAddress = hostAddress;
+	}
+
+	public static String getHostAddress() {
+		return hostAddress;
+	}
+
+	public static void setHostContext(String hostContext) {
+		OutputUtils.hostContext = hostContext;
+	}
+
+	public static String getHostContext() {
+		return hostContext;
 	}
 }

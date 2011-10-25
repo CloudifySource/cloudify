@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 
-
 /**
  * Spring MVC controller for the RESTful Admin API 
  * via a reflection-based implementation of dispatcher pattern
@@ -110,10 +109,17 @@ public class AdminAPIController  {
 		//admin acts as root
 		CommandManager manager = new CommandManager(httpServletRequest, getAdmin());
 		manager.runCommands();
-		
-		return OutputDispatcher.outputResultObjectToMap(manager);
+		String hostAddress = getRemoteHostAddress(httpServletRequest);
+		String hostContext = httpServletRequest.getContextPath();
+		return OutputDispatcher.outputResultObjectToMap(manager, hostAddress, hostContext);
 	}
 
+
+	private String getRemoteHostAddress(HttpServletRequest httpServletRequest) {
+		String host = httpServletRequest.getServerName();
+		int port = httpServletRequest.getServerPort();
+		return "http://" + host + ":" + port;
+	}
 
 	public Admin getAdmin() {
 		return admin;

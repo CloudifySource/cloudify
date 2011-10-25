@@ -11,7 +11,9 @@ import org.openspaces.rest.command.CommandManager;
 public class OutputDispatcher {
 
 	
-	public static Map<String, Object> outputResultObjectToMap(CommandManager manager){
+	public static Map<String, Object> outputResultObjectToMap(CommandManager manager, String contextPath, String hostContext){
+		OutputUtils.setHostAddress(contextPath);
+		OutputUtils.setHostContext(hostContext);
 		Map<String, Object> outputMap = new HashMap<String, Object>();
 		Map<String, Object> sortedMap;
 		Object object = manager.getFinalCommand().getCommandObject();
