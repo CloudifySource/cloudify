@@ -1,5 +1,6 @@
 package org.openspaces.shell.commands;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -32,8 +33,7 @@ public class UninstallService extends AdminAwareCommand {
         try {
         	return getRestAdminFacade().getServicesList(DEFAULT_APPLICATION_NAME);
         } catch (Exception e) {
-            logger.warning("Could not get list of services: " + e.getMessage());
-            return null;
+        	return new ArrayList<String>();
         }
     }
 
