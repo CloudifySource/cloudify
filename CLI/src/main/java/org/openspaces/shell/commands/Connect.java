@@ -43,6 +43,9 @@ public class Connect extends AbstractGSCommand {
 		
 		AdminFacade adminFacade = (AbstractAdminFacade) session.get(Constants.ADMIN_FACADE);
 		adminFacade.connect(user, password, url);
+		//We keep a reference to the facade so that the CompleterValue methods will be able
+		//to access it.
+		setRestAdminFacade(adminFacade);
 		return messages.getString("connected_successfully");
 	}
 

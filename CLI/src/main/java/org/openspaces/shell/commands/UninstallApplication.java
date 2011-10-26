@@ -40,7 +40,7 @@ public class UninstallApplication extends AdminAwareCommand {
 	@CompleterValues(index = 0)
 	public Collection<String> getCompleterValues() {
 		try {
-			return this.adminFacade.getApplicationsList();
+			return getRestAdminFacade().getApplicationsList();
 		} catch (CLIException e) {
 			return new ArrayList<String>();
 		}

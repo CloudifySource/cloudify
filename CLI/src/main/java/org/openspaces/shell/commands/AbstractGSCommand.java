@@ -41,6 +41,8 @@ public abstract class AbstractGSCommand implements Action {
 
 	protected static final Logger logger = Logger
 			.getLogger(AbstractGSCommand.class.getName());
+	//Used for CompleterValues methods that don't have access to the sessions admin facade
+	private static AdminFacade restAdminFacade;
 
 	@Option(required = false, name = "--verbose", description = "show detailed execution result including exception stack trace")
 	protected boolean verbose;
@@ -168,6 +170,14 @@ public abstract class AbstractGSCommand implements Action {
 							.getNetwork().getProtocolDescription());
 		}
 		return contextProperties;
+	}
+
+	public static void setRestAdminFacade(AdminFacade restAdminFacade) {
+		AbstractGSCommand.restAdminFacade = restAdminFacade;
+	}
+
+	public static AdminFacade getRestAdminFacade() {
+		return restAdminFacade;
 	}
 
 }

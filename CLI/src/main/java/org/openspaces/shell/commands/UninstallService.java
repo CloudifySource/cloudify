@@ -20,22 +20,25 @@ import org.openspaces.shell.rest.RestAdminFacade;
 @Command(scope = "grid", name = "uninstall-service", description = "undeploy a service")
 public class UninstallService extends AdminAwareCommand {
 
-    private static final String TIMEOUT_ERROR_MESSAGE = "Timeout waiting for service to uninstall";
+    private static final String DEFAULT_APPLICATION_NAME = "default";
+
+	private static final String TIMEOUT_ERROR_MESSAGE = "Timeout waiting for service to uninstall";
     
     @Argument(index = 0, required = true, name = "service-name")
     String serviceName;
 
-    @CompleterValues(index = 1)
+    @CompleterValues(index = 0)
     public Collection<String> getServiceList() {
         try {
-            return adminFacade.getServicesList(serviceName);
+        	return getRestAdminFacade().getServicesList(DEFAULT_APPLICATION_NAME);
         } catch (Exception e) {
             logger.warning("Could not get list of services: " + e.getMessage());
             return null;
         }
     }
 
-    @Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is done. Defaults to 5 minutes.")
+
+	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is done. Defaults to 5 minutes.")
     int timeoutInMinutes=5;
     
     @Option(required = false, name = "-progress", description = "The polling time interval in minutes, used for checking if the operation is done. Defaults to 1 minute. Use together with the -timeout option")
@@ -43,7 +46,6 @@ public class UninstallService extends AdminAwareCommand {
     
     @Override
     protected Object doExecute() throws Exception {
-        
         final Set<String> containerIdsOfService = ((RestAdminFacade)adminFacade).getGridServiceContainerUidsForService(getCurrentApplicationName(), serviceName);
         if (verbose) {
             logger.info("Found containers: " + containerIdsOfService);
