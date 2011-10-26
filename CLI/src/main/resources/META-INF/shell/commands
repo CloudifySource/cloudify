@@ -15,6 +15,7 @@
 ##  limitations under the License.
 ##---------------------------------------------------------------------------
 org.openspaces.shell.commands.Exit
+org.openspaces.shell.commands.Version
 org.openspaces.shell.commands.List
 org.openspaces.shell.commands.Bye
 org.openspaces.shell.commands.ListInstances
