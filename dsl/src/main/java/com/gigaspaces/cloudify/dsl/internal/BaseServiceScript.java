@@ -9,8 +9,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
+import org.openspaces.ui.BalanceGauge;
+import org.openspaces.ui.BarLineChart;
+import org.openspaces.ui.MetricGroup;
+import org.openspaces.ui.UserInterface;
+import org.openspaces.ui.WidgetGroup;
+
 import com.gigaspaces.cloudify.dsl.DataGrid;
 import com.gigaspaces.cloudify.dsl.Memcached;
+import com.gigaspaces.cloudify.dsl.MirrorProcessingUnit;
 import com.gigaspaces.cloudify.dsl.PluginDescriptor;
 import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.ServiceLifecycle;
@@ -18,11 +25,6 @@ import com.gigaspaces.cloudify.dsl.ServiceNetwork;
 import com.gigaspaces.cloudify.dsl.Sla;
 import com.gigaspaces.cloudify.dsl.StatefulProcessingUnit;
 import com.gigaspaces.cloudify.dsl.StatelessProcessingUnit;
-import org.openspaces.ui.BalanceGauge;
-import org.openspaces.ui.BarLineChart;
-import org.openspaces.ui.MetricGroup;
-import org.openspaces.ui.UserInterface;
-import org.openspaces.ui.WidgetGroup;
 
 public abstract class BaseServiceScript extends Script {
 
@@ -187,7 +189,9 @@ public abstract class BaseServiceScript extends Script {
 			return new StatelessProcessingUnit();
 		} else if (name.equals("statefulProcessingUnit")) {
 			return new StatefulProcessingUnit();
-		} else if (name.equals("memcached")) {
+		}else if (name.equalsIgnoreCase("mirrorProcessingUnit")){ 
+			return new MirrorProcessingUnit();
+		}else if (name.equals("memcached")) {
 			return new Memcached();
 		} else if (name.equals("dataGrid")) {
 			return new DataGrid();

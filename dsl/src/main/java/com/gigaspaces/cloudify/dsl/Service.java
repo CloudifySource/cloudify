@@ -199,8 +199,6 @@ public class Service implements Serializable {
         this.type = type;
     }
     
-
-
 	public void setStatelessProcessingUnit(StatelessProcessingUnit statelessProcessingUnit) {
 		if (this.serviceProcessingUnit == null){
 			this.serviceProcessingUnit = statelessProcessingUnit;
@@ -209,6 +207,13 @@ public class Service implements Serializable {
 		}
 	}
 
+	public void setMirrorProcessingUnit(MirrorProcessingUnit mirrorProcessingUnit) {
+		if (this.serviceProcessingUnit == null){
+			this.serviceProcessingUnit = mirrorProcessingUnit;
+		}else{
+			throw new IllegalStateException("DSL File contains more then 1 ProcessingUnit state");
+		}
+	}
 
 	public void setStatefulProcessingUnit(StatefulProcessingUnit statefulProcessingUnit) {
 		if (this.serviceProcessingUnit == null){
@@ -246,6 +251,14 @@ public class Service implements Serializable {
 		StatelessProcessingUnit service = null;
 		if (this.serviceProcessingUnit instanceof StatelessProcessingUnit){
 			service = (StatelessProcessingUnit)serviceProcessingUnit;
+		}
+		return service;
+	}
+	
+	public StatelessProcessingUnit getMirrorProcessingUnit() {
+		StatelessProcessingUnit service = null;
+		if (this.serviceProcessingUnit instanceof MirrorProcessingUnit){
+			service = (MirrorProcessingUnit)serviceProcessingUnit;
 		}
 		return service;
 	}

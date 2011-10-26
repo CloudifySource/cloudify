@@ -1018,10 +1018,9 @@ public class ServiceController {
 		}else if (service.getStatelessProcessingUnit() != null){
 			deployStatelessProcessingUnitAndWait(
 					applicationName, serviceName, zone, new File(projectDir, "ext"), propsFile, service.getStatelessProcessingUnit(), cloud, service.getNumInstances());
-//		}
-//			else if (service.getMirrorProcessingUnit() != null){
-//			deployStatelessProcessingUnitAndWait(
-//					applicationName, serviceName, zone, new File(projectDir, "ext"), propsFile, service.getMirrorProcessingUnit(), cloud, service.getNumInstances());
+		}else if (service.getMirrorProcessingUnit() != null){
+			deployStatelessProcessingUnitAndWait(
+					applicationName, serviceName, zone, new File(projectDir, "ext"), propsFile, service.getMirrorProcessingUnit(), cloud, service.getNumInstances());
 		}else if (service.getStatefulProcessingUnit() != null){
 			deployStatefulProcessingUnit(
 					applicationName, serviceName, zone, new File(projectDir, "ext"), propsFile, service.getStatefulProcessingUnit(), cloud);
