@@ -220,13 +220,13 @@ public class ServiceReader {
 			final ClusterInfo clusterInfo, final String propertiesFileName,
 			final boolean isRunningInGSC) {
 
-		LinkedHashMap<Object,Object> properties = null;
+		LinkedHashMap<Object, Object> properties = null;
 		try {
 			properties = createServiceProperties(dslFile, workDir,
 					propertiesFileName);
 		} catch (Exception e) {
 			String fileName = propertiesFileName;
-			if(fileName == null) {
+			if (fileName == null) {
 				fileName = "<default properties file>";
 			}
 			throw new IllegalArgumentException(
@@ -277,7 +277,8 @@ public class ServiceReader {
 					+ " could not be read", e);
 		} catch (MissingMethodException e) {
 			throw new IllegalArgumentException(
-					"Could not resolve DSL entry with name: " + e.getMethod(), e);
+					"Could not resolve DSL entry with name: " + e.getMethod(),
+					e);
 		} catch (MissingPropertyException e) {
 			throw new IllegalArgumentException(
 					"Could not resolve DSL entry with name: " + e.getProperty(),
@@ -299,35 +300,53 @@ public class ServiceReader {
 			final File dslFile, final File workDir,
 			final String propertiesFileName) throws IOException {
 
-		// TODO - refactor this - remove the recursive call.
-		if (propertiesFileName != null) {
-			File propertiesFile = new File(workDir, propertiesFileName);
+		File propertiesFile = null;
+
+		if (propertiesFileName == null) {
+			propertiesFile = findDefaultPropertiesFile(dslFile, workDir);
+			if (propertiesFile == null) {
+				return new LinkedHashMap<Object, Object>();
+			}
+		} else {
+			propertiesFile = new File(workDir, propertiesFileName);
 			if (!propertiesFile.exists()) {
 				throw new FileNotFoundException("Could not find file: "
 						+ propertiesFileName + " in directory: " + workDir);
 			}
 
+		}
+		try {
 			ConfigObject config = new ConfigSlurper().parse(propertiesFile
 					.toURI().toURL());
 
-			return config;		
-
-		} else {
-			String baseFileName = dslFile.getName();
-			String[] parts = baseFileName.split(Pattern.quote("."));
-			if (parts.length > 0) {
-				baseFileName = parts[0];
-			}
-			String defaultPropertiesFileName = baseFileName + ".properties";
-			String actualPropertiesFileName = defaultPropertiesFileName;
-			try {
-				return createServiceProperties(dslFile, workDir,
-						actualPropertiesFileName);
-			} catch (FileNotFoundException e) {
-				return new LinkedHashMap<Object, Object>();
-			}
-
+			return config;
+		} catch (Exception e) {
+			throw new IOException("Failed to read properties file: "
+					+ propertiesFile, e);
 		}
+
+	}
+
+	private static File findDefaultPropertiesFile(final File dslFile,
+			final File workDir) throws IOException {
+		String baseFileName = dslFile.getName();
+		String[] parts = baseFileName.split(Pattern.quote("."));
+		if (parts.length > 0) {
+			baseFileName = parts[0];
+		} else {
+			// illegal file name format?
+			logger.warning("Could not find '.' character in DSL file name. Cannot find default properties file");
+			return null;
+		}
+
+		String defaultPropertiesFileName = baseFileName + ".properties";
+		File propsFile = new File(workDir, defaultPropertiesFileName);
+		if (propsFile.exists()) {
+			return propsFile;
+		} else {
+			return null;
+		}
+
 	}
 
 	private static GroovyShell createGroovyShellForService(
@@ -347,7 +366,8 @@ public class ServiceReader {
 	}
 
 	private static GroovyShell createGroovyShell(final String baseClassName,
-			final LinkedHashMap<Object,Object> properties, ServiceContext context) {
+			final LinkedHashMap<Object, Object> properties,
+			ServiceContext context) {
 		final CompilerConfiguration cc = ServiceReader
 				.createCompilerConfiguration(baseClassName);
 
@@ -359,14 +379,14 @@ public class ServiceReader {
 		return gs;
 	}
 
-	private static Binding createGroovyBinding(final LinkedHashMap<Object,Object> properties,
+	private static Binding createGroovyBinding(
+			final LinkedHashMap<Object, Object> properties,
 			ServiceContext context) {
 		final Binding binding = new Binding();
 		if (properties != null) {
 			Set<Entry<Object, Object>> entries = properties.entrySet();
 			for (Entry<Object, Object> entry : entries) {
-				binding.setVariable((String) entry.getKey(),
-						entry.getValue());
+				binding.setVariable((String) entry.getKey(), entry.getValue());
 			}
 			if (context != null) {
 				binding.setVariable("context", context);
