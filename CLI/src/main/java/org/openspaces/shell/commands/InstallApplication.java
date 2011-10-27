@@ -58,12 +58,12 @@ public class InstallApplication extends AdminAwareCommand {
 		
 		logger.info("Evaluating groovy application file");
 		final Application application = ServiceReader.getApplicationFromFile(applicationFile).getApplication();
-		if (adminFacade.getApplicationsList().contains(application.getName())){
-			throw new ErrorStatusException("application_already_deployed", application.getName());
-		}
 
 		normalizeApplicationName(application);
-
+		
+		if (adminFacade.getApplicationsList().contains(applicationName)){
+			throw new ErrorStatusException("application_already_deployed", application.getName());
+		}
 
 		File zipFile = null;
 		if (!applicationFile.isFile()) {
