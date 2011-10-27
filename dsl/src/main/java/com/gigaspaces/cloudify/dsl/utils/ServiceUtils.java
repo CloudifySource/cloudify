@@ -9,9 +9,6 @@ import java.net.Socket;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
-
-import com.gigaspaces.cloudify.dsl.internal.DSLException;
 
 public class ServiceUtils {
 
@@ -20,68 +17,16 @@ public class ServiceUtils {
 			.getLogger(ServiceUtils.class.getName());
 
 	/**
-	 * Same as waitForPortToOpen. Wait for ports to be opened by the process
-	 * with default set to 127.0.0.1
+	 * Same as isPortsOccupied. Check that ports have been opened by the process.
+	 * with default host set to 127.0.0.1
 	 * 
 	 * @param portList
 	 * @param timeoutInSeconds
 	 * @throws TimeoutException
 	 */
-	public static void waitForPortToOpen(List<Integer> portList,
-			int timeoutInSeconds) throws TimeoutException {
-		waitForPortToOpen(portList, "127.0.0.1", timeoutInSeconds);
-	}
-
-	/**
-	 * checkPortsOpen will repeatedly try to connect to the ports defined in the
-	 * groovy configuration file every second for the specified timeout period
-	 * to see whether the ports are open. Having all the tested ports opened
-	 * means that the process has completed loading successfully.
-	 * 
-	 * @throws DSLException
-	 * 
-	 */
-	public static void waitForPortToOpen(List<Integer> portList,
-			String hostName, int timeoutInSeconds) throws TimeoutException {
-		if (portList == null || portList.isEmpty()) {
-			throw new IllegalArgumentException(
-					"No port was defined in the configuration file");
-		}
-		long start = System.currentTimeMillis();
-		int openPortsCounter;
-		while (System.currentTimeMillis() < start + timeoutInSeconds * 1000) {
-			Socket sock = null;
-			openPortsCounter = 0;
-			logger.info("Checking connection to " + hostName + " on ports "
-					+ portList);
-			for (int port : portList) {
-				try {
-					sock = new Socket();
-					sock.connect(new InetSocketAddress(hostName, port));
-					sock.close();
-					openPortsCounter++;
-					logger.fine("Connection to port: " + port + " Succeeded!");
-					if (openPortsCounter == portList.size()) {
-						return;
-					}
-				} catch (IOException ioe) {
-					logger.fine("Connection to port " + port + " Failed!");
-					break;
-				} finally {
-					try {
-						sock.close();
-					} catch (IOException e) {
-						// ignore
-					}
-				}
-			}
-			try {
-
-				Thread.sleep(TIMEOUT_BETWEEN_CONNECTION_ATTEMPTS);
-			} catch (InterruptedException e) {
-			}
-
-		}
+	public static boolean isPortsOccupied(List<Integer> portList,
+			int timeoutInSeconds) {
+		return isPortsOccupied(portList, "127.0.0.1");
 	}
 
 	/**
@@ -134,13 +79,18 @@ public class ServiceUtils {
 	 * @return - true if ports are free
 	 */
 	public static boolean isPortsFree(List<Integer> portList, String hostName) {
-		Socket sock = new Socket();
+		Socket sock = null;
+		int portCounter = 0;
 		for (int port : portList) {
 			try {
+				sock = new Socket();
 				sock.connect(new InetSocketAddress(hostName, port));
 				sock.close();
-				// connection succeeded - the port is not free
-				return false;
+				portCounter++;
+				if (portCounter == portList.size()){
+					// connection succeeded - the port is not free
+					return false;
+				}
 			} catch (IOException e) {
 			} finally {
 				try {
@@ -151,6 +101,43 @@ public class ServiceUtils {
 			}
 		}
 		return true;
+	}
+	
+	/**
+	 * isPortsOccupied will repeatedly try to connect to the ports defined in the
+	 * groovy configuration file to see whether the ports are open. Having all the tested ports opened
+	 * means that the process has completed loading successfully and is up and running.
+	 * 
+	 * @throws DSLException
+	 * 
+	 */
+	public static boolean isPortsOccupied(List<Integer> portList, String hostName) {
+		Socket sock = null;
+		int portCounter = 0;
+		for (int port : portList) {
+			try {
+				sock = new Socket();
+				logger.info("Checking port " + port );
+				sock.connect(new InetSocketAddress(hostName, port));
+				logger.info("Connected to port " + port );
+				sock.close();
+				portCounter++;
+				logger.info("Port list size is " + portList.size() + " Port counter is " + portCounter);
+				if (portCounter == portList.size()){
+					// connection succeeded - the port is not free
+					return true;
+				}
+			} catch (IOException e) {
+				return false;
+			} finally {
+				try {
+					sock.close();
+				} catch (IOException e) {
+					// ignore
+				}
+			}
+		}
+		return false;
 	}
 
 	/*********
