@@ -117,12 +117,11 @@ public class ServiceUtils {
 		for (int port : portList) {
 			try {
 				sock = new Socket();
-				logger.info("Checking port " + port );
+				logger.fine("Checking port " + port );
 				sock.connect(new InetSocketAddress(hostName, port));
-				logger.info("Connected to port " + port );
+				logger.fine("Connected to port " + port );
 				sock.close();
 				portCounter++;
-				logger.info("Port list size is " + portList.size() + " Port counter is " + portCounter);
 				if (portCounter == portList.size()){
 					// connection succeeded - the port is not free
 					return true;
