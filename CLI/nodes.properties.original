@@ -1,6 +1,0 @@
-nodes=pc-lab36,pc-lab37,pc-lab38,pc-lab42,pc-lab43,pc-lab44
-username=barakme
-password=Tojo797
-localDir=C:/docBaseBare
-remoteDir=/tmp/gs-files
-lookupGroups=cloudify-demo
