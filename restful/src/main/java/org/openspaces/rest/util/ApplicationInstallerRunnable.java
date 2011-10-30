@@ -57,15 +57,15 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 			final String serviceName = service.getName();
 			boolean found = false;
+			File packedFile = null;
 			try {
 				
-				File packedFile = Packager.pack(new File(appDir, serviceName));
+				packedFile = Packager.pack(new File(appDir, serviceName));
 				result.getApplicationFile().delete();
 				packedFile.deleteOnExit();
 				controller.deployElasticProcessingUnit(serviceName,
 						applicationName, serviceName, packedFile,
 						contextProperties);
-				FileUtils.deleteDirectory(packedFile.getParentFile());
 				boolean instanceFound = controller.waitForServiceInstance(
 						applicationName, serviceName,
 						SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES,
@@ -94,6 +94,14 @@ public class ApplicationInstallerRunnable implements Runnable {
 								+ "Some services may already have started, and should be shutdown manually. Error was: "
 								+ e.getMessage(), e);
 				return;
+			}finally{
+				try{
+					if (packedFile != null){
+						FileUtils.deleteDirectory(packedFile.getParentFile());
+					}
+				}catch(IOException e){
+					logger.fine("Unable to delete temp applicaiton file " + packedFile.getName());
+				}
 			}
 
 			if (!found) {
