@@ -23,7 +23,7 @@
 			<groupId>com.gigaspaces.cloudify</groupId>
 			<artifactId>dsl</artifactId>
 			<version>${cloudifyVersion}</version>
-			<scope>test</scope>
+			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.gigaspaces.cloudify</groupId>
