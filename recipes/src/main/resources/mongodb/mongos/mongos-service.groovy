@@ -14,7 +14,7 @@ service {
 	plugins([		
         plugin {
             name "portLiveness"
-            className "org.openspaces.usm.mongodb.MongoLivenessDetector"
+            className "com.gigaspaces.cloudify.mongodb.MongoLivenessDetector"
             config ([                
 				"port" : 30000,
                 "timeoutInSeconds" : 240,
@@ -23,7 +23,7 @@ service {
         }, 
 		plugin {
 			name "MongoDBMonitorsPlugin"
-			className "org.openspaces.usm.mongodb.MongoDBMonitorsPlugin"
+			className "com.gigaspaces.cloudify.mongodb.MongoDBMonitorsPlugin"
 			config([				
 				"host":"127.0.0.1",
 				"port" : 30000,
@@ -35,7 +35,7 @@ service {
 		}, 
 		plugin {
 			name "MongoDBDetailsPlugin"
-			className "org.openspaces.usm.mongodb.MongoDBDetailsPlugin"
+			className "com.gigaspaces.cloudify.mongodb.MongoDBDetailsPlugin"
 			config([
 				"host":"127.0.0.1",				
 				"port" : 30000,
