@@ -56,7 +56,7 @@ public class InstallApplication extends AdminAwareCommand {
 
 		long end = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(timeoutInMinutes);
 		
-		logger.info("Evaluating groovy application file");
+		logger.info("Validating file " + applicationFile.getName());
 		final Application application = ServiceReader.getApplicationFromFile(applicationFile).getApplication();
 
 		normalizeApplicationName(application);
@@ -83,7 +83,7 @@ public class InstallApplication extends AdminAwareCommand {
 		}
 		
 		// toString of string list (i.e. [service1, service2])
-		logger.info("Uploading application file to the restful gateway");
+		logger.info("Uploading application " + applicationName);
 		String serviceOrder = adminFacade.installApplication(zipFile,
 				applicationName);
 		//If temp file was created, Delete it.
