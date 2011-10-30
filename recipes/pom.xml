@@ -26,17 +26,10 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-all</artifactId>
-			<version>1.9.0-rc1</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
 			<groupId>com.gigaspaces.cloudify</groupId>
 			<artifactId>UniversalServiceManager</artifactId>
 			<version>${cloudifyVersion}</version>
-			<scope>test</scope>
+			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
