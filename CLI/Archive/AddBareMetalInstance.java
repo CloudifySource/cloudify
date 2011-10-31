@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package org.openspaces.shell.commands;
+package com.gigaspaces.cloudify.shell.commands;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -36,7 +36,7 @@ import org.apache.felix.gogo.commands.CompleterValues;
 import org.openspaces.cloud.installer.AgentlessInstaller;
 import org.openspaces.cloud.installer.InstallationDetails;
 import org.openspaces.cloud.installer.InstallerException;
-import org.openspaces.shell.rest.ErrorStatusException;
+import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
 
 /**
  * @author barakme
