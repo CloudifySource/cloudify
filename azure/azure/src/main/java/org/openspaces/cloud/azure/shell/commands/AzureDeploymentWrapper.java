@@ -33,10 +33,10 @@ import org.openspaces.cloud.azure.AzureDeploymentStatus;
 import org.openspaces.cloud.azure.AzureSlot;
 import org.openspaces.cloud.azure.files.AzureDeploymentConfigurationFile;
 import org.openspaces.cloud.azure.shell.AzureUtils;
-import org.openspaces.shell.AdminFacade;
-import org.openspaces.shell.ConditionLatch;
-import org.openspaces.shell.ShellUtils;
-import org.openspaces.shell.commands.CLIException;
+import com.gigaspaces.cloudify.shell.AdminFacade;
+import com.gigaspaces.cloudify.shell.ConditionLatch;
+import com.gigaspaces.cloudify.shell.ShellUtils;
+import com.gigaspaces.cloudify.shell.commands.CLIException;
 
 public class AzureDeploymentWrapper {
 

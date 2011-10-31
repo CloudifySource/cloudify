@@ -27,9 +27,9 @@ import org.apache.felix.gogo.commands.Option;
 import org.openspaces.cloud.azure.AzureDeploymentStatus;
 import org.openspaces.cloud.azure.files.AzureDeploymentConfigurationFile;
 import org.openspaces.cloud.azure.shell.AzureUtils;
-import org.openspaces.shell.ShellUtils;
-import org.openspaces.shell.commands.AdminAwareCommand;
-import org.openspaces.shell.commands.CLIException;
+import com.gigaspaces.cloudify.shell.ShellUtils;
+import com.gigaspaces.cloudify.shell.commands.AdminAwareCommand;
+import com.gigaspaces.cloudify.shell.commands.CLIException;
 
 /**
  * @author barakme

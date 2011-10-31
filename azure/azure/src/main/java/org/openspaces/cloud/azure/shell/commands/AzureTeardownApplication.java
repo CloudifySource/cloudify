@@ -25,8 +25,8 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.openspaces.cloud.azure.AzureDeploymentStatus;
 import org.openspaces.cloud.azure.shell.AzureUtils;
-import org.openspaces.shell.commands.AbstractGSCommand;
-import org.openspaces.shell.commands.CLIException;
+import com.gigaspaces.cloudify.shell.commands.AbstractGSCommand;
+import com.gigaspaces.cloudify.shell.commands.CLIException;
 
 /**
  * Installs applications consisting of one or more services
