@@ -7,10 +7,10 @@ import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.openspaces.cloud.shell.installer.CloudGridAgentBootstrapper;
-import org.openspaces.shell.AdminFacade;
-import org.openspaces.shell.Constants;
-import org.openspaces.shell.ShellUtils;
-import org.openspaces.shell.commands.AbstractGSCommand;
+import com.gigaspaces.cloudify.shell.AdminFacade;
+import com.gigaspaces.cloudify.shell.Constants;
+import com.gigaspaces.cloudify.shell.ShellUtils;
+import com.gigaspaces.cloudify.shell.commands.AbstractGSCommand;
 
 @Command(scope = "cloudify", name = "bootstrap-cloud", description = "Starts Cloudify Agent without any zone, and the Cloudify management processes on the provided cloud.")
 public class BootstrapCloud extends AbstractGSCommand {

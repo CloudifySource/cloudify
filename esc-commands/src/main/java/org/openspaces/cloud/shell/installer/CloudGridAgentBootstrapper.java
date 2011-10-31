@@ -29,11 +29,11 @@ import org.openspaces.cloud.installer.InstallationDetails;
 import org.openspaces.cloud.installer.InstallerException;
 import org.openspaces.cloud.jclouds.JCloudsDeployer;
 import org.openspaces.cloud.util.Utils;
-import org.openspaces.shell.AdminFacade;
-import org.openspaces.shell.ConditionLatch;
-import org.openspaces.shell.ShellUtils;
-import org.openspaces.shell.commands.CLIException;
-import org.openspaces.shell.installer.ManagementWebServiceInstaller;
+import com.gigaspaces.cloudify.shell.AdminFacade;
+import com.gigaspaces.cloudify.shell.ConditionLatch;
+import com.gigaspaces.cloudify.shell.ShellUtils;
+import com.gigaspaces.cloudify.shell.commands.CLIException;
+import com.gigaspaces.cloudify.shell.installer.ManagementWebServiceInstaller;
 
 import com.gigaspaces.cloudify.dsl.Cloud;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
