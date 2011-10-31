@@ -13,7 +13,7 @@
         <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_FALLBACK"/>
 	</bean>
 	
-	<!-- <bean id="securityPropagation" class="org.openspaces.rest.security.SecurityPropagation"
+	<!-- <bean id="securityPropagation" class="com.gigaspaces.cloudify.rest.security.SecurityPropagation"
 		factory-method="valueOf">
 		<constructor-arg>
 			<value>${security.propagation}</value>
@@ -23,7 +23,7 @@
 	<mvc:annotation-driven />
 	<mvc:resources mapping="/resources/**" location="/resources/" />
 
-	<context:component-scan base-package="org.openspaces.rest" />
+	<context:component-scan base-package="com.gigaspaces.cloudify.rest" />
 
 	<bean
 		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
@@ -35,7 +35,7 @@
 
 	<bean class="org.springframework.web.servlet.view.BeanNameViewResolver" />
 
-	<bean id="admin" class="org.openspaces.rest.util.AdminFactoryBean">
+	<bean id="admin" class="com.gigaspaces.cloudify.rest.util.AdminFactoryBean">
         <property name="groups" value="${restful.lookupGroup}"/>
         <property name="locators" value="${restful.lookupLocator}"/>
 	</bean>

@@ -1,4 +1,4 @@
-package org.openspaces.rest.command;
+package com.gigaspaces.cloudify.rest.command;
 
 import java.util.ArrayList;
 import java.util.List;

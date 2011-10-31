@@ -1,11 +1,11 @@
-package org.openspaces.rest.out;
+package com.gigaspaces.cloudify.rest.out;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.openspaces.rest.command.CommandManager;
+import com.gigaspaces.cloudify.rest.command.CommandManager;
 
 
 public class OutputDispatcher {

@@ -1,4 +1,4 @@
-package org.openspaces.rest;
+package com.gigaspaces.cloudify.rest;
 
 /**
  * @author uri

@@ -1,9 +1,9 @@
-package org.openspaces.rest.util;
+package com.gigaspaces.cloudify.rest.util;
 
+import com.gigaspaces.cloudify.rest.SecurityPropagation;
 import com.gigaspaces.security.directory.UserDetails;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
-import org.openspaces.rest.SecurityPropagation;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;

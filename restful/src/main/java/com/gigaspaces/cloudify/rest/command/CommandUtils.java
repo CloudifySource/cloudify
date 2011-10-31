@@ -1,11 +1,11 @@
-package org.openspaces.rest.command;
+package com.gigaspaces.cloudify.rest.command;
 
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.openspaces.rest.out.OutputUtils;
+import com.gigaspaces.cloudify.rest.out.OutputUtils;
 
 public class CommandUtils {
 	
