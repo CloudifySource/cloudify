@@ -41,18 +41,17 @@ import org.openspaces.cloud.azure.files.AzureDeploymentDefinitionFile;
 import org.openspaces.cloud.azure.files.AzureServiceDefinition;
 import org.openspaces.cloud.azure.files.XMLXPathEditorException;
 import org.openspaces.cloud.azure.shell.AzureUtils;
-import com.gigaspaces.cloudify.shell.AdminFacade;
+
+import com.gigaspaces.cloudify.dsl.Application;
+import com.gigaspaces.cloudify.dsl.Service;
+import com.gigaspaces.cloudify.dsl.Sla;
+import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 import com.gigaspaces.cloudify.shell.AdminFacade;
 import com.gigaspaces.cloudify.shell.Constants;
 import com.gigaspaces.cloudify.shell.ShellUtils;
 import com.gigaspaces.cloudify.shell.commands.AbstractGSCommand;
 import com.gigaspaces.cloudify.shell.commands.CLIException;
 import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
-
-import com.gigaspaces.cloudify.dsl.Application;
-import com.gigaspaces.cloudify.dsl.Service;
-import com.gigaspaces.cloudify.dsl.Sla;
-import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 
 /**
  * @author dank
