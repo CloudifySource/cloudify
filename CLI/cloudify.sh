@@ -25,8 +25,19 @@ function setCloudifyClassPath() {
 	CLI_JARS=${JSHOMEDIR}/tools/cli/cli.jar
 	SIGAR_JARS=${JSHOMEDIR}/lib/platform/sigar/sigar.jar
 	GROOVY_JARS=${JSHOMEDIR}/tools/groovy/lib/*
-	ESC_JARS=${JSHOMEDIR}/lib/platform/esm/esc.jar
+	ESC_JARS=
 	
+	# Add esc dependencies
+	for jar in `find ${JSHOMEDIR}/lib/platform/esm -mindepth 1 -maxdepth 1 -type f -name \*.jar`
+	do
+		if [ "${ESC_JARS}" == "" ]; then
+			ESC_JARS=${jar}
+		else
+			ESC_JARS=${ESC_JARS}${CPS}${jar}
+		fi
+	done	
+	
+	# Add plugins and dependencies
 	PLUGIN_JARS=
     
 	for jar in `find ${SCRIPT_PATH}/plugins -mindepth 2 -maxdepth 2 -type f -name \*.jar`

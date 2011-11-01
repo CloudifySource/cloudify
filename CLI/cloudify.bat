@@ -35,8 +35,14 @@ goto :END
 	set CLI_JARS="%JSHOMEDIR%\tools\cli\cli.jar"
 	set SIGAR_JARS="%JSHOMEDIR%\lib\platform\sigar\sigar.jar"
 	set GROOVY_JARS="%JSHOMEDIR%\tools\groovy\lib\*"
-	set ESC_JARS="%JSHOMEDIR%\lib\platform\esm\esc.jar"
 	
+	@rem Add esc dependencies
+	set ESC_JARS=
+	pushd "%JSHOMEDIR%\lib\platform\esm"
+		for %%G in (*.jar) do call:APPEND_TO_ESC_JARS %JSHOMEDIR%\lib\platform\esm\%%G
+	popd
+	
+	@rem Add plugins and dependencies
 	set PLUGIN_JARS=
 	
 	pushd "%SCRIPT_PATH%\plugins"
@@ -58,6 +64,10 @@ goto :END
 	set PLUGIN_JARS=%PLUGIN_JARS%;%filename%
 goto :END
 
+:APPEND_TO_ESC_JARS
+	set filename=%~1
+	set ESC_JARS=%ESC_JARS%;%filename%
+goto :END
 
 :SET_COMMAND_LINE
 	set CLI_ENTRY_POINT=com.gigaspaces.cloudify.shell.GigaShellMain
