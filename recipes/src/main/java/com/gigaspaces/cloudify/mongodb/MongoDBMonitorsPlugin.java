@@ -20,8 +20,8 @@ public class MongoDBMonitorsPlugin extends AbstractMongoPlugin implements Monito
     	Map<String, Object> data = getData();
     	Map<String, Number> monitorMap = new HashMap<String, Number>();
     	for (Map.Entry<String, Object> entry : data.entrySet()) {
-    		if(NumberUtils.isNumber((String) entry.getValue())){
-    			Number number = NumberUtils.createNumber((String) entry.getValue());
+    		if(NumberUtils.isNumber(entry.getValue().toString())){
+    			Number number = NumberUtils.createNumber(entry.getValue().toString());
     			monitorMap.put(entry.getKey(), number);
     		}
 		}
