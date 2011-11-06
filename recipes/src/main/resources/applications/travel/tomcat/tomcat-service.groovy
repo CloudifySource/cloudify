@@ -19,7 +19,7 @@ service {
             name "portLiveness"
             className "com.gigaspaces.cloudify.usm.liveness.PortLivenessDetector"
             config ([
-                "Port" : [8080],
+                "Port" : [8080,8009],
                 "TimeoutInSeconds" : 240,
                 "Host" : "127.0.0.1"
             ])
@@ -44,7 +44,7 @@ service {
 					"Catalina:type=Manager,context=/travel,host=localhost",
 					"activeSessions"
 				],
-				port: 9999
+				port: 11099
 			])
 		}
 	])
