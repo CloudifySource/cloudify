@@ -11,7 +11,7 @@ service {
 		preStop "tomcat_stop.groovy"
 
 		startDetection {
-			!ServiceUtils.isPortFree(8080)
+			!ServiceUtils.isPortsFree([8080, 8009] )
 		}
 	}
 
