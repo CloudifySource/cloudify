@@ -40,7 +40,7 @@ service {
 							"Catalina:type=Manager,context=/travel,host=localhost",
 							"activeSessions"
 						],
-						port: 9999
+						port: 11099
 					])
 		}
 	])
