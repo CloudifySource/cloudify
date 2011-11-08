@@ -279,7 +279,7 @@ public class CliAzureDeloymentTest {
         runCliCommands(cliExecutablePath, commands, isDebugMode);
         commands.clear();
         
-        repetativeAssert("Failed waiting for scale out", new RepetativeConditionProvider() {
+        repetativeAssert("Failed waiting for scale in", new RepetativeConditionProvider() {
             public boolean getCondition() {
                 try {
                     return getNumberOfMachines(restAdminMachinesUrl) == EXPECTED_NUMBER_OF_MACHINES;
