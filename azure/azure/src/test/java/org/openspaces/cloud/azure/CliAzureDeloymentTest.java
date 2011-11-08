@@ -78,6 +78,7 @@ public class CliAzureDeloymentTest {
     private static final String APPLICATION_NAME = "travel";
     private static final AzureSlot AZURE_SLOT = AzureSlot.Staging;
     private static final String RDP_PFX_FILE_PASSWORD = "123456";
+    private static final String INITIAL_NUMBER_OF_INSTANCES_FOR_TOMCAT_SERVICE = "1";
     private static final String NUMBER_OF_INSTANCES_FOR_TOMCAT_SERVICE = "2";
     private static final String TOMCAT_SERVICE = "tomcat";
     
@@ -267,6 +268,28 @@ public class CliAzureDeloymentTest {
         
         Assert.assertFalse("Travel application should not be running", isUrlAvailable(travelApplicationUrl.toURL()));
         
+        
+        setInstancesScaleOutCommand = Arrays.asList(
+            "azure:set-instances",
+            "-azure-svc", AZURE_HOSTED_SERVICE,
+            TOMCAT_SERVICE, INITIAL_NUMBER_OF_INSTANCES_FOR_TOMCAT_SERVICE
+        );
+        
+        commands.add(connectCommand);
+        commands.add(setInstancesScaleOutCommand);
+        runCliCommands(cliExecutablePath, commands, isDebugMode);
+        commands.clear();
+        
+        repetativeAssert("Failed waiting for scale out", new RepetativeConditionProvider() {
+            public boolean getCondition() {
+                try {
+                    return getNumberOfMachines(restAdminMachinesUrl) == EXPECTED_NUMBER_OF_MACHINES;
+                } catch (Exception e) {
+                    return false;
+                }
+            }
+        });
+       
         commands.add(connectCommand);
         commands.add(installApplicationCommand);
         runCliCommands(cliExecutablePath, commands, isDebugMode);
