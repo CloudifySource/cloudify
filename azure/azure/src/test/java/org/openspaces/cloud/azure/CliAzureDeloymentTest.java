@@ -268,15 +268,14 @@ public class CliAzureDeloymentTest {
         
         Assert.assertFalse("Travel application should not be running", isUrlAvailable(travelApplicationUrl.toURL()));
         
-        
-        setInstancesScaleOutCommand = Arrays.asList(
+        List<String> setInstancesScaleInCommand = Arrays.asList(
             "azure:set-instances",
             "-azure-svc", AZURE_HOSTED_SERVICE,
             TOMCAT_SERVICE, INITIAL_NUMBER_OF_INSTANCES_FOR_TOMCAT_SERVICE
         );
         
         commands.add(connectCommand);
-        commands.add(setInstancesScaleOutCommand);
+        commands.add(setInstancesScaleInCommand);
         runCliCommands(cliExecutablePath, commands, isDebugMode);
         commands.clear();
         
