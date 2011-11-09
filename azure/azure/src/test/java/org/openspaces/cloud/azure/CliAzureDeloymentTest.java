@@ -207,11 +207,14 @@ public class CliAzureDeloymentTest {
 
         List<String> connectCommand = Arrays.asList(
              "azure:connect-app", 
+             "--verbose",
              "-azure-svc", AZURE_HOSTED_SERVICE
         );
         
         List<String> installApplicationCommand = Arrays.asList(
-            "install-application", applicationAbsolutePath
+            "install-application", 
+            "--verbose",
+            applicationAbsolutePath
         );
         
         commands.add(connectCommand);
@@ -235,6 +238,7 @@ public class CliAzureDeloymentTest {
      
         List<String> setInstancesScaleOutCommand = Arrays.asList(
             "azure:set-instances",
+            "--verbose",
             "-azure-svc", AZURE_HOSTED_SERVICE,
             TOMCAT_SERVICE, NUMBER_OF_INSTANCES_FOR_TOMCAT_SERVICE 
         );
@@ -256,6 +260,7 @@ public class CliAzureDeloymentTest {
         
         List<String> uninstallApplicationCommand = Arrays.asList(
             "uninstall-application", 
+            "--verbose",
             "-timeout", String.valueOf(TIMEOUT_IN_MINUTES),
             "-progress", String.valueOf(POLLING_INTERVAL_IN_MINUTES),
 			APPLICATION_NAME
@@ -270,6 +275,7 @@ public class CliAzureDeloymentTest {
         
         List<String> setInstancesScaleInCommand = Arrays.asList(
             "azure:set-instances",
+            "--verbose",
             "-azure-svc", AZURE_HOSTED_SERVICE,
             TOMCAT_SERVICE, INITIAL_NUMBER_OF_INSTANCES_FOR_TOMCAT_SERVICE
         );
