@@ -515,7 +515,7 @@ public class JCloudsDeployer {
         do {
             retry = false;
             try {
-                nodes = this.context.getComputeService().createNodesInGroup(group, count, getTemplate());
+                nodes = this.context.getComputeService().createNodesInGroup(group, count, template);
             } catch (final ResourceNotFoundException e) {
                 if (retryAttempts < NUMBER_OF_RETRY_ATTEMPTS &&
                     e.getMessage() != null && 
