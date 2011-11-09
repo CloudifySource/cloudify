@@ -40,6 +40,8 @@ public class CloudMachineProvisioningConfig implements ElasticMachineProvisionin
 	private static final String REMOTE_DIRECTORY_KEY = "remote-directory";
 	private static final String HARDWARE_ID_DIRECTORY_KEY = "hardware-id";
 	private static final String HARDWARE_ID_DEFAULT = "";
+	private static final String LOCATION_ID_KEY = "location-id";
+	private static final String LOCATION_ID_DEFAULT = "us-east-1d";
 	private static final String KEY_PAIR_DIRECTORY_KEY = "key-pair";
 	private static final String KEY_PAIR_DEFAULT = "";
 	private static final String KEY_FILE_DIRECTORY_KEY = "key-file";
@@ -395,6 +397,14 @@ public class CloudMachineProvisioningConfig implements ElasticMachineProvisionin
 		properties.put(HARDWARE_ID_DIRECTORY_KEY, hardwareId);
 	}
 
+   public String getLocationId() {
+        return properties.get(LOCATION_ID_KEY, LOCATION_ID_DEFAULT);
+    }
+    
+    public void setLocationId(final String locationId) {
+        properties.put(LOCATION_ID_KEY, locationId);
+    }
+	
 	public String getSecurityGroup() {
 		return properties.get(SECURITY_GROUP_DIRECTORY_KEY, SECURITY_GROUP_DEFAULT);
 	}

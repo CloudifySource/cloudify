@@ -73,6 +73,7 @@ public class CloudMachineProvisioning implements ElasticMachineProvisioning, Bea
 			this.deployer.setImageId(config.getImageId());
 			this.deployer.setMinRamMegabytes((int) config.getMachineMemoryMB());
 	        this.deployer.setHardwareId(config.getHardwareId());
+	        this.deployer.setLocationId(config.getLocationId());
 	        this.deployer.setSecurityGroup(config.getSecurityGroup());
 			this.deployer.setKeyPair(config.getKeyPair());
 

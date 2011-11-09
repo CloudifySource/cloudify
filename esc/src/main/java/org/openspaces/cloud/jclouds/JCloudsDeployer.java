@@ -63,6 +63,8 @@ public class JCloudsDeployer {
 
 	private String keyPair;
 
+	private String locationId;
+	
 	public String getSecurityGroup() {
 		return securityGroup;
 		
@@ -84,6 +86,14 @@ public class JCloudsDeployer {
 		this.hardwareId = hardwareId;
 	}
 
+    public void setLocationId(final String locationId) {
+        this.locationId = locationId;
+    }
+
+    public String getLocationId() {
+        return locationId;
+    }
+	
 	/********
 	 * .
 	 * 
@@ -399,7 +409,7 @@ public class JCloudsDeployer {
 				this.template = builder.build();
 			}
 			else {
-				builder.locationId("us-east-1d");
+				builder.locationId(getLocationId());
 				this.template = builder.build();
 				
 				String group = "default";
@@ -537,5 +547,5 @@ public class JCloudsDeployer {
         
         return nodes;
 	}
-	
+
 }

@@ -17,7 +17,8 @@ public class Cloud {
 	private String imageId;
 	private long machineMemoryMB;
 	private String hardwareId;
-
+	private String locationId;
+	
 	private String cloudifyUrl;
 	private String machineNamePrefix;
 
@@ -212,5 +213,13 @@ public class Cloud {
 	public long getReservedMemoryCapacityPerMachineInMB() {
 		return reservedMemoryCapacityPerMachineInMB;
 	}
+
+    public void setLocationId(String locationId) {
+        this.locationId = locationId;
+    }
+
+    public String getLocationId() {
+        return locationId;
+    }
 
 }

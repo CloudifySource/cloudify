@@ -363,6 +363,7 @@ public class CloudGridAgentBootstrapper {
         deployer.setMinRamMegabytes((int) config.getMachineMemoryMB());
         deployer.setImageId(config.getImageId());
         deployer.setHardwareId(config.getHardwareId());
+        deployer.setLocationId(config.getLocationId());
         deployer.setSecurityGroup(config.getSecurityGroup());
         deployer.setKeyPair(config.getKeyPair());
         
