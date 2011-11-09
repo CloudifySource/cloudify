@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 import com.gigaspaces.cloudify.shell.AbstractAdminFacade;
 import com.gigaspaces.cloudify.shell.ComponentType;
 import com.gigaspaces.cloudify.shell.commands.CLIException;
@@ -83,9 +84,9 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		
 		int serviceShutDownEvents = 0;
 		
-		String pollingURL = "processingUnits/Names/" + serviceName;
+		String pollingURL = "processingUnits/Names/" + ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 
-		waitForService(serviceName, pollingURL, timeoutErrorMessage, timeout, timeunit);
+		waitForService(applicationName, serviceName, pollingURL, timeoutErrorMessage, timeout, timeunit);
 		
 		logger.info(MessageFormat.format(messages.getString("deploying_service"),serviceName));
         
@@ -128,13 +129,14 @@ public class RestAdminFacade extends AbstractAdminFacade {
 
 	}
 	
-	private void waitForService(String serviceName, String url, String timeoutErrorMessage, long timeout, TimeUnit timeunit) throws TimeoutException, InterruptedException {
+	private void waitForService(String applicationName, String serviceName, String url, String timeoutErrorMessage, long timeout, TimeUnit timeunit) throws TimeoutException, InterruptedException {
 		 
         long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
+        String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
         while (System.currentTimeMillis() < end) {
 			try{ 
 				Map<String, Object> pu = client.getAdminData(url);
-				if (serviceName.equals(pu.get("Name"))) {
+				if (absolutePuName.equals(pu.get("Name"))) {
 					return;
 				}
 			}catch (CLIException e) {
@@ -194,9 +196,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	@SuppressWarnings("unchecked")
 	public List<String> getServicesList(String applicationName)
 			throws CLIException {
-		return (List<String>) client.get("/service/applications/"
+		return (List<String>)client.get("/service/applications/"
 				+ applicationName + "/services");
-
 	}
 
 	@Override
@@ -347,13 +348,15 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			String applicationName, String serviceName) throws CLIException {
 
 		Set<String> containerUids = new HashSet<String>();
+		
 		int numberOfInstances = this.getInstanceList(applicationName,
 				serviceName).size();
-
+		
+		String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		for (int i = 0; i < numberOfInstances; i++) {
 
 			String containerUrl = "applications/Names/" + applicationName
-					+ "/ProcessingUnits/Names/" + serviceName + "/Instances/"
+					+ "/ProcessingUnits/Names/" + absolutePUName + "/Instances/"
 					+ i + "/GridServiceContainer/Uid";
 			try{
 				Map<String, Object> container = (Map<String, Object>) client

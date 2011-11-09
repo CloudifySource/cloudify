@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -97,6 +98,7 @@ import com.gigaspaces.cloudify.dsl.internal.EventLogConstants;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
 import com.gigaspaces.cloudify.dsl.internal.packaging.ZipUtils;
+import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 import com.gigaspaces.cloudify.rest.ResponseConstants;
 import com.gigaspaces.cloudify.rest.util.ApplicationInstallerRunnable;
 import com.gigaspaces.cloudify.rest.util.RestUtils;
@@ -139,7 +141,6 @@ public class ServiceController {
 	@RequestMapping(value = "/testrest", method = RequestMethod.GET)
 	public @ResponseBody	
 	Object test() {
-
 		if (admin.getLookupServices().getSize() > 0) {
 			return successStatus();
 		}
@@ -207,18 +208,28 @@ public class ServiceController {
 		for (ProcessingUnit pu : pus) {
 			puNames.add(pu.getName());
 		}
-		return successStatus(puNames);
+		List<String> serviceNames = new ArrayList<String>(pus.getSize());
+		ListIterator<String> listIterator = puNames.listIterator();
+		while(listIterator.hasNext()) {
+		    String absolutePuName = (String)listIterator.next(); 
+		    serviceNames.add(ServiceUtils.getApplicationServiceName(absolutePuName, applicationName));
+		} 
+		return successStatus(serviceNames);
 	}
 
 	@RequestMapping(value = "/applications/{applicationName}/services/{serviceName}/USMEventsLogs", method = RequestMethod.GET)
 	public @ResponseBody
-	Map<?, ?> getServiceLifecycleLogs(@PathVariable String serviceName) {
+	Map<?, ?> getServiceLifecycleLogs(
+			@PathVariable String applicationName,
+			@PathVariable String serviceName) {
+		//TODO:not run over
+		String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		List<Map<String, String>> serviceEventDetailes = new ArrayList<Map<String, String>>();
-		String regex = MessageFormat.format(USM_EVENT_LOGGER_NAME, serviceName);
+		String regex = MessageFormat.format(USM_EVENT_LOGGER_NAME, absolutePuName);
 		LogEntryMatcher matcher = regex(regex);
-		Zone zone = admin.getZones().getByName(serviceName);
+		Zone zone = admin.getZones().getByName(absolutePuName);
 		if (zone == null) {
-			logger.info("Zone " + serviceName + " does not exist");
+			logger.info("Zone " + absolutePuName + " does not exist");
 			return successStatus();
 		}
 		for (GridServiceContainer container : zone.getGridServiceContainers()) {
@@ -227,7 +238,7 @@ public class ServiceController {
 				if (logEntry.isLog()) {
 					Date tenMinutesAgoGscTime = new Date(new Date().getTime() + container.getOperatingSystem().getTimeDelta() - TEN_MINUTES_MILLISECONDS);
 					if (tenMinutesAgoGscTime.before(new Date(logEntry.getTimestamp()))){
-						Map<String, String> serviceEventsMap = getServiceDetailes(logEntry, container, serviceName);
+						Map<String, String> serviceEventsMap = getServiceDetailes(logEntry, container, absolutePuName, applicationName);
 						serviceEventDetailes.add(serviceEventsMap);
 					}
 				}
@@ -237,15 +248,17 @@ public class ServiceController {
 	}
 
 	private Map<String, String> getServiceDetailes(LogEntry logEntry, 
-			GridServiceContainer container, String serviceName) {
+			GridServiceContainer container, String absolutePuName, String applicationName) {
 
 		Map<String, String> returnMap = new HashMap<String, String>();
 
 		returnMap.put(EventLogConstants.getTimeStampKey(), Long.toString(logEntry.getTimestamp()));
 		returnMap.put(EventLogConstants.getMachineHostNameKey(), container.getMachine().getHostName());
 		returnMap.put(EventLogConstants.getMachineHostAddressKey(), container.getMachine().getHostAddress());
-		returnMap.put(EventLogConstants.getServiceNameKey(), serviceName);
-		returnMap.put(EventLogConstants.getEventTextKey(), logEntry.getText());
+		returnMap.put(EventLogConstants.getServiceNameKey(), ServiceUtils.getApplicationServiceName(absolutePuName, applicationName));
+		//The string replacement is done since the service name that is received from the USM logs derived from actual PU name.
+		returnMap.put(EventLogConstants.getEventTextKey(), logEntry.getText().
+				replaceFirst(absolutePuName + "-", returnMap.get(EventLogConstants.getServiceNameKey()) + "-"));
 
 		return returnMap;
 	}
@@ -255,16 +268,17 @@ public class ServiceController {
 	Map<String, Object> getServiceInstanceList(
 			@PathVariable String applicationName,
 			@PathVariable String serviceName) {
+		String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to list instances for service "
-					+ serviceName + " of application " + applicationName);
+					+ absolutePuName + " of application " + applicationName);
 		}
 		// todo: application awareness
-		ProcessingUnit pu = admin.getProcessingUnits().waitFor(serviceName,
+		ProcessingUnit pu = admin.getProcessingUnits().waitFor(absolutePuName,
 				PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
 		if (pu == null) {
-			logger.severe("Could not find service " + serviceName);
-			return unavailableServiceError(serviceName);
+			logger.severe("Could not find service " + absolutePuName);
+			return unavailableServiceError(absolutePuName);
 		}
 		Map<Integer, String> instanceMap = new HashMap<Integer, String>();
 		ProcessingUnitInstance[] instances = pu.getInstances();
@@ -280,18 +294,19 @@ public class ServiceController {
 	Map<String, Object> invoke(@PathVariable String applicationName,
 			@PathVariable String serviceName, @PathVariable String beanName,
 			@RequestBody Map<String, Object> params) {
+		String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to invoke bean " + beanName
-					+ " of service " + serviceName + " of application "
+					+ " of service " + absolutePuName + " of application "
 					+ applicationName);
 		}
 
 		// Get the PU
-		ProcessingUnit pu = admin.getProcessingUnits().waitFor(serviceName,
+		ProcessingUnit pu = admin.getProcessingUnits().waitFor(absolutePuName,
 				PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
 		if (pu == null) {
-			logger.severe("Could not find service " + serviceName);
-			return unavailableServiceError(serviceName);
+			logger.severe("Could not find service " + absolutePuName);
+			return unavailableServiceError(absolutePuName);
 		}
 
 		// result, mapping service instances to results
@@ -367,6 +382,7 @@ public class ServiceController {
 			@PathVariable String serviceName, @PathVariable int instanceId,
 			@PathVariable String beanName,
 			@RequestBody Map<String, Object> params) {
+		String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to invoke bean " + beanName
 					+ " of service " + serviceName + " of application "
@@ -374,11 +390,11 @@ public class ServiceController {
 		}
 
 		// Get PU
-		ProcessingUnit pu = admin.getProcessingUnits().waitFor(serviceName,
+		ProcessingUnit pu = admin.getProcessingUnits().waitFor(absolutePuName,
 				PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
 		if (pu == null) {
-			logger.severe("Could not find service " + serviceName);
-			return unavailableServiceError(serviceName);
+			logger.severe("Could not find service " + absolutePuName);
+			return unavailableServiceError(absolutePuName);
 		}
 
 		// Get PUI
@@ -386,9 +402,9 @@ public class ServiceController {
 		final String instanceName = buildServiceInstanceName(pui);
 		if (pui == null) {
 			logger.severe("Could not find service instance " + instanceId
-					+ " for service " + serviceName);
+					+ " for service " + absolutePuName);
 			return errorStatus(ResponseConstants.SERVICE_INSTANCE_UNAVAILABLE,
-					applicationName, serviceName, Integer.toString(instanceId));
+					applicationName, absolutePuName, Integer.toString(instanceId));
 		}
 
 		// Invoke the remote service
@@ -399,11 +415,11 @@ public class ServiceController {
 					instanceName);
 			return successStatus(finalResult);
 		} catch (Exception e) {
-			logger.severe("Error invoking pu instance " + serviceName + ":"
+			logger.severe("Error invoking pu instance " + absolutePuName + ":"
 					+ instanceId + " on host "
 					+ pui.getVirtualMachine().getMachine().getHostName());
 			return errorStatus(FAILED_TO_INVOKE_INSTANCE, applicationName,
-					serviceName, Integer.toString(instanceId));
+					absolutePuName, Integer.toString(instanceId));
 		}
 	}
 
@@ -444,10 +460,11 @@ public class ServiceController {
 	public @ResponseBody
 	Map<String, Object> undeploy(@PathVariable String applicationName,
 			@PathVariable String serviceName)  {
+		String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		ProcessingUnit processingUnit = admin.getProcessingUnits().waitFor(
-				serviceName, PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
+				absolutePuName, PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
 		if (processingUnit == null) {
-			return unavailableServiceError(serviceName);
+			return unavailableServiceError(absolutePuName);
 		}
 		processingUnit.undeploy();
 		return successStatus();
@@ -458,11 +475,12 @@ public class ServiceController {
 	Map<String, Object> addInstance(@PathVariable String applicationName,
 			@PathVariable String serviceName,
 			@RequestBody Map<String, String> params) {
+		String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		int timeout = Integer.valueOf(params.get("timeout"));
 		ProcessingUnit processingUnit = admin.getProcessingUnits().waitFor(
-				serviceName, PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
+				absolutePuName, PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
 		if (processingUnit == null) {
-			return unavailableServiceError(serviceName);
+			return unavailableServiceError(absolutePuName);
 		}
 		int before = processingUnit.getNumberOfInstances();
 		processingUnit.incrementInstance();
@@ -479,11 +497,12 @@ public class ServiceController {
 	public @ResponseBody
 	Map<String, Object> removeInstance(@PathVariable String applicationName,
 			@PathVariable String serviceName, @PathVariable int instanceId) {
+		String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		// todo: application awareness
 		ProcessingUnit processingUnit = admin.getProcessingUnits().waitFor(
-				serviceName, PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
+				absolutePuName, PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
 		if (processingUnit == null) {
-			return unavailableServiceError(serviceName);
+			return unavailableServiceError(absolutePuName);
 		}
 		for (ProcessingUnitInstance instance : processingUnit.getInstances()) {
 			if (instance.getInstanceId() == instanceId) {
@@ -1040,20 +1059,21 @@ public class ServiceController {
 	public @ResponseBody
 	Object deployElastic(
 			@PathVariable final String applicationName,
-			@PathVariable final String serviceName,
+			@PathVariable String serviceName,
 			@RequestParam(value = "zone", required = true) final String zone,
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
 			@RequestParam(value = "props", required = true) final MultipartFile propsFile) throws TimeoutException, PackagingException, IOException, AdminException, DSLException
 	 {
-
+		
 		logger.finer("received request to deploy");
+		String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		final byte[] propsBytes = propsFile.getBytes();
 		final Properties props = new Properties();
 		final InputStream is = new ByteArrayInputStream(propsBytes);
 		props.load(is);
 		File dest = copyMultipartFileToLocalFile(srcFile);
 		dest.deleteOnExit();
-		deployElasticProcessingUnit(serviceName, applicationName, zone, dest, props);
+		deployElasticProcessingUnit(absolutePuName, applicationName, zone, dest, props);
 		
 		return successStatus();
 	}
@@ -1072,7 +1092,7 @@ public class ServiceController {
 			return serviceFileOrDir;
 		}
 		
-		throw new FileNotFoundException("The service deployment file was not found in " + serviceFileOrDir);
+		throw new FileNotFoundException("The file " + serviceFileOrDir + " was not found in the service folder");
 	}
 
 	//TODO: consider adding MemoryUnits to DSL

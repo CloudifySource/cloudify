@@ -196,4 +196,16 @@ public class ServiceUtils {
 			}
 		}
 	}
+	
+	//Important: when changing this method you must also change the getApplicationServiceName 
+	//method that extracts the service name from the absolute processing unit's name.  
+	public static String getAbsolutePUName(String applicationName, String serviceName){
+		return (applicationName + "." + serviceName);
+	}
+	
+	//extracts the service name from the absolutePuName. correlates with getAbsolutePUName
+	public static String getApplicationServiceName(String absolutePuName, String applicationName){
+		return absolutePuName.substring(applicationName.length() + 1);
+//		return (applicationName + '.' + serviceName);
+	}
 }

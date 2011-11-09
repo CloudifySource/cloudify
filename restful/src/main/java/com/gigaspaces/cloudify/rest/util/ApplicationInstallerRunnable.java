@@ -14,6 +14,7 @@ import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.internal.DSLApplicationCompilatioResult;
 import com.gigaspaces.cloudify.dsl.internal.packaging.Packager;
+import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 import com.gigaspaces.cloudify.rest.controllers.ServiceController;
 import com.j_spaces.kernel.Environment;
 
@@ -63,11 +64,12 @@ public class ApplicationInstallerRunnable implements Runnable {
 				packedFile = Packager.pack(new File(appDir, serviceName));
 				result.getApplicationFile().delete();
 				packedFile.deleteOnExit();
-				controller.deployElasticProcessingUnit(serviceName,
-						applicationName, serviceName, packedFile,
+				String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+				controller.deployElasticProcessingUnit(absolutePUName,
+						applicationName, absolutePUName, packedFile,
 						contextProperties);
 				boolean instanceFound = controller.waitForServiceInstance(
-						applicationName, serviceName,
+						applicationName, absolutePUName,
 						SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES,
 						TimeUnit.MINUTES);
 				if (!instanceFound) {
