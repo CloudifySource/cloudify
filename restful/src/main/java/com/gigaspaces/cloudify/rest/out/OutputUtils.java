@@ -20,7 +20,7 @@ import com.gigaspaces.cloudify.rest.util.PrimitiveWrapper;
  *
  */
 public class OutputUtils {
-	
+
 	private static String hostAddress;
 	private static String hostContext;
 
@@ -44,7 +44,7 @@ public class OutputUtils {
 		blackList.add("getReplicationStatus com.gigaspaces.reflect.$GSProxy9");
 		blackList.add("getClusterConfigFile com.gigaspaces.reflect.$GSProxy10");
 		blackList.add("getThreadSecurityContext com.gigaspaces.internal.client.spaceproxy.SpaceProxyImpl");
-		
+
 		return blackList;
 	}
 
@@ -71,19 +71,17 @@ public class OutputUtils {
 			uriPathArray[i] = completeURL.concat("/" + i);
 		}
 		String[] commands = completeURL.split("/");
-		outputMap.put(commands[commands.length - 1] + "-Elements", getRelativePathURLS(uriPathArray));
+		outputMap.put(commands[commands.length - 1] + "-Elements", uriPathArray);
 		outputMap.put(commands[commands.length - 1] + "-Size", arrayLength);
 	}
 
-	private static String[] getRelativePathURLS(String[] uriPathArray) {
-		String[] returnURLS = new String[uriPathArray.length];
-		for (int i = 0; i < uriPathArray.length; i++) {
-			int contextIndex = uriPathArray[i].indexOf(getHostContext());
-			String relativePath = uriPathArray[i].substring(contextIndex);
-			String newUrlPath = getHostAddress() + relativePath;
-			returnURLS[i] = newUrlPath;
-		}
-		return returnURLS;
+	private static String getRelativePathURLS(String uriPathArray) {
+
+		int contextIndex = uriPathArray.indexOf(getHostContext() + "/admin");
+		String relativePath = uriPathArray.substring(contextIndex);
+		String newUrlPath = getHostAddress() + relativePath;
+
+		return newUrlPath;
 	}
 
 	//Helps in dealing with primitive type arrays. returns an Object Array.
@@ -122,13 +120,13 @@ public class OutputUtils {
 			i++;
 		}
 		String[] commands = completeURL.split("/");
-		outputMap.put(commands[commands.length - 1].concat("-Elements"), getRelativePathURLS(uriPathArray));
+		outputMap.put(commands[commands.length - 1].concat("-Elements"), uriPathArray);
 	}
 
 	public static void outputObjectToMap(CommandManager manager, Map<String, Object> outputMap){
 
 		Object object = manager.getFinalCommand().getCommandObject();
-		String commandURL = manager.getCommandURL();
+		String commandURL = getRelativePathURLS(manager.getCommandURL());
 		String commandName = manager.getFinalCommandName();
 
 		simpleOutputObjectToMap(object, commandURL, commandName, outputMap);
@@ -146,12 +144,12 @@ public class OutputUtils {
 		List<Method> validGetterMethods = getValidGetters(aClass);
 		Object resultObject = null;
 		String commandName;
-		
+
 		for (Method method : validGetterMethods){
 			Class<?> methodReturnType = method.getReturnType();
 			commandName = getGetterCommandName(method.getName());
 			String nextCommandURL = null;
-			
+
 			if (isDetailsGetter(method)){
 				resultObject = safeInvoke(method, object);
 				if (!isNull(resultObject)){
@@ -188,7 +186,7 @@ public class OutputUtils {
 		}
 
 	}
-	
+
 	/**
 	 * The next command url depends on the parent object type.
 	 * if the parent object type is Map, and the next command
@@ -213,6 +211,7 @@ public class OutputUtils {
 		else{
 			outputUrl = commandURI + "/" + commandName;
 		}
+		outputUrl = getRelativePathURLS(outputUrl);
 		return outputUrl;
 	}
 
