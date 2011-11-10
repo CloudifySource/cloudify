@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 config = new ConfigSlurper().parse(new File('mongos.properties').toURL())
 
 serviceContext = ServiceContextFactory.getServiceContext()
-mongoService = serviceContext.waitForService("mongo-cfg", 20, TimeUnit.SECONDS)
+mongoService = serviceContext.waitForService("petclinic-mongo.mongo-cfg", 20, TimeUnit.SECONDS)
 mongoInstances = mongoService.waitForInstances(mongoService.numberOfPlannedInstances, 60, TimeUnit.SECONDS)
 cfgHost = mongoInstances[0].hostAddress
 
