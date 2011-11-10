@@ -11,7 +11,7 @@
 #   $MACHINE_IP_ADDRESS - The IP of this server (Useful if multiple NICs exist)
 #	$MACHINE_ZONES - This is required if this is not a management machine
 # 	$WORKING_HOME_DIRECTORY - This is where the files were copied to (cloudify installation, etc..)
-#	$CLOUDFIY_LINK - If this url is found, it will be downloaded to $WORKING_HOME_DIRECTORY/gigaspaces.zip
+#	$CLOUDIFY_LINK - If this url is found, it will be downloaded to $WORKING_HOME_DIRECTORY/gigaspaces.zip
 #############################################################################
 
 # args:
