@@ -31,8 +31,7 @@ public class Version extends AbstractGSCommand {
 	@Override
 	protected Object doExecute() throws Exception {
 		
-		PlatformVersion pv = new PlatformVersion();
-		String platformInfo = pv.getOfficialVersion();
+		String platformInfo = PlatformVersion.getOfficialVersion();
 		String cloudifyInfo = "Cloudify version 2.0";
 		
 		String info = platformInfo + System.getProperty("line.separator") + cloudifyInfo;
