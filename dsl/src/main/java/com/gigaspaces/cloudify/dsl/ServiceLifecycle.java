@@ -1,7 +1,6 @@
 package com.gigaspaces.cloudify.dsl;
 
 import java.io.Serializable;
-import java.util.Map;
 
 public class ServiceLifecycle implements Serializable {
 
@@ -30,8 +29,8 @@ public class ServiceLifecycle implements Serializable {
 	private Object preServiceStop;
 	
 	private Object startDetection;
-	private Map<String, Object> monitors;
-	private Map<String, Object> details;
+	private Object monitors;
+	private Object details;
 	
 	private int startDetectionTimeoutSecs = 90;
     public int getStartDetectionTimeoutSecs() {
@@ -164,19 +163,19 @@ public class ServiceLifecycle implements Serializable {
 		return this.startDetection;
 	}
 	
-	public void setMonitors(Map<String, Object> monitors) {
+	public void setMonitors(Object monitors) {
 		this.monitors = monitors;
 	}
 	
-	public Map<String, Object> getMonitors() {
+	public Object getMonitors() {
 		return this.monitors;
 	}
 	
-	public void setDetails(Map<String, Object> details) {
+	public void setDetails(Object details) {
 		this.details = details;
 	}
 								  
-	public Map<String, Object> getDetails() {
+	public Object getDetails() {
 		return details;
 	}
 }

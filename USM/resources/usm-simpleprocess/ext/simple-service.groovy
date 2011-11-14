@@ -1,33 +1,20 @@
 
-
 service {
-	
-	name "simple"
+	name "SimpleFilewriteAndPortOpener-service"
 	icon "icon.png"
 
 	lifecycle {
-	//	grrr { println " context is:"}
-//		init { println " IN INIT context is:  " + context}
-		init {
-			println "Var1 is: " + var1
-			println "Var2 is: " + var2
+
+		//init "init.groovy";//{ println "This is the init event" }
+
+		preInstall {println "This is the preInstall event" }
+		postInstall {println "This is the postInstall event"
+			//throw new IllegalStateException("HAHA")
 		}
-		//init (["init.bat", true, "String", 1234])
-		
-		//preInstall "context.groovy";
-//		postInstall {
-//			println "This is the postInstall event"
-//			println "Context is: " + context
-//			println "Instance ID is: " + context.instanceId
-//			println "Dir is: " + context.serviceDirectory
-//			println ""
-//
-//			//throw new IllegalStateException("HAHA")
-//		}
 		preStart {println "This is the preStart event" }
 
-		start (["Win.*":"run.bat", "Linux":"run.sh"])
-		//start (["Linux" : ["run.sh", "param1", "Pa ram 2", "some other \\ param"] ])
+		start (["Win.*":"run.bat -port 3668,3667",
+				 "Linux":"run.sh -port 3668,3667"])
 		//		start {
 		//			def fullPath =  context.dir + "\\run.bat"
 		//			println "Executing command: " + fullPath
@@ -38,55 +25,41 @@ service {
 
 		preStop {println "This is the preStop event" }
 		postStop {println "This is the postStop event" }
-		shutdown {println "This is the shutdown event" }		
+		shutdown {println "This is the shutdown event" }
 		
-		startDetectionTimeoutSecs 10
-		startDetection {
-			ServiceUtils.isHttpURLAvailable("http://www.google.com") 
-		}
+				details { return ["1":{1}, "2":{2}] }
+				monitors { return ["3":{3}, "4":{4}] }
 	}
 
-
 	plugins ([
+		plugin {
+			name "portLiveness"
+			className "com.gigaspaces.cloudify.usm.liveness.PortLivenessDetector"
+			config ([
+						"Port" : [3668, 3667],
+						"TimeoutInSeconds" : 30,
+						"Host" : "127.0.0.1"
+					])
+		},
 		plugin {
 			name "jmx"
 			className "com.gigaspaces.cloudify.usm.jmx.JmxMonitor"
 			config ([
 
-						"Details" : [
-							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
-							"Details"
-						],
-						"Counter" : [
-							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
-							"Counter"
-						],
-						"Type" : [
-							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
-							"Type"
-						],
-						port : 9988
-					])
-		},
-		plugin {
-			name "jmx2"
-			className "com.gigaspaces.cloudify.usm.jmx.JmxDetails"
-			config ([
-
-						"Details" : [
-							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
-							"Details"
-						],
-						"Counter" : [
-							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
-							"Counter"
-						],
-						"Type" : [
-							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
-							"Type"
-						],
-						port : 9988
-					])
+				"Details" : [
+					"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
+					"Details"
+				],
+				"Counter" : [
+					"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
+					"Counter"
+				],
+				"Type" : [
+					"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
+					"Type"
+				],
+				"port" : 9999
+			])
 		}
 	])
 
@@ -113,14 +86,9 @@ service {
 				name = "memory"
 				widgets = [
 					balanceGauge { metric = "memory" },
-					barLineChart{
-						metric = "memory"
-						axisYUnit Unit.PERCENTAGE
-					}
+					barLineChart{ metric = "memory" }
 				]
 			}
 		]
 	}
-
-
 }

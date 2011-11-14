@@ -64,7 +64,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			this.service = ((DSLConfiguration) configuration).getService();
 			this.puExtDir = ((DSLConfiguration) configuration).getPuExtDir();
 			this.serviceContext = ((DSLConfiguration) configuration)
-					.getServiceContext();
+			.getServiceContext();
 		}
 	}
 
@@ -89,8 +89,8 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			this.launcher = retval;
 		} else {
 			final Collection<ProcessLauncher> launchers = this.context
-					.getBeanFactory().getBeansOfType(ProcessLauncher.class)
-					.values();
+			.getBeanFactory().getBeansOfType(ProcessLauncher.class)
+			.values();
 			if (launchers.size() == 0) {
 				throw new IllegalStateException(
 						"No ProcessLauncher was found in Context!");
@@ -180,8 +180,8 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 					this.context.getBeanFactory().getBean(name);
 					throw new IllegalArgumentException(
 							"The name: "
-									+ name
-									+ " is already in use and can't be used to identify a plugin");
+							+ name
+							+ " is already in use and can't be used to identify a plugin");
 
 				} catch (NoSuchBeanDefinitionException e) {
 					// ignore - this is the expected result
@@ -198,7 +198,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 	}
 
 	private static java.util.logging.Logger logger = java.util.logging.Logger
-			.getLogger(DSLBeanConfiguration.class.getName());
+	.getLogger(DSLBeanConfiguration.class.getName());
 
 	private Plugin createPlugin(final PluginDescriptor descriptor) {
 
@@ -207,7 +207,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			final String className = descriptor.getClassName();
 			if ((className == null) || (className.length() == 0)) {
 				throw new IllegalArgumentException(
-						"Plugin must have a class name");
+				"Plugin must have a class name");
 			}
 
 			clazz = Class.forName(className);
@@ -225,12 +225,12 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 		} catch (final InstantiationException e) {
 			logger.log(Level.SEVERE,
 					"Plugin of class " + descriptor.getClassName()
-							+ " could not be created", e);
+					+ " could not be created", e);
 			return null;
 		} catch (final IllegalAccessException e) {
 			logger.log(Level.SEVERE,
 					"Plugin of class " + descriptor.getClassName()
-							+ " could not be created", e);
+					+ " could not be created", e);
 			return null;
 		}
 
@@ -242,9 +242,9 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			logger.log(
 					Level.SEVERE,
 					"Plugin of class "
-							+ descriptor.getClassName()
-							+ " does not "
-							+ "implement the required Plugin interface and will not be created");
+					+ descriptor.getClassName()
+					+ " does not "
+					+ "implement the required Plugin interface and will not be created");
 			return null;
 		}
 
@@ -252,14 +252,14 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			logger.log(
 					Level.SEVERE,
 					"Plugin of class "
-							+ descriptor.getClassName()
-							+ " does not "
-							+ "implement the required USMComponent interface and will not be created");
+					+ descriptor.getClassName()
+					+ " does not "
+					+ "implement the required USMComponent interface and will not be created");
 			throw new IllegalArgumentException(
 					"Plugin of class "
-							+ descriptor.getClassName()
-							+ " does not "
-							+ "implement the required USMComponent interface and will not be created");
+					+ descriptor.getClassName()
+					+ " does not "
+					+ "implement the required USMComponent interface and will not be created");
 		}
 
 		plugin.setServiceContext(this.serviceContext);
@@ -300,8 +300,8 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 
 	@Bean
 	public USMComponent getDetails() {
-		final Map<String, Object> details = this.service.getLifecycle()
-				.getDetails();
+		final Object details = this.service.getLifecycle()
+		.getDetails();
 		if (details == null) {
 			return null;
 		}
@@ -314,7 +314,10 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 					throws DetailsException {
 				try {
 					Map<String, Object> returnMap = new HashMap<String, Object>();
-					for (Map.Entry<String, Object> entryObject : details
+					//Map can appear in 2 forms. As a map of as a closure that returns a map
+					final Map<String, Object> detailsMap = getMapFromClosureObject(details);
+
+					for (Map.Entry<String, Object> entryObject : detailsMap
 							.entrySet()) {
 						Object object = entryObject.getValue();
 						EventResult result = new DSLEntryExecutor(object,
@@ -322,7 +325,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 						if (!result.isSuccess()) {
 							logger.log(Level.WARNING,
 									"DSL Entry failed to execute: ", result
-											.getException().getStackTrace());
+									.getException().getStackTrace());
 						} else {
 							returnMap.put(entryObject.getKey(),
 									result.getResult());
@@ -335,14 +338,30 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			}
 		};
 	}
+	
+	//runs and returns the details/monitors closure if exists.
+	private Map<String, Object> getMapFromClosureObject(Object mapOrClosure) {
+		Map<String, Object> returnMap;
+		if (!(mapOrClosure instanceof Map<?, ?>)){
+			
+			EventResult run = new DSLEntryExecutor(mapOrClosure,
+					launcher, puExtDir).run();
+			returnMap = (Map<String, Object>) run.getResult();
+		}else
+		{
+			returnMap = (Map<String, Object>)mapOrClosure;
+		}
+		return returnMap;
+	}
 
 	@Bean
 	public USMComponent getMonitor() {
-		final Map<String, Object> monitor = this.service.getLifecycle()
-				.getMonitors();
+		final Object monitor = this.service.getLifecycle()
+		.getMonitors();
 		if (monitor == null) {
 			return null;
 		}
+		//Map can appear in 2 forms. As a map of as a closure that returns a map
 		return new Monitor() {
 			@Override
 			public Map<String, Number> getMonitorValues(
@@ -351,16 +370,19 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 					throws MonitorException {
 				try {
 					Map<String, Number> returnMap = new HashMap<String, Number>();
-					for (Map.Entry<String, Object> entryObject : monitor
+					final Map<String, Object> monitorsMap = getMapFromClosureObject(monitor);
+					logger.log(Level.WARNING, "1");
+					for (Map.Entry<String, Object> entryObject : monitorsMap
 							.entrySet()) {
 						Object object = entryObject.getValue();
 						EventResult result = new DSLEntryExecutor(object,
 								launcher, puExtDir).run();
+						logger.log(Level.WARNING, "2");
 						if (!result.isSuccess()) {
 							logger.log(
 									Level.WARNING,
 									"DSL Entry failed to execute: "
-											+ result.getException());
+									+ result.getException());
 						} else if (result.getResult() instanceof Number) {
 							returnMap.put(entryObject.getKey(),
 									(Number) result.getResult());
@@ -368,8 +390,8 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 							if (NumberUtils.isNumber((String) result
 									.getResult())) {
 								Number number = NumberUtils
-										.createNumber((String) result
-												.getResult());
+								.createNumber((String) result
+										.getResult());
 								returnMap.put(entryObject.getKey(), number);
 							}
 						} else {
@@ -407,12 +429,12 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 					} else {
 						throw new IllegalArgumentException(
 								"A liveness detector returned a result that is not a boolean. Result was: "
-										+ retcode);
+								+ retcode);
 					}
 				} else {
 					throw new USMException(
 							"A Liveness Detector failed to execute. Exception was: "
-									+ result.getException(),
+							+ result.getException(),
 							result.getException());
 				}
 
