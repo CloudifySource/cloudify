@@ -18,6 +18,7 @@ package com.gigaspaces.cloudify.shell.commands;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,8 +43,11 @@ import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.hyperic.sigar.SigarException;
 import org.openspaces.pu.container.integrated.IntegratedProcessingUnitContainer;
+
+import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
+import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
 import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
 import com.gigaspaces.internal.sigar.SigarHolder;
 import com.j_spaces.kernel.Environment;
@@ -120,11 +124,15 @@ public class TestRecipe extends AbstractGSCommand {
 			// First Package the recipe using the regular packager
 			File packagedRecipe = packageRecipe();
 
+
 			// Then unzip the package in a temp location
 			serviceFolder = createServiceFolder(packagedRecipe);
 			logger.info("Executing service in temporary folder: "
 					+ serviceFolder);
-
+			
+			//verify that service configuration file contains a lifecycle closure 
+			isServiceLifecycleNotNull(serviceFolder);
+			
 			// Create the classpath environment variable
 			final String classpath = createClasspathString(serviceFolder);
 			logger.fine("Setting Test Processing Unit's Classpath to: "
@@ -169,6 +177,28 @@ public class TestRecipe extends AbstractGSCommand {
 
 	}
 
+	private void isServiceLifecycleNotNull(File serviceFolder) throws CLIException {
+		Service service;
+		try {
+			File serviceFileDir = new File(serviceFolder, "ext");
+			service = ServiceReader.getServiceFromDirectory(serviceFileDir).getService();
+			if (service.getLifecycle() == null){
+				throw new CLIException(getFormattedMessage(
+				"test_recipe_service_lifecycle_missing"));
+			}
+		} catch (FileNotFoundException e) {
+			logger.log(Level.SEVERE, "Service configuration file not found " + e.getMessage(), e);
+			throw new CLIException(
+					"Failed to locate service configuration file. " + e.getMessage(), e);
+		} catch (PackagingException e) {
+			logger.log(Level.SEVERE, "Packaging failed: " + e.getMessage(), e);
+			e.printStackTrace();
+			throw new CLIException(
+					"Packaging failed: " + e.getMessage(), e);
+		}
+		
+	}
+
 	private static class FilteredOutputHandler implements Runnable {
 		private BufferedReader reader;
 		private boolean verbose;
@@ -209,7 +239,6 @@ public class TestRecipe extends AbstractGSCommand {
 				}
 
 			}
-
 		}
 	}
 
