@@ -166,5 +166,10 @@
 			<artifactId>dsl</artifactId>
 			<version>${cloudifyVersion}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.gigaspaces</groupId>
+			<artifactId>gs-runtime</artifactId>
+			<version>${gsVersion}</version>
+		</dependency>
 	</dependencies>
 </project>
