@@ -26,10 +26,6 @@ public class ServiceContextFactory {
 	public static ServiceContext getServiceContext() {
 
 		if (context == null) {
-			// if (isRunningInGigaSpaceContainer()) {
-			// throw new IllegalStateException(
-			// "getServiceContext() may only be used from an external groovy script, not from a closure or a plugin");
-			// }
 
 			// TODO - this code does not support setting a specific service file
 			// name

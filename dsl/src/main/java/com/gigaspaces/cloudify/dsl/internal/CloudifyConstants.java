@@ -19,6 +19,7 @@ public class CloudifyConstants {
 	public static final String CONTEXT_PROPERTY_SERVICE_FILE_NAME = "com.gs.cloudify.service-file-name";
 	public static final String CONTEXT_PROPERTY_CLOUD_FILE_NAME = "com.gs.cloudify.cloud-file-name";
 	public static final String CONTEXT_PROPERTY_PROPERTIES_FILE_NAME = "com.gs.cloudify.properties-file-name";
+	public static final String CONTEXT_PROPERTY_ASYNC_INSTALL = "com.gs.cloudify.async-install";
 	
 	/**********
 	 * Key names for invocation request and response parameters.
@@ -55,6 +56,12 @@ public class CloudifyConstants {
 	public static final String USM_MONITORS_SERVICE_ID = "USM";
 	public static final String USM_DETAILS_SERVICE_ID = "USM";
 	
+	
+	/*********************
+	 * Key names for USM parameters that can be configured using the service custom parameters.
+	 * 
+	 */
+	public static final String USM_PARAMETERS_TAILER_INTERVAL = "TailerInterval";
 	
 	private CloudifyConstants() {
 		// private constructor to prevent initialization.

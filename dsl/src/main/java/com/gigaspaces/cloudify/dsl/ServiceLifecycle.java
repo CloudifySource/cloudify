@@ -48,6 +48,11 @@ public class ServiceLifecycle implements Serializable {
 
 	private int startDetectionIntervalSecs = 1;
 
+	private Object stopDetection;
+
+	public void setStopDetection(Object stopDetection) {
+		this.stopDetection = stopDetection;
+	}
 	public ServiceLifecycle() {
 		
 	}
@@ -162,6 +167,11 @@ public class ServiceLifecycle implements Serializable {
 	public Object getStartDetection(){
 		return this.startDetection;
 	}
+	
+	public Object getStopDetection(){
+		return this.stopDetection;
+	}
+	
 	
 	public void setMonitors(Object monitors) {
 		this.monitors = monitors;
