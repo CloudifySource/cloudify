@@ -57,6 +57,12 @@
 			<artifactId>esc</artifactId>
 			<version>${cloudifyVersion}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.gigaspaces</groupId>
+			<artifactId>gs-runtime</artifactId>
+			<version>${gsVersion}</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 
 </project>
