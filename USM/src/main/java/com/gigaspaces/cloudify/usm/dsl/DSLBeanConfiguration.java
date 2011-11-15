@@ -396,13 +396,11 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 				try {
 					Map<String, Number> returnMap = new HashMap<String, Number>();
 					final Map<String, Object> monitorsMap = getMapFromClosureObject(monitor);
-					logger.log(Level.WARNING, "1");
 					for (Map.Entry<String, Object> entryObject : monitorsMap
 							.entrySet()) {
 						Object object = entryObject.getValue();
 						EventResult result = new DSLEntryExecutor(object,
 								launcher, puExtDir).run();
-						logger.log(Level.WARNING, "2");
 						if (!result.isSuccess()) {
 							logger.log(
 									Level.WARNING,
