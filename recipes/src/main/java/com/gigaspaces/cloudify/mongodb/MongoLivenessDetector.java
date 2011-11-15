@@ -7,7 +7,7 @@ import com.gigaspaces.cloudify.usm.UniversalServiceManagerBean;
 import com.gigaspaces.cloudify.usm.events.EventResult;
 import com.gigaspaces.cloudify.usm.events.PreStartListener;
 import com.gigaspaces.cloudify.usm.events.StartReason;
-import com.gigaspaces.cloudify.usm.launcher.USMException;
+import com.gigaspaces.cloudify.usm.USMException;
 import com.gigaspaces.cloudify.usm.liveness.LivenessDetector;
 
 import java.io.IOException;
