@@ -8,5 +8,5 @@ echo Script parameter no. 4 is: %4
 echo Script parameter no. 5 is: %5
 
 
-java -Dcom.sun.management.jmxremote.port=9988 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -jar simplejavaprocess.jar -dieOnParentDeath false
-rem java -Dcom.sun.management.jmxremote.port=9988 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -jar simplejavaprocess.jar %*
+rem java -Dcom.sun.management.jmxremote.port=9988 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -jar simplejavaprocess.jar -dieOnParentDeath false
+java -Dcom.sun.management.jmxremote.port=9988 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -jar simplejavaprocess.jar %*
