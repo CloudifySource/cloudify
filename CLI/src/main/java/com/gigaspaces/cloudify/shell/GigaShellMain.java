@@ -26,7 +26,6 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 import jline.Terminal;
 import jline.console.ConsoleReader;
@@ -83,7 +82,7 @@ public class GigaShellMain extends Main implements Action {
 					if (!commandString.endsWith(";")){
 						commandString = commandString.concat(";");
 					}
-					commandString = commandString.replace(Pattern.quote(";"), System.getProperty("line.separator"));
+					commandString = commandString.replace(";", System.getProperty("line.separator"));
 
 					is = new ByteArrayInputStream(commandString.getBytes("UTF-8"));
 				}
