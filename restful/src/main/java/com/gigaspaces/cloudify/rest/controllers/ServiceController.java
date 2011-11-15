@@ -155,7 +155,7 @@ public class ServiceController {
 			@RequestParam(value = "applicationName", defaultValue = "default") String applicationName,
 			@RequestParam(value = "file") MultipartFile srcFile) throws IllegalStateException, IOException
 			 {
-		logger.finer("received request to deploy");
+		logger.finer("Deploying a service");
 		File tmpfile = File.createTempFile("gs___", null);
 		File dest = new File(tmpfile.getParent(), srcFile.getOriginalFilename());
 		tmpfile.delete();
@@ -1059,7 +1059,7 @@ public class ServiceController {
 	public @ResponseBody
 	Object deployElastic(
 			@PathVariable final String applicationName,
-			@PathVariable String serviceName,
+			@PathVariable final String serviceName,
 			@RequestParam(value = "zone", required = true) final String zone,
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
 			@RequestParam(value = "props", required = true) final MultipartFile propsFile) throws TimeoutException, PackagingException, IOException, AdminException, DSLException

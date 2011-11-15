@@ -14,7 +14,6 @@ import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.internal.DSLApplicationCompilatioResult;
 import com.gigaspaces.cloudify.dsl.internal.packaging.Packager;
-import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 import com.gigaspaces.cloudify.rest.controllers.ServiceController;
 import com.j_spaces.kernel.Environment;
 
@@ -50,37 +49,57 @@ public class ApplicationInstallerRunnable implements Runnable {
 		logger.fine("Installing application " + applicationName
 				+ " with the following services: " + services);
 
+		final boolean asyncInstallPossible = isAsyncInstallPossibleForApplication();
+		logger.info("async install setting: " + asyncInstallPossible);
+		installServices(appDir, asyncInstallPossible);
+		try {
+			FileUtils.deleteDirectory(appDir);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	private void installServices(File appDir, final boolean async) {
+		// TODO: refactor the last part of this method
 		for (final Service service : services) {
 			service.getCustomProperties().put("usmJarPath",
 					Environment.getHomeDirectory() + "/lib/platform/usm");
 
-			final Properties contextProperties = createServiceContextProperties(service);
+			final Properties contextProperties = createServiceContextProperties(
+					service, async);
 
 			final String serviceName = service.getName();
 			boolean found = false;
-			File packedFile = null;
 			try {
-				
-				packedFile = Packager.pack(new File(appDir, serviceName));
+
+				File packedFile = Packager.pack(new File(appDir, serviceName));
 				result.getApplicationFile().delete();
 				packedFile.deleteOnExit();
-				String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-				controller.deployElasticProcessingUnit(absolutePUName,
-						applicationName, absolutePUName, packedFile,
+				controller.deployElasticProcessingUnit(serviceName,
+						applicationName, serviceName, packedFile,
 						contextProperties);
-				boolean instanceFound = controller.waitForServiceInstance(
-						applicationName, absolutePUName,
-						SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES,
-						TimeUnit.MINUTES);
-				if (!instanceFound) {
-					throw new TimeoutException(
-							"Service "
-									+ serviceName
-									+ " of application "
-									+ applicationName
-									+ " was installed, but no instance of the service has started after "
-									+ SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES
-									+ " minutes.");
+				try { 
+					FileUtils.deleteDirectory(packedFile.getParentFile());
+				} catch(IOException ioe) {
+					// sometimes this delete fails. Not sure why. Maybe deploy is async?
+					logger.warning("Failed to delete temporary directory: " + packedFile.getParentFile());
+				}
+				if (!async) {
+					boolean instanceFound = controller.waitForServiceInstance(
+							applicationName, serviceName,
+							SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES,
+							TimeUnit.MINUTES);
+					if (!instanceFound) {
+						throw new TimeoutException(
+								"Service "
+										+ serviceName
+										+ " of application "
+										+ applicationName
+										+ " was installed, but no instance of the service has started after "
+										+ SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES
+										+ " minutes.");
+					}
 				}
 
 				found = true;
@@ -96,14 +115,6 @@ public class ApplicationInstallerRunnable implements Runnable {
 								+ "Some services may already have started, and should be shutdown manually. Error was: "
 								+ e.getMessage(), e);
 				return;
-			}finally{
-				try{
-					if (packedFile != null){
-						FileUtils.deleteDirectory(packedFile.getParentFile());
-					}
-				}catch(IOException e){
-					logger.fine("Unable to delete temp applicaiton file " + packedFile.getName());
-				}
 			}
 
 			if (!found) {
@@ -113,25 +124,25 @@ public class ApplicationInstallerRunnable implements Runnable {
 						+ applicationName
 						+ ". Application installation will stop. Some services may have been installed!");
 				return;
-
-				// return "Failed to find an instance of service: "
-				// + serviceName
-				// + " while installing application "
-				// + applicationName
-				// +
-				// ". Application installation will stop. Some services may have been installed!";
 			}
 
 		}
-		try {
-			FileUtils.deleteDirectory(appDir);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
 	}
 
-	private Properties createServiceContextProperties(final Service service) {
+	private boolean isAsyncInstallPossibleForApplication() {
+
+		// check if all services are USM
+		for (Service service : this.services) {
+			if (service.getLifecycle() == null) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private Properties createServiceContextProperties(final Service service,
+			final boolean async) {
 		final Properties contextProperties = new Properties();
 
 		// contextProperties.setProperty("com.gs.application.services",
@@ -157,6 +168,10 @@ public class ApplicationInstallerRunnable implements Runnable {
 							CloudifyConstants.CONTEXT_PROPERTY_NETWORK_PROTOCOL_DESCRIPTION,
 							service.getNetwork().getProtocolDescription());
 		}
+
+		contextProperties.setProperty(
+				CloudifyConstants.CONTEXT_PROPERTY_ASYNC_INSTALL,
+				Boolean.toString(async));
 		return contextProperties;
 	}
 
