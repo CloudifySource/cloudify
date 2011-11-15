@@ -124,6 +124,7 @@ public class RollingFileAppenderTailer implements Runnable{
 
 	@Override
 	public void run() {
+		
 		try{
 			getLogFilesMap(logFileMap);
 			for (String key : logFileMap.keySet()) {

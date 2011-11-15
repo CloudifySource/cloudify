@@ -74,10 +74,12 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		ClusterInfoAware, ServiceMonitorsProvider, ServiceDetailsProvider,
 		InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 
+	private static final String ERROR_FILE_NAME_SUFFFIX = ".err";
+	private static final String OUTPUT_FILE_NAME_SUFFIX = ".out";
 	private static final int WAIT_FOR_DEPENDENCIES_INTERVAL_MILLIS = 5000;
 	private static final int WAIT_FOR_DEPENDENCIES_TIMEOUT_MILLIS = 1000 * 60 * 30;
 	// TODO: change to false
-	private static final String ASYNC_INSTALL_DEFAULT_VALUE = "true";
+	private static final String ASYNC_INSTALL_DEFAULT_VALUE = "false";
 	private static final int FILE_TAILER_INTERVAL_SECS_DEFAULT = 5;
 	private static final int DEFAULT_POST_LAUNCH_WAIT_PERIOD_MILLIS = 2000;
 	private static final int DEFAULT_POST_DEATH_WAIT_PERIOD_MILLIS = 2000;
@@ -141,8 +143,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 	private int fileTailerIntervalSecs = FILE_TAILER_INTERVAL_SECS_DEFAULT;
 
-	// Lifecycle mode
-	private boolean quickInitialize = false;
+	// asynchronous installation
 	private boolean asyncInstall = false;
 
 	// called on USM startup, or if the process died unexpectedly and is being
@@ -222,31 +223,36 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	}
 
 	private File getOutputFile() {
-		return new File(this.uniqueFileNamePrefix + ".out");
+		return new File(this.uniqueFileNamePrefix + OUTPUT_FILE_NAME_SUFFIX);
 	}
 
 	private File getErrorFile() {
-		return new File(this.uniqueFileNamePrefix + ".err");
+		return new File(this.uniqueFileNamePrefix + ERROR_FILE_NAME_SUFFFIX);
 	}
 
 	private String getLogsDir() {
 		return Environment.getHomeDirectory() + "logs";
 	}
 
-	private void initUniqueFileName() {
+	
+	private String createUniqueFileName() {
+		final String username = System.getProperty("user.name");
+		final String clusterName = (this.clusterName == null ? "USM"
+				: this.clusterName);
+		
 		try {
-
-			final String username = System.getProperty("user.name");
-			final String clusterName = (this.clusterName == null ? "USM"
-					: this.clusterName);
-			this.uniqueFileNamePrefix = getLogsDir() + File.separator
-					+ clusterName + "_" + this.instanceId + "_" + username
+			return clusterName + "_" + this.instanceId + "_" + username
 					+ "@" + InetAddress.getLocalHost().getHostName();
 		} catch (UnknownHostException e) {
-			throw new IllegalStateException(
-					"Failed to get host name of local host: " + e.getMessage(),
-					e);
+			throw new IllegalStateException("Failed to get localhost name", e);
 		}
+	}
+	
+	private void initUniqueFileName() {
+			
+			this.uniqueFileNamePrefix = getLogsDir() + File.separator
+					+ createUniqueFileName();
+
 
 	}
 
@@ -419,7 +425,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	}
 
 	private void registerPostPUILifecycleTask() {
-		Admin admin = USMUtils.getAdmin();
+		final Admin admin = USMUtils.getAdmin();
 		ProcessingUnit pu = admin.getProcessingUnits().getProcessingUnit(
 				this.clusterName);
 		final int instanceIdToMatch = this.instanceId;
@@ -435,6 +441,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 								// TODO: should this be run on a
 								// separate thread???
 								installAndRun();
+								admin.removeEventListener(this);
 							} catch (Exception e) {
 								logger.log(Level.SEVERE,
 										"Asynchronous install failed with message: "
@@ -993,6 +1000,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	 **/
 	private void startAsyncTasks() {
 
+		logger.info("Starting async tasks");
 		this.processDeathNotifier = new ProcessDeathNotifier(this);
 		// make sure all death notifications are applied to the current process
 		final ProcessDeathNotifier notifier = this.processDeathNotifier;
@@ -1003,6 +1011,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		if (this.tailer == null) {
 			this.tailer = createFileTailerTask();
 		}
+		logger.info("Launching tailer task");
 		executors.scheduleWithFixedDelay(tailer, 1, fileTailerIntervalSecs,
 				TimeUnit.SECONDS);
 
@@ -1046,20 +1055,24 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	}
 
 	private RollingFileAppenderTailer createFileTailerTask() {
-		final String filePrefix = getOutputFile().getName().split(
-				Pattern.quote("."))[0]
-				+ "." + "(out|err)";
+		final String filePattern =createUniqueFileName()
+				+ "(" + OUTPUT_FILE_NAME_SUFFIX + "|" + ERROR_FILE_NAME_SUFFFIX + ")";
+		
+		
+		
 		final Logger outputLogger = Logger.getLogger(usmLifecycleBean
 				.getOutputReaderLoggerName());
 		final Logger errorLogger = Logger.getLogger(usmLifecycleBean
 				.getErrorReaderLoggerName());
 
+		logger.info("Creating tailer for dir: " + getLogsDir() + ", with regex: " + filePattern);
 		RollingFileAppenderTailer tailer = new RollingFileAppenderTailer(
-				getLogsDir(), filePrefix, new LineHandler() {
+				getLogsDir(), filePattern, new LineHandler() {
 
 					@Override
 					public void handleLine(final String fileName,
 							final String line) {
+						// 
 						if (fileName.endsWith(".out")) {
 							outputLogger.info(line);
 						} else {
