@@ -1,4 +1,4 @@
-package com.gigaspaces.cloudify.usm.launcher;
+package com.gigaspaces.cloudify.usm;
 
 public class USMException extends Exception {
 	

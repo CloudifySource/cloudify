@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Map;
 
 import com.gigaspaces.cloudify.usm.USMComponent;
+import com.gigaspaces.cloudify.usm.USMException;
 
 public interface ProcessLauncher extends USMComponent {
 
@@ -19,7 +20,7 @@ public interface ProcessLauncher extends USMComponent {
 	Object launchProcess(final Object arg, final File workingDir, final int retries, boolean redirectErrorStream, Map<String, Object> params)
 			throws USMException;
 
-	Process launchProcessAsync(final Object arg, final File workingDir)
+	Process launchProcessAsync(final Object arg, final File workingDir, final File outputFile, final File errorFile)
 	throws USMException;
 	Process launchProcessAsync(final Object arg, final File workingDir, final int retries, boolean redirectErrorStream)
 			throws USMException;

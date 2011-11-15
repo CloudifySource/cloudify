@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
+import com.gigaspaces.cloudify.usm.USMException;
 import com.gigaspaces.cloudify.usm.USMUtils;
 import com.gigaspaces.cloudify.usm.UniversalServiceManagerConfiguration;
 import com.gigaspaces.cloudify.usm.dsl.DSLConfiguration;
@@ -58,17 +59,10 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 
 		List<String> newCommand = new LinkedList<String>();
 		newCommand.add(newPart);
-		newCommand.addAll(originalCommandLine.subList(1, originalCommandLine.size()));
+		newCommand.addAll(originalCommandLine.subList(1,
+				originalCommandLine.size()));
 		return newCommand;
-//		final String oldPart = originalCommandLine.get(0);
-//		final String postFix = originalCommandLine.substring(oldPart.length());
-//		final String modifiedCommandLine = newPart + postFix;
-//		return modifiedCommandLine;
 
-	}
-
-	private String getFirstPartOfCommandLine(final String commandLine) {
-		return  convertCommandLineStringToParts(commandLine).get(0);
 	}
 
 	private List<String> createWindowsCommandLineFromLinux(
@@ -100,8 +94,8 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 		void setPrefix(String prefix);
 	}
 
-	private List<String> createCommandLineFromAlternativeOS(final File puWorkDir,
-			final List<String> alternateCommandLine,
+	private List<String> createCommandLineFromAlternativeOS(
+			final File puWorkDir, final List<String> alternateCommandLine,
 			final AlternativeExecutableFileNameFilter fileNameFilter) {
 
 		if ((alternateCommandLine == null)
@@ -139,8 +133,8 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 
 		logger.info("Found candidates for command line to replace "
 				+ executable + ". Candidates are: " + Arrays.toString(files));
-		
-		final List<String> modifiedCommandLine =  switchFirstPartOfCommandLine(
+
+		final List<String> modifiedCommandLine = switchFirstPartOfCommandLine(
 				alternateCommandLine, files[0].getName());
 
 		return modifiedCommandLine;
@@ -481,8 +475,8 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 		}
 
 		if (arg instanceof List<?>) {
-			List<?> originalList = (List<?>)arg;
-			
+			List<?> originalList = (List<?>) arg;
+
 			List<String> resultList = new ArrayList<String>(originalList.size());
 			for (Object elem : originalList) {
 				resultList.add(elem.toString());
@@ -536,8 +530,8 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 		return null;
 	}
 
-	private List<String> createAlternativeCommandLine(final Map<String, Object> map,
-			final File workDir) {
+	private List<String> createAlternativeCommandLine(
+			final Map<String, Object> map, final File workDir) {
 		if (USMUtils.isWindows()) {
 			List<String> otherCommandLine = null;
 
@@ -546,7 +540,8 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 			}
 
 			if (otherCommandLine == null) {
-				otherCommandLine = getCommandLineFromValue(map.values().iterator().next());
+				otherCommandLine = getCommandLineFromValue(map.values()
+						.iterator().next());
 			}
 
 			final List<String> alternativeCommandLine = createWindowsCommandLineFromLinux(
@@ -560,7 +555,8 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 			}
 
 			if (otherCommandLine == null) {
-				otherCommandLine = getCommandLineFromValue(map.values().iterator().next());
+				otherCommandLine = getCommandLineFromValue(map.values()
+						.iterator().next());
 			}
 
 			final List<String> alternativeCommandLine = createLinuxCommandLineFromWindows(
@@ -574,6 +570,13 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 	public Process launchProcessAsync(final Object arg, final File workingDir,
 			final int retries, final boolean redirectErrorStream)
 			throws USMException {
+		return launchAsync(arg, workingDir, retries, redirectErrorStream, null,
+				null);
+	}
+
+	private Process launchAsync(final Object arg, final File workingDir,
+			final int retries, final boolean redirectErrorStream,
+			final File outputFile, final File errorFile) throws USMException {
 		if (arg instanceof Callable<?>) {
 			// in process execution of a closure
 			return launchAsyncFromClosure(arg);
@@ -585,7 +588,7 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 		// LinkedList<String>(Arrays.asList(commandLine));
 
 		return this.launch(commandLine, workingDir, retries,
-				redirectErrorStream);
+				redirectErrorStream, outputFile, errorFile);
 	}
 
 	protected Process launchAsyncFromClosure(final Object arg)
@@ -618,8 +621,8 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 
 	@Override
 	public Object launchProcess(final Object arg, final File workingDir,
-			final int retries, final boolean redirectErrorStream, Map<String, Object> params)
-			throws USMException {
+			final int retries, final boolean redirectErrorStream,
+			Map<String, Object> params) throws USMException {
 
 		if (arg instanceof Closure<?>) {
 			// in process execution of a closure
@@ -627,14 +630,15 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 
 			try {
 				for (Map.Entry<String, Object> entry : params.entrySet()) {
-					if (entry.getKey() != CloudifyConstants.INVOCATION_PARAMETER_COMMAND_NAME){
-						logger.fine("Adding parameter " + entry.getKey() + " having value of " + entry.getValue());
+					if (entry.getKey() != CloudifyConstants.INVOCATION_PARAMETER_COMMAND_NAME) {
+						logger.fine("Adding parameter " + entry.getKey()
+								+ " having value of " + entry.getValue());
 						closure.setProperty(entry.getKey(), entry.getValue());
 					}
 				}
-				//closure.setProperty(property, newValue)
+				// closure.setProperty(property, newValue)
 
-				//closure.setResolveStrategy(Closure.TO_SELF);
+				// closure.setResolveStrategy(Closure.TO_SELF);
 				Object result = closure.call();
 				return result;
 			} catch (final Exception e) {
@@ -712,19 +716,53 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 	}
 
 	private void modifyCommandLine(final List<String> commandLineParams,
-			final File workingDir) throws USMException {
+			final File workingDir, File outputFile, File errorFile)
+			throws USMException {
 		modifyOSCommandLine(commandLineParams, workingDir);
 
 		if (commandLineParams.get(0).endsWith(".groovy")) {
 			modifyGroovyCommandLine(commandLineParams, workingDir);
 		}
+
+		modifyRedirectionCommandLine(commandLineParams, outputFile, errorFile);
+	}
+
+	private void modifyRedirectionCommandLine(
+			final List<String> commandLineParams, final File outputFile,
+			final File errorFile) {
+		if (outputFile == null) {
+			return; // both files are set, or neither
+		}
+
+		commandLineParams.addAll(createRedirectionParametersForOS(outputFile,
+				errorFile));
+	}
+
+	private List<String> createRedirectionParametersForOS(
+			final File outputFile, final File errorFile) {
+			return Arrays.asList(">>", outputFile.getAbsolutePath(), "2>>",
+					errorFile.getAbsolutePath());
+
 	}
 
 	private Process launch(final List<String> commandLineParams,
 			final File workingDir, final int retries,
-			final boolean redirectErrorStream) throws USMException {
+			final boolean redirectErrorStream, File outputFile, File errorFile)
+			throws USMException {
 
-		modifyCommandLine(commandLineParams, workingDir);
+		if (((outputFile == null) && (errorFile != null))
+				|| ((outputFile != null) && (errorFile == null))) {
+			throw new IllegalArgumentException(
+					"Both output and error files must be set, or none of them");
+		}
+
+		if (redirectErrorStream
+				&& ((outputFile != null) || (errorFile != null))) {
+			throw new IllegalArgumentException(
+					"If redirectError option is chosen, neither output file or error file can be set");
+		}
+
+		modifyCommandLine(commandLineParams, workingDir, outputFile, errorFile);
 		final String modifiedCommandLine = StringUtils
 				.collectionToDelimitedString(commandLineParams, " ");
 
@@ -774,7 +812,8 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 			logger.warning("ClusterInfo in Process Launcher is null. Child process will have missing environment variables");
 		} else {
 			if (clusterInfo.getName() != null) {
-				map.put(CloudifyConstants.USM_ENV_CLUSTER_NAME, clusterInfo.getName());
+				map.put(CloudifyConstants.USM_ENV_CLUSTER_NAME,
+						clusterInfo.getName());
 			} else {
 				logger.warning("PU Name in ClusterInfo is null. "
 						+ "If running in the IntegratedProcessingUnitContainer, this is normal. "
@@ -785,8 +824,8 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 					clusterInfo.getUniqueName());
 			map.put(CloudifyConstants.USM_ENV_INSTANCE_ID,
 					"" + clusterInfo.getInstanceId());
-			map.put(CloudifyConstants.USM_ENV_NUMBER_OF_INSTANCES,
-					"" + clusterInfo.getNumberOfInstances());
+			map.put(CloudifyConstants.USM_ENV_NUMBER_OF_INSTANCES, ""
+					+ clusterInfo.getNumberOfInstances());
 			map.put(CloudifyConstants.USM_ENV_RUNNING_NUMBER,
 					"" + clusterInfo.getRunningNumber());
 			map.put(CloudifyConstants.USM_ENV_SERVICE_FILE_NAME, ""
@@ -836,23 +875,23 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 	}
 
 	@Override
-	public Object launchProcess(final Object arg, final File workingDir)
-			throws USMException {
-		return launchProcess(arg, workingDir, 0, true, new HashMap<String, Object>());
-
-	}
-
-	@Override
-	public Object launchProcess(final Object arg, final File workingDir, Map<String, Object> params)
-			throws USMException {
+	public Object launchProcess(final Object arg, final File workingDir,
+			Map<String, Object> params) throws USMException {
 		return launchProcess(arg, workingDir, 0, true, params);
 
 	}
-	
+
 	@Override
-	public Process launchProcessAsync(final Object arg, final File workingDir)
+	public Object launchProcess(final Object arg, final File workingDir)
 			throws USMException {
-		return launchProcessAsync(arg, workingDir, 0, false);
+		return launchProcess(arg, workingDir, new HashMap<String, Object>());
+
+	}
+
+	@Override
+	public Process launchProcessAsync(final Object arg, final File workingDir,
+			final File outputFile, final File errorFile) throws USMException {
+		return launchAsync(arg, workingDir, 0, false, outputFile, errorFile);
 	}
 
 	@Override

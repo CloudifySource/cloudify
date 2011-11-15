@@ -3,8 +3,8 @@ package com.gigaspaces.cloudify.usm.shutdown;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 
+import com.gigaspaces.cloudify.usm.USMException;
 import com.gigaspaces.cloudify.usm.USMUtils;
-import com.gigaspaces.cloudify.usm.launcher.USMException;
 import com.gigaspaces.internal.sigar.SigarHolder;
 
 public class DefaultProcessKiller implements ProcessKiller {

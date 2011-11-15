@@ -1,5 +1,10 @@
 package com.gigaspaces.cloudify.usm;
 
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
@@ -12,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import com.gigaspaces.cloudify.usm.details.Details;
 import com.gigaspaces.cloudify.usm.dsl.DSLCommandsLifecycleListener;
+import com.gigaspaces.cloudify.usm.dsl.DSLConfiguration;
 import com.gigaspaces.cloudify.usm.events.EventResult;
 import com.gigaspaces.cloudify.usm.events.InitListener;
 import com.gigaspaces.cloudify.usm.events.LifecycleEvents;
@@ -29,10 +35,10 @@ import com.gigaspaces.cloudify.usm.events.StopReason;
 import com.gigaspaces.cloudify.usm.events.USMEvent;
 import com.gigaspaces.cloudify.usm.installer.USMInstaller;
 import com.gigaspaces.cloudify.usm.launcher.ProcessLauncher;
-import com.gigaspaces.cloudify.usm.launcher.USMException;
 import com.gigaspaces.cloudify.usm.liveness.LivenessDetector;
 import com.gigaspaces.cloudify.usm.monitors.Monitor;
 import com.gigaspaces.cloudify.usm.shutdown.ProcessKiller;
+import com.gigaspaces.cloudify.usm.stopDetection.StopDetector;
 
 @Component
 public class USMLifecycleBean implements ClusterInfoAware {
@@ -52,6 +58,10 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	private ProcessKiller processKiller = null;
 	@Autowired(required = false)
 	private LivenessDetector[] livenessDetectors = new LivenessDetector[0];
+	@Autowired(required = false)
+	private StopDetector[] stopDetectors = new StopDetector[0];
+
+
 
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(USMLifecycleBean.class.getName());
@@ -323,10 +333,6 @@ public class USMLifecycleBean implements ClusterInfoAware {
 		this.processKiller = processKiller;
 	}
 
-	public InitListener[] getPostDeployListeners() {
-		return this.initListeners;
-	}
-
 	public void setPostDeployListeners(final InitListener[] postDeployListeners) {
 		this.initListeners = postDeployListeners;
 	}
@@ -529,5 +535,85 @@ public class USMLifecycleBean implements ClusterInfoAware {
 
 		}
 
+	}
+	
+	public StopDetector[] getStopDetectors() {
+		return stopDetectors;
+	}
+	
+	
+	/**********
+	 * Executes all of the registered stop detectors, stopping if one of them indicates that the service has stopped.
+	 * @return true if a detector discovered that the service is stopped, false otherwise.
+	 */
+	public boolean runStopDetection() {
+		for (StopDetector detector : this.stopDetectors) {
+			
+			try {
+				if(detector.isServiceStopped()) {
+					return true;
+				}
+			} catch (USMException e) {
+				logger.log(Level.SEVERE, "A Stop detector failed to execute. The detector was: " +detector, e);
+			}
+		}
+		
+		return false;
+	}
+
+	private USMEvent[] initEvents(final Set<USMEvent> allEvents,
+			final USMEvent[] events, final Comparator<USMEvent> eventsComparator) {
+		if (events.length > 0) {
+			allEvents.addAll(Arrays.asList(events));
+			if (events.length > 1) {
+				Arrays.sort(events, eventsComparator);
+				
+			}
+		}
+		return events;
+
+	}
+
+	public void initEvents(UniversalServiceManagerBean usm) {
+		
+		final Comparator<USMEvent> comp = new Comparator<USMEvent>() {
+
+			@Override
+			public int compare(final USMEvent arg0, final USMEvent arg1) {
+				return arg0.getOrder() - arg1.getOrder();
+			}
+		};
+		final Set<USMEvent> allEvents = new HashSet<USMEvent>();
+
+ 
+		initEvents(allEvents, getInitListeners(), comp);
+		initEvents(allEvents, getPreInstallListeners(), comp);
+		initEvents(allEvents, getPostInstallListeners(), comp);
+		initEvents(allEvents, getPreStartListeners(), comp);
+		initEvents(allEvents, getPostStartListeners(), comp);
+		initEvents(allEvents, getPreStopListeners(), comp);
+		initEvents(allEvents, getPostStopListeners(), comp);
+		initEvents(allEvents, getShutdownListeners(), comp);
+		initEvents(allEvents, getPreServiceStartListeners(),
+				comp);
+		initEvents(allEvents, getPreServiceStopListeners(),
+				comp);
+		
+		initEvents(allEvents, getLivenessDetectors(),
+				comp);
+		initEvents(allEvents, getStopDetectors(),
+				comp);
+		
+		
+
+		for (final USMEvent usmEvent : allEvents) {
+			usmEvent.init(usm);
+		}
+
+		
+	}
+	
+	public Map<String, String> getCustomProperties() {
+		return ((DSLConfiguration) this.configuration).getService().getCustomProperties();
 	}
 }

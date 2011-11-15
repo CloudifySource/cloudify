@@ -2,7 +2,6 @@ package com.gigaspaces.cloudify.usm;
 
 import java.util.logging.Level;
 
-import com.gigaspaces.cloudify.usm.launcher.USMException;
 
 public class SigarProcessStateTask implements Runnable {
 

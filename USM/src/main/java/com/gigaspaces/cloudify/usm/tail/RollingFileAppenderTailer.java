@@ -21,6 +21,30 @@ import java.util.regex.Pattern;
  *
  */
 public class RollingFileAppenderTailer implements Runnable{
+	
+	/*********
+	 * Handler interface which allows a client to delegate the handling of new lines found by the tailer to a custom class.
+	 * @author barakme
+	 *
+	 */
+	public static interface LineHandler {
+		
+		/****************
+		 * Called when a new line is found 
+		 * @param line
+		 */
+		public void handleLine(final String fileName, final String line);
+	}
+	
+	private class DefaultLineHandler implements LineHandler {
+
+		@Override
+		public void handleLine(final String fileName, final String line) {
+			logger.info(line);
+			
+		}
+		
+	}
 
 	private static final String BREAK_BY_LINES_NO_EMPTY_LINES_REGEX = "\\r?\\n+";
 	private static final int DEFAULT_SAMPLING_DELAY = 2000;
@@ -33,6 +57,7 @@ public class RollingFileAppenderTailer implements Runnable{
 	private static java.util.logging.Logger logger = java.util.logging.Logger
 	.getLogger(RollingFileAppenderTailer.class.getName());
 
+	private LineHandler handler = new DefaultLineHandler();
 	
 	/**
 	 * Create a new RollingFileAppenderTailer given the file-name regex and the 
@@ -44,6 +69,19 @@ public class RollingFileAppenderTailer implements Runnable{
 	public RollingFileAppenderTailer(String dir, String regex){
 		this.logsDirectory = dir;
 		this.regex = regex;
+	}
+	
+	/****************
+	 * Creates a new Tailer with a callback that handles each new line.
+	 * 
+	 * @param dir - the path to the directory of the log files to be tailed.
+	 * @param regex - regular expression for file names to be tailed.
+	 * @param handler - the callback that handles new lines.
+	 */
+	public RollingFileAppenderTailer(String dir, String regex, final LineHandler handler){
+		this.logsDirectory = dir;
+		this.regex = regex;
+		this.handler = handler;
 	}
 
 	/**
@@ -93,7 +131,8 @@ public class RollingFileAppenderTailer implements Runnable{
 					String lines = logFileMap.get(key).readLines();
 					String seporatedLines[] = lineSplitPattern.split(lines);
 					for (String line : seporatedLines) {
-						logger.info(line);
+						handler.handleLine(key, line);
+						//logger.info(line);
 					}
 				}
 			}

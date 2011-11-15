@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
+import com.gigaspaces.cloudify.usm.USMException;
 import com.gigaspaces.cloudify.usm.events.EventResult;
 import com.gigaspaces.cloudify.usm.launcher.ProcessLauncher;
-import com.gigaspaces.cloudify.usm.launcher.USMException;
 
 public class DSLEntryExecutor  {
 

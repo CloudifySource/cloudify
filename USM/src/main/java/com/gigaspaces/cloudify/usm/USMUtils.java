@@ -25,7 +25,6 @@ import org.openspaces.pu.container.support.ResourceApplicationContext;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 
-import com.gigaspaces.cloudify.usm.launcher.USMException;
 import com.gigaspaces.internal.sigar.SigarHolder;
 
 public final class USMUtils {
@@ -33,19 +32,6 @@ public final class USMUtils {
 	
 
 	//private static final int POST_SYNC_PROCESS_SLEEP_INTERVAL = 500;
-
-	private static boolean runningInGigaSpaceContainer = false;
-	
-	 
-	
-	static boolean isRunningInGigaSpaceContainer() {
-		return runningInGigaSpaceContainer;
-	}
-
-	static void setRunningInGigaSpaceContainer(
-			boolean runningInGigaSpaceContainer) {
-		USMUtils.runningInGigaSpaceContainer = runningInGigaSpaceContainer;
-	}
 
 	private USMUtils() {
 		// private constructor to prevent instantiation.
@@ -77,7 +63,7 @@ public final class USMUtils {
 
 	private static boolean markFileAsExecutableUsingJdk(final File file) throws USMException {
 		// TODO - refactor this - just catch exception on the whole block
-		logger.info("Attempting to set file as executable using REFLECTION");
+		logger.fine("Attempting to set file as executable using REFLECTION");
 		Method method = null;
 		try {
 			method = File.class.getMethod("setExecutable", new Class[] { Boolean.TYPE });
@@ -88,13 +74,13 @@ public final class USMUtils {
 		}
 
 		if (method == null) {
-			logger.info("setExecutable not supported by JDK. Must be using Java Version < 1.6");
+			logger.warning("setExecutable not supported by JDK. GigaSpaces Cloudify should be executed on Java Version >= 1.6");
 			return false;
 		} 
 
 		try {
 			final boolean retval = (Boolean) method.invoke(file, true);
-			logger.info("File " + file + " was marked as executable");
+			logger.fine("File " + file + " was marked as executable");
 			if (!retval) {
 				logger.warning("File: " + file + " is not executable. " +
 						"Attempt to mark it as executable has failed. " +

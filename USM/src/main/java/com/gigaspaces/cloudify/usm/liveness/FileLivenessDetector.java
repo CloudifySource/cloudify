@@ -7,8 +7,8 @@ import org.apache.commons.io.input.Tailer;
 
 import com.gigaspaces.cloudify.dsl.Plugin;
 import com.gigaspaces.cloudify.dsl.context.ServiceContext;
+import com.gigaspaces.cloudify.usm.USMException;
 import com.gigaspaces.cloudify.usm.events.AbstractUSMEventListener;
-import com.gigaspaces.cloudify.usm.launcher.USMException;
 /**
  * FileLivenessDetector class is responsible for verifying that the process has finished loading
  * by checking whether the desired regex was found in the process's output log.

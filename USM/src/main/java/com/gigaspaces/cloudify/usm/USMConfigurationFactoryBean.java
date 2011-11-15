@@ -19,7 +19,6 @@ import com.gigaspaces.cloudify.dsl.internal.DSLServiceCompilationResult;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
 import com.gigaspaces.cloudify.usm.dsl.DSLConfiguration;
-import com.gigaspaces.cloudify.usm.launcher.USMException;
 
 @Component
 public class USMConfigurationFactoryBean implements FactoryBean<UniversalServiceManagerConfiguration>,
