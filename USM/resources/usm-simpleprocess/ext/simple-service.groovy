@@ -13,22 +13,22 @@ service {
 		}
 
 		//init (["init.bat", true, "String", 1234])
-		
+
 		preInstall {sleep(30000)}
-//		postInstall {
-//			println "This is the postInstall event"
-//			println "Context is: " + context
-//			println "Instance ID is: " + context.instanceId
-//			println "Dir is: " + context.serviceDirectory
-//			println ""
-//
-//			//throw new IllegalStateException("HAHA")
-//		}
+		//		postInstall {
+		//			println "This is the postInstall event"
+		//			println "Context is: " + context
+		//			println "Instance ID is: " + context.instanceId
+		//			println "Dir is: " + context.serviceDirectory
+		//			println ""
+		//
+		//			//throw new IllegalStateException("HAHA")
+		//		}
 
 		preStart {println "This is the preStart event" }
 
 		start (["Win.*":"run.bat -port 3668,3667",
-				 "Linux":"run.sh -port 3668,3667"])
+			"Linux":"run.sh -port 3668,3667"])
 		//		start {
 		//			def fullPath =  context.dir + "\\run.bat"
 		//			println "Executing command: " + fullPath
@@ -40,32 +40,32 @@ service {
 		preStop {println "This is the preStop event" }
 		postStop {println "This is the postStop event" }
 		shutdown {println "This is the shutdown event" }
-		
-<<<<<<< .mine
+
+
 		startDetectionTimeoutSecs 10
-//		startDetection {
-//			ServiceUtils.isHttpURLAvailable("http://www.google.com") 
-//		}
-		
-		stopDetection { 
+		//		startDetection {
+		//			ServiceUtils.isHttpURLAvailable("http://www.google.com")
+		//		}
+
+		stopDetection {
 			false
 		}
-=======
-				details { return ["1":{1}, "2":{2}] }
-				monitors { return ["3":{3}, "4":{4}] }
->>>>>>> .r103005
+
+		details { return ["1":{1}, "2":{2}] }
+		monitors { return ["3":{3}, "4":{4}] }
+
 	}
 
-	
+
 	plugins ([
 		plugin {
 			name "portLiveness"
 			className "com.gigaspaces.cloudify.usm.liveness.PortLivenessDetector"
 			config ([
-						"Port" : [3668, 3667],
-						"TimeoutInSeconds" : 30,
-						"Host" : "127.0.0.1"
-					])
+				"Port" : [3668, 3667],
+				"TimeoutInSeconds" : 30,
+				"Host" : "127.0.0.1"
+			])
 		},
 		plugin {
 			name "jmx"
@@ -117,13 +117,13 @@ service {
 			}
 		]
 	}
-<<<<<<< .mine
-	
+	<<<<<<< .mine
+
 	customProperties ([
 		"TailerInterval": "1"
-		])
+	])
 
 
-=======
->>>>>>> .r103005
+	=======
+	>>>>>>> .r103005
 }
