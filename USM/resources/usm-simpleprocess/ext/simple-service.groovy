@@ -14,7 +14,7 @@ service {
 
 		//init (["init.bat", true, "String", 1234])
 
-		preInstall {sleep(30000)}
+		// preInstall {sleep(30000)}
 		//		postInstall {
 		//			println "This is the postInstall event"
 		//			println "Context is: " + context
@@ -117,13 +117,11 @@ service {
 			}
 		]
 	}
-	<<<<<<< .mine
 
 	customProperties ([
 		"TailerInterval": "1"
 	])
 
 
-	=======
-	>>>>>>> .r103005
+
 }
