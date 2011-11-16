@@ -170,6 +170,7 @@
 			<groupId>com.gigaspaces</groupId>
 			<artifactId>gs-runtime</artifactId>
 			<version>${gsVersion}</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 </project>
