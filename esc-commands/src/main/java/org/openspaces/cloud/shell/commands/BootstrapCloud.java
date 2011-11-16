@@ -38,7 +38,7 @@ public class BootstrapCloud extends AbstractGSCommand {
         
         installer.boostrapCloudAndWait(timeoutInMinutes, TimeUnit.MINUTES);
         
-        return "Cloud started succesfully. Use the 'teardown-cloud " + cloudProvider + "' command to terminate all machines.";
+        return getFormattedMessage("cloud_started_successfully", cloudProvider);
         
     }
         
