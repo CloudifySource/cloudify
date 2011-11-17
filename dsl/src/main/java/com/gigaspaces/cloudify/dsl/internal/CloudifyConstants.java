@@ -46,7 +46,7 @@ public class CloudifyConstants {
 	/****************
 	 * Key names for USM Monitors
 	 */
-	public static final String USM_MONITORS_STATE_ID = "USM State";
+	public static final String USM_MONITORS_STATE_ID = "USM_State";
 	public static final String USM_MONITORS_CHILD_PROCESS_ID = "Child Process ID";
 	public static final String USM_MONITORS_ACTUAL_PROCESS_ID = "Actual Process ID";
 	
