@@ -14,6 +14,7 @@ import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.internal.DSLApplicationCompilatioResult;
 import com.gigaspaces.cloudify.dsl.internal.packaging.Packager;
+import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 import com.gigaspaces.cloudify.rest.controllers.ServiceController;
 import com.j_spaces.kernel.Environment;
 
@@ -51,7 +52,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 		final boolean asyncInstallPossible = isAsyncInstallPossibleForApplication();
 		logger.info("async install setting: " + asyncInstallPossible);
-		installServices(appDir, asyncInstallPossible);
+		installServices(appDir, applicationName, asyncInstallPossible);
 		try {
 			FileUtils.deleteDirectory(appDir);
 		} catch (IOException e) {
@@ -60,7 +61,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 	}
 
-	private void installServices(File appDir, final boolean async) {
+	private void installServices(File appDir, String applicationName, final boolean async) {
 		// TODO: refactor the last part of this method
 		for (final Service service : services) {
 			service.getCustomProperties().put("usmJarPath",
@@ -76,7 +77,9 @@ public class ApplicationInstallerRunnable implements Runnable {
 				File packedFile = Packager.pack(new File(appDir, serviceName));
 				result.getApplicationFile().delete();
 				packedFile.deleteOnExit();
-				controller.deployElasticProcessingUnit(serviceName,
+				//Deployment will be done using the service's absolute PU name.
+				String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+				controller.deployElasticProcessingUnit(absolutePUName,
 						applicationName, serviceName, packedFile,
 						contextProperties);
 				try { 
