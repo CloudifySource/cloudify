@@ -46,7 +46,8 @@ public class USMConfigurationFactoryBean implements FactoryBean<UniversalService
 
 	private boolean isRunningInGSC;
 
-	private ApplicationContext applicationContext;
+
+	private String applicationName;
 
 	@Override
 	public UniversalServiceManagerConfiguration getObject() throws USMException {
@@ -83,16 +84,8 @@ public class USMConfigurationFactoryBean implements FactoryBean<UniversalService
 								"If running in the integrated container, use the -cluster option to set the cluster info manually");
 			}
 			
-			
-			// No way around this.
-//			if (this.clusterInfo.getName() == null) {
-//			    throw new IllegalStateException(
-//                        "The cluster name is missing from the Cluster Info. " +
-//                                "If running in the integrated container, use the -cluster option to set the cluster name manually");
-//			}
-			
-			//this.propertiesFileName = "test.properties";
-			compilationResult = ServiceReader.getServiceFromFile(dslFile, this.puExtDir, USMUtils.getAdmin(), this.clusterInfo, this.propertiesFileName, this.isRunningInGSC );
+			compilationResult = ServiceReader.getServiceFromFile(dslFile, this.puExtDir, USMUtils.getAdmin(), 
+					this.clusterInfo, this.propertiesFileName, this.isRunningInGSC, this.applicationName );
 			
 		} catch (final Exception e) {
 			throw new USMException("Failed to read service from file: " + dslFile, e);
@@ -117,7 +110,6 @@ public class USMConfigurationFactoryBean implements FactoryBean<UniversalService
 	@Override
 	public void setApplicationContext(final ApplicationContext ctx) throws BeansException {
 
-		this.applicationContext = ctx;
 		this.isRunningInGSC = USMUtils.isRunningInGSC(ctx);
 		this.puWorkDir = USMUtils.getPUWorkDir(ctx);
 		this.puExtDir = new File(puWorkDir, "ext");
@@ -142,9 +134,9 @@ public class USMConfigurationFactoryBean implements FactoryBean<UniversalService
 	public void setBeanLevelProperties(final BeanLevelProperties beanLevelProperties) {
 		final Properties props = beanLevelProperties.getContextProperties();
 		if (props != null) {
-			// TODO -move to DSL.internal package
 			this.serviceFileName = props.getProperty(CloudifyConstants.CONTEXT_PROPERTY_SERVICE_FILE_NAME);
 			this.propertiesFileName = props.getProperty(CloudifyConstants.CONTEXT_PROPERTY_PROPERTIES_FILE_NAME);
+			this.applicationName = props.getProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME);
 		}
 	}
 

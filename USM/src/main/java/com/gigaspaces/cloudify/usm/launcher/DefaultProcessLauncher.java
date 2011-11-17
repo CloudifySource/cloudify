@@ -29,6 +29,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
+import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
+import com.gigaspaces.cloudify.dsl.utils.ServiceUtils.FullServiceName;
 import com.gigaspaces.cloudify.usm.USMException;
 import com.gigaspaces.cloudify.usm.USMUtils;
 import com.gigaspaces.cloudify.usm.UniversalServiceManagerConfiguration;
@@ -814,11 +816,18 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 			if (clusterInfo.getName() != null) {
 				map.put(CloudifyConstants.USM_ENV_CLUSTER_NAME,
 						clusterInfo.getName());
+				FullServiceName fullServiceName = ServiceUtils.getFullServiceName(clusterInfo.getName());
+				map.put(CloudifyConstants.USM_ENV_APPLICATION_NAME, fullServiceName.getApplicationName());
+				map.put(CloudifyConstants.USM_ENV_SERVICE_NAME, fullServiceName.getServiceName());
+				
 			} else {
 				logger.warning("PU Name in ClusterInfo is null. "
 						+ "If running in the IntegratedProcessingUnitContainer, this is normal. "
 						+ "Using 'USM' instead");
 				map.put(CloudifyConstants.USM_ENV_CLUSTER_NAME, "USM");
+				map.put(CloudifyConstants.USM_ENV_APPLICATION_NAME, CloudifyConstants.DEFAULT_APPLICATION_NAME);
+				map.put(CloudifyConstants.USM_ENV_SERVICE_NAME, "USM");
+
 			}
 			map.put(CloudifyConstants.USM_ENV_PU_UNIQUE_NAME,
 					clusterInfo.getUniqueName());
@@ -831,6 +840,9 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 			map.put(CloudifyConstants.USM_ENV_SERVICE_FILE_NAME, ""
 					+ ((DSLConfiguration) this.configutaion).getServiceFile()
 							.getName());
+			
+			
+			
 
 		}
 

@@ -205,8 +205,9 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 		initShutdownHook();
 
-		// TODO: remove this
-		// getServicesDetails();
+//		Map<String, Object> map = new HashMap<String, Object>();
+//		map.put(CloudifyConstants.INVOCATION_PARAMETER_COMMAND_NAME, "cmd1");
+//		invoke(map);
 	}
 
 	private void initCustomProperties() {

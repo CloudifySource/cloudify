@@ -15,6 +15,7 @@ import org.openspaces.core.cluster.ClusterInfoAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 import com.gigaspaces.cloudify.usm.details.Details;
 import com.gigaspaces.cloudify.usm.dsl.DSLCommandsLifecycleListener;
 import com.gigaspaces.cloudify.usm.dsl.DSLConfiguration;
@@ -525,9 +526,10 @@ public class USMLifecycleBean implements ClusterInfoAware {
 		this.puName = clusterInfo.getName();
 		this.instanceId = clusterInfo.getInstanceId();
 		if (puName != null) {
+			final String serviceName = ServiceUtils.getFullServiceName(puName).getServiceName();
 			this.eventLogger = java.util.logging.Logger
 					.getLogger(USMLifecycleBean.class.getPackage().getName()
-							+ ".USMEventLogger." + puName);
+							+ ".USMEventLogger." + serviceName);
 		} else {
 			this.eventLogger = java.util.logging.Logger
 					.getLogger(USMLifecycleBean.class.getPackage().getName()

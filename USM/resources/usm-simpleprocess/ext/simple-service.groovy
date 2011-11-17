@@ -1,60 +1,45 @@
-
 service {
-	name "SimpleFilewriteAndPortOpener-service"
+	name "kitchensink-service"
 	icon "icon.png"
 
-	lifecycle {
+	lifecycle{
+		// DO NOT CHANGE THE PRINTOUTS - SGTEST LOOKS FOR THEM!
+		init { println "init fired ${var1}" }
+		preInstall{ println "preInstall fired ${var2}"}
+		postInstall{ println "postInstall fired " + var1 }
+		preStart{ println "preStart fired " + var2 }
+		start ([ "Linux": "run.sh -dieOnParentDeath false -port 7777" ,
+					"Win.*": "run.bat -dieOnParentDeath false -port 7777" ])
 
-		//init "init.groovy";//{ println "This is the init event" }
+		postStart "post_start.groovy"
 
-		preInstall {println "This is the preInstall event" }
-		postInstall {println "This is the postInstall event"
-			//throw new IllegalStateException("HAHA")
+		preStop ([
+			"pre_stop.groovy",
+			"true",
+			"String_with_Spaces",
+			"1234"
+		])
+		postStop{ println "postStop fired" }
+		shutdown {
+			println "shutdown fired"
+			sleep 15000 // sleep so that the test can pick up the event printouts from the log
 		}
 
-		//init (["init.bat", true, "String", 1234])
-
-		// preInstall {sleep(30000)}
-		//		postInstall {
-		//			println "This is the postInstall event"
-		//			println "Context is: " + context
-		//			println "Instance ID is: " + context.instanceId
-		//			println "Dir is: " + context.serviceDirectory
-		//			println ""
-		//
-		//			//throw new IllegalStateException("HAHA")
-		//		}
-
-		preStart {println "This is the preStart event" }
-
-		start (["Win.*":"run.bat -port 3668,3667",
-			"Linux":"run.sh -port 3668,3667"])
-		//		start {
-		//			def fullPath =  context.dir + "\\run.bat"
-		//			println "Executing command: " + fullPath
-		//			return  fullPath.execute()
-		//			}
-
-		postStart {println "This is the postStart event" }
-
-		preStop {println "This is the preStop event" }
-		postStop {println "This is the postStop event" }
-		shutdown {println "This is the shutdown event" }
-
-
-		startDetectionTimeoutSecs 10
-		//		startDetection {
-		//			ServiceUtils.isHttpURLAvailable("http://www.google.com")
-		//		}
-
-		stopDetection {
-			false
-		}
-
-		details { return ["1":{1}, "2":{2}] }
-		monitors { return ["3":{3}, "4":{4}] }
+		details(["stam":{"HA HA HAAAAAAAAAAAAAAAAAAA"},
+			"SomeKey":{"22222222222222222222222222"}])
+		monitors (["NumberTwo":{return 2},
+			"NumberOne":{return "1"}])
 
 	}
+
+
+	customCommands ([
+				"cmd1" : { println "This is the cmd1 custom command"},
+				"cmd2" : { throw new Exception("This is the cmd2 custom command - This is an error test")},
+				"cmd3" : { "This is the cmd3 custom command. Service Dir is: " + context.serviceDirectory },
+				"cmd4" : "context_command.groovy",
+				"cmd5" : {"this is the custom parameters command. expecting 123: "+1+x+y}
+			])
 
 
 	plugins ([
@@ -62,66 +47,61 @@ service {
 			name "portLiveness"
 			className "com.gigaspaces.cloudify.usm.liveness.PortLivenessDetector"
 			config ([
-				"Port" : [3668, 3667],
-				"TimeoutInSeconds" : 30,
-				"Host" : "127.0.0.1"
-			])
+						"Port" : [7777],
+						"TimeoutInSeconds" : 60,
+						"Host" : "127.0.0.1"
+					])
 		},
-		plugin {
-			name "jmx"
+		plugin{
+
+			name "JMX Metrics"
+
 			className "com.gigaspaces.cloudify.usm.jmx.JmxMonitor"
+
 			config ([
 
-				"Details" : [
-					"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
-					"Details"
-				],
-				"Counter" : [
-					"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
-					"Counter"
-				],
-				"Type" : [
-					"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
-					"Type"
-				],
-				"port" : 9999
-			])
+						"Details" : [
+							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
+							"Details"
+						],
+						"Counter" : [
+							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
+							"Counter"
+						],
+						"Type" : [
+							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
+							"Type"
+						],
+						port : 9999
+					])
+		},
+		plugin{
+
+			name "JMX Details"
+
+			className "com.gigaspaces.cloudify.usm.jmx.JmxDetails"
+
+			config ([
+
+						"Details" : [
+							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
+							"Details"
+						],
+						"Counter" : [
+							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
+							"Counter"
+						],
+						"Type" : [
+							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
+							"Type"
+						],
+						port : 9999
+					])
 		}
 	])
 
-	userInterface {
-		metricGroups = [
-			metricGroup{
-				name = "process"
-				metrics = ["cpu", "memory"]
-			},
-			metricGroup{
-				name = "space"
-				metrics = ["reads", "writes"]
-			}
-		]
-		widgetGroups = [
-			widgetGroup{
-				name  ="cpu"
-				widgets = [
-					balanceGauge{metric = "cpu"},
-					barLineChart{metric = "cpu"}
-				]
-			},
-			widgetGroup {
-				name = "memory"
-				widgets = [
-					balanceGauge { metric = "memory" },
-					barLineChart{ metric = "memory" }
-				]
-			}
-		]
-	}
-
 	customProperties ([
-		"TailerInterval": "1"
-	])
-
-
+				"TailerInterval": "1"
+			])
 
 }
