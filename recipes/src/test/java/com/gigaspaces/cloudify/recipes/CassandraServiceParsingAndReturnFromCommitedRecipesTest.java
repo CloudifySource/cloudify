@@ -5,6 +5,7 @@ import java.io.File;
 import org.junit.Test;
 
 import com.gigaspaces.cloudify.dsl.Service;
+import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 
 public class CassandraServiceParsingAndReturnFromCommitedRecipesTest {
@@ -20,7 +21,7 @@ public class CassandraServiceParsingAndReturnFromCommitedRecipesTest {
     {
 		cassandraDslFile = new File(LEGAL_RESOURCES_PATH + "cassandra-service.groovy");
 		cassandraWorkDir = new File(LEGAL_RESOURCES_PATH);
-		service = ServiceReader.getServiceFromFile(cassandraDslFile, cassandraWorkDir).getService();
+		service = ServiceReader.getServiceFromFile(cassandraDslFile, cassandraWorkDir, CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
 		ServiceTestUtil.validateName(service , nameInGroovy);
 		ServiceTestUtil.validateIcon(service);
     }
@@ -28,7 +29,7 @@ public class CassandraServiceParsingAndReturnFromCommitedRecipesTest {
 	public void getServiceFromDirInvocation() throws Exception
     {
 		cassandraWorkDir = new File(LEGAL_RESOURCES_PATH);
-		service = ServiceReader.getServiceFromDirectory(cassandraWorkDir).getService();
+		service = ServiceReader.getServiceFromDirectory(cassandraWorkDir, CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
 		ServiceTestUtil.validateName(service , nameInGroovy);
 		ServiceTestUtil.validateIcon(service);
     }
