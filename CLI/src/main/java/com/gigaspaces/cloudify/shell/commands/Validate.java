@@ -18,6 +18,8 @@ package com.gigaspaces.cloudify.shell.commands;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
+
+import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 import java.io.File;
 import java.text.MessageFormat;
@@ -41,7 +43,7 @@ public class Validate extends AbstractGSCommand {
 					messages.getString("file_doesnt_exist"), absolutePath));
 		}
 
-		ServiceReader.getServiceFromFile(dsl, dsl.getParentFile());
+		ServiceReader.getServiceFromFile(dsl, dsl.getParentFile(), CloudifyConstants.DEFAULT_APPLICATION_NAME);
 		// PackagerUtils.getServiceFromFile(dsl);
 
 		return MessageFormat.format(

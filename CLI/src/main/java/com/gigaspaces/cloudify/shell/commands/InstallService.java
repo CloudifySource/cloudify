@@ -71,13 +71,13 @@ public class InstallService extends AdminAwareCommand {
 			}
 			else if (serviceFile.isDirectory()) {
 				//Assume that a folder will contain a DSL file?
-				packedFile = Packager.pack(serviceFile);
+				packedFile = Packager.pack(serviceFile, CloudifyConstants.DEFAULT_APPLICATION_NAME );
 				packedFile.deleteOnExit();
-				service = ServiceReader.readService(serviceFile);
+				service = ServiceReader.readService(serviceFile, CloudifyConstants.DEFAULT_APPLICATION_NAME);
 			} else {
 				//serviceFile is a zip file
 				packedFile = serviceFile;
-				service = ServiceReader.readServiceFromZip(packedFile);
+				service = ServiceReader.readServiceFromZip(packedFile, CloudifyConstants.DEFAULT_APPLICATION_NAME);
 			}
 		}catch (IOException e) {
 			throw new CLIException(e);

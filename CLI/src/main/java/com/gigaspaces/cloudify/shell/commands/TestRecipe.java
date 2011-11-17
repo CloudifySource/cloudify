@@ -181,7 +181,7 @@ public class TestRecipe extends AbstractGSCommand {
 		Service service;
 		try {
 			File serviceFileDir = new File(serviceFolder, "ext");
-			service = ServiceReader.getServiceFromDirectory(serviceFileDir).getService();
+			service = ServiceReader.getServiceFromDirectory(serviceFileDir, CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
 			if (service.getLifecycle() == null){
 				throw new CLIException(getFormattedMessage(
 				"test_recipe_service_lifecycle_missing"));

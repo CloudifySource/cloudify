@@ -10,6 +10,7 @@ import java.text.MessageFormat;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 
+import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.internal.packaging.Packager;
 import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
 
@@ -31,7 +32,7 @@ public class Pack extends AbstractGSCommand {
 
     public static File doPack(File recipeDirOrFile) throws CLIException {
 		try {
-			return Packager.pack(recipeDirOrFile);
+			return Packager.pack(recipeDirOrFile, CloudifyConstants.DEFAULT_APPLICATION_NAME);
 		} catch (IOException e) {
 			throw new CLIException(e);
 		} catch (PackagingException e) {
