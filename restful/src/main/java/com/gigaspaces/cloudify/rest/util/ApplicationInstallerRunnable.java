@@ -74,7 +74,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 			boolean found = false;
 			try {
 
-				File packedFile = Packager.pack(new File(appDir, serviceName));
+				File packedFile = Packager.pack(new File(appDir, serviceName), applicationName);
 				result.getApplicationFile().delete();
 				packedFile.deleteOnExit();
 				//Deployment will be done using the service's absolute PU name.
@@ -148,8 +148,6 @@ public class ApplicationInstallerRunnable implements Runnable {
 			final boolean async) {
 		final Properties contextProperties = new Properties();
 
-		// contextProperties.setProperty("com.gs.application.services",
-		// serviceNamesString);
 		if (service.getDependsOn() != null) {
 			contextProperties.setProperty(
 					CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON, service

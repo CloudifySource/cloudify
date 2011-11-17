@@ -165,7 +165,7 @@ public class ServiceController {
 
 		if (gsm != null) {
 			pu = gsm.deploy(new ProcessingUnitDeployment(dest)
-			.setContextProperty("com.gs.application", applicationName));
+			.setContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName));
 			dest.delete();
 		} else {
 			return errorStatus(FAILED_TO_LOCATE_GSM);
@@ -884,7 +884,7 @@ public class ServiceController {
 				MemoryUnit.MEGABYTES)
 				.addCommandLineArgument("-Xmx" + containerMemoryInMB + "m")
 				.addCommandLineArgument("-Xms" + containerMemoryInMB + "m")
-				.addContextProperty("com.gs.application", applicationName)
+				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName)
 				.name(serviceName)
 				// All PUs on this role share the same machine. Machines
 				// are identified by zone.
@@ -1023,7 +1023,7 @@ public class ServiceController {
 		Cloud cloud = null;
 		if (srcFile.getName().endsWith(".zip")){
 			projectDir = ServiceReader.extractProjectFile(srcFile);
-			DSLServiceCompilationResult result = ServiceReader.getServiceFromDirectory(new File(projectDir, "ext"));
+			DSLServiceCompilationResult result = ServiceReader.getServiceFromDirectory(new File(projectDir, "ext"), applicationName);
 			service = result.getService();
 			cloud =  ServiceReader.getCloudFromDirectory(new File(projectDir, "ext"));
 		}
@@ -1119,7 +1119,7 @@ public class ServiceController {
 				new ElasticSpaceDeployment(serviceName)
 				.memoryCapacityPerContainer(containerMemoryInMB, MemoryUnit.MEGABYTES)
 				.maxMemoryCapacity(maxMemoryInMB, MemoryUnit.MEGABYTES)
-				.addContextProperty("com.gs.application", applicationName)
+				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName)
 				.highlyAvailable(dataGridConfig.getSla().getHighlyAvailable())
 				// allow single machine for local development purposes
 				.singleMachineDeployment();
@@ -1214,7 +1214,7 @@ public class ServiceController {
 		final ElasticStatelessProcessingUnitDeployment deployment = 
 			new ElasticStatelessProcessingUnitDeployment(jarFile)
 		.memoryCapacityPerContainer(containerMemoryInMB,	MemoryUnit.MEGABYTES)
-		.addContextProperty("com.gs.application", applicationName)
+		.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName)
 		.name(serviceName);
 		//TODO:read from cloud DSL
 
@@ -1294,7 +1294,7 @@ public class ServiceController {
 				.name(serviceName)
 				.memoryCapacityPerContainer(containerMemoryInMB, MemoryUnit.MEGABYTES)
 				.maxMemoryCapacity(maxMemoryCapacityInMB + "m")
-				.addContextProperty("com.gs.application", applicationName)
+				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName)
 				.highlyAvailable(puConfig.getSla().getHighlyAvailable())
 				.singleMachineDeployment();
 		
