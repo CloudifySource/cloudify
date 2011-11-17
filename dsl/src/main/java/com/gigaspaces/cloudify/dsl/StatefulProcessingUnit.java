@@ -1,5 +1,7 @@
 package com.gigaspaces.cloudify.dsl;
 
+import com.gigaspaces.cloudify.dsl.internal.CloudifyDSLEntity;
+
 /**
  * Defines an elastic deployment of a processing unit that contains an embedded space.
  * The steteful Processing unit configuration POJO is initialized by 
@@ -11,6 +13,7 @@ package com.gigaspaces.cloudify.dsl;
  * @author adaml
  *
  */
+@CloudifyDSLEntity(name="stateful", clazz=StatefulProcessingUnit.class, allowInternalNode = true, allowRootNode = false, parent = "service")
 public class StatefulProcessingUnit extends ServiceProcessingUnit {
 	
 	private String binaries;

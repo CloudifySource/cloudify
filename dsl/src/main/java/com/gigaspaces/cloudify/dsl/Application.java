@@ -3,6 +3,9 @@ package com.gigaspaces.cloudify.dsl;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.gigaspaces.cloudify.dsl.internal.CloudifyDSLEntity;
+
+@CloudifyDSLEntity(name="application", clazz=Application.class, allowInternalNode = false, allowRootNode = true)
 public class Application {
 
     private String name;

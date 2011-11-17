@@ -2,11 +2,14 @@ package com.gigaspaces.cloudify.dsl;
 
 import java.io.Serializable;
 
+import com.gigaspaces.cloudify.dsl.internal.CloudifyDSLEntity;
+
 /**
  * Configuration of network elements of a specific service
  * @author itaif
  *
  */
+@CloudifyDSLEntity(name="network", clazz=ServiceNetwork.class, allowInternalNode = true, allowRootNode = false, parent = "service")
 public class ServiceNetwork implements Serializable{
 
     /**

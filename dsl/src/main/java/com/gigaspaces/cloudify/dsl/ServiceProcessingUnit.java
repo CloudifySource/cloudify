@@ -9,6 +9,7 @@ import java.util.Map;
  * @author adaml
  *
  */
+
 public abstract class ServiceProcessingUnit {
 
 	private Sla sla;

@@ -1,5 +1,7 @@
 package com.gigaspaces.cloudify.dsl;
 
+import com.gigaspaces.cloudify.dsl.internal.CloudifyDSLEntity;
+
 /**
  * Defines an elastic deployment of a partitioned data grid (space).
  * The datagrid Processing unit configuration POJO is initialized by 
@@ -13,6 +15,7 @@ package com.gigaspaces.cloudify.dsl;
  * @author adaml
  *
  */
+@CloudifyDSLEntity(name="datagrid", clazz=DataGrid.class, allowInternalNode = true, allowRootNode = false, parent = "service")
 public class DataGrid extends ServiceProcessingUnit{
 
 	

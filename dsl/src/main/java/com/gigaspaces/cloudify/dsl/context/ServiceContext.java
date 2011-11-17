@@ -8,6 +8,9 @@ import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.core.cluster.ClusterInfo;
 
 import com.gigaspaces.cloudify.dsl.Service;
+import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
+import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
+import com.gigaspaces.cloudify.dsl.utils.ServiceUtils.FullServiceName;
 
 /**
  * 
@@ -23,6 +26,10 @@ public class ServiceContext {
 	private ClusterInfo clusterInfo;
 	private boolean initialized = false;
 
+	private String serviceName;
+
+	private String applicationName;
+
 	public ServiceContext() {
 
 	}
@@ -33,6 +40,20 @@ public class ServiceContext {
 		this.admin = admin;
 		this.serviceDirectory = dir;
 		this.clusterInfo = clusterInfo;
+
+		if (clusterInfo == null) {
+			this.applicationName = CloudifyConstants.DEFAULT_APPLICATION_NAME;
+			this.serviceName = service.getName();
+		} else {
+			logger.info("Parsing full service name from PU name: "
+					+ clusterInfo.getName());
+			FullServiceName fullServiceName = ServiceUtils
+					.getFullServiceName(clusterInfo.getName());
+			logger.info("Got full service name: " + fullServiceName);
+			this.serviceName = fullServiceName.getServiceName();
+			this.applicationName = fullServiceName.getApplicationName();
+
+		}
 		if (admin != null) {
 			boolean found = this.admin.getLookupServices().waitFor(1, 5,
 					TimeUnit.SECONDS);
@@ -56,6 +77,9 @@ public class ServiceContext {
 		if (service != null) {
 			this.clusterInfo.setName(service.getName());
 		}
+
+		this.applicationName = CloudifyConstants.DEFAULT_APPLICATION_NAME;
+		this.serviceName = service.getName();
 
 		initialized = true;
 
@@ -96,7 +120,9 @@ public class ServiceContext {
 		checkInitialized();
 
 		if (this.admin != null) {
-			ProcessingUnit pu = waitForProcessingUnitFromAdmin(name, timeout,
+			final String puName = ServiceUtils.getAbsolutePUName(
+					this.applicationName, name);
+			ProcessingUnit pu = waitForProcessingUnitFromAdmin(puName, timeout,
 					unit);
 			if (pu == null) {
 				return null;
@@ -171,6 +197,14 @@ public class ServiceContext {
 	 */
 	public ClusterInfo getClusterInfo() {
 		return clusterInfo;
+	}
+
+	public String getServiceName() {
+		return serviceName;
+	}
+
+	public String getApplicationName() {
+		return applicationName;
 	}
 
 	@Override

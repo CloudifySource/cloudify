@@ -12,13 +12,12 @@ import java.util.List;
 
 public class ServiceUtils {
 
-	private static final int TIMEOUT_BETWEEN_CONNECTION_ATTEMPTS = 1000;
 	private static java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(ServiceUtils.class.getName());
 
 	/**
-	 * Same as isPortsOccupied. Check that ports have been opened by the process.
-	 * with default host set to 127.0.0.1
+	 * Same as isPortsOccupied. Check that ports have been opened by the
+	 * process. with default host set to 127.0.0.1
 	 * 
 	 * @param portList
 	 * @param timeoutInSeconds
@@ -87,7 +86,7 @@ public class ServiceUtils {
 				sock.connect(new InetSocketAddress(hostName, port));
 				sock.close();
 				portCounter++;
-				if (portCounter == portList.size()){
+				if (portCounter == portList.size()) {
 					// connection succeeded - the port is not free
 					return false;
 				}
@@ -102,27 +101,29 @@ public class ServiceUtils {
 		}
 		return true;
 	}
-	
+
 	/**
-	 * isPortsOccupied will repeatedly try to connect to the ports defined in the
-	 * groovy configuration file to see whether the ports are open. Having all the tested ports opened
-	 * means that the process has completed loading successfully and is up and running.
+	 * isPortsOccupied will repeatedly try to connect to the ports defined in
+	 * the groovy configuration file to see whether the ports are open. Having
+	 * all the tested ports opened means that the process has completed loading
+	 * successfully and is up and running.
 	 * 
 	 * @throws DSLException
 	 * 
 	 */
-	public static boolean isPortsOccupied(List<Integer> portList, String hostName) {
+	public static boolean isPortsOccupied(List<Integer> portList,
+			String hostName) {
 		Socket sock = null;
 		int portCounter = 0;
 		for (int port : portList) {
 			try {
 				sock = new Socket();
-				logger.fine("Checking port " + port );
+				logger.fine("Checking port " + port);
 				sock.connect(new InetSocketAddress(hostName, port));
-				logger.fine("Connected to port " + port );
+				logger.fine("Connected to port " + port);
 				sock.close();
 				portCounter++;
-				if (portCounter == portList.size()){
+				if (portCounter == portList.size()) {
 					// connection succeeded - the port is not free
 					return true;
 				}
@@ -140,33 +141,48 @@ public class ServiceUtils {
 	}
 
 	/*********
-	 * Executes an HTTP GET Request to the given URL, using a one second connect timeout and read timeout.
+	 * Executes an HTTP GET Request to the given URL, using a one second connect
+	 * timeout and read timeout.
 	 * 
-	 * @param url the HTTP URL.
-	 * @return the HTTP return code. If an error occured while sending the request, for instance if a connection could not be made, returns 500
+	 * @param url
+	 *            the HTTP URL.
+	 * @return the HTTP return code. If an error occured while sending the
+	 *         request, for instance if a connection could not be made, returns
+	 *         500
 	 */
 	public static boolean isHttpURLAvailable(final String url) {
 		return getHttpReturnCode(url) == 200;
 	}
-	
+
 	/*********
-	 * Executes an HTTP GET Request to the given URL, using a one second connect timeout and read timeout.
+	 * Executes an HTTP GET Request to the given URL, using a one second connect
+	 * timeout and read timeout.
 	 * 
-	 * @param url the HTTP URL.
-	 * @return the HTTP return code. If an error occured while sending the request, for instance if a connection could not be made, returns 500
+	 * @param url
+	 *            the HTTP URL.
+	 * @return the HTTP return code. If an error occured while sending the
+	 *         request, for instance if a connection could not be made, returns
+	 *         500
 	 */
 	public static int getHttpReturnCode(final String url) {
 		return getHttpReturnCode(url, 1000, 1000);
 	}
+
 	/*********
-	 * Executes an HTTP GET Request to the given URL. 
+	 * Executes an HTTP GET Request to the given URL.
 	 * 
-	 * @param url the HTTP URL.
-	 * @param connectTimeout the connection timeout.
-	 * @param readTimeout the read timeout.
-	 * @return the HTTP return code. If an error occured while sending the request, for instance if a connection could not be made, returns 500
+	 * @param url
+	 *            the HTTP URL.
+	 * @param connectTimeout
+	 *            the connection timeout.
+	 * @param readTimeout
+	 *            the read timeout.
+	 * @return the HTTP return code. If an error occured while sending the
+	 *         request, for instance if a connection could not be made, returns
+	 *         500
 	 */
-	public static int getHttpReturnCode(final String url, final int connectTimeout, final int readTimeout) {
+	public static int getHttpReturnCode(final String url,
+			final int connectTimeout, final int readTimeout) {
 
 		HttpURLConnection connection = null;
 
@@ -185,7 +201,7 @@ public class ServiceUtils {
 
 			connection.setConnectTimeout(connectTimeout);
 			connection.setReadTimeout(readTimeout);
-			
+
 			final int responseCode = connection.getResponseCode();
 			return responseCode;
 		} catch (IOException ioe) {
@@ -196,16 +212,60 @@ public class ServiceUtils {
 			}
 		}
 	}
-	
-	//Important: when changing this method you must also change the getApplicationServiceName 
-	//method that extracts the service name from the absolute processing unit's name.  
-	public static String getAbsolutePUName(String applicationName, String serviceName){
+
+	// Important: when changing this method you must also change the
+	// getApplicationServiceName
+	// method that extracts the service name from the absolute processing unit's
+	// name.
+	public static String getAbsolutePUName(String applicationName,
+			String serviceName) {
 		return (applicationName + "." + serviceName);
 	}
-	
-	//extracts the service name from the absolutePuName. correlates with getAbsolutePUName
-	public static String getApplicationServiceName(String absolutePuName, String applicationName){
+
+	public static class FullServiceName {
+		private final String serviceName;
+		private final String applicationName;
+
+		public FullServiceName(String applicationName, String serviceName) {
+			super();
+			this.serviceName = serviceName;
+			this.applicationName = applicationName;
+		}
+
+		public String getServiceName() {
+			return serviceName;
+		}
+
+		public String getApplicationName() {
+			return applicationName;
+		}
+
+		@Override
+		public String toString() {
+			return "FullServiceName [applicationName=" + applicationName
+					+ ", serviceName=" + serviceName + "]";
+		}
+		
+
+	}
+
+	// extracts the service name from the absolutePuName. correlates with
+	// getAbsolutePUName
+	public static String getApplicationServiceName(String absolutePuName,
+			String applicationName) {
 		return absolutePuName.substring(applicationName.length() + 1);
-//		return (applicationName + '.' + serviceName);
+		// return (applicationName + '.' + serviceName);
+	}
+
+	public static FullServiceName getFullServiceName(final String puName) {
+		final int index = puName.lastIndexOf(".");
+		if (index < 0) {
+			throw new IllegalArgumentException("Could not parse PU name: "
+					+ puName + " to read service and application names.");
+		}
+
+		final String applicationName = puName.substring(0, index);
+		final String serviceName = puName.substring(index + 1);
+		return new FullServiceName(applicationName, serviceName);
 	}
 }

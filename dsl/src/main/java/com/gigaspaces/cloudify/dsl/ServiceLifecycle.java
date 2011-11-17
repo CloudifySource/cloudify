@@ -2,6 +2,9 @@ package com.gigaspaces.cloudify.dsl;
 
 import java.io.Serializable;
 
+import com.gigaspaces.cloudify.dsl.internal.CloudifyDSLEntity;
+
+@CloudifyDSLEntity(name="lifecycle", clazz=ServiceLifecycle.class, allowInternalNode = true, allowRootNode = false, parent="service")
 public class ServiceLifecycle implements Serializable {
 
 	/**

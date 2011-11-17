@@ -1,6 +1,9 @@
 package com.gigaspaces.cloudify.dsl;
 
+import com.gigaspaces.cloudify.dsl.internal.CloudifyDSLEntity;
 
+
+@CloudifyDSLEntity(name="memcached", clazz=Memcached.class, allowInternalNode = true, allowRootNode = false, parent = "service")
 public class Memcached extends ServiceProcessingUnit{
 	private int port;
 	private int portRetries;

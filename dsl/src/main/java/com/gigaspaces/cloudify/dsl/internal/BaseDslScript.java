@@ -8,8 +8,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.openspaces.ui.BalanceGauge;
+import org.openspaces.ui.BarLineChart;
+import org.openspaces.ui.MetricGroup;
+import org.openspaces.ui.UserInterface;
+import org.openspaces.ui.WidgetGroup;
 
+import com.gigaspaces.cloudify.dsl.Application;
 import com.gigaspaces.cloudify.dsl.Cloud;
+import com.gigaspaces.cloudify.dsl.DataGrid;
+import com.gigaspaces.cloudify.dsl.Memcached;
+import com.gigaspaces.cloudify.dsl.PluginDescriptor;
+import com.gigaspaces.cloudify.dsl.Service;
+import com.gigaspaces.cloudify.dsl.ServiceLifecycle;
+import com.gigaspaces.cloudify.dsl.ServiceNetwork;
+import com.gigaspaces.cloudify.dsl.StatefulProcessingUnit;
+import com.gigaspaces.cloudify.dsl.StatelessProcessingUnit;
 
 public abstract class BaseDslScript extends Script {
 
@@ -21,8 +35,29 @@ public abstract class BaseDslScript extends Script {
 
 	@Override
 	public void setProperty(final String name, final Object value) {
-		Object[] arr = (Object[]) value;
-		applyPropertyToObject(this.activeObject, name, arr[0]);
+		logger.info("Setting Propery: name = " + name + ", value = " + value + ", ActiveObject = " + this.activeObject);
+
+		if(this.activeObject == null) {
+			super.setProperty(name, value);
+			return;
+		}
+		if(this.activeObject == null) {
+			super.setProperty(name, value);
+		}
+		
+		if (value.getClass().isArray()) {
+			Object[] arr = (Object[]) value;
+			if (arr.length > 1) {
+				throw new IllegalArgumentException(
+						"Property assignment of field: "
+								+ name
+								+ " received an array with more then one item: "
+								+ arr);
+			}
+			applyPropertyToObject(this.activeObject, name, arr[0]);
+		} else {
+			applyPropertyToObject(this.activeObject, name, value);
+		}
 
 	}
 
@@ -46,8 +81,9 @@ public abstract class BaseDslScript extends Script {
 		}
 	}
 
+	@Override
 	public Object invokeMethod(final String name, final Object arg) {
-		Object[] arr = (Object[])arg;
+		Object[] arr = (Object[]) arg;
 		Object param = arr[0];
 		// check if this is an object declaration
 		if (param instanceof Closure<?>) {
@@ -59,13 +95,20 @@ public abstract class BaseDslScript extends Script {
 			} catch (DSLException e) {
 				throw new IllegalArgumentException("Failed to set: " + name, e);
 			}
-			
+
 			if (retval != null) {
 				if (this.rootObject == null) {
 					this.rootObject = retval;
 				}
 				swapActiveObject(closure, retval);
-
+				if (this.activeObject != null) {
+					try {
+						setProperty(name, retval);
+					} catch (IllegalArgumentException e) {
+						// this will happen every time there is a dsl object declaration
+						// inside something like a groovy map or list.
+					}
+				}
 				return retval;
 			}
 		}
@@ -116,15 +159,69 @@ public abstract class BaseDslScript extends Script {
 
 	}
 
-	private static Map<String, DSLObjectInitializerData> dslObjectInitializersByName = null;//new HashMap<String, BaseDslScript.DSLObjectInitializerData>();
+	private static Map<String, DSLObjectInitializerData> dslObjectInitializersByName = null;// new
+																							// HashMap<String,
+																							// BaseDslScript.DSLObjectInitializerData>();
+
+	private static void addObjectInitializerForClass(
+			Map<String, DSLObjectInitializerData> map, Class<?> clazz) {
+		CloudifyDSLEntity entityDetails = clazz
+				.getAnnotation(CloudifyDSLEntity.class);
+
+		if (entityDetails == null) {
+			throw new IllegalStateException("Incorrect configuration - class "
+					+ clazz.getName() + " is not a DSL entity");
+		}
+		map.put(entityDetails.name(),
+				new DSLObjectInitializerData(entityDetails.name(),
+						entityDetails.clazz(), entityDetails.allowRootNode(),
+						entityDetails.allowInternalNode(), entityDetails
+								.parent()));
+
+	}
 
 	private static Map<String, DSLObjectInitializerData> getDSLInitializers() {
 		if (dslObjectInitializersByName == null) {
 			dslObjectInitializersByName = new HashMap<String, BaseDslScript.DSLObjectInitializerData>();
 
-			dslObjectInitializersByName.put("cloud",
-					new DSLObjectInitializerData("cloud", Cloud.class, true,
-							false, null));
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					Application.class);
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					DataGrid.class);
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					Memcached.class);
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					PluginDescriptor.class);
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					Service.class);
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					ServiceLifecycle.class);
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					ServiceNetwork.class);
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					StatefulProcessingUnit.class);
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					StatelessProcessingUnit.class);
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					Cloud.class);
+
+			dslObjectInitializersByName.put("userInterface",
+					new DSLObjectInitializerData("userInterface",
+							UserInterface.class, false, true, "service"));
+
+			dslObjectInitializersByName.put("metricGroup",
+					new DSLObjectInitializerData("metricGroup",
+							MetricGroup.class, false, true, "userInterface"));
+			dslObjectInitializersByName.put("widgetGroup",
+					new DSLObjectInitializerData("widgetGroup",
+							WidgetGroup.class, false, true, "userInterface"));
+			dslObjectInitializersByName.put("balanceGauge",
+					new DSLObjectInitializerData("balanceGauge",
+							BalanceGauge.class, false, true, "widgetGroup"));
+			dslObjectInitializersByName.put("barLineChart",
+					new DSLObjectInitializerData("barLineChart",
+							BarLineChart.class, false, true, "widgetGroup"));
+
 		}
 		return dslObjectInitializersByName;
 
@@ -146,7 +243,8 @@ public abstract class BaseDslScript extends Script {
 			// internal node
 			if (data.isAllowInternalNode()) {
 				// check that node is nested under allowed element
-				if (data.getParentElement() != null) {
+				if (data.getParentElement() != null
+						&& data.getParentElement().length() > 0) {
 					DSLObjectInitializerData parentType = getDSLInitializers()
 							.get(data.getParentElement());
 					if (parentType == null) {
@@ -200,8 +298,5 @@ public abstract class BaseDslScript extends Script {
 		return;
 	}
 
-	public static void main(String[] args) {
-
-	}
 
 }
