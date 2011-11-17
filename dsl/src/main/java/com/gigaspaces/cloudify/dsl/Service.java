@@ -58,9 +58,11 @@ public class Service implements Serializable {
 		this.name = name;
 	}
 
+	
+
 	@Override
 	public String toString() {
-		return "Service [name=" + name + "]";
+		return "Service [name=" + name + ", icon=" + icon + "]";
 	}
 
 	public String getIcon() {

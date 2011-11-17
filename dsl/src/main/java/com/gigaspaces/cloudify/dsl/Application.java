@@ -33,7 +33,19 @@ public class Application {
 		return "Application [name=" + name + ", services=" + services + "]";
 	}
 
-    
+
+	// This is a hack, but it allows the application DSL to work with the existing DSL base script.
+	public void setService(final Service service) {
+		this.services.add(service);
+	}
+	public Service getService() {
+		if(this.getServices().size() == 0) {
+			return null;
+		} else {
+			return this.services.get(this.services.size() -1);
+		}
+		
+	}
 
 	
   

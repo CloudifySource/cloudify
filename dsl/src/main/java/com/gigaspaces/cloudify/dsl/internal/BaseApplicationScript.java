@@ -102,63 +102,7 @@ public abstract class BaseApplicationScript extends Script {
 	public Object methodMissing(final String name, final Object args) {
 		setProperty(name, args);
 		return null;
-		// final Object[] argsArray = (Object[]) args;
-		//
-		// // first check if this is an object declaration
-		// final Object obj = createDslObject(name);
-		// if (obj != null) {
-		//
-		// if (this.activeObject != null) {
-		// final Collection<Method> methods = this.activeMethods.values();
-		// for (final Method method : methods) {
-		// if (method.getName().startsWith("set") &&
-		// (method.getParameterTypes().length == 1)
-		// && (method.getParameterTypes()[0].equals(obj.getClass()))) {
-		//
-		// try {
-		// method.invoke(this.activeObject, new Object[] { obj });
-		// } catch (final Exception e) {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// }
-		// break;
-		// }
-		// }
-		// }
-		// swapActiveObject((Closure<Object>) argsArray[0], obj);
-		// return obj;
-		// }
-		//
-		// // next check if this is a property assignment
-		//
-		// if (argsArray.length != 1) {
-		// throw new MissingMethodException(name, Service.class, argsArray);
-		// }
-		//
-		// final Object arg = argsArray[0];
-		//
-		// final String methodName = "set" + name.substring(0, 1).toUpperCase()
-		// + name.substring(1);
-		//
-		// try {
-		// final Method m = this.activeMethods.get(methodName);
-		// if (m != null) {
-		// m.invoke(this.activeObject, arg);
-		// } else {
-		// logger.severe("Method " + methodName + " not found on object: " +
-		// this.activeObject);
-		// throw new MissingMethodException(name, this.activeObject.getClass(),
-		// new Object[0]);
-		//
-		// }
-		// } catch (final Exception e) {
-		// logger.log(Level.SEVERE, "Failed to invoke method " + methodName, e);
-		// throw new IllegalStateException("Failed to invoke method " +
-		// methodName
-		// + " on object " + this.activeObject, e);
-		// }
-		//
-		// return this.activeObject;
+		
 	}
 
 	public Application application(final Closure<Object> closure) {
@@ -183,29 +127,6 @@ public abstract class BaseApplicationScript extends Script {
 		logger.info(obj.toString());
 	}
 
-	// public void service(String serviceName, Closure<Object> closure) {
-	// // First find the service dir
-	// final String serviceDirName = this.applicationDir + File.separator
-	// + serviceName;
-	// File serviceDir = new File(serviceDirName);
-	// if (!serviceDir.exists() || !serviceDir.isDirectory()) {
-	// throw new java.lang.IllegalStateException(
-	// "Could not find service directory: " + serviceDir
-	// + " while loading application");
-	// }
-	//
-	// // Load the service
-	// DSLServiceCompilationResult result = ServiceReader
-	// .getServiceFromFile(serviceDir);
-	// Service service = result.getService();
-	//
-	// // execute the closure
-	// swapActiveObject(closure, service);
-	//
-	// // add the service to the application
-	// application.getServices().add(service);
-	//
-	// }
 
 	private boolean inServiceBlock = false;
 	private boolean serviceBlockInitialized = false;

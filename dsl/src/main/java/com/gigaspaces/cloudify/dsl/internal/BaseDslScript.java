@@ -3,6 +3,8 @@ package com.gigaspaces.cloudify.dsl.internal;
 import groovy.lang.Closure;
 import groovy.lang.Script;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +26,7 @@ import com.gigaspaces.cloudify.dsl.ServiceLifecycle;
 import com.gigaspaces.cloudify.dsl.ServiceNetwork;
 import com.gigaspaces.cloudify.dsl.StatefulProcessingUnit;
 import com.gigaspaces.cloudify.dsl.StatelessProcessingUnit;
+import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
 
 public abstract class BaseDslScript extends Script {
 
@@ -33,6 +36,9 @@ public abstract class BaseDslScript extends Script {
 	private Object activeObject = null;
 	private Object rootObject;
 
+	
+	
+
 	@Override
 	public void setProperty(final String name, final Object value) {
 		logger.info("Setting Propery: name = " + name + ", value = " + value + ", ActiveObject = " + this.activeObject);
@@ -41,9 +47,9 @@ public abstract class BaseDslScript extends Script {
 			super.setProperty(name, value);
 			return;
 		}
-		if(this.activeObject == null) {
-			super.setProperty(name, value);
-		}
+//		if(this.activeObject == null) {
+//			super.setProperty(name, value);
+//		}
 		
 		if (value.getClass().isArray()) {
 			Object[] arr = (Object[]) value;
@@ -63,11 +69,14 @@ public abstract class BaseDslScript extends Script {
 
 	private void applyPropertyToObject(final Object object, final String name,
 			final Object value) {
+		
 		try {
 			// first check that the property exists
 			BeanUtils.getProperty(object, name);
 			// Then set it
 			BeanUtils.setProperty(object, name, value);
+			
+			checkForApplicationServiceBlockNameParameter(name, value);
 		} catch (final IllegalAccessException e) {
 			throw new IllegalArgumentException("Failed to set property " + name
 					+ " to " + value, e);
@@ -81,6 +90,8 @@ public abstract class BaseDslScript extends Script {
 		}
 	}
 
+		
+	
 	@Override
 	public Object invokeMethod(final String name, final Object arg) {
 		Object[] arr = (Object[]) arg;
@@ -296,6 +307,62 @@ public abstract class BaseDslScript extends Script {
 		activeObject = prevObject;
 
 		return;
+	}
+	
+		
+	////////////////////////////////////////////////////////////////////////////////////
+	// Special handling for service blocks embedded inside application files  //////////
+	////////////////////////////////////////////////////////////////////////////////////
+	private void checkForApplicationServiceBlockNameParameter(final String propertyName, final Object propertyValue) {
+		// check that we are setting the name property of a service this ia part of an application 
+		if(this.rootObject != null && this.rootObject.getClass().equals(Application.class) && this.activeObject!= null && this.activeObject.getClass().equals(Service.class) && propertyName.equals("name")) {
+			final String serviceName = (String)propertyValue;
+			Service service = loadApplicationService(serviceName);
+			
+			// TODO - must validate that name property was first one to be applied in this service.
+			try {
+				BeanUtils.copyProperties(this.activeObject, service);
+			} catch (IllegalAccessException e) {
+				throw new IllegalArgumentException("Failed to load service: " + serviceName, e);
+			} catch (InvocationTargetException e) {
+				throw new IllegalArgumentException("Failed to load service: " + serviceName, e);
+			}
+			
+		}
+		
+	}
+	
+	private Service loadApplicationService(String serviceName) {
+		// First find the service dir
+		
+		final String workDirectory = (String) this.getProperty(DSLUtils.APPLICATION_DIR);
+		if(workDirectory == null) {
+			throw new IllegalArgumentException("Work directory was not set while parsing application file");
+		}
+		
+		final String serviceDirName = workDirectory + File.separator
+				+ serviceName;
+		File serviceDir = new File(serviceDirName);
+		if (!serviceDir.exists() || !serviceDir.isDirectory()) {
+			throw new java.lang.IllegalStateException(
+					"Could not find service directory: " + serviceDir
+							+ " while loading application");
+		}
+
+		// Load the service
+		DSLServiceCompilationResult result;
+		try {
+			result = ServiceReader
+					.getServiceFromDirectory(serviceDir, ((Application)this.rootObject).getName());
+		} catch (FileNotFoundException e) {
+			throw new IllegalArgumentException("Failed to load service: " + serviceName + " while loading application", e);
+		} catch (PackagingException e) {
+			throw new IllegalArgumentException("Failed to load service: " + serviceName + " while loading application", e);
+		}
+		Service service = result.getService();
+
+		return service;
+
 	}
 
 

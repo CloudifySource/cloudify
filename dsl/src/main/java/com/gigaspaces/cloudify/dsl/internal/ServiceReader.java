@@ -360,7 +360,7 @@ public class ServiceReader {
 
 	private static GroovyShell createGroovyShellForApplication() {
 		return ServiceReader.createGroovyShell(
-				BaseApplicationScript.class.getName(), null, null);
+				BaseDslScript.class.getName(), null, null);
 	}
 
 	private static GroovyShell createGroovyShellForCloud() {
@@ -447,7 +447,7 @@ public class ServiceReader {
 		return cloud;
 
 	}
-
+	
 	// TODO - Support Zip files in application
 	public static DSLApplicationCompilatioResult getApplicationFromFile(
 			final File inputFile) throws IOException {

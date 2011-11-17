@@ -5,7 +5,7 @@ import org.openspaces.admin.internal.pu.InternalProcessingUnit;
 public class DSLUtils {
 
  	// The context property set in application DSL files to indicate the directory where the application file itself can be found
-	public static final String APPLICATION_DIR = "APPLICATION_DIR";
+	public static final String APPLICATION_DIR = "workDirectory";
 
 
     private DSLUtils() {
