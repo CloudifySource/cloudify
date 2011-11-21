@@ -159,7 +159,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 
 	//returns the number of RUNNING processing unit instances.
 	private int getNumberOfUSMServicesWithRunningState(String serviceName,
-			String applicationName, int plannedNumberOfInstances) throws CLIException {
+			String applicationName, int currentNumberOfInstances) throws CLIException {
 
 		String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		String serviceMonitorsUrl = "ProcessingUnits/Names/"
@@ -169,7 +169,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 
 		int runningServiceInstanceCounter = 0;
 		
-		for (int i = 0; i < plannedNumberOfInstances; i++) {
+		for (int i = 0; i < currentNumberOfInstances; i++) {
 			String instanceUrl = String.format(serviceMonitorsUrl, i);
 			Map<String, Object> map = client.getAdminData(instanceUrl);
 			int instanceState = Integer.valueOf((String)map.get(CloudifyConstants.USM_MONITORS_STATE_ID));
@@ -190,7 +190,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			+ CloudifyConstants.USM_MONITORS_SERVICE_ID;
 		try{
 			Map<String, Object> adminData = client.getAdminData(usmUrl);
-			if (adminData != null){
+			if (!adminData.get(CloudifyConstants.USM_MONITORS_SERVICE_ID).equals("<null>")){
 				return true;
 			}
 		}catch (CLIException e){
