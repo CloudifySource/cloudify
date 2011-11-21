@@ -18,6 +18,11 @@ import org.openspaces.ui.WidgetGroup;
 
 import com.gigaspaces.cloudify.dsl.Application;
 import com.gigaspaces.cloudify.dsl.Cloud;
+import com.gigaspaces.cloudify.dsl.Cloud2;
+import com.gigaspaces.cloudify.dsl.CloudProvider;
+import com.gigaspaces.cloudify.dsl.CloudTemplate;
+import com.gigaspaces.cloudify.dsl.CloudUser;
+import com.gigaspaces.cloudify.dsl.ComputeDetails;
 import com.gigaspaces.cloudify.dsl.DataGrid;
 import com.gigaspaces.cloudify.dsl.Memcached;
 import com.gigaspaces.cloudify.dsl.PluginDescriptor;
@@ -36,21 +41,19 @@ public abstract class BaseDslScript extends Script {
 	private Object activeObject = null;
 	private Object rootObject;
 
-	
-	
-
 	@Override
 	public void setProperty(final String name, final Object value) {
-		logger.info("Setting Propery: name = " + name + ", value = " + value + ", ActiveObject = " + this.activeObject);
+		logger.info("Setting Propery: name = " + name + ", value = " + value
+				+ ", ActiveObject = " + this.activeObject);
 
-		if(this.activeObject == null) {
+		if (this.activeObject == null) {
 			super.setProperty(name, value);
 			return;
 		}
-//		if(this.activeObject == null) {
-//			super.setProperty(name, value);
-//		}
-		
+		// if(this.activeObject == null) {
+		// super.setProperty(name, value);
+		// }
+
 		if (value.getClass().isArray()) {
 			Object[] arr = (Object[]) value;
 			if (arr.length > 1) {
@@ -67,31 +70,44 @@ public abstract class BaseDslScript extends Script {
 
 	}
 
-	private void applyPropertyToObject(final Object object, final String name,
-			final Object value) {
-		
+	private boolean isProperyExistsInBean(final Object bean,
+			final String propertyName) {
+		if (bean == null) {
+			throw new NullPointerException(
+					"Got a null reference to a bean while checking if a bean has the property: "
+							+ propertyName);
+		}
 		try {
 			// first check that the property exists
-			BeanUtils.getProperty(object, name);
-			// Then set it
-			BeanUtils.setProperty(object, name, value);
-			
-			checkForApplicationServiceBlockNameParameter(name, value);
-		} catch (final IllegalAccessException e) {
-			throw new IllegalArgumentException("Failed to set property " + name
-					+ " to " + value, e);
-		} catch (final InvocationTargetException e) {
-			throw new IllegalArgumentException("Failed to set property " + name
-					+ " to " + value, e);
-		} catch (NoSuchMethodException e) {
-			throw new IllegalArgumentException("Property " + name
-					+ " does not exist in class: "
-					+ this.activeObject.getClass().getName(), e);
+			BeanUtils.getProperty(bean, propertyName);
+			return true;
+		} catch (Exception e) {
+			return false;
 		}
+
 	}
 
-		
-	
+	private void applyPropertyToObject(final Object object, final String name,
+			final Object value) {
+
+		if (!isProperyExistsInBean(object, name)) {
+			throw new IllegalArgumentException("Could not find property: "
+					+ name + " on Object: " + object);
+		}
+
+		try {
+			// Then set it
+			BeanUtils.setProperty(object, name, value);
+
+		} catch (final Exception e) {
+			throw new IllegalArgumentException("Failed to set property " + name
+					+ " of Object " + object + " to value: " + value, e);
+		}
+
+		checkForApplicationServiceBlockNameParameter(name, value);
+
+	}
+
 	@Override
 	public Object invokeMethod(final String name, final Object arg) {
 		Object[] arr = (Object[]) arg;
@@ -116,7 +132,8 @@ public abstract class BaseDslScript extends Script {
 					try {
 						setProperty(name, retval);
 					} catch (IllegalArgumentException e) {
-						// this will happen every time there is a dsl object declaration
+						// this will happen every time there is a dsl object
+						// declaration
 						// inside something like a groovy map or list.
 					}
 				}
@@ -216,6 +233,20 @@ public abstract class BaseDslScript extends Script {
 			addObjectInitializerForClass(dslObjectInitializersByName,
 					Cloud.class);
 
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					Cloud2.class);
+
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					CloudProvider.class);
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					CloudUser.class);
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					CloudTemplate.class);
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					ComputeDetails.class);
+
+
+			
 			dslObjectInitializersByName.put("userInterface",
 					new DSLObjectInitializerData("userInterface",
 							UserInterface.class, false, true, "service"));
@@ -308,38 +339,49 @@ public abstract class BaseDslScript extends Script {
 
 		return;
 	}
-	
-		
-	////////////////////////////////////////////////////////////////////////////////////
-	// Special handling for service blocks embedded inside application files  //////////
-	////////////////////////////////////////////////////////////////////////////////////
-	private void checkForApplicationServiceBlockNameParameter(final String propertyName, final Object propertyValue) {
-		// check that we are setting the name property of a service this ia part of an application 
-		if(this.rootObject != null && this.rootObject.getClass().equals(Application.class) && this.activeObject!= null && this.activeObject.getClass().equals(Service.class) && propertyName.equals("name")) {
-			final String serviceName = (String)propertyValue;
+
+	// //////////////////////////////////////////////////////////////////////////////////
+	// Special handling for service blocks embedded inside application files
+	// //////////
+	// //////////////////////////////////////////////////////////////////////////////////
+	private void checkForApplicationServiceBlockNameParameter(
+			final String propertyName, final Object propertyValue) {
+		// check that we are setting the name property of a service this ia part
+		// of an application
+		if (this.rootObject != null
+				&& this.rootObject.getClass().equals(Application.class)
+				&& this.activeObject != null
+				&& this.activeObject.getClass().equals(Service.class)
+				&& propertyName.equals("name")) {
+			final String serviceName = (String) propertyValue;
 			Service service = loadApplicationService(serviceName);
-			
-			// TODO - must validate that name property was first one to be applied in this service.
+
+			// TODO - must validate that name property was first one to be
+			// applied in this service.
 			try {
 				BeanUtils.copyProperties(this.activeObject, service);
 			} catch (IllegalAccessException e) {
-				throw new IllegalArgumentException("Failed to load service: " + serviceName, e);
+				throw new IllegalArgumentException("Failed to load service: "
+						+ serviceName, e);
 			} catch (InvocationTargetException e) {
-				throw new IllegalArgumentException("Failed to load service: " + serviceName, e);
+				throw new IllegalArgumentException("Failed to load service: "
+						+ serviceName, e);
 			}
-			
+
 		}
-		
+
 	}
-	
+
 	private Service loadApplicationService(String serviceName) {
 		// First find the service dir
-		
-		final String workDirectory = (String) this.getProperty(DSLUtils.APPLICATION_DIR);
-		if(workDirectory == null) {
-			throw new IllegalArgumentException("Work directory was not set while parsing application file");
+
+		final String workDirectory = (String) this
+				.getProperty(DSLUtils.APPLICATION_DIR);
+		if (workDirectory == null) {
+			throw new IllegalArgumentException(
+					"Work directory was not set while parsing application file");
 		}
-		
+
 		final String serviceDirName = workDirectory + File.separator
 				+ serviceName;
 		File serviceDir = new File(serviceDirName);
@@ -352,18 +394,19 @@ public abstract class BaseDslScript extends Script {
 		// Load the service
 		DSLServiceCompilationResult result;
 		try {
-			result = ServiceReader
-					.getServiceFromDirectory(serviceDir, ((Application)this.rootObject).getName());
+			result = ServiceReader.getServiceFromDirectory(serviceDir,
+					((Application) this.rootObject).getName());
 		} catch (FileNotFoundException e) {
-			throw new IllegalArgumentException("Failed to load service: " + serviceName + " while loading application", e);
+			throw new IllegalArgumentException("Failed to load service: "
+					+ serviceName + " while loading application", e);
 		} catch (PackagingException e) {
-			throw new IllegalArgumentException("Failed to load service: " + serviceName + " while loading application", e);
+			throw new IllegalArgumentException("Failed to load service: "
+					+ serviceName + " while loading application", e);
 		}
 		Service service = result.getService();
 
 		return service;
 
 	}
-
 
 }
