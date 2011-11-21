@@ -49,6 +49,9 @@ public class Service implements Serializable {
 	private ServiceProcessingUnit serviceProcessingUnit;
 	
 	private Map<String, String> customProperties = new HashMap<String, String>();
+
+	private ComputeDetails compute;
+	
 	
 	public String getName() {
 		return name;
@@ -295,5 +298,13 @@ public class Service implements Serializable {
 
 	public void setDependsOn(List<String> dependsOn) {
 		this.dependsOn = dependsOn;
+	}
+
+	public ComputeDetails getCompute() {
+		return compute;
+	}
+
+	public void setCompute(ComputeDetails compute) {
+		this.compute = compute;
 	}
 }
