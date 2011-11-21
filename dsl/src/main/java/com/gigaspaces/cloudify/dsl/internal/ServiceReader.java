@@ -36,6 +36,7 @@ import org.openspaces.ui.UserInterface;
 
 import com.gigaspaces.cloudify.dsl.Application;
 import com.gigaspaces.cloudify.dsl.Cloud;
+import com.gigaspaces.cloudify.dsl.Cloud2;
 import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.context.ServiceContext;
 import com.gigaspaces.cloudify.dsl.internal.packaging.Packager;
@@ -741,6 +742,56 @@ public class ServiceReader {
 
 	}
 
+	public static Cloud2 readCloud(final File dslFile)
+			throws IOException {
+
+		if (!dslFile.exists()) {
+			throw new FileNotFoundException(dslFile.getAbsolutePath());
+		}
+
+		final GroovyShell gs = ServiceReader.createGroovyShellForCloud();
+		// gs.getContext().setProperty(ServiceUtils.APPLICATION_DIR,
+		// dslFile.getParentFile().getAbsolutePath());
+
+		Object result = null;
+		FileReader reader = null;
+		try {
+			reader = new FileReader(dslFile);
+			result = gs.evaluate(reader, "cloud");
+		} catch (final CompilationFailedException e) {
+			throw new IllegalArgumentException("The file " + dslFile
+					+ " could not be compiled", e);
+		} catch (final IOException e) {
+			throw new IllegalStateException("The file " + dslFile
+					+ " could not be read", e);
+		} finally {
+			if (reader != null) {
+				reader.close();
+			}
+		}
+
+		// final Object result = Eval.me(expr);
+		if (result == null) {
+			throw new IllegalStateException("The file: " + dslFile
+					+ " evaluates to null, not to a DSL object");
+		}
+		if (!(result instanceof Cloud2)) {
+			throw new IllegalStateException("The file: " + dslFile
+					+ " did not evaluate to the required object type");
+		}
+
+		final Cloud2 cloud = (Cloud2) result;
+
+		// final ServiceContext ctx = new ServiceContext(service, admin,
+		// workDir.getAbsolutePath(),
+		// clusterInfo);
+		// gs.getContext().setProperty("context", ctx);
+
+		return cloud;
+
+	}
+
+	
 	public static File doPack(File recipeFolder, String applicationName) throws IOException,
 			PackagingException {
 		Service service = ServiceReader.readService(recipeFolder, applicationName);
