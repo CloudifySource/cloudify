@@ -152,7 +152,8 @@ public class ServiceReader {
 
 		Service service = getServiceFromFile(dslFile, applicationName);
 		validateFolderSize(serviceDirOrFile, service.getMaxJarSize());
-		return service; // What is this for?getServiceFromFile(dslFile);
+		
+		return service;
 	}
 
 	public static void validateFolderSize(File serviceDirOrFile,
@@ -183,7 +184,11 @@ public class ServiceReader {
 			return ServiceReader.getServiceFromFile(dslFile,
 			// new File(System.getProperty("user.dir"))).getService();
 					dslFile.getParentFile(), applicationName ).getService();
-		} catch (final Exception e) {
+		} catch (CompilationFailedException e){
+			throw new PackagingException("The file " + dslFile
+					+ " could not be compiled: " + e.getMessage(), e);
+		}
+		catch (final Exception e) {
 			throw new PackagingException("Failed to read service from file "
 					+ dslFile + ": " + e.getMessage(), e);
 		}
@@ -270,9 +275,6 @@ public class ServiceReader {
 		try {
 			reader = new FileReader(dslFile);
 			result = gs.evaluate(reader, "service");
-		} catch (final CompilationFailedException e) {
-			throw new IllegalArgumentException("The file " + dslFile
-					+ " could not be compiled", e);
 		} catch (final IOException e) {
 			throw new IllegalStateException("The file " + dslFile
 					+ " could not be read", e);
@@ -659,7 +661,7 @@ public class ServiceReader {
 			result = gs.evaluate(reader, "application");
 		} catch (final CompilationFailedException e) {
 			throw new IllegalArgumentException("The file " + dslFile
-					+ " could not be compiled", e);
+					+ " could not be compiled: " + e.getMessage()  , e);
 		} catch (final IOException e) {
 			throw new IllegalStateException("The file " + dslFile
 					+ " could not be read", e);
@@ -708,7 +710,7 @@ public class ServiceReader {
 			result = gs.evaluate(reader, "cloud");
 		} catch (final CompilationFailedException e) {
 			throw new IllegalArgumentException("The file " + dslFile
-					+ " could not be compiled", e);
+					+ " could not be compiled: " + e.getMessage(), e);
 		} catch (final IOException e) {
 			throw new IllegalStateException("The file " + dslFile
 					+ " could not be read", e);
