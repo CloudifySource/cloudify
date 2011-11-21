@@ -70,5 +70,5 @@ public interface AdminFacade {
 
 	void uninstallApplication(String applicationName) throws CLIException, CLIException;
 	
-	int waitForServiceInstances(String serviceName, String applicationName, int plannedNumberOfInstances, String timeoutErrorMessage, long timeout, TimeUnit timeunit) throws CLIException, TimeoutException, InterruptedException;
+	boolean waitForServiceInstances(String serviceName, String applicationName, int plannedNumberOfInstances, String timeoutErrorMessage, long timeout, TimeUnit timeunit) throws CLIException, TimeoutException, InterruptedException;
 }

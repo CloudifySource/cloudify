@@ -117,7 +117,7 @@ public class InstallService extends AdminAwareCommand {
 
 		//TODO: Refactor waitXXX outside of adminFacade
 		try{
-			plannedNumberOfInstances = adminFacade.waitForServiceInstances(serviceName, currentApplicationName, plannedNumberOfInstances, TIMEOUT_ERROR_MESSAGE, timeoutInMinutes,TimeUnit.MINUTES);
+			adminFacade.waitForServiceInstances(serviceName, currentApplicationName, plannedNumberOfInstances, TIMEOUT_ERROR_MESSAGE, timeoutInMinutes,TimeUnit.MINUTES);
 			return MessageFormat.format(messages.getString("service_install_ended"), serviceName);
 		}catch (CLIException ex){
 			return MessageFormat.format(messages.getString("service_install_failed"), serviceName);

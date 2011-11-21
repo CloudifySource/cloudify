@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 import com.gigaspaces.cloudify.shell.AbstractAdminFacade;
 import com.gigaspaces.cloudify.shell.ComponentType;
@@ -51,7 +52,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 
 	@Override
 	public void doConnect(String user, String password, String url)
-			throws CLIException {
+	throws CLIException {
 
 		if (!url.endsWith("/")) {
 			url = url + "/";
@@ -79,61 +80,130 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 */
 	//TODO: Move this method or at least logger.info() code outside of RestAdminFacade
 	@Override
-	public int waitForServiceInstances(String serviceName, String applicationName, int plannedNumberOfInstances, String timeoutErrorMessage, long timeout, TimeUnit timeunit) throws CLIException, TimeoutException, InterruptedException {
+	public boolean waitForServiceInstances(String serviceName, String applicationName, int plannedNumberOfInstances, String timeoutErrorMessage, long timeout, TimeUnit timeunit) throws CLIException, TimeoutException, InterruptedException {
 		long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
-		
-		int serviceShutDownEvents = 0;
-		
+
+		int serviceShutDownEventsCount = 0;
+
 		String pollingURL = "processingUnits/Names/" + ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 
-		waitForService(applicationName, serviceName, pollingURL, timeoutErrorMessage, timeout, timeunit);
-		
+		//The polling will not start until the service processing unit is found.
+		waitForServicePU(applicationName, serviceName, pollingURL, timeoutErrorMessage, timeout, timeunit);
+
 		logger.info(MessageFormat.format(messages.getString("deploying_service"),serviceName));
-        
-        Integer currentNumberOfInstances = 0;
-        while (System.currentTimeMillis() < end) {
-        	Map<String, Object> map = client.getAdminData(pollingURL);
-        	currentNumberOfInstances = (Integer)map.get("Instances-Size");
-        	
-    		if ("partitioned-sync2backup".equals(map.get("ClusterSchema"))) {
-    			plannedNumberOfInstances = Integer.valueOf((String) map.get("TotalNumberOfInstances"));
-    		}
-    		
-			logger.info(MessageFormat.format(
-					messages.getString("deploying_service_updates"),
-					plannedNumberOfInstances, currentNumberOfInstances));
+
+		Integer currentNumberOfInstances = 0;
+		while (System.currentTimeMillis() < end) {
+			Map<String, Object> map = client.getAdminData(pollingURL);
+			currentNumberOfInstances = (Integer)map.get("Instances-Size");
+
+			if ("partitioned-sync2backup".equals(map.get("ClusterSchema"))) {
+				plannedNumberOfInstances = Integer.valueOf((String) map.get("TotalNumberOfInstances"));
+			}
 			
-        	if (currentNumberOfInstances!= null && plannedNumberOfInstances  == currentNumberOfInstances){
-				return plannedNumberOfInstances;
-			}
-        	
-			List<String> eventLogs = getUnreadEventLogs(applicationName, serviceName);
-			if (eventLogs != null){
-				printEventLogs(eventLogs);
-				if (isEventLogContainsShutdown(eventLogs, serviceName)){
-					serviceShutDownEvents++;
-					//if equals that means that all planned service instances failed.
-					if (serviceShutDownEvents == plannedNumberOfInstances){
-						throw new CLIException("Service " + serviceName + " Failed to instantiate");
-					}
-				}
-			}
-			if (plannedNumberOfInstances < currentNumberOfInstances){
+			serviceShutDownEventsCount = handleEventLogs(serviceName, applicationName, plannedNumberOfInstances, serviceShutDownEventsCount);
+			
+			if (currentNumberOfInstances == 0){
+				logger.info(MessageFormat.format(
+						messages.getString("deploying_service_updates"),
+						plannedNumberOfInstances, currentNumberOfInstances));
+			}else if (plannedNumberOfInstances < currentNumberOfInstances){
 				throw new CLIException(MessageFormat.format(
 						messages.getString("number_of_instances_exceeded_planned"),
 						plannedNumberOfInstances, currentNumberOfInstances)); 
+			}else if (currentNumberOfInstances > 0){
+				if (isUSMService(applicationName, serviceName)){
+					int usmServicesStateRunningInstances = getNumberOfUSMServicesWithRunningState(serviceName, applicationName, currentNumberOfInstances);
+					//The above action might take several seconds 
+					//so we print any events that might have been triggered in the mean time.
+					serviceShutDownEventsCount = handleEventLogs(serviceName, applicationName, plannedNumberOfInstances, serviceShutDownEventsCount);
+					logger.info(MessageFormat.format(
+							messages.getString("deploying_service_updates"),
+							plannedNumberOfInstances, usmServicesStateRunningInstances));
+					//are all usm service instances in Running state?
+					if (usmServicesStateRunningInstances == plannedNumberOfInstances){
+						return true;
+					}
+				}else{//non USM Service.
+					logger.info(MessageFormat.format(
+							messages.getString("deploying_service_updates"),
+							plannedNumberOfInstances, currentNumberOfInstances));
+					//if all services up, return.
+					if (plannedNumberOfInstances  == currentNumberOfInstances){
+						return true;
+					}
+				}
 			}
+
 			Thread.sleep(POLLING_INTERVAL);
 		}
 		throw new TimeoutException(timeoutErrorMessage);
 
 	}
 	
-	private void waitForService(String applicationName, String serviceName, String url, String timeoutErrorMessage, long timeout, TimeUnit timeunit) throws TimeoutException, InterruptedException {
-		 
-        long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
-        String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-        while (System.currentTimeMillis() < end) {
+	//Prints event logs and monitors shutdown events.
+	private int handleEventLogs(String serviceName, String applicationName,
+			int plannedNumberOfInstances, int serviceShutDownEventsCount)
+			throws CLIException {
+		List<String> eventLogs = getUnreadEventLogs(applicationName, serviceName);
+		if (eventLogs != null){
+			printEventLogs(eventLogs);
+			serviceShutDownEventsCount += getShutdownEventCount(eventLogs, serviceName);
+			//If all planned instances of the processing unit had Shutdown we throw an exception.
+			if (serviceShutDownEventsCount == plannedNumberOfInstances){
+				throw new CLIException("Service " + serviceName + " Failed to instantiate");
+			}
+		}
+		return serviceShutDownEventsCount;
+	}
+
+	//returns the number of RUNNING processing unit instances.
+	private int getNumberOfUSMServicesWithRunningState(String serviceName,
+			String applicationName, int plannedNumberOfInstances) throws CLIException {
+
+		String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+		String serviceMonitorsUrl = "ProcessingUnits/Names/"
+			+ absolutePUName 
+			+ "/ProcessingUnitInstances/%d/Statistics/Monitors/USM/Monitors/"
+			+ CloudifyConstants.USM_MONITORS_STATE_ID;
+
+		int runningServiceInstanceCounter = 0;
+		
+		for (int i = 0; i < plannedNumberOfInstances; i++) {
+			String instanceUrl = String.format(serviceMonitorsUrl, i);
+			Map<String, Object> map = client.getAdminData(instanceUrl);
+			int instanceState = Integer.valueOf((String)map.get(CloudifyConstants.USM_MONITORS_STATE_ID));
+			if (CloudifyConstants.USMState.values()[instanceState].equals(CloudifyConstants.USMState.RUNNING)){
+				runningServiceInstanceCounter++;
+			}
+		}
+		return runningServiceInstanceCounter;
+	}
+
+	private boolean isUSMService(String applicationName, String serviceName) throws CLIException {
+
+		String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+		String usmUrl = "ProcessingUnits/Names/"
+			+ absolutePUName + 
+			"/Instances/0/Statistics/" 
+			+ "Monitors/"
+			+ CloudifyConstants.USM_MONITORS_SERVICE_ID;
+		try{
+			Map<String, Object> adminData = client.getAdminData(usmUrl);
+			if (adminData != null){
+				return true;
+			}
+		}catch (CLIException e){
+			
+		}
+		return false;
+	}
+
+	private void waitForServicePU(String applicationName, String serviceName, String url, String timeoutErrorMessage, long timeout, TimeUnit timeunit) throws TimeoutException, InterruptedException {
+
+		long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
+		String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+		while (System.currentTimeMillis() < end) {
 			try{ 
 				Map<String, Object> pu = client.getAdminData(url);
 				if (absolutePuName.equals(pu.get("Name"))) {
@@ -147,28 +217,30 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		throw new TimeoutException(timeoutErrorMessage);
 	}
 
-		private List<String> getUnreadEventLogs(String applicationName, String serviceName) throws CLIException{
-			List<Map<String, String>> allEventsExecutedList = (List<Map<String, String>>) client
-			.get(SERVICE_CONTROLLER_URL + "/applications/"
-					+ applicationName + "/services/" + serviceName
-					+ "/USMEventsLogs/");
-			return eventLoggingTailer.getLinesToPrint(allEventsExecutedList);
-		}
-		
-		private boolean isEventLogContainsShutdown(List<String> events, String serviceName){
-			for (String eventString : events) {
-				if (eventString.contains(serviceName) && eventString.contains("SHUTDOWN invoked")){
-					return true;
-				}
-			}
-			return false;
-		}
-		
-		private void printEventLogs(List<String> events){
-			for (String eventString : events) {
-				logger.info(eventString);
+	private List<String> getUnreadEventLogs(String applicationName, String serviceName) throws CLIException{
+		List<Map<String, String>> allEventsExecutedList = (List<Map<String, String>>) client
+		.get(SERVICE_CONTROLLER_URL + "/applications/"
+				+ applicationName + "/services/"
+				+ serviceName
+				+ "/USMEventsLogs/");
+		return eventLoggingTailer.getLinesToPrint(allEventsExecutedList);
+	}
+
+	private int getShutdownEventCount(List<String> events, String serviceName){
+		int shutdownEventCount = 0;
+		for (String eventString : events) {
+			if (eventString.contains(serviceName) && eventString.contains("SHUTDOWN invoked")){
+				shutdownEventCount++;
 			}
 		}
+		return shutdownEventCount;
+	}
+
+	private void printEventLogs(List<String> events){
+		for (String eventString : events) {
+			logger.info(eventString);
+		}
+	}
 
 	@Override
 	public void doDisconnect() {
@@ -178,8 +250,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	public void removeInstance(String applicationName, String serviceName,
 			int instanceId) throws CLIException {
 		String relativeUrl = SERVICE_CONTROLLER_URL + "applications/"
-				+ applicationName + "/services/" + serviceName + "/instances/"
-				+ instanceId + "/remove";
+		+ applicationName + "/services/" + serviceName + "/instances/"
+		+ instanceId + "/remove";
 		client.delete(relativeUrl);
 	}
 
@@ -195,34 +267,34 @@ public class RestAdminFacade extends AbstractAdminFacade {
 
 	@SuppressWarnings("unchecked")
 	public List<String> getServicesList(String applicationName)
-			throws CLIException {
+	throws CLIException {
 		return (List<String>)client.get("/service/applications/"
 				+ applicationName + "/services");
 	}
 
 	@Override
 	protected String doDeploy(String applicationName, File packedFile)
-			throws CLIException {
+	throws CLIException {
 		return client.postFile(SERVICE_CONTROLLER_URL + CLOUD_CONTROLLER_URL
 				+ "deploy?" + "applicationName=" + applicationName, packedFile);
 	}
 
 	public void startService(String applicationName, File serviceFile)
-			throws CLIException {
+	throws CLIException {
 		doDeploy(applicationName, serviceFile);
 	}
 
 	public void undeploy(String applicationName, String serviceName)
-			throws CLIException {
+	throws CLIException {
 		String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName
-				+ "/services/" + serviceName + "/undeploy";
+		+ "/services/" + serviceName + "/undeploy";
 		client.delete(url);
 	}
 
 	public void addInstance(String applicationName, String serviceName,
 			int timeout) throws CLIException {
 		String url = SERVICE_CONTROLLER_URL + "applications/na/services/"
-				+ serviceName + "/addinstance";
+		+ serviceName + "/addinstance";
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("timeout", Integer.toString(timeout));
 		client.post(url, params);
@@ -232,16 +304,16 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	public Map<String, Object> getInstanceList(String applicationName,
 			String serviceName) throws CLIException {
 		String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName
-				+ "/services/" + serviceName + "/instances";
+		+ "/services/" + serviceName + "/instances";
 		return (Map<String, Object>) client.get(url);
 	}
 
 	public void installElastic(File packedFile, String applicationName,
 			String serviceName, String zone, Properties contextProperties)
-			throws CLIException {
+	throws CLIException {
 
 		String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName
-				+ "/services/" + serviceName;
+		+ "/services/" + serviceName;
 		client.postFile(url + "?zone=" + zone, packedFile, contextProperties);
 	}
 
@@ -249,7 +321,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			String applicationName, String serviceName, String beanName,
 			String commandName, Map<String, String> params) throws CLIException {
 		String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName
-				+ "/services/" + serviceName + "/beans/" + beanName + "/invoke";
+		+ "/services/" + serviceName + "/beans/" + beanName + "/invoke";
 
 		Object result = client.post(url, buildCustomCommandParams(commandName, params));
 
@@ -267,7 +339,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 				@SuppressWarnings("unchecked")
 				Map<String, String> curr = (Map<String, String>) value;
 				InvocationResult invocationResult = InvocationResult
-						.createInvocationResult(curr);
+				.createInvocationResult(curr);
 				invocationResultMap.put(entry.getKey(), invocationResult);
 			}
 
@@ -279,8 +351,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			String serviceName, String beanName, int instanceId,
 			String commandName, Map<String, String> paramsMap) throws CLIException {
 		String url = SERVICE_CONTROLLER_URL + "applications/na/services/"
-				+ serviceName + "/instances/" + instanceId + "/beans/"
-				+ beanName + "/invoke";
+		+ serviceName + "/instances/" + instanceId + "/beans/"
+		+ beanName + "/invoke";
 		@SuppressWarnings("unchecked")
 		Map<String, String> resultMap = (Map<String, String>) client.post(url,
 				buildCustomCommandParams(commandName, paramsMap));
@@ -294,8 +366,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		// .createInvocationResult(curr);
 		//
 		InvocationResult invocationResult = InvocationResult
-				.createInvocationResult(resultMap);
-		
+		.createInvocationResult(resultMap);
+
 		return invocationResult;
 		// return GSRestClient.mapToInvocationResult(resultMap);
 
@@ -314,7 +386,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	@Override
 	public List<String> getMachines() throws CLIException {
 		Map<String, Object> map = client
-				.getAdminData("machines/HostsByAddress");
+		.getAdminData("machines/HostsByAddress");
 		@SuppressWarnings("unchecked")
 		List<String> list = (List<String>) map.get("HostsByAddress-Elements");
 		List<String> result = new ArrayList<String>(list.size());
@@ -328,7 +400,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 
 	@Override
 	public void uninstallApplication(String applicationName)
-			throws CLIException {
+	throws CLIException {
 		String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName;
 		client.delete(url);
 	}
@@ -348,20 +420,20 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			String applicationName, String serviceName) throws CLIException {
 
 		Set<String> containerUids = new HashSet<String>();
-		
+
 		int numberOfInstances = this.getInstanceList(applicationName,
 				serviceName).size();
-		
+
 		String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		for (int i = 0; i < numberOfInstances; i++) {
 
 			String containerUrl = "applications/Names/" + applicationName
-					+ "/ProcessingUnits/Names/" + absolutePUName + "/Instances/"
-					+ i + "/GridServiceContainer/Uid";
+			+ "/ProcessingUnits/Names/" + absolutePUName + "/Instances/"
+			+ i + "/GridServiceContainer/Uid";
 			try{
 				Map<String, Object> container = (Map<String, Object>) client
-						.getAdmin(containerUrl);
-			
+				.getAdmin(containerUrl);
+
 				if (container == null) {
 					throw new IllegalStateException("Could not find container "
 							+ containerUrl);
@@ -370,7 +442,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 					throw new IllegalStateException(
 							"Could not find AgentUid of container " + containerUrl);
 				}
-			
+
 				containerUids.add((String) container.get("Uid"));
 			}catch (CLIException e) {
 				throw new ErrorStatusException("cant_find_service_for_app", serviceName, applicationName);
@@ -381,10 +453,10 @@ public class RestAdminFacade extends AbstractAdminFacade {
 
 	public Set<String> getGridServiceContainerUids() throws CLIException {
 		Map<String, Object> container = (Map<String, Object>) client
-				.getAdmin("GridServiceContainers");
+		.getAdmin("GridServiceContainers");
 		@SuppressWarnings("unchecked")
 		List<String> containerUris = (List<String>) container
-				.get("Uids-Elements");
+		.get("Uids-Elements");
 		Set<String> containerUids = new HashSet<String>();
 		for (String containerUri : containerUris) {
 			String uid = containerUri.substring(containerUri.lastIndexOf("/"));
