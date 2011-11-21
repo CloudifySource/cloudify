@@ -29,6 +29,7 @@ import com.gigaspaces.cloudify.dsl.PluginDescriptor;
 import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.ServiceLifecycle;
 import com.gigaspaces.cloudify.dsl.ServiceNetwork;
+import com.gigaspaces.cloudify.dsl.Sla;
 import com.gigaspaces.cloudify.dsl.StatefulProcessingUnit;
 import com.gigaspaces.cloudify.dsl.StatelessProcessingUnit;
 import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
@@ -100,7 +101,7 @@ public abstract class BaseDslScript extends Script {
 			BeanUtils.setProperty(object, name, value);
 
 		} catch (final Exception e) {
-			throw new IllegalArgumentException("Failed to set property " + name
+			throw new IllegalArgumentException("Failed   to set property " + name
 					+ " of Object " + object + " to value: " + value, e);
 		}
 
@@ -120,7 +121,7 @@ public abstract class BaseDslScript extends Script {
 			try {
 				retval = dslObject(name);
 			} catch (DSLException e) {
-				throw new IllegalArgumentException("Failed to set: " + name, e);
+				throw new IllegalArgumentException("Failed to  set: " + name, e);
 			}
 
 			if (retval != null) {
@@ -244,6 +245,18 @@ public abstract class BaseDslScript extends Script {
 					CloudTemplate.class);
 			addObjectInitializerForClass(dslObjectInitializersByName,
 					ComputeDetails.class);
+			
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					StatefulProcessingUnit.class);
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					StatelessProcessingUnit.class);
+			
+			
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					ComputeDetails.class);
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					Sla.class);
+			
 
 
 			

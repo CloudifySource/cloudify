@@ -15,7 +15,7 @@ import com.gigaspaces.cloudify.dsl.internal.CloudifyDSLEntity;
  * @author adaml
  *
  */
-@CloudifyDSLEntity(name="stateless", clazz=StatelessProcessingUnit.class, allowInternalNode = true, allowRootNode = false, parent = "service")
+@CloudifyDSLEntity(name="statelessProcessingUnit", clazz=StatelessProcessingUnit.class, allowInternalNode = true, allowRootNode = false, parent = "service")
 public class StatelessProcessingUnit extends ServiceProcessingUnit{
 	private String binaries;
 	
