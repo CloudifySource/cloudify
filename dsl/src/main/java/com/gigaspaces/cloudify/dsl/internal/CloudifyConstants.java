@@ -9,6 +9,16 @@ package com.gigaspaces.cloudify.dsl.internal;
 public class CloudifyConstants {
 
 	/***
+	 * USM service deployment States
+	 */
+	public static enum USMState {
+
+		INITIALIZING,
+		LAUNCHING,
+		RUNNING,
+		SHUTTING_DOWN
+	}
+	/***
 	 * Context properties for deployed services.
 	 */
 	public static final String CONTEXT_PROPERTY_NETWORK_PROTOCOL_DESCRIPTION = "com.gs.service.network.protocolDescription";
