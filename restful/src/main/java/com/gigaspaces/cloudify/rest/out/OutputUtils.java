@@ -21,6 +21,7 @@ import com.gigaspaces.cloudify.rest.util.PrimitiveWrapper;
  */
 public class OutputUtils {
 
+	private static final String URL_ENCODING_FORMAT = "UTF-8";
 	private static String hostAddress;
 	private static String hostContext;
 
@@ -212,6 +213,11 @@ public class OutputUtils {
 			outputUrl = commandURI + "/" + commandName;
 		}
 		outputUrl = getRelativePathURLS(outputUrl);
+//		try {
+//			outputUrl = URLEncoder.encode(outputUrl, URL_ENCODING_FORMAT);
+//		} catch (UnsupportedEncodingException e) {
+//			e.printStackTrace();
+//		}
 		return outputUrl;
 	}
 
