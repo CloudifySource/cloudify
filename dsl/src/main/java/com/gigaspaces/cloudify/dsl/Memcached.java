@@ -5,8 +5,8 @@ import com.gigaspaces.cloudify.dsl.internal.CloudifyDSLEntity;
 
 @CloudifyDSLEntity(name="memcached", clazz=Memcached.class, allowInternalNode = true, allowRootNode = false, parent = "service")
 public class Memcached extends ServiceProcessingUnit{
-	private int port;
-	private int portRetries;
+	private Integer port;
+	private Integer portRetries;
 	private boolean threaded;
 	private String binaries;
 	
@@ -17,16 +17,16 @@ public class Memcached extends ServiceProcessingUnit{
 	public boolean isThreaded() {
 		return threaded;
 	}
-	public void setPortRetries(int portRetries) {
+	public void setPortRetries(Integer portRetries) {
 		this.portRetries = portRetries;
 	}
-	public int getPortRetries() {
+	public Integer getPortRetries() {
 		return portRetries;
 	}
-	public void setPort(int port) {
+	public void setPort(Integer port) {
 		this.port = port;
 	}
-	public int getPort() {
+	public Integer getPort() {
 		return port;
 	}
 
