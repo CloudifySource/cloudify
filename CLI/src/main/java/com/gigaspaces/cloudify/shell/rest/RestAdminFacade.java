@@ -190,8 +190,12 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			+ CloudifyConstants.USM_MONITORS_SERVICE_ID;
 		try{
 			Map<String, Object> adminData = client.getAdminData(usmUrl);
-			if (!adminData.get(CloudifyConstants.USM_MONITORS_SERVICE_ID).equals("<null>")){
+			if (adminData.containsKey("Id") 
+					&& adminData.get("Id").equals(CloudifyConstants.USM_MONITORS_SERVICE_ID)){
 				return true;
+			}else if (adminData.containsKey(CloudifyConstants.USM_MONITORS_SERVICE_ID) 
+					&& adminData.get(CloudifyConstants.USM_MONITORS_SERVICE_ID).equals("<null>")){
+				return false;
 			}
 		}catch (CLIException e){
 			
