@@ -1,5 +1,7 @@
 package com.gigaspaces.cloudify.usm;
 
+import groovy.lang.Closure;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -11,8 +13,10 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -1326,9 +1330,10 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 			try {
 				logger.fine("Executing details: " + details);
-				final Map<String, Object> temp = details.getDetails(this,
+				final Map<String, Object> detailsValues = details.getDetails(this,
 						usmLifecycleBean.getConfiguration());
-				result.putAll(temp);
+				removeNonSerializableObjectsFromMap(detailsValues);
+				result.putAll(detailsValues);
 			} catch (final Exception e) {
 				logger.log(Level.SEVERE, "Failed to execute service details", e);
 			}
@@ -1409,9 +1414,11 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		for (final Monitor monitor : usmLifecycleBean.getMonitors()) {
 			try {
 				logger.fine("Executing monitor: " + monitor);
-				//TODO: add value verification 
-				map.putAll(monitor.getMonitorValues(this,
-						usmLifecycleBean.getConfiguration()));
+				Map<String, Number> monitorValues = monitor.getMonitorValues(this,
+						usmLifecycleBean.getConfiguration());
+				removeNonSerializableObjectsFromMap(monitorValues);
+				//add monitor values to Monitors map
+				map.putAll(monitorValues);
 			} catch (final Exception e) {
 				logger.log(Level.SEVERE,
 						"Failed to execute a USM service monitor", e);
@@ -1423,6 +1430,21 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		}
 
 		return res;
+	}
+
+	private void removeNonSerializableObjectsFromMap(Map<?, ?> monitorValues) {
+				
+		Iterator<?> entries = monitorValues.entrySet().iterator();
+		while (entries.hasNext()) {
+		  Entry<?, ?> entry = (Entry<?, ?>) entries.next();
+		  if (!(entry.getValue() instanceof java.io.Serializable)){
+			  monitorValues.remove(entry.getKey());
+		  }
+		  //a closure can not be serialized
+		  if (entry.getValue() instanceof Closure<?>){
+			  monitorValues.remove(entry.getKey());
+		  }
+		}	
 	}
 
 	private void putDefaultMonitorsInMap(final Map<String, Object> map) {
