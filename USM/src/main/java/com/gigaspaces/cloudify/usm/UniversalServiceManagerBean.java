@@ -1437,11 +1437,12 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		Iterator<?> entries = monitorValues.entrySet().iterator();
 		while (entries.hasNext()) {
 		  Entry<?, ?> entry = (Entry<?, ?>) entries.next();
-		  if (!(entry.getValue() instanceof java.io.Serializable)){
-			  monitorValues.remove(entry.getKey());
-		  }
-		  //a closure can not be serialized
-		  if (entry.getValue() instanceof Closure<?>){
+		  
+		//a closure can not be serialized
+		  if (!(entry.getValue() instanceof java.io.Serializable)
+				  || entry.getValue() instanceof Closure<?>){
+			  logger.info("Entry " + entry.getKey() 
+					  + " is not serializable and was not inserted to the monitors map");
 			  monitorValues.remove(entry.getKey());
 		  }
 		}	
