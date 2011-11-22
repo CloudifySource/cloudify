@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
@@ -12,6 +13,7 @@ public class CloudParserTest {
 
 	private final static String SIMPLE_CLOUD_PATH = "testResources/simple/my-cloud.groovy";
 	
+	@Ignore
 	@Test
 	public void testCloudParser() throws Exception {
 		Cloud2 cloud = ServiceReader.readCloud(new File(SIMPLE_CLOUD_PATH));
