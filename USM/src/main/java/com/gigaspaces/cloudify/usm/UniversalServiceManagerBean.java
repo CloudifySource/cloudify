@@ -58,14 +58,12 @@ import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants.USMState;
 import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 import com.gigaspaces.cloudify.usm.details.Details;
-import com.gigaspaces.cloudify.usm.details.DetailsException;
 import com.gigaspaces.cloudify.usm.dsl.DSLConfiguration;
 import com.gigaspaces.cloudify.usm.dsl.DSLEntryExecutor;
 import com.gigaspaces.cloudify.usm.events.EventResult;
 import com.gigaspaces.cloudify.usm.events.StartReason;
 import com.gigaspaces.cloudify.usm.events.StopReason;
 import com.gigaspaces.cloudify.usm.monitors.Monitor;
-import com.gigaspaces.cloudify.usm.monitors.MonitorException;
 import com.gigaspaces.cloudify.usm.tail.RollingFileAppenderTailer;
 import com.gigaspaces.cloudify.usm.tail.RollingFileAppenderTailer.LineHandler;
 import com.gigaspaces.internal.sigar.SigarHolder;
@@ -210,6 +208,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 //		Map<String, Object> map = new HashMap<String, Object>();
 //		map.put(CloudifyConstants.INVOCATION_PARAMETER_COMMAND_NAME, "cmd1");
 //		invoke(map);
+		 //getServicesDetails();
+		 //getServicesMonitors();
 	}
 
 	private void initCustomProperties() {
@@ -1329,7 +1329,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 				final Map<String, Object> temp = details.getDetails(this,
 						usmLifecycleBean.getConfiguration());
 				result.putAll(temp);
-			} catch (final DetailsException e) {
+			} catch (final Exception e) {
 				logger.log(Level.SEVERE, "Failed to execute service details", e);
 			}
 
@@ -1409,9 +1409,10 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		for (final Monitor monitor : usmLifecycleBean.getMonitors()) {
 			try {
 				logger.fine("Executing monitor: " + monitor);
+				//TODO: add value verification 
 				map.putAll(monitor.getMonitorValues(this,
 						usmLifecycleBean.getConfiguration()));
-			} catch (final MonitorException e) {
+			} catch (final Exception e) {
 				logger.log(Level.SEVERE,
 						"Failed to execute a USM service monitor", e);
 			}

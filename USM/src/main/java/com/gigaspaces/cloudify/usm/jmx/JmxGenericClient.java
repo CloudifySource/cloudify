@@ -148,7 +148,7 @@ public class JmxGenericClient {
 
 			return resultList;
 		} catch (final Exception e) {
-			final String msg = "Failed to fetch JMX values for " + host + "," + port + ". Error: " + e;
+			final String msg = "Failed to fetch JMX values for " + host + ":" + port + ". Error: " + e;
 			logger.severe(msg);
 		} finally {
 			if (jmxc != null) {
