@@ -21,7 +21,7 @@ public class CassandraServiceParsingAndReturnFromCommitedRecipesTest {
     {
 		cassandraDslFile = new File(LEGAL_RESOURCES_PATH + "cassandra-service.groovy");
 		cassandraWorkDir = new File(LEGAL_RESOURCES_PATH);
-		service = ServiceReader.getServiceFromFile(cassandraDslFile, cassandraWorkDir, CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
+		service = ServiceReader.getServiceFromFile(cassandraDslFile, cassandraWorkDir).getService();
 		ServiceTestUtil.validateName(service , nameInGroovy);
 		ServiceTestUtil.validateIcon(service);
     }

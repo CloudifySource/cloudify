@@ -21,7 +21,7 @@ public class TomcatServiceParsingAndReturnFromCommitedRecipesTest {
     {
 		tomcatDslFile = new File(LEGAL_RESOURCES_PATH + "tomcat-service.groovy");
 		tomcatWorkDir = new File(LEGAL_RESOURCES_PATH);
-		service = ServiceReader.getServiceFromFile(tomcatDslFile, tomcatWorkDir, CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
+		service = ServiceReader.getServiceFromFile(tomcatDslFile, tomcatWorkDir).getService();
 		ServiceTestUtil.validateName(service , nameInGroovy);
 		ServiceTestUtil.validateIcon(service);
     }
