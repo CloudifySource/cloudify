@@ -15,7 +15,7 @@ import com.gigaspaces.cloudify.dsl.internal.CloudifyDSLEntity;
  * @author adaml
  *
  */
-@CloudifyDSLEntity(name="datagrid", clazz=DataGrid.class, allowInternalNode = true, allowRootNode = false, parent = "service")
+@CloudifyDSLEntity(name="dataGrid", clazz=DataGrid.class, allowInternalNode = true, allowRootNode = false, parent = "service")
 public class DataGrid extends ServiceProcessingUnit{
 
 	
