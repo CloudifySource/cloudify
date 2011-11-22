@@ -85,7 +85,7 @@ public class USMConfigurationFactoryBean implements FactoryBean<UniversalService
 			}
 			
 			compilationResult = ServiceReader.getServiceFromFile(dslFile, this.puExtDir, USMUtils.getAdmin(), 
-					this.clusterInfo, this.propertiesFileName, this.isRunningInGSC, this.applicationName );
+					this.clusterInfo, this.propertiesFileName, this.isRunningInGSC);
 			
 		} catch (final Exception e) {
 			throw new USMException("Failed to read service from file: " + dslFile, e);
