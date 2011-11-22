@@ -45,8 +45,6 @@ public abstract class BaseDslScript extends Script {
 
 	@Override
 	public void setProperty(final String name, final Object value) {
-		logger.info("Setting Propery: name = " + name + ", value = " + value
-				+ ", ActiveObject = " + this.activeObject);
 
 		if (this.activeObject == null) {
 			super.setProperty(name, value);
@@ -102,8 +100,8 @@ public abstract class BaseDslScript extends Script {
 			BeanUtils.setProperty(object, name, value);
 
 		} catch (final Exception e) {
-			throw new IllegalArgumentException("Failed   to set property " + name
-					+ " of Object " + object + " to value: " + value, e);
+			throw new IllegalArgumentException("Failed   to set property "
+					+ name + " of Object " + object + " to value: " + value, e);
 		}
 
 		checkForApplicationServiceBlockNameParameter(name, value);
@@ -112,9 +110,9 @@ public abstract class BaseDslScript extends Script {
 
 	@Override
 	public Object invokeMethod(final String name, final Object arg) {
-		
+
 		beforeHandleInvokeMethod(name, arg);
-		
+
 		Object[] arr = (Object[]) arg;
 		Object param = arr[0];
 		// check if this is an object declaration
@@ -145,14 +143,14 @@ public abstract class BaseDslScript extends Script {
 				return retval;
 			}
 		}
-			
+
 		try {
 			if (handleSpecialProperty(name, arg))
 				return null;
 		} catch (DSLException e) {
 			throw new IllegalArgumentException("Failed to set: " + name, e);
 		}
-		
+
 		// not an object declaration
 		setProperty(name, arg);
 		return null;
@@ -162,7 +160,8 @@ public abstract class BaseDslScript extends Script {
 	protected void beforeHandleInvokeMethod(String name, Object arg) {
 	}
 
-	protected boolean handleSpecialProperty(String name, Object arg) throws DSLException{
+	protected boolean handleSpecialProperty(String name, Object arg)
+			throws DSLException {
 		return false;
 	}
 
@@ -263,21 +262,16 @@ public abstract class BaseDslScript extends Script {
 					CloudTemplate.class);
 			addObjectInitializerForClass(dslObjectInitializersByName,
 					ComputeDetails.class);
-			
+
 			addObjectInitializerForClass(dslObjectInitializersByName,
 					StatefulProcessingUnit.class);
 			addObjectInitializerForClass(dslObjectInitializersByName,
 					StatelessProcessingUnit.class);
-			
-			
+
 			addObjectInitializerForClass(dslObjectInitializersByName,
 					ComputeDetails.class);
-			addObjectInitializerForClass(dslObjectInitializersByName,
-					Sla.class);
-			
+			addObjectInitializerForClass(dslObjectInitializersByName, Sla.class);
 
-
-			
 			dslObjectInitializersByName.put("userInterface",
 					new DSLObjectInitializerData("userInterface",
 							UserInterface.class, false, true, "service"));
@@ -344,11 +338,14 @@ public abstract class BaseDslScript extends Script {
 		}
 
 		try {
-			//Check if this is in extend mode. The active object should already contain a value
-			//for this object, simply clone it so we keep its content.
-			Object existingProperty = this.activeObject != null? PropertyUtils.getProperty(this.activeObject, name) : null;
-			if (existingProperty != null)
-				return BeanUtils.cloneBean(existingProperty);
+			// Check if this is in extend mode. The active object should already
+			// contain a value
+			// for this object, simply clone it so we keep its content.
+			if (this.activeObject !=null && isProperyExistsInBean(this.activeObject, name)) {
+				Object existingPropertyValue = PropertyUtils.getProperty(this.activeObject, name);
+				if (existingPropertyValue != null)
+					return BeanUtils.cloneBean(existingPropertyValue);
+			}
 			return data.clazz.newInstance();
 		} catch (InstantiationException e) {
 			throw new DSLException("Failed to create new element of type "
