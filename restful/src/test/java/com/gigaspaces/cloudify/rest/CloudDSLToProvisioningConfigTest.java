@@ -10,10 +10,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.BlockJUnit4ClassRunner;
-import org.openspaces.cloud.esm.CloudDSLToCloudMachineProvisioningConfig;
-import org.openspaces.cloud.esm.CloudMachineProvisioningConfig;
 
 import com.gigaspaces.cloudify.dsl.Cloud;
+import com.gigaspaces.cloudify.esc.esm.CloudDSLToCloudMachineProvisioningConfig;
+import com.gigaspaces.cloudify.esc.esm.CloudMachineProvisioningConfig;
 import com.gigaspaces.internal.utils.Assert;
 
 @RunWith(BlockJUnit4ClassRunner.class)

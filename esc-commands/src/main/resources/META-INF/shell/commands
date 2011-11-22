@@ -1,2 +1,2 @@
-org.openspaces.cloud.shell.commands.BootstrapCloud
-org.openspaces.cloud.shell.commands.TeardownCloud
+com.gigaspaces.cloudify.esc.shell.commands.BootstrapCloud
+com.gigaspaces.cloudify.esc.shell.commands.TeardownCloud
