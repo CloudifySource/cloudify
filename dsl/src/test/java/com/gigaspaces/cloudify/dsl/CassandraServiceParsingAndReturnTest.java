@@ -8,7 +8,6 @@ import java.io.File;
 
 import org.junit.Test;
 
-import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 
 public class CassandraServiceParsingAndReturnTest {
@@ -21,7 +20,7 @@ public class CassandraServiceParsingAndReturnTest {
 	{
 		File cassandraDslFile = new File(CORRUPTED_RESOURCES_PATH + "cassandra_bare_essentials-service.groovy");
 		File cassandraWorkDir = new File(CORRUPTED_RESOURCES_PATH);
-		Service service = ServiceReader.getServiceFromFile(cassandraDslFile, cassandraWorkDir, CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
+		Service service = ServiceReader.getServiceFromFile(cassandraDslFile, cassandraWorkDir).getService();
 		assertNotNull(service);
 		ServiceTestUtil.validateName(service , nameInGroovy);
 	}
@@ -30,7 +29,7 @@ public class CassandraServiceParsingAndReturnTest {
 	{
 		File cassandraDslFile = new File(CORRUPTED_RESOURCES_PATH + "cassandra_UI_ommited-service.groovy");
 		File cassandraWorkDir = new File(CORRUPTED_RESOURCES_PATH);
-		Service service = ServiceReader.getServiceFromFile(cassandraDslFile, cassandraWorkDir, CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
+		Service service = ServiceReader.getServiceFromFile(cassandraDslFile, cassandraWorkDir).getService();
 		assertNotNull(service);
 		assertNull(service.getUserInterface());
 		ServiceTestUtil.validateName(service , nameInGroovy);
@@ -42,7 +41,7 @@ public class CassandraServiceParsingAndReturnTest {
 		File cassandraDslFile = new File(CORRUPTED_RESOURCES_PATH + "cassandra_plugins_config_field_corrupted-service.groovy");
 		File cassandraWorkDir = new File(CORRUPTED_RESOURCES_PATH);
 		try{
-			Service service = ServiceReader.getServiceFromFile(cassandraDslFile, cassandraWorkDir, CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
+			Service service = ServiceReader.getServiceFromFile(cassandraDslFile, cassandraWorkDir).getService();
 			assertTrue("No exception was thrown due to Config field corruption" , false);
 		}catch(Throwable t){
 			// getServiceFromFile should throw something informative due to corruption
@@ -55,7 +54,7 @@ public class CassandraServiceParsingAndReturnTest {
 		File cassandraDslFile = new File(CORRUPTED_RESOURCES_PATH + "cassandra_name_field_corrupted-service.groovy");
 		File cassandraWorkDir = new File(CORRUPTED_RESOURCES_PATH);
 		try{
-			Service service = ServiceReader.getServiceFromFile(cassandraDslFile, cassandraWorkDir, CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
+			Service service = ServiceReader.getServiceFromFile(cassandraDslFile, cassandraWorkDir).getService();
 			assertTrue("No exception was thrown due to Name field corruption" , false);
 		}catch(Throwable t){
 			// getServiceFromFile should throw something informative due to corruption
@@ -68,7 +67,7 @@ public class CassandraServiceParsingAndReturnTest {
 		File cassandraDslFile = new File(CORRUPTED_RESOURCES_PATH + "cassandra_axisYUnit_field_corrupted-service.groovy");
 		File cassandraWorkDir = new File(CORRUPTED_RESOURCES_PATH);
 		try{
-			Service service = ServiceReader.getServiceFromFile(cassandraDslFile, cassandraWorkDir, CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
+			Service service = ServiceReader.getServiceFromFile(cassandraDslFile, cassandraWorkDir).getService();
 			assertTrue("No exception was thrown due to AxisYUnit field corruption" , false);
 		}catch(Throwable t){
 			// getServiceFromFile should throw something informative due to corruption
@@ -81,7 +80,7 @@ public class CassandraServiceParsingAndReturnTest {
 		File cassandraDslFile = new File(CORRUPTED_RESOURCES_PATH + "cassandra_UserInterface_field_corrupted-service.groovy");
 		File cassandraWorkDir = new File(CORRUPTED_RESOURCES_PATH);
 		try{
-			Service service = ServiceReader.getServiceFromFile(cassandraDslFile, cassandraWorkDir, CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
+			Service service = ServiceReader.getServiceFromFile(cassandraDslFile, cassandraWorkDir).getService();
 			assertTrue("No exception was thrown due to UserInterface field corruption" , false);
 		}catch(Throwable t){
 			// getServiceFromFile should throw something informative due to corruption

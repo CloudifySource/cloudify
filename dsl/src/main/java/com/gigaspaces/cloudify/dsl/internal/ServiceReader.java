@@ -143,7 +143,7 @@ public class ServiceReader {
 
 	}
 
-	public static Service readService(File serviceDirOrFile, String applicationName)
+	public static Service readService(File serviceDirOrFile)
 			throws IOException, PackagingException {
 
 		File dslFile = serviceDirOrFile;
@@ -151,7 +151,7 @@ public class ServiceReader {
 			dslFile = ServiceReader.findServiceFile(serviceDirOrFile);
 		}
 
-		Service service = getServiceFromFile(dslFile, applicationName);
+		Service service = getServiceFromFile(dslFile);
 		validateFolderSize(serviceDirOrFile, service.getMaxJarSize());
 		
 		return service;
@@ -179,12 +179,12 @@ public class ServiceReader {
 
 	}
 
-	public static Service getServiceFromFile(final File dslFile, String applicationName)
+	public static Service getServiceFromFile(final File dslFile)
 			throws PackagingException {
 		try {
 			return ServiceReader.getServiceFromFile(dslFile,
 			// new File(System.getProperty("user.dir"))).getService();
-					dslFile.getParentFile(), applicationName ).getService();
+					dslFile.getParentFile() ).getService();
 		} catch (CompilationFailedException e){
 			throw new PackagingException("The file " + dslFile
 					+ " could not be compiled: " + e.getMessage(), e);
@@ -211,21 +211,21 @@ public class ServiceReader {
 	// TODO - Incorrect name - should be from Dir
 	public static DSLServiceCompilationResult getServiceFromDirectory(
 			final File dir, String applicationName) throws FileNotFoundException, PackagingException {
-		return getServiceFromFile(findServiceFile(dir), dir, applicationName);
+		return getServiceFromFile(findServiceFile(dir), dir);
 
 	}
 
 	public static DSLServiceCompilationResult getServiceFromFile(
-			final File dslFile, final File workDir, final String applicationName) {
+			final File dslFile, final File workDir) {
 		return ServiceReader.getServiceFromFile(dslFile, workDir, null, null,
-				null, true, applicationName);
+				null, true);
 	}
 
 	// TODO - consider adding a DSL exception
 	public static DSLServiceCompilationResult getServiceFromFile(
 			final File dslFile, final File workDir, final Admin admin,
 			final ClusterInfo clusterInfo, final String propertiesFileName,
-			final boolean isRunningInGSC, final String applicationName) {
+			final boolean isRunningInGSC) {
 
 		LinkedHashMap<Object, Object> properties = null;
 		try {
@@ -358,7 +358,7 @@ public class ServiceReader {
 //		return ServiceReader.createGroovyShell(
 //				BaseServiceScript.class.getName(), properties, context);
 		return ServiceReader.createGroovyShell(
-				BaseDslScript.class.getName(), properties, context);
+				ServiceDslScript.class.getName(), properties, context);
 	}
 
 	private static GroovyShell createGroovyShellForApplication() {
@@ -794,7 +794,7 @@ public class ServiceReader {
 	
 	public static File doPack(File recipeFolder, String applicationName) throws IOException,
 			PackagingException {
-		Service service = ServiceReader.readService(recipeFolder, applicationName);
+		Service service = ServiceReader.readService(recipeFolder);
 		File packedFile = Packager.pack(recipeFolder, service);
 		return packedFile;
 	}

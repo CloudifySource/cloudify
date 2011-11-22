@@ -6,7 +6,6 @@ import java.io.File;
 
 import org.junit.Test;
 
-import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 
 public class TomcatServiceParsingAndReturnTest{
@@ -25,7 +24,7 @@ public class TomcatServiceParsingAndReturnTest{
 	{
 		File tomcatDslFile = new File(CORRUPTED_RESOURCES_PATH + "tomcat_UI_ommited-service.groovy");
 		File tomcatWorkDir = new File(CORRUPTED_RESOURCES_PATH);
-		Service service = ServiceReader.getServiceFromFile(tomcatDslFile, tomcatWorkDir, CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
+		Service service = ServiceReader.getServiceFromFile(tomcatDslFile, tomcatWorkDir).getService();
 		assertNotNull(service);
 		assertNull(service.getUserInterface());
 		ServiceTestUtil.validateName(service , nameInGroovy);
@@ -37,7 +36,7 @@ public class TomcatServiceParsingAndReturnTest{
 		File tomcatDslFile = new File(CORRUPTED_RESOURCES_PATH + "tomcat_network_port_value_is_string-service.groovy");
 		File tomcatWorkDir = new File(CORRUPTED_RESOURCES_PATH);
 		try{
-			Service service = ServiceReader.getServiceFromFile(tomcatDslFile, tomcatWorkDir, CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
+			Service service = ServiceReader.getServiceFromFile(tomcatDslFile, tomcatWorkDir).getService();
 			
 		}catch(Throwable t){
 			// getServiceFromFile should throw something informative due to corruption
@@ -50,7 +49,7 @@ public class TomcatServiceParsingAndReturnTest{
 		File tomcatDslFile = new File(CORRUPTED_RESOURCES_PATH + "tomcat_name_field_corrupted-service.groovy");
 		File tomcatWorkDir = new File(CORRUPTED_RESOURCES_PATH);
 		try{
-			Service service = ServiceReader.getServiceFromFile(tomcatDslFile, tomcatWorkDir, CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
+			Service service = ServiceReader.getServiceFromFile(tomcatDslFile, tomcatWorkDir).getService();
 			
 		}catch(Throwable t){
 			// getServiceFromFile should throw something informative due to corruption
@@ -63,7 +62,7 @@ public class TomcatServiceParsingAndReturnTest{
 		File tomcatDslFile = new File(CORRUPTED_RESOURCES_PATH + "tomcat_plugins_config_field_corrupted-service.groovy");
 		File tomcatWorkDir = new File(CORRUPTED_RESOURCES_PATH);
 		try{
-			Service service = ServiceReader.getServiceFromFile(tomcatDslFile, tomcatWorkDir, CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
+			Service service = ServiceReader.getServiceFromFile(tomcatDslFile, tomcatWorkDir).getService();
 			assertTrue("No exception was thrown due to Config field corruption" , false);
 		}catch(Throwable t){
 			// getServiceFromFile should throw something informative due to corruption
@@ -76,7 +75,7 @@ public class TomcatServiceParsingAndReturnTest{
 		File tomcatDslFile = new File(CORRUPTED_RESOURCES_PATH + "tomcat_axisYUnit_field_corrupted-service.groovy");
 		File tomcatWorkDir = new File(CORRUPTED_RESOURCES_PATH);
 		try{
-			Service service = ServiceReader.getServiceFromFile(tomcatDslFile, tomcatWorkDir, CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
+			Service service = ServiceReader.getServiceFromFile(tomcatDslFile, tomcatWorkDir).getService();
 			
 		}catch(Throwable t){
 			// getServiceFromFile should throw something informative due to corruption
@@ -89,7 +88,7 @@ public class TomcatServiceParsingAndReturnTest{
 		File tomcatDslFile = new File(CORRUPTED_RESOURCES_PATH + "tomcat_UserInterface_field_corrupted-service.groovy");
 		File tomcatWorkDir = new File(CORRUPTED_RESOURCES_PATH);
 		try{
-			Service service = ServiceReader.getServiceFromFile(tomcatDslFile, tomcatWorkDir, CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
+			Service service = ServiceReader.getServiceFromFile(tomcatDslFile, tomcatWorkDir).getService();
 			
 		}catch(Throwable t){
 			// getServiceFromFile should throw something informative due to corruption

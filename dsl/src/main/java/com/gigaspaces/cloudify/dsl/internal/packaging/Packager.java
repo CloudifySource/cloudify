@@ -21,7 +21,7 @@ public class Packager {
 	public static final String USM_JAR_PATH_PROP = "usmJarPath";
 
 	public static File pack(final File recipeDirOrFile, String applicationName) throws IOException, PackagingException {
-		Service service = ServiceReader.readService(recipeDirOrFile, applicationName);
+		Service service = ServiceReader.readService(recipeDirOrFile);
 		File recipeDir = recipeDirOrFile;
 		if (recipeDir.isFile()) {
 			recipeDir = recipeDir.getParentFile();

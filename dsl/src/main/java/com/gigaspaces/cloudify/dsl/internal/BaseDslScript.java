@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.openspaces.ui.BalanceGauge;
 import org.openspaces.ui.BarLineChart;
 import org.openspaces.ui.MetricGroup;
@@ -39,7 +40,7 @@ public abstract class BaseDslScript extends Script {
 	private static java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(BaseDslScript.class.getName());
 
-	private Object activeObject = null;
+	protected Object activeObject = null;
 	private Object rootObject;
 
 	@Override
@@ -111,6 +112,9 @@ public abstract class BaseDslScript extends Script {
 
 	@Override
 	public Object invokeMethod(final String name, final Object arg) {
+		
+		beforeHandleInvokeMethod(name, arg);
+		
 		Object[] arr = (Object[]) arg;
 		Object param = arr[0];
 		// check if this is an object declaration
@@ -141,11 +145,25 @@ public abstract class BaseDslScript extends Script {
 				return retval;
 			}
 		}
-
+			
+		try {
+			if (handleSpecialProperty(name, arg))
+				return null;
+		} catch (DSLException e) {
+			throw new IllegalArgumentException("Failed to set: " + name, e);
+		}
+		
 		// not an object declaration
 		setProperty(name, arg);
 		return null;
 
+	}
+
+	protected void beforeHandleInvokeMethod(String name, Object arg) {
+	}
+
+	protected boolean handleSpecialProperty(String name, Object arg) throws DSLException{
+		return false;
 	}
 
 	private static class DSLObjectInitializerData {
@@ -326,12 +344,23 @@ public abstract class BaseDslScript extends Script {
 		}
 
 		try {
+			//Check if this is in extend mode. The active object should already contain a value
+			//for this object, simply clone it so we keep its content.
+			Object existingProperty = this.activeObject != null? PropertyUtils.getProperty(this.activeObject, name) : null;
+			if (existingProperty != null)
+				return BeanUtils.cloneBean(existingProperty);
 			return data.clazz.newInstance();
 		} catch (InstantiationException e) {
 			throw new DSLException("Failed to create new element of type "
 					+ data.getName() + " with class: " + data.clazz, e);
 		} catch (IllegalAccessException e) {
 			throw new DSLException("Failed to create new element of type "
+					+ data.getName() + " with class: " + data.clazz, e);
+		} catch (InvocationTargetException e) {
+			throw new DSLException("Failed to copy existing element of type "
+					+ data.getName() + " with class: " + data.clazz, e);
+		} catch (NoSuchMethodException e) {
+			throw new DSLException("Failed to copy existing element of type "
 					+ data.getName() + " with class: " + data.clazz, e);
 		}
 	}

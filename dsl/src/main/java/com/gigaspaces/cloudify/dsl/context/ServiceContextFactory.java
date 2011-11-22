@@ -33,9 +33,8 @@ public class ServiceContextFactory {
 			final File dir = new File(".");
 			final File dslFile = new File(dir,
 					System.getenv(CloudifyConstants.USM_ENV_SERVICE_FILE_NAME));
-			final String applicationName = System.getenv(CloudifyConstants.USM_ENV_APPLICATION_NAME);
 			final Service service = ServiceReader.getServiceFromFile(dslFile,
-					dir, applicationName).getService();
+					dir).getService();
 			context = new ServiceContext();
 
 			context.init(service, getAdmin(), new File(".").getAbsolutePath(),
