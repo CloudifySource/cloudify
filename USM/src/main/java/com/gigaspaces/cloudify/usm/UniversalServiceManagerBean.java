@@ -1432,9 +1432,12 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		return res;
 	}
 
-	private void removeNonSerializableObjectsFromMap(Map<?, ?> monitorValues) {
+	private void removeNonSerializableObjectsFromMap(Map<?, ?> map) {
 				
-		Iterator<?> entries = monitorValues.entrySet().iterator();
+		if (map.keySet().isEmpty()){
+			return;
+		}
+		Iterator<?> entries = map.entrySet().iterator();
 		while (entries.hasNext()) {
 		  Entry<?, ?> entry = (Entry<?, ?>) entries.next();
 		  
@@ -1443,7 +1446,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 				  || entry.getValue() instanceof Closure<?>){
 			  logger.info("Entry " + entry.getKey() 
 					  + " is not serializable and was not inserted to the monitors map");
-			  monitorValues.remove(entry.getKey());
+			  map.remove(entry.getKey());
 		  }
 		}	
 	}
