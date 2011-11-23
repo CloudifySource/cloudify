@@ -74,7 +74,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 			boolean found = false;
 			try {
 
-				File packedFile = Packager.pack(new File(appDir, serviceName), applicationName);
+				File packedFile = Packager.pack(new File(appDir, serviceName));
 				result.getApplicationFile().delete();
 				packedFile.deleteOnExit();
 				//Deployment will be done using the service's absolute PU name.

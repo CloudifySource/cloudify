@@ -71,7 +71,7 @@ public class InstallService extends AdminAwareCommand {
 			}
 			else if (serviceFile.isDirectory()) {
 				//Assume that a folder will contain a DSL file?
-				packedFile = Packager.pack(serviceFile, CloudifyConstants.DEFAULT_APPLICATION_NAME );
+				packedFile = Packager.pack(serviceFile );
 				packedFile.deleteOnExit();
 				service = ServiceReader.readService(serviceFile);
 			} else {
