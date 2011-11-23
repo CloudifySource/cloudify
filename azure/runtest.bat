@@ -40,7 +40,7 @@ mkdir WorkerRoles\GigaSpacesWorkerRoles
 xcopy GigaSpacesWorkerRoles\GigaSpacesWorkerRoles\ServiceConfiguration.Cloud.cscfg WorkerRoles\GigaSpacesWorkerRoles /Y
 xcopy GigaSpacesWorkerRoles\GigaSpacesWorkerRoles\ServiceDefinition.csdef WorkerRoles\GigaSpacesWorkerRoles /Y
 xcopy GigaSpacesWorkerRoles\RoleCommon\bin\%MS_BUILD_MODE% WorkerRoles\RoleCommon /Y
-xcopy GigaSpacesWorkerRoles\ui\bin\%MS_BUILD_MODE% WorkerRoles\ui /Y
+xcopy GigaSpacesWorkerRoles\ui\bin\%MS_BUILD_MODE% WorkerRoles\ui /Y /E
 xcopy GigaSpacesWorkerRoles\management\bin\%MS_BUILD_MODE% WorkerRoles\management /Y
 xcopy GigaSpacesWorkerRoles\internal\bin\%MS_BUILD_MODE% WorkerRoles\internal /Y
 

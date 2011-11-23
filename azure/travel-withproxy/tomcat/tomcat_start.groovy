@@ -17,7 +17,7 @@ println "executing command ${config.script}"
 new AntBuilder().sequential {
 	exec(executable:"${config.script}.sh", osfamily:"unix") {
         env(key:"CATALINA_HOME", value: "${config.home}")
-		env(key:"CATALINA_OPTS", value:"-Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false")
+		env(key:"CATALINA_OPTS", value:"-Dcom.sun.management.jmxremote.port=11099 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false")
 		env(key:"CASSANDRA_IP", value:cassandraHost)
 		arg(value:"run")
 	}

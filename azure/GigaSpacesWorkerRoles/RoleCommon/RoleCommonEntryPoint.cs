@@ -82,6 +82,16 @@ namespace GigaSpaces
             get { return TimeSpan.Parse(GetStringConfig("GigaSpaces.WindowsAzure.TraceUploadPeriod")); }
         }
 
+        private String WebuiContextPath
+        {
+            get { return GetStringConfig("GigaSpaces.XAP.WebuiContextPath"); }
+        }
+
+        private String RestAdminContextPath
+        {
+            get { return GetStringConfig("GigaSpaces.XAP.RestAdminContextPath"); }
+        }
+
         CloudStorageAccount StorageAccount
         {
             get 
@@ -172,7 +182,9 @@ namespace GigaSpaces
                     XapHomeDirectory = xapHome,
                     JdkHomeDirectory = javaHome,
                     BatchFilesEchoOn = true,
-                    RestAdminMegabytesMemory = RestAdminMegabytesMemory
+                    RestAdminMegabytesMemory = RestAdminMegabytesMemory,
+                    WebuiContextPath = WebuiContextPath,
+                    RestAdminContextPath = RestAdminContextPath
                 };
 
                 return base.OnStart();

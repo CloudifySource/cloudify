@@ -21,16 +21,19 @@
       <Setting name="GigaSpaces.Firewall.Ports" />
       <!-- Use RestAdmin on Management Machine for emulator, for Azure use 0-->
       <Setting name="GigaSpaces.XAP.RestAdmin.MemoryInMB" />
+      <Setting name="GigaSpaces.XAP.WebuiContextPath" />
+      <Setting name="GigaSpaces.XAP.RestAdminContextPath" />
     </ConfigurationSettings>
     <Endpoints>
       <InternalEndpoint name="LRMI" protocol="tcp">
         <FixedPortRange max="9999" min="5000" />
       </InternalEndpoint>
       <InternalEndpoint name="LookupService" protocol="tcp" port="4166" />
+
     </Endpoints>
     <LocalStorage name="LocalTempFolder" sizeInMB="20000" cleanOnRoleRecycle="true" />
   </WorkerRole>
-  <WorkerRole name="ui" enableNativeCodeExecution="true" vmsize="Small">
+  <WorkerRole name="ui" enableNativeCodeExecution="true" vmsize="Medium">
     <Runtime executionContext="elevated" />
     <Imports>
       <Import moduleName="Diagnostics" />
@@ -49,6 +52,8 @@
       <Setting name="GigaSpaces.XAP.GSA.MemoryInMB" />
       <Setting name="GigaSpaces.XAP.RestAdmin.MemoryInMB" />
       <Setting name="GigaSpaces.XAP.UploadAgentLogs" />
+      <Setting name="GigaSpaces.XAP.WebuiContextPath" />
+      <Setting name="GigaSpaces.XAP.RestAdminContextPath" />
     </ConfigurationSettings>
     <Endpoints>
       <InternalEndpoint name="LRMI" protocol="tcp">
@@ -56,11 +61,13 @@
       </InternalEndpoint>
       <InputEndpoint name="WebUI" protocol="tcp" port="8099" localPort="8099" />
       <InputEndpoint name="RestAdmin" protocol="tcp" port="8100" localPort="8100" />
+      <InputEndpoint name="IIS" protocol="tcp" port="80" localPort="80" />
       <InternalEndpoint name="LRMI2" protocol="tcp">
         <FixedPortRange min="8101" max="9999" />
       </InternalEndpoint>
     </Endpoints>
     <LocalStorage name="LocalTempFolder" sizeInMB="20000" cleanOnRoleRecycle="true" />
+    
   </WorkerRole>
   
   <WorkerRole name="internal" enableNativeCodeExecution="true" vmsize="Small">
@@ -79,6 +86,8 @@
       <Setting name="GigaSpaces.XAP.UploadAllLogs" />
       <Setting name="GigaSpaces.WindowsAzure.WorkingDirectory" />
       <Setting name="GigaSpaces.Firewall.Ports" />
+      <Setting name="GigaSpaces.XAP.WebuiContextPath" />
+      <Setting name="GigaSpaces.XAP.RestAdminContextPath" />
     </ConfigurationSettings>
     <Endpoints>
       <InternalEndpoint name="LRMI" protocol="tcp">

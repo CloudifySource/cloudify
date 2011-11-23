@@ -69,7 +69,7 @@ new AntBuilder().sequential {
         arg(value:"${config.wwwPublicService}")
     }
 	
-		// Define outbound rules precondition
+	// Define outbound rules precondition
 	exec(executable:"${config.appCmdPath}") {
         arg(value:"set")
         arg(value:"config")

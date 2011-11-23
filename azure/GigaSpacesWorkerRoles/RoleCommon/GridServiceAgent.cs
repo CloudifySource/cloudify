@@ -6,6 +6,7 @@ using Microsoft.WindowsAzure.ServiceRuntime;
 using System.IO;
 using System.Collections.Generic;
 using System.Text;
+using System.Net;
 
 namespace GigaSpaces
 {
@@ -25,6 +26,8 @@ namespace GigaSpaces
 
         public bool StartRestAdmin { get { return RestAdminMegabytesMemory != 0; } }
 
+        public bool StartProxy { get { return StartRestAdmin || StartWebUserInterface; } }
+        
         public String[] LookupLocators { private get; set; }
 
         public bool RedirectAll { private get; set; }
@@ -53,6 +56,18 @@ namespace GigaSpaces
 
         public int RestAdminMegabytesMemory { private get; set; }
 
+        public String WebuiContextPath { private get; set; }
+
+        public String RestAdminContextPath { private get; set; }
+
+        private String SharedMachineIsolationId
+        {
+            get
+            {
+                return "public";
+            }
+        }
+
         private int NumberOfManagementRoleInstances 
         { 
             get 
@@ -65,14 +80,13 @@ namespace GigaSpaces
         {
             get
             {
-                return 
+                return
                     (LookupLocators.Length > 0 ? "-Dcom.gs.multicast.enabled=false " : "") +
                     "-Dsun.net.inetaddr.ttl=10 " + // read from hosts file every 10 seconds
                     "-Dcom.gs.transport_protocol.lrmi.bind-port=" + PortUtils.XAP_LRMI_MINPORT + "-" + PortUtils.XAP_LRMI_MAXPORT + " " +
                     "-Dcom.gigaspaces.start.httpPort=" + PortUtils.XAP_WEBSTER_PORT + " " +
                     //"-Dcom.gs.embedded-services.httpd.port="+; +" " +
                     "-Dcom.gigaspaces.system.registryPort=" + PortUtils.XAP_REGISTRY_PORT;
-
             }
         }
 
@@ -149,7 +163,7 @@ namespace GigaSpaces
 
             gsaProcess.WorkingDirectory = new DirectoryInfo(Path.Combine(XapHomeDirectory.FullName, "bin"));
             gsaProcess.Command = "gs-agent.bat";
-            if (StartGridServiceManager )
+            if (StartGridServiceManager)
             {
                 gsaProcess.Arguments = "gsa.lus 1 gsa.gsm 1 gsa.global.esm 1 gsa.gsc 0 gsa.global.gsm 0 gsa.global.lus 0";
             }
@@ -169,14 +183,28 @@ namespace GigaSpaces
 
             if (StartRestAdmin)
             {
-                DeployWar("rest", RestAdminWar, PortUtils.XAP_RESTADMIN_PORT, RestAdminMegabytesMemory);
+                DeployWar("rest", RestAdminWar, PortUtils.XAP_RESTADMIN_PORT, RestAdminMegabytesMemory, RestAdminContextPath);
             }
 
             if (StartWebUserInterface)
             {
-                DeployWar("web-ui",WebuiWar, PortUtils.XAP_WEBUI_PORT, WebuiMegabytesMemory);
+                DeployWar("web-ui",WebuiWar, PortUtils.XAP_WEBUI_PORT, WebuiMegabytesMemory, WebuiContextPath);
             }
 
+            // if this is a managment machine
+            if (StartProxy)
+            {
+
+                InstallProxyService();
+
+                AddInboudRewrite("rest", "^rest/(.*)", "http://" + IpAddress + ":" + PortUtils.XAP_RESTADMIN_PORT + "/rest/{R:1}");
+                //AddOutboundRewrite("rest_outbound", "^/rest/.*", "/rest/{R:1}");
+
+                AddInboudRewrite("webui", "^webui/(.*)", "http://" + IpAddress + ":" + PortUtils.XAP_WEBUI_PORT + "/webui/{R:1}");
+                //AddOutboundRewrite("webui_outbound", "^/webui/.*", "/webui/{R:1}"); 
+
+            }
+            
 
             // run until either one of the started processes dies.
             // once that happens this method returns which would eventually cause Azure
@@ -199,6 +227,22 @@ namespace GigaSpaces
                 {
                     ShutdownGridAgentGracefully(timeout);
                 }
+
+                if (StartProxy)
+                {
+
+                    //String localComputerName = Dns.GetHostName();
+                    String localComputerName = "127.0.0.1";
+
+                    RemoveInboundRewrite("rest", "^rest/(.*)", "http://" + localComputerName + ":" + PortUtils.XAP_RESTADMIN_PORT + "/rest/{R:1}");
+                    //RemoveOutboundRewrite("rest_outbound");                   
+
+                    RemoveInboundRewrite("webui", "^webui/(.*)", "http://" + localComputerName + ":" + PortUtils.XAP_WEBUI_PORT + "/webui/{R:1}");
+                    //RemoveOutboundRewrite("webui_outbound");                   
+
+                    UninstallProxyService();
+                }
+                
             }
             finally
             {
@@ -257,6 +301,27 @@ namespace GigaSpaces
             {
                 killAllJava.WaitForExit(timeout);
             }
+        }
+
+        /// <summary>
+        /// Runs a cli command
+        /// </summary>
+        GSProcess CliProcess(String commands, Boolean redirectOutput)
+        {
+
+            String endpoint = PortUtils.GetInternalEndpoints(PortUtils.XAP_RESTADMIN_PORT)[0];
+            int port = PortUtils.XAP_RESTADMIN_PORT;
+            String connectCommand = "connect " + endpoint + ":" + port + RestAdminContextPath + ";";
+
+            return new GSProcess()
+            {
+                WorkingDirectory = new DirectoryInfo(Path.Combine(XapHomeDirectory.FullName, @"tools\cli")),
+                Command = "cloudify.bat",
+                Arguments = connectCommand + commands,
+                RedirectStandardError = redirectOutput,
+                RedirectStandardOutput = redirectOutput,
+                EnvironmentVariables = EnvironmentVariables
+            };
         }
 
         /// <summary>
@@ -330,10 +395,10 @@ namespace GigaSpaces
         /// </summary>
         /// <param name="warFileInfo">Location of WAR file</param>
         /// <param name="megabytesMemory">Java Heap size of the container hosting Jetty running the WAR file</param>
-        private void DeployWar(String name, FileInfo warFileInfo , int port, long megabytesMemory)
+        private void DeployWar(String name, FileInfo warFileInfo , int port, long megabytesMemory, String contextPath)
         {
-            var urlPath = "/";
-            GSTrace.WriteLine("Deploying " + warFileInfo + " (port = " + port + ")");
+            var urlPath = contextPath;
+            GSTrace.WriteLine("Deploying " + warFileInfo + " (port = " + port + ", context = " + contextPath + ")");
             // need to reserve memory for all non-Gsc (container) processes running on this machine
             long reservedMemoryOnThisMachine =
                 GsaMegabytesMemory
@@ -362,7 +427,7 @@ namespace GigaSpaces
                     @".name(""" + name + @""")
                     .addContextProperty(""com.gs.application"",""Management"")
                     // All PUs on this role share the same machine. Machines are identified by zone.
-                    .sharedMachineProvisioning(""" + role + @""" ,
+                    .sharedMachineProvisioning(""" + SharedMachineIsolationId + @""" ,
                     new org.openspaces.admin.pu.elastic.config.DiscoveredMachineProvisioningConfigurer()
                     .addGridServiceAgentZone(""" + role + @""")
                     .reservedMemoryCapacityPerMachine(""" + reservedMemoryOnThisMachine + @"m"")
@@ -409,8 +474,6 @@ namespace GigaSpaces
                     System.out.println(""Waiting for one Elastic Service Manager"");
                     Thread.Sleep(10000);
                 }
-
-
 "
                 , true);
                 managersScript.Run();
@@ -422,6 +485,151 @@ namespace GigaSpaces
                 }
             }
         }
+
+        private class CliExecutionException : Exception {
+
+            public int ErrorCode { private get; set; }
+
+            public CliExecutionException(String message, int errorCode) : base(message + ", errorCode: " + errorCode)
+            {
+                ErrorCode = errorCode;
+            }
+
+        }
+
+        private void InstallProxyService()
+        {
+         
+            String serviceName = "iisproxy";
+            String zone = "ui";
+
+            String appRoot = Environment.GetEnvironmentVariable("RoleRoot");
+
+            appRoot = Path.Combine(appRoot + @"\", @"approot\");
+
+            String pathToProxyServiceDirectory = Path.Combine(appRoot, @"iisproxy\").Replace('\\', '/');
+
+            String installServiceCommand = new StringBuilder()
+                .Append("use-application --verbose Management;")
+                .Append("install-service --verbose ")
+                .Append("-name ").Append(serviceName).Append(" ")
+                .Append("-zone ").Append(zone).Append(" ")
+                .Append(pathToProxyServiceDirectory)
+                .ToString();
+
+            GSProcess cliProcess = CliProcess(installServiceCommand, RedirectAll);
+
+            cliProcess.Run();
+
+            int exitCode = cliProcess.WaitForExit(TimeSpan.FromMinutes(5));
+            if (exitCode != 0)
+            {
+                GSTrace.WriteLine("ExitCode = " + exitCode);
+                throw new CliExecutionException("Install proxy  failed", exitCode);
+            }
+
+        }
+
+        private void UninstallProxyService() 
+        {
+            String installServiceCommand = new StringBuilder()
+                .Append("use-application --verbose Management;")
+                .Append("uninstall-service --verbose iisproxy")
+                .ToString();
+
+            GSProcess cliProcess = CliProcess(installServiceCommand, RedirectGsa);
+
+            cliProcess.Run();
+
+            int exitCode = cliProcess.WaitForExit(TimeSpan.FromSeconds(60));
+            if (exitCode != 0)
+            {
+                GSTrace.WriteLine("ExitCode = " + exitCode);
+                throw new CliExecutionException("Uninstall proxy failed", exitCode);
+            }
+        }
+
+        private void AddInboudRewrite(String name, String pattern, String rewriteUrl)
+        {
+            IDictionary<String, String> parameters = new Dictionary<String, String>();
+            parameters.Add(new KeyValuePair<String, String>("name", name));
+            parameters.Add(new KeyValuePair<String, String>("pattern", pattern));
+            parameters.Add(new KeyValuePair<String, String>("rewriteUrl", rewriteUrl));
+            parameters.Add(new KeyValuePair<String, String>("patternSyntax", "ECMAScript"));
+            parameters.Add(new KeyValuePair<String, String>("stopProcessing", "true"));
+
+            InvokeProxyServiceCommand("rewrite_add", parameters);
+        }
+
+        private void AddOutboundRewrite(String name, String conditionPattern, String rewriteUrl)
+        {
+            IDictionary<String, String> parameters = new Dictionary<String, String>();
+            parameters.Add(new KeyValuePair<String, String>("name", name));
+            parameters.Add(new KeyValuePair<String, String>("conditionPattern", conditionPattern));
+            parameters.Add(new KeyValuePair<String, String>("rewriteUrl", rewriteUrl));
+
+            InvokeProxyServiceCommand("rewrite_outbound_add", parameters);
+        }
+
+        private void RemoveInboundRewrite(String name, String pattern, String rewriteUrl)
+        {
+            IDictionary<String, String> parameters = new Dictionary<String, String>();
+            parameters.Add(new KeyValuePair<String, String>("name", name));
+            parameters.Add(new KeyValuePair<String, String>("pattern", pattern));
+            parameters.Add(new KeyValuePair<String, String>("rewriteUrl", rewriteUrl));
+            parameters.Add(new KeyValuePair<String, String>("patternSyntax", "ECMAScript"));
+            parameters.Add(new KeyValuePair<String, String>("stopProcessing", "true"));
+
+            InvokeProxyServiceCommand("rewrite_remove", parameters);
+        }
+
+        private void RemoveOutboundRewrite(String name)
+        {
+            IDictionary<String, String> parameters = new Dictionary<String, String>();
+            parameters.Add(new KeyValuePair<String, String>("name", name));
+
+            InvokeProxyServiceCommand("rewrite_outbound_remove", parameters);
+        }
+
+        private void InvokeProxyServiceCommand(String commandName, IDictionary<String, String> parameters)
+        {
+            String installServiceCommand = new StringBuilder()
+                .Append("use-application --verbose Management;")
+                .Append(ProxyServiceCommand(commandName, parameters))
+                .ToString();
+
+            GSProcess cliProcess = CliProcess(installServiceCommand, RedirectGsa);
+
+            cliProcess.Run();
+
+            int exitCode = cliProcess.WaitForExit(TimeSpan.FromSeconds(60));
+            if (exitCode != 0)
+            {
+                GSTrace.WriteLine("ExitCode = " + exitCode);
+                throw new CliExecutionException("invoke " + commandName + " failed", exitCode);
+            }
+        }
+
+        private String ProxyServiceCommand(String commandName, IDictionary<String, String> parameters)
+        {
+            StringBuilder command = new StringBuilder();
+
+            command.Append("invoke --verbose iisproxy ").Append(commandName).Append(" ");
+
+            command.Append("[ ");
+            foreach (var param in parameters)
+            {
+                command.Append("'");
+                command.Append(param.Key);
+                command.Append("=");
+                command.Append(param.Value);
+                command.Append("' ");
+            }
+            command.Append("]");
+
+            return command.ToString();
+        }
+
     }
     
 }

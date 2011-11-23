@@ -1,6 +1,6 @@
 
 application {
-	name = "travel"
+	name="travel"
 	
 	service {
 		name = "cassandra"	
@@ -8,11 +8,7 @@ application {
 	
 	service {
 		name = "tomcat"
-		dependsOn = ["cassandra", "iisproxy"]
-	}
-	
-	service {
-		name = "iisproxy"
+		dependsOn = ["cassandra"]
 	}
 	
 }

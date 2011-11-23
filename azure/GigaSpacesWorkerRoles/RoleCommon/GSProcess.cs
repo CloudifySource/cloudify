@@ -15,7 +15,7 @@ namespace GigaSpaces
         public bool RedirectStandardOutput { private get; set; }
         public bool RedirectStandardError { private get; set; }
         public IDictionary<String,String> EnvironmentVariables { private get; set; }
-        
+
         public GSProcess ()
 	    {
             EnvironmentVariables = new Dictionary<String, String>();
@@ -106,16 +106,26 @@ namespace GigaSpaces
         }
 
 
-        public void WaitForExit(TimeSpan timeout)
+        public int WaitForExit(TimeSpan timeout)
         {
             if (timeout.TotalMilliseconds >= System.Int32.MaxValue )
             {
                 process.WaitForExit();
+                return process.ExitCode;
             }
             else
             {
-                process.WaitForExit((int)timeout.TotalMilliseconds);
+                if (process.WaitForExit((int)timeout.TotalMilliseconds))
+                {
+                    return process.ExitCode;
+                }
+                else
+                {
+                    // TODO: how can this be done in a clean manner?
+                    return 0;
+                }
             }
         }
+
     }
 }

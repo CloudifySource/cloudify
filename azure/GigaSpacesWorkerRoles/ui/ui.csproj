@@ -53,6 +53,21 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <Content Include="iisproxy\iisproxy-service.groovy">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="iisproxy\iisproxy-service.properties">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="iisproxy\iisproxy_install.groovy">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="iisproxy\iisproxy_uninstall.groovy">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="iisproxy\run.bat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RoleCommon\RoleCommon.csproj">

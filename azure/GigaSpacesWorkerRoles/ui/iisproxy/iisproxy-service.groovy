@@ -103,8 +103,3 @@ service {
        
 }
 
-// addRewrite("test", "Wildcard", "serv/*", "http://pc-lab58:8087/{R:1}", true)
-// addRewrite("rest2", "ECMAScript", "^rest2/(.*)", "http://192.168.10.72:8100/{R:1}", true)
-// addOutboundRule("rest2_outbound", "^/rest2/.*", "/rest2/{R:1}")
-// deleteOutboundRule("rest2_outbound")
-// deleteRewrite("rest", "ECMAScript", "^rest/(.*)", "http://192.168.10.72:8100/{R:1}", true)

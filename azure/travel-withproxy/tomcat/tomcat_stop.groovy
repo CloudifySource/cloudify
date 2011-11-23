@@ -1,6 +1,3 @@
-import com.gigaspaces.cloudify.dsl.context.ServiceContextFactory
-import java.util.concurrent.TimeUnit
-
 config = new ConfigSlurper().parse(new File("tomcat.properties").toURL())
 
 println "executing command ${config.script}"
@@ -14,6 +11,3 @@ new AntBuilder().sequential {
 		arg(value:"stop")
 	}
 }
-
-
-

@@ -292,7 +292,7 @@ public class AzureDeploymentWrapper {
     	if (url.endsWith("/")) {
             url = url.substring(0, url.length()-1);
         }
-        return url + ":8100/";
+        return url + "/rest/";
     }
 	
 	public void updateDeploymentConfig(

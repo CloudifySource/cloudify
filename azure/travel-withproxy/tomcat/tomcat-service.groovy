@@ -5,8 +5,8 @@ service {
 	numInstances 1
 	lifecycle {
 		init "tomcat_install.groovy"
-		start "tomcat_start.groovy" 
-		postStart "tomcat_post-start.groovy"
+		start "tomcat_start.groovy" 	
+		postStart "tomcat_post-start.groovy"		
 		preStop "tomcat_stop.groovy"
 		postStop "tomcat_post-stop.groovy"
 	}
@@ -20,7 +20,7 @@ service {
             name "portLiveness"
             className "com.gigaspaces.cloudify.usm.liveness.PortLivenessDetector"
             config ([
-                "Port" : [8080],
+                "Port" : [8080,8009],
                 "TimeoutInSeconds" : 240,
                 "Host" : "127.0.0.1"
             ])
@@ -45,7 +45,7 @@ service {
 					"Catalina:type=Manager,context=/travel,host=localhost",
 					"activeSessions"
 				],
-				port: 9999
+				port: 11099
 			])
 		}
 	])

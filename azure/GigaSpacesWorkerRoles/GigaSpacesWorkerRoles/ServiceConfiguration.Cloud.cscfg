@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ServiceConfiguration serviceName="template" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="1" osVersion="*">
+<ServiceConfiguration serviceName="template" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="2" osVersion="*">
 
   <Role name="management">
     <Instances count="2" />
     <ConfigurationSettings>
       <Setting name="GigaSpaces.WindowsAzure.TraceUploadPeriod" value="00:01" />
-      <Setting name="GigaSpaces.XAP.DownloadUrl" value="https%3A%2F%2Fgigaspaces.blob.core.windows.net%2Fpackages%2F5994-249%252Fgigaspaces-cloudify-8.0.5-m3-b5994-249.zip%3F%26se%3D2015-10-09T00%253A00%253A00Z%26sr%3Db%26si%3Dreadforever%26sig%3DBmhmOnGoX%252Fl6h8K5QkettMNf7gQ%252BjUtYmpqjT1bijmk%253D" />
+      <Setting name="GigaSpaces.XAP.DownloadUrl" value="https%3A%2F%2Fgigaspaces.blob.core.windows.net%2Fpackages%2F6485-26%252Fgigaspaces-cloudify-9.0.0-m1-b6485-26.zip%3F%26se%3D2015-11-23T00%253A00%253A00Z%26sr%3Db%26si%3Dreadforever%26sig%3D1viwEcT9iltxuG205swvDnHIoqoPHSYfkTdUr4PQmAI%253D" />
       <Setting name="GigaSpaces.JDK.DownloadUrl" value="https%3A%2F%2Fgigaspaces.blob.core.windows.net%2Fpackages%2Fjdk1.6.0_25.zip%3F%26se%3D2013-06-01T00%253A00%253A00Z%26sr%3Db%26si%3Dreadforever%26sig%3D8lVgpIa2qoNpWWgVbS%252F%252F78iJHOqzZS1Uacc4n4ByvHA%253D" />
       <Setting name="GigaSpaces.XAP.NumberOfManagementRoleInstances" value="2" />
       <Setting name="GigaSpaces.XAP.UploadAgentLogs" value="false" />
@@ -22,6 +22,8 @@
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="gigaspaces" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMTE1dpbmRvd3MgQXp1cmUgVG9vbHMCECuwCtUUA8mRSXaRb836OlowDQYJKoZIhvcNAQEBBQAEggEADo84XtGC5QZucGo9VwgDawNpG+kRvCyT2d56KreKoX2W+3I30tkrwRpkDFC3ADQfox0o+kvPlqq1na+efU4s+R0NFCYpKlp7mgz6S1PTZYjwfWYxcP2T89hx34SJ35//OJObAHLdW7leB1thHO7NSH3bQM70RaKgoTkmwkZ90xhkp9Rvy5vJhb4c1lD+Lu2gDEMjyZVk/a0ML+6DPLyzHfdPcPvkNQu4qOtqoSXc07FF9HhOWzFUUA8Ni+IoGwzHJE9mEeuUpsHIxwVTt+zI2QS4yDfQ0Ks7DkXD2RuH3TnGJcsatLDJBPUECc1xsaZvlLOtV5vJ7B6janEZgT9OjDAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECK2I24B84pvKgBB5I5NW9rOpty5LjzekFz84" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2013-07-13T23:59:59.0000000+03:00" />
+      <Setting name="GigaSpaces.XAP.WebuiContextPath" value="/webui" />
+      <Setting name="GigaSpaces.XAP.RestAdminContextPath" value="/rest" />
     </ConfigurationSettings>
     <Certificates>
       <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="B4729B3CC1C45FE233D446EB1A3BDE39CD7EA7D7" thumbprintAlgorithm="sha1" />
@@ -33,7 +35,7 @@
     <ConfigurationSettings>
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=gigaspaces;AccountKey=6RjDHthW5QRP9aycTl5DX1wKuCpHWx/NwlqDUQs8iIdHwLobWfBZRcWvaLoHH8ac7qSJ5K1jnEWC7SrU6FF8+Q==" />
       <Setting name="GigaSpaces.WindowsAzure.TraceUploadPeriod" value="00:01" />
-      <Setting name="GigaSpaces.XAP.DownloadUrl" value="https%3A%2F%2Fgigaspaces.blob.core.windows.net%2Fpackages%2F5994-249%252Fgigaspaces-cloudify-8.0.5-m3-b5994-249.zip%3F%26se%3D2015-10-09T00%253A00%253A00Z%26sr%3Db%26si%3Dreadforever%26sig%3DBmhmOnGoX%252Fl6h8K5QkettMNf7gQ%252BjUtYmpqjT1bijmk%253D" />
+      <Setting name="GigaSpaces.XAP.DownloadUrl" value="https%3A%2F%2Fgigaspaces.blob.core.windows.net%2Fpackages%2F6485-26%252Fgigaspaces-cloudify-9.0.0-m1-b6485-26.zip%3F%26se%3D2015-11-23T00%253A00%253A00Z%26sr%3Db%26si%3Dreadforever%26sig%3D1viwEcT9iltxuG205swvDnHIoqoPHSYfkTdUr4PQmAI%253D" />
       <Setting name="GigaSpaces.JDK.DownloadUrl" value="https%3A%2F%2Fgigaspaces.blob.core.windows.net%2Fpackages%2Fjdk1.6.0_25.zip%3F%26se%3D2013-06-01T00%253A00%253A00Z%26sr%3Db%26si%3Dreadforever%26sig%3D8lVgpIa2qoNpWWgVbS%252F%252F78iJHOqzZS1Uacc4n4ByvHA%253D" />
       <Setting name="GigaSpaces.XAP.NumberOfManagementRoleInstances" value="2" />
       <Setting name="GigaSpaces.XAP.UploadAgentLogs" value="false" />
@@ -48,6 +50,8 @@
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMTE1dpbmRvd3MgQXp1cmUgVG9vbHMCECuwCtUUA8mRSXaRb836OlowDQYJKoZIhvcNAQEBBQAEggEADo84XtGC5QZucGo9VwgDawNpG+kRvCyT2d56KreKoX2W+3I30tkrwRpkDFC3ADQfox0o+kvPlqq1na+efU4s+R0NFCYpKlp7mgz6S1PTZYjwfWYxcP2T89hx34SJ35//OJObAHLdW7leB1thHO7NSH3bQM70RaKgoTkmwkZ90xhkp9Rvy5vJhb4c1lD+Lu2gDEMjyZVk/a0ML+6DPLyzHfdPcPvkNQu4qOtqoSXc07FF9HhOWzFUUA8Ni+IoGwzHJE9mEeuUpsHIxwVTt+zI2QS4yDfQ0Ks7DkXD2RuH3TnGJcsatLDJBPUECc1xsaZvlLOtV5vJ7B6janEZgT9OjDAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECK2I24B84pvKgBB5I5NW9rOpty5LjzekFz84" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2013-07-13T23:59:59.0000000+03:00" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="" />
+      <Setting name="GigaSpaces.XAP.WebuiContextPath" value="/webui" />
+      <Setting name="GigaSpaces.XAP.RestAdminContextPath" value="/rest" />
     </ConfigurationSettings>
     <Certificates>
       <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="B4729B3CC1C45FE233D446EB1A3BDE39CD7EA7D7" thumbprintAlgorithm="sha1" />
@@ -58,7 +62,7 @@
     <Instances count="2" />
     <ConfigurationSettings>
       <Setting name="GigaSpaces.WindowsAzure.TraceUploadPeriod" value="00:01" />
-      <Setting name="GigaSpaces.XAP.DownloadUrl" value="https%3A%2F%2Fgigaspaces.blob.core.windows.net%2Fpackages%2F5994-249%252Fgigaspaces-cloudify-8.0.5-m3-b5994-249.zip%3F%26se%3D2015-10-09T00%253A00%253A00Z%26sr%3Db%26si%3Dreadforever%26sig%3DBmhmOnGoX%252Fl6h8K5QkettMNf7gQ%252BjUtYmpqjT1bijmk%253D" />
+      <Setting name="GigaSpaces.XAP.DownloadUrl" value="https%3A%2F%2Fgigaspaces.blob.core.windows.net%2Fpackages%2F6485-26%252Fgigaspaces-cloudify-9.0.0-m1-b6485-26.zip%3F%26se%3D2015-11-23T00%253A00%253A00Z%26sr%3Db%26si%3Dreadforever%26sig%3D1viwEcT9iltxuG205swvDnHIoqoPHSYfkTdUr4PQmAI%253D" />
       <Setting name="GigaSpaces.JDK.DownloadUrl" value="https%3A%2F%2Fgigaspaces.blob.core.windows.net%2Fpackages%2Fjdk1.6.0_25.zip%3F%26se%3D2013-06-01T00%253A00%253A00Z%26sr%3Db%26si%3Dreadforever%26sig%3D8lVgpIa2qoNpWWgVbS%252F%252F78iJHOqzZS1Uacc4n4ByvHA%253D" />
       <Setting name="GigaSpaces.XAP.NumberOfManagementRoleInstances" value="2" />
       <Setting name="GigaSpaces.XAP.UploadAgentLogs" value="false" />
@@ -71,6 +75,8 @@
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="gigaspaces" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMTE1dpbmRvd3MgQXp1cmUgVG9vbHMCECuwCtUUA8mRSXaRb836OlowDQYJKoZIhvcNAQEBBQAEggEADo84XtGC5QZucGo9VwgDawNpG+kRvCyT2d56KreKoX2W+3I30tkrwRpkDFC3ADQfox0o+kvPlqq1na+efU4s+R0NFCYpKlp7mgz6S1PTZYjwfWYxcP2T89hx34SJ35//OJObAHLdW7leB1thHO7NSH3bQM70RaKgoTkmwkZ90xhkp9Rvy5vJhb4c1lD+Lu2gDEMjyZVk/a0ML+6DPLyzHfdPcPvkNQu4qOtqoSXc07FF9HhOWzFUUA8Ni+IoGwzHJE9mEeuUpsHIxwVTt+zI2QS4yDfQ0Ks7DkXD2RuH3TnGJcsatLDJBPUECc1xsaZvlLOtV5vJ7B6janEZgT9OjDAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECK2I24B84pvKgBB5I5NW9rOpty5LjzekFz84" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2013-07-13T23:59:59.0000000+03:00" />
+      <Setting name="GigaSpaces.XAP.WebuiContextPath" value="/webui" />
+      <Setting name="GigaSpaces.XAP.RestAdminContextPath" value="/rest" />
     </ConfigurationSettings>
     <Certificates>
       <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="B4729B3CC1C45FE233D446EB1A3BDE39CD7EA7D7" thumbprintAlgorithm="sha1" />
