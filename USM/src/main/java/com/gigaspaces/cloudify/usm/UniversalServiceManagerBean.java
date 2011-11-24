@@ -209,11 +209,11 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 		initShutdownHook();
 
-//		Map<String, Object> map = new HashMap<String, Object>();
-//		map.put(CloudifyConstants.INVOCATION_PARAMETER_COMMAND_NAME, "cmd1");
-//		invoke(map);
-		 //getServicesDetails();
-		 //getServicesMonitors();
+		// Map<String, Object> map = new HashMap<String, Object>();
+		// map.put(CloudifyConstants.INVOCATION_PARAMETER_COMMAND_NAME, "cmd1");
+		// invoke(map);
+		//getServicesDetails();
+		// getServicesMonitors();
 	}
 
 	private void initCustomProperties() {
@@ -241,25 +241,23 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		return Environment.getHomeDirectory() + "logs";
 	}
 
-	
 	private String createUniqueFileName() {
 		final String username = System.getProperty("user.name");
 		final String clusterName = (this.clusterName == null ? "USM"
 				: this.clusterName);
-		
+
 		try {
-			return clusterName + "_" + this.instanceId + "_" + username
-					+ "@" + InetAddress.getLocalHost().getHostName();
+			return clusterName + "_" + this.instanceId + "_" + username + "@"
+					+ InetAddress.getLocalHost().getHostName();
 		} catch (UnknownHostException e) {
 			throw new IllegalStateException("Failed to get localhost name", e);
 		}
 	}
-	
-	private void initUniqueFileName() {
-			
-			this.uniqueFileNamePrefix = getLogsDir() + File.separator
-					+ createUniqueFileName();
 
+	private void initUniqueFileName() {
+
+		this.uniqueFileNamePrefix = getLogsDir() + File.separator
+				+ createUniqueFileName();
 
 	}
 
@@ -1062,24 +1060,23 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	}
 
 	private RollingFileAppenderTailer createFileTailerTask() {
-		final String filePattern =createUniqueFileName()
-				+ "(" + OUTPUT_FILE_NAME_SUFFIX + "|" + ERROR_FILE_NAME_SUFFFIX + ")";
-		
-		
-		
+		final String filePattern = createUniqueFileName() + "("
+				+ OUTPUT_FILE_NAME_SUFFIX + "|" + ERROR_FILE_NAME_SUFFFIX + ")";
+
 		final Logger outputLogger = Logger.getLogger(usmLifecycleBean
 				.getOutputReaderLoggerName());
 		final Logger errorLogger = Logger.getLogger(usmLifecycleBean
 				.getErrorReaderLoggerName());
 
-		logger.info("Creating tailer for dir: " + getLogsDir() + ", with regex: " + filePattern);
+		logger.info("Creating tailer for dir: " + getLogsDir()
+				+ ", with regex: " + filePattern);
 		RollingFileAppenderTailer tailer = new RollingFileAppenderTailer(
 				getLogsDir(), filePattern, new LineHandler() {
 
 					@Override
 					public void handleLine(final String fileName,
 							final String line) {
-						// 
+						//
 						if (fileName.endsWith(".out")) {
 							outputLogger.info(line);
 						} else {
@@ -1311,18 +1308,18 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 				this.serviceSubType, this.serviceDescription,
 				this.serviceLongDescription);
 		final ServiceDetails[] res = new ServiceDetails[] { csd };
-		
-//		boolean deleteme = true;
-//		if (deleteme) {
-//			return res;
-//		}
-//		waitForServiceToStart();
+
+		// boolean deleteme = true;
+		// if (deleteme) {
+		// return res;
+		// }
+		// waitForServiceToStart();
 
 		// if the underlying process is not running, do not execute the details
-//		if (!this.getState().equals(USMState.RUNNING)) {
-////			throw new IllegalStateException("USM has not started yet!");
-//			return res;
-//		}
+		// if (!this.getState().equals(USMState.RUNNING)) {
+		// // throw new IllegalStateException("USM has not started yet!");
+		// return res;
+		// }
 
 		final Details[] alldetails = usmLifecycleBean.getDetails();
 		final Map<String, Object> result = csd.getAttributes();
@@ -1330,8 +1327,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 			try {
 				logger.fine("Executing details: " + details);
-				final Map<String, Object> detailsValues = details.getDetails(this,
-						usmLifecycleBean.getConfiguration());
+				final Map<String, Object> detailsValues = details.getDetails(
+						this, usmLifecycleBean.getConfiguration());
 				removeNonSerializableObjectsFromMap(detailsValues);
 				result.putAll(detailsValues);
 			} catch (final Exception e) {
@@ -1340,8 +1337,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 		}
 
-		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("Details are: " + Arrays.toString(res));
+		if (logger.isLoggable(Level.INFO)) { // TODO - change to FINER
+			logger.info("Details are: " + Arrays.toString(res));
 		}
 		return res;
 
@@ -1350,43 +1347,47 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	private void waitForServiceToStart() {
 
 		boolean firstTime = true;
-		synchronized (this.stateMutex) {
-			switch (this.state) {
-			case INITIALIZING:
-			case LAUNCHING:
-				if (!firstTime) {
-					throw new IllegalStateException(
-							"The Service failed to start. The current service state is: "
-									+ this.state);
-				}
-				try {
-					logger.info("Waiting for service to start. Current service state: "
-							+ this.state);
-					// TODO - make wait timeout configurable
-					this.stateMutex.wait(WAIT_FOR_DEPENDENCIES_TIMEOUT_MILLIS); // wait
+		while (true) {
+			synchronized (this.stateMutex) {
+				switch (this.state) {
+				case INITIALIZING:
+				case LAUNCHING:
+					if (!firstTime) {
+						throw new IllegalStateException(
+								"The Service failed to start. The current service state is: "
+										+ this.state);
+					}
+					try {
+						logger.info("Waiting for service to start. Current service state: "
+								+ this.state);
+						// TODO - make wait timeout configurable
+						this.stateMutex
+								.wait(WAIT_FOR_DEPENDENCIES_TIMEOUT_MILLIS); // wait
 																				// for
 																				// 30
 																				// mins
 																				// max
-				} catch (InterruptedException e) {
-					// ignore
+					} catch (InterruptedException e) {
+						// ignore
+					}
+
+					// run this code again
+					firstTime = false;
+
+					break;
+
+				case SHUTTING_DOWN:
+					logger.warning("While waiting for service to start, the USM changed its state to: "
+							+ USMState.SHUTTING_DOWN);
+					return;
+				case RUNNING:
+					// this should be the common case
+					return;
+				default:
+					logger.warning("Unexpected service state: " + this.state);
+					return;
+
 				}
-
-				// run this code again
-				firstTime = false;
-
-				break;
-
-			case SHUTTING_DOWN:
-				logger.warning("While waiting for service to start, the USM changed its state to: "
-						+ USMState.SHUTTING_DOWN);
-			case RUNNING:
-				// this should be the common case
-				return;
-			default:
-				logger.warning("Unexpected service state: " + this.state);
-				break;
-
 			}
 		}
 	}
@@ -1395,14 +1396,18 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	public ServiceMonitors[] getServicesMonitors() {
 		logger.info("Executing getServiceMonitors()");
 
-		waitForServiceToStart();
+		// This wait is removed. If an async install fails, the shutdown methd will not be called until all blocked threads are 
+		// removed. So we get a deadlock.
+		// waitForServiceToStart();
 		final CustomServiceMonitors csm = new CustomServiceMonitors(
 				CloudifyConstants.USM_MONITORS_SERVICE_ID);
 
 		final ServiceMonitors[] res = new ServiceMonitors[] { csm };
 
+		USMState currentState = getState();
 		// If the underlying service is not running
-		if (!getState().equals(USMState.RUNNING)) {
+		if (!currentState.equals(USMState.RUNNING)) {
+			csm.getMonitors().put(CloudifyConstants.USM_MONITORS_STATE_ID, currentState.ordinal());
 			return res;
 		}
 
@@ -1410,14 +1415,13 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		// default monitors
 		putDefaultMonitorsInMap(map);
 
-
 		for (final Monitor monitor : usmLifecycleBean.getMonitors()) {
 			try {
 				logger.fine("Executing monitor: " + monitor);
-				Map<String, Number> monitorValues = monitor.getMonitorValues(this,
-						usmLifecycleBean.getConfiguration());
+				Map<String, Number> monitorValues = monitor.getMonitorValues(
+						this, usmLifecycleBean.getConfiguration());
 				removeNonSerializableObjectsFromMap(monitorValues);
-				//add monitor values to Monitors map
+				// add monitor values to Monitors map
 				map.putAll(monitorValues);
 			} catch (final Exception e) {
 				logger.log(Level.SEVERE,
@@ -1433,22 +1437,23 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	}
 
 	private void removeNonSerializableObjectsFromMap(Map<?, ?> map) {
-				
-		if (map.keySet().isEmpty()){
+
+		if (map.keySet().isEmpty()) {
 			return;
 		}
 		Iterator<?> entries = map.entrySet().iterator();
 		while (entries.hasNext()) {
-		  Entry<?, ?> entry = (Entry<?, ?>) entries.next();
-		  
-		//a closure can not be serialized
-		  if (!(entry.getValue() instanceof java.io.Serializable)
-				  || entry.getValue() instanceof Closure<?>){
-			  logger.info("Entry " + entry.getKey() 
-					  + " is not serializable and was not inserted to the monitors map");
-			  map.remove(entry.getKey());
-		  }
-		}	
+			Entry<?, ?> entry = (Entry<?, ?>) entries.next();
+
+			// a closure can not be serialized
+			if (!(entry.getValue() instanceof java.io.Serializable)
+					|| entry.getValue() instanceof Closure<?>) {
+				logger.info("Entry "
+						+ entry.getKey()
+						+ " is not serializable and was not inserted to the monitors map");
+				map.remove(entry.getKey());
+			}
+		}
 	}
 
 	private void putDefaultMonitorsInMap(final Map<String, Object> map) {
@@ -1616,14 +1621,17 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		final String dependenciesString = beanLevelProperties
 				.getContextProperties().getProperty(
 						CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON, "[]");
-		this.dependencies = parseDependenciesString(dependenciesString,
-				beanLevelProperties.getContextProperties().getProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME));
+		this.dependencies = parseDependenciesString(
+				dependenciesString,
+				beanLevelProperties.getContextProperties().getProperty(
+						CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME));
 		logger.info("Dependencies for this service: "
 				+ Arrays.toString(this.dependencies));
 
 	}
 
-	private String[] parseDependenciesString(final String dependenciesString, String applicationName) {
+	private String[] parseDependenciesString(final String dependenciesString,
+			String applicationName) {
 		// remove brackets
 		final String internalString = dependenciesString.replace("[", "")
 				.replace("]", "").trim();
@@ -1634,7 +1642,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		String[] splitResult = internalString.split(Pattern.quote(","));
 		for (int i = 0; i < splitResult.length; i++) {
 			splitResult[i] = splitResult[i].trim();
-			splitResult[i] = ServiceUtils.getAbsolutePUName(applicationName, splitResult[i]);
+			splitResult[i] = ServiceUtils.getAbsolutePUName(applicationName,
+					splitResult[i]);
 		}
 
 		return splitResult;
