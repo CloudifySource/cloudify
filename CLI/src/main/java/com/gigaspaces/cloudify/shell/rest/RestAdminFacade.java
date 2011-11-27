@@ -42,6 +42,7 @@ import com.gigaspaces.cloudify.shell.commands.CLIException;
  */
 public class RestAdminFacade extends AbstractAdminFacade {
 
+	private static final int PROCESSINGUNIT_LOOKUP_TIMEOUT = 15;
 	private static final int POLLING_INTERVAL = 2000;
 	private static final String GS_USM_COMMAND_NAME = "GS_USM_CommandName";
 	private static final String SERVICE_CONTROLLER_URL = "/service/";
@@ -88,7 +89,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		String pollingURL = "processingUnits/Names/" + ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 
 		//The polling will not start until the service processing unit is found.
-		waitForServicePU(applicationName, serviceName, pollingURL, timeoutErrorMessage, timeout, timeunit);
+		waitForServicePU(applicationName, serviceName, pollingURL, timeoutErrorMessage, PROCESSINGUNIT_LOOKUP_TIMEOUT, TimeUnit.SECONDS);
 
 		logger.info(MessageFormat.format(messages.getString("deploying_service"),serviceName));
 
