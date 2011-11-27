@@ -355,7 +355,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	public InvocationResult invokeInstanceCommand(String applicationName,
 			String serviceName, String beanName, int instanceId,
 			String commandName, Map<String, String> paramsMap) throws CLIException {
-		String url = SERVICE_CONTROLLER_URL + "applications/na/services/"
+		String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/"
 		+ serviceName + "/instances/" + instanceId + "/beans/"
 		+ beanName + "/invoke";
 		@SuppressWarnings("unchecked")

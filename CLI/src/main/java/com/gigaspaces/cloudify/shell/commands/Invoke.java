@@ -40,7 +40,7 @@ public class Invoke extends AdminAwareCommand {
 		
 		String applicationName = this.getCurrentApplicationName();
 		if(applicationName == null) {
-			applicationName = "na";
+			applicationName = "default";
 		}
 		
 		Map<String, String> paramsMap = new HashMap<String, String>();
