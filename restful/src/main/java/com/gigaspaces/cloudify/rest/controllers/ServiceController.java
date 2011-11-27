@@ -440,7 +440,8 @@ public class ServiceController {
 	}
 
 	private Map<String, Object> unavailableServiceError(String serviceName) {
-		return errorStatus(FAILED_TO_LOCATE_SERVICE, serviceName);
+		//TODO: Consider telling the user he might be using the wrong application name.
+		return errorStatus(FAILED_TO_LOCATE_SERVICE, ServiceUtils.getFullServiceName(serviceName).getServiceName());
 	}
 
 	private GridServiceManager getGsm(String id) {
