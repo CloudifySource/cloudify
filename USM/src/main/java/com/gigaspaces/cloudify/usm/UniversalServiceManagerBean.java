@@ -60,7 +60,6 @@ import org.springframework.stereotype.Component;
 import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants.USMState;
-import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 import com.gigaspaces.cloudify.usm.details.Details;
 import com.gigaspaces.cloudify.usm.dsl.DSLConfiguration;
 import com.gigaspaces.cloudify.usm.dsl.DSLEntryExecutor;
@@ -497,10 +496,12 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 						+ dependantService + " required for this service");
 			}
 
-			logger.info("Waiting for PUI of service: " + dependantService);
+			logger.info("Waiting for PUI of service: " + dependantService + " for " + waitForPUIPeriod + " Milliseconds");
 
 			final boolean found = pu.waitFor(1, waitForPUIPeriod,
 					TimeUnit.MILLISECONDS);
+			
+			logger.info("Timeout ended. processing unit " + dependantService + " found result is " + found);
 			if (!found) {
 				throw new IllegalStateException(
 						"Could not find instance of dependency "
@@ -1622,16 +1623,13 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 				.getContextProperties().getProperty(
 						CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON, "[]");
 		this.dependencies = parseDependenciesString(
-				dependenciesString,
-				beanLevelProperties.getContextProperties().getProperty(
-						CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME));
+				dependenciesString);
 		logger.info("Dependencies for this service: "
 				+ Arrays.toString(this.dependencies));
 
 	}
 
-	private String[] parseDependenciesString(final String dependenciesString,
-			String applicationName) {
+	private String[] parseDependenciesString(final String dependenciesString) {
 		// remove brackets
 		final String internalString = dependenciesString.replace("[", "")
 				.replace("]", "").trim();
@@ -1642,8 +1640,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		String[] splitResult = internalString.split(Pattern.quote(","));
 		for (int i = 0; i < splitResult.length; i++) {
 			splitResult[i] = splitResult[i].trim();
-			splitResult[i] = ServiceUtils.getAbsolutePUName(applicationName,
-					splitResult[i]);
 		}
 
 		return splitResult;
