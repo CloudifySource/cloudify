@@ -23,7 +23,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 	private static final int SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES = 10;
 
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
-			.getLogger(ApplicationInstallerRunnable.class.getName());
+	.getLogger(ApplicationInstallerRunnable.class.getName());
 
 	private ServiceController controller;
 	private DSLApplicationCompilatioResult result;
@@ -68,7 +68,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 					Environment.getHomeDirectory() + "/lib/platform/usm");
 
 			final Properties contextProperties = createServiceContextProperties(
-					service, async);
+					service, applicationName, async);
 
 			final String serviceName = service.getName();
 			boolean found = false;
@@ -96,12 +96,12 @@ public class ApplicationInstallerRunnable implements Runnable {
 					if (!instanceFound) {
 						throw new TimeoutException(
 								"Service "
-										+ serviceName
-										+ " of application "
-										+ applicationName
-										+ " was installed, but no instance of the service has started after "
-										+ SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES
-										+ " minutes.");
+								+ serviceName
+								+ " of application "
+								+ applicationName
+								+ " was installed, but no instance of the service has started after "
+								+ SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES
+								+ " minutes.");
 					}
 				}
 
@@ -111,12 +111,12 @@ public class ApplicationInstallerRunnable implements Runnable {
 				logger.log(
 						Level.SEVERE,
 						"Failed to install service: "
-								+ serviceName
-								+ " of application: "
-								+ applicationName
-								+ ". Application installation will halt. "
-								+ "Some services may already have started, and should be shutdown manually. Error was: "
-								+ e.getMessage(), e);
+						+ serviceName
+						+ " of application: "
+						+ applicationName
+						+ ". Application installation will halt. "
+						+ "Some services may already have started, and should be shutdown manually. Error was: "
+						+ e.getMessage(), e);
 				return;
 			}
 
@@ -144,14 +144,21 @@ public class ApplicationInstallerRunnable implements Runnable {
 		return true;
 	}
 
-	private Properties createServiceContextProperties(final Service service,
+	private Properties createServiceContextProperties(final Service service, String applicationName,
 			final boolean async) {
 		final Properties contextProperties = new Properties();
 
 		if (service.getDependsOn() != null) {
-			contextProperties.setProperty(
-					CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON, service
-							.getDependsOn().toString());
+			String serviceName = service.getDependsOn().toString();
+			serviceName = serviceName.substring(1, serviceName.length() - 1);
+			if (serviceName.equals("")){
+				contextProperties.setProperty(
+						CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON, "[]");
+			}else{
+				contextProperties.setProperty(
+						CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON, 
+						"[" +ServiceUtils.getAbsolutePUName(applicationName, serviceName) + "]");
+			}
 		}
 		if (service.getType() != null) {
 			contextProperties.setProperty(
@@ -165,9 +172,9 @@ public class ApplicationInstallerRunnable implements Runnable {
 		}
 		if (service.getNetwork() != null) {
 			contextProperties
-					.setProperty(
-							CloudifyConstants.CONTEXT_PROPERTY_NETWORK_PROTOCOL_DESCRIPTION,
-							service.getNetwork().getProtocolDescription());
+			.setProperty(
+					CloudifyConstants.CONTEXT_PROPERTY_NETWORK_PROTOCOL_DESCRIPTION,
+					service.getNetwork().getProtocolDescription());
 		}
 
 		contextProperties.setProperty(
