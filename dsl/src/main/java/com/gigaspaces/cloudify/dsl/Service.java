@@ -260,8 +260,8 @@ public class Service implements Serializable {
 		return service;
 	}
 
-	public StatelessProcessingUnit getMirrorProcessingUnit() {
-		StatelessProcessingUnit service = null;
+	public MirrorProcessingUnit getMirrorProcessingUnit() {
+		MirrorProcessingUnit service = null;
 		if (this.serviceProcessingUnit instanceof MirrorProcessingUnit) {
 			service = (MirrorProcessingUnit) serviceProcessingUnit;
 		}
