@@ -21,7 +21,13 @@ public class JmxMonitor extends AbstractJmxPlugin implements Monitor {
 		Map<String, Number> returnValues = new HashMap<String, Number>();
 		for (Map.Entry<String, Object> entry : jmxAttributes.entrySet()) {
 			if (!(entry.getValue() instanceof Number)){
-				logger.warning("Failure: Attempting to insert a non numeric value to jmx attribute map");
+				if (entry.getValue() == null){
+					logger.warning("Failure: Attempting to insert a null value to jmx attribute map");
+				}else{
+					logger.warning("Failure: Attempting to insert a non numeric value: "
+										+ entry.getValue().toString() 
+										+ " to jmx attribute map");
+				}
 			}else{
 				returnValues.put(entry.getKey(), (Number)entry.getValue());
 			}
