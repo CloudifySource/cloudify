@@ -202,7 +202,7 @@ public class Service implements Serializable {
 			this.serviceProcessingUnit = statelessProcessingUnit;
 		} else if (statelessProcessingUnit != null) {
 			throw new IllegalStateException(
-					"DSL File contains more then 1 ProcessingUnit state");
+					"DSL File contains more then 1 ProcessingUnit type");
 		}
 	}
 
@@ -212,7 +212,7 @@ public class Service implements Serializable {
 			this.serviceProcessingUnit = mirrorProcessingUnit;
 		} else if (mirrorProcessingUnit != null) {
 			throw new IllegalStateException(
-					"DSL File contains more then 1 ProcessingUnit state");
+					"DSL File contains more then 1 ProcessingUnit type");
 		}
 	}
 
@@ -222,7 +222,7 @@ public class Service implements Serializable {
 			this.serviceProcessingUnit = statefulProcessingUnit;
 		} else if (statefulProcessingUnit != null){
 			throw new IllegalStateException(
-					"DSL File contains more then 1 ProcessingUnit state");
+					"DSL File contains more then 1 ProcessingUnit type");
 		}
 	}
 
@@ -231,7 +231,7 @@ public class Service implements Serializable {
 			this.serviceProcessingUnit = dataGrid;
 		} else if (dataGrid != null){
 			throw new IllegalStateException(
-					"DSL File contains more then 1 ProcessingUnit state");
+					"DSL File contains more then 1 ProcessingUnit type");
 		}
 	}
 
@@ -240,7 +240,7 @@ public class Service implements Serializable {
 			this.serviceProcessingUnit = memcached;
 		} else if (memcached != null){
 			throw new IllegalStateException(
-					"DSL File contains more then one ProcessingUnit state");
+					"DSL File contains more then one ProcessingUnit type");
 		}
 	}
 
