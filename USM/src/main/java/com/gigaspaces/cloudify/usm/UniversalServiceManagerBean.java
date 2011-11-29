@@ -110,11 +110,7 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 
 	private Process process;
 
-	private ProcessStreamReaderTask inputReader;
-
 	private String streamLoggerLevel = Level.INFO.getName();
-
-	private ProcessStreamReaderTask errorReader;
 
 	private ScheduledExecutorService executors;
 
@@ -160,6 +156,9 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 					+ usmLifecycleBean.getConfiguration());
 
 			this.executors = Executors.newScheduledThreadPool(5);
+			// Auto shutdown if this is a Test-Recipe run
+			checkForRecipeTestEnvironment();
+
 
 			// check for PID file
 			if (existingProcessFound) {
@@ -203,9 +202,7 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 
 		reset(existingProcessFound);
 
-		// Auto shutdown if this is a Test-Recipe run
-		checkForRecipeTestEnvironment();
-
+		
 		initShutdownHook();
 
 		// Map<String, Object> map = new HashMap<String, Object>();
@@ -1312,7 +1309,7 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 
 	@Override
 	public ServiceDetails[] getServicesDetails() {
-		logger.info("Executing getServiceDetails()");
+		logger.fine("Executing getServiceDetails()");
 		final CustomServiceDetails csd = new CustomServiceDetails(
 				CloudifyConstants.USM_DETAILS_SERVICE_ID,
 				this.serviceSubType, this.serviceDescription,
@@ -1404,7 +1401,7 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 
 	@Override
 	public ServiceMonitors[] getServicesMonitors() {
-		logger.info("Executing getServiceMonitors()");
+		logger.fine("Executing getServiceMonitors()");
 
 		// This wait is removed. If an async install fails, the shutdown methd will not be called until all blocked threads are 
 		// removed. So we get a deadlock.
