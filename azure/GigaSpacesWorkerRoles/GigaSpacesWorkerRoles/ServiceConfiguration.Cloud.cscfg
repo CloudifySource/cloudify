@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ServiceConfiguration serviceName="template" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="2" osVersion="*">
-
+  <!-- osFamily = 2 to use Windows Server 2008 R2 -->
+  
+  
   <Role name="management">
     <Instances count="2" />
     <ConfigurationSettings>

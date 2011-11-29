@@ -122,6 +122,7 @@ namespace GigaSpaces
                 else
                 {
                     // TODO: how can this be done in a clean manner?
+                    // currently if interested in return value, wait indefinitely 
                     return 0;
                 }
             }

@@ -33,6 +33,8 @@
     </Endpoints>
     <LocalStorage name="LocalTempFolder" sizeInMB="20000" cleanOnRoleRecycle="true" />
   </WorkerRole>
+  
+  <!-- vm size Medium because IIS/ARR is installed on it and requires more resources -->
   <WorkerRole name="ui" enableNativeCodeExecution="true" vmsize="Medium">
     <Runtime executionContext="elevated" />
     <Imports>

@@ -488,7 +488,7 @@ namespace GigaSpaces
 
         private class CliExecutionException : Exception {
 
-            public int ErrorCode { private get; set; }
+            public int ErrorCode { get; private set; }
 
             public CliExecutionException(String message, int errorCode) : base(message + ", errorCode: " + errorCode)
             {
@@ -521,7 +521,7 @@ namespace GigaSpaces
 
             cliProcess.Run();
 
-            int exitCode = cliProcess.WaitForExit(TimeSpan.FromMinutes(5));
+            int exitCode = cliProcess.WaitForExit(TimeSpan.MaxValue);
             if (exitCode != 0)
             {
                 GSTrace.WriteLine("ExitCode = " + exitCode);
@@ -541,7 +541,7 @@ namespace GigaSpaces
 
             cliProcess.Run();
 
-            int exitCode = cliProcess.WaitForExit(TimeSpan.FromSeconds(60));
+            int exitCode = cliProcess.WaitForExit(TimeSpan.MaxValue);
             if (exitCode != 0)
             {
                 GSTrace.WriteLine("ExitCode = " + exitCode);
@@ -549,6 +549,10 @@ namespace GigaSpaces
             }
         }
 
+        /*
+         * Add an inbound rule to ARR - e.g: route domain.com/applicationName -> some-internal-address/applicationName
+         * see iisproxy/issproxy-service.groovy
+         */
         private void AddInboudRewrite(String name, String pattern, String rewriteUrl)
         {
             IDictionary<String, String> parameters = new Dictionary<String, String>();
@@ -561,6 +565,11 @@ namespace GigaSpaces
             InvokeProxyServiceCommand("rewrite_add", parameters);
         }
 
+        /*
+         * Add an outbound rule to ARR - i.e: rewrite urls in responses of type text/html to point to the proxy address
+         * instead of the internal address. currently doesn't work properly in azure
+         * see iisproxy/issproxy-service.groovy
+         */
         private void AddOutboundRewrite(String name, String conditionPattern, String rewriteUrl)
         {
             IDictionary<String, String> parameters = new Dictionary<String, String>();
@@ -591,6 +600,7 @@ namespace GigaSpaces
             InvokeProxyServiceCommand("rewrite_outbound_remove", parameters);
         }
 
+        /* Invoke the 'commandName' custom command of the issproxy service */
         private void InvokeProxyServiceCommand(String commandName, IDictionary<String, String> parameters)
         {
             String installServiceCommand = new StringBuilder()
@@ -602,7 +612,7 @@ namespace GigaSpaces
 
             cliProcess.Run();
 
-            int exitCode = cliProcess.WaitForExit(TimeSpan.FromSeconds(60));
+            int exitCode = cliProcess.WaitForExit(TimeSpan.MaxValue);
             if (exitCode != 0)
             {
                 GSTrace.WriteLine("ExitCode = " + exitCode);
