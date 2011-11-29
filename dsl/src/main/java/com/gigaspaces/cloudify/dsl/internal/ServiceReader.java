@@ -39,11 +39,12 @@ import com.gigaspaces.cloudify.dsl.Cloud;
 import com.gigaspaces.cloudify.dsl.Cloud2;
 import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.context.ServiceContext;
-import com.gigaspaces.cloudify.dsl.internal.packaging.Packager;
 import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
 import com.gigaspaces.cloudify.dsl.internal.packaging.ZipUtils;
 
 public class ServiceReader {
+
+	public static final String DSL_FILE_PATH_PROPERTY_NAME = "dslFilePath";
 
 	/*****
 	 * Private Constructor to prevent instantiation.
@@ -244,7 +245,7 @@ public class ServiceReader {
 		final ServiceContext ctx = new ServiceContext();
 		// create the groovy shell, loaded with our settings
 		final GroovyShell gs = ServiceReader.createGroovyShellForService(
-				properties, ctx);
+				properties, ctx, dslFile);
 
 		Object result = evaluateGroovyScript(dslFile, gs);
 
@@ -354,30 +355,30 @@ public class ServiceReader {
 	}
 
 	private static GroovyShell createGroovyShellForService(
-			LinkedHashMap<Object, Object> properties, ServiceContext context) {
+			LinkedHashMap<Object, Object> properties, ServiceContext context, File dslFile) {
 //		return ServiceReader.createGroovyShell(
 //				BaseServiceScript.class.getName(), properties, context);
 		return ServiceReader.createGroovyShell(
-				ServiceDslScript.class.getName(), properties, context);
+				ServiceDslScript.class.getName(), properties, context, dslFile);
 	}
 
-	private static GroovyShell createGroovyShellForApplication() {
+	private static GroovyShell createGroovyShellForApplication(File dslFile) {
 		return ServiceReader.createGroovyShell(
-				BaseDslScript.class.getName(), null, null);
+				BaseDslScript.class.getName(), null, null, dslFile);
 	}
 
-	private static GroovyShell createGroovyShellForCloud() {
+	private static GroovyShell createGroovyShellForCloud(File dslFile) {
 		return ServiceReader.createGroovyShell(BaseDslScript.class.getName(),
-				null, null);
+				null, null, dslFile);
 	}
 
 	private static GroovyShell createGroovyShell(final String baseClassName,
 			final LinkedHashMap<Object, Object> properties,
-			ServiceContext context) {
+			ServiceContext context, File dslFile) {
 		final CompilerConfiguration cc = ServiceReader
 				.createCompilerConfiguration(baseClassName);
 
-		final Binding binding = createGroovyBinding(properties, context);
+		final Binding binding = createGroovyBinding(properties, context, dslFile);
 
 		final GroovyShell gs = new GroovyShell(
 				ServiceReader.class.getClassLoader(), // this.getClass().getClassLoader(),
@@ -387,7 +388,7 @@ public class ServiceReader {
 
 	private static Binding createGroovyBinding(
 			final LinkedHashMap<Object, Object> properties,
-			ServiceContext context) {
+			ServiceContext context, File dslFile) {
 		final Binding binding = new Binding();
 		if (properties != null) {
 			Set<Entry<Object, Object>> entries = properties.entrySet();
@@ -398,6 +399,7 @@ public class ServiceReader {
 				binding.setVariable("context", context);
 			}
 		}
+		binding.setVariable(DSL_FILE_PATH_PROPERTY_NAME, dslFile.getPath());
 		return binding;
 	}
 
@@ -651,7 +653,7 @@ public class ServiceReader {
 			throw new FileNotFoundException(dslFile.getAbsolutePath());
 		}
 
-		final GroovyShell gs = ServiceReader.createGroovyShellForApplication();
+		final GroovyShell gs = ServiceReader.createGroovyShellForApplication(dslFile);
 		gs.getContext().setProperty(DSLUtils.APPLICATION_DIR,
 				dslFile.getParentFile().getAbsolutePath());
 
@@ -700,7 +702,7 @@ public class ServiceReader {
 			throw new FileNotFoundException(dslFile.getAbsolutePath());
 		}
 
-		final GroovyShell gs = ServiceReader.createGroovyShellForCloud();
+		final GroovyShell gs = ServiceReader.createGroovyShellForCloud(dslFile);
 		// gs.getContext().setProperty(ServiceUtils.APPLICATION_DIR,
 		// dslFile.getParentFile().getAbsolutePath());
 
@@ -749,7 +751,7 @@ public class ServiceReader {
 			throw new FileNotFoundException(dslFile.getAbsolutePath());
 		}
 
-		final GroovyShell gs = ServiceReader.createGroovyShellForCloud();
+		final GroovyShell gs = ServiceReader.createGroovyShellForCloud(dslFile);
 		// gs.getContext().setProperty(ServiceUtils.APPLICATION_DIR,
 		// dslFile.getParentFile().getAbsolutePath());
 
@@ -789,14 +791,6 @@ public class ServiceReader {
 
 		return cloud;
 
-	}
-
-	
-	public static File doPack(File recipeFolder, String applicationName) throws IOException,
-			PackagingException {
-		Service service = ServiceReader.readService(recipeFolder);
-		File packedFile = Packager.pack(recipeFolder, service);
-		return packedFile;
 	}
 
 }

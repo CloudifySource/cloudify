@@ -1,6 +1,6 @@
 service {    
 	name "test parsing extend"
-	extend "testResources/testparsing/test_parsing_base-service.groovy"
+	extend "test_parsing_base-service.groovy"
 
 	lifecycle{
 

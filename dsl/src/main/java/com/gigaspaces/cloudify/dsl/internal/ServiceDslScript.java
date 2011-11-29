@@ -14,7 +14,7 @@ import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
  */
 public abstract class ServiceDslScript extends BaseDslScript {
 
-	private static final Object EXTEND_PROPERTY_NAME = "extend";
+	public static final String EXTEND_PROPERTY_NAME = "extend";
 	private int propertyCounter;
 	
 	@Override
@@ -50,8 +50,23 @@ public abstract class ServiceDslScript extends BaseDslScript {
 				throw new DSLException(EXTEND_PROPERTY_NAME + " property can only be used on a service");
 			String extendServicePath = (String) arg;
 			try {
-				Service baseService = ServiceReader.readService(new File(extendServicePath));
+				File extendedServiceAbsPath = new File(extendServicePath);
+				if (!extendedServiceAbsPath.isAbsolute()){
+					//Extract the current service directory
+					String dslFilePath = (String) getProperty(ServiceReader.DSL_FILE_PATH_PROPERTY_NAME);
+					if (dslFilePath == null)
+						throw new IllegalStateException("No dsl file path present in binding context");
+					String activeServiceDirectory = new File((String) dslFilePath).getParent();
+					//Construct the extended service absolute path, joining the current service directory with the extension relative path
+					extendedServiceAbsPath = new File(activeServiceDirectory + "/" + extendServicePath);
+				}
+				//Read the extended service
+				Service baseService = ServiceReader.readService(extendedServiceAbsPath);
+				//Populate the current service with the extended service
 				BeanUtils.copyProperties(this.activeObject, baseService);
+				Service activeService = (Service) activeObject;
+				//Add extended service to the extension list
+				activeService.getExtendedServicesPaths().addFirst(extendServicePath);
 				return true;
 			} catch (IOException e) {
 				throw new DSLException("Failed to parse extended service: " + extendServicePath, e);

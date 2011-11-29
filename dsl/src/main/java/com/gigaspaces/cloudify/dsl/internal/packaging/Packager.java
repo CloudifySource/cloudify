@@ -1,16 +1,24 @@
 package com.gigaspaces.cloudify.dsl.internal.packaging;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
 
 import com.gigaspaces.cloudify.dsl.Service;
+import com.gigaspaces.cloudify.dsl.internal.ServiceDslScript;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
+import com.gigaspaces.internal.utils.StringUtils;
 import com.j_spaces.kernel.Environment;
 
 public class Packager {
@@ -21,21 +29,20 @@ public class Packager {
 	public static final String USM_JAR_PATH_PROP = "usmJarPath";
 
 	public static File pack(final File recipeDirOrFile) throws IOException, PackagingException {
-		Service service = ServiceReader.readService(recipeDirOrFile);
-		File recipeDir = recipeDirOrFile;
-		if (recipeDir.isFile()) {
-			recipeDir = recipeDir.getParentFile();
-		}
-		return Packager.pack(recipeDir, service);
+		//Locate recipe file
+		File recipeFile = recipeDirOrFile.isDirectory()? ServiceReader.findServiceFile(recipeDirOrFile) : recipeDirOrFile;
+		//Parse recipe into service
+		Service service = ServiceReader.readService(recipeFile);
+		return Packager.pack(recipeFile, service);
 	}
 	
-	public static File pack(final File srcFolder, final Service service) throws IOException, PackagingException {
-		if (!srcFolder.isDirectory()) {
-			throw new IllegalArgumentException (srcFolder + " is not a directory");
-		}
-		logger.info("packing folder " + srcFolder);
-		final File createdPuFolder = buildPuFolder(service, srcFolder);
-		File puZipFile = createZippedPu(service, createdPuFolder, srcFolder);
+	private static File pack(final File recipeFile, final Service service) throws IOException, PackagingException {
+		if (!recipeFile.isFile())
+			throw new IllegalArgumentException (recipeFile + " is not a file");
+		
+		logger.info("packing folder " + recipeFile.getParent());
+		final File createdPuFolder = buildPuFolder(service, recipeFile);
+		File puZipFile = createZippedPu(service, createdPuFolder, recipeFile);
 		logger.info("created " + puZipFile.getCanonicalFile());
 		if (FileUtils.deleteQuietly(createdPuFolder)) {
 			logger.finer("deleted temp pu folder " + createdPuFolder.getAbsolutePath());
@@ -43,9 +50,9 @@ public class Packager {
 		return puZipFile;
 	}
 
-	private static File createZippedPu(Service service, final File puFolderToZip, final File srcFolder) throws IOException, PackagingException {
+	private static File createZippedPu(Service service, final File puFolderToZip, final File recipeFile) throws IOException, PackagingException {
 		logger.finer("trying to zip " + puFolderToZip.getAbsolutePath());
-		String serviceName = (service.getName() != null ? service.getName() : srcFolder.getName());
+		String serviceName = (service.getName() != null ? service.getName() : recipeFile.getParentFile().getName());
 		
 		// create a temp dir under the system temp dir
 		File tmpFile = File.createTempFile("ServicePackage", null);
@@ -78,11 +85,13 @@ public class Packager {
 	 * META-INF spring pu.xml
 	 * 
 	 * @param srcFolder
+	 * @param recipeDirOrFile 
 	 * @return
 	 * @throws IOException
 	 * @throws PackagingException
 	 */
-	private static File buildPuFolder(Service service, final File srcFolder) throws IOException, PackagingException {
+	private static File buildPuFolder(Service service, final File recipeFile) throws IOException, PackagingException {
+		final File srcFolder = recipeFile.getParentFile();
 		File destPuFolder = File.createTempFile("gs_usm_", "");
 		FileUtils.forceDelete(destPuFolder);
 		FileUtils.forceMkdir(destPuFolder);
@@ -137,10 +146,113 @@ public class Packager {
 		try {
 			puXmlStream.close();
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, "failed to close defaul_usm_pu.xml stream", e);
+			logger.log(Level.SEVERE, "failed to close default_usm_pu.xml stream", e);
 		}
+		
+		LinkedList<String> extendedServicesPaths = service.getExtendedServicesPaths();
+		
+		File extendingScriptFile = new File(extFolder + "/" + recipeFile.getName());
+		
+		for (String extendedServicePath : extendedServicesPaths) {
+			//Locate the extended service file in the destination path
+			File extendedServiceFile = locateServiceFile(recipeFile, extendedServicePath);
+			//Copy it to local dir with new name if needed
+			File localExtendedServiceFile = copyServiceFileAndRenameIfNeeded(extendedServiceFile, extFolder);
+			logger.finer("copying locally extended script " + extendedServiceFile + " to " + localExtendedServiceFile);
+			//Update the extending script extend property with the location of the new extended service script
+			updateExtendingScriptFileWithNewExtendedScriptLocation(extendingScriptFile, localExtendedServiceFile);
+			//Copy remote resources locally
+			final File rootScriptDir = extendedServiceFile.getParentFile();
+			FileUtils.copyDirectory(rootScriptDir, extFolder, new FileFilter() {
+				
+				@Override
+				public boolean accept(File pathname) {
+					if (pathname.isDirectory())
+						return true;
+					String relativePath = pathname.getPath().replace(rootScriptDir.getPath(), "");
+					boolean accept = !(new File(extFolder.getPath() + "/" + relativePath).exists());
+					if (accept && logger.isLoggable(Level.FINEST))
+						logger.finest("copying extended script resource [" + pathname + "] locally");
+					return accept;
+						
+				}
+			});
+			//Replace context extending script file for multiple level extension
+			extendingScriptFile = localExtendedServiceFile;
+		}
+		
 		logger.finer("created pu folder " + destPuFolder.getAbsolutePath());
 		return destPuFolder;
+	}
+
+	private static void updateExtendingScriptFileWithNewExtendedScriptLocation(
+			File extendingScriptFile, File localExtendedServiceFile) throws IOException {
+		BufferedReader bufferedReader = null;
+		BufferedWriter bufferedWriter = null;
+		File extendingScriptFileTmp = new File(extendingScriptFile.getPath().replace(".groovy", "-tmp.groovy"));
+		try{
+			bufferedReader = new BufferedReader(new FileReader(extendingScriptFile));
+			FileWriter fileWriter = new FileWriter(extendingScriptFileTmp);
+			bufferedWriter = new BufferedWriter(fileWriter);
+			String line = bufferedReader.readLine();
+			while(line != null){
+				if (line.trim().startsWith(ServiceDslScript.EXTEND_PROPERTY_NAME + " ")){
+					line = line.substring(0, line.indexOf(ServiceDslScript.EXTEND_PROPERTY_NAME) + 6);
+					line += " \"" + localExtendedServiceFile.getName() + "\"";
+				}
+				bufferedWriter.write(line + StringUtils.NEW_LINE);
+				line = bufferedReader.readLine();
+			}
+		}
+		finally{
+			if (bufferedReader != null)
+				bufferedReader.close();
+			if (bufferedWriter != null)
+				bufferedWriter.close();
+		}
+		FileUtils.forceDelete(extendingScriptFile);
+		if (!extendingScriptFileTmp.renameTo(extendingScriptFile))
+			throw new IOException("Failed renaming tmp script [" + extendingScriptFileTmp + "] to [" + extendingScriptFile +"]");
+	}
+
+	private static File copyServiceFileAndRenameIfNeeded(
+			File extendedServiceFile, File extFolder) throws IOException {
+		File existingServiceFile = new File(extFolder + "/" + extendedServiceFile.getName());
+		if (!existingServiceFile.exists())
+		{
+			FileUtils.copyFileToDirectory(extendedServiceFile, extFolder);
+			return existingServiceFile;
+		}
+		else
+		{
+			//We need to locate the next available index as it may be there was multi layer extension
+			final int index = locateNextAvailableScriptIndex(existingServiceFile);
+			//Generate a new name for the service script with the new available index
+			final String existingServiceFilePath = existingServiceFile.getPath();
+			String nestedExtendedServiceFileName = existingServiceFilePath + "-" + index;
+			File destFile = new File(nestedExtendedServiceFileName);
+			//Copy extended script
+			FileUtils.copyFile(extendedServiceFile, destFile);
+			return destFile;
+		}
+				
+	}
+
+	private static int locateNextAvailableScriptIndex(File extendedServiceFile) {
+		int index = 1;
+		while(true){
+			if (!(new File(extendedServiceFile.getPath() + "-"+ index).exists()))
+				return index;
+			index++;
+		}
+	}
+
+	private static File locateServiceFile(File recipeFile, String extendedServicePath) throws FileNotFoundException, PackagingException {
+		File extendedServiceFile = new File(recipeFile.getParent() + "/" + extendedServicePath);
+		if (extendedServiceFile.isDirectory())
+			extendedServiceFile = ServiceReader.findServiceFile(extendedServiceFile);
+		
+		return extendedServiceFile;
 	}
 
 	/**

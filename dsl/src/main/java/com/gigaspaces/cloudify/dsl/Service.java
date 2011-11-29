@@ -52,6 +52,7 @@ public class Service implements Serializable {
 
 	private ComputeDetails compute;
 	
+	private LinkedList<String> extendedServicesPaths = new LinkedList<String>();
 	
 	public String getName() {
 		return name;
@@ -59,9 +60,7 @@ public class Service implements Serializable {
 
 	public void setName(final String name) {
 		this.name = name;
-	}
-
-	
+	}	
 
 	@Override
 	public String toString() {
@@ -307,4 +306,15 @@ public class Service implements Serializable {
 	public void setCompute(ComputeDetails compute) {
 		this.compute = compute;
 	}
+	
+	public void setExtendedServicesPaths(
+			LinkedList<String> extendedServicesPaths) {
+		this.extendedServicesPaths = extendedServicesPaths;
+	}
+	
+	public LinkedList<String> getExtendedServicesPaths() {
+		return extendedServicesPaths;
+	}
+	
+	
 }
