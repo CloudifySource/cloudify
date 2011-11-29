@@ -25,7 +25,7 @@ public class UIDetails implements Details {
 			final UniversalServiceManagerConfiguration config)
 			throws DetailsException {
 		final Map<String, Object> map = new HashMap<String, Object>();
-		map.put("USM.UI", ui);
+		//map.put("USM.UI", ui);
 		return map;
 	}
 

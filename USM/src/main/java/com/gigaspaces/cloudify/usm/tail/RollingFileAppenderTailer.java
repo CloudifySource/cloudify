@@ -122,8 +122,13 @@ public class RollingFileAppenderTailer implements Runnable{
 		executor.scheduleWithFixedDelay(new RollingFileAppenderTailer(directory, regex), 0, samplingDelay, TimeUnit.MILLISECONDS);
 	}
 
+	/*****************
+	 * The synchronized statement is used to make sure that only one invocation of the tailer will execute at any one time.
+	 * Within the context of the USM, the tailer runs in an async task every 5 seconds, but may be called on a separate thread as well.
+	 * For instance, if the USM fails to start the underlying process, it needs to dump the file contents before continuing.
+	 */
 	@Override
-	public void run() {
+	public synchronized void run() {
 		
 		try{
 			getLogFilesMap(logFileMap);

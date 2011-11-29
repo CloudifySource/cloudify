@@ -26,6 +26,7 @@ public class SigarProcessStateTask implements Runnable {
 			while (true) {
 				try {
 					if (!USMUtils.isProcessAlive(pid)) {
+						logger.info("Process death detected by Sigar monitor for process: " + pid);
 						notifier.processDeathDetected();
 						return;
 					}

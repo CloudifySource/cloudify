@@ -210,9 +210,9 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 
 		// Map<String, Object> map = new HashMap<String, Object>();
 		// map.put(CloudifyConstants.INVOCATION_PARAMETER_COMMAND_NAME, "cmd1");
-		// invoke(map);
-		//getServicesDetails();
-		// getServicesMonitors();
+//		// invoke(map);
+//		getServicesDetails();
+//		getServicesMonitors();
 	}
 
 	private void initCustomProperties() {
@@ -667,6 +667,9 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 
 			// After the timeout, check if process started correctly
 			if (!isProcessAlive(this.process)) {
+				logger.severe("Attempt to launch underlying process has failed!");
+				// dump contents of output and error files
+				this.tailer.run();
 				throw new USMException(
 				"Process has shut down or failed to start. Check logs for errors");
 			}
@@ -679,6 +682,7 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 				// server
 				// ports are open
 				// or that a specific string was printed to a log file.
+				logger.info("Executing process liveness test");
 				if (!usmLifecycleBean.isProcessLivenessTestPassed()) {
 					throw new USMException(
 					"The Start Detection test failed! Shutting down this instance.");
@@ -1021,6 +1025,7 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 
 		// Launch thread that waits for foreground process to die.
 		if (this.process != null) {
+			logger.info("Starting Synchronous Process Death Detection");
 			executors.submit(createProcessWaitTask(notifier));
 		}
 
@@ -1046,8 +1051,10 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 
 			@Override
 			public void run() {
-				try {
+				try {					
+					logger.info("Synchronous death detector has started");
 					process.waitFor();
+					logger.info("Process death detected by Synchronous Death Detector");
 					notifier.processDeathDetected();
 
 				} catch (InterruptedException e) {
@@ -1229,6 +1236,7 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 
 	// crappy method name
 	public void onProcessDeath() {
+		logger.info("Detected death of underlying process");
 		// we use this to cancel start detection, if it is still running
 		usmLifecycleBean.externalProcessDied();
 		synchronized (this.stateMutex) {
@@ -1267,7 +1275,10 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 					}
 					try {
 						// TODO - if process launch failed?????????/
+
+						logger.info("Relaunching process");
 						launch();
+						logger.info("Finished Relaunching process after unexpected process death");
 					} catch (final USMException e) {
 						logger.log(Level.SEVERE,
 								"Failed to re-launch the external process after a previous failure: "
@@ -1303,7 +1314,7 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 	public ServiceDetails[] getServicesDetails() {
 		logger.info("Executing getServiceDetails()");
 		final CustomServiceDetails csd = new CustomServiceDetails(
-				CloudifyConstants.USM_DETAILS_SERVICE_ID, this.serviceType,
+				CloudifyConstants.USM_DETAILS_SERVICE_ID,
 				this.serviceSubType, this.serviceDescription,
 				this.serviceLongDescription);
 		final ServiceDetails[] res = new ServiceDetails[] { csd };
@@ -1437,7 +1448,7 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 
 	private void removeNonSerializableObjectsFromMap(Map<?, ?> map) {
 
-		if (map.keySet().isEmpty()) {
+		if (map == null || map.keySet().isEmpty()) {
 			return;
 		}
 		Iterator<?> entries = map.entrySet().iterator();

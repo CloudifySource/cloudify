@@ -479,6 +479,7 @@ public class USMLifecycleBean implements ClusterInfoAware {
 			while (System.currentTimeMillis() < endTime
 					&& currentTestIndex < this.livenessDetectors.length) {
 
+				logger.info("Executing iteration of liveness detection test");
 				if (!this.processIsRunning) {
 					logger.warning("While executing the Process Start Detection, process failure was detected. Aborting start detection test.");
 					return false;
