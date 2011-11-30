@@ -2,7 +2,7 @@ service {
 	name "tomcat"
 	icon "http://tomcat.apache.org/images/tomcat.gif"
 	type "WEB_SERVER"
-	numInstances 1
+	numInstances 2
 	lifecycle {
 		init "tomcat_install.groovy"
 		start "tomcat_start.groovy" 	
