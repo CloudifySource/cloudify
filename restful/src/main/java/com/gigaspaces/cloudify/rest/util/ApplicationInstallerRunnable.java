@@ -2,6 +2,8 @@ package com.gigaspaces.cloudify.rest.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -155,9 +157,17 @@ public class ApplicationInstallerRunnable implements Runnable {
 				contextProperties.setProperty(
 						CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON, "[]");
 			}else{
+				String[] splitServiceNames = serviceName.split(",");
+				List<String> absoluteServiceNames = new ArrayList<String>();
+				for (String name : splitServiceNames) {
+					absoluteServiceNames.add(ServiceUtils.getAbsolutePUName(applicationName, name.trim()));
+				}
 				contextProperties.setProperty(
 						CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON, 
-						"[" +ServiceUtils.getAbsolutePUName(applicationName, serviceName) + "]");
+						absoluteServiceNames.toArray().toString());
+				System.out.println(Arrays.toString(absoluteServiceNames.toArray()));
+				
+				
 			}
 		}
 		if (service.getType() != null) {
