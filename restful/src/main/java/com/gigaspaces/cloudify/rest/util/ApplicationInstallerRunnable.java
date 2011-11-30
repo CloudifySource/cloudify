@@ -151,13 +151,13 @@ public class ApplicationInstallerRunnable implements Runnable {
 		final Properties contextProperties = new Properties();
 
 		if (service.getDependsOn() != null) {
-			String serviceName = service.getDependsOn().toString();
-			serviceName = serviceName.substring(1, serviceName.length() - 1);
-			if (serviceName.equals("")){
+			String serviceNames = service.getDependsOn().toString();
+			serviceNames = serviceNames.substring(1, serviceNames.length() - 1);
+			if (serviceNames.equals("")){
 				contextProperties.setProperty(
 						CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON, "[]");
 			}else{
-				String[] splitServiceNames = serviceName.split(",");
+				String[] splitServiceNames = serviceNames.split(",");
 				List<String> absoluteServiceNames = new ArrayList<String>();
 				for (String name : splitServiceNames) {
 					absoluteServiceNames.add(ServiceUtils.getAbsolutePUName(applicationName, name.trim()));
