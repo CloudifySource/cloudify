@@ -36,7 +36,8 @@ public class Packager {
 		return Packager.pack(recipeFile, service);
 	}
 	
-	private static File pack(final File recipeFile, final Service service) throws IOException, PackagingException {
+	//This method is being used by SGTest. Do not change viability.
+	public static File pack(final File recipeFile, final Service service) throws IOException, PackagingException {
 		if (!recipeFile.isFile())
 			throw new IllegalArgumentException (recipeFile + " is not a file");
 		
