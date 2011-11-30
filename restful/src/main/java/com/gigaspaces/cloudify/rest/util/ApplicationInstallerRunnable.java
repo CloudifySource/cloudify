@@ -164,10 +164,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 				}
 				contextProperties.setProperty(
 						CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON, 
-						absoluteServiceNames.toArray().toString());
-				System.out.println(Arrays.toString(absoluteServiceNames.toArray()));
-				
-				
+						Arrays.toString(absoluteServiceNames.toArray()));
 			}
 		}
 		if (service.getType() != null) {
