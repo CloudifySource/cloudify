@@ -16,6 +16,48 @@ service {
     }
 	
 	customCommands ([
+		"rewrite_add_external_lb" : { // expected arguments: name, port (expects a service property: loadBalancerUrl, injected from the worker role
+		
+			pattern = "^${name}/(.*)"
+			rewriteUrl = "${loadBalancerUrl}:${port}/${name}/{R:1}" 
+	
+			commands = [
+			
+				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /+\"[name='${name}',patternSyntax='ECMAScript',stopProcessing='true']\" /commit:apphost",
+				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}',patternSyntax='ECMAScript',stopProcessing='true'].match.url:\"${pattern}\" /commit:apphost",
+				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}',patternSyntax='ECMAScript',stopProcessing='true'].action.type:\"Rewrite\" /commit:apphost",
+				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}',patternSyntax='ECMAScript',stopProcessing='true'].action.url:\"${rewriteUrl}\" /commit:apphost",
+				
+				"${appCmdPath} list config -section:system.webServer/rewrite/globalRules",
+				"${appCmdPath} list config -section:system.webServer/rewrite/outboundRules"
+				
+			]			
+		
+			commands.each { command ->
+				println("executing: ${command}")
+				println(command.execute().text)
+			}
+		
+		},
+
+		"rewrite_remove_external_lb" : { // expected arguments: expected arguments: name
+		
+			commands = [
+			
+				"${appCmdPath} clear config -section:system.webServer/rewrite/globalRules /[name='${name}',patternSyntax='ECMAScript',stopProcessing='true'] /commit:apphost",
+				
+				"${appCmdPath} list config -section:system.webServer/rewrite/globalRules",
+				"${appCmdPath} list config -section:system.webServer/rewrite/outboundRules"
+				
+			]
+			
+			commands.each { command ->
+				println("executing: ${command}")
+				println(command.execute().text)
+			}
+			
+		},
+	
 		"rewrite_add" : { // expected arguments: name, patternSyntax, pattern, rewriteUrl, stopProcessing
 			
 			commands = [

@@ -500,6 +500,7 @@ namespace GigaSpaces
         private void InstallProxyService()
         {
          
+
             String serviceName = "iisproxy";
             String zone = "ui";
 
@@ -508,6 +509,14 @@ namespace GigaSpaces
             appRoot = Path.Combine(appRoot + @"\", @"approot\");
 
             String pathToProxyServiceDirectory = Path.Combine(appRoot, @"iisproxy\").Replace('\\', '/');
+
+            String pathToProxyServiceProperties = Path.Combine(pathToProxyServiceDirectory, "iisproxy-service.properties");
+            using (System.IO.StreamWriter sw = System.IO.File.AppendText(pathToProxyServiceProperties))
+            {
+                sw.WriteLine();
+                String loadBalancerUrl = "http://" + RoleEnvironment.DeploymentId + ".cloudapp.net";
+                sw.WriteLine("loadBalancerUrl = \"" + loadBalancerUrl + "\"");
+            }
 
             String installServiceCommand = new StringBuilder()
                 .Append("use-application --verbose Management;")
