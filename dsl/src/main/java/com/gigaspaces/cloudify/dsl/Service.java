@@ -46,7 +46,15 @@ public class Service implements Serializable {
 
 	private String type;
 
-	private ServiceProcessingUnit serviceProcessingUnit;
+	private StatelessProcessingUnit statelessProcessingUnit;
+	
+	private StatefulProcessingUnit statefulProcessingUnit;
+	
+	private DataGrid datagrid;
+	
+	private Memcached memcachedProcessingUnit;
+	
+	private MirrorProcessingUnit mirrorProcessingUnit;
 	
 	private Map<String, String> customProperties = new HashMap<String, String>();
 
@@ -197,9 +205,9 @@ public class Service implements Serializable {
 
 	public void setStatelessProcessingUnit(
 			StatelessProcessingUnit statelessProcessingUnit) {
-		if (this.serviceProcessingUnit == null) {
-			this.serviceProcessingUnit = statelessProcessingUnit;
-		} else if (statelessProcessingUnit != null) {
+		if (this.statelessProcessingUnit == null) {
+			this.statelessProcessingUnit = statelessProcessingUnit;
+		} else if (this.statelessProcessingUnit != null) {
 			throw new IllegalStateException(
 					"DSL File contains more then 1 ProcessingUnit type");
 		}
@@ -207,9 +215,9 @@ public class Service implements Serializable {
 
 	public void setMirrorProcessingUnit(
 			MirrorProcessingUnit mirrorProcessingUnit) {
-		if (this.serviceProcessingUnit == null) {
-			this.serviceProcessingUnit = mirrorProcessingUnit;
-		} else if (mirrorProcessingUnit != null) {
+		if (this.mirrorProcessingUnit == null) {
+			this.mirrorProcessingUnit = mirrorProcessingUnit;
+		} else if (this.mirrorProcessingUnit != null) {
 			throw new IllegalStateException(
 					"DSL File contains more then 1 ProcessingUnit type");
 		}
@@ -217,70 +225,50 @@ public class Service implements Serializable {
 
 	public void setStatefulProcessingUnit(
 			StatefulProcessingUnit statefulProcessingUnit) {
-		if (this.serviceProcessingUnit == null) {
-			this.serviceProcessingUnit = statefulProcessingUnit;
-		} else if (statefulProcessingUnit != null){
+		if (this.statefulProcessingUnit == null) {
+			this.statefulProcessingUnit = statefulProcessingUnit;
+		} else if (this.statefulProcessingUnit != null){
 			throw new IllegalStateException(
 					"DSL File contains more then 1 ProcessingUnit type");
 		}
 	}
 
 	public void setDataGrid(DataGrid dataGrid) {
-		if (this.serviceProcessingUnit == null) {
-			this.serviceProcessingUnit = dataGrid;
-		} else if (dataGrid != null){
+		if (this.datagrid == null) {
+			this.datagrid = dataGrid;
+		} else if (this.datagrid != null){
 			throw new IllegalStateException(
 					"DSL File contains more then 1 ProcessingUnit type");
 		}
 	}
 
-	public void setMemcached(ServiceProcessingUnit memcached) {
-		if (this.serviceProcessingUnit == null) {
-			this.serviceProcessingUnit = memcached;
-		} else if (memcached != null){
+	public void setMemcached(Memcached memcached) {
+		if (this.memcachedProcessingUnit == null) {
+			this.memcachedProcessingUnit = memcached;
+		} else if (this.memcachedProcessingUnit != null){
 			throw new IllegalStateException(
 					"DSL File contains more then one ProcessingUnit type");
 		}
 	}
 
 	public Memcached getMemcached() {
-		Memcached service = null;
-		if (this.serviceProcessingUnit instanceof Memcached) {
-			service = (Memcached) serviceProcessingUnit;
-		}
-		return service;
+		return this.memcachedProcessingUnit;
 	}
 
 	public StatelessProcessingUnit getStatelessProcessingUnit() {
-		StatelessProcessingUnit service = null;
-		if (this.serviceProcessingUnit instanceof StatelessProcessingUnit) {
-			service = (StatelessProcessingUnit) serviceProcessingUnit;
-		}
-		return service;
+		return this.statelessProcessingUnit;
 	}
 
 	public MirrorProcessingUnit getMirrorProcessingUnit() {
-		MirrorProcessingUnit service = null;
-		if (this.serviceProcessingUnit instanceof MirrorProcessingUnit) {
-			service = (MirrorProcessingUnit) serviceProcessingUnit;
-		}
-		return service;
+		return this.mirrorProcessingUnit;
 	}
 
 	public StatefulProcessingUnit getStatefulProcessingUnit() {
-		StatefulProcessingUnit service = null;
-		if (this.serviceProcessingUnit instanceof StatefulProcessingUnit) {
-			service = (StatefulProcessingUnit) serviceProcessingUnit;
-		}
-		return service;
+		return this.statefulProcessingUnit;
 	}
 
 	public DataGrid getDataGrid() {
-		DataGrid service = null;
-		if (this.serviceProcessingUnit instanceof DataGrid) {
-			service = (DataGrid) serviceProcessingUnit;
-		}
-		return service;
+		return this.datagrid;
 	}
 
 	public Map<String, Object> getCustomCommands() {
