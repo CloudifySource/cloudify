@@ -26,6 +26,7 @@ import com.gigaspaces.cloudify.dsl.CloudUser;
 import com.gigaspaces.cloudify.dsl.ComputeDetails;
 import com.gigaspaces.cloudify.dsl.DataGrid;
 import com.gigaspaces.cloudify.dsl.Memcached;
+import com.gigaspaces.cloudify.dsl.MirrorProcessingUnit;
 import com.gigaspaces.cloudify.dsl.PluginDescriptor;
 import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.ServiceLifecycle;
@@ -248,6 +249,8 @@ public abstract class BaseDslScript extends Script {
 					StatefulProcessingUnit.class);
 			addObjectInitializerForClass(dslObjectInitializersByName,
 					StatelessProcessingUnit.class);
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					MirrorProcessingUnit.class);
 			addObjectInitializerForClass(dslObjectInitializersByName,
 					Cloud.class);
 
