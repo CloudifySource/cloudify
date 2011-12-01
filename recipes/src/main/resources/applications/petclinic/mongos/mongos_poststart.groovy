@@ -12,7 +12,7 @@ serviceContext = ServiceContextFactory.getServiceContext()
 
 //waiting for mongod service to become available, will not be needed in one of the upcoming builds 
 println "waiting for mongod"
-mongodService = serviceContext.waitForService("petclinic-mongo.mongod", 20, TimeUnit.SECONDS) 
+mongodService = serviceContext.waitForService("mongod", 20, TimeUnit.SECONDS) 
 mongodHostInstances = mongodService.waitForInstances(mongodService.numberOfPlannedInstances, 60, TimeUnit.SECONDS) 
 
 println "Connecting to mongos on port ${config.port}"
