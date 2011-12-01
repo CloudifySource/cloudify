@@ -588,6 +588,11 @@ public class ServiceController {
 					applicationName);
 			for (ProcessingUnit processingUnit : uninstallOrder) {
 				try {
+					if (processingUnit.waitForManaged(10, TimeUnit.SECONDS) == null) {
+						logger.log(Level.WARNING, "Failed to locate GSM that is managing Processing Unit " + processingUnit.getName());
+						return RestUtils.errorStatus(
+								ResponseConstants.FAILED_TO_LOCATE_GSM);
+					}
 					processingUnit.undeploy();
 				} catch (Exception e) {
 					final String msg = "Failed to undeploy processing unit: "
