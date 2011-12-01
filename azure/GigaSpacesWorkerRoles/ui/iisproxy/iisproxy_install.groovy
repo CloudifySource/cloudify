@@ -84,7 +84,18 @@ new AntBuilder().sequential {
         arg(value:"-section:system.webServer/proxy")
         arg(value:"/enabled:\"True\"")
         arg(value:"/commit:apphost")
-    }  
+    }
+
+    //preserve original host header
+    //see: http://stackoverflow.com/questions/1842885/modifying-headers-with-iis7-application-request-routing
+    exec(executable:"${config.appCmdPath}") {
+        arg(value:"set")
+        arg(value:"config")
+        arg(value:"-section:system.webServer/proxy")
+        arg(value:"/preserveHostHeader:\"True\"")
+        arg(value:"/commit:apphost")
+    }
+ 
 }
 
 println("install completed!")
