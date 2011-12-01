@@ -197,11 +197,8 @@ namespace GigaSpaces
 
                 InstallProxyService();
 
-                AddInboudRewrite("rest", "^rest/(.*)", "http://" + IpAddress + ":" + PortUtils.XAP_RESTADMIN_PORT + "/rest/{R:1}");
-                //AddOutboundRewrite("rest_outbound", "^/rest/.*", "/rest/{R:1}");
-
-                AddInboudRewrite("webui", "^webui/(.*)", "http://" + IpAddress + ":" + PortUtils.XAP_WEBUI_PORT + "/webui/{R:1}");
-                //AddOutboundRewrite("webui_outbound", "^/webui/.*", "/webui/{R:1}"); 
+                AddInboudRewrite("rest", PortUtils.XAP_RESTADMIN_PORT);
+                AddInboudRewrite("webui", PortUtils.XAP_WEBUI_PORT);
 
             }
             
@@ -231,14 +228,8 @@ namespace GigaSpaces
                 if (StartProxy)
                 {
 
-                    //String localComputerName = Dns.GetHostName();
-                    String localComputerName = "127.0.0.1";
-
-                    RemoveInboundRewrite("rest", "^rest/(.*)", "http://" + localComputerName + ":" + PortUtils.XAP_RESTADMIN_PORT + "/rest/{R:1}");
-                    //RemoveOutboundRewrite("rest_outbound");                   
-
-                    RemoveInboundRewrite("webui", "^webui/(.*)", "http://" + localComputerName + ":" + PortUtils.XAP_WEBUI_PORT + "/webui/{R:1}");
-                    //RemoveOutboundRewrite("webui_outbound");                   
+                    RemoveInboundRewrite("rest");
+                    RemoveInboundRewrite("webui");
 
                     UninstallProxyService();
                 }
@@ -562,51 +553,19 @@ namespace GigaSpaces
          * Add an inbound rule to ARR - e.g: route domain.com/applicationName -> some-internal-address/applicationName
          * see iisproxy/issproxy-service.groovy
          */
-        private void AddInboudRewrite(String name, String pattern, String rewriteUrl)
+        private void AddInboudRewrite(String name, long port)
         {
             IDictionary<String, String> parameters = new Dictionary<String, String>();
             parameters.Add(new KeyValuePair<String, String>("name", name));
-            parameters.Add(new KeyValuePair<String, String>("pattern", pattern));
-            parameters.Add(new KeyValuePair<String, String>("rewriteUrl", rewriteUrl));
-            parameters.Add(new KeyValuePair<String, String>("patternSyntax", "ECMAScript"));
-            parameters.Add(new KeyValuePair<String, String>("stopProcessing", "true"));
-
-            InvokeProxyServiceCommand("rewrite_add", parameters);
+            parameters.Add(new KeyValuePair<String, String>("port", Convert.ToString(port)));
+            InvokeProxyServiceCommand("rewrite_add_external_lb", parameters);
         }
 
-        /*
-         * Add an outbound rule to ARR - i.e: rewrite urls in responses of type text/html to point to the proxy address
-         * instead of the internal address. currently doesn't work properly in azure
-         * see iisproxy/issproxy-service.groovy
-         */
-        private void AddOutboundRewrite(String name, String conditionPattern, String rewriteUrl)
+        private void RemoveInboundRewrite(String name)
         {
             IDictionary<String, String> parameters = new Dictionary<String, String>();
             parameters.Add(new KeyValuePair<String, String>("name", name));
-            parameters.Add(new KeyValuePair<String, String>("conditionPattern", conditionPattern));
-            parameters.Add(new KeyValuePair<String, String>("rewriteUrl", rewriteUrl));
-
-            InvokeProxyServiceCommand("rewrite_outbound_add", parameters);
-        }
-
-        private void RemoveInboundRewrite(String name, String pattern, String rewriteUrl)
-        {
-            IDictionary<String, String> parameters = new Dictionary<String, String>();
-            parameters.Add(new KeyValuePair<String, String>("name", name));
-            parameters.Add(new KeyValuePair<String, String>("pattern", pattern));
-            parameters.Add(new KeyValuePair<String, String>("rewriteUrl", rewriteUrl));
-            parameters.Add(new KeyValuePair<String, String>("patternSyntax", "ECMAScript"));
-            parameters.Add(new KeyValuePair<String, String>("stopProcessing", "true"));
-
-            InvokeProxyServiceCommand("rewrite_remove", parameters);
-        }
-
-        private void RemoveOutboundRewrite(String name)
-        {
-            IDictionary<String, String> parameters = new Dictionary<String, String>();
-            parameters.Add(new KeyValuePair<String, String>("name", name));
-
-            InvokeProxyServiceCommand("rewrite_outbound_remove", parameters);
+            InvokeProxyServiceCommand("rewrite_remove_external_lb", parameters);
         }
 
         /* Invoke the 'commandName' custom command of the issproxy service */

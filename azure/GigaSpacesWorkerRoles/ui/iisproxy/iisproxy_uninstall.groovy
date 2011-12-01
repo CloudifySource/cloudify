@@ -68,16 +68,7 @@ new AntBuilder().sequential {
         arg(value:"start")
         arg(value:"${config.wwwPublicService}")
     }
-	
-	// Define outbound rules precondition
-	exec(executable:"${config.appCmdPath}") {
-        arg(value:"set")
-        arg(value:"config")
-        arg(value:"-section:system.webServer/rewrite/outboundRules")
-        arg(value:"--preConditions.[name='IsHTML']")
-        arg(value:"/commit:apphost")
-    }
-    
+   
 }
 
 println("uninstall completed!")

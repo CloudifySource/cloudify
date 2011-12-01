@@ -84,32 +84,7 @@ new AntBuilder().sequential {
         arg(value:"-section:system.webServer/proxy")
         arg(value:"/enabled:\"True\"")
         arg(value:"/commit:apphost")
-    }
-    
-	// Define outbound rules precondition
-	exec(executable:"${config.appCmdPath}") {
-        arg(value:"set")
-        arg(value:"config")
-        arg(value:"-section:system.webServer/rewrite/outboundRules")
-        arg(value:"-+preConditions.[name='IsHTML']")
-        arg(value:"/commit:apphost")
-    }
-	
-	exec(executable:"${config.appCmdPath}") {
-        arg(value:"set")
-        arg(value:"config")
-        arg(value:"-section:system.webServer/rewrite/outboundRules")
-        arg(value:"-+preConditions.[name='IsHTML'].[input='{RESPONSE_CONTENT_TYPE}']")
-        arg(value:"/commit:apphost")
-    }	
-	
-	exec(executable:"${config.appCmdPath}") {
-        arg(value:"set")
-        arg(value:"config")
-        arg(value:"-section:system.webServer/rewrite/outboundRules")
-        arg(value:"-preConditions.[name='IsHTML'].[input='{RESPONSE_CONTENT_TYPE}'].pattern:\"^text/html\"")
-        arg(value:"/commit:apphost")
-    }
+    }  
 }
 
 println("install completed!")

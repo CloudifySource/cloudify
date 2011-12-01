@@ -20,19 +20,27 @@ service {
 		
 			pattern = "^${name}/(.*)"
 			rewriteUrl = "${loadBalancerUrl}:${port}/${name}/{R:1}" 
+
+			pattern2 = "^${name}\$"
+			rewriteUrl2 = "${loadBalancerUrl}:${port}/${name}" 
 	
 			commands = [
-			
+				
+				//rewrite rule for urls with slash after the name such as http://dns.com/travel/something
 				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /+\"[name='${name}',patternSyntax='ECMAScript',stopProcessing='true']\" /commit:apphost",
-				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}',patternSyntax='ECMAScript',stopProcessing='true'].match.url:\"${pattern}\" /commit:apphost",
-				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}',patternSyntax='ECMAScript',stopProcessing='true'].action.type:\"Rewrite\" /commit:apphost",
-				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}',patternSyntax='ECMAScript',stopProcessing='true'].action.url:\"${rewriteUrl}\" /commit:apphost",
+				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}'].match.url:\"${pattern}\" /commit:apphost",
+				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}'].action.type:\"Rewrite\" /commit:apphost",
+				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}'].action.url:\"${rewriteUrl}\" /commit:apphost",
+
+				//rewrite rule for root url without trailing slash after the name such as http://dns.com/travel
+				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /+\"[name='${name}_rooturl',patternSyntax='ECMAScript',stopProcessing='true']\" /commit:apphost",
+				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}_rooturl'].match.url:\"${pattern2}\" /commit:apphost",
+				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}_rooturl'].action.type:\"Rewrite\" /commit:apphost",
+				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}_rooturl'].action.url:\"${rewriteUrl2}\" /commit:apphost",
 				
 				"${appCmdPath} list config -section:system.webServer/rewrite/globalRules",
-				"${appCmdPath} list config -section:system.webServer/rewrite/outboundRules"
-				
-			]			
-		
+			]
+
 			commands.each { command ->
 				println("executing: ${command}")
 				println(command.execute().text)
@@ -44,10 +52,10 @@ service {
 		
 			commands = [
 			
-				"${appCmdPath} clear config -section:system.webServer/rewrite/globalRules /[name='${name}',patternSyntax='ECMAScript',stopProcessing='true'] /commit:apphost",
+				"${appCmdPath} clear config -section:system.webServer/rewrite/globalRules /[name='${name}'] /commit:apphost",
+				"${appCmdPath} clear config -section:system.webServer/rewrite/globalRules /[name='${name}_rooturl'] /commit:apphost",
 				
 				"${appCmdPath} list config -section:system.webServer/rewrite/globalRules",
-				"${appCmdPath} list config -section:system.webServer/rewrite/outboundRules"
 				
 			]
 			
@@ -56,91 +64,8 @@ service {
 				println(command.execute().text)
 			}
 			
-		},
-	
-		"rewrite_add" : { // expected arguments: name, patternSyntax, pattern, rewriteUrl, stopProcessing
-			
-			commands = [
-			
-				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /+\"[name='${name}',patternSyntax='${patternSyntax}',stopProcessing='${stopProcessing}']\" /commit:apphost",
-				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}',patternSyntax='${patternSyntax}',stopProcessing='${stopProcessing}'].match.url:\"${pattern}\" /commit:apphost",
-				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}',patternSyntax='${patternSyntax}',stopProcessing='${stopProcessing}'].action.type:\"Rewrite\" /commit:apphost",
-				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}',patternSyntax='${patternSyntax}',stopProcessing='${stopProcessing}'].action.url:\"${rewriteUrl}\" /commit:apphost",
-				
-				"${appCmdPath} list config -section:system.webServer/rewrite/globalRules",
-				"${appCmdPath} list config -section:system.webServer/rewrite/outboundRules"
-				
-			]
-			
-			commands.each { command ->
-				println("executing: ${command}")
-				println(command.execute().text)
-			}
-			
-		},
-	
-		"rewrite_remove" : { // expected arguments: name, patternSyntax, pattern, rewriteUrl, stopProcessing
-		
-			commands = [
-			
-				"${appCmdPath} clear config -section:system.webServer/rewrite/globalRules /[name='${name}',patternSyntax='${patternSyntax}',stopProcessing='${stopProcessing}'] /commit:apphost",
-				
-				"${appCmdPath} list config -section:system.webServer/rewrite/globalRules",
-				"${appCmdPath} list config -section:system.webServer/rewrite/outboundRules"
-				
-			]
-			
-			commands.each { command ->
-				println("executing: ${command}")
-				println(command.execute().text)
-			}
-			
-		},
-		
-		
-		"rewrite_outbound_add" : { // expected arguments: name, conditionPattern, rewriteUrl
-		
-			commands = [
-			
-				"${appCmdPath} set config -section:system.webServer/rewrite/outboundRules -+[name='${name}'] /commit:apphost",
-				"${appCmdPath} set config -section:system.webServer/rewrite/outboundRules -[name='${name}'].preCondition:\"IsHTML\" /commit:apphost",
-				"${appCmdPath} set config -section:system.webServer/rewrite/outboundRules -[name='${name}'].stopProcessing:\"false\" /commit:apphost",
-				"${appCmdPath} set config -section:system.webServer/rewrite/outboundRules -[name='${name}'].match.filterByTags:\"A,Area,Base,Form,Frame,Head,IFrame,Img,Input,Link,Script\" /commit:apphost",
-				"${appCmdPath} set config -section:system.webServer/rewrite/outboundRules -[name='${name}'].match.pattern:\"^/(.*)\" /commit:apphost",
-				"${appCmdPath} set config -section:system.webServer/rewrite/outboundRules -+[name='${name}'].conditions.[input='{URL}'] /commit:apphost",
-				"${appCmdPath} set config -section:system.webServer/rewrite/outboundRules -[name='${name}'].conditions.[input='{URL}'].pattern:\"${conditionPattern}\" /commit:apphost",
-				"${appCmdPath} set config -section:system.webServer/rewrite/outboundRules -[name='${name}'].action.type:\"Rewrite\" /commit:apphost",
-				"${appCmdPath} set config -section:system.webServer/rewrite/outboundRules -[name='${name}'].action.value:\"${rewriteUrl}\" /commit:apphost",
-				
-				"${appCmdPath} list config -section:system.webServer/rewrite/globalRules",
-				"${appCmdPath} list config -section:system.webServer/rewrite/outboundRules"
-				
-			]
-			
-			commands.each { command ->
-				println("executing: ${command}")
-				println(command.execute().text)
-			}
-			
-		},
-		
-		"rewrite_outbound_remove" : { // expected arguments: name
-		
-			commands = [
-			
-				"${appCmdPath} set config -section:system.webServer/rewrite/outboundRules --[name='${name}'] /commit:apphost",
-				
-				"${appCmdPath} list config -section:system.webServer/rewrite/globalRules",
-				"${appCmdPath} list config -section:system.webServer/rewrite/outboundRules"
-				
-			]
-		
-			commands.each { command ->
-				println("executing: ${command}")
-				println(command.execute().text)
-			}
-		
 		}
+	
 	])
        
 }
