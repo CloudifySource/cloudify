@@ -32,22 +32,7 @@ service {
 					"Current Active Connections":"connections.current"					
 				])
 			])
-		}, 
-		plugin {
-			name "MongoDBDetailsPlugin"
-			className "com.gigaspaces.cloudify.mongodb.MongoDBDetailsPlugin"
-			config([
-				"host":"127.0.0.1",				
-				"port" : 30000,
-				"dbName":"admin",
-				"dataSpec":([
-				    "Host and Port":"host",      
-					"Mongo DB Version":"version", 
-					"Process Name":"process", 
-					"Memory Bits":"mem.bits"
-				])
-			])
-		}
+		}		
 		
 	])
 
