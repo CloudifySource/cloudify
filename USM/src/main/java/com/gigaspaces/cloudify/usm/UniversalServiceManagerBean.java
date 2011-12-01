@@ -666,7 +666,9 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 			if (!isProcessAlive(this.process)) {
 				logger.severe("Attempt to launch underlying process has failed!");
 				// dump contents of output and error files
-				this.tailer.run();
+				if (tailer != null){
+					this.tailer.run();
+				}
 				throw new USMException(
 				"Process has shut down or failed to start. Check logs for errors");
 			}
