@@ -427,8 +427,8 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 
 	private void registerPostPUILifecycleTask() {
 		final Admin admin = USMUtils.getAdmin();
-		ProcessingUnit pu = admin.getProcessingUnits().getProcessingUnit(
-				this.clusterName);
+		ProcessingUnit pu = admin.getProcessingUnits().waitFor(
+				this.clusterName, 10, TimeUnit.SECONDS);
 		final int instanceIdToMatch = this.instanceId;
 		pu.getProcessingUnitInstanceAdded().add(
 				new ProcessingUnitInstanceAddedEventListener() {
