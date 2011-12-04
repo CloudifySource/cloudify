@@ -838,15 +838,13 @@ public class ServiceController {
 
 	private File copyMultipartFileToLocalFile(final MultipartFile srcFile)
 	throws IOException {
-		// TODO - move this file to its own directory
-		
-		final File tmpfile = File.createTempFile("gs___", srcFile.getOriginalFilename());
-		
-//		final File dest = new File(tmpfile.getParent(),
-//				srcFile.getOriginalFilename());
-		srcFile.transferTo(tmpfile);
-		tmpfile.deleteOnExit();
-		return tmpfile;
+		File tempFolder = File.createTempFile("GS__", srcFile.getOriginalFilename());
+		tempFolder.delete();
+		tempFolder.mkdirs();
+		File tempFile = new File(tempFolder.getAbsolutePath(), srcFile.getOriginalFilename());
+		srcFile.transferTo(tempFile);
+		tempFile.deleteOnExit();
+		return tempFile;
 	}
 	
 	private void doDeploy(final String applicationName,
