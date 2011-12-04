@@ -129,10 +129,10 @@ public class AzureSetNumberOfInstances extends AdminAwareCommand {
 		
 		String applicationName = null;
 		if (applications.size() == 2) {
-			if (applications.get(0).equals(MANAGEMENT_APPLICATION_NAME)) {
+			if (applications.get(0).equalsIgnoreCase(MANAGEMENT_APPLICATION_NAME)) {
 				applicationName = applications.get(1);
 			}
-			else if (applications.get(1).equals(MANAGEMENT_APPLICATION_NAME)) {
+			else if (applications.get(1).equalsIgnoreCase(MANAGEMENT_APPLICATION_NAME)) {
 				applicationName = applications.get(0);
 			}
 		}
