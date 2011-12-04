@@ -22,7 +22,7 @@ import com.j_spaces.kernel.Environment;
 
 public class ApplicationInstallerRunnable implements Runnable {
 
-	private static final int SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES = 10;
+	private static final int SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES = 30;
 
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
 	.getLogger(ApplicationInstallerRunnable.class.getName());
@@ -65,7 +65,9 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 	private void installServices(File appDir, String applicationName, final boolean async) {
 		// TODO: refactor the last part of this method
+		logger.info("Installing service for application: " + applicationName + ". Async install: " + async +". Number of services: " + this.services.size());
 		for (final Service service : services) {
+			logger.info("Installing service: " + service.getName() + " for application: " + applicationName);
 			service.getCustomProperties().put("usmJarPath",
 					Environment.getHomeDirectory() + "/lib/platform/usm");
 
@@ -81,6 +83,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 				packedFile.deleteOnExit();
 				//Deployment will be done using the service's absolute PU name.
 				String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+				logger.info("Deploying PU: " + absolutePUName + ". File: " + packedFile + ". Properties: " + contextProperties);
 				controller.deployElasticProcessingUnit(absolutePUName,
 						applicationName, serviceName, packedFile,
 						contextProperties);
@@ -90,7 +93,9 @@ public class ApplicationInstallerRunnable implements Runnable {
 					// sometimes this delete fails. Not sure why. Maybe deploy is async?
 					logger.warning("Failed to delete temporary directory: " + packedFile.getParentFile());
 				}
+				
 				if (!async) {
+					logger.info("Waiting for instance of service: " +serviceName + " of application: " + applicationName);
 					boolean instanceFound = controller.waitForServiceInstance(
 							applicationName, serviceName,
 							SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES,
@@ -105,6 +110,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 								+ SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES
 								+ " minutes.");
 					}
+					logger.info("Found instance of: " + serviceName);
 				}
 
 				found = true;
