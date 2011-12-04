@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import org.openspaces.admin.Admin;
+import org.openspaces.admin.AdminException;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.core.cluster.ClusterInfo;
 
@@ -55,10 +56,10 @@ public class ServiceContext {
 
 		}
 		if (admin != null) {
-			boolean found = this.admin.getLookupServices().waitFor(1, 5,
+			boolean found = this.admin.getLookupServices().waitFor(1, 30,
 					TimeUnit.SECONDS);
 			if (!found) {
-				throw new IllegalStateException(
+				throw new AdminException(
 						"A service context could not be created as the Admin API could not find a lookup service in the network, using groups: "
 								+ Arrays.toString(admin.getGroups())
 								+ " and locators: "
