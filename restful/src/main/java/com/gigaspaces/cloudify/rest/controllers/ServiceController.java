@@ -37,6 +37,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.servlet.http.HttpServletResponse;
+
 import net.jini.core.discovery.LookupLocator;
 
 import org.apache.commons.io.FileUtils;
@@ -550,11 +552,18 @@ public class ServiceController {
 
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
-	public void resolveDocumentNotFoundException(Writer writer, Exception e)
+	public void resolveDocumentNotFoundException(HttpServletResponse response, Exception e)
 	throws IOException {
-		logger.log(Level.SEVERE, "caught exception", e);
-		writer.write("{\"status\":\"error\", \"error\":\"" + e.getMessage()
-				+ "\"}");
+		
+		if (response.isCommitted()) {
+			logger.log(Level.WARNING,"Caught exception, but response already commited. Not sending error message based on exception",e);
+		}
+		else {
+			Writer writer = response.getWriter();
+			String message = "{\"status\":\"error\", \"error\":\"" + e.getMessage()+ "\"}";
+			logger.log(Level.SEVERE, "caught exception. Sending response message " + message, e);
+			writer.write(message);
+		}
 	}
 
 	/******************
