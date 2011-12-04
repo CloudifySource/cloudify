@@ -1008,8 +1008,9 @@ public class ServiceController {
 	 */
 	public boolean waitForServiceInstance(final String applicationName, final String serviceName, final long timeout, final TimeUnit timeUnit) {
 		 
-		// this should be a very fast lookup, since the service was already successfully deployed		
-		ProcessingUnit pu = this.admin.getProcessingUnits().waitFor(serviceName, timeout, timeUnit);
+		// this should be a very fast lookup, since the service was already successfully deployed	
+		String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+		ProcessingUnit pu = this.admin.getProcessingUnits().waitFor(absolutePUName, timeout, timeUnit);
 		if(pu == null) { 
 			return false;
 		}
