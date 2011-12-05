@@ -42,7 +42,7 @@ import com.gigaspaces.cloudify.shell.commands.CLIException;
  */
 public class RestAdminFacade extends AbstractAdminFacade {
 
-	private static final int PROCESSINGUNIT_LOOKUP_TIMEOUT = 15;
+	private static final int PROCESSINGUNIT_LOOKUP_TIMEOUT = 30;
 	private static final int POLLING_INTERVAL = 2000;
 	private static final String GS_USM_COMMAND_NAME = "GS_USM_CommandName";
 	private static final String SERVICE_CONTROLLER_URL = "/service/";
