@@ -344,17 +344,15 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 		} else {
 			markLinuxTargetAsExecutable(runParam, puWorkDir);
 			modifyLinuxCommandLine(commandLineParams, puWorkDir);
+			
 		}
 
-		/*
-		 * else { throw new
-		 * IllegalArgumentException("Unsupported Operating system: " +
-		 * System.getProperty("os.name")); }
-		 */
+		
 
 	}
 
 	// Add "./" to command line, if not present and file is in ext dir
+	// Also, add sh -c prefix.
 	private void modifyLinuxCommandLine(final List<String> commandLineParams,
 			final File puWorkDir) {
 		String executeScriptName = commandLineParams.get(0);
@@ -371,6 +369,13 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 				}
 			}
 		}
+		
+		
+//		LinkedList<String> linkedList = (LinkedList<String>)commandLineParams;
+//		linkedList.addAll(0, Arrays.asList("sh", "-c", "\""));
+		
+		
+		
 	}
 
 	private void modifyWindowsCommandLine(final List<String> commandLineParams,
@@ -727,6 +732,19 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 		}
 
 		modifyRedirectionCommandLine(commandLineParams, outputFile, errorFile);
+		
+		if(USMUtils.isLinuxOrUnix()) {
+			// run the whole command in a shell session
+			logger.info("Command before shell modification: " +commandLineParams);
+			StringBuilder sb = new StringBuilder();
+			for (String param : commandLineParams) {
+				sb.append(param).append(" ");
+			}
+			commandLineParams.clear();
+			commandLineParams.addAll(Arrays.asList("sh", "-c", sb.toString()));
+			logger.info("Command after shell modification: " + commandLineParams);
+			
+		}
 	}
 
 	private void modifyRedirectionCommandLine(
@@ -738,6 +756,12 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 
 		commandLineParams.addAll(createRedirectionParametersForOS(outputFile,
 				errorFile));
+		
+//		if(USMUtils.isLinuxOrUnix()) {
+//			// add the terminating quotes
+//			commandLineParams.add("\"");
+//		}
+		
 	}
 
 	private List<String> createRedirectionParametersForOS(
@@ -785,6 +809,7 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 			try {
 
 				logger.info("Executing command line: " + modifiedCommandLine);
+				logger.info("Parsed command line: " + commandLineParams);
 				proc = pb.start();
 				return proc;
 			} catch (final IOException e) {
