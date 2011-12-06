@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
+//import org.apache.commons.beanutils.PropertyUtils;
 import org.openspaces.ui.BalanceGauge;
 import org.openspaces.ui.BarLineChart;
 import org.openspaces.ui.MetricGroup;
@@ -344,7 +345,8 @@ public abstract class BaseDslScript extends Script {
 			// Check if this is in extend mode. The active object should already
 			// contain a value
 			// for this object, simply clone it so we keep its content.
-			if (this.activeObject !=null && isProperyExistsInBean(this.activeObject, name)) {
+			
+			if (this.activeObject !=null &&  (!(this.activeObject instanceof Application)) && isProperyExistsInBean(this.activeObject, name)) {
 				Object existingPropertyValue = PropertyUtils.getProperty(this.activeObject, name);
 				if (existingPropertyValue != null)
 					return BeanUtils.cloneBean(existingPropertyValue);
@@ -356,7 +358,8 @@ public abstract class BaseDslScript extends Script {
 		} catch (IllegalAccessException e) {
 			throw new DSLException("Failed to create new element of type "
 					+ data.getName() + " with class: " + data.clazz, e);
-		} catch (InvocationTargetException e) {
+		}
+		catch (InvocationTargetException e) {
 			throw new DSLException("Failed to copy existing element of type "
 					+ data.getName() + " with class: " + data.clazz, e);
 		} catch (NoSuchMethodException e) {
