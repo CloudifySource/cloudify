@@ -24,7 +24,7 @@ service {
 			className "com.gigaspaces.cloudify.usm.jmx.JmxMonitor"
 			config([
 						"Store Percent Usage": [
-							"org.apache.activemq:BrokerName=localhost,Type=\"Broker\"",
+							"org.apache.activemq:BrokerName=localhost,Type=Broker",
 							"StorePercentUsage"
 						],
 						port: 11099
