@@ -74,7 +74,7 @@ public class CliAzureDeloymentTest {
     // arguments for cli
     private static final int TIMEOUT_IN_MINUTES = 60;
     private static final int POLLING_INTERVAL_IN_MINUTES = 1;
-    private static final String AZURE_HOSTED_SERVICE = "travel77";
+    private static final String AZURE_HOSTED_SERVICE = "travel56";
     private static final String APPLICATION_NAME = "travel";
     private static final AzureSlot AZURE_SLOT = AzureSlot.Staging;
     private static final String RDP_PFX_FILE_PASSWORD = "123456";
@@ -197,8 +197,11 @@ public class CliAzureDeloymentTest {
         repetativeAssert("Number of machines", new RepetativeConditionProvider() {
             public boolean getCondition() {
                 try {
-                    return EXPECTED_NUMBER_OF_MACHINES == getNumberOfMachines(restAdminMachinesUrl);
+				    int numberOfMachines = getNumberOfMachines(restAdminMachinesUrl);
+					logger.info("Actual numberOfMachines=" + numberOfMachines +". Expected numberOfMachins="+EXPECTED_NUMBER_OF_MACHINES);
+                    return EXPECTED_NUMBER_OF_MACHINES == numberOfMachines;
                 } catch (Exception e) {
+				    logger.log(Level.WARNING, "Exception while calculating numberOfMachines",e);
                     return false;
                 }
             }
@@ -225,39 +228,43 @@ public class CliAzureDeloymentTest {
 
         RepetativeConditionProvider applicationInstalledCondition = new RepetativeConditionProvider() {
             public boolean getCondition() {
-                try {
-                    return isUrlAvailable(travelApplicationUrl.toURL());
+				try {
+					URL url = travelApplicationUrl.toURL();
+				    return isUrlAvailable(url);
                 } catch (Exception e) {
+					logger.log(Level.WARNING, "Exception while checking if "+ travelApplicationUrl.toString() + " is available",e);
                     return false;
                 }              
             }
         };
         
         repetativeAssert("Failed waiting for travel application", applicationInstalledCondition);
-     
-		// Need to fix iisproxy to support more than 1 service instance
-        // List<String> setInstancesScaleOutCommand = Arrays.asList(
-            // "azure:set-instances",
-            // "--verbose",
-            // "-azure-svc", AZURE_HOSTED_SERVICE,
-            // TOMCAT_SERVICE, NUMBER_OF_INSTANCES_FOR_TOMCAT_SERVICE 
-        // );
+
+        List<String> setInstancesScaleOutCommand = Arrays.asList(
+             "azure:set-instances",
+             "--verbose",
+             "-azure-svc", AZURE_HOSTED_SERVICE,
+             TOMCAT_SERVICE, NUMBER_OF_INSTANCES_FOR_TOMCAT_SERVICE
+        );
         
-        // commands.add(connectCommand);
-        // commands.add(setInstancesScaleOutCommand);
-        // runCliCommands(cliExecutablePath, commands, isDebugMode);
-        // commands.clear();
+        commands.add(connectCommand);
+        commands.add(setInstancesScaleOutCommand);
+        runCliCommands(cliExecutablePath, commands, isDebugMode);
+        commands.clear();
         
-        // repetativeAssert("Failed waiting for scale out", new RepetativeConditionProvider() {
-            // public boolean getCondition() {
-                // try {
-                    // return getNumberOfMachines(restAdminMachinesUrl) == EXPECTED_NUMBER_OF_MACHINES + 1;
-                // } catch (Exception e) {
-                    // return false;
-                // }
-            // }
-        // });
-        
+        repetativeAssert("Failed waiting for scale out", new RepetativeConditionProvider() {
+            public boolean getCondition() {
+                try {
+				    int numberOfMachines = getNumberOfMachines(restAdminMachinesUrl);
+					logger.info("Actual numberOfMachines=" + numberOfMachines +". Expected numberOfMachins="+(EXPECTED_NUMBER_OF_MACHINES+1));
+                    return numberOfMachines == EXPECTED_NUMBER_OF_MACHINES + 1;
+                } catch (Exception e) {
+					logger.log(Level.WARNING, "Exception while calculating numberOfMachines",e);
+                    return false;
+                }
+            }
+        });
+      
         List<String> uninstallApplicationCommand = Arrays.asList(
             "uninstall-application", 
             "--verbose",
@@ -270,30 +277,33 @@ public class CliAzureDeloymentTest {
         commands.add(uninstallApplicationCommand);
         runCliCommands(cliExecutablePath, commands, isDebugMode);
         commands.clear();
-        
+    	
         Assert.assertFalse("Travel application should not be running", isUrlAvailable(travelApplicationUrl.toURL()));
         
-        // List<String> setInstancesScaleInCommand = Arrays.asList(
-            // "azure:set-instances",
-            // "--verbose",
-            // "-azure-svc", AZURE_HOSTED_SERVICE,
-            // TOMCAT_SERVICE, INITIAL_NUMBER_OF_INSTANCES_FOR_TOMCAT_SERVICE
-        // );
+        List<String> setInstancesScaleInCommand = Arrays.asList(
+            "azure:set-instances",
+            "--verbose",
+            "-azure-svc", AZURE_HOSTED_SERVICE,
+            TOMCAT_SERVICE, INITIAL_NUMBER_OF_INSTANCES_FOR_TOMCAT_SERVICE
+        );
         
-        // commands.add(connectCommand);
-        // commands.add(setInstancesScaleInCommand);
-        // runCliCommands(cliExecutablePath, commands, isDebugMode);
-        // commands.clear();
+        commands.add(connectCommand);
+        commands.add(setInstancesScaleInCommand);
+        runCliCommands(cliExecutablePath, commands, isDebugMode);
+        commands.clear();
         
-        // repetativeAssert("Failed waiting for scale in", new RepetativeConditionProvider() {
-            // public boolean getCondition() {
-                // try {
-                    // return getNumberOfMachines(restAdminMachinesUrl) == EXPECTED_NUMBER_OF_MACHINES;
-                // } catch (Exception e) {
-                    // return false;
-                // }
-            // }
-        // });
+        repetativeAssert("Failed waiting for scale in", new RepetativeConditionProvider() {
+            public boolean getCondition() {
+                try {
+				    int numberOfMachines = getNumberOfMachines(restAdminMachinesUrl);
+					logger.info("Actual numberOfMachines=" + numberOfMachines +". Expected numberOfMachins="+EXPECTED_NUMBER_OF_MACHINES);
+                    return EXPECTED_NUMBER_OF_MACHINES == numberOfMachines;
+                } catch (Exception e) {
+				    logger.log(Level.WARNING, "Exception while calculating numberOfMachines",e);
+                    return false;
+                }
+            }
+        });
        
         commands.add(connectCommand);
         commands.add(installApplicationCommand);
