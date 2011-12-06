@@ -47,6 +47,7 @@ public class StartManagement extends AbstractGSCommand{
 			installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 			installer.setNoWebServices(noWebServices);
 			installer.setAutoShutdown(autoShutdown);
+			installer.setWaitForWebui(true);
 			installer.startManagementOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);
 			return "Management started succesfully. Use the shutdown-management command to shutdown management processes running on local machine.";
 		}

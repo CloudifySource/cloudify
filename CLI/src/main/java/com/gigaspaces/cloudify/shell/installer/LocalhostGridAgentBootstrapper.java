@@ -130,6 +130,7 @@ public class LocalhostGridAgentBootstrapper {
 	private boolean noWebServices;
 	private int lusPort = DEFAULT_LUS_PORT;
 	private boolean autoShutdown;
+	private boolean waitForWebUi;
 	
 	public void setVerbose(boolean verbose) {
 		this.verbose = verbose;
@@ -165,6 +166,10 @@ public class LocalhostGridAgentBootstrapper {
 
 	public void setAutoShutdown(boolean autoShutdown) {
 		this.autoShutdown = autoShutdown;
+	}
+	
+	public void setWaitForWebui(boolean waitForWebui) {
+	    this.waitForWebUi = waitForWebui;
 	}
 	
 	public void startLocalCloudOnLocalhostAndWait(int timeout, TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
@@ -437,7 +442,12 @@ public class LocalhostGridAgentBootstrapper {
     				}
     				
     				//assuming eager mode, PU installs on this even if already installed
-    				webuiInstaller.waitForProcessingUnitInstance(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
+    				if (waitForWebUi) {
+        				webuiInstaller.waitForProcessingUnitInstance(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
+    				} else {
+    				    // log an estimation of the Webui URL
+    				    webuiInstaller.logServiceLocation();
+    				}
     				URL restUrl = restInstaller.waitForProcessingUnitInstance(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
     				    				
     				waitForConnection(restUrl, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);

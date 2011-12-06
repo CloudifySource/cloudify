@@ -3,15 +3,18 @@ package com.gigaspaces.cloudify.shell.installer;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.jini.discovery.Constants;
+
+import org.apache.commons.lang.StringUtils;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.gsm.GridServiceManager;
@@ -141,15 +144,22 @@ public class ManagementWebServiceInstaller {
 			}
 		});
 		
-		
-		URL url = getWebProcessingUnitURL(agent, getProcessingUnit());
-		if (logger.isLoggable(Level.INFO)) {
-			String serviceNameCapital = new StringBuilder(serviceName).replace(0, 1, serviceName.substring(0,1).toUpperCase()).toString();
-			logger.info(serviceNameCapital + " service is available at: " + url);
-		}
-		return url;
+        URL url = getWebProcessingUnitURL(agent, getProcessingUnit());
+        String serviceNameCapital = StringUtils.capitalize(serviceName);
+        logger.info(serviceNameCapital + " service is availale at: " + url);
+        return url;
 	}
 	
+    public void logServiceLocation() throws CLIException {
+        try {
+            String serviceNameCapital = StringUtils.capitalize(serviceName);
+            String localhost = Constants.getHostAddress();
+            logger.info(serviceNameCapital + " service will be available at: http://" + localhost + ":" + port);
+        } catch (UnknownHostException e) {
+            throw new CLIException("Failed getting host address", e);
+        }
+    }
+    
 	private Properties getContextProperties() {
 		Properties props = new Properties();
 		props.put("com.gs.application", MANAGEMENT_APPLICATION_NAME);
