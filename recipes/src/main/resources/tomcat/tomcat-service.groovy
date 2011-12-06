@@ -36,10 +36,6 @@ service {
 							"Catalina:type=ProtocolHandler,port=8080",
 							"backlog"
 						],
-						"Active Sessions":[
-							"Catalina:type=Manager,context=/travel,host=localhost",
-							"activeSessions"
-						],
 						port: 11099
 					])
 		}
