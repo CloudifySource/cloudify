@@ -7,7 +7,7 @@
         <property name="properties">
             <props>
                 <prop key="web.context">/${clusterInfo.name}</prop>
-                <prop key="web.port">8080</prop>
+                <prop key="web.port">8100</prop>
                 <prop key="web.sslPort">8443</prop>
                 <prop key="web.context.classLoader.parentFirst">false</prop>
                 <prop key="web.context.copyWebDir">false</prop>
@@ -95,4 +95,9 @@
             </bean>
         </property>
     </bean>
+    
+    <bean id="retryPortCount" class="java.lang.Integer">
+      <constructor-arg value="1" />
+    </bean>
+    
 </beans>
