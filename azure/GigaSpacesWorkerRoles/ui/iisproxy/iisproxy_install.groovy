@@ -95,7 +95,45 @@ new AntBuilder().sequential {
         arg(value:"/preserveHostHeader:\"True\"")
         arg(value:"/commit:apphost")
     }
- 
-}
 
+//Change application pool recycling settings for Application Request Routing.
+//http://learn.iis.net/page.aspx/574/install-application-request-routing-version-2/
+    exec(executable:"${config.appCmdPath}") {
+        arg(value:"set")
+        arg(value:"apppool")
+        arg(value:"DefaultAppPool")
+        arg(value:"-processModel.idleTimeout:\"00:00:00\"")
+        arg(value:"/commit:apphost")
+    }
+
+//Change application pool process model for Application Request Routing.
+//http://learn.iis.net/page.aspx/574/install-application-request-routing-version-2/
+    exec(executable:"${config.appCmdPath}") {
+        arg(value:"set")
+        arg(value:"config")
+        arg(value:"-section:system.applicationHost/applicationPools")
+        arg(value:"/[name='DefaultAppPool'].recycling.periodicRestart.time:\"00:00:00\"")
+        arg(value:"/commit:apphost")
+    }
+
+//Increase default timeout to 2 minutes
+//http://blogs.iis.net/richma/archive/2010/07/03/502-3-bad-gateway-the-operation-timed-out-with-iis-application-request-routing-arr.aspx
+    exec(executable:"${config.appCmdPath}") {
+        arg(value:"set")
+        arg(value:"config")
+        arg(value:"-section:system.webServer/proxy")
+        arg(value:"/timeout:\"00:02:00\"")
+        arg(value:"/commit:apphost")
+    }
+
+// Return detailed error messages to the http client (for development only)
+    exec(executable:"${config.appCmdPath}") {
+        arg(value:"set")
+        arg(value:"config")
+        arg(value:"-section:system.webServer/httpErrors")
+        arg(value:"-errorMode:\"Detailed\"")
+        arg(value:"/commit:apphost")
+    }
+
+}
 println("install completed!")
