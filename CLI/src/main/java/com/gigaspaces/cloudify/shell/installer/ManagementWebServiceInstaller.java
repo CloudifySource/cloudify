@@ -146,7 +146,7 @@ public class ManagementWebServiceInstaller {
 		
         URL url = getWebProcessingUnitURL(agent, getProcessingUnit());
         String serviceNameCapital = StringUtils.capitalize(serviceName);
-        logger.info(serviceNameCapital + " service is availale at: " + url);
+        logger.info(serviceNameCapital + " service is available at: " + url);
         return url;
 	}
 	
