@@ -690,7 +690,10 @@ public class ServiceController {
 
 		List<ProcessingUnit> orderedList = new ArrayList<ProcessingUnit>();
 		while (iterator.hasNext()) {
-			orderedList.add(iterator.next());
+			ProcessingUnit nextPU = iterator.next();
+			if (!orderedList.contains(nextPU)) {
+				orderedList.add(nextPU);
+			}
 		}
 		// Collections.reverse(orderedList);
 		return orderedList;
