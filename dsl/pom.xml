@@ -46,6 +46,19 @@
 	</repositories>
 	<dependencies>
 		<dependency>
+			<groupId>commons-beanutils</groupId>
+			<artifactId>commons-beanutils</artifactId>
+			<version>1.7.0</version>
+			<exclusions>
+				<!-- Exclude commons logging - because the scope of beanutils is compile, 
+					the assembly plugin adds commons logging to the dsl jar file -->
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
 			<version>2.4</version>
@@ -68,11 +81,7 @@
 			<version>1.8.0</version>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>commons-beanutils</groupId>
-			<artifactId>commons-beanutils</artifactId>
-			<version>1.7.0</version>
-		</dependency>
+
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
@@ -84,6 +93,7 @@
 			<version>${gsVersion}</version>
 			<scope>provided</scope>
 		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -128,7 +138,7 @@
 							<appendAssemblyId>false</appendAssemblyId>
 							<descriptorRefs>
 								<descriptorRef>jar-with-dependencies</descriptorRef>
-							</descriptorRefs>							
+							</descriptorRefs>
 						</configuration>
 					</execution>
 				</executions>
