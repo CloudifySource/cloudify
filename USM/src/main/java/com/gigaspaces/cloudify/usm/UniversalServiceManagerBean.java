@@ -1313,9 +1313,10 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 	public ServiceDetails[] getServicesDetails() {
 		logger.fine("Executing getServiceDetails()");
 		final CustomServiceDetails csd = new CustomServiceDetails(
-				CloudifyConstants.USM_DETAILS_SERVICE_ID,
+				CloudifyConstants.USM_DETAILS_SERVICE_ID, CustomServiceDetails.SERVICE_TYPE,
 				this.serviceSubType, this.serviceDescription,
 				this.serviceLongDescription);
+		
 		final ServiceDetails[] res = new ServiceDetails[] { csd };
 
 		// boolean deleteme = true;
