@@ -125,8 +125,18 @@ new AntBuilder().sequential {
         arg(value:"/timeout:\"00:02:00\"")
         arg(value:"/commit:apphost")
     }
-/* Remove this comment for debugging ARR issues
-// Return detailed error messages to the http client (for development only)
+//disable page caching
+    exec(executable:"${config.appCmdPath}") {
+        arg(value:"set")
+        arg(value:"config")
+        arg(value:"-section:system.webServer/proxy/cache")
+        arg(value:"/enabled:\"false\"")
+        arg(value:"/commit:apphost")
+    }
+
+
+if (config.debugMode) {
+    // Return detailed error messages to the http client
     exec(executable:"${config.appCmdPath}") {
         arg(value:"set")
         arg(value:"config")
@@ -134,6 +144,15 @@ new AntBuilder().sequential {
         arg(value:"-errorMode:\"Detailed\"")
         arg(value:"/commit:apphost")
     }
-*/
+}
+else {
+    //Disable custom error pages
+    exec(executable:"${config.appCmdPath}") {
+        arg(value:"clear")
+        arg(value:"config")
+        arg(value:"-section:system.webServer/httpErrors")
+        arg(value:"/commit:apphost")
+    }
+}
 }
 println("install completed!")
