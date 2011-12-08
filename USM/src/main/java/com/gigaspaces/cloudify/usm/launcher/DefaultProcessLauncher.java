@@ -352,7 +352,6 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 	}
 
 	// Add "./" to command line, if not present and file is in ext dir
-	// Also, add sh -c prefix.
 	private void modifyLinuxCommandLine(final List<String> commandLineParams,
 			final File puWorkDir) {
 		String executeScriptName = commandLineParams.get(0);
@@ -741,7 +740,7 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 				sb.append(param).append(" ");
 			}
 			commandLineParams.clear();
-			commandLineParams.addAll(Arrays.asList("sh", "-c", sb.toString()));
+			commandLineParams.addAll(Arrays.asList("nohup", "sh", "-c", sb.toString()));
 			logger.info("Command after shell modification: " + commandLineParams);
 			
 		}
