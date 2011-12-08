@@ -1,6 +1,18 @@
 import com.gigaspaces.cloudify.dsl.context.ServiceContextFactory
 import com.gigaspaces.cloudify.usm.USMUtils
 
+println("Checking operating system's compatibility with mongod")
+if (!USMUtils.isWindows()){
+	String command = "uname -a"
+	Process pr = command.execute()
+	pr.waitFor();
+	if (pr.in.text.contains("2007")){
+		throw new Exception("The Linux legacy-static builds are needed for older systems." 
+			+ "Try and run mongod from the commandline and if you get a floating point exception, use a legacy-static build.");  
+	}
+}
+println("op system is compatible with mongod")
+
 serviceContext = ServiceContextFactory.getServiceContext()
 instanceIdFile = new File("./instanceId.txt")
 instanceIdFile.text = serviceContext.instanceId
