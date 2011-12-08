@@ -464,7 +464,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		.get("Uids-Elements");
 		Set<String> containerUids = new HashSet<String>();
 		for (String containerUri : containerUris) {
-			String uid = containerUri.substring(containerUri.lastIndexOf("/"));
+			String uid = containerUri.substring(containerUri.lastIndexOf("/")+1);
 			containerUids.add(uid);
 		}
 		return containerUids;
