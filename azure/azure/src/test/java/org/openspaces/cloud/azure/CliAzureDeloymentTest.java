@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 
 import junit.framework.Assert;
 
+import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
@@ -454,8 +455,13 @@ public class CliAzureDeloymentTest {
     private static boolean isUrlAvailable(URL url) throws URISyntaxException {
         HttpClient client = new DefaultHttpClient();
         HttpGet httpGet = new HttpGet(url.toURI());
+		httpGet.addHeader("Cache-Control", "no-cache");
         try {
-            client.execute(httpGet, new BasicResponseHandler());
+            HttpResponse response = client.execute(httpGet);
+			response.getEntity().writeTo(System.out);
+			if (response.getStatusLine().getStatusCode() == 404) {
+				return false;
+			}
             return true;
         } catch (Exception e) {
             log("Failed connecting to " + url, e);
