@@ -125,7 +125,7 @@ new AntBuilder().sequential {
         arg(value:"/timeout:\"00:02:00\"")
         arg(value:"/commit:apphost")
     }
-
+/* Remove this comment for debugging ARR issues
 // Return detailed error messages to the http client (for development only)
     exec(executable:"${config.appCmdPath}") {
         arg(value:"set")
@@ -134,6 +134,6 @@ new AntBuilder().sequential {
         arg(value:"-errorMode:\"Detailed\"")
         arg(value:"/commit:apphost")
     }
-
+*/
 }
 println("install completed!")
