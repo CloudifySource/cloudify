@@ -56,9 +56,10 @@ public class UninstallApplication extends AdminAwareCommand {
 	@Override
 	protected Object doExecute() throws Exception {
 
+		// we need to look at all containers since the application already undeployed and we cannot get only the application containers 
 		final Set<String> containerIdsOfApplication = ((RestAdminFacade)adminFacade).getGridServiceContainerUidsForApplication(applicationName);
 		if (verbose) {
-			logger.info("Found containers: " + containerIdsOfApplication);
+			logger.info("Containers running PUs of application " +applicationName +":"+containerIdsOfApplication);
 		}
 		this.adminFacade.uninstallApplication(this.applicationName);
 		
