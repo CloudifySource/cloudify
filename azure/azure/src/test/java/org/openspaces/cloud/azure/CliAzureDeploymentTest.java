@@ -32,9 +32,9 @@ import org.openspaces.cloud.azure.test.utils.RepetativeConditionProvider;
 import org.openspaces.cloud.azure.test.utils.TestUtils;
 
 
-public class CliAzureDeloymentTest {
+public class CliAzureDeploymentTest {
     
-    private static final Logger logger = Logger.getLogger(AzureDeloymentTest.class.getName());
+    private static final Logger logger = Logger.getLogger(CliAzureDeploymentTest.class.getName());
     private static void log(String message) { logger.log(Level.INFO, message); }
     private static void log(String message, Throwable t) { logger.log(Level.INFO, message, t); }
     
