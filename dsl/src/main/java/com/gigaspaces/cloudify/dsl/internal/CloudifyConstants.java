@@ -83,6 +83,7 @@ public class CloudifyConstants {
 	 * Misc.
 	 */
 	public static final String DEFAULT_APPLICATION_NAME = "default";
+	public static final String MANAGEMENT_SPACE_NAME = "cloudifyManagementSpace";
 	
 	
 	private CloudifyConstants() {

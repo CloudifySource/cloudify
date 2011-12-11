@@ -6,6 +6,8 @@ import java.util.concurrent.TimeUnit;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.pu.ProcessingUnit;
+import org.openspaces.admin.space.Space;
+import org.openspaces.core.GigaSpace;
 import org.openspaces.core.cluster.ClusterInfo;
 
 import com.gigaspaces.cloudify.dsl.Service;
@@ -21,6 +23,7 @@ import com.gigaspaces.cloudify.dsl.utils.ServiceUtils.FullServiceName;
  */
 public class ServiceContext {
 
+	private static final long MANAGEMENT_SPACE_FIND_TIMEOUT = 30;
 	private com.gigaspaces.cloudify.dsl.Service service;
 	private Admin admin;
 	private String serviceDirectory;
@@ -30,6 +33,11 @@ public class ServiceContext {
 	private String serviceName;
 
 	private String applicationName;
+	
+	private GigaSpace managementSpace;
+	
+	private final Object managementSpaceLock = new Object();	
+	private final PropertiesFacade propertiesFacade = new PropertiesFacade(this);
 
 	public ServiceContext() {
 
@@ -206,6 +214,27 @@ public class ServiceContext {
 
 	public String getApplicationName() {
 		return applicationName;
+	}
+	
+	
+	public PropertiesFacade getProperties() {
+		return propertiesFacade;
+	}
+	
+	GigaSpace getManagementSpace() {
+		if (managementSpace != null)
+			return managementSpace;
+		synchronized(managementSpaceLock){
+			if (managementSpace != null)
+				return managementSpace;
+			
+			Space space = admin.getSpaces().waitFor(CloudifyConstants.MANAGEMENT_SPACE_NAME, MANAGEMENT_SPACE_FIND_TIMEOUT, TimeUnit.SECONDS);			
+			if (space == null)
+				throw new IllegalStateException("No management space located");
+			
+			managementSpace = space.getGigaSpace();
+			return managementSpace;
+		}
 	}
 
 	@Override
