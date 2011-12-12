@@ -54,10 +54,14 @@ public class CliAzureDeploymentTest {
     private static final String AZURE_PROPERTIES_RDP_LOGIN_USERNAME_KEY = "rdpLoginUsername";
     private static final String AZURE_PROPERTIES_RDP_LOGIN_ENCRYPTED_PASSWORD = "rdpLoginEncrypedPassword";
     
-    private static final String AZURE_SUBSCRIPTION_ID = "79c57714-7a07-445e-9dd7-f3a5318bb44e";
+    //private static final String AZURE_SUBSCRIPTION_ID = "9f24fac0-f989-4873-b3d5-6886fbc6cd29";
+    //private static final String AZURE_ACCOUNT_NAME = "gigatravel";
+    //private static final String AZURE_ACCOUNT_KEY = "2wghRaoK9hC7ym8cYmuTbUlgE0wGlJR74a11UO4OwejsO7XtXLNX7RPLWFsFkB1jx0tUf6xNosBVLPw+3ticFA==";
+	
+	private static final String AZURE_SUBSCRIPTION_ID = "2719917d-5e33-4aaa-9fee-429290752498"; // azure partner account
+    private static final String AZURE_ACCOUNT_NAME = "gigaspaces3";
+    private static final String AZURE_ACCOUNT_KEY = "2hQ0Kljm3tWj49kUrHfFypnd8KyOT1nlsi766M6dHJYgpHjEy+CfR2922cfFzTvqCN94SSkcx7GG+8KovxV2mQ==";
     private static final String AZURE_CERTIFICATE_THUMBPRINT = "9E0086E300D5B2F7CC00E734F58FFB1661920FE9";
-    private static final String AZURE_ACCOUNT_NAME = "gigatravel";
-    private static final String AZURE_ACCOUNT_KEY = "2wghRaoK9hC7ym8cYmuTbUlgE0wGlJR74a11UO4OwejsO7XtXLNX7RPLWFsFkB1jx0tUf6xNosBVLPw+3ticFA==";
     private static final String AZURE_CONTAINER_NAME = "packages-public";
     private static final String CS_PACK_FOLDER = "C:\\Program Files\\Windows Azure SDK\\v1.4\\bin";
     private static final String RELATIVE_WORKER_ROLE_DIR = "plugins\\azure\\WorkerRoles\\GigaSpacesWorkerRoles";
@@ -182,6 +186,7 @@ public class CliAzureDeploymentTest {
 			"-progress", String.valueOf(POLLING_INTERVAL_IN_MINUTES),
 			"-azure-svc", AZURE_HOSTED_SERVICE ,
 			"-azure-pwd", RDP_PFX_FILE_PASSWORD,
+			"-azure-location","'North Central US'",
 			applicationAbsolutePath
     	);
         
