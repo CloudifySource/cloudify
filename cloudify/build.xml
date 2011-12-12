@@ -185,7 +185,7 @@
     </target>
 	
 	 <target name="copy.packages.to.build.repository" description="copy packages to build repository" unless="gs.internal.systems.not.available">
-       <copy todir="${build.repository.path}/${build.prefix}${cloudify.build.number}">
+       <copy todir="${build.repository.path}/${cloudify}/${cloudify.version}/${build.prefix}${cloudify.build.number}">
            <fileset dir="${releases.dir}/${build.prefix}${cloudify.build.number}"/>
        </copy>
    	</target>
