@@ -62,7 +62,7 @@ cd /d L:\
 
 set LOCAL_WORKING_DIR=l:\azure\localworkingdir\
 
-set CLOUDIFY_REMOTE_PATH=\\tarzan\builds\%GS_VERSION%\build_%BUILD_NUMBER%\cloudify
+set CLOUDIFY_REMOTE_PATH=\\tarzan\builds\cloudify\%GS_VERSION%\build_%BUILD_NUMBER%\cloudify
 
 echo copying latest cloudify build
 set GIGASPACES_XAP_REMOTE_PATH=%CLOUDIFY_REMOTE_PATH%\1.5\gigaspaces-cloudify-%GS_VERSION%-%MILESTONE%-b%BUILD_NUMBER%.zip
