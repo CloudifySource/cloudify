@@ -173,8 +173,8 @@
     </target>
 	
 	<target name="remove.xap.related.modules">
-		<delete dir="${tmp.dir}/${cloudify.installation.dir}/docs/xap-javadoc*" />
-		<delete dir="${tmp.dir}/${cloudify.installation.dir}" includes="examples" />
+		<delete file="${tmp.dir}/${cloudify.installation.dir}/docs/xap-javadoc.zip" />
+		<delete dir="${tmp.dir}/${cloudify.installation.dir}/examples" />
 	</target>
 
     <target name="replace.cloudify.license">
