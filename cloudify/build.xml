@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<!--
+ * Title:        GigaSpaces Cloudify ant file.
+ make sure all root directory is already updated with latest src and files from SVN.
+
+ * Copyright:    Copyright (c) 2011
+ * Company:      GigaSpaces Technologies Ltd.
+ * @author       Alex Beresnev
+ * @version      2.0.0
+-->
+
+
+<project name="Cloudify-Assembly" default="prepare.cloudify.package" basedir=".">
+	
+	<condition property="build.repository.path" value="\\tarzan\builds">
+		<os family="windows" />
+	</condition>
+
+	<condition property="build.repository.path" value="/export/builds">
+		<os family="unix" />
+	</condition>
+
+
+	
+    <property environment="env."/>
+	<property name="tmp.dir" value="${basedir}/tmp" />
+	<property name="gs.version" value="8.0.5" />
+	<property name="gs.build.number" value="6000" />
+	<property name="gs.milestone" value="ga" />
+	<property name="xap.installation.dir" value="gigaspaces-xap-premium-${gsVersion}-${gsMilestone}" />
+	<property name="xap.zip.name" value="${xap.installation.dir}-b${gsBuildNumber}.zip" />
+	<property name="xap.zip.full.path" value="${build.repository.path}/${gsVersion}/build_${gsBuildNumber}/xap-premium/1.5/${xap.zip.name}" />
+	<property name="cloudify.version" value="2.0.0" />
+	<property name="cloudify.build.number" value="20" />
+	<property name="cloudify.milestone" value="m5" />
+	<property name="cloudify.installation.dir" value="gigaspaces-cloudify-${cloudify.version}-${cloudify.milestone}" />
+	<property name="cloudify.zip.name" value="${cloudify.installation.dir}-b${cloudify.build.number}.zip" />
+	<property name="xap.zip.full.path" value="${build.repository.path}/cloudify/${cloudify.version}/build_${cloudify.build.number}/product/${xap.zip.name}" />
+	<property name="CLOUDIFY" value="Cloudify" />
+	<property name="cloudify" value="cloudify" />
+	<property name="gs.runtime.jar" value="gs-runtime.jar" />
+	<property name="gs.boot.jar" value="gs-boot.jar" />
+	<property name="usm.local.copy" value="${basedir}/../USM" />
+	<property name="esc.local.copy" value="${basedir}/../esc" />
+	<property name="recipes.local.copy" value="${basedir}/../recipes" />
+	<property name="dsl.local.copy" value="${basedir}/../dsl" />
+	<property name="cli.local.copy" value="${basedir}/../CLI" />
+	<property name="azure.local.copy" value="${basedir}/../azure" />
+	<property name="restful.local.copy" value="${basedir}/../restful" />
+	<property name="esc-commands.local.copy" value="${basedir}/../esc-commands" />
+	<property name="releases.dir" value="${basedir}/releases" />
+	<property name="build.prefix" value="build_" />
+	<property name="" value="" />
+	<property name="" value="" />
+	
+   
+    <target name="updateLUSGroups">
+        <echo message="Updating LUS Groups in directory: ${tmp.dir}/${cloudify.installation.dir} ..."/>
+        <property name="lookup.group" value="gigaspaces-${CLOUDIFY}-${cloudify.version}-${cloudify.milestone}"/>
+    	<replaceregexp match="LOOKUPGROUPS=(.*)" replace="LOOKUPGROUPS=&quot;${lookup.group}&quot;">
+    		<fileset dir="${tmp.dir}/${cloudify.installation.dir}" includes="*.sh, *.bat, *.xml"/>
+    	</replaceregexp>
+    </target>
+
+    <target name="add.cloudify.jars">
+    	<property name="jdk" value="1.5"/>
+
+    	<echo message="copy ${gs.runtime.jar} and ${gs.boot.jar} jars into lib"/>
+    	<delete file="${tmp.dir}/${cloudify.installation.dir}/lib/platform/boot/${gs.boot.jar}" />	
+    	<delete file="${tmp.dir}/${cloudify.installation.dir}/lib/required/${gs.runtime.jar}" /> 
+         <copy todir="${tmp.dir}/${cloudify.installation.dir}/lib/required"
+              file="${build.repository.path}/${gsVersion}/build_${gsBuildNumber}/jars/${jdk}/${cloudify}/${gs.runtime.jar}" overwrite="true"/>
+        <copy todir="${tmp.dir}/${cloudify.installation.dir}/lib/platform/boot"
+              file="${build.repository.path}/${gsVersion}/build_${gsBuildNumber}/jars/${jdk}/${cloudify}/${gs.boot.jar}" overwrite="true"/>
+    </target>
+
+    <target name="add.cloudify.modules">
+        <echo message="Copy USM component"/>
+        <copy todir="${tmp.dir}/${cloudify.installation.dir}/lib/platform/usm" overwrite="true">
+            <fileset dir="${usm.local.copy}/target/" includes="usm.jar" excludes=".svn"/>
+        </copy>
+
+        <copy todir="${tmp.dir}/${cloudify.installation.dir}/lib/platform/esm" overwrite="true">
+            <fileset dir="${esc.local.copy}/target/esc/lib" includes="*.jar" excludes=".svn"/>
+        </copy>
+
+        <echo message="Copy recipes component"/>
+        <mkdir dir="${tmp.dir}/${cloudify.installation.dir}/recipes"/>
+     
+        <unzip src="${recipes.local.copy}/target/recipes.zip" dest="${tmp.dir}/${cloudify.installation.dir}/recipes"/>
+     
+        <move todir="${tmp.dir}/${cloudify.installation.dir}/examples">
+            <fileset dir="${tmp.dir}/${cloudify.installation.dir}/recipes/applications"/>
+        </move>
+
+        <echo message="Copy dsl component"/>
+        <copy todir="${tmp.dir}/${cloudify.installation.dir}/lib/required" overwrite="true">
+            <fileset dir="${dsl.local.copy}/target/" includes="dsl.jar" excludes=".svn"/>
+        </copy>
+
+        <echo message="Copy CLOUDIFY CLI component"/>
+        <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/" overwrite="true">
+            <fileset dir="${cli.local.copy}/target/" includes="cli.jar" excludes=".svn"/>
+            <fileset dir="${cli.local.copy}/" includes="cloudify.*" excludes=".svn"/>
+        </copy>
+
+        <echo message="Copy CLOUDIFY Azure component"/>
+        <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure" overwrite="true">
+            <fileset dir="${azure.local.copy}/azure/src/main/resources/azure" includes="**/*" excludes=".svn"/>
+            <fileset dir="${azure.local.copy}/azure/target/" includes="azure.jar" excludes=".svn"/>
+        </copy>
+
+        <echo message="Copy CLOUDIFY Rest component"/>
+        <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/rest/" overwrite="true">
+            <fileset dir="${restful.local.copy}/target/" includes="rest.war" excludes=".svn"/>
+            <fileset dir="${restful.local.copy}/tools/restful" includes="restful.*" excludes=".svn"/>
+        </copy>
+
+        <echo message="Copy CLOUDIFY esc-command component"/>
+        <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/esc" overwrite="true">
+            <fileset dir="${esc-commands.local.copy}/target/" includes="esc-commands.jar" excludes=".svn"/>
+        </copy>
+        
+        <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/esc/ec2" overwrite="true">
+          <fileset dir="${esc.local.copy}/" includes="ec2-cloud.groovy" excludes=".svn"/>
+        </copy>
+                  
+        <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/esc/ec2/upload" overwrite="true">
+            <fileset dir="${esc.local.copy}/config/" includes="bootstrap-management.sh" excludes=".svn"/>
+        </copy>
+    </target>
+
+	<target name="unzip.xap">
+		<delete dir="${tmp.dir}"/>
+		<mkdir dir="${tmp.dir}"/>
+		<copy file="${xap.zip.full.path}" todir="${tmp.dir}"/>
+		<unzip src="${tmp.dir}/${xap.zip.name}" dest="${tmp.dir}"/>
+		<delete file="${tmp.dir}/${xap.zip.name}"/>
+		<move file="${tmp.dir}/${xap.installation.dir}" tofile="${tmp.dir}/${cloudify.installation.dir}" />
+	</target>
+
+    <target name="prepare.cloudify.package" depends="unzip.xap">
+   
+    	<!-- Updating the JINI LUS GROUP with the build number before final packaging !-->
+        <ant target="updateLUSGroups"/>
+
+        <ant target="add.cloudify.jars"/>
+		
+    	<!-- Add Cloudify Javadoc archive to Cloudify/docs folder -->
+    	<copy file="${dsl.local.copy}/target/cloudify-javadoc.jar" tofile="${tmp.dir}/${cloudify.installation.dir}/docs/cloudify-javadoc.zip"/>
+    	
+        <ant target="add.cloudify.modules"/>
+        <ant target="replace.cloudify.license"/>
+    	
+    	<copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${basedir}/package_build/START_HERE.htm"/>
+    	
+        <delete>
+            <fileset dir="${tmp.dir}/${cloudify.installation.dir}/bin" includes="gs-focalserver.*, gsInstance.*,
+            startJiniTxMahalo.*, puInstance.*, gs-memcached.*"/>
+        </delete>
+    	<delete dir="${tmp.dir}/${cloudify.installation.dir}/tools/benchmark"/>
+    	<ant target="add.azure.artifacts" />
+
+        <ant target="archive.versions"/>
+    </target>
+
+    <target name="replace.cloudify.license">
+        <delete file="${tmp.dir}/${cloudify.installation.dir}/gslicense.xml"/>
+        <copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${basedir}/package_build/gslicense.xml"/>
+    </target>
+
+   
+    <!-- - - - - - - - - - - - - - - - - -
+           target: archive.versions
+
+           - creates  Cloudify
+      - - - - - - - - - - - - - - - - - -->
+
+    <target name="archive.versions">
+    		<delete dir="${releases.dir}/build_${cloudify.build.number}"/>
+            <mkdir dir="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5"/>
+            <zip destfile="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip">
+                <zipfileset dir="${tmp.dir}" includes="**/*" filemode="775"/>
+            </zip>
+    </target>
+	
+	 <target name="copy.packages.to.build.repository" description="copy packages to build repository" unless="gs.internal.systems.not.available">
+       <copy todir="${build.repository.path}/${build.prefix}${cloudify.build.number}">
+           <fileset dir="${releases.dir}/${build.prefix}${cloudify.build.number}"/>
+       </copy>
+   	</target>
+	
+	<target name="add.azure.artifacts">
+       <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure" failonerror="false">
+       		<fileset dir="${azure.local.copy}" includes="azureconfig.exe*"/>
+		</copy>
+       <delete dir="${builds.dir}${buildnumber}/${cloudify}/azure" includes="azureconfig.exe*" />
+   </target>
+	
+	<target name="prepare.and.copy.package" depends="prepare.cloudify.package, copy.packages.to.build.repository" />
+
+</project>
