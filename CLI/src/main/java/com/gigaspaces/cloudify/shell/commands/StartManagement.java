@@ -30,9 +30,6 @@ public class StartManagement extends AbstractGSCommand{
 		
 		@Option(required = false, name = "-auto-shutdown", description = "Determines if undeploying or scaling-in the last service instance on the machine also triggers agent shutdown. By default false.")
 		boolean autoShutdown = false;
-		
-		@Option(required = false, name = "-no-management-space", description = "if set, no attempt to deploy the management space will be made")
-		boolean noManagementSpace;
 			
 		@Override
 		protected Object doExecute() throws Exception {
@@ -49,7 +46,6 @@ public class StartManagement extends AbstractGSCommand{
 			installer.setProgressInSeconds(10);
 			installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 			installer.setNoWebServices(noWebServices);
-			installer.setNoManagementSpace(noManagementSpace);
 			installer.setAutoShutdown(autoShutdown);
 			installer.setWaitForWebui(true);
 			installer.startManagementOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);

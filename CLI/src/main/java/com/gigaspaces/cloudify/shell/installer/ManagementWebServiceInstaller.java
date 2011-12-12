@@ -4,17 +4,20 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.jini.discovery.Constants;
 
 import org.apache.commons.lang.StringUtils;
+import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsa.GridServiceAgent;
+import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitAlreadyDeployedException;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
@@ -24,20 +27,42 @@ import org.openspaces.admin.pu.elastic.config.EagerScaleConfigurer;
 import org.openspaces.core.util.MemoryUnit;
 import org.openspaces.pu.service.ServiceDetails;
 
-import com.gigaspaces.cloudify.shell.AdminFacade;
 import com.gigaspaces.cloudify.shell.ConditionLatch;
 import com.gigaspaces.cloudify.shell.commands.CLIException;
 import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
 import com.j_spaces.kernel.Environment;
 
-public class ManagementWebServiceInstaller extends AbstractManagementServiceInstaller {
+public class ManagementWebServiceInstaller {
 	
+	private static final String TIMEOUT_ERROR_MESSAGE = "operation timed out waiting for the rest service to start";
+	
+	private final Logger logger = Logger.getLogger(this.getClass().getName());
+	private Admin admin;
+	private boolean verbose;
+	private long progressInSeconds;
+	private int memoryInMB;
 	private int port;
 	private File warFile;
-	private boolean waitForConnection;
+	private String serviceName;
+	private String zone;
+	
+	private static final int RESERVED_MEMORY_IN_MB = 256;
+	public static final String MANAGEMENT_APPLICATION_NAME = "management";
 	
 	public void setProgress(int progress, TimeUnit timeunit) {
 		this.progressInSeconds = timeunit.toSeconds(progress);
+	}
+	
+	public void setAdmin(Admin admin) {
+		this.admin = admin;
+	}
+	
+	public void setVerbose(boolean verbose) {
+		this.verbose = verbose;
+	}
+
+	public void setMemory(long memory, MemoryUnit unit) {
+		this.memoryInMB = (int) unit.toMegaBytes(memory);
 	}
 	
 	public void setPort(int port) {
@@ -48,8 +73,15 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 		this.warFile = warFile;
 	}
 	
-	@Override
-	public void install() throws CLIException, ProcessingUnitAlreadyDeployedException {
+	public void setServiceName(String serviceName) {
+		this.serviceName = serviceName;
+	}
+
+	public void setManagementZone(String zone) {
+		this.zone = zone;
+	}
+	
+	public void install() throws TimeoutException, InterruptedException, CLIException, ProcessingUnitAlreadyDeployedException {
 		
 		if (zone == null) {
 			throw new IllegalStateException("Management services must be installed on management zone");
@@ -78,20 +110,14 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 		getGridServiceManager().deploy(deployment);
 	}
 	
-	@Override
-	public void waitForInstallation(AdminFacade adminFacade, GridServiceAgent agent, long timeout,
-			TimeUnit timeunit) throws ErrorStatusException, InterruptedException, TimeoutException, CLIException {
-		long startTime = System.currentTimeMillis();
-		URL url = waitForProcessingUnitInstance(agent, timeout, timeunit);
-		long remainingTime = timeunit.toMillis(timeout) - (System.currentTimeMillis() - startTime);
-		if (waitForConnection)
-			waitForConnection(adminFacade, url, remainingTime, TimeUnit.MILLISECONDS);
-	}
-	
-	public void setWaitForConnection() {
-		waitForConnection = true;
-	}
-	
+	private GridServiceManager getGridServiceManager() throws CLIException {
+		Iterator<GridServiceManager> it = admin.getGridServiceManagers().iterator();
+        if (it.hasNext()) {
+            return it.next();
+        }
+        throw new CLIException("No Grid Service Manager found to deploy " + serviceName);
+   }
+
 	public URL waitForProcessingUnitInstance(
 			final GridServiceAgent agent,
 			final long timeout, 
@@ -124,27 +150,6 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
         return url;
 	}
 	
-	private void waitForConnection(final AdminFacade adminFacade, final URL url, final long timeout, final TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException { 
-		adminFacade.disconnect();
-		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
-			
-			@Override
-			public boolean isDone() throws CLIException, InterruptedException {
-			
-	            try {
-	                adminFacade.connect(null, null, url.toString());
-	                return true;
-	            } catch (ErrorStatusException e) {
-	                if (verbose) {
-	                	logger.log(Level.INFO,"Error connecting to web service [" + serviceName + "].",e);
-	                }
-	            }
-	            logger.log(Level.INFO,"Connecting to web service [" + serviceName + "].");
-	            return false;
-			}
-		});
-	}
-	
     public void logServiceLocation() throws CLIException {
         try {
             String serviceNameCapital = StringUtils.capitalize(serviceName);
@@ -155,9 +160,9 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
         }
     }
     
-    @Override
-	protected Properties getContextProperties() {
-    	Properties props = super.getContextProperties();
+	private Properties getContextProperties() {
+		Properties props = new Properties();
+		props.put("com.gs.application", MANAGEMENT_APPLICATION_NAME);
 		props.put("web.port", String.valueOf(port));
 		props.put("web.context", "/");
 		props.put("web.context.unique", "true");
@@ -198,6 +203,16 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 		admin.getGridServiceManagers().waitForAtLeastOne();
 	}
 			
+	private ConditionLatch createConditionLatch(long timeout, TimeUnit timeunit) {
+		return 
+			new ConditionLatch()
+			.timeout(timeout,timeunit)
+			.pollingInterval(progressInSeconds, TimeUnit.SECONDS)
+			.timeoutErrorMessage(TIMEOUT_ERROR_MESSAGE)
+			.verbose(verbose);
+	}
+
+
 	private ProcessingUnit getProcessingUnit() {
 		return admin.getProcessingUnits().getProcessingUnit(serviceName);
 	}
@@ -240,5 +255,5 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 		}
 		return warFile;
 	}
-
+	
 }
