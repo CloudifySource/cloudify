@@ -103,6 +103,9 @@
             <fileset dir="${cli.local.copy}/target/" includes="cli.jar" excludes=".svn"/>
             <fileset dir="${cli.local.copy}/" includes="cloudify.*" excludes=".svn"/>
         </copy>
+    	<copy todir="${tmp.dir}/${cloudify.installation.dir}/bin" overwrite="true">
+            <fileset dir="${basedir}/package_build/bin" includes="cloudify.*" excludes=".svn"/>
+        </copy>
 
         <echo message="Copy CLOUDIFY Azure component"/>
         <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure" overwrite="true">
@@ -128,6 +131,10 @@
         <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/esc/ec2/upload" overwrite="true">
             <fileset dir="${esc.local.copy}/config/" includes="bootstrap-management.sh" excludes=".svn"/>
         </copy>
+    	
+    	<copy todir="${tmp.dir}/${cloudify.installation.dir}/bin" overwrite="true">
+            <fileset dir="${esc.local.copy}/config/" includes="bootstrap-management.sh" excludes=".svn"/>
+        </copy>
     </target>
 
 	<target name="unzip.xap">
@@ -141,6 +148,7 @@
 
     <target name="prepare.cloudify.package" depends="unzip.xap">
    
+    	<ant target="remove.xap.related.modules" />
     	<!-- Updating the JINI LUS GROUP with the build number before final packaging !-->
         <ant target="updateLUSGroups"/>
 
@@ -163,6 +171,11 @@
 
         <ant target="archive.versions"/>
     </target>
+	
+	<target name="remove.xap.related.modules">
+		<delete dir="${tmp.dir}/${cloudify.installation.dir}/docs/xap-javadoc*" />
+		<delete dir="${tmp.dir}/${cloudify.installation.dir}" includes="examples" />
+	</target>
 
     <target name="replace.cloudify.license">
         <delete file="${tmp.dir}/${cloudify.installation.dir}/gslicense.xml"/>
