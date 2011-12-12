@@ -58,7 +58,7 @@
         <echo message="Updating LUS Groups in directory: ${tmp.dir}/${cloudify.installation.dir} ..."/>
         <property name="lookup.group" value="gigaspaces-${CLOUDIFY}-${cloudify.version}-${cloudify.milestone}"/>
     	<replaceregexp match="LOOKUPGROUPS=(.*)" replace="LOOKUPGROUPS=&quot;${lookup.group}&quot;">
-    		<fileset dir="${tmp.dir}/${cloudify.installation.dir}" includes="*.sh, *.bat, *.xml"/>
+    		<fileset dir="${tmp.dir}/${cloudify.installation.dir}" includes="**/*.sh, **/*.bat, **/*.xml"/>
     	</replaceregexp>
     </target>
 
