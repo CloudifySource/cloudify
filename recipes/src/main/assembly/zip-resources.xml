@@ -18,6 +18,9 @@
 				<exclude>**/*jboss*/**</exclude>
 				<exclude>**/*postgresql*/**</exclude>
 				<exclude>**/applications/simple/**</exclude>
+				<exclude>**/nginx/**</exclude>
+				<exclude>**/stockdemo/**</exclude>
+				<exclude>**/tomcatcluster/**</exclude>
 			</excludes>
 			<outputDirectory>/</outputDirectory>
 		</fileSet>
