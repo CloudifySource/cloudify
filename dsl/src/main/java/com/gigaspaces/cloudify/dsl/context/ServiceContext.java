@@ -9,6 +9,7 @@ import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.core.cluster.ClusterInfo;
 
 import com.gigaspaces.cloudify.dsl.Service;
+import com.gigaspaces.cloudify.dsl.context.kvstorage.AttributesFacade;
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 import com.gigaspaces.cloudify.dsl.utils.ServiceUtils.FullServiceName;
@@ -30,6 +31,8 @@ public class ServiceContext {
 	private String serviceName;
 
 	private String applicationName;
+	
+	private AttributesFacade attributesFacade;
 
 	public ServiceContext() {
 
@@ -66,8 +69,8 @@ public class ServiceContext {
 								+ Arrays.toString(admin.getLocators()));
 			}
 		}
+		this.attributesFacade = new AttributesFacade(this, admin);
 		initialized = true;
-
 	}
 
 	public void initInIntegratedContainer(final Service service,
@@ -82,6 +85,7 @@ public class ServiceContext {
 		this.applicationName = CloudifyConstants.DEFAULT_APPLICATION_NAME;
 		this.serviceName = service.getName();
 
+		this.attributesFacade = new AttributesFacade(this, admin);
 		initialized = true;
 
 	}
@@ -207,7 +211,12 @@ public class ServiceContext {
 	public String getApplicationName() {
 		return applicationName;
 	}
-
+	
+	
+	public AttributesFacade getAttributes() {
+		return attributesFacade;
+	}
+	
 	@Override
 	public String toString() {
 		if (this.initialized) {

@@ -370,7 +370,10 @@ public abstract class BaseDslScript extends Script {
 
 	@Override
 	public void println(final Object obj) {
-		logger.info(obj.toString());
+		if (obj == null)
+			logger.info("null");
+		else
+			logger.info(obj.toString());
 	}
 
 	protected void swapActiveObject(final Closure<Object> closure,

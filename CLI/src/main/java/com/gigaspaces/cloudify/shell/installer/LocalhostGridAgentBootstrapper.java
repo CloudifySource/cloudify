@@ -8,16 +8,15 @@ import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.net.URL;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.jini.core.discovery.LookupLocator;
@@ -37,6 +36,7 @@ import org.openspaces.admin.pu.ProcessingUnitInstance;
 import org.openspaces.admin.vm.VirtualMachineAware;
 import org.openspaces.core.util.MemoryUnit;
 
+import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.shell.AdminFacade;
 import com.gigaspaces.cloudify.shell.ConditionLatch;
 import com.gigaspaces.cloudify.shell.ShellUtils;
@@ -63,6 +63,7 @@ public class LocalhostGridAgentBootstrapper {
 	private static final int GSM_MEMORY_IN_MB = 128;
 	private static final int ESM_MEMORY_IN_MB = 128;
 	private static final int REST_MEMORY_IN_MB = 128; // we don't have wars that big
+	private static final int MANAGEMENT_SPACE_MEMORY_IN_MB = 64;
 	private static final int REST_PORT = 8100;
 	private static final String REST_FILE = "tools" + File.separator + "rest" + File.separator + "rest.war";
 	private static final String REST_NAME = "rest";
@@ -70,6 +71,7 @@ public class LocalhostGridAgentBootstrapper {
 	private static final int WEBUI_PORT = 8099;
 	private static final String WEBUI_FILE = "tools" + File.separator + "gs-webui" + File.separator + "gs-webui.war";
 	private static final String WEBUI_NAME = "webui";
+	private static final String MANAGEMENT_SPACE_NAME = CloudifyConstants.MANAGEMENT_SPACE_NAME;
 
 	private static final String LINUX_SCRIPT_PREFIX = "#!/bin/bash\n";
 	private static final String MANAGEMENT_GSA_ZONE = "management";
@@ -128,6 +130,7 @@ public class LocalhostGridAgentBootstrapper {
 	private int progressInSeconds;
 	private AdminFacade adminFacade;
 	private boolean noWebServices;
+	private boolean noManagementSpace;
 	private int lusPort = DEFAULT_LUS_PORT;
 	private boolean autoShutdown;
 	private boolean waitForWebUi;
@@ -163,6 +166,10 @@ public class LocalhostGridAgentBootstrapper {
     public void setNoWebServices(boolean noWebServices) {
         this.noWebServices = noWebServices;
     }
+    
+    public void setNoManagementSpace(boolean noManagementSpace) {
+		this.noManagementSpace = noManagementSpace;
+	}
 
 	public void setAutoShutdown(boolean autoShutdown) {
 		this.autoShutdown = autoShutdown;
@@ -178,7 +185,7 @@ public class LocalhostGridAgentBootstrapper {
 		
 		setDefaultLocalcloudLookup();
 		
-		startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_MANAGEMENT_ARGUMENTS, timeout, timeunit);
+		startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_MANAGEMENT_ARGUMENTS, timeout, timeunit, true);
 	}
 
 	private void setDefaultNicAddress() throws CLIException {
@@ -213,7 +220,7 @@ public class LocalhostGridAgentBootstrapper {
 		
 		setDefaultNicAddress();
 		
-		startManagementOnLocalhostAndWaitInternal(CLOUD_MANAGEMENT_ARGUMENTS, timeout, timeunit);
+		startManagementOnLocalhostAndWaitInternal(CLOUD_MANAGEMENT_ARGUMENTS, timeout, timeunit, false);
 	}
 	
 	public void shutdownAgentOnLocalhostAndWait(boolean force, int timeout,TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
@@ -376,7 +383,7 @@ public class LocalhostGridAgentBootstrapper {
 		
 	}
 
-	private void startManagementOnLocalhostAndWaitInternal(String[] gsAgentArgs, int timeout,TimeUnit timeunit) 
+	private void startManagementOnLocalhostAndWaitInternal(String[] gsAgentArgs, int timeout,TimeUnit timeunit, boolean isLocalCloud) 
 		throws CLIException, InterruptedException, TimeoutException {
 		long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
 		
@@ -402,10 +409,12 @@ public class LocalhostGridAgentBootstrapper {
 			}
 			waitForManagementProcesses(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
 			
-			if (!noWebServices) {
-    			connectionLogs.supressConnectionErrors();
-    			try {
-    				ManagementWebServiceInstaller webuiInstaller = new ManagementWebServiceInstaller();
+			List<AbstractManagementServiceInstaller> waitForManagementServices = new LinkedList<AbstractManagementServiceInstaller>();
+			
+			connectionLogs.supressConnectionErrors();
+			try {
+				if (!noWebServices) {
+    				ManagementWebServiceInstaller webuiInstaller = new ManagementWebServiceInstaller();    				
     				webuiInstaller.setAdmin(agent.getAdmin());
     				webuiInstaller.setVerbose(verbose);
     				webuiInstaller.setProgress(progressInSeconds,TimeUnit.SECONDS);
@@ -415,23 +424,29 @@ public class LocalhostGridAgentBootstrapper {
     				webuiInstaller.setServiceName(WEBUI_NAME);
     				webuiInstaller.setManagementZone(MANAGEMENT_GSA_ZONE);
     				try {
-    					webuiInstaller.install();
+    					webuiInstaller.install();    					
     				}
     				catch (ProcessingUnitAlreadyDeployedException e) {
     					if (verbose) {
     						logger.info("Service " + WEBUI_NAME + " already installed");
     					}
     				}
+    				if (waitForWebUi)
+        				waitForManagementServices.add(webuiInstaller);
+    				else
+    					webuiInstaller.logServiceLocation();
     				
     				ManagementWebServiceInstaller restInstaller = new ManagementWebServiceInstaller();
     				restInstaller.setAdmin(agent.getAdmin());
     				restInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
     				restInstaller.setVerbose(verbose);
+    				webuiInstaller.setProgress(progressInSeconds,TimeUnit.SECONDS);
     				restInstaller.setMemory(REST_MEMORY_IN_MB, MemoryUnit.MEGABYTES);
     				restInstaller.setPort(REST_PORT);
     				restInstaller.setWarFile(new File(REST_FILE));
     				restInstaller.setServiceName(REST_NAME);
     				restInstaller.setManagementZone(MANAGEMENT_GSA_ZONE);
+    				restInstaller.setWaitForConnection();
     				try {
     					restInstaller.install();
     				}
@@ -440,22 +455,37 @@ public class LocalhostGridAgentBootstrapper {
     						logger.info("Service " + REST_NAME + " already installed");
     					}
     				}
+    				waitForManagementServices.add(restInstaller);
     				
-    				//assuming eager mode, PU installs on this even if already installed
-    				if (waitForWebUi) {
-        				webuiInstaller.waitForProcessingUnitInstance(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
-    				} else {
-    				    // log an estimation of the Webui URL
-    				    webuiInstaller.logServiceLocation();
+    			} 
+				if (!noManagementSpace) {
+					final boolean highlyAvailable = !isLocalCloud;
+					ManagementSpaceServiceInstaller managementSpaceInstaller = new ManagementSpaceServiceInstaller();
+					managementSpaceInstaller.setAdmin(agent.getAdmin());
+					managementSpaceInstaller.setVerbose(verbose);
+					managementSpaceInstaller.setMemory(MANAGEMENT_SPACE_MEMORY_IN_MB, MemoryUnit.MEGABYTES);
+					managementSpaceInstaller.setServiceName(MANAGEMENT_SPACE_NAME);
+					managementSpaceInstaller.setManagementZone(MANAGEMENT_GSA_ZONE);
+					managementSpaceInstaller.setHighlyAvailable(highlyAvailable);
+    				try {
+    					managementSpaceInstaller.install();
+    					waitForManagementServices.add(managementSpaceInstaller);
     				}
-    				URL restUrl = restInstaller.waitForProcessingUnitInstance(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
-    				    				
-    				waitForConnection(restUrl, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
-    			} finally {
-    				connectionLogs.restoreConnectionErrors();				
-    			}
-			}
-		}
+    				catch (ProcessingUnitAlreadyDeployedException e) {
+    					if (verbose) {
+    						logger.info("Service " + MANAGEMENT_SPACE_NAME + " already installed");
+    					}
+    				}
+				}
+				
+				for (AbstractManagementServiceInstaller managementServiceInstaller : waitForManagementServices) {
+					managementServiceInstaller.waitForInstallation(adminFacade, agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
+				}
+				
+			} finally {
+				connectionLogs.restoreConnectionErrors();
+			}			
+		}		
 		finally {
 			admin.close();
 		}
@@ -809,27 +839,6 @@ public class LocalhostGridAgentBootstrapper {
 			.verbose(verbose);
 	}
 	
-	private void waitForConnection(final URL restAdminUrl, final long timeout, final TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException { 
-		adminFacade.disconnect();
-		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
-			
-			@Override
-			public boolean isDone() throws CLIException, InterruptedException {
-			
-	            try {
-	                adminFacade.connect(null, null, restAdminUrl.toString());
-	                return true;
-	            } catch (ErrorStatusException e) {
-	                if (verbose) {
-	                	logger.log(Level.INFO,"Error connecting to rest service.",e);
-	                }
-	            }
-	            logger.log(Level.INFO,"Connecting to rest service.");
-	            return false;
-			}
-		});
-	}
-	
     private File createScript(String text) throws CLIException {
         File tempFile;
         try {
@@ -861,4 +870,5 @@ public class LocalhostGridAgentBootstrapper {
         }
         return tempFile;
     }
+
 }
