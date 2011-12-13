@@ -359,7 +359,7 @@ public class ServiceReader {
 //		return ServiceReader.createGroovyShell(
 //				BaseServiceScript.class.getName(), properties, context);
 		return ServiceReader.createGroovyShell(
-				ServiceDslScript.class.getName(), properties, context, dslFile);
+				BaseDslScript.class.getName(), properties, context, dslFile);
 	}
 
 	private static GroovyShell createGroovyShellForApplication(File dslFile) {

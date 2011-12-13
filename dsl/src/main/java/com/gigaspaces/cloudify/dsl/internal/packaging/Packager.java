@@ -16,7 +16,7 @@ import java.util.logging.Level;
 import org.apache.commons.io.FileUtils;
 
 import com.gigaspaces.cloudify.dsl.Service;
-import com.gigaspaces.cloudify.dsl.internal.ServiceDslScript;
+import com.gigaspaces.cloudify.dsl.internal.BaseDslScript;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 import com.gigaspaces.internal.utils.StringUtils;
 import com.j_spaces.kernel.Environment;
@@ -197,8 +197,8 @@ public class Packager {
 			bufferedWriter = new BufferedWriter(fileWriter);
 			String line = bufferedReader.readLine();
 			while(line != null){
-				if (line.trim().startsWith(ServiceDslScript.EXTEND_PROPERTY_NAME + " ")){
-					line = line.substring(0, line.indexOf(ServiceDslScript.EXTEND_PROPERTY_NAME) + 6);
+				if (line.trim().startsWith(BaseDslScript.EXTEND_PROPERTY_NAME + " ")){
+					line = line.substring(0, line.indexOf(BaseDslScript.EXTEND_PROPERTY_NAME) + 6);
 					line += " \"" + localExtendedServiceFile.getName() + "\"";
 				}
 				bufferedWriter.write(line + StringUtils.NEW_LINE);
