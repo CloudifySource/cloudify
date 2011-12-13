@@ -132,10 +132,6 @@
             <fileset dir="${esc.local.copy}/config/" includes="bootstrap-management.sh" excludes=".svn"/>
         </copy>
     	
-    	<copy todir="${tmp.dir}/${cloudify.installation.dir}/bin" overwrite="true">
-            <fileset dir="${esc.local.copy}/config/" includes="bootstrap-management.sh" excludes=".svn"/>
-        </copy>
-    	
     	<!-- Add Cloudify Javadoc archive to Cloudify/docs folder -->
     	<copy file="${dsl.local.copy}/target/cloudify-javadoc.jar" tofile="${tmp.dir}/${cloudify.installation.dir}/docs/cloudify-javadoc.zip"/>
     	
