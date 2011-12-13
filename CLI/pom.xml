@@ -134,6 +134,13 @@
 			<version>1.0.3</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+		    <groupId>com.sun</groupId>
+	        <artifactId>deploy</artifactId>
+	        <version>1</version>
+	        <scope>system</scope>
+	        <systemPath>${java.home}/lib/deploy.jar</systemPath>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>

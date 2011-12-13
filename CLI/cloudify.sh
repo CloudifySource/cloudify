@@ -25,9 +25,16 @@ function setCloudifyClassPath() {
 	CLI_JARS=${JSHOMEDIR}/tools/cli/cli.jar
 	SIGAR_JARS=${JSHOMEDIR}/lib/platform/sigar/sigar.jar
 	GROOVY_JARS=${JSHOMEDIR}/tools/groovy/lib/*
-	ESC_JARS=
+	
+	# Test whether this is jdk or jre
+	if [ -f "${JAVA_HOME}/jre/lib/deploy.jar" ]; then
+		DEPLOY_JARS=${JAVA_HOME}/jre/lib/deploy.jar
+	else
+		DEPLOY_JARS=${JAVA_HOME}/lib/deploy.jar
+	fi
 	
 	# Add esc dependencies
+	ESC_JARS=
 	for jar in `find ${JSHOMEDIR}/lib/platform/esm -mindepth 1 -maxdepth 1 -type f -name \*.jar`
 	do
 		if [ "${ESC_JARS}" == "" ]; then
@@ -49,7 +56,7 @@ function setCloudifyClassPath() {
 		fi
 	done
 	
-	CLOUDIFY_CLASSPATH=${CLI_JARS}${CPS}${GS_JARS}${CPS}${SIGAR_JARS}${CPS}${GROOVY_JARS}${CPS}${ESC_JARS}${CPS}${PLUGIN_JARS}
+	CLOUDIFY_CLASSPATH=${CLI_JARS}${CPS}${DEPLOY_JARS}${CPS}${GS_JARS}${CPS}${SIGAR_JARS}${CPS}${GROOVY_JARS}${CPS}${ESC_JARS}${CPS}${PLUGIN_JARS}
 }
 
 function setCommandLine() {

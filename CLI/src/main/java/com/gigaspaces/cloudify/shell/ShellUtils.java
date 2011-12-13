@@ -118,5 +118,10 @@ public class ShellUtils {
             fis.close();
         }
         return properties;
+    }   
+    
+    public static boolean isWindows() {
+        final String os = System.getProperty("os.name").toLowerCase();
+        return (os.indexOf("win") >= 0);
     }
 }
