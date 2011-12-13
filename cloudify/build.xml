@@ -202,6 +202,9 @@
        <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure" failonerror="false">
        		<fileset dir="${azure.local.copy}" includes="azureconfig.exe*"/>
 		</copy>
+		<copy todir="${releases.dir}/build_${cloudify.build.number}/${cloudify}/azure" failonerror="false">
+       		<fileset dir="${azure.local.copy}" includes="WorkerRoles.zip"/>
+		</copy>
        <delete dir="${builds.dir}${buildnumber}/${cloudify}/azure" includes="azureconfig.exe*" />
    </target>
 	
