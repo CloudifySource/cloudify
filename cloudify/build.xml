@@ -190,6 +190,9 @@
             <zip destfile="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip">
                 <zipfileset dir="${tmp.dir}" includes="**/*" filemode="775"/>
             </zip>
+    		<copy todir="${releases.dir}/build_${cloudify.build.number}/${cloudify}/azure" failonerror="false">
+	       		<fileset dir="${azure.local.copy}" includes="WorkerRoles.zip"/>
+			</copy>
     </target>
 	
 	 <target name="copy.packages.to.build.repository" description="copy packages to build repository" unless="gs.internal.systems.not.available">
@@ -201,9 +204,6 @@
 	<target name="add.azure.artifacts">
        <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure" failonerror="false">
        		<fileset dir="${azure.local.copy}" includes="azureconfig.exe*"/>
-		</copy>
-		<copy todir="${releases.dir}/build_${cloudify.build.number}/${cloudify}/azure" failonerror="false">
-       		<fileset dir="${azure.local.copy}" includes="WorkerRoles.zip"/>
 		</copy>
        <delete dir="${builds.dir}${buildnumber}/${cloudify}/azure" includes="azureconfig.exe*" />
    </target>
