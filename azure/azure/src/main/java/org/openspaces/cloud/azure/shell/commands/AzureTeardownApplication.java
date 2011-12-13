@@ -95,6 +95,11 @@ public class AzureTeardownApplication extends AbstractGSCommand {
         }
          
         azureDeploymentWrapper.waitForAzureDeploymentStatus(AzureDeploymentStatus.NotFound, millisUntil(end), TimeUnit.MILLISECONDS);
+        
+        if (adminFacade.isConnected()) {
+            adminFacade.disconnect();
+        }
+        
     	return "Completed application teardown.";
     }
 	
