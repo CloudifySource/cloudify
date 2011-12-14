@@ -116,18 +116,4 @@ PreStartListener {
 	public void setServiceContext(ServiceContext context) {
 		// ignore
 	}
-//	
-//	public void setPorts(List<Integer> list){
-//		this.portList = list;
-//	}
-//	public static void main(String[] args) throws TimeoutException{
-//		List<Integer> ports = new ArrayList<Integer>();
-//		ports.add(39000);
-//		ports.add(38999);
-//		ports.add(38998);
-//		PortLivenessDetector pld = new PortLivenessDetector();
-//		pld.setPorts(ports);
-//		pld.isProcessAlive();
-//		
-//	}
 }
