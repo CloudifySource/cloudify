@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+	<extension point="org.eclipse.wst.server.core.moduleTypes">
+	    <moduleType id="com.gigaspaces.azure.module" name="module" />
+	</extension>
+
+	<extension
+		point="org.eclipse.wst.server.core.runtimeTypes">
+		<runtimeType
+			id="com.gigaspaces.azure.runtime"
+			name="azureRuntime" description="Windows Azure Runtime"
+			vendor="Gigaspaces" version="1.0"
+			class="org.eclipse.jst.server.generic.core.internal.GenericServerRuntime">
+			<moduleType types="jst.web" versions="2.2, 2.3, 2.4, 2.5" />
+		</runtimeType>
+	</extension>
+
+	<extension
+		point="org.eclipse.wst.server.core.serverTypes">
+		<serverType
+			id="com.gigaspaces.azure.server"
+			runtime="true"
+			runtimeTypeId="com.gigaspaces.azure.runtime"
+			name="Windows Azure"
+			description="Windows Azure Java Server"
+			class="org.eclipse.jst.server.generic.core.internal.GenericServer"
+			hasConfiguration="false"
+			initialState="stopped"			
+			launchConfigId="org.eclipse.jst.server.generic.core.ExternalLaunchConfigurationType"
+      		behaviourClass="org.eclipse.jst.server.generic.core.internal.ExternalServerBehaviour"						
+			launchModes="run,debug"
+			startBeforePublish="true"
+			startTimeout="120000"
+			stopTimeout="15000"
+			supportsRemoteHosts="true" />						
+	</extension>			
+
+	<extension
+		point="org.eclipse.jst.server.generic.core.serverdefinition">
+		<serverdefinition
+			id="com.gigaspaces.azure.runtime"
+			definitionfile="server/server-definition.xml" />         
+	</extension>
+	
+	<extension point="org.eclipse.jst.server.core.runtimeClasspathProviders">
+    	<runtimeClasspathProvider
+	        id="com.gigaspaces.azure.runtimeClasspathProvider"
+	        runtimeTypeIds="com.gigaspaces.azure.runtime"
+	        class="org.eclipse.jst.server.generic.core.internal.GenericServerRuntimeTargetHandler"/>
+    </extension>
+	
+
+</plugin>

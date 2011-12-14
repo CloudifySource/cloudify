@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:ServerRuntime
+	xmlns:tns="http://eclipse.org/jst/server/generic/ServerTypeDefinition"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://eclipse.org/jst/server/generic/ServerTypeDefinition
+	ServerTypeDefinitionSchema.xsd"
+	name="gigaspaces-azure" version="v1.0">
+
+	<module>
+		<type>com.gigaspaces.azure.module</type>
+		<publishDir>${rootDirectory}/install</publishDir>
+		<publisherReference>org.eclipse.jst.server.generic.antpublisher</publisherReference>
+	</module>
+
+	<port>
+    	<no>8080</no>
+        <name>Http</name>
+        <protocol>http</protocol>
+    </port>
+
+	<start>
+		<external>D:\Tools\apache-tomcat-6.0.35\bin\catalina.bat</external>
+		<workingDirectory>D:\Tools\apache-tomcat-6.0.35\bin</workingDirectory>
+		<programArguments>start</programArguments>
+		<debugPort>8000</debugPort>
+	</start>
+
+	<stop>
+		<external>D:\Tools\apache-tomcat-6.0.35\bin\catalina.bat</external>
+		<workingDirectory>D:\Tools\apache-tomcat-6.0.35\bin</workingDirectory>
+		<programArguments>stop</programArguments>
+	</stop>
+
+</tns:ServerRuntime>
