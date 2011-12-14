@@ -11,8 +11,8 @@ import java.util.logging.Level;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.lang.math.NumberUtils;
 import org.openspaces.pu.container.support.ResourceApplicationContext;
+import org.openspaces.ui.UserInterface;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +27,7 @@ import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.context.ServiceContext;
 import com.gigaspaces.cloudify.usm.USMComponent;
 import com.gigaspaces.cloudify.usm.USMException;
+import com.gigaspaces.cloudify.usm.USMUtils;
 import com.gigaspaces.cloudify.usm.UniversalServiceManagerBean;
 import com.gigaspaces.cloudify.usm.UniversalServiceManagerConfiguration;
 import com.gigaspaces.cloudify.usm.details.Details;
@@ -45,8 +46,6 @@ import com.gigaspaces.cloudify.usm.shutdown.DefaultProcessKiller;
 import com.gigaspaces.cloudify.usm.shutdown.ProcessKiller;
 import com.gigaspaces.cloudify.usm.stopDetection.ProcessStopDetector;
 import com.gigaspaces.cloudify.usm.stopDetection.StopDetector;
-
-import org.openspaces.ui.UserInterface;
 
 @Configuration
 public class DSLBeanConfiguration implements ApplicationContextAware {
@@ -97,7 +96,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			.values();
 			if (launchers.size() == 0) {
 				throw new IllegalStateException(
-						"No ProcessLauncher was found in Context!");
+				"No ProcessLauncher was found in Context!");
 			}
 			this.launcher = launchers.iterator().next();
 		}
@@ -349,6 +348,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 		};
 	}
 
+
 	@Bean
 	public USMComponent getMonitor() {
 		final Object monitor = this.service.getLifecycle().getMonitors();
@@ -366,8 +366,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 						throws MonitorException {
 					Object obj = ((Closure) monitor).call();
 					if (obj instanceof Map<?, ?>) {
-						// TODO - validate key and value types
-						return (Map<String, Number>) obj;
+						return USMUtils.convertMapToNumericValues((Map<String, Object>) obj);
 					} else {
 						throw new IllegalArgumentException(
 								"The Monitor closure defined in the DSL file does not evaluate to a Map! Received object was of type: "
@@ -375,6 +374,8 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 					}
 
 				}
+
+
 			};
 
 		}
@@ -386,41 +387,25 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 					UniversalServiceManagerBean usm,
 					UniversalServiceManagerConfiguration config)
 					throws MonitorException {
-				try {
-					Map<String, Number> returnMap = new HashMap<String, Number>();
-					if (monitor instanceof Map<?, ?>){
-						for (Map.Entry<String, Object> entryObject : ((Map<String, Object>)monitor).entrySet()) {
-							Object object = entryObject.getValue();
-							EventResult result = new DSLEntryExecutor(object,
-									launcher, puExtDir).run();
-							if (!result.isSuccess()) {
-								logger.log(
-										Level.WARNING,
-										"DSL Entry failed to execute: "
-										+ result.getException());
-							} else if (result.getResult() instanceof Number) {
-								returnMap.put(entryObject.getKey(),
-										(Number) result.getResult());
-							} else if (result.getResult() instanceof String) {
-								if (NumberUtils.isNumber((String) result
-										.getResult())) {
-									Number number = NumberUtils
-									.createNumber((String) result
-											.getResult());
-									returnMap.put(entryObject.getKey(), number);
-								}
-							} else {
-								logger.log(
-										Level.WARNING,
-										"Expected DSL result to be numeric but received a non-numeric value",
-										result.getException().getStackTrace());
-							}
+				Map<String, Object> returnMap  = new HashMap<String, Object>();
+				if (monitor instanceof Map<?, ?>){
+
+					for (Map.Entry<String, Object> entryObject : ((Map<String, Object>)monitor).entrySet()) {
+						Object object = entryObject.getValue();
+						EventResult result = new DSLEntryExecutor(object,
+								launcher, puExtDir).run();
+						if (!result.isSuccess()) {
+							logger.log(
+									Level.WARNING,
+									"DSL Entry failed to execute: "
+									+ result.getException());
+						}else {
+							returnMap.put(entryObject.getKey(), result.getResult());
 						}
+
 					}
-					return returnMap;
-				} catch (Exception e) {
-					return null;
 				}
+				return USMUtils.convertMapToNumericValues(returnMap);
 			}
 		};
 	}
@@ -500,6 +485,11 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 							result.getException());
 				}
 
+			}
+			
+			@Override
+			public String getName(){
+				return "LivenessDetector";
 			}
 
 			@Override

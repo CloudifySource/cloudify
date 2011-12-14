@@ -11,9 +11,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.lang.math.NumberUtils;
 import org.hyperic.sigar.FileInfo;
 import org.hyperic.sigar.ProcState;
 import org.hyperic.sigar.Sigar;
@@ -316,6 +319,27 @@ public final class USMUtils {
 					+ e.getMessage(), e);
 		}
 		return procState;
+	}
+	
+
+	//converts a map of type <String, Object> to a Map of <String, Number>
+	public static Map<String, Number> convertMapToNumericValues(Map<String, Object> map) {
+		Map<String, Number> returnMap = new HashMap<String, Number>();
+		for (Map.Entry<String, Object> entryObject : ((Map<String, Object>)map).entrySet()){
+			if (entryObject.getValue() instanceof Number) {
+				returnMap.put(entryObject.getKey(),
+						(Number) entryObject.getValue());
+			} else if (entryObject.getValue() instanceof String) {
+				if (NumberUtils.isNumber((String) entryObject.getValue())) {
+					Number number = NumberUtils
+					.createNumber((String) entryObject.getValue());
+					returnMap.put(entryObject.getKey(), number);
+				}
+			}else{
+				logger.info("monitor value is expected to be numeric: " + entryObject.getValue().toString());
+			}
+		}
+		return returnMap;
 	}
 
 
