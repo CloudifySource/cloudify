@@ -2,69 +2,26 @@ package com.gigaspaces.cloudify.dsl.utils;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
-import java.net.Socket;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
+import org.hyperic.sigar.Sigar;
+import org.hyperic.sigar.SigarException;
+import org.hyperic.sigar.SigarFileNotFoundException;
+
+import com.gigaspaces.cloudify.dsl.internal.DSLException;
+import com.gigaspaces.internal.sigar.SigarHolder;
+
 public class ServiceUtils {
+	private static final Sigar sigar = SigarHolder.getSigar();
 
 	private static java.util.logging.Logger logger = java.util.logging.Logger
-			.getLogger(ServiceUtils.class.getName());
-
-	/**
-	 * Same as isPortsOccupied. Check that ports have been opened by the
-	 * process. with default host set to 127.0.0.1
-	 * 
-	 * @param portList
-	 * @param timeoutInSeconds
-	 * @throws TimeoutException
-	 */
-	public static boolean isPortsOccupied(List<Integer> portList,
-			int timeoutInSeconds) {
-		return isPortsOccupied(portList, "127.0.0.1");
-	}
-
-	/**
-	 * Checks that the specified port is free before the process starts. a
-	 * default host name is used 127.0.0.1.
-	 * 
-	 * @param portList
-	 *            - list of ports to check.
-	 * @return - true if port is free
-	 */
+	.getLogger(ServiceUtils.class.getName());
+	
 	public static boolean isPortFree(int port) {
-		return isPortFree(port, "127.0.0.1");
-	}
-
-	/**
-	 * Checks that the specified port is free before the process starts.
-	 * 
-	 * @param portList
-	 *            - list of ports to check.
-	 * @param the
-	 *            host name to check.
-	 * @return - true if port is free
-	 */
-	public static boolean isPortFree(int port, String host) {
-		List<Integer> list = new ArrayList<Integer>();
-		list.add(port);
-		return isPortsFree(list, host);
-	}
-
-	/**
-	 * Checks that the specified ports are free before the process starts. a
-	 * default host name is used 127.0.0.1.
-	 * 
-	 * @param portList
-	 *            - list of ports to check.
-	 * @return - true if ports are free
-	 */
-	public static boolean isPortsFree(List<Integer> portList) {
-		return isPortsFree(portList, "127.0.0.1");
+		return !isPortOccupied(port);
 	}
 
 	/**
@@ -72,38 +29,50 @@ public class ServiceUtils {
 	 * 
 	 * @param portList
 	 *            - list of ports to check.
-	 * @param hostName
-	 *            - host.
 	 * @return
-	 * @return - true if ports are free
+	 * @return - true if all ports are free
 	 */
-	public static boolean isPortsFree(List<Integer> portList, String hostName) {
-		Socket sock = null;
+	public static boolean isPortsFree(List<Integer> portList) {
 		int portCounter = 0;
 		for (int port : portList) {
-			try {
-				sock = new Socket();
-				sock.connect(new InetSocketAddress(hostName, port));
-				sock.close();
+			if (!isPortOccupied(port)){
+				logger.info("port: " + port + " is open.");
 				portCounter++;
-				if (portCounter == portList.size()) {
-					// connection succeeded - the port is not free
-					return false;
-				}
-			} catch (IOException e) {
-			} finally {
-				try {
-					sock.close();
-				} catch (IOException e) {
-					// ignore
-				}
 			}
-		}
-		return true;
-	}
+			if (portCounter == portList.size()) {
+				// All ports are free.
+				return true;
+			}
 
+		}
+		return false;
+	}
+	
 	/**
-	 * isPortsOccupied will repeatedly try to connect to the ports defined in
+	 * Checks whether a specified port is free before the process starts Using Sigar.
+	 * 
+	 * @param portList
+	 *            - list of ports to check.
+	 * @return - true if port is free
+	 */
+	public static boolean isPortOccupied(long port) {
+		logger.fine("checking port: " + port + "...");
+		try {
+			if (sigar.getNetListenAddress(port) != null) {
+				// we were able to find something
+				return true;
+			}
+		} catch (SigarFileNotFoundException e) {
+			// means port is not bound
+		} catch (SigarException e) {
+			logger.warning("The port liveness detection failed due to a Sigar exception.");
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
+	/**
+	 * isPortsOccupied will repeatedly test the connection to the ports defined in
 	 * the groovy configuration file to see whether the ports are open. Having
 	 * all the tested ports opened means that the process has completed loading
 	 * successfully and is up and running.
@@ -111,31 +80,17 @@ public class ServiceUtils {
 	 * @throws DSLException
 	 * 
 	 */
-	public static boolean isPortsOccupied(List<Integer> portList,
-			String hostName) {
-		Socket sock = null;
+	public static boolean isPortsOccupied(List<Integer> portList) {
 		int portCounter = 0;
 		for (int port : portList) {
-			try {
-				sock = new Socket();
-				logger.fine("Checking port " + port);
-				sock.connect(new InetSocketAddress(hostName, port));
-				logger.fine("Connected to port " + port);
-				sock.close();
-				portCounter++;
+				if (isPortOccupied(port)){
+					logger.info("port: " + port + " is Occupied.");
+					portCounter++;
+				}
 				if (portCounter == portList.size()) {
 					// connection succeeded - the port is not free
 					return true;
 				}
-			} catch (IOException e) {
-				return false;
-			} finally {
-				try {
-					sock.close();
-				} catch (IOException e) {
-					// ignore
-				}
-			}
 		}
 		return false;
 	}
@@ -243,9 +198,8 @@ public class ServiceUtils {
 		@Override
 		public String toString() {
 			return "FullServiceName [applicationName=" + applicationName
-					+ ", serviceName=" + serviceName + "]";
+			+ ", serviceName=" + serviceName + "]";
 		}
-		
 
 	}
 

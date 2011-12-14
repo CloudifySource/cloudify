@@ -43,7 +43,7 @@ public class MongoLivenessDetector extends AbstractMongoPlugin implements Livene
 	 */
 	public boolean isProcessAlive() throws TimeoutException {
         if (!initialized) init();
-        ServiceUtils.isPortsOccupied(Collections.singletonList(port), host);
+        ServiceUtils.isPortsOccupied(Collections.singletonList(port));
         return true;
 	}
 
