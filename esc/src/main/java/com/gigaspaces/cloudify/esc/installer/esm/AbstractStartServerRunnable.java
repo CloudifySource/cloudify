@@ -106,6 +106,8 @@ public abstract class AbstractStartServerRunnable {
             }
             details.setKeyFile(keyFile.getAbsolutePath());
         }
+        details.setPassword(config.getSshPassword());
+        details.setUsername(config.getSshUsername());
         return details;
     }
 	

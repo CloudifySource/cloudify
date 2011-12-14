@@ -46,7 +46,8 @@ public class CloudDSLToProvisioningConfigTest {
 		cloud.setUser("user");
 		cloud.setZones(new ArrayList<String>());
 		cloud.setLocationId("locationId");
-		
+		cloud.setSshUsername("sshUsername");
+		cloud.setSshPassword("sshPassword");
 	}
 	
 	@Test

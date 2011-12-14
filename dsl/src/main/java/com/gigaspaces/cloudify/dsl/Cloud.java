@@ -11,6 +11,8 @@ public class Cloud {
 	private String user;
 	private String apiKey;
 	
+	private String sshUsername;
+	private String sshPassword;
 
 	private String provider;
 	private String localDirectory;
@@ -222,6 +224,22 @@ public class Cloud {
 
     public String getLocationId() {
         return locationId;
+    }
+
+    public void setSshUsername(String sshUsername) {
+        this.sshUsername = sshUsername;
+    }
+
+    public String getSshUsername() {
+        return sshUsername;
+    }
+
+    public void setSshPassword(String sshPassword) {
+        this.sshPassword = sshPassword;
+    }
+
+    public String getSshPassword() {
+        return sshPassword;
     }
 
 }

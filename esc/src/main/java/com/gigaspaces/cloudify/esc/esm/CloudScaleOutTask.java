@@ -110,39 +110,43 @@ public class CloudScaleOutTask extends AbstractStartServerRunnable {
 
 		NodeMetadata server = this.getServers().iterator().next();
 		
-		this.getDetails().setUsername(server.getCredentials().identity);
+		if (this.getDetails().getUsername() == null || this.getDetails().getUsername().isEmpty()) {
+		    this.getDetails().setUsername(server.getCredentials().identity);
+		}
 		
-		final String credential = server.getCredentials().credential;
 		File tempFile = null;
-
-		if (credential == null) { // must be using an existing key file
-			if ((this.getDetails().getKeyFile() == null) || (this.getDetails().getKeyFile().length() == 0)) {
-				throw new InstallerException("Expected to receive a key " +
-						"file for authentication to new server");
-			}
-			tempFile = new File(this.getDetails().getKeyFile());
-		} else if (credential.startsWith("-----BEGIN RSA PRIVATE KEY-----")) {
-
-			FileWriter writer = null;
-			try {
-				tempFile = File.createTempFile("gs-esm-key", ".pem");
-				writer = new FileWriter(tempFile);
-				writer.write(credential);
-				this.getDetails().setKeyFile(tempFile.getAbsolutePath());
-			} catch (final IOException e) {
-				throw new InstallerException("Failed to create a temporary file for cloud server's key file", e);
-			} finally {
-				if (writer != null) {
-					try {
-						writer.close();
-					} catch (final IOException e) {
-						// ignore
-					}
-				}
-			}
-
-		} else {
-			this.getDetails().setPassword(server.getCredentials().credential);
+		if (this.getDetails().getPassword() == null || this.getDetails().getPassword().isEmpty()) {
+    		final String credential = server.getCredentials().credential;
+    
+    		if (credential == null) { // must be using an existing key file
+    			if ((this.getDetails().getKeyFile() == null) || (this.getDetails().getKeyFile().length() == 0)) {
+    				throw new InstallerException("Expected to receive a key " +
+    						"file for authentication to new server");
+    			}
+    			tempFile = new File(this.getDetails().getKeyFile());
+    		} else if (credential.startsWith("-----BEGIN RSA PRIVATE KEY-----")) {
+    
+    			FileWriter writer = null;
+    			try {
+    				tempFile = File.createTempFile("gs-esm-key", ".pem");
+    				writer = new FileWriter(tempFile);
+    				writer.write(credential);
+    				this.getDetails().setKeyFile(tempFile.getAbsolutePath());
+    			} catch (final IOException e) {
+    				throw new InstallerException("Failed to create a temporary file for cloud server's key file", e);
+    			} finally {
+    				if (writer != null) {
+    					try {
+    						writer.close();
+    					} catch (final IOException e) {
+    						// ignore
+    					}
+    				}
+    			}
+    
+    		} else {
+    			this.getDetails().setPassword(server.getCredentials().credential);
+    		}
 		}
 
 		final File keyFile = tempFile;
@@ -248,7 +252,7 @@ public class CloudScaleOutTask extends AbstractStartServerRunnable {
 	 * @return
 	 */
 
-	private static void logServerDetails(NodeMetadata server, File tempFile) {
+	private void logServerDetails(NodeMetadata server, File tempFile) {
         if (logger.isLoggable(Level.INFO)) {
             logger.info(nodePrefix(server) + "ESM Server was created.");
             if (tempFile == null) {
@@ -261,7 +265,8 @@ public class CloudScaleOutTask extends AbstractStartServerRunnable {
             logger.info(nodePrefix(server) + "Private IP: " + Arrays.toString(server.getPrivateAddresses().toArray()));
             logger.info(nodePrefix(server) + "Target IP for connection: " + server.getPrivateAddresses().iterator().next());
             if (tempFile == null) {
-                logger.info(nodePrefix(server) + "Connect with putty using: putty -pw " + server.getCredentials().credential + " root@"
+                logger.info(nodePrefix(server) + "Connect with putty using: putty -pw " + server.getCredentials().credential + " "
+                        + this.getDetails().getUsername() + "@"
                         + server.getPublicAddresses().toArray()[0]);
             } else {
 

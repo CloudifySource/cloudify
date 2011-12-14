@@ -339,7 +339,8 @@ public class CloudMachineProvisioning implements ElasticMachineProvisioning, Bea
 				",", 0, config.getGridServiceAgentZones().length));
 		
 		details.setKeyFile(config.getKeyFile());
-
+		details.setUsername(config.getSshUsername());
+		details.setPassword(config.getSshPassword());
 		details.setPrivateIp(null);
 
 		logger.info("Setting LOCATOR for new installation details to: " + config.getLocator());

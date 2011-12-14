@@ -35,6 +35,10 @@ public class CloudMachineProvisioningConfig implements ElasticMachineProvisionin
 	private static final String IMAGE_ID_KEY = "image-id";
 	private static final String PROVIDER_KEY = "provider";
 	private static final String USER_KEY = "user";
+	private static final String SSH_USERNAME_KEY = "ssh-username";
+	private static final String SSH_USERNAME_DEFAULT = "";
+	private static final String SSH_PASSWORD_KEY = "ssh-password";
+	private static final String SSH_PASSWORD_DEFAULT = "";
 	private static final String LOCAL_DIRECTORY_KEY = "local-directory";
 	private static final String LOCAL_DIRECTORY_DEFAULT = "c:/docBase";
 	private static final String REMOTE_DIRECTORY_KEY = "remote-directory";
@@ -316,7 +320,7 @@ public class CloudMachineProvisioningConfig implements ElasticMachineProvisionin
 	public String getUser() {
 		return properties.get(USER_KEY);
 	}
-
+	
 	public void setApiKey(final String apiKey) {
 		properties.put(API_KEY_KEY, apiKey);
 	}
@@ -325,6 +329,22 @@ public class CloudMachineProvisioningConfig implements ElasticMachineProvisionin
 		return properties.get(API_KEY_KEY);
 	}
 
+    public void setSshUsername(String sshUsername) {
+        properties.put(SSH_USERNAME_KEY, sshUsername);
+    }
+
+    public String getSshUsername() {
+        return properties.get(SSH_USERNAME_KEY, SSH_USERNAME_DEFAULT);
+    }
+
+    public void setSshPassword(String sshPassword) {
+        properties.put(SSH_PASSWORD_KEY, sshPassword);
+    }
+
+    public String getSshPassword() {
+        return properties.get(SSH_PASSWORD_KEY, SSH_PASSWORD_DEFAULT);
+    }
+	
 	public void setMachineNamePrefix(final String machineNamePrefix) {
 		properties.put(MACHINE_NAME_PREFIX_KEY, machineNamePrefix);
 	}
