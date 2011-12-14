@@ -59,7 +59,7 @@
 		<dependency>
 			<groupId>com.gigaspaces.cloudify</groupId>
 			<artifactId>dsl</artifactId>
-			<version>2.0</version>
+			<version>${cloudifyVersion}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
