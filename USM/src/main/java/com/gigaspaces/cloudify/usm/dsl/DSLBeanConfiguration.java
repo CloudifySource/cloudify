@@ -486,11 +486,6 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 				}
 
 			}
-			
-			@Override
-			public String getName(){
-				return "LivenessDetector";
-			}
 
 			@Override
 			public void init(UniversalServiceManagerBean usm) {
