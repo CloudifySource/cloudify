@@ -99,7 +99,7 @@ public class InstallApplication extends AdminAwareCommand {
 		if (serviceOrder.length() > 2) {
 			serviceOrder = serviceOrder.substring(1,serviceOrder.length() -1);
 			logger.fine("Services will be installed in the following order: " + serviceOrder);
-
+			printApplicationInfo(application);
 			for (String serviceName : serviceOrder.split(Pattern.quote(","))) {
 				String trimmedServiceName = serviceName.trim();
 				Service service = getServiceByName(application, trimmedServiceName);
@@ -118,6 +118,23 @@ public class InstallApplication extends AdminAwareCommand {
         GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
         
 		return this.getFormattedMessage("application_installed_succesfully", applicationName);
+	}
+
+	private void printApplicationInfo(Application application) {
+		logger.info("Application [" + applicationName + "] with " + application.getServices().size() + " services");
+		for (Service  service : application.getServices()) {
+			if (service.getDependsOn().isEmpty()){
+				logger.info("Service [" + service.getName() + "] " 
+						+ service.getNumInstances() 
+						+ " planned instances");
+			}else{//Service has dependencies
+				logger.info("Service [" + service.getName() + "] depends on " 
+						+ service.getDependsOn().toString() 
+						+ " planned " + service.getNumInstances() + " instances");
+				
+			}
+		}
+		
 	}
 
 	private void normalizeApplicationName(Application application) {

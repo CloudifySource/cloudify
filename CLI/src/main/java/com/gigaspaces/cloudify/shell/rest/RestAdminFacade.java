@@ -93,53 +93,108 @@ public class RestAdminFacade extends AbstractAdminFacade {
 
 		logger.info(MessageFormat.format(messages.getString("deploying_service"),serviceName));
 
-		Integer currentNumberOfInstances = 0;
+		Integer currentNumberOfNonUSMInstances = -1;
+		Integer currentNumberOfRunningUSMInstances = -1;
+		boolean statusChanged = false;
+		boolean isUSMService = false;
+		
 		while (System.currentTimeMillis() < end) {
-			Map<String, Object> map = client.getAdminData(pollingURL);
-			currentNumberOfInstances = (Integer)map.get("Instances-Size");
-
-			if ("partitioned-sync2backup".equals(map.get("ClusterSchema"))) {
-				plannedNumberOfInstances = Integer.valueOf((String) map.get("TotalNumberOfInstances"));
+			
+			Map<String, Object> serviceStatusMap = client.getAdminData(pollingURL);
+			if ("partitioned-sync2backup".equals(serviceStatusMap.get("ClusterSchema"))) {
+				plannedNumberOfInstances = Integer.valueOf((String) serviceStatusMap.get("TotalNumberOfInstances"));
 			}
 			
+			//Update all service instance numbers.
+			if (isUSMService){
+				int numberOfUSMServicesWithRunningState = getNumberOfUSMServicesWithRunningState(serviceName, 
+															applicationName,
+															(Integer)serviceStatusMap.get("Instances-Size"));
+				if(currentNumberOfRunningUSMInstances != numberOfUSMServicesWithRunningState){
+					currentNumberOfRunningUSMInstances = numberOfUSMServicesWithRunningState;
+					statusChanged = true;
+				}else{
+					statusChanged = false;
+				}
+			}else{//Not a USM Service
+				
+				int actualNumberOfInstances = (Integer)serviceStatusMap.get("Instances-Size");
+				if (actualNumberOfInstances != currentNumberOfNonUSMInstances){
+					currentNumberOfNonUSMInstances = actualNumberOfInstances;
+					statusChanged = true;
+				}else{
+					statusChanged = false;
+				}
+			}
+
+			//Print the event logs and return shutdown event count.
 			serviceShutDownEventsCount = handleEventLogs(serviceName, applicationName, plannedNumberOfInstances, serviceShutDownEventsCount);
-			
-			if (currentNumberOfInstances == 0){
-				logger.info(MessageFormat.format(
-						messages.getString("deploying_service_updates"),
-						plannedNumberOfInstances, currentNumberOfInstances));
-			}else if (plannedNumberOfInstances < currentNumberOfInstances){
+				
+			if ((Integer)serviceStatusMap.get("Instances-Size") == 0){
+				printStatusMessage(plannedNumberOfInstances, (Integer)serviceStatusMap.get("Instances-Size"), statusChanged, isUSMService);
+			//Too many instances.
+			}else if (plannedNumberOfInstances < currentNumberOfNonUSMInstances ||
+					plannedNumberOfInstances < currentNumberOfRunningUSMInstances ){
 				throw new CLIException(MessageFormat.format(
 						messages.getString("number_of_instances_exceeded_planned"),
-						plannedNumberOfInstances, currentNumberOfInstances)); 
-			}else if (currentNumberOfInstances > 0){
+						plannedNumberOfInstances, Math.max(currentNumberOfNonUSMInstances, currentNumberOfRunningUSMInstances))); 
+			}else if ((Integer)serviceStatusMap.get("Instances-Size") > 0){
 				if (isUSMService(applicationName, serviceName)){
-					int usmServicesStateRunningInstances = getNumberOfUSMServicesWithRunningState(serviceName, applicationName, currentNumberOfInstances);
-					//The above action might take several seconds 
-					//so we print any events that might have been triggered in the mean time.
-					serviceShutDownEventsCount = handleEventLogs(serviceName, applicationName, plannedNumberOfInstances, serviceShutDownEventsCount);
-					logger.info(MessageFormat.format(
-							messages.getString("deploying_service_updates"),
-							plannedNumberOfInstances, usmServicesStateRunningInstances));
+					if (!isUSMService){
+						isUSMService = true;
+						currentNumberOfRunningUSMInstances = getNumberOfUSMServicesWithRunningState(serviceName, 
+								applicationName,
+								(Integer)serviceStatusMap.get("Instances-Size"));
+					}
+					printStatusMessage(plannedNumberOfInstances, currentNumberOfRunningUSMInstances, statusChanged, isUSMService);
+					
 					//are all usm service instances in Running state?
-					if (usmServicesStateRunningInstances == plannedNumberOfInstances){
+					if (currentNumberOfRunningUSMInstances == plannedNumberOfInstances){
 						return true;
 					}
 				}else{//non USM Service.
-					logger.info(MessageFormat.format(
-							messages.getString("deploying_service_updates"),
-							plannedNumberOfInstances, currentNumberOfInstances));
+					printStatusMessage(plannedNumberOfInstances, currentNumberOfNonUSMInstances, statusChanged, isUSMService);
 					//if all services up, return.
-					if (plannedNumberOfInstances  == currentNumberOfInstances){
+					if (plannedNumberOfInstances  == currentNumberOfNonUSMInstances){
 						return true;
 					}
 				}
 			}
-
 			Thread.sleep(POLLING_INTERVAL);
 		}
 		throw new TimeoutException(timeoutErrorMessage);
+		
+	}
+	
+	private void printStatusMessage(int plannedNumberOfInstances,
+			Integer currentNumberOfInstances, boolean statusChanged, boolean isUSMService) {
+		if (statusChanged){
+			//Treat special cases. doesn't print newline in beginning or end of installation
+			//unless dealing with a non-usm service. in that case we print a newline at the end of the installation. 
+			if ((!currentNumberOfInstances.equals(0) && !currentNumberOfInstances.equals(plannedNumberOfInstances))
+					|| (currentNumberOfInstances.equals(plannedNumberOfInstances) && !isUSMService)){
+				System.out.println('.');
+				System.out.flush();
+			}
+			logger.info(MessageFormat.format(
+					messages.getString("deploying_service_updates"),
+					plannedNumberOfInstances, currentNumberOfInstances));
+			
+			}else{//Status hasn't changed. print a '.'
+				System.out.print('.');
+				System.out.flush();
+			}
+	}
+	
 
+	private void printEventLogs(List<String> events){
+		if (events.size() != 0){
+			System.out.println('.');
+			System.out.flush();
+		}
+		for (String eventString : events) {
+			logger.info(eventString);
+		}
 	}
 	
 	//Prints event logs and monitors shutdown events.
@@ -241,11 +296,6 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		return shutdownEventCount;
 	}
 
-	private void printEventLogs(List<String> events){
-		for (String eventString : events) {
-			logger.info(eventString);
-		}
-	}
 
 	@Override
 	public void doDisconnect() {
