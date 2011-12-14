@@ -75,6 +75,7 @@ public class CliAzureDeploymentTest {
             "MZXVNyFExNWEPDvhFKw6qRPbu1i1nwp6yMjHFImB7yjrK8zgkWdKMyxNuThtTLLWzwESN0yaSjSp4BWCUNTmNyM9UC88UTQk3U" +
             "GnEmNRY6KMmyBt+rO8KNZvtFqWDV+ygEfFaj17ft5PpsoOk2Ue/sTAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECGmQUBVuWTl" +
             "WgBDXc+tBT2eo8ktROXDG7VDc";
+	private static final String RELATIVE_APPLICATION_EXAMPLE_PATH = "examples\\travel-azure";
 
     // arguments for cli
     private static final int TIMEOUT_IN_MINUTES = 60;
@@ -130,7 +131,7 @@ public class CliAzureDeploymentTest {
         File gigaSpacesCloudifyDir = new File(localWorkingDir, GIGASPACES_LATEST_HOME);
         Assert.assertTrue(gigaSpacesCloudifyDir.getPath() + " does not exist", gigaSpacesCloudifyDir.isDirectory());
         
-		applicationFile = new File(localWorkingDir.getParentFile(), "travel-withproxy");
+		applicationFile = new File(gigaSpacesCloudifyDir, RELATIVE_APPLICATION_EXAMPLE_PATH);
         Assert.assertTrue(applicationFile.getPath() + " does not exist", applicationFile.isDirectory());
         
         // these should exist assuming the cloudify folder is valid
