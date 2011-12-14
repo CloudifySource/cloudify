@@ -28,6 +28,8 @@ import com.gigaspaces.cloudify.dsl.Application;
 import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 import com.gigaspaces.cloudify.dsl.internal.packaging.ZipUtils;
+import com.gigaspaces.cloudify.shell.Constants;
+import com.gigaspaces.cloudify.shell.GigaShellMain;
 import com.gigaspaces.cloudify.shell.ShellUtils;
 import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
 
@@ -111,7 +113,10 @@ public class InstallApplication extends AdminAwareCommand {
 				}
 			}
 		}
-
+		
+        session.put(Constants.ACTIVE_APP, applicationName);
+        GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
+        
 		return this.getFormattedMessage("application_installed_succesfully", applicationName);
 	}
 
