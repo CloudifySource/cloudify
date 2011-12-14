@@ -20,9 +20,10 @@
 		<os family="unix" />
 	</condition>
 
+
+	
     <property environment="env."/>
 	<property name="tmp.dir" value="${basedir}/tmp" />
-	<property name="tmp.worker.roles.dir" value="${tmp.dir}/workerRolesTemp" />
 	<property name="gs.version" value="8.0.5" />
 	<property name="gs.build.number" value="6000" />
 	<property name="gs.milestone" value="ga" />
@@ -49,9 +50,10 @@
 	<property name="esc-commands.local.copy" value="${basedir}/../esc-commands" />
 	<property name="releases.dir" value="${basedir}/releases" />
 	<property name="build.prefix" value="build_" />
-   
-	<property name="publish.cloudify.build" value="dummy-for-conditional"></property>
+	<property name="" value="" />
+	<property name="" value="" />
 	
+   
     <target name="updateLUSGroups">
         <echo message="Updating LUS Groups in directory: ${tmp.dir}/${cloudify.installation.dir} ..."/>
         <property name="lookup.group" value="gigaspaces-${CLOUDIFY}-${cloudify.version}-${cloudify.milestone}"/>
@@ -146,17 +148,14 @@
 	</target>
 
     <target name="prepare.cloudify.package" depends="unzip.xap">
+   
     	<ant target="remove.xap.related.modules" />
         <ant target="updateLUSGroups"/>
         <ant target="add.cloudify.jars"/>
         <ant target="add.cloudify.modules"/>
         <ant target="replace.cloudify.license"/>
     	<ant target="add.azure.artifacts" />
-
-		<!-- conditional task -->
-    	<ant target="publish.cloudify.build" />
-    	
-    	<ant target="archive.versions"/>
+        <ant target="archive.versions"/>
     </target>
 	
 	<target name="remove.xap.related.modules">
@@ -182,102 +181,29 @@
       - - - - - - - - - - - - - - - - - -->
 
     <target name="archive.versions">
-    		<!--
     		<delete dir="${releases.dir}/build_${cloudify.build.number}"/>
             <mkdir dir="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5"/>
             <zip destfile="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip">
                 <zipfileset dir="${tmp.dir}" includes="**/*" filemode="775"/>
             </zip>
-			-->
+    		<copy todir="${releases.dir}/build_${cloudify.build.number}/${cloudify}/azure" failonerror="false">
+	       		<fileset dir="${azure.local.copy}" includes="WorkerRoles.zip"/>
+			</copy>
     </target>
 	
-	<target name="copy.packages.to.build.repository" description="copy packages to build repository" unless="gs.internal.systems.not.available">
-		<!--
+	 <target name="copy.packages.to.build.repository" description="copy packages to build repository" unless="gs.internal.systems.not.available">
        <copy todir="${build.repository.path}/${cloudify}/${cloudify.version}/${build.prefix}${cloudify.build.number}">
            <fileset dir="${releases.dir}/${build.prefix}${cloudify.build.number}"/>
        </copy>
-		-->
    	</target>
 	
 	<target name="add.azure.artifacts">
-		
-		<copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure" failonerror="false">
+       <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure" failonerror="false">
        		<fileset dir="${azure.local.copy}" includes="azureconfig.exe*"/>
 		</copy>
-		
-		<delete dir="${builds.dir}${buildnumber}/${cloudify}/azure" includes="azureconfig.exe*" />
-		
-		<copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure" failonerror="false">
-       		<fileset dir="${azure.local.copy}" includes="WorkerRoles.zip"/>
-		</copy>
-		
-		<unzip 
-			src="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles.zip" 
-			dest="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure"/>
-
-		<delete file="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles.zip" />
-
-	</target>
+       <delete dir="${builds.dir}${buildnumber}/${cloudify}/azure" includes="azureconfig.exe*" />
+   </target>
 	
 	<target name="prepare.and.copy.package" depends="prepare.cloudify.package, copy.packages.to.build.repository" />
-	
-	<!-- -->
-	
-	<target name="publish.cloudify.build" description="publish cloudify build to gigaspaces repository" if="publish.cloudify.build">
-		<ant target="update.service.configuration.url" />
-		<ant target="commit.service.configuration" />
-		<ant target="commit.cloudify.to.repository" />
-	</target>
-	
-	<target name="update.service.configuration.url">
-		
-        <echo message="Updating ServiceConfiguration in directory: ${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles/GigaSpacesWorkerRoles ..."/>
-		
-        <property name="cloudify.url" value="http://www.url.com" />
-		
-		<property name="groovy.dir" value="${tmp.dir}/${cloudify.installation.dir}/tools/groovy/bin" />
 
-		<condition property="groovy.path" value="${groovy.dir}/groovy.bat">
-			<os family="windows"/>
-		</condition>
-		<condition property="groovy.path" value="${groovy.dir}/groovy">
-			<os family="unix"/>
-		</condition>
-		
-		<exec executable="${groovy.path}" outputproperty="cloudify.url.encoded">
-			<env key="JAVA_HOME" value="${java.home}" />
-			<arg value="-e" />
-			<arg value="&quot;println(java.net.URLEncoder.encode('${cloudify.url}'))&quot;" />
-		</exec>
-
-		<replaceregexp byline="true"
-    		match="&lt;Setting name=&quot;GigaSpaces\.XAP\.DownloadUrl&quot; value=&quot;(.*)&quot; /&gt;" 
-    		replace="&lt;Setting name=&quot;GigaSpaces\.XAP\.DownloadUrl&quot; value=&quot;${cloudify.url.encoded}&quot; /&gt;">
-    		
-    		<fileset 
-    			dir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles/GigaSpacesWorkerRoles" 
-    			includes="ServiceConfiguration.Cloud.cscfg" />
-    	
-    	</replaceregexp>
-		
-	</target>
-	
-	<target name="commit.service.configuration">
-		<copy 
-			file="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles/GigaSpacesWorkerRoles/ServiceConfiguration.Cloud.cscfg"
-			toFile="${azure.local.copy}/GigaSpacesWorkerRoles/GigaSpacesWorkerRoles/ServiceConfiguration.Cloud.cscfg"
-			overwrite="true" />
-		
-		<exec executable="svn" dir="${azure.local.copy}">
-			<arg value="commit" />
-			<arg value="-m" />
-			<arg value="Update cloudify url in ServiceConfiguration.Cloud.cscfg" />
-			<arg value="GigaSpacesWorkerRoles/GigaSpacesWorkerRoles/ServiceConfiguration.Cloud.cscfg" />
-		</exec>
-	</target>
-	
-	<target name="commit.cloudify.to.repository">
-		
-	</target>
-	
 </project>
