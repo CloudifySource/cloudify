@@ -74,7 +74,7 @@ PreStartListener {
 	}
 	
 	/**
-	 * Checks if a set of ports is open open (i.e. you can connect to them).
+	 * Checks if a set of ports is open (i.e. you can connect to them).
 	 * 
 	 * @return true if all ports in the list are open, false if any one of them is not.
 	 * 
@@ -82,7 +82,7 @@ PreStartListener {
 	@Override
 	public boolean isProcessAlive() throws TimeoutException {
 		logger.info("Testing if the following ports are open: " + this.portList.toString());
-		return !ServiceUtils.isPortsFree(this.portList);
+		return ServiceUtils.isPortsOccupied(this.portList);
 	}
 
 	@Override
@@ -102,7 +102,7 @@ PreStartListener {
 	public EventResult onPreStart(StartReason reason) {
 		for (Integer port : this.portList) {
 		
-			if(!ServiceUtils.isPortFree(port, hostName)) {
+			if(ServiceUtils.isPortOccupied(port)) {
 				throw new IllegalStateException("The Port Liveness Detector found that port "
 						+ port + " is IN USE before the process was launched!");
 
@@ -116,5 +116,18 @@ PreStartListener {
 	public void setServiceContext(ServiceContext context) {
 		// ignore
 	}
-
+//	
+//	public void setPorts(List<Integer> list){
+//		this.portList = list;
+//	}
+//	public static void main(String[] args) throws TimeoutException{
+//		List<Integer> ports = new ArrayList<Integer>();
+//		ports.add(39000);
+//		ports.add(38999);
+//		ports.add(38998);
+//		PortLivenessDetector pld = new PortLivenessDetector();
+//		pld.setPorts(ports);
+//		pld.isProcessAlive();
+//		
+//	}
 }
