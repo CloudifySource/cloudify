@@ -158,7 +158,7 @@ public class Packager {
 			//Locate the extended service file in the destination path
 			File extendedServiceFile = locateServiceFile(recipeFile, extendedServicePath);
 			//Copy it to local dir with new name if needed
-			File localExtendedServiceFile = copyServiceFileAndRenameIfNeeded(extendedServiceFile, extFolder);
+			File localExtendedServiceFile = copyExtendedServiceFileAndRename(extendedServiceFile, extFolder);
 			logger.finer("copying locally extended script " + extendedServiceFile + " to " + localExtendedServiceFile);
 			//Update the extending script extend property with the location of the new extended service script
 			updateExtendingScriptFileWithNewExtendedScriptLocation(extendingScriptFile, localExtendedServiceFile);
@@ -168,6 +168,8 @@ public class Packager {
 				
 				@Override
 				public boolean accept(File pathname) {
+					if (!svnFileFilter.accept(pathname))
+						return false;
 					if (pathname.isDirectory())
 						return true;
 					String relativePath = pathname.getPath().replace(rootScriptDir.getPath(), "");
@@ -216,27 +218,18 @@ public class Packager {
 			throw new IOException("Failed renaming tmp script [" + extendingScriptFileTmp + "] to [" + extendingScriptFile +"]");
 	}
 
-	private static File copyServiceFileAndRenameIfNeeded(
+	private static File copyExtendedServiceFileAndRename(
 			File extendedServiceFile, File extFolder) throws IOException {
 		File existingServiceFile = new File(extFolder + "/" + extendedServiceFile.getName());
-		if (!existingServiceFile.exists())
-		{
-			FileUtils.copyFileToDirectory(extendedServiceFile, extFolder);
-			return existingServiceFile;
-		}
-		else
-		{
-			//We need to locate the next available index as it may be there was multi layer extension
-			final int index = locateNextAvailableScriptIndex(existingServiceFile);
-			//Generate a new name for the service script with the new available index
-			final String existingServiceFilePath = existingServiceFile.getPath();
-			String nestedExtendedServiceFileName = existingServiceFilePath + "-" + index;
-			File destFile = new File(nestedExtendedServiceFileName);
-			//Copy extended script
-			FileUtils.copyFile(extendedServiceFile, destFile);
-			return destFile;
-		}
-				
+		//We need to locate the next available index as it may be there was multi layer extension
+		final int index = locateNextAvailableScriptIndex(existingServiceFile);
+		//Generate a new name for the service script with the new available index
+		final String existingServiceFilePath = existingServiceFile.getPath();
+		String nestedExtendedServiceFileName = existingServiceFilePath + "-" + index;
+		File destFile = new File(nestedExtendedServiceFileName);
+		//Copy extended script
+		FileUtils.copyFile(extendedServiceFile, destFile);
+		return destFile;
 	}
 
 	private static int locateNextAvailableScriptIndex(File extendedServiceFile) {
