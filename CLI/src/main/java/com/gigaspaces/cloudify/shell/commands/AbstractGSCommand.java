@@ -81,9 +81,6 @@ public abstract class AbstractGSCommand implements Action {
 			logger.log(Level.WARNING, "",e);
 			raiseCloseShellExceptionIfNonInteractive(session, e);
 		} catch (Throwable e) {
-			if (!verbose) {
-				e.setStackTrace(new StackTraceElement[] {});
-			}
 			logger.log(Level.SEVERE, "", e);
 		    raiseCloseShellExceptionIfNonInteractive(session, e);			
 		}
