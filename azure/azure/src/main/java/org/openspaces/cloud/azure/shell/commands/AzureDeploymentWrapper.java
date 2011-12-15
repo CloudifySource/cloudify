@@ -226,7 +226,7 @@ public class AzureDeploymentWrapper {
 	            } catch (CLIException e) {
 	                /* Do nothing. This simply means we are not connected yet */
 	            }
-	            logger.log(Level.INFO, "Waiting for role instances and REST Admin server.");
+	            logger.log(Level.INFO, "Waiting for role instances and REST Admin server: " + restAdminUrl);
 	            return false;
 			}
     	});
