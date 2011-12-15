@@ -30,10 +30,13 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.fusesource.jansi.Ansi.Color;
+
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 import com.gigaspaces.cloudify.shell.AbstractAdminFacade;
 import com.gigaspaces.cloudify.shell.ComponentType;
+import com.gigaspaces.cloudify.shell.ShellUtils;
 import com.gigaspaces.cloudify.shell.commands.CLIException;
 
 /**
@@ -185,7 +188,6 @@ public class RestAdminFacade extends AbstractAdminFacade {
 				System.out.flush();
 			}
 	}
-	
 
 	private void printEventLogs(List<String> events){
 		if (events.size() != 0){
@@ -193,7 +195,12 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			System.out.flush();
 		}
 		for (String eventString : events) {
-			logger.info(eventString);
+			if (eventString.contains("success")){
+				System.out.println(ShellUtils.getColorMessage(eventString, Color.GREEN));
+			}else if (eventString.contains("failed")){
+				System.out.println(ShellUtils.getColorMessage(eventString, Color.RED));
+			}else
+			System.out.println(eventString);
 		}
 	}
 	

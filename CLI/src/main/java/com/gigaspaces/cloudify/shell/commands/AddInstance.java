@@ -20,6 +20,7 @@ import java.util.Collection;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.CompleterValues;
+import org.fusesource.jansi.Ansi.Color;
 
 /**
  * @author rafi
@@ -49,6 +50,6 @@ public class AddInstance extends AdminAwareCommand {
     @Override
     protected Object doExecute() throws CLIException {
         adminFacade.addInstance(getCurrentApplicationName(), serviceName, timeout);
-        return messages.getString("added_instance_successfully");
+        return getFormattedMessage("added_instance_successfully", Color.GREEN);
     }
 }

@@ -18,6 +18,7 @@ package com.gigaspaces.cloudify.shell.commands;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
+import org.fusesource.jansi.Ansi.Color;
 
 import com.gigaspaces.cloudify.shell.AbstractAdminFacade;
 import com.gigaspaces.cloudify.shell.AdminFacade;
@@ -41,13 +42,13 @@ public class Connect extends AbstractGSCommand {
 
 	@Override
 	protected Object doExecute() throws Exception {
-		
 		AdminFacade adminFacade = (AbstractAdminFacade) session.get(Constants.ADMIN_FACADE);
 		adminFacade.connect(user, password, url);
 		//We keep a reference to the facade so that the CompleterValue methods will be able
 		//to access it.
 		setRestAdminFacade(adminFacade);
-		return messages.getString("connected_successfully");
+		
+		return getFormattedMessage("connected_successfully", Color.GREEN);
 	}
 
 }

@@ -17,6 +17,7 @@ package com.gigaspaces.cloudify.shell.commands;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
+import org.fusesource.jansi.Ansi.Color;
 
 import com.gigaspaces.cloudify.shell.Constants;
 import com.gigaspaces.cloudify.shell.GigaShellMain;
@@ -37,6 +38,6 @@ public class UseApplication extends AdminAwareCommand {
     protected Object doExecute() throws Exception {
         session.put(Constants.ACTIVE_APP, applicationName);
         GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
-        return MessageFormat.format(messages.getString("using_application"), applicationName);
+        return MessageFormat.format(messages.getString("using_application"), Color.GREEN, applicationName);
     }
 }

@@ -33,6 +33,8 @@ import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.felix.service.command.CommandSession;
+import org.fusesource.jansi.Ansi;
+import org.fusesource.jansi.Ansi.Color;
 
 import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
 import com.j_spaces.kernel.Environment;
@@ -43,6 +45,10 @@ import com.j_spaces.kernel.Environment;
  */
 public class ShellUtils {
 
+    private static final char FIRST_ESC_CHAR = 27;
+    private static char SECOND_ESC_CHAR = '[';
+    private static char COMMAND_CHAR = 'm';
+    
     public static Collection<String> getComponentTypesAsLowerCaseStringCollection() {
         final ComponentType[] componentTypes = ComponentType.values();
         final ArrayList<String> componentTypesAsString = new ArrayList<String>(
@@ -51,6 +57,11 @@ public class ShellUtils {
             componentTypesAsString.add(type.toString().toLowerCase());
         }
         return componentTypesAsString;
+    }
+    
+    public static String getColorMessage(String message, Color color){
+		message = Ansi.ansi().fg(color).a(message).toString();
+		return message + FIRST_ESC_CHAR + SECOND_ESC_CHAR + '0' + COMMAND_CHAR;
     }
 
     public static Set<Integer> delimitedStringToSet(

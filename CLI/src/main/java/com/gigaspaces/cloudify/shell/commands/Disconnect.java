@@ -16,6 +16,7 @@
 package com.gigaspaces.cloudify.shell.commands;
 
 import org.apache.felix.gogo.commands.Command;
+import org.fusesource.jansi.Ansi.Color;
 
 
 /**
@@ -28,6 +29,6 @@ public class Disconnect extends AdminAwareCommand {
     @Override
     protected Object doExecute() throws Exception {
         adminFacade.disconnect();
-        return messages.getString("disconnected_successfully");
+        return getFormattedMessage("disconnected_successfully", Color.GREEN);
     }
 }

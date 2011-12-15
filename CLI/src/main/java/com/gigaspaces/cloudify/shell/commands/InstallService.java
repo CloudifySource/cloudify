@@ -25,6 +25,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
+import org.fusesource.jansi.Ansi.Color;
 
 import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
@@ -118,9 +119,9 @@ public class InstallService extends AdminAwareCommand {
 		//TODO: Refactor waitXXX outside of adminFacade
 		try{
 			adminFacade.waitForServiceInstances(serviceName, currentApplicationName, plannedNumberOfInstances, TIMEOUT_ERROR_MESSAGE, timeoutInMinutes,TimeUnit.MINUTES);
-			return MessageFormat.format(messages.getString("service_install_ended"), serviceName);
+			return MessageFormat.format(messages.getString("service_install_ended"), Color.GREEN, serviceName);
 		}catch (CLIException ex){
-			return MessageFormat.format(messages.getString("service_install_failed"), serviceName);
+			return MessageFormat.format(messages.getString("service_install_failed"), Color.RED, serviceName);
 		}
 	}
 	

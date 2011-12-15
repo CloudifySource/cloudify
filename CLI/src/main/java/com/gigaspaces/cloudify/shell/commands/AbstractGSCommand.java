@@ -26,6 +26,7 @@ import org.apache.felix.gogo.commands.Action;
 import org.apache.felix.gogo.commands.Option;
 import org.apache.felix.service.command.CommandSession;
 import org.apache.karaf.shell.console.CloseShellException;
+import org.fusesource.jansi.Ansi.Color;
 
 import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.shell.AdminFacade;
@@ -117,6 +118,11 @@ public abstract class AbstractGSCommand implements Action {
 
 	protected String getFormattedMessage(String msgName) {
 		return getFormattedMessage(msgName, new Object[0]);
+	}
+	
+	protected String getFormattedMessage(String msgName, Color color, Object... arguments){
+		String outputMessage = getFormattedMessage(msgName, arguments);
+		return ShellUtils.getColorMessage(outputMessage, color); 
 	}
 
 	protected String getFormattedMessage(String msgName, Object... arguments) {
