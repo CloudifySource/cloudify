@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.openspaces.cloud.azure.shell.AzureUtils;
+
 import com.gigaspaces.cloudify.shell.AdminFacade;
 import com.gigaspaces.cloudify.shell.Constants;
 import com.gigaspaces.cloudify.shell.commands.AbstractGSCommand;
@@ -20,6 +21,8 @@ import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
  */
 @Command(scope = "azure", name = "connect-app", description = "Connects to a bootstrapped application.")
 public class AzureConnectApplication extends AbstractGSCommand {
+
+	private static final String TIMEOUT_ERROR_STRING = "Azure connect application timed-out";
 
 	private static final Logger logger = Logger.getLogger(AzureConnectApplication.class.getName());
 		
@@ -74,6 +77,7 @@ public class AzureConnectApplication extends AbstractGSCommand {
 		azureDeploymentWrapper.setAzureDeploymentSlotName(azureDeploymentSlotName);
 		azureDeploymentWrapper.setCertificateThumbprint(certificateThumbprint);
 		azureDeploymentWrapper.setSubscriptionId(subscriptionId);
+		azureDeploymentWrapper.setTimeoutErrorMessage(TIMEOUT_ERROR_STRING);
 		
 		if (timeoutInMinutes == 0) {
 			azureDeploymentWrapper.connect(adminFacade);

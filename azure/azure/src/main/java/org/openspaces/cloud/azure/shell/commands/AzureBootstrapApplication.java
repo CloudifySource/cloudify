@@ -61,6 +61,8 @@ import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
 @Command(scope = "azure", name = "bootstrap-app", description = "Starts Azure Role Instances based on the specified application description.")
 public class AzureBootstrapApplication extends AbstractGSCommand {
 
+	private static final String TIMEOUT_ERROR_STRING = "Azure application bootsrap timed-out";
+
 	private static final Logger logger = Logger.getLogger(AzureBootstrapApplication.class.getName());
 	
 	@Argument(required = true, name = "application-file", description = "The application directory or archive")
@@ -220,6 +222,7 @@ public class AzureBootstrapApplication extends AbstractGSCommand {
 		azureDeploymentWrapper.setStorageAccount(storageAccount);
 		azureDeploymentWrapper.setStorageAccessKey(storageAccessKey);
 		azureDeploymentWrapper.setStorageBlobContainerName(storageBlobContainerName);
+		azureDeploymentWrapper.setTimeoutErrorMessage(TIMEOUT_ERROR_STRING);
 		azureDeploymentWrapper.createDeployment(azureDeploymentName, cscfgFile, cspkgFile);
 		
 		if (timeoutInMinutes > 0) {
@@ -237,7 +240,7 @@ public class AzureBootstrapApplication extends AbstractGSCommand {
         		    numberOfMachines += cscfg.getNumberOfInstances(service);
         		}
         		logger.log(Level.INFO,"Waiting for " + numberOfMachines + " instances to start");
-        		azureDeploymentWrapper.waitForNumberOfMachines(adminFacade, numberOfMachines, millisUntil(end), TimeUnit.MILLISECONDS);
+        		azureDeploymentWrapper.waitForNumberOfMachines(adminFacade, numberOfMachines, ShellUtils.millisUntil(TIMEOUT_ERROR_STRING,end), TimeUnit.MILLISECONDS);
         		logger.log(Level.INFO,"Azure travel application bootstrapping complete. Cloudify REST gateway URL is "+ url);
     		} catch (TimeoutException e) {
     		    logger.log(Level.INFO, MessageFormat.format(messages.getString("operation_timeout"), "azure:bootstrap-application"));
@@ -369,15 +372,7 @@ public class AzureBootstrapApplication extends AbstractGSCommand {
 		}
 
 	}
-	
-    private static long millisUntil(long end) throws TimeoutException {
-        long millisUntilEnd = end - System.currentTimeMillis();
-        if (millisUntilEnd < 0) {
-            throw new TimeoutException("Azure application bootsrap timed-out");
-        }
-        return millisUntilEnd;
-    }
-    
+	    
     // TODO calculate number of instances based on machine size (as done in ServiceController)
     private static int calculateNumberOfInstances(Service service) {
         int numberOfInstances;

@@ -40,7 +40,7 @@ import com.gigaspaces.cloudify.shell.commands.CLIException;
 public class AzureSetNumberOfInstances extends AdminAwareCommand {
 
 	private static final String MANAGEMENT_APPLICATION_NAME = "Management";
-	private static final String TIMEOUT_ERROR_STRING = "Azure application bootsrap timed-out";
+	private static final String TIMEOUT_ERROR_STRING = "Azure set number of instances timed-out";
 	private static final Logger logger = Logger.getLogger(AzureSetNumberOfInstances.class.getName());
 	
 	@Argument(index = 0, required = true, name = "service-name", description = "The Cloudify service name (Azure Role)")
@@ -89,7 +89,8 @@ public class AzureSetNumberOfInstances extends AdminAwareCommand {
 		azureDeploymentWrapper.setAzureDeploymentSlotName(azureDeploymentSlotName);
 		azureDeploymentWrapper.setCertificateThumbprint(certificateThumbprint);
 		azureDeploymentWrapper.setSubscriptionId(subscriptionId);
-
+		azureDeploymentWrapper.setTimeoutErrorMessage(TIMEOUT_ERROR_STRING);
+		
 		AzureDeploymentConfigurationFile configFile = 
 			azureDeploymentWrapper.getDeploymentConfig();
 		

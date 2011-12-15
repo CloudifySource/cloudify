@@ -40,8 +40,6 @@ import com.gigaspaces.cloudify.shell.commands.CLIException;
 
 public class AzureDeploymentWrapper {
 
-	private static final String TIMEOUT_ERROR_MESSAGE = "Azure application bootsrap timed-out";
-
 	private static final Logger logger = Logger.getLogger(AzureDeploymentWrapper.class.getName());
 	
 	private boolean verbose;
@@ -53,9 +51,14 @@ public class AzureDeploymentWrapper {
 	private String storageAccount;
 	private String storageAccessKey;
 	private String storageBlobContainerName;
-
+	private String timeoutErrorMessage;
+	
 	public void setVerbose(boolean verbose) {
 		this.verbose = verbose;
+	}
+	
+	public void setTimeoutErrorMessage(String timeoutErrorMessage) {
+		this.timeoutErrorMessage = timeoutErrorMessage;
 	}
 
 	public void setProgressInMinutes(long progressInMinutes) {
@@ -169,12 +172,12 @@ public class AzureDeploymentWrapper {
 		long end = System.currentTimeMillis() + timeUnit.toMillis(timeout);
 	
 		logger.log(Level.INFO,"Waiting for azure deployment to run.");
-		waitForAzureDeploymentStatus(AzureDeploymentStatus.Running, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE,end), TimeUnit.MILLISECONDS);
+		waitForAzureDeploymentStatus(AzureDeploymentStatus.Running, ShellUtils.millisUntil(timeoutErrorMessage,end), TimeUnit.MILLISECONDS);
 
 		try {
 			String restAdminUrl = getRestAdminUrl(getAzureDeployment());
 		
-			waitForConnection(adminFacade, restAdminUrl, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE,end), TimeUnit.MILLISECONDS);
+			waitForConnection(adminFacade, restAdminUrl, ShellUtils.millisUntil(timeoutErrorMessage,end), TimeUnit.MILLISECONDS);
 				return new URI(restAdminUrl);
 		} catch (URISyntaxException e) {
 			throw new CLIException(e);
@@ -381,7 +384,7 @@ public class AzureDeploymentWrapper {
 			new ConditionLatch()
 			.timeout(timeout,timeunit)
 			.pollingInterval(progressInMinutes, TimeUnit.MINUTES)
-			.timeoutErrorMessage(TIMEOUT_ERROR_MESSAGE)
+			.timeoutErrorMessage(timeoutErrorMessage)
 			.verbose(verbose);
 	}
 }

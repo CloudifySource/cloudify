@@ -18,7 +18,6 @@ package org.openspaces.cloud.azure.shell.commands;
 
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 import org.apache.felix.gogo.commands.Command;
@@ -28,6 +27,7 @@ import org.openspaces.cloud.azure.shell.AzureUtils;
 
 import com.gigaspaces.cloudify.shell.AdminFacade;
 import com.gigaspaces.cloudify.shell.Constants;
+import com.gigaspaces.cloudify.shell.ShellUtils;
 import com.gigaspaces.cloudify.shell.commands.AbstractGSCommand;
 import com.gigaspaces.cloudify.shell.commands.CLIException;
 
@@ -42,6 +42,7 @@ import com.gigaspaces.cloudify.shell.commands.CLIException;
 @Command(scope = "azure", name = "teardown-app", description = "Installs an application consisting of one or more services. If you specify a folder path it will be packed and deployed. If you sepcify a service archive, the shell will deploy that file.")
 public class AzureTeardownApplication extends AbstractGSCommand {
 
+	private static final String TIMEOUT_ERROR_STRING = "Azure teardown application timed-out";
 	private static final Logger logger = Logger.getLogger(AzureTeardownApplication.class.getName());
 	@Option(required = true, name = "-azure-svc", description = "The Azure Hosted Service name. Default: [application name]")
 	String azureHostedServiceName = null;
@@ -88,16 +89,16 @@ public class AzureTeardownApplication extends AbstractGSCommand {
 		azureDeploymentWrapper.setAzureDeploymentSlotName(azureDeploymentSlotName);
 		azureDeploymentWrapper.setCertificateThumbprint(certificateThumbprint);
 		azureDeploymentWrapper.setSubscriptionId(subscriptionId);
-		
+		azureDeploymentWrapper.setTimeoutErrorMessage(TIMEOUT_ERROR_STRING);
 		azureDeploymentWrapper.stopDeployment();
-		azureDeploymentWrapper.waitForAzureDeploymentStatus(AzureDeploymentStatus.Suspended, 5000, millisUntil(end), TimeUnit.MILLISECONDS);
+		azureDeploymentWrapper.waitForAzureDeploymentStatus(AzureDeploymentStatus.Suspended, 5000, ShellUtils.millisUntil(TIMEOUT_ERROR_STRING, end), TimeUnit.MILLISECONDS);
 		
         azureDeploymentWrapper.deleteDeployment();
         if (timeoutInMinutes == 0) {
         	return "Started application teardown.";	
         }
          
-        azureDeploymentWrapper.waitForAzureDeploymentStatus(AzureDeploymentStatus.NotFound, millisUntil(end), TimeUnit.MILLISECONDS);
+        azureDeploymentWrapper.waitForAzureDeploymentStatus(AzureDeploymentStatus.NotFound, ShellUtils.millisUntil(TIMEOUT_ERROR_STRING, end), TimeUnit.MILLISECONDS);
         
         disconnect();
         
@@ -110,12 +111,5 @@ public class AzureTeardownApplication extends AbstractGSCommand {
             adminFacade.disconnect();
         }
 	}
-	
-    private static long millisUntil(long end) throws TimeoutException {
-        long millisUntilEnd = end - System.currentTimeMillis();
-        if (millisUntilEnd < 0) {
-            throw new TimeoutException("Azure application bootsrap timed-out");
-        }
-        return millisUntilEnd;
-    }
+   
 }
