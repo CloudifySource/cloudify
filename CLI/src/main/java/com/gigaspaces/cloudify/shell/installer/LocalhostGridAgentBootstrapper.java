@@ -512,7 +512,7 @@ public class LocalhostGridAgentBootstrapper {
 	}
 	
 	private boolean fastExistingAgentCheck() {
-		return !ServiceUtils.isPortFree(lusPort, nicAddress);
+		return !ServiceUtils.isPortFree(lusPort);
 	}
 
 	/**
