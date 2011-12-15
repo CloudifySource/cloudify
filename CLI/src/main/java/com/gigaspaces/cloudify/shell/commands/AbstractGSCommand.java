@@ -176,5 +176,4 @@ public abstract class AbstractGSCommand implements Action {
 	public static AdminFacade getRestAdminFacade() {
 		return restAdminFacade;
 	}
-
 }
