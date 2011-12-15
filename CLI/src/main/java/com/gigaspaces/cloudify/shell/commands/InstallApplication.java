@@ -107,7 +107,7 @@ public class InstallApplication extends AdminAwareCommand {
 					logger.info(MessageFormat.format(
 						   messages.getString("service_install_ended"), trimmedServiceName));
 				}catch (CLIException ex){
-					return MessageFormat.format(messages.getString("application_installation_failed"), Color.RED, applicationName);
+					return getFormattedMessage("application_installation_failed", Color.RED, applicationName);
 				}
 			}
 		}
