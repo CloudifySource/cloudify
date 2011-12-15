@@ -7,10 +7,25 @@
 	name="gigaspaces-azure" version="v1.0">
 
 	<module>
-		<type>com.gigaspaces.azure.module</type>
-		<publishDir>${rootDirectory}/install</publishDir>
+		<type>jst.web</type>
+		<publishDir>D:\Tools\apache-tomcat-7.0.23\webapps</publishDir>
 		<publisherReference>org.eclipse.jst.server.generic.antpublisher</publisherReference>
 	</module>
+
+	<publisher id="org.eclipse.jst.server.generic.antpublisher">
+		<publisherdata>
+			<dataname>build.file</dataname>
+			<datavalue>/server/build.xml</datavalue>
+		</publisherdata>
+		<publisherdata>
+			<dataname>target.publish.jst.web</dataname>
+			<datavalue>deploy.j2ee.web</datavalue>
+		</publisherdata>
+		<publisherdata>
+			<dataname>target.unpublish.jst.web</dataname>
+			<datavalue>undeploy.j2ee.web</datavalue>
+		</publisherdata>
+	</publisher>
 
 	<port>
     	<no>8080</no>
@@ -19,15 +34,15 @@
     </port>
 
 	<start>
-		<external>D:\Tools\apache-tomcat-6.0.35\bin\catalina.bat</external>
-		<workingDirectory>D:\Tools\apache-tomcat-6.0.35\bin</workingDirectory>
+		<external>D:\Tools\apache-tomcat-7.0.23\bin\catalina.bat</external>
+		<workingDirectory>D:\Tools\apache-tomcat-7.0.23\bin</workingDirectory>
 		<programArguments>start</programArguments>
 		<debugPort>8000</debugPort>
 	</start>
 
 	<stop>
-		<external>D:\Tools\apache-tomcat-6.0.35\bin\catalina.bat</external>
-		<workingDirectory>D:\Tools\apache-tomcat-6.0.35\bin</workingDirectory>
+		<external>D:\Tools\apache-tomcat-7.0.23\bin\catalina.bat</external>
+		<workingDirectory>D:\Tools\apache-tomcat-7.0.23\bin</workingDirectory>
 		<programArguments>stop</programArguments>
 	</stop>
 

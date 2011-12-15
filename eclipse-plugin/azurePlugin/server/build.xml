@@ -1,0 +1,61 @@
+<project name="deployextension"  default="deploy.j2ee.web"  basedir=".">
+
+	<property name="webxml.with.portlet.mapping.file" 
+		      value="${module.dir}/WEB-INF/web-portlet.xml" />
+	<condition property="portletxml.exists">
+		<available file="${module.dir}/WEB-INF/portlet.xml" />
+	</condition>
+	
+	<target name="deploy.j2ee.web">
+		<copy file="${module.dir}/WEB-INF/web.xml" tofile="${webxml.with.portlet.mapping.file}" />
+		<antcall target="assemble" />
+		<war destfile="${project.working.dir}/${module.name}.war" 
+			 webxml="${webxml.with.portlet.mapping.file}">
+			<zipfileset dir="${module.dir}">
+	        	<include name="**/*.*"/>
+				<exclude name="**/*.war"/>
+				<exclude name="**/web.xml"/>
+			</zipfileset>
+		</war>
+  		<move file="${project.working.dir}/${module.name}.war" todir="${server.publish.dir}"/>
+	</target>
+	
+
+    <target name="assemble" if="portletxml.exists">
+
+        <pluto.assemble webxml="${module.dir}/WEB-INF/web.xml" 
+        	      portletxml="${module.dir}/WEB-INF/portlet.xml" 
+        	      destfile="${webxml.with.portlet.mapping.file}" />
+    </target>
+	
+	
+	<target name="deploy.j2ee.ejb">
+		<jar destfile="${project.working.dir}/${module.name}.jar"> 
+			<zipfileset dir="${module.dir}">
+	        	<include name="**/*.*"/>
+	       		<exclude name="**/*.java"/>
+			</zipfileset>
+		</jar>
+  		<move file="${project.working.dir}/${module.name}.jar" todir="${server.publish.dir}"/>
+	</target>
+	<target name="deploy.j2ee.ear">
+		<jar destfile="${project.working.dir}/${module.name}.ear"> 
+			<zipfileset dir="${module.dir}">
+	        	<include name="**/*.*"/>
+	       		<exclude name="**/*.java"/>
+			</zipfileset>
+		</jar>
+  		<move file="${project.working.dir}/${module.name}.ear" todir="${server.publish.dir}"/>
+	</target>
+	
+	<target name="undeploy.j2ee.web">
+		<delete file="${server.publish.dir}/${module.name}.war"> </delete>
+	</target>
+	<target name="undeploy.j2ee.ejb">
+		<delete file="${server.publish.dir}/${module.name}.jar"> </delete>
+	</target>
+	<target name="undeploy.j2ee.ear">
+		<delete file="${server.publish.dir}/${module.name}.ear"> </delete>
+	</target>
+	
+</project>
