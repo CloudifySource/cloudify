@@ -15,6 +15,7 @@ import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
 
+import com.gigaspaces.cloudify.dsl.Application;
 import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.internal.BaseDslScript;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
@@ -107,13 +108,12 @@ public class Packager {
 		FileUtils.forceMkdir(springFolder);
 		logger.finer("created pu structure under " + destPuFolder);
 
-		final SVNFileFilter svnFileFilter = new SVNFileFilter();
 		// copy all files except usmlib from working dir to ext
 		FileUtils.copyDirectory(srcFolder, extFolder, new FileFilter() {
 
 			@Override
 			public boolean accept(File pathname) {
-				boolean f1 = svnFileFilter.accept(pathname);
+				boolean f1 = SVNFileFilter.getFilter().accept(pathname);
 				boolean f2 = !(pathname.isDirectory() && pathname.getName().equals("usmlib"));
 				return f1 && f2;
 			}
@@ -123,7 +123,7 @@ public class Packager {
 		// copy all files from usmlib to lib
 		File srcUsmLibDir = new File(srcFolder, "usmlib");
 		if (srcUsmLibDir.exists()) {
-			FileUtils.copyDirectory(srcUsmLibDir, libFolder, svnFileFilter);
+			FileUtils.copyDirectory(srcUsmLibDir, libFolder, SVNFileFilter.getFilter());
 		}
 
 		// copy usm.jar to lib
@@ -132,7 +132,7 @@ public class Packager {
 		if (!srcUsmJar.exists()) {
 			throw new PackagingException("could not find usm.jar");
 		}
-		FileUtils.copyDirectory(usmLibDir, libFolder, svnFileFilter);
+		FileUtils.copyDirectory(usmLibDir, libFolder, SVNFileFilter.getFilter());
 		logger.finer("copied " + srcUsmJar.getName());
 
 		// no pu.xml in source folder, lets copy the default one
@@ -150,13 +150,61 @@ public class Packager {
 			logger.log(Level.SEVERE, "failed to close default_usm_pu.xml stream", e);
 		}
 		
+		copyExtendedServiceFiles(service, recipeFile, extFolder);
+		
+		logger.finer("created pu folder " + destPuFolder.getAbsolutePath());
+		return destPuFolder;
+	}
+
+	public static File packApplication(Application application, File applicationDir) throws IOException, PackagingException {
+		
+		boolean hasExtendedServices = false;
+		for (Service service : application.getServices()) {
+			if (!service.getExtendedServicesPaths().isEmpty()){
+				hasExtendedServices = true;
+				break;
+			}
+		}
+		File applicationFolderToPack = applicationDir;
+		//If there are no extended service we don't need to prepare an application folder to pack with all the
+		//extended services content.
+		if (hasExtendedServices) {
+			File destApplicationFolder = File.createTempFile("gs_application_", "");
+			FileUtils.forceDelete(destApplicationFolder);
+			FileUtils.forceMkdir(destApplicationFolder);
+			FileUtils.copyDirectory(applicationDir, destApplicationFolder, SVNFileFilter.getFilter());	
+			
+			for (Service service : application.getServices()) {
+				File extFolder = new File(destApplicationFolder + "/" + service.getName());
+				File recipeFile = ServiceReader.findServiceFile(new File(applicationDir + "/" + service.getName()));
+				copyExtendedServiceFiles(service, recipeFile, extFolder);
+			}
+			//Pack the prepared folder instead of the original application folder.
+			applicationFolderToPack = destApplicationFolder;
+		}
+		
+		// zip the application folder.
+		File zipFile = File.createTempFile("application", ".zip");
+		zipFile.deleteOnExit();
+		ZipUtils.zip(applicationFolderToPack, zipFile);
+		return zipFile;
+	}
+	
+	private static void copyExtendedServiceFiles(Service service,
+			final File recipeFile, final File extFolder) throws FileNotFoundException,
+			PackagingException, IOException {
 		LinkedList<String> extendedServicesPaths = service.getExtendedServicesPaths();
 		
 		File extendingScriptFile = new File(extFolder + "/" + recipeFile.getName());
 		
 		for (String extendedServicePath : extendedServicesPaths) {
 			//Locate the extended service file in the destination path
-			File extendedServiceFile = locateServiceFile(recipeFile, extendedServicePath);
+			final File extendedServiceFile = locateServiceFile(recipeFile, extendedServicePath);
+			//If the extended service exists in my directory, no need to copy or change anything
+			//This can happen if we have extension of services inside application since the client
+			//will prepare the extending service directory already and then it will be prepared fully at the server
+			if (extendedServiceFile.getParentFile().equals(extFolder))
+				continue;
 			//Copy it to local dir with new name if needed
 			File localExtendedServiceFile = copyExtendedServiceFileAndRename(extendedServiceFile, extFolder);
 			logger.finer("copying locally extended script " + extendedServiceFile + " to " + localExtendedServiceFile);
@@ -168,7 +216,9 @@ public class Packager {
 				
 				@Override
 				public boolean accept(File pathname) {
-					if (!svnFileFilter.accept(pathname))
+					if (!SVNFileFilter.getFilter().accept(pathname))
+						return false;
+					if (pathname.equals(extendedServiceFile))
 						return false;
 					if (pathname.isDirectory())
 						return true;
@@ -183,9 +233,6 @@ public class Packager {
 			//Replace context extending script file for multiple level extension
 			extendingScriptFile = localExtendedServiceFile;
 		}
-		
-		logger.finer("created pu folder " + destPuFolder.getAbsolutePath());
-		return destPuFolder;
 	}
 
 	private static void updateExtendingScriptFileWithNewExtendedScriptLocation(
@@ -265,20 +312,6 @@ public class Packager {
 			usmLibDir = new File(Environment.getHomeDirectory() + "/lib/platform/usm");
 		}
 		return usmLibDir;
-	}
-
-	public static class SVNFileFilter implements FileFilter {
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see java.io.FileFilter#accept(java.io.File)
-		 */
-		@Override
-		public boolean accept(File pathname) {
-			return !pathname.getName().equals(".svn");
-		}
-
 	}
 
 }

@@ -27,7 +27,7 @@ import org.apache.felix.gogo.commands.Option;
 import com.gigaspaces.cloudify.dsl.Application;
 import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
-import com.gigaspaces.cloudify.dsl.internal.packaging.ZipUtils;
+import com.gigaspaces.cloudify.dsl.internal.packaging.Packager;
 import com.gigaspaces.cloudify.shell.Constants;
 import com.gigaspaces.cloudify.shell.GigaShellMain;
 import com.gigaspaces.cloudify.shell.ShellUtils;
@@ -68,11 +68,8 @@ public class InstallApplication extends AdminAwareCommand {
 		}
 
 		File zipFile = null;
-		if (!applicationFile.isFile()) {
-			// zip the application folder.
-			zipFile = File.createTempFile("application", ".zip");
-			zipFile.deleteOnExit();
-			ZipUtils.zip(applicationFile, zipFile);
+		if (!applicationFile.isFile()) {			
+			zipFile = Packager.packApplication(application, applicationFile);						
 		} else {
 			if ((applicationFile.getName().endsWith(".zip"))
 					|| (applicationFile.getName().endsWith(".jar"))) {

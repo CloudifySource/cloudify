@@ -457,11 +457,12 @@ public abstract class BaseDslScript extends Script {
 				&& propertyName.equals("name")) {
 			final String serviceName = (String) propertyValue;
 			Service service = loadApplicationService(serviceName);
-
+			//Override service name with application settings for it
+			service.setName(serviceName);
 			// TODO - must validate that name property was first one to be
 			// applied in this service.
 			try {
-				BeanUtils.copyProperties(this.activeObject, service);
+				BeanUtils.copyProperties(this.activeObject, service);				
 			} catch (IllegalAccessException e) {
 				throw new IllegalArgumentException("Failed to load service: "
 						+ serviceName, e);
