@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
+import org.fusesource.jansi.Ansi.Color;
 
 import com.gigaspaces.cloudify.dsl.Application;
 import com.gigaspaces.cloudify.dsl.Service;
@@ -106,7 +107,7 @@ public class InstallApplication extends AdminAwareCommand {
 					logger.info(MessageFormat.format(
 						   messages.getString("service_install_ended"), trimmedServiceName));
 				}catch (CLIException ex){
-					return MessageFormat.format(messages.getString("application_installation_failed"), applicationName);
+					return MessageFormat.format(messages.getString("application_installation_failed"), Color.RED, applicationName);
 				}
 			}
 		}
@@ -114,7 +115,7 @@ public class InstallApplication extends AdminAwareCommand {
         session.put(Constants.ACTIVE_APP, applicationName);
         GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
         
-		return this.getFormattedMessage("application_installed_succesfully", applicationName);
+		return this.getFormattedMessage("application_installed_succesfully", Color.GREEN, applicationName);
 	}
 
 	private void printApplicationInfo(Application application) {
