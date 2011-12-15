@@ -4,28 +4,24 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
+import java.net.ServerSocket;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
-import org.hyperic.sigar.Sigar;
-import org.hyperic.sigar.SigarException;
-import org.hyperic.sigar.SigarFileNotFoundException;
-
 import com.gigaspaces.cloudify.dsl.internal.DSLException;
-import com.gigaspaces.internal.sigar.SigarHolder;
 
 public class ServiceUtils {
-	private static final Sigar sigar = SigarHolder.getSigar();
 
 	private static java.util.logging.Logger logger = java.util.logging.Logger
 	.getLogger(ServiceUtils.class.getName());
-	
+
 	public static boolean isPortFree(int port) {
 		return !isPortOccupied(port);
 	}
 
 	/**
-	 * Checks that the specified ports are free before the process starts.
+	 * Checks that the specified ports are free.
 	 * 
 	 * @param portList
 	 *            - list of ports to check.
@@ -47,30 +43,48 @@ public class ServiceUtils {
 		}
 		return false;
 	}
-	
+	public static void main(String[] args){
+		List<Integer> list = new ArrayList<Integer>();
+		list.add(8009);
+		list.add(8080);
+
+		boolean test = !isPortsFree(list);
+		if (test){
+			System.out.println("Let me know");
+		}
+	}
+
 	/**
-	 * Checks whether a specified port is free before the process starts Using Sigar.
+	 * Checks whether a specified port is occupied.
 	 * 
 	 * @param portList
 	 *            - list of ports to check.
 	 * @return - true if port is free
 	 */
 	public static boolean isPortOccupied(long port) {
-		logger.fine("checking port: " + port + "...");
-		try {
-			if (sigar.getNetListenAddress(port) != null) {
-				// we were able to find something
-				return true;
-			}
-		} catch (SigarFileNotFoundException e) {
-			// means port is not bound
-		} catch (SigarException e) {
-			logger.warning("The port liveness detection failed due to a Sigar exception.");
-			e.printStackTrace();
+		boolean portIsFree = true;
+
+		ServerSocket server = null;
+		try{
+			server = new ServerSocket((int)port);
 		}
-		return false;
+		catch (IOException e){
+			portIsFree = false;
+		}
+		finally{
+			if (server != null){
+				try{
+					server.close();
+				}
+				catch (IOException e){
+					// ignore
+				}
+			}
+		}
+
+		return portIsFree ? false : true;
 	}
-	
+
 	/**
 	 * isPortsOccupied will repeatedly test the connection to the ports defined in
 	 * the groovy configuration file to see whether the ports are open. Having
@@ -83,14 +97,14 @@ public class ServiceUtils {
 	public static boolean isPortsOccupied(List<Integer> portList) {
 		int portCounter = 0;
 		for (int port : portList) {
-				if (isPortOccupied(port)){
-					logger.info("port: " + port + " is Occupied.");
-					portCounter++;
-				}
-				if (portCounter == portList.size()) {
-					// connection succeeded - the port is not free
-					return true;
-				}
+			if (isPortOccupied(port)){
+				logger.info("port: " + port + " is Occupied.");
+				portCounter++;
+			}
+			if (portCounter == portList.size()) {
+				// connection succeeded - the port is not free
+				return true;
+			}
 		}
 		return false;
 	}
