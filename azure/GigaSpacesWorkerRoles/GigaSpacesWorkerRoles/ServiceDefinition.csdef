@@ -29,7 +29,7 @@
         <FixedPortRange max="9999" min="5000" />
       </InternalEndpoint>
       <InternalEndpoint name="LookupService" protocol="tcp" port="4166" />
-
+      <InputEndpoint name="IIS" protocol="tcp" port="80" localPort="80" />
     </Endpoints>
     <LocalStorage name="LocalTempFolder" sizeInMB="20000" cleanOnRoleRecycle="true" />
   </WorkerRole>
@@ -63,7 +63,6 @@
       </InternalEndpoint>
       <InputEndpoint name="WebUI" protocol="tcp" port="8099" localPort="8099" />
       <InputEndpoint name="RestAdmin" protocol="tcp" port="8100" localPort="8100" />
-      <InputEndpoint name="IIS" protocol="tcp" port="80" localPort="80" />
       <InternalEndpoint name="LRMI2" protocol="tcp">
         <FixedPortRange min="8101" max="9999" />
       </InternalEndpoint>

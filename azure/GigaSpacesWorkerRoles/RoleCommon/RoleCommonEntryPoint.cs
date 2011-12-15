@@ -139,6 +139,8 @@ namespace GigaSpaces
             {
                 GSTrace.WriteLine(e.ToString());
                 GSTrace.Flush();
+                // allow enough time for the exception to flush
+                Thread.Sleep(TimeSpan.FromMinutes(2));
                 return;
             }
         }
