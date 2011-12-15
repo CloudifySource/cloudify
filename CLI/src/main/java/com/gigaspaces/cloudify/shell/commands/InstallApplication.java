@@ -23,13 +23,11 @@ import java.util.regex.Pattern;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
-import org.fusesource.jansi.Ansi;
-import org.fusesource.jansi.Ansi.Color;
 
 import com.gigaspaces.cloudify.dsl.Application;
 import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
-import com.gigaspaces.cloudify.dsl.internal.packaging.ZipUtils;
+import com.gigaspaces.cloudify.dsl.internal.packaging.Packager;
 import com.gigaspaces.cloudify.shell.Constants;
 import com.gigaspaces.cloudify.shell.GigaShellMain;
 import com.gigaspaces.cloudify.shell.ShellUtils;
@@ -70,11 +68,8 @@ public class InstallApplication extends AdminAwareCommand {
 		}
 
 		File zipFile = null;
-		if (!applicationFile.isFile()) {
-			// zip the application folder.
-			zipFile = File.createTempFile("application", ".zip");
-			zipFile.deleteOnExit();
-			ZipUtils.zip(applicationFile, zipFile);
+		if (!applicationFile.isFile()) {			
+			zipFile = Packager.packApplication(application, applicationFile);						
 		} else {
 			if ((applicationFile.getName().endsWith(".zip"))
 					|| (applicationFile.getName().endsWith(".jar"))) {
@@ -101,7 +96,7 @@ public class InstallApplication extends AdminAwareCommand {
 		if (serviceOrder.length() > 2) {
 			serviceOrder = serviceOrder.substring(1,serviceOrder.length() -1);
 			logger.fine("Services will be installed in the following order: " + serviceOrder);
-
+			printApplicationInfo(application);
 			for (String serviceName : serviceOrder.split(Pattern.quote(","))) {
 				String trimmedServiceName = serviceName.trim();
 				Service service = getServiceByName(application, trimmedServiceName);
@@ -111,7 +106,7 @@ public class InstallApplication extends AdminAwareCommand {
 					logger.info(MessageFormat.format(
 						   messages.getString("service_install_ended"), trimmedServiceName));
 				}catch (CLIException ex){
-					return this.getFormattedMessage("application_installation_failed", Color.RED, applicationName);
+					return MessageFormat.format(messages.getString("application_installation_failed"), applicationName);
 				}
 			}
 		}
@@ -119,7 +114,24 @@ public class InstallApplication extends AdminAwareCommand {
         session.put(Constants.ACTIVE_APP, applicationName);
         GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
         
-		return this.getFormattedMessage("application_installed_succesfully", Ansi.Color.GREEN , applicationName);
+		return this.getFormattedMessage("application_installed_succesfully", applicationName);
+	}
+
+	private void printApplicationInfo(Application application) {
+		logger.info("Application [" + applicationName + "] with " + application.getServices().size() + " services");
+		for (Service  service : application.getServices()) {
+			if (service.getDependsOn().isEmpty()){
+				logger.info("Service [" + service.getName() + "] " 
+						+ service.getNumInstances() 
+						+ " planned instances");
+			}else{//Service has dependencies
+				logger.info("Service [" + service.getName() + "] depends on " 
+						+ service.getDependsOn().toString() 
+						+ " planned " + service.getNumInstances() + " instances");
+				
+			}
+		}
+		
 	}
 
 	private void normalizeApplicationName(Application application) {
