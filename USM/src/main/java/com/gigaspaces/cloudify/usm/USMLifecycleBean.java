@@ -484,12 +484,12 @@ public class USMLifecycleBean implements ClusterInfoAware {
 					logger.warning("While executing the Process Start Detection, process failure was detected. Aborting start detection test.");
 					return false;
 				}
-
 				LivenessDetector detector = this.livenessDetectors[currentTestIndex];
-
+				
 				boolean testResult = false;
 				try {
 					testResult = detector.isProcessAlive();
+					logger.info("Detection Test results are: " + testResult);
 				} catch (USMException e) {
 					// may indicate that the underlying process has terminated
 					if (e.getCause() instanceof InterruptedException) {
