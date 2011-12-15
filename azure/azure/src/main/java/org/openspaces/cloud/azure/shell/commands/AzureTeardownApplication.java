@@ -25,6 +25,9 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.openspaces.cloud.azure.AzureDeploymentStatus;
 import org.openspaces.cloud.azure.shell.AzureUtils;
+
+import com.gigaspaces.cloudify.shell.AdminFacade;
+import com.gigaspaces.cloudify.shell.Constants;
 import com.gigaspaces.cloudify.shell.commands.AbstractGSCommand;
 import com.gigaspaces.cloudify.shell.commands.CLIException;
 
@@ -96,12 +99,17 @@ public class AzureTeardownApplication extends AbstractGSCommand {
          
         azureDeploymentWrapper.waitForAzureDeploymentStatus(AzureDeploymentStatus.NotFound, millisUntil(end), TimeUnit.MILLISECONDS);
         
-        if (adminFacade.isConnected()) {
-            adminFacade.disconnect();
-        }
+        disconnect();
         
     	return "Completed application teardown.";
     }
+
+	private void disconnect() throws CLIException {
+		final AdminFacade adminFacade = (AdminFacade) session.get(Constants.ADMIN_FACADE);
+        if (adminFacade.isConnected()) {
+            adminFacade.disconnect();
+        }
+	}
 	
     private static long millisUntil(long end) throws TimeoutException {
         long millisUntilEnd = end - System.currentTimeMillis();
