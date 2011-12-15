@@ -7,7 +7,7 @@
 		<runtimeType
 			id="com.gigaspaces.azure.runtime"
 			name="azureRuntime" description="Windows Azure Runtime"
-			vendor="Gigaspaces" version="1.0"
+			vendor="Microsoft" version="1.0"
 			class="org.eclipse.jst.server.generic.core.internal.GenericServerRuntime">
 			<moduleType types="jst.web" versions="2.2, 2.3, 2.4, 2.5, 3.0" />
 		</runtimeType>
@@ -20,7 +20,7 @@
 			runtime="true"
 			runtimeTypeId="com.gigaspaces.azure.runtime"
 			name="Windows Azure"
-			description="Windows Azure Java Server"
+			description="Windows Azure Server"
 			class="org.eclipse.jst.server.generic.core.internal.GenericServer"
 			hasConfiguration="false"
 			initialState="stopped"			
@@ -32,6 +32,12 @@
 			stopTimeout="15000"
 			supportsRemoteHosts="true" />						
 	</extension>			
+
+	<extension point="org.eclipse.wst.server.ui.serverImages">
+		<image icon="/icons/azure.gif"
+	    	id="org.eclipse.jst.server.generic.image"
+	    	typeIds="com.gigaspaces.azure.server" />
+	</extension>
 
 	<extension
 		point="org.eclipse.jst.server.generic.core.serverdefinition">
