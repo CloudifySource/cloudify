@@ -329,6 +329,7 @@ public class CliAzureDeploymentTest {
 	        List<List<String>> commands = new ArrayList<List<String>>();
 	        List<String> azureTeardownApplication = Arrays.asList(
 	                "azure:teardown-app",
+	                "--verbose",
 	                "-azure-svc", AZURE_HOSTED_SERVICE,
 	                "-timeout", String.valueOf(TIMEOUT_IN_MINUTES),
 	                "-progress", String.valueOf(POLLING_INTERVAL_IN_MINUTES)
