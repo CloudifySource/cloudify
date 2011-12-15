@@ -23,12 +23,14 @@ import net.jini.core.discovery.LookupLocator;
 import net.jini.discovery.Constants;
 
 import org.openspaces.admin.Admin;
+import org.openspaces.admin.AdminException;
 import org.openspaces.admin.AdminFactory;
 import org.openspaces.admin.AgentGridComponent;
 import org.openspaces.admin.esm.ElasticServiceManager;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.internal.gsa.InternalGridServiceAgent;
+import org.openspaces.admin.internal.support.NetworkExceptionHelper;
 import org.openspaces.admin.lus.LookupService;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitAlreadyDeployedException;
@@ -37,11 +39,13 @@ import org.openspaces.admin.vm.VirtualMachineAware;
 import org.openspaces.core.util.MemoryUnit;
 
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
+import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 import com.gigaspaces.cloudify.shell.AdminFacade;
 import com.gigaspaces.cloudify.shell.ConditionLatch;
 import com.gigaspaces.cloudify.shell.ShellUtils;
 import com.gigaspaces.cloudify.shell.commands.CLIException;
 import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
+import com.gigaspaces.grid.gsa.GSA;
 import com.gigaspaces.internal.utils.StringUtils;
 import com.j_spaces.kernel.Environment;
 
@@ -90,10 +94,10 @@ public class LocalhostGridAgentBootstrapper {
 	// localcloud management agent starts 1 esm, 1 gsm,1 lus
 	String[] LOCALCLOUD_MANAGEMENT_ARGUMENTS = new String[] { 
 		"gsa.global.lus","0",
-		"gsa.lus","1",
+		"gsa.lus","0",
 		"gsa.gsc","0",
 		"gsa.global.gsm", "0",
-		"gsa.gsm" , "1",
+		"gsa.gsm_lus" , "1",
 		"gsa.global.esm", "0",
 		"gsa.esm", "1"
 	};
@@ -319,12 +323,14 @@ public class LocalhostGridAgentBootstrapper {
 						}
 					}
 				}
-				
-				agent.shutdown();
-				waitForAgentShutdown(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE,end),TimeUnit.MILLISECONDS);
+				//Close admin before shutting down the agent to avoid false warning messages the admin will create
+				//if it concurrently monitor things that are shutting down.
+				admin.close();
+				shutdownAgentAndWait(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE,end),TimeUnit.MILLISECONDS);
 			}
 		}
 		finally {
+			//close in case of exception, admin support double close if already closed
 			admin.close();
 			if (agent != null) {
 				// admin.close() command does not verify that all of the internal lookup threads are actually terminated
@@ -335,10 +341,22 @@ public class LocalhostGridAgentBootstrapper {
 		}
 	}
 
-	private void waitForAgentShutdown(
+	private void shutdownAgentAndWait(
 			final GridServiceAgent agent, 
 			long timeout, TimeUnit timeunit) 
 		throws InterruptedException, TimeoutException, CLIException, ErrorStatusException {
+		
+		//We need to shutdown the agent after we close the admin to avoid closed exception since the admin still monitors
+		//the deployment behind the scenes, we call the direct proxy to the gsa since the admin is closed and we don't
+		//want to use objects it generated
+		final GSA gsa = ((InternalGridServiceAgent)agent).getGSA();		
+		try {
+			gsa.shutdown();
+		} catch (RemoteException e) {
+			if (!NetworkExceptionHelper.isConnectOrCloseException(e)) {
+                throw new AdminException("Failed to shutdown GSA", e);
+            }
+		}
 		
 		createConditionLatch(timeout, timeunit)
 		.waitFor(new ConditionLatch.Predicate() {
@@ -349,7 +367,7 @@ public class LocalhostGridAgentBootstrapper {
 				logger.info("Waiting for agent to shutdown");
 				
 				try {
-					((InternalGridServiceAgent)agent).getGSA().ping();
+					gsa.ping();
 				} catch (RemoteException e) {
 					//Probably NoSuchObjectException meaning the GSA is going down
 					return true;
@@ -395,8 +413,10 @@ public class LocalhostGridAgentBootstrapper {
 			GridServiceAgent agent;
 			try {
 				try {
-					waitForExistingAgent(admin, progressInSeconds, TimeUnit.SECONDS);
-					throw new CLIException("Agent already running on local machine.");
+					if (!isLocalCloud || fastExistingAgentCheck()){						
+						waitForExistingAgent(admin, progressInSeconds, TimeUnit.SECONDS);
+						throw new CLIException("Agent already running on local machine.");
+					}
 				}
 				catch (TimeoutException e ) {
 					// no existing agent running on local machine
@@ -491,6 +511,10 @@ public class LocalhostGridAgentBootstrapper {
 		}
 	}
 	
+	private boolean fastExistingAgentCheck() {
+		return !ServiceUtils.isPortFree(lusPort, nicAddress);
+	}
+
 	/**
 	 * This method assumes that the admin has been supplied with this.lookupLocators and this.lookupGroups
 	 * and that it applied the defaults if these were null.
@@ -764,7 +788,8 @@ public class LocalhostGridAgentBootstrapper {
 		String lusJavaOptions = 
 				"-Xmx" + LUS_MEMORY_IN_MB + "m"
 			  + " -D" + LUS_PORT_CONTEXT_PROPERTY +"=" + lusPort;
-		String gsmJavaOptions = "-Xmx" + GSM_MEMORY_IN_MB + "m";
+		String gsmJavaOptions = "-Xmx" + GSM_MEMORY_IN_MB + "m"
+			  + " -D" + LUS_PORT_CONTEXT_PROPERTY +"=" + lusPort;
 		String esmJavaOptions = "-Xmx" + ESM_MEMORY_IN_MB + "m";
 		String gscJavaOptions = "";
 		
