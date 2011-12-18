@@ -17,7 +17,6 @@ package com.gigaspaces.cloudify.shell.commands;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
@@ -119,9 +118,9 @@ public class InstallService extends AdminAwareCommand {
 		//TODO: Refactor waitXXX outside of adminFacade
 		try{
 			adminFacade.waitForServiceInstances(serviceName, currentApplicationName, plannedNumberOfInstances, TIMEOUT_ERROR_MESSAGE, timeoutInMinutes,TimeUnit.MINUTES);
-			return MessageFormat.format(messages.getString("service_install_ended"), Color.GREEN, serviceName);
+			return getFormattedMessage(messages.getString("service_install_ended"), Color.GREEN, serviceName);
 		}catch (CLIException ex){
-			return MessageFormat.format(messages.getString("service_install_failed"), Color.RED, serviceName);
+			return getFormattedMessage("service_install_failed", Color.RED, serviceName);
 		}
 	}
 	
