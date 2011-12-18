@@ -59,7 +59,7 @@
       class="org.eclipse.jst.server.generic.ui.internal.GenericServerRuntimeWizardFragment" />
     <fragment id="org.eclipse.jst.server.generic.server"
       typeIds="com.gigaspaces.azure.server"
-      class="org.eclipse.jst.server.generic.ui.internal.GenericServerWizardFragment" />
+      class="com.gigaspaces.azure.wizards.AzureServerWizardFragment" />
  </extension>
 		
 </plugin>
