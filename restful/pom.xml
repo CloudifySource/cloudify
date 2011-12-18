@@ -106,7 +106,7 @@
 		<dependency>
 			<groupId>com.gigaspaces.cloudify</groupId>
 			<artifactId>esc</artifactId>
-			<version>2.0</version>
+			<version>${cloudifyVersion}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>jclouds-compute</artifactId>
