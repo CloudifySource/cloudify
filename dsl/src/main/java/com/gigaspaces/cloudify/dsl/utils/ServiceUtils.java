@@ -4,12 +4,16 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
-import java.net.ServerSocket;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
+import org.hyperic.sigar.NetConnection;
+import org.hyperic.sigar.NetFlags;
+import org.hyperic.sigar.Sigar;
+import org.hyperic.sigar.SigarException;
+
 import com.gigaspaces.cloudify.dsl.internal.DSLException;
+import com.gigaspaces.internal.sigar.SigarHolder;
 
 public class ServiceUtils {
 
@@ -43,48 +47,37 @@ public class ServiceUtils {
 		}
 		return false;
 	}
-	public static void main(String[] args){
-		List<Integer> list = new ArrayList<Integer>();
-		list.add(8009);
-		list.add(8080);
-
-		boolean test = !isPortsFree(list);
-		if (test){
-			System.out.println("Let me know");
-		}
-	}
-
+	
 	/**
-	 * Checks whether a specified port is occupied.
+	 * Checks whether a specified port is occupied using Sigar API.
 	 * 
 	 * @param portList
 	 *            - list of ports to check.
 	 * @return - true if port is free
 	 */
 	public static boolean isPortOccupied(long port) {
-		boolean portIsFree = true;
+        Sigar sigar = SigarHolder.getSigar();
+        try {
+               NetConnection[] list = sigar.getNetConnectionList(NetFlags.CONN_SERVER | NetFlags.CONN_PROTOCOLS);
+               for (NetConnection netConnection : list) {
+                     int localPort = (int) netConnection.getLocalPort();
+                     int state = netConnection.getState();
 
-		ServerSocket server = null;
-		try{
-			server = new ServerSocket((int)port);
-		}
-		catch (IOException e){
-			portIsFree = false;
-		}
-		finally{
-			if (server != null){
-				try{
-					server.close();
-				}
-				catch (IOException e){
-					// ignore
-				}
-			}
-		}
+                     if (state == NetFlags.TCP_LISTEN) {
+                            if (localPort == port) {
+                            	return true;
+                            }
+                     }
+               }
+        } catch (SigarException e1) {
+               logger.warning("Port liveness test has failed on port: " + port);
+               e1.printStackTrace();
+        }
 
-		return portIsFree ? false : true;
+        return false;
+		
 	}
-
+	
 	/**
 	 * isPortsOccupied will repeatedly test the connection to the ports defined in
 	 * the groovy configuration file to see whether the ports are open. Having
