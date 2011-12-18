@@ -155,6 +155,7 @@
         <ant target="add.cloudify.modules"/>
         <ant target="replace.cloudify.license"/>
     	<ant target="add.azure.artifacts" />
+    	<ant target="dos2unix" />
         <ant target="archive.versions"/>
     </target>
 	
@@ -172,6 +173,25 @@
         <delete file="${tmp.dir}/${cloudify.installation.dir}/gslicense.xml"/>
         <copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${basedir}/package_build/gslicense.xml"/>
     </target>
+	
+	<target name="dos2unix">
+    	<!-- Replaces EOLs with LF characters and removes eof characters 
+    	from the shell scripts. Tabs and spaces are left as is. -->
+    	<fixcrlf srcdir="${tmp.dir}/${cloudify.installation.dir}" 
+	    		eol="lf"    		       
+	    		eof="remove"
+    			includes="**/*.sh" 
+	    		defaultexcludes="no"
+    	/>
+    	<!-- Replaces all EOLs with cr-lf pairs in the batch files. 
+    	Tabs and spaces are left as is. EOF characters are left alone if run on DOS systems, 
+    	and are removed if run on Unix systems. -->
+		<fixcrlf srcdir="${tmp.dir}/${cloudify.installation.dir}"
+		       eol="crlf"
+		       includes="**/*.bat"
+				defaultexcludes="no"
+		/>
+	</target>
 
    
     <!-- - - - - - - - - - - - - - - - - -
