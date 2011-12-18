@@ -6,6 +6,31 @@
 	ServerTypeDefinitionSchema.xsd"
 	name="gigaspaces-azure" version="v1.0">
 
+	<property id="port"
+		label="Web server port"
+		type="string"
+		context="server"
+		default="8080" />
+
+	<property id="tomcatZipLocation"
+		label="TomCat web server zip location"
+		type="file"
+		context="server"
+		default="D:\Tools\apache-tomcat-7.0.23-windows-x86.zip" />
+
+	<property id="jreLocation"
+		label="JRE to use with Windows Azure location"
+		type="directory"
+		context="server"
+		default="C:\Program Files\Java\jre1.6.0" />
+
+
+	<port>
+    	<no>${port}</no>
+        <name>Http</name>
+        <protocol>http</protocol>
+    </port>
+
 	<module>
 		<type>jst.web</type>
 		<publishDir>D:\Tools\apache-tomcat-7.0.23\webapps</publishDir>
@@ -26,12 +51,6 @@
 			<datavalue>undeploy.j2ee.web</datavalue>
 		</publisherdata>
 	</publisher>
-
-	<port>
-    	<no>8080</no>
-        <name>Http</name>
-        <protocol>http</protocol>
-    </port>
 
 	<start>
 		<external>D:\Tools\apache-tomcat-7.0.23\bin\catalina.bat</external>

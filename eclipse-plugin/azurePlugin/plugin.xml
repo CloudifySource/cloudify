@@ -6,7 +6,7 @@
 		point="org.eclipse.wst.server.core.runtimeTypes">
 		<runtimeType
 			id="com.gigaspaces.azure.runtime"
-			name="azureRuntime" description="Windows Azure Runtime"
+			name="Windows Azure Runtime" description="Windows Azure Runtime"
 			vendor="Microsoft" version="1.0"
 			class="org.eclipse.jst.server.generic.core.internal.GenericServerRuntime">
 			<moduleType types="jst.web" versions="2.2, 2.3, 2.4, 2.5, 3.0" />
@@ -52,5 +52,14 @@
 	        runtimeTypeIds="com.gigaspaces.azure.runtime"
 	        class="org.eclipse.jst.server.generic.core.internal.GenericServerRuntimeTargetHandler"/>
     </extension>
+ <extension
+       point="org.eclipse.wst.server.ui.wizardFragments">
+    <fragment id="org.eclipse.jst.server.generic.runtime"
+      typeIds="com.gigaspaces.azure.runtime"
+      class="org.eclipse.jst.server.generic.ui.internal.GenericServerRuntimeWizardFragment" />
+    <fragment id="org.eclipse.jst.server.generic.server"
+      typeIds="com.gigaspaces.azure.server"
+      class="org.eclipse.jst.server.generic.ui.internal.GenericServerWizardFragment" />
+ </extension>
 		
 </plugin>
