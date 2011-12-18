@@ -85,7 +85,7 @@ public abstract class AbstractGSCommand implements Action {
 			logger.log(Level.SEVERE, "", e);
 		    raiseCloseShellExceptionIfNonInteractive(session, e);			
 		}
-		return MessageFormat.format(messages.getString("op_failed"), "");
+		return getFormattedMessage("op_failed", Color.RED, "");
 	}
 
 	private String getFormattedMessageFromErrorStatusException(ErrorStatusException e) {
