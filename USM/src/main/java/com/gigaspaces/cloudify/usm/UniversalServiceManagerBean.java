@@ -686,6 +686,7 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 					throw new USMException(
 					"The Start Detection test failed! Shutting down this instance.");
 				}
+				logger.info("Process liveness test passed");
 
 				usmLifecycleBean.firePostStart(StartReason.DEPLOY);
 			}
