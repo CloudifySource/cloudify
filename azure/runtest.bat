@@ -89,6 +89,7 @@ REM cd azure
 REM END OF FOR TESTING
 
 cd azure
+call mvn -DskipTests=true install
 call mvn -DskipTests=false -Dsurefire.useFile=false -Dlocal.working.dir=%LOCAL_WORKING_DIR% test
 REM call mvn -Dtest.debug.mode=true -Dmaven.surefire.debug="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000 -Xnoagent -Djava.compiler=NONE" -DskipTests=false -DuseFile=false -Dlocal.working.dir=%LOCAL_WORKING_DIR% test
 
