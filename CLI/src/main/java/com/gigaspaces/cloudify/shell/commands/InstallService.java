@@ -112,7 +112,7 @@ public class InstallService extends AdminAwareCommand {
 		
 		//if a zip file was created, delete it at the end of use.
 		if (serviceFile.isDirectory()){
-			FileUtils.deleteDirectory(packedFile.getParentFile());
+			FileUtils.deleteQuietly(packedFile.getParentFile());
 		}
 
 		//TODO: Refactor waitXXX outside of adminFacade
