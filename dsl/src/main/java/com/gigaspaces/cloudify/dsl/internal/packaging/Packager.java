@@ -203,7 +203,7 @@ public class Packager {
 			//If the extended service exists in my directory, no need to copy or change anything
 			//This can happen if we have extension of services inside application since the client
 			//will prepare the extending service directory already and then it will be prepared fully at the server
-			if (extendedServiceFile.getParentFile().equals(extFolder))
+			if (extendedServiceFile.getParentFile().equals(recipeFile.getParentFile()))
 				continue;
 			//Copy it to local dir with new name if needed
 			File localExtendedServiceFile = copyExtendedServiceFileAndRename(extendedServiceFile, extFolder);
