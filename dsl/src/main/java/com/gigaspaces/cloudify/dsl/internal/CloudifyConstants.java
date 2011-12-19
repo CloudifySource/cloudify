@@ -77,6 +77,14 @@ public class CloudifyConstants {
 	 */
 	public static final String USM_PARAMETERS_TAILER_INTERVAL = "TailerInterval";
 	
+	/********************
+	 * Key names for lifecycle event results.
+	 */
+	public static final String USM_EVENT_EXEC_SUCCESSFULLY = " completed";
+	public static final String USM_EVENT_EXEC_FAILED = " failed";
+	public static final String USM_EVENT_EXEC_SUCCEED_MESSAGE = "[OK]";
+	public static final String USM_EVENT_EXEC_FAILED_MESSAGE = "[ERROR]";
+	
 	
 	
 	/***************

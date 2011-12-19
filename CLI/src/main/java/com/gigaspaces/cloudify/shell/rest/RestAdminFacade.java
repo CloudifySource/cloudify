@@ -195,10 +195,12 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			System.out.flush();
 		}
 		for (String eventString : events) {
-			if (eventString.contains("success")){
-				System.out.println(ShellUtils.getColorMessage(eventString, Color.GREEN));
-			}else if (eventString.contains("failed")){
-				System.out.println(ShellUtils.getColorMessage(eventString, Color.RED));
+			if (eventString.contains(CloudifyConstants.USM_EVENT_EXEC_SUCCESSFULLY)){
+				System.out.println(eventString + " " 
+						+ ShellUtils.getColorMessage(CloudifyConstants.USM_EVENT_EXEC_SUCCEED_MESSAGE, Color.GREEN));
+			}else if (eventString.contains(CloudifyConstants.USM_EVENT_EXEC_FAILED)){
+				System.out.println(eventString + " " 
+						+ ShellUtils.getColorMessage(CloudifyConstants.USM_EVENT_EXEC_FAILED_MESSAGE, Color.RED));
 			}else
 			System.out.println(eventString);
 		}

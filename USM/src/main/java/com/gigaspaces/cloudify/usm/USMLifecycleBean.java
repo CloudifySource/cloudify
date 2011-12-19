@@ -15,6 +15,7 @@ import org.openspaces.core.cluster.ClusterInfoAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.usm.details.Details;
 import com.gigaspaces.cloudify.usm.dsl.DSLCommandsLifecycleListener;
 import com.gigaspaces.cloudify.usm.dsl.DSLConfiguration;
@@ -176,14 +177,14 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	private void logEventSuccess(final LifecycleEvents event,
 			USMEvent[] listeners) {
 		if (isLoggableEvent(event, listeners)) {
-			eventLogger.info(eventPrefix + event + " completed successfully");
+			eventLogger.info(eventPrefix + event + CloudifyConstants.USM_EVENT_EXEC_SUCCESSFULLY);
 		}
 	}
 
 	private void logEventFailure(final LifecycleEvents event,
 			USMEvent[] listeners, final EventResult er) {
 		if (eventLogger.isLoggable(Level.INFO)) {
-			eventLogger.info(eventPrefix + event + " failed. Reason: "
+			eventLogger.info(eventPrefix + event + CloudifyConstants.USM_EVENT_EXEC_FAILED + ". Reason: "
 					+ er.getException().getMessage());
 
 		}

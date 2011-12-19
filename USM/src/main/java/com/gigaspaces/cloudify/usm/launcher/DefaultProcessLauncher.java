@@ -706,6 +706,7 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 					beginIndex = matcher.start(0);
 					endIndex = matcher.end(0);
 				}
+				logger.log(Level.SEVERE, "Event lifecycle external process failed: " + sb.toString());
 				throw new USMException(
 						"Event lifecycle external process exited with abnormal status code: "
 								+ exitValue + " " + sb.toString().substring(beginIndex, endIndex));
