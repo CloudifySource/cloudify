@@ -1,3 +1,3 @@
 service {
-	extend "../../../tomcat"
+	extend "../../../recipes/tomcat"
 }
