@@ -7,7 +7,7 @@ new AntBuilder().sequential {
 	unzip(src:"${config.installDir}/${config.zipName}", dest:config.installDir, overwrite:true)
 }
 
-if (confing.applicationWarUrl && config.applicationWar) {
+if (config.applicationWarUrl && config.applicationWar) {
   new AntBuilder().sequential {	
     get(src:config.applicationWarUrl, dest:config.applicationWar, skipexisting:true)
     copy(todir: "${config.home}/webapps", file:config.applicationWar, overwrite:true)
