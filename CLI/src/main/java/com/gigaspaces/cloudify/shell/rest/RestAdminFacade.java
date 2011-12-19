@@ -134,7 +134,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			serviceShutDownEventsCount = handleEventLogs(serviceName, applicationName, plannedNumberOfInstances, serviceShutDownEventsCount);
 				
 			if ((Integer)serviceStatusMap.get("Instances-Size") == 0){
-				printStatusMessage(plannedNumberOfInstances, (Integer)serviceStatusMap.get("Instances-Size"), statusChanged, isUSMService);
+				printStatusMessage(plannedNumberOfInstances, (Integer)serviceStatusMap.get("Instances-Size"), statusChanged);
 			//Too many instances.
 			}else if (plannedNumberOfInstances < currentNumberOfNonUSMInstances ||
 					plannedNumberOfInstances < currentNumberOfRunningUSMInstances ){
@@ -146,14 +146,14 @@ public class RestAdminFacade extends AbstractAdminFacade {
 					currentNumberOfRunningUSMInstances = getNumberOfUSMServicesWithRunningState(serviceName, 
 								applicationName,
 								(Integer)serviceStatusMap.get("Instances-Size"));
-					printStatusMessage(plannedNumberOfInstances, currentNumberOfRunningUSMInstances, statusChanged, isUSMService);
+					printStatusMessage(plannedNumberOfInstances, currentNumberOfRunningUSMInstances, statusChanged);
 					
 					//are all usm service instances in Running state?
 					if (currentNumberOfRunningUSMInstances == plannedNumberOfInstances){
 						return true;
 					}
 				}else{//non USM Service.
-					printStatusMessage(plannedNumberOfInstances, currentNumberOfNonUSMInstances, statusChanged, isUSMService);
+					printStatusMessage(plannedNumberOfInstances, currentNumberOfNonUSMInstances, statusChanged);
 					//if all services up, return.
 					if (plannedNumberOfInstances  == currentNumberOfNonUSMInstances){
 						return true;
@@ -167,12 +167,11 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	}
 	
 	private void printStatusMessage(int plannedNumberOfInstances,
-			Integer currentNumberOfInstances, boolean statusChanged, boolean isUSMService) {
+			Integer currentNumberOfInstances, boolean statusChanged) {
 		if (statusChanged){
 			//Treat special cases. doesn't print newline in beginning or end of installation
 			//unless dealing with a non-usm service. in that case we print a newline at the end of the installation. 
-			if ((!currentNumberOfInstances.equals(0) && !currentNumberOfInstances.equals(plannedNumberOfInstances))
-					|| (currentNumberOfInstances.equals(plannedNumberOfInstances) && !isUSMService)){
+			if ((!currentNumberOfInstances.equals(0))){
 				System.out.println('.');
 				System.out.flush();
 			}
