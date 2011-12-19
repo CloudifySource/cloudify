@@ -96,8 +96,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 
 		logger.info(MessageFormat.format(messages.getString("deploying_service"),serviceName));
 
-		Integer currentNumberOfNonUSMInstances = -1;
-		Integer currentNumberOfRunningUSMInstances = -1;
+		int currentNumberOfNonUSMInstances = -1;
+		int currentNumberOfRunningUSMInstances = -1;
 		boolean statusChanged = false;
 		boolean isUSMService = false;
 		
@@ -109,12 +109,12 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			}
 			
 			//Update all service instance numbers.
-			if (isUSMService){
-				int numberOfUSMServicesWithRunningState = getNumberOfUSMServicesWithRunningState(serviceName, 
+			if (isUSMService(applicationName, serviceName)){
+				int actualNumberOfUSMServicesWithRunningState = getNumberOfUSMServicesWithRunningState(serviceName, 
 															applicationName,
 															(Integer)serviceStatusMap.get("Instances-Size"));
-				if(currentNumberOfRunningUSMInstances != numberOfUSMServicesWithRunningState){
-					currentNumberOfRunningUSMInstances = numberOfUSMServicesWithRunningState;
+				if(currentNumberOfRunningUSMInstances != actualNumberOfUSMServicesWithRunningState && actualNumberOfUSMServicesWithRunningState != 0){
+					currentNumberOfRunningUSMInstances = actualNumberOfUSMServicesWithRunningState;
 					statusChanged = true;
 				}else{
 					statusChanged = false;
@@ -122,7 +122,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			}else{//Not a USM Service
 				
 				int actualNumberOfInstances = (Integer)serviceStatusMap.get("Instances-Size");
-				if (actualNumberOfInstances != currentNumberOfNonUSMInstances){
+				if (actualNumberOfInstances != currentNumberOfNonUSMInstances && actualNumberOfInstances != 0){
 					currentNumberOfNonUSMInstances = actualNumberOfInstances;
 					statusChanged = true;
 				}else{
@@ -143,12 +143,9 @@ public class RestAdminFacade extends AbstractAdminFacade {
 						plannedNumberOfInstances, Math.max(currentNumberOfNonUSMInstances, currentNumberOfRunningUSMInstances))); 
 			}else if ((Integer)serviceStatusMap.get("Instances-Size") > 0){
 				if (isUSMService(applicationName, serviceName)){
-					if (!isUSMService){
-						isUSMService = true;
-						currentNumberOfRunningUSMInstances = getNumberOfUSMServicesWithRunningState(serviceName, 
+					currentNumberOfRunningUSMInstances = getNumberOfUSMServicesWithRunningState(serviceName, 
 								applicationName,
 								(Integer)serviceStatusMap.get("Instances-Size"));
-					}
 					printStatusMessage(plannedNumberOfInstances, currentNumberOfRunningUSMInstances, statusChanged, isUSMService);
 					
 					//are all usm service instances in Running state?
