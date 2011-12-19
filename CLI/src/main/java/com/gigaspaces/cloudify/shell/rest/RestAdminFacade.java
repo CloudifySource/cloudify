@@ -169,8 +169,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	private void printStatusMessage(int plannedNumberOfInstances,
 			Integer currentNumberOfInstances, boolean statusChanged) {
 		if (statusChanged){
-			//Treat special cases. doesn't print newline in beginning or end of installation
-			//unless dealing with a non-usm service. in that case we print a newline at the end of the installation. 
+			//Treat special cases. doesn't print newline in beginning of the installation 
 			if ((!currentNumberOfInstances.equals(0))){
 				System.out.println('.');
 				System.out.flush();
