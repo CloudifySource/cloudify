@@ -1,3 +1,4 @@
+
 service {
 	name "tomcat"
 	icon "http://tomcat.apache.org/images/tomcat.gif"
@@ -6,46 +7,37 @@ service {
 	lifecycle{
 
 		init "tomcat_install.groovy"
-		start "tomcat_start.groovy" 		
+		start "tomcat_start.groovy"
 		preStop "tomcat_stop.groovy"
+
+		startDetection {
+			!ServiceUtils.isPortsFree([8080, 8009] )
+		}
 	}
-	
+
 	customCommands ([
-        "updateWar" : "update_war.groovy"
-    ])
-	
+				"updateWar" : "update_war.groovy"
+			])
+
 	plugins([
-		plugin {			
-            name "portLiveness"
-            className "com.gigaspaces.cloudify.usm.liveness.PortLivenessDetector"
-            config ([
-                "Port" : [8080,8009],
-                "TimeoutInSeconds" : 240,
-                "Host" : "127.0.0.1"
-            ])
-        }, 
 		plugin {
 			name "jmx"
-			className "com.gigaspaces.cloudify.usm.jmx.JmxMonitor"			
+			className "com.gigaspaces.cloudify.usm.jmx.JmxMonitor"
 			config([
-				"Current Http Threads Busy": [
-					"Catalina:type=ThreadPool,name=\"http-bio-8080\"",
-					"currentThreadsBusy"
-				],
-				"Current Http Threads count": [
-					"Catalina:type=ThreadPool,name=\"http-bio-8080\"",
-					"currentThreadCount"
-				],
-				"Backlog": [
-					"Catalina:type=ProtocolHandler,port=8080",
-					"backlog"
-				],
-				"Active Sessions":[
-					"Catalina:type=Manager,context=/travel,host=localhost",
-					"activeSessions"
-				],
-				port: 11099
-			])
+						"Current Http Threads Busy": [
+							"Catalina:type=ThreadPool,name=\"http-bio-8080\"",
+							"currentThreadsBusy"
+						],
+						"Current Http Threads count": [
+							"Catalina:type=ThreadPool,name=\"http-bio-8080\"",
+							"currentThreadCount"
+						],
+						"Backlog": [
+							"Catalina:type=ProtocolHandler,port=8080",
+							"backlog"
+						],
+						port: 11099
+					])
 		}
 	])
 
@@ -142,10 +134,9 @@ service {
 		]
 		)
 	}
-    
-    network {
-        port = 8080
-        protocolDescription ="HTTP"
-    }
-    	
+
+	network {
+		port = 8080
+		protocolDescription ="HTTP"
+	}
 }
