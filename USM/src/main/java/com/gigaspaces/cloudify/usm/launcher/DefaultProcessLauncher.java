@@ -43,7 +43,7 @@ import com.j_spaces.kernel.PlatformVersion;
 public class DefaultProcessLauncher implements ProcessLauncher,
 		ClusterInfoAware {
 
-	private static final String EXCEPTION_CAUGHT_REGEX = "Caught:.*\\s*?.*\\.groovy:[1-9]{1,}";
+	private static final String EXCEPTION_CAUGHT_REGEX = "Caught:.*\\s*?.*\\.groovy:[1-9]{1,}\\)";
 	private static final int POST_SYNC_PROCESS_SLEEP_INTERVAL = 200;
 	private static final String LINUX_EXECUTE_PREFIX = "./";
 	private static final String[] WINDOWS_BATCH_FILE_PREFIX_PARAMS = {
