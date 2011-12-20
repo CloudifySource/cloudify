@@ -63,6 +63,17 @@
 			<version>${gsVersion}</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.gigaspaces.cloudify</groupId>
+			<artifactId>dsl</artifactId>
+			<version>${cloudifyVersion}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.groovy</groupId>
+			<artifactId>groovy</artifactId>
+			<version>1.8.0</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 
 </project>
