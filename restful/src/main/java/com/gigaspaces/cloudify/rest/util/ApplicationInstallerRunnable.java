@@ -86,7 +86,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 				logger.info("Deploying PU: " + absolutePUName + ". File: " + packedFile + ". Properties: " + contextProperties);
 				controller.deployElasticProcessingUnit(absolutePUName,
 						applicationName, serviceName, packedFile,
-						contextProperties);
+						contextProperties, service.getCompute().getTemplate());
 				try { 
 					FileUtils.deleteDirectory(packedFile.getParentFile());
 				} catch(IOException ioe) {
