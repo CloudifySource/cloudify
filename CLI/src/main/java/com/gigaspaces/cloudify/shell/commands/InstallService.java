@@ -107,8 +107,17 @@ public class InstallService extends AdminAwareCommand {
 			zone = serviceName;
 		}
 
+		String templateName = null;
+		if(service.getCompute() != null) {
+			templateName = service.getCompute().getTemplate();
+			if(templateName == null) {
+				templateName = "";
+			}
+		} else {
+			templateName = "";
+		}
 		adminFacade.installElastic(packedFile, currentApplicationName,
-				serviceName, zone, props);
+				serviceName, zone, props, templateName);
 		
 		//if a zip file was created, delete it at the end of use.
 		if (serviceFile.isDirectory()){

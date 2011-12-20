@@ -367,12 +367,12 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	}
 
 	public void installElastic(File packedFile, String applicationName,
-			String serviceName, String zone, Properties contextProperties)
+			String serviceName, String zone, Properties contextProperties, final String templateName)
 	throws CLIException {
 
 		String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName
 		+ "/services/" + serviceName;
-		client.postFile(url + "?zone=" + zone, packedFile, contextProperties);
+		client.postFile(url + "?zone=" + zone + "&template=" + templateName, packedFile, contextProperties);
 	}
 
 	public Map<String, InvocationResult> invokeServiceCommand(

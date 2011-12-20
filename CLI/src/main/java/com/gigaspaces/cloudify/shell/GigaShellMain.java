@@ -140,7 +140,7 @@ public class GigaShellMain extends Main implements Action {
         }
 
         // After this call, every connection made will use the system proxy settings (on windows)
-        SystemDefaultProxySelector.setup();
+        //SystemDefaultProxySelector.setup();
 
     }
 	

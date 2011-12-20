@@ -38,7 +38,7 @@ public interface AdminFacade {
 
     String installApplication(File applicationFile,String applicationName) throws CLIException;
 
-    void installElastic(File file,String applicationName, String serviceName, String zone, Properties props) throws CLIException;
+    void installElastic(File file,String applicationName, String serviceName, String zone, Properties props, final String templateName) throws CLIException;
     
     void startService(String applicationName, File service) throws CLIException;
 

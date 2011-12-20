@@ -460,7 +460,7 @@ public class LocalhostGridAgentBootstrapper {
     				restInstaller.setAdmin(agent.getAdmin());
     				restInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
     				restInstaller.setVerbose(verbose);
-    				webuiInstaller.setProgress(progressInSeconds,TimeUnit.SECONDS);
+    				
     				restInstaller.setMemory(REST_MEMORY_IN_MB, MemoryUnit.MEGABYTES);
     				restInstaller.setPort(REST_PORT);
     				restInstaller.setWarFile(new File(REST_FILE));
@@ -483,6 +483,7 @@ public class LocalhostGridAgentBootstrapper {
 					ManagementSpaceServiceInstaller managementSpaceInstaller = new ManagementSpaceServiceInstaller();
 					managementSpaceInstaller.setAdmin(agent.getAdmin());
 					managementSpaceInstaller.setVerbose(verbose);
+					managementSpaceInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
 					managementSpaceInstaller.setMemory(MANAGEMENT_SPACE_MEMORY_IN_MB, MemoryUnit.MEGABYTES);
 					managementSpaceInstaller.setServiceName(MANAGEMENT_SPACE_NAME);
 					managementSpaceInstaller.setManagementZone(MANAGEMENT_GSA_ZONE);
