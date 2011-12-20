@@ -30,8 +30,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.apache.commons.io.FileUtils;
-import org.hyperic.sigar.NetInfo;
-import org.hyperic.sigar.NetStat;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 import org.jini.rio.boot.ServiceClassLoader;
@@ -529,15 +527,15 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 
 					}
 				}
-
+			}else{
 				logger.info("Could not find a running instance of service: "
 						+ dependantService + ". Sleeping before trying again");
-				try {
-					// TODO - make this configurable
-					Thread.sleep(WAIT_FOR_DEPENDENCIES_INTERVAL_MILLIS);
-				} catch (InterruptedException e) {
-					// ignore.
-				}
+			}
+			try {
+				// TODO - make this configurable
+				Thread.sleep(WAIT_FOR_DEPENDENCIES_INTERVAL_MILLIS);
+			} catch (InterruptedException e) {
+				// ignore.
 			}
 
 		}
