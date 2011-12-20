@@ -99,7 +99,6 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		int currentNumberOfNonUSMInstances = -1;
 		int currentNumberOfRunningUSMInstances = -1;
 		boolean statusChanged = false;
-		boolean isUSMService = false;
 		
 		while (System.currentTimeMillis() < end) {
 			
@@ -109,7 +108,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			}
 			
 			//Update all service instance numbers.
-			if (isUSMService(applicationName, serviceName)){
+			//isUsmService can only be called when an instance of the service exists. 
+			if (!serviceStatusMap.get("Instances-Size").equals(0) && isUSMService(applicationName, serviceName)){
 				int actualNumberOfUSMServicesWithRunningState = getNumberOfUSMServicesWithRunningState(serviceName, 
 															applicationName,
 															(Integer)serviceStatusMap.get("Instances-Size"));
@@ -240,9 +240,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		return runningServiceInstanceCounter;
 	}
 
-	private boolean isUSMService(String applicationName, String serviceName) throws CLIException {
-
-		String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+	private boolean isUSMService(String applicationName, String serviceName) {
+		String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);	
 		String usmUrl = "ProcessingUnits/Names/"
 			+ absolutePUName + 
 			"/Instances/0/Statistics/" 
