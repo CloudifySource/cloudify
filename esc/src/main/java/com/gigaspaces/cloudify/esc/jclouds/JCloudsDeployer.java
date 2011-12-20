@@ -1,8 +1,12 @@
 package com.gigaspaces.cloudify.esc.jclouds;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -19,7 +23,9 @@ import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.NodeState;
 import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.domain.TemplateBuilder;
+import org.jclouds.compute.options.TemplateOptions;
 import org.jclouds.ec2.compute.options.EC2TemplateOptions;
+
 import org.jclouds.rest.ResourceNotFoundException;
 
 import com.gigaspaces.cloudify.esc.installer.InstallerException;
@@ -45,7 +51,7 @@ public class JCloudsDeployer {
 
 	private static final long RETRY_SLEEP_TIMEOUT_IN_MILLIS = 5000;
 	private static final int NUMBER_OF_RETRY_ATTEMPTS = 2;
-	
+
 	private int minRamMegabytes = DEFAULT_MIN_RAM_MB;
 	private String imageId = DEFAULT_IMAGE_ID_RACKSPACE;
 
@@ -59,25 +65,20 @@ public class JCloudsDeployer {
 
 	private final String provider;
 
-	private String securityGroup;
+	
 
 	private String keyPair;
 
 	private String locationId;
-	
-	public String getSecurityGroup() {
-		return securityGroup;
-		
-	}
+
+	private Map<String, Object> extraOptions;
+
 	
 	public void close() {
 		this.context.close();
 	}
 
-	public void setSecurityGroup(final String securityGroup) {
-		this.securityGroup = securityGroup;
-	}
-
+	
 	public String getHardwareId() {
 		return hardwareId;
 	}
@@ -86,14 +87,14 @@ public class JCloudsDeployer {
 		this.hardwareId = hardwareId;
 	}
 
-    public void setLocationId(final String locationId) {
-        this.locationId = locationId;
-    }
+	public void setLocationId(final String locationId) {
+		this.locationId = locationId;
+	}
 
-    public String getLocationId() {
-        return locationId;
-    }
-	
+	public String getLocationId() {
+		return locationId;
+	}
+
 	/********
 	 * .
 	 * 
@@ -141,17 +142,17 @@ public class JCloudsDeployer {
 	 * @param serverName
 	 *            server name.
 	 * @return the new server meta data.
-	 * @throws InstallerException 
+	 * @throws InstallerException
 	 */
 	public NodeMetadata createServer(final String serverName) throws InstallerException {
 
 		Set<? extends NodeMetadata> nodes = null;
 		try {
-			logger.info("JClouds Deployer is creating a new server with tag: "
-					+ serverName + ". This may take a few minutes");
+			logger.info("Cloudify Deployer is creating a new server with tag: " + serverName
+					+ ". This may take a few minutes");
 			nodes = createServersWithRetry(serverName, 1, getTemplate());
 		} catch (final RunNodesException e) {
-			throw new InstallerException("Failed to start Cloud server with JClouds", e);
+			throw new InstallerException("Failed to start Cloud server", e);
 		}
 		if (nodes.isEmpty()) {
 			throw new IllegalStateException("Failed to create server");
@@ -165,28 +166,29 @@ public class JCloudsDeployer {
 
 	}
 
-	   public Set<? extends NodeMetadata> createServers(final String groupName, int numberOfMachines) throws InstallerException {
+	public Set<? extends NodeMetadata> createServers(final String groupName, int numberOfMachines)
+			throws InstallerException {
 
-	        Set<? extends NodeMetadata> nodes = null;
-	        try {
-	            logger.info("JClouds Deployer is creating new machines with group: "
-	                    + groupName + ". This may take a few minutes");
-	            nodes = createServersWithRetry(groupName, numberOfMachines, getTemplate());
-	        } catch (final RunNodesException e) {
-	            throw new InstallerException("Failed to start Cloud server with JClouds", e);
-	        }
-	        if (nodes.isEmpty()) {
-	            throw new IllegalStateException("Failed to create machines");
+		Set<? extends NodeMetadata> nodes = null;
+		try {
+			logger.info("JClouds Deployer is creating new machines with group: " + groupName
+					+ ". This may take a few minutes");
+			nodes = createServersWithRetry(groupName, numberOfMachines, getTemplate());
+		} catch (final RunNodesException e) {
+			throw new InstallerException("Failed to start Cloud server with JClouds", e);
+		}
+		if (nodes.isEmpty()) {
+			throw new IllegalStateException("Failed to create machines");
 
-	        }
-	        if (nodes.size() > numberOfMachines) {
-	            throw new IllegalStateException("Created too manys machines");
-	        }
+		}
+		if (nodes.size() > numberOfMachines) {
+			throw new IllegalStateException("Created too manys machines");
+		}
 
-	        return nodes;
+		return nodes;
 
-	    }
-	
+	}
+
 	/********
 	 * Creates a server with the given name and template.
 	 * 
@@ -229,8 +231,7 @@ public class JCloudsDeployer {
 	 * @return the node meta data.
 	 * @throws RunNodesException .
 	 */
-	public Set<? extends NodeMetadata> createDefaultServer(final String name)
-			throws RunNodesException {
+	public Set<? extends NodeMetadata> createDefaultServer(final String name) throws RunNodesException {
 		return this.context.getComputeService().createNodesInGroup(name, 1);
 	}
 
@@ -267,7 +268,7 @@ public class JCloudsDeployer {
 		final Set<? extends NodeMetadata> nodes = getServers(filter);
 		final Set<NodeMetadata> runningNodes = new HashSet<NodeMetadata>();
 		Iterator<? extends NodeMetadata> nodesIterator = nodes.iterator();
-		while(nodesIterator.hasNext()) {
+		while (nodesIterator.hasNext()) {
 			NodeMetadata node = nodesIterator.next();
 			if (node.getState() != NodeState.TERMINATED) {
 				runningNodes.add(node);
@@ -339,23 +340,23 @@ public class JCloudsDeployer {
 	}
 
 	/*******************
-     * Returns all nodes that match the group provided
-     * 
-     * @param group
-     *            the group.
-     * @return the nodes.
-     */
-    public Set<? extends NodeMetadata> getServers(final String group) {
-        return getServers(new Predicate<ComputeMetadata>() {
-            public boolean apply(ComputeMetadata input) {
-                final NodeMetadata node = (NodeMetadata) input;
-                return node.getGroup() != null &&
-                       node.getGroup().equals(group);
-            }
-        });
-        
-    }
-	
+	 * Returns all nodes that match the group provided
+	 * 
+	 * @param group
+	 *            the group.
+	 * @return the nodes.
+	 */
+	public Set<? extends NodeMetadata> getServers(final String group) {
+		return getServers(new Predicate<ComputeMetadata>() {
+
+			public boolean apply(ComputeMetadata input) {
+				final NodeMetadata node = (NodeMetadata) input;
+				return node.getGroup() != null && node.getGroup().equals(group);
+			}
+		});
+
+	}
+
 	/***********
 	 * Returns a server whose private or public IPs contain the given IP.
 	 * 
@@ -391,6 +392,8 @@ public class JCloudsDeployer {
 	public Template getTemplate() {
 		if (this.template == null) {
 
+			logger.info("Creating Cloud Template. This may take a few seconds");
+			
 			final TemplateBuilder builder = this.context.getComputeService().templateBuilder();
 			if ((this.imageId != null) && (this.imageId.length() > 0)) {
 				builder.imageId(this.imageId);
@@ -404,31 +407,174 @@ public class JCloudsDeployer {
 				builder.hardwareId(hardwareId);
 			}
 
-			
-			if (!"aws-ec2".equals(provider)) {
-				this.template = builder.build();
-			}
-			else {
-				builder.locationId(getLocationId());
-				this.template = builder.build();
-				
-				String group = "default";
-				if ((this.securityGroup != null) && (this.securityGroup.length() > 0)) {
-					group = this.securityGroup;
-				}
-				template.getOptions().as(EC2TemplateOptions.class)
-						.securityGroups(group);
-				
-				if ((this.keyPair != null) && (this.keyPair.length() > 0)) {
-					template.getOptions().as(EC2TemplateOptions.class).keyPair(this.keyPair);
-				}
-			}
+			// this is usually a remote call, and may take a while to return.
+			this.template = builder.build();
 
-			// builder.options(TemplateOptions.Builder.blockUntilRunning(false));
-
+			handleExtraOptions();
+			logger.info("Cloud Template is ready for use.");
 		}
 
 		return this.template;
+	}
+
+	private void handleExtraOptions() {
+		if (this.extraOptions != null) {
+			// use reflection to set extra options
+			Set<Entry<String, Object>> optionEntries = this.extraOptions.entrySet();
+			TemplateOptions templateOptions = template.getOptions();
+
+			for (Entry<String, Object> entry : optionEntries) {
+				final String entryKey = entry.getKey();
+				final Object entryValue = entry.getValue();
+				if (entryValue == null) {
+					handleNullValueTemplateOption(optionEntries, templateOptions, entry, entryKey, entryValue);
+				} else if (List.class.isAssignableFrom(entryValue.getClass())) {
+					handleListParameterOption(templateOptions, entryKey, entryValue);
+				} else {
+					handleSingleParameterOption(templateOptions, entryKey, entryValue);
+				}
+
+			}
+		}
+	}
+
+	private void handleListParameterOption(TemplateOptions templateOptions, final String entryKey,
+			final Object entryValue) {
+		// first check for a single arg option with a list
+		// parameter
+		Method m = null;
+		try {
+			m = templateOptions.getClass().getMethod(entryKey, entryValue.getClass());
+		} catch (SecurityException e) {
+			throw new IllegalArgumentException(
+					"Error while loo king for method to match option: " + entryKey
+							+ " with option value: " + entryValue + ". Error was: " + e.getMessage(), e);
+		} catch (NoSuchMethodException e) {
+			// ignore
+		}
+
+		if (m != null) {
+			// found a relevant method
+			handleSingleParameterOption(templateOptions, entryKey, entryValue);
+		} else {
+			// no method accepts a list - try for a method that
+			// takes a
+			// parameter for each list entry
+			@SuppressWarnings("unchecked")
+			List<Object> paramList = (List<Object>) entryValue;
+			Object[] paramArray = paramList.toArray();
+			Class<?>[] classArray = new Class<?>[paramArray.length];
+			for (int i = 0; i < classArray.length; i++) {
+				classArray[i] = paramArray[i].getClass();
+			}
+			
+			try {
+				Method[] ms = templateOptions.getClass().getMethods();
+				System.out.println(ms);
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			} 
+			try {
+				m = templateOptions.getClass().getMethod(entryKey, classArray);
+			} catch (SecurityException e) {
+				throw new IllegalArgumentException("Error while looking for method to match option: "
+						+ entryKey + " with option value: " + entryValue + ". Error was: "
+						+ e.getMessage(), e);
+			} catch (NoSuchMethodException e) {
+				// ignore
+			}
+
+			if (m == null) {
+				throw new IllegalArgumentException(
+						"Could not find a matching method to set template option: " + entryKey
+								+ " with the following values: " + paramList);
+			} else {
+				try {
+					m.invoke(templateOptions, paramArray);
+				} catch (Exception e) {
+					throw new IllegalArgumentException("Failed to set option: " + entryKey
+							+ " by invoking method: " + m + " with value: " + entryValue
+							+ ". Error was: " + e.getMessage(), e);
+				}
+			}
+
+		}
+	}
+
+	private void handleSingleParameterOption(TemplateOptions templateOptions, final String entryKey,
+			final Object entryValue) {
+		Method m = null;
+		try {
+			m = templateOptions.getClass().getMethod(entryKey, entryValue.getClass());
+		} catch (SecurityException e) {
+			throw new IllegalArgumentException("Error while looking for method to match option: " + entryKey
+					+ " with option value: " + entryValue + ". Error was: " + e.getMessage(), e);
+		} catch (NoSuchMethodException e) {
+			// ignore
+		}
+		if (m == null) {
+			throw new IllegalArgumentException("Could not find a method matching option: " + entryKey + " with value: "
+					+ entryValue);
+		}
+
+		try {
+			m.invoke(templateOptions, entryValue);
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Failed to set option: " + entryKey + " by invoking method: " + m
+					+ " with value: " + entryValue + ". Error was: " + e.getMessage(), e);
+		}
+	}
+
+	private void handleNullValueTemplateOption(Set<Entry<String, Object>> optionEntries,
+			TemplateOptions templateOptions, Entry<String, Object> entry, final String entryKey, final Object entryValue) {
+		// first look for no arg method
+		Method m = null;
+		try {
+			m = optionEntries.getClass().getMethod(entryKey);
+			// got the method
+		} catch (SecurityException e) {
+			throw new IllegalArgumentException("Error while looking for method to match template option: " + entryKey,
+					e);
+		} catch (NoSuchMethodException e) {
+			// ignore - method was not found
+		}
+
+		if (m != null) {
+			// Found a no-arg method for this option
+			try {
+				// invoke with no args
+				m.invoke(templateOptions);
+			} catch (Exception e) {
+				throw new IllegalArgumentException("Failed to set template option with name: " + entryKey
+						+ " to value: " + entryValue, e);
+
+			}
+		} else {
+			// look for a matching method with a single argument
+			try {
+				m = optionEntries.getClass().getMethod(entryKey, Object.class);
+				// got the method
+			} catch (SecurityException e) {
+				throw new IllegalArgumentException("Error while looking for method to match template option: "
+						+ entryKey, e);
+			} catch (NoSuchMethodException e) {
+				// ignore - method was not found
+			}
+
+			if (m != null) {
+				try {
+					//
+					m.invoke(templateOptions, (Object) null);
+				} catch (Exception e) {
+					throw new IllegalArgumentException("Failed to set template option with name: " + entryKey
+							+ " to value: " + entryValue, e);
+				}
+			} else {
+				throw new IllegalArgumentException("Could not find a method matching template option: "
+						+ entry.getKey());
+			}
+
+		}
 	}
 
 	public void setImageId(final String imageId) {
@@ -459,28 +605,29 @@ public class JCloudsDeployer {
 	}
 
 	public void shutdownMachineGroup(final String group) {
-	    this.context.getComputeService().destroyNodesMatching(new Predicate<NodeMetadata>() {
-            @Override
-            public boolean apply(NodeMetadata input) {
-                return input.getGroup() != null && 
-                       input.getGroup().equals(group);
-            }
-        });
+		this.context.getComputeService().destroyNodesMatching(new Predicate<NodeMetadata>() {
+
+			@Override
+			public boolean apply(NodeMetadata input) {
+				return input.getGroup() != null && input.getGroup().equals(group);
+			}
+		});
 	}
-	
+
 	public void shutdownMachinesWithIPs(final Set<String> IPs) {
-        this.context.getComputeService().destroyNodesMatching(new Predicate<NodeMetadata>() {
-            @Override
-            public boolean apply(NodeMetadata input) {
-                if (!input.getPrivateAddresses().isEmpty()) {
-                    String ip = input.getPrivateAddresses().iterator().next();
-                    return IPs.contains(ip);
-                }
-                return false;
-            }
-        });
+		this.context.getComputeService().destroyNodesMatching(new Predicate<NodeMetadata>() {
+
+			@Override
+			public boolean apply(NodeMetadata input) {
+				if (!input.getPrivateAddresses().isEmpty()) {
+					String ip = input.getPrivateAddresses().iterator().next();
+					return IPs.contains(ip);
+				}
+				return false;
+			}
+		});
 	}
-	
+
 	/*********
 	 * Returns a server with a tag that equals the given tag. Note that
 	 * comparison is also performed with the given tag with underscores removed.
@@ -516,36 +663,43 @@ public class JCloudsDeployer {
 
 	}
 
-	private Set<? extends NodeMetadata> createServersWithRetry(String group, int count, Template template) throws RunNodesException {
-        int retryAttempts = 0;
-        boolean retry;
-        
-        Set<? extends NodeMetadata> nodes = null;
-        
-        do {
-            retry = false;
-            try {
-                nodes = this.context.getComputeService().createNodesInGroup(group, count, template);
-            } catch (final ResourceNotFoundException e) {
-                if (retryAttempts < NUMBER_OF_RETRY_ATTEMPTS &&
-                    e.getMessage() != null && 
-                    e.getMessage().contains("The security group") &&
-                    e.getMessage().contains("does not exist")) {
-                    try {
-                        Thread.sleep(RETRY_SLEEP_TIMEOUT_IN_MILLIS);
-                    } catch (InterruptedException e1) {
-                        /* do nothing */
-                    }
-                    retryAttempts += 1;
-                    retry = true;
-                    continue;
-                } else {
-                    throw e;
-                }
-            }
-        } while (retry);
-        
-        return nodes;
+	private Set<? extends NodeMetadata> createServersWithRetry(String group, int count, Template template)
+			throws RunNodesException {
+		int retryAttempts = 0;
+		boolean retry;
+
+		Set<? extends NodeMetadata> nodes = null;
+
+		do {
+			retry = false;
+			try {
+				nodes = this.context.getComputeService().createNodesInGroup(group, count, template);
+			} catch (final ResourceNotFoundException e) {
+				if (retryAttempts < NUMBER_OF_RETRY_ATTEMPTS && e.getMessage() != null
+						&& e.getMessage().contains("The security group") && e.getMessage().contains("does not exist")) {
+					try {
+						Thread.sleep(RETRY_SLEEP_TIMEOUT_IN_MILLIS);
+					} catch (InterruptedException e1) {
+						/* do nothing */
+					}
+					retryAttempts += 1;
+					retry = true;
+					continue;
+				} else {
+					throw e;
+				}
+			}
+		} while (retry);
+
+		return nodes;
+	}
+
+	public Map<String, Object> getExtraOptions() {
+		return extraOptions;
+	}
+
+	public void setExtraOptions(Map<String, Object> extraOptions) {
+		this.extraOptions = extraOptions;
 	}
 
 }

@@ -333,8 +333,8 @@ public final class ElasticProcessingUnitCloudDemo {
 			deployer.setMinRamMegabytes((int) config.getMachineMemoryMB());
 			deployer.setImageId(config.getImageId());
 			deployer.setHardwareId(config.getHardwareId());
-			deployer.setSecurityGroup(config.getSecurityGroup());
-			deployer.setKeyPair(config.getKeyPair());
+//			deployer.setSecurityGroup(config.getSecurityGroup());
+//			deployer.setKeyPair(config.getKeyPair());
 
 			NodeMetadata server = null;
 

@@ -1,5 +1,6 @@
 package com.gigaspaces.cloudify.esc.installer;
 
+import java.io.File;
 import java.util.List;
 
 import org.openspaces.admin.Admin;
@@ -61,6 +62,13 @@ public class InstallationDetails {
 	
 	// wherther we are in the same network as the machine we are about to install
 	private boolean connectedToPrivateIp;
+		
+	// a cloud specific identifier for a host
+	private String machineId;
+	
+	
+	private File cloudFile;
+
 	
 	public Admin getAdmin() {
 		return admin;
@@ -197,6 +205,22 @@ public class InstallationDetails {
     public boolean isNoWebServices() {
         return noWebServices;
     }
+
+	public String getMachineId() {
+		return machineId;
+	}
+
+	public void setMachineId(String machineId) {
+		this.machineId = machineId;
+	}
+
+	public File getCloudFile() {
+		return cloudFile;
+	}
+
+	public void setCloudFile(File cloudFile) {
+		this.cloudFile = cloudFile;
+	}
 
 
     
