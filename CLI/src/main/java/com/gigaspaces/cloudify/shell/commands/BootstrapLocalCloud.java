@@ -37,6 +37,6 @@ public class BootstrapLocalCloud extends AbstractGSCommand{
 			installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 			
 			installer.startLocalCloudOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);
-			return "Local-cloud started succesfully. Use the teardown-localcloud command to shutdown all processes.";
+			return "Local-cloud started successfully. Use the teardown-localcloud command to shutdown all processes.";
 		}
 }
