@@ -30,6 +30,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.apache.commons.io.FileUtils;
+import org.hyperic.sigar.NetInfo;
+import org.hyperic.sigar.NetStat;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 import org.jini.rio.boot.ServiceClassLoader;
@@ -191,6 +193,8 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 	@PostConstruct
 	public void init() throws USMException, TimeoutException {
 
+		
+		
 		initUniqueFileName();
 		initCustomProperties();
 		this.myPid = this.sigar.getPid();

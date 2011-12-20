@@ -1,3 +1,5 @@
+import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
+
 service {
 	name "kitchensink-service"
 	icon "icon.png"
@@ -8,10 +10,10 @@ service {
 		preInstall{ println "preInstall fired ${var2}"}
 		postInstall{ println "postInstall fired " + var1 }
 		preStart{ println "preStart fired " + var2 }
-		start ([ "Linux": "run.sh -dieOnParentDeath false -port 7777" ,
-					"Win.*": "run.bat -dieOnParentDeath false -port 7777" ])
+		start ([ "Linux": "run.sh -dieOnParentDeath true -port 7777" ,
+					"Win.*": "run.bat -dieOnParentDeath true -port 7777" ])
 
-		postStart "post_start.groovy"
+		//postStart "post_start.groovy"
 
 		preStop ([
 			"pre_stop.groovy",
@@ -30,6 +32,7 @@ service {
 		monitors (["NumberTwo":{return 2},
 			"NumberOne":{return "1"}])
 
+		startDetection {ServiceUtils.isPortsOccupied([7777], "localhost")}
 	}
 
 
