@@ -37,12 +37,12 @@ mkdir WorkerRoles\ui
 mkdir WorkerRoles\management
 mkdir WorkerRoles\GigaSpacesWorkerRoles
 
-xcopy GigaSpacesWorkerRoles\GigaSpacesWorkerRoles\ServiceConfiguration.Cloud.cscfg WorkerRoles\GigaSpacesWorkerRoles /Y
-xcopy GigaSpacesWorkerRoles\GigaSpacesWorkerRoles\ServiceDefinition.csdef WorkerRoles\GigaSpacesWorkerRoles /Y
-xcopy GigaSpacesWorkerRoles\RoleCommon\bin\%MS_BUILD_MODE% WorkerRoles\RoleCommon /Y
+xcopy GigaSpacesWorkerRoles\GigaSpacesWorkerRoles\ServiceConfiguration.Cloud.cscfg WorkerRoles\GigaSpacesWorkerRoles /Y /E
+xcopy GigaSpacesWorkerRoles\GigaSpacesWorkerRoles\ServiceDefinition.csdef WorkerRoles\GigaSpacesWorkerRoles /Y /E
+xcopy GigaSpacesWorkerRoles\RoleCommon\bin\%MS_BUILD_MODE% WorkerRoles\RoleCommon /Y /E
 xcopy GigaSpacesWorkerRoles\ui\bin\%MS_BUILD_MODE% WorkerRoles\ui /Y /E
-xcopy GigaSpacesWorkerRoles\management\bin\%MS_BUILD_MODE% WorkerRoles\management /Y
-xcopy GigaSpacesWorkerRoles\internal\bin\%MS_BUILD_MODE% WorkerRoles\internal /Y
+xcopy GigaSpacesWorkerRoles\management\bin\%MS_BUILD_MODE% WorkerRoles\management /Y /E
+xcopy GigaSpacesWorkerRoles\internal\bin\%MS_BUILD_MODE% WorkerRoles\internal /Y /E
 
 7za a -tzip WorkerRoles.zip WorkerRoles
 
