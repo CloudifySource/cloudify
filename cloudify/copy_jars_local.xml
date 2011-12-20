@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+
+<!-- helper build file that copies generated cloudify files to the local cloudify install -->
+<!-- TODO - Pick up CLOUDIFY_LATEST variable instead of using hard coded value			  -->
+<!-- Author: Barak Merimovich 															  --> 
+
+<project name="copy-jars-to-cloudify" default="dist" basedir=".">
+
+	<property name="target.dir" value="D:/Gigaspaces/gigaspaces-cloudify-2.0.0-m5" />
+	<echo message="Copying Cloudify jar files to ${target.dir}" /> 
+
+	<target name="dist" depends="">
+		<copy todir="${target.dir}/lib/platform/usm" file="../USM/target/usm.jar"  />
+		<copy todir="${target.dir}/tools/cli" file="../CLI/target/cli.jar" />
+		<copy todir="${target.dir}/tools/rest" file="../restful/target/rest.war" />
+		<copy todir="${target.dir}/lib/required" file="../dsl/target/dsl.jar" />
+		<copy todir="${target.dir}/lib/platform/esm" file="../esc/target/esc.jar" />
+	</target>
+
+
+</project>
