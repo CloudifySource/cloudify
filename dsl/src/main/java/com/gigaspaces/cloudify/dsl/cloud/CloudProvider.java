@@ -1,4 +1,4 @@
-package com.gigaspaces.cloudify.dsl;
+package com.gigaspaces.cloudify.dsl.cloud;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -14,21 +14,20 @@ public class CloudProvider {
 	private String cloudifyUrl;
 	private String machineNamePrefix;
 
-	private String securityGroup;
+	
 
 	private boolean dedicatedManagementMachines = true;
 
-	private List<String> managementOnlyFiles;
+	private List<String> managementOnlyFiles;	
 
-	private boolean connectedToPrivateIp;
-
-	private Level sshLoggingLevel = Level.INFO;
+	private String sshLoggingLevel = Level.INFO.toString();
 
 	private List<String> zones;
 
 	private String managementGroup;
 	private int numberOfManagementMachines;
 	private int reservedMemoryCapacityPerMachineInMB;
+	
 	public String getProvider() {
 		return provider;
 	}
@@ -59,12 +58,7 @@ public class CloudProvider {
 	public void setMachineNamePrefix(String machineNamePrefix) {
 		this.machineNamePrefix = machineNamePrefix;
 	}
-	public String getSecurityGroup() {
-		return securityGroup;
-	}
-	public void setSecurityGroup(String securityGroup) {
-		this.securityGroup = securityGroup;
-	}
+	
 	public boolean isDedicatedManagementMachines() {
 		return dedicatedManagementMachines;
 	}
@@ -77,16 +71,11 @@ public class CloudProvider {
 	public void setManagementOnlyFiles(List<String> managementOnlyFiles) {
 		this.managementOnlyFiles = managementOnlyFiles;
 	}
-	public boolean isConnectedToPrivateIp() {
-		return connectedToPrivateIp;
-	}
-	public void setConnectedToPrivateIp(boolean connectedToPrivateIp) {
-		this.connectedToPrivateIp = connectedToPrivateIp;
-	}
-	public Level getSshLoggingLevel() {
+	
+	public String getSshLoggingLevel() {
 		return sshLoggingLevel;
 	}
-	public void setSshLoggingLevel(Level sshLoggingLevel) {
+	public void setSshLoggingLevel(String sshLoggingLevel) {
 		this.sshLoggingLevel = sshLoggingLevel;
 	}
 	public List<String> getZones() {
@@ -95,12 +84,14 @@ public class CloudProvider {
 	public void setZones(List<String> zones) {
 		this.zones = zones;
 	}
+	// TODO - move to configuration
 	public String getManagementGroup() {
 		return managementGroup;
 	}
 	public void setManagementGroup(String managementGroup) {
 		this.managementGroup = managementGroup;
 	}
+	// TODO - move to configuration
 	public int getNumberOfManagementMachines() {
 		return numberOfManagementMachines;
 	}
@@ -113,6 +104,20 @@ public class CloudProvider {
 	public void setReservedMemoryCapacityPerMachineInMB(
 			int reservedMemoryCapacityPerMachineInMB) {
 		this.reservedMemoryCapacityPerMachineInMB = reservedMemoryCapacityPerMachineInMB;
+	}
+	@Override
+	public String toString() {
+		return "CloudProvider [provider=" + provider + ", localDirectory="
+				+ localDirectory + ", remoteDirectory=" + remoteDirectory
+				+ ", cloudifyUrl=" + cloudifyUrl + ", machineNamePrefix="
+				+ machineNamePrefix  
+				+ ", dedicatedManagementMachines="
+				+ dedicatedManagementMachines + ", managementOnlyFiles="
+				+ managementOnlyFiles + ",  sshLoggingLevel=" + sshLoggingLevel
+				+ ", zones=" + zones + ", managementGroup=" + managementGroup
+				+ ", numberOfManagementMachines=" + numberOfManagementMachines
+				+ ", reservedMemoryCapacityPerMachineInMB="
+				+ reservedMemoryCapacityPerMachineInMB + "]";
 	}
 	
 	

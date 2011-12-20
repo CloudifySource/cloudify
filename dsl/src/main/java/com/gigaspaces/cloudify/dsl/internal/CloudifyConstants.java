@@ -77,6 +77,16 @@ public class CloudifyConstants {
 	 */
 	public static final String USM_PARAMETERS_TAILER_INTERVAL = "TailerInterval";
 	
+
+
+	/*************************************
+	 * Keys for Elastic Provisioning properties used with ESM machine provisioning.
+	 * 
+	 */
+	public static final String ELASTIC_PROPERTIES_CLOUD_CONFIGURATION = "__CLOUDIFY__CLOUD_CONFIGURATION";
+	public static final String ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME = "__CLOUDIFY__CLOUD_TEMPLATE_NAME";
+
+
 	/********************
 	 * Key names for lifecycle event results.
 	 */
@@ -84,7 +94,7 @@ public class CloudifyConstants {
 	public static final String USM_EVENT_EXEC_FAILED = " failed";
 	public static final String USM_EVENT_EXEC_SUCCEED_MESSAGE = "[OK]";
 	public static final String USM_EVENT_EXEC_FAILED_MESSAGE = "[ERROR]";
-	
+
 	
 	
 	/***************

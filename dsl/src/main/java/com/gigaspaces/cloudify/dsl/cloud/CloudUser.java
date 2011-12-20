@@ -1,6 +1,7 @@
-package com.gigaspaces.cloudify.dsl;
+package com.gigaspaces.cloudify.dsl.cloud;
 
 import com.gigaspaces.cloudify.dsl.internal.CloudifyDSLEntity;
+
 
 @CloudifyDSLEntity(name = "user", clazz = CloudUser.class, allowInternalNode = true, allowRootNode = false, parent = "cloud2")
 public class CloudUser {
@@ -8,7 +9,7 @@ public class CloudUser {
 	private String user; 
     private String apiKey;
     private String keyFile;
-    private String keyPair;
+    
 	public String getUser() {
 		return user;
 	}
@@ -27,11 +28,11 @@ public class CloudUser {
 	public void setKeyFile(String keyFile) {
 		this.keyFile = keyFile;
 	}
-	public String getKeyPair() {
-		return keyPair;
-	}
-	public void setKeyPair(String keyPair) {
-		this.keyPair = keyPair;
+
+	@Override
+	public String toString() {
+		return "CloudUser [user=" + user + ", keyFile=" + keyFile
+				+ "]";
 	}
 
     

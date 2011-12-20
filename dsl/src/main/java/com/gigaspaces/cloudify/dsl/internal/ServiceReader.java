@@ -36,8 +36,8 @@ import org.openspaces.ui.UserInterface;
 
 import com.gigaspaces.cloudify.dsl.Application;
 import com.gigaspaces.cloudify.dsl.Cloud;
-import com.gigaspaces.cloudify.dsl.Cloud2;
 import com.gigaspaces.cloudify.dsl.Service;
+import com.gigaspaces.cloudify.dsl.cloud.Cloud2;
 import com.gigaspaces.cloudify.dsl.context.ServiceContext;
 import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
 import com.gigaspaces.cloudify.dsl.internal.packaging.ZipUtils;
@@ -399,7 +399,8 @@ public class ServiceReader {
 				binding.setVariable("context", context);
 			}
 		}
-		binding.setVariable(DSL_FILE_PATH_PROPERTY_NAME, dslFile.getPath());
+		
+		binding.setVariable(DSL_FILE_PATH_PROPERTY_NAME, (dslFile == null ? null : dslFile.getPath()));
 		return binding;
 	}
 
@@ -695,6 +696,7 @@ public class ServiceReader {
 
 	}
 
+
 	private static Cloud readCloudFromFile(final File dslFile)
 			throws IOException {
 
@@ -744,53 +746,51 @@ public class ServiceReader {
 
 	}
 
-	public static Cloud2 readCloud(final File dslFile)
-			throws IOException {
-
-		if (!dslFile.exists()) {
-			throw new FileNotFoundException(dslFile.getAbsolutePath());
+	public static Cloud2 readCloud(final String dslContents) throws DSLException {
+		return readCloud(dslContents, null);
+	}
+	private static Cloud2 readCloud(final String dslContents, final File dslFile) throws DSLException
+	{
+		if (dslContents == null) {
+			throw new IllegalArgumentException("DSL contents cannot be null");
 		}
 
 		final GroovyShell gs = ServiceReader.createGroovyShellForCloud(dslFile);
-		// gs.getContext().setProperty(ServiceUtils.APPLICATION_DIR,
-		// dslFile.getParentFile().getAbsolutePath());
 
 		Object result = null;
-		FileReader reader = null;
 		try {
-			reader = new FileReader(dslFile);
-			result = gs.evaluate(reader, "cloud");
+			result = gs.evaluate(dslContents, "cloud");
 		} catch (final CompilationFailedException e) {
 			throw new IllegalArgumentException("The file " + dslFile
 					+ " could not be compiled", e);
-		} catch (final IOException e) {
-			throw new IllegalStateException("The file " + dslFile
-					+ " could not be read", e);
-		} finally {
-			if (reader != null) {
-				reader.close();
-			}
-		}
-
+		} 
 		// final Object result = Eval.me(expr);
 		if (result == null) {
-			throw new IllegalStateException("The file: " + dslFile
+			throw new DSLException("The file: " + dslFile
 					+ " evaluates to null, not to a DSL object");
 		}
 		if (!(result instanceof Cloud2)) {
-			throw new IllegalStateException("The file: " + dslFile
+			throw new DSLException("The file: " + dslFile
 					+ " did not evaluate to the required object type");
 		}
 
 		final Cloud2 cloud = (Cloud2) result;
 
-		// final ServiceContext ctx = new ServiceContext(service, admin,
-		// workDir.getAbsolutePath(),
-		// clusterInfo);
-		// gs.getContext().setProperty("context", ctx);
-
 		return cloud;
+		
 
+	}
+	public static com.gigaspaces.cloudify.dsl.cloud.Cloud2 readCloud(final File dslFile)
+			throws IOException, DSLException {
+
+		if (!dslFile.exists()) {
+			throw new FileNotFoundException(dslFile.getAbsolutePath());
+		}
+
+		final String dslContents = FileUtils.readFileToString(dslFile);
+
+		Cloud2 cloud = readCloud(dslContents, dslFile);
+		return cloud;
 	}
 
 }

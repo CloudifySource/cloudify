@@ -16,7 +16,7 @@ public class CloudParserTest {
 	@Ignore
 	@Test
 	public void testCloudParser() throws Exception {
-		Cloud2 cloud = ServiceReader.readCloud(new File(SIMPLE_CLOUD_PATH));
+		com.gigaspaces.cloudify.dsl.cloud.Cloud2 cloud = ServiceReader.readCloud(new File(SIMPLE_CLOUD_PATH));
 		assertNotNull(cloud);
 		assertNotNull(cloud.getProvider());
 		assertNotNull(cloud.getTemplates());

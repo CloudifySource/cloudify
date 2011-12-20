@@ -21,10 +21,6 @@ import org.openspaces.ui.WidgetGroup;
 
 import com.gigaspaces.cloudify.dsl.Application;
 import com.gigaspaces.cloudify.dsl.Cloud;
-import com.gigaspaces.cloudify.dsl.Cloud2;
-import com.gigaspaces.cloudify.dsl.CloudProvider;
-import com.gigaspaces.cloudify.dsl.CloudTemplate;
-import com.gigaspaces.cloudify.dsl.CloudUser;
 import com.gigaspaces.cloudify.dsl.ComputeDetails;
 import com.gigaspaces.cloudify.dsl.DataGrid;
 import com.gigaspaces.cloudify.dsl.Memcached;
@@ -36,6 +32,11 @@ import com.gigaspaces.cloudify.dsl.ServiceNetwork;
 import com.gigaspaces.cloudify.dsl.Sla;
 import com.gigaspaces.cloudify.dsl.StatefulProcessingUnit;
 import com.gigaspaces.cloudify.dsl.StatelessProcessingUnit;
+import com.gigaspaces.cloudify.dsl.cloud.Cloud2;
+import com.gigaspaces.cloudify.dsl.cloud.CloudConfiguration;
+import com.gigaspaces.cloudify.dsl.cloud.CloudProvider;
+import com.gigaspaces.cloudify.dsl.cloud.CloudTemplate;
+import com.gigaspaces.cloudify.dsl.cloud.CloudUser;
 import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
 
 public abstract class BaseDslScript extends Script {
@@ -318,6 +319,8 @@ public abstract class BaseDslScript extends Script {
 					CloudUser.class);
 			addObjectInitializerForClass(dslObjectInitializersByName,
 					CloudTemplate.class);
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					CloudConfiguration.class);
 			addObjectInitializerForClass(dslObjectInitializersByName,
 					ComputeDetails.class);
 
