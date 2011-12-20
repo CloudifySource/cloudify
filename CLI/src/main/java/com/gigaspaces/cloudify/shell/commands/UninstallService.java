@@ -1,5 +1,7 @@
 package com.gigaspaces.cloudify.shell.commands;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -10,9 +12,11 @@ import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.CompleterValues;
 import org.apache.felix.gogo.commands.Option;
+import org.apache.karaf.util.Properties.PropertiesReader;
 
 import com.gigaspaces.cloudify.shell.ConditionLatch;
 import com.gigaspaces.cloudify.shell.ConditionLatch.Predicate;
+import com.gigaspaces.cloudify.shell.Constants;
 import com.gigaspaces.cloudify.shell.rest.RestAdminFacade;
 
 /**
@@ -47,6 +51,11 @@ public class UninstallService extends AdminAwareCommand {
     
     @Override
     protected Object doExecute() throws Exception {
+    	
+    	if (!askUninstallConfirmationQuestion()){
+    		return getFormattedMessage("uninstall_aborted");
+    	}
+    	
         final Set<String> containerIdsOfService = ((RestAdminFacade)adminFacade).getGridServiceContainerUidsForService(getCurrentApplicationName(), serviceName);
         if (verbose) {
             logger.info("Found containers: " + containerIdsOfService);
@@ -80,6 +89,23 @@ public class UninstallService extends AdminAwareCommand {
         }          
         return getFormattedMessage("undeployed_successfully", serviceName);
     }
+    
+	//returns true if the answer to the question was 'Yes'.
+	private boolean askUninstallConfirmationQuestion() throws IOException {
+		
+		//we skip question if the shell is running a script.
+		if ((Boolean)session.get(Constants.INTERACTIVE_MODE)){
+			String confirmationQuestion = getFormattedMessage("service_uninstall_confirmation", serviceName);
+			logger.info(confirmationQuestion);
+			
+			PropertiesReader pr = new PropertiesReader(new InputStreamReader(System.in));
+			String answer = pr.readProperty();
+			return "y".equalsIgnoreCase(answer) ? true : false;
+
+		}
+		// Shell is running in nonInteractive mode. we skip the question.
+		return true;
+	}
 
     private ConditionLatch createConditionLatch(long timeout, TimeUnit timeunit) {
         return 
