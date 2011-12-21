@@ -81,7 +81,6 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 	private static final String OUTPUT_FILE_NAME_SUFFIX = ".out";
 	private static final int WAIT_FOR_DEPENDENCIES_INTERVAL_MILLIS = 5000;
 	private static final int WAIT_FOR_DEPENDENCIES_TIMEOUT_MILLIS = 1000 * 60 * 30;
-	// TODO: change to false
 	private static final String ASYNC_INSTALL_DEFAULT_VALUE = "false";
 	private static final int FILE_TAILER_INTERVAL_SECS_DEFAULT = 5;
 	private static final int DEFAULT_POST_LAUNCH_WAIT_PERIOD_MILLIS = 2000;
@@ -128,7 +127,6 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 	private String serviceDescription = "USM";
 	private String serviceLongDescription = "USM";
 
-	// TODO - remote this, replaced with liveness detector
 	private long postLaunchWaitPeriodMillis = DEFAULT_POST_LAUNCH_WAIT_PERIOD_MILLIS;
 	private final long postDeathWaitPeriodMillis = DEFAULT_POST_DEATH_WAIT_PERIOD_MILLIS;
 	private Thread shutdownHookThread;
@@ -204,14 +202,6 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 
 		reset(existingProcessFound);
 
-		
-		initShutdownHook();
-
-		// Map<String, Object> map = new HashMap<String, Object>();
-		// map.put(CloudifyConstants.INVOCATION_PARAMETER_COMMAND_NAME, "cmd1");
-//		// invoke(map);
-//		getServicesDetails();
-//		getServicesMonitors();
 	}
 
 	private void initCustomProperties() {
@@ -272,35 +262,6 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 				+ timeout + " seconds");
 		this.executors.schedule(new TestRecipeShutdownRunnable(
 				this.applicationContext, this), timeout, TimeUnit.SECONDS);
-	}
-
-	private void shutdownHook() {
-
-		try {
-			logger.info("USM shutting down unexpectedly via JVM Shutdown Hook.");
-			this.state = USMState.SHUTTING_DOWN;
-			stop(StopReason.SHUTDOWN_HOOK);
-			executors.shutdown();
-		} catch (final Exception e) {
-			logger.log(
-					Level.SEVERE,
-					"Failed to execute shutdown hook. Managed process may not have shut down!",
-					e);
-		}
-
-	}
-
-	private void initShutdownHook() {
-		this.shutdownHookThread = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				shutdownHook();
-			}
-		});
-		Runtime.getRuntime().addShutdownHook(this.shutdownHookThread);
-
 	}
 
 	private void removeShutdownHook() {
@@ -656,8 +617,6 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 			// After the main process starts, wait for a short interval so if
 			// the process failed to
 			// start it will fail quickly here.
-
-			// TODO - Do we still need this?
 			try {
 				Thread.sleep(this.postLaunchWaitPeriodMillis);
 			} catch (final InterruptedException e) {
@@ -722,55 +681,6 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 		}
 
 	}
-
-	// DO NOT DELETE - PID FILE HANDLING SHOULD BE RETURNED
-	// private void waitForPidFile(final File pidFile) throws USMException {
-	// // TODO review this
-	// final int retries = 10;
-	// final long delayInterval = 500;
-	// for (int i = 0; i < retries; i++) {
-	// if (pidFile.exists()) {
-	// return;
-	// } else {
-	// try {
-	// Thread.sleep(delayInterval);
-	// } catch (final InterruptedException e) {
-	// logger.log(Level.SEVERE, "interrupted", e);
-	// }
-	// }
-	// }
-	// throw new USMException("pidFile " + pidFile.getAbsolutePath() +
-	// " does not exist");
-	// }
-	//
-	// private void monitorProcessUsingSigar(final long pid) throws USMException
-	// {
-	// // TODO add SigarProcessStateTask sleep interval to configuration
-	// final SigarProcessStateTask stateTask =
-	// new SigarProcessStateTask(pid, new ProcessDeathNotifier(this), 5000);
-	// executors.submit(stateTask);
-	// }
-
-	// private File acquirePidFile() {
-	// if (!USMUtils.isLinuxOrUnix()) {
-	// return null;
-	// }
-	// File pidFile = null;
-	// if ((usmLifecycleBean.configuration.getPidFile() != null) &&
-	// (usmLifecycleBean.configuration.getPidFile().length() > 0)) {
-	// pidFile = new File(this.puWorkDir,
-	// usmLifecycleBean.configuration.getPidFile());
-	// if (pidFile.exists()) {
-	// logger.warning("PID File: " + pidFile +
-	// " exists before process was launched. File will be deleted.");
-	// final boolean deleteResult = pidFile.delete();
-	// if (!deleteResult) {
-	// logger.warning("Failed to delete PID file: " + pidFile);
-	// }
-	// }
-	// }
-	// return pidFile;
-	// }
 
 	protected void findProcessIDs(final Set<Long> childrenBefore,
 			final File pidFile) throws USMException {
@@ -1234,8 +1144,7 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 
 	}
 
-	private boolean firstTime = true;
-
+	
 	// crappy method name
 	public void onProcessDeath() {
 		logger.info("Detected death of underlying process");
@@ -1276,8 +1185,6 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 						// ignore
 					}
 					try {
-						// TODO - if process launch failed?????????/
-
 						logger.info("Relaunching process");
 						launch();
 						logger.info("Finished Relaunching process after unexpected process death");
@@ -1322,18 +1229,6 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 		
 		final ServiceDetails[] res = new ServiceDetails[] { csd };
 
-		// boolean deleteme = true;
-		// if (deleteme) {
-		// return res;
-		// }
-		// waitForServiceToStart();
-
-		// if the underlying process is not running, do not execute the details
-		// if (!this.getState().equals(USMState.RUNNING)) {
-		// // throw new IllegalStateException("USM has not started yet!");
-		// return res;
-		// }
-
 		final Details[] alldetails = usmLifecycleBean.getDetails();
 		final Map<String, Object> result = csd.getAttributes();
 		for (final Details details : alldetails) {
@@ -1350,62 +1245,14 @@ InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 
 		}
 
-		if (logger.isLoggable(Level.INFO)) { // TODO - change to FINER
-			logger.info("Details are: " + Arrays.toString(res));
+		if (logger.isLoggable(Level.FINER)) { // TODO - change to FINER
+			logger.finer("Details are: " + Arrays.toString(res));
 		}
 		return res;
 
 	}
 
-	private void waitForServiceToStart() {
-
-		boolean firstTime = true;
-		while (true) {
-			synchronized (this.stateMutex) {
-				switch (this.state) {
-				case INITIALIZING:
-				case LAUNCHING:
-					if (!firstTime) {
-						throw new IllegalStateException(
-								"The Service failed to start. The current service state is: "
-								+ this.state);
-					}
-					try {
-						logger.info("Waiting for service to start. Current service state: "
-								+ this.state);
-						// TODO - make wait timeout configurable
-						this.stateMutex
-						.wait(WAIT_FOR_DEPENDENCIES_TIMEOUT_MILLIS); // wait
-						// for
-						// 30
-						// mins
-						// max
-					} catch (InterruptedException e) {
-						// ignore
-					}
-
-					// run this code again
-					firstTime = false;
-
-					break;
-
-				case SHUTTING_DOWN:
-					logger.warning("While waiting for service to start, the USM changed its state to: "
-							+ USMState.SHUTTING_DOWN);
-					return;
-				case RUNNING:
-					// this should be the common case
-					return;
-				default:
-					logger.warning("Unexpected service state: " + this.state);
-					return;
-
-				}
-			}
-		}
-	}
-
-	@Override
+		@Override
 	public ServiceMonitors[] getServicesMonitors() {
 		logger.fine("Executing getServiceMonitors()");
 
