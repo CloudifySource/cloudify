@@ -108,7 +108,8 @@ public class InstallService extends AdminAwareCommand {
 		}
 
 		String templateName = null;
-		if(service.getCompute() != null) {
+		//service is null when a simple deploying war for example
+		if(service != null && service.getCompute() != null) {
 			templateName = service.getCompute().getTemplate();
 			if(templateName == null) {
 				templateName = "";
