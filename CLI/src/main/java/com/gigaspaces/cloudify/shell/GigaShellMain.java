@@ -22,6 +22,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.SequenceInputStream;
+import java.net.Proxy;
+import java.net.ProxySelector;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -39,6 +44,7 @@ import org.apache.karaf.shell.console.Main;
 import org.apache.karaf.shell.console.jline.Console;
 import org.fusesource.jansi.Ansi;
 
+import com.gigaspaces.cloudify.shell.commands.CLIException;
 import com.gigaspaces.cloudify.shell.logging.ShellErrorManager;
 import com.gigaspaces.cloudify.shell.logging.ShellFormatter;
 import com.gigaspaces.cloudify.shell.proxy.SystemDefaultProxySelector;
@@ -140,12 +146,33 @@ public class GigaShellMain extends Main implements Action {
             return;
         }
 
-        // After this call, every connection made will use the system proxy settings (on windows)
-        SystemDefaultProxySelector.setup();
+        if (isProxySettingsDefined()) {
+            return;
+        }
+        
+        try {
+            SystemDefaultProxySelector.setup();
+        } catch (Exception e) {
+            Logger.getLogger(GigaShellMain.class.getName()).log(Level.WARNING, 
+                    "Failed using system proxy configuration, falling back to no proxy.", new CLIException(e));
+        }
 
     }
 	
-	public static GigaShellMain getInstance() {
+    // TODO this is not very robust and needs much more work to get done right
+	private static boolean isProxySettingsDefined() {
+        try {
+            final URI someURI = new URI("http://www.example.com");
+            ProxySelector defaultSelector = ProxySelector.getDefault();
+            List<Proxy> proxies = defaultSelector.select(someURI);
+            return !(proxies.size() == 0) && !proxies.get(0).equals(Proxy.NO_PROXY);
+        } catch (URISyntaxException e) {
+            // Will not happen
+            return false;
+        }
+	}
+
+    public static GigaShellMain getInstance() {
 		return instance;
 	}
 
