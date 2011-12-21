@@ -5,21 +5,18 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 
 import com.gigaspaces.cloudify.dsl.cloud.Cloud2;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
-import com.gigaspaces.cloudify.esc.driver.provisioning.CloudifyProvisioning;
 import com.gigaspaces.cloudify.esc.shell.installer.CloudGridAgentBootstrapper;
 import com.gigaspaces.cloudify.shell.AdminFacade;
 import com.gigaspaces.cloudify.shell.Constants;
 import com.gigaspaces.cloudify.shell.ShellUtils;
 import com.gigaspaces.cloudify.shell.commands.AbstractGSCommand;
 import com.gigaspaces.cloudify.shell.rest.RestAdminFacade;
-import com.gigaspaces.internal.sigar.SigarHolder;
 
 @Command(scope = "cloudify", name = "bootstrap-cloud", description = "Starts Cloudify Agent without any zone, and the Cloudify management processes on the provided cloud.")
 public class BootstrapCloud extends AbstractGSCommand {

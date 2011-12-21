@@ -11,7 +11,6 @@ import org.apache.felix.gogo.commands.Option;
 
 import com.gigaspaces.cloudify.dsl.cloud.Cloud2;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
-import com.gigaspaces.cloudify.esc.driver.provisioning.CloudifyProvisioning;
 import com.gigaspaces.cloudify.esc.shell.installer.CloudGridAgentBootstrapper;
 import com.gigaspaces.cloudify.shell.AdminFacade;
 import com.gigaspaces.cloudify.shell.Constants;
