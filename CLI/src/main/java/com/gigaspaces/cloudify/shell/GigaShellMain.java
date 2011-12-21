@@ -41,7 +41,6 @@ import org.fusesource.jansi.Ansi;
 
 import com.gigaspaces.cloudify.shell.logging.ShellErrorManager;
 import com.gigaspaces.cloudify.shell.logging.ShellFormatter;
-import com.gigaspaces.cloudify.shell.proxy.SystemDefaultProxySelector;
 
 //declared as command so that it can be used in the context of another shell
 @Command(name = "cloudify", scope = "cloudify", description = "Executes a cloudify command interpreter")
