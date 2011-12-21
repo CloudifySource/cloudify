@@ -1095,14 +1095,17 @@ public class ServiceController {
 		logger.finer("received request to deploy");
 		logger.info("Deploying service with template: " + templateName);
 		String actualTemplateName = templateName;
-		if ((templateName == null) || templateName.length() == 0) {
-			if (cloud.getTemplates().size() == 0) {
-				throw new IllegalStateException("Cloud configuration has no compute template defined!");
-			}
-			actualTemplateName = cloud.getTemplates().keySet().iterator().next();
-			logger.warning("Compute Template name missing from service deployment request. Defaulting to first template: "
-					+ actualTemplateName);
 
+		if (cloud != null) {
+			if ((templateName == null) || templateName.length() == 0) {
+				if (cloud.getTemplates().size() == 0) {
+					throw new IllegalStateException("Cloud configuration has no compute template defined!");
+				}
+				actualTemplateName = cloud.getTemplates().keySet().iterator().next();
+				logger.warning("Compute Template name missing from service deployment request. Defaulting to first template: "
+						+ actualTemplateName);
+
+			}
 		}
 
 		String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
