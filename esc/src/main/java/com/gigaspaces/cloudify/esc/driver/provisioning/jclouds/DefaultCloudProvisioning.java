@@ -1,12 +1,10 @@
 package com.gigaspaces.cloudify.esc.driver.provisioning.jclouds;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
-
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,8 +20,8 @@ import org.apache.commons.io.FileUtils;
 import org.jclouds.compute.domain.ComputeMetadata;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.NodeState;
-
 import org.openspaces.admin.Admin;
+
 import com.gigaspaces.cloudify.dsl.cloud.Cloud2;
 import com.gigaspaces.cloudify.dsl.cloud.CloudTemplate;
 import com.gigaspaces.cloudify.esc.driver.provisioning.CloudProvisioningException;
