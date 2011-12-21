@@ -1,5 +1,6 @@
 package com.gigaspaces.cloudify.dsl.cloud;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.gigaspaces.cloudify.dsl.internal.CloudifyDSLEntity;
@@ -9,10 +10,10 @@ public class Cloud2 {
 
 	private String name;
 	private CloudProvider provider;
-	private CloudUser user;
-	private CloudConfiguration configuration;
-	private Map<String, CloudTemplate> templates;
-	private Map<String, Object> custom;
+	private CloudUser user = new CloudUser();
+	private CloudConfiguration configuration = new CloudConfiguration();
+	private Map<String, CloudTemplate> templates = new HashMap<String, CloudTemplate>();
+	private Map<String, Object> custom = new HashMap<String, Object>();
 	
 	
 	public Map<String, Object> getCustom() {

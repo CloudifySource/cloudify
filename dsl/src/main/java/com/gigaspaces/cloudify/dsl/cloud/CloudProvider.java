@@ -14,8 +14,6 @@ public class CloudProvider {
 	private String cloudifyUrl;
 	private String machineNamePrefix;
 
-	
-
 	private boolean dedicatedManagementMachines = true;
 
 	private List<String> managementOnlyFiles;	
