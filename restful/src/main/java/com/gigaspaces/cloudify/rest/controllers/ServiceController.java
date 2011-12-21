@@ -103,6 +103,7 @@ import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
 import com.gigaspaces.cloudify.dsl.internal.packaging.ZipUtils;
 import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 import com.gigaspaces.cloudify.esc.driver.provisioning.CloudifyMachineProvisioningConfig;
+
 import com.gigaspaces.cloudify.rest.ResponseConstants;
 import com.gigaspaces.cloudify.rest.util.ApplicationInstallerRunnable;
 import com.gigaspaces.cloudify.rest.util.RestUtils;
@@ -126,16 +127,24 @@ public class ServiceController {
 	@Autowired(required = true)
 	private Admin admin;
 
-	private Cloud2 cloudConfiguration = null;
+	private Cloud2 cloud = null;
 
 	private final Logger logger = Logger.getLogger(getClass().getName());
 	private String cloudFileContents;
+
+	public ServiceController() throws IOException {
+
+		this.cloud = readCloudFile();
+
+	}
 
 	private Cloud2 readCloudFile() throws IOException {
 		logger.info("Loading cloud configuration file");
 		String cloudFileLocation = System.getenv().get("CLOUD_FILE");
 		if (cloudFileLocation == null) {
-			throw new IllegalArgumentException("The CLOUD_FILE environment variable is missing!");
+			logger.info("No Cloud File has been configured - assuming this is local cloud");
+			return null;
+
 		}
 
 		File cloudFile = new File(cloudFileLocation);
@@ -161,21 +170,10 @@ public class ServiceController {
 		logger.info("Setting cloud local directory to: " + cloud.getProvider().getRemoteDirectory());
 		cloud.getProvider().setLocalDirectory(cloud.getProvider().getRemoteDirectory());
 
+		logger.info("Loaded cloud: " + cloud);
+
 		return cloud;
 
-	}
-
-	private Cloud2 getCloud() {
-		if (this.cloudConfiguration == null) {
-			try {
-				this.cloudConfiguration = readCloudFile();
-			} catch (IOException e) {
-				throw new IllegalArgumentException("Failed to load cloud configuration file! " + e.getMessage(), e);
-			}
-			logger.info("Loaded cloud: " + this.cloudConfiguration);
-		}
-
-		return this.cloudConfiguration;
 	}
 
 	// Set up a small thread pool with daemon threads.
@@ -862,9 +860,9 @@ public class ServiceController {
 		return tempFile;
 	}
 
-	private void doDeploy(final String applicationName, final String serviceName, final String templateName, final String zone,
-			final File serviceFile, final Properties contextProperties, Service service) throws AdminException,
-			TimeoutException {
+	private void doDeploy(final String applicationName, final String serviceName, final String templateName,
+			final String zone, final File serviceFile, final Properties contextProperties, Service service)
+			throws AdminException, TimeoutException {
 		int numberOfInstances = service.getNumInstances();
 		if (numberOfInstances > 1) {
 			logger.info("Deploying service " + serviceName + " with " + numberOfInstances + " instances.");
@@ -888,10 +886,6 @@ public class ServiceController {
 	private void doDeploy(final String applicationName, final String serviceName, final String templateName,
 			final String zone, final File serviceFile, final Properties contextProperties, int numberOfInstances)
 			throws AdminException, TimeoutException {
-
-		final Cloud2 cloud = getCloud();
-		
-		
 
 		final int externalProcessMemoryInMB = 512;
 		final int containerMemoryInMB = 128;
@@ -924,11 +918,11 @@ public class ServiceController {
 		} else {
 
 			final CloudTemplate template = getComputeTemplate(cloud, templateName);
-			
-			
+
 			long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
 
-			CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(cloud, template, cloudFileContents, templateName);
+			CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(cloud, template,
+					cloudFileContents, templateName);
 			// CloudMachineProvisioningConfig config =
 			// CloudDSLToCloudMachineProvisioningConfig
 			// .convert(cloud);
@@ -1101,16 +1095,16 @@ public class ServiceController {
 		logger.finer("received request to deploy");
 		logger.info("Deploying service with template: " + templateName);
 		String actualTemplateName = templateName;
-		if( (templateName == null) || templateName.length() ==0) {
-			Cloud2 cloud = getCloud();
-			if(cloud.getTemplates().size() ==0) {
+		if ((templateName == null) || templateName.length() == 0) {
+			if (cloud.getTemplates().size() == 0) {
 				throw new IllegalStateException("Cloud configuration has no compute template defined!");
 			}
-			actualTemplateName= cloud.getTemplates().keySet().iterator().next();
-			logger.warning("Compute Template name missing from service deployment request. Defaulting to first template: " + actualTemplateName);
-			
+			actualTemplateName = cloud.getTemplates().keySet().iterator().next();
+			logger.warning("Compute Template name missing from service deployment request. Defaulting to first template: "
+					+ actualTemplateName);
+
 		}
-				
+
 		String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		final byte[] propsBytes = propsFile.getBytes();
 		final Properties props = new Properties();
@@ -1140,22 +1134,25 @@ public class ServiceController {
 	}
 
 	private CloudTemplate getComputeTemplate(final Cloud2 cloud, final String templateName) {
-		CloudTemplate template = cloud.getTemplates().get(templateName);
-		if(template == null) {
-			throw new IllegalArgumentException("Could not find compute template: " + templateName);
+		if (templateName == null) {
+			Entry<String, CloudTemplate> entry = cloud.getTemplates().entrySet().iterator().next();
+
+			logger.warning("Service does not specify template name! Defaulting to template: " + entry.getKey());
+			return entry.getValue();
+		} else {
+			CloudTemplate template = cloud.getTemplates().get(templateName);
+			if (template == null) {
+				throw new IllegalArgumentException("Could not find compute template: " + templateName);
+			}
+			return template;
 		}
-		return template;
 	}
+
 	// TODO: consider adding MemoryUnits to DSL
 	// TODO: add memory unit to names
 	private void deployDataGrid(String applicationName, String serviceName, String zone, File srcFile,
 			Properties contextProperties, DataGrid dataGridConfig, final String templateName) throws AdminException,
 			TimeoutException, DSLException {
-
-		Cloud2 cloud = getCloud();
-		CloudTemplate template = getComputeTemplate(cloud, templateName);
-		
-		validateAndPrepareStatefulSla(serviceName, dataGridConfig.getSla(), cloud, template);
 
 		final int containerMemoryInMB = dataGridConfig.getSla().getMemoryCapacityPerContainer();
 		final int maxMemoryInMB = dataGridConfig.getSla().getMaxMemoryCapacity();
@@ -1187,10 +1184,16 @@ public class ServiceController {
 
 		} else {
 
+			CloudTemplate template = getComputeTemplate(cloud, templateName);
+
+			validateAndPrepareStatefulSla(serviceName, dataGridConfig.getSla(), cloud, template);
+
 			long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
 
-			CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(cloud, template, cloudFileContents, templateName);
-			//CloudMachineProvisioningConfig config = CloudDSLToCloudMachineProvisioningConfig.convert(cloud);
+			CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(cloud, template,
+					cloudFileContents, templateName);
+			// CloudMachineProvisioningConfig config =
+			// CloudDSLToCloudMachineProvisioningConfig.convert(cloud);
 
 			String locators = extractLocators(admin);
 			config.setLocator(locators);
@@ -1231,11 +1234,8 @@ public class ServiceController {
 
 	private void deployStatelessProcessingUnitAndWait(String applicationName, String serviceName, String zone,
 			File extractedServiceFolder, final Properties contextProperties, StatelessProcessingUnit puConfig,
-			final String templateName, int numberOfInstances) throws IOException, AdminException, TimeoutException, DSLException {
-
-		Cloud2 cloud = getCloud();
-		CloudTemplate template = getComputeTemplate(cloud, templateName);
-		validateAndPrepareStatelessSla(puConfig.getSla(), cloud, template);
+			final String templateName, int numberOfInstances) throws IOException, AdminException, TimeoutException,
+			DSLException {
 
 		File jarFile = getJarFileFromDir(new File(puConfig.getBinaries()), extractedServiceFolder);
 		// TODO:if not specified use machine memory defined in DSL
@@ -1262,10 +1262,14 @@ public class ServiceController {
 				deployment.scale(new EagerScaleConfigurer().atMostOneContainerPerMachine().create());
 			}
 		} else {
+			CloudTemplate template = getComputeTemplate(cloud, templateName);
+			validateAndPrepareStatelessSla(puConfig.getSla(), cloud, template);
 			long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
 
-			CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(cloud, template, cloudFileContents, templateName);
-			//CloudMachineProvisioningConfig config = CloudDSLToCloudMachineProvisioningConfig.convert(cloud);
+			CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(cloud, template,
+					cloudFileContents, templateName);
+			// CloudMachineProvisioningConfig config =
+			// CloudDSLToCloudMachineProvisioningConfig.convert(cloud);
 
 			String locators = extractLocators(admin);
 			config.setLocator(locators);
@@ -1297,11 +1301,6 @@ public class ServiceController {
 			File extractedServiceFolder, final Properties contextProperties, StatefulProcessingUnit puConfig,
 			final String templateName) throws IOException, AdminException, TimeoutException, DSLException {
 
-		Cloud2 cloud = getCloud();
-		CloudTemplate template= getComputeTemplate(cloud, templateName);
-		
-		validateAndPrepareStatefulSla(serviceName, puConfig.getSla(), cloud, template);
-
 		File jarFile = getJarFileFromDir(new File(puConfig.getBinaries()), extractedServiceFolder);
 		final int containerMemoryInMB = puConfig.getSla().getMemoryCapacityPerContainer();
 		final int maxMemoryCapacityInMB = puConfig.getSla().getMaxMemoryCapacity();
@@ -1327,8 +1326,12 @@ public class ServiceController {
 			}
 		} else {
 
-			//CloudMachineProvisioningConfig config = CloudDSLToCloudMachineProvisioningConfig.convert(cloud);
-			CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(cloud, template, cloudFileContents, templateName);
+			CloudTemplate template = getComputeTemplate(cloud, templateName);
+
+			validateAndPrepareStatefulSla(serviceName, puConfig.getSla(), cloud, template);
+
+			CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(cloud, template,
+					cloudFileContents, templateName);
 
 			String locators = extractLocators(admin);
 			config.setLocator(locators);
@@ -1346,7 +1349,8 @@ public class ServiceController {
 
 	}
 
-	private void validateAndPrepareStatefulSla(String serviceName, Sla sla, Cloud2 cloud, CloudTemplate template) throws DSLException {
+	private void validateAndPrepareStatefulSla(String serviceName, Sla sla, Cloud2 cloud, CloudTemplate template)
+			throws DSLException {
 
 		validateMemoryCapacityPerContainer(sla, cloud, template);
 
