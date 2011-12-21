@@ -24,8 +24,6 @@ import org.jclouds.compute.domain.NodeState;
 import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.domain.TemplateBuilder;
 import org.jclouds.compute.options.TemplateOptions;
-import org.jclouds.ec2.compute.options.EC2TemplateOptions;
-
 import org.jclouds.rest.ResourceNotFoundException;
 
 import com.gigaspaces.cloudify.esc.installer.InstallerException;
