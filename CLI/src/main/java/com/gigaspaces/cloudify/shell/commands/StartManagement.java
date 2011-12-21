@@ -1,10 +1,15 @@
 package com.gigaspaces.cloudify.shell.commands;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 
+import com.gigaspaces.cloudify.dsl.cloud.Cloud2;
+import com.gigaspaces.cloudify.dsl.internal.DSLException;
+import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 import com.gigaspaces.cloudify.shell.AdminFacade;
 import com.gigaspaces.cloudify.shell.Constants;
 import com.gigaspaces.cloudify.shell.installer.LocalhostGridAgentBootstrapper;
@@ -41,6 +46,26 @@ public class StartManagement extends AbstractGSCommand{
 		        throw new CLIException("-timeout cannot be negative");
 		    }
 		    
+		    // TODO pass this infomation in the proper channel and not like this
+		    boolean notHighlyAvailableManagementSpace = false;
+		    String cloudFilePath = System.getenv().get("CLOUD_FILE");
+		    if (cloudFilePath != null) {
+		        File cloudFile = new File(cloudFilePath);
+		        if (cloudFile.isFile()) {
+		            try {
+		                Cloud2 cloud = ServiceReader.readCloud(cloudFile);
+		                if (cloud.getProvider() != null) {
+		                    int numberOfManagementMachines = cloud.getProvider().getNumberOfManagementMachines();
+		                    notHighlyAvailableManagementSpace = numberOfManagementMachines < 2;
+		                }
+		            } catch (IOException e) {
+		                // fallback to default
+		            } catch (DSLException e) {
+		                // fallback to default
+		            }
+		        }
+		    }
+		    
 			LocalhostGridAgentBootstrapper installer = new LocalhostGridAgentBootstrapper();
 			installer.setVerbose(verbose);
 			installer.setLookupGroups(lookupGroups);
@@ -50,6 +75,7 @@ public class StartManagement extends AbstractGSCommand{
 			installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 			installer.setNoWebServices(noWebServices);
 			installer.setNoManagementSpace(noManagementSpace);
+			installer.setNotHighlyAvailableManagementSpace(notHighlyAvailableManagementSpace);
 			installer.setAutoShutdown(autoShutdown);
 			installer.setWaitForWebui(true);
 			installer.startManagementOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);

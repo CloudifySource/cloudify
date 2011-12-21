@@ -135,6 +135,7 @@ public class LocalhostGridAgentBootstrapper {
 	private AdminFacade adminFacade;
 	private boolean noWebServices;
 	private boolean noManagementSpace;
+	private boolean notHighlyAvailableManagementSpace;
 	private int lusPort = DEFAULT_LUS_PORT;
 	private boolean autoShutdown;
 	private boolean waitForWebUi;
@@ -182,6 +183,15 @@ public class LocalhostGridAgentBootstrapper {
 	public void setWaitForWebui(boolean waitForWebui) {
 	    this.waitForWebUi = waitForWebui;
 	}
+	
+    public void setNotHighlyAvailableManagementSpace(
+            boolean notHighlyAvailableManagementSpace) {
+        this.notHighlyAvailableManagementSpace = notHighlyAvailableManagementSpace;
+    }
+
+    public boolean isNotHighlyAvailableManagementSpace() {
+        return notHighlyAvailableManagementSpace;
+    }
 	
 	public void startLocalCloudOnLocalhostAndWait(int timeout, TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
 		
@@ -479,7 +489,7 @@ public class LocalhostGridAgentBootstrapper {
     				
     			} 
 				if (!noManagementSpace) {
-					final boolean highlyAvailable = !isLocalCloud;
+					final boolean highlyAvailable = !isLocalCloud && !notHighlyAvailableManagementSpace;
 					ManagementSpaceServiceInstaller managementSpaceInstaller = new ManagementSpaceServiceInstaller();
 					managementSpaceInstaller.setAdmin(agent.getAdmin());
 					managementSpaceInstaller.setVerbose(verbose);
