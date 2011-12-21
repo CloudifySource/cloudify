@@ -59,7 +59,7 @@ public class GigaShellMain extends Main implements Action {
 		initializeLogConfiguration();
 		
         // This call fails on 64 bit Windows
-		//initializeProxyConfiguration();
+		initializeProxyConfiguration();
 		InputStream is = null;
 		SequenceInputStream sis = null;
 		InputStream exitInputStream = new ByteArrayInputStream(EXIT_COMMAND.getBytes());
