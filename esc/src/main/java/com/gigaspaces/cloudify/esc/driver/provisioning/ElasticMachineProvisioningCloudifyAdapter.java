@@ -338,7 +338,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		for (LookupLocator lookupLocator : locators) {
 			sb.append(lookupLocator.getHost()).append(":").append(lookupLocator.getPort()).append(",");
 		}
-		sb.setLength(sb.length() - 1);
+		if (sb.toString().length() > 0){
+			sb.setLength(sb.length() - 1);
+		}
 		return sb.toString();
 	}
 
