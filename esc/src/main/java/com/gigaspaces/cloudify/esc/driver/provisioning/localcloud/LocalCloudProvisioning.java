@@ -144,6 +144,11 @@ public class LocalCloudProvisioning implements CloudifyProvisioning {
 		
 	}
 
+	@Override
+	public void close() {
+		
+	}
+
 
 	
 }

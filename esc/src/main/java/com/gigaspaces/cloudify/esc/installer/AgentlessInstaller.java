@@ -202,6 +202,7 @@ public class AgentlessInstaller {
 			
 			remoteDir.copyFrom(localDir, new FileSelector() {
 
+				@Override
 				public boolean includeFile(final FileSelectInfo fileInfo) throws Exception {
 					if (excludedFiles.contains(fileInfo.getFile().getName().getBaseName())) {
 						logger.fine(fileInfo.getFile().getName().getBaseName() + " excluded");
@@ -228,6 +229,7 @@ public class AgentlessInstaller {
 
 				}
 
+				@Override
 				public boolean traverseDescendents(final FileSelectInfo fileInfo) throws Exception {
 					return true;
 				}

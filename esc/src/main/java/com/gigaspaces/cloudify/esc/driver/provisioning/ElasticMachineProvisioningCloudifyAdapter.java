@@ -1,5 +1,7 @@
 package com.gigaspaces.cloudify.esc.driver.provisioning;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +32,16 @@ import com.gigaspaces.cloudify.esc.installer.InstallationDetails;
 import com.gigaspaces.cloudify.esc.installer.InstallerException;
 import com.gigaspaces.internal.utils.StringUtils;
 
+/****************************
+ * An ESM machine provisioning implementation used by the Cloudify cloud driver.
+ * All calls to start/stop a machine are delegated to the CloudifyProvisioning
+ * implementation. If the started machine does not have an agent running, this
+ * class will install gigaspaces and start the agent using the Agent-less
+ * Installer process.
+ * 
+ * @author barakme
+ * 
+ */
 public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachineProvisioning, Bean {
 
 	private static final int DEFAULT_GSA_LOOKUP_TIMEOUT_SECONDS = 15;
@@ -55,7 +67,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return this.admin.getGridServiceAgents().getAgents();
 	}
 
-	protected InstallationDetails createInstallationDetails(final Cloud2 cloud, final MachineDetails md) {
+	protected InstallationDetails createInstallationDetails(final Cloud2 cloud, final MachineDetails md) throws FileNotFoundException {
 		final InstallationDetails details = new InstallationDetails();
 
 		details.setLocalDir(cloud.getProvider().getLocalDirectory());
@@ -64,12 +76,24 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		details.setZones(StringUtils.join(cloud.getProvider().getZones().toArray(new String[0]), ",", 0, cloud
 				.getProvider().getZones().size()));
 
-		details.setKeyFile(cloud.getUser().getKeyFile());
+		if (cloud.getUser().getKeyFile() != null) {
+			logger.info("Key file has been specified in cloud configuration: " + cloud.getUser().getKeyFile());
+			File keyFile = new File(cloud.getProvider().getLocalDirectory(), cloud.getUser().getKeyFile());
+			if (keyFile.exists()) {
+				details.setKeyFile(keyFile.getAbsolutePath());
+				logger.info("Using key file: " + keyFile);
+			} else {
+				throw new FileNotFoundException(
+						"Could not find key file matching specified cloud configuration key file: "
+								+ cloud.getUser().getKeyFile() + ". Tried: " + keyFile + " but file does not exist");
+			}
 
+		}
+	
 		details.setPrivateIp(md.getPrivateAddress());
 		details.setPublicIp(md.getPublicAddress());
 
-		details.setLocator(this.lookupLocatorsString); 
+		details.setLocator(this.lookupLocatorsString);
 		details.setLus(false);
 		details.setCloudifyUrl(cloud.getProvider().getCloudifyUrl());
 		details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
@@ -94,8 +118,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		installAndStartAgent(machineDetails, end);
 
 		// TODO - finish this section - support picking up existing
-		// installations and agent. - i.e. machineDetails.cloudifyInstalled == true
-		
+		// installations and agent. - i.e. machineDetails.cloudifyInstalled ==
+		// true
+
 		// which IP should be used in the cluster
 		String machineIp = null;
 		if (machineDetails.isUsePrivateAddress()) {
@@ -151,7 +176,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			InterruptedException, ElasticMachineProvisioningException {
 		final AgentlessInstaller installer = new AgentlessInstaller();
 
-		InstallationDetails installationDetails = createInstallationDetails(cloud, machineDetails);
+		InstallationDetails installationDetails;
+		try {
+			installationDetails = createInstallationDetails(cloud, machineDetails);
+		} catch (FileNotFoundException e) {
+			throw new ElasticMachineProvisioningException("Failed to create installation details for agent: " + e.getMessage(), e);
+		}
+		
 		logger.info("Starting agentless installation process on started machine with installation details: "
 				+ installationDetails);
 		// Update the logging level of jsch used by the AgentlessInstaller
@@ -218,9 +249,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	@Override
 	public CapacityRequirements getCapacityOfSingleMachine() {
 		CloudTemplate template = cloud.getTemplates().get(this.cloudTemplate);
-		CapacityRequirements capacityRequirements = new CapacityRequirements(
-				new MemoryCapacityRequirement((long) template.getMachineMemoryMB()),
-				new CpuCapacityRequirement(template.getNumberOfCores()));
+		CapacityRequirements capacityRequirements = new CapacityRequirements(new MemoryCapacityRequirement(
+				(long) template.getMachineMemoryMB()), new CpuCapacityRequirement(template.getNumberOfCores()));
 		logger.info("Capacity requirements for a single machine are: " + capacityRequirements);
 		return capacityRequirements;
 
@@ -282,15 +312,14 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 			// load the provisioning class and set it up
 			try {
-				this.cloudifyProvisioning = (CloudifyProvisioning) Class.forName(this.cloud.getConfiguration().getClassName()).newInstance();
+				this.cloudifyProvisioning = (CloudifyProvisioning) Class.forName(
+						this.cloud.getConfiguration().getClassName()).newInstance();
 				this.cloudifyProvisioning.setConfig(cloud, cloudTemplate, false);
 
 			} catch (Exception e) {
 				throw new IllegalArgumentException("Failed to load provisioning class from cloud: " + this.cloud);
 			}
 
-			
-			
 			this.lookupLocatorsString = createLocatorsString();
 
 			logger.info("Locators string used for new instances will be: " + this.lookupLocatorsString);
@@ -315,9 +344,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	@Override
 	public void destroy() throws Exception {
-		// TODO: Cleanup provisioning!
-
-
+		this.cloudifyProvisioning.close();
 	}
 
 }

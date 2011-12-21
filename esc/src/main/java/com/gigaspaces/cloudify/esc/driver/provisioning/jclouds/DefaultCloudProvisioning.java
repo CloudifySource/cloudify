@@ -633,4 +633,9 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 		this.deployer.shutdownMachinesWithIPs(machineIps);
 
 	}
+
+	@Override
+	public void close() {
+		this.deployer.close();
+	}
 }

@@ -84,4 +84,10 @@ public interface CloudifyProvisioning {
 	 */
 	String getCloudName();
 
+	/*************
+	 * Called when the service that this provisioning implementation is responsible for scaling
+	 * is undeployed. The implementation is expected to release/close all relevant resources,
+	 * such as thread pools, sockets, files, etc.
+	 */
+	void close();
 }

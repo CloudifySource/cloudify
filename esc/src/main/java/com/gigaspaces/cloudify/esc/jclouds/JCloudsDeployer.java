@@ -61,12 +61,6 @@ public class JCloudsDeployer {
 
 	private String hardwareId;
 
-	private final String provider;
-
-	
-
-	private String keyPair;
-
 	private String locationId;
 
 	private Map<String, Object> extraOptions;
@@ -128,7 +122,6 @@ public class JCloudsDeployer {
 		final Set<Module> wiring = new HashSet<Module>();
 		this.context = new ComputeServiceContextFactory().createContext(provider, account, key, wiring, overrides);
 
-		this.provider = provider;
 		exe = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setDaemon(true).build());
 
 	}
@@ -291,6 +284,7 @@ public class JCloudsDeployer {
 	public NodeMetadata getServerByID(final String serverID) {
 		final Predicate<ComputeMetadata> filter = new Predicate<ComputeMetadata>() {
 
+			@Override
 			public boolean apply(final ComputeMetadata compute) {
 				return compute.getId().equals(serverID);
 			}
@@ -313,6 +307,7 @@ public class JCloudsDeployer {
 		final String adaptedServerName = serverName.replace("_", "") + "-";
 		final Predicate<ComputeMetadata> filter = new Predicate<ComputeMetadata>() {
 
+			@Override
 			public boolean apply(final ComputeMetadata compute) {
 				if (compute.getName() == null) {
 					return false;
@@ -347,6 +342,7 @@ public class JCloudsDeployer {
 	public Set<? extends NodeMetadata> getServers(final String group) {
 		return getServers(new Predicate<ComputeMetadata>() {
 
+			@Override
 			public boolean apply(ComputeMetadata input) {
 				final NodeMetadata node = (NodeMetadata) input;
 				return node.getGroup() != null && node.getGroup().equals(group);
@@ -365,6 +361,7 @@ public class JCloudsDeployer {
 	public NodeMetadata getServerWithIP(final String ip) {
 		final Predicate<ComputeMetadata> filter = new Predicate<ComputeMetadata>() {
 
+			@Override
 			public boolean apply(final ComputeMetadata compute) {
 				final NodeMetadata node = (NodeMetadata) compute;
 				if (node.getPrivateAddresses().contains(ip)) {
@@ -637,6 +634,7 @@ public class JCloudsDeployer {
 	public NodeMetadata getServerByTag(final String tag) {
 		final Predicate<ComputeMetadata> filter = new Predicate<ComputeMetadata>() {
 
+			@Override
 			public boolean apply(final ComputeMetadata compute) {
 				final NodeMetadata node = (NodeMetadata) compute;
 				if (node.getGroup() == null) {
@@ -656,10 +654,6 @@ public class JCloudsDeployer {
 		return getServer(filter);
 	}
 
-	public void setKeyPair(final String keyPair) {
-		this.keyPair = keyPair;
-
-	}
 
 	private Set<? extends NodeMetadata> createServersWithRetry(String group, int count, Template template)
 			throws RunNodesException {
