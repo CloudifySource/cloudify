@@ -103,8 +103,6 @@ import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
 import com.gigaspaces.cloudify.dsl.internal.packaging.ZipUtils;
 import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 import com.gigaspaces.cloudify.esc.driver.provisioning.CloudifyMachineProvisioningConfig;
-import com.gigaspaces.cloudify.esc.esm.CloudDSLToCloudMachineProvisioningConfig;
-import com.gigaspaces.cloudify.esc.esm.CloudMachineProvisioningConfig;
 import com.gigaspaces.cloudify.rest.ResponseConstants;
 import com.gigaspaces.cloudify.rest.util.ApplicationInstallerRunnable;
 import com.gigaspaces.cloudify.rest.util.RestUtils;
