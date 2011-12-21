@@ -41,6 +41,7 @@ import org.fusesource.jansi.Ansi;
 
 import com.gigaspaces.cloudify.shell.logging.ShellErrorManager;
 import com.gigaspaces.cloudify.shell.logging.ShellFormatter;
+import com.gigaspaces.cloudify.shell.proxy.SystemDefaultProxySelector;
 
 //declared as command so that it can be used in the context of another shell
 @Command(name = "cloudify", scope = "cloudify", description = "Executes a cloudify command interpreter")
@@ -56,7 +57,9 @@ public class GigaShellMain extends Main implements Action {
 
 	public static void main(String[] args) throws Exception {
 		initializeLogConfiguration();
-		initializeProxyConfiguration();
+		
+        // This call fails on 64 bit Windows
+		//initializeProxyConfiguration();
 		InputStream is = null;
 		SequenceInputStream sis = null;
 		InputStream exitInputStream = new ByteArrayInputStream(EXIT_COMMAND.getBytes());
@@ -139,7 +142,7 @@ public class GigaShellMain extends Main implements Action {
         }
 
         // After this call, every connection made will use the system proxy settings (on windows)
-        //SystemDefaultProxySelector.setup();
+        SystemDefaultProxySelector.setup();
 
     }
 	
