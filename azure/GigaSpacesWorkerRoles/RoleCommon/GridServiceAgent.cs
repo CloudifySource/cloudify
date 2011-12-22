@@ -488,11 +488,11 @@ namespace GigaSpaces
                  admin.getGridServiceManagers().waitFor(" + NumberOfManagementRoleInstances + @");
                  while (admin.getGridServiceManagers().getSize () != " + NumberOfManagementRoleInstances + @") {
                     System.out.println(""Waiting for " + NumberOfManagementRoleInstances + @" Grid Service Managers"");
-                    Thread.Sleep(10000);
+                    Thread.sleep(10000);
                  };
                  while (admin.getElasticServiceManagers().getSize() != 1) {
                     System.out.println(""Waiting for one Elastic Service Manager"");
-                    Thread.Sleep(10000);
+                    Thread.sleep(10000);
                 }
 "
                 , true);
