@@ -289,7 +289,9 @@ public class Packager {
 	}
 
 	private static File locateServiceFile(File recipeFile, String extendedServicePath) throws FileNotFoundException, PackagingException {
-		File extendedServiceFile = new File(recipeFile.getParent() + "/" + extendedServicePath);
+		File extendedServiceFile = new File(extendedServicePath);
+		if (!extendedServiceFile.isAbsolute())
+		    extendedServiceFile = new File(recipeFile.getParent() + "/" + extendedServicePath);
 		if (extendedServiceFile.isDirectory())
 			extendedServiceFile = ServiceReader.findServiceFile(extendedServiceFile);
 		
