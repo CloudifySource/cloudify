@@ -27,7 +27,7 @@
 			<fileset dir="${target.dir}/deploy" includes="**.*" excludes="datagrid/**.*" />
 			<fileset dir="${target.dir}/logs" includes="**.*"  />
 		</delete>
-		<zip destfile="${target.dir}/../gigaspaces.zip" basedir="${target.dir}" />
+		<zip destfile="${target.dir}/../gigaspaces.zip" basedir="${target.dir}/.." />
 		<echo message="Created ${target.dir}/../gigaspaces.zip" />
 
 
