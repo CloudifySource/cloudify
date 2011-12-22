@@ -140,11 +140,11 @@ public class ServiceController {
 			if (this.cloud.getTemplates().size() == 0) {
 				throw new IllegalArgumentException("No templates defined in cloud configuration!");
 			}
+			this.defaultTemplateName = this.cloud.getTemplates().keySet().iterator().next();
+			logger.info("Setting default template name to: " + defaultTemplateName
+					+ ". This template will be used for services that do not specify an explicit template");
 		}
 
-		this.defaultTemplateName = this.cloud.getTemplates().keySet().iterator().next();
-		logger.info("Setting default template name to: " + defaultTemplateName
-				+ ". This template will be used for services that do not specify an explicit template");
 
 	}
 
