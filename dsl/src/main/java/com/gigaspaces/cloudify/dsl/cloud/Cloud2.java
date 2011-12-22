@@ -66,7 +66,7 @@ public class Cloud2 {
 
 	@Override
 	public String toString() {
-		return "Cloud2 [name=" + name + ", provider=" + provider + ", user=" + user + ", configuration="
+		return "Cloud [name=" + name + ", provider=" + provider + ", user=" + user + ", configuration="
 				+ configuration + ", templates=" + templates + ", custom=" + custom + "]";
 	}
 	
