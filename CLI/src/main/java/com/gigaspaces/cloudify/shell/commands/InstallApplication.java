@@ -102,13 +102,9 @@ public class InstallApplication extends AdminAwareCommand {
 				String trimmedServiceName = serviceName.trim();
 				Service service = getServiceByName(application, trimmedServiceName);
 				int plannedNumberOfInstances = service.getNumInstances();
-				try{
-					adminFacade.waitForServiceInstances(trimmedServiceName, applicationName, plannedNumberOfInstances, TIMEOUT_ERROR_MESSAGE, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
-					logger.info(MessageFormat.format(
+				adminFacade.waitForServiceInstances(trimmedServiceName, applicationName, plannedNumberOfInstances, TIMEOUT_ERROR_MESSAGE, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
+				logger.info(MessageFormat.format(
 						   messages.getString("service_install_ended"), trimmedServiceName));
-				}catch (CLIException ex){
-					return getFormattedMessage("application_installation_failed", Color.RED, applicationName);
-				}
 			}
 		}
 		
