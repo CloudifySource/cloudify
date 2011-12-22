@@ -131,10 +131,18 @@ public class ServiceController {
 
 	private final Logger logger = Logger.getLogger(getClass().getName());
 	private String cloudFileContents;
+	private String defaultTemplateName;
 
 	public ServiceController() throws IOException {
 
 		this.cloud = readCloudFile();
+		if(this.cloud.getTemplates().size() == 0) {
+			throw new IllegalArgumentException("No templates defined in cloud configuration!");
+		}
+		
+		this.defaultTemplateName = this.cloud.getTemplates().keySet().iterator().next();
+		logger.info("Setting default template name to: " + defaultTemplateName + ". This template will be used for services that do not specify an explicit template");
+		
 
 	}
 
@@ -1041,9 +1049,16 @@ public class ServiceController {
 	}
 
 	public void deployElasticProcessingUnit(String serviceName, String applicationName, String zone, File srcFile,
-			Properties propsFile, final String templateName) throws TimeoutException, PackagingException, IOException,
+			Properties propsFile, final String originalTemplateName) throws TimeoutException, PackagingException, IOException,
 			AdminException, DSLException {
 
+		String templateName;
+		if(originalTemplateName == null) {
+			templateName = this.defaultTemplateName;
+		} else {
+			templateName = originalTemplateName;
+		}
+		
 		Service service = null;
 		File projectDir = null;
 		// Cloud cloud = null;

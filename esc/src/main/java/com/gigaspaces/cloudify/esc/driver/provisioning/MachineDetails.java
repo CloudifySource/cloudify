@@ -5,7 +5,7 @@ public class MachineDetails {
 	private String privateAddress;
 	private String publicAddress;
 	private String clusterAddress; // TODO: WTF IS THIS
-	private boolean usePrivateAddress;
+	private boolean usePrivateAddress = true;
 
 	private boolean cloudifyInstalled = false;
 	private String installationDirectory = null;

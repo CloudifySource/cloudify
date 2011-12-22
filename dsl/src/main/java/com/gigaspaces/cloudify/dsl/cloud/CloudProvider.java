@@ -5,7 +5,7 @@ import java.util.logging.Level;
 
 import com.gigaspaces.cloudify.dsl.internal.CloudifyDSLEntity;
 
-@CloudifyDSLEntity(name = "provider", clazz = CloudProvider.class, allowInternalNode = true, allowRootNode = false, parent = "cloud2")
+@CloudifyDSLEntity(name = "provider", clazz = CloudProvider.class, allowInternalNode = true, allowRootNode = false, parent = "cloud")
 public class CloudProvider {
 
 	private String provider;

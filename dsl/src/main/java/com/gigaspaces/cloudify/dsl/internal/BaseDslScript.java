@@ -20,7 +20,6 @@ import org.openspaces.ui.UserInterface;
 import org.openspaces.ui.WidgetGroup;
 
 import com.gigaspaces.cloudify.dsl.Application;
-import com.gigaspaces.cloudify.dsl.Cloud;
 import com.gigaspaces.cloudify.dsl.ComputeDetails;
 import com.gigaspaces.cloudify.dsl.DataGrid;
 import com.gigaspaces.cloudify.dsl.Memcached;
@@ -306,9 +305,7 @@ public abstract class BaseDslScript extends Script {
 			addObjectInitializerForClass(dslObjectInitializersByName,
 					StatelessProcessingUnit.class);
 			addObjectInitializerForClass(dslObjectInitializersByName,
-					MirrorProcessingUnit.class);
-			addObjectInitializerForClass(dslObjectInitializersByName,
-					Cloud.class);
+					MirrorProcessingUnit.class);			
 
 			addObjectInitializerForClass(dslObjectInitializersByName,
 					Cloud2.class);

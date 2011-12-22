@@ -3,7 +3,7 @@ package com.gigaspaces.cloudify.dsl.cloud;
 import com.gigaspaces.cloudify.dsl.internal.CloudifyDSLEntity;
 
 
-@CloudifyDSLEntity(name = "configuration", clazz = CloudConfiguration.class, allowInternalNode = true, allowRootNode = false, parent = "cloud2")
+@CloudifyDSLEntity(name = "configuration", clazz = CloudConfiguration.class, allowInternalNode = true, allowRootNode = false, parent = "cloud")
 public class CloudConfiguration {
 
 	private String className = "com.gigaspaces.cloudify.esc.driver.provisioning.jclouds.DefaultCloudProvisioning";

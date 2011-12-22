@@ -162,12 +162,12 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 			logger.info(nodePrefix(server) + "Target IP for connection: "
 					+ server.getPrivateAddresses().iterator().next());
 			if (tempFile == null) {
-				logger.info(nodePrefix(server) + "Connect with putty using: putty -pw "
+				logger.info(nodePrefix(server) + "Connect with: ssh -pw "
 						+ server.getCredentials().credential + " root@" + server.getPublicAddresses().toArray()[0]);
 			} else {
 
 				if (server.getPublicAddresses().size() > 0) {
-					logger.info(nodePrefix(server) + "Connect with putty using: putty -i " + tempFile.getAbsolutePath()
+					logger.info(nodePrefix(server) + "Connect using: ssh -i " + tempFile.getAbsolutePath()
 							+ " " + server.getCredentials().identity + "@" + server.getPublicAddresses().toArray()[0]);
 				} else {
 					logger.info(nodePrefix(server) + "Server's is starting but its public address is not available.");
@@ -270,6 +270,10 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 				md.setRemoteUsername(cloud.getConfiguration().getRemoteUsername());
 			}
 		}
+		
+		
+		// By default, cloud nodes connect to each other using their private address.
+		md.setUsePrivateAddress(true);
 		return md;
 	}
 
@@ -607,6 +611,7 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 			result[i] = createMachineDetailsFromNode(node);
 			result[i].setAgentRunning(true);
 			result[i].setCloudifyInstalled(true);
+			i++;
 
 		}
 		return result;

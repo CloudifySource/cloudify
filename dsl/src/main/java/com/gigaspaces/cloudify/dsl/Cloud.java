@@ -3,9 +3,8 @@ package com.gigaspaces.cloudify.dsl;
 import java.util.logging.Level;
 import java.util.List;
 
-import com.gigaspaces.cloudify.dsl.internal.CloudifyDSLEntity;
 
-@CloudifyDSLEntity(name="cloud", clazz=Cloud.class, allowInternalNode = false, allowRootNode = true)
+
 public class Cloud {
 
 	private String user;

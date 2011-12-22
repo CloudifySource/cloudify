@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.gigaspaces.cloudify.dsl.internal.CloudifyDSLEntity;
 
-@CloudifyDSLEntity(name = "template", clazz = CloudTemplate.class, allowInternalNode = true, allowRootNode = false, parent = "cloud2")
+@CloudifyDSLEntity(name = "template", clazz = CloudTemplate.class, allowInternalNode = true, allowRootNode = false, parent = "cloud")
 public class CloudTemplate {
 
 	private String imageId;

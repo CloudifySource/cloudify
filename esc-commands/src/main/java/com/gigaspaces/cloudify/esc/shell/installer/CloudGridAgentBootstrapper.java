@@ -29,11 +29,9 @@ import com.gigaspaces.cloudify.dsl.cloud.Cloud2;
 import com.gigaspaces.cloudify.esc.driver.provisioning.CloudProvisioningException;
 import com.gigaspaces.cloudify.esc.driver.provisioning.CloudifyProvisioning;
 import com.gigaspaces.cloudify.esc.driver.provisioning.MachineDetails;
-import com.gigaspaces.cloudify.esc.esm.CloudMachineProvisioningConfig;
 import com.gigaspaces.cloudify.esc.installer.AgentlessInstaller;
 import com.gigaspaces.cloudify.esc.installer.InstallationDetails;
 import com.gigaspaces.cloudify.esc.installer.InstallerException;
-import com.gigaspaces.cloudify.esc.jclouds.JCloudsDeployer;
 import com.gigaspaces.cloudify.esc.util.Utils;
 import com.gigaspaces.internal.utils.StringUtils;
 import com.j_spaces.kernel.Environment;
@@ -85,6 +83,22 @@ public class CloudGridAgentBootstrapper {
 	public void setForce(boolean force) {
 		this.force = force;
 	}
+	
+	private static String nodePrefix(MachineDetails node) {
+		return "[" + node.getMachineId() + "] ";
+	}
+
+	private static void logServerDetails(MachineDetails server) {
+		if (logger.isLoggable(Level.INFO)) {
+			logger.info(nodePrefix(server) + "Cloud Server was created.");
+
+			logger.info(nodePrefix(server) + "Public IP: " + (server.getPublicAddress() == null ? "" : server.getPublicAddress()));
+			logger.info(nodePrefix(server) + "Private IP: " + (server.getPrivateAddress() == null?"":server.getPrivateAddress()));
+			
+			
+		}
+	}
+
 
 	public void boostrapCloudAndWait(long timeout, TimeUnit timeoutUnit) throws InstallerException, TimeoutException,
 			CLIException, InterruptedException {
@@ -114,12 +128,19 @@ public class CloudGridAgentBootstrapper {
 				throw new IllegalArgumentException("Received zero management servers from provisioning implementation");
 			}
 			
+			if(logger.isLoggable(Level.INFO)) {
+				for (MachineDetails server: servers) {
+					logServerDetails(server);
+				}
+			}
 			
 			// Start the management agents and other processes
 			if (servers[0].isAgentRunning()) {
 				// must be using existing machines.
-				logger.info("Using existing management servers");
-				// TODO - check if management machines are running properly
+				
+				// TODO - check if management machines are running properly. If so - use them, like connect.
+				throw new IllegalStateException("Cloud bootstrapper found existing management machines with the same name. Please shut them down before continuing");
+				
 
 			} else {
 				startManagememntProcesses(servers, end);
@@ -129,7 +150,12 @@ public class CloudGridAgentBootstrapper {
 			// Wait for rest to become available
 			// When the rest gateway is up and running, the cloud is ready to go
 			for (MachineDetails server : servers) {
-				String ipAddress = server.getIp();
+				String ipAddress =null;
+				if(cloud.getConfiguration().isBootstrapManagementOnPublicIp()) {
+					ipAddress = server.getPublicAddress();
+				} else {
+					ipAddress = server.getPrivateAddress();
+				}
 
 				URL restAdminUrl = new URI("http", null, ipAddress, REST_GATEWAY_PORT, null, null, null).toURL();
 				URL webUIUrl = new URI("http", null, ipAddress, WEBUI_PORT, null, null, null).toURL();
@@ -364,38 +390,7 @@ public class CloudGridAgentBootstrapper {
 		return details;
 	}
 
-	private MachineDetails[] provisionMachines(final long timeout, final TimeUnit unit,
-			final int numOfManagementMachines, ExecutorService executors) throws InterruptedException,
-			ExecutionException, TimeoutException {
-		@SuppressWarnings("unchecked")
-		Future<MachineDetails>[] futures = (Future<MachineDetails>[]) new Future<?>[numOfManagementMachines];
-
-		for (int i = 0; i < cloud.getProvider().getNumberOfManagementMachines(); ++i) {
-			futures[i] = executors.submit(new Callable<MachineDetails>() {
-
-				@Override
-				public MachineDetails call() {
-					MachineDetails machineDetails;
-					try {
-						machineDetails = provisioning.startMachine(timeout, unit);
-					} catch (Exception e) {
-						logger.log(Level.SEVERE, "Failed to provision machine from cloud: " + cloud.getName(), e);
-						return null;
-					}
-					return machineDetails;
-				}
-			});
-		}
-
-		MachineDetails[] machineDetails = new MachineDetails[numOfManagementMachines];
-		for (int i = 0; i < machineDetails.length; i++) {
-
-			machineDetails[i] = futures[i].get(timeout, unit);
-
-		}
-		return machineDetails;
-	}
-
+	
 	private void fixConfigRelativePaths(Cloud2 config) {
 		if (config.getProvider().getLocalDirectory() != null
 				&& !new File(config.getProvider().getLocalDirectory()).isAbsolute()) {
@@ -407,17 +402,7 @@ public class CloudGridAgentBootstrapper {
 		}
 	}
 
-	private static JCloudsDeployer getJCloudsDeployer(CloudMachineProvisioningConfig config) throws IOException {
-		JCloudsDeployer deployer = new JCloudsDeployer(config.getProvider(), config.getUser(), config.getApiKey());
-		deployer.setMinRamMegabytes((int) config.getMachineMemoryMB());
-		deployer.setImageId(config.getImageId());
-		deployer.setHardwareId(config.getHardwareId());
-		deployer.setLocationId(config.getLocationId());
-		
-
-		return deployer;
-	}
-
+	
 	private void waitForUninstallApplications(final long timeout, final TimeUnit timeunit) throws InterruptedException,
 			TimeoutException, CLIException {
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {

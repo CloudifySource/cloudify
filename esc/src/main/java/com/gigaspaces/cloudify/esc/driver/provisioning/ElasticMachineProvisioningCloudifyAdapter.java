@@ -99,6 +99,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		details.setAdmin(this.admin);
 
+		details.setUsername(md.getRemoteUsername());
 		logger.info("Created new Installation Details: " + details);
 		return details;
 
@@ -304,12 +305,25 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		final String cloudContents = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION);
+		if(cloudContents == null) {
+			throw new IllegalArgumentException("Cloud configuration was not set!");
+		}
+	
 		// TODO - remove this printout - it includes the API key!
 		logger.info("Cloud contents passed in elastic properties: " + cloudContents);
 		try {
 			this.cloud = ServiceReader.readCloud(cloudContents);
 			this.cloudTemplate = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME);
 
+			if(this.cloudTemplate == null) {
+				throw new IllegalArgumentException("Cloud template was not set!");
+			}
+			
+			
+			// This code runs on the ESM in the remote machine, 
+			// so set the local directory to the value of the remote directory
+			cloud.getProvider().setLocalDirectory(cloud.getProvider().getRemoteDirectory());
+			
 			// load the provisioning class and set it up
 			try {
 				this.cloudifyProvisioning = (CloudifyProvisioning) Class.forName(

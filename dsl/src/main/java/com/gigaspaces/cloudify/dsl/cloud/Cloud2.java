@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.gigaspaces.cloudify.dsl.internal.CloudifyDSLEntity;
 
-@CloudifyDSLEntity(name="cloud2", clazz=Cloud2.class, allowInternalNode = false, allowRootNode = true)
+@CloudifyDSLEntity(name="cloud", clazz=Cloud2.class, allowInternalNode = false, allowRootNode = true)
 public class Cloud2 {
 
 	private String name;

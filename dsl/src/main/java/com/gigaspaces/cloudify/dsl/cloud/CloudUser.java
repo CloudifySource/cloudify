@@ -3,7 +3,7 @@ package com.gigaspaces.cloudify.dsl.cloud;
 import com.gigaspaces.cloudify.dsl.internal.CloudifyDSLEntity;
 
 
-@CloudifyDSLEntity(name = "user", clazz = CloudUser.class, allowInternalNode = true, allowRootNode = false, parent = "cloud2")
+@CloudifyDSLEntity(name = "user", clazz = CloudUser.class, allowInternalNode = true, allowRootNode = false, parent = "cloud")
 public class CloudUser {
 
 	private String user; 

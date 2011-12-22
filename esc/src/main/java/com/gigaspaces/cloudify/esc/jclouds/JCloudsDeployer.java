@@ -139,7 +139,7 @@ public class JCloudsDeployer {
 
 		Set<? extends NodeMetadata> nodes = null;
 		try {
-			logger.info("Cloudify Deployer is creating a new server with tag: " + serverName
+			logger.fine("Cloudify Deployer is creating a new server with tag: " + serverName
 					+ ". This may take a few minutes");
 			nodes = createServersWithRetry(serverName, 1, getTemplate());
 		} catch (final RunNodesException e) {
@@ -162,7 +162,7 @@ public class JCloudsDeployer {
 
 		Set<? extends NodeMetadata> nodes = null;
 		try {
-			logger.info("JClouds Deployer is creating new machines with group: " + groupName
+			logger.fine("JClouds Deployer is creating new machines with group: " + groupName
 					+ ". This may take a few minutes");
 			nodes = createServersWithRetry(groupName, numberOfMachines, getTemplate());
 		} catch (final RunNodesException e) {
@@ -387,7 +387,7 @@ public class JCloudsDeployer {
 	public Template getTemplate() {
 		if (this.template == null) {
 
-			logger.info("Creating Cloud Template. This may take a few seconds");
+			logger.fine("Creating Cloud Template. This may take a few seconds");
 			
 			final TemplateBuilder builder = this.context.getComputeService().templateBuilder();
 			if ((this.imageId != null) && (this.imageId.length() > 0)) {
@@ -406,7 +406,7 @@ public class JCloudsDeployer {
 			this.template = builder.build();
 
 			handleExtraOptions();
-			logger.info("Cloud Template is ready for use.");
+			logger.fine("Cloud Template is ready for use.");
 		}
 
 		return this.template;

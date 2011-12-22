@@ -317,18 +317,24 @@ public class AgentlessInstaller {
 		}
 		String scriptPath = remoteDirectory + "/" + STARTUP_SCRIPT_NAME;
 
-		String command = new ShellCommandBuilder()
+		ShellCommandBuilder scb = new ShellCommandBuilder()
 				.exportVar(LUS_IP_ADDRESS_ENV, details.getLocator())
 				.exportVar(GSA_MODE_ENV, details.isLus() ? "lus" : "agent")
 				.exportVar(NO_WEB_SERVICES_ENV, details.isNoWebServices() ? "true" : "false")
 				.exportVar(MACHINE_IP_ADDRESS_ENV, details.getPrivateIp())
 				.exportVar(MACHINE_ZONES_ENV, details.getZones())
-				.exportVar(CLOUD_FILE, details.getRemoteDir() + "/" +  details.getCloudFile().getName() )
 				.exportVar(CLOUDIFY_LINK_ENV,
 						details.getCloudifyUrl() != null ? ("\"" + details.getCloudifyUrl() + "\"") : "")
-				.exportVar(WORKING_HOME_DIRECTORY_ENV, remoteDirectory).chmodExecutable(scriptPath).call(scriptPath)
+				.exportVar(WORKING_HOME_DIRECTORY_ENV, remoteDirectory);
+		
+		if(details.isLus()) {
+			scb.exportVar(CLOUD_FILE, details.getRemoteDir() + "/" +  details.getCloudFile().getName() );
+		}
+		scb.chmodExecutable(scriptPath).call(scriptPath);
 				
-				.toString();
+		
+		
+		String command = scb.toString();
 
 		logger.info("Calling startup script on target: " + sshIpAddress + " with LOCATOR=" + details.getLocator()
 				+ "\nThis may take a few minutes");

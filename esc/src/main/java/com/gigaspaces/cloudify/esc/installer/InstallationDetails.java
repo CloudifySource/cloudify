@@ -94,6 +94,7 @@ public class InstallationDetails {
 		return username;
 	}
 
+	// TODO - change to isManagement
 	public boolean isLus() {
 		return isLus;
 	}

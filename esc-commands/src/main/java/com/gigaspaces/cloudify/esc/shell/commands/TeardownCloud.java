@@ -3,7 +3,13 @@ package com.gigaspaces.cloudify.esc.shell.commands;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
@@ -11,6 +17,8 @@ import org.apache.felix.gogo.commands.Option;
 
 import com.gigaspaces.cloudify.dsl.cloud.Cloud2;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
+import com.gigaspaces.cloudify.esc.driver.provisioning.jclouds.DefaultCloudProvisioning;
+import com.gigaspaces.cloudify.esc.installer.AgentlessInstaller;
 import com.gigaspaces.cloudify.esc.shell.installer.CloudGridAgentBootstrapper;
 import com.gigaspaces.cloudify.shell.AdminFacade;
 import com.gigaspaces.cloudify.shell.Constants;
@@ -46,8 +54,6 @@ public class TeardownCloud extends AbstractGSCommand {
 		File cloudFile = findCloudFile(providerDirectory);
 		Cloud2 cloud = ServiceReader.readCloud(cloudFile);
 
-
-
 		installer.setProviderDirectory(providerDirectory);
 		if (this.adminFacade != null) {
 			installer.setAdminFacade(this.adminFacade);
@@ -59,12 +65,54 @@ public class TeardownCloud extends AbstractGSCommand {
 		installer.setVerbose(verbose);
 		installer.setForce(force);
 		installer.setCloud(cloud);
-		installer.teardownCloudAndWait(timeoutInMinutes, TimeUnit.MINUTES);
 
-		return getFormattedMessage("cloud_terminated_successfully", cloudProvider);
+		// Note: The cloud driver may be very verbose. This is EXTEREMELY useful
+		// when debugging ESM
+		// issues, but can also clutter up the CLI display. It makes more sense
+		// to temporarily raise the log level here,
+		// so that all of these
+		// messages will not be displayed on the console.
+		limitLoggingLevel();
+		try {
+			installer.teardownCloudAndWait(timeoutInMinutes, TimeUnit.MINUTES);
+			return getFormattedMessage("cloud_terminated_successfully", cloudProvider);
+		} finally {
+			restoreLoggingLevel();
+		}
+
+		
+
+
 
 	}
 
+	private static final String[] NON_VERBOSE_LOGGERS = { DefaultCloudProvisioning.class.getName(), AgentlessInstaller.class.getName() };
+	private Map<String, Level> loggerStates = new HashMap<String, Level>();
+
+	private void limitLoggingLevel() {
+
+		if (!this.verbose) {
+			loggerStates.clear();
+			for (String loggerName : NON_VERBOSE_LOGGERS) {
+				Logger provisioningLogger = Logger.getLogger(loggerName);
+				Level logLevelBefore = provisioningLogger.getLevel();
+				provisioningLogger.setLevel(Level.WARNING);
+				loggerStates.put(loggerName, logLevelBefore);
+			}
+		}
+	}
+
+	private void restoreLoggingLevel() {
+		if (!verbose) {
+			Set<Entry<String, Level>> entries = loggerStates.entrySet();
+			for (Entry<String, Level> entry : entries) {
+				Logger provisioningLogger = Logger.getLogger(entry.getKey());
+				provisioningLogger.setLevel(entry.getValue());
+			}			
+		}
+
+	}
+	
 	private File findCloudFile(File providerDirectory) throws FileNotFoundException {
 		if (!providerDirectory.exists() || !providerDirectory.isDirectory()) {
 			throw new FileNotFoundException("Could not find cloud provider directory: " + providerDirectory);
