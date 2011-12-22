@@ -201,11 +201,13 @@ public class CloudGridAgentBootstrapper {
 
 		long end = System.currentTimeMillis() + timeoutUnit.toMillis(timeout);
 
-		if (!adminFacade.isConnected()) {
-			throw new CLIException("Please connect to the cloud before tearing down");
-		}
+
 
 		if (!force) {
+			
+			if (!adminFacade.isConnected()) {
+				throw new CLIException("Please connect to the cloud before tearing down");
+			}
 
 			for (String application : adminFacade.getApplicationsList()) {
 				if (!application.equals(MANAGEMENT_APPLICATION)) {
