@@ -221,7 +221,7 @@
        <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure" failonerror="false">
        		<fileset dir="${azure.local.copy}" includes="azureconfig.exe*"/>
 		</copy>
-       <delete dir="${builds.dir}${buildnumber}/${cloudify}/azure" includes="azureconfig.exe*" />
+       <delete dir="${azure.local.copy}" includes="azureconfig.exe*" />
    </target>
 	
 	<target name="prepare.and.copy.package" depends="prepare.cloudify.package, copy.packages.to.build.repository" />
