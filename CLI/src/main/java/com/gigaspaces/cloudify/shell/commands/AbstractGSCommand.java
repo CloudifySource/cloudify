@@ -69,10 +69,10 @@ public abstract class AbstractGSCommand implements Action {
 		
 		} catch (ErrorStatusException e) {
 			if (verbose) {
-				logger.log(Level.WARNING, getFormattedMessageFromErrorStatusException(e, Color.RED), e);
+				logger.log(Level.WARNING, getFormattedMessageFromErrorStatusException(e), e);
 			}
 			else {
-				logger.log(Level.WARNING, getFormattedMessageFromErrorStatusException(e, Color.RED));
+				logger.log(Level.WARNING, getFormattedMessageFromErrorStatusException(e));
 			}
 		    raiseCloseShellExceptionIfNonInteractive(session, e);
 		} catch (CLIException e) {
@@ -101,10 +101,10 @@ public abstract class AbstractGSCommand implements Action {
 		}
 	}
 	
-	private String getFormattedMessageFromErrorStatusException(ErrorStatusException e, Color color) {
-		String message = getFormattedMessageFromErrorStatusException(e);
-		return ShellUtils.getColorMessage(message, color);
-	}
+//	private String getFormattedMessageFromErrorStatusException(ErrorStatusException e, Color color) {
+//		String message = getFormattedMessageFromErrorStatusException(e);
+//		return ShellUtils.getColorMessage(message, color);
+//	}
 	
 	private static void raiseCloseShellExceptionIfNonInteractive(CommandSession session, Throwable t) throws CloseShellException {
 	    if (!(Boolean)(session.get(Constants.INTERACTIVE_MODE))) {
