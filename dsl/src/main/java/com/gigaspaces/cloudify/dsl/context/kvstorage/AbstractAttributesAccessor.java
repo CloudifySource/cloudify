@@ -44,7 +44,7 @@ public abstract class AbstractAttributesAccessor extends GroovyObjectSupport {
 		AbstractCloudifyAttribute previousValue = managementSpace.take(attributeEntry);
 		attributeEntry.setValue(value);
 		managementSpace.write(attributeEntry);
-		return previousValue;
+		return previousValue != null? previousValue.getValue() : null;
 	}
 
 	public Object getAt(Object key) {

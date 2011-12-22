@@ -66,6 +66,11 @@ public class ServiceAttributesAccessor extends AbstractAttributesAccessor {
 			return new InstanceAttributesAccessor(attributesFacade, applicationName, serviceName, instanceId);
 		}
 		
+		@Override
+		public String toString() {
+			return "";
+		}
+		
 		public class InstanceFacadeIterator implements
 				Iterator<InstanceAttributesAccessor>, Serializable {
 
@@ -96,7 +101,11 @@ public class ServiceAttributesAccessor extends AbstractAttributesAccessor {
 				throw new UnsupportedOperationException();
 			}
 
-}
+			@Override
+			public String toString() {
+				return "";
+			}
+		}
 	}
 	
 }
