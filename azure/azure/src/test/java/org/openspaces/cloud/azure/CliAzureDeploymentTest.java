@@ -54,13 +54,18 @@ public class CliAzureDeploymentTest {
     private static final String AZURE_PROPERTIES_RDP_LOGIN_USERNAME_KEY = "rdpLoginUsername";
     private static final String AZURE_PROPERTIES_RDP_LOGIN_ENCRYPTED_PASSWORD = "rdpLoginEncrypedPassword";
     
+	// azure account
+	// -------------
     //private static final String AZURE_SUBSCRIPTION_ID = "9f24fac0-f989-4873-b3d5-6886fbc6cd29";
     //private static final String AZURE_ACCOUNT_NAME = "gigatravel";
     //private static final String AZURE_ACCOUNT_KEY = "2wghRaoK9hC7ym8cYmuTbUlgE0wGlJR74a11UO4OwejsO7XtXLNX7RPLWFsFkB1jx0tUf6xNosBVLPw+3ticFA==";
 	
-	private static final String AZURE_SUBSCRIPTION_ID = "2719917d-5e33-4aaa-9fee-429290752498"; // azure partner account
+	// azure partner account
+	// ---------------------
+	private static final String AZURE_SUBSCRIPTION_ID = "2719917d-5e33-4aaa-9fee-429290752498"; 
     private static final String AZURE_ACCOUNT_NAME = "gigaspaces3";
     private static final String AZURE_ACCOUNT_KEY = "2hQ0Kljm3tWj49kUrHfFypnd8KyOT1nlsi766M6dHJYgpHjEy+CfR2922cfFzTvqCN94SSkcx7GG+8KovxV2mQ==";
+	
     private static final String AZURE_CERTIFICATE_THUMBPRINT = "9E0086E300D5B2F7CC00E734F58FFB1661920FE9";
     private static final String AZURE_CONTAINER_NAME = "packages-public";
     private static final String CS_PACK_FOLDER = "C:\\Program Files\\Windows Azure SDK\\v1.4\\bin";
@@ -80,7 +85,7 @@ public class CliAzureDeploymentTest {
     // arguments for cli
     private static final int TIMEOUT_IN_MINUTES = 60;
     private static final int POLLING_INTERVAL_IN_MINUTES = 1;
-    private static final String AZURE_HOSTED_SERVICE = "travel56";
+    private static final String AZURE_HOSTED_SERVICE = "travel71";
     private static final String APPLICATION_NAME = "travel";
     private static final AzureSlot AZURE_SLOT = AzureSlot.Staging;
     private static final String RDP_PFX_FILE_PASSWORD = "123456";
@@ -215,8 +220,9 @@ public class CliAzureDeploymentTest {
         });
         
         List<String> connectCommand = Arrays.asList(
-             "azure:connect-app", 
+             "azure:connect-app",
              "--verbose",
+			 "-timeout 5",
              "-azure-svc", AZURE_HOSTED_SERVICE
         );
         
@@ -465,7 +471,9 @@ public class CliAzureDeploymentTest {
 		httpGet.addHeader("Cache-Control", "no-cache");
         try {
             HttpResponse response = client.execute(httpGet);
+			System.out.print("HTTP GET " + url + "Response:");
 			response.getEntity().writeTo(System.out);
+			System.out.print("");
 			if (response.getStatusLine().getStatusCode() == 404) {
 				return false;
 			}
