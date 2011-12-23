@@ -6,6 +6,7 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.hyperic.sigar.NetConnection;
 import org.hyperic.sigar.NetFlags;
@@ -69,9 +70,8 @@ public class ServiceUtils {
                             }
                      }
                }
-        } catch (SigarException e1) {
-               logger.warning("Port liveness test has failed on port: " + port);
-               e1.printStackTrace();
+        } catch (SigarException e) {
+               logger.log(Level.WARNING, "Port liveness test has failed on port: " + port,e);
         }
 
         return false;
