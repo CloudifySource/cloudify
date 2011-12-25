@@ -60,6 +60,8 @@ namespace GigaSpaces
 
         public String RestAdminContextPath { private get; set; }
 
+        public DirectoryInfo TempDirectory { private get; set; }
+
         private String SharedMachineIsolationId
         {
             get
@@ -86,7 +88,8 @@ namespace GigaSpaces
                     "-Dcom.gs.transport_protocol.lrmi.bind-port=" + PortUtils.XAP_LRMI_MINPORT + "-" + PortUtils.XAP_LRMI_MAXPORT + " " +
                     "-Dcom.gigaspaces.start.httpPort=" + PortUtils.XAP_WEBSTER_PORT + " " +
                     //"-Dcom.gs.embedded-services.httpd.port="+; +" " +
-                    "-Dcom.gigaspaces.system.registryPort=" + PortUtils.XAP_REGISTRY_PORT;
+                    "-Dcom.gigaspaces.system.registryPort=" + PortUtils.XAP_REGISTRY_PORT + " " +
+                    "-Djava.io.tmpdir=" + TempDirectory.FullName;
             }
         }
 

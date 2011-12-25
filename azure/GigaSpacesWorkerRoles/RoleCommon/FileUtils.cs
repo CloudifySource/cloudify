@@ -16,7 +16,7 @@ namespace GigaSpaces
         /// <param name="outputDirectory">Output directory to unzip</param>
         /// <param name="filename">A mandatory file inside the zip file</param>
         /// <returns></returns>
-        public static FileInfo DownloadUnzipAndFindFile(String url, FileInfo outputDirectory, string filename)
+        public static FileInfo DownloadUnzipAndFindFile(String url, DirectoryInfo outputDirectory, string filename)
         {
             FileInfo file = null;
             FileInfo temp = new FileInfo(Path.Combine(outputDirectory.FullName,Path.ChangeExtension(Path.GetRandomFileName(),".zip")));

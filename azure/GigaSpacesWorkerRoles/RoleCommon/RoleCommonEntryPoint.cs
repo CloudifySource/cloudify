@@ -101,24 +101,24 @@ namespace GigaSpaces
             }
         }
 
-        private FileInfo OutputDirectory
+        private DirectoryInfo OutputDirectory
         {
             get
             {
                 String workingDirectory = GetStringConfig("GigaSpaces.WindowsAzure.WorkingDirectory");
                 if (!Path.IsPathRooted(workingDirectory))
                 {
-                    String tempDirectory = RoleEnvironment.GetLocalResource("LocalTempFolder").RootPath;
-                    GSTrace.WriteLine("LocalTempFolder=" + tempDirectory);
-                    FileUtils.SetSubstDrive(WorkingDriveLetter, tempDirectory);
                     workingDirectory = Path.Combine(WorkingDriveLetter+":\\", workingDirectory);
                 }
 
-                FileInfo outputDirectory = new FileInfo(workingDirectory);
+                DirectoryInfo outputDirectory = new DirectoryInfo(workingDirectory);
                 GSTrace.WriteLine("OutputDirectory=" + workingDirectory);
                 return outputDirectory;
             }
         }
+
+        private DirectoryInfo TempDirectory { get; set; }
+        
         #endregion
 
         GridServiceAgent agent;
@@ -165,6 +165,9 @@ namespace GigaSpaces
 
                 OpenFirewallPorts();
 
+                CreateWorkingDrive();
+                CreateTempDirectory();
+
                 DirectoryInfo xapHome = InstallGigaSpacesXap();
                 DirectoryInfo javaHome = InstallJava();
 
@@ -186,7 +189,8 @@ namespace GigaSpaces
                     BatchFilesEchoOn = true,
                     RestAdminMegabytesMemory = RestAdminMegabytesMemory,
                     WebuiContextPath = WebuiContextPath,
-                    RestAdminContextPath = RestAdminContextPath
+                    RestAdminContextPath = RestAdminContextPath,
+                    TempDirectory = TempDirectory
                 };
 
                 return base.OnStart();
@@ -197,6 +201,18 @@ namespace GigaSpaces
                 GSTrace.Flush();
                 return false;
             }
+        }
+
+        private void CreateTempDirectory()
+        {
+            TempDirectory = OutputDirectory.CreateSubdirectory("temp");
+        }
+
+        private static void CreateWorkingDrive()
+        {
+            String localDirectory = RoleEnvironment.GetLocalResource("LocalTempFolder").RootPath;
+            GSTrace.WriteLine("LocalTempFolder=" + localDirectory);
+            FileUtils.SetSubstDrive(WorkingDriveLetter, localDirectory);
         }
 
         private void OpenFirewallPorts()
