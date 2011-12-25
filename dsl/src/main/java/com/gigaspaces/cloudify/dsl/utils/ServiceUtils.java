@@ -5,6 +5,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.net.ServerSocket;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -48,36 +49,37 @@ public class ServiceUtils {
 		}
 		return false;
 	}
-	
 	/**
-	 * Checks whether a specified port is occupied using Sigar API.
+	 * Checks whether a specified port is occupied.
 	 * 
 	 * @param portList
 	 *            - list of ports to check.
 	 * @return - true if port is free
 	 */
 	public static boolean isPortOccupied(long port) {
-        Sigar sigar = SigarHolder.getSigar();
-        try {
-               NetConnection[] list = sigar.getNetConnectionList(NetFlags.CONN_SERVER | NetFlags.CONN_PROTOCOLS);
-               for (NetConnection netConnection : list) {
-                     int localPort = (int) netConnection.getLocalPort();
-                     int state = netConnection.getState();
+		boolean portIsFree = true;
 
-                     if (state == NetFlags.TCP_LISTEN) {
-                            if (localPort == port) {
-                            	return true;
-                            }
-                     }
-               }
-        } catch (SigarException e) {
-               logger.log(Level.WARNING, "Port liveness test has failed on port: " + port,e);
-        }
+		ServerSocket server = null;
+		try{
+			server = new ServerSocket((int)port);
+		}
+		catch (IOException e){
+			portIsFree = false;
+		}
+		finally{
+			if (server != null){
+				try{
+					server.close();
+				}
+				catch (IOException e){
+					// ignore
+				}
+			}
+		}
 
-        return false;
-		
+		return portIsFree ? false : true;
 	}
-	
+
 	/**
 	 * isPortsOccupied will repeatedly test the connection to the ports defined in
 	 * the groovy configuration file to see whether the ports are open. Having
