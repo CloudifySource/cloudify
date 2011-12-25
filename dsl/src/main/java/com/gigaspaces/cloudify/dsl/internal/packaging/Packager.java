@@ -196,10 +196,11 @@ public class Packager {
 		LinkedList<String> extendedServicesPaths = service.getExtendedServicesPaths();
 		
 		File extendingScriptFile = new File(extFolder + "/" + recipeFile.getName());
+		File currentExtendedServiceContext = recipeFile;
 		
 		for (String extendedServicePath : extendedServicesPaths) {
 			//Locate the extended service file in the destination path
-			final File extendedServiceFile = locateServiceFile(recipeFile, extendedServicePath);
+			final File extendedServiceFile = locateServiceFile(currentExtendedServiceContext, extendedServicePath);
 			//If the extended service exists in my directory, no need to copy or change anything
 			//This can happen if we have extension of services inside application since the client
 			//will prepare the extending service directory already and then it will be prepared fully at the server
@@ -232,6 +233,7 @@ public class Packager {
 			});
 			//Replace context extending script file for multiple level extension
 			extendingScriptFile = localExtendedServiceFile;
+			currentExtendedServiceContext = extendedServiceFile;
 		}
 	}
 
