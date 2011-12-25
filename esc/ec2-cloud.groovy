@@ -1,5 +1,5 @@
 
-cloud2 {
+cloud {
 	name = "ec2"
 	configuration {
 		className "com.gigaspaces.cloudify.esc.driver.provisioning.jclouds.DefaultCloudProvisioning"
@@ -11,7 +11,7 @@ cloud2 {
 		provider "aws-ec2"
 		localDirectory "tools/cli/plugins/esc/ec2/upload"
 		remoteDirectory "/home/ec2-user/gs-files"
-		cloudifyUrl "http://s3.amazonaws.com/gigaspacestests/gigaspaces.zip" //"https://s3.amazonaws.com/test-repository-ec2dev/cloudify/gigaspaces.zip"
+		cloudifyUrl "http://s3.amazonaws.com/gigaspacestests/gigaspaces.zip" 
 		machineNamePrefix "gs_esm_gsa_"
 		
 		dedicatedManagementMachines true
