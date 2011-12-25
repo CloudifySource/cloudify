@@ -56,17 +56,17 @@ public class CliAzureDeploymentTest {
     
 	// azure account
 	// -------------
-    //private static final String AZURE_SUBSCRIPTION_ID = "9f24fac0-f989-4873-b3d5-6886fbc6cd29";
-    //private static final String AZURE_ACCOUNT_NAME = "gigaspaces";
-    //private static final String AZURE_ACCOUNT_KEY = "UD+sH0G99u9Rjt/jD5U39k2exfUQAgmeIgXx6+s/LTwLwTeScC7YK+53+UXkh9cZI4yiv2ZpKrnXYh9/e5eNhw==";
-	//private static final String AZURE_REGION="South Central US";
+    private static final String AZURE_SUBSCRIPTION_ID = "9f24fac0-f989-4873-b3d5-6886fbc6cd29";
+    private static final String AZURE_ACCOUNT_NAME = "gigaspaces";
+    private static final String AZURE_ACCOUNT_KEY = "UD+sH0G99u9Rjt/jD5U39k2exfUQAgmeIgXx6+s/LTwLwTeScC7YK+53+UXkh9cZI4yiv2ZpKrnXYh9/e5eNhw==";
+	private static final String AZURE_REGION="South Central US";
 	
 	// azure partner account
 	// ---------------------
-	private static final String AZURE_SUBSCRIPTION_ID = "2719917d-5e33-4aaa-9fee-429290752498"; 
-    private static final String AZURE_ACCOUNT_NAME = "gigaspaces3";
-    private static final String AZURE_ACCOUNT_KEY = "2hQ0Kljm3tWj49kUrHfFypnd8KyOT1nlsi766M6dHJYgpHjEy+CfR2922cfFzTvqCN94SSkcx7GG+8KovxV2mQ==";
-	private static final String AZURE_REGION="North Central US";
+	//private static final String AZURE_SUBSCRIPTION_ID = "2719917d-5e33-4aaa-9fee-429290752498"; 
+    //private static final String AZURE_ACCOUNT_NAME = "gigaspaces3";
+    //private static final String AZURE_ACCOUNT_KEY = "2hQ0Kljm3tWj49kUrHfFypnd8KyOT1nlsi766M6dHJYgpHjEy+CfR2922cfFzTvqCN94SSkcx7GG+8KovxV2mQ==";
+	//private static final String AZURE_REGION="North Central US";
 	
     private static final String AZURE_CERTIFICATE_THUMBPRINT = "9E0086E300D5B2F7CC00E734F58FFB1661920FE9";
     private static final String AZURE_CONTAINER_NAME = "packages-public";
