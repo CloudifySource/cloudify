@@ -15,12 +15,5 @@ if(USMUtils.isWindows()) {
 	builder.untar(src:"${config.installDir}/${osConfig.zipName}", dest:config.installDir, compression:"gzip", overwrite:true)
 	builder.chmod(dir:"${config.installDir}/${osConfig.name}/bin", perm:'+x', includes:"*")
 }
-File configHome = new File(config.home);
-if (configHome.exists()){
-	println("mongoS home foler exists");
-}
-if (!configHome.exists() || configHome.listFiles().length == 0){
-	builder.move(file:"${config.installDir}/${osConfig.name}", tofile:config.home)
-	println("Moved mongos files successfully")
-}
+builder.move(file:"${config.installDir}/${osConfig.name}", tofile:config.home)
 
