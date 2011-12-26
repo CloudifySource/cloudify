@@ -118,7 +118,15 @@ namespace GigaSpaces
         }
 
         private DirectoryInfo TempDirectory { get; set; }
-        
+
+        private TimeSpan TraceFlushTime
+        {
+            get
+            {
+                return TimeSpan.FromMinutes(5);
+            }
+        }
+
         #endregion
 
         GridServiceAgent agent;
@@ -140,7 +148,7 @@ namespace GigaSpaces
                 GSTrace.WriteLine(e.ToString());
                 GSTrace.Flush();
                 // allow enough time for the exception to flush
-                Thread.Sleep(TimeSpan.FromMinutes(2));
+                Thread.Sleep(TraceFlushTime);
                 return;
             }
         }
@@ -199,6 +207,8 @@ namespace GigaSpaces
             {
                 GSTrace.WriteLine(e.ToString());
                 GSTrace.Flush();
+                // allow enough time for the exception to flush
+                Thread.Sleep(TraceFlushTime);
                 return false;
             }
         }
