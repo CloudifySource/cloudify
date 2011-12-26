@@ -197,9 +197,17 @@ namespace GigaSpaces
             // agent prints its own output to stderr and child processes to stdout
             gsaProcess.RedirectStandardOutput = RedirectAll; 
             gsaProcess.RedirectStandardError = RedirectGsa || RedirectAll;
-            gsaProcess.Run();
 
-            WaitForManagers();
+            if (StartGridServiceManager)
+            {
+                gsaProcess.Run();
+                WaitForManagers();
+            }
+            else
+            {
+                WaitForManagers();
+                gsaProcess.Run();
+            }
 
             if (StartRestAdmin)
             {
