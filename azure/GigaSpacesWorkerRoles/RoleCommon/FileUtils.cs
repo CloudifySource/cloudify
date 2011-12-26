@@ -63,7 +63,7 @@ namespace GigaSpaces
                 {
                     GSTrace.WriteLine("Downloading from URL: " + input );
                     client.DownloadFile(input, output.FullName);
-                    GSTrace.WriteLine("Download completed to file: " + output);
+                    GSTrace.WriteLine("Download completed. New file: " + output);
                 }
             }
             catch (System.Net.WebException e)
