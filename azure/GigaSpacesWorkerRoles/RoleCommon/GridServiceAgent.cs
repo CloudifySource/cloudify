@@ -198,17 +198,9 @@ namespace GigaSpaces
             gsaProcess.RedirectStandardOutput = RedirectAll; 
             gsaProcess.RedirectStandardError = RedirectGsa || RedirectAll;
 
-            if (StartGridServiceManager)
-            {
-                gsaProcess.Run();
-                WaitForManagers();
-            }
-            else
-            {
-                WaitForManagers();
-                gsaProcess.Run();
-            }
-
+            gsaProcess.Run();
+            WaitForManagers();
+            
             if (StartRestAdmin)
             {
                 DeployWar("rest", RestAdminWar, PortUtils.XAP_RESTADMIN_PORT, RestAdminMegabytesMemory, RestAdminContextPath);
