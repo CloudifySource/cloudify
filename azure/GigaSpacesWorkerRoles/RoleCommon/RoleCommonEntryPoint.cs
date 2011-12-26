@@ -205,7 +205,8 @@ namespace GigaSpaces
             {
                 GSTrace.WriteLine(e.ToString());
                 FlushTrace();
-                return false;
+                //return false;
+                return base.OnStart();
             }
         }
 
