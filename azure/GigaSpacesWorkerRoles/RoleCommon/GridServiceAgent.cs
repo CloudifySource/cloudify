@@ -228,18 +228,22 @@ namespace GigaSpaces
                     AddInboudRewrite("webui", PortUtils.XAP_WEBUI_PORT);
                 }
             }
-                        
-            // run until either one of the started processes dies.
-            // once that happens this method returns which would eventually cause Azure
-            // to trigger a Stop() command which would kill all processes.
-            using(gsaProcess) 
+        }
+
+        /*
+         * run until either one of the started processes dies.
+           once that happens this method returns which would eventually cause Azure
+           to trigger a Stop() command which would kill all processes.
+         */
+        public void SleepUntilExists()
+        {
+            using (gsaProcess)
             {
-                while ( gsaProcess.IsRunning()) 
+                while (gsaProcess.IsRunning())
                 {
                     Thread.Sleep(5000);
                 }
             }
-
         }
 
         public void Stop(TimeSpan timeout)
@@ -251,16 +255,6 @@ namespace GigaSpaces
                 {
                     ShutdownGridAgentGracefully(timeout);
                 }
-
-                if (StartProxy)
-                {
-
-                    RemoveInboundRewrite("rest");
-                    RemoveInboundRewrite("webui");
-
-                    UninstallProxyService();
-                }
-                
             }
             finally
             {
@@ -496,7 +490,6 @@ namespace GigaSpaces
 
                 GSProcess managersScript = GroovyProcess(
                    @"org.openspaces.admin.Admin admin = new org.openspaces.admin.AdminFactory().useDaemonThreads(true).createAdmin();
-                 admin.getGridServiceManagers().waitFor(" + NumberOfManagementRoleInstances + @");
                  while (admin.getGridServiceManagers().getSize () != " + NumberOfManagementRoleInstances + @") {
                     System.out.println(""Waiting for " + NumberOfManagementRoleInstances + @" Grid Service Managers"");
                     Thread.sleep(10000);

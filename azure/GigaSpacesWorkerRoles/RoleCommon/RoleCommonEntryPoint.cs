@@ -141,7 +141,7 @@ namespace GigaSpaces
             {
                 //Uncomment this line to debug agent.Stop()
                 //new Thread(() => { Thread.Sleep(30000); agent.Stop(TimeSpan.FromSeconds(10)); }).Start();
-                agent.Run();
+                agent.SleepUntilExists();
             }
             catch (Exception e)
             {
@@ -199,6 +199,7 @@ namespace GigaSpaces
                     TempDirectory = TempDirectory
                 };
 
+                agent.Run();
                 return base.OnStart();
             }
             catch (Exception e)
