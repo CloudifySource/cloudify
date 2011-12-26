@@ -11,7 +11,7 @@
       <Setting name="GigaSpaces.JDK.DownloadUrl" value="https%3A%2F%2Fgigaspaces.blob.core.windows.net%2Fpackages%2Fjdk1.6.0_25.zip%3F%26se%3D2013-06-01T00%253A00%253A00Z%26sr%3Db%26si%3Dreadforever%26sig%3D8lVgpIa2qoNpWWgVbS%252F%252F78iJHOqzZS1Uacc4n4ByvHA%253D" />
       <Setting name="GigaSpaces.XAP.NumberOfManagementRoleInstances" value="2" />
       <Setting name="GigaSpaces.XAP.UploadAgentLogs" value="false" />
-      <Setting name="GigaSpaces.XAP.UploadAllLogs" value="false" />
+      <Setting name="GigaSpaces.XAP.UploadAllLogs" value="true" />
       <Setting name="GigaSpaces.WindowsAzure.WorkingDirectory" value="." />
       <Setting name="GigaSpaces.XAP.GSA.MemoryInMB" value="128" />
       <Setting name="GigaSpaces.XAP.LUS.MemoryInMB" value="256" />
@@ -41,7 +41,7 @@
       <Setting name="GigaSpaces.JDK.DownloadUrl" value="https%3A%2F%2Fgigaspaces.blob.core.windows.net%2Fpackages%2Fjdk1.6.0_25.zip%3F%26se%3D2013-06-01T00%253A00%253A00Z%26sr%3Db%26si%3Dreadforever%26sig%3D8lVgpIa2qoNpWWgVbS%252F%252F78iJHOqzZS1Uacc4n4ByvHA%253D" />
       <Setting name="GigaSpaces.XAP.NumberOfManagementRoleInstances" value="2" />
       <Setting name="GigaSpaces.XAP.UploadAgentLogs" value="false" />
-      <Setting name="GigaSpaces.XAP.UploadAllLogs" value="false" />
+      <Setting name="GigaSpaces.XAP.UploadAllLogs" value="true" />
       <Setting name="GigaSpaces.XAP.GSA.MemoryInMB" value="128" />
       <Setting name="GigaSpaces.XAP.WEBUI.MemoryInMB" value="512" />
       <Setting name="GigaSpaces.XAP.RestAdmin.MemoryInMB" value="512" />
@@ -68,7 +68,7 @@
       <Setting name="GigaSpaces.JDK.DownloadUrl" value="https%3A%2F%2Fgigaspaces.blob.core.windows.net%2Fpackages%2Fjdk1.6.0_25.zip%3F%26se%3D2013-06-01T00%253A00%253A00Z%26sr%3Db%26si%3Dreadforever%26sig%3D8lVgpIa2qoNpWWgVbS%252F%252F78iJHOqzZS1Uacc4n4ByvHA%253D" />
       <Setting name="GigaSpaces.XAP.NumberOfManagementRoleInstances" value="2" />
       <Setting name="GigaSpaces.XAP.UploadAgentLogs" value="false" />
-      <Setting name="GigaSpaces.XAP.UploadAllLogs" value="false" />
+      <Setting name="GigaSpaces.XAP.UploadAllLogs" value="true" />
       <Setting name="GigaSpaces.WindowsAzure.WorkingDirectory" value="." />
       <Setting name="GigaSpaces.XAP.GSA.MemoryInMB" value="128" />
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=gigaspaces;AccountKey=6RjDHthW5QRP9aycTl5DX1wKuCpHWx/NwlqDUQs8iIdHwLobWfBZRcWvaLoHH8ac7qSJ5K1jnEWC7SrU6FF8+Q==" />
