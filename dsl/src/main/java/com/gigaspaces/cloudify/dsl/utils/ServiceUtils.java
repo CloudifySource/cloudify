@@ -7,15 +7,8 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.net.ServerSocket;
 import java.util.List;
-import java.util.logging.Level;
-
-import org.hyperic.sigar.NetConnection;
-import org.hyperic.sigar.NetFlags;
-import org.hyperic.sigar.Sigar;
-import org.hyperic.sigar.SigarException;
 
 import com.gigaspaces.cloudify.dsl.internal.DSLException;
-import com.gigaspaces.internal.sigar.SigarHolder;
 
 public class ServiceUtils {
 
