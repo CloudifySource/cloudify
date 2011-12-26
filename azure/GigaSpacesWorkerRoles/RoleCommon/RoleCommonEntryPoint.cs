@@ -146,9 +146,7 @@ namespace GigaSpaces
             catch (Exception e)
             {
                 GSTrace.WriteLine(e.ToString());
-                GSTrace.Flush();
-                // allow enough time for the exception to flush
-                Thread.Sleep(TraceFlushTime);
+                FlushTrace();
                 return;
             }
         }
@@ -206,11 +204,16 @@ namespace GigaSpaces
             catch (Exception e)
             {
                 GSTrace.WriteLine(e.ToString());
-                GSTrace.Flush();
-                // allow enough time for the exception to flush
-                Thread.Sleep(TraceFlushTime);
+                FlushTrace();
                 return false;
             }
+        }
+
+        private void FlushTrace()
+        {
+            GSTrace.Flush();
+            // allow enough time for the exception to flush
+            Thread.Sleep(TraceFlushTime);
         }
 
         private void CreateTempDirectory()
@@ -287,7 +290,7 @@ namespace GigaSpaces
             catch (Exception e)
             {
                 GSTrace.WriteLine(e.ToString());
-                GSTrace.Flush();
+                FlushTrace();
                 return;
             }
             base.OnStop();
