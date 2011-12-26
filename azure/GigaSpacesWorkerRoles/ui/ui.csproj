@@ -34,6 +34,24 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="iisproxy\iisproxy-service.groovy">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="iisproxy\iisproxy-service.properties">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="iisproxy\iisproxy_install.groovy">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="iisproxy\iisproxy_uninstall.groovy">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="iisproxy\run.bat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Reference Include="Ionic.Zip.Reduced">
       <HintPath>..\RoleCommon\bin\$(ConfigurationName)\Ionic.Zip.Reduced.dll</HintPath>
     </Reference>
