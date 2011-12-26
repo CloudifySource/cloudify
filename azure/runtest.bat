@@ -1,4 +1,5 @@
 echo on
+taskkill /im java.exe /f
 rem cli log files under azure folder.
 set path=%path%;C:\Windows\Microsoft.NET\Framework\v4.0.30319
 
@@ -13,6 +14,15 @@ set MILESTONE=%4
 
 echo compiling GigaSpacesWorkerRoles
 cd GigaSpacesWorkerRoles
+rmdir /s /q RoleCommon\bin
+rmdir /s /q RoleCommon\obj
+rmdir /s /q ui\bin
+rmdir /s /q ui\obj
+rmdir /s /q management\bin
+rmdir /s /q management\obj
+rmdir /s /q internal\bin
+rmdir /s /q internal\obj
+
 msbuild GigaSpacesWorkerRoles\template.ccproj /p:Configuration=%MS_BUILD_MODE%
 cd ..
 
