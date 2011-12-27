@@ -1,5 +1,5 @@
 echo on
-taskkill /im java.exe /f
+
 rem cli log files under azure folder.
 set path=%path%;C:\Windows\Microsoft.NET\Framework\v4.0.30319
 
