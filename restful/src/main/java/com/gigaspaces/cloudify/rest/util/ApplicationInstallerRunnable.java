@@ -77,12 +77,11 @@ public class ApplicationInstallerRunnable implements Runnable {
 			final String serviceName = service.getName();
 			boolean found = false;
 			try {
-
-				File packedFile = Packager.pack(new File(appDir, serviceName));
+				String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+				File packedFile = Packager.pack(new File(appDir, serviceName), absolutePUName);
 				result.getApplicationFile().delete();
 				packedFile.deleteOnExit();
 				//Deployment will be done using the service's absolute PU name.
-				String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 				logger.info("Deploying PU: " + absolutePUName + ". File: " + packedFile + ". Properties: " + contextProperties);
 				final String templateName = (service.getCompute() == null ? null : service.getCompute().getTemplate() );
 				controller.deployElasticProcessingUnit(absolutePUName,

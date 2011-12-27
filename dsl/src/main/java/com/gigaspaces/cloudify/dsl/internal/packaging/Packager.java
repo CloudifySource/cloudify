@@ -37,6 +37,26 @@ public class Packager {
 		return Packager.pack(recipeFile, service);
 	}
 	
+	/**
+	 * Pack the file and name it as fileNam
+	 * @param recipeDirOrFile
+	 * @param fileName
+	 * @return
+	 * @throws IOException
+	 * @throws PackagingException
+	 */
+	public static File pack(final File recipeDirOrFile, String fileName) throws IOException, PackagingException {
+		File packed = pack(recipeDirOrFile);
+		File destFile = new File(packed.getParent(), fileName + ".zip");
+		if (destFile.exists()){
+			destFile.delete();
+		}
+		packed.renameTo(destFile);
+		packed = destFile;
+		return packed;
+		
+	}
+	
 	//This method is being used by SGTest. Do not change visibility.
 	public static File pack(final File recipeFile, final Service service) throws IOException, PackagingException {
 		if (!recipeFile.isFile())
