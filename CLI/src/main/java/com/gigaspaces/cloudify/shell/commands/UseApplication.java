@@ -22,8 +22,6 @@ import org.fusesource.jansi.Ansi.Color;
 import com.gigaspaces.cloudify.shell.Constants;
 import com.gigaspaces.cloudify.shell.GigaShellMain;
 
-import java.text.MessageFormat;
-
 /**
  * @author rafi
  * @since 8.0.3
@@ -38,6 +36,6 @@ public class UseApplication extends AdminAwareCommand {
     protected Object doExecute() throws Exception {
         session.put(Constants.ACTIVE_APP, applicationName);
         GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
-        return MessageFormat.format(messages.getString("using_application"), Color.GREEN, applicationName);
+        return getFormattedMessage("using_application", Color.GREEN, applicationName);
     }
 }
