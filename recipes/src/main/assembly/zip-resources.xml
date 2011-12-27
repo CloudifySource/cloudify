@@ -21,6 +21,7 @@
 				<exclude>**/nginx/**</exclude>
 				<exclude>**/stockdemo/**</exclude>
 				<exclude>**/tomcatcluster/**</exclude>
+				<exclude>**/couchdb/**</exclude>
 			</excludes>
 			<outputDirectory>/</outputDirectory>
 		</fileSet>
