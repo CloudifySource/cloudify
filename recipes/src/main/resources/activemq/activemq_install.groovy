@@ -1,5 +1,3 @@
-import groovy.util.ConfigSlurper
-
 config = new ConfigSlurper().parse(new File("activemq.properties").toURL())
 
 new AntBuilder().sequential {
