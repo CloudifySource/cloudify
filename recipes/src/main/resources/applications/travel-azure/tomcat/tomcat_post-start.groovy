@@ -6,7 +6,7 @@ import java.net.InetAddress
 
 // discover rest server URL
 admin = ServiceContextFactory.getServiceContext().getAdmin()
-admin.getProcessingUnits().waitFor(("management.rest", 60, TimeUnit.SECONDS).waitFor(1, 60, TimeUnit.SECONDS)
+admin.getProcessingUnits().waitFor("management.rest", 60, TimeUnit.SECONDS).waitFor(1, 60, TimeUnit.SECONDS)
 restMachine = admin.getProcessingUnits().getProcessingUnit(("management.rest").getInstances()[0].getMachine().getHostAddress()
 restUrl = "http://${restMachine}:8100/rest/"
 
