@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -189,9 +190,11 @@ public abstract class BaseDslScript extends Script {
 			if (!(this.activeObject instanceof Service))
 				throw new DSLException(EXTEND_PROPERTY_NAME + " property can only be used on a service");
 			String extendServicePath = (String) arg;
-			try {
+			try {			    
 				File extendedServiceAbsPath = new File(extendServicePath);
 				if (!extendedServiceAbsPath.isAbsolute()){
+				    if (logger.isLoggable(Level.FINER))
+				        logger.finer("locating extended file, using relative path [" + extendServicePath + "]");
 					//Extract the current service directory
 					String dslFilePath = (String) getProperty(ServiceReader.DSL_FILE_PATH_PROPERTY_NAME);
 					if (dslFilePath == null)
@@ -200,6 +203,11 @@ public abstract class BaseDslScript extends Script {
 					//Construct the extended service absolute path, joining the current service directory with the extension relative path
 					extendedServiceAbsPath = new File(activeServiceDirectory + "/" + extendServicePath);
 				}
+				else if (logger.isLoggable(Level.FINER))
+                    logger.finer("locating extended file, using absolute path [" + extendServicePath + "]");
+				
+				if (logger.isLoggable(Level.FINER))
+                    logger.finer("reading extended service file [" + extendedServiceAbsPath + "]");
 				//Read the extended service
 				Service baseService = ServiceReader.readService(extendedServiceAbsPath);
 				//Populate the current service with the extended service
