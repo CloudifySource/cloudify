@@ -22,6 +22,7 @@
 				<exclude>**/stockdemo/**</exclude>
 				<exclude>**/tomcatcluster/**</exclude>
 				<exclude>**/couchdb/**</exclude>
+				<exclude>**/redis/**</exclude>
 			</excludes>
 			<outputDirectory>/</outputDirectory>
 		</fileSet>
