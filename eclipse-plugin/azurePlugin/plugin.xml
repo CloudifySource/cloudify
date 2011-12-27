@@ -137,5 +137,16 @@
            id="com.gigaspaces.azure.actions.AzureUIAction">
      </action>
   </actionSet>
-   </extension>		
+   </extension>
+   
+	<extension
+       point="org.eclipse.wst.server.ui.wizardFragments">
+	    <fragment id="org.eclipse.jst.server.generic.runtime"
+	      typeIds="com.gigaspaces.azure.runtime"
+	      class="org.eclipse.jst.server.generic.ui.internal.GenericServerRuntimeWizardFragment" />
+	    <fragment id="org.eclipse.jst.server.generic.server"
+	      typeIds="com.gigaspaces.azure.core.serverType"
+	      class="com.gigaspaces.azure.wizards.AzureServerWizardFragment" />
+    </extension>
+			
 </plugin>
