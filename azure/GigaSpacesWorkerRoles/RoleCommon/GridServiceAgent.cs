@@ -127,6 +127,14 @@ namespace GigaSpaces
             }
         }
 
+        private String ManagementApplicationName
+        {
+            get
+            {
+                return "management";
+            }
+        }
+
         private IDictionary<String, String> EnvironmentVariables
         {
             get
@@ -441,8 +449,8 @@ namespace GigaSpaces
                     new org.openspaces.admin.pu.elastic.ElasticStatelessProcessingUnitDeployment(""" + warFileInfo.FullName.Replace("\\", "\\\\") + @""")
                     .memoryCapacityPerContainer(""" + megabytesMemory + @"m"")" +
                     addContextProperties +
-                    @".name(""" + name + @""")
-                    .addContextProperty(""com.gs.application"",""Management"")
+                    @".name("""+ManagementApplicationName+ "." + name + @""")
+                    .addContextProperty(""com.gs.application"","""+ManagementApplicationName+ @""")
                     // All PUs on this role share the same machine. Machines are identified by zone.
                     .sharedMachineProvisioning(""" + SharedMachineIsolationId + @""" ,
                     new org.openspaces.admin.pu.elastic.config.DiscoveredMachineProvisioningConfigurer()
@@ -530,7 +538,7 @@ namespace GigaSpaces
             }
 
             String installServiceCommand = new StringBuilder()
-                .Append("use-application --verbose Management;")
+                .Append("use-application --verbose "+ManagementApplicationName+";")
                 .Append("install-service --verbose ")
                 .Append("-name ").Append(ProxyServiceName).Append(" ")
                 .Append("-zone ").Append(ProxyServiceRole).Append(" ")
@@ -547,6 +555,8 @@ namespace GigaSpaces
                 GSTrace.WriteLine("ExitCode = " + exitCode);
                 throw new CliExecutionException("Install proxy  failed", exitCode);
             }
+
+            //TODO: Invoke CLI command that lists instances and waits until there are two instances available
 
         }
 
@@ -594,7 +604,7 @@ namespace GigaSpaces
         private void InvokeProxyServiceCommand(String commandName, IDictionary<String, String> parameters)
         {
             String installServiceCommand = new StringBuilder()
-                .Append("use-application --verbose Management;")
+                .Append("use-application --verbose "+ManagementApplicationName + ";")
                 .Append(ProxyServiceCommand(commandName, parameters))
                 .ToString();
 
@@ -608,6 +618,7 @@ namespace GigaSpaces
                 GSTrace.WriteLine("ExitCode = " + exitCode);
                 throw new CliExecutionException("invoke " + commandName + " failed", exitCode);
             }
+            
         }
 
         private String ProxyServiceCommand(String commandName, IDictionary<String, String> parameters)

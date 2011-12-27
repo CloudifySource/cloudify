@@ -6,8 +6,8 @@ import java.net.InetAddress
 
 // discover rest server URL
 admin = ServiceContextFactory.getServiceContext().getAdmin()
-admin.getProcessingUnits().waitFor("rest", 60, TimeUnit.SECONDS).waitFor(1, 60, TimeUnit.SECONDS)
-restMachine = admin.getProcessingUnits().getProcessingUnit("rest").getInstances()[0].getMachine().getHostAddress()
+admin.getProcessingUnits().waitFor(("management.rest", 60, TimeUnit.SECONDS).waitFor(1, 60, TimeUnit.SECONDS)
+restMachine = admin.getProcessingUnits().getProcessingUnit(("management.rest").getInstances()[0].getMachine().getHostAddress()
 restUrl = "http://${restMachine}:8100/rest/"
 
 //run cloudify invoke command that updates the load balancer
