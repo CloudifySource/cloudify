@@ -123,12 +123,11 @@ public class InstallApplication extends AdminAwareCommand {
 						+ " planned instances");
 			}else{//Service has dependencies
 				logger.info("Service [" + service.getName() + "] depends on " 
-						+ service.getDependsOn().toString() 
-						+ " planned " + service.getNumInstances() + " instances");
-				
+						+ service.getDependsOn().toString() + " "
+						+ service.getNumInstances() 
+						+ " planned instances");				
 			}
 		}
-		
 	}
 
 	private void normalizeApplicationName(Application application) {
