@@ -444,13 +444,13 @@ public class ServiceController {
 
 		// Get PUI
 		InternalProcessingUnitInstance pui = findInstanceById(pu, instanceId);
-		final String instanceName = buildServiceInstanceName(pui);
+		
 		if (pui == null) {
 			logger.severe("Could not find service instance " + instanceId + " for service " + absolutePuName);
 			return errorStatus(ResponseConstants.SERVICE_INSTANCE_UNAVAILABLE, applicationName, absolutePuName,
 					Integer.toString(instanceId));
 		}
-
+		final String instanceName = buildServiceInstanceName(pui);
 		// Invoke the remote service
 		try {
 			Future<?> future = pui.invoke(beanName, params);
