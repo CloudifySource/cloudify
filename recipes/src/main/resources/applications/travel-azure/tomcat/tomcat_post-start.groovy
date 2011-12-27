@@ -19,6 +19,10 @@ rewriteLbCommand = [
 ]
 
 paramsMap = rewriteLbCommand.collect { k, v -> "'${k}=${v}'" }.join(' ')
-println("${cliPath} connect ${restUrl}; use-application Management; invoke iisproxy rewrite_add_external_lb [ ${paramsMap} ]".execute().text)
+def process = "cmd /c call ${cliPath} connect ${restUrl}; use-application Management; invoke iisproxy rewrite_add_external_lb [ ${paramsMap} ]".execute();
+process.waitForProcessOutput(System.out, System.err)
+if (process.exitValue() != 0) {
+	throw new Exception("Failed to set iisproxy rewrite rule");
+}
 
 
