@@ -1,25 +1,24 @@
 service {
 
-	name "activemq"
+	name "redis"
 	type "MESSAGE_BUS"
 	icon "http://www.apache.org/images/feather-small.gif"
 
 	lifecycle{
 		init "redis_install.groovy"
 	    start "redis_start.groovy"
-//		preStop "redis_stop.groovy"
 	}
 	plugins([
 		plugin {
 			name "portLiveness"
 			className "com.gigaspaces.cloudify.usm.liveness.PortLivenessDetector"
 			config ([
-						"Port" : [61616],
+						"Port" : [6379],
 						"TimeoutInSeconds" : 60,
 						"Host" : "127.0.0.1"
 					])
 		},
-		plugin {
+		/*plugin {
 			name "jmx"
 			className "com.gigaspaces.cloudify.usm.jmx.JmxMonitor"
 			config([
@@ -29,11 +28,11 @@ service {
 						],
 						port: 11099
 					])
-		}
+		}*/
 	])
 
 
-	userInterface {
+/*	userInterface {
 		metricGroups = ([
 			metricGroup {
 
@@ -58,7 +57,7 @@ service {
 			},
 		]
 		)
-	}
+	}*/
 }
 
 
