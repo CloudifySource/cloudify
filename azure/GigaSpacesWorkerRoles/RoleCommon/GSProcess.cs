@@ -13,9 +13,13 @@ namespace GigaSpaces
         public string Command { private get; set; }
         public string Arguments { private get; set; }
         public bool RedirectStandardOutput { private get; set; }
+        public bool SaveOutput { private get; set; }
+        public volatile String output;
+        public String Output { get { return this.output;}}
+        
         public bool RedirectStandardError { private get; set; }
         public IDictionary<String,String> EnvironmentVariables { private get; set; }
-
+        
         public GSProcess ()
 	    {
             EnvironmentVariables = new Dictionary<String, String>();
@@ -61,7 +65,12 @@ namespace GigaSpaces
                 {
                     process.OutputDataReceived += (sender, e) =>
                     {
-                        GSTrace.WriteLine(e.Data);
+                        String line = e.Data;
+                        GSTrace.WriteLine(line);
+                        if (SaveOutput) 
+                        {
+                            output += line;
+                        }
                     };
                 }
                 process.Start();
@@ -128,5 +137,6 @@ namespace GigaSpaces
             }
         }
 
+    
     }
 }

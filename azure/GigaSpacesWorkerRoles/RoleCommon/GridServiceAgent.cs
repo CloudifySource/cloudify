@@ -546,7 +546,6 @@ namespace GigaSpaces
                 .ToString();
 
             GSProcess cliProcess = CliProcess(installServiceCommand, RedirectAll);
-
             cliProcess.Run();
 
             int exitCode = cliProcess.WaitForExit(TimeSpan.MaxValue);
@@ -556,14 +555,55 @@ namespace GigaSpaces
                 throw new CliExecutionException("Install proxy  failed", exitCode);
             }
 
-            //TODO: Invoke CLI command that lists instances and waits until there are two instances available
+            WaitForRestToDiscoverAllProxyInstances();
+        }
+
+        private void WaitForRestToDiscoverAllProxyInstances()
+        {
+            String listInstancesCommand = new StringBuilder()
+                    .Append("use-application --verbose " + ManagementApplicationName + ";")
+                    .Append("list-instances --verbose " + ProxyServiceName)
+                    .ToString();
+
+            HashSet<Int32> discoveredInstances = new HashSet<Int32>();
+            while (discoveredInstances.Count < NumberOfManagementRoleInstances)
+            {
+                GSProcess cliProcess = CliProcess(listInstancesCommand, RedirectAll);
+                cliProcess.SaveOutput = true;
+                cliProcess.Run();
+
+                int exitCode = cliProcess.WaitForExit(TimeSpan.MaxValue);
+                if (exitCode != 0)
+                {
+                    GSTrace.WriteLine("ExitCode = " + exitCode);
+                    throw new CliExecutionException("Install proxy  failed", exitCode);
+                }
+
+                // Parse list-instances output
+                // Cloudify instance numbers are 1 based (not zero based)
+                for (int i = 1; i <= NumberOfManagementRoleInstances; i++)
+                {
+                    if (!discoveredInstances.Contains(i))
+                    {
+                        if (cliProcess.Output.Contains("instance #" + i))
+                        {
+                            discoveredInstances.Add(i);
+                        }
+                        else
+                        {
+                            GSTrace.WriteLine("Waiting for " + ProxyServiceName + " instance #" + i + " to start");
+                        }
+                    }
+                }
+                Thread.Sleep(5000);
+            }
 
         }
 
         private void UninstallProxyService() 
         {
             String installServiceCommand = new StringBuilder()
-                .Append("use-application --verbose Management;")
+                .Append("use-application --verbose "+ManagementApplicationName+";")
                 .Append("uninstall-service --verbose "+ProxyServiceName)
                 .ToString();
 
