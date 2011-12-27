@@ -2,7 +2,7 @@
 <?eclipse version="3.4"?>
 <plugin>
 
-	<extension
+	<!--extension
 		point="org.eclipse.wst.server.core.runtimeTypes">
 		<runtimeType
 			id="com.gigaspaces.azure.runtime"
@@ -15,7 +15,7 @@
 
 	<extension
 		point="org.eclipse.wst.server.core.serverTypes">
-		<serverType
+		<serverType 
 			id="com.gigaspaces.azure.server"
 			runtime="true"
 			runtimeTypeId="com.gigaspaces.azure.runtime"
@@ -28,9 +28,9 @@
       		behaviourClass="org.eclipse.jst.server.generic.core.internal.ExternalServerBehaviour"						
 			launchModes="run,debug"
 			startBeforePublish="true"
-			startTimeout="120000"
-			stopTimeout="15000"
-			supportsRemoteHosts="true" />						
+			startTimeout="1200000"
+			stopTimeout="150000"
+			supportsRemoteHosts="true"/>
 	</extension>			
 
 	<extension point="org.eclipse.wst.server.ui.serverImages">
@@ -52,7 +52,8 @@
 	        runtimeTypeIds="com.gigaspaces.azure.runtime"
 	        class="org.eclipse.jst.server.generic.core.internal.GenericServerRuntimeTargetHandler"/>
     </extension>
- <extension
+    
+     <extension
        point="org.eclipse.wst.server.ui.wizardFragments">
     <fragment id="org.eclipse.jst.server.generic.runtime"
       typeIds="com.gigaspaces.azure.runtime"
@@ -60,6 +61,81 @@
     <fragment id="org.eclipse.jst.server.generic.server"
       typeIds="com.gigaspaces.azure.server"
       class="com.gigaspaces.azure.wizards.AzureServerWizardFragment" />
- </extension>
-		
+    </extension-->
+ 
+  <extension point="org.eclipse.wst.server.core.serverTypes">
+     <serverType
+       id="com.gigaspaces.azure.core.serverType"
+       name="Windows Azure"
+       description="Windows Azure Server"
+       supportsRemoteHosts="false"
+       runtime="true"
+       startTimeout="45000"
+       stopTimeout="15000"
+       initialState="stopped"
+       hasConfiguration="true"
+       launchConfigId="com.gigaspaces.azure.core.launchConfigurationTypeId"
+       runtimeTypeId="com.gigaspaces.azure.core.runtimeTypeId"
+       class="com.gigaspaces.azure.server.AzureServer"
+       behaviourClass="com.gigaspaces.azure.server.AzureServerBehaviour">
+     </serverType>
+  </extension>
+
+   <extension point="org.eclipse.wst.server.core.runtimeTypes">
+    <runtimeType
+       id="com.gigaspaces.azure.core.runtimeTypeId"
+       name="AzureServerRuntime"
+       description=""
+       vendor="Gigaspaces"
+       version="1.0"
+       class="com.gigaspaces.azure.server.AzureRuntime">
+       <moduleType
+         types="jst.web"
+         versions="2.2"/>
+       <moduleType
+         types="jst.utility"
+         versions="1.0"/>
+    </runtimeType>
+  </extension>
+  
+  <extension point="org.eclipse.debug.core.launchConfigurationTypes">
+     <launchConfigurationType
+        id="com.gigaspaces.azure.core.launchConfigurationTypeId"
+        name="azureLaunchConfigurationType"
+        delegate="com.gigaspaces.azure.server.AzureConfigurationDelegate"
+        modes="run, debug, profile"
+        sourceLocatorId="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"
+        sourcePathComputerId="org.eclipse.jst.server.tomcat.core.sourcePathComputer"/>
+  </extension>
+
+  <extension point="org.eclipse.wst.server.ui.serverImages">
+	 <image icon="/icons/azure.gif"
+	    	id="org.eclipse.jst.server.generic.image"
+	    	typeIds="com.gigaspaces.azure.core.serverType" />
+	</extension>
+  
+  <extension
+     point="org.eclipse.ui.actionSets">
+  <actionSet
+        label="Windows Azure"
+        visible="true"
+        id="com.gigaspaces.azure.actionSet">
+     <menu
+           label="Windows Azure"
+           id="azureMenu">
+        <separator
+              name="azureGroup">
+        </separator>
+     </menu>
+     <action
+           label="&amp;Azure UI"
+           icon="icons/ui.png"
+           class="com.gigaspaces.azure.actions.AzureUIAction"
+           tooltip="Open Azure UI"
+           menubarPath="azureMenu/azureGroup"
+           toolbarPath="azureGroup"
+           id="com.gigaspaces.azure.actions.AzureUIAction">
+     </action>
+  </actionSet>
+   </extension>		
 </plugin>
