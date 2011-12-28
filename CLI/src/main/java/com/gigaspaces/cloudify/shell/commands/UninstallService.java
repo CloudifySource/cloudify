@@ -96,7 +96,7 @@ public class UninstallService extends AdminAwareCommand {
 		//we skip question if the shell is running a script.
 		if ((Boolean)session.get(Constants.INTERACTIVE_MODE)){
 			String confirmationQuestion = getFormattedMessage("service_uninstall_confirmation", serviceName);
-			logger.info(confirmationQuestion);
+			System.out.print(confirmationQuestion);
 			
 			PropertiesReader pr = new PropertiesReader(new InputStreamReader(System.in));
 			String answer = pr.readProperty();
