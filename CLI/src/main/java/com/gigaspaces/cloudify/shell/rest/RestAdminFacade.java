@@ -50,6 +50,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	private static final String GS_USM_COMMAND_NAME = "GS_USM_CommandName";
 	private static final String SERVICE_CONTROLLER_URL = "/service/";
 	private static final String CLOUD_CONTROLLER_URL = "/cloudcontroller/";
+	private static final String DEFAULT_PORT = ":8100";
 
 	private GSRestClient client;
 	private EventLoggingTailer eventLoggingTailer;
@@ -57,7 +58,6 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	@Override
 	public void doConnect(String user, String password, String url)
 	throws CLIException {
-
 		if (!url.endsWith("/")) {
 			url = url + "/";
 		}
@@ -68,6 +68,9 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		URL urlObj;
 		try {
 			urlObj = new URL(url);
+			if (urlObj.getPort() == -1){
+				urlObj = getUrlWithDefaultPort(urlObj);
+			}
 		} catch (MalformedURLException e) {
 			throw new ErrorStatusException("could_not_parse_url", url);
 		}
@@ -77,6 +80,14 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		// test connection
 		client.get(SERVICE_CONTROLLER_URL + "testrest");
 	}
+	
+	private URL getUrlWithDefaultPort(URL urlObj) throws MalformedURLException {
+		StringBuffer url = new StringBuffer(urlObj.toString());
+		int portIndex = url.indexOf("/", "http://".length());
+		url = url.insert(portIndex, DEFAULT_PORT);
+		return new URL(url.toString());
+	}
+
 	/**
 	 * This method waits for the specified number of planned instances to be installed.
 	 * In case of a datagrid or a stateful PU the specified value is ignored and the 
