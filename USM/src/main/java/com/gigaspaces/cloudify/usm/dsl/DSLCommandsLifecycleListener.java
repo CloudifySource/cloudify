@@ -2,7 +2,6 @@ package com.gigaspaces.cloudify.usm.dsl;
 
 import javax.annotation.PostConstruct;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.gigaspaces.cloudify.dsl.ServiceLifecycle;
@@ -41,6 +40,8 @@ public class DSLCommandsLifecycleListener extends AbstractUSMEventListener imple
 			return lifecycle.getInit();
 		case PRE_INSTALL:
 			return lifecycle.getPreInstall();
+		case INSTALL:
+			return lifecycle.getInstall();
 		case POST_INSTALL:
 			return lifecycle.getPostInstall();
 		case PRE_START:
@@ -73,7 +74,12 @@ public class DSLCommandsLifecycleListener extends AbstractUSMEventListener imple
 		return executeEntry(lifecycle.getPreInstall());
 
 	}
-
+	
+	@Override
+	public EventResult onInstall() {
+		return executeEntry(lifecycle.getInstall());
+	}
+	
 	@Override
 	public EventResult onPostInstall() {
 		return executeEntry(lifecycle.getPostInstall());

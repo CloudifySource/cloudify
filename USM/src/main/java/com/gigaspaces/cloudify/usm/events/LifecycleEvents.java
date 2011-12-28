@@ -8,6 +8,7 @@ public enum LifecycleEvents {
 	PRE_SERVICE_START("preServiceStart"),
 	INIT("init"),
 	PRE_INSTALL("preInstall"),
+	INSTALL("install"),
 	POST_INSTALL("postInstall"),
 	PRE_START("preStart"),
 	POST_START("postStart"),
