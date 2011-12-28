@@ -1,0 +1,39 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.gigaspaces.cloudify</groupId>
+	<artifactId>s3client-maven-plugin</artifactId>
+	<version>1.0</version>
+	<packaging>maven-plugin</packaging>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>org.apache.maven</groupId>
+			<artifactId>maven-plugin-api</artifactId>
+			<version>3.0.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jclouds</groupId>
+			<artifactId>jclouds-blobstore</artifactId>
+			<version>1.2.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jclouds.provider</groupId>
+			<artifactId>aws-s3</artifactId>
+			<version>1.2.1</version>
+		</dependency>
+
+	</dependencies>
+
+	<distributionManagement>
+		<repository>
+			<id>gigaspaces.plugin.repository</id>
+			<name>GigaSpaces Plugin Repository-releases</name>
+			<url>http://pc-lab14:8081/artifactory/plugins-release-local</url>
+		</repository>
+	</distributionManagement>
+	
+</project>
