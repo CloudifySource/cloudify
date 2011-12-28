@@ -32,6 +32,7 @@ import org.apache.karaf.util.Properties.PropertiesReader;
 import com.gigaspaces.cloudify.shell.ConditionLatch;
 import com.gigaspaces.cloudify.shell.ConditionLatch.Predicate;
 import com.gigaspaces.cloudify.shell.Constants;
+import com.gigaspaces.cloudify.shell.GigaShellMain;
 import com.gigaspaces.cloudify.shell.rest.RestAdminFacade;
 
 @Command(scope = "cloudify", name = "uninstall-application", description = "Uninstalls an application.")
@@ -89,7 +90,7 @@ public class UninstallApplication extends AdminAwareCommand {
 								(verbose ? " " + remainingContainersForApplication : ""));
 
 					}
-					//TODO: container has already been removed by uninstall.
+					//TODO: container has already been removed by un-install.
 					//printAllServiceEvents();
 					return isDone;
 				}
@@ -97,6 +98,8 @@ public class UninstallApplication extends AdminAwareCommand {
 
 			});
 		}
+        session.put(Constants.ACTIVE_APP, "default");
+        GigaShellMain.getInstance().setCurrentApplicationName("default");
 		return getFormattedMessage("application_uninstalled_succesfully", this.applicationName);
 	}
 
@@ -106,7 +109,7 @@ public class UninstallApplication extends AdminAwareCommand {
 		//we skip question if the shell is running a script.
 		if ((Boolean)(session.get(Constants.INTERACTIVE_MODE))){
 			String confirmationQuestion = getFormattedMessage("application_uninstall_confirmation", applicationName);
-			logger.info(confirmationQuestion);
+			System.out.print(confirmationQuestion);
 			
 			PropertiesReader pr = new PropertiesReader(new InputStreamReader(System.in));
 			String readLine = pr.readProperty();
