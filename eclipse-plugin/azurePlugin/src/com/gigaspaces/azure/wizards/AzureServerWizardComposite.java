@@ -1,5 +1,6 @@
 package com.gigaspaces.azure.wizards;
 
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jst.server.generic.ui.internal.SWTUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -27,9 +28,11 @@ public class AzureServerWizardComposite extends Composite {
 	protected String jreLocation;
 	protected String webServerLocation;
 	protected String webServerPort;
+	private final IWizardHandle wizardHandle;
 
 	public AzureServerWizardComposite(Composite parent, IWizardHandle wizardHandle) {
 		super(parent, SWT.NONE);
+		this.wizardHandle = wizardHandle;
 		
 		wizardHandle.setTitle("Windows Azure Server");
 		wizardHandle.setDescription("Windows Azure server configuration");
@@ -78,7 +81,8 @@ public class AzureServerWizardComposite extends Composite {
         webServerPortText.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent event) {
-				webServerPort = webServerPortText.getText(); 
+				webServerPort = webServerPortText.getText();
+				validate();
 			}
         });
         
@@ -123,6 +127,17 @@ public class AzureServerWizardComposite extends Composite {
 
 	}
 	
+	protected void validate() {
+		if (webServerPort != null && webServerPort.length() > 0) {
+			try {
+				Integer.parseInt(webServerPort);
+				wizardHandle.setMessage("", IMessageProvider.NONE);
+			} catch (NumberFormatException e) {
+				wizardHandle.setMessage("Web server port should be a numeric value", IMessageProvider.ERROR);
+			}
+		}
+	}
+
 	public String getJreLocation() {
 		return jreLocation;
 	}
