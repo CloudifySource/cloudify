@@ -78,22 +78,15 @@ echo copying latest cloudify build
 set GIGASPACES_XAP_REMOTE_PATH=%CLOUDIFY_REMOTE_PATH%\1.5\gigaspaces-cloudify-%GS_VERSION%-%MILESTONE%-b%BUILD_NUMBER%.zip
 copy %GIGASPACES_XAP_REMOTE_PATH% %LOCAL_WORKING_DIR%gigaspaces-latest.zip /Y
 
-REM Even though we create these files above, we are also testing that these files were actually copied to tarzan properly
-echo copying WorkerRoles
-set WORKER_ROLES_REMOTE_PATH=%CLOUDIFY_REMOTE_PATH%\azure\WorkerRoles.zip
-copy %WORKER_ROLES_REMOTE_PATH% %LOCAL_WORKING_DIR%WorkerRoles.zip /Y
-
 cd %LOCAL_WORKING_DIR%
 7za -y x gigaspaces-latest.zip
 move /Y gigaspaces-cloudify-%GS_VERSION%-%MILESTONE% gigaspaces
 
-7za -y x WorkerRoles.zip
-xcopy /s /e /i WorkerRoles gigaspaces\tools\cli\plugins\azure\WorkerRoles
-rmdir /s /q WorkerRoles
-cd ..
-
 REM FOR TESTING
-REM cd ..
+REM 7za -y x WorkerRoles.zip
+REM xcopy /s /e /i WorkerRoles gigaspaces\tools\cli\plugins\azure\WorkerRoles
+REM rmdir /s /q WorkerRoles
+REM cd ../../
 REM call copy.bat
 REM cd azure
 REM END OF FOR TESTING

@@ -25,4 +25,34 @@
 		<module>../recipes</module>
 	</modules>
 
+	<build>
+		<plugins>
+			<plugin>
+
+				<groupId>com.gigaspaces.cloudify</groupId>
+				<artifactId>s3client-maven-plugin</artifactId>
+				<version>1.0</version>
+
+				<configuration>
+					<!-- should be passed as system properties.
+						<user></user> 
+						<key></key> 
+					-->
+					<container>test-repository-ec2dev</container>
+					<publicUrl>true</publicUrl>
+				</configuration>
+
+			</plugin>
+		</plugins>
+
+	</build>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>gigaspaces.plugin.repository</id>
+			<name>GigaSpaces Plugin Repository-releases</name>
+			<url>http://pc-lab14:8081/artifactory/plugins-release-local</url>
+		</pluginRepository>
+	</pluginRepositories>
+
 </project>
