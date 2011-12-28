@@ -161,9 +161,10 @@
 		<delete dir="${tmp.dir}"/>
 		<mkdir dir="${tmp.dir}"/>
 		<copy file="${xap.zip.full.path}" todir="${tmp.dir}"/>
-		<unzip src="${tmp.dir}/${xap.zip.name}" dest="${tmp.dir}"/>
+		<unzip src="${tmp.dir}/${xap.zip.name}" dest="${tmp.dir}" />
 		<delete file="${tmp.dir}/${xap.zip.name}"/>
 		<move file="${tmp.dir}/${xap.installation.dir}" tofile="${tmp.dir}/${cloudify.installation.dir}" />
+		<chmod dir="${tmp.dir}/${cloudify.installation.dir}" includes="**/*.sh, **/*groovy*" perm="775"  />
 	</target>
 
     <target name="prepare.cloudify.package" depends="unzip.xap">
