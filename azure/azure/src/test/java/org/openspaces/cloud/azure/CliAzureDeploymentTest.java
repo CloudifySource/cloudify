@@ -97,9 +97,6 @@ public class CliAzureDeploymentTest {
     private static final String NUMBER_OF_INSTANCES_FOR_TOMCAT_SERVICE = "2";
     private static final String TOMCAT_SERVICE = "tomcat";
     
-    // path to cloudify zip reltaive to localWorkingDir
-    private static final String GIGASPACES_LATEST_ZIP = "gigaspaces-latest.zip";
-    
     // path to cloudify installation relative to localWorkingdir
     private static final String GIGASPACES_LATEST_HOME = "gigaspaces";
     
@@ -131,9 +128,6 @@ public class CliAzureDeploymentTest {
         File localWorkingDir = new File(localWorkingDirPath);
         Assert.assertTrue(localWorkingDir.getPath() + " does not exist", localWorkingDir.isDirectory());
         
-        // doesn't have to exists
-        File gigaSpacesCloudifyZip = new File(localWorkingDir, GIGASPACES_LATEST_ZIP);
-        
         File gigaSpacesCloudifyDir = new File(localWorkingDir, GIGASPACES_LATEST_HOME);
         Assert.assertTrue(gigaSpacesCloudifyDir.getPath() + " does not exist", gigaSpacesCloudifyDir.isDirectory());
         
@@ -144,15 +138,6 @@ public class CliAzureDeploymentTest {
         cliExecutablePath = new File(gigaSpacesCloudifyDir, RELATIVE_CLI_PATH);
         File azureConfigExec = new File(gigaSpacesCloudifyDir, RELATIVE_AZURE_CONFIG_EXEC_PATH);
         File azurePropertiesFile = new File(gigaSpacesCloudifyDir, RELATIVE_AZURE_PROPERTIES_PATH);
-        
-        // TODO: update cscfg XAP download url, currently this line is meaningless and take time
-        boolean runMe = false;
-        if (runMe && gigaSpacesCloudifyZip.isFile()) {
-            log("Uploading new vesrion of gigaspaces cloudify to blob store");
-            AzureStorageContainer container = new AzureStorageContainer(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, AZURE_CONTAINER_NAME);
-            container.connect();
-            container.putBlob(GIGASPACES_LATEST_ZIP, gigaSpacesCloudifyZip.getAbsolutePath());
-        }
         
         Properties newAzureProps = new Properties();
         newAzureProps.setProperty(AZURE_PROPERTIES_ACCOUNT_NAME_KEY, AZURE_ACCOUNT_NAME);
