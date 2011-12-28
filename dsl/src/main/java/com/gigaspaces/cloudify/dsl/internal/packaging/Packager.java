@@ -38,21 +38,27 @@ public class Packager {
 	}
 	
 	/**
-	 * Pack the file and name it as fileNam
-	 * @param recipeDirOrFile
-	 * @param fileName
-	 * @return
+	 * Pack the file and name it 'destFileName'
+	 * @param recipeDirOrFile - Folder or file to pack.
+	 * @param destFileName - The packed file name.
+	 * @return Packed file named as specified.
 	 * @throws IOException
 	 * @throws PackagingException
 	 */
-	public static File pack(final File recipeDirOrFile, String fileName) throws IOException, PackagingException {
+	public static File pack(final File recipeDirOrFile, String destFileName) throws IOException, PackagingException {
 		File packed = pack(recipeDirOrFile);
-		File destFile = new File(packed.getParent(), fileName + ".zip");
+		File destFile = new File(packed.getParent(), destFileName + ".zip");
 		if (destFile.exists()){
-			destFile.delete();
+			FileUtils.deleteQuietly(destFile);
 		}
-		packed.renameTo(destFile);
-		packed = destFile;
+		if (packed.renameTo(destFile)){
+			FileUtils.deleteQuietly(packed);
+			return destFile;
+		}
+		logger.info("Failed to rename " 
+				+ packed.getName() 
+				+ " to " 
+				+ destFile.getName());
 		return packed;
 		
 	}
