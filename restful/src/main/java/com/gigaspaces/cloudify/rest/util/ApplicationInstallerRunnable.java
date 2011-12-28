@@ -78,6 +78,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 			boolean found = false;
 			try {
 				String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+				//Pack the folder and name it absolutePuName
 				File packedFile = Packager.pack(new File(appDir, serviceName), absolutePUName);
 				result.getApplicationFile().delete();
 				packedFile.deleteOnExit();
@@ -180,7 +181,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 		}
 		if (service.getIcon() != null) {
 			contextProperties.setProperty(
-					CloudifyConstants.CONTEXT_PROPERTY_SERVICE_ICON,
+					CloudifyConstants.SERVICE_EXTERNAL_FOLDER + CloudifyConstants.CONTEXT_PROPERTY_SERVICE_ICON,
 					service.getIcon());
 		}
 		if (service.getNetwork() != null) {

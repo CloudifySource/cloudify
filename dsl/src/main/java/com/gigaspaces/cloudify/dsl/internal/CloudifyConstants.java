@@ -102,6 +102,7 @@ public class CloudifyConstants {
 	 */
 	public static final String DEFAULT_APPLICATION_NAME = "default";
 	public static final String MANAGEMENT_SPACE_NAME = "cloudifyManagementSpace";
+	public static final String SERVICE_EXTERNAL_FOLDER = "/ext/";
 	
 	
 	private CloudifyConstants() {
