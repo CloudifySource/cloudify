@@ -31,8 +31,8 @@ public class AzureServerWizardComposite extends Composite {
 	public AzureServerWizardComposite(Composite parent, IWizardHandle wizardHandle) {
 		super(parent, SWT.NONE);
 		
-		wizardHandle.setTitle("My Title");
-		wizardHandle.setDescription("Description of my title...");
+		wizardHandle.setTitle("Windows Azure Server");
+		wizardHandle.setDescription("Windows Azure server configuration");
 		
 		createControls();
 	}
@@ -52,8 +52,12 @@ public class AzureServerWizardComposite extends Composite {
         GridData fillData = new GridData(SWT.FILL, SWT.FILL, true, true);
         fillData.heightHint = 100;
         
+        final Composite topComposite = new Composite(parent, SWT.NONE);
+        topComposite.setLayout(new GridLayout(3, false));
+        topComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+        
         // Paths
-        final Text jreLocationText = SWTUtil.createLabeledPath("JRE to use with Windows Azure location:", "", parent);
+        final Text jreLocationText = SWTUtil.createLabeledPath("JRE to use with Windows Azure location:", "", topComposite);
         jreLocationText.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent event) {
@@ -61,7 +65,7 @@ public class AzureServerWizardComposite extends Composite {
 			}
         });
         
-        final Text webServerLocationText = SWTUtil.createLabeledPath("Web server zip location:", "", parent);
+        final Text webServerLocationText = SWTUtil.createLabeledPath("Web server zip location:", "", topComposite);
         webServerLocationText.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent event) {
@@ -70,7 +74,7 @@ public class AzureServerWizardComposite extends Composite {
         });
         
         // Web server port
-        final Text webServerPortText = SWTUtil.createLabeledText("Web server port to use:", "8080", parent);
+        final Text webServerPortText = SWTUtil.createLabeledText("Web server port to use:", "8080", topComposite);
         webServerPortText.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent event) {
