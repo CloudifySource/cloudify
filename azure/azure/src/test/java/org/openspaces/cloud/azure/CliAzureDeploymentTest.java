@@ -82,7 +82,9 @@ public class CliAzureDeploymentTest {
             "MZXVNyFExNWEPDvhFKw6qRPbu1i1nwp6yMjHFImB7yjrK8zgkWdKMyxNuThtTLLWzwESN0yaSjSp4BWCUNTmNyM9UC88UTQk3U" +
             "GnEmNRY6KMmyBt+rO8KNZvtFqWDV+ygEfFaj17ft5PpsoOk2Ue/sTAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECGmQUBVuWTl" +
             "WgBDXc+tBT2eo8ktROXDG7VDc";
-	private static final String RELATIVE_APPLICATION_EXAMPLE_PATH = "examples\\travel-azure";
+
+    // path to travel application relative to cloudify installation
+	private static final String RELATIVE_APPLICATION_EXAMPLE_PATH = "examples\\azure\\travel";
 
     // arguments for cli
     private static final int TIMEOUT_IN_MINUTES = 60;
@@ -94,9 +96,6 @@ public class CliAzureDeploymentTest {
     private static final String INITIAL_NUMBER_OF_INSTANCES_FOR_TOMCAT_SERVICE = "1";
     private static final String NUMBER_OF_INSTANCES_FOR_TOMCAT_SERVICE = "2";
     private static final String TOMCAT_SERVICE = "tomcat";
-    
-    // path to travel application relative to cloudify installation
-    private static final String APPLICATION_RELATIVE_TO_CLOUDIFY_PATH = "examples\\travel";
     
     // path to cloudify zip reltaive to localWorkingDir
     private static final String GIGASPACES_LATEST_ZIP = "gigaspaces-latest.zip";
