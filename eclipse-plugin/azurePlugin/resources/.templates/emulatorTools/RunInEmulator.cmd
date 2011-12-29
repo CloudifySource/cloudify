@@ -8,7 +8,6 @@ exit
 
 @REM Deploy the package to emulator
 :Deploy
-ant package.xml
 "${EmulatorDir}\csrun.exe" "${PackageDir}\${PackageFileName}" "${PackageDir}\${ConfigurationFileName}"
 
 @REM Ensure that emulator UI is running

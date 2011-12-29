@@ -22,6 +22,8 @@ SET SERVER_DIR_NAME=apache-tomcat-7.0.23
 rd "\%ROLENAME%"
 mklink /D "\%ROLENAME%" "%ROLEROOT%\approot"
 cd /d "\%ROLENAME%"
+cscript /NoLogo util\unzip.vbs jdk.zip "%CD%"
+cscript /NoLogo util\unzip.vbs webserver.zip "%CD%"
 copy %WAR_NAME% "%SERVER_DIR_NAME%\webapps\%WAR_NAME%"
 cd "%SERVER_DIR_NAME%\bin"
 set JAVA_HOME=\%ROLENAME%\jdk
