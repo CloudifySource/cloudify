@@ -30,8 +30,7 @@ public class DSLUtils {
     }
     
 	public static String getIconUrl(InternalProcessingUnit processingUnit) {
-		String iconUrlStr = getContextPropertyValue(processingUnit, CloudifyConstants.SERVICE_EXTERNAL_FOLDER 
-															+ CloudifyConstants.CONTEXT_PROPERTY_SERVICE_ICON);
+		String iconUrlStr = getContextPropertyValue(processingUnit, CloudifyConstants.CONTEXT_PROPERTY_SERVICE_ICON);
 		if (iconUrlStr == null) {
 			return "";
 		}

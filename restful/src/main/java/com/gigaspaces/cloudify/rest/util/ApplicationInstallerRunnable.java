@@ -181,8 +181,8 @@ public class ApplicationInstallerRunnable implements Runnable {
 		}
 		if (service.getIcon() != null) {
 			contextProperties.setProperty(
-					CloudifyConstants.SERVICE_EXTERNAL_FOLDER + CloudifyConstants.CONTEXT_PROPERTY_SERVICE_ICON,
-					service.getIcon());
+					CloudifyConstants.CONTEXT_PROPERTY_SERVICE_ICON,
+					CloudifyConstants.SERVICE_EXTERNAL_FOLDER + service.getIcon());
 		}
 		if (service.getNetwork() != null) {
 			contextProperties
