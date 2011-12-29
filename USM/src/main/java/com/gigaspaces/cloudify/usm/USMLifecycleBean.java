@@ -171,7 +171,7 @@ public class USMLifecycleBean implements ClusterInfoAware {
 
 	public void logProcessStartEvent() {
 		if (eventLogger.isLoggable(Level.INFO)) {
-			eventLogger.info(eventPrefix + " START invoked");
+			eventLogger.info(eventPrefix + "START invoked");
 		}
 	}
 
@@ -261,6 +261,7 @@ public class USMLifecycleBean implements ClusterInfoAware {
 					break;
 				case INSTALL:
 					er = ((InstallListener) listener).onInstall();
+					break;
 				case POST_INSTALL:
 					er = ((PostInstallListener) listener).onPostInstall();
 					break;
