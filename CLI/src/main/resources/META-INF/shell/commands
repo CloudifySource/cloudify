@@ -18,6 +18,7 @@ com.gigaspaces.cloudify.shell.commands.Exit
 com.gigaspaces.cloudify.shell.commands.Version
 com.gigaspaces.cloudify.shell.commands.List
 com.gigaspaces.cloudify.shell.commands.Bye
+com.gigaspaces.cloudify.shell.commands.Quit
 com.gigaspaces.cloudify.shell.commands.ListInstances
 com.gigaspaces.cloudify.shell.commands.Connect
 com.gigaspaces.cloudify.shell.commands.Disconnect
