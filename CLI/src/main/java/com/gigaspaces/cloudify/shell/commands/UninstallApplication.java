@@ -110,7 +110,7 @@ public class UninstallApplication extends AdminAwareCommand {
 		if ((Boolean)(session.get(Constants.INTERACTIVE_MODE))){
 			String confirmationQuestion = getFormattedMessage("application_uninstall_confirmation", applicationName);
 			System.out.print(confirmationQuestion);
-			
+			System.out.flush();
 			PropertiesReader pr = new PropertiesReader(new InputStreamReader(System.in));
 			String readLine = pr.readProperty();
 
