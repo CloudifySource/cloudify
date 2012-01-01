@@ -84,7 +84,7 @@ move /Y gigaspaces-cloudify-%GS_VERSION%-%MILESTONE% gigaspaces
 
 REM FOR TESTING
 REM 7za -y x WorkerRoles.zip
-REM xcopy /s /e /i WorkerRoles gigaspaces\tools\cli\plugins\azure\WorkerRoles
+REM xcopy /y /s /e /i WorkerRoles gigaspaces\tools\cli\plugins\azure\WorkerRoles
 REM rmdir /s /q WorkerRoles
 REM cd ../../
 REM call copy.bat
