@@ -145,7 +145,6 @@ public class ServiceController {
 					+ ". This template will be used for services that do not specify an explicit template");
 		}
 
-
 	}
 
 	private Cloud2 readCloudFile() throws IOException {
@@ -726,7 +725,7 @@ public class ServiceController {
 	public @ResponseBody
 	Object deployApplication(@PathVariable final String applicationName,
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile) throws IOException,
-			PackagingException {
+			PackagingException, DSLException {
 		final File applicationFile = copyMultipartFileToLocalFile(srcFile);
 		Object returnObject = doDeployApplication(applicationName, applicationFile);
 		applicationFile.delete();
@@ -801,7 +800,7 @@ public class ServiceController {
 	}
 
 	private Object doDeployApplication(final String applicationName, final File applicationFile) throws IOException,
-			PackagingException {
+			PackagingException, DSLException {
 		DSLApplicationCompilatioResult result = ServiceReader.getApplicationFromFile(applicationFile);
 		final List<Service> services = createServiceDependencyOrder(result.getApplication());
 
@@ -1093,7 +1092,13 @@ public class ServiceController {
 			throw new IllegalStateException("Unsupported service type");
 		}
 		if (projectDir != null) {
-			FileUtils.deleteDirectory(projectDir);
+			try {
+				FileUtils.deleteDirectory(projectDir);
+			} catch (IOException e) {
+				// this may happen if a classloader is holding unto a jar file in the usmlib directory
+				// the files are temp files, so it should be ok if they remain on the disk
+				logger.log(Level.WARNING, "Failed to delete project files: " + e.getMessage(), e);
+			}
 		}
 		srcFile.delete();
 	}
