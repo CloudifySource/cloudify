@@ -1,6 +1,7 @@
 package com.gigaspaces.cloudify.esc.jclouds;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -65,12 +66,10 @@ public class JCloudsDeployer {
 
 	private Map<String, Object> extraOptions;
 
-	
 	public void close() {
 		this.context.close();
 	}
 
-	
 	public String getHardwareId() {
 		return hardwareId;
 	}
@@ -120,6 +119,7 @@ public class JCloudsDeployer {
 			throws IOException {
 
 		final Set<Module> wiring = new HashSet<Module>();
+
 		this.context = new ComputeServiceContextFactory().createContext(provider, account, key, wiring, overrides);
 
 		exe = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setDaemon(true).build());
@@ -388,7 +388,7 @@ public class JCloudsDeployer {
 		if (this.template == null) {
 
 			logger.fine("Creating Cloud Template. This may take a few seconds");
-			
+
 			final TemplateBuilder builder = this.context.getComputeService().templateBuilder();
 			if ((this.imageId != null) && (this.imageId.length() > 0)) {
 				builder.imageId(this.imageId);
@@ -417,16 +417,17 @@ public class JCloudsDeployer {
 			// use reflection to set extra options
 			Set<Entry<String, Object>> optionEntries = this.extraOptions.entrySet();
 			TemplateOptions templateOptions = template.getOptions();
+			Method[] templateOptionsMethods = templateOptions.getClass().getMethods();
 
 			for (Entry<String, Object> entry : optionEntries) {
 				final String entryKey = entry.getKey();
 				final Object entryValue = entry.getValue();
 				if (entryValue == null) {
-					handleNullValueTemplateOption(optionEntries, templateOptions, entry, entryKey, entryValue);
+					handleNullValueTemplateOption(optionEntries, templateOptions, entry, entryKey);
 				} else if (List.class.isAssignableFrom(entryValue.getClass())) {
-					handleListParameterOption(templateOptions, entryKey, entryValue);
+					handleListParameterOption(templateOptions, entryKey, entryValue, templateOptionsMethods);
 				} else {
-					handleSingleParameterOption(templateOptions, entryKey, entryValue);
+					handleSingleParameterOption(templateOptions, entryKey, entryValue, templateOptionsMethods);
 				}
 
 			}
@@ -434,23 +435,22 @@ public class JCloudsDeployer {
 	}
 
 	private void handleListParameterOption(TemplateOptions templateOptions, final String entryKey,
-			final Object entryValue) {
+			final Object entryValue, Method[] templateOptionMethods) {
 		// first check for a single arg option with a list
 		// parameter
 		Method m = null;
 		try {
 			m = templateOptions.getClass().getMethod(entryKey, entryValue.getClass());
 		} catch (SecurityException e) {
-			throw new IllegalArgumentException(
-					"Error while loo king for method to match option: " + entryKey
-							+ " with option value: " + entryValue + ". Error was: " + e.getMessage(), e);
+			throw new IllegalArgumentException("Error while loo king for method to match option: " + entryKey
+					+ " with option value: " + entryValue + ". Error was: " + e.getMessage(), e);
 		} catch (NoSuchMethodException e) {
 			// ignore
 		}
 
 		if (m != null) {
 			// found a relevant method
-			handleSingleParameterOption(templateOptions, entryKey, entryValue);
+			handleSingleParameterOption(templateOptions, entryKey, entryValue, templateOptionMethods);
 		} else {
 			// no method accepts a list - try for a method that
 			// takes a
@@ -462,34 +462,31 @@ public class JCloudsDeployer {
 			for (int i = 0; i < classArray.length; i++) {
 				classArray[i] = paramArray[i].getClass();
 			}
-			
+
 			try {
 				Method[] ms = templateOptions.getClass().getMethods();
 				System.out.println(ms);
 			} catch (Exception e1) {
 				e1.printStackTrace();
-			} 
+			}
 			try {
 				m = templateOptions.getClass().getMethod(entryKey, classArray);
 			} catch (SecurityException e) {
-				throw new IllegalArgumentException("Error while looking for method to match option: "
-						+ entryKey + " with option value: " + entryValue + ". Error was: "
-						+ e.getMessage(), e);
+				throw new IllegalArgumentException("Error while looking for method to match option: " + entryKey
+						+ " with option value: " + entryValue + ". Error was: " + e.getMessage(), e);
 			} catch (NoSuchMethodException e) {
 				// ignore
 			}
 
 			if (m == null) {
-				throw new IllegalArgumentException(
-						"Could not find a matching method to set template option: " + entryKey
-								+ " with the following values: " + paramList);
+				throw new IllegalArgumentException("Could not find a matching method to set template option: "
+						+ entryKey + " with the following values: " + paramList);
 			} else {
 				try {
 					m.invoke(templateOptions, paramArray);
 				} catch (Exception e) {
-					throw new IllegalArgumentException("Failed to set option: " + entryKey
-							+ " by invoking method: " + m + " with value: " + entryValue
-							+ ". Error was: " + e.getMessage(), e);
+					throw new IllegalArgumentException("Failed to set option: " + entryKey + " by invoking method: "
+							+ m + " with value: " + entryValue + ". Error was: " + e.getMessage(), e);
 				}
 			}
 
@@ -497,31 +494,46 @@ public class JCloudsDeployer {
 	}
 
 	private void handleSingleParameterOption(TemplateOptions templateOptions, final String entryKey,
-			final Object entryValue) {
-		Method m = null;
-		try {
-			m = templateOptions.getClass().getMethod(entryKey, entryValue.getClass());
-		} catch (SecurityException e) {
-			throw new IllegalArgumentException("Error while looking for method to match option: " + entryKey
-					+ " with option value: " + entryValue + ". Error was: " + e.getMessage(), e);
-		} catch (NoSuchMethodException e) {
-			// ignore
+			final Object entryValue, Method[] templateOptionsMethods) {
+
+		int numOfMethodsFound = 0;
+		Exception invocationException = null;
+		for (Method method : templateOptionsMethods) {
+			if (method.getName().equals(entryKey)) {
+				if (method.getParameterTypes().length == 1) {
+					try {
+						++numOfMethodsFound;
+						logger.info("Invoking " + entryKey + ". Number of methods found so far: " + numOfMethodsFound);
+						method.invoke(templateOptions, entryValue);
+						// invoked successfully
+						return;
+					} catch (IllegalArgumentException e) {
+						invocationException = e;
+					} catch (IllegalAccessException e) {
+						invocationException = e;
+					} catch (InvocationTargetException e) {
+						invocationException = e;
+					}
+				}
+			}
 		}
-		if (m == null) {
-			throw new IllegalArgumentException("Could not find a method matching option: " + entryKey + " with value: "
-					+ entryValue);
+		
+		// If I am here, either no method was found, or an exception was thrown
+		if (invocationException == null) {
+			throw new IllegalArgumentException("Failed to set template option: " + entryKey + " to value: "
+					+ entryValue + ". Could not find a matching method.");
+
+		} else {
+			throw new IllegalArgumentException("Failed to set template option: " + entryKey + " to value: "
+					+ entryValue + ". An error was encountered while trying to set the option: "
+					+ invocationException.getMessage(), invocationException);
+
 		}
 
-		try {
-			m.invoke(templateOptions, entryValue);
-		} catch (Exception e) {
-			throw new IllegalArgumentException("Failed to set option: " + entryKey + " by invoking method: " + m
-					+ " with value: " + entryValue + ". Error was: " + e.getMessage(), e);
-		}
 	}
 
 	private void handleNullValueTemplateOption(Set<Entry<String, Object>> optionEntries,
-			TemplateOptions templateOptions, Entry<String, Object> entry, final String entryKey, final Object entryValue) {
+			TemplateOptions templateOptions, Entry<String, Object> entry, final String entryKey) {
 		// first look for no arg method
 		Method m = null;
 		try {
@@ -540,8 +552,7 @@ public class JCloudsDeployer {
 				// invoke with no args
 				m.invoke(templateOptions);
 			} catch (Exception e) {
-				throw new IllegalArgumentException("Failed to set template option with name: " + entryKey
-						+ " to value: " + entryValue, e);
+				throw new IllegalArgumentException("Failed to set template option with name: " + entryKey, e);
 
 			}
 		} else {
@@ -555,14 +566,14 @@ public class JCloudsDeployer {
 			} catch (NoSuchMethodException e) {
 				// ignore - method was not found
 			}
-
+			
+			// invoke with a null parameter
 			if (m != null) {
 				try {
-					//
 					m.invoke(templateOptions, (Object) null);
 				} catch (Exception e) {
 					throw new IllegalArgumentException("Failed to set template option with name: " + entryKey
-							+ " to value: " + entryValue, e);
+							+ " to value: null" , e);
 				}
 			} else {
 				throw new IllegalArgumentException("Could not find a method matching template option: "
@@ -653,7 +664,6 @@ public class JCloudsDeployer {
 
 		return getServer(filter);
 	}
-
 
 	private Set<? extends NodeMetadata> createServersWithRetry(String group, int count, Template template)
 			throws RunNodesException {
