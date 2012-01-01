@@ -6,7 +6,7 @@
 
 <project name="copy-jars-to-cloudify" default="dist" basedir=".">
 
-	<property name="target.dir" value="D:/Gigaspaces/gigaspaces-cloudify-2.0.0-m5" />
+	<property name="target.dir" value="D:/Gigaspaces/gigaspaces-cloudify-2.0.0-rc1" />
 
 
 	<target name="dist" depends="">
