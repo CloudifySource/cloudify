@@ -453,7 +453,7 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 			//Split the command into parts
 			List<String> commandLineStringInParts = convertCommandLineStringToParts((String) arg);
 			//Add the custom command parameters as args to the split commands array
-			if (params != null){
+			if (params != null && params.get(CloudifyConstants.INVOCATION_PARAMETERS_KEY) != null){
 				String customParams = params.get(CloudifyConstants.INVOCATION_PARAMETERS_KEY).toString();
 				if (customParams != null){
 					List<String> paramsList = Arrays.asList(customParams.substring(1, customParams.length() - 1).split(", "));
