@@ -6,7 +6,7 @@
 
 <project name="copy-jars-to-cloudify" default="dist" basedir=".">
 
-	<property name="target.dir" value="D:/Gigaspaces/gigaspaces-cloudify-2.0.0-rc1" />
+	<property name="target.dir" value="D:/Gigaspaces/gigaspaces-cloudify-2.0.0-rc2" />
 
 
 	<target name="dist" depends="">
@@ -22,12 +22,15 @@
 	<target name="Create cloudify zip" depends="">
 		<echo message="Creating zip distro of ${target.dir}" />
 		<delete file="${target.dir}/../gigaspaces.zip"/>
-		<delete includeemptydirs="true" quiet="true" >
-			<fileset dir="${target.dir}/work/processing-units" includes="**.*" />
-			<fileset dir="${target.dir}/deploy" includes="**.*" excludes="datagrid/**.*" />
-			<fileset dir="${target.dir}/logs" includes="**.*"  />
+		<echo message="deleting ${target.dir}/work/processing-units" />
+		
+		<delete includeemptydirs="true" quiet="true"  >
+			
+			<fileset dir="${target.dir}/work/processing-units" includes="**/*" />
+			<fileset dir="${target.dir}/deploy" excludes="templates/**/*"  />
+			<fileset dir="${target.dir}/logs" includes="**/*"  />
 		</delete>
-		<zip destfile="${target.dir}/../gigaspaces.zip" basedir="${target.dir}/.." />
+		<zip destfile="${target.dir}/../gigaspaces.zip" basedir="${target.dir}/.." includes="gigaspaces-cloudify-2.0.0-rc2/**/*" />
 		<echo message="Created ${target.dir}/../gigaspaces.zip" />
 
 
