@@ -382,6 +382,7 @@ public class CloudGridAgentBootstrapper {
 			MachineDetails machine = machineDetails[i];
 			InstallationDetails installationDetails = template.clone();
 			installationDetails.setUsername(machine.getRemoteUsername());
+			installationDetails.setPassword(machine.getRemotePassword());
 			installationDetails.setPrivateIp(machine.getPrivateAddress());
 			installationDetails.setPublicIp(machine.getPublicAddress());
 			// Bootstrapping is usually done from a different network
