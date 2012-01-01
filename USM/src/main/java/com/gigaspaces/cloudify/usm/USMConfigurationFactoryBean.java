@@ -14,23 +14,16 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
+import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
-import com.gigaspaces.cloudify.dsl.internal.DSLServiceCompilationResult;
-import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
+import com.gigaspaces.cloudify.dsl.internal.DSLException;
+import com.gigaspaces.cloudify.dsl.internal.DSLReader;
 import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
 import com.gigaspaces.cloudify.usm.dsl.DSLConfiguration;
 
 @Component
 public class USMConfigurationFactoryBean implements FactoryBean<UniversalServiceManagerConfiguration>,
 		ApplicationContextAware, ClusterInfoAware, BeanLevelPropertiesAware {
-
-	
-
-	private static java.util.logging.Logger logger =
-			java.util.logging.Logger.getLogger(USMConfigurationFactoryBean.class.getName());
-
-	// Classes used for unmarshal XML file
-	// private List<String> contextClasses = new ArrayList<String>();
 
 	private File puWorkDir;
 
@@ -47,8 +40,6 @@ public class USMConfigurationFactoryBean implements FactoryBean<UniversalService
 	private boolean isRunningInGSC;
 
 
-	private String applicationName;
-
 	@Override
 	public UniversalServiceManagerConfiguration getObject() throws USMException {
 
@@ -58,40 +49,32 @@ public class USMConfigurationFactoryBean implements FactoryBean<UniversalService
 			throw new USMException(e);
 		} catch (PackagingException e) {
 			throw new USMException(e);
+		} catch (DSLException e) {
+			throw new USMException(e);
 		}
 	}
 
-	private UniversalServiceManagerConfiguration handleDsl() throws USMException, FileNotFoundException, PackagingException {
-		File dslFile;
-		if (serviceFileName == null) {
-			dslFile = ServiceReader.findServiceFile(puExtDir);
-		}
-		else {
-			dslFile = new File(puExtDir,serviceFileName);
-			if (!dslFile.isFile()) {
-				throw new FileNotFoundException("Cannot find file " + dslFile.getAbsolutePath());
-			}
+	private UniversalServiceManagerConfiguration handleDsl() throws USMException, FileNotFoundException, PackagingException, DSLException {
+		File dslFile = null;
+		
+		if (serviceFileName != null) {
+			dslFile = new File(this.puExtDir, this.serviceFileName);
 		}
 		
-		logger.info("Found service configuration file: " + dslFile.getAbsolutePath());
+		DSLReader dslReader = new DSLReader();
+		dslReader.setAdmin(USMUtils.getAdmin());
+		dslReader.setClusterInfo(clusterInfo);
+		dslReader.setPropertiesFileName(propertiesFileName);
+		dslReader.setRunningInGSC(isRunningInGSC);
+		dslReader.setDslFile(dslFile);
+		dslReader.setWorkDir(this.puExtDir);
+		dslReader.setDslFileNameSuffix(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX);
 
-		DSLServiceCompilationResult compilationResult;
-		try {
-			// TODO - ADD THE ADMIN HERE!!!
-			if (this.clusterInfo == null) {
-				throw new IllegalStateException(
-						"The cluster information is missing. " +
-								"If running in the integrated container, use the -cluster option to set the cluster info manually");
-			}
-			
-			compilationResult = ServiceReader.getServiceFromFile(dslFile, this.puExtDir, USMUtils.getAdmin(), 
-					this.clusterInfo, this.propertiesFileName, this.isRunningInGSC);
-			
-		} catch (final Exception e) {
-			throw new USMException("Failed to read service from file: " + dslFile, e);
-		}
+		Service service = dslReader.readDslEntity(Service.class);
 
-		final DSLConfiguration config = new DSLConfiguration(compilationResult.getService(), compilationResult.getContext(),  this.puExtDir, dslFile);
+		
+	
+		final DSLConfiguration config = new DSLConfiguration(service, dslReader.getContext(),  this.puExtDir, dslFile);
 
 		return config;
 
@@ -136,7 +119,7 @@ public class USMConfigurationFactoryBean implements FactoryBean<UniversalService
 		if (props != null) {
 			this.serviceFileName = props.getProperty(CloudifyConstants.CONTEXT_PROPERTY_SERVICE_FILE_NAME);
 			this.propertiesFileName = props.getProperty(CloudifyConstants.CONTEXT_PROPERTY_PROPERTIES_FILE_NAME);
-			this.applicationName = props.getProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME);
+			
 		}
 	}
 

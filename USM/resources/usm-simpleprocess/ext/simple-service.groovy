@@ -1,4 +1,4 @@
-import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
+import framework.utils.usm.StringWrapper
 
 service {
 	name "kitchensink-service"
@@ -32,7 +32,7 @@ service {
 		monitors (["NumberTwo":{return 2},
 			"NumberOne":{return "1"}])
 
-		startDetection {ServiceUtils.isPortsOccupied([7777], "localhost")}
+		startDetection {ServiceUtils.isPortsOccupied([7777])}
 	}
 
 
