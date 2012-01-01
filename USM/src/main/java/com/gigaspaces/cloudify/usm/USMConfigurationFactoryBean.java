@@ -69,12 +69,13 @@ public class USMConfigurationFactoryBean implements FactoryBean<UniversalService
 		dslReader.setDslFile(dslFile);
 		dslReader.setWorkDir(this.puExtDir);
 		dslReader.setDslFileNameSuffix(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX);
+		
 
 		Service service = dslReader.readDslEntity(Service.class);
 
 		
 	
-		final DSLConfiguration config = new DSLConfiguration(service, dslReader.getContext(),  this.puExtDir, dslFile);
+		final DSLConfiguration config = new DSLConfiguration(service, dslReader.getContext(),  this.puExtDir, dslReader.getDslFile());
 
 		return config;
 
