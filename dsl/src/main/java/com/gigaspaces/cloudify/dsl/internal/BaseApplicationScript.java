@@ -32,6 +32,8 @@ public abstract class BaseApplicationScript extends Script {
 				throw new RuntimeException(e);
 			} catch (PackagingException e) {
 				throw new RuntimeException(e);
+			} catch (DSLException e) {
+				throw new RuntimeException(e);
 			}
 		} else {
 			applyPropertyToObject(this.activeObject, name, value);
@@ -57,7 +59,7 @@ public abstract class BaseApplicationScript extends Script {
 		}
 	}
 
-	private void handleServiceParameter(String name, Object value) throws FileNotFoundException, PackagingException  {
+	private void handleServiceParameter(String name, Object value) throws FileNotFoundException, PackagingException, DSLException  {
 		if (!this.serviceBlockInitialized) {
 			// first element MUST be name
 			if (!"name".equals(name)) {
@@ -73,7 +75,7 @@ public abstract class BaseApplicationScript extends Script {
 
 	}
 
-	private Service loadApplicationService(String serviceName) throws FileNotFoundException, PackagingException {
+	private Service loadApplicationService(String serviceName) throws FileNotFoundException, PackagingException, DSLException {
 		// First find the service dir
 		final String serviceDirName = this.applicationDir + File.separator
 				+ serviceName;

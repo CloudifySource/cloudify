@@ -5,6 +5,10 @@ import java.util.Map;
 
 import com.gigaspaces.cloudify.dsl.internal.CloudifyDSLEntity;
 
+/**
+ * @author barakme
+ *
+ */
 @CloudifyDSLEntity(name = "template", clazz = CloudTemplate.class, allowInternalNode = true, allowRootNode = false, parent = "cloud")
 public class CloudTemplate {
 
@@ -17,6 +21,7 @@ public class CloudTemplate {
     
     
     private Map<String, Object> options = new HashMap<String, Object>(); 
+    private Map<String, Object> overrides = new HashMap<String, Object>();
     
 	public String getImageId() {
 		return imageId;
@@ -59,7 +64,14 @@ public class CloudTemplate {
 	public String toString() {
 		return "CloudTemplate [imageId=" + imageId + ", machineMemoryMB=" + machineMemoryMB + ", hardwareId="
 				+ hardwareId + ", locationId=" + locationId + ", numberOfCores=" + numberOfCores + ", options="
-				+ options + "]";
+				+ options + ", overrides=" + overrides + "]";
+	}
+	
+	public Map<String, Object> getOverrides() {
+		return overrides;
+	}
+	public void setOverrides(Map<String, Object> overrides) {
+		this.overrides = overrides;
 	}
 
 	

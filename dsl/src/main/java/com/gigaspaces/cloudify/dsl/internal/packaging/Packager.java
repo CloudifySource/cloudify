@@ -18,6 +18,8 @@ import org.apache.commons.io.FileUtils;
 import com.gigaspaces.cloudify.dsl.Application;
 import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.internal.BaseDslScript;
+import com.gigaspaces.cloudify.dsl.internal.DSLException;
+import com.gigaspaces.cloudify.dsl.internal.DSLReader;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 import com.gigaspaces.internal.utils.StringUtils;
 import com.j_spaces.kernel.Environment;
@@ -29,9 +31,9 @@ public class Packager {
 
 	public static final String USM_JAR_PATH_PROP = "usmJarPath";
 
-	public static File pack(final File recipeDirOrFile) throws IOException, PackagingException {
+	public static File pack(final File recipeDirOrFile) throws IOException, PackagingException, DSLException {
 		//Locate recipe file
-		File recipeFile = recipeDirOrFile.isDirectory()? ServiceReader.findServiceFile(recipeDirOrFile) : recipeDirOrFile;
+		File recipeFile = recipeDirOrFile.isDirectory()? DSLReader.findDefaultDSLFile(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX, recipeDirOrFile) : recipeDirOrFile;
 		//Parse recipe into service
 		Service service = ServiceReader.readService(recipeFile);
 		return Packager.pack(recipeFile, service);
@@ -44,8 +46,9 @@ public class Packager {
 	 * @return Packed file named as specified.
 	 * @throws IOException
 	 * @throws PackagingException
+	 * @throws DSLException 
 	 */
-	public static File pack(final File recipeDirOrFile, String destFileName) throws IOException, PackagingException {
+	public static File pack(final File recipeDirOrFile, String destFileName) throws IOException, PackagingException, DSLException {
 		File packed = pack(recipeDirOrFile);
 		File destFile = new File(packed.getParent(), destFileName + ".zip");
 		if (destFile.exists()){
@@ -135,15 +138,17 @@ public class Packager {
 		logger.finer("created pu structure under " + destPuFolder);
 
 		// copy all files except usmlib from working dir to ext
-		FileUtils.copyDirectory(srcFolder, extFolder, new FileFilter() {
-
-			@Override
-			public boolean accept(File pathname) {
-				boolean f1 = SVNFileFilter.getFilter().accept(pathname);
-				boolean f2 = !(pathname.isDirectory() && pathname.getName().equals("usmlib"));
-				return f1 && f2;
-			}
-		});
+//		FileUtils.copyDirectory(srcFolder, extFolder, new FileFilter() {
+//
+//			@Override
+//			public boolean accept(File pathname) {
+//				boolean f1 = SVNFileFilter.getFilter().accept(pathname);
+//				boolean f2 = !(pathname.isDirectory() && pathname.getName().equals("usmlib"));
+//				return f1 && f2;
+//			}
+//		});
+		FileUtils.copyDirectory(srcFolder, extFolder);
+		
 		logger.finer("copied files from " + srcFolder.getAbsolutePath() + " to " + extFolder.getAbsolutePath());
 
 		// copy all files from usmlib to lib
@@ -202,7 +207,7 @@ public class Packager {
 			
 			for (Service service : application.getServices()) {
 				File extFolder = new File(destApplicationFolder + "/" + service.getName());
-				File recipeFile = ServiceReader.findServiceFile(new File(applicationDir + "/" + service.getName()));
+				File recipeFile = DSLReader.findDefaultDSLFile(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX, new File(applicationDir + "/" + service.getName()));
 				copyExtendedServiceFiles(service, recipeFile, extFolder);
 			}
 			//Pack the prepared folder instead of the original application folder.
@@ -321,7 +326,7 @@ public class Packager {
 		if (!extendedServiceFile.isAbsolute())
 		    extendedServiceFile = new File(recipeFile.getParent() + "/" + extendedServicePath);
 		if (extendedServiceFile.isDirectory())
-			extendedServiceFile = ServiceReader.findServiceFile(extendedServiceFile);
+			extendedServiceFile = DSLReader.findDefaultDSLFile(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX,extendedServiceFile);
 		
 		return extendedServiceFile;
 	}

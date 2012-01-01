@@ -5,7 +5,6 @@ import groovy.lang.Script;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
@@ -199,7 +198,7 @@ public abstract class BaseDslScript extends Script {
 					String dslFilePath = (String) getProperty(ServiceReader.DSL_FILE_PATH_PROPERTY_NAME);
 					if (dslFilePath == null)
 						throw new IllegalStateException("No dsl file path present in binding context");
-					String activeServiceDirectory = new File((String) dslFilePath).getParent();
+					String activeServiceDirectory = new File(dslFilePath).getParent();
 					//Construct the extended service absolute path, joining the current service directory with the extension relative path
 					extendedServiceAbsPath = new File(activeServiceDirectory + "/" + extendServicePath);
 				}
@@ -216,8 +215,6 @@ public abstract class BaseDslScript extends Script {
 				//Add extended service to the extension list
 				activeService.getExtendedServicesPaths().addFirst(extendServicePath);
 				return true;
-			} catch (IOException e) {
-				throw new DSLException("Failed to parse extended service: " + extendServicePath, e);
 			} catch (PackagingException e) {
 				throw new DSLException("Failed to parse extended service: " + extendServicePath, e);
 			} catch (IllegalAccessException e) {
@@ -511,6 +508,9 @@ public abstract class BaseDslScript extends Script {
 			throw new IllegalArgumentException("Failed to load service: "
 					+ serviceName + " while loading application", e);
 		} catch (PackagingException e) {
+			throw new IllegalArgumentException("Failed to load service: "
+					+ serviceName + " while loading application", e);
+		} catch (DSLException e) {
 			throw new IllegalArgumentException("Failed to load service: "
 					+ serviceName + " while loading application", e);
 		}

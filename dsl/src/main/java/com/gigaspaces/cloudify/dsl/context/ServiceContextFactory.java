@@ -9,7 +9,9 @@ import org.openspaces.core.cluster.ClusterInfo;
 
 import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
+import com.gigaspaces.cloudify.dsl.internal.DSLException;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
+import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
 
 public class ServiceContextFactory {
 
@@ -33,8 +35,14 @@ public class ServiceContextFactory {
 			final File dir = new File(".");
 			final File dslFile = new File(dir,
 					System.getenv(CloudifyConstants.USM_ENV_SERVICE_FILE_NAME));
-			final Service service = ServiceReader.getServiceFromFile(dslFile,
-					dir).getService();
+			Service service;
+			try {
+				service = ServiceReader.readService(dslFile);
+			} catch (PackagingException e) {
+				throw new IllegalArgumentException("Failed to read service", e);
+			} catch (DSLException e) {
+				throw new IllegalArgumentException("Failed to read service", e);
+			}
 			context = new ServiceContext();
 
 			context.init(service, getAdmin(), new File(".").getAbsolutePath(),

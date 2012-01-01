@@ -6,6 +6,7 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
+import com.gigaspaces.cloudify.dsl.internal.DSLException;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 
 public class ServiceParsingTest {
@@ -13,7 +14,7 @@ public class ServiceParsingTest {
 	private static final String TEST_PARSING_RESOURCE_PATH = "testResources/testparsing/";
 
 	@Test
-	public void testBasicParsing(){
+	public void testBasicParsing() throws DSLException{
 		File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH + "test_parsing_base-service.groovy");
 		File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
 		Service service = ServiceReader.getServiceFromFile(testParsingBaseDslFile, testParsingBaseWorkDir).getService();
@@ -26,7 +27,7 @@ public class ServiceParsingTest {
 	}
 	
 	@Test
-	public void testBasicExtendParsing(){
+	public void testBasicExtendParsing() throws DSLException{
 		
 		File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH + "test_parsing_base-service.groovy");
 		File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
@@ -75,7 +76,7 @@ public class ServiceParsingTest {
 	}
 	
 	@Test
-	public void testTwoLevelExtension() {
+	public void testTwoLevelExtension() throws DSLException {
 		File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH + "test_parsing_base-service.groovy");
 		File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
 		Service baseService = ServiceReader.getServiceFromFile(testParsingBaseDslFile, testParsingBaseWorkDir).getService();
