@@ -43,7 +43,7 @@ public class DSLReader {
 
 	private static Logger logger = Logger.getLogger(DSLReader.class.getName());
 
-	private boolean loadUsmLib;
+	private boolean loadUsmLib = true;
 
 	private ClusterInfo clusterInfo;
 	private Admin admin;
@@ -102,6 +102,7 @@ public class DSLReader {
 	}
 
 	public static File findDefaultDSLFile(final String fileNameSuffix, final File dir) {
+		
 		final File[] files = dir.listFiles(new FilenameFilter() {
 
 			@Override
@@ -332,7 +333,7 @@ public class DSLReader {
 	private List<String> createJarFileListForService() {
 
 		logger.fine("Adding jar files to service compile path");
-		if (!this.loadUsmLib) {
+		if (!this.isLoadUsmLib()) {
 			logger.fine("Ignoring usmlib - external jar files will not be added to classpath!");
 			// when running in GSC, the usmlib jars are placed in the PU lib dir
 			// automatically
@@ -342,7 +343,7 @@ public class DSLReader {
 		final File serviceDir = dslFile.getParentFile();
 		final File usmLibDir = new File(serviceDir, CloudifyConstants.USM_LIB_DIR);
 		if (!usmLibDir.exists()) {
-			logger.info("No usmlib dir was found at: " + usmLibDir + " - no jars will be added to the classpath!");
+			logger.fine("No usmlib dir was found at: " + usmLibDir + " - no jars will be added to the classpath!");
 			return new ArrayList<String>(0);
 		}
 
@@ -447,6 +448,14 @@ public class DSLReader {
 
 	public void setDslFileNameSuffix(String dslFileNameSuffix) {
 		this.dslFileNameSuffix = dslFileNameSuffix;
+	}
+
+	public boolean isLoadUsmLib() {
+		return loadUsmLib;
+	}
+
+	public void setLoadUsmLib(boolean loadUsmLib) {
+		this.loadUsmLib = loadUsmLib;
 	}
 
 }
