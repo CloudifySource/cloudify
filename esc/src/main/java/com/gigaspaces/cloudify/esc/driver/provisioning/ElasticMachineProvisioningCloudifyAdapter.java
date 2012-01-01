@@ -100,6 +100,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		details.setAdmin(this.admin);
 
 		details.setUsername(md.getRemoteUsername());
+		details.setPassword(md.getRemotePassword());
 		logger.info("Created new Installation Details: " + details);
 		return details;
 

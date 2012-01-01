@@ -12,7 +12,8 @@ public class MachineDetails {
 	private boolean agentRunning = false;
 	
 	private String remoteUsername;
-
+	private String remotePassword;
+	
 	private String machineId;
 
 	public String getMachineId() {
@@ -104,6 +105,14 @@ public class MachineDetails {
 
 	public void setRemoteUsername(String remoteUsername) {
 		this.remoteUsername = remoteUsername;
+	}
+
+	public String getRemotePassword() {
+		return remotePassword;
+	}
+
+	public void setRemotePassword(String remotePassword) {
+		this.remotePassword = remotePassword;
 	}
 
 }

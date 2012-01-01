@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -99,8 +100,12 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 		CloudTemplate cloudTemplate = cloud.getTemplates().get(cloudTemplateName);
 
 		try {
+			Properties props = new Properties();
+			props.putAll(cloudTemplate.getOverrides());
+			
 			this.deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(), cloud
-					.getUser().getApiKey());
+					.getUser().getApiKey(), props);
+			
 			this.deployer.setImageId(cloudTemplate.getImageId());
 			this.deployer.setMinRamMegabytes(cloudTemplate.getMachineMemoryMB());
 			this.deployer.setHardwareId(cloudTemplate.getHardwareId());
@@ -235,7 +240,7 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 		try {
 			MachineDetails md = createMachineDetailsFromNode(node);
 
-			handleServerCredentials(node);
+			handleServerCredentials(node, md);
 
 			waitUntilServerIsActive(node.getId(), Utils.millisUntil(end), TimeUnit.MILLISECONDS);
 			return md;
@@ -310,13 +315,14 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 		}
 	}
 
-	private void handleServerCredentials(NodeMetadata server) throws CloudProvisioningException {
+	private void handleServerCredentials(NodeMetadata server, MachineDetails md) throws CloudProvisioningException {
 		final String credential = server.getCredentials().credential;
 		File tempFile = null;
 
 		if (credential == null) { // must be using an existing key file or
 									// password
 			logger.info("Cloud did not provide server credentials, checking in cloud configuration file");
+			
 			if ((cloud.getUser().getKeyFile() == null) || (cloud.getUser().getKeyFile().length() == 0)) {
 				logger.info("No key file specified in cloud configuration");
 				// no key file. Check for password
@@ -325,8 +331,10 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 					throw new CloudProvisioningException(
 							"Cloud did not provider server credentials, and no credentials (password or key file) supplied with cloud configuration file");
 				}
+				md.setRemotePassword(cloud.getConfiguration().getRemotePassword());
+			} else {
+				tempFile = new File(cloud.getUser().getKeyFile());
 			}
-			tempFile = new File(cloud.getUser().getKeyFile());
 		} else if (credential.startsWith("-----BEGIN RSA PRIVATE KEY-----")) {
 			// cloud has provided a key file
 
