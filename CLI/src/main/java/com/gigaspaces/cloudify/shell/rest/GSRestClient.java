@@ -249,8 +249,11 @@ public class GSRestClient {
 		try {
 			final HttpResponse response = httpClient.execute(httpMethod);
 			if (response.getStatusLine().getStatusCode() != HTTP_STATUS_OK) {
-				logger.log(Level.FINE, httpMethod.getURI() + " response code " + response.getStatusLine().getStatusCode());
-				throw new CLIException(response.getStatusLine().toString());
+				String message = httpMethod.getURI() + " response (code " + response.getStatusLine().getStatusCode() + ") " + response.getStatusLine().toString();
+				if (logger.isLoggable(Level.FINE)) {
+					logger.log(Level.FINE, message);
+				}
+				throw new CLIException(message);
 			}
 			final HttpEntity entity = response.getEntity();
 			if (entity == null) {
