@@ -36,6 +36,7 @@ public class CloudifyConstants {
 	 * Key names for invocation request and response parameters.
 	 */
 	public static final String INVOCATION_PARAMETER_COMMAND_NAME = "GS_USM_CommandName";
+	public static final String INVOCATION_PARAMETERS_KEY = "GS_USM_Command_Parameters";
 	public static final String INVOCATION_RESPONSE_STATUS = "Invocation_Success";
 	public static final String INVOCATION_RESPONSE_EXCEPTION = "Invocation_Exception";
 	public static final String INVOCATION_RESPONSE_RESULT = "Invocation_Result";

@@ -11,6 +11,7 @@ import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 
+import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.shell.rest.InvocationResult;
 
 @Command(scope = "cloudify", name = "invoke", description = "invokes a custom command")
@@ -21,9 +22,6 @@ public class Invoke extends AdminAwareCommand {
 
 	@Argument(index = 1, name = "command-name", required = true, description = "the name of the command to invoke")
 	private String commandName;
-	
-	@Argument(index = 2, name = "params", required = false, description = "Command Custom parameters. Format: ['Parameter1=X' 'Parameter2=Y' 'Parameter3=Z']")
-	private List<String> params = new ArrayList<String>();
 
 	@Option(name = "-beanname", description = "bean name")
 	private String beanName = "universalServiceManagerBean";
@@ -31,8 +29,9 @@ public class Invoke extends AdminAwareCommand {
 	@Option(name = "-instanceid", description = "If provided, the command will be invoked only on that specific instance")
 	private Integer instanceId;
 	
+	@Argument(index = 2, multiValued = true, name = "params", required = false, description = "Command Custom parameters.")
+	private List<String> params = new ArrayList<String>();
 	
-
 	@Override
 	protected Object doExecute() throws Exception {
 		StringBuilder sb = new StringBuilder();
@@ -76,25 +75,19 @@ public class Invoke extends AdminAwareCommand {
 	}
 
 	//TODO: look at karaf's MultiValue option
-	private Map<String, String> getParamsMap(List<String> parameters) throws CLIException {
+	private Map<String, String> getParamsMap(List<String> parameters) {
 		Map<String, String> returnMap = new HashMap<String, String>();
-		for (String customCommandString : parameters) {
-			String[] commandKeyValue = customCommandString.split("=");
-			if (commandKeyValue.length != 2){
-				throw new CLIException("Parameter formatting mismatch.");
-			}
-			returnMap.put(commandKeyValue[0], commandKeyValue[1]);
-		}
+		returnMap.put(CloudifyConstants.INVOCATION_PARAMETERS_KEY, parameters.toString());
 		return returnMap;
 	}
-
+	
 	private String createInvocationMessage(
 			InvocationResult invocationResult) {
 		if (invocationResult.isSuccess()) {
 			return getFormattedMessage("invocation_success", invocationResult.getInstanceId(), invocationResult.getInstanceName(), invocationResult.getResult());
-		} else {
-			return getFormattedMessage("invocation_failed", invocationResult.getInstanceId(), invocationResult.getInstanceName(), invocationResult.getExceptionMessage());
-		}
+		} 
+		return getFormattedMessage("invocation_failed", invocationResult.getInstanceId(), invocationResult.getInstanceName(), invocationResult.getExceptionMessage());
+		
 	}
 
 

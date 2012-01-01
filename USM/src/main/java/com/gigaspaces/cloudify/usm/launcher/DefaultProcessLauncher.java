@@ -445,13 +445,23 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 
 		}
 		return list;
-
 	}
 
 	private List<String> getCommandLineFromArgument(final Object arg,
-			final File workDir) {
+			final File workDir, Map<String, Object> params) {
 		if (arg instanceof String) {
-			return convertCommandLineStringToParts((String) arg);
+			//Split the command into parts
+			List<String> commandLineStringInParts = convertCommandLineStringToParts((String) arg);
+			//Add the custom command parameters as args to the split commands array
+			if (params != null){
+				String customParams = params.get(CloudifyConstants.INVOCATION_PARAMETERS_KEY).toString();
+				if (customParams != null){
+					List<String> paramsList = Arrays.asList(customParams.substring(1, customParams.length() - 1).split(", "));
+					commandLineStringInParts.addAll(paramsList);
+				}
+			}
+			
+			return commandLineStringInParts;
 		}
 
 		if (arg instanceof Map<?, ?>) {
@@ -576,21 +586,21 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 
 	@Override
 	public Process launchProcessAsync(final Object arg, final File workingDir,
-			final int retries, final boolean redirectErrorStream)
+			final int retries, final boolean redirectErrorStream, Map<String, Object> params)
 			throws USMException {
 		return launchAsync(arg, workingDir, retries, redirectErrorStream, null,
-				null);
+				null, params);
 	}
 
 	private Process launchAsync(final Object arg, final File workingDir,
 			final int retries, final boolean redirectErrorStream,
-			final File outputFile, final File errorFile) throws USMException {
+			final File outputFile, final File errorFile, Map<String, Object> params) throws USMException {
 		if (arg instanceof Callable<?>) {
 			// in process execution of a closure
 			return launchAsyncFromClosure(arg);
 
 		}
-		commandLine = getCommandLineFromArgument(arg, workingDir);
+		commandLine = getCommandLineFromArgument(arg, workingDir, params);
 		// final String[] parts = commandLine.split(" ");
 		// final List<String> list = new
 		// LinkedList<String>(Arrays.asList(commandLine));
@@ -637,17 +647,20 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 			final Closure<?> closure = (Closure<?>) arg;
 
 			try {
+				List<String> paramsList = new ArrayList<String>();
 				for (Map.Entry<String, Object> entry : params.entrySet()) {
-					if (entry.getKey() != CloudifyConstants.INVOCATION_PARAMETER_COMMAND_NAME) {
+					//Expected 2 values in the map. one containing 
+					//the command name and the other containing the custom command's values. 
+					if (entry.getKey().toString().equals(CloudifyConstants.INVOCATION_PARAMETERS_KEY)) {
 						logger.fine("Adding parameter " + entry.getKey()
-								+ " having value of " + entry.getValue());
-						closure.setProperty(entry.getKey(), entry.getValue());
+								+ " having value of " + entry.getValue().toString());
+						//Convert String representation of the parameters list back into list.
+						paramsList = Arrays.asList(entry.getValue().toString().substring(1, entry.getValue().toString().length() - 1).split(", "));
+						logger.info("parameters have been added " + paramsList.toString());
 					}
 				}
-				// closure.setProperty(property, newValue)
-
-				// closure.setResolveStrategy(Closure.TO_SELF);
-				Object result = closure.call();
+				//invoke the command closure.
+				Object result = closure.call(paramsList);
 				return result;
 			} catch (final Exception e) {
 				logger.log(Level.SEVERE, "A closure entry failed to execute: "
@@ -658,7 +671,7 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 		}
 
 		final Process proc = launchProcessAsync(arg, workingDir, retries,
-				redirectErrorStream);
+				redirectErrorStream, params);
 		final BufferedReader reader = new BufferedReader(new InputStreamReader(
 				proc.getInputStream()));
 
@@ -938,7 +951,7 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 	@Override
 	public Process launchProcessAsync(final Object arg, final File workingDir,
 			final File outputFile, final File errorFile) throws USMException {
-		return launchAsync(arg, workingDir, 0, false, outputFile, errorFile);
+		return launchAsync(arg, workingDir, 0, false, outputFile, errorFile, null);
 	}
 
 	@Override
