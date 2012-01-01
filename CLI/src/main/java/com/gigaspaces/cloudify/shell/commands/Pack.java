@@ -10,6 +10,7 @@ import java.text.MessageFormat;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 
+import com.gigaspaces.cloudify.dsl.internal.DSLException;
 import com.gigaspaces.cloudify.dsl.internal.packaging.Packager;
 import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
 
@@ -35,6 +36,8 @@ public class Pack extends AbstractGSCommand {
 		} catch (IOException e) {
 			throw new CLIException(e);
 		} catch (PackagingException e) {
+			throw new CLIException(e);
+		} catch (DSLException e) {
 			throw new CLIException(e);
 		}
     }

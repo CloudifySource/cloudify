@@ -46,6 +46,7 @@ import org.openspaces.pu.container.integrated.IntegratedProcessingUnitContainer;
 
 import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
+import com.gigaspaces.cloudify.dsl.internal.DSLException;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
 import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
@@ -148,7 +149,8 @@ public class TestRecipe extends AbstractGSCommand {
 			Map<Object, Object> env = new HashMap<Object, Object>();
 			env.putAll(System.getenv());
 			env.put("CLASSPATH", classpath);
-
+				
+			
 			// Execute the command
 			int result = executeRecipe(cmdLine, env);
 			if (result != 0) {
@@ -195,6 +197,12 @@ public class TestRecipe extends AbstractGSCommand {
 			e.printStackTrace();
 			throw new CLIException(
 					"Packaging failed: " + e.getMessage(), e);
+		} catch (DSLException e) {
+			logger.log(Level.SEVERE, "DSL Parsing failed: " + e.getMessage(), e);
+			e.printStackTrace();
+			throw new CLIException(
+					"Packaging failed: " + e.getMessage(), e);
+
 		}
 		
 	}
