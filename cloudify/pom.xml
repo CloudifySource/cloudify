@@ -38,7 +38,6 @@
 						<user></user> 
 						<key></key> 
 					-->
-					<container>test-repository-ec2dev</container>
 					<publicUrl>true</publicUrl>
 				</configuration>
 
