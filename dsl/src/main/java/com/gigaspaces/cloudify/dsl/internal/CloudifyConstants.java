@@ -28,6 +28,7 @@ public class CloudifyConstants {
 	public static final String CONTEXT_PROPERTY_APPLICATION_FILE_NAME = "com.gs.cloudify.application-file-name";
 	public static final String CONTEXT_PROPERTY_SERVICE_FILE_NAME = "com.gs.cloudify.service-file-name";
 	public static final String CONTEXT_PROPERTY_CLOUD_FILE_NAME = "com.gs.cloudify.cloud-file-name";
+	public static final String CONTEXT_PROPERTY_CLOUD_NAME = "com.gs.cloudify.cloud-name";
 	public static final String CONTEXT_PROPERTY_PROPERTIES_FILE_NAME = "com.gs.cloudify.properties-file-name";
 	public static final String CONTEXT_PROPERTY_ASYNC_INSTALL = "com.gs.cloudify.async-install";
 	public static final String CONTEXT_PROPERTY_APPLICATION_NAME = "com.gs.application";
@@ -66,10 +67,18 @@ public class CloudifyConstants {
 	public static final String USM_MONITORS_ACTUAL_PROCESS_ID = "Actual Process ID";
 	
 	/****************
+	 * Key names for USM Details
+	 */
+	public static final String USM_DETAILS_PRIVATE_IP= "Cloud Private IP";
+	public static final String USM_DETAILS_PUBLIC_IP= "Cloud Public IP";
+	
+	
+	
+	/****************
 	 * Key names for USM Exposed Monitors and Details
 	 */
 	public static final String USM_MONITORS_SERVICE_ID = "USM";
-	public static final String USM_DETAILS_SERVICE_ID = "USM";
+	public static final String USM_DETAILS_SERVICE_ID = "USM";	
 	
 	
 	/*********************
@@ -96,6 +105,13 @@ public class CloudifyConstants {
 	public static final String USM_EVENT_EXEC_SUCCEED_MESSAGE = "[OK]";
 	public static final String USM_EVENT_EXEC_FAILED_MESSAGE = "[ERROR]";
 
+	
+	/***********************************
+	 * Key names for environment variables available to agent in a cloudify environment
+	 */
+	public static final String CLOUDIFY_AGENT_ENV_PRIVATE_IP = "CLOUDIFY_AGENT_ENV_PRIVATE_KEY";
+	public static final String CLOUDIFY_AGENT_ENV_PUBLIC_IP = "CLOUDIFY_AGENT_ENV_PUBLIC_KEY";
+	
 	
 	
 	/***************
