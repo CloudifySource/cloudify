@@ -1112,17 +1112,23 @@ public class ServiceController {
 		return successStatus();
 	}
 
-	private File getJarFileFromDir(File serviceFileOrDir, File serviceDirectory) throws IOException {
+	private File getJarFileFromDir(File serviceFileOrDir, File serviceDirectory, String jarName) throws IOException {
 		if (!serviceFileOrDir.isAbsolute()) {
 			serviceFileOrDir = new File(serviceDirectory, serviceFileOrDir.getPath());
 		}
+		File destJar = new File(serviceDirectory.getParent(), jarName + ".jar");
+		FileUtils.deleteQuietly(destJar);
 		if (serviceFileOrDir.isDirectory()) {
 			File jarFile = File.createTempFile(serviceFileOrDir.getName(), ".jar");
 			ZipUtils.zip(serviceFileOrDir, jarFile);
+			//rename the jar so would appear as 'Absolute pu name' in the deploy folder.
+			jarFile.renameTo(destJar);
 			jarFile.deleteOnExit();
-			return jarFile;
+			return destJar;
 		} else if (serviceFileOrDir.isFile()) {
-			return serviceFileOrDir;
+			//rename the jar so would appear as 'Absolute pu name' in the deploy folder.
+			serviceFileOrDir.renameTo(destJar);
+			return destJar;
 		}
 
 		throw new FileNotFoundException("The file " + serviceFileOrDir + " was not found in the service folder");
@@ -1232,7 +1238,7 @@ public class ServiceController {
 			final String templateName, int numberOfInstances) throws IOException, AdminException, TimeoutException,
 			DSLException {
 
-		File jarFile = getJarFileFromDir(new File(puConfig.getBinaries()), extractedServiceFolder);
+		File jarFile = getJarFileFromDir(new File(puConfig.getBinaries()), extractedServiceFolder, serviceName);
 		// TODO:if not specified use machine memory defined in DSL
 		final int containerMemoryInMB = puConfig.getSla().getMemoryCapacityPerContainer();
 		// TODO:Read from cloud DSL
@@ -1295,8 +1301,8 @@ public class ServiceController {
 	private void deployStatefulProcessingUnit(String applicationName, String serviceName, String zone,
 			File extractedServiceFolder, final Properties contextProperties, StatefulProcessingUnit puConfig,
 			final String templateName) throws IOException, AdminException, TimeoutException, DSLException {
-
-		File jarFile = getJarFileFromDir(new File(puConfig.getBinaries()), extractedServiceFolder);
+		
+		File jarFile = getJarFileFromDir(new File(puConfig.getBinaries()), extractedServiceFolder, serviceName);
 		final int containerMemoryInMB = puConfig.getSla().getMemoryCapacityPerContainer();
 		final int maxMemoryCapacityInMB = puConfig.getSla().getMaxMemoryCapacity();
 		final int reservedMemoryCapacityPerMachineInMB = 256;
