@@ -343,8 +343,20 @@
 			<arg value="--password" />
 			<arg value="${svnant.repository.passwd}" />
 			<arg value="-m" />
-			<arg value="Update cloudify url in ServiceConfiguration.Cloud.cscfg and in ec2-cloud.groovy" />
+			<arg value="Update cloudify url in ServiceConfiguration.Cloud.cscfg" />
 			<arg value="azure/GigaSpacesWorkerRoles/GigaSpacesWorkerRoles/ServiceConfiguration.Cloud.cscfg" />
+		</exec>
+		<!-- should commit only once using
+		http://stackoverflow.com/questions/4335719/svn-how-to-commit-multiple-files-in-a-single-shot
+		-->
+		<exec executable="svn" dir="${basedir}/..">
+			<arg value="commit" />
+			<arg value="--username" />
+			<arg value="${svnant.repository.user}" />
+			<arg value="--password" />
+			<arg value="${svnant.repository.passwd}" />
+			<arg value="-m" />
+			<arg value="Update cloudify url in ec2-cloud.groovy" />
 			<arg value="esc/ec2-cloud.groovy" />
 		</exec>
 		
