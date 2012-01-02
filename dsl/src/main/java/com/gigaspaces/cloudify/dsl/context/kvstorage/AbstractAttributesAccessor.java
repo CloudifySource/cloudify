@@ -62,6 +62,19 @@ public abstract class AbstractAttributesAccessor extends GroovyObjectSupport {
 			return get(property);
 		}
 	}
+	
+	public Object remove(String key){
+	    GigaSpace managementSpace = attributesFacade.getManagementSpace();
+        AbstractCloudifyAttribute removeTemplate = prepareAttributeTemplate(key);
+        AbstractCloudifyAttribute previousValue = managementSpace.take(removeTemplate);
+        return previousValue != null? previousValue.getValue() : null;
+	}
+	
+	public void clear(){
+	    GigaSpace managementSpace = attributesFacade.getManagementSpace();
+	    AbstractCloudifyAttribute clearTemplate = prepareAttributeTemplate(null);
+	    managementSpace.clear(clearTemplate);
+	}
 
 	public Object get(String key) {
 		GigaSpace managementSpace = attributesFacade.getManagementSpace();
