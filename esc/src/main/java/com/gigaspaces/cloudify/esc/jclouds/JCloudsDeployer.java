@@ -503,7 +503,7 @@ public class JCloudsDeployer {
 				if (method.getParameterTypes().length == 1) {
 					try {
 						++numOfMethodsFound;
-						logger.info("Invoking " + entryKey + ". Number of methods found so far: " + numOfMethodsFound);
+						logger.fine("Invoking " + entryKey + ". Number of methods found so far: " + numOfMethodsFound);
 						method.invoke(templateOptions, entryValue);
 						// invoked successfully
 						return;
