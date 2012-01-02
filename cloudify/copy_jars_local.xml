@@ -21,15 +21,15 @@
 	
 	<target name="Create cloudify zip" depends="">
 		<echo message="Creating zip distro of ${target.dir}" />
+		<echo message="Deleting existing zip file" />
 		<delete file="${target.dir}/../gigaspaces.zip"/>
-		<echo message="deleting ${target.dir}/work/processing-units" />
-		
-		<delete includeemptydirs="true" quiet="true"  >
-			
+		<echo message="Deleting temp files from distro" />
+		<delete includeemptydirs="true" quiet="true"  >		
 			<fileset dir="${target.dir}/work/processing-units" includes="**/*" />
 			<fileset dir="${target.dir}/deploy" excludes="templates/**/*"  />
 			<fileset dir="${target.dir}/logs" includes="**/*"  />
 		</delete>
+		<echo message="Creating new zip file" />
 		<zip destfile="${target.dir}/../gigaspaces.zip" basedir="${target.dir}/.." includes="gigaspaces-cloudify-2.0.0-rc2/**/*" />
 		<echo message="Created ${target.dir}/../gigaspaces.zip" />
 
