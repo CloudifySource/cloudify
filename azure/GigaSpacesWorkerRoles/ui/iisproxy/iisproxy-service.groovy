@@ -27,16 +27,11 @@ service {
 			commands = [
 				
 				//rewrite rule for urls with slash after the name such as http://dns.com/travel/something
-				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /+\"[name='${name}',patternSyntax='ECMAScript',stopProcessing='true']\" /commit:apphost",
-				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}'].match.url:\"${pattern}\" /commit:apphost",
-				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}'].action.type:\"Rewrite\" /commit:apphost",
-				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}'].action.url:\"${rewriteUrl}\" /commit:apphost",
+				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /+\"[name='${name}',patternSyntax='ECMAScript',stopProcessing='true']\" /[name='${name}'].match.url:\"${pattern}\" /[name='${name}'].action.type:\"Rewrite\" /[name='${name}'].action.url:\"${rewriteUrl}\" /commit:apphost",
 
 				//rewrite rule for root url without trailing slash after the name such as http://dns.com/travel
-				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /+\"[name='${name}_rooturl',patternSyntax='ECMAScript',stopProcessing='true']\" /commit:apphost",
-				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}_rooturl'].match.url:\"${pattern2}\" /commit:apphost",
-				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}_rooturl'].action.type:\"Rewrite\" /commit:apphost",
-				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /[name='${name}_rooturl'].action.url:\"${rewriteUrl2}\" /commit:apphost",
+				"${appCmdPath} set config -section:system.webServer/rewrite/globalRules /+\"[name='${name}_rooturl',patternSyntax='ECMAScript',stopProcessing='true']\" /[name='${name}_rooturl'].match.url:\"${pattern2}\" /[name='${name}_rooturl'].action.type:\"Rewrite\" /[name='${name}_rooturl'].action.url:\"${rewriteUrl2}\" /commit:apphost",
+
 				
 				"${appCmdPath} list config -section:system.webServer/rewrite/globalRules",
 			]
