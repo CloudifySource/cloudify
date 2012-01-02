@@ -41,10 +41,8 @@ goto :END
 	if EXIST "%JAVA_HOME%\lib\deploy.jar" set DEPLOY_JARS="%JAVA_HOME%\lib\deploy.jar"
 	
 	@rem Add esc dependencies
-	set ESC_JARS=
-	pushd "%JSHOMEDIR%\lib\platform\esm"
-		for %%G in (*.jar) do call:APPEND_TO_ESC_JARS %JSHOMEDIR%\lib\platform\esm\%%G
-	popd
+
+	set ESC_JARS=%JSHOMEDIR%\lib\platform\esm\*
 	
 	@rem Add plugins and dependencies
 	set PLUGIN_JARS=
@@ -66,11 +64,6 @@ goto :END
 :APPEND_TO_PLUGIN_JARS
 	set filename=%~1
 	set PLUGIN_JARS=%PLUGIN_JARS%;%filename%
-goto :END
-
-:APPEND_TO_ESC_JARS
-	set filename=%~1
-	set ESC_JARS=%ESC_JARS%;%filename%
 goto :END
 
 :SET_COMMAND_LINE
