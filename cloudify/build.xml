@@ -333,7 +333,7 @@
 		
 		<copy 
 			file="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/esc/ec2/ec2-cloud.groovy"
-			toFile="${esc.local.copy}/ec2/ec2-cloud.groovy"
+			toFile="${esc.local.copy}/ec2-cloud.groovy"
 			overwrite="true" />
 			
 		<exec executable="svn" dir="${basedir}/..">
