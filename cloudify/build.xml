@@ -345,7 +345,7 @@
 			<arg value="-m" />
 			<arg value="Update cloudify url in ServiceConfiguration.Cloud.cscfg and in ec2-cloud.groovy" />
 			<arg value="azure/GigaSpacesWorkerRoles/GigaSpacesWorkerRoles/ServiceConfiguration.Cloud.cscfg" />
-			<arg value="esc/ec2/ec2-cloud.groovy" />
+			<arg value="esc/ec2-cloud.groovy" />
 		</exec>
 		
 		
