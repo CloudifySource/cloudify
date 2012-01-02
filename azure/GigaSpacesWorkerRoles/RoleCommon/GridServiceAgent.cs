@@ -655,6 +655,7 @@ namespace GigaSpaces
                 }
                 Thread.Sleep(5000);
             }
+            GSTrace.WriteLine("Discovered " + NumberOfManagementRoleInstances + " " + ProxyServiceName + " instances");
 
         }
 
@@ -683,23 +684,18 @@ namespace GigaSpaces
          */
         private void AddInboudRewrite(String name, long port)
         {
-            IDictionary<String, String> parameters = new Dictionary<String, String>();
-            parameters.Add(new KeyValuePair<String, String>("name", name));
-            parameters.Add(new KeyValuePair<String, String>("port", Convert.ToString(port)));
-            InvokeProxyServiceCommand("rewrite_add_external_lb", parameters);
+            InvokeProxyServiceCommand("rewrite_add_external_lb", name, Convert.ToString(port));
             GSTrace.WriteLine(name + " reverse proxy inbound rule added.");
         }
 
         private void RemoveInboundRewrite(String name)
         {
-            IDictionary<String, String> parameters = new Dictionary<String, String>();
-            parameters.Add(new KeyValuePair<String, String>("name", name));
-            InvokeProxyServiceCommand("rewrite_remove_external_lb", parameters);
+            InvokeProxyServiceCommand("rewrite_remove_external_lb", name);
             GSTrace.WriteLine(name + " reverse proxy inbound rule removed.");
         }
 
         /* Invoke the 'commandName' custom command of the issproxy service */
-        private void InvokeProxyServiceCommand(String commandName, IDictionary<String, String> parameters)
+        private void InvokeProxyServiceCommand(String commandName, params String[] parameters)
         {
             String installServiceCommand = new StringBuilder()
                 .Append("use-application --verbose "+ManagementApplicationName + ";")
@@ -719,26 +715,10 @@ namespace GigaSpaces
             
         }
 
-        private String ProxyServiceCommand(String commandName, IDictionary<String, String> parameters)
+        private String ProxyServiceCommand(String commandName, params String[] parameters)
         {
-            StringBuilder command = new StringBuilder();
-
-            command.Append("invoke --verbose "+ ProxyServiceName + " " + commandName + " ");
-
-            command.Append("[ ");
-            foreach (var param in parameters)
-            {
-                command.Append("'");
-                command.Append(param.Key);
-                command.Append("=");
-                command.Append(param.Value);
-                command.Append("' ");
-            }
-            command.Append("]");
-
-            return command.ToString();
+            return "invoke --verbose "+ ProxyServiceName + " " + commandName + " " + String.Join(" ",parameters);
         }
-
     }
     
 }
