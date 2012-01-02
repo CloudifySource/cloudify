@@ -36,9 +36,11 @@ import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitAlreadyDeployedException;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
 import org.openspaces.admin.vm.VirtualMachineAware;
+import org.openspaces.core.GigaSpace;
 import org.openspaces.core.util.MemoryUnit;
 
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
+import com.gigaspaces.cloudify.dsl.internal.packaging.CloudConfigurationHolder;
 import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 import com.gigaspaces.cloudify.shell.AdminFacade;
 import com.gigaspaces.cloudify.shell.ConditionLatch;
@@ -139,6 +141,7 @@ public class LocalhostGridAgentBootstrapper {
 	private int lusPort = DEFAULT_LUS_PORT;
 	private boolean autoShutdown;
 	private boolean waitForWebUi;
+	private String cloudContents;
 	
 	public void setVerbose(boolean verbose) {
 		this.verbose = verbose;
@@ -488,9 +491,10 @@ public class LocalhostGridAgentBootstrapper {
     				waitForManagementServices.add(restInstaller);
     				
     			} 
+				ManagementSpaceServiceInstaller managementSpaceInstaller = null;
 				if (!noManagementSpace) {
 					final boolean highlyAvailable = !isLocalCloud && !notHighlyAvailableManagementSpace;
-					ManagementSpaceServiceInstaller managementSpaceInstaller = new ManagementSpaceServiceInstaller();
+					managementSpaceInstaller = new ManagementSpaceServiceInstaller();
 					managementSpaceInstaller.setAdmin(agent.getAdmin());
 					managementSpaceInstaller.setVerbose(verbose);
 					managementSpaceInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
@@ -511,6 +515,14 @@ public class LocalhostGridAgentBootstrapper {
 				
 				for (AbstractManagementServiceInstaller managementServiceInstaller : waitForManagementServices) {
 					managementServiceInstaller.waitForInstallation(adminFacade, agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
+				}
+				
+				if(!noManagementSpace && this.cloudContents != null) {
+					logger.info("Writing cloud configuration to space");
+					GigaSpace gigaspace = managementSpaceInstaller.getGigaSpace();
+					
+					CloudConfigurationHolder holder = new CloudConfigurationHolder(getCloudContents());
+					gigaspace.write(holder);
 				}
 				
 			} finally {
@@ -906,5 +918,13 @@ public class LocalhostGridAgentBootstrapper {
         }
         return tempFile;
     }
+
+	public String getCloudContents() {
+		return cloudContents;
+	}
+
+	public void setCloudContents(String cloudContents) {
+		this.cloudContents = cloudContents;
+	}
 
 }

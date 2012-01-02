@@ -12,6 +12,7 @@ import org.openspaces.admin.pu.elastic.config.EagerScaleConfigurer;
 import org.openspaces.admin.space.ElasticSpaceDeployment;
 import org.openspaces.admin.space.Space;
 import org.openspaces.admin.space.SpacePartition;
+import org.openspaces.core.GigaSpace;
 import org.openspaces.core.util.MemoryUnit;
 
 import com.gigaspaces.cloudify.shell.AdminFacade;
@@ -22,6 +23,8 @@ import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
 public class ManagementSpaceServiceInstaller extends AbstractManagementServiceInstaller {
 	
 	private boolean highlyAvailable;
+	
+	private GigaSpace gigaspace = null;
 
 	public void setHighlyAvailable(boolean highlyAvailable) {
 		this.highlyAvailable = highlyAvailable;
@@ -73,8 +76,10 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
                 if (space != null)
                 {
                 	SpacePartition partition = space.getPartition(0);
-                	if (partition != null && partition.getPrimary() != null)
+                	if (partition != null && partition.getPrimary() != null) {
+                		gigaspace = space.getGigaSpace();
                 		return true;
+                	}
                 }
                 
             	logger.log(Level.INFO,"Connecting to management space.");
@@ -85,4 +90,7 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
         logger.info("management space is available.");
 	}
 
+	public GigaSpace getGigaSpace() {
+		return this.gigaspace;
+	}
 }
