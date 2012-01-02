@@ -446,6 +446,28 @@ public class LocalhostGridAgentBootstrapper {
 			
 			connectionLogs.supressConnectionErrors();
 			try {
+				ManagementSpaceServiceInstaller managementSpaceInstaller = null;
+				if (!noManagementSpace) {
+					final boolean highlyAvailable = !isLocalCloud && !notHighlyAvailableManagementSpace;
+					managementSpaceInstaller = new ManagementSpaceServiceInstaller();
+					managementSpaceInstaller.setAdmin(agent.getAdmin());
+					managementSpaceInstaller.setVerbose(verbose);
+					managementSpaceInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
+					managementSpaceInstaller.setMemory(MANAGEMENT_SPACE_MEMORY_IN_MB, MemoryUnit.MEGABYTES);
+					managementSpaceInstaller.setServiceName(MANAGEMENT_SPACE_NAME);
+					managementSpaceInstaller.setManagementZone(MANAGEMENT_GSA_ZONE);
+					managementSpaceInstaller.setHighlyAvailable(highlyAvailable);
+    				try {
+    					managementSpaceInstaller.install();
+    					waitForManagementServices.add(managementSpaceInstaller);
+    				}
+    				catch (ProcessingUnitAlreadyDeployedException e) {
+    					if (verbose) {
+    						logger.info("Service " + MANAGEMENT_SPACE_NAME + " already installed");
+    					}
+    				}
+				}
+				
 				if (!noWebServices) {
     				ManagementWebServiceInstaller webuiInstaller = new ManagementWebServiceInstaller();    				
     				webuiInstaller.setAdmin(agent.getAdmin());
@@ -491,39 +513,22 @@ public class LocalhostGridAgentBootstrapper {
     				waitForManagementServices.add(restInstaller);
     				
     			} 
-				ManagementSpaceServiceInstaller managementSpaceInstaller = null;
-				if (!noManagementSpace) {
-					final boolean highlyAvailable = !isLocalCloud && !notHighlyAvailableManagementSpace;
-					managementSpaceInstaller = new ManagementSpaceServiceInstaller();
-					managementSpaceInstaller.setAdmin(agent.getAdmin());
-					managementSpaceInstaller.setVerbose(verbose);
-					managementSpaceInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
-					managementSpaceInstaller.setMemory(MANAGEMENT_SPACE_MEMORY_IN_MB, MemoryUnit.MEGABYTES);
-					managementSpaceInstaller.setServiceName(MANAGEMENT_SPACE_NAME);
-					managementSpaceInstaller.setManagementZone(MANAGEMENT_GSA_ZONE);
-					managementSpaceInstaller.setHighlyAvailable(highlyAvailable);
-    				try {
-    					managementSpaceInstaller.install();
-    					waitForManagementServices.add(managementSpaceInstaller);
-    				}
-    				catch (ProcessingUnitAlreadyDeployedException e) {
-    					if (verbose) {
-    						logger.info("Service " + MANAGEMENT_SPACE_NAME + " already installed");
-    					}
-    				}
-				}
+				
+				
+				
 				
 				for (AbstractManagementServiceInstaller managementServiceInstaller : waitForManagementServices) {
 					managementServiceInstaller.waitForInstallation(adminFacade, agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
+					if(managementServiceInstaller instanceof ManagementSpaceServiceInstaller) {
+						logger.info("Writing cloud configuration to space");
+						GigaSpace gigaspace = managementSpaceInstaller.getGigaSpace();
+						
+						CloudConfigurationHolder holder = new CloudConfigurationHolder(getCloudContents());
+						gigaspace.write(holder);
+					}
 				}
 				
-				if(!noManagementSpace && this.cloudContents != null) {
-					logger.info("Writing cloud configuration to space");
-					GigaSpace gigaspace = managementSpaceInstaller.getGigaSpace();
-					
-					CloudConfigurationHolder holder = new CloudConfigurationHolder(getCloudContents());
-					gigaspace.write(holder);
-				}
+
 				
 			} finally {
 				connectionLogs.restoreConnectionErrors();
