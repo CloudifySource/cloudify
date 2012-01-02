@@ -77,6 +77,15 @@ public class CloudConfiguration {
 	public void setRemotePassword(String remotePassword) {
 		this.remotePassword = remotePassword;
 	}
+	@Override
+	public String toString() {
+		return "CloudConfiguration [className=" + className + ", nicAddress=" + nicAddress + ", lookupGroups="
+				+ lookupGroups + ", lookupLocators=" + lookupLocators + ", managementMachineTemplate="
+				+ managementMachineTemplate + ", bootstrapManagementOnPublicIp=" + bootstrapManagementOnPublicIp
+				+ ", connectToPrivateIp=" + connectToPrivateIp + ", remoteUsername=" + remoteUsername
+				+ ", remotePassword=***]";
+	}
+
 	
 	
 	
