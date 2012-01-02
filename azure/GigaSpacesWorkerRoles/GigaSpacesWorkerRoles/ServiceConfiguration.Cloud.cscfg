@@ -7,7 +7,7 @@
     <Instances count="2" />
     <ConfigurationSettings>
       <Setting name="GigaSpaces.WindowsAzure.TraceUploadPeriod" value="00:01" />
-      <Setting name="GigaSpaces.XAP.DownloadUrl" value="https%3A%2F%2Fs3.amazonaws.com%2Ftest-repository-ec2dev%2F2.0.0%2F996-129%2Fgigaspaces-cloudify-2.0.0-rc2-b996-129.zip" />
+      <Setting name="GigaSpaces.XAP.DownloadUrl" value="https%3A%2F%2Fs3.amazonaws.com%2Ftest-repository-ec2dev%2F2.0.0%2F996-142%2Fgigaspaces-cloudify-2.0.0-rc2-b996-142.zip" />
       <Setting name="GigaSpaces.JDK.DownloadUrl" value="https%3A%2F%2Fgigaspaces.blob.core.windows.net%2Fpackages%2Fjdk1.6.0_25.zip%3F%26se%3D2013-06-01T00%253A00%253A00Z%26sr%3Db%26si%3Dreadforever%26sig%3D8lVgpIa2qoNpWWgVbS%252F%252F78iJHOqzZS1Uacc4n4ByvHA%253D" />
       <Setting name="GigaSpaces.XAP.NumberOfManagementRoleInstances" value="2" />
       <Setting name="GigaSpaces.XAP.UploadAgentLogs" value="false" />
@@ -37,7 +37,7 @@
     <ConfigurationSettings>
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=gigaspaces;AccountKey=6RjDHthW5QRP9aycTl5DX1wKuCpHWx/NwlqDUQs8iIdHwLobWfBZRcWvaLoHH8ac7qSJ5K1jnEWC7SrU6FF8+Q==" />
       <Setting name="GigaSpaces.WindowsAzure.TraceUploadPeriod" value="00:01" />
-      <Setting name="GigaSpaces.XAP.DownloadUrl" value="https%3A%2F%2Fs3.amazonaws.com%2Ftest-repository-ec2dev%2F2.0.0%2F996-129%2Fgigaspaces-cloudify-2.0.0-rc2-b996-129.zip" />
+      <Setting name="GigaSpaces.XAP.DownloadUrl" value="https%3A%2F%2Fs3.amazonaws.com%2Ftest-repository-ec2dev%2F2.0.0%2F996-142%2Fgigaspaces-cloudify-2.0.0-rc2-b996-142.zip" />
       <Setting name="GigaSpaces.JDK.DownloadUrl" value="https%3A%2F%2Fgigaspaces.blob.core.windows.net%2Fpackages%2Fjdk1.6.0_25.zip%3F%26se%3D2013-06-01T00%253A00%253A00Z%26sr%3Db%26si%3Dreadforever%26sig%3D8lVgpIa2qoNpWWgVbS%252F%252F78iJHOqzZS1Uacc4n4ByvHA%253D" />
       <Setting name="GigaSpaces.XAP.NumberOfManagementRoleInstances" value="2" />
       <Setting name="GigaSpaces.XAP.UploadAgentLogs" value="false" />
@@ -64,7 +64,7 @@
     <Instances count="2" />
     <ConfigurationSettings>
       <Setting name="GigaSpaces.WindowsAzure.TraceUploadPeriod" value="00:01" />
-      <Setting name="GigaSpaces.XAP.DownloadUrl" value="https%3A%2F%2Fs3.amazonaws.com%2Ftest-repository-ec2dev%2F2.0.0%2F996-129%2Fgigaspaces-cloudify-2.0.0-rc2-b996-129.zip" />
+      <Setting name="GigaSpaces.XAP.DownloadUrl" value="https%3A%2F%2Fs3.amazonaws.com%2Ftest-repository-ec2dev%2F2.0.0%2F996-142%2Fgigaspaces-cloudify-2.0.0-rc2-b996-142.zip" />
       <Setting name="GigaSpaces.JDK.DownloadUrl" value="https%3A%2F%2Fgigaspaces.blob.core.windows.net%2Fpackages%2Fjdk1.6.0_25.zip%3F%26se%3D2013-06-01T00%253A00%253A00Z%26sr%3Db%26si%3Dreadforever%26sig%3D8lVgpIa2qoNpWWgVbS%252F%252F78iJHOqzZS1Uacc4n4ByvHA%253D" />
       <Setting name="GigaSpaces.XAP.NumberOfManagementRoleInstances" value="2" />
       <Setting name="GigaSpaces.XAP.UploadAgentLogs" value="false" />
