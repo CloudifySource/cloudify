@@ -16,7 +16,9 @@ service {
     }
 	
 	customCommands ([
-		"rewrite_add_external_lb" : { // expected arguments: name, port (expects a service property: loadBalancerUrl, injected from the worker role
+		"rewrite_add_external_lb" : { 
+			name,port ->
+			// expected arguments: name, port (expects a service property: loadBalancerUrl, injected from the worker role
 		
 			pattern = "^${name}/(.*)"
 			rewriteUrl = "${loadBalancerUrl}:${port}/${name}/{R:1}" 
@@ -43,8 +45,10 @@ service {
 		
 		},
 
-		"rewrite_remove_external_lb" : { // expected arguments: expected arguments: name
-		
+		"rewrite_remove_external_lb" : { 
+			// expected arguments: expected arguments: name
+			name,port ->
+
 			commands = [
 			
 				"${appCmdPath} clear config -section:system.webServer/rewrite/globalRules /[name='${name}'] /commit:apphost",
