@@ -339,6 +339,10 @@ public class DSLReader {
 			// automatically
 			return new ArrayList<String>(0);
 		}
+		if(dslFile == null) {
+			logger.fine("DSL file location not specified. Skipping usmlib jar loading!");
+			return new ArrayList<String>(0);
+		}
 
 		final File serviceDir = dslFile.getParentFile();
 		final File usmLibDir = new File(serviceDir, CloudifyConstants.USM_LIB_DIR);
