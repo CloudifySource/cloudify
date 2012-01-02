@@ -191,7 +191,7 @@ public abstract class BaseDslScript extends Script {
 			String extendServicePath = (String) arg;
 			try {			    
 				File extendedServiceAbsPath = new File(extendServicePath);
-				if (!extendedServiceAbsPath.isAbsolute() && !extendedServiceAbsPath.exists()){
+				if (!extendedServiceAbsPath.isAbsolute()){
 				    if (logger.isLoggable(Level.FINER))
 				        logger.finer("locating extended file, using relative path [" + extendServicePath + "]");
 					//Extract the current service directory
