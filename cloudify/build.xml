@@ -274,7 +274,7 @@
 			<arg value="s3client:put" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
-			<arg value="-Dput.source=${put.source}" />
+			<arg value="-Dput.source=${cloudify.put.source}" />
 			<arg value="-Dput.target=${cloudify.put.target}" />
 			<arg value="-Dcontainer=${cloudify.base.container}"/>
 		</exec>
