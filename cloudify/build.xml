@@ -59,7 +59,9 @@
 	<property name="svnant.repository.user" value="opencm" />
 	<property name="svnant.repository.passwd" value="opencm" />
 	
-	<property name="cloudify.base.publish.url" value="https://s3.amazonaws.com/test-repository-ec2dev" />
+	<property name="cloudify.base.container" value="gigaspaces-cloudify" />
+	<property name="cloudify.base.publish.url" value="https://s3.amazonaws.com/${cloudify.base.container}" />
+	<property name="cloudify.cdn.publish.url" value="http://d3ce4p99glv9el.cloudfront.net" />
 
 	<!-- these should be injected when running the publish build
 	<property name="publish.cloudify.build" value="run" /> 
@@ -267,7 +269,7 @@
 		<property name="put.source" 
 			value="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
 		<property name="put.target" 
-				value="${cloudify.version}/${cloudify.build.number}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
+				value="cloudify/${cloudify.version}/${cloudify.build.number}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
 
 		<echo message="uploading cloudify installation to public storage at ${cloudify.base.publish.url}/${put.target}" />
 			
@@ -277,6 +279,7 @@
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${put.source}" />
 			<arg value="-Dput.target=${put.target}" />
+			<arg value="-Dcontainer=${cloudify.base.container}"/>
 		</exec>
 	</target>
 	
@@ -288,8 +291,7 @@
 	<target name="update.service.configuration.url">
         <echo message="Updating ServiceConfiguration in directory: ${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles/GigaSpacesWorkerRoles ..."/>
 		
-		<property name="cloudify.url" 
-			value="${cloudify.base.publish.url}/${cloudify.version}/${cloudify.build.number}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
+		<property name="cloudify.url" value="${cloudify.cdn.publish.url}/${put.target}" />
 
 		<!-- Here we encode cloudify.url -->
 		<property name="groovy.dir" value="${tmp.dir}/${cloudify.installation.dir}/tools/groovy/bin" />
