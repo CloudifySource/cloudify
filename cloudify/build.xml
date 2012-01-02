@@ -315,7 +315,15 @@
     			dir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles/GigaSpacesWorkerRoles" 
     			includes="ServiceConfiguration.Cloud.cscfg" />
     	</replaceregexp>
-	</target>
+		
+		<replaceregexp byline="true"
+    		match="cloudifyUrl &quot;(.*)&quot;" 
+    		replace="cloudifyUrl &quot;${cloudify.url}&quot;" >
+    		<fileset 
+    			dir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/esc/ec2" 
+    			includes="ec2-cloud.groovy" />
+    	</replaceregexp>
+   </target>
 	
 	<target name="commit.service.configuration">
 		<copy 
