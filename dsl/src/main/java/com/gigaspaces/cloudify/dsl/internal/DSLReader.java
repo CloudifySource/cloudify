@@ -360,7 +360,7 @@ public class DSLReader {
 			}
 		}
 
-		logger.info("Extra jar files list: " + result);
+		logger.fine("Extra jar files list: " + result);
 		return result;
 	}
 
