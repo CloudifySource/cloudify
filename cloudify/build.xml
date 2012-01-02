@@ -330,17 +330,28 @@
 			file="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles/GigaSpacesWorkerRoles/ServiceConfiguration.Cloud.cscfg"
 			toFile="${azure.local.copy}/GigaSpacesWorkerRoles/GigaSpacesWorkerRoles/ServiceConfiguration.Cloud.cscfg"
 			overwrite="true" />
-		<exec executable="svn" dir="${azure.local.copy}">
+		
+		<copy 
+			file="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/esc/ec2/ec2-cloud.groovy"
+			toFile="${esc.local.copy}/ec2/ec2-cloud.groovy"
+			overwrite="true" />
+			
+		<exec executable="svn" dir="${basedir}/..">
 			<arg value="commit" />
 			<arg value="--username" />
 			<arg value="${svnant.repository.user}" />
 			<arg value="--password" />
 			<arg value="${svnant.repository.passwd}" />
 			<arg value="-m" />
-			<arg value="Update cloudify url in ServiceConfiguration.Cloud.cscfg" />
-			<arg value="GigaSpacesWorkerRoles/GigaSpacesWorkerRoles/ServiceConfiguration.Cloud.cscfg" />
+			<arg value="Update cloudify url in ServiceConfiguration.Cloud.cscfg and in ec2-cloud.groovy" />
+			<arg value="azure/GigaSpacesWorkerRoles/GigaSpacesWorkerRoles/ServiceConfiguration.Cloud.cscfg" />
+			<arg value="esc/ec2/ec2-cloud.groovy" />
 		</exec>
+		
+		
 	</target>
+	
+	
 	
 	
 </project>
