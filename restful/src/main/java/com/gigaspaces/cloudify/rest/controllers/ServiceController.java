@@ -37,9 +37,11 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 
 import net.jini.core.discovery.LookupLocator;
+import net.jini.space.JavaSpace;
 
 import org.apache.commons.io.FileUtils;
 import org.jgrapht.DirectedGraph;
@@ -70,7 +72,9 @@ import org.openspaces.admin.pu.elastic.config.EagerScaleConfigurer;
 import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfigurer;
 import org.openspaces.admin.pu.elastic.topology.ElasticDeploymentTopology;
 import org.openspaces.admin.space.ElasticSpaceDeployment;
+import org.openspaces.admin.space.Space;
 import org.openspaces.admin.zone.Zone;
+import org.openspaces.core.GigaSpace;
 import org.openspaces.core.util.MemoryUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -85,7 +89,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.gigaspaces.cloudify.dsl.Cloud;
 import com.gigaspaces.cloudify.dsl.DataGrid;
 import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.Sla;
@@ -99,6 +102,7 @@ import com.gigaspaces.cloudify.dsl.internal.DSLException;
 import com.gigaspaces.cloudify.dsl.internal.DSLServiceCompilationResult;
 import com.gigaspaces.cloudify.dsl.internal.EventLogConstants;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
+import com.gigaspaces.cloudify.dsl.internal.packaging.CloudConfigurationHolder;
 import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
 import com.gigaspaces.cloudify.dsl.internal.packaging.ZipUtils;
 import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
@@ -135,7 +139,15 @@ public class ServiceController {
 
 	public ServiceController() throws IOException {
 
-		this.cloud = readCloudFile();
+	
+
+	}
+
+	
+	@PostConstruct
+	public void init() {
+		logger.info("Initializing service controller cloud configuration");
+		this.cloud = readCloud();
 		if (cloud != null) {
 			if (this.cloud.getTemplates().size() == 0) {
 				throw new IllegalArgumentException("No templates defined in cloud configuration!");
@@ -143,42 +155,51 @@ public class ServiceController {
 			this.defaultTemplateName = this.cloud.getTemplates().keySet().iterator().next();
 			logger.info("Setting default template name to: " + defaultTemplateName
 					+ ". This template will be used for services that do not specify an explicit template");
+		} else {
+			logger.info("Service Controller is running in local cloud mode");
 		}
-
 	}
+	
+	private String getCloudConfigurationFromManagementSpace() {
+		GigaSpace gigaSpace = getManagementSpace();
+		CloudConfigurationHolder config = gigaSpace.read(new CloudConfigurationHolder(), JavaSpace.NO_WAIT);
+		if(config == null) {
+			logger.info("Could not find Cloud Configuration Holder in Management space");
+			return null;
+		}
+		return config.getCloudConfiguration();
+	}
+	
+	private GigaSpace getManagementSpace() {
+		Space space = this.admin.getSpaces().waitFor(CloudifyConstants.MANAGEMENT_SPACE_NAME, 1, TimeUnit.MINUTES);
+		if(space == null) {
+			throw new IllegalStateException("Could not find management space (" + CloudifyConstants.MANAGEMENT_SPACE_NAME + ")");
+		}
+		
+		return space.getGigaSpace();
+	}
+	
+	private Cloud2 readCloud() {
+		logger.info("Loading cloud configuration");
 
-	private Cloud2 readCloudFile() throws IOException {
-		logger.info("Loading cloud configuration file");
-		String cloudFileLocation = System.getenv().get("CLOUD_FILE");
-		if (cloudFileLocation == null) {
-			logger.info("No Cloud File has been configured - assuming this is local cloud");
+		this.cloudFileContents = getCloudConfigurationFromManagementSpace();
+		if(this.cloudFileContents == null) {
+			// must be local cloud
 			return null;
 
 		}
-
-		File cloudFile = new File(cloudFileLocation);
-		if (!cloudFile.exists()) {
-			throw new FileNotFoundException("Could not find cloud file: " + cloudFile);
-		}
-
-		if (!cloudFile.isFile()) {
-			throw new FileNotFoundException(cloudFile + " is not a file! Was expecting the cloud file");
-		}
-
-		this.cloudFileContents = FileUtils.readFileToString(cloudFile);
 		Cloud2 cloud = null;
 		try {
 			cloud = ServiceReader.readCloud(cloudFileContents);
 		} catch (DSLException e) {
-			throw new IllegalArgumentException("Failed to read cloud configuration file: " + cloudFile
+			throw new IllegalArgumentException("Failed to read cloud configuration file: " + cloudFileContents
 					+ ". Error was: " + e.getMessage(), e);
 		}
 
-		logger.info("Successfully loaded cloud configuration file from: " + cloudFile);
+		logger.info("Successfully loaded cloud configuration file from management space");
 
 		logger.info("Setting cloud local directory to: " + cloud.getProvider().getRemoteDirectory());
 		cloud.getProvider().setLocalDirectory(cloud.getProvider().getRemoteDirectory());
-
 		logger.info("Loaded cloud: " + cloud);
 
 		return cloud;
@@ -805,7 +826,7 @@ public class ServiceController {
 		final List<Service> services = createServiceDependencyOrder(result.getApplication());
 
 		ApplicationInstallerRunnable installer = new ApplicationInstallerRunnable(this, result, applicationName,
-				services);
+				services, this.cloud);
 		this.executorService.execute(installer);
 
 		String[] serviceOrder = new String[services.size()];
@@ -817,46 +838,6 @@ public class ServiceController {
 
 		return retval;
 
-		// File appDir = result.getApplicationDir();
-
-		// final List<Service> services = application.getServices();
-		// final List<Service> services = createServiceDependencyOrder(result
-		// .getApplication());
-		// for (final Service service : services) {
-		// service.getCustomProperties().put("usmJarPath",
-		// Environment.getHomeDirectory() + "/lib/platform/usm");
-		//
-		// final Properties contextProperties =
-		// createServiceContextProperties(service);
-		//
-		// final String serviceName = service.getName();
-		// final File packedFile = pack(new File(appDir, serviceName)
-		// .getAbsolutePath());
-		//
-		// ProcessingUnit pu = doDeploy(applicationName, serviceName,
-		// serviceName, packedFile, contextProperties);
-		//
-		// boolean found = pu.waitFor(1, 5, TimeUnit.MINUTES);
-		//
-		// if (!found) {
-		// logger.severe("Failed to find an instance of service: "
-		// + serviceName
-		// + " while installing application "
-		// + applicationName
-		// +
-		// ". Application installation will stop. Some services may have been installed!");
-		//
-		// return "Failed to find an instance of service: "
-		// + serviceName
-		// + " while installing application "
-		// + applicationName
-		// +
-		// ". Application installation will stop. Some services may have been installed!";
-		// }
-		//
-		// }
-
-		// return RestUtils.successStatus();
 	}
 
 	private File copyMultipartFileToLocalFile(final MultipartFile srcFile) throws IOException {
@@ -883,7 +864,6 @@ public class ServiceController {
 		doDeploy(applicationName, serviceName, templateName, zone, serviceFile, contextProperties, numberOfInstances);
 	}
 
-	// TODO: add context properties
 	private void doDeploy(final String applicationName, final String serviceName, final String templateName,
 			final String zone, final File serviceFile, final Properties contextProperties) throws AdminException,
 			TimeoutException {
@@ -986,17 +966,7 @@ public class ServiceController {
 		return cloudExternalProcessMemoryInMB;
 	}
 
-	private long calculateExternalProcessMemory(final Cloud cloud) {
-		// TODO remove hardcoded number
-		long cloudExternalProcessMemoryInMB = cloud.getMachineMemoryMB()
-				- cloud.getReservedMemoryCapacityPerMachineInMB() - 100;
-		logger.fine("cloud.machineMemoryMB = " + cloud.getMachineMemoryMB() + "MB\n"
-				+ "cloud.reservedMemoryCapacityPerMachineInMB = " + cloud.getReservedMemoryCapacityPerMachineInMB()
-				+ "MB\n" + "cloudExternalProcessMemoryInMB = " + cloudExternalProcessMemoryInMB + "MB"
-				+ "cloudExternalProcessMemoryInMB = cloud.machineMemoryMB - "
-				+ "cloud.reservedMemoryCapacityPerMachineInMB" + " = " + cloudExternalProcessMemoryInMB);
-		return cloudExternalProcessMemoryInMB;
-	}
+	
 
 	/**
 	 * Local-Cloud has one agent without any zone.

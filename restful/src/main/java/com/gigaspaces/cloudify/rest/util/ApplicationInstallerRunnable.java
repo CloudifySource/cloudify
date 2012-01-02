@@ -13,6 +13,7 @@ import java.util.logging.Level;
 import org.apache.commons.io.FileUtils;
 
 import com.gigaspaces.cloudify.dsl.Service;
+import com.gigaspaces.cloudify.dsl.cloud.Cloud2;
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.internal.DSLApplicationCompilatioResult;
 import com.gigaspaces.cloudify.dsl.internal.packaging.Packager;
@@ -33,14 +34,17 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 	private List<Service> services;
 
+	private Cloud2 cloud;
+
 	public ApplicationInstallerRunnable(ServiceController controller,
 			DSLApplicationCompilatioResult result, String applicationName,
-			List<Service> services) {
+			List<Service> services, Cloud2 cloud) {
 		super();
 		this.controller = controller;
 		this.result = result;
 		this.applicationName = applicationName;
 		this.services = services;
+		this.cloud = cloud;
 	}
 
 	@Override
@@ -54,7 +58,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 		final boolean asyncInstallPossible = isAsyncInstallPossibleForApplication();
 		logger.info("async install setting: " + asyncInstallPossible);
-		installServices(appDir, applicationName, asyncInstallPossible);
+		installServices(appDir, applicationName, asyncInstallPossible, cloud);
 		try {
 			FileUtils.deleteDirectory(appDir);
 		} catch (IOException e) {
@@ -63,7 +67,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 	}
 
-	private void installServices(File appDir, String applicationName, final boolean async) {
+	private void installServices(File appDir, String applicationName, final boolean async, final Cloud2 cloud) {
 		// TODO: refactor the last part of this method
 		logger.info("Installing service for application: " + applicationName + ". Async install: " + async +". Number of services: " + this.services.size());
 		for (final Service service : services) {
@@ -72,7 +76,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 					Environment.getHomeDirectory() + "/lib/platform/usm");
 
 			final Properties contextProperties = createServiceContextProperties(
-					service, applicationName, async);
+					service, applicationName, async, cloud);
 
 			final String serviceName = service.getName();
 			boolean found = false;
@@ -154,7 +158,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 	}
 
 	private Properties createServiceContextProperties(final Service service, String applicationName,
-			final boolean async) {
+			final boolean async, final Cloud2 cloud) {
 		final Properties contextProperties = new Properties();
 
 		if (service.getDependsOn() != null) {
@@ -194,6 +198,10 @@ public class ApplicationInstallerRunnable implements Runnable {
 		contextProperties.setProperty(
 				CloudifyConstants.CONTEXT_PROPERTY_ASYNC_INSTALL,
 				Boolean.toString(async));
+		
+		if(cloud != null) {
+			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_CLOUD_NAME, cloud.getName());
+		}
 		return contextProperties;
 	}
 
