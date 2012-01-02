@@ -38,6 +38,7 @@
 						<user></user> 
 						<key></key> 
 					-->
+					<container>gigaspaces-cloudify</container>
 					<publicUrl>true</publicUrl>
 				</configuration>
 
