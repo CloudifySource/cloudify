@@ -323,7 +323,7 @@ public class Packager {
 
 	private static File locateServiceFile(File recipeFile, String extendedServicePath) throws FileNotFoundException, PackagingException {
 		File extendedServiceFile = new File(extendedServicePath);
-		if (!extendedServiceFile.isAbsolute())
+		if (!extendedServiceFile.isAbsolute() && !extendedServiceFile.exists())
 		    extendedServiceFile = new File(recipeFile.getParent() + "/" + extendedServicePath);
 		if (extendedServiceFile.isDirectory())
 			extendedServiceFile = DSLReader.findDefaultDSLFile(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX,extendedServiceFile);

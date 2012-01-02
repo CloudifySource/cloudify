@@ -191,8 +191,7 @@ public abstract class BaseDslScript extends Script {
 			String extendServicePath = (String) arg;
 			try {			    
 				File extendedServiceAbsPath = new File(extendServicePath);
-				if (!extendedServiceAbsPath.isAbsolute()){
-				    System.out.println("**** DEBUG locating extended file, using relative path [" + extendServicePath + "]");
+				if (!extendedServiceAbsPath.isAbsolute() && !extendedServiceAbsPath.exists()){
 				    if (logger.isLoggable(Level.FINER))
 				        logger.finer("locating extended file, using relative path [" + extendServicePath + "]");
 					//Extract the current service directory
@@ -204,16 +203,10 @@ public abstract class BaseDslScript extends Script {
 					extendedServiceAbsPath = new File(activeServiceDirectory + "/" + extendServicePath);
 				}
 				else if (logger.isLoggable(Level.FINER))
-				{
-				    System.out.println("**** DEBUG locating extended file, using absolute path [" + extendServicePath + "]");
                     logger.finer("locating extended file, using absolute path [" + extendServicePath + "]");
-				}
 				
 				if (logger.isLoggable(Level.FINER))
-				{
-				    System.out.println("**** DEBUG reading extended service file [" + extendedServiceAbsPath + "]");
                     logger.finer("reading extended service file [" + extendedServiceAbsPath + "]");
-				}
 				//Read the extended service
 				Service baseService = ServiceReader.readService(extendedServiceAbsPath);
 				//Populate the current service with the extended service
