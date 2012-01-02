@@ -41,8 +41,6 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 
 import net.jini.core.discovery.LookupLocator;
-import net.jini.space.JavaSpace;
-
 import org.apache.commons.io.FileUtils;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.CycleDetector;
@@ -162,9 +160,11 @@ public class ServiceController {
 	
 	private String getCloudConfigurationFromManagementSpace() {
 		GigaSpace gigaSpace = getManagementSpace();
-		CloudConfigurationHolder config = gigaSpace.read(new CloudConfigurationHolder(), JavaSpace.NO_WAIT);
+		logger.info("Waiting for cloud configuration to become available in management space");
+		CloudConfigurationHolder config = gigaSpace.read( new CloudConfigurationHolder(),1000 *60);
 		if(config == null) {
-			logger.info("Could not find Cloud Configuration Holder in Management space");
+			
+			logger.warning("Could not find the expected Cloud Configuration Holder in Management space! Defaulting to local cloud!");
 			return null;
 		}
 		return config.getCloudConfiguration();
@@ -289,7 +289,7 @@ public class ServiceController {
 		List<String> serviceNames = new ArrayList<String>(pus.getSize());
 		ListIterator<String> listIterator = puNames.listIterator();
 		while (listIterator.hasNext()) {
-			String absolutePuName = (String) listIterator.next();
+			String absolutePuName = listIterator.next();
 			serviceNames.add(ServiceUtils.getApplicationServiceName(absolutePuName, applicationName));
 		}
 		return successStatus(serviceNames);
@@ -1334,7 +1334,7 @@ public class ServiceController {
 			setDedicatedMachineProvisioning(deployment, config);
 
 			deployment.scale(new ManualCapacityScaleConfigurer()
-					.memoryCapacity((int) puConfig.getSla().getMemoryCapacity(), MemoryUnit.MEGABYTES)
+					.memoryCapacity(puConfig.getSla().getMemoryCapacity(), MemoryUnit.MEGABYTES)
 					.atMostOneContainerPerMachine().create());
 
 		}
