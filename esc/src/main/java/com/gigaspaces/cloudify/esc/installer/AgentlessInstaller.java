@@ -26,6 +26,7 @@ import org.apache.tools.ant.ExitStatusException;
 import org.apache.tools.ant.taskdefs.optional.testing.BuildTimeoutException;
 import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioningException;
 
+import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.esc.util.LoggerOutputStream;
 import com.gigaspaces.cloudify.esc.util.ShellCommandBuilder;
 import com.gigaspaces.cloudify.esc.util.Utils;
@@ -325,7 +326,9 @@ public class AgentlessInstaller {
 				.exportVar(MACHINE_ZONES_ENV, details.getZones())
 				.exportVar(CLOUDIFY_LINK_ENV,
 						details.getCloudifyUrl() != null ? ("\"" + details.getCloudifyUrl() + "\"") : "")
-				.exportVar(WORKING_HOME_DIRECTORY_ENV, remoteDirectory);
+				.exportVar(WORKING_HOME_DIRECTORY_ENV, remoteDirectory)
+				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, details.getPrivateIp())
+				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, details.getPublicIp());
 		
 		if(details.isLus()) {
 			scb.exportVar(CLOUD_FILE, details.getRemoteDir() + "/" +  details.getCloudFile().getName() );
