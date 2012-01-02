@@ -102,10 +102,10 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 		try {
 			Properties props = new Properties();
 			props.putAll(cloudTemplate.getOverrides());
-			
+
 			this.deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(), cloud
 					.getUser().getApiKey(), props);
-			
+
 			this.deployer.setImageId(cloudTemplate.getImageId());
 			this.deployer.setMinRamMegabytes(cloudTemplate.getMachineMemoryMB());
 			this.deployer.setHardwareId(cloudTemplate.getHardwareId());
@@ -155,7 +155,7 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 
 	private static void logServerDetails(NodeMetadata server, File tempFile) {
 		if (logger.isLoggable(Level.INFO)) {
-			logger.info(nodePrefix(server) + "ESM Server was created.");
+			logger.info(nodePrefix(server) + "Cloud Server was created.");
 			if (tempFile == null) {
 				logger.info(nodePrefix(server) + "Password: ***");
 			} else {
@@ -166,18 +166,7 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 			logger.info(nodePrefix(server) + "Private IP: " + Arrays.toString(server.getPrivateAddresses().toArray()));
 			logger.info(nodePrefix(server) + "Target IP for connection: "
 					+ server.getPrivateAddresses().iterator().next());
-			if (tempFile == null) {
-				logger.info(nodePrefix(server) + "Connect with: ssh -pw "
-						+ server.getCredentials().credential + " root@" + server.getPublicAddresses().toArray()[0]);
-			} else {
 
-				if (server.getPublicAddresses().size() > 0) {
-					logger.info(nodePrefix(server) + "Connect using: ssh -i " + tempFile.getAbsolutePath()
-							+ " " + server.getCredentials().identity + "@" + server.getPublicAddresses().toArray()[0]);
-				} else {
-					logger.info(nodePrefix(server) + "Server's is starting but its public address is not available.");
-				}
-			}
 		}
 	}
 
@@ -275,9 +264,9 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 				md.setRemoteUsername(cloud.getConfiguration().getRemoteUsername());
 			}
 		}
-		
-		
-		// By default, cloud nodes connect to each other using their private address.
+
+		// By default, cloud nodes connect to each other using their private
+		// address.
 		md.setUsePrivateAddress(true);
 		return md;
 	}
@@ -322,7 +311,7 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 		if (credential == null) { // must be using an existing key file or
 									// password
 			logger.info("Cloud did not provide server credentials, checking in cloud configuration file");
-			
+
 			if ((cloud.getUser().getKeyFile() == null) || (cloud.getUser().getKeyFile().length() == 0)) {
 				logger.info("No key file specified in cloud configuration");
 				// no key file. Check for password
