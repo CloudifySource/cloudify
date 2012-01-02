@@ -47,7 +47,7 @@ service {
 
 		"rewrite_remove_external_lb" : { 
 			// expected arguments: expected arguments: name
-			name,port ->
+			name ->
 
 			commands = [
 			
