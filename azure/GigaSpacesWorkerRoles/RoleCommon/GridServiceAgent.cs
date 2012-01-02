@@ -135,6 +135,26 @@ namespace GigaSpaces
             }
         }
 
+        private String ManagementSpaceRole
+        {
+            get
+            {
+                //management space running on management machines
+                return "management";
+            }
+        }
+
+        private long ReservedMemoryOnCurrentRole
+        {
+            get
+            {
+                return GsaMegabytesMemory +
+                       (StartGridServiceManager ?
+                        LusMegabytesMemory + GsmMegabytesMemory + EsmMegabytesMemory :
+                        0);
+            }
+        }
+        
         private IDictionary<String, String> EnvironmentVariables
         {
             get
@@ -188,7 +208,7 @@ namespace GigaSpaces
             }
 
             IpAddress = PortUtils.GetLocalInternalEndpoint();
-
+            
             gsaProcess.WorkingDirectory = new DirectoryInfo(Path.Combine(XapHomeDirectory.FullName, "bin"));
             gsaProcess.Command = "gs-agent.bat";
             if (StartGridServiceManager)
@@ -208,9 +228,10 @@ namespace GigaSpaces
 
             gsaProcess.Run();
             WaitForManagers();
-            
+
             if (StartRestAdmin)
             {
+                DeployManagementSpace();
                 DeployWar("rest", RestAdminWar, PortUtils.XAP_RESTADMIN_PORT, RestAdminMegabytesMemory, RestAdminContextPath);
                 // we can start the proxy only after the rest server is running, since we are using CLI for that
                 if (StartProxy)
@@ -425,11 +446,6 @@ namespace GigaSpaces
             var urlPath = contextPath;
             GSTrace.WriteLine("Deploying " + warFileInfo + " (port = " + port + ", context = " + contextPath + ")");
             // need to reserve memory for all non-Gsc (container) processes running on this machine
-            long reservedMemoryOnThisMachine =
-                GsaMegabytesMemory
-                + LusMegabytesMemory
-                + GsmMegabytesMemory
-                + EsmMegabytesMemory;
             String role = RoleEnvironment.CurrentRoleInstance.Role.Name;
             var context = new Dictionary<String, String>() 
             {
@@ -455,7 +471,7 @@ namespace GigaSpaces
                     .sharedMachineProvisioning(""" + SharedMachineIsolationId + @""" ,
                     new org.openspaces.admin.pu.elastic.config.DiscoveredMachineProvisioningConfigurer()
                     .addGridServiceAgentZone(""" + role + @""")
-                    .reservedMemoryCapacityPerMachine(""" + reservedMemoryOnThisMachine + @"m"")
+                    .reservedMemoryCapacityPerMachine(""" + ReservedMemoryOnCurrentRole + @"m"")
                     .create()
                     )
                     // Eager scale (1 container per machine per PU)
@@ -508,6 +524,48 @@ namespace GigaSpaces
                     Thread.Sleep(10000);
                 }
             }
+        }
+
+        private void DeployManagementSpace()
+        {
+            GSTrace.WriteLine("Waiting for " + NumberOfManagementRoleInstances + " managers");
+
+            GSProcess managersScript = GroovyProcess(
+                @"org.openspaces.admin.Admin admin = new org.openspaces.admin.AdminFactory().useDaemonThreads(true).createAdmin();
+                  org.openspaces.admin.pu.ProcessingUnit pu = admin.getGridServiceManagers().waitForAtLeastOne().deploy(
+                    new org.openspaces.admin.space.ElasticSpaceDeployment(""cloudifyManagementSpace"")
+			        .memoryCapacityPerContainer(""64m"")
+			        .highlyAvailable(true)
+			        .numberOfPartitions(1)
+                    .addContextProperty(""com.gs.application"","""+ManagementApplicationName+@""")
+			        // All PUs on this role share the same machine. Machines
+			        // are identified by zone.
+			        .sharedMachineProvisioning(""" + SharedMachineIsolationId + @""" ,
+                        new org.openspaces.admin.pu.elastic.config.DiscoveredMachineProvisioningConfigurer()
+                        .addGridServiceAgentZone(""" + ManagementSpaceRole + @""")
+                        .reservedMemoryCapacityPerMachine(""" + ReservedMemoryOnCurrentRole + @"m"")
+                        .create()
+                        )
+			        // Eager scale (1 container per machine per PU)
+			        .scale(new org.openspaces.admin.pu.elastic.config.EagerScaleConfigurer()
+			                .atMostOneContainerPerMachine()
+				            .create()));
+
+                while (pu.waitForSpace(10000,java.util.concurrent.TimeUnit.MILLISECONDS) == null || !pu.getSpace().waitFor(2,10000,java.util.concurrent.TimeUnit.MILLISECONDS)) {
+                 System.out.println(""waiting for 2 cloudifyManagementSpace instances"");
+                 };"
+            , true);
+            managersScript.Run();
+
+                // wait until script completes 
+                while (managersScript.IsRunning())
+                {
+                    Thread.Sleep(10000);
+                }
+
+            
+			
+
         }
 
         private class CliExecutionException : Exception {
