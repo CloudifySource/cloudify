@@ -6,7 +6,9 @@ service {
 		binaries "stockAnalyticsFeeder.jar" //can be a folder, or a war file   		
 		sla {
 				highlyAvailable false
-				memoryCapacityPerContainer 128 
+				memoryCapacityPerContainer 128
+				maxMemoryCapacity 128
+				memoryCapacity 128
 			}
 	}
 	
