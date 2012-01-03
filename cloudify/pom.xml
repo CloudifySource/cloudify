@@ -8,7 +8,7 @@
 
 	<properties>
 		<gsVersion>8.0.6</gsVersion>
-		<springVersion>3.0.5.RELEASE</springVersion>
+		<springVersion>3.0.7.RELEASE</springVersion>
 		<junitVersion>4.8.2</junitVersion>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<cloudifyVersion>${project.version}</cloudifyVersion>
