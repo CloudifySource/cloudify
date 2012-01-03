@@ -401,6 +401,10 @@ public class JCloudsDeployer {
 			if ((this.hardwareId != null) && (hardwareId.length() > 0)) {
 				builder.hardwareId(hardwareId);
 			}
+			
+			if ((this.locationId != null) && (locationId.length() > 0)) {
+				builder.locationId(this.locationId);
+			}
 
 			// this is usually a remote call, and may take a while to return.
 			this.template = builder.build();
