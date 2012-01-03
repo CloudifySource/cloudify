@@ -103,7 +103,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		String pollingURL = "processingUnits/Names/" + ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 
 		//The polling will not start until the service processing unit is found.
-		waitForServicePU(applicationName, serviceName, pollingURL, timeoutErrorMessage, PROCESSINGUNIT_LOOKUP_TIMEOUT, TimeUnit.SECONDS);
+		waitForServicePU(applicationName, serviceName, pollingURL, timeoutErrorMessage, PROCESSINGUNIT_LOOKUP_TIMEOUT, timeunit);
 
 		logger.info(MessageFormat.format(messages.getString("deploying_service"),serviceName));
 
