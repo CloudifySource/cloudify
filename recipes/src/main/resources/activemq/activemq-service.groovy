@@ -2,7 +2,7 @@ service {
 
 	name "activemq"
 	type "MESSAGE_BUS"
-	icon "http://www.apache.org/images/feather-small.gif"
+	icon "feather-small.gif"
 
 	lifecycle{
 		init "activemq_install.groovy"

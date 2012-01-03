@@ -2,7 +2,7 @@ service {
 
 	name "hsqldb"
 	type "DATABASE"
-	icon "http://hsqldb.org/images/hypersql_logo.png"
+	icon "hypersql_logo.png"
 
 	lifecycle{
 		init "hsqldb_install.groovy"

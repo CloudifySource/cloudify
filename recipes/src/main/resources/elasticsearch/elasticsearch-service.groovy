@@ -2,7 +2,7 @@ service {
 	
 	name "elasticsearch"
 	type "NOSQL_DB"
-	icon "http://http://profile.ak.fbcdn.net/hprofile-ak-snc4/50334_241854170154_231615_n.jpg"
+	icon "elasticsearch.jpg"
 
 	lifecycle{
 		init "elasticsearch_install.groovy"

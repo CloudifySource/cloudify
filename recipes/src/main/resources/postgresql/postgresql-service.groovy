@@ -2,7 +2,7 @@ service {
 
 	name "postgresql"
 	type "DATABASE"
-	icon "http://www.postgresql.org/files/community/propaganda/32x32_1.gif"
+	icon "postgres.gif"
 
 	lifecycle{
 		init "postgresql_install.groovy"

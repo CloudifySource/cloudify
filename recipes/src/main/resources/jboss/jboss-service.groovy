@@ -3,7 +3,7 @@
 service {
 
 	name "jboss-service"
-	//icon "jboss.jpg"
+	icon "jboss_logo.gif"
 	type "APP_SERVER"
 
 	lifecycle{

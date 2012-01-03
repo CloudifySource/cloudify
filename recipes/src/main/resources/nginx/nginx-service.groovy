@@ -1,7 +1,7 @@
 service {
 
 	name "nginx"
-	icon "http://wiki.nginx.org/local/nginx-logo.png"
+	icon "nginx-logo.png"
 	type "WEB_SERVER"
 
 	lifecycle{

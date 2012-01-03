@@ -1,6 +1,6 @@
 service {
   name "cassandra"
-  icon "http://upload.wikimedia.org/wikipedia/commons/1/1e/Apache-cassandra-icon.png"
+  icon "Apache-cassandra-icon.png"
   numInstances 1
   type "NOSQL_DB"
   lifecycle{

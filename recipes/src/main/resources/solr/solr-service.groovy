@@ -2,7 +2,7 @@ service {
 	
 	name "solr"
 	type "NOSQL_DB"
-	icon "http://lucene.apache.org/solr/images/solr.jpg"
+	icon "solr.jpg"
 
 	lifecycle{
 		init "solr_install.groovy"
