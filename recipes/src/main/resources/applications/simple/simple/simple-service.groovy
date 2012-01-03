@@ -1,6 +1,6 @@
 service {
 	name "simple"
-	icon "icon.png"
+	icon "gigaspaces_logo.gif"
 	type "WEB_SERVER"
 	numInstances 1	
 	lifecycle {

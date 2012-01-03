@@ -1,6 +1,6 @@
 service {
 	
-	icon "icon.png"
+	icon "gigaspaces_logo.gif"
 	name "StockDemo"
 	statelessProcessingUnit {
 		binaries "stockDemo.war" //can be a folder, or a war file   		
