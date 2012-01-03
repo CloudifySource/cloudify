@@ -41,6 +41,7 @@ import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
+import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 import org.openspaces.pu.container.integrated.IntegratedProcessingUnitContainer;
 
@@ -59,6 +60,8 @@ import com.j_spaces.kernel.Environment;
  */
 @Command(scope = "cloudify", name = "test-recipe", description = "tests a recipe")
 public class TestRecipe extends AbstractGSCommand {
+
+	private static final String JAVA_HOME_ENV_VAR_NAME = "JAVA_HOME";
 
 	private static final int EXTERNAL_PROCESS_WATCHDOG_TIMEOUT = 15;
 
@@ -125,15 +128,15 @@ public class TestRecipe extends AbstractGSCommand {
 			// First Package the recipe using the regular packager
 			File packagedRecipe = packageRecipe();
 
-
 			// Then unzip the package in a temp location
 			serviceFolder = createServiceFolder(packagedRecipe);
 			logger.info("Executing service in temporary folder: "
 					+ serviceFolder);
-			
-			//verify that service configuration file contains a lifecycle closure 
+
+			// verify that service configuration file contains a lifecycle
+			// closure
 			isServiceLifecycleNotNull(serviceFolder);
-			
+
 			// Create the classpath environment variable
 			final String classpath = createClasspathString(serviceFolder);
 			logger.fine("Setting Test Processing Unit's Classpath to: "
@@ -149,8 +152,13 @@ public class TestRecipe extends AbstractGSCommand {
 			Map<Object, Object> env = new HashMap<Object, Object>();
 			env.putAll(System.getenv());
 			env.put("CLASSPATH", classpath);
-				
-			
+			if (!env.containsKey(JAVA_HOME_ENV_VAR_NAME)) {
+				String javaHomeDirectory = getJavaHomeDirectory();
+				logger.warning("JAVA_HOME system variables is not set. adding JAVA_HOME with value " + javaHomeDirectory);
+				env.put(JAVA_HOME_ENV_VAR_NAME, javaHomeDirectory);
+				logger.info("JAVA_HOME was successfully set. added JAVA_HOME=" + javaHomeDirectory);
+			}
+
 			// Execute the command
 			int result = executeRecipe(cmdLine, env);
 			if (result != 0) {
@@ -179,32 +187,52 @@ public class TestRecipe extends AbstractGSCommand {
 
 	}
 
-	private void isServiceLifecycleNotNull(File serviceFolder) throws CLIException {
+	private String getJavaHomeDirectory() throws CLIException {
+		try {
+			Sigar sigar = SigarHolder.getSigar();
+			long thisProcessPid = sigar.getPid();
+			// get the java path of the current running process.
+			String javaFilePath = sigar.getProcExe(thisProcessPid).getName();
+			File javaFile = new File(javaFilePath);
+
+			// Locate the java folder.
+			File javaFolder = javaFile.getParentFile().getParentFile();
+			String javaFolderPath = javaFolder.getAbsolutePath();
+			return javaFolderPath;
+		} catch (SigarException e) {
+			throw new CLIException(
+					"Failed to set the 'JAVA_HOME' environment variable.", e);
+		}
+	}
+
+	private void isServiceLifecycleNotNull(File serviceFolder)
+			throws CLIException {
 		Service service;
 		try {
 			File serviceFileDir = new File(serviceFolder, "ext");
-			service = ServiceReader.getServiceFromDirectory(serviceFileDir, CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
-			if (service.getLifecycle() == null){
-				throw new CLIException(getFormattedMessage(
-				"test_recipe_service_lifecycle_missing"));
+			service = ServiceReader.getServiceFromDirectory(serviceFileDir,
+					CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
+			if (service.getLifecycle() == null) {
+				throw new CLIException(
+						getFormattedMessage("test_recipe_service_lifecycle_missing"));
 			}
 		} catch (FileNotFoundException e) {
-			logger.log(Level.SEVERE, "Service configuration file not found " + e.getMessage(), e);
+			logger.log(Level.SEVERE, "Service configuration file not found "
+					+ e.getMessage(), e);
 			throw new CLIException(
-					"Failed to locate service configuration file. " + e.getMessage(), e);
+					"Failed to locate service configuration file. "
+							+ e.getMessage(), e);
 		} catch (PackagingException e) {
 			logger.log(Level.SEVERE, "Packaging failed: " + e.getMessage(), e);
 			e.printStackTrace();
-			throw new CLIException(
-					"Packaging failed: " + e.getMessage(), e);
+			throw new CLIException("Packaging failed: " + e.getMessage(), e);
 		} catch (DSLException e) {
 			logger.log(Level.SEVERE, "DSL Parsing failed: " + e.getMessage(), e);
 			e.printStackTrace();
-			throw new CLIException(
-					"Packaging failed: " + e.getMessage(), e);
+			throw new CLIException("Packaging failed: " + e.getMessage(), e);
 
 		}
-		
+
 	}
 
 	private static class FilteredOutputHandler implements Runnable {
@@ -213,7 +241,8 @@ public class TestRecipe extends AbstractGSCommand {
 		private static final String[] FILTERS = {
 				"com.gigaspaces.cloudify.dsl.internal.BaseServiceScript",
 				"com.gigaspaces.cloudify.usm.launcher.DefaultProcessLauncher",
-				"com.gigaspaces.cloudify.usm.USMEventLogger", "-Output]", "-Error]"
+				"com.gigaspaces.cloudify.usm.USMEventLogger", "-Output]",
+				"-Error]"
 
 		};
 
@@ -270,7 +299,8 @@ public class TestRecipe extends AbstractGSCommand {
 			out = new PipedOutputStream(in);
 			reader = new BufferedReader(new InputStreamReader(in));
 
-			Thread thread = new Thread(new FilteredOutputHandler(reader, this.verbose));
+			Thread thread = new Thread(new FilteredOutputHandler(reader,
+					this.verbose));
 			thread.setDaemon(true);
 			thread.start();
 
@@ -350,7 +380,6 @@ public class TestRecipe extends AbstractGSCommand {
 		for (String param : COMMAND_LINE) {
 			cmdLine.addArgument(param);
 		}
-
 		if (this.serviceFileName != null) {
 			cmdLine.addArgument("-properties");
 			cmdLine.addArgument("embed://"
