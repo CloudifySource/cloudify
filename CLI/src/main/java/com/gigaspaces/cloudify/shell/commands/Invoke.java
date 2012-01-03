@@ -12,6 +12,7 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
+import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
 import com.gigaspaces.cloudify.shell.rest.InvocationResult;
 
 @Command(scope = "cloudify", name = "invoke", description = "invokes a custom command")
@@ -34,8 +35,12 @@ public class Invoke extends AdminAwareCommand {
 	
 	@Override
 	protected Object doExecute() throws Exception {
-		StringBuilder sb = new StringBuilder();
-		sb.append("Invocation results: \n");
+		//Containing all the success invocation messages.
+		StringBuilder invocationSuccessStringBuilder = new StringBuilder();
+		//Containing all the failed invocation messages.
+		StringBuilder invocationFailedStringBuilder = new StringBuilder();
+		invocationSuccessStringBuilder.append("Invocation results: " 
+				+ System.getProperty("line.separator"));
 		
 		String applicationName = this.getCurrentApplicationName();
 		if(applicationName == null) {
@@ -47,7 +52,7 @@ public class Invoke extends AdminAwareCommand {
 			paramsMap = getParamsMap(params);
 		}
 		
-		if (instanceId == null) {
+		if (instanceId == null) {// Invoking command on all of the service's instances.
 			Map<String, com.gigaspaces.cloudify.shell.rest.InvocationResult> result = adminFacade
 					.invokeServiceCommand(applicationName, serviceName, beanName,
 							commandName, paramsMap);
@@ -57,21 +62,51 @@ public class Invoke extends AdminAwareCommand {
 			Collections.sort(valuesList);
 			
 			for (InvocationResult invocationResult : valuesList) {
-
-				sb.append( createInvocationMessage(invocationResult));
-
-				sb.append("\n");
-
+				if (invocationResult.isSuccess()){
+					String successMessage = getFormattedMessage("invocation_success", 
+							invocationResult.getInstanceId(),
+							invocationResult.getInstanceName(),
+							invocationResult.getResult());
+					invocationSuccessStringBuilder.append(successMessage 
+							+ System.getProperty("line.separator"));
+				}else{
+					String failedMessage = getFormattedMessage("invocation_failed", 
+							invocationResult.getInstanceId(),
+							invocationResult.getInstanceName(),
+							invocationResult.getExceptionMessage());
+					invocationFailedStringBuilder.append(failedMessage
+							+ System.getProperty("line.separator"));
+				}
 			}
-		} else {
+		} else {// instanceID specified. invoking command on specific instance. 
 
 			InvocationResult invocationResult = adminFacade
 					.invokeInstanceCommand(applicationName, serviceName, beanName,
 							instanceId, commandName, paramsMap);
-			sb.append( createInvocationMessage(invocationResult));
+			if (invocationResult.isSuccess()){
+				String successMessage = getFormattedMessage("invocation_success", 
+												invocationResult.getInstanceId(),
+												invocationResult.getInstanceName(),
+												invocationResult.getResult());
+				invocationSuccessStringBuilder.append(successMessage 
+						+ System.getProperty("line.separator"));
+			}else{
+				String failedMessage = getFormattedMessage("invocation_failed", 
+												invocationResult.getInstanceId(),
+												invocationResult.getInstanceName(),
+												invocationResult.getExceptionMessage());
+				invocationFailedStringBuilder.append(failedMessage 
+						+ System.getProperty("line.separator"));
+			}
+		}
+		//print the success messages to the screen.
+		logger.info(invocationSuccessStringBuilder.toString());
+		
+		if (invocationFailedStringBuilder.length() != 0){
+			throw new ErrorStatusException("not_all_invocations_completed_successfully", this.serviceName, invocationFailedStringBuilder.toString());
 		}
 		
-		return sb;
+		return getFormattedMessage("all_invocations_completed_successfully");
 	}
 
 	//TODO: look at karaf's MultiValue option
@@ -80,15 +115,4 @@ public class Invoke extends AdminAwareCommand {
 		returnMap.put(CloudifyConstants.INVOCATION_PARAMETERS_KEY, parameters.toString());
 		return returnMap;
 	}
-	
-	private String createInvocationMessage(
-			InvocationResult invocationResult) {
-		if (invocationResult.isSuccess()) {
-			return getFormattedMessage("invocation_success", invocationResult.getInstanceId(), invocationResult.getInstanceName(), invocationResult.getResult());
-		} 
-		return getFormattedMessage("invocation_failed", invocationResult.getInstanceId(), invocationResult.getInstanceName(), invocationResult.getExceptionMessage());
-		
-	}
-
-
 }
