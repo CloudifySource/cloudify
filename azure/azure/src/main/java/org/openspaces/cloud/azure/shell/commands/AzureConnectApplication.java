@@ -12,7 +12,7 @@ import com.gigaspaces.cloudify.shell.AdminFacade;
 import com.gigaspaces.cloudify.shell.Constants;
 import com.gigaspaces.cloudify.shell.commands.AbstractGSCommand;
 import com.gigaspaces.cloudify.shell.commands.CLIException;
-import com.gigaspaces.cloudify.restclient.ErrorStatusException;
+import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
 
 /**
  * @author itaif
