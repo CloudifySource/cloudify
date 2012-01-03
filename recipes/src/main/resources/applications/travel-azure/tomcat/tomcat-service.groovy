@@ -6,9 +6,9 @@ service {
 	lifecycle {
 		init "tomcat_install.groovy"
 		start "tomcat_start.groovy" 	
-		postStart "tomcat_post-start.groovy"		
+		postStart "tomcat_post_start.groovy"		
 		preStop "tomcat_stop.groovy"
-		postStop "tomcat_post-stop.groovy"
+		postStop "tomcat_post_stop.groovy"
 	}
 	
 	customCommands ([
