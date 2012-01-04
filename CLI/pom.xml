@@ -163,7 +163,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<file>target/classes/META-INF/SHELL/branding.properties</file>
+					<file>target/classes/META-INF/shell/branding.properties</file>
 					<replacements>
 						<replacement>
 							<token>cur_version</token>
