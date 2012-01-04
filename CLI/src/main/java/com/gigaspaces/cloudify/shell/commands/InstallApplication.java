@@ -102,7 +102,7 @@ public class InstallApplication extends AdminAwareCommand {
 				String trimmedServiceName = serviceName.trim();
 				Service service = getServiceByName(application, trimmedServiceName);
 				int plannedNumberOfInstances = service.getNumInstances();
-				adminFacade.waitForServiceInstances(trimmedServiceName, applicationName, plannedNumberOfInstances, TIMEOUT_ERROR_MESSAGE, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
+				adminFacade.waitForServiceInstances(trimmedServiceName, applicationName, plannedNumberOfInstances, TIMEOUT_ERROR_MESSAGE, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MINUTES);
 				logger.info(MessageFormat.format(
 						   messages.getString("service_install_ended"), trimmedServiceName));
 			}
