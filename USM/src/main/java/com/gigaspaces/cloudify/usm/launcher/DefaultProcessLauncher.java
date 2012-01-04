@@ -660,7 +660,7 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 				}
 				logger.info("Parameters userd to run the custom command is: " + paramsList.toString());
 				//invoke the command closure.
-				Object result = closure.call(paramsList);
+				Object result = closure.call(paramsList.toArray());
 				return result;
 			} catch (final Exception e) {
 				logger.log(Level.SEVERE, "A closure entry failed to execute: "
