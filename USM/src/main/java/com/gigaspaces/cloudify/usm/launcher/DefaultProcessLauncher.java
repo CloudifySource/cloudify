@@ -448,17 +448,13 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 	}
 
 	private List<String> getCommandLineFromArgument(final Object arg,
-			final File workDir, Map<String, Object> params) {
+			final File workDir, List<String> params) {
 		if (arg instanceof String) {
 			//Split the command into parts
 			List<String> commandLineStringInParts = convertCommandLineStringToParts((String) arg);
 			//Add the custom command parameters as args to the split commands array
-			if (params != null && params.get(CloudifyConstants.INVOCATION_PARAMETERS_KEY) != null){
-				String customParams = params.get(CloudifyConstants.INVOCATION_PARAMETERS_KEY).toString();
-				if (customParams != null){
-					List<String> paramsList = Arrays.asList(customParams.substring(1, customParams.length() - 1).split(", "));
-					commandLineStringInParts.addAll(paramsList);
-				}
+			if (params != null){
+					commandLineStringInParts.addAll(params);
 			}
 			
 			return commandLineStringInParts;
@@ -586,7 +582,7 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 
 	@Override
 	public Process launchProcessAsync(final Object arg, final File workingDir,
-			final int retries, final boolean redirectErrorStream, Map<String, Object> params)
+			final int retries, final boolean redirectErrorStream, List<String> params)
 			throws USMException {
 		return launchAsync(arg, workingDir, retries, redirectErrorStream, null,
 				null, params);
@@ -594,7 +590,7 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 
 	private Process launchAsync(final Object arg, final File workingDir,
 			final int retries, final boolean redirectErrorStream,
-			final File outputFile, final File errorFile, Map<String, Object> params) throws USMException {
+			final File outputFile, final File errorFile, List<String> params) throws USMException {
 		if (arg instanceof Callable<?>) {
 			// in process execution of a closure
 			return launchAsyncFromClosure(arg);
@@ -642,22 +638,12 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 			final int retries, final boolean redirectErrorStream,
 			Map<String, Object> params) throws USMException {
 
+		List<String> paramsList = getParamsListFromMap(params);
 		if (arg instanceof Closure<?>) {
 			// in process execution of a closure
 			final Closure<?> closure = (Closure<?>) arg;
 
 			try {
-				List<String> paramsList = new ArrayList<String>();
-				int index =0;
-				while(true) {
-					String param = (String) params.get(CloudifyConstants.INVOCATION_PARAMETERS_KEY+index);
-					if(param!= null) {
-						paramsList.add(param);
-					} else {
-						break;
-					}
-					index++;
-				}
 				logger.info("Parameters userd to run the custom command is: " + paramsList.toString());
 				//invoke the command closure.
 				Object result = closure.call(paramsList.toArray());
@@ -671,7 +657,7 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 		}
 
 		final Process proc = launchProcessAsync(arg, workingDir, retries,
-				redirectErrorStream, params);
+				redirectErrorStream, paramsList);
 		final BufferedReader reader = new BufferedReader(new InputStreamReader(
 				proc.getInputStream()));
 
@@ -738,6 +724,21 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 
 		return sb.toString();
 
+	}
+
+	private List<String> getParamsListFromMap(Map<String, Object> params) {
+		List<String> paramsList = new ArrayList<String>();
+		int index =0;
+		while(true) {
+			String param = (String) params.get(CloudifyConstants.INVOCATION_PARAMETERS_KEY+index);
+			if(param!= null) {
+				paramsList.add(param);
+			} else {
+				break;
+			}
+			index++;
+		}
+		return paramsList;
 	}
 
 	@Override
