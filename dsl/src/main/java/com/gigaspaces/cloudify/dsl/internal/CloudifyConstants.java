@@ -119,6 +119,7 @@ public class CloudifyConstants {
 	 */
 	public static final String DEFAULT_APPLICATION_NAME = "default";
 	public static final String MANAGEMENT_SPACE_NAME = "cloudifyManagementSpace";
+	public static final String MANAGEMENT_APPLICATION_NAME = "management";
 	public static final String USM_LIB_DIR = "usmlib";
 	// TODO - remove forward slashes
 	public static final String SERVICE_EXTERNAL_FOLDER = "/ext/";
