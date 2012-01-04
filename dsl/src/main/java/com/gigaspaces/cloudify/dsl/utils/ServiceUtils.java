@@ -4,10 +4,11 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
-import java.net.URL;
 import java.net.ServerSocket;
+import java.net.URL;
 import java.util.List;
 
+import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.internal.DSLException;
 
 public class ServiceUtils {
@@ -209,8 +210,20 @@ public class ServiceUtils {
 	// getAbsolutePUName
 	public static String getApplicationServiceName(String absolutePuName,
 			String applicationName) {
-		return absolutePuName.substring(applicationName.length() + 1);
-		// return (applicationName + '.' + serviceName);
+		//Management services do no have the application prefix in their processing unit's name.
+		if (applicationName.equalsIgnoreCase(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)){
+			return absolutePuName;
+		}
+		
+		boolean legitPuNamePrefix = absolutePuName.startsWith(applicationName + ".");
+		if (legitPuNamePrefix){
+			return absolutePuName.substring(applicationName.length() + 1);
+		}
+		logger.severe("Application name " + applicationName 
+					+ " is not contained in the absolute processing unit's name " 
+					+ absolutePuName 
+					+ ". returning absolute pu name");
+		return absolutePuName;
 	}
 
 	public static FullServiceName getFullServiceName(final String puName) {
