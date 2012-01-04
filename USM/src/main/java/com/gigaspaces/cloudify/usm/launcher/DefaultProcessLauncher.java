@@ -648,17 +648,17 @@ public class DefaultProcessLauncher implements ProcessLauncher,
 
 			try {
 				List<String> paramsList = new ArrayList<String>();
-				for (Map.Entry<String, Object> entry : params.entrySet()) {
-					//Expected 2 values in the map. one containing 
-					//the command name and the other containing the custom command's values. 
-					if (entry.getKey().toString().equals(CloudifyConstants.INVOCATION_PARAMETERS_KEY)) {
-						logger.fine("Adding parameter " + entry.getKey()
-								+ " having value of " + entry.getValue().toString());
-						//Convert String representation of the parameters list back into list.
-						paramsList = Arrays.asList(entry.getValue().toString().substring(1, entry.getValue().toString().length() - 1).split(", "));
-						logger.info("parameters have been added " + paramsList.toString());
+				int index =0;
+				while(true) {
+					String param = (String) params.get(CloudifyConstants.INVOCATION_PARAMETERS_KEY+index);
+					if(param!= null) {
+						paramsList.add(param);
+					} else {
+						break;
 					}
+					index++;
 				}
+				logger.info("Parameters userd to run the custom command is: " + paramsList.toString());
 				//invoke the command closure.
 				Object result = closure.call(paramsList);
 				return result;

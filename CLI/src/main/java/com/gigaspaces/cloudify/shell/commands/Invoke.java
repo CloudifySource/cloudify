@@ -111,8 +111,13 @@ public class Invoke extends AdminAwareCommand {
 
 	//TODO: look at karaf's MultiValue option
 	private Map<String, String> getParamsMap(List<String> parameters) {
+		int index = 0;
 		Map<String, String> returnMap = new HashMap<String, String>();
-		returnMap.put(CloudifyConstants.INVOCATION_PARAMETERS_KEY, parameters.toString());
+		for (String param : parameters) {
+			returnMap.put(CloudifyConstants.INVOCATION_PARAMETERS_KEY + index, param);
+			++index;
+		}
+		
 		return returnMap;
 	}
 }
