@@ -50,7 +50,6 @@ import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.internal.DSLException;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
-import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
 import com.gigaspaces.internal.sigar.SigarHolder;
 import com.j_spaces.kernel.Environment;
 
@@ -334,7 +333,7 @@ public class TestRecipe extends AbstractGSCommand {
 
 	private File packageRecipe() throws CLIException {
 		if (!recipeFolder.exists()) {
-			throw new ErrorStatusException("service_file_doesnt_exist",
+			throw new CLIException("service_file_doesnt_exist",
 					recipeFolder.getAbsolutePath(), this.serviceFileName);
 		}
 
@@ -344,7 +343,7 @@ public class TestRecipe extends AbstractGSCommand {
 					|| recipeFolder.getName().endsWith(".jar")) {
 				return recipeFolder;
 			} else {
-				throw new ErrorStatusException("not_jar_or_zip",
+				throw new CLIException("not_jar_or_zip",
 						recipeFolder.getAbsolutePath(), this.serviceFileName);
 			}
 

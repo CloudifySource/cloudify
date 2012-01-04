@@ -6,7 +6,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.gigaspaces.cloudify.shell.commands.CLIException;
-import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
 
 public class ConditionLatch {
 
@@ -43,7 +42,7 @@ public class ConditionLatch {
 		return this;
 	}
 	
-	public void waitFor(Predicate predicate) throws InterruptedException, TimeoutException, CLIException, ErrorStatusException {
+	public void waitFor(Predicate predicate) throws InterruptedException, TimeoutException, CLIException {
 	
 		long end = System.currentTimeMillis() + timeoutMilliseconds;
 	    

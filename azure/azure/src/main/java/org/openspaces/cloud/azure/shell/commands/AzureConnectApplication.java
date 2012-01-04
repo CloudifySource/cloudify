@@ -12,7 +12,6 @@ import com.gigaspaces.cloudify.shell.AdminFacade;
 import com.gigaspaces.cloudify.shell.Constants;
 import com.gigaspaces.cloudify.shell.commands.AbstractGSCommand;
 import com.gigaspaces.cloudify.shell.commands.CLIException;
-import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
 
 /**
  * @author itaif
@@ -44,7 +43,7 @@ public class AzureConnectApplication extends AbstractGSCommand {
 	   AdminFacade adminFacade = (AdminFacade) session.get(Constants.ADMIN_FACADE);
 	    
        if (adminFacade != null && adminFacade.isConnected()) {
-            throw new ErrorStatusException("already_connected");
+            throw new CLIException("already_connected");
        }
 	    
        if (timeoutInMinutes < 0) {

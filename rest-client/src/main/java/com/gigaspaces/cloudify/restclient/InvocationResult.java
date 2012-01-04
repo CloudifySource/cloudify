@@ -1,4 +1,4 @@
-package com.gigaspaces.cloudify.shell.rest;
+package com.gigaspaces.cloudify.restclient;
 
 import java.util.Map;
 
@@ -59,5 +59,4 @@ public class InvocationResult implements Comparable<InvocationResult> {
 		return this.instanceId - o.instanceId;
 	}	
 	
-
 }

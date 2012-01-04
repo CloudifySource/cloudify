@@ -18,7 +18,6 @@ import org.openspaces.core.util.MemoryUnit;
 import com.gigaspaces.cloudify.shell.AdminFacade;
 import com.gigaspaces.cloudify.shell.ConditionLatch;
 import com.gigaspaces.cloudify.shell.commands.CLIException;
-import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
 
 public class ManagementSpaceServiceInstaller extends AbstractManagementServiceInstaller {
 	
@@ -65,7 +64,7 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 	@Override
 	public void waitForInstallation(AdminFacade adminFacade,
 			GridServiceAgent agent, final long timeout, final TimeUnit timeunit)
-			throws ErrorStatusException, InterruptedException,
+			throws InterruptedException,
 			TimeoutException, CLIException {
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
 			

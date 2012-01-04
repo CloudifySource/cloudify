@@ -15,7 +15,6 @@ import org.openspaces.core.util.MemoryUnit;
 import com.gigaspaces.cloudify.shell.AdminFacade;
 import com.gigaspaces.cloudify.shell.ConditionLatch;
 import com.gigaspaces.cloudify.shell.commands.CLIException;
-import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
 
 /**
  * @author eitany
@@ -66,7 +65,7 @@ public abstract class AbstractManagementServiceInstaller {
 	
 	public abstract void waitForInstallation(AdminFacade adminFacade, GridServiceAgent agent,
 			long timeout, 
-			TimeUnit timeunit) throws ErrorStatusException, InterruptedException, TimeoutException, CLIException;
+			TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException;
 	
 	protected GridServiceManager getGridServiceManager() throws CLIException {
 		Iterator<GridServiceManager> it = admin.getGridServiceManagers().iterator();

@@ -23,7 +23,6 @@ import java.util.logging.Logger;
 import org.apache.http.HttpException;
 
 import com.gigaspaces.cloudify.shell.commands.CLIException;
-import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
 
 /**
  * @author rafi
@@ -62,8 +61,7 @@ public abstract class AbstractAdminFacade implements AdminFacade {
             doConnect(user, password, url);
             this.connected = true;
         } else {
-            throw new ErrorStatusException("already_connected");
-
+            throw new CLIException("already_connected", "");
         }
     }
 
@@ -74,15 +72,15 @@ public abstract class AbstractAdminFacade implements AdminFacade {
      *
      * @return
      */
-    public void disconnect() throws ErrorStatusException {
-        connected = false;
-        doDisconnect();
+    public void disconnect() throws CLIException {
+   		connected = false;
+   		doDisconnect();
     }
 
-    public abstract void doDisconnect() throws ErrorStatusException;
+    public abstract void doDisconnect() throws CLIException;
 
 
-    public boolean isConnected() throws ErrorStatusException {
+    public boolean isConnected() throws CLIException {
         return connected;
     }
 

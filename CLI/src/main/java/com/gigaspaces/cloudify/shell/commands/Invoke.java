@@ -12,8 +12,9 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
-import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
-import com.gigaspaces.cloudify.shell.rest.InvocationResult;
+
+import com.gigaspaces.cloudify.restclient.InvocationResult;
+
 
 @Command(scope = "cloudify", name = "invoke", description = "invokes a custom command")
 public class Invoke extends AdminAwareCommand {
@@ -53,7 +54,7 @@ public class Invoke extends AdminAwareCommand {
 		}
 		
 		if (instanceId == null) {// Invoking command on all of the service's instances.
-			Map<String, com.gigaspaces.cloudify.shell.rest.InvocationResult> result = adminFacade
+			Map<String, InvocationResult> result = adminFacade
 					.invokeServiceCommand(applicationName, serviceName, beanName,
 							commandName, paramsMap);
 			
@@ -103,7 +104,7 @@ public class Invoke extends AdminAwareCommand {
 		logger.info(invocationSuccessStringBuilder.toString());
 		
 		if (invocationFailedStringBuilder.length() != 0){
-			throw new ErrorStatusException("not_all_invocations_completed_successfully", this.serviceName, invocationFailedStringBuilder.toString());
+			throw new CLIException("not_all_invocations_completed_successfully", this.serviceName, invocationFailedStringBuilder.toString());
 		}
 		
 		return getFormattedMessage("all_invocations_completed_successfully");

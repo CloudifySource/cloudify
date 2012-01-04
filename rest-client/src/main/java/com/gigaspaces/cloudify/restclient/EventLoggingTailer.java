@@ -1,4 +1,4 @@
-package com.gigaspaces.cloudify.shell.rest;
+package com.gigaspaces.cloudify.restclient;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -10,8 +10,8 @@ import java.util.TreeMap;
 import com.gigaspaces.cloudify.dsl.internal.EventLogConstants;
 
 public class EventLoggingTailer {
-	
-	private Set<String> eventsSet; 
+
+private Set<String> eventsSet; 
 	
 	public EventLoggingTailer(){
 		this.eventsSet = new HashSet<String>();

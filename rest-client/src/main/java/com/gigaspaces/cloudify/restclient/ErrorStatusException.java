@@ -1,13 +1,14 @@
-package com.gigaspaces.cloudify.shell.rest;
+package com.gigaspaces.cloudify.restclient;
 
-import com.gigaspaces.cloudify.shell.commands.CLIException;
+import com.gigaspaces.cloudify.restclient.RestException;
 
 /**
  * @author uri
  */
-public class ErrorStatusException extends CLIException {
+public class ErrorStatusException extends RestException {
 
-    private String reasonCode;
+	private static final long serialVersionUID = -399277091070772297L;
+	private String reasonCode;
     private Object[] args;
 
 

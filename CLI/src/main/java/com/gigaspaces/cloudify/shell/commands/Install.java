@@ -18,7 +18,6 @@ package com.gigaspaces.cloudify.shell.commands;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 
-import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
 
 import java.io.File;
 import java.text.MessageFormat;
@@ -32,7 +31,7 @@ public class Install extends AdminAwareCommand {
     @Override
     protected Object doExecute() throws Exception {
         if (!serviceFile.exists()) {
-            throw new ErrorStatusException("service_file_doesnt_exist", serviceFile.getPath());
+            throw new CLIException("service_file_doesnt_exist", serviceFile.getPath());
         }
         File packedFile;
 

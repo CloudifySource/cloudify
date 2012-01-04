@@ -46,7 +46,6 @@ import com.gigaspaces.cloudify.shell.AdminFacade;
 import com.gigaspaces.cloudify.shell.ConditionLatch;
 import com.gigaspaces.cloudify.shell.ShellUtils;
 import com.gigaspaces.cloudify.shell.commands.CLIException;
-import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
 import com.gigaspaces.grid.gsa.GSA;
 import com.gigaspaces.internal.utils.StringUtils;
 import com.j_spaces.kernel.Environment;
@@ -357,7 +356,7 @@ public class LocalhostGridAgentBootstrapper {
 	private void shutdownAgentAndWait(
 			final GridServiceAgent agent, 
 			long timeout, TimeUnit timeunit) 
-		throws InterruptedException, TimeoutException, CLIException, ErrorStatusException {
+		throws InterruptedException, TimeoutException, CLIException {
 		
 		//We need to shutdown the agent after we close the admin to avoid closed exception since the admin still monitors
 		//the deployment behind the scenes, we call the direct proxy to the gsa since the admin is closed and we don't
@@ -376,7 +375,7 @@ public class LocalhostGridAgentBootstrapper {
 
 			@Override
 			public boolean isDone() throws CLIException,
-					InterruptedException, ErrorStatusException {
+					InterruptedException {
 				logger.info("Waiting for agent to shutdown");
 				
 				try {
@@ -602,7 +601,7 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	private void waitForManagementProcesses(final GridServiceAgent agent, long timeout, TimeUnit timeunit)
-			throws TimeoutException, ErrorStatusException, InterruptedException, CLIException {
+			throws TimeoutException, InterruptedException, CLIException {
 
 		final Admin admin = agent.getAdmin();
 		
@@ -610,7 +609,7 @@ public class LocalhostGridAgentBootstrapper {
 			
 				@Override
 				public boolean isDone() throws CLIException,
-						InterruptedException, ErrorStatusException {
+						InterruptedException {
 
 					boolean isDone = true;
 					
@@ -698,8 +697,7 @@ public class LocalhostGridAgentBootstrapper {
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
 		
 			@Override
-			public boolean isDone() throws CLIException, InterruptedException,
-					ErrorStatusException {
+			public boolean isDone() throws CLIException, InterruptedException {
 				
 				boolean isDone = false;
 				for (GridServiceAgent agent : admin.getGridServiceAgents()) {

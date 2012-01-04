@@ -129,6 +129,12 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
+			<groupId>com.gigaspaces.cloudify</groupId>
+			<artifactId>rest-client</artifactId>
+			<version>${cloudifyVersion}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
 			<version>1.0.3</version>
@@ -144,6 +150,28 @@
 	</dependencies>
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>com.google.code.maven-replacer-plugin</groupId>
+				<artifactId>maven-replacer-plugin</artifactId>
+				<version>1.4.0</version>
+				<executions>
+					<execution>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>replace</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<file>target/classes/META-INF/SHELL/branding.properties</file>
+					<replacements>
+						<replacement>
+							<token>cur_version</token>
+							<value>${project.parent.version}</value>
+						</replacement>
+					</replacements>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>

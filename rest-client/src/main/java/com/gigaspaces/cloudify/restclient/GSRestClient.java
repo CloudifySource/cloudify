@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.gigaspaces.cloudify.shell.rest;
+package com.gigaspaces.cloudify.restclient;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -60,10 +60,6 @@ import org.apache.http.protocol.HTTP;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
-import org.openspaces.pu.service.InvocationResult;
-
-import com.gigaspaces.cloudify.shell.StringUtils;
-import com.gigaspaces.cloudify.shell.commands.CLIException;
 
 /**
  * @author rafi
@@ -91,7 +87,7 @@ public class GSRestClient {
 	private final String urlStr;
 
 	public GSRestClient(final String username, final String password,
-			final URL url) throws CLIException {
+			final URL url) throws RestException {
 
 		this.url = url;
 		this.urlStr = createUrlStr();
@@ -124,21 +120,21 @@ public class GSRestClient {
 	}
 
 	public Map<String, Object> getAdminData(final String relativeUrl)
-	throws CLIException {
+	throws RestException {
 		final String url = getFullUrl("admin/" + relativeUrl);
 		logger.finer("performing http get to url: " + url);
 		final HttpGet httpMethod = new HttpGet(url);
 		return readHttpAdminMethod(httpMethod);
 	}
 
-	public Object get(final String relativeUrl) throws CLIException {
+	public Object get(final String relativeUrl) throws RestException {
 		final String url = getFullUrl(relativeUrl);
 		logger.finer("performing http get to url: " + url);
 		final HttpGet httpMethod = new HttpGet(url);
 		return executeHttpMethod(httpMethod);
 	}
 
-	public Map<String,Object> getAdmin(final String relativeUrl) throws CLIException {
+	public Map<String,Object> getAdmin(final String relativeUrl) throws RestException {
 		final String url = getFullUrl(ADMIN_REFLECTION_URL + relativeUrl);
 		logger.finer("performing http get to url: " + url);
 		final HttpGet httpMethod = new HttpGet(url);
@@ -147,7 +143,7 @@ public class GSRestClient {
 			final HttpResponse response = httpClient.execute(httpMethod);
 			if (response.getStatusLine().getStatusCode() != HTTP_STATUS_OK) {
 				logger.log(Level.FINE, httpMethod.getURI() + " response code " + response.getStatusLine().getStatusCode());
-				throw new CLIException(response.getStatusLine().toString());
+				throw new RestException(response.getStatusLine().toString());
 			}
 			final HttpEntity entity = response.getEntity();
 			if (entity == null) {
@@ -244,7 +240,7 @@ public class GSRestClient {
 	}
 
 	private Map<String, Object> readHttpAdminMethod(
-			final HttpRequestBase httpMethod) throws CLIException {
+			final HttpRequestBase httpMethod) throws RestException {
 		InputStream instream = null;
 		try {
 			final HttpResponse response = httpClient.execute(httpMethod);
@@ -253,7 +249,7 @@ public class GSRestClient {
 				if (logger.isLoggable(Level.FINE)) {
 					logger.log(Level.FINE, message);
 				}
-				throw new CLIException(message);
+				throw new RestException(message);
 			}
 			final HttpEntity entity = response.getEntity();
 			if (entity == null) {
@@ -294,12 +290,12 @@ public class GSRestClient {
 		return urlStr + relativeUrl;
 	}
 
-	public void delete(final String relativeUrl) throws CLIException {
+	public void delete(final String relativeUrl) throws RestException {
 		delete(relativeUrl, null);
 	}
 
 	public void delete(final String relativeUrl,
-			final Map<String, String> params) throws CLIException {
+			final Map<String, String> params) throws RestException {
 		final HttpDelete httpdelete = new HttpDelete(getFullUrl(relativeUrl));
 		if (params != null) {
 			for (final Map.Entry<String, String> entry : params.entrySet()) {
@@ -310,12 +306,12 @@ public class GSRestClient {
 		executeHttpMethod(httpdelete);
 	}
 
-	public Object post(final String relativeUrl) throws CLIException {
+	public Object post(final String relativeUrl) throws RestException {
 		return post(relativeUrl, null);
 	}
 
 	public Object post(final String relativeUrl,
-			final Map<String, String> params) throws CLIException {
+			final Map<String, String> params) throws RestException {
 		final HttpPost httppost = new HttpPost(getFullUrl(relativeUrl));
 		if (params != null) {
 			HttpEntity entity;
@@ -325,19 +321,19 @@ public class GSRestClient {
 				httppost.setEntity(entity);
 				httppost.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 			} catch (final IOException e) {
-				throw new CLIException(e);
+				throw new RestException(e);
 			}
 		}
 		return executeHttpMethod(httppost);
 	}
 
 	public String postFile(final String relativeUrl, final File file)
-	throws CLIException {
+	throws RestException {
 		return postFile(relativeUrl, file, null);
 	}
 
 	public String postFile(final String relativeUrl, final File file,
-			final Properties params) throws CLIException {
+			final Properties params) throws RestException {
 
 		// It should be possible to dump the properties into a String entity,
 		// but I can't get it to work. So using a temp file instead.
@@ -348,7 +344,7 @@ public class GSRestClient {
 		try {
 			tempFile = writeMapToFile(params);
 		} catch (final IOException e) {
-			throw new CLIException(e);
+			throw new RestException(e);
 		}
 
 		final MultipartEntity reqEntity = new MultipartEntity();
@@ -391,13 +387,13 @@ public class GSRestClient {
 		return tempFile;
 	}
 
-	public DefaultHttpClient getSSLHttpClient() throws CLIException {
+	public DefaultHttpClient getSSLHttpClient() throws RestException {
 		try {
 			final KeyStore trustStore = KeyStore.getInstance(KeyStore
 					.getDefaultType());
 			trustStore.load(null, null);
 
-			final SSLSocketFactory sf = new MySSLSocketFactory(trustStore);
+			final SSLSocketFactory sf = new RestSSLSocketFactory(trustStore);
 			sf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
 			final HttpParams params = new BasicHttpParams();
@@ -412,17 +408,17 @@ public class GSRestClient {
 
 			return new DefaultHttpClient(ccm, params);
 		} catch (KeyStoreException e) {
-			throw new CLIException(e);
+			throw new RestException(e);
 		} catch (NoSuchAlgorithmException e) {
-			throw new CLIException(e);
+			throw new RestException(e);
 		} catch (CertificateException e) {
-			throw new CLIException(e);
+			throw new RestException(e);
 		} catch (IOException e) {
-			throw new CLIException(e);
+			throw new RestException(e);
 		} catch (KeyManagementException e) {
-			throw new CLIException(e);
+			throw new RestException(e);
 		} catch (UnrecoverableKeyException e) {
-			throw new CLIException(e);
+			throw new RestException(e);
 		}
 	}
 

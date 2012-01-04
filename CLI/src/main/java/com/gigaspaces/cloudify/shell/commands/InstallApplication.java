@@ -32,7 +32,6 @@ import com.gigaspaces.cloudify.dsl.internal.packaging.Packager;
 import com.gigaspaces.cloudify.shell.Constants;
 import com.gigaspaces.cloudify.shell.GigaShellMain;
 import com.gigaspaces.cloudify.shell.ShellUtils;
-import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
 
 @Command(scope = "cloudify", name = "install-application", description = "Installs an application. If you specify a folder path it will be packed and deployed. If you sepcify an application archive, the shell will deploy that file.")
 public class InstallApplication extends AdminAwareCommand {
@@ -54,7 +53,7 @@ public class InstallApplication extends AdminAwareCommand {
 	@Override
 	protected Object doExecute() throws Exception {
 		if (!applicationFile.exists()) {
-			throw new ErrorStatusException("application_not_found", applicationFile.getAbsolutePath());
+			throw new CLIException("application_not_found", applicationFile.getAbsolutePath());
 		}
 
 		long end = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(timeoutInMinutes);
@@ -65,7 +64,7 @@ public class InstallApplication extends AdminAwareCommand {
 		normalizeApplicationName(application);
 		
 		if (adminFacade.getApplicationsList().contains(applicationName)){
-			throw new ErrorStatusException("application_already_deployed", application.getName());
+			throw new CLIException("application_already_deployed", application.getName());
 		}
 
 		File zipFile = null;
@@ -76,7 +75,7 @@ public class InstallApplication extends AdminAwareCommand {
 					|| (applicationFile.getName().endsWith(".jar"))) {
 				zipFile = applicationFile;
 			} else {
-				throw new ErrorStatusException(
+				throw new CLIException(
 						"application_file_format_mismatch",
 						applicationFile.getPath());
 			}

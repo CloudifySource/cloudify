@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import com.gigaspaces.cloudify.shell.commands.CLIException;
-import com.gigaspaces.cloudify.shell.rest.InvocationResult;
+import com.gigaspaces.cloudify.restclient.InvocationResult;
 
 
 /**
@@ -38,11 +38,11 @@ public interface AdminFacade {
 
     String installApplication(File applicationFile,String applicationName) throws CLIException;
 
-    void installElastic(File file,String applicationName, String serviceName, String zone, Properties props, final String templateName) throws CLIException;
+    String installElastic(File file,String applicationName, String serviceName, String zone, Properties props, final String templateName) throws CLIException;
     
-    void startService(String applicationName, File service) throws CLIException;
+    String startService(String applicationName, File service) throws CLIException;
 
-    void connect(String user, String password, String url) throws CLIException, CLIException;
+    void connect(String user, String password, String url) throws CLIException;
 
     void disconnect() throws CLIException;
 
@@ -62,7 +62,7 @@ public interface AdminFacade {
 
     Map<String, Object> getInstanceList(String applicationName, String serviceName) throws CLIException;
     
-    Map<String, com.gigaspaces.cloudify.shell.rest.InvocationResult> invokeServiceCommand(String applicationName, String serviceName, String beanName, String commandName, Map<String, String> paramsMap) throws CLIException;
+    Map<String, InvocationResult> invokeServiceCommand(String applicationName, String serviceName, String beanName, String commandName, Map<String, String> paramsMap) throws CLIException;
     
     InvocationResult invokeInstanceCommand(String applicationName, String serviceName, String beanName, int instanceId, String commandName, Map<String, String> paramsMap) throws CLIException;
 

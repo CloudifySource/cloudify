@@ -31,7 +31,6 @@ import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 import com.gigaspaces.cloudify.dsl.internal.packaging.Packager;
 import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
-import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
 
 
 @Command(scope = "cloudify", name = "install-service", description = "Installs a service. If you specify a folder path it will be packed and deployed. If you sepcify a service archive, the shell will deploy that file.")
@@ -54,7 +53,7 @@ public class InstallService extends AdminAwareCommand {
 	@Override
 	protected Object doExecute() throws Exception {
 		if (!serviceFile.exists()) {
-			throw new ErrorStatusException("service_file_doesnt_exist",
+			throw new CLIException("service_file_doesnt_exist",
 					serviceFile.getPath());
 		}
 		

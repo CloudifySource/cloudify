@@ -32,7 +32,6 @@ import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.shell.AdminFacade;
 import com.gigaspaces.cloudify.shell.Constants;
 import com.gigaspaces.cloudify.shell.ShellUtils;
-import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
 
 /**
  * @author rafi
@@ -61,25 +60,28 @@ public abstract class AbstractGSCommand implements Action {
 				adminFacade = (AdminFacade) session.get(Constants.ADMIN_FACADE);
 
 				if (!adminFacade.isConnected()) {
-				    throw new ErrorStatusException("not_connected");
+				    throw new CLIException("not_connected");
 				}
 			}
 			Object result = doExecute();
 			return result;
 		
-		} catch (ErrorStatusException e) {
-			if (verbose) {
-				logger.log(Level.WARNING, getFormattedMessageFromErrorStatusException(e), e);
-			}
-			else {
-				logger.log(Level.WARNING, getFormattedMessageFromErrorStatusException(e));
-			}
-		    raiseCloseShellExceptionIfNonInteractive(session, e);
 		} catch (CLIException e) {
-			if (!verbose) {
-				e.setStackTrace(new StackTraceElement[] {});
+			//if exception contains reason code - use it
+			if (e.getReasonCode() != null && e.getReasonCode().trim().length() > 0) {
+				if (verbose) {
+					logger.log(Level.WARNING, getFormattedMessageFromErrorStatusException(e), e);
+				}
+				else {
+					logger.log(Level.WARNING, getFormattedMessageFromErrorStatusException(e));
+				}
+			} else {
+				if (!verbose) {
+					e.setStackTrace(new StackTraceElement[] {});
+				}
+				logger.log(Level.WARNING, "",e);				
 			}
-			logger.log(Level.WARNING, "",e);
+			
 			raiseCloseShellExceptionIfNonInteractive(session, e);
 		} catch (Throwable e) {
 			logger.log(Level.SEVERE, "", e);
@@ -88,7 +90,7 @@ public abstract class AbstractGSCommand implements Action {
 		return getFormattedMessage("op_failed", Color.RED, "");
 	}
 
-	private String getFormattedMessageFromErrorStatusException(ErrorStatusException e) {
+	private String getFormattedMessageFromErrorStatusException(CLIException e) {
 		String message = getFormattedMessage(e.getReasonCode(),(Object[]) null);
 		if (message == null) {
 			message = e.getReasonCode();

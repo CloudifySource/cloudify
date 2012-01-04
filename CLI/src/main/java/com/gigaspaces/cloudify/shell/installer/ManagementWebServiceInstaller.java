@@ -27,7 +27,7 @@ import org.openspaces.pu.service.ServiceDetails;
 import com.gigaspaces.cloudify.shell.AdminFacade;
 import com.gigaspaces.cloudify.shell.ConditionLatch;
 import com.gigaspaces.cloudify.shell.commands.CLIException;
-import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
+import com.gigaspaces.cloudify.restclient.ErrorStatusException;
 import com.j_spaces.kernel.Environment;
 
 public class ManagementWebServiceInstaller extends AbstractManagementServiceInstaller {
@@ -76,7 +76,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	
 	@Override
 	public void waitForInstallation(AdminFacade adminFacade, GridServiceAgent agent, long timeout,
-			TimeUnit timeunit) throws ErrorStatusException, InterruptedException, TimeoutException, CLIException {
+			TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException {
 		long startTime = System.currentTimeMillis();
 		URL url = waitForProcessingUnitInstance(agent, timeout, timeunit);
 		long remainingTime = timeunit.toMillis(timeout) - (System.currentTimeMillis() - startTime);
@@ -93,7 +93,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 			final long timeout, 
 			final TimeUnit timeunit)
 	
-			throws InterruptedException, TimeoutException, CLIException,ErrorStatusException {
+			throws InterruptedException, TimeoutException, CLIException {
 		
 		createConditionLatch(timeout,timeunit).waitFor( new ConditionLatch.Predicate() {
 			
@@ -130,7 +130,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	            try {
 	                adminFacade.connect(null, null, url.toString());
 	                return true;
-	            } catch (ErrorStatusException e) {
+	            } catch (CLIException e) {
 	                if (verbose) {
 	                	logger.log(Level.INFO,"Error connecting to web service [" + serviceName + "].",e);
 	                }
@@ -165,8 +165,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
 			
 			@Override
-			public boolean isDone() throws CLIException, InterruptedException,
-					ErrorStatusException {
+			public boolean isDone() throws CLIException, InterruptedException {
 
 				boolean isDone = true;
 				if (0 == admin.getGridServiceManagers().getSize()) {

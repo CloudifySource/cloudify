@@ -36,7 +36,7 @@ import org.apache.felix.service.command.CommandSession;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.Ansi.Color;
 
-import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
+import com.gigaspaces.cloudify.shell.commands.CLIException;
 import com.j_spaces.kernel.Environment;
 
 /**
@@ -84,11 +84,11 @@ public class ShellUtils {
     }
 
     public static ComponentType componentTypeFromLowerCaseComponentName(
-            final String lowerCaseComponentName) throws ErrorStatusException {
+            final String lowerCaseComponentName) throws CLIException {
         try {
             return ComponentType.valueOf(lowerCaseComponentName.toUpperCase());
         } catch (final IllegalArgumentException e) {
-            throw new ErrorStatusException("unknown_component_type",
+            throw new CLIException("unknown_component_type",
                     lowerCaseComponentName);
         }
     }
