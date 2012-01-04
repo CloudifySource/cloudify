@@ -4,18 +4,19 @@
 <!-- TODO - Pick up CLOUDIFY_LATEST variable instead of using hard coded value			  -->
 <!-- Author: Barak Merimovich 															  -->
 
-<project name="copy-jars-to-cloudify" default="dist" basedir=".">
+<project name="copy-jars-to-cloudify" default="Copy Cloudify jars to install dir" basedir=".">
 
 	<property name="target.dir" value="D:/Gigaspaces/gigaspaces-cloudify-2.0.0-rc2" />
 
 
-	<target name="dist" depends="">
+	<target name="Copy Cloudify jars to install dir" depends="">
 		<echo message="Copying Cloudify jar files to ${target.dir}" />
 		<copy todir="${target.dir}/lib/platform/usm" file="../USM/target/usm.jar" />
 		<copy todir="${target.dir}/tools/cli" file="../CLI/target/cli.jar" />
 		<copy todir="${target.dir}/tools/rest" file="../restful/target/rest.war" />
 		<copy todir="${target.dir}/lib/required" file="../dsl/target/dsl.jar" />
 		<copy todir="${target.dir}/lib/platform/esm" file="../esc/target/esc.jar" />
+		<delete file="${target.dir}/lib/platform/esm/esc-2.0.0.jar" />
 		<copy todir="${target.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
 	</target>
 	
@@ -30,7 +31,7 @@
 			<fileset dir="${target.dir}/logs" includes="**/*"  />
 		</delete>
 		<echo message="Creating new zip file" />
-		<zip destfile="${target.dir}/../gigaspaces.zip" basedir="${target.dir}/.." includes="gigaspaces-cloudify-2.0.0-rc2/**/*" />
+		<zip destfile="${target.dir}/../gigaspaces.zip" basedir="${target.dir}/.." includes="gigaspaces-cloudify-2.0.0-rc2/**/*" excludes="gigaspaces-cloudify-2.0.0-rc2/tools/cli/plugins/esc/ec2/**/*" />
 		<echo message="Created ${target.dir}/../gigaspaces.zip" />
 
 
