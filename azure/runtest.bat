@@ -86,12 +86,12 @@ REM FOR TESTING
 REM 7za -y x WorkerRoles.zip
 REM xcopy /y /s /e /i WorkerRoles gigaspaces\tools\cli\plugins\azure\WorkerRoles
 REM rmdir /s /q WorkerRoles
-REM cd ../../
+REM cd ..\..\
 REM call copy.bat
-REM cd azure
+REM cd azure\localworkingdir
 REM END OF FOR TESTING
 
-pushd ..\cloudify
+pushd ..\..\cloudify
 call mvn -DskipTests=true clean install
 popd
 
