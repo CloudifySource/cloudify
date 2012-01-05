@@ -91,11 +91,11 @@ REM call copy.bat
 REM cd azure\localworkingdir
 REM END OF FOR TESTING
 
-pushd ..\..\cloudify
+pushd l:\cloudify
 call mvn -DskipTests=true clean install
 popd
 
-cd azure
+pushd l:\azure\azure
 
 call mvn -DskipTests=false -Dsurefire.useFile=false -Dlocal.working.dir=%LOCAL_WORKING_DIR% test
 REM call mvn -Dtest.debug.mode=true -Dmaven.surefire.debug="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000 -Xnoagent -Djava.compiler=NONE" -DskipTests=false -DuseFile=false -Dlocal.working.dir=%LOCAL_WORKING_DIR% test
@@ -106,7 +106,7 @@ goto :end
 set EXIT_CODE=1
 :end
 
-cd .. 
+popd
 
 c:
 subst /D L:
