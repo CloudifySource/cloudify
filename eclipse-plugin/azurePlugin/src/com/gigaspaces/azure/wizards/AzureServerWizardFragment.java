@@ -65,6 +65,11 @@ public class AzureServerWizardFragment extends WizardFragment {
 	
 	@Override
 	public void performFinish(IProgressMonitor monitor) throws CoreException {
+		if(composite == null)
+		{
+			AzureServerWizardProperties.setDefaults();
+			return;
+		}
 		AzureServerWizardProperties.setJreLocation(composite.getJreLocation());
 		AzureServerWizardProperties.setWebServerLocation(composite.getWebServerLocation());
 		AzureServerWizardProperties.setWebServerPort(composite.getWebServerPort());

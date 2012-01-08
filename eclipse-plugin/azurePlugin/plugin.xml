@@ -1,54 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-
-	<!--extension
-		point="org.eclipse.wst.server.core.runtimeTypes">
-		<runtimeType
-			id="com.gigaspaces.azure.runtime"
-			name="Windows Azure Runtime" description="Windows Azure Runtime"
-			vendor="Microsoft" version="1.0"
-			class="org.eclipse.jst.server.generic.core.internal.GenericServerRuntime">
-			<moduleType types="jst.web" versions="2.2, 2.3, 2.4, 2.5, 3.0" />
-		</runtimeType>
-	</extension>
-
-	<extension
-		point="org.eclipse.wst.server.core.serverTypes">
-		<serverType 
-			id="com.gigaspaces.azure.server"
-			runtime="true"
-			runtimeTypeId="com.gigaspaces.azure.runtime"
-			name="Windows Azure"
-			description="Windows Azure Server"
-			class="org.eclipse.jst.server.generic.core.internal.GenericServer"
-			hasConfiguration="false"
-			initialState="stopped"			
-			launchConfigId="org.eclipse.jst.server.generic.core.ExternalLaunchConfigurationType"
-      		behaviourClass="org.eclipse.jst.server.generic.core.internal.ExternalServerBehaviour"						
-			launchModes="run,debug"
-			startBeforePublish="true"
-			startTimeout="1200000"
-			stopTimeout="150000"
-			supportsRemoteHosts="true"/>
-	</extension>			
-
-	<extension point="org.eclipse.jst.server.core.runtimeClasspathProviders">
-    	<runtimeClasspathProvider
-	        id="com.gigaspaces.azure.runtimeClasspathProvider"
-	        runtimeTypeIds="com.gigaspaces.azure.runtime"
-	        class="org.eclipse.jst.server.generic.core.internal.GenericServerRuntimeTargetHandler"/>
-    </extension>
-    
-     <extension
-       point="org.eclipse.wst.server.ui.wizardFragments">
-    <fragment id="org.eclipse.jst.server.generic.runtime"
-      typeIds="com.gigaspaces.azure.runtime"
-      class="org.eclipse.jst.server.generic.ui.internal.GenericServerRuntimeWizardFragment" />
-    <fragment id="org.eclipse.jst.server.generic.server"
-      typeIds="com.gigaspaces.azure.server"
-      class="com.gigaspaces.azure.wizards.AzureServerWizardFragment" />
-    </extension-->
  
   <extension point="org.eclipse.wst.server.core.serverTypes">
      <serverType 
@@ -60,7 +12,9 @@
        startTimeout="600000"
        stopTimeout="150000"
        initialState="stopped"
+       startBeforePublish="false"
        hasConfiguration="true"
+       launchModes="run, debug, profile"
        launchConfigId="com.gigaspaces.azure.core.launchConfigurationTypeId"
        runtimeTypeId="com.gigaspaces.azure.core.runtimeTypeId"
        class="com.gigaspaces.azure.server.AzureServer"
@@ -68,7 +22,24 @@
      </serverType>
   </extension>
 
-   <extension point="org.eclipse.wst.server.core.runtimeTypes">
+<extension
+		point="org.eclipse.wst.server.core.runtimeTypes">
+		<runtimeType
+			id="com.gigaspaces.azure.core.runtimeTypeId"
+			name="Windows Azure" description="Windows Azure"
+			vendor="Microsoft" version="1.0"
+			class="org.eclipse.jst.server.generic.core.internal.GenericServerRuntime">
+			<moduleType types="jst.web" versions="2.2, 2.3, 2.4, 2.5, 3.0" />
+		</runtimeType>
+	</extension>
+	
+	<extension
+		point="org.eclipse.jst.server.generic.core.serverdefinition">
+		<serverdefinition
+			id="com.gigaspaces.azure.core.runtimeTypeId"
+			definitionfile="server/server-definition.xml" />         
+	</extension>
+   <!--extension point="org.eclipse.wst.server.core.runtimeTypes">
     <runtimeType
        id="com.gigaspaces.azure.core.runtimeTypeId"
        name="AzureServerRuntime"
@@ -76,14 +47,10 @@
        vendor="Gigaspaces"
        version="1.0"
        class="com.gigaspaces.azure.server.AzureRuntime">
-  
-        <moduleType types="jst.web" versions="2.2, 2.3, 2.4, 2.5, 3.0" />
-       <moduleType
-         types="jst.utility"
-         versions="1.0"/>
+       <moduleType types="jst.web" versions="2.2, 2.3, 2.4, 2.5, 3.0" />
     </runtimeType>
-  </extension>
-  
+  </extension-->
+
   <extension point="org.eclipse.debug.core.launchConfigurationTypes">
      <launchConfigurationType
         id="com.gigaspaces.azure.core.launchConfigurationTypeId"
@@ -93,7 +60,7 @@
         sourceLocatorId="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"
         sourcePathComputerId="org.eclipse.jst.server.tomcat.core.sourcePathComputer"/>
   </extension>
-
+  
   <extension point="org.eclipse.wst.server.ui.serverImages">
 	 <image icon="/icons/azure.gif"
 	    	id="org.eclipse.jst.server.generic.image"
@@ -134,5 +101,13 @@
 	      typeIds="com.gigaspaces.azure.core.serverType"
 	      class="com.gigaspaces.azure.wizards.AzureServerWizardFragment" />
     </extension>
+ <extension
+       point="org.eclipse.jst.server.generic.core.genericpublisher">
+    <genericpublisher
+          class="com.gigaspaces.azure.server.AzureAntPublisher"
+          id="org.eclipse.jst.server.generic.antpublisher">
+    </genericpublisher>
+ </extension>
+
 			
 </plugin>

@@ -60,7 +60,7 @@ public class AzureServerWizardComposite extends Composite {
         topComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
         
         // Paths
-        final Text jreLocationText = SWTUtil.createLabeledPath("JRE to use with Windows Azure location:", "", topComposite);
+        final Text jreLocationText = SWTUtil.createLabeledPath("JDK location:", "<default>", topComposite);
         jreLocationText.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent event) {
@@ -68,7 +68,7 @@ public class AzureServerWizardComposite extends Composite {
 			}
         });
         
-        final Text webServerLocationText = SWTUtil.createLabeledPath("Web server zip location:", "", topComposite);
+        final Text webServerLocationText = SWTUtil.createLabeledPath("Web server location:", "<default>", topComposite);
         webServerLocationText.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent event) {
@@ -77,7 +77,7 @@ public class AzureServerWizardComposite extends Composite {
         });
         
         // Web server port
-        final Text webServerPortText = SWTUtil.createLabeledText("Web server port to use:", "8080", topComposite);
+        final Text webServerPortText = SWTUtil.createLabeledText("Web server port:", "8080", topComposite);
         webServerPortText.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent event) {
