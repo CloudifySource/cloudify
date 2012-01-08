@@ -2,7 +2,7 @@
   <j_spaces>
         <kernel>
         	<!-- can also be set via system property using -Dcom.gs.licensekey -->
-            <licensekey>Jan 26, 2012~GigaSpaces-eval@aXMPNPOMOmBdSPVXFlNQ#PREMIUM^8.0Cloudify%UNBOUND+UNLIMITED//WAN//EMT</licensekey>
+            <licensekey>Apr 7, 2012~GigaSpaces-Eval@QO5DZHYASVWSONJOHqzS#PREMIUM^8.0Cloudify%UNBOUND+UNLIMITED//WAN//EMT</licensekey>
        </kernel>
   </j_spaces>
 </com>
