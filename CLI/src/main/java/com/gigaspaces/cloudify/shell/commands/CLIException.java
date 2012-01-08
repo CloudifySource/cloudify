@@ -1,6 +1,12 @@
 package com.gigaspaces.cloudify.shell.commands;
 
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
+
+import org.apache.commons.lang.StringUtils;
+
 import com.gigaspaces.cloudify.restclient.ErrorStatusException;
+import com.gigaspaces.cloudify.shell.ShellUtils;
 
 public class CLIException extends Exception {
 
@@ -13,6 +19,17 @@ public class CLIException extends Exception {
 
 	public CLIException(String message) {
 		super(message);
+		//check if the message is in the messages bundle (i.e. it's a reason code)
+		try{ 
+			if (StringUtils.isNotBlank(message)) {
+				ResourceBundle messages = ShellUtils.getMessageBundle();
+				String messageFromBundle = messages.getString(message);
+				if (StringUtils.isNotBlank(messageFromBundle))
+					this.reasonCode = message;
+			}
+		} catch (MissingResourceException mre) {
+			// the message is not in a resource bundle - that's OK
+		}
 
 	}
 
