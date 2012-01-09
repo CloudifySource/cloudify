@@ -47,6 +47,7 @@ import com.gigaspaces.cloudify.shell.ConditionLatch;
 import com.gigaspaces.cloudify.shell.ShellUtils;
 import com.gigaspaces.cloudify.shell.commands.CLIException;
 import com.gigaspaces.grid.gsa.GSA;
+import com.gigaspaces.internal.client.spaceproxy.ISpaceProxy;
 import com.gigaspaces.internal.utils.StringUtils;
 import com.j_spaces.kernel.Environment;
 
@@ -524,6 +525,10 @@ public class LocalhostGridAgentBootstrapper {
 						
 						CloudConfigurationHolder holder = new CloudConfigurationHolder(getCloudContents());
 						gigaspace.write(holder);
+						// Shut down the space proxy so that if the cloud is torn down later, there will not be any discovery errors.
+						// Note: in a spring environment, the bean shutdown would clean this up.
+						// TODO - this is a hack. Move the space writing part into the management space installer and do the clean up there.
+						((ISpaceProxy) gigaspace.getSpace()).close();
 					}
 				}
 				
