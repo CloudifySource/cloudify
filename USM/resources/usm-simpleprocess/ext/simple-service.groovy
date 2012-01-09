@@ -1,4 +1,3 @@
-import framework.utils.usm.StringWrapper
 
 service {
 	name "kitchensink-service"
@@ -6,7 +5,7 @@ service {
 
 	lifecycle{
 		// DO NOT CHANGE THE PRINTOUTS - SGTEST LOOKS FOR THEM!
-		init { println "init fired ${var1}" }
+		init { println "init fired " + context }
 		preInstall{ println "preInstall fired ${var2}"}
 		postInstall{ println "postInstall fired " + var1 }
 		preStart{ println "preStart fired " + var2 }
@@ -29,10 +28,15 @@ service {
 
 		details(["stam":{"HA HA HAAAAAAAAAAAAAAAAAAA"},
 			"SomeKey":{"22222222222222222222222222"}])
-		monitors (["NumberTwo":{return 2},
-			"NumberOne":{return "1"}])
+		monitors (["NumberTwo":{println context
+			return 2},
+			"NumberOne":{println context
+				return "1"}])
 
-		startDetection {ServiceUtils.isPortsOccupied([7777])}
+		startDetection {
+			println context
+			 ServiceUtils.isPortsOccupied([7777])
+		}
 	}
 
 
