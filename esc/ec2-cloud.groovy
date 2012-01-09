@@ -4,7 +4,7 @@ cloud {
 	configuration {
 		className "com.gigaspaces.cloudify.esc.driver.provisioning.jclouds.DefaultCloudProvisioning"
 		managementMachineTemplate "SMALL_LINUX_32"
-		connectToPrivateIp false
+		connectToPrivateIp true
 	}
 
 	provider {
