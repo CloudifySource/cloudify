@@ -1,4 +1,4 @@
-package com.gigaspaces.cloudify.rest;
+package org.cloudifysource.rest;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -6,14 +6,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.cloudifysource.esc.esm.CloudDSLToCloudMachineProvisioningConfig;
+import org.cloudifysource.esc.esm.CloudMachineProvisioningConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.BlockJUnit4ClassRunner;
 
 import com.gigaspaces.cloudify.dsl.Cloud;
-import com.gigaspaces.cloudify.esc.esm.CloudDSLToCloudMachineProvisioningConfig;
-import com.gigaspaces.cloudify.esc.esm.CloudMachineProvisioningConfig;
 import com.gigaspaces.internal.utils.Assert;
 
 @RunWith(BlockJUnit4ClassRunner.class)
