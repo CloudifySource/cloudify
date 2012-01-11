@@ -2,7 +2,9 @@ package org.cloudifysource.restclient;
 
 import java.util.Map;
 
-import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
+
+
 
 /**
  * This is a POJO holding command execution and result details, as returned from

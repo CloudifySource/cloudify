@@ -7,7 +7,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import com.gigaspaces.cloudify.dsl.internal.EventLogConstants;
+import org.cloudifysource.dsl.internal.EventLogConstants;
+
 
 /**
  * This class formats event lines as messages ready for print.
