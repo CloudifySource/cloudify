@@ -7,8 +7,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 
-import com.gigaspaces.cloudify.dsl.Plugin;
-import com.gigaspaces.cloudify.dsl.context.ServiceContext;
+import org.cloudifysource.dsl.Plugin;
+import org.cloudifysource.dsl.context.ServiceContext;
+
 
 
 public abstract class AbstractJmxPlugin implements Plugin{

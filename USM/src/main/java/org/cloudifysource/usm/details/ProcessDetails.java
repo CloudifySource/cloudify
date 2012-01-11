@@ -3,10 +3,10 @@ package org.cloudifysource.usm.details;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.usm.UniversalServiceManagerBean;
 import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
 
-import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 
 
 public class ProcessDetails implements Details {

@@ -10,6 +10,7 @@ import java.util.logging.Level;
 
 import javax.annotation.PostConstruct;
 
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.usm.details.Details;
 import org.cloudifysource.usm.dsl.DSLCommandsLifecycleListener;
 import org.cloudifysource.usm.dsl.DSLConfiguration;
@@ -40,7 +41,6 @@ import org.openspaces.core.cluster.ClusterInfoAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 
 @Component
 public class USMLifecycleBean implements ClusterInfoAware {

@@ -7,12 +7,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
+import org.cloudifysource.dsl.Plugin;
+import org.cloudifysource.dsl.context.ServiceContext;
+import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.usm.UniversalServiceManagerBean;
 import org.cloudifysource.usm.events.AbstractUSMEventListener;
 
-import com.gigaspaces.cloudify.dsl.Plugin;
-import com.gigaspaces.cloudify.dsl.context.ServiceContext;
-import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 
 /**
  * The HttpLivenessDetector class is responsible for verifying that the process

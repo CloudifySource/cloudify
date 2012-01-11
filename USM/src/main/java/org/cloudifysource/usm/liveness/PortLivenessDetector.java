@@ -4,15 +4,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
+import org.cloudifysource.dsl.Plugin;
+import org.cloudifysource.dsl.context.ServiceContext;
+import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.usm.UniversalServiceManagerBean;
 import org.cloudifysource.usm.events.AbstractUSMEventListener;
 import org.cloudifysource.usm.events.EventResult;
 import org.cloudifysource.usm.events.PreStartListener;
 import org.cloudifysource.usm.events.StartReason;
 
-import com.gigaspaces.cloudify.dsl.Plugin;
-import com.gigaspaces.cloudify.dsl.context.ServiceContext;
-import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 
 /**
  * PortLivenessDetector class is responsible for verifying that the process has finished loading

@@ -2,6 +2,7 @@ package org.cloudifysource.usm.dsl;
 
 import javax.annotation.PostConstruct;
 
+import org.cloudifysource.dsl.ServiceLifecycle;
 import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
 import org.cloudifysource.usm.events.AbstractUSMEventListener;
 import org.cloudifysource.usm.events.EventResult;
@@ -11,7 +12,6 @@ import org.cloudifysource.usm.events.StartReason;
 import org.cloudifysource.usm.events.StopReason;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.gigaspaces.cloudify.dsl.ServiceLifecycle;
 
 public class DSLCommandsLifecycleListener extends AbstractUSMEventListener implements LifecycleListener {
 

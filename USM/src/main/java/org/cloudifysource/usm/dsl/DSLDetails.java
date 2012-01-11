@@ -3,13 +3,13 @@ package org.cloudifysource.usm.dsl;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.cloudifysource.dsl.Service;
 import org.cloudifysource.usm.UniversalServiceManagerBean;
 import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
 import org.cloudifysource.usm.details.Details;
 import org.cloudifysource.usm.details.DetailsException;
 
 
-import com.gigaspaces.cloudify.dsl.Service;
 
 public class DSLDetails implements Details {
 

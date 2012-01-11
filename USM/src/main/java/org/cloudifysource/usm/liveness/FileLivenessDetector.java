@@ -4,11 +4,11 @@ import java.io.File;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.apache.commons.io.input.Tailer;
+import org.cloudifysource.dsl.Plugin;
+import org.cloudifysource.dsl.context.ServiceContext;
 import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.events.AbstractUSMEventListener;
 
-import com.gigaspaces.cloudify.dsl.Plugin;
-import com.gigaspaces.cloudify.dsl.context.ServiceContext;
 /**
  * FileLivenessDetector class is responsible for verifying that the process has finished loading
  * by checking whether the desired regex was found in the process's output log.

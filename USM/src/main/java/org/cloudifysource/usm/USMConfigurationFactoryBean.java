@@ -4,6 +4,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Properties;
 
+import org.cloudifysource.dsl.Service;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.DSLException;
+import org.cloudifysource.dsl.internal.DSLReader;
+import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.usm.dsl.DSLConfiguration;
 import org.openspaces.core.cluster.ClusterInfo;
 import org.openspaces.core.cluster.ClusterInfoAware;
@@ -15,11 +20,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
-import com.gigaspaces.cloudify.dsl.Service;
-import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
-import com.gigaspaces.cloudify.dsl.internal.DSLException;
-import com.gigaspaces.cloudify.dsl.internal.DSLReader;
-import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
 
 @Component
 public class USMConfigurationFactoryBean implements FactoryBean<UniversalServiceManagerConfiguration>,

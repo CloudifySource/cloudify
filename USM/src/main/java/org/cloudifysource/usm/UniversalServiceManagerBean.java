@@ -30,6 +30,9 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.apache.commons.io.FileUtils;
+import org.cloudifysource.dsl.Service;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
 import org.cloudifysource.usm.details.Details;
 import org.cloudifysource.usm.dsl.DSLConfiguration;
 import org.cloudifysource.usm.dsl.DSLEntryExecutor;
@@ -66,9 +69,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import com.gigaspaces.cloudify.dsl.Service;
-import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
-import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants.USMState;
 import com.gigaspaces.internal.sigar.SigarHolder;
 import com.j_spaces.kernel.Environment;
 

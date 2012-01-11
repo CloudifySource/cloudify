@@ -2,13 +2,13 @@ package org.cloudifysource.usm.dsl;
 
 import java.io.File;
 
+import org.cloudifysource.dsl.Service;
+import org.cloudifysource.dsl.context.ServiceContext;
 import org.cloudifysource.usm.CommandParts;
 import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
 
 
 
-import com.gigaspaces.cloudify.dsl.Service;
-import com.gigaspaces.cloudify.dsl.context.ServiceContext;
 
 public class DSLConfiguration implements UniversalServiceManagerConfiguration {
 

@@ -2,10 +2,10 @@ package org.cloudifysource.usm;
 
 import java.util.logging.Level;
 
+import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 
-import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants.USMState;
 
 class TestRecipeShutdownRunnable implements Runnable {
 

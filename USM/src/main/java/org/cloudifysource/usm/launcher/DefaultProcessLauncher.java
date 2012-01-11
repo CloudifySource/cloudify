@@ -23,6 +23,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.utils.ServiceUtils;
+import org.cloudifysource.dsl.utils.ServiceUtils.FullServiceName;
 import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.USMUtils;
 import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
@@ -33,9 +36,6 @@ import org.openspaces.core.cluster.ClusterInfoAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
-import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
-import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
-import com.gigaspaces.cloudify.dsl.utils.ServiceUtils.FullServiceName;
 import com.gigaspaces.internal.sigar.SigarHolder;
 import com.j_spaces.kernel.Environment;
 import com.j_spaces.kernel.PlatformVersion;

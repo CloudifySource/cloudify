@@ -11,6 +11,10 @@ import java.util.logging.Level;
 
 import javax.annotation.PostConstruct;
 
+import org.cloudifysource.dsl.Plugin;
+import org.cloudifysource.dsl.PluginDescriptor;
+import org.cloudifysource.dsl.Service;
+import org.cloudifysource.dsl.context.ServiceContext;
 import org.cloudifysource.usm.USMComponent;
 import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.USMUtils;
@@ -42,10 +46,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.gigaspaces.cloudify.dsl.Plugin;
-import com.gigaspaces.cloudify.dsl.PluginDescriptor;
-import com.gigaspaces.cloudify.dsl.Service;
-import com.gigaspaces.cloudify.dsl.context.ServiceContext;
 
 @Configuration
 public class DSLBeanConfiguration implements ApplicationContextAware {
