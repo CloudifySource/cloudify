@@ -24,12 +24,12 @@ import org.apache.commons.vfs2.provider.sftp.SftpFileSystemConfigBuilder;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.ExitStatusException;
 import org.apache.tools.ant.taskdefs.optional.testing.BuildTimeoutException;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.util.LoggerOutputStream;
 import org.cloudifysource.esc.util.ShellCommandBuilder;
 import org.cloudifysource.esc.util.Utils;
 import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioningException;
 
-import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 
 /************
  * The agentless installer class is responsible for installing gigaspaces on a

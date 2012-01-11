@@ -18,6 +18,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
+import org.cloudifysource.dsl.cloud.Cloud2;
+import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.CloudifyProvisioning;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
@@ -30,8 +32,6 @@ import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.NodeState;
 import org.openspaces.admin.Admin;
 
-import com.gigaspaces.cloudify.dsl.cloud.Cloud2;
-import com.gigaspaces.cloudify.dsl.cloud.CloudTemplate;
 import com.gigaspaces.internal.utils.StringUtils;
 import com.google.common.base.Predicate;
 

@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.cloudifysource.dsl.cloud.Cloud2;
+import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.openspaces.admin.pu.elastic.ElasticMachineProvisioningConfig;
 import org.openspaces.core.util.StringProperties;
 import org.openspaces.grid.gsm.capacity.CapacityRequirement;
@@ -14,9 +17,6 @@ import org.openspaces.grid.gsm.capacity.CpuCapacityRequirement;
 import org.openspaces.grid.gsm.capacity.DriveCapacityRequirement;
 import org.openspaces.grid.gsm.capacity.MemoryCapacityRequirement;
 
-import com.gigaspaces.cloudify.dsl.cloud.Cloud2;
-import com.gigaspaces.cloudify.dsl.cloud.CloudTemplate;
-import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 
 
 public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisioningConfig{

@@ -4,12 +4,12 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.cloudifysource.dsl.cloud.Cloud2;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.CloudifyProvisioning;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.openspaces.admin.Admin;
 
-import com.gigaspaces.cloudify.dsl.cloud.Cloud2;
 
 public class LocalCloudProvisioning implements CloudifyProvisioning {
 

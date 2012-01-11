@@ -11,6 +11,11 @@ import java.util.logging.Logger;
 
 import net.jini.core.discovery.LookupLocator;
 
+import org.cloudifysource.dsl.cloud.Cloud2;
+import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.DSLException;
+import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.esc.esm.CloudMachineProvisioningConfig;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
@@ -25,11 +30,6 @@ import org.openspaces.grid.gsm.capacity.MemoryCapacityRequirement;
 import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioning;
 import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioningException;
 
-import com.gigaspaces.cloudify.dsl.cloud.Cloud2;
-import com.gigaspaces.cloudify.dsl.cloud.CloudTemplate;
-import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
-import com.gigaspaces.cloudify.dsl.internal.DSLException;
-import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 import com.gigaspaces.internal.utils.StringUtils;
 
 /****************************

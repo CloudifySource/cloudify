@@ -3,9 +3,9 @@ package org.cloudifysource.esc.driver.provisioning;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.cloudifysource.dsl.cloud.Cloud2;
 import org.openspaces.admin.Admin;
 
-import com.gigaspaces.cloudify.dsl.cloud.Cloud2;
 
 
 
