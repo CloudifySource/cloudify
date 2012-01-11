@@ -1,12 +1,21 @@
+@Grab(group='redis.clients', module='jedis', version='2.0.0')
+import redis.clients.jedis.Jedis
+
 service {
 
 	name "redis"
 	type "MESSAGE_BUS"
-	icon "http://www.apache.org/images/feather-small.gif"
+	icon "redis.png"
 
 	lifecycle{
 		init "redis_install.groovy"
 	    start "redis_start.groovy"
+	    
+	    monitors(["keyspace hits": { jedis = new Jedis("localhost")
+					  				 jedis.set("foo", "bar")
+					  				 return 44
+									},
+			"keyspace misses":{33}])
 	}
 	plugins([
 		plugin {
@@ -18,46 +27,35 @@ service {
 						"Host" : "127.0.0.1"
 					])
 		},
-		/*plugin {
-			name "jmx"
-			className "com.gigaspaces.cloudify.usm.jmx.JmxMonitor"
-			config([
-						"Store Percent Usage": [
-							"org.apache.activemq:BrokerName=localhost,Type=Broker",
-							"StorePercentUsage"
-						],
-						port: 11099
-					])
-		}*/
 	])
 
 
-/*	userInterface {
+	userInterface {
 		metricGroups = ([
 			metricGroup {
 
-				name "broker"
+				name "redis"
 
 				metrics([
-					"Store Percent Usage",
+					"keyspace hits", "keyspace misses",
 				])
 			},
 		]
 		)
 
-		widgetGroups = ([
+	/*	widgetGroups = ([
 			widgetGroup {
-				name "Store Percent Usage"
+				name "keyspace hits"
 				widgets ([
 					barLineChart{
-						metric "Store Percent Usage"
+						metric "keyspace hits"
 						axisYUnit Unit.PERCENTAGE
 					}
 				])
 			},
 		]
-		)
-	}*/
+		)*/
+	}
 }
 
 
