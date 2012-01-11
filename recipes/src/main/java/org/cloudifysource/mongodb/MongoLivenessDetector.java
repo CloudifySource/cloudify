@@ -1,4 +1,4 @@
-package com.gigaspaces.cloudify.mongodb;
+package org.cloudifysource.mongodb;
 
 import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 import org.apache.commons.logging.Log;

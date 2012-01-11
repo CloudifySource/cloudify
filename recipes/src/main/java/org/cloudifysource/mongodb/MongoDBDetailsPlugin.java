@@ -1,4 +1,4 @@
-package com.gigaspaces.cloudify.mongodb;
+package org.cloudifysource.mongodb;
 
 import java.util.Map;
 
