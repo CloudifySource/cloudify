@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.gigaspaces.cloudify.shell.commands;
+package org.cloudifysource.shell.commands;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
@@ -34,11 +34,11 @@ import org.openspaces.admin.pu.elastic.config.EagerScaleConfigurer;
 import org.openspaces.core.util.MemoryUnit;
 import org.openspaces.pu.container.integrated.IntegratedProcessingUnitContainer;
 import org.openspaces.pu.service.ServiceDetails;
-import com.gigaspaces.cloudify.shell.AbstractAdminFacade;
-import com.gigaspaces.cloudify.shell.AdminFacade;
-import com.gigaspaces.cloudify.shell.Constants;
-import com.gigaspaces.cloudify.shell.rest.ErrorStatusException;
-import com.gigaspaces.cloudify.shell.rest.RestAdminFacade;
+import org.cloudifysource.shell.AbstractAdminFacade;
+import org.cloudifysource.shell.AdminFacade;
+import org.cloudifysource.shell.Constants;
+import org.cloudifysource.shell.rest.ErrorStatusException;
+import org.cloudifysource.shell.rest.RestAdminFacade;
 
 import com.j_spaces.kernel.Environment;
 

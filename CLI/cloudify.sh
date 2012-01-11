@@ -60,7 +60,7 @@ function setCloudifyClassPath() {
 }
 
 function setCommandLine() {
-	CLI_ENTRY_POINT=com.gigaspaces.cloudify.shell.GigaShellMain
+	CLI_ENTRY_POINT=org.cloudifysource.shell.GigaShellMain
 	COMMAND_LINE="${JAVACMD} ${GS_LOGGING_CONFIG_FILE_PROP} ${RMI_OPTIONS} ${LOOKUP_LOCATORS_PROP} ${LOOKUP_GROUPS_PROP} ${CLOUDIFY_JAVA_OPTIONS} -classpath ${PRE_CLASSPATH}${CPS}${CLOUDIFY_CLASSPATH}${CPS}${POST_CLASSPATH} ${CLI_ENTRY_POINT} $*"
 }
 

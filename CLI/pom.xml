@@ -6,14 +6,14 @@
 	<name>CLI</name>
 
 	<parent>
-		<groupId>com.gigaspaces.cloudify</groupId>
+		<groupId>org.cloudifysource</groupId>
 		<artifactId>cloudify</artifactId>
 		<version>2.0.0</version>
 		<relativePath>../cloudify</relativePath>
 	</parent>
 
 	<properties>
-		<mainClass>com.gigaspaces.cloudify.shell.GigaShellMain</mainClass>
+		<mainClass>org.cloudifysource.shell.GigaShellMain</mainClass>
 	</properties>
 	<repositories>
 		<repository>
@@ -123,13 +123,13 @@
 			<version>1.1.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>com.gigaspaces.cloudify</groupId>
+			<groupId>org.cloudifysource</groupId>
 			<artifactId>dsl</artifactId>
 			<version>${cloudifyVersion}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.gigaspaces.cloudify</groupId>
+			<groupId>org.cloudifysource</groupId>
 			<artifactId>rest-client</artifactId>
 			<version>${cloudifyVersion}</version>
 			<scope>compile</scope>
@@ -218,7 +218,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<mainClass>com.gigaspaces.cloudify.shell.GigaShellMain</mainClass>
+					<mainClass>org.cloudifysource.shell.GigaShellMain</mainClass>
 				</configuration>
 			</plugin>
 		</plugins>
