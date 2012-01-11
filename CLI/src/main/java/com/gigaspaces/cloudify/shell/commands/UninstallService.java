@@ -110,6 +110,8 @@ public class UninstallService extends AdminAwareCommand {
 			System.out.flush();
 			PropertiesReader pr = new PropertiesReader(new InputStreamReader(System.in));
 			String answer = pr.readProperty();
+			System.out.println();
+			System.out.flush();
 			return "y".equalsIgnoreCase(answer) ? true : false;
 
 		}

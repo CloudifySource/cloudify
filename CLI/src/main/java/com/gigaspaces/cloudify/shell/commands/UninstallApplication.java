@@ -125,6 +125,8 @@ public class UninstallApplication extends AdminAwareCommand {
 			System.out.flush();
 			PropertiesReader pr = new PropertiesReader(new InputStreamReader(System.in));
 			String readLine = pr.readProperty();
+			System.out.println();
+			System.out.flush();
 			return "y".equalsIgnoreCase(readLine) ? true : false;
 
 		}
