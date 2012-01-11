@@ -31,7 +31,6 @@ import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 import com.gigaspaces.cloudify.dsl.internal.packaging.Packager;
 import com.gigaspaces.cloudify.shell.Constants;
 import com.gigaspaces.cloudify.shell.GigaShellMain;
-import com.gigaspaces.cloudify.shell.ShellUtils;
 
 @Command(scope = "cloudify", name = "install-application", description = "Installs an application. If you specify a folder path it will be packed and deployed. If you sepcify an application archive, the shell will deploy that file.")
 public class InstallApplication extends AdminAwareCommand {
@@ -56,8 +55,6 @@ public class InstallApplication extends AdminAwareCommand {
 			throw new CLIStatusException("application_not_found", applicationFile.getAbsolutePath());
 		}
 
-		long end = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(timeoutInMinutes);
-		
 		logger.info("Validating file " + applicationFile.getName());
 		final Application application = ServiceReader.getApplicationFromFile(applicationFile).getApplication();
 
@@ -101,7 +98,7 @@ public class InstallApplication extends AdminAwareCommand {
 				String trimmedServiceName = serviceName.trim();
 				Service service = getServiceByName(application, trimmedServiceName);
 				int plannedNumberOfInstances = service.getNumInstances();
-				adminFacade.waitForServiceInstances(trimmedServiceName, applicationName, plannedNumberOfInstances, TIMEOUT_ERROR_MESSAGE, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MINUTES);
+				adminFacade.waitForServiceInstances(trimmedServiceName, applicationName, plannedNumberOfInstances, TIMEOUT_ERROR_MESSAGE, timeoutInMinutes, TimeUnit.MINUTES);
 				logger.info(MessageFormat.format(
 						   messages.getString("service_install_ended"), trimmedServiceName));
 			}
