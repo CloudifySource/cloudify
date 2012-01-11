@@ -4,11 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang.math.NumberUtils;
+import org.cloudifysource.usm.UniversalServiceManagerBean;
+import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
+import org.cloudifysource.usm.monitors.Monitor;
+import org.cloudifysource.usm.monitors.MonitorException;
 
-import com.gigaspaces.cloudify.usm.UniversalServiceManagerBean;
-import com.gigaspaces.cloudify.usm.UniversalServiceManagerConfiguration;
-import com.gigaspaces.cloudify.usm.monitors.Monitor;
-import com.gigaspaces.cloudify.usm.monitors.MonitorException;
+
 
 /**
  * @author uri

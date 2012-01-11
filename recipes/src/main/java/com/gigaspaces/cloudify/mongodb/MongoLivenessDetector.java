@@ -3,12 +3,11 @@ package com.gigaspaces.cloudify.mongodb;
 import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import com.gigaspaces.cloudify.usm.UniversalServiceManagerBean;
-import com.gigaspaces.cloudify.usm.events.EventResult;
-import com.gigaspaces.cloudify.usm.events.PreStartListener;
-import com.gigaspaces.cloudify.usm.events.StartReason;
-import com.gigaspaces.cloudify.usm.USMException;
-import com.gigaspaces.cloudify.usm.liveness.LivenessDetector;
+import org.cloudifysource.usm.UniversalServiceManagerBean;
+import org.cloudifysource.usm.events.EventResult;
+import org.cloudifysource.usm.events.PreStartListener;
+import org.cloudifysource.usm.events.StartReason;
+import org.cloudifysource.usm.liveness.LivenessDetector;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

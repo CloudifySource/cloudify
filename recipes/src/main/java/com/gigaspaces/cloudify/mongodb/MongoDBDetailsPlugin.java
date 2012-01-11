@@ -2,10 +2,12 @@ package com.gigaspaces.cloudify.mongodb;
 
 import java.util.Map;
 
-import com.gigaspaces.cloudify.usm.UniversalServiceManagerBean;
-import com.gigaspaces.cloudify.usm.UniversalServiceManagerConfiguration;
-import com.gigaspaces.cloudify.usm.details.Details;
-import com.gigaspaces.cloudify.usm.details.DetailsException;
+import org.cloudifysource.usm.UniversalServiceManagerBean;
+import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
+import org.cloudifysource.usm.details.Details;
+import org.cloudifysource.usm.details.DetailsException;
+
+
 
 /**
  * @author uri
