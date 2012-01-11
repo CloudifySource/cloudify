@@ -4,10 +4,12 @@ import java.io.File;
 
 import junit.framework.Assert;
 
+import org.cloudifysource.dsl.Service;
+import org.cloudifysource.dsl.ServiceLifecycle;
+import org.cloudifysource.dsl.internal.DSLException;
+import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.Test;
 
-import com.gigaspaces.cloudify.dsl.internal.DSLException;
-import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 
 public class ServiceParsingTest {
 	

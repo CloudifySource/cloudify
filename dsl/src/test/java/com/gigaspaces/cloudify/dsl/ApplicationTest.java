@@ -2,9 +2,10 @@ package com.gigaspaces.cloudify.dsl;
 
 import java.io.File;
 
+import org.cloudifysource.dsl.Application;
+import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.Test;
 
-import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 import static org.junit.Assert.*;
 
 public class ApplicationTest {

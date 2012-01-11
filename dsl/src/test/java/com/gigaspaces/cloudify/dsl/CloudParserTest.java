@@ -4,10 +4,10 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 
+import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 
 public class CloudParserTest {
 
@@ -16,7 +16,7 @@ public class CloudParserTest {
 	@Ignore
 	@Test
 	public void testCloudParser() throws Exception {
-		com.gigaspaces.cloudify.dsl.cloud.Cloud2 cloud = ServiceReader.readCloud(new File(SIMPLE_CLOUD_PATH));
+		org.cloudifysource.dsl.cloud.Cloud2 cloud = ServiceReader.readCloud(new File(SIMPLE_CLOUD_PATH));
 		assertNotNull(cloud);
 		assertNotNull(cloud.getProvider());
 		assertNotNull(cloud.getTemplates());

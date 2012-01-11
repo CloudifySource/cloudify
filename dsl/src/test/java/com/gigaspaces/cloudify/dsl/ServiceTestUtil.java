@@ -3,9 +3,10 @@ package com.gigaspaces.cloudify.dsl;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import org.cloudifysource.dsl.Service;
+
 import junit.framework.Assert;
 
-import com.gigaspaces.cloudify.dsl.Service;
 
 public class ServiceTestUtil {
 	
