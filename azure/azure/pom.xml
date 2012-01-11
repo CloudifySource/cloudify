@@ -6,7 +6,7 @@
 	<name>azure</name>
 
 	<parent>
-		<groupId>com.gigaspaces.cloudify</groupId>
+		<groupId>org.cloudifysource</groupId>
 		<artifactId>cloudify</artifactId>
 		<version>2.0.0</version>
 		<relativePath>../../cloudify</relativePath>
@@ -18,7 +18,7 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.gigaspaces.cloudify</groupId>
+			<groupId>org.cloudifysource</groupId>
 			<artifactId>CLI</artifactId>
 			<version>${cloudifyVersion}</version>
 		</dependency>
@@ -148,7 +148,7 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.gigaspaces.cloudify</groupId>
+			<groupId>org.cloudifysource</groupId>
 			<artifactId>dsl</artifactId>
 			<version>${cloudifyVersion}</version>
 			<scope>provided</scope>

@@ -1,4 +1,4 @@
-org.openspaces.cloud.azure.shell.commands.AzureSetNumberOfInstances
-org.openspaces.cloud.azure.shell.commands.AzureBootstrapApplication
-org.openspaces.cloud.azure.shell.commands.AzureConnectApplication
-org.openspaces.cloud.azure.shell.commands.AzureTeardownApplication
+org.cloudifysource.azure.shell.commands.AzureSetNumberOfInstances
+org.cloudifysource.azure.shell.commands.AzureBootstrapApplication
+org.cloudifysource.azure.shell.commands.AzureConnectApplication
+org.cloudifysource.azure.shell.commands.AzureTeardownApplication

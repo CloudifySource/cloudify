@@ -1,2 +1,2 @@
-com.gigaspaces.cloudify.esc.shell.commands.BootstrapCloud
-com.gigaspaces.cloudify.esc.shell.commands.TeardownCloud
+org.cloudifysource.esc.shell.commands.BootstrapCloud
+org.cloudifysource.esc.shell.commands.TeardownCloud
