@@ -27,13 +27,13 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.gigaspaces.cloudify</groupId>
+			<groupId>org.cloudifysource</groupId>
 			<artifactId>dsl</artifactId>
 			<version>${cloudifyVersion}</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.gigaspaces.cloudify</groupId>
+			<groupId>org.cloudifysource</groupId>
 			<artifactId>UniversalServiceManager</artifactId>
 			<version>${cloudifyVersion}</version>
 			<scope>compile</scope>
