@@ -53,7 +53,7 @@ public class InstallApplication extends AdminAwareCommand {
 	@Override
 	protected Object doExecute() throws Exception {
 		if (!applicationFile.exists()) {
-			throw new CLIException("application_not_found", applicationFile.getAbsolutePath());
+			throw new CLIStatusException("application_not_found", applicationFile.getAbsolutePath());
 		}
 
 		long end = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(timeoutInMinutes);
@@ -64,7 +64,7 @@ public class InstallApplication extends AdminAwareCommand {
 		normalizeApplicationName(application);
 		
 		if (adminFacade.getApplicationsList().contains(applicationName)){
-			throw new CLIException("application_already_deployed", application.getName());
+			throw new CLIStatusException("application_already_deployed", application.getName());
 		}
 
 		File zipFile = null;
@@ -75,7 +75,7 @@ public class InstallApplication extends AdminAwareCommand {
 					|| (applicationFile.getName().endsWith(".jar"))) {
 				zipFile = applicationFile;
 			} else {
-				throw new CLIException(
+				throw new CLIStatusException(
 						"application_file_format_mismatch",
 						applicationFile.getPath());
 			}

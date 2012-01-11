@@ -60,28 +60,25 @@ public abstract class AbstractGSCommand implements Action {
 				adminFacade = (AdminFacade) session.get(Constants.ADMIN_FACADE);
 
 				if (!adminFacade.isConnected()) {
-				    throw new CLIException("not_connected");
+				    throw new CLIStatusException("not_connected");
 				}
 			}
 			Object result = doExecute();
 			return result;
 		
-		} catch (CLIException e) {
-			//if exception contains reason code - use it
-			if (e.getReasonCode() != null && e.getReasonCode().trim().length() > 0) {
-				if (verbose) {
-					logger.log(Level.WARNING, getFormattedMessageFromErrorStatusException(e), e);
-				}
-				else {
-					logger.log(Level.WARNING, getFormattedMessageFromErrorStatusException(e));
-				}
-			} else {
-				if (!verbose) {
-					e.setStackTrace(new StackTraceElement[] {});
-				}
-				logger.log(Level.WARNING, "",e);				
+		} catch (CLIStatusException cse) {
+			if (verbose) {
+				logger.log(Level.WARNING, getFormattedMessageFromErrorStatusException(cse), cse);
 			}
-			
+			else {
+				logger.log(Level.WARNING, getFormattedMessageFromErrorStatusException(cse));
+			}
+			raiseCloseShellExceptionIfNonInteractive(session, cse);
+		} catch (CLIException e) {
+			if (!verbose) {
+				e.setStackTrace(new StackTraceElement[] {});
+			}
+			logger.log(Level.WARNING, "",e);
 			raiseCloseShellExceptionIfNonInteractive(session, e);
 		} catch (Throwable e) {
 			logger.log(Level.SEVERE, "", e);
@@ -90,7 +87,7 @@ public abstract class AbstractGSCommand implements Action {
 		return getFormattedMessage("op_failed", Color.RED, "");
 	}
 
-	private String getFormattedMessageFromErrorStatusException(CLIException e) {
+	private String getFormattedMessageFromErrorStatusException(CLIStatusException e) {
 		String message = getFormattedMessage(e.getReasonCode(),(Object[]) null);
 		if (message == null) {
 			message = e.getReasonCode();

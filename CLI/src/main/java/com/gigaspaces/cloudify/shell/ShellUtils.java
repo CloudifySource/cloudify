@@ -37,6 +37,7 @@ import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.Ansi.Color;
 
 import com.gigaspaces.cloudify.shell.commands.CLIException;
+import com.gigaspaces.cloudify.shell.commands.CLIStatusException;
 import com.j_spaces.kernel.Environment;
 
 /**
@@ -88,7 +89,7 @@ public class ShellUtils {
         try {
             return ComponentType.valueOf(lowerCaseComponentName.toUpperCase());
         } catch (final IllegalArgumentException e) {
-            throw new CLIException("unknown_component_type",
+            throw new CLIStatusException("unknown_component_type",
                     lowerCaseComponentName);
         }
     }

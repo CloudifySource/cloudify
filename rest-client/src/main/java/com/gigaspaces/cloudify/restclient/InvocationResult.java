@@ -4,9 +4,19 @@ import java.util.Map;
 
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 
+/**
+ * This is a POJO holding command execution and result details, as returned from
+ * a rest command invoker.
+ * <p>
+ * (Commands are executed over rest through the post methods in
+ * {@link com.gigaspaces.cloudify.restclient.GSRestClient}, and returned as a
+ * Map object, parsed here.)
+ */
 public class InvocationResult implements Comparable<InvocationResult> {
 
-
+	/**
+	 * private members.
+	 */
 	private String exceptionMessage;
 	private String result;
 	private String commandName;
@@ -14,49 +24,94 @@ public class InvocationResult implements Comparable<InvocationResult> {
 	private String instanceName;
 	private boolean success;
 
-	public static InvocationResult createInvocationResult(Map<String, String> map) {
-		
+	/**
+	 * Default empty Ctor.
+	 */
+	public InvocationResult() {
+	}
+
+	/**
+	 * @param map
+	 *            The Map object returned from the rest call, holding command
+	 *            execution and result details
+	 * @return InvocationResult consisting of the data in the given map.
+	 */
+	public static InvocationResult createInvocationResult(
+			final Map<String, String> map) {
+
 		InvocationResult res = new InvocationResult();
-		res.commandName = map.get(CloudifyConstants.INVOCATION_RESPONSE_COMMAND_NAME);
-		res.exceptionMessage = map.get(CloudifyConstants.INVOCATION_RESPONSE_EXCEPTION);
-		res.instanceId = Integer.parseInt(map.get(CloudifyConstants.INVOCATION_RESPONSE_INSTANCE_ID));
+		res.commandName = map
+				.get(CloudifyConstants.INVOCATION_RESPONSE_COMMAND_NAME);
+		res.exceptionMessage = map
+				.get(CloudifyConstants.INVOCATION_RESPONSE_EXCEPTION);
+		res.instanceId = Integer.parseInt(map
+				.get(CloudifyConstants.INVOCATION_RESPONSE_INSTANCE_ID));
 		res.result = map.get(CloudifyConstants.INVOCATION_RESPONSE_RESULT);
-		res.success = Boolean.parseBoolean(map.get(CloudifyConstants.INVOCATION_RESPONSE_STATUS));
-		res.instanceName= map.get(CloudifyConstants.INVOCATION_RESPONSE_INSTANCE_NAME);
-		
+		res.success = Boolean.parseBoolean(map
+				.get(CloudifyConstants.INVOCATION_RESPONSE_STATUS));
+		res.instanceName = map
+				.get(CloudifyConstants.INVOCATION_RESPONSE_INSTANCE_NAME);
+
 		return res;
 	}
-	public String getInstanceName() {
+
+	/**
+	 * Gets the name of the instance this invocation occurred on.
+	 * 
+	 * @return instance name as a String
+	 */
+	public final String getInstanceName() {
 		return instanceName;
 	}
-	public InvocationResult() {
-		
-		
-	}
-	
-	
-	public String getExceptionMessage() {
+
+	/**
+	 * Gets the exception message.
+	 * 
+	 * @return exception message as a String
+	 */
+	public final String getExceptionMessage() {
 		return exceptionMessage;
 	}
 
-	public String getResult() {
+	/**
+	 * Gets the invocation's result.
+	 * 
+	 * @return the invocation's result as a String
+	 */
+	public final String getResult() {
 		return result;
 	}
 
-	public String getCommandName() {
+	/**
+	 * Gets the invoked command's name.
+	 * 
+	 * @return the command name as a String
+	 */
+	public final String getCommandName() {
 		return commandName;
 	}
 
-	public int getInstanceId() {
+	/**
+	 * Gets the id of the instance this invocation occurred on.
+	 * 
+	 * @return instance id
+	 */
+	public final int getInstanceId() {
 		return instanceId;
 	}
 
-	public boolean isSuccess() {
+	/**
+	 * Gets the invocation's result.
+	 * 
+	 * @return the invocation's result as boolean (success=true, Failure=false)
+	 */
+	public final boolean isSuccess() {
 		return success;
 	}
+
 	@Override
-	public int compareTo(InvocationResult o) {
+	public final int compareTo(final InvocationResult o) {
 		return this.instanceId - o.instanceId;
-	}	
-	
+	}
+
 }

@@ -34,6 +34,7 @@ import org.fusesource.jansi.Ansi.Color;
 
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
+import com.gigaspaces.cloudify.restclient.ErrorStatusException;
 import com.gigaspaces.cloudify.restclient.EventLoggingTailer;
 import com.gigaspaces.cloudify.restclient.GSRestClient;
 import com.gigaspaces.cloudify.restclient.InvocationResult;
@@ -42,6 +43,7 @@ import com.gigaspaces.cloudify.shell.AbstractAdminFacade;
 import com.gigaspaces.cloudify.shell.ComponentType;
 import com.gigaspaces.cloudify.shell.ShellUtils;
 import com.gigaspaces.cloudify.shell.commands.CLIException;
+import com.gigaspaces.cloudify.shell.commands.CLIStatusException;
 
 /**
  * @author rafi
@@ -76,7 +78,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 				urlObj = getUrlWithDefaultPort(urlObj);
 			}
 		} catch (MalformedURLException e) {
-			throw new CLIException("could_not_parse_url", url);
+			throw new CLIStatusException("could_not_parse_url", url);
 		}
 
 		try{
@@ -84,6 +86,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			eventLoggingTailer = new EventLoggingTailer();
 			// test connection
 			client.get(SERVICE_CONTROLLER_URL + "testrest");
+		} catch (ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		} catch (RestException e) {
 			throw new CLIException(e);
 		}
@@ -124,6 +128,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			Map<String, Object> serviceStatusMap = null;
 			try {
 				serviceStatusMap = client.getAdminData(pollingURL);
+			} catch (ErrorStatusException e) {
+				throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 			} catch (RestException e) {
 				throw new CLIException(e);
 			}
@@ -263,7 +269,9 @@ public class RestAdminFacade extends AbstractAdminFacade {
 					runningServiceInstanceCounter++;
 				}
 			}
-		} catch (RestException e) {
+		} catch (ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+		}  catch (RestException e) {
 			throw new CLIException(e);
 		}
 		
@@ -319,8 +327,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 					+ applicationName + "/services/"
 					+ serviceName
 					+ "/USMEventsLogs/");
-		} catch (RestException e) {
-			throw new CLIException(e);
+		}  catch (ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
 		return eventLoggingTailer.getLinesToPrint(allEventsExecutedList);
 	}
@@ -348,8 +356,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			+ applicationName + "/services/" + serviceName + "/instances/"
 			+ instanceId + "/remove";
 			client.delete(relativeUrl);
-		} catch (RestException e) {
-			throw new CLIException(e);
+		} catch (ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
 	}
 
@@ -380,8 +388,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		try {
 			servicesList = (List<String>)client.get("/service/applications/"
 				+ applicationName + "/services");
-		} catch (RestException e) {
-			throw new CLIException(e);
+		} catch (ErrorStatusException ese) {
+			throw new CLIStatusException(ese, ese.getReasonCode(), ese.getArgs());
 		}
 		
 		return servicesList;
@@ -395,6 +403,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		try {
 			result = client.postFile(SERVICE_CONTROLLER_URL + CLOUD_CONTROLLER_URL
 				+ "deploy?" + "applicationName=" + applicationName, packedFile);
+		} catch (ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		} catch (RestException e) {
 			throw new CLIException(e);
 		}
@@ -413,8 +423,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName
 					+ "/services/" + serviceName + "/undeploy";
 			client.delete(url);
-		} catch (RestException e) {
-			throw new CLIException(e);
+		} catch (ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
 	}
 
@@ -440,8 +450,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName
 					+ "/services/" + serviceName + "/instances";
 			instanceList = (Map<String, Object>) client.get(url);
-		} catch (RestException e) {
-			throw new CLIException(e);
+		}  catch (ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
 		
 		return instanceList;
@@ -456,6 +466,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName
 					+ "/services/" + serviceName;
 			result = client.postFile(url + "?zone=" + zone + "&template=" + templateName, packedFile, contextProperties);
+		} catch (ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		} catch (RestException e) {
 			throw new CLIException(e);
 		}
@@ -472,6 +484,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		Object result = null;
 		try {
 			result = client.post(url, buildCustomCommandParams(commandName, params));	
+		}  catch (ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		} catch (RestException e) {
 			throw new CLIException(e);
 		}
@@ -509,6 +523,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		try {
 			resultMap = (Map<String, String>) client.post(url,
 				buildCustomCommandParams(commandName, paramsMap));
+		}  catch (ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		} catch (RestException e) {
 			throw new CLIException(e);
 		}
@@ -545,6 +561,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		Map<String, Object> map = null;
 		try {
 			 map = client.getAdminData("machines/HostsByAddress");
+		}  catch (ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		} catch (RestException e) {
 			throw new CLIException(e);
 		}
@@ -565,8 +583,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		try {
 			String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName;
 			client.delete(url);
-		} catch (RestException e) {
-			throw new CLIException(e);
+		} catch (ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
 	}
 
@@ -609,8 +627,10 @@ public class RestAdminFacade extends AbstractAdminFacade {
 				}
 
 				containerUids.add((String) container.get("Uid"));
-			}catch (RestException e) {
-				throw new CLIException("cant_find_service_for_app", serviceName, applicationName);
+			} catch (ErrorStatusException e) {
+				throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+			} catch (RestException e) {
+				throw new CLIStatusException("cant_find_service_for_app", serviceName, applicationName);
 			}
 		}
 		return containerUids;
@@ -622,6 +642,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		try {
 			container = (Map<String, Object>) client
 					.getAdmin("GridServiceContainers");
+		}  catch (ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		} catch (RestException e) {
 			throw new CLIException(e);
 		}
@@ -644,6 +666,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		try {
 			String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName;
 			result = client.postFile(url, applicationFile);
+		} catch (ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		} catch (RestException e) {
 			throw new CLIException(e);
 		}

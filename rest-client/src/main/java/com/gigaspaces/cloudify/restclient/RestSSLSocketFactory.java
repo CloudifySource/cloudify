@@ -2,7 +2,6 @@ package com.gigaspaces.cloudify.restclient;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -14,43 +13,71 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.apache.http.conn.ssl.SSLSocketFactory;
+import java.security.cert.X509Certificate;
 
 public class RestSSLSocketFactory extends SSLSocketFactory {
-	SSLContext sslContext = SSLContext.getInstance("TLS");
 
-    public RestSSLSocketFactory(KeyStore truststore) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
-        super(truststore);
+	/**
+	 * SSL context (using algorithm TLS).
+	 */
+	private SSLContext sslContext = SSLContext.getInstance(TLS);
 
-        TrustManager tm = new X509TrustManager() {
-            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                return null;
-            }
+	/**
+	 * Ctor.
+	 * 
+	 * @param truststore
+	 *            a {@link KeyStore} containing one or several trusted
+	 *            certificates to enable enable server authentication.
+	 * @throws NoSuchAlgorithmException
+	 *             Reporting failure to create SSLSocketFactory with the given
+	 *             trust-store and algorithm TLS or initialize the SSLContext.
+	 * @throws KeyManagementException
+	 *             Reporting failure to create SSLSocketFactory with the given
+	 *             trust-store and algorithm TLS or initialize the SSLContext.
+	 * @throws KeyStoreException
+	 *             Reporting failure to create SSLSocketFactory with the given
+	 *             trust-store and algorithm TLS or initialize the SSLContext.
+	 * @throws UnrecoverableKeyException
+	 *             Reporting failure to create SSLSocketFactory with the given
+	 *             trust-store and algorithm TLS or initialize the SSLContext.
+	 */
+	public RestSSLSocketFactory(final KeyStore truststore)
+			throws NoSuchAlgorithmException, KeyManagementException,
+			KeyStoreException, UnrecoverableKeyException {
+		super(truststore);
 
-            public void checkClientTrusted(
-                    java.security.cert.X509Certificate[] chain, String authType)
-                    throws java.security.cert.CertificateException {
-                // TODO Auto-generated method stub
+		TrustManager tm = new X509TrustManager() {
+			public X509Certificate[] getAcceptedIssuers() {
+				return null;
+			}
 
-            }
+			public void checkClientTrusted(final X509Certificate[] chain,
+					final String authType)
+					throws java.security.cert.CertificateException {
+				// TODO Auto-generated method stub
 
-            public void checkServerTrusted(
-                    java.security.cert.X509Certificate[] chain, String authType)
-                    throws java.security.cert.CertificateException {
-                // TODO Auto-generated method stub
+			}
 
-            }
-        };
+			public void checkServerTrusted(final X509Certificate[] chain,
+					final String authType)
+					throws java.security.cert.CertificateException {
+				// TODO Auto-generated method stub
 
-        sslContext.init(null, new TrustManager[]{tm}, null);
-    }
+			}
+		};
 
-    @Override
-    public Socket createSocket(Socket socket, String host, int port, boolean autoClose) throws IOException, UnknownHostException {
-        return sslContext.getSocketFactory().createSocket(socket, host, port, autoClose);
-    }
+		sslContext.init(null, new TrustManager[]{tm}, null);
+	}
 
-    @Override
-    public Socket createSocket() throws IOException {
-        return sslContext.getSocketFactory().createSocket();
-    }
+	@Override
+	public final Socket createSocket(final Socket socket, final String host,
+			final int port, final boolean autoClose) throws IOException {
+		return sslContext.getSocketFactory().createSocket(socket, host, port,
+				autoClose);
+	}
+
+	@Override
+	public final Socket createSocket() throws IOException {
+		return sslContext.getSocketFactory().createSocket();
+	}
 }

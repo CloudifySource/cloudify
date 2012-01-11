@@ -53,7 +53,7 @@ public class InstallService extends AdminAwareCommand {
 	@Override
 	protected Object doExecute() throws Exception {
 		if (!serviceFile.exists()) {
-			throw new CLIException("service_file_doesnt_exist",
+			throw new CLIStatusException("service_file_doesnt_exist",
 					serviceFile.getPath());
 		}
 		

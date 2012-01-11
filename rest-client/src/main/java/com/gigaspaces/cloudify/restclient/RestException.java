@@ -1,22 +1,47 @@
 package com.gigaspaces.cloudify.restclient;
 
+/**
+ * Exception representing a failure in the communication through rest. For More
+ * detailed exceptions use
+ * {@link com.gigaspaces.cloudify.restclient.ErrorStatusException}
+ */
 public class RestException extends Exception {
-	
+
+	/**
+	 * UID for serialization.
+	 */
 	private static final long serialVersionUID = -7304916239245226345L;
 
+	/**
+	 * Empty Ctor.
+	 */
 	public RestException() {
 	}
 
-	public RestException(String message) {
+	/**
+	 * @param message
+	 *            A String error message describing this exception
+	 */
+	public RestException(final String message) {
 		super(message);
 
 	}
 
-	public RestException(Throwable cause) {
+	/**
+	 * @param cause
+	 *            A Throwable object, the cause of this exception
+	 */
+	public RestException(final Throwable cause) {
 		super(cause);
 	}
 
-	public RestException(String message, Throwable cause) {
+	/**
+	 * @param message
+	 *            A String error message describing this exception
+	 * @param cause
+	 *            A Throwable object, the cause of this exception
+	 */
+	public RestException(final String message, final Throwable cause) {
 		super(message, cause);
 	}
 }

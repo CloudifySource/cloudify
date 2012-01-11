@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 import org.apache.http.HttpException;
 
 import com.gigaspaces.cloudify.shell.commands.CLIException;
+import com.gigaspaces.cloudify.shell.commands.CLIStatusException;
 
 /**
  * @author rafi
@@ -61,7 +62,7 @@ public abstract class AbstractAdminFacade implements AdminFacade {
             doConnect(user, password, url);
             this.connected = true;
         } else {
-            throw new CLIException("already_connected", "");
+            throw new CLIStatusException("already_connected");
         }
     }
 

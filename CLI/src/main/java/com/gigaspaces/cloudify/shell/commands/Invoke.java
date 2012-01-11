@@ -104,7 +104,7 @@ public class Invoke extends AdminAwareCommand {
 		logger.info(invocationSuccessStringBuilder.toString());
 		
 		if (invocationFailedStringBuilder.length() != 0){
-			throw new CLIException("not_all_invocations_completed_successfully", this.serviceName, invocationFailedStringBuilder.toString());
+			throw new CLIStatusException("not_all_invocations_completed_successfully", this.serviceName, invocationFailedStringBuilder.toString());
 		}
 		
 		return getFormattedMessage("all_invocations_completed_successfully");
