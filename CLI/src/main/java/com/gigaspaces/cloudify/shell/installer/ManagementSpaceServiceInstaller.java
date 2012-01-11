@@ -86,7 +86,7 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 			}
 		});
 		
-        logger.info("management space is available.");
+        logger.info("Management space is available.");
 	}
 
 	public GigaSpace getGigaSpace() {

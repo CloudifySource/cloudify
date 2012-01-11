@@ -520,7 +520,7 @@ public class LocalhostGridAgentBootstrapper {
 				for (AbstractManagementServiceInstaller managementServiceInstaller : waitForManagementServices) {
 					managementServiceInstaller.waitForInstallation(adminFacade, agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
 					if(managementServiceInstaller instanceof ManagementSpaceServiceInstaller) {
-						logger.info("Writing cloud configuration to space");
+						logger.info("Writing cloud configuration to space.");
 						GigaSpace gigaspace = managementSpaceInstaller.getGigaSpace();
 						
 						CloudConfigurationHolder holder = new CloudConfigurationHolder(getCloudContents());
