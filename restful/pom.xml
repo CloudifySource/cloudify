@@ -6,7 +6,7 @@
 	<name>restful</name>
 
 	<parent>
-		<groupId>com.gigaspaces.cloudify</groupId>
+		<groupId>org.cloudifysource</groupId>
 		<artifactId>cloudify</artifactId>
 		<version>2.0.0</version>
 		<relativePath>../cloudify</relativePath>
@@ -104,45 +104,6 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.gigaspaces.cloudify</groupId>
-			<artifactId>esc</artifactId>
-			<version>${cloudifyVersion}</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>jclouds-compute</artifactId>
-					<groupId>org.jclouds</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>aws-common</artifactId>
-					<groupId>org.jclouds.common</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>ec2</artifactId>
-					<groupId>org.jclouds.api</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>commons-vfs2</artifactId>
-					<groupId>org.apache.commons</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>ant</artifactId>
-					<groupId>org.apache.ant</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>ant-jsch</artifactId>
-					<groupId>org.apache.ant</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>jsch</artifactId>
-					<groupId>com.jcraft</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>aws-ec2</artifactId>
-					<groupId>org.jclouds.provider</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
 			<groupId>org.codehaus.jackson</groupId>
 			<artifactId>jackson-core-asl</artifactId>
 			<version>1.3.0</version>
@@ -198,6 +159,11 @@
 			<artifactId>spring-expression</artifactId>
 			<version>3.0.5.RELEASE</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.cloudifysource</groupId>
+			<artifactId>esc</artifactId>
+			<version>${cloudifyVersion}</version>
 		</dependency>
 	</dependencies>
 </project>

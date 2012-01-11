@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.cloudifysource.dsl.Cloud;
 import org.cloudifysource.esc.esm.CloudDSLToCloudMachineProvisioningConfig;
 import org.cloudifysource.esc.esm.CloudMachineProvisioningConfig;
 import org.junit.Before;
@@ -13,7 +14,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.BlockJUnit4ClassRunner;
 
-import com.gigaspaces.cloudify.dsl.Cloud;
 import com.gigaspaces.internal.utils.Assert;
 
 @RunWith(BlockJUnit4ClassRunner.class)

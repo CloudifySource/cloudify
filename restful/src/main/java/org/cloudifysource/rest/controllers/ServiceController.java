@@ -42,6 +42,24 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.jini.core.discovery.LookupLocator;
 import org.apache.commons.io.FileUtils;
+import org.cloudifysource.dsl.DataGrid;
+import org.cloudifysource.dsl.Service;
+import org.cloudifysource.dsl.Sla;
+import org.cloudifysource.dsl.StatefulProcessingUnit;
+import org.cloudifysource.dsl.StatelessProcessingUnit;
+import org.cloudifysource.dsl.cloud.Cloud2;
+import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
+import org.cloudifysource.dsl.internal.DSLException;
+import org.cloudifysource.dsl.internal.DSLServiceCompilationResult;
+import org.cloudifysource.dsl.internal.EventLogConstants;
+import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder;
+import org.cloudifysource.dsl.internal.packaging.PackagingException;
+import org.cloudifysource.dsl.internal.packaging.ZipUtils;
+import org.cloudifysource.dsl.utils.ServiceUtils;
+import org.cloudifysource.esc.driver.provisioning.CloudifyMachineProvisioningConfig;
 import org.cloudifysource.rest.ResponseConstants;
 import org.cloudifysource.rest.util.ApplicationInstallerRunnable;
 import org.cloudifysource.rest.util.RestUtils;
@@ -90,24 +108,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.gigaspaces.cloudify.dsl.DataGrid;
-import com.gigaspaces.cloudify.dsl.Service;
-import com.gigaspaces.cloudify.dsl.Sla;
-import com.gigaspaces.cloudify.dsl.StatefulProcessingUnit;
-import com.gigaspaces.cloudify.dsl.StatelessProcessingUnit;
-import com.gigaspaces.cloudify.dsl.cloud.Cloud2;
-import com.gigaspaces.cloudify.dsl.cloud.CloudTemplate;
-import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
-import com.gigaspaces.cloudify.dsl.internal.DSLApplicationCompilatioResult;
-import com.gigaspaces.cloudify.dsl.internal.DSLException;
-import com.gigaspaces.cloudify.dsl.internal.DSLServiceCompilationResult;
-import com.gigaspaces.cloudify.dsl.internal.EventLogConstants;
-import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
-import com.gigaspaces.cloudify.dsl.internal.packaging.CloudConfigurationHolder;
-import com.gigaspaces.cloudify.dsl.internal.packaging.PackagingException;
-import com.gigaspaces.cloudify.dsl.internal.packaging.ZipUtils;
-import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
-import com.gigaspaces.cloudify.esc.driver.provisioning.CloudifyMachineProvisioningConfig;
 
 import com.gigaspaces.log.LogEntries;
 import com.gigaspaces.log.LogEntry;
@@ -753,7 +753,7 @@ public class ServiceController {
 		return returnObject;
 	}
 
-	private List<Service> createServiceDependencyOrder(com.gigaspaces.cloudify.dsl.Application application) {
+	private List<Service> createServiceDependencyOrder(org.cloudifysource.dsl.Application application) {
 		DirectedGraph<Service, DefaultEdge> graph = new DefaultDirectedGraph<Service, DefaultEdge>(DefaultEdge.class);
 
 		Map<String, Service> servicesByName = new HashMap<String, Service>();
