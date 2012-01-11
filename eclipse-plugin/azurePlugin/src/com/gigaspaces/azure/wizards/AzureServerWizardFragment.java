@@ -8,6 +8,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jst.server.generic.core.internal.GenericServer;
 import org.eclipse.jst.server.generic.core.internal.GenericServerRuntime;
@@ -39,6 +40,7 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.wst.server.core.IRuntime;
 import org.eclipse.wst.server.core.IServerWorkingCopy;
 import org.eclipse.wst.server.core.TaskModel;
+import org.eclipse.wst.server.ui.internal.wizard.page.NewServerComposite;
 import org.eclipse.wst.server.ui.wizard.IWizardHandle;
 import org.eclipse.wst.server.ui.wizard.WizardFragment;
 
@@ -55,6 +57,7 @@ public class AzureServerWizardFragment extends WizardFragment {
 	@Override
 	public Composite createComposite(Composite parent, IWizardHandle handle) {
 		composite = new AzureServerWizardComposite(parent, handle); 
+//		return new NewServerComposite(parent, handle,null,ILaunchManager.RUN_MODE); 
 		return composite;
 	}
 	
@@ -65,14 +68,14 @@ public class AzureServerWizardFragment extends WizardFragment {
 	
 	@Override
 	public void performFinish(IProgressMonitor monitor) throws CoreException {
-		if(composite == null)
-		{
-			AzureServerWizardProperties.setDefaults();
-			return;
-		}
-		AzureServerWizardProperties.setJreLocation(composite.getJreLocation());
-		AzureServerWizardProperties.setWebServerLocation(composite.getWebServerLocation());
-		AzureServerWizardProperties.setWebServerPort(composite.getWebServerPort());
+//		if(composite == null)
+//		{
+//			AzureServerWizardProperties.setDefaults();
+//			return;
+//		}
+//		AzureServerWizardProperties.setJreLocation(composite.getJreLocation());
+//		AzureServerWizardProperties.setWebServerLocation(composite.getWebServerLocation());
+//		AzureServerWizardProperties.setWebServerPort(composite.getWebServerPort());
 		super.performFinish(monitor);		
 	}
 	
