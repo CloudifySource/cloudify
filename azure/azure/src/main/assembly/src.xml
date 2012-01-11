@@ -8,7 +8,7 @@
   <includeBaseDirectory>false</includeBaseDirectory>
   <dependencySets>
   	<dependencySet>
-  		<excludes><exclude>com.gigaspaces.cloudify:CLI</exclude></excludes>
+  		<excludes><exclude>org.cloudifysource:CLI</exclude></excludes>
 	    <unpack>true</unpack>
 	    <useTransitiveFiltering>true</useTransitiveFiltering>
 	    <outputDirectory>/</outputDirectory>
