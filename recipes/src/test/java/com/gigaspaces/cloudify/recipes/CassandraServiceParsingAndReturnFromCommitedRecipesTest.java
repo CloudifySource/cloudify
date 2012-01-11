@@ -2,11 +2,11 @@ package com.gigaspaces.cloudify.recipes;
 
 import java.io.File;
 
+import org.cloudifysource.dsl.Service;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.Test;
 
-import com.gigaspaces.cloudify.dsl.Service;
-import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
-import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 
 public class CassandraServiceParsingAndReturnFromCommitedRecipesTest {
 	

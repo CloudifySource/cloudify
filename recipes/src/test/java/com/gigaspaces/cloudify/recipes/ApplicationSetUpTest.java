@@ -7,11 +7,11 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import org.cloudifysource.dsl.Application;
+import org.cloudifysource.dsl.Service;
+import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.Test;
 
-import com.gigaspaces.cloudify.dsl.Application;
-import com.gigaspaces.cloudify.dsl.Service;
-import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
 
 public class ApplicationSetUpTest {
 

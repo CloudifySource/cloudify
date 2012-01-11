@@ -9,9 +9,9 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cloudifysource.dsl.Plugin;
+import org.cloudifysource.dsl.context.ServiceContext;
 
-import com.gigaspaces.cloudify.dsl.Plugin;
-import com.gigaspaces.cloudify.dsl.context.ServiceContext;
 import com.mongodb.CommandResult;
 import com.mongodb.DB;
 import com.mongodb.DBObject;

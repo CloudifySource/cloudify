@@ -1,8 +1,8 @@
 package org.cloudifysource.mongodb;
 
-import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.usm.UniversalServiceManagerBean;
 import org.cloudifysource.usm.events.EventResult;
 import org.cloudifysource.usm.events.PreStartListener;
