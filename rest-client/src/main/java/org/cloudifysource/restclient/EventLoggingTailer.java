@@ -1,4 +1,4 @@
-package com.gigaspaces.cloudify.restclient;
+package org.cloudifysource.restclient;
 
 import java.util.ArrayList;
 import java.util.HashSet;

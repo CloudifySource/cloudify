@@ -1,8 +1,8 @@
-package com.gigaspaces.cloudify.restclient;
+package org.cloudifysource.restclient;
 
 /**
  * This exception a detailed error status, extending
- * {@link com.gigaspaces.cloudify.restclient.RestException}. The reasonCode and
+ * {@link org.cloudifysource.restclient.RestException}. The reasonCode and
  * args can be used to created formatted messages from the message bundle.
  * 
  * @author uri

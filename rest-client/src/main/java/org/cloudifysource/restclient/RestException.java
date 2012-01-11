@@ -1,9 +1,9 @@
-package com.gigaspaces.cloudify.restclient;
+package org.cloudifysource.restclient;
 
 /**
  * Exception representing a failure in the communication through rest. For More
  * detailed exceptions use
- * {@link com.gigaspaces.cloudify.restclient.ErrorStatusException}
+ * {@link org.cloudifysource.restclient.ErrorStatusException}
  */
 public class RestException extends Exception {
 

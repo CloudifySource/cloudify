@@ -1,4 +1,4 @@
-package com.gigaspaces.cloudify.restclient;
+package org.cloudifysource.restclient;
 
 import java.io.IOException;
 import java.net.Socket;

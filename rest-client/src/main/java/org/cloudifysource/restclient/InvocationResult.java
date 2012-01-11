@@ -1,4 +1,4 @@
-package com.gigaspaces.cloudify.restclient;
+package org.cloudifysource.restclient;
 
 import java.util.Map;
 
@@ -9,7 +9,7 @@ import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
  * a rest command invoker.
  * <p>
  * (Commands are executed over rest through the post methods in
- * {@link com.gigaspaces.cloudify.restclient.GSRestClient}, and returned as a
+ * {@link org.cloudifysource.restclient.GSRestClient}, and returned as a
  * Map object, parsed here.)
  */
 public class InvocationResult implements Comparable<InvocationResult> {

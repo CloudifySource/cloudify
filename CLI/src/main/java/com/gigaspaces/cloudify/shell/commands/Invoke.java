@@ -10,10 +10,10 @@ import java.util.Map;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
+import org.cloudifysource.restclient.InvocationResult;
 
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 
-import com.gigaspaces.cloudify.restclient.InvocationResult;
 
 
 @Command(scope = "cloudify", name = "invoke", description = "invokes a custom command")

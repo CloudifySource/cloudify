@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import net.jini.discovery.Constants;
 
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.restclient.ErrorStatusException;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitAlreadyDeployedException;
@@ -27,7 +28,6 @@ import org.openspaces.pu.service.ServiceDetails;
 import com.gigaspaces.cloudify.shell.AdminFacade;
 import com.gigaspaces.cloudify.shell.ConditionLatch;
 import com.gigaspaces.cloudify.shell.commands.CLIException;
-import com.gigaspaces.cloudify.restclient.ErrorStatusException;
 import com.j_spaces.kernel.Environment;
 
 public class ManagementWebServiceInstaller extends AbstractManagementServiceInstaller {

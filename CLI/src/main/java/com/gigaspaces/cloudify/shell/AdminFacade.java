@@ -23,8 +23,9 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.cloudifysource.restclient.InvocationResult;
+
 import com.gigaspaces.cloudify.shell.commands.CLIException;
-import com.gigaspaces.cloudify.restclient.InvocationResult;
 
 
 /**

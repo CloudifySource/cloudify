@@ -30,15 +30,15 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.cloudifysource.restclient.ErrorStatusException;
+import org.cloudifysource.restclient.EventLoggingTailer;
+import org.cloudifysource.restclient.GSRestClient;
+import org.cloudifysource.restclient.InvocationResult;
+import org.cloudifysource.restclient.RestException;
 import org.fusesource.jansi.Ansi.Color;
 
 import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
-import com.gigaspaces.cloudify.restclient.ErrorStatusException;
-import com.gigaspaces.cloudify.restclient.EventLoggingTailer;
-import com.gigaspaces.cloudify.restclient.GSRestClient;
-import com.gigaspaces.cloudify.restclient.InvocationResult;
-import com.gigaspaces.cloudify.restclient.RestException;
 import com.gigaspaces.cloudify.shell.AbstractAdminFacade;
 import com.gigaspaces.cloudify.shell.ComponentType;
 import com.gigaspaces.cloudify.shell.ShellUtils;
