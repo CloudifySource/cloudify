@@ -6,9 +6,9 @@ import java.util.Properties;
 
 import org.cloudifysource.azure.AzureDeploymentException;
 import org.cloudifysource.azure.AzureSlot;
+import org.cloudifysource.shell.ShellUtils;
+import org.cloudifysource.shell.commands.CLIException;
 
-import com.gigaspaces.cloudify.shell.ShellUtils;
-import com.gigaspaces.cloudify.shell.commands.CLIException;
 
 public class AzureUtils {
 

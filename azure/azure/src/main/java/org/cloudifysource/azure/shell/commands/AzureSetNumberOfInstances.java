@@ -28,9 +28,9 @@ import org.cloudifysource.azure.AzureDeploymentStatus;
 import org.cloudifysource.azure.files.AzureDeploymentConfigurationFile;
 import org.cloudifysource.azure.shell.AzureUtils;
 
-import com.gigaspaces.cloudify.shell.ShellUtils;
-import com.gigaspaces.cloudify.shell.commands.AdminAwareCommand;
-import com.gigaspaces.cloudify.shell.commands.CLIException;
+import org.cloudifysource.shell.ShellUtils;
+import org.cloudifysource.shell.commands.AdminAwareCommand;
+import org.cloudifysource.shell.commands.CLIException;
 
 /**
  * @author barakme

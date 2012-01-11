@@ -8,10 +8,10 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.azure.shell.AzureUtils;
 
-import com.gigaspaces.cloudify.shell.AdminFacade;
-import com.gigaspaces.cloudify.shell.Constants;
-import com.gigaspaces.cloudify.shell.commands.AbstractGSCommand;
-import com.gigaspaces.cloudify.shell.commands.CLIException;
+import org.cloudifysource.shell.AdminFacade;
+import org.cloudifysource.shell.Constants;
+import org.cloudifysource.shell.commands.AbstractGSCommand;
+import org.cloudifysource.shell.commands.CLIException;
 
 /**
  * @author itaif
