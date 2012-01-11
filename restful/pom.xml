@@ -57,7 +57,7 @@
 	</build>
 	<dependencies>
 		<dependency>
-			<groupId>com.gigaspaces.cloudify</groupId>
+			<groupId>org.cloudifysource</groupId>
 			<artifactId>dsl</artifactId>
 			<version>${cloudifyVersion}</version>
 			<scope>provided</scope>
