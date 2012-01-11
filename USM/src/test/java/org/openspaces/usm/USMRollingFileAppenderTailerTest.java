@@ -10,6 +10,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.RollingFileAppender;
+import org.cloudifysource.usm.tail.RollingFileAppenderTailer;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -18,7 +19,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.springframework.util.FileSystemUtils;
 
-import com.gigaspaces.cloudify.usm.tail.RollingFileAppenderTailer;
 
 @RunWith(BlockJUnit4ClassRunner.class)
 public class USMRollingFileAppenderTailerTest {
