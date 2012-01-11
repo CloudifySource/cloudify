@@ -4,7 +4,7 @@ import java.util.logging.Filter;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-import com.gigaspaces.cloudify.esc.installer.AgentlessInstaller;
+import org.cloudifysource.esc.installer.AgentlessInstaller;
 
 /**
  * The purpose of this class is to control logs ouput while the cloud is being bootstrapped or teared down.

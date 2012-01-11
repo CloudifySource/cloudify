@@ -14,17 +14,17 @@ import java.util.logging.Logger;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
+import org.cloudifysource.dsl.cloud.Cloud2;
+import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.esc.shell.installer.CloudGridAgentBootstrapper;
 
-import com.gigaspaces.cloudify.dsl.cloud.Cloud2;
-import com.gigaspaces.cloudify.dsl.internal.ServiceReader;
-import com.gigaspaces.cloudify.esc.driver.provisioning.jclouds.DefaultCloudProvisioning;
-import com.gigaspaces.cloudify.esc.installer.AgentlessInstaller;
-import com.gigaspaces.cloudify.shell.AdminFacade;
-import com.gigaspaces.cloudify.shell.Constants;
-import com.gigaspaces.cloudify.shell.ShellUtils;
-import com.gigaspaces.cloudify.shell.commands.AbstractGSCommand;
-import com.gigaspaces.cloudify.shell.rest.RestAdminFacade;
+import org.cloudifysource.esc.driver.provisioning.jclouds.DefaultCloudProvisioning;
+import org.cloudifysource.esc.installer.AgentlessInstaller;
+import org.cloudifysource.shell.AdminFacade;
+import org.cloudifysource.shell.Constants;
+import org.cloudifysource.shell.ShellUtils;
+import org.cloudifysource.shell.commands.AbstractGSCommand;
+import org.cloudifysource.shell.rest.RestAdminFacade;
 
 @Command(scope = "cloudify", name = "teardown-cloud", description = "Terminates management machines.")
 public class TeardownCloud extends AbstractGSCommand {

@@ -19,20 +19,21 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
-import com.gigaspaces.cloudify.shell.AdminFacade;
-import com.gigaspaces.cloudify.shell.ConditionLatch;
-import com.gigaspaces.cloudify.shell.ShellUtils;
-import com.gigaspaces.cloudify.shell.commands.CLIException;
-import com.gigaspaces.cloudify.shell.installer.ManagementWebServiceInstaller;
+import org.cloudifysource.dsl.cloud.Cloud2;
 
-import com.gigaspaces.cloudify.dsl.cloud.Cloud2;
-import com.gigaspaces.cloudify.esc.driver.provisioning.CloudProvisioningException;
-import com.gigaspaces.cloudify.esc.driver.provisioning.CloudifyProvisioning;
-import com.gigaspaces.cloudify.esc.driver.provisioning.MachineDetails;
-import com.gigaspaces.cloudify.esc.installer.AgentlessInstaller;
-import com.gigaspaces.cloudify.esc.installer.InstallationDetails;
-import com.gigaspaces.cloudify.esc.installer.InstallerException;
-import com.gigaspaces.cloudify.esc.util.Utils;
+import org.cloudifysource.shell.AdminFacade;
+import org.cloudifysource.shell.ConditionLatch;
+import org.cloudifysource.shell.ShellUtils;
+import org.cloudifysource.shell.commands.CLIException;
+import org.cloudifysource.shell.installer.ManagementWebServiceInstaller;
+
+import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
+import org.cloudifysource.esc.driver.provisioning.CloudifyProvisioning;
+import org.cloudifysource.esc.driver.provisioning.MachineDetails;
+import org.cloudifysource.esc.installer.AgentlessInstaller;
+import org.cloudifysource.esc.installer.InstallationDetails;
+import org.cloudifysource.esc.installer.InstallerException;
+import org.cloudifysource.esc.util.Utils;
 import com.gigaspaces.internal.utils.StringUtils;
 import com.j_spaces.kernel.Environment;
 
