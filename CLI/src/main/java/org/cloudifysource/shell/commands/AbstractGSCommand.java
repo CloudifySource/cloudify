@@ -26,12 +26,14 @@ import org.apache.felix.gogo.commands.Action;
 import org.apache.felix.gogo.commands.Option;
 import org.apache.felix.service.command.CommandSession;
 import org.apache.karaf.shell.console.CloseShellException;
+import org.cloudifysource.dsl.Service;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.ShellUtils;
-import org.cloudifysource.shell.AdminFacade;
-import org.cloudifysource.shell.Constants;nce 8.0.3
- */
+import org.fusesource.jansi.Ansi.Color;
+
+
+
 public abstract class AbstractGSCommand implements Action {
 
 	protected static final Logger logger = Logger
