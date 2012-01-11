@@ -1,4 +1,4 @@
-package com.gigaspaces.cloudify.rest.util;
+package org.cloudifysource.rest.util;
 
 import org.springframework.http.HttpStatus;
 

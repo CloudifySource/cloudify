@@ -1,7 +1,7 @@
-package com.gigaspaces.cloudify.rest.util;
+package org.cloudifysource.rest.util;
 
-import static com.gigaspaces.cloudify.rest.util.CollectionUtils.mapEntry;
-import static com.gigaspaces.cloudify.rest.util.CollectionUtils.newHashMap;
+import static org.cloudifysource.rest.util.CollectionUtils.mapEntry;
+import static org.cloudifysource.rest.util.CollectionUtils.newHashMap;
 
 import java.util.Map;
 

@@ -1,4 +1,4 @@
-package com.gigaspaces.cloudify.rest.util;
+package org.cloudifysource.rest.util;
 
 import java.util.HashMap;
 import java.util.Map;

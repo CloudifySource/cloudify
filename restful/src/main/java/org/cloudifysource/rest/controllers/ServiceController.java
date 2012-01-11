@@ -1,15 +1,15 @@
-package com.gigaspaces.cloudify.rest.controllers;
+package org.cloudifysource.rest.controllers;
 
-import static com.gigaspaces.cloudify.rest.ResponseConstants.FAILED_TO_INVOKE_INSTANCE;
-import static com.gigaspaces.cloudify.rest.ResponseConstants.FAILED_TO_LOCATE_APP;
-import static com.gigaspaces.cloudify.rest.ResponseConstants.FAILED_TO_LOCATE_GSM;
-import static com.gigaspaces.cloudify.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
-import static com.gigaspaces.cloudify.rest.ResponseConstants.FAILED_TO_LOCATE_SERVICE;
-import static com.gigaspaces.cloudify.rest.ResponseConstants.FAILED_TO_LOCATE_SERVICE_AFTER_DEPLOYMENT;
-import static com.gigaspaces.cloudify.rest.ResponseConstants.SERVICE_INSTANCE_UNAVAILABLE;
-import static com.gigaspaces.cloudify.rest.util.RestUtils.errorStatus;
-import static com.gigaspaces.cloudify.rest.util.RestUtils.successStatus;
 import static com.gigaspaces.log.LogEntryMatchers.regex;
+import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_INVOKE_INSTANCE;
+import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_APP;
+import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_GSM;
+import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
+import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_SERVICE;
+import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_SERVICE_AFTER_DEPLOYMENT;
+import static org.cloudifysource.rest.ResponseConstants.SERVICE_INSTANCE_UNAVAILABLE;
+import static org.cloudifysource.rest.util.RestUtils.errorStatus;
+import static org.cloudifysource.rest.util.RestUtils.successStatus;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -42,6 +42,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.jini.core.discovery.LookupLocator;
 import org.apache.commons.io.FileUtils;
+import org.cloudifysource.rest.ResponseConstants;
+import org.cloudifysource.rest.util.ApplicationInstallerRunnable;
+import org.cloudifysource.rest.util.RestUtils;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.CycleDetector;
 import org.jgrapht.graph.DefaultDirectedGraph;
@@ -106,9 +109,6 @@ import com.gigaspaces.cloudify.dsl.internal.packaging.ZipUtils;
 import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
 import com.gigaspaces.cloudify.esc.driver.provisioning.CloudifyMachineProvisioningConfig;
 
-import com.gigaspaces.cloudify.rest.ResponseConstants;
-import com.gigaspaces.cloudify.rest.util.ApplicationInstallerRunnable;
-import com.gigaspaces.cloudify.rest.util.RestUtils;
 import com.gigaspaces.log.LogEntries;
 import com.gigaspaces.log.LogEntry;
 import com.gigaspaces.log.LogEntryMatcher;

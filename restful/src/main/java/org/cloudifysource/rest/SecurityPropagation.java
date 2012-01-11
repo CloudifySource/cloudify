@@ -1,4 +1,4 @@
-package com.gigaspaces.cloudify.rest;
+package org.cloudifysource.rest;
 
 public enum SecurityPropagation {
 	NONE, CLUSTER

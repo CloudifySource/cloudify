@@ -1,4 +1,4 @@
-package com.gigaspaces.cloudify.rest.controllers;
+package org.cloudifysource.rest.controllers;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -8,6 +8,9 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.cloudifysource.rest.command.CommandManager;
+import org.cloudifysource.rest.out.OutputDispatcher;
+import org.cloudifysource.rest.util.NotFoundHttpException;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.os.OperatingSystem;
 import org.openspaces.admin.os.OperatingSystemDetails.NetworkDetails;
@@ -21,9 +24,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.gigaspaces.cloudify.rest.command.CommandManager;
-import com.gigaspaces.cloudify.rest.out.OutputDispatcher;
-import com.gigaspaces.cloudify.rest.util.NotFoundHttpException;
 
 /**
  * Spring MVC controller for the RESTful Admin API 

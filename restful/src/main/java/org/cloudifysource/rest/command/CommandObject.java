@@ -1,9 +1,10 @@
-package com.gigaspaces.cloudify.rest.command;
+package org.cloudifysource.rest.command;
 
 import java.util.List;
 import java.util.Map;
 
-import com.gigaspaces.cloudify.rest.util.NotFoundHttpException;
+import org.cloudifysource.rest.util.NotFoundHttpException;
+
 
 /**
  * CommandObject is initializes with a command name.

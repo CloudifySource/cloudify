@@ -1,4 +1,4 @@
-package com.gigaspaces.cloudify.rest.util;
+package org.cloudifysource.rest.util;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,6 +11,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
+import org.cloudifysource.rest.controllers.ServiceController;
 
 import com.gigaspaces.cloudify.dsl.Service;
 import com.gigaspaces.cloudify.dsl.cloud.Cloud2;
@@ -18,7 +19,6 @@ import com.gigaspaces.cloudify.dsl.internal.CloudifyConstants;
 import com.gigaspaces.cloudify.dsl.internal.DSLApplicationCompilatioResult;
 import com.gigaspaces.cloudify.dsl.internal.packaging.Packager;
 import com.gigaspaces.cloudify.dsl.utils.ServiceUtils;
-import com.gigaspaces.cloudify.rest.controllers.ServiceController;
 import com.j_spaces.kernel.Environment;
 
 public class ApplicationInstallerRunnable implements Runnable {

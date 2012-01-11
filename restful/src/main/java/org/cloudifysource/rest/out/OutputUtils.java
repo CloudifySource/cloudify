@@ -1,4 +1,4 @@
-package com.gigaspaces.cloudify.rest.out;
+package org.cloudifysource.rest.out;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
@@ -8,9 +8,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import com.gigaspaces.cloudify.rest.command.CommandManager;
-import com.gigaspaces.cloudify.rest.util.AdminTypeBlacklist;
-import com.gigaspaces.cloudify.rest.util.PrimitiveWrapper;
+import org.cloudifysource.rest.command.CommandManager;
+import org.cloudifysource.rest.util.AdminTypeBlacklist;
+import org.cloudifysource.rest.util.PrimitiveWrapper;
+
 
 
 /**

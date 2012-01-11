@@ -1,11 +1,12 @@
-package com.gigaspaces.cloudify.rest.command;
+package org.cloudifysource.rest.command;
 
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import com.gigaspaces.cloudify.rest.out.OutputUtils;
+import org.cloudifysource.rest.out.OutputUtils;
+
 
 public class CommandUtils {
 	
