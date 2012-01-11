@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.CompleterValues;
@@ -39,6 +40,8 @@ import com.gigaspaces.cloudify.shell.rest.RestAdminFacade;
 public class UninstallApplication extends AdminAwareCommand {
 
 	private static final String TIMEOUT_ERROR_MESSAGE = "Timeout waiting for application to uninstall";
+	
+	private String lastMessage;
 
 	@Argument(index = 0, required = true, name = "The name of the application")
 	String applicationName;
@@ -55,8 +58,8 @@ public class UninstallApplication extends AdminAwareCommand {
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is done. Defaults to 5 minutes.")
 	int timeoutInMinutes=5;
 
-	@Option(required = false, name = "-progress", description = "The polling time interval in minutes, used for checking if the operation is done. Defaults to 1 minute. Use together with the -timeout option")
-	int progressInMinutes=1;
+	@Option(required = false, name = "-progress", description = "The polling time interval in seconds, used for checking if the operation is done. Defaults to 5 seconds. Use together with the -timeout option")
+	int progressInSeconds=5;
 
 	@Override
 	protected Object doExecute() throws Exception {
@@ -70,10 +73,13 @@ public class UninstallApplication extends AdminAwareCommand {
 		if (verbose) {
 			logger.info("Containers running PUs of application " +applicationName +":"+containerIdsOfApplication);
 		}
+		
+		if (timeoutInMinutes > 0){
+			printStatusMessage(containerIdsOfApplication.size(), containerIdsOfApplication.size(), containerIdsOfApplication);
+		}
 		this.adminFacade.uninstallApplication(this.applicationName);
 
 		if (timeoutInMinutes > 0) {
-
 			createConditionLatch(timeoutInMinutes, TimeUnit.MINUTES).waitFor(new Predicate() {
 
 				@Override
@@ -84,11 +90,7 @@ public class UninstallApplication extends AdminAwareCommand {
 					remainingContainersForApplication.retainAll(allContainerIds);
 					boolean isDone =remainingContainersForApplication.isEmpty();
 					if (!isDone) {
-						logger.info(
-								"Waiting for all service instances to uninstall. "+
-								"Currently " +remainingContainersForApplication.size() + " instances are still running." +
-								(verbose ? " " + remainingContainersForApplication : ""));
-
+						printStatusMessage(remainingContainersForApplication.size(), containerIdsOfApplication.size(), remainingContainersForApplication);
 					}
 					//TODO: container has already been removed by un-install.
 					//printAllServiceEvents();
@@ -103,6 +105,16 @@ public class UninstallApplication extends AdminAwareCommand {
 		return getFormattedMessage("application_uninstalled_succesfully", this.applicationName);
 	}
 
+	private void printStatusMessage(int remainingApplicationContainers, int allApplicationContainers, Set<String> remainingContainerIDs){
+		String message = "Waiting for all service instances to uninstall. "+
+		"Currently " + remainingApplicationContainers + " instances of " + allApplicationContainers + " are still running.";
+		
+    	if (!StringUtils.equals(message, lastMessage)){
+    		logger.info(message + (verbose ? " " + remainingContainerIDs : ""));
+    		this.lastMessage = message;
+    	}
+	}
+
 	//returns true if the answer to the question was 'Yes'.
 	private boolean askUninstallConfirmationQuestion() throws IOException {
 		
@@ -113,7 +125,6 @@ public class UninstallApplication extends AdminAwareCommand {
 			System.out.flush();
 			PropertiesReader pr = new PropertiesReader(new InputStreamReader(System.in));
 			String readLine = pr.readProperty();
-
 			return "y".equalsIgnoreCase(readLine) ? true : false;
 
 		}
@@ -132,7 +143,7 @@ public class UninstallApplication extends AdminAwareCommand {
 		return 
 		new ConditionLatch()
 		.timeout(timeout,timeunit)
-		.pollingInterval(progressInMinutes, TimeUnit.MINUTES)
+		.pollingInterval(progressInSeconds, TimeUnit.SECONDS)
 		.timeoutErrorMessage(TIMEOUT_ERROR_MESSAGE)
 		.verbose(verbose);
 	}
