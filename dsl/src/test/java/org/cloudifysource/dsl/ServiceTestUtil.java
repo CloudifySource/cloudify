@@ -1,4 +1,4 @@
-package com.gigaspaces.cloudify.dsl;
+package org.cloudifysource.dsl;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
