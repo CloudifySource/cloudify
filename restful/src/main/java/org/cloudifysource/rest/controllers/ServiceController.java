@@ -47,7 +47,7 @@ import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.Sla;
 import org.cloudifysource.dsl.StatefulProcessingUnit;
 import org.cloudifysource.dsl.StatelessProcessingUnit;
-import org.cloudifysource.dsl.cloud.Cloud2;
+import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
@@ -129,7 +129,7 @@ public class ServiceController {
 	@Autowired(required = true)
 	private Admin admin;
 
-	private Cloud2 cloud = null;
+	private Cloud cloud = null;
 
 	private final Logger logger = Logger.getLogger(getClass().getName());
 	private String cloudFileContents;
@@ -179,7 +179,7 @@ public class ServiceController {
 		return space.getGigaSpace();
 	}
 	
-	private Cloud2 readCloud() {
+	private Cloud readCloud() {
 		logger.info("Loading cloud configuration");
 
 		this.cloudFileContents = getCloudConfigurationFromManagementSpace();
@@ -188,7 +188,7 @@ public class ServiceController {
 			return null;
 
 		}
-		Cloud2 cloud = null;
+		Cloud cloud = null;
 		try {
 			cloud = ServiceReader.readCloud(cloudFileContents);
 		} catch (DSLException e) {
@@ -952,7 +952,7 @@ public class ServiceController {
 		return locators.toString();
 	}
 
-	private long calculateExternalProcessMemory(final Cloud2 cloud, final CloudTemplate template) {
+	private long calculateExternalProcessMemory(final Cloud cloud, final CloudTemplate template) {
 		// TODO remove hardcoded number
 		logger.info("Calculating external proc mem for template: " + template);
 		long cloudExternalProcessMemoryInMB = template.getMachineMemoryMB()
@@ -1134,7 +1134,7 @@ public class ServiceController {
 		throw new FileNotFoundException("The file " + serviceFileOrDir + " was not found in the service folder");
 	}
 
-	private CloudTemplate getComputeTemplate(final Cloud2 cloud, final String templateName) {
+	private CloudTemplate getComputeTemplate(final Cloud cloud, final String templateName) {
 		if (templateName == null) {
 			Entry<String, CloudTemplate> entry = cloud.getTemplates().entrySet().iterator().next();
 
@@ -1350,7 +1350,7 @@ public class ServiceController {
 
 	}
 
-	private void validateAndPrepareStatefulSla(String serviceName, Sla sla, Cloud2 cloud, CloudTemplate template)
+	private void validateAndPrepareStatefulSla(String serviceName, Sla sla, Cloud cloud, CloudTemplate template)
 			throws DSLException {
 
 		validateMemoryCapacityPerContainer(sla, cloud, template);
@@ -1379,7 +1379,7 @@ public class ServiceController {
 		}
 	}
 
-	private void validateAndPrepareStatelessSla(Sla sla, Cloud2 cloud, CloudTemplate template) throws DSLException {
+	private void validateAndPrepareStatelessSla(Sla sla, Cloud cloud, CloudTemplate template) throws DSLException {
 
 		validateMemoryCapacityPerContainer(sla, cloud, template);
 
@@ -1393,7 +1393,7 @@ public class ServiceController {
 
 	}
 
-	private void validateMemoryCapacityPerContainer(Sla sla, Cloud2 cloud, CloudTemplate template) throws DSLException {
+	private void validateMemoryCapacityPerContainer(Sla sla, Cloud cloud, CloudTemplate template) throws DSLException {
 		if (cloud == null) {
 			// No cloud, must specify memory capacity per container explicitly
 			if (sla.getMemoryCapacityPerContainer() == null) {

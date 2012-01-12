@@ -165,5 +165,10 @@
 			<artifactId>esc</artifactId>
 			<version>${cloudifyVersion}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.cloudifysource</groupId>
+			<artifactId>dsl</artifactId>
+			<version>${cloudifyVersion}</version>
+		</dependency>
 	</dependencies>
 </project>

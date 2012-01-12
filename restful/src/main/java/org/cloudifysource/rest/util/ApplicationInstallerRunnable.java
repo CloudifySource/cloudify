@@ -12,7 +12,7 @@ import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.Service;
-import org.cloudifysource.dsl.cloud.Cloud2;
+import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
 import org.cloudifysource.dsl.internal.packaging.Packager;
@@ -34,11 +34,11 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 	private List<Service> services;
 
-	private Cloud2 cloud;
+	private Cloud cloud;
 
 	public ApplicationInstallerRunnable(ServiceController controller,
 			DSLApplicationCompilatioResult result, String applicationName,
-			List<Service> services, Cloud2 cloud) {
+			List<Service> services, Cloud cloud) {
 		super();
 		this.controller = controller;
 		this.result = result;
@@ -67,7 +67,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 	}
 
-	private void installServices(File appDir, String applicationName, final boolean async, final Cloud2 cloud) {
+	private void installServices(File appDir, String applicationName, final boolean async, final Cloud cloud) {
 		// TODO: refactor the last part of this method
 		logger.info("Installing service for application: " + applicationName + ". Async install: " + async +". Number of services: " + this.services.size());
 		for (final Service service : services) {
@@ -158,7 +158,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 	}
 
 	private Properties createServiceContextProperties(final Service service, String applicationName,
-			final boolean async, final Cloud2 cloud) {
+			final boolean async, final Cloud cloud) {
 		final Properties contextProperties = new Properties();
 
 		if (service.getDependsOn() != null) {
