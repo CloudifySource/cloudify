@@ -107,18 +107,6 @@
     	</replaceregexp>
     </target>
 
-    <target name="add.cloudify.jars">
-    	<property name="jdk" value="1.5"/>
-
-    	<echo message="copy ${gs.runtime.jar} and ${gs.boot.jar} jars into lib"/>
-    	<delete file="${tmp.dir}/${cloudify.installation.dir}/lib/platform/boot/${gs.boot.jar}" />	
-    	<delete file="${tmp.dir}/${cloudify.installation.dir}/lib/required/${gs.runtime.jar}" /> 
-         <copy todir="${tmp.dir}/${cloudify.installation.dir}/lib/required"
-              file="${build.repository.path}/${gs.version}/build_${gs.build.number}/jars/${jdk}/${cloudify}/${gs.runtime.jar}" overwrite="true"/>
-        <copy todir="${tmp.dir}/${cloudify.installation.dir}/lib/platform/boot"
-              file="${build.repository.path}/${gs.version}/build_${gs.build.number}/jars/${jdk}/${cloudify}/${gs.boot.jar}" overwrite="true"/>
-    </target>
-
     <target name="add.cloudify.modules">
         <echo message="Copy USM component"/>
         <copy todir="${tmp.dir}/${cloudify.installation.dir}/lib/platform/usm" overwrite="true">
@@ -203,7 +191,6 @@
     	<ant target="update.gs.runtime" />
     	<ant target="remove.xap.related.modules" />
         <ant target="updateLUSGroups"/>
-        <ant target="add.cloudify.jars"/>
         <ant target="add.cloudify.modules"/>
         <ant target="replace.cloudify.license"/>
     	<ant target="add.azure.artifacts" />
