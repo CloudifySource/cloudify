@@ -11,7 +11,7 @@ import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 
-import org.cloudifysource.dsl.cloud.Cloud2;
+import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 
@@ -63,9 +63,9 @@ public class StartManagement extends AbstractGSCommand {
 
 	
 	
-	private Cloud2 parseCloud(File cloudFile) {
+	private Cloud parseCloud(File cloudFile) {
 
-		Cloud2 cloud = null;
+		Cloud cloud = null;
 
 		if (cloudFile != null) {
 			if (cloudFile.isFile()) {
@@ -100,7 +100,7 @@ public class StartManagement extends AbstractGSCommand {
 		if (cloudFileName != null && cloudFileName.trim().length() > 0) {
 			cloudFile = new File(cloudFileName);
 			cloudConfigurationContents  = FileUtils.readFileToString(cloudFile);
-			Cloud2 cloud = parseCloud(cloudFile);
+			Cloud cloud = parseCloud(cloudFile);
 			if (cloud != null) {
 				if (cloud.getProvider() != null) {
 					int numberOfManagementMachines = cloud.getProvider().getNumberOfManagementMachines();
