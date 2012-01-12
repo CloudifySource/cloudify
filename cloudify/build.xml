@@ -75,9 +75,9 @@
 	-->
 	
 	<target name="update_platform_version" depends="replace_build_number" unless="gs.internal.systems.not.available">
-       <svn javahl="false" username="${svnant.repository.user}" password="${svnant.repository.passwd}" failonerror="false">
+       <!--svn javahl="false" username="${svnant.repository.user}" password="${svnant.repository.passwd}" failonerror="false">
            <commit message="803 Build version advanced to ${new.build.number}" file="${platform.verion.file}" />
-       </svn>
+       </svn-->
    </target>
 	
 	<target name="replace_build_number" if="cloudify.build.number">
