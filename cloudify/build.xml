@@ -120,7 +120,7 @@
         <echo message="Copy recipes component"/>
         <mkdir dir="${tmp.dir}/${cloudify.installation.dir}/recipes"/>
      
-        <unzip src="${recipes.local.copy}/target/recipes.zip" dest="${tmp.dir}/${cloudify.installation.dir}/recipes"/>
+        <unzip src="${recipes.local.copy}/target/recipes.zip" dest="${tmp.dir}/${cloudify.installation.dir}/recipes" />
      
         <move todir="${tmp.dir}/${cloudify.installation.dir}/examples">
             <fileset dir="${tmp.dir}/${cloudify.installation.dir}/recipes/applications"/>
@@ -217,7 +217,7 @@
 	</target>
 
     <target name="replace.cloudify.license">
-        <delete file="${gigaspaces.related.folder}/gslicense.xml"/>
+        <delete file="${tmp.dir}/${cloudify.installation.dir}"/>
         <copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${gigaspaces.related.folder}/gslicense.xml"/>
     </target>
 	
