@@ -31,7 +31,7 @@
     <property environment="env."/>
 	<property name="tmp.dir" value="${basedir}/tmp" />
 	<property name="gs.version" value="8.0.6" />
-	<property name="gs.build.number" value="6191" />
+	<property name="gs.build.number" value="6191-7" />
 	<property name="gs.milestone" value="ga" />
 	<property name="xap.installation.dir" value="gigaspaces-xap-premium-${gs.version}-${gs.milestone}" />
 	<property name="xap.zip.name" value="${xap.installation.dir}-b${gs.build.number}.zip" />
@@ -408,7 +408,7 @@
         </copy>
 
     	<javac
-            classpath="${tmp.dir}/${xap.installation.dir}/lib/required/${gs.runtime.jar};d:/dev/8.0.6/gigaspaces/classes"
+            classpath="${tmp.dir}/${cloudify.installation.dir}/lib/required/${gs.runtime.jar}"
             nowarn="on"
             srcdir="${src.tmp.dir}"
             destdir="${dst.tmp.dir}"
