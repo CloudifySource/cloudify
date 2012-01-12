@@ -30,7 +30,7 @@
 		<plugins>
 			<plugin>
 
-				<groupId>com.gigaspaces.cloudify</groupId>
+				<groupId>org.cloudifysource</groupId>
 				<artifactId>s3client-maven-plugin</artifactId>
 				<version>1.0</version>
 
