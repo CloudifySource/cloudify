@@ -30,15 +30,15 @@
 	
     <property environment="env."/>
 	<property name="tmp.dir" value="${basedir}/tmp" />
-	<property name="gs.version" value="8.0.5" />
-	<property name="gs.build.number" value="6000" />
+	<property name="gs.version" value="8.0.6" />
+	<property name="gs.build.number" value="6191" />
 	<property name="gs.milestone" value="ga" />
 	<property name="xap.installation.dir" value="gigaspaces-xap-premium-${gs.version}-${gs.milestone}" />
 	<property name="xap.zip.name" value="${xap.installation.dir}-b${gs.build.number}.zip" />
 	<property name="xap.zip.full.path" value="${build.repository.path}/${gs.version}/build_${gs.build.number}/xap-premium/1.5/${xap.zip.name}" />
 	<property name="cloudify.version" value="2.0.0" />
-	<property name="cloudify.build.number" value="20" />
-	<property name="cloudify.milestone" value="m5" />
+	<property name="cloudify.build.number" value="998" />
+	<property name="cloudify.milestone" value="ga" />
 	<property name="cloudify.installation.dir" value="gigaspaces-cloudify-${cloudify.version}-${cloudify.milestone}" />
 	<property name="cloudify.zip.name" value="${cloudify.installation.dir}-b${cloudify.build.number}.zip" />
 	<property name="xap.zip.full.path" value="${build.repository.path}/cloudify/${cloudify.version}/build_${cloudify.build.number}/product/${xap.zip.name}" />
@@ -58,6 +58,9 @@
 	<property name="build.prefix" value="build_" />
 	<property name="svnant.repository.user" value="opencm" />
 	<property name="svnant.repository.passwd" value="opencm" />
+	<property name="package.build" value="${basedir}/package_build" />
+	<property name="gigaspaces.related.folder" value="${package.build}/gigaspaces" />
+	<property name="platform.verion.file.name" value="CloudifyVersion.java" />
 	
 	<property name="cloudify.base.container" value="gigaspaces-cloudify" />
 	<property name="cloudify.base.publish.url" value="https://s3.amazonaws.com/${cloudify.base.container}" />
@@ -70,6 +73,31 @@
 	<property name="put.user" value="AWS User" />
 	<property name="put.key" value="AWS Key />
 	-->
+	
+	<target name="update_platform_version" depends="replace_build_number" unless="gs.internal.systems.not.available">
+       <svn javahl="false" username="${svnant.repository.user}" password="${svnant.repository.passwd}" failonerror="false">
+           <commit message="803 Build version advanced to ${new.build.number}" file="${platform.verion.file}" />
+       </svn>
+   </target>
+	
+	<target name="replace_build_number" if="cloudify.build.number">
+       <property name="build.number.field" value="BUILD_NUM" />
+       <property name="milestone.field" value="MILESTONE" />
+       <property name="build.type.field" value="BUILD_TYPE" />
+		
+	
+       <replaceregexp file="${gigaspaces.related.folder}/src/java/com/j_spaces/kernel/${platform.verion.file.name}"
+                        match="${build.number.field} = (.*)"
+                        replace='${build.number.field} = "${cloudify.build.number}";'/>
+
+       <replaceregexp file="${gigaspaces.related.folder}/src/java/com/j_spaces/kernel/${platform.verion.file.name}"
+                        match="${milestone.field} = (.*)"
+                        replace='${milestone.field} = "${cloudify.milestone}";'/>
+
+       <replaceregexp file="${gigaspaces.related.folder}/src/java/com/j_spaces/kernel/${platform.verion.file.name}"
+                                match="${build.type.field} = (.*)"
+                                replace='${build.type.field} = "${build.type}";'/>
+   </target>
 	
     <target name="updateLUSGroups">
         <echo message="Updating LUS Groups in directory: ${tmp.dir}/${cloudify.installation.dir} ..."/>
@@ -127,7 +155,7 @@
             <fileset dir="${cli.local.copy}/" includes="cloudify.*" excludes=".svn"/>
         </copy>
     	<copy todir="${tmp.dir}/${cloudify.installation.dir}/bin" overwrite="true">
-            <fileset dir="${basedir}/package_build/gigaspaces/bin" includes="cloudify.*" excludes=".svn"/>
+            <fileset dir="${gigaspaces.related.folder}/bin" includes="cloudify.*" excludes=".svn"/>
         </copy>
 
         <echo message="Copy CLOUDIFY Azure component"/>
@@ -172,6 +200,7 @@
 	</target>
 
     <target name="prepare.cloudify.package" depends="unzip.xap">
+    	<ant target="update.gs.runtime" />
     	<ant target="remove.xap.related.modules" />
         <ant target="updateLUSGroups"/>
         <ant target="add.cloudify.jars"/>
@@ -201,7 +230,7 @@
 	</target>
 
     <target name="replace.cloudify.license">
-        <delete file="${tmp.dir}/${cloudify.installation.dir}/gslicense.xml"/>
+        <delete file="${gigaspaces.related.folder}/gslicense.xml"/>
         <copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${basedir}/package_build/gslicense.xml"/>
     </target>
 	
@@ -263,7 +292,7 @@
 		<delete file="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles.zip" />
 	</target>
 	
-	<target name="prepare.and.copy.package" depends="prepare.cloudify.package, copy.packages.to.build.repository" />
+	<target name="prepare.and.copy.package" depends="update_platform_version,prepare.cloudify.package, copy.packages.to.build.repository" />
 	
 
 	<target name="publish.cloudify.to.storage" if="publish.cloudify.build">
@@ -362,7 +391,45 @@
 		
 	</target>
 	
-	
-	
-	
+    <target name="update.gs.runtime">
+
+        <!-- define properties for temp directories -->
+        <property name="src.tmp.dir" value="src-tmp-dir"/>
+        <property name="dst.tmp.dir" value="dst-tmp-dir"/>
+
+        <!-- create temp directories -->
+        <mkdir dir="${src.tmp.dir}"/>
+        <mkdir dir="${dst.tmp.dir}"/>
+
+    	 <copy todir="${src.tmp.dir}">
+            <fileset dir="${gigaspaces.related.folder}/src/java">
+                <include name="com/j_spaces/kernel/${platform.verion.file.name}"/>
+            </fileset>
+        </copy>
+
+    	<javac
+            classpath="${tmp.dir}/${xap.installation.dir}/lib/required/${gs.runtime.jar};d:/dev/8.0.6/gigaspaces/classes"
+            nowarn="on"
+            srcdir="${src.tmp.dir}"
+            destdir="${dst.tmp.dir}"
+            debug="on"
+            memoryMaximumSize="512m"
+            fork="yes"
+            source="1.6">
+        </javac>
+
+        <jar jarfile="${tmp.dir}/${cloudify.installation.dir}/lib/required/${gs.runtime.jar}" update="true">
+            <fileset dir="${dst.tmp.dir}"/>
+        </jar>
+    	
+    	<jar jarfile="${tmp.dir}/${cloudify.installation.dir}/lib/platform/boot/${gs.boot.jar}" update="true">
+            <fileset dir="${dst.tmp.dir}"/>
+        </jar>
+
+        <!-- delete temp folders -->
+        <delete dir="${src.tmp.dir}"/>
+        <delete dir="${dst.tmp.dir}"/>
+    </target>
+
+
 </project>
