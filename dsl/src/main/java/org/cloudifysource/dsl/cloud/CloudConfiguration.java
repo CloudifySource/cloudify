@@ -6,7 +6,7 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 @CloudifyDSLEntity(name = "configuration", clazz = CloudConfiguration.class, allowInternalNode = true, allowRootNode = false, parent = "cloud")
 public class CloudConfiguration {
 
-	private String className = "com.gigaspaces.cloudify.esc.driver.provisioning.jclouds.DefaultCloudProvisioning";
+	private String className = "org.cloudifysource.esc.driver.provisioning.jclouds.DefaultCloudProvisioning";
 	private String nicAddress;
 	private String lookupGroups;
 	private String lookupLocators;
