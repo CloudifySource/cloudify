@@ -1,4 +1,4 @@
-package com.gigaspaces.cloudify.recipes;
+package org.cloudifysource.recipes;
 
 import static org.junit.Assert.*;
 

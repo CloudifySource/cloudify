@@ -1,4 +1,4 @@
-package com.gigaspaces.cloudify.recipes;
+package org.cloudifysource.recipes;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
