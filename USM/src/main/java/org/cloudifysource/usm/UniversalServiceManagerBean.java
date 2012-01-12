@@ -287,8 +287,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			removeShutdownHook();
 
 			if (this.runningInGSC) {
-				deleteExtDirContents(); // avoid deleting contents in Integrated
-				// PU
+				deleteExtDirContents(); // avoid deleting contents in Integrated PU
 			}
 
 			try {
@@ -296,6 +295,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			} catch (USMException e) {
 				logger.log(Level.SEVERE, "Failed to execute shutdown event: " + e.getMessage(), e);
 			}
+			
+			USMUtils.shutdownAdmin();
 		}
 		logger.info("USM shut down completed!");
 	}
@@ -370,7 +371,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 
 	private void registerPostPUILifecycleTask() {
 		final Admin admin = USMUtils.getAdmin();
-		ProcessingUnit pu = admin.getProcessingUnits().waitFor(this.clusterName, 30, TimeUnit.SECONDS);
+		final ProcessingUnit pu = admin.getProcessingUnits().waitFor(this.clusterName, 30, TimeUnit.SECONDS);
 
 		final int instanceIdToMatch = this.instanceId;
 
@@ -386,12 +387,14 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			@Override
 			public void processingUnitInstanceAdded(ProcessingUnitInstance processingUnitInstance) {
 				if (processingUnitInstance.getInstanceId() == instanceIdToMatch) {
+					// first, remove the listener
+					pu.getProcessingUnitInstanceAdded().remove(this);
+					
 					// my PUI is ready
 					try {
-						// TODO: should this be run on a
+						// TODO: this should run on a
 						// separate thread???
 						installAndRun();
-						admin.removeEventListener(this);
 					} catch (Exception e) {
 						logger.log(Level.SEVERE, "Asynchronous install failed with message: " + e.getMessage()
 								+ ". Instance will shut down", e);
@@ -576,16 +579,18 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 
 			final Set<Long> childrenBefore = getChildProcesses(this.myPid);
 
-			// final File pidFile = acquirePidFile();
-
 			// bit of a hack, but not that bad.
 			usmLifecycleBean.logProcessStartEvent();
 
 			usmLifecycleBean.externalProcessStarted();
 
+			
 			this.process = usmLifecycleBean.getLauncher().launchProcessAsync(
 					usmLifecycleBean.getConfiguration().getStartCommand(), this.puExtDir, getOutputFile(),
 					getErrorFile());
+
+			// read output and error files for launched process, and print to GSC log
+			startFileMonitoringTask();
 
 			// After the main process starts, wait for a short interval so if
 			// the process failed to
@@ -883,14 +888,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		// make sure all death notifications are applied to the current process
 		final ProcessDeathNotifier notifier = this.processDeathNotifier;
 
-		// We should switch this to the file system notifier when Java 7 comes
-		// out
-		// Schedule task for reading output and error files.
-		if (this.tailer == null) {
-			this.tailer = createFileTailerTask();
-		}
-		logger.info("Launching tailer task");
-		executors.scheduleWithFixedDelay(tailer, 1, fileTailerIntervalSecs, TimeUnit.SECONDS);
 
 		// Launch thread that waits for foreground process to die.
 		if (this.process != null) {
@@ -912,6 +909,17 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		};
 		executors.scheduleWithFixedDelay(task, 2, 5, TimeUnit.SECONDS);
 
+	}
+
+	private void startFileMonitoringTask() {
+		// We should switch this to the file system notifier when Java 7 comes
+		// out
+		// Schedule task for reading output and error files.
+		if (this.tailer == null) {
+			this.tailer = createFileTailerTask();
+		}
+		logger.info("Launching tailer task");
+		executors.scheduleWithFixedDelay(tailer, 1, fileTailerIntervalSecs, TimeUnit.SECONDS);
 	}
 
 	private Runnable createProcessWaitTask(final ProcessDeathNotifier notifier) {

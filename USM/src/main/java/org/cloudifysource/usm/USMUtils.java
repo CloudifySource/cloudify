@@ -342,6 +342,15 @@ public final class USMUtils {
 		return returnMap;
 	}
 
+	public static void shutdownAdmin() {
+		if (admin == null) {
+			return;
+		}
+		
+		admin.close();
+
+	}
+
 
 	
 }
