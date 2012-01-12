@@ -18,6 +18,8 @@
 		<copy todir="${target.dir}/lib/platform/esm" file="../esc/target/esc.jar" />
 		<delete file="${target.dir}/lib/platform/esm/esc-2.0.0.jar" />
 		<copy todir="${target.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
+		<copy todir="${target.dir}/tools/cli/plugins/azure" file="../azure/azure/target/azure.jar" />
+	
 	</target>
 	
 	<target name="Create cloudify zip" depends="">
