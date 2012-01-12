@@ -127,7 +127,7 @@
             <fileset dir="${cli.local.copy}/" includes="cloudify.*" excludes=".svn"/>
         </copy>
     	<copy todir="${tmp.dir}/${cloudify.installation.dir}/bin" overwrite="true">
-            <fileset dir="${basedir}/package_build/bin" includes="cloudify.*" excludes=".svn"/>
+            <fileset dir="${basedir}/package_build/gigaspaces/bin" includes="cloudify.*" excludes=".svn"/>
         </copy>
 
         <echo message="Copy CLOUDIFY Azure component"/>
