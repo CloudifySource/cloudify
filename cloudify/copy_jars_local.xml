@@ -6,7 +6,11 @@
 
 <project name="copy-jars-to-cloudify" default="Copy Cloudify jars to install dir" basedir=".">
 
-	<property name="target.dir" value="D:/Gigaspaces/gigaspaces-cloudify-2.0.0-rc2" />
+	<property name="giga.base.dir" value="D:/Gigaspaces" />
+
+	<property name="giga.version" value="gigaspaces-cloudify-2.0.0-rc2" />
+
+	<property name="target.dir" value="${giga.base.dir}/${giga.version}" />
 
 
 	<target name="Copy Cloudify jars to install dir" depends="">
@@ -33,10 +37,8 @@
 			<fileset dir="${target.dir}/logs" includes="**/*"  />
 		</delete>
 		<echo message="Creating new zip file" />
-		<zip destfile="${target.dir}/../gigaspaces.zip" basedir="${target.dir}/.." includes="gigaspaces-cloudify-2.0.0-rc2/**/*" excludes="gigaspaces-cloudify-2.0.0-rc2/tools/cli/plugins/esc/ec2/**/*" />
+		<zip destfile="${target.dir}/../gigaspaces.zip" basedir="${target.dir}/.." includes="${giga.version}/**/*" excludes="${giga.version}/tools/cli/plugins/esc/ec2/**/*" />
 		<echo message="Created ${target.dir}/../gigaspaces.zip" />
-
-
 	</target>
 
 
