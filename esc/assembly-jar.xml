@@ -26,7 +26,7 @@
   	<dependencySet>
   		<excludes>
   			<exclude>com.gigaspaces:gs-openspaces</exclude>
-  			<exclude>com.gigaspaces.cloudify:dsl</exclude>
+  			<exclude>org.cloudifysource:dsl</exclude>
   		</excludes>
 	    <unpack>false</unpack>
 	    <useTransitiveFiltering>true</useTransitiveFiltering>
