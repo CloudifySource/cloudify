@@ -50,6 +50,7 @@ import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.AbstractGSCommand;
 import org.cloudifysource.shell.commands.CLIException;
+import org.cloudifysource.shell.commands.CLIStatusException;
 
 
 /**
@@ -97,7 +98,7 @@ public class AzureBootstrapApplication extends AbstractGSCommand {
 	    AdminFacade adminFacade = (AdminFacade) session.get(Constants.ADMIN_FACADE);
 	    
 	    if (adminFacade != null && adminFacade.isConnected()) {
-	        throw new CLIException("already_connected");
+	        throw new CLIStatusException("already_connected");
 	    }
 	    
 	    if (timeoutInMinutes < 0) {
