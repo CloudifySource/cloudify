@@ -65,6 +65,16 @@
 		</dependency>
 
 
+		<dependency>
+			<groupId>org.cloudifysource</groupId>
+			<artifactId>dsl</artifactId>
+			<version>${cloudifyVersion}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cloudifysource</groupId>
+			<artifactId>UniversalServiceManager</artifactId>
+			<version>${cloudifyVersion}</version>
+		</dependency>
 	</dependencies>
 
 	<build>
