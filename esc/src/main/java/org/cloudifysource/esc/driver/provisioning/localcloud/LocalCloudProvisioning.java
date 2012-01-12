@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.cloudifysource.dsl.cloud.Cloud2;
+import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.CloudifyProvisioning;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
@@ -22,7 +22,7 @@ public class LocalCloudProvisioning implements CloudifyProvisioning {
 
 	
 	@Override
-	public void setConfig(Cloud2 cloud, String cloudTemplate, boolean management) {
+	public void setConfig(Cloud cloud, String cloudTemplate, boolean management) {
 		this.lookupGroups = cloud.getConfiguration().getLookupGroups();
 		this.nicAddress= cloud.getConfiguration().getNicAddress();
 		

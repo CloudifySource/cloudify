@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 
 import net.jini.core.discovery.LookupLocator;
 
-import org.cloudifysource.dsl.cloud.Cloud2;
+import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
@@ -48,7 +48,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private CloudifyProvisioning cloudifyProvisioning;
 	private Admin admin;
 	private Map<String, String> properties;
-	private Cloud2 cloud;
+	private Cloud cloud;
 	private String cloudTemplate;
 	private String lookupLocatorsString;
 	private CloudMachineProvisioningConfig config;
@@ -67,7 +67,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return this.admin.getGridServiceAgents().getAgents();
 	}
 
-	protected InstallationDetails createInstallationDetails(final Cloud2 cloud, final MachineDetails md) throws FileNotFoundException {
+	protected InstallationDetails createInstallationDetails(final Cloud cloud, final MachineDetails md) throws FileNotFoundException {
 		final InstallationDetails details = new InstallationDetails();
 
 		details.setLocalDir(cloud.getProvider().getLocalDirectory());

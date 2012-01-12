@@ -18,7 +18,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
-import org.cloudifysource.dsl.cloud.Cloud2;
+import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.CloudifyProvisioning;
@@ -48,7 +48,7 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 
 	private String cloudName;
 
-	private Cloud2 cloud;
+	private Cloud cloud;
 
 	private String cloudTemplateName;
 	private boolean management;
@@ -59,7 +59,7 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 	private static final int MAX_MACHINE_LIMIT = 200;
 
 	@Override
-	public void setConfig(Cloud2 cloud, String cloudTemplateName, boolean management) {
+	public void setConfig(Cloud cloud, String cloudTemplateName, boolean management) {
 
 		this.cloud = cloud;
 		this.cloudTemplateName = cloudTemplateName;
@@ -91,7 +91,7 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 
 	}
 
-	private void initDeployer(Cloud2 cloud) {
+	private void initDeployer(Cloud cloud) {
 		if (this.deployer != null) {
 			return;
 		}
@@ -118,7 +118,7 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 	}
 
 	// @Override
-	// public void bootstrapCloud(final Cloud2 cloud) throws
+	// public void bootstrapCloud(final Cloud cloud) throws
 	// CloudProvisioningException {
 	// CloudGridAgentBootstrapper installer = new CloudGridAgentBootstrapper();
 	//
@@ -389,29 +389,7 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 		return this.cloudName;
 	}
 
-	// @Override
-	// public void teardownCloud(final Cloud2 cloud) throws
-	// CloudProvisioningException {
-	// CloudGridAgentBootstrapper installer = new CloudGridAgentBootstrapper();
-	//
-	//
-	// installer.setProgressInSeconds(10);
-	// installer.setVerbose(verbose);
-	// installer.setForce(true);
-	//
-	// try {
-	// installer.teardownCloudAndWait(teardownTimeoutInMinutes,
-	// TimeUnit.MINUTES, cloud);
-	// } catch (InstallerException e) {
-	// throw new CloudProvisioningException(e);
-	// } catch (TimeoutException e) {
-	// throw new CloudProvisioningException(e);
-	// } catch (InterruptedException e) {
-	// throw new CloudProvisioningException(e);
-	// }
-	//
-	// }
-
+	
 	private NodeMetadata getServerWithIP(final String ip) {
 		return deployer.getServerWithIP(ip);
 	}
@@ -422,19 +400,8 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 
 	@Override
 	public boolean stopMachine(String machineIp) throws CloudProvisioningException {
-		logger.info("Stop Machine - machineIp: " + machineIp);
+		logger.fine("Stop Machine - machineIp: " + machineIp);
 
-		// logger.info("Check that we are not shutting down LUS or ESM - lusIP  in locators: "
-		// + config.getLocator());
-		// TODO - the adapter should do this.
-		// if (config.getLocator() != null && config.getLocator().contains(ip))
-		// {
-		// logger.info("Recieved scale in request for LUS/ESM server. Ignoring.");
-		// return false;
-		// }
-
-		// TODO - move this stuff to the adapter class
-		// ignore duplicate shutdown requests for same machine
 		final Long previousRequest = stoppingMachines.get(machineIp);
 		if ((previousRequest != null)
 				&& (System.currentTimeMillis() - previousRequest < MULTIPLE_SHUTDOWN_REQUEST_IGNORE_TIMEOUT)) {

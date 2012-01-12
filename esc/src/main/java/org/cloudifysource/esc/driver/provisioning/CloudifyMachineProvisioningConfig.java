@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.cloudifysource.dsl.cloud.Cloud2;
+import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.openspaces.admin.pu.elastic.ElasticMachineProvisioningConfig;
@@ -50,7 +50,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	
 	private StringProperties properties= new StringProperties(new HashMap<String, String>());
 
-	public CloudifyMachineProvisioningConfig(final Cloud2 cloud, final CloudTemplate template, final String cloudFileContents, final String cloudTemplateName ) {
+	public CloudifyMachineProvisioningConfig(final Cloud cloud, final CloudTemplate template, final String cloudFileContents, final String cloudTemplateName ) {
 		
 		setMinimumNumberOfCpuCoresPerMachine(template.getNumberOfCores());
 		properties.putArray(ZONES_KEY, cloud.getProvider().getZones().toArray(new String[0]), ZONES_SEPARATOR);

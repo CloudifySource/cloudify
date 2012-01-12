@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
-import org.cloudifysource.dsl.cloud.Cloud2;
+import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.esc.driver.provisioning.jclouds.DefaultCloudProvisioning;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
@@ -52,7 +52,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 
 		// load the cloud file
 		File cloudFile = findCloudFile(providerDirectory);
-		Cloud2 cloud = ServiceReader.readCloud(cloudFile);
+		Cloud cloud = ServiceReader.readCloud(cloudFile);
 
 		// start the installer
 		CloudGridAgentBootstrapper installer = new CloudGridAgentBootstrapper();

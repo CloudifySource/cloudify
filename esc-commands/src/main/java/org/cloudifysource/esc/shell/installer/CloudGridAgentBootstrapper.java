@@ -19,7 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
-import org.cloudifysource.dsl.cloud.Cloud2;
+import org.cloudifysource.dsl.cloud.Cloud;
 
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
@@ -61,7 +61,7 @@ public class CloudGridAgentBootstrapper {
 
 	private CloudifyProvisioning provisioning;
 
-	private Cloud2 cloud;
+	private Cloud cloud;
 
 	private File cloudFile;
 
@@ -231,7 +231,7 @@ public class CloudGridAgentBootstrapper {
 
 	}
 
-	protected static InstallationDetails createInstallationDetails(final Cloud2 cloud) throws FileNotFoundException {
+	protected static InstallationDetails createInstallationDetails(final Cloud cloud) throws FileNotFoundException {
 		final InstallationDetails details = new InstallationDetails();
 		details.setLocalDir(cloud.getProvider().getLocalDirectory());
 		details.setZones(StringUtils.join(cloud.getProvider().getZones().toArray(new String[0]), ",", 0, cloud
@@ -395,7 +395,7 @@ public class CloudGridAgentBootstrapper {
 	}
 
 	
-	private void fixConfigRelativePaths(Cloud2 config) {
+	private void fixConfigRelativePaths(Cloud config) {
 		if (config.getProvider().getLocalDirectory() != null
 				&& !new File(config.getProvider().getLocalDirectory()).isAbsolute()) {
 			logger.info("Assuming " + config.getProvider().getLocalDirectory() + " is in "
@@ -464,7 +464,7 @@ public class CloudGridAgentBootstrapper {
 
 	
 
-	public void setCloud(Cloud2 cloud) {
+	public void setCloud(Cloud cloud) {
 		this.cloud = cloud;
 
 	}

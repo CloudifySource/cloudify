@@ -8,7 +8,7 @@ import java.io.OutputStream;
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.Application;
 import org.cloudifysource.dsl.Service;
-import org.cloudifysource.dsl.cloud.Cloud2;
+import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
 import org.codehaus.groovy.control.CompilationFailedException;
@@ -192,11 +192,11 @@ public class ServiceReader {
 
 	}
 
-	public static Cloud2 readCloud(final String dslContents) throws DSLException {
+	public static Cloud readCloud(final String dslContents) throws DSLException {
 		return readCloud(dslContents, null);
 	}
 
-	private static Cloud2 readCloud(final String dslContents, final File dslFile) throws DSLException {
+	private static Cloud readCloud(final String dslContents, final File dslFile) throws DSLException {
 
 		DSLReader dslReader = new DSLReader();
 
@@ -204,11 +204,11 @@ public class ServiceReader {
 		dslReader.setDslContents(dslContents);
 		dslReader.setDslFile(dslFile);
 
-		final Cloud2 cloud = dslReader.readDslEntity(Cloud2.class);
+		final Cloud cloud = dslReader.readDslEntity(Cloud.class);
 		return cloud;
 	}
 
-	public static org.cloudifysource.dsl.cloud.Cloud2 readCloud(final File dslFile) throws IOException,
+	public static org.cloudifysource.dsl.cloud.Cloud readCloud(final File dslFile) throws IOException,
 			DSLException {
 
 		if (!dslFile.exists()) {
@@ -217,7 +217,7 @@ public class ServiceReader {
 
 		final String dslContents = FileUtils.readFileToString(dslFile);
 
-		Cloud2 cloud = readCloud(dslContents, dslFile);
+		Cloud cloud = readCloud(dslContents, dslFile);
 		return cloud;
 	}
 

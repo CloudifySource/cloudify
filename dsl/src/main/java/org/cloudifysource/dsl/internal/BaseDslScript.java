@@ -24,7 +24,7 @@ import org.cloudifysource.dsl.ServiceNetwork;
 import org.cloudifysource.dsl.Sla;
 import org.cloudifysource.dsl.StatefulProcessingUnit;
 import org.cloudifysource.dsl.StatelessProcessingUnit;
-import org.cloudifysource.dsl.cloud.Cloud2;
+import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudConfiguration;
 import org.cloudifysource.dsl.cloud.CloudProvider;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
@@ -313,7 +313,7 @@ public abstract class BaseDslScript extends Script {
 					MirrorProcessingUnit.class);			
 
 			addObjectInitializerForClass(dslObjectInitializersByName,
-					Cloud2.class);
+					Cloud.class);
 
 			addObjectInitializerForClass(dslObjectInitializersByName,
 					CloudProvider.class);

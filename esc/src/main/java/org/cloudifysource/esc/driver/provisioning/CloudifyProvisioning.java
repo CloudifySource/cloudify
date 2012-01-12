@@ -3,7 +3,7 @@ package org.cloudifysource.esc.driver.provisioning;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.cloudifysource.dsl.cloud.Cloud2;
+import org.cloudifysource.dsl.cloud.Cloud;
 import org.openspaces.admin.Admin;
 
 
@@ -26,7 +26,7 @@ public interface CloudifyProvisioning {
 	 * 
 	 * @param config The configuration settings.
 	 */
-	void setConfig(Cloud2 cloud, String cloudTemplate, boolean management);
+	void setConfig(Cloud cloud, String cloudTemplate, boolean management);
 	
 	/**************
 	 * Passes an Admin API object that can be used to query the current cluster state.
