@@ -1,5 +1,5 @@
-import com.gigaspaces.cloudify.dsl.context.ServiceContextFactory
-import com.gigaspaces.cloudify.usm.USMUtils
+import org.cloudifysource.dsl.context.ServiceContextFactory
+import org.cloudifysource.usm.USMUtils
 
 serviceContext = ServiceContextFactory.getServiceContext()
 instanceIdFile = new File("./instanceId.txt")

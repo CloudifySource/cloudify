@@ -12,7 +12,7 @@ service {
 	plugins([
 		plugin {
 			name "portLiveness"
-			className "com.gigaspaces.cloudify.usm.liveness.PortLivenessDetector"
+			className "org.cloudifysource.usm.liveness.PortLivenessDetector"
 			config ([
 						"Port" : [8983],
 						"TimeoutInSeconds" : 60,
@@ -21,7 +21,7 @@ service {
 		},
 		plugin {
 			name "jmx"
-			className "com.gigaspaces.cloudify.usm.jmx.JmxMonitor"
+			className "org.cloudifysource.usm.jmx.JmxMonitor"
 			config([
 						"Average Requests PerSecond": [
 							"solr/:type=/admin/threads,id=org.apache.solr.handler.admin.ThreadDumpHandler",

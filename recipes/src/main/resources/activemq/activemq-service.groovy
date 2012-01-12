@@ -12,7 +12,7 @@ service {
 	plugins([
 		plugin {
 			name "portLiveness"
-			className "com.gigaspaces.cloudify.usm.liveness.PortLivenessDetector"
+			className "org.cloudifysource.usm.liveness.PortLivenessDetector"
 			config ([
 						"Port" : [61616],
 						"TimeoutInSeconds" : 60,
@@ -21,7 +21,7 @@ service {
 		},
 		plugin {
 			name "jmx"
-			className "com.gigaspaces.cloudify.usm.jmx.JmxMonitor"
+			className "org.cloudifysource.usm.jmx.JmxMonitor"
 			config([
 						"Store Percent Usage": [
 							"org.apache.activemq:BrokerName=localhost,Type=Broker",

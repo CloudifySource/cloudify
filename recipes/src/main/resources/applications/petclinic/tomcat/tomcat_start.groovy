@@ -1,4 +1,4 @@
-import com.gigaspaces.cloudify.dsl.context.ServiceContextFactory
+import org.cloudifysource.dsl.context.ServiceContextFactory
 import java.util.concurrent.TimeUnit
 
 config=new ConfigSlurper().parse(new File("tomcat.properties").toURL())

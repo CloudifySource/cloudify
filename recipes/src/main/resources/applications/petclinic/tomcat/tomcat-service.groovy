@@ -17,7 +17,7 @@ service {
 	plugins([
 		plugin {			
             name "portLiveness"
-            className "com.gigaspaces.cloudify.usm.liveness.PortLivenessDetector"
+            className "org.cloudifysource.usm.liveness.PortLivenessDetector"
             config ([
                 "Port" : [8080],
                 "TimeoutInSeconds" : 240,
@@ -26,7 +26,7 @@ service {
         }, 
 		plugin {
 			name "jmx"
-			className "com.gigaspaces.cloudify.usm.jmx.JmxMonitor"			
+			className "org.cloudifysource.usm.jmx.JmxMonitor"			
 			config([
 				"Current Http Threads Busy": [
 					"Catalina:type=ThreadPool,name=\"http-bio-8080\"",

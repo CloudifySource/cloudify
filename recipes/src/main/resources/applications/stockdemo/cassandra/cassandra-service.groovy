@@ -12,7 +12,7 @@ service {
 	plugins ([
 		plugin {
 			name "portLiveness"
-			className "com.gigaspaces.cloudify.usm.liveness.PortLivenessDetector"
+			className "org.cloudifysource.usm.liveness.PortLivenessDetector"
 			config ([
 						"Port" : [7199,9160],
 						"TimeoutInSeconds" : 60,
@@ -23,7 +23,7 @@ service {
 
 			name "jmx"
 
-			className "com.gigaspaces.cloudify.usm.jmx.JmxMonitor"
+			className "org.cloudifysource.usm.jmx.JmxMonitor"
 
 			config ([
 						"Compaction Manager Completed Tasks" :[

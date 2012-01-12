@@ -24,7 +24,7 @@ import org.cloudifysource.usm.events.StartReason;
  * plugins ([
  * 		plugin {
  *			name "portLiveness"
- *			className "com.gigaspaces.cloudify.usm.liveness.PortLivenessDetector"
+ *			className "org.cloudifysource.usm.liveness.PortLivenessDetector"
  *			config ([
  *						"Port" : [39000,38999,38998],
  *						"TimeoutInSeconds" : 30,

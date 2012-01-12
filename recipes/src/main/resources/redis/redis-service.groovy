@@ -20,7 +20,7 @@ service {
 	plugins([
 		plugin {
 			name "portLiveness"
-			className "com.gigaspaces.cloudify.usm.liveness.PortLivenessDetector"
+			className "org.cloudifysource.usm.liveness.PortLivenessDetector"
 			config ([
 						"Port" : [6379],
 						"TimeoutInSeconds" : 60,

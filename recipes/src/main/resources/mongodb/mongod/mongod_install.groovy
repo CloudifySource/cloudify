@@ -1,5 +1,5 @@
-import com.gigaspaces.cloudify.dsl.context.ServiceContextFactory
-import com.gigaspaces.cloudify.usm.USMUtils
+import org.cloudifysource.dsl.context.ServiceContextFactory
+import org.cloudifysource.usm.USMUtils
 
 println("Checking operating system's compatibility with mongod")
 if (!USMUtils.isWindows()){

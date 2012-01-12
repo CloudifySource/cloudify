@@ -15,7 +15,7 @@ service {
 	plugins([
 		plugin {
 			name "portLiveness"
-			className "com.gigaspaces.cloudify.usm.liveness.PortLivenessDetector"
+			className "org.cloudifysource.usm.liveness.PortLivenessDetector"
 			config ([
 						"Port" : [9999],
 						"TimeoutInSeconds" : 60,
@@ -24,7 +24,7 @@ service {
 		},
 //		plugin {
 //			name "jmx"
-//			className "com.gigaspaces.cloudify.usm.jmx.JmxMonitor"
+//			className "org.cloudifysource.usm.jmx.JmxMonitor"
 //			config([
 //						"Current Http Threads Busy":[
 //							"jboss.web:type=ThreadPool,name=http-127.0.0.1-8180",
@@ -47,7 +47,7 @@ service {
 //		},
 //		plugin {
 //			name "details"
-//			className "com.gigaspaces.cloudify.usm.jmx.JmxDetails"
+//			className "org.cloudifysource.usm.jmx.JmxDetails"
 //			config([
 //						"Version":[
 //							"jboss.system:type=Server",

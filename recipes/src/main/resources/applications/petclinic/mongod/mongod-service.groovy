@@ -14,7 +14,7 @@ service {
 	plugins([
         plugin {
             name "portLiveness"
-            className "com.gigaspaces.cloudify.mongodb.MongoLivenessDetector"
+            className "org.cloudifysource.mongodb.MongoLivenessDetector"
             config ([
                 "portFile":"port.txt", 
 				//"port" : 10000,
@@ -24,7 +24,7 @@ service {
         }, 
 		plugin {
 			name "MongoDBMonitorsPlugin"
-			className "com.gigaspaces.cloudify.mongodb.MongoDBMonitorsPlugin"
+			className "org.cloudifysource.mongodb.MongoDBMonitorsPlugin"
 			config([				
 				"host":"127.0.0.1",
 				"portFile":"port.txt", 

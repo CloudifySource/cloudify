@@ -2,7 +2,7 @@ import java.util.concurrent.TimeUnit
 
 println "Classpath is: " + System.getenv().get("CLASSPATH");
 println "This is the init event"
-def context = com.gigaspaces.cloudify.dsl.context.ServiceContextFactory.getServiceContext()
+def context = org.cloudifysource.dsl.context.ServiceContextFactory.getServiceContext()
 def service = context.waitForService(context.clusterInfo.name, 20, TimeUnit.SECONDS)
 
 println "Context: " + context

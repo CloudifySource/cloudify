@@ -1,4 +1,4 @@
-import com.gigaspaces.cloudify.dsl.context.ServiceContextFactory
+import org.cloudifysource.dsl.context.ServiceContextFactory
 import com.j_spaces.kernel.Environment
 import java.io.File
 import java.util.concurrent.TimeUnit

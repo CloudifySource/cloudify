@@ -1,4 +1,4 @@
-import com.gigaspaces.cloudify.usm.USMUtils
+import org.cloudifysource.usm.USMUtils
 
 config = new ConfigSlurper().parse(new File("mongos.properties").toURL())
 osConfig = USMUtils.isWindows() ? config.win32 : config.unix

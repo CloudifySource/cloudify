@@ -35,7 +35,7 @@ public class CloudDSLToCloudMachineProvisioningConfig {
 		Class<? extends Cloud> aCloudClass = cloud.getClass();
 		List<Method> ClassGetters = getValidGetters(aCloudClass);
 		//TODO: get rid of esc dependency by instantiating the class using reflection.
-//		String className = "com.gigaspaces.cloudify.esc.esm.CloudMachineProvisioningConfig";
+//		String className = "org.cloudifysource.esc.esm.CloudMachineProvisioningConfig";
 //		Class<?> beanClass = Class.forName(className);
 //		Class<?> cloudMachineProvisioning = (Class<?>) beanClass.newInstance();
 		CloudMachineProvisioningConfig cloudMachineProvisioning = new CloudMachineProvisioningConfig();
