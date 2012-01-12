@@ -218,7 +218,7 @@
 
     <target name="replace.cloudify.license">
         <delete file="${gigaspaces.related.folder}/gslicense.xml"/>
-        <copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${basedir}/package_build/gslicense.xml"/>
+        <copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${gigaspaces.related.folder}/gslicense.xml"/>
     </target>
 	
 	<target name="dos2unix">
