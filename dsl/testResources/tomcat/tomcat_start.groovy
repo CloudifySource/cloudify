@@ -1,6 +1,6 @@
 import org.openspaces.admin.AdminFactory;
 import java.util.concurrent.TimeUnit;
-import com.gigaspaces.cloudify.usm.USMUtils;
+import org.cloudifysource.usm.USMUtils;
 
 this.setProperty("catalinaHome", "install")
 this.setProperty("javaHome", System.getProperty("java.home"))

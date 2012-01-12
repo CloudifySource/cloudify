@@ -15,7 +15,7 @@ service {
 
       name "jmx"
 
-      className "com.gigaspaces.cloudify.usm.jmx.JmxMonitor"
+      className "org.cloudifysource.usm.jmx.JmxMonitor"
 
       confg ([
             "Compaction Manager Completed Tasks" :[
