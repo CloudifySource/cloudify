@@ -1,4 +1,4 @@
-package com.gigaspaces.cloudify.s3client;
+package org.cloudifysource.s3client;
 
 import java.io.File;
 import java.util.HashSet;
