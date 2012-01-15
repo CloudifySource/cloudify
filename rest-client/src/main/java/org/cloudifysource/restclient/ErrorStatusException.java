@@ -1,9 +1,25 @@
+/*******************************************************************************
+ * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
 package org.cloudifysource.restclient;
 
 /**
- * This exception a detailed error status, extending
- * {@link org.cloudifysource.restclient.RestException}. The reasonCode and
- * args can be used to created formatted messages from the message bundle.
+ * This exception extends {@link org.cloudifysource.restclient.RestException}
+ * to include a detailed error status.
+ * The reasonCode and args array can be used to created formatted messages
+ * from the message bundle.
  * 
  * @author uri
  */
