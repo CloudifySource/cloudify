@@ -15,11 +15,11 @@ import javax.net.ssl.X509TrustManager;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import java.security.cert.X509Certificate;
 
+/**
+ * Creates a SSL socket for the REST comminucation.
+ */
 public class RestSSLSocketFactory extends SSLSocketFactory {
 
-	/**
-	 * SSL context (using algorithm TLS).
-	 */
 	private SSLContext sslContext = SSLContext.getInstance(TLS);
 
 	/**
@@ -27,7 +27,7 @@ public class RestSSLSocketFactory extends SSLSocketFactory {
 	 * 
 	 * @param truststore
 	 *            a {@link KeyStore} containing one or several trusted
-	 *            certificates to enable enable server authentication.
+	 *            certificates to enable server authentication.
 	 * @throws NoSuchAlgorithmException
 	 *             Reporting failure to create SSLSocketFactory with the given
 	 *             trust-store and algorithm TLS or initialize the SSLContext.

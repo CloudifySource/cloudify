@@ -6,12 +6,18 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 /**
- * This class offers static methods to evaluate or manipulate Strings.
+ * This class offers static methods to evaluate Strings and read from an input
+ * stream.
  * 
  * @author rafi
  * @since 8.0.3
  */
-public class StringUtils {
+public final class StringUtils {
+	
+	/**
+	 * Private Ctor, to avoid instantiation of this utility class.
+	 */
+	private StringUtils() { }
 
 	/**
 	 * Checks if a given String is not null or empty.
@@ -31,6 +37,7 @@ public class StringUtils {
 	 *            the input stream to read.
 	 * @return the content of the given input stream
 	 * @throws IOException
+	 *             Reporting failure to read from the InputStream
 	 */
 	public static String getStringFromStream(final InputStream is)
 			throws IOException {

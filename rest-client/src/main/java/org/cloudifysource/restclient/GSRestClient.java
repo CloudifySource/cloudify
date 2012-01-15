@@ -72,19 +72,19 @@ public class GSRestClient {
 	 */
 	public static final String REASON_CODE_COMM_ERR = "comm_error";
 
-	public static final String SUCCESS = "success";
-	public static final String STATUS_KEY = "status";
-	public static final String ERROR = "error";
+	private static final String STATUS_KEY = "status";
+	private static final String ERROR = "error";
 
 	private static final int NOT_FOUND_404_ERROR_CODE = 404;
 
-	private static final int HTTP_STATUS_OK = 200; // org.springframework.http.HttpStatus.OK.value();
+	private static final int HTTP_STATUS_OK = 200;
+	// org.springframework.http.HttpStatus.OK.value();
 
 	private static final Logger logger = Logger.getLogger(GSRestClient.class
 			.getName());
 
 	private static final String ERROR_ARGS = "error_args";
-	private static final ObjectMapper objectMapper = new ObjectMapper();
+	private static final ObjectMapper PROJECT_MAPPER = new ObjectMapper();
 	private static final String RESPONSE_KEY = "response";
 	private static final String ADMIN_REFLECTION_URL = "/admin/";
 	private static final String FORWARD_SLASH = "/";
@@ -165,8 +165,8 @@ public class GSRestClient {
 	 *            the Relative URL to the requested object. The rest server IP
 	 *            and port are not required.
 	 *            <p>
-	 *            example: processingUnits/Names/default.cassandra will get the
-	 *            object with the name "dafault.cassandra" from the list of all
+	 *            example: "processingUnits/Names/default.cassandra" will get
+	 *            the object named "dafault.cassandra" from the list of all
 	 *            processing units.
 	 * @return An object, the response received from the Admin API.
 	 * @throws RestException
@@ -187,9 +187,9 @@ public class GSRestClient {
 	 *            the Relative URL to the requested object. The rest server IP
 	 *            and port are not required.
 	 *            <p>
-	 *            example: processingUnits/Names/default.cassandra will get the
-	 *            object with the name "dafault.cassandra" from the list of all
-	 *            processing units.
+	 *            example: "/service/applications/travel/services/cassandra/
+	 *            USMEventsLogs/" will get event logs from the cassandra service
+	 *            of the travel application.
 	 * @return An object, the response received from the rest service
 	 * @throws ErrorStatusException
 	 *             Reporting errors of all types (IO, HTTP, rest etc.)
@@ -202,7 +202,24 @@ public class GSRestClient {
 		return executeHttpMethod(httpMethod);
 	}
 
-	public Map<String, Object> getAdmin(final String relativeUrl)
+	/**
+	 * Performs a REST GET operation on the given (relative) URL, using the
+	 * Admin API.
+	 * 
+	 * @param relativeUrl
+	 *            the Relative URL to the requested object. The rest server IP
+	 *            and port are not required.
+	 *            <p>
+	 *            example:
+	 *            "applications/Names/travel/ProcessingUnits/Names/travel.tomcat
+	 *            /Instances/0/GridServiceContainer/Uid" will get the UID of the
+	 *            first instance of the tomcat service in the "travel"
+	 *            application.
+	 * @return An object, the response received from the Admin API.
+	 * @throws RestException
+	 *             Reporting errors of all types (IO, HTTP, rest etc.)
+	 */
+	public final Map<String, Object> getAdmin(final String relativeUrl)
 			throws RestException {
 		final String url = getFullUrl(ADMIN_REFLECTION_URL + relativeUrl);
 		logger.finer(MSG_PERFORMING_HTTP_GET + url);
@@ -354,6 +371,21 @@ public class GSRestClient {
 		}
 	}
 
+	/**
+	 * Executes the given HTTP request and analyzes the response. Successful
+	 * responses are expected to be formatted as json strings, and are converted
+	 * to a Map<String, Object> object. The map can use these keys: "status"
+	 * (success/error), "error"(reason code), "error_args" and "response".
+	 * <p>
+	 * Errors of all types (IO, HTTP, rest etc.) are reported through an
+	 * ErrorStatusException (RestException).
+	 * 
+	 * @param httpMethod
+	 *            The HTTP request to perform.
+	 * @return An object, the response body received from the rest service
+	 * @throws RestException
+	 *             Reporting errors of all types (IO, HTTP, rest etc.)
+	 */
 	private Map<String, Object> readHttpAdminMethod(
 			final HttpRequestBase httpMethod) throws RestException {
 		InputStream instream = null;
@@ -465,11 +497,33 @@ public class GSRestClient {
 		executeHttpMethod(httpdelete);
 	}
 
-	public Object post(final String relativeUrl) throws RestException {
+	/**
+	 * This methods executes HTTP post over REST on the given (relative) URL
+	 * with the given parameters map.
+	 * 
+	 * @param relativeUrl
+	 *            The URL to post to.
+	 * @return null
+	 * @throws RestException
+	 *             Reporting failure to post the file.
+	 */
+	public final Object post(final String relativeUrl) throws RestException {
 		return post(relativeUrl, null);
 	}
 
-	public Object post(final String relativeUrl,
+	/**
+	 * This methods executes HTTP post over REST on the given (relative) URL
+	 * with the given parameters map.
+	 * 
+	 * @param relativeUrl
+	 *            The URL to post to.
+	 * @param params
+	 *            parameters as Map<String, String>.
+	 * @return null
+	 * @throws RestException
+	 *             Reporting failure to post the file.
+	 */
+	public final Object post(final String relativeUrl,
 			final Map<String, String> params) throws RestException {
 		final HttpPost httppost = new HttpPost(getFullUrl(relativeUrl));
 		if (params != null) {
@@ -478,7 +532,8 @@ public class GSRestClient {
 				final String json = GSRestClient.mapToJson(params);
 				entity = new StringEntity(json, MIME_TYPE_APP_JSON, "UTF-8");
 				httppost.setEntity(entity);
-				httppost.setHeader(HttpHeaders.CONTENT_TYPE, MIME_TYPE_APP_JSON);
+				httppost.setHeader(HttpHeaders.CONTENT_TYPE, 
+						MIME_TYPE_APP_JSON);
 			} catch (final IOException e) {
 				throw new RestException(e);
 			}
@@ -486,12 +541,39 @@ public class GSRestClient {
 		return executeHttpMethod(httppost);
 	}
 
-	public String postFile(final String relativeUrl, final File file)
+	/**
+	 * This methods executes HTTP post over REST on the given (relative) URL
+	 * with the given file.
+	 * 
+	 * @param relativeUrl
+	 *            The URL to post to.
+	 * @param file
+	 *            The file to send (example: <SOME PATH>/tomcat.zip).
+	 * @return null
+	 * @throws RestException
+	 *             Reporting failure to post the file.
+	 */
+	public final String postFile(final String relativeUrl, final File file)
 			throws RestException {
 		return postFile(relativeUrl, file, null);
 	}
 
-	public String postFile(final String relativeUrl, final File file,
+	/**
+	 * This methods executes HTTP post over REST on the given (relative) URL
+	 * with the given file and properties (also sent as a separate file).
+	 * 
+	 * @param relativeUrl
+	 *            The URL to post to.
+	 * @param file
+	 *            The file to send (example: <SOME PATH>/tomcat.zip).
+	 * @param params
+	 *            The properties of this POST action (example:
+	 *            com.gs.service.type=WEB_SERVER)
+	 * @return null
+	 * @throws RestException
+	 *             Reporting failure to post the file.
+	 */
+	public final String postFile(final String relativeUrl, final File file,
 			final Properties params) throws RestException {
 
 		// It should be possible to dump the properties into a String entity,
@@ -520,7 +602,18 @@ public class GSRestClient {
 		return (String) executeHttpMethod(httppost);
 	}
 
-	protected File writeMapToFile(final Properties props) throws IOException {
+	/**
+	 * Writes the given properties to a temporary text files and returns it. The
+	 * text file will be deleted automatically.
+	 * 
+	 * @param props
+	 *            Properties to write to a temporary text (.tmp) file
+	 * @return File object - the properties file created.
+	 * @throws IOException
+	 *             Reporting failure to create the text file.
+	 */
+	protected final File writeMapToFile(final Properties props)
+			throws IOException {
 
 		// then dump properties into file
 		File tempFile = null;
@@ -546,7 +639,14 @@ public class GSRestClient {
 		return tempFile;
 	}
 
-	public DefaultHttpClient getSSLHttpClient() throws RestException {
+	/**
+	 * Returns a HTTP client configured to use SSL.
+	 * 
+	 * @return HTTP client configured to use SSL
+	 * @throws RestException
+	 *             Reporting different failures while creating the HTTP client
+	 */
+	public final DefaultHttpClient getSSLHttpClient() throws RestException {
 		try {
 			final KeyStore trustStore = KeyStore.getInstance(KeyStore
 					.getDefaultType());
@@ -593,7 +693,7 @@ public class GSRestClient {
 	public static Map<String, Object> jsonToMap(final String response)
 			throws IOException {
 		final JavaType javaType = TypeFactory.type(Map.class);
-		return objectMapper.readValue(response, javaType);
+		return PROJECT_MAPPER.readValue(response, javaType);
 	}
 
 	/**
@@ -607,7 +707,7 @@ public class GSRestClient {
 	 */
 	private static String mapToJson(final Map<String, ?> map)
 			throws IOException {
-		return objectMapper.writeValueAsString(map);
+		return PROJECT_MAPPER.writeValueAsString(map);
 	}
 
 	/**
@@ -623,7 +723,7 @@ public class GSRestClient {
 			final Map<String, Object> map) throws IOException {
 		final String json = GSRestClient.mapToJson(map);
 		final JavaType javaType = TypeFactory.type(InvocationResult.class);
-		return objectMapper.readValue(json, javaType);
+		return PROJECT_MAPPER.readValue(json, javaType);
 	}
 
 }
