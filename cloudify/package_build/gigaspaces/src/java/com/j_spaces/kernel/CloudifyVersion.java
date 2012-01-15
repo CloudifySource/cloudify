@@ -23,8 +23,8 @@ public class CloudifyVersion implements ProductVersion {
 	private final String V_NAME = "GigaSpaces";
 	private final String PRODUCT_HELP_URL = "cloudify.product.help.url=http://www.gigaspaces.com/wiki/display/CLOUD";
 
+	/** default constructor for Class.forName() - see com.j_spaces.kernel.PlatformVersion */
 	public CloudifyVersion() {
-		throw new RuntimeException("not cloudify");
 	}
 	
 	@Override
