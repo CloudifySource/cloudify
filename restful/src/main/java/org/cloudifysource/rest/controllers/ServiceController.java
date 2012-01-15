@@ -57,6 +57,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.jini.core.discovery.LookupLocator;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.cloudifysource.dsl.DataGrid;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.Sla;
@@ -1121,8 +1122,20 @@ public class ServiceController {
 		final InputStream is = new ByteArrayInputStream(propsBytes);
 		props.load(is);
 		File dest = copyMultipartFileToLocalFile(srcFile);
-		dest.deleteOnExit();
-		deployElasticProcessingUnit(absolutePuName, applicationName, zone, dest, props, actualTemplateName);
+		File destFile = new File(dest.getParent(), absolutePuName + "." +  FilenameUtils.getExtension(dest.getName()));
+		if (destFile.exists()){
+			FileUtils.deleteQuietly(destFile);
+		}
+		if (dest.renameTo(destFile)){
+			FileUtils.deleteQuietly(dest);
+			deployElasticProcessingUnit(absolutePuName, applicationName, zone, destFile, props, actualTemplateName);
+			destFile.deleteOnExit();
+		}else{
+			logger.warning("Deployment file could not be renamed to the absolute pu name. Deploaying using the name " + dest.getName());
+			deployElasticProcessingUnit(absolutePuName, applicationName, zone, dest, props, actualTemplateName);
+			dest.deleteOnExit();
+		}
+		
 
 		return successStatus();
 	}
