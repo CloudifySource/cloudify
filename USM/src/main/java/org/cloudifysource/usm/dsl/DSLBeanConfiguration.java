@@ -15,6 +15,7 @@ import org.cloudifysource.dsl.Plugin;
 import org.cloudifysource.dsl.PluginDescriptor;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.context.ServiceContext;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.usm.USMComponent;
 import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.USMUtils;
@@ -418,8 +419,18 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 	@Bean
 	public USMEvent getProcessStopDetection() {
 		
-		// TODO - add an option to disable this bean.
-		return new ProcessStopDetector();
+		boolean enabled = true;
+		final String enabledProperty = this.service.getCustomProperties().get(CloudifyConstants.CUSTOM_PROPERTY_ENABLE_PID_MONITOR);
+		if(enabledProperty != null) {
+			enabled = Boolean.parseBoolean(enabledProperty);
+		}
+		
+		if(enabled) {
+			return new ProcessStopDetector();
+		} else {
+			logger.warning("PID Based stop detection has been disabled due to custom property setting: " + CloudifyConstants.CUSTOM_PROPERTY_ENABLE_PID_MONITOR);
+			return null;
+		}
 	}
 
 	@Bean
