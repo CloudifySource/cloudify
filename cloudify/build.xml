@@ -31,7 +31,7 @@
     <property environment="env."/>
 	<property name="tmp.dir" value="${basedir}/tmp" />
 	<property name="gs.version" value="8.0.6" />
-	<property name="gs.build.number" value="6191-7" />
+	<property name="gs.build.number" value="6191-13" />
 	<property name="gs.milestone" value="ga" />
 	<property name="xap.installation.dir" value="gigaspaces-xap-premium-${gs.version}-${gs.milestone}" />
 	<property name="xap.zip.name" value="${xap.installation.dir}-b${gs.build.number}.zip" />
@@ -46,6 +46,7 @@
 	<property name="cloudify" value="cloudify" />
 	<property name="gs.runtime.jar" value="gs-runtime.jar" />
 	<property name="gs.boot.jar" value="gs-boot.jar" />
+	<property name="gs.webui.war" value="gs-webui.war" />
 	<property name="usm.local.copy" value="${basedir}/../USM" />
 	<property name="esc.local.copy" value="${basedir}/../esc" />
 	<property name="recipes.local.copy" value="${basedir}/../recipes" />
@@ -60,6 +61,7 @@
 	<property name="svnant.repository.passwd" value="opencm" />
 	<property name="package.build" value="${basedir}/package_build" />
 	<property name="gigaspaces.related.folder" value="${package.build}/gigaspaces" />
+	<property name="gs-webui.related.folder" value="${package.build}/gs-webui" />
 	<property name="platform.verion.file.name" value="CloudifyVersion.java" />
 	
 	<property name="cloudify.base.container" value="gigaspaces-cloudify" />
@@ -175,6 +177,11 @@
     	<copy file="${dsl.local.copy}/target/cloudify-javadoc.jar" tofile="${tmp.dir}/${cloudify.installation.dir}/docs/cloudify-javadoc.zip"/>
     	
 		<copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${gigaspaces.related.folder}/START_HERE.htm"/>
+    	
+    	<!-- replace dynamic_props.js in gs-webui war -->
+    	<war warfile="${tmp.dir}/${cloudify.installation.dir}/tools/gs-webui/${gs.webui.war}" update="true">
+            <fileset dir="${gs-webui.related.folder}/war"/>
+        </war>
     </target>
 
 	<target name="unzip.xap">
