@@ -109,8 +109,8 @@ public class CloudifyConstants {
 	/***********************************
 	 * Key names for environment variables available to agent in a cloudify environment
 	 */
-	public static final String CLOUDIFY_AGENT_ENV_PRIVATE_IP = "CLOUDIFY_AGENT_ENV_PRIVATE_KEY";
-	public static final String CLOUDIFY_AGENT_ENV_PUBLIC_IP = "CLOUDIFY_AGENT_ENV_PUBLIC_KEY";
+	public static final String CLOUDIFY_AGENT_ENV_PRIVATE_IP = "CLOUDIFY_AGENT_ENV_PRIVATE_IP";
+	public static final String CLOUDIFY_AGENT_ENV_PUBLIC_IP = "CLOUDIFY_AGENT_ENV_PUBLIC_IP";
 	
 	
 	
@@ -123,7 +123,13 @@ public class CloudifyConstants {
 	public static final String USM_LIB_DIR = "usmlib";
 	// TODO - remove forward slashes
 	public static final String SERVICE_EXTERNAL_FOLDER = "/ext/";
+
 	
+	/********************
+	 * Custom properties for known cloudify settings.
+	 * 
+	 */
+	public static final String CUSTOM_PROPERTY_ENABLE_PID_MONITOR = "org.cloudifysource.enable-pid-monitor";
 	
 	private CloudifyConstants() {
 		// private constructor to prevent initialization.
