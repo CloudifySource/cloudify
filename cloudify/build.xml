@@ -174,7 +174,7 @@
     	<!-- Add Cloudify Javadoc archive to Cloudify/docs folder -->
     	<copy file="${dsl.local.copy}/target/cloudify-javadoc.jar" tofile="${tmp.dir}/${cloudify.installation.dir}/docs/cloudify-javadoc.zip"/>
     	
-		<copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${basedir}/package_build/START_HERE.htm"/>
+		<copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${gigaspaces.related.folder}/START_HERE.htm"/>
     </target>
 
 	<target name="unzip.xap">
