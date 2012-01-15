@@ -65,17 +65,8 @@ package org.cloudifysource.shell;
  * Currently, the RestAdminFacade uses MySSLSocketFactory which accepts all certificates.
  * When a valid certificate is issues, the block of code that uses MySSLSocketFactory needs to be removed(getSSLHttpClient method).
  * 
- * 
- * GSRestClient - This class is used by the RestAdminFacade in order to communicate with the REST server. 
- * It uses httpcomponents-httpclient to issue http requests and jackson mapper to map json text to objects and vice versa.
- * GSRestClient currently communicates with the server using the methods GET,POST,DELETE.
- * Those methods receive a relative url, e.g., "service/services", the rest client will build the full url address 
- * based on that relative url and on the url the user has provided when he executed the connect method/command.
- * For example, if the user connected to http://localhost:8100 and executed a get with "service/services"
- * the GSRestClient will issue a GET request with the address http://localhost:8100/service/services 
- * same goes for POST,DELETE.
- * POST and DELETE can also receive a parameters map which will be embedded in the http request.
- * To send a file to the rest server use postFile
+ * Communication with the REST server is done through the rest-client:
+ * {@link org.cloudifysource.restclient.GSRestClient} using HTTP commands (GET, POST, DELETE).
  * 
  * 
  * 
