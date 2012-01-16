@@ -58,8 +58,8 @@ import com.j_spaces.kernel.Environment;
 import com.j_spaces.kernel.PlatformVersion;
 
 public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware {
-
-	private static final String EXCEPTION_CAUGHT_REGEX = "Caught:.*\\s*?.*\\.groovy:[1-9]{1,}\\)";
+														 
+	private static final String EXCEPTION_CAUGHT_REGEX = "Caught:.*\\.groovy:[1-9]{1,}\\).*";
 	private static final int POST_SYNC_PROCESS_SLEEP_INTERVAL = 200;
 	private static final String LINUX_EXECUTE_PREFIX = "./";
 	private static final String[] WINDOWS_BATCH_FILE_PREFIX_PARAMS = { "cmd.exe", "/c " };
@@ -649,7 +649,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			logger.info("Command exited with value: " + exitValue);
 			if (exitValue != 0) {
 				logger.severe("Event lifecycle external process exited with abnormal status code: " + exitValue);
-				Pattern pattern = Pattern.compile(EXCEPTION_CAUGHT_REGEX, Pattern.MULTILINE);
+				Pattern pattern = Pattern.compile(EXCEPTION_CAUGHT_REGEX, Pattern.MULTILINE + Pattern.DOTALL);
 				Matcher matcher = pattern.matcher(sb.toString());
 				int beginIndex = 0;
 				int endIndex = 0;
