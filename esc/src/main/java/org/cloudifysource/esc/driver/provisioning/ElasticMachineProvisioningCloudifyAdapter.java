@@ -325,8 +325,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			throw new IllegalArgumentException("Cloud configuration was not set!");
 		}
 	
-		// TODO - remove this printout - it includes the API key!
-		logger.info("Cloud contents passed in elastic properties: " + cloudContents);
 		try {
 			this.cloud = ServiceReader.readCloud(cloudContents);
 			this.cloudTemplate = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME);
