@@ -173,6 +173,10 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			if (existingProcessFound) {
 				// found an existing process, so no need to launch
 				startAsyncTasks();
+				
+				// start file monitoring task too
+				startFileMonitoringTask();
+				
 				this.state = USMState.RUNNING;
 
 				return;

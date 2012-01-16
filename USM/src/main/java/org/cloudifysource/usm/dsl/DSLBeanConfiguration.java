@@ -337,7 +337,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 					Map<String, Object> returnMap = new HashMap<String, Object>();
 					// Map can appear in 2 forms. As a map of as a closure that
 					// returns a map
-					logger.info("getting Details map from details closure");
+					logger.fine("getting Details map from details closure");
 					if (details instanceof Map<?, ?>){
 						for (Map.Entry<String, Object> entry : ((Map<String, Object>) (details)).entrySet()) {
 							if (entry.getValue() instanceof Closure){
