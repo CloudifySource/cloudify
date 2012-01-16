@@ -101,6 +101,11 @@
 	      typeIds="com.gigaspaces.azure.core.serverType"
 	      class="com.gigaspaces.azure.wizards.AzureServerWizardFragment" />
     </extension>
+    
+    <extension point="org.eclipse.wst.server.ui.serverCreationWizardPageExtension">
+	 <fragment id="myextension"
+	    	class="com.gigaspaces.azure.wizards.AzureServerCreationWizardPageExtension" />
+	</extension>
  <extension
        point="org.eclipse.jst.server.generic.core.genericpublisher">
     <genericpublisher
