@@ -5,9 +5,8 @@
     This configuration file was written by the eclipse-cs plugin configuration editor
 -->
 <!--
-    Checkstyle-Configuration: Cloudify Checkstyle
-    Description: 
-Based on Sun Checks (Eclipse) with some changes for our coding style, Slightly modified version of Sun Checks that better matches the default code formatter setting of Eclipse.
+    Checkstyle-Configuration: Cloudify
+    Description: none
 -->
 <module name="Checker">
   <property name="severity" value="warning"/>
@@ -17,7 +16,9 @@ Based on Sun Checks (Eclipse) with some changes for our coding style, Slightly m
       <property name="suppressLoadErrors" value="true"/>
     </module>
     <module name="JavadocType"/>
-    <module name="JavadocVariable"/>
+    <module name="JavadocVariable">
+      <property name="scope" value="public"/>
+    </module>
     <module name="JavadocStyle"/>
     <module name="ConstantName"/>
     <module name="LocalFinalVariableName"/>
@@ -62,7 +63,10 @@ Based on Sun Checks (Eclipse) with some changes for our coding style, Slightly m
     <module name="DoubleCheckedLocking"/>
     <module name="EmptyStatement"/>
     <module name="EqualsHashCode"/>
-    <module name="HiddenField"/>
+    <module name="HiddenField">
+      <property name="severity" value="ignore"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+    </module>
     <module name="IllegalInstantiation"/>
     <module name="InnerAssignment"/>
     <module name="MagicNumber"/>
@@ -76,7 +80,9 @@ Based on Sun Checks (Eclipse) with some changes for our coding style, Slightly m
     <module name="FinalClass"/>
     <module name="HideUtilityClassConstructor"/>
     <module name="InterfaceIsType"/>
-    <module name="VisibilityModifier"/>
+    <module name="VisibilityModifier">
+      <property name="protectedAllowed" value="true"/>
+    </module>
     <module name="ArrayTypeStyle"/>
     <module name="FinalParameters"/>
     <module name="TodoComment">
@@ -84,6 +90,9 @@ Based on Sun Checks (Eclipse) with some changes for our coding style, Slightly m
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     <module name="UpperEll"/>
+    <module name="VisibilityModifier">
+      <property name="protectedAllowed" value="true"/>
+    </module>
   </module>
   <module name="JavadocPackage"/>
   <module name="NewlineAtEndOfFile">
