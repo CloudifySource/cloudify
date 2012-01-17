@@ -7,8 +7,7 @@
 <!--
     Checkstyle-Configuration: Cloudify Checkstyle
     Description: 
-Based on Sun Checks (Eclipse) with some changes for our coding style,
-Slightly modified version of Sun Checks that better matches the default code formatter setting of Eclipse.
+Based on Sun Checks (Eclipse) with some changes for our coding style, Slightly modified version of Sun Checks that better matches the default code formatter setting of Eclipse.
 -->
 <module name="Checker">
   <property name="severity" value="warning"/>
@@ -33,7 +32,9 @@ Slightly modified version of Sun Checks that better matches the default code for
     <module name="IllegalImport"/>
     <module name="RedundantImport"/>
     <module name="UnusedImports"/>
-    <module name="LineLength"/>
+    <module name="LineLength">
+      <property name="max" value="120"/>
+    </module>
     <module name="MethodLength"/>
     <module name="ParameterNumber"/>
     <module name="EmptyForIteratorPad"/>
