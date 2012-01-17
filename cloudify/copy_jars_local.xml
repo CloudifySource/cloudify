@@ -8,7 +8,7 @@
 
 	<property name="giga.base.dir" value="D:/Gigaspaces" />
 
-	<property name="giga.version" value="gigaspaces-cloudify-2.0.0-rc2" />
+	<property name="giga.version" value="gigaspaces-cloudify-2.0.0-ga" />
 
 	<property name="target.dir" value="${giga.base.dir}/${giga.version}" />
 
