@@ -505,16 +505,14 @@ namespace GigaSpaces
                 GSTrace.WriteLine("Waiting for " + NumberOfManagementRoleInstances + " managers");
 
                 GSProcess managersScript = GroovyProcess(
-                   @"org.openspaces.admin.Admin admin = new org.openspaces.admin.AdminFactory().useDaemonThreads(true).createAdmin();
-                 while (admin.getGridServiceManagers().getSize () != " + NumberOfManagementRoleInstances + @") {
-                    System.out.println(""Waiting for " + NumberOfManagementRoleInstances + @" Grid Service Managers"");
-                    Thread.sleep(10000);
-                 };
-                 while (admin.getElasticServiceManagers().getSize() != 1) {
-                    System.out.println(""Waiting for one Elastic Service Manager"");
-                    Thread.sleep(10000);
-                }
-"
+               @"org.openspaces.admin.Admin admin = new org.openspaces.admin.AdminFactory().useDaemonThreads(true).createAdmin();
+                 while (!admin.getGridServiceManagers().waitFor(" + NumberOfManagementRoleInstances + @", 60 , java.util.concurrent.TimeUnit.SECONDS) ||
+                        !admin.getElasticServiceManagers().waitFor(1, 60 , java.util.concurrent.TimeUnit.SECONDS)) {
+                    System.out.println(""Waiting for " + NumberOfManagementRoleInstances + @" Grid Service Managers and 1 Elastic Service Manager"");
+                    /*Due to bug GS-9875*/ 
+                    admin.close();
+                    admin = new org.openspaces.admin.AdminFactory().useDaemonThreads(true).createAdmin();
+                 }"
                 , true);
                 managersScript.Run();
 

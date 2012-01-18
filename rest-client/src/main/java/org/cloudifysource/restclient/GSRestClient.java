@@ -234,8 +234,7 @@ public class GSRestClient {
 			}
 			final HttpEntity entity = response.getEntity();
 			if (entity == null) {
-				final ErrorStatusException e = new ErrorStatusException(
-						REASON_CODE_COMM_ERR);
+				final ErrorStatusException e = new ErrorStatusException(REASON_CODE_COMM_ERR, httpMethod.getURI(),MSG_RESPONSE_ENTITY_NULL);
 				logger.log(Level.FINE, httpMethod.getURI()
 						+ MSG_RESPONSE_ENTITY_NULL, e);
 				throw e;
@@ -250,12 +249,10 @@ public class GSRestClient {
 			return responseMap;
 		} catch (final ClientProtocolException e) {
 			logger.log(Level.FINE, httpMethod.getURI() + MSG_REST_API_ERR, e);
-			throw new ErrorStatusException(REASON_CODE_COMM_ERR, e,
-					e.getMessage());
+			throw new ErrorStatusException(e, REASON_CODE_COMM_ERR, httpMethod.getURI(), MSG_REST_API_ERR);
 		} catch (final IOException e) {
 			logger.log(Level.FINE, httpMethod.getURI() + MSG_REST_API_ERR, e);
-			throw new ErrorStatusException(REASON_CODE_COMM_ERR, e,
-					e.getMessage());
+			throw new ErrorStatusException(e, REASON_CODE_COMM_ERR, httpMethod.getURI(), MSG_REST_API_ERR);
 		} finally {
 			if (instream != null) {
 				try {
@@ -292,7 +289,7 @@ public class GSRestClient {
 			if (statusCode != HTTP_STATUS_OK) {
 				logger.log(Level.FINE, httpMethod.getURI() + MSG_RESPONSE_CODE
 						+ statusCode);
-				responseBody = getResponseBody(response);
+				responseBody = getResponseBody(response, httpMethod);
 				try {
 					Map<String, Object> errorMap = GSRestClient
 							.jsonToMap(responseBody);
@@ -301,14 +298,14 @@ public class GSRestClient {
 							errorMap.get(ERROR));
 				} catch (IOException e) {
 					if (statusCode == NOT_FOUND_404_ERROR_CODE) {
-						throw new ErrorStatusException("URL_not_found",
+						throw new ErrorStatusException(e, "URL_not_found",
 								httpMethod.getURI());
 					}
-					throw new ErrorStatusException(
+					throw new ErrorStatusException(e, 
 							"CLI_unable_to_parse_to_JSON", responseBody);
 				}
 			}
-			responseBody = getResponseBody(response);
+			responseBody = getResponseBody(response, httpMethod);
 			final Map<String, Object> responseMap = GSRestClient
 					.jsonToMap(responseBody);
 			final String status = (String) responseMap.get(STATUS_KEY);
@@ -325,12 +322,10 @@ public class GSRestClient {
 			return responseMap.get(RESPONSE_KEY);
 		} catch (final ClientProtocolException e) {
 			logger.log(Level.FINE, httpMethod.getURI() + MSG_REST_API_ERR, e);
-			throw new ErrorStatusException(REASON_CODE_COMM_ERR, e,
-					e.getMessage());
+			throw new ErrorStatusException(e, REASON_CODE_COMM_ERR, httpMethod.getURI(), MSG_REST_API_ERR);
 		} catch (final IOException e) {
 			logger.log(Level.FINE, httpMethod.getURI() + MSG_REST_API_ERR, e);
-			throw new ErrorStatusException(REASON_CODE_COMM_ERR, e,
-					e.getMessage());
+			throw new ErrorStatusException(e, REASON_CODE_COMM_ERR, httpMethod.getURI(), MSG_REST_API_ERR);
 		} finally {
 			httpMethod.abort();
 		}
@@ -347,7 +342,7 @@ public class GSRestClient {
 	 * @throws IOException
 	 *             Reporting a failure to read the response's content
 	 */
-	public static String getResponseBody(final HttpResponse response)
+	public static String getResponseBody(final HttpResponse response, HttpRequestBase httpMethod)
 			throws ErrorStatusException, IOException {
 
 		InputStream instream = null;
@@ -355,7 +350,7 @@ public class GSRestClient {
 			HttpEntity entity = response.getEntity();
 			if (entity == null) {
 				final ErrorStatusException e = new ErrorStatusException(
-						REASON_CODE_COMM_ERR);
+						REASON_CODE_COMM_ERR, httpMethod.getURI(), MSG_RESPONSE_ENTITY_NULL);
 				logger.log(Level.FINE, MSG_RESPONSE_ENTITY_NULL, e);
 				throw e;
 			}
@@ -403,7 +398,7 @@ public class GSRestClient {
 			final HttpEntity entity = response.getEntity();
 			if (entity == null) {
 				final ErrorStatusException e = new ErrorStatusException(
-						REASON_CODE_COMM_ERR);
+						REASON_CODE_COMM_ERR, httpMethod.getURI(), MSG_RESPONSE_ENTITY_NULL);
 				logger.log(Level.FINE, httpMethod.getURI()
 						+ MSG_RESPONSE_ENTITY_NULL, e);
 				throw e;
@@ -418,12 +413,10 @@ public class GSRestClient {
 			return responseMap;
 		} catch (final ClientProtocolException e) {
 			logger.log(Level.FINE, httpMethod.getURI() + MSG_REST_API_ERR, e);
-			throw new ErrorStatusException(REASON_CODE_COMM_ERR, e,
-					e.getMessage());
+			throw new ErrorStatusException(e, REASON_CODE_COMM_ERR, httpMethod.getURI(), MSG_REST_API_ERR);
 		} catch (final IOException e) {
 			logger.log(Level.FINE, httpMethod.getURI() + MSG_REST_API_ERR, e);
-			throw new ErrorStatusException(REASON_CODE_COMM_ERR, e,
-					e.getMessage());
+			throw new ErrorStatusException(e, REASON_CODE_COMM_ERR, httpMethod.getURI(), MSG_REST_API_ERR);
 		} finally {
 			if (instream != null) {
 				try {

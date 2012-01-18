@@ -226,10 +226,15 @@ public class AzureDeploymentWrapper {
 	                adminFacade.connect(null, null, restAdminUrl);
 	                return true;
 	            } catch (CLIException e) {
-	                /* Do nothing. This simply means we are not connected yet */
-	            }
-	            logger.log(Level.INFO, "Waiting for role instances and REST Admin server: " + restAdminUrl);
-	            return false;
+					String message = "Waiting for role instances and REST Admin server: " + restAdminUrl;
+	                if (verbose) {
+	                	logger.log(Level.INFO, message, e);
+	                }
+	                else {
+	                	logger.log(Level.INFO, message);
+	                }
+	                return false;
+	            } 
 			}
     	});
 
