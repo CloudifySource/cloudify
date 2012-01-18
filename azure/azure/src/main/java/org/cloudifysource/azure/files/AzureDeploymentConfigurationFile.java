@@ -113,5 +113,50 @@ public class AzureDeploymentConfigurationFile extends AbstractAzureDeploymentFil
                 "thumbprint", 
                 thumbprint);
 	}
+	
+    public void setUploadAgentLogs(boolean uploadAgentLogs) throws XMLXPathEditorException {
+        setRoleConfigurationSettings("GigaSpaces.XAP.UploadAgentLogs", String.valueOf(uploadAgentLogs));
+    }
+	
+	public void setUploadAgentLogs(String role, boolean uploadAgentLogs) throws XMLXPathEditorException {
+	    setRoleConfigurationSettings(role, "GigaSpaces.XAP.UploadAgentLogs", String.valueOf(uploadAgentLogs));
+	}
+	
+	public void setUploadAllLogs(String role, boolean uploadAllLogs) throws XMLXPathEditorException {
+	    setRoleConfigurationSettings(role, "GigaSpaces.XAP.UploadAllLogs", String.valueOf(uploadAllLogs));
+	}
+	    
+	public void setUploadAllLogs(boolean uploadAllLogs) throws XMLXPathEditorException {
+	    setRoleConfigurationSettings("GigaSpaces.XAP.UploadAllLogs", String.valueOf(uploadAllLogs));
+	}
+	
+	/**
+	 * applies change to all roles 
+	 * 
+     * @param key the key the configuration setting
+     * @param value the value of the configuration setting
+     * @throws XMLXPathEditorException
+	 * @throws XMLXPathEditorException
+	 */
+	private void setRoleConfigurationSettings(String key, String value) throws XMLXPathEditorException {
+	    setRoleConfigurationSettings(null, key, value);
+	}
+	
+	/**
+	 * 
+	 * @param role The role to apply the changes on. passing null means this change will be applied to ALL roles
+	 * @param key the key the configuration setting
+	 * @param value the value of the configuration setting
+	 * @throws XMLXPathEditorException
+	 */
+	private void setRoleConfigurationSettings(String role, String key, String value) throws XMLXPathEditorException {
+	    String xpath = role != null ?  
+	            "/ServiceConfiguration/Role[@name='" + role + "']/ConfigurationSettings[@name='" + key + "']" :
+	            "/ServiceConfiguration/Role/ConfigurationSettings[@name='" + key + "']" ;   
+	    getEditor().setNodeAttribute(
+	            xpath, 
+	            "value", 
+	            value);
+	}
     
 }

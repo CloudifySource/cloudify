@@ -23,13 +23,18 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,15 +45,10 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.cloudifysource.azure.AzureSlot;
+import org.cloudifysource.azure.files.AzureDeploymentConfigurationFile;
 import org.cloudifysource.azure.test.utils.RepetativeConditionProvider;
 import org.cloudifysource.azure.test.utils.TestUtils;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import java.text.*;
-import java.util.*;
-import java.util.logging.*;
 
 public class CliAzureDeploymentTest {
     
@@ -156,6 +156,13 @@ public class CliAzureDeploymentTest {
         cliExecutablePath = new File(gigaSpacesCloudifyDir, RELATIVE_CLI_PATH);
         File azureConfigExec = new File(gigaSpacesCloudifyDir, RELATIVE_AZURE_CONFIG_EXEC_PATH);
         File azurePropertiesFile = new File(gigaSpacesCloudifyDir, RELATIVE_AZURE_PROPERTIES_PATH);
+        File cscfgFile = new File(cliExecutablePath.getParent(), RELATIVE_CLI_PATH);
+
+        // update worker roles configuration to upload logs
+        AzureDeploymentConfigurationFile cscfg = new AzureDeploymentConfigurationFile(cscfgFile);
+        cscfg.setUploadAgentLogs(true);
+        cscfg.setUploadAllLogs(true);
+        cscfg.flush();
         
         Properties newAzureProps = new Properties();
         newAzureProps.setProperty(AZURE_PROPERTIES_ACCOUNT_NAME_KEY, AZURE_ACCOUNT_NAME);
@@ -212,7 +219,8 @@ public class CliAzureDeploymentTest {
 					} catch(Exception e) {
 						logger.log(Level.SEVERE,"Failed to send email",e);
 					}
-					after();
+//					after();
+					break;
 				}
 				else {
 					logger.info("Passed test iteration #"+i);
