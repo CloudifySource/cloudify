@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
+import org.cloudifysource.azure.AzureDeploymentStatus;
 import org.cloudifysource.azure.AzureHostedService;
 import org.cloudifysource.azure.AzureSlot;
 import org.cloudifysource.azure.files.AzureDeploymentConfigurationFile;
@@ -46,6 +47,7 @@ import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.Sla;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.shell.AdminFacade;
+import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.AbstractGSCommand;
@@ -228,9 +230,9 @@ public class AzureBootstrapApplication extends AbstractGSCommand {
 		if (timeoutInMinutes > 0) {
 		    
 		    logger.info(ShellUtils.getExpectedExecutionTimeMessage());
-		    
+		    waitForStatus(azureDeploymentWrapper,AzureDeploymentStatus.Running,ShellUtils.millisUntil(TIMEOUT_ERROR_STRING,end),TimeUnit.MILLISECONDS);
     		try {
-    			URI url = azureDeploymentWrapper.connectAndWait(adminFacade, timeoutInMinutes, TimeUnit.MINUTES);
+    			URI url = azureDeploymentWrapper.connectAndWait(adminFacade, ShellUtils.millisUntil(TIMEOUT_ERROR_STRING,end),TimeUnit.MILLISECONDS);
     			logger.log(Level.INFO, "Cloudify REST gateway URL is " + url);
         		
         		int numberOfMachines = 0;
@@ -394,4 +396,30 @@ public class AzureBootstrapApplication extends AbstractGSCommand {
     	return numberOfInstances;
     }
     
+    public void waitForStatus(final AzureDeploymentWrapper azureDeploymentWrapper, final AzureDeploymentStatus status, long timeout, TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException {
+        
+    	createConditionLatch(timeout, timeunit)
+		.waitFor(new ConditionLatch.Predicate() {
+
+			@Override
+			public boolean isDone() throws CLIException,
+					InterruptedException {
+				AzureDeploymentStatus currentStatus = azureDeploymentWrapper.getStatus();
+				logger.log(Level.INFO, "Current status: " + currentStatus.getStatus() + ". Waiting for status " + status);
+				return currentStatus == status;
+			}
+			
+		});
+    }
+
+    private ConditionLatch createConditionLatch(long timeout, TimeUnit timeunit) {
+		return 
+			new ConditionLatch()
+			.timeout(timeout,timeunit)
+			.pollingInterval(progressInMinutes, TimeUnit.MINUTES)
+			.timeoutErrorMessage(TIMEOUT_ERROR_STRING)
+			.verbose(verbose);
+	}
+
+
 }

@@ -246,8 +246,21 @@ namespace Microsoft.Samples.WindowsAzure.ServiceManagement.Tools
                {
                    deployment = channel.GetDeploymentBySlot(SubscriptionId, HostedServiceName, DeploymentSlot);
                }
-
-               Console.WriteLine(deployment.Status);
+               String status = deployment.Status;
+               if (String.Equals(status, "Running"))
+               {
+                   //downgrade running status if one of the instances is not ready yet
+                   //see http://msdn.microsoft.com/en-us/library/ee460804.aspx
+                   foreach (var instance in deployment.RoleInstanceList)
+                   {
+                       if (!instance.InstanceStatus.Equals("Ready"))
+                       {
+                           status = "Starting";
+                           break;
+                       }
+                   }
+               }
+               Console.WriteLine(status);
            }
            catch (CommunicationException ce)
            {
