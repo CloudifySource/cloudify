@@ -156,7 +156,7 @@ public class CliAzureDeploymentTest {
         cliExecutablePath = new File(gigaSpacesCloudifyDir, RELATIVE_CLI_PATH);
         File azureConfigExec = new File(gigaSpacesCloudifyDir, RELATIVE_AZURE_CONFIG_EXEC_PATH);
         File azurePropertiesFile = new File(gigaSpacesCloudifyDir, RELATIVE_AZURE_PROPERTIES_PATH);
-        File cscfgFile = new File(cliExecutablePath.getParent(), RELATIVE_CLI_PATH);
+        File cscfgFile = new File(cliExecutablePath.getParent(), RELATIVE_WORKER_ROLE_DIR);
 
         // update worker roles configuration to upload logs
         AzureDeploymentConfigurationFile cscfg = new AzureDeploymentConfigurationFile(cscfgFile);
