@@ -254,6 +254,7 @@ public class AzureDeploymentWrapper {
     
 
     /**
+    /**
      * Runs ipconfig /flushdns. In case the azure load balancer DNS has not been
      * resolved yet, or is mapped to an old ip address. This is a temporary
      * measure until we get the resolved ip address directly from the azure REST
@@ -262,9 +263,12 @@ public class AzureDeploymentWrapper {
      * @see http://altamodatech.com/blogs/?p=93
      */
     private void flushDns() throws CLIException, InterruptedException {
-
-        String[] cmd = new String[] { "ipconfig", "/flushdns" };
-        final ProcessBuilder pb = new ProcessBuilder(cmd);
+        runProcess(new String[] { "ipconfig", "/flushdns" });
+        runProcess(new String[] { "cmd", "/c", "\"sc query dnscache | findstr RUNNING && net stop dnscache && net start dnscache\"" });
+    }
+    
+    private void runProcess(String[] cmd) throws CLIException, InterruptedException {
+        ProcessBuilder pb = new ProcessBuilder(cmd);
         if (verbose) {
             logger.info("Executing command: " + Arrays.toString(cmd));
         }
@@ -276,8 +280,9 @@ public class AzureDeploymentWrapper {
                     + Arrays.toString(cmd), e);
         }
 
-        p.waitFor();
+        p.waitFor();        
     }
+	
     private String getRestAdminUrl(AzureDeployment azureDeployment) throws InterruptedException, CLIException  {
     	
 		String url;
