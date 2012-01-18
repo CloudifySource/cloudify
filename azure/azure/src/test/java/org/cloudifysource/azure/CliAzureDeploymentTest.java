@@ -46,7 +46,9 @@ import org.cloudifysource.azure.test.utils.TestUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
+import java.text.*;
+import java.util.*;
+import java.util.logging.*;
 
 public class CliAzureDeploymentTest {
     
@@ -72,17 +74,17 @@ public class CliAzureDeploymentTest {
     
 	// azure account
 	// -------------
-    private static final String AZURE_SUBSCRIPTION_ID = "9f24fac0-f989-4873-b3d5-6886fbc6cd29";
-    private static final String AZURE_ACCOUNT_NAME = "gigaspaces";
-    private static final String AZURE_ACCOUNT_KEY = "UD+sH0G99u9Rjt/jD5U39k2exfUQAgmeIgXx6+s/LTwLwTeScC7YK+53+UXkh9cZI4yiv2ZpKrnXYh9/e5eNhw==";
-	private static final String AZURE_REGION="South Central US";
+    //private static final String AZURE_SUBSCRIPTION_ID = "9f24fac0-f989-4873-b3d5-6886fbc6cd29";
+    //private static final String AZURE_ACCOUNT_NAME = "gigaspaces";
+    //private static final String AZURE_ACCOUNT_KEY = "UD+sH0G99u9Rjt/jD5U39k2exfUQAgmeIgXx6+s/LTwLwTeScC7YK+53+UXkh9cZI4yiv2ZpKrnXYh9/e5eNhw==";
+	//private static final String AZURE_REGION="South Central US";
 	
 	// azure partner account
 	// ---------------------
-	//private static final String AZURE_SUBSCRIPTION_ID = "2719917d-5e33-4aaa-9fee-429290752498"; 
-    //private static final String AZURE_ACCOUNT_NAME = "gigaspaces3";
-    //private static final String AZURE_ACCOUNT_KEY = "2hQ0Kljm3tWj49kUrHfFypnd8KyOT1nlsi766M6dHJYgpHjEy+CfR2922cfFzTvqCN94SSkcx7GG+8KovxV2mQ==";
-	//private static final String AZURE_REGION="North Central US";
+	private static final String AZURE_SUBSCRIPTION_ID = "2719917d-5e33-4aaa-9fee-429290752498"; 
+    private static final String AZURE_ACCOUNT_NAME = "gigaspaces3";
+    private static final String AZURE_ACCOUNT_KEY = "2hQ0Kljm3tWj49kUrHfFypnd8KyOT1nlsi766M6dHJYgpHjEy+CfR2922cfFzTvqCN94SSkcx7GG+8KovxV2mQ==";
+	private static final String AZURE_REGION="North Central US";
 	
     private static final String AZURE_CERTIFICATE_THUMBPRINT = "9E0086E300D5B2F7CC00E734F58FFB1661920FE9";
     private static final String AZURE_CONTAINER_NAME = "packages-public";
@@ -105,7 +107,7 @@ public class CliAzureDeploymentTest {
     // arguments for cli
     private static final int TIMEOUT_IN_MINUTES = 60;
     private static final int POLLING_INTERVAL_IN_MINUTES = 1;
-    private static final String AZURE_HOSTED_SERVICE = "travel77";
+    private static final String AZURE_HOSTED_SERVICE = "travel82";
     private static final String APPLICATION_NAME = "travel";
     private static final AzureSlot AZURE_SLOT = AzureSlot.Staging;
     private static final String RDP_PFX_FILE_PASSWORD = "123456";
@@ -133,7 +135,7 @@ public class CliAzureDeploymentTest {
     private File applicationFile;
     private boolean isDebugMode;
     
-    @Before
+    //@Before
     public void before() throws Exception {
         
         isDebugMode = Boolean.valueOf(System.getProperty(IS_DEBUG_MODE_SYSTEM_PROPERTY, Boolean.toString(false)));
@@ -180,7 +182,52 @@ public class CliAzureDeploymentTest {
         
     }
     
-    @Test(timeout = 120 * 60 * 1000)
+	@Test(timeout = 2 * 60 * 1000L)
+    public void repeatTest() throws Throwable {
+		DateFormat df = new SimpleDateFormat("_yyyy-MM-dd_hh-mm");
+		int repeat = 1;
+		for (int i=1 ; i<=repeat; i++) {
+		    //overwrites any existing file with that name.
+			String filePattern = "azuretest"+i+df.format(new Date())+".log";
+			FileHandler fileHandler = new FileHandler(filePattern);
+			fileHandler.setFormatter(new SimpleFormatter());
+			logger.addHandler(fileHandler);
+	
+			logger.info("Starting test iteration #"+i);
+			boolean failed = false;
+			try {
+				before();
+				test();
+			}
+			catch (Throwable t) {
+				failed = true;
+				throw t;
+			}
+			finally {
+				if (failed) {
+					logger.info("Failed test iteration #"+i +". Machines are left running for manual diagnostics");
+					logger.removeHandler(fileHandler);
+					try {
+						SimpleMail.send("Azure test failed", new File(filePattern));
+					} catch(Exception e) {
+						logger.log(Level.SEVERE,"Failed to send email",e);
+					}
+				}
+				else {
+					logger.info("Passed test iteration #"+i);
+					logger.removeHandler(fileHandler);
+					try {
+						SimpleMail.send("Azure test passed", new File(filePattern));
+					} catch(Exception e) {
+						logger.log(Level.SEVERE,"Failed to send email",e);
+					}
+					after();
+				}
+			}
+		}
+	}
+	
+    //@Test(timeout = 120 * 60 * 1000)
     public void test() throws Exception {
         List<List<String>> commands = new ArrayList<List<String>>();
 
@@ -329,7 +376,7 @@ public class CliAzureDeploymentTest {
         
     }
 
-    @After
+//    @After
     public void after() throws IOException, InterruptedException {
     	if (cliExecutablePath != null) {
 	    	log("Destroying deployment");
