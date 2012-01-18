@@ -57,7 +57,7 @@ public class ErrorStatusException extends RestException {
 	 */
 	public ErrorStatusException(final Throwable cause, final String reasonCode,
 			final Object... args) {
-		super(REASON_CODE + reasonCode, cause);
+		super(REASON_CODE + ":" + reasonCode, cause);
 		this.args = args;
 		this.reasonCode = reasonCode;
 	}
