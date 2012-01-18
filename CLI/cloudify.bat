@@ -7,7 +7,7 @@ goto :BEGIN
 
 :SETUP_AND_CLEANUP
 	if not "%~1" == "" (
-		if not "%~1" == "use-proxy" (
+		if not "%~1" == "-use-proxy" (
 			goto :END
 		)
 	)
@@ -31,7 +31,7 @@ goto :END
 
 :SET_CLOUDIFY_JAVA_OPTIONS
 	set CLOUDIFY_DEBUG_OPTIONS=-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9000 -Xnoagent -Djava.compiler=NONE
-	if "%~1" == "use-proxy" (
+	if "%~1" == "-use-proxy" (
 		set PROXY_JAVA_OPTIONS=-Dorg.cloudifysource.cli.proxy.enable=true
 	)
 	set CLOUDIFY_JAVA_OPTIONS=-Xmx500m -Dcom.gigaspaces.logger.RollingFileHandler.debug-level=WARNING %PROXY_JAVA_OPTIONS% %EXT_CLOUDIFY_JAVA_OPTIONS%
@@ -76,7 +76,7 @@ goto :END
 
 :SET_COMMAND_LINE
 	set CLI_ENTRY_POINT=org.cloudifysource.shell.GigaShellMain
-	if "%~1" == "use-proxy" (
+	if "%~1" == "-use-proxy" (
 		SHIFT
 	)
 	set COMMAND_LINE=%JAVACMD% %GS_LOGGING_CONFIG_FILE_PROP% %RMI_OPTIONS% %LOOKUP_LOCATORS_PROP% %LOOKUP_GROUPS_PROP% %CLOUDIFY_JAVA_OPTIONS% -classpath %PRE_CLASSPATH%;%CLOUDIFY_CLASSPATH%;%POST_CLASSPATH% %CLI_ENTRY_POINT% %~1 %~2 %~3 %~4 %~5 %~6 %~7 %~8
