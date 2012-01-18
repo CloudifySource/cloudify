@@ -82,18 +82,13 @@ cd %LOCAL_WORKING_DIR%
 7za -y x gigaspaces-latest.zip
 move /Y gigaspaces-cloudify-%GS_VERSION%-%MILESTONE% gigaspaces
 
-rem installing latest XAP to maven repo
-rem pushd gigaspaces\tools\maven
-rem call installmavenrep.bat
-rem popd
-
 REM FOR TESTING
-7za -y x WorkerRoles.zip
-xcopy /y /s /e /i WorkerRoles gigaspaces\tools\cli\plugins\azure\WorkerRoles
-rmdir /s /q WorkerRoles
-cd ..\..\
-call copy.bat
-cd azure\localworkingdir
+REM 7za -y x WorkerRoles.zip
+REM xcopy /y /s /e /i WorkerRoles gigaspaces\tools\cli\plugins\azure\WorkerRoles
+REM rmdir /s /q WorkerRoles
+REM cd ..\..\
+REM call copy.bat
+REM cd azure\localworkingdir
 REM END OF FOR TESTING
 
 pushd l:\cloudify
