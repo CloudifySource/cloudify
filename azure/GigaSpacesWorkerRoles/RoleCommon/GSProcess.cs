@@ -61,12 +61,16 @@ namespace GigaSpaces
                     };
                 }
 
-                if (RedirectStandardOutput)
+                if (RedirectStandardOutput || SaveOutput)
                 {
                     process.OutputDataReceived += (sender, e) =>
                     {
                         String line = e.Data;
-                        GSTrace.WriteLine(line);
+                        if (RedirectStandardOutput)
+                        {
+                            GSTrace.WriteLine(line);
+                        }
+                        
                         if (SaveOutput) 
                         {
                             output += line;
