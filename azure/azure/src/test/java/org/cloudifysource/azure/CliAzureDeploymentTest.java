@@ -107,7 +107,7 @@ public class CliAzureDeploymentTest {
     // arguments for cli
     private static final int TIMEOUT_IN_MINUTES = 60;
     private static final int POLLING_INTERVAL_IN_MINUTES = 1;
-    private static final String AZURE_HOSTED_SERVICE = "travel82";
+    private static final String AZURE_HOSTED_SERVICE = "travel55";
     private static final String APPLICATION_NAME = "travel";
     private static final AzureSlot AZURE_SLOT = AzureSlot.Staging;
     private static final String RDP_PFX_FILE_PASSWORD = "123456";
