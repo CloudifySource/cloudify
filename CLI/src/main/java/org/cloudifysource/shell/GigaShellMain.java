@@ -142,7 +142,7 @@ public class GigaShellMain extends Main implements Action {
             return;
         }
         
-        if (Boolean.getBoolean(Constants.DISABLE_PROXY_CONFIGURATION_PROPERTY)) {
+        if (!Boolean.getBoolean(Constants.ENABLE_PROXY_CONFIGURATION_PROPERTY)) {
             return;
         }
 

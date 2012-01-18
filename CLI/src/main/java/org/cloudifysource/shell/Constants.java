@@ -23,6 +23,6 @@ public class Constants {
     public static final String INTERACTIVE_MODE = "interactive.mode";
     public static final String LAST_COMMAND_EXCEPTION = "last.command.exception";
     
-    public static final String DISABLE_PROXY_CONFIGURATION_PROPERTY = "org.cloudifysource.cli.proxy.disable";
+    public static final String ENABLE_PROXY_CONFIGURATION_PROPERTY = "org.cloudifysource.cli.proxy.enable";
     
 }
