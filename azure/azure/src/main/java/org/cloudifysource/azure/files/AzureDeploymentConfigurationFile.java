@@ -151,12 +151,9 @@ public class AzureDeploymentConfigurationFile extends AbstractAzureDeploymentFil
 	 */
 	private void setRoleConfigurationSettings(String role, String key, String value) throws XMLXPathEditorException {
 	    String xpath = role != null ?  
-	            "/ServiceConfiguration/Role[@name='" + role + "']/ConfigurationSettings[@name='" + key + "']" :
-	            "/ServiceConfiguration/Role/ConfigurationSettings[@name='" + key + "']" ;   
-	    getEditor().setNodeAttribute(
-	            xpath, 
-	            "value", 
-	            value);
+	            "/ServiceConfiguration/Role[@name='" + role + "']/ConfigurationSettings/Setting[@name='" + key + "']" :
+	            "/ServiceConfiguration/Role/ConfigurationSettings/Setting[@name='" + key + "']" ;   
+	    getEditor().setNodeAttribute(xpath, "value", value);
 	}
     
 }
