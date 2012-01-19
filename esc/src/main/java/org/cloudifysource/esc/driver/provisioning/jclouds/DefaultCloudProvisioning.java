@@ -50,13 +50,20 @@ import org.openspaces.admin.Admin;
 import com.gigaspaces.internal.utils.StringUtils;
 import com.google.common.base.Predicate;
 
+/**************
+ * A jclouds-based CloudifyP{rovisioning implementation. Uses the JClouds
+ * Compute Context API to provision an image with linux installed and ssh
+ * available. If GigaSpaces is not already installed on the new machine, this
+ * class will install gigaspaces and run the agent.
+ * 
+ * @author barakme
+ * 
+ */
 public class DefaultCloudProvisioning implements CloudifyProvisioning {
 
 	private static final int WAIT_THREAD_SLEEP_MILLIS = 10000;
 	private static final int WAIT_TIMEOUT_MILLIS = 360000;
-	// private boolean verbose;
-	// private long bootstrapTimeoutInMinutes = 15;
-	// private long teardownTimeoutInMinutes = 15;
+
 	private JCloudsDeployer deployer;
 
 	private String machineNamePrefix;
@@ -98,10 +105,6 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 			logger.warning("Prefix for machine name was not set. Using: " + prefix);
 		}
 
-		// TODO - stop using a random number - it is not safe!
-		// Keep a counter and validate on startup that previous values are not
-		// used!
-		// attach a random number to the prefix to prevent collisions
 		this.machineNamePrefix = prefix;
 
 	}
@@ -132,35 +135,22 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 		}
 	}
 
-	// @Override
-	// public void bootstrapCloud(final Cloud cloud) throws
-	// CloudProvisioningException {
-	// CloudGridAgentBootstrapper installer = new CloudGridAgentBootstrapper();
-	//
-	// installer.setProgressInSeconds(10);
-	// installer.setVerbose(verbose);
-	//
-	// try {
-	// installer.boostrapCloudAndWait(cloud, bootstrapTimeoutInMinutes,
-	// TimeUnit.MINUTES);
-	// } catch (Exception e) {
-	// throw new CloudProvisioningException(e);
-	// }
-	//
-	// }
-
 	@Override
 	public MachineDetails startMachine(long timeout, TimeUnit unit) throws TimeoutException, CloudProvisioningException {
-		if (timeout < 0) {
-			throw new TimeoutException("Starting a new machine timed out");
-		}
 
 		logger.info("DefaultCloudProvisioning: startMachine - management == " + management);
+		final long end = System.currentTimeMillis() + unit.toMillis(timeout);
 
 		initDeployer(cloud);
 
+		// initializing the jclouds context can take a while on some clouds, so
+		// check for timeout
+		if (System.currentTimeMillis() > end) {
+			throw new TimeoutException("Starting a new machine timed out");
+		}
+
 		try {
-			MachineDetails md = doStartMachine(timeout, unit);
+			MachineDetails md = doStartMachine(end);
 			return md;
 		} catch (Exception e) {
 			throw new CloudProvisioningException("Failed to start cloud machine", e);
@@ -179,8 +169,6 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 
 			logger.info(nodePrefix(server) + "Public IP: " + Arrays.toString(server.getPublicAddresses().toArray()));
 			logger.info(nodePrefix(server) + "Private IP: " + Arrays.toString(server.getPrivateAddresses().toArray()));
-			logger.info(nodePrefix(server) + "Target IP for connection: "
-					+ server.getPrivateAddresses().iterator().next());
 
 		}
 	}
@@ -214,12 +202,7 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 
 	}
 
-	private MachineDetails doStartMachine(long timeout, TimeUnit unit) throws Exception {
-		if (timeout < 0) {
-			throw new TimeoutException("Starting a new machine timed out");
-		}
-
-		final long end = System.currentTimeMillis() + unit.toMillis(timeout);
+	private MachineDetails doStartMachine(final long end) throws Exception {
 
 		final String machineName = createNewMachineName();
 		logger.info("Starting a new cloud machines with group: " + machineName);
@@ -249,6 +232,7 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 			waitUntilServerIsActive(node.getId(), Utils.millisUntil(end), TimeUnit.MILLISECONDS);
 			return md;
 		} catch (Exception e) {
+			// catch any exception - to prevent a cloud machine leaking.
 			logger.log(Level.SEVERE,
 					"Cloud machine was started but an error occured during initialization. Shutting down machine", e);
 			this.deployer.shutdownMachine(node.getId());
@@ -404,7 +388,6 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 		return this.cloudName;
 	}
 
-	
 	private NodeMetadata getServerWithIP(final String ip) {
 		return deployer.getServerWithIP(ip);
 	}
@@ -414,33 +397,34 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 	private static final int MULTIPLE_SHUTDOWN_REQUEST_IGNORE_TIMEOUT = 120000;
 
 	@Override
-	public boolean stopMachine(String machineIp) throws CloudProvisioningException {
+	public boolean stopMachine(final String machineIp, final long duration, final TimeUnit unit)
+			throws CloudProvisioningException, TimeoutException, InterruptedException {
 		logger.fine("Stop Machine - machineIp: " + machineIp);
 
 		final Long previousRequest = stoppingMachines.get(machineIp);
 		if ((previousRequest != null)
 				&& (System.currentTimeMillis() - previousRequest < MULTIPLE_SHUTDOWN_REQUEST_IGNORE_TIMEOUT)) {
-			return true;
+			logger.fine("Machine " + machineIp + " is already stopping. Ignoring this shutdown request");
+			return false;
 		}
 
 		// TODO - add a task that cleans up this map
 		stoppingMachines.put(machineIp, System.currentTimeMillis());
-		logger.info("Scale IN -- " + machineIp + " --");
+		logger.fine("Scale IN -- " + machineIp + " --");
 
-		logger.info("Looking Up Cloud server with this IP");
+		logger.info("Looking Up Cloud server with IP: " + machineIp);
 		final NodeMetadata server = getServerWithIP(machineIp);
 		if (server != null) {
-			logger.info("Found server: " + server.getId() + ". Shutting it down");
-			deployer.shutdownMachine(server.getId());
-
-			logger.info("Server: " + server.getId() + " shutdown has started.");
+			logger.info("Found server: " + server.getId() + ". Shutting it down and waiting for shutdown to completes");
+			deployer.shutdownMachineAndWait(server.getId(), unit, duration);
+			logger.info("Server: " + server.getId() + " shutdown has finished.");
 			return true;
 
 		} else {
 			logger.log(Level.SEVERE, "Recieved scale in request for machine with ip " + machineIp
 					+ " but this IP could not be found in the Cloud server list");
+			return false;
 		}
-		return false;
 
 	}
 

@@ -27,6 +27,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.PreDestroy;
 
@@ -416,7 +418,7 @@ public class JCloudsDeployer {
 			if ((this.hardwareId != null) && (hardwareId.length() > 0)) {
 				builder.hardwareId(hardwareId);
 			}
-			
+
 			if ((this.locationId != null) && (locationId.length() > 0)) {
 				builder.locationId(this.locationId);
 			}
@@ -536,7 +538,7 @@ public class JCloudsDeployer {
 				}
 			}
 		}
-		
+
 		// If I am here, either no method was found, or an exception was thrown
 		if (invocationException == null) {
 			throw new IllegalArgumentException("Failed to set template option: " + entryKey + " to value: "
@@ -585,14 +587,14 @@ public class JCloudsDeployer {
 			} catch (NoSuchMethodException e) {
 				// ignore - method was not found
 			}
-			
+
 			// invoke with a null parameter
 			if (m != null) {
 				try {
 					m.invoke(templateOptions, (Object) null);
 				} catch (Exception e) {
 					throw new IllegalArgumentException("Failed to set template option with name: " + entryKey
-							+ " to value: null" , e);
+							+ " to value: null", e);
 				}
 			} else {
 				throw new IllegalArgumentException("Could not find a method matching template option: "
@@ -627,6 +629,49 @@ public class JCloudsDeployer {
 	 */
 	public void shutdownMachine(final String serverId) {
 		this.context.getComputeService().destroyNode(serverId);
+	}
+
+	public void shutdownMachineAndWait(final String serverId, TimeUnit unit, final long duration)
+			throws TimeoutException, InterruptedException {
+		// first shutdown the machine
+		this.context.getComputeService().destroyNode(serverId);
+
+		logger.info("Machine: " + serverId  + " shutdown has started. Waiting for process to complete");
+		final long endTime = System.currentTimeMillis() + unit.toMillis(duration);
+		// now wait for the machine to stop
+
+		NodeState state = null;
+		while (System.currentTimeMillis() < endTime) {
+			NodeMetadata node = this.context.getComputeService().getNodeMetadata(serverId);
+			if (node == null) {
+				// machine was terminated and deleted from cloud
+				return;
+			}
+
+			state = node.getState();
+			logger.info("Machine: " + serverId + " state is: " + state);
+			switch (state) {
+			case TERMINATED:
+				// machine was successfully terminated
+				return;
+			case PENDING:
+			case RUNNING:
+			case SUSPENDED:
+				// machine has not shut down yet
+				break;
+			case ERROR:
+			case UNRECOGNIZED:
+				logger.warning("While waiting for machine " + serverId
+						+ " to shut down, received unexpected node state: " + state);
+				break;
+			}
+
+			Thread.sleep(1000);
+
+		}
+
+		throw new TimeoutException(
+				"Termination of cloud node was requested, but machine did not shut down in the required time. Last state was: " + state);
 	}
 
 	public void shutdownMachineGroup(final String group) {

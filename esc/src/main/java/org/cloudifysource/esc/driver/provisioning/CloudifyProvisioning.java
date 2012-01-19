@@ -51,26 +51,6 @@ public interface CloudifyProvisioning {
 	 */
 	void setAdmin(Admin admin);
 	
-	/*************
-	 * Sets up a cloud environment. This includes (at-least) setting up cloudify management servers and running the required processes on them.
-	 * Additional steps may apply for some clouds.
-	 * 
-	 * @param cloud The cloud settings.
-	 * @throws CloudProvisioningException If provisioning of the cloud environment failed.
-	 */	 
-//	void bootstrapCloud(Cloud2 cloud) throws CloudProvisioningException; 
-	
-	/*************
-	 * Tears down a running cloud environment. It is the responsibility of the cloud driver to release all cloud resources relevant
-	 * to this environment. 
-	 * 
-	 * Implementations may choose to uninstall all running applications and services before shutting down the machines, or just to close down
-	 * all running instances. It is recommended to shut down all applications and services before tearing down the cloud environment. 
-	 * @param cloud The cloud settings.
-	 * @throws CloudProvisioningException If a problem was encountered while shutting down the cloud environment.
-	 */
-//	void teardownCloud(Cloud2 cloud) throws CloudProvisioningException;
-	  
 	
 	/***************
 	 * Starts an additional machine on the cloud to scale out this specific service.
@@ -82,16 +62,32 @@ public interface CloudifyProvisioning {
 	 * @throws CloudProvisioningException If a problem was encountered while starting the machine.
 	 */
 	MachineDetails startMachine(long duration, TimeUnit unit) throws TimeoutException, CloudProvisioningException; 
-	
+
+	/******************
+	 * Start the management machines for this cluster.
+	 * 
+	 * @param duration timeout duration.
+	 * @param unit timeout unit.
+	 * @return The created machine details.
+	 * @throws TimeoutException If creating the new machines exceeded the given timeout.
+	 * @throws CloudProvisioningException If the machines needed for management could not be provisioned.
+	 */
 	MachineDetails[] startManagementMachines(long duration, TimeUnit unit) throws TimeoutException, CloudProvisioningException;
-	void  stopManagementMachines() throws TimeoutException, CloudProvisioningException;
+	
 	
 	/****************
 	 * Stops a specific machine for scaling in or shutting down a specific service.
 	 * @throws CloudProvisioningException
 	 */
-	boolean stopMachine(final String machineIp) throws CloudProvisioningException;
+	boolean stopMachine(final String machineIp, final long duration, final TimeUnit unit) throws InterruptedException, TimeoutException, CloudProvisioningException;
 
+	/*************
+	 * Stops the management machines.
+	 * 
+	 * @throws TimeoutException in case the stop operation exceeded the given timeout.
+	 * @throws CloudProvisioningException If the stop operation failed.
+	 */
+	void  stopManagementMachines() throws TimeoutException, CloudProvisioningException;
 	
 	/************
 	 * Returns the name of this cloud.

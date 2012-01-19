@@ -83,7 +83,7 @@ public class LocalCloudProvisioning implements CloudifyProvisioning {
 	}
 
 	@Override
-	public boolean stopMachine(final String machineId) throws CloudProvisioningException{
+	public boolean stopMachine(final String machineId, final long duration, final TimeUnit unit) throws CloudProvisioningException{
 		throw new UnsupportedOperationException("Not available on local cloud");
 
 	}
