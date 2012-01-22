@@ -465,8 +465,10 @@ namespace GigaSpaces
                     new org.openspaces.admin.pu.elastic.ElasticStatelessProcessingUnitDeployment(""" + warFileInfo.FullName.Replace("\\", "\\\\") + @""")
                     .memoryCapacityPerContainer(""" + megabytesMemory + @"m"")" +
                     addContextProperties +
-                    @".name("""+ManagementApplicationName+ "." + name + @""")
-                    .addContextProperty(""com.gs.application"","""+ManagementApplicationName+ @""")
+//TODO: Add application name prefix only after localcloud adds the prefix too.
+//                  @".name("""+ManagementApplicationName+ "." + name + @""")
+                    @".name(""" + name + @""")
+                    .addContextProperty(""com.gs.application"",""" +ManagementApplicationName+ @""")
                     // All PUs on this role share the same machine. Machines are identified by zone.
                     .sharedMachineProvisioning(""" + SharedMachineIsolationId + @""" ,
                     new org.openspaces.admin.pu.elastic.config.DiscoveredMachineProvisioningConfigurer()
