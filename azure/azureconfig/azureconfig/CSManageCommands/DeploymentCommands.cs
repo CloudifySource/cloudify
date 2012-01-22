@@ -240,31 +240,8 @@ namespace Microsoft.Samples.WindowsAzure.ServiceManagement.Tools
         {
             for (int retries = 0; retries < MaxRetries; retries++)
             {
-                Deployment deployment = null;
-                try
-                {
-                    if (!string.IsNullOrEmpty(DeploymentName))
-                    {
-                        deployment = channel.GetDeployment(SubscriptionId, HostedServiceName, DeploymentName);
-                    }
-                    else if (!string.IsNullOrEmpty(DeploymentSlot))
-                    {
-                        deployment = channel.GetDeploymentBySlot(SubscriptionId, HostedServiceName, DeploymentSlot);
-                    }
-                    String status = deployment.Status;
-                    if (String.Equals(status, "Running"))
-                    {
-                        //downgrade running status if one of the instances is not ready yet
-                        //see http://msdn.microsoft.com/en-us/library/ee460804.aspx
-                        foreach (var instance in deployment.RoleInstanceList)
-                        {
-                            if (!instance.InstanceStatus.Equals("Ready"))
-                            {
-                                status = "Starting";
-                                break;
-                            }
-                        }
-                    }
+                try {
+                    String status = PerformOperationOnce(channel);
                     Console.WriteLine(status);
                     break; // no need to retry
                 }
@@ -276,7 +253,7 @@ namespace Microsoft.Samples.WindowsAzure.ServiceManagement.Tools
                     ServiceManagementHelper.TryGetExceptionDetails(ce, out error, out httpStatusCode, out operationId);
                     if (error != null && httpStatusCode == HttpStatusCode.NotFound)
                     {
-                        Console.WriteLine(httpStatusCode); //"NotFound"
+                        Console.WriteLine("NotFound");
                         //NotFound is a Legitimate return value, no more retries
                         break;
                     }
@@ -296,6 +273,35 @@ namespace Microsoft.Samples.WindowsAzure.ServiceManagement.Tools
                     }
                 }
             }
+        }
+
+        private string PerformOperationOnce(IServiceManagement channel)
+        {
+            Deployment deployment = null;
+                
+            if (!string.IsNullOrEmpty(DeploymentName))
+            {
+                deployment = channel.GetDeployment(SubscriptionId, HostedServiceName, DeploymentName);
+            }
+            else if (!string.IsNullOrEmpty(DeploymentSlot))
+            {
+                deployment = channel.GetDeploymentBySlot(SubscriptionId, HostedServiceName, DeploymentSlot);
+            }
+            String status = deployment.Status;
+            if (String.Equals(status, "Running"))
+            {
+                //downgrade running status if one of the instances is not ready yet
+                //see http://msdn.microsoft.com/en-us/library/ee460804.aspx
+                foreach (var instance in deployment.RoleInstanceList)
+                {
+                    if (!instance.InstanceStatus.Equals("Ready"))
+                    {
+                        status = "Starting";
+                        break;
+                    }
+                }
+            }
+            return status;
         }
 
         private bool shouldRetry(CommunicationException ce)
