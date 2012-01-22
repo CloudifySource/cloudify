@@ -219,7 +219,7 @@ public class CliAzureDeploymentTest {
 					} catch(Exception e) {
 						logger.log(Level.SEVERE,"Failed to send email",e);
 					}
-//					after();
+					after();
 					break;
 				}
 				else {
