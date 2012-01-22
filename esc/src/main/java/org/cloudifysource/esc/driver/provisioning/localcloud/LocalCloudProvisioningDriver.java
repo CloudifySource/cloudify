@@ -21,12 +21,12 @@ import java.util.concurrent.TimeoutException;
 
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
-import org.cloudifysource.esc.driver.provisioning.CloudifyProvisioning;
+import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.openspaces.admin.Admin;
 
 
-public class LocalCloudProvisioning implements CloudifyProvisioning {
+public class LocalCloudProvisioningDriver implements ProvisioningDriver {
 
 	private boolean verbose;
 	private String lookupGroups;

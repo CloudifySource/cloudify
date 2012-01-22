@@ -36,7 +36,7 @@ import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
-import org.cloudifysource.esc.driver.provisioning.CloudifyProvisioning;
+import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
@@ -59,7 +59,7 @@ import com.google.common.base.Predicate;
  * @author barakme
  * 
  */
-public class DefaultCloudProvisioning implements CloudifyProvisioning {
+public class DefaultProvisioningDriver implements ProvisioningDriver {
 
 	private static final int WAIT_THREAD_SLEEP_MILLIS = 10000;
 	private static final int WAIT_TIMEOUT_MILLIS = 360000;
@@ -77,7 +77,7 @@ public class DefaultCloudProvisioning implements CloudifyProvisioning {
 
 	private int counter = 0;
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
-			.getLogger(DefaultCloudProvisioning.class.getName());
+			.getLogger(DefaultProvisioningDriver.class.getName());
 	private static final int MAX_MACHINE_LIMIT = 200;
 
 	@Override

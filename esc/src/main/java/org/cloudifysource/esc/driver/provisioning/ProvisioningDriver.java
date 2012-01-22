@@ -32,7 +32,7 @@ import org.openspaces.admin.Admin;
  * @author barakme
  *
  */
-public interface CloudifyProvisioning {
+public interface ProvisioningDriver {
 
 	/**************
 	 * Passes a configuration map for all setting defined for this cloud.

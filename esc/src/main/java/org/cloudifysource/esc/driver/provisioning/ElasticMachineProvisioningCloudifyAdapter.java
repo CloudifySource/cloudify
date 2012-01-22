@@ -59,7 +59,7 @@ import com.gigaspaces.internal.utils.StringUtils;
 public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachineProvisioning, Bean {
 
 	private static final int DEFAULT_GSA_LOOKUP_TIMEOUT_SECONDS = 15;
-	private CloudifyProvisioning cloudifyProvisioning;
+	private ProvisioningDriver cloudifyProvisioning;
 	private Admin admin;
 	private Map<String, String> properties;
 	private Cloud cloud;
@@ -358,7 +358,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 			// load the provisioning class and set it up
 			try {
-				this.cloudifyProvisioning = (CloudifyProvisioning) Class.forName(
+				this.cloudifyProvisioning = (ProvisioningDriver) Class.forName(
 						this.cloud.getConfiguration().getClassName()).newInstance();
 				this.cloudifyProvisioning.setConfig(cloud, cloudTemplate, false);
 
