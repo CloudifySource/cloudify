@@ -20,6 +20,7 @@ namespace Microsoft.Samples.WindowsAzure.ServiceManagement.Tools
     using System.ServiceModel;
     using System.Globalization;
     using Microsoft.Samples.WindowsAzure.ServiceManagement.Tools.CSManageCommands;
+    using System.Threading;
 
     public partial class CSManageCommand
     {
@@ -227,6 +228,8 @@ namespace Microsoft.Samples.WindowsAzure.ServiceManagement.Tools
 
    class GetDeploymentStatusCommand : CSManageCommand
    {
+       public static int MaxRetries { get { return 5; } }
+
        public override void Validate()
        {
            ValidateHostedServiceName();
@@ -235,6 +238,8 @@ namespace Microsoft.Samples.WindowsAzure.ServiceManagement.Tools
 
        protected override void PerformOperation(IServiceManagement channel)
        {
+           for (int retries = 0; retries < MaxRetries ; retries++)
+           {
            Deployment deployment = null;
            try
            {
@@ -261,7 +266,8 @@ namespace Microsoft.Samples.WindowsAzure.ServiceManagement.Tools
                    }
                }
                Console.WriteLine(status);
-           }
+                break; // no need to retry
+            }
            catch (CommunicationException ce)
            {
                ServiceManagementError error = null;
@@ -275,10 +281,38 @@ namespace Microsoft.Samples.WindowsAzure.ServiceManagement.Tools
                //cannot rethrow since stream already closed.
                else
                {
-                   base.RethrowCommunicationError(ce, error);
+                   bool retry = shouldRetry(ce);
+                   if (!retry)
+                   {
+                       //rethrow exception
+                       base.RethrowCommunicationError(ce, error);
+                       //unreachable code
+                       break;
+                   }
+                   // sleep before retry
+                   Thread.Sleep(1000);
                }
            }
+           }
        }
+
+       private bool shouldRetry(CommunicationException ce)
+       {
+           for (Exception e = ce; e != null; e = e.InnerException)
+           {
+               // there was a temporary communication error
+               System.Net.Sockets.SocketException se = e as System.Net.Sockets.SocketException;
+               if (se != null)
+               {
+                   return true;
+               }
+               // continue to inner exception
+           }
+
+           // do not retry
+           return false;
+       }
+
    }
 
    class GetDeploymentUrlCommand : CSManageCommand
