@@ -31,7 +31,7 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.internal.ServiceReader;
-import org.cloudifysource.esc.driver.provisioning.jclouds.DefaultCloudProvisioning;
+import org.cloudifysource.esc.driver.provisioning.jclouds.DefaultProvisioningDriver;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.shell.installer.CloudGridAgentBootstrapper;
 import org.cloudifysource.shell.AdminFacade;
@@ -55,7 +55,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 	int timeoutInMinutes = 60;
 
 	
-	private static final String[] NON_VERBOSE_LOGGERS = { DefaultCloudProvisioning.class.getName(), AgentlessInstaller.class.getName() };
+	private static final String[] NON_VERBOSE_LOGGERS = { DefaultProvisioningDriver.class.getName(), AgentlessInstaller.class.getName() };
 	private Map<String, Level> loggerStates = new HashMap<String, Level>();
 
 	

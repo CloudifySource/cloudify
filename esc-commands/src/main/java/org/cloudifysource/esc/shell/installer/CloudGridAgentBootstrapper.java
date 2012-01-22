@@ -43,7 +43,7 @@ import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.installer.ManagementWebServiceInstaller;
 
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
-import org.cloudifysource.esc.driver.provisioning.CloudifyProvisioning;
+import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
@@ -74,7 +74,7 @@ public class CloudGridAgentBootstrapper {
 
 	private int progressInSeconds;
 
-	private CloudifyProvisioning provisioning;
+	private ProvisioningDriver provisioning;
 
 	private Cloud cloud;
 
@@ -121,7 +121,7 @@ public class CloudGridAgentBootstrapper {
 
 		// load the provisioning class and set it up
 		try {
-			this.provisioning = (CloudifyProvisioning) Class.forName(this.cloud.getConfiguration().getClassName()).newInstance();
+			this.provisioning = (ProvisioningDriver) Class.forName(this.cloud.getConfiguration().getClassName()).newInstance();
 			provisioning.setConfig(cloud, cloud.getConfiguration()
 					.getManagementMachineTemplate(), true);
 		} catch (Exception e) {
@@ -198,7 +198,7 @@ public class CloudGridAgentBootstrapper {
 
 		// load the provisioning class and set it up
 		try {
-			this.provisioning = (CloudifyProvisioning) Class.forName(cloud.getConfiguration().getClassName()).newInstance();
+			this.provisioning = (ProvisioningDriver) Class.forName(cloud.getConfiguration().getClassName()).newInstance();
 		} catch (Exception e) {
 			throw new CLIException("Failed to load provisioning class from cloud: " + this.cloud);
 		}
