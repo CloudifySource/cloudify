@@ -276,7 +276,9 @@ namespace Microsoft.Samples.WindowsAzure.ServiceManagement.Tools
                     ServiceManagementHelper.TryGetExceptionDetails(ce, out error, out httpStatusCode, out operationId);
                     if (error != null && httpStatusCode == HttpStatusCode.NotFound)
                     {
-                        Console.WriteLine(httpStatusCode);
+                        Console.WriteLine(httpStatusCode); //"NotFound"
+                        //NotFound is a Legitimate return value, no more retries
+                        break;
                     }
                     //cannot rethrow since stream already closed.
                     else
