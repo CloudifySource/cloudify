@@ -215,7 +215,7 @@ public class CliAzureDeploymentTest {
 					logger.info("Failed test iteration #"+i +". Machines are left running for manual diagnostics");
 					logger.removeHandler(fileHandler);
 					try {
-						SimpleMail.send("Azure test failed", new File(filePattern));
+						SimpleMail.send("Azure test failed\nSubscription ID="+AZURE_SUBSCRIPTION_ID, new File(filePattern));
 					} catch(Exception e) {
 						logger.log(Level.SEVERE,"Failed to send email",e);
 					}
@@ -226,7 +226,7 @@ public class CliAzureDeploymentTest {
 					logger.info("Passed test iteration #"+i);
 					logger.removeHandler(fileHandler);
 					try {
-						SimpleMail.send("Azure test passed", new File(filePattern));
+						SimpleMail.send("Azure test passed\nSubscription ID="+AZURE_SUBSCRIPTION_ID, new File(filePattern));
 					} catch(Exception e) {
 						logger.log(Level.SEVERE,"Failed to send email",e);
 					}
@@ -276,7 +276,7 @@ public class CliAzureDeploymentTest {
                 }
             }
         });
-        
+
         List<String> connectCommand = Arrays.asList(
              "azure:connect-app",
              "--verbose",
