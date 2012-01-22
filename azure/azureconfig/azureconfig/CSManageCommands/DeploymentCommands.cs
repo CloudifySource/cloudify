@@ -50,7 +50,7 @@ namespace Microsoft.Samples.WindowsAzure.ServiceManagement.Tools
                 throw new CSManageException("Both DeploymentName and DeploymentSlot are null or empty.");
             }
         }
-            
+
         public static string ConfigFileLocation { get; set; }
         public static void ValidateConfigFileLocation()
         {
@@ -83,15 +83,15 @@ namespace Microsoft.Samples.WindowsAzure.ServiceManagement.Tools
             {
                 throw new CSManageException("PackageUrl is null or empty.");
             }
-            
-            if (!Uri.IsWellFormedUriString(PackageLocation, UriKind.Absolute) && 
+
+            if (!Uri.IsWellFormedUriString(PackageLocation, UriKind.Absolute) &&
                 !File.Exists(PackageLocation))
             {
-                throw new CSManageException("PackageUrl format error. It cannot be casted to Uri and is not an existing file path: '" + PackageLocation +"'");
+                throw new CSManageException("PackageUrl format error. It cannot be casted to Uri and is not an existing file path: '" + PackageLocation + "'");
             }
-           
+
         }
-        
+
         public static bool TreatWarningsAsError { get; set; }
     }
 
@@ -126,12 +126,12 @@ namespace Microsoft.Samples.WindowsAzure.ServiceManagement.Tools
                 {
                     input.PackageUrl = new Uri(PackageLocation);
                 }
-                else 
+                else
                 {
                     //TODO: Propagate timeout parameter
                     input.PackageUrl = UploadFile(PackageLocation, TimeSpan.FromMinutes(60));
                 }
-                
+
             }
 
             if (!string.IsNullOrEmpty(Label))
@@ -199,7 +199,7 @@ namespace Microsoft.Samples.WindowsAzure.ServiceManagement.Tools
         }
     }
 
-   class GetDeploymentConfigCommand : CSManageCommand
+    class GetDeploymentConfigCommand : CSManageCommand
     {
         public override void Validate()
         {
@@ -226,106 +226,106 @@ namespace Microsoft.Samples.WindowsAzure.ServiceManagement.Tools
         }
     }
 
-   class GetDeploymentStatusCommand : CSManageCommand
-   {
-       public static int MaxRetries { get { return 5; } }
+    class GetDeploymentStatusCommand : CSManageCommand
+    {
+        public static int MaxRetries { get { return 5; } }
 
-       public override void Validate()
-       {
-           ValidateHostedServiceName();
-           ValidateDeploymentNameOrSlot();
-       }
+        public override void Validate()
+        {
+            ValidateHostedServiceName();
+            ValidateDeploymentNameOrSlot();
+        }
 
-       protected override void PerformOperation(IServiceManagement channel)
-       {
-           for (int retries = 0; retries < MaxRetries ; retries++)
-           {
-           Deployment deployment = null;
-           try
-           {
-               if (!string.IsNullOrEmpty(DeploymentName))
-               {
-                   deployment = channel.GetDeployment(SubscriptionId, HostedServiceName, DeploymentName);
-               }
-               else if (!string.IsNullOrEmpty(DeploymentSlot))
-               {
-                   deployment = channel.GetDeploymentBySlot(SubscriptionId, HostedServiceName, DeploymentSlot);
-               }
-               String status = deployment.Status;
-               if (String.Equals(status, "Running"))
-               {
-                   //downgrade running status if one of the instances is not ready yet
-                   //see http://msdn.microsoft.com/en-us/library/ee460804.aspx
-                   foreach (var instance in deployment.RoleInstanceList)
-                   {
-                       if (!instance.InstanceStatus.Equals("Ready"))
-                       {
-                           status = "Starting";
-                           break;
-                       }
-                   }
-               }
-               Console.WriteLine(status);
-                break; // no need to retry
+        protected override void PerformOperation(IServiceManagement channel)
+        {
+            for (int retries = 0; retries < MaxRetries; retries++)
+            {
+                Deployment deployment = null;
+                try
+                {
+                    if (!string.IsNullOrEmpty(DeploymentName))
+                    {
+                        deployment = channel.GetDeployment(SubscriptionId, HostedServiceName, DeploymentName);
+                    }
+                    else if (!string.IsNullOrEmpty(DeploymentSlot))
+                    {
+                        deployment = channel.GetDeploymentBySlot(SubscriptionId, HostedServiceName, DeploymentSlot);
+                    }
+                    String status = deployment.Status;
+                    if (String.Equals(status, "Running"))
+                    {
+                        //downgrade running status if one of the instances is not ready yet
+                        //see http://msdn.microsoft.com/en-us/library/ee460804.aspx
+                        foreach (var instance in deployment.RoleInstanceList)
+                        {
+                            if (!instance.InstanceStatus.Equals("Ready"))
+                            {
+                                status = "Starting";
+                                break;
+                            }
+                        }
+                    }
+                    Console.WriteLine(status);
+                    break; // no need to retry
+                }
+                catch (CommunicationException ce)
+                {
+                    ServiceManagementError error = null;
+                    HttpStatusCode httpStatusCode = 0;
+                    string operationId;
+                    ServiceManagementHelper.TryGetExceptionDetails(ce, out error, out httpStatusCode, out operationId);
+                    if (error != null && httpStatusCode == HttpStatusCode.NotFound)
+                    {
+                        Console.WriteLine(httpStatusCode);
+                    }
+                    //cannot rethrow since stream already closed.
+                    else
+                    {
+                        bool retry = shouldRetry(ce);
+                        if (!retry)
+                        {
+                            //rethrow exception
+                            base.RethrowCommunicationError(ce, error);
+                            //unreachable code
+                            break;
+                        }
+                        // sleep before retry
+                        Thread.Sleep(1000);
+                    }
+                }
             }
-           catch (CommunicationException ce)
-           {
-               ServiceManagementError error = null;
-               HttpStatusCode httpStatusCode = 0;
-               string operationId;
-               ServiceManagementHelper.TryGetExceptionDetails(ce, out error, out httpStatusCode, out operationId);
-               if (error != null && httpStatusCode == HttpStatusCode.NotFound)
-               {
-                   Console.WriteLine(httpStatusCode);
-               }
-               //cannot rethrow since stream already closed.
-               else
-               {
-                   bool retry = shouldRetry(ce);
-                   if (!retry)
-                   {
-                       //rethrow exception
-                       base.RethrowCommunicationError(ce, error);
-                       //unreachable code
-                       break;
-                   }
-                   // sleep before retry
-                   Thread.Sleep(1000);
-               }
-           }
-           }
-       }
+        }
 
-       private bool shouldRetry(CommunicationException ce)
-       {
-           for (Exception e = ce; e != null; e = e.InnerException)
-           {
-               // there was a temporary communication error
-               System.Net.Sockets.SocketException se = e as System.Net.Sockets.SocketException;
-               if (se != null)
-               {
-                   return true;
-               }
-               // continue to inner exception
-           }
+        private bool shouldRetry(CommunicationException ce)
+        {
+            for (Exception e = ce; e != null; e = e.InnerException)
+            {
+                // there was a temporary communication error
+                System.Net.Sockets.SocketException se = e as System.Net.Sockets.SocketException;
+                if (se != null)
+                {
+                    return true;
+                }
+                // continue to inner exception
+            }
 
-           // do not retry
-           return false;
-       }
+            // do not retry
+            return false;
+        }
 
-   }
+    }
 
-   class GetDeploymentUrlCommand : CSManageCommand
-   {
-       public override void Validate()
-       {
-           ValidateHostedServiceName();
-           ValidateDeploymentNameOrSlot();
-       }
+    class GetDeploymentUrlCommand : CSManageCommand
+    {
+        public override void Validate()
+        {
+            ValidateHostedServiceName();
+            ValidateDeploymentNameOrSlot();
+        }
 
-       protected override void PerformOperation(IServiceManagement channel)
-       {
-           Deployment deployment = null;
+        protected override void PerformOperation(IServiceManagement channel)
+        {
+            Deployment deployment = null;
             if (!string.IsNullOrEmpty(DeploymentName))
             {
                 deployment = channel.GetDeployment(SubscriptionId, HostedServiceName, DeploymentName);
@@ -341,8 +341,8 @@ namespace Microsoft.Samples.WindowsAzure.ServiceManagement.Tools
             }
 
             Console.WriteLine(deployment.Url);
-       }
-   }
+        }
+    }
 
     class SetDeploymentConfigCommand : CSManageCommand
     {
