@@ -2,7 +2,7 @@
 cloud {
 	name = "ec2"
 	configuration {
-		className "org.cloudifysource.esc.driver.provisioning.jclouds.DefaultCloudProvisioning"
+		className "org.cloudifysource.esc.driver.provisioning.jclouds.DefaultProvisioningDriver"
 		managementMachineTemplate "SMALL_LINUX_32"
 		connectToPrivateIp true
 	}
