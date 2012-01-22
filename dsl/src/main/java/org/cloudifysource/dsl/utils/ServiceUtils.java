@@ -17,9 +17,10 @@ package org.cloudifysource.dsl.utils;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
-import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.URL;
 import java.util.List;
 
@@ -59,35 +60,31 @@ public class ServiceUtils {
 		}
 		return false;
 	}
+	
 	/**
 	 * Checks whether a specified port is occupied.
 	 * 
-	 * @param portList
-	 *            - list of ports to check.
-	 * @return - true if port is free
+	 * @param port - port to check.
+	 * @return - true if port is occupied
 	 */
-	public static boolean isPortOccupied(long port) {
-		boolean portIsFree = true;
-
-		ServerSocket server = null;
-		try{
-			server = new ServerSocket((int)port);
-		}
-		catch (IOException e){
-			portIsFree = false;
-		}
-		finally{
-			if (server != null){
-				try{
-					server.close();
-				}
-				catch (IOException e){
-					// ignore
-				}
+	public static boolean isPortOccupied(int port) {
+		Socket sock = new Socket();
+		logger.fine("Checking port " + port );
+		try {
+			sock.connect(new InetSocketAddress("127.0.0.1", port));
+			logger.fine("Connected to port " + port );
+			sock.close();
+			return true;
+		} catch (IOException e1) {
+			logger.fine("Port " + port + " is free.");
+			return false;
+		}finally {
+			try {
+				sock.close();
+			} catch (IOException e) {
+				// ignore
 			}
 		}
-
-		return portIsFree ? false : true;
 	}
 
 	/**
