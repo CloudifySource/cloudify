@@ -189,7 +189,7 @@ public class CliAzureDeploymentTest {
         
     }
     
-	@Test(timeout = 2 * 60 * 1000L)
+	@Test(timeout = 120 * 60 * 1000L)
     public void repeatTest() throws Throwable {
 		DateFormat df = new SimpleDateFormat("_yyyy-MM-dd_hh-mm");
 		int repeat = 1;
