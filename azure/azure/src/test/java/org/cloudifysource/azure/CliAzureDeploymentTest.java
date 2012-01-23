@@ -231,6 +231,7 @@ public class CliAzureDeploymentTest {
 						logger.log(Level.SEVERE,"Failed to send email",e);
 					}
 					after();
+					// no need to break since we want to test the run multiple times (or until it fails)
 				}
 			}
 		}
