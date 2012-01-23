@@ -81,7 +81,9 @@ goto :END
 
 :SET_PARAMS
 	set params=%*
-	set params=%params:-use-proxy=%
+	if "%~1" == "-use-proxy" (
+		set params=%params:-use-proxy=%
+	)
 goto :END
 
 :INIT
