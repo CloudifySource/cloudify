@@ -15,6 +15,8 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.internal;
 
+import com.gigaspaces.internal.license.LicenseManagerVerifier;
+
 /*********************
  * A shared location for all constants used by multiple cloudify constants.
  * 
@@ -133,7 +135,7 @@ public class CloudifyConstants {
 	 * Misc.
 	 */
 	public static final String DEFAULT_APPLICATION_NAME = "default";
-	public static final String MANAGEMENT_SPACE_NAME = "cloudifyManagementSpace";
+	public static final String MANAGEMENT_SPACE_NAME = LicenseManagerVerifier.MANAGEMENT_SPACE_NAME;
 	public static final String MANAGEMENT_APPLICATION_NAME = "management";
 	public static final String USM_LIB_DIR = "usmlib";
 	// TODO - remove forward slashes
