@@ -67,7 +67,7 @@
 	<property name="cloudify.base.container" value="gigaspaces-cloudify" />
 	<property name="cloudify.base.publish.url" value="https://s3.amazonaws.com/${cloudify.base.container}" />
 	<property name="cloudify.cdn.publish.url" value="http://d3ce4p99glv9el.cloudfront.net" />
-  <property name="cloudify.put.target" value="cloudify/${cloudify.version}/${cloudify.build.number}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
+  <property name="cloudify.put.target" value="repository/org/cloudifysource/${cloudify.version}/${cloudify.build.number}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
   <property name="cloudify.put.source" value="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
 							
 	<!-- these should be injected when running the publish build
