@@ -219,7 +219,7 @@
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/tools/benchmark"/>
 		<delete>	
             <fileset dir="${tmp.dir}/${cloudify.installation.dir}/bin" includes="gs-focalserver.*, gsInstance.*,
-            startJiniTxMahalo.*, puInstance.*, gs-memcached.*"/>
+            startJiniTxMahalo.*, puInstance.*, gs-memcached.*, gs-ui.*"/>
         </delete>
 	</target>
 
