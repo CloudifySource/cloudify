@@ -220,7 +220,7 @@ public class CliAzureDeploymentTest {
 						logger.log(Level.SEVERE,"Failed to send email",e);
 					}
 					after();
-					break;
+					// no need to break since an exception was raised and is going to fail the test
 				}
 				else {
 					logger.info("Passed test iteration #"+i);
