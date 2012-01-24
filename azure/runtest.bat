@@ -12,7 +12,8 @@ set GS_VERSION=%2
 set BUILD_NUMBER=%3
 set MILESTONE=%4
 set azure.blob.accountname=%5
-set azure.blob.accountkey="%6"
+rem this is a fix to the fact that == postfix cannot be part of a resolved variable value
+set azure.blob.accountkey=%6==
 set azure.services.subscription=%7
 set azure.services.certificate=%8
 
