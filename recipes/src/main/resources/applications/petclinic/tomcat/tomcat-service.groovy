@@ -44,7 +44,7 @@ service {
 					"Catalina:type=Manager,context=/petclinic-mongo,host=localhost",
 					"activeSessions"
 				],
-				port: 9999
+				port: 11099
 			])
 		}
 	])
