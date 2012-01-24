@@ -59,6 +59,9 @@ public class CliAzureDeploymentTest {
     private static final int POLLING_INTERVAL_IN_MILLIS = 5000;
     private static final int TIMEOUT_IN_MILLIS = 60 * 60 * 1000;
     
+    private static final String AZURE_REGION="North Central US";
+    //private static final String AZURE_REGION="South Central US";
+    
     // keys and partial values for azure.properties
     private static final String AZURE_PROPERITES_SUBSCRIPTION_ID_KEY = "subscriptionId";
     private static final String AZURE_PROPERITES_CERTIFICATE_THUMBPRINT_KEY = "certificateThumbprint";
@@ -71,22 +74,8 @@ public class CliAzureDeploymentTest {
     private static final String AZURE_PROPERTIES_RDP_PFX_FILE_KEY = "rdpPfxFile";
     private static final String AZURE_PROPERTIES_RDP_LOGIN_USERNAME_KEY = "rdpLoginUsername";
     private static final String AZURE_PROPERTIES_RDP_LOGIN_ENCRYPTED_PASSWORD = "rdpLoginEncrypedPassword";
+	
     
-	// azure account
-	// -------------
-    //private static final String AZURE_SUBSCRIPTION_ID = "9f24fac0-f989-4873-b3d5-6886fbc6cd29";
-    //private static final String AZURE_ACCOUNT_NAME = "gigaspaces";
-    //private static final String AZURE_ACCOUNT_KEY = "UD+sH0G99u9Rjt/jD5U39k2exfUQAgmeIgXx6+s/LTwLwTeScC7YK+53+UXkh9cZI4yiv2ZpKrnXYh9/e5eNhw==";
-	//private static final String AZURE_REGION="South Central US";
-	
-	// azure partner account
-	// ---------------------
-	private static final String AZURE_SUBSCRIPTION_ID = "2719917d-5e33-4aaa-9fee-429290752498"; 
-    private static final String AZURE_ACCOUNT_NAME = "gigaspaces3";
-    private static final String AZURE_ACCOUNT_KEY = "2hQ0Kljm3tWj49kUrHfFypnd8KyOT1nlsi766M6dHJYgpHjEy+CfR2922cfFzTvqCN94SSkcx7GG+8KovxV2mQ==";
-	private static final String AZURE_REGION="North Central US";
-	
-    private static final String AZURE_CERTIFICATE_THUMBPRINT = "9E0086E300D5B2F7CC00E734F58FFB1661920FE9";
     private static final String AZURE_CONTAINER_NAME = "packages-public";
     private static final String CS_PACK_FOLDER = "C:\\Program Files\\Windows Azure SDK\\v1.4\\bin";
     private static final String RELATIVE_WORKER_ROLE_DIR = "plugins\\azure\\WorkerRoles\\GigaSpacesWorkerRoles";
@@ -130,6 +119,8 @@ public class CliAzureDeploymentTest {
     private static final String IS_DEBUG_MODE_SYSTEM_PROPERTY = "test.debug.mode";
     private static final String LOCAL_WORKING_DIR_SYSTEM_PROPERTY_KEY = "local.working.dir";
     
+    private static final AzureCredentials credentials = new AzureCredentials();
+    
     private File cliExecutablePath;
     private AzureDeploymentWrapper deployment;
     private File applicationFile;
@@ -165,15 +156,15 @@ public class CliAzureDeploymentTest {
         cscfg.flush();
         
         Properties newAzureProps = new Properties();
-        newAzureProps.setProperty(AZURE_PROPERTIES_ACCOUNT_NAME_KEY, AZURE_ACCOUNT_NAME);
-        newAzureProps.setProperty(AZURE_PROPERTIES_ACCOUNT_KEY_KEY, AZURE_ACCOUNT_KEY);
+        newAzureProps.setProperty(AZURE_PROPERTIES_ACCOUNT_NAME_KEY, credentials.getBlobStorageAccountName());
+        newAzureProps.setProperty(AZURE_PROPERTIES_ACCOUNT_KEY_KEY, credentials.getBlobStorageAccountKey());
         newAzureProps.setProperty(AZURE_PROPERTIES_CONTAINER_NAME_KEY, AZURE_CONTAINER_NAME);
         newAzureProps.setProperty(AZURE_PROPERTIES_WORKER_ROLE_FOLDER_KEY, RELATIVE_WORKER_ROLE_DIR);
         newAzureProps.setProperty(AZURE_PROPERTIES_CS_PACK_FOLDER_KEY, CS_PACK_FOLDER);
         newAzureProps.setProperty(AZURE_PROPERTIES_RDP_CERT_FILE_KEY, RDP_CERT_FILE);
         newAzureProps.setProperty(AZURE_PROPERTIES_RDP_PFX_FILE_KEY, RDP_PFX_FILE);
-        newAzureProps.setProperty(AZURE_PROPERITES_CERTIFICATE_THUMBPRINT_KEY, AZURE_CERTIFICATE_THUMBPRINT);
-        newAzureProps.setProperty(AZURE_PROPERITES_SUBSCRIPTION_ID_KEY, AZURE_SUBSCRIPTION_ID);
+        newAzureProps.setProperty(AZURE_PROPERITES_CERTIFICATE_THUMBPRINT_KEY, credentials.getHostedServicesCertificateThumbrint());
+        newAzureProps.setProperty(AZURE_PROPERITES_SUBSCRIPTION_ID_KEY, credentials.getHostedServicesSubscriptionId());
         newAzureProps.setProperty(AZURE_PROPERTIES_RDP_LOGIN_USERNAME_KEY, AZURE_RDP_LOGIN_USERNAME);
         newAzureProps.setProperty(AZURE_PROPERTIES_RDP_LOGIN_ENCRYPTED_PASSWORD, AZURE_RDP_LOGIN_ENCRYPTED_PASSWORD);
         
@@ -183,7 +174,7 @@ public class CliAzureDeploymentTest {
         fos.close();
         
         deployment = new AzureDeploymentWrapper(azureConfigExec, 
-            AZURE_SUBSCRIPTION_ID, AZURE_CERTIFICATE_THUMBPRINT, 
+            credentials.getHostedServicesSubscriptionId(), credentials.getHostedServicesCertificateThumbrint(), 
             AZURE_HOSTED_SERVICE, AZURE_SLOT, 
             null, null, null, null);
         
@@ -215,7 +206,7 @@ public class CliAzureDeploymentTest {
 					logger.info("Failed test iteration #"+i +". Machines are left running for manual diagnostics");
 					logger.removeHandler(fileHandler);
 					try {
-						SimpleMail.send("Azure test failed\nSubscription ID="+AZURE_SUBSCRIPTION_ID, new File(filePattern));
+						SimpleMail.send("Azure test failed\nSubscription ID="+credentials.getHostedServicesSubscriptionId(), new File(filePattern));
 					} catch(Exception e) {
 						logger.log(Level.SEVERE,"Failed to send email",e);
 					}
@@ -226,7 +217,7 @@ public class CliAzureDeploymentTest {
 					logger.info("Passed test iteration #"+i);
 					logger.removeHandler(fileHandler);
 					try {
-						SimpleMail.send("Azure test passed\nSubscription ID="+AZURE_SUBSCRIPTION_ID, new File(filePattern));
+						SimpleMail.send("Azure test passed\nSubscription ID="+credentials.getHostedServicesSubscriptionId(), new File(filePattern));
 					} catch(Exception e) {
 						logger.log(Level.SEVERE,"Failed to send email",e);
 					}
