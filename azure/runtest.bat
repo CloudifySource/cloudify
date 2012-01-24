@@ -101,7 +101,7 @@ call mvn -DskipTests=true clean install
 popd
 
 pushd l:\azure\azure
-call mvn -DskipTests=false -Dsurefire.useFile=false -Dlocal.working.dir=%LOCAL_WORKING_DIR% -Dazure.blob.accountname=%azure.blob.accountname% -Dazure.blob.accountkey=%set azure.blob.accountkey% -Dazure.services.subscription=%azure.services.subscription% -Dazure.services.certificate=%azure.services.certificate% test
+call mvn -DskipTests=false -Dsurefire.useFile=false -Dlocal.working.dir=%LOCAL_WORKING_DIR% -Dazure.blob.accountname=%azure.blob.accountname% -Dazure.blob.accountkey=%azure.blob.accountkey% -Dazure.services.subscription=%azure.services.subscription% -Dazure.services.certificate=%azure.services.certificate% test
 REM call mvn -Dtest.debug.mode=true -Dmaven.surefire.debug="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000 -Xnoagent -Djava.compiler=NONE" -DskipTests=false -DuseFile=false -Dlocal.working.dir=%LOCAL_WORKING_DIR% test
 
 if ERRORLEVEL 1 goto err
