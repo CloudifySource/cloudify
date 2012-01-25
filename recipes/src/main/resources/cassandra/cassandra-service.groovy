@@ -74,7 +74,7 @@ service {
 							"org.apache.cassandra.internal:type=HintedHandoff",
 							"PendingTasks"
 						],
-						"Memtable Post Flusher Active Count":[
+						"Memtable Post Flusher Active Tasks":[
 							"org.apache.cassandra.internal:type=MemtablePostFlusher",
 							"ActiveCount"
 						],
@@ -119,15 +119,15 @@ service {
 			metricGroup{
 				name "Memtables Post Flusher"
 				metrics ([
-					"Memtables Post Flusher Active Tasks",
-					"Memtables Post Flusher Pending Tasks",
-					"Memtables Post Flusher Completed Tasks"
+					"Memtable Post Flusher Active Tasks",
+					"Memtable Post Flusher Pending Tasks",
+					"Memtable Post Flusher Completed Tasks"
 				])
 			} ,
 			metricGroup{
 				name "Hinted Handoff"
 				metrics ([
-					"Hinted Handoff Active Tasks",
+					"Hinted Handoff Active Count",
 					"Hinted Handoff Pending Tasks",
 					"Hinted Handoff Completed Tasks"
 				])
