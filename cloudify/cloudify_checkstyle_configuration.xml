@@ -5,17 +5,13 @@
     This configuration file was written by the eclipse-cs plugin configuration editor
 -->
 <!--
-    Checkstyle-Configuration: Cloudify
+    Checkstyle-Configuration: Cloudify1
     Description: none
 -->
 <module name="Checker">
   <property name="severity" value="warning"/>
   <module name="TreeWalker">
     <property name="tabWidth" value="4"/>
-    <module name="JavadocMethod">
-      <property name="allowMissingPropertyJavadoc" value="true"/>
-      <property name="suppressLoadErrors" value="true"/>
-    </module>
     <module name="JavadocType"/>
     <module name="JavadocVariable">
       <property name="scope" value="public"/>
@@ -98,6 +94,10 @@
     <module name="UpperEll"/>
     <module name="VisibilityModifier">
       <property name="protectedAllowed" value="true"/>
+    </module>
+    <module name="JavadocMethod">
+      <property name="scope" value="protected"/>
+      <property name="suppressLoadErrors" value="true"/>
     </module>
   </module>
   <module name="JavadocPackage"/>
