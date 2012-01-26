@@ -36,7 +36,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -59,7 +58,6 @@ import com.j_spaces.kernel.PlatformVersion;
 
 public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware {
 														 
-	private static final String EXCEPTION_CAUGHT_REGEX = "Caught:.*\\.groovy:[1-9]{1,}\\).*";
 	private static final int POST_SYNC_PROCESS_SLEEP_INTERVAL = 200;
 	private static final String LINUX_EXECUTE_PREFIX = "./";
 	private static final String[] WINDOWS_BATCH_FILE_PREFIX_PARAMS = { "cmd.exe", "/c " };
@@ -649,17 +647,14 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			logger.info("Command exited with value: " + exitValue);
 			if (exitValue != 0) {
 				logger.severe("Event lifecycle external process exited with abnormal status code: " + exitValue);
-				Pattern pattern = Pattern.compile(EXCEPTION_CAUGHT_REGEX, Pattern.MULTILINE + Pattern.DOTALL);
-				Matcher matcher = pattern.matcher(sb.toString());
-				int beginIndex = 0;
-				int endIndex = 0;
-				if (matcher.find()) {
-					beginIndex = matcher.start(0);
-					endIndex = matcher.end(0);
-				}
-				logger.log(Level.SEVERE, "Event lifecycle external process failed: " + sb.toString());
+				
+				String result = sb.toString();
+				String exceptionReason = GroovyExceptionHandler.getExceptionString(result);
+				
+				logger.log(Level.SEVERE, "Event lifecycle external process failed: " + result);
+				//TODO:Add result string to exception if not groovy exception.
 				throw new USMException("Event lifecycle external process exited with abnormal status code: "
-						+ exitValue + " " + sb.toString().substring(beginIndex, endIndex));
+						+ exitValue + " " + exceptionReason);
 			}
 		} catch (final InterruptedException e) {
 			logger.warning("Interrupted while waiting for process to exit");
