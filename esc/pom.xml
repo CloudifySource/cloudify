@@ -82,25 +82,12 @@
 	</build>
 	<repositories>
 		<repository>
-			<id>maven</id>
-			<url>http://repo1.maven.org/maven2/</url>
-		</repository>
-		<repository>
 			<id>org.openspaces</id>
 			<url>http://maven-repository.openspaces.org</url>
 		</repository>
 		<repository>
 			<id>codehaus</id>
 			<url>http://repository.codehaus.org</url>
-		</repository>
-		<repository>
-			<id>jclouds</id>
-			<name>JClouds Repository </name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-			<snapshots>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
-			</snapshots>
 		</repository>
 	</repositories>
 	<dependencies>
