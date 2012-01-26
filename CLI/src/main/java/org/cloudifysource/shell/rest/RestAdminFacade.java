@@ -134,16 +134,23 @@ public class RestAdminFacade extends AbstractAdminFacade {
 				throw new CLIException(e);
 			}
 			
-			if ("partitioned-sync2backup".equals(serviceStatusMap.get("ClusterSchema"))) {
+			if (serviceStatusMap.containsKey("ClusterSchema") && "partitioned-sync2backup".equals(serviceStatusMap.get("ClusterSchema"))) {
 				plannedNumberOfInstances = Integer.valueOf((String) serviceStatusMap.get("TotalNumberOfInstances"));
 			}
 			
-			//Update all service instance numbers.
+			boolean serviceInstanceExists = false;
+			int serviceInstancesSize = 0;
+			if (serviceStatusMap.containsKey("Instances-Size")){
+				serviceInstancesSize = (Integer) serviceStatusMap.get("Instances-Size");
+				if (!serviceStatusMap.get("Instances-Size").equals(0)){
+					serviceInstanceExists = true;
+				}
+			}
 			//isUsmService can only be called when an instance of the service exists. 
-			if (!serviceStatusMap.get("Instances-Size").equals(0) && isUSMService(applicationName, serviceName)){
+			if (serviceInstanceExists && isUSMService(applicationName, serviceName)){
 				int actualNumberOfUSMServicesWithRunningState = getNumberOfUSMServicesWithRunningState(serviceName, 
 															applicationName,
-															(Integer)serviceStatusMap.get("Instances-Size"));
+															serviceInstancesSize);
 				if(currentNumberOfRunningUSMInstances != actualNumberOfUSMServicesWithRunningState && actualNumberOfUSMServicesWithRunningState != 0){
 					currentNumberOfRunningUSMInstances = actualNumberOfUSMServicesWithRunningState;
 					statusChanged = true;
@@ -152,7 +159,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 				}
 			}else{//Not a USM Service
 				
-				int actualNumberOfInstances = (Integer)serviceStatusMap.get("Instances-Size");
+				int actualNumberOfInstances = serviceInstancesSize;
 				if (actualNumberOfInstances != currentNumberOfNonUSMInstances && actualNumberOfInstances != 0){
 					currentNumberOfNonUSMInstances = actualNumberOfInstances;
 					statusChanged = true;
@@ -164,19 +171,19 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			//Print the event logs and return shutdown event count.
 			serviceShutDownEventsCount = handleEventLogs(serviceName, applicationName, plannedNumberOfInstances, serviceShutDownEventsCount);
 				
-			if ((Integer)serviceStatusMap.get("Instances-Size") == 0){
-				printStatusMessage(plannedNumberOfInstances, (Integer)serviceStatusMap.get("Instances-Size"), statusChanged);
+			if (serviceInstancesSize == 0){
+				printStatusMessage(plannedNumberOfInstances, serviceInstancesSize, statusChanged);
 			//Too many instances.
 			}else if (plannedNumberOfInstances < currentNumberOfNonUSMInstances ||
 					plannedNumberOfInstances < currentNumberOfRunningUSMInstances ){
 				throw new CLIException(MessageFormat.format(
 						messages.getString("number_of_instances_exceeded_planned"),
 						plannedNumberOfInstances, Math.max(currentNumberOfNonUSMInstances, currentNumberOfRunningUSMInstances))); 
-			}else if ((Integer)serviceStatusMap.get("Instances-Size") > 0){
+			}else if (serviceInstancesSize > 0){
 				if (isUSMService(applicationName, serviceName)){
 					currentNumberOfRunningUSMInstances = getNumberOfUSMServicesWithRunningState(serviceName, 
 								applicationName,
-								(Integer)serviceStatusMap.get("Instances-Size"));
+								serviceInstancesSize);
 					printStatusMessage(plannedNumberOfInstances, currentNumberOfRunningUSMInstances, statusChanged);
 					
 					//are all usm service instances in Running state?
@@ -295,7 +302,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 				return false;
 			}
 		}catch (RestException e){
-			//Doing nothing
+			//The path doesn't exist. either not a usm service or no instance was created yet.
 		}
 		return false;
 	}
