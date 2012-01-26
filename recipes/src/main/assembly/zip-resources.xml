@@ -23,6 +23,7 @@
 				<exclude>**/tomcatcluster/**</exclude>
 				<exclude>**/couchdb/**</exclude>
 				<exclude>**/redis/**</exclude>
+				<exclude>**/voltdb/**</exclude>
 			</excludes>
 			<outputDirectory>/</outputDirectory>
 		</fileSet>
