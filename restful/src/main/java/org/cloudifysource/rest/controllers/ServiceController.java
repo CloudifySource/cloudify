@@ -1139,21 +1139,6 @@ public class ServiceController {
 
 	}
 	
-	/**
-	 * Deploys a service according to it's type. There are x different service types supported:
-	 *   
-	 * @param serviceName
-	 * @param applicationName
-	 * @param zone
-	 * @param srcFile
-	 * @param propsFile
-	 * @param originalTemplateName
-	 * @throws TimeoutException
-	 * @throws PackagingException
-	 * @throws IOException
-	 * @throws AdminException
-	 * @throws DSLException
-	 */
 	public void deployElasticProcessingUnit(final String serviceName, final String applicationName,
 	        final String zone, final File srcFile, final Properties propsFile, 
 	        final String originalTemplateName) throws TimeoutException, PackagingException,
