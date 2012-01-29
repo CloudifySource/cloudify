@@ -103,7 +103,7 @@ public class USMRollingFileAppenderTailerTest {
 	}
 	
 	@Test
-	public void RollingFileAppenderTailer() throws InterruptedException {
+	public void rollingFileAppenderTailer() throws InterruptedException {
 		
 		//added handler to monitor tailing of the new file.
 		StringHandler stringHandler = addHandlerToJavaUtilsLogger();
