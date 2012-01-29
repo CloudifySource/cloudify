@@ -17,6 +17,14 @@ package org.cloudifysource.shell.commands;
 
 import org.apache.felix.gogo.commands.Command;
 
+/**
+ * @author rafi, barakm
+ * @since 2.0.0
+ * 
+ *        Terminates the shell.
+ * 
+ *        Command syntax: quit
+ */
 @Command(scope = "cloudify", name = "quit", description = "Terminates the shell")
 public class Quit extends Exit {
 }

@@ -15,24 +15,45 @@
  *******************************************************************************/
 package org.cloudifysource.shell.commands;
 
+/**
+ * @author rafi, noak
+ * @since 2.0.0
+ * 
+ *        Represents exceptions in the scope of the command line interface.
+ */
 public class CLIException extends Exception {
 
 	private static final long serialVersionUID = 1295396747968774683L;
-	
+
+	/**
+	 * Empty Construction.
+	 */
 	public CLIException() {
 	}
 
-	public CLIException(String message) {
+	/**
+	 * Constructor.
+	 * @param message A detailed message about the exception
+	 */
+	public CLIException(final String message) {
 		super(message);
-
 	}
 
-	public CLIException(Throwable cause) {
+	/**
+	 * Constructor.
+	 * @param cause The Throwable that caused this exception to be thrown.
+	 */
+	public CLIException(final Throwable cause) {
 		super(cause);
 	}
 
-	public CLIException(String message, Throwable cause) {
+	/**
+	 * Constructor.
+	 * @param message A detailed message about the exception
+	 * @param cause The Throwable that caused this exception to be thrown.
+	 */
+	public CLIException(final String message, final Throwable cause) {
 		super(message, cause);
 	}
-	
+
 }

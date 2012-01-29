@@ -21,21 +21,30 @@ import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
 import org.fusesource.jansi.Ansi.Color;
 
-
 /**
- * @author rafi
- * @since 8.0.3
+ * @author rafi, barakm
+ * @since 2.0.0
+ * 
+ *        Sets the currently used application.
+ *        
+ *        Required arguments:
+ *        name - The name of the application to use
+ * 
+ *        Command syntax: use-application name
  */
 @Command(scope = "cloudify", name = "use-application", description = "Sets the currently used application")
 public class UseApplication extends AdminAwareCommand {
 
-    @Argument(required = true, name = "name", description = "The name of the application to use")
-    private String applicationName;
+	@Argument(required = true, name = "name", description = "The name of the application to use")
+	private String applicationName;
 
-    @Override
-    protected Object doExecute() throws Exception {
-        session.put(Constants.ACTIVE_APP, applicationName);
-        GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
-        return getFormattedMessage("using_application", Color.GREEN, applicationName);
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected Object doExecute() throws Exception {
+		session.put(Constants.ACTIVE_APP, applicationName);
+		GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
+		return getFormattedMessage("using_application", Color.GREEN, applicationName);
+	}
 }

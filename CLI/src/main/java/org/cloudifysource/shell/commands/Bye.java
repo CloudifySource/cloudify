@@ -17,6 +17,14 @@ package org.cloudifysource.shell.commands;
 
 import org.apache.felix.gogo.commands.Command;
 
+/**
+ * @author rafi, barakm
+ * @since 2.0.0
+ * 
+ *        Terminates the shell.
+ * 
+ *        Command syntax: bye
+ */
 @Command(scope = "cloudify", name = "bye", description = "Terminates the shell")
 public class Bye extends Exit {
 }

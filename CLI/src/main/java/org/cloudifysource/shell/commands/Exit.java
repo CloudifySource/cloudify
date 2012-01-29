@@ -20,16 +20,26 @@ import org.apache.karaf.shell.console.AbstractAction;
 import org.apache.karaf.shell.console.CloseShellException;
 import org.cloudifysource.shell.ShellUtils;
 
-
 import java.util.ResourceBundle;
 
+/**
+ * @author rafi, adaml, barakm
+ * @since 2.0.0
+ * 
+ *        Terminates the shell.
+ * 
+ *        Command syntax: exit
+ */
 @Command(scope = "cloudify", name = "exit", description = "Terminates the shell")
 public class Exit extends AbstractAction {
 
-    @Override
-    protected Object doExecute() throws Exception {
-        ResourceBundle messages = ShellUtils.getMessageBundle();
-        session.getConsole().println(messages.getString("on_exit"));
-        throw new CloseShellException();
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected Object doExecute() throws Exception {
+		ResourceBundle messages = ShellUtils.getMessageBundle();
+		session.getConsole().println(messages.getString("on_exit"));
+		throw new CloseShellException();
+	}
 }

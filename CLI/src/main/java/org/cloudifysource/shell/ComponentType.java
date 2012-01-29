@@ -16,9 +16,11 @@
 package org.cloudifysource.shell;
 
 /**
- * @author rafi
- * @since 8.0.3
+ * @author rafi, barakm
+ * @since 2.0.0
+ * 
+ *        This enumeration defined the managed component types.
  */
 public enum ComponentType {
-    APPLICATION, SERVICE
+	APPLICATION, SERVICE
 }

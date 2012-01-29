@@ -16,14 +16,17 @@
 package org.cloudifysource.shell.commands;
 
 /**
- * @author uri
+ * @author uri, adaml
+ * @since 2.0.0
  */
 public class CustomCommand extends AdminAwareCommand {
-    protected String name;
+	protected String name;
 
-
-    @Override
-    protected Object doExecute() throws Exception {
-        return null;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected Object doExecute() throws Exception {
+		return null;
+	}
 }

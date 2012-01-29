@@ -24,44 +24,57 @@ import java.util.logging.SimpleFormatter;
 
 import org.cloudifysource.shell.ShellUtils;
 
-
+/**
+ * @author rafi, barakm
+ * @since 2.0.0
+ * 
+ *        This extension of the {@link SimpleFormatter} supplies a specific formatting for log records when
+ *        exceptions are thrown.
+ * 
+ */
 public class ShellFormatter extends SimpleFormatter {
 
-	private String newLineChar = System.getProperty("line.separator");
+	private final String newLineChar = System.getProperty("line.separator");
 	protected ResourceBundle messages = ShellUtils.getMessageBundle();
 
+	/**
+	 * Constructor.
+	 */
 	public ShellFormatter() {
 		super();
 	}
 
+	/**
+	 * {@inheritDoc} If an exception was thrown, a generic error message is used, and specific details about
+	 * the current exception are added to it (including the stack trace is available).
+	 */
 	@Override
-	public String format(LogRecord record) {
-		//TODO: append exception message to output
+	public String format(final LogRecord record) {
+		// TODO: append exception message to output
 		String outputMessage;
-		//This means that an exception was thrown. print the ex message to the log.
-		if (record.getThrown() != null){
-			Throwable t = record.getThrown();
-			
+		// This means that an exception was thrown. print the ex message to the log.
+		if (record.getThrown() != null) {
+			final Throwable t = record.getThrown();
+
 			String message;
 			if (t.getStackTrace().length == 0) {
 				message = t.getLocalizedMessage();
-			}
-			else {
+			} else {
 				message = t.toString();
-				StringWriter sw = new StringWriter();
+				final StringWriter sw = new StringWriter();
 				t.printStackTrace(new PrintWriter(sw));
 				message = sw.toString();
 			}
 			outputMessage = MessageFormat.format(messages.getString("op_failed"), message);
-			
+
 			if (record.getMessage() != null && record.getMessage().length() > 0) {
-			    outputMessage = super.formatMessage(record) + ": " + outputMessage;
+				outputMessage = super.formatMessage(record) + ": " + outputMessage;
 			}
-		}else{
+		} else {
 			outputMessage = super.formatMessage(record);
 		}
-		
-		//don't use message formatter here since outputMessage may contain illegal "{}" string.
+
+		// don't use message formatter here since outputMessage may contain illegal "{}" string.
 		return outputMessage + newLineChar;
 	}
 

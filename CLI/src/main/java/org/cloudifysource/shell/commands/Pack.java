@@ -21,37 +21,47 @@ import java.text.MessageFormat;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
-
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 
 /**
- * @author rafi
- * @since 8.0.3
+ * @deprecated
+ * @author rafi, barakm
+ * @since 2.0.0
  */
+@Deprecated
 @Command(name = "pack", scope = "cloudify", description = "Packs a recipe folder to a recipe archive")
 public class Pack extends AbstractGSCommand {
 
-    @Argument(required = true, name = "recipe-folder", description = "The recipe folder to pack")
-    File recipeFolder;
+	@Argument(required = true, name = "recipe-folder", description = "The recipe folder to pack")
+	private File recipeFolder;
 
-    @Override
-    protected Object doExecute() throws Exception {
-        File packedFile = doPack(recipeFolder);
-        return MessageFormat.format(messages.getString("packed_successfully"), packedFile.getAbsolutePath());
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected Object doExecute() throws Exception {
+		final File packedFile = doPack(recipeFolder);
+		return MessageFormat.format(messages.getString("packed_successfully"), packedFile.getAbsolutePath());
+	}
 
-    public static File doPack(File recipeDirOrFile) throws CLIException {
+	/**
+	 * Packages the recipe files and other required files in a zip.
+	 * @param recipeDirOrFile The recipe service DSL file or containing folder 
+	 * @return A zip file
+	 * @throws CLIException Reporting a failure to find or parse the given DSL file, or pack the zip file
+	 */
+	public static File doPack(final File recipeDirOrFile) throws CLIException {
 		try {
 			return Packager.pack(recipeDirOrFile);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			throw new CLIException(e);
-		} catch (PackagingException e) {
+		} catch (final PackagingException e) {
 			throw new CLIException(e);
-		} catch (DSLException e) {
+		} catch (final DSLException e) {
 			throw new CLIException(e);
 		}
-    }
+	}
 
 }

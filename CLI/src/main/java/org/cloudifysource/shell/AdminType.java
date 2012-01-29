@@ -17,7 +17,7 @@ package org.cloudifysource.shell;
 
 /**
  * @author adaml
- * @since 8.0.3
+ * @since 2.0.0
  */
 public enum AdminType {
 

@@ -15,15 +15,28 @@
  *******************************************************************************/
 package org.cloudifysource.shell;
 
-
+/**
+ * @author rafi, barakm
+ * @since 2.0.0
+ * 
+ *        An implementation of {@link ConsoleWithPropsActions}, to be used on an interactive console.
+ */
 public class ConsoleWithPropsInteractive implements ConsoleWithPropsActions {
 
-    public String getPromptInternal(String currentAppName) {
-        return "\u001B[1mcloudify" + (currentAppName != null ? "@" + currentAppName : "") + "> \u001B[0m";
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String getPromptInternal(final String currentAppName) {
+		return "\u001B[1mcloudify" + (currentAppName != null ? "@" + currentAppName : "") + "> \u001B[0m";
+	}
 
-    public String getBrandingPropertiesResourcePath() {
-         return "META-INF/shell/branding.properties";
-    }
-    
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String getBrandingPropertiesResourcePath() {
+		return "META-INF/shell/branding.properties";
+	}
+
 }

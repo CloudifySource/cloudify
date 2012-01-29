@@ -21,21 +21,27 @@ import org.apache.felix.gogo.commands.Command;
 import com.j_spaces.kernel.PlatformVersion;
 
 /**
- * @author adam
- * @since 8.0.5
+ * @author rafi, barakm
+ * @since 2.0.0
+ * 
+ *        Displays the XAP and cloudify versions.
+ *        
+ *        Command syntax: version
  */
 @Command(scope = "cloudify", name = "version", description = "Displays the XAP and cloudify versions")
 public class Version extends AbstractGSCommand {
 
-
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	protected Object doExecute() throws Exception {
-		
-		String platformInfo = PlatformVersion.getOfficialVersion();
-		String cloudifyInfo = "Cloudify version 2.0";
-		
-		String info = platformInfo + System.getProperty("line.separator") + cloudifyInfo;
-		
+
+		final String platformInfo = PlatformVersion.getOfficialVersion();
+		final String cloudifyInfo = "Cloudify version 2.0";
+
+		final String info = platformInfo + System.getProperty("line.separator") + cloudifyInfo;
+
 		return info;
 	}
 }

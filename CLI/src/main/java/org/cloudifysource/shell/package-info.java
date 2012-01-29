@@ -58,12 +58,13 @@ package org.cloudifysource.shell;
  * AdminApiFacade - Implements AdminFacade by creating a local Admin API object.
  * 
  * 
- * RestAdminFacade - Implements AdminFacade using the commons httpClient and making http calls to a restful web application 
- * in a user specified server. The user executes connect command with a url address where the restful webapp is deployed, 
- * and this class communicates with the rest server. The rest server is responsible to use the Admin API to 
- * perform the required logic.
+ * RestAdminFacade - Implements AdminFacade using the commons httpClient and making http calls to a restful web
+ * application in a user specified server. The user executes connect command with a url address where the restful
+ * webapp is deployed, and this class communicates with the rest server. The rest server is responsible to use the
+ * Admin API to perform the required logic.
  * Currently, the RestAdminFacade uses MySSLSocketFactory which accepts all certificates.
- * When a valid certificate is issues, the block of code that uses MySSLSocketFactory needs to be removed(getSSLHttpClient method).
+ * When a valid certificate is issues, the block of code that uses MySSLSocketFactory needs to be removed 
+ * (getSSLHttpClient method).
  * 
  * Communication with the REST server is done through the rest-client:
  * {@link org.cloudifysource.restclient.GSRestClient} using HTTP commands (GET, POST, DELETE).

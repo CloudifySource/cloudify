@@ -15,30 +15,54 @@
  *******************************************************************************/
 package org.cloudifysource.shell.commands;
 
+/**
+ * @author noak
+ * @since 2.0.0
+ * 
+ *        Extends {@link CLIException}, includes more details to support formatted messages.
+ */
 public class CLIStatusException extends CLIException {
-	
+
 	private static final long serialVersionUID = -399277091070772297L;
-	private String reasonCode;
-    private Object[] args;
+	private final String reasonCode;
+	private final Object[] args;
 
+	/**
+	 * Constructor.
+	 * @param cause The Throwable that caused this exception to be thrown. 
+	 * @param reasonCode A reason code, by which a formatted message can be retrieved from the message bundle
+	 * @param args Optional arguments to embed in the formatted message
+	 */
+	public CLIStatusException(final Throwable cause, final String reasonCode, final Object... args) {
+		super("reasonCode: " + reasonCode, cause);
+		this.args = args;
+		this.reasonCode = reasonCode;
+	}
 
-    public CLIStatusException(Throwable cause, String reasonCode, Object... args) {
-        super("reasonCode: " + reasonCode, cause);
-        this.args = args;
-        this.reasonCode = reasonCode; 
-    }
+	/**
+	 * Constructor.
+	 * @param reasonCode A reason code, by which a formatted message can be retrieved from the message bundle
+	 * @param args Optional arguments to embed in the formatted message
+	 */
+	public CLIStatusException(final String reasonCode, final Object... args) {
+		super("reasonCode: " + reasonCode);
+		this.reasonCode = reasonCode;
+		this.args = args;
+	}
 
-    public CLIStatusException(String reasonCode, Object... args) {
-        super("reasonCode: " + reasonCode);
-        this.reasonCode = reasonCode;
-        this.args = args;
-    }
+	/**
+	 * Gets the reason code.
+	 * @return A reason code, by which a formatted message can be retrieved from the message bundle
+	 */
+	public String getReasonCode() {
+		return reasonCode;
+	}
 
-    public String getReasonCode() {
-        return reasonCode;
-    }
-
-    public Object[] getArgs() {
-        return args;
-    }
+	/**
+	 * Gets the arguments that complete the reason-code based message.
+	 * @return An array of arguments
+	 */
+	public Object[] getArgs() {
+		return args;
+	}
 }

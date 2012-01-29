@@ -23,7 +23,7 @@ import java.util.logging.Logger;
 /**
  * The purpose of this class is to suppress communication error while the agent is being bootstrapped or teared down.
  * @author itaif
- *
+ * @since 2.0.0
  */
 public class ConnectionLogsFilter {
 
@@ -38,10 +38,10 @@ public class ConnectionLogsFilter {
 	};
 
 	private final Filter[] filters;
-		
+
 	public ConnectionLogsFilter() {
 		filters = new Filter[loggers.length];
-		for (int i = 0 ; i < loggers.length ; i++) {
+		for (int i = 0; i < loggers.length; i++) {
 			filters[i] = loggers[i].getFilter();
 		}
 	}
@@ -55,17 +55,18 @@ public class ConnectionLogsFilter {
 	private void supressConnectionErrors(final Logger logger, final Filter filter) {
 
 		Filter newFilter = new Filter() {
+			/**
+			 * {@inheritDoc}
+			 */
 			@Override
-			public boolean isLoggable(LogRecord record) {
+			public boolean isLoggable(final LogRecord record) {
 				boolean isLoggable = true;
 				
 				Throwable t = record.getThrown();
-				if ((filter != null && 
-					!filter.isLoggable(record)) ||
-					
-					(t != null && isConnectExceptionOrCause(t) &&
-					record.getLevel().intValue() <= Level.WARNING.intValue())) {
-					 
+				if ((filter != null 
+						&& !filter.isLoggable(record)) 
+						|| (t != null && isConnectExceptionOrCause(t) 
+						&& record.getLevel().intValue() <= Level.WARNING.intValue())) {
 					isLoggable = false;
 				}
 				
@@ -82,9 +83,10 @@ public class ConnectionLogsFilter {
 				
 				return false;
 			}
-			private boolean isConnectException(Throwable t) {
-				return (t instanceof java.net.ConnectException) ||
-					   (t instanceof java.rmi.ConnectException);
+			
+			private boolean isConnectException(final Throwable t) {
+				return (t instanceof java.net.ConnectException) 
+						|| (t instanceof java.rmi.ConnectException);
 			}
 		};
 		
@@ -92,7 +94,7 @@ public class ConnectionLogsFilter {
 	}
 	
 	void restoreConnectionErrors() {
-		for (int i = 0 ; i < loggers.length ; i++) {
+		for (int i = 0; i < loggers.length; i++) {
 			loggers[i].setFilter(filters[i]);
 		}
 	}

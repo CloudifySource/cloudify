@@ -30,10 +30,16 @@ import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.pu.ProcessingUnitAlreadyDeployedException;
 import org.openspaces.core.util.MemoryUnit;
 
-
 /**
  * @author eitany
- * @since 2.0
+ * @since 2.0.0
+ * 
+ *        This abstract is the skeleton of a management service installer, including the basic members that
+ *        every management service installer will use: {@link Admin}, a definition of memory quota, a service
+ *        name and a zone name (might be identical to the service name).
+ * 
+ *        Extending installers must implement install() and waitForInstallation(AdminFacade, GridServiceAgent,
+ *        long, TimeUnit)
  */
 public abstract class AbstractManagementServiceInstaller {
 
@@ -44,65 +50,153 @@ public abstract class AbstractManagementServiceInstaller {
 	protected String serviceName;
 	protected String zone;
 	protected long progressInSeconds;
+	/**
+	 * The name of the management application.
+	 */
 	public static final String MANAGEMENT_APPLICATION_NAME = "management";
 	private static final String TIMEOUT_ERROR_MESSAGE = "operation timed out waiting for the rest service to start";
 	protected static final int RESERVED_MEMORY_IN_MB = 256;
 
+	/**
+	 * Empty Constructor.
+	 */
 	public AbstractManagementServiceInstaller() {
 		super();
 	}
 
-	public void setAdmin(Admin admin) {
+	/**
+	 * Sets the {@link Admin} object used to access the Admin API.
+	 * 
+	 * @param admin
+	 *            an Admin object
+	 */
+	public void setAdmin(final Admin admin) {
 		this.admin = admin;
 	}
 
-	public void setVerbose(boolean verbose) {
+	/**
+	 * Sets the verbose mode for extended logging.
+	 * 
+	 * @param verbose
+	 *            mode (true - on, false - off)
+	 */
+	public void setVerbose(final boolean verbose) {
 		this.verbose = verbose;
 	}
 
-	public void setMemory(long memory, MemoryUnit unit) {
+	/**
+	 * Set the memory in various memory units.
+	 * 
+	 * @param memory
+	 *            number of memory units
+	 * @param unit
+	 *            Memory unit to use
+	 */
+	public void setMemory(final long memory, final MemoryUnit unit) {
 		this.memoryInMB = (int) unit.toMegaBytes(memory);
 	}
 
-	public void setServiceName(String serviceName) {
+	/**
+	 * Sets the name of the service.
+	 * 
+	 * @param serviceName
+	 *            The name of the service
+	 */
+	public void setServiceName(final String serviceName) {
 		this.serviceName = serviceName;
 	}
 
-	public void setManagementZone(String zone) {
+	/**
+	 * Sets the zone.
+	 * 
+	 * @param zone
+	 *            Zone name
+	 */
+	public void setManagementZone(final String zone) {
 		this.zone = zone;
 	}
-	
-	public void setProgress(int progress, TimeUnit timeunit) {
+
+	/**
+	 * Set the progess in various time units.
+	 * 
+	 * @param progress
+	 *            number of time units
+	 * @param timeunit
+	 *            time unit to use
+	 */
+	public void setProgress(final int progress, final TimeUnit timeunit) {
 		this.progressInSeconds = timeunit.toSeconds(progress);
 	}
-	
+
+	/**
+	 * Installs the management service.
+	 * 
+	 * @throws CLIException
+	 *             Reporting a failure to install the management service
+	 * @throws ProcessingUnitAlreadyDeployedException
+	 *             The management service is already installed
+	 */
 	public abstract void install() throws CLIException, ProcessingUnitAlreadyDeployedException;
-	
-	public abstract void waitForInstallation(AdminFacade adminFacade, GridServiceAgent agent,
-			long timeout, 
+
+	/**
+	 * Waits for the installation of an PU or management space to complete.
+	 * 
+	 * @param adminFacade
+	 *            Admin facade to use for deployment
+	 * @param agent
+	 *            A grid service agent
+	 * @param timeout
+	 *            number of {@link TimeUnit}s to wait
+	 * @param timeunit
+	 *            The time unit to use
+	 * @throws InterruptedException
+	 *             Thrown when the thread is interrupted
+	 * @throws TimeoutException
+	 *             Reporting the time out was reached
+	 * @throws CLIException
+	 *             Reporting a failure to check the installation progress
+	 */
+	public abstract void waitForInstallation(AdminFacade adminFacade, GridServiceAgent agent, long timeout,
 			TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException;
-	
+
+	/**
+	 * Gets a Grid Service Manager to deploy the service.
+	 * 
+	 * @return GridServiceManager to deploy the service
+	 * @throws CLIException
+	 *             Reporting a failure to find a Grid Service Manager
+	 */
 	protected GridServiceManager getGridServiceManager() throws CLIException {
-		Iterator<GridServiceManager> it = admin.getGridServiceManagers().iterator();
-	    if (it.hasNext()) {
-	        return it.next();
-	    }
-	    throw new CLIException("No Grid Service Manager found to deploy " + serviceName);
+		final Iterator<GridServiceManager> it = admin.getGridServiceManagers().iterator();
+		if (it.hasNext()) {
+			return it.next();
+		}
+		throw new CLIException("No Grid Service Manager found to deploy " + serviceName);
 	}
-	
+
+	/**
+	 * Create a properties object with the property "com.gs.application=management".
+	 * 
+	 * @return populated Properties object
+	 */
 	protected Properties getContextProperties() {
-		Properties props = new Properties();
+		final Properties props = new Properties();
 		props.put("com.gs.application", MANAGEMENT_APPLICATION_NAME);
 		return props;
 	}
 
-	protected ConditionLatch createConditionLatch(long timeout, TimeUnit timeunit) {
-		return 
-			new ConditionLatch()
-			.timeout(timeout,timeunit)
-			.pollingInterval(progressInSeconds, TimeUnit.SECONDS)
-			.timeoutErrorMessage(TIMEOUT_ERROR_MESSAGE)
-			.verbose(verbose);
+	/**
+	 * Creates a {@link ConditionLatch} object, intended to wait for procedures to complete.
+	 * 
+	 * @param timeout
+	 *            The number of {@link TimeUnit}s to wait
+	 * @param timeunit
+	 *            The type of {@link TimeUnit} to use
+	 * @return The configured condition latch object
+	 */
+	protected ConditionLatch createConditionLatch(final long timeout, final TimeUnit timeunit) {
+		return new ConditionLatch().timeout(timeout, timeunit).pollingInterval(progressInSeconds, TimeUnit.SECONDS)
+				.timeoutErrorMessage(TIMEOUT_ERROR_MESSAGE).verbose(verbose);
 	}
 
 }

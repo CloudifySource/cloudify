@@ -15,36 +15,44 @@
  ******************************************************************************/
 package org.cloudifysource.shell.commands;
 
-import org.apache.felix.gogo.commands.Argument;
-import org.apache.felix.gogo.commands.Command;
-
-
 import java.io.File;
 import java.text.MessageFormat;
 
-@Command(scope = "cloudify", name = "install", description = "Installs a service. If you specify a folder path it will be packed and deployed. If you sepcify a service archive, the shell will deploy that file.")
+import org.apache.felix.gogo.commands.Argument;
+import org.apache.felix.gogo.commands.Command;
+
+/**
+ * @deprecated
+ * @author rafi, adaml, barakm
+ * @since 2.0.0
+ */
+@Deprecated
+@Command(scope = "cloudify", name = "install", description = "Installs a service. If you specify a folder path it"
+		+ " will be packed and deployed. If you sepcify a service archive, the shell will deploy that file.")
 public class Install extends AdminAwareCommand {
 
-    @Argument(index = 0, required = true, name = "service-file", description = "The service recipe folder or archive")
-    File serviceFile;
+	@Argument(index = 0, required = true, name = "service-file", description = "The service recipe folder or archive")
+	private File serviceFile;
 
-    @Override
-    protected Object doExecute() throws Exception {
-        if (!serviceFile.exists()) {
-            throw new CLIStatusException("service_file_doesnt_exist", serviceFile.getPath());
-        }
-        File packedFile;
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected Object doExecute() throws Exception {
+		if (!serviceFile.exists()) {
+			throw new CLIStatusException("service_file_doesnt_exist", serviceFile.getPath());
+		}
+		File packedFile;
 
-        if (serviceFile.isDirectory()) {
-            packedFile = Pack.doPack(serviceFile);
-        } else {//serviceFile a file
-            packedFile = serviceFile;
-        }
-        String currentApplicationName = getCurrentApplicationName();
-        String serviceName = adminFacade.install(currentApplicationName, packedFile);
-        return MessageFormat.format(messages.getString("installed_succesfully"), serviceName, currentApplicationName);
+		if (serviceFile.isDirectory()) {
+			packedFile = Pack.doPack(serviceFile);
+		} else { // serviceFile a file
+			packedFile = serviceFile;
+		}
+		final String currentApplicationName = getCurrentApplicationName();
+		final String serviceName = adminFacade.install(currentApplicationName, packedFile);
+		return MessageFormat.format(messages.getString("installed_succesfully"), serviceName, currentApplicationName);
 
-    }
-
+	}
 
 }

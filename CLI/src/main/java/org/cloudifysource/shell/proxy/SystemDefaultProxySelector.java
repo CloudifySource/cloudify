@@ -14,6 +14,7 @@
  * limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.shell.proxy;
+
 import java.io.IOException;
 import java.net.ProxySelector;
 import java.net.SocketAddress;
@@ -24,25 +25,39 @@ import com.sun.deploy.net.proxy.DynamicProxyManager;
 import com.sun.deploy.services.PlatformType;
 import com.sun.deploy.services.ServiceManager;
 
+/**
+ * @author rafi, barakm
+ * @since 2.0.0
+ * 
+ *        This extension of the {@link DeployProxySelector} sets this class as the proxy selector. Failed
+ *        connections are suppressed, to avoid GUI error messages to pop-up.
+ * 
+ */
 public class SystemDefaultProxySelector extends DeployProxySelector {
 
-    public static void setup() {
-        
-        // Use windows (other platforms might work, though this hasen't been tested)
-        ServiceManager.setService(PlatformType.STANDALONE_TIGER_WIN32);
+	/**
+	 * Sets up {@link SystemDefaultProxySelector} as the system-wide proxy selector.
+	 */
+	public static void setup() {
 
-        // Go fetch to system proxy settings
-        DynamicProxyManager.reset();
-        
-        // When connection requests are made, use me as your proxy selector
-        ProxySelector.setDefault(new SystemDefaultProxySelector());
-        
-    }
-    
-    // Without this override, failure to connect will cause a gui error window to pop
-    @Override
-    public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
-        // Do nothing
-    }
-    
+		// Use windows (other platforms might work, though this hasen't been tested)
+		ServiceManager.setService(PlatformType.STANDALONE_TIGER_WIN32);
+
+		// Go fetch to system proxy settings
+		DynamicProxyManager.reset();
+
+		// When connection requests are made, use me as your proxy selector
+		ProxySelector.setDefault(new SystemDefaultProxySelector());
+
+	}
+
+	// Without this override, failure to connect will cause a gui error window to pop
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void connectFailed(final URI uri, final SocketAddress sa, final IOException ioe) {
+		// Do nothing
+	}
+
 }

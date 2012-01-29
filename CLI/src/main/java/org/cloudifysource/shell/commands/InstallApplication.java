@@ -23,32 +23,50 @@ import java.util.regex.Pattern;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
-import org.cloudifysource.shell.Constants;
-import org.cloudifysource.shell.GigaShellMain;
-import org.fusesource.jansi.Ansi.Color;
-
 import org.cloudifysource.dsl.Application;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
+import org.cloudifysource.shell.Constants;
+import org.cloudifysource.shell.GigaShellMain;
+import org.fusesource.jansi.Ansi.Color;
 
-@Command(scope = "cloudify", name = "install-application", description = "Installs an application. If you specify a folder path it will be packed and deployed. If you sepcify an application archive, the shell will deploy that file.")
+/**
+ * @author rafi, barakm, adaml
+ * @since 2.0.0
+ * 
+ *        Installs an application, including it's contained services ordered according to their dependencies.
+ * 
+ *        Required arguments:
+ *         application-file - The application recipe file path, folder or archive (zip/jar)
+ * 
+ *        Optional arguments:
+ *         name - The name of the application
+ *         timeout - The number of minutes to wait until the operation is completed (default: 10 minutes)
+ * 
+ *        Command syntax: install-application [-name name] [-timeout timeout] application-file
+ */
+@Command(scope = "cloudify", name = "install-application", description = "Installs an application. If you specify"
+		+ " a folder path it will be packed and deployed. If you sepcify an application archive, the shell will deploy"
+		+ " that file.")
 public class InstallApplication extends AdminAwareCommand {
 
-	@Argument(required = true, name = "application-file", description = "The application recipe file path, folder or archive")
-	File applicationFile;
+	@Argument(required = true, name = "application-file", description = "The application recipe file path, folder "
+			+ "or archive")
+	private File applicationFile;
 
 	@Option(required = false, name = "-name", description = "The name of the application")
 	private String applicationName = null;
 
-	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is done. Defaults to 10 minutes.")
-	int timeoutInMinutes=10;
+	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation"
+			+ " is done. Defaults to 10 minutes.")
+	private int timeoutInMinutes = 10;
 
-	@Option(required = false, name = "-progress", description = "The polling time interval in minutes, used for checking if the operation is done. Defaults to 1 minute. Use together with the -timeout option")
-	int progressInMinutes=1;
+	private static final String TIMEOUT_ERROR_MESSAGE = "Application installation timed out";
 
-	final String TIMEOUT_ERROR_MESSAGE = "Application installation timed out";
-
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	protected Object doExecute() throws Exception {
 		if (!applicationFile.exists()) {
@@ -59,78 +77,85 @@ public class InstallApplication extends AdminAwareCommand {
 		final Application application = ServiceReader.getApplicationFromFile(applicationFile).getApplication();
 
 		normalizeApplicationName(application);
-		
-		if (adminFacade.getApplicationsList().contains(applicationName)){
+
+		if (adminFacade.getApplicationsList().contains(applicationName)) {
 			throw new CLIStatusException("application_already_deployed", application.getName());
 		}
 
 		File zipFile = null;
-		if (!applicationFile.isFile()) {			
-			zipFile = Packager.packApplication(application, applicationFile);						
+		if (!applicationFile.isFile()) {
+			zipFile = Packager.packApplication(application, applicationFile);
 		} else {
-			if ((applicationFile.getName().endsWith(".zip"))
-					|| (applicationFile.getName().endsWith(".jar"))) {
+			if (applicationFile.getName().endsWith(".zip") || applicationFile.getName().endsWith(".jar")) {
 				zipFile = applicationFile;
 			} else {
-				throw new CLIStatusException(
-						"application_file_format_mismatch",
-						applicationFile.getPath());
+				throw new CLIStatusException("application_file_format_mismatch", applicationFile.getPath());
 			}
 		}
-		
+
 		// toString of string list (i.e. [service1, service2])
 		logger.info("Uploading application " + applicationName);
-		String serviceOrder = adminFacade.installApplication(zipFile,
-				applicationName);
-		//If temp file was created, Delete it.
-		if (!applicationFile.isFile()){
+		String serviceOrder = adminFacade.installApplication(zipFile, applicationName);
+		// If temp file was created, Delete it.
+		if (!applicationFile.isFile()) {
 			zipFile.delete();
 		}
-		
-		if (serviceOrder.charAt(0) != '[' && serviceOrder.charAt(serviceOrder.length()-1) != ']') {
+
+		if (serviceOrder.charAt(0) != '[' && serviceOrder.charAt(serviceOrder.length() - 1) != ']') {
 			throw new IllegalStateException("Cannot parse service order response: " + serviceOrder);
 		}
 		if (serviceOrder.length() > 2) {
-			serviceOrder = serviceOrder.substring(1,serviceOrder.length() -1);
+			serviceOrder = serviceOrder.substring(1, serviceOrder.length() - 1);
 			logger.fine("Services will be installed in the following order: " + serviceOrder);
 			printApplicationInfo(application);
-			for (String serviceName : serviceOrder.split(Pattern.quote(","))) {
-				String trimmedServiceName = serviceName.trim();
-				Service service = getServiceByName(application, trimmedServiceName);
-				int plannedNumberOfInstances = service.getNumInstances();
-				adminFacade.waitForServiceInstances(trimmedServiceName, applicationName, plannedNumberOfInstances, TIMEOUT_ERROR_MESSAGE, timeoutInMinutes, TimeUnit.MINUTES);
-				logger.info(MessageFormat.format(
-						   messages.getString("service_install_ended"), trimmedServiceName));
+			for (final String serviceName : serviceOrder.split(Pattern.quote(","))) {
+				final String trimmedServiceName = serviceName.trim();
+				final Service service = getServiceByName(application, trimmedServiceName);
+				final int plannedNumberOfInstances = service.getNumInstances();
+				adminFacade.waitForServiceInstances(trimmedServiceName, applicationName, plannedNumberOfInstances,
+						TIMEOUT_ERROR_MESSAGE, timeoutInMinutes, TimeUnit.MINUTES);
+				logger.info(MessageFormat.format(messages.getString("service_install_ended"), trimmedServiceName));
 			}
 		}
-		
-        session.put(Constants.ACTIVE_APP, applicationName);
-        GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
-        
+
+		session.put(Constants.ACTIVE_APP, applicationName);
+		GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
+
 		return this.getFormattedMessage("application_installed_succesfully", Color.GREEN, applicationName);
 	}
 
-	private void printApplicationInfo(Application application) {
+	/**
+	 * Prints Application data - the application name and it's services name, dependencies and number of
+	 * instances.
+	 * 
+	 * @param application
+	 *            Application object to analyze
+	 */
+	private void printApplicationInfo(final Application application) {
 		logger.info("Application [" + applicationName + "] with " + application.getServices().size() + " services");
-		for (Service  service : application.getServices()) {
-			if (service.getDependsOn().isEmpty()){
-				logger.info("Service [" + service.getName() + "] " 
-						+ service.getNumInstances() 
-						+ " planned instances");
-			}else{//Service has dependencies
-				logger.info("Service [" + service.getName() + "] depends on " 
-						+ service.getDependsOn().toString() + " "
-						+ service.getNumInstances() 
-						+ " planned instances");				
+		for (final Service service : application.getServices()) {
+			if (service.getDependsOn().isEmpty()) {
+				logger.info("Service [" + service.getName() + "] " + service.getNumInstances() + " planned instances");
+			} else { // Service has dependencies
+				logger.info("Service [" + service.getName() + "] depends on " + service.getDependsOn().toString()
+						+ " " + service.getNumInstances() + " planned instances");
 			}
 		}
 	}
 
-	private void normalizeApplicationName(Application application) {
-		if ((applicationName == null) || (applicationName.length() == 0)) {
+	/**
+	 * Set the application name, according to this logic: 1. If an application name argument is passed - use
+	 * it. 2. If not - use the name configured in the Application object 3. If the configured name is empty -
+	 * use the application's file name (preceding the "." sign)
+	 * 
+	 * @param application
+	 *            The Application object
+	 */
+	private void normalizeApplicationName(final Application application) {
+		if (applicationName == null || applicationName.length() == 0) {
 			applicationName = application.getName();
 		}
-		if ((applicationName == null) || (applicationName.length() == 0)) {
+		if (applicationName == null || applicationName.length() == 0) {
 			applicationName = applicationFile.getName();
 			final int endIndex = applicationName.lastIndexOf('.');
 			if (endIndex > 0) {
@@ -139,8 +164,18 @@ public class InstallApplication extends AdminAwareCommand {
 		}
 	}
 
-	private Service getServiceByName(Application application, String serviceName) {
-		for (Service service : application.getServices() ) {
+	/**
+	 * Gets a service object from the given application, by service name. In case a service by that name is
+	 * not found - an IllegalStateException is thrown.
+	 * 
+	 * @param application
+	 *            The Application object containing the service
+	 * @param serviceName
+	 *            The name of the required service
+	 * @return Service object
+	 */
+	private Service getServiceByName(final Application application, final String serviceName) {
+		for (final Service service : application.getServices()) {
 			if (serviceName.equals(service.getName())) {
 				return service;
 			}

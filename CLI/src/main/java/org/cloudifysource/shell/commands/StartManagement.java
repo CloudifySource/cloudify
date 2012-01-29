@@ -22,75 +22,95 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
+import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.dsl.internal.DSLException;
+import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 
-import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.internal.DSLException;
-import org.cloudifysource.dsl.internal.ServiceReader;
-
-@Command(
-		scope = "cloudify",
-		name = "start-management",
-		description = "Starts Cloudify Agent with management zone, and the Cloudify management processes on local machine. The management processes communicate with other agent and management machines.")
+/**
+ * @author rafi, barakm
+ * @since 2.0.0
+ * 
+ *        Starts Cloudify Agent with management zone, and the Cloudify management processes on local machine.
+ *        
+ *        Optional arguments:
+ *         lookup-groups - A unique name that is used to group together Cloudify components.
+ *         Override in order to group together cloudify managements/agents on a network that supports multicast.
+ *         nic-address - The ip address of the local host network card. Specify when local machine has more
+ *         than one network adapter, and a specific network card should be used for network communication.
+ *         timeout - The number of minutes to wait until the operation is completed (default: 5 minutes)
+ *         lookup-locators - A list of IP addresses used to identify all management machines.
+ *         Override when using a network without multicast support (Default: null).
+ *         auto-shutdown - etermines if undeploying or scaling-in the last service instance on the machine also
+ *         triggers agent shutdown (default: false).
+ *         no-web-services - if set, no attempt to deploy the rest admin and web-ui will be made.
+ *         no-management-space - if set, no attempt to deploy the management space will be made.
+ *         cloud-file - if set, designates the location of the cloud configuration file.
+ *  
+ *        Command syntax: start-management [-lookup-groups lookup-groups] [-nicAddress nicAddress]
+ *        					[-timeout timeout] [-lookup-locators lookup-locators] [-auto-shutdown auto-shutdown]
+ *        					[-no-web-services no-web-services] [-no-management-space no-management-space]
+ *        					[-cloud-file cloud-file]
+ */
+@Command(scope = "cloudify", name = "start-management", description = "Starts Cloudify Agent with management zone, "
+		+ "and the Cloudify management processes on local machine. The management processes communicate with other"
+		+ " agent and management machines.")
 public class StartManagement extends AbstractGSCommand {
 
-	@Option(
-			required = false,
-			name = "-lookup-groups",
-			description = "A unique name that is used to group together different Cloudify machines. Default is based on the product version. Override in order to group together cloudify managements/agents on a network that supports multicast.")
-	String lookupGroups = null;
+	@Option(required = false, name = "-lookup-groups", description = "A unique name that is used to group together "
+			+ "different Cloudify machines. Default is based on the product version. Override in order to group "
+			+ "together cloudify managements/agents on a network that supports multicast.")
+	private String lookupGroups = null;
 
-	@Option(
-			required = false,
-			name = "-lookup-locators",
-			description = "A list of ip addresses used to identify all management machines. Default is null. Override when using a network without multicast.")
-	String lookupLocators = null;
+	@Option(required = false, name = "-lookup-locators", description = "A list of ip addresses used to identify all "
+			+ "management machines. Default is null. Override when using a network without multicast.")
+	private String lookupLocators = null;
 
-	@Option(
-			required = false,
-			name = "-nic-address",
-			description = "The ip address of the local host network card. Specify when local machine has more than one network adapter, and a specific network card should be used for network communication.")
-	String nicAddress;
+	@Option(required = false, name = "-nic-address", description = "The ip address of the local host network card. "
+			+ "Specify when local machine has more than one network adapter, and a specific network card should be"
+			+ " used for network communication.")
+	private String nicAddress;
 
-	@Option(required = false, name = "-no-web-services",
-			description = "if set, no attempt to deploy the rest admin and web-ui will be made")
-	boolean noWebServices;
+	@Option(required = false, name = "-no-web-services", description = "if set, no attempt to deploy the rest admin and"
+			+ " web-ui will be made")
+	private boolean noWebServices;
 
-	@Option(required = false, name = "-timeout",
-			description = "The number of minutes to wait until the operation is done. By default waits 5 minutes.")
-	int timeoutInMinutes = 5;
+	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is"
+			+ " done. By default waits 5 minutes.")
+	private int timeoutInMinutes = 5;
 
-	@Option(
-			required = false,
-			name = "-auto-shutdown",
-			description = "Determines if undeploying or scaling-in the last service instance on the machine also triggers agent shutdown. By default false.")
-	boolean autoShutdown = false;
+	@Option(required = false, name = "-auto-shutdown", description = "Determines if undeploying or scaling-in the last"
+			+ " service instance on the machine also triggers agent shutdown. By default false.")
+	private boolean autoShutdown = false;
 
-	@Option(required = false, name = "-no-management-space",
-			description = "if set, no attempt to deploy the management space will be made")
-	boolean noManagementSpace;
+	@Option(required = false, name = "-no-management-space", description = "if set, no attempt to deploy the"
+			+ " management space will be made")
+	private boolean noManagementSpace;
 
-	@Option(required = false, name = "-cloud-file",
-			description = "if set, designated the location of the cloud configuration file")
-	String cloudFileName;
+	@Option(required = false, name = "-cloud-file", description = "if set, designated the location of the cloud"
+			+ " configuration file")
+	private String cloudFileName;
 
-	
-	
-	private Cloud parseCloud(File cloudFile) {
+	/**
+	 * Parses the cloud configuration file.
+	 * @param cloudFile The cloud configuration file
+	 * @return Cloud object, configured according to the given file
+	 */
+	private Cloud parseCloud(final File cloudFile) {
 
 		Cloud cloud = null;
 
 		if (cloudFile != null) {
 			if (cloudFile.isFile()) {
 				try {
-					
+
 					cloud = ServiceReader.readCloud(cloudFile);
-					
-				} catch (IOException e) {
-					
-				} catch (DSLException e) {
+
+				} catch (final IOException e) {
+
+				} catch (final DSLException e) {
 					// fallback to default
 				}
 			} else {
@@ -101,6 +121,9 @@ public class StartManagement extends AbstractGSCommand {
 
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	protected Object doExecute() throws Exception {
 
@@ -110,23 +133,22 @@ public class StartManagement extends AbstractGSCommand {
 
 		boolean notHighlyAvailableManagementSpace = false;
 		File cloudFile = null;
-		
+
 		String cloudConfigurationContents = null;
 		if (cloudFileName != null && cloudFileName.trim().length() > 0) {
 			cloudFile = new File(cloudFileName);
-			cloudConfigurationContents  = FileUtils.readFileToString(cloudFile);
-			Cloud cloud = parseCloud(cloudFile);
+			cloudConfigurationContents = FileUtils.readFileToString(cloudFile);
+			final Cloud cloud = parseCloud(cloudFile);
 			if (cloud != null) {
 				if (cloud.getProvider() != null) {
-					int numberOfManagementMachines = cloud.getProvider().getNumberOfManagementMachines();
+					final int numberOfManagementMachines = cloud.getProvider().getNumberOfManagementMachines();
 					notHighlyAvailableManagementSpace = numberOfManagementMachines < 2;
 				}
 			}
 
 		}
 
-
-		LocalhostGridAgentBootstrapper installer = new LocalhostGridAgentBootstrapper();
+		final LocalhostGridAgentBootstrapper installer = new LocalhostGridAgentBootstrapper();
 		installer.setVerbose(verbose);
 		installer.setLookupGroups(lookupGroups);
 		installer.setLookupLocators(lookupLocators);
@@ -140,10 +162,11 @@ public class StartManagement extends AbstractGSCommand {
 		installer.setWaitForWebui(true);
 		installer.setCloudContents(cloudConfigurationContents);
 		installer.startManagementOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);
-		return "Management started succesfully. Use the shutdown-management command to shutdown management processes running on local machine.";
+		return "Management started succesfully. Use the shutdown-management command to shutdown"
+				+ " management processes running on local machine.";
 	}
-	
-	public static void main(String[] args) {
-		
+
+	public static void main(final String[] args) {
+
 	}
 }

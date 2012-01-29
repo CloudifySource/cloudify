@@ -15,18 +15,28 @@
  *******************************************************************************/
 package org.cloudifysource.shell;
 
-
+/**
+ * @author rafi, barakm
+ * @since 2.0.0
+ * 
+ *        An implementation of {@link ConsoleWithPropsActions}, to be used on an non-interactive console.
+ */
 public class ConsoleWithPropsNonInteractive implements ConsoleWithPropsActions {
 
-    @Override
-    public String getPromptInternal(String currentAppName) {
-        return ">>> ";
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String getPromptInternal(final String currentAppName) {
+		return ">>> ";
+	}
 
-    @Override
-    public String getBrandingPropertiesResourcePath() {
-        return "META-INF/shell/noninteractive.branding.properties";
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String getBrandingPropertiesResourcePath() {
+		return "META-INF/shell/noninteractive.branding.properties";
+	}
 
-    
 }

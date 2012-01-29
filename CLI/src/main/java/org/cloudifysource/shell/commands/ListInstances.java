@@ -15,43 +15,60 @@
  ******************************************************************************/
 package org.cloudifysource.shell.commands;
 
+import java.text.MessageFormat;
+import java.util.Collection;
+import java.util.Map;
+
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.CompleterValues;
 import org.cloudifysource.shell.Constants;
 
-
-import java.text.MessageFormat;
-import java.util.Collection;
-import java.util.Map;
-
-
 /**
- * @author uri
+ * @author uri, adaml, barakm
+ * @since 2.0.0
+ * 
+ *        Lists all instances of a certain service.
+ * 
+ *        Required arguments:
+ *         service-name - The service name
+ * 
+ *        Command syntax: list-instances service-name
  */
 
 @Command(scope = "cloudify", name = "list-instances", description = "Lists all instances of a certain service")
 public class ListInstances extends AdminAwareCommand {
 
-    @Argument(index = 0, name = "service-name", required = true, description = "The service name")
-    private String serviceName;
+	@Argument(index = 0, name = "service-name", required = true, description = "The service name")
+	private String serviceName;
 
-    @CompleterValues(index = 0)
-    public Collection<String> getCompleterValues() throws Exception {
-        return adminFacade.getServicesList(getCurrentApplicationName());
-    }
+	/**
+	 * Gets a list of all services deployed on the current application.
+	 * 
+	 * @return Collection of all services deployed on the current application
+	 * @throws Exception
+	 *             Reporting a failure to retrieve the current application name or its services
+	 */
+	@CompleterValues(index = 0)
+	public Collection<String> getCompleterValues() throws Exception {
+		return adminFacade.getServicesList(getCurrentApplicationName());
+	}
 
-    @Override
-    protected Object doExecute() throws Exception {
-        Map<String, Object> instanceIdToHostMap = adminFacade.getInstanceList((String) session.get(Constants.ACTIVE_APP), serviceName);
-        if (instanceIdToHostMap.isEmpty()) {
-            return MessageFormat.format(messages.getString("no_instances_found"), serviceName);
-        }
-        StringBuilder builder = new StringBuilder("Instance\t\tHost\n");
-        for (Map.Entry<String, Object> entry : instanceIdToHostMap.entrySet()) {
-            builder.append("instance #").append(entry.getKey()).append("\t\t").append(entry.getValue()).append('\n');
-        }
-        return builder.toString();
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected Object doExecute() throws Exception {
+		final Map<String, Object> instanceIdToHostMap = adminFacade.getInstanceList(
+				(String) session.get(Constants.ACTIVE_APP), serviceName);
+		if (instanceIdToHostMap.isEmpty()) {
+			return MessageFormat.format(messages.getString("no_instances_found"), serviceName);
+		}
+		final StringBuilder builder = new StringBuilder("Instance\t\tHost\n");
+		for (final Map.Entry<String, Object> entry : instanceIdToHostMap.entrySet()) {
+			builder.append("instance #").append(entry.getKey()).append("\t\t").append(entry.getValue()).append('\n');
+		}
+		return builder.toString();
+	}
 
 }

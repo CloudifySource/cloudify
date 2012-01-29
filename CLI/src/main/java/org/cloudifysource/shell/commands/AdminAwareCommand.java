@@ -17,15 +17,21 @@ package org.cloudifysource.shell.commands;
 
 import org.apache.felix.service.command.CommandSession;
 
-
 /**
- * @author rafi
- * @since 8.0.3
+ * @author rafi, barakm
+ * @since 2.0.0
+ * 
+ *        This Abstract class overrides {@link AbstractGSCommand}'s execute function. 
+ *        Used by CLI commands that required an admin facade.
  */
 public abstract class AdminAwareCommand extends AbstractGSCommand {
 
+	/**
+	 * This implementation of the execute method merely sets the flag "adminAware", to indicate for the super
+	 * class that the admin facade should be used.
+	 */
 	@Override
-	public Object execute(CommandSession session) throws Exception {
+	public Object execute(final CommandSession session) throws Exception {
 		adminAware = true;
 		return super.execute(session);
 	}

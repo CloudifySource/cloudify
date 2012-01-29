@@ -26,50 +26,276 @@ import java.util.concurrent.TimeoutException;
 import org.cloudifysource.restclient.InvocationResult;
 import org.cloudifysource.shell.commands.CLIException;
 
-
-
 /**
- * @author rafi
- * @since 8.0.3
+ * @author rafi, barakm, adaml, noak
+ * @since 2.0.0
+ * 
+ *        This interface defines a set of commands that need to be implemented by an AdminFacade. These
+ *        commands mainly deal with the installation of applications and service, execution of custom commands
+ *        and gathering information about the current deployment status.
  */
 public interface AdminFacade {
 
-    String install(String applicationName, File file) throws CLIException;
+	/**
+	 * Installs and starts a service on a given application.
+	 * 
+	 * @param applicationName
+	 *            The application the service will be deployed in
+	 * @param file
+	 *            The service file to deploy
+	 * @return Response from the server, or null if there was no response.
+	 * @throws CLIException
+	 *             Reporting a failure to install or start the given service on the specified application
+	 */
+	String install(String applicationName, File file) throws CLIException;
 
+	/**
+	 * Installs the application using the given file, with the specified application name. Contained services
+	 * are also installed, ordered according to their dependencies.
+	 * 
+	 * @param applicationFile
+	 *            A zip file containing the relevant application files
+	 * @param applicationName
+	 *            The name of the application
+	 * @return A String-formatted list of the application's services' names, in the required installation
+	 *         order
+	 * @throws CLIException
+	 *             Reporting a failure to create temporary files or post the file over REST
+	 */
+	String installApplication(File applicationFile, String applicationName) throws CLIException;
 
-    String installApplication(File applicationFile,String applicationName) throws CLIException;
+	/**
+	 * Installs and starts a service on a given application.
+	 * 
+	 * @param file
+	 *            The service file to deploy
+	 * @param applicationName
+	 *            The name of the application
+	 * @param serviceName
+	 *            The name of the service
+	 * @param zone
+	 *            Install in the specified zone
+	 * @param props
+	 *            Deployment context properties
+	 * @param templateName
+	 *            The name of the cloud template to use
+	 * @return String indicating success or failure
+	 * @throws CLIException
+	 *             Reporting a failure to install the given service
+	 */
+	String installElastic(File file, String applicationName, String serviceName, String zone, Properties props,
+			final String templateName) throws CLIException;
 
-    String installElastic(File file,String applicationName, String serviceName, String zone, Properties props, final String templateName) throws CLIException;
-    
-    String startService(String applicationName, File service) throws CLIException;
+	/**
+	 * Installs and starts a service on a given application.
+	 * 
+	 * @param applicationName
+	 *            The application the service will be deployed in
+	 * @param service
+	 *            The service to deploy
+	 * @return String indicating success or failure
+	 * @throws CLIException
+	 *             Reporting a failure to install or start the given service on the specified application
+	 */
+	String startService(String applicationName, File service) throws CLIException;
 
-    void connect(String user, String password, String url) throws CLIException;
+	/**
+	 * Connects to the server, using the given credentials and URL.
+	 * 
+	 * @param user
+	 *            The user name, used to create the connection
+	 * @param password
+	 *            The user name, used to create the connection
+	 * @param url
+	 *            The URL to connect to
+	 * @throws CLIException
+	 *             Reporting a failure to the connect to the server
+	 */
+	void connect(String user, String password, String url) throws CLIException;
 
-    void disconnect() throws CLIException;
+	/**
+	 * Disconnects from the server.
+	 * 
+	 * @throws CLIException
+	 *             Reporting a failure to close the connection to the server
+	 */
+	void disconnect() throws CLIException;
 
-    List<String> getApplicationsList() throws CLIException;
+	/**
+	 * Gets a list of the installed applications' names.
+	 * 
+	 * @return A list of the installed applications' names
+	 * @throws CLIException
+	 *             Reporting a failure to retrieve the list of installed applications from the Rest server
+	 */
+	List<String> getApplicationsList() throws CLIException;
 
-    List<String> getServicesList(String applicationName) throws CLIException;
+	/**
+	 * Gets the list of services deployed in the context of the given application.
+	 * 
+	 * @param applicationName
+	 *            The name of the application to query for the service list.
+	 * @return A list of service deployed in the context of the given application
+	 * @throws CLIException
+	 *             Reporting a failure to get the services list.
+	 */
+	List<String> getServicesList(String applicationName) throws CLIException;
 
-    void addInstance(String applicationName, String serviceName, int timeout) throws CLIException;
+	/**
+	 * Adds a processing unit instance for the specified service, on the specified application.
+	 * 
+	 * @param applicationName
+	 *            The name of the relevant application
+	 * @param serviceName
+	 *            The name of the service
+	 * @param timeout
+	 *            The time (number of seconds) this procedure is limited to, before throwing an exception
+	 * @throws CLIException
+	 *             Reporting a failure to add a processing unit instance of this service
+	 */
+	void addInstance(String applicationName, String serviceName, int timeout) throws CLIException;
 
-    void removeInstance(String applicationName, String serviceName, int instanceId) throws CLIException;
+	/**
+	 * Remove (undeploy) a specific instance of a given service, on a given application.
+	 * 
+	 * @param applicationName
+	 *            The name of the relevant application
+	 * @param serviceName
+	 *            The name of the service
+	 * @param instanceId
+	 *            The ID of the instance to remove
+	 * @throws CLIException
+	 *             Reporting a failure to remove a processing unit instance of this service
+	 */
+	void removeInstance(String applicationName, String serviceName, int instanceId) throws CLIException;
 
-    void restart(ComponentType componentType, String componentName, Set<Integer> componentIDs) throws CLIException;
+	void restart(ComponentType componentType, String componentName, Set<Integer> componentIDs) throws CLIException;
 
-    boolean isConnected() throws CLIException;
+	/**
+	 * Indicates if there is a live connection to the server.
+	 * 
+	 * @return connection status (true - connected, false - not connected)
+	 * @throws CLIException
+	 *             Reporting a failure to query the connectin status
+	 */
+	boolean isConnected() throws CLIException;
 
-    void undeploy(String applicationName, String serviceName) throws CLIException;
+	/**
+	 * Undeploys a service, in the context of the given application.
+	 * 
+	 * @param applicationName
+	 *            The name of the application the service is currently deployed in
+	 * @param serviceName
+	 *            The name of the service to undeploy
+	 * @throws CLIException
+	 *             Reporting a failure to undeploy the service
+	 */
+	void undeploy(final String applicationName, final String serviceName) throws CLIException;
 
-    Map<String, Object> getInstanceList(String applicationName, String serviceName) throws CLIException;
-    
-    Map<String, InvocationResult> invokeServiceCommand(String applicationName, String serviceName, String beanName, String commandName, Map<String, String> paramsMap) throws CLIException;
-    
-    InvocationResult invokeInstanceCommand(String applicationName, String serviceName, String beanName, int instanceId, String commandName, Map<String, String> paramsMap) throws CLIException;
+	/**
+	 * Returns a Map of deployed instances (name-object) of the given services in the given application.
+	 * 
+	 * @param applicationName
+	 *            The name of the application to query for service instances
+	 * @param serviceName
+	 *            The name of the instances's service
+	 * @return A map of deployed instances (name-object)
+	 * @throws CLIException
+	 *             Reporting a failure to get the instances list.
+	 */
+	Map<String, Object> getInstanceList(String applicationName, String serviceName) throws CLIException;
 
+	/**
+	 * Invokes a custom command on all of the specified service instances, on the given application. Custom
+	 * parameters are passed as a map using the POST method and contain the command name and parameter values
+	 * for the specified command.
+	 * 
+	 * @param applicationName
+	 *            The name of the application
+	 * @param serviceName
+	 *            The name of the service
+	 * @param beanName
+	 *            Bean name
+	 * @param commandName
+	 *            Command to execute
+	 * @param paramsMap
+	 *            The command parameters
+	 * @return a Map containing the result of each invocation on a service instance
+	 * @throws CLIException
+	 *             Reporting a failure to execute the custom command on the specified service
+	 */
+	Map<String, InvocationResult> invokeServiceCommand(String applicationName, String serviceName, String beanName,
+			String commandName, Map<String, String> paramsMap) throws CLIException;
+
+	/**
+	 * Invokes a custom command on a specific service instance, on the given application. Custom parameters
+	 * are passed as a map using the POST method and contain the command name and parameter values for the
+	 * specified command.
+	 * 
+	 * @param applicationName
+	 *            The name of the application
+	 * @param serviceName
+	 *            The name of the service
+	 * @param beanName
+	 *            Bean name
+	 * @param instanceId
+	 *            the ID of the relevant service instance
+	 * @param commandName
+	 *            Command to execute
+	 * @param paramsMap
+	 *            The command parameters
+	 * @return a Map containing the result of each invocation on a service instance
+	 * @throws CLIException
+	 *             Reporting a failure to execute the custom command on the specified service
+	 */
+	InvocationResult invokeInstanceCommand(String applicationName, String serviceName, String beanName,
+			int instanceId, String commandName, Map<String, String> paramsMap) throws CLIException;
+
+	/**
+	 * Gets the IP addresses of the machines composing the service grid.
+	 * 
+	 * @return a list of IP addresses
+	 * @throws CLIException
+	 *             Reporting a failure to get the list of IP addresses
+	 */
 	List<String> getMachines() throws CLIException;
 
-	void uninstallApplication(String applicationName) throws CLIException, CLIException;
-	
-	boolean waitForServiceInstances(String serviceName, String applicationName, int plannedNumberOfInstances, String timeoutErrorMessage, long timeout, TimeUnit timeunit) throws CLIException, TimeoutException, InterruptedException;
+	/**
+	 * Uninstalls the specified application.
+	 * 
+	 * @param applicationName
+	 *            The name of the application to uninstall
+	 * @throws CLIException
+	 *             Reporting a failure to uninstall the application
+	 */
+	void uninstallApplication(String applicationName) throws CLIException;
+
+	/**
+	 * This method waits for the specified number of planned instances to be installed. In case of a datagrid
+	 * or a stateful PU the specified value is ignored and the return value indicates the correct planned
+	 * number of instances.
+	 * 
+	 * @param serviceName
+	 *            The name of the service being installed.
+	 * @param applicationName
+	 *            The name of the application in which the service is being installed
+	 * @param plannedNumberOfInstances
+	 *            The number of service instances that need to be installed
+	 * @param timeoutErrorMessage
+	 *            A message to use when throwing TimeoutException
+	 * @param timeout
+	 *            Number of {@link TimeUnit} to wait
+	 * @param timeunit
+	 *            The time unit to use for the timeout definition
+	 * @return returns true when the required number of instances is installed
+	 * @throws CLIException
+	 *             Reporting a failure to get the service instances from the server
+	 * @throws TimeoutException
+	 *             Reporting the timeout was reached
+	 * @throws InterruptedException
+	 *             Reporting the thread is interrupted while waiting
+	 */
+	boolean waitForServiceInstances(String serviceName, String applicationName, int plannedNumberOfInstances,
+			String timeoutErrorMessage, long timeout, TimeUnit timeunit) throws CLIException, TimeoutException,
+			InterruptedException;
 }

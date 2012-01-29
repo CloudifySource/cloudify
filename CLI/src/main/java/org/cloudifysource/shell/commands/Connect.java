@@ -23,10 +23,20 @@ import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
 import org.fusesource.jansi.Ansi.Color;
 
-
 /**
- * @author rafi
- * @since 8.0.3
+ * @author rafi, adaml, barakm
+ * @since 2.0.0
+ * 
+ *        Connects to a REST server.
+ * 
+ *        Required arguments:
+ *         URL - The URL of the REST server
+ * 
+ *        Optional arguments:
+ *         user - The username for a secure connection to the rest server
+ *         pwd - The password for a secure connection to the rest server
+ * 
+ *        Command syntax: connect [-user username] [-pwd password] URL
  */
 @Command(scope = "cloudify", name = "connect", description = "connects to the target admin REST server")
 public class Connect extends AbstractGSCommand {
@@ -34,20 +44,24 @@ public class Connect extends AbstractGSCommand {
 	@Option(required = false, description = "The username when connecting to a secure admin server", name = "-user")
 	private String user;
 
-	@Option(required = false, description = "The password when connecting to a secure admin server", name = "-pwd", aliases = {"-password"})
+	@Option(required = false, description = "The password when connecting to a secure admin server", name = "-pwd",
+			aliases = { "-password" })
 	private String password;
 
 	@Argument(required = true, name = "URL", description = "the URL of the REST admin server to connect to")
 	private String url = "";
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	protected Object doExecute() throws Exception {
-		AdminFacade adminFacade = (AbstractAdminFacade) session.get(Constants.ADMIN_FACADE);
+		final AdminFacade adminFacade = (AbstractAdminFacade) session.get(Constants.ADMIN_FACADE);
 		adminFacade.connect(user, password, url);
-		//We keep a reference to the facade so that the CompleterValue methods will be able
-		//to access it.
+		// We keep a reference to the facade so that the CompleterValue methods will be able
+		// to access it.
 		setRestAdminFacade(adminFacade);
-		
+
 		return getFormattedMessage("connected_successfully", Color.GREEN);
 	}
 

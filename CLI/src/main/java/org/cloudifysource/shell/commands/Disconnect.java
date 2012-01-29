@@ -18,17 +18,23 @@ package org.cloudifysource.shell.commands;
 import org.apache.felix.gogo.commands.Command;
 import org.fusesource.jansi.Ansi.Color;
 
-
 /**
- * @author rafi
- * @since 8.0.3
+ * @author rafi, adaml, barakm
+ * @since 2.0.0
+ * 
+ *        Disconnects from the REST server.
+ * 
+ *        Command syntax: disconnect
  */
 @Command(scope = "cloudify", name = "disconnect", description = "disconnects the admin REST server")
 public class Disconnect extends AdminAwareCommand {
 
-    @Override
-    protected Object doExecute() throws Exception {
-        adminFacade.disconnect();
-        return getFormattedMessage("disconnected_successfully", Color.GREEN);
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected Object doExecute() throws Exception {
+		adminFacade.disconnect();
+		return getFormattedMessage("disconnected_successfully", Color.GREEN);
+	}
 }

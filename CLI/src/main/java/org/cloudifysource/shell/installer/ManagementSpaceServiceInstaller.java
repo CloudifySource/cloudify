@@ -33,77 +33,116 @@ import org.openspaces.admin.space.SpacePartition;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.util.MemoryUnit;
 
-
+/**
+ * @author rafi, barakm
+ * @since 2.0.0
+ * 
+ *        Handles the installation of a management spaces
+ * 
+ */
 public class ManagementSpaceServiceInstaller extends AbstractManagementServiceInstaller {
-	
+
 	private boolean highlyAvailable;
-	
+
 	private GigaSpace gigaspace = null;
 
-	public void setHighlyAvailable(boolean highlyAvailable) {
+	/**
+	 * Sets the management space availability behavior. A highly-available space is a space that must always
+	 * have a backup instance, running on a separate machine.
+	 * 
+	 * @param highlyAvailable
+	 *            High-availability behavior (true - on, false - off)
+	 */
+	public void setHighlyAvailable(final boolean highlyAvailable) {
 		this.highlyAvailable = highlyAvailable;
 	}
-	
-	public void install() throws ProcessingUnitAlreadyDeployedException, CLIException{
-		
+
+	/**
+	 * Installs the management space with the configured settings (e.g. memory, availability).
+	 * 
+	 * @throws ProcessingUnitAlreadyDeployedException
+	 *             Reporting installation failure because the PU is already installed
+	 * @throws CLIException
+	 *             Reporting a failure to get the Grid Service Manager (GSM) to install the service
+	 */
+	@Override
+	public void install() throws ProcessingUnitAlreadyDeployedException, CLIException {
+
 		if (zone == null) {
 			throw new IllegalStateException("Management services must be installed on management zone");
 		}
-		
-		final ElasticSpaceDeployment deployment = 
-			new ElasticSpaceDeployment(serviceName)
-			.memoryCapacityPerContainer(memoryInMB, MemoryUnit.MEGABYTES)
-			.highlyAvailable(highlyAvailable)
-			.numberOfPartitions(1)
-			// All PUs on this role share the same machine. Machines
-			// are identified by zone.
-			.sharedMachineProvisioning(
-					"public",
-					new DiscoveredMachineProvisioningConfigurer()
-							.addGridServiceAgentZone(zone)
-							.reservedMemoryCapacityPerMachine(RESERVED_MEMORY_IN_MB, MemoryUnit.MEGABYTES)
-							.create())
-			// Eager scale (1 container per machine per PU)
-			.scale(new EagerScaleConfigurer()
-			       .atMostOneContainerPerMachine()
-				   .create());
 
-		for (Entry<Object, Object> prop : getContextProperties().entrySet()) {
-			deployment.addContextProperty(prop.getKey().toString(),prop.getValue().toString());
+		final ElasticSpaceDeployment deployment = new ElasticSpaceDeployment(serviceName)
+				.memoryCapacityPerContainer(memoryInMB, MemoryUnit.MEGABYTES).highlyAvailable(highlyAvailable)
+				.numberOfPartitions(1)
+				// All PUs on this role share the same machine. Machines
+				// are identified by zone.
+				.sharedMachineProvisioning(
+						"public",
+						new DiscoveredMachineProvisioningConfigurer().addGridServiceAgentZone(zone)
+								.reservedMemoryCapacityPerMachine(RESERVED_MEMORY_IN_MB, MemoryUnit.MEGABYTES)
+								.create())
+				// Eager scale (1 container per machine per PU)
+				.scale(new EagerScaleConfigurer().atMostOneContainerPerMachine().create());
+
+		for (final Entry<Object, Object> prop : getContextProperties().entrySet()) {
+			deployment.addContextProperty(prop.getKey().toString(), prop.getValue().toString());
 		}
-		
+
 		getGridServiceManager().deploy(deployment);
-		
+
 	}
 
+	/**
+	 * Waits for the management space installation to completes.
+	 * 
+	 * @param adminFacade
+	 *            Admin facade to use for deployment
+	 * @param agent
+	 *            The grid service agent to use
+	 * @param timeout
+	 *            number of {@link TimeUnit}s to wait
+	 * @param timeunit
+	 *            The {@link TimeUnit} to use
+	 * @throws InterruptedException
+	 *             Reporting the thread was interrupted while waiting
+	 * @throws TimeoutException
+	 *             Reporting the timeout was reached
+	 * @throws CLIException
+	 *             Reporting a failure to check the installation progress
+	 */
 	@Override
-	public void waitForInstallation(AdminFacade adminFacade,
-			GridServiceAgent agent, final long timeout, final TimeUnit timeunit)
-			throws InterruptedException,
-			TimeoutException, CLIException {
+	public void waitForInstallation(final AdminFacade adminFacade, final GridServiceAgent agent, final long timeout,
+			final TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException {
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
-			
+			/**
+			 * {@inheritDoc}
+			 */
 			@Override
 			public boolean isDone() throws CLIException, InterruptedException {
-			
-                Space space = admin.getSpaces().getSpaceByName(serviceName);
-                if (space != null)
-                {
-                	SpacePartition partition = space.getPartition(0);
-                	if (partition != null && partition.getPrimary() != null) {
-                		gigaspace = space.getGigaSpace();
-                		return true;
-                	}
-                }
-                
-            	logger.log(Level.INFO,"Connecting to management space.");
-            	return false;
+
+				final Space space = admin.getSpaces().getSpaceByName(serviceName);
+				if (space != null) {
+					final SpacePartition partition = space.getPartition(0);
+					if (partition != null && partition.getPrimary() != null) {
+						gigaspace = space.getGigaSpace();
+						return true;
+					}
+				}
+
+				logger.log(Level.INFO, "Connecting to management space.");
+				return false;
 			}
 		});
-		
-        logger.info("Management space is available.");
+
+		logger.info("Management space is available.");
 	}
 
+	/**
+	 * Returns the {@link GigaSpace} member used.
+	 * 
+	 * @return the GigaSpace member
+	 */
 	public GigaSpace getGigaSpace() {
 		return this.gigaspace;
 	}

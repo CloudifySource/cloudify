@@ -30,6 +30,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.restclient.ErrorStatusException;
 import org.cloudifysource.restclient.EventLoggingTailer;
 import org.cloudifysource.restclient.GSRestClient;
@@ -42,12 +44,11 @@ import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
 import org.fusesource.jansi.Ansi.Color;
 
-import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.dsl.utils.ServiceUtils;
-
 /**
- * @author rafi
- * @since 8.0.3
+ * @author rafi, barakm, adaml, noak
+ * @since 2.0.0 This class implements the {@link AdminFacade}, relying on the abstract implementation of
+ *        {@link AbstractAdminFacade}. It discovers and manages applications, services, containers and other
+ *        components over REST, using the {@link GSRestClient}.
  */
 public class RestAdminFacade extends AbstractAdminFacade {
 
@@ -61,139 +62,147 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	private GSRestClient client;
 	private EventLoggingTailer eventLoggingTailer;
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
-	public void doConnect(String user, String password, String url)
-	throws CLIException {
-		if (!url.endsWith("/")) {
-			url = url + "/";
+	public void doConnect(final String user, final String password, final String url) throws CLIException {
+		String formattedURL = url;
+		if (!formattedURL.endsWith("/")) {
+			formattedURL = formattedURL + "/";
 		}
-		if (!url.startsWith("http://")) {
-			url = "http://" + url;
+		if (!formattedURL.startsWith("http://")) {
+			formattedURL = "http://" + formattedURL;
 		}
 
 		URL urlObj;
 		try {
-			urlObj = new URL(url);
-			if (urlObj.getPort() == -1){
+			urlObj = new URL(formattedURL);
+			if (urlObj.getPort() == -1) {
 				urlObj = getUrlWithDefaultPort(urlObj);
 			}
-		} catch (MalformedURLException e) {
+		} catch (final MalformedURLException e) {
 			throw new CLIStatusException("could_not_parse_url", url);
 		}
 
-		try{
+		try {
 			client = new GSRestClient(user, password, urlObj);
 			eventLoggingTailer = new EventLoggingTailer();
 			// test connection
 			client.get(SERVICE_CONTROLLER_URL + "testrest");
-		} catch (ErrorStatusException e) {
+		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-		} catch (RestException e) {
+		} catch (final RestException e) {
 			throw new CLIException(e);
 		}
 	}
-	
-	private URL getUrlWithDefaultPort(URL urlObj) throws MalformedURLException {
+
+	private URL getUrlWithDefaultPort(final URL urlObj) throws MalformedURLException {
 		StringBuffer url = new StringBuffer(urlObj.toString());
-		int portIndex = url.indexOf("/", "http://".length());
+		final int portIndex = url.indexOf("/", "http://".length());
 		url = url.insert(portIndex, DEFAULT_PORT);
 		return new URL(url.toString());
 	}
 
+	// TODO: Move this method or at least logger.info() code outside of RestAdminFacade
 	/**
-	 * This method waits for the specified number of planned instances to be installed.
-	 * In case of a datagrid or a stateful PU the specified value is ignored and the 
-	 * return value indicates the correct planned number of instances.
+	 * {@inheritDoc}
 	 */
-	//TODO: Move this method or at least logger.info() code outside of RestAdminFacade
 	@Override
-	public boolean waitForServiceInstances(String serviceName, String applicationName, int plannedNumberOfInstances, String timeoutErrorMessage, long timeout, TimeUnit timeunit) throws CLIException, TimeoutException, InterruptedException {
-		long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
+	public boolean waitForServiceInstances(final String serviceName, final String applicationName,
+			final int plannedNumberOfInstances, final String timeoutErrorMessage, final long timeout,
+			final TimeUnit timeunit) throws CLIException, TimeoutException, InterruptedException {
+
+		final long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
 
 		int serviceShutDownEventsCount = 0;
+		int calcedNumberOfInstances = plannedNumberOfInstances;
 
-		String pollingURL = "processingUnits/Names/" + ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+		final String pollingURL = "processingUnits/Names/"
+				+ ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 
-		//The polling will not start until the service processing unit is found.
-		waitForServicePU(applicationName, serviceName, pollingURL, timeoutErrorMessage, PROCESSINGUNIT_LOOKUP_TIMEOUT, timeunit);
+		// The polling will not start until the service processing unit is found.
+		waitForServicePU(applicationName, serviceName, pollingURL, timeoutErrorMessage, PROCESSINGUNIT_LOOKUP_TIMEOUT,
+				timeunit);
 
-		logger.info(MessageFormat.format(messages.getString("deploying_service"),serviceName));
+		logger.info(MessageFormat.format(messages.getString("deploying_service"), serviceName));
 
 		int currentNumberOfNonUSMInstances = -1;
 		int currentNumberOfRunningUSMInstances = -1;
 		boolean statusChanged = false;
-		
+
 		while (System.currentTimeMillis() < end) {
-			
+
 			Map<String, Object> serviceStatusMap = null;
 			try {
 				serviceStatusMap = client.getAdminData(pollingURL);
-			} catch (ErrorStatusException e) {
+			} catch (final ErrorStatusException e) {
 				throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-			} catch (RestException e) {
+			} catch (final RestException e) {
 				throw new CLIException(e);
 			}
-			
-			if (serviceStatusMap.containsKey("ClusterSchema") && "partitioned-sync2backup".equals(serviceStatusMap.get("ClusterSchema"))) {
-				plannedNumberOfInstances = Integer.valueOf((String) serviceStatusMap.get("TotalNumberOfInstances"));
+
+			if (serviceStatusMap.containsKey("ClusterSchema")
+					&& "partitioned-sync2backup".equals(serviceStatusMap.get("ClusterSchema"))) {
+				calcedNumberOfInstances = Integer.valueOf((String) serviceStatusMap.get("TotalNumberOfInstances"));
 			}
-			
+
 			boolean serviceInstanceExists = false;
 			int serviceInstancesSize = 0;
-			if (serviceStatusMap.containsKey("Instances-Size")){
+			if (serviceStatusMap.containsKey("Instances-Size")) {
 				serviceInstancesSize = (Integer) serviceStatusMap.get("Instances-Size");
-				if (!serviceStatusMap.get("Instances-Size").equals(0)){
+				if (!serviceStatusMap.get("Instances-Size").equals(0)) {
 					serviceInstanceExists = true;
 				}
 			}
-			//isUsmService can only be called when an instance of the service exists. 
-			if (serviceInstanceExists && isUSMService(applicationName, serviceName)){
-				int actualNumberOfUSMServicesWithRunningState = getNumberOfUSMServicesWithRunningState(serviceName, 
-															applicationName,
-															serviceInstancesSize);
-				if(currentNumberOfRunningUSMInstances != actualNumberOfUSMServicesWithRunningState && actualNumberOfUSMServicesWithRunningState != 0){
+			// isUsmService can only be called when an instance of the service exists.
+			if (serviceInstanceExists && isUSMService(applicationName, serviceName)) {
+				final int actualNumberOfUSMServicesWithRunningState = getNumberOfUSMServicesWithRunningState(
+						serviceName, applicationName, serviceInstancesSize);
+				if (currentNumberOfRunningUSMInstances != actualNumberOfUSMServicesWithRunningState
+						&& actualNumberOfUSMServicesWithRunningState != 0) {
 					currentNumberOfRunningUSMInstances = actualNumberOfUSMServicesWithRunningState;
 					statusChanged = true;
-				}else{
+				} else {
 					statusChanged = false;
 				}
-			}else{//Not a USM Service
-				
-				int actualNumberOfInstances = serviceInstancesSize;
-				if (actualNumberOfInstances != currentNumberOfNonUSMInstances && actualNumberOfInstances != 0){
+			} else { // Not a USM Service
+
+				final int actualNumberOfInstances = serviceInstancesSize;
+				if (actualNumberOfInstances != currentNumberOfNonUSMInstances && actualNumberOfInstances != 0) {
 					currentNumberOfNonUSMInstances = actualNumberOfInstances;
 					statusChanged = true;
-				}else{
+				} else {
 					statusChanged = false;
 				}
 			}
 
-			//Print the event logs and return shutdown event count.
-			serviceShutDownEventsCount = handleEventLogs(serviceName, applicationName, plannedNumberOfInstances, serviceShutDownEventsCount);
-				
-			if (serviceInstancesSize == 0){
-				printStatusMessage(plannedNumberOfInstances, serviceInstancesSize, statusChanged);
-			//Too many instances.
-			}else if (plannedNumberOfInstances < currentNumberOfNonUSMInstances ||
-					plannedNumberOfInstances < currentNumberOfRunningUSMInstances ){
+			// Print the event logs and return shutdown event count.
+			serviceShutDownEventsCount = handleEventLogs(serviceName, applicationName, calcedNumberOfInstances,
+					serviceShutDownEventsCount);
+
+			if (serviceInstancesSize == 0) {
+				printStatusMessage(calcedNumberOfInstances, serviceInstancesSize, statusChanged);
+				// Too many instances.
+			} else if (calcedNumberOfInstances < currentNumberOfNonUSMInstances
+					|| calcedNumberOfInstances < currentNumberOfRunningUSMInstances) {
 				throw new CLIException(MessageFormat.format(
-						messages.getString("number_of_instances_exceeded_planned"),
-						plannedNumberOfInstances, Math.max(currentNumberOfNonUSMInstances, currentNumberOfRunningUSMInstances))); 
-			}else if (serviceInstancesSize > 0){
-				if (isUSMService(applicationName, serviceName)){
-					currentNumberOfRunningUSMInstances = getNumberOfUSMServicesWithRunningState(serviceName, 
-								applicationName,
-								serviceInstancesSize);
-					printStatusMessage(plannedNumberOfInstances, currentNumberOfRunningUSMInstances, statusChanged);
-					
-					//are all usm service instances in Running state?
-					if (currentNumberOfRunningUSMInstances == plannedNumberOfInstances){
+						messages.getString("number_of_instances_exceeded_planned"), calcedNumberOfInstances,
+						Math.max(currentNumberOfNonUSMInstances, currentNumberOfRunningUSMInstances)));
+			} else if (serviceInstancesSize > 0) {
+				if (isUSMService(applicationName, serviceName)) {
+					currentNumberOfRunningUSMInstances = getNumberOfUSMServicesWithRunningState(serviceName,
+							applicationName, serviceInstancesSize);
+					printStatusMessage(calcedNumberOfInstances, currentNumberOfRunningUSMInstances, statusChanged);
+
+					// are all usm service instances in Running state?
+					if (currentNumberOfRunningUSMInstances == calcedNumberOfInstances) {
 						return true;
 					}
-				}else{//non USM Service.
-					printStatusMessage(plannedNumberOfInstances, currentNumberOfNonUSMInstances, statusChanged);
-					//if all services up, return.
-					if (plannedNumberOfInstances  == currentNumberOfNonUSMInstances){
+				} else { // non USM Service.
+					printStatusMessage(calcedNumberOfInstances, currentNumberOfNonUSMInstances, statusChanged);
+					// if all services up, return.
+					if (calcedNumberOfInstances == currentNumberOfNonUSMInstances) {
 						return true;
 					}
 				}
@@ -201,123 +210,120 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			Thread.sleep(POLLING_INTERVAL);
 		}
 		throw new TimeoutException(timeoutErrorMessage);
-		
+
 	}
-	
-	private void printStatusMessage(int plannedNumberOfInstances,
-			Integer currentNumberOfInstances, boolean statusChanged) {
-		if (statusChanged){
-			//Treat special cases. doesn't print newline in beginning of the installation 
-			if ((!currentNumberOfInstances.equals(0))){
+
+	private void printStatusMessage(final int plannedNumberOfInstances, final Integer currentNumberOfInstances,
+			final boolean statusChanged) {
+		if (statusChanged) {
+			// Treat special cases. doesn't print newline in beginning of the installation
+			if (!currentNumberOfInstances.equals(0)) {
 				System.out.println('.');
 				System.out.flush();
 			}
-			logger.info(MessageFormat.format(
-					messages.getString("deploying_service_updates"),
+			logger.info(MessageFormat.format(messages.getString("deploying_service_updates"),
 					plannedNumberOfInstances, currentNumberOfInstances));
-			
-			}else{//Status hasn't changed. print a '.'
-				System.out.print('.');
-				System.out.flush();
-			}
+
+		} else { // Status hasn't changed. print a '.'
+			System.out.print('.');
+			System.out.flush();
+		}
 	}
 
-	private void printEventLogs(List<String> events){
-		if (events.size() != 0){
+	private void printEventLogs(final List<String> events) {
+		if (events.size() != 0) {
 			System.out.println('.');
 			System.out.flush();
 		}
-		for (String eventString : events) {
-			if (eventString.contains(CloudifyConstants.USM_EVENT_EXEC_SUCCESSFULLY)){
-				System.out.println(eventString + " " 
+		for (final String eventString : events) {
+			if (eventString.contains(CloudifyConstants.USM_EVENT_EXEC_SUCCESSFULLY)) {
+				System.out.println(eventString + " "
 						+ ShellUtils.getColorMessage(CloudifyConstants.USM_EVENT_EXEC_SUCCEED_MESSAGE, Color.GREEN));
-			}else if (eventString.contains(CloudifyConstants.USM_EVENT_EXEC_FAILED)){
-				System.out.println(eventString + " " 
+			} else if (eventString.contains(CloudifyConstants.USM_EVENT_EXEC_FAILED)) {
+				System.out.println(eventString + " "
 						+ ShellUtils.getColorMessage(CloudifyConstants.USM_EVENT_EXEC_FAILED_MESSAGE, Color.RED));
-			}else
-			System.out.println(eventString);
+			} else {
+				System.out.println(eventString);
+			}
 		}
 	}
-	
-	//Prints event logs and monitors shutdown events.
-	private int handleEventLogs(String serviceName, String applicationName,
-			int plannedNumberOfInstances, int serviceShutDownEventsCount)
-			throws CLIException {
-		List<String> eventLogs = getUnreadEventLogs(applicationName, serviceName);
-		if (eventLogs != null){
+
+	// Prints event logs and monitors shutdown events.
+	private int handleEventLogs(final String serviceName, final String applicationName,
+			final int plannedNumberOfInstances, final int serviceShutDownEventsCount) throws CLIException {
+		final List<String> eventLogs = getUnreadEventLogs(applicationName, serviceName);
+		int totalServiceShutDownEvents = serviceShutDownEventsCount;
+		if (eventLogs != null) {
 			printEventLogs(eventLogs);
-			serviceShutDownEventsCount += getShutdownEventCount(eventLogs, serviceName);
-			//If all planned instances of the processing unit had Shutdown we throw an exception.
-			if (serviceShutDownEventsCount == plannedNumberOfInstances){
+			totalServiceShutDownEvents += getShutdownEventCount(eventLogs, serviceName);
+			// If all planned instances of the processing unit had Shutdown we throw an exception.
+			if (totalServiceShutDownEvents == plannedNumberOfInstances) {
 				throw new CLIException("Service " + serviceName + " Failed to instantiate");
 			}
 		}
-		return serviceShutDownEventsCount;
+		return totalServiceShutDownEvents;
 	}
 
-	//returns the number of RUNNING processing unit instances.
-	private int getNumberOfUSMServicesWithRunningState(String serviceName,
-			String applicationName, int currentNumberOfInstances) throws CLIException {
+	// returns the number of RUNNING processing unit instances.
+	private int getNumberOfUSMServicesWithRunningState(final String serviceName, final String applicationName,
+			final int currentNumberOfInstances) throws CLIException {
 
-		String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-		String serviceMonitorsUrl = "ProcessingUnits/Names/"
-			+ absolutePUName 
-			+ "/ProcessingUnitInstances/%d/Statistics/Monitors/USM/Monitors/"
-			+ CloudifyConstants.USM_MONITORS_STATE_ID;
+		final String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+		final String serviceMonitorsUrl = "ProcessingUnits/Names/" + absolutePUName
+				+ "/ProcessingUnitInstances/%d/Statistics/Monitors/USM/Monitors/"
+				+ CloudifyConstants.USM_MONITORS_STATE_ID;
 
 		int runningServiceInstanceCounter = 0;
-		
+
 		try {
 			for (int i = 0; i < currentNumberOfInstances; i++) {
-				String instanceUrl = String.format(serviceMonitorsUrl, i);
-				Map<String, Object> map = client.getAdminData(instanceUrl);
-				int instanceState = Integer.valueOf((String)map.get(CloudifyConstants.USM_MONITORS_STATE_ID));
-				if (CloudifyConstants.USMState.values()[instanceState].equals(CloudifyConstants.USMState.RUNNING)){
+				final String instanceUrl = String.format(serviceMonitorsUrl, i);
+				final Map<String, Object> map = client.getAdminData(instanceUrl);
+				final int instanceState = Integer.valueOf((String) map.get(CloudifyConstants.USM_MONITORS_STATE_ID));
+				if (CloudifyConstants.USMState.values()[instanceState].equals(CloudifyConstants.USMState.RUNNING)) {
 					runningServiceInstanceCounter++;
 				}
 			}
-		} catch (ErrorStatusException e) {
+		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-		}  catch (RestException e) {
+		} catch (final RestException e) {
 			throw new CLIException(e);
 		}
-		
+
 		return runningServiceInstanceCounter;
 	}
 
-	private boolean isUSMService(String applicationName, String serviceName) {
-		String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);	
-		String usmUrl = "ProcessingUnits/Names/"
-			+ absolutePUName + 
-			"/Instances/0/Statistics/" 
-			+ "Monitors/"
-			+ CloudifyConstants.USM_MONITORS_SERVICE_ID;
-		try{
-			Map<String, Object> adminData = client.getAdminData(usmUrl);
-			if (adminData.containsKey("Id") 
-					&& adminData.get("Id").equals(CloudifyConstants.USM_MONITORS_SERVICE_ID)){
+	private boolean isUSMService(final String applicationName, final String serviceName) {
+		final String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+		final String usmUrl = "ProcessingUnits/Names/" + absolutePUName + "/Instances/0/Statistics/" + "Monitors/"
+				+ CloudifyConstants.USM_MONITORS_SERVICE_ID;
+		try {
+			final Map<String, Object> adminData = client.getAdminData(usmUrl);
+			if (adminData.containsKey("Id") && adminData.get("Id").equals(CloudifyConstants.USM_MONITORS_SERVICE_ID)) {
 				return true;
-			}else if (adminData.containsKey(CloudifyConstants.USM_MONITORS_SERVICE_ID) 
-					&& adminData.get(CloudifyConstants.USM_MONITORS_SERVICE_ID).equals("<null>")){
+			} else if (adminData.containsKey(CloudifyConstants.USM_MONITORS_SERVICE_ID)
+					&& adminData.get(CloudifyConstants.USM_MONITORS_SERVICE_ID).equals("<null>")) {
 				return false;
 			}
-		}catch (RestException e){
-			//The path doesn't exist. either not a usm service or no instance was created yet.
+		} catch (final RestException e) {
+			// The path doesn't exist. either not a usm service or no instance was created yet.
 		}
 		return false;
 	}
 
-	private void waitForServicePU(String applicationName, String serviceName, String url, String timeoutErrorMessage, long timeout, TimeUnit timeunit) throws TimeoutException, InterruptedException {
+	private void waitForServicePU(final String applicationName, final String serviceName, final String url,
+			final String timeoutErrorMessage, final long timeout, final TimeUnit timeunit) throws TimeoutException,
+			InterruptedException {
 
-		long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
-		String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+		final long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
+		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		while (System.currentTimeMillis() < end) {
-			try{ 
-				Map<String, Object> pu = client.getAdminData(url);
+			try {
+				final Map<String, Object> pu = client.getAdminData(url);
 				if (absolutePuName.equals(pu.get("Name"))) {
 					return;
 				}
-			}catch (RestException e) {
+			} catch (final RestException e) {
 				Thread.sleep(POLLING_INTERVAL);
 			}
 			Thread.sleep(POLLING_INTERVAL);
@@ -325,193 +331,226 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		throw new TimeoutException(timeoutErrorMessage);
 	}
 
-	private List<String> getUnreadEventLogs(String applicationName, String serviceName) throws CLIException{
-		
+	private List<String> getUnreadEventLogs(final String applicationName, final String serviceName)
+			throws CLIException {
+
 		List<Map<String, String>> allEventsExecutedList = null;
-		try{
-			allEventsExecutedList = (List<Map<String, String>>) client
-			.get(SERVICE_CONTROLLER_URL + "/applications/"
-					+ applicationName + "/services/"
-					+ serviceName
-					+ "/USMEventsLogs/");
-		}  catch (ErrorStatusException e) {
+		try {
+			allEventsExecutedList = (List<Map<String, String>>) client.get(SERVICE_CONTROLLER_URL + "/applications/"
+					+ applicationName + "/services/" + serviceName + "/USMEventsLogs/");
+		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
 		return eventLoggingTailer.getLinesToPrint(allEventsExecutedList);
 	}
 
-	private int getShutdownEventCount(List<String> events, String serviceName){
+	private int getShutdownEventCount(final List<String> events, final String serviceName) {
 		int shutdownEventCount = 0;
-		for (String eventString : events) {
-			if (eventString.contains(serviceName) && eventString.contains("SHUTDOWN invoked")){
+		for (final String eventString : events) {
+			if (eventString.contains(serviceName) && eventString.contains("SHUTDOWN invoked")) {
 				shutdownEventCount++;
 			}
 		}
 		return shutdownEventCount;
 	}
 
-
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void doDisconnect() {
 		client = null;
 	}
 
-	public void removeInstance(String applicationName, String serviceName,
-			int instanceId) throws CLIException {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void removeInstance(final String applicationName, final String serviceName, final int instanceId)
+			throws CLIException {
 		try {
-			String relativeUrl = SERVICE_CONTROLLER_URL + "applications/"
-			+ applicationName + "/services/" + serviceName + "/instances/"
-			+ instanceId + "/remove";
+			final String relativeUrl = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/"
+					+ serviceName + "/instances/" + instanceId + "/remove";
 			client.delete(relativeUrl);
-		} catch (ErrorStatusException e) {
+		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
 	}
 
-	public void restart(ComponentType componentType, String componentName,
-			Set<Integer> componentInstanceIDs) throws CLIException {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void restart(final ComponentType componentType, final String componentName,
+			final Set<Integer> componentInstanceIDs) throws CLIException {
 		// TODO: Implement
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	@SuppressWarnings("unchecked")
 	public List<String> getApplicationsList() throws CLIException {
-		
+
 		List<String> applicationsList = null;
-		
+
 		try {
 			applicationsList = (List<String>) client.get("/service/applications");
-		} catch (RestException e) {
+		} catch (final RestException e) {
 			throw new CLIException(e);
 		}
-		
+
 		return applicationsList;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	@SuppressWarnings("unchecked")
-	public List<String> getServicesList(String applicationName) 
-	throws CLIException {
-		
+	public List<String> getServicesList(final String applicationName) throws CLIException {
+
 		List<String> servicesList = null;
 		try {
-			servicesList = (List<String>)client.get("/service/applications/"
-				+ applicationName + "/services");
-		} catch (ErrorStatusException ese) {
+			servicesList = (List<String>) client.get("/service/applications/" + applicationName + "/services");
+		} catch (final ErrorStatusException ese) {
 			throw new CLIStatusException(ese, ese.getReasonCode(), ese.getArgs());
 		}
-		
+
 		return servicesList;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
-	protected String doDeploy(String applicationName, File packedFile)
-	throws CLIException {
-		
+	protected String doDeploy(final String applicationName, final File packedFile) throws CLIException {
+
 		String result = null;
 		try {
-			result = client.postFile(SERVICE_CONTROLLER_URL + CLOUD_CONTROLLER_URL
-				+ "deploy?" + "applicationName=" + applicationName, packedFile);
-		} catch (ErrorStatusException e) {
+			result = client.postFile(SERVICE_CONTROLLER_URL + CLOUD_CONTROLLER_URL + "deploy?" + "applicationName="
+					+ applicationName, packedFile);
+		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-		} catch (RestException e) {
+		} catch (final RestException e) {
 			throw new CLIException(e);
 		}
-		
+
 		return result;
 	}
 
-	public String startService(String applicationName, File serviceFile)
-	throws CLIException {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String startService(final String applicationName, final File serviceFile) throws CLIException {
 		return doDeploy(applicationName, serviceFile);
 	}
 
-	public void undeploy(String applicationName, String serviceName)
-	throws CLIException {
-		try{
-			String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName
-					+ "/services/" + serviceName + "/undeploy";
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void undeploy(final String applicationName, final String serviceName) throws CLIException {
+		try {
+			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName
+					+ "/undeploy";
 			client.delete(url);
-		} catch (ErrorStatusException e) {
+		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
 	}
 
-	public void addInstance(String applicationName, String serviceName,
-			int timeout) throws CLIException {
-		try{
-			String url = SERVICE_CONTROLLER_URL + "applications/na/services/"
-					+ serviceName + "/addinstance";
-					Map<String, String> params = new HashMap<String, String>();
-					params.put("timeout", Integer.toString(timeout));
-					client.post(url, params);
-		} catch (RestException e) {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void addInstance(final String applicationName, final String serviceName, final int timeout)
+			throws CLIException {
+		try {
+			final String url = SERVICE_CONTROLLER_URL + "applications/na/services/" + serviceName + "/addinstance";
+			final Map<String, String> params = new HashMap<String, String>();
+			params.put("timeout", Integer.toString(timeout));
+			client.post(url, params);
+		} catch (final RestException e) {
 			throw new CLIException(e);
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	@SuppressWarnings("unchecked")
-	public Map<String, Object> getInstanceList(String applicationName,
-			String serviceName) throws CLIException {
-		
+	public Map<String, Object> getInstanceList(final String applicationName, final String serviceName)
+			throws CLIException {
+
 		Map<String, Object> instanceList = null;
 		try {
-			String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName
-					+ "/services/" + serviceName + "/instances";
+			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName
+					+ "/instances";
 			instanceList = (Map<String, Object>) client.get(url);
-		}  catch (ErrorStatusException e) {
+		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
-		
+
 		return instanceList;
 	}
 
-	public String installElastic(File packedFile, String applicationName,
-			String serviceName, String zone, Properties contextProperties, final String templateName)
-	throws CLIException {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String installElastic(final File packedFile, final String applicationName, final String serviceName,
+			final String zone, final Properties contextProperties, final String templateName) throws CLIException {
 
 		String result = null;
 		try {
-			String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName
-					+ "/services/" + serviceName;
-			result = client.postFile(url + "?zone=" + zone + "&template=" + templateName, packedFile, contextProperties);
-		} catch (ErrorStatusException e) {
+			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName;
+			result = client.postFile(url + "?zone=" + zone + "&template=" + templateName, packedFile,
+					contextProperties);
+		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-		} catch (RestException e) {
+		} catch (final RestException e) {
 			throw new CLIException(e);
 		}
-		
+
 		return result;
 	}
 
-	public Map<String, InvocationResult> invokeServiceCommand(
-			String applicationName, String serviceName, String beanName,
-			String commandName, Map<String, String> params) throws CLIException {
-		String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName
-		+ "/services/" + serviceName + "/beans/" + beanName + "/invoke";
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Map<String, InvocationResult> invokeServiceCommand(final String applicationName, final String serviceName,
+			final String beanName, final String commandName, final Map<String, String> params) throws CLIException {
+		final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName
+				+ "/beans/" + beanName + "/invoke";
 
 		Object result = null;
 		try {
-			result = client.post(url, buildCustomCommandParams(commandName, params));	
-		}  catch (ErrorStatusException e) {
+			result = client.post(url, buildCustomCommandParams(commandName, params));
+		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-		} catch (RestException e) {
+		} catch (final RestException e) {
 			throw new CLIException(e);
 		}
-		
-		@SuppressWarnings("unchecked")
-		Map<String, Object> restResult = (Map<String, Object>) result;
 
-		Map<String, InvocationResult> invocationResultMap = new LinkedHashMap<String, InvocationResult>();
-		for (Map.Entry<String, Object> entry : restResult.entrySet()) {
-			Object value = entry.getValue();
+		@SuppressWarnings("unchecked")
+		final Map<String, Object> restResult = (Map<String, Object>) result;
+
+		final Map<String, InvocationResult> invocationResultMap = new LinkedHashMap<String, InvocationResult>();
+		for (final Map.Entry<String, Object> entry : restResult.entrySet()) {
+			final Object value = entry.getValue();
 
 			if (!(value instanceof Map<?, ?>)) {
-				logger.severe("Received an unexpected return value to the invoke command. Key: "
-						+ entry.getKey() + ", value: " + value);
+				logger.severe("Received an unexpected return value to the invoke command. Key: " + entry.getKey()
+						+ ", value: " + value);
 			} else {
 				@SuppressWarnings("unchecked")
-				Map<String, String> curr = (Map<String, String>) value;
-				InvocationResult invocationResult = InvocationResult
-				.createInvocationResult(curr);
+				final Map<String, String> curr = (Map<String, String>) value;
+				final InvocationResult invocationResult = InvocationResult.createInvocationResult(curr);
 				invocationResultMap.put(entry.getKey(), invocationResult);
 			}
 
@@ -519,23 +558,25 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		return invocationResultMap;
 	}
 
-	public InvocationResult invokeInstanceCommand(String applicationName,
-			String serviceName, String beanName, int instanceId,
-			String commandName, Map<String, String> paramsMap) throws CLIException {
-		String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/"
-		+ serviceName + "/instances/" + instanceId + "/beans/"
-		+ beanName + "/invoke";
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public InvocationResult invokeInstanceCommand(final String applicationName, final String serviceName,
+			final String beanName, final int instanceId, final String commandName, final Map<String, String> paramsMap)
+			throws CLIException {
+		final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName
+				+ "/instances/" + instanceId + "/beans/" + beanName + "/invoke";
 		@SuppressWarnings("unchecked")
 		Map<String, String> resultMap;
 		try {
-			resultMap = (Map<String, String>) client.post(url,
-				buildCustomCommandParams(commandName, paramsMap));
-		}  catch (ErrorStatusException e) {
+			resultMap = (Map<String, String>) client.post(url, buildCustomCommandParams(commandName, paramsMap));
+		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-		} catch (RestException e) {
+		} catch (final RestException e) {
 			throw new CLIException(e);
 		}
-		
+
 		// resultMap.entrySet().iterator().next();
 		// InvocationResult invocationResult = InvocationResult
 		// .createInvocationResult(resultMap);
@@ -544,141 +585,165 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		// InvocationResult invocationResult = InvocationResult
 		// .createInvocationResult(curr);
 		//
-		InvocationResult invocationResult = InvocationResult
-		.createInvocationResult(resultMap);
+		final InvocationResult invocationResult = InvocationResult.createInvocationResult(resultMap);
 
 		return invocationResult;
 		// return GSRestClient.mapToInvocationResult(resultMap);
 
 	}
 
-	private Map<String, String> buildCustomCommandParams(String commandName, Map<String, String> parametersMap) {
-		Map<String, String> params = new HashMap<String, String>();
+	private Map<String, String> buildCustomCommandParams(final String commandName,
+			final Map<String, String> parametersMap) {
+		final Map<String, String> params = new HashMap<String, String>();
 		params.put(GS_USM_COMMAND_NAME, commandName);
-		//add all of the predefined parameters into the params map.
-		for (Map.Entry<String, String> entry : parametersMap.entrySet()) {
+		// add all of the predefined parameters into the params map.
+		for (final Map.Entry<String, String> entry : parametersMap.entrySet()) {
 			params.put(entry.getKey(), entry.getValue());
 		}
 		return params;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public List<String> getMachines() throws CLIException {
-		
+
 		Map<String, Object> map = null;
 		try {
-			 map = client.getAdminData("machines/HostsByAddress");
-		}  catch (ErrorStatusException e) {
+			map = client.getAdminData("machines/HostsByAddress");
+		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-		} catch (RestException e) {
+		} catch (final RestException e) {
 			throw new CLIException(e);
 		}
 		@SuppressWarnings("unchecked")
-		List<String> list = (List<String>) map.get("HostsByAddress-Elements");
-		List<String> result = new ArrayList<String>(list.size());
-		for (String host : list) {
-			String[] parts = host.split("/");
-			String ip = parts[parts.length - 1];
+		final List<String> list = (List<String>) map.get("HostsByAddress-Elements");
+		final List<String> result = new ArrayList<String>(list.size());
+		for (final String host : list) {
+			final String[] parts = host.split("/");
+			final String ip = parts[parts.length - 1];
 			result.add(ip);
 		}
 		return result;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
-	public void uninstallApplication(String applicationName)
-	throws CLIException {
+	public void uninstallApplication(final String applicationName) throws CLIException {
 		try {
-			String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName;
+			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName;
 			client.delete(url);
-		} catch (ErrorStatusException e) {
+		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
 	}
 
-	public Set<String> getGridServiceContainerUidsForApplication(
-			String applicationName) throws CLIException {
-		Set<String> containerUids = new HashSet<String>();
+	/**
+	 * Gets all the UIDs of the services of the given application.
+	 * 
+	 * @param applicationName
+	 *            The name of the application to query for its services
+	 * @return A set of UIDs of all the services of the given application.
+	 * @throws CLIException
+	 *             Reporting a failure to the application's services or a service's UID
+	 */
+	public Set<String> getGridServiceContainerUidsForApplication(final String applicationName) throws CLIException {
+		final Set<String> containerUids = new HashSet<String>();
 
-		for (String serviceName : getServicesList(applicationName)) {
-			containerUids.addAll(getGridServiceContainerUidsForService(
-					applicationName, serviceName));
+		for (final String serviceName : getServicesList(applicationName)) {
+			containerUids.addAll(getGridServiceContainerUidsForService(applicationName, serviceName));
 		}
 		return containerUids;
 	}
 
-	public Set<String> getGridServiceContainerUidsForService(
-			String applicationName, String serviceName) throws CLIException {
+	/**
+	 * Returns all the UIDs of the GSCs that run the given service, in the context of the given application.
+	 * 
+	 * @param applicationName
+	 *            The name of the application deployed in the requested GSCs
+	 * @param serviceName
+	 *            The name of the service deployed in the requested GSCs
+	 * @return a set of UIDs of the GSCs that run the given service in the context of the given application
+	 * @throws CLIException
+	 *             Reporting a failure to locate the requested GSCs or get the UIDs.
+	 */
+	public Set<String> getGridServiceContainerUidsForService(final String applicationName, final String serviceName)
+			throws CLIException {
 
-		Set<String> containerUids = new HashSet<String>();
+		final Set<String> containerUids = new HashSet<String>();
 
-		int numberOfInstances = this.getInstanceList(applicationName,
-				serviceName).size();
+		final int numberOfInstances = this.getInstanceList(applicationName, serviceName).size();
 
-		String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+		final String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		for (int i = 0; i < numberOfInstances; i++) {
 
-			String containerUrl = "applications/Names/" + applicationName
-			+ "/ProcessingUnits/Names/" + absolutePUName + "/Instances/"
-			+ i + "/GridServiceContainer/Uid";
-			try{
-				Map<String, Object> container = (Map<String, Object>) client
-				.getAdmin(containerUrl);
+			final String containerUrl = "applications/Names/" + applicationName + "/ProcessingUnits/Names/"
+					+ absolutePUName + "/Instances/" + i + "/GridServiceContainer/Uid";
+			try {
+				final Map<String, Object> container = client.getAdmin(containerUrl);
 
 				if (container == null) {
-					throw new IllegalStateException("Could not find container "
-							+ containerUrl);
+					throw new IllegalStateException("Could not find container " + containerUrl);
 				}
 				if (!container.containsKey("Uid")) {
-					throw new IllegalStateException(
-							"Could not find AgentUid of container " + containerUrl);
+					throw new IllegalStateException("Could not find AgentUid of container " + containerUrl);
 				}
 
 				containerUids.add((String) container.get("Uid"));
-			} catch (ErrorStatusException e) {
+			} catch (final ErrorStatusException e) {
 				throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-			} catch (RestException e) {
+			} catch (final RestException e) {
 				throw new CLIStatusException("cant_find_service_for_app", serviceName, applicationName);
 			}
 		}
 		return containerUids;
 	}
 
+	/**
+	 * Gets the UIDs of all GSCs.
+	 * 
+	 * @return a set of UIDs
+	 * @throws CLIException
+	 *             Reporting a failure to locate the requested GSCs or get the UIDs.
+	 */
 	public Set<String> getGridServiceContainerUids() throws CLIException {
-		
 		Map<String, Object> container = null;
 		try {
-			container = (Map<String, Object>) client
-					.getAdmin("GridServiceContainers");
-		}  catch (ErrorStatusException e) {
+			container = client.getAdmin("GridServiceContainers");
+		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-		} catch (RestException e) {
+		} catch (final RestException e) {
 			throw new CLIException(e);
 		}
 		@SuppressWarnings("unchecked")
-		List<String> containerUris = (List<String>) container
-		.get("Uids-Elements");
-		Set<String> containerUids = new HashSet<String>();
-		for (String containerUri : containerUris) {
-			String uid = containerUri.substring(containerUri.lastIndexOf("/")+1);
+		final List<String> containerUris = (List<String>) container.get("Uids-Elements");
+		final Set<String> containerUids = new HashSet<String>();
+		for (final String containerUri : containerUris) {
+			final String uid = containerUri.substring(containerUri.lastIndexOf("/") + 1);
 			containerUids.add(uid);
 		}
 		return containerUids;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
-	public String installApplication(File applicationFile,
-			String applicationName) throws CLIException {
-		
+	public String installApplication(final File applicationFile, final String applicationName) throws CLIException {
+
 		String result = null;
 		try {
-			String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName;
+			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName;
 			result = client.postFile(url, applicationFile);
-		} catch (ErrorStatusException e) {
+		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-		} catch (RestException e) {
+		} catch (final RestException e) {
 			throw new CLIException(e);
 		}
-		
+
 		return result;
 	}
 
