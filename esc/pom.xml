@@ -11,75 +11,6 @@
 		<version>2.0.0</version>
 		<relativePath>../cloudify</relativePath>
 	</parent>
-
-	<build>
-		<finalName>esc</finalName>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-				</configuration>
-				<version>2.3.2</version>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-install-plugin</artifactId>
-				<version>2.3.1</version>
-			</plugin>
-			<plugin>
-				<!-- NOTE: We don't need a groupId specification because the group is 
-					org.apache.maven.plugins ...which is assumed by default. -->
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.2.1</version>
-				<executions>
-					<execution>
-						<id>package-jar-with-dependencies-no-cli</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<appendAssemblyId>false</appendAssemblyId>
-							<descriptors>
-								<descriptor>assembly-jar.xml</descriptor>
-							</descriptors>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>2.5</version>
-				<executions>
-					<execution>
-						<id>copy-resources</id>
-						<!-- here the phase you need -->
-						<phase>validate</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>C:/docBaseAws</outputDirectory>
-							<resources>
-								<resource>
-
-									<directory>target</directory>
-									<includes>
-										<include>esm.zip</include>
-									</includes>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-
-		</plugins>
-	</build>
 	<repositories>
 		<repository>
 			<id>org.openspaces</id>
@@ -145,4 +76,44 @@
 			<version>${cloudifyVersion}</version>
 		</dependency>
 	</dependencies>
+	<build>
+		<finalName>esc</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+				<version>2.3.2</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>2.3.1</version>
+			</plugin>
+			<plugin>
+				<!-- NOTE: We don't need a groupId specification because the group is 
+					org.apache.maven.plugins ...which is assumed by default. -->
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.2.1</version>
+				<executions>
+					<execution>
+						<id>package-jar-with-dependencies-no-cli</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<appendAssemblyId>false</appendAssemblyId>
+							<descriptors>
+								<descriptor>assembly-jar.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>
