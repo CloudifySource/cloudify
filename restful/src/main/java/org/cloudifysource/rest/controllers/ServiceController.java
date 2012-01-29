@@ -137,7 +137,7 @@ import com.gigaspaces.log.LogEntryMatcher;
 @RequestMapping("/service")
 public class ServiceController {
 
-	private static final int TEN_MINUTES_MILLISECONDS = 60 * 1000 * 10;
+    private static final int TEN_MINUTES_MILLISECONDS = 60 * 1000 * 10;
 	private static final int THREAD_POOL_SIZE = 2;
 	private static final String SHARED_ISOLATION_ID = "public";
 	private static final int PU_DISCOVERY_TIMEOUT_SEC = 8;
@@ -151,36 +151,33 @@ public class ServiceController {
 	private String cloudFileContents;
 	private String defaultTemplateName;
 
-	public ServiceController() throws IOException {
-
-	
-
+	public ServiceController() {
 	}
 
-	
 	@PostConstruct
 	public void init() {
-		logger.info("Initializing service controller cloud configuration");
+	    logger.info("Initializing service controller cloud configuration");
 		this.cloud = readCloud();
 		if (cloud != null) {
 			if (this.cloud.getTemplates().size() == 0) {
-				throw new IllegalArgumentException("No templates defined in cloud configuration!");
+			    throw new IllegalArgumentException("No templates defined in cloud configuration!");
 			}
 			this.defaultTemplateName = this.cloud.getTemplates().keySet().iterator().next();
 			logger.info("Setting default template name to: " + defaultTemplateName
-					+ ". This template will be used for services that do not specify an explicit template");
+			        + ". This template will be used for services that do not specify an explicit template");
 		} else {
-			logger.info("Service Controller is running in local cloud mode");
+		    logger.info("Service Controller is running in local cloud mode");
 		}
 	}
-	
+
 	private String getCloudConfigurationFromManagementSpace() {
 		GigaSpace gigaSpace = getManagementSpace();
 		logger.info("Waiting for cloud configuration to become available in management space");
-		CloudConfigurationHolder config = gigaSpace.read( new CloudConfigurationHolder(),1000 *60);
-		if(config == null) {
+		CloudConfigurationHolder config = gigaSpace.read(new CloudConfigurationHolder(), 1000 * 60);
+		if (config == null) {
 			
-			logger.warning("Could not find the expected Cloud Configuration Holder in Management space! Defaulting to local cloud!");
+			logger.warning("Could not find the expected Cloud Configuration Holder in Management space!" +
+					" Defaulting to local cloud!");
 			return null;
 		}
 		return config.getCloudConfiguration();
@@ -188,8 +185,9 @@ public class ServiceController {
 	
 	private GigaSpace getManagementSpace() {
 		Space space = this.admin.getSpaces().waitFor(CloudifyConstants.MANAGEMENT_SPACE_NAME, 1, TimeUnit.MINUTES);
-		if(space == null) {
-			throw new IllegalStateException("Could not find management space (" + CloudifyConstants.MANAGEMENT_SPACE_NAME + ")");
+		if (space == null) {
+		    throw new IllegalStateException("Could not find management space (" + 
+		            CloudifyConstants.MANAGEMENT_SPACE_NAME + ")");
 		}
 		
 		return space.getGigaSpace();
@@ -199,14 +197,14 @@ public class ServiceController {
 		logger.info("Loading cloud configuration");
 
 		this.cloudFileContents = getCloudConfigurationFromManagementSpace();
-		if(this.cloudFileContents == null) {
+		if (this.cloudFileContents == null) {
 			// must be local cloud
 			return null;
 
 		}
-		Cloud cloud = null;
+		Cloud cloudConfiguration = null;
 		try {
-			cloud = ServiceReader.readCloud(cloudFileContents);
+			cloudConfiguration = ServiceReader.readCloud(cloudFileContents);
 		} catch (DSLException e) {
 			throw new IllegalArgumentException("Failed to read cloud configuration file: " + cloudFileContents
 					+ ". Error was: " + e.getMessage(), e);
@@ -214,11 +212,11 @@ public class ServiceController {
 
 		logger.info("Successfully loaded cloud configuration file from management space");
 
-		logger.info("Setting cloud local directory to: " + cloud.getProvider().getRemoteDirectory());
-		cloud.getProvider().setLocalDirectory(cloud.getProvider().getRemoteDirectory());
-		logger.info("Loaded cloud: " + cloud);
+		logger.info("Setting cloud local directory to: " + cloudConfiguration.getProvider().getRemoteDirectory());
+		cloudConfiguration.getProvider().setLocalDirectory(cloudConfiguration.getProvider().getRemoteDirectory());
+		logger.info("Loaded cloud: " + cloudConfiguration);
 
-		return cloud;
+		return cloudConfiguration;
 
 	}
 
@@ -228,13 +226,19 @@ public class ServiceController {
 		private int counter = 1;
 
 		@Override
-		public Thread newThread(Runnable r) {
+		public Thread newThread(final Runnable r) {
 			Thread thread = new Thread(r, "ServiceControllerExecutor-" + (counter++));
 			thread.setDaemon(true);
 			return thread;
 		}
 	});
 
+	/**
+	 * Tests whether the restful service is able to locate the service grid using the admin API.
+	 * The admin API searches for a LUS (Lookup Service) according to the lookup groups/locators defined.
+	 *  
+	 * @return - Map<String, Object> object containing the test results. 
+	 */
 	@RequestMapping(value = "/testrest", method = RequestMethod.GET)
 	public @ResponseBody
 	Object test() {
@@ -245,12 +249,12 @@ public class ServiceController {
 		String locators = Arrays.toString((admin.getLocators()));
 		return errorStatus(FAILED_TO_LOCATE_LUS, groups, locators);
 	}
-
+	
 	@RequestMapping(value = "/cloudcontroller/deploy", method = RequestMethod.POST)
 	public @ResponseBody
 	Map<String, Object> deploy(
-			@RequestParam(value = "applicationName", defaultValue = "default") String applicationName, @RequestParam(
-					value = "file") MultipartFile srcFile) throws IllegalStateException, IOException {
+			@RequestParam(value = "applicationName", defaultValue = "default") final String applicationName,
+			@RequestParam(value = "file") final MultipartFile srcFile) throws IOException {
 		logger.finer("Deploying a service");
 		File tmpfile = File.createTempFile("gs___", null);
 		File dest = new File(tmpfile.getParent(), srcFile.getOriginalFilename());
@@ -268,11 +272,15 @@ public class ServiceController {
 		}
 		if (pu == null) {
 			return errorStatus(FAILED_TO_LOCATE_SERVICE_AFTER_DEPLOYMENT, applicationName);
-		} else {
-			return successStatus(pu.getName());
-		}
+		} 
+		return successStatus(pu.getName());
 	}
 
+	/**
+	 * Creates and returns a map containing all of the deployed application names.
+	 * 
+	 * @return a list of all the deployed applications in the service grid.
+	 */
 	@RequestMapping(value = "/applications", method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object> getApplicationsList() {
@@ -287,9 +295,16 @@ public class ServiceController {
 		return successStatus(appNames);
 	}
 
+	/**
+     * Creates and returns a map containing all of the deployed service names installed under
+     * a specific application context.
+     * 
+     * @return a list of the deployed services in the service grid that were deployed as a part of
+     * a specific application.
+     */
 	@RequestMapping(value = "/applications/{applicationName}/services", method = RequestMethod.GET)
 	public @ResponseBody
-	Map<String, Object> getServicesList(@PathVariable String applicationName) {
+	Map<String, Object> getServicesList(@PathVariable final String applicationName) {
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to list applications");
 		}
@@ -310,11 +325,22 @@ public class ServiceController {
 		}
 		return successStatus(serviceNames);
 	}
-
+	
+	/**
+	 * 
+	 * Extracts all of the GSC log entries that were logged by the USM and contain an installation event
+	 * regex ".*.USMEventLogger.{0}\\].*". In addition, the entries returned will be only those that were 
+	 * logged in the last 10 minutes.
+	 * 
+	 * @param applicationName The application name
+	 * @param serviceName The service name
+	 * @return a list of log entry maps containing information regarding the specific entry. 
+	 */
 	@RequestMapping(value = "/applications/{applicationName}/services/{serviceName}/USMEventsLogs",
 			method = RequestMethod.GET)
 	public @ResponseBody
-	Map<?, ?> getServiceLifecycleLogs(@PathVariable String applicationName, @PathVariable String serviceName) {
+	Map<?, ?> getServiceLifecycleLogs(@PathVariable final String applicationName, 
+	        @PathVariable final String serviceName) {
 		// TODO:not run over
 		String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		List<Map<String, String>> serviceEventDetailes = new ArrayList<Map<String, String>>();
@@ -341,9 +367,9 @@ public class ServiceController {
 		}
 		return successStatus(serviceEventDetailes);
 	}
-
+	
 	private Map<String, String> getServiceDetailes(LogEntry logEntry, GridServiceContainer container,
-			String absolutePuName, String applicationName) {
+			final String absolutePuName, final String applicationName) {
 
 		Map<String, String> returnMap = new HashMap<String, String>();
 
@@ -362,10 +388,18 @@ public class ServiceController {
 		return returnMap;
 	}
 
+	/**
+	 * 
+	 * Creates a list of all service instances in the specified application.
+	 * @param applicationName The application name.
+	 * @param serviceName The service name.
+	 * @return a Map containing all service instances of the specified application
+	 */
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances",
 			method = RequestMethod.GET)
 	public @ResponseBody
-	Map<String, Object> getServiceInstanceList(@PathVariable String applicationName, @PathVariable String serviceName) {
+	Map<String, Object> getServiceInstanceList(@PathVariable final String applicationName,
+	                                            @PathVariable final String serviceName) {
 		String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to list instances for service " + absolutePuName + " of application "
@@ -386,11 +420,24 @@ public class ServiceController {
 		return successStatus(instanceMap);
 	}
 
+	/**
+	 *
+	 * Invokes a custom command on all of the specified service instances.
+	 * Custom parameters are passed as a map using the POST method and contain 
+	 * the command name and parameter values for the specified command.
+	 *    
+	 * @param applicationName The application name.
+	 * @param serviceName The service name.
+	 * @param beanName depreciated.
+	 * @param params The command parameters.
+	 * @return a Map containing the result of each invocation on a service instance.
+	 */
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/beans/{beanName}/invoke",
 			method = RequestMethod.POST)
 	public @ResponseBody
-	Map<String, Object> invoke(@PathVariable String applicationName, @PathVariable String serviceName,
-			@PathVariable String beanName, @RequestBody Map<String, Object> params) {
+	        Map<String, Object> invoke(@PathVariable final String applicationName, 
+	        @PathVariable final String serviceName, @PathVariable final String beanName,
+	        @RequestBody final Map<String, Object> params) {
 		String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to invoke bean " + beanName + " of service " + absolutePuName
@@ -458,12 +505,27 @@ public class ServiceController {
 		return result;
 	}
 
+     /**
+     *
+     * Invokes a custom command on a specific service instance.
+     * Custom parameters are passed as a map using POST method and contain 
+     * the command name and parameter values for the specified command.
+     *    
+	 * @param applicationName The application name.
+	 * @param serviceName The service name
+	 * @param instanceId The service instance number to be invoked.
+	 * @param beanName depreciated 
+	 * @param params a Map containing the result of each invocation on a service instance.
+	 * @return a Map containing the invocation result on the specified instance. 
+	 */
 	@RequestMapping(
-			value = "applications/{applicationName}/services/{serviceName}/instances/{instanceId}/beans/{beanName}/invoke",
+	        value = "applications/{applicationName}/services/{serviceName}/instances/{instanceId}/beans/{beanName}/invoke",
 			method = RequestMethod.POST)
 	public @ResponseBody
-	Map<String, Object> invokeInstance(@PathVariable String applicationName, @PathVariable String serviceName,
-			@PathVariable int instanceId, @PathVariable String beanName, @RequestBody Map<String, Object> params) {
+	Map<String, Object> invokeInstance(@PathVariable final String applicationName, 
+	        @PathVariable final String serviceName,
+			@PathVariable final int instanceId, @PathVariable final String beanName,
+			@RequestBody final Map<String, Object> params) {
 		String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to invoke bean " + beanName + " of service " + serviceName
@@ -496,7 +558,8 @@ public class ServiceController {
 		} catch (Exception e) {
 			logger.severe("Error invoking pu instance " + absolutePuName + ":" + instanceId + " on host "
 					+ pui.getVirtualMachine().getMachine().getHostName());
-			return errorStatus(FAILED_TO_INVOKE_INSTANCE, applicationName, absolutePuName, Integer.toString(instanceId));
+			return errorStatus(FAILED_TO_INVOKE_INSTANCE, applicationName, absolutePuName,
+			        Integer.toString(instanceId));
 		}
 	}
 
@@ -523,19 +586,24 @@ public class ServiceController {
 	private GridServiceManager getGsm(String id) {
 		if (id == null) {
 			return admin.getGridServiceManagers().waitForAtLeastOne(5000, TimeUnit.MILLISECONDS);
-		} else {
-			return admin.getGridServiceManagers().getManagerByUID(id);
-		}
+		} 
+		return admin.getGridServiceManagers().getManagerByUID(id);
 	}
 
 	private GridServiceManager getGsm() {
 		return getGsm(null);
 	}
 
+	/**
+	 * undeploys the specified service of the specific application. 
+	 * @param applicationName The application name.
+	 * @param serviceName The service name. 
+	 * @return success status if service was undeployed successfully, else returns failure status. 
+	 */
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/undeploy",
 			method = RequestMethod.DELETE)
 	public @ResponseBody
-	Map<String, Object> undeploy(@PathVariable String applicationName, @PathVariable String serviceName) {
+	Map<String, Object> undeploy(@PathVariable final String applicationName, @PathVariable final String serviceName) {
 		String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		ProcessingUnit processingUnit = admin.getProcessingUnits().waitFor(absolutePuName, PU_DISCOVERY_TIMEOUT_SEC,
 				TimeUnit.SECONDS);
@@ -546,11 +614,19 @@ public class ServiceController {
 		return successStatus();
 	}
 
+	/**
+	 * 
+	 * Increments the Processing unit instance number of the specified service. 
+	 * @param applicationName The application name where the service resides.
+	 * @param serviceName The service name.
+	 * @param params map that holds a timeout value for this action.
+	 * @return success status map if succeeded, else returns an error status.
+	 */
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/addinstance",
 			method = RequestMethod.POST)
 	public @ResponseBody
-	Map<String, Object> addInstance(@PathVariable String applicationName, @PathVariable String serviceName,
-			@RequestBody Map<String, String> params) {
+	Map<String, Object> addInstance(@PathVariable final String applicationName, @PathVariable final String serviceName,
+			@RequestBody final Map<String, String> params) {
 		String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		int timeout = Integer.valueOf(params.get("timeout"));
 		ProcessingUnit processingUnit = admin.getProcessingUnits().waitFor(absolutePuName, PU_DISCOVERY_TIMEOUT_SEC,
@@ -567,11 +643,19 @@ public class ServiceController {
 		return errorStatus(ResponseConstants.FAILED_TO_ADD_INSTANCE, applicationName, serviceName);
 	}
 
+	/**
+	 * 
+	 * Decrements the Processing unit instance number of the specified service.
+	 * @param applicationName The application name where the service resides.
+	 * @param serviceName The service name.
+	 * @param instanceId the service instance ID to remove.
+	 * @return success status map if succeeded, else returns an error status.
+	 */
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances/{instanceId}/remove",
 			method = RequestMethod.DELETE)
 	public @ResponseBody
-	Map<String, Object> removeInstance(@PathVariable String applicationName, @PathVariable String serviceName,
-			@PathVariable int instanceId) {
+	Map<String, Object> removeInstance(@PathVariable final String applicationName, 
+	        @PathVariable final String serviceName, @PathVariable final int instanceId) {
 		String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		// todo: application awareness
 		ProcessingUnit processingUnit = admin.getProcessingUnits().waitFor(absolutePuName, PU_DISCOVERY_TIMEOUT_SEC,
@@ -588,8 +672,8 @@ public class ServiceController {
 		return errorStatus(SERVICE_INSTANCE_UNAVAILABLE);
 	}
 
-	private void deployAndWait(final String serviceName, ElasticSpaceDeployment deployment) throws TimeoutException,
-			AdminException {
+	private void deployAndWait(final String serviceName, 
+	        final ElasticSpaceDeployment deployment) throws TimeoutException {
 		ProcessingUnit pu = getGridServiceManager().deploy(deployment, 60, TimeUnit.SECONDS);
 		if (pu == null) {
 			throw new TimeoutException("Timed out waiting for Service " + serviceName + " deployment.");
@@ -600,8 +684,8 @@ public class ServiceController {
 		return admin.getElasticServiceManagers().waitForAtLeastOne(5000, TimeUnit.MILLISECONDS);
 	}
 
-	private void deployAndWait(String serviceName, ElasticStatelessProcessingUnitDeployment deployment)
-			throws TimeoutException, AdminException {
+	private void deployAndWait(final String serviceName, final ElasticStatelessProcessingUnitDeployment deployment)
+			throws TimeoutException {
 		ProcessingUnit pu = getGridServiceManager().deploy(deployment, 60, TimeUnit.SECONDS);
 		if (pu == null) {
 			throw new TimeoutException("Timed out waiting for Service " + serviceName + " deployment.");
@@ -615,9 +699,16 @@ public class ServiceController {
 		return admin.getGridServiceManagers().iterator().next();
 	}
 
+	//TODO: complete java docing.
+	/**
+	 * Exception handler for all of the internal server's exceptions.
+	 * @param response
+	 * @param e
+	 * @throws IOException
+	 */
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
-	public void resolveDocumentNotFoundException(HttpServletResponse response, Exception e) throws IOException {
+	public void resolveDocumentNotFoundException(final HttpServletResponse response, Exception e) throws IOException {
 
 		if (response.isCommitted()) {
 			logger.log(Level.WARNING,
@@ -635,7 +726,7 @@ public class ServiceController {
 	 * uninstallations is determined by the context property
 	 * 'com.gs.application.services' which should exist in all service PUs.
 	 * 
-	 * @param applicationName
+	 * @param applicationName The application name.
 	 * @return Map with return value; @ .
 	 */
 	@RequestMapping(value = "applications/{applicationName}", method = RequestMethod.DELETE)
@@ -691,7 +782,7 @@ public class ServiceController {
 		}
 	}
 
-	private List<ProcessingUnit> createUninstallOrder(ProcessingUnit[] pus, String applicationName) {
+	private List<ProcessingUnit> createUninstallOrder(final ProcessingUnit[] pus, String applicationName) {
 
 		// TODO: Refactor this - merge with createServiceOrder, as methods are
 		// very similar
@@ -738,7 +829,8 @@ public class ServiceController {
 		if (containsCycle) {
 			logger.warning("Detected a cycle in the dependencies of application: "
 					+ applicationName
-					+ " while preparing to uninstall. The service in this application will be uninstalled in a random order");
+					+ " while preparing to uninstall." 
+					+ " The service in this application will be uninstalled in a random order");
 
 			return Arrays.asList(pus);
 		}
@@ -758,6 +850,18 @@ public class ServiceController {
 
 	}
 
+	/**
+	 * Deploys an application to the service grid. An application is consisted of a group of services
+	 * that might have dependencies between themselves. The application will be deployed according to 
+	 * the dependency order defined in the application file and deployed asynchronously if possible.
+	 * 
+	 * @param applicationName The application name.
+	 * @param srcFile The compressed application file. 
+	 * @return Map with return value. 
+	 * @throws IOException
+	 * @throws PackagingException
+	 * @throws DSLException
+	 */
 	@RequestMapping(value = "applications/{applicationName}", method = RequestMethod.POST)
 	public @ResponseBody
 	Object deployApplication(@PathVariable final String applicationName,
@@ -867,8 +971,8 @@ public class ServiceController {
 	}
 
 	private void doDeploy(final String applicationName, final String serviceName, final String templateName,
-			final String zone, final File serviceFile, final Properties contextProperties, Service service)
-			throws AdminException, TimeoutException {
+			final String zone, final File serviceFile, final Properties contextProperties, final Service service)
+			throws TimeoutException {
 		int numberOfInstances = service.getNumInstances();
 		if (numberOfInstances > 1) {
 			logger.info("Deploying service " + serviceName + " with " + numberOfInstances + " instances.");
@@ -881,7 +985,7 @@ public class ServiceController {
 	}
 
 	private void doDeploy(final String applicationName, final String serviceName, final String templateName,
-			final String zone, final File serviceFile, final Properties contextProperties) throws AdminException,
+			final String zone, final File serviceFile, final Properties contextProperties) throws
 			TimeoutException {
 		int numberOfInstances = 1;
 		logger.info("Deploying service " + serviceName + " without a recipe. Assuming number of instances is 1");
@@ -889,8 +993,8 @@ public class ServiceController {
 	}
 
 	private void doDeploy(final String applicationName, final String serviceName, final String templateName,
-			final String zone, final File serviceFile, final Properties contextProperties, int numberOfInstances)
-			throws AdminException, TimeoutException {
+			final String zone, final File serviceFile, final Properties contextProperties, final int numberOfInstances)
+			throws TimeoutException {
 
 		final int externalProcessMemoryInMB = 512;
 		final int containerMemoryInMB = 128;
@@ -952,7 +1056,7 @@ public class ServiceController {
 
 	}
 
-	private static String extractLocators(Admin admin) {
+	private static String extractLocators(final Admin admin) {
 
 		LookupLocator[] locatorsArray = admin.getLocators();
 		StringBuilder locators = new StringBuilder();
@@ -1034,9 +1138,25 @@ public class ServiceController {
 		return pu.waitFor(1, timeout, timeUnit);
 
 	}
-
-	public void deployElasticProcessingUnit(String serviceName, String applicationName, String zone, File srcFile,
-			Properties propsFile, final String originalTemplateName) throws TimeoutException, PackagingException,
+	
+	/**
+	 * Deploys a service according to it's type. There are x different service types supported:
+	 *   
+	 * @param serviceName
+	 * @param applicationName
+	 * @param zone
+	 * @param srcFile
+	 * @param propsFile
+	 * @param originalTemplateName
+	 * @throws TimeoutException
+	 * @throws PackagingException
+	 * @throws IOException
+	 * @throws AdminException
+	 * @throws DSLException
+	 */
+	public void deployElasticProcessingUnit(final String serviceName, final String applicationName,
+	        final String zone, final File srcFile, final Properties propsFile, 
+	        final String originalTemplateName) throws TimeoutException, PackagingException,
 			IOException, AdminException, DSLException {
 
 		String templateName;
@@ -1110,7 +1230,8 @@ public class ServiceController {
 					throw new IllegalStateException("Cloud configuration has no compute template defined!");
 				}
 				actualTemplateName = cloud.getTemplates().keySet().iterator().next();
-				logger.warning("Compute Template name missing from service deployment request. Defaulting to first template: "
+				logger.warning("Compute Template name missing from service deployment request." +
+						" Defaulting to first template: "
 						+ actualTemplateName);
 
 			}
@@ -1123,15 +1244,16 @@ public class ServiceController {
 		props.load(is);
 		File dest = copyMultipartFileToLocalFile(srcFile);
 		File destFile = new File(dest.getParent(), absolutePuName + "." +  FilenameUtils.getExtension(dest.getName()));
-		if (destFile.exists()){
+		if (destFile.exists()) {
 			FileUtils.deleteQuietly(destFile);
 		}
-		if (dest.renameTo(destFile)){
+		if (dest.renameTo(destFile)) {
 			FileUtils.deleteQuietly(dest);
 			deployElasticProcessingUnit(absolutePuName, applicationName, zone, destFile, props, actualTemplateName);
 			destFile.deleteOnExit();
-		}else{
-			logger.warning("Deployment file could not be renamed to the absolute pu name. Deploaying using the name " + dest.getName());
+		} else {
+		    logger.warning("Deployment file could not be renamed to the absolute pu name." +
+					" Deploaying using the name " + dest.getName());
 			deployElasticProcessingUnit(absolutePuName, applicationName, zone, dest, props, actualTemplateName);
 			dest.deleteOnExit();
 		}
@@ -1179,8 +1301,8 @@ public class ServiceController {
 
 	// TODO: consider adding MemoryUnits to DSL
 	// TODO: add memory unit to names
-	private void deployDataGrid(String applicationName, String serviceName, String zone, File srcFile,
-			Properties contextProperties, DataGrid dataGridConfig, final String templateName) throws AdminException,
+	private void deployDataGrid(final String applicationName,final String serviceName,final String zone,final File srcFile,
+	        final Properties contextProperties, final DataGrid dataGridConfig, final String templateName) throws AdminException,
 			TimeoutException, DSLException {
 
 		final int containerMemoryInMB = dataGridConfig.getSla().getMemoryCapacityPerContainer();
