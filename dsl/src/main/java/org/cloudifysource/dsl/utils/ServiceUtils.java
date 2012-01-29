@@ -240,7 +240,7 @@ public class ServiceUtils {
 	}
 
 	public static FullServiceName getFullServiceName(final String puName) {
-		final int index = puName.lastIndexOf(".");
+		final int index = puName.lastIndexOf('.');
 		if (index < 0) {
 			throw new IllegalArgumentException("Could not parse PU name: "
 					+ puName + " to read service and application names.");
