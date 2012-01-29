@@ -283,7 +283,7 @@ public class GSRestClient {
 			if (ERROR.equals(status)) {
 				final String reason = (String) responseMap.get(ERROR);
 				@SuppressWarnings("unchecked")
-				final List<String> reasonsArgs = (ArrayList<String>) responseMap.get(ERROR_ARGS);
+				final List<String> reasonsArgs = (List<String>) responseMap.get(ERROR_ARGS);
 				final ErrorStatusException e = new ErrorStatusException(reason,
 						reasonsArgs != null ? reasonsArgs.toArray() : null);
 				logger.log(Level.FINE, reason, e);
