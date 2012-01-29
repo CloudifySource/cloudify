@@ -385,8 +385,7 @@ public class CloudGridAgentBootstrapper {
 
 		lookupSb.setLength(lookupSb.length() - 1);
 
-		String lookup = lookupSb.toString();
-		return lookup;
+		return lookupSb.toString();
 	}
 
 	private InstallationDetails[] createInstallationDetails(final int numOfManagementMachines,

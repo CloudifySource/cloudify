@@ -148,8 +148,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 					+ ". Only one file may end with the suffix '-cloud.groovy'");
 		}
 
-		File cloudFile = cloudFiles[0];
-		return cloudFile;
+		return cloudFiles[0];
 	}
 
 	public static void main(String[] args) throws Exception {
