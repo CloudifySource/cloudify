@@ -255,8 +255,8 @@ public class DSLReader {
 		// using format <dsl file name>.properties
 		final String baseFileName = dslFile.getName();
 
-		final int indexOfLastComma = baseFileName.lastIndexOf(".");
-		String fileNamePrefix = null;
+		final int indexOfLastComma = baseFileName.lastIndexOf('.');
+		String fileNamePrefix;
 		if (indexOfLastComma < 0) {
 			fileNamePrefix = baseFileName;
 		} else {
