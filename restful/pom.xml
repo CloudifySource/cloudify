@@ -18,43 +18,7 @@
 			<url>http://maven-repository.openspaces.org</url>
 		</repository>
 	</repositories>
-	<build>
-		<defaultGoal>install</defaultGoal>
-		<plugins>
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.mortbay.jetty</groupId>
-				<artifactId>jetty-maven-plugin</artifactId>
-				<version>7.4.5.v20110725</version>
-				<dependencies>
-					<dependency>
-						<groupId>org.springframework</groupId>
-						<artifactId>spring-core</artifactId>
-						<version>3.0.5.RELEASE</version>
-					</dependency>
-					<dependency>
-						<groupId>com.gigaspaces</groupId>
-						<artifactId>gs-openspaces</artifactId>
-						<version>${gsVersion}</version>
-					</dependency>
-				</dependencies>
-				<configuration>
-					<scanIntervalSeconds>10</scanIntervalSeconds>
-					<webAppConfig>
-						<contextPath>/</contextPath>
-					</webAppConfig>
-				</configuration>
-			</plugin>
-		</plugins>
-		<finalName>rest</finalName>
-	</build>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.cloudifysource</groupId>
@@ -66,7 +30,7 @@
 			<groupId>com.gigaspaces</groupId>
 			<artifactId>gs-openspaces</artifactId>
 			<version>${gsVersion}</version>
-			<scope>provided</scope>			
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.jgrapht</groupId>
@@ -349,6 +313,42 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
 	</dependencies>
+	<build>
+		<defaultGoal>install</defaultGoal>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.mortbay.jetty</groupId>
+				<artifactId>jetty-maven-plugin</artifactId>
+				<version>7.4.5.v20110725</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.springframework</groupId>
+						<artifactId>spring-core</artifactId>
+						<version>3.0.5.RELEASE</version>
+					</dependency>
+					<dependency>
+						<groupId>com.gigaspaces</groupId>
+						<artifactId>gs-openspaces</artifactId>
+						<version>${gsVersion}</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<scanIntervalSeconds>10</scanIntervalSeconds>
+					<webAppConfig>
+						<contextPath>/</contextPath>
+					</webAppConfig>
+				</configuration>
+			</plugin>
+		</plugins>
+		<finalName>rest</finalName>
+	</build>
 </project>
