@@ -26,7 +26,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -263,14 +262,14 @@ public class GSRestClient {
 		String responseBody;
 		try {
 			final HttpResponse response = httpClient.execute(httpMethod);
-			int statusCode = response.getStatusLine().getStatusCode();
+			final int statusCode = response.getStatusLine().getStatusCode();
 			if (statusCode != HTTP_STATUS_OK) {
 				logger.log(Level.FINE, httpMethod.getURI() + MSG_RESPONSE_CODE + statusCode);
 				responseBody = getResponseBody(response, httpMethod);
 				try {
-					Map<String, Object> errorMap = GSRestClient.jsonToMap(responseBody);
+					final Map<String, Object> errorMap = GSRestClient.jsonToMap(responseBody);
 					throw new ErrorStatusException("Remote_rest_gateway_exception", errorMap.get(ERROR));
-				} catch (IOException e) {
+				} catch (final IOException e) {
 					if (statusCode == NOT_FOUND_404_ERROR_CODE) {
 						throw new ErrorStatusException(e, "URL_not_found", httpMethod.getURI());
 					}
@@ -319,7 +318,7 @@ public class GSRestClient {
 
 		InputStream instream = null;
 		try {
-			HttpEntity entity = response.getEntity();
+			final HttpEntity entity = response.getEntity();
 			if (entity == null) {
 				final ErrorStatusException e = new ErrorStatusException(REASON_CODE_COMM_ERR, httpMethod.getURI(),
 						MSG_RESPONSE_ENTITY_NULL);
@@ -356,8 +355,8 @@ public class GSRestClient {
 		try {
 			final HttpResponse response = httpClient.execute(httpMethod);
 			if (response.getStatusLine().getStatusCode() != HTTP_STATUS_OK) {
-				String message = httpMethod.getURI() + " response (code " + response.getStatusLine().getStatusCode()
-						+ ") " + response.getStatusLine().toString();
+				final String message = httpMethod.getURI() + " response (code "
+						+ response.getStatusLine().getStatusCode() + ") " + response.getStatusLine().toString();
 				if (logger.isLoggable(Level.FINE)) {
 					logger.log(Level.FINE, message);
 				}
@@ -450,7 +449,7 @@ public class GSRestClient {
 	 * 
 	 * @param relativeUrl
 	 *            The URL to post to.
-	 * @return null
+	 * @return The response object from the REST server
 	 * @throws RestException
 	 *             Reporting failure to post the file.
 	 */
@@ -465,7 +464,7 @@ public class GSRestClient {
 	 *            The URL to post to.
 	 * @param params
 	 *            parameters as Map<String, String>.
-	 * @return null
+	 * @return The response object from the REST server
 	 * @throws RestException
 	 *             Reporting failure to post the file.
 	 */
@@ -492,7 +491,7 @@ public class GSRestClient {
 	 *            The URL to post to.
 	 * @param file
 	 *            The file to send (example: <SOME PATH>/tomcat.zip).
-	 * @return null
+	 * @return The response object from the REST server
 	 * @throws RestException
 	 *             Reporting failure to post the file.
 	 */
@@ -510,7 +509,7 @@ public class GSRestClient {
 	 *            The file to send (example: <SOME PATH>/tomcat.zip).
 	 * @param params
 	 *            The properties of this POST action (example: com.gs.service.type=WEB_SERVER)
-	 * @return null
+	 * @return The response object from the REST server
 	 * @throws RestException
 	 *             Reporting failure to post the file.
 	 */
@@ -604,17 +603,17 @@ public class GSRestClient {
 			final ClientConnectionManager ccm = new ThreadSafeClientConnManager(params, registry);
 
 			return new DefaultHttpClient(ccm, params);
-		} catch (KeyStoreException e) {
+		} catch (final KeyStoreException e) {
 			throw new RestException(e);
-		} catch (NoSuchAlgorithmException e) {
+		} catch (final NoSuchAlgorithmException e) {
 			throw new RestException(e);
-		} catch (CertificateException e) {
+		} catch (final CertificateException e) {
 			throw new RestException(e);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			throw new RestException(e);
-		} catch (KeyManagementException e) {
+		} catch (final KeyManagementException e) {
 			throw new RestException(e);
-		} catch (UnrecoverableKeyException e) {
+		} catch (final UnrecoverableKeyException e) {
 			throw new RestException(e);
 		}
 	}
