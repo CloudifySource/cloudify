@@ -113,8 +113,7 @@ public class ServiceContextFactory {
 
 		final String var = getEnvironmentVariable(name, "" + defaultValue);
 		try {
-			final int val = Integer.parseInt(var);
-			return val;
+			return Integer.parseInt(var);
 		} catch (final NumberFormatException nfe) {
 			logger.severe("Failed to parse integer environment variable: "
 					+ name + ". Value was: " + var + ". Using default value "
