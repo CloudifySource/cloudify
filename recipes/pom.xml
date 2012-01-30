@@ -15,7 +15,7 @@
   <repositories>
 		<repository>
 			<id>org.openspaces</id>
-			<url>http://maven-repository.openspaces.org</url>
+			<url>http://diujnsivhul9.cloudfront.net</url>
 		</repository>
 	</repositories>
 	

@@ -30,9 +30,8 @@
 
 	<distributionManagement>
 		<repository>
-			<id>gigaspaces.plugin.repository</id>
-			<name>GigaSpaces Plugin Repository-releases</name>
-			<url>http://pc-lab14:8081/artifactory/plugins-release-local</url>
+			<id>org.cloudifysource</id>
+			<url>http://diujnsivhul9.cloudfront.net</url>
 		</repository>
 	</distributionManagement>
 	
