@@ -15,15 +15,7 @@
 	<repositories>
 		<repository>
 			<id>org.openspaces</id>
-			<url>http://maven-repository.openspaces.org</url>
-		</repository>
-		<repository>
-			<id>codehaus</id>
-			<url>http://repository.codehaus.org</url>
-		</repository>
-		<repository>
-			<id>apache-snapshot</id>
-			<url>https://repository.apache.org/content/repositories/snapshots/</url>
+			<url>http://diujnsivhul9.cloudfront.net</url>
 		</repository>
 	</repositories>
 	<dependencies>
