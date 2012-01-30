@@ -35,6 +35,12 @@ import org.openspaces.admin.Admin;
 public interface ProvisioningDriver {
 
 	/**************
+	 * Adds a new ProvisioningDriverListner to the ProvisioningDriver.
+	 * 
+	 * @param pdl A class that implements ProvisioningDriverListner.
+	 */
+	void addListener(ProvisioningDriverListener pdl);
+	/**************
 	 * Passes a configuration map for all setting defined for this cloud.
 	 * @param cloudTemplate 
 	 * @param cloud 

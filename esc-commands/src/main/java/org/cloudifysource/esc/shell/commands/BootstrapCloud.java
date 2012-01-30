@@ -90,7 +90,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 		// so that all of these
 		// messages will not be displayed on the console.
 		limitLoggingLevel();
-		logger.info(getFormattedMessage("bootstrapping_cloud"));
+		logger.info(getFormattedMessage("bootstrapping_cloud", cloudProvider));
 		try {
 			
 			installer.boostrapCloudAndWait(timeoutInMinutes, TimeUnit.MINUTES);

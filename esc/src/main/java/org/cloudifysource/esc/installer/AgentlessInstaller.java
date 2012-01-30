@@ -22,6 +22,8 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -94,6 +96,8 @@ public class AgentlessInstaller {
 	// TODO check if this is the proper timeout
 	// timeout of uploading a file over SFTP
 	private static final int SFTP_DISCONNECT_DETECTION_TIMEOUT_MILLIS = 10 * 1000;
+	
+	private List<AgentlessInstallerListener> eventsListenersList = new LinkedList<AgentlessInstallerListener>();
 
 	public static final String SSH_OUTPUT_LOGGER_NAME = AgentlessInstaller.class.getName() + ".ssh.output";
 
@@ -125,7 +129,7 @@ public class AgentlessInstaller {
 		long end = System.currentTimeMillis() + unit.toMillis(timeout);
 
 		InetSocketAddress addr = new InetSocketAddress(ip, port);
-		logger.info("Checking connection to: " + addr);
+		logger.fine("Checking connection to: " + addr);
 		while (System.currentTimeMillis() + CONNECTION_TEST_SLEEP_BEFORE_RETRY_MILLIS < end) {
 
 			// need to sleep since sock.connect may return immediately, and
@@ -210,12 +214,11 @@ public class AgentlessInstaller {
 		}
 		final FileObject remoteDir = mng.resolveFile(scpTarget, opts);
 
-		logger.info("Copying files to: " + scpTarget + " from local dir: " + localDir.getName().getPath()
+		logger.fine("Copying files to: " + scpTarget + " from local dir: " + localDir.getName().getPath()
 				+ " excluding " + excludedFiles.toString());
 
 		try {
 
-			
 			remoteDir.copyFrom(localDir, new FileSelector() {
 
 				@Override
@@ -269,8 +272,8 @@ public class AgentlessInstaller {
 					}
 				});
 			}
-
-			logger.info("Copying files to: " + scpTarget + " completed.");
+//			publishEvent("access_vm_with_ssh_success");
+			logger.fine("Copying files to: " + scpTarget + " completed.");
 		} finally {
 			mng.closeFileSystem(remoteDir.getFileSystem());
 			mng.closeFileSystem(localDir.getFileSystem());
@@ -303,10 +306,11 @@ public class AgentlessInstaller {
 			details.setLocator(details.getPrivateIp());
 		}
 
-		logger.info("Executing agentless installer with the following details:\n" + details.toString());
+		logger.fine("Executing agentless installer with the following details:\n" + details.toString());
 
 		String sshIpAddress = details.isConnectedToPrivateIp() ? details.getPrivateIp() : details.getPublicIp();
 
+		publishEvent("attempting_to_access_vm_with_ssh", details.getPublicIp());
 		// checking for SSH connection
 		checkConnection(sshIpAddress, SSH_PORT, Utils.millisUntil(end), TimeUnit.MILLISECONDS);
 
@@ -354,11 +358,12 @@ public class AgentlessInstaller {
 		
 		String command = scb.toString();
 
-		logger.info("Calling startup script on target: " + sshIpAddress + " with LOCATOR=" + details.getLocator()
+		logger.fine("Calling startup script on target: " + sshIpAddress + " with LOCATOR=" + details.getLocator()
 				+ "\nThis may take a few minutes");
 
 		sshCommand(sshIpAddress, command, details.getUsername(), details.getPassword(), details.getKeyFile(),
 				Utils.millisUntil(end), TimeUnit.MILLISECONDS);
+		publishEvent("access_vm_with_ssh_success", details.getPublicIp());	
 
 	}
 
@@ -386,7 +391,7 @@ public class AgentlessInstaller {
 		}
 
 		try {
-			logger.info("Executing command: " + command + " on " + host);
+			logger.fine("Executing command: " + command + " on " + host);
 			task.execute();
 			loggerOutputStream.close();
 		} catch (final BuildException e) {
@@ -401,6 +406,16 @@ public class AgentlessInstaller {
 			} else {
 				throw new InstallerException("Command " + command + " failed to execute.", e);
 			}
+		}
+	}
+	
+	public void addListener(AgentlessInstallerListener ail) {
+		this.eventsListenersList.add(ail);
+	}
+	
+	protected void publishEvent(String eventName, Object... args){
+		for (AgentlessInstallerListener listner : this.eventsListenersList) {
+			listner.onInstallerEvent(eventName, args);
 		}
 	}
 

@@ -23,9 +23,10 @@ import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
+import org.cloudifysource.esc.driver.provisioning.ProvisioningDriverListener;
 import org.openspaces.admin.Admin;
 
-
+@Deprecated
 public class LocalCloudProvisioningDriver implements ProvisioningDriver {
 
 	private boolean verbose;
@@ -161,6 +162,12 @@ public class LocalCloudProvisioningDriver implements ProvisioningDriver {
 
 	@Override
 	public void close() {
+		
+	}
+
+	@Override
+	public void addListener(ProvisioningDriverListener pdl) {
+		// TODO Auto-generated method stub
 		
 	}
 

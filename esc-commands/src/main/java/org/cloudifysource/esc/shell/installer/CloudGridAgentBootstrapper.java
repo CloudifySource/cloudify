@@ -35,20 +35,21 @@ import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
-
+import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
+import org.cloudifysource.esc.driver.provisioning.MachineDetails;
+import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
+import org.cloudifysource.esc.installer.AgentlessInstaller;
+import org.cloudifysource.esc.installer.InstallationDetails;
+import org.cloudifysource.esc.installer.InstallerException;
+import org.cloudifysource.esc.shell.listner.CliAgentlessInstallerListener;
+import org.cloudifysource.esc.shell.listner.CliProvisioningDriverListner;
+import org.cloudifysource.esc.util.Utils;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.installer.ManagementWebServiceInstaller;
 
-import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
-import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
-import org.cloudifysource.esc.driver.provisioning.MachineDetails;
-import org.cloudifysource.esc.installer.AgentlessInstaller;
-import org.cloudifysource.esc.installer.InstallationDetails;
-import org.cloudifysource.esc.installer.InstallerException;
-import org.cloudifysource.esc.util.Utils;
 import com.gigaspaces.internal.utils.StringUtils;
 import com.j_spaces.kernel.Environment;
 
@@ -106,10 +107,10 @@ public class CloudGridAgentBootstrapper {
 
 	private static void logServerDetails(MachineDetails server) {
 		if (logger.isLoggable(Level.INFO)) {
-			logger.info(nodePrefix(server) + "Cloud Server was created.");
+			logger.fine(nodePrefix(server) + "Cloud Server was created.");
 
-			logger.info(nodePrefix(server) + "Public IP: " + (server.getPublicAddress() == null ? "" : server.getPublicAddress()));
-			logger.info(nodePrefix(server) + "Private IP: " + (server.getPrivateAddress() == null?"":server.getPrivateAddress()));
+			logger.fine(nodePrefix(server) + "Public IP: " + (server.getPublicAddress() == null ? "" : server.getPublicAddress()));
+			logger.fine(nodePrefix(server) + "Private IP: " + (server.getPrivateAddress() == null?"":server.getPrivateAddress()));
 			
 			
 		}
@@ -122,6 +123,7 @@ public class CloudGridAgentBootstrapper {
 		// load the provisioning class and set it up
 		try {
 			this.provisioning = (ProvisioningDriver) Class.forName(this.cloud.getConfiguration().getClassName()).newInstance();
+			this.provisioning.addListener(new CliProvisioningDriverListner());
 			provisioning.setConfig(cloud, cloud.getConfiguration()
 					.getManagementMachineTemplate(), true);
 		} catch (Exception e) {
@@ -186,11 +188,14 @@ public class CloudGridAgentBootstrapper {
 			}
 
 		} catch (IOException e) {
-			throw new CLIException("bootstrap-cloud failed", e);
+			throw new CLIException("Cloudify bootstrap on provider " + this.cloud.getProvider().getProvider() + " failed.", e);
 		} catch (URISyntaxException e) {
 			throw new CLIException("bootstrap-cloud failed", e);
+		}catch (TimeoutException e){
+			throw new CLIException("Cloudify bootstrap on provider "+ this.cloud.getProvider().getProvider() +" timed-out. " +
+							"Please try to run again using the –timeout option", e);
 		}
-
+		
 	}
 
 	public void teardownCloudAndWait(long timeout, TimeUnit timeoutUnit) throws InstallerException, TimeoutException,
@@ -278,6 +283,7 @@ public class CloudGridAgentBootstrapper {
 			throws InterruptedException, TimeoutException, InstallerException, IOException {
 
 		final AgentlessInstaller installer = new AgentlessInstaller();
+		installer.addListener(new CliAgentlessInstallerListener());
 
 		// Update the logging level of jsch used by the AgentlessInstaller
 		Logger.getLogger(AgentlessInstaller.SSH_LOGGER_NAME).setLevel(
@@ -336,10 +342,13 @@ public class CloudGridAgentBootstrapper {
 						try {
 							installer.installOnMachineWithIP(detail, Utils.millisUntil(endTime), TimeUnit.MILLISECONDS);
 						} catch (TimeoutException e) {
+							logger.info("Failed accessing management VM " + detail.getPublicIp());
 							return e;
 						} catch (InterruptedException e) {
+							logger.info("Failed accessing management VM " + detail.getPublicIp());
 							return e;
 						} catch (InstallerException e) {
+							logger.info("Failed accessing management VM " + detail.getPublicIp());
 							return e;
 						}
 						return null;
@@ -412,7 +421,7 @@ public class CloudGridAgentBootstrapper {
 	private void fixConfigRelativePaths(Cloud config) {
 		if (config.getProvider().getLocalDirectory() != null
 				&& !new File(config.getProvider().getLocalDirectory()).isAbsolute()) {
-			logger.info("Assuming " + config.getProvider().getLocalDirectory() + " is in "
+			logger.fine("Assuming " + config.getProvider().getLocalDirectory() + " is in "
 					+ Environment.getHomeDirectory());
 			config.getProvider().setLocalDirectory(
 					new File(Environment.getHomeDirectory(), config.getProvider().getLocalDirectory())

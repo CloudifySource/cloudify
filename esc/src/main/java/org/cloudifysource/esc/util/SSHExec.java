@@ -75,6 +75,9 @@ public class SSHExec extends SSHBase {
     
     private static final String TIMEOUT_MESSAGE =
         "Timeout period exceeded, connection dropped.";
+    
+	private static final java.util.logging.Logger logger = java.util.logging.Logger
+	.getLogger(SSHExec.class.getName());
 
     /**
      * Constructor for SSHExecTask.
@@ -205,7 +208,7 @@ public class SSHExec extends SSHBase {
             session = openSession();
             /* called once */
             if (command != null) {
-                log("cmd : " + command, Project.MSG_INFO);
+                logger.fine("cmd : " + command + " " + Project.MSG_INFO);
                 executeCommand(session, command, output);
             } else { // read command resource and execute for each command
                 try {
@@ -213,7 +216,7 @@ public class SSHExec extends SSHBase {
                             new InputStreamReader(commandResource.getInputStream()));
                     String cmd;
                     while ((cmd = br.readLine()) != null) {
-                        log("cmd : " + cmd, Project.MSG_INFO);
+                    	logger.fine("cmd : " + cmd + " " + Project.MSG_INFO);
                         output.append(cmd).append(" : ");
                         executeCommand(session, cmd, output);
                         output.append("\n");
