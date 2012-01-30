@@ -18,40 +18,13 @@
 	<repositories>
 		<repository>
 			<id>org.openspaces</id>
-			<url>http://maven-repository.openspaces.org</url>
-		</repository>
-		<repository>
-			<id>apache-snapshots</id>
-			<url>https://repository.apache.org/content/repositories/snapshots/</url>
-		</repository>
-
-		<repository>
-			<id>springsource</id>
-			<url>http://maven.springframework.org/snapshot</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>maven2-repository.java.net</id>
-			<name>Java.net Repository for Maven</name>
-			<url>http://download.java.net/maven/2/</url>
-			<layout>default</layout>
+			<url>http://diujnsivhul9.cloudfront.net</url>
 		</repository>
 		<repository>
 			<id>apache</id>
 			<url>https://repository.apache.org/content/groups/snapshots-group/</url>
 		</repository>
 	</repositories>
-	<pluginRepositories>
-		<pluginRepository>
-			<id>springsource</id>
-			<url>http://maven.springframework.org/snapshot</url>
-		</pluginRepository>
-	</pluginRepositories>
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -80,7 +53,6 @@
 			<artifactId>slf4j-nop</artifactId>
 			<version>1.6.1</version>
 		</dependency>
-
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
@@ -152,6 +124,12 @@
 			<version>1</version>
 			<scope>system</scope>
 			<systemPath>${java.home}/lib/deploy.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junitVersion}</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 	<build>
