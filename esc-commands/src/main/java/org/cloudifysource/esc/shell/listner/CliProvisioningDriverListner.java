@@ -4,6 +4,12 @@ import java.util.logging.Logger;
 
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriverListener;
 
+/**
+ * Event listener for events originated in the DefaultProvisioningDriver.
+ * 
+ * @author adaml
+ *
+ */
 public class CliProvisioningDriverListner extends AbstractEventListener implements ProvisioningDriverListener {
 
 	private Logger logger = Logger.getLogger(CliProvisioningDriverListner.class.getName());
