@@ -125,12 +125,6 @@
 			<scope>system</scope>
 			<systemPath>${java.home}/lib/deploy.jar</systemPath>
 		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${junitVersion}</version>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
 	<build>
 		<plugins>

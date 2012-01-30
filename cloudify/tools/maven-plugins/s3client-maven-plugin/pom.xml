@@ -30,7 +30,7 @@
 
 	<distributionManagement>
 		<repository>
-			<id>org.cloudifysource</id>
+			<id>org.openspaces</id>
 			<url>http://diujnsivhul9.cloudfront.net</url>
 		</repository>
 	</distributionManagement>

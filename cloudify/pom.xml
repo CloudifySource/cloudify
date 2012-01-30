@@ -50,7 +50,7 @@
 
 	<pluginRepositories>
 		<pluginRepository>
-			<id>org.cloudifysource</id>
+			<id>org.openspaces</id>
 			<url>http://diujnsivhul9.cloudfront.net</url>
 		</pluginRepository>
 	</pluginRepositories>
