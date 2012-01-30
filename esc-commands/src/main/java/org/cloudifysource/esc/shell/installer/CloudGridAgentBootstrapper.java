@@ -183,8 +183,8 @@ public class CloudGridAgentBootstrapper {
 				// everything should be up if the rest admin is up
 				waitForConnection(restAdminUrl, Utils.millisUntil(end), TimeUnit.MILLISECONDS);
 
-				logger.info("Rest service is available at: " + restAdminUrl);
-				logger.info("Webui service is available at: " + webUIUrl);
+				logger.info("Rest service is available at: " + restAdminUrl + '.');
+				logger.info("Webui service is available at: " + webUIUrl + '.');
 			}
 
 		} catch (IOException e) {
