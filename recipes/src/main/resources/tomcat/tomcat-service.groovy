@@ -46,9 +46,13 @@ service {
 							"Catalina:type=ThreadPool,name=\"http-bio-8080\"",
 							"currentThreadCount"
 						],
-						"Backlog": [
+						"Request Backlog": [
 							"Catalina:type=ProtocolHandler,port=8080",
 							"backlog"
+						],
+						"Active Sessions": [
+							"Catalina:type=Manager,context=/,host=localhost",
+							"activeSessions"
 						],
 						port: 11099
 					])
@@ -75,7 +79,7 @@ service {
 				metrics([
 					"Current Http Threads Busy",
 					"Current Http Threads count",
-					"Backlog"
+					"Request Backlog"
 				])
 			} ,
 
@@ -128,9 +132,9 @@ service {
 
 				name "Request Backlog"
 				widgets([
-					balanceGauge{metric = "Backlog"},
+					balanceGauge{metric = "Request Backlog"},
 					barLineChart {
-						metric "Backlog"
+						metric "Request Backlog"
 						axisYUnit Unit.REGULAR
 					}
 				])
