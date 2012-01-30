@@ -45,6 +45,7 @@ import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
@@ -418,9 +419,27 @@ public class TestRecipe extends AbstractGSCommand {
 			// use non default service file
 			dslDirOrFile = new File(dslDirOrFile, serviceFileName);
 		}
-		return Pack.doPack(dslDirOrFile);
+		return doPack(dslDirOrFile);
 	}
 
+	/**
+	 * Packages the recipe files and other required files in a zip.
+	 * @param recipeDirOrFile The recipe service DSL file or containing folder 
+	 * @return A zip file
+	 * @throws CLIException Reporting a failure to find or parse the given DSL file, or pack the zip file
+	 */
+	public File doPack(final File recipeDirOrFile) throws CLIException {
+		try {
+			return Packager.pack(recipeDirOrFile);
+		} catch (final IOException e) {
+			throw new CLIException(e);
+		} catch (final PackagingException e) {
+			throw new CLIException(e);
+		} catch (final DSLException e) {
+			throw new CLIException(e);
+		}
+	}
+	
 	/**
 	 * Create a complete command line, including path and arguments.
 	 * 
