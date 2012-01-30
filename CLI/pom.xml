@@ -54,6 +54,12 @@
 	</pluginRepositories>
 	<dependencies>
 		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junitVersion}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>com.gigaspaces</groupId>
 			<artifactId>gs-openspaces</artifactId>
 			<version>${gsVersion}</version>
@@ -141,11 +147,11 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-		    <groupId>com.sun</groupId>
-	        <artifactId>deploy</artifactId>
-	        <version>1</version>
-	        <scope>system</scope>
-	        <systemPath>${java.home}/lib/deploy.jar</systemPath>
+			<groupId>com.sun</groupId>
+			<artifactId>deploy</artifactId>
+			<version>1</version>
+			<scope>system</scope>
+			<systemPath>${java.home}/lib/deploy.jar</systemPath>
 		</dependency>
 	</dependencies>
 	<build>
