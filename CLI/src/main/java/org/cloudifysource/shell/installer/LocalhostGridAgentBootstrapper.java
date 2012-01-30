@@ -70,7 +70,7 @@ import com.j_spaces.kernel.Environment;
  * @author rafi, barakm
  * since 2.0.0
  * 
- * This class handles the start up and shut down of the cloud components - management componenets (LUS, GSM, ESM), 
+ * This class handles the start up and shut down of the cloud components - management components (LUS, GSM, ESM), 
  * containers (GSCs) and an agent.
  */
 public class LocalhostGridAgentBootstrapper {
@@ -750,7 +750,7 @@ public class LocalhostGridAgentBootstrapper {
 						// Shut down the space proxy so that if the cloud is turned down later, there will not
 						// be any discovery errors.
 						// Note: in a spring environment, the bean shutdown would clean this up.
-						// TODO - this is a hack. Move the space writing part into the management space
+						// TODO - Move the space writing part into the management space
 						// installer and do the clean up there.
 						((ISpaceProxy) gigaspace.getSpace()).close();
 					}

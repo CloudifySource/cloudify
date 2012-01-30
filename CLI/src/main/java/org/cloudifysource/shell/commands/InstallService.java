@@ -78,7 +78,7 @@ public class InstallService extends AdminAwareCommand {
 
 		File packedFile;
 
-		// TODO: ask Barak. this logics should not be done twice. should be done directly in the rest server.
+		// TODO: this logics should not be done twice. should be done directly in the rest server.
 		// also figure out how to treat war/jar files that have no .groovy file. create default?
 		int plannedNumberOfInstances = 1;
 		Service service = null;
