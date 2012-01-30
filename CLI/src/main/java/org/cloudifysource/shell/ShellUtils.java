@@ -167,7 +167,7 @@ public final class ShellUtils {
 	 * @return a formatted "expected execution time" message
 	 */
 	public static String getExpectedExecutionTimeMessage() {
-		final String currentTime = new SimpleDateFormat("HH:MM").format(new Date());
+		final String currentTime = new SimpleDateFormat("HH:mm").format(new Date());
 		return MessageFormat.format(getMessageBundle().getString("expected_execution_time"), currentTime);
 	}
 
