@@ -207,9 +207,8 @@
 
 	<repositories>
 		<repository>
-			<id>GigaSpaces Repository</id>
-			<name>GigaSpaces Repository-releases</name>
-			<url>http://pc-lab14:8081/artifactory/libs-release-local</url>
+			<id>org.cloudifysource</id>
+			<url>http://diujnsivhul9.cloudfront.net</url>
 		</repository>
 	</repositories>
 
