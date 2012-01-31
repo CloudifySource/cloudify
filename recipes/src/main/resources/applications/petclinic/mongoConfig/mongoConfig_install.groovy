@@ -15,7 +15,7 @@
 *******************************************************************************/
 import org.cloudifysource.usm.USMUtils
 
-config = new ConfigSlurper().parse(new File("mongo-cfg.properties").toURL())
+config = new ConfigSlurper().parse(new File("mongoConfig.properties").toURL())
 osConfig = USMUtils.isWindows() ? config.win32 : config.unix
 
 builder = new AntBuilder()

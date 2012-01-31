@@ -6,12 +6,12 @@ application {
 	}
 	
 	service {
-		name = "mongo-cfg"		
+		name = "mongoConfig"		
 	}
 	
 	service {
 		name = "mongos"
-		dependsOn = ["mongo-cfg", "mongod"]
+		dependsOn = ["mongoConfig", "mongod"]
 	}
 	
 	service {

@@ -16,7 +16,7 @@
 @Grab(group='com.gmongo', module='gmongo', version='0.8')
 import com.gmongo.GMongo
 
-config = new ConfigSlurper().parse(new File('mongo-cfg.properties').toURL())
+config = new ConfigSlurper().parse(new File('mongoConfig.properties').toURL())
 
 println "sleeping for 5 secs"
 

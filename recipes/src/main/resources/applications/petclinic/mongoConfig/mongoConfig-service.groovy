@@ -15,15 +15,15 @@
 *******************************************************************************/
 service {
 	
-	name "mongo-cfg"
+	name "mongoConfig"
 	icon "mongodb.png"
 	type "NOSQL_DB"
 	numInstances 1
 
 	lifecycle {
-		init "mongo_cfg_install.groovy"
-		start "mongo_cfg_start.groovy"		
-		postStart "mongo_cfg_poststart.groovy"
+		init "mongoConfig_install.groovy"
+		start "mongoConfig_start.groovy"		
+		postStart "mongoConfig_poststart.groovy"
 	}
 	
 	plugins([

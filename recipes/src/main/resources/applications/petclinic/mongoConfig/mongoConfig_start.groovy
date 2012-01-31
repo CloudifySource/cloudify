@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
-config = new ConfigSlurper().parse(new File('mongo-cfg.properties').toURL())
+config = new ConfigSlurper().parse(new File('mongoConfig.properties').toURL())
 
 //start mongod
 dataDir = "${config.home}/data/cfg"
