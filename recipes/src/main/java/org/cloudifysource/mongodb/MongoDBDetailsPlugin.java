@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+ * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,14 @@ import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
 import org.cloudifysource.usm.details.Details;
 import org.cloudifysource.usm.details.DetailsException;
 
-
-
 /**
  * @author uri
+ * Concerte MongoDB Details plugin. 
  */
 public class MongoDBDetailsPlugin extends AbstractMongoPlugin implements Details {
-
+    /**
+	* Returns Mongo Server Status Command and dbName as <code>Map<String,String></code>
+	*/
     public Map<String, Object> getDetails(UniversalServiceManagerBean universalServiceManagerBean,
                                           UniversalServiceManagerConfiguration universalServiceManagerConfiguration) throws DetailsException {
         Map<String, Object> details = getData();
