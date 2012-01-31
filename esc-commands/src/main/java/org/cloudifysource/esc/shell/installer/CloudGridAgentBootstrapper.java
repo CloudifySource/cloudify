@@ -42,7 +42,7 @@ import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.shell.listener.CliAgentlessInstallerListener;
-import org.cloudifysource.esc.shell.listener.CliProvisioningDriverListner;
+import org.cloudifysource.esc.shell.listener.CliProvisioningDriverListener;
 import org.cloudifysource.esc.util.Utils;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
@@ -123,7 +123,7 @@ public class CloudGridAgentBootstrapper {
 		// load the provisioning class and set it up
 		try {
 			this.provisioning = (ProvisioningDriver) Class.forName(this.cloud.getConfiguration().getClassName()).newInstance();
-			this.provisioning.addListener(new CliProvisioningDriverListner());
+			this.provisioning.addListener(new CliProvisioningDriverListener());
 			provisioning.setConfig(cloud, cloud.getConfiguration()
 					.getManagementMachineTemplate(), true);
 		} catch (Exception e) {
