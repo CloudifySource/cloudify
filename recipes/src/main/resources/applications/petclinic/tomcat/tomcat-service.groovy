@@ -10,10 +10,6 @@ service {
 		preStop "tomcat_stop.groovy"
 	}
 	
-	customCommands ([
-        "updateWar" : "update_war.groovy"
-    ])
-	
 	plugins([
 		plugin {			
             name "portLiveness"
