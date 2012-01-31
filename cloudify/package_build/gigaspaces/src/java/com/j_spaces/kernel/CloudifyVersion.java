@@ -36,7 +36,7 @@ public class CloudifyVersion implements ProductVersion {
 	// PlatformLogicalVersion will fail parsing!!!
 	private final String BUILD_NUM = "998-2";
 	private final String V_NAME = "GigaSpaces";
-	private final String PRODUCT_HELP_URL = "http://www.gigaspaces.com/wiki/display/CLOUD";
+	private final String PRODUCT_HELP_URL = "http://www.cloudifysource.org/guide";
 
 	/** default constructor for Class.forName() - see com.j_spaces.kernel.PlatformVersion */
 	public CloudifyVersion() {
