@@ -23,6 +23,13 @@ config = new ConfigSlurper().parse(new File('mongos.properties').toURL())
 serviceContext = ServiceContextFactory.getServiceContext()
 
 println "mongos_poststart.groovy: serviceContext object is " + serviceContext
+
+//waiting for mongod service to become available, will not be needed in one of the upcoming versions
+println "mongos_poststart.groovy: Waiting for mongod..."
+mongodService = serviceContext.waitForService("mongod", 20, TimeUnit.SECONDS) 
+mongodHostInstances = mongodService.waitForInstances(mongodService.numberOfPlannedInstances, 60, TimeUnit.SECONDS) 
+
+println "mongos_poststart.groovy: mongodHostInstances length is "+mongodHostInstances.length
   
 def port = serviceContext.attributes.thisInstance["port"] 
 mongo = new GMongo("127.0.0.1", port)
