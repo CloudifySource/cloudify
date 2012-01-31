@@ -11,7 +11,7 @@ cloud {
 		provider "aws-ec2"
 		localDirectory "tools/cli/plugins/esc/ec2/upload"
 		remoteDirectory "/home/ec2-user/gs-files"
-		cloudifyUrl "http://repository.openspaces.org/org/cloudifysource/2.0.0/gigaspaces-cloudify-2.0.0-ga-b998-364.zip" 
+		cloudifyUrl "http://repository.openspaces.org/org/cloudifysource/2.0.0/gigaspaces-cloudify-2.0.0-ga-b998-385.zip" 
 		machineNamePrefix "gs_esm_gsa_"
 		
 		dedicatedManagementMachines true
