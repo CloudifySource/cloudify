@@ -106,8 +106,7 @@ public class AzureDeploymentWrapper {
     public String getUrl() {
         try {
             String output = azureConfig.getDeploymentUrl(hostedService, slot);
-            output = output.trim();
-            return output;
+            return output.trim();
         } catch (Exception e) {
             Assert.fail("Failed getting url: " + e.getLocalizedMessage());
         }
