@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+ * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
  *******************************************************************************/
 package org.cloudifysource.mongodb;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,9 +27,9 @@ import com.mongodb.CommandResult;
 import com.mongodb.DB;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
-
 /**
  * @author uri
+ * Base class for all mongo plugins
  */
 public abstract class AbstractMongoPlugin implements Plugin {
 
@@ -52,37 +48,18 @@ public abstract class AbstractMongoPlugin implements Plugin {
     protected String dbName;
     protected DB db;
     protected boolean initialized = false;
-
+    /**
+	* Invoked by USM. Initaizes the <code>ServiceContext</code>
+	*/
     public void setServiceContext(ServiceContext serviceContext) {
         this.serviceContext = serviceContext;
     }
-
+     /**
+	 * Initializes the plugin config Map as specified in the Recipe
+	 */
     public void setConfig(Map<String, Object> config) {
         this.config = config;
-    }
-
-    protected Integer getPortFromFile(String portFilePath) {
-        BufferedReader reader = null;
-        try {
-            File portFile = new File(serviceContext.getServiceDirectory() + "/" + portFilePath);
-            log.info("Port file path: " + portFile.getAbsolutePath());
-            if (portFile.exists()) {
-
-                reader = new BufferedReader(new FileReader(portFile));
-                String portAsString = reader.readLine();
-                return Integer.parseInt(portAsString);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                }
-            }
-        }
-        return null;
+        
     }
 
     private <T> T get(final DBObject dbo, final String key) {
@@ -97,7 +74,9 @@ public abstract class AbstractMongoPlugin implements Plugin {
         }
         return (T) result;
     }
-
+    /**
+	* Translates Mongo Server Status into <code>Map<String,String></code>
+	*/
     protected Map<String, Object> getData() {
         if (!initialized) init();
         Map<String, Object> data = new HashMap<String, Object>();
@@ -112,27 +91,30 @@ public abstract class AbstractMongoPlugin implements Plugin {
         }
         return data;
     }
-
+	/**
+	* Opens connection to mongoDB
+	*/
     public void init() {
         try {
             host = (String) config.get("host");
             if (host == null) host = DEFAULT_HOST;
-            port = (Integer) config.get("port");
-            if (port == null) {
-                String portFile = (String) config.get("portFile");
-                if (portFile != null) {
-                    port = getPortFromFile(portFile);
-                }
-                if (port == null) {
-                    port = DEFAULT_PORT;
-                }
-            }
-            dbName = (String) config.get("dbName");
+
+            log.info("AbstractMongoPlugin.init: using host " + host);
+            int instanseID = serviceContext.getInstanceId();
+            log.info("AbstractMongoPlugin.init: InstanceId is " + instanseID);
+                                               
+            port = (Integer)serviceContext.getAttributes().getThisInstance().get("port");
+            log.info("AbstractMongoPlugin.init:port is " + port.intValue());
+                                   
+            dbName = (String) config.get("dbName");            
             if (dbName == null) dbName = DEFAULT_DB_NAME;
-            Mongo mongo = new Mongo(host, port);
+            log.info("AbstractMongoPlugin.init:Connecting to mongodb " +dbName+ "("+host+","+port+")...");            
+            Mongo mongo = new Mongo(host,port);              
             db = mongo.getDB(dbName);
-            initialized = true;
-        } catch (Exception e) {
+            log.info("AbstractMongoPlugin.init:Connected to mongodb " +dbName);
+            initialized = true;            
+        } 
+        catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
