@@ -18,7 +18,7 @@
 	<repositories>
 		<repository>
 			<id>org.openspaces</id>
-			<url>http://diujnsivhul9.cloudfront.net</url>
+			<url>http://maven-repository.openspaces.org</url>
 		</repository>
 		<repository>
 			<id>apache</id>
