@@ -13,16 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.esc.driver.provisioning;
+package org.cloudifysource.esc.shell.listener;
+
+import java.util.logging.Logger;
+
+import org.cloudifysource.esc.driver.provisioning.ProvisioningDriverListener;
 
 /**
- * a Listener for all published events in the DefaultProvisioningDriver class.
+ * Event listener for events originated in the DefaultProvisioningDriver.
  * 
  * @author adaml
  *
  */
-public interface ProvisioningDriverListener {
+public class CliProvisioningDriverListner extends AbstractEventListener implements ProvisioningDriverListener {
+
+	private Logger logger = Logger.getLogger(CliProvisioningDriverListner.class.getName());
 	
-	void onProvisioningEvent(String eventName, Object... args);
-	
+	@Override
+	public void onProvisioningEvent(String eventName, Object... args) {
+		logger.info(getFormattedMessage(eventName, args));
+	}
+
 }

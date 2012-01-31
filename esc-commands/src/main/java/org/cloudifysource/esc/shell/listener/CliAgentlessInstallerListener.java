@@ -13,16 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.esc.driver.provisioning;
+package org.cloudifysource.esc.shell.listener;
+
+import java.util.logging.Logger;
+
+import org.cloudifysource.esc.installer.AgentlessInstallerListener;
 
 /**
- * a Listener for all published events in the DefaultProvisioningDriver class.
+ * Event listener for events originated in the AgentlessInstaller.
  * 
  * @author adaml
  *
  */
-public interface ProvisioningDriverListener {
+public class CliAgentlessInstallerListener extends AbstractEventListener implements AgentlessInstallerListener {
+
+	private Logger logger = Logger.getLogger(CliAgentlessInstallerListener.class.getName());
 	
-	void onProvisioningEvent(String eventName, Object... args);
+	@Override
+	public void onInstallerEvent(String eventName, Object... args) {
+		logger.info(getFormattedMessage(eventName, args));
+	}
 	
+
+
 }

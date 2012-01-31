@@ -92,7 +92,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 		limitLoggingLevel();
 		logger.info(getFormattedMessage("bootstrapping_cloud", cloudProvider));
 		try {
-			
+			// TODO: Create the event listeners here and pass them to the installer.
 			installer.boostrapCloudAndWait(timeoutInMinutes, TimeUnit.MINUTES);
 			return getFormattedMessage("cloud_started_successfully", cloudProvider);
 		} finally {
