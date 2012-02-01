@@ -80,7 +80,7 @@
 	
 	<target name="update_platform_version" depends="replace.xap.related.settings,replace.cloudify.build.number" unless="gs.internal.systems.not.available">
        <svn javahl="false" username="${svnant.repository.user}" password="${svnant.repository.passwd}" failonerror="false">
-           <commit message="803 Build version advanced to ${new.build.number}">
+           <commit message="803 Build version advanced to ${cloudify.build.number}">
            		<fileset dir="${basedir}">
        				<include name="**/${platform.verion.file.name}" />
    					<include name="${build.properties.file}" />
