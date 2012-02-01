@@ -471,7 +471,7 @@
 		
 		<delete dir="${tmp.dir}"/>
 		<mkdir dir="${tmp.dir}"/>
-		<get verbose="true" src="${cloudify.cdn.publish.url}/com/gigaspaces/${gs.version}.${}/gigaspaces-xap-premium-${gs.version}-ga-b${gs.build.number}.zip" dest="${tmp.dir}"/>
+		<get verbose="true" src="${cloudify.cdn.publish.url}/com/gigaspaces/${gs.version}.${s3.gs.publish.folder.suffix}/gigaspaces-xap-premium-${gs.version}-ga-b${gs.build.number}.zip" dest="${tmp.dir}"/>
 		<unzip src="${tmp.dir}/${xap.zip.name}" dest="${tmp.dir}" />
 		<delete file="${tmp.dir}/${xap.zip.name}"/>		
 		<move file="${tmp.dir}/${xap.installation.dir}" tofile="${tmp.dir}/${cloudify.installation.dir}" />
