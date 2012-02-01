@@ -60,13 +60,10 @@
 	<property name="cloudify.base.container" value="gigaspaces-repository" />
 	<property name="cloudify.cdn.publish.url" value="http://repository.openspaces.org" />
  	<property name="cloudify.put.target" value="org/cloudifysource/${cloudify.version}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
-  	<property name="cloudify.put.source" value="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
+ 	<property name="cloudify.put.source" value="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
 	<property name="tools.lib.dir" value="${basedir}/tools/lib" />
 	<property name="cloudify.base.container" value="gigaspaces-repository" />
 	<property name="cloudify.base.publish.url" value="https://s3.amazonaws.com/${cloudify.base.container}" />
-	<property name="cloudify.cdn.publish.url" value="http://repository.openspaces.org" />
-  	<property name="cloudify.put.target" value="org/cloudifysource/${cloudify.version}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
-  	<property name="cloudify.put.source" value="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
 	<property name="build.properties.file" value="build.properties"/>
 	<taskdef resource="org/tigris/subversion/svnant/svnantlib.xml" classpath="${tools.lib.dir}/svn/svnant.jar;${tools.lib.dir}/svn/svnClientAdapter.jar"/>
 							
