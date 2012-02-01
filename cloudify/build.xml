@@ -10,7 +10,7 @@
 -->
 
 
-<project name="Cloudify-Assembly" default="prepare.cloudify.package" basedir=".">
+<project name="Cloudify-Assembly" default="usage" basedir=".">
 	
 	<condition property="build.repository.path" value="\\tarzan\builds">
 		<os family="windows" />
@@ -88,6 +88,16 @@
            </commit>
        </svn>
    </target>
+	
+	<target name="usage">
+	        <echo message=""/>
+	        <echo message="Cloudify build script"/>
+	        <echo message="-----------------------------------------"/>
+	        <echo message=""/>
+	        <echo message=""/>
+	        <echo message="cloudify.zip    --> creates Cloudify zip from sourcecode"/>
+	        <echo message=""/>
+	    </target>
 	
 	<target name="replace.cloudify.build.number" if="cloudify.build.number">
        <property name="build.number.field" value="BUILD_NUM" />
@@ -471,6 +481,7 @@
 		
 		<delete dir="${tmp.dir}"/>
 		<mkdir dir="${tmp.dir}"/>
+		<echo message="Please wait. Downloading ${cloudify.cdn.publish.url}/com/gigaspaces/${gs.version}.${s3.gs.publish.folder.suffix}/gigaspaces-xap-premium-${gs.version}-ga-b${gs.build.number}.zip." />
 		<get verbose="true" src="${cloudify.cdn.publish.url}/com/gigaspaces/${gs.version}.${s3.gs.publish.folder.suffix}/gigaspaces-xap-premium-${gs.version}-ga-b${gs.build.number}.zip" dest="${tmp.dir}"/>
 		<unzip src="${tmp.dir}/${xap.zip.name}" dest="${tmp.dir}" />
 		<delete file="${tmp.dir}/${xap.zip.name}"/>		
