@@ -78,7 +78,7 @@
 	
 	<!-- ${svnant.repository.user} and ${svnant.repository.passwd} are defined in Basic Settings of root configuration in QuickBUild -->
 	
-	<target name="update_platform_version" depends="replace.xap.related.settings,replace.cloudify.build.number" unless="gs.internal.systems.not.available">
+	<target name="update_platform_version" depends="replace.build.related.settings,replace.cloudify.build.number" unless="gs.internal.systems.not.available">
        <svn javahl="false" username="${svnant.repository.user}" password="${svnant.repository.passwd}" failonerror="false">
            <commit message="803 Build version advanced to ${cloudify.build.number}">
            		<fileset dir="${basedir}">
@@ -123,11 +123,14 @@
 		                                replace='${version.field} = "${cloudify.version}";'/>
    </target>
 	
-	<target name="replace.xap.related.settings" if="cloudify.build.number">
+	<target name="replace.build.related.settings" if="cloudify.build.number">
        <property name="gs.version.field" value="gs.version"/>
        <property name="gs.milestone.field" value="gs.milestone" />
        <property name="gs.build.number.field" value="gs.build.number" />
 	   <property name="s3.gs.publish.folder.suffix.field" value="s3.gs.publish.folder.suffix" />
+		<property name="cloudify.version.field" value="cloudify.version" />
+		<property name="cloudify.build.number.field" value="cloudify.build.number" />
+		<property name="cloudify.milestone.field" value="cloudify.milestone" />
 	
        <replaceregexp file="${build.properties.file}"
             match="${gs.version.field}=(.*)"
@@ -144,6 +147,18 @@
 		<replaceregexp file="${build.properties.file}"
             match="${s3.gs.publish.folder.suffix.field}=(.*)"
             replace="${s3.gs.publish.folder.suffix.field}=${s3.gs.publish.folder.suffix}"/>
+		
+		<replaceregexp file="${build.properties.file}"
+            match="${cloudify.version.field}=(.*)"
+            replace="${cloudify.version.field}=${cloudify.version}"/>
+		
+		<replaceregexp file="${build.properties.file}"
+            match="${cloudify.build.number.field}=(.*)"
+            replace="${cloudify.build.number.field}=${cloudify.build.number}"/>
+		
+		<replaceregexp file="${build.properties.file}"
+            match="${cloudify.milestone.field}=(.*)"
+            replace="${cloudify.milestone.field}=${cloudify.milestone}"/>
    </target>
 	
     <target name="update.lus.groups">
