@@ -135,7 +135,7 @@
 
        <replaceregexp file="${build.properties.file}"
             match="${gs.milestone.field}=(.*)"
-            replace="${gs.milestone.field}=${gs.milestone};"/>
+            replace="${gs.milestone.field}=${gs.milestone}"/>
 
        <replaceregexp file="${build.properties.file}"
             match="${gs.build.number.field}=(.*)"
