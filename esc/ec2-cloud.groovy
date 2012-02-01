@@ -12,14 +12,14 @@ cloud {
 		localDirectory "tools/cli/plugins/esc/ec2/upload"
 		remoteDirectory "/home/ec2-user/gs-files"
 		cloudifyUrl "http://repository.openspaces.org/repository/org/cloudifysource/2.0.1/gigaspaces-cloudify-2.0.1-m1-b1190-5.zip" 
-		machineNamePrefix "gs_esm_gsa_"
+		machineNamePrefix "cloudify_agent_"
 		
 		dedicatedManagementMachines true
 		managementOnlyFiles ([])
 		
 
 		sshLoggingLevel "WARNING"
-		managementGroup "unit_test_management_machine"
+		managementGroup "cloudify_manager"
 		numberOfManagementMachines 1
 		zones (["agent"])
 		reservedMemoryCapacityPerMachineInMB 1024
