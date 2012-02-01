@@ -202,7 +202,6 @@
         <echo message="Copy CLOUDIFY Rest component"/>
         <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/rest/" overwrite="true">
             <fileset dir="${restful.local.copy}/target/" includes="rest.war" excludes=".svn"/>
-            <fileset dir="${restful.local.copy}/tools/restful" includes="restful.*" excludes=".svn"/>
         </copy>
 
         <echo message="Copy CLOUDIFY esc-command component"/>
