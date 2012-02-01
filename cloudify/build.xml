@@ -28,17 +28,13 @@
             <os family="unix" />
     </condition>
 	
+	<loadproperties srcfile="${basedir}/build.properties" />
+	
     <property environment="env."/>
 	<property name="tmp.dir" value="${basedir}/tmp" />
-	<property name="gs.version" value="8.0.6" />
-	<property name="gs.build.number" value="6191-13" />
-	<property name="gs.milestone" value="ga" />
 	<property name="xap.installation.dir" value="gigaspaces-xap-premium-${gs.version}-${gs.milestone}" />
 	<property name="xap.zip.name" value="${xap.installation.dir}-b${gs.build.number}.zip" />
 	<property name="xap.zip.full.path" value="${build.repository.path}/${gs.version}/build_${gs.build.number}/xap-premium/1.5/${xap.zip.name}" />
-	<property name="cloudify.version" value="2.0.0" />
-	<property name="cloudify.build.number" value="998" />
-	<property name="cloudify.milestone" value="ga" />
 	<property name="cloudify.installation.dir" value="gigaspaces-cloudify-${cloudify.version}-${cloudify.milestone}" />
 	<property name="cloudify.zip.name" value="${cloudify.installation.dir}-b${cloudify.build.number}.zip" />
 	<property name="xap.zip.full.path" value="${build.repository.path}/cloudify/${cloudify.version}/build_${cloudify.build.number}/product/${xap.zip.name}" />
@@ -57,18 +53,22 @@
 	<property name="esc-commands.local.copy" value="${basedir}/../esc-commands" />
 	<property name="releases.dir" value="${basedir}/releases" />
 	<property name="build.prefix" value="build_" />
-	<property name="svnant.repository.user" value="opencm" />
-	<property name="svnant.repository.passwd" value="opencm" />
 	<property name="package.build" value="${basedir}/package_build" />
 	<property name="gigaspaces.related.folder" value="${package.build}/gigaspaces" />
 	<property name="gs-webui.related.folder" value="${package.build}/gs-webui" />
 	<property name="platform.verion.file.name" value="CloudifyVersion.java" />
-	
+	<property name="cloudify.base.container" value="gigaspaces-repository" />
+	<property name="cloudify.cdn.publish.url" value="http://repository.openspaces.org" />
+ 	<property name="cloudify.put.target" value="repository/org/cloudifysource/${cloudify.version}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
+  	<property name="cloudify.put.source" value="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
+	<property name="tools.lib.dir" value="${basedir}/tools/lib" />
 	<property name="cloudify.base.container" value="gigaspaces-repository" />
 	<property name="cloudify.base.publish.url" value="https://s3.amazonaws.com/${cloudify.base.container}" />
 	<property name="cloudify.cdn.publish.url" value="http://repository.openspaces.org" />
-  <property name="cloudify.put.target" value="org/cloudifysource/${cloudify.version}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
-  <property name="cloudify.put.source" value="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
+  	<property name="cloudify.put.target" value="org/cloudifysource/${cloudify.version}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
+  	<property name="cloudify.put.source" value="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
+	<property name="build.properties.file" value="build.properties"/>
+	<taskdef resource="org/tigris/subversion/svnant/svnantlib.xml" classpath="${tools.lib.dir}/svn/svnant.jar;${tools.lib.dir}/svn/svnClientAdapter.jar"/>
 							
 	<!-- these should be injected when running the publish build
 	<property name="publish.cloudify.build" value="run" /> 
@@ -76,16 +76,24 @@
 	<property name="put.key" value="AWS Key />
 	-->
 	
-	<target name="update_platform_version" depends="replace_build_number" unless="gs.internal.systems.not.available">
-       <!--svn javahl="false" username="${svnant.repository.user}" password="${svnant.repository.passwd}" failonerror="false">
-           <commit message="803 Build version advanced to ${new.build.number}" file="${platform.verion.file}" />
-       </svn-->
+	<!-- ${svnant.repository.user} and ${svnant.repository.passwd} are defined in Basic Settings of root configuration in QuickBUild -->
+	
+	<target name="update_platform_version" depends="replace.xap.related.settings,replace.cloudify.build.number" unless="gs.internal.systems.not.available">
+       <svn javahl="false" username="${svnant.repository.user}" password="${svnant.repository.passwd}" failonerror="false">
+           <commit message="803 Build version advanced to ${new.build.number}">
+           		<fileset dir="${basedir}">
+       				<include name="**/${platform.verion.file.name}" />
+   					<include name="${build.properties.file}" />
+   				</fileset>
+           </commit>
+       </svn>
    </target>
 	
-	<target name="replace_build_number" if="cloudify.build.number">
+	<target name="replace.cloudify.build.number" if="cloudify.build.number">
        <property name="build.number.field" value="BUILD_NUM" />
        <property name="milestone.field" value="MILESTONE" />
        <property name="build.type.field" value="BUILD_TYPE" />
+	   <property name="version.field" value="VERSION" />
 		
 	
        <replaceregexp file="${gigaspaces.related.folder}/src/java/com/j_spaces/kernel/${platform.verion.file.name}"
@@ -99,9 +107,36 @@
        <replaceregexp file="${gigaspaces.related.folder}/src/java/com/j_spaces/kernel/${platform.verion.file.name}"
                                 match="${build.type.field} = (.*)"
                                 replace='${build.type.field} = "${build.type}";'/>
+		
+		<replaceregexp file="${gigaspaces.related.folder}/src/java/com/j_spaces/kernel/${platform.verion.file.name}"
+		                                match="${version.field} = (.*)"
+		                                replace='${version.field} = "${cloudify.version}";'/>
    </target>
 	
-    <target name="updateLUSGroups">
+	<target name="replace.xap.related.settings" if="cloudify.build.number">
+       <property name="gs.version.field" value="gs.version"/>
+       <property name="gs.milestone.field" value="gs.milestone" />
+       <property name="gs.build.number.field" value="gs.build.number" />
+	   <property name="s3.gs.publish.folder.suffix.field" value="s3.gs.publish.folder.suffix" />
+	
+       <replaceregexp file="${build.properties.file}"
+            match="${gs.version.field}=(.*)"
+            replace="${gs.version.field}=${gs.version}"/>
+
+       <replaceregexp file="${build.properties.file}"
+            match="${gs.milestone.field}=(.*)"
+            replace="${gs.milestone.field}=${gs.milestone};"/>
+
+       <replaceregexp file="${build.properties.file}"
+            match="${gs.build.number.field}=(.*)"
+            replace="${gs.build.number.field}=${gs.build.number}"/>
+		
+		<replaceregexp file="${build.properties.file}"
+            match="${s3.gs.publish.folder.suffix.field}=(.*)"
+            replace="${s3.gs.publish.folder.suffix.field}=${s3.gs.publish.folder.suffix}"/>
+   </target>
+	
+    <target name="update.lus.groups">
         <echo message="Updating LUS Groups in directory: ${tmp.dir}/${cloudify.installation.dir} ..."/>
         <property name="lookup.group" value="gigaspaces-${CLOUDIFY}-${cloudify.version}-${cloudify.milestone}"/>
     	<replaceregexp match="LOOKUPGROUPS=(.*)" replace="LOOKUPGROUPS=&quot;${lookup.group}&quot;">
@@ -194,10 +229,16 @@
 		<chmod dir="${tmp.dir}/${cloudify.installation.dir}" includes="**/*.sh, **/*groovy*" perm="775"  />
 	</target>
 
-    <target name="prepare.cloudify.package" depends="unzip.xap">
+    <target name="prepare.cloudify.package">
+		<loadproperties srcfile="${basedir}/${build.properties.file}"/>
+    	<condition property="working.roles.exists">
+    		<resourceexists>
+                    <file file="${azure.local.copy}/WorkerRoles.zip"/>
+            </resourceexists>
+    	</condition>
     	<ant target="update.gs.runtime" />
     	<ant target="remove.xap.related.modules" />
-        <ant target="updateLUSGroups"/>
+        <ant target="update.lus.groups"/>
         <ant target="add.cloudify.modules"/>
         <ant target="replace.cloudify.license"/>
     	<ant target="add.azure.artifacts" />
@@ -217,6 +258,7 @@
 		<delete file="${tmp.dir}/${cloudify.installation.dir}/docs/xap-javadoc.zip" />
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/examples" />
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/tools/benchmark"/>
+		<delete dir="${tmp.dir}/${cloudify.installation.dir}/tools/maven/apache-maven-3.0.2"/>
 		<delete>	
             <fileset dir="${tmp.dir}/${cloudify.installation.dir}/bin" includes="gs-focalserver.*, gsInstance.*,
             startJiniTxMahalo.*, puInstance.*, gs-memcached.*, gs-ui.*"/>
@@ -268,30 +310,29 @@
        </copy>
    	</target>
 	
-	<target name="add.azure.artifacts">
+	<target name="add.azure.artifacts" if="working.roles.exists">
 		<copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure" failonerror="false">
        		<fileset dir="${azure.local.copy}" includes="azureconfig.exe*"/>
 		</copy>
 		
-		<delete dir="${builds.dir}${buildnumber}/${cloudify}/azure" includes="azureconfig.exe*" />
-		
-		<copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure" failonerror="false">
+		<copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure" failonerror="false" >
        		<fileset dir="${azure.local.copy}" includes="WorkerRoles.zip"/>
 		</copy>
-		
-		<unzip 
-			src="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles.zip" 
-			dest="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure"/>
 
+		<unzip 
+			dest="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure" 
+			src="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles.zip">
+		</unzip>
 		<delete file="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles.zip" />
+				
 	</target>
 	
-	<target name="prepare.and.copy.package" depends="update_platform_version,prepare.cloudify.package, copy.packages.to.build.repository" />
+	<target name="prepare.and.copy.package" depends="update_platform_version,unzip.xap,prepare.cloudify.package, copy.packages.to.build.repository" />
 	
 
 	<target name="publish.cloudify.to.storage" if="publish.cloudify.build">
 		
-		<echo message="uploading cloudify installation to public storage at ${cloudify.base.publish.url}/${cloudify.put.target}" />
+		<echo message="uploading cloudify installation to public storage (S3) at: ${cloudify.put.target}" />
 			
 		<exec executable="${env.M2_HOME}/bin/${mvn.executable}">
 			<arg value="s3client:put" />
@@ -425,5 +466,23 @@
         <delete dir="${dst.tmp.dir}"/>
     </target>
 
+	<target name="download.xap">
+		<loadproperties srcfile="${basedir}/${build.properties.file}"/>
+		
+		<delete dir="${tmp.dir}"/>
+		<mkdir dir="${tmp.dir}"/>
+		<get verbose="true" src="${cloudify.cdn.publish.url}/com/gigaspaces/${gs.version}.${}/gigaspaces-xap-premium-${gs.version}-ga-b${gs.build.number}.zip" dest="${tmp.dir}"/>
+		<unzip src="${tmp.dir}/${xap.zip.name}" dest="${tmp.dir}" />
+		<delete file="${tmp.dir}/${xap.zip.name}"/>		
+		<move file="${tmp.dir}/${xap.installation.dir}" tofile="${tmp.dir}/${cloudify.installation.dir}" />
+		<chmod dir="${tmp.dir}/${cloudify.installation.dir}" includes="**/*.sh, **/*groovy*" perm="775"  />
+  	</target>
 
+	<target name="cloudify.install">
+		<exec dir="${basedir}" executable="${mvn.executable}">
+			<arg line="install -Dmaven.test.skip=true"/>
+		</exec>
+	</target>
+	
+	<target name="cloudify.zip" depends="download.xap, cloudify.install, prepare.cloudify.package" />
 </project>
