@@ -7,7 +7,7 @@
     <Instances count="2" />
     <ConfigurationSettings>
       <Setting name="GigaSpaces.WindowsAzure.TraceUploadPeriod" value="00:01" />
-      <Setting name="GigaSpaces.XAP.DownloadUrl" value="http%3A%2F%2Frepository.openspaces.org%2Forg%2Fcloudifysource%2F2.0.0%2Fgigaspaces-cloudify-2.0.0-ga-b998-385.zip" />
+      <Setting name="GigaSpaces.XAP.DownloadUrl" value="http%3A%2F%2Frepository.openspaces.org%2Frepository%2Forg%2Fcloudifysource%2F2.0.0%2Fgigaspaces-cloudify-2.0.0-ga-b998-395.zip" />
       <Setting name="GigaSpaces.JDK.DownloadUrl" value="http%3A%2F%2Frepository.cloudifysource.org%2Fcom%2Foracle%2Fjava%2F1.6.0_25%2Fjdk1.6.0_25_x64.zip" />
       <Setting name="GigaSpaces.XAP.NumberOfManagementRoleInstances" value="2" />
       <Setting name="GigaSpaces.XAP.UploadAgentLogs" value="false" />
@@ -37,7 +37,7 @@
     <ConfigurationSettings>
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=gigaspaces;AccountKey=6RjDHthW5QRP9aycTl5DX1wKuCpHWx/NwlqDUQs8iIdHwLobWfBZRcWvaLoHH8ac7qSJ5K1jnEWC7SrU6FF8+Q==" />
       <Setting name="GigaSpaces.WindowsAzure.TraceUploadPeriod" value="00:01" />
-      <Setting name="GigaSpaces.XAP.DownloadUrl" value="http%3A%2F%2Frepository.openspaces.org%2Forg%2Fcloudifysource%2F2.0.0%2Fgigaspaces-cloudify-2.0.0-ga-b998-385.zip" />
+      <Setting name="GigaSpaces.XAP.DownloadUrl" value="http%3A%2F%2Frepository.openspaces.org%2Frepository%2Forg%2Fcloudifysource%2F2.0.0%2Fgigaspaces-cloudify-2.0.0-ga-b998-395.zip" />
       <Setting name="GigaSpaces.JDK.DownloadUrl" value="http%3A%2F%2Frepository.cloudifysource.org%2Fcom%2Foracle%2Fjava%2F1.6.0_25%2Fjdk1.6.0_25_x64.zip" />
       <Setting name="GigaSpaces.XAP.NumberOfManagementRoleInstances" value="2" />
       <Setting name="GigaSpaces.XAP.UploadAgentLogs" value="false" />
@@ -64,7 +64,7 @@
     <Instances count="2" />
     <ConfigurationSettings>
       <Setting name="GigaSpaces.WindowsAzure.TraceUploadPeriod" value="00:01" />
-      <Setting name="GigaSpaces.XAP.DownloadUrl" value="http%3A%2F%2Frepository.openspaces.org%2Forg%2Fcloudifysource%2F2.0.0%2Fgigaspaces-cloudify-2.0.0-ga-b998-385.zip" />
+      <Setting name="GigaSpaces.XAP.DownloadUrl" value="http%3A%2F%2Frepository.openspaces.org%2Frepository%2Forg%2Fcloudifysource%2F2.0.0%2Fgigaspaces-cloudify-2.0.0-ga-b998-395.zip" />
       <Setting name="GigaSpaces.JDK.DownloadUrl" value="http%3A%2F%2Frepository.cloudifysource.org%2Fcom%2Foracle%2Fjava%2F1.6.0_25%2Fjdk1.6.0_25_x64.zip" />
       <Setting name="GigaSpaces.XAP.NumberOfManagementRoleInstances" value="2" />
       <Setting name="GigaSpaces.XAP.UploadAgentLogs" value="false" />
