@@ -33,6 +33,10 @@ service {
 		}
 	}
 	
+	customCommands ([
+        "updateWar" : "update_war.groovy"
+    ])
+	
 	plugins([		
 		plugin {
 			name "jmx"
