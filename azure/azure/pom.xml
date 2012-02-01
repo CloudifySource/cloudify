@@ -15,6 +15,13 @@
 	<properties>
 		<skipTests>true</skipTests>
 	</properties>
+	
+	<repositories>
+		<repository>
+			<id>org.openspaces</id>
+			<url>http://maven-repository.openspaces.org</url>
+		</repository>
+	</repositories>
 
 	<dependencies>
 		<dependency>
@@ -204,12 +211,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
-	<repositories>
-		<repository>
-			<id>org.cloudifysource</id>
-			<url>http://maven-repository.openspaces.org</url>
-		</repository>
-	</repositories>
-
 </project>
