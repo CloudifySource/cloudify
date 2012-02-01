@@ -59,7 +59,7 @@
 	<property name="platform.verion.file.name" value="CloudifyVersion.java" />
 	<property name="cloudify.base.container" value="gigaspaces-repository" />
 	<property name="cloudify.cdn.publish.url" value="http://repository.openspaces.org" />
- 	<property name="cloudify.put.target" value="repository/org/cloudifysource/${cloudify.version}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
+ 	<property name="cloudify.put.target" value="org/cloudifysource/${cloudify.version}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
   	<property name="cloudify.put.source" value="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
 	<property name="tools.lib.dir" value="${basedir}/tools/lib" />
 	<property name="cloudify.base.container" value="gigaspaces-repository" />
