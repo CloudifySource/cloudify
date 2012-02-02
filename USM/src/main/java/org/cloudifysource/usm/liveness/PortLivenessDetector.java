@@ -118,7 +118,7 @@ PreStartListener {
 	public EventResult onPreStart(StartReason reason) {
 		for (Integer port : this.portList) {
 		
-			if(ServiceUtils.arePortOccupied(port)) {
+			if(ServiceUtils.isPortOccupied(port)) {
 				throw new IllegalStateException("The Port Liveness Detector found that port "
 						+ port + " is IN USE before the process was launched!");
 
