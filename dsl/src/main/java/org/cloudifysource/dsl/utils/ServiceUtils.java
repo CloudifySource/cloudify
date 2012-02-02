@@ -45,7 +45,7 @@ public class ServiceUtils {
 	 * @return
 	 * @return - true if all ports are free
 	 */
-	public static boolean isPortsFree(List<Integer> portList) {
+	public static boolean arePortsFree(List<Integer> portList) {
 		int portCounter = 0;
 		for (int port : portList) {
 			if (!isPortOccupied(port)){

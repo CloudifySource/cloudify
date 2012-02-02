@@ -23,7 +23,7 @@ import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.junit.Assert;
 import org.junit.Test;
 /**
- * This test will open some ports and test arePortsOccupied, isPortOccupied, isPortFree, isPortsFree.
+ * This test will open some ports and test arePortsOccupied, isPortOccupied, isPortFree, arePortsFree.
  * @author adaml
  *
  */
@@ -52,24 +52,24 @@ public class PortDetectionTest {
 		Assert.assertTrue("port 4446 is not open", ServiceUtils.isPortOccupied(4446));
 		//Test arePortsOccupied:
 		Assert.assertTrue("arePortsOccupied failed to detect all ports are occupied.", ServiceUtils.arePortsOccupied(ports));
-		//Test isPortsFree:
-		Assert.assertFalse("isPortsFree failed to detect all ports are open.", ServiceUtils.isPortsFree(ports));
+		//Test arePortsFree:
+		Assert.assertFalse("arePortsFree failed to detect all ports are open.", ServiceUtils.arePortsFree(ports));
 		
 		//close one of the open ports
 		closePort(4445);
 		
 		//Test arePortsOccupied:
 		Assert.assertFalse("arePortsOccupied found port 4445 is occupied.", ServiceUtils.arePortsOccupied(ports));
-		//Test isPortsFree:
-		Assert.assertFalse("isPortsFree failed to detect all ports are open.", ServiceUtils.isPortsFree(ports));
+		//Test arePortsFree:
+		Assert.assertFalse("arePortsFree failed to detect all ports are open.", ServiceUtils.arePortsFree(ports));
 		
 		//************Close all ports opened.***********
 		closeAllPorts();
 		
 		//Test arePortsOccupied:
 		Assert.assertFalse("arePortsOccupied detected that some ports are still occupied.", ServiceUtils.arePortsOccupied(ports));
-		//Test isPortsFree:
-		Assert.assertTrue("isPortsFree detected that some ports are still occupied.", ServiceUtils.isPortsFree(ports));
+		//Test arePortsFree:
+		Assert.assertTrue("arePortsFree detected that some ports are still occupied.", ServiceUtils.arePortsFree(ports));
 	}
 
 	private void openPorts(List<Integer> ports) {
