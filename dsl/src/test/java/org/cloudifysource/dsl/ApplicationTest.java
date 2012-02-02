@@ -15,28 +15,38 @@
  *******************************************************************************/
 package org.cloudifysource.dsl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.io.File;
 
-import org.cloudifysource.dsl.Application;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
 
+/***********
+ * JUnit test.
+ * @author barakme
+ *
+ */
 public class ApplicationTest {
 
-	private final static String SIMPLE_APP_PATH = "testResources/applications/simple/simple-application.groovy";
-	
+	private static final String SIMPLE_APP_PATH = "testResources/applications/simple/simple-application.groovy";
+
+	/***********
+	 * Test DSL parsing of a basic application.
+	 * 
+	 * @throws Exception .
+	 */
 	@Test
 	public void testSimpleApplication() throws Exception {
-		Application app = ServiceReader.getApplicationFromFile(new File(SIMPLE_APP_PATH)).getApplication();
+		final Application app = ServiceReader.getApplicationFromFile(new File(SIMPLE_APP_PATH)).getApplication();
 		assertNotNull(app);
 		assertEquals(2, app.getServices().size());
 		assertNotNull(app.getServices().get(0).getLifecycle());
 		assertNotNull(app.getServices().get(1).getLifecycle());
 		assertEquals("icon2.jpg", app.getServices().get(1).getIcon());
-		
+
 	}
 
-	
 }
