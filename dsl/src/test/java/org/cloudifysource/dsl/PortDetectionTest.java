@@ -51,14 +51,14 @@ public class PortDetectionTest {
 		Assert.assertTrue("port 4445 is not open", ServiceUtils.isPortOccupied(4445));
 		Assert.assertTrue("port 4446 is not open", ServiceUtils.isPortOccupied(4446));
 		//Test arePortsOccupied:
-		Assert.assertTrue("isPortsOccupied failed to detect all ports are occupied.", ServiceUtils.arePortsOccupied(ports));
+		Assert.assertTrue("arePortsOccupied failed to detect all ports are occupied.", ServiceUtils.arePortsOccupied(ports));
 		//Test isPortsFree:
 		Assert.assertFalse("isPortsFree failed to detect all ports are open.", ServiceUtils.isPortsFree(ports));
 		
 		//close one of the open ports
 		closePort(4445);
 		
-		//Test isPortsOccupied:
+		//Test arePortsOccupied:
 		Assert.assertFalse("arePortsOccupied found port 4445 is occupied.", ServiceUtils.arePortsOccupied(ports));
 		//Test isPortsFree:
 		Assert.assertFalse("isPortsFree failed to detect all ports are open.", ServiceUtils.isPortsFree(ports));
