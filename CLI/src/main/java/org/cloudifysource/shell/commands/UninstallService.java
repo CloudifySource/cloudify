@@ -50,6 +50,8 @@ import org.cloudifysource.shell.rest.RestAdminFacade;
 @Command(scope = "grid", name = "uninstall-service", description = "undeploy a service")
 public class UninstallService extends AdminAwareCommand {
 
+	private static final int UNINSTALL_POOLING_INTERVAL = 5;
+
 	private static final String DEFAULT_APPLICATION_NAME = "default";
 
 	private static final String TIMEOUT_ERROR_MESSAGE = "Timeout waiting for service to uninstall";
@@ -76,10 +78,6 @@ public class UninstallService extends AdminAwareCommand {
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is"
 			+ " done. Defaults to 5 minutes.")
 	private int timeoutInMinutes = 5;
-
-	@Option(required = false, name = "-progress", description = "The polling time interval in seconds, used for"
-			+ " checking if the operation is done. Defaults to 5 seconds. Use together with the -timeout option")
-	private int progressInSeconds = 5;
 
 	/**
 	 * {@inheritDoc}
@@ -185,7 +183,7 @@ public class UninstallService extends AdminAwareCommand {
 	 * @return Configured condition latch
 	 */
 	private ConditionLatch createConditionLatch(final long timeout, final TimeUnit timeunit) {
-		return new ConditionLatch().timeout(timeout, timeunit).pollingInterval(progressInSeconds, TimeUnit.SECONDS)
+		return new ConditionLatch().timeout(timeout, timeunit).pollingInterval(UNINSTALL_POOLING_INTERVAL, TimeUnit.SECONDS)
 				.timeoutErrorMessage(TIMEOUT_ERROR_MESSAGE).verbose(verbose);
 	}
 
