@@ -148,7 +148,7 @@ public class OutputUtils {
 
 		simpleOutputObjectToMap(object, commandURL, commandName, outputMap);
 	}
-
+	
 	private static void simpleOutputObjectToMap(Object object,
 			String commandURL, String rawCommandName, Map<String, Object> outputMap){
 		Class<?> aClass = object.getClass();
@@ -199,6 +199,14 @@ public class OutputUtils {
 
 			}else{
 				outputMap.put(commandName, commandURL.concat("/" + commandName));
+				// Special treatment for enum objects.
+				resultObject = safeInvoke(method, object);
+				if (resultObject.getClass().isEnum()){
+					outputMap.put(commandName + "-Enumerator", resultObject.toString());
+				}
+				if (object.getClass().isEnum()){
+					outputMap.put(commandName + "-Enumerator", object.toString());
+				}
 			}
 		}
 
