@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+ * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.dsl;
+package org.cloudifysource.dsl.context;
 
-import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
-
-/*******
- * Domain Object for compute settings required for a specific service.
+/**************************
+ * Classes relating to the Cloudify Service Context.
  * 
- * @author barakme
  * 
- */
-@CloudifyDSLEntity(name = "compute", clazz = ComputeDetails.class, allowInternalNode = true, allowRootNode = false,
-		parent = "service")
-public class ComputeDetails {
-
-	private String template;
-
-	public String getTemplate() {
-		return template;
-	}
-
-	public void setTemplate(final String template) {
-		this.template = template;
-	}
-}
+ * @author barakme.
+ *****************************/
