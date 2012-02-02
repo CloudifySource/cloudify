@@ -5,7 +5,7 @@ application {
 
 	service {
 		name = "simple"
-		type = "hello"
+		type = "hello" 
 	}
 
 	service {
