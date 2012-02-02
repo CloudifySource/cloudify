@@ -88,7 +88,7 @@ public class ServiceUtils {
 	}
 
 	/**
-	 * isPortsOccupied will repeatedly test the connection to the ports defined in
+	 * arePortsOccupied will repeatedly test the connection to the ports defined in
 	 * the groovy configuration file to see whether the ports are open. Having
 	 * all the tested ports opened means that the process has completed loading
 	 * successfully and is up and running.
@@ -96,7 +96,7 @@ public class ServiceUtils {
 	 * @throws DSLException
 	 * 
 	 */
-	public static boolean isPortsOccupied(List<Integer> portList) {
+	public static boolean arePortsOccupied(List<Integer> portList) {
 		int portCounter = 0;
 		for (int port : portList) {
 			if (isPortOccupied(port)){

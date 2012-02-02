@@ -23,7 +23,7 @@ import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.junit.Assert;
 import org.junit.Test;
 /**
- * This test will open some ports and test isPortsOccupied, isPortOccupied, isPortFree, isPortsFree.
+ * This test will open some ports and test arePortsOccupied, isPortOccupied, isPortFree, isPortsFree.
  * @author adaml
  *
  */
@@ -50,8 +50,8 @@ public class PortDetectionTest {
 		Assert.assertTrue("port 4443 is not open", ServiceUtils.isPortOccupied(4443));
 		Assert.assertTrue("port 4445 is not open", ServiceUtils.isPortOccupied(4445));
 		Assert.assertTrue("port 4446 is not open", ServiceUtils.isPortOccupied(4446));
-		//Test isPortsOccupied:
-		Assert.assertTrue("isPortsOccupied failed to detect all ports are occupied.", ServiceUtils.isPortsOccupied(ports));
+		//Test arePortsOccupied:
+		Assert.assertTrue("isPortsOccupied failed to detect all ports are occupied.", ServiceUtils.arePortsOccupied(ports));
 		//Test isPortsFree:
 		Assert.assertFalse("isPortsFree failed to detect all ports are open.", ServiceUtils.isPortsFree(ports));
 		
@@ -59,15 +59,15 @@ public class PortDetectionTest {
 		closePort(4445);
 		
 		//Test isPortsOccupied:
-		Assert.assertFalse("isPortsOccupied found port 4445 is occupied.", ServiceUtils.isPortsOccupied(ports));
+		Assert.assertFalse("arePortsOccupied found port 4445 is occupied.", ServiceUtils.arePortsOccupied(ports));
 		//Test isPortsFree:
 		Assert.assertFalse("isPortsFree failed to detect all ports are open.", ServiceUtils.isPortsFree(ports));
 		
 		//************Close all ports opened.***********
 		closeAllPorts();
 		
-		//Test isPortsOccupied:
-		Assert.assertFalse("isPortsOccupied detected that some ports are still occupied.", ServiceUtils.isPortsOccupied(ports));
+		//Test arePortsOccupied:
+		Assert.assertFalse("arePortsOccupied detected that some ports are still occupied.", ServiceUtils.arePortsOccupied(ports));
 		//Test isPortsFree:
 		Assert.assertTrue("isPortsFree detected that some ports are still occupied.", ServiceUtils.isPortsFree(ports));
 	}
