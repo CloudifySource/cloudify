@@ -52,7 +52,7 @@ public class AzureDeploymentConfigurationFile extends AbstractAzureDeploymentFil
         try {
             urlEncodedGigaspacesURL = URLEncoder.encode(gigaSpacesUrl.toString(), "UTF-8");
         } catch (UnsupportedEncodingException e) {
-            throw new IllegalStateException("UTF-8 must exist");
+            throw new IllegalStateException("UTF-8 must exist", e);
         }
         
         getEditor().setNodeAttribute(
