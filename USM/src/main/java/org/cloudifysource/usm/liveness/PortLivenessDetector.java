@@ -52,7 +52,7 @@ import org.cloudifysource.usm.events.StartReason;
  * 2. By adding the following closures to the Service Groovy file in the following manner:
  * 
  * 		* Add the following command to the preStart Closure(Not a mandatory check):
- * 			ServiceUtils.isPortsFree([23894,34,3243], "127.0.0.1") //to see that the ports are available before process starts.
+ * 			ServiceUtils.arePortsFree([23894,34,3243], "127.0.0.1") //to see that the ports are available before process starts.
  * 		
  * 		* Add the following closure to the lifecycle closure:
  * 			startDetection {ServiceUtils.waitForPortToOpen([23894,34,3243],"127.0.0.1", 60)} //to see that the process has started and is using these ports.
@@ -98,7 +98,7 @@ PreStartListener {
 	@Override
 	public boolean isProcessAlive() throws TimeoutException {
 		logger.info("Testing if the following ports are open: " + this.portList.toString());
-		return ServiceUtils.isPortsOccupied(this.portList);
+		return ServiceUtils.arePortsOccupied(this.portList);
 	}
 
 	@Override
@@ -118,7 +118,7 @@ PreStartListener {
 	public EventResult onPreStart(StartReason reason) {
 		for (Integer port : this.portList) {
 		
-			if(ServiceUtils.isPortOccupied(port)) {
+			if(ServiceUtils.arePortOccupied(port)) {
 				throw new IllegalStateException("The Port Liveness Detector found that port "
 						+ port + " is IN USE before the process was launched!");
 
