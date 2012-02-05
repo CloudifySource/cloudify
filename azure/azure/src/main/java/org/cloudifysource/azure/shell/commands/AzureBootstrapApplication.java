@@ -153,7 +153,7 @@ public class AzureBootstrapApplication extends AbstractGSCommand {
 		}
 		if (azureDeploymentName == null) {
 			azureDeploymentName = azureHostedServiceName;
-			if (AzureSlot.Staging.equals(AzureSlot.fromString(azureDeploymentSlotName))) {
+			if (AzureSlot.Staging == AzureSlot.fromString(azureDeploymentSlotName)) {
 				azureDeploymentName += "-staging";
 			}
 		}

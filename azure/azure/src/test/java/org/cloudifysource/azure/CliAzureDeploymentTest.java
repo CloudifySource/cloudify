@@ -129,7 +129,7 @@ public class CliAzureDeploymentTest {
     //@Before
     public void before() throws Exception {
         
-        isDebugMode = Boolean.valueOf(System.getProperty(IS_DEBUG_MODE_SYSTEM_PROPERTY, Boolean.toString(false)));
+        isDebugMode = Boolean.parseBoolean(System.getProperty(IS_DEBUG_MODE_SYSTEM_PROPERTY, Boolean.toString(false)));
         
         String localWorkingDirPath = System.getProperty(LOCAL_WORKING_DIR_SYSTEM_PROPERTY_KEY);
         Assert.assertNotNull(LOCAL_WORKING_DIR_SYSTEM_PROPERTY_KEY + " system property has to exists", localWorkingDirPath);
