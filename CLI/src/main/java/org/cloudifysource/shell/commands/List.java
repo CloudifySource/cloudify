@@ -36,7 +36,7 @@ import org.cloudifysource.shell.ComponentType;
  * 
  *        Command syntax: list component-type
  */
-
+@Deprecated
 @Command(scope = "cloudify", name = "list", description = "Lists all running component of a certain type")
 public class List extends AdminAwareCommand {
 

@@ -16,7 +16,7 @@
 ##---------------------------------------------------------------------------
 org.cloudifysource.shell.commands.Exit
 org.cloudifysource.shell.commands.Version
-org.cloudifysource.shell.commands.List
+#org.cloudifysource.shell.commands.List
 org.cloudifysource.shell.commands.Bye
 org.cloudifysource.shell.commands.Quit
 org.cloudifysource.shell.commands.ListInstances
@@ -46,3 +46,5 @@ org.cloudifysource.shell.commands.StartAgent
 org.cloudifysource.shell.commands.StartManagement
 org.cloudifysource.shell.commands.ShutdownAgent
 org.cloudifysource.shell.commands.ShutdownManagement
+org.cloudifysource.shell.commands.ListServices
+org.cloudifysource.shell.commands.ListApplications
