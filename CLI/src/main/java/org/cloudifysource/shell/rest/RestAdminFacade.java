@@ -397,8 +397,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 
 		try {
 			applicationsList = (List<String>) client.get("/service/applications");
-		} catch (final RestException e) {
-			throw new CLIException(e);
+		} catch (final ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
 
 		return applicationsList;
@@ -473,6 +473,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			final Map<String, String> params = new HashMap<String, String>();
 			params.put("timeout", Integer.toString(timeout));
 			client.post(url, params);
+		} catch (final ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		} catch (final RestException e) {
 			throw new CLIException(e);
 		}
