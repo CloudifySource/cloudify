@@ -82,7 +82,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 				urlObj = getUrlWithDefaultPort(urlObj);
 			}
 		} catch (final MalformedURLException e) {
-			throw new CLIStatusException("could_not_parse_url", url);
+			throw new CLIStatusException("could_not_parse_url", url, e);
 		}
 
 		try {
@@ -144,7 +144,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 
 			if (serviceStatusMap.containsKey("ClusterSchema")
 					&& "partitioned-sync2backup".equals(serviceStatusMap.get("ClusterSchema"))) {
-				calcedNumberOfInstances = Integer.valueOf((String) serviceStatusMap.get("TotalNumberOfInstances"));
+				calcedNumberOfInstances = Integer.parseInt((String) serviceStatusMap.get("TotalNumberOfInstances"));
 			}
 
 			boolean serviceInstanceExists = false;
@@ -279,8 +279,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			for (int i = 0; i < currentNumberOfInstances; i++) {
 				final String instanceUrl = String.format(serviceMonitorsUrl, i);
 				final Map<String, Object> map = client.getAdminData(instanceUrl);
-				final int instanceState = Integer.valueOf((String) map.get(CloudifyConstants.USM_MONITORS_STATE_ID));
-				if (CloudifyConstants.USMState.values()[instanceState].equals(CloudifyConstants.USMState.RUNNING)) {
+				final int instanceState = Integer.parseInt((String) map.get(CloudifyConstants.USM_MONITORS_STATE_ID));
+				if (CloudifyConstants.USMState.values()[instanceState] == CloudifyConstants.USMState.RUNNING) {
 					runningServiceInstanceCounter++;
 				}
 			}
@@ -722,7 +722,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		final List<String> containerUris = (List<String>) container.get("Uids-Elements");
 		final Set<String> containerUids = new HashSet<String>();
 		for (final String containerUri : containerUris) {
-			final String uid = containerUri.substring(containerUri.lastIndexOf("/") + 1);
+			final String uid = containerUri.substring(containerUri.lastIndexOf('/') + 1);
 			containerUids.add(uid);
 		}
 		return containerUids;

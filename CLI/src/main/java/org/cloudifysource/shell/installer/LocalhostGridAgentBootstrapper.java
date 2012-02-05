@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -1068,12 +1069,13 @@ public class LocalhostGridAgentBootstrapper {
 		String esmJavaOptions = "-Xmx" + ESM_MEMORY_IN_MB + "m";
 		String gscJavaOptions = "";
 
+		final Map<String, String> environment = pb.environment();
 		if (lookupGroups != null) {
-			pb.environment().put("LOOKUPGROUPS", lookupGroups);
+			environment.put("LOOKUPGROUPS", lookupGroups);
 		}
 
 		if (lookupLocators != null) {
-			pb.environment().put("LOOKUPLOCATORS", lookupLocators);
+			environment.put("LOOKUPLOCATORS", lookupLocators);
 			final String disableMulticast = "-Dcom.gs.multicast.enabled=false";
 			gsaJavaOptions += " " + disableMulticast;
 			lusJavaOptions += " " + disableMulticast;
@@ -1083,18 +1085,18 @@ public class LocalhostGridAgentBootstrapper {
 		}
 
 		if (nicAddress != null) {
-			pb.environment().put("NIC_ADDR", nicAddress);
+			environment.put("NIC_ADDR", nicAddress);
 		}
 
 		if (zone != null) {
 			gsaJavaOptions += " -Dcom.gs.zones=" + zone;
 		}
 
-		pb.environment().put("GSA_JAVA_OPTIONS", gsaJavaOptions);
-		pb.environment().put("LUS_JAVA_OPTIONS", lusJavaOptions);
-		pb.environment().put("GSM_JAVA_OPTIONS", gsmJavaOptions);
-		pb.environment().put("ESM_JAVA_OPTIONS", esmJavaOptions);
-		pb.environment().put("GSC_JAVA_OPTIONS", gscJavaOptions);
+		environment.put("GSA_JAVA_OPTIONS", gsaJavaOptions);
+		environment.put("LUS_JAVA_OPTIONS", lusJavaOptions);
+		environment.put("GSM_JAVA_OPTIONS", gsmJavaOptions);
+		environment.put("ESM_JAVA_OPTIONS", esmJavaOptions);
+		environment.put("GSC_JAVA_OPTIONS", gscJavaOptions);
 
 		// start process
 		// there is no need to redirect output, since the process suppresses
