@@ -1057,7 +1057,8 @@ public class LocalhostGridAgentBootstrapper {
 		commandLine.addAll(Arrays.asList(command));
 		commandLine.addAll(Arrays.asList(args));
 
-		final File filename = createScript(StringUtils.collectionToDelimitedString(commandLine, " "));
+		final String commandString = StringUtils.collectionToDelimitedString(commandLine, " ");
+		final File filename = createScript(commandString);
 		final ProcessBuilder pb = new ProcessBuilder().command(filename.getAbsolutePath()).directory(directory);
 
 		String gsaJavaOptions = "-Xmx" + GSA_MEMORY_IN_MB + "m";
@@ -1102,7 +1103,24 @@ public class LocalhostGridAgentBootstrapper {
 		// there is no need to redirect output, since the process suppresses
 		// output
 		try {
-			pb.start();
+			logger.fine("Executing command: " + commandString);
+			Process proc = pb.start();
+			Thread.sleep(2000);
+			try{
+				// The assumption is that if the script contains errors, 
+				// the processBuilder will finish by the end of the above sleep period.
+				if (proc.exitValue() != 0){
+					String errorMessage = "Error while starting agent. " +
+									"Please make sure that another agent is not already running. ";
+					if (verbose){
+						errorMessage = errorMessage.concat("Command executed: " + commandString);
+					}
+					throw new CLIException(errorMessage);
+				}
+			// ProcessBuilder is still running. We assume the agent script is running fine.
+			}catch (IllegalThreadStateException e){
+				logger.fine("agent is starting...");
+			}
 		} catch (final IOException e) {
 			throw new CLIException("Error while starting agent", e);
 		}
