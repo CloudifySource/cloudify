@@ -51,7 +51,7 @@ public class RollingFileAppenderTailer implements Runnable{
 		public void handleLine(final String fileName, final String line);
 	}
 	
-	private class DefaultLineHandler implements LineHandler {
+	private static class DefaultLineHandler implements LineHandler {
 
 		@Override
 		public void handleLine(final String fileName, final String line) {

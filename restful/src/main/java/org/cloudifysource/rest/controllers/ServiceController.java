@@ -628,7 +628,7 @@ public class ServiceController {
 	Map<String, Object> addInstance(@PathVariable final String applicationName, @PathVariable final String serviceName,
 			@RequestBody final Map<String, String> params) {
 		String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-		int timeout = Integer.valueOf(params.get("timeout"));
+		int timeout = Integer.parseInt(params.get("timeout"));
 		ProcessingUnit processingUnit = admin.getProcessingUnits().waitFor(absolutePuName, PU_DISCOVERY_TIMEOUT_SEC,
 				TimeUnit.SECONDS);
 		if (processingUnit == null) {

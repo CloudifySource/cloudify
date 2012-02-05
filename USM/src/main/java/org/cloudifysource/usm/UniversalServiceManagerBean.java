@@ -483,7 +483,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 							int stateIndex = (Integer) stateObject;
 							USMState usmState = USMState.values()[stateIndex];
 							logger.info("PUI is in state: " + usmState);
-							if (usmState.equals(USMState.RUNNING)) {
+							if (usmState == USMState.RUNNING) {
 								logger.info("Found a running instance of dependant service: " + dependantService);
 								return;
 							}

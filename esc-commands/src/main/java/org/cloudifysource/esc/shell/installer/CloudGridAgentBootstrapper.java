@@ -127,7 +127,7 @@ public class CloudGridAgentBootstrapper {
 			provisioning.setConfig(cloud, cloud.getConfiguration()
 					.getManagementMachineTemplate(), true);
 		} catch (Exception e) {
-			throw new CLIException("Failed to load provisioning class from cloud: " + this.cloud);
+			throw new CLIException("Failed to load provisioning class from cloud: " + this.cloud, e);
 		}
 
 		
