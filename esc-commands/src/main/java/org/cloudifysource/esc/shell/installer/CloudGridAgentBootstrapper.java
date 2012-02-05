@@ -139,7 +139,7 @@ public class CloudGridAgentBootstrapper {
 			try {
 				servers = provisioning.startManagementMachines(timeout, timeoutUnit);
 			} catch (CloudProvisioningException e) {
-				throw new InstallerException("Failed to start managememnt servers", e);
+				throw new InstallerException("Failed to start managememnt servers. Reason: " + e.getMessage(), e);
 			}
 
 			if (servers.length == 0) {
@@ -188,12 +188,14 @@ public class CloudGridAgentBootstrapper {
 			}
 
 		} catch (IOException e) {
-			throw new CLIException("Cloudify bootstrap on provider " + this.cloud.getProvider().getProvider() + " failed.", e);
+			throw new CLIException("Cloudify bootstrap on provider "
+					+ this.cloud.getProvider().getProvider() + " failed. Reason: " + e.getMessage() , e);
 		} catch (URISyntaxException e) {
-			throw new CLIException("bootstrap-cloud failed", e);
-		}catch (TimeoutException e){
-			throw new CLIException("Cloudify bootstrap on provider "+ this.cloud.getProvider().getProvider() +" timed-out. " +
-							"Please try to run again using the –timeout option", e);
+			throw new CLIException("Bootstrap-cloud failed. Reason: " + e.getMessage(), e);
+		} catch (TimeoutException e) {
+			throw new CLIException("Cloudify bootstrap on provider "
+					+ this.cloud.getProvider().getProvider() + " timed-out. "
+					+ "Please try to run again using the –timeout option." , e);
 		}
 		
 	}
@@ -342,13 +344,13 @@ public class CloudGridAgentBootstrapper {
 						try {
 							installer.installOnMachineWithIP(detail, Utils.millisUntil(endTime), TimeUnit.MILLISECONDS);
 						} catch (TimeoutException e) {
-							logger.info("Failed accessing management VM " + detail.getPublicIp());
+							logger.info("Failed accessing management VM " + detail.getPublicIp() + " Reason: " + e.getMessage());
 							return e;
 						} catch (InterruptedException e) {
-							logger.info("Failed accessing management VM " + detail.getPublicIp());
+							logger.info("Failed accessing management VM " + detail.getPublicIp() + " Reason: " + e.getMessage());
 							return e;
 						} catch (InstallerException e) {
-							logger.info("Failed accessing management VM " + detail.getPublicIp());
+							logger.info("Failed accessing management VM " + detail.getPublicIp() + " Reason: " + e.getMessage());
 							return e;
 						}
 						return null;
@@ -371,10 +373,10 @@ public class CloudGridAgentBootstrapper {
 						if (e instanceof InstallerException) {
 							throw (InstallerException) e;
 						}
-						throw new InstallerException("Failed creating machines", e);
+						throw new InstallerException("Failed creating machines.", e);
 					}
 				} catch (ExecutionException e) {
-					throw new InstallerException("Failed creating machines", e);
+					throw new InstallerException("Failed creating machines.", e);
 				}
 			}
 
