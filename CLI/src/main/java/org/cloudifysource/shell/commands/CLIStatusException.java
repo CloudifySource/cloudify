@@ -15,6 +15,8 @@
  *******************************************************************************/
 package org.cloudifysource.shell.commands;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * @author noak
  * @since 2.0.0
@@ -64,5 +66,13 @@ public class CLIStatusException extends CLIException {
 	 */
 	public Object[] getArgs() {
 		return args;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String toString() {
+		return "CLIStatusException, reason code: " + reasonCode + ", message arguments: " + StringUtils.join(args, ", ");
 	}
 }

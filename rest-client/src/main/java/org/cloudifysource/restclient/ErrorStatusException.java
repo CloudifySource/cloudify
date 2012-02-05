@@ -15,6 +15,8 @@
  ******************************************************************************/
 package org.cloudifysource.restclient;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * This exception extends {@link org.cloudifysource.restclient.RestException}
  * to include a detailed error status.
@@ -91,5 +93,13 @@ public class ErrorStatusException extends RestException {
 	 */
 	public final Object[] getArgs() {
 		return args;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String toString() {
+		return "ErrorStatusException, reason code: " + reasonCode + ", message arguments: " + StringUtils.join(args, ", ");
 	}
 }
