@@ -97,7 +97,7 @@ public final class ShellUtils {
 		final String[] delimited = componentInstanceIDs.split(",");
 		final Set<Integer> intSet = new HashSet<Integer>();
 		for (final String str : delimited) {
-			intSet.add(Integer.parseInt(str));
+			intSet.add(Integer.valueOf(str));
 		}
 		return intSet;
 	}
@@ -137,7 +137,7 @@ public final class ShellUtils {
 		try {
 			return ComponentType.valueOf(lowerCaseComponentName.toUpperCase());
 		} catch (final IllegalArgumentException e) {
-			throw new CLIStatusException("unknown_component_type", lowerCaseComponentName);
+			throw new CLIStatusException("unknown_component_type", lowerCaseComponentName, e);
 		}
 	}
 

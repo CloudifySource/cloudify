@@ -56,7 +56,7 @@ public class Connect extends AbstractGSCommand {
 	 */
 	@Override
 	protected Object doExecute() throws Exception {
-		final AdminFacade adminFacade = (AbstractAdminFacade) session.get(Constants.ADMIN_FACADE);
+		final AdminFacade adminFacade = (AdminFacade) session.get(Constants.ADMIN_FACADE);
 		adminFacade.connect(user, password, url);
 		// We keep a reference to the facade so that the CompleterValue methods will be able
 		// to access it.

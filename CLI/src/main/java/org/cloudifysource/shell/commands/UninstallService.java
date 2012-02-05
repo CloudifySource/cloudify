@@ -165,7 +165,7 @@ public class UninstallService extends AdminAwareCommand {
 			final String answer = pr.readProperty();
 			System.out.println();
 			System.out.flush();
-			return "y".equalsIgnoreCase(answer) ? true : false;
+			return "y".equalsIgnoreCase(answer);
 
 		}
 		// Shell is running in nonInteractive mode. we skip the question.

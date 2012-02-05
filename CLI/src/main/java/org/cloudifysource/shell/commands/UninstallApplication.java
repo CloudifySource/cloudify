@@ -177,8 +177,7 @@ public class UninstallApplication extends AdminAwareCommand {
 			final String readLine = pr.readProperty();
 			System.out.println();
 			System.out.flush();
-			return "y".equalsIgnoreCase(readLine) ? true : false;
-
+			return "y".equalsIgnoreCase(readLine);
 		}
 		// Shell is running in nonInteractive mode. we skip the question.
 		return true;

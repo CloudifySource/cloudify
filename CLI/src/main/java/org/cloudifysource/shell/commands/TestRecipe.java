@@ -477,10 +477,9 @@ public class TestRecipe extends AbstractGSCommand {
 	private String getJavaPath() {
 		final long pid = SigarHolder.getSigar().getPid();
 		try {
-			final String javaName = SigarHolder.getSigar().getProcExe(pid).getName();
-			return javaName;
+			return SigarHolder.getSigar().getProcExe(pid).getName();
 		} catch (final SigarException e) {
-			throw new IllegalStateException("Failed to read java path via sigar from current process (" + pid + ")");
+			throw new IllegalStateException("Failed to read java path via sigar from current process (" + pid + ")", e);
 		}
 	}
 
@@ -498,7 +497,7 @@ public class TestRecipe extends AbstractGSCommand {
 			throw new IllegalStateException(
 					"The java.io.tmpdir property is null. Can't create a temporary directory for service unpacking");
 		}
-		if (tmpDir.indexOf(" ") >= 0) {
+		if (tmpDir.indexOf(' ') >= 0) {
 
 			targetDir = new File("Recipe_Test_Temp_Files" + File.separator + "Test_" + System.currentTimeMillis());
 			if (!targetDir.mkdirs()) {
