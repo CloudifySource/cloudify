@@ -22,8 +22,7 @@ import java.util.logging.ErrorManager;
  * @author rafi, barakm
  * @since 2.0.0
  * 
- *        This extension of the {@link ErrorManager} prints data about occurring exceptions to the error
- *        stream.
+ *        This extension of {@link ErrorManager} prints data about occurring exceptions to the error stream.
  * 
  */
 public class ShellErrorManager extends ErrorManager {

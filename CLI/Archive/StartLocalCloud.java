@@ -58,7 +58,7 @@ import javax.jms.IllegalStateException;
 
 /**
  * @author rafi
- * @since 8.0.3
+ * @since 2.0.0
  */
 @Command(scope = "cloudify", name = "start-local-cloud", description = "starts a local cloud")
 public class StartLocalCloud extends AbstractGSCommand {

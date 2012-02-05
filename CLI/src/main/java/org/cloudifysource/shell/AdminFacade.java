@@ -284,7 +284,7 @@ public interface AdminFacade {
 	 * @param timeoutErrorMessage
 	 *            A message to use when throwing TimeoutException
 	 * @param timeout
-	 *            Number of {@link TimeUnit} to wait
+	 *            Number of {@link TimeUnit}s to wait
 	 * @param timeunit
 	 *            The time unit to use for the timeout definition
 	 * @return returns true when the required number of instances is installed

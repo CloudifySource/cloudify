@@ -28,7 +28,7 @@ import org.cloudifysource.shell.commands.CLIException;
  * 
  *        The ConditionLatch waits for a specific process (defined as a {@link Predicate}) to complete. It
  *        samples its status according to a specified polling interval and if the process is not completed
- *        beofe the specified timeout is reached, a {@link TimeoutException} is thrown, with the configured
+ *        before the specified timeout is reached, a {@link TimeoutException} is thrown, with the configured
  *        error message.
  */
 public class ConditionLatch {

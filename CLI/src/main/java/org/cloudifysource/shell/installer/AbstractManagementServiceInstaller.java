@@ -34,11 +34,11 @@ import org.openspaces.core.util.MemoryUnit;
  * @author eitany
  * @since 2.0.0
  * 
- *        This abstract is the skeleton of a management service installer, including the basic members that
- *        every management service installer will use: {@link Admin}, a definition of memory quota, a service
+ *        This abstract is the skeleton of a management service installer, and includes the basic members that
+ *        every management service installer use: {@link Admin}, a definition of memory quota, a service
  *        name and a zone name (might be identical to the service name).
  * 
- *        Extending installers must implement install() and waitForInstallation(AdminFacade, GridServiceAgent,
+ *        Installers extending this skeleton must implement install() and waitForInstallation(AdminFacade, GridServiceAgent,
  *        long, TimeUnit)
  */
 public abstract class AbstractManagementServiceInstaller {
@@ -117,12 +117,12 @@ public abstract class AbstractManagementServiceInstaller {
 	}
 
 	/**
-	 * Set the progess in various time units.
+	 * Set the progress (polling interval), in various time units.
 	 * 
 	 * @param progress
-	 *            number of time units
+	 *            Number of {@link TimeUnit}s
 	 * @param timeunit
-	 *            time unit to use
+	 *            The time unit to use
 	 */
 	public void setProgress(final int progress, final TimeUnit timeunit) {
 		this.progressInSeconds = timeunit.toSeconds(progress);

@@ -40,7 +40,7 @@ import org.cloudifysource.shell.rest.ErrorStatusException;
 
 /**
  * @author barakme
- * @since 8.0.4
+ * @since 2.0.0
  */
 @Command(scope = "cloudify", name = "add-machine", description = "Sets up a new host preconfigured for the service zone")
 public class AddBareMetalInstance extends AdminAwareCommand {

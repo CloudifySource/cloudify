@@ -37,7 +37,7 @@ import org.openspaces.core.util.MemoryUnit;
  * @author rafi, barakm
  * @since 2.0.0
  * 
- *        Handles the installation of a management spaces
+ *        Handles the installation of a management space
  * 
  */
 public class ManagementSpaceServiceInstaller extends AbstractManagementServiceInstaller {

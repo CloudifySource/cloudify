@@ -428,7 +428,7 @@ public class ServiceController {
 	 *    
 	 * @param applicationName The application name.
 	 * @param serviceName The service name.
-	 * @param beanName depreciated.
+	 * @param beanName deprecated.
 	 * @param params The command parameters.
 	 * @return a Map containing the result of each invocation on a service instance.
 	 */

@@ -32,7 +32,7 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
  *        Optional arguments:
  *         lookup-groups - A unique name that is used to group together Cloudify components.
  *         Override in order to teardown a specific local cloud running on the local machine.
- *         nic-address - The ip address of the local host network card. Specify when local machine has more
+ *         nic-address - The IP address of the local host network card. Specify when local machine has more
  *         than one network adapter, and a specific network card should be used for network communication.
  *         timeout - The number of minutes to wait until the operation is completed (default: 5 minutes)
  *  

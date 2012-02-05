@@ -162,7 +162,7 @@ public final class ShellUtils {
 	}
 
 	/**
-	 * Gets an "expected execution time" formatted message, with the current time in this format: HH:MM.
+	 * Gets an "expected execution time" formatted message, with the current time in this format: HH:mm.
 	 * 
 	 * @return a formatted "expected execution time" message
 	 */
@@ -214,7 +214,7 @@ public final class ShellUtils {
 
 	/**
 	 * Checks if the operating system on this machine is Windows.
-	 * @return true - if using Windows, false - otherwise.
+	 * @return True - if using Windows, False - otherwise.
 	 */
 	public static boolean isWindows() {
 		final String os = System.getProperty("os.name").toLowerCase();

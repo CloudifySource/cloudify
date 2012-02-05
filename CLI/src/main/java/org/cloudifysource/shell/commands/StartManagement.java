@@ -38,12 +38,12 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
  *        Optional arguments:
  *         lookup-groups - A unique name that is used to group together Cloudify components.
  *         Override in order to group together cloudify managements/agents on a network that supports multicast.
- *         nic-address - The ip address of the local host network card. Specify when local machine has more
+ *         nic-address - The IP address of the local host network card. Specify when local machine has more
  *         than one network adapter, and a specific network card should be used for network communication.
  *         timeout - The number of minutes to wait until the operation is completed (default: 5 minutes)
  *         lookup-locators - A list of IP addresses used to identify all management machines.
  *         Override when using a network without multicast support (Default: null).
- *         auto-shutdown - etermines if undeploying or scaling-in the last service instance on the machine also
+ *         auto-shutdown - determines if undeploying or scaling-in the last service instance on the machine also
  *         triggers agent shutdown (default: false).
  *         no-web-services - if set, no attempt to deploy the rest admin and web-ui will be made.
  *         no-management-space - if set, no attempt to deploy the management space will be made.

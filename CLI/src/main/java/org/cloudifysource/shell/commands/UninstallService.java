@@ -47,7 +47,7 @@ import org.cloudifysource.shell.rest.RestAdminFacade;
  * 
  *        Command syntax: uninstall-service [-timeout timeout] [-progress progress] service-name
  */
-@Command(scope = "grid", name = "uninstall-service", description = "undeploy a service")
+@Command(scope = "cloudify", name = "uninstall-service", description = "undeploy a service")
 public class UninstallService extends AdminAwareCommand {
 
 	private static final int UNINSTALL_POOLING_INTERVAL = 5;

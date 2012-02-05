@@ -28,8 +28,8 @@ import org.cloudifysource.shell.ShellUtils;
  * @author rafi, barakm
  * @since 2.0.0
  * 
- *        This extension of the {@link SimpleFormatter} supplies a specific formatting for log records when
- *        exceptions are thrown.
+ *        This extension of {@link SimpleFormatter} supplies custom formatting for log records
+ *        that refer to thrown exceptions.
  * 
  */
 public class ShellFormatter extends SimpleFormatter {

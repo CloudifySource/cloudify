@@ -27,17 +27,17 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
  * @author rafi, barakm
  * @since 2.0.0
  * 
- *        Starts Cloudify Agent without any zone,  and the Cloudify management processes on local machine.
+ *        Starts Cloudify Agent without any zone, and the Cloudify management processes on local machine.
  *        These processes are isolated from Cloudify processes running on other machines.
  *        
  *        Optional arguments:
  *         lookup-groups - A unique name that is used to group together Cloudify components (default: localcloud).
- *         nic-address - The ip address of the local host network card. pecify when local machine has more than one
+ *         nic-address - The IP address of the local host network card. Specify when local machine has more than one
  *          network adapter, and a specific network card should be used for network communication.
  *         timeout - The number of minutes to wait until the operation is completed (default: 5).
  * 
  *        Command syntax: bootstrap-localcloud [-lookup-groups lookup-groups] [-nic-address nic-address]
- *        				[-timeout timeout] name
+ *        				[-timeout timeout]
  */
 @Command(scope = "cloudify", name = "bootstrap-localcloud", description = "Starts Cloudify Agent without any zone,"
 		+ " and the Cloudify management processes on local machine. These processes are isolated from Cloudify "
