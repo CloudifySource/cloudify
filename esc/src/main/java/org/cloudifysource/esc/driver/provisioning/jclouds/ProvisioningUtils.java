@@ -38,7 +38,7 @@ public class ProvisioningUtils {
         final String[] delimited = componentInstanceIDs.split(",");
         final Set<Integer> intSet = new HashSet<Integer>();
         for (final String str : delimited) {
-            intSet.add(Integer.parseInt(str));
+            intSet.add(Integer.valueOf(str));
         }
         return intSet;
     }

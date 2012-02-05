@@ -217,7 +217,7 @@ public class SSHExec extends SSHBase {
                     	logger.fine("cmd : " + cmd + " " + Project.MSG_INFO);
                         output.append(cmd).append(" : ");
                         executeCommand(session, cmd, output);
-                        output.append("\n");
+                        output.append('\n');
                     }
                     FileUtils.close(br);
                 } catch (IOException e) {

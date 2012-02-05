@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.vfs2.FileObject;
@@ -141,7 +142,7 @@ public class AgentlessInstaller {
 				sock.connect(addr, CONNECTION_TEST_SOCKET_CONNECT_TIMEOUT_MILLIS);
 				return;
 			} catch (final IOException e) {
-				logger.fine("Checking connection to: " + addr);
+				logger.log( Level.FINE, "Checking connection to: " + addr, e);
 				// retry
 			} finally {
 				if (sock != null) {
@@ -235,7 +236,7 @@ public class AgentlessInstaller {
 						return true;
 					}
 
-					if (fileInfo.getFile().getType().equals(FileType.FILE)) {
+					if (fileInfo.getFile().getType() == FileType.FILE) {
 						final long remoteSize = remoteFile.getContent().getSize();
 						final long localSize = fileInfo.getFile().getContent().getSize();
 						final boolean res = (localSize != remoteSize);
@@ -398,7 +399,9 @@ public class AgentlessInstaller {
 			// There really should be a better way to check that this is a
 			// timeout
 			if (e instanceof BuildTimeoutException) {
-				throw new TimeoutException("Command " + command + " failed to execute: " + e.getMessage());
+				TimeoutException ex = new TimeoutException("Command " + command + " failed to execute: " + e.getMessage());
+				ex.initCause(e);
+				throw ex;
 			} else if (e instanceof ExitStatusException) {
 				ExitStatusException ex = (ExitStatusException) e;
 				int ec = ex.getStatus();

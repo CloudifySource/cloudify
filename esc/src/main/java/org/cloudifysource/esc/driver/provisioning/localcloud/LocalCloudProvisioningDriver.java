@@ -42,7 +42,7 @@ public class LocalCloudProvisioningDriver implements ProvisioningDriver {
 		this.lookupGroups = cloud.getConfiguration().getLookupGroups();
 		this.nicAddress= cloud.getConfiguration().getNicAddress();
 		
-		this.verbose = (Boolean) getConfigValue(cloud.getCustom(), "verbose",false);
+		this.verbose = (Boolean) getConfigValue(cloud.getCustom(), "verbose", Boolean.FALSE);
 		this.teardownTimeoutInMinutes = (Integer) getConfigValue(cloud.getCustom(), "teardownTimeoutInMinutes",5);
 		this.bootstrapTimeoutInMinutes = (Integer) getConfigValue(cloud.getCustom(), "bootstrapTimeoutInMinutes",5);
 	}

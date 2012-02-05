@@ -50,7 +50,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Module;
 
 /************
- * A JClouds based deployer that creates and queries JClouds compliant servers.
+ * A JClouds based deployer that creates and queries JClouds complaint servers.
  * All of the JClouds features used in the cloud ESM Machine Provisioning are
  * called from this class.
  * 

@@ -572,8 +572,7 @@ public class DefaultProvisioningDriver implements ProvisioningDriver {
 							return false;
 						}
 						// only running or pending nodes are interesting
-						if (!(node.getState().equals(NodeState.RUNNING) || node.getState().equals(NodeState.PENDING))) {
-
+						if (!(node.getState() == NodeState.RUNNING || node.getState() == NodeState.PENDING)) {
 							return false;
 						}
 

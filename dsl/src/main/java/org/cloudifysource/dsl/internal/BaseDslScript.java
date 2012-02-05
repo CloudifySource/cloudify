@@ -21,6 +21,7 @@ import groovy.lang.Script;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -82,7 +83,7 @@ public abstract class BaseDslScript extends Script {
 						"Property assignment of field: "
 								+ name
 								+ " received an array with more then one item: "
-								+ arr);
+								+ Arrays.toString(arr));
 			}
 			applyPropertyToObject(this.activeObject, name, arr[0]);
 		} else {
