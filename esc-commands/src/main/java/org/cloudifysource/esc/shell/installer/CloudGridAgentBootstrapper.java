@@ -126,8 +126,10 @@ public class CloudGridAgentBootstrapper {
 			this.provisioning.addListener(new CliProvisioningDriverListener());
 			provisioning.setConfig(cloud, cloud.getConfiguration()
 					.getManagementMachineTemplate(), true);
+		} catch (ClassNotFoundException e) {
+			throw new CLIException("Failed to load provisioning class for cloud: " + this.cloud.getName() + ". Class not found: " + this.cloud.getConfiguration().getClassName(), e);
 		} catch (Exception e) {
-			throw new CLIException("Failed to load provisioning class from cloud: " + this.cloud, e);
+			throw new CLIException("Failed to load provisioning class for cloud: " + this.cloud.getName(), e);
 		}
 
 		
@@ -206,8 +208,10 @@ public class CloudGridAgentBootstrapper {
 		// load the provisioning class and set it up
 		try {
 			this.provisioning = (ProvisioningDriver) Class.forName(cloud.getConfiguration().getClassName()).newInstance();
+		} catch (ClassNotFoundException e) {
+			throw new CLIException("Failed to load provisioning class for cloud: " + this.cloud.getName() + ". Class not found: " + this.cloud.getConfiguration().getClassName(), e);
 		} catch (Exception e) {
-			throw new CLIException("Failed to load provisioning class from cloud: " + this.cloud, e);
+			throw new CLIException("Failed to load provisioning class for cloud: " + this.cloud.getName(), e);
 		}
 		provisioning.setConfig(cloud, cloud.getConfiguration().getManagementMachineTemplate(), true);
 		
