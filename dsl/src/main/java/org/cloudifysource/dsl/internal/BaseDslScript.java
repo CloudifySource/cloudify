@@ -303,7 +303,7 @@ public abstract class BaseDslScript extends Script {
 
 	}
 
-	private static Map<String, DSLObjectInitializerData> getDSLInitializers() {
+	private static synchronized Map<String, DSLObjectInitializerData> getDSLInitializers() {
 		if (dslObjectInitializersByName == null) {
 			dslObjectInitializersByName = new HashMap<String, BaseDslScript.DSLObjectInitializerData>();
 

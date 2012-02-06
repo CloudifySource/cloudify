@@ -15,7 +15,6 @@
  *******************************************************************************/
 package org.cloudifysource.dsl;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,15 +23,10 @@ import java.util.Map;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.openspaces.ui.UserInterface;
 
+@CloudifyDSLEntity(name = "service", clazz = Service.class, allowInternalNode = true, allowRootNode = true,
+		parent = "application")
+public class Service {
 
-@CloudifyDSLEntity(name = "service", clazz = Service.class, allowInternalNode = true, allowRootNode = true, parent = "application")
-public class Service implements Serializable {
-
-	/**
-     * 
-     */
-	private static final long serialVersionUID = 1L;
-	
 	private String name;
 	private String icon;
 	private String errorLoggerName;
@@ -56,34 +50,33 @@ public class Service implements Serializable {
 	private long maxJarSize = 150 * 1024 * 1024; // in bytes
 	private boolean keepFile = false;
 
-	
 	private Map<String, Object> customCommands = new HashMap<String, Object>();
 
 	private String type;
 
 	private StatelessProcessingUnit statelessProcessingUnit;
-	
+
 	private StatefulProcessingUnit statefulProcessingUnit;
-	
+
 	private DataGrid datagrid;
-	
+
 	private Memcached memcachedProcessingUnit;
-	
+
 	private MirrorProcessingUnit mirrorProcessingUnit;
-	
+
 	private Map<String, String> customProperties = new HashMap<String, String>();
 
 	private ComputeDetails compute;
-	
+
 	private LinkedList<String> extendedServicesPaths = new LinkedList<String>();
-	
+
 	public String getName() {
 		return name;
 	}
 
 	public void setName(final String name) {
 		this.name = name;
-	}	
+	}
 
 	@Override
 	public String toString() {
@@ -218,51 +211,43 @@ public class Service implements Serializable {
 		this.type = type;
 	}
 
-	public void setStatelessProcessingUnit(
-			StatelessProcessingUnit statelessProcessingUnit) {
+	public void setStatelessProcessingUnit(final StatelessProcessingUnit statelessProcessingUnit) {
 		if (this.statelessProcessingUnit == null) {
 			this.statelessProcessingUnit = statelessProcessingUnit;
 		} else if (this.statelessProcessingUnit != null) {
-			throw new IllegalStateException(
-					"DSL File contains more then 1 ProcessingUnit type");
+			throw new IllegalStateException("DSL File contains more then 1 ProcessingUnit type");
 		}
 	}
 
-	public void setMirrorProcessingUnit(
-			MirrorProcessingUnit mirrorProcessingUnit) {
+	public void setMirrorProcessingUnit(final MirrorProcessingUnit mirrorProcessingUnit) {
 		if (this.mirrorProcessingUnit == null) {
 			this.mirrorProcessingUnit = mirrorProcessingUnit;
 		} else if (this.mirrorProcessingUnit != null) {
-			throw new IllegalStateException(
-					"DSL File contains more then 1 ProcessingUnit type");
+			throw new IllegalStateException("DSL File contains more then 1 ProcessingUnit type");
 		}
 	}
 
-	public void setStatefulProcessingUnit(
-			StatefulProcessingUnit statefulProcessingUnit) {
+	public void setStatefulProcessingUnit(final StatefulProcessingUnit statefulProcessingUnit) {
 		if (this.statefulProcessingUnit == null) {
 			this.statefulProcessingUnit = statefulProcessingUnit;
-		} else if (this.statefulProcessingUnit != null){
-			throw new IllegalStateException(
-					"DSL File contains more then 1 ProcessingUnit type");
+		} else if (this.statefulProcessingUnit != null) {
+			throw new IllegalStateException("DSL File contains more then 1 ProcessingUnit type");
 		}
 	}
 
-	public void setDataGrid(DataGrid dataGrid) {
+	public void setDataGrid(final DataGrid dataGrid) {
 		if (this.datagrid == null) {
 			this.datagrid = dataGrid;
-		} else if (this.datagrid != null){
-			throw new IllegalStateException(
-					"DSL File contains more then 1 ProcessingUnit type");
+		} else if (this.datagrid != null) {
+			throw new IllegalStateException("DSL File contains more then 1 ProcessingUnit type");
 		}
 	}
 
-	public void setMemcached(Memcached memcached) {
+	public void setMemcached(final Memcached memcached) {
 		if (this.memcachedProcessingUnit == null) {
 			this.memcachedProcessingUnit = memcached;
-		} else if (this.memcachedProcessingUnit != null){
-			throw new IllegalStateException(
-					"DSL File contains more then one ProcessingUnit type");
+		} else if (this.memcachedProcessingUnit != null) {
+			throw new IllegalStateException("DSL File contains more then one ProcessingUnit type");
 		}
 	}
 
@@ -290,7 +275,7 @@ public class Service implements Serializable {
 		return customCommands;
 	}
 
-	public void setCustomCommands(Map<String, Object> customCommands) {
+	public void setCustomCommands(final Map<String, Object> customCommands) {
 		this.customCommands = customCommands;
 	}
 
@@ -298,7 +283,7 @@ public class Service implements Serializable {
 		return dependsOn;
 	}
 
-	public void setDependsOn(List<String> dependsOn) {
+	public void setDependsOn(final List<String> dependsOn) {
 		this.dependsOn = dependsOn;
 	}
 
@@ -306,18 +291,16 @@ public class Service implements Serializable {
 		return compute;
 	}
 
-	public void setCompute(ComputeDetails compute) {
+	public void setCompute(final ComputeDetails compute) {
 		this.compute = compute;
 	}
-	
-	public void setExtendedServicesPaths(
-			LinkedList<String> extendedServicesPaths) {
+
+	public void setExtendedServicesPaths(final LinkedList<String> extendedServicesPaths) {
 		this.extendedServicesPaths = extendedServicesPaths;
 	}
-	
+
 	public LinkedList<String> getExtendedServicesPaths() {
 		return extendedServicesPaths;
 	}
-	
-	
+
 }

@@ -28,7 +28,6 @@ import org.openspaces.admin.AdminException;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.core.cluster.ClusterInfo;
 
-
 /**
  * 
  * 
@@ -46,15 +45,14 @@ public class ServiceContext {
 	private String serviceName;
 
 	private String applicationName;
-	
+
 	private AttributesFacade attributesFacade;
 
 	public ServiceContext() {
 
 	}
 
-	public void init(final Service service, final Admin admin,
-			final String dir, ClusterInfo clusterInfo) {
+	public void init(final Service service, final Admin admin, final String dir, ClusterInfo clusterInfo) {
 		this.service = service;
 		this.admin = admin;
 		this.serviceDirectory = dir;
@@ -64,18 +62,15 @@ public class ServiceContext {
 			this.applicationName = CloudifyConstants.DEFAULT_APPLICATION_NAME;
 			this.serviceName = service.getName();
 		} else {
-			logger.info("Parsing full service name from PU name: "
-					+ clusterInfo.getName());
-			FullServiceName fullServiceName = ServiceUtils
-					.getFullServiceName(clusterInfo.getName());
+			logger.info("Parsing full service name from PU name: " + clusterInfo.getName());
+			FullServiceName fullServiceName = ServiceUtils.getFullServiceName(clusterInfo.getName());
 			logger.info("Got full service name: " + fullServiceName);
 			this.serviceName = fullServiceName.getServiceName();
 			this.applicationName = fullServiceName.getApplicationName();
 
 		}
 		if (admin != null) {
-			boolean found = this.admin.getLookupServices().waitFor(1, 30,
-					TimeUnit.SECONDS);
+			boolean found = this.admin.getLookupServices().waitFor(1, 30, TimeUnit.SECONDS);
 			if (!found) {
 				throw new AdminException(
 						"A service context could not be created as the Admin API could not find a lookup service in the network, using groups: "
@@ -88,17 +83,17 @@ public class ServiceContext {
 		initialized = true;
 	}
 
-	public void initInIntegratedContainer(final Service service,
-			final String dir) {
+	public void initInIntegratedContainer(final Service service, final String dir) {
 		this.service = service;
 		this.serviceDirectory = dir;
 		this.clusterInfo = new ClusterInfo(null, 1, 0, 1, 0);
 		if (service != null) {
 			this.clusterInfo.setName(service.getName());
+			this.serviceName = service.getName();
 		}
 
 		this.applicationName = CloudifyConstants.DEFAULT_APPLICATION_NAME;
-		this.serviceName = service.getName();
+		
 
 		this.attributesFacade = new AttributesFacade(this, admin);
 		initialized = true;
@@ -124,8 +119,7 @@ public class ServiceContext {
 	}
 
 	/********
-	 * Waits for the specified period of time until the service with the given
-	 * name becomes available.
+	 * Waits for the specified period of time until the service with the given name becomes available.
 	 * 
 	 * @param name
 	 *            the service name.
@@ -135,15 +129,12 @@ public class ServiceContext {
 	 *            the unit of time used with the timeout.
 	 * @return the Service.
 	 */
-	public org.cloudifysource.dsl.context.Service waitForService(
-			String name, int timeout, TimeUnit unit) {
+	public org.cloudifysource.dsl.context.Service waitForService(String name, int timeout, TimeUnit unit) {
 		checkInitialized();
 
 		if (this.admin != null) {
-			final String puName = ServiceUtils.getAbsolutePUName(
-					this.applicationName, name);
-			ProcessingUnit pu = waitForProcessingUnitFromAdmin(puName, timeout,
-					unit);
+			final String puName = ServiceUtils.getAbsolutePUName(this.applicationName, name);
+			ProcessingUnit pu = waitForProcessingUnitFromAdmin(puName, timeout, unit);
 			if (pu == null) {
 				return null;
 			} else {
@@ -153,8 +144,7 @@ public class ServiceContext {
 
 		// running in integrated container
 		if (name.equals(this.service.getName())) {
-			return new org.cloudifysource.dsl.context.Service(name,
-					service.getNumInstances());
+			return new org.cloudifysource.dsl.context.Service(name, service.getNumInstances());
 		}
 
 		throw new IllegalArgumentException(
@@ -162,14 +152,12 @@ public class ServiceContext {
 
 	}
 
-	private static final java.util.logging.Logger logger = java.util.logging.Logger
-			.getLogger(ServiceContext.class.getName());
+	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(ServiceContext.class
+			.getName());
 
-	private ProcessingUnit waitForProcessingUnitFromAdmin(String name,
-			long timeout, TimeUnit unit) {
+	private ProcessingUnit waitForProcessingUnitFromAdmin(String name, long timeout, TimeUnit unit) {
 
-		final ProcessingUnit pu = admin.getProcessingUnits().waitFor(name,
-				timeout, unit);
+		final ProcessingUnit pu = admin.getProcessingUnits().waitFor(name, timeout, unit);
 		if (pu == null) {
 			logger.warning("Processing unit with name: "
 					+ name
@@ -191,10 +179,8 @@ public class ServiceContext {
 	}
 
 	/**
-	 * Returns the Admin Object the underlies the Service Context. Note: this is
-	 * intended as a debugging aid, and should not be used by most application.
-	 * Only power users, familiar with the details of the Admin API, should use
-	 * it.
+	 * Returns the Admin Object the underlies the Service Context. Note: this is intended as a debugging aid, and should
+	 * not be used by most application. Only power users, familiar with the details of the Admin API, should use it.
 	 * 
 	 * @return
 	 */
@@ -226,17 +212,15 @@ public class ServiceContext {
 	public String getApplicationName() {
 		return applicationName;
 	}
-	
-	
+
 	public AttributesFacade getAttributes() {
 		return attributesFacade;
 	}
-	
+
 	@Override
 	public String toString() {
 		if (this.initialized) {
-			return "ServiceContext [dir=" + serviceDirectory + ", clusterInfo="
-					+ clusterInfo + "]";
+			return "ServiceContext [dir=" + serviceDirectory + ", clusterInfo=" + clusterInfo + "]";
 		} else {
 			return "ServiceContext [NOT INITIALIZED]";
 		}

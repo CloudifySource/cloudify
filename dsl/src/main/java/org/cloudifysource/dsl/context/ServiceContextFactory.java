@@ -40,7 +40,7 @@ public class ServiceContextFactory {
 	 * 
 	 * @return A newly created service context.
 	 */
-	public static ServiceContext getServiceContext() {
+	public  static synchronized ServiceContext getServiceContext() {
 
 		if (context == null) {
 
@@ -58,15 +58,16 @@ public class ServiceContextFactory {
 			} catch (DSLException e) {
 				throw new IllegalArgumentException("Failed to read service", e);
 			}
-			context = new ServiceContext();
+			ServiceContext newContext = new ServiceContext();
 
-			context.init(service, getAdmin(), new File(".").getAbsolutePath(),
+			newContext.init(service, getAdmin(), new File(".").getAbsolutePath(),
 					info);
+			context = newContext;
 		}
 		return context;
 	}
 
-	private static Admin getAdmin() {
+	private static synchronized Admin getAdmin() {
 		if (admin != null) {
 			return admin;
 		}
