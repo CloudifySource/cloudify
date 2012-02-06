@@ -602,10 +602,10 @@ public class LocalhostGridAgentBootstrapper {
 
 		String[] command;
 		if (isWindows()) {
-			command = WINDOWS_COMMAND;
+			command = Arrays.copyOf(WINDOWS_COMMAND, WINDOWS_COMMAND.length);
 			args.addAll(Arrays.asList(WINDOWS_ARGUMENTS_POSTFIX));
 		} else {
-			command = LINUX_COMMAND;
+			command = Arrays.copyOf(LINUX_COMMAND, LINUX_COMMAND.length);
 			args.addAll(Arrays.asList(LINUX_ARGUMENTS_POSTFIX));
 		}
 
