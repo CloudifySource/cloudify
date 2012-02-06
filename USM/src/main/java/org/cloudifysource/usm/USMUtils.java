@@ -252,7 +252,7 @@ public final class USMUtils {
 		}
 	}
 
-	public static Admin getAdmin() {
+	public static synchronized Admin getAdmin() {
 		if (admin != null) {
 			return admin;
 		}

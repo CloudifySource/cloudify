@@ -614,6 +614,9 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			// After the main process starts, wait for a short interval so if
 			// the process failed to
 			// start it will fail quickly here.
+			
+			// TODO - this method sleeps while holding the sleep mutex - 
+			// the sleep will be removed when we update the state machine for the USM.
 			try {
 				Thread.sleep(this.postLaunchWaitPeriodMillis);
 			} catch (final InterruptedException e) {
