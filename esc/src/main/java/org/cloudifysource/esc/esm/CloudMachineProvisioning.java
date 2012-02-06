@@ -284,7 +284,11 @@ public class CloudMachineProvisioning implements ElasticMachineProvisioning, Bea
 			}
 		});
 
-		gridServiceAgentAddedLatch.await(unit.toMillis(timeout), TimeUnit.MILLISECONDS);
+		final boolean result = gridServiceAgentAddedLatch.await(unit.toMillis(timeout), TimeUnit.MILLISECONDS);
+		if(!result) {
+			throw new TimeoutException("Timeout waiting for grid service agent.");
+		}
+		
 		final GridServiceAgent gsa = gsaRef.get();
 
 		if (gsa == null) {

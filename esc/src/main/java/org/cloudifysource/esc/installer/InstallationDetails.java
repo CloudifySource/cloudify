@@ -28,7 +28,7 @@ import com.gigaspaces.internal.utils.ReflectionUtils;
  * @author barakme
  * 
  */
-public class InstallationDetails {
+public class InstallationDetails implements Cloneable {
 
     // IPs of the machine to install. ssh must already be running.
 	private String publicIp;

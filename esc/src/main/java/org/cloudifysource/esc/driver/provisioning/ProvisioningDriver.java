@@ -21,90 +21,125 @@ import java.util.concurrent.TimeoutException;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.openspaces.admin.Admin;
 
-
-
-
 /*****************
- * The main interface for cloud driver implementations. All calls to scale-out/scale-in/bootstrap are executed via this interface.
- * A single instance of the implementing class will exist for each service in the cluster. An instance will also be created
- * when bootstrapping or tearing down a cloud environment.
+ * The main interface for cloud driver implementations. All calls to scale-out/scale-in/bootstrap are executed via this
+ * interface. A single instance of the implementing class will exist for each service in the cluster. An instance will
+ * also be created when bootstrapping or tearing down a cloud environment.
  * 
  * @author barakme
- *
+ * 
  */
 public interface ProvisioningDriver {
 
 	/**************
-	 * Adds a new ProvisioningDriverListner to the ProvisioningDriver.
+	 * Called once on startup of the cloud driver, passing the cloud configuration to it.
 	 * 
-	 * @param pdl A class that implements ProvisioningDriverListner.
-	 */
-	void addListener(ProvisioningDriverListener pdl);
-	/**************
-	 * Passes a configuration map for all setting defined for this cloud.
-	 * @param cloudTemplate 
-	 * @param cloud 
+	 * @param cloud
+	 *            The cloud configuration for this driver
+	 * @param cloudTemplate
+	 *            The template required for this cloud driver.
+	 * @param management
+	 *            true if this driver will launch management machines, false otherwise.
 	 * 
-	 * @param config The configuration settings.
 	 */
 	void setConfig(Cloud cloud, String cloudTemplate, boolean management);
-	
+
 	/**************
-	 * Passes an Admin API object that can be used to query the current cluster state.
-	 * IMPORTANT: do not perform any blocking operations on this Admin instance, 
+	 * Passes an Admin API object that can be used to query the current cluster state. The Admin API is typically only
+	 * required for advanced use cases, like BYON.
 	 * 
-	 * @param config The configuration settings.
+	 * IMPORTANT: do not perform any blocking operations on this Admin instance as it is running in single threaded
+	 * mode. Trying to use waitFor() methods on this instance will wither block forever or fail with a timeout.
+	 * 
+	 * @param admin
+	 *            an instance of the Admin API, running in single threaded mode.
 	 */
 	void setAdmin(Admin admin);
-	
-	
+
 	/***************
-	 * Starts an additional machine on the cloud to scale out this specific service.
-	 *   
-	 * @param duration Time duration to wait for the instance.
-	 * @param unit Time unit to wait for the instance.
+	 * Starts an additional machine on the cloud to scale out this specific service. In case of an error while
+	 * provisioning the machine, any allocated resources should be freed before throwing a CloudProvisioningException or
+	 * TimeoutException to the caller.
+	 * 
+	 * @param duration
+	 *            Time duration to wait for the instance.
+	 * @param unit
+	 *            Time unit to wait for the instance.
 	 * @return The details of the started instance.
-	 * @throws TimeoutException In case the instance was not started in the allotted time.
-	 * @throws CloudProvisioningException If a problem was encountered while starting the machine.
+	 * @throws TimeoutException
+	 *             In case the instance was not started in the allotted time.
+	 * @throws CloudProvisioningException
+	 *             If a problem was encountered while starting the machine.
 	 */
-	MachineDetails startMachine(long duration, TimeUnit unit) throws TimeoutException, CloudProvisioningException; 
+	MachineDetails startMachine(long duration, TimeUnit unit) throws TimeoutException, CloudProvisioningException;
 
 	/******************
-	 * Start the management machines for this cluster.
+	 * Start the management machines for this cluster. This method is called once by the cloud administrator when
+	 * bootstrapping a new cluster.
 	 * 
-	 * @param duration timeout duration.
-	 * @param unit timeout unit.
+	 * @param duration
+	 *            timeout duration.
+	 * @param unit
+	 *            timeout unit.
 	 * @return The created machine details.
-	 * @throws TimeoutException If creating the new machines exceeded the given timeout.
-	 * @throws CloudProvisioningException If the machines needed for management could not be provisioned.
-	 */
-	MachineDetails[] startManagementMachines(long duration, TimeUnit unit) throws TimeoutException, CloudProvisioningException;
-	
-	
-	/****************
-	 * Stops a specific machine for scaling in or shutting down a specific service.
+	 * @throws TimeoutException
+	 *             If creating the new machines exceeded the given timeout.
 	 * @throws CloudProvisioningException
+	 *             If the machines needed for management could not be provisioned.
 	 */
-	boolean stopMachine(final String machineIp, final long duration, final TimeUnit unit) throws InterruptedException, TimeoutException, CloudProvisioningException;
+	MachineDetails[] startManagementMachines(long duration, TimeUnit unit) throws TimeoutException,
+			CloudProvisioningException;
+
+	/**************************
+	 * Stops a specific machine for scaling in or shutting down a specific service.
+	 * 
+	 * @param machineIp
+	 *            host-name/IP of the machine to shut down.
+	 * @param duration
+	 *            time to wait for the shutdown operation.
+	 * @param unit
+	 *            time unit for the shutdown operations
+	 * @return true if the operation succeeded, false otherwise.
+	 * 
+	 * @throws InterruptedException
+	 *             If the operation was interrupted.
+	 * @throws TimeoutException
+	 *             If the operation exceeded the given timeout.
+	 * @throws CloudProvisioningException
+	 *             If the operation encountered an error.
+	 */
+	boolean stopMachine(final String machineIp, final long duration, final TimeUnit unit) throws InterruptedException,
+			TimeoutException, CloudProvisioningException;
 
 	/*************
 	 * Stops the management machines.
 	 * 
-	 * @throws TimeoutException in case the stop operation exceeded the given timeout.
-	 * @throws CloudProvisioningException If the stop operation failed.
+	 * @throws TimeoutException
+	 *             in case the stop operation exceeded the given timeout.
+	 * @throws CloudProvisioningException
+	 *             If the stop operation failed.
 	 */
-	void  stopManagementMachines() throws TimeoutException, CloudProvisioningException;
-	
+	void stopManagementMachines() throws TimeoutException, CloudProvisioningException;
+
 	/************
 	 * Returns the name of this cloud.
+	 * 
 	 * @return the name of the cloud.
 	 */
 	String getCloudName();
 
 	/*************
-	 * Called when the service that this provisioning implementation is responsible for scaling
-	 * is undeployed. The implementation is expected to release/close all relevant resources,
-	 * such as thread pools, sockets, files, etc.
+	 * Called when the service that this provisioning implementation is responsible for scaling is undeployed. The
+	 * implementation is expected to release/close all relevant resources, such as thread pools, sockets, files, etc.
 	 */
 	void close();
+
+	/**************
+	 * Adds a new listener. It is the responsibility of the cloud driver developer to publish a list of supported
+	 * events.
+	 * 
+	 * @param listener
+	 *            A class that implements ProvisioningDriverListner.
+	 */
+	void addListener(ProvisioningDriverListener listener);
 }
