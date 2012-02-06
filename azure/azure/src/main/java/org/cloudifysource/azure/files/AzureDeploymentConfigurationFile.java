@@ -17,7 +17,6 @@ package org.cloudifysource.azure.files;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.logging.Logger;
@@ -47,7 +46,7 @@ public class AzureDeploymentConfigurationFile extends AbstractAzureDeploymentFil
         }
     }
     
-    public void setGigaSpacesXAPDownloadUrl(URI gigaSpacesUrl) throws XMLXPathEditorException, MalformedURLException {
+    public void setGigaSpacesXAPDownloadUrl(URI gigaSpacesUrl) throws XMLXPathEditorException{
         String urlEncodedGigaspacesURL = null;
         try {
             urlEncodedGigaspacesURL = URLEncoder.encode(gigaSpacesUrl.toString(), "UTF-8");
