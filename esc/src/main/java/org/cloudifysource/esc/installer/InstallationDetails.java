@@ -186,8 +186,7 @@ public class InstallationDetails implements Cloneable {
 	}
 	
 	public void setManagementOnlyFiles(List<String> managementOnlyFiles) {
-		String[] managementOnlyFilesArray = (String[]) managementOnlyFiles.toArray(new String[0]);
-		this.managementOnlyFiles = managementOnlyFilesArray;
+		this.managementOnlyFiles = managementOnlyFiles.toArray(new String[managementOnlyFiles.size()]);
 	}
 
     public void setCloudifyUrl(String cloudifyUrl) {
