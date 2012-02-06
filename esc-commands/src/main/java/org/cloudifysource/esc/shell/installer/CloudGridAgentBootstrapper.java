@@ -117,7 +117,7 @@ public class CloudGridAgentBootstrapper {
 	}
 
 
-	public void boostrapCloudAndWait(long timeout, TimeUnit timeoutUnit) throws InstallerException, TimeoutException,
+	public void boostrapCloudAndWait(long timeout, TimeUnit timeoutUnit) throws InstallerException,
 			CLIException, InterruptedException {
 
 		// load the provisioning class and set it up
@@ -200,14 +200,14 @@ public class CloudGridAgentBootstrapper {
 		
 	}
 
-	public void teardownCloudAndWait(long timeout, TimeUnit timeoutUnit) throws InstallerException, TimeoutException,
+	public void teardownCloudAndWait(long timeout, TimeUnit timeoutUnit) throws TimeoutException,
 			CLIException, InterruptedException {
 
 		// load the provisioning class and set it up
 		try {
 			this.provisioning = (ProvisioningDriver) Class.forName(cloud.getConfiguration().getClassName()).newInstance();
 		} catch (Exception e) {
-			throw new CLIException("Failed to load provisioning class from cloud: " + this.cloud);
+			throw new CLIException("Failed to load provisioning class from cloud: " + this.cloud, e);
 		}
 		provisioning.setConfig(cloud, cloud.getConfiguration().getManagementMachineTemplate(), true);
 		
@@ -344,13 +344,13 @@ public class CloudGridAgentBootstrapper {
 						try {
 							installer.installOnMachineWithIP(detail, Utils.millisUntil(endTime), TimeUnit.MILLISECONDS);
 						} catch (TimeoutException e) {
-							logger.info("Failed accessing management VM " + detail.getPublicIp() + " Reason: " + e.getMessage());
+							logger.log(Level.INFO, "Failed accessing management VM " + detail.getPublicIp() + " Reason: " + e.getMessage(), e);
 							return e;
 						} catch (InterruptedException e) {
-							logger.info("Failed accessing management VM " + detail.getPublicIp() + " Reason: " + e.getMessage());
+							logger.log(Level.INFO, "Failed accessing management VM " + detail.getPublicIp() + " Reason: " + e.getMessage(), e);
 							return e;
 						} catch (InstallerException e) {
-							logger.info("Failed accessing management VM " + detail.getPublicIp() + " Reason: " + e.getMessage());
+							logger.log(Level.INFO, "Failed accessing management VM " + detail.getPublicIp() + " Reason: " + e.getMessage(), e);
 							return e;
 						}
 						return null;
