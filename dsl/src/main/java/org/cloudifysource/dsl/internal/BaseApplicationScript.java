@@ -80,10 +80,9 @@ public abstract class BaseApplicationScript extends Script {
 			if (!"name".equals(name)) {
 				throw new IllegalArgumentException(
 						"The first declaraion in a service block that is part of an application MUST be its name");
-			} else {
-				this.currentService = loadApplicationService(value.toString());
-				this.serviceBlockInitialized = true;
-			}
+			} 
+			this.currentService = loadApplicationService(value.toString());
+			this.serviceBlockInitialized = true;
 		} else {
 			applyPropertyToObject(this.currentService, name, value);
 		}
@@ -104,7 +103,7 @@ public abstract class BaseApplicationScript extends Script {
 		// Load the service
 		DSLServiceCompilationResult result = ServiceReader
 				.getServiceFromDirectory(serviceDir, this.application.getName());
-		Service service = result.getService();
+		return result.getService();
 
 		// execute the closure
 
@@ -112,8 +111,6 @@ public abstract class BaseApplicationScript extends Script {
 
 		// add the service to the application
 		// application.getServices().add(service);
-		return service;
-
 	}
 
 	public Object methodMissing(final String name, final Object args) {
