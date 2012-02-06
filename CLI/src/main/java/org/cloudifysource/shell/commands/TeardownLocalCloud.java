@@ -21,6 +21,7 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
+import org.cloudifysource.shell.TeardownCloudResults;
 import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 
 /**
@@ -59,7 +60,7 @@ public class TeardownLocalCloud extends AbstractGSCommand {
 	private int timeoutInMinutes = 5;
 
 	/**
-	 * {@inheritDoc}
+	 * Shuts down the local cloud, and waits until shutdown is complete or until the timeout is reached.
 	 */
 	@Override
 	protected Object doExecute() throws Exception {
@@ -71,7 +72,7 @@ public class TeardownLocalCloud extends AbstractGSCommand {
 		installer.setProgressInSeconds(10);
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 
-		installer.teardownLocalCloudOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);
-		return "Completed local-cloud teardown";
+		TeardownCloudResults result = installer.teardownLocalCloudOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);
+		return result.getDescription();
 	}
 }

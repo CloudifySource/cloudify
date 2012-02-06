@@ -44,6 +44,7 @@ import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.ShellUtils;
+import org.cloudifysource.shell.TeardownCloudResults;
 import org.cloudifysource.shell.commands.CLIException;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
@@ -69,10 +70,10 @@ import com.j_spaces.kernel.Environment;
 
 /**
  * @author rafi, barakm
- * since 2.0.0
+ * @since 2.0.0
  * 
- * This class handles the start up and shut down of the cloud components - management components (LUS, GSM, ESM), 
- * containers (GSCs) and an agent.
+ *         This class handles the start up and shut down of the cloud components - management components (LUS,
+ *         GSM, ESM), containers (GSCs) and an agent.
  */
 public class LocalhostGridAgentBootstrapper {
 
@@ -113,11 +114,11 @@ public class LocalhostGridAgentBootstrapper {
 			"gsa.gsc", "0", "gsa.global.gsm", "0", "gsa.gsm", "1", "gsa.global.esm", "1" };
 
 	// localcloud management agent starts 1 esm, 1 gsm,1 lus
-	private static final String[] LOCALCLOUD_MANAGEMENT_ARGUMENTS = new String[] { "gsa.global.lus", "0", "gsa.lus", 
-		"0", "gsa.gsc", "0", "gsa.global.gsm", "0", "gsa.gsm_lus", "1", "gsa.global.esm", "0", "gsa.esm", "1" };
+	private static final String[] LOCALCLOUD_MANAGEMENT_ARGUMENTS = new String[] { "gsa.global.lus", "0", "gsa.lus",
+			"0", "gsa.gsc", "0", "gsa.global.gsm", "0", "gsa.gsm_lus", "1", "gsa.global.esm", "0", "gsa.esm", "1" };
 
-	private static final String[] AGENT_ARGUMENTS = new String[] { "gsa.global.lus", "0", "gsa.gsc", "0", 
-		"gsa.global.gsm", "0", "gsa.global.esm", "0" };
+	private static final String[] AGENT_ARGUMENTS = new String[] { "gsa.global.lus", "0", "gsa.gsc", "0",
+			"gsa.global.gsm", "0", "gsa.global.esm", "0" };
 
 	// script must spawn a daemon process (that is not a child process)
 	private static final String[] WINDOWS_COMMAND = new String[] { "cmd.exe", "/c", "gs-agent.bat" };
@@ -366,6 +367,7 @@ public class LocalhostGridAgentBootstrapper {
 	 *            number of {@link TimeUnit}s to wait
 	 * @param timeunit
 	 *            the {@link TimeUnit} to use, to calculate the timeout
+	 * @return tear-down result, as a value of {@link TeardownCloudResults}
 	 * @throws CLIException
 	 *             Reporting a failure to shutdown the agent
 	 * @throws InterruptedException
@@ -373,12 +375,12 @@ public class LocalhostGridAgentBootstrapper {
 	 * @throws TimeoutException
 	 *             Reporting the timeout was reached
 	 */
-	public void shutdownAgentOnLocalhostAndWait(final boolean force, final int timeout, final TimeUnit timeunit)
+	public TeardownCloudResults shutdownAgentOnLocalhostAndWait(final boolean force, final int timeout, final TimeUnit timeunit)
 			throws CLIException, InterruptedException, TimeoutException {
 
 		setDefaultNicAddress();
 
-		shutdownAgentOnLocalhostAndWaitInternal(false, force, timeout, timeunit);
+		return shutdownAgentOnLocalhostAndWaitInternal(false, force, timeout, timeunit);
 	}
 
 	/**
@@ -389,6 +391,7 @@ public class LocalhostGridAgentBootstrapper {
 	 *            number of {@link TimeUnit}s to wait
 	 * @param timeunit
 	 *            the {@link TimeUnit} to use, to calculate the timeout
+	 * @return tear-down result, as a value of {@link TeardownCloudResults}
 	 * @throws CLIException
 	 *             Reporting a failure to shutdown the agent
 	 * @throws InterruptedException
@@ -396,12 +399,12 @@ public class LocalhostGridAgentBootstrapper {
 	 * @throws TimeoutException
 	 *             Reporting the timeout was reached
 	 */
-	public void shutdownManagementOnLocalhostAndWait(final int timeout, final TimeUnit timeunit) throws CLIException,
+	public TeardownCloudResults shutdownManagementOnLocalhostAndWait(final int timeout, final TimeUnit timeunit) throws CLIException,
 			InterruptedException, TimeoutException {
 
 		setDefaultNicAddress();
 
-		shutdownAgentOnLocalhostAndWaitInternal(true, true, timeout, timeunit);
+		return shutdownAgentOnLocalhostAndWaitInternal(true, true, timeout, timeunit);
 	}
 
 	/**
@@ -411,6 +414,7 @@ public class LocalhostGridAgentBootstrapper {
 	 *            number of {@link TimeUnit}s to wait
 	 * @param timeunit
 	 *            the {@link TimeUnit} to use, to calculate the timeout
+	 * @return tear-down result, as a value of {@link TeardownCloudResults}
 	 * @throws InterruptedException
 	 *             Reporting the thread was interrupted while waiting
 	 * @throws TimeoutException
@@ -418,14 +422,14 @@ public class LocalhostGridAgentBootstrapper {
 	 * @throws CLIException
 	 *             Reporting a failure to shutdown the agent
 	 */
-	public void teardownLocalCloudOnLocalhostAndWait(final long timeout, final TimeUnit timeunit)
+	public TeardownCloudResults teardownLocalCloudOnLocalhostAndWait(final long timeout, final TimeUnit timeunit)
 			throws InterruptedException, TimeoutException, CLIException {
 
 		setDefaultNicAddress();
 
 		setDefaultLocalcloudLookup();
 
-		shutdownAgentOnLocalhostAndWaitInternal(true, true, timeout, timeunit);
+		return shutdownAgentOnLocalhostAndWaitInternal(true, true, timeout, timeunit);
 	}
 
 	private void setDefaultLocalcloudLookup() {
@@ -458,6 +462,7 @@ public class LocalhostGridAgentBootstrapper {
 	 *            number of {@link TimeUnit}s to wait
 	 * @param timeunit
 	 *            the {@link TimeUnit} to use, to calculate the timeout
+	 * @return tear-down result, as a value of {@link TeardownCloudResults}
 	 * @throws CLIException
 	 *             Reporting a failure to shutdown the agent, or the management/services components still
 	 *             require it
@@ -466,9 +471,11 @@ public class LocalhostGridAgentBootstrapper {
 	 * @throws TimeoutException
 	 *             Reporting the timeout was reached
 	 */
-	public void shutdownAgentOnLocalhostAndWaitInternal(final boolean allowManagement, final boolean allowContainers,
-			final long timeout, final TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
+	public TeardownCloudResults shutdownAgentOnLocalhostAndWaitInternal(final boolean allowManagement,
+			final boolean allowContainers, final long timeout, final TimeUnit timeunit) throws CLIException,
+			InterruptedException, TimeoutException {
 
+		TeardownCloudResults teardownResult = null;
 		final long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
 		final ConnectionLogsFilter connectionLogs = new ConnectionLogsFilter();
 		connectionLogs.supressConnectionErrors();
@@ -485,6 +492,7 @@ public class LocalhostGridAgentBootstrapper {
 
 			if (agent == null) {
 				logger.info("Agent not running on local machine");
+				teardownResult = TeardownCloudResults.AGENT_NOT_FOUND_ON_LOCAL_MACHINE;
 			} else {
 				// If the agent we attempt to shutdown is of a GSC that has active services, allowContainers
 				// must be true or an exception will be thrown.
@@ -527,6 +535,7 @@ public class LocalhostGridAgentBootstrapper {
 				// create if it concurrently monitor things that are shutting down.
 				admin.close();
 				shutdownAgentAndWait(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
+				teardownResult = TeardownCloudResults.COMPLETED_SUCCESSFULLY;
 			}
 		} finally {
 			// close in case of exception, admin support double close if already closed
@@ -539,6 +548,8 @@ public class LocalhostGridAgentBootstrapper {
 			}
 			connectionLogs.restoreConnectionErrors();
 		}
+
+		return teardownResult;
 	}
 
 	/**
@@ -576,7 +587,7 @@ public class LocalhostGridAgentBootstrapper {
 
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
 			/**
-			 * {@inheritDoc}
+			 * Pings the agent to verify it's not available, indicating it was shut down.
 			 */
 			@Override
 			public boolean isDone() throws CLIException, InterruptedException {
@@ -1105,21 +1116,21 @@ public class LocalhostGridAgentBootstrapper {
 		// output
 		try {
 			logger.fine("Executing command: " + commandString);
-			Process proc = pb.start();
+			final Process proc = pb.start();
 			Thread.sleep(MIN_PROC_ERROR_TIME);
-			try{
-				// The assumption is that if the script contains errors, 
+			try {
+				// The assumption is that if the script contains errors,
 				// the processBuilder will finish by the end of the above sleep period.
-				if (proc.exitValue() != 0){
-					String errorMessage = "Error while starting agent. " +
-									"Please make sure that another agent is not already running. ";
-					if (verbose){
+				if (proc.exitValue() != 0) {
+					String errorMessage = "Error while starting agent. "
+							+ "Please make sure that another agent is not already running. ";
+					if (verbose) {
 						errorMessage = errorMessage.concat("Command executed: " + commandString);
 					}
 					throw new CLIException(errorMessage);
 				}
-			// ProcessBuilder is still running. We assume the agent script is running fine.
-			}catch (IllegalThreadStateException e){
+				// ProcessBuilder is still running. We assume the agent script is running fine.
+			} catch (final IllegalThreadStateException e) {
 				logger.fine("agent is starting...");
 			}
 		} catch (final IOException e) {
@@ -1187,6 +1198,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	/**
 	 * Gets the cloud configuration.
+	 * 
 	 * @return cloudContents Cloud configuration content
 	 */
 	public String getCloudContents() {
@@ -1195,7 +1207,9 @@ public class LocalhostGridAgentBootstrapper {
 
 	/**
 	 * Sets the cloud configuration content.
-	 * @param cloudContents Cloud configuration
+	 * 
+	 * @param cloudContents
+	 *            Cloud configuration
 	 */
 	public void setCloudContents(final String cloudContents) {
 		this.cloudContents = cloudContents;

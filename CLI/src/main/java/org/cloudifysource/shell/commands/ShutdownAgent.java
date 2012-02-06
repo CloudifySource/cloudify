@@ -21,6 +21,7 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
+import org.cloudifysource.shell.TeardownCloudResults;
 import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 
 /**
@@ -69,7 +70,9 @@ public class ShutdownAgent extends AbstractGSCommand {
 	private boolean force;
 
 	/**
-	 * {@inheritDoc}
+	 * Shuts down the local agent, if exists, and waits until shutdown is complete or until the timeout is
+	 * reached. If management processes (GSM, ESM, LUS) are still active, the agent is not shutdown and a
+	 * CLIException is thrown.
 	 */
 	@Override
 	protected Object doExecute() throws Exception {
@@ -82,7 +85,7 @@ public class ShutdownAgent extends AbstractGSCommand {
 		installer.setProgressInSeconds(10);
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 
-		installer.shutdownAgentOnLocalhostAndWait(force, timeoutInMinutes, TimeUnit.MINUTES);
-		return "Completed agent shutdown.";
+		TeardownCloudResults result = installer.shutdownAgentOnLocalhostAndWait(force, timeoutInMinutes, TimeUnit.MINUTES);
+		return result.getDescription();
 	}
 }
