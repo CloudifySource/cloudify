@@ -76,6 +76,7 @@ import com.j_spaces.kernel.Environment;
  */
 public class LocalhostGridAgentBootstrapper {
 
+	private static final int MIN_PROC_ERROR_TIME = 2000;
 	// isolate localcloud from default lookup settings
 	/**
 	 * Default localcloud lookup group.
@@ -1105,7 +1106,7 @@ public class LocalhostGridAgentBootstrapper {
 		try {
 			logger.fine("Executing command: " + commandString);
 			Process proc = pb.start();
-			Thread.sleep(2000);
+			Thread.sleep(MIN_PROC_ERROR_TIME);
 			try{
 				// The assumption is that if the script contains errors, 
 				// the processBuilder will finish by the end of the above sleep period.
