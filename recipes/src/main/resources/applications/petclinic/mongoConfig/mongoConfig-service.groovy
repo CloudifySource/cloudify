@@ -39,7 +39,7 @@ service {
 			className "org.cloudifysource.mongodb.MongoDBMonitorsPlugin"
 			config([				
 				"host":"127.0.0.1",				
-				"dbName":"mydb",
+				"dbName":"admin",
 				"dataSpec":[
 				    "Active Read Clients":"globalLock.activeClients.readers", 
 					"Active Write Clients":"globalLock.activeClients.writers", 

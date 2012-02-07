@@ -40,7 +40,7 @@ service {
 			className "org.cloudifysource.mongodb.MongoDBMonitorsPlugin"
 			config([				
 				"host":"127.0.0.1",				
-				"dbName":"mydb", 
+				"dbName":"admin", 
 				"dataSpec":([				    
 					"Current Active Connections":"connections.current"					
 				])

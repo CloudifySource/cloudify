@@ -4,5 +4,5 @@ def config=new ConfigSlurper().parse(new File("tomcat.properties").toURL())
 
 def ant = new AntBuilder();  
 
-ant.get(src:config.travelWarUrl, dest:config.travelWar, skipexisting:false)
-ant.copy(todir: "${catalinaHome}/webapps",  file:config.appWar, overwrite:true)
+ant.get(src:config.applicationWarUrl, dest:config.applicationWar, skipexisting:false)
+ant.copy(todir: "${catalinaHome}/webapps",  file:config.applicationWar, overwrite:true)

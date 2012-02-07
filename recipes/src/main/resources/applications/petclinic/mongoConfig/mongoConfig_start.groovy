@@ -32,7 +32,6 @@ println "mongoConfig_start.groovy: dataDir is ${dataDir}"
 println "mongoConfig_start.groovy: Running script ${config.script} for mongoConfig#${instanceID}..."
 new AntBuilder().sequential {
 	//creating the data directory 	
-    delete(file:"${dataDir}/mongod.lock")
 	mkdir(dir:dataDir)
 	exec(executable:"${config.script}") {
 		arg value:"--configsvr"

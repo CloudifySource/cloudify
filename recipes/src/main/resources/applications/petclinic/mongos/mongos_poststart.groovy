@@ -20,6 +20,8 @@ import org.cloudifysource.dsl.context.ServiceContextFactory
 import java.util.concurrent.TimeUnit
 
 config = new ConfigSlurper().parse(new File('mongos.properties').toURL())
+println "mongos_poststart.groovy: sleeping for 60 secs..."
+sleep(60)
 serviceContext = ServiceContextFactory.getServiceContext()
 
 println "mongos_poststart.groovy: serviceContext object is " + serviceContext
@@ -32,6 +34,13 @@ mongodHostInstances = mongodService.waitForInstances(mongodService.numberOfPlann
 println "mongos_poststart.groovy: mongodHostInstances length is "+mongodHostInstances.length
   
 def port = serviceContext.attributes.thisInstance["port"] 
+intPort=port.intValue()
+println "mongos_poststart.groovy: Connecting to mongos on port ${intPort} ..."
+
+
+try {
+    
+
 mongo = new GMongo("127.0.0.1", port)
 
 println "mongos_poststart.groovy: After new GMongo port ${port} ..."
@@ -49,3 +58,14 @@ mongodHostInstances.each {
   result = db.command(["addshard":"${mongodHost}:${mongodPort}"])		
   println "mongos_poststart.groovy: db result: ${result}"
 }	
+
+	result = db.command(["enablesharding":"petclinic"])	
+	println "mongos_poststart.groovy: db result: ${result}"
+	
+	result = db.command(["shardcollection":"petclinic.Person", "key":["_id":1]])
+	println "mongos_poststart.groovy: db result: ${result}"
+	
+} catch (Exception e) {
+    println "mongos_poststart.groovy: Connection Failed!"
+	throw e; 
+}
