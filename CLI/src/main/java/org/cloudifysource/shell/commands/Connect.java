@@ -18,7 +18,6 @@ package org.cloudifysource.shell.commands;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
-import org.cloudifysource.shell.AbstractAdminFacade;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
 import org.fusesource.jansi.Ansi.Color;
