@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.jini.core.discovery.LookupLocator;
@@ -46,6 +47,7 @@ import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.TeardownCloudResults;
 import org.cloudifysource.shell.commands.CLIException;
+import org.cloudifysource.shell.commands.CLIStatusException;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.AdminFactory;
@@ -86,6 +88,7 @@ public class LocalhostGridAgentBootstrapper {
 	private static final int DEFAULT_LUS_PORT = net.jini.discovery.Constants.getDiscoveryPort();
 	private static final int LOCALCLOUD_LUS_PORT = DEFAULT_LUS_PORT + 2;
 
+	private static final String MANAGEMENT_APPLICATION = ManagementWebServiceInstaller.MANAGEMENT_APPLICATION_NAME;
 	private static final String LUS_PORT_CONTEXT_PROPERTY = "com.sun.jini.reggie.initialUnicastDiscoveryPort";
 	private static final String AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT = "-Dcom.gs.agent.auto-shutdown-enabled=true";
 	private static final int WAIT_AFTER_ADMIN_CLOSED_MILLIS = 10 * 1000;
@@ -146,6 +149,7 @@ public class LocalhostGridAgentBootstrapper {
 	private boolean autoShutdown;
 	private boolean waitForWebUi;
 	private String cloudContents;
+	private boolean force;
 
 	/**
 	 * Sets verbose mode.
@@ -278,6 +282,16 @@ public class LocalhostGridAgentBootstrapper {
 	 */
 	public boolean isNotHighlyAvailableManagementSpace() {
 		return notHighlyAvailableManagementSpace;
+	}
+	
+	/**
+	 * Enables force teardown. The force flag will terminate the gs agent 
+	 * without forcing uninstall on the currently deployed applications. 
+	 * 
+	 * @param force - Boolean flag.
+	 */
+	public void setForce(boolean force) {
+		this.force = force;
 	}
 
 	/**
@@ -428,8 +442,76 @@ public class LocalhostGridAgentBootstrapper {
 		setDefaultNicAddress();
 
 		setDefaultLocalcloudLookup();
+		
+		uninstallApplications(timeout, timeunit);
 
 		return shutdownAgentOnLocalhostAndWaitInternal(true, true, timeout, timeunit);
+	}
+
+	private void uninstallApplications(final long timeout, final TimeUnit timeunit) 
+			throws InterruptedException, TimeoutException, CLIException {
+		
+		List<String> applicationsList = null;
+		try {
+			applicationsList = adminFacade.getApplicationsList();
+		} catch (CLIException e) {
+			logger.log(Level.WARNING, "Failed to fetch the currently deployed applications list."
+						+ " Continuing teardown-localcloud.", e);
+			if (!force){
+				throw new CLIStatusException(e, "failed_to_access_rest_before_teardown");
+			}
+			return;
+		}
+		
+		if (applicationsList.size() != 0 && !force){
+			logger.log(Level.FINE, "Teardown failed. There are still applications deployed.");
+			throw new CLIStatusException("apps_deployed_before_teardown_localcloud", applicationsList.toString());
+		}
+		
+		for (String appName : applicationsList) {
+			try {
+				if (!appName.equals(MANAGEMENT_APPLICATION)) {
+					adminFacade.uninstallApplication(appName);
+				}
+			} catch (CLIException e) {
+				logger.log(Level.WARNING, "Application " + appName + " faild to uninstall." 
+						+ " Continuing teardown-localcloud.", e);
+				if (!force){
+					throw new CLIStatusException(e, "failed_to_uninstall_app_before_teardown", appName);
+				}
+			}
+		}
+		
+		waitForUninstallApplications(timeout, timeunit);
+		if (applicationsList.size() != 0){
+			logger.info(ShellUtils.getMessageBundle().getString("all_apps_removed_before_teardown"));
+		}
+	}
+	
+	private void waitForUninstallApplications(final long timeout, final TimeUnit timeunit) throws InterruptedException,
+	TimeoutException, CLIException {
+		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
+
+			@Override
+			public boolean isDone() throws CLIException, InterruptedException {
+				List<String> applications = adminFacade.getApplicationsList();
+
+				boolean done = true;
+
+				for (String applicationName : applications) {
+					if (!MANAGEMENT_APPLICATION.equals(applicationName)) {
+						done = false;
+						break;
+					}
+				}
+
+				if (!done) {
+					logger.info("Waiting for all applications to uninstall");
+				}
+
+				return done;
+			}
+		});
 	}
 
 	private void setDefaultLocalcloudLookup() {

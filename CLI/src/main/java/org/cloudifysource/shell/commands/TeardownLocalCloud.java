@@ -58,6 +58,10 @@ public class TeardownLocalCloud extends AbstractGSCommand {
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is"
 			+ " done. By default waits 5 minutes.")
 	private int timeoutInMinutes = 5;
+	
+	@Option(required = false, name = "-force",
+			description = "Should management machine be shutdown if other applications are installed")
+	boolean force = false;
 
 	/**
 	 * Shuts down the local cloud, and waits until shutdown is complete or until the timeout is reached.
@@ -70,6 +74,7 @@ public class TeardownLocalCloud extends AbstractGSCommand {
 		installer.setLookupGroups(lookupGroups);
 		installer.setNicAddress(nicAddress);
 		installer.setProgressInSeconds(10);
+		installer.setForce(force);
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 
 		TeardownCloudResults result = installer.teardownLocalCloudOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);
