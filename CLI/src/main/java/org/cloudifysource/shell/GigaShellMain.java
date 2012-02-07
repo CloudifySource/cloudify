@@ -18,7 +18,6 @@ package org.cloudifysource.shell;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.SequenceInputStream;
@@ -136,12 +135,12 @@ public final class GigaShellMain extends Main implements Action {
 		this.isInteractive = isInteractive;
 	}
 
-	private static void initializeLogConfiguration() throws SecurityException, IOException {
+	private static void initializeLogConfiguration() throws SecurityException {
 
 		// Replace the console Handler's formatter.
 		final Handler[] handlers = Logger.getLogger("").getHandlers();
 		for (final Handler handler : handlers) {
-			if (handler.getClass().getName() == ConsoleHandler.class.getName()) {
+			if (handler.getClass().getName().equals(ConsoleHandler.class.getName())) {
 				handler.setFormatter(new ShellFormatter());
 				handler.setErrorManager(new ShellErrorManager());
 				handler.setLevel(Level.INFO);
