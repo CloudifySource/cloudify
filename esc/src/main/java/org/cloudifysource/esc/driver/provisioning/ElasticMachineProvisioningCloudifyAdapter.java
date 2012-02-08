@@ -18,7 +18,6 @@ package org.cloudifysource.esc.driver.provisioning;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -32,9 +31,6 @@ import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
-import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverContext;
-import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverContext;
-import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverContextAware;
 import org.cloudifysource.esc.esm.CloudMachineProvisioningConfig;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
@@ -62,9 +58,6 @@ import com.gigaspaces.internal.utils.StringUtils;
  */
 public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachineProvisioning, Bean {
 
-	//TODO: Store this object inside ElasticMachineProvisioningContext instead of a static variable
-	private static final Map<String,ProvisioningDriverContext> PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME = new HashMap<String,ProvisioningDriverContext>();
-	
 	private static final int DEFAULT_GSA_LOOKUP_TIMEOUT_SECONDS = 15;
 	private ProvisioningDriver cloudifyProvisioning;
 	private Admin admin;
@@ -368,12 +361,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				this.cloudifyProvisioning = (ProvisioningDriver) Class.forName(
 						this.cloud.getConfiguration().getClassName()).newInstance();
 				this.cloudifyProvisioning.setConfig(cloud, cloudTemplate, false);
-				
-				if (cloudifyProvisioning instanceof ProvisioningDriverContextAware) {
-		            ProvisioningDriverContext provisioningDriverContext = lazyCreateProvisioningDriverContext(cloudifyProvisioning);
-					((ProvisioningDriverContextAware)cloudifyProvisioning).setProvisioningContext(provisioningDriverContext);
-                        
-		        }
 
 			} catch (Exception e) {
 				throw new BeanConfigurationException("Failed to load provisioning class from cloud: " + this.cloud, e);
@@ -389,18 +376,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					+ ": " + e.getMessage());
 		}
 
-	}
-
-	private static ProvisioningDriverContext lazyCreateProvisioningDriverContext(ProvisioningDriver cloudifyProvisioning) {
-		
-		String cloudDriverUniqueId = cloudifyProvisioning.getClass().getName();
-		synchronized(PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME) {
-			if (!PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME.containsKey(cloudDriverUniqueId)) {
-				PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME.put(cloudDriverUniqueId,new DefaultProvisioningDriverContext());
-			}
-		}
-		ProvisioningDriverContext provisioningDriverContext = PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME.get(cloudDriverUniqueId);
-		return provisioningDriverContext;
 	}
 
 	private String createLocatorsString() {

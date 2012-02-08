@@ -38,9 +38,6 @@ import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
-import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverContext;
-import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverContext;
-import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverContextAware;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
@@ -123,10 +120,20 @@ public class CloudGridAgentBootstrapper {
 	public void boostrapCloudAndWait(long timeout, TimeUnit timeoutUnit) throws InstallerException,
 			CLIException, InterruptedException {
 
-		long end = System.currentTimeMillis() + timeoutUnit.toMillis(timeout);
+		// load the provisioning class and set it up
+		try {
+			this.provisioning = (ProvisioningDriver) Class.forName(this.cloud.getConfiguration().getClassName()).newInstance();
+			this.provisioning.addListener(new CliProvisioningDriverListener());
+			provisioning.setConfig(cloud, cloud.getConfiguration()
+					.getManagementMachineTemplate(), true);
+		} catch (ClassNotFoundException e) {
+			throw new CLIException("Failed to load provisioning class for cloud: " + this.cloud.getName() + ". Class not found: " + this.cloud.getConfiguration().getClassName(), e);
+		} catch (Exception e) {
+			throw new CLIException("Failed to load provisioning class for cloud: " + this.cloud.getName(), e);
+		}
+
 		
-		createProvisioningDriver();
-		this.provisioning.addListener(new CliProvisioningDriverListener());
+		long end = System.currentTimeMillis() + timeoutUnit.toMillis(timeout);
 
 		try {
 			// Start the cloud machines!!!
@@ -195,32 +202,21 @@ public class CloudGridAgentBootstrapper {
 		
 	}
 
-	/**
-	 * load the provisioning class and set it up
-	 * @throws CLIException
-	 */
-	private void createProvisioningDriver() throws CLIException {
+	public void teardownCloudAndWait(long timeout, TimeUnit timeoutUnit) throws TimeoutException,
+			CLIException, InterruptedException {
+
+		// load the provisioning class and set it up
 		try {
-			this.provisioning = (ProvisioningDriver) Class.forName(this.cloud.getConfiguration().getClassName()).newInstance();
+			this.provisioning = (ProvisioningDriver) Class.forName(cloud.getConfiguration().getClassName()).newInstance();
 		} catch (ClassNotFoundException e) {
 			throw new CLIException("Failed to load provisioning class for cloud: " + this.cloud.getName() + ". Class not found: " + this.cloud.getConfiguration().getClassName(), e);
 		} catch (Exception e) {
 			throw new CLIException("Failed to load provisioning class for cloud: " + this.cloud.getName(), e);
 		}
-		provisioning.setConfig(cloud, cloud.getConfiguration()
-				.getManagementMachineTemplate(), true);
-		if (provisioning instanceof ProvisioningDriverContextAware) {
-            ((ProvisioningDriverContextAware)provisioning).setProvisioningContext(new DefaultProvisioningDriverContext());
-        }
-	}
-
-	public void teardownCloudAndWait(long timeout, TimeUnit timeoutUnit) throws TimeoutException,
-			CLIException, InterruptedException {
-
+		provisioning.setConfig(cloud, cloud.getConfiguration().getManagementMachineTemplate(), true);
+		
 		long end = System.currentTimeMillis() + timeoutUnit.toMillis(timeout);
-		
-		createProvisioningDriver();
-		
+
 		ShellUtils.checkNotNull("providerDirectory", providerDirecotry);
 
 		destroyManagementServers(Utils.millisUntil(end), TimeUnit.MILLISECONDS);
