@@ -32,9 +32,8 @@ script= serviceContext.attributes.thisInstance["script"]
 println "mongod_start.groovy: mongod(${instanceID}) script ${script}"
 
 def port = serviceContext.attributes.thisInstance["port"] 
-intPort=port.intValue()
 
-println "mongod_start.groovy: mongod(${instanceID}) port ${intPort}"
+println "mongod_start.groovy: mongod(${instanceID}) port ${port}"
 
 dataDir = "${home}/data"
 println "mongod_start.groovy: mongod(${instanceID}) dataDir ${dataDir}"
@@ -48,7 +47,7 @@ new AntBuilder().sequential {
 	exec(executable:"${script}") {
 		arg line:"--shardsvr"
 		arg line:"--dbpath \"${dataDir}\""
-                arg line:"--port ${intPort}"
+        arg line:"--port ${port}"
 	}
 }
 
