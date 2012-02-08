@@ -185,6 +185,12 @@ public class USMLifecycleBean implements ClusterInfoAware {
 			eventLogger.info(eventPrefix + "START invoked");
 		}
 	}
+	
+	public void logProcessStartFailureEvent(String exceptionMessage) {
+		if (eventLogger.isLoggable(Level.INFO)) {
+			eventLogger.info(eventPrefix + "START failed. Reason: " + exceptionMessage);
+		}
+	}
 
 	private void logEventSuccess(final LifecycleEvents event, USMEvent[] listeners) {
 		if (isLoggableEvent(event, listeners)) {

@@ -603,10 +603,14 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 
 			usmLifecycleBean.externalProcessStarted();
 
-			
-			this.process = usmLifecycleBean.getLauncher().launchProcessAsync(
-					usmLifecycleBean.getConfiguration().getStartCommand(), this.puExtDir, getOutputFile(),
-					getErrorFile());
+			try{
+				this.process = usmLifecycleBean.getLauncher().launchProcessAsync(
+						usmLifecycleBean.getConfiguration().getStartCommand(), this.puExtDir, getOutputFile(),
+						getErrorFile());
+			}catch(USMException e){
+				usmLifecycleBean.logProcessStartFailureEvent(e.getMessage());
+				throw e;
+			}
 
 			// read output and error files for launched process, and print to GSC log
 			startFileMonitoringTask();
@@ -626,6 +630,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			// After the timeout, check if process started correctly
 			if (!isProcessAlive(this.process)) {
 				logger.severe("Attempt to launch underlying process has failed!");
+				usmLifecycleBean.logProcessStartFailureEvent("Attempt to launch underlying process has failed.");
 				// dump contents of output and error files
 				if (tailer != null) {
 					this.tailer.run();
