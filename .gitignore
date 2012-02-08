@@ -1,0 +1,133 @@
+#/cloudify/CLI/target
+/CLI/nodes.properties
+/CLI/temp.xml
+/CLI/.settings
+/CLI/.classpath
+/CLI/.project
+/CLI/target
+
+# /USM/
+/USM/target
+/USM/test-output
+/USM/.classpath
+/USM/.project
+/USM/.settings
+/USM/eventDiagram.ucls
+
+# /USM/resources/
+/USM/resources/cassandra
+/USM/resources/tomcat
+/USM/resources/tomcat-local
+
+# /USM/resources/usm-cassandra/ext/
+/USM/resources/usm-cassandra/ext/cassandra_storage
+
+# /USM/src/main/java/org/cloudifysource/usm/jmx/
+/USM/src/main/java/org/cloudifysource/usm/jmx/CopyOfJmxGenericClient.java
+
+# /azure/
+/azure/WorkerRoles
+/azure/localworkingdir
+/azure/azure/.classpath
+/azure/azure/.project
+/azure/azure/.settings/
+
+# /azure/AzureMachineProvisioning/src/main/resources/csmanage/
+
+# /azure/GigaSpacesWorkerRoles/
+/azure/GigaSpacesWorkerRoles/*.suo
+/azure/GigaSpacesWorkerRoles/travel
+
+# /azure/GigaSpacesWorkerRoles/GigaSpacesWorkerRoles/
+/azure/GigaSpacesWorkerRoles/GigaSpacesWorkerRoles/bin
+/azure/GigaSpacesWorkerRoles/GigaSpacesWorkerRoles/obj
+/azure/GigaSpacesWorkerRoles/GigaSpacesWorkerRoles/template.build.csdef
+/azure/GigaSpacesWorkerRoles/GigaSpacesWorkerRoles/template.ccproj.user
+/azure/GigaSpacesWorkerRoles/GigaSpacesWorkerRoles/ServiceDefinition.build.csdef
+
+# /azure/GigaSpacesWorkerRoles/RoleCommon/
+/azure/GigaSpacesWorkerRoles/RoleCommon/bin
+/azure/GigaSpacesWorkerRoles/RoleCommon/obj
+
+# /azure/GigaSpacesWorkerRoles/RoleCommon/DotNetZipLib-Runtime-v1.9/
+
+# /azure/GigaSpacesWorkerRoles/RoleCommon/Properties/
+
+# /azure/GigaSpacesWorkerRoles/internal/
+/azure/GigaSpacesWorkerRoles/internal/bin
+/azure/GigaSpacesWorkerRoles/internal/obj
+
+# /azure/GigaSpacesWorkerRoles/internal/Properties/
+
+# /azure/GigaSpacesWorkerRoles/management/
+/azure/GigaSpacesWorkerRoles/management/bin
+/azure/GigaSpacesWorkerRoles/management/obj
+
+# /azure/GigaSpacesWorkerRoles/management/Properties/
+
+# /azure/GigaSpacesWorkerRoles/ui/
+/azure/GigaSpacesWorkerRoles/ui/bin
+/azure/GigaSpacesWorkerRoles/ui/obj
+
+# /azure/azure/
+/azure/azure/target
+
+# /azure/azureconfig/ServiceManagement/
+/azure/azureconfig/ServiceManagement/bin
+/azure/azureconfig/ServiceManagement/obj
+
+# /azure/azureconfig/azureconfig/
+/azure/azureconfig/azureconfig/bin
+/azure/azureconfig/azureconfig/obj
+
+# /cloudify/
+/cloudify/.settings
+/cloudify/.project
+
+# /cloudify/tools/maven-plugins/s3client-maven-plugin/
+/cloudify/tools/maven-plugins/s3client-maven-plugin/target
+/cloudify/tools/maven-plugins/s3client-maven-plugin/.settings
+/cloudify/tools/maven-plugins/s3client-maven-plugin/.classpath
+/cloudify/tools/maven-plugins/s3client-maven-plugin/.project
+
+# /dsl/
+/dsl/target
+/dsl/.settings
+/dsl/.classpath
+/dsl/.project
+
+# /eclipse-plugin/azurePlugin/
+/eclipse-plugin/azurePlugin/deploy
+
+# /esc/
+/esc/target
+/esc/.settings
+/esc/.classpath
+/esc/.project
+
+# /esc-commands/
+/esc-commands/target
+/esc-commands/.settings/
+
+# /recipes/
+/recipes/target
+/recipes/.classpath
+/recipes/.settings
+/recipes/.project
+
+# /recipes/src/test/java/org/cloudifysource/recipes/
+/recipes/src/test/java/org/cloudifysource/recipes/Test.java
+/recipes/src/test/java/org/cloudifysource/recipes/TestDetailsPlugin.java
+/recipes/src/test/java/org/cloudifysource/recipes/TestMonitorsPlugin.java
+
+# /rest-client/
+/rest-client/.settings
+/rest-client/.classpath
+/rest-client/.project
+/rest-client/target
+
+# /restful/
+/restful/target
+/restful/.settings
+/restful/.classpath
+/restful/.project
