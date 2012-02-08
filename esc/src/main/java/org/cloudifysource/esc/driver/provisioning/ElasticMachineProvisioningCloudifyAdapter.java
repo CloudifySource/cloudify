@@ -18,6 +18,7 @@ package org.cloudifysource.esc.driver.provisioning;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -62,7 +63,7 @@ import com.gigaspaces.internal.utils.StringUtils;
 public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachineProvisioning, Bean {
 
 	//TODO: Store this object inside ElasticMachineProvisioningContext instead of a static variable
-	private static final ProvisioningDriverContext PROVISIONING_DRIVER_CONTEXT = new DefaultProvisioningDriverContext();
+	private static final Map<String,ProvisioningDriverContext> PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME = new HashMap<String,ProvisioningDriverContext>();
 	
 	private static final int DEFAULT_GSA_LOOKUP_TIMEOUT_SECONDS = 15;
 	private ProvisioningDriver cloudifyProvisioning;
@@ -369,10 +370,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				this.cloudifyProvisioning.setConfig(cloud, cloudTemplate, false);
 				
 				if (cloudifyProvisioning instanceof ProvisioningDriverContextAware) {
-		            
-		            ProvisioningDriverContextAware contextAware = (ProvisioningDriverContextAware)cloudifyProvisioning;
-		            //TODO: Provide different drivers different context based on their configuration.
-		            contextAware.setProvisioningContext(PROVISIONING_DRIVER_CONTEXT);
+		            ProvisioningDriverContext provisioningDriverContext = lazyCreateProvisioningDriverContext(cloudifyProvisioning);
+					((ProvisioningDriverContextAware)cloudifyProvisioning).setProvisioningContext(provisioningDriverContext);
                         
 		        }
 
@@ -390,6 +389,18 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					+ ": " + e.getMessage());
 		}
 
+	}
+
+	private static ProvisioningDriverContext lazyCreateProvisioningDriverContext(ProvisioningDriver cloudifyProvisioning) {
+		
+		String cloudDriverUniqueId = cloudifyProvisioning.getClass().getName();
+		synchronized(PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME) {
+			if (!PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME.containsKey(cloudDriverUniqueId)) {
+				PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME.put(cloudDriverUniqueId,new DefaultProvisioningDriverContext());
+			}
+		}
+		ProvisioningDriverContext provisioningDriverContext = PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME.get(cloudDriverUniqueId);
+		return provisioningDriverContext;
 	}
 
 	private String createLocatorsString() {

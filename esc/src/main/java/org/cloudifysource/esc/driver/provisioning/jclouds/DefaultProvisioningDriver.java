@@ -86,7 +86,6 @@ public class DefaultProvisioningDriver implements ProvisioningDriver , Provision
 
 	private final List<ProvisioningDriverListener> eventsListenersList = new LinkedList<ProvisioningDriverListener>();
 
-	//TODO: Store JCloudsDeployer in the context
 	private ProvisioningDriverContext context;
 	
 	@Override
@@ -125,7 +124,7 @@ public class DefaultProvisioningDriver implements ProvisioningDriver , Provision
 
 	private void initDeployer(final Cloud cloud) {		
         try {
-        	// TODO: jcloudsUniqueId  should have a real value. currently cloud.
+        	// TODO - jcloudsUniqueId should be unique per cloud configuration. 
             String jcloudsUniqueId = "UNIQUE_JCLOUDS_DEPLOYER_ID";
 			this.deployer = (JCloudsDeployer)context.getOrCreate(jcloudsUniqueId, new Callable<Object>() {
 	            
