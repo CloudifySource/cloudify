@@ -41,6 +41,8 @@ import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriverListener;
+import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverContext;
+import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverContextAware;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.jclouds.JCloudsDeployer;
@@ -61,7 +63,7 @@ import com.google.common.base.Predicate;
  * @author barakme
  * 
  */
-public class DefaultProvisioningDriver implements ProvisioningDriver {
+public class DefaultProvisioningDriver implements ProvisioningDriver , ProvisioningDriverContextAware{
 
 	private static final int WAIT_THREAD_SLEEP_MILLIS = 10000;
 	private static final int WAIT_TIMEOUT_MILLIS = 360000;
@@ -84,6 +86,14 @@ public class DefaultProvisioningDriver implements ProvisioningDriver {
 
 	private final List<ProvisioningDriverListener> eventsListenersList = new LinkedList<ProvisioningDriverListener>();
 
+	//TODO: Store JCloudsDeployer in the context
+	private ProvisioningDriverContext context;
+	
+	@Override
+	public void setProvisioningContext(ProvisioningDriverContext context) {
+		this.context = context;
+	}
+	
 	@Override
 	public void setConfig(final Cloud cloud, final String cloudTemplateName, final boolean management) {
 
@@ -113,28 +123,32 @@ public class DefaultProvisioningDriver implements ProvisioningDriver {
 
 	}
 
-	private void initDeployer(final Cloud cloud) {
-		if (this.deployer != null) {
-			return;
-		}
-		logger.fine("Creating jclouds context deployer with user: " + cloud.getUser().getUser());
-
-		final CloudTemplate cloudTemplate = cloud.getTemplates().get(cloudTemplateName);
-
-		try {
-			final Properties props = new Properties();
-			props.putAll(cloudTemplate.getOverrides());
-
-			this.deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(), cloud
-					.getUser().getApiKey(), props);
-
-			this.deployer.setImageId(cloudTemplate.getImageId());
-			this.deployer.setMinRamMegabytes(cloudTemplate.getMachineMemoryMB());
-			this.deployer.setHardwareId(cloudTemplate.getHardwareId());
-			this.deployer.setLocationId(cloudTemplate.getLocationId());
-			this.deployer.setExtraOptions(cloudTemplate.getOptions());
-
-		} catch (final IOException e) {
+	private void initDeployer(final Cloud cloud) {		
+        try {
+        	// TODO: jcloudsUniqueId  should have a real value. currently cloud.
+            String jcloudsUniqueId = "UNIQUE_JCLOUDS_DEPLOYER_ID";
+			this.deployer = (JCloudsDeployer)context.getOrCreate(jcloudsUniqueId, new Callable<Object>() {
+	            
+				@Override
+				public Object call() throws Exception {
+	                logger.fine("Creating jclouds context deployer with user: " + cloud.getUser().getUser());
+	                CloudTemplate cloudTemplate = cloud.getTemplates().get(cloudTemplateName);
+	                
+					Properties props = new Properties();
+					props.putAll(cloudTemplate.getOverrides());
+		
+					deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(), cloud
+							.getUser().getApiKey(), props);
+		
+					deployer.setImageId(cloudTemplate.getImageId());
+					deployer.setMinRamMegabytes(cloudTemplate.getMachineMemoryMB());
+					deployer.setHardwareId(cloudTemplate.getHardwareId());
+					deployer.setLocationId(cloudTemplate.getLocationId());
+					deployer.setExtraOptions(cloudTemplate.getOptions());
+					return deployer;
+	            }
+			});
+        } catch (final Exception e) {
 			publishEvent("connection_to_cloud_api_failed", cloud.getProvider().getProvider());
 			throw new IllegalStateException("Failed to create cloud Deployer", e);
 		}
@@ -629,4 +643,5 @@ public class DefaultProvisioningDriver implements ProvisioningDriver {
 			listner.onProvisioningEvent(eventName, args);
 		}
 	}
+
 }

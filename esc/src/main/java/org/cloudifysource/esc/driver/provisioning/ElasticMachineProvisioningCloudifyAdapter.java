@@ -31,6 +31,9 @@ import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverContext;
+import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverContext;
+import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverContextAware;
 import org.cloudifysource.esc.esm.CloudMachineProvisioningConfig;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
@@ -58,6 +61,9 @@ import com.gigaspaces.internal.utils.StringUtils;
  */
 public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachineProvisioning, Bean {
 
+	//TODO: Store this object inside ElasticMachineProvisioningContext instead of a static variable
+	private static final ProvisioningDriverContext PROVISIONING_DRIVER_CONTEXT = new DefaultProvisioningDriverContext();
+	
 	private static final int DEFAULT_GSA_LOOKUP_TIMEOUT_SECONDS = 15;
 	private ProvisioningDriver cloudifyProvisioning;
 	private Admin admin;
@@ -361,6 +367,14 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				this.cloudifyProvisioning = (ProvisioningDriver) Class.forName(
 						this.cloud.getConfiguration().getClassName()).newInstance();
 				this.cloudifyProvisioning.setConfig(cloud, cloudTemplate, false);
+				
+				if (cloudifyProvisioning instanceof ProvisioningDriverContextAware) {
+		            
+		            ProvisioningDriverContextAware contextAware = (ProvisioningDriverContextAware)cloudifyProvisioning;
+		            //TODO: Provide different drivers different context based on their configuration.
+		            contextAware.setProvisioningContext(PROVISIONING_DRIVER_CONTEXT);
+                        
+		        }
 
 			} catch (Exception e) {
 				throw new BeanConfigurationException("Failed to load provisioning class from cloud: " + this.cloud, e);
