@@ -452,8 +452,16 @@ public class LocalhostGridAgentBootstrapper {
 			throws InterruptedException, TimeoutException, CLIException {
 		
 		List<String> applicationsList = null;
+		boolean applicationsExist = false;
 		try {
+			if (!adminFacade.isConnected()){
+				throw new CLIException("Failed to fetch applications list. " +
+								"Client is not connected to the rest server.");
+			}
+			
 			applicationsList = adminFacade.getApplicationsList();
+			// If there existed other applications besides the management. 
+			applicationsExist = applicationsList.size() > 1;
 		} catch (CLIException e) {
 			logger.log(Level.WARNING, "Failed to fetch the currently deployed applications list."
 						+ " Continuing teardown-localcloud.", e);
@@ -463,7 +471,7 @@ public class LocalhostGridAgentBootstrapper {
 			return;
 		}
 		
-		if (applicationsList.size() != 0 && !force){
+		if (applicationsExist && !force){
 			logger.log(Level.FINE, "Teardown failed. There are still applications deployed.");
 			throw new CLIStatusException("apps_deployed_before_teardown_localcloud", applicationsList.toString());
 		}
@@ -481,9 +489,8 @@ public class LocalhostGridAgentBootstrapper {
 				}
 			}
 		}
-		
-		waitForUninstallApplications(timeout, timeunit);
-		if (applicationsList.size() != 0){
+		if (applicationsExist){
+			waitForUninstallApplications(timeout, timeunit);
 			logger.info(ShellUtils.getMessageBundle().getString("all_apps_removed_before_teardown"));
 		}
 	}
