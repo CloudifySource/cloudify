@@ -601,14 +601,14 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 				if (logger.isLoggable(Level.FINE)) {
 					logger.fine("Closure Parameters: " + paramsList.toString());
 				}
-				if (closure.getMaximumNumberOfParameters() != paramsList.size()){
-					USMException e = new USMException("Invalid number of parameters." 
-							+" Expecting " + closure.getMaximumNumberOfParameters() 
-							+ " parameters, got " + paramsList.size() 
-							+ ": " + paramsList.toString());
-					logger.log(Level.SEVERE, e.getMessage());
-					throw e; 
-				}
+//				if (closure.getMaximumNumberOfParameters() != paramsList.size()){
+//					USMException e = new USMException("Invalid number of parameters." 
+//							+" Expecting " + closure.getMaximumNumberOfParameters() 
+//							+ " parameters, got " + paramsList.size() 
+//							+ ": " + paramsList.toString());
+//					logger.log(Level.SEVERE, e.getMessage());
+//					throw e; 
+//				}
 				// invoke the command closure.
 				Object result = closure.call(paramsList.toArray());
 				return result;
