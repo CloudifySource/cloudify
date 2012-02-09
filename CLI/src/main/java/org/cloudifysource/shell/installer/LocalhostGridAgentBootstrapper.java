@@ -464,7 +464,7 @@ public class LocalhostGridAgentBootstrapper {
 			applicationsExist = applicationsList.size() > 1;
 		} catch (CLIException e) {
 			logger.log(Level.WARNING, "Failed to fetch the currently deployed applications list."
-						+ " Continuing teardown-localcloud.", e);
+						+ " Continuing teardown-localcloud.");
 			if (!force){
 				throw new CLIStatusException(e, "failed_to_access_rest_before_teardown");
 			}
