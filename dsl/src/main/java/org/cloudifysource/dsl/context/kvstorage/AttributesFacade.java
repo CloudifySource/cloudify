@@ -15,11 +15,10 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.context.kvstorage;
 
-import groovy.lang.GroovyObjectSupport;
-import groovy.lang.MissingPropertyException;
-
 import java.util.concurrent.TimeUnit;
 
+import groovy.lang.GroovyObjectSupport;
+import groovy.lang.MissingPropertyException;
 import org.cloudifysource.dsl.context.ServiceContext;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.openspaces.admin.Admin;
@@ -34,7 +33,8 @@ import org.openspaces.core.GigaSpace;
  */
 public class AttributesFacade extends GroovyObjectSupport {
 
-	private static final long MANAGEMENT_SPACE_FIND_TIMEOUT = 30;
+	private static final long MANAGEMENT_SPACE_FIND_TIMEOUT = 10; //10 seconds
+	private static final long MANAGEMENT_SPACE_FIND_REPEAT = 3; //3 repeats
 	
 	private final ServiceContext serviceContext;
 
@@ -43,7 +43,7 @@ public class AttributesFacade extends GroovyObjectSupport {
 	//This needs to be lazy initiated because service instaceId is not available at construction time
 	private InstanceAttributesAccessor instanceAttributesAccessor;
 	
-	private GigaSpace managementSpace;	
+	private GigaSpace managementSpace;
 	private final Object managementSpaceLock = new Object();
 	private final Admin admin;
 	
@@ -61,9 +61,20 @@ public class AttributesFacade extends GroovyObjectSupport {
 			if (managementSpace != null)
 				return managementSpace;
 			
-			Space space = admin.getSpaces().waitFor(CloudifyConstants.MANAGEMENT_SPACE_NAME, MANAGEMENT_SPACE_FIND_TIMEOUT, TimeUnit.SECONDS);			
-			if (space == null)
-				throw new IllegalStateException("No management space located");
+			Space space = null;
+			for (int i=0; i<MANAGEMENT_SPACE_FIND_REPEAT; ++i) {
+				space = admin.getSpaces().waitFor(CloudifyConstants.MANAGEMENT_SPACE_NAME, MANAGEMENT_SPACE_FIND_TIMEOUT, TimeUnit.SECONDS);
+				if (space != null) {
+					break;
+				}
+			}
+			if (space == null) {
+				//see GS-8475 - retry one last time - if still null, throw exception
+				space = admin.getSpaces().getSpaceByName(CloudifyConstants.MANAGEMENT_SPACE_NAME);
+				if (space == null) {
+					throw new IllegalStateException("No management space located");
+				}
+			}
 			
 			managementSpace = space.getGigaSpace();
 			return managementSpace;
