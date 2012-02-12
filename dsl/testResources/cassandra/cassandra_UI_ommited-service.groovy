@@ -1,6 +1,6 @@
 service {
 	name "cassandra"
-	icon "https://gigaspaces.blob.core.windows.net/packages/cassandra-150x100.png?&se=2015-06-26T00%3A00%3A00Z&sr=b&si=readforever&sig=CNOQcUfUtSV9WyO5JdqZYQWbeliZqI9Zqsawt87pyJg%3D"
+	icon "cassandra.png"
 
 	lifecycle{
 
