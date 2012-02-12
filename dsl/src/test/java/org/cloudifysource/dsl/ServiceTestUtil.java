@@ -15,10 +15,9 @@
  *******************************************************************************/
 package org.cloudifysource.dsl;
 
+import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
-import org.cloudifysource.dsl.Service;
 
 import junit.framework.Assert;
 
@@ -28,7 +27,7 @@ public class ServiceTestUtil {
 	private ServiceTestUtil() {
 	}
 
-	static public void validateIcon(Service service) throws Exception {
+	static public void validateIcon(Service service, String serviceFilePath) throws Exception {
 
 		String icon = service.getIcon();
 		if (icon.startsWith("http")) {
@@ -37,6 +36,9 @@ public class ServiceTestUtil {
 			Assert.assertEquals("The icon URL cannot establish a connection", HttpURLConnection.HTTP_OK,
 					connection.getResponseCode());
 			connection.disconnect();
+		}else{
+			File iconFile = new File(serviceFilePath, service.getIcon());
+			Assert.assertTrue("Icon file not found in location: " + iconFile.getAbsolutePath(), iconFile.exists());
 		}
 	}
 

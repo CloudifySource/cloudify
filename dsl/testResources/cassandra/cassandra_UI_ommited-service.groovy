@@ -1,6 +1,6 @@
 service {
 	name "cassandra"
-	icon "cassandra.png"
+	icon "Apache-cassandra-icon.png"
 
 	lifecycle{
 

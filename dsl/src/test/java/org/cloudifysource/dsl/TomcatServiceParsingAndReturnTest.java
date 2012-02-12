@@ -41,7 +41,7 @@ public class TomcatServiceParsingAndReturnTest {
 		assertNotNull(service);
 		assertNull(service.getUserInterface());
 		ServiceTestUtil.validateName(service, nameInGroovy);
-		ServiceTestUtil.validateIcon(service);
+		ServiceTestUtil.validateIcon(service, CORRUPTED_RESOURCES_PATH);
 	}
 
 	@Test

@@ -1,6 +1,6 @@
 service {
 	name "tomcat"
-	icon "https://gigaspaces.blob.core.windows.net/packages/tomcat.gif?&se=2015-06-20T00%3A00%3A00Z&sr=b&si=readforever&sig=U32qUzHf%2BPLyqomwSnCt8HCEq%2F0N22rHioVGOHhUKIw%3D"
+	icon "tomcat.gif"
 
 	lifecycle{
 
