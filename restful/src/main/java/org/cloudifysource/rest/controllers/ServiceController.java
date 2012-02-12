@@ -340,7 +340,8 @@ public class ServiceController {
 	 *            The service name
 	 * @return a list of log entry maps containing information regarding the specific entry.
 	 */
-	@RequestMapping(value = "/applications/{applicationName}/services/{serviceName}/USMEventsLogs", method = RequestMethod.GET)
+	@RequestMapping(value = "/applications/{applicationName}/services/{serviceName}/USMEventsLogs", 
+			method = RequestMethod.GET)
 	public @ResponseBody
 	Map<?, ?> getServiceLifecycleLogs(@PathVariable final String applicationName,
 			@PathVariable final String serviceName) {
@@ -401,7 +402,8 @@ public class ServiceController {
 	 *            The service name.
 	 * @return a Map containing all service instances of the specified application
 	 */
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances", method = RequestMethod.GET)
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances", 
+			method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object> getServiceInstanceList(@PathVariable final String applicationName,
 			@PathVariable final String serviceName) {
@@ -440,7 +442,8 @@ public class ServiceController {
 	 *            The command parameters.
 	 * @return a Map containing the result of each invocation on a service instance.
 	 */
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/beans/{beanName}/invoke", method = RequestMethod.POST)
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/beans/{beanName}/invoke", 
+			method = RequestMethod.POST)
 	public @ResponseBody
 	Map<String, Object> invoke(@PathVariable final String applicationName, @PathVariable final String serviceName,
 			@PathVariable final String beanName, @RequestBody final Map<String, Object> params) {
@@ -493,7 +496,8 @@ public class ServiceController {
 		return successStatus(invocationResult);
 	}
 
-	private Object postProcessInvocationResult(Object result, final String instanceName) {
+	private Object postProcessInvocationResult(final Object result, final String instanceName) {
+		Object formattedResult;
 		if (result instanceof Map<?, ?>) {
 			final Map<String, String> modifiedMap = new HashMap<String, String>();
 			@SuppressWarnings("unchecked")
@@ -504,11 +508,11 @@ public class ServiceController {
 						.put(subEntry.getKey(), subEntry.getValue() == null ? null : subEntry.getValue().toString());
 			}
 			modifiedMap.put(CloudifyConstants.INVOCATION_RESPONSE_INSTANCE_NAME, instanceName);
-			result = modifiedMap;
+			formattedResult = modifiedMap;
 		} else {
-			result = result.toString();
+			formattedResult = result.toString();
 		}
-		return result;
+		return formattedResult;
 	}
 
 	/**
@@ -528,7 +532,8 @@ public class ServiceController {
 	 *            a Map containing the result of each invocation on a service instance.
 	 * @return a Map containing the invocation result on the specified instance.
 	 */
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances/{instanceId}/beans/{beanName}/invoke", method = RequestMethod.POST)
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances/{instanceId}/beans/{beanName}/invoke", 
+			method = RequestMethod.POST)
 	public @ResponseBody
 	Map<String, Object> invokeInstance(@PathVariable final String applicationName,
 			@PathVariable final String serviceName, @PathVariable final int instanceId,
@@ -610,7 +615,8 @@ public class ServiceController {
 	 *            The service name.
 	 * @return success status if service was undeployed successfully, else returns failure status.
 	 */
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/undeploy", method = RequestMethod.DELETE)
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/undeploy", 
+			method = RequestMethod.DELETE)
 	public @ResponseBody
 	Map<String, Object> undeploy(@PathVariable final String applicationName, @PathVariable final String serviceName) {
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
@@ -635,7 +641,8 @@ public class ServiceController {
 	 *            map that holds a timeout value for this action.
 	 * @return success status map if succeeded, else returns an error status.
 	 */
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/addinstance", method = RequestMethod.POST)
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/addinstance", 
+			method = RequestMethod.POST)
 	public @ResponseBody
 	Map<String, Object> addInstance(@PathVariable final String applicationName,
 			@PathVariable final String serviceName, @RequestBody final Map<String, String> params) {
@@ -667,7 +674,8 @@ public class ServiceController {
 	 *            the service instance ID to remove.
 	 * @return success status map if succeeded, else returns an error status.
 	 */
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances/{instanceId}/remove", method = RequestMethod.DELETE)
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances/{instanceId}/remove", 
+			method = RequestMethod.DELETE)
 	public @ResponseBody
 	Map<String, Object> removeInstance(@PathVariable final String applicationName,
 			@PathVariable final String serviceName, @PathVariable final int instanceId) {
@@ -714,13 +722,12 @@ public class ServiceController {
 		return admin.getGridServiceManagers().iterator().next();
 	}
 
-	// TODO: complete java docing.
 	/**
 	 * Exception handler for all of the internal server's exceptions.
 	 * 
-	 * @param response
-	 * @param e
-	 * @throws IOException
+	 * @param response The response object to edit, if not committed yet.
+	 * @param e The exception that occurred, from which data is read for logging and for the response error message.
+	 * @throws IOException Reporting failure to edit the response object
 	 */
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
@@ -852,7 +859,8 @@ public class ServiceController {
 			return Arrays.asList(pus);
 		}
 
-		final TopologicalOrderIterator<ProcessingUnit, DefaultEdge> iterator = new TopologicalOrderIterator<ProcessingUnit, DefaultEdge>(
+		final TopologicalOrderIterator<ProcessingUnit, DefaultEdge> iterator = 
+				new TopologicalOrderIterator<ProcessingUnit, DefaultEdge>(
 				graph);
 
 		final List<ProcessingUnit> orderedList = new ArrayList<ProcessingUnit>();
@@ -877,15 +885,14 @@ public class ServiceController {
 	 * @param srcFile
 	 *            The compressed application file.
 	 * @return Map with return value.
-	 * @throws IOException
-	 * @throws PackagingException
-	 * @throws DSLException
+	 * @throws IOException Reporting failure to create a file while opening the packaged application file
+	 * @throws DSLException Reporting failure to parse the application file
 	 */
 	@RequestMapping(value = "applications/{applicationName}", method = RequestMethod.POST)
 	public @ResponseBody
 	Object deployApplication(@PathVariable final String applicationName,
-			@RequestParam(value = "file", required = true) final MultipartFile srcFile) throws IOException,
-			PackagingException, DSLException {
+			@RequestParam(value = "file", required = true) final MultipartFile srcFile) throws IOException, 
+			DSLException {
 		final File applicationFile = copyMultipartFileToLocalFile(srcFile);
 		final Object returnObject = doDeployApplication(applicationName, applicationFile);
 		applicationFile.delete();
@@ -949,7 +956,8 @@ public class ServiceController {
 					+ cycleString);
 		}
 
-		final TopologicalOrderIterator<Service, DefaultEdge> iterator = new TopologicalOrderIterator<Service, DefaultEdge>(
+		final TopologicalOrderIterator<Service, DefaultEdge> iterator = 
+				new TopologicalOrderIterator<Service, DefaultEdge>(
 				graph);
 
 		final List<Service> orderedList = new ArrayList<Service>();
@@ -961,7 +969,7 @@ public class ServiceController {
 	}
 
 	private Object doDeployApplication(final String applicationName, final File applicationFile) throws IOException,
-			PackagingException, DSLException {
+			DSLException {
 		final DSLApplicationCompilatioResult result = ServiceReader.getApplicationFromFile(applicationFile);
 		final List<Service> services = createServiceDependencyOrder(result.getApplication());
 
