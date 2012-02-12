@@ -1,5 +1,10 @@
 package com.gigaspaces.azure.wizards;
 
+import org.eclipse.wst.server.core.IServer;
+import org.eclipse.wst.server.core.IServerWorkingCopy;
+
+import com.gigaspaces.azure.server.AzureRole;
+
 /**
  * Statically holds windows azure server creation wizard properties.
  * The properties are updated after the user presses the wizard's "finish" button.
@@ -10,10 +15,15 @@ package com.gigaspaces.azure.wizards;
 public class AzureServerWizardProperties {
 
 	private static String jreLocation;
-	private static String webServerLocation = "apache-tomcat-7.0.23";
+	private static volatile String webServerLocation ;
 	private static int webServerPort = 8080;
-	private static String workerRoleName="WorkerRole1";
+	private static String workerRoleName;
+	private static String projectName;
+	private static AzureRole role;
+	
+
 	private static String azurePackageName="WindowsAzurePackage.cspkg";
+	private static IServer server;
 
 	public static String getAzurePackageName() {
 		return azurePackageName;
@@ -68,5 +78,34 @@ public class AzureServerWizardProperties {
 		// TODO Auto-generated method stub
 		
 	}
+
+	public static String getProjectName() {
+		return projectName;
+	}
+
+	public static void setProjectName(String projectName) {
+		AzureServerWizardProperties.projectName = projectName;
+	}
 	
+	
+	public static AzureRole getRole() {
+		return role;
+	}
+
+	public static void setRole(AzureRole role) {
+		AzureServerWizardProperties.role = role;
+	}
+
+	public static void setWebServer(IServer server) {
+		AzureServerWizardProperties.setServer(server);
+	}
+
+	public static IServer getServer() {
+		return server;
+	}
+
+	public static void setServer(IServer server) {
+		AzureServerWizardProperties.server = server;
+	}
+
 }

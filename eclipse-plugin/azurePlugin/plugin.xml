@@ -102,10 +102,10 @@
 	      class="com.gigaspaces.azure.wizards.AzureServerWizardFragment" />
     </extension>
     
-    <extension point="org.eclipse.wst.server.ui.serverCreationWizardPageExtension">
+    <!--extension point="org.eclipse.wst.server.ui.serverCreationWizardPageExtension">
 	 <fragment id="myextension"
 	    	class="com.gigaspaces.azure.wizards.AzureServerCreationWizardPageExtension" />
-	</extension>
+	</extension-->
  <extension
        point="org.eclipse.jst.server.generic.core.genericpublisher">
     <genericpublisher
@@ -114,5 +114,74 @@
     </genericpublisher>
  </extension>
 
-			
+<extension
+      point="org.eclipse.ui.navigator.navigatorContent">
+   <navigatorContent
+         activeByDefault="true"
+         contentProvider="com.gigaspaces.azure.view.AzureServerContentProvider"
+         icon="icons/cview16/servers_view.gif"
+         id="org.eclipse.wst.server.ui.ServersView.content.root"
+         labelProvider="org.eclipse.wst.server.ui.internal.cnf.ServerLabelProvider"
+         name="%defaultProvider"
+         priority="highest">
+      <triggerPoints>
+         <or>
+            <instanceof
+                  value="org.eclipse.wst.server.core.IServer">
+            </instanceof>
+            <instanceof
+                  value="org.eclipse.wst.server.ui.internal.view.servers.ModuleServer">
+            </instanceof>
+         </or>
+      </triggerPoints>
+      <possibleChildren>
+         <or>
+            <instanceof
+                  value="java.lang.Object">
+            </instanceof>
+            <instanceof
+                  value="org.eclipse.wst.server.core.IServer">
+            </instanceof>
+            <instanceof
+                  value="org.eclipse.wst.server.ui.internal.view.servers.ModuleServer">
+            </instanceof>
+         </or>
+      </possibleChildren>
+	  <actionProvider
+	            class="org.eclipse.wst.server.ui.internal.cnf.ServerActionProvider"
+	            id="org.eclipse.wst.server.ui.ServersView.ServerActionProvider"
+	            priority="highest">
+			<enablement>
+             <or>
+                <instanceof
+                      value="org.eclipse.wst.server.core.IServer">
+                </instanceof>
+                <instanceof
+                      value="org.eclipse.wst.server.ui.internal.view.servers.ModuleServer">
+                </instanceof>
+                <instanceof
+                      value="org.eclipse.core.resources.IWorkspaceRoot">
+                </instanceof>
+               <adapt
+                     type="java.util.Collection">
+                  <count
+                        value="0">
+                  </count>
+               </adapt>
+             </or>
+            </enablement>
+	  </actionProvider>      
+      <dropAssistant
+             class="org.eclipse.wst.server.ui.internal.cnf.ServersViewDropAdapterAssistant"
+             id="org.eclipse.wst.server.ui.ServersView.DropAssistant">
+          <possibleDropTargets>
+             <or>
+                <instanceof
+                      value="java.lang.Object">
+                </instanceof>
+             </or>
+          </possibleDropTargets>
+       </dropAssistant>
+   </navigatorContent>
+</extension>
 </plugin>
