@@ -74,8 +74,8 @@ import com.j_spaces.kernel.Environment;
  * @author rafi, barakm
  * @since 2.0.0
  * 
- *         This class handles the start up and shut down of the cloud components - management components (LUS,
- *         GSM, ESM), containers (GSCs) and an agent.
+ *        This class handles the start up and shut down of the cloud components - management components (LUS,
+ *        GSM, ESM), containers (GSCs) and an agent.
  */
 public class LocalhostGridAgentBootstrapper {
 
@@ -283,14 +283,15 @@ public class LocalhostGridAgentBootstrapper {
 	public boolean isNotHighlyAvailableManagementSpace() {
 		return notHighlyAvailableManagementSpace;
 	}
-	
+
 	/**
-	 * Enables force teardown. The force flag will terminate the gs agent 
-	 * without forcing uninstall on the currently deployed applications. 
+	 * Enables force teardown. The force flag will terminate the gs agent without forcing uninstall on the
+	 * currently deployed applications.
 	 * 
-	 * @param force - Boolean flag.
+	 * @param force
+	 *            Boolean flag.
 	 */
-	public void setForce(boolean force) {
+	public void setForce(final boolean force) {
 		this.force = force;
 	}
 
@@ -389,8 +390,8 @@ public class LocalhostGridAgentBootstrapper {
 	 * @throws TimeoutException
 	 *             Reporting the timeout was reached
 	 */
-	public TeardownCloudResults shutdownAgentOnLocalhostAndWait(final boolean force, final int timeout, final TimeUnit timeunit)
-			throws CLIException, InterruptedException, TimeoutException {
+	public TeardownCloudResults shutdownAgentOnLocalhostAndWait(final boolean force, final int timeout,
+			final TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
 
 		setDefaultNicAddress();
 
@@ -413,8 +414,8 @@ public class LocalhostGridAgentBootstrapper {
 	 * @throws TimeoutException
 	 *             Reporting the timeout was reached
 	 */
-	public TeardownCloudResults shutdownManagementOnLocalhostAndWait(final int timeout, final TimeUnit timeunit) throws CLIException,
-			InterruptedException, TimeoutException {
+	public TeardownCloudResults shutdownManagementOnLocalhostAndWait(final int timeout, final TimeUnit timeunit)
+			throws CLIException, InterruptedException, TimeoutException {
 
 		setDefaultNicAddress();
 
@@ -442,70 +443,70 @@ public class LocalhostGridAgentBootstrapper {
 		setDefaultNicAddress();
 
 		setDefaultLocalcloudLookup();
-		
+
 		uninstallApplications(timeout, timeunit);
 
 		return shutdownAgentOnLocalhostAndWaitInternal(true, true, timeout, timeunit);
 	}
 
-	private void uninstallApplications(final long timeout, final TimeUnit timeunit) 
-			throws InterruptedException, TimeoutException, CLIException {
-		
+	private void uninstallApplications(final long timeout, final TimeUnit timeunit) throws InterruptedException,
+			TimeoutException, CLIException {
+
 		List<String> applicationsList = null;
 		boolean applicationsExist = false;
 		try {
-			if (!adminFacade.isConnected()){
-				throw new CLIException("Failed to fetch applications list. " +
-								"Client is not connected to the rest server.");
+			if (!adminFacade.isConnected()) {
+				throw new CLIException("Failed to fetch applications list. "
+						+ "Client is not connected to the rest server.");
 			}
-			
+
 			applicationsList = adminFacade.getApplicationsList();
-			// If there existed other applications besides the management. 
+			// If there existed other applications besides the management.
 			applicationsExist = applicationsList.size() > 1;
-		} catch (CLIException e) {
+		} catch (final CLIException e) {
 			logger.log(Level.WARNING, "Failed to fetch the currently deployed applications list."
-						+ " Continuing teardown-localcloud.");
-			if (!force){
+					+ " Continuing teardown-localcloud.");
+			if (!force) {
 				throw new CLIStatusException(e, "failed_to_access_rest_before_teardown");
 			}
 			return;
 		}
-		
-		if (applicationsExist && !force){
+
+		if (applicationsExist && !force) {
 			logger.log(Level.FINE, "Teardown failed. There are still applications deployed.");
 			throw new CLIStatusException("apps_deployed_before_teardown_localcloud", applicationsList.toString());
 		}
-		
-		for (String appName : applicationsList) {
+
+		for (final String appName : applicationsList) {
 			try {
 				if (!appName.equals(MANAGEMENT_APPLICATION)) {
 					adminFacade.uninstallApplication(appName);
 				}
-			} catch (CLIException e) {
-				logger.log(Level.WARNING, "Application " + appName + " faild to uninstall." 
+			} catch (final CLIException e) {
+				logger.log(Level.WARNING, "Application " + appName + " faild to uninstall."
 						+ " Continuing teardown-localcloud.", e);
-				if (!force){
+				if (!force) {
 					throw new CLIStatusException(e, "failed_to_uninstall_app_before_teardown", appName);
 				}
 			}
 		}
-		if (applicationsExist){
+		if (applicationsExist) {
 			waitForUninstallApplications(timeout, timeunit);
 			logger.info(ShellUtils.getMessageBundle().getString("all_apps_removed_before_teardown"));
 		}
 	}
-	
-	private void waitForUninstallApplications(final long timeout, final TimeUnit timeunit) throws InterruptedException,
-	TimeoutException, CLIException {
+
+	private void waitForUninstallApplications(final long timeout, final TimeUnit timeunit)
+			throws InterruptedException, TimeoutException, CLIException {
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
 
 			@Override
 			public boolean isDone() throws CLIException, InterruptedException {
-				List<String> applications = adminFacade.getApplicationsList();
+				final List<String> applications = adminFacade.getApplicationsList();
 
 				boolean done = true;
 
-				for (String applicationName : applications) {
+				for (final String applicationName : applications) {
 					if (!MANAGEMENT_APPLICATION.equals(applicationName)) {
 						done = false;
 						break;
@@ -769,8 +770,7 @@ public class LocalhostGridAgentBootstrapper {
 			waitForManagementProcesses(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
 					TimeUnit.MILLISECONDS);
 
-			final List<AbstractManagementServiceInstaller> waitForManagementServices = 
-					new LinkedList<AbstractManagementServiceInstaller>();
+			final List<AbstractManagementServiceInstaller> waitForManagementServices = new LinkedList<AbstractManagementServiceInstaller>();
 
 			connectionLogs.supressConnectionErrors();
 			try {
@@ -1123,8 +1123,7 @@ public class LocalhostGridAgentBootstrapper {
 				return getCommandLineArgumentRemovePrefix(component, prefix);
 			}
 
-			private String getCommandLineArgumentRemovePrefix(final VirtualMachineAware component, 
-					final String prefix) {
+			private String getCommandLineArgumentRemovePrefix(final VirtualMachineAware component, final String prefix) {
 				final String[] commandLineArguments = component.getVirtualMachine().getDetails().getInputArguments();
 				String requiredArg = null;
 				for (final String arg : commandLineArguments) {
