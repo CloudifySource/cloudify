@@ -109,9 +109,9 @@ import org.openspaces.admin.pu.elastic.config.EagerScaleConfigurer;
 import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfigurer;
 import org.openspaces.admin.pu.elastic.topology.ElasticDeploymentTopology;
 import org.openspaces.admin.space.ElasticSpaceDeployment;
-import org.openspaces.admin.space.Space;
 import org.openspaces.admin.zone.Zone;
 import org.openspaces.core.GigaSpace;
+import org.openspaces.core.context.GigaSpaceContext;
 import org.openspaces.core.util.MemoryUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -146,6 +146,8 @@ public class ServiceController {
 	private static final String USM_EVENT_LOGGER_NAME = ".*.USMEventLogger.{0}\\].*";
 	@Autowired(required = true)
 	private Admin admin;
+	@GigaSpaceContext(name = "gigaSpace")
+	private GigaSpace gigaSpace;
 
 	private Cloud cloud = null;
 
@@ -196,7 +198,6 @@ public class ServiceController {
 	}
 
 	private String getCloudConfigurationFromManagementSpace() {
-		final GigaSpace gigaSpace = getManagementSpace();
 		logger.info("Waiting for cloud configuration to become available in management space");
 		final CloudConfigurationHolder config = gigaSpace.read(new CloudConfigurationHolder(), 1000 * 60);
 		if (config == null) {
@@ -206,17 +207,6 @@ public class ServiceController {
 			return null;
 		}
 		return config.getCloudConfiguration();
-	}
-
-	private GigaSpace getManagementSpace() {
-		final Space space = this.admin.getSpaces().waitFor(CloudifyConstants.MANAGEMENT_SPACE_NAME, 1,
-				TimeUnit.MINUTES);
-		if (space == null) {
-			throw new IllegalStateException("Could not find management space ("
-					+ CloudifyConstants.MANAGEMENT_SPACE_NAME + ")");
-		}
-
-		return space.getGigaSpace();
 	}
 
 	private Cloud readCloud() {

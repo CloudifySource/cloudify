@@ -25,6 +25,7 @@ import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.commands.CLIException;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.pu.ProcessingUnitAlreadyDeployedException;
+import org.openspaces.admin.pu.dependency.ProcessingUnitDeploymentDependenciesConfigurer;
 import org.openspaces.admin.pu.elastic.config.DiscoveredMachineProvisioningConfigurer;
 import org.openspaces.admin.pu.elastic.config.EagerScaleConfigurer;
 import org.openspaces.admin.space.ElasticSpaceDeployment;
@@ -58,7 +59,8 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 	}
 
 	/**
-	 * Installs the management space with the configured settings (e.g. memory, availability).
+	 * Installs the management space with the configured settings (e.g. memory, scale). If a dependency on
+	 * another PU is set, the deployment will wait until at least 1 instance of that PU is available.
 	 * 
 	 * @throws ProcessingUnitAlreadyDeployedException
 	 *             Reporting installation failure because the PU is already installed
@@ -87,6 +89,11 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 
 		for (final Entry<Object, Object> prop : getContextProperties().entrySet()) {
 			deployment.addContextProperty(prop.getKey().toString(), prop.getValue().toString());
+		}
+
+		for (final String requiredPUName : dependencies) {
+			deployment.addDependencies(new ProcessingUnitDeploymentDependenciesConfigurer()
+					.dependsOnMinimumNumberOfDeployedInstancesPerPartition(requiredPUName, 1).create());
 		}
 
 		getGridServiceManager().deploy(deployment);

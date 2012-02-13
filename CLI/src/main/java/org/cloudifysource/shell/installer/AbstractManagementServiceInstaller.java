@@ -15,7 +15,9 @@
  *******************************************************************************/
 package org.cloudifysource.shell.installer;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -50,6 +52,8 @@ public abstract class AbstractManagementServiceInstaller {
 	protected String serviceName;
 	protected String zone;
 	protected long progressInSeconds;
+	List<String> dependencies = new ArrayList<String>();
+	
 	/**
 	 * The name of the management application.
 	 */

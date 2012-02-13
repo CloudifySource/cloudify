@@ -831,6 +831,7 @@ public class LocalhostGridAgentBootstrapper {
 					restInstaller.setWarFile(new File(REST_FILE));
 					restInstaller.setServiceName(REST_NAME);
 					restInstaller.setManagementZone(MANAGEMENT_GSA_ZONE);
+					restInstaller.dependencies.add(CloudifyConstants.MANAGEMENT_SPACE_NAME);
 					restInstaller.setWaitForConnection();
 					try {
 						restInstaller.install();
