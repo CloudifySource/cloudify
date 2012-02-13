@@ -130,8 +130,8 @@ import com.gigaspaces.log.LogEntry;
 import com.gigaspaces.log.LogEntryMatcher;
 
 /**
- * @author rafi
- * @since 8.0.3
+ * @author rafi, barakm, adaml, noak
+ * @since 2.0.0
  */
 @Controller
 @RequestMapping("/service")
@@ -151,9 +151,16 @@ public class ServiceController {
 	private String cloudFileContents;
 	private String defaultTemplateName;
 
+	/**
+	 * Empty Ctor.
+	 */
 	public ServiceController() {
 	}
 
+	/**
+	 * Initializing the cloud configuration. Executed by Spring after the object is instantiated and the
+	 * dependencies injected.
+	 */
 	@PostConstruct
 	public void init() {
 		logger.info("Initializing service controller cloud configuration");
