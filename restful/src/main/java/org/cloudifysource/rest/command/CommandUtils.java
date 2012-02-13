@@ -27,28 +27,33 @@ public class CommandUtils {
 	
 	private static Logger logger = Logger.getLogger(CommandUtils.class.getName());
 	
-	public static Object getObjectByCommand(String command, Object someObject){
+	public static Object getObjectByCommand(String command, Object someObject) throws RuntimeException{
 		Method commandMethod = getGetterMethodFromObject(command, someObject.getClass());
 		return OutputUtils.safeInvoke(commandMethod, someObject);
 	}
 
 	public static Object getMapObject(String key, Object mapObject) {
 		Map<?, ?> map = (Map<?, ?>)mapObject;
-		Object keyObject = key;
-		if (!map.containsKey(keyObject)){
-			logger.fine("Map does not contain a value for the key: " + key);
-			return null;
+		//Map might hold keys that are not of type String.
+		//We solve this issue by iterating over the list of map keys and comparing their toString. 
+		for (Map.Entry<?, ?> entry : map.entrySet()) {
+		    if (entry.getKey().toString().equals(key)){
+		        return entry.getValue();
+		    }
 		}
-		return map.get(keyObject);
+		logger.severe("Map does not contain a value for the key: " + key);
+		throw new RuntimeException("Map object does not contain key: " + key);
 	}
-
-	public static Object getListClassObject(String index, Object listObject) {
+	
+	public static Object getListClassObject(String index, Object listObject) throws RuntimeException{
 		int listIndex = getIndexFromString(index);
 		if (listIndex == -1){
+		    logger.severe("unable to parse index " + listIndex);
 			throw new RuntimeException("unable to parse index " + listIndex);
 		}
 		List<?> objectList  = (List<?>)listObject;
 		if (listIndex >= objectList.size()){
+		    logger.severe("Index out of bounds: " + listIndex);
 			throw new RuntimeException("Index out of bounds: " + listIndex);
 		}
 		return objectList.get(listIndex);
@@ -64,19 +69,21 @@ public class CommandUtils {
 		return arrayIndex;
 	}
 
-	public static Object getArrayClassObject(String index, Object arrayObject) {
+	public static Object getArrayClassObject(String index, Object arrayObject) throws RuntimeException {
 		int arrayIndex = getIndexFromString(index);
 		if (arrayIndex == -1){
+		    logger.severe("unable to parse index " + index);
 			throw new RuntimeException("unable to parse index " + index);
 		}
 		Object[] objectArray = OutputUtils.getArray(arrayObject);
 		if (arrayIndex >= objectArray.length){
+		    logger.severe("Index out of bounds: " + arrayIndex);
 			throw new RuntimeException("Index out of bounds: " + arrayIndex);
 		}
 		return objectArray[arrayIndex];
 	}
 	
-	private static Method getGetterMethodFromObject(String rawCommand, Class<?> aClass) {
+	private static Method getGetterMethodFromObject(String rawCommand, Class<?> aClass) throws RuntimeException {
 		  Method[] methods = aClass.getMethods();
 		  String getterCommand = initCommandGetterName(rawCommand, methods);
 		  for(Method method : methods){

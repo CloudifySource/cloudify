@@ -140,7 +140,7 @@ public class OutputUtils {
 		outputMap.put(commands[commands.length - 1].concat("-Elements"), uriPathArray);
 	}
 
-	public static void outputObjectToMap(CommandManager manager, Map<String, Object> outputMap){
+	public static void outputObjectToMap(CommandManager manager, Map<String, Object> outputMap)throws RuntimeException{
 
 		Object object = manager.getFinalCommand().getCommandObject();
 		String commandURL = getRelativePathURLS(manager.getCommandURL());
@@ -150,7 +150,7 @@ public class OutputUtils {
 	}
 	
 	private static void simpleOutputObjectToMap(Object object,
-			String commandURL, String rawCommandName, Map<String, Object> outputMap){
+			String commandURL, String rawCommandName, Map<String, Object> outputMap) throws RuntimeException{
 		Class<?> aClass = object.getClass();
 
 		if (PrimitiveWrapper.is(aClass)) {
@@ -201,6 +201,9 @@ public class OutputUtils {
 				outputMap.put(commandName, commandURL.concat("/" + commandName));
 				// Special treatment for enum objects.
 				resultObject = safeInvoke(method, object);
+				if (isNull(resultObject)){
+				    return;
+				}
 				if (resultObject.getClass().isEnum()){
 					outputMap.put(commandName + "-Enumerator", resultObject.toString());
 				}
@@ -317,7 +320,7 @@ public class OutputUtils {
 		return obj == null || obj.equals(NULL_OBJECT_DENOTER);
 	}
 
-	public static Object safeInvoke(Method method, Object obj) {
+	public static Object safeInvoke(Method method, Object obj) throws RuntimeException{
 		Object retval = null;
 		String className = obj.getClass().getName();
 		String methodName = method.getName();
@@ -326,6 +329,9 @@ public class OutputUtils {
 				return null;
 			}
 			if (!Map.class.isAssignableFrom(obj.getClass()) && !obj.getClass().isArray() && !List.class.isAssignableFrom(obj.getClass())){
+			    if (!method.isAccessible()){
+			        method.setAccessible(true);
+			    }
 				retval = method.invoke(obj, (Object[])null);	
 			}else{
 				return "DataSet " + obj.getClass().getTypeParameters()[0];
@@ -335,7 +341,7 @@ public class OutputUtils {
 		//An IllegalAccessException is thrown when an application tries to reflectively invoke a method,
 		//but the currently executing method does not have access to the definition of the specified method.
 		catch (IllegalAccessException e) {
-			return null;
+		    throw new RuntimeException("Cannot execute getter function " + method.getName() + ". Reason: " + e.getMessage(), e);
 		}
 		catch (Exception e) {
 			throw new RuntimeException("Cannot execute getter function " + method.getName() + ". Reason: " + e.getMessage(), e);

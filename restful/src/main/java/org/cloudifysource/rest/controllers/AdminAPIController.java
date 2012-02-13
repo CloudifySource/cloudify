@@ -27,8 +27,6 @@ import org.cloudifysource.rest.command.CommandManager;
 import org.cloudifysource.rest.out.OutputDispatcher;
 import org.cloudifysource.rest.util.NotFoundHttpException;
 import org.openspaces.admin.Admin;
-import org.openspaces.admin.os.OperatingSystem;
-import org.openspaces.admin.os.OperatingSystemDetails.NetworkDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -74,17 +72,11 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 @RequestMapping(value = "/admin/*")
 public class AdminAPIController  {
-
-	private static String ADMIN_VIEW = "index";
 	
 	@Autowired(required = true)
 	private Admin admin;
 
     private final Logger logger = Logger.getLogger(getClass().getName());
-
-	private OperatingSystem operatingSystem;
-
-	private Map<String, NetworkDetails> networkDetails;
 	
 	/**
 	 * redirects to index view
@@ -142,8 +134,8 @@ public class AdminAPIController  {
 	}
 	@ExceptionHandler(NotFoundHttpException.class)
     @ResponseStatus(value = HttpStatus.NOT_FOUND)
-    public void resolveNotFound(Writer writer, Exception e) throws IOException {
-        
+    public void resolveNotFound(Writer writer, Exception e){
+
     }
 	@ExceptionHandler(Exception.class)
     @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)

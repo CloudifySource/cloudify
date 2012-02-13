@@ -59,7 +59,7 @@ public class CommandObject {
 	 * for example: if the previous command returned an object of type Array, it's next command,
 	 * if exists, will have to be an array index and will be treated as such.
 	 */
-	public void runCommand(){
+	public void runCommand() throws RuntimeException{
 		
 		Object previousCommandObject = previousCommand.getCommandObject(); 
 		if (previousCommandObject == null) {

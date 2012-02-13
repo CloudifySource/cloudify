@@ -55,9 +55,13 @@ public class CommandManager {
 	 * run the initialized commands one by one, with each command 
 	 * depending on the previous command's output.
 	 */
-	public void runCommands(){
-		for (CommandObject command : listOfCommands){
-			command.runCommand();
+	public void runCommands() throws RuntimeException{
+		try{
+		    for (CommandObject command : listOfCommands){
+		        command.runCommand();
+		    }
+		}catch(RuntimeException e){
+			throw new RuntimeException("Failed to access url: " + this.commandURL + ". Reason:" + e.getMessage(), e);
 		}
 	}
 	
