@@ -71,7 +71,7 @@ import com.gigaspaces.internal.utils.StringUtils;
 import com.j_spaces.kernel.Environment;
 
 /**
- * @author rafi, barakm
+ * @author rafi, barakm, adaml, noak
  * @since 2.0.0
  * 
  *        This class handles the start up and shut down of the cloud components - management components (LUS,
@@ -770,7 +770,8 @@ public class LocalhostGridAgentBootstrapper {
 			waitForManagementProcesses(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
 					TimeUnit.MILLISECONDS);
 
-			final List<AbstractManagementServiceInstaller> waitForManagementServices = new LinkedList<AbstractManagementServiceInstaller>();
+			final List<AbstractManagementServiceInstaller> waitForManagementServices = 
+					new LinkedList<AbstractManagementServiceInstaller>();
 
 			connectionLogs.supressConnectionErrors();
 			try {
