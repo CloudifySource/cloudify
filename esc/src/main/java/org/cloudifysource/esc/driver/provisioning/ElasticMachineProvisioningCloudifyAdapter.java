@@ -375,8 +375,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
                         
 		        }
 
+			} catch (ClassNotFoundException e) {
+				throw new BeanConfigurationException("Failed to load provisioning class for cloud: " + this.cloud.getName() + ". Class not found: " + this.cloud.getConfiguration().getClassName(), e);
 			} catch (Exception e) {
-				throw new BeanConfigurationException("Failed to load provisioning class from cloud: " + this.cloud, e);
+				throw new BeanConfigurationException("Failed to load provisioning class for cloud: " + this.cloud.getName(), e);
 			}
 
 			this.lookupLocatorsString = createLocatorsString();
