@@ -59,6 +59,7 @@ import net.jini.core.discovery.LookupLocator;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.DataGrid;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.Sla;
@@ -113,6 +114,7 @@ import org.openspaces.admin.zone.Zone;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.util.MemoryUnit;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -151,6 +153,9 @@ public class ServiceController {
 	private String cloudFileContents;
 	private String defaultTemplateName;
 
+	@Value("${restful.temporaryFolder}")
+	private String temporaryFolder;
+
 	/**
 	 * Empty Ctor.
 	 */
@@ -174,6 +179,19 @@ public class ServiceController {
 					+ ". This template will be used for services that do not specify an explicit template");
 		} else {
 			logger.info("Service Controller is running in local cloud mode");
+		}
+
+		/**
+		 * Sets the folder used for temporary files. The value can be set in the configuration file
+		 * ("config.properties"), otherwise the system's default setting will apply.
+		 */
+		try {
+			if (StringUtils.isBlank(temporaryFolder)) {
+				temporaryFolder = getTempFolderPath();
+			}
+		} catch (final IOException e) {
+			logger.log(Level.SEVERE, "ServiceController failed to locate temp directory", e);
+			throw new IllegalStateException("ServiceController failed to locate temp directory", e);
 		}
 	}
 
@@ -996,13 +1014,29 @@ public class ServiceController {
 	}
 
 	private File copyMultipartFileToLocalFile(final MultipartFile srcFile) throws IOException {
-		final File tempFolder = File.createTempFile("GS__", srcFile.getOriginalFilename());
-		tempFolder.delete();
-		tempFolder.mkdirs();
-		final File tempFile = new File(tempFolder.getAbsolutePath(), srcFile.getOriginalFilename());
+		final File tempFile = new File(temporaryFolder, srcFile.getOriginalFilename());
 		srcFile.transferTo(tempFile);
 		tempFile.deleteOnExit();
 		return tempFile;
+	}
+
+	/**
+	 * Creates a randomly-named file in the system's default temp folder, just to get the path. The file is
+	 * deleted immediately.
+	 * 
+	 * @return The path to the system's default temp folder
+	 */
+	private String getTempFolderPath() throws IOException {
+		/*long tmpNum = new SecureRandom().nextLong();
+		if (tmpNum == Long.MIN_VALUE) {
+			tmpNum = 0; // corner case
+		} else {
+			tmpNum = Math.abs(tmpNum);
+		}*/
+		final File tempFile = File.createTempFile("GS__", null);
+		tempFile.delete();
+		tempFile.mkdirs();
+		return tempFile.getParent();
 	}
 
 	private void doDeploy(final String applicationName, final String serviceName, final String templateName,

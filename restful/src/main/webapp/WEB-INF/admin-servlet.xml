@@ -36,8 +36,8 @@
 	<bean class="org.springframework.web.servlet.view.BeanNameViewResolver" />
 
 	<bean id="admin" class="org.cloudifysource.rest.util.AdminFactoryBean">
-        <property name="groups" value="${restful.lookupGroup}"/>
-        <property name="locators" value="${restful.lookupLocator}"/>
+        <property name="groups" value="${restful.lookupGroups}"/>
+        <property name="locators" value="${restful.lookupLocators}"/>
 	</bean>
 
 
