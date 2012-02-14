@@ -344,7 +344,8 @@ namespace GigaSpaces
 
             String endpoint = PortUtils.GetInternalEndpoints(PortUtils.XAP_RESTADMIN_PORT)[0];
             int port = PortUtils.XAP_RESTADMIN_PORT;
-            String connectCommand = "connect " + endpoint + ":" + port + RestAdminContextPath + ";";
+            String arguments = "\"connect " + endpoint + ":" + port + RestAdminContextPath + ";" + commands+"\"";
+            
             if (redirectOutput) 
             {
                 // Build up each line one-by-one and them trim the end
@@ -357,13 +358,13 @@ namespace GigaSpaces
                         .Append(pair.Value)
                         .Append(' ');
                 }
-                GSTrace.WriteLine("Running:cloudify.bat " + connectCommand + commands+"\n Environment Variables="+builder.ToString());
+                GSTrace.WriteLine("Running:cloudify.bat " + arguments+"\n Environment Variables="+builder.ToString());
             }
             return new GSProcess()
             {
                 WorkingDirectory = new DirectoryInfo(Path.Combine(XapHomeDirectory.FullName, @"tools\cli")),
                 Command = "cloudify.bat",
-                Arguments = connectCommand + commands,
+                Arguments = arguments,
                 RedirectStandardError = redirectOutput,
                 RedirectStandardOutput = redirectOutput,
                 EnvironmentVariables = EnvironmentVariables
