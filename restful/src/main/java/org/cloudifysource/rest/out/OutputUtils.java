@@ -17,6 +17,7 @@ package org.cloudifysource.rest.out;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -281,6 +282,10 @@ public class OutputUtils {
 		String methodName = method.getName();
 		Class<?> retType = method.getReturnType();
 
+		// private object getters will not be invoked.
+	    if (method.getModifiers() == Modifier.PRIVATE){
+	            return false;
+	    }
 		if (methodName.equals("getClass")) { // irrelevant
 			return false;
 		}
@@ -329,6 +334,13 @@ public class OutputUtils {
 				return null;
 			}
 			if (!Map.class.isAssignableFrom(obj.getClass()) && !obj.getClass().isArray() && !List.class.isAssignableFrom(obj.getClass())){
+	            //This is a workaround for a known bug in the JVM
+                //where method.invoke throws IllegalAccessException on inner class public method.
+                //link: http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4819108
+                //p.s: no private method should arrive here. private methods are filtered in getValidGetters.
+                if (!method.isAccessible()){
+                    method.setAccessible(true);
+                }
 				retval = method.invoke(obj, (Object[])null);	
 			}else{
 				return "DataSet " + obj.getClass().getTypeParameters()[0];
