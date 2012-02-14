@@ -73,12 +73,12 @@ public class CommandUtils {
 	public static Object getArrayClassObject(String index, Object arrayObject){
 		int arrayIndex = getIndexFromString(index);
 		if (arrayIndex == -1){
-			throw new RuntimeException("Error while accessing array of type " + arrayObject.getClass().getSimpleName().replace("]", "")
+			throw new RuntimeException("Error while accessing array of type " + arrayObject.getClass().getSimpleName()
 			                            + ". Unable to parse index: " + index);
 		}
 		Object[] objectArray = OutputUtils.getArray(arrayObject);
 		if (arrayIndex >= objectArray.length){
-		    throw new RuntimeException("Error while accessing array of type " + arrayObject.getClass().getSimpleName().replace(']', ' ')
+		    throw new RuntimeException("Error while accessing array of type " + arrayObject.getClass().getSimpleName()
 			                            + ". Array size: " + objectArray.length + ", requested index: " + arrayIndex);
 		}
 		return objectArray[arrayIndex];
