@@ -464,16 +464,21 @@ public class LocalhostGridAgentBootstrapper {
 			// If there existed other applications besides the management.
 			applicationsExist = applicationsList.size() > 1;
 		} catch (final CLIException e) {
-			logger.log(Level.WARNING, "Failed to fetch the currently deployed applications list."
-					+ " Continuing teardown-localcloud.");
 			if (!force) {
 				throw new CLIStatusException(e, "failed_to_access_rest_before_teardown");
 			}
+			String errorMessage = "Failed to fetch the currently deployed applications list."
+				+ " Continuing teardown-localcloud.";
+			if (verbose){
+				logger.log(Level.INFO, errorMessage, e);
+			}else{
+				logger.log(Level.INFO, errorMessage);
+			}
+			//Suppress exception. continue with teardown.
 			return;
 		}
 
 		if (applicationsExist && !force) {
-			logger.log(Level.FINE, "Teardown failed. There are still applications deployed.");
 			throw new CLIStatusException("apps_deployed_before_teardown_localcloud", applicationsList.toString());
 		}
 
@@ -483,10 +488,15 @@ public class LocalhostGridAgentBootstrapper {
 					adminFacade.uninstallApplication(appName);
 				}
 			} catch (final CLIException e) {
-				logger.log(Level.WARNING, "Application " + appName + " faild to uninstall."
-						+ " Continuing teardown-localcloud.", e);
+				String errorMessage = "Application " + appName + " faild to uninstall."
+				+ " Continuing teardown-localcloud.";
 				if (!force) {
 					throw new CLIStatusException(e, "failed_to_uninstall_app_before_teardown", appName);
+				}
+				if (verbose){
+					logger.log(Level.INFO, errorMessage, e);
+				}else{
+					logger.log(Level.INFO, errorMessage);
 				}
 			}
 		}
