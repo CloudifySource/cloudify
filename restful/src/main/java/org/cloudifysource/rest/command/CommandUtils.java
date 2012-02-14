@@ -29,18 +29,21 @@ public class CommandUtils {
 		return OutputUtils.safeInvoke(commandMethod, someObject);
 	}
 
-	public static Object getMapObject(String key, Object mapObject) {
-		Map<?, ?> map = (Map<?, ?>)mapObject;
-		//Map might hold keys that are not of type String.
-		//We solve this issue by iterating over the list of map keys and comparing their toString. 
-		for (Map.Entry<?, ?> entry : map.entrySet()) {
-		    if (entry.getKey().toString().equals(key)){
-		        return entry.getValue();
-		    }
-		}
-		throw new RuntimeException("Error while accessing map of type " + map.getClass().getSimpleName()
+    public static Object getMapObject(String key, Object mapObject) {
+        Map<?, ?> map = (Map<?, ?>)mapObject;
+        if (map.containsKey(key)){
+            return map.get(key);
+        }
+        //Map might hold keys that are not of type String.
+        //We solve this issue by iterating over the list of map keys and comparing their toString. 
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            if (entry.getKey().toString().equals(key)){
+                return entry.getValue();
+            }
+        }
+        throw new RuntimeException("Error while accessing map of type " + map.getClass().getSimpleName()
                  + ". Map does not contain a value for the key: " + key);
-	}
+    }
 	
 	public static Object getListClassObject(String index, Object listObject){
 		int listIndex = getIndexFromString(index);
