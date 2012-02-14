@@ -14,7 +14,7 @@ namespace GigaSpaces
         public string Arguments { private get; set; }
         public bool RedirectStandardOutput { private get; set; }
         public bool SaveOutput { private get; set; }
-        public volatile String output;
+        public volatile String output = "";
         public String Output { get { return this.output;}}
         
         public bool RedirectStandardError { private get; set; }
