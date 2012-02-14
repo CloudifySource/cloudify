@@ -201,14 +201,13 @@ public class OutputUtils {
 				outputMap.put(commandName, commandURL.concat("/" + commandName));
 				// Special treatment for enum objects.
 				resultObject = safeInvoke(method, object);
-				if (isNull(resultObject)){
-				    return;
-				}
-				if (resultObject.getClass().isEnum()){
-					outputMap.put(commandName + "-Enumerator", resultObject.toString());
+				if (!isNull(resultObject)){
+				    if (resultObject.getClass().isEnum()){
+					    outputMap.put(commandName + "-Enumerator", resultObject.toString());
+				    }
 				}
 				if (object.getClass().isEnum()){
-					outputMap.put(commandName + "-Enumerator", object.toString());
+				    outputMap.put(commandName + "-Enumerator", object.toString());
 				}
 			}
 		}
