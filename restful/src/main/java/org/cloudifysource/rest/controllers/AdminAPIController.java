@@ -140,7 +140,7 @@ public class AdminAPIController  {
 	@ExceptionHandler(Exception.class)
     @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
     public void resolveInternalServerError(Writer writer, Exception e) throws IOException {
-        logger.log(Level.SEVERE, "caught exception", e);
+        logger.log(Level.WARNING, "caught exception", e);
         writer.write("{\"status\":\"error\", \"error\":\"" + e.getMessage() + "\"}");
     }
 }

@@ -37,7 +37,6 @@ import org.cloudifysource.rest.util.PrimitiveWrapper;
  */
 public class OutputUtils {
 
-	private static final String URL_ENCODING_FORMAT = "UTF-8";
 	private static String hostAddress;
 	private static String hostContext;
 
@@ -140,7 +139,7 @@ public class OutputUtils {
 		outputMap.put(commands[commands.length - 1].concat("-Elements"), uriPathArray);
 	}
 
-	public static void outputObjectToMap(CommandManager manager, Map<String, Object> outputMap)throws RuntimeException{
+	public static void outputObjectToMap(CommandManager manager, Map<String, Object> outputMap){
 
 		Object object = manager.getFinalCommand().getCommandObject();
 		String commandURL = getRelativePathURLS(manager.getCommandURL());
@@ -150,7 +149,7 @@ public class OutputUtils {
 	}
 	
 	private static void simpleOutputObjectToMap(Object object,
-			String commandURL, String rawCommandName, Map<String, Object> outputMap) throws RuntimeException{
+			String commandURL, String rawCommandName, Map<String, Object> outputMap){
 		Class<?> aClass = object.getClass();
 
 		if (PrimitiveWrapper.is(aClass)) {
@@ -320,18 +319,16 @@ public class OutputUtils {
 		return obj == null || obj.equals(NULL_OBJECT_DENOTER);
 	}
 
-	public static Object safeInvoke(Method method, Object obj) throws RuntimeException{
+	public static Object safeInvoke(Method method, Object obj){
 		Object retval = null;
 		String className = obj.getClass().getName();
 		String methodName = method.getName();
 		try {
+		    //if the method is blacklisted, we ignore.
 			if (getBlackList().contains(methodName + " " + className)){
 				return null;
 			}
 			if (!Map.class.isAssignableFrom(obj.getClass()) && !obj.getClass().isArray() && !List.class.isAssignableFrom(obj.getClass())){
-			    if (!method.isAccessible()){
-			        method.setAccessible(true);
-			    }
 				retval = method.invoke(obj, (Object[])null);	
 			}else{
 				return "DataSet " + obj.getClass().getTypeParameters()[0];
