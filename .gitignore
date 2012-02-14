@@ -96,8 +96,8 @@
 /dsl/.classpath
 /dsl/.project
 
-# /eclipse-plugin/azurePlugin/
-/eclipse-plugin/azurePlugin/deploy
+# /eclipse-plugin
+/eclipse-plugin
 
 # /esc/
 /esc/target
