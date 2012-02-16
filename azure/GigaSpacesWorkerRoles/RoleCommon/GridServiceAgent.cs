@@ -360,11 +360,12 @@ namespace GigaSpaces
                 }
                 GSTrace.WriteLine("Running:cloudify.bat " + arguments+"\n Environment Variables="+builder.ToString());
             }
+            var cmd = new FileInfo(Environment.GetEnvironmentVariable("ComSpec"));
             return new GSProcess()
             {
                 WorkingDirectory = new DirectoryInfo(Path.Combine(XapHomeDirectory.FullName, @"tools\cli")),
-                Command = "cloudify.bat",
-                Arguments = arguments,
+                Command = cmd.Name,
+                Arguments = "/c call cloudify.bat " +arguments,
                 RedirectStandardError = redirectOutput,
                 RedirectStandardOutput = redirectOutput,
                 EnvironmentVariables = EnvironmentVariables
