@@ -16,6 +16,7 @@
 package org.cloudifysource.rest.out;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -239,11 +240,7 @@ public class OutputUtils {
 			outputUrl = commandURI + "/" + commandName;
 		}
 		outputUrl = getRelativePathURLS(outputUrl);
-//		try {
-//			outputUrl = URLEncoder.encode(outputUrl, URL_ENCODING_FORMAT);
-//		} catch (UnsupportedEncodingException e) {
-//			e.printStackTrace();
-//		}
+
 		return outputUrl;
 	}
 
@@ -281,6 +278,10 @@ public class OutputUtils {
 		String methodName = method.getName();
 		Class<?> retType = method.getReturnType();
 
+        if (methodName.equals("getGigaSpace") ||
+                methodName.equals("getIJSpace")){
+            return false;
+        }
 		// private object getters will not be invoked.
 	    if (method.getModifiers() == Modifier.PRIVATE){
 	            return false;
@@ -340,19 +341,21 @@ public class OutputUtils {
                 if (!method.isAccessible()){
                     method.setAccessible(true);
                 }
-				retval = method.invoke(obj, (Object[])null);	
+				retval = method.invoke(obj, (Object[])null);
 			}else{
 				return "DataSet " + obj.getClass().getTypeParameters()[0];
 			}
 
 		}
-		//An IllegalAccessException is thrown when an application tries to reflectively invoke a method,
-		//but the currently executing method does not have access to the definition of the specified method.
-		catch (IllegalAccessException e) {
-		    throw new RuntimeException("Cannot execute getter function " + method.getName() + ". Reason: " + e.getMessage(), e);
+		
+		catch(InvocationTargetException e){
+		    // TODO: Create exception class that will be handled in a different manner in the AdminAPIController
+		    throw new RuntimeException("Invocation error: Failed to execute getter function " 
+		                        + method.getName() + ". Reason: " + e.getMessage(), e);
 		}
 		catch (Exception e) {
-			throw new RuntimeException("Cannot execute getter function " + method.getName() + ". Reason: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to execute getter function " 
+                    + method.getName() + ". Reason: " + e.getMessage(), e);
 		}
 		return retval == null ? NULL_OBJECT_DENOTER : retval;
 	}
