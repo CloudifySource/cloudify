@@ -364,7 +364,7 @@ namespace GigaSpaces
             return new GSProcess()
             {
                 WorkingDirectory = new DirectoryInfo(Path.Combine(XapHomeDirectory.FullName, @"tools\cli")),
-                Command = cmd.Name,
+                Command = cmd.FullName,
                 Arguments = "/c call cloudify.bat " +arguments,
                 RedirectStandardError = redirectOutput,
                 RedirectStandardOutput = redirectOutput,
