@@ -358,7 +358,7 @@ namespace GigaSpaces
                         .Append(pair.Value)
                         .Append(' ');
                 }
-                GSTrace.WriteLine("Running:cloudify.bat " + arguments+"\n Environment Variables="+builder.ToString());
+                GSTrace.WriteLine("Running: %COMSPEC% /c call cloudify.bat " + arguments+"\n Environment Variables="+builder.ToString());
             }
             var cmd = new FileInfo(Environment.GetEnvironmentVariable("ComSpec"));
             return new GSProcess()
