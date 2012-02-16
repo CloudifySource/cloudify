@@ -345,7 +345,7 @@ namespace GigaSpaces
             String endpoint = PortUtils.GetInternalEndpoints(PortUtils.XAP_RESTADMIN_PORT)[0];
             int port = PortUtils.XAP_RESTADMIN_PORT;
             String arguments = "\"connect " + endpoint + ":" + port + RestAdminContextPath + ";" + commands+"\"";
-            
+            String cloudifyPath = Path.Combine(XapHomeDirectory.FullName, @"tools\cli\cloudify.bat");
             if (redirectOutput) 
             {
                 // Build up each line one-by-one and them trim the end
@@ -358,14 +358,15 @@ namespace GigaSpaces
                         .Append(pair.Value)
                         .Append(' ');
                 }
-                GSTrace.WriteLine("Running: %COMSPEC% /c call cloudify.bat " + arguments+"\n Environment Variables="+builder.ToString());
+                
+                GSTrace.WriteLine("Running: %COMSPEC% /c call " + cloudifyPath + " " + arguments+"\n Environment Variables="+builder.ToString());
             }
             var cmd = new FileInfo(Environment.GetEnvironmentVariable("ComSpec"));
             return new GSProcess()
             {
-                WorkingDirectory = new DirectoryInfo(Path.Combine(XapHomeDirectory.FullName, @"tools\cli")),
-                Command = cmd.FullName,
-                Arguments = "/c call cloudify.bat " +arguments,
+                WorkingDirectory = cmd.Directory,
+                Command = cmd.Name,
+                Arguments = "/c call " + cloudifyPath + " " +arguments,
                 RedirectStandardError = redirectOutput,
                 RedirectStandardOutput = redirectOutput,
                 EnvironmentVariables = EnvironmentVariables
