@@ -44,7 +44,7 @@ public class SimpleMail {
      private static void send(String mailHost, final String user, final String password, String title, String content, List<String> recipients, File fileAttachment) throws Exception{
         Properties props = new Properties();
         props.setProperty("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.port", "25");
+        props.setProperty("mail.smtp.port", "25");
         props.setProperty("mail.host", mailHost);
         props.setProperty("mail.user", user);
         props.setProperty("mail.password", password);
