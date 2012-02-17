@@ -173,7 +173,7 @@ public class ServiceController {
 		logger.info("Initializing service controller cloud configuration");
 		this.cloud = readCloud();
 		if (cloud != null) {
-			if (this.cloud.getTemplates().size() == 0) {
+			if (this.cloud.getTemplates().isEmpty()) {
 				throw new IllegalArgumentException("No templates defined in cloud configuration!");
 			}
 			this.defaultTemplateName = this.cloud.getTemplates().keySet().iterator().next();
@@ -1150,7 +1150,7 @@ public class ServiceController {
 	private boolean isLocalCloud() {
 		final GridServiceAgent[] agents = admin.getGridServiceAgents().getAgents();
 		final boolean isOnlyOneAgent = agents.length == 1;
-		final boolean isAgentWithoutZones = agents[0].getZones().size() == 0;
+		final boolean isAgentWithoutZones = agents[0].getZones().isEmpty();
 		final boolean isLocalCloud = isOnlyOneAgent && isAgentWithoutZones;
 		if (logger.isLoggable(Level.FINE)) {
 			if (!isOnlyOneAgent) {
@@ -1263,7 +1263,7 @@ public class ServiceController {
 
 		if (cloud != null) {
 			if (templateName == null || templateName.length() == 0) {
-				if (cloud.getTemplates().size() == 0) {
+				if (cloud.getTemplates().isEmpty()) {
 					throw new IllegalStateException("Cloud configuration has no compute template defined!");
 				}
 				actualTemplateName = cloud.getTemplates().keySet().iterator().next();
