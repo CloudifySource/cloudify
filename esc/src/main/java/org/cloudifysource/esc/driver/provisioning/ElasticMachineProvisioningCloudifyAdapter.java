@@ -32,9 +32,9 @@ import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
-import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverContext;
-import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverContext;
-import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverContextAware;
+import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverClassContext;
+import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContext;
+import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.cloudifysource.esc.esm.CloudMachineProvisioningConfig;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
@@ -63,7 +63,7 @@ import com.gigaspaces.internal.utils.StringUtils;
 public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachineProvisioning, Bean {
 
 	//TODO: Store this object inside ElasticMachineProvisioningContext instead of a static variable
-	private static final Map<String,ProvisioningDriverContext> PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME = new HashMap<String,ProvisioningDriverContext>();
+	private static final Map<String,ProvisioningDriverClassContext> PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME = new HashMap<String,ProvisioningDriverClassContext>();
 	
 	private static final int DEFAULT_GSA_LOOKUP_TIMEOUT_SECONDS = 15;
 	private ProvisioningDriver cloudifyProvisioning;
@@ -369,9 +369,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 						this.cloud.getConfiguration().getClassName()).newInstance();
 				this.cloudifyProvisioning.setConfig(cloud, cloudTemplate, false);
 				
-				if (cloudifyProvisioning instanceof ProvisioningDriverContextAware) {
-		            ProvisioningDriverContext provisioningDriverContext = lazyCreateProvisioningDriverContext(cloudifyProvisioning);
-					((ProvisioningDriverContextAware)cloudifyProvisioning).setProvisioningContext(provisioningDriverContext);
+				if (cloudifyProvisioning instanceof ProvisioningDriverClassContextAware) {
+					ProvisioningDriverClassContext provisioningDriverContext = lazyCreateProvisioningDriverClassContext(cloudifyProvisioning);
+					ProvisioningDriverClassContextAware contextAware = (ProvisioningDriverClassContextAware)cloudifyProvisioning;
+		            contextAware.setProvisioningDriverClassContext(provisioningDriverContext);
                         
 		        }
 
@@ -393,15 +394,15 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	}
 
-	private static ProvisioningDriverContext lazyCreateProvisioningDriverContext(ProvisioningDriver cloudifyProvisioning) {
+	private static ProvisioningDriverClassContext lazyCreateProvisioningDriverClassContext(ProvisioningDriver cloudifyProvisioning) {
 		
 		String cloudDriverUniqueId = cloudifyProvisioning.getClass().getName();
 		synchronized(PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME) {
 			if (!PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME.containsKey(cloudDriverUniqueId)) {
-				PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME.put(cloudDriverUniqueId,new DefaultProvisioningDriverContext());
+				PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME.put(cloudDriverUniqueId,new DefaultProvisioningDriverClassContext());
 			}
 		}
-		ProvisioningDriverContext provisioningDriverContext = PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME.get(cloudDriverUniqueId);
+		ProvisioningDriverClassContext provisioningDriverContext = PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME.get(cloudDriverUniqueId);
 		return provisioningDriverContext;
 	}
 

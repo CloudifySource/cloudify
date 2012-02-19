@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-public class DefaultProvisioningDriverContext implements ProvisioningDriverContext {
+public class DefaultProvisioningDriverClassContext implements ProvisioningDriverClassContext {
 	
     private final Map<String, Object> context = new HashMap<String, Object>();
     

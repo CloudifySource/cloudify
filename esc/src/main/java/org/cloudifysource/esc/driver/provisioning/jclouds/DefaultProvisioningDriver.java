@@ -41,8 +41,8 @@ import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriverListener;
-import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverContext;
-import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverContextAware;
+import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContext;
+import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.jclouds.JCloudsDeployer;
@@ -63,7 +63,7 @@ import com.google.common.base.Predicate;
  * @author barakme
  * 
  */
-public class DefaultProvisioningDriver implements ProvisioningDriver , ProvisioningDriverContextAware{
+public class DefaultProvisioningDriver implements ProvisioningDriver , ProvisioningDriverClassContextAware{
 
 	private static final int WAIT_THREAD_SLEEP_MILLIS = 10000;
 	private static final int WAIT_TIMEOUT_MILLIS = 360000;
@@ -86,10 +86,10 @@ public class DefaultProvisioningDriver implements ProvisioningDriver , Provision
 
 	private final List<ProvisioningDriverListener> eventsListenersList = new LinkedList<ProvisioningDriverListener>();
 
-	private ProvisioningDriverContext context;
+	private ProvisioningDriverClassContext context;
 	
 	@Override
-	public void setProvisioningContext(ProvisioningDriverContext context) {
+	public void setProvisioningDriverClassContext(ProvisioningDriverClassContext context) {
 		this.context = context;
 	}
 	

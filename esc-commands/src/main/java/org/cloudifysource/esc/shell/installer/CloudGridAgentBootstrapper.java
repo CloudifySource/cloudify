@@ -38,9 +38,8 @@ import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
-import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverContext;
-import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverContext;
-import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverContextAware;
+import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverClassContext;
+import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
@@ -209,8 +208,9 @@ public class CloudGridAgentBootstrapper {
 		}
 		provisioning.setConfig(cloud, cloud.getConfiguration()
 				.getManagementMachineTemplate(), true);
-		if (provisioning instanceof ProvisioningDriverContextAware) {
-            ((ProvisioningDriverContextAware)provisioning).setProvisioningContext(new DefaultProvisioningDriverContext());
+		if (provisioning instanceof ProvisioningDriverClassContextAware) {
+			ProvisioningDriverClassContextAware contextAware = (ProvisioningDriverClassContextAware)provisioning;
+			contextAware.setProvisioningDriverClassContext(new DefaultProvisioningDriverClassContext());
         }
 	}
 
