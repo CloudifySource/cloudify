@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 public class AzureConfigExe {
 
@@ -58,6 +59,9 @@ public class AzureConfigExe {
 	private final String subscriptionId;
 	private final String certificateThumbprint;
 	private final boolean verbose;
+	
+	private static final Logger logger = Logger.getLogger(AzureConfigExe.class.getName());
+	
 	/**
 	 * 
 	 * @param azureConfigExeFile - path to azureconfig.exe that implements the azure API in C#
@@ -110,7 +114,7 @@ public class AzureConfigExe {
 		pb.redirectErrorStream(true);
 
 		if (verbose) {
-			System.out.println("Executing command: " + Arrays.toString(cmd));
+			logger.info("Executing command: " + Arrays.toString(cmd));
 		}
 		Process p;
 		try {
