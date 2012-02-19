@@ -1,23 +1,31 @@
+/*******************************************************************************
+ * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 import org.cloudifysource.dsl.context.ServiceContextFactory
 import org.cloudifysource.usm.USMUtils
 
-def config = new ConfigSlurper().parse(new File("mongos.properties").toURL())
-def osConfig = USMUtils.isWindows() ? config.win32 : config.unix
+config = new ConfigSlurper().parse(new File("mongos.properties").toURL())
+osConfig = USMUtils.isWindows() ? config.win32 : config.unix
 
-def serviceContext = ServiceContextFactory.getServiceContext()
-def instanceID = serviceContext.getInstanceId()
+serviceContext = ServiceContextFactory.getServiceContext()
+instanceID = serviceContext.getInstanceId()
 
 println "mongos_install.groovy: Writing mongos port to this instance(${instanceID}) attributes..."
 serviceContext.attributes.thisInstance["port"] = config.basePort+instanceID
 port = serviceContext.attributes.thisInstance["port"] 
 println "mongos_install.groovy: mongos(${instanceID}) port ${port}"
-
-def home = "${serviceContext.serviceDirectory}/mongodb-${config.version}"
-def script = "${home}/bin/mongos"
-
-serviceContext.attributes.thisInstance["home"] = "${home}"
-serviceContext.attributes.thisInstance["script"] = "${script}"
-println "mongos_install.groovy: mongos(${instanceID}) home is ${home}"
 
 
 builder = new AntBuilder()
@@ -32,6 +40,6 @@ if(USMUtils.isWindows()) {
 	builder.untar(src:"${config.installDir}/${osConfig.zipName}", dest:"${config.installDir}", compression:"gzip", overwrite:true)
 	builder.chmod(dir:"${config.installDir}/${osConfig.name}/bin", perm:'+x', includes:"*")
 }
-builder.move(file:"${config.installDir}/${osConfig.name}", tofile:"${home}")
+builder.move(file:"${config.installDir}/${osConfig.name}", tofile:"${config.home}")
 
 println "mongos_install.groovy: Installation of mongos(${instanceID}) ended"
