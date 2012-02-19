@@ -77,7 +77,7 @@ public class AzureUtils {
         }
         File file = toAbsoluteFile(pathname);
         if (!file.exists()) {
-            throw new CLIException(file.getAbsolutePath() + " does not exist.");
+        	throw new CLIException(file.getAbsolutePath() + " does not exist. Please correct the value of " + name + " property.");
         }
         return file;
     }
