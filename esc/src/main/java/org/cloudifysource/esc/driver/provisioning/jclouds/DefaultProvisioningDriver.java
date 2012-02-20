@@ -60,6 +60,7 @@ import com.google.common.base.Predicate;
  * linux installed and ssh available. If GigaSpaces is not already installed on the new machine, this class will install
  * gigaspaces and run the agent.
  * 
+ * TODO: Make this class easy to extend for custom driver implementations.
  * @author barakme
  * 
  */
@@ -420,6 +421,7 @@ public class DefaultProvisioningDriver implements ProvisioningDriver , Provision
 			throws CloudProvisioningException, TimeoutException, InterruptedException {
 		logger.fine("Stop Machine - machineIp: " + machineIp);
 
+		// TODO - move this to the adapter!
 		final Long previousRequest = stoppingMachines.get(machineIp);
 		if (previousRequest != null
 				&& System.currentTimeMillis() - previousRequest < MULTIPLE_SHUTDOWN_REQUEST_IGNORE_TIMEOUT) {
