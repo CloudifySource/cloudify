@@ -108,7 +108,7 @@ public class CloudGridAgentBootstrapper {
 	}
 
 	private static void logServerDetails(MachineDetails server) {
-		if (logger.isLoggable(Level.INFO)) {
+		if (logger.isLoggable(Level.FINE)) {
 			logger.fine(nodePrefix(server) + "Cloud Server was created.");
 
 			logger.fine(nodePrefix(server) + "Public IP: " + (server.getPublicAddress() == null ? "" : server.getPublicAddress()));
