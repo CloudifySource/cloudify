@@ -79,10 +79,12 @@ public class MachineDetails {
 		this.installationDirectory = installationDirectory;
 	}
 
+	@Deprecated
 	public String getClusterAddress() {
 		return clusterAddress;
 	}
 
+	@Deprecated
 	public void setClusterAddress(String clusterAddress) {
 		this.clusterAddress = clusterAddress;
 	}
