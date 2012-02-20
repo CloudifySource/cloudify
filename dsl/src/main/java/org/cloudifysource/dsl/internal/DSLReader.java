@@ -46,7 +46,6 @@ import org.openspaces.admin.Admin;
 import org.openspaces.core.cluster.ClusterInfo;
 import org.openspaces.ui.UserInterface;
 
-
 /*******
  * This class is a work in progress. DO NOT USE IT!
  * 
@@ -117,7 +116,7 @@ public class DSLReader {
 	}
 
 	public static File findDefaultDSLFile(final String fileNameSuffix, final File dir) {
-		
+
 		final File[] files = dir.listFiles(new FilenameFilter() {
 
 			@Override
@@ -184,6 +183,11 @@ public class DSLReader {
 		Object result = evaluateGroovyScript(gs);
 
 		if (this.createServiceContext) {
+			if (!(result instanceof Service)) {
+				throw new IllegalArgumentException(
+						"The DSL reader cannot create a service context to a DSL that does not evaluate to a Sevice. " +
+						"Set the 'createServiceContext' option to false if you do not need a service conext");
+			}
 			if (isRunningInGSC) {
 				this.context.init((Service) result, admin, workDir.getAbsolutePath(), clusterInfo);
 			} else {
@@ -247,8 +251,8 @@ public class DSLReader {
 			return;
 
 		}
-		
-		if(this.dslFile == null) {
+
+		if (this.dslFile == null) {
 			return;
 		}
 		// look for default properties file
@@ -309,8 +313,8 @@ public class DSLReader {
 		final CompilerConfiguration cc = new CompilerConfiguration();
 		final ImportCustomizer ic = new ImportCustomizer();
 
-		ic.addStarImports(org.cloudifysource.dsl.Service.class.getPackage().getName(), UserInterface.class
-				.getPackage().getName(), org.cloudifysource.dsl.context.Service.class.getPackage().getName());
+		ic.addStarImports(org.cloudifysource.dsl.Service.class.getPackage().getName(), UserInterface.class.getPackage()
+				.getName(), org.cloudifysource.dsl.context.Service.class.getPackage().getName());
 
 		ic.addImports(org.cloudifysource.dsl.utils.ServiceUtils.class.getName());
 
@@ -354,7 +358,7 @@ public class DSLReader {
 			// automatically
 			return new ArrayList<String>(0);
 		}
-		if(dslFile == null) {
+		if (dslFile == null) {
 			logger.fine("DSL file location not specified. Skipping usmlib jar loading!");
 			return new ArrayList<String>(0);
 		}
