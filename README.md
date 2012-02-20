@@ -1,4 +1,4 @@
-Welcome to Cloudify!!!
+Welcome to Cloudify
 ======================
 
 The purpose of this README file is to explain how one can easily build fully functional Cloudify version taking source code from GitHub.
