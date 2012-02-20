@@ -26,6 +26,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -36,7 +37,7 @@ import org.openspaces.usm.examples.simplejavaprocess.SystemInReaderTask;
 public class SimpleBlockingJavaProcess implements
 		SimpleBlockingJavaProcessMBean {
 
-	private volatile int counter = 0;
+	private AtomicInteger counter = new AtomicInteger();
 	private final CountDownLatch latch = new CountDownLatch(1);
 	private final ExecutorService executorService = Executors
 			.newFixedThreadPool(2);
@@ -50,11 +51,11 @@ public class SimpleBlockingJavaProcess implements
 	}
 
 	private void incCounter() {
-		counter++;
+		counter.incrementAndGet();
 	}
 
 	public void setCounter(final int counter) {
-		this.counter = counter;
+		this.counter.set(counter);
 	}
 
 	public String getDetails() {
@@ -66,7 +67,7 @@ public class SimpleBlockingJavaProcess implements
 	}
 
 	public int getCounter() {
-		return counter;
+		return counter.get();
 	}
 
 	public void die() {
