@@ -77,7 +77,7 @@ public class CliAzureDeploymentTest {
 	
     
     private static final String AZURE_CONTAINER_NAME = "packages-public";
-    private static final String CS_PACK_FOLDER = "C:\\Program Files\\Windows Azure SDK\\v1.4\\bin";
+    private static final String CS_PACK_FOLDER = "C:\\Program Files\\Windows Azure SDK\\v1.6\\bin";
     private static final String RELATIVE_WORKER_ROLE_DIR = "plugins\\azure\\WorkerRoles\\GigaSpacesWorkerRoles";
     private static final String RDP_CERT_FILE = "plugins\\azure\\azure_rdp.cer";
     private static final String RDP_PFX_FILE = "plugins\\azure\\azure_rdp.pfx";
