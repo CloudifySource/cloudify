@@ -5,7 +5,7 @@
     This configuration file was written by the eclipse-cs plugin configuration editor
 -->
 <!--
-    Checkstyle-Configuration: Cloudify1
+    Checkstyle-Configuration: Cloudify
     Description: none
 -->
 <module name="Checker">
@@ -17,7 +17,9 @@
       <property name="scope" value="public"/>
     </module>
     <module name="JavadocStyle"/>
-    <module name="ConstantName"/>
+    <module name="ConstantName">
+      <property name="format" value="^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$|logger"/>
+    </module>
     <module name="LocalFinalVariableName"/>
     <module name="LocalVariableName"/>
     <module name="MemberName"/>
