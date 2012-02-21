@@ -6,26 +6,26 @@
   <Role name="management">
     <Instances count="2" />
     <ConfigurationSettings>
-      <Setting name=".WindowsAzure.TraceUploadPeriod" value="00:01" />
-      <Setting name=".XAP.DownloadUrl" value="http%3A%2F%2Frepository.cloudifysource.org%2Forg%2Fcloudifysource%2F2.0.1%2F-cloudify-2.0.1-m1-b1190-13.zip" />
-      <Setting name=".JDK.DownloadUrl" value="http%3A%2F%2Frepository.cloudifysource.org%2Fcom%2Foracle%2Fjava%2F1.6.0_25%2Fjdk1.6.0_25_x64.zip" />
-      <Setting name=".XAP.NumberOfManagementRoleInstances" value="2" />
-      <Setting name=".XAP.UploadAgentLogs" value="false" />
-      <Setting name=".XAP.UploadAllLogs" value="false" />
-      <Setting name=".WindowsAzure.WorkingDirectory" value="." />
-      <Setting name=".XAP.GSA.MemoryInMB" value="128" />
-      <Setting name=".XAP.LUS.MemoryInMB" value="256" />
-      <Setting name=".XAP.GSM.MemoryInMB" value="256" />
-      <Setting name=".XAP.ESM.MemoryInMB" value="256" />
+      <Setting name="GigaSpaces.WindowsAzure.TraceUploadPeriod" value="00:01" />
+      <Setting name="GigaSpaces.XAP.DownloadUrl" value="http%3A%2F%2Frepository.cloudifysource.org%2Forg%2Fcloudifysource%2F2.0.1%2F-cloudify-2.0.1-m1-b1190-13.zip" />
+      <Setting name="GigaSpaces.JDK.DownloadUrl" value="http%3A%2F%2Frepository.cloudifysource.org%2Fcom%2Foracle%2Fjava%2F1.6.0_25%2Fjdk1.6.0_25_x64.zip" />
+      <Setting name="GigaSpaces.XAP.NumberOfManagementRoleInstances" value="2" />
+      <Setting name="GigaSpaces.XAP.UploadAgentLogs" value="false" />
+      <Setting name="GigaSpaces.XAP.UploadAllLogs" value="false" />
+      <Setting name="GigaSpaces.WindowsAzure.WorkingDirectory" value="." />
+      <Setting name="GigaSpaces.XAP.GSA.MemoryInMB" value="128" />
+      <Setting name="GigaSpaces.XAP.LUS.MemoryInMB" value="256" />
+      <Setting name="GigaSpaces.XAP.GSM.MemoryInMB" value="256" />
+      <Setting name="GigaSpaces.XAP.ESM.MemoryInMB" value="256" />
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="" />
-      <Setting name=".Firewall.Ports" value="*" />
-      <Setting name=".XAP.RestAdmin.MemoryInMB" value="0" />
+      <Setting name="GigaSpaces.Firewall.Ports" value="*" />
+      <Setting name="GigaSpaces.XAP.RestAdmin.MemoryInMB" value="0" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2013-07-13T23:59:59.0000000+03:00" />
-      <Setting name=".XAP.WebuiContextPath" value="/webui" />
-      <Setting name=".XAP.RestAdminContextPath" value="/rest" />
+      <Setting name="GigaSpaces.XAP.WebuiContextPath" value="/webui" />
+      <Setting name="GigaSpaces.XAP.RestAdminContextPath" value="/rest" />
     </ConfigurationSettings>
     <Certificates>
       <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="B4729B3CC1C45FE233D446EB1A3BDE39CD7EA7D7" thumbprintAlgorithm="sha1" />
@@ -36,24 +36,24 @@
     <Instances count="1" />
     <ConfigurationSettings>
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="" />
-      <Setting name=".WindowsAzure.TraceUploadPeriod" value="00:01" />
-      <Setting name=".XAP.DownloadUrl" value="http%3A%2F%2Frepository.cloudifysource.org%2Forg%2Fcloudifysource%2F2.0.1%2F-cloudify-2.0.1-m1-b1190-13.zip" />
-      <Setting name=".JDK.DownloadUrl" value="http%3A%2F%2Frepository.cloudifysource.org%2Fcom%2Foracle%2Fjava%2F1.6.0_25%2Fjdk1.6.0_25_x64.zip" />
-      <Setting name=".XAP.NumberOfManagementRoleInstances" value="2" />
-      <Setting name=".XAP.UploadAgentLogs" value="false" />
-      <Setting name=".XAP.UploadAllLogs" value="false" />
-      <Setting name=".XAP.GSA.MemoryInMB" value="128" />
-      <Setting name=".XAP.WEBUI.MemoryInMB" value="512" />
-      <Setting name=".XAP.RestAdmin.MemoryInMB" value="512" />
-      <Setting name=".WindowsAzure.WorkingDirectory" value="." />
-      <Setting name=".Firewall.Ports" value="*" />
+      <Setting name="GigaSpaces.WindowsAzure.TraceUploadPeriod" value="00:01" />
+      <Setting name="GigaSpaces.XAP.DownloadUrl" value="http%3A%2F%2Frepository.cloudifysource.org%2Forg%2Fcloudifysource%2F2.0.1%2F-cloudify-2.0.1-m1-b1190-13.zip" />
+      <Setting name="GigaSpaces.JDK.DownloadUrl" value="http%3A%2F%2Frepository.cloudifysource.org%2Fcom%2Foracle%2Fjava%2F1.6.0_25%2Fjdk1.6.0_25_x64.zip" />
+      <Setting name="GigaSpaces.XAP.NumberOfManagementRoleInstances" value="2" />
+      <Setting name="GigaSpaces.XAP.UploadAgentLogs" value="false" />
+      <Setting name="GigaSpaces.XAP.UploadAllLogs" value="false" />
+      <Setting name="GigaSpaces.XAP.GSA.MemoryInMB" value="128" />
+      <Setting name="GigaSpaces.XAP.WEBUI.MemoryInMB" value="512" />
+      <Setting name="GigaSpaces.XAP.RestAdmin.MemoryInMB" value="512" />
+      <Setting name="GigaSpaces.WindowsAzure.WorkingDirectory" value="." />
+      <Setting name="GigaSpaces.Firewall.Ports" value="*" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2013-07-13T23:59:59.0000000+03:00" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="" />
-      <Setting name=".XAP.WebuiContextPath" value="/webui" />
-      <Setting name=".XAP.RestAdminContextPath" value="/rest" />
+      <Setting name="GigaSpaces.XAP.WebuiContextPath" value="/webui" />
+      <Setting name="GigaSpaces.XAP.RestAdminContextPath" value="/rest" />
     </ConfigurationSettings>
     <Certificates>
       <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="B4729B3CC1C45FE233D446EB1A3BDE39CD7EA7D7" thumbprintAlgorithm="sha1" />
@@ -63,22 +63,22 @@
   <Role name="internal">
     <Instances count="2" />
     <ConfigurationSettings>
-      <Setting name=".WindowsAzure.TraceUploadPeriod" value="00:01" />
-      <Setting name=".XAP.DownloadUrl" value="http%3A%2F%2Frepository.cloudifysource.org%2Forg%2Fcloudifysource%2F2.0.1%2F-cloudify-2.0.1-m1-b1190-13.zip" />
-      <Setting name=".JDK.DownloadUrl" value="http%3A%2F%2Frepository.cloudifysource.org%2Fcom%2Foracle%2Fjava%2F1.6.0_25%2Fjdk1.6.0_25_x64.zip" />
-      <Setting name=".XAP.NumberOfManagementRoleInstances" value="2" />
-      <Setting name=".XAP.UploadAgentLogs" value="false" />
-      <Setting name=".XAP.UploadAllLogs" value="false" />
-      <Setting name=".WindowsAzure.WorkingDirectory" value="." />
-      <Setting name=".XAP.GSA.MemoryInMB" value="128" />
+      <Setting name="GigaSpaces.WindowsAzure.TraceUploadPeriod" value="00:01" />
+      <Setting name="GigaSpaces.XAP.DownloadUrl" value="http%3A%2F%2Frepository.cloudifysource.org%2Forg%2Fcloudifysource%2F2.0.1%2F-cloudify-2.0.1-m1-b1190-13.zip" />
+      <Setting name="GigaSpaces.JDK.DownloadUrl" value="http%3A%2F%2Frepository.cloudifysource.org%2Fcom%2Foracle%2Fjava%2F1.6.0_25%2Fjdk1.6.0_25_x64.zip" />
+      <Setting name="GigaSpaces.XAP.NumberOfManagementRoleInstances" value="2" />
+      <Setting name="GigaSpaces.XAP.UploadAgentLogs" value="false" />
+      <Setting name="GigaSpaces.XAP.UploadAllLogs" value="false" />
+      <Setting name="GigaSpaces.WindowsAzure.WorkingDirectory" value="." />
+      <Setting name="GigaSpaces.XAP.GSA.MemoryInMB" value="128" />
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="" />
-      <Setting name=".Firewall.Ports" value="*" />
+      <Setting name="GigaSpaces.Firewall.Ports" value="*" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2013-07-13T23:59:59.0000000+03:00" />
-      <Setting name=".XAP.WebuiContextPath" value="/webui" />
-      <Setting name=".XAP.RestAdminContextPath" value="/rest" />
+      <Setting name="GigaSpaces.XAP.WebuiContextPath" value="/webui" />
+      <Setting name="GigaSpaces.XAP.RestAdminContextPath" value="/rest" />
     </ConfigurationSettings>
     <Certificates>
       <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="B4729B3CC1C45FE233D446EB1A3BDE39CD7EA7D7" thumbprintAlgorithm="sha1" />
