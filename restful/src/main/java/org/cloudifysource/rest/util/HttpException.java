@@ -26,4 +26,9 @@ public abstract class HttpException extends RuntimeException {
 		super("Http error code " + status.value());
 		this.status = status;
 	}
+	
+	   public HttpException(HttpStatus status, String message) {
+	        super("Http error code " + status.value() + ". Cause: " + message);
+	        this.status = status;
+	    }
 }

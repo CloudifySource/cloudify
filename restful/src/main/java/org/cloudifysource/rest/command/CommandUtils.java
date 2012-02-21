@@ -20,10 +20,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.cloudifysource.rest.out.OutputUtils;
+import org.cloudifysource.rest.util.NotFoundHttpException;
 
 
 public class CommandUtils {
-	
+    
 	public static Object getObjectByCommand(String command, Object someObject){
 		Method commandMethod = getGetterMethodFromObject(command, someObject.getClass());
 		return OutputUtils.safeInvoke(commandMethod, someObject);
@@ -41,20 +42,20 @@ public class CommandUtils {
                 return entry.getValue();
             }
         }
-        throw new RuntimeException("Error while accessing map of type " + map.getClass().getSimpleName()
-                 + ". Map does not contain a value for the key: " + key);
+        throw new NotFoundHttpException("Error while accessing map of type " + map.getClass().getSimpleName()
+                + ". Map does not contain a value for the key: " + key);
     }
 	
 	public static Object getListClassObject(String index, Object listObject){
 		int listIndex = getIndexFromString(index);
 		if (listIndex == -1){
-            throw new RuntimeException("Error while accessing list of type " + listObject.getClass().getSimpleName()
+            throw new NotFoundHttpException("Error while accessing list of type " + listObject.getClass().getSimpleName()
                     + ". Unable to parse index: " + index);
 		}
 		
 		List<?> objectList  = (List<?>)listObject;
 		if (listIndex >= objectList.size()){
-            throw new RuntimeException("Error while accessing list of type " + listObject.getClass().getSimpleName()
+            throw new NotFoundHttpException("Error while accessing list of type " + listObject.getClass().getSimpleName()
                     + ". Array size: " + objectList.size() + ", requested index: " + listIndex);
 		}
 		return objectList.get(listIndex);
@@ -73,13 +74,13 @@ public class CommandUtils {
 	public static Object getArrayClassObject(String index, Object arrayObject){
 		int arrayIndex = getIndexFromString(index);
 		if (arrayIndex == -1){
-			throw new RuntimeException("Error while accessing array of type " + arrayObject.getClass().getSimpleName()
-			                            + ". Unable to parse index: " + index);
+			throw new NotFoundHttpException("Error while accessing array of type " + arrayObject.getClass().getSimpleName()
+                    + ". Unable to parse index: " + index);
 		}
 		Object[] objectArray = OutputUtils.getArray(arrayObject);
 		if (arrayIndex >= objectArray.length){
-		    throw new RuntimeException("Error while accessing array of type " + arrayObject.getClass().getSimpleName()
-			                            + ". Array size: " + objectArray.length + ", requested index: " + arrayIndex);
+            throw new NotFoundHttpException("Error while accessing array of type " + arrayObject.getClass().getSimpleName()
+                    + ". Array size: " + objectArray.length + ", requested index: " + arrayIndex);
 		}
 		return objectArray[arrayIndex];
 	}
@@ -92,7 +93,7 @@ public class CommandUtils {
 				  return method;
 			  }
 		  }
-		  throw new RuntimeException("No method signature found for method: " + getterCommand);
+		  throw new NotFoundHttpException("No method signature found for method: " + getterCommand);
 	}
 	
 	private static String initCommandGetterName(String rawCommand, Method[] methods) {
@@ -106,7 +107,7 @@ public class CommandUtils {
 				return isMethodSignature;
 			}
 		}
-		throw new RuntimeException("No method signature found for command: " + rawCommand);
+		throw new NotFoundHttpException("No method signature found for command: " + rawCommand);
 	}
 
 }

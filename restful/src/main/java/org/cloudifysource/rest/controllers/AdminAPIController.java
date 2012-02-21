@@ -134,9 +134,12 @@ public class AdminAPIController  {
 	}
 	@ExceptionHandler(NotFoundHttpException.class)
     @ResponseStatus(value = HttpStatus.NOT_FOUND)
-    public void resolveNotFound(Writer writer, Exception e){
-
+    public void resolveNotFound(Writer writer, Exception e, HttpServletRequest request) throws IOException{
+	    String requestURL = request.getRequestURL().toString();
+	    logger.log(Level.INFO, "Cannot find URL: " + requestURL, e);
+	    writer.write("{\"status\":\"error\", \"error\":\"" + "Cannot find URL: " + requestURL + "cause: " + e.getMessage() + "\"}");
     }
+	
 	@ExceptionHandler(Exception.class)
     @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
     public void resolveInternalServerError(Writer writer, Exception e) throws IOException {

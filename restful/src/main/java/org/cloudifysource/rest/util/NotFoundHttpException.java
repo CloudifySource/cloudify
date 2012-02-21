@@ -23,4 +23,8 @@ public class NotFoundHttpException extends HttpException {
 	public NotFoundHttpException() {
 		super(HttpStatus.NOT_FOUND);
 	}
+	
+	   public NotFoundHttpException(String message) {
+	        super(HttpStatus.NOT_FOUND, message);
+	    }
 }
