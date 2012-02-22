@@ -585,8 +585,8 @@ public class ServiceController {
 		} catch (final Exception e) {
 			logger.severe("Error invoking pu instance " + absolutePuName + ":" + instanceId + " on host "
 					+ pui.getVirtualMachine().getMachine().getHostName());
-			return errorStatus(FAILED_TO_INVOKE_INSTANCE, applicationName, absolutePuName,
-					Integer.toString(instanceId));
+			return errorStatus(FAILED_TO_INVOKE_INSTANCE, absolutePuName,
+					Integer.toString(instanceId),  e.getMessage());
 		}
 	}
 
