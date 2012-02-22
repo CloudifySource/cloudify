@@ -40,16 +40,14 @@ import org.cloudifysource.shell.rest.RestAdminFacade;
  * @since 2.0.0
  * 
  *        Uninstalls an application.
- *
+ *	
  *        Required arguments:
  *         applicationName - The name of the application
  *        
  *        Optional arguments:
  *         timeout - The number of minutes to wait until the operation is completed (default: 5).
- *         progress - The polling time interval in seconds, used for checking if the operation is completed
- *         (default: 5).
  *  
- *        Command syntax: uninstall-application [-timeout timeout] [-progress progress] applicationName
+ *        Command syntax: uninstall-application [-timeout timeout] applicationName
  * 
  */
 @Command(scope = "cloudify", name = "uninstall-application", description = "Uninstalls an application.")

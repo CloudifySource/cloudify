@@ -332,7 +332,6 @@ public class CliAzureDeploymentTest {
             "uninstall-application", 
             "--verbose",
             "-timeout", String.valueOf(TIMEOUT_IN_MINUTES),
-            "-progress", String.valueOf(POLLING_INTERVAL_IN_MINUTES),
 			APPLICATION_NAME
         );
 
