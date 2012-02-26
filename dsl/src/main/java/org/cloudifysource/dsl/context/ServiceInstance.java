@@ -18,12 +18,26 @@ package org.cloudifysource.dsl.context;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
+import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.openspaces.admin.internal.pu.DefaultProcessingUnitInstance;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
 import org.openspaces.pu.service.ServiceDetails;
 import org.openspaces.pu.service.ServiceMonitors;
 
+/******************
+ * Represents a single instance of a service.
+ * 
+ * @author barakme
+ * 
+ */
 public class ServiceInstance {
 
 	private static java.util.logging.Logger logger = java.util.logging.Logger
@@ -34,6 +48,11 @@ public class ServiceInstance {
 		this.pui = pui;
 	}
 
+	/***************
+	 * Returns the instance id. When not running in a GSC, defaults to 1.
+	 * 
+	 * @return the instance id.
+	 */
 	public int getInstanceID() {
 		if (pui != null) {
 			return pui.getInstanceId();
@@ -42,19 +61,29 @@ public class ServiceInstance {
 		}
 	}
 
+	/*************
+	 * Returns the host address. When not running in a GSC, default to the local host address.
+	 * 
+	 * @return the host address.
+	 */
 	public String getHostAddress() {
 		if (pui != null) {
 			return pui.getMachine().getHostAddress();
 		} else {
 			try {
 				return InetAddress.getLocalHost().getHostAddress();
-			} catch (UnknownHostException e) {
+			} catch (final UnknownHostException e) {
 				logger.log(Level.SEVERE, "Failed to read local host address", e);
 				return null;
 			}
 		}
 	}
 
+	/*************
+	 * Returns the host name. When not running in a GSC, default to the local host name.
+	 * 
+	 * @return the host name.
+	 */
 	public String getHostName() {
 
 		if (pui != null) {
@@ -62,68 +91,35 @@ public class ServiceInstance {
 		} else {
 			try {
 				return InetAddress.getLocalHost().getHostName();
-			} catch (UnknownHostException e) {
+			} catch (final UnknownHostException e) {
 				logger.log(Level.SEVERE, "Failed to read local host address", e);
 				return null;
 			}
 		}
 	}
 
-	public void invoke(String commandName) {
-		throw new UnsupportedOperationException("Invoke not supported yet!");
-	}
-
 	@Override
 	public String toString() {
-		return "ServiceInstance [getInstanceID()=" + getInstanceID()
-				+ ", getHostAddress()=" + getHostAddress() + ", getHostName()="
-				+ getHostName() + "]";
+		return "ServiceInstance [getInstanceID()=" + getInstanceID() + ", getHostAddress()=" + getHostAddress()
+				+ ", getHostName()=" + getHostName() + "]";
 	}
 
 	/**********
-	 * Returns the details for the given service ID and key.
-	 * 
-	 * @param serviceDetailsId
-	 *            the service ID.
-	 * @param serviceDetailsKey
-	 *            the details key.
-	 * @return the details result, which may be null if the key does not exist
-	 *         in the service details.
-	 * @throws IllegalArgumentException
-	 *             if the service ID is not found.
-	 */
-//	public Object getDetails(String serviceDetailsId, String serviceDetailsKey) {
-//		if (this.pui == null) { // running in integrated container
-//			return null;
-//		}
-//
-//		ServiceDetails details = this.pui
-//				.getServiceDetailsByServiceId(serviceDetailsId);
-//		if (details == null) {
-//			throw new IllegalArgumentException(
-//					"No details found with service ID: " + serviceDetailsId);
-//		}
-//		return details.getAttributes().get(serviceDetailsKey);
-//	}
-
-	/**********
-	 * Returns the details for the given key by iterating over all service
-	 * details in this processing unit instances and returning the first match.
+	 * Returns the details for the given key by iterating over all service details in this processing unit instances and
+	 * returning the first match.
 	 * 
 	 * @param serviceDetailsKey
 	 *            the details key.
-	 * @return the details result, which may be null if the key does not exist
-	 *         in the service details.
+	 * @return the details result, which may be null if the key does not exist in the service details.
 	 */
-	public Object getDetails(String serviceDetailsKey) {
+	public Object getDetails(final String serviceDetailsKey) {
 		if (this.pui == null) { // running in integrated container
 			return null;
 		}
 
-		Collection<ServiceDetails> allDetails = this.pui
-				.getServiceDetailsByServiceId().values();
-		for (ServiceDetails serviceDetails : allDetails) {
-			Object res = serviceDetails.getAttributes().get(serviceDetailsKey);
+		final Collection<ServiceDetails> allDetails = this.pui.getServiceDetailsByServiceId().values();
+		for (final ServiceDetails serviceDetails : allDetails) {
+			final Object res = serviceDetails.getAttributes().get(serviceDetailsKey);
 			if (res != null) {
 				return res;
 			}
@@ -133,53 +129,22 @@ public class ServiceInstance {
 	}
 
 	/**********
-	 * Returns the monitor value for the given service ID and key.
-	 * 
-	 * @param serviceMonitorsId
-	 *            the service ID.
-	 * @param serviceMonitorsKey
-	 *            the monitor key.
-	 * @return the result, which may be null if the key does not exist in the
-	 *         service monitors.
-	 * @throws IllegalArgumentException
-	 *             if the service ID is not found.
-	 */
-//	public Object getMonitors(String serviceMonitorsId,
-//			String serviceMonitorsKey) {
-//		if (this.pui == null) { // running in integrated container
-//			return null;
-//		}
-//
-//		Map<String, ServiceMonitors> monitors = this.pui.getStatistics()
-//				.getMonitors();
-//		ServiceMonitors monitor = monitors.get(serviceMonitorsId);
-//		if (monitor == null) {
-//			throw new IllegalArgumentException("No monitors found with ID: "
-//					+ serviceMonitorsId);
-//		}
-//		return monitor.getMonitors().get(serviceMonitorsKey);
-//
-//	}
-
-	/**********
-	 * Returns the monitor for the given key by iterating over all service
-	 * monitor in this processing unit instances and returning the first match.
+	 * Returns the monitor for the given key by iterating over all service monitor in this processing unit instances and
+	 * returning the first match.
 	 * 
 	 * @param serviceMonitorsKey
 	 *            the details key.
-	 * @return the monitor result, which may be null if the key does not exist
-	 *         in the service details.
+	 * @return the monitor result, which may be null if the key does not exist in the service details.
 	 */
-	public Object getMonitors(String serviceMonitorsKey) {
+	public Object getMonitors(final String serviceMonitorsKey) {
 		if (this.pui == null) { // running in integrated container
 			return null;
 		}
 
-		Collection<ServiceMonitors> allMonitors = this.pui.getStatistics()
-				.getMonitors().values();
+		final Collection<ServiceMonitors> allMonitors = this.pui.getStatistics().getMonitors().values();
 
-		for (ServiceMonitors serviceMonitors : allMonitors) {
-			Object res = serviceMonitors.getMonitors().get(serviceMonitorsKey);
+		for (final ServiceMonitors serviceMonitors : allMonitors) {
+			final Object res = serviceMonitors.getMonitors().get(serviceMonitorsKey);
 			if (res != null) {
 				return res;
 			}
@@ -187,6 +152,53 @@ public class ServiceInstance {
 		}
 
 		return null;
+	}
+
+	/***********
+	 * Invokes a custom command on this instance, returning immediately.
+	 * 
+	 * @param commandName
+	 *            the command name.
+	 * @param params
+	 *            the command parameters, may be zero-length.
+	 * @return Future for the invocation result.
+	 */
+	Future<Object> invokeAsync(final String commandName, final Object[] params) {
+
+		logger.log(Level.FINE, "Invoking command: {0} on instance {1}",
+				new Object[] { commandName, this.getInstanceID() });
+		final Map<String, Object> paramsMap = new HashMap<String, Object>();
+		paramsMap.put(CloudifyConstants.INVOCATION_PARAMETER_COMMAND_NAME, commandName);
+
+		for (int i = 0; i < params.length; i++) {
+			paramsMap.put(CloudifyConstants.INVOCATION_PARAMETERS_KEY + i, params[i]);
+		}
+
+		final Future<Object> future = ((DefaultProcessingUnitInstance) pui).invoke("universalServiceManagerBean",
+				paramsMap);
+
+		return new InvocationFuture(future);
+	}
+
+	/*******************
+	 * Invokes a custom command on this service instance, returning when the invocation finishes executing.
+	 * 
+	 * @param commandName
+	 *            the command name.
+	 * @param params
+	 *            the command parameters, may be zero-length.
+	 * @return The invocation result.
+	 * @throws InterruptedException .
+	 * @throws ExecutionException .
+	 * @throws TimeoutException .
+	 */
+	public Object invoke(final String commandName, final Object[] params) throws InterruptedException,
+			ExecutionException, TimeoutException {
+
+		final Future<Object> future = invokeAsync(commandName, params);
+		final Object result = future.get(1, TimeUnit.MINUTES);
+		return result;
+
 	}
 
 }

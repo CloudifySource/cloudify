@@ -49,6 +49,7 @@ public class CloudifyConstants {
 	public static final String CONTEXT_PROPERTY_PROPERTIES_FILE_NAME = "com.gs.cloudify.properties-file-name";
 	public static final String CONTEXT_PROPERTY_ASYNC_INSTALL = "com.gs.cloudify.async-install";
 	public static final String CONTEXT_PROPERTY_APPLICATION_NAME = "com.gs.application";
+	public static final String CONTEXT_PROPERTY_ELASTIC = "com.gs.service.elastic";
 	
 	/**********
 	 * Key names for invocation request and response parameters.
@@ -147,6 +148,7 @@ public class CloudifyConstants {
 	 * 
 	 */
 	public static final String CUSTOM_PROPERTY_ENABLE_PID_MONITOR = "org.cloudifysource.enable-pid-monitor";
+	public static final String CUSTOM_PROPERTY_ENABLE_TCP_PORT_MONITOR = "org.cloudifysource.enable-port-monitor";
 	
 	private CloudifyConstants() {
 		// private constructor to prevent initialization.

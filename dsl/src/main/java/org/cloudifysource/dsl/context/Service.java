@@ -15,8 +15,12 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.context;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
@@ -29,6 +33,7 @@ import org.openspaces.admin.pu.ProcessingUnitInstance;
  */
 public class Service {
 
+	private static final int DEFAULT_INVOKE_TIMEOUT = 60 * 1000; // one minute
 	private final ProcessingUnit pu;
 	private final String name;
 
@@ -36,7 +41,7 @@ public class Service {
 	private final int planned;
 
 	/**
-	 * Constructor
+	 * Constructor.
 	 * 
 	 * @param pu
 	 *            underline processing unit that represents this service
@@ -48,7 +53,7 @@ public class Service {
 	}
 
 	/**
-	 * Constructor
+	 * Constructor.
 	 * 
 	 * @param name
 	 *            service name
@@ -73,7 +78,7 @@ public class Service {
 	// }
 
 	/**
-	 * Returns the service name
+	 * Returns the service name.
 	 * 
 	 * @return service name
 	 */
@@ -82,7 +87,7 @@ public class Service {
 	}
 
 	/**
-	 * Returns the number of planned instances for this service
+	 * Returns the number of planned instances for this service.
 	 * 
 	 * @return number of planned instances
 	 */
@@ -95,7 +100,7 @@ public class Service {
 	}
 
 	/**
-	 * Returns the number of actually running instances for this service
+	 * Returns the number of actually running instances for this service.
 	 * 
 	 * @return number of actually running instances
 	 */
@@ -112,15 +117,13 @@ public class Service {
 	 *            time to wait.
 	 * @param timeUnit
 	 *            time unit to wait.
-	 * @return the available instances, or null if the requested number of
-	 *         instances was not found. If found, the returned number of
-	 *         instances may be larger then the requested amount.
+	 * @return the available instances, or null if the requested number of instances was not found. If found, the
+	 *         returned number of instances may be larger then the requested amount.
 	 */
-	public ServiceInstance[] waitForInstances(final int howmany,
-			final long timeout, final TimeUnit timeUnit) {
+	public ServiceInstance[] waitForInstances(final int howmany, final long timeout, final TimeUnit timeUnit) {
 
 		if (this.pu != null) {
-			boolean result = pu.waitFor(howmany, timeout, timeUnit);
+			final boolean result = pu.waitFor(howmany, timeout, timeUnit);
 			if (result) {
 				return getInstances();
 			} else {
@@ -133,7 +136,7 @@ public class Service {
 	}
 
 	/**
-	 * Returns the instances of this service
+	 * Returns the instances of this service.
 	 * 
 	 * @return array of service instances
 	 */
@@ -155,13 +158,57 @@ public class Service {
 
 	}
 
+	private static final Logger logger = Logger.getLogger(Service.class.getName());
+	/******************
+	 * Invokes a custom command on this service.
+	 * 
+	 * @param commandName
+	 *            the command name.
+	 * @param params
+	 *            the command parameters.
+	 * @return The invocation results.
+	 * @throws Exception
+	 *             if any of the invocations failed. The thrown exception is the exception thrown by the failed
+	 *             invocation.
+	 */
+	public Object[] invoke(final String commandName, final Object[] params) throws Exception {
+		final ServiceInstance[] instances = this.getInstances();
+
+		final List<Future<Object>> futures = new ArrayList<Future<Object>>();
+
+		for (final ServiceInstance instance : instances) {
+			final Future<Object> future = instance.invokeAsync(commandName, params);
+			futures.add(future);
+		}
+
+		final long start = System.currentTimeMillis();
+		final long end = start + DEFAULT_INVOKE_TIMEOUT;
+
+		Exception firstException = null;
+		final Object[] results = new Object[instances.length];
+		for (int i = 0; i < results.length; i++) {
+			final Future<Object> future = futures.get(i);
+			try {
+				results[i] = future.get(end - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+			} catch (final Exception e) {
+				results[i] = e;
+				if (firstException == null) {
+					firstException = e;
+				}
+			}
+		}
+
+		if (firstException != null) {
+			throw firstException;
+		}
+		return results;
+
+	}
+
 	@Override
 	public String toString() {
-		return "Service [getName()=" + getName()
-				+ ", getNumberOfPlannedInstances()="
-				+ getNumberOfPlannedInstances()
-				+ ", getNumberOfActualInstances()="
-				+ getNumberOfActualInstances() + ", getInstances()="
+		return "Service [getName()=" + getName() + ", getNumberOfPlannedInstances()=" + getNumberOfPlannedInstances()
+				+ ", getNumberOfActualInstances()=" + getNumberOfActualInstances() + ", getInstances()="
 				+ Arrays.toString(getInstances()) + "]";
 	}
 

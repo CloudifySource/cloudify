@@ -27,14 +27,27 @@ import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
 import org.openspaces.core.cluster.ClusterInfo;
 
-
-public class ServiceContextFactory {
+/***************
+ * A factory class used to set up a ServiceContext from external classes.
+ * NEVER USE INSIDE A GSC!
+ * 
+ * @author barakme
+ *
+ */
+public final class ServiceContextFactory {
 
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(ServiceContextFactory.class.getName());
 	private static Admin admin = null;
 	private static ServiceContext context = null;
 
+	/*****
+	 * Private constructor to avoid initialization.
+	 */
+	private ServiceContextFactory() {
+ 
+	}
+	
 	/****
 	 * NEVER USE THIS INSIDE THE GSC. Should only be used by external scripts.
 	 * 

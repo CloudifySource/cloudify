@@ -35,7 +35,8 @@ public class Service {
 	private String imageTemplate;
 	private String defaultScalingUnit;
 	private String pidFile;
-	private boolean supportsScaling;
+
+	
 
 	private ServiceLifecycle lifecycle;
 	private UserInterface userInterface;
@@ -69,6 +70,18 @@ public class Service {
 	private ComputeDetails compute;
 
 	private LinkedList<String> extendedServicesPaths = new LinkedList<String>();
+
+	private boolean elastic = false;
+	
+	
+	public boolean isElastic() {
+		return elastic;
+	}
+
+	
+	public void setElastic(boolean elastic) {
+		this.elastic = elastic;
+	}
 
 	public String getName() {
 		return name;
@@ -129,14 +142,6 @@ public class Service {
 
 	public void setDefaultScalingUnit(final String defaultScalingUnit) {
 		this.defaultScalingUnit = defaultScalingUnit;
-	}
-
-	public boolean isSupportsScaling() {
-		return supportsScaling;
-	}
-
-	public void setSupportsScaling(final boolean supportsScaling) {
-		this.supportsScaling = supportsScaling;
 	}
 
 	public void setPlugins(final List<PluginDescriptor> plugins) {

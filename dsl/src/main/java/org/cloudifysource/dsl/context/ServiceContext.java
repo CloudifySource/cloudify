@@ -48,6 +48,11 @@ public class ServiceContext {
 
 	private AttributesFacade attributesFacade;
 
+	// TODO - this property should not be settable - there should be a separate
+	// interface for that.
+	// this pid may be modified due to process crashed, so volatile is required.	
+	private volatile long externalProcessId;
+
 	public ServiceContext() {
 
 	}
@@ -93,7 +98,6 @@ public class ServiceContext {
 		}
 
 		this.applicationName = CloudifyConstants.DEFAULT_APPLICATION_NAME;
-		
 
 		this.attributesFacade = new AttributesFacade(this, admin);
 		initialized = true;
@@ -224,6 +228,14 @@ public class ServiceContext {
 		} else {
 			return "ServiceContext [NOT INITIALIZED]";
 		}
+	}
+
+	public long getExternalProcessId() {
+		return externalProcessId;
+	}
+
+	public void setExternalProcessId(long externalProcessId) {
+		this.externalProcessId = externalProcessId;
 	}
 
 }
