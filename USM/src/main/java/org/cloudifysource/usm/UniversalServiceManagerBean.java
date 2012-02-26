@@ -707,6 +707,9 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			throw new USMException("Failed to write Process ID: " + this.actualProcessID + " to file: " + getPidFile(),
 					e);
 		}
+		
+		((DSLConfiguration) this.usmLifecycleBean.getConfiguration()).getServiceContext().setExternalProcessId(this.actualProcessID);
+		
 
 		try {
 			logProcessDetails();
