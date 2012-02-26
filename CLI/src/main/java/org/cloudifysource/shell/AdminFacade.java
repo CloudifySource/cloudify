@@ -298,4 +298,12 @@ public interface AdminFacade {
 	boolean waitForServiceInstances(String serviceName, String applicationName, int plannedNumberOfInstances,
 			String timeoutErrorMessage, long timeout, TimeUnit timeunit) throws CLIException, TimeoutException,
 			InterruptedException;
+	
+	void setInstances(String applicationName, String serviceName, int count) throws CLIException;
+
+	public abstract boolean waitForInstancesNumberOnRunningService(String serviceName,
+			String applicationName, int plannedNumberOfInstances, int initialNumberOfInstances, String timeoutErrorMessage, long timeout,
+			TimeUnit timeunit) throws CLIException, TimeoutException,
+			InterruptedException;
+	
 }

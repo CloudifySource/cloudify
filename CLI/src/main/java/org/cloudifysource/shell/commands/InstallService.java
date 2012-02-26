@@ -180,6 +180,11 @@ public class InstallService extends AdminAwareCommand {
 			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_NETWORK_PROTOCOL_DESCRIPTION, service
 					.getNetwork().getProtocolDescription());
 		}
+		
+		contextProperties.setProperty(
+				CloudifyConstants.CONTEXT_PROPERTY_ELASTIC,
+				Boolean.toString(service.isElastic()));
+		
 		return contextProperties;
 	}
 }

@@ -248,21 +248,38 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		}
 	}
 
+
+	private int handleEventLogs(String serviceName, String applicationName,
+			int plannedNumberOfInstances, int serviceShutDownEventsCount)
+			throws CLIException {
+		return handleEventLogs(serviceName, applicationName,
+				plannedNumberOfInstances, serviceShutDownEventsCount, false);
+	}
+
 	// Prints event logs and monitors shutdown events.
-	private int handleEventLogs(final String serviceName, final String applicationName,
-			final int plannedNumberOfInstances, final int serviceShutDownEventsCount) throws CLIException {
-		final List<String> eventLogs = getUnreadEventLogs(applicationName, serviceName);
-		int totalServiceShutDownEvents = serviceShutDownEventsCount;
+	private int handleEventLogs(String serviceName, String applicationName,
+			int plannedNumberOfInstances, int serviceShutDownEventsCount,
+			boolean firstTime) throws CLIException {
+		List<String> eventLogs = getUnreadEventLogs(applicationName,
+				serviceName);
 		if (eventLogs != null) {
-			printEventLogs(eventLogs);
-			totalServiceShutDownEvents += getShutdownEventCount(eventLogs, serviceName);
-			// If all planned instances of the processing unit had Shutdown we throw an exception.
-			if (totalServiceShutDownEvents == plannedNumberOfInstances) {
-				throw new CLIException("Service " + serviceName + " Failed to instantiate");
+			if (!firstTime) {
+				printEventLogs(eventLogs);
+			}
+
+			serviceShutDownEventsCount += getShutdownEventCount(eventLogs,
+					serviceName);
+
+			// If all planned instances of the processing unit had Shutdown we
+			// throw an exception.
+			if (serviceShutDownEventsCount == plannedNumberOfInstances) {
+				throw new CLIException("Service " + serviceName
+						+ " Failed to instantiate");
 			}
 		}
-		return totalServiceShutDownEvents;
+		return serviceShutDownEventsCount;
 	}
+
 
 	// returns the number of RUNNING processing unit instances.
 	private int getNumberOfUSMServicesWithRunningState(final String serviceName, final String applicationName,
@@ -749,4 +766,150 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		return result;
 	}
 
+
+	@Override
+	public void setInstances(String applicationName, String serviceName,
+			int count) throws CLIException {
+		try {
+			String url = SERVICE_CONTROLLER_URL + "applications/"
+					+ applicationName + "/services/" + serviceName
+					+ "/set-instances?count=" + count;
+			client.post(url);
+		} catch (ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+		} catch (RestException e) {
+			throw new CLIException(e);
+		}
+
+	}
+
+	@Override
+	public boolean waitForInstancesNumberOnRunningService(String serviceName,
+			String applicationName, int plannedNumberOfInstances,
+			int initialNumberOfInstances, String timeoutErrorMessage,
+			long timeout, TimeUnit timeunit) throws CLIException,
+			TimeoutException, InterruptedException {
+		long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
+
+		final boolean ascending = plannedNumberOfInstances > initialNumberOfInstances;
+		int serviceShutDownEventsCount = 0;
+
+		String pollingURL = "processingUnits/Names/"
+				+ ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+
+		// The polling will not start until the service processing unit is
+		// found.
+		waitForServicePU(applicationName, serviceName, pollingURL,
+				timeoutErrorMessage, PROCESSINGUNIT_LOOKUP_TIMEOUT, timeunit);
+
+		if (ascending) {
+			logger.info(MessageFormat.format(
+					messages.getString("deploying_service"), serviceName));
+		} else {
+			logger.info(MessageFormat.format(
+					messages.getString("removing_service_instances"),
+					serviceName));
+		}
+
+		// TODO - this only works for USM. Fix for PUs.
+		int currentNumberOfRunningUSMInstances = (ascending ? -1
+				: Integer.MAX_VALUE);
+		boolean statusChanged = false;
+
+		boolean firstTime = true;
+		while (System.currentTimeMillis() < end) {
+
+			Map<String, Object> serviceStatusMap = null;
+			try {
+				serviceStatusMap = client.getAdminData(pollingURL);
+			} catch (ErrorStatusException e) {
+				throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+			} catch (RestException e) {
+				throw new CLIException(e);
+			}
+
+			if ("partitioned-sync2backup".equals(serviceStatusMap
+					.get("ClusterSchema"))) {
+				plannedNumberOfInstances = Integer
+						.valueOf((String) serviceStatusMap
+								.get("TotalNumberOfInstances"));
+			}
+
+			// Update all service instance numbers.
+			// isUsmService can only be called when an instance of the service
+			// exists.
+			if (ascending) {
+				if (!serviceStatusMap.get("Instances-Size").equals(0)
+						&& isUSMService(applicationName, serviceName)) {
+					int actualNumberOfUSMServicesWithRunningState = getNumberOfUSMServicesWithRunningState(
+							serviceName, applicationName,
+							(Integer) serviceStatusMap.get("Instances-Size"));
+					if (currentNumberOfRunningUSMInstances != actualNumberOfUSMServicesWithRunningState
+							&& actualNumberOfUSMServicesWithRunningState != 0) {
+						currentNumberOfRunningUSMInstances = actualNumberOfUSMServicesWithRunningState;
+						statusChanged = true;
+					} else {
+						statusChanged = false;
+					}
+				}
+			} else {
+				final int actualNumberOfUSMServicesWithRunningState =  (Integer) serviceStatusMap.get("Instances-Size");
+				if (currentNumberOfRunningUSMInstances != actualNumberOfUSMServicesWithRunningState
+						&& actualNumberOfUSMServicesWithRunningState != 0) {
+					currentNumberOfRunningUSMInstances = actualNumberOfUSMServicesWithRunningState;
+					statusChanged = true;
+				} else {
+					statusChanged = false;
+				}
+				
+			}
+
+			// Print the event logs and return shutdown event count.
+
+			serviceShutDownEventsCount = handleEventLogs(serviceName,
+					applicationName, plannedNumberOfInstances,
+					serviceShutDownEventsCount, firstTime);
+			firstTime = false;
+
+			if ((Integer) serviceStatusMap.get("Instances-Size") == 0) {
+				printStatusMessage(plannedNumberOfInstances,
+						(Integer) serviceStatusMap.get("Instances-Size"),
+						statusChanged);
+				// Too many instances.
+			} else if (ascending
+					&& (plannedNumberOfInstances < currentNumberOfRunningUSMInstances)) {
+				throw new CLIException(MessageFormat.format(messages
+						.getString("number_of_instances_exceeded_planned"),
+						plannedNumberOfInstances,
+						currentNumberOfRunningUSMInstances));
+			} else if (!ascending
+					&& (plannedNumberOfInstances > currentNumberOfRunningUSMInstances)) {
+				throw new CLIException(
+						MessageFormat.format(
+								messages.getString("number_of_instances_removed_exceeded_planned"),
+								plannedNumberOfInstances,
+								currentNumberOfRunningUSMInstances));
+			} else if ((Integer) serviceStatusMap.get("Instances-Size") > 0) {
+				if (isUSMService(applicationName, serviceName)) {
+//					currentNumberOfRunningUSMInstances = getNumberOfUSMServicesWithRunningState(
+//							serviceName, applicationName,
+//							(Integer) serviceStatusMap.get("Instances-Size"));
+					printStatusMessage(plannedNumberOfInstances,
+							currentNumberOfRunningUSMInstances, statusChanged);
+
+					// are all usm service instances in Running state?
+					if (currentNumberOfRunningUSMInstances == plannedNumberOfInstances) {
+						// call this again, just to make sure we do not miss the last event
+						handleEventLogs(serviceName,
+								applicationName, plannedNumberOfInstances,
+								serviceShutDownEventsCount, firstTime);
+						return true;
+					}
+				}
+			}
+			Thread.sleep(POLLING_INTERVAL);
+		}
+		throw new TimeoutException(timeoutErrorMessage);
+
+	}
 }
