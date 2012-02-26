@@ -262,6 +262,7 @@
         <ant target="update.lus.groups"/>
         <ant target="add.cloudify.modules"/>
         <ant target="replace.cloudify.license"/>
+    	<ant target="replace.cloudify.notice"/>
     	<ant target="add.azure.artifacts" />
     	<ant target="dos2unix" />
  
@@ -287,8 +288,11 @@
 	</target>
 
     <target name="replace.cloudify.license">
-        <delete file="${tmp.dir}/${cloudify.installation.dir}"/>
         <copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${gigaspaces.related.folder}/gslicense.xml"/>
+    </target>
+	
+	<target name="replace.cloudify.notice">
+        <copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${gigaspaces.related.folder}/notice.txt"/>
     </target>
 	
 	<target name="dos2unix">
