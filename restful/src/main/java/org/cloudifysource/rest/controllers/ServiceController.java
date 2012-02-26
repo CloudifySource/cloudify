@@ -1612,4 +1612,26 @@ public class ServiceController {
 			throw new TimeoutException("Timed out waiting for Service " + serviceName + " deployment.");
 		}
 	}
+	
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/set-instances", method = RequestMethod.POST)
+	public @ResponseBody
+	Map<String, Object> setServiceInstances(@PathVariable final String applicationName, @PathVariable final String serviceName,
+			@RequestParam(value = "count", required = true) final int count){
+
+		final String puName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+		ProcessingUnit pu = admin.getProcessingUnits().getProcessingUnit(puName);
+		if(pu == null) {
+			return errorStatus(ResponseConstants.FAILED_TO_LOCATE_SERVICE, serviceName);
+		}
+		
+		final String elasticProp = (String) pu.getBeanLevelProperties().getContextProperties().get(CloudifyConstants.CONTEXT_PROPERTY_ELASTIC);
+		if(elasticProp == null || !Boolean.parseBoolean(elasticProp)) {
+			return errorStatus(ResponseConstants.SERVICE_NOT_ELASTIC, serviceName);
+		}
+		
+		logger.info("Scaling " + puName + " to " + count + " instances");
+        pu.scale(new ManualCapacityScaleConfigurer().memoryCapacity(512 * count, MemoryUnit.MEGABYTES).create());
+		
+        return successStatus();
+	}
 }

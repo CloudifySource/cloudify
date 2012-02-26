@@ -217,6 +217,10 @@ public class ApplicationInstallerRunnable implements Runnable {
 		if(cloud != null) {
 			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_CLOUD_NAME, cloud.getName());
 		}
+		
+		contextProperties.setProperty(
+				CloudifyConstants.CONTEXT_PROPERTY_ELASTIC,
+				Boolean.toString(service.isElastic()));
 		return contextProperties;
 	}
 

@@ -28,6 +28,7 @@ public interface ResponseConstants {
     String FAILED_TO_LOCATE_APP = "failed_to_locate_app";
     String FAILED_TO_ADD_INSTANCE = "failed_to_add_instance";
     String FAILED_TO_INVOKE_INSTANCE = "failed_to_invoke_instance";
+    String SERVICE_NOT_ELASTIC = "service_not_elastic";
 
     
     
