@@ -61,10 +61,11 @@ import com.google.common.base.Predicate;
  * gigaspaces and run the agent.
  * 
  * TODO: Make this class easy to extend for custom driver implementations.
+ * 
  * @author barakme
  * 
  */
-public class DefaultProvisioningDriver implements ProvisioningDriver , ProvisioningDriverClassContextAware{
+public class DefaultProvisioningDriver implements ProvisioningDriver, ProvisioningDriverClassContextAware {
 
 	private static final int WAIT_THREAD_SLEEP_MILLIS = 10000;
 	private static final int WAIT_TIMEOUT_MILLIS = 360000;
@@ -88,12 +89,12 @@ public class DefaultProvisioningDriver implements ProvisioningDriver , Provision
 	private final List<ProvisioningDriverListener> eventsListenersList = new LinkedList<ProvisioningDriverListener>();
 
 	private ProvisioningDriverClassContext context;
-	
+
 	@Override
 	public void setProvisioningDriverClassContext(ProvisioningDriverClassContext context) {
 		this.context = context;
 	}
-	
+
 	@Override
 	public void setConfig(final Cloud cloud, final String cloudTemplateName, final boolean management) {
 
@@ -123,32 +124,32 @@ public class DefaultProvisioningDriver implements ProvisioningDriver , Provision
 
 	}
 
-	private void initDeployer(final Cloud cloud) {		
-        try {
-        	// TODO - jcloudsUniqueId should be unique per cloud configuration. 
-            String jcloudsUniqueId = "UNIQUE_JCLOUDS_DEPLOYER_ID";
-			this.deployer = (JCloudsDeployer)context.getOrCreate(jcloudsUniqueId, new Callable<Object>() {
-	            
+	private void initDeployer(final Cloud cloud) {
+		try {
+			// TODO - jcloudsUniqueId should be unique per cloud configuration.
+			String jcloudsUniqueId = "UNIQUE_JCLOUDS_DEPLOYER_ID";
+			this.deployer = (JCloudsDeployer) context.getOrCreate(jcloudsUniqueId, new Callable<Object>() {
+
 				@Override
 				public Object call() throws Exception {
-	                logger.fine("Creating jclouds context deployer with user: " + cloud.getUser().getUser());
-	                CloudTemplate cloudTemplate = cloud.getTemplates().get(cloudTemplateName);
-	                
+					logger.fine("Creating jclouds context deployer with user: " + cloud.getUser().getUser());
+					CloudTemplate cloudTemplate = cloud.getTemplates().get(cloudTemplateName);
+
 					Properties props = new Properties();
 					props.putAll(cloudTemplate.getOverrides());
-		
+
 					deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(), cloud
 							.getUser().getApiKey(), props);
-		
+
 					deployer.setImageId(cloudTemplate.getImageId());
 					deployer.setMinRamMegabytes(cloudTemplate.getMachineMemoryMB());
 					deployer.setHardwareId(cloudTemplate.getHardwareId());
 					deployer.setLocationId(cloudTemplate.getLocationId());
 					deployer.setExtraOptions(cloudTemplate.getOptions());
 					return deployer;
-	            }
+				}
 			});
-        } catch (final Exception e) {
+		} catch (final Exception e) {
 			publishEvent("connection_to_cloud_api_failed", cloud.getProvider().getProvider());
 			throw new IllegalStateException("Failed to create cloud Deployer", e);
 		}
@@ -283,9 +284,8 @@ public class DefaultProvisioningDriver implements ProvisioningDriver , Provision
 			}
 		}
 
-		// By default, cloud nodes connect to each other using their private
-		// address.
-		md.setUsePrivateAddress(true);
+		md.setUsePrivateAddress(this.cloud.getConfiguration().isConnectToPrivateIp());
+
 		return md;
 	}
 
