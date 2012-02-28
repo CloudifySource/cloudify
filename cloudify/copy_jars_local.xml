@@ -37,7 +37,7 @@
 			<fileset dir="${target.dir}/logs" includes="**/*"  />
 		</delete>
 		<echo message="Creating new zip file" />
-		<zip destfile="${target.dir}/../gigaspaces.zip" basedir="${target.dir}/.." includes="${giga.version}/**/*" excludes="${giga.version}/tools/cli/plugins/esc/ec2/**/*" />
+		<zip destfile="${target.dir}/../gigaspaces.zip" basedir="${target.dir}/.." includes="${giga.version}/**/*" excludes="${giga.version}/tools/cli/plugins/esc/**/*" />
 		<echo message="Created ${target.dir}/../gigaspaces.zip" />
 	</target>
 
