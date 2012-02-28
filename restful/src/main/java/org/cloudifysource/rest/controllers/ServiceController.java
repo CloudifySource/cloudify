@@ -43,6 +43,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -80,6 +83,8 @@ import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.esc.driver.provisioning.CloudifyMachineProvisioningConfig;
 import org.cloudifysource.rest.ResponseConstants;
 import org.cloudifysource.rest.util.ApplicationInstallerRunnable;
+import org.cloudifysource.rest.util.LifecycleEventsContainer;
+import org.cloudifysource.rest.util.RestPollingCallable;
 import org.cloudifysource.rest.util.RestUtils;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.CycleDetector;
@@ -139,11 +144,14 @@ import com.gigaspaces.log.LogEntryMatcher;
 @RequestMapping("/service")
 public class ServiceController {
 
-	private static final int TEN_MINUTES_MILLISECONDS = 60 * 1000 * 10;
+	private static final int POLLING_TASK_TIMEOUT = 20;
+    private static final int TEN_MINUTES_MILLISECONDS = 60 * 1000 * 10;
 	private static final int THREAD_POOL_SIZE = 2;
 	private static final String SHARED_ISOLATION_ID = "public";
 	private static final int PU_DISCOVERY_TIMEOUT_SEC = 8;
 	private static final String USM_EVENT_LOGGER_NAME = ".*.USMEventLogger.{0}\\].*";
+    private final Map<UUID, LifecycleEventsContainer> lifecyclePollingContainer = 
+        new ConcurrentHashMap<UUID, LifecycleEventsContainer>();
 	@Autowired(required = true)
 	private Admin admin;
 	@GigaSpaceContext(name = "gigaSpace")
@@ -903,16 +911,16 @@ public class ServiceController {
 	 * @throws IOException Reporting failure to create a file while opening the packaged application file
 	 * @throws DSLException Reporting failure to parse the application file
 	 */
-	@RequestMapping(value = "applications/{applicationName}", method = RequestMethod.POST)
-	public @ResponseBody
-	Object deployApplication(@PathVariable final String applicationName,
-			@RequestParam(value = "file", required = true) final MultipartFile srcFile) throws IOException, 
-			DSLException {
-		final File applicationFile = copyMultipartFileToLocalFile(srcFile);
-		final Object returnObject = doDeployApplication(applicationName, applicationFile);
-		applicationFile.delete();
-		return returnObject;
-	}
+    @RequestMapping(value = "applications/{applicationName}/timeout/{timeout}", method = RequestMethod.POST)
+    public @ResponseBody
+    Object deployApplication(@PathVariable final String applicationName, @PathVariable final int timeout,
+            @RequestParam(value = "file", required = true) final MultipartFile srcFile) throws IOException, 
+            DSLException {
+        final File applicationFile = copyMultipartFileToLocalFile(srcFile);
+        final Object returnObject = doDeployApplication(applicationName, applicationFile, timeout);
+        applicationFile.delete();
+        return returnObject;
+    }
 
 	private List<Service> createServiceDependencyOrder(final org.cloudifysource.dsl.Application application) {
 		final DirectedGraph<Service, DefaultEdge> graph = new DefaultDirectedGraph<Service, DefaultEdge>(
@@ -983,26 +991,114 @@ public class ServiceController {
 
 	}
 
-	private Object doDeployApplication(final String applicationName, final File applicationFile) throws IOException,
-			DSLException {
-		final DSLApplicationCompilatioResult result = ServiceReader.getApplicationFromFile(applicationFile);
-		final List<Service> services = createServiceDependencyOrder(result.getApplication());
+    //TODO: Start executer service
+    private UUID StartPollingForLifecycleEvents(String serviceName, int plannedNumberOfInstances, int timeout,
+            TimeUnit minutes){
+        RestPollingCallable restPollingCallable;
+        restPollingCallable = new RestPollingCallable(serviceName, plannedNumberOfInstances, timeout, minutes);
+        LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
+        UUID lifecycleEventsContainerID = UUID.randomUUID();
+        this.lifecyclePollingContainer.put(lifecycleEventsContainerID, lifecycleEventsContainer);
+        restPollingCallable.setLifecycleEventsContainer(lifecycleEventsContainer);
+        restPollingCallable.setAdmin(admin);
 
-		final ApplicationInstallerRunnable installer = new ApplicationInstallerRunnable(this, result, applicationName,
-				services, this.cloud);
-		this.executorService.execute(installer);
+        Future<Boolean> future = executorService.submit(restPollingCallable);
+        lifecycleEventsContainer.setFutureTask(future);
 
-		final String[] serviceOrder = new String[services.size()];
-		for (int i = 0; i < serviceOrder.length; i++) {
-			serviceOrder[i] = services.get(i).getName();
-		}
+        return lifecycleEventsContainerID;
+    }
 
-		final Map<String, Object> retval = successStatus(Arrays.toString(serviceOrder));
+    //TODO: Start executer service
+    private UUID StartPollingForLifecycleEvents(org.cloudifysource.dsl.Application application, int timeout,
+            TimeUnit timeUnit) {
+        LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
+        UUID lifecycleEventsContainerUUID = UUID.randomUUID();
+        lifecycleEventsContainer.setUUID(lifecycleEventsContainerUUID);
 
-		return retval;
+        this.lifecyclePollingContainer.put(lifecycleEventsContainerUUID, lifecycleEventsContainer);
+        RestPollingCallable restPollingCallable = new RestPollingCallable(application, timeout, timeUnit);
+        restPollingCallable.setIsUninstall(false);
+        restPollingCallable.setLifecycleEventsContainer(lifecycleEventsContainer);
+        restPollingCallable.setAdmin(admin);
 
-	}
+        Future<Boolean> future = executorService.submit(restPollingCallable);
+        lifecycleEventsContainer.setFutureTask(future);
 
+        return lifecycleEventsContainerUUID;
+    }
+    
+    //TODO remove cursor
+    @RequestMapping(value = "/lifecycleEventContainerID/{lifecycleEventContainerID}/cursor/{cursor}" 
+        , method = RequestMethod.GET)
+        public @ResponseBody
+        Object getLifecycleEvents(@PathVariable final String lifecycleEventContainerID, @PathVariable int cursor) {
+        Map<String, Object> resultsMap = new HashMap<String, Object>();
+        resultsMap.put(CloudifyConstants.POLLING_TIMEOUT_EXCEPTION, false);
+        if (!lifecyclePollingContainer.containsKey(UUID.fromString(lifecycleEventContainerID))){
+            return errorStatus("Lifecycle events container with UUID: " + lifecycleEventContainerID +
+                    " does not exist or expired.");
+        }
+        LifecycleEventsContainer container = lifecyclePollingContainer.get(UUID.fromString(lifecycleEventContainerID));
+        Future<Boolean> futureTask = container.getFutureTask();
+        if (futureTask.isDone()){
+            try {
+                futureTask.get(POLLING_TASK_TIMEOUT, TimeUnit.SECONDS);
+                
+            }catch (ExecutionException e) {
+                if (e.getCause() instanceof TimeoutException){
+                    logger.log(Level.INFO, "LIFECYCLE_EVENT_TIMED_OUT", e.getCause());
+                    resultsMap.put(CloudifyConstants.POLLING_TIMEOUT_EXCEPTION, true);
+                }else{
+                    logger.log(Level.INFO,"an exception occurred during the" +
+                            " lifecycle events polling task.", e);
+                }
+            } catch (InterruptedException e) {
+                //retrieve 
+                logger.log(Level.INFO,"Could not retrieve polling task result", e);
+                
+            } catch (TimeoutException e) {
+                logger.log(Level.INFO,"Could not retrieve polling task result", e);
+                resultsMap.put(CloudifyConstants.POLLING_TIMEOUT_EXCEPTION, false);
+            }
+        }
+        List<String> lifecycleEvents = container.getLifecycleEvents(cursor);
+
+        if (lifecycleEvents != null){
+            int newCursorPos = cursor + lifecycleEvents.size();
+            resultsMap.put(CloudifyConstants.CURSOR_POS, newCursorPos);
+            resultsMap.put(CloudifyConstants.LIFECYCLE_LOGS, lifecycleEvents);
+        }else{
+            resultsMap.put(CloudifyConstants.CURSOR_POS, cursor);
+        }
+
+        resultsMap.put(CloudifyConstants.IS_TASK_DONE, futureTask.isDone());
+
+        return successStatus(resultsMap);
+    }
+    
+    private Object doDeployApplication(final String applicationName, final File applicationFile, int timeout) throws IOException,
+    DSLException {
+        final DSLApplicationCompilatioResult result = ServiceReader.getApplicationFromFile(applicationFile);
+        final List<Service> services = createServiceDependencyOrder(result.getApplication());
+
+        UUID lifecycleEventContainerID = StartPollingForLifecycleEvents(result.getApplication(), timeout, TimeUnit.MINUTES);
+
+        final ApplicationInstallerRunnable installer = new ApplicationInstallerRunnable(this, result, applicationName,
+                services, this.cloud);
+        this.executorService.execute(installer);
+
+        final String[] serviceOrder = new String[services.size()];
+        for (int i = 0; i < serviceOrder.length; i++) {
+            serviceOrder[i] = services.get(i).getName();
+        }
+        Map<String, Object> returnMap = new HashMap<String, Object>();
+        returnMap.put(CloudifyConstants.SERVICE_ORDER, Arrays.toString(serviceOrder));
+        returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, lifecycleEventContainerID);
+        final Map<String, Object> retval = successStatus(returnMap);
+
+        return retval;
+
+    }
 	private File copyMultipartFileToLocalFile(final MultipartFile srcFile) throws IOException {
 		final File tempFile = new File(temporaryFolder, srcFile.getOriginalFilename());
 		srcFile.transferTo(tempFile);
@@ -1192,8 +1288,9 @@ public class ServiceController {
 
 	}
 
-	public void deployElasticProcessingUnit(final String serviceName, final String applicationName, final String zone,
-			final File srcFile, final Properties propsFile, final String originalTemplateName)
+	public String deployElasticProcessingUnit(final String serviceName, final String applicationName, final String zone,
+			final File srcFile, final Properties propsFile, final String originalTemplateName, boolean isApplicationInstall,
+			int timeout, TimeUnit timeUnit)
 			throws TimeoutException, PackagingException, IOException, AdminException, DSLException {
 
 		String templateName;
@@ -1244,59 +1341,78 @@ public class ServiceController {
 			}
 		}
 		srcFile.delete();
+		
+		String lifecycleEventContainerID = "";
+		if (!isApplicationInstall){
+		    if (service == null){
+		        lifecycleEventContainerID = StartPollingForLifecycleEvents(ServiceUtils.getApplicationServiceName(serviceName, applicationName),
+		                1, timeout, timeUnit).toString();
+		    }else{
+		        lifecycleEventContainerID = StartPollingForLifecycleEvents(service.getName(), service.getNumInstances(), timeout, timeUnit).toString();
+		    }
+		}
+		return lifecycleEventContainerID;
 	}
 
 	// TODO: add getters for service processing units in the service class that
 	// does the cast automatically.
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}", method = RequestMethod.POST)
-	public @ResponseBody
-	Object deployElastic(@PathVariable final String applicationName, @PathVariable final String serviceName,
-			@RequestParam(value = "template", required = false) final String templateName,
-			@RequestParam(value = "zone", required = true) final String zone,
-			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
-			@RequestParam(value = "props", required = true) final MultipartFile propsFile) throws TimeoutException,
-			PackagingException, IOException, AdminException, DSLException {
+    @RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeout}", method = RequestMethod.POST)
+    public @ResponseBody
+    Object deployElastic(@PathVariable final String applicationName, @PathVariable final String serviceName, @PathVariable final int timeout,
+            @RequestParam(value = "template", required = false) final String templateName,
+            @RequestParam(value = "zone", required = true) final String zone,
+            @RequestParam(value = "file", required = true) final MultipartFile srcFile,
+            @RequestParam(value = "props", required = true) final MultipartFile propsFile) throws TimeoutException,
+            PackagingException, IOException, AdminException, DSLException {
 
-		logger.finer("received request to deploy");
-		logger.info("Deploying service with template: " + templateName);
-		String actualTemplateName = templateName;
+        logger.finer("received request to deploy");
+        logger.info("Deploying service with template: " + templateName);
+        String actualTemplateName = templateName;
 
-		if (cloud != null) {
-			if (templateName == null || templateName.length() == 0) {
-				if (cloud.getTemplates().isEmpty()) {
-					throw new IllegalStateException("Cloud configuration has no compute template defined!");
-				}
-				actualTemplateName = cloud.getTemplates().keySet().iterator().next();
-				logger.warning("Compute Template name missing from service deployment request."
-						+ " Defaulting to first template: " + actualTemplateName);
+        if (cloud != null) {
+            if (templateName == null || templateName.length() == 0) {
+                if (cloud.getTemplates().isEmpty()) {
+                    throw new IllegalStateException("Cloud configuration has no compute template defined!");
+                }
+                actualTemplateName = cloud.getTemplates().keySet().iterator().next();
+                logger.warning("Compute Template name missing from service deployment request."
+                        + " Defaulting to first template: " + actualTemplateName);
 
-			}
-		}
+            }
+        }
 
-		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-		final byte[] propsBytes = propsFile.getBytes();
-		final Properties props = new Properties();
-		final InputStream is = new ByteArrayInputStream(propsBytes);
-		props.load(is);
-		final File dest = copyMultipartFileToLocalFile(srcFile);
-		final File destFile = new File(dest.getParent(), absolutePuName + "."
-				+ FilenameUtils.getExtension(dest.getName()));
-		if (destFile.exists()) {
-			FileUtils.deleteQuietly(destFile);
-		}
-		if (dest.renameTo(destFile)) {
-			FileUtils.deleteQuietly(dest);
-			deployElasticProcessingUnit(absolutePuName, applicationName, zone, destFile, props, actualTemplateName);
-			destFile.deleteOnExit();
-		} else {
-			logger.warning("Deployment file could not be renamed to the absolute pu name."
-					+ " Deploaying using the name " + dest.getName());
-			deployElasticProcessingUnit(absolutePuName, applicationName, zone, dest, props, actualTemplateName);
-			dest.deleteOnExit();
-		}
+        final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+        final byte[] propsBytes = propsFile.getBytes();
+        final Properties props = new Properties();
+        final InputStream is = new ByteArrayInputStream(propsBytes);
+        props.load(is);
+        final File dest = copyMultipartFileToLocalFile(srcFile);
+        final File destFile = new File(dest.getParent(), absolutePuName + "."
+                + FilenameUtils.getExtension(dest.getName()));
+        if (destFile.exists()) {
+            FileUtils.deleteQuietly(destFile);
+        }
 
-		return successStatus();
-	}
+
+
+//        UUID lifecycleEventsContainerID = StartPollingForLifecycleEvents(dest, serviceName, timeout, TimeUnit.MINUTES);
+        String lifecycleEventsContainerID = "";
+        if (dest.renameTo(destFile)) {
+            FileUtils.deleteQuietly(dest);
+            lifecycleEventsContainerID = deployElasticProcessingUnit(absolutePuName, applicationName, zone, destFile, props, actualTemplateName, false, timeout, TimeUnit.MINUTES);
+            destFile.deleteOnExit();
+        } else {
+            logger.warning("Deployment file could not be renamed to the absolute pu name."
+                    + " Deploaying using the name " + dest.getName());
+            lifecycleEventsContainerID = deployElasticProcessingUnit(absolutePuName, applicationName, zone, dest, props, actualTemplateName, false, timeout, TimeUnit.MINUTES);
+            dest.deleteOnExit();
+        }
+
+        //TODO: move this Key String to the DSL project as a constant.
+        //      Map<String, String> serviceDetails = new HashMap<String, String>();
+        //      serviceDetails.put("lifecycleEventsContainerID", lifecycleEventsContainerID.toString());
+        return successStatus(lifecycleEventsContainerID.toString());
+    }
 
 	private File getJarFileFromDir(File serviceFileOrDir, final File serviceDirectory, final String jarName)
 			throws IOException {

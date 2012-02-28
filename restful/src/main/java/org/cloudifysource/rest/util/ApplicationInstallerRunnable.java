@@ -106,7 +106,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 				final String templateName = (service.getCompute() == null ? null : service.getCompute().getTemplate() );
 				controller.deployElasticProcessingUnit(absolutePUName,
 						applicationName, serviceName, packedFile,
-						contextProperties, templateName);
+						contextProperties, templateName, true, 0, TimeUnit.SECONDS);
 				try { 
 					FileUtils.deleteDirectory(packedFile.getParentFile());
 				} catch(IOException ioe) {
