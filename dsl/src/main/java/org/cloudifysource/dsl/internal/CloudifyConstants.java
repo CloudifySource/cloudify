@@ -150,6 +150,16 @@ public class CloudifyConstants {
 	public static final String CUSTOM_PROPERTY_ENABLE_PID_MONITOR = "org.cloudifysource.enable-pid-monitor";
 	public static final String CUSTOM_PROPERTY_ENABLE_TCP_PORT_MONITOR = "org.cloudifysource.enable-port-monitor";
 	
+	/*******************
+	 * event lifecycle polling parameters. 
+	 * 
+	 */
+	public static final String CURSOR_POS = "curserPos";
+	public static final String LIFECYCLE_LOGS = "lifecycleLogs";
+	public static final String IS_TASK_DONE = "isDone";
+	public static final String POLLING_TIMEOUT_EXCEPTION = "TimeoutException";
+	public static final String LIFECYCLE_EVENT_CONTAINER_ID = "lifecycleEventContainerID";
+	public static final String SERVICE_ORDER = "srviceOrder";
 	private CloudifyConstants() {
 		// private constructor to prevent initialization.
 	}
