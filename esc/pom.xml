@@ -73,6 +73,11 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
+      		<groupId>commons-pool</groupId>
+     		<artifactId>commons-pool</artifactId>
+      		<version>1.6</version>
+    	</dependency>
+		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-core</artifactId>
 			<version>1.11</version>

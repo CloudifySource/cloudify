@@ -308,7 +308,7 @@ public class AgentlessInstaller {
 
 		final String sshIpAddress = details.isConnectedToPrivateIp() ? details.getPrivateIp() : details.getPublicIp();
 
-		publishEvent("attempting_to_access_vm_with_ssh", details.getPublicIp());
+		publishEvent("attempting_to_access_vm_with_ssh", sshIpAddress);
 		// checking for SSH connection
 		checkConnection(sshIpAddress, SSH_PORT, Utils.millisUntil(end), TimeUnit.MILLISECONDS);
 
@@ -348,9 +348,12 @@ public class AgentlessInstaller {
 				.exportVar(WORKING_HOME_DIRECTORY_ENV, remoteDirectory)
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, details.getPrivateIp())
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, details.getPublicIp());
-
-		if (details.isLus()) {
-			scb.exportVar(CLOUD_FILE, details.getRemoteDir() + "/" + details.getCloudFile().getName());
+		
+		if(details.isLus()) {
+			String remotePath = details.getRemoteDir();
+			if (!remotePath.endsWith("/"))
+				remotePath += "/";
+			scb.exportVar(CLOUD_FILE, remotePath + details.getCloudFile().getName() );
 		}
 		scb.chmodExecutable(scriptPath).call(scriptPath);
 

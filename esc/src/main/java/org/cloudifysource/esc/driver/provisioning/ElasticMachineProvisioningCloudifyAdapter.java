@@ -98,7 +98,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		details.setZones(StringUtils.join(cloud.getProvider().getZones().toArray(new String[0]), ",", 0, cloud
 				.getProvider().getZones().size()));
 
-		if (cloud.getUser().getKeyFile() != null) {
+		if (org.apache.commons.lang.StringUtils.isNotBlank(cloud.getUser().getKeyFile())) {
 			logger.info("Key file has been specified in cloud configuration: " + cloud.getUser().getKeyFile());
 			final File keyFile = new File(cloud.getProvider().getLocalDirectory(), cloud.getUser().getKeyFile());
 			if (keyFile.exists()) {
@@ -258,6 +258,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		MachineDetails machineDetails;
 		try {
 			// delegate provisioning to the cloud driver implementation
+			cloudifyProvisioning.setAdmin(admin);
 			machineDetails = cloudifyProvisioning.startMachine(duration, unit);
 		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Failed to start machine: " + e.getMessage());
@@ -371,6 +372,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			try {
 				this.cloudifyProvisioning = (ProvisioningDriver) Class.forName(
 						this.cloud.getConfiguration().getClassName()).newInstance();
+				
 				this.cloudifyProvisioning.setConfig(cloud, cloudTemplate, false);
 
 				if (cloudifyProvisioning instanceof ProvisioningDriverClassContextAware) {

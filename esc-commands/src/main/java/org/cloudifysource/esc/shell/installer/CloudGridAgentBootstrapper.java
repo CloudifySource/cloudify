@@ -206,12 +206,11 @@ public class CloudGridAgentBootstrapper {
 		} catch (Exception e) {
 			throw new CLIException("Failed to load provisioning class for cloud: " + this.cloud.getName(), e);
 		}
-		provisioning.setConfig(cloud, cloud.getConfiguration()
-				.getManagementMachineTemplate(), true);
 		if (provisioning instanceof ProvisioningDriverClassContextAware) {
 			ProvisioningDriverClassContextAware contextAware = (ProvisioningDriverClassContextAware)provisioning;
 			contextAware.setProvisioningDriverClassContext(new DefaultProvisioningDriverClassContext());
         }
+		provisioning.setConfig(cloud, cloud.getConfiguration().getManagementMachineTemplate(), true);
 	}
 
 	public void teardownCloudAndWait(long timeout, TimeUnit timeoutUnit) throws TimeoutException,
