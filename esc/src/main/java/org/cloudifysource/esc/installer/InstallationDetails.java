@@ -48,9 +48,8 @@ public class InstallationDetails implements Cloneable {
 	// Locator that gigaspaces agent will use.
 	private String locator;
 
-	// TODO: add lookup group
-
 	private String cloudifyUrl;
+	private String overridesUrl;
 	
 	// An instance of the Gigaspaces Admin API. If passed,
 	// will be used to check when an agent joins the cluster.
@@ -235,6 +234,14 @@ public class InstallationDetails implements Cloneable {
 
 	public void setCloudFile(File cloudFile) {
 		this.cloudFile = cloudFile;
+	}
+
+	public String getOverridesUrl() {
+		return overridesUrl;
+	}
+
+	public void setOverridesUrl(String overridesUrl) {
+		this.overridesUrl = overridesUrl;
 	}
 
 

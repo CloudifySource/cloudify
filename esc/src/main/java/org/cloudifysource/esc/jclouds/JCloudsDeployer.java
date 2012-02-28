@@ -484,12 +484,7 @@ public class JCloudsDeployer {
 				classArray[i] = paramArray[i].getClass();
 			}
 
-			try {
-				Method[] ms = templateOptions.getClass().getMethods();
-				System.out.println(ms);
-			} catch (Exception e1) {
-				e1.printStackTrace();
-			}
+		
 			try {
 				m = templateOptions.getClass().getMethod(entryKey, classArray);
 			} catch (SecurityException e) {

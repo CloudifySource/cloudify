@@ -62,9 +62,9 @@ import com.gigaspaces.internal.utils.StringUtils;
  */
 public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachineProvisioning, Bean {
 
-	//TODO: Store this object inside ElasticMachineProvisioningContext instead of a static variable
-	private static final Map<String,ProvisioningDriverClassContext> PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME = new HashMap<String,ProvisioningDriverClassContext>();
-	
+	// TODO: Store this object inside ElasticMachineProvisioningContext instead of a static variable
+	private static final Map<String, ProvisioningDriverClassContext> PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME = new HashMap<String, ProvisioningDriverClassContext>();
+
 	private static final int DEFAULT_GSA_LOOKUP_TIMEOUT_SECONDS = 15;
 	private ProvisioningDriver cloudifyProvisioning;
 	private Admin admin;
@@ -82,7 +82,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	@Override
-	public GridServiceAgent[] getDiscoveredMachines(long duration, TimeUnit unit)
+	public GridServiceAgent[] getDiscoveredMachines(final long duration, final TimeUnit unit)
 			throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
 		// TODO - query the cloud and cross reference with the admin
 		return this.admin.getGridServiceAgents().getAgents();
@@ -100,7 +100,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		if (cloud.getUser().getKeyFile() != null) {
 			logger.info("Key file has been specified in cloud configuration: " + cloud.getUser().getKeyFile());
-			File keyFile = new File(cloud.getProvider().getLocalDirectory(), cloud.getUser().getKeyFile());
+			final File keyFile = new File(cloud.getProvider().getLocalDirectory(), cloud.getUser().getKeyFile());
 			if (keyFile.exists()) {
 				details.setKeyFile(keyFile.getAbsolutePath());
 				logger.info("Using key file: " + keyFile);
@@ -118,6 +118,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		details.setLocator(this.lookupLocatorsString);
 		details.setLus(false);
 		details.setCloudifyUrl(cloud.getProvider().getCloudifyUrl());
+		details.setOverridesUrl(cloud.getProvider().getCloudifyOverridesUrl());
 		details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		details.setAdmin(this.admin);
 
@@ -129,8 +130,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	@Override
-	public GridServiceAgent startMachine(long duration, TimeUnit unit) throws ElasticMachineProvisioningException,
-			InterruptedException, TimeoutException {
+	public GridServiceAgent startMachine(final long duration, final TimeUnit unit)
+			throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
 
 		logger.info("Cloudify Adapter is starting a new machine");
 		// calculate timeout
@@ -138,7 +139,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		// provision the machine
 		logger.info("Calling provisioning implementation for new machine");
-		MachineDetails machineDetails = provisionMachine(duration, unit);
+		final MachineDetails machineDetails = provisionMachine(duration, unit);
 
 		logger.info("Machine was provisioned by implementation. Machine is: " + machineDetails);
 
@@ -165,25 +166,28 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				machineIp = machineDetails.getPublicAddress();
 			}
 
+			if (machineIp == null) {
+				throw new IllegalArgumentException("The IP of the new machine is null! Machine Details are: "
+						+ machineDetails + " .");
+			}
 			// wait for GSA to become available
 			logger.info("Cloudify adapter is waiting for GSA to become available");
-			GridServiceAgent gsa = waitForGsa(machineIp, DEFAULT_GSA_LOOKUP_TIMEOUT_SECONDS);
+			final GridServiceAgent gsa = waitForGsa(machineIp, DEFAULT_GSA_LOOKUP_TIMEOUT_SECONDS);
 			if (gsa == null) {
 				// GSA did not start correctly or on time - shutdown the machine
 
 				// handleGSANotFound(machineIp);
-				throw new TimeoutException(
-						"New machine was provisioned and Cloudify was installed, but a GSA was not discovered on the new machine: "
-								+ machineDetails);
+				throw new TimeoutException("New machine was provisioned and Cloudify was installed, "
+						+ "but a GSA was not discovered on the new machine: " + machineDetails);
 			}
 			return gsa;
-		} catch (ElasticMachineProvisioningException e) {
+		} catch (final ElasticMachineProvisioningException e) {
 			handleExceptionAfterMachineCreated(machineDetails);
 			throw e;
-		} catch (TimeoutException e) {
+		} catch (final TimeoutException e) {
 			handleExceptionAfterMachineCreated(machineDetails);
 			throw e;
-		} catch (InterruptedException e) {
+		} catch (final InterruptedException e) {
 			handleExceptionAfterMachineCreated(machineDetails);
 			throw e;
 		}
@@ -193,7 +197,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private void handleExceptionAfterMachineCreated(final MachineDetails machineDetails) {
 		try {
 			this.cloudifyProvisioning.stopMachine(machineDetails.getPrivateAddress(), 5, TimeUnit.MINUTES);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			logger.log(
 					Level.SEVERE,
 					"Machine Provisioning failed. "
@@ -202,8 +206,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		}
 	}
 
-	private void checkForProvisioningTimeout(final long end, MachineDetails machineDetails) throws TimeoutException,
-			ElasticMachineProvisioningException, InterruptedException {
+	private void checkForProvisioningTimeout(final long end, final MachineDetails machineDetails)
+			throws TimeoutException, ElasticMachineProvisioningException, InterruptedException {
 		if (System.currentTimeMillis() > end) {
 			logger.warning("Provisioning of new machine exceeded the required timeout. Shutting down the new machine ("
 					+ machineDetails.toString() + ")");
@@ -214,14 +218,14 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		}
 	}
 
-	private void installAndStartAgent(MachineDetails machineDetails, long end) throws TimeoutException,
+	private void installAndStartAgent(final MachineDetails machineDetails, final long end) throws TimeoutException,
 			InterruptedException, ElasticMachineProvisioningException {
 		final AgentlessInstaller installer = new AgentlessInstaller();
 
 		InstallationDetails installationDetails;
 		try {
 			installationDetails = createInstallationDetails(cloud, machineDetails);
-		} catch (FileNotFoundException e) {
+		} catch (final FileNotFoundException e) {
 			throw new ElasticMachineProvisioningException("Failed to create installation details for agent: "
 					+ e.getMessage(), e);
 		}
@@ -235,27 +239,27 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		// Execute agentless installation on the remote machine
 		try {
 			installer.installOnMachineWithIP(installationDetails, remainingTimeTill(end), TimeUnit.MILLISECONDS);
-		} catch (InstallerException e) {
+		} catch (final InstallerException e) {
 			throw new ElasticMachineProvisioningException(
 					"Failed to install Cloudify Agent on newly provisioned machine: " + e.getMessage(), e);
 		}
 	}
 
-	private long remainingTimeTill(long end) throws TimeoutException {
-		long remaining = end - System.currentTimeMillis();
+	private long remainingTimeTill(final long end) throws TimeoutException {
+		final long remaining = end - System.currentTimeMillis();
 		if (remaining <= 0) {
 			throw new TimeoutException("Passed target end time " + new Date(end));
 		}
 		return remaining;
 	}
 
-	private MachineDetails provisionMachine(long duration, TimeUnit unit) throws TimeoutException,
+	private MachineDetails provisionMachine(final long duration, final TimeUnit unit) throws TimeoutException,
 			ElasticMachineProvisioningException {
 		MachineDetails machineDetails;
 		try {
 			// delegate provisioning to the cloud driver implementation
 			machineDetails = cloudifyProvisioning.startMachine(duration, unit);
-		} catch (CloudProvisioningException e) {
+		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Failed to start machine: " + e.getMessage());
 		}
 		if (machineDetails == null) {
@@ -267,9 +271,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return machineDetails;
 	}
 
-	private GridServiceAgent waitForGsa(String machineIp, int timeoutInSeconds) throws InterruptedException {
+	private GridServiceAgent waitForGsa(final String machineIp, final int timeoutInSeconds) throws InterruptedException {
 
-		long endTime = System.currentTimeMillis() + (timeoutInSeconds * 1000);
+		final long endTime = System.currentTimeMillis() + timeoutInSeconds * 1000;
 
 		while (System.currentTimeMillis() < endTime) {
 			GridServiceAgent gsa = admin.getGridServiceAgents().getHostAddress().get(machineIp);
@@ -291,8 +295,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	@Override
 	public CapacityRequirements getCapacityOfSingleMachine() {
-		CloudTemplate template = cloud.getTemplates().get(this.cloudTemplate);
-		CapacityRequirements capacityRequirements = new CapacityRequirements(new MemoryCapacityRequirement(
+		final CloudTemplate template = cloud.getTemplates().get(this.cloudTemplate);
+		final CapacityRequirements capacityRequirements = new CapacityRequirements(new MemoryCapacityRequirement(
 				(long) template.getMachineMemoryMB()), new CpuCapacityRequirement(template.getNumberOfCores()));
 		logger.info("Capacity requirements for a single machine are: " + capacityRequirements);
 		return capacityRequirements;
@@ -300,7 +304,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	@Override
-	public boolean stopMachine(GridServiceAgent agent, long duration, TimeUnit unit)
+	public boolean stopMachine(final GridServiceAgent agent, final long duration, final TimeUnit unit)
 			throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
 
 		final String machineIp = agent.getMachine().getHostAddress();
@@ -311,7 +315,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 			return shutdownResult;
 
-		} catch (CloudProvisioningException e) {
+		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Attempt to shutdown machine with IP: " + machineIp
 					+ " for agent with UID: " + agent.getUid() + " has failed with error: " + e.getMessage(), e);
 		}
@@ -327,7 +331,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	// OpenSpaces Bean Implementation //
 	// //////////////////////////////////
 	@Override
-	public void setAdmin(Admin admin) {
+	public void setAdmin(final Admin admin) {
 		this.admin = admin;
 
 	}
@@ -368,25 +372,28 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				this.cloudifyProvisioning = (ProvisioningDriver) Class.forName(
 						this.cloud.getConfiguration().getClassName()).newInstance();
 				this.cloudifyProvisioning.setConfig(cloud, cloudTemplate, false);
-				
-				if (cloudifyProvisioning instanceof ProvisioningDriverClassContextAware) {
-					ProvisioningDriverClassContext provisioningDriverContext = lazyCreateProvisioningDriverClassContext(cloudifyProvisioning);
-					ProvisioningDriverClassContextAware contextAware = (ProvisioningDriverClassContextAware)cloudifyProvisioning;
-		            contextAware.setProvisioningDriverClassContext(provisioningDriverContext);
-                        
-		        }
 
-			} catch (ClassNotFoundException e) {
-				throw new BeanConfigurationException("Failed to load provisioning class for cloud: " + this.cloud.getName() + ". Class not found: " + this.cloud.getConfiguration().getClassName(), e);
-			} catch (Exception e) {
-				throw new BeanConfigurationException("Failed to load provisioning class for cloud: " + this.cloud.getName(), e);
+				if (cloudifyProvisioning instanceof ProvisioningDriverClassContextAware) {
+					final ProvisioningDriverClassContext provisioningDriverContext = lazyCreateProvisioningDriverClassContext(cloudifyProvisioning);
+					final ProvisioningDriverClassContextAware contextAware = (ProvisioningDriverClassContextAware) cloudifyProvisioning;
+					contextAware.setProvisioningDriverClassContext(provisioningDriverContext);
+
+				}
+
+			} catch (final ClassNotFoundException e) {
+				throw new BeanConfigurationException("Failed to load provisioning class for cloud: "
+						+ this.cloud.getName() + ". Class not found: " + this.cloud.getConfiguration().getClassName(),
+						e);
+			} catch (final Exception e) {
+				throw new BeanConfigurationException("Failed to load provisioning class for cloud: "
+						+ this.cloud.getName(), e);
 			}
 
 			this.lookupLocatorsString = createLocatorsString();
 
 			logger.info("Locators string used for new instances will be: " + this.lookupLocatorsString);
 
-		} catch (DSLException e) {
+		} catch (final DSLException e) {
 			logger.severe("Could not parse the provided cloud configuration: " + cloudContents + ": " + e.getMessage());
 			throw new BeanConfigurationException("Could not parse the prvided cloud configuration: " + cloudContents
 					+ ": " + e.getMessage());
@@ -394,22 +401,25 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	}
 
-	private static ProvisioningDriverClassContext lazyCreateProvisioningDriverClassContext(ProvisioningDriver cloudifyProvisioning) {
-		
-		String cloudDriverUniqueId = cloudifyProvisioning.getClass().getName();
-		synchronized(PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME) {
+	private static ProvisioningDriverClassContext lazyCreateProvisioningDriverClassContext(
+			final ProvisioningDriver cloudifyProvisioning) {
+
+		final String cloudDriverUniqueId = cloudifyProvisioning.getClass().getName();
+		synchronized (PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME) {
 			if (!PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME.containsKey(cloudDriverUniqueId)) {
-				PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME.put(cloudDriverUniqueId,new DefaultProvisioningDriverClassContext());
+				PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME.put(cloudDriverUniqueId,
+						new DefaultProvisioningDriverClassContext());
 			}
 		}
-		ProvisioningDriverClassContext provisioningDriverContext = PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME.get(cloudDriverUniqueId);
+		final ProvisioningDriverClassContext provisioningDriverContext = PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME
+				.get(cloudDriverUniqueId);
 		return provisioningDriverContext;
 	}
 
 	private String createLocatorsString() {
-		LookupLocator[] locators = this.admin.getLocators();
-		StringBuilder sb = new StringBuilder();
-		for (LookupLocator lookupLocator : locators) {
+		final LookupLocator[] locators = this.admin.getLocators();
+		final StringBuilder sb = new StringBuilder();
+		for (final LookupLocator lookupLocator : locators) {
 			sb.append(lookupLocator.getHost()).append(":").append(lookupLocator.getPort()).append(",");
 		}
 		if (sb.toString().length() > 0) {
