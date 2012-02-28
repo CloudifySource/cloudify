@@ -458,7 +458,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 
 		String result = null;
 		try {
-			result = client.postFile(SERVICE_CONTROLLER_URL + CLOUD_CONTROLLER_URL + "deploy?" + "applicationName="
+			result = (String)client.postFile(SERVICE_CONTROLLER_URL + CLOUD_CONTROLLER_URL + "deploy?" + "applicationName="
 					+ applicationName, packedFile);
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
@@ -534,13 +534,13 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 */
 	@Override
 	public String installElastic(final File packedFile, final String applicationName, final String serviceName,
-			final String zone, final Properties contextProperties, final String templateName) throws CLIException {
+			final String zone, final Properties contextProperties, final String templateName, int timeout) throws CLIException {
 
 		String result = null;
 		try {
-			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName;
-			result = client
-					.postFile(url + "?zone=" + zone + "&template=" + templateName, packedFile, contextProperties);
+			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName + "/timeout/" + timeout;
+			result = (String)client.postFile(url + "?zone=" + zone + "&template=" + templateName, packedFile,
+					contextProperties);
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		} catch (final RestException e) {
@@ -548,6 +548,13 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		}
 
 		return result;
+	}
+	
+	public void waitForLifecycleEvents(final String pollingID, String timeoutMessage) throws CLIException, InterruptedException, TimeoutException {
+		
+		RestLifecycleEventsLatch restLifecycleEventsLatch = new RestLifecycleEventsLatch();
+		restLifecycleEventsLatch.setTimeoutMessage(timeoutMessage);
+		restLifecycleEventsLatch.waitForLifecycleEvents(pollingID, client);
 	}
 
 	/**
@@ -763,12 +770,12 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String installApplication(final File applicationFile, final String applicationName) throws CLIException {
+	public Map<String, String> installApplication(final File applicationFile, final String applicationName, int timeout) throws CLIException {
 
-		String result = null;
+		Map<String, String> result = null;
 		try {
-			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName;
-			result = client.postFile(url, applicationFile);
+			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/timeout/" + timeout;
+			result = (Map<String, String>)client.postFile(url, applicationFile);
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		} catch (final RestException e) {

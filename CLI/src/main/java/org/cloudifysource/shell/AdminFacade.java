@@ -62,7 +62,7 @@ public interface AdminFacade {
 	 * @throws CLIException
 	 *             Reporting a failure to create temporary files or post the file over REST
 	 */
-	String installApplication(File applicationFile, String applicationName) throws CLIException;
+	Map<String, String> installApplication(File applicationFile, String applicationName, int timeout) throws CLIException;
 
 	/**
 	 * Installs and starts a service on a given application.
@@ -84,7 +84,7 @@ public interface AdminFacade {
 	 *             Reporting a failure to install the given service
 	 */
 	String installElastic(File file, String applicationName, String serviceName, String zone, Properties props,
-			final String templateName) throws CLIException;
+			final String templateName, int timeout) throws CLIException;
 
 	/**
 	 * Installs and starts a service on a given application.

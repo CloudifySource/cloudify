@@ -18,7 +18,6 @@ package org.cloudifysource.shell.commands;
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.felix.gogo.commands.Argument;
@@ -29,6 +28,7 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
+import org.cloudifysource.shell.rest.RestAdminFacade;
 import org.fusesource.jansi.Ansi.Color;
 
 /**
@@ -134,16 +134,14 @@ public class InstallService extends AdminAwareCommand {
 		} else {
 			templateName = "";
 		}
-		adminFacade.installElastic(packedFile, currentApplicationName, serviceName, zone, props, templateName);
+		String lifecycleEventContainerPollingID = adminFacade.installElastic(packedFile, currentApplicationName, serviceName, zone, props, templateName, timeoutInMinutes);
+
+		((RestAdminFacade)adminFacade).waitForLifecycleEvents(lifecycleEventContainerPollingID, TIMEOUT_ERROR_MESSAGE);
 
 		// if a zip file was created, delete it at the end of use.
 		if (serviceFile.isDirectory()) {
 			FileUtils.deleteQuietly(packedFile.getParentFile());
 		}
-
-		// TODO: Refactor waitXXX outside of adminFacade
-		adminFacade.waitForServiceInstances(serviceName, currentApplicationName, plannedNumberOfInstances,
-				TIMEOUT_ERROR_MESSAGE, timeoutInMinutes, TimeUnit.MINUTES);
 
 		return getFormattedMessage("service_install_ended", Color.GREEN, serviceName);
 	}

@@ -16,19 +16,19 @@
 package org.cloudifysource.shell.commands;
 
 import java.io.File;
-import java.text.MessageFormat;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
+import java.util.Map;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.Application;
 import org.cloudifysource.dsl.Service;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
+import org.cloudifysource.shell.rest.RestAdminFacade;
 import org.fusesource.jansi.Ansi.Color;
 
 /**
@@ -95,7 +95,9 @@ public class InstallApplication extends AdminAwareCommand {
 
 		// toString of string list (i.e. [service1, service2])
 		logger.info("Uploading application " + applicationName);
-		String serviceOrder = adminFacade.installApplication(zipFile, applicationName);
+		Map<String, String> result = adminFacade.installApplication(zipFile, applicationName, timeoutInMinutes);
+		String serviceOrder = result.get(CloudifyConstants.SERVICE_ORDER);
+		String pollingID = result.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
 		// If temp file was created, Delete it.
 		if (!applicationFile.isFile()) {
 			zipFile.delete();
@@ -104,19 +106,9 @@ public class InstallApplication extends AdminAwareCommand {
 		if (serviceOrder.charAt(0) != '[' && serviceOrder.charAt(serviceOrder.length() - 1) != ']') {
 			throw new IllegalStateException("Cannot parse service order response: " + serviceOrder);
 		}
-		if (serviceOrder.length() > 2) {
-			serviceOrder = serviceOrder.substring(1, serviceOrder.length() - 1);
-			logger.fine("Services will be installed in the following order: " + serviceOrder);
-			printApplicationInfo(application);
-			for (final String serviceName : serviceOrder.split(Pattern.quote(","))) {
-				final String trimmedServiceName = serviceName.trim();
-				final Service service = getServiceByName(application, trimmedServiceName);
-				final int plannedNumberOfInstances = service.getNumInstances();
-				adminFacade.waitForServiceInstances(trimmedServiceName, applicationName, plannedNumberOfInstances,
-						TIMEOUT_ERROR_MESSAGE, timeoutInMinutes, TimeUnit.MINUTES);
-				logger.info(MessageFormat.format(messages.getString("service_install_ended"), trimmedServiceName));
-			}
-		}
+		
+		printApplicationInfo(application);
+		((RestAdminFacade)adminFacade).waitForLifecycleEvents(pollingID, TIMEOUT_ERROR_MESSAGE);
 
 		session.put(Constants.ACTIVE_APP, applicationName);
 		GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
