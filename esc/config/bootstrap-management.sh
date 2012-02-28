@@ -55,6 +55,11 @@ if [ ! -z "$CLOUDIFY_LINK" ]; then
 	wget -q $CLOUDIFY_LINK -O $WORKING_HOME_DIRECTORY/gigaspaces.zip || error_exit $? "Failed downloading cloudify installation"
 fi
 
+if [ ! -z "$CLOUDIFY_OVERRIDES_LINK" ]; then
+	echo Downloading cloudify overrides
+	wget -q $CLOUDIFY_LINK -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.zip || error_exit $? "Failed downloading cloudify overrides"
+fi
+
 # Todo: Check this condition
 if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.zip -nt ~/gigaspaces ]; then
 	rm -rf ~/gigaspaces || error_exit $? "Failed removing old gigaspaces directory"
@@ -67,6 +72,11 @@ if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.zip -nt ~/gigaspa
 	# Todo: consider removing this line
 	chmod -R 777 ~/gigaspaces || error_exit $? "Failed changing permissions in cloudify installion"
 	mv ~/gigaspaces/*/* ~/gigaspaces || error_exit $? "Failed moving cloudify installation"
+	
+	if [ ! -z "$CLOUDIFY_OVERRIDES_LINK" ]; then
+		echo Copying overrides into cloudify distribution
+		unzip -q $WORKING_HOME_DIRECTORY/gigaspaces_overrides.zip -d ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify overrides" 2 		
+	fi
 fi
 
 # UPDATE SETENV SCRIPT...
