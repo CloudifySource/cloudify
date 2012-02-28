@@ -38,7 +38,11 @@ function error_exit_on_level {
 }
 
 export EXT_JAVA_OPTIONS="-Dcom.gs.multicast.enabled=false"
-export JAVA_HOME=/usr/lib/jvm/jre
+#export JAVA_HOME=/usr/lib/jvm/jre
+if [ -z "$JAVA_HOME" ]; then
+	echo -- SETTING JAVA_HOME TO /usr/lib/jvm/jre
+	export JAVA_HOME=/usr/lib/jvm/jre
+fi
 
 # Some distros do not come with unzip built-in
 if [ ! -f "/usr/bin/unzip" ]; then
