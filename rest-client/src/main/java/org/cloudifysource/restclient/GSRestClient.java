@@ -495,7 +495,7 @@ public class GSRestClient {
 	 * @throws RestException
 	 *             Reporting failure to post the file.
 	 */
-	public final String postFile(final String relativeUrl, final File file) throws RestException {
+	public final Object postFile(final String relativeUrl, final File file) throws RestException {
 		return postFile(relativeUrl, file, null);
 	}
 
@@ -513,7 +513,7 @@ public class GSRestClient {
 	 * @throws RestException
 	 *             Reporting failure to post the file.
 	 */
-	public final String postFile(final String relativeUrl, final File file, final Properties params)
+	public final Object postFile(final String relativeUrl, final File file, final Properties params)
 			throws RestException {
 
 		// It should be possible to dump the properties into a String entity,
@@ -539,7 +539,7 @@ public class GSRestClient {
 		final HttpPost httppost = new HttpPost(getFullUrl(relativeUrl));
 		httppost.setEntity(reqEntity);
 
-		return (String) executeHttpMethod(httppost);
+		return executeHttpMethod(httppost);
 	}
 
 	/**
