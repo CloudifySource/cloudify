@@ -94,8 +94,8 @@
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
-			<artifactId>groovy-all</artifactId>
-			<version>1.8.6</version>
+			<artifactId>groovy</artifactId>
+			<version>1.8.0</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
