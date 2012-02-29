@@ -30,10 +30,10 @@ import com.gigaspaces.internal.utils.ReflectionUtils;
  */
 public class InstallationDetails implements Cloneable {
 
-    // IPs of the machine to install. ssh must already be running.
+	// IPs of the machine to install. ssh must already be running.
 	private String publicIp;
 	private String privateIp;
-	
+
 	private String zones = "";
 
 	// ssh username
@@ -41,7 +41,7 @@ public class InstallationDetails implements Cloneable {
 
 	// ssh password
 	private String password;
-	
+
 	// ssh key file
 	private String keyFile;
 
@@ -50,7 +50,7 @@ public class InstallationDetails implements Cloneable {
 
 	private String cloudifyUrl;
 	private String overridesUrl;
-	
+
 	// An instance of the Gigaspaces Admin API. If passed,
 	// will be used to check when an agent joins the cluster.
 	private Admin admin;
@@ -60,7 +60,7 @@ public class InstallationDetails implements Cloneable {
 
 	// (only relevant in case isLus == true) if true no web-services will be deployed on the target machine
 	private boolean noWebServices;
-	
+
 	// directory on local machine where installation files are
 	// placed. At a minimum, the start-sm.sh should be placed there.
 	// Other files may include the gigaspaces installation, java,
@@ -73,17 +73,15 @@ public class InstallationDetails implements Cloneable {
 
 	// files that should be copied only to lus machines
 	private String[] managementOnlyFiles;
-	
+
 	// wherther we are in the same network as the machine we are about to install
 	private boolean connectedToPrivateIp;
-		
+
 	// a cloud specific identifier for a host
 	private String machineId;
-	
-	
+
 	private File cloudFile;
 
-	
 	public Admin getAdmin() {
 		return admin;
 	}
@@ -144,31 +142,31 @@ public class InstallationDetails implements Cloneable {
 	@Override
 	public String toString() {
 		return "InstallationDetails [privateIP=" + privateIp + ", locator=" + locator + ", username=" + username
-				+ ", password=***" + ", keyFile=" + keyFile + ", localDir=" + localDir + ", remoteDir=" + remoteDir + ", isLus=" + isLus
-				+ "]";
+				+ ", password=***" + ", keyFile=" + keyFile + ", localDir=" + localDir + ", remoteDir=" + remoteDir
+				+ ", isLus=" + isLus + "]";
 	}
 
 	public String getKeyFile() {
 		return keyFile;
 	}
 
-	public void setKeyFile(String keyFile) {
+	public void setKeyFile(final String keyFile) {
 		this.keyFile = keyFile;
 	}
-	
-    public String getPrivateIp() {
-        return privateIp;
-    }
 
-    public void setPrivateIp(String privateIp) {
-        this.privateIp = privateIp;
-    }
-	
+	public String getPrivateIp() {
+		return privateIp;
+	}
+
+	public void setPrivateIp(final String privateIp) {
+		this.privateIp = privateIp;
+	}
+
 	public String getPublicIp() {
 		return publicIp;
 	}
 
-	public void setPublicIp(String publicIp) {
+	public void setPublicIp(final String publicIp) {
 		this.publicIp = publicIp;
 	}
 
@@ -176,55 +174,56 @@ public class InstallationDetails implements Cloneable {
 		return zones;
 	}
 
-	public void setZones(String zones) {
+	public void setZones(final String zones) {
 		this.zones = zones;
 	}
 
 	public String[] getManagementOnlyFiles() {
 		return this.managementOnlyFiles;
 	}
-	
-	public void setManagementOnlyFiles(List<String> managementOnlyFiles) {
+
+	public void setManagementOnlyFiles(final List<String> managementOnlyFiles) {
 		this.managementOnlyFiles = managementOnlyFiles.toArray(new String[managementOnlyFiles.size()]);
 	}
 
-    public void setCloudifyUrl(String cloudifyUrl) {
-        this.cloudifyUrl = cloudifyUrl;
-    }
+	public void setCloudifyUrl(final String cloudifyUrl) {
+		this.cloudifyUrl = cloudifyUrl;
+	}
 
-    public String getCloudifyUrl() {
-        return cloudifyUrl;
-    }
+	public String getCloudifyUrl() {
+		return cloudifyUrl;
+	}
 
-    public void setConnectedToPrivateIp(boolean connectedToPrivateIp) {
-        this.connectedToPrivateIp = connectedToPrivateIp;
-    }
+	public void setConnectedToPrivateIp(final boolean connectedToPrivateIp) {
+		this.connectedToPrivateIp = connectedToPrivateIp;
+	}
 
-    public boolean isConnectedToPrivateIp() {
-        return connectedToPrivateIp;
-    }
-	
-    // shallow copy 
-    @Override
-    public InstallationDetails clone() {
-        InstallationDetails result = new InstallationDetails();
-        ReflectionUtils.shallowCopyFieldState(this, result);
-        return result;
-    }
+	public boolean isConnectedToPrivateIp() {
+		return connectedToPrivateIp;
+	}
 
-    public void setNoWebServices(boolean noWebServices) {
-        this.noWebServices = noWebServices;
-    }
+	// shallow copy
+	@Override
+	public InstallationDetails clone() {
+		final InstallationDetails result = new InstallationDetails();
+		ReflectionUtils.shallowCopyFieldState(
+				this, result);
+		return result;
+	}
 
-    public boolean isNoWebServices() {
-        return noWebServices;
-    }
+	public void setNoWebServices(final boolean noWebServices) {
+		this.noWebServices = noWebServices;
+	}
+
+	public boolean isNoWebServices() {
+		return noWebServices;
+	}
 
 	public String getMachineId() {
 		return machineId;
 	}
 
-	public void setMachineId(String machineId) {
+	public void setMachineId(final String machineId) {
 		this.machineId = machineId;
 	}
 
@@ -232,7 +231,7 @@ public class InstallationDetails implements Cloneable {
 		return cloudFile;
 	}
 
-	public void setCloudFile(File cloudFile) {
+	public void setCloudFile(final File cloudFile) {
 		this.cloudFile = cloudFile;
 	}
 
@@ -240,10 +239,8 @@ public class InstallationDetails implements Cloneable {
 		return overridesUrl;
 	}
 
-	public void setOverridesUrl(String overridesUrl) {
+	public void setOverridesUrl(final String overridesUrl) {
 		this.overridesUrl = overridesUrl;
 	}
 
-
-    
 }

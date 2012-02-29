@@ -18,8 +18,10 @@ package org.cloudifysource.esc.installer;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -46,7 +48,6 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.util.LoggerOutputStream;
 import org.cloudifysource.esc.util.ShellCommandBuilder;
 import org.cloudifysource.esc.util.Utils;
-import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioningException;
 
 /************
  * The agentless installer class is responsible for installing gigaspaces on a remote machine, using only ssh. It will
@@ -98,37 +99,56 @@ public class AgentlessInstaller {
 
 	private final List<AgentlessInstallerListener> eventsListenersList = new LinkedList<AgentlessInstallerListener>();
 
+	/******
+	 * Name of the logger used for piping out ssh output.
+	 */
 	public static final String SSH_OUTPUT_LOGGER_NAME = AgentlessInstaller.class.getName() + ".ssh.output";
 
+	/********
+	 * Name of the internal logger used by the ssh component.
+	 */
 	public static final String SSH_LOGGER_NAME = "com.jcraft.jsch";
 
+	/***********
+	 * Constructor.
+	 */
 	public AgentlessInstaller() {
 		final Logger sshLogger = Logger.getLogger(SSH_LOGGER_NAME);
 		com.jcraft.jsch.JSch.setLogger(new JschJdkLogger(sshLogger));
 	}
 
 	/*******
-	 * Checks if a tcp connection to a remote machine and port is possible.
+	 * Checks if a TCP connection to a remote machine and port is possible.
 	 * 
 	 * @param ip
 	 *            remote machine ip.
 	 * @param port
 	 *            remote machine port.
-	 * @param retries
-	 *            number of retries.
-	 * @return true if connection succeeded, false otherwise.
-	 * @throws TimeoutException
-	 * @throws InterruptedException
+	 * @param timeout
+	 *            duration to wait for successful connection.
+	 * @param unit
+	 *            time unit to wait.
+	 * @throws InstallerException .
+	 * @throws InstallerException .
+	 * @throws TimeoutException .
+	 * @throws InterruptedException .
 	 * @throws ElasticMachineProvisioningException
 	 */
 
 	public static void checkConnection(final String ip, final int port, final long timeout, final TimeUnit unit)
-			throws TimeoutException, InterruptedException {
+			throws TimeoutException, InterruptedException, InstallerException {
 
 		final long end = System.currentTimeMillis() + unit.toMillis(timeout);
 
-		final InetSocketAddress addr = new InetSocketAddress(ip, port);
-		logger.fine("Checking connection to: " + addr);
+		InetSocketAddress socketAddress = null;
+
+		try {
+			final InetAddress inetAddress = InetAddress.getByName(ip);
+			socketAddress = new InetSocketAddress(inetAddress, port);
+		} catch (final UnknownHostException e) {
+			throw new InstallerException("Failed to resolve installation target: " + ip, e);
+		}
+		logger.fine("Checking connection to: " + socketAddress);
 		while (System.currentTimeMillis() + CONNECTION_TEST_SLEEP_BEFORE_RETRY_MILLIS < end) {
 
 			// need to sleep since sock.connect may return immediately, and
@@ -137,10 +157,12 @@ public class AgentlessInstaller {
 
 			final Socket sock = new Socket();
 			try {
-				sock.connect(addr, CONNECTION_TEST_SOCKET_CONNECT_TIMEOUT_MILLIS);
+				sock.connect(
+						socketAddress, CONNECTION_TEST_SOCKET_CONNECT_TIMEOUT_MILLIS);
 				return;
 			} catch (final IOException e) {
-				logger.log(Level.FINE, "Checking connection to: " + addr, e);
+				logger.log(
+						Level.FINE, "Checking connection to: " + socketAddress, e);
 				// retry
 			} finally {
 				if (sock != null) {
@@ -178,7 +200,8 @@ public class AgentlessInstaller {
 	 */
 	private void copyFiles(final String host, final String username, final String password, final String srcDir,
 			final String toDir, final String keyFile, final Set<String> excludedFiles, final File cloudFile,
-			final long timeout, final TimeUnit unit) throws IOException, TimeoutException {
+			final long timeout, final TimeUnit unit)
+			throws IOException, TimeoutException {
 
 		if (timeout < 0) {
 			throw new TimeoutException("Uploading files to host " + host + " timed out");
@@ -187,9 +210,11 @@ public class AgentlessInstaller {
 
 		final FileSystemOptions opts = new FileSystemOptions();
 
-		SftpFileSystemConfigBuilder.getInstance().setStrictHostKeyChecking(opts, "no");
+		SftpFileSystemConfigBuilder.getInstance().setStrictHostKeyChecking(
+				opts, "no");
 
-		SftpFileSystemConfigBuilder.getInstance().setUserDirIsRoot(opts, false);
+		SftpFileSystemConfigBuilder.getInstance().setUserDirIsRoot(
+				opts, false);
 
 		if (keyFile != null && keyFile.length() > 0) {
 			final File temp = new File(keyFile);
@@ -197,10 +222,12 @@ public class AgentlessInstaller {
 				throw new FileNotFoundException("Could not find key file: " + temp + ". KeyFile " + keyFile
 						+ " that was passed in the installation Details does not exist");
 			}
-			SftpFileSystemConfigBuilder.getInstance().setIdentities(opts, new File[] { temp });
+			SftpFileSystemConfigBuilder.getInstance().setIdentities(
+					opts, new File[] { temp });
 		}
 
-		SftpFileSystemConfigBuilder.getInstance().setTimeout(opts, SFTP_DISCONNECT_DETECTION_TIMEOUT_MILLIS);
+		SftpFileSystemConfigBuilder.getInstance().setTimeout(
+				opts, SFTP_DISCONNECT_DETECTION_TIMEOUT_MILLIS);
 		final FileSystemManager mng = VFS.getManager();
 		mng.setLogger(org.apache.commons.logging.LogFactory.getLog(logger.getName()));
 		final FileObject localDir = mng.resolveFile("file:" + srcDir);
@@ -211,65 +238,74 @@ public class AgentlessInstaller {
 		} else {
 			scpTarget = "sftp://" + username + "@" + host + toDir;
 		}
-		final FileObject remoteDir = mng.resolveFile(scpTarget, opts);
+		final FileObject remoteDir = mng.resolveFile(
+				scpTarget, opts);
 
 		logger.fine("Copying files to: " + scpTarget + " from local dir: " + localDir.getName().getPath()
 				+ " excluding " + excludedFiles.toString());
 
 		try {
 
-			remoteDir.copyFrom(localDir, new FileSelector() {
+			remoteDir.copyFrom(
+					localDir, new FileSelector() {
 
-				@Override
-				public boolean includeFile(final FileSelectInfo fileInfo) throws Exception {
-					if (excludedFiles.contains(fileInfo.getFile().getName().getBaseName())) {
-						logger.fine(fileInfo.getFile().getName().getBaseName() + " excluded");
-						return false;
+						@Override
+						public boolean includeFile(final FileSelectInfo fileInfo)
+								throws Exception {
+							if (excludedFiles.contains(fileInfo.getFile().getName().getBaseName())) {
+								logger.fine(fileInfo.getFile().getName().getBaseName() + " excluded");
+								return false;
 
-					}
-					final FileObject remoteFile = mng.resolveFile(remoteDir,
-							localDir.getName().getRelativeName(fileInfo.getFile().getName()));
-					if (!remoteFile.exists()) {
-						logger.fine(fileInfo.getFile().getName().getBaseName() + " missing on server");
-						return true;
-					}
+							}
+							final FileObject remoteFile = mng.resolveFile(
+									remoteDir, localDir.getName().getRelativeName(
+											fileInfo.getFile().getName()));
+							if (!remoteFile.exists()) {
+								logger.fine(fileInfo.getFile().getName().getBaseName() + " missing on server");
+								return true;
+							}
 
-					if (fileInfo.getFile().getType() == FileType.FILE) {
-						final long remoteSize = remoteFile.getContent().getSize();
-						final long localSize = fileInfo.getFile().getContent().getSize();
-						final boolean res = localSize != remoteSize;
-						if (res) {
-							logger.fine(fileInfo.getFile().getName().getBaseName() + " different on server");
+							if (fileInfo.getFile().getType() == FileType.FILE) {
+								final long remoteSize = remoteFile.getContent().getSize();
+								final long localSize = fileInfo.getFile().getContent().getSize();
+								final boolean res = localSize != remoteSize;
+								if (res) {
+									logger.fine(fileInfo.getFile().getName().getBaseName() + " different on server");
+								}
+								return res;
+							}
+							return false;
+
 						}
-						return res;
-					}
-					return false;
 
-				}
-
-				@Override
-				public boolean traverseDescendents(final FileSelectInfo fileInfo) throws Exception {
-					return true;
-				}
-			});
+						@Override
+						public boolean traverseDescendents(final FileSelectInfo fileInfo)
+								throws Exception {
+							return true;
+						}
+					});
 
 			if (cloudFile != null) {
 				// copy cloud file too
 				final FileObject cloudFileParentObject = mng.resolveFile(cloudFile.getParentFile().getAbsolutePath());
 				final FileObject cloudFileObject = mng.resolveFile(cloudFile.getAbsolutePath());
-				remoteDir.copyFrom(cloudFileParentObject, new FileSelector() {
+				remoteDir.copyFrom(
+						cloudFileParentObject, new FileSelector() {
 
-					@Override
-					public boolean traverseDescendents(final FileSelectInfo fileInfo) throws Exception {
-						return true;
-					}
+							@Override
+							public boolean traverseDescendents(final FileSelectInfo fileInfo)
+									throws Exception {
+								return true;
+							}
 
-					@Override
-					public boolean includeFile(final FileSelectInfo fileInfo) throws Exception {
-						return fileInfo.getFile().equals(cloudFileObject);
+							@Override
+							public boolean includeFile(final FileSelectInfo fileInfo)
+									throws Exception {
+								return fileInfo.getFile().equals(
+										cloudFileObject);
 
-					}
-				});
+							}
+						});
 			}
 			// publishEvent("access_vm_with_ssh_success");
 			logger.fine("Copying files to: " + scpTarget + " completed.");
@@ -288,8 +324,10 @@ public class AgentlessInstaller {
 	 * 
 	 * @param details
 	 *            the installation details.
-	 * @param timeout the timeout duration.
-	 * @param unit the timeout unit.
+	 * @param timeout
+	 *            the timeout duration.
+	 * @param unit
+	 *            the timeout unit.
 	 * @throws InterruptedException .
 	 * @throws TimeoutException .
 	 * @throws InstallerException .
@@ -308,9 +346,11 @@ public class AgentlessInstaller {
 
 		final String sshIpAddress = details.isConnectedToPrivateIp() ? details.getPrivateIp() : details.getPublicIp();
 
-		publishEvent("attempting_to_access_vm_with_ssh", sshIpAddress);
+		publishEvent(
+				"attempting_to_access_vm_with_ssh", sshIpAddress);
 		// checking for SSH connection
-		checkConnection(sshIpAddress, SSH_PORT, Utils.millisUntil(end), TimeUnit.MILLISECONDS);
+		checkConnection(
+				sshIpAddress, SSH_PORT, Utils.millisUntil(end), TimeUnit.MILLISECONDS);
 
 		// upload bootstrap files
 		try {
@@ -318,7 +358,8 @@ public class AgentlessInstaller {
 			if (!details.isLus() && details.getManagementOnlyFiles() != null) {
 				excludedFiles.addAll(Arrays.asList(details.getManagementOnlyFiles()));
 			}
-			copyFiles(sshIpAddress, details.getUsername(), details.getPassword(), details.getLocalDir(),
+			copyFiles(
+					sshIpAddress, details.getUsername(), details.getPassword(), details.getLocalDir(),
 					details.getRemoteDir(), details.getKeyFile(), excludedFiles, details.getCloudFile(),
 					Utils.millisUntil(end), TimeUnit.MILLISECONDS);
 		} catch (final FileSystemException e) {
@@ -331,40 +372,56 @@ public class AgentlessInstaller {
 
 		String remoteDirectory = details.getRemoteDir();
 		if (remoteDirectory.endsWith("/")) {
-			remoteDirectory = remoteDirectory.substring(0, remoteDirectory.length() - 1);
+			remoteDirectory = remoteDirectory.substring(
+					0, remoteDirectory.length() - 1);
 		}
 		final String scriptPath = remoteDirectory + "/" + STARTUP_SCRIPT_NAME;
 
-		final ShellCommandBuilder scb = new ShellCommandBuilder()
-				.exportVar(LUS_IP_ADDRESS_ENV, details.getLocator())
-				.exportVar(GSA_MODE_ENV, details.isLus() ? "lus" : "agent")
-				.exportVar(NO_WEB_SERVICES_ENV, details.isNoWebServices() ? "true" : "false")
-				.exportVar(MACHINE_IP_ADDRESS_ENV, details.getPrivateIp())
-				.exportVar(MACHINE_ZONES_ENV, details.getZones())
-				.exportVar(CLOUDIFY_LINK_ENV,
-						details.getCloudifyUrl() != null ? "\"" + details.getCloudifyUrl() + "\"" : "")
-				.exportVar(CLOUDIFY_OVERRIDES_LINK_ENV,
-						details.getOverridesUrl() != null ? "\"" + details.getOverridesUrl() + "\"" : "")
-				.exportVar(WORKING_HOME_DIRECTORY_ENV, remoteDirectory)
-				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, details.getPrivateIp())
-				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, details.getPublicIp());
-		
-		if(details.isLus()) {
+		final ShellCommandBuilder scb =
+				new ShellCommandBuilder()
+						.exportVar(
+								LUS_IP_ADDRESS_ENV, details.getLocator())
+						.exportVar(
+								GSA_MODE_ENV, details.isLus() ? "lus" : "agent")
+						.exportVar(
+								NO_WEB_SERVICES_ENV, details.isNoWebServices() ? "true" : "false")
+						.exportVar(
+								MACHINE_IP_ADDRESS_ENV, details.getPrivateIp())
+						.exportVar(
+								MACHINE_ZONES_ENV, details.getZones())
+						.exportVar(
+								CLOUDIFY_LINK_ENV,
+								details.getCloudifyUrl() != null ? "\"" + details.getCloudifyUrl() + "\"" : "")
+						.exportVar(
+								CLOUDIFY_OVERRIDES_LINK_ENV,
+								details.getOverridesUrl() != null ? "\"" + details.getOverridesUrl() + "\"" : "")
+						.exportVar(
+								WORKING_HOME_DIRECTORY_ENV, remoteDirectory).exportVar(
+								CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, details.getPrivateIp()).exportVar(
+								CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, details.getPublicIp());
+
+		if (details.isLus()) {
 			String remotePath = details.getRemoteDir();
-			if (!remotePath.endsWith("/"))
+			if (!remotePath.endsWith("/")) {
 				remotePath += "/";
-			scb.exportVar(CLOUD_FILE, remotePath + details.getCloudFile().getName() );
+			}
+			scb.exportVar(
+					CLOUD_FILE, remotePath + details.getCloudFile().getName());
 		}
-		scb.chmodExecutable(scriptPath).call(scriptPath);
+		scb.chmodExecutable(
+				scriptPath).call(
+				scriptPath);
 
 		final String command = scb.toString();
 
 		logger.fine("Calling startup script on target: " + sshIpAddress + " with LOCATOR=" + details.getLocator()
 				+ "\nThis may take a few minutes");
 
-		sshCommand(sshIpAddress, command, details.getUsername(), details.getPassword(), details.getKeyFile(),
+		sshCommand(
+				sshIpAddress, command, details.getUsername(), details.getPassword(), details.getKeyFile(),
 				Utils.millisUntil(end), TimeUnit.MILLISECONDS);
-		publishEvent("access_vm_with_ssh_success", details.getPublicIp());
+		publishEvent(
+				"access_vm_with_ssh_success", details.getPublicIp());
 
 	}
 
@@ -399,8 +456,8 @@ public class AgentlessInstaller {
 			// There really should be a better way to check that this is a
 			// timeout
 			if (e instanceof BuildTimeoutException) {
-				final TimeoutException ex = new TimeoutException("Command " + command + " failed to execute: "
-						+ e.getMessage());
+				final TimeoutException ex =
+						new TimeoutException("Command " + command + " failed to execute: " + e.getMessage());
 				ex.initCause(e);
 				throw ex;
 			} else if (e instanceof ExitStatusException) {
@@ -413,13 +470,20 @@ public class AgentlessInstaller {
 		}
 	}
 
+	/**********
+	 * Registers an event listener for installation events.
+	 * 
+	 * @param listener
+	 *            the listener.
+	 */
 	public void addListener(final AgentlessInstallerListener ail) {
 		this.eventsListenersList.add(ail);
 	}
 
-	protected void publishEvent(final String eventName, final Object... args) {
+	private void publishEvent(final String eventName, final Object... args) {
 		for (final AgentlessInstallerListener listner : this.eventsListenersList) {
-			listner.onInstallerEvent(eventName, args);
+			listner.onInstallerEvent(
+					eventName, args);
 		}
 	}
 
