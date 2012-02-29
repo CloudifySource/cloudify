@@ -28,20 +28,22 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
  * @since 2.0.0
  * 
  *        Tears down the Local Cloud installed on the local machine.
- *
- *        Optional arguments:
- *         lookup-groups - A unique name that is used to group together Cloudify components.
- *         Override in order to teardown a specific local cloud running on the local machine.
- *         nic-address - The IP address of the local host network card. Specify when local machine has more
- *         than one network adapter, and a specific network card should be used for network communication.
- *         timeout - The number of minutes to wait until the operation is completed (default: 5 minutes)
- *  
- *        Command syntax: teardown-localcloud [-lookup-groups lookup-groups] [-nicAddress nicAddress]
- *        					[-timeout timeout]
+ * 
+ *        Optional arguments: lookup-groups - A unique name that is used to group together Cloudify components. Override
+ *        in order to teardown a specific local cloud running on the local machine. nic-address - The IP address of the
+ *        local host network card. Specify when local machine has more than one network adapter, and a specific network
+ *        card should be used for network communication. timeout - The number of minutes to wait until the operation is
+ *        completed (default: 5 minutes)
+ * 
+ *        Command syntax: teardown-localcloud [-lookup-groups lookup-groups] [-nicAddress nicAddress] [-timeout timeout]
  */
 @Command(scope = "cloudify", name = "teardown-localcloud", description = "Tears down the Local Cloud installed"
 		+ " on the local machine.")
 public class TeardownLocalCloud extends AdminAwareCommand {
+
+	private static final int DEFAULT_PROGRESS_INTERVAL = 10;
+
+	private static final int DEFAULT_TIMEOUT = 5;
 
 	@Option(required = false, name = "-lookup-groups", description = "A unique name that is used to group together"
 			+ " Cloudify components. The default localcloud lookup group is '"
@@ -56,27 +58,32 @@ public class TeardownLocalCloud extends AdminAwareCommand {
 
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is"
 			+ " done. By default waits 5 minutes.")
-	private int timeoutInMinutes = 5;
-	
+	private int timeoutInMinutes = DEFAULT_TIMEOUT;
+
 	@Option(required = false, name = "-force",
 			description = "Should management machine be shutdown if other applications are installed")
-	boolean force = false;
+	private boolean force = false;
 
 	/**
 	 * Shuts down the local cloud, and waits until shutdown is complete or until the timeout is reached.
+	 * 
+	 * @throws Exception .
+	 * @return .
 	 */
 	@Override
-	protected Object doExecute() throws Exception {
+	protected Object doExecute()
+			throws Exception {
 
 		final LocalhostGridAgentBootstrapper installer = new LocalhostGridAgentBootstrapper();
 		installer.setVerbose(verbose);
 		installer.setLookupGroups(lookupGroups);
 		installer.setNicAddress(nicAddress);
-		installer.setProgressInSeconds(10);
+		installer.setProgressInSeconds(DEFAULT_PROGRESS_INTERVAL);
 		installer.setForce(force);
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 
-		installer.teardownLocalCloudOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);
+		installer.teardownLocalCloudOnLocalhostAndWait(
+				timeoutInMinutes, TimeUnit.MINUTES);
 		return getFormattedMessage("agent_terminated_successfully");
 	}
 }
