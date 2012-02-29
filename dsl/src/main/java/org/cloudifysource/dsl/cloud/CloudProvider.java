@@ -28,10 +28,11 @@ public class CloudProvider {
 	private String localDirectory;
 	private String remoteDirectory;
 	private String cloudifyUrl;
-	
-	// location of zip file where additional cloudify files are places. They will be copied on top of the cloudify distribution.
+
+	// location of zip file where additional cloudify files are places.
+	// They will be copied on top of the cloudify distribution.
 	private String cloudifyOverridesUrl;
-	
+
 	private String machineNamePrefix;
 
 	private boolean dedicatedManagementMachines = true;
@@ -158,7 +159,7 @@ public class CloudProvider {
 		return cloudifyOverridesUrl;
 	}
 
-	public void setCloudifyOverridesUrl(String cloudifyOverridesUrl) {
+	public void setCloudifyOverridesUrl(final String cloudifyOverridesUrl) {
 		this.cloudifyOverridesUrl = cloudifyOverridesUrl;
 	}
 
