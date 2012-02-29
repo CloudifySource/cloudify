@@ -167,12 +167,6 @@ public class ServiceController {
 	private String temporaryFolder;
 
 	/**
-	 * Empty Ctor.
-	 */
-	public ServiceController() {
-	}
-
-	/**
 	 * Initializing the cloud configuration. Executed by Spring after the object is instantiated and the
 	 * dependencies injected.
 	 */
@@ -739,7 +733,7 @@ public class ServiceController {
 	}
 
 	private GridServiceManager getGridServiceManager() {
-		if (admin.getGridServiceManagers().getSize() == 0) {
+		if (admin.getGridServiceManagers().isEmpty()) {
 			throw new AdminException("Cannot locate Grid Service Manager");
 		}
 		return admin.getGridServiceManagers().iterator().next();
