@@ -3,6 +3,7 @@ println "tomcat_stop.groovy: About to stop tomcat..."
 
 def serviceContext = ServiceContextFactory.getServiceContext()
 
+def instanceID=serviceContext.instanceId
 def home= serviceContext.attributes.thisInstance["home"]
 println "tomcat_stop.groovy: tomcat(${instanceID}) home ${home}"
 
