@@ -44,6 +44,10 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 		+ "processes running on other machines.")
 public class BootstrapLocalCloud extends AbstractGSCommand {
 
+	private static final int DEFAULT_PROGRESS_INTERVAL = 10;
+
+	private static final int DEFAULT_TIMEOUT = 5;
+
 	@Option(required = false, name = "-lookup-groups", description = "A unique name that is used to group together"
 			+ " Cloudify components. The default localcloud lookup group is '"
 			+ LocalhostGridAgentBootstrapper.LOCALCLOUD_LOOKUPGROUP
@@ -52,12 +56,12 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 
 	@Option(required = false, name = "-nic-address", description = "The ip address of the local host network card. "
 			+ "Specify when local machine has more than one network adapter, and a specific network card should be "
-			+ "used for network communication.")
-	private String nicAddress;
+			+ "used for network communication. Defaults to 127.0.0.1")
+	private String nicAddress = "127.0.0.1";
 
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is "
 			+ "done. By default waits 5 minutes.")
-	private int timeoutInMinutes = 5;
+	private int timeoutInMinutes = DEFAULT_TIMEOUT;
 
 	/**
 	 * {@inheritDoc}
@@ -73,10 +77,11 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 		installer.setVerbose(verbose);
 		installer.setLookupGroups(lookupGroups);
 		installer.setNicAddress(nicAddress);
-		installer.setProgressInSeconds(10);
+		installer.setProgressInSeconds(DEFAULT_PROGRESS_INTERVAL);
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 
 		installer.startLocalCloudOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);
-		return "Local-cloud started successfully. Use the teardown-localcloud command to shutdown all processes.";
+		
+		return messages.getString("local_cloud_started");
 	}
 }
