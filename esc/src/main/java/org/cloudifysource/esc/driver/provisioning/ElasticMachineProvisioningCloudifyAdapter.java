@@ -62,8 +62,13 @@ import com.gigaspaces.internal.utils.StringUtils;
  */
 public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachineProvisioning, Bean {
 
+	private static final int MILLISECONDS_IN_SECOND = 1000;
+
+	private static final int DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE = 5;
+
 	// TODO: Store this object inside ElasticMachineProvisioningContext instead of a static variable
-	private static final Map<String, ProvisioningDriverClassContext> PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME = new HashMap<String, ProvisioningDriverClassContext>();
+	private static final Map<String, ProvisioningDriverClassContext> PROVISIONING_DRIVER_CONTEXT_PER_DRIVER_CLASSNAME =
+			new HashMap<String, ProvisioningDriverClassContext>();
 
 	private static final int DEFAULT_GSA_LOOKUP_TIMEOUT_SECONDS = 15;
 	private ProvisioningDriver cloudifyProvisioning;
@@ -88,7 +93,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return this.admin.getGridServiceAgents().getAgents();
 	}
 
-	protected InstallationDetails createInstallationDetails(final Cloud cloud, final MachineDetails md)
+	private InstallationDetails createInstallationDetails(final Cloud cloud, final MachineDetails md)
 			throws FileNotFoundException {
 		final InstallationDetails details = new InstallationDetails();
 
@@ -196,7 +201,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private void handleExceptionAfterMachineCreated(final MachineDetails machineDetails) {
 		try {
-			this.cloudifyProvisioning.stopMachine(machineDetails.getPrivateAddress(), 5, TimeUnit.MINUTES);
+			this.cloudifyProvisioning.stopMachine(machineDetails.getPrivateAddress(),
+					DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE, TimeUnit.MINUTES);
 		} catch (final Exception e) {
 			logger.log(
 					Level.SEVERE,
@@ -218,8 +224,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		}
 	}
 
-	private void installAndStartAgent(final MachineDetails machineDetails, final long end) throws TimeoutException,
-			InterruptedException, ElasticMachineProvisioningException {
+	private void installAndStartAgent(final MachineDetails machineDetails, final long end)
+			throws TimeoutException, InterruptedException, ElasticMachineProvisioningException {
 		final AgentlessInstaller installer = new AgentlessInstaller();
 
 		InstallationDetails installationDetails;
@@ -245,7 +251,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		}
 	}
 
-	private long remainingTimeTill(final long end) throws TimeoutException {
+	private long remainingTimeTill(final long end)
+			throws TimeoutException {
 		final long remaining = end - System.currentTimeMillis();
 		if (remaining <= 0) {
 			throw new TimeoutException("Passed target end time " + new Date(end));
@@ -253,8 +260,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return remaining;
 	}
 
-	private MachineDetails provisionMachine(final long duration, final TimeUnit unit) throws TimeoutException,
-			ElasticMachineProvisioningException {
+	private MachineDetails provisionMachine(final long duration, final TimeUnit unit)
+			throws TimeoutException, ElasticMachineProvisioningException {
 		MachineDetails machineDetails;
 		try {
 			// delegate provisioning to the cloud driver implementation
@@ -272,9 +279,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return machineDetails;
 	}
 
-	private GridServiceAgent waitForGsa(final String machineIp, final int timeoutInSeconds) throws InterruptedException {
-
-		final long endTime = System.currentTimeMillis() + timeoutInSeconds * 1000;
+	private GridServiceAgent waitForGsa(final String machineIp, final int timeoutInSeconds)
+			throws InterruptedException {
+		
+		final long endTime = System.currentTimeMillis() + timeoutInSeconds * MILLISECONDS_IN_SECOND;
 
 		while (System.currentTimeMillis() < endTime) {
 			GridServiceAgent gsa = admin.getGridServiceAgents().getHostAddress().get(machineIp);
@@ -287,7 +295,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				return gsa;
 			}
 
-			Thread.sleep(1000);
+			Thread.sleep(MILLISECONDS_IN_SECOND);
 
 		}
 		return null;
@@ -297,8 +305,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	@Override
 	public CapacityRequirements getCapacityOfSingleMachine() {
 		final CloudTemplate template = cloud.getTemplates().get(this.cloudTemplate);
-		final CapacityRequirements capacityRequirements = new CapacityRequirements(new MemoryCapacityRequirement(
-				(long) template.getMachineMemoryMB()), new CpuCapacityRequirement(template.getNumberOfCores()));
+		final CapacityRequirements capacityRequirements =
+				new CapacityRequirements(new MemoryCapacityRequirement((long) template.getMachineMemoryMB()),
+						new CpuCapacityRequirement(template.getNumberOfCores()));
 		logger.info("Capacity requirements for a single machine are: " + capacityRequirements);
 		return capacityRequirements;
 
@@ -350,7 +359,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet()
+			throws Exception {
 		final String cloudContents = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION);
 		if (cloudContents == null) {
 			throw new IllegalArgumentException("Cloud configuration was not set!");
@@ -370,14 +380,16 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 			// load the provisioning class and set it up
 			try {
-				this.cloudifyProvisioning = (ProvisioningDriver) Class.forName(
-						this.cloud.getConfiguration().getClassName()).newInstance();
+				this.cloudifyProvisioning =
+						(ProvisioningDriver) Class.forName(this.cloud.getConfiguration().getClassName()).newInstance();
 				
 				this.cloudifyProvisioning.setConfig(cloud, cloudTemplate, false);
 
 				if (cloudifyProvisioning instanceof ProvisioningDriverClassContextAware) {
-					final ProvisioningDriverClassContext provisioningDriverContext = lazyCreateProvisioningDriverClassContext(cloudifyProvisioning);
-					final ProvisioningDriverClassContextAware contextAware = (ProvisioningDriverClassContextAware) cloudifyProvisioning;
+					final ProvisioningDriverClassContext provisioningDriverContext =
+							lazyCreateProvisioningDriverClassContext(cloudifyProvisioning);
+					final ProvisioningDriverClassContextAware contextAware =
+							(ProvisioningDriverClassContextAware) cloudifyProvisioning;
 					contextAware.setProvisioningDriverClassContext(provisioningDriverContext);
 
 				}
@@ -407,14 +419,14 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			final ProvisioningDriver cloudifyProvisioning) {
 
 		final String cloudDriverUniqueId = cloudifyProvisioning.getClass().getName();
-		synchronized (PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME) {
-			if (!PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME.containsKey(cloudDriverUniqueId)) {
-				PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME.put(cloudDriverUniqueId,
+		synchronized (PROVISIONING_DRIVER_CONTEXT_PER_DRIVER_CLASSNAME) {
+			if (!PROVISIONING_DRIVER_CONTEXT_PER_DRIVER_CLASSNAME.containsKey(cloudDriverUniqueId)) {
+				PROVISIONING_DRIVER_CONTEXT_PER_DRIVER_CLASSNAME.put(cloudDriverUniqueId,
 						new DefaultProvisioningDriverClassContext());
 			}
 		}
-		final ProvisioningDriverClassContext provisioningDriverContext = PROVISIONING_DRIVER_CONTEXT_PER_CLOUD_DRIVER_CLASSNAME
-				.get(cloudDriverUniqueId);
+		final ProvisioningDriverClassContext provisioningDriverContext =
+				PROVISIONING_DRIVER_CONTEXT_PER_DRIVER_CLASSNAME.get(cloudDriverUniqueId);
 		return provisioningDriverContext;
 	}
 
@@ -431,7 +443,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy()
+			throws Exception {
 		this.cloudifyProvisioning.close();
 	}
 
