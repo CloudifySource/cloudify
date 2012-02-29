@@ -8,7 +8,7 @@
 
 	<property name="giga.base.dir" value="D:/Gigaspaces" />
 
-	<property name="giga.version" value="gigaspaces-cloudify-2.0.1-m1" />
+	<property name="giga.version" value="gigaspaces-cloudify-2.1.0-m2" />
 
 	<property name="target.dir" value="${giga.base.dir}/${giga.version}" />
 
@@ -19,8 +19,7 @@
 		<copy todir="${target.dir}/tools/cli" file="../CLI/target/cli.jar" />
 		<copy todir="${target.dir}/tools/rest" file="../restful/target/rest.war" />
 		<copy todir="${target.dir}/lib/required" file="../dsl/target/dsl.jar" />
-		<copy todir="${target.dir}/lib/platform/esm" file="../esc/target/esc.jar" />
-		<delete file="${target.dir}/lib/platform/esm/esc-2.0.0.jar" />
+		<copy todir="${target.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.0.0.jar" />		
 		<copy todir="${target.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
 		<copy todir="${target.dir}/tools/cli/plugins/azure" file="../azure/azure/target/azure.jar" />
 	
@@ -41,5 +40,11 @@
 		<echo message="Created ${target.dir}/../gigaspaces.zip" />
 	</target>
 
+	<target name="Create overrides zip" depends="">
+		<delete file="${target.dir}/../gigaspaces-overrides.zip"/>
+		<zip destfile="${target.dir}/../gigaspaces-overrides.zip" basedir="${target.dir}" includes="lib/platform/esm/esc-2.0.0.jar" >
+
+		</zip>
+	</target>
 
 </project>
