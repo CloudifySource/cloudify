@@ -15,6 +15,8 @@
  *******************************************************************************/
 package org.cloudifysource.rest;
 
+import org.cloudifysource.dsl.internal.CloudifyConstants;
+
 /**
  * @author uri
  */
@@ -25,7 +27,7 @@ public interface ResponseConstants {
     String FAILED_TO_LOCATE_ESM = "failed_to_locate_esm";
     String FAILED_TO_LOCATE_SERVICE_AFTER_DEPLOYMENT = "failed_to_locate_service_after_deployment";    
     String FAILED_TO_LOCATE_SERVICE = "failed_to_locate_service";
-    String FAILED_TO_LOCATE_APP = "failed_to_locate_app";
+    String FAILED_TO_LOCATE_APP = CloudifyConstants.ERR_REASON_CODE_FAILED_TO_LOCATE_APP;
     String FAILED_TO_ADD_INSTANCE = "failed_to_add_instance";
     String FAILED_TO_INVOKE_INSTANCE = "failed_to_invoke_instance";
     String SERVICE_NOT_ELASTIC = "service_not_elastic";

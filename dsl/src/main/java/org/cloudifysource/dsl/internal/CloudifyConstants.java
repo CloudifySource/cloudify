@@ -141,6 +141,11 @@ public class CloudifyConstants {
 	public static final String USM_LIB_DIR = "usmlib";
 	// TODO - remove forward slashes
 	public static final String SERVICE_EXTERNAL_FOLDER = "/ext/";
+	
+	/***************
+	 * Reason codes for rest exceptions
+	 */
+	public static final String ERR_REASON_CODE_FAILED_TO_LOCATE_APP = "failed_to_locate_app";
 
 	
 	/********************

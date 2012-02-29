@@ -15,7 +15,11 @@
  ******************************************************************************/
 package org.cloudifysource.shell.commands;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.felix.gogo.commands.Command;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 
 /**
  * @author noak
@@ -32,11 +36,26 @@ public class ListServices extends AdminAwareCommand {
 
 	/**
 	 * Gets a list of service names, deployed on the current application.
+	 * 
 	 * @return Object A list of Strings, representing the services' names
-	 * @throws Exception Reporting a failure to get the services' names from the REST server
+	 * @throws Exception
+	 *             Reporting a failure to get the services' names from the REST server
 	 */
 	@Override
 	protected Object doExecute() throws Exception {
-		return adminFacade.getServicesList(getCurrentApplicationName());
+		List<String> services = null;
+		try {
+			services = adminFacade.getServicesList(getCurrentApplicationName());
+		} catch (final CLIStatusException e) {
+			// if this message indicates the *default* app is not found - don't throw exception, return an
+			// empty list
+			if (getCurrentApplicationName().equalsIgnoreCase(CloudifyConstants.DEFAULT_APPLICATION_NAME)
+					&& CloudifyConstants.ERR_REASON_CODE_FAILED_TO_LOCATE_APP.equalsIgnoreCase(e.getReasonCode())) {
+				services = new ArrayList<String>();
+			} else {
+				throw e;
+			}
+		}
+		return services;
 	}
 }
