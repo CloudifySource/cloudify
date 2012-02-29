@@ -270,6 +270,7 @@ public class CloudGridAgentBootstrapper {
 		details.setPrivateIp(null);
 		details.setLus(true);
 		details.setCloudifyUrl(cloud.getProvider().getCloudifyUrl());
+		details.setOverridesUrl(cloud.getProvider().getCloudifyOverridesUrl());
 		details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		details.setUsername(cloud.getUser().getUser());
 		
