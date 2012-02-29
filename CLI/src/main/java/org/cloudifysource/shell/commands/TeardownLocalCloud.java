@@ -21,7 +21,6 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
-import org.cloudifysource.shell.TeardownCloudResults;
 import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 
 /**
@@ -42,7 +41,7 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
  */
 @Command(scope = "cloudify", name = "teardown-localcloud", description = "Tears down the Local Cloud installed"
 		+ " on the local machine.")
-public class TeardownLocalCloud extends AbstractGSCommand {
+public class TeardownLocalCloud extends AdminAwareCommand {
 
 	@Option(required = false, name = "-lookup-groups", description = "A unique name that is used to group together"
 			+ " Cloudify components. The default localcloud lookup group is '"
@@ -77,7 +76,7 @@ public class TeardownLocalCloud extends AbstractGSCommand {
 		installer.setForce(force);
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 
-		TeardownCloudResults result = installer.teardownLocalCloudOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);
-		return result.getDescription();
+		installer.teardownLocalCloudOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);
+		return getFormattedMessage("agent_terminated_successfully");
 	}
 }

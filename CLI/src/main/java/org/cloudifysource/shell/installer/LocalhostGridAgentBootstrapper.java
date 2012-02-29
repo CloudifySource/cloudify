@@ -45,7 +45,6 @@ import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.ShellUtils;
-import org.cloudifysource.shell.TeardownCloudResults;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
 import org.openspaces.admin.Admin;
@@ -382,7 +381,6 @@ public class LocalhostGridAgentBootstrapper {
 	 *            number of {@link TimeUnit}s to wait
 	 * @param timeunit
 	 *            the {@link TimeUnit} to use, to calculate the timeout
-	 * @return tear-down result, as a value of {@link TeardownCloudResults}
 	 * @throws CLIException
 	 *             Reporting a failure to shutdown the agent
 	 * @throws InterruptedException
@@ -390,12 +388,12 @@ public class LocalhostGridAgentBootstrapper {
 	 * @throws TimeoutException
 	 *             Reporting the timeout was reached
 	 */
-	public TeardownCloudResults shutdownAgentOnLocalhostAndWait(final boolean force, final int timeout,
-			final TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
+	public void shutdownAgentOnLocalhostAndWait(final boolean force, final int timeout, final TimeUnit timeunit)
+			throws CLIException, InterruptedException, TimeoutException {
 
 		setDefaultNicAddress();
 
-		return shutdownAgentOnLocalhostAndWaitInternal(false, force, timeout, timeunit);
+		shutdownAgentOnLocalhostAndWaitInternal(false, force, timeout, timeunit);
 	}
 
 	/**
@@ -406,7 +404,6 @@ public class LocalhostGridAgentBootstrapper {
 	 *            number of {@link TimeUnit}s to wait
 	 * @param timeunit
 	 *            the {@link TimeUnit} to use, to calculate the timeout
-	 * @return tear-down result, as a value of {@link TeardownCloudResults}
 	 * @throws CLIException
 	 *             Reporting a failure to shutdown the agent
 	 * @throws InterruptedException
@@ -414,12 +411,12 @@ public class LocalhostGridAgentBootstrapper {
 	 * @throws TimeoutException
 	 *             Reporting the timeout was reached
 	 */
-	public TeardownCloudResults shutdownManagementOnLocalhostAndWait(final int timeout, final TimeUnit timeunit)
-			throws CLIException, InterruptedException, TimeoutException {
+	public void shutdownManagementOnLocalhostAndWait(final int timeout, final TimeUnit timeunit) throws CLIException,
+			InterruptedException, TimeoutException {
 
 		setDefaultNicAddress();
 
-		return shutdownAgentOnLocalhostAndWaitInternal(true, true, timeout, timeunit);
+		shutdownAgentOnLocalhostAndWaitInternal(true, true, timeout, timeunit);
 	}
 
 	/**
@@ -429,7 +426,6 @@ public class LocalhostGridAgentBootstrapper {
 	 *            number of {@link TimeUnit}s to wait
 	 * @param timeunit
 	 *            the {@link TimeUnit} to use, to calculate the timeout
-	 * @return tear-down result, as a value of {@link TeardownCloudResults}
 	 * @throws InterruptedException
 	 *             Reporting the thread was interrupted while waiting
 	 * @throws TimeoutException
@@ -437,7 +433,7 @@ public class LocalhostGridAgentBootstrapper {
 	 * @throws CLIException
 	 *             Reporting a failure to shutdown the agent
 	 */
-	public TeardownCloudResults teardownLocalCloudOnLocalhostAndWait(final long timeout, final TimeUnit timeunit)
+	public void teardownLocalCloudOnLocalhostAndWait(final long timeout, final TimeUnit timeunit)
 			throws InterruptedException, TimeoutException, CLIException {
 
 		setDefaultNicAddress();
@@ -446,7 +442,7 @@ public class LocalhostGridAgentBootstrapper {
 
 		uninstallApplications(timeout, timeunit);
 
-		return shutdownAgentOnLocalhostAndWaitInternal(true, true, timeout, timeunit);
+		shutdownAgentOnLocalhostAndWaitInternal(true, true, timeout, timeunit);
 	}
 
 	private void uninstallApplications(final long timeout, final TimeUnit timeunit) throws InterruptedException,
@@ -467,14 +463,14 @@ public class LocalhostGridAgentBootstrapper {
 			if (!force) {
 				throw new CLIStatusException(e, "failed_to_access_rest_before_teardown");
 			}
-			String errorMessage = "Failed to fetch the currently deployed applications list."
-				+ " Continuing teardown-localcloud.";
-			if (verbose){
+			final String errorMessage = "Failed to fetch the currently deployed applications list."
+					+ " Continuing teardown-localcloud.";
+			if (verbose) {
 				logger.log(Level.INFO, errorMessage, e);
-			}else{
+			} else {
 				logger.log(Level.INFO, errorMessage);
 			}
-			//Suppress exception. continue with teardown.
+			// Suppress exception. continue with teardown.
 			return;
 		}
 
@@ -488,14 +484,14 @@ public class LocalhostGridAgentBootstrapper {
 					adminFacade.uninstallApplication(appName);
 				}
 			} catch (final CLIException e) {
-				String errorMessage = "Application " + appName + " faild to uninstall."
-				+ " Continuing teardown-localcloud.";
+				final String errorMessage = "Application " + appName + " faild to uninstall."
+						+ " Continuing teardown-localcloud.";
 				if (!force) {
 					throw new CLIStatusException(e, "failed_to_uninstall_app_before_teardown", appName);
 				}
-				if (verbose){
+				if (verbose) {
 					logger.log(Level.INFO, errorMessage, e);
-				}else{
+				} else {
 					logger.log(Level.INFO, errorMessage);
 				}
 			}
@@ -562,7 +558,6 @@ public class LocalhostGridAgentBootstrapper {
 	 *            number of {@link TimeUnit}s to wait
 	 * @param timeunit
 	 *            the {@link TimeUnit} to use, to calculate the timeout
-	 * @return tear-down result, as a value of {@link TeardownCloudResults}
 	 * @throws CLIException
 	 *             Reporting a failure to shutdown the agent, or the management/services components still
 	 *             require it
@@ -571,11 +566,9 @@ public class LocalhostGridAgentBootstrapper {
 	 * @throws TimeoutException
 	 *             Reporting the timeout was reached
 	 */
-	public TeardownCloudResults shutdownAgentOnLocalhostAndWaitInternal(final boolean allowManagement,
-			final boolean allowContainers, final long timeout, final TimeUnit timeunit) throws CLIException,
-			InterruptedException, TimeoutException {
+	public void shutdownAgentOnLocalhostAndWaitInternal(final boolean allowManagement, final boolean allowContainers,
+			final long timeout, final TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
 
-		TeardownCloudResults teardownResult = null;
 		final long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
 		final ConnectionLogsFilter connectionLogs = new ConnectionLogsFilter();
 		connectionLogs.supressConnectionErrors();
@@ -592,7 +585,7 @@ public class LocalhostGridAgentBootstrapper {
 
 			if (agent == null) {
 				logger.info("Agent not running on local machine");
-				teardownResult = TeardownCloudResults.AGENT_NOT_FOUND_ON_LOCAL_MACHINE;
+				throw new CLIStatusException("teardown_failed_agent_not_found");
 			} else {
 				// If the agent we attempt to shutdown is of a GSC that has active services, allowContainers
 				// must be true or an exception will be thrown.
@@ -635,7 +628,6 @@ public class LocalhostGridAgentBootstrapper {
 				// create if it concurrently monitor things that are shutting down.
 				admin.close();
 				shutdownAgentAndWait(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
-				teardownResult = TeardownCloudResults.COMPLETED_SUCCESSFULLY;
 			}
 		} finally {
 			// close in case of exception, admin support double close if already closed
@@ -648,8 +640,6 @@ public class LocalhostGridAgentBootstrapper {
 			}
 			connectionLogs.restoreConnectionErrors();
 		}
-
-		return teardownResult;
 	}
 
 	/**
@@ -782,8 +772,7 @@ public class LocalhostGridAgentBootstrapper {
 			waitForManagementProcesses(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
 					TimeUnit.MILLISECONDS);
 
-			final List<AbstractManagementServiceInstaller> waitForManagementServices = 
-					new LinkedList<AbstractManagementServiceInstaller>();
+			final List<AbstractManagementServiceInstaller> waitForManagementServices = new LinkedList<AbstractManagementServiceInstaller>();
 
 			connectionLogs.supressConnectionErrors();
 			try {

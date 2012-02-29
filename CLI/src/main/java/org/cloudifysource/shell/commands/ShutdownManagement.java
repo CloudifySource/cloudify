@@ -21,7 +21,6 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
-import org.cloudifysource.shell.TeardownCloudResults;
 import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 
 /**
@@ -79,7 +78,7 @@ public class ShutdownManagement extends AbstractGSCommand {
 		installer.setProgressInSeconds(10);
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 
-		TeardownCloudResults result = installer.shutdownManagementOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);
-		return result.getDescription();
+		installer.shutdownManagementOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);
+		return getFormattedMessage("agent_terminated_successfully");
 	}
 }
