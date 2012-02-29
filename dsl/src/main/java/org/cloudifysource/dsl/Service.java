@@ -23,10 +23,19 @@ import java.util.Map;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.openspaces.ui.UserInterface;
 
+/****************************
+ * The POJO for a service running in Cloudify. All of the details required to run a specific service are available here.
+ * This is the main configuration object used by the USM to install, run, monitor and stop a process.
+ * 
+ * @author barakme
+ * @since 1.0.0
+ * 
+ */
 @CloudifyDSLEntity(name = "service", clazz = Service.class, allowInternalNode = true, allowRootNode = true,
 		parent = "application")
 public class Service {
 
+	private static final int DEFAULT_MAX_JAR_SIZE = 150 * 1024 * 1024; // 150 MB
 	private String name;
 	private String icon;
 	private String errorLoggerName;
@@ -35,8 +44,6 @@ public class Service {
 	private String imageTemplate;
 	private String defaultScalingUnit;
 	private String pidFile;
-
-	
 
 	private ServiceLifecycle lifecycle;
 	private UserInterface userInterface;
@@ -48,7 +55,7 @@ public class Service {
 	private ServiceNetwork network;
 
 	private int numInstances = 1;
-	private long maxJarSize = 150 * 1024 * 1024; // in bytes
+	private long maxJarSize = DEFAULT_MAX_JAR_SIZE;
 	private boolean keepFile = false;
 
 	private Map<String, Object> customCommands = new HashMap<String, Object>();
@@ -72,14 +79,12 @@ public class Service {
 	private LinkedList<String> extendedServicesPaths = new LinkedList<String>();
 
 	private boolean elastic = false;
-	
-	
+
 	public boolean isElastic() {
 		return elastic;
 	}
 
-	
-	public void setElastic(boolean elastic) {
+	public void setElastic(final boolean elastic) {
 		this.elastic = elastic;
 	}
 
@@ -216,6 +221,12 @@ public class Service {
 		this.type = type;
 	}
 
+	/******
+	 * .
+	 * 
+	 * @param statelessProcessingUnit
+	 *            .
+	 */
 	public void setStatelessProcessingUnit(final StatelessProcessingUnit statelessProcessingUnit) {
 		if (this.statelessProcessingUnit == null) {
 			this.statelessProcessingUnit = statelessProcessingUnit;
@@ -224,6 +235,12 @@ public class Service {
 		}
 	}
 
+	/*************
+	 * .
+	 * 
+	 * @param mirrorProcessingUnit
+	 *            .
+	 */
 	public void setMirrorProcessingUnit(final MirrorProcessingUnit mirrorProcessingUnit) {
 		if (this.mirrorProcessingUnit == null) {
 			this.mirrorProcessingUnit = mirrorProcessingUnit;
@@ -232,6 +249,12 @@ public class Service {
 		}
 	}
 
+	/*******
+	 * .
+	 * 
+	 * @param statefulProcessingUnit
+	 *            .
+	 */
 	public void setStatefulProcessingUnit(final StatefulProcessingUnit statefulProcessingUnit) {
 		if (this.statefulProcessingUnit == null) {
 			this.statefulProcessingUnit = statefulProcessingUnit;
@@ -240,6 +263,12 @@ public class Service {
 		}
 	}
 
+	/**************
+	 * .
+	 * 
+	 * @param dataGrid
+	 *            .
+	 */
 	public void setDataGrid(final DataGrid dataGrid) {
 		if (this.datagrid == null) {
 			this.datagrid = dataGrid;
@@ -248,6 +277,11 @@ public class Service {
 		}
 	}
 
+	/**********
+	 * .
+	 * 
+	 * @param memcached .
+	 */
 	public void setMemcached(final Memcached memcached) {
 		if (this.memcachedProcessingUnit == null) {
 			this.memcachedProcessingUnit = memcached;
