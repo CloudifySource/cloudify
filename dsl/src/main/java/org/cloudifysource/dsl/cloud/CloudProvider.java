@@ -20,6 +20,12 @@ import java.util.logging.Level;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 
+/**********************
+ * A POJO for the provider specific configuration of a cloud driver.
+ * @author barakme
+ * @since 2.0.0
+ *
+ */
 @CloudifyDSLEntity(name = "provider", clazz = CloudProvider.class, allowInternalNode = true, allowRootNode = false,
 		parent = "cloud")
 public class CloudProvider {
