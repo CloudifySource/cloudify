@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -48,6 +47,7 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.util.LoggerOutputStream;
 import org.cloudifysource.esc.util.ShellCommandBuilder;
 import org.cloudifysource.esc.util.Utils;
+import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioningException;
 
 /************
  * The agentless installer class is responsible for installing gigaspaces on a remote machine, using only ssh. It will
@@ -61,6 +61,8 @@ import org.cloudifysource.esc.util.Utils;
 public class AgentlessInstaller {
 
 	// private static final int LOCAL_FILE_BUFFER_SIZE = 1024;
+
+	private static final int DEFAULT_ROUTE_RESOLUTION_TIMEOUT = 2 * 60 * 1000; // 2 minutes
 
 	private static final String STARTUP_SCRIPT_NAME = "bootstrap-management.sh";
 
@@ -117,6 +119,24 @@ public class AgentlessInstaller {
 		com.jcraft.jsch.JSch.setLogger(new JschJdkLogger(sshLogger));
 	}
 
+	private static InetAddress waitForRoute(final String ip, final long endTime)
+			throws InstallerException, InterruptedException {
+		Exception lastException = null;
+		while (System.currentTimeMillis() < endTime) {
+
+			try {
+				final InetAddress inetAddress = InetAddress.getByName(ip);
+				return inetAddress;
+			} catch (final IOException e) {
+				lastException = e;
+			}
+			Thread.sleep(CONNECTION_TEST_SLEEP_BEFORE_RETRY_MILLIS);
+
+		}
+
+		throw new InstallerException("Failed to resolve installation target: " + ip, lastException);
+	}
+
 	/*******
 	 * Checks if a TCP connection to a remote machine and port is possible.
 	 * 
@@ -134,20 +154,16 @@ public class AgentlessInstaller {
 	 * @throws InterruptedException .
 	 * @throws ElasticMachineProvisioningException
 	 */
-
 	public static void checkConnection(final String ip, final int port, final long timeout, final TimeUnit unit)
 			throws TimeoutException, InterruptedException, InstallerException {
 
 		final long end = System.currentTimeMillis() + unit.toMillis(timeout);
 
-		InetSocketAddress socketAddress = null;
+		final InetAddress inetAddress = waitForRoute(
+				ip, Math.min(
+						end, System.currentTimeMillis() + DEFAULT_ROUTE_RESOLUTION_TIMEOUT));
+		final InetSocketAddress socketAddress = new InetSocketAddress(inetAddress, port);
 
-		try {
-			final InetAddress inetAddress = InetAddress.getByName(ip);
-			socketAddress = new InetSocketAddress(inetAddress, port);
-		} catch (final UnknownHostException e) {
-			throw new InstallerException("Failed to resolve installation target: " + ip, e);
-		}
 		logger.fine("Checking connection to: " + socketAddress);
 		while (System.currentTimeMillis() + CONNECTION_TEST_SLEEP_BEFORE_RETRY_MILLIS < end) {
 
