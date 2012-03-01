@@ -102,6 +102,17 @@ public abstract class AbstractGSCommand implements Action {
 					Level.WARNING, "", e);
 			raiseCloseShellExceptionIfNonInteractive(
 					session, e);
+		} catch (final InterruptedException e) {
+			final String msg = messages.getString("command_interrupted");
+			if (verbose) {
+				logger.log(
+						Level.SEVERE, msg, e);
+			} else {
+				logger.log(
+						Level.SEVERE, msg);
+			}
+			raiseCloseShellExceptionIfNonInteractive(
+					session, e);
 		} catch (final Throwable e) {
 			if (verbose) {
 				logger.log(
