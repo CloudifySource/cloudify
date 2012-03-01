@@ -383,16 +383,15 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				this.cloudifyProvisioning =
 						(ProvisioningDriver) Class.forName(this.cloud.getConfiguration().getClassName()).newInstance();
 				
-				this.cloudifyProvisioning.setConfig(cloud, cloudTemplate, false);
-
 				if (cloudifyProvisioning instanceof ProvisioningDriverClassContextAware) {
 					final ProvisioningDriverClassContext provisioningDriverContext =
 							lazyCreateProvisioningDriverClassContext(cloudifyProvisioning);
 					final ProvisioningDriverClassContextAware contextAware =
 							(ProvisioningDriverClassContextAware) cloudifyProvisioning;
 					contextAware.setProvisioningDriverClassContext(provisioningDriverContext);
-
 				}
+				
+				this.cloudifyProvisioning.setConfig(cloud, cloudTemplate, false);
 
 			} catch (final ClassNotFoundException e) {
 				throw new BeanConfigurationException("Failed to load provisioning class for cloud: "
