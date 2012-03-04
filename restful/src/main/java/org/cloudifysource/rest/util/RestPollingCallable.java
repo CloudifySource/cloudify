@@ -37,6 +37,7 @@ import org.cloudifysource.dsl.internal.EventLogConstants;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsc.GridServiceContainer;
+import org.openspaces.admin.internal.pu.DefaultProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
 import org.openspaces.admin.pu.ProcessingUnitType;
@@ -163,6 +164,7 @@ public class RestPollingCallable implements Callable<Boolean> {
                     logger.finer("Zone " + absolutePuName + " does not exist");
                     continue;
                 }
+                int plannedNumberOfInstances = getPlannedNumberOfInstances(serviceName);
                 //TODO: this is not very efficient. Maybe possible to move the LogEntryMatcher
                 //as field add to init to call .
                 final String regex = MessageFormat.format(USM_EVENT_LOGGER_NAME,
@@ -191,16 +193,16 @@ public class RestPollingCallable implements Callable<Boolean> {
                     this.lifecycleEventsContainer.addLifecycleEvents(servicesLifecycleEventDetailes);
                     numberOfServiceInstances = getNumberOfServiceInstances(absolutePuName);
                     if (numberOfServiceInstances == 0){
-                        this.lifecycleEventsContainer.addInstanceCountEvent("Deploying " + serviceName + " with " + this.serviceNames.get(serviceName) + " planned instances.");
+                        this.lifecycleEventsContainer.addInstanceCountEvent("Deploying " + serviceName + " with " + plannedNumberOfInstances + " planned instances.");
                     }else{
                         this.lifecycleEventsContainer.addInstanceCountEvent("[" + ServiceUtils.getApplicationServiceName(absolutePuName, this.applicationName) 
                             + "] " + "Deployed "
                             + numberOfServiceInstances
                             + " of "
-                            + this.serviceNames.get(serviceName));
+                            + plannedNumberOfInstances);
                     }
                 }
-                if (this.serviceNames.get(serviceName) ==  numberOfServiceInstances){
+                if (plannedNumberOfInstances ==  numberOfServiceInstances){
                     if (!isServiceInstall){
                         this.lifecycleEventsContainer.addInstanceCountEvent("Service \"" + serviceName + "\" successfully installed (" + numberOfServiceInstances + " Instances)");
                     }
@@ -216,17 +218,41 @@ public class RestPollingCallable implements Callable<Boolean> {
     }
 
     /**
+     * The planned number of service instances is saved to the serviceNames map
+     * during initialization of the callable.
+     * in case of datagrid deployment, the planned number of instances will be 
+     * reviled only after it's PU has been created and so we need to poll the pu
+     * to get the correct number of planned instances in case the pu is of type datagrid.
+     * 
+     * @param serviceName
+     * @return
+     */
+    private int getPlannedNumberOfInstances(String serviceName) {
+        String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+        ProcessingUnit processingUnit = admin.getProcessingUnits().getProcessingUnit(absolutePuName);
+        if (processingUnit != null){
+            Map<String, String> elasticProperties = ((DefaultProcessingUnit)processingUnit).getElasticProperties();
+            if (elasticProperties.containsKey("schema")){
+                String ClusterSchemaValue = elasticProperties.get("schema");
+                if ("partitioned-sync2backup".equals(ClusterSchemaValue)){
+                    return processingUnit.getTotalNumberOfInstances();
+                }
+            }
+        }
+        return serviceNames.get(serviceName);
+    }
+
+    /**
      *  Gets the service instance count for every type of
      *  service (USM/Other). if the service pu is not running
-     *  yet, returns -1.
+     *  yet, returns 0.
      *  
      * @param absolutePuName
      * @return the service's number of running instances.
      */
     private int getNumberOfServiceInstances(String absolutePuName){
 
-        ProcessingUnit processingUnit = admin.getProcessingUnits()
-        .getProcessingUnit(absolutePuName);
+        ProcessingUnit processingUnit = admin.getProcessingUnits().getProcessingUnit(absolutePuName);
 
         if (processingUnit != null) {
             if (processingUnit.getType().equals(
