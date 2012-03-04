@@ -53,6 +53,9 @@ public class ServiceContext {
 	// this pid may be modified due to process crashed, so volatile is required.	
 	private volatile long externalProcessId;
 
+	/*************
+	 * Default construtor.
+	 */
 	public ServiceContext() {
 
 	}

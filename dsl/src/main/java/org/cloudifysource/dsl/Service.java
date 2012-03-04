@@ -80,6 +80,8 @@ public class Service {
 
 	private boolean elastic = false;
 
+	private String url = null;
+	
 	public boolean isElastic() {
 		return elastic;
 	}
@@ -340,6 +342,14 @@ public class Service {
 
 	public LinkedList<String> getExtendedServicesPaths() {
 		return extendedServicesPaths;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(final String url) {
+		this.url = url;
 	}
 
 }

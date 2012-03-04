@@ -16,6 +16,8 @@
 package org.cloudifysource.dsl;
 
 import java.io.File;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import junit.framework.Assert;
 
@@ -27,6 +29,23 @@ public class ServiceParsingTest {
 
 	private static final String TEST_PARSING_RESOURCE_PATH = "testResources/testparsing/";
 
+	
+	@Test
+	public void testFeaturesParsing() throws DSLException, UnknownHostException {
+		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH + "test_features-service.groovy");
+		final File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
+		final Service service = ServiceReader.getServiceFromFile(testParsingBaseDslFile, testParsingBaseWorkDir)
+				.getService();
+		Assert.assertEquals("test features", service.getName());
+		Assert.assertEquals("http://" + InetAddress.getLocalHost().getHostName() + ":8080", service.getUrl());
+		final ServiceLifecycle lifecycle = service.getLifecycle();
+		
+		Assert.assertNotNull(lifecycle.getStart());
+		Assert.assertNotNull(lifecycle.getPostStart());
+		Assert.assertNotNull(lifecycle.getPreStop());
+	}
+
+	
 	@Test
 	public void testBasicParsing() throws DSLException {
 		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH + "test_parsing_base-service.groovy");
