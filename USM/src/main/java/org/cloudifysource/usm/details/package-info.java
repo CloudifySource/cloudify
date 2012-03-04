@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+ * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,41 +15,11 @@
  *******************************************************************************/
 package org.cloudifysource.usm.details;
 
-/*************
- * Exception class for exception generated while creating details for a USM instance.
- * @author barakme
- * @since 2.0.0
- *
- */
-public class DetailsException extends Exception {
-
-	/**
-	 *  .
-	 */
-	private static final long serialVersionUID = 1L;
-
-	/************
-	 * .
-	 * @param msg .
-	 * @param cause .
-	 */
-	public DetailsException(final String msg, final Throwable cause) {
-		super(msg, cause);
-	}
-
-	/*************
-	 * .
-	 * @param msg .
-	 */
-	public DetailsException(final String msg) {
-		super(msg);
-	}
-
-	/*********
-	 * . 
-	 * @param cause .
-	 */
-	public DetailsException(final Throwable cause) {
-		super(cause);
-	}
-}
+/**************************
+ * Interface and standard implementations for the USM's Details interface, which exposes static data about a 
+ * USM instance to the service grid.
+ * 
+ * More details to follow.
+ * 
+ * @author barakme.
+ *****************************/

@@ -19,25 +19,32 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.cloudifysource.dsl.Service;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.usm.UniversalServiceManagerBean;
 import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
 import org.cloudifysource.usm.details.Details;
 import org.cloudifysource.usm.details.DetailsException;
 
-
-
+/***********
+ * USM Details for static DSL data that is exposed to client.
+ * @author barakme
+ * @since 2.0.0
+ *
+ */
 public class DSLDetails implements Details {
 
-	public Map<String, Object> getDetails(UniversalServiceManagerBean usm, UniversalServiceManagerConfiguration config)
-			throws DetailsException {
-		Service service = ((DSLConfiguration)config).getService();
-		HashMap<String, Object> map = new HashMap<String,Object>();
 
-		map.put("icon", service.getIcon());
-		//map.put("type", service.getType());
-		//map.put("protocolDescription", service.getNetwork() == null ? null : service.getNetwork().getProtocolDescription());
-		
-		
+
+	@Override
+	public Map<String, Object> getDetails(final UniversalServiceManagerBean usm,
+			final UniversalServiceManagerConfiguration config)
+			throws DetailsException {
+		final Service service = ((DSLConfiguration) config).getService();
+		final HashMap<String, Object> map = new HashMap<String, Object>();
+
+		map.put(CloudifyConstants.USM_DETAILS_ICON, service.getIcon());
+		map.put(CloudifyConstants.USM_DETAILS_URL, service.getUrl());
+
 		return map;
 	}
 

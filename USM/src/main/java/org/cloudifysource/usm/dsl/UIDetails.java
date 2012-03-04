@@ -18,24 +18,32 @@ package org.cloudifysource.usm.dsl;
 import java.util.HashMap;
 import java.util.Map;
 
-
 import org.cloudifysource.usm.UniversalServiceManagerBean;
 import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
 import org.cloudifysource.usm.details.Details;
 import org.cloudifysource.usm.details.DetailsException;
 import org.openspaces.ui.UserInterface;
 
-
-
+/**************
+ * A USM details implementation the exposes the UI POJO as a Detail.
+ * @author barakme
+ * @since 2.0.0
+ *
+ */
 public class UIDetails implements Details {
 
 	private final UserInterface ui;
 
+	/**********
+	 * .
+	 * @param ui .
+	 */
 	public UIDetails(final UserInterface ui) {
 		super();
 		this.ui = ui;
 	}
 
+	@Override
 	public Map<String, Object> getDetails(final UniversalServiceManagerBean usm,
 			final UniversalServiceManagerConfiguration config)
 			throws DetailsException {
