@@ -1040,7 +1040,7 @@ public class ServiceController {
                 
             }catch (ExecutionException e) {
                 if (e.getCause() instanceof TimeoutException){
-                    logger.log(Level.INFO, "LIFECYCLE_EVENT_TIMED_OUT", e.getCause());
+                    logger.log(Level.INFO, "Lifecycle events polling task timed out.", e.getCause());
                     resultsMap.put(CloudifyConstants.POLLING_TIMEOUT_EXCEPTION, true);
                 }else{
                     logger.log(Level.INFO,"an exception occurred during the" +
