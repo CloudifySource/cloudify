@@ -2,23 +2,9 @@ import groovy.util.ConfigSlurper
 
 config = new ConfigSlurper().parse(new File("iisproxy-service.properties").toURL())
 
-println("Starting uninstallation")
+println("Uninstalling iisproxy")
 new AntBuilder().sequential {
-  	
-	exec(executable:"cmd") {
-        arg(value:"/c")
-        arg(value:"net")
-        arg(value:"stop")
-        arg(value:"${config.wwwPublicService}")
-    }
 
-    exec(executable:"cmd") {
-        arg(value:"/c")
-        arg(value:"net")
-        arg(value:"stop")
-        arg(value:"${config.wpActivationService}")
-    }
-    
 	// uninstall ARR
     exec(executable:"msiexec") {
         arg(value:"/x")
@@ -27,8 +13,6 @@ new AntBuilder().sequential {
         arg(value:"/log")
         arg(value:"${config.installDir}\\${config.arrInstallLog}")
     }
-
-
 }
 
 // Make sure web farm framework has finished installing before we proceed installing ARR
@@ -46,29 +30,6 @@ new AntBuilder().sequential {
         arg(value:"${config.installDir}\\${config.webFarmInstallLog}")
     }
 
-}
-    
-// Make sure ARR has finished installing before we proceed
-println("Sleeping for 5 seconds")
-Thread.sleep(5000)
-  
-new AntBuilder().sequential {
-  
-    // Restore previously disabled services
-    exec(executable:"cmd") {
-        arg(value:"/c")
-        arg(value:"net")
-        arg(value:"start")
-        arg(value:"${config.wpActivationService}")
-    }
-
-    exec(executable:"cmd") {
-        arg(value:"/c")
-        arg(value:"net")
-        arg(value:"start")
-        arg(value:"${config.wwwPublicService}")
-    }
-   
 }
 
 println("uninstall completed!")

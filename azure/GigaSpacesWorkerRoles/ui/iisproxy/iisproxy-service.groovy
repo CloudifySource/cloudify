@@ -7,7 +7,8 @@ service {
     lifecycle {
         init "iisproxy_install.groovy"
         start "iisproxy_start.groovy"
-        postStop "iisproxy_uninstall.groovy"
+        preStop "iisproxy_prestop.groovy"
+        postStop "iisproxy_poststop.groovy"
     }
 	
 	network {
