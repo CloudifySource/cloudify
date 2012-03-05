@@ -61,21 +61,6 @@ println("Sleeping for 5 seconds")
 Thread.sleep(5000)
   
 new AntBuilder().sequential {
-  
-    // Restore previously disabled services
-    exec(executable:"cmd") {
-        arg(value:"/c")
-        arg(value:"net")
-        arg(value:"start")
-        arg(value:"${config.wpActivationService}")
-    }
-
-    exec(executable:"cmd") {
-        arg(value:"/c")
-        arg(value:"net")
-        arg(value:"start")
-        arg(value:"${config.wwwPublicService}")
-    }
     
     // Enable proxy in IIS
     exec(executable:"${config.appCmdPath}") {
