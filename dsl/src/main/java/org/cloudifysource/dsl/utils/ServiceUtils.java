@@ -25,7 +25,6 @@ import java.net.URL;
 import java.util.List;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.dsl.internal.DSLException;
 
 public class ServiceUtils {
 
@@ -91,7 +90,10 @@ public class ServiceUtils {
 	 * whether the ports are open. Having all the tested ports opened means that the process has completed loading
 	 * successfully and is up and running.
 	 * 
-	 * @throws DSLException
+	 * @param portList
+	 *            list of port to check.
+	 * @return true if all ports are in use, false otherwise.
+	 * 
 	 * 
 	 */
 	public static boolean arePortsOccupied(final List<Integer> portList) {
@@ -129,7 +131,8 @@ public class ServiceUtils {
 	 *         not be made, returns 500
 	 */
 	public static int getHttpReturnCode(final String url) {
-		return getHttpReturnCode(url, 1000, 1000);
+		return getHttpReturnCode(
+				url, 1000, 1000);
 	}
 
 	/*********
@@ -233,7 +236,8 @@ public class ServiceUtils {
 					+ " to read service and application names.");
 		}
 
-		final String applicationName = puName.substring(0, index);
+		final String applicationName = puName.substring(
+				0, index);
 		final String serviceName = puName.substring(index + 1);
 		return new FullServiceName(applicationName, serviceName);
 	}
