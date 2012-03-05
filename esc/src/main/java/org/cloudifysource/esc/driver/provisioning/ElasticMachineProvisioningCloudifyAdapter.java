@@ -268,8 +268,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			cloudifyProvisioning.setAdmin(admin);
 			machineDetails = cloudifyProvisioning.startMachine(duration, unit);
 		} catch (final CloudProvisioningException e) {
-			throw new ElasticMachineProvisioningException("Failed to start machine: " + e.getMessage());
+			throw new ElasticMachineProvisioningException("Failed to start machine: " + e.getMessage(), e);
 		}
+		
 		if (machineDetails == null) {
 			throw new IllegalStateException("Provisioning provider: " + cloudifyProvisioning.getClass().getName()
 					+ " returned a null when calling startMachine");
