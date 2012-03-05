@@ -36,13 +36,13 @@
 			<fileset dir="${target.dir}/logs" includes="**/*"  />
 		</delete>
 		<echo message="Creating new zip file" />
-		<zip destfile="${target.dir}/../gigaspaces.zip" basedir="${target.dir}/.." includes="${giga.version}/**/*" excludes="${giga.version}/tools/cli/plugins/esc/**/*" />
+		<zip destfile="${target.dir}/../gigaspaces.zip" basedir="${target.dir}/.." includes="${giga.version}/**/*" excludes="${giga.version}/tools/cli/plugins/esc/**/*,${giga.version}/tools/cli/plugins/azure/**/*" />
 		<echo message="Created ${target.dir}/../gigaspaces.zip" />
 	</target>
 
 	<target name="Create overrides zip" depends="">
 		<delete file="${target.dir}/../gigaspaces-overrides.zip"/>
-		<zip destfile="${target.dir}/../gigaspaces-overrides.zip" basedir="${target.dir}" includes="lib/platform/esm/esc-2.0.0.jar" >
+		<zip destfile="${target.dir}/../gigaspaces-overrides.zip" basedir="${target.dir}" includes="indicator.txt,lib/platform/esm/esc-2.0.0.jar,tools/cli/cli.jar,tools/rest/rest.war" >
 
 		</zip>
 	</target>
