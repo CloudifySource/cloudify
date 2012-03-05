@@ -23,10 +23,12 @@ import com.gigaspaces.internal.license.LicenseManagerVerifier;
  * @author barakme
  * 
  */
-public class CloudifyConstants {
+public final class CloudifyConstants {
 
+	// CHECKSTYLE:OFF
+	
 	/***
-	 * USM service deployment States
+	 * USM service deployment States.
 	 */
 	public static enum USMState {
 
@@ -50,6 +52,7 @@ public class CloudifyConstants {
 	public static final String CONTEXT_PROPERTY_ASYNC_INSTALL = "com.gs.cloudify.async-install";
 	public static final String CONTEXT_PROPERTY_APPLICATION_NAME = "com.gs.application";
 	public static final String CONTEXT_PROPERTY_ELASTIC = "com.gs.service.elastic";
+	public static final String CONTEXT_PROPERTY_TEMPLATE = "com.gs.service.template";
 	
 	/**********
 	 * Key names for invocation request and response parameters.
@@ -167,8 +170,10 @@ public class CloudifyConstants {
 	public static final String POLLING_TIMEOUT_EXCEPTION = "TimeoutException";
 	public static final String LIFECYCLE_EVENT_CONTAINER_ID = "lifecycleEventContainerID";
 	public static final String SERVICE_ORDER = "srviceOrder";
+
 	private CloudifyConstants() {
 		// private constructor to prevent initialization.
 	}
 
+	// CHECKSTYLE:ON
 }
