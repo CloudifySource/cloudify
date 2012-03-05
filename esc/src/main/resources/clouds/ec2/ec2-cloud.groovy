@@ -70,7 +70,7 @@ cloud {
 		apiKey "ENTER_API_KEY"
 		
 		
-		keyFile "cloud-demo.pem"
+		keyFile "ENTER_KEY_FILE"
 	}
 	
 	
