@@ -6,8 +6,8 @@ service {
     
     lifecycle {
         init "iisproxy_install.groovy"
-		start "run.bat"
-		postStop "iisproxy_uninstall.groovy"
+        start "iisproxy_start.groovy"
+        postStop "iisproxy_uninstall.groovy"
     }
 	
 	network {
@@ -66,6 +66,5 @@ service {
 		}
 	
 	])
-       
+      
 }
-

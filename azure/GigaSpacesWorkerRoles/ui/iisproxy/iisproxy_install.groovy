@@ -134,8 +134,10 @@ new AntBuilder().sequential {
         arg(value:"/commit:apphost")
     }
 
+}
 
 if (config.debugMode) {
+  new AntBuilder().sequential {
     // Return detailed error messages to the http client
     exec(executable:"${config.appCmdPath}") {
         arg(value:"set")
@@ -144,8 +146,10 @@ if (config.debugMode) {
         arg(value:"-errorMode:\"Detailed\"")
         arg(value:"/commit:apphost")
     }
+  }
 }
 else {
+  new AntBuilder().sequential {
     //Disable custom error pages
     exec(executable:"${config.appCmdPath}") {
         arg(value:"clear")
@@ -153,6 +157,6 @@ else {
         arg(value:"-section:system.webServer/httpErrors")
         arg(value:"/commit:apphost")
     }
-}
+ }
 }
 println("install completed!")
