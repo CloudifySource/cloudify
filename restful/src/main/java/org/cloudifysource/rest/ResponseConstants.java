@@ -31,6 +31,7 @@ public interface ResponseConstants {
     String FAILED_TO_ADD_INSTANCE = "failed_to_add_instance";
     String FAILED_TO_INVOKE_INSTANCE = "failed_to_invoke_instance";
     String SERVICE_NOT_ELASTIC = "service_not_elastic";
+    String SET_INSTANCES_NOT_SUPPORTED_IN_EAGER = "set_instances_not_supported_on_eager";
 
     
     

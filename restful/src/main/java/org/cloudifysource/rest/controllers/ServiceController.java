@@ -1293,6 +1293,8 @@ public class ServiceController {
 		} else {
 			templateName = originalTemplateName;
 		}
+		
+		propsFile.put(CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE, templateName);
 
 		Service service = null;
 		File projectDir = null;
@@ -1734,13 +1736,35 @@ public class ServiceController {
 			return errorStatus(ResponseConstants.FAILED_TO_LOCATE_SERVICE, serviceName);
 		}
 		
-		final String elasticProp = (String) pu.getBeanLevelProperties().getContextProperties().get(CloudifyConstants.CONTEXT_PROPERTY_ELASTIC);
+		Properties contextProperties = pu.getBeanLevelProperties().getContextProperties();
+		final String elasticProp = contextProperties.getProperty(CloudifyConstants.CONTEXT_PROPERTY_ELASTIC);
+		final String templateName = contextProperties.getProperty(CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE);
+		
 		if(elasticProp == null || !Boolean.parseBoolean(elasticProp)) {
 			return errorStatus(ResponseConstants.SERVICE_NOT_ELASTIC, serviceName);
 		}
 		
 		logger.info("Scaling " + puName + " to " + count + " instances");
-        pu.scale(new ManualCapacityScaleConfigurer().memoryCapacity(512 * count, MemoryUnit.MEGABYTES).create());
+		
+		
+		if (cloud == null) {
+			if (isLocalCloud()) {
+				// Manual scale by number of instances
+				pu.scale(new ManualCapacityScaleConfigurer().memoryCapacity(512 * count, MemoryUnit.MEGABYTES).create());
+			} else {
+				// Eager scale (1 container per machine per PU)
+				return errorStatus(ResponseConstants.SET_INSTANCES_NOT_SUPPORTED_IN_EAGER);				
+			}
+		} else {
+			
+			final CloudTemplate template = getComputeTemplate(cloud, templateName);
+			final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
+			
+			pu.scale(new ManualCapacityScaleConfigurer().memoryCapacity((int) (cloudExternalProcessMemoryInMB * count), MemoryUnit.MEGABYTES).atMostOneContainerPerMachine().create());
+			
+
+
+		}		
 		
         return successStatus();
 	}
