@@ -218,15 +218,11 @@
 
         <echo message="Copy CLOUDIFY esc-command component"/>
         <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/esc" overwrite="true">
-            <fileset dir="${esc-commands.local.copy}/target/" includes="esc-commands.jar" excludes=".svn"/>
+            <fileset dir="${esc-commands.local.copy}/target" includes="esc-commands.jar" excludes=".svn"/>
         </copy>
         
-        <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/esc/ec2" overwrite="true">
-          <fileset dir="${esc.local.copy}/" includes="ec2-cloud.groovy" excludes=".svn"/>
-        </copy>
-                  
-        <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/esc/ec2/upload" overwrite="true">
-            <fileset dir="${esc.local.copy}/config/" includes="bootstrap-management.sh" excludes=".svn"/>
+        <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/esc" overwrite="true">
+          <fileset dir="${esc.local.copy}/src/main/resources/clouds" includes="**/*" excludes=".svn"/>
         </copy>
     	
     	<!-- Add Cloudify Javadoc archive to Cloudify/docs folder -->
