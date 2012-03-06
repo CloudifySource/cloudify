@@ -46,10 +46,13 @@
     <Content Include="iisproxy\iisproxy_install.groovy">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="iisproxy\iisproxy_uninstall.groovy">
+	<Content Include="iisproxy\iisproxy_poststop.groovy">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="iisproxy\run.bat">
+    <Content Include="iisproxy\iisproxy_prestop.groovy">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="iisproxy\iisproxy_start.groovy">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Reference Include="Ionic.Zip.Reduced">
