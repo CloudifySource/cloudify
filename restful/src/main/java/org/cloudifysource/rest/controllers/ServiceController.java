@@ -1294,7 +1294,9 @@ public class ServiceController {
 			templateName = originalTemplateName;
 		}
 		
-		propsFile.put(CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE, templateName);
+		if (templateName != null) {
+			propsFile.put(CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE, templateName);
+		}
 
 		Service service = null;
 		File projectDir = null;
