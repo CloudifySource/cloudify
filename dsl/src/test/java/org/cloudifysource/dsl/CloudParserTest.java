@@ -37,7 +37,7 @@ public class CloudParserTest {
 		assertNotNull(cloud.getTemplates());
 		assertNotNull(cloud.getUser());
 		assertNotNull(cloud.getTemplates().size() > 0);
-		assertNotNull(cloud.getTemplates().get("SMALL_LINUX_32"));
+		assertNotNull(cloud.getTemplates().get("SMALL_LINUX"));
 	}
 
 
