@@ -42,7 +42,7 @@ public class DSLCommandsLifecycleListener extends AbstractUSMEventListener imple
 	}
 	
 	private EventResult executeEntry(Object entry) {
-		return new DSLEntryExecutor(entry, this.usm.usmLifecycleBean.getLauncher(), this.usm.getPuExtDir()).run();
+		return new DSLEntryExecutor(entry, this.usm.getUsmLifecycleBean().getLauncher(), this.usm.getPuExtDir()).run();
 	}
 	
 	public boolean isEventExists(LifecycleEvents event) {

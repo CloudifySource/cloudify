@@ -56,8 +56,15 @@ import com.gigaspaces.internal.sigar.SigarHolder;
 import com.j_spaces.kernel.Environment;
 import com.j_spaces.kernel.PlatformVersion;
 
+/*************
+ * The default process launcher implementation, used by the USM to launch external processes. Includes OS specific code
+ * to modify a command line according to standard command line conventions.
+ * 
+ * @author barakme
+ * 
+ */
 public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware {
-														 
+
 	private static final int POST_SYNC_PROCESS_SLEEP_INTERVAL = 200;
 	private static final String LINUX_EXECUTE_PREFIX = "./";
 	private static final String[] WINDOWS_BATCH_FILE_PREFIX_PARAMS = { "cmd.exe", "/c " };
@@ -73,9 +80,10 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 	private List<String> switchFirstPartOfCommandLine(final List<String> originalCommandLine, final String newPart) {
 
-		List<String> newCommand = new LinkedList<String>();
+		final List<String> newCommand = new LinkedList<String>();
 		newCommand.add(newPart);
-		newCommand.addAll(originalCommandLine.subList(1, originalCommandLine.size()));
+		newCommand.addAll(originalCommandLine.subList(
+				1, originalCommandLine.size()));
 		return newCommand;
 
 	}
@@ -84,7 +92,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 		final AlternativeExecutableFileNameFilter filter = new AlternativeExecutableFileNameFilter() {
 
-			String prefix;
+			private String prefix;
 
 			@Override
 			public boolean accept(final File dir, final String name) {
@@ -99,11 +107,18 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			}
 		};
 
-		return createCommandLineFromAlternativeOS(puWorkDir, linuxCommandLine, filter);
+		return createCommandLineFromAlternativeOS(
+				puWorkDir, linuxCommandLine, filter);
 
 	}
 
-	interface AlternativeExecutableFileNameFilter extends FilenameFilter {
+	/**********
+	 * An interface for a Filename filter implementation that looks for alternative executables.
+	 * 
+	 * @author barakme
+	 * 
+	 */
+	private interface AlternativeExecutableFileNameFilter extends FilenameFilter {
 
 		void setPrefix(String prefix);
 	}
@@ -111,18 +126,19 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	private List<String> createCommandLineFromAlternativeOS(final File puWorkDir,
 			final List<String> alternateCommandLine, final AlternativeExecutableFileNameFilter fileNameFilter) {
 
-		if ((alternateCommandLine == null) || (alternateCommandLine.size() == 0)) {
+		if (alternateCommandLine == null || alternateCommandLine.size() == 0) {
 			return null;
 		}
 
-		final String executable = alternateCommandLine.get(0);// getFirstPartOfCommandLine(alternateCommandLine);
+		final String executable = alternateCommandLine.get(0);
 
 		// groovy files are executable on all OS
 		if (executable.endsWith(".groovy")) {
 			return alternateCommandLine;
 		}
 
-		final File executableFile = getFileFromRelativeOrAbsolutePath(puWorkDir, executable);
+		final File executableFile = getFileFromRelativeOrAbsolutePath(
+				puWorkDir, executable);
 		if (executableFile == null) {
 			logger.warning("Could not find an executable file: " + executable + "in working directory " + puWorkDir
 					+ " in command line: " + alternateCommandLine + ". Alternate command line can't be created.");
@@ -143,29 +159,32 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		logger.info("Found candidates for command line to replace " + executable + ". Candidates are: "
 				+ Arrays.toString(files));
 
-		final List<String> modifiedCommandLine = switchFirstPartOfCommandLine(alternateCommandLine, files[0].getName());
+		final List<String> modifiedCommandLine = switchFirstPartOfCommandLine(
+				alternateCommandLine, files[0].getName());
 
 		return modifiedCommandLine;
 
 	}
 
-	protected String getFilePrefix(final File executableFile) {
+	private String getFilePrefix(final File executableFile) {
 		String prefixToSearch = executableFile.getName();
 		final int index = prefixToSearch.lastIndexOf('.');
 		if (index >= 0) {
-			prefixToSearch = prefixToSearch.substring(0, index);
+			prefixToSearch = prefixToSearch.substring(
+					0, index);
 		}
 		return prefixToSearch;
 	}
 
-	private List<String> createLinuxCommandLineFromWindows(final List<String> windowsCommandLine, final File puWorkDir) {
+	private List<String> createLinuxCommandLineFromWindows(final List<String> windowsCommandLine,
+			final File puWorkDir) {
 		final AlternativeExecutableFileNameFilter filter = new AlternativeExecutableFileNameFilter() {
 
-			String prefix;
+			private String prefix;
 
 			@Override
 			public boolean accept(final File dir, final String name) {
-				return name.equals(prefix) || (name.startsWith(prefix) && name.endsWith(".sh"));
+				return name.equals(prefix) || name.startsWith(prefix) && name.endsWith(".sh");
 			}
 
 			@Override
@@ -175,7 +194,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			}
 		};
 
-		return createCommandLineFromAlternativeOS(puWorkDir, windowsCommandLine, filter);
+		return createCommandLineFromAlternativeOS(
+				puWorkDir, windowsCommandLine, filter);
 
 	}
 
@@ -189,7 +209,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		}
 
 		for (int i = 0; i < groovyCommandLinePrefixParams.size(); i++) {
-			commandLineParams.add(i, groovyCommandLinePrefixParams.get(i));
+			commandLineParams.add(
+					i, groovyCommandLinePrefixParams.get(i));
 		}
 	}
 
@@ -204,54 +225,37 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		final List<File> list = new LinkedList<File>();
 
 		// jar files in PU's lib dir
-		addJarsFromDirectoryToList(new File(workingDir.getParentFile(), "lib"), list);
+		addJarsFromDirectoryToList(
+				new File(workingDir.getParentFile(), "lib"), list);
 
 		// <GS_HOME>/lib/required
-		addJarsFromDirectoryToList(new File(gsHome, "lib/required"), list);
+		addJarsFromDirectoryToList(
+				new File(gsHome, "lib/required"), list);
 
 		// <GS_HOME>/lib/platform/usm
-		addJarsFromDirectoryToList(new File(gsHome, "lib/platform/usm"), list);
-		addJarsFromDirectoryToList(new File(gsHome, "lib/platform/sigar"), list);
+		addJarsFromDirectoryToList(
+				new File(gsHome, "lib/platform/usm"), list);
+		addJarsFromDirectoryToList(
+				new File(gsHome, "lib/platform/sigar"), list);
 
 		return list;
 
 	}
 
-	// private List<String> getJarDirsForGroovyClasspath(final File gsHome,
-	// final File workingDir) {
-	// final List<String> list = new LinkedList<String>();
-	//
-	// final String wildcardSuffix = File.separator + "*";
-	// // jar files in PU's lib dir
-	// list.add(new File(workingDir.getParentFile(), "lib").getAbsolutePath()
-	// + wildcardSuffix);
-	//
-	// // <GS_HOME>/lib/required
-	// list.add(new File(gsHome, "lib/required").getAbsolutePath()
-	// + wildcardSuffix);
-	//
-	// // <GS_HOME>/lib/platform/usm
-	// list.add(new File(gsHome, "lib/platform/usm").getAbsolutePath()
-	// + wildcardSuffix);
-	// list.add(new File(gsHome, "lib/platform/sigar").getAbsolutePath()
-	// + wildcardSuffix);
-	//
-	// return list;
-	//
-	// }
-
-	protected File[] getJarFilesFromDir(final File dir) {
+	private File[] getJarFilesFromDir(final File dir) {
 		final File[] jars = dir.listFiles(new FileFilter() {
 
 			@Override
 			public boolean accept(final File pathname) {
-				return pathname.getName().endsWith(".jar") && pathname.isFile();
+				return pathname.getName().endsWith(
+						".jar") && pathname.isFile();
 			}
 		});
 		return jars;
 	}
 
-	private void initGroovyCommandLine(final File workingDir) throws FileNotFoundException, USMException {
+	private void initGroovyCommandLine(final File workingDir)
+			throws FileNotFoundException, USMException {
 		if (this.groovyCommandLinePrefixParams != null) {
 			return;
 		}
@@ -261,13 +265,16 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		final String groovyPath = createGroovyPath(homeDir);
 		final StringBuilder sb = new StringBuilder();
 
-		final List<File> jars = getJarFilesForGroovyClasspath(homeDir, workingDir);
+		final List<File> jars = getJarFilesForGroovyClasspath(
+				homeDir, workingDir);
 		// final List<String> dirs = getJarDirsForGroovyClasspath(homeDir,
 		// workingDir);
 		if (jars != null) {
 			// sb.append("\"");
 			for (final File jar : jars) {
-				sb.append(jar.getAbsolutePath()).append(File.pathSeparator);
+				sb.append(
+						jar.getAbsolutePath()).append(
+						File.pathSeparator);
 			}
 			// sb.append("\"");
 		}
@@ -285,7 +292,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		final ArrayList<String> groovyCommandParams = new ArrayList<String>();
 		groovyCommandParams.add(groovyPath);
 		if (USMUtils.isWindows()) {
-			modifyWindowsCommandLine(groovyCommandParams, workingDir);
+			modifyWindowsCommandLine(
+					groovyCommandParams, workingDir);
 		}
 
 		String classPathEnv = System.getenv("CLASSPATH");
@@ -307,7 +315,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		this.groovyCommandLinePrefixParams = groovyCommandParams;
 	}
 
-	private String createGroovyPath(final File homeDir) throws FileNotFoundException, USMException {
+	private String createGroovyPath(final File homeDir)
+			throws FileNotFoundException, USMException {
 		final File toolsDir = new File(homeDir, "tools");
 		final File groovyDir = new File(toolsDir, "groovy");
 		final File binDir = new File(groovyDir, "bin");
@@ -323,21 +332,26 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		}
 
 		if (USMUtils.isLinuxOrUnix()) {
-			USMUtils.markFileAsExecutable(sigar, groovyFile);
+			USMUtils.markFileAsExecutable(
+					sigar, groovyFile);
 		}
 
 		return groovyFile.getAbsolutePath();
 
 	}
 
-	private void modifyOSCommandLine(final List<String> commandLineParams, final File puWorkDir) throws USMException {
+	private void modifyOSCommandLine(final List<String> commandLineParams, final File puWorkDir)
+			throws USMException {
 		final String runParam = commandLineParams.get(0);
 
 		if (USMUtils.isWindows()) {
-			modifyWindowsCommandLine(commandLineParams, puWorkDir);
+			modifyWindowsCommandLine(
+					commandLineParams, puWorkDir);
 		} else {
-			markLinuxTargetAsExecutable(runParam, puWorkDir);
-			modifyLinuxCommandLine(commandLineParams, puWorkDir);
+			markLinuxTargetAsExecutable(
+					runParam, puWorkDir);
+			modifyLinuxCommandLine(
+					commandLineParams, puWorkDir);
 
 		}
 
@@ -349,11 +363,12 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		final File executeFile = new File(puWorkDir, executeScriptName);
 		if (executeFile != null) {
 			final File parent = executeFile.getParentFile();
-			if ((parent != null) && parent.equals(puWorkDir)) {
+			if (parent != null && parent.equals(puWorkDir)) {
 				if (executeScriptName.endsWith(".sh") && !executeScriptName.startsWith(LINUX_EXECUTE_PREFIX)) {
 					commandLineParams.remove(0);
 					executeScriptName = LINUX_EXECUTE_PREFIX + executeScriptName;
-					commandLineParams.add(0, executeScriptName);
+					commandLineParams.add(
+							0, executeScriptName);
 				}
 			}
 		}
@@ -366,9 +381,10 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 	private void modifyWindowsCommandLine(final List<String> commandLineParams, final File workingDir) {
 		final String firstParam = commandLineParams.get(0);
-		if (firstParam.endsWith(".bat")) {
+		if (firstParam.endsWith(".bat") || firstParam.endsWith(".cmd")) {
 			for (int i = 0; i < WINDOWS_BATCH_FILE_PREFIX_PARAMS.length; i++) {
-				commandLineParams.add(i, WINDOWS_BATCH_FILE_PREFIX_PARAMS[i]);
+				commandLineParams.add(
+						i, WINDOWS_BATCH_FILE_PREFIX_PARAMS[i]);
 			}
 		}
 
@@ -383,7 +399,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			// this is not an executable file, so add the cmd interpreter
 			// prefix
 			for (int i = 0; i < WINDOWS_BATCH_FILE_PREFIX_PARAMS.length; i++) {
-				commandLineParams.add(i, WINDOWS_BATCH_FILE_PREFIX_PARAMS[i]);
+				commandLineParams.add(
+						i, WINDOWS_BATCH_FILE_PREFIX_PARAMS[i]);
 			}
 		}
 
@@ -401,14 +418,16 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		return null;
 	}
 
-	protected void markLinuxTargetAsExecutable(final String originalCommandLineRunParam, final File puWorkDir)
+	private void markLinuxTargetAsExecutable(final String originalCommandLineRunParam, final File puWorkDir)
 			throws USMException {
 
 		logger.info("Setting File as executable: " + originalCommandLineRunParam);
-		final File file = getFileFromRelativeOrAbsolutePath(puWorkDir, originalCommandLineRunParam);
+		final File file = getFileFromRelativeOrAbsolutePath(
+				puWorkDir, originalCommandLineRunParam);
 		if (file != null) {
 			logger.info("File: " + file + " will be marked as executable");
-			USMUtils.markFileAsExecutable(sigar, file);
+			USMUtils.markFileAsExecutable(
+					sigar, file);
 		}
 
 	}
@@ -417,19 +436,19 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			.getName());
 
 	private List<String> convertCommandLineStringToParts(final String commandLine) {
-		List<String> list = new LinkedList<String>();
-		String[] parts = commandLine.split(" ");
-		for (String part : parts) {
+		final List<String> list = new LinkedList<String>();
+		final String[] parts = commandLine.split(" ");
+		for (final String part : parts) {
 			list.add(part);
 
 		}
 		return list;
 	}
 
-	private List<String> getCommandLineFromArgument(final Object arg, final File workDir, List<String> params) {
+	private List<String> getCommandLineFromArgument(final Object arg, final File workDir, final List<String> params) {
 		if (arg instanceof String) {
 			// Split the command into parts
-			List<String> commandLineStringInParts = convertCommandLineStringToParts((String) arg);
+			final List<String> commandLineStringInParts = convertCommandLineStringToParts((String) arg);
 			// Add the custom command parameters as args to the split commands
 			// array
 			if (params != null) {
@@ -448,15 +467,17 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 				logger.fine("Looking for command line for Operating System Name: " + os);
 			}
 
-			final List<String> cmdLineList = lookUpCommandLineForOS(map, os);
+			final List<String> cmdLineList = lookUpCommandLineForOS(
+					map, os);
 			if (cmdLineList != null) {
-				return cmdLineList;// convertCommandLineStringToParts(cmdLineList);
+				return cmdLineList;
 			}
 
 			logger.severe("Could not find a matching operating system expression for Operating System: " + os);
 			logger.severe("Attempting alternative command line: " + os);
 
-			final List<String> alternativeCommandLine = createAlternativeCommandLine(map, workDir);
+			final List<String> alternativeCommandLine = createAlternativeCommandLine(
+					map, workDir);
 			if (alternativeCommandLine != null) {
 				return alternativeCommandLine;
 			}
@@ -465,10 +486,10 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		}
 
 		if (arg instanceof List<?>) {
-			List<?> originalList = (List<?>) arg;
+			final List<?> originalList = (List<?>) arg;
 
-			List<String> resultList = new ArrayList<String>(originalList.size());
-			for (Object elem : originalList) {
+			final List<String> resultList = new ArrayList<String>(originalList.size());
+			for (final Object elem : originalList) {
 				resultList.add(elem.toString());
 			}
 			return resultList;
@@ -482,7 +503,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			return convertCommandLineStringToParts((String) value);
 		} else if (value instanceof List<?>) {
 			@SuppressWarnings("unchecked")
-			List<String> result = (List<String>) value;
+			final List<String> result = (List<String>) value;
 			return result;
 		} else {
 			throw new IllegalArgumentException("The value: " + value
@@ -496,13 +517,15 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			final String key = entry.getKey();
 			final Object value = entry.getValue();
 			try {
-				if (Pattern.matches(key, os)) {
+				if (Pattern.matches(
+						key, os)) {
 					return getCommandLineFromValue(value);
 
 				}
 			} catch (final PatternSyntaxException pse) {
-				logger.log(Level.WARNING, "Opeating System regular expression pattern: " + key
-						+ " cannot be compiled. It will me compared using basic string matching.", pse);
+				logger.log(
+						Level.WARNING, "Opeating System regular expression pattern: " + key
+								+ " cannot be compiled. It will me compared using basic string matching.", pse);
 				if (key.equals(os)) {
 					return getCommandLineFromValue(value);
 				}
@@ -517,27 +540,31 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			List<String> otherCommandLine = null;
 
 			if (map.entrySet().size() > 1) {
-				otherCommandLine = lookUpCommandLineForOS(map, "Linux");
+				otherCommandLine = lookUpCommandLineForOS(
+						map, "Linux");
 			}
 
 			if (otherCommandLine == null) {
 				otherCommandLine = getCommandLineFromValue(map.values().iterator().next());
 			}
 
-			final List<String> alternativeCommandLine = createWindowsCommandLineFromLinux(otherCommandLine, workDir);
+			final List<String> alternativeCommandLine = createWindowsCommandLineFromLinux(
+					otherCommandLine, workDir);
 			return alternativeCommandLine;
 		} else {
 			List<String> otherCommandLine = null;
 
 			if (map.entrySet().size() > 1) {
-				otherCommandLine = lookUpCommandLineForOS(map, "Windows");
+				otherCommandLine = lookUpCommandLineForOS(
+						map, "Windows");
 			}
 
 			if (otherCommandLine == null) {
 				otherCommandLine = getCommandLineFromValue(map.values().iterator().next());
 			}
 
-			final List<String> alternativeCommandLine = createLinuxCommandLineFromWindows(otherCommandLine, workDir);
+			final List<String> alternativeCommandLine = createLinuxCommandLineFromWindows(
+					otherCommandLine, workDir);
 			return alternativeCommandLine;
 
 		}
@@ -545,33 +572,39 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 	@Override
 	public Process launchProcessAsync(final Object arg, final File workingDir, final int retries,
-			final boolean redirectErrorStream, List<String> params) throws USMException {
-		return launchAsync(arg, workingDir, retries, redirectErrorStream, null, null, params);
+			final boolean redirectErrorStream, final List<String> params)
+			throws USMException {
+		return launchAsync(
+				arg, workingDir, retries, redirectErrorStream, null, null, params);
 	}
 
 	private Process launchAsync(final Object arg, final File workingDir, final int retries,
-			final boolean redirectErrorStream, final File outputFile, final File errorFile, List<String> params)
+			final boolean redirectErrorStream, final File outputFile, final File errorFile, final List<String> params)
 			throws USMException {
 		if (arg instanceof Callable<?>) {
 			// in process execution of a closure
 			return launchAsyncFromClosure(arg);
 
 		}
-		commandLine = getCommandLineFromArgument(arg, workingDir, params);
+		commandLine = getCommandLineFromArgument(
+				arg, workingDir, params);
 		// final String[] parts = commandLine.split(" ");
 		// final List<String> list = new
 		// LinkedList<String>(Arrays.asList(commandLine));
 
-		return this.launch(commandLine, workingDir, retries, redirectErrorStream, outputFile, errorFile);
+		return this.launch(
+				commandLine, workingDir, retries, redirectErrorStream, outputFile, errorFile);
 	}
 
-	protected Process launchAsyncFromClosure(final Object arg) throws USMException {
+	private Process launchAsyncFromClosure(final Object arg)
+			throws USMException {
 		final Callable<?> closure = (Callable<?>) arg;
 		Object retval = null;
 		try {
 			retval = closure.call();
 		} catch (final Exception e) {
-			logger.log(Level.SEVERE, "A closure entry failed to execute: " + e, e);
+			logger.log(
+					Level.SEVERE, "A closure entry failed to execute: " + e, e);
 			throw new USMException("Launch of process from closure exited with an exception: " + e.getMessage(), e);
 		}
 
@@ -590,9 +623,10 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 	@Override
 	public Object launchProcess(final Object arg, final File workingDir, final int retries,
-			final boolean redirectErrorStream, Map<String, Object> params) throws USMException {
+			final boolean redirectErrorStream, final Map<String, Object> params)
+			throws USMException {
 
-		List<String> paramsList = getParamsListFromMap(params);
+		final List<String> paramsList = getParamsListFromMap(params);
 		if (arg instanceof Closure<?>) {
 			// in process execution of a closure
 			final Closure<?> closure = (Closure<?>) arg;
@@ -601,35 +635,39 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 				if (logger.isLoggable(Level.FINE)) {
 					logger.fine("Closure Parameters: " + paramsList.toString());
 				}
-//				if (closure.getMaximumNumberOfParameters() != paramsList.size()){
-//					USMException e = new USMException("Invalid number of parameters." 
-//							+" Expecting " + closure.getMaximumNumberOfParameters() 
-//							+ " parameters, got " + paramsList.size() 
-//							+ ": " + paramsList.toString());
-//					logger.log(Level.SEVERE, e.getMessage());
-//					throw e; 
-//				}
+				// if (closure.getMaximumNumberOfParameters() != paramsList.size()){
+				// USMException e = new USMException("Invalid number of parameters."
+				// +" Expecting " + closure.getMaximumNumberOfParameters()
+				// + " parameters, got " + paramsList.size()
+				// + ": " + paramsList.toString());
+				// logger.log(Level.SEVERE, e.getMessage());
+				// throw e;
+				// }
 				// invoke the command closure.
-				Object result = closure.call(paramsList.toArray());
+				final Object result = closure.call(paramsList.toArray());
 				return result;
 			} catch (final Exception e) {
-				logger.log(Level.SEVERE, "A closure entry failed to execute: " + e.getMessage(), e);
+				logger.log(
+						Level.SEVERE, "A closure entry failed to execute: " + e.getMessage(), e);
 				throw new USMException("Failed to execute closure " + e.getMessage(), e);
 			}
 		}
 
-		final Process proc = launchProcessAsync(arg, workingDir, retries, redirectErrorStream, paramsList);
+		final Process proc = launchProcessAsync(
+				arg, workingDir, retries, redirectErrorStream, paramsList);
 		final BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 
 		String line = null;
-		StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = new StringBuilder();
 		final String newline = System.getProperty("line.separator");
 
 		logger.info("Command Output:");
 		try {
 			do {
 				if (line != null) {
-					sb.append(line).append(newline);
+					sb.append(
+							line).append(
+							newline);
 					logger.info(line);
 				}
 				line = reader.readLine();
@@ -655,12 +693,13 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			logger.info("Command exited with value: " + exitValue);
 			if (exitValue != 0) {
 				logger.severe("Event lifecycle external process exited with abnormal status code: " + exitValue);
-				
-				String result = sb.toString();
-				String exceptionReason = GroovyExceptionHandler.getExceptionString(result);
-				
-				logger.log(Level.SEVERE, "Event lifecycle external process failed: " + result);
-				//TODO:Add result string to exception if not groovy exception.
+
+				final String result = sb.toString();
+				final String exceptionReason = GroovyExceptionHandler.getExceptionString(result);
+
+				logger.log(
+						Level.SEVERE, "Event lifecycle external process failed: " + result);
+				// TODO:Add result string to exception if not groovy exception.
 				throw new USMException("Event lifecycle external process exited with abnormal status code: "
 						+ exitValue + " " + exceptionReason);
 			}
@@ -680,11 +719,11 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 	}
 
-	private List<String> getParamsListFromMap(Map<String, Object> params) {
-		List<String> paramsList = new ArrayList<String>();
+	private List<String> getParamsListFromMap(final Map<String, Object> params) {
+		final List<String> paramsList = new ArrayList<String>();
 		int index = 0;
 		while (true) {
-			String param = (String) params.get(CloudifyConstants.INVOCATION_PARAMETERS_KEY + index);
+			final String param = (String) params.get(CloudifyConstants.INVOCATION_PARAMETERS_KEY + index);
 			if (param != null) {
 				paramsList.add(param);
 			} else {
@@ -700,25 +739,34 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		return this.commandLine.toString();
 	}
 
-	private void modifyCommandLine(final List<String> commandLineParams, final File workingDir, File outputFile,
-			File errorFile) throws USMException {
-		modifyOSCommandLine(commandLineParams, workingDir);
+	private void modifyCommandLine(final List<String> commandLineParams, final File workingDir, final File outputFile,
+			final File errorFile)
+			throws USMException {
+		modifyOSCommandLine(
+				commandLineParams, workingDir);
 
-		if (commandLineParams.get(0).endsWith(".groovy")) {
-			modifyGroovyCommandLine(commandLineParams, workingDir);
+		if (commandLineParams.get(
+				0).endsWith(
+				".groovy")) {
+			modifyGroovyCommandLine(
+					commandLineParams, workingDir);
 		}
 
-		modifyRedirectionCommandLine(commandLineParams, outputFile, errorFile);
+		modifyRedirectionCommandLine(
+				commandLineParams, outputFile, errorFile);
 
 		if (USMUtils.isLinuxOrUnix()) {
 			// run the whole command in a shell session
 			logger.info("Command before shell modification: " + commandLineParams);
-			StringBuilder sb = new StringBuilder();
-			for (String param : commandLineParams) {
-				sb.append(param).append(" ");
+			final StringBuilder sb = new StringBuilder();
+			for (final String param : commandLineParams) {
+				sb.append(
+						param).append(
+						" ");
 			}
 			commandLineParams.clear();
-			commandLineParams.addAll(Arrays.asList("nohup", "sh", "-c", sb.toString()));
+			commandLineParams.addAll(Arrays.asList(
+					"nohup", "sh", "-c", sb.toString()));
 			logger.info("Command after shell modification: " + commandLineParams);
 
 		}
@@ -730,7 +778,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			return; // both files are set, or neither
 		}
 
-		commandLineParams.addAll(createRedirectionParametersForOS(outputFile, errorFile));
+		commandLineParams.addAll(createRedirectionParametersForOS(
+				outputFile, errorFile));
 
 		// if(USMUtils.isLinuxOrUnix()) {
 		// // add the terminating quotes
@@ -740,61 +789,71 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	}
 
 	private List<String> createRedirectionParametersForOS(final File outputFile, final File errorFile) {
-		return Arrays.asList(">>", outputFile.getAbsolutePath(), "2>>", errorFile.getAbsolutePath());
+		return Arrays.asList(
+				">>", outputFile.getAbsolutePath(), "2>>", errorFile.getAbsolutePath());
 
 	}
 
 	private Process launch(final List<String> commandLineParams, final File workingDir, final int retries,
-			final boolean redirectErrorStream, File outputFile, File errorFile) throws USMException {
+			final boolean redirectErrorStream, final File outputFile, final File errorFile)
+			throws USMException {
 
-		if (((outputFile == null) && (errorFile != null)) || ((outputFile != null) && (errorFile == null))) {
+		if (outputFile == null && errorFile != null || outputFile != null && errorFile == null) {
 			throw new IllegalArgumentException("Both output and error files must be set, or none of them");
 		}
 
-		if (redirectErrorStream && ((outputFile != null) || (errorFile != null))) {
+		if (redirectErrorStream && (outputFile != null || errorFile != null)) {
 			throw new IllegalArgumentException(
 					"If redirectError option is chosen, neither output file or error file can be set");
 		}
 
-		modifyCommandLine(commandLineParams, workingDir, outputFile, errorFile);
-		final String modifiedCommandLine = StringUtils.collectionToDelimitedString(commandLineParams, " ");
+		modifyCommandLine(
+				commandLineParams, workingDir, outputFile, errorFile);
+		final String modifiedCommandLine = StringUtils.collectionToDelimitedString(
+				commandLineParams, " ");
 
 		this.commandLine = commandLineParams; // last command line to be
 												// executed
 
 		int attempt = 1;
 		USMException ex = null;
-		while (attempt <= (retries + 1)) {
+		while (attempt <= retries + 1) {
 			final ProcessBuilder pb = new ProcessBuilder(commandLineParams);
 			pb.directory(workingDir);
 			pb.redirectErrorStream(redirectErrorStream);
 			final Map<String, String> env = createEnvironment();
-			pb.environment().putAll(env);
+			pb.environment().putAll(
+					env);
 
 			Process proc;
 
 			try {
 				logger.info("Parsed command line: " + commandLineParams);
-				final String fileInitialMessage = "Starting service process at: " + new Date() + " with command: "
-						+ commandLineParams + System.getProperty("line.separator");
-				if(outputFile != null) {
-					appendMessageToFile(fileInitialMessage, outputFile);
+				final String fileInitialMessage =
+						"Starting service process at: " + new Date() + " with command: " + commandLineParams
+								+ System.getProperty("line.separator");
+				if (outputFile != null) {
+					appendMessageToFile(
+							fileInitialMessage, outputFile);
 				}
-				if(errorFile != null) {
-					appendMessageToFile(fileInitialMessage, errorFile);
+				if (errorFile != null) {
+					appendMessageToFile(
+							fileInitialMessage, errorFile);
 				}
 				proc = pb.start();
 				return proc;
 			} catch (final IOException e) {
 				ex = new USMException("Failed to start process with command line: " + modifiedCommandLine, e);
-				logger.log(Level.SEVERE, "Process start attempt number " + attempt + " failed", ex);
+				logger.log(
+						Level.SEVERE, "Process start attempt number " + attempt + " failed", ex);
 			}
 			++attempt;
 		}
 		throw ex;
 	}
 
-	private void appendMessageToFile(String msg, File file) throws IOException {
+	private void appendMessageToFile(final String msg, final File file)
+			throws IOException {
 		FileWriter writer = null;
 		try {
 			writer = new FileWriter(file, true);
@@ -818,11 +877,12 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		}
 
 		if (this.clusterInfo == null) {
-			logger.warning("ClusterInfo in Process Launcher is null. Child process will have missing environment variables");
+			logger.warning("ClusterInfo in Process Launcher is null. "
+					+ "Child process will have missing environment variables");
 		} else {
 			if (clusterInfo.getName() != null) {
 				map.put(CloudifyConstants.USM_ENV_CLUSTER_NAME, clusterInfo.getName());
-				FullServiceName fullServiceName = ServiceUtils.getFullServiceName(clusterInfo.getName());
+				final FullServiceName fullServiceName = ServiceUtils.getFullServiceName(clusterInfo.getName());
 				map.put(CloudifyConstants.USM_ENV_APPLICATION_NAME, fullServiceName.getApplicationName());
 				map.put(CloudifyConstants.USM_ENV_SERVICE_NAME, fullServiceName.getServiceName());
 
@@ -857,7 +917,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 	}
 
-	protected String getGroupsProperty() {
+	private String getGroupsProperty() {
 		String groupsProperty = System.getProperty("com.gs.jini_lus.groups");
 		if (groupsProperty == null) {
 			groupsProperty = System.getenv("LOOKUPGROUPS");
@@ -867,39 +927,46 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			groupsProperty = "gigaspaces-" + PlatformVersion.getVersionNumber();
 		}
 
-		groupsProperty = groupsProperty.replace("\"", "");
+		groupsProperty = groupsProperty.replace(
+				"\"", "");
 
 		return groupsProperty;
 	}
 
-	protected String getLocatorsProperty() {
+	private String getLocatorsProperty() {
 		String property = System.getProperty("com.gs.jini_lus.locators");
 		if (property == null) {
 			property = System.getenv("LOOKUPLOCATORS");
 		}
 		if (property != null) {
-			property = property.replace("\"", "");
+			property = property.replace(
+					"\"", "");
 		}
 		return property;
 	}
 
 	@Override
-	public Object launchProcess(final Object arg, final File workingDir, Map<String, Object> params)
+	public Object launchProcess(final Object arg, final File workingDir, final Map<String, Object> params)
 			throws USMException {
-		return launchProcess(arg, workingDir, 0, true, params);
+		return launchProcess(
+				arg, workingDir, 0, true, params);
 
 	}
 
 	@Override
-	public Object launchProcess(final Object arg, final File workingDir) throws USMException {
-		return launchProcess(arg, workingDir, new HashMap<String, Object>());
+	public Object launchProcess(final Object arg, final File workingDir)
+			throws USMException {
+		return launchProcess(
+				arg, workingDir, new HashMap<String, Object>());
 
 	}
 
 	@Override
 	public Process launchProcessAsync(final Object arg, final File workingDir, final File outputFile,
-			final File errorFile) throws USMException {
-		return launchAsync(arg, workingDir, 0, false, outputFile, errorFile, null);
+			final File errorFile)
+			throws USMException {
+		return launchAsync(
+				arg, workingDir, 0, false, outputFile, errorFile, null);
 	}
 
 	@Override

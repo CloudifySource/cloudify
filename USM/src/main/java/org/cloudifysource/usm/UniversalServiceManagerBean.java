@@ -1365,6 +1365,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			final Entry<?, ?> entry = (Entry<?, ?>) entries.next();
 
 			// a closure can not be serialized
+			// TODO - write a unit test for this.
 			if (!(entry.getValue() instanceof java.io.Serializable) || entry.getValue() instanceof Closure<?>) {
 				logger.info("Entry " + entry.getKey() + " is not serializable and was not inserted to "
 						+ "the monitors map");
