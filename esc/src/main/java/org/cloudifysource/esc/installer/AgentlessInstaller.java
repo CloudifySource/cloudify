@@ -47,7 +47,6 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.util.LoggerOutputStream;
 import org.cloudifysource.esc.util.ShellCommandBuilder;
 import org.cloudifysource.esc.util.Utils;
-import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioningException;
 
 /************
  * The agentless installer class is responsible for installing gigaspaces on a remote machine, using only ssh. It will
@@ -402,7 +401,8 @@ public class AgentlessInstaller {
 						.exportVar(
 								NO_WEB_SERVICES_ENV, details.isNoWebServices() ? "true" : "false")
 						.exportVar(
-								MACHINE_IP_ADDRESS_ENV, details.getPrivateIp())
+								MACHINE_IP_ADDRESS_ENV, 
+								( details.isConnectedToPrivateIp() ? details.getPrivateIp() : details.getPublicIp()))
 						.exportVar(
 								MACHINE_ZONES_ENV, details.getZones())
 						.exportVar(
@@ -492,8 +492,8 @@ public class AgentlessInstaller {
 	 * @param listener
 	 *            the listener.
 	 */
-	public void addListener(final AgentlessInstallerListener ail) {
-		this.eventsListenersList.add(ail);
+	public void addListener(final AgentlessInstallerListener listener) {
+		this.eventsListenersList.add(listener);
 	}
 
 	private void publishEvent(final String eventName, final Object... args) {
