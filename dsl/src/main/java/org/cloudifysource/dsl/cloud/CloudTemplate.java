@@ -20,75 +20,88 @@ import java.util.Map;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 
-
 /**
+ * Domain POJO for the cloud template.
  * @author barakme
- *
+ * @since 2.0.0
+ * 
+ * 
  */
-@CloudifyDSLEntity(name = "template", clazz = CloudTemplate.class, allowInternalNode = true, allowRootNode = false, parent = "cloud")
+@CloudifyDSLEntity(name = "template", clazz = CloudTemplate.class, allowInternalNode = true, allowRootNode = false,
+		parent = "cloud")
 public class CloudTemplate {
 
 	private String imageId;
-    private int machineMemoryMB;
-    private String hardwareId;
-    private String locationId;
-    
-    private int numberOfCores = 1;
-    
-    
-    private Map<String, Object> options = new HashMap<String, Object>(); 
-    private Map<String, Object> overrides = new HashMap<String, Object>();
-    
+	private int machineMemoryMB;
+	private String hardwareId;
+	private String locationId;
+
+	private int numberOfCores = 1;
+
+	private Map<String, Object> options = new HashMap<String, Object>();
+	private Map<String, Object> overrides = new HashMap<String, Object>();
+
 	public String getImageId() {
 		return imageId;
 	}
-	public void setImageId(String imageId) {
+
+	public void setImageId(final String imageId) {
 		this.imageId = imageId;
 	}
+
 	public int getMachineMemoryMB() {
 		return machineMemoryMB;
 	}
-	public void setMachineMemoryMB(int machineMemoryMB) {
+
+	public void setMachineMemoryMB(final int machineMemoryMB) {
 		this.machineMemoryMB = machineMemoryMB;
 	}
+
 	public String getHardwareId() {
 		return hardwareId;
 	}
-	public void setHardwareId(String hardwareId) {
+
+	public void setHardwareId(final String hardwareId) {
 		this.hardwareId = hardwareId;
 	}
+
 	public String getLocationId() {
 		return locationId;
 	}
-	public void setLocationId(String locationId) {
+
+	public void setLocationId(final String locationId) {
 		this.locationId = locationId;
 	}
 
 	public int getNumberOfCores() {
 		return numberOfCores;
 	}
-	public void setNumberOfCores(int numberOfCores) {
+
+	public void setNumberOfCores(final int numberOfCores) {
 		this.numberOfCores = numberOfCores;
 	}
+
 	public Map<String, Object> getOptions() {
 		return options;
 	}
-	public void setOptions(Map<String, Object> options) {
+
+	public void setOptions(final Map<String, Object> options) {
 		this.options = options;
 	}
+
 	@Override
 	public String toString() {
 		return "CloudTemplate [imageId=" + imageId + ", machineMemoryMB=" + machineMemoryMB + ", hardwareId="
 				+ hardwareId + ", locationId=" + locationId + ", numberOfCores=" + numberOfCores + ", options="
 				+ options + ", overrides=" + overrides + "]";
 	}
-	
+
 	public Map<String, Object> getOverrides() {
 		return overrides;
 	}
-	public void setOverrides(Map<String, Object> overrides) {
+
+	public void setOverrides(final Map<String, Object> overrides) {
 		this.overrides = overrides;
 	}
 
-	
 }

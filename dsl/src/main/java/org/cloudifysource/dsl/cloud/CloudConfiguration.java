@@ -17,6 +17,13 @@ package org.cloudifysource.dsl.cloud;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 
+/***********
+ * Domain POJO for the cloud configuration.
+ * 
+ * @author barakme
+ * @since 2.0.0
+ *
+ */
 @CloudifyDSLEntity(name = "configuration", clazz = CloudConfiguration.class, allowInternalNode = true,
 		allowRootNode = false, parent = "cloud")
 public class CloudConfiguration {
