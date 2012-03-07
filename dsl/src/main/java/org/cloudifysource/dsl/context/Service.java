@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
@@ -123,7 +122,9 @@ public class Service {
 	public ServiceInstance[] waitForInstances(final int howmany, final long timeout, final TimeUnit timeUnit) {
 
 		if (this.pu != null) {
-			final boolean result = pu.waitFor(howmany, timeout, timeUnit);
+			final boolean result = pu.waitFor(howmany,
+					timeout,
+					timeUnit);
 			if (result) {
 				return getInstances();
 			} else {
@@ -158,7 +159,6 @@ public class Service {
 
 	}
 
-	private static final Logger logger = Logger.getLogger(Service.class.getName());
 	/******************
 	 * Invokes a custom command on this service.
 	 * 
@@ -171,13 +171,15 @@ public class Service {
 	 *             if any of the invocations failed. The thrown exception is the exception thrown by the failed
 	 *             invocation.
 	 */
-	public Object[] invoke(final String commandName, final Object[] params) throws Exception {
+	public Object[] invoke(final String commandName, final Object[] params)
+			throws Exception {
 		final ServiceInstance[] instances = this.getInstances();
 
 		final List<Future<Object>> futures = new ArrayList<Future<Object>>();
 
 		for (final ServiceInstance instance : instances) {
-			final Future<Object> future = instance.invokeAsync(commandName, params);
+			final Future<Object> future = instance.invokeAsync(commandName,
+					params);
 			futures.add(future);
 		}
 
@@ -189,7 +191,8 @@ public class Service {
 		for (int i = 0; i < results.length; i++) {
 			final Future<Object> future = futures.get(i);
 			try {
-				results[i] = future.get(end - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+				results[i] = future.get(end - System.currentTimeMillis(),
+						TimeUnit.MILLISECONDS);
 			} catch (final Exception e) {
 				results[i] = e;
 				if (firstException == null) {
