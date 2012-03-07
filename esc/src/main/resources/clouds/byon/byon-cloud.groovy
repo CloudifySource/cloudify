@@ -12,7 +12,7 @@ cloud {
 		provider "byon"
 		localDirectory "tools/cli/plugins/esc/byon/upload"
 		remoteDirectory "/home/test/"
-		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.0/gigaspaces-cloudify-2.1.0-m2-b1192-60.zip"
+		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.0/gigaspaces-cloudify-2.1.0-m2-b1192-62.zip"
 		machineNamePrefix "cloudify_agent_"
 		
 		dedicatedManagementMachines true
