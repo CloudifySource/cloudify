@@ -1,13 +1,18 @@
 
 cloud {
-	name = "hp"
+	// Mandatory. The name of the cloud, as it will appear in the Cloudify UI.
+	name = "Openstack"
 	configuration {
+		// Mandatory - openstack Diablo cloud driver.
 		className "org.cloudifysource.esc.driver.provisioning.openstack.OpenstackCloudDriver"
-		managementMachineTemplate "MEDIUM_LINUX_64"
+		// Optional. The template name for the management machines. Defaults to the first template in the templates section below.
+		managementMachineTemplate "SMALL_LINUX"
+		// Optional. Indicates whether internal cluster communications should use the machine private IP. Defaults to true.
 		connectToPrivateIp true
 	}
 
 	provider {
+		// optional 
 		provider "hp"
 		localDirectory "tools/cli/plugins/esc/hp/upload"
 		remoteDirectory "/root/gs-files"
@@ -29,7 +34,7 @@ cloud {
 		keyFile "ENTER_KEY_FILE"
 	}
 	templates ([
-				MEDIUM_LINUX_64 : template{
+				SMALL_LINUX : template{
 					imageId "221"
 					machineMemoryMB 1600
 					hardwareId "102"

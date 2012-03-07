@@ -16,7 +16,7 @@ cloud {
 		// Optional. The cloud implementation class. Defaults to the build in jclouds-based provisioning driver.
 		className "org.cloudifysource.esc.driver.provisioning.jclouds.DefaultProvisioningDriver"
 		// Optional. The template name for the management machines. Defaults to the first template in the templates section below.
-		managementMachineTemplate "SMALL_LINUX_32"
+		managementMachineTemplate "SMALL_LINUX"
 		// Optional. Indicates whether internal cluster communications should use the machine private IP. Defaults to true.
 		connectToPrivateIp true
 	}
@@ -79,7 +79,7 @@ cloud {
 	 */
 	templates ([
 			// Mandatory. Template Name.
-				SMALL_LINUX_32 : template{
+				SMALL_LINUX : template{
 					// Mandatory. Image ID. 
 					imageId "us-east-1/ami-76f0061f"
 					// Mandatory. Amount of RAM available to machine.
