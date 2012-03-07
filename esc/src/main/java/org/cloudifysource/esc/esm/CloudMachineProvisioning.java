@@ -55,6 +55,7 @@ import com.j_spaces.kernel.Environment;
  * ESM Provisioning implementation for cloud deployment, based on jclouds.
  * 
  * @author barakme
+ * @deprecated
  * 
  */
 public class CloudMachineProvisioning implements ElasticMachineProvisioning, Bean {

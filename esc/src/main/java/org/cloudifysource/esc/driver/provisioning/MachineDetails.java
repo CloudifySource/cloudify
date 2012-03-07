@@ -15,6 +15,13 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
+/*******
+ * Described a Machine started by a cloud driver.
+ * 
+ * @author barakme
+ * @since 2.0.0
+ *
+ */
 public class MachineDetails {
 
 	private String privateAddress;
@@ -25,17 +32,17 @@ public class MachineDetails {
 	private boolean cloudifyInstalled = false;
 	private String installationDirectory = null;
 	private boolean agentRunning = false;
-	
+
 	private String remoteUsername;
 	private String remotePassword;
-	
+
 	private String machineId;
 
 	public String getMachineId() {
 		return machineId;
 	}
 
-	public void setMachineId(String machineId) {
+	public void setMachineId(final String machineId) {
 		this.machineId = machineId;
 	}
 
@@ -43,7 +50,7 @@ public class MachineDetails {
 		return privateAddress;
 	}
 
-	public void setPrivateAddress(String privateAddress) {
+	public void setPrivateAddress(final String privateAddress) {
 		this.privateAddress = privateAddress;
 	}
 
@@ -51,7 +58,7 @@ public class MachineDetails {
 		return publicAddress;
 	}
 
-	public void setPublicAddress(String publicAddress) {
+	public void setPublicAddress(final String publicAddress) {
 		this.publicAddress = publicAddress;
 	}
 
@@ -59,7 +66,7 @@ public class MachineDetails {
 		return cloudifyInstalled;
 	}
 
-	public void setCloudifyInstalled(boolean cloudifyInstalled) {
+	public void setCloudifyInstalled(final boolean cloudifyInstalled) {
 		this.cloudifyInstalled = cloudifyInstalled;
 	}
 
@@ -67,7 +74,7 @@ public class MachineDetails {
 		return agentRunning;
 	}
 
-	public void setAgentRunning(boolean agentRunning) {
+	public void setAgentRunning(final boolean agentRunning) {
 		this.agentRunning = agentRunning;
 	}
 
@@ -75,7 +82,7 @@ public class MachineDetails {
 		return installationDirectory;
 	}
 
-	public void setInstallationDirectory(String installationDirectory) {
+	public void setInstallationDirectory(final String installationDirectory) {
 		this.installationDirectory = installationDirectory;
 	}
 
@@ -85,28 +92,30 @@ public class MachineDetails {
 	}
 
 	@Deprecated
-	public void setClusterAddress(String clusterAddress) {
+	public void setClusterAddress(final String clusterAddress) {
 		this.clusterAddress = clusterAddress;
 	}
 
 	@Override
 	public String toString() {
-		return "MachineDetails [machineId=" + machineId + ", privateAddress="
-				+ privateAddress + ", publicAddress=" + publicAddress
-				+ ", clusterAddress=" + clusterAddress
-				+ ", gigaspacesInstalled=" + cloudifyInstalled
-				+ ", agentRunning=" + agentRunning + ", installationDirectory="
-				+ installationDirectory + "]";
+		return "MachineDetails [machineId=" + machineId + ", privateAddress=" + privateAddress + ", publicAddress="
+				+ publicAddress + ", clusterAddress=" + clusterAddress + ", gigaspacesInstalled=" + cloudifyInstalled
+				+ ", agentRunning=" + agentRunning + ", installationDirectory=" + installationDirectory + "]";
 	}
 
 	public boolean isUsePrivateAddress() {
 		return usePrivateAddress;
 	}
 
-	public void setUsePrivateAddress(boolean usePrivateAddress) {
+	//TODO - this flag should be removed - it should only be set in the adapter, not in the driver.
+	public void setUsePrivateAddress(final boolean usePrivateAddress) {
 		this.usePrivateAddress = usePrivateAddress;
 	}
 
+	/*****
+	 * Returns the IP that should be used for cluster communications.
+	 * @return the IP.
+	 */
 	public String getIp() {
 		if (this.isUsePrivateAddress()) {
 			return this.getPrivateAddress();
@@ -120,7 +129,7 @@ public class MachineDetails {
 		return remoteUsername;
 	}
 
-	public void setRemoteUsername(String remoteUsername) {
+	public void setRemoteUsername(final String remoteUsername) {
 		this.remoteUsername = remoteUsername;
 	}
 
@@ -128,7 +137,7 @@ public class MachineDetails {
 		return remotePassword;
 	}
 
-	public void setRemotePassword(String remotePassword) {
+	public void setRemotePassword(final String remotePassword) {
 		this.remotePassword = remotePassword;
 	}
 

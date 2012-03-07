@@ -402,7 +402,7 @@ public class AgentlessInstaller {
 								NO_WEB_SERVICES_ENV, details.isNoWebServices() ? "true" : "false")
 						.exportVar(
 								MACHINE_IP_ADDRESS_ENV, 
-								( details.isConnectedToPrivateIp() ? details.getPrivateIp() : details.getPublicIp()))
+								( details.isBindToPrivateIp() ? details.getPrivateIp() : details.getPublicIp()))
 						.exportVar(
 								MACHINE_ZONES_ENV, details.getZones())
 						.exportVar(

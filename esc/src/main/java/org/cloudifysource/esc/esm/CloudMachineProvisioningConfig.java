@@ -36,6 +36,7 @@ import org.openspaces.grid.gsm.capacity.MemoryCapacityRequirement;
  * 
  * @author barakme
  * 
+ * 
  */
 public class CloudMachineProvisioningConfig implements ElasticMachineProvisioningConfig {
 

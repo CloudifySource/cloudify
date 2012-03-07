@@ -65,7 +65,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 						@Override
 						public Object call() throws Exception {
-							logger.info("Creating JClouds context deployer with user: " + cloud.getUser().getUser());
+							logger.fine("Creating JClouds context deployer with user: " + cloud.getUser().getUser());
 							final CloudTemplate cloudTemplate = cloud.getTemplates().get(cloudTemplateName);
 
 							final Properties props = new Properties();
@@ -437,10 +437,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 				md.setRemoteUsername(cloud.getConfiguration().getRemoteUsername());
 			}
 		}
-
-		// By default, cloud nodes connect to each other using their private
-		// address.
-		md.setUsePrivateAddress(true);
+	
+		md.setUsePrivateAddress(this.cloud.getConfiguration().isConnectToPrivateIp());
 		return md;
 	}
 

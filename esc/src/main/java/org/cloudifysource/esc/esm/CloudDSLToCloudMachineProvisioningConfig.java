@@ -32,6 +32,7 @@ import org.cloudifysource.dsl.cloud.Cloud;
  * The information in the Cloud class is being loaded from the .groovy DSL file.
  * 
  * @author adaml
+ * @deprecated
  *
  */
 public class CloudDSLToCloudMachineProvisioningConfig {

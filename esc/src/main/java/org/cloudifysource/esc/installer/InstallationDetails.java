@@ -77,6 +77,9 @@ public class InstallationDetails implements Cloneable {
 	// wherther we are in the same network as the machine we are about to install
 	private boolean connectedToPrivateIp;
 
+	// whether the NIC_ADDR of the machine should be the private or public IP
+	private boolean bindToPrivateIp = true;
+
 	// a cloud specific identifier for a host
 	private String machineId;
 
@@ -206,8 +209,8 @@ public class InstallationDetails implements Cloneable {
 	@Override
 	public InstallationDetails clone() {
 		final InstallationDetails result = new InstallationDetails();
-		ReflectionUtils.shallowCopyFieldState(
-				this, result);
+		ReflectionUtils.shallowCopyFieldState(this,
+				result);
 		return result;
 	}
 
@@ -241,6 +244,14 @@ public class InstallationDetails implements Cloneable {
 
 	public void setOverridesUrl(final String overridesUrl) {
 		this.overridesUrl = overridesUrl;
+	}
+
+	public boolean isBindToPrivateIp() {
+		return bindToPrivateIp;
+	}
+
+	public void setBindToPrivateIp(final boolean bindToPrivateIp) {
+		this.bindToPrivateIp = bindToPrivateIp;
 	}
 
 }
