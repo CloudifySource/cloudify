@@ -3,7 +3,7 @@ cloud {
 	name = "byon"
 	configuration {
 		className "org.cloudifysource.esc.driver.provisioning.byon.ByonProvisioningDriver"
-		managementMachineTemplate "SMALL_LINUX_32"
+		managementMachineTemplate "SMALL_LINUX"
 		connectToPrivateIp true
 		bootstrapManagementOnPublicIp false
 	}
@@ -32,7 +32,7 @@ cloud {
 		keyFile ""
 	}
 	templates ([
-				SMALL_LINUX_32 : template{
+				SMALL_LINUX : template{
 					imageId "us-east-1/ami-76f0061f"
 					machineMemoryMB 1600
 					hardwareId "m1.small"
