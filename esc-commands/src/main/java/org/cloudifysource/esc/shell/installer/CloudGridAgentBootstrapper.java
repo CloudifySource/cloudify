@@ -273,6 +273,7 @@ public class CloudGridAgentBootstrapper {
 		details.setOverridesUrl(cloud.getProvider().getCloudifyOverridesUrl());
 		details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		details.setUsername(cloud.getUser().getUser());
+		details.setBindToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		
 		//if ((cloud.getUser().getKeyPair() != null) && (cloud.getUser().getKeyPair().length() > 0)) {
 		if(cloud.getUser().getKeyFile() != null && cloud.getUser().getKeyFile().length() > 0) {
@@ -421,6 +422,7 @@ public class CloudGridAgentBootstrapper {
 			installationDetails.setPublicIp(machine.getPublicAddress());
 			// Bootstrapping is usually done from a different network
 			installationDetails.setConnectedToPrivateIp(!cloud.getConfiguration().isBootstrapManagementOnPublicIp());
+			installationDetails.setBindToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 			installationDetails.setCloudFile(this.cloudFile);
 			details[i] = installationDetails;
 		}
