@@ -26,7 +26,7 @@ cloud2 {
 		keyPair "cloud-demo"
 	}
 	templates ([
-				SMALL_LINUX_32 : template{
+				SMALL_LINUX : template{
 					imageId "us-east-1/ami-76f0061f"
 					machineMemoryMB "1600"
 					hardwareId "m1.small"
