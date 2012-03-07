@@ -772,7 +772,8 @@ public class LocalhostGridAgentBootstrapper {
 			waitForManagementProcesses(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
 					TimeUnit.MILLISECONDS);
 
-			final List<AbstractManagementServiceInstaller> waitForManagementServices = new LinkedList<AbstractManagementServiceInstaller>();
+			final List<AbstractManagementServiceInstaller> waitForManagementServices = 
+					new LinkedList<AbstractManagementServiceInstaller>();
 
 			connectionLogs.supressConnectionErrors();
 			try {
