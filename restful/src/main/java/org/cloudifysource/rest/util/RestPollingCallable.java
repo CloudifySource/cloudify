@@ -58,6 +58,8 @@ import com.gigaspaces.log.LogEntryMatcher;
  */
 public class RestPollingCallable implements Callable<Boolean> {
 
+    private static final int UNINSTALL_POLLING_INTERVAL = 1000;
+
     private Admin admin;
 
     private long endTime;
@@ -95,7 +97,7 @@ public class RestPollingCallable implements Callable<Boolean> {
      * @param timeout polling timeout.
      * @param timeunit polling timeout timeunit.
      */
-    public RestPollingCallable(Application application,
+    public RestPollingCallable(final Application application,
             final long timeout, final TimeUnit timeunit) {
         
         this.isServiceInstall  = false;
@@ -115,13 +117,14 @@ public class RestPollingCallable implements Callable<Boolean> {
      * 
      * Use this constructor if polling a single service installation.
      * 
-     * @param service
-     *            the service to deploy
+     * @param serviceName
+     *            the service name to deploy
      * @param timeout timeout polling timeout.
+     * @param plannedNumberOfInstances the planned number of instances.
      * @param timeunit polling timeout timeunit.
      */
-    public RestPollingCallable(String serviceName, int plannedNumberOfInstances, final long timeout,
-            final TimeUnit timeunit) {
+    public RestPollingCallable(final String serviceName, final int plannedNumberOfInstances,
+            final long timeout, final TimeUnit timeunit) {
 
         this.isServiceInstall  = true;
         this.serviceNames = new LinkedHashMap<String, Integer>();
@@ -144,7 +147,6 @@ public class RestPollingCallable implements Callable<Boolean> {
      * goes over all available GSC's and scans their logs for new lifecycle events.
      * In each iteration it will updated the lifecycle event container sheared resource.
      * This method will only retrieve lifecycle events that occurred in the last 5 minutes.
-     * @return a list of Maps containing all events and their details.
      * @throws InterruptedException 
      * @throws TimeoutException 
      */
@@ -184,7 +186,7 @@ public class RestPollingCallable implements Callable<Boolean> {
                                     - FIVE_MINUTES_MILLISECONDS);
                             if (fiveMinutesAgoGscTime.before(new Date(logEntry
                                     .getTimestamp()))) {
-                                final Map<String, String> serviceEventsMap = getServiceDetailes(
+                                final Map<String, String> serviceEventsMap = getEventDetailes(
                                         logEntry, container, absolutePuName);
                                 servicesLifecycleEventDetailes.add(serviceEventsMap);
                             }
@@ -192,23 +194,26 @@ public class RestPollingCallable implements Callable<Boolean> {
                     }
                     this.lifecycleEventsContainer.addLifecycleEvents(servicesLifecycleEventDetailes);
                     numberOfServiceInstances = getNumberOfServiceInstances(absolutePuName);
-                    if (numberOfServiceInstances == 0){
-                        this.lifecycleEventsContainer.addInstanceCountEvent("Deploying " + serviceName + " with " + plannedNumberOfInstances + " planned instances.");
+                    if (numberOfServiceInstances == 0) {
+                        this.lifecycleEventsContainer.addInstanceCountEvent("Deploying " + serviceName + " with " 
+                                + plannedNumberOfInstances + " planned instances.");
                     }else{
-                        this.lifecycleEventsContainer.addInstanceCountEvent("[" + ServiceUtils.getApplicationServiceName(absolutePuName, this.applicationName) 
+                        this.lifecycleEventsContainer.addInstanceCountEvent("[" 
+                                + ServiceUtils.getApplicationServiceName(absolutePuName, this.applicationName) 
                             + "] " + "Deployed "
                             + numberOfServiceInstances
                             + " of "
                             + plannedNumberOfInstances);
                     }
                 }
-                if (plannedNumberOfInstances ==  numberOfServiceInstances){
-                    if (!isServiceInstall){
-                        this.lifecycleEventsContainer.addInstanceCountEvent("Service \"" + serviceName + "\" successfully installed (" + numberOfServiceInstances + " Instances)");
+                if (plannedNumberOfInstances ==  numberOfServiceInstances) {
+                    if (!isServiceInstall) {
+                        this.lifecycleEventsContainer.addInstanceCountEvent("Service \"" + serviceName 
+                                + "\" successfully installed (" + numberOfServiceInstances + " Instances)");
                     }
                     entryIterator.remove();
                 }
-                if (serviceNames.isEmpty()){
+                if (serviceNames.isEmpty()) {
                     return;
                 }
             }
@@ -224,8 +229,8 @@ public class RestPollingCallable implements Callable<Boolean> {
      * reviled only after it's PU has been created and so we need to poll the pu
      * to get the correct number of planned instances in case the pu is of type datagrid.
      * 
-     * @param serviceName
-     * @return
+     * @param serviceName The service name
+     * @return planned number of service instances
      */
     private int getPlannedNumberOfInstances(String serviceName) {
         String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
@@ -266,6 +271,7 @@ public class RestPollingCallable implements Callable<Boolean> {
         return 0;
     }
 
+
     // returns the number of RUNNING processing unit instances.
     private int getNumberOfUSMServicesWithRunningState(
             final String absolutePUName) {
@@ -287,10 +293,15 @@ public class RestPollingCallable implements Callable<Boolean> {
         return puiInstanceCounter;
     }
     
-    public void setIsUninstall(boolean isUninstall){
+    /**
+     * tells the polling task to expect uninstall or install of service.
+     * the default value is set to false.
+     * @param isUninstall is the task being preformed an uninstall task.
+     */
+    public void setIsUninstall(final boolean isUninstall) {
         this.isUninstall = isUninstall; 
         //GSCs will disappear quickly. decrement polling interval
-        this.pollingInterval = 1000;
+        this.pollingInterval = UNINSTALL_POLLING_INTERVAL;
     }
 
     /**
@@ -298,9 +309,9 @@ public class RestPollingCallable implements Callable<Boolean> {
      * @param logEntry The event log entry originated from the GSC log
      * @param container the GSC of the specified event
      * @param absolutePuName the absolute processing unit name.
-     * @return
+     * @return returns a details map containing all of an events details.
      */
-    private Map<String, String> getServiceDetailes(final LogEntry logEntry,
+    private Map<String, String> getEventDetailes(final LogEntry logEntry,
             final GridServiceContainer container, final String absolutePuName) {
 
         final Map<String, String> returnMap = new HashMap<String, String>();
@@ -326,7 +337,7 @@ public class RestPollingCallable implements Callable<Boolean> {
         return returnMap;
     }
 
-    public void setAdmin(Admin admin){
+    public void setAdmin(final Admin admin) {
         this.admin = admin;
     }
 
@@ -336,7 +347,7 @@ public class RestPollingCallable implements Callable<Boolean> {
      * @param lifecycleEventsContainer ref to a lifecycleEventsContainer.
      */
     public void setLifecycleEventsContainer(
-            LifecycleEventsContainer lifecycleEventsContainer) {
+            final LifecycleEventsContainer lifecycleEventsContainer) {
         this.lifecycleEventsContainer = lifecycleEventsContainer;
     }
 
@@ -347,9 +358,9 @@ public class RestPollingCallable implements Callable<Boolean> {
      * 
      * DEFAULT_POLLING_INTERVAL = 2000 ms.
      * 
-     * @param pollingInterval
+     * @param pollingInterval Polling interval
      */
-    public void setPollingInterval(int pollingInterval){
+    public void setPollingInterval(final int pollingInterval) {
         this.pollingInterval = pollingInterval;
     }
 
