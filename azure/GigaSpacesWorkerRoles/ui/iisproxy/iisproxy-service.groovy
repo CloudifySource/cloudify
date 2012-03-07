@@ -12,7 +12,7 @@ service {
         preStop "iisproxy_prestop.groovy"
         postStop "iisproxy_poststop.groovy"
         
-                startDetection {
+        startDetection {
           config = new ConfigSlurper().parse(new File(context.serviceDirectory,"iisproxy-service.properties").toURL())
           return new File(context.serviceDirectory,"${config.startedFilename}").exists()
         }
