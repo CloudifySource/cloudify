@@ -27,30 +27,42 @@ import org.cloudifysource.usm.events.StartReason;
 import org.cloudifysource.usm.events.StopReason;
 import org.springframework.beans.factory.annotation.Autowired;
 
-
+/*********
+ * A service lifecycle listener that delegates all events to the servcie recipe DSL. 
+ * @author barakme
+ * @since 2.0.0
+ *
+ */
 public class DSLCommandsLifecycleListener extends AbstractUSMEventListener implements LifecycleListener {
 
 	@Autowired(required = true)
 	private UniversalServiceManagerConfiguration configuration;
-	
-	private ServiceLifecycle lifecycle;
-	
 
+	private ServiceLifecycle lifecycle;
+
+	/******
+	 * BEan initializer.
+	 */
 	@PostConstruct
 	public void afterPropertiesSet() {
 		this.lifecycle = ((DSLConfiguration) configuration).getService().getLifecycle();
 	}
-	
-	private EventResult executeEntry(Object entry) {
+
+	private EventResult executeEntry(final Object entry) {
 		return new DSLEntryExecutor(entry, this.usm.getUsmLifecycleBean().getLauncher(), this.usm.getPuExtDir()).run();
 	}
-	
-	public boolean isEventExists(LifecycleEvents event) {
+
+	/**********
+	 * Indicates if a specific lifecycle event is implemented by this DSL.
+	 * @param event the event.
+	 * @return true if the event is implemented, false otherwise.
+	 */
+	public boolean isEventExists(final LifecycleEvents event) {
 		return this.getEntryForEvent(event) != null;
 	}
-	
-	Object getEntryForEvent(LifecycleEvents event) { 
-		switch(event) {
+
+	Object getEntryForEvent(final LifecycleEvents event) {
+		switch (event) {
 		case INIT:
 			return lifecycle.getInit();
 		case PRE_INSTALL:
@@ -75,26 +87,27 @@ public class DSLCommandsLifecycleListener extends AbstractUSMEventListener imple
 			return lifecycle.getPreServiceStop();
 		default:
 			throw new IllegalArgumentException("Unsupported lifecycle event: " + event);
-		
+
 		}
-		
+
 	}
+
 	@Override
 	public EventResult onInit() {
 		return executeEntry(lifecycle.getInit());
 	}
-	
+
 	@Override
 	public EventResult onPreInstall() {
 		return executeEntry(lifecycle.getPreInstall());
 
 	}
-	
+
 	@Override
 	public EventResult onInstall() {
 		return executeEntry(lifecycle.getInstall());
 	}
-	
+
 	@Override
 	public EventResult onPostInstall() {
 		return executeEntry(lifecycle.getPostInstall());
@@ -129,19 +142,17 @@ public class DSLCommandsLifecycleListener extends AbstractUSMEventListener imple
 		return executeEntry(lifecycle.getShutdown());
 
 	}
-	
+
 	@Override
 	public EventResult onPreServiceStart() {
 		return executeEntry(lifecycle.getPreServiceStart());
 
 	}
-	
+
 	@Override
 	public EventResult onPreServiceStop() {
 		return executeEntry(lifecycle.getPreServiceStop());
 
 	}
-	
-	
 
 }

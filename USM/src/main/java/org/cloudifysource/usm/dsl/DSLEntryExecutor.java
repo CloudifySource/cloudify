@@ -24,40 +24,68 @@ import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.events.EventResult;
 import org.cloudifysource.usm.launcher.ProcessLauncher;
 
+/*********
+ * Executes a DSL entry, using the provided process launcher implementation.
+ * 
+ * @author barakme
+ * @since 2.0.0
+ * 
+ */
+public class DSLEntryExecutor {
 
-public class DSLEntryExecutor  {
+	private final Object entry;
+	private final ProcessLauncher launcher;
+	private final File workDir;
+	private final Map<String, Object> params;
 
-	private Object entry;
-	private ProcessLauncher launcher;
-	private File workDir;
-	private Map<String, Object> params;
+	private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger(DSLEntryExecutor.class
+			.getName());
 
-	private static java.util.logging.Logger logger =
-			java.util.logging.Logger.getLogger(DSLEntryExecutor.class.getName());
-	public DSLEntryExecutor(Object entry, ProcessLauncher launcher, File workDir) {
+	/********
+	 * Constructor. 
+	 * @param entry .
+	 * @param launcher .
+	 * @param workDir .
+	 */
+	public DSLEntryExecutor(final Object entry, final ProcessLauncher launcher, final File workDir) {
 		this(entry, launcher, workDir, new HashMap<String, Object>());
 	}
 
-	public DSLEntryExecutor(Object entry, ProcessLauncher launcher, File workDir, Map<String, Object> params) {
+	/********
+	 * Constructor. 
+	 * @param entry .
+	 * @param launcher .
+	 * @param workDir .
+	 * @param params .
+	 */
+	public DSLEntryExecutor(final Object entry, final ProcessLauncher launcher, final File workDir,
+			final Map<String, Object> params) {
 		this.entry = entry;
 		this.launcher = launcher;
 		this.workDir = workDir;
 		this.params = params;
 	}
 
+	/*******
+	 * Executers the DSL Entry.
+	 * @return the event result.
+	 */
 	public EventResult run() {
 		if (entry == null) {
 			return EventResult.SUCCESS;
-		} 
+		}
 		try {
-			Object result = launcher.launchProcess(entry, workDir, params);
+			final Object result = launcher.launchProcess(entry,
+					workDir,
+					params);
 			return new EventResult(result);
-		} catch (USMException e) {
-			logger.log(Level.SEVERE, "Failed to execute entry: " + entry, e);
+		} catch (final USMException e) {
+			logger.log(Level.SEVERE,
+					"Failed to execute entry: " + entry,
+					e);
 			return new EventResult(e);
 		}
-		
-		
+
 	}
 
 }

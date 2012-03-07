@@ -22,11 +22,18 @@ import org.cloudifysource.dsl.context.ServiceContext;
 import org.cloudifysource.usm.CommandParts;
 import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
 
-
-
-
+/************
+ * DSL based USM configuration.
+ * 
+ * TODO - phase out the USMConfig - it is not really needed any more.
+ * 
+ * @author barakme
+ * @since 2.0.0
+ * 
+ */
 public class DSLConfiguration implements UniversalServiceManagerConfiguration {
 
+	private static final int MILLIS_IN_SECOND = 1000;
 	private final Service service;
 	private final File puExtDir;
 	private final ServiceContext serviceContext;
@@ -40,13 +47,26 @@ public class DSLConfiguration implements UniversalServiceManagerConfiguration {
 		return serviceContext;
 	}
 
-	public DSLConfiguration(final Service service, ServiceContext serviceContext, final File puExtDir, final File serviceFile) {
+	/************
+	 * Constructor.
+	 * 
+	 * @param service
+	 *            the service POJO.
+	 * @param serviceContext
+	 *            the service context.
+	 * @param puExtDir
+	 *            the ext dir for the PI instance.
+	 * @param serviceFile
+	 *            the DSL dile.
+	 */
+	public DSLConfiguration(final Service service, final ServiceContext serviceContext, final File puExtDir,
+			final File serviceFile) {
 		this.service = service;
 		this.serviceContext = serviceContext;
 		this.puExtDir = puExtDir;
 		this.serviceFile = serviceFile;
 	}
-	
+
 	@Override
 	public Object getStartCommand() {
 		final Object start = this.service.getLifecycle().getStart();
@@ -88,12 +108,12 @@ public class DSLConfiguration implements UniversalServiceManagerConfiguration {
 
 	@Override
 	public long getStartDetectionTimeoutMSecs() {
-		return this.service.getLifecycle().getStartDetectionTimeoutSecs() * 1000;
+		return this.service.getLifecycle().getStartDetectionTimeoutSecs() * MILLIS_IN_SECOND;
 	}
 
 	@Override
 	public long getStartDetectionIntervalMSecs() {
-		return this.service.getLifecycle().getStartDetectionIntervalSecs() * 1000;
+		return this.service.getLifecycle().getStartDetectionIntervalSecs() * MILLIS_IN_SECOND;
 	}
 
 }
