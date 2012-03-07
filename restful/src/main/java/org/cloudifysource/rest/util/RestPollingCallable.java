@@ -232,14 +232,14 @@ public class RestPollingCallable implements Callable<Boolean> {
      * @param serviceName The service name
      * @return planned number of service instances
      */
-    private int getPlannedNumberOfInstances(String serviceName) {
+    private int getPlannedNumberOfInstances(final String serviceName) {
         String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
         ProcessingUnit processingUnit = admin.getProcessingUnits().getProcessingUnit(absolutePuName);
-        if (processingUnit != null){
-            Map<String, String> elasticProperties = ((DefaultProcessingUnit)processingUnit).getElasticProperties();
-            if (elasticProperties.containsKey("schema")){
-                String ClusterSchemaValue = elasticProperties.get("schema");
-                if ("partitioned-sync2backup".equals(ClusterSchemaValue)){
+        if (processingUnit != null) {
+            Map<String, String> elasticProperties = ((DefaultProcessingUnit) processingUnit).getElasticProperties();
+            if (elasticProperties.containsKey("schema")) {
+                String clusterSchemaValue = elasticProperties.get("schema");
+                if ("partitioned-sync2backup".equals(clusterSchemaValue)) {
                     return processingUnit.getTotalNumberOfInstances();
                 }
             }
@@ -252,10 +252,10 @@ public class RestPollingCallable implements Callable<Boolean> {
      *  service (USM/Other). if the service pu is not running
      *  yet, returns 0.
      *  
-     * @param absolutePuName
+     * @param absolutePuName The absolute service name.
      * @return the service's number of running instances.
      */
-    private int getNumberOfServiceInstances(String absolutePuName){
+    private int getNumberOfServiceInstances(final String absolutePuName) {
 
         ProcessingUnit processingUnit = admin.getProcessingUnits().getProcessingUnit(absolutePuName);
 
@@ -264,13 +264,12 @@ public class RestPollingCallable implements Callable<Boolean> {
                     ProcessingUnitType.UNIVERSAL)) {
                 return getNumberOfUSMServicesWithRunningState(absolutePuName);
             }
-            return admin.getProcessingUnits()
-            .getProcessingUnit(absolutePuName).getNumberOfInstances();
 
+            return admin.getProcessingUnits()
+                .getProcessingUnit(absolutePuName).getInstances().length;
         }
         return 0;
     }
-
 
     // returns the number of RUNNING processing unit instances.
     private int getNumberOfUSMServicesWithRunningState(
