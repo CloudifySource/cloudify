@@ -21,5 +21,8 @@ new AntBuilder().sequential {
         arg(value:"${config.wwwPublicService}")
     }
 }
+
+new File("${config.startedFilename}").write(' ')
+
 println("iisproxy started. Sleeping indefenitley")
 while (true) { sleep(60000) }

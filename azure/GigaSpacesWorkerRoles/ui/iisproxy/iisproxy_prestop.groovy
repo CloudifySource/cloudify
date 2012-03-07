@@ -19,3 +19,6 @@ new AntBuilder().sequential {
         arg(value:"${config.wpActivationService}")
     }
 }
+
+new File("${config.startedFilename}").deleteOnExit()
+

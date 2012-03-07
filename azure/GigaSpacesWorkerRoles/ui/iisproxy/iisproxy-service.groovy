@@ -11,6 +11,11 @@ service {
         start "iisproxy_start.groovy"
         preStop "iisproxy_prestop.groovy"
         postStop "iisproxy_poststop.groovy"
+        
+                startDetection {
+          config = new ConfigSlurper().parse(new File(context.serviceDirectory,"iisproxy-service.properties").toURL())
+          return new File(context.serviceDirectory,"${config.startedFilename}").exists()
+        }
     }
 	
 	network {
