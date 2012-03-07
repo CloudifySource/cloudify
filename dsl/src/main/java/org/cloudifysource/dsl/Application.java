@@ -20,29 +20,34 @@ import java.util.List;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 
-
-@CloudifyDSLEntity(name="application", clazz=Application.class, allowInternalNode = false, allowRootNode = true)
+/****************
+ * Domain POJO for an Application recipe.
+ * @author barakme
+ * @since 2.0.0
+ *
+ */
+@CloudifyDSLEntity(name = "application", clazz = Application.class, allowInternalNode = false, allowRootNode = true)
 public class Application {
 
-    private String name;
-    
-    private List<Service> services = new LinkedList<Service>();
+	private String name;
 
-    public String getName() {
-        return name;
-    }
+	private List<Service> services = new LinkedList<Service>();
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public List<Service> getServices() {
-        return services;
-    }
+	public void setName(final String name) {
+		this.name = name;
+	}
 
-    public void setServices(List<Service> services) {
-        this.services = services;
-    }
+	public List<Service> getServices() {
+		return services;
+	}
+
+	public void setServices(final List<Service> services) {
+		this.services = services;
+	}
 
 	@Override
 	public String toString() {
@@ -50,15 +55,23 @@ public class Application {
 	}
 
 	// This is a hack, but it allows the application DSL to work with the existing DSL base script.
+	/***
+	 * .
+	 * @param service .
+	 */
 	public void setService(final Service service) {
 		this.services.add(service);
 	}
 
+	/****
+	 * .
+	 * @return .
+	 */
 	public Service getService() {
-		if(this.getServices().isEmpty()) {
+		if (this.getServices().isEmpty()) {
 			return null;
 		}
-		return this.services.get(this.services.size() -1);
+		return this.services.get(this.services.size() - 1);
 	}
-    
+
 }

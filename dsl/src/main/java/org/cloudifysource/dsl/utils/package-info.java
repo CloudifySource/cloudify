@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.dsl;
+package org.cloudifysource.dsl.utils;
 
-import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
-
-/*************
- * Domain POJO for a XAP Mirror PU.
+/**************************
+ * Various utility packages used by recipes and groovy scripts.
+ * ,.
+ * More details to follow.
  * 
- * @author barakme
- * @since 2.0.0
- * 
- */
-@CloudifyDSLEntity(name = "mirrorProcessingUnit", clazz = MirrorProcessingUnit.class, allowInternalNode = true,
-		allowRootNode = false, parent = "service")
-public class MirrorProcessingUnit extends StatelessProcessingUnit {
-
-}
+ * @author barakme.
+ *****************************/

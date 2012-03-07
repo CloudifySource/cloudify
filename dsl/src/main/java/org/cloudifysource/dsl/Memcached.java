@@ -18,37 +18,49 @@ package org.cloudifysource.dsl;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 
 
-@CloudifyDSLEntity(name="memcached", clazz=Memcached.class, allowInternalNode = true, allowRootNode = false, parent = "service")
-public class Memcached extends ServiceProcessingUnit{
+/**********
+ * Domain POJO for a XAP Memcached deployment.
+ * @author barakme.
+ * @since 2.0.0
+ *
+ */
+@CloudifyDSLEntity(name = "memcached", clazz = Memcached.class, allowInternalNode = true, allowRootNode = false,
+		parent = "service")
+public class Memcached extends ServiceProcessingUnit {
+
 	private Integer port;
 	private Integer portRetries;
 	private boolean threaded;
 	private String binaries;
-	
-	
-	public void setThreaded(boolean threaded) {
+
+	public void setThreaded(final boolean threaded) {
 		this.threaded = threaded;
 	}
+
 	public boolean isThreaded() {
 		return threaded;
 	}
-	public void setPortRetries(Integer portRetries) {
+
+	public void setPortRetries(final Integer portRetries) {
 		this.portRetries = portRetries;
 	}
+
 	public Integer getPortRetries() {
 		return portRetries;
 	}
-	public void setPort(Integer port) {
+
+	public void setPort(final Integer port) {
 		this.port = port;
 	}
+
 	public Integer getPort() {
 		return port;
 	}
 
-	public void setBinaries(String binaries) {
+	public void setBinaries(final String binaries) {
 		this.binaries = binaries;
 	}
-	
+
 	public String getBinaries() {
 		return binaries;
 	}

@@ -24,17 +24,30 @@ import java.net.Socket;
 import java.net.URL;
 import java.util.List;
 
-import org.cloudifysource.dsl.internal.CloudifyConstants;
+/**********
+ * A utility class for IO related functions commonly used by recipes and groovy scripts.
+ * 
+ * @author barakme
+ * 
+ */
+public final class IOUtils {
 
-public final class ServiceUtils {
+	private static final int HTTP_ERROR = 500;
+	private static final int HTTP_SUCCESS = 200;
 
-	private ServiceUtils() {
+	private IOUtils() {
 		// private constructor to prevent initialization.
 	}
 
 	private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger(ServiceUtils.class.getName());
 
-	
+	/*******
+	 * Checks if a port is available on localhost.
+	 * 
+	 * @param port
+	 *            the port number.
+	 * @return true if the port is available, false if it is in use.
+	 */
 	public static boolean isPortFree(final int port) {
 		return !isPortOccupied(port);
 	}
@@ -124,7 +137,7 @@ public final class ServiceUtils {
 	 *         not be made, returns 500
 	 */
 	public static boolean isHttpURLAvailable(final String url) {
-		return getHttpReturnCode(url) == 200;
+		return getHttpReturnCode(url) == HTTP_SUCCESS;
 	}
 
 	/*********
@@ -174,7 +187,7 @@ public final class ServiceUtils {
 			final int responseCode = connection.getResponseCode();
 			return responseCode;
 		} catch (final IOException ioe) {
-			return 500;
+			return HTTP_ERROR;
 		} finally {
 			if (connection != null) {
 				connection.disconnect();
@@ -182,68 +195,4 @@ public final class ServiceUtils {
 		}
 	}
 
-	// Important: when changing this method you must also change the
-	// getApplicationServiceName
-	// method that extracts the service name from the absolute processing unit's
-	// name.
-	public static String getAbsolutePUName(final String applicationName, final String serviceName) {
-		return applicationName + "." + serviceName;
-	}
-
-	public static class FullServiceName {
-
-		private final String serviceName;
-		private final String applicationName;
-
-		public FullServiceName(final String applicationName, final String serviceName) {
-			super();
-			this.serviceName = serviceName;
-			this.applicationName = applicationName;
-		}
-
-		public String getServiceName() {
-			return serviceName;
-		}
-
-		public String getApplicationName() {
-			return applicationName;
-		}
-
-		@Override
-		public String toString() {
-			return "FullServiceName [applicationName=" + applicationName + ", serviceName=" + serviceName + "]";
-		}
-
-	}
-
-	// extracts the service name from the absolutePuName. correlates with
-	// getAbsolutePUName
-	public static String getApplicationServiceName(final String absolutePuName, final String applicationName) {
-		// Management services do no have the application prefix in their processing unit's name.
-		if (applicationName.equalsIgnoreCase(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
-			return absolutePuName;
-		}
-
-		final boolean legitPuNamePrefix = absolutePuName.startsWith(applicationName + ".");
-		if (legitPuNamePrefix) {
-			return absolutePuName.substring(applicationName.length() + 1);
-		}
-		logger.severe("Application name " + applicationName
-				+ " is not contained in the absolute processing unit's name " + absolutePuName
-				+ ". returning absolute pu name");
-		return absolutePuName;
-	}
-
-	public static FullServiceName getFullServiceName(final String puName) {
-		final int index = puName.lastIndexOf('.');
-		if (index < 0) {
-			throw new IllegalArgumentException("Could not parse PU name: " + puName
-					+ " to read service and application names.");
-		}
-
-		final String applicationName = puName.substring(
-				0, index);
-		final String serviceName = puName.substring(index + 1);
-		return new FullServiceName(applicationName, serviceName);
-	}
 }

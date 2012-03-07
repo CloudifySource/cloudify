@@ -19,40 +19,44 @@ import java.io.Serializable;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 
-
 /**
- * Configuration of network elements of a specific service
+ * Configuration of network elements of a specific service.
+ * 
  * @author itaif
- *
+ * 
  */
-@CloudifyDSLEntity(name="network", clazz=ServiceNetwork.class, allowInternalNode = true, allowRootNode = false, parent = "service")
-public class ServiceNetwork implements Serializable{
+@CloudifyDSLEntity(name = "network", clazz = ServiceNetwork.class, allowInternalNode = true, allowRootNode = false,
+		parent = "service")
+public class ServiceNetwork implements Serializable {
 
-    /**
+	/**
      * 
      */
-    private static final long serialVersionUID = 1L;
-    
-    private int port;
-    private String protocolDescription;
-    
-    public ServiceNetwork() {
-        
-    }
+	private static final long serialVersionUID = 1L;
 
-    public int getPort() {
-        return port;
-    }
+	private int port;
+	private String protocolDescription;
 
-    public void setPort(int port) {
-        this.port = port;
-    }
+	/********
+	 * Default public constructor.
+	 */
+	public ServiceNetwork() {
 
-    public String getProtocolDescription() {
-        return protocolDescription;
-    }
+	}
 
-    public void setProtocolDescription(String protocolDescription) {
-        this.protocolDescription = protocolDescription;
-    }
+	public int getPort() {
+		return port;
+	}
+
+	public void setPort(final int port) {
+		this.port = port;
+	}
+
+	public String getProtocolDescription() {
+		return protocolDescription;
+	}
+
+	public void setProtocolDescription(final String protocolDescription) {
+		this.protocolDescription = protocolDescription;
+	}
 }
