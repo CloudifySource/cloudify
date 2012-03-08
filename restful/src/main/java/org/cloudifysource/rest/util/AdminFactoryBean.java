@@ -16,9 +16,12 @@
 package org.cloudifysource.rest.util;
 
 import java.util.Arrays;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.gigaspaces.security.directory.UserDetails;
+
+import net.jini.core.discovery.LookupLocator;
 
 import org.cloudifysource.rest.SecurityPropagation;
 import org.openspaces.admin.Admin;
@@ -61,20 +64,32 @@ public class AdminFactoryBean implements FactoryBean, InitializingBean, Disposab
             adminFactory.userDetails(userDetails.getUsername(),userDetails.getPassword());
         }
         admin = adminFactory.createAdmin();
+        if (logger.isLoggable(Level.INFO)) {
+	        LookupLocator[] locators = admin.getLocators();
+	        String[] locatorStrings = new String[locators.length];
+	        for (int i = 0 ; i < locators.length ; i++) {
+	        	locatorStrings[i]= locators[i].getHost()+":"+locators[i].getPort();
+	        }
+	        logger.info("Admin using lookup locators="+Arrays.toString(locatorStrings)+ " groups="+ Arrays.toString(admin.getGroups()));
+        }
     }
 
     public void setLocators(String... locators) {
         for (String locator : locators) {
             adminFactory.addLocator(locator);
         }
-        logger.info("Using lookup locators="+Arrays.toString(locators));
+        if (logger.isLoggable(Level.INFO)) {
+        	logger.info("Configured lookup locators="+Arrays.toString(locators));
+        }
     }
 
     public void setGroups(String... groups) {
         for (String group : groups) {
             adminFactory.addGroup(group);
         }
-        logger.info("Using lookup groups="+Arrays.toString(groups));
+        if (logger.isLoggable(Level.INFO)) {
+        	logger.info("Configured lookup groups="+Arrays.toString(groups));
+        }
     }
 
     public void setDiscoverUnmanagedSpace(boolean discoverUnmanagedSpace) {
