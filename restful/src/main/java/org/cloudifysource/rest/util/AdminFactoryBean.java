@@ -15,6 +15,9 @@
  *******************************************************************************/
 package org.cloudifysource.rest.util;
 
+import java.util.Arrays;
+import java.util.logging.Logger;
+
 import com.gigaspaces.security.directory.UserDetails;
 
 import org.cloudifysource.rest.SecurityPropagation;
@@ -33,6 +36,8 @@ public class AdminFactoryBean implements FactoryBean, InitializingBean, Disposab
     Admin admin;
     SecurityPropagation securityPropagation;
 
+    private final Logger logger = Logger.getLogger(getClass().getName());
+    
     public Object getObject() throws Exception {
         return admin;
     }
@@ -62,12 +67,14 @@ public class AdminFactoryBean implements FactoryBean, InitializingBean, Disposab
         for (String locator : locators) {
             adminFactory.addLocator(locator);
         }
+        logger.info("Using lookup locators="+Arrays.toString(locators));
     }
 
     public void setGroups(String... groups) {
         for (String group : groups) {
             adminFactory.addGroup(group);
         }
+        logger.info("Using lookup groups="+Arrays.toString(groups));
     }
 
     public void setDiscoverUnmanagedSpace(boolean discoverUnmanagedSpace) {
