@@ -90,7 +90,7 @@ public class AzureDeployment extends AzureConfigExe{
                 argument(PACKAGE_FLAG, packageFile.getAbsolutePath()),
                 argument(STORAGE_ACCOUNT_FLAG, storageAccount),
                 argument(STORAGE_KEY_FLAG, storageKey),
-                argument(STORAGE_CONTAINER_FLAG, storageContainer)
+                argument(STORAGE_CONTAINER_FLAG, storageContainer.toLowerCase()) // container name must be dns name compliant
             );
 		
 	}
