@@ -175,8 +175,10 @@ public class InstallService extends AdminAwareCommand {
 					CloudifyConstants.SERVICE_EXTERNAL_FOLDER + service.getIcon());
 		}
 		if (service.getNetwork() != null) {
-			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_NETWORK_PROTOCOL_DESCRIPTION, service
-					.getNetwork().getProtocolDescription());
+			if (service.getNetwork().getProtocolDescription() != null){
+				contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_NETWORK_PROTOCOL_DESCRIPTION, service
+						.getNetwork().getProtocolDescription());
+			}
 		}
 		
 		contextProperties.setProperty(
