@@ -121,7 +121,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	}
 
 	protected static void logServerDetails(final MachineDetails machineDetails, final File tempFile) {
-		if (logger.isLoggable(Level.INFO)) {
+		if (logger.isLoggable(Level.FINE)) {
 			final String nodePrefix = "[" + machineDetails.getMachineId() + "] ";
 			logger.fine(nodePrefix + "Cloud Server was allocated.");
 			if (tempFile == null) {

@@ -83,6 +83,7 @@ if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.zip -nt ~/gigaspa
 	fi
 fi
 
+cp -rf $WORKING_HOME_DIRECTORY/overrides/* ~/gigaspaces
 # UPDATE SETENV SCRIPT...
 echo Updating environment script
 cd ~/gigaspaces/bin || error_exit $? "Failed changing directory to bin directory"

@@ -44,9 +44,9 @@ import org.jclouds.compute.domain.NodeState;
 import com.google.common.base.Predicate;
 
 /**************
- * A jclouds-based CloudifyProvisioning implementation. Uses the JClouds Compute Context API to provision an
- * image with linux installed and ssh available. If GigaSpaces is not already installed on the new machine,
- * this class will install gigaspaces and run the agent.
+ * A jclouds-based CloudifyProvisioning implementation. Uses the JClouds Compute Context API to provision an image with
+ * linux installed and ssh available. If GigaSpaces is not already installed on the new machine, this class will install
+ * gigaspaces and run the agent.
  * 
  * @author barakme, noak
  * @since 2.0.0
@@ -60,37 +60,44 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	protected void initDeployer(final Cloud cloud) {
 		try {
 			// TODO - jcloudsUniqueId should be unique per cloud configuration.
-			this.deployer = (JCloudsDeployer) context.getOrCreate("UNIQUE_JCLOUDS_DEPLOYER_ID",
-					new Callable<Object>() {
+			// TODO - The deployer object should be reusable across templates. The current API is not appropriate.
+			this.deployer =
+					(JCloudsDeployer) context.getOrCreate("UNIQUE_JCLOUDS_DEPLOYER_ID_" + this.cloudTemplateName,
+							new Callable<Object>() {
 
-						@Override
-						public Object call() throws Exception {
-							logger.fine("Creating JClouds context deployer with user: " + cloud.getUser().getUser());
-							final CloudTemplate cloudTemplate = cloud.getTemplates().get(cloudTemplateName);
+								@Override
+								public Object call()
+										throws Exception {
+									logger.fine("Creating JClouds context deployer with user: "
+											+ cloud.getUser().getUser());
+									final CloudTemplate cloudTemplate = cloud.getTemplates().get(cloudTemplateName);
 
-							final Properties props = new Properties();
-							props.putAll(cloudTemplate.getOverrides());
+									logger.fine("Cloud Template: " + cloudTemplateName + ". Details: " + cloudTemplate);
+									final Properties props = new Properties();
+									props.putAll(cloudTemplate.getOverrides());
 
-							deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser()
-									.getUser(), cloud.getUser().getApiKey(), props);
+									deployer =
+											new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser()
+													.getUser(), cloud.getUser().getApiKey(), props);
 
-							deployer.setImageId(cloudTemplate.getImageId());
-							deployer.setMinRamMegabytes(cloudTemplate.getMachineMemoryMB());
-							deployer.setHardwareId(cloudTemplate.getHardwareId());
-							deployer.setLocationId(cloudTemplate.getLocationId());
-							deployer.setExtraOptions(cloudTemplate.getOptions());
-							return deployer;
-						}
-					});
+									deployer.setImageId(cloudTemplate.getImageId());
+									deployer.setMinRamMegabytes(cloudTemplate.getMachineMemoryMB());
+									deployer.setHardwareId(cloudTemplate.getHardwareId());
+									deployer.setLocationId(cloudTemplate.getLocationId());
+									deployer.setExtraOptions(cloudTemplate.getOptions());
+									return deployer;
+								}
+							});
 		} catch (final Exception e) {
-			publishEvent("connection_to_cloud_api_failed", cloud.getProvider().getProvider());
+			publishEvent("connection_to_cloud_api_failed",
+					cloud.getProvider().getProvider());
 			throw new IllegalStateException("Failed to create cloud Deployer", e);
 		}
 	}
 
 	@Override
-	public MachineDetails startMachine(final long timeout, final TimeUnit unit) throws TimeoutException,
-			CloudProvisioningException {
+	public MachineDetails startMachine(final long timeout, final TimeUnit unit)
+			throws TimeoutException, CloudProvisioningException {
 
 		logger.info(this.getClass().getName() + ": startMachine, management mode: " + management);
 		final long end = System.currentTimeMillis() + unit.toMillis(timeout);
@@ -110,26 +117,28 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		}
 	}
 
-	private MachineDetails doStartMachine(final long end) throws Exception {
+	private MachineDetails doStartMachine(final long end)
+			throws Exception {
 
 		final String groupName = createNewServerName();
 		logger.info("Starting a new cloud server with group: " + groupName);
-		return createServer(end, groupName);
+		return createServer(end,
+				groupName);
 	}
 
-	private MachineDetails createServer(final long end, final String groupName) throws CloudProvisioningException
-			{
+	private MachineDetails createServer(final long end, final String groupName)
+			throws CloudProvisioningException {
 
 		final NodeMetadata node;
 		final MachineDetails machineDetails;
 		try {
-			logger.info("Cloudify Deployer is creating a new server with tag: " + groupName
+			logger.fine("Cloudify Deployer is creating a new server with tag: " + groupName
 					+ ". This may take a few minutes");
 			node = deployer.createServer(groupName);
 		} catch (final InstallerException e) {
 			throw new CloudProvisioningException("Failed to create cloud server", e);
 		}
-		logger.info("New node is allocated, group name: " + groupName);
+		logger.fine("New node is allocated, group name: " + groupName);
 
 		machineDetails = createMachineDetailsFromNode(node);
 
@@ -137,11 +146,14 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		// must clean up the machine
 		try {
 			handleServerCredentials(machineDetails);
-			waitUntilServerIsActive(machineDetails.getMachineId(), Utils.millisUntil(end), TimeUnit.MILLISECONDS);
+			waitUntilServerIsActive(machineDetails.getMachineId(),
+					Utils.millisUntil(end),
+					TimeUnit.MILLISECONDS);
 		} catch (final Exception e) {
 			// catch any exception - to prevent a cloud machine leaking.
 			logger.log(Level.SEVERE,
-					"Cloud machine was started but an error occured during initialization. Shutting down machine", e);
+					"Cloud machine was started but an error occured during initialization. Shutting down machine",
+					e);
 			deployer.shutdownMachine(node.getId());
 			throw new CloudProvisioningException(e);
 		}
@@ -150,8 +162,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	/*********
-	 * Periodically gets the server status from the cloud, until the server's status changes to ACTIVE, or a
-	 * timeout expires.
+	 * Periodically gets the server status from the cloud, until the server's status changes to ACTIVE, or a timeout
+	 * expires.
 	 * 
 	 * @param serverId
 	 *            The server ID.
@@ -171,7 +183,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 			if (System.currentTimeMillis() > endTime) {
 				throw new TimeoutException("Server [ " + serverId + " ] has been starting up for more more than "
-						+ TimeUnit.MINUTES.convert(WAIT_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS) + " minutes!");
+						+ TimeUnit.MINUTES.convert(WAIT_TIMEOUT_MILLIS,
+								TimeUnit.MILLISECONDS) + " minutes!");
 			}
 
 			if (logger.isLoggable(Level.FINE)) {
@@ -183,15 +196,15 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	/*********
-	 * Looks for a free server name by appending a counter to the pre-calculated server name prefix. If the
-	 * max counter value is reached, code will loop back to 0, so that previously used server names will be
-	 * reused.
+	 * Looks for a free server name by appending a counter to the pre-calculated server name prefix. If the max counter
+	 * value is reached, code will loop back to 0, so that previously used server names will be reused.
 	 * 
 	 * @return the server name.
 	 * @throws CloudProvisioningException
 	 *             if no free server name could be found.
 	 */
-	private String createNewServerName() throws CloudProvisioningException {
+	private String createNewServerName()
+			throws CloudProvisioningException {
 
 		String serverName = null;
 		int attempts = 0;
@@ -218,14 +231,14 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	@Override
-	public MachineDetails[] startManagementMachines(final long duration, final TimeUnit unit) throws TimeoutException,
-			CloudProvisioningException {
+	public MachineDetails[] startManagementMachines(final long duration, final TimeUnit unit)
+			throws TimeoutException, CloudProvisioningException {
 		if (duration < 0) {
 			throw new TimeoutException("Starting a new machine timed out");
 		}
 		final long endTime = System.currentTimeMillis() + unit.toMillis(duration);
 
-		logger.info("DefaultCloudProvisioning: startMachine - management == " + management);
+		logger.fine("DefaultCloudProvisioning: startMachine - management == " + management);
 
 		final String managementMachinePrefix = this.serverNamePrefix;
 
@@ -239,7 +252,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		// launch the management machines
 		publishEvent(EVENT_ATTEMPT_START_MGMT_VMS);
 		final int numberOfManagementMachines = this.cloud.getProvider().getNumberOfManagementMachines();
-		final MachineDetails[] createdMachines = doStartManagementMachines(endTime, numberOfManagementMachines);
+		final MachineDetails[] createdMachines = doStartManagementMachines(endTime,
+				numberOfManagementMachines);
 		publishEvent(EVENT_MGMT_VMS_STARTED);
 		return createdMachines;
 	}
@@ -259,8 +273,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 				futures[i] = executors.submit(new Callable<MachineDetails>() {
 
 					@Override
-					public MachineDetails call() throws Exception {
-						return createServer(endTime, serverNamePrefix + index);
+					public MachineDetails call()
+							throws Exception {
+						return createServer(endTime,
+								serverNamePrefix + index);
 					}
 				});
 
@@ -276,16 +292,22 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 							TimeUnit.MILLISECONDS);
 				} catch (final InterruptedException e) {
 					++numberOfErrors;
-					publishEvent("failed_to_create_management_vm", e.getMessage());
-					logger.log(Level.SEVERE, "Failed to start a management machine", e);
+					publishEvent("failed_to_create_management_vm",
+							e.getMessage());
+					logger.log(Level.SEVERE,
+							"Failed to start a management machine",
+							e);
 					if (firstCreationException == null) {
 						firstCreationException = e;
 					}
 
 				} catch (final ExecutionException e) {
 					++numberOfErrors;
-					publishEvent("failed_to_create_management_vm", e.getMessage());
-					logger.log(Level.SEVERE, "Failed to start a management machine", e);
+					publishEvent("failed_to_create_management_vm",
+							e.getMessage());
+					logger.log(Level.SEVERE,
+							"Failed to start a management machine",
+							e);
 					if (firstCreationException == null) {
 						firstCreationException = e;
 					}
@@ -295,7 +317,9 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 			// In case of a partial error, shutdown all servers that did start up
 			if (numberOfErrors > 0) {
-				handleProvisioningFailure(numberOfManagementMachines, numberOfErrors, firstCreationException,
+				handleProvisioningFailure(numberOfManagementMachines,
+						numberOfErrors,
+						firstCreationException,
 						createdManagementMachines);
 			}
 
@@ -321,19 +345,23 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			stopResult = false;
 		} else {
 			// TODO - add a task that cleans up this map
-			stoppingMachines.put(serverIp, System.currentTimeMillis());
+			stoppingMachines.put(serverIp,
+					System.currentTimeMillis());
 			logger.info("Scale IN -- " + serverIp + " --");
 			logger.info("Looking up cloud server with IP: " + serverIp);
 			final NodeMetadata server = deployer.getServerWithIP(serverIp);
 			if (server != null) {
 				logger.info("Found server: " + server.getId()
 						+ ". Shutting it down and waiting for shutdown to complete");
-				deployer.shutdownMachineAndWait(server.getId(), unit, duration);
+				deployer.shutdownMachineAndWait(server.getId(),
+						unit,
+						duration);
 				logger.info("Server: " + server.getId() + " shutdown has finished.");
 				stopResult = true;
 			} else {
-				logger.log(Level.SEVERE, "Recieved scale in request for machine with ip " + serverIp
-						+ " but this IP could not be found in the Cloud server list");
+				logger.log(Level.SEVERE,
+						"Recieved scale in request for machine with ip " + serverIp
+								+ " but this IP could not be found in the Cloud server list");
 				stopResult = false;
 			}
 		}
@@ -342,7 +370,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	@Override
-	public void stopManagementMachines() throws TimeoutException, CloudProvisioningException {
+	public void stopManagementMachines()
+			throws TimeoutException, CloudProvisioningException {
 
 		initDeployer(this.cloud);
 		final MachineDetails[] managementServers = getExistingManagementServers(this.serverNamePrefix);
@@ -362,8 +391,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	private MachineDetails[] getExistingManagementServers(final String managementMachinePrefix) {
-		final Set<? extends NodeMetadata> existingManagementServers = this.deployer
-				.getServers(new Predicate<ComputeMetadata>() {
+		final Set<? extends NodeMetadata> existingManagementServers =
+				this.deployer.getServers(new Predicate<ComputeMetadata>() {
 
 					@Override
 					public boolean apply(final ComputeMetadata input) {
@@ -437,7 +466,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 				md.setRemoteUsername(cloud.getConfiguration().getRemoteUsername());
 			}
 		}
-	
+
 		md.setUsePrivateAddress(this.cloud.getConfiguration().isConnectToPrivateIp());
 		return md;
 	}

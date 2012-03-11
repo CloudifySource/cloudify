@@ -101,8 +101,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		details.setLocalDir(cloud.getProvider().getLocalDirectory());
 		details.setRemoteDir(cloud.getProvider().getRemoteDirectory());
 		details.setManagementOnlyFiles(cloud.getProvider().getManagementOnlyFiles());
-		details.setZones(StringUtils.join(cloud.getProvider().getZones().toArray(new String[0]), ",", 0, cloud
-				.getProvider().getZones().size()));
+		details.setZones(StringUtils.join(cloud.getProvider().getZones().toArray(new String[0]),
+				",",
+				0,
+				cloud.getProvider().getZones().size()));
 
 		if (org.apache.commons.lang.StringUtils.isNotBlank(cloud.getUser().getKeyFile())) {
 			logger.info("Key file has been specified in cloud configuration: " + cloud.getUser().getKeyFile());
@@ -139,30 +141,42 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	public GridServiceAgent startMachine(final long duration, final TimeUnit unit)
 			throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
 
-		logger.info("Cloudify Adapter is starting a new machine");
+		logger.info("MODIFIED! Cloudify Adapter is starting a new machine");
 		// calculate timeout
 		final long end = System.currentTimeMillis() + unit.toMillis(duration);
 
 		// provision the machine
 		logger.info("Calling provisioning implementation for new machine");
-		final MachineDetails machineDetails = provisionMachine(duration, unit);
+		MachineDetails machineDetails = null;
+		try {
+			machineDetails = provisionMachine(duration,
+					unit);
+		} catch (final Exception e) {
+			logger.log(Level.SEVERE,
+					"Failed to provisiong machine: " + e.getMessage(),
+					e);
+			throw new ElasticMachineProvisioningException("Failed to provisiong machine: " + e.getMessage(), e);
+		}
 
 		logger.info("Machine was provisioned by implementation. Machine is: " + machineDetails);
 
 		try {
 			// check for timeout
-			checkForProvisioningTimeout(end, machineDetails);
+			checkForProvisioningTimeout(end,
+					machineDetails);
 
 			// TODO - finish this section - support picking up existing
 			// installations and agent. - i.e. machineDetails.cloudifyInstalled == true
 
 			// install gigaspaces and start agent
 			logger.info("Cloudify Adapter is installing Cloudify on new machine");
-			installAndStartAgent(machineDetails, end);
+			installAndStartAgent(machineDetails,
+					end);
 
 			// check for timeout again - the installation step can also take a
 			// while to complete.
-			checkForProvisioningTimeout(end, machineDetails);
+			checkForProvisioningTimeout(end,
+					machineDetails);
 
 			// which IP should be used in the cluster
 			String machineIp = null;
@@ -178,7 +192,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			}
 			// wait for GSA to become available
 			logger.info("Cloudify adapter is waiting for GSA to become available");
-			final GridServiceAgent gsa = waitForGsa(machineIp, DEFAULT_GSA_LOOKUP_TIMEOUT_SECONDS);
+			final GridServiceAgent gsa = waitForGsa(machineIp,
+					DEFAULT_GSA_LOOKUP_TIMEOUT_SECONDS);
 			if (gsa == null) {
 				// GSA did not start correctly or on time - shutdown the machine
 
@@ -205,16 +220,18 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private void handleExceptionAfterMachineCreated(final MachineDetails machineDetails) {
 		try {
-			//agent is not supposed to be up if we got here, so it is not shutdown before stopping the machine.
-			logger.info("--- DEBUG: Stopping machine " + machineDetails.getPrivateAddress() + ", DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE");
+			// agent is not supposed to be up if we got here, so it is not shutdown before stopping the machine.
+			logger.info("--- DEBUG: Stopping machine " + machineDetails.getPrivateAddress()
+					+ ", DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE");
 			this.cloudifyProvisioning.stopMachine(machineDetails.getPrivateAddress(),
-					DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE, TimeUnit.MINUTES);
+					DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE,
+					TimeUnit.MINUTES);
 		} catch (final Exception e) {
-			logger.log(
-					Level.SEVERE,
+			logger.log(Level.SEVERE,
 					"Machine Provisioning failed. "
 							+ "An error was encountered while trying to shutdown the new machine ( "
-							+ machineDetails.toString() + "). Error was: " + e.getMessage(), e);
+							+ machineDetails.toString() + "). Error was: " + e.getMessage(),
+					e);
 		}
 	}
 
@@ -236,7 +253,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		InstallationDetails installationDetails;
 		try {
-			installationDetails = createInstallationDetails(cloud, machineDetails);
+			installationDetails = createInstallationDetails(cloud,
+					machineDetails);
 		} catch (final FileNotFoundException e) {
 			throw new ElasticMachineProvisioningException("Failed to create installation details for agent: "
 					+ e.getMessage(), e);
@@ -245,12 +263,14 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		logger.info("Starting agentless installation process on started machine with installation details: "
 				+ installationDetails);
 		// Update the logging level of jsch used by the AgentlessInstaller
-		Logger.getLogger(AgentlessInstaller.SSH_LOGGER_NAME).setLevel(
-				Level.parse(cloud.getProvider().getSshLoggingLevel()));
+		Logger.getLogger(AgentlessInstaller.SSH_LOGGER_NAME).setLevel(Level.parse(cloud.getProvider()
+				.getSshLoggingLevel()));
 
 		// Execute agentless installation on the remote machine
 		try {
-			installer.installOnMachineWithIP(installationDetails, remainingTimeTill(end), TimeUnit.MILLISECONDS);
+			installer.installOnMachineWithIP(installationDetails,
+					remainingTimeTill(end),
+					TimeUnit.MILLISECONDS);
 		} catch (final InstallerException e) {
 			throw new ElasticMachineProvisioningException(
 					"Failed to install Cloudify Agent on newly provisioned machine: " + e.getMessage(), e);
@@ -272,11 +292,12 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		try {
 			// delegate provisioning to the cloud driver implementation
 			cloudifyProvisioning.setAdmin(admin);
-			machineDetails = cloudifyProvisioning.startMachine(duration, unit);
+			machineDetails = cloudifyProvisioning.startMachine(duration,
+					unit);
 		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Failed to start machine: " + e.getMessage(), e);
 		}
-		
+
 		if (machineDetails == null) {
 			throw new IllegalStateException("Provisioning provider: " + cloudifyProvisioning.getClass().getName()
 					+ " returned a null when calling startMachine");
@@ -288,7 +309,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private GridServiceAgent waitForGsa(final String machineIp, final int timeoutInSeconds)
 			throws InterruptedException {
-		
+
 		final long endTime = System.currentTimeMillis() + timeoutInSeconds * MILLISECONDS_IN_SECOND;
 
 		while (System.currentTimeMillis() < endTime) {
@@ -324,22 +345,34 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	public boolean stopMachine(final GridServiceAgent agent, final long duration, final TimeUnit unit)
 			throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
 
+		// TODO - move INFO printouts to FINE
 		final String machineIp = agent.getMachine().getHostAddress();
+		logger.fine("Shutting down agent: " + agent + " on host: " + machineIp);
 		try {
 			agent.shutdown();
-			logger.info("Cloudify Adapter is shutting down machine with ip: " + machineIp);
-			final boolean shutdownResult = this.cloudifyProvisioning.stopMachine(machineIp, duration, unit);
+			logger.fine("Agent on host: " + machineIp + " successfully shut down");
+		} catch (final Exception e) {
+			logger.log(Level.WARNING,
+					"Failed to shutdown agent on host: " + machineIp + ". Continuing with shutdown of machine.",
+					e);
+		}
+
+		try {
+			logger.fine("Cloudify Adapter is shutting down machine with ip: " + machineIp);
+
+			final boolean shutdownResult = this.cloudifyProvisioning.stopMachine(machineIp,
+					duration,
+					unit);
 			logger.info("Shutdown result of machine: " + machineIp + " was: " + shutdownResult);
 
 			return shutdownResult;
 
-		} 
-		catch (final CloudProvisioningException e) {
+		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Attempt to shutdown machine with IP: " + machineIp
 					+ " for agent with UID: " + agent.getUid() + " has failed with error: " + e.getMessage(), e);
-		}
-		catch (AdminException e) {
-			throw new ElasticMachineProvisioningException("Failed to shutdown agent " + agent.getMachine().getHostAddress(), e);
+		} catch (AdminException e) {
+			throw new ElasticMachineProvisioningException("Failed to shutdown agent "
+					+ agent.getMachine().getHostAddress(), e);
 		}
 	}
 
@@ -393,7 +426,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			try {
 				this.cloudifyProvisioning =
 						(ProvisioningDriver) Class.forName(this.cloud.getConfiguration().getClassName()).newInstance();
-				
+
 				if (cloudifyProvisioning instanceof ProvisioningDriverClassContextAware) {
 					final ProvisioningDriverClassContext provisioningDriverContext =
 							lazyCreateProvisioningDriverClassContext(cloudifyProvisioning);
@@ -401,8 +434,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 							(ProvisioningDriverClassContextAware) cloudifyProvisioning;
 					contextAware.setProvisioningDriverClassContext(provisioningDriverContext);
 				}
-				
-				this.cloudifyProvisioning.setConfig(cloud, cloudTemplate, false);
+
+				this.cloudifyProvisioning.setConfig(cloud,
+						cloudTemplate,
+						false);
 
 			} catch (final ClassNotFoundException e) {
 				throw new BeanConfigurationException("Failed to load provisioning class for cloud: "

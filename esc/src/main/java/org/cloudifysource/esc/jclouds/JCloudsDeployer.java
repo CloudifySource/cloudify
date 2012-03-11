@@ -54,6 +54,8 @@ import com.google.inject.Module;
  * All of the JClouds features used in the cloud ESM Machine Provisioning are
  * called from this class.
  * 
+ * TODO - the current API is not thread-safe. Multipe clients should be able to use the same deployer
+ * and set their configurations for creating servers.
  * @author barakme
  * 
  */
