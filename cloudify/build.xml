@@ -32,6 +32,7 @@
 	
     <property environment="env."/>
 	<property name="tmp.dir" value="${basedir}/tmp" />
+	<property name="xap.files.tmp.dir" value="${basedir}/xap.files.tmp.dir" />
 	<property name="xap.installation.dir" value="gigaspaces-xap-premium-${gs.version}-${gs.milestone}" />
 	<property name="xap.zip.name" value="${xap.installation.dir}-b${gs.build.number}.zip" />
 	<property name="xap.zip.full.path" value="${build.repository.path}/${gs.version}/build_${gs.build.number}/xap-premium/1.5/${xap.zip.name}" />
@@ -92,6 +93,7 @@
 	        <echo message="-----------------------------------------"/>
 	        <echo message=""/>
 	        <echo message=""/>
+			<echo message="clean.all       --> clean all temp folders"/>
 	        <echo message="cloudify.zip    --> creates Cloudify zip from sourcecode"/>
 	        <echo message=""/>
 	    </target>
@@ -483,24 +485,36 @@
         <delete dir="${dst.tmp.dir}"/>
     </target>
 
-	<target name="download.xap">
+	<target name="prepare.env">
 		<loadproperties srcfile="${basedir}/${build.properties.file}"/>
 		
 		<delete dir="${tmp.dir}"/>
 		<mkdir dir="${tmp.dir}"/>
-		<echo message="Please wait. Downloading ${cloudify.cdn.publish.url}/com/gigaspaces/${gs.version}.${s3.gs.publish.folder.suffix}/gigaspaces-xap-premium-${gs.version}-ga-b${gs.build.number}.zip." />
-		<get verbose="true" src="${cloudify.cdn.publish.url}/com/gigaspaces/${gs.version}.${s3.gs.publish.folder.suffix}/gigaspaces-xap-premium-${gs.version}-ga-b${gs.build.number}.zip" dest="${tmp.dir}"/>
-		<unzip src="${tmp.dir}/${xap.zip.name}" dest="${tmp.dir}" />
-		<delete file="${tmp.dir}/${xap.zip.name}"/>		
+		
+		<available file="${xap.files.tmp.dir}/${xap.zip.name}" property="appropriate.xap.zip.present"/>
+		<ant target="download.zip" />
+			
+		<unzip src="${xap.files.tmp.dir}/${xap.zip.name}" dest="${tmp.dir}" />	
 		<move file="${tmp.dir}/${xap.installation.dir}" tofile="${tmp.dir}/${cloudify.installation.dir}" />
 		<chmod dir="${tmp.dir}/${cloudify.installation.dir}" includes="**/*.sh, **/*groovy*" perm="775"  />
   	</target>
 
+	<target name="download.zip" unless="appropriate.xap.zip.present">
+		<loadproperties srcfile="${basedir}/${build.properties.file}"/>
+		<mkdir dir="${xap.files.tmp.dir}" /> 
+		<echo message="Please wait. Downloading ${cloudify.cdn.publish.url}/com/gigaspaces/${gs.version}.${s3.gs.publish.folder.suffix}/gigaspaces-xap-premium-${gs.version}-ga-b${gs.build.number}.zip." />
+		<get verbose="true" src="${cloudify.cdn.publish.url}/com/gigaspaces/${gs.version}.${s3.gs.publish.folder.suffix}/${xap.zip.name}" dest="${xap.files.tmp.dir}"/>
+	</target>
+	
 	<target name="cloudify.install">
 		<exec dir="${basedir}" executable="${mvn.executable}">
 			<arg line="install -Dmaven.test.skip=true"/>
 		</exec>
 	</target>
 	
-	<target name="cloudify.zip" depends="download.xap, cloudify.install, prepare.cloudify.package" />
+	<target name="cloudify.zip" depends="prepare.env, cloudify.install, prepare.cloudify.package" />
+	<target name="clean.all">
+		<delete dir="${tmp.dir}"/>
+		<delete dir="${xap.files.tmp.dir}"/>
+	</target>
 </project>
