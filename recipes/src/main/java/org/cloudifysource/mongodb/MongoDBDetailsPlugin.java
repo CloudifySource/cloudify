@@ -30,7 +30,8 @@ public class MongoDBDetailsPlugin extends AbstractMongoPlugin implements Details
     /**
 	* Returns Mongo Server Status Command and dbName as <code>Map<String,String></code>
 	*/
-    public Map<String, Object> getDetails(UniversalServiceManagerBean universalServiceManagerBean,
+    @Override
+	public Map<String, Object> getDetails(UniversalServiceManagerBean universalServiceManagerBean,
                                           UniversalServiceManagerConfiguration universalServiceManagerConfiguration) throws DetailsException {
         Map<String, Object> details = getData();
         details.put("Database name", dbName);

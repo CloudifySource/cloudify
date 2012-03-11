@@ -173,7 +173,8 @@ public class CloudScaleOutTask extends AbstractStartServerRunnable {
 		    
     		for (final NodeMetadata node : servers) {
     		    Future<Exception> future = exeService.submit(new Callable<Exception>() {
-                    public Exception call() {
+                    @Override
+					public Exception call() {
                         
                         logServerDetails(node, keyFile);
                         

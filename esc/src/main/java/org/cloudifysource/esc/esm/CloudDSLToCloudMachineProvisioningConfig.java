@@ -35,6 +35,7 @@ import org.cloudifysource.dsl.cloud.Cloud;
  * @deprecated
  *
  */
+@Deprecated
 public class CloudDSLToCloudMachineProvisioningConfig {
 
 	private static Logger logger = Logger.getLogger(CloudDSLToCloudMachineProvisioningConfig.class.getName());

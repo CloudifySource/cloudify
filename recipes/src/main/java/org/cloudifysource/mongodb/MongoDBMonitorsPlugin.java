@@ -32,7 +32,8 @@ public class MongoDBMonitorsPlugin extends AbstractMongoPlugin implements Monito
     /**
 	* @return Server Status entries as <code>Map<String,Number></code>
 	*/
-    public Map<String, Number> getMonitorValues(UniversalServiceManagerBean universalServiceManagerBean,
+    @Override
+	public Map<String, Number> getMonitorValues(UniversalServiceManagerBean universalServiceManagerBean,
                                                 UniversalServiceManagerConfiguration universalServiceManagerConfiguration) throws MonitorException {
     	Map<String, Object> data = getData();
     	Map<String, Number> monitorMap = new HashMap<String, Number>();

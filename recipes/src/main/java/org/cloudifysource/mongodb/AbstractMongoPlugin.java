@@ -51,13 +51,15 @@ public abstract class AbstractMongoPlugin implements Plugin {
     /**
 	* Invoked by USM. Initaizes the <code>ServiceContext</code>
 	*/
-    public void setServiceContext(ServiceContext serviceContext) {
+	@Override
+	public void setServiceContext(ServiceContext serviceContext) {
         this.serviceContext = serviceContext;
     }
      /**
 	 * Initializes the plugin config Map as specified in the Recipe
 	 */
-    public void setConfig(Map<String, Object> config) {
+	@Override
+	public void setConfig(Map<String, Object> config) {
         this.config = config;
         
     }

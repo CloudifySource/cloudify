@@ -58,6 +58,7 @@ import com.j_spaces.kernel.Environment;
  * @deprecated
  * 
  */
+@Deprecated
 public class CloudMachineProvisioning implements ElasticMachineProvisioning, Bean {
 
 	protected Logger logger = Logger.getLogger(this.getClass().getName());
@@ -72,10 +73,12 @@ public class CloudMachineProvisioning implements ElasticMachineProvisioning, Bea
 		logger.info("CloudMachineProvisioning instance has been constructed");
 	}
 
+	@Override
 	public void setAdmin(final Admin admin) {
 		this.admin = admin;
 	}
 
+	@Override
 	public void setProperties(final Map<String, String> properties)  {
 		logger.info("Setting Properties of Cloud Machine Provisioning: " + properties.toString());
 		this.config = new CloudMachineProvisioningConfig(properties);
@@ -141,10 +144,12 @@ public class CloudMachineProvisioning implements ElasticMachineProvisioning, Bea
 		return absoluteFile.getAbsolutePath();
 	}
 
+	@Override
 	public Map<String, String> getProperties() {
 		return this.config.getProperties();
 	}
 
+	@Override
 	public void afterPropertiesSet() throws Exception {
 		
 		config.setKeyFile(getAbsolutePathValidateExists(config.getKeyFile(),new File(config.getLocalDirectory())));
@@ -155,6 +160,7 @@ public class CloudMachineProvisioning implements ElasticMachineProvisioning, Bea
 		logger.info("Initialized CloudMachineProvisioning with config");
 	}
 
+	@Override
 	public void destroy() throws Exception {
 		// Clean up admin
 		logger.info("Cloud Machine Provisioning is shutting down");
@@ -166,6 +172,7 @@ public class CloudMachineProvisioning implements ElasticMachineProvisioning, Bea
 		// admin.close();
 	}
 
+	@Override
 	public GridServiceAgent startMachine(final long timeout, final TimeUnit unit)
 			throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
 		
@@ -219,6 +226,7 @@ public class CloudMachineProvisioning implements ElasticMachineProvisioning, Bea
 
 	private final Map<String, Long> stoppingMachines = new ConcurrentHashMap<String, Long>();
 
+	@Override
 	public boolean stopMachine(final GridServiceAgent agent, final long duration, final TimeUnit unit)
 			throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
 
@@ -277,6 +285,7 @@ public class CloudMachineProvisioning implements ElasticMachineProvisioning, Bea
 
 		admin.getGridServiceAgents().getGridServiceAgentAdded().add(new GridServiceAgentAddedEventListener() {
 
+			@Override
 			public void gridServiceAgentAdded(final GridServiceAgent gridServiceAgent) {
 				if (gridServiceAgent.getMachine().getHostAddress().equals(hostAddress)) {
 					gsaRef.set(gridServiceAgent);
@@ -299,10 +308,12 @@ public class CloudMachineProvisioning implements ElasticMachineProvisioning, Bea
 		return gsa;
 	}
 
+	@Override
 	public boolean isStartMachineSupported() {
 		return true;
 	}
 
+	@Override
 	public GridServiceAgent[] getDiscoveredMachines(final long duration, final TimeUnit unit)
 			throws ElasticMachineProvisioningException, InterruptedException,
 			TimeoutException {
@@ -325,10 +336,12 @@ public class CloudMachineProvisioning implements ElasticMachineProvisioning, Bea
 		// return agents.toArray();
 	}
 
+	@Override
 	public CloudMachineProvisioningConfig getConfig() {
 		return config;
 	}
 
+	@Override
 	public CapacityRequirements getCapacityOfSingleMachine() {
 		return new CapacityRequirements(
 				new MemoryCapacityRequirement(config.getMachineMemoryMB()),

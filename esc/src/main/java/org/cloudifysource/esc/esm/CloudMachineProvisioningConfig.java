@@ -102,6 +102,7 @@ public class CloudMachineProvisioningConfig implements ElasticMachineProvisionin
 	private StringProperties properties;
 
 	
+	@Override
 	public double getMinimumNumberOfCpuCoresPerMachine() {
 		return properties.getDouble(NUMBER_OF_CPU_CORES_PER_MACHINE_KEY,
 				NUMBER_OF_CPU_CORES_PER_MACHINE_DEFAULT);
@@ -125,14 +126,17 @@ public class CloudMachineProvisioningConfig implements ElasticMachineProvisionin
 	}
 
 	
+	@Override
 	public String getBeanClassName() {
 		return CloudMachineProvisioning.class.getName();
 	}
 
+	@Override
 	public void setProperties(final Map<String, String> properties) {
 		this.properties = new StringProperties(properties);
 	}
 
+	@Override
 	public Map<String, String> getProperties() {
 		return this.properties.getProperties();
 	}
@@ -226,6 +230,7 @@ public class CloudMachineProvisioningConfig implements ElasticMachineProvisionin
 		this.properties.putDouble(RESERVED_CPU_PER_MACHINE_KEY, reservedCpu);
 	}
 
+	@Override
 	public CapacityRequirements getReservedCapacityPerMachine() {
 		final List<CapacityRequirement> requirements = new ArrayList<CapacityRequirement>();
 		requirements.add(new MemoryCapacityRequirement(getReservedMemoryCapacityPerMachineInMB()));
@@ -280,6 +285,7 @@ public class CloudMachineProvisioningConfig implements ElasticMachineProvisionin
 		setReservedDriveCapacityPerMachineInMB(reservedInMB);
 	}
 
+	@Override
 	public String[] getGridServiceAgentZones() {
 		return properties.getArray(ZONES_KEY, ZONES_SEPARATOR, ZONES_DEFAULT);
 	}
@@ -304,6 +310,7 @@ public class CloudMachineProvisioningConfig implements ElasticMachineProvisionin
 		properties.putBoolean(DEDICATED_MANAGEMENT_MACHINES_KEY, value);
 	}
 	
+	@Override
 	public boolean isDedicatedManagementMachines() {
 		return properties.getBoolean(DEDICATED_MANAGEMENT_MACHINES_KEY, DEDICATED_MANAGEMENT_MACHINES_DEFAULT);
 	}
@@ -325,6 +332,7 @@ public class CloudMachineProvisioningConfig implements ElasticMachineProvisionin
 	    return Level.parse(level);
 	}
 	
+	@Override
 	public boolean isGridServiceAgentZoneMandatory() {
 		return false;
 	}
@@ -488,12 +496,12 @@ public class CloudMachineProvisioningConfig implements ElasticMachineProvisionin
 
 	
 	public void setManagementOnlyFiles(List<String> managmentOnlyFiles) {
-		String[] managmentOnlyFilesArray = (String[]) managmentOnlyFiles.toArray(new String[0]);
+		String[] managmentOnlyFilesArray = managmentOnlyFiles.toArray(new String[managmentOnlyFiles.size()]);
 		properties.putArray(MANAGEMENT_ONLY_FILES_KEY, managmentOnlyFilesArray, MANAGEMENT_ONLY_FILES_SEPARATOR);
 	}
 
 	public void setZones(final List<String> zones) {
-		String[] zonesArray = (String[]) zones.toArray(new String[0]);
+		String[] zonesArray = zones.toArray(new String[zones.size()]);
 		properties.putArray(ZONES_KEY, zonesArray, ZONES_SEPARATOR);
 	}
 

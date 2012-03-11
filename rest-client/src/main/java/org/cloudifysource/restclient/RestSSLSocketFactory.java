@@ -62,10 +62,12 @@ public class RestSSLSocketFactory extends SSLSocketFactory {
 		super(truststore);
 
 		TrustManager tm = new X509TrustManager() {
+			@Override
 			public X509Certificate[] getAcceptedIssuers() {
 				return null;
 			}
 
+			@Override
 			public void checkClientTrusted(final X509Certificate[] chain,
 					final String authType)
 					throws java.security.cert.CertificateException {
@@ -73,6 +75,7 @@ public class RestSSLSocketFactory extends SSLSocketFactory {
 
 			}
 
+			@Override
 			public void checkServerTrusted(final X509Certificate[] chain,
 					final String authType)
 					throws java.security.cert.CertificateException {

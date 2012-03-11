@@ -94,6 +94,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 		return this.properties.getProperties(); 
 	}
 
+	@Override
 	public double getMinimumNumberOfCpuCoresPerMachine() {
 		return properties.getDouble(NUMBER_OF_CPU_CORES_PER_MACHINE_KEY,
 				NUMBER_OF_CPU_CORES_PER_MACHINE_DEFAULT);

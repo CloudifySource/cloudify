@@ -44,15 +44,18 @@ public class CollectionUtils {
             this.value = value;
         }
 
-        public K getKey() {
+        @Override
+		public K getKey() {
             return key;
         }
 
-        public V getValue() {
+        @Override
+		public V getValue() {
             return value;
         }
 
-        public V setValue(V value) {
+        @Override
+		public V setValue(V value) {
             this.value = value;
             return value;
         }
