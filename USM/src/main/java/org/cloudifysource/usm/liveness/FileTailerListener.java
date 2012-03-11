@@ -43,6 +43,7 @@ public class FileTailerListener implements TailerListener {
 	/**
 	 * handle is being called each predefined time period.
 	 */
+	@Override
 	public void handle(String line) {
 		Matcher matcher = pattern.matcher(line);
 		if (matcher.find()){
@@ -54,15 +55,19 @@ public class FileTailerListener implements TailerListener {
 		return isProcessUp;
 	}
 
+	@Override
 	public void handle(Exception e) {
 		logger.warning("The file listener has handled an exception: " + e.getMessage());
 	}
+	@Override
 	public void init(Tailer tailer) {
 		logger.info("A new tailer object was constructed");
 	}
+	@Override
 	public void fileNotFound() {
 		logger.info("The tailed file is not found");
 	}
+	@Override
 	public void fileRotated() {
 		logger.info("The filename was changed");
 	}

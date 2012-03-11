@@ -72,6 +72,7 @@ public class JmxAttribute implements Comparable<JmxAttribute> {
 	}
 
 
+	@Override
 	public int compareTo(JmxAttribute o) {
 		int beanComparison = this.getObjectName().compareTo(o.getObjectName());
 		if(beanComparison != 0) {

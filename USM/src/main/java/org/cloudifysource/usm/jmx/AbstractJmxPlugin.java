@@ -57,6 +57,7 @@ public abstract class AbstractJmxPlugin implements Plugin{
 		this.host = host;
 	}
 
+	@Override
 	public void setConfig(final Map<String, Object> config) {
 	
 		final Set<Entry<String, Object>> entries = config.entrySet();

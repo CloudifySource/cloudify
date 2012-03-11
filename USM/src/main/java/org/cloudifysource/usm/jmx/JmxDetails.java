@@ -26,6 +26,7 @@ import org.cloudifysource.usm.details.DetailsException;
 
 public class JmxDetails extends AbstractJmxPlugin implements Details {
 
+	@Override
 	public Map<String, Object> getDetails(final UniversalServiceManagerBean usm,
 			final UniversalServiceManagerConfiguration config) throws DetailsException {
 

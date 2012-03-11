@@ -35,6 +35,7 @@ public class SigarProcessStateTask implements Runnable {
 		this.intervalMs = intervalMs;
 	}
 
+	@Override
 	public void run() {
 
 		try {

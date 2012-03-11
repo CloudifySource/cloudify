@@ -340,7 +340,7 @@ public final class USMUtils {
 	//converts a map of type <String, Object> to a Map of <String, Number>
 	public static Map<String, Number> convertMapToNumericValues(Map<String, Object> map) {
 		Map<String, Number> returnMap = new HashMap<String, Number>();
-		for (Map.Entry<String, Object> entryObject : ((Map<String, Object>)map).entrySet()){
+		for (Map.Entry<String, Object> entryObject : map.entrySet()){
 			if (entryObject.getValue() instanceof Number) {
 				returnMap.put(entryObject.getKey(),
 						(Number) entryObject.getValue());

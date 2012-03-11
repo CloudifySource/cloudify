@@ -58,18 +58,22 @@ public class SimpleBlockingJavaProcess implements
 		this.counter.set(counter);
 	}
 
+	@Override
 	public String getDetails() {
 		return "DETAILS TEST";
 	}
 
+	@Override
 	public String getType() {
 		return SimpleBlockingJavaProcess.class.getName();
 	}
 
+	@Override
 	public int getCounter() {
 		return counter.get();
 	}
 
+	@Override
 	public void die() {
 		latch.countDown();
 	}
@@ -182,6 +186,7 @@ public class SimpleBlockingJavaProcess implements
 	private void startServerTask(final int port) {
 		this.executorService.submit(new Runnable() {
 
+			@Override
 			public void run() {
 
 				try {

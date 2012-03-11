@@ -30,6 +30,7 @@ public class ProcessMonitor implements Monitor {
 	private final Sigar sigar = SigarHolder.getSigar();
 
 	
+	@Override
 	public Map<String, Number> getMonitorValues(final UniversalServiceManagerBean usm,
 			final UniversalServiceManagerConfiguration config) throws MonitorException {
 		

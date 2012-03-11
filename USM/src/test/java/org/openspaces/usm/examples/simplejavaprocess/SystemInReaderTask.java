@@ -35,6 +35,7 @@ public class SystemInReaderTask implements Runnable{
 		this.latch = latch;
 	}
 	
+	@Override
 	public void run() {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 		try {

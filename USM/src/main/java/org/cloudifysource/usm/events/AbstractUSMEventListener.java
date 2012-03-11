@@ -21,11 +21,13 @@ public class AbstractUSMEventListener implements USMEvent {
 
 	protected UniversalServiceManagerBean usm;
 
+	@Override
 	public void init(UniversalServiceManagerBean usm) {
 		this.usm = usm;
 
 	}
 
+	@Override
 	public int getOrder() {
 		return 5;
 	}
