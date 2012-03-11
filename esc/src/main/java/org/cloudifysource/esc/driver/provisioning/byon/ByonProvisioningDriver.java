@@ -152,9 +152,9 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		boolean foundFreeName = false;
 
 		while (attempts < MAX_SERVERS_LIMIT) {
-			counter = (counter + 1) % MAX_SERVERS_LIMIT;
+			//counter = (counter + 1) % MAX_SERVERS_LIMIT;
 			++attempts;
-			serverName = serverNamePrefix + this.counter;
+			serverName = serverNamePrefix + this.counter.incrementAndGet();
 			// verifying this server name is not already used
 			// TODO : DefaultProvisioningDriver uses deployer.getServerByID instead of getServerByName,
 			// resolve that.

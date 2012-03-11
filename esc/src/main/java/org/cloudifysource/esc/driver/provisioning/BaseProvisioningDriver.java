@@ -21,6 +21,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
@@ -40,6 +41,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	protected static final int MULTIPLE_SHUTDOWN_REQUEST_IGNORE_TIMEOUT = 120000;
 	protected static final int WAIT_THREAD_SLEEP_MILLIS = 10000;
 	protected static final int WAIT_TIMEOUT_MILLIS = 360000;
+	// TODO - make this a configuration option
 	protected static final int MAX_SERVERS_LIMIT = 200;
 	protected static final int SSH_PORT = 22;
 
@@ -51,7 +53,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	protected static final String MANAGMENT_MACHINE_PREFIX = "cloudify_managememnt_";
 	
 	protected boolean management;
-	protected int counter = 0;
+	protected static AtomicInteger counter = new AtomicInteger();
 	protected String serverNamePrefix;
 	protected String cloudName;
 	protected String cloudTemplateName;

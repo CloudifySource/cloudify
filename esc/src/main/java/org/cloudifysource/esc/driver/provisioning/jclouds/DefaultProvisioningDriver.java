@@ -23,6 +23,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -37,6 +38,7 @@ import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClas
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.jclouds.JCloudsDeployer;
 import org.cloudifysource.esc.util.Utils;
+import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.domain.ComputeMetadata;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.NodeState;
@@ -58,9 +60,14 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 	@Override
 	protected void initDeployer(final Cloud cloud) {
+		if (this.deployer != null) {
+			return;
+		}
+
 		try {
 			// TODO - jcloudsUniqueId should be unique per cloud configuration.
 			// TODO - The deployer object should be reusable across templates. The current API is not appropriate.
+			// TODO - key should be based on entire cloud configuraion!
 			this.deployer =
 					(JCloudsDeployer) context.getOrCreate("UNIQUE_JCLOUDS_DEPLOYER_ID_" + this.cloudTemplateName,
 							new Callable<Object>() {
@@ -101,18 +108,28 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 		logger.info(this.getClass().getName() + ": startMachine, management mode: " + management);
 		final long end = System.currentTimeMillis() + unit.toMillis(timeout);
-		// TO DO : is this really necessary? maybe we can remove this method?
-		initDeployer(cloud);
-
-		// initDeployed can take a while on some clouds, so checking the timeout
+				
 		if (System.currentTimeMillis() > end) {
 			throw new TimeoutException("Starting a new machine timed out");
 		}
 
+		final ComputeServiceContext currentContext = this.deployer.getContext();
 		try {
 			final MachineDetails md = doStartMachine(end);
 			return md;
 		} catch (final Exception e) {
+
+			if (e instanceof RejectedExecutionException) {
+				logger.warning("Detected Jclouds execution problem. Reseting Jclouds context");
+				try {
+					this.deployer.reset(currentContext);
+				} catch (final Exception e2) {
+					logger.log(Level.WARNING,
+							"Failed to reset jclouds context",
+							e2);
+				}
+			}
+
 			throw new CloudProvisioningException("Failed to start cloud machine", e);
 		}
 	}
@@ -206,14 +223,17 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	private String createNewServerName()
 			throws CloudProvisioningException {
 
+
+
+		// TODO - this code breaks cloudstack - not sure why yet
 		String serverName = null;
 		int attempts = 0;
 		boolean foundFreeName = false;
 
 		while (attempts < MAX_SERVERS_LIMIT) {
-			counter = (counter + 1) % MAX_SERVERS_LIMIT;
+			//counter = (counter + 1) % MAX_SERVERS_LIMIT;
 			++attempts;
-			serverName = serverNamePrefix + this.counter;
+			serverName = serverNamePrefix + counter.incrementAndGet();
 			// verifying this server name is not already used
 			final NodeMetadata existingNode = deployer.getServerByID(serverName);
 			if (existingNode == null) {
