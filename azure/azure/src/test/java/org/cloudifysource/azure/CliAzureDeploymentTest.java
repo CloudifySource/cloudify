@@ -257,7 +257,8 @@ public class CliAzureDeploymentTest {
         log("Getting number of running machines");
         
         repetativeAssert("Number of machines", new RepetativeConditionProvider() {
-            public boolean getCondition() {
+            @Override
+			public boolean getCondition() {
                 try {
 				    int numberOfMachines = getNumberOfMachines(restAdminMachinesUrl);
 					logger.info("Actual numberOfMachines=" + numberOfMachines +". Expected numberOfMachins="+EXPECTED_NUMBER_OF_MACHINES);
@@ -290,7 +291,8 @@ public class CliAzureDeploymentTest {
         final URI travelApplicationUrl = getTravelApplicationUrl(deploymentUrl).toURI();
 
         RepetativeConditionProvider applicationInstalledCondition = new RepetativeConditionProvider() {
-            public boolean getCondition() {
+            @Override
+			public boolean getCondition() {
 				try {
 					URL url = travelApplicationUrl.toURL();
 				    return isUrlAvailable(url);
@@ -316,7 +318,8 @@ public class CliAzureDeploymentTest {
         commands.clear();
         
         repetativeAssert("Failed waiting for scale out", new RepetativeConditionProvider() {
-            public boolean getCondition() {
+            @Override
+			public boolean getCondition() {
                 try {
 				    int numberOfMachines = getNumberOfMachines(restAdminMachinesUrl);
 					logger.info("Actual numberOfMachines=" + numberOfMachines +". Expected numberOfMachins="+(EXPECTED_NUMBER_OF_MACHINES+1));
@@ -355,7 +358,8 @@ public class CliAzureDeploymentTest {
         commands.clear();
         
         repetativeAssert("Failed waiting for scale in", new RepetativeConditionProvider() {
-            public boolean getCondition() {
+            @Override
+			public boolean getCondition() {
                 try {
 				    int numberOfMachines = getNumberOfMachines(restAdminMachinesUrl);
 					logger.info("Actual numberOfMachines=" + numberOfMachines +". Expected numberOfMachins="+EXPECTED_NUMBER_OF_MACHINES);

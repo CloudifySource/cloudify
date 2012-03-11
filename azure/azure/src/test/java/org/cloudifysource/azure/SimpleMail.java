@@ -50,7 +50,8 @@ public class SimpleMail {
         props.setProperty("mail.password", password);
 
         Session mailSession = Session.getDefaultInstance(props, new Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
+            @Override
+			protected PasswordAuthentication getPasswordAuthentication() {
                 return new PasswordAuthentication(user, password);
             }
         });
