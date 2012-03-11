@@ -15,14 +15,14 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.cloud;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 
 /**
- * Domain POJO for the cloud template.
- * 
  * @author barakme
  * @since 2.0.0
  * 
@@ -43,6 +43,7 @@ public class CloudTemplate {
 
 	private Map<String, Object> options = new HashMap<String, Object>();
 	private Map<String, Object> overrides = new HashMap<String, Object>();
+	private List<Map<String, String>> nodesList = new ArrayList<Map<String, String>>();
 
 	/**
 	 * Gets the image ID.
@@ -177,11 +178,30 @@ public class CloudTemplate {
 		this.overrides = overrides;
 	}
 
+	/**
+	 * Gets the configured cloud nodes.
+	 * 
+	 * @return A list of configured cloud nodes
+	 */
+	public List<Map<String, String>> getNodesList() {
+		return nodesList;
+	}
+
+	/**
+	 * Sets cloud nodes that are available for this template.
+	 * 
+	 * @param nodesList
+	 *            A list of cloud nodes that are available for this template
+	 */
+	public void setNodesList(final List<Map<String, String>> nodesList) {
+		this.nodesList = nodesList;
+	}
+
 	@Override
 	public String toString() {
 		return "CloudTemplate [imageId=" + imageId + ", machineMemoryMB=" + machineMemoryMB + ", hardwareId="
 				+ hardwareId + ", locationId=" + locationId + ", numberOfCores=" + numberOfCores + ", options="
-				+ options + ", overrides=" + overrides + "]";
+				+ options + ", overrides=" + overrides + ", nodesList=" + nodesList + "]";
 	}
 
 }
