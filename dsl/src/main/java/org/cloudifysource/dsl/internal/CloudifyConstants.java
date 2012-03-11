@@ -170,6 +170,12 @@ public final class CloudifyConstants {
 	public static final String POLLING_TIMEOUT_EXCEPTION = "TimeoutException";
 	public static final String LIFECYCLE_EVENT_CONTAINER_ID = "lifecycleEventContainerID";
 	public static final String SERVICE_ORDER = "srviceOrder";
+	
+	/*******************
+	 * REST port
+	 */
+	// TODO : this port should be configurable
+	public static final int REST_PORT = 8100;
 
 	private CloudifyConstants() {
 		// private constructor to prevent initialization.

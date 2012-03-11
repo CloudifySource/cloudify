@@ -231,42 +231,42 @@ public class CustomNodeImpl implements CustomNode {
 			if (other.getPrivateIP() != null) {
 				return false;
 			}
-		} else if (!getPrivateIP().equals(other.getPrivateIP())) {
+		} else if (!getPrivateIP().equalsIgnoreCase(other.getPrivateIP())) {
 			return false;
 		}
 		if (getPublicIP() == null) {
 			if (other.getPublicIP() != null) {
 				return false;
 			}
-		} else if (!getPublicIP().equals(other.getPublicIP())) {
+		} else if (!getPublicIP().equalsIgnoreCase(other.getPublicIP())) {
 			return false;
 		}
 		if (getProviderId() == null) {
 			if (other.getProviderId() != null) {
 				return false;
 			}
-		} else if (!getProviderId().equals(other.getProviderId())) {
+		} else if (!getProviderId().equalsIgnoreCase(other.getProviderId())) {
 			return false;
 		}
 		if (getNodeName() == null) {
 			if (other.getNodeName() != null) {
 				return false;
 			}
-		} else if (!getNodeName().equals(other.getNodeName())) {
+		} else if (!getNodeName().equalsIgnoreCase(other.getNodeName())) {
 			return false;
 		}
 		if (getGroup() == null) {
 			if (other.getGroup() != null) {
 				return false;
 			}
-		} else if (!getGroup().equals(other.getGroup())) {
+		} else if (!getGroup().equalsIgnoreCase(other.getGroup())) {
 			return false;
 		}
 		if (getUsername() == null) {
 			if (other.getUsername() != null) {
 				return false;
 			}
-		} else if (!getUsername().equals(other.getUsername())) {
+		} else if (!getUsername().equalsIgnoreCase(other.getUsername())) {
 			return false;
 		}
 		return true;

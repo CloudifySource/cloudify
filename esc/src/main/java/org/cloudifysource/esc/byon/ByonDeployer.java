@@ -49,6 +49,7 @@ public class ByonDeployer {
 			throw new InstallerException("Failed to start cloud node, server name is missing");
 		}
 
+		
 		if (freeNodesPool.size() == 0) {
 			throw new InstallerException("Failed to create new cloud node, all nodes are currently used");
 		}
@@ -76,7 +77,11 @@ public class ByonDeployer {
 		}
 	}
 
-	public synchronized void shutdownServer(final CustomNode node) {
+	public synchronized void shutdownServer(final CustomNode node)  {
+		if (node == null) {
+			return;
+		}
+		
 		((CustomNodeImpl) node).setGroup(null);
 		allocatedNodesPool.remove(node);
 		freeNodesPool.add(node);
@@ -85,11 +90,15 @@ public class ByonDeployer {
 	public void shutdownServerById(final String serverId) {
 		shutdownServer(getServerByID(serverId));
 	}
+	
+	public void shutdownServerByIp(final String serverIp) {
+		shutdownServer(getServerByIP(serverIp));
+	}
 
 	public CustomNode getServerByName(final String serverName) {
 		CustomNode selectedNode = null;
 
-		for (final CustomNode node : allocatedNodesPool) {
+		for (final CustomNode node : getAllNodes()) {
 			if (node.getNodeName().equalsIgnoreCase(serverName)) {
 				selectedNode = node;
 				break;
@@ -98,27 +107,21 @@ public class ByonDeployer {
 
 		return selectedNode;
 	}
+	
+	public Set<CustomNode> getAllNodes() {
+		final Set<CustomNode> allNodes = new HashSet<CustomNode>();
+		
+		allNodes.addAll(freeNodesPool);
+		allNodes.addAll(allocatedNodesPool);
+		allNodes.addAll(invalidNodesPool);
 
-	public Set<CustomNode> getServersByPrefix(final String prefix) {
-		java.util.logging.Logger logger = java.util.logging.Logger.getLogger(ByonDeployer.class.getName());
-		logger.info("ByonDeployer: in getServersByPrefix " + prefix);
-		logger.info("ByonDeployer: size of allocatedNodesPool: " + allocatedNodesPool.size());
-		final Set<CustomNode> matchingNodes = new HashSet<CustomNode>();
-
-		for (final CustomNode node : allocatedNodesPool) {
-			logger.info("Found node named: " + node.getNodeName());
-			if (node.getNodeName().startsWith(prefix)) {
-				matchingNodes.add(node);
-			}
-		}
-
-		return matchingNodes;
+		return allNodes;
 	}
 
 	public CustomNode getServerByID(final String id) {
 		CustomNode selectedNode = null;
 
-		for (final CustomNode node : allocatedNodesPool) {
+		for (final CustomNode node : getAllNodes()) {
 			if (node.getId().equalsIgnoreCase(id)) {
 				selectedNode = node;
 				break;
@@ -128,10 +131,10 @@ public class ByonDeployer {
 		return selectedNode;
 	}
 
-	public CustomNode getServerByIp(final String ipAddress) {
+	public CustomNode getServerByIP(final String ipAddress) {
 		CustomNode selectedNode = null;
 
-		for (final CustomNode node : allocatedNodesPool) {
+		for (final CustomNode node : getAllNodes()) {
 			if ((StringUtils.isNotBlank(node.getPrivateIP()) && node.getPrivateIP().equalsIgnoreCase(ipAddress)) ||
 					(StringUtils.isNotBlank(node.getPublicIP()) && node.getPublicIP().equalsIgnoreCase(ipAddress))) {
 				selectedNode = node;

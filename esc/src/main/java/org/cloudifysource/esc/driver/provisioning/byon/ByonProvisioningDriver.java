@@ -15,8 +15,9 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.byon;
 
+import java.rmi.RemoteException;
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -30,6 +31,8 @@ import java.util.logging.Level;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.byon.ByonDeployer;
 import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
@@ -39,6 +42,14 @@ import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.util.Utils;
+import org.openspaces.admin.AdminException;
+import org.openspaces.admin.gsa.GridServiceAgent;
+import org.openspaces.admin.gsm.GridServiceManager;
+import org.openspaces.admin.gsm.GridServiceManagers;
+import org.openspaces.admin.internal.gsa.InternalGridServiceAgent;
+import org.openspaces.admin.internal.support.NetworkExceptionHelper;
+
+import com.gigaspaces.grid.gsa.GSA;
 
 /**************
  * A bring-your-own-node (BYON) CloudifyProvisioning implementation. Parses a groovy file as a source of
@@ -52,8 +63,6 @@ import org.cloudifysource.esc.util.Utils;
 public class ByonProvisioningDriver extends BaseProvisioningDriver implements ProvisioningDriver,
 		ProvisioningDriverClassContextAware {
 
-	private static final String CLOUD_NODES_POOL = "nodesPool";
-
 	private ByonDeployer deployer;
 
 	@Override
@@ -64,9 +73,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 				@Override
 				public Object call() throws Exception {
 					logger.info("Creating BYON context deployer for cloud: " + cloud.getName());
-					final List<Map<String, String>> nodesList = (List<Map<String, String>>) cloud.getCustom().get(
-							CLOUD_NODES_POOL);
-					return new ByonDeployer(nodesList);
+					final CloudTemplate cloudTemplate = cloud.getTemplates().get(cloudTemplateName);
+					return new ByonDeployer(cloudTemplate.getNodesList());
 				}
 			});
 		} catch (final Exception e) {
@@ -80,11 +88,12 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			CloudProvisioningException {
 
 		logger.info(this.getClass().getName() + ": startMachine, management mode: " + management);
-		
+
 		try {
-			Set<String> ipAddresses = admin.getMachines().getHostsByAddress().keySet();
-			deployer.setAllocated(ipAddresses);
-			logger.info("Verifying the active machines are not in the free pool (active machines: " + Arrays.toString(ipAddresses.toArray()) + ")");
+			final Set<String> activeMachinesIPs = admin.getMachines().getHostsByAddress().keySet();
+			deployer.setAllocated(activeMachinesIPs);
+			logger.info("Verifying the active machines are not in the free pool (active machines: "
+					+ Arrays.toString(activeMachinesIPs.toArray()) + ", all machines in pool: " + Arrays.toString(deployer.getAllNodes().toArray()) + ")");
 			final String name = createNewServerName();
 			logger.info("Starting a new cloud machine with name: " + name);
 			return createServer(System.currentTimeMillis() + unit.toMillis(timeout), name);
@@ -175,13 +184,26 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 		logger.info("DefaultCloudProvisioning: startMachine - management == " + management);
 
-		final String managementMachinePrefix = this.serverNamePrefix;
-
 		// first check if management already exists
-		final MachineDetails[] existingManagementServers = getExistingManagementServers(managementMachinePrefix);
-		if (existingManagementServers.length > 0) {
-			logger.info("Found existing servers matching the name: " + managementMachinePrefix);
-			return existingManagementServers;
+		try {
+			final Set<CustomNode> managementServers = getExistingManagementServers(0);
+			if (managementServers != null && !managementServers.isEmpty()) {
+
+				final MachineDetails[] managementMachines = new MachineDetails[managementServers.size()];
+				int i = 0;
+				for (final CustomNode node : managementServers) {
+					managementMachines[i] = createMachineDetailsFromNode(node);
+					managementMachines[i].setAgentRunning(true);
+					managementMachines[i].setCloudifyInstalled(true);
+					i++;
+				}
+
+				logger.info("Found existing management servers (" + Arrays.toString(managementMachines) + ")");
+
+				return managementMachines;
+			}
+		} catch (final InterruptedException e) {
+			throw new CloudProvisioningException("Failed to lookup existing manahement servers.", e);
 		}
 
 		// launch the management machines
@@ -276,11 +298,11 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			stoppingMachines.put(serverIp, System.currentTimeMillis());
 			logger.info("Scale IN -- " + serverIp + " --");
 			logger.info("Looking up cloud server with IP: " + serverIp);
-			final CustomNode cloudNode = deployer.getServerByIp(serverIp);
+			final CustomNode cloudNode = deployer.getServerByIP(serverIp);
 			if (cloudNode != null) {
 				logger.info("Found server: " + cloudNode.getId()
 						+ ". Shutting it down and waiting for shutdown to complete");
-				deployer.shutdownServerById(cloudNode.getId());
+				deployer.shutdownServerByIp(cloudNode.getPrivateIP());
 				logger.info("Server: " + cloudNode.getId() + " shutdown has finished.");
 				stopResult = true;
 			} else {
@@ -296,33 +318,112 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	@Override
 	public void stopManagementMachines() throws TimeoutException, CloudProvisioningException {
 
-		//initDeployer(this.cloud);
-		final MachineDetails[] managementServers = getExistingManagementServers(this.serverNamePrefix);
+		try {
+			final Set<CustomNode> managementServers = getExistingManagementServers(cloud.getProvider()
+					.getNumberOfManagementMachines());
+			if (managementServers == null || managementServers.isEmpty()) {
+				throw new CloudProvisioningException("Could not find any management machines for this cloud");
+			}
 
-		if (managementServers.length == 0) {
-			throw new CloudProvisioningException(
-					"Could not find any management machines for this cloud (management machine prefix is: "
-							+ this.serverNamePrefix + ")");
+			for (final CustomNode customNode : managementServers) {
+				stopManagementServicesAndWait(cloud.getProvider().getNumberOfManagementMachines(),
+						customNode.getPrivateIP(), 2, TimeUnit.MINUTES);
+				deployer.shutdownServer(customNode);
+			}
+		} catch (final InterruptedException e) {
+			throw new CloudProvisioningException("Failed to shutdown agent.", e);
 		}
 
-		for (final MachineDetails machineDetails : managementServers) {
-			deployer.shutdownServerById(machineDetails.getMachineId());
-		}
 	}
 
-	private MachineDetails[] getExistingManagementServers(final String managementMachinePrefix) {
-		final Set<CustomNode> existingManagementServers = deployer.getServersByPrefix(managementMachinePrefix);
-
-		final MachineDetails[] result = new MachineDetails[existingManagementServers.size()];
-		int i = 0;
-		for (final CustomNode node : existingManagementServers) {
-			result[i] = createMachineDetailsFromNode(node);
-			result[i].setAgentRunning(true);
-			result[i].setCloudifyInstalled(true);
-			i++;
-
+	private Set<CustomNode> getExistingManagementServers(final int expectedGsmCount) throws TimeoutException,
+			InterruptedException {
+		// loop all IPs in the pool to find a mgmt machine - open on port 8100
+		final Set<CustomNode> existingManagementServers = new HashSet<CustomNode>();
+		final Set<CustomNode> allNodes = deployer.getAllNodes();
+		String managementIP = null;
+		for (final CustomNode server : allNodes) {
+			try {
+				final long endTime = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(20);
+				Utils.validateConnection(server.getPrivateIP(), CloudifyConstants.REST_PORT, Utils.millisUntil(endTime));
+				managementIP = server.getPrivateIP();
+				break;
+			} catch (final Exception ex) {
+				// not a mgmt server, ignore and move on
+			}
 		}
-		return result;
+
+		if (StringUtils.isNotBlank(managementIP)) {
+			// mgmt server found - connect it and get all management machines
+			if (admin == null) {
+				admin = Utils.getAdminObject(managementIP, expectedGsmCount);
+			}
+			final GridServiceManagers gsms = admin.getGridServiceManagers();
+			for (final GridServiceManager gsm : gsms) {
+				existingManagementServers.add(deployer.getServerByIP(gsm.getMachine().getHostAddress()));
+			}
+			admin.close();
+		}
+
+		return existingManagementServers;
+	}
+
+	private void stopManagementServicesAndWait(final int expectedGsmCount, final String ipAddress, final long timeout,
+			final TimeUnit timeunit) throws TimeoutException, InterruptedException {
+
+		if (admin == null) {
+			admin = Utils.getAdminObject(ipAddress, expectedGsmCount);
+		}
+
+		final Map<String, GridServiceAgent> agentsMap = admin.getGridServiceAgents().getHostAddress();
+		// GridServiceAgent agent = agentsMap.get(ipAddress);
+		GSA agent = null;
+		final Set<String> keys = agentsMap.keySet();
+		for (final String key : keys) {
+			System.out.println("key: " + key + ", value: " + agentsMap.get(key));
+			if (key.equalsIgnoreCase(ipAddress)) {
+				agent = ((InternalGridServiceAgent) agentsMap.get(key)).getGSA();
+			}
+		}
+		if (agent != null) {
+			logger.info("ByonProvisioningDriver: shutting down agent on management server: " + ipAddress);
+			try {
+				agent.shutdown();
+			} catch (final RemoteException e) {
+				if (!NetworkExceptionHelper.isConnectOrCloseException(e)) {
+					logger.finer("Exception caught on teardown. cause: " + e.getCause() + ", message: "
+							+ e.getMessage() + ", stacktrace:" + e.getStackTrace());
+					throw new AdminException("Failed to shutdown GSA", e);
+				}
+			}
+
+			final long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
+			boolean agentUp = isAgentUp(agent);
+			while (agentUp && System.currentTimeMillis() < end) {
+				logger.fine("next check in " + TimeUnit.MILLISECONDS.toSeconds(10) + " seconds");
+				Thread.sleep(TimeUnit.SECONDS.toMillis(10));
+				agentUp = isAgentUp(agent);
+			}
+
+			if (!agentUp && System.currentTimeMillis() >= end) {
+				throw new TimeoutException("Agent shutdown timed out (agent IP: " + ipAddress + ")");
+			}
+		}
+		// TODO : should this be done before agent.shutdown?
+		admin.close();
+	}
+
+	private boolean isAgentUp(final GSA agent) {
+		boolean agentUp = false;
+		try {
+			agent.ping();
+			agentUp = true;
+		} catch (final RemoteException e) {
+			// Probably NoSuchObjectException meaning the GSA is going down
+			agentUp = false;
+		}
+
+		return agentUp;
 	}
 
 	private void handleProvisioningFailure(final int numberOfManagementMachines, final int numberOfErrors,
@@ -336,7 +437,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			for (final MachineDetails machineDetails : createdManagementMachines) {
 				if (machineDetails != null) {
 					logger.severe("Shutting down machine: " + machineDetails);
-					deployer.shutdownServerById(machineDetails.getMachineId());
+					deployer.shutdownServerByIp(machineDetails.getPrivateAddress());
 				}
 			}
 		}
@@ -358,7 +459,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		// address.
 		md.setUsePrivateAddress(true);
 
-		// if the node has user/pwd - use it. Otherwise - take them from the cloud settings.
+		// if the node has user/pwd - use it. Otherwise - take them from the cloud's settings.
 		if (!StringUtils.isBlank(node.getUsername()) && !StringUtils.isBlank(node.getCredential())) {
 			md.setRemoteUsername(node.getUsername());
 			md.setRemotePassword(node.getCredential());

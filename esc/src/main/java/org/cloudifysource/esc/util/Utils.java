@@ -15,10 +15,23 @@
  *******************************************************************************/
 package org.cloudifysource.esc.util;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.type.JavaType;
+import org.openspaces.admin.Admin;
+import org.openspaces.admin.AdminFactory;
+import org.openspaces.admin.gsm.GridServiceManagers;
 
 /**
  * Utilities class.
@@ -28,6 +41,8 @@ import java.util.concurrent.TimeoutException;
  */
 public final class Utils {
 
+	private static final int ADMIN_API_TIMEOUT=30; //timeout in seconds, for waiting for the admin API to load.
+	
 	private Utils() {
 	}
 
@@ -108,6 +123,64 @@ public final class Utils {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Returns the content of a given input stream, as a String object.
+	 * 
+	 * @param is
+	 *            the input stream to read.
+	 * @return the content of the given input stream
+	 * @throws IOException
+	 *             Reporting failure to read from the InputStream
+	 */
+	public static String getStringFromStream(final InputStream is)
+			throws IOException {
+		BufferedReader bufferedReader = new BufferedReader(
+				new InputStreamReader(is));
+		StringBuilder sb = new StringBuilder();
+		String line = null;
+		while ((line = bufferedReader.readLine()) != null) {
+			sb.append(line);
+		}
+		return sb.toString();
+	}
+	
+
+	/**
+	 * Converts a json String to a Map<String, Object>.
+	 * 
+	 * @param response
+	 *            a json-format String to convert to a map
+	 * @return a Map<String, Object> based on the given String
+	 * @throws IOException
+	 *             Reporting failure to read or map the String
+	 */
+	public static Map<String, Object> jsonToMap(final String response) throws IOException {
+		final JavaType javaType = TypeFactory.type(Map.class);
+		return new ObjectMapper().readValue(response, javaType);
+	}
+	
+	public static String getManagementPort() {
+		// TODO get the management port from the configuration
+		return "4166";//"4168";
+	}
+	
+	public static Admin getAdminObject(String managementIP, int expectedGsmCount) throws TimeoutException, InterruptedException {
+		final AdminFactory adminFactory = new AdminFactory();
+		adminFactory.addLocator(managementIP + ":" + CloudifyConstants.REST_PORT);
+		final Admin admin = adminFactory.createAdmin();
+		GridServiceManagers gsms = admin.getGridServiceManagers();
+		final long end = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(ADMIN_API_TIMEOUT);
+		while(admin.getLookupServices() == null || gsms == null || (expectedGsmCount>0 && gsms.getSize()<expectedGsmCount)) {
+			if (System.currentTimeMillis() > end) {
+				throw new TimeoutException("Admin API timed out");
+			}
+			Thread.sleep(TimeUnit.SECONDS.toMillis(1));
+			gsms = admin.getGridServiceManagers();
+		}
+		
+		return admin;
 	}
 
 }
