@@ -40,6 +40,7 @@ import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.openspaces.admin.Admin;
+import org.openspaces.admin.AdminException;
 import org.openspaces.admin.bean.BeanConfigurationException;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.pu.elastic.ElasticMachineProvisioningConfig;
@@ -187,12 +188,15 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			}
 			return gsa;
 		} catch (final ElasticMachineProvisioningException e) {
+			logger.info("--- DEBUG: calling handleExceptionAfterMachineCreated after exception " + e.getMessage());
 			handleExceptionAfterMachineCreated(machineDetails);
 			throw e;
 		} catch (final TimeoutException e) {
+			logger.info("--- DEBUG: calling handleExceptionAfterMachineCreated after exception " + e.getMessage());
 			handleExceptionAfterMachineCreated(machineDetails);
 			throw e;
 		} catch (final InterruptedException e) {
+			logger.info("--- DEBUG: calling handleExceptionAfterMachineCreated after exception " + e.getMessage());
 			handleExceptionAfterMachineCreated(machineDetails);
 			throw e;
 		}
@@ -201,6 +205,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private void handleExceptionAfterMachineCreated(final MachineDetails machineDetails) {
 		try {
+			//agent is not supposed to be up if we got here, so it is not shutdown before stopping the machine.
+			logger.info("--- DEBUG: Stopping machine " + machineDetails.getPrivateAddress() + ", DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE");
 			this.cloudifyProvisioning.stopMachine(machineDetails.getPrivateAddress(),
 					DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE, TimeUnit.MINUTES);
 		} catch (final Exception e) {
@@ -320,17 +326,21 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		final String machineIp = agent.getMachine().getHostAddress();
 		try {
-			logger.fine("Cloudify Adapter is shutting down machine with ip: " + machineIp);
+			agent.shutdown();
+			logger.info("Cloudify Adapter is shutting down machine with ip: " + machineIp);
 			final boolean shutdownResult = this.cloudifyProvisioning.stopMachine(machineIp, duration, unit);
-			logger.fine("Shutdown result of machine: " + machineIp + " was: " + shutdownResult);
+			logger.info("Shutdown result of machine: " + machineIp + " was: " + shutdownResult);
 
 			return shutdownResult;
 
-		} catch (final CloudProvisioningException e) {
+		} 
+		catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Attempt to shutdown machine with IP: " + machineIp
 					+ " for agent with UID: " + agent.getUid() + " has failed with error: " + e.getMessage(), e);
 		}
-
+		catch (AdminException e) {
+			throw new ElasticMachineProvisioningException("Failed to shutdown agent " + agent.getMachine().getHostAddress(), e);
+		}
 	}
 
 	@Override
