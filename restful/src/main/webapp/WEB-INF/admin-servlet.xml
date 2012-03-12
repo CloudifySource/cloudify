@@ -55,8 +55,7 @@
 	    A bean representing a space (an IJSpace implementation).
 	    Note, we perform a lookup on the space since we are working against a remote space.
 	-->
-	<os-core:space id="space" url="jini://*/*/${restful.managementSpaceName}" lookup-locators="${restful.lookupLocators}" lookup-groups="${restful.lookupGroups}" />
-	<!-- os-core:space id="space" url="jini://*/*/${restful.managementSpaceName}" lookup-locators="${restful.lookupLocators}" lookup-groups="${restful.lookupGroups}" /-->
+	<os-core:space id="space" url="jini://*/*/${restful.managementSpaceName}" />
 	
 	<!--
 	    OpenSpaces simplified space API built on top of IJSpace/JavaSpace.
