@@ -229,7 +229,6 @@ public class USMLifecycleBean implements ClusterInfoAware {
 			throws USMException {
 		fireEvent(
 				LifecycleEvents.POST_START, this.postStartListeners, reason);
-
 	}
 
 	public void firePreStart(final StartReason reason)
@@ -320,13 +319,12 @@ public class USMLifecycleBean implements ClusterInfoAware {
 
 				if (er == null) {
 					throw new IllegalStateException("An event execution returned a null value!");
-				} else {
-					if (!er.isSuccess()) {
-						logEventFailure(
-								event, listeners, er);
-						throw new USMException("Failed to execute event: " + event + ". Error was: "
-								+ er.getException());
-					}
+				} 
+				if (!er.isSuccess()) {
+					logEventFailure(
+							event, listeners, er);
+					throw new USMException("Failed to execute event: " + event + ". Error was: "
+							+ er.getException());
 				}
 			}
 			logEventSuccess(

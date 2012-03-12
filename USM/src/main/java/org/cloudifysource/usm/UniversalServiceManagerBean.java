@@ -190,24 +190,22 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 				this.state = USMState.RUNNING;
 
 				return;
-			} else {
+			} 
+			try {
+				// Launch the process
+				startProcessLifecycle();
+			} catch (final USMException usme) {
+				logger.severe("Process lifecycle failed to start. Shutting down the USM instance");
 				try {
-					// Launch the process
-					startProcessLifecycle();
-				} catch (final USMException usme) {
-					logger.severe("Process lifecycle failed to start. Shutting down the USM instance");
-					try {
-						this.shutdown();
-					} catch (final Exception e) {
-						logger.log(Level.SEVERE,
-								"While shutting down the USM due to a failure in initialization, "
-										+ "the following exception occured: " + e.getMessage(),
-								e);
-					}
-					throw usme;
+					this.shutdown();
+				} catch (final Exception e) {
+					logger.log(Level.SEVERE,
+							"While shutting down the USM due to a failure in initialization, "
+									+ "the following exception occured: " + e.getMessage(),
+									e);
 				}
+				throw usme;
 			}
-
 		}
 	}
 
@@ -1515,15 +1513,13 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 	}
 
 	@Override
-	public boolean isAlive()
-			throws Exception {
+	public boolean isAlive() throws Exception {
 		if (shutdownUSMException == null) {
 			return true;
-		} else {
-			logger.severe("USM is Alive() exiting with exception due to previous failure. Exception message was: "
-					+ shutdownUSMException.getMessage());
-			throw shutdownUSMException;
-		}
+		} 
+		logger.severe("USM is Alive() exiting with exception due to previous failure. Exception message was: "
+				+ shutdownUSMException.getMessage());
+		throw shutdownUSMException;
 	}
 
 	@Override

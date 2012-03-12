@@ -374,12 +374,10 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 					final Object obj = ((Closure<?>) monitor).call();
 					if (obj instanceof Map<?, ?>) {
 						return USMUtils.convertMapToNumericValues((Map<String, Object>) obj);
-					} else {
-						throw new IllegalArgumentException(
-								"The Monitor closure defined in the DSL file does not evaluate to a Map! "
-										+ "Received object was of type: " + obj.getClass().getName());
-					}
-
+					} 
+					throw new IllegalArgumentException(
+							"The Monitor closure defined in the DSL file does not evaluate to a Map! "
+									+ "Received object was of type: " + obj.getClass().getName());
 				}
 
 			};
@@ -427,11 +425,10 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 
 		if (enabled) {
 			return new ProcessStopDetector();
-		} else {
-			logger.warning("PID Based stop detection has been disabled due to custom property setting: "
-					+ CloudifyConstants.CUSTOM_PROPERTY_ENABLE_PID_MONITOR);
-			return null;
-		}
+		} 
+		logger.warning("PID Based stop detection has been disabled due to custom property setting: "
+				+ CloudifyConstants.CUSTOM_PROPERTY_ENABLE_PID_MONITOR);
+		return null;
 	}
 
 	@Bean

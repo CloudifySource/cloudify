@@ -16,14 +16,12 @@
 package org.cloudifysource.usm;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.Properties;
 
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
-import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.usm.dsl.DSLConfiguration;
 import org.openspaces.core.cluster.ClusterInfo;
 import org.openspaces.core.cluster.ClusterInfoAware;
@@ -60,16 +58,12 @@ public class USMConfigurationFactoryBean implements FactoryBean<UniversalService
 
 		try {
 			return handleDsl();
-		} catch (FileNotFoundException e) {
-			throw new USMException(e);
-		} catch (PackagingException e) {
-			throw new USMException(e);
 		} catch (DSLException e) {
 			throw new USMException(e);
 		}
 	}
 
-	private UniversalServiceManagerConfiguration handleDsl() throws USMException, FileNotFoundException, PackagingException, DSLException {
+	private UniversalServiceManagerConfiguration handleDsl() throws DSLException {
 		File dslFile = null;
 		
 		if (serviceFileName != null) {
@@ -88,15 +82,8 @@ public class USMConfigurationFactoryBean implements FactoryBean<UniversalService
 		// be available in the pu lib dir, and ignore the contents of usmlib
 		dslReader.setLoadUsmLib(false);
 		
-
 		Service service = dslReader.readDslEntity(Service.class);
-
-		
-	
-		final DSLConfiguration config = new DSLConfiguration(service, dslReader.getContext(),  this.puExtDir, dslReader.getDslFile());
-
-		return config;
-
+		return new DSLConfiguration(service, dslReader.getContext(),  this.puExtDir, dslReader.getDslFile());
 	}
 
 	@Override
