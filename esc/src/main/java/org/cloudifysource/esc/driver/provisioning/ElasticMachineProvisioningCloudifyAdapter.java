@@ -35,7 +35,6 @@ import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
-import org.cloudifysource.esc.esm.CloudMachineProvisioningConfig;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
@@ -78,7 +77,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private Cloud cloud;
 	private String cloudTemplate;
 	private String lookupLocatorsString;
-	private CloudMachineProvisioningConfig config;
+	private CloudifyMachineProvisioningConfig config;
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(ElasticMachineProvisioningCloudifyAdapter.class.getName());
 
@@ -370,7 +369,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Attempt to shutdown machine with IP: " + machineIp
 					+ " for agent with UID: " + agent.getUid() + " has failed with error: " + e.getMessage(), e);
-		} catch (AdminException e) {
+		} catch (final AdminException e) {
 			throw new ElasticMachineProvisioningException("Failed to shutdown agent "
 					+ agent.getMachine().getHostAddress(), e);
 		}
@@ -393,7 +392,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	@Override
 	public void setProperties(final Map<String, String> properties) {
 		this.properties = properties;
-		this.config = new CloudMachineProvisioningConfig(properties);
+		this.config = new CloudifyMachineProvisioningConfig(properties);
 
 	}
 

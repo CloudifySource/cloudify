@@ -65,6 +65,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	
 	private StringProperties properties= new StringProperties(new HashMap<String, String>());
 
+	
 	public CloudifyMachineProvisioningConfig(final Cloud cloud, final CloudTemplate template, final String cloudFileContents, final String cloudTemplateName ) {
 		
 		setMinimumNumberOfCpuCoresPerMachine(template.getNumberOfCores());
@@ -78,6 +79,9 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 		setCloudTemplateName(cloudTemplateName);
 		
 		
+	}
+	public CloudifyMachineProvisioningConfig(Map<String, String> properties) {
+		this.properties = new StringProperties(properties);
 	}
 	@Override
 	public String getBeanClassName() {
