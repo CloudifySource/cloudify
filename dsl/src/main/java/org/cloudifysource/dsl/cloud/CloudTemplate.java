@@ -15,9 +15,7 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.cloud;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
@@ -30,8 +28,7 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
  *        cloud. It can include physical machine properties (e.g. memory), operating system type, location,
  *        available cloud nodes and other settings.
  */
-@CloudifyDSLEntity(name = "template", clazz = CloudTemplate.class, allowInternalNode = true, allowRootNode = false,
-	parent = "cloud")
+@CloudifyDSLEntity(name = "template", clazz = CloudTemplate.class, allowInternalNode = true, allowRootNode = false, parent = "cloud")
 public class CloudTemplate {
 
 	private String imageId;
@@ -43,7 +40,7 @@ public class CloudTemplate {
 
 	private Map<String, Object> options = new HashMap<String, Object>();
 	private Map<String, Object> overrides = new HashMap<String, Object>();
-	private List<Map<String, String>> nodesList = new ArrayList<Map<String, String>>();
+	private Map<String, Object> custom = new HashMap<String, Object>();
 
 	/**
 	 * Gets the image ID.
@@ -179,29 +176,29 @@ public class CloudTemplate {
 	}
 
 	/**
-	 * Gets the configured cloud nodes.
+	 * Gets the custom settings.
 	 * 
-	 * @return A list of configured cloud nodes
+	 * @return A map of custom settings
 	 */
-	public List<Map<String, String>> getNodesList() {
-		return nodesList;
+	public Map<String, Object> getCustom() {
+		return custom;
 	}
 
 	/**
-	 * Sets cloud nodes that are available for this template.
+	 * Sets custom settings.
 	 * 
-	 * @param nodesList
-	 *            A list of cloud nodes that are available for this template
+	 * @param custom
+	 *            A map of custom settings
 	 */
-	public void setNodesList(final List<Map<String, String>> nodesList) {
-		this.nodesList = nodesList;
+	public void setCustom(final Map<String, Object> custom) {
+		this.custom = custom;
 	}
 
 	@Override
 	public String toString() {
 		return "CloudTemplate [imageId=" + imageId + ", machineMemoryMB=" + machineMemoryMB + ", hardwareId="
 				+ hardwareId + ", locationId=" + locationId + ", numberOfCores=" + numberOfCores + ", options="
-				+ options + ", overrides=" + overrides + ", nodesList=" + nodesList + "]";
+				+ options + ", overrides=" + overrides + ", nodesList=" + custom + "]";
 	}
 
 }

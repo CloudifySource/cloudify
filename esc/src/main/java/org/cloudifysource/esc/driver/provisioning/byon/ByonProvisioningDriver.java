@@ -18,6 +18,7 @@ package org.cloudifysource.esc.driver.provisioning.byon;
 import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -31,7 +32,6 @@ import java.util.logging.Level;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.byon.ByonDeployer;
 import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
@@ -64,6 +64,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		ProvisioningDriverClassContextAware {
 
 	private ByonDeployer deployer;
+	private static final String CLOUD_NODES_LIST = "nodesList";
 
 	@Override
 	protected void initDeployer(final Cloud cloud) {
@@ -73,8 +74,9 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 				@Override
 				public Object call() throws Exception {
 					logger.info("Creating BYON context deployer for cloud: " + cloud.getName());
-					final CloudTemplate cloudTemplate = cloud.getTemplates().get(cloudTemplateName);
-					return new ByonDeployer(cloudTemplate.getNodesList());
+					final List<Map<String, String>> nodesList = (List<Map<String, String>>) cloud.getCustom().get(
+							CLOUD_NODES_LIST);
+					return new ByonDeployer(nodesList);
 				}
 			});
 		} catch (final Exception e) {
