@@ -62,24 +62,6 @@
 	-->
 	<os-core:giga-space id="gigaSpace" space="space"/>
 
-	<!-- <bean id="adminFactory" class="org.openspaces.admin.AdminFactory" />
-	<bean id="adminGroupFactory"
-		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
-		<property name="targetObject">
-			<ref local="adminFactory" />
-		</property>
-		<property name="targetMethod">
-			<value>addGroup</value>
-		</property>
-		<property name="arguments">
-			<list>
-				<value>${restful.locatorGroup}</value>
-			</list>
-		</property>
-	</bean> -->
-
-	<!-- <bean class="org.openspaces.admin.Admin" factory-bean="adminFactory"
-		factory-method="createAdmin" /> -->
 	<bean id="adminView"
 		class="org.springframework.web.servlet.view.json.MappingJacksonJsonView" />
 
