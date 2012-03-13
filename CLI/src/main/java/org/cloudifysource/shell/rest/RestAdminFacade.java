@@ -550,11 +550,11 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		return result;
 	}
 	
-	public void waitForLifecycleEvents(final String pollingID, String timeoutMessage) throws CLIException, InterruptedException, TimeoutException {
+	public void waitForLifecycleEvents(final String pollingID, int timeout, String timeoutMessage) throws CLIException, InterruptedException, TimeoutException {
 		
 		RestLifecycleEventsLatch restLifecycleEventsLatch = new RestLifecycleEventsLatch();
 		restLifecycleEventsLatch.setTimeoutMessage(timeoutMessage);
-		restLifecycleEventsLatch.waitForLifecycleEvents(pollingID, client);
+		restLifecycleEventsLatch.waitForLifecycleEvents(pollingID, client, timeout);
 	}
 
 	/**

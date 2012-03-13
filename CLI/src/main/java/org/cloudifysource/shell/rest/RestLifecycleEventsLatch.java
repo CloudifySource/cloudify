@@ -17,97 +17,89 @@ package org.cloudifysource.shell.rest;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.restclient.ErrorStatusException;
 import org.cloudifysource.restclient.GSRestClient;
-import org.cloudifysource.shell.ShellUtils;
+import org.cloudifysource.shell.ConditionLatch;
+import org.cloudifysource.shell.ConditionLatch.Predicate;
+import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
-import org.fusesource.jansi.Ansi;
-import org.fusesource.jansi.Ansi.Color;
+import org.cloudifysource.shell.installer.CLIEventsDisplayer;
 
 public class RestLifecycleEventsLatch {
 
 	private final long MIN_POLLING_INTERVAL = 2000;
-	
+
 	private long pollingInterval = MIN_POLLING_INTERVAL;
 
-	private int progressCounter = 0;
-
-	private final int PROGRESS_BAR_MAX_LENGTH = 6;
-	
 	private final String DEFAULT_TIMEOUT_MESSAGE = "installation timed out";
 
 	private String timeoutMessage = DEFAULT_TIMEOUT_MESSAGE;
 
+	private CLIEventsDisplayer displayer;
 
-	public void waitForLifecycleEvents(String serviceLifecycleEventContainerID,
-			GSRestClient client) throws InterruptedException, TimeoutException, CLIStatusException {
-
-		int cursor = 0;
-		boolean isDone = false;
-		String url;
-		Boolean timedOut = false;
-
-		Map<String, Object> lifecycleEventLogs = null;
-		while(!isDone){
-			url = "/service/lifecycleEventContainerID/" + serviceLifecycleEventContainerID
-			+ "/cursor/" + cursor;
-			try {
-				lifecycleEventLogs = (Map<String, Object>) client.get(url);
-			} catch (final ErrorStatusException e) {
-				throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-			} 
-
-			List<String> events = (List<String>)lifecycleEventLogs.get(CloudifyConstants.LIFECYCLE_LOGS);
-			cursor = (Integer)lifecycleEventLogs.get(CloudifyConstants.CURSOR_POS);
-			isDone = (Boolean)lifecycleEventLogs.get(CloudifyConstants.IS_TASK_DONE);
-			timedOut = (Boolean)lifecycleEventLogs.get(CloudifyConstants.POLLING_TIMEOUT_EXCEPTION);
-
-			printProgressEventMessages(events);
-
-			if (timedOut){
-				throw new TimeoutException(this.timeoutMessage);
-			}
-			Thread.sleep(pollingInterval);
-		}
-		System.out.print(Ansi.ansi().cursorLeft(this.progressCounter).eraseLine());
+	public RestLifecycleEventsLatch(){
+		this.displayer = new CLIEventsDisplayer();
 	}
-	private void printProgressEventMessages(final List<String> events) {
-		if (events == null){
-			System.out.print('.');
-			System.out.flush();
-			this.progressCounter++;
-			if (progressCounter >= PROGRESS_BAR_MAX_LENGTH){
-				System.out.print(Ansi.ansi()
-						.cursorLeft(PROGRESS_BAR_MAX_LENGTH - 1)
-						.eraseLine());
-				System.out.flush();
-				this.progressCounter = 1;
+
+	public void waitForLifecycleEvents(final String serviceLifecycleEventContainerID,
+			final GSRestClient client, int timeoutInMinutes) throws InterruptedException, TimeoutException, CLIException {
+		createConditionLatch(timeoutInMinutes, TimeUnit.MINUTES).waitFor(new Predicate() {
+
+			int cursor = 0;
+			boolean isDone = false;
+			String url;
+
+			Map<String, Object> lifecycleEventLogs = null;
+
+			@Override
+			public boolean isDone() throws CLIException, InterruptedException {
+				url = "/service/lifecycleEventContainerID/" + serviceLifecycleEventContainerID
+				+ "/cursor/" + cursor;
+				try {
+					lifecycleEventLogs = (Map<String, Object>) client.get(url);
+				} catch (final ErrorStatusException e) {
+					throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+				} 
+
+				List<String> events = (List<String>)lifecycleEventLogs.get(CloudifyConstants.LIFECYCLE_LOGS);
+				cursor = (Integer)lifecycleEventLogs.get(CloudifyConstants.CURSOR_POS);
+				isDone = (Boolean)lifecycleEventLogs.get(CloudifyConstants.IS_TASK_DONE);
+
+				if (events == null){
+					displayer.printNoChange();
+				}else{
+					displayer.printEvents(events);
+				}
+				if (isDone){
+					displayer.eraseCurrentLine();
+
+				}
+				return isDone;
 			}
-			return;
-		}
-		if (events.size() != 0) {
-			System.out.println('.');
-			System.out.flush();
-			this.progressCounter = 0;
-		}
-		for (final String eventString : events) {
-			if (eventString.contains(CloudifyConstants.USM_EVENT_EXEC_SUCCESSFULLY)) {
-				System.out.println(eventString + " "
-						+ ShellUtils.getColorMessage(CloudifyConstants.USM_EVENT_EXEC_SUCCEED_MESSAGE, Color.GREEN));
-			} else if (eventString.contains(CloudifyConstants.USM_EVENT_EXEC_FAILED)) {
-				System.out.println(eventString + " "
-						+ ShellUtils.getColorMessage(CloudifyConstants.USM_EVENT_EXEC_FAILED_MESSAGE, Color.RED));
-			} else {
-				System.out.println(eventString);
-			}
-		}
+		});
+	}
+
+	/**
+	 * Creates a condition latch object with the specified timeout. If the condition times out, a
+	 * {@link TimeoutException} is thrown.
+	 * 
+	 * @param timeout
+	 *            number of timeunits to wait
+	 * @param timeunit
+	 *            type of timeunits to wait
+	 * @return Configured condition latch
+	 */
+	private ConditionLatch createConditionLatch(final long timeout, final TimeUnit timeunit) {
+		return new ConditionLatch().timeout(timeout, timeunit).pollingInterval(this.pollingInterval, TimeUnit.MILLISECONDS)
+		.timeoutErrorMessage(this.timeoutMessage);
 	}
 
 	public void setPollingInterval(long pollingIntervalInMillis){
-		
+
 		if (!(pollingIntervalInMillis < MIN_POLLING_INTERVAL)){
 			this.pollingInterval = pollingIntervalInMillis;
 		}else{
@@ -117,6 +109,6 @@ public class RestLifecycleEventsLatch {
 
 	public void setTimeoutMessage(String timeoutMessage) {
 		this.timeoutMessage = timeoutMessage;
-		
+
 	}
 }

@@ -108,7 +108,7 @@ public class InstallApplication extends AdminAwareCommand {
 		}
 		
 		printApplicationInfo(application);
-		((RestAdminFacade)adminFacade).waitForLifecycleEvents(pollingID, TIMEOUT_ERROR_MESSAGE);
+		((RestAdminFacade)adminFacade).waitForLifecycleEvents(pollingID,timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
 
 		session.put(Constants.ACTIVE_APP, applicationName);
 		GigaShellMain.getInstance().setCurrentApplicationName(applicationName);

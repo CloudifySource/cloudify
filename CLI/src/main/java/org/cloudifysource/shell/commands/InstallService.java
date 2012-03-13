@@ -136,7 +136,7 @@ public class InstallService extends AdminAwareCommand {
 		}
 		String lifecycleEventContainerPollingID = adminFacade.installElastic(packedFile, currentApplicationName, serviceName, zone, props, templateName, timeoutInMinutes);
 
-		((RestAdminFacade)adminFacade).waitForLifecycleEvents(lifecycleEventContainerPollingID, TIMEOUT_ERROR_MESSAGE);
+		((RestAdminFacade)adminFacade).waitForLifecycleEvents(lifecycleEventContainerPollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
 
 		// if a zip file was created, delete it at the end of use.
 		if (serviceFile.isDirectory()) {
