@@ -48,6 +48,7 @@ import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
+import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.usm.details.Details;
 import org.cloudifysource.usm.dsl.DSLConfiguration;
 import org.cloudifysource.usm.dsl.DSLEntryExecutor;
@@ -259,7 +260,9 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 
 	private String createUniqueFileName() {
 		final String username = System.getProperty("user.name");
-		final String clusterName = this.clusterName == null ? "USM" : this.clusterName;
+		final String clusterName =
+				this.clusterName == null ? ServiceUtils.getAbsolutePUName(CloudifyConstants.DEFAULT_APPLICATION_NAME,
+						"USM") : this.clusterName;
 
 		try {
 			return clusterName + "_" + this.instanceId + "_" + username + "@"
@@ -425,10 +428,9 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		final int instanceIdToMatch = this.instanceId;
 
 		if (pu == null) {
-			throw new IllegalStateException(
-					"Could not find Processing Unit with name: "
-							+ this.clusterName
-							+ " to register event listener. This may indicate a discovery problem with your network. Please contact the system administrator");
+			throw new IllegalStateException("Could not find Processing Unit with name: " + this.clusterName
+					+ " to register event listener. This may indicate a discovery problem with your network. "
+					+ "Please contact the system administrator");
 		}
 
 		pu.getProcessingUnitInstanceAdded().add(new ProcessingUnitInstanceAddedEventListener() {
@@ -1300,7 +1302,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 
 		}
 
-		if (logger.isLoggable(Level.FINER)) { // TODO - change to FINER
+		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("Details are: " + Arrays.toString(res));
 		}
 		return res;
