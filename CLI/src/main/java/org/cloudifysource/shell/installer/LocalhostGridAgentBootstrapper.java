@@ -492,9 +492,10 @@ public class LocalhostGridAgentBootstrapper {
 					throw new CLIStatusException(e, "failed_to_uninstall_app_before_teardown", appName);
 				}
 				if (verbose) {
-					logger.log(Level.INFO, errorMessage, e);
+					logger.log(Level.FINE, errorMessage, e);
+					publishEvent(errorMessage);
 				} else {
-					logger.log(Level.INFO, errorMessage);
+					logger.log(Level.FINE, errorMessage);
 				}
 			}
 		}
