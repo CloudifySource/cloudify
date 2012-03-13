@@ -30,7 +30,7 @@ cloud {
 	}
 	user {
 		user "ENTER_USER"
-		apiKey "ENTER_KEY"
+		apiKey "ENTER_API_KEY"
 		keyFile "ENTER_KEY_FILE"
 	}
 	templates ([
