@@ -1,3 +1,7 @@
+import Callee
+
+c = new Callee()
+c.hello()
 
 service {
 	name "kitchensink-service"
