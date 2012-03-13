@@ -38,7 +38,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -279,16 +278,15 @@ public class ServiceController {
 		final File dest = new File(tmpfile.getParent(), srcFile.getOriginalFilename());
 		tmpfile.delete();
 		srcFile.transferTo(dest);
+		
 		final GridServiceManager gsm = getGsm();
-		ProcessingUnit pu;
-
-		if (gsm != null) {
-			pu = gsm.deploy(new ProcessingUnitDeployment(dest).setContextProperty(
-					CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName));
-			dest.delete();
-		} else {
+		if (gsm == null) {
 			return errorStatus(FAILED_TO_LOCATE_GSM);
 		}
+		ProcessingUnit pu = gsm.deploy(new ProcessingUnitDeployment(dest).setContextProperty(
+				CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName));
+		dest.delete();
+		
 		if (pu == null) {
 			return errorStatus(FAILED_TO_LOCATE_SERVICE_AFTER_DEPLOYMENT, applicationName);
 		}
@@ -332,15 +330,9 @@ public class ServiceController {
 			return errorStatus(FAILED_TO_LOCATE_APP, applicationName);
 		}
 		final ProcessingUnits pus = app.getProcessingUnits();
-		final List<String> puNames = new ArrayList<String>(pus.getSize());
-		for (final ProcessingUnit pu : pus) {
-			puNames.add(pu.getName());
-		}
 		final List<String> serviceNames = new ArrayList<String>(pus.getSize());
-		final ListIterator<String> listIterator = puNames.listIterator();
-		while (listIterator.hasNext()) {
-			final String absolutePuName = listIterator.next();
-			serviceNames.add(ServiceUtils.getApplicationServiceName(absolutePuName, applicationName));
+		for (final ProcessingUnit pu : pus) {
+			serviceNames.add(ServiceUtils.getApplicationServiceName(pu.getName(), applicationName));
 		}
 		return successStatus(serviceNames);
 	}
@@ -1441,13 +1433,12 @@ public class ServiceController {
 
 			logger.warning("Service does not specify template name! Defaulting to template: " + entry.getKey());
 			return entry.getValue();
-		} else {
-			final CloudTemplate template = cloud.getTemplates().get(templateName);
-			if (template == null) {
-				throw new IllegalArgumentException("Could not find compute template: " + templateName);
-			}
-			return template;
+		} 
+		final CloudTemplate template = cloud.getTemplates().get(templateName);
+		if (template == null) {
+			throw new IllegalArgumentException("Could not find compute template: " + templateName);
 		}
+		return template;
 	}
 
 	// TODO: consider adding MemoryUnits to DSL
