@@ -31,7 +31,7 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 import java.security.cert.X509Certificate;
 
 /**
- * Creates a SSL socket for the REST comminucation.
+ * Creates a SSL socket for the REST communication.
  */
 public class RestSSLSocketFactory extends SSLSocketFactory {
 
