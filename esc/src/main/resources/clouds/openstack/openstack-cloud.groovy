@@ -14,7 +14,7 @@ cloud {
 	provider {
 		// optional 
 		provider "openstack"
-		localDirectory "tools/cli/plugins/esc/hp/upload"
+		localDirectory "tools/cli/plugins/esc/openstack/upload"
 		remoteDirectory "/root/gs-files"
 		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.0/gigaspaces-cloudify-2.1.0-m2-b1193-175.zip" 
 		machineNamePrefix "cloudify_agent_"
