@@ -172,10 +172,12 @@ public final class CloudifyConstants {
 	public static final String SERVICE_ORDER = "srviceOrder";
 	
 	/*******************
-	 * REST port
+	 * default ports (LUS and REST)
 	 */
 	// TODO : this port should be configurable
-	public static final int REST_PORT = 8100;
+	public static final int DEFAULT_REST_PORT = 8100;
+	public static final int DEFAULT_LUS_PORT = net.jini.discovery.Constants.getDiscoveryPort();
+	public static final int DEFAULT_LOCALCLOUD_LUS_PORT = DEFAULT_LUS_PORT + 2;
 
 	private CloudifyConstants() {
 		// private constructor to prevent initialization.

@@ -74,14 +74,23 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 				@Override
 				public Object call() throws Exception {
 					logger.info("Creating BYON context deployer for cloud: " + cloud.getName());
-					final List<Map<String, String>> nodesList = (List<Map<String, String>>) cloud.getCustom().get(
-							CLOUD_NODES_LIST);
+					List<Map<String, String>> nodesList = null;
+					//final List<Map<String, String>> nodesList = (List<Map<String, String>>) cloud.getCustom().get(
+					//		CLOUD_NODES_LIST);
+					Map<String, Object> customSettings = cloud.getTemplates().
+							get(cloud.getConfiguration().getManagementMachineTemplate()).getCustom();
+					if (customSettings != null) {
+						nodesList = (List<Map<String, String>>)customSettings.get(CLOUD_NODES_LIST);
+					}
+					if (nodesList == null)
+						throw new InstallerException("Failed to create cloud deployer, invalid configuration");
+					
 					return new ByonDeployer(nodesList);
 				}
 			});
 		} catch (final Exception e) {
 			publishEvent("connection_to_cloud_api_failed", cloud.getProvider().getProvider());
-			throw new IllegalStateException("Failed to create cloud Deployer", e);
+			throw new IllegalStateException("Failed to create cloud deployer", e);
 		}
 	}
 
@@ -128,7 +137,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		} catch (final Exception e) {
 			// catch any exception - to prevent a cloud machine leaking.
 			logger.log(Level.SEVERE,
-					"Cloud machine was started but an error occured during initialization. Shutting down machine", e);
+					"Cloud server could not be started on " + machineDetails.getIp() + ", SSH connection failed.", e);
 			// TODO ? The node should be freed or invalidated ?
 			deployer.shutdownServer(node);
 			deployer.invalidateServer(node);
@@ -158,9 +167,6 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			++attempts;
 			serverName = serverNamePrefix + this.counter.incrementAndGet();
 			// verifying this server name is not already used
-			// TODO : DefaultProvisioningDriver uses deployer.getServerByID instead of getServerByName,
-			// resolve that.
-			// is this the NAME OR ID ?
 			final CustomNode existingNode = deployer.getServerByID(serverName);
 			if (existingNode == null) {
 				foundFreeName = true;
@@ -347,7 +353,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		for (final CustomNode server : allNodes) {
 			try {
 				final long endTime = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(20);
-				Utils.validateConnection(server.getPrivateIP(), CloudifyConstants.REST_PORT, Utils.millisUntil(endTime));
+				Utils.validateConnection(server.getPrivateIP(), CloudifyConstants.DEFAULT_REST_PORT, Utils.millisUntil(endTime));
 				managementIP = server.getPrivateIP();
 				break;
 			} catch (final Exception ex) {
@@ -390,6 +396,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		if (agent != null) {
 			logger.info("ByonProvisioningDriver: shutting down agent on management server: " + ipAddress);
 			try {
+				admin.close();
 				agent.shutdown();
 			} catch (final RemoteException e) {
 				if (!NetworkExceptionHelper.isConnectOrCloseException(e)) {
@@ -411,8 +418,6 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 				throw new TimeoutException("Agent shutdown timed out (agent IP: " + ipAddress + ")");
 			}
 		}
-		// TODO : should this be done before agent.shutdown?
-		admin.close();
 	}
 
 	private boolean isAgentUp(final GSA agent) {
@@ -449,7 +454,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 						+ firstCreationException.getMessage(), firstCreationException);
 	}
 
-	private MachineDetails createMachineDetailsFromNode(final CustomNode node) {
+	private MachineDetails createMachineDetailsFromNode(final CustomNode node) throws CloudProvisioningException {
 		final MachineDetails md = new MachineDetails();
 		md.setAgentRunning(false);
 		md.setCloudifyInstalled(false);
@@ -465,9 +470,14 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		if (!StringUtils.isBlank(node.getUsername()) && !StringUtils.isBlank(node.getCredential())) {
 			md.setRemoteUsername(node.getUsername());
 			md.setRemotePassword(node.getCredential());
-		} else {
+		} else if (!StringUtils.isBlank(cloud.getConfiguration().getRemoteUsername()) && 
+				!StringUtils.isBlank(cloud.getConfiguration().getRemotePassword())) {
 			md.setRemoteUsername(cloud.getConfiguration().getRemoteUsername());
 			md.setRemotePassword(cloud.getConfiguration().getRemotePassword());
+		} else {
+			logger.severe("Cloud node loading failed, missing credentials for server: " + node.toString());
+			throw new CloudProvisioningException(
+					"Cloud node loading failed, missing credentials for server: " + node.toString());
 		}
 
 		return md;

@@ -58,7 +58,6 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	private static final String GS_USM_COMMAND_NAME = "GS_USM_CommandName";
 	private static final String SERVICE_CONTROLLER_URL = "/service/";
 	private static final String CLOUD_CONTROLLER_URL = "/cloudcontroller/";
-	private static final String DEFAULT_PORT = ":8100";
 
 	private GSRestClient client;
 	private EventLoggingTailer eventLoggingTailer;
@@ -101,7 +100,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	private URL getUrlWithDefaultPort(final URL urlObj) throws MalformedURLException {
 		StringBuffer url = new StringBuffer(urlObj.toString());
 		final int portIndex = url.indexOf("/", "http://".length());
-		url = url.insert(portIndex, DEFAULT_PORT);
+		url = url.insert(portIndex, ":" + CloudifyConstants.DEFAULT_REST_PORT);
 		return new URL(url.toString());
 	}
 

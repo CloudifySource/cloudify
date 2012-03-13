@@ -84,8 +84,6 @@ public class LocalhostGridAgentBootstrapper {
 	 * Default localcloud lookup group.
 	 */
 	public static final String LOCALCLOUD_LOOKUPGROUP = "localcloud";
-	private static final int DEFAULT_LUS_PORT = net.jini.discovery.Constants.getDiscoveryPort();
-	private static final int LOCALCLOUD_LUS_PORT = DEFAULT_LUS_PORT + 2;
 
 	private static final String MANAGEMENT_APPLICATION = ManagementWebServiceInstaller.MANAGEMENT_APPLICATION_NAME;
 	private static final String LUS_PORT_CONTEXT_PROPERTY = "com.sun.jini.reggie.initialUnicastDiscoveryPort";
@@ -144,7 +142,7 @@ public class LocalhostGridAgentBootstrapper {
 	private boolean noWebServices;
 	private boolean noManagementSpace;
 	private boolean notHighlyAvailableManagementSpace;
-	private int lusPort = DEFAULT_LUS_PORT;
+	private int lusPort = CloudifyConstants.DEFAULT_LUS_PORT;
 	private boolean autoShutdown;
 	private boolean waitForWebUi;
 	private String cloudContents;
@@ -544,7 +542,7 @@ public class LocalhostGridAgentBootstrapper {
 			throw new IllegalStateException("Local-cloud does not use zones");
 		}
 
-		lusPort = LOCALCLOUD_LUS_PORT;
+		lusPort = CloudifyConstants.DEFAULT_LOCALCLOUD_LUS_PORT;
 
 		if (lookupLocators == null) {
 			setLookupLocators(getLocalcloudLookupLocators());

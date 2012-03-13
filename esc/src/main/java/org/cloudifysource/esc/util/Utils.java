@@ -41,7 +41,7 @@ import org.openspaces.admin.gsm.GridServiceManagers;
  */
 public final class Utils {
 
-	private static final int ADMIN_API_TIMEOUT=30; //timeout in seconds, for waiting for the admin API to load.
+	private static final int ADMIN_API_TIMEOUT=90; //timeout in seconds, for waiting for the admin API to load.
 	
 	private Utils() {
 	}
@@ -161,14 +161,9 @@ public final class Utils {
 		return new ObjectMapper().readValue(response, javaType);
 	}
 	
-	public static String getManagementPort() {
-		// TODO get the management port from the configuration
-		return "4166";//"4168";
-	}
-	
 	public static Admin getAdminObject(String managementIP, int expectedGsmCount) throws TimeoutException, InterruptedException {
 		final AdminFactory adminFactory = new AdminFactory();
-		adminFactory.addLocator(managementIP + ":" + CloudifyConstants.REST_PORT);
+		adminFactory.addLocator(managementIP + ":" + CloudifyConstants.DEFAULT_LUS_PORT);
 		final Admin admin = adminFactory.createAdmin();
 		GridServiceManagers gsms = admin.getGridServiceManagers();
 		final long end = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(ADMIN_API_TIMEOUT);

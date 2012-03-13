@@ -140,7 +140,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	public GridServiceAgent startMachine(final long duration, final TimeUnit unit)
 			throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
 
-		logger.info("MODIFIED! Cloudify Adapter is starting a new machine");
+		logger.info("Cloudify Adapter is starting a new machine");
 		// calculate timeout
 		final long end = System.currentTimeMillis() + unit.toMillis(duration);
 
@@ -202,15 +202,12 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			}
 			return gsa;
 		} catch (final ElasticMachineProvisioningException e) {
-			logger.info("--- DEBUG: calling handleExceptionAfterMachineCreated after exception " + e.getMessage());
 			handleExceptionAfterMachineCreated(machineDetails);
 			throw e;
 		} catch (final TimeoutException e) {
-			logger.info("--- DEBUG: calling handleExceptionAfterMachineCreated after exception " + e.getMessage());
 			handleExceptionAfterMachineCreated(machineDetails);
 			throw e;
 		} catch (final InterruptedException e) {
-			logger.info("--- DEBUG: calling handleExceptionAfterMachineCreated after exception " + e.getMessage());
 			handleExceptionAfterMachineCreated(machineDetails);
 			throw e;
 		}

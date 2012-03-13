@@ -64,33 +64,34 @@ if [ ! -z "$CLOUDIFY_OVERRIDES_LINK" ]; then
 	wget -q $CLOUDIFY_LINK -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.zip || error_exit $? "Failed downloading cloudify overrides"
 fi
 
-# Todo: Check this condition
-if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.zip -nt ~/gigaspaces ]; then
-	rm -rf ~/gigaspaces || error_exit $? "Failed removing old gigaspaces directory"
-	mkdir ~/gigaspaces || error_exit $? "Failed creating gigaspaces directory"
-	
-	# 2 is the error level threshold. 1 means only warnings
-	# this is needed for testing purposes on zip files created on the windows platform 
-	unzip -q $WORKING_HOME_DIRECTORY/gigaspaces.zip -d ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify installation" 2 
+# Always override cloudify files
+rm -rf $WORKING_HOME_DIRECTORY/gigaspaces || error_exit $? "Failed removing old gigaspaces directory"
+mkdir $WORKING_HOME_DIRECTORY/gigaspaces || error_exit $? "Failed creating gigaspaces directory"
 
-	# Todo: consider removing this line
-	chmod -R 777 ~/gigaspaces || error_exit $? "Failed changing permissions in cloudify installion"
-	mv ~/gigaspaces/*/* ~/gigaspaces || error_exit $? "Failed moving cloudify installation"
-	
-	if [ ! -z "$CLOUDIFY_OVERRIDES_LINK" ]; then
-		echo Copying overrides into cloudify distribution
-		unzip -qo $WORKING_HOME_DIRECTORY/gigaspaces_overrides.zip -d ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify overrides" 2 		
-	fi
+# 2 is the error level threshold. 1 means only warnings
+# this is needed for testing purposes on zip files created on the windows platform 
+unzip -q $WORKING_HOME_DIRECTORY/gigaspaces.zip -d $WORKING_HOME_DIRECTORY/gigaspaces || error_exit_on_level $? "Failed extracting cloudify installation" 2 
+
+# Todo: consider removing this line
+chmod -R 777 $WORKING_HOME_DIRECTORY/gigaspaces || error_exit $? "Failed changing permissions in cloudify installion"
+mv $WORKING_HOME_DIRECTORY/gigaspaces/*/* $WORKING_HOME_DIRECTORY/gigaspaces || error_exit $? "Failed moving cloudify installation"
+
+if [ ! -z "$CLOUDIFY_OVERRIDES_LINK" ]; then
+	echo Copying overrides into cloudify distribution
+	unzip -qo $WORKING_HOME_DIRECTORY/gigaspaces_overrides.zip -d $WORKING_HOME_DIRECTORY/gigaspaces || error_exit_on_level $? "Failed extracting cloudify overrides" 2 		
 fi
 
 # UPDATE SETENV SCRIPT...
 echo Updating environment script
-cd ~/gigaspaces/bin || error_exit $? "Failed changing directory to bin directory"
+cd $WORKING_HOME_DIRECTORY/gigaspaces/bin || error_exit $? "Failed changing directory to bin directory"
 
 sed -i "1i export NIC_ADDR=$MACHINE_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "1i export LOOKUPLOCATORS=$LUS_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
 
-cd ~/gigaspaces/tools/cli || error_exit $? "Failed changing directory to cli directory"
+cd $WORKING_HOME_DIRECTORY/gigaspaces/tools/cli || error_exit $? "Failed changing directory to cli directory"
+
+chmod +x /tmp/gs-files/gigaspaces/bin/*.sh
+chmod +x /tmp/gs-files/gigaspaces/tools/cli/*.sh
 
 # START AGENT ALONE OR WITH MANAGEMENT
 if [ "$GSA_MODE" = "agent" ]; then
