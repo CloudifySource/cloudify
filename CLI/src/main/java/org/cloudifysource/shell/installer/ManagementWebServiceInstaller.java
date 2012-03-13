@@ -19,6 +19,9 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -31,6 +34,7 @@ import net.jini.discovery.Constants;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
+import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.CLIException;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.pu.ProcessingUnit;
@@ -57,6 +61,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	private int port;
 	private File warFile;
 	private boolean waitForConnection;
+	private List<LocalhostBootstrapperListener> eventsListenersList = new ArrayList<LocalhostBootstrapperListener>();
 
 	/**
 	 * Sets the service's port.
@@ -164,12 +169,18 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 			throws InterruptedException, TimeoutException, CLIException {
 
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
+			boolean messagePublished = false;
 			/**
 			 * {@inheritDoc}
 			 */
 			@Override
 			public boolean isDone() throws CLIException, InterruptedException {
-				logger.info("Waiting for " + serviceName + " service.");
+				logger.fine("Waiting for " + serviceName + " service.");
+				if (!messagePublished){
+					String message = ShellUtils.getMessageBundle().getString("starting_management_web_service");
+					publishEvent(MessageFormat.format(message, serviceName.toUpperCase()));
+					messagePublished = true;
+				}
 				final ProcessingUnit pu = getProcessingUnit();
 				boolean isDone = false;
 				if (pu != null) {
@@ -180,13 +191,18 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 						}
 					}
 				}
+				if (!isDone){
+					publishEvent(null);
+				}
 				return isDone;
 			}
 		});
 
 		final URL url = getWebProcessingUnitURL(agent, getProcessingUnit());
 		final String serviceNameCapital = StringUtils.capitalize(serviceName);
-		logger.info(serviceNameCapital + " service is available at: " + url);
+		String returnMessage = ShellUtils.getMessageBundle().getString("web_service_available_at");
+		logger.fine(returnMessage);
+		publishEvent(MessageFormat.format(returnMessage, serviceNameCapital, url));
 		return url;
 	}
 
@@ -290,19 +306,22 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 				if (0 == admin.getGridServiceManagers().getSize()) {
 					isDone = false;
 					if (verbose) {
-						logger.info("Waiting for Grid Service Manager");
+						logger.fine("Waiting for Grid Service Manager");
+						publishEvent("Waiting for Grid Service Manager");
 					}
 				}
 
 				if (admin.getElasticServiceManagers().getSize() == 0) {
 					isDone = false;
 					if (verbose) {
-						logger.info("Waiting for Elastic Service Manager");
+						logger.fine("Waiting for Elastic Service Manager");
+						publishEvent("Waiting for Elastic Service Manager");
 					}
 				}
 
 				if (!isDone && !verbose) {
-					logger.info("Waiting for Cloudify management processes");
+					logger.fine("Waiting for Cloudify management processes");
+					publishEvent("Waiting for Cloudify management processes");
 				}
 
 				return isDone;
@@ -370,6 +389,22 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 			absWarFile = new File(Environment.getHomeDirectory(), warFile.getPath());
 		}
 		return absWarFile;
+	}
+
+	public void addListener(LocalhostBootstrapperListener listener) {
+		this.eventsListenersList.add(listener);
+	}
+	
+	public void addListeners(List<LocalhostBootstrapperListener> listeners) {
+		for (LocalhostBootstrapperListener listener : listeners) {
+			this.eventsListenersList.add(listener);
+		}
+	}
+	
+	private void publishEvent(final String event) {
+		for (final LocalhostBootstrapperListener listner : this.eventsListenersList) {
+			listner.onLocalhostBootstrapEvent(event);
+		}
 	}
 
 }

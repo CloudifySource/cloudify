@@ -15,10 +15,11 @@
  *******************************************************************************/
 package org.cloudifysource.shell.installer;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
 
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
@@ -46,6 +47,8 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 	private boolean highlyAvailable;
 
 	private GigaSpace gigaspace = null;
+
+	private List<LocalhostBootstrapperListener> eventsListenersList = new ArrayList<LocalhostBootstrapperListener>();
 
 	/**
 	 * Sets the management space availability behavior. A highly-available space is a space that must always
@@ -136,13 +139,19 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 						return true;
 					}
 				}
-
-				logger.log(Level.INFO, "Connecting to management space.");
+				
+				logger.fine("Connecting to management space.");
+				if (verbose){
+					publishEvent("Connecting to management space.");
+				}
 				return false;
 			}
 		});
-
-		logger.info("Management space is available.");
+		
+		logger.fine("Management space is available.");
+		if (verbose){
+			logger.fine("Management space is available.");
+		}
 	}
 
 	/**
@@ -153,4 +162,21 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 	public GigaSpace getGigaSpace() {
 		return this.gigaspace;
 	}
+	
+	public void addListener(LocalhostBootstrapperListener listener) {
+		this.eventsListenersList .add(listener);
+	}
+	
+	public void addListeners(List<LocalhostBootstrapperListener> listeners) {
+		for (LocalhostBootstrapperListener listener : listeners) {
+			this.eventsListenersList.add(listener);
+		}
+	}
+	
+	private void publishEvent(final String event) {
+		for (final LocalhostBootstrapperListener listner : this.eventsListenersList) {
+			listner.onLocalhostBootstrapEvent(event);
+		}
+	}
+	
 }

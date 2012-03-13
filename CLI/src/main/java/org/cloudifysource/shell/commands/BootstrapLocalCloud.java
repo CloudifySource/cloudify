@@ -21,6 +21,7 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
+import org.cloudifysource.shell.installer.CLILocalhostBootstrapperListener;
 import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 
 /**
@@ -44,7 +45,7 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 		+ "processes running on other machines.")
 public class BootstrapLocalCloud extends AbstractGSCommand {
 
-	private static final int DEFAULT_PROGRESS_INTERVAL = 10;
+	private static final int DEFAULT_PROGRESS_INTERVAL = 2;
 
 	private static final int DEFAULT_TIMEOUT = 5;
 
@@ -78,6 +79,8 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 		installer.setLookupGroups(lookupGroups);
 		installer.setNicAddress(nicAddress);
 		installer.setProgressInSeconds(DEFAULT_PROGRESS_INTERVAL);
+		installer.setWaitForWebui(true);
+		installer.addListener(new CLILocalhostBootstrapperListener());
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 
 		installer.startLocalCloudOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);

@@ -149,6 +149,8 @@ public class LocalhostGridAgentBootstrapper {
 	private boolean waitForWebUi;
 	private String cloudContents;
 	private boolean force;
+	private final List<LocalhostBootstrapperListener> eventsListenersList = 
+		new ArrayList<LocalhostBootstrapperListener>();
 
 	/**
 	 * Sets verbose mode.
@@ -330,7 +332,7 @@ public class LocalhostGridAgentBootstrapper {
 		}
 
 		if (verbose) {
-			logger.info("NIC Address=" + nicAddress);
+			publishEvent("NIC Address=" + nicAddress);
 		}
 	}
 
@@ -466,9 +468,9 @@ public class LocalhostGridAgentBootstrapper {
 			final String errorMessage = "Failed to fetch the currently deployed applications list."
 					+ " Continuing teardown-localcloud.";
 			if (verbose) {
-				logger.log(Level.INFO, errorMessage, e);
+				logger.log(Level.FINE, errorMessage, e);
 			} else {
-				logger.log(Level.INFO, errorMessage);
+				logger.log(Level.FINE, errorMessage);
 			}
 			// Suppress exception. continue with teardown.
 			return;
@@ -498,7 +500,8 @@ public class LocalhostGridAgentBootstrapper {
 		}
 		if (applicationsExist) {
 			waitForUninstallApplications(timeout, timeunit);
-			logger.info(ShellUtils.getMessageBundle().getString("all_apps_removed_before_teardown"));
+			publishEvent(ShellUtils.getMessageBundle().getString("all_apps_removed_before_teardown"));
+			logger.fine(ShellUtils.getMessageBundle().getString("all_apps_removed_before_teardown"));
 		}
 	}
 
@@ -506,12 +509,12 @@ public class LocalhostGridAgentBootstrapper {
 			throws InterruptedException, TimeoutException, CLIException {
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
 
+			boolean messagePublished = false;
 			@Override
 			public boolean isDone() throws CLIException, InterruptedException {
 				final List<String> applications = adminFacade.getApplicationsList();
 
 				boolean done = true;
-
 				for (final String applicationName : applications) {
 					if (!MANAGEMENT_APPLICATION.equals(applicationName)) {
 						done = false;
@@ -520,7 +523,13 @@ public class LocalhostGridAgentBootstrapper {
 				}
 
 				if (!done) {
-					logger.info("Waiting for all applications to uninstall");
+					if (!messagePublished){
+						publishEvent("Waiting for all applications to uninstall");
+						messagePublished = true;
+					}else{
+						publishEvent(null);
+					}
+					logger.fine("Waiting for all applications to uninstall");
 				}
 
 				return done;
@@ -584,7 +593,10 @@ public class LocalhostGridAgentBootstrapper {
 			}
 
 			if (agent == null) {
-				logger.info("Agent not running on local machine");
+				logger.fine("Agent not running on local machine");
+				if (verbose){
+					publishEvent("Agent not running on local machine");
+				}
 				throw new CLIStatusException("teardown_failed_agent_not_found");
 			} else {
 				// If the agent we attempt to shutdown is of a GSC that has active services, allowContainers
@@ -678,20 +690,24 @@ public class LocalhostGridAgentBootstrapper {
 		}
 
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
+			boolean messagePublished = false;
 			/**
 			 * Pings the agent to verify it's not available, indicating it was shut down.
 			 */
 			@Override
 			public boolean isDone() throws CLIException, InterruptedException {
-				logger.info("Waiting for agent to shutdown");
-
+				if (!messagePublished){
+					publishEvent("Waiting for agent to shutdown");
+					messagePublished = true;
+				}
+				logger.fine("Waiting for agent to shutdown");
 				try {
 					gsa.ping();
 				} catch (final RemoteException e) {
 					// Probably NoSuchObjectException meaning the GSA is going down
 					return true;
 				}
-
+				publishEvent(null);
 				return false;
 			}
 
@@ -712,11 +728,15 @@ public class LocalhostGridAgentBootstrapper {
 			command = Arrays.copyOf(LINUX_COMMAND, LINUX_COMMAND.length);
 			args.addAll(Arrays.asList(LINUX_ARGUMENTS_POSTFIX));
 		}
-
-		logger.info("Starting "
+		if (verbose){
+			String message = "Starting "
 				+ name
 				+ (verbose ? ":\n" + StringUtils.collectionToDelimitedString(Arrays.asList(command), " ") + " "
-						+ StringUtils.collectionToDelimitedString(args, " ") : ""));
+						+ StringUtils.collectionToDelimitedString(args, " ") : "");
+			publishEvent(message);
+			logger.fine(message);
+		}
+		publishEvent(ShellUtils.getMessageBundle().getString("starting_cloudify_management"));
 		runCommand(command, args.toArray(new String[args.size()]));
 
 	}
@@ -788,12 +808,14 @@ public class LocalhostGridAgentBootstrapper {
 					managementSpaceInstaller.setServiceName(MANAGEMENT_SPACE_NAME);
 					managementSpaceInstaller.setManagementZone(MANAGEMENT_GSA_ZONE);
 					managementSpaceInstaller.setHighlyAvailable(highlyAvailable);
+					managementSpaceInstaller.addListeners(this.eventsListenersList);
 					try {
 						managementSpaceInstaller.install();
 						waitForManagementServices.add(managementSpaceInstaller);
 					} catch (final ProcessingUnitAlreadyDeployedException e) {
 						if (verbose) {
-							logger.info("Service " + MANAGEMENT_SPACE_NAME + " already installed");
+							logger.fine("Service " + MANAGEMENT_SPACE_NAME + " already installed");
+							publishEvent("Service " + MANAGEMENT_SPACE_NAME + " already installed");
 						}
 					}
 				}
@@ -808,11 +830,13 @@ public class LocalhostGridAgentBootstrapper {
 					webuiInstaller.setWarFile(new File(WEBUI_FILE));
 					webuiInstaller.setServiceName(WEBUI_NAME);
 					webuiInstaller.setManagementZone(MANAGEMENT_GSA_ZONE);
+					webuiInstaller.addListeners(this.eventsListenersList);
 					try {
 						webuiInstaller.install();
 					} catch (final ProcessingUnitAlreadyDeployedException e) {
 						if (verbose) {
-							logger.info("Service " + WEBUI_NAME + " already installed");
+							logger.fine("Service " + WEBUI_NAME + " already installed");
+							publishEvent("Service " + WEBUI_NAME + " already installed");
 						}
 					}
 					if (waitForWebUi) {
@@ -825,7 +849,7 @@ public class LocalhostGridAgentBootstrapper {
 					restInstaller.setAdmin(agent.getAdmin());
 					restInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
 					restInstaller.setVerbose(verbose);
-
+					
 					restInstaller.setMemory(REST_MEMORY_IN_MB, MemoryUnit.MEGABYTES);
 					restInstaller.setPort(REST_PORT);
 					restInstaller.setWarFile(new File(REST_FILE));
@@ -833,11 +857,13 @@ public class LocalhostGridAgentBootstrapper {
 					restInstaller.setManagementZone(MANAGEMENT_GSA_ZONE);
 					restInstaller.dependencies.add(CloudifyConstants.MANAGEMENT_SPACE_NAME);
 					restInstaller.setWaitForConnection();
+					restInstaller.addListeners(this.eventsListenersList);
 					try {
 						restInstaller.install();
 					} catch (final ProcessingUnitAlreadyDeployedException e) {
 						if (verbose) {
-							logger.info("Service " + REST_NAME + " already installed");
+							logger.fine("Service " + REST_NAME + " already installed");
+							publishEvent("Service " + REST_NAME + " already installed");
 						}
 					}
 					waitForManagementServices.add(restInstaller);
@@ -848,7 +874,10 @@ public class LocalhostGridAgentBootstrapper {
 					managementServiceInstaller.waitForInstallation(adminFacade, agent,
 							ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
 					if (managementServiceInstaller instanceof ManagementSpaceServiceInstaller) {
-						logger.info("Writing cloud configuration to space.");
+						logger.fine("Writing cloud configuration to space.");
+						if (verbose){
+							publishEvent("Writing cloud configuration to space.");
+						}
 						final GigaSpace gigaspace = managementSpaceInstaller.getGigaSpace();
 
 						final CloudConfigurationHolder holder = new CloudConfigurationHolder(getCloudContents());
@@ -971,29 +1000,37 @@ public class LocalhostGridAgentBootstrapper {
 
 				if (!isDone(admin.getLookupServices(), "LUS")) {
 					if (verbose) {
-						logger.info("Waiting for Lookup Service");
+						logger.fine("Waiting for Lookup Service");
+						publishEvent("Waiting for Lookup Service");
 					}
 					isDone = false;
 				}
 
 				if (!isDone(admin.getGridServiceManagers(), "GSM")) {
 					if (verbose) {
-						logger.info("Waiting for Grid Service Manager");
+						logger.fine("Waiting for Grid Service Manager");
+						publishEvent("Waiting for Grid Service Manager");
 					}
 					isDone = false;
 				}
 
 				if (admin.getElasticServiceManagers().isEmpty()) {
 					if (verbose) {
-						logger.info("Waiting for Elastic Service Manager");
+						logger.fine("Waiting for Elastic Service Manager");
+						publishEvent("Waiting for Elastic Service Manager");
 					}
 					isDone = false;
 				}
 
-				if (!verbose) {
-					logger.info("Waiting for Management processes to start.");
+				if (verbose) {
+					logger.fine("Waiting for Management processes to start.");
+					publishEvent("Waiting for Management processes to start.");
 				}
-
+				
+				if (!isDone){
+					publishEvent(null);
+				}
+				
 				return isDone;
 			}
 
@@ -1019,10 +1056,13 @@ public class LocalhostGridAgentBootstrapper {
 						if (!checkAgent((AgentGridComponent) component)) {
 							message += " expected agent " + agent.getUid();
 						}
-						logger.info(message);
+						logger.fine(message);
+						publishEvent(message);
 					}
 				}
-
+				if (!verbose){
+					publishEvent(null);
+				}
 				return found;
 			}
 
@@ -1064,11 +1104,12 @@ public class LocalhostGridAgentBootstrapper {
 					}
 				}
 				if (!isDone) {
-					if (existingAgent) {
-						logger.info("Looking for an existing agent running on local machine");
-					} else {
-						logger.info("Waiting for the agent on the local machine to start.");
-					}
+						if (existingAgent) {
+							logger.fine("Looking for an existing agent running on local machine");
+						} else {
+							logger.fine("Waiting for the agent on the local machine to start.");
+						}
+						publishEvent(null);
 				}
 				return isDone;
 			}
@@ -1090,7 +1131,7 @@ public class LocalhostGridAgentBootstrapper {
 						message += "Ignoring agent. Filter nicAddress='" + nicAddress
 								+ "' or local address, agent nicAddress='" + agentNicAddress + "'";
 					}
-					logger.info(message);
+					publishEvent(message);
 				}
 				return checkLookupGroups && checkNicAddress;
 			}
@@ -1243,11 +1284,13 @@ public class LocalhostGridAgentBootstrapper {
 		final Admin admin = adminFactory.create();
 		if (verbose) {
 			if (admin.getLocators().length > 0) {
-				logger.info("Lookup Locators=" + convertLookupLocatorToString(admin.getLocators()));
+				logger.fine("Lookup Locators=" + convertLookupLocatorToString(admin.getLocators()));
+				publishEvent("Lookup Locators=" + convertLookupLocatorToString(admin.getLocators()));
 			}
 
 			if (admin.getGroups().length > 0) {
-				logger.info("Lookup Groups=" + StringUtils.arrayToDelimitedString(admin.getGroups(), ","));
+				logger.fine("Lookup Groups=" + StringUtils.arrayToDelimitedString(admin.getGroups(), ","));
+				publishEvent("Lookup Groups=" + StringUtils.arrayToDelimitedString(admin.getGroups(), ","));
 			}
 		}
 		return admin;
@@ -1305,6 +1348,22 @@ public class LocalhostGridAgentBootstrapper {
 	 */
 	public void setCloudContents(final String cloudContents) {
 		this.cloudContents = cloudContents;
+	}
+	
+	/**********
+	 * Registers an event listener for installation events.
+	 * 
+	 * @param listener
+	 *            the listener.
+	 */
+	public void addListener(final LocalhostBootstrapperListener ail) {
+		this.eventsListenersList.add(ail);
+	}
+
+	private void publishEvent(final String event) {
+		for (final LocalhostBootstrapperListener listener : this.eventsListenersList) {
+			listener.onLocalhostBootstrapEvent(event);
+		}
 	}
 
 }
