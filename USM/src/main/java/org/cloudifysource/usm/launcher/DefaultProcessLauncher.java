@@ -82,8 +82,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 		final List<String> newCommand = new LinkedList<String>();
 		newCommand.add(newPart);
-		newCommand.addAll(originalCommandLine.subList(
-				1, originalCommandLine.size()));
+		newCommand.addAll(originalCommandLine.subList(1,
+				originalCommandLine.size()));
 		return newCommand;
 
 	}
@@ -107,8 +107,9 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			}
 		};
 
-		return createCommandLineFromAlternativeOS(
-				puWorkDir, linuxCommandLine, filter);
+		return createCommandLineFromAlternativeOS(puWorkDir,
+				linuxCommandLine,
+				filter);
 
 	}
 
@@ -137,8 +138,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			return alternateCommandLine;
 		}
 
-		final File executableFile = getFileFromRelativeOrAbsolutePath(
-				puWorkDir, executable);
+		final File executableFile = getFileFromRelativeOrAbsolutePath(puWorkDir,
+				executable);
 		if (executableFile == null) {
 			logger.warning("Could not find an executable file: " + executable + "in working directory " + puWorkDir
 					+ " in command line: " + alternateCommandLine + ". Alternate command line can't be created.");
@@ -159,8 +160,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		logger.info("Found candidates for command line to replace " + executable + ". Candidates are: "
 				+ Arrays.toString(files));
 
-		final List<String> modifiedCommandLine = switchFirstPartOfCommandLine(
-				alternateCommandLine, files[0].getName());
+		final List<String> modifiedCommandLine = switchFirstPartOfCommandLine(alternateCommandLine,
+				files[0].getName());
 
 		return modifiedCommandLine;
 
@@ -170,14 +171,13 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		String prefixToSearch = executableFile.getName();
 		final int index = prefixToSearch.lastIndexOf('.');
 		if (index >= 0) {
-			prefixToSearch = prefixToSearch.substring(
-					0, index);
+			prefixToSearch = prefixToSearch.substring(0,
+					index);
 		}
 		return prefixToSearch;
 	}
 
-	private List<String> createLinuxCommandLineFromWindows(final List<String> windowsCommandLine,
-			final File puWorkDir) {
+	private List<String> createLinuxCommandLineFromWindows(final List<String> windowsCommandLine, final File puWorkDir) {
 		final AlternativeExecutableFileNameFilter filter = new AlternativeExecutableFileNameFilter() {
 
 			private String prefix;
@@ -194,8 +194,9 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			}
 		};
 
-		return createCommandLineFromAlternativeOS(
-				puWorkDir, windowsCommandLine, filter);
+		return createCommandLineFromAlternativeOS(puWorkDir,
+				windowsCommandLine,
+				filter);
 
 	}
 
@@ -209,8 +210,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		}
 
 		for (int i = 0; i < groovyCommandLinePrefixParams.size(); i++) {
-			commandLineParams.add(
-					i, groovyCommandLinePrefixParams.get(i));
+			commandLineParams.add(i,
+					groovyCommandLinePrefixParams.get(i));
 		}
 	}
 
@@ -225,18 +226,18 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		final List<File> list = new LinkedList<File>();
 
 		// jar files in PU's lib dir
-		addJarsFromDirectoryToList(
-				new File(workingDir.getParentFile(), "lib"), list);
+		addJarsFromDirectoryToList(new File(workingDir.getParentFile(), "lib"),
+				list);
 
 		// <GS_HOME>/lib/required
-		addJarsFromDirectoryToList(
-				new File(gsHome, "lib/required"), list);
+		addJarsFromDirectoryToList(new File(gsHome, "lib/required"),
+				list);
 
 		// <GS_HOME>/lib/platform/usm
-		addJarsFromDirectoryToList(
-				new File(gsHome, "lib/platform/usm"), list);
-		addJarsFromDirectoryToList(
-				new File(gsHome, "lib/platform/sigar"), list);
+		addJarsFromDirectoryToList(new File(gsHome, "lib/platform/usm"),
+				list);
+		addJarsFromDirectoryToList(new File(gsHome, "lib/platform/sigar"),
+				list);
 
 		return list;
 
@@ -247,8 +248,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 			@Override
 			public boolean accept(final File pathname) {
-				return pathname.getName().endsWith(
-						".jar") && pathname.isFile();
+				return pathname.getName().endsWith(".jar") && pathname.isFile();
 			}
 		});
 		return jars;
@@ -265,16 +265,14 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		final String groovyPath = createGroovyPath(homeDir);
 		final StringBuilder sb = new StringBuilder();
 
-		final List<File> jars = getJarFilesForGroovyClasspath(
-				homeDir, workingDir);
+		final List<File> jars = getJarFilesForGroovyClasspath(homeDir,
+				workingDir);
 		// final List<String> dirs = getJarDirsForGroovyClasspath(homeDir,
 		// workingDir);
 		if (jars != null) {
 			// sb.append("\"");
 			for (final File jar : jars) {
-				sb.append(
-						jar.getAbsolutePath()).append(
-						File.pathSeparator);
+				sb.append(jar.getAbsolutePath()).append(File.pathSeparator);
 			}
 			// sb.append("\"");
 		}
@@ -292,8 +290,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		final ArrayList<String> groovyCommandParams = new ArrayList<String>();
 		groovyCommandParams.add(groovyPath);
 		if (USMUtils.isWindows()) {
-			modifyWindowsCommandLine(
-					groovyCommandParams, workingDir);
+			modifyWindowsCommandLine(groovyCommandParams,
+					workingDir);
 		}
 
 		String classPathEnv = System.getenv("CLASSPATH");
@@ -332,8 +330,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		}
 
 		if (USMUtils.isLinuxOrUnix()) {
-			USMUtils.markFileAsExecutable(
-					sigar, groovyFile);
+			USMUtils.markFileAsExecutable(sigar,
+					groovyFile);
 		}
 
 		return groovyFile.getAbsolutePath();
@@ -345,13 +343,13 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		final String runParam = commandLineParams.get(0);
 
 		if (USMUtils.isWindows()) {
-			modifyWindowsCommandLine(
-					commandLineParams, puWorkDir);
+			modifyWindowsCommandLine(commandLineParams,
+					puWorkDir);
 		} else {
-			markLinuxTargetAsExecutable(
-					runParam, puWorkDir);
-			modifyLinuxCommandLine(
-					commandLineParams, puWorkDir);
+			markLinuxTargetAsExecutable(runParam,
+					puWorkDir);
+			modifyLinuxCommandLine(commandLineParams,
+					puWorkDir);
 
 		}
 
@@ -367,8 +365,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 				if (executeScriptName.endsWith(".sh") && !executeScriptName.startsWith(LINUX_EXECUTE_PREFIX)) {
 					commandLineParams.remove(0);
 					executeScriptName = LINUX_EXECUTE_PREFIX + executeScriptName;
-					commandLineParams.add(
-							0, executeScriptName);
+					commandLineParams.add(0,
+							executeScriptName);
 				}
 			}
 		}
@@ -383,8 +381,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		final String firstParam = commandLineParams.get(0);
 		if (firstParam.endsWith(".bat") || firstParam.endsWith(".cmd")) {
 			for (int i = 0; i < WINDOWS_BATCH_FILE_PREFIX_PARAMS.length; i++) {
-				commandLineParams.add(
-						i, WINDOWS_BATCH_FILE_PREFIX_PARAMS[i]);
+				commandLineParams.add(i,
+						WINDOWS_BATCH_FILE_PREFIX_PARAMS[i]);
 			}
 		}
 
@@ -399,8 +397,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			// this is not an executable file, so add the cmd interpreter
 			// prefix
 			for (int i = 0; i < WINDOWS_BATCH_FILE_PREFIX_PARAMS.length; i++) {
-				commandLineParams.add(
-						i, WINDOWS_BATCH_FILE_PREFIX_PARAMS[i]);
+				commandLineParams.add(i,
+						WINDOWS_BATCH_FILE_PREFIX_PARAMS[i]);
 			}
 		}
 
@@ -422,12 +420,12 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			throws USMException {
 
 		logger.info("Setting File as executable: " + originalCommandLineRunParam);
-		final File file = getFileFromRelativeOrAbsolutePath(
-				puWorkDir, originalCommandLineRunParam);
+		final File file = getFileFromRelativeOrAbsolutePath(puWorkDir,
+				originalCommandLineRunParam);
 		if (file != null) {
 			logger.info("File: " + file + " will be marked as executable");
-			USMUtils.markFileAsExecutable(
-					sigar, file);
+			USMUtils.markFileAsExecutable(sigar,
+					file);
 		}
 
 	}
@@ -467,8 +465,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 				logger.fine("Looking for command line for Operating System Name: " + os);
 			}
 
-			final List<String> cmdLineList = lookUpCommandLineForOS(
-					map, os);
+			final List<String> cmdLineList = lookUpCommandLineForOS(map,
+					os);
 			if (cmdLineList != null) {
 				return cmdLineList;
 			}
@@ -476,8 +474,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			logger.severe("Could not find a matching operating system expression for Operating System: " + os);
 			logger.severe("Attempting alternative command line: " + os);
 
-			final List<String> alternativeCommandLine = createAlternativeCommandLine(
-					map, workDir);
+			final List<String> alternativeCommandLine = createAlternativeCommandLine(map,
+					workDir);
 			if (alternativeCommandLine != null) {
 				return alternativeCommandLine;
 			}
@@ -517,15 +515,16 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			final String key = entry.getKey();
 			final Object value = entry.getValue();
 			try {
-				if (Pattern.matches(
-						key, os)) {
+				if (Pattern.matches(key,
+						os)) {
 					return getCommandLineFromValue(value);
 
 				}
 			} catch (final PatternSyntaxException pse) {
-				logger.log(
-						Level.WARNING, "Opeating System regular expression pattern: " + key
-								+ " cannot be compiled. It will me compared using basic string matching.", pse);
+				logger.log(Level.WARNING,
+						"Opeating System regular expression pattern: " + key
+								+ " cannot be compiled. It will me compared using basic string matching.",
+						pse);
 				if (key.equals(os)) {
 					return getCommandLineFromValue(value);
 				}
@@ -540,31 +539,31 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			List<String> otherCommandLine = null;
 
 			if (map.entrySet().size() > 1) {
-				otherCommandLine = lookUpCommandLineForOS(
-						map, "Linux");
+				otherCommandLine = lookUpCommandLineForOS(map,
+						"Linux");
 			}
 
 			if (otherCommandLine == null) {
 				otherCommandLine = getCommandLineFromValue(map.values().iterator().next());
 			}
 
-			final List<String> alternativeCommandLine = createWindowsCommandLineFromLinux(
-					otherCommandLine, workDir);
+			final List<String> alternativeCommandLine = createWindowsCommandLineFromLinux(otherCommandLine,
+					workDir);
 			return alternativeCommandLine;
 		} else {
 			List<String> otherCommandLine = null;
 
 			if (map.entrySet().size() > 1) {
-				otherCommandLine = lookUpCommandLineForOS(
-						map, "Windows");
+				otherCommandLine = lookUpCommandLineForOS(map,
+						"Windows");
 			}
 
 			if (otherCommandLine == null) {
 				otherCommandLine = getCommandLineFromValue(map.values().iterator().next());
 			}
 
-			final List<String> alternativeCommandLine = createLinuxCommandLineFromWindows(
-					otherCommandLine, workDir);
+			final List<String> alternativeCommandLine = createLinuxCommandLineFromWindows(otherCommandLine,
+					workDir);
 			return alternativeCommandLine;
 
 		}
@@ -574,8 +573,13 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	public Process launchProcessAsync(final Object arg, final File workingDir, final int retries,
 			final boolean redirectErrorStream, final List<String> params)
 			throws USMException {
-		return launchAsync(
-				arg, workingDir, retries, redirectErrorStream, null, null, params);
+		return launchAsync(arg,
+				workingDir,
+				retries,
+				redirectErrorStream,
+				null,
+				null,
+				params);
 	}
 
 	private Process launchAsync(final Object arg, final File workingDir, final int retries,
@@ -586,14 +590,19 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			return launchAsyncFromClosure(arg);
 
 		}
-		commandLine = getCommandLineFromArgument(
-				arg, workingDir, params);
+		commandLine = getCommandLineFromArgument(arg,
+				workingDir,
+				params);
 		// final String[] parts = commandLine.split(" ");
 		// final List<String> list = new
 		// LinkedList<String>(Arrays.asList(commandLine));
 
-		return this.launch(
-				commandLine, workingDir, retries, redirectErrorStream, outputFile, errorFile);
+		return this.launch(commandLine,
+				workingDir,
+				retries,
+				redirectErrorStream,
+				outputFile,
+				errorFile);
 	}
 
 	private Process launchAsyncFromClosure(final Object arg)
@@ -603,8 +612,9 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		try {
 			retval = closure.call();
 		} catch (final Exception e) {
-			logger.log(
-					Level.SEVERE, "A closure entry failed to execute: " + e, e);
+			logger.log(Level.SEVERE,
+					"A closure entry failed to execute: " + e,
+					e);
 			throw new USMException("Launch of process from closure exited with an exception: " + e.getMessage(), e);
 		}
 
@@ -647,14 +657,18 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 				final Object result = closure.call(paramsList.toArray());
 				return result;
 			} catch (final Exception e) {
-				logger.log(
-						Level.SEVERE, "A closure entry failed to execute: " + e.getMessage(), e);
+				logger.log(Level.SEVERE,
+						"A closure entry failed to execute: " + e.getMessage(),
+						e);
 				throw new USMException("Failed to execute closure " + e.getMessage(), e);
 			}
 		}
 
-		final Process proc = launchProcessAsync(
-				arg, workingDir, retries, redirectErrorStream, paramsList);
+		final Process proc = launchProcessAsync(arg,
+				workingDir,
+				retries,
+				redirectErrorStream,
+				paramsList);
 		final BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 
 		String line = null;
@@ -665,9 +679,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		try {
 			do {
 				if (line != null) {
-					sb.append(
-							line).append(
-							newline);
+					sb.append(line).append(newline);
 					logger.info(line);
 				}
 				line = reader.readLine();
@@ -697,8 +709,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 				final String result = sb.toString();
 				final String exceptionReason = GroovyExceptionHandler.getExceptionString(result);
 
-				logger.log(
-						Level.SEVERE, "Event lifecycle external process failed: " + result);
+				logger.log(Level.SEVERE,
+						"Event lifecycle external process failed: " + result);
 				// TODO:Add result string to exception if not groovy exception.
 				throw new USMException("Event lifecycle external process exited with abnormal status code: "
 						+ exitValue + " " + exceptionReason);
@@ -742,31 +754,30 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	private void modifyCommandLine(final List<String> commandLineParams, final File workingDir, final File outputFile,
 			final File errorFile)
 			throws USMException {
-		modifyOSCommandLine(
-				commandLineParams, workingDir);
+		modifyOSCommandLine(commandLineParams,
+				workingDir);
 
-		if (commandLineParams.get(
-				0).endsWith(
-				".groovy")) {
-			modifyGroovyCommandLine(
-					commandLineParams, workingDir);
+		if (commandLineParams.get(0).endsWith(".groovy")) {
+			modifyGroovyCommandLine(commandLineParams,
+					workingDir);
 		}
 
-		modifyRedirectionCommandLine(
-				commandLineParams, outputFile, errorFile);
+		modifyRedirectionCommandLine(commandLineParams,
+				outputFile,
+				errorFile);
 
 		if (USMUtils.isLinuxOrUnix()) {
 			// run the whole command in a shell session
 			logger.info("Command before shell modification: " + commandLineParams);
 			final StringBuilder sb = new StringBuilder();
 			for (final String param : commandLineParams) {
-				sb.append(
-						param).append(
-						" ");
+				sb.append(param).append(" ");
 			}
 			commandLineParams.clear();
-			commandLineParams.addAll(Arrays.asList(
-					"nohup", "sh", "-c", sb.toString()));
+			commandLineParams.addAll(Arrays.asList("nohup",
+					"sh",
+					"-c",
+					sb.toString()));
 			logger.info("Command after shell modification: " + commandLineParams);
 
 		}
@@ -778,8 +789,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			return; // both files are set, or neither
 		}
 
-		commandLineParams.addAll(createRedirectionParametersForOS(
-				outputFile, errorFile));
+		commandLineParams.addAll(createRedirectionParametersForOS(outputFile,
+				errorFile));
 
 		// if(USMUtils.isLinuxOrUnix()) {
 		// // add the terminating quotes
@@ -789,8 +800,10 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	}
 
 	private List<String> createRedirectionParametersForOS(final File outputFile, final File errorFile) {
-		return Arrays.asList(
-				">>", outputFile.getAbsolutePath(), "2>>", errorFile.getAbsolutePath());
+		return Arrays.asList(">>",
+				outputFile.getAbsolutePath(),
+				"2>>",
+				errorFile.getAbsolutePath());
 
 	}
 
@@ -807,10 +820,12 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 					"If redirectError option is chosen, neither output file or error file can be set");
 		}
 
-		modifyCommandLine(
-				commandLineParams, workingDir, outputFile, errorFile);
-		final String modifiedCommandLine = StringUtils.collectionToDelimitedString(
-				commandLineParams, " ");
+		modifyCommandLine(commandLineParams,
+				workingDir,
+				outputFile,
+				errorFile);
+		final String modifiedCommandLine = StringUtils.collectionToDelimitedString(commandLineParams,
+				" ");
 
 		this.commandLine = commandLineParams; // last command line to be
 												// executed
@@ -822,8 +837,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			pb.directory(workingDir);
 			pb.redirectErrorStream(redirectErrorStream);
 			final Map<String, String> env = createEnvironment();
-			pb.environment().putAll(
-					env);
+			pb.environment().putAll(env);
 
 			Process proc;
 
@@ -833,19 +847,20 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 						"Starting service process at: " + new Date() + " with command: " + commandLineParams
 								+ System.getProperty("line.separator");
 				if (outputFile != null) {
-					appendMessageToFile(
-							fileInitialMessage, outputFile);
+					appendMessageToFile(fileInitialMessage,
+							outputFile);
 				}
 				if (errorFile != null) {
-					appendMessageToFile(
-							fileInitialMessage, errorFile);
+					appendMessageToFile(fileInitialMessage,
+							errorFile);
 				}
 				proc = pb.start();
 				return proc;
 			} catch (final IOException e) {
 				ex = new USMException("Failed to start process with command line: " + modifiedCommandLine, e);
-				logger.log(
-						Level.SEVERE, "Process start attempt number " + attempt + " failed", ex);
+				logger.log(Level.SEVERE,
+						"Process start attempt number " + attempt + " failed",
+						ex);
 			}
 			++attempt;
 		}
@@ -869,11 +884,13 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		final Map<String, String> map = new HashMap<String, String>();
 
 		final String groupsProperty = getGroupsProperty();
-		map.put("LOOKUPGROUPS", groupsProperty);
+		map.put("LOOKUPGROUPS",
+				groupsProperty);
 
 		final String locatorsProperty = getLocatorsProperty();
 		if (locatorsProperty != null) {
-			map.put("LOOKUPLOCATORS", locatorsProperty);
+			map.put("LOOKUPLOCATORS",
+					locatorsProperty);
 		}
 
 		if (this.clusterInfo == null) {
@@ -881,31 +898,46 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 					+ "Child process will have missing environment variables");
 		} else {
 			if (clusterInfo.getName() != null) {
-				map.put(CloudifyConstants.USM_ENV_CLUSTER_NAME, clusterInfo.getName());
+				map.put(CloudifyConstants.USM_ENV_CLUSTER_NAME,
+						clusterInfo.getName());
 				final FullServiceName fullServiceName = ServiceUtils.getFullServiceName(clusterInfo.getName());
-				map.put(CloudifyConstants.USM_ENV_APPLICATION_NAME, fullServiceName.getApplicationName());
-				map.put(CloudifyConstants.USM_ENV_SERVICE_NAME, fullServiceName.getServiceName());
+				map.put(CloudifyConstants.USM_ENV_APPLICATION_NAME,
+						fullServiceName.getApplicationName());
+				map.put(CloudifyConstants.USM_ENV_SERVICE_NAME,
+						fullServiceName.getServiceName());
 
 			} else {
 				logger.warning("PU Name in ClusterInfo is null. "
 						+ "If running in the IntegratedProcessingUnitContainer, this is normal. "
 						+ "Using 'USM' instead");
-				map.put(CloudifyConstants.USM_ENV_CLUSTER_NAME, "USM");
-				map.put(CloudifyConstants.USM_ENV_APPLICATION_NAME, CloudifyConstants.DEFAULT_APPLICATION_NAME);
-				map.put(CloudifyConstants.USM_ENV_SERVICE_NAME, "USM");
+				// TODO - the process launcher does have access to the service object, so can't know the service name.
+				// This could possibly be changed. This is useful for the test-recipe command, which will know the
+				// real service name.
+				map.put(CloudifyConstants.USM_ENV_CLUSTER_NAME,
+						ServiceUtils.getAbsolutePUName(CloudifyConstants.DEFAULT_APPLICATION_NAME,
+								"USM"));
+				map.put(CloudifyConstants.USM_ENV_APPLICATION_NAME,
+						CloudifyConstants.DEFAULT_APPLICATION_NAME);
+				map.put(CloudifyConstants.USM_ENV_SERVICE_NAME,
+						"USM");
 
 			}
-			map.put(CloudifyConstants.USM_ENV_PU_UNIQUE_NAME, clusterInfo.getUniqueName());
-			map.put(CloudifyConstants.USM_ENV_INSTANCE_ID, "" + clusterInfo.getInstanceId());
-			map.put(CloudifyConstants.USM_ENV_NUMBER_OF_INSTANCES, "" + clusterInfo.getNumberOfInstances());
-			map.put(CloudifyConstants.USM_ENV_RUNNING_NUMBER, "" + clusterInfo.getRunningNumber());
-			map.put(CloudifyConstants.USM_ENV_SERVICE_FILE_NAME, ""
-					+ ((DSLConfiguration) this.configutaion).getServiceFile().getName());
+			map.put(CloudifyConstants.USM_ENV_PU_UNIQUE_NAME,
+					clusterInfo.getUniqueName());
+			map.put(CloudifyConstants.USM_ENV_INSTANCE_ID,
+					"" + clusterInfo.getInstanceId());
+			map.put(CloudifyConstants.USM_ENV_NUMBER_OF_INSTANCES,
+					"" + clusterInfo.getNumberOfInstances());
+			map.put(CloudifyConstants.USM_ENV_RUNNING_NUMBER,
+					"" + clusterInfo.getRunningNumber());
+			map.put(CloudifyConstants.USM_ENV_SERVICE_FILE_NAME,
+					"" + ((DSLConfiguration) this.configutaion).getServiceFile().getName());
 
 		}
 
 		if (this.groovyEnvironmentClassPath != null && this.groovyEnvironmentClassPath.length() > 0) {
-			map.put("CLASSPATH", this.groovyEnvironmentClassPath);
+			map.put("CLASSPATH",
+					this.groovyEnvironmentClassPath);
 		}
 
 		// logger.info("Child process additional env variables: " + map);
@@ -927,8 +959,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			groupsProperty = "gigaspaces-" + PlatformVersion.getVersionNumber();
 		}
 
-		groupsProperty = groupsProperty.replace(
-				"\"", "");
+		groupsProperty = groupsProperty.replace("\"",
+				"");
 
 		return groupsProperty;
 	}
@@ -939,8 +971,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			property = System.getenv("LOOKUPLOCATORS");
 		}
 		if (property != null) {
-			property = property.replace(
-					"\"", "");
+			property = property.replace("\"",
+					"");
 		}
 		return property;
 	}
@@ -948,16 +980,20 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	@Override
 	public Object launchProcess(final Object arg, final File workingDir, final Map<String, Object> params)
 			throws USMException {
-		return launchProcess(
-				arg, workingDir, 0, true, params);
+		return launchProcess(arg,
+				workingDir,
+				0,
+				true,
+				params);
 
 	}
 
 	@Override
 	public Object launchProcess(final Object arg, final File workingDir)
 			throws USMException {
-		return launchProcess(
-				arg, workingDir, new HashMap<String, Object>());
+		return launchProcess(arg,
+				workingDir,
+				new HashMap<String, Object>());
 
 	}
 
@@ -965,8 +1001,13 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	public Process launchProcessAsync(final Object arg, final File workingDir, final File outputFile,
 			final File errorFile)
 			throws USMException {
-		return launchAsync(
-				arg, workingDir, 0, false, outputFile, errorFile, null);
+		return launchAsync(arg,
+				workingDir,
+				0,
+				false,
+				outputFile,
+				errorFile,
+				null);
 	}
 
 	@Override
