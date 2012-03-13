@@ -25,7 +25,7 @@ import java.io.InputStreamReader;
  * stream.
  * 
  * @author rafi
- * @since 8.0.3
+ * @since 2.0.0
  */
 public final class StringUtils {
 	

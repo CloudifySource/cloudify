@@ -810,9 +810,8 @@ public class ServiceController {
 		final String errors = sb.toString();
 		if (errors.length() == 0) {
 			return RestUtils.successStatus();
-		} else {
-			return RestUtils.errorStatus(errors);
 		}
+		return RestUtils.errorStatus(errors);
 	}
 
 	private List<ProcessingUnit> createUninstallOrder(final ProcessingUnit[] pus, final String applicationName) {
@@ -1739,7 +1738,6 @@ public class ServiceController {
 		
 		logger.info("Scaling " + puName + " to " + count + " instances");
 		
-		
 		if (cloud == null) {
 			if (isLocalCloud()) {
 				// Manual scale by number of instances
@@ -1754,9 +1752,6 @@ public class ServiceController {
 			final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
 			
 			pu.scale(new ManualCapacityScaleConfigurer().memoryCapacity((int) (cloudExternalProcessMemoryInMB * count), MemoryUnit.MEGABYTES).atMostOneContainerPerMachine().create());
-			
-
-
 		}		
 		
         return successStatus();

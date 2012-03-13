@@ -20,7 +20,7 @@ package org.cloudifysource.usm.jmx;
  * Simple object for JMX Attribute
  * 
  * @author barakme
- * @since 8.0.3
+ * @since 2.0.0
  *
  */
 public class JmxAttribute implements Comparable<JmxAttribute> {
