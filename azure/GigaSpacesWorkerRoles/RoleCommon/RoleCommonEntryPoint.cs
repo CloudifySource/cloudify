@@ -175,6 +175,12 @@ namespace GigaSpaces
                 CreateTempDirectory();
 
                 DirectoryInfo xapHome = InstallGigaSpacesXap();
+
+                if (UploadAllLogs || UploadGsaLogs)
+                {
+                    enableGigaSpacesLogs(xapHome);
+                }
+
                 DirectoryInfo javaHome = InstallJava();
 
                 var lookupLocators = WaitForLookupServices();
@@ -208,6 +214,11 @@ namespace GigaSpaces
                 FlushTrace();
                 return false;
             }
+        }
+
+        private static void enableGigaSpacesLogs(DirectoryInfo xapHome)
+        {
+            File.AppendAllText(xapHome + "\\config\\gs_logging.properties", "\norg.openspaces.grid.gsm.level = ALL");
         }
 
         private void FlushTrace()
