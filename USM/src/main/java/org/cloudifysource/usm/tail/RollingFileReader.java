@@ -119,15 +119,14 @@ public class RollingFileReader {
 				logger.warning("In RollingFileReader: file not found." + DEFAULT_NUMBER_OF_RETRIES + " Retries failed.");
 				this.exists = false;
 				return "";
-			}else{
-				try {
-					logger.warning("file not found: " + file.getName() + ". Retring attempt #" + retryCounter);
-					Thread.sleep(TIMEOUT_BETWEEN_RETRIES);
-				} catch (InterruptedException e1) {
-					e1.printStackTrace();
-				}
-				return readLines();
 			}
+			try {
+				logger.warning("file not found: " + file.getName() + ". Retring attempt #" + retryCounter);
+				Thread.sleep(TIMEOUT_BETWEEN_RETRIES);
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
+			return readLines();
 		}finally{
 			if (randomAccessFile != null){
 				randomAccessFile.close();
