@@ -22,7 +22,7 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
  * configuration POJO is initialized by the service groovy DSL and holds all of the required information regarding the
  * deployment of stateful processing units.
  * 
- * @see ElasticStatefulProcessingUnitDeployment
+ * @see org.openspaces.admin.pu.elastic.ElasticStatefulProcessingUnitDeployment
  * 
  * @author adaml
  * 
