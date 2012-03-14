@@ -87,7 +87,7 @@ public class LifecycleEventsContainer {
      * Adds a non-lifecycle event into the events list.
      * For example: Planned service instances: 1, Actual service instances: 1
      * 
-     * @param allLifecycleEvents - All events logged.
+     * @param event event to add
      */
     public final synchronized void addInstanceCountEvent(String event) {
         if (!this.eventsSet.contains(event)){

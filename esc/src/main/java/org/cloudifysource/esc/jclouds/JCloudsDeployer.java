@@ -338,11 +338,10 @@ public class JCloudsDeployer {
 	 * 
 	 * @param serverName
 	 *            the server name.
-	 * @return
+	 * @return node meta data
 	 */
 	public NodeMetadata getServerByName(final String serverName) {
-		final String adaptedServerName = serverName.replace("_",
-				"") + "-";
+		final String adaptedServerName = serverName.replace("_", "") + "-";
 		final Predicate<ComputeMetadata> filter = new Predicate<ComputeMetadata>() {
 
 			@Override
@@ -356,7 +355,6 @@ public class JCloudsDeployer {
 		};
 
 		return getServer(filter);
-
 	}
 
 	/*******************

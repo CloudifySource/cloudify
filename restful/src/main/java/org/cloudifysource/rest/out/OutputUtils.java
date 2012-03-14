@@ -75,8 +75,7 @@ public class OutputUtils {
 	 * inserts the parameters of the array into the output map.
 	 * @param arrayObject
 	 * @param outputMap
-	 * @param commandURI
-	 * @param commandName
+	 * @param completeURL
 	 */
 	public static void outputArrayToMap(Object arrayObject, Map<String, Object> outputMap, String completeURL){
 		if (isNull(arrayObject)){
@@ -223,7 +222,7 @@ public class OutputUtils {
 	 * @param parentObject
 	 * @param commandURI
 	 * @param commandName
-	 * @return
+	 * @return next command url
 	 */
 	public static String getNextCommandUrl(Object parentObject, String commandURI, String commandName) {
 		if (isNull(parentObject)){
