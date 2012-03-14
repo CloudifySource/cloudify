@@ -57,9 +57,8 @@ public abstract class AbstractGSCommand implements Action {
 	protected AdminFacade adminFacade;
 
 	/**
-	 * @see org.apache.felix.gogo.commands.Action#execute(org.apache.felix.service .command.CommandSession) Initializes
-	 *      the messages bundle, and takes the admin facade objects from the session when command is admin-aware. Calls
-	 *      doExecute (must be implemented separately in the extending classes).
+	 * Initializes the messages bundle, and takes the admin facade objects from the session when command is admin-aware. Calls
+	 * doExecute (must be implemented separately in the extending classes).
 	 * 
 	 * @param session
 	 *            The command session to be used.

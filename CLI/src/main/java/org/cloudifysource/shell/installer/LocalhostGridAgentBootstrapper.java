@@ -1355,8 +1355,8 @@ public class LocalhostGridAgentBootstrapper {
 	 * @param listener
 	 *            the listener.
 	 */
-	public void addListener(final LocalhostBootstrapperListener ail) {
-		this.eventsListenersList.add(ail);
+	public void addListener(final LocalhostBootstrapperListener listener) {
+		this.eventsListenersList.add(listener);
 	}
 
 	private void publishEvent(final String event) {
