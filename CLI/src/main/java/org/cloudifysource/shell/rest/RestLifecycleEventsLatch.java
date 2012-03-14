@@ -51,6 +51,7 @@ public class RestLifecycleEventsLatch {
 
 			int cursor = 0;
 			boolean isDone = false;
+			boolean timedOut = false;
 			String url;
 
 			Map<String, Object> lifecycleEventLogs = null;
@@ -68,13 +69,14 @@ public class RestLifecycleEventsLatch {
 				List<String> events = (List<String>)lifecycleEventLogs.get(CloudifyConstants.LIFECYCLE_LOGS);
 				cursor = (Integer)lifecycleEventLogs.get(CloudifyConstants.CURSOR_POS);
 				isDone = (Boolean)lifecycleEventLogs.get(CloudifyConstants.IS_TASK_DONE);
+				timedOut = (Boolean)lifecycleEventLogs.get(CloudifyConstants.POLLING_TIMEOUT_EXCEPTION);
 
 				if (events == null){
 					displayer.printNoChange();
 				}else{
 					displayer.printEvents(events);
 				}
-				if (isDone){
+				if (isDone || timedOut){
 					displayer.eraseCurrentLine();
 
 				}
