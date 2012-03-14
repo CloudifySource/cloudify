@@ -682,8 +682,7 @@ public class LocalhostGridAgentBootstrapper {
 			gsa.shutdown();
 		} catch (final RemoteException e) {
 			if (!NetworkExceptionHelper.isConnectOrCloseException(e)) {
-				logger.finer("Exception caught on teardown and not filtered. cause: " + e.getCause() + ", message: "
-						+ e.getMessage() + ", stacktrace:" + e.getStackTrace());
+				logger.log(Level.FINER, "Failed to shutdown GSA", e);
 				throw new AdminException("Failed to shutdown GSA", e);
 			}
 		}

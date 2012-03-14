@@ -126,12 +126,12 @@ public class CustomNodeImpl implements CustomNode {
 	public String getId() {
 		return id;
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void setNodeName(String nodeName) {
+	public void setNodeName(final String nodeName) {
 		this.nodeName = nodeName;
 	}
 
@@ -193,9 +193,9 @@ public class CustomNodeImpl implements CustomNode {
 
 	@Override
 	public String toString() {
-		return "[id=" + getId() + ", providerId=" + getProviderId() + ", group=" + getGroup() + ", nodeName=" + getNodeName()
-				+ ", loginPort=" + getLoginPort() + ", privateAddresses=" + getPrivateIP() + ", publicAddresses="
-				+ getPublicIP() + ", username=" + getUsername() + "]";
+		return "[id=" + getId() + ", providerId=" + getProviderId() + ", group=" + getGroup() + ", nodeName="
+				+ getNodeName() + ", loginPort=" + getLoginPort() + ", privateAddresses=" + getPrivateIP()
+				+ ", publicAddresses=" + getPublicIP() + ", username=" + getUsername() + "]";
 	}
 
 	@Override

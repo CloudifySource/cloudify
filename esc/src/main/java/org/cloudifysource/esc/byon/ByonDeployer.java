@@ -50,31 +50,31 @@ public class ByonDeployer {
 	public synchronized CustomNode createServer(final String name) throws InstallerException {
 
 		CustomNode node = null;
-		
+
 		if (org.apache.commons.lang.StringUtils.isBlank(name)) {
 			throw new InstallerException("Failed to start cloud node, server name is missing");
 		}
 
-		
 		if (freeNodesPool.size() == 0) {
 			throw new InstallerException("Failed to create new cloud node, all nodes are currently used");
 		}
 
 		node = freeNodesPool.iterator().next();
-		
+
 		freeNodesPool.remove(node);
 		allocatedNodesPool.add(node);
 
-		((CustomNodeImpl)node).setNodeName(name);
+		((CustomNodeImpl) node).setNodeName(name);
 
 		return node;
 	}
-	
+
 	public synchronized void setAllocated(final Set<String> IpAddresses) {
-		for (String ipAddress : IpAddresses) {
+		for (final String ipAddress : IpAddresses) {
 			for (final CustomNode node : freeNodesPool) {
-				if ((StringUtils.isNotBlank(node.getPrivateIP()) && node.getPrivateIP().equalsIgnoreCase(ipAddress)) ||
-						(StringUtils.isNotBlank(node.getPublicIP()) && node.getPublicIP().equalsIgnoreCase(ipAddress))) {
+				if (StringUtils.isNotBlank(node.getPrivateIP()) && node.getPrivateIP().equalsIgnoreCase(ipAddress)
+						|| StringUtils.isNotBlank(node.getPublicIP())
+						&& node.getPublicIP().equalsIgnoreCase(ipAddress)) {
 					freeNodesPool.remove(node);
 					allocatedNodesPool.add(node);
 					break;
@@ -83,11 +83,11 @@ public class ByonDeployer {
 		}
 	}
 
-	public synchronized void shutdownServer(final CustomNode node)  {
+	public synchronized void shutdownServer(final CustomNode node) {
 		if (node == null) {
 			return;
 		}
-		
+
 		((CustomNodeImpl) node).setGroup(null);
 		allocatedNodesPool.remove(node);
 		freeNodesPool.add(node);
@@ -96,7 +96,7 @@ public class ByonDeployer {
 	public void shutdownServerById(final String serverId) {
 		shutdownServer(getServerByID(serverId));
 	}
-	
+
 	public void shutdownServerByIp(final String serverIp) {
 		shutdownServer(getServerByIP(serverIp));
 	}
@@ -113,10 +113,10 @@ public class ByonDeployer {
 
 		return selectedNode;
 	}
-	
+
 	public Set<CustomNode> getAllNodes() {
 		final Set<CustomNode> allNodes = new HashSet<CustomNode>();
-		
+
 		allNodes.addAll(freeNodesPool);
 		allNodes.addAll(allocatedNodesPool);
 		allNodes.addAll(invalidNodesPool);
@@ -141,8 +141,8 @@ public class ByonDeployer {
 		CustomNode selectedNode = null;
 
 		for (final CustomNode node : getAllNodes()) {
-			if ((StringUtils.isNotBlank(node.getPrivateIP()) && node.getPrivateIP().equalsIgnoreCase(ipAddress)) ||
-					(StringUtils.isNotBlank(node.getPublicIP()) && node.getPublicIP().equalsIgnoreCase(ipAddress))) {
+			if (StringUtils.isNotBlank(node.getPrivateIP()) && node.getPrivateIP().equalsIgnoreCase(ipAddress)
+					|| StringUtils.isNotBlank(node.getPublicIP()) && node.getPublicIP().equalsIgnoreCase(ipAddress)) {
 				selectedNode = node;
 				break;
 			}
@@ -152,7 +152,8 @@ public class ByonDeployer {
 	}
 
 	public synchronized void invalidateServer(final CustomNode node) {
-		// attempting to remove the invalid node from both lists so it will not be used anymore, just to be sure.
+		// attempting to remove the invalid node from both lists so it will not be used anymore, just to be
+		// sure.
 		freeNodesPool.remove(node);
 		allocatedNodesPool.remove(node);
 		invalidNodesPool.add(node);
@@ -166,14 +167,15 @@ public class ByonDeployer {
 
 		final List<CustomNode> cloudNodes = new ArrayList<CustomNode>();
 
-		for (Map<String, String> nodeMap : nodesMapList) {
-			if (StringUtils.isNotBlank(nodeMap.get(CLOUD_NODE_ID)) && StringUtils.isNotBlank(nodeMap.get(CLOUD_NODE_IP))) {
+		for (final Map<String, String> nodeMap : nodesMapList) {
+			if (StringUtils.isNotBlank(nodeMap.get(CLOUD_NODE_ID))
+					&& StringUtils.isNotBlank(nodeMap.get(CLOUD_NODE_IP))) {
 				cloudNodes.add(parseOneNode(nodeMap));
-			} else if (StringUtils.isNotBlank(nodeMap.get(CLOUD_NODE_ID_PREFIX)) && 
-					StringUtils.isNotBlank(nodeMap.get(CLOUD_NODE_IP_RANGE))) {
+			} else if (StringUtils.isNotBlank(nodeMap.get(CLOUD_NODE_ID_PREFIX))
+					&& StringUtils.isNotBlank(nodeMap.get(CLOUD_NODE_IP_RANGE))) {
 				cloudNodes.addAll(parseNodeRange(nodeMap));
-			} else if (StringUtils.isNotBlank(nodeMap.get(CLOUD_NODE_ID_PREFIX)) && 
-					StringUtils.isNotBlank(nodeMap.get(CLOUD_NODE_IP_CIDR))) {
+			} else if (StringUtils.isNotBlank(nodeMap.get(CLOUD_NODE_ID_PREFIX))
+					&& StringUtils.isNotBlank(nodeMap.get(CLOUD_NODE_IP_CIDR))) {
 				cloudNodes.addAll(parseNodeCIDR(nodeMap));
 			} else {
 				throw new InstallerException("Failed to start cloud node, invalid IP/ID configuration.");
@@ -182,123 +184,123 @@ public class ByonDeployer {
 
 		return cloudNodes;
 	}
-	
-	private CustomNode parseOneNode(Map<String, String> nodeMap) {
-		return new CustomNodeImpl(PROVIDER_ID, nodeMap.get(CLOUD_NODE_ID), nodeMap
-				.get(CLOUD_NODE_IP), nodeMap.get(CLOUD_NODE_USERNAME), nodeMap.get(CLOUD_NODE_CREDENTIAL),
-				nodeMap.get(CLOUD_NODE_ID));
+
+	private CustomNode parseOneNode(final Map<String, String> nodeMap) {
+		return new CustomNodeImpl(PROVIDER_ID, nodeMap.get(CLOUD_NODE_ID), nodeMap.get(CLOUD_NODE_IP),
+				nodeMap.get(CLOUD_NODE_USERNAME), nodeMap.get(CLOUD_NODE_CREDENTIAL), nodeMap.get(CLOUD_NODE_ID));
 	}
-	
-	private List<CustomNode> parseNodeRange(Map<String, String> nodeMap) throws InstallerException {
-		
+
+	private List<CustomNode> parseNodeRange(final Map<String, String> nodeMap) throws InstallerException {
+
 		final List<CustomNode> cloudNodes = new ArrayList<CustomNode>();
-		String idPrefix = nodeMap.get(CLOUD_NODE_ID_PREFIX);
+		final String idPrefix = nodeMap.get(CLOUD_NODE_ID_PREFIX);
 		String ipRange = nodeMap.get(CLOUD_NODE_IP_RANGE);
-		
-		int ipDashIndex = ipRange.indexOf("-");
+
+		final int ipDashIndex = ipRange.indexOf("-");
 		int ipLastDotIndex = StringUtils.lastIndexOf(ipRange, ".");
 		int ipDotsCount = StringUtils.countMatches(ipRange, ".");
 		if (ipLastDotIndex > ipDashIndex && ipDotsCount == 6) {
-			ipRange = ipRange.substring(0, ipDashIndex+1) + ipRange.substring(ipLastDotIndex+1);
+			ipRange = ipRange.substring(0, ipDashIndex + 1) + ipRange.substring(ipLastDotIndex + 1);
 			ipLastDotIndex = StringUtils.lastIndexOf(ipRange, ".");
 			ipDotsCount = StringUtils.countMatches(ipRange, ".");
-		}		
-		
-		//some validations
-		if (ipDashIndex < 0) {
-			new InstallerException("Failed to start cloud node, invalid " + CLOUD_NODE_IP_RANGE + "configuration: " + ipRange + " is missing the token \"-\"");
 		}
-		
-		if (ipDotsCount != 3 || ipDashIndex < ipLastDotIndex) {
-			new InstallerException("Failed to start cloud node, invalid " + CLOUD_NODE_IP_RANGE + " configuration: " + ipRange);
-		}
-		
-		//run through the range of IPs
-		String ipPrefix = ipRange.substring(0, ipLastDotIndex+1);
-		String ipSuffix = ipRange.substring(ipLastDotIndex+1);
-		int ipRangeStart = Integer.parseInt((ipSuffix.substring(0, ipSuffix.indexOf("-"))));
-		int ipRangeEnd = Integer.parseInt((ipSuffix.substring(ipSuffix.indexOf("-")+1)));
 
-		for (int ip=ipRangeStart, index=1; ip <= ipRangeEnd; ip++, index++) {
-			cloudNodes.add(new CustomNodeImpl(PROVIDER_ID, idPrefix + index, ipPrefix + ip,
-					nodeMap.get(CLOUD_NODE_USERNAME), nodeMap.get(CLOUD_NODE_CREDENTIAL), idPrefix+index));
+		// some validations
+		if (ipDashIndex < 0) {
+			throw new InstallerException("Failed to start cloud node, invalid " + CLOUD_NODE_IP_RANGE + "configuration: "
+					+ ipRange + " is missing the token \"-\"");
 		}
-		
+
+		if (ipDotsCount != 3 || ipDashIndex < ipLastDotIndex) {
+			throw new InstallerException("Failed to start cloud node, invalid " + CLOUD_NODE_IP_RANGE + " configuration: "
+					+ ipRange);
+		}
+
+		// run through the range of IPs
+		final String ipPrefix = ipRange.substring(0, ipLastDotIndex + 1);
+		final String ipSuffix = ipRange.substring(ipLastDotIndex + 1);
+		final int ipRangeStart = Integer.parseInt(ipSuffix.substring(0, ipSuffix.indexOf("-")));
+		final int ipRangeEnd = Integer.parseInt(ipSuffix.substring(ipSuffix.indexOf("-") + 1));
+
+		for (int ip = ipRangeStart, index = 1; ip <= ipRangeEnd; ip++, index++) {
+			cloudNodes.add(new CustomNodeImpl(PROVIDER_ID, idPrefix + index, ipPrefix + ip, nodeMap
+					.get(CLOUD_NODE_USERNAME), nodeMap.get(CLOUD_NODE_CREDENTIAL), idPrefix + index));
+		}
+
 		return cloudNodes;
 	}
-	
-	private List<CustomNode> parseNodeCIDR(Map<String, String> nodeMap) throws InstallerException {
-		String ipCIDR = nodeMap.get(CLOUD_NODE_IP_CIDR);
-		try{
+
+	private List<CustomNode> parseNodeCIDR(final Map<String, String> nodeMap) throws InstallerException {
+		final String ipCIDR = nodeMap.get(CLOUD_NODE_IP_CIDR);
+		try {
 			nodeMap.put(CLOUD_NODE_IP_RANGE, ipCIDR2Range(ipCIDR));
-		} catch (Exception e) {
-			throw new InstallerException("Failed to start cloud node, invalid " + CLOUD_NODE_IP_CIDR + " configuration: " + ipCIDR);
+		} catch (final Exception e) {
+			throw new InstallerException("Failed to start cloud node, invalid " + CLOUD_NODE_IP_CIDR
+					+ " configuration: " + ipCIDR);
 		}
-		
+
 		return parseNodeRange(nodeMap);
 	}
-	
-	private String ipCIDR2Range(String ipCidr) throws UnknownHostException {
-		
-	    String[] parts = ipCidr.split("/");
-	    String ip = parts[0];
-	    int maskBits;
-	    if (parts.length < 2) {
-	    	maskBits = 0;
-	    } else {
-	    	maskBits = Integer.parseInt(parts[1]);
-	    }
-	    
-	    // Step 1. Convert IPs into ints (32 bits).
-	    // E.g. 157.166.224.26 becomes 10011101  10100110  11100000 00011010
-	    String[] ipParts = StringUtils.split(ip, ".");
-	    int addr = (( Integer.parseInt(ipParts[0]) << 24 ) & 0xFF000000)
-	               | (( Integer.parseInt(ipParts[1]) << 16 ) & 0xFF0000)
-	               | (( Integer.parseInt(ipParts[2]) << 8 ) & 0xFF00)
-	               |  ( Integer.parseInt(ipParts[3]) & 0xFF);
 
-	    
-	    // Step 2. Get CIDR mask
-	    int mask = 0xffffffff << (32 - maskBits);
-	    int value = mask;
-	    byte[] bytes = new byte[]{ 
-	            (byte)(value >>> 24), (byte)(value >> 16 & 0xff), (byte)(value >> 8 & 0xff), (byte)(value & 0xff) };
+	private String ipCIDR2Range(final String ipCidr) throws UnknownHostException {
 
-	    InetAddress netAddr = InetAddress.getByAddress(bytes);
-	    
+		final String[] parts = ipCidr.split("/");
+		final String ip = parts[0];
+		int maskBits;
+		if (parts.length < 2) {
+			maskBits = 0;
+		} else {
+			maskBits = Integer.parseInt(parts[1]);
+		}
+
+		// Step 1. Convert IPs into ints (32 bits).
+		// E.g. 157.166.224.26 becomes 10011101 10100110 11100000 00011010
+		final String[] ipParts = StringUtils.split(ip, ".");
+		final int addr = Integer.parseInt(ipParts[0]) << 24 & 0xFF000000 | Integer.parseInt(ipParts[1]) << 16
+				& 0xFF0000 | Integer.parseInt(ipParts[2]) << 8 & 0xFF00 | Integer.parseInt(ipParts[3]) & 0xFF;
+
+		// Step 2. Get CIDR mask
+		final int mask = 0xffffffff << 32 - maskBits;
+		final int value = mask;
+		final byte[] bytes = new byte[] { (byte) (value >>> 24), (byte) (value >> 16 & 0xff),
+				(byte) (value >> 8 & 0xff), (byte) (value & 0xff) };
+
+		final InetAddress netAddr = InetAddress.getByAddress(bytes);
+
 		// Step 3. Find lowest IP address
-	    int lowest = addr & mask;
-	    String lowestIP = format(toArray(lowest));
-	     
-	    // Step 4. Find highest IP address
-	    int highest = lowest + (~mask);
-	    String highestIP = format(toArray(highest));
-	    
-	    return lowestIP + "-" + highestIP;
-	}
-	
-    /*
-     * Convert a packed integer address into a 4-element array
-     */
-    private int[] toArray(int val) {
-        int ret[] = new int[4];
-        for (int j = 3; j >= 0; --j)
-            ret[j] |= ((val >>> 8*(3-j)) & (0xff));
-        return ret;
-    }
+		final int lowest = addr & mask;
+		final String lowestIP = format(toArray(lowest));
 
-    /*
-     * Convert a 4-element array into dotted decimal format
-     */
-    private String format(int[] octets) {
-        StringBuilder str = new StringBuilder();
-        for (int i =0; i < octets.length; ++i){
-            str.append(octets[i]);
-            if (i != octets.length - 1) {
-                str.append("."); 
-            }
-        }
-        return str.toString();
-    }
+		// Step 4. Find highest IP address
+		final int highest = lowest + ~mask;
+		final String highestIP = format(toArray(highest));
+
+		return lowestIP + "-" + highestIP;
+	}
+
+	/*
+	 * Convert a packed integer address into a 4-element array
+	 */
+	private int[] toArray(final int val) {
+		final int ret[] = new int[4];
+		for (int j = 3; j >= 0; --j) {
+			ret[j] |= val >>> 8 * (3 - j) & 0xff;
+		}
+		return ret;
+	}
+
+	/*
+	 * Convert a 4-element array into dotted decimal format
+	 */
+	private String format(final int[] octets) {
+		final StringBuilder str = new StringBuilder();
+		for (int i = 0; i < octets.length; ++i) {
+			str.append(octets[i]);
+			if (i != octets.length - 1) {
+				str.append(".");
+			}
+		}
+		return str.toString();
+	}
 
 }
