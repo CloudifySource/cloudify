@@ -14,7 +14,7 @@ cloud {
 		provider "byon"
 		localDirectory "tools/cli/plugins/esc/byon/upload"
 		remoteDirectory "/tmp/gs-files"
-		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.0/gigaspaces-cloudify-2.1.0-m2-b1193-181.zip"
+		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.0/gigaspaces-cloudify-2.1.0-m2-b1193-185.zip"
 		machineNamePrefix "cloudify_agent_"
 		
 		dedicatedManagementMachines true
