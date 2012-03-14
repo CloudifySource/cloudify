@@ -28,8 +28,9 @@ public class AzureHostedService extends AzureConfigExe {
     }
 
 	/**
+	 * See: <a href="http://msdn.microsoft.com/en-us/library/gg441304.aspx">http://msdn.microsoft.com/en-us/library/gg441304.aspx</a>
+	 * 
      * @param azureHostedServiceDescription 
-	 * @see http://msdn.microsoft.com/en-us/library/gg441304.aspx
      */
     public void createHostedService(
             String name, 
@@ -52,7 +53,7 @@ public class AzureHostedService extends AzureConfigExe {
     }
     
     /**
-     * @see http://msdn.microsoft.com/en-us/library/ee460781.aspx
+     * See: <a href="http://msdn.microsoft.com/en-us/library/ee460781.aspx">http://msdn.microsoft.com/en-us/library/ee460781.aspx</a>
      */
     public String[] listHostedServices() throws InterruptedException, AzureDeploymentException {
     	

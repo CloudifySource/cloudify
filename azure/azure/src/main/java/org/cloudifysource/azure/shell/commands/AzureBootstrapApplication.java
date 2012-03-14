@@ -324,7 +324,7 @@ public class AzureBootstrapApplication extends AbstractGSCommand {
 	/**
 	 * Force deletion of directory
 	 * @param path
-	 * @return
+	 * @return is success delete
 	 */
 	static public boolean deleteDirectory(File path) {
 	    if (path.exists()) {

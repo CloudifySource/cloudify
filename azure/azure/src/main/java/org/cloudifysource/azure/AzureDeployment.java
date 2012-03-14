@@ -64,10 +64,11 @@ public class AzureDeployment extends AzureConfigExe{
     
     /**
      * Uploads the cspkg file to azure blob store and creates a new deployment
+     * </br>
+     * See: <a href="http://msdn.microsoft.com/en-us/library/ee460813.aspx">http://msdn.microsoft.com/en-us/library/ee460813.aspx</a>
      * @param storageAccount 
      * @param storageKey 
      * @param storageContainer 
-     * @see http://msdn.microsoft.com/en-us/library/ee460813.aspx
      */
     public void createDeployment(
     		String hostedServiceName, 

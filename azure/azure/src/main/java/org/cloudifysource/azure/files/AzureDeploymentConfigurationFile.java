@@ -22,7 +22,7 @@ import java.net.URLEncoder;
 import java.util.logging.Logger;
 
 /**
- * @see http://msdn.microsoft.com/en-us/library/ee758710.aspx
+ * See: <a href="http://msdn.microsoft.com/en-us/library/ee758710.aspx">http://msdn.microsoft.com/en-us/library/ee758710.aspx</a>
  *
  */
 public class AzureDeploymentConfigurationFile extends AbstractAzureDeploymentFile {
