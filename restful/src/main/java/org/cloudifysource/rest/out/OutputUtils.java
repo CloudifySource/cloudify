@@ -277,10 +277,15 @@ public class OutputUtils {
 		String methodName = method.getName();
 		Class<?> retType = method.getReturnType();
 
+		//black listed methods.
         if (methodName.equals("getGigaSpace") ||
-                methodName.equals("getIJSpace")){
+                methodName.equals("getIJSpace")) {
             return false;
         }
+        if (methodName.equals("getRegistrar")) {
+            return false;
+        }
+        
 		// private object getters will not be invoked.
 	    if (method.getModifiers() == Modifier.PRIVATE){
 	            return false;
