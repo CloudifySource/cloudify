@@ -158,7 +158,7 @@ public class ServiceController {
 
 	private Cloud cloud = null;
 
-	private final Logger logger = Logger.getLogger(getClass().getName());
+	private static final Logger logger = Logger.getLogger(ServiceController.class.getName());
 	private String cloudFileContents;
 	private String defaultTemplateName;
 
