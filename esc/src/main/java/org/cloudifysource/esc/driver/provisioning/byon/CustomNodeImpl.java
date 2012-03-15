@@ -54,7 +54,7 @@ public class CustomNodeImpl implements CustomNode {
 				nodeMetadata.getCredentials().identity, nodeMetadata.getCredentials().credential, nodeMetadata
 						.getName());
 		if (StringUtils.isNotBlank(nodeMetadata.getGroup())) {
-			setGroup(nodeMetadata.getGroup());
+			group = nodeMetadata.getGroup();
 		}
 	}
 
