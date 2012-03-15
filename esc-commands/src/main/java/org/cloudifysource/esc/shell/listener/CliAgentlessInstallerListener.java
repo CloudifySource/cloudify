@@ -27,7 +27,7 @@ import org.cloudifysource.esc.installer.AgentlessInstallerListener;
  */
 public class CliAgentlessInstallerListener extends AbstractEventListener implements AgentlessInstallerListener {
 
-	private Logger logger = Logger.getLogger(CliAgentlessInstallerListener.class.getName());
+	private static final Logger logger = Logger.getLogger(CliAgentlessInstallerListener.class.getName());
 	
 	@Override
 	public void onInstallerEvent(String eventName, Object... args) {
