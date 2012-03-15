@@ -37,7 +37,7 @@ public class LifecycleEventsContainer {
      */
     private Set<String> eventsSet;
 
-    private UUID ContainerUUID;
+    private UUID containerUUID;
 
     /**
      * future container polling task.
@@ -114,12 +114,12 @@ public class LifecycleEventsContainer {
     }
 
     public void setUUID(UUID lifecycleEventsContainerUUIID) {
-        this.ContainerUUID = lifecycleEventsContainerUUIID;
+        this.containerUUID = lifecycleEventsContainerUUIID;
 
     }
 
     public UUID getUUID() {
-        return  this.ContainerUUID;
+        return  this.containerUUID;
     }
 
     public void setFutureTask(Future<Boolean> future) {
