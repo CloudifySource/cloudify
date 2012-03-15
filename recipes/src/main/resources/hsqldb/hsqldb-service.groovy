@@ -21,20 +21,12 @@ service {
 
 	lifecycle{
 		init "hsqldb_install.groovy"
-		start "hsqldb_start.groovy"
-		preStop "hsqldb_stop.groovy"
+		start "hsqldb_start.groovy"		
 	}
 
-	plugins([
-		plugin {
-			name "portLiveness"
-			className "org.cloudifysource.usm.liveness.PortLivenessDetector"
-			config ([
-						"Port" : [9001],
-						"TimeoutInSeconds" : 60,
-						"Host" : "127.0.0.1"
-					])
-		},
-	])
+	network {
+		port = 9001
+		protocolDescription ="tcp"
+	}
 
 }

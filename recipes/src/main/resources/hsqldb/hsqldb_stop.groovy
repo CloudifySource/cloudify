@@ -13,6 +13,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+// This is a sample groovy script for closing down a running instance of HSQL
+
 @Grab(group='org.hsqldb', module='hsqldb', version='2.2.4')
 @GrabConfig(systemClassLoader=true)
 
