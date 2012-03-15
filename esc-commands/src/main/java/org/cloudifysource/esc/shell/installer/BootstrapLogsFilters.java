@@ -22,14 +22,14 @@ import java.util.logging.Logger;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 
 /**
- * The purpose of this class is to control logs ouput while the cloud is being bootstrapped or teared down.
+ * The purpose of this class is to control logs output while the cloud is being bootstrapped or teared down.
  * @author itaif
  *
  */
 public class BootstrapLogsFilters {
 
 	final Filter sshOutputFilter;
-	final static Logger sshOutputLogger = Logger.getLogger(AgentlessInstaller.SSH_OUTPUT_LOGGER_NAME);
+	private final static Logger sshOutputLogger = Logger.getLogger(AgentlessInstaller.SSH_OUTPUT_LOGGER_NAME);
 	
 	private final boolean verbose;
 	
