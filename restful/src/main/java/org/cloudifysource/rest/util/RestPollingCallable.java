@@ -72,7 +72,7 @@ public class RestPollingCallable implements Callable<Boolean> {
 
     private static final String USM_EVENT_LOGGER_NAME = ".*.USMEventLogger.{0}\\].*";
 
-    private final Logger logger = Logger.getLogger(getClass().getName());
+    private static final Logger logger = Logger.getLogger(RestPollingCallable.class.getName());
 
     private final String applicationName;
 
