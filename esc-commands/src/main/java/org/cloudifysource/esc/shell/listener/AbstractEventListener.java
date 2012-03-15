@@ -24,8 +24,8 @@ import org.cloudifysource.shell.ShellUtils;
 
 public class AbstractEventListener {
 	
-	private ResourceBundle messages = ShellUtils.getMessageBundle();
-	private Logger logger = Logger.getLogger(AbstractEventListener.class.getName());
+	private final ResourceBundle messages = ShellUtils.getMessageBundle();
+	private static final Logger logger = Logger.getLogger(AbstractEventListener.class.getName());
 	
 	protected String getFormattedMessage(String msgName, Object... arguments) {
 		if (messages == null) {
