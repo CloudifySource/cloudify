@@ -66,7 +66,7 @@ public class OutputUtils {
 		return blackList;
 	}
 
-	public static String NULL_OBJECT_DENOTER = "<null>";
+	public static final String NULL_OBJECT_DENOTER = "<null>";
 
 	private OutputUtils(){ }
 
