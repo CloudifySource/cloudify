@@ -76,7 +76,7 @@ public class AdminAPIController  {
 	@Autowired(required = true)
 	private Admin admin;
 
-    private static final Logger logger = Logger.getLogger(getClass().getName());
+    private static final Logger logger = Logger.getLogger(AdminAPIController.class.getName());
 	
 	/**
 	 * redirects to index view
