@@ -73,12 +73,12 @@ public class ConnectionLogsFilter {
 				return isLoggable;
 			}
 
-			private boolean isConnectExceptionOrCause(Throwable t) {
-				while (t != null) {
-					if (isConnectException(t)) {
+			private boolean isConnectExceptionOrCause(Throwable throwable) {
+				while (throwable != null) {
+					if (isConnectException(throwable)) {
 						return true;
 					}
-					t= t.getCause();
+					throwable = throwable.getCause();
 				}
 				
 				return false;
