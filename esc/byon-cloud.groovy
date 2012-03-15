@@ -47,8 +47,8 @@ cloud {
 					custom ([
 						"nodesList" : ([
 										([
-											"idPrefix" : "byon-pc-lab",
-											"CIDR" : "192.168.9.60/31"
+											"id" : "byon-pc-lab",
+											"ip" : "127.0.0.1"
 										])
 						])
 					])
