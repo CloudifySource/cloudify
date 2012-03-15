@@ -123,13 +123,13 @@ public class RestPollingCallable implements Callable<Boolean> {
      * @param plannedNumberOfInstances the planned number of instances.
      * @param timeunit polling timeout timeunit.
      */
-    public RestPollingCallable(final String serviceName, final int plannedNumberOfInstances,
+    public RestPollingCallable(final String serviceName, final String applicationName, final int plannedNumberOfInstances,
             final long timeout, final TimeUnit timeunit) {
 
         this.isServiceInstall  = true;
         this.serviceNames = new LinkedHashMap<String, Integer>();
         this.serviceNames.put(serviceName, plannedNumberOfInstances);
-        this.applicationName = CloudifyConstants.DEFAULT_APPLICATION_NAME;
+        this.applicationName = applicationName;
         this.pollingInterval = DEFAULT_POLLING_INTERVAL;
         this.endTime = System.currentTimeMillis() + timeunit.toMillis(timeout);
     }
@@ -362,5 +362,4 @@ public class RestPollingCallable implements Callable<Boolean> {
     public void setPollingInterval(final int pollingInterval) {
         this.pollingInterval = pollingInterval;
     }
-
 }

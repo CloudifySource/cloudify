@@ -977,10 +977,10 @@ public class ServiceController {
 	}
 
     //TODO: Start executer service
-    private UUID StartPollingForLifecycleEvents(String serviceName, int plannedNumberOfInstances, int timeout,
+    private UUID startPollingForLifecycleEvents(String serviceName, String applicationName,int plannedNumberOfInstances, int timeout,
             TimeUnit minutes){
         RestPollingCallable restPollingCallable;
-        restPollingCallable = new RestPollingCallable(serviceName, plannedNumberOfInstances, timeout, minutes);
+        restPollingCallable = new RestPollingCallable(serviceName, applicationName, plannedNumberOfInstances, timeout, minutes);
         LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
         UUID lifecycleEventsContainerID = UUID.randomUUID();
         this.lifecyclePollingContainer.put(lifecycleEventsContainerID, lifecycleEventsContainer);
@@ -1334,10 +1334,10 @@ public class ServiceController {
 		String lifecycleEventContainerID = "";
 		if (!isApplicationInstall){
 		    if (service == null){
-		        lifecycleEventContainerID = StartPollingForLifecycleEvents(ServiceUtils.getApplicationServiceName(serviceName, applicationName),
+		        lifecycleEventContainerID = startPollingForLifecycleEvents(ServiceUtils.getApplicationServiceName(serviceName, applicationName), applicationName, 
 		                1, timeout, timeUnit).toString();
 		    }else{
-		        lifecycleEventContainerID = StartPollingForLifecycleEvents(service.getName(), service.getNumInstances(), timeout, timeUnit).toString();
+		        lifecycleEventContainerID = startPollingForLifecycleEvents(service.getName(), applicationName ,service.getNumInstances(), timeout, timeUnit).toString();
 		    }
 		}
 		return lifecycleEventContainerID;
