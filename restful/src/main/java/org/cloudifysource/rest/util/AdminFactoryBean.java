@@ -39,7 +39,7 @@ public class AdminFactoryBean implements FactoryBean, InitializingBean, Disposab
     Admin admin;
     SecurityPropagation securityPropagation;
 
-    private final Logger logger = Logger.getLogger(getClass().getName());
+    private static final Logger logger = Logger.getLogger(AdminFactoryBean.class.getName());
     
     @Override
 	public Object getObject() throws Exception {
