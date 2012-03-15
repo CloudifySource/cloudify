@@ -223,7 +223,7 @@ namespace GigaSpaces
             {
                 throw new FileNotFoundException("Cannot update gs_logging.properties file in " + loggingProperties);
             }
-            File.AppendAllText(loggingProperties, "\norg.openspaces.grid.gsm.level = ALL");
+            File.AppendAllText(loggingProperties, "\norg.openspaces.grid.gsm.level = FINE");
         }
 
         private void FlushTrace()
