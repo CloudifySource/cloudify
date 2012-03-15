@@ -101,11 +101,10 @@ public class RestLifecycleEventsLatch {
 			 	}
 				
 				if (isDone) {
-					if (!timedOutOnServer) {
-						displayer.eraseCurrentLine();
-					} else {
-						return false;
+					if (timedOutOnServer) { 
+				           return false;
 					}
+					displayer.eraseCurrentLine();
 				}
 				
 				return isDone;
