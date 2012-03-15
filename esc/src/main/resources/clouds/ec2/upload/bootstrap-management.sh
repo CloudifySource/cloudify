@@ -83,7 +83,11 @@ if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.zip -nt ~/gigaspa
 	fi
 fi
 
-cp -rf $WORKING_HOME_DIRECTORY/overrides/* ~/gigaspaces
+# if an overrides directory exists, copy it into the cloudify distribution
+if [ -d $WORKING_HOME_DIRECTORY/cloudify-overrides ]; then
+	cp -rf $WORKING_HOME_DIRECTORY/cloudify-overrides/* ~/gigaspaces
+fi
+
 # UPDATE SETENV SCRIPT...
 echo Updating environment script
 cd ~/gigaspaces/bin || error_exit $? "Failed changing directory to bin directory"
