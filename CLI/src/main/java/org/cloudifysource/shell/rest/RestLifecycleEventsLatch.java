@@ -28,7 +28,16 @@ import org.cloudifysource.shell.ConditionLatch.Predicate;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
 import org.cloudifysource.shell.installer.CLIEventsDisplayer;
-
+/**
+ * The RestLifecycleEventsLatch will poll the rest for installation lifecycle events 
+ * and print the new events to the CLI console. 
+ * The polling latch will stop polling the rest for two reasons:
+ * 				1. The timeout period expired.
+ * 				2. Installation on the remote rest gateway ended.
+ * 
+ * @author adaml
+ *
+ */
 public class RestLifecycleEventsLatch {
 
 	private final long MIN_POLLING_INTERVAL = 2000;
@@ -40,21 +49,35 @@ public class RestLifecycleEventsLatch {
 	private String timeoutMessage = DEFAULT_TIMEOUT_MESSAGE;
 
 	private CLIEventsDisplayer displayer;
-
-	public RestLifecycleEventsLatch(){
+	
+	/**
+	 * Constructor.
+	 */
+	public RestLifecycleEventsLatch() {
 		this.displayer = new CLIEventsDisplayer();
 	}
 
+	/**
+	 * Waits for lifecycle events. This method will poll the rest for installation lifecycle events 
+	 * and print the new events to the CLI console.
+	 * 
+	 * @param serviceLifecycleEventContainerID The polling ID.
+	 * @param client The rest client.
+	 * @param timeoutInMinutes Timeout for task. 
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 * @throws CLIException
+	 */
 	public void waitForLifecycleEvents(final String serviceLifecycleEventContainerID,
-			final GSRestClient client, int timeoutInMinutes) throws InterruptedException, TimeoutException, CLIException {
+			final GSRestClient client, final int timeoutInMinutes) 
+			throws InterruptedException, TimeoutException, CLIException {
 		createConditionLatch(timeoutInMinutes, TimeUnit.MINUTES).waitFor(new Predicate() {
 
-			int cursor = 0;
-			boolean isDone = false;
-			boolean timedOutOnServer = false;
-			String url;
-
-			Map<String, Object> lifecycleEventLogs = null;
+			private int cursor = 0;
+			private boolean isDone = false;
+			private boolean timedOutOnServer = false;
+			private String url;
+			private Map<String, Object> lifecycleEventLogs = null;
 
 			@Override
 			public boolean isDone() throws CLIException, InterruptedException {
@@ -102,20 +125,30 @@ public class RestLifecycleEventsLatch {
 	 * @return Configured condition latch
 	 */
 	private ConditionLatch createConditionLatch(final long timeout, final TimeUnit timeunit) {
-		return new ConditionLatch().timeout(timeout, timeunit).pollingInterval(this.pollingInterval, TimeUnit.MILLISECONDS)
+		return new ConditionLatch().timeout(timeout, timeunit)
+		.pollingInterval(this.pollingInterval, TimeUnit.MILLISECONDS)
 		.timeoutErrorMessage(this.timeoutMessage);
 	}
 
-	public void setPollingInterval(long pollingIntervalInMillis){
+	/**
+	 * Sets the polling interval.
+	 * 
+	 * @param pollingIntervalInMillis Polling interval in milliseconds.
+	 */
+	public void setPollingInterval(final long pollingIntervalInMillis) {
 
-		if (!(pollingIntervalInMillis < MIN_POLLING_INTERVAL)){
+		if (!(pollingIntervalInMillis < MIN_POLLING_INTERVAL)) {
 			this.pollingInterval = pollingIntervalInMillis;
-		}else{
+		} else {
 			//TODO:logger: minimal interval set.
 		}
 	}
 
-	public void setTimeoutMessage(String timeoutMessage) {
+	/**
+	 * Sets the timeout exception message.
+	 * @param timeoutMessage The timeout exception message.
+	 */
+	public void setTimeoutMessage(final String timeoutMessage) {
 		this.timeoutMessage = timeoutMessage;
 
 	}
