@@ -27,7 +27,7 @@ import org.cloudifysource.esc.driver.provisioning.ProvisioningDriverListener;
  */
 public class CliProvisioningDriverListener extends AbstractEventListener implements ProvisioningDriverListener {
 
-	private Logger logger = Logger.getLogger(CliProvisioningDriverListener.class.getName());
+	private static final Logger logger = Logger.getLogger(CliProvisioningDriverListener.class.getName());
 	
 	@Override
 	public void onProvisioningEvent(String eventName, Object... args) {
