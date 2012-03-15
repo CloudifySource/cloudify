@@ -218,7 +218,12 @@ namespace GigaSpaces
 
         private static void enableGigaSpacesLogs(DirectoryInfo xapHome)
         {
-            File.AppendAllText(xapHome + "\\config\\gs_logging.properties", "\norg.openspaces.grid.gsm.level = ALL");
+            String loggingProperties = Path.Combine(xapHome.FullName, @"config\gs_logging.properties");
+            if (!File.Exists(loggingProperties))
+            {
+                throw new FileNotFoundException("Cannot update gs_logging.properties file in " + loggingProperties);
+            }
+            File.AppendAllText(loggingProperties, "\norg.openspaces.grid.gsm.level = ALL");
         }
 
         private void FlushTrace()
