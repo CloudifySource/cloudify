@@ -46,6 +46,11 @@ namespace GigaSpaces
             get { return GetBooleanConfig("GigaSpaces.XAP.UploadAgentLogs"); }
         }
 
+        private bool UploadEntryPointExceptions
+        {
+            get { return GetBooleanConfig("GigaSpaces.XAP.UploadEntryPointExceptions"); }
+        }
+
         private int GsaMegabytesMemory
         {
             get { return GetInt32Config("GigaSpaces.XAP.GSA.MemoryInMB"); }
@@ -162,7 +167,7 @@ namespace GigaSpaces
                 // enables crash dumps for this process (not child processes)
                 CrashDumps.EnableCollection(true);
 
-                if (UploadAllLogs || UploadGsaLogs )
+                if (UploadAllLogs || UploadGsaLogs || UploadEntryPointExceptions )
                 {
                     ConfigureDiagnosticsTransferPeriod();
                 }
