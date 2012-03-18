@@ -238,15 +238,25 @@ public class CloudGridAgentBootstrapper {
 			if (!adminFacade.isConnected()) {
 				throw new CLIException("Please connect to the cloud before tearing down");
 			}
+			
+			uninstallApplications(end);
 
-			for (String application : adminFacade.getApplicationsList()) {
-				if (!application.equals(MANAGEMENT_APPLICATION)) {
-					adminFacade.uninstallApplication(application);
+		} else {
+			
+			if (adminFacade.isConnected()) {
+				try { 
+				uninstallApplications(end);
+				} catch(InterruptedException e) { 
+					throw e;
+				}catch(TimeoutException e) {
+					logger.fine("Failed to uninstall applications. Shut down of managememnt machines will continue");							
+				}catch(CLIException e) {
+					logger.fine("Failed to uninstall applications. Shut down of managememnt machines will continue");
 				}
 			}
-
-			waitForUninstallApplications(Utils.millisUntil(end), TimeUnit.MILLISECONDS);
-
+			
+			
+	
 		}
 
 		logger.info("Terminating cloud machines");
@@ -258,6 +268,17 @@ public class CloudGridAgentBootstrapper {
 					+ e.getMessage(), e);
 		}
 
+	}
+
+	private void uninstallApplications(long end) throws CLIException,
+			InterruptedException, TimeoutException {
+		for (String application : adminFacade.getApplicationsList()) {
+			if (!application.equals(MANAGEMENT_APPLICATION)) {
+				adminFacade.uninstallApplication(application);
+			}
+		}
+
+		waitForUninstallApplications(Utils.millisUntil(end), TimeUnit.MILLISECONDS);
 	}
 
 	protected static InstallationDetails createInstallationDetails(final Cloud cloud) throws FileNotFoundException {
