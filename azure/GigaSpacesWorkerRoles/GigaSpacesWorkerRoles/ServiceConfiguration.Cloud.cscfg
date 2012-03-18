@@ -12,7 +12,7 @@
       <Setting name="GigaSpaces.XAP.NumberOfManagementRoleInstances" value="2" />
       <Setting name="GigaSpaces.XAP.UploadAgentLogs" value="false" />
       <Setting name="GigaSpaces.XAP.UploadAllLogs" value="false" />
-      <Setting name="GigaSpaces.XAP.UploadEntryPointExceptions" value ="true"/>
+      <Setting name="GigaSpaces.XAP.UploadEntryPointLogs" value ="true"/>
       <Setting name="GigaSpaces.WindowsAzure.WorkingDirectory" value="." />
       <Setting name="GigaSpaces.XAP.GSA.MemoryInMB" value="128" />
       <Setting name="GigaSpaces.XAP.LUS.MemoryInMB" value="256" />
@@ -43,7 +43,7 @@
       <Setting name="GigaSpaces.XAP.NumberOfManagementRoleInstances" value="2" />
       <Setting name="GigaSpaces.XAP.UploadAgentLogs" value="false" />
       <Setting name="GigaSpaces.XAP.UploadAllLogs" value="false" />
-      <Setting name="GigaSpaces.XAP.UploadEntryPointExceptions" value ="true"/>
+      <Setting name="GigaSpaces.XAP.UploadEntryPointLogs" value ="true"/>
       <Setting name="GigaSpaces.XAP.GSA.MemoryInMB" value="128" />
       <Setting name="GigaSpaces.XAP.WEBUI.MemoryInMB" value="512" />
       <Setting name="GigaSpaces.XAP.RestAdmin.MemoryInMB" value="512" />
@@ -71,7 +71,7 @@
       <Setting name="GigaSpaces.XAP.NumberOfManagementRoleInstances" value="2" />
       <Setting name="GigaSpaces.XAP.UploadAgentLogs" value="false" />
       <Setting name="GigaSpaces.XAP.UploadAllLogs" value="false" />
-      <Setting name="GigaSpaces.XAP.UploadEntryPointExceptions" value ="true"/>
+      <Setting name="GigaSpaces.XAP.UploadEntryPointLogs" value ="true"/>
       <Setting name="GigaSpaces.WindowsAzure.WorkingDirectory" value="." />
       <Setting name="GigaSpaces.XAP.GSA.MemoryInMB" value="128" />
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="" />

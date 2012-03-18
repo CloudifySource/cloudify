@@ -46,9 +46,9 @@ namespace GigaSpaces
             get { return GetBooleanConfig("GigaSpaces.XAP.UploadAgentLogs"); }
         }
 
-        private bool UploadEntryPointExceptions
+        private bool UploadEntryPointLogs
         {
-            get { return GetBooleanConfig("GigaSpaces.XAP.UploadEntryPointExceptions"); }
+            get { return GetBooleanConfig("GigaSpaces.XAP.UploadEntryPointLogs"); }
         }
 
         private int GsaMegabytesMemory
@@ -142,6 +142,7 @@ namespace GigaSpaces
         public override void Run()
         {
             GSTrace.WriteLine("Running " + RoleEnvironment.CurrentRoleInstance.Id);
+            
             try
             {
                 //Uncomment this line to debug agent.Stop()
@@ -167,7 +168,7 @@ namespace GigaSpaces
                 // enables crash dumps for this process (not child processes)
                 CrashDumps.EnableCollection(true);
 
-                if (UploadAllLogs || UploadGsaLogs || UploadEntryPointExceptions )
+                if (UploadAllLogs || UploadGsaLogs || UploadEntryPointLogs)
                 {
                     ConfigureDiagnosticsTransferPeriod();
                 }
@@ -297,6 +298,7 @@ namespace GigaSpaces
                     "gs-agent.bat")
                 .Directory
                 .Parent;
+            
             GSTrace.WriteLine("Finished installing GigaSpaces Cloudify");
             return xapHome;
         }

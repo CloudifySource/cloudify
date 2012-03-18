@@ -79,7 +79,7 @@ namespace GigaSpaces
                 }
                 process.Start();
 
-                if (RedirectStandardOutput)
+                if (RedirectStandardOutput || SaveOutput)
                 {
                     process.BeginOutputReadLine();
                 }
