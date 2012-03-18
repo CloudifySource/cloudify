@@ -150,9 +150,10 @@ public class CliAzureDeploymentTest {
         File cscfgFile = new File(cliExecutablePath.getParent(), RELATIVE_WORKER_ROLE_DIR + "\\ServiceConfiguration.Cloud.cscfg");
 
         // update worker roles configuration to upload logs
+        // Disabled since we suspect some issues arise only when logs are disabled.
         AzureDeploymentConfigurationFile cscfg = new AzureDeploymentConfigurationFile(cscfgFile);
-        cscfg.setUploadAgentLogs(true);
-        cscfg.setUploadAllLogs(true);
+        //cscfg.setUploadAgentLogs(true);
+        //cscfg.setUploadAllLogs(true);
         cscfg.flush();
         
         Properties newAzureProps = new Properties();
