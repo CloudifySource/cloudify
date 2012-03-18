@@ -36,7 +36,7 @@ namespace GigaSpaces
                 CreateNoWindow = true,
                 WorkingDirectory = WorkingDirectory.FullName,
                 RedirectStandardInput = false,
-                RedirectStandardOutput = RedirectStandardOutput,
+                RedirectStandardOutput = RedirectStandardOutput || SaveOutput,
                 RedirectStandardError = RedirectStandardError,
             };
 
