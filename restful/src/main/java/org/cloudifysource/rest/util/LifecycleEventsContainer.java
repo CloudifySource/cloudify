@@ -23,11 +23,16 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.cloudifysource.dsl.internal.EventLogConstants;
 
 public class LifecycleEventsContainer {
-    /**
+
+	private final Logger logger = Logger.getLogger(getClass().getName());
+	
+	/**
      * A list of processed events, .
      */
     private List<String> eventsList;
@@ -75,10 +80,19 @@ public class LifecycleEventsContainer {
         String outputMessage;
         for (Map<String, String> map : allLifecycleEvents) {
             Map<String, Object> sortedMap = new TreeMap<String, Object>(map);
-            if (!this.eventsSet.contains(sortedMap.toString())) {
+            if (this.eventsSet.contains(sortedMap.toString())) {
+            	if (logger.isLoggable(Level.FINEST)) {
+            		outputMessage = getParsedLifecyceEventMessageFromMap(sortedMap);
+            		logger.finest("Ignoring Lifecycle Event: " + outputMessage);
+                }
+            }
+            else {
                 this.eventsSet.add(sortedMap.toString());
                 outputMessage = getParsedLifecyceEventMessageFromMap(sortedMap);
                 this.eventsList.add(outputMessage);
+                if (logger.isLoggable(Level.FINE)) {
+                	logger.fine("Lifecycle Event: " + outputMessage);
+                }
             }
         }
     }
@@ -90,9 +104,17 @@ public class LifecycleEventsContainer {
      * @param event event to add
      */
     public final synchronized void addInstanceCountEvent(String event) {
-        if (!this.eventsSet.contains(event)){
+        if (this.eventsSet.contains(event)){
+        	if (logger.isLoggable(Level.FINEST)) {
+        		logger.finest("Ignoring Instance Count Event: " + event);
+            }
+        }
+        else {
             this.eventsSet.add(event);
             this.eventsList.add(event);
+        	if (logger.isLoggable(Level.FINE)) {
+        		logger.fine("Instance Count Event: " + event);
+            }
         }
     }
 
