@@ -18,7 +18,7 @@ package org.cloudifysource.usm.dsl;
 import java.io.File;
 
 import org.cloudifysource.dsl.Service;
-import org.cloudifysource.dsl.context.ServiceContext;
+import org.cloudifysource.dsl.internal.context.ServiceContextImpl;
 import org.cloudifysource.usm.CommandParts;
 import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
 
@@ -36,14 +36,14 @@ public class DSLConfiguration implements UniversalServiceManagerConfiguration {
 	private static final int MILLIS_IN_SECOND = 1000;
 	private final Service service;
 	private final File puExtDir;
-	private final ServiceContext serviceContext;
+	private final ServiceContextImpl serviceContext;
 	private final File serviceFile;
 
 	public File getServiceFile() {
 		return serviceFile;
 	}
 
-	public ServiceContext getServiceContext() {
+	public ServiceContextImpl getServiceContext() {
 		return serviceContext;
 	}
 
@@ -59,7 +59,7 @@ public class DSLConfiguration implements UniversalServiceManagerConfiguration {
 	 * @param serviceFile
 	 *            the DSL dile.
 	 */
-	public DSLConfiguration(final Service service, final ServiceContext serviceContext, final File puExtDir,
+	public DSLConfiguration(final Service service, final ServiceContextImpl serviceContext, final File puExtDir,
 			final File serviceFile) {
 		this.service = service;
 		this.serviceContext = serviceContext;
