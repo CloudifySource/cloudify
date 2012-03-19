@@ -20,7 +20,17 @@ import java.io.Serializable;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 
 /*************
- * Domain POJO of the service lifecycle, part of the Service Recipe declaration.
+ * Domain POJO of the service lifecycle, part of the Service Recipe declaration. Non-null Elements in the lifecycle POJO
+ * indicate actions that should be executed when the service reaches a certain lifecycle phase. Executable entries can
+ * take one of several forms: <br>
+ * 1. String - indicates a command line to execute (command lines may be modified according
+ * to USM rules) 
+ * 2. Closure - code that executes in-process 3. Map<String, String> - Where keys are Java regular
+ * expressions and values are command lines (as in 1). The entry to be executed is the first one where 
+ * the key regex matches the operating system name of the host running the service. 
+ * Common keys include 'Win.*', 'Linux.*', etc.
+ * 
+ * See the documentation for examples.
  * 
  * @author barakme.
  * @since 2.0.0
@@ -61,6 +71,7 @@ public class ServiceLifecycle implements Serializable {
 	private Object details;
 
 	private Object locator;
+	
 	private int startDetectionTimeoutSecs = DEFAULT_START_DETECTION_SECONDS;
 
 	public int getStartDetectionTimeoutSecs() {

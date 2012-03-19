@@ -36,15 +36,14 @@ import org.openspaces.ui.UserInterface;
 public class Service {
 
 	private static final int DEFAULT_MAX_JAR_SIZE = 150 * 1024 * 1024; // 150 MB
+	
+	
+	/******
+	 * The service Name.
+	 */
 	private String name;
 	private String icon;
-	private String errorLoggerName;
-	private String outputLoggerName;
-
-	private String imageTemplate;
-	private String defaultScalingUnit;
-	private String pidFile;
-
+	
 	private ServiceLifecycle lifecycle;
 	private UserInterface userInterface;
 
@@ -56,8 +55,7 @@ public class Service {
 
 	private int numInstances = 1;
 	private long maxJarSize = DEFAULT_MAX_JAR_SIZE;
-	private boolean keepFile = false;
-
+	
 	private Map<String, Object> customCommands = new HashMap<String, Object>();
 
 	private String type;
@@ -135,22 +133,6 @@ public class Service {
 		this.userInterface = userInterface;
 	}
 
-	public String getImageTemplate() {
-		return imageTemplate;
-	}
-
-	public void setImageTemplate(final String imageTemplate) {
-		this.imageTemplate = imageTemplate;
-	}
-
-	public String getDefaultScalingUnit() {
-		return defaultScalingUnit;
-	}
-
-	public void setDefaultScalingUnit(final String defaultScalingUnit) {
-		this.defaultScalingUnit = defaultScalingUnit;
-	}
-
 	public void setPlugins(final List<PluginDescriptor> plugins) {
 		this.plugins = plugins;
 	}
@@ -175,14 +157,6 @@ public class Service {
 		this.maxJarSize = maxJarSize;
 	}
 
-	public boolean isKeepFile() {
-		return keepFile;
-	}
-
-	public void setKeepFile(final boolean keepFile) {
-		this.keepFile = keepFile;
-	}
-
 	public Map<String, String> getCustomProperties() {
 		return customProperties;
 	}
@@ -190,31 +164,7 @@ public class Service {
 	public void setCustomProperties(final Map<String, String> customProperties) {
 		this.customProperties = customProperties;
 	}
-
-	public String getPidFile() {
-		return pidFile;
-	}
-
-	public void setPidFile(final String pidFile) {
-		this.pidFile = pidFile;
-	}
-
-	public String getErrorLoggerName() {
-		return this.errorLoggerName;
-	}
-
-	public String getOutputLoggerName() {
-		return outputLoggerName;
-	}
-
-	public void setOutputLoggerName(final String outputLoggerName) {
-		this.outputLoggerName = outputLoggerName;
-	}
-
-	public void setErrorLoggerName(final String errorLoggerName) {
-		this.errorLoggerName = errorLoggerName;
-	}
-
+	
 	public String getType() {
 		return type;
 	}

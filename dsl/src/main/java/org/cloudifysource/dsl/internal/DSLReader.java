@@ -34,11 +34,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Logger;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.context.ServiceContext;
+import org.cloudifysource.dsl.internal.context.ServiceContextImpl;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
@@ -61,7 +62,7 @@ public class DSLReader {
 
 	private ClusterInfo clusterInfo;
 	private Admin admin;
-	private ServiceContext context;
+	private ServiceContextImpl context;
 
 	private String propertiesFileName;
 
@@ -76,7 +77,7 @@ public class DSLReader {
 
 	private boolean createServiceContext = true;
 
-	private Map<String, Object> bindingProperties = new HashMap<String, Object>();
+	private final Map<String, Object> bindingProperties = new HashMap<String, Object>();
 
 	private String dslContents;
 
@@ -86,7 +87,8 @@ public class DSLReader {
 
 	private static final String DSL_FILE_PATH_PROPERTY_NAME = "dslFilePath";
 
-	private void initDslFile() throws FileNotFoundException {
+	private void initDslFile()
+			throws FileNotFoundException {
 		if (dslFile != null) {
 			return;
 		}
@@ -111,7 +113,8 @@ public class DSLReader {
 			throw new IllegalArgumentException(workDir.getAbsolutePath() + " must be a directory");
 		}
 
-		this.dslFile = findDefaultDSLFile(dslFileNameSuffix, workDir);
+		this.dslFile = findDefaultDSLFile(dslFileNameSuffix,
+				workDir);
 
 	}
 
@@ -137,38 +140,41 @@ public class DSLReader {
 		return files[0];
 	}
 
-	private void init() throws IOException {
+	private void init()
+			throws IOException {
 		initDslFile();
 		initPropertiesFile();
 
 	}
 
-	public <T> T readDslEntity(Class<T> clazz) throws DSLException {
+	public <T> T readDslEntity(final Class<T> clazz)
+			throws DSLException {
 
-		Object result = readDslObject();
+		final Object result = readDslObject();
 		if (result == null) {
 			throw new IllegalStateException("The file " + dslFile + " evaluates to null, not to a DSL object");
 		}
-		if (!(clazz.isAssignableFrom(result.getClass()))) {
+		if (!clazz.isAssignableFrom(result.getClass())) {
 			throw new IllegalStateException("The file: " + dslFile + " did not evaluate to the required object type");
 		}
 
 		@SuppressWarnings("unchecked")
-		T resultObject = (T) result;
+		final T resultObject = (T) result;
 		return resultObject;
 	}
 
-	public Object readDslObject() throws DSLException {
+	public Object readDslObject()
+			throws DSLException {
 		try {
 			init();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			throw new DSLException("Failed to initialize DSL Reader: " + e.getMessage(), e);
 		}
 
 		LinkedHashMap<Object, Object> properties = null;
 		try {
 			properties = createDSLProperties();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			// catching exception here, as groovy config slurper may throw just
 			// about anything
 			throw new IllegalArgumentException("Failed to load properties file " + this.propertiesFile, e);
@@ -176,22 +182,26 @@ public class DSLReader {
 
 		// create an uninitialized service context
 		if (this.createServiceContext) {
-			this.context = new ServiceContext();
+			this.context = new ServiceContextImpl();
 		}
 		// create the groovy shell, loaded with our settings
 		final GroovyShell gs = createGroovyShell(properties);
-		Object result = evaluateGroovyScript(gs);
+		final Object result = evaluateGroovyScript(gs);
 
 		if (this.createServiceContext) {
 			if (!(result instanceof Service)) {
 				throw new IllegalArgumentException(
-						"The DSL reader cannot create a service context to a DSL that does not evaluate to a Sevice. " +
-						"Set the 'createServiceContext' option to false if you do not need a service conext");
+						"The DSL reader cannot create a service context to a DSL that does not evaluate to a Sevice. "
+								+ "Set the 'createServiceContext' option to false if you do not need a service conext");
 			}
 			if (isRunningInGSC) {
-				this.context.init((Service) result, admin, workDir.getAbsolutePath(), clusterInfo);
+				this.context.init((Service) result,
+						admin,
+						workDir.getAbsolutePath(),
+						clusterInfo);
 			} else {
-				this.context.initInIntegratedContainer((Service) result, workDir.getAbsolutePath());
+				this.context.initInIntegratedContainer((Service) result,
+						workDir.getAbsolutePath());
 			}
 		}
 
@@ -210,25 +220,27 @@ public class DSLReader {
 			FileReader reader = null;
 			try {
 				reader = new FileReader(dslFile);
-				result = gs.evaluate(reader, "dslEntity");
+				result = gs.evaluate(reader,
+						"dslEntity");
 			} catch (final IOException e) {
 				throw new IllegalStateException("The file " + dslFile + " could not be read", e);
-			} catch (MissingMethodException e) {
+			} catch (final MissingMethodException e) {
 				throw new IllegalArgumentException("Could not resolve DSL entry with name: " + e.getMethod(), e);
-			} catch (MissingPropertyException e) {
+			} catch (final MissingPropertyException e) {
 				throw new IllegalArgumentException("Could not resolve DSL entry with name: " + e.getProperty(), e);
 			} finally {
 				if (reader != null) {
 					try {
 						reader.close();
-					} catch (IOException e) {
+					} catch (final IOException e) {
 						// ignore
 					}
 				}
 			}
 		} else {
 			try {
-				result = gs.evaluate(this.dslContents, "dslEntity");
+				result = gs.evaluate(this.dslContents,
+						"dslEntity");
 			} catch (final CompilationFailedException e) {
 				throw new IllegalArgumentException("The file " + dslFile + " could not be compiled", e);
 			}
@@ -237,7 +249,8 @@ public class DSLReader {
 		return result;
 	}
 
-	private void initPropertiesFile() throws IOException {
+	private void initPropertiesFile()
+			throws IOException {
 		if (this.propertiesFileName != null) {
 			this.propertiesFile = new File(workDir, this.propertiesFileName);
 
@@ -264,12 +277,13 @@ public class DSLReader {
 		if (indexOfLastComma < 0) {
 			fileNamePrefix = baseFileName;
 		} else {
-			fileNamePrefix = baseFileName.substring(0, indexOfLastComma);
+			fileNamePrefix = baseFileName.substring(0,
+					indexOfLastComma);
 		}
 
 		final String defaultPropertiesFileName = fileNamePrefix + ".properties";
 
-		File defaultPropertiesFile = new File(workDir, defaultPropertiesFileName);
+		final File defaultPropertiesFile = new File(workDir, defaultPropertiesFileName);
 
 		if (defaultPropertiesFile.exists()) {
 			this.propertiesFileName = defaultPropertiesFileName;
@@ -279,17 +293,18 @@ public class DSLReader {
 	}
 
 	@SuppressWarnings("unchecked")
-	private LinkedHashMap<Object, Object> createDSLProperties() throws IOException {
+	private LinkedHashMap<Object, Object> createDSLProperties()
+			throws IOException {
 
 		if (this.propertiesFile == null) {
 			return new LinkedHashMap<Object, Object>();
 		}
 
 		try {
-			ConfigObject config = new ConfigSlurper().parse(propertiesFile.toURI().toURL());
+			final ConfigObject config = new ConfigSlurper().parse(propertiesFile.toURI().toURL());
 
 			return config;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new IOException("Failed to read properties file: " + propertiesFile, e);
 		}
 
@@ -300,21 +315,25 @@ public class DSLReader {
 		final String baseClassName = BaseDslScript.class.getName();
 
 		final List<String> serviceJarFiles = createJarFileListForService();
-		final CompilerConfiguration cc = createCompilerConfiguration(baseClassName, serviceJarFiles);
+		final CompilerConfiguration cc = createCompilerConfiguration(baseClassName,
+				serviceJarFiles);
 
-		final Binding binding = createGroovyBinding(properties, context, dslFile);
+		final Binding binding = createGroovyBinding(properties,
+				context,
+				dslFile);
 
-		final GroovyShell gs = new GroovyShell(ServiceReader.class.getClassLoader(), // this.getClass().getClassLoader(),
-				binding, cc);
+		final GroovyShell gs = new GroovyShell(ServiceReader.class.getClassLoader(), binding, cc);
 		return gs;
 	}
 
-	private CompilerConfiguration createCompilerConfiguration(final String baseClassName, List<String> extraJarFileNames) {
+	private CompilerConfiguration createCompilerConfiguration(final String baseClassName,
+			final List<String> extraJarFileNames) {
 		final CompilerConfiguration cc = new CompilerConfiguration();
 		final ImportCustomizer ic = new ImportCustomizer();
 
-		ic.addStarImports(org.cloudifysource.dsl.Service.class.getPackage().getName(), UserInterface.class.getPackage()
-				.getName(), org.cloudifysource.dsl.context.Service.class.getPackage().getName());
+		ic.addStarImports(org.cloudifysource.dsl.Service.class.getPackage().getName(),
+				UserInterface.class.getPackage().getName(),
+				org.cloudifysource.dsl.internal.context.ServiceImpl.class.getPackage().getName());
 
 		ic.addImports(org.cloudifysource.dsl.utils.ServiceUtils.class.getName());
 
@@ -326,26 +345,30 @@ public class DSLReader {
 		return cc;
 	}
 
-	private Binding createGroovyBinding(final LinkedHashMap<Object, Object> properties, ServiceContext context,
-			File dslFile) {
+	private Binding createGroovyBinding(final LinkedHashMap<Object, Object> properties, final ServiceContext context,
+			final File dslFile) {
 		final Binding binding = new Binding();
 
-		Set<Entry<String, Object>> bindingPropertiesEntries = this.bindingProperties.entrySet();
-		for (Entry<String, Object> entry : bindingPropertiesEntries) {
-			binding.setVariable(entry.getKey(), entry.getValue());
+		final Set<Entry<String, Object>> bindingPropertiesEntries = this.bindingProperties.entrySet();
+		for (final Entry<String, Object> entry : bindingPropertiesEntries) {
+			binding.setVariable(entry.getKey(),
+					entry.getValue());
 		}
 
 		if (properties != null) {
-			Set<Entry<Object, Object>> entries = properties.entrySet();
-			for (Entry<Object, Object> entry : entries) {
-				binding.setVariable((String) entry.getKey(), entry.getValue());
+			final Set<Entry<Object, Object>> entries = properties.entrySet();
+			for (final Entry<Object, Object> entry : entries) {
+				binding.setVariable((String) entry.getKey(),
+						entry.getValue());
 			}
 			if (context != null) {
-				binding.setVariable("context", context);
+				binding.setVariable("context",
+						context);
 			}
 		}
 
-		binding.setVariable(DSL_FILE_PATH_PROPERTY_NAME, (dslFile == null ? null : dslFile.getPath()));
+		binding.setVariable(DSL_FILE_PATH_PROPERTY_NAME,
+				dslFile == null ? null : dslFile.getPath());
 		return binding;
 	}
 
@@ -375,9 +398,9 @@ public class DSLReader {
 					+ ". This name may only be used for a directory containing service jar files");
 		}
 
-		File[] libFiles = usmLibDir.listFiles();
-		List<String> result = new ArrayList<String>(libFiles.length);
-		for (File file : libFiles) {
+		final File[] libFiles = usmLibDir.listFiles();
+		final List<String> result = new ArrayList<String>(libFiles.length);
+		for (final File file : libFiles) {
 			if (file.isFile() && file.getName().endsWith(".jar")) {
 				result.add(file.getAbsolutePath());
 			}
@@ -395,7 +418,7 @@ public class DSLReader {
 		return clusterInfo;
 	}
 
-	public void setClusterInfo(ClusterInfo clusterInfo) {
+	public void setClusterInfo(final ClusterInfo clusterInfo) {
 		this.clusterInfo = clusterInfo;
 	}
 
@@ -403,15 +426,15 @@ public class DSLReader {
 		return admin;
 	}
 
-	public void setAdmin(Admin admin) {
+	public void setAdmin(final Admin admin) {
 		this.admin = admin;
 	}
 
-	public ServiceContext getContext() {
+	public ServiceContextImpl getContext() {
 		return context;
 	}
 
-	public void setContext(ServiceContext context) {
+	public void setContext(final ServiceContextImpl context) {
 		this.context = context;
 	}
 
@@ -419,7 +442,7 @@ public class DSLReader {
 		return propertiesFileName;
 	}
 
-	public void setPropertiesFileName(String propertiesFileName) {
+	public void setPropertiesFileName(final String propertiesFileName) {
 		this.propertiesFileName = propertiesFileName;
 	}
 
@@ -427,7 +450,7 @@ public class DSLReader {
 		return isRunningInGSC;
 	}
 
-	public void setRunningInGSC(boolean isRunningInGSC) {
+	public void setRunningInGSC(final boolean isRunningInGSC) {
 		this.isRunningInGSC = isRunningInGSC;
 	}
 
@@ -435,7 +458,7 @@ public class DSLReader {
 		return dslFile;
 	}
 
-	public void setDslFile(File dslFile) {
+	public void setDslFile(final File dslFile) {
 		this.dslFile = dslFile;
 	}
 
@@ -443,7 +466,7 @@ public class DSLReader {
 		return workDir;
 	}
 
-	public void setWorkDir(File workDir) {
+	public void setWorkDir(final File workDir) {
 		this.workDir = workDir;
 	}
 
@@ -451,16 +474,17 @@ public class DSLReader {
 		return createServiceContext;
 	}
 
-	public void setCreateServiceContext(boolean createServiceContext) {
+	public void setCreateServiceContext(final boolean createServiceContext) {
 		this.createServiceContext = createServiceContext;
 	}
 
-	public void addProperty(String key, Object value) {
-		bindingProperties.put(key, value);
+	public void addProperty(final String key, final Object value) {
+		bindingProperties.put(key,
+				value);
 
 	}
 
-	public void setDslContents(String dslContents) {
+	public void setDslContents(final String dslContents) {
 		this.dslContents = dslContents;
 
 	}
@@ -469,7 +493,7 @@ public class DSLReader {
 		return dslFileNameSuffix;
 	}
 
-	public void setDslFileNameSuffix(String dslFileNameSuffix) {
+	public void setDslFileNameSuffix(final String dslFileNameSuffix) {
 		this.dslFileNameSuffix = dslFileNameSuffix;
 	}
 
@@ -477,7 +501,7 @@ public class DSLReader {
 		return loadUsmLib;
 	}
 
-	public void setLoadUsmLib(boolean loadUsmLib) {
+	public void setLoadUsmLib(final boolean loadUsmLib) {
 		this.loadUsmLib = loadUsmLib;
 	}
 

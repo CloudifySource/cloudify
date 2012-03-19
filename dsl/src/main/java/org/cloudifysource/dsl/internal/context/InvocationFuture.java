@@ -14,7 +14,7 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.cloudifysource.dsl.context;
+package org.cloudifysource.dsl.internal.context;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;

@@ -22,6 +22,7 @@ import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.internal.context.ServiceContextImpl;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
@@ -71,7 +72,7 @@ public final class ServiceContextFactory {
 			} catch (DSLException e) {
 				throw new IllegalArgumentException("Failed to read service", e);
 			}
-			ServiceContext newContext = new ServiceContext();
+			ServiceContextImpl newContext = new ServiceContextImpl();
 
 			newContext.init(service, getAdmin(), new File(".").getAbsolutePath(),
 					info);

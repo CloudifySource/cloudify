@@ -20,12 +20,15 @@ import java.util.Map;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 
-
 /*********
- * Domain POJO for a plugin descriptor.
+ * Domain POJO for a plugin descriptor. A Service plugin is a class that implements one or more of the USM event
+ * interfaces. The Plugin mechanism allows services to customize the execution of the USM using actual classes and jars,
+ * rather then relying on closures. The closure syntax works best for fairly simple and short bits of code. For more
+ * complicates scenarios, the plugin mechanism should be used.
+ * 
  * @author barakme.
  * @since 2.0.0
- *
+ * 
  */
 @CloudifyDSLEntity(name = "plugin", clazz = PluginDescriptor.class, allowInternalNode = true, allowRootNode = false,
 		parent = "service")
