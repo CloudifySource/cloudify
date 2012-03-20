@@ -240,10 +240,23 @@ namespace Microsoft.Samples.WindowsAzure.ServiceManagement.Tools
         {
             for (int retries = 0; retries < MaxRetries; retries++)
             {
-                try {
+                try
+                {
                     String status = PerformOperationOnce(channel);
                     Console.WriteLine(status);
                     break; // no need to retry
+                }
+
+                catch (TimeoutException)
+                {
+                    bool retry = (retries < MaxRetries - 1);
+                    if (!retry)
+                    {
+                        //rethrow exception
+                        throw;
+                    }
+                    // sleep before retry
+                    Thread.Sleep(1000);
                 }
                 catch (CommunicationException ce)
                 {
@@ -260,7 +273,7 @@ namespace Microsoft.Samples.WindowsAzure.ServiceManagement.Tools
                     //cannot rethrow since stream already closed.
                     else
                     {
-                        bool retry = shouldRetry(ce);
+                        bool retry = (retries < MaxRetries-1) && shouldRetry(ce);
                         if (!retry)
                         {
                             //rethrow exception
