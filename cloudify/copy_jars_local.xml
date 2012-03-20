@@ -1,16 +1,23 @@
 <?xml version="1.0"?>
 
-<!-- helper build file that copies generated cloudify files to the local cloudify install -->
-<!-- TODO - Pick up CLOUDIFY_LATEST variable instead of using hard coded value			  -->
-<!-- Author: Barak Merimovich 															  -->
+<!-- helper build file that copies generated cloudify files to the local 
+	cloudify install -->
+<!-- TODO - Pick up CLOUDIFY_LATEST variable instead of using hard coded 
+	value -->
+<!-- Author: Barak Merimovich -->
 
-<project name="copy-jars-to-cloudify" default="Copy Cloudify jars to install dir" basedir=".">
+<project name="copy-jars-to-cloudify" default="Copy Cloudify jars to install dir"
+	basedir=".">
 
 	<property name="giga.base.dir" value="D:/Gigaspaces" />
 
 	<property name="giga.version" value="gigaspaces-cloudify-2.1.0-m2" />
 
 	<property name="target.dir" value="${giga.base.dir}/${giga.version}" />
+	<property name="ec2.dir"
+		value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/ec2/upload/overrides" />
+	<property name="cloudstack.dir"
+		value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/cloudstack/upload/overrides" />
 
 
 	<target name="Copy Cloudify jars to install dir" depends="">
@@ -19,30 +26,72 @@
 		<copy todir="${target.dir}/tools/cli" file="../CLI/target/cli.jar" />
 		<copy todir="${target.dir}/tools/rest" file="../restful/target/rest.war" />
 		<copy todir="${target.dir}/lib/required" file="../dsl/target/dsl.jar" />
-		<copy todir="${target.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.0.0.jar" />		
+		<copy todir="${target.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.0.0.jar" />
 		<copy todir="${target.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
 		<copy todir="${target.dir}/tools/cli/plugins/azure" file="../azure/azure/target/azure.jar" />
-	
+
 	</target>
-	
+
+	<target name="Copy Cloudify jars to ec2 upload dir" depends="">
+		<echo message="Copying Cloudify jar files to ${ec2.dir}" />
+		<!-- <copy todir="${ec2.dir}/lib/platform/usm" file="../USM/target/usm.jar" 
+			/> -->
+		<!-- <copy todir="${ec2.dir}/tools/cli" file="../CLI/target/cli.jar" /> -->
+		<!-- <copy todir="${ec2.dir}/tools/rest" file="../restful/target/rest.war" 
+			/> -->
+		<!-- <copy todir="${ec2.dir}/lib/required" file="../dsl/target/dsl.jar" 
+			/> -->
+		<copy todir="${ec2.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.0.0.jar" />
+		<!-- <copy todir="${ec2.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" 
+			/> -->
+		<!-- <copy todir="${ec2.dir}/tools/cli/plugins/azure" file="../azure/azure/target/azure.jar" 
+			/> -->
+
+	</target>
+
+	<target name="Copy Cloudify jars to cloudstack upload dir" depends="">
+		<echo message="Copying Cloudify jar files to ${cloudstack.dir}" />
+		<!-- <copy todir="${ec2.dir}/lib/platform/usm" file="../USM/target/usm.jar" 
+			/> -->
+		<!-- <copy todir="${ec2.dir}/tools/cli" file="../CLI/target/cli.jar" /> -->
+		<!-- <copy todir="${ec2.dir}/tools/rest" file="../restful/target/rest.war" 
+			/> -->
+		<!-- <copy todir="${ec2.dir}/lib/required" file="../dsl/target/dsl.jar" 
+			/> -->
+		<copy todir="${cloudstack.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.0.0.jar" />
+		<!-- <copy todir="${ec2.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" 
+			/> -->
+		<!-- <copy todir="${ec2.dir}/tools/cli/plugins/azure" file="../azure/azure/target/azure.jar" 
+			/> -->
+
+	</target>
+
+	<target name="Delete ec2 overrides dir" depends="">
+		<delete dir="${ec2.dir}" />
+	</target>
+
+
 	<target name="Create cloudify zip" depends="">
 		<echo message="Creating zip distro of ${target.dir}" />
 		<echo message="Deleting existing zip file" />
-		<delete file="${target.dir}/../gigaspaces.zip"/>
+		<delete file="${target.dir}/../gigaspaces.zip" />
 		<echo message="Deleting temp files from distro" />
-		<delete includeemptydirs="true" quiet="true"  >		
+		<delete includeemptydirs="true" quiet="true">
 			<fileset dir="${target.dir}/work/processing-units" includes="**/*" />
-			<fileset dir="${target.dir}/deploy" excludes="templates/**/*"  />
-			<fileset dir="${target.dir}/logs" includes="**/*"  />
+			<fileset dir="${target.dir}/deploy" excludes="templates/**/*" />
+			<fileset dir="${target.dir}/logs" includes="**/*" />
 		</delete>
 		<echo message="Creating new zip file" />
-		<zip destfile="${target.dir}/../gigaspaces.zip" basedir="${target.dir}/.." includes="${giga.version}/**/*" excludes="${giga.version}/tools/cli/plugins/esc/**/*,${giga.version}/tools/cli/plugins/azure/**/*" />
+		<zip destfile="${target.dir}/../gigaspaces.zip" basedir="${target.dir}/.."
+			includes="${giga.version}/**/*"
+			excludes="${giga.version}/tools/cli/plugins/esc/**/*,${giga.version}/tools/cli/plugins/azure/**/*" />
 		<echo message="Created ${target.dir}/../gigaspaces.zip" />
 	</target>
 
 	<target name="Create overrides zip" depends="">
-		<delete file="${target.dir}/../gigaspaces-overrides.zip"/>
-		<zip destfile="${target.dir}/../gigaspaces-overrides.zip" basedir="${target.dir}" includes="indicator.txt,lib/platform/esm/esc-2.0.0.jar,tools/cli/cli.jar,tools/rest/rest.war" >
+		<delete file="${target.dir}/../gigaspaces-overrides.zip" />
+		<zip destfile="${target.dir}/../gigaspaces-overrides.zip" basedir="${target.dir}"
+			includes="indicator.txt,lib/platform/esm/esc-2.0.0.jar,tools/cli/cli.jar,tools/rest/rest.war">
 
 		</zip>
 	</target>
