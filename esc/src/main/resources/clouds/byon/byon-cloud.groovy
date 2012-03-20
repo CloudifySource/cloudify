@@ -6,8 +6,8 @@ cloud {
 		managementMachineTemplate "SMALL_LINUX_32"
 		connectToPrivateIp true
 		bootstrapManagementOnPublicIp false
-		remoteUsername "test"
-		remotePassword "test"
+		remoteUsername "ENTER_CLOUD_USER"
+		remotePassword "ENTER_CLOUD_PASSWORD"
 	}
 
 	provider {
@@ -47,8 +47,8 @@ cloud {
 					custom ([
 						"nodesList" : ([
 										([
-											"idPrefix" : "byon-pc-lab",
-											"CIDR" : "192.168.9.60/31"
+											"id" : "byon-pc-lab",
+											"ip" : "0.0.0.0"
 										])
 						])
 					])
