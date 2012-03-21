@@ -75,9 +75,6 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 				public Object call() throws Exception {
 					logger.info("Creating BYON context deployer for cloud: " + cloud.getName());
 					List<Map<String, String>> nodesList = null;
-					// final List<Map<String, String>> nodesList = (List<Map<String, String>>)
-					// cloud.getCustom().get(
-					// CLOUD_NODES_LIST);
 					final Map<String, Object> customSettings = cloud.getTemplates()
 							.get(cloud.getConfiguration().getManagementMachineTemplate()).getCustom();
 					if (customSettings != null) {
@@ -141,8 +138,6 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			// catch any exception - to prevent a cloud machine leaking.
 			logger.log(Level.SEVERE, "Cloud server could not be started on " + machineDetails.getIp()
 					+ ", SSH connection failed.", e);
-			// TODO ? The node should be freed or invalidated ?
-			deployer.shutdownServer(node);
 			deployer.invalidateServer(node);
 			throw new CloudProvisioningException(e);
 		}
