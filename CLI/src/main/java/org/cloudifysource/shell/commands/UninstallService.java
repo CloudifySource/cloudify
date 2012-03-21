@@ -19,18 +19,16 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import org.apache.commons.lang.StringUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.CompleterValues;
 import org.apache.felix.gogo.commands.Option;
 import org.apache.karaf.util.Properties.PropertiesReader;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.shell.ConditionLatch;
-import org.cloudifysource.shell.ConditionLatch.Predicate;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.rest.RestAdminFacade;
 
@@ -76,8 +74,8 @@ public class UninstallService extends AdminAwareCommand {
 	}
 
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is"
-			+ " done. Defaults to 5 minutes.")
-	private int timeoutInMinutes = 5;
+		+ " done. Defaults to 5 minutes.")
+		private int timeoutInMinutes = 5;
 
 	/**
 	 * {@inheritDoc}
@@ -90,60 +88,20 @@ public class UninstallService extends AdminAwareCommand {
 		}
 
 		final Set<String> containerIdsOfService = ((RestAdminFacade) adminFacade)
-				.getGridServiceContainerUidsForService(getCurrentApplicationName(), serviceName);
+		.getGridServiceContainerUidsForService(getCurrentApplicationName(), serviceName);
 		if (verbose) {
 			logger.info("Found containers: " + containerIdsOfService);
 		}
-		if (timeoutInMinutes > 0) {
-			printStatusMessage(containerIdsOfService.size(), containerIdsOfService.size(), containerIdsOfService);
-		}
-		adminFacade.undeploy(getCurrentApplicationName(), serviceName);
-		if (timeoutInMinutes > 0) {
-			createConditionLatch(timeoutInMinutes, TimeUnit.MINUTES).waitFor(new Predicate() {
-				/**
-				 * {@inheritDoc}
-				 */
-				@Override
-				public boolean isDone() throws CLIException {
-					final Set<String> allContainerIds = ((RestAdminFacade) adminFacade).getGridServiceContainerUids();
-					final Set<String> remainingContainersForService = new HashSet<String>(containerIdsOfService);
-					remainingContainersForService.retainAll(allContainerIds);
 
-					final boolean isDone = remainingContainersForService.isEmpty();
-
-					if (!isDone) {
-						printStatusMessage(remainingContainersForService.size(), containerIdsOfService.size(),
-								remainingContainersForService);
-					}
-					// TODO: container has already been removed by uninstall.
-					// adminFacade.printEventLogs(getCurrentApplicationName(), serviceName);
-					return isDone;
-				}
-			});
+		Map<String, String> undeployServiceResponse = adminFacade.undeploy(getCurrentApplicationName(), serviceName, timeoutInMinutes);
+		if (undeployServiceResponse.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)){
+			String pollingID = undeployServiceResponse.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
+			((RestAdminFacade)this.adminFacade).waitForLifecycleEvents(pollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
+		} else {
+			logger.info("Failed to retrieve lifecycle logs from rest. " +
+			"Check logs for more details.");
 		}
 		return getFormattedMessage("undeployed_successfully", serviceName);
-	}
-
-	/**
-	 * Logs a status message, if not identical to the last message written to the log.
-	 * 
-	 * @param remainingServiceContainers
-	 *            The number of service containers still running
-	 * @param allServiceContainers
-	 *            Total number of service container
-	 * @param remainingContainerIDs
-	 *            The IDs of the service containers that are still running
-	 */
-	private void printStatusMessage(final int remainingServiceContainers, final int allServiceContainers,
-			final Set<String> remainingContainerIDs) {
-		final String message = "Waiting for all service instances to uninstall. " + "Currently "
-				+ remainingServiceContainers + " instances of " + allServiceContainers + " are still running.";
-
-		if (!StringUtils.equals(message, lastMessage)) {
-			logger.info(message + (verbose ? " " + remainingContainerIDs : ""));
-			this.lastMessage = message;
-		}
-
 	}
 
 	/**
@@ -184,7 +142,7 @@ public class UninstallService extends AdminAwareCommand {
 	 */
 	private ConditionLatch createConditionLatch(final long timeout, final TimeUnit timeunit) {
 		return new ConditionLatch().timeout(timeout, timeunit).pollingInterval(UNINSTALL_POOLING_INTERVAL, TimeUnit.SECONDS)
-				.timeoutErrorMessage(TIMEOUT_ERROR_MESSAGE).verbose(verbose);
+		.timeoutErrorMessage(TIMEOUT_ERROR_MESSAGE).verbose(verbose);
 	}
 
 }

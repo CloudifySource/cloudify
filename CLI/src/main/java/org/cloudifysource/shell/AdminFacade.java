@@ -187,10 +187,11 @@ public interface AdminFacade {
 	 *            The name of the application the service is currently deployed in
 	 * @param serviceName
 	 *            The name of the service to undeploy
+	 * @return 
 	 * @throws CLIException
 	 *             Reporting a failure to undeploy the service
 	 */
-	void undeploy(final String applicationName, final String serviceName) throws CLIException;
+	Map<String, String> undeploy(final String applicationName, final String serviceName, int timeoutInMinutes) throws CLIException;
 
 	/**
 	 * Returns a Map of deployed instances (name-object) of the given services in the given application.
@@ -265,10 +266,11 @@ public interface AdminFacade {
 	 * 
 	 * @param applicationName
 	 *            The name of the application to uninstall
+	 * @return 
 	 * @throws CLIException
 	 *             Reporting a failure to uninstall the application
 	 */
-	void uninstallApplication(String applicationName) throws CLIException;
+	Map<String, String> uninstallApplication(String applicationName, int timeoutInMinutes) throws CLIException;
 
 	/**
 	 * This method waits for the specified number of planned instances to be installed. In case of a datagrid

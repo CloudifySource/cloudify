@@ -76,6 +76,7 @@ public class RestLifecycleEventsLatch {
 			private int cursor = 0;
 			private boolean isDone = false;
 			private boolean timedOutOnServer = false;
+			private boolean exceptionOnServer = false;
 			private String url;
 			private Map<String, Object> lifecycleEventLogs = null;
 
@@ -93,6 +94,8 @@ public class RestLifecycleEventsLatch {
 				cursor = (Integer) lifecycleEventLogs.get(CloudifyConstants.CURSOR_POS);
 				isDone = (Boolean) lifecycleEventLogs.get(CloudifyConstants.IS_TASK_DONE);
 				timedOutOnServer = (Boolean) lifecycleEventLogs.get(CloudifyConstants.POLLING_TIMEOUT_EXCEPTION);
+				exceptionOnServer = (Boolean) lifecycleEventLogs.get(CloudifyConstants.POLLING_EXCEPTION);
+				
 
 				if (events == null) {
 					displayer.printNoChange();
@@ -103,6 +106,11 @@ public class RestLifecycleEventsLatch {
 				if (isDone) {
 					if (timedOutOnServer) { 
 				           return false;
+					}
+					if (exceptionOnServer) {
+						displayer.printEvent("Event polling failed on remote server." 
+								+ "For more information regarding the installation, please refer to logs");
+						return false;
 					}
 					displayer.eraseCurrentLine();
 				}

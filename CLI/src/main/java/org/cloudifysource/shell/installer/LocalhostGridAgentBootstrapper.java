@@ -47,6 +47,7 @@ import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
+import org.cloudifysource.shell.rest.RestAdminFacade;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.AdminFactory;
@@ -467,8 +468,10 @@ public class LocalhostGridAgentBootstrapper {
 					+ " Continuing teardown-localcloud.";
 			if (verbose) {
 				logger.log(Level.FINE, errorMessage, e);
+				publishEvent(errorMessage + System.getProperty("line.separator") + e.toString());
 			} else {
 				logger.log(Level.FINE, errorMessage);
+				publishEvent(errorMessage);
 			}
 			// Suppress exception. continue with teardown.
 			return;
@@ -477,11 +480,23 @@ public class LocalhostGridAgentBootstrapper {
 		if (applicationsExist && !force) {
 			throw new CLIStatusException("apps_deployed_before_teardown_localcloud", applicationsList.toString());
 		}
-
+		String uninstallMessage = ShellUtils.getMessageBundle().getString("uninstalling_applications_before_teardown");
+		publishEvent(uninstallMessage);
 		for (final String appName : applicationsList) {
 			try {
 				if (!appName.equals(MANAGEMENT_APPLICATION)) {
-					adminFacade.uninstallApplication(appName);
+					logger.fine("Uninstalling application " + appName);
+					Map<String, String> uninstallApplicationResponse = adminFacade.uninstallApplication(appName
+							, (int) timeout);
+					if (uninstallApplicationResponse.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
+						String pollingID = uninstallApplicationResponse
+						.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
+						((RestAdminFacade) this.adminFacade)
+						.waitForLifecycleEvents(pollingID, (int) timeout, TIMEOUT_ERROR_MESSAGE);
+					} else {
+						publishEvent("Failed to retrieve lifecycle logs from rest. " 
+						+ "Check logs for more details.");
+					}
 				}
 			} catch (final CLIException e) {
 				final String errorMessage = "Application " + appName + " faild to uninstall."
@@ -508,7 +523,6 @@ public class LocalhostGridAgentBootstrapper {
 			throws InterruptedException, TimeoutException, CLIException {
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
 
-			boolean messagePublished = false;
 			@Override
 			public boolean isDone() throws CLIException, InterruptedException {
 				final List<String> applications = adminFacade.getApplicationsList();
@@ -520,16 +534,8 @@ public class LocalhostGridAgentBootstrapper {
 						break;
 					}
 				}
-
-				if (!done) {
-					if (!messagePublished){
-						publishEvent("Waiting for all applications to uninstall");
-						messagePublished = true;
-					}else{
-						publishEvent(null);
-					}
-					logger.fine("Waiting for all applications to uninstall");
-				}
+				publishEvent(null);
+				logger.fine("Waiting for all applications to uninstall");
 
 				return done;
 			}
@@ -593,8 +599,9 @@ public class LocalhostGridAgentBootstrapper {
 
 			if (agent == null) {
 				logger.fine("Agent not running on local machine");
-				if (verbose){
-					publishEvent("Agent not running on local machine");
+				if (verbose) {
+					String agentNotFoundMessage = ShellUtils.getMessageBundle().getString("agent_not_found_on_teardown_command");
+					publishEvent(agentNotFoundMessage);
 				}
 				throw new CLIStatusException("teardown_failed_agent_not_found");
 			} else {
@@ -695,7 +702,14 @@ public class LocalhostGridAgentBootstrapper {
 			@Override
 			public boolean isDone() throws CLIException, InterruptedException {
 				if (!messagePublished){
-					publishEvent("Waiting for agent to shutdown");
+					String shuttingDownAgentMessage = ShellUtils.getMessageBundle()
+					.getString("shutting_down_cloudify_agent_teardown_localcloud");
+					publishEvent(shuttingDownAgentMessage);
+					
+					String shuttingDownManagmentMessage = ShellUtils.getMessageBundle()
+					.getString("shutting_down_cloudify_managment");
+					publishEvent(shuttingDownManagmentMessage);
+					
 					messagePublished = true;
 				}
 				logger.fine("Waiting for agent to shutdown");

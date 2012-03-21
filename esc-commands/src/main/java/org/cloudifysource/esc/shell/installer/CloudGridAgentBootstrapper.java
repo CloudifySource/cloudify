@@ -274,7 +274,7 @@ public class CloudGridAgentBootstrapper {
 			InterruptedException, TimeoutException {
 		for (String application : adminFacade.getApplicationsList()) {
 			if (!application.equals(MANAGEMENT_APPLICATION)) {
-				adminFacade.uninstallApplication(application);
+				adminFacade.uninstallApplication(application, (int)end);
 			}
 		}
 

@@ -416,9 +416,10 @@ public class GSRestClient {
 	 *            service named "cassandra" from the list of all services on the default application.
 	 * @throws ErrorStatusException
 	 *             Reporting errors of all types (IO, HTTP, rest etc.)
+	 * @return Return object.
 	 */
-	public final void delete(final String relativeUrl) throws ErrorStatusException {
-		delete(relativeUrl, null);
+	public final Object delete(final String relativeUrl) throws ErrorStatusException {
+		return delete(relativeUrl, null);
 	}
 
 	/**
@@ -433,15 +434,18 @@ public class GSRestClient {
 	 *            parameters set on the HttpDelete object
 	 * @throws ErrorStatusException
 	 *             Reporting errors of all types (IO, HTTP, rest etc.)
+	 * @return Return object.            
+	 *           
 	 */
-	public final void delete(final String relativeUrl, final Map<String, String> params) throws ErrorStatusException {
+	public final Object delete(final String relativeUrl, final Map<String, String> params) throws ErrorStatusException {
 		final HttpDelete httpdelete = new HttpDelete(getFullUrl(relativeUrl));
 		if (params != null) {
 			for (final Map.Entry<String, String> entry : params.entrySet()) {
 				httpdelete.getParams().setParameter(entry.getKey(), entry.getValue());
 			}
 		}
-		executeHttpMethod(httpdelete);
+		Object executeHttpMethod = executeHttpMethod(httpdelete);
+		return executeHttpMethod;
 	}
 
 	/**

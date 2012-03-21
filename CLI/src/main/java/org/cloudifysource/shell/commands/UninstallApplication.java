@@ -19,9 +19,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.gogo.commands.Argument;
@@ -29,8 +28,7 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.CompleterValues;
 import org.apache.felix.gogo.commands.Option;
 import org.apache.karaf.util.Properties.PropertiesReader;
-import org.cloudifysource.shell.ConditionLatch;
-import org.cloudifysource.shell.ConditionLatch.Predicate;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
 import org.cloudifysource.shell.rest.RestAdminFacade;
@@ -77,8 +75,8 @@ public class UninstallApplication extends AdminAwareCommand {
 	}
 
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is"
-			+ " done. Defaults to 5 minutes.")
-	private int timeoutInMinutes = 5;
+		+ " done. Defaults to 5 minutes.")
+		private int timeoutInMinutes = 5;
 
 	/**
 	 * {@inheritDoc}
@@ -93,42 +91,23 @@ public class UninstallApplication extends AdminAwareCommand {
 		// we need to look at all containers since the application already undeployed and we cannot get only
 		// the application containers
 		final Set<String> containerIdsOfApplication = ((RestAdminFacade) adminFacade)
-				.getGridServiceContainerUidsForApplication(applicationName);
+		.getGridServiceContainerUidsForApplication(applicationName);
 		if (verbose) {
 			logger.info("Containers running PUs of application " + applicationName + ":" + containerIdsOfApplication);
 		}
 
-		if (timeoutInMinutes > 0) {
-			printStatusMessage(containerIdsOfApplication.size(), containerIdsOfApplication.size(),
-					containerIdsOfApplication);
+		Map<String, String> uninstallApplicationResponse = this.adminFacade
+		.uninstallApplication(this.applicationName, timeoutInMinutes);
+
+		if (uninstallApplicationResponse.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
+			String pollingID = uninstallApplicationResponse.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
+			((RestAdminFacade) this.adminFacade)
+			.waitForLifecycleEvents(pollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
+		} else {
+			logger.info("Failed to retrieve lifecycle logs from rest. " 
+			+ "Check logs for more details.");
 		}
-		this.adminFacade.uninstallApplication(this.applicationName);
 
-		if (timeoutInMinutes > 0) {
-			createConditionLatch(timeoutInMinutes, TimeUnit.MINUTES).waitFor(new Predicate() {
-
-				/**
-				 * {@inheritDoc}
-				 */
-				@Override
-				public boolean isDone() throws CLIException {
-
-					final Set<String> allContainerIds = ((RestAdminFacade) adminFacade).getGridServiceContainerUids();
-					final Set<String> remainingContainersForApplication = new HashSet<String>(
-							containerIdsOfApplication);
-					remainingContainersForApplication.retainAll(allContainerIds);
-					final boolean isDone = remainingContainersForApplication.isEmpty();
-					if (!isDone) {
-						printStatusMessage(remainingContainersForApplication.size(), containerIdsOfApplication.size(),
-								remainingContainersForApplication);
-					}
-					// TODO: container has already been removed by un-install.
-					// printAllServiceEvents();
-					return isDone;
-				}
-
-			});
-		}
 		session.put(Constants.ACTIVE_APP, "default");
 		GigaShellMain.getInstance().setCurrentApplicationName("default");
 		return getFormattedMessage("application_uninstalled_succesfully", this.applicationName);
@@ -147,7 +126,7 @@ public class UninstallApplication extends AdminAwareCommand {
 	private void printStatusMessage(final int remainingApplicationContainers, final int allApplicationContainers,
 			final Set<String> remainingContainerIDs) {
 		final String message = "Waiting for all service instances to uninstall. " + "Currently "
-				+ remainingApplicationContainers + " instances of " + allApplicationContainers + " are still running.";
+		+ remainingApplicationContainers + " instances of " + allApplicationContainers + " are still running.";
 
 		if (!StringUtils.equals(message, lastMessage)) {
 			logger.info(message + (verbose ? " " + remainingContainerIDs : ""));
@@ -180,27 +159,4 @@ public class UninstallApplication extends AdminAwareCommand {
 		// Shell is running in nonInteractive mode. we skip the question.
 		return true;
 	}
-
-	// private void printAllServiceEvents() throws CLIException {
-	// List<String> serviceNames = adminFacade.getServicesList(applicationName);
-	// for (String serviceName : serviceNames) {
-	// adminFacade.printEventLogs(applicationName, serviceName);
-	// }
-	// }
-
-	/**
-	 * Creates a condition latch object with the specified timeout. If the condition times out, a
-	 * {@link TimeoutException} is thrown.
-	 * 
-	 * @param timeout
-	 *            number of timeunits to wait
-	 * @param timeunit
-	 *            type of timeunits to wait
-	 * @return Configured condition latch
-	 */
-	private ConditionLatch createConditionLatch(final long timeout, final TimeUnit timeunit) {
-		return new ConditionLatch().timeout(timeout, timeunit).pollingInterval(UNINSTALL_POOLING_INTERVAL, TimeUnit.SECONDS)
-				.timeoutErrorMessage(TIMEOUT_ERROR_MESSAGE).verbose(verbose);
-	}
-
 }

@@ -88,7 +88,7 @@ public class TeardownLocalCloud extends AbstractGSCommand {
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 
 		installer.teardownLocalCloudOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);
-		return getFormattedMessage("agent_terminated_successfully");
+		return getFormattedMessage("teardown_localcloud_terminated_successfully");
 	}
 	
 	private boolean askUninstallConfirmationQuestion() throws IOException {

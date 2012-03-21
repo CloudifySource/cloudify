@@ -480,11 +480,12 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void undeploy(final String applicationName, final String serviceName) throws CLIException {
+	public Map<String, String> undeploy(final String applicationName, final String serviceName, int timeoutInMinutes) throws CLIException {
 		try {
-			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName
-					+ "/undeploy";
-			client.delete(url);
+			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName + "/timeout/" + timeoutInMinutes
+					+ "/undeploy"  ;
+			Map<String, String> response = (Map<String, String>) client.delete(url);
+			return response;
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
@@ -669,10 +670,11 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void uninstallApplication(final String applicationName) throws CLIException {
+	public Map<String, String> uninstallApplication(final String applicationName, int timeoutInMinutes) throws CLIException {
 		try {
-			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName;
-			client.delete(url);
+			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/timeout/" + timeoutInMinutes; 
+			Map<String, String> response = (Map<String, String>) client.delete(url);
+			return response;
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
