@@ -65,24 +65,23 @@ public class EventLoggingTailer {
 				outputMessage = getMessageFromMap(sortedMap);
 				outputList.add(outputMessage);
 			}
-
 		}
 		return outputList;
 	}
-
+	
 	/**
 	 * Creates a formatted message based on a given map of details.
 	 * 
-	 * @param map a map of details
-	 * @return formatted message
+	 * @param lifecycleEventMap a map of details
+	 * @return formatted lifecycle event message
 	 */
-	private String getMessageFromMap(final Map<String, Object> map) {
-		// TODO:Check nulls
-		String cleanEventText = (map.get(EventLogConstants.getEventTextKey()))
+	private String getMessageFromMap(final Map<String, Object> lifecycleEventMap) {
+		//TODO: add null check.
+		String cleanEventText = (lifecycleEventMap.get(EventLogConstants.getEventTextKey()))
 				.toString().split(" - ")[1];
 		String outputMessage = '['
-				+ map.get(EventLogConstants.getMachineHostNameKey()).toString()
-				+ '/' + map.get(EventLogConstants.getMachineHostAddressKey())
+				+ lifecycleEventMap.get(EventLogConstants.getMachineHostNameKey()).toString()
+				+ '/' + lifecycleEventMap.get(EventLogConstants.getMachineHostAddressKey())
 				+ "] " + cleanEventText;
 		return outputMessage;
 	}
