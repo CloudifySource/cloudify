@@ -1,18 +1,20 @@
-/*******************************************************************************
- * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+/*
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *******************************************************************************/
+ */
 
 package org.cloudifysource.esc.util;
 
@@ -63,19 +65,19 @@ public class SSHExec extends SSHBase {
 
     private String outputProperty = null;   // like <exec>
     private File outputFile = null;   // like <exec>
-    private String inputProperty = null;   // like <exec>
+    private String inputProperty = null;
+    private String inputString = null;   // like <exec>
     private File inputFile = null;   // like <exec>
     private boolean append = false;   // like <exec>
+    private boolean usePty = false;
 
     private Resource commandResource = null;
 
+    // Cloudify Modification
     private OutputStream outputStream = KeepAliveOutputStream.wrapSystemOut();
     
     private static final String TIMEOUT_MESSAGE =
         "Timeout period exceeded, connection dropped.";
-    
-	private static final java.util.logging.Logger logger = java.util.logging.Logger
-	.getLogger(SSHExec.class.getName());
 
     /**
      * Constructor for SSHExecTask.
@@ -122,6 +124,7 @@ public class SSHExec extends SSHBase {
         outputFile = output;
     }
 
+    // Cloudify Modification
     /**
      * If used, passed output through this stream instead of System.out
      * 
@@ -135,6 +138,8 @@ public class SSHExec extends SSHBase {
      * If used, the content of the file is piped to the remote command
      *
      * @param input  The file which provides the input data for the remote command
+     *
+     * @since Ant 1.8.0
      */
     public void setInput(File input) {
         inputFile = input;
@@ -143,10 +148,24 @@ public class SSHExec extends SSHBase {
     /**
      * If used, the content of the property is piped to the remote command
      *
-     * @param inputProperty  The property which contains the input data for the remote command.
+     * @param inputProperty The property which contains the input data
+     * for the remote command.
+     *
+     * @since Ant 1.8.0
      */
     public void setInputProperty(String inputProperty) {
     	this.inputProperty = inputProperty;
+    }
+
+    /**
+     * If used, the string is piped to the remote command.
+     *
+     * @param inputString the input data for the remote command.
+     *
+     * @since Ant 1.8.3
+     */
+    public void setInputString(String inputString) {
+    	this.inputString = inputString;
     }
 
     /**
@@ -171,12 +190,19 @@ public class SSHExec extends SSHBase {
     }
 
     /**
+     * Whether a pseudo-tty should be allocated.
+     * @since Apache Ant 1.8.3
+     */
+    public void setUsePty(boolean b) {
+        usePty = b;
+    }
+
+    /**
      * Execute the command on the remote host.
      *
      * @exception BuildException  Most likely a network error or bad parameter.
      */
-    @Override
-	public void execute() throws BuildException {
+    public void execute() throws BuildException {
         if (getHost() == null) {
             throw new BuildException("Host is required.");
         }
@@ -191,9 +217,13 @@ public class SSHExec extends SSHBase {
             throw new BuildException("Command or commandResource is required.");
         }
 
-        if (inputFile != null && inputProperty != null) {
-            throw new BuildException("You can't specify both inputFile and"
-                                     + " inputProperty.");
+        int numberOfInputs = (inputFile != null ? 1 : 0)
+            + (inputProperty != null ? 1 : 0)
+            + (inputString != null ? 1 : 0);
+        if (numberOfInputs > 1) {
+            throw new BuildException("You can't specify more than one of"
+                                     + " inputFile, inputProperty and"
+                                     + " inputString.");
         }
         if (inputFile != null && !inputFile.exists()) {
             throw new BuildException("The input file "
@@ -207,7 +237,7 @@ public class SSHExec extends SSHBase {
             session = openSession();
             /* called once */
             if (command != null) {
-                logger.fine("cmd : " + command + " " + Project.MSG_INFO);
+                log("cmd : " + command, Project.MSG_INFO);
                 executeCommand(session, command, output);
             } else { // read command resource and execute for each command
                 try {
@@ -215,10 +245,10 @@ public class SSHExec extends SSHBase {
                             new InputStreamReader(commandResource.getInputStream()));
                     String cmd;
                     while ((cmd = br.readLine()) != null) {
-                    	logger.fine("cmd : " + cmd + " " + Project.MSG_INFO);
+                        log("cmd : " + cmd, Project.MSG_INFO);
                         output.append(cmd).append(" : ");
                         executeCommand(session, cmd, output);
-                        output.append('\n');
+                        output.append("\n");
                     }
                     FileUtils.close(br);
                 } catch (IOException e) {
@@ -249,8 +279,11 @@ public class SSHExec extends SSHBase {
     private void executeCommand(Session session, String cmd, StringBuffer sb)
         throws BuildException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        TeeOutputStream tee = new TeeOutputStream(out, outputStream);
-        
+        // Cloudify Modification
+        TeeOutputStream tee =
+            new TeeOutputStream(out,
+                                outputStream);
+
         InputStream istream = null ;
         if (inputFile != null) {
             try {
@@ -269,6 +302,9 @@ public class SSHExec extends SSHBase {
                 istream = new ByteArrayInputStream(inputData.getBytes()) ;
             }        	
         }
+        if (inputString != null) {
+            istream = new ByteArrayInputStream(inputString.getBytes());
+        }
 
         try {
             final ChannelExec channel;
@@ -281,12 +317,12 @@ public class SSHExec extends SSHBase {
             if (istream != null) {
                 channel.setInputStream(istream);
             }
+            channel.setPty(usePty);
             channel.connect();
             // wait for it to finish
             thread =
                 new Thread() {
-                    @Override
-					public void run() {
+                    public void run() {
                         while (!channel.isClosed()) {
                             if (thread == null) {
                                 return;

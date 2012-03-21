@@ -456,6 +456,7 @@ public class AgentlessInstaller {
 		task.setTimeout(unit.toMillis(timeout));
 		task.setFailonerror(true);
 		task.setOutputStream(loggerOutputStream);
+		task.setUsePty(true);
 
 		if (keyFile != null) {
 			task.setKeyfile(keyFile);
