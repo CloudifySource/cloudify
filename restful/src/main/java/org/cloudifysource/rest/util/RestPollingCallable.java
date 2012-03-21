@@ -21,17 +21,15 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.cloudifysource.dsl.Application;
-import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.EventLogConstants;
 import org.cloudifysource.dsl.utils.ServiceUtils;
@@ -42,7 +40,6 @@ import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
 import org.openspaces.admin.pu.ProcessingUnitType;
 import org.openspaces.admin.zone.Zone;
-
 import com.gigaspaces.log.LogEntries;
 import com.gigaspaces.log.LogEntry;
 import com.gigaspaces.log.LogEntryMatcher;
@@ -52,13 +49,15 @@ import com.gigaspaces.log.LogEntryMatcher;
  * for lifecycle and instance count changes events.
  * the events will be saved in a dedicated LifecycleEventsContainer that 
  * will be sampled by the client.
+ * 
+ * Initialize the callable with service names their planned number of instances. 
  *   
  * @author adaml
  *
  */
 public class RestPollingCallable implements Callable<Boolean> {
 
-    private static final int UNINSTALL_POLLING_INTERVAL = 1000;
+    private static final int UNINSTALL_POLLING_INTERVAL = 2000;
 
     private Admin admin;
 
@@ -89,29 +88,6 @@ public class RestPollingCallable implements Callable<Boolean> {
     private boolean isServiceInstall;
 
     /**
-     * Create a rest polling runnable to poll for a specific application's installation
-     *  
-     *  Use this constructor if polling a single service installation.
-     *  
-     * @param application the application to deploy.
-     * @param timeout polling timeout.
-     * @param timeunit polling timeout timeunit.
-     */
-    public RestPollingCallable(final Application application,
-            final long timeout, final TimeUnit timeunit) {
-        
-        this.isServiceInstall  = false;
-        this.serviceNames = new LinkedHashMap<String, Integer>();
-        this.applicationName = application.getName();
-        for (Service service : application.getServices()) {
-            this.serviceNames.put(service.getName(), service.getNumInstances());
-        }
-
-        this.endTime = System.currentTimeMillis() + timeunit.toMillis(timeout);
-        this.pollingInterval = DEFAULT_POLLING_INTERVAL;
-    }
-
-    /**
      * Create a rest polling runnable to poll for a specific service's installation
      * lifecycle events with the application name set to the "default" application name. 
      * 
@@ -123,26 +99,76 @@ public class RestPollingCallable implements Callable<Boolean> {
      * @param plannedNumberOfInstances the planned number of instances.
      * @param timeunit polling timeout timeunit.
      */
-    public RestPollingCallable(final String serviceName, final String applicationName, final int plannedNumberOfInstances,
+    public RestPollingCallable(final String applicationName,
             final long timeout, final TimeUnit timeunit) {
 
-        this.isServiceInstall  = true;
         this.serviceNames = new LinkedHashMap<String, Integer>();
-        this.serviceNames.put(serviceName, plannedNumberOfInstances);
         this.applicationName = applicationName;
         this.pollingInterval = DEFAULT_POLLING_INTERVAL;
         this.endTime = System.currentTimeMillis() + timeunit.toMillis(timeout);
     }
 
+    /**
+     * sets the admin.
+     * @param admin admin instance.
+     */
+    public void setAdmin(final Admin admin) {
+        this.admin = admin;
+    }
+
+    /**
+     * sets the current lifecycleEventsContainer to be updated 
+     * by the callable task.
+     * @param lifecycleEventsContainer ref to a lifecycleEventsContainer.
+     */
+    public void setLifecycleEventsContainer(
+            final LifecycleEventsContainer lifecycleEventsContainer) {
+        this.lifecycleEventsContainer = lifecycleEventsContainer;
+    }
+
+    /**
+     * Sets the polling interval for the GSCs log files. 
+     * It is recommended to decrease when polling an uninstall command
+     * as the GSCs might shut down logging will not be done in time.
+     * 
+     * DEFAULT_POLLING_INTERVAL = 4000 ms.
+     * 
+     * @param pollingInterval Polling interval
+     */
+    public void setPollingInterval(final int pollingInterval) {
+        this.pollingInterval = pollingInterval;
+    }
+
+    /**
+     * Add a service to the polling callable. the service will be sampled 
+     * until it reaches it's planned number of instances or until a timeout
+     * exception is thrown.
+     * @param serviceName The absoulute pu name.
+     * @param plannedNumberOfInstances planned number of instances.
+     */
+    public void addService(final String serviceName, final int plannedNumberOfInstances) {
+        this.serviceNames.put(serviceName, plannedNumberOfInstances);
+    }
+
+    /**
+     * sets the services to poll and their planned number of instances.
+     * @param isServiceInstall true if installation is for a single service.
+     */
+    public void setIsServiceInstall(final boolean isServiceInstall) {
+        this.isServiceInstall = isServiceInstall;
+    }
+
     @Override
     public Boolean call() throws Exception {
-        logger.info("Starting poll for lifecycle events on services: " + this.serviceNames.toString());
+        logger.log(Level.INFO, 
+                "Starting poll for lifecycle events on services: " + this.serviceNames.toString());
         waitForServiceInstanceAndLifecycleEvents();
-        logger.info("Polling for lifecycle events ended successfully");
+        logger.log(Level.INFO, 
+                "Polling for lifecycle events ended successfully");
         return true;
 
     }
-    
+
     /**
      * goes over all available GSC's and scans their logs for new lifecycle events.
      * In each iteration it will updated the lifecycle event container sheared resource.
@@ -151,75 +177,125 @@ public class RestPollingCallable implements Callable<Boolean> {
      * @throws TimeoutException 
      */
     private void waitForServiceInstanceAndLifecycleEvents() throws InterruptedException, TimeoutException {
-        
-        List<Map<String, String>> servicesLifecycleEventDetailes;
+
         while (System.currentTimeMillis() < this.endTime) {
-            servicesLifecycleEventDetailes = new ArrayList<Map<String, String>>();
-            Iterator<Map.Entry<String, Integer>> entryIterator = serviceNames.entrySet().iterator();
-            while (entryIterator.hasNext()) {
-                Map.Entry<String, Integer> entry = entryIterator.next();
-                String serviceName = entry.getKey();
-                final String absolutePuName = ServiceUtils.getAbsolutePUName(
-                        this.applicationName, serviceName);
-                final Zone zone = admin.getZones().getByName(absolutePuName);
-                if (zone == null) {
-                    logger.finer("Zone " + absolutePuName + " does not exist");
-                    continue;
-                }
-                int plannedNumberOfInstances = getPlannedNumberOfInstances(serviceName);
-                //TODO: this is not very efficient. Maybe possible to move the LogEntryMatcher
-                //as field add to init to call .
-                final String regex = MessageFormat.format(USM_EVENT_LOGGER_NAME,
-                        absolutePuName);
-                final LogEntryMatcher matcher = regex(regex);
-                int numberOfServiceInstances = 0;
-                for (final GridServiceContainer container : zone
-                        .getGridServiceContainers()) {
-                    final LogEntries logEntries = container.logEntries(matcher);
-                    //Get lifecycle events.
-                    for (final LogEntry logEntry : logEntries) {
-                        if (logEntry.isLog()) {
-                            final Date fiveMinutesAgoGscTime = new Date(
-                                    new Date().getTime()
-                                    + container.getOperatingSystem()
-                                    .getTimeDelta()
-                                    - FIVE_MINUTES_MILLISECONDS);
-                            if (fiveMinutesAgoGscTime.before(new Date(logEntry
-                                    .getTimestamp()))) {
-                                final Map<String, String> serviceEventsMap = getEventDetailes(
-                                        logEntry, container, absolutePuName);
-                                servicesLifecycleEventDetailes.add(serviceEventsMap);
-                            }
-                        }
-                    }
-                    this.lifecycleEventsContainer.addLifecycleEvents(servicesLifecycleEventDetailes);
-                    numberOfServiceInstances = getNumberOfServiceInstances(absolutePuName);
-                    if (numberOfServiceInstances == 0) {
-                        this.lifecycleEventsContainer.addInstanceCountEvent("Deploying " + serviceName + " with " 
-                                + plannedNumberOfInstances + " planned instances.");
-                    }else{
-                        this.lifecycleEventsContainer.addInstanceCountEvent("[" 
-                                + ServiceUtils.getApplicationServiceName(absolutePuName, this.applicationName) 
-                            + "] " + "Deployed "
-                            + numberOfServiceInstances
-                            + " of "
-                            + plannedNumberOfInstances);
-                    }
-                }
-                if (plannedNumberOfInstances ==  numberOfServiceInstances) {
-                    if (!isServiceInstall) {
-                        this.lifecycleEventsContainer.addInstanceCountEvent("Service \"" + serviceName 
-                                + "\" successfully installed (" + numberOfServiceInstances + " Instances)");
-                    }
-                    entryIterator.remove();
-                }
-                if (serviceNames.isEmpty()) {
-                    return;
-                }
+
+            pollForLogs();
+            
+            if (this.serviceNames.isEmpty()) {
+                logger.log(Level.INFO, 
+                "Polling for lifecycle events has ended successfully.");
+                return;
             }
-            Thread.sleep(pollingInterval);
+            
+            logger.log(Level.FINE, "Sleeping for: " + pollingInterval);
+            Thread.sleep(pollingInterval);   
         }
         throw new TimeoutException();
+    }
+
+    /**
+     * Goes over each service defined prior to the callable execution 
+     * and polls it for lifecycle and instance count events.
+     */
+    private void pollForLogs() {
+
+        LinkedHashMap<String, Integer> serviceNamesClone = new LinkedHashMap<String, Integer>();
+        serviceNamesClone.putAll(this.serviceNames);
+
+        for (Map.Entry<String, Integer> entry : serviceNamesClone.entrySet()) {
+
+            addServiceLifecycleLogs(entry);
+
+            addServiceInstanceCountEvents(entry);
+        }
+    }
+
+    private void addServiceLifecycleLogs(Entry<String, Integer> entry) {
+        List<Map<String, String>> servicesLifecycleEventDetailes;
+        servicesLifecycleEventDetailes = new ArrayList<Map<String, String>>();
+        String serviceName = entry.getKey();
+        final String absolutePuName = ServiceUtils.getAbsolutePUName(
+                this.applicationName, serviceName);
+        logger.log(Level.FINE, 
+                "Polling for lifecycle events on service: " + absolutePuName);
+        final Zone zone = admin.getZones().getByName(absolutePuName);
+        if (zone == null) {
+            logger.log(Level.FINE, "Zone " + absolutePuName + " does not exist");
+            if (isUninstall) {
+                logger.log(Level.INFO, "Polling for service " + absolutePuName + " has ended");
+                this.serviceNames.remove(serviceName);
+            }
+            return;
+        }
+        //TODO: this is not very efficient. Maybe possible to move the LogEntryMatcher
+        //as field add to init to call .
+        final String regex = MessageFormat.format(USM_EVENT_LOGGER_NAME,
+                absolutePuName);
+        final LogEntryMatcher matcher = regex(regex);
+        for (final GridServiceContainer container : zone
+                .getGridServiceContainers()) {
+            logger.log(Level.FINE, 
+                    "Polling GSC with uid: " + container.getUid());
+            final LogEntries logEntries = container.logEntries(matcher);
+            //Get lifecycle events.
+            for (final LogEntry logEntry : logEntries) {
+                if (logEntry.isLog()) {
+                    final Date fiveMinutesAgoGscTime = new Date(
+                            new Date().getTime()
+                            + container.getOperatingSystem()
+                            .getTimeDelta()
+                            - FIVE_MINUTES_MILLISECONDS);
+                    if (fiveMinutesAgoGscTime.before(new Date(logEntry
+                            .getTimestamp()))) {
+                        final Map<String, String> serviceEventsMap = getEventDetailes(
+                                logEntry, container, absolutePuName);
+                        servicesLifecycleEventDetailes.add(serviceEventsMap);
+                    }
+                }
+            }
+            this.lifecycleEventsContainer.addLifecycleEvents(servicesLifecycleEventDetailes);
+        }
+
+    }
+
+    private void addServiceInstanceCountEvents(Entry<String, Integer> entry) {
+
+        String serviceName = entry.getKey();
+        String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+        int plannedNumberOfInstances = getPlannedNumberOfInstances(serviceName);
+        int numberOfServiceInstances = getNumberOfServiceInstances(absolutePuName);
+        if (numberOfServiceInstances == 0) {
+            if (isUninstall) {
+                this.lifecycleEventsContainer.addInstanceCountEvent(
+                        "Undeployed service " + serviceName + ".");
+            } else {
+                this.lifecycleEventsContainer.addInstanceCountEvent("Deploying " + serviceName + " with " 
+                        + plannedNumberOfInstances + " planned instances.");
+            }
+        } else {
+            this.lifecycleEventsContainer.addInstanceCountEvent("[" 
+                    + serviceName 
+                    + "] " + "Deployed "
+                    + numberOfServiceInstances
+                    + " planned "
+                    + plannedNumberOfInstances);
+        }
+
+        if (plannedNumberOfInstances ==  numberOfServiceInstances) {
+            if (!isServiceInstall) {
+                if (!isUninstall) {
+                    this.lifecycleEventsContainer.addInstanceCountEvent("Service \"" + serviceName 
+                            + "\" successfully installed (" + numberOfServiceInstances + " Instances)");
+                    this.serviceNames.remove(serviceName);
+                } else {
+                    this.lifecycleEventsContainer.addInstanceCountEvent("Service \"" + serviceName 
+                            + "\" uninstalled successfully");
+                }
+            } else {
+                this.serviceNames.remove(serviceName);
+            }
+        }
     }
 
     /**
@@ -233,6 +309,9 @@ public class RestPollingCallable implements Callable<Boolean> {
      * @return planned number of service instances
      */
     private int getPlannedNumberOfInstances(final String serviceName) {
+        if (isUninstall) {
+            return 0;
+        }
         String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
         ProcessingUnit processingUnit = admin.getProcessingUnits().getProcessingUnit(absolutePuName);
         if (processingUnit != null) {
@@ -244,7 +323,12 @@ public class RestPollingCallable implements Callable<Boolean> {
                 }
             }
         }
-        return serviceNames.get(serviceName);
+
+        if (serviceName.contains(serviceName)) {
+            return serviceNames.get(serviceName);
+        }
+        throw new IllegalStateException("Service planned number of instances is undefined");
+
     }
 
     /**
@@ -266,7 +350,7 @@ public class RestPollingCallable implements Callable<Boolean> {
             }
 
             return admin.getProcessingUnits()
-                .getProcessingUnit(absolutePuName).getInstances().length;
+            .getProcessingUnit(absolutePuName).getInstances().length;
         }
         return 0;
     }
@@ -274,11 +358,11 @@ public class RestPollingCallable implements Callable<Boolean> {
     // returns the number of RUNNING processing unit instances.
     private int getNumberOfUSMServicesWithRunningState(
             final String absolutePUName) {
-        
+
         int puiInstanceCounter = 0;
         ProcessingUnit processingUnit = admin.getProcessingUnits()
         .getProcessingUnit(absolutePUName);
-        
+
         for (ProcessingUnitInstance pui : processingUnit) {
             // TODO: get the instanceState step
             int instanceState = (Integer) pui.getStatistics().getMonitors()
@@ -291,7 +375,7 @@ public class RestPollingCallable implements Callable<Boolean> {
         }
         return puiInstanceCounter;
     }
-    
+
     /**
      * tells the polling task to expect uninstall or install of service.
      * the default value is set to false.
@@ -299,8 +383,10 @@ public class RestPollingCallable implements Callable<Boolean> {
      */
     public void setIsUninstall(final boolean isUninstall) {
         this.isUninstall = isUninstall; 
-        //GSCs will disappear quickly. decrement polling interval
-        this.pollingInterval = UNINSTALL_POLLING_INTERVAL;
+        if (isUninstall) {
+            //GSCs will disappear quickly. decrement polling interval
+            this.pollingInterval = UNINSTALL_POLLING_INTERVAL;
+        }
     }
 
     /**
@@ -336,30 +422,4 @@ public class RestPollingCallable implements Callable<Boolean> {
         return returnMap;
     }
 
-    public void setAdmin(final Admin admin) {
-        this.admin = admin;
-    }
-
-    /**
-     * sets the current lifecycleEventsContainer to be updated 
-     * by the callable task.
-     * @param lifecycleEventsContainer ref to a lifecycleEventsContainer.
-     */
-    public void setLifecycleEventsContainer(
-            final LifecycleEventsContainer lifecycleEventsContainer) {
-        this.lifecycleEventsContainer = lifecycleEventsContainer;
-    }
-
-    /**
-     * Sets the polling interval for the GSCs log files. 
-     * It is recommended to decrease when polling an uninstall command
-     * as the GSCs might shut down logging will not be done in time.
-     * 
-     * DEFAULT_POLLING_INTERVAL = 2000 ms.
-     * 
-     * @param pollingInterval Polling interval
-     */
-    public void setPollingInterval(final int pollingInterval) {
-        this.pollingInterval = pollingInterval;
-    }
 }

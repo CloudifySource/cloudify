@@ -40,7 +40,9 @@ public class LifecycleEventsContainer {
     /**
      * A set containing all of the executed lifecycle events. used to avoid duplicate prints.
      */
-    private Set<String> eventsSet;
+    private Set<String> lifecycleEventsSet;
+    
+    private Set<String> serviceInstanceCountEventsSet;
 
     private UUID containerUUID;
 
@@ -53,13 +55,13 @@ public class LifecycleEventsContainer {
      * LifecycleEventsContainer constructor.
      */
     public LifecycleEventsContainer() {
-        this.eventsSet = new HashSet<String>();
+        this.serviceInstanceCountEventsSet = new HashSet<String>();
         this.eventsList = new ArrayList<String>();
     }
 
     public synchronized List<String> getLifecycleEvents(int curser){
         if (curser >= this.eventsList.size()  
-                || curser < 0){
+                || curser < 0) {
             return null;
         }
         return eventsList.subList(curser, eventsList.size());
@@ -80,14 +82,14 @@ public class LifecycleEventsContainer {
         String outputMessage;
         for (Map<String, String> map : allLifecycleEvents) {
             Map<String, Object> sortedMap = new TreeMap<String, Object>(map);
-            if (this.eventsSet.contains(sortedMap.toString())) {
+            if (this.lifecycleEventsSet.contains(sortedMap.toString())) {
             	if (logger.isLoggable(Level.FINEST)) {
             		outputMessage = getParsedLifecyceEventMessageFromMap(sortedMap);
             		logger.finest("Ignoring Lifecycle Event: " + outputMessage);
                 }
             }
             else {
-                this.eventsSet.add(sortedMap.toString());
+                this.lifecycleEventsSet.add(sortedMap.toString());
                 outputMessage = getParsedLifecyceEventMessageFromMap(sortedMap);
                 this.eventsList.add(outputMessage);
                 if (logger.isLoggable(Level.FINE)) {
@@ -104,13 +106,13 @@ public class LifecycleEventsContainer {
      * @param event event to add
      */
     public final synchronized void addInstanceCountEvent(String event) {
-        if (this.eventsSet.contains(event)){
+        if (this.serviceInstanceCountEventsSet.contains(event)){
         	if (logger.isLoggable(Level.FINEST)) {
         		logger.finest("Ignoring Instance Count Event: " + event);
             }
         }
         else {
-            this.eventsSet.add(event);
+            this.serviceInstanceCountEventsSet.add(event);
             this.eventsList.add(event);
         	if (logger.isLoggable(Level.FINE)) {
         		logger.fine("Instance Count Event: " + event);
@@ -150,5 +152,9 @@ public class LifecycleEventsContainer {
 
     public Future<Boolean> getFutureTask() {
         return this.futureTask;
+    }
+    
+    public void setEventsSet(Set<String> eventsSet){
+        this.lifecycleEventsSet = eventsSet;
     }
 }

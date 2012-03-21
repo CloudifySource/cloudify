@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -151,6 +152,11 @@ public class ServiceController {
 	private static final String USM_EVENT_LOGGER_NAME = ".*.USMEventLogger.{0}\\].*";
     private final Map<UUID, LifecycleEventsContainer> lifecyclePollingContainer = 
         new ConcurrentHashMap<UUID, LifecycleEventsContainer>();
+    /**
+     * A set containing all of the executed lifecycle events. used to avoid duplicate prints.
+     */
+    private Set<String> eventsSet = new HashSet<String>();
+    
 	@Autowired(required = true)
 	private Admin admin;
 	@GigaSpaceContext(name = "gigaSpace")
@@ -236,7 +242,7 @@ public class ServiceController {
 		return cloudConfiguration;
 
 	}
-
+	
 	// Set up a small thread pool with daemon threads.
 	private final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE,
 			new ThreadFactory() {
@@ -624,21 +630,45 @@ public class ServiceController {
 	 *            The service name.
 	 * @return success status if service was undeployed successfully, else returns failure status.
 	 */
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/undeploy", 
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeoutInMinutes}/undeploy", 
 			method = RequestMethod.DELETE)
 	public @ResponseBody
-	Map<String, Object> undeploy(@PathVariable final String applicationName, @PathVariable final String serviceName) {
+	Map<String, Object> undeploy(@PathVariable final String applicationName, @PathVariable final String serviceName, @PathVariable final int timeoutInMinutes) {
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		final ProcessingUnit processingUnit = admin.getProcessingUnits().waitFor(absolutePuName,
 				PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
 		if (processingUnit == null) {
 			return unavailableServiceError(absolutePuName);
 		}
+		UUID lifecycleEventContainerID = startPollingForServiceUninstallLifecycleEvents(applicationName, serviceName, timeoutInMinutes);
 		processingUnit.undeploy();
-		return successStatus();
+        Map<String, Object> returnMap = new HashMap<String, Object>();
+        returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, lifecycleEventContainerID);
+		return successStatus(returnMap);
 	}
 
-	/**
+	private UUID startPollingForServiceUninstallLifecycleEvents(
+            String applicationName, String serviceName, int timeoutInMinutes) {
+	       RestPollingCallable restPollingCallable;
+	        LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
+	        UUID lifecycleEventsContainerID = UUID.randomUUID();
+	        this.lifecyclePollingContainer.put(lifecycleEventsContainerID, lifecycleEventsContainer);
+	        lifecycleEventsContainer.setEventsSet(this.eventsSet);
+	        
+	        restPollingCallable = new RestPollingCallable(applicationName, timeoutInMinutes, TimeUnit.MINUTES);
+	        restPollingCallable.addService(serviceName, 0);
+	        restPollingCallable.setIsServiceInstall(false);
+	        restPollingCallable.setAdmin(admin);
+	        restPollingCallable.setLifecycleEventsContainer(lifecycleEventsContainer);
+	        restPollingCallable.setIsUninstall(true);
+	        
+	        Future<Boolean> future = executorService.submit(restPollingCallable);
+	        lifecycleEventsContainer.setFutureTask(future);
+
+	        return lifecycleEventsContainerID;
+    }
+
+    /**
 	 * 
 	 * Increments the Processing unit instance number of the specified service.
 	 * 
@@ -762,9 +792,9 @@ public class ServiceController {
 	 *            The application name.
 	 * @return Map with return value; @ .
 	 */
-	@RequestMapping(value = "applications/{applicationName}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "applications/{applicationName}/timeout/{timeoutInMinutes}", method = RequestMethod.DELETE)
 	public @ResponseBody
-	Map<String, Object> uninstallApplication(@PathVariable final String applicationName) {
+	Map<String, Object> uninstallApplication(@PathVariable final String applicationName, @PathVariable final int timeoutInMinutes) {
 
 		// Check that Application exists
 		final Application app = this.admin.getApplications().waitFor(applicationName, 10, TimeUnit.SECONDS);
@@ -777,6 +807,8 @@ public class ServiceController {
 
 		final StringBuilder sb = new StringBuilder();
 		final List<ProcessingUnit> uninstallOrder = createUninstallOrder(pus, applicationName);
+		//TODO: Add timeout. 
+		UUID lifecycleEventContainerID = startPollingForApplicationUninstallLifecycleEvents(applicationName, uninstallOrder, timeoutInMinutes);
 		if (uninstallOrder.size() > 0) {
 
 			((InternalAdmin) admin).scheduleAdminOperation(new Runnable() {
@@ -809,12 +841,14 @@ public class ServiceController {
 
 		final String errors = sb.toString();
 		if (errors.length() == 0) {
-			return RestUtils.successStatus();
+		    Map<String, Object> returnMap = new HashMap<String, Object>();
+		    returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, lifecycleEventContainerID);
+			return RestUtils.successStatus(returnMap);
 		}
 		return RestUtils.errorStatus(errors);
 	}
 
-	private List<ProcessingUnit> createUninstallOrder(final ProcessingUnit[] pus, final String applicationName) {
+    private List<ProcessingUnit> createUninstallOrder(final ProcessingUnit[] pus, final String applicationName) {
 
 		// TODO: Refactor this - merge with createServiceOrder, as methods are
 		// very similar
@@ -975,17 +1009,51 @@ public class ServiceController {
 		return orderedList;
 
 	}
-
-    //TODO: Start executer service
-    private UUID startPollingForLifecycleEvents(String serviceName, String applicationName,int plannedNumberOfInstances, int timeout,
-            TimeUnit minutes){
+	
+    private UUID startPollingForApplicationUninstallLifecycleEvents(
+            String applicationName, List<ProcessingUnit> uninstallOrder, int timeoutInMinutes) {
+        
         RestPollingCallable restPollingCallable;
-        restPollingCallable = new RestPollingCallable(serviceName, applicationName, plannedNumberOfInstances, timeout, minutes);
         LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
         UUID lifecycleEventsContainerID = UUID.randomUUID();
         this.lifecyclePollingContainer.put(lifecycleEventsContainerID, lifecycleEventsContainer);
-        restPollingCallable.setLifecycleEventsContainer(lifecycleEventsContainer);
+        lifecycleEventsContainer.setEventsSet(this.eventsSet);
+        
+        restPollingCallable = new RestPollingCallable(applicationName, timeoutInMinutes, TimeUnit.MINUTES);
+        for (ProcessingUnit processingUnit : uninstallOrder) {
+            String processingUnitName = processingUnit.getName();
+            String serviceName = ServiceUtils.getApplicationServiceName(processingUnitName, applicationName);
+            restPollingCallable.addService(serviceName, 0);
+        }
+        restPollingCallable.setIsServiceInstall(false);
         restPollingCallable.setAdmin(admin);
+        restPollingCallable.setLifecycleEventsContainer(lifecycleEventsContainer);
+        restPollingCallable.setIsUninstall(true);
+        
+        Future<Boolean> future = executorService.submit(restPollingCallable);
+        lifecycleEventsContainer.setFutureTask(future);
+
+        return lifecycleEventsContainerID;
+        
+    }
+    
+    //TODO: Start executer service
+    private UUID startPollingForLifecycleEvents(final String serviceName,
+            final String applicationName, final int plannedNumberOfInstances, final int timeout,
+            final TimeUnit minutes) {
+        RestPollingCallable restPollingCallable;
+        logger.info("starting POLL on service : " + serviceName + " app: " + applicationName);
+        
+        LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
+        UUID lifecycleEventsContainerID = UUID.randomUUID();
+        this.lifecyclePollingContainer.put(lifecycleEventsContainerID, lifecycleEventsContainer);
+        lifecycleEventsContainer.setEventsSet(this.eventsSet);
+        
+        restPollingCallable = new RestPollingCallable(applicationName, timeout, minutes);
+        restPollingCallable.addService(serviceName, plannedNumberOfInstances);
+        restPollingCallable.setAdmin(admin);
+        restPollingCallable.setIsServiceInstall(true);
+        restPollingCallable.setLifecycleEventsContainer(lifecycleEventsContainer);
 
         Future<Boolean> future = executorService.submit(restPollingCallable);
         lifecycleEventsContainer.setFutureTask(future);
@@ -994,15 +1062,21 @@ public class ServiceController {
     }
 
     //TODO: Start executer service
-    private UUID StartPollingForLifecycleEvents(org.cloudifysource.dsl.Application application, int timeout,
-            TimeUnit timeUnit) {
+    private UUID StartPollingForLifecycleEvents(final org.cloudifysource.dsl.Application application,
+            final int timeout,
+            final TimeUnit timeUnit) {
+        
         LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
         UUID lifecycleEventsContainerUUID = UUID.randomUUID();
         lifecycleEventsContainer.setUUID(lifecycleEventsContainerUUID);
-
         this.lifecyclePollingContainer.put(lifecycleEventsContainerUUID, lifecycleEventsContainer);
-        RestPollingCallable restPollingCallable = new RestPollingCallable(application, timeout, timeUnit);
-        restPollingCallable.setIsUninstall(false);
+        lifecycleEventsContainer.setEventsSet(this.eventsSet);
+        
+        RestPollingCallable restPollingCallable = new RestPollingCallable(application.getName(), timeout, timeUnit);
+        for (Service service : application.getServices()) {
+            restPollingCallable.addService(service.getName(), service.getNumInstances());
+        }
+        restPollingCallable.setIsServiceInstall(false);
         restPollingCallable.setLifecycleEventsContainer(lifecycleEventsContainer);
         restPollingCallable.setAdmin(admin);
 
@@ -1016,34 +1090,39 @@ public class ServiceController {
     @RequestMapping(value = "/lifecycleEventContainerID/{lifecycleEventContainerID}/cursor/{cursor}" 
         , method = RequestMethod.GET)
         public @ResponseBody
-        Object getLifecycleEvents(@PathVariable final String lifecycleEventContainerID, @PathVariable int cursor) {
+        Object getLifecycleEvents(@PathVariable final String lifecycleEventContainerID,
+                @PathVariable final int cursor) {
         Map<String, Object> resultsMap = new HashMap<String, Object>();
         resultsMap.put(CloudifyConstants.POLLING_TIMEOUT_EXCEPTION, false);
+        resultsMap.put(CloudifyConstants.POLLING_EXCEPTION, false);
         if (!lifecyclePollingContainer.containsKey(UUID.fromString(lifecycleEventContainerID))){
             return errorStatus("Lifecycle events container with UUID: " + lifecycleEventContainerID +
                     " does not exist or expired.");
         }
         LifecycleEventsContainer container = lifecyclePollingContainer.get(UUID.fromString(lifecycleEventContainerID));
         Future<Boolean> futureTask = container.getFutureTask();
-        if (futureTask.isDone()){
+        if (futureTask.isDone()) {
             try {
                 futureTask.get(POLLING_TASK_TIMEOUT, TimeUnit.SECONDS);
                 
-            }catch (ExecutionException e) {
-                if (e.getCause() instanceof TimeoutException){
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof TimeoutException) {
                     logger.log(Level.INFO, "Lifecycle events polling task timed out.", e.getCause());
                     resultsMap.put(CloudifyConstants.POLLING_TIMEOUT_EXCEPTION, true);
-                }else{
-                    logger.log(Level.INFO,"an exception occurred during the" +
-                            " lifecycle events polling task.", e);
+                } else {
+                    //Notify client about the remote exception.
+                    logger.log(Level.INFO, "an exception occurred during the" 
+                            + " lifecycle events polling task.", e);
+                    resultsMap.put(CloudifyConstants.POLLING_EXCEPTION, true);
                 }
             } catch (InterruptedException e) {
                 //retrieve 
-                logger.log(Level.INFO,"Could not retrieve polling task result", e);
+                logger.log(Level.INFO, "Could not retrieve polling task result", e);
                 
             } catch (TimeoutException e) {
                 logger.log(Level.INFO,"Could not retrieve polling task result", e);
                 resultsMap.put(CloudifyConstants.POLLING_TIMEOUT_EXCEPTION, false);
+                resultsMap.put(CloudifyConstants.POLLING_EXCEPTION, false);
             }
         }
         List<String> lifecycleEvents = container.getLifecycleEvents(cursor);
