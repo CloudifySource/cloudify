@@ -344,6 +344,14 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 
 			USMUtils.shutdownAdmin();
 		}
+		//Sleep for 10 seconds to allow rest to poll for shutdown lifecycle events
+		//form the GSC logs before GSC is destroyed.
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e) {
+			logger.log(Level.INFO, 
+					"Failed to stall GSC shutdown. Some lifecycle logs may not have been recorded.", e);
+		}
 		logger.info("USM shut down completed!");
 	}
 
