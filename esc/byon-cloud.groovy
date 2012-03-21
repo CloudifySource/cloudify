@@ -3,11 +3,11 @@ cloud {
 	name = "byon"
 	configuration {
 		className "org.cloudifysource.esc.driver.provisioning.byon.ByonProvisioningDriver"
-		managementMachineTemplate "SMALL_LINUX_32"
+		managementMachineTemplate "SMALL_LINUX"
 		connectToPrivateIp true
 		bootstrapManagementOnPublicIp false
-		remoteUsername "test"
-		remotePassword "test"
+		remoteUsername "ENTER_CLOUD_USER"
+		remotePassword "ENTER_CLOUD_PASSWORD"
 	}
 
 	provider {
@@ -29,17 +29,12 @@ cloud {
 	}
 	
 	user {
-		user "test"
-		apiKey "test"
 		keyFile ""
 	}
 	
 	templates ([
-				SMALL_LINUX_32 : template{
-					imageId "us-east-1/ami-76f0061f"
+				SMALL_LINUX : template{
 					machineMemoryMB 1600
-					hardwareId "m1.small"
-					locationId "us-east-1"
 					options ([
 						"securityGroups" : ["default"] as String[],
 						"keyPair" : "cloud-demo"
@@ -48,7 +43,7 @@ cloud {
 						"nodesList" : ([
 										([
 											"id" : "byon-pc-lab",
-											"ip" : "127.0.0.1"
+											"ip" : "0.0.0.0"
 										])
 						])
 					])
