@@ -28,7 +28,6 @@ import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
-import org.cloudifysource.shell.rest.RestAdminFacade;
 import org.fusesource.jansi.Ansi.Color;
 
 /**
@@ -97,7 +96,7 @@ public class InstallApplication extends AdminAwareCommand {
 		logger.info("Uploading application " + applicationName);
 		Map<String, String> result = adminFacade.installApplication(zipFile, applicationName, timeoutInMinutes);
 		String serviceOrder = result.get(CloudifyConstants.SERVICE_ORDER);
-		String pollingID = result.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
+
 		// If temp file was created, Delete it.
 		if (!applicationFile.isFile()) {
 			zipFile.delete();
@@ -108,7 +107,13 @@ public class InstallApplication extends AdminAwareCommand {
 		}
 		
 		printApplicationInfo(application);
-		((RestAdminFacade)adminFacade).waitForLifecycleEvents(pollingID,timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
+		if (result.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)){
+			String pollingID = result.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
+			this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
+		} else {
+			throw new CLIException("Failed to retrieve lifecycle logs from rest. " +
+			"Check logs for more details.");
+		}
 
 		session.put(Constants.ACTIVE_APP, applicationName);
 		GigaShellMain.getInstance().setCurrentApplicationName(applicationName);

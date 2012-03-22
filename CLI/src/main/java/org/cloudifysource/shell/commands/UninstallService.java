@@ -96,9 +96,9 @@ public class UninstallService extends AdminAwareCommand {
 		Map<String, String> undeployServiceResponse = adminFacade.undeploy(getCurrentApplicationName(), serviceName, timeoutInMinutes);
 		if (undeployServiceResponse.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)){
 			String pollingID = undeployServiceResponse.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
-			((RestAdminFacade)this.adminFacade).waitForLifecycleEvents(pollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
+			this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
 		} else {
-			logger.info("Failed to retrieve lifecycle logs from rest. " +
+			throw new CLIException("Failed to retrieve lifecycle logs from rest. " +
 			"Check logs for more details.");
 		}
 		return getFormattedMessage("undeployed_successfully", serviceName);

@@ -28,7 +28,6 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
-import org.cloudifysource.shell.rest.RestAdminFacade;
 import org.fusesource.jansi.Ansi.Color;
 
 /**
@@ -136,7 +135,12 @@ public class InstallService extends AdminAwareCommand {
 		}
 		String lifecycleEventContainerPollingID = adminFacade.installElastic(packedFile, currentApplicationName, serviceName, zone, props, templateName, timeoutInMinutes);
 
-		((RestAdminFacade)adminFacade).waitForLifecycleEvents(lifecycleEventContainerPollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
+		if (lifecycleEventContainerPollingID != null){
+			this.adminFacade.waitForLifecycleEvents(lifecycleEventContainerPollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
+		} else {
+			throw new CLIException("Failed to retrieve lifecycle logs from rest. " +
+			"Check logs for more details.");
+		}
 
 		// if a zip file was created, delete it at the end of use.
 		if (serviceFile.isDirectory()) {

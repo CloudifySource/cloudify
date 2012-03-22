@@ -101,10 +101,9 @@ public class UninstallApplication extends AdminAwareCommand {
 
 		if (uninstallApplicationResponse.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
 			String pollingID = uninstallApplicationResponse.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
-			((RestAdminFacade) this.adminFacade)
-			.waitForLifecycleEvents(pollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
+			this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
 		} else {
-			logger.info("Failed to retrieve lifecycle logs from rest. " 
+			throw new CLIException("Failed to retrieve lifecycle logs from rest. " 
 			+ "Check logs for more details.");
 		}
 
