@@ -31,9 +31,10 @@ import org.cloudifysource.shell.installer.CLIEventsDisplayer;
 /**
  * The RestLifecycleEventsLatch will poll the rest for installation lifecycle events 
  * and print the new events to the CLI console. 
- * The polling latch will stop polling the rest for two reasons:
- * 				1. The timeout period expired.
- * 				2. Installation on the remote rest gateway ended.
+ * The polling latch will stop polling the rest for three reasons:
+ * 				* The timeout period expired.
+ * 				* Installation on the remote rest gateway ended.
+ * 				* An exception was thrown in the polling thread on remote server
  * 
  * @author adaml
  *
@@ -108,9 +109,8 @@ public class RestLifecycleEventsLatch {
 				           return false;
 					}
 					if (exceptionOnServer) {
-						displayer.printEvent("Event polling failed on remote server." 
-								+ "For more information regarding the installation, please refer to logs");
-						return false;
+							throw new CLIException("Event polling failed on remote server." 
+									+ "For more information regarding the installation, please refer to full logs");
 					}
 					displayer.eraseCurrentLine();
 				}
