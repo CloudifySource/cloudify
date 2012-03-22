@@ -550,7 +550,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		return result;
 	}
 	
-	public void waitForLifecycleEvents(final String pollingID, int timeout, String timeoutMessage) throws CLIException, InterruptedException, TimeoutException {
+	public void waitForLifecycleEvents(final String pollingID, int timeout, String timeoutMessage) 
+			throws CLIException, InterruptedException, TimeoutException {
 		
 		RestLifecycleEventsLatch restLifecycleEventsLatch = new RestLifecycleEventsLatch();
 		restLifecycleEventsLatch.setTimeoutMessage(timeoutMessage);
@@ -787,12 +788,13 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	}
 
 	@Override
-	public void setInstances(final String applicationName, final String serviceName, final int count)
+	public Map<String, String> setInstances(final String applicationName, final String serviceName, final int count, int timeout)
 			throws CLIException {
 		try {
-			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName
+			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName  + "/timeout/" + timeout
 					+ "/set-instances?count=" + count;
-			client.post(url);
+			Map<String, String> response = (Map<String, String>) client.post(url);
+			return response;
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		} catch (final RestException e) {

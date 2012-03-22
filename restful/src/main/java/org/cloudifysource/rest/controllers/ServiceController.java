@@ -665,6 +665,7 @@ public class ServiceController {
 	        Future<Boolean> future = executorService.submit(restPollingCallable);
 	        lifecycleEventsContainer.setFutureTask(future);
 
+	        logger.log(Level.INFO, "polling container UUID is " + lifecycleEventsContainerID.toString());
 	        return lifecycleEventsContainerID;
     }
 
@@ -1033,13 +1034,14 @@ public class ServiceController {
         Future<Boolean> future = executorService.submit(restPollingCallable);
         lifecycleEventsContainer.setFutureTask(future);
 
+        logger.log(Level.INFO, "polling container UUID is " + lifecycleEventsContainerID.toString());
         return lifecycleEventsContainerID;
         
     }
     
     //TODO: Start executer service
     private UUID startPollingForLifecycleEvents(final String serviceName,
-            final String applicationName, final int plannedNumberOfInstances, final int timeout,
+            final String applicationName, final int plannedNumberOfInstances, boolean isServiceInstall, final int timeout,
             final TimeUnit minutes) {
         RestPollingCallable restPollingCallable;
         logger.info("starting POLL on service : " + serviceName + " app: " + applicationName);
@@ -1052,17 +1054,18 @@ public class ServiceController {
         restPollingCallable = new RestPollingCallable(applicationName, timeout, minutes);
         restPollingCallable.addService(serviceName, plannedNumberOfInstances);
         restPollingCallable.setAdmin(admin);
-        restPollingCallable.setIsServiceInstall(true);
+        restPollingCallable.setIsServiceInstall(isServiceInstall);
         restPollingCallable.setLifecycleEventsContainer(lifecycleEventsContainer);
 
         Future<Boolean> future = executorService.submit(restPollingCallable);
         lifecycleEventsContainer.setFutureTask(future);
 
+        logger.log(Level.INFO, "polling container UUID is " + lifecycleEventsContainerID.toString());
         return lifecycleEventsContainerID;
     }
 
     //TODO: Start executer service
-    private UUID StartPollingForLifecycleEvents(final org.cloudifysource.dsl.Application application,
+    private UUID startPollingForLifecycleEvents(final org.cloudifysource.dsl.Application application,
             final int timeout,
             final TimeUnit timeUnit) {
         
@@ -1083,6 +1086,7 @@ public class ServiceController {
         Future<Boolean> future = executorService.submit(restPollingCallable);
         lifecycleEventsContainer.setFutureTask(future);
 
+        logger.log(Level.INFO, "polling container UUID is " + lifecycleEventsContainer.toString());
         return lifecycleEventsContainerUUID;
     }
     
@@ -1145,7 +1149,7 @@ public class ServiceController {
         final DSLApplicationCompilatioResult result = ServiceReader.getApplicationFromFile(applicationFile);
         final List<Service> services = createServiceDependencyOrder(result.getApplication());
 
-        UUID lifecycleEventContainerID = StartPollingForLifecycleEvents(result.getApplication(), timeout, TimeUnit.MINUTES);
+        UUID lifecycleEventContainerID = startPollingForLifecycleEvents(result.getApplication(), timeout, TimeUnit.MINUTES);
 
         final ApplicationInstallerRunnable installer = new ApplicationInstallerRunnable(this, result, applicationName,
                 services, this.cloud);
@@ -1414,9 +1418,9 @@ public class ServiceController {
 		if (!isApplicationInstall){
 		    if (service == null){
 		        lifecycleEventContainerID = startPollingForLifecycleEvents(ServiceUtils.getApplicationServiceName(serviceName, applicationName), applicationName, 
-		                1, timeout, timeUnit).toString();
+		                1, true, timeout, timeUnit).toString();
 		    }else{
-		        lifecycleEventContainerID = startPollingForLifecycleEvents(service.getName(), applicationName ,service.getNumInstances(), timeout, timeUnit).toString();
+		        lifecycleEventContainerID = startPollingForLifecycleEvents(service.getName(), applicationName ,service.getNumInstances(), true, timeout, timeUnit).toString();
 		    }
 		}
 		return lifecycleEventContainerID;
@@ -1796,11 +1800,12 @@ public class ServiceController {
 		}
 	}
 	
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/set-instances", method = RequestMethod.POST)
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeout}/set-instances", method = RequestMethod.POST)
 	public @ResponseBody
-	Map<String, Object> setServiceInstances(@PathVariable final String applicationName, @PathVariable final String serviceName,
+	Map<String, Object> setServiceInstances(@PathVariable final String applicationName, @PathVariable final String serviceName, @PathVariable final int timeout,
 			@RequestParam(value = "count", required = true) final int count){
 
+	    Map<String, Object> returnMap = new HashMap<String, Object>();
 		final String puName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		ProcessingUnit pu = admin.getProcessingUnits().getProcessingUnit(puName);
 		if(pu == null) {
@@ -1817,9 +1822,10 @@ public class ServiceController {
 		
 		logger.info("Scaling " + puName + " to " + count + " instances");
 		
+		UUID eventContainerID;
 		if (cloud == null) {
 			if (isLocalCloud()) {
-				// Manual scale by number of instances
+				// Manual scale by number of instances			    
 				pu.scale(new ManualCapacityScaleConfigurer().memoryCapacity(512 * count, MemoryUnit.MEGABYTES).create());
 			} else {
 				// Eager scale (1 container per machine per PU)
@@ -1829,10 +1835,12 @@ public class ServiceController {
 			
 			final CloudTemplate template = getComputeTemplate(cloud, templateName);
 			final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
-			
 			pu.scale(new ManualCapacityScaleConfigurer().memoryCapacity((int) (cloudExternalProcessMemoryInMB * count), MemoryUnit.MEGABYTES).atMostOneContainerPerMachine().create());
 		}		
 		
-        return successStatus();
+        eventContainerID = startPollingForLifecycleEvents(serviceName, applicationName, count, false, timeout, TimeUnit.MINUTES);
+        returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, eventContainerID);
+        
+        return successStatus(returnMap);
 	}
 }

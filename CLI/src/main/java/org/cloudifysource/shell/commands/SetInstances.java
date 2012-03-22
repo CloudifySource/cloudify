@@ -15,7 +15,7 @@
  *******************************************************************************/
 package org.cloudifysource.shell.commands;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
@@ -35,6 +35,8 @@ public class SetInstances extends AdminAwareCommand {
 
 	@Option(required = false, name = "-timeout", description = "number of seconds to wait for instances. Default to 60")
 	protected int timeout = DEFAULT_TIMEOUT_SECONDS;
+	
+	private static final String TIMEOUT_ERROR_MESSAGE = "Set-Instances timed out";
 
 	// THIS DOES NOT WORK
 	// The Karaf @CompleterValues annotation only works on statis lists - the method is only invoked once, on loading of
@@ -71,12 +73,16 @@ public class SetInstances extends AdminAwareCommand {
 			return getFormattedMessage("num_instanes_already_met", count);
 		}
 
-		adminFacade.setInstances(applicationName, serviceName, count);
-		// adminFacade.waitForServiceInstances(serviceName, applicationName, count, initialNumberOfInstances,
-		// "Required number of instances was not met", 1, TimeUnit.MINUTES);
-		adminFacade.waitForInstancesNumberOnRunningService(serviceName, applicationName, count,
-				initialNumberOfInstances, "Required number of instances was not met", timeout, TimeUnit.SECONDS);
+		Map<String, String> response = adminFacade.setInstances(applicationName, serviceName, count, timeout);
 
+		if (response.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
+			String pollingID = response.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
+			this.adminFacade.waitForLifecycleEvents(pollingID, timeout, TIMEOUT_ERROR_MESSAGE);
+		} else {
+			logger.info("Failed to retrieve lifecycle logs from rest. " 
+			+ "Check logs for more details.");
+		}
+		
 		return getFormattedMessage("set_instances_completed_successfully", serviceName, count);
 	}
 

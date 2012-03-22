@@ -301,7 +301,10 @@ public interface AdminFacade {
 			String timeoutErrorMessage, long timeout, TimeUnit timeunit) throws CLIException, TimeoutException,
 			InterruptedException;
 	
-	void setInstances(String applicationName, String serviceName, int count) throws CLIException;
+	public void waitForLifecycleEvents(final String pollingID, int timeout, String timeoutMessage) 
+			throws CLIException, InterruptedException, TimeoutException;
+	
+	Map<String, String> setInstances(String applicationName, String serviceName, int count, int timeout) throws CLIException;
 
 	public abstract boolean waitForInstancesNumberOnRunningService(String serviceName,
 			String applicationName, int plannedNumberOfInstances, int initialNumberOfInstances, String timeoutErrorMessage, long timeout,
