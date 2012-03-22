@@ -181,13 +181,13 @@ public class RestPollingCallable implements Callable<Boolean> {
         while (System.currentTimeMillis() < this.endTime) {
 
             pollForLogs();
-            
+
             if (this.serviceNames.isEmpty()) {
                 logger.log(Level.INFO, 
-                "Polling for lifecycle events has ended successfully.");
+                        "Polling for lifecycle events has ended successfully.");
                 return;
             }
-            
+
             logger.log(Level.FINE, "Sleeping for: " + pollingInterval);
             Thread.sleep(pollingInterval);   
         }
@@ -223,7 +223,8 @@ public class RestPollingCallable implements Callable<Boolean> {
         if (zone == null) {
             logger.log(Level.FINE, "Zone " + absolutePuName + " does not exist");
             if (isUninstall) {
-                logger.log(Level.INFO, "Polling for service " + absolutePuName + " has ended");
+                logger.log(Level.INFO, 
+                        "Polling for service " + absolutePuName + " has ended successfully");
                 this.serviceNames.remove(serviceName);
             }
             return;
@@ -254,9 +255,9 @@ public class RestPollingCallable implements Callable<Boolean> {
                     }
                 }
             }
+            
             this.lifecycleEventsContainer.addLifecycleEvents(servicesLifecycleEventDetailes);
         }
-
     }
 
     private void addServiceInstanceCountEvents(Entry<String, Integer> entry) {
@@ -265,11 +266,9 @@ public class RestPollingCallable implements Callable<Boolean> {
         String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
         int plannedNumberOfInstances = getPlannedNumberOfInstances(serviceName);
         int numberOfServiceInstances = getNumberOfServiceInstances(absolutePuName);
+
         if (numberOfServiceInstances == 0) {
-            if (isUninstall) {
-                this.lifecycleEventsContainer.addInstanceCountEvent(
-                        "Undeployed service " + serviceName + ".");
-            } else {
+            if (!isUninstall) {
                 this.lifecycleEventsContainer.addInstanceCountEvent("Deploying " + serviceName + " with " 
                         + plannedNumberOfInstances + " planned instances.");
             }
@@ -288,12 +287,20 @@ public class RestPollingCallable implements Callable<Boolean> {
                     this.lifecycleEventsContainer.addInstanceCountEvent("Service \"" + serviceName 
                             + "\" successfully installed (" + numberOfServiceInstances + " Instances)");
                     this.serviceNames.remove(serviceName);
-                } else {
-                    this.lifecycleEventsContainer.addInstanceCountEvent("Service \"" + serviceName 
-                            + "\" uninstalled successfully");
-                }
+                } 
             } else {
                 this.serviceNames.remove(serviceName);
+            }
+        }
+
+        final Zone zone = admin.getZones().getByName(absolutePuName);
+        if (zone == null) {
+            logger.log(Level.FINE, "Zone " + absolutePuName + " does not exist");
+            if (isUninstall) {
+                this.lifecycleEventsContainer.addInstanceCountEvent(
+                        "Undeployed service " + serviceName + ".");
+                this.lifecycleEventsContainer.addInstanceCountEvent("Service \"" + serviceName 
+                        + "\" uninstalled successfully");
             }
         }
     }
@@ -350,7 +357,7 @@ public class RestPollingCallable implements Callable<Boolean> {
             }
 
             return admin.getProcessingUnits()
-            .getProcessingUnit(absolutePuName).getInstances().length;
+                    .getProcessingUnit(absolutePuName).getInstances().length;
         }
         return 0;
     }
@@ -361,15 +368,15 @@ public class RestPollingCallable implements Callable<Boolean> {
 
         int puiInstanceCounter = 0;
         ProcessingUnit processingUnit = admin.getProcessingUnits()
-        .getProcessingUnit(absolutePUName);
+                .getProcessingUnit(absolutePUName);
 
         for (ProcessingUnitInstance pui : processingUnit) {
             // TODO: get the instanceState step
             int instanceState = (Integer) pui.getStatistics().getMonitors()
-            .get("USM").getMonitors()
-            .get(CloudifyConstants.USM_MONITORS_STATE_ID);
+                    .get("USM").getMonitors()
+                    .get(CloudifyConstants.USM_MONITORS_STATE_ID);
             if (CloudifyConstants.USMState.values()[instanceState]
-                                                    .equals(CloudifyConstants.USMState.RUNNING)) {
+                    .equals(CloudifyConstants.USMState.RUNNING)) {
                 puiInstanceCounter++;
             }
         }
