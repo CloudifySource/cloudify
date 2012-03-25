@@ -25,7 +25,7 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 @Command(scope = "cloudify", name = "set-instances", description = "Sets the number of services of an elastic service")
 public class SetInstances extends AdminAwareCommand {
 
-	private static final int DEFAULT_TIMEOUT_SECONDS = 60;
+	private static final int DEFAULT_TIMEOUT_MINUTES = 1;
 
 	@Argument(index = 0, name = "service-name", required = true, description = "the service to scale")
 	private String serviceName;
@@ -33,8 +33,8 @@ public class SetInstances extends AdminAwareCommand {
 	@Argument(index = 1, name = "count", required = true, description = "the target number of instances")
 	private int count;
 
-	@Option(required = false, name = "-timeout", description = "number of seconds to wait for instances. Default to 60")
-	protected int timeout = DEFAULT_TIMEOUT_SECONDS;
+	@Option(required = false, name = "-timeout", description = "number of minutes to wait for instances. Default is set to 1 minute")
+	protected int timeout = DEFAULT_TIMEOUT_MINUTES;
 	
 	private static final String TIMEOUT_ERROR_MESSAGE = "Set-Instances timed out";
 
