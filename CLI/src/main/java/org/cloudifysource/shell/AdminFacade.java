@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.cloudifysource.restclient.InvocationResult;
@@ -273,42 +272,23 @@ public interface AdminFacade {
 	Map<String, String> uninstallApplication(String applicationName, int timeoutInMinutes) throws CLIException;
 
 	/**
-	 * This method waits for the specified number of planned instances to be installed. In case of a datagrid
-	 * or a stateful PU the specified value is ignored and the return value indicates the correct planned
-	 * number of instances.
+	 * Wait for service installation events for a specified time period.
 	 * 
-	 * @param serviceName
-	 *            The name of the service being installed.
-	 * @param applicationName
-	 *            The name of the application in which the service is being installed
-	 * @param plannedNumberOfInstances
-	 *            The number of service instances that need to be installed
-	 * @param timeoutErrorMessage
-	 *            A message to use when throwing TimeoutException
-	 * @param timeout
-	 *            Number of {@link TimeUnit}s to wait
-	 * @param timeunit
-	 *            The time unit to use for the timeout definition
-	 * @return returns true when the required number of instances is installed
-	 * @throws CLIException
-	 *             Reporting a failure to get the service instances from the server
-	 * @throws TimeoutException
-	 *             Reporting the timeout was reached
+	 * @param pollingID 
+	 * 				The polling ID for the specific task
+	 * @param timeout 
+	 * 				The time (number of minutes) this procedure is limited to, before throwing an exception
+	 * @param timeoutMessage
+	 * 				Timeout message
+	 * @throws CLIException Thrown in case of a remote rest exception.
 	 * @throws InterruptedException
-	 *             Reporting the thread is interrupted while waiting
+	 * 				Reporting the thread is interrupted while waiting
+	 * @throws TimeoutException 
+	 * 				Reporting the timeout was reached
 	 */
-	boolean waitForServiceInstances(String serviceName, String applicationName, int plannedNumberOfInstances,
-			String timeoutErrorMessage, long timeout, TimeUnit timeunit) throws CLIException, TimeoutException,
-			InterruptedException;
-	
 	public void waitForLifecycleEvents(final String pollingID, int timeout, String timeoutMessage) 
 			throws CLIException, InterruptedException, TimeoutException;
 	
 	Map<String, String> setInstances(String applicationName, String serviceName, int count, int timeout) throws CLIException;
-
-	public abstract boolean waitForInstancesNumberOnRunningService(String serviceName,
-			String applicationName, int plannedNumberOfInstances, int initialNumberOfInstances, String timeoutErrorMessage, long timeout,
-			TimeUnit timeunit) throws CLIException, TimeoutException,
-			InterruptedException;
 	
 }
