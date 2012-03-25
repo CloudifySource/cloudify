@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.restclient.ErrorStatusException;
@@ -50,6 +52,8 @@ public class RestLifecycleEventsLatch {
 	private String timeoutMessage = DEFAULT_TIMEOUT_MESSAGE;
 
 	private CLIEventsDisplayer displayer;
+	
+	private static final Logger logger = Logger.getLogger(RestLifecycleEventsLatch.class.getName());
 	
 	/**
 	 * Constructor.
@@ -147,7 +151,9 @@ public class RestLifecycleEventsLatch {
 		if (!(pollingIntervalInMillis < MIN_POLLING_INTERVAL)) {
 			this.pollingInterval = pollingIntervalInMillis;
 		} else {
-			//TODO:logger: minimal interval set.
+			logger.log(Level.INFO, 
+					"Polling interveal was set to the minimum polling" +
+							" interval allowed: " + MIN_POLLING_INTERVAL + "seconds");
 		}
 	}
 
