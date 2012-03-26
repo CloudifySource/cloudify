@@ -14,7 +14,7 @@ cloud {
 		provider "byon"
 		localDirectory "tools/cli/plugins/esc/byon/upload"
 		remoteDirectory "/tmp/gs-files"
-		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.0/gigaspaces-cloudify-2.1.0-m4-b1194-161.zip"
+		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.0/gigaspaces-cloudify-2.1.0-m4-b1194-24.zip"
 		
 		dedicatedManagementMachines true
 		managementOnlyFiles ([])
@@ -32,7 +32,6 @@ cloud {
 	
 	templates ([
 				SMALL_LINUX : template{
-					machineMemoryMB 1600
 					custom ([
 						"nodesList" : ([
 										([
