@@ -17,6 +17,7 @@ package org.cloudifysource.esc.byon;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +39,9 @@ import org.cloudifysource.esc.util.IPUtils;
 public class ByonDeployer {
 
 	private static final String PROVIDER_ID = "BYON";
+	private static final String NODES_LIST_FREE = "FREE";
+	private static final String NODES_LIST_ALLOCATED = "ALLOCATED";
+	private static final String NODES_LIST_INVALID = "INVALID";
 	private static final String CLOUD_NODE_ID = "id";
 	private static final String CLOUD_NODE_IP = "ip";
 	private static final String CLOUD_NODE_ID_PREFIX = "idPrefix";
@@ -47,52 +51,72 @@ public class ByonDeployer {
 	private static final String CLOUD_NODE_USERNAME = "username";
 	private static final String CLOUD_NODE_CREDENTIAL = "credential";
 
-	private final List<CustomNode> freeNodesPool = new ArrayList<CustomNode>();
-	private final List<CustomNode> allocatedNodesPool = new ArrayList<CustomNode>();
-	private final List<CustomNode> invalidNodesPool = new ArrayList<CustomNode>();
+	private final Map<String, Map<String, List<CustomNode>>> nodesListsByTemplates = new Hashtable<String, Map<String, List<CustomNode>>>();
 
 	/**
 	 * Constructor.
+	 */
+	public ByonDeployer() throws Exception {
+	}
+
+	/**
+	 * Adds a list of nodes related to a specific template.
 	 * 
-	 * @param nodesList
+	 * @param templateName
+	 *            The name of the template this nodes-list belongs to
+	 * @param managementNodesList
 	 *            A list of maps, each map representing a cloud node
 	 * @throws Exception
-	 *             Indicates the node parsing failed and the deployer was not created
+	 *             Indicates the node parsing failed
 	 */
-	public ByonDeployer(final List<Map<String, String>> nodesList) throws Exception {
+	public synchronized void addNodesList(final String templateName, final List<Map<String, String>> nodesList)
+			throws Exception {
 		final List<CustomNode> parsedNodes = parseCloudNodes(nodesList);
-		freeNodesPool.clear();
+		final Map<String, List<CustomNode>> templateLists = new Hashtable<String, List<CustomNode>>();
+		final List<CustomNode> freeNodesPool = new ArrayList<CustomNode>();
 		freeNodesPool.addAll(aggregate(freeNodesPool, parsedNodes));
+		templateLists.put(NODES_LIST_FREE, freeNodesPool);
+		templateLists.put(NODES_LIST_ALLOCATED, new ArrayList<CustomNode>());
+		templateLists.put(NODES_LIST_INVALID, new ArrayList<CustomNode>());
+
+		nodesListsByTemplates.put(templateName, templateLists);
 	}
 
 	/**
 	 * Creates a server (AKA a machine or a node) with the assigned logical name.
 	 * 
-	 * @param name
+	 * @param templateName
+	 *            The name of the nodes-list' template this server belongs to
+	 * @param serverName
 	 *            A logical name used to uniquely identify this node (does not have to match the host name)
 	 * @return A node available for use
 	 * @throws InstallerException
 	 *             Indicated a new machine could not be allocated, either because the name is empty or because
 	 *             the nodes pool is exhausted
 	 */
-	public synchronized CustomNode createServer(final String name) throws InstallerException {
+	public synchronized CustomNode createServer(final String templateName, final String serverName)
+			throws InstallerException {
 		CustomNode node = null;
 
-		if (org.apache.commons.lang.StringUtils.isBlank(name)) {
+		if (org.apache.commons.lang.StringUtils.isBlank(serverName)) {
 			throw new InstallerException("Failed to start cloud node, server name is missing");
 		}
+
+		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
+		final List<CustomNode> freeNodesPool = templateLists.get(NODES_LIST_FREE);
+		final List<CustomNode> allocatedNodesPool = templateLists.get(NODES_LIST_ALLOCATED);
 
 		if (freeNodesPool.size() == 0) {
 			throw new InstallerException("Failed to create new cloud node, all nodes are currently used");
 		}
 
 		node = freeNodesPool.iterator().next();
-		((CustomNodeImpl) node).setNodeName(name);
 
-		freeNodesPool.remove(node);
 		if (!allocatedNodesPool.contains(node)) {
 			allocatedNodesPool.add(node);
 		}
+		freeNodesPool.remove(node);
+		((CustomNodeImpl) node).setNodeName(serverName);
 
 		return node;
 	}
@@ -100,10 +124,16 @@ public class ByonDeployer {
 	/**
 	 * Sets the nodes holding certain IPs as allocated, so they would not be re-allocated to other clients.
 	 * 
+	 * @param templateName
+	 *            The name of the nodes-list' template the IPs belongs to
 	 * @param ipAddresses
 	 *            A set of IP addresses (decimal dotted format)
 	 */
-	public synchronized void setAllocated(final Set<String> ipAddresses) {
+	public synchronized void setAllocated(final String templateName, final Set<String> ipAddresses) {
+		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
+		final List<CustomNode> freeNodesPool = templateLists.get(NODES_LIST_FREE);
+		final List<CustomNode> allocatedNodesPool = templateLists.get(NODES_LIST_ALLOCATED);
+
 		for (final String ipAddress : ipAddresses) {
 			for (final CustomNode node : freeNodesPool) {
 				if (StringUtils.isNotBlank(node.getPrivateIP()) && node.getPrivateIP().equalsIgnoreCase(ipAddress)
@@ -122,52 +152,64 @@ public class ByonDeployer {
 	/**
 	 * Shuts down a given node, (moves the node back to the free nodes list, to be used again).
 	 * 
-	 * @param node
-	 *            A node to shutdown
+	 * @param templateName
+	 *            The name of the nodes-list' template this server belongs to
+	 * @param serverName
+	 *            A server to shutdown
 	 */
-	public synchronized void shutdownServer(final CustomNode node) {
-		if (node == null) {
+	public synchronized void shutdownServer(final String templateName, final CustomNode serverName) {
+		if (serverName == null) {
 			return;
 		}
 
-		((CustomNodeImpl) node).setGroup(null);
-		allocatedNodesPool.remove(node);
-		if (!freeNodesPool.contains(node)) {
-			freeNodesPool.add(node);
+		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
+		final List<CustomNode> freeNodesPool = templateLists.get(NODES_LIST_FREE);
+		final List<CustomNode> allocatedNodesPool = templateLists.get(NODES_LIST_ALLOCATED);
+
+		((CustomNodeImpl) serverName).setGroup(null);
+		allocatedNodesPool.remove(serverName);
+		if (!freeNodesPool.contains(serverName)) {
+			freeNodesPool.add(serverName);
 		}
 	}
 
 	/**
 	 * Shuts down the server with the given ID.
 	 * 
+	 * @param templateName
+	 *            The name of the nodes-list' template this server belongs to
 	 * @param serverId
 	 *            The ID of the server to shutdown
 	 */
-	public void shutdownServerById(final String serverId) {
-		shutdownServer(getServerByID(serverId));
+	public void shutdownServerById(final String templateName, final String serverId) {
+		shutdownServer(templateName, getServerByID(templateName, serverId));
 	}
 
 	/**
 	 * Shuts down the server with the given IP address.
 	 * 
+	 * @param templateName
+	 *            The name of the nodes-list' template this server belongs to
 	 * @param serverIp
 	 *            The IP of the server to shutdown (dotted decimal format)
 	 */
-	public void shutdownServerByIp(final String serverIp) {
-		shutdownServer(getServerByIP(serverIp));
+	public void shutdownServerByIp(final String templateName, final String serverIp) {
+		shutdownServer(templateName, getServerByIP(templateName, serverIp));
 	}
 
 	/**
 	 * Retrieves the server with the given name (not a host name).
 	 * 
+	 * @param templateName
+	 *            The name of the nodes-list' template this server belongs to
 	 * @param serverName
 	 *            The name of the server to retrieve
 	 * @return A node matching the given name, if found
 	 */
-	public CustomNode getServerByName(final String serverName) {
+	public CustomNode getServerByName(final String templateName, final String serverName) {
 		CustomNode selectedNode = null;
 
-		for (final CustomNode node : getAllNodes()) {
+		for (final CustomNode node : getAllNodesByTemplateName(templateName)) {
 			if (node.getNodeName().equalsIgnoreCase(serverName)) {
 				selectedNode = node;
 				break;
@@ -180,14 +222,16 @@ public class ByonDeployer {
 	/**
 	 * Retrieves the server with the given Id (not a host name).
 	 * 
+	 * @param templateName
+	 *            The name of the nodes-list' template this server belongs to
 	 * @param id
 	 *            The id of the server to retrieve
 	 * @return A node matching the given id, if found
 	 */
-	public CustomNode getServerByID(final String id) {
+	public CustomNode getServerByID(final String templateName, final String id) {
 		CustomNode selectedNode = null;
 
-		for (final CustomNode node : getAllNodes()) {
+		for (final CustomNode node : getAllNodesByTemplateName(templateName)) {
 			if (node.getId().equalsIgnoreCase(id)) {
 				selectedNode = node;
 				break;
@@ -200,14 +244,16 @@ public class ByonDeployer {
 	/**
 	 * Retrieves the server with the given IP (not a host name).
 	 * 
+	 * @param templateName
+	 *            The name of the nodes-list' template this IP belongs to
 	 * @param ipAddress
 	 *            The IP address of the server to retrieve
 	 * @return A node with the given IP, if found
 	 */
-	public CustomNode getServerByIP(final String ipAddress) {
+	public CustomNode getServerByIP(final String templateName, final String ipAddress) {
 		CustomNode selectedNode = null;
 
-		for (final CustomNode node : getAllNodes()) {
+		for (final CustomNode node : getAllNodesByTemplateName(templateName)) {
 			if (StringUtils.isNotBlank(node.getPrivateIP()) && node.getPrivateIP().equalsIgnoreCase(ipAddress)
 					|| StringUtils.isNotBlank(node.getPublicIP()) && node.getPublicIP().equalsIgnoreCase(ipAddress)) {
 				selectedNode = node;
@@ -221,10 +267,17 @@ public class ByonDeployer {
 	/**
 	 * Retrieves all nodes (i.e. in all states - free, allocated and invalid).
 	 * 
-	 * @return A collection of all the managed nodes
+	 * @param templateName
+	 *            The name of the nodes-list' template to use
+	 * @return A collection of all the managed nodes of the specified template
 	 */
-	public Set<CustomNode> getAllNodes() {
+	public Set<CustomNode> getAllNodesByTemplateName(final String templateName) {
 		final Set<CustomNode> allNodes = new HashSet<CustomNode>();
+
+		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
+		final List<CustomNode> freeNodesPool = templateLists.get(NODES_LIST_FREE);
+		final List<CustomNode> allocatedNodesPool = templateLists.get(NODES_LIST_ALLOCATED);
+		final List<CustomNode> invalidNodesPool = templateLists.get(NODES_LIST_INVALID);
 
 		allNodes.addAll(freeNodesPool);
 		allNodes.addAll(allocatedNodesPool);
@@ -240,13 +293,19 @@ public class ByonDeployer {
 	 * @param node
 	 *            The node to invalidate
 	 */
-	public synchronized void invalidateServer(final CustomNode node) {
-		// attempting to remove the invalid node from both lists so it will not be used anymore, just to be
+	public synchronized void invalidateServer(final String templateName, final CustomNode serverName) {
+		// attempting to remove the invalid node from the active lists so it will not be used anymore, just to
+		// be
 		// sure.
-		freeNodesPool.remove(node);
-		allocatedNodesPool.remove(node);
-		if (!invalidNodesPool.contains(node)) {
-			invalidNodesPool.add(node);
+		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
+		final List<CustomNode> freeNodesPool = templateLists.get(NODES_LIST_FREE);
+		final List<CustomNode> allocatedNodesPool = templateLists.get(NODES_LIST_ALLOCATED);
+		final List<CustomNode> invalidNodesPool = templateLists.get(NODES_LIST_INVALID);
+
+		freeNodesPool.remove(serverName);
+		allocatedNodesPool.remove(serverName);
+		if (!invalidNodesPool.contains(serverName)) {
+			invalidNodesPool.add(serverName);
 		}
 	}
 
