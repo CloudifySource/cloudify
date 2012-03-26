@@ -33,7 +33,7 @@ import org.cloudifysource.dsl.internal.ServiceReader;
  * 
  *        Command syntax: validate file
  */
-@Command(name = "validate", scope = "cloudify", description = "Validates the a DSL file")
+@Command(name = "validate", scope = "cloudify", description = "Validates a DSL file")
 public class Validate extends AbstractGSCommand {
 
 	@Argument(required = true, name = "file", description = "path to the DSL file")
@@ -44,7 +44,7 @@ public class Validate extends AbstractGSCommand {
 	 */
 	@Override
 	protected Object doExecute() throws Exception {
-		// TODO the shell framework doesnt support user input with '\'
+		// TODO the shell framework doesn't support user input with '\'
 		final String absolutePath = dsl.getAbsolutePath();
 		if (!dsl.exists()) {
 			throw new IllegalArgumentException(MessageFormat.format(messages.getString("file_doesnt_exist"),
