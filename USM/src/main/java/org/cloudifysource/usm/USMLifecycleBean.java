@@ -174,11 +174,8 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	}
 
 	private void logEventStart(final LifecycleEvents event, final USMEvent[] listeners) {
-		if (event.equals(LifecycleEvents.SHUTDOWN) || isLoggableEvent(
+		if (isLoggableEvent(
 				event, listeners)) {
-			// Do not change the format of this message without changing the
-			// appropriate code
-			// in the CLI which looks for this message for shutdown detection.
 			eventLogger.info(eventPrefix + event.toString() + " invoked");
 		}
 	}
