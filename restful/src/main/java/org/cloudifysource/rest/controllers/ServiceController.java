@@ -154,7 +154,7 @@ public class ServiceController {
 	private static final int PU_DISCOVERY_TIMEOUT_SEC = 8;
     private final Map<UUID, LifecycleEventsContainer> lifecyclePollingContainer = 
         new ConcurrentHashMap<UUID, LifecycleEventsContainer>();
-    private final int LIFECYCLE_EVENT_POLLING_INTERVAL = 4000;
+    private final int LIFECYCLE_EVENT_POLLING_INTERVAL = 4;
     
     
     /**
