@@ -43,6 +43,8 @@ public final class Utils {
 
 	// timeout in seconds, waiting for the admin API to load.
 	private static final int ADMIN_API_TIMEOUT = 90;
+	// timeout in seconds, waiting for a socket to connect
+	private static final int DEFAULT_CONNECTION_TIMEOUT = 10;
 
 	private Utils() {
 	}
@@ -99,12 +101,26 @@ public final class Utils {
 	 *            The IP address to connect to
 	 * @param port
 	 *            The port number to use
-	 * @param timeout
-	 *            The end time, in milliseconds
 	 * @throws IOException
 	 *             Reports a failure to connect or resolve the given address.
 	 */
-	public static void validateConnection(final String ipAddress, final int port, final long timeout)
+	public static void validateConnection(final String ipAddress, final int port) throws IOException {
+		validateConnection(ipAddress, port, DEFAULT_CONNECTION_TIMEOUT);
+	}
+
+	/**
+	 * Validates a connection can be made to the given address and port, within the given time limit.
+	 * 
+	 * @param ipAddress
+	 *            The IP address to connect to
+	 * @param port
+	 *            The port number to use
+	 * @param timeout
+	 *            The time to wait before timing out, in seconds
+	 * @throws IOException
+	 *             Reports a failure to connect or resolve the given address.
+	 */
+	public static void validateConnection(final String ipAddress, final int port, final int timeout)
 			throws IOException {
 
 		final Socket socket = new Socket();
@@ -115,7 +131,7 @@ public final class Utils {
 				throw new IllegalArgumentException("Failed to connect to: " + ipAddress + ":" + port
 						+ ", address could not be resolved.");
 			} else {
-				socket.connect(endPoint, Utils.safeLongToInt(timeout, true));
+				socket.connect(endPoint, Utils.safeLongToInt(TimeUnit.SECONDS.toMillis(timeout), true));
 			}
 		} finally {
 			if (socket != null) {
