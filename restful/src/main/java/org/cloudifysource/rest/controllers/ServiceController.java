@@ -68,6 +68,7 @@ import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.Sla;
 import org.cloudifysource.dsl.StatefulProcessingUnit;
 import org.cloudifysource.dsl.StatelessProcessingUnit;
+import org.cloudifysource.dsl.autoscaling.AutoScalingDetails;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -109,10 +110,20 @@ import org.openspaces.admin.pu.ProcessingUnits;
 import org.openspaces.admin.pu.elastic.ElasticMachineProvisioningConfig;
 import org.openspaces.admin.pu.elastic.ElasticStatefulProcessingUnitDeployment;
 import org.openspaces.admin.pu.elastic.ElasticStatelessProcessingUnitDeployment;
+import org.openspaces.admin.pu.elastic.config.AutomaticCapacityScaleConfig;
+import org.openspaces.admin.pu.elastic.config.AutomaticCapacityScaleConfigurer;
+import org.openspaces.admin.pu.elastic.config.AutomaticCapacityScaleRuleConfig;
+import org.openspaces.admin.pu.elastic.config.AutomaticCapacityScaleRuleConfigurer;
+import org.openspaces.admin.pu.elastic.config.CapacityRequirementsConfig;
+import org.openspaces.admin.pu.elastic.config.CapacityRequirementsConfigurer;
 import org.openspaces.admin.pu.elastic.config.DiscoveredMachineProvisioningConfigurer;
+import org.openspaces.admin.pu.elastic.config.EagerScaleConfig;
 import org.openspaces.admin.pu.elastic.config.EagerScaleConfigurer;
+import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfig;
 import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfigurer;
 import org.openspaces.admin.pu.elastic.topology.ElasticDeploymentTopology;
+import org.openspaces.admin.pu.statistics.LastSampleTimeWindowStatisticsConfig;
+import org.openspaces.admin.pu.statistics.ProcessingUnitStatisticsId;
 import org.openspaces.admin.space.ElasticSpaceDeployment;
 import org.openspaces.admin.zone.Zone;
 import org.openspaces.core.GigaSpace;
@@ -1193,30 +1204,10 @@ public class ServiceController {
 		return tempFile.getParent();
 	}
 
+	
 	private void doDeploy(final String applicationName, final String serviceName, final String templateName,
-			final String zone, final File serviceFile, final Properties contextProperties, final Service service)
-			throws TimeoutException {
-		int numberOfInstances = service.getNumInstances();
-		if (numberOfInstances > 1) {
-			logger.info("Deploying service " + serviceName + " with " + numberOfInstances + " instances.");
-		} else {
-			logger.info("Deploying service " + serviceName
-					+ " with a recipe that does not define number of instances. Assuming number of instances is 1");
-			numberOfInstances = 1;
-		}
-		doDeploy(applicationName, serviceName, templateName, zone, serviceFile, contextProperties, numberOfInstances);
-	}
-
-	private void doDeploy(final String applicationName, final String serviceName, final String templateName,
-			final String zone, final File serviceFile, final Properties contextProperties) throws TimeoutException {
-		final int numberOfInstances = 1;
-		logger.info("Deploying service " + serviceName + " without a recipe. Assuming number of instances is 1");
-		doDeploy(applicationName, serviceName, templateName, zone, serviceFile, contextProperties, numberOfInstances);
-	}
-
-	private void doDeploy(final String applicationName, final String serviceName, final String templateName,
-			final String zone, final File serviceFile, final Properties contextProperties, final int numberOfInstances)
-			throws TimeoutException {
+			final String zone, final File serviceFile, final Properties contextProperties, Service service)
+			throws TimeoutException, DSLException {
 
 		final int externalProcessMemoryInMB = 512;
 		final int containerMemoryInMB = 128;
@@ -1236,15 +1227,31 @@ public class ServiceController {
 								.addGridServiceAgentZone(zone)
 								.reservedMemoryCapacityPerMachine(reservedMemoryCapacityPerMachineInMB,
 										MemoryUnit.MEGABYTES).create());
+		
 		if (cloud == null) {
-			if (isLocalCloud()) {
+			if (!isLocalCloud()) {
+				
+				// Azure: Eager scale (1 container per machine per PU)
+				EagerScaleConfig scaleConfig = 
+					new EagerScaleConfigurer()
+					.atMostOneContainerPerMachine()
+					.create();
+				
+				deployment.scale(scaleConfig);
+			}
+			else {
+				//local cloud
+				if (service == null || service.getAutoScaling() == null) {
 
-				// Manual scale by number of instances
-				deployment.scale(new ManualCapacityScaleConfigurer().memoryCapacity(
-						externalProcessMemoryInMB * numberOfInstances, MemoryUnit.MEGABYTES).create());
-			} else {
-				// Eager scale (1 container per machine per PU)
-				deployment.scale(new EagerScaleConfigurer().atMostOneContainerPerMachine().create());
+					final ManualCapacityScaleConfig scaleConfig = 
+							createManualCapacityScaleConfig(serviceName, service, externalProcessMemoryInMB);
+					deployment.scale(scaleConfig);
+				}
+				else {
+					final AutomaticCapacityScaleConfig scaleConfig = 
+							createAutomaticCapacityScaleConfig(serviceName, service, externalProcessMemoryInMB);
+					deployment.scale(scaleConfig);	
+				}
 			}
 		} else {
 
@@ -1254,9 +1261,6 @@ public class ServiceController {
 
 			final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(cloud, template,
 					cloudFileContents, templateName);
-			// CloudMachineProvisioningConfig config =
-			// CloudDSLToCloudMachineProvisioningConfig
-			// .convert(cloud);
 
 			final String locators = extractLocators(admin);
 			config.setLocator(locators);
@@ -1264,10 +1268,20 @@ public class ServiceController {
 			setDedicatedMachineProvisioning(deployment, config);
 			deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
 
-			deployment.scale(new ManualCapacityScaleConfigurer()
-					.memoryCapacity((int) cloudExternalProcessMemoryInMB * numberOfInstances, MemoryUnit.MEGABYTES)
-					.atMostOneContainerPerMachine().create());
-
+			if (service == null || service.getAutoScaling() == null) {
+				
+				final ManualCapacityScaleConfig scaleConfig = 
+						createManualCapacityScaleConfig(serviceName, service, (int)cloudExternalProcessMemoryInMB);
+				
+				scaleConfig.setAtMostOneContainerPerMachine(true);
+				deployment.scale(scaleConfig);
+			}
+			else {
+				final AutomaticCapacityScaleConfig scaleConfig = 
+						createAutomaticCapacityScaleConfig(serviceName, service, (int)cloudExternalProcessMemoryInMB);
+				scaleConfig.setAtMostOneContainerPerMachine(true);
+				deployment.scale(scaleConfig);
+			}
 		}
 
 		// add context properties
@@ -1276,6 +1290,114 @@ public class ServiceController {
 		verifyEsmExistsInCluster();
 		deployAndWait(serviceName, deployment);
 
+	}
+
+	/**
+	 * @param serviceName - the absolute name of the service
+	 * @param service - the service DSL or null if not exists
+	 * @param externalProcessMemoryInMB - MB memory allocated for the GSC plus the external service.
+	 * @return a @{link ManualCapacityScaleConfig} based on the specified service and memory.
+	 */
+	private ManualCapacityScaleConfig createManualCapacityScaleConfig(
+			final String serviceName, Service service,
+			final int externalProcessMemoryInMB) throws DSLException {
+		
+		int numberOfInstances = 1;
+		if (service == null) {
+			logger.info("Deploying service " + serviceName + " without a recipe. Assuming number of instances is 1");
+		}
+		else if (service.getNumInstances() > 0){
+			numberOfInstances = service.getNumInstances();
+			logger.info("Deploying service " + serviceName + " with " + numberOfInstances + " instances.");
+		}
+		else {
+			throw new DSLException("Number of instances must be at least 1");
+		}
+
+		return new ManualCapacityScaleConfigurer()
+			   .memoryCapacity(externalProcessMemoryInMB * numberOfInstances, MemoryUnit.MEGABYTES)
+			   .create();
+	}
+
+	/**
+	 * @param serviceName - the absolute name of the service
+	 * @param service - the service DSL or null if not exists
+	 * @param externalProcessMemoryInMB - MB memory allocated for the GSC plus the external service.
+	 * @return a @{link AutomaticCapacityScaleConfig} based on the specified service and memory.
+	 */
+	private AutomaticCapacityScaleConfig createAutomaticCapacityScaleConfig(
+			final String serviceName,
+			final Service service, 
+			final int externalProcessMemoryInMB) throws DSLException {
+		
+		AutoScalingDetails autoScaling = service.getAutoScaling();
+		
+		if (service.getMinNumInstances() <= 0) {
+			throw new DSLException("Minimum number of instances (" + service.getMinNumInstances() + ") must be 1 or higher.");
+		}
+
+		if (service.getMinNumInstances() > service.getMaxNumInstances()) {
+			throw new DSLException("maximum number of instances (" + service.getMaxNumInstances() + ") must be equal or greater than the minimum number of instances (" + service.getMinNumInstances() +")");
+		}
+
+		if (service.getMinNumInstances() > service.getNumInstances()) {
+			throw new DSLException("number of instances (" + service.getNumInstances() + ") must be equal or greater than the minimum number of instances (" + service.getMinNumInstances() +")");
+		}
+
+		if (service.getNumInstances() > service.getMaxNumInstances()) {
+			throw new DSLException("number of instances (" + service.getNumInstances() + ") must be equal or less than the maximum number of instances (" + service.getMaxNumInstances() +")");
+		}
+
+		ProcessingUnitStatisticsId statisticsId = new ProcessingUnitStatisticsId();
+		statisticsId.setMonitor(CloudifyConstants.USM_MONITORS_SERVICE_ID);
+		statisticsId.setMetric(autoScaling.getMetric());
+		statisticsId.setInstancesStatistics(autoScaling.getInstancesStatistics().toInstancesStatistics());
+
+		if (autoScaling.getTimeWindowSeconds() <= autoScaling.getSamplingPeriodSeconds()) {
+			if (logger.isLoggable(Level.FINE)) {
+				logger.fine("Deploying service " + serviceName + " with auto scaling that monitors the last sample of " + autoScaling.getMetric());
+			}
+			statisticsId.setTimeWindowStatistics(new LastSampleTimeWindowStatisticsConfig());
+		}
+		else {
+			statisticsId.setTimeWindowStatistics(
+					autoScaling
+					.getTimeStatistics()
+					.toTimeWindowStatistics(autoScaling.getTimeWindowSeconds(), TimeUnit.SECONDS));
+		}
+
+		AutomaticCapacityScaleRuleConfig rule = 
+			new AutomaticCapacityScaleRuleConfigurer()
+			.lowThreshold(autoScaling.getLowThreshold())
+			.highThreshold(autoScaling.getHighThreshold())
+			.statistics(statisticsId)
+			.create();
+
+		CapacityRequirementsConfig minCapacity = 
+			new CapacityRequirementsConfigurer()
+			.memoryCapacity((int)(service.getMinNumInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
+			.create();
+
+		CapacityRequirementsConfig initialCapacity = 
+			new CapacityRequirementsConfigurer()
+			.memoryCapacity((int) (service.getNumInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
+			.create();
+
+		CapacityRequirementsConfig maxCapacity = 
+			new CapacityRequirementsConfigurer()
+			.memoryCapacity((int)(service.getMaxNumInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
+			.create();
+
+		AutomaticCapacityScaleConfig scaleConfig = 
+			new AutomaticCapacityScaleConfigurer()
+			.minCapacity(minCapacity)
+			.initialCapacity(initialCapacity)
+			.maxCapacity(maxCapacity)
+			.statisticsPollingInterval(autoScaling.getSamplingPeriodSeconds(), TimeUnit.SECONDS)
+			.addRule(rule)
+			.create();
+
+		return scaleConfig;
 	}
 
 	private static String extractLocators(final Admin admin) {
@@ -1424,6 +1546,11 @@ public class ServiceController {
 		    }
 		}
 		return lifecycleEventContainerID;
+	}
+
+	private void doDeploy(String applicationName, String serviceName,
+			String templateName, String zone, File srcFile, Properties propsFile) throws TimeoutException, DSLException {
+		doDeploy(applicationName, serviceName, templateName, zone, srcFile, propsFile, null);
 	}
 
 	// TODO: add getters for service processing units in the service class that
