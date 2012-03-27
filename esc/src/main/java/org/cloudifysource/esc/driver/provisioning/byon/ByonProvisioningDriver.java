@@ -84,6 +84,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 							nodesList = (List<Map<String, String>>) customSettings.get(CLOUD_NODES_LIST);
 						}
 						if (nodesList == null) {
+							publishEvent("prov_invalid_configuration");
 							throw new CloudProvisioningException(
 									"Failed to create BYON cloud deployer, invalid configuration");
 						}
@@ -188,6 +189,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		}
 
 		if (!foundFreeName) {
+			publishEvent("prov_servers_limit_reached", MAX_SERVERS_LIMIT);
 			throw new CloudProvisioningException("Number of servers has exceeded allowed server limit ("
 					+ MAX_SERVERS_LIMIT + ")");
 		}
@@ -224,6 +226,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 				return managementMachines;
 			}
 		} catch (final InterruptedException e) {
+			publishEvent("prov_management_lookup_failed");
 			throw new CloudProvisioningException("Failed to lookup existing manahement servers.", e);
 		}
 
@@ -377,6 +380,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 				deployer.shutdownServer(cloudTemplateName, customNode);
 			}
 		} catch (final Exception e) {
+			publishEvent("prov_agent_shutdown_failed");
 			throw new CloudProvisioningException("Failed to shutdown agent.", e);
 		}
 
@@ -486,6 +490,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			}
 		}
 
+		publishEvent("prov_management_machines_failed", firstCreationException.getMessage());
 		throw new CloudProvisioningException(
 				"One or more managememnt machines failed. The first encountered error was: "
 						+ firstCreationException.getMessage(), firstCreationException);
@@ -513,6 +518,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			md.setRemotePassword(cloud.getConfiguration().getRemotePassword());
 		} else {
 			logger.severe("Cloud node loading failed, missing credentials for server: " + node.toString());
+			publishEvent("prov_node_loading_failed", node.toString());
 			throw new CloudProvisioningException("Cloud node loading failed, missing credentials for server: "
 					+ node.toString());
 		}
