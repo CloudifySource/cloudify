@@ -57,7 +57,7 @@ import com.gigaspaces.log.LogEntryMatcher;
  * @author adaml
  *
  */
-public class RestPollingCallable implements Runnable {
+public class RestPollingRunnable implements Runnable {
 
     private static final int UNINSTALL_POLLING_INTERVAL = 2000;
 
@@ -83,7 +83,7 @@ public class RestPollingCallable implements Runnable {
 
     private boolean isServiceInstall;
 
-    private static final Logger logger = Logger.getLogger(RestPollingCallable.class.getName());
+    private static final Logger logger = Logger.getLogger(RestPollingRunnable.class.getName());
 
     /**
      * Create a rest polling runnable to poll for a specific service's installation
@@ -97,7 +97,7 @@ public class RestPollingCallable implements Runnable {
      * @param plannedNumberOfInstances the planned number of instances.
      * @param timeunit polling timeout timeunit.
      */
-    public RestPollingCallable(final String applicationName,
+    public RestPollingRunnable(final String applicationName,
             final long timeout, final TimeUnit timeunit) {
 
         this.serviceNames = new LinkedHashMap<String, Integer>();
