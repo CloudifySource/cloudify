@@ -15,7 +15,6 @@
  *******************************************************************************/
 package org.cloudifysource.rest.controllers;
 
-import static com.gigaspaces.log.LogEntryMatchers.regex;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_INVOKE_INSTANCE;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_APP;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_GSM;
@@ -32,10 +31,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -77,7 +74,6 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLServiceCompilationResult;
-import org.cloudifysource.dsl.internal.EventLogConstants;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
@@ -101,7 +97,6 @@ import org.openspaces.admin.application.Application;
 import org.openspaces.admin.application.Applications;
 import org.openspaces.admin.esm.ElasticServiceManager;
 import org.openspaces.admin.gsa.GridServiceAgent;
-import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.internal.admin.InternalAdmin;
 import org.openspaces.admin.internal.pu.DefaultProcessingUnitInstance;
@@ -128,7 +123,6 @@ import org.openspaces.admin.pu.elastic.topology.ElasticDeploymentTopology;
 import org.openspaces.admin.pu.statistics.LastSampleTimeWindowStatisticsConfig;
 import org.openspaces.admin.pu.statistics.ProcessingUnitStatisticsId;
 import org.openspaces.admin.space.ElasticSpaceDeployment;
-import org.openspaces.admin.zone.Zone;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.context.GigaSpaceContext;
 import org.openspaces.core.util.MemoryUnit;
@@ -146,10 +140,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.gigaspaces.log.LogEntries;
-import com.gigaspaces.log.LogEntry;
-import com.gigaspaces.log.LogEntryMatcher;
-
 /**
  * @author rafi, barakm, adaml, noak
  * @since 2.0.0
@@ -159,11 +149,9 @@ import com.gigaspaces.log.LogEntryMatcher;
 public class ServiceController {
 
 	private static final int POLLING_TASK_TIMEOUT = 20;
-    private static final int TEN_MINUTES_MILLISECONDS = 60 * 1000 * 10;
 	private static final int THREAD_POOL_SIZE = 2;
 	private static final String SHARED_ISOLATION_ID = "public";
 	private static final int PU_DISCOVERY_TIMEOUT_SEC = 8;
-	private static final String USM_EVENT_LOGGER_NAME = ".*.USMEventLogger.{0}\\].*";
     private final Map<UUID, LifecycleEventsContainer> lifecyclePollingContainer = 
         new ConcurrentHashMap<UUID, LifecycleEventsContainer>();
     private final int LIFECYCLE_EVENT_POLLING_INTERVAL = 4000;
@@ -379,70 +367,6 @@ public class ServiceController {
 			serviceNames.add(ServiceUtils.getApplicationServiceName(pu.getName(), applicationName));
 		}
 		return successStatus(serviceNames);
-	}
-
-	/**
-	 * 
-	 * Extracts all of the GSC log entries that were logged by the USM and contain an installation event regex
-	 * ".*.USMEventLogger.{0}\\].*". In addition, the entries returned will be only those that were logged in
-	 * the last 10 minutes.
-	 * 
-	 * @param applicationName
-	 *            The application name
-	 * @param serviceName
-	 *            The service name
-	 * @return a list of log entry maps containing information regarding the specific entry.
-	 */
-	@RequestMapping(value = "/applications/{applicationName}/services/{serviceName}/USMEventsLogs", 
-			method = RequestMethod.GET)
-	public @ResponseBody
-	Map<?, ?> getServiceLifecycleLogs(@PathVariable final String applicationName,
-			@PathVariable final String serviceName) {
-		// TODO:not run over
-		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-		final List<Map<String, String>> serviceEventDetailes = new ArrayList<Map<String, String>>();
-		final String regex = MessageFormat.format(USM_EVENT_LOGGER_NAME, absolutePuName);
-		final LogEntryMatcher matcher = regex(regex);
-		final Zone zone = admin.getZones().getByName(absolutePuName);
-		if (zone == null) {
-			logger.info("Zone " + absolutePuName + " does not exist");
-			return successStatus();
-		}
-		for (final GridServiceContainer container : zone.getGridServiceContainers()) {
-			final LogEntries logEntries = container.logEntries(matcher);
-			for (final LogEntry logEntry : logEntries) {
-				if (logEntry.isLog()) {
-					final Date tenMinutesAgoGscTime = new Date(new Date().getTime()
-							+ container.getOperatingSystem().getTimeDelta() - TEN_MINUTES_MILLISECONDS);
-					if (tenMinutesAgoGscTime.before(new Date(logEntry.getTimestamp()))) {
-						final Map<String, String> serviceEventsMap = getServiceDetailes(logEntry, container,
-								absolutePuName, applicationName);
-						serviceEventDetailes.add(serviceEventsMap);
-					}
-				}
-			}
-		}
-		return successStatus(serviceEventDetailes);
-	}
-
-	private Map<String, String> getServiceDetailes(final LogEntry logEntry, final GridServiceContainer container,
-			final String absolutePuName, final String applicationName) {
-
-		final Map<String, String> returnMap = new HashMap<String, String>();
-
-		returnMap.put(EventLogConstants.getTimeStampKey(), Long.toString(logEntry.getTimestamp()));
-		returnMap.put(EventLogConstants.getMachineHostNameKey(), container.getMachine().getHostName());
-		returnMap.put(EventLogConstants.getMachineHostAddressKey(), container.getMachine().getHostAddress());
-		returnMap.put(EventLogConstants.getServiceNameKey(),
-				ServiceUtils.getApplicationServiceName(absolutePuName, applicationName));
-		// The string replacement is done since the service name that is
-		// received from the USM logs derived from actual PU name.
-		returnMap.put(
-				EventLogConstants.getEventTextKey(),
-				logEntry.getText().replaceFirst(absolutePuName + "-",
-						returnMap.get(EventLogConstants.getServiceNameKey()) + "-"));
-
-		return returnMap;
 	}
 
 	/**
