@@ -41,8 +41,9 @@ import org.openspaces.admin.gsm.GridServiceManagers;
  */
 public final class Utils {
 
-	private static final int ADMIN_API_TIMEOUT=90; //timeout in seconds, for waiting for the admin API to load.
-	
+	// timeout in seconds, for waiting for the admin API to load.
+	private static final int ADMIN_API_TIMEOUT = 90;
+
 	private Utils() {
 	}
 
@@ -55,7 +56,8 @@ public final class Utils {
 	 * @throws TimeoutException
 	 *             Thrown when the end time is in the past
 	 */
-	public static long millisUntil(final long end) throws TimeoutException {
+	public static long millisUntil(final long end)
+			throws TimeoutException {
 		final long millisUntilEnd = end - System.currentTimeMillis();
 		if (millisUntilEnd < 0) {
 			throw new TimeoutException("Cloud operation timed out");
@@ -69,8 +71,8 @@ public final class Utils {
 	 * @param longValue
 	 *            The long to cast
 	 * @param roundIfNeeded
-	 *            Indicating whether to change the value of the number if it exceeds int's max/min values. If
-	 *            set to false and the long is too large/small, an {@link IllegalArgumentException} is thrown.
+	 *            Indicating whether to change the value of the number if it exceeds int's max/min values. If set to
+	 *            false and the long is too large/small, an {@link IllegalArgumentException} is thrown.
 	 * @return int representing of the given long.
 	 */
 	public static int safeLongToInt(final long longValue, final boolean roundIfNeeded) {
@@ -103,7 +105,8 @@ public final class Utils {
 	 * @throws IOException
 	 *             Reports a failure to connect or resolve the given address.
 	 */
-	public static void validateConnection(final String ipAddress, final int port, final long timeout) throws IOException {
+	public static void validateConnection(final String ipAddress, final int port, final long timeout)
+			throws IOException {
 
 		final Socket socket = new Socket();
 
@@ -113,18 +116,21 @@ public final class Utils {
 				throw new IllegalArgumentException("Failed to connect to: " + ipAddress + ":" + port
 						+ ", address could not be resolved.");
 			} else {
-				socket.connect(endPoint, Utils.safeLongToInt(timeout, true));
+				socket.connect(
+						endPoint, Utils.safeLongToInt(
+								timeout, true));
 			}
 		} finally {
 			if (socket != null) {
 				try {
 					socket.close();
 				} catch (final IOException ioe) {
+					// ignore
 				}
 			}
 		}
 	}
-	
+
 	/**
 	 * Returns the content of a given input stream, as a String object.
 	 * 
@@ -136,16 +142,14 @@ public final class Utils {
 	 */
 	public static String getStringFromStream(final InputStream is)
 			throws IOException {
-		BufferedReader bufferedReader = new BufferedReader(
-				new InputStreamReader(is));
-		StringBuilder sb = new StringBuilder();
+		final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
+		final StringBuilder sb = new StringBuilder();
 		String line = null;
 		while ((line = bufferedReader.readLine()) != null) {
 			sb.append(line);
 		}
 		return sb.toString();
 	}
-	
 
 	/**
 	 * Converts a json String to a Map<String, Object>.
@@ -156,25 +160,31 @@ public final class Utils {
 	 * @throws IOException
 	 *             Reporting failure to read or map the String
 	 */
-	public static Map<String, Object> jsonToMap(final String response) throws IOException {
+	public static Map<String, Object> jsonToMap(final String response)
+			throws IOException {
+		@SuppressWarnings("deprecation")
 		final JavaType javaType = TypeFactory.type(Map.class);
-		return new ObjectMapper().readValue(response, javaType);
+		return new ObjectMapper().readValue(
+				response, javaType);
 	}
+
 	
-	public static Admin getAdminObject(String managementIP, int expectedGsmCount) throws TimeoutException, InterruptedException {
+	public static Admin getAdminObject(final String managementIP, final int expectedGsmCount)
+			throws TimeoutException, InterruptedException {
 		final AdminFactory adminFactory = new AdminFactory();
 		adminFactory.addLocator(managementIP + ":" + CloudifyConstants.DEFAULT_LUS_PORT);
 		final Admin admin = adminFactory.createAdmin();
 		GridServiceManagers gsms = admin.getGridServiceManagers();
 		final long end = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(ADMIN_API_TIMEOUT);
-		while(admin.getLookupServices() == null || gsms == null || (expectedGsmCount>0 && gsms.getSize()<expectedGsmCount)) {
+		while (admin.getLookupServices() == null || gsms == null || expectedGsmCount > 0
+				&& gsms.getSize() < expectedGsmCount) {
 			if (System.currentTimeMillis() > end) {
 				throw new TimeoutException("Admin API timed out");
 			}
 			Thread.sleep(TimeUnit.SECONDS.toMillis(1));
 			gsms = admin.getGridServiceManagers();
 		}
-		
+
 		return admin;
 	}
 
