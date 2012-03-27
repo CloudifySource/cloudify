@@ -322,7 +322,7 @@ public class Service {
 		return minNumInstances;
 	}
 
-	public void setMinNumInstances(int minNumInstances) {
+	public void setMinNumInstances(final int minNumInstances) {
 		this.minNumInstances = minNumInstances;
 	}
 
@@ -330,7 +330,7 @@ public class Service {
 		return maxNumInstances;
 	}
 
-	public void setMaxNumInstances(int maxNumInstances) {
+	public void setMaxNumInstances(final int maxNumInstances) {
 		this.maxNumInstances = maxNumInstances;
 	}
 
