@@ -45,10 +45,11 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -85,6 +86,7 @@ import org.cloudifysource.esc.driver.provisioning.CloudifyMachineProvisioningCon
 import org.cloudifysource.rest.ResponseConstants;
 import org.cloudifysource.rest.util.ApplicationInstallerRunnable;
 import org.cloudifysource.rest.util.LifecycleEventsContainer;
+import org.cloudifysource.rest.util.LifecycleEventsContainer.PollingState;
 import org.cloudifysource.rest.util.RestPollingCallable;
 import org.cloudifysource.rest.util.RestUtils;
 import org.jgrapht.DirectedGraph;
@@ -163,6 +165,9 @@ public class ServiceController {
 	private static final String USM_EVENT_LOGGER_NAME = ".*.USMEventLogger.{0}\\].*";
     private final Map<UUID, LifecycleEventsContainer> lifecyclePollingContainer = 
         new ConcurrentHashMap<UUID, LifecycleEventsContainer>();
+    private final int LIFECYCLE_EVENT_POLLING_INTERVAL = 4000;
+    
+    
     /**
      * A set containing all of the executed lifecycle events. used to avoid duplicate prints.
      */
@@ -253,6 +258,18 @@ public class ServiceController {
 		return cloudConfiguration;
 
 	}
+	
+	private final ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(10, new ThreadFactory() {
+	    
+	    private int counter = 1;
+	    
+        @Override
+        public Thread newThread(Runnable r) {
+            final Thread thread = new Thread(r, "LifecycleEventsPollingExecutor-" + counter++);
+            thread.setDaemon(true);
+            return thread;
+        }
+    });
 	
 	// Set up a small thread pool with daemon threads.
 	private final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE,
@@ -652,7 +669,7 @@ public class ServiceController {
 			return unavailableServiceError(absolutePuName);
 		}
 		UUID lifecycleEventContainerID = startPollingForServiceUninstallLifecycleEvents(applicationName, serviceName, timeoutInMinutes);
-		processingUnit.undeploy();
+		processingUnit.undeployAndWait();
         Map<String, Object> returnMap = new HashMap<String, Object>();
         returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, lifecycleEventContainerID);
 		return successStatus(returnMap);
@@ -673,8 +690,9 @@ public class ServiceController {
 	        restPollingCallable.setLifecycleEventsContainer(lifecycleEventsContainer);
 	        restPollingCallable.setIsUninstall(true);
 	        
-	        Future<Boolean> future = executorService.submit(restPollingCallable);
-	        lifecycleEventsContainer.setFutureTask(future);
+	        ScheduledFuture<?> scheduleWithFixedDelay = scheduledExecutor
+	                .scheduleWithFixedDelay(restPollingCallable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL, TimeUnit.SECONDS);
+	        lifecycleEventsContainer.setFutureTask(scheduleWithFixedDelay);
 
 	        logger.log(Level.INFO, "polling container UUID is " + lifecycleEventsContainerID.toString());
 	        return lifecycleEventsContainerID;
@@ -1042,8 +1060,9 @@ public class ServiceController {
         restPollingCallable.setLifecycleEventsContainer(lifecycleEventsContainer);
         restPollingCallable.setIsUninstall(true);
         
-        Future<Boolean> future = executorService.submit(restPollingCallable);
-        lifecycleEventsContainer.setFutureTask(future);
+        ScheduledFuture<?> scheduleWithFixedDelay = scheduledExecutor
+                .scheduleWithFixedDelay(restPollingCallable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL, TimeUnit.SECONDS);
+        lifecycleEventsContainer.setFutureTask(scheduleWithFixedDelay);
 
         logger.log(Level.INFO, "polling container UUID is " + lifecycleEventsContainerID.toString());
         return lifecycleEventsContainerID;
@@ -1068,8 +1087,10 @@ public class ServiceController {
         restPollingCallable.setIsServiceInstall(isServiceInstall);
         restPollingCallable.setLifecycleEventsContainer(lifecycleEventsContainer);
 
-        Future<Boolean> future = executorService.submit(restPollingCallable);
-        lifecycleEventsContainer.setFutureTask(future);
+        
+        ScheduledFuture<?> scheduleWithFixedDelay = scheduledExecutor
+                .scheduleWithFixedDelay(restPollingCallable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL, TimeUnit.SECONDS);
+        lifecycleEventsContainer.setFutureTask(scheduleWithFixedDelay);
 
         logger.log(Level.INFO, "polling container UUID is " + lifecycleEventsContainerID.toString());
         return lifecycleEventsContainerID;
@@ -1094,8 +1115,9 @@ public class ServiceController {
         restPollingCallable.setLifecycleEventsContainer(lifecycleEventsContainer);
         restPollingCallable.setAdmin(admin);
 
-        Future<Boolean> future = executorService.submit(restPollingCallable);
-        lifecycleEventsContainer.setFutureTask(future);
+        ScheduledFuture<?> scheduleWithFixedDelay = scheduledExecutor
+                .scheduleWithFixedDelay(restPollingCallable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL, TimeUnit.SECONDS);
+        lifecycleEventsContainer.setFutureTask(scheduleWithFixedDelay);
 
         logger.log(Level.INFO, "polling container UUID is " + lifecycleEventsContainer.toString());
         return lifecycleEventsContainerUUID;
@@ -1115,31 +1137,31 @@ public class ServiceController {
                     " does not exist or expired.");
         }
         LifecycleEventsContainer container = lifecyclePollingContainer.get(UUID.fromString(lifecycleEventContainerID));
-        Future<Boolean> futureTask = container.getFutureTask();
-        if (futureTask.isDone()) {
-            try {
-                futureTask.get(POLLING_TASK_TIMEOUT, TimeUnit.SECONDS);
-                
-            } catch (ExecutionException e) {
-                if (e.getCause() instanceof TimeoutException) {
-                    logger.log(Level.INFO, "Lifecycle events polling task timed out.", e.getCause());
+        Future<?> futureTask = container.getFutureTask();
+        PollingState runnableState = container.getPollingState();
+        switch (runnableState) {
+        case RUNNING:
+            resultsMap.put(CloudifyConstants.IS_TASK_DONE, false);
+            break;
+        case ENDED:
+            Throwable t = container.getExecutionException();
+            if (t != null){
+                if (t.getCause() instanceof TimeoutException){
+                    logger.log(Level.INFO, "Lifecycle events polling task timed out.");
                     resultsMap.put(CloudifyConstants.POLLING_TIMEOUT_EXCEPTION, true);
+                    resultsMap.put(CloudifyConstants.IS_TASK_DONE, true);
                 } else {
-                    //Notify client about the remote exception.
-                    logger.log(Level.INFO, "an exception occurred during the" 
-                            + " lifecycle events polling task.", e);
+                    logger.log(Level.INFO, "Lifecycle events polling ended unexpectedly.", t);
                     resultsMap.put(CloudifyConstants.POLLING_EXCEPTION, true);
+                    resultsMap.put(CloudifyConstants.IS_TASK_DONE, true);
                 }
-            } catch (InterruptedException e) {
-                //retrieve 
-                logger.log(Level.INFO, "Could not retrieve polling task result", e);
-                
-            } catch (TimeoutException e) {
-                logger.log(Level.INFO,"Could not retrieve polling task result", e);
-                resultsMap.put(CloudifyConstants.POLLING_TIMEOUT_EXCEPTION, false);
-                resultsMap.put(CloudifyConstants.POLLING_EXCEPTION, false);
+            } else {
+                resultsMap.put(CloudifyConstants.IS_TASK_DONE, true);
             }
-        }
+            futureTask.cancel(true);
+            break;
+        } 
+
         List<String> lifecycleEvents = container.getLifecycleEvents(cursor);
 
         if (lifecycleEvents != null){
@@ -1149,9 +1171,7 @@ public class ServiceController {
         }else{
             resultsMap.put(CloudifyConstants.CURSOR_POS, cursor);
         }
-
-        resultsMap.put(CloudifyConstants.IS_TASK_DONE, futureTask.isDone());
-
+        
         return successStatus(resultsMap);
     }
     

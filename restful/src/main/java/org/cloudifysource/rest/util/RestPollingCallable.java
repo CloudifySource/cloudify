@@ -25,14 +25,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.EventLogConstants;
 import org.cloudifysource.dsl.utils.ServiceUtils;
+import org.cloudifysource.rest.util.LifecycleEventsContainer.PollingState;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.internal.pu.DefaultProcessingUnit;
@@ -40,42 +41,25 @@ import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
 import org.openspaces.admin.pu.ProcessingUnitType;
 import org.openspaces.admin.zone.Zone;
+
 import com.gigaspaces.log.LogEntries;
 import com.gigaspaces.log.LogEntry;
 import com.gigaspaces.log.LogEntryMatcher;
 
 /**
- * the RestPollingCallable provides a service installation polling mechanism 
+ * the RestPollingRunnable provides a service installation polling mechanism 
  * for lifecycle and instance count changes events.
  * the events will be saved in a dedicated LifecycleEventsContainer that 
  * will be sampled by the client.
  * 
- * Initialize the callable with service names their planned number of instances. 
+ * Initialize the Runnable with service names their planned number of instances. 
  *   
  * @author adaml
  *
  */
-public class RestPollingCallable implements Callable<Boolean> {
+public class RestPollingCallable implements Runnable {
 
     private static final int UNINSTALL_POLLING_INTERVAL = 2000;
-
-    private Admin admin;
-
-    private long endTime;
-
-    private int pollingInterval;
-
-    private final int DEFAULT_POLLING_INTERVAL = 4000;
-
-    private static final int FIVE_MINUTES_MILLISECONDS = 60 * 1000 * 5;
-
-    private static final String USM_EVENT_LOGGER_NAME = ".*.USMEventLogger.{0}\\].*";
-
-    private static final Logger logger = Logger.getLogger(RestPollingCallable.class.getName());
-
-    private final String applicationName;
-
-    private boolean isUninstall = false;
 
     // a map containing all of the application services and their planned number
     // of instances.
@@ -83,9 +67,23 @@ public class RestPollingCallable implements Callable<Boolean> {
     // the application.
     private final LinkedHashMap<String, Integer> serviceNames;
 
+    private final String applicationName;
+
+    private final int FIVE_MINUTES_MILLISECONDS = 60 * 1000 * 5;
+
+    private Admin admin;
+
+    private long endTime;
+
+    private static final String USM_EVENT_LOGGER_NAME = ".*.USMEventLogger.{0}\\].*";
+
+    private boolean isUninstall = false;
+
     private LifecycleEventsContainer lifecycleEventsContainer;
 
     private boolean isServiceInstall;
+
+    private static final Logger logger = Logger.getLogger(RestPollingCallable.class.getName());
 
     /**
      * Create a rest polling runnable to poll for a specific service's installation
@@ -104,8 +102,6 @@ public class RestPollingCallable implements Callable<Boolean> {
 
         this.serviceNames = new LinkedHashMap<String, Integer>();
         this.applicationName = applicationName;
-        this.pollingInterval = DEFAULT_POLLING_INTERVAL;
-        this.endTime = System.currentTimeMillis() + timeunit.toMillis(timeout);
     }
 
     /**
@@ -127,19 +123,6 @@ public class RestPollingCallable implements Callable<Boolean> {
     }
 
     /**
-     * Sets the polling interval for the GSCs log files. 
-     * It is recommended to decrease when polling an uninstall command
-     * as the GSCs might shut down logging will not be done in time.
-     * 
-     * DEFAULT_POLLING_INTERVAL = 4000 ms.
-     * 
-     * @param pollingInterval Polling interval
-     */
-    public void setPollingInterval(final int pollingInterval) {
-        this.pollingInterval = pollingInterval;
-    }
-
-    /**
      * Add a service to the polling callable. the service will be sampled 
      * until it reaches it's planned number of instances or until a timeout
      * exception is thrown.
@@ -158,40 +141,34 @@ public class RestPollingCallable implements Callable<Boolean> {
         this.isServiceInstall = isServiceInstall;
     }
 
-    @Override
-    public Boolean call() throws Exception {
-        logger.log(Level.INFO, 
-                "Starting poll for lifecycle events on services: " + this.serviceNames.toString());
-        waitForServiceInstanceAndLifecycleEvents();
-        logger.log(Level.INFO, 
-                "Polling for lifecycle events ended successfully");
-        return true;
-
+    public void setEndTime(final long timeout, final TimeUnit timeunit) {
+        this.endTime = System.currentTimeMillis() + timeunit.toMillis(timeout);
     }
 
-    /**
-     * goes over all available GSC's and scans their logs for new lifecycle events.
-     * In each iteration it will updated the lifecycle event container sheared resource.
-     * This method will only retrieve lifecycle events that occurred in the last 5 minutes.
-     * @throws InterruptedException 
-     * @throws TimeoutException 
-     */
-    private void waitForServiceInstanceAndLifecycleEvents() throws InterruptedException, TimeoutException {
-
-        while (System.currentTimeMillis() < this.endTime) {
+    @Override
+    public void run() {
+        
+        if (this.serviceNames.isEmpty()) {
+            logger.log(Level.INFO, 
+                    "Polling for lifecycle events has ended successfully.");
+            this.lifecycleEventsContainer.setPollingState(PollingState.ENDED);
+        } 
+        try{
+            
+            if (System.currentTimeMillis() < this.endTime){
+                throw new TimeoutException();
+            }
 
             pollForLogs();
 
-            if (this.serviceNames.isEmpty()) {
-                logger.log(Level.INFO, 
-                        "Polling for lifecycle events has ended successfully.");
-                return;
-            }
+        } catch (Throwable e){
+            this.lifecycleEventsContainer.setExecutionException(e);
+            //this exception should not be caught. it is meant to make the scheduler stop
+            //the thread execution.
+            throw new RuntimeException(e);
 
-            logger.log(Level.FINE, "Sleeping for: " + pollingInterval);
-            Thread.sleep(pollingInterval);   
-        }
-        throw new TimeoutException();
+        } 
+
     }
 
     /**
@@ -255,7 +232,7 @@ public class RestPollingCallable implements Callable<Boolean> {
                     }
                 }
             }
-            
+
             this.lifecycleEventsContainer.addLifecycleEvents(servicesLifecycleEventDetailes);
         }
     }
@@ -390,10 +367,6 @@ public class RestPollingCallable implements Callable<Boolean> {
      */
     public void setIsUninstall(final boolean isUninstall) {
         this.isUninstall = isUninstall; 
-        if (isUninstall) {
-            //GSCs will disappear quickly. decrement polling interval
-            this.pollingInterval = UNINSTALL_POLLING_INTERVAL;
-        }
     }
 
     /**
@@ -428,5 +401,6 @@ public class RestPollingCallable implements Callable<Boolean> {
 
         return returnMap;
     }
+
 
 }

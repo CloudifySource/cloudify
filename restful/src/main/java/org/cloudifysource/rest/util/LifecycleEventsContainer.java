@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,9 +31,16 @@ import org.cloudifysource.dsl.internal.EventLogConstants;
 
 public class LifecycleEventsContainer {
 
-	private final Logger logger = Logger.getLogger(getClass().getName());
-	
-	/**
+
+    public enum PollingState{
+        RUNNING,
+        ENDED;
+    }
+
+    private Throwable executionException;
+
+
+    /**
      * A list of processed events, .
      */
     private List<String> eventsList;
@@ -41,7 +49,7 @@ public class LifecycleEventsContainer {
      * A set containing all of the executed lifecycle events. used to avoid duplicate prints.
      */
     private Set<String> lifecycleEventsSet;
-    
+
     private Set<String> serviceInstanceCountEventsSet;
 
     private UUID containerUUID;
@@ -49,7 +57,19 @@ public class LifecycleEventsContainer {
     /**
      * future container polling task.
      */
-    private Future<Boolean> futureTask;
+    private Future<?> futureTask;
+    
+    /**
+     * indicates the polling thread state
+     */
+    private PollingState runnableState;
+
+    /**
+     * indicates whether thread threw an exception.
+     */
+    private Exception runnableException = null;
+    
+    private final Logger logger = Logger.getLogger(getClass().getName());
 
     /**
      * LifecycleEventsContainer constructor.
@@ -57,6 +77,7 @@ public class LifecycleEventsContainer {
     public LifecycleEventsContainer() {
         this.serviceInstanceCountEventsSet = new HashSet<String>();
         this.eventsList = new ArrayList<String>();
+        this.runnableState = PollingState.RUNNING;
     }
 
     public synchronized List<String> getLifecycleEvents(int curser){
@@ -83,9 +104,9 @@ public class LifecycleEventsContainer {
         for (Map<String, String> map : allLifecycleEvents) {
             Map<String, Object> sortedMap = new TreeMap<String, Object>(map);
             if (this.lifecycleEventsSet.contains(sortedMap.toString())) {
-            	if (logger.isLoggable(Level.FINEST)) {
-            		outputMessage = getParsedLifecyceEventMessageFromMap(sortedMap);
-            		logger.finest("Ignoring Lifecycle Event: " + outputMessage);
+                if (logger.isLoggable(Level.FINEST)) {
+                    outputMessage = getParsedLifecyceEventMessageFromMap(sortedMap);
+                    logger.finest("Ignoring Lifecycle Event: " + outputMessage);
                 }
             }
             else {
@@ -93,7 +114,7 @@ public class LifecycleEventsContainer {
                 outputMessage = getParsedLifecyceEventMessageFromMap(sortedMap);
                 this.eventsList.add(outputMessage);
                 if (logger.isLoggable(Level.FINE)) {
-                	logger.fine("Lifecycle Event: " + outputMessage);
+                    logger.fine("Lifecycle Event: " + outputMessage);
                 }
             }
         }
@@ -107,15 +128,15 @@ public class LifecycleEventsContainer {
      */
     public final synchronized void addInstanceCountEvent(String event) {
         if (this.serviceInstanceCountEventsSet.contains(event)){
-        	if (logger.isLoggable(Level.FINEST)) {
-        		logger.finest("Ignoring Instance Count Event: " + event);
+            if (logger.isLoggable(Level.FINEST)) {
+                logger.finest("Ignoring Instance Count Event: " + event);
             }
         }
         else {
             this.serviceInstanceCountEventsSet.add(event);
             this.eventsList.add(event);
-        	if (logger.isLoggable(Level.FINE)) {
-        		logger.fine("Instance Count Event: " + event);
+            if (logger.isLoggable(Level.FINE)) {
+                logger.fine("Instance Count Event: " + event);
             }
         }
     }
@@ -129,11 +150,11 @@ public class LifecycleEventsContainer {
     private String getParsedLifecyceEventMessageFromMap(final Map<String, Object> map) {
         // TODO:Check nulls
         String cleanEventText = (map.get(EventLogConstants.getEventTextKey()))
-        .toString().split(" - ")[1];
+                .toString().split(" - ")[1];
         String outputMessage = '['
-            + map.get(EventLogConstants.getMachineHostNameKey()).toString()
-            + '/' + map.get(EventLogConstants.getMachineHostAddressKey())
-            + "] " + cleanEventText;
+                + map.get(EventLogConstants.getMachineHostNameKey()).toString()
+                + '/' + map.get(EventLogConstants.getMachineHostAddressKey())
+                + "] " + cleanEventText;
         return outputMessage;
     }
 
@@ -146,14 +167,33 @@ public class LifecycleEventsContainer {
         return  this.containerUUID;
     }
 
-    public void setFutureTask(Future<Boolean> future) {
+    public void setFutureTask(Future<?> future) {
         this.futureTask = future;
     }
 
-    public Future<Boolean> getFutureTask() {
+    public Future<?> getFutureTask() {
         return this.futureTask;
     }
-    
+
+    public void setPollingState(PollingState state) {
+        this.runnableState = state;
+    }
+
+    public synchronized void setExecutionException(Throwable e) {
+        if (this.runnableState.equals(PollingState.RUNNING)){
+            this.executionException = e;
+            this.runnableState = PollingState.ENDED;
+        }
+    }
+
+    public ExecutionException getExecutionException() {
+        return (ExecutionException)this.runnableException;
+    }
+
+    public PollingState getPollingState() {
+        return this.runnableState;
+    }
+
     public void setEventsSet(Set<String> eventsSet){
         this.lifecycleEventsSet = eventsSet;
     }
