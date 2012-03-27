@@ -276,7 +276,6 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 					if (firstCreationException == null) {
 						firstCreationException = e;
 					}
-
 				}
 			}
 
