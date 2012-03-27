@@ -58,7 +58,7 @@ public class LifecycleEventsContainer {
      * future container polling task.
      */
     private Future<?> futureTask;
-    
+
     /**
      * indicates the polling thread state
      */
@@ -68,7 +68,7 @@ public class LifecycleEventsContainer {
      * indicates whether thread threw an exception.
      */
     private Exception runnableException = null;
-    
+
     private final Logger logger = Logger.getLogger(getClass().getName());
 
     /**
@@ -187,7 +187,10 @@ public class LifecycleEventsContainer {
     }
 
     public ExecutionException getExecutionException() {
-        return (ExecutionException)this.runnableException;
+        if (this.runnableException == null){
+            return null;
+        }
+        return new ExecutionException(runnableException);
     }
 
     public PollingState getPollingState() {
