@@ -19,15 +19,18 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.CustomNode;
 import org.cloudifysource.esc.driver.provisioning.byon.CustomNodeImpl;
 import org.cloudifysource.esc.util.IPUtils;
+import org.cloudifysource.esc.util.Utils;
 
 /**
  * @author noak
@@ -43,6 +46,7 @@ public class ByonDeployer {
 	private static final String NODES_LIST_FREE = "FREE";
 	private static final String NODES_LIST_ALLOCATED = "ALLOCATED";
 	private static final String NODES_LIST_INVALID = "INVALID";
+	private static final String NODES_LIST_TERMINATED = "TERMINATED";
 	private static final String CLOUD_NODE_ID = "id";
 	private static final String CLOUD_NODE_IP = "ip";
 	private static final String CLOUD_NODE_ID_PREFIX = "idPrefix";
@@ -79,12 +83,16 @@ public class ByonDeployer {
 		templateLists.put(NODES_LIST_FREE, freeNodesPool);
 		templateLists.put(NODES_LIST_ALLOCATED, new ArrayList<CustomNode>());
 		templateLists.put(NODES_LIST_INVALID, new ArrayList<CustomNode>());
+		templateLists.put(NODES_LIST_TERMINATED, new ArrayList<CustomNode>());
 
 		nodesListsByTemplates.put(templateName, templateLists);
 	}
 
 	/**
-	 * Creates a server (AKA a machine or a node) with the assigned logical name.
+	 * Creates a server (AKA a machine or a node) with the assigned logical name. The server is taken from the
+	 * list of free nodes, unless this list is exhausted. If all there are no free nodes available, the
+	 * invalid nodes are checked for SSH connection, and if a connection can be established - the node is
+	 * used.
 	 * 
 	 * @param templateName
 	 *            The name of the nodes-list' template this server belongs to
@@ -110,17 +118,40 @@ public class ByonDeployer {
 		}
 		final List<CustomNode> freeNodesPool = templateLists.get(NODES_LIST_FREE);
 		final List<CustomNode> allocatedNodesPool = templateLists.get(NODES_LIST_ALLOCATED);
+		final List<CustomNode> invalidNodesPool = templateLists.get(NODES_LIST_INVALID);
 
-		if (freeNodesPool.size() == 0) {
-			throw new CloudProvisioningException("Failed to create new cloud node, all nodes are currently used");
+		if (freeNodesPool.size() == 0 && invalidNodesPool.size() == 0) {
+			throw new CloudProvisioningException(
+					"Failed to create new cloud node for template \" " + templateName 
+					+ "\", all available nodes are currently used");
 		}
 
-		node = freeNodesPool.iterator().next();
-
-		if (!allocatedNodesPool.contains(node)) {
-			allocatedNodesPool.add(node);
+		if (freeNodesPool.size() > 0) {
+			node = freeNodesPool.iterator().next();
+			if (!allocatedNodesPool.contains(node)) {
+				allocatedNodesPool.add(node);
+			}
+			freeNodesPool.remove(node);
+		} else {
+			if (invalidNodesPool.size() > 0) {
+				CustomNode currentNode = null;
+				final Iterator<CustomNode> nodesIterator = invalidNodesPool.iterator();
+				while (nodesIterator.hasNext()) {
+					currentNode = nodesIterator.next();
+					try {
+						Utils.validateConnection(currentNode.getPrivateIP(), CloudifyConstants.SSH_PORT);
+						if (!allocatedNodesPool.contains(node)) {
+							allocatedNodesPool.add(node);
+						}
+						invalidNodesPool.remove(node);
+						break;
+					} catch (final Exception ex) {
+						// ignore and continue
+					}
+				}
+			}
 		}
-		freeNodesPool.remove(node);
+
 		((CustomNodeImpl) node).setNodeName(serverName);
 
 		return node;
@@ -333,11 +364,14 @@ public class ByonDeployer {
 	 *            The template this server belongs to
 	 * @param serverName
 	 *            The name of the server to invalidate
+	 * @param terminateNode
+	 *            True - mark the node as terminated and don't attempt to use it again, False - this node is
+	 *            temporarily suspended
 	 * @throws CloudProvisioningException
 	 *             Indicates the server could not be marked as Invalid for the specified template
 	 */
-	public synchronized void invalidateServer(final String templateName, final CustomNode serverName)
-			throws CloudProvisioningException {
+	public synchronized void invalidateServer(final String templateName, final CustomNode serverName,
+			final boolean terminateNode) throws CloudProvisioningException {
 		// attempting to remove the invalid node from the active lists so it will not be used anymore, just to
 		// be sure.
 		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);

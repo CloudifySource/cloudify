@@ -38,6 +38,7 @@ import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClas
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
+import org.cloudifysource.esc.util.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.bean.BeanConfigurationException;
@@ -70,7 +71,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private static final Map<String, ProvisioningDriverClassContext> PROVISIONING_DRIVER_CONTEXT_PER_DRIVER_CLASSNAME =
 			new HashMap<String, ProvisioningDriverClassContext>();
 
-	private static final int DEFAULT_GSA_LOOKUP_TIMEOUT_SECONDS = 15;
 	private ProvisioningDriver cloudifyProvisioning;
 	private Admin admin;
 	private Map<String, String> properties;
@@ -148,12 +148,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		logger.info("Calling provisioning implementation for new machine");
 		MachineDetails machineDetails = null;
 		try {
-			machineDetails = provisionMachine(duration,
-					unit);
+			machineDetails = provisionMachine(duration, unit);
 		} catch (final Exception e) {
 			logger.log(Level.SEVERE,
-					"Failed to provisiong machine: " + e.getMessage(),
-					e);
+					"Failed to provisiong machine: " + e.getMessage(), e);
 			throw new ElasticMachineProvisioningException("Failed to provisiong machine: " + e.getMessage(), e);
 		}
 
@@ -161,21 +159,18 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		try {
 			// check for timeout
-			checkForProvisioningTimeout(end,
-					machineDetails);
+			checkForProvisioningTimeout(end, machineDetails);
 
 			// TODO - finish this section - support picking up existing
 			// installations and agent. - i.e. machineDetails.cloudifyInstalled == true
 
 			// install gigaspaces and start agent
 			logger.info("Cloudify Adapter is installing Cloudify on new machine");
-			installAndStartAgent(machineDetails,
-					end);
+			installAndStartAgent(machineDetails, end);
 
 			// check for timeout again - the installation step can also take a
 			// while to complete.
-			checkForProvisioningTimeout(end,
-					machineDetails);
+			checkForProvisioningTimeout(end, machineDetails);
 
 			// which IP should be used in the cluster
 			String machineIp = null;
@@ -191,33 +186,56 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			}
 			// wait for GSA to become available
 			logger.info("Cloudify adapter is waiting for GSA to become available");
-			final GridServiceAgent gsa = waitForGsa(machineIp,
-					DEFAULT_GSA_LOOKUP_TIMEOUT_SECONDS);
+			final GridServiceAgent gsa = waitForGsa(machineIp, end);
 			if (gsa == null) {
 				// GSA did not start correctly or on time - shutdown the machine
-
 				// handleGSANotFound(machineIp);
 				throw new TimeoutException("New machine was provisioned and Cloudify was installed, "
 						+ "but a GSA was not discovered on the new machine: " + machineDetails);
 			}
 			return gsa;
 		} catch (final ElasticMachineProvisioningException e) {
-			handleExceptionAfterMachineCreated(machineDetails);
+			handleExceptionAfterMachineCreated(machineDetails, end);
 			throw e;
 		} catch (final TimeoutException e) {
-			handleExceptionAfterMachineCreated(machineDetails);
+			handleExceptionAfterMachineCreated(machineDetails, end);
 			throw e;
 		} catch (final InterruptedException e) {
-			handleExceptionAfterMachineCreated(machineDetails);
+			handleExceptionAfterMachineCreated(machineDetails, end);
 			throw e;
 		}
 
 	}
 
-	private void handleExceptionAfterMachineCreated(final MachineDetails machineDetails) {
+	private void handleExceptionAfterMachineCreated(final MachineDetails machineDetails, final long end) {
 		try {
-			// agent is not supposed to be up if we got here, so it is not shutdown before stopping the machine.
-			logger.info("--- DEBUG: Stopping machine " + machineDetails.getPrivateAddress()
+			// if an agent is found (not supposed to, we got here after it wasn't found earlier) - shut it down
+			String machineIp = null;
+			if (machineDetails.isUsePrivateAddress()) {
+				machineIp = machineDetails.getPrivateAddress();
+			} else {
+				machineIp = machineDetails.getPublicAddress();
+			}
+			
+			if (machineIp != null && machineIp.trim().length() > 0) {
+				final GridServiceAgent agent = waitForGsa(machineIp, end);
+				machineIp = agent.getMachine().getHostAddress();
+				logger.fine("Shutting down agent: " + agent + " on host: " + machineIp);
+				try {
+					agent.shutdown();
+					logger.fine("Agent on host: " + machineIp + " successfully shut down");
+				} catch (final Exception e) {
+					logger.log(Level.WARNING,
+							"Failed to shutdown agent on host: " + machineIp + ". Continuing with shutdown of machine.",
+							e);
+				}
+			} else {
+				logger.log(Level.SEVERE,
+						"Machine Provisioning failed. IP is empty. machine Id: " + machineDetails.getMachineId());
+			}
+			
+			
+			logger.info("Stopping machine " + machineDetails.getPrivateAddress()
 					+ ", DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE");
 			this.cloudifyProvisioning.stopMachine(machineDetails.getPrivateAddress(),
 					DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE,
@@ -288,8 +306,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		try {
 			// delegate provisioning to the cloud driver implementation
 			cloudifyProvisioning.setAdmin(admin);
-			machineDetails = cloudifyProvisioning.startMachine(duration,
-					unit);
+			machineDetails = cloudifyProvisioning.startMachine(duration, unit);
 		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Failed to start machine: " + e.getMessage(), e);
 		}
@@ -303,10 +320,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return machineDetails;
 	}
 
-	private GridServiceAgent waitForGsa(final String machineIp, final int timeoutInSeconds)
-			throws InterruptedException {
+	private GridServiceAgent waitForGsa(final String machineIp, final long end)
+			throws InterruptedException, TimeoutException {
 
-		final long endTime = System.currentTimeMillis() + timeoutInSeconds * MILLISECONDS_IN_SECOND;
+		//final long endTime = System.currentTimeMillis() + timeoutInSeconds * MILLISECONDS_IN_SECOND;
+		final long endTime = Utils.millisUntil(end);
 
 		while (System.currentTimeMillis() < endTime) {
 			GridServiceAgent gsa = admin.getGridServiceAgents().getHostAddress().get(machineIp);

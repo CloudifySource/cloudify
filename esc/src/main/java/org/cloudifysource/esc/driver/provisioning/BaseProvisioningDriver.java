@@ -43,7 +43,6 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	protected static final int WAIT_TIMEOUT_MILLIS = 360000;
 	// TODO - make this a configuration option
 	protected static final int MAX_SERVERS_LIMIT = 200;
-	protected static final int SSH_PORT = 22;
 
 	protected static final String EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API = "try_to_connect_to_cloud_api";
 	protected static final String EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API = "connection_to_cloud_api_succeeded";
@@ -51,7 +50,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	protected static final String EVENT_MGMT_VMS_STARTED = "management_started_successfully";
 	protected static final String AGENT_MACHINE_PREFIX = "cloudify_agent_";
 	protected static final String MANAGMENT_MACHINE_PREFIX = "cloudify_managememnt_";
-	
+
 	protected boolean management;
 	protected static AtomicInteger counter = new AtomicInteger();
 	protected String serverNamePrefix;
@@ -67,10 +66,15 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	protected final List<ProvisioningDriverListener> eventsListenersList = new LinkedList<ProvisioningDriverListener>();
 
 	protected final Map<String, Long> stoppingMachines = new ConcurrentHashMap<String, Long>();
-	
 
+	/**
+	 * Initializing the cloud deployer according to the given cloud configuration.
+	 * 
+	 * @param cloud
+	 *            Cloud object to use
+	 */
 	protected abstract void initDeployer(final Cloud cloud);
-	
+
 	@Override
 	public void setProvisioningDriverClassContext(final ProvisioningDriverClassContext context) {
 		this.context = context;
@@ -86,7 +90,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		this.admin = admin;
 
 	}
-	
+
 	@Override
 	public void addListener(final ProvisioningDriverListener pdl) {
 		this.eventsListenersList.add(pdl);
@@ -122,10 +126,10 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		this.serverNamePrefix = prefix;
 	}
 
-	protected static void logServerDetails(final MachineDetails machineDetails, final File tempFile) {
+	private static void logServerDetails(final MachineDetails machineDetails, final File tempFile) {
 		if (logger.isLoggable(Level.FINE)) {
 			final String nodePrefix = "[" + machineDetails.getMachineId() + "] ";
-			logger.fine(nodePrefix + "Cloud Server was allocated.");
+			logger.fine(nodePrefix + "Cloud Server is allocated.");
 			if (tempFile == null) {
 				logger.fine(nodePrefix + "Password: ***");
 			} else {
@@ -138,16 +142,25 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		}
 	}
 
-
+	/**
+	 * Handles credentials for accessing the server - in this order: 1. Password or key file set for this
+	 * specific server 2. Key file set for the entire cloud 3. Password set for the entire cloud
+	 * 
+	 * @param machineDetails
+	 *            The MachineDetails object that represents this server
+	 * @throws CloudProvisioningException
+	 *             Indicates missing credentials or IOException (when a key file is used)
+	 */
 	protected void handleServerCredentials(final MachineDetails machineDetails) throws CloudProvisioningException {
 		File tempFile = null;
 
-		if (org.apache.commons.lang.StringUtils.isBlank(machineDetails.getRemotePassword())) {
-			if (cloud.getUser().getKeyFile() == null || cloud.getUser().getKeyFile().length() == 0) {
-				logger.fine("No key file specified in cloud configuration");
+		if (StringUtils.isBlank(machineDetails.getRemotePassword())) {
+			if (org.apache.commons.lang.StringUtils.isBlank(cloud.getUser().getKeyFile())) {
+				logger.fine("No key file specified in the cloud configuration file");
 				// no key file. Check for password
-				if (cloud.getConfiguration().getRemotePassword() == null) {
-					logger.severe("No Password or key file specified in cloud configuration - connection to the new machine is not possible.");
+				if (StringUtils.isBlank(cloud.getConfiguration().getRemotePassword())) {
+					logger.severe("No Password or key file specified in the cloud configuration file - connection to"
+							+ " the new machine is not possible.");
 					throw new CloudProvisioningException(
 							"No credentials (password or key file) supplied with the cloud configuration file");
 				}
@@ -177,6 +190,14 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		logServerDetails(machineDetails, keyFile);
 	}
 
+	/**
+	 * Publish a provisioning event occurred for the listeners registered on this class.
+	 * 
+	 * @param eventName
+	 *            The name of the event (must be in the message bundle)
+	 * @param args
+	 *            Arguments that complement the event message
+	 */
 	protected void publishEvent(final String eventName, final Object... args) {
 		for (final ProvisioningDriverListener listener : this.eventsListenersList) {
 			listener.onProvisioningEvent(eventName, args);

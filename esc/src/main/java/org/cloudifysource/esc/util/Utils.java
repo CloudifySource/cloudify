@@ -16,6 +16,8 @@
 package org.cloudifysource.esc.util;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -24,8 +26,18 @@ import java.net.Socket;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSelectInfo;
+import org.apache.commons.vfs2.FileSelector;
+import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.FileSystemOptions;
+import org.apache.commons.vfs2.VFS;
+import org.apache.commons.vfs2.provider.sftp.SftpFileSystemConfigBuilder;
+import org.apache.tools.ant.BuildException;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
@@ -45,6 +57,8 @@ public final class Utils {
 	private static final int ADMIN_API_TIMEOUT = 90;
 	// timeout in seconds, waiting for a socket to connect
 	private static final int DEFAULT_CONNECTION_TIMEOUT = 10;
+	// timeout for SFTP connection
+	private static final int SFTP_DISCONNECT_DETECTION_TIMEOUT_MILLIS = 10 * 1000;
 
 	private Utils() {
 	}
@@ -211,6 +225,137 @@ public final class Utils {
 		}
 
 		return admin;
+	}
+
+	/**
+	 * Executes a SSH command.
+	 * 
+	 * @param host
+	 *            The host to run the command on
+	 * @param command
+	 *            The command to execute
+	 * @param username
+	 *            The name of the user executing the command
+	 * @param password
+	 *            The password for the executing user, if used
+	 * @param keyFile
+	 *            The key file, if used
+	 * @param timeout
+	 *            The number of time-units to wait before throwing a TimeoutException
+	 * @param unit
+	 *            The units (e.g. seconds)
+	 * @throws BuildException
+	 *             Indicates the command execution failed
+	 * @throws TimeoutException
+	 *             Indicates the timeout was reached before the command completed
+	 */
+	public static void executeSSHCommand(final String host, final String command, final String username,
+			final String password, final String keyFile, final long timeout, final TimeUnit unit)
+			throws BuildException, TimeoutException {
+
+		final LoggerOutputStream loggerOutputStream = new LoggerOutputStream(
+				Logger.getLogger(AgentlessInstaller.SSH_OUTPUT_LOGGER_NAME));
+		loggerOutputStream.setPrefix("[" + host + "] ");
+
+		final org.cloudifysource.esc.util.SSHExec task = new org.cloudifysource.esc.util.SSHExec();
+		task.setCommand(command);
+		task.setHost(host);
+		task.setTrust(true);
+		task.setUsername(username);
+		task.setTimeout(unit.toMillis(timeout));
+		task.setFailonerror(true);
+		task.setOutputStream(loggerOutputStream);
+		task.setUsePty(true);
+
+		if (keyFile != null) {
+			task.setKeyfile(keyFile);
+		}
+		if (password != null) {
+			task.setPassword(password);
+		}
+
+		// logger.fine("Executing command: " + command + " on " + host);
+		task.execute();
+		loggerOutputStream.close();
+	}
+
+	/**
+	 * Deletes file or folder on a remote host.
+	 * 
+	 * @param host
+	 *            The host to connect to
+	 * @param username
+	 *            The name of the user that deletes the file/folder
+	 * @param password
+	 *            The password of the above user
+	 * @param fileSystemObject
+	 *            The file or folder to delete
+	 * @param keyFile
+	 *            The key file, if used
+	 * @param timeout
+	 *            The number of time-units (i.e. seconds, minutes) before a timeout exception is thrown
+	 * @param unit
+	 *            The time unit to use (e.g. seconds)
+	 * @throws IOException
+	 *             Indicates the deletion failed
+	 * @throws TimeoutException
+	 *             Indicates the action was not completed before the timout was reached
+	 */
+	public static void deleteFileSystemObject(final String host, final String username, final String password,
+			final String fileSystemObject, final String keyFile, final long timeout, final TimeUnit unit)
+			throws IOException, TimeoutException {
+
+		if (timeout < 0) {
+			throw new TimeoutException("Deleting \"" + fileSystemObject + "\" from server " + host + " timed out");
+		}
+		final long end = System.currentTimeMillis() + unit.toMillis(timeout);
+
+		final FileSystemOptions opts = new FileSystemOptions();
+
+		SftpFileSystemConfigBuilder.getInstance().setStrictHostKeyChecking(opts, "no");
+
+		SftpFileSystemConfigBuilder.getInstance().setUserDirIsRoot(opts, false);
+
+		if (keyFile != null && keyFile.length() > 0) {
+			final File temp = new File(keyFile);
+			if (!temp.exists()) {
+				throw new FileNotFoundException("Could not find key file: " + temp + ". KeyFile " + keyFile
+						+ " that was passed in the installation Details does not exist");
+			}
+			SftpFileSystemConfigBuilder.getInstance().setIdentities(opts, new File[] { temp });
+		}
+
+		SftpFileSystemConfigBuilder.getInstance().setTimeout(opts, SFTP_DISCONNECT_DETECTION_TIMEOUT_MILLIS);
+		final FileSystemManager mng = VFS.getManager();
+
+		String scpTarget = null;
+		if (password != null && password.length() > 0) {
+			scpTarget = "sftp://" + username + ":" + password + "@" + host + fileSystemObject;
+		} else {
+			scpTarget = "sftp://" + username + "@" + host + fileSystemObject;
+		}
+
+		final FileObject remoteDir = mng.resolveFile(scpTarget, opts);
+		try {
+			remoteDir.delete(new FileSelector() {
+
+				@Override
+				public boolean includeFile(final FileSelectInfo fileInfo) throws Exception {
+					return true;
+				}
+
+				@Override
+				public boolean traverseDescendents(final FileSelectInfo fileInfo) throws Exception {
+					return true;
+				}
+			});
+		} finally {
+			mng.closeFileSystem(remoteDir.getFileSystem());
+		}
+
+		if (end < System.currentTimeMillis()) {
+			throw new TimeoutException("Deleting \"" + fileSystemObject + "\" on server " + host + " timed out");
+		}
 	}
 
 }

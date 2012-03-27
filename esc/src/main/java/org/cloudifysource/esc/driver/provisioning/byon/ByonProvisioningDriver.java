@@ -77,8 +77,6 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 					logger.info("Creating BYON context deployer for cloud: " + cloud.getName());
 					final ByonDeployer deployer = new ByonDeployer();
 					List<Map<String, String>> nodesList = null;
-					// String managementTemplateName =
-					// cloud.getConfiguration().getManagementMachineTemplate();
 					final Map<String, CloudTemplate> templatesMap = cloud.getTemplates();
 					for (final String templateName : templatesMap.keySet()) {
 						final Map<String, Object> customSettings = cloud.getTemplates().get(templateName).getCustom();
@@ -135,16 +133,22 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		// must clean up the machine.
 		try {
 			handleServerCredentials(machineDetails);
+		} catch (final CloudProvisioningException e) {
+			deployer.invalidateServer(cloudTemplateName, node, true);
+			throw e;
+		}
+		
+		try {
 			// check that a SSH connection can be made
-			Utils.validateConnection(machineDetails.getIp(), SSH_PORT);
+			Utils.validateConnection(machineDetails.getIp(), CloudifyConstants.SSH_PORT);
 		} catch (final Exception e) {
 			// catch any exception - to prevent a cloud machine leaking.
 			logger.log(Level.SEVERE, "Cloud server could not be started on " + machineDetails.getIp()
 					+ ", SSH connection failed.", e);
 			try {
-				deployer.invalidateServer(cloudTemplateName, node);
+				deployer.invalidateServer(cloudTemplateName, node, false);
 			} catch (final CloudProvisioningException ie) {
-				logger.log(Level.SEVERE, "Failed to mark machine " + machineDetails.getIp() + "as Invalid.", ie);
+				logger.log(Level.SEVERE, "Failed to mark machine " + machineDetails.getIp() + " as Invalid.", ie);
 			}
 			throw new CloudProvisioningException(e);
 		}
@@ -318,6 +322,19 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			if (cloudNode != null) {
 				logger.info("Found server: " + cloudNode.getId()
 						+ ". Shutting it down and waiting for shutdown to complete");
+				MachineDetails machineDetails = null;
+				try {
+					machineDetails = createMachineDetailsFromNode(cloudNode);
+					Utils.deleteFileSystemObject(machineDetails.getPrivateAddress(), machineDetails.getRemoteUsername(),
+							machineDetails.getRemotePassword(), "/tmp/gs-files", null, 1, TimeUnit.MINUTES);
+				} catch (Exception e) {
+					if (machineDetails != null) {
+						logger.info("ByonProvisioningDriver: Failed to delete system files on teardown from server: " 
+							+ machineDetails.getPrivateAddress());
+					} else {
+						logger.info("ByonProvisioningDriver: Failed to delete system files on teardown from server.");
+					}
+				}
 				deployer.shutdownServerByIp(cloudTemplateName, cloudNode.getPrivateIP());
 				logger.info("Server: " + cloudNode.getId() + " shutdown has finished.");
 				stopResult = true;
@@ -344,9 +361,22 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			for (final CustomNode customNode : managementServers) {
 				stopManagementServicesAndWait(cloud.getProvider().getNumberOfManagementMachines(),
 						customNode.getPrivateIP(), 2, TimeUnit.MINUTES);
+				MachineDetails machineDetails = null;
+				try {
+					machineDetails = createMachineDetailsFromNode(customNode);
+					Utils.deleteFileSystemObject(machineDetails.getPrivateAddress(), machineDetails.getRemoteUsername(),
+							machineDetails.getRemotePassword(), "/tmp/gs-files", null, 1, TimeUnit.MINUTES);
+				} catch (Exception e) {
+					if (machineDetails != null) {
+						logger.info("ByonProvisioningDriver: Failed to delete system files on teardown from server: " 
+							+ machineDetails.getPrivateAddress());
+					} else {
+						logger.info("ByonProvisioningDriver: Failed to delete system files on teardown from server.");
+					}
+				}
 				deployer.shutdownServer(cloudTemplateName, customNode);
 			}
-		} catch (final InterruptedException e) {
+		} catch (final Exception e) {
 			throw new CloudProvisioningException("Failed to shutdown agent.", e);
 		}
 

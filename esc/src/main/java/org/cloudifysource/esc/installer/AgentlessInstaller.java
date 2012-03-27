@@ -44,7 +44,6 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.ExitStatusException;
 import org.apache.tools.ant.taskdefs.optional.testing.BuildTimeoutException;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.esc.util.LoggerOutputStream;
 import org.cloudifysource.esc.util.ShellCommandBuilder;
 import org.cloudifysource.esc.util.Utils;
 
@@ -206,7 +205,7 @@ public class AgentlessInstaller {
 	 *            local directory.
 	 * @param toDir
 	 *            remote directory.
-	 * @param keyFile
+	 * @param keyFile The key file of the remote machine, if used.
 	 * @param milliseconds
 	 * @param timeout
 	 * @throws IOException
@@ -260,7 +259,6 @@ public class AgentlessInstaller {
 				+ " excluding " + excludedFiles.toString());
 
 		try {
-
 			remoteDir.copyFrom(
 					localDir, new FileSelector() {
 
@@ -433,42 +431,9 @@ public class AgentlessInstaller {
 		logger.fine("Calling startup script on target: " + sshIpAddress + " with LOCATOR=" + details.getLocator()
 				+ "\nThis may take a few minutes");
 
-		sshCommand(
-				sshIpAddress, command, details.getUsername(), details.getPassword(), details.getKeyFile(),
-				Utils.millisUntil(end), TimeUnit.MILLISECONDS);
-		publishEvent(
-				"access_vm_with_ssh_success", details.getPublicIp());
-
-	}
-
-	private static void sshCommand(final String host, final String command, final String username,
-			final String password, final String keyFile, final long timeout, final TimeUnit unit)
-			throws InstallerException, TimeoutException {
-
-		final LoggerOutputStream loggerOutputStream = new LoggerOutputStream(Logger.getLogger(SSH_OUTPUT_LOGGER_NAME));
-		loggerOutputStream.setPrefix("[" + host + "] ");
-
-		final org.cloudifysource.esc.util.SSHExec task = new org.cloudifysource.esc.util.SSHExec();
-		task.setCommand(command);
-		task.setHost(host);
-		task.setTrust(true);
-		task.setUsername(username);
-		task.setTimeout(unit.toMillis(timeout));
-		task.setFailonerror(true);
-		task.setOutputStream(loggerOutputStream);
-		task.setUsePty(true);
-
-		if (keyFile != null) {
-			task.setKeyfile(keyFile);
-		}
-		if (password != null) {
-			task.setPassword(password);
-		}
-
 		try {
-			logger.fine("Executing command: " + command + " on " + host);
-			task.execute();
-			loggerOutputStream.close();
+			Utils.executeSSHCommand(sshIpAddress, command, details.getUsername(), details.getPassword(), 
+					details.getKeyFile(), Utils.millisUntil(end), TimeUnit.MILLISECONDS);
 		} catch (final BuildException e) {
 			// There really should be a better way to check that this is a
 			// timeout
@@ -485,7 +450,12 @@ public class AgentlessInstaller {
 				throw new InstallerException("Command " + command + " failed to execute.", e);
 			}
 		}
+		
+		publishEvent("access_vm_with_ssh_success", details.getPublicIp());
+
 	}
+
+	
 
 	/**********
 	 * Registers an event listener for installation events.
