@@ -40,6 +40,7 @@ import org.cloudifysource.dsl.ServiceNetwork;
 import org.cloudifysource.dsl.Sla;
 import org.cloudifysource.dsl.StatefulProcessingUnit;
 import org.cloudifysource.dsl.StatelessProcessingUnit;
+import org.cloudifysource.dsl.autoscaling.AutoScalingDetails;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudConfiguration;
 import org.cloudifysource.dsl.cloud.CloudProvider;
@@ -368,6 +369,8 @@ public abstract class BaseDslScript extends Script {
 					new DSLObjectInitializerData("barLineChart",
 							BarLineChart.class, false, true, "widgetGroup"));
 
+			addObjectInitializerForClass(dslObjectInitializersByName,
+					AutoScalingDetails.class);
 		}
 		return dslObjectInitializersByName;
 

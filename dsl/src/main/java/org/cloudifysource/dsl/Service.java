@@ -20,7 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.cloudifysource.dsl.autoscaling.AutoScaling;
+import org.cloudifysource.dsl.autoscaling.AutoScalingDetails;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.openspaces.ui.UserInterface;
 
@@ -86,7 +86,7 @@ public class Service {
 
 	private String url = null;
 	
-	private AutoScaling autoScaling;
+	private AutoScalingDetails autoScaling;
 	
 	public boolean isElastic() {
 		return elastic;
@@ -310,11 +310,11 @@ public class Service {
 		this.url = url;
 	}
 
-	public AutoScaling getAutoScaling() {
+	public AutoScalingDetails getAutoScaling() {
 		return autoScaling;
 	}
 
-	public void setAutoScaling(final AutoScaling autoScaling) {
+	public void setAutoScaling(final AutoScalingDetails autoScaling) {
 		this.autoScaling = autoScaling;
 	}
 

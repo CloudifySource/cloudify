@@ -17,7 +17,6 @@ package org.cloudifysource.dsl.autoscaling;
 
 import java.io.Serializable;
 
-import org.cloudifysource.dsl.ComputeDetails;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 
@@ -30,9 +29,9 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
  * @since 2.1
  * @see Service
  */
-@CloudifyDSLEntity(name = "autoScaling", clazz = ComputeDetails.class, allowInternalNode = true, allowRootNode = false,
+@CloudifyDSLEntity(name = "autoScaling", clazz = AutoScalingDetails.class, allowInternalNode = true, allowRootNode = false,
 parent = "service")
-public class AutoScaling {
+public class AutoScalingDetails {
 	
 	private static final long DEFAULT_SAMPLING_PERIOD_SECONDS = 60;
 
@@ -73,7 +72,7 @@ public class AutoScaling {
 		this.instancesStatistics = instancesStatistics;
 	}
 
-	public Object getHighThreshold() {
+	public Serializable getHighThreshold() {
 		return highThreshold;
 	}
 
@@ -81,7 +80,7 @@ public class AutoScaling {
 		this.highThreshold = highThreshold;
 	}
 
-	public Object getLowThreshold() {
+	public Serializable getLowThreshold() {
 		return lowThreshold;
 	}
 

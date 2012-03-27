@@ -21,6 +21,7 @@ import java.net.UnknownHostException;
 
 import junit.framework.Assert;
 
+import org.cloudifysource.dsl.autoscaling.AutoScalingDetails;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.Test;
@@ -143,5 +144,26 @@ public class ServiceParsingTest {
 		Assert.assertEquals(2, service.getExtendedServicesPaths().size());
 		Assert.assertEquals("test_parsing_extend-service.groovy", service.getExtendedServicesPaths().getFirst());
 		Assert.assertEquals("test_parsing_base-service.groovy", service.getExtendedServicesPaths().getLast());
+	}
+	
+	@Test
+	public void testAutoScalingParsing() throws DSLException, UnknownHostException {
+		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH + "test_parsing_autoscaling-service.groovy");
+		final File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
+		final Service service = ServiceReader.getServiceFromFile(testParsingBaseDslFile, testParsingBaseWorkDir)
+				.getService();
+		Assert.assertTrue(service.getMinNumInstances() > 1);
+		Assert.assertTrue(service.getNumInstances() >= service.getMinNumInstances());
+		Assert.assertTrue(service.getMaxNumInstances() >= service.getNumInstances());
+		Assert.assertEquals("autoscaling", service.getName());
+		AutoScalingDetails autoScaling = service.getAutoScaling();
+		Assert.assertNotNull(autoScaling);
+		Assert.assertNotNull(autoScaling.getHighThreshold());
+		Assert.assertNotNull(autoScaling.getLowThreshold());
+		Assert.assertNotNull(autoScaling.getMetric());
+		Assert.assertNotNull(autoScaling.getInstancesStatistics());
+		Assert.assertNotNull(autoScaling.getSamplingPeriodSeconds());
+		Assert.assertNotNull(autoScaling.getTimeStatistics());
+		Assert.assertNotNull(autoScaling.getTimeWindowSeconds());
 	}
 }
