@@ -57,6 +57,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.servlet.http.HttpServletResponse;
 
 import net.jini.core.discovery.LookupLocator;
@@ -219,6 +220,15 @@ public class ServiceController {
 			throw new IllegalStateException("ServiceController failed to locate temp directory", e);
 		}
 	}
+	
+	/**
+	 * terminate all running threads.
+	 */
+   @PreDestroy
+    public void destroy() {
+       this.executorService.shutdownNow();
+       this.scheduledExecutor.shutdownNow();
+    }
 
 	private String getCloudConfigurationFromManagementSpace() {
 		logger.info("Waiting for cloud configuration to become available in management space");
