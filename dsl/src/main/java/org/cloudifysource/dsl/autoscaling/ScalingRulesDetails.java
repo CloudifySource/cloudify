@@ -26,9 +26,9 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
  * @since 2.1
  * @see org.cloudifysource.dsl.Service
  */
-@CloudifyDSLEntity(name = "autoScaling", clazz = AutoScalingDetails.class, 
+@CloudifyDSLEntity(name = "scalingRules", clazz = ScalingRulesDetails.class, 
 	allowInternalNode = true, allowRootNode = false, parent = "service")
-public class AutoScalingDetails {
+public class ScalingRulesDetails {
 	
 	private static final long DEFAULT_SAMPLING_PERIOD_SECONDS = 60;
 
@@ -51,8 +51,9 @@ public class AutoScalingDetails {
 	 * based on a single instance gone wild.
 	 */
 	private static final AutoScalingStatistics DEFAULT_INSTANCES_STATISTICS = STATISTICS_FACTORY.average();
+	private static final AutoScalingStatistics DEFAULT_STATISTICS = STATISTICS_FACTORY.average();
 	
-	private long samplingPeriodSeconds = DEFAULT_SAMPLING_PERIOD_SECONDS;
+	private long samplingPeriodInSeconds = DEFAULT_SAMPLING_PERIOD_SECONDS;
 	
 	private String metric;
 	
@@ -62,11 +63,30 @@ public class AutoScalingDetails {
 	
 	private AutoScalingStatistics instancesStatistics = DEFAULT_INSTANCES_STATISTICS;
 	
+	private AutoScalingStatistics statistics = DEFAULT_STATISTICS;
+	
 	private Comparable<?> highThreshold;
 	
 	private Comparable<?> lowThreshold;
+
+	/**
+	 * @param statistics 
+	 * 			    The algorithm for aggregating metric samples.
+     *              Metric samples are aggregated separately per instance in the specified time range,
+     *	            and then aggregated again for all instances.
+     *              Default: statistics.average
+     * 		        Possible values: statistics.average, statistics.minimum, statistics.maximum
+     */
+	public void setStatistics(final AutoScalingStatistics statistics) {
+		this.statistics = statistics;
+		setTimeStatistics(statistics);
+		setInstancesStatistics(statistics);
+	}
 	
-	
+	public AutoScalingStatistics getStatistics() {
+		return statistics;
+	}
+
 	public AutoScalingStatistics getTimeStatistics() {
 		return timeStatistics;
 	}
@@ -119,7 +139,7 @@ public class AutoScalingDetails {
 		this.lowThreshold = lowThreshold;
 	}
 
-	public long getTimeWindowSeconds() {
+	public long getMovingTimeRangeInSeconds() {
 		return timeWindowSeconds;
 	}
 
@@ -127,7 +147,7 @@ public class AutoScalingDetails {
 	 * @param timeWindowSeconds The sliding time window (in seconds) for aggregating per-instance metric samples.
      * The number of samples in the time windows equals the time window divided by the sampling period
 	 */
-	public void setTimeWindowSeconds(final long timeWindowSeconds) {
+	public void setMovingTimeRangeInSeconds(final long timeWindowSeconds) {
 		this.timeWindowSeconds = timeWindowSeconds;
 	}
 
@@ -142,14 +162,14 @@ public class AutoScalingDetails {
 		this.metric = metric;
 	}
 
-	public long getSamplingPeriodSeconds() {
-		return samplingPeriodSeconds;
+	public long getSamplingPeriodInSeconds() {
+		return samplingPeriodInSeconds;
 	}
 
 	/**
-	 * @param samplingPeriodSeconds The time (in seconds) between two consecutive metric samples.
+	 * @param samplingPeriodInSeconds The time (in seconds) between two consecutive metric samples.
 	 */
-	public void setSamplingPeriodSeconds(final long samplingPeriodSeconds) {
-		this.samplingPeriodSeconds = samplingPeriodSeconds;
+	public void setSamplingPeriodInSeconds(final long samplingPeriodInSeconds) {
+		this.samplingPeriodInSeconds = samplingPeriodInSeconds;
 	}
 }

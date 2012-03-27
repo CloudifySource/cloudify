@@ -3,7 +3,7 @@ import java.util.concurrent.atomic.AtomicLong;
 // This service is a mock for recipe parsing unit test
 service {
   
-	name "autoscaling"
+	name "scalingRules"
  
   lifecycle {
 
@@ -18,36 +18,38 @@ service {
   numInstances 2
      
   // The minimum number of service instances
-  minNumInstances 2
+  minAllowedInstances 2
     
   // The maximum number of service instances
-  maxNumInstances 20
+  maxAllowedInstances 20
      
 	// Defines an automatic scaling rule based on "counter" metric value
-  autoScaling {
+  scalingRules {
    
     //The time (in seconds) between two consecutive metric samples
-    samplingPeriodSeconds 1
+    samplingPeriodInSeconds 1
          
     // The name of the metric that is the basis for the scale rule decision
     metric "counter"
-    
-    // The sliding time window (in secods) for aggregating per-instance metric samples
-    // The number of samples in the time windows equals the time window divided by the sampling period
-    timeWindowSeconds 5
+ 
+    statistics Statistics.average
+   
+    // The moving time range (in seconds) for aggregating per-instance metric samples
+    // The number of samples in the time windows equals the time window divided by the sampling period plus one.
+    movingTimeRangeInSeconds 5
     
     // (Optional)
     // The algorithm for aggregating metric samples in the specified time window.
     // Metric samples are aggregated separately per instance.
-    // Default: statistics.average
-    // Possible values: statistics.average, statistics.minimum, statistics.maximum, statistics.percentile(n)
-    timeStatistics statistics.average
+    // Default: Statistics.average
+    // Possible values: Statistics.average, Statistics.minimum, Statistics.maximum, Statistics.percentile(n)
+    timeStatistics Statistics.average
     
     // (Optional)
     // The aggregation of all instances' timeStatistics
-    // Default value: statistics.maximum
-    // Possible values: statistics.average, statistics.minimum, statistics.maximum, statistics.percentile(n)
-    instancesStatistics statistics.maximum
+    // Default value: Statistics.maximum
+    // Possible values: Statistics.average, Statistics.minimum, Statistics.maximum, Statistics.percentile(n)
+    instancesStatistics Statistics.maximum
     
     // The instancesStatistics over which the number of instances is increased or decreased
     highThreshold 90

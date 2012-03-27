@@ -20,7 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.cloudifysource.dsl.autoscaling.AutoScalingDetails;
+import org.cloudifysource.dsl.autoscaling.ScalingRulesDetails;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.openspaces.ui.UserInterface;
 
@@ -56,9 +56,9 @@ public class Service {
 
 	private int numInstances = 1;
 	
-	private int minNumInstances = 1;
+	private int minAllowedInstances = 1;
 	
-	private int maxNumInstances = 1;
+	private int maxAllowedInstances = 1;
 	
 	private long maxJarSize = DEFAULT_MAX_JAR_SIZE;
 	
@@ -86,7 +86,7 @@ public class Service {
 
 	private String url = null;
 	
-	private AutoScalingDetails autoScaling;
+	private ScalingRulesDetails scalingRules;
 	
 	public boolean isElastic() {
 		return elastic;
@@ -310,28 +310,27 @@ public class Service {
 		this.url = url;
 	}
 
-	public AutoScalingDetails getAutoScaling() {
-		return autoScaling;
+	public ScalingRulesDetails getScalingRules() {
+		return scalingRules;
 	}
 
-	public void setAutoScaling(final AutoScalingDetails autoScaling) {
-		this.autoScaling = autoScaling;
+	public void setScalingRules(final ScalingRulesDetails scalingRules) {
+		this.scalingRules = scalingRules;
 	}
 
-	public int getMinNumInstances() {
-		return minNumInstances;
+	public int getMinAllowedInstances() {
+		return minAllowedInstances;
 	}
 
-	public void setMinNumInstances(final int minNumInstances) {
-		this.minNumInstances = minNumInstances;
+	public void setMinAllowedInstances(final int minAllowedInstances) {
+		this.minAllowedInstances = minAllowedInstances;
 	}
 
-	public int getMaxNumInstances() {
-		return maxNumInstances;
+	public int getMaxAllowedInstances() {
+		return maxAllowedInstances;
 	}
 
-	public void setMaxNumInstances(final int maxNumInstances) {
-		this.maxNumInstances = maxNumInstances;
+	public void setMaxAllowedInstances(final int maxAllowedInstances) {
+		this.maxAllowedInstances = maxAllowedInstances;
 	}
-
 }

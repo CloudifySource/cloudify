@@ -67,7 +67,7 @@ import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.Sla;
 import org.cloudifysource.dsl.StatefulProcessingUnit;
 import org.cloudifysource.dsl.StatelessProcessingUnit;
-import org.cloudifysource.dsl.autoscaling.AutoScalingDetails;
+import org.cloudifysource.dsl.autoscaling.ScalingRulesDetails;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -1195,7 +1195,7 @@ public class ServiceController {
 			}
 			else {
 				//local cloud
-				if (service == null || service.getAutoScaling() == null) {
+				if (service == null || service.getScalingRules() == null) {
 
 					final ManualCapacityScaleConfig scaleConfig = 
 							createManualCapacityScaleConfig(serviceName, service, externalProcessMemoryInMB);
@@ -1222,7 +1222,7 @@ public class ServiceController {
 			setDedicatedMachineProvisioning(deployment, config);
 			deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
 
-			if (service == null || service.getAutoScaling() == null) {
+			if (service == null || service.getScalingRules() == null) {
 				
 				final ManualCapacityScaleConfig scaleConfig = 
 						createManualCapacityScaleConfig(serviceName, service, (int)cloudExternalProcessMemoryInMB);
@@ -1284,22 +1284,22 @@ public class ServiceController {
 			final Service service, 
 			final int externalProcessMemoryInMB) throws DSLException {
 		
-		AutoScalingDetails autoScaling = service.getAutoScaling();
+		ScalingRulesDetails autoScaling = service.getScalingRules();
 		
-		if (service.getMinNumInstances() <= 0) {
-			throw new DSLException("Minimum number of instances (" + service.getMinNumInstances() + ") must be 1 or higher.");
+		if (service.getMinAllowedInstances() <= 0) {
+			throw new DSLException("Minimum number of instances (" + service.getMinAllowedInstances() + ") must be 1 or higher.");
 		}
 
-		if (service.getMinNumInstances() > service.getMaxNumInstances()) {
-			throw new DSLException("maximum number of instances (" + service.getMaxNumInstances() + ") must be equal or greater than the minimum number of instances (" + service.getMinNumInstances() +")");
+		if (service.getMinAllowedInstances() > service.getMaxAllowedInstances()) {
+			throw new DSLException("maximum number of instances (" + service.getMaxAllowedInstances() + ") must be equal or greater than the minimum number of instances (" + service.getMinAllowedInstances() +")");
 		}
 
-		if (service.getMinNumInstances() > service.getNumInstances()) {
-			throw new DSLException("number of instances (" + service.getNumInstances() + ") must be equal or greater than the minimum number of instances (" + service.getMinNumInstances() +")");
+		if (service.getMinAllowedInstances() > service.getNumInstances()) {
+			throw new DSLException("number of instances (" + service.getNumInstances() + ") must be equal or greater than the minimum number of instances (" + service.getMinAllowedInstances() +")");
 		}
 
-		if (service.getNumInstances() > service.getMaxNumInstances()) {
-			throw new DSLException("number of instances (" + service.getNumInstances() + ") must be equal or less than the maximum number of instances (" + service.getMaxNumInstances() +")");
+		if (service.getNumInstances() > service.getMaxAllowedInstances()) {
+			throw new DSLException("number of instances (" + service.getNumInstances() + ") must be equal or less than the maximum number of instances (" + service.getMaxAllowedInstances() +")");
 		}
 
 		ProcessingUnitStatisticsId statisticsId = new ProcessingUnitStatisticsId();
@@ -1307,7 +1307,7 @@ public class ServiceController {
 		statisticsId.setMetric(autoScaling.getMetric());
 		statisticsId.setInstancesStatistics(autoScaling.getInstancesStatistics().toInstancesStatistics());
 
-		if (autoScaling.getTimeWindowSeconds() <= autoScaling.getSamplingPeriodSeconds()) {
+		if (autoScaling.getMovingTimeRangeInSeconds() <= autoScaling.getSamplingPeriodInSeconds()) {
 			if (logger.isLoggable(Level.FINE)) {
 				logger.fine("Deploying service " + serviceName + " with auto scaling that monitors the last sample of " + autoScaling.getMetric());
 			}
@@ -1317,7 +1317,7 @@ public class ServiceController {
 			statisticsId.setTimeWindowStatistics(
 					autoScaling
 					.getTimeStatistics()
-					.toTimeWindowStatistics(autoScaling.getTimeWindowSeconds(), TimeUnit.SECONDS));
+					.toTimeWindowStatistics(autoScaling.getMovingTimeRangeInSeconds(), TimeUnit.SECONDS));
 		}
 
 		AutomaticCapacityScaleRuleConfig rule = 
@@ -1329,7 +1329,7 @@ public class ServiceController {
 
 		CapacityRequirementsConfig minCapacity = 
 			new CapacityRequirementsConfigurer()
-			.memoryCapacity((int)(service.getMinNumInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
+			.memoryCapacity((int)(service.getMinAllowedInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
 			.create();
 
 		CapacityRequirementsConfig initialCapacity = 
@@ -1339,7 +1339,7 @@ public class ServiceController {
 
 		CapacityRequirementsConfig maxCapacity = 
 			new CapacityRequirementsConfigurer()
-			.memoryCapacity((int)(service.getMaxNumInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
+			.memoryCapacity((int)(service.getMaxAllowedInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
 			.create();
 
 		AutomaticCapacityScaleConfig scaleConfig = 
@@ -1347,7 +1347,7 @@ public class ServiceController {
 			.minCapacity(minCapacity)
 			.initialCapacity(initialCapacity)
 			.maxCapacity(maxCapacity)
-			.statisticsPollingInterval(autoScaling.getSamplingPeriodSeconds(), TimeUnit.SECONDS)
+			.statisticsPollingInterval(autoScaling.getSamplingPeriodInSeconds(), TimeUnit.SECONDS)
 			.addRule(rule)
 			.create();
 
