@@ -35,8 +35,12 @@ public class AutoScalingDetails {
 	private static final long DEFAULT_TIME_WINDOW_SECONDS = 5 * DEFAULT_SAMPLING_PERIOD_SECONDS;
 
 	/**
-	 * This helper static member is automatically imported to the DSL recipe.
-	 * @see #getStatisticsFactory() for more details
+	 * This helper method is automatically imported to the DSL recipe.
+	 * import org.cloudifysource.dsl.autoscaling.AtuoScalingDetails.statisticsFatory as statistics
+	 * This exposes the {link {@link AutoScalingStatisticsFactory} as a singleton. 
+	 * For example: statistics.average, statistics.percentile(30)
+	 * @see org.cloudifysource.dsl.internal.DSLReader#createCompilerConfiguration() for more details
+	 *
 	 */
 	private static final AutoScalingStatisticsFactory STATISTICS_FACTORY = new AutoScalingStatisticsFactory();
 	
@@ -147,15 +151,5 @@ public class AutoScalingDetails {
 	 */
 	public void setSamplingPeriodSeconds(final long samplingPeriodSeconds) {
 		this.samplingPeriodSeconds = samplingPeriodSeconds;
-	}
-
-	/**
-	 * This helper method is automatically imported to the DSL recipe.
-	 * @return The {link {@link AutoScalingStatisticsFactory} singleton
-	 * import org.cloudifysource.dsl.autoscaling.AtuoScalingDetails.statisticsFatory as statistics
-	 * @see org.cloudifysource.dsl.internal.DSLReader#createCompilerConfiguration() for more details
-	 */
-	public AutoScalingStatisticsFactory getStatisticsFactory() {
-		return STATISTICS_FACTORY;
 	}
 }
