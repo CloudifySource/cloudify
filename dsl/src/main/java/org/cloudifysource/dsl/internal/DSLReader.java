@@ -336,7 +336,8 @@ public class DSLReader {
 				org.cloudifysource.dsl.internal.context.ServiceImpl.class.getPackage().getName());
 
 		ic.addImports(org.cloudifysource.dsl.utils.ServiceUtils.class.getName());
-
+		
+		ic.addStaticImport("statistics", org.cloudifysource.dsl.autoscaling.AutoScaling.class.getName(), "statisticsFactory");
 		cc.addCompilationCustomizers(ic);
 
 		cc.setScriptBaseClass(baseClassName);

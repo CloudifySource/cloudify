@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.cloudifysource.dsl.autoscaling.AutoScaling;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.openspaces.ui.UserInterface;
 
@@ -54,6 +55,11 @@ public class Service {
 	private ServiceNetwork network;
 
 	private int numInstances = 1;
+	
+	private int minNumInstances = 1;
+	
+	private int maxNumInstances = 1;
+	
 	private long maxJarSize = DEFAULT_MAX_JAR_SIZE;
 	
 	private Map<String, Object> customCommands = new HashMap<String, Object>();
@@ -79,6 +85,8 @@ public class Service {
 	private boolean elastic = false;
 
 	private String url = null;
+	
+	private AutoScaling autoScaling;
 	
 	public boolean isElastic() {
 		return elastic;
@@ -300,6 +308,30 @@ public class Service {
 
 	public void setUrl(final String url) {
 		this.url = url;
+	}
+
+	public AutoScaling getAutoScaling() {
+		return autoScaling;
+	}
+
+	public void setAutoScaling(final AutoScaling autoScaling) {
+		this.autoScaling = autoScaling;
+	}
+
+	public int getMinNumInstances() {
+		return minNumInstances;
+	}
+
+	public void setMinNumInstances(int minNumInstances) {
+		this.minNumInstances = minNumInstances;
+	}
+
+	public int getMaxNumInstances() {
+		return maxNumInstances;
+	}
+
+	public void setMaxNumInstances(int maxNumInstances) {
+		this.maxNumInstances = maxNumInstances;
 	}
 
 }
