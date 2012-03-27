@@ -41,7 +41,6 @@ import org.cloudifysource.esc.driver.provisioning.CustomNode;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
-import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.util.Utils;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.gsa.GridServiceAgent;
@@ -66,6 +65,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 	private ByonDeployer deployer;
 	private static final String CLOUD_NODES_LIST = "nodesList";
+	private static final int THREAD_WAITING_IDLE_TIME = 10;
 
 	@Override
 	protected void initDeployer(final Cloud cloud) {
@@ -75,22 +75,23 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 				@Override
 				public Object call() throws Exception {
 					logger.info("Creating BYON context deployer for cloud: " + cloud.getName());
-					ByonDeployer deployer = new ByonDeployer();
+					final ByonDeployer deployer = new ByonDeployer();
 					List<Map<String, String>> nodesList = null;
-					Map<String, CloudTemplate> templates = cloud.getTemplates();
-					//String managementTemplateName = cloud.getConfiguration().getManagementMachineTemplate();
-					Map<String, CloudTemplate> templatesMap =  cloud.getTemplates();
-					for (String templateName : templatesMap.keySet()) {
+					// String managementTemplateName =
+					// cloud.getConfiguration().getManagementMachineTemplate();
+					final Map<String, CloudTemplate> templatesMap = cloud.getTemplates();
+					for (final String templateName : templatesMap.keySet()) {
 						final Map<String, Object> customSettings = cloud.getTemplates().get(templateName).getCustom();
 						if (customSettings != null) {
 							nodesList = (List<Map<String, String>>) customSettings.get(CLOUD_NODES_LIST);
 						}
 						if (nodesList == null) {
-							throw new InstallerException("Failed to create cloud deployer, invalid configuration");
+							throw new CloudProvisioningException(
+									"Failed to create BYON cloud deployer, invalid configuration");
 						}
 						deployer.addNodesList(templateName, nodesList);
 					}
-					
+
 					return deployer;
 				}
 			});
@@ -101,37 +102,32 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	}
 
 	@Override
-	public MachineDetails startMachine(final long timeout, final TimeUnit unit) throws TimeoutException,
+	public MachineDetails startMachine(final long timeout, final TimeUnit timeUnit) throws TimeoutException,
 			CloudProvisioningException {
+
+		final long endTime = System.currentTimeMillis() + timeUnit.toMillis(timeout);
 
 		logger.info(this.getClass().getName() + ": startMachine, management mode: " + management);
 
-		try {
-			final Set<String> activeMachinesIPs = admin.getMachines().getHostsByAddress().keySet();
-			deployer.setAllocated(cloudTemplateName, activeMachinesIPs);
-			logger.info("Verifying the active machines are not in the free pool (active machines: "
-					+ Arrays.toString(activeMachinesIPs.toArray()) + ", all machines in pool: "
-					+ Arrays.toString(deployer.getAllNodesByTemplateName(cloudTemplateName).toArray()) + ")");
-			final String name = createNewServerName();
-			logger.info("Starting a new cloud machine with name: " + name);
-			return createServer(System.currentTimeMillis() + unit.toMillis(timeout), name);
-		} catch (final Exception e) {
-			throw new CloudProvisioningException("Failed to start cloud machine", e);
-		}
+		final Set<String> activeMachinesIPs = admin.getMachines().getHostsByAddress().keySet();
+		deployer.setAllocated(cloudTemplateName, activeMachinesIPs);
+		logger.info("Verifying the active machines are not in the free pool (active machines: "
+				+ Arrays.toString(activeMachinesIPs.toArray()) + ", all machines in pool: "
+				+ Arrays.toString(deployer.getAllNodesByTemplateName(cloudTemplateName).toArray()) + ")");
+		final String newServerName = createNewServerName();
+		logger.info("Starting a new cloud machine with name: " + newServerName);
+		return createServer(newServerName, endTime);
 	}
 
-	private MachineDetails createServer(final long end, final String name) throws CloudProvisioningException {
+	private MachineDetails createServer(final String serverName, final long endTime)
+			throws CloudProvisioningException, TimeoutException {
 
 		final CustomNode node;
 		final MachineDetails machineDetails;
-		try {
-			logger.info("Cloudify Deployer is creating a new server with name: " + name
-					+ ". This may take a few minutes");
-			node = deployer.createServer(cloudTemplateName, name);
-		} catch (final InstallerException e) {
-			throw new CloudProvisioningException("Failed to create cloud server", e);
-		}
-		logger.info("New node is allocated, name: " + name);
+		logger.info("Cloudify Deployer is creating a new server with name: " + serverName
+				+ ". This may take a few minutes");
+		node = deployer.createServer(cloudTemplateName, serverName);
+		logger.info("New node is allocated, name: " + serverName);
 
 		machineDetails = createMachineDetailsFromNode(node);
 
@@ -140,13 +136,21 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		try {
 			handleServerCredentials(machineDetails);
 			// check that a SSH connection can be made
-			Utils.validateConnection(machineDetails.getIp(), SSH_PORT, Utils.millisUntil(end));
+			Utils.validateConnection(machineDetails.getIp(), SSH_PORT);
 		} catch (final Exception e) {
 			// catch any exception - to prevent a cloud machine leaking.
 			logger.log(Level.SEVERE, "Cloud server could not be started on " + machineDetails.getIp()
 					+ ", SSH connection failed.", e);
-			deployer.invalidateServer(cloudTemplateName, node);
+			try {
+				deployer.invalidateServer(cloudTemplateName, node);
+			} catch (final CloudProvisioningException ie) {
+				logger.log(Level.SEVERE, "Failed to mark machine " + machineDetails.getIp() + "as Invalid.", ie);
+			}
 			throw new CloudProvisioningException(e);
+		}
+
+		if (System.currentTimeMillis() > endTime) {
+			throw new TimeoutException();
 		}
 
 		return machineDetails;
@@ -159,7 +163,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	 * 
 	 * @return the server name.
 	 * @throws CloudProvisioningException
-	 *             if no free server name could be found.
+	 *             Indicated a free server name was not found.
 	 */
 	private String createNewServerName() throws CloudProvisioningException {
 
@@ -243,7 +247,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 					@Override
 					public MachineDetails call() throws Exception {
-						return createServer(endTime, serverNamePrefix + index);
+						return createServer(serverNamePrefix + index, endTime);
 					}
 				});
 
@@ -349,32 +353,31 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 	}
 
-	private Set<CustomNode> getExistingManagementServers(final int expectedGsmCount) throws TimeoutException,
-			InterruptedException {
+	private Set<CustomNode> getExistingManagementServers(final int expectedGsmCount)
+			throws CloudProvisioningException, TimeoutException, InterruptedException {
 		// loop all IPs in the pool to find a mgmt machine - open on port 8100
 		final Set<CustomNode> existingManagementServers = new HashSet<CustomNode>();
 		final Set<CustomNode> allNodes = deployer.getAllNodesByTemplateName(cloudTemplateName);
 		String managementIP = null;
 		for (final CustomNode server : allNodes) {
 			try {
-				final long endTime = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(20);
-				Utils.validateConnection(server.getPrivateIP(), CloudifyConstants.DEFAULT_REST_PORT,
-						Utils.millisUntil(endTime));
+				Utils.validateConnection(server.getPrivateIP(), CloudifyConstants.DEFAULT_REST_PORT);
 				managementIP = server.getPrivateIP();
 				break;
 			} catch (final Exception ex) {
-				// not a mgmt server, ignore and move on
+				// the connection to the REST failed because this is not a management server, continue.
 			}
 		}
 
+		// If a management server was found - connect it and get all management machines
 		if (StringUtils.isNotBlank(managementIP)) {
-			// mgmt server found - connect it and get all management machines
 			if (admin == null) {
 				admin = Utils.getAdminObject(managementIP, expectedGsmCount);
 			}
 			final GridServiceManagers gsms = admin.getGridServiceManagers();
 			for (final GridServiceManager gsm : gsms) {
-				existingManagementServers.add(deployer.getServerByIP(cloudTemplateName, gsm.getMachine().getHostAddress()));
+				existingManagementServers.add(deployer.getServerByIP(cloudTemplateName, gsm.getMachine()
+						.getHostAddress()));
 			}
 			admin.close();
 		}
@@ -414,8 +417,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			final long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
 			boolean agentUp = isAgentUp(agent);
 			while (agentUp && System.currentTimeMillis() < end) {
-				logger.fine("next check in " + TimeUnit.MILLISECONDS.toSeconds(10) + " seconds");
-				Thread.sleep(TimeUnit.SECONDS.toMillis(10));
+				logger.fine("next check in " + TimeUnit.MILLISECONDS.toSeconds(THREAD_WAITING_IDLE_TIME) + " seconds");
+				Thread.sleep(TimeUnit.SECONDS.toMillis(THREAD_WAITING_IDLE_TIME));
 				agentUp = isAgentUp(agent);
 			}
 
