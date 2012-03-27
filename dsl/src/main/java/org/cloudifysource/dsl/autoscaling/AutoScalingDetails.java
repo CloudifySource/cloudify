@@ -15,8 +15,6 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.autoscaling;
 
-import java.io.Serializable;
-
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 
@@ -39,7 +37,7 @@ public class AutoScalingDetails {
 
 	private static final AutoScalingStatisticsFactory statisticsFactory = new AutoScalingStatisticsFactory();
 	private static final AutoScalingStatistics DEFAULT_TIME_STATISTICS = statisticsFactory.average();
-	private static final AutoScalingStatistics DEFAULT_INSTANCES_STATISTICS = statisticsFactory.maximum();
+	private static final AutoScalingStatistics DEFAULT_INSTANCES_STATISTICS = statisticsFactory.average();
 	
 	private long samplingPeriodSeconds = DEFAULT_SAMPLING_PERIOD_SECONDS;
 	
@@ -51,9 +49,9 @@ public class AutoScalingDetails {
 	
 	private AutoScalingStatistics instancesStatistics = DEFAULT_INSTANCES_STATISTICS;
 	
-	private Serializable highThreshold;
+	private Comparable<?> highThreshold;
 	
-	private Serializable lowThreshold;
+	private Comparable<?> lowThreshold;
 	
 	
 	public AutoScalingStatistics getTimeStatistics() {
@@ -72,19 +70,19 @@ public class AutoScalingDetails {
 		this.instancesStatistics = instancesStatistics;
 	}
 
-	public Serializable getHighThreshold() {
+	public Comparable<?> getHighThreshold() {
 		return highThreshold;
 	}
 
-	public void setHighThreshold(Serializable highThreshold) {
+	public void setHighThreshold(Comparable<?> highThreshold) {
 		this.highThreshold = highThreshold;
 	}
 
-	public Serializable getLowThreshold() {
+	public Comparable<?> getLowThreshold() {
 		return lowThreshold;
 	}
 
-	public void setLowThreshold(Serializable lowThreshold) {
+	public void setLowThreshold(Comparable<?> lowThreshold) {
 		this.lowThreshold = lowThreshold;
 	}
 

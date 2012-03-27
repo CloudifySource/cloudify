@@ -15,6 +15,27 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.autoscaling;
 
+import java.util.concurrent.TimeUnit;
+
+import org.openspaces.admin.pu.statistics.AverageInstancesStatisticsConfig;
+import org.openspaces.admin.pu.statistics.AverageTimeWindowStatisticsConfigurer;
+import org.openspaces.admin.pu.statistics.InstancesStatisticsConfig;
+import org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig;
+
 public class AverageAutoScalingStatistics extends AutoScalingStatistics {
+
+	@Override
+	public TimeWindowStatisticsConfig toTimeWindowStatistics(long timeWindow,
+			TimeUnit timeUnit) {
+		return 
+			new AverageTimeWindowStatisticsConfigurer()
+			.timeWindow(timeWindow, timeUnit)
+			.create();
+	}
+
+	@Override
+	public InstancesStatisticsConfig toInstancesStatistics() {
+		return new AverageInstancesStatisticsConfig();
+	}
 
 }

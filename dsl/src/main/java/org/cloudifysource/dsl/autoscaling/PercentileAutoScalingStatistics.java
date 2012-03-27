@@ -15,6 +15,13 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.autoscaling;
 
+import java.util.concurrent.TimeUnit;
+
+import org.openspaces.admin.pu.statistics.InstancesStatisticsConfig;
+import org.openspaces.admin.pu.statistics.PercentileInstancesStatisticsConfigurer;
+import org.openspaces.admin.pu.statistics.PercentileTimeWindowStatisticsConfigurer;
+import org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig;
+
 public class PercentileAutoScalingStatistics extends AutoScalingStatistics {
 
 	private final double percentile;
@@ -25,6 +32,23 @@ public class PercentileAutoScalingStatistics extends AutoScalingStatistics {
 
 	public double getPercentile() {
 		return percentile;
+	}
+	
+	@Override
+	public TimeWindowStatisticsConfig toTimeWindowStatistics(long timeWindow, TimeUnit timeUnit) {
+		return 
+			new PercentileTimeWindowStatisticsConfigurer()
+			.percentile(percentile)
+			.timeWindow(timeWindow, timeUnit)
+			.create();
+	}
+
+	@Override
+	public InstancesStatisticsConfig toInstancesStatistics() {
+		return 
+		    new PercentileInstancesStatisticsConfigurer()
+		    .percentile(percentile)
+		    .create();
 	}
 
 }

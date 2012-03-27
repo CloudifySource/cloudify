@@ -15,6 +15,13 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.autoscaling;
 
+import java.util.concurrent.TimeUnit;
+
+import org.openspaces.admin.pu.statistics.InstancesStatisticsConfig;
+import org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig;
+
 public abstract class AutoScalingStatistics {
 	
+	public abstract TimeWindowStatisticsConfig toTimeWindowStatistics(long timeWindow, TimeUnit timeUnit);
+	public abstract InstancesStatisticsConfig toInstancesStatistics();
 }
