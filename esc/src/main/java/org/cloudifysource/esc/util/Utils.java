@@ -41,7 +41,7 @@ import org.openspaces.admin.gsm.GridServiceManagers;
  */
 public final class Utils {
 
-	// timeout in seconds, for waiting for the admin API to load.
+	// timeout in seconds, waiting for the admin API to load.
 	private static final int ADMIN_API_TIMEOUT = 90;
 
 	private Utils() {
@@ -56,8 +56,7 @@ public final class Utils {
 	 * @throws TimeoutException
 	 *             Thrown when the end time is in the past
 	 */
-	public static long millisUntil(final long end)
-			throws TimeoutException {
+	public static long millisUntil(final long end) throws TimeoutException {
 		final long millisUntilEnd = end - System.currentTimeMillis();
 		if (millisUntilEnd < 0) {
 			throw new TimeoutException("Cloud operation timed out");
@@ -71,8 +70,8 @@ public final class Utils {
 	 * @param longValue
 	 *            The long to cast
 	 * @param roundIfNeeded
-	 *            Indicating whether to change the value of the number if it exceeds int's max/min values. If set to
-	 *            false and the long is too large/small, an {@link IllegalArgumentException} is thrown.
+	 *            Indicating whether to change the value of the number if it exceeds int's max/min values. If
+	 *            set to false and the long is too large/small, an {@link IllegalArgumentException} is thrown.
 	 * @return int representing of the given long.
 	 */
 	public static int safeLongToInt(final long longValue, final boolean roundIfNeeded) {
@@ -116,9 +115,7 @@ public final class Utils {
 				throw new IllegalArgumentException("Failed to connect to: " + ipAddress + ":" + port
 						+ ", address could not be resolved.");
 			} else {
-				socket.connect(
-						endPoint, Utils.safeLongToInt(
-								timeout, true));
+				socket.connect(endPoint, Utils.safeLongToInt(timeout, true));
 			}
 		} finally {
 			if (socket != null) {
@@ -140,8 +137,7 @@ public final class Utils {
 	 * @throws IOException
 	 *             Reporting failure to read from the InputStream
 	 */
-	public static String getStringFromStream(final InputStream is)
-			throws IOException {
+	public static String getStringFromStream(final InputStream is) throws IOException {
 		final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
 		final StringBuilder sb = new StringBuilder();
 		String line = null;
@@ -160,17 +156,30 @@ public final class Utils {
 	 * @throws IOException
 	 *             Reporting failure to read or map the String
 	 */
-	public static Map<String, Object> jsonToMap(final String response)
-			throws IOException {
+	public static Map<String, Object> jsonToMap(final String response) throws IOException {
 		@SuppressWarnings("deprecation")
 		final JavaType javaType = TypeFactory.type(Map.class);
-		return new ObjectMapper().readValue(
-				response, javaType);
+		return new ObjectMapper().readValue(response, javaType);
 	}
 
-	
-	public static Admin getAdminObject(final String managementIP, final int expectedGsmCount)
-			throws TimeoutException, InterruptedException {
+	/**
+	 * Gets a "full" admin object. The function waits until all GridServiceManagers are found before returning
+	 * the object.
+	 * 
+	 * @param managementIP
+	 *            The IP of the management machine to connect to (through the default LUS port)
+	 * @param expectedGsmCount
+	 *            The number of GridServiceManager objects that are expected to be found. Only when this
+	 *            number is reached, the admin object is considered loaded and can be returned
+	 * @return An updated admin object
+	 * @throws TimeoutException
+	 *             Indicates the timeout (default is 90 seconds) was reached before the admin object was fully
+	 *             loaded
+	 * @throws InterruptedException
+	 *             Indicated the thread was interrupted while waiting
+	 */
+	public static Admin getAdminObject(final String managementIP, final int expectedGsmCount) throws TimeoutException,
+			InterruptedException {
 		final AdminFactory adminFactory = new AdminFactory();
 		adminFactory.addLocator(managementIP + ":" + CloudifyConstants.DEFAULT_LUS_PORT);
 		final Admin admin = adminFactory.createAdmin();
