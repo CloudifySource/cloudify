@@ -17,50 +17,66 @@ package org.cloudifysource.dsl.autoscaling;
 
 public class AutoScalingStatisticsFactory {
 
-	// average
+	/**
+	 * supports statistics.average in the recipe (without brackets)
+	 */
 	public AutoScalingStatistics getAverage() {
 		return average();
 	}
 	
-	// average()
+	/**
+	 * supports statistics.average() in the recipe (with brackets)
+	 */
 	public AutoScalingStatistics average() {
 		return new AverageAutoScalingStatistics();
 	}
 
-	// maximum
+	/**
+	 * supports statistics.maximum in the recipe (without brackets)
+	 */
 	public AutoScalingStatistics getMaximum() {
 		return maximum();
 	}
 	
-	// maximum()
+	/**
+	 * supports statistics.maximum() in the recipe (with brackets)
+	 */
 	public AutoScalingStatistics maximum() {
 		return new MaximumAutoScalingStatistics();
 	}
 
-	// minimum
+	/**
+	 * supports statistics.minimum() in the recipe (without brackets)
+	 */
 	public AutoScalingStatistics getMinimum() {
 		return minimum();
 	}
 	
-	// minimum()
+	/**
+	 * supports statistics.minimum() in the recipe (with brackets)
+	 */
 	public AutoScalingStatistics minimum() {
 		return new MinimumAutoScalingStatistics();
 	}
 
-	// percentile(30)
+	/**
+	 * supports statistics.percentile(30) in the recipe (with brackets)
+	 */
 	public AutoScalingStatistics percentile(double percentile) {
 		return new PercentileAutoScalingStatistics(percentile);
 	}
 	
-	// median()
+	/**
+	 * supports statistics.median() in the recipe (with brackets)
+	 */
 	public AutoScalingStatistics median() {
 		return new PercentileAutoScalingStatistics(50.0);
 	}
 	
-	// median
+	/**
+	 * supports statistics.median in the recipe (without brackets)
+	 */
 	public AutoScalingStatistics getMedian() {
 		return median();
 	}
-	
-
 }

@@ -17,6 +17,7 @@ package org.cloudifysource.dsl.autoscaling;
 
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.cloudifysource.dsl.internal.DSLReader;
 
 
 /**
@@ -35,8 +36,18 @@ public class AutoScalingDetails {
 
 	private static final long DEFAULT_TIME_WINDOW_SECONDS = 5*DEFAULT_SAMPLING_PERIOD_SECONDS;
 
+	/**
+	 * This helper static member is automatically imported to the DSL recipe
+	 * @see #getStatisticsFactory() for more details
+	 */
 	private static final AutoScalingStatisticsFactory statisticsFactory = new AutoScalingStatisticsFactory();
+	
 	private static final AutoScalingStatistics DEFAULT_TIME_STATISTICS = statisticsFactory.average();
+	
+	/**
+	 * default statistics is average, since it is unwise to trigger an auto scale operation
+	 * based on a single instance gone wild.
+	 */
 	private static final AutoScalingStatistics DEFAULT_INSTANCES_STATISTICS = statisticsFactory.average();
 	
 	private long samplingPeriodSeconds = DEFAULT_SAMPLING_PERIOD_SECONDS;
@@ -58,6 +69,13 @@ public class AutoScalingDetails {
 		return timeStatistics;
 	}
 
+	/**
+	 * (Optional)
+	 * The algorithm for aggregating metric samples in the specified time window.
+     * Metric samples are aggregated separately per instance.
+     * Default: statistics.average
+     * Possible values: statistics.average, statistics.minimum, statistics.maximum, statistics.percentile(n)
+     */
 	public void setTimeStatistics(AutoScalingStatistics timeStatistics) {
 		this.timeStatistics = timeStatistics;
 	}
@@ -66,6 +84,12 @@ public class AutoScalingDetails {
 		return instancesStatistics;
 	}
 
+    /**
+     * (Optional)
+     * The algorithm use to aggregate timeStatistics from all of the instances
+     * Default value: statistics.average
+     * Possible values: statistics.average, statistics.minimum, statistics.maximum, statistics.percentile(n)
+     */
 	public void setInstancesStatistics(AutoScalingStatistics instancesStatistics) {
 		this.instancesStatistics = instancesStatistics;
 	}
@@ -74,10 +98,16 @@ public class AutoScalingDetails {
 		return highThreshold;
 	}
 
+	/**
+	 * The instancesStatistics value over which the number of instances is increased
+	 */
 	public void setHighThreshold(Comparable<?> highThreshold) {
 		this.highThreshold = highThreshold;
 	}
 
+	/**
+	 * The instancesStatistics value below which the number of instances is increased or decreased
+	 */
 	public Comparable<?> getLowThreshold() {
 		return lowThreshold;
 	}
@@ -90,6 +120,10 @@ public class AutoScalingDetails {
 		return timeWindowSeconds;
 	}
 
+	/**
+	 * The sliding time window (in seconds) for aggregating per-instance metric samples
+     * The number of samples in the time windows equals the time window divided by the sampling period
+	 */
 	public void setTimeWindowSeconds(long timeWindowSeconds) {
 		this.timeWindowSeconds = timeWindowSeconds;
 	}
@@ -98,6 +132,9 @@ public class AutoScalingDetails {
 		return metric;
 	}
 
+	/**
+	 * The name of the metric that is the basis for the scale rule decision
+	 */
 	public void setMetric(String metric) {
 		this.metric = metric;
 	}
@@ -106,10 +143,18 @@ public class AutoScalingDetails {
 		return samplingPeriodSeconds;
 	}
 
+	/**
+	 * The time (in seconds) between two consecutive metric samples
+	 */
 	public void setSamplingPeriodSeconds(long samplingPeriodSeconds) {
 		this.samplingPeriodSeconds = samplingPeriodSeconds;
 	}
 
+	/**
+	 * This helper method is automatically imported to the DSL recipe
+	 * import org.cloudifysource.dsl.autoscaling.AtuoScalingDetails.statisticsFatory as statistics
+	 * @see DSLReader#createCompilerConfiguration() for more details
+	 */
 	public AutoScalingStatisticsFactory getStatisticsFactory() {
 		return statisticsFactory;
 	}
