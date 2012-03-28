@@ -24,11 +24,12 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
  * @author barakme
  * @since 2.0.0
  * 
- *        A cloud template is a group of settings that define a given configuration, available for a specific
- *        cloud. It can include physical machine properties (e.g. memory), operating system type, location,
- *        available cloud nodes and other settings.
+ *        A cloud template is a group of settings that define a given configuration, available for a specific cloud. It
+ *        can include physical machine properties (e.g. memory), operating system type, location, available cloud nodes
+ *        and other settings.
  */
-@CloudifyDSLEntity(name = "template", clazz = CloudTemplate.class, allowInternalNode = true, allowRootNode = false, parent = "cloud")
+@CloudifyDSLEntity(name = "template", clazz = CloudTemplate.class, allowInternalNode = true, allowRootNode = false,
+		parent = "cloud")
 public class CloudTemplate {
 
 	private String imageId;
@@ -41,6 +42,14 @@ public class CloudTemplate {
 	private Map<String, Object> options = new HashMap<String, Object>();
 	private Map<String, Object> overrides = new HashMap<String, Object>();
 	private Map<String, Object> custom = new HashMap<String, Object>();
+
+
+	private FileTransferModes fileTransfer = FileTransferModes.SCP;
+	private RemoteExecutionModes remoteExecution =RemoteExecutionModes.SSH;
+	
+	private String username;
+	private String password;
+	private String remoteDirectory;
 
 	/**
 	 * Gets the image ID.
@@ -199,6 +208,46 @@ public class CloudTemplate {
 		return "CloudTemplate [imageId=" + imageId + ", machineMemoryMB=" + machineMemoryMB + ", hardwareId="
 				+ hardwareId + ", locationId=" + locationId + ", numberOfCores=" + numberOfCores + ", options="
 				+ options + ", overrides=" + overrides + ", nodesList=" + custom + "]";
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(final String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(final String password) {
+		this.password = password;
+	}
+
+	public String getRemoteDirectory() {
+		return remoteDirectory;
+	}
+
+	public void setRemoteDirectory(final String remoteDirectory) {
+		this.remoteDirectory = remoteDirectory;
+	}
+
+	public FileTransferModes getFileTransfer() {
+		return fileTransfer;
+	}
+
+	public void setFileTransfer(FileTransferModes fileTransfer) {
+		this.fileTransfer = fileTransfer;
+	}
+
+	public RemoteExecutionModes getRemoteExecution() {
+		return remoteExecution;
+	}
+
+	public void setRemoteExecution(RemoteExecutionModes remoteExecution) {
+		this.remoteExecution = remoteExecution;
 	}
 
 }

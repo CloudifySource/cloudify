@@ -81,9 +81,22 @@ public class DSLReader {
 
 	private String dslContents;
 
+	/*********
+	 * Default file name suffix for service files.
+	 */
 	public static final String SERVICE_DSL_FILE_NAME_SUFFIX = "-service.groovy";
+	/************
+	 * Default file name suffix for application files.
+	 */
 	public static final String APPLICATION_DSL_FILE_NAME_SUFFIX = "-application.groovy";
+	/**************
+	 * Default file name suffix for cloud files.
+	 */
 	public static final String CLOUD_DSL_FILE_NAME_SUFFIX = "-cloud.groovy";
+
+	private static final String[] STAR_IMPORTS = new String[] {
+			org.cloudifysource.dsl.Service.class.getPackage().getName(), UserInterface.class.getPackage().getName(),
+			org.cloudifysource.dsl.internal.context.ServiceImpl.class.getPackage().getName() };
 
 	private static final String DSL_FILE_PATH_PROPERTY_NAME = "dslFilePath";
 
@@ -118,6 +131,12 @@ public class DSLReader {
 
 	}
 
+	/***********
+	 * .
+	 * @param fileNameSuffix .
+	 * @param dir .
+	 * @return .
+	 */
 	public static File findDefaultDSLFile(final String fileNameSuffix, final File dir) {
 
 		final File[] files = dir.listFiles(new FilenameFilter() {
@@ -147,6 +166,14 @@ public class DSLReader {
 
 	}
 
+	/*********
+	 * Executes the current DSL reader, returning the required Object type.
+	 * 
+	 * @param clazz the expected class type returned from the DSL file.
+	 * @param <T> The Class type returned from this type of DSL file.
+	 * @return the domain POJO.
+	 * @throws DSLException in case there was a problem processing the DSL file.
+	 */
 	public <T> T readDslEntity(final Class<T> clazz)
 			throws DSLException {
 
@@ -163,7 +190,7 @@ public class DSLReader {
 		return resultObject;
 	}
 
-	public Object readDslObject()
+	private Object readDslObject()
 			throws DSLException {
 		try {
 			init();
@@ -331,9 +358,7 @@ public class DSLReader {
 		final CompilerConfiguration cc = new CompilerConfiguration();
 		final ImportCustomizer ic = new ImportCustomizer();
 
-		ic.addStarImports(org.cloudifysource.dsl.Service.class.getPackage().getName(),
-				UserInterface.class.getPackage().getName(),
-				org.cloudifysource.dsl.internal.context.ServiceImpl.class.getPackage().getName());
+		ic.addStarImports(STAR_IMPORTS);
 
 		ic.addImports(org.cloudifysource.dsl.utils.ServiceUtils.class.getName());
 		
@@ -479,6 +504,11 @@ public class DSLReader {
 		this.createServiceContext = createServiceContext;
 	}
 
+	/**********
+	 * .
+	 * @param key .
+	 * @param value .
+	 */
 	public void addProperty(final String key, final Object value) {
 		bindingProperties.put(key,
 				value);

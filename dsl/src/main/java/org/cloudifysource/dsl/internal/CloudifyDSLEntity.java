@@ -18,13 +18,39 @@ package org.cloudifysource.dsl.internal;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+/*******
+ * Annotation indicating a POJO can be used in the Cloudify DSL.
+ * @author barakme
+ *
+ */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CloudifyDSLEntity {
 	
+	/**********
+	 * The name used to identify the POJO in the DSL.
+	 * @return
+	 */
 	String name();
-	String parent() default "";	
+	
+	/***********
+	 * If the POJO is internal, specifies the name of the parent node.  
+	 */
+	String parent() default "";
+	
+	/*********
+	 * The class of the POJO.
+	 */
 	Class<?> clazz();
+	
+	/*********
+	 * True if the POJO may be the root node of a DSL file, false otherwise.
+	 */
 	boolean allowRootNode();
+	
+	/*******
+	 * True if the POJO may be an internal node of a DSL file, false otherwise.
+	 * @return
+	 */
 	boolean allowInternalNode();
 	
 }
