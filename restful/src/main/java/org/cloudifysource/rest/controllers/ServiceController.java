@@ -1095,7 +1095,7 @@ public class ServiceController {
                     resultsMap.put(CloudifyConstants.IS_TASK_DONE, true);
                 }
             } else {
-                logger.log(Level.INFO, "Lifecycle events polling ended successfully.", t);
+                logger.log(Level.INFO, "Lifecycle events polling ended successfully.");
                 resultsMap.put(CloudifyConstants.IS_TASK_DONE, true);
             }
             futureTask.cancel(true);
