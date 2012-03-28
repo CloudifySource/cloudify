@@ -608,7 +608,7 @@ public class ServiceController {
 			return unavailableServiceError(absolutePuName);
 		}
 		UUID lifecycleEventContainerID = startPollingForServiceUninstallLifecycleEvents(applicationName, serviceName, timeoutInMinutes);
-		processingUnit.undeployAndWait();
+		processingUnit.undeploy();
         Map<String, Object> returnMap = new HashMap<String, Object>();
         returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, lifecycleEventContainerID);
 		return successStatus(returnMap);
