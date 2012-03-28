@@ -104,7 +104,9 @@
       <property name="suppressLoadErrors" value="true"/>
     </module>
   </module>
-  <module name="JavadocPackage"/>
+  <module name="JavadocPackage">
+    <property name="allowLegacy" value="true"/>
+  </module>
   <module name="NewlineAtEndOfFile">
     <property name="severity" value="ignore"/>
     <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
