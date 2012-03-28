@@ -429,6 +429,8 @@ public class CloudGridAgentBootstrapper {
 		return lookupSb.toString();
 	}
 
+	// TODO: This code should be places in a Util package somewhere. It is used both 
+	// here and in the esc project, for starting new agent machines.
 	private InstallationDetails[] createInstallationDetails(final int numOfManagementMachines,
 			MachineDetails[] machineDetails) throws FileNotFoundException {
 		InstallationDetails template = createInstallationDetails(cloud);
@@ -445,6 +447,8 @@ public class CloudGridAgentBootstrapper {
 			installationDetails.setConnectedToPrivateIp(!cloud.getConfiguration().isBootstrapManagementOnPublicIp());
 			installationDetails.setBindToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 			installationDetails.setCloudFile(this.cloudFile);
+			installationDetails.setRemoteExecutionMode(machine.getRemoteExecutionMode());
+			installationDetails.setFileTransferMode(machine.getFileTransferMode());
 			details[i] = installationDetails;
 		}
 		return details;
