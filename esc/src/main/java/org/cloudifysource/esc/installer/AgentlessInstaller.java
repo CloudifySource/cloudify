@@ -594,7 +594,7 @@ public class AgentlessInstaller {
 				if (line == null) {
 					break;
 				}
-				logger.info(line);
+				logger.fine(line);
 				sb.append(line).append(newline);
 			}
 
