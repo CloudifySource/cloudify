@@ -103,15 +103,17 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		this.cloudTemplateName = cloudTemplateName;
 		this.management = management;
 		this.cloudName = cloud.getName();
-		publishEvent(EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
+		publishEvent(
+				EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
 		initDeployer(cloud);
-		publishEvent(EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
+		publishEvent(
+				EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
 
 		logger.fine("Initializing Cloud Provisioning - management mode: " + management + ". Using template: "
 				+ cloudTemplateName + " with cloud: " + cloudName);
 
-		String prefix = management ? cloud.getProvider().getManagementGroup() : cloud.getProvider()
-				.getMachineNamePrefix();
+		String prefix =
+				management ? cloud.getProvider().getManagementGroup() : cloud.getProvider().getMachineNamePrefix();
 
 		if (StringUtils.isBlank(prefix)) {
 			if (management) {
@@ -170,24 +172,30 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 			}
 		} else if (CredentialUtils.isPrivateKeyCredential(machineDetails.getRemotePassword())) {
 			// using a key file
-			logger.fine("Cloud has provided a key file remote connections to new machine");
+			logger.fine("Cloud has provided a key file for connections to new machine");
 			try {
-				tempFile = File.createTempFile("gs-esm-key", ".pem");
-				FileUtils.write(tempFile, machineDetails.getRemotePassword());
-				cloud.getUser().setKeyFile(tempFile.getAbsolutePath());
+				tempFile = File.createTempFile(
+						"gs-esm-key", ".pem");
+				tempFile.deleteOnExit();
+				FileUtils.write(
+						tempFile, machineDetails.getRemotePassword());
+				cloud.getUser().setKeyFile(
+						tempFile.getAbsolutePath());
 			} catch (final IOException e) {
-				throw new CloudProvisioningException("Failed to create a temporary file for cloud server's key file",
-						e);
+				throw new CloudProvisioningException("Failed to create a temporary file for cloud server's key file", e);
 			}
 
 		} else {
 			// using a password
 			logger.fine("Cloud has provided a password for remote connections to new machine");
-			cloud.getConfiguration().setRemotePassword(machineDetails.getRemotePassword());
+			cloud.getConfiguration().setRemotePassword(
+					machineDetails.getRemotePassword());
 		}
 
 		final File keyFile = tempFile;
-		logServerDetails(machineDetails, keyFile);
+		logServerDetails(
+				machineDetails, keyFile);
+
 	}
 
 	/**
@@ -200,7 +208,8 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	 */
 	protected void publishEvent(final String eventName, final Object... args) {
 		for (final ProvisioningDriverListener listener : this.eventsListenersList) {
-			listener.onProvisioningEvent(eventName, args);
+			listener.onProvisioningEvent(
+					eventName, args);
 		}
 	}
 }

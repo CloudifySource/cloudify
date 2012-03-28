@@ -1,0 +1,33 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+  
+        http://www.apache.org/licenses/LICENSE-2.0
+  
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+  -->
+<!-- 
+  IMPORTANT NOTE:
+   This package has been copied as-is from the apache commons-vfs project. At the time this
+   note was added, the SMB provider is still in the sandbox of the vfs project. It has 
+   been there for a long while, and it is not clear if anyone is maintaining it.
+   Nevertheless, the provider works, so it is copied here.
+   Note that there IS a vfs sandbox project in the apache snapshots maven repository,
+   but the jar file available there is not compatible with the vfs project's jar file. 
+   Specifically, the smb provider available in the repo uses the vfs package name, whereas
+   the current vfs implementation uses vfs2.
+   The sandbox projects relies on jcifs 0.8.3, which is outdated. Cloudify uses a more
+   up-to-date version. This required a minor change in the SmbFileObject class, but other then
+   that, and disabling checkstyle for all files in the package, the smb provider classes remain as is.
+   -->
+<body>
+	<p>The SMB/CIFS File Provider.</p>
+</body>

@@ -18,43 +18,53 @@ package org.cloudifysource.esc.util;
 import java.io.OutputStream;
 import java.util.logging.Logger;
 
+/******
+ * An output stream implementation that sends all output to a JUL logger.
+ * @author dank
+ *
+ */
 public class LoggerOutputStream extends OutputStream {
-    
-    private String prefix = "";
-    private final Logger logger;
 
-    private StringBuilder sb;
+	private String prefix = "";
+	private final Logger logger;
 
-    public LoggerOutputStream(Logger logger) {
-        this.logger = logger;
-        sb = new StringBuilder();
-    }
+	private final StringBuilder sb;
 
-    @Override
-    public void write(int b) {
-        char c = (char) b;
-        if (c == '\n') {
-            String s = sb.toString();
-            logger.info(prefix + s);
-            sb.setLength(0);
-        } else
-            sb.append(c);
-    }
+	/********
+	 * Constructor.
+	 * @param logger the logger to which all output will be redirected to.
+	 */
+	public LoggerOutputStream(final Logger logger) {
+		this.logger = logger;
+		sb = new StringBuilder();
+	}
 
-    @Override
-    public void close()  {
-        if (sb.length() > 0) {
-            write('\n');
-        }
-    }
+	@Override
+	public void write(final int b) {
+		final char c = (char) b;
+		if (c == '\n') {
+			final String s = sb.toString();
+			logger.info(prefix + s);
+			sb.setLength(0);
+		} else {
+			sb.append(c);
+		}
+	}
 
-    @Override
-    public void flush() {
+	@Override
+	public void close() {
+		if (sb.length() > 0) {
+			write('\n');
+		}
+	}
 
-    }
+	@Override
+	public void flush() {
 
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
-    }
+	}
+
+	public void setPrefix(final String prefix) {
+		this.prefix = prefix;
+	}
 
 }

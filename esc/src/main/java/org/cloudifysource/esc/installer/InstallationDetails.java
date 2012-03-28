@@ -18,6 +18,8 @@ package org.cloudifysource.esc.installer;
 import java.io.File;
 import java.util.List;
 
+import org.cloudifysource.dsl.cloud.FileTransferModes;
+import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
 import org.openspaces.admin.Admin;
 
 import com.gigaspaces.internal.utils.ReflectionUtils;
@@ -84,6 +86,9 @@ public class InstallationDetails implements Cloneable {
 	private String machineId;
 
 	private File cloudFile;
+
+	private FileTransferModes fileTransferMode = FileTransferModes.SCP;
+	private RemoteExecutionModes remoteExecutionMode = RemoteExecutionModes.SSH;
 
 	public Admin getAdmin() {
 		return admin;
@@ -209,8 +214,8 @@ public class InstallationDetails implements Cloneable {
 	@Override
 	public InstallationDetails clone() {
 		final InstallationDetails result = new InstallationDetails();
-		ReflectionUtils.shallowCopyFieldState(this,
-				result);
+		ReflectionUtils.shallowCopyFieldState(
+				this, result);
 		return result;
 	}
 
@@ -252,6 +257,22 @@ public class InstallationDetails implements Cloneable {
 
 	public void setBindToPrivateIp(final boolean bindToPrivateIp) {
 		this.bindToPrivateIp = bindToPrivateIp;
+	}
+
+	public FileTransferModes getFileTransferMode() {
+		return fileTransferMode;
+	}
+
+	public void setFileTransferMode(final FileTransferModes fileTransferMode) {
+		this.fileTransferMode = fileTransferMode;
+	}
+
+	public RemoteExecutionModes getRemoteExecutionMode() {
+		return remoteExecutionMode;
+	}
+
+	public void setRemoteExecutionMode(final RemoteExecutionModes remoteExecutionMode) {
+		this.remoteExecutionMode = remoteExecutionMode;
 	}
 
 }

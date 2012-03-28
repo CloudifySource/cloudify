@@ -1,0 +1,9 @@
+<providers>
+
+	<provider class-name="org.apache.commons.vfs2.provider.smb.SmbFileProvider">
+		<scheme name="smb"/>
+		<if-available class-name="jcifs.smb.SmbFile"/>
+	</provider>
+
+
+</providers>

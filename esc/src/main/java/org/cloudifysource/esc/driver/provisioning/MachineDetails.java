@@ -15,12 +15,15 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
+import org.cloudifysource.dsl.cloud.FileTransferModes;
+import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
+
 /*******
  * Described a Machine started by a cloud driver.
  * 
  * @author barakme
  * @since 2.0.0
- *
+ * 
  */
 public class MachineDetails {
 
@@ -37,6 +40,9 @@ public class MachineDetails {
 	private String remotePassword;
 
 	private String machineId;
+
+	private FileTransferModes fileTransferMode = FileTransferModes.SCP;
+	private RemoteExecutionModes remoteExecutionMode = RemoteExecutionModes.SSH;
 
 	public String getMachineId() {
 		return machineId;
@@ -107,13 +113,14 @@ public class MachineDetails {
 		return usePrivateAddress;
 	}
 
-	//TODO - this flag should be removed - it should only be set in the adapter, not in the driver.
+	// TODO - this flag should be removed - it should only be set in the adapter, not in the driver.
 	public void setUsePrivateAddress(final boolean usePrivateAddress) {
 		this.usePrivateAddress = usePrivateAddress;
 	}
 
 	/*****
 	 * Returns the IP that should be used for cluster communications.
+	 * 
 	 * @return the IP.
 	 */
 	public String getIp() {
@@ -139,6 +146,22 @@ public class MachineDetails {
 
 	public void setRemotePassword(final String remotePassword) {
 		this.remotePassword = remotePassword;
+	}
+
+	public FileTransferModes getFileTransferMode() {
+		return fileTransferMode;
+	}
+
+	public void setFileTransferMode(final FileTransferModes fileTransferMode) {
+		this.fileTransferMode = fileTransferMode;
+	}
+
+	public RemoteExecutionModes getRemoteExecutionMode() {
+		return remoteExecutionMode;
+	}
+
+	public void setRemoteExecutionMode(final RemoteExecutionModes remoteExecutionMode) {
+		this.remoteExecutionMode = remoteExecutionMode;
 	}
 
 }

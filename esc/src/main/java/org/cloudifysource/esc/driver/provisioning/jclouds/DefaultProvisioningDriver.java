@@ -15,6 +15,8 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.jclouds;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -30,6 +32,7 @@ import java.util.logging.Level;
 
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
@@ -37,13 +40,14 @@ import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.jclouds.JCloudsDeployer;
-import org.cloudifysource.esc.util.Utils;
 import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.domain.ComputeMetadata;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.NodeState;
+import org.jclouds.domain.LoginCredentials;
 
 import com.google.common.base.Predicate;
+import com.j_spaces.kernel.Environment;
 
 /**************
  * A jclouds-based CloudifyProvisioning implementation. Uses the JClouds Compute Context API to provision an image with
@@ -56,6 +60,8 @@ import com.google.common.base.Predicate;
 public class DefaultProvisioningDriver extends BaseProvisioningDriver implements ProvisioningDriver,
 		ProvisioningDriverClassContextAware {
 
+	private static final String DEFAULT_EC2_WINDOWS_USERNAME = "Administrator";
+	private static final int CLOUD_NODE_STATE_POLLING_INTERVAL = 2000;
 	private JCloudsDeployer deployer;
 
 	@Override
@@ -69,35 +75,32 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			// TODO - The deployer object should be reusable across templates. The current API is not appropriate.
 			// TODO - key should be based on entire cloud configuraion!
 			this.deployer =
-					(JCloudsDeployer) context.getOrCreate("UNIQUE_JCLOUDS_DEPLOYER_ID_" + this.cloudTemplateName,
-							new Callable<Object>() {
+					(JCloudsDeployer) context.getOrCreate("UNIQUE_JCLOUDS_DEPLOYER_ID_" + this.cloudTemplateName, new Callable<Object>() {
 
-								@Override
-								public Object call()
-										throws Exception {
-									logger.fine("Creating JClouds context deployer with user: "
-											+ cloud.getUser().getUser());
-									final CloudTemplate cloudTemplate = cloud.getTemplates().get(cloudTemplateName);
+						@Override
+						public Object call()
+								throws Exception {
+							logger.fine("Creating JClouds context deployer with user: " + cloud.getUser().getUser());
+							final CloudTemplate cloudTemplate = cloud.getTemplates().get(cloudTemplateName);
 
-									logger.fine("Cloud Template: " + cloudTemplateName + ". Details: " + cloudTemplate);
-									final Properties props = new Properties();
-									props.putAll(cloudTemplate.getOverrides());
+							logger.fine("Cloud Template: " + cloudTemplateName + ". Details: " + cloudTemplate);
+							final Properties props = new Properties();
+							props.putAll(cloudTemplate.getOverrides());
 
-									deployer =
-											new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser()
-													.getUser(), cloud.getUser().getApiKey(), props);
+							deployer =
+									new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),
+											cloud.getUser().getApiKey(), props);
 
-									deployer.setImageId(cloudTemplate.getImageId());
-									deployer.setMinRamMegabytes(cloudTemplate.getMachineMemoryMB());
-									deployer.setHardwareId(cloudTemplate.getHardwareId());
-									deployer.setLocationId(cloudTemplate.getLocationId());
-									deployer.setExtraOptions(cloudTemplate.getOptions());
-									return deployer;
-								}
-							});
+							deployer.setImageId(cloudTemplate.getImageId());
+							deployer.setMinRamMegabytes(cloudTemplate.getMachineMemoryMB());
+							deployer.setHardwareId(cloudTemplate.getHardwareId());
+							deployer.setLocationId(cloudTemplate.getLocationId());
+							deployer.setExtraOptions(cloudTemplate.getOptions());
+							return deployer;
+						}
+					});
 		} catch (final Exception e) {
-			publishEvent("connection_to_cloud_api_failed",
-					cloud.getProvider().getProvider());
+			publishEvent("connection_to_cloud_api_failed", cloud.getProvider().getProvider());
 			throw new IllegalStateException("Failed to create cloud Deployer", e);
 		}
 	}
@@ -108,7 +111,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 		logger.info(this.getClass().getName() + ": startMachine, management mode: " + management);
 		final long end = System.currentTimeMillis() + unit.toMillis(timeout);
-				
+
 		if (System.currentTimeMillis() > end) {
 			throw new TimeoutException("Starting a new machine timed out");
 		}
@@ -119,14 +122,15 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			return md;
 		} catch (final Exception e) {
 
-			if (e instanceof RejectedExecutionException) {
+			// Special handling for cloudstack on ALU - for unknown reason, the context throws rejected exception.
+			// Looks like the thread pool is exhausted, though not clear why. Does not repro outside their cloud.
+			if (e instanceof RejectedExecutionException
+					&& this.cloud.getProvider().getProvider().equalsIgnoreCase("cloudstack")) {
 				logger.warning("Detected Jclouds execution problem. Reseting Jclouds context");
 				try {
 					this.deployer.reset(currentContext);
 				} catch (final Exception e2) {
-					logger.log(Level.WARNING,
-							"Failed to reset jclouds context",
-							e2);
+					logger.log(Level.WARNING, "Failed to reset jclouds context", e2);
 				}
 			}
 
@@ -139,14 +143,13 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 		final String groupName = createNewServerName();
 		logger.info("Starting a new cloud server with group: " + groupName);
-		return createServer(end,
-				groupName);
+		return createServer(end, groupName);
 	}
 
 	private MachineDetails createServer(final long end, final String groupName)
 			throws CloudProvisioningException {
 
-		final NodeMetadata node;
+		NodeMetadata node;
 		final MachineDetails machineDetails;
 		try {
 			logger.fine("Cloudify Deployer is creating a new server with tag: " + groupName
@@ -157,25 +160,102 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		}
 		logger.fine("New node is allocated, group name: " + groupName);
 
-		machineDetails = createMachineDetailsFromNode(node);
+		final String nodeId = node.getId();
 
 		// At this point the machine is starting. Any error beyond this point
 		// must clean up the machine
+
 		try {
-			handleServerCredentials(machineDetails);
-			waitUntilServerIsActive(machineDetails.getMachineId(),
-					Utils.millisUntil(end),
-					TimeUnit.MILLISECONDS);
+			// wait for node to reach RUNNING state
+			node = waitForNodeToBecomeReady(nodeId, end);
+
+			// Create MachineDetails for the node metadata.
+			machineDetails = createMachineDetailsFromNode(node);
+
+			final CloudTemplate cloudTemplate = this.cloud.getTemplates().get(this.cloudTemplateName);
+
+			final FileTransferModes fileTransfer = cloudTemplate.getFileTransfer();
+
+			if (this.cloud.getProvider().getProvider().equals("aws-ec2") && fileTransfer.equals(FileTransferModes.CIFS)) {
+				// Special password handling for windows on EC2
+				handleEC2WindowsCredentials(end, node, machineDetails, cloudTemplate);
+
+			} else {
+				// Credentials required special handling.
+				handleServerCredentials(machineDetails);
+			}
+
 		} catch (final Exception e) {
 			// catch any exception - to prevent a cloud machine leaking.
-			logger.log(Level.SEVERE,
-					"Cloud machine was started but an error occured during initialization. Shutting down machine",
-					e);
-			deployer.shutdownMachine(node.getId());
+			logger.log(Level.SEVERE, "Cloud machine was started but an error occured during initialization. Shutting down machine", e);
+			deployer.shutdownMachine(nodeId);
 			throw new CloudProvisioningException(e);
 		}
 
 		return machineDetails;
+	}
+
+	private void handleEC2WindowsCredentials(final long end, final NodeMetadata node,
+			final MachineDetails machineDetails, final CloudTemplate cloudTemplate)
+			throws FileNotFoundException, InterruptedException, TimeoutException, CloudProvisioningException {
+		final String baseDirectory =
+				this.management ? Environment.getHomeDirectory() : this.cloud.getProvider().getRemoteDirectory();
+		final File localDirectory = new File(baseDirectory, this.cloud.getProvider().getLocalDirectory());
+
+		final File pemFile = new File(localDirectory, this.cloud.getUser().getKeyFile());
+		logger.info("PEM file is located at: " + pemFile);
+		if (!pemFile.exists()) {
+			logger.severe("Could not find pem file: " + pemFile);
+			throw new FileNotFoundException("Could not find key file: " + pemFile);
+		}
+		String password;
+		if (cloudTemplate.getPassword() == null) {
+			// get the password using Amazon API
+			final LoginCredentials credentials =
+					new EC2WindowsPasswordHandler().getPassword(node, this.deployer.getContext(), end, pemFile);
+			password = credentials.getPassword();
+		} else {
+			password = cloudTemplate.getPassword();
+		}
+
+		String username = cloudTemplate.getUsername();
+		if (username == null) {
+			username = cloud.getConfiguration().getRemoteUsername();
+		}
+
+		if (username == null) {
+			username = DEFAULT_EC2_WINDOWS_USERNAME;
+		}
+		machineDetails.setRemoteUsername(username);
+		machineDetails.setRemotePassword(password);
+		machineDetails.setFileTransferMode(cloudTemplate.getFileTransfer());
+		machineDetails.setRemoteExecutionMode(cloudTemplate.getRemoteExecution());
+	}
+
+	private NodeMetadata waitForNodeToBecomeReady(final String id, final long end)
+			throws CloudProvisioningException, InterruptedException, TimeoutException {
+		NodeMetadata node = null;
+		while (System.currentTimeMillis() < end) {
+			node = deployer.getServerByID(id);
+
+			switch (node.getState()) {
+			case RUNNING:
+				return node;
+			case PENDING:
+				logger.fine("Server Status (" + id + ") still PENDING, please wait...");
+				Thread.sleep(CLOUD_NODE_STATE_POLLING_INTERVAL);
+				break;
+			case TERMINATED:
+			case ERROR:
+			case UNRECOGNIZED:
+			case SUSPENDED:
+			default:
+				throw new CloudProvisioningException("Failed to allocate server - Cloud reported node in "
+						+ node.getState().toString() + " state. Node details: " + node);
+			}
+
+		}
+		throw new TimeoutException("Node failed to reach RUNNING mode in time");
 	}
 
 	/*********
@@ -200,8 +280,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 			if (System.currentTimeMillis() > endTime) {
 				throw new TimeoutException("Server [ " + serverId + " ] has been starting up for more more than "
-						+ TimeUnit.MINUTES.convert(WAIT_TIMEOUT_MILLIS,
-								TimeUnit.MILLISECONDS) + " minutes!");
+						+ TimeUnit.MINUTES.convert(WAIT_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS) + " minutes!");
 			}
 
 			if (logger.isLoggable(Level.FINE)) {
@@ -223,15 +302,13 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	private String createNewServerName()
 			throws CloudProvisioningException {
 
-
-
 		// TODO - this code breaks cloudstack - not sure why yet
 		String serverName = null;
 		int attempts = 0;
 		boolean foundFreeName = false;
 
 		while (attempts < MAX_SERVERS_LIMIT) {
-			//counter = (counter + 1) % MAX_SERVERS_LIMIT;
+			// counter = (counter + 1) % MAX_SERVERS_LIMIT;
 			++attempts;
 			serverName = serverNamePrefix + counter.incrementAndGet();
 			// verifying this server name is not already used
@@ -253,6 +330,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	@Override
 	public MachineDetails[] startManagementMachines(final long duration, final TimeUnit unit)
 			throws TimeoutException, CloudProvisioningException {
+
 		if (duration < 0) {
 			throw new TimeoutException("Starting a new machine timed out");
 		}
@@ -272,8 +350,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		// launch the management machines
 		publishEvent(EVENT_ATTEMPT_START_MGMT_VMS);
 		final int numberOfManagementMachines = this.cloud.getProvider().getNumberOfManagementMachines();
-		final MachineDetails[] createdMachines = doStartManagementMachines(endTime,
-				numberOfManagementMachines);
+		final MachineDetails[] createdMachines = doStartManagementMachines(endTime, numberOfManagementMachines);
 		publishEvent(EVENT_MGMT_VMS_STARTED);
 		return createdMachines;
 	}
@@ -295,8 +372,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 					@Override
 					public MachineDetails call()
 							throws Exception {
-						return createServer(endTime,
-								serverNamePrefix + index);
+						return createServer(endTime, serverNamePrefix + index);
 					}
 				});
 
@@ -308,26 +384,20 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			final MachineDetails[] createdManagementMachines = new MachineDetails[numberOfManagementMachines];
 			for (int i = 0; i < createdManagementMachines.length; i++) {
 				try {
-					createdManagementMachines[i] = futures[i].get(endTime - System.currentTimeMillis(),
-							TimeUnit.MILLISECONDS);
+					createdManagementMachines[i] =
+							futures[i].get(endTime - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 				} catch (final InterruptedException e) {
 					++numberOfErrors;
-					publishEvent("failed_to_create_management_vm",
-							e.getMessage());
-					logger.log(Level.SEVERE,
-							"Failed to start a management machine",
-							e);
+					publishEvent("failed_to_create_management_vm", e.getMessage());
+					logger.log(Level.SEVERE, "Failed to start a management machine", e);
 					if (firstCreationException == null) {
 						firstCreationException = e;
 					}
 
 				} catch (final ExecutionException e) {
 					++numberOfErrors;
-					publishEvent("failed_to_create_management_vm",
-							e.getMessage());
-					logger.log(Level.SEVERE,
-							"Failed to start a management machine",
-							e);
+					publishEvent("failed_to_create_management_vm", e.getMessage());
+					logger.log(Level.SEVERE, "Failed to start a management machine", e);
 					if (firstCreationException == null) {
 						firstCreationException = e;
 					}
@@ -337,10 +407,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 			// In case of a partial error, shutdown all servers that did start up
 			if (numberOfErrors > 0) {
-				handleProvisioningFailure(numberOfManagementMachines,
-						numberOfErrors,
-						firstCreationException,
-						createdManagementMachines);
+				handleProvisioningFailure(numberOfManagementMachines, numberOfErrors, firstCreationException, createdManagementMachines);
 			}
 
 			return createdManagementMachines;
@@ -365,23 +432,19 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			stopResult = false;
 		} else {
 			// TODO - add a task that cleans up this map
-			stoppingMachines.put(serverIp,
-					System.currentTimeMillis());
+			stoppingMachines.put(serverIp, System.currentTimeMillis());
 			logger.info("Scale IN -- " + serverIp + " --");
 			logger.info("Looking up cloud server with IP: " + serverIp);
 			final NodeMetadata server = deployer.getServerWithIP(serverIp);
 			if (server != null) {
 				logger.info("Found server: " + server.getId()
 						+ ". Shutting it down and waiting for shutdown to complete");
-				deployer.shutdownMachineAndWait(server.getId(),
-						unit,
-						duration);
+				deployer.shutdownMachineAndWait(server.getId(), unit, duration);
 				logger.info("Server: " + server.getId() + " shutdown has finished.");
 				stopResult = true;
 			} else {
-				logger.log(Level.SEVERE,
-						"Recieved scale in request for machine with ip " + serverIp
-								+ " but this IP could not be found in the Cloud server list");
+				logger.log(Level.SEVERE, "Recieved scale in request for machine with ip " + serverIp
+						+ " but this IP could not be found in the Cloud server list");
 				stopResult = false;
 			}
 		}
@@ -484,6 +547,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 				md.setRemoteUsername(serverIdentity);
 			} else {
 				md.setRemoteUsername(cloud.getConfiguration().getRemoteUsername());
+			}
+
+			if (node.getCredentials().getOptionalPassword().isPresent()) {
+				md.setRemotePassword(node.getCredentials().getPassword());
 			}
 		}
 

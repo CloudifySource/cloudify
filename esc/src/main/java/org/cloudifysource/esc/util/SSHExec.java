@@ -45,8 +45,10 @@ import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
+// CHECKSTYLE:OFF
 /**
- * Executes a command on a remote machine via ssh.
+ * This is a copy of the SSHExec class from Ant, with a few minor modifications required for Cloudify.
+ * Looks for the comment "Cloudify Modification" to see what was changed. 
  * @since     Ant 1.6 (created February 2, 2003)
  */
 public class SSHExec extends SSHBase {
