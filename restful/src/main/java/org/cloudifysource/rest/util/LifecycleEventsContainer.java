@@ -68,6 +68,8 @@ public class LifecycleEventsContainer {
      * indicates whether thread threw an exception.
      */
     private Exception runnableException = null;
+    
+    private final Object lock = new Object();
 
     private final Logger logger = Logger.getLogger(getClass().getName());
 
@@ -176,25 +178,33 @@ public class LifecycleEventsContainer {
     }
 
     public void setPollingState(PollingState state) {
-        this.runnableState = state;
+        synchronized (this.lock) {
+            this.runnableState = state;
+        }
     }
 
-    public synchronized void setExecutionException(Throwable e) {
-        if (this.runnableState.equals(PollingState.RUNNING)){
-            this.executionException = e;
-            this.runnableState = PollingState.ENDED;
+    public void setExecutionException(Throwable e) {
+        synchronized (this.lock) {
+            if (this.runnableState.equals(PollingState.RUNNING)){
+                this.executionException = e;
+                this.runnableState = PollingState.ENDED;
+            }
         }
     }
 
     public ExecutionException getExecutionException() {
-        if (this.runnableException == null){
-            return null;
+        synchronized (this.lock) {
+            if (this.runnableException == null){
+                return null;
+            }
+            return new ExecutionException(runnableException);
         }
-        return new ExecutionException(runnableException);
     }
 
     public PollingState getPollingState() {
-        return this.runnableState;
+        synchronized (this.lock) {
+            return this.runnableState;
+        }
     }
 
     public void setEventsSet(Set<String> eventsSet){
