@@ -441,6 +441,10 @@ public class ServiceController {
 		// result, mapping service instances to results
 		final Map<String, Object> invocationResult = new HashMap<String, Object>();
 		final ProcessingUnitInstance[] instances = pu.getInstances();
+		
+		if (instances.length == 0) {
+		    return errorStatus(ResponseConstants.NO_PROCESSING_UNIT_INSTANCES_FOUND_FOR_INVOCATION, serviceName);
+		}
 
 		// Why a map? TODO: Use an array here instead.
 		// map between service name and its future
@@ -470,6 +474,7 @@ public class ServiceController {
 				invocationResult.put(entry.getKey(), "Invocation failure: " + e.getMessage());
 			}
 		}
+
 		return successStatus(invocationResult);
 	}
 
@@ -1090,6 +1095,7 @@ public class ServiceController {
                     resultsMap.put(CloudifyConstants.IS_TASK_DONE, true);
                 }
             } else {
+                logger.log(Level.INFO, "Lifecycle events polling ended successfully.", t);
                 resultsMap.put(CloudifyConstants.IS_TASK_DONE, true);
             }
             futureTask.cancel(true);
