@@ -50,6 +50,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -259,11 +260,12 @@ public class ServiceController {
 	
 	private final ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(10, new ThreadFactory() {
 	    
-	    private int counter = 1;
+	    final AtomicInteger threadNumber = new AtomicInteger(1);
 	    
         @Override
         public Thread newThread(Runnable r) {
-            final Thread thread = new Thread(r, "LifecycleEventsPollingExecutor-" + counter++);
+            final Thread thread = new Thread
+                    (r, "LifecycleEventsPollingExecutor-" + threadNumber.getAndIncrement());
             thread.setDaemon(true);
             return thread;
         }
@@ -273,11 +275,12 @@ public class ServiceController {
 	private final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE,
 			new ThreadFactory() {
 
-				private int counter = 1;
+	            final AtomicInteger threadNumber = new AtomicInteger(1);
 
 				@Override
 				public Thread newThread(final Runnable r) {
-					final Thread thread = new Thread(r, "ServiceControllerExecutor-" + counter++);
+					final Thread thread = new Thread
+					        (r, "ServiceControllerExecutor-" + threadNumber.getAndIncrement());
 					thread.setDaemon(true);
 					return thread;
 				}
