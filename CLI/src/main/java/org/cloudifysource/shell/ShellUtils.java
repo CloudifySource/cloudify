@@ -50,6 +50,7 @@ public final class ShellUtils {
 	private static final char FIRST_ESC_CHAR = 27;
 	private static final char SECOND_ESC_CHAR = '[';
 	private static final char COMMAND_CHAR = 'm';
+	private static ResourceBundle defaultMessageBundle;
 
 	private ShellUtils() {
 
@@ -80,7 +81,9 @@ public final class ShellUtils {
 	 */
 	public static String getColorMessage(final String message, final Color color) {
 		String formattedMessage = message;
-		formattedMessage = Ansi.ansi().fg(color).a(message).toString();
+		formattedMessage = Ansi.ansi().fg(
+				color).a(
+				message).toString();
 		return formattedMessage + FIRST_ESC_CHAR + SECOND_ESC_CHAR + '0' + COMMAND_CHAR;
 	}
 
@@ -90,10 +93,9 @@ public final class ShellUtils {
 	 * @param componentInstanceIDs
 	 *            a comma-delimited string of instance IDs
 	 * @return instance IDs as a set of Integers
-	 * @throws NumberFormatException
-	 *             Reporting a failure to convert an ID to an Integer
 	 */
-	public static Set<Integer> delimitedStringToSet(final String componentInstanceIDs) throws NumberFormatException {
+	public static Set<Integer> delimitedStringToSet(final String componentInstanceIDs)
+			{
 		final String[] delimited = componentInstanceIDs.split(",");
 		final Set<Integer> intSet = new HashSet<Integer>();
 		for (final String str : delimited) {
@@ -115,12 +117,18 @@ public final class ShellUtils {
 	}
 
 	/**
-	 * Gets the messages bundle, with the default locale.
+	 * Gets the built-in messages bundle, with the default locale.
 	 * 
 	 * @return The messages bundle
 	 */
 	public static ResourceBundle getMessageBundle() {
-		return ResourceBundle.getBundle("MessagesBundle", Locale.getDefault());
+
+		if (defaultMessageBundle == null) {
+			defaultMessageBundle = ResourceBundle.getBundle(
+					"MessagesBundle", Locale.getDefault());
+		}
+		return defaultMessageBundle;
+
 	}
 
 	/**
@@ -153,7 +161,8 @@ public final class ShellUtils {
 	 * @throws TimeoutException
 	 *             Indicating the target time is in the past
 	 */
-	public static long millisUntil(final String errorMessage, final long end) throws TimeoutException {
+	public static long millisUntil(final String errorMessage, final long end)
+			throws TimeoutException {
 		final long millisUntilEnd = end - System.currentTimeMillis();
 		if (millisUntilEnd < 0) {
 			throw new TimeoutException(errorMessage);
@@ -168,7 +177,9 @@ public final class ShellUtils {
 	 */
 	public static String getExpectedExecutionTimeMessage() {
 		final String currentTime = new SimpleDateFormat("HH:mm").format(new Date());
-		return MessageFormat.format(getMessageBundle().getString("expected_execution_time"), currentTime);
+		return MessageFormat.format(
+				getMessageBundle().getString(
+						"expected_execution_time"), currentTime);
 	}
 
 	/**
@@ -181,8 +192,8 @@ public final class ShellUtils {
 	}
 
 	/**
-	 * Verifies the given value is not null. If it is - throws an IllegalArgumentException with the message:
-	 * <name> cannot be null.
+	 * Verifies the given value is not null. If it is - throws an IllegalArgumentException with the message: <name>
+	 * cannot be null.
 	 * 
 	 * @param name
 	 *            The name to be used in the exception, if thrown
@@ -197,11 +208,15 @@ public final class ShellUtils {
 
 	/**
 	 * Reads the properties from the specified file, and loads them into a {@link Properties} object.
-	 * @param propertiesFile The file to read properties from
+	 * 
+	 * @param propertiesFile
+	 *            The file to read properties from
 	 * @return A populated properties object
-	 * @throws IOException Thrown if the specified file is not found or accessed appropriately
+	 * @throws IOException
+	 *             Thrown if the specified file is not found or accessed appropriately
 	 */
-	public static Properties loadProperties(final File propertiesFile) throws IOException {
+	public static Properties loadProperties(final File propertiesFile)
+			throws IOException {
 		final Properties properties = new Properties();
 		final FileInputStream fis = new FileInputStream(propertiesFile);
 		try {
@@ -214,10 +229,12 @@ public final class ShellUtils {
 
 	/**
 	 * Checks if the operating system on this machine is Windows.
+	 * 
 	 * @return True - if using Windows, False - otherwise.
 	 */
 	public static boolean isWindows() {
-		final String os = System.getProperty("os.name").toLowerCase();
+		final String os = System.getProperty(
+				"os.name").toLowerCase();
 		return os.indexOf("win") >= 0;
 	}
 }
