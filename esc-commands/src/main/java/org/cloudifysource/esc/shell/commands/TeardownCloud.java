@@ -92,6 +92,7 @@ public class TeardownCloud extends AbstractGSCommand {
 			installer.teardownCloudAndWait(timeoutInMinutes, TimeUnit.MINUTES);
 			return getFormattedMessage("cloud_terminated_successfully", cloudProvider);
 		} finally {
+			installer.close();
 			restoreLoggingLevel();
 		}
 
