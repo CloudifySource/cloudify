@@ -96,6 +96,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 			installer.boostrapCloudAndWait(timeoutInMinutes, TimeUnit.MINUTES);
 			return getFormattedMessage("cloud_started_successfully", cloudProvider);
 		} finally {
+			installer.close();
 			restoreLoggingLevel();
 		}
 

@@ -119,6 +119,11 @@ public class CloudGridAgentBootstrapper {
 	}
 
 
+	public void close (){ 
+		if(this.provisioning != null) {
+			this.provisioning.close();
+		}
+	}
 	public void boostrapCloudAndWait(long timeout, TimeUnit timeoutUnit) throws InstallerException,
 			CLIException, InterruptedException {
 
