@@ -21,9 +21,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.Enumeration;
@@ -59,18 +57,20 @@ import com.j_spaces.kernel.Environment;
  * @since 2.0.0
  * 
  *        Tests a recipe.
- *
- *        Required arguments:
- *         recipe - Path to recipe folder or packaged zip file
- *        
- *        Optional arguments:
- *         recipeTimeout - Number of seconds that the recipe should run, before shutdown is invoked (default: 30).
- *         serviceFileName - Name of the service file in the recipe folder, if not using the default.
- *  
+ * 
+ *        Required arguments: recipe - Path to recipe folder or packaged zip file
+ * 
+ *        Optional arguments: recipeTimeout - Number of seconds that the recipe should run, before shutdown is invoked
+ *        (default: 30). serviceFileName - Name of the service file in the recipe folder, if not using the default.
+ * 
  *        Command syntax: test-recipe [recipeTimeout] [serviceFileName] recipe
  */
 @Command(scope = "cloudify", name = "test-recipe", description = "tests a recipe")
 public class TestRecipe extends AbstractGSCommand {
+
+	private static final int UNEXPECTED_ERROR_EXIT_CODE = -2;
+
+	private static final int DEFAULT_RECIPE_TIMEOUT_SECS = 30;
 
 	private static final String JAVA_HOME_ENV_VAR_NAME = "JAVA_HOME";
 
@@ -81,7 +81,7 @@ public class TestRecipe extends AbstractGSCommand {
 
 	@Argument(index = 1, required = false, name = "recipeTimeout", description = "Number of seconds that the recipe"
 			+ " should run, before shutdown is invoked. Defaults to 30.")
-	private int timeout = 30;
+	private final int timeout = DEFAULT_RECIPE_TIMEOUT_SECS;
 
 	@Argument(index = 2, required = false, name = "serviceFileName", description = "Name of the service file in the "
 			+ "recipe folder, if not using the default")
@@ -91,8 +91,7 @@ public class TestRecipe extends AbstractGSCommand {
 			"lib/optional/spring", "lib/platform/usm", };
 
 	/**
-	 * Create a full classpath, including the existing classpath and additional paths to Jars and service
-	 * files.
+	 * Create a full classpath, including the existing classpath and additional paths to Jars and service files.
 	 * 
 	 * @param serviceFolder
 	 *            The folder of the current service
@@ -124,8 +123,8 @@ public class TestRecipe extends AbstractGSCommand {
 	}
 
 	/**
-	 * Returns the directory (as a File object) if it exists. If the directory is not found in the given
-	 * location or is not a directory - an IllegalStateException is thrown.
+	 * Returns the directory (as a File object) if it exists. If the directory is not found in the given location or is
+	 * not a directory - an IllegalStateException is thrown.
 	 * 
 	 * @param dirName
 	 *            Directory name, relative to the home directory
@@ -147,7 +146,8 @@ public class TestRecipe extends AbstractGSCommand {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected Object doExecute() throws CLIException {
+	protected Object doExecute()
+			throws CLIException {
 
 		File serviceFolder = null;
 
@@ -217,7 +217,8 @@ public class TestRecipe extends AbstractGSCommand {
 	 * @throws CLIException
 	 *             Reporting a failure to retrieve the java home directory
 	 */
-	private String getJavaHomeDirectory() throws CLIException {
+	private String getJavaHomeDirectory()
+			throws CLIException {
 		try {
 			final Sigar sigar = SigarHolder.getSigar();
 			final long thisProcessPid = sigar.getPid();
@@ -242,12 +243,14 @@ public class TestRecipe extends AbstractGSCommand {
 	 * @throws CLIException
 	 *             Reporting a failure to find or parse the configuration files
 	 */
-	private void isServiceLifecycleNotNull(final File serviceFolder) throws CLIException {
+	private void isServiceLifecycleNotNull(final File serviceFolder)
+			throws CLIException {
 		Service service;
 		try {
 			final File serviceFileDir = new File(serviceFolder, "ext");
-			service = ServiceReader
-					.getServiceFromDirectory(serviceFileDir, CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
+			service =
+					ServiceReader.getServiceFromDirectory(serviceFileDir, CloudifyConstants.DEFAULT_APPLICATION_NAME)
+							.getService();
 			if (service.getLifecycle() == null) {
 				throw new CLIException(getFormattedMessage("test_recipe_service_lifecycle_missing"));
 			}
@@ -268,10 +271,11 @@ public class TestRecipe extends AbstractGSCommand {
 	}
 
 	/**
-	 * This inner class reads and prints filtered text from a given source (BufferedReader). verbose mode -
-	 * turns off the filtering of the data
+	 * This inner class reads and prints filtered text from a given source (BufferedReader). verbose mode - turns off
+	 * the filtering of the data
 	 */
 	private static class FilteredOutputHandler implements Runnable {
+
 		private final BufferedReader reader;
 		private final boolean verbose;
 		private static final String[] FILTERS = { "org.cloudifysource.dsl.internal.BaseServiceScript",
@@ -325,8 +329,8 @@ public class TestRecipe extends AbstractGSCommand {
 	}
 
 	/**
-	 * Execute a command line in with a given map of environment settings. The execution outupt is filtered
-	 * unless verbose is set to true.
+	 * Execute a command line in with a given map of environment settings. The execution outupt is filtered unless
+	 * verbose is set to true.
 	 * 
 	 * @param cmdLine
 	 *            The command to execute
@@ -364,9 +368,9 @@ public class TestRecipe extends AbstractGSCommand {
 		} catch (final ExecuteException e) {
 			logger.log(Level.SEVERE, "A problem was encountered while executing the recipe: " + e.getMessage(), e);
 		} catch (final IOException e) {
-			logger.log(Level.SEVERE, "An IO Exception was encountered while executing the recipe: " + e.getMessage(),
-					e);
-			result = -2;
+			logger.log(Level.SEVERE, "An IO Exception was encountered while executing the recipe: " +
+					e.getMessage(), e);
+			result = UNEXPECTED_ERROR_EXIT_CODE;
 		}
 
 		return result;
@@ -396,7 +400,8 @@ public class TestRecipe extends AbstractGSCommand {
 	 * @throws CLIException
 	 *             Reporting missing recipe folder, wrong file type or failure to pack the folder
 	 */
-	private File packageRecipe() throws CLIException {
+	private File packageRecipe()
+			throws CLIException {
 		if (!recipeFolder.exists()) {
 			throw new CLIStatusException("service_file_doesnt_exist", recipeFolder.getAbsolutePath(),
 					this.serviceFileName);
@@ -424,11 +429,15 @@ public class TestRecipe extends AbstractGSCommand {
 
 	/**
 	 * Packages the recipe files and other required files in a zip.
-	 * @param recipeDirOrFile The recipe service DSL file or containing folder 
+	 * 
+	 * @param recipeDirOrFile
+	 *            The recipe service DSL file or containing folder
 	 * @return A zip file
-	 * @throws CLIException Reporting a failure to find or parse the given DSL file, or pack the zip file
+	 * @throws CLIException
+	 *             Reporting a failure to find or parse the given DSL file, or pack the zip file
 	 */
-	public File doPack(final File recipeDirOrFile) throws CLIException {
+	public File doPack(final File recipeDirOrFile)
+			throws CLIException {
 		try {
 			return Packager.pack(recipeDirOrFile);
 		} catch (final IOException e) {
@@ -439,7 +448,7 @@ public class TestRecipe extends AbstractGSCommand {
 			throw new CLIException(e);
 		}
 	}
-	
+
 	/**
 	 * Create a complete command line, including path and arguments.
 	 * 
@@ -449,10 +458,10 @@ public class TestRecipe extends AbstractGSCommand {
 		final String javaPath = getJavaPath();
 
 		final String gsHome = Environment.getHomeDirectory();
-		final String[] commandParams = { "-Dcom.gs.home=" + gsHome,
-				"-Dorg.hyperic.sigar.path=" + gsHome + "/lib/platform/sigar",
-				"-Dcom.gs.usm.RecipeShutdownTimeout=" + timeout, IntegratedProcessingUnitContainer.class.getName(),
-				"-cluster", "id=1", "total_members=1" };
+		final String[] commandParams =
+				{ "-Dcom.gs.home=" + gsHome, "-Dorg.hyperic.sigar.path=" + gsHome + "/lib/platform/sigar",
+						"-Dcom.gs.usm.RecipeShutdownTimeout=" + timeout,
+						IntegratedProcessingUnitContainer.class.getName(), "-cluster", "id=1", "total_members=1" };
 		final CommandLine cmdLine = new CommandLine(javaPath);
 
 		for (final String param : commandParams) {
@@ -490,7 +499,8 @@ public class TestRecipe extends AbstractGSCommand {
 	 * @throws IOException
 	 *             Reporting a failure to create the folder
 	 */
-	protected static File createTempDir() throws IOException {
+	protected static File createTempDir()
+			throws IOException {
 		File targetDir = null;
 		final String tmpDir = System.getProperty("java.io.tmpdir");
 		if (tmpDir == null) {
@@ -524,7 +534,8 @@ public class TestRecipe extends AbstractGSCommand {
 	 * @throws IOException
 	 *             Reporting a failure to extract the zipped file or close it afterwards
 	 */
-	private static File unzipFile(final File inputFile) throws IOException {
+	private static File unzipFile(final File inputFile)
+			throws IOException {
 
 		ZipFile zipFile = null;
 		try {
@@ -561,28 +572,6 @@ public class TestRecipe extends AbstractGSCommand {
 			}
 		}
 
-	}
-
-	/**
-	 * Copies bytes from an input stream to an output stream.
-	 * 
-	 * @param in
-	 *            The input stream to read from
-	 * @param out
-	 *            The output stream to write to
-	 * @throws IOException
-	 *             Reporting a failure to read from or write to the sreams
-	 */
-	public static final void copyInputStream(final InputStream in, final OutputStream out) throws IOException {
-		final byte[] buffer = new byte[4096];
-		int len;
-
-		while ((len = in.read(buffer)) >= 0) {
-			out.write(buffer, 0, len);
-		}
-
-		in.close();
-		out.close();
 	}
 
 }
