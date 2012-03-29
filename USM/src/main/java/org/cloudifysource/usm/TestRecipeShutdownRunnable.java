@@ -21,17 +21,23 @@ import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 
-
+/********
+ * Shuts down the test USM container when the timeout expires. 
+ * @author barakme
+ * @since 2.0
+ *
+ */
 class TestRecipeShutdownRunnable implements Runnable {
 
+	private static final int FAILED_SHUTDOWN_EXIT_CODE = 100;
 	private final UniversalServiceManagerBean usm;
 	private final ApplicationContext applicationContext;
 
-	private static final java.util.logging.Logger logger = java.util.logging.Logger
-			.getLogger(TestRecipeShutdownRunnable.class.getName());
+	private static final java.util.logging.Logger logger =
+			java.util.logging.Logger.getLogger(TestRecipeShutdownRunnable.class.getName());
 
-	public TestRecipeShutdownRunnable(ApplicationContext applicationContext,
-			UniversalServiceManagerBean usm) {
+	public TestRecipeShutdownRunnable(final ApplicationContext applicationContext,
+			final UniversalServiceManagerBean usm) {
 		this.usm = usm;
 		this.applicationContext = applicationContext;
 	}
@@ -39,11 +45,11 @@ class TestRecipeShutdownRunnable implements Runnable {
 	@Override
 	public void run() {
 		logger.info("Test Recipe automatic shutdown has started");
-		USMState state = usm.getState();
+		final USMState state = usm.getState();
 		if (!state.equals(USMState.RUNNING)) {
-			logger.warning("Test Recipe automatic shutdown has started, but the USM is in state: "
-					+ state.toString()
-					+ ". Is the test timeout too short? Process will be shut down forcefully, and the service stop lifecycle will not be executed.");
+			logger.warning("Test Recipe automatic shutdown has started, but the USM is in state: " + state.toString()
+					+ ". Is the test timeout too short? Process will be shut down forcefully, "
+					+ "and the service stop lifecycle will not be executed.");
 			System.exit(1);
 		}
 		boolean shutdownSuccess = true;
@@ -54,22 +60,23 @@ class TestRecipeShutdownRunnable implements Runnable {
 			} else {
 				logger.warning("Test Recipe is shutting down but the application context is of type: "
 						+ this.applicationContext.getClass().getName()
-						+ " and does not extend AbstractApplicationContext. The application context will not be closed, only the USM will be shut down");
+						+ " and does not extend AbstractApplicationContext. "
+						+ "The application context will not be closed, only the USM will be shut down");
 				usm.shutdown();
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			shutdownSuccess = false;
 
-			logger.log(
-					Level.SEVERE,
-					"Test Recipe automatic shutdown was invoked, but the USM shutdown failed",
-					e);
+			logger.log(Level.SEVERE, "Test Recipe automatic shutdown was invoked, but the USM shutdown failed", e);
 		}
 
-		if (shutdownSuccess) {
+		logger.info("Test-Recipe shutdown completing witn shutdownSuccess == " + shutdownSuccess);
+		
+		if (shutdownSuccess) {			
 			System.exit(0);
 		} else {
-			System.exit(1);
+			logger.info("Exiting with status 100!");
+			System.exit(FAILED_SHUTDOWN_EXIT_CODE);
 		}
 
 	}
