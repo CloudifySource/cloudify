@@ -528,7 +528,17 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 	@Override
 	public void close() {
-		deployer.close();
+		try {
+			if (admin != null) {
+				admin.close();
+			}
+		} catch (Exception ex) {
+			logger.info("ByonProvisioningDriver.close() failed to close agent");
+		}
+		
+		if (deployer != null) {
+			deployer.close();
+		}
 	}
 
 }
