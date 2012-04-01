@@ -221,22 +221,20 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			
 			if (machineIp != null && machineIp.trim().length() > 0) {
 				final GridServiceAgent agent = waitForGsa(machineIp, end);
-				machineIp = agent.getMachine().getHostAddress();
-				logger.fine("Shutting down agent: " + agent + " on host: " + machineIp);
-				try {
-					agent.shutdown();
-					logger.fine("Agent on host: " + machineIp + " successfully shut down");
-				} catch (final Exception e) {
-					logger.log(Level.WARNING,
-							"Failed to shutdown agent on host: " + machineIp + ". Continuing with shutdown of machine.",
-							e);
+				if (agent != null) {
+					logger.info("handleExceptionAfterMachineCreated is shutting down agent: " + agent + " on host: " 
+							+ machineIp);
+					try {
+						agent.shutdown();
+						logger.fine("Agent on host: " + machineIp + " successfully shut down");
+					} catch (final Exception e) {
+						logger.log(Level.WARNING,
+								"Failed to shutdown agent on host: " + machineIp + ". Continuing with shutdown of "
+										+ "machine.", e);
+					}
 				}
-			} else {
-				logger.log(Level.SEVERE,
-						"Machine Provisioning failed. IP is empty. machine Id: " + machineDetails.getMachineId());
 			}
-			
-			
+
 			logger.info("Stopping machine " + machineDetails.getPrivateAddress()
 					+ ", DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE");
 			this.cloudifyProvisioning.stopMachine(machineDetails.getPrivateAddress(),
