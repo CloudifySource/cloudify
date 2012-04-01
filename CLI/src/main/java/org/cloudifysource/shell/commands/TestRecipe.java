@@ -74,14 +74,14 @@ public class TestRecipe extends AbstractGSCommand {
 
 	private static final String JAVA_HOME_ENV_VAR_NAME = "JAVA_HOME";
 
-	private static final int EXTERNAL_PROCESS_WATCHDOG_TIMEOUT = 120;
+	private static final int EXTERNAL_PROCESS_WATCHDOG_ADDITIONAL_TIMEOUT = 2;
 
 	@Argument(index = 0, required = true, name = "recipe", description = "Path to recipe folder or packaged zip file")
 	private File recipeFolder;
 
 	@Argument(index = 1, required = false, name = "recipeTimeout", description = "Number of seconds that the recipe"
 			+ " should run, before shutdown is invoked. Defaults to 30.")
-	private final int timeout = DEFAULT_RECIPE_TIMEOUT_SECS;
+	private int timeout = DEFAULT_RECIPE_TIMEOUT_SECS;
 
 	@Argument(index = 2, required = false, name = "serviceFileName", description = "Name of the service file in the "
 			+ "recipe folder, if not using the default")
@@ -110,12 +110,19 @@ public class TestRecipe extends AbstractGSCommand {
 		// Add the required jar dirs
 		for (final String jarDir : JAR_DIRS) {
 			final File dir = getDirIfExists(jarDir);
-			sb.append(dir.getAbsolutePath()).append(File.separator).append("*").append(File.pathSeparator);
+			sb.append(
+					dir.getAbsolutePath()).append(
+					File.separator).append(
+					"*").append(
+					File.pathSeparator);
 		}
 
 		// finally, add the service folder to the recipe, so it finds the
 		// META-INF files, and the lib dir
-		sb.append(serviceFolder.getAbsolutePath()).append(File.separator).append(File.pathSeparator);
+		sb.append(
+				serviceFolder.getAbsolutePath()).append(
+				File.separator).append(
+				File.pathSeparator);
 
 		// TODO - add local recipe jar files!
 		return sb.toString();
@@ -185,14 +192,16 @@ public class TestRecipe extends AbstractGSCommand {
 			}
 
 			// Execute the command
-			final int result = executeRecipe(cmdLine, env);
+			final int result = executeRecipe(
+					cmdLine, env);
 			if (result != 0) {
 				if (result == 1) {
 					logger.warning("Recipe exited abnormally with exit value 1. "
 							+ "This may indicate that the external process did not shutdown on time and was"
 							+ " forcibly shutdown by the execution watchdog.");
 				}
-				throw new CLIException(getFormattedMessage("test_recipe_failure", result));
+				throw new CLIException(getFormattedMessage(
+						"test_recipe_failure", result));
 			}
 
 		} finally {
@@ -201,7 +210,8 @@ public class TestRecipe extends AbstractGSCommand {
 				try {
 					FileUtils.deleteDirectory(serviceFolder);
 				} catch (final IOException e) {
-					logger.log(Level.SEVERE, "Failed to delete temporary service folder: " + serviceFolder, e);
+					logger.log(
+							Level.SEVERE, "Failed to delete temporary service folder: " + serviceFolder, e);
 				}
 			}
 		}
@@ -223,7 +233,8 @@ public class TestRecipe extends AbstractGSCommand {
 			final Sigar sigar = SigarHolder.getSigar();
 			final long thisProcessPid = sigar.getPid();
 			// get the java path of the current running process.
-			final String javaFilePath = sigar.getProcExe(thisProcessPid).getName();
+			final String javaFilePath = sigar.getProcExe(
+					thisProcessPid).getName();
 			final File javaFile = new File(javaFilePath);
 
 			// Locate the java folder.
@@ -248,21 +259,23 @@ public class TestRecipe extends AbstractGSCommand {
 		Service service;
 		try {
 			final File serviceFileDir = new File(serviceFolder, "ext");
-			service =
-					ServiceReader.getServiceFromDirectory(serviceFileDir, CloudifyConstants.DEFAULT_APPLICATION_NAME)
-							.getService();
+			service = ServiceReader.getServiceFromDirectory(
+					serviceFileDir, CloudifyConstants.DEFAULT_APPLICATION_NAME).getService();
 			if (service.getLifecycle() == null) {
 				throw new CLIException(getFormattedMessage("test_recipe_service_lifecycle_missing"));
 			}
 		} catch (final FileNotFoundException e) {
-			logger.log(Level.SEVERE, "Service configuration file not found " + e.getMessage(), e);
+			logger.log(
+					Level.SEVERE, "Service configuration file not found " + e.getMessage(), e);
 			throw new CLIException("Failed to locate service configuration file. " + e.getMessage(), e);
 		} catch (final PackagingException e) {
-			logger.log(Level.SEVERE, "Packaging failed: " + e.getMessage(), e);
+			logger.log(
+					Level.SEVERE, "Packaging failed: " + e.getMessage(), e);
 			e.printStackTrace();
 			throw new CLIException("Packaging failed: " + e.getMessage(), e);
 		} catch (final DSLException e) {
-			logger.log(Level.SEVERE, "DSL Parsing failed: " + e.getMessage(), e);
+			logger.log(
+					Level.SEVERE, "DSL Parsing failed: " + e.getMessage(), e);
 			e.printStackTrace();
 			throw new CLIException("Packaging failed: " + e.getMessage(), e);
 
@@ -343,8 +356,8 @@ public class TestRecipe extends AbstractGSCommand {
 
 		// The watchdog will terminate the process if it does not end within the
 		// specified timeout
-		final int externalProcessTimeout = (this.timeout + EXTERNAL_PROCESS_WATCHDOG_TIMEOUT) * 1000;
-		final ExecuteWatchdog watchdog = new ExecuteWatchdog(externalProcessTimeout);
+		final int externalProcessTimeout = (this.timeout + EXTERNAL_PROCESS_WATCHDOG_ADDITIONAL_TIMEOUT) * 1000;
+		final ExecuteWatchdog watchdog = new TestRecipeWatchdog(externalProcessTimeout);
 		executor.setWatchdog(watchdog);
 
 		executor.setExitValue(0);
@@ -364,12 +377,14 @@ public class TestRecipe extends AbstractGSCommand {
 
 			final PumpStreamHandler psh = new PumpStreamHandler(out, out);
 			executor.setStreamHandler(psh);
-			result = executor.execute(cmdLine, env);
+			result = executor.execute(
+					cmdLine, env);
 		} catch (final ExecuteException e) {
-			logger.log(Level.SEVERE, "A problem was encountered while executing the recipe: " + e.getMessage(), e);
+			logger.log(
+					Level.SEVERE, "A problem was encountered while executing the recipe: " + e.getMessage(), e);
 		} catch (final IOException e) {
-			logger.log(Level.SEVERE, "An IO Exception was encountered while executing the recipe: " +
-					e.getMessage(), e);
+			logger.log(
+					Level.SEVERE, "An IO Exception was encountered while executing the recipe: " + e.getMessage(), e);
 			result = UNEXPECTED_ERROR_EXIT_CODE;
 		}
 
@@ -403,13 +418,15 @@ public class TestRecipe extends AbstractGSCommand {
 	private File packageRecipe()
 			throws CLIException {
 		if (!recipeFolder.exists()) {
-			throw new CLIStatusException("service_file_doesnt_exist", recipeFolder.getAbsolutePath(),
-					this.serviceFileName);
+			throw new CLIStatusException(
+					"service_file_doesnt_exist", recipeFolder.getAbsolutePath(), this.serviceFileName);
 		}
 
 		if (recipeFolder.isFile()) {
 
-			if (recipeFolder.getName().endsWith(".zip") || recipeFolder.getName().endsWith(".jar")) {
+			if (recipeFolder.getName().endsWith(
+					".zip") || recipeFolder.getName().endsWith(
+					".jar")) {
 				return recipeFolder;
 			} else {
 				throw new CLIStatusException("not_jar_or_zip", recipeFolder.getAbsolutePath(), this.serviceFileName);
@@ -486,7 +503,8 @@ public class TestRecipe extends AbstractGSCommand {
 	private String getJavaPath() {
 		final long pid = SigarHolder.getSigar().getPid();
 		try {
-			return SigarHolder.getSigar().getProcExe(pid).getName();
+			return SigarHolder.getSigar().getProcExe(
+					pid).getName();
 		} catch (final SigarException e) {
 			throw new IllegalStateException("Failed to read java path via sigar from current process (" + pid + ")", e);
 		}
@@ -517,7 +535,8 @@ public class TestRecipe extends AbstractGSCommand {
 			logger.warning("The System temp directory name includes spaces. Using alternate directory: " + targetDir);
 
 		}
-		final File tempFile = File.createTempFile("GS_tmp_dir", ".service", targetDir);
+		final File tempFile = File.createTempFile(
+				"GS_tmp_dir", ".service", targetDir);
 		final String path = tempFile.getAbsolutePath();
 		tempFile.delete();
 		tempFile.mkdirs();
@@ -557,8 +576,8 @@ public class TestRecipe extends AbstractGSCommand {
 				logger.finer("Extracting file: " + entry.getName());
 				final File file = new File(baseDir, entry.getName());
 				file.getParentFile().mkdirs();
-				ServiceReader.copyInputStream(zipFile.getInputStream(entry), new BufferedOutputStream(
-						new FileOutputStream(file)));
+				ServiceReader.copyInputStream(
+						zipFile.getInputStream(entry), new BufferedOutputStream(new FileOutputStream(file)));
 			}
 			return baseDir;
 
@@ -567,11 +586,22 @@ public class TestRecipe extends AbstractGSCommand {
 				try {
 					zipFile.close();
 				} catch (final IOException e) {
-					logger.log(Level.SEVERE, "Failed to close zip file after unzipping zip contents", e);
+					logger.log(
+							Level.SEVERE, "Failed to close zip file after unzipping zip contents", e);
 				}
 			}
 		}
 
+	}
+
+	/***********
+	 * Workaround accessor to prevent eclipse clean up from turning the timeout field to a final field.
+	 * 
+	 * @param timeout
+	 *            .
+	 */
+	void setTimeout(final int timeout) {
+		this.timeout = timeout;
 	}
 
 }
