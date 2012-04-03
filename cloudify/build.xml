@@ -227,8 +227,10 @@
           <fileset dir="${esc.local.copy}/src/main/resources/clouds" includes="**/*" excludes=".svn"/>
         </copy>
     	
-    	<!-- Add Cloudify Javadoc archive to Cloudify/docs folder -->
-    	<copy file="${dsl.local.copy}/target/cloudify-javadoc.jar" tofile="${tmp.dir}/${cloudify.installation.dir}/docs/cloudify-javadoc.zip"/>
+    	<!-- Add Cloudify Javadoc archive to Cloudify/docs folder. If the folder doesn't exist please run: mvn javadoc:javadoc --> 
+    	<zip file="${tmp.dir}/${cloudify.installation.dir}/docs/cloudify-javadoc.zip">
+    		<fileset dir="${basedir}/target/site/apidocs"/>
+		</zip>
     	
 		<copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${gigaspaces.related.folder}/START_HERE.htm"/>
     	
@@ -237,6 +239,13 @@
             <fileset dir="${gs-webui.related.folder}/war"/>
         </war>
     </target>
+	
+	<target name="lala" >
+		<!-- Add Cloudify Javadoc archive to Cloudify/docs folder -->
+	    	<zip zipfile="${basedir}/cloudify-javadoc.zip" >
+	    		<fileset dir="${basedir}/target/site/apidocs"/>
+			</zip>
+	</target>
 
 	<target name="unzip.xap">
 		<delete dir="${tmp.dir}"/>
