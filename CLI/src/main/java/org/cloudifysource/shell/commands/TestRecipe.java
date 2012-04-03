@@ -74,7 +74,7 @@ public class TestRecipe extends AbstractGSCommand {
 
 	private static final String JAVA_HOME_ENV_VAR_NAME = "JAVA_HOME";
 
-	private static final int EXTERNAL_PROCESS_WATCHDOG_ADDITIONAL_TIMEOUT = 2;
+	private static final int EXTERNAL_PROCESS_WATCHDOG_ADDITIONAL_TIMEOUT = 120;
 
 	@Argument(index = 0, required = true, name = "recipe", description = "Path to recipe folder or packaged zip file")
 	private File recipeFolder;

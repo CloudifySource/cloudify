@@ -39,7 +39,7 @@ public class TestRecipeWatchdog extends ExecuteWatchdog {
 
 	@Override
 	public synchronized void timeoutOccured(final org.apache.commons.exec.Watchdog arg0) {
-		logger.severe("The test recipe command has exceeded its timeout!");
+		logger.severe("The test recipe command has exceeded its timeout! The process watchdog is about to kill the test container.");
 		super.timeoutOccured(arg0);
 
 	};
