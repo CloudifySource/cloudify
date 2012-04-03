@@ -122,7 +122,7 @@ public class ByonDeployer {
 
 		if (freeNodesPool.size() == 0 && invalidNodesPool.size() == 0) {
 			throw new CloudProvisioningException(
-					"Failed to create new cloud node for template \" " + templateName 
+					"Failed to create new cloud node for template \"" + templateName 
 					+ "\", all available nodes are currently used");
 		}
 

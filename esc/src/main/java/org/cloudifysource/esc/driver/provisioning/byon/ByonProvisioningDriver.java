@@ -63,9 +63,15 @@ import com.gigaspaces.grid.gsa.GSA;
 public class ByonProvisioningDriver extends BaseProvisioningDriver implements ProvisioningDriver,
 		ProvisioningDriverClassContextAware {
 
-	private ByonDeployer deployer;
+	private static final int THREAD_WAITING_IDLE_TIME_IN_SECS = 10;
+	private static final int AGENT_SHUTDOWN_TIMEOUT_IN_MINUTES = 2;
+	private static final int FILE_DELETION_TIMEOUT_IN_MINUTES = 1;
+	private static final String GS_FOLDER = "/tmp/gs-files";
 	private static final String CLOUD_NODES_LIST = "nodesList";
-	private static final int THREAD_WAITING_IDLE_TIME = 10;
+	private static final String CLEAN_GS_FILES_ON_SHUTDOWN = "cleanGsFilesOnShutdown";
+
+	private ByonDeployer deployer;
+	private boolean cleanGsFilesOnShutdown = false;
 
 	@Override
 	protected void initDeployer(final Cloud cloud) {
@@ -89,6 +95,17 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 									"Failed to create BYON cloud deployer, invalid configuration");
 						}
 						deployer.addNodesList(templateName, nodesList);
+					}
+
+					// set custom settings
+					final Map<String, Object> customSettings = cloud.getCustom();
+					if (customSettings != null) {
+						if (customSettings.containsKey(CLEAN_GS_FILES_ON_SHUTDOWN)) {
+							final Object cleanOnShutdownStr = customSettings.get(CLEAN_GS_FILES_ON_SHUTDOWN);
+							if (cleanOnShutdownStr != null && StringUtils.isNotBlank((String) cleanOnShutdownStr)) {
+								cleanGsFilesOnShutdown = ((String) cleanOnShutdownStr).equalsIgnoreCase("true");
+							}
+						}
 					}
 
 					return deployer;
@@ -138,7 +155,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			deployer.invalidateServer(cloudTemplateName, node, true);
 			throw e;
 		}
-		
+
 		try {
 			// check that a SSH connection can be made
 			Utils.validateConnection(machineDetails.getIp(), CloudifyConstants.SSH_PORT);
@@ -325,20 +342,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			if (cloudNode != null) {
 				logger.info("Found server: " + cloudNode.getId()
 						+ ". Shutting it down and waiting for shutdown to complete");
-				MachineDetails machineDetails = null;
-				try {
-					machineDetails = createMachineDetailsFromNode(cloudNode);
-					Utils.deleteFileSystemObject(machineDetails.getPrivateAddress(), machineDetails.getRemoteUsername(),
-							machineDetails.getRemotePassword(), "/tmp/gs-files", null, 1, TimeUnit.MINUTES);
-				} catch (Exception e) {
-					if (machineDetails != null) {
-						logger.info("ByonProvisioningDriver: Failed to delete system files on teardown from server: " 
-							+ machineDetails.getPrivateAddress());
-					} else {
-						logger.info("ByonProvisioningDriver: Failed to delete system files on teardown from server.");
-					}
-				}
-				deployer.shutdownServerByIp(cloudTemplateName, cloudNode.getPrivateIP());
+				shutdownServerGracefully(cloudNode, false);
 				logger.info("Server: " + cloudNode.getId() + " shutdown has finished.");
 				stopResult = true;
 			} else {
@@ -354,36 +358,22 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	@Override
 	public void stopManagementMachines() throws TimeoutException, CloudProvisioningException {
 
+		Set<CustomNode> managementServers = null;
+
 		try {
-			final Set<CustomNode> managementServers = getExistingManagementServers(cloud.getProvider()
-					.getNumberOfManagementMachines());
+			managementServers = getExistingManagementServers(cloud.getProvider().getNumberOfManagementMachines());
 			if (managementServers == null || managementServers.isEmpty()) {
+				publishEvent("prov_management_server_not_found");
 				throw new CloudProvisioningException("Could not find any management machines for this cloud");
 			}
-
-			for (final CustomNode customNode : managementServers) {
-				stopManagementServicesAndWait(cloud.getProvider().getNumberOfManagementMachines(),
-						customNode.getPrivateIP(), 2, TimeUnit.MINUTES);
-				MachineDetails machineDetails = null;
-				try {
-					machineDetails = createMachineDetailsFromNode(customNode);
-					Utils.deleteFileSystemObject(machineDetails.getPrivateAddress(), machineDetails.getRemoteUsername(),
-							machineDetails.getRemotePassword(), "/tmp/gs-files", null, 1, TimeUnit.MINUTES);
-				} catch (Exception e) {
-					if (machineDetails != null) {
-						logger.info("ByonProvisioningDriver: Failed to delete system files on teardown from server: " 
-							+ machineDetails.getPrivateAddress());
-					} else {
-						logger.info("ByonProvisioningDriver: Failed to delete system files on teardown from server.");
-					}
-				}
-				deployer.shutdownServer(cloudTemplateName, customNode);
-			}
 		} catch (final Exception e) {
-			publishEvent("prov_agent_shutdown_failed");
-			throw new CloudProvisioningException("Failed to shutdown agent.", e);
+			publishEvent("prov_management_lookup_failed");
+			throw new CloudProvisioningException("Failed to lookup existing management servers.");
 		}
 
+		for (final CustomNode customNode : managementServers) {
+			shutdownServerGracefully(customNode, true);
+		}
 	}
 
 	private Set<CustomNode> getExistingManagementServers(final int expectedGsmCount)
@@ -409,8 +399,11 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			}
 			final GridServiceManagers gsms = admin.getGridServiceManagers();
 			for (final GridServiceManager gsm : gsms) {
-				existingManagementServers.add(deployer.getServerByIP(cloudTemplateName, gsm.getMachine()
-						.getHostAddress()));
+				final CustomNode managementServer = deployer.getServerByIP(cloudTemplateName, gsm.getMachine()
+						.getHostAddress());
+				if (managementServer != null) {
+					existingManagementServers.add(managementServer);
+				}
 			}
 			admin.close();
 		}
@@ -418,8 +411,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		return existingManagementServers;
 	}
 
-	private void stopManagementServicesAndWait(final int expectedGsmCount, final String ipAddress, final long timeout,
-			final TimeUnit timeunit) throws TimeoutException, InterruptedException {
+	private void stopAgentAndWait(final int expectedGsmCount, final String ipAddress) throws TimeoutException,
+			InterruptedException {
 
 		if (admin == null) {
 			admin = Utils.getAdminObject(ipAddress, expectedGsmCount);
@@ -430,13 +423,12 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		GSA agent = null;
 		final Set<String> keys = agentsMap.keySet();
 		for (final String key : keys) {
-			System.out.println("key: " + key + ", value: " + agentsMap.get(key));
 			if (key.equalsIgnoreCase(ipAddress)) {
 				agent = ((InternalGridServiceAgent) agentsMap.get(key)).getGSA();
 			}
 		}
 		if (agent != null) {
-			logger.info("ByonProvisioningDriver: shutting down agent on management server: " + ipAddress);
+			logger.info("ByonProvisioningDriver: shutting down agent on server: " + ipAddress);
 			try {
 				admin.close();
 				agent.shutdown();
@@ -447,16 +439,34 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 				}
 			}
 
-			final long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
+			final long end = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(AGENT_SHUTDOWN_TIMEOUT_IN_MINUTES);
 			boolean agentUp = isAgentUp(agent);
 			while (agentUp && System.currentTimeMillis() < end) {
-				logger.fine("next check in " + TimeUnit.MILLISECONDS.toSeconds(THREAD_WAITING_IDLE_TIME) + " seconds");
-				Thread.sleep(TimeUnit.SECONDS.toMillis(THREAD_WAITING_IDLE_TIME));
+				logger.fine("next check in " + TimeUnit.MILLISECONDS.toSeconds(THREAD_WAITING_IDLE_TIME_IN_SECS)
+						+ " seconds");
+				Thread.sleep(TimeUnit.SECONDS.toMillis(THREAD_WAITING_IDLE_TIME_IN_SECS));
 				agentUp = isAgentUp(agent);
 			}
 
 			if (!agentUp && System.currentTimeMillis() >= end) {
 				throw new TimeoutException("Agent shutdown timed out (agent IP: " + ipAddress + ")");
+			}
+		}
+	}
+
+	private void deleteGsFiles(final CustomNode cloudNode) {
+		MachineDetails machineDetails = null;
+		try {
+			machineDetails = createMachineDetailsFromNode(cloudNode);
+			Utils.deleteFileSystemObject(machineDetails.getPrivateAddress(), machineDetails.getRemoteUsername(),
+					machineDetails.getRemotePassword(), GS_FOLDER, null/* key file */,
+					FILE_DELETION_TIMEOUT_IN_MINUTES, TimeUnit.MINUTES);
+		} catch (final Exception e) {
+			if (machineDetails != null) {
+				logger.info("ByonProvisioningDriver: Failed to delete system files from server: "
+						+ machineDetails.getPrivateAddress());
+			} else {
+				logger.info("ByonProvisioningDriver: Failed to delete system files from server.");
 			}
 		}
 	}
@@ -526,16 +536,35 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		return md;
 	}
 
+	private void shutdownServerGracefully(final CustomNode cloudNode, final boolean isManagement)
+			throws CloudProvisioningException {
+		try {
+			stopAgentAndWait(cloud.getProvider().getNumberOfManagementMachines(), cloudNode.getPrivateIP());
+			if (cleanGsFilesOnShutdown) {
+				deleteGsFiles(cloudNode);
+			}
+			deployer.shutdownServer(cloudTemplateName, cloudNode);
+		} catch (final Exception e) {
+			if (isManagement) {
+				publishEvent("prov_failed_to_stop_management_machine");
+			} else {
+				publishEvent("prov_failed_to_stop_machine");
+			}
+			throw new CloudProvisioningException(e);
+		}
+		logger.info("Server: " + cloudNode.getId() + " shutdown has finished.");
+	}
+
 	@Override
 	public void close() {
 		try {
 			if (admin != null) {
 				admin.close();
 			}
-		} catch (Exception ex) {
+		} catch (final Exception ex) {
 			logger.info("ByonProvisioningDriver.close() failed to close agent");
 		}
-		
+
 		if (deployer != null) {
 			deployer.close();
 		}

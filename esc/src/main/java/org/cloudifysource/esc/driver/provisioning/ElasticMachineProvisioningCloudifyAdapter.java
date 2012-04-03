@@ -17,6 +17,7 @@ package org.cloudifysource.esc.driver.provisioning;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -197,12 +198,18 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			}
 			return gsa;
 		} catch (final ElasticMachineProvisioningException e) {
+			logger.info("ElasticMachineProvisioningException occurred, " + e.getMessage());
+			logger.info(Arrays.toString(e.getStackTrace()));
 			handleExceptionAfterMachineCreated(machineDetails, end);
 			throw e;
 		} catch (final TimeoutException e) {
+			logger.info("TimeoutException occurred, " + e.getMessage());
+			logger.info(Arrays.toString(e.getStackTrace()));
 			handleExceptionAfterMachineCreated(machineDetails, end);
 			throw e;
 		} catch (final InterruptedException e) {
+			logger.info("InterruptedException occurred, " + e.getMessage());
+			logger.info(Arrays.toString(e.getStackTrace()));
 			handleExceptionAfterMachineCreated(machineDetails, end);
 			throw e;
 		}
@@ -323,10 +330,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private GridServiceAgent waitForGsa(final String machineIp, final long end)
 			throws InterruptedException, TimeoutException {
 
-		//final long endTime = System.currentTimeMillis() + timeoutInSeconds * MILLISECONDS_IN_SECOND;
-		final long endTime = Utils.millisUntil(end);
-
-		while (System.currentTimeMillis() < endTime) {
+		while (Utils.millisUntil(end) > 0) {
 			GridServiceAgent gsa = admin.getGridServiceAgents().getHostAddress().get(machineIp);
 			if (gsa != null) {
 				return gsa;

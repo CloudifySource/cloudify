@@ -266,15 +266,15 @@ public class AgentlessInstaller {
 		}
 
 		final FileSystemManager mng = createdManager;
-
+		
 		mng.setLogger(org.apache.commons.logging.LogFactory.getLog(logger.getName()));
 		final FileObject localDir = mng.resolveFile("file:" + srcDir);
 
 		final FileObject remoteDir = mng.resolveFile(target, opts);
-
+		
 		logger.fine("Copying files to: " + target + " from local dir: " + localDir.getName().getPath() + " excluding "
 				+ excludedFiles.toString());
-
+				
 		try {
 			remoteDir.copyFrom(localDir, new FileSelector() {
 
@@ -292,7 +292,7 @@ public class AgentlessInstaller {
 						logger.fine(fileInfo.getFile().getName().getBaseName() + " missing on server");
 						return true;
 					}
-
+					
 					if (fileInfo.getFile().getType() == FileType.FILE) {
 						final long remoteSize = remoteFile.getContent().getSize();
 						final long localSize = fileInfo.getFile().getContent().getSize();
@@ -498,10 +498,13 @@ public class AgentlessInstaller {
 			}
 			copyFiles(targetHost, details.getUsername(), details.getPassword(), details.getLocalDir(), details.getRemoteDir(), details.getKeyFile(), excludedFiles, details.getCloudFile(), Utils.millisUntil(end), TimeUnit.MILLISECONDS, details.getFileTransferMode());
 		} catch (final FileSystemException e) {
+			logger.info(Arrays.toString(e.getStackTrace()));
 			throw new InstallerException("Uploading files to remote server failed.", e);
 		} catch (final IOException e) {
+			logger.info(Arrays.toString(e.getStackTrace()));
 			throw new InstallerException("Uploading files to remote server failed.", e);
 		} catch (final URISyntaxException e) {
+			logger.info(Arrays.toString(e.getStackTrace()));
 			throw new InstallerException("Uploading files to remote server failed.", e);
 		}
 	}
