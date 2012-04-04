@@ -1338,17 +1338,17 @@ public class ServiceController {
 
 		CapacityRequirementsConfig minCapacity = 
 			new CapacityRequirementsConfigurer()
-			.memoryCapacity((int)(service.getMinAllowedInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
+			.memoryCapacity((service.getMinAllowedInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
 			.create();
 
 		CapacityRequirementsConfig initialCapacity = 
 			new CapacityRequirementsConfigurer()
-			.memoryCapacity((int) (service.getNumInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
+			.memoryCapacity((service.getNumInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
 			.create();
 
 		CapacityRequirementsConfig maxCapacity = 
 			new CapacityRequirementsConfigurer()
-			.memoryCapacity((int)(service.getMaxAllowedInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
+			.memoryCapacity((service.getMaxAllowedInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
 			.create();
 
 		AutomaticCapacityScaleConfig scaleConfig = 
