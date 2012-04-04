@@ -150,7 +150,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class ServiceController {
 
 	private static final int POLLING_TASK_TIMEOUT = 20;
-	private static final int THREAD_POOL_SIZE = 2;
+	private static final int THREAD_POOL_SIZE = 20;
 	private static final String SHARED_ISOLATION_ID = "public";
 	private static final int PU_DISCOVERY_TIMEOUT_SEC = 8;
     private final Map<UUID, LifecycleEventsContainer> lifecyclePollingContainer = 
@@ -258,7 +258,8 @@ public class ServiceController {
 
 	}
 	
-	private final ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(10, new ThreadFactory() {
+	private final ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(10,
+	        new ThreadFactory() {
 	    
 	    final AtomicInteger threadNumber = new AtomicInteger(1);
 	    
