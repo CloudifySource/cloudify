@@ -426,18 +426,6 @@
     	</replaceregexp>		
    </target>
 	
-	<target name="kuku">
-		<replaceregexp byline="true"
-    		match="cloudifyUrl &quot;(.*)&quot;" 
-    		replace="cloudifyUrl &quot;LALALALALALA&quot;" >
-    		<!--fileset 
-    			dir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/esc" 
-    			includes="**/*-cloud.groovy" /-->
-    		<fileset 
-    			dir="${esc.local.copy}/src/main/resources/clouds" 
-    			includes="**/*-cloud.groovy" />
-    	</replaceregexp>
-	</target>
 	
 	<target name="commit.service.configuration">
 			
