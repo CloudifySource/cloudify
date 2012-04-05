@@ -43,10 +43,9 @@ public class CloudTemplate {
 	private Map<String, Object> overrides = new HashMap<String, Object>();
 	private Map<String, Object> custom = new HashMap<String, Object>();
 
-
 	private FileTransferModes fileTransfer = FileTransferModes.SCP;
-	private RemoteExecutionModes remoteExecution =RemoteExecutionModes.SSH;
-	
+	private RemoteExecutionModes remoteExecution = RemoteExecutionModes.SSH;
+
 	private String username;
 	private String password;
 	private String remoteDirectory;
@@ -63,8 +62,7 @@ public class CloudTemplate {
 	/**
 	 * Sets the image ID.
 	 * 
-	 * @param imageId
-	 *            The ID of the image to use
+	 * @param imageId The ID of the image to use
 	 */
 	public void setImageId(final String imageId) {
 		this.imageId = imageId;
@@ -82,8 +80,7 @@ public class CloudTemplate {
 	/**
 	 * Sets the machine memory size in MB.
 	 * 
-	 * @param machineMemoryMB
-	 *            The machine memory size
+	 * @param machineMemoryMB The machine memory size
 	 */
 	public void setMachineMemoryMB(final int machineMemoryMB) {
 		this.machineMemoryMB = machineMemoryMB;
@@ -101,8 +98,7 @@ public class CloudTemplate {
 	/**
 	 * Sets the hardware ID.
 	 * 
-	 * @param hardwareId
-	 *            the ID of the hardware profile
+	 * @param hardwareId the ID of the hardware profile
 	 */
 	public void setHardwareId(final String hardwareId) {
 		this.hardwareId = hardwareId;
@@ -120,8 +116,7 @@ public class CloudTemplate {
 	/**
 	 * Sets the location ID.
 	 * 
-	 * @param locationId
-	 *            The ID of this location
+	 * @param locationId The ID of this location
 	 */
 	public void setLocationId(final String locationId) {
 		this.locationId = locationId;
@@ -139,8 +134,7 @@ public class CloudTemplate {
 	/**
 	 * Sets the number of cores on this machine.
 	 * 
-	 * @param numberOfCores
-	 *            The machine's cores' number
+	 * @param numberOfCores The machine's cores' number
 	 */
 	public void setNumberOfCores(final int numberOfCores) {
 		this.numberOfCores = numberOfCores;
@@ -158,8 +152,7 @@ public class CloudTemplate {
 	/**
 	 * Sets optional settings.
 	 * 
-	 * @param options
-	 *            A map of optional settings
+	 * @param options A map of optional settings
 	 */
 	public void setOptions(final Map<String, Object> options) {
 		this.options = options;
@@ -177,8 +170,7 @@ public class CloudTemplate {
 	/**
 	 * Sets overriding settings. This is optional.
 	 * 
-	 * @param overrides
-	 *            A map of overriding settings
+	 * @param overrides A map of overriding settings
 	 */
 	public void setOverrides(final Map<String, Object> overrides) {
 		this.overrides = overrides;
@@ -196,8 +188,7 @@ public class CloudTemplate {
 	/**
 	 * Sets custom settings.
 	 * 
-	 * @param custom
-	 *            A map of custom settings
+	 * @param custom A map of custom settings
 	 */
 	public void setCustom(final Map<String, Object> custom) {
 		this.custom = custom;
@@ -238,7 +229,7 @@ public class CloudTemplate {
 		return fileTransfer;
 	}
 
-	public void setFileTransfer(FileTransferModes fileTransfer) {
+	public void setFileTransfer(final FileTransferModes fileTransfer) {
 		this.fileTransfer = fileTransfer;
 	}
 
@@ -246,7 +237,7 @@ public class CloudTemplate {
 		return remoteExecution;
 	}
 
-	public void setRemoteExecution(RemoteExecutionModes remoteExecution) {
+	public void setRemoteExecution(final RemoteExecutionModes remoteExecution) {
 		this.remoteExecution = remoteExecution;
 	}
 

@@ -126,13 +126,13 @@ public class DSLReader {
 			throw new IllegalArgumentException(workDir.getAbsolutePath() + " must be a directory");
 		}
 
-		this.dslFile = findDefaultDSLFile(dslFileNameSuffix,
-				workDir);
+		this.dslFile = findDefaultDSLFile(dslFileNameSuffix, workDir);
 
 	}
 
 	/***********
 	 * .
+	 * 
 	 * @param fileNameSuffix .
 	 * @param dir .
 	 * @return .
@@ -191,7 +191,7 @@ public class DSLReader {
 	}
 
 	private Object readDslObject()
-			throws DSLException {
+			throws DSLException, DSLValidationException {
 		try {
 			init();
 		} catch (final IOException e) {
@@ -222,13 +222,9 @@ public class DSLReader {
 								+ "Set the 'createServiceContext' option to false if you do not need a service conext");
 			}
 			if (isRunningInGSC) {
-				this.context.init((Service) result,
-						admin,
-						workDir.getAbsolutePath(),
-						clusterInfo);
+				this.context.init((Service) result, admin, workDir.getAbsolutePath(), clusterInfo);
 			} else {
-				this.context.initInIntegratedContainer((Service) result,
-						workDir.getAbsolutePath());
+				this.context.initInIntegratedContainer((Service) result, workDir.getAbsolutePath());
 			}
 		}
 
@@ -237,7 +233,8 @@ public class DSLReader {
 
 	}
 
-	private Object evaluateGroovyScript(final GroovyShell gs) {
+	private Object evaluateGroovyScript(final GroovyShell gs)
+			throws DSLValidationException {
 		// Evaluate class using a FileReader, as the *-service files create a
 		// class with an illegal name
 		Object result = null;
@@ -247,14 +244,15 @@ public class DSLReader {
 			FileReader reader = null;
 			try {
 				reader = new FileReader(dslFile);
-				result = gs.evaluate(reader,
-						"dslEntity");
+				result = gs.evaluate(reader, "dslEntity");
 			} catch (final IOException e) {
 				throw new IllegalStateException("The file " + dslFile + " could not be read", e);
 			} catch (final MissingMethodException e) {
 				throw new IllegalArgumentException("Could not resolve DSL entry with name: " + e.getMethod(), e);
 			} catch (final MissingPropertyException e) {
 				throw new IllegalArgumentException("Could not resolve DSL entry with name: " + e.getProperty(), e);
+			} catch (final DSLValidationRuntimeException e) {
+				throw e.getDSLValidationException();
 			} finally {
 				if (reader != null) {
 					try {
@@ -266,8 +264,7 @@ public class DSLReader {
 			}
 		} else {
 			try {
-				result = gs.evaluate(this.dslContents,
-						"dslEntity");
+				result = gs.evaluate(this.dslContents, "dslEntity");
 			} catch (final CompilationFailedException e) {
 				throw new IllegalArgumentException("The file " + dslFile + " could not be compiled", e);
 			}
@@ -304,8 +301,7 @@ public class DSLReader {
 		if (indexOfLastComma < 0) {
 			fileNamePrefix = baseFileName;
 		} else {
-			fileNamePrefix = baseFileName.substring(0,
-					indexOfLastComma);
+			fileNamePrefix = baseFileName.substring(0, indexOfLastComma);
 		}
 
 		final String defaultPropertiesFileName = fileNamePrefix + ".properties";
@@ -342,12 +338,9 @@ public class DSLReader {
 		final String baseClassName = BaseDslScript.class.getName();
 
 		final List<String> serviceJarFiles = createJarFileListForService();
-		final CompilerConfiguration cc = createCompilerConfiguration(baseClassName,
-				serviceJarFiles);
+		final CompilerConfiguration cc = createCompilerConfiguration(baseClassName, serviceJarFiles);
 
-		final Binding binding = createGroovyBinding(properties,
-				context,
-				dslFile);
+		final Binding binding = createGroovyBinding(properties, context, dslFile);
 
 		final GroovyShell gs = new GroovyShell(ServiceReader.class.getClassLoader(), binding, cc);
 		return gs;
@@ -361,8 +354,9 @@ public class DSLReader {
 		ic.addStarImports(STAR_IMPORTS);
 
 		ic.addImports(org.cloudifysource.dsl.utils.ServiceUtils.class.getName());
-		
-		ic.addStaticImport("Statistics", org.cloudifysource.dsl.autoscaling.ScalingRulesDetails.class.getName(), "STATISTICS_FACTORY");
+
+		ic.addStaticImport("Statistics", org.cloudifysource.dsl.autoscaling.ScalingRulesDetails.class.getName(),
+				"STATISTICS_FACTORY");
 		cc.addCompilationCustomizers(ic);
 
 		cc.setScriptBaseClass(baseClassName);
@@ -377,24 +371,20 @@ public class DSLReader {
 
 		final Set<Entry<String, Object>> bindingPropertiesEntries = this.bindingProperties.entrySet();
 		for (final Entry<String, Object> entry : bindingPropertiesEntries) {
-			binding.setVariable(entry.getKey(),
-					entry.getValue());
+			binding.setVariable(entry.getKey(), entry.getValue());
 		}
 
 		if (properties != null) {
 			final Set<Entry<Object, Object>> entries = properties.entrySet();
 			for (final Entry<Object, Object> entry : entries) {
-				binding.setVariable((String) entry.getKey(),
-						entry.getValue());
+				binding.setVariable((String) entry.getKey(), entry.getValue());
 			}
 			if (context != null) {
-				binding.setVariable("context",
-						context);
+				binding.setVariable("context", context);
 			}
 		}
 
-		binding.setVariable(DSL_FILE_PATH_PROPERTY_NAME,
-				dslFile == null ? null : dslFile.getPath());
+		binding.setVariable(DSL_FILE_PATH_PROPERTY_NAME, dslFile == null ? null : dslFile.getPath());
 		return binding;
 	}
 
@@ -506,12 +496,12 @@ public class DSLReader {
 
 	/**********
 	 * .
+	 * 
 	 * @param key .
 	 * @param value .
 	 */
 	public void addProperty(final String key, final Object value) {
-		bindingProperties.put(key,
-				value);
+		bindingProperties.put(key, value);
 
 	}
 

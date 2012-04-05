@@ -15,13 +15,16 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.cloud;
 
+import org.cloudifysource.dsl.DSLValidation;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.cloudifysource.dsl.internal.DSLValidationException;
 
 /********************
  * Domain POJO for the cloud user.
+ * 
  * @author barakme
  * @since 2.0.0
- *
+ * 
  */
 @CloudifyDSLEntity(name = "user", clazz = CloudUser.class, allowInternalNode = true, allowRootNode = false,
 		parent = "cloud")
@@ -60,4 +63,22 @@ public class CloudUser {
 		return "CloudUser [user=" + user + ", keyFile=" + keyFile + "]";
 	}
 
+	@DSLValidation
+	void validateKeyFileDefaultValue()
+			throws DSLValidationException {
+		if (this.getUser().equals("ENTER_USER")) {
+			throw new DSLValidationException("User field still has default configuration value of ENTER_USER");
+		}
+		
+		if (this.getApiKey().equals("ENTER_USER")) {
+			throw new DSLValidationException("User field still has default configuration value of ENTER_USER");
+		}
+
+		// // Optional. Key used to access cloud.
+		// // When used with the default driver, maps to the credential used to create the ComputeServiceContext.
+		// apiKey "ENTER_KEY"
+		//
+		//
+		// keyFile "ENTER_KEY_FILE_NAME"
+	}
 }

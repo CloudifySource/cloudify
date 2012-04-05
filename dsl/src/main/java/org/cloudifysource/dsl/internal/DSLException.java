@@ -17,7 +17,7 @@ package org.cloudifysource.dsl.internal;
 
 /**
  * @author barakme
- *
+ * 
  */
 public class DSLException extends Exception {
 
@@ -30,32 +30,28 @@ public class DSLException extends Exception {
 	 * 
 	 */
 	public DSLException() {
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
-	 * @param message
+	 * @param message .
 	 */
-	public DSLException(String message) {
+	public DSLException(final String message) {
 		super(message);
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
-	 * @param cause
+	 * @param cause .
 	 */
-	public DSLException(Throwable cause) {
+	public DSLException(final Throwable cause) {
 		super(cause);
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
-	 * @param message
-	 * @param cause
+	 * @param message .
+	 * @param cause .
 	 */
-	public DSLException(String message, Throwable cause) {
+	public DSLException(final String message, final Throwable cause) {
 		super(message, cause);
-		// TODO Auto-generated constructor stub
 	}
 
 }
