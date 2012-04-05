@@ -17,6 +17,7 @@ package org.cloudifysource.esc.byon;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -49,14 +50,11 @@ public class ByonDeployer {
 	private static final String NODES_LIST_TERMINATED = "TERMINATED";
 	private static final String CLOUD_NODE_ID = "id";
 	private static final String CLOUD_NODE_IP = "ip";
-	private static final String CLOUD_NODE_ID_PREFIX = "idPrefix";
-	private static final String CLOUD_NODE_IP_RANGE = "ipRange";
-	private static final String CLOUD_NODE_IP_LIST = "ipList";
-	private static final String CLOUD_NODE_IP_CIDR = "CIDR";
 	private static final String CLOUD_NODE_USERNAME = "username";
 	private static final String CLOUD_NODE_CREDENTIAL = "credential";
 
-	private final Map<String, Map<String, List<CustomNode>>> nodesListsByTemplates = new Hashtable<String, Map<String, List<CustomNode>>>();
+	private final Map<String, Map<String, List<CustomNode>>> nodesListsByTemplates = 
+			new Hashtable<String, Map<String, List<CustomNode>>>();
 
 	/**
 	 * Constructor.
@@ -76,10 +74,17 @@ public class ByonDeployer {
 	 */
 	public synchronized void addNodesList(final String templateName, final List<Map<String, String>> nodesList)
 			throws Exception {
-		final List<CustomNode> parsedNodes = parseCloudNodes(nodesList);
+		final List<CustomNode> parsedNodes = removeDuplicates(parseCloudNodes(nodesList));
+		Set<String> duplicateNodes = getDuplicateIPs(getAllNodes(), parsedNodes);
+		if (duplicateNodes.size() > 0) {
+			throw new CloudProvisioningException("Failed to add nodes for template \"" + templateName + "\","
+					+ " some IP addresses were already defined by a different template: " 
+					+ Arrays.toString(duplicateNodes.toArray()));
+		}
+		
 		final Map<String, List<CustomNode>> templateLists = new Hashtable<String, List<CustomNode>>();
 		final List<CustomNode> freeNodesPool = new ArrayList<CustomNode>();
-		freeNodesPool.addAll(aggregate(freeNodesPool, parsedNodes));
+		freeNodesPool.addAll(aggregateWithoutDuplicates(freeNodesPool, parsedNodes));
 		templateLists.put(NODES_LIST_FREE, freeNodesPool);
 		templateLists.put(NODES_LIST_ALLOCATED, new ArrayList<CustomNode>());
 		templateLists.put(NODES_LIST_INVALID, new ArrayList<CustomNode>());
@@ -121,8 +126,7 @@ public class ByonDeployer {
 		final List<CustomNode> invalidNodesPool = templateLists.get(NODES_LIST_INVALID);
 
 		if (freeNodesPool.size() == 0 && invalidNodesPool.size() == 0) {
-			throw new CloudProvisioningException(
-					"Failed to create new cloud node for template \"" + templateName 
+			throw new CloudProvisioningException("Failed to create new cloud node for template \"" + templateName
 					+ "\", all available nodes are currently used");
 		}
 
@@ -327,7 +331,7 @@ public class ByonDeployer {
 
 		return selectedNode;
 	}
-
+	
 	/**
 	 * Retrieves all nodes (i.e. in all states - free, allocated and invalid).
 	 * 
@@ -396,6 +400,27 @@ public class ByonDeployer {
 	public void close() {
 		// Do nothing
 	}
+	
+	private List<CustomNode> getAllNodes() throws CloudProvisioningException {
+		final List<CustomNode> allNodes = new ArrayList<CustomNode>();
+		
+		for (String templateName : nodesListsByTemplates.keySet()) {
+			final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
+			if (templateLists == null || templateLists.size() == 0) {
+				throw new CloudProvisioningException("Failed to get servers list. \"" + templateName
+						+ "\" is not a known template.");
+			}
+			final List<CustomNode> freeNodesPool = templateLists.get(NODES_LIST_FREE);
+			final List<CustomNode> allocatedNodesPool = templateLists.get(NODES_LIST_ALLOCATED);
+			final List<CustomNode> invalidNodesPool = templateLists.get(NODES_LIST_INVALID);
+
+			allNodes.addAll(freeNodesPool);
+			allNodes.addAll(allocatedNodesPool);
+			allNodes.addAll(invalidNodesPool);
+		}
+
+		return allNodes;
+	}
 
 	private List<CustomNode> parseCloudNodes(final List<Map<String, String>> nodesMapList)
 			throws CloudProvisioningException {
@@ -403,32 +428,72 @@ public class ByonDeployer {
 		final List<CustomNode> cloudNodes = new ArrayList<CustomNode>();
 
 		for (final Map<String, String> nodeMap : nodesMapList) {
-			if (StringUtils.isNotBlank(nodeMap.get(CLOUD_NODE_ID))
-					&& StringUtils.isNotBlank(nodeMap.get(CLOUD_NODE_IP))) {
-				cloudNodes.add(parseOneNode(nodeMap));
-			} else if ((StringUtils.isNotBlank(nodeMap.get(CLOUD_NODE_ID)) || StringUtils.isNotBlank(nodeMap
-					.get(CLOUD_NODE_ID_PREFIX))) && StringUtils.isNotBlank(nodeMap.get(CLOUD_NODE_IP_LIST))) {
-				cloudNodes.addAll(parseNodeList(nodeMap));
-			} else if ((StringUtils.isNotBlank(nodeMap.get(CLOUD_NODE_ID)) || StringUtils.isNotBlank(nodeMap
-					.get(CLOUD_NODE_ID_PREFIX))) && StringUtils.isNotBlank(nodeMap.get(CLOUD_NODE_IP_CIDR))) {
-				cloudNodes.addAll(parseNodeCIDR(nodeMap));
-			} else if ((StringUtils.isNotBlank(nodeMap.get(CLOUD_NODE_ID)) || StringUtils.isNotBlank(nodeMap
-					.get(CLOUD_NODE_ID_PREFIX))) && StringUtils.isNotBlank(nodeMap.get(CLOUD_NODE_IP_RANGE))) {
-				cloudNodes.addAll(parseNodeRange(nodeMap));
-			} else {
+			if (StringUtils.isBlank(nodeMap.get(CLOUD_NODE_ID)) || StringUtils.isBlank(nodeMap.get(CLOUD_NODE_IP))) {
 				throw new CloudProvisioningException("Failed to start cloud node, invalid IP/ID configuration.");
+			}
+
+			if (isIPList(nodeMap)) {
+				cloudNodes.addAll(parseNodeList(nodeMap));
+			} else if (isIPRange(nodeMap)) {
+				cloudNodes.addAll(parseNodeRange(nodeMap));
+			} else if (isIPCIDR(nodeMap)) {
+				cloudNodes.addAll(parseNodeCIDR(nodeMap));
+			} else {
+				cloudNodes.add(parseOneNode(nodeMap));
 			}
 		}
 
 		return cloudNodes;
 	}
 
+	private boolean isIPList(final Map<String, String> nodeMap) {
+		boolean result = false;
+
+		if (nodeMap.get(CLOUD_NODE_IP).contains(",")) {
+			result = true;
+		}
+
+		return result;
+	}
+
+	private boolean isIPRange(final Map<String, String> nodeMap) {
+		boolean result = false;
+
+		if (nodeMap.get(CLOUD_NODE_IP).contains("-")) {
+			result = true;
+		}
+
+		return result;
+	}
+
+	private boolean isIPCIDR(final Map<String, String> nodeMap) {
+		boolean result = false;
+
+		if (nodeMap.get(CLOUD_NODE_IP).contains("/") || nodeMap.get(CLOUD_NODE_IP).contains("\\")) {
+			result = true;
+		}
+
+		return result;
+	}
+
+	private boolean isIdTemplate(final Map<String, String> nodeMap) {
+		boolean result = false;
+
+		if (nodeMap.get(CLOUD_NODE_ID).contains("{0}")) {
+			result = true;
+		}
+
+		return result;
+	}
+
 	private CustomNode parseOneNode(final Map<String, String> nodeMap) throws CloudProvisioningException {
 		final String ipAddress = nodeMap.get(CLOUD_NODE_IP);
+		// validate the IP
 		if (!IPUtils.validateIPAddress(ipAddress)) {
 			throw new CloudProvisioningException("Invalid IP address: " + ipAddress);
 		}
 
+		// create a new node
 		return new CustomNodeImpl(PROVIDER_ID, nodeMap.get(CLOUD_NODE_ID), ipAddress,
 				nodeMap.get(CLOUD_NODE_USERNAME), nodeMap.get(CLOUD_NODE_CREDENTIAL), nodeMap.get(CLOUD_NODE_ID));
 	}
@@ -436,33 +501,58 @@ public class ByonDeployer {
 	private List<CustomNode> parseNodeRange(final Map<String, String> nodeMap) throws CloudProvisioningException {
 
 		final List<CustomNode> cloudNodes = new ArrayList<CustomNode>();
+
+		boolean useIdAsTemplate = false;
+		boolean useIdAsPrefix = false;
+		int index = 1;
+		String currnentId;
+
 		final String id = nodeMap.get(CLOUD_NODE_ID);
-		final String idPrefix = nodeMap.get(CLOUD_NODE_ID_PREFIX);
-		final String ipRange = nodeMap.get(CLOUD_NODE_IP_RANGE);
+		final String ipRange = nodeMap.get(CLOUD_NODE_IP);
 
 		// syntax validation (IPs are validated later, through IPUtils)
 		final int ipDashIndex = ipRange.indexOf("-");
 		if (ipDashIndex < 0) {
 			throw new CloudProvisioningException("Failed to start cloud node, invalid IP range configuration: "
-					+ ipRange + " is missing the token \"-\"");
+					+ "ip is missing the token \"-\"");
 		}
 
 		// run through the range of IPs
 		final String ipRangeStart = ipRange.substring(0, ipRange.indexOf("-"));
 		final String ipRangeEnd = ipRange.substring(ipRange.indexOf("-") + 1);
 
-		String ip = ipRangeStart;
-		int index = 1;
 		try {
-			String currnentId;
-			while (IPUtils.ip2Long(ip) <= IPUtils.ip2Long(ipRangeEnd)) {
-				if (StringUtils.isNotBlank(id)) {
-					currnentId = MessageFormat.format(id, index);
+			if (IPUtils.ip2Long(ipRangeStart) < IPUtils.ip2Long(ipRangeEnd)) {
+				if (isIdTemplate(nodeMap)) {
+					useIdAsTemplate = true;
 				} else {
-					currnentId = idPrefix + index;
+					useIdAsPrefix = true;
 				}
+			}
+
+			String ip = ipRangeStart;
+			while (IPUtils.ip2Long(ip) <= IPUtils.ip2Long(ipRangeEnd)) {
+
+				// validate the IP
+				ip = ip.trim();
+				if (!IPUtils.validateIPAddress(ip)) {
+					throw new CloudProvisioningException("Invalid IP address: " + ip);
+				}
+
+				// set the id
+				if (useIdAsTemplate) {
+					currnentId = MessageFormat.format(id, index);
+				} else if (useIdAsPrefix) {
+					currnentId = id + index;
+				} else {
+					// just one IPs
+					currnentId = id;
+				}
+
+				// create a new node
 				cloudNodes.add(new CustomNodeImpl(PROVIDER_ID, currnentId, ip, nodeMap.get(CLOUD_NODE_USERNAME),
 						nodeMap.get(CLOUD_NODE_CREDENTIAL), currnentId));
+				
 				index++;
 				ip = IPUtils.getNextIP(ip);
 			}
@@ -474,9 +564,8 @@ public class ByonDeployer {
 	}
 
 	private List<CustomNode> parseNodeCIDR(final Map<String, String> nodeMap) throws CloudProvisioningException {
-		final String ipCIDR = nodeMap.get(CLOUD_NODE_IP_CIDR);
 		try {
-			nodeMap.put(CLOUD_NODE_IP_RANGE, IPUtils.ipCIDR2Range(ipCIDR));
+			nodeMap.put(CLOUD_NODE_IP, IPUtils.ipCIDR2Range(nodeMap.get(CLOUD_NODE_IP)));
 		} catch (final Exception e) {
 			throw new CloudProvisioningException("Failed to start cloud machine.", e);
 		}
@@ -485,33 +574,80 @@ public class ByonDeployer {
 	}
 
 	private List<CustomNode> parseNodeList(final Map<String, String> nodeMap) throws CloudProvisioningException {
-		final List<CustomNode> cloudNodes = new ArrayList<CustomNode>();
-		final String id = nodeMap.get(CLOUD_NODE_ID);
-		final String idPrefix = nodeMap.get(CLOUD_NODE_ID_PREFIX);
-		final String ipList = nodeMap.get(CLOUD_NODE_IP_LIST);
 
-		final String[] ipsArr = ipList.split(",");
+		final List<CustomNode> cloudNodes = new ArrayList<CustomNode>();
+
+		boolean useIdAsTemplate = false;
+		boolean useIdAsPrefix = false;
 		int index = 1;
 		String currnentId;
+
+		final String id = nodeMap.get(CLOUD_NODE_ID);
+		final String ipList = nodeMap.get(CLOUD_NODE_IP);
+
+		final String[] ipsArr = ipList.split(",");
+		if (ipsArr.length > 1) {
+			if (isIdTemplate(nodeMap)) {
+				useIdAsTemplate = true;
+			} else {
+				useIdAsPrefix = true;
+			}
+		}
+
 		for (String ip : ipsArr) {
+
+			// validate the IP
 			ip = ip.trim();
 			if (!IPUtils.validateIPAddress(ip)) {
 				throw new CloudProvisioningException("Invalid IP address: " + ip);
 			}
-			if (StringUtils.isNotBlank(id)) {
+
+			// set the id
+			if (useIdAsTemplate) {
 				currnentId = MessageFormat.format(id, index);
+			} else if (useIdAsPrefix) {
+				currnentId = id + index;
 			} else {
-				currnentId = idPrefix + index;
+				// just one IPs
+				currnentId = id;
 			}
+
+			// create a new node
 			cloudNodes.add(new CustomNodeImpl(PROVIDER_ID, currnentId, ip, nodeMap.get(CLOUD_NODE_USERNAME), nodeMap
 					.get(CLOUD_NODE_CREDENTIAL), currnentId));
+			
 			index++;
 		}
 
 		return cloudNodes;
 	}
 
-	private static List<CustomNode> aggregate(final List<CustomNode> basicList, final List<CustomNode> newItems) {
+	private static List<CustomNode> removeDuplicates(final List<CustomNode> customNodesList) {
+		final List<CustomNode> totalList = new ArrayList<CustomNode>();
+		for (final CustomNode node : customNodesList) {
+			if (!totalList.contains(node)) {
+				totalList.add(node);
+			}
+		}
+		return totalList;
+	}
+	
+	private static Set<String> getDuplicateIPs(final List<CustomNode> oldNodes, final List<CustomNode> newNodes) {
+		Set<String> existingIPs = new HashSet<String>();
+		
+		for (final CustomNode newNode : newNodes) {
+			for (final CustomNode oldNode : oldNodes) {
+				if (oldNode.getPrivateIP().equalsIgnoreCase(newNode.getPrivateIP())) {
+					existingIPs.add(oldNode.getPrivateIP());
+					break;
+				}
+			}
+		}
+		
+		return existingIPs;
+	}
+	
+	private static List<CustomNode> aggregateWithoutDuplicates(final List<CustomNode> basicList, final List<CustomNode> newItems) {
 		final List<CustomNode> totalList = new ArrayList<CustomNode>(basicList);
 		for (final CustomNode node : newItems) {
 			if (!totalList.contains(node)) {
