@@ -1,12 +1,10 @@
-import Callee
 
-c = new Callee()
-c.hello()
-
+def abc="!23"
 service {
 	name "kitchensink-service"
 	icon "icon.png"
 
+	url "aaaa" + "ggg ${abc}"
 	lifecycle{
 		// DO NOT CHANGE THE PRINTOUTS - SGTEST LOOKS FOR THEM!
 		init { println "init fired " + context }
@@ -37,10 +35,7 @@ service {
 			"NumberOne":{println context
 				return "1"}])
 
-		startDetection {
-			println context
-			 ServiceUtils.isPortsOccupied([7777])
-		}
+		
 	}
 
 
