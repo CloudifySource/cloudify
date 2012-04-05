@@ -1403,7 +1403,7 @@ public class ServiceController {
 		ProcessingUnitStatisticsId statisticsId = new ProcessingUnitStatisticsId();
 		statisticsId.setMonitor(CloudifyConstants.USM_MONITORS_SERVICE_ID);
 		statisticsId.setMetric(autoScaling.getMetric());
-		statisticsId.setInstancesStatistics(autoScaling.getInstancesStatistics().toInstancesStatistics());
+		statisticsId.setInstancesStatistics(autoScaling.getInstancesStatistics().createInstancesStatistics());
 
 		if (autoScaling.getMovingTimeRangeInSeconds() <= autoScaling.getSamplingPeriodInSeconds()) {
 			if (logger.isLoggable(Level.FINE)) {
@@ -1412,7 +1412,7 @@ public class ServiceController {
 			}
 			statisticsId.setTimeWindowStatistics(new LastSampleTimeWindowStatisticsConfig());
 		} else {
-			statisticsId.setTimeWindowStatistics(autoScaling.getTimeStatistics().toTimeWindowStatistics(
+			statisticsId.setTimeWindowStatistics(autoScaling.getTimeStatistics().createTimeWindowStatistics(
 					autoScaling.getMovingTimeRangeInSeconds(), TimeUnit.SECONDS));
 		}
 
