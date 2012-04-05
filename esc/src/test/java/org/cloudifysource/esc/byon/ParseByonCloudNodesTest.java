@@ -49,7 +49,6 @@ public class ParseByonCloudNodesTest {
 	public void test() {
 		try {
 			// load the cloud file
-			//final File cloudFile = new File(getBuildPath(), "tools/cli/plugins/esc/byon/byon-cloud.groovy");
 			final File cloudFile = new File("testbyon-cloud.groovy");
 			System.out.println("Trying to read cloud file " + cloudFile.getAbsolutePath());
 			final Cloud cloud = ServiceReader.readCloud(cloudFile);
@@ -64,61 +63,43 @@ public class ParseByonCloudNodesTest {
 				if (customSettings != null) {
 					nodesList = (List<Map<String, String>>) customSettings.get(CLOUD_NODES_LIST);
 				}
-				Assert.assertNotNull("NodesList not found for template " + templateName, customSettings);
+				Assert.assertNotNull("NodesList not found for template " + templateName, nodesList);
 				if (nodesList == null) {
+					System.out.println("Failed to create BYON cloud deployer, invalid configuration, nodesList is null");
 					throw new CloudProvisioningException("Failed to create BYON cloud deployer, invalid configuration");
 				}
 				deployer.addNodesList(templateName, nodesList);
-				Set<CustomNode> allNodes = deployer.getAllNodesByTemplateName(templateName);
-				Set<CustomNode> expectedNodes = new HashSet<CustomNode>();
-				// id, ip, username, credential
-				expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test01", "0.0.0.1", "tgrid1", "tgrid1", 
-						"byon-test01"));
-				// id, ip
-				expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test02", "0.0.0.2", null, null, "byon-test02"));
-				// idPrefix, ipList
-				expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test11", "0.0.0.3", null, null, "byon-test11"));
-				expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test12", "0.0.0.4", null, null, "byon-test12"));
-				expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test13", "0.0.0.5", null, null, "byon-test13"));
-				// id (template), ipList
-				expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test21", "0.0.0.6", null, null, "byon-test21"));
-				expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test22", "0.0.0.7", null, null, "byon-test22"));
-				expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test23", "0.0.0.8", null, null, "byon-test23"));
-				// id, ipRange
-				expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test31", "0.0.0.9", null, null, "byon-test31"));
-				expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test32", "0.0.0.10", null, null, "byon-test32"));
-				expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test33", "0.0.0.11", null, null, "byon-test33"));
-				// id, CIDR
-				expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test41", "0.0.0.12", null, null, "byon-test41"));
-				expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test42", "0.0.0.13", null, null, "byon-test42"));
-				System.out.println(Arrays.toString(allNodes.toArray()));
-				
-				
-				boolean sameSize = false;
-				if (allNodes.size() == expectedNodes.size()) {
-					sameSize = true;
-				}
-				
-				boolean allInAllNodes = true;
-				for (CustomNode node : expectedNodes) {
-					if (!allNodes.contains(node)) {
-						allInAllNodes = false;
-						break;
-					}
-				}
-				
-				boolean allInExpected = true;
-				for (CustomNode node : allNodes) {
-					if (!expectedNodes.contains(node)) {
-						//expectedNodes.containsAll(allNodes);
-						allInExpected = false;
-						break;
-					}
-				}
-				
-				Assert.assertTrue("Wrong output", sameSize && allInExpected && allInAllNodes);
 			}
+			
+			Set<CustomNode> allNodes = deployer.getAllNodesByTemplateName("SMALL_LINUX");
+			Set<CustomNode> expectedNodes = new HashSet<CustomNode>();
+			// id, ip, username, credential
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test01", "0.0.0.1", "tgrid1", "tgrid1", 
+					"byon-test01"));
+			// id, ip
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test02", "0.0.0.2", null, null, "byon-test02"));
+			// idPrefix, ipList
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test11", "0.0.0.3", null, null, "byon-test11"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test12", "0.0.0.4", null, null, "byon-test12"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test13", "0.0.0.5", null, null, "byon-test13"));
+			// id (template), ipList
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test21", "0.0.0.6", null, null, "byon-test21"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test22", "0.0.0.7", null, null, "byon-test22"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test23", "0.0.0.8", null, null, "byon-test23"));
+			// id, ipRange
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test31", "0.0.0.9", null, null, "byon-test31"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test32", "0.0.0.10", null, null, "byon-test32"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test33", "0.0.0.11", null, null, "byon-test33"));
+			// id, CIDR
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test41", "0.0.0.12", null, null, "byon-test41"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test42", "0.0.0.13", null, null, "byon-test42"));
+			System.out.println(Arrays.toString(allNodes.toArray()));
+			
+			Assert.assertTrue("Wrong output", allNodes.size() == expectedNodes.size() 
+					&& expectedNodes.containsAll(allNodes) && allNodes.containsAll(expectedNodes));
 		} catch (final Exception e) {
+			System.out.println("Failed to create cloud deployer, exception thrown: " + e.getMessage());
+			e.printStackTrace();
 			throw new IllegalStateException("Failed to create cloud deployer", e);
 		}
 	}
