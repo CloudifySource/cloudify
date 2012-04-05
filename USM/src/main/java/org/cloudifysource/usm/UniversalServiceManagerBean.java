@@ -1300,7 +1300,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 				logger.fine("Executing details: " + details);
 				final Map<String, Object> detailsValues = details.getDetails(this,
 						getUsmLifecycleBean().getConfiguration());
-				removeNonSerializableObjectsFromMap(detailsValues);
+				removeNonSerializableObjectsFromMap(detailsValues, "details");
 				result.putAll(detailsValues);
 			} catch (final Exception e) {
 				logger.log(Level.SEVERE,
@@ -1346,7 +1346,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 				logger.fine("Executing monitor: " + monitor);
 				final Map<String, Number> monitorValues = monitor.getMonitorValues(this,
 						getUsmLifecycleBean().getConfiguration());
-				removeNonSerializableObjectsFromMap(monitorValues);
+				removeNonSerializableObjectsFromMap(monitorValues, "monitors");
 				// add monitor values to Monitors map
 				map.putAll(monitorValues);
 			} catch (final Exception e) {
@@ -1363,7 +1363,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		return res;
 	}
 
-	private void removeNonSerializableObjectsFromMap(final Map<?, ?> map) {
+	private void removeNonSerializableObjectsFromMap(final Map<?, ?> map, final String mapName) {
 
 		if (map == null || map.keySet().isEmpty()) {
 			return;
@@ -1375,8 +1375,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			// a closure can not be serialized
 			// TODO - write a unit test for this.
 			if (!(entry.getValue() instanceof java.io.Serializable) || entry.getValue() instanceof Closure<?>) {
-				logger.info("Entry " + entry.getKey() + " is not serializable and was not inserted to "
-						+ "the monitors map");
+				logger.info("Entry " + entry.getKey() + " with value: " + entry.getValue().toString() 
+						+ "  is not serializable and was not inserted to the " + mapName + " map");
 				entries.remove();
 			}
 		}

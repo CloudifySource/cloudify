@@ -29,6 +29,7 @@ import org.springframework.context.support.AbstractApplicationContext;
  */
 class TestRecipeShutdownRunnable implements Runnable {
 
+	private static final int EXIT_CODE_SHUTDOWN_WHILE_INITIALIZING = 101;
 	private static final int FAILED_SHUTDOWN_EXIT_CODE = 100;
 	private final UniversalServiceManagerBean usm;
 	private final ApplicationContext applicationContext;
@@ -50,7 +51,7 @@ class TestRecipeShutdownRunnable implements Runnable {
 			logger.warning("Test Recipe automatic shutdown has started, but the USM is in state: " + state.toString()
 					+ ". Is the test timeout too short? Process will be shut down forcefully, "
 					+ "and the service stop lifecycle will not be executed.");
-			System.exit(1);
+			System.exit(EXIT_CODE_SHUTDOWN_WHILE_INITIALIZING);
 		}
 		boolean shutdownSuccess = true;
 		try {
@@ -72,7 +73,8 @@ class TestRecipeShutdownRunnable implements Runnable {
 
 		logger.info("Test-Recipe shutdown completing witn shutdownSuccess == " + shutdownSuccess);
 		
-		if (shutdownSuccess) {			
+		if (shutdownSuccess) {
+			logger.info("Exiting with status 0!");
 			System.exit(0);
 		} else {
 			logger.info("Exiting with status 100!");
