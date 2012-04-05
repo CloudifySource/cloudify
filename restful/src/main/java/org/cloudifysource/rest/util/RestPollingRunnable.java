@@ -145,23 +145,27 @@ public class RestPollingRunnable implements Runnable {
         this.endTime = System.currentTimeMillis() + timeunit.toMillis(timeout);
     }
 
+
     @Override
     public void run() {
         
+        try {
         if (this.serviceNames.isEmpty()) {
-            logger.log(Level.INFO, 
-                    "Polling for lifecycle events has ended successfully.");
+            logger.log(Level.INFO, "Polling Polling for lifecycle events has ended successfully." 
+                    + " Terminating the polling task");
             this.lifecycleEventsContainer.setPollingState(PollingState.ENDED);
+            //We stop the thread from being scheduled again.
+            throw new RuntimeException("Polling has ended successfully");
         } 
-        try{
             
             if (System.currentTimeMillis() > this.endTime) {
-                throw new TimeoutException();
+                throw new TimeoutException("Timed out");
             }
 
             pollForLogs();
 
         } catch (Throwable e) {
+            logger.log(Level.INFO, "Polling task terminated. Reason: " + e.getMessage());
             this.lifecycleEventsContainer.setExecutionException(e);
             //this exception should not be caught. it is meant to make the scheduler stop
             //the thread execution.
