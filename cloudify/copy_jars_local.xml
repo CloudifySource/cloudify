@@ -11,7 +11,7 @@
 
 	<property name="giga.base.dir" value="D:/Gigaspaces" />
 
-	<property name="giga.version" value="gigaspaces-cloudify-2.1.0-m2" />
+	<property name="giga.version" value="gigaspaces-cloudify-2.1.0-m4" />
 
 	<property name="target.dir" value="${giga.base.dir}/${giga.version}" />
 	<property name="ec2.dir"
@@ -21,12 +21,12 @@
 
 
 	<target name="Copy Cloudify jars to install dir" depends="">
-		<echo message="Copying Cloudify jar files to ${target.dir}" />
+		<echo message="Copying Cloudify jar files to ${target.dir}"  />
 		<copy todir="${target.dir}/lib/platform/usm" file="../USM/target/usm.jar" />
 		<copy todir="${target.dir}/tools/cli" file="../CLI/target/cli.jar" />
 		<copy todir="${target.dir}/tools/rest" file="../restful/target/rest.war" />
 		<copy todir="${target.dir}/lib/required" file="../dsl/target/dsl.jar" />
-		<copy todir="${target.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.0.0.jar" />
+		<copy todir="${target.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.1.0.jar" />
 		<copy todir="${target.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
 		<copy todir="${target.dir}/tools/cli/plugins/azure" file="../azure/azure/target/azure.jar" />
 
@@ -58,7 +58,7 @@
 			/> -->
 		<!-- <copy todir="${ec2.dir}/lib/required" file="../dsl/target/dsl.jar" 
 			/> -->
-		<copy todir="${cloudstack.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.0.0.jar" />
+		<copy todir="${cloudstack.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.1.0.jar" />
 		<!-- <copy todir="${ec2.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" 
 			/> -->
 		<!-- <copy todir="${ec2.dir}/tools/cli/plugins/azure" file="../azure/azure/target/azure.jar" 
@@ -91,7 +91,7 @@
 	<target name="Create overrides zip" depends="">
 		<delete file="${target.dir}/../gigaspaces-overrides.zip" />
 		<zip destfile="${target.dir}/../gigaspaces-overrides.zip" basedir="${target.dir}"
-			includes="indicator.txt,lib/platform/esm/esc-2.0.0.jar,tools/cli/cli.jar,tools/rest/rest.war">
+			includes="indicator.txt,lib/platform/esm/esc-2.1.0.jar,tools/cli/cli.jar,tools/rest/rest.war">
 
 		</zip>
 	</target>
