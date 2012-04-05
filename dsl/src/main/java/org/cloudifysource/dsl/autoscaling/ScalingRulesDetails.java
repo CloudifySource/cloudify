@@ -70,9 +70,12 @@ public class ScalingRulesDetails {
      * 		        Possible values: Statistics.maximumOfAverages, Statistics.minimumOfAverages, Statistics.averageOfAverages, Statistics.percentileOfAverages(90)
      *                               Statistics.maximumOfMaximums, Statistics.minimumOfMinimums
      *                               
-     * This has the same effect as setting instancesStatistics and timeStatistics separately. For example: 
+     * This has the same effect as setting instancesStatistics and timeStatistics separately. 
+     * For example: 
+     * statistics Statistics.maximumOfAverages
+     * is the same as:
      * timeStatistics Statistics.average
-     * instancesStatistics Statistics.average
+     * instancesStatistics Statistics.maximum
      *
      */
 	public void setStatistics(final AutoScalingStatisticsPair statistics) {
