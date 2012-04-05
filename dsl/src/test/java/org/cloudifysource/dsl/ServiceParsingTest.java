@@ -174,11 +174,11 @@ public class ServiceParsingTest {
 		
 		HighThreshold highThreshold = scalingRules.getHighThreshold();
 		Assert.assertNotNull(highThreshold.getValue());
-		Assert.assertNotNull(highThreshold.getIncrease());
+		Assert.assertNotNull(highThreshold.getInstancesIncrease());
 		
 		LowThreshold lowThreshold = scalingRules.getLowThreshold();
 		Assert.assertNotNull(lowThreshold.getValue());
-		Assert.assertNotNull(lowThreshold.getDecrease());
+		Assert.assertNotNull(lowThreshold.getInstancesDecrease());
 
 	}
 }

@@ -16,7 +16,7 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 public class LowThreshold {
 
 	private Comparable<?> value;
-	private Comparable<?> decrease;
+	private int instancesDecrease;
 	
 	public Comparable<?> getValue() {
 		return value;
@@ -24,11 +24,11 @@ public class LowThreshold {
 	public void setValue(Comparable<?> value) {
 		this.value = value;
 	}
-	public Comparable<?> getDecrease() {
-		return decrease;
+	public int getInstancesDecrease() {
+		return instancesDecrease;
 	}
-	public void setDecrease(Comparable<?> decrease) {
-		this.decrease = decrease;
+	public void setDecreaseNumOfInstances(int instancesDecrease) {
+		this.instancesDecrease = instancesDecrease;
 	}
 	
 	

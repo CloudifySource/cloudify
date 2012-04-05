@@ -63,15 +63,15 @@ service {
         value 90
         
         // The number of instances to increase when above threshold
-        increase 1
-    }
+        instancesIncrease 1
+      }
       
     lowThreshold {
         // The value below which the number of instances is decreased
         value 10
         
         // The number of instances to decrease when below threshold
-        decrease 1
-    }
+        instancesDecrease 1
+      }
   }
 }

@@ -16,19 +16,19 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 public class HighThreshold {
 
 	private Comparable<?> value;
-	private Comparable<?> increase;
+	private int instancesIncrease;
 	
 	public Comparable<?> getValue() {
 		return value;
 	}
-	public void setValue(Comparable<?> value) {
+	public void setValue(final Comparable<?> value) {
 		this.value = value;
 	}
-	public Comparable<?> getIncrease() {
-		return increase;
+	public int getInstancesIncrease() {
+		return instancesIncrease;
 	}
-	public void setIncrease(Comparable<?> increase) {
-		this.increase = increase;
+	public void setInstancesIncrease(final int instancesIncrease) {
+		this.instancesIncrease = instancesIncrease;
 	}
 
 }
