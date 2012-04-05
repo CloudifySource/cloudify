@@ -631,6 +631,8 @@ public class ServiceController {
 		if (processingUnit == null) {
 			return unavailableServiceError(absolutePuName);
 		}
+		
+		logger.log(Level.INFO, "Starting to poll for uninstall lifecycle events.");
 		UUID lifecycleEventContainerID = startPollingForServiceUninstallLifecycleEvents(
 				applicationName, serviceName, timeoutInMinutes);
 		processingUnit.undeploy();
@@ -656,6 +658,7 @@ public class ServiceController {
 		restPollingRunnable.setAdmin(admin);
 		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
 		restPollingRunnable.setIsUninstall(true);
+		restPollingRunnable.setEndTime(timeoutInMinutes, TimeUnit.MINUTES);
 
 		ScheduledFuture<?> scheduleWithFixedDelay = scheduledExecutor.scheduleWithFixedDelay(
 				restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL, TimeUnit.SECONDS);
@@ -813,6 +816,7 @@ public class ServiceController {
 		final List<ProcessingUnit> uninstallOrder = createUninstallOrder(
 				pus, applicationName);
 		// TODO: Add timeout.
+		logger.log(Level.INFO, "Starting to poll for uninstall lifecycle events.");
 		UUID lifecycleEventContainerID = startPollingForApplicationUninstallLifecycleEvents(
 				applicationName, uninstallOrder, timeoutInMinutes);
 		if (uninstallOrder.size() > 0) {
@@ -1049,6 +1053,7 @@ public class ServiceController {
 		restPollingRunnable.setAdmin(admin);
 		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
 		restPollingRunnable.setIsUninstall(true);
+		restPollingRunnable.setEndTime(timeoutInMinutes, TimeUnit.MINUTES);
 
 		ScheduledFuture<?> scheduleWithFixedDelay = scheduledExecutor.scheduleWithFixedDelay(
 				restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL, TimeUnit.SECONDS);
@@ -1078,6 +1083,7 @@ public class ServiceController {
 		restPollingRunnable.setAdmin(admin);
 		restPollingRunnable.setIsServiceInstall(isServiceInstall);
 		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
+		restPollingRunnable.setEndTime(timeout, TimeUnit.MINUTES);
 
 		ScheduledFuture<?> scheduleWithFixedDelay = scheduledExecutor.scheduleWithFixedDelay(
 				restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL, TimeUnit.SECONDS);
@@ -1107,13 +1113,14 @@ public class ServiceController {
 		restPollingRunnable.setIsServiceInstall(false);
 		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
 		restPollingRunnable.setAdmin(admin);
+		restPollingRunnable.setEndTime(timeout, TimeUnit.MINUTES);
 
 		ScheduledFuture<?> scheduleWithFixedDelay = scheduledExecutor.scheduleWithFixedDelay(
 				restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL, TimeUnit.SECONDS);
 		lifecycleEventsContainer.setFutureTask(scheduleWithFixedDelay);
 
 		logger.log(
-				Level.INFO, "polling container UUID is " + lifecycleEventsContainer.toString());
+				Level.INFO, "polling container UUID is " + lifecycleEventsContainerUUID.toString());
 		return lifecycleEventsContainerUUID;
 	}
 
@@ -1188,6 +1195,7 @@ public class ServiceController {
 		final DSLApplicationCompilatioResult result = ServiceReader.getApplicationFromFile(applicationFile);
 		final List<Service> services = createServiceDependencyOrder(result.getApplication());
 
+		logger.log(Level.INFO, "Starting to poll for installation lifecycle events.");
 		UUID lifecycleEventContainerID = startPollingForLifecycleEvents(
 				result.getApplication(), timeout, TimeUnit.MINUTES);
 
@@ -1592,6 +1600,7 @@ public class ServiceController {
 
 		String lifecycleEventContainerID = "";
 		if (!isApplicationInstall) {
+		    logger.log(Level.INFO, "Starting to poll for installation lifecycle events.");
 			if (service == null) {
 				lifecycleEventContainerID = startPollingForLifecycleEvents(
 						ServiceUtils.getApplicationServiceName(
@@ -2087,6 +2096,7 @@ public class ServiceController {
 					.atMostOneContainerPerMachine().create());
 		}
 
+		logger.log(Level.INFO, "Starting to poll for lifecycle events.");
 		eventContainerID = startPollingForLifecycleEvents(
 				serviceName, applicationName, count, false, timeout, TimeUnit.MINUTES);
 		returnMap.put(

@@ -37,6 +37,9 @@ public class LifecycleEventsContainer {
         ENDED;
     }
 
+    /**
+     * indicates whether thread threw an exception.
+     */
     private Throwable executionException;
 
 
@@ -63,11 +66,6 @@ public class LifecycleEventsContainer {
      * indicates the polling thread state
      */
     private PollingState runnableState;
-
-    /**
-     * indicates whether thread threw an exception.
-     */
-    private Exception runnableException = null;
     
     private final Object lock = new Object();
 
@@ -194,10 +192,10 @@ public class LifecycleEventsContainer {
 
     public ExecutionException getExecutionException() {
         synchronized (this.lock) {
-            if (this.runnableException == null){
+            if (this.executionException == null) {
                 return null;
             }
-            return new ExecutionException(runnableException);
+            return new ExecutionException(this.executionException);
         }
     }
 

@@ -155,13 +155,13 @@ public class RestPollingRunnable implements Runnable {
         } 
         try{
             
-            if (System.currentTimeMillis() < this.endTime){
+            if (System.currentTimeMillis() > this.endTime) {
                 throw new TimeoutException();
             }
 
             pollForLogs();
 
-        } catch (Throwable e){
+        } catch (Throwable e) {
             this.lifecycleEventsContainer.setExecutionException(e);
             //this exception should not be caught. it is meant to make the scheduler stop
             //the thread execution.
