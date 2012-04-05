@@ -201,7 +201,7 @@ public class CustomNodeImpl implements CustomNode {
 	@Override
 	public int hashCode() {
 		final int prime = 31;
-		int result = super.hashCode();
+		int result = 7;
 		result = prime * result + getLoginPort();
 		result = prime * result + (getPrivateIP() == null ? 0 : getPrivateIP().hashCode());
 		result = prime * result + (getPublicIP() == null ? 0 : getPublicIP().hashCode());
@@ -216,9 +216,6 @@ public class CustomNodeImpl implements CustomNode {
 	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
-		}
-		if (!super.equals(obj)) {
-			return false;
 		}
 		if (getClass() != obj.getClass()) {
 			return false;
