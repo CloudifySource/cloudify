@@ -374,7 +374,7 @@ public class Service {
 	 * 
 	 * @param scaleCooldownInSeconds
 	 * 	          - The time (in seconds) that scaling rules are disabled after
-	 *            scale in (instances removed) and scale out (instances added)
+	 *            scale in (instances removed) or scale out (instances added)
 	 *
 	 * This has the same effect as calling {@link #setScaleInCooldownInSeconds(long)} and {@link #setScaleOutCooldownInSeconds(long)} separately.
 	 * 
