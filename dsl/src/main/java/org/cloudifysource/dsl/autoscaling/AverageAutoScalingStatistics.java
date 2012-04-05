@@ -22,10 +22,10 @@ import org.openspaces.admin.pu.statistics.AverageTimeWindowStatisticsConfigurer;
 import org.openspaces.admin.pu.statistics.InstancesStatisticsConfig;
 import org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig;
 
-public class AverageAutoScalingStatistics extends AutoScalingStatistics {
+public class AverageAutoScalingStatistics implements TimeWindowStatisticsConfigFactory, InstancesStatisticsConfigFactory {
 
 	@Override
-	public TimeWindowStatisticsConfig toTimeWindowStatistics(long timeWindow,
+	public TimeWindowStatisticsConfig createTimeWindowStatistics(long timeWindow,
 			TimeUnit timeUnit) {
 		return 
 			new AverageTimeWindowStatisticsConfigurer()
@@ -34,7 +34,7 @@ public class AverageAutoScalingStatistics extends AutoScalingStatistics {
 	}
 
 	@Override
-	public InstancesStatisticsConfig toInstancesStatistics() {
+	public InstancesStatisticsConfig createInstancesStatistics() {
 		return new AverageInstancesStatisticsConfig();
 	}
 

@@ -22,7 +22,7 @@ import org.openspaces.admin.pu.statistics.PercentileInstancesStatisticsConfigure
 import org.openspaces.admin.pu.statistics.PercentileTimeWindowStatisticsConfigurer;
 import org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig;
 
-public class PercentileAutoScalingStatistics extends AutoScalingStatistics {
+public class PercentileAutoScalingStatistics implements TimeWindowStatisticsConfigFactory, InstancesStatisticsConfigFactory {
 
 	private final double percentile;
 
@@ -35,7 +35,7 @@ public class PercentileAutoScalingStatistics extends AutoScalingStatistics {
 	}
 	
 	@Override
-	public TimeWindowStatisticsConfig toTimeWindowStatistics(long timeWindow, TimeUnit timeUnit) {
+	public TimeWindowStatisticsConfig createTimeWindowStatistics(long timeWindow, TimeUnit timeUnit) {
 		return 
 			new PercentileTimeWindowStatisticsConfigurer()
 			.percentile(percentile)
@@ -44,7 +44,7 @@ public class PercentileAutoScalingStatistics extends AutoScalingStatistics {
 	}
 
 	@Override
-	public InstancesStatisticsConfig toInstancesStatistics() {
+	public InstancesStatisticsConfig createInstancesStatistics() {
 		return 
 		    new PercentileInstancesStatisticsConfigurer()
 		    .percentile(percentile)

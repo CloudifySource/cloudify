@@ -22,10 +22,10 @@ import org.openspaces.admin.pu.statistics.MinimumInstancesStatisticsConfig;
 import org.openspaces.admin.pu.statistics.MinimumTimeWindowStatisticsConfigurer;
 import org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig;
 
-public class MinimumAutoScalingStatistics extends AutoScalingStatistics {
+public class MinimumAutoScalingStatistics implements TimeWindowStatisticsConfigFactory, InstancesStatisticsConfigFactory {
 
 	@Override
-	public TimeWindowStatisticsConfig toTimeWindowStatistics(long timeWindow, TimeUnit timeUnit) {
+	public TimeWindowStatisticsConfig createTimeWindowStatistics(long timeWindow, TimeUnit timeUnit) {
 		return 
 			new MinimumTimeWindowStatisticsConfigurer()
 			.timeWindow(timeWindow, timeUnit)
@@ -33,7 +33,7 @@ public class MinimumAutoScalingStatistics extends AutoScalingStatistics {
 	}
 
 	@Override
-	public InstancesStatisticsConfig toInstancesStatistics() {
+	public InstancesStatisticsConfig createInstancesStatistics() {
 		return new MinimumInstancesStatisticsConfig();
 	}
 }

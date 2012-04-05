@@ -22,10 +22,10 @@ import org.openspaces.admin.pu.statistics.MaximumInstancesStatisticsConfig;
 import org.openspaces.admin.pu.statistics.MaximumTimeWindowStatisticsConfigurer;
 import org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig;
 
-public class MaximumAutoScalingStatistics extends AutoScalingStatistics {
+public class MaximumAutoScalingStatistics implements TimeWindowStatisticsConfigFactory, InstancesStatisticsConfigFactory {
 
 	@Override
-	public TimeWindowStatisticsConfig toTimeWindowStatistics(long timeWindow, TimeUnit timeUnit) {
+	public TimeWindowStatisticsConfig createTimeWindowStatistics(long timeWindow, TimeUnit timeUnit) {
 		return 
 			new MaximumTimeWindowStatisticsConfigurer()
 			.timeWindow(timeWindow, timeUnit)
@@ -33,7 +33,7 @@ public class MaximumAutoScalingStatistics extends AutoScalingStatistics {
 	}
 
 	@Override
-	public InstancesStatisticsConfig toInstancesStatistics() {
+	public InstancesStatisticsConfig createInstancesStatistics() {
 		return new MaximumInstancesStatisticsConfig();
 	}
 }

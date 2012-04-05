@@ -6,18 +6,18 @@ package org.cloudifysource.dsl.autoscaling;
  * @since 2.1
  */
 public class AutoScalingStatisticsPair {
-	private final AutoScalingStatistics instancesStatistics;
-	private final AutoScalingStatistics timeStatistics;
+	private final InstancesStatisticsConfigFactory instancesStatistics;
+	private final TimeWindowStatisticsConfigFactory timeStatistics;
 	
-	public AutoScalingStatisticsPair(AutoScalingStatistics instancesStatistics, AutoScalingStatistics timeStatistics) {
+	public AutoScalingStatisticsPair(InstancesStatisticsConfigFactory instancesStatistics, TimeWindowStatisticsConfigFactory timeStatistics) {
 		this.instancesStatistics= instancesStatistics;
 		this.timeStatistics = timeStatistics;
 	}
 	
-	public AutoScalingStatistics getTimeStatistics() {
+	public TimeWindowStatisticsConfigFactory getTimeStatistics() {
 		return timeStatistics;
 	}
-	public AutoScalingStatistics getInstancesStatistics() {
+	public InstancesStatisticsConfigFactory getInstancesStatistics() {
 		return instancesStatistics;
 	}
 	

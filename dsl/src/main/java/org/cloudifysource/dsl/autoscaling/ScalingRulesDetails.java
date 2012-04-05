@@ -44,8 +44,8 @@ public class ScalingRulesDetails {
 	 */
 	private static final AutoScalingStatisticsFactory STATISTICS_FACTORY = new AutoScalingStatisticsFactory();
 	
-	private static final AutoScalingStatistics DEFAULT_TIME_STATISTICS = STATISTICS_FACTORY.average();
-	private static final AutoScalingStatistics DEFAULT_INSTANCES_STATISTICS = STATISTICS_FACTORY.average();
+	private static final AverageAutoScalingStatistics DEFAULT_TIME_STATISTICS = STATISTICS_FACTORY.average();
+	private static final AverageAutoScalingStatistics DEFAULT_INSTANCES_STATISTICS = STATISTICS_FACTORY.average();
 	
 	private long samplingPeriodInSeconds = DEFAULT_SAMPLING_PERIOD_SECONDS;
 	
@@ -53,9 +53,9 @@ public class ScalingRulesDetails {
 	
 	private long timeRangeSeconds = DEFAULT_TIME_WINDOW_SECONDS;
 	
-	private AutoScalingStatistics timeStatistics = DEFAULT_TIME_STATISTICS;
+	private TimeWindowStatisticsConfigFactory timeStatistics = DEFAULT_TIME_STATISTICS;
 	
-	private AutoScalingStatistics instancesStatistics = DEFAULT_INSTANCES_STATISTICS;
+	private InstancesStatisticsConfigFactory instancesStatistics = DEFAULT_INSTANCES_STATISTICS;
 	
 	private HighThreshold highThreshold;
 	
@@ -87,7 +87,7 @@ public class ScalingRulesDetails {
 		return new AutoScalingStatisticsPair (getInstancesStatistics(), getTimeStatistics());
 	}
 
-	public AutoScalingStatistics getTimeStatistics() {
+	public TimeWindowStatisticsConfigFactory getTimeStatistics() {
 		return timeStatistics;
 	}
 
@@ -98,11 +98,11 @@ public class ScalingRulesDetails {
      * 			Default: statistics.average
      * 			Possible values: statistics.average, statistics.minimum, statistics.maximum, statistics.percentile(n)
      */
-	public void setTimeStatistics(final AutoScalingStatistics timeStatistics) {
+	public void setTimeStatistics(final TimeWindowStatisticsConfigFactory timeStatistics) {
 		this.timeStatistics = timeStatistics;
 	}
 
-	public AutoScalingStatistics getInstancesStatistics() {
+	public InstancesStatisticsConfigFactory getInstancesStatistics() {
 		return instancesStatistics;
 	}
 
@@ -113,7 +113,7 @@ public class ScalingRulesDetails {
 	 *            Default value: statistics.average. 
 	 *            Possible values: statistics.average, statistics.minimum, statistics.maximum, statistics.percentile(n)
 	 */
-	public void setInstancesStatistics(final AutoScalingStatistics instancesStatistics) {
+	public void setInstancesStatistics(final InstancesStatisticsConfigFactory instancesStatistics) {
 		this.instancesStatistics = instancesStatistics;
 	}
 

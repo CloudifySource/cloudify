@@ -20,71 +20,71 @@ public class AutoScalingStatisticsFactory {
 	/**
 	 * supports statistics.average in the recipe (without brackets)
 	 */
-	public AutoScalingStatistics getAverage() {
+	public AverageAutoScalingStatistics getAverage() {
 		return average();
 	}
 	
 	/**
 	 * supports statistics.average() in the recipe (with brackets)
 	 */
-	public AutoScalingStatistics average() {
+	public AverageAutoScalingStatistics average() {
 		return new AverageAutoScalingStatistics();
 	}
 
 	/**
 	 * supports statistics.maximum in the recipe (without brackets)
 	 */
-	public AutoScalingStatistics getMaximum() {
+	public MaximumAutoScalingStatistics getMaximum() {
 		return maximum();
 	}
 	
 	/**
 	 * supports statistics.maximum() in the recipe (with brackets)
 	 */
-	public AutoScalingStatistics maximum() {
+	public MaximumAutoScalingStatistics maximum() {
 		return new MaximumAutoScalingStatistics();
 	}
 
 	/**
 	 * supports statistics.minimum() in the recipe (without brackets)
 	 */
-	public AutoScalingStatistics getMinimum() {
+	public MinimumAutoScalingStatistics getMinimum() {
 		return minimum();
 	}
 	
 	/**
 	 * supports statistics.minimum() in the recipe (with brackets)
 	 */
-	public AutoScalingStatistics minimum() {
+	public MinimumAutoScalingStatistics minimum() {
 		return new MinimumAutoScalingStatistics();
 	}
 
 	/**
 	 * supports statistics.percentile(30) in the recipe (with brackets)
 	 */
-	public AutoScalingStatistics percentile(double percentile) {
+	public PercentileAutoScalingStatistics percentile(double percentile) {
 		return new PercentileAutoScalingStatistics(percentile);
 	}
 	
 	/**
 	 * supports statistics.median() in the recipe (with brackets)
 	 */
-	public AutoScalingStatistics median() {
+	public PercentileAutoScalingStatistics median() {
 		return new PercentileAutoScalingStatistics(50.0);
 	}
 	
 	/**
 	 * supports statistics.median in the recipe (without brackets)
 	 */
-	public AutoScalingStatistics getMedian() {
+	public PercentileAutoScalingStatistics getMedian() {
 		return median();
 	}
 	
-	public AutoScalingStatistics throughput() {
+	public ThroughputAutoScalingStatistics throughput() {
 		return new ThroughputAutoScalingStatistics();
 	}
 	
-	public AutoScalingStatistics getThroughput() {
+	public ThroughputAutoScalingStatistics getThroughput() {
 		return throughput();
 	}
 		
