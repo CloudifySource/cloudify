@@ -386,4 +386,13 @@ public class Service {
 		this.scaleInCooldownInSeconds = scaleCooldownInSeconds;
 	}
 	
+	/**
+	 * 
+	 * @return the time in seconds that scaling rules are disabled after scale in or scale out.
+	 * In case the scale in and scale out values are different it returns the bigger value.
+	 */
+	public long getScaleCooldownInSeconds() {
+		return Math.max(this.scaleOutCooldownInSeconds,this.scaleInCooldownInSeconds);
+	}
+	
 }
