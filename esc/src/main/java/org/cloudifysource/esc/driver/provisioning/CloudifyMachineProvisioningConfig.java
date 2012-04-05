@@ -32,101 +32,134 @@ import org.openspaces.grid.gsm.capacity.CpuCapacityRequirement;
 import org.openspaces.grid.gsm.capacity.DriveCapacityRequirement;
 import org.openspaces.grid.gsm.capacity.MemoryCapacityRequirement;
 
-
-
-public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisioningConfig{
+/************
+ * Cloud Provisioning configuration.
+ * 
+ * @author barakme
+ * @since 2.0
+ * 
+ */
+public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisioningConfig {
 
 	private static final double NUMBER_OF_CPU_CORES_PER_MACHINE_DEFAULT = 4;
 	private static final String NUMBER_OF_CPU_CORES_PER_MACHINE_KEY = "number-of-cpu-cores-per-machine";
-	
+
 	private static final String ZONES_KEY = "zones";
 	private static final String ZONES_SEPARATOR = ",";
-	private static final String[] ZONES_DEFAULT = new String[] {"agent"};
-	
+	private static final String[] ZONES_DEFAULT = new String[] { "agent" };
+
 	private static final boolean DEDICATED_MANAGEMENT_MACHINES_DEFAULT = false;
 	private static final String DEDICATED_MANAGEMENT_MACHINES_KEY = "dedicated-management-machines";
-	
+
 	private static final String RESERVED_MEMORY_CAPACITY_PER_MACHINE_MEGABYTES_KEY =
 			"reserved-memory-capacity-per-machine-megabytes";
 	private static final long RESERVED_MEMORY_CAPACITY_PER_MACHINE_MEGABYTES_DEFAULT = 256;
-	
+
 	private static final String RESERVED_CPU_PER_MACHINE_KEY = "reserved-cpu-cores-per-machine";
 	private static final double RESERVED_CPU_PER_MACHINE_DEFAULT = 0.0;
-	
+
 	private static final String RESREVED_DRIVES_CAPACITY_MEGABYTES_PER_MACHINE_KEY =
 			"resereved-drives-capacity-per-machine-megabytes";
 	private static final Map<String, String> RESERVED_DRIVES_CAPACITY_PER_MACHINE_DEFAULT =
 			new HashMap<String, String>();
 	private static final String RESREVED_DRIVES_CAPACITY_MEGABYTES_PER_MACHINE_KEY_VALUE_SEPERATOR = "=";
 	private static final String RESREVED_DRIVES_CAPACITY_MEGABYTES_PER_MACHINE_PAIR_SEPERATOR = ",";
-	
-	private static final String LOCATOR_KEY = "locator";
-	
-	
-	private StringProperties properties= new StringProperties(new HashMap<String, String>());
 
-	
-	public CloudifyMachineProvisioningConfig(final Cloud cloud, final CloudTemplate template, final String cloudFileContents, final String cloudTemplateName ) {
-		
+	private static final String LOCATOR_KEY = "locator";
+
+	private StringProperties properties = new StringProperties(new HashMap<String, String>());
+
+	/****************
+	 * Constructor.
+	 * 
+	 * @param cloud .
+	 * @param template .
+	 * @param cloudFileContents .
+	 * @param cloudTemplateName .
+	 */
+	public CloudifyMachineProvisioningConfig(final Cloud cloud, final CloudTemplate template,
+			final String cloudFileContents, final String cloudTemplateName) {
+
 		setMinimumNumberOfCpuCoresPerMachine(template.getNumberOfCores());
-		properties.putArray(ZONES_KEY, cloud.getProvider().getZones().toArray(new String[0]), ZONES_SEPARATOR);
-		
+		properties.putArray(
+				ZONES_KEY, cloud.getProvider().getZones().toArray(
+						new String[0]), ZONES_SEPARATOR);
+
 		setDedicatedManagementMachines(cloud.getProvider().isDedicatedManagementMachines());
-		
+
 		setReservedMemoryCapacityPerMachineInMB(cloud.getProvider().getReservedMemoryCapacityPerMachineInMB());
-		
+
 		setCloudConfiguration(cloudFileContents);
 		setCloudTemplateName(cloudTemplateName);
-		
-		
+
 	}
-	public CloudifyMachineProvisioningConfig(Map<String, String> properties) {
+
+	/**************
+	 * .
+	 * 
+	 * @param properties .
+	 */
+	public CloudifyMachineProvisioningConfig(final Map<String, String> properties) {
 		this.properties = new StringProperties(properties);
 	}
+
 	@Override
 	public String getBeanClassName() {
 		return ElasticMachineProvisioningCloudifyAdapter.class.getName();
 	}
 
 	@Override
-	public void setProperties(Map<String, String> properties) {
+	public void setProperties(final Map<String, String> properties) {
 		this.properties = new StringProperties(properties);
 	}
 
 	@Override
 	public Map<String, String> getProperties() {
-		return this.properties.getProperties(); 
+		return this.properties.getProperties();
 	}
 
 	@Override
 	public double getMinimumNumberOfCpuCoresPerMachine() {
-		return properties.getDouble(NUMBER_OF_CPU_CORES_PER_MACHINE_KEY,
-				NUMBER_OF_CPU_CORES_PER_MACHINE_DEFAULT);
-	}
-	
-	public void setMinimumNumberOfCpuCoresPerMachine(final double minimumCpuCoresPerMachine) {
-		properties.putDouble(NUMBER_OF_CPU_CORES_PER_MACHINE_KEY, minimumCpuCoresPerMachine);
+		return properties.getDouble(
+				NUMBER_OF_CPU_CORES_PER_MACHINE_KEY, NUMBER_OF_CPU_CORES_PER_MACHINE_DEFAULT);
 	}
 
-	public String  getCloudConfiguration() {
+	/**********
+	 * Setter.
+	 * 
+	 * @param minimumCpuCoresPerMachine .
+	 */
+	public void setMinimumNumberOfCpuCoresPerMachine(final double minimumCpuCoresPerMachine) {
+		properties.putDouble(
+				NUMBER_OF_CPU_CORES_PER_MACHINE_KEY, minimumCpuCoresPerMachine);
+	}
+
+	public String getCloudConfiguration() {
 		return properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION);
 	}
-	
+
+	/*******
+	 * 
+	 * @param cloudConfiguration .
+	 */
 	public void setCloudConfiguration(final String cloudConfiguration) {
-		properties.put(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION, cloudConfiguration);
+		properties.put(
+				CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION, cloudConfiguration);
 	}
-	
-	public String  getCloudTemplateName() {
+
+	public String getCloudTemplateName() {
 		return properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME);
 	}
-	
+
+	/***************
+	 * Setter.
+	 * 
+	 * @param cloudTemplateName .
+	 */
 	public void setCloudTemplateName(final String cloudTemplateName) {
-		properties.put(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME, cloudTemplateName);
+		properties.put(
+				CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME, cloudTemplateName);
 	}
-	
-	
-	
-	
 
 	@Override
 	public CapacityRequirements getReservedCapacityPerMachine() {
@@ -135,13 +168,17 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 		requirements.add(new CpuCapacityRequirement(getReservedCpuCapacityPerMachine()));
 		final Map<String, Long> reservedDriveCapacity = getReservedDriveCapacityPerMachineInMB();
 		for (final Entry<String, Long> entry : reservedDriveCapacity.entrySet()) {
-			String drive = entry.getKey(); 
+			final String drive = entry.getKey();
 			requirements.add(new DriveCapacityRequirement(drive, entry.getValue()));
 		}
 		return new CapacityRequirements(requirements.toArray(new CapacityRequirement[requirements.size()]));
 
 	}
-	
+
+	/**********
+	 * .
+	 * @return .
+	 */
 	public Map<String, Long> getReservedDriveCapacityPerMachineInMB() {
 		final Map<String, String> reserved =
 				this.properties.getKeyValuePairs(
@@ -151,56 +188,94 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 						RESERVED_DRIVES_CAPACITY_PER_MACHINE_DEFAULT);
 
 		final Map<String, Long> reservedInMB = new HashMap<String, Long>();
-		for(final Map.Entry<String, String> entry : reserved.entrySet()){
-            String drive = entry.getKey();
-			reservedInMB.put(drive, Long.valueOf(entry.getValue()));
+		for (final Map.Entry<String, String> entry : reserved.entrySet()) {
+			final String drive = entry.getKey();
+			reservedInMB.put(
+					drive, Long.valueOf(entry.getValue()));
 		}
 
 		return reservedInMB;
 
 	}
 
+	/**********
+	 * Setter.
+	 * 
+	 * @param reservedCpu .
+	 */
 	public void setReservedCpuCapacityPerMachineInMB(final double reservedCpu) {
-		this.properties.putDouble(RESERVED_CPU_PER_MACHINE_KEY, reservedCpu);
+		this.properties.putDouble(
+				RESERVED_CPU_PER_MACHINE_KEY, reservedCpu);
 	}
 
-	
 	public double getReservedCpuCapacityPerMachine() {
-		return this.properties.getDouble(RESERVED_CPU_PER_MACHINE_KEY, RESERVED_CPU_PER_MACHINE_DEFAULT);
+		return this.properties.getDouble(
+				RESERVED_CPU_PER_MACHINE_KEY, RESERVED_CPU_PER_MACHINE_DEFAULT);
 	}
 
 	public long getReservedMemoryCapacityPerMachineInMB() {
-		return this.properties.getLong(RESERVED_MEMORY_CAPACITY_PER_MACHINE_MEGABYTES_KEY,
+		return this.properties.getLong(
+				RESERVED_MEMORY_CAPACITY_PER_MACHINE_MEGABYTES_KEY,
 				RESERVED_MEMORY_CAPACITY_PER_MACHINE_MEGABYTES_DEFAULT);
 	}
-	
+
+	/*************
+	 * Setter.
+	 * 
+	 * @param reservedInMB .
+	 */
 	public void setReservedMemoryCapacityPerMachineInMB(final long reservedInMB) {
-		this.properties.putLong(RESERVED_MEMORY_CAPACITY_PER_MACHINE_MEGABYTES_KEY, reservedInMB);
+		this.properties.putLong(
+				RESERVED_MEMORY_CAPACITY_PER_MACHINE_MEGABYTES_KEY, reservedInMB);
 	}
-	
+
 	@Override
 	public String[] getGridServiceAgentZones() {
-		return properties.getArray(ZONES_KEY, ZONES_SEPARATOR, ZONES_DEFAULT);
+		return properties.getArray(
+				ZONES_KEY, ZONES_SEPARATOR, ZONES_DEFAULT);
+	}
+
+	/************
+	 * Setter.
+	 * 
+	 * @param zones .
+	 */
+	public void setGridServiceAgentZones(final String[] zones) {
+		this.properties.putArray(
+				ZONES_KEY, zones, ZONES_SEPARATOR);
 	}
 
 	@Override
 	public boolean isDedicatedManagementMachines() {
-		return properties.getBoolean(DEDICATED_MANAGEMENT_MACHINES_KEY, DEDICATED_MANAGEMENT_MACHINES_DEFAULT);
+		return properties.getBoolean(
+				DEDICATED_MANAGEMENT_MACHINES_KEY, DEDICATED_MANAGEMENT_MACHINES_DEFAULT);
 	}
-	
+
+	/************
+	 * Setter.
+	 * 
+	 * @param value .
+	 */
 	public void setDedicatedManagementMachines(final boolean value) {
-		properties.putBoolean(DEDICATED_MANAGEMENT_MACHINES_KEY, value);
+		properties.putBoolean(
+				DEDICATED_MANAGEMENT_MACHINES_KEY, value);
 	}
 
 	@Override
-	public boolean isGridServiceAgentZoneMandatory() {	
+	public boolean isGridServiceAgentZoneMandatory() {
 		return false;
 	}
-	
+
+	/***********
+	 * Setter.
+	 * 
+	 * @param locator .
+	 */
 	public void setLocator(final String locator) {
-		properties.put(LOCATOR_KEY, locator);
+		properties.put(
+				LOCATOR_KEY, locator);
 	}
-	
+
 	public String getLocator() {
 		return properties.get(LOCATOR_KEY);
 	}
