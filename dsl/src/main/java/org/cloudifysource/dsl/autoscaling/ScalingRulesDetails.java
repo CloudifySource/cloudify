@@ -57,9 +57,9 @@ public class ScalingRulesDetails {
 	
 	private AutoScalingStatistics instancesStatistics = DEFAULT_INSTANCES_STATISTICS;
 	
-	private Comparable<?> highThreshold;
+	private HighThreshold highThreshold;
 	
-	private Comparable<?> lowThreshold;
+	private LowThreshold lowThreshold;
 
 	/**
 	 * @param statistics 
@@ -117,25 +117,27 @@ public class ScalingRulesDetails {
 		this.instancesStatistics = instancesStatistics;
 	}
 
-	public Comparable<?> getHighThreshold() {
+	public HighThreshold getHighThreshold() {
 		return highThreshold;
 	}
 
 	/**
-	 * @param highThreshold instancesStatistics value over which the number of instances is increased.
+	 * @param highThreshold
+	 * 			a wrapper object for the breach value and the increase action value
 	 */
-	public void setHighThreshold(final Comparable<?> highThreshold) {
+	public void setHighThreshold(final HighThreshold highThreshold) {
 		this.highThreshold = highThreshold;
 	}
 
-	/**
-	 * @return The instancesStatistics value below which the number of instances is increased or decreased.
-	 */
-	public Comparable<?> getLowThreshold() {
+	public LowThreshold getLowThreshold() {
 		return lowThreshold;
 	}
 
-	public void setLowThreshold(final Comparable<?> lowThreshold) {
+	/**
+	 * @param highThreshold
+	 * 			a wrapper object for the breach value and the decrease action value
+	 */
+	public void setLowThreshold(final LowThreshold lowThreshold) {
 		this.lowThreshold = lowThreshold;
 	}
 

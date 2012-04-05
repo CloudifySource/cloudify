@@ -79,6 +79,38 @@ public class AutoScalingStatisticsFactory {
 	public AutoScalingStatistics getMedian() {
 		return median();
 	}
+	
+	public AutoScalingStatistics throughput() {
+		return new ThroughputAutoScalingStatistics();
+	}
+	
+	public AutoScalingStatistics getThroughput() {
+		return throughput();
+	}
+		
+	public AutoScalingStatisticsPair maximumThroughput() {
+		return new AutoScalingStatisticsPair(maximum(), throughput());
+	}
+	
+	public AutoScalingStatisticsPair getMaximumThroughput() {
+		return maximumThroughput();
+	}
+		
+	public AutoScalingStatisticsPair minimumThroughput() {
+		return new AutoScalingStatisticsPair(minimum(), throughput());
+	}
+	
+	public AutoScalingStatisticsPair getMinimumThroughput() {
+		return minimumThroughput();
+	}
+	
+	public AutoScalingStatisticsPair averageThroughput() {
+		return new AutoScalingStatisticsPair(average(), throughput());
+	}
+	
+	public AutoScalingStatisticsPair getAverageThroughput() {
+		return averageThroughput();
+	}
 
 	public AutoScalingStatisticsPair getAverageOfAverages() {
 		return averageOfAverages();

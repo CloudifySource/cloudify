@@ -21,6 +21,8 @@ import java.net.UnknownHostException;
 
 import junit.framework.Assert;
 
+import org.cloudifysource.dsl.autoscaling.HighThreshold;
+import org.cloudifysource.dsl.autoscaling.LowThreshold;
 import org.cloudifysource.dsl.autoscaling.ScalingRulesDetails;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
@@ -159,6 +161,7 @@ public class ServiceParsingTest {
 		Assert.assertEquals(1,service.getScaleOutCooldownInSeconds());
 		Assert.assertEquals(1,service.getScaleCooldownInSeconds());
 		Assert.assertEquals("scalingRules", service.getName());
+		
 		ScalingRulesDetails scalingRules = service.getScalingRules();
 		Assert.assertNotNull(scalingRules);
 		Assert.assertNotNull(scalingRules.getHighThreshold());
@@ -168,5 +171,14 @@ public class ServiceParsingTest {
 		Assert.assertNotNull(scalingRules.getSamplingPeriodInSeconds());
 		Assert.assertNotNull(scalingRules.getTimeStatistics());
 		Assert.assertNotNull(scalingRules.getMovingTimeRangeInSeconds());
+		
+		HighThreshold highThreshold = scalingRules.getHighThreshold();
+		Assert.assertNotNull(highThreshold.getValue());
+		Assert.assertNotNull(highThreshold.getIncrease());
+		
+		LowThreshold lowThreshold = scalingRules.getLowThreshold();
+		Assert.assertNotNull(lowThreshold.getValue());
+		Assert.assertNotNull(lowThreshold.getDecrease());
+
 	}
 }
