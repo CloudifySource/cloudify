@@ -1416,10 +1416,24 @@ public class ServiceController {
 					autoScaling.getMovingTimeRangeInSeconds(), TimeUnit.SECONDS));
 		}
 
-		AutomaticCapacityScaleRuleConfig rule = new AutomaticCapacityScaleRuleConfigurer().lowThreshold(
-				autoScaling.getLowThreshold()).highThreshold(
-				autoScaling.getHighThreshold()).statistics(
-				statisticsId).create();
+		CapacityRequirementsConfig highThresholdIncreaseCapacity =
+				new CapacityRequirementsConfigurer()
+				.memoryCapacity(autoScaling.getHighThreshold().getInstancesIncrease() * externalProcessMemoryInMB, MemoryUnit.MEGABYTES)
+				.create();
+		
+		CapacityRequirementsConfig lowThresholdDecreaseCapacity =
+				new CapacityRequirementsConfigurer()
+				.memoryCapacity(autoScaling.getLowThreshold().getInstancesDecrease() * externalProcessMemoryInMB, MemoryUnit.MEGABYTES)
+				.create();
+		
+		AutomaticCapacityScaleRuleConfig rule = 
+				new AutomaticCapacityScaleRuleConfigurer()
+				.lowThreshold(autoScaling.getLowThreshold().getValue())
+				.lowThresholdBreachedDecrease(lowThresholdDecreaseCapacity)
+				.highThreshold(autoScaling.getHighThreshold().getValue())
+				.highThresholdBreachedIncrease(highThresholdIncreaseCapacity)
+				.statistics(statisticsId)
+				.create();
 
 
 		CapacityRequirementsConfig minCapacity = 
