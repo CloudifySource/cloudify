@@ -96,6 +96,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private InstallationDetails createInstallationDetails(final Cloud cloud, final MachineDetails md)
 			throws FileNotFoundException {
+		// TODO - move this to a util package - it is copied in bootstrap-cloud
 		final InstallationDetails details = new InstallationDetails();
 
 		details.setLocalDir(cloud.getProvider().getLocalDirectory());
