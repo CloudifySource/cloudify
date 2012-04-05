@@ -87,6 +87,9 @@ public class Service {
 	private String url = null;
 	
 	private ScalingRulesDetails scalingRules;
+
+	private long scaleOutCooldownInSeconds = 0;
+	private long scaleInCooldownInSeconds = 0;
 	
 	public boolean isElastic() {
 		return elastic;
@@ -332,5 +335,33 @@ public class Service {
 
 	public void setMaxAllowedInstances(final int maxAllowedInstances) {
 		this.maxAllowedInstances = maxAllowedInstances;
+	}
+
+	public long getScaleOutCooldownInSeconds() {
+		return scaleOutCooldownInSeconds;
+	}
+
+	/**
+	 * 
+	 * @param scaleOutCooldownInSeconds
+	 *            - The time (in seconds) that scaling rules are disabled after
+	 *            scale out (instances added)
+	 */
+	public void setScaleOutCooldownInSeconds(final long scaleOutCooldownInSeconds) {
+		this.scaleOutCooldownInSeconds = scaleOutCooldownInSeconds;
+	}
+
+	public long getScaleInCooldownInSeconds() {
+		return scaleInCooldownInSeconds;
+	}
+
+	/**
+	 * 
+	 * @param scaleInCooldownInSeconds
+	 *            - The time (in seconds) that scaling rules are disabled after
+	 *            scale in (instances removed)
+	 */
+	public void setScaleInCooldownInSeconds(final long scaleInCooldownInSeconds) {
+		this.scaleInCooldownInSeconds = scaleInCooldownInSeconds;
 	}
 }

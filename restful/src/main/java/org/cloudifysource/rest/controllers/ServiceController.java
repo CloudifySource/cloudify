@@ -1432,13 +1432,16 @@ public class ServiceController {
 			.memoryCapacity((service.getMaxAllowedInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
 			.create();
 
-
-		AutomaticCapacityScaleConfig scaleConfig = new AutomaticCapacityScaleConfigurer().minCapacity(
-				minCapacity).initialCapacity(
-				initialCapacity).maxCapacity(
-				maxCapacity).statisticsPollingInterval(
-				autoScaling.getSamplingPeriodInSeconds(), TimeUnit.SECONDS).addRule(
-				rule).create();
+		AutomaticCapacityScaleConfig scaleConfig = 
+			new AutomaticCapacityScaleConfigurer()
+			.minCapacity(minCapacity)
+			.initialCapacity(initialCapacity)
+			.maxCapacity(maxCapacity)
+			.statisticsPollingInterval(autoScaling.getSamplingPeriodInSeconds(), TimeUnit.SECONDS)
+			.cooldownAfterScaleOut(service.getScaleOutCooldownInSeconds(),TimeUnit.SECONDS)
+			.cooldownAfterScaleIn(service.getScaleInCooldownInSeconds(),TimeUnit.SECONDS)
+			.addRule(rule)
+			.create();
 
 		return scaleConfig;
 	}
