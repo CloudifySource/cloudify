@@ -1225,7 +1225,7 @@ public class LocalhostGridAgentBootstrapper {
 		String lusJavaOptions = "-Xmx" + LUS_MEMORY_IN_MB + "m" + " -D" + LUS_PORT_CONTEXT_PROPERTY + "=" + lusPort;
 		String gsmJavaOptions = "-Xmx" + GSM_MEMORY_IN_MB + "m" + " -D" + LUS_PORT_CONTEXT_PROPERTY + "=" + lusPort;
 		String esmJavaOptions = "-Xmx" + ESM_MEMORY_IN_MB + "m";
-		String gscJavaOptions = "";
+		String gscJavaOptions = "-Dcom.gigaspaces.client.router.disableNewRouter=true";
 
 		final Map<String, String> environment = pb.environment();
 		if (lookupGroups != null) {
