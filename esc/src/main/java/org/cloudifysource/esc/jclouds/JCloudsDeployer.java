@@ -165,6 +165,7 @@ public class JCloudsDeployer {
 
 		});
 
+		// Enable logging using gs_logging
 		wiring.add(new JDKLoggingModule());
 
 		this.context = new ComputeServiceContextFactory().createContext(
