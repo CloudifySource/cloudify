@@ -51,7 +51,7 @@ public class ScalingRulesDetails {
 	
 	private String metric;
 	
-	private long timeWindowSeconds = DEFAULT_TIME_WINDOW_SECONDS;
+	private long timeRangeSeconds = DEFAULT_TIME_WINDOW_SECONDS;
 	
 	private AutoScalingStatistics timeStatistics = DEFAULT_TIME_STATISTICS;
 	
@@ -140,15 +140,16 @@ public class ScalingRulesDetails {
 	}
 
 	public long getMovingTimeRangeInSeconds() {
-		return timeWindowSeconds;
+		return timeRangeSeconds;
 	}
 
 	/**
-	 * @param timeWindowSeconds The sliding time window (in seconds) for aggregating per-instance metric samples.
+	 * @param timeRangeSeconds The sliding time window (in seconds) for aggregating per-instance metric samples.
      * The number of samples in the time windows equals the time window divided by the sampling period
+     * The default value is 300 (seconds)
 	 */
-	public void setMovingTimeRangeInSeconds(final long timeWindowSeconds) {
-		this.timeWindowSeconds = timeWindowSeconds;
+	public void setMovingTimeRangeInSeconds(final long timeRangeSeconds) {
+		this.timeRangeSeconds = timeRangeSeconds;
 	}
 
 	public String getMetric() {
