@@ -75,30 +75,32 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			// TODO - The deployer object should be reusable across templates. The current API is not appropriate.
 			// TODO - key should be based on entire cloud configuraion!
 			this.deployer =
-					(JCloudsDeployer) context.getOrCreate("UNIQUE_JCLOUDS_DEPLOYER_ID_" + this.cloudTemplateName, new Callable<Object>() {
+					(JCloudsDeployer) context.getOrCreate("UNIQUE_JCLOUDS_DEPLOYER_ID_" + this.cloudTemplateName,
+							new Callable<Object>() {
 
-						@Override
-						public Object call()
-								throws Exception {
-							logger.fine("Creating JClouds context deployer with user: " + cloud.getUser().getUser());
-							final CloudTemplate cloudTemplate = cloud.getTemplates().get(cloudTemplateName);
+								@Override
+								public Object call()
+										throws Exception {
+									logger.fine("Creating JClouds context deployer with user: "
+											+ cloud.getUser().getUser());
+									final CloudTemplate cloudTemplate = cloud.getTemplates().get(cloudTemplateName);
 
-							logger.fine("Cloud Template: " + cloudTemplateName + ". Details: " + cloudTemplate);
-							final Properties props = new Properties();
-							props.putAll(cloudTemplate.getOverrides());
+									logger.fine("Cloud Template: " + cloudTemplateName + ". Details: " + cloudTemplate);
+									final Properties props = new Properties();
+									props.putAll(cloudTemplate.getOverrides());
 
-							deployer =
-									new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),
-											cloud.getUser().getApiKey(), props);
+									deployer =
+											new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser()
+													.getUser(), cloud.getUser().getApiKey(), props);
 
-							deployer.setImageId(cloudTemplate.getImageId());
-							deployer.setMinRamMegabytes(cloudTemplate.getMachineMemoryMB());
-							deployer.setHardwareId(cloudTemplate.getHardwareId());
-							deployer.setLocationId(cloudTemplate.getLocationId());
-							deployer.setExtraOptions(cloudTemplate.getOptions());
-							return deployer;
-						}
-					});
+									deployer.setImageId(cloudTemplate.getImageId());
+									deployer.setMinRamMegabytes(cloudTemplate.getMachineMemoryMB());
+									deployer.setHardwareId(cloudTemplate.getHardwareId());
+									deployer.setLocationId(cloudTemplate.getLocationId());
+									deployer.setExtraOptions(cloudTemplate.getOptions());
+									return deployer;
+								}
+							});
 		} catch (final Exception e) {
 			publishEvent("connection_to_cloud_api_failed", cloud.getProvider().getProvider());
 			throw new IllegalStateException("Failed to create cloud Deployer", e);
@@ -187,7 +189,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 		} catch (final Exception e) {
 			// catch any exception - to prevent a cloud machine leaking.
-			logger.log(Level.SEVERE, "Cloud machine was started but an error occured during initialization. Shutting down machine", e);
+			logger.log(Level.SEVERE,
+					"Cloud machine was started but an error occured during initialization. Shutting down machine", e);
 			deployer.shutdownMachine(nodeId);
 			throw new CloudProvisioningException(e);
 		}
@@ -203,7 +206,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		final File localDirectory = new File(baseDirectory, this.cloud.getProvider().getLocalDirectory());
 
 		final File pemFile = new File(localDirectory, this.cloud.getUser().getKeyFile());
-		logger.info("PEM file is located at: " + pemFile);
+		logger.fine("PEM file is located at: " + pemFile);
 		if (!pemFile.exists()) {
 			logger.severe("Could not find pem file: " + pemFile);
 			throw new FileNotFoundException("Could not find key file: " + pemFile);
@@ -262,8 +265,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	 * Periodically gets the server status from the cloud, until the server's status changes to ACTIVE, or a timeout
 	 * expires.
 	 * 
-	 * @param serverId
-	 *            The server ID.
+	 * @param serverId The server ID.
 	 * @param milliseconds
 	 * @param l
 	 * @return The server status - should always be ACTIVE.
@@ -296,8 +298,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	 * value is reached, code will loop back to 0, so that previously used server names will be reused.
 	 * 
 	 * @return the server name.
-	 * @throws CloudProvisioningException
-	 *             if no free server name could be found.
+	 * @throws CloudProvisioningException if no free server name could be found.
 	 */
 	private String createNewServerName()
 			throws CloudProvisioningException {
@@ -389,7 +390,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 				} catch (final InterruptedException e) {
 					++numberOfErrors;
 					publishEvent("failed_to_create_management_vm", e.getMessage());
-					logger.log(Level.SEVERE, "Failed to start a management machine", e);
+					logger.log(Level.FINE, "Failed to start a management machine", e);
 					if (firstCreationException == null) {
 						firstCreationException = e;
 					}
@@ -397,7 +398,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 				} catch (final ExecutionException e) {
 					++numberOfErrors;
 					publishEvent("failed_to_create_management_vm", e.getMessage());
-					logger.log(Level.SEVERE, "Failed to start a management machine", e);
+					logger.log(Level.FINE, "Failed to start a management machine", e);
 					if (firstCreationException == null) {
 						firstCreationException = e;
 					}
@@ -407,7 +408,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 			// In case of a partial error, shutdown all servers that did start up
 			if (numberOfErrors > 0) {
-				handleProvisioningFailure(numberOfManagementMachines, numberOfErrors, firstCreationException, createdManagementMachines);
+				handleProvisioningFailure(numberOfManagementMachines, numberOfErrors, firstCreationException,
+						createdManagementMachines);
 			}
 
 			return createdManagementMachines;
