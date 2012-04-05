@@ -57,30 +57,21 @@ service {
     // Possible values: Statistics.average, Statistics.minimum, Statistics.maximum, Statistics.percentile(n)
     instancesStatistics Statistics.maximum
     
-    // The instancesStatistics over which the number of instances is increased or decreased
-    highThreshold 90
-    
-    // The instancesStatistics below which the number of instances is increased or decreased
-    lowThreshold 10
-    
-    /**
-     highThreshold {
+    highThreshold {
         
         // The value above which the number of instances is increased
         value 90
         
         // The number of instances to increase when above threshold
         increase 1
-      }
+    }
       
-      lowThreshold {
+    lowThreshold {
         // The value below which the number of instances is decreased
         value 10
         
         // The number of instances to decrease when below threshold
         decrease 1
-      }
-      */
-
+    }
   }
 }
