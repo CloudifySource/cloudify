@@ -346,6 +346,9 @@ public class Service {
 	 * @param scaleOutCooldownInSeconds
 	 *            - The time (in seconds) that scaling rules are disabled after
 	 *            scale out (instances added)
+	 * 
+	 * @see #setScaleOutCooldownInSeconds(long)
+	 * @see #setScaleCooldownInSeconds(long)
 	 */
 	public void setScaleOutCooldownInSeconds(final long scaleOutCooldownInSeconds) {
 		this.scaleOutCooldownInSeconds = scaleOutCooldownInSeconds;
@@ -360,8 +363,27 @@ public class Service {
 	 * @param scaleInCooldownInSeconds
 	 *            - The time (in seconds) that scaling rules are disabled after
 	 *            scale in (instances removed)
+	 * @see #setScaleCooldownInSeconds(long)
+	 * @see #setScaleOutCooldownInSeconds(long)
 	 */
 	public void setScaleInCooldownInSeconds(final long scaleInCooldownInSeconds) {
 		this.scaleInCooldownInSeconds = scaleInCooldownInSeconds;
 	}
+
+	/**
+	 * 
+	 * @param scaleCooldownInSeconds
+	 * 	          - The time (in seconds) that scaling rules are disabled after
+	 *            scale in (instances removed) and scale out (instances added)
+	 *
+	 * This has the same effect as calling {@link #setScaleInCooldownInSeconds(long)} and {@link #setScaleOutCooldownInSeconds(long)} separately.
+	 * 
+	 * @see #setScaleInCooldownInSeconds(long)
+	 * @see #setScaleOutCooldownInSeconds(long)
+	 */
+	public void setScaleCooldownInSeconds(long scaleCooldownInSeconds) {
+		this.scaleOutCooldownInSeconds = scaleCooldownInSeconds;
+		this.scaleInCooldownInSeconds = scaleCooldownInSeconds;
+	}
+	
 }
