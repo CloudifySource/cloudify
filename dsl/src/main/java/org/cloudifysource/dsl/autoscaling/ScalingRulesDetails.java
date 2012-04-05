@@ -69,6 +69,11 @@ public class ScalingRulesDetails {
      *              Default: Statistics.averageOfAverages
      * 		        Possible values: Statistics.maximumOfAverages, Statistics.minimumOfAverages, Statistics.averageOfAverages, Statistics.percentileOfAverages(90)
      *                               Statistics.maximumOfMaximums, Statistics.minimumOfMinimums
+     *                               
+     * This has the same effect as setting instancesStatistics and timeStatistics separately. For example: 
+     * timeStatistics Statistics.average
+     * instancesStatistics Statistics.average
+     *
      */
 	public void setStatistics(final AutoScalingStatisticsPair statistics) {
 		setInstancesStatistics(statistics.getInstancesStatistics());
