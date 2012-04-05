@@ -69,16 +69,16 @@ public class CloudUser {
 		if (this.getUser().equals("ENTER_USER")) {
 			throw new DSLValidationException("User field still has default configuration value of ENTER_USER");
 		}
-		
-		if (this.getApiKey().equals("ENTER_USER")) {
-			throw new DSLValidationException("User field still has default configuration value of ENTER_USER");
+
+		if (this.getApiKey().equals("ENTER_KEY")) {
+			throw new DSLValidationException("Key field still has default configuration value of ENTER_KEY");
 		}
 
-		// // Optional. Key used to access cloud.
-		// // When used with the default driver, maps to the credential used to create the ComputeServiceContext.
-		// apiKey "ENTER_KEY"
-		//
-		//
-		// keyFile "ENTER_KEY_FILE_NAME"
+		if (this.getKeyFile().equals("ENTER_KEY_FILE_NAME")) {
+			throw new DSLValidationException(
+					"Key file name field still has default configuration value of ENTER_KEY_FILE_NAME");
+		}
+
+
 	}
 }
