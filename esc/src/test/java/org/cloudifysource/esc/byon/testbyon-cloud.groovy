@@ -23,8 +23,8 @@ cloud {
 		//Indicates whether communications with the management servers should use the machine private IP.
 		bootstrapManagementOnPublicIp false
 		// Optional. Cloud-generic credentials. Can be overridden by specific credentials on each node, in the templates section.
-		remoteUsername "ENTER_USER"
-		remotePassword "ENTER_PASSWORD"
+		remoteUsername "tgrid"
+		remotePassword "tgrid"
 	}
 
 	/*************
@@ -69,31 +69,23 @@ cloud {
 	 * Cloud machine templates available with this cloud. 
 	 */
 	templates ([
-				// Mandatory. Template Name.
-				SMALL_LINUX_APPLICATION : template{
-				// Mandatory for BYON.
-					custom ([
-						// Mandatory for BYON. The nodesList custom property lists the nodes that compose this cloud-like environment.
-						// For each node required:
-						// An alias for this node. can be static or use a template with an dynamic-index.
-						// The server's private (local) IP. can be a single IP, a list, a range or CIDR.
-						//Optional - user and password for the node. can be taken from general cloud configuration.
-						"nodesList" : ([
-										([
-											"id" : "pc-lab37",
-											"ipList" : "192.168.9.57"
-										])
-						])
-					])
-				},
-
-				SMALL_LINUX_MANAGEMENT : template{
+			SMALL_LINUX_MGMT : template{
 					custom ([
 						"nodesList" : ([
 										([
 											"id" : "byon-test01",
-											"ip" : "0.0.0.1"
-											"username" : "tgrid1"
+											"ip" : "0.0.0.11"
+										])
+						])
+					])
+				},
+				SMALL_LINUX : template{
+					custom ([
+						"nodesList" : ([
+										([
+											"id" : "byon-test01",
+											"ip" : "0.0.0.1",
+											"username" : "tgrid1",
 											"credential" : "tgrid1"
 										]),
 										([
@@ -101,20 +93,20 @@ cloud {
 											"ip" : "0.0.0.2"
 										]),
 										([
-											"idPrefix" : "byon-test1",
-											"ipList" : "0.0.0.3,0.0.0.4,0.0.0.5"
+											"id" : "byon-test1",
+											"ip" : "0.0.0.3,0.0.0.4,0.0.0.5"
 										]),
 										([
 											"id" : "byon-test2{0}",
-											"ipList" : "0.0.0.6,0.0.0.7,0.0.0.8"
+											"ip" : "0.0.0.6,0.0.0.7,0.0.0.8"
 										]),
 										([
 											"id" : "byon-test3{0}",
-											"ipRange" : "0.0.0.9-0.0.0.11"
+											"ip" : "0.0.0.9-0.0.0.11"
 										]),
 										([
 											"id" : "byon-test4{0}",
-											"CIDR" : "0.0.0.12/31"
+											"ip" : "0.0.0.12/31"
 										])
 						])
 					])
