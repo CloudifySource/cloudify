@@ -65,7 +65,7 @@ public class ParseByonCloudNodesTest {
 				}
 				Assert.assertNotNull("NodesList not found for template " + templateName, nodesList);
 				if (nodesList == null) {
-					System.out.println("Failed to create BYON cloud deployer, invalid configuration, nodesList is null");
+					System.out.println("Failed to create cloud deployer, invalid configuration, nodesList is null");
 					throw new CloudProvisioningException("Failed to create BYON cloud deployer, invalid configuration");
 				}
 				deployer.addNodesList(templateName, nodesList);
