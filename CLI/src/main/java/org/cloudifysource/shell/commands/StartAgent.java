@@ -50,6 +50,10 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 		+ " agent communicates with other agent and management machines.")
 public class StartAgent extends AbstractGSCommand {
 
+	private static final int DEFAULT_POLLING_INTERVAL = 10;
+
+	private static final int DEFAULT_TIMEOUT_MINUTES = 5;
+
 	@Option(required = true, name = "-zone", description = "The agent zone that specifies the name of the service that"
 			+ " can run on the machine.")
 	private String zone;
@@ -70,7 +74,7 @@ public class StartAgent extends AbstractGSCommand {
 
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is"
 			+ " done. By default waits 5 minutes.")
-	private int timeoutInMinutes = 5;
+	private int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
 
 	@Option(required = false, name = "-auto-shutdown", description = "Determines if undeploying or scaling-in the last"
 			+ " service instance on the machine also triggers agent shutdown. By default false.")
@@ -91,7 +95,7 @@ public class StartAgent extends AbstractGSCommand {
 		installer.setLookupGroups(lookupGroups);
 		installer.setLookupLocators(lookupLocators);
 		installer.setNicAddress(nicAddress);
-		installer.setProgressInSeconds(10);
+		installer.setProgressInSeconds(DEFAULT_POLLING_INTERVAL);
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 		installer.setZone(zone);
 		installer.setAutoShutdown(autoShutdown);
