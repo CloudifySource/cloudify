@@ -69,6 +69,16 @@ cloud {
 	 * Cloud machine templates available with this cloud. 
 	 */
 	templates ([
+			SMALL_LINUX_MGMT : template{
+					custom ([
+						"nodesList" : ([
+										([
+											"id" : "byon-test01",
+											"ip" : "0.0.0.11"
+										])
+						])
+					])
+				},
 				SMALL_LINUX : template{
 					custom ([
 						"nodesList" : ([
