@@ -23,8 +23,8 @@ cloud {
 		//Indicates whether communications with the management servers should use the machine private IP.
 		bootstrapManagementOnPublicIp false
 		// Optional. Cloud-generic credentials. Can be overridden by specific credentials on each node, in the templates section.
-		remoteUsername "tgrid"
-		remotePassword "tgrid"
+		remoteUsername "ENTER_USER"
+		remotePassword "ENTER_PASSWORD"
 	}
 
 	/*************
