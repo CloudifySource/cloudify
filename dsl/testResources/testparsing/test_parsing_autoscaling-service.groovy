@@ -22,7 +22,11 @@ service {
     
   // The maximum number of service instances
   maxAllowedInstances 20
-     
+
+  scaleCooldownInSeconds 1
+  scaleInCooldownInSeconds 1
+  scaleOutCooldownInSeconds 1
+  
 	// Defines an automatic scaling rule based on "counter" metric value
   scalingRules {
    
@@ -33,6 +37,8 @@ service {
     metric "counter"
  
     statistics Statistics.averageOfAverages
+    timeStatistics Statistics.average
+    instancesStatistics Statistics.average
    
     // The moving time range (in seconds) for aggregating per-instance metric samples
     // The number of samples in the time windows equals the time window divided by the sampling period plus one.

@@ -155,8 +155,9 @@ public class ServiceParsingTest {
 		Assert.assertTrue(service.getMinAllowedInstances() > 1);
 		Assert.assertTrue(service.getNumInstances() >= service.getMinAllowedInstances());
 		Assert.assertTrue(service.getMaxAllowedInstances() >= service.getNumInstances());
-		Assert.assertTrue(service.getScaleInCooldownInSeconds() == 0);
-		Assert.assertTrue(service.getScaleOutCooldownInSeconds() == 0);
+		Assert.assertEquals(1,service.getScaleInCooldownInSeconds());
+		Assert.assertEquals(1,service.getScaleOutCooldownInSeconds());
+		Assert.assertEquals(1,service.getScaleCooldownInSeconds());
 		Assert.assertEquals("scalingRules", service.getName());
 		ScalingRulesDetails scalingRules = service.getScalingRules();
 		Assert.assertNotNull(scalingRules);
