@@ -79,4 +79,48 @@ public class AutoScalingStatisticsFactory {
 	public AutoScalingStatistics getMedian() {
 		return median();
 	}
+
+	public AutoScalingStatisticsPair getAverageOfAverages() {
+		return averageOfAverages();
+	}
+	
+	public AutoScalingStatisticsPair averageOfAverages() {
+		return new AutoScalingStatisticsPair ( average(), average() );
+	}
+	
+	public AutoScalingStatisticsPair getPercentileOfAverages(double percentile) {
+		return new AutoScalingStatisticsPair ( percentile(percentile), average() );
+	}
+	
+	public AutoScalingStatisticsPair getMinimumOfAverages() {
+		return minimumOfAverages();
+	}
+	
+	public AutoScalingStatisticsPair minimumOfAverages() {
+		return new AutoScalingStatisticsPair ( minimum(), average() );
+	}
+	
+	public AutoScalingStatisticsPair getMaximumOfAverages() {
+		return maximumOfAverages();
+	}
+	
+	public AutoScalingStatisticsPair maximumOfAverages() {
+		return new AutoScalingStatisticsPair ( maximum(), average() );
+	}
+	
+	public AutoScalingStatisticsPair getMaximumOfMaximums() {
+		return maximumOfMaximums();
+	}
+	
+	public AutoScalingStatisticsPair maximumOfMaximums() {
+		return new AutoScalingStatisticsPair ( maximum(), maximum() );
+	}
+	
+	public AutoScalingStatisticsPair getMinimumOfMinimums() {
+		return minimumOfMinimums();
+	}
+	
+	public AutoScalingStatisticsPair minimumOfMinimums() {
+		return new AutoScalingStatisticsPair ( minimum(), minimum() );
+	}
 }

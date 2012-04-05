@@ -45,13 +45,7 @@ public class ScalingRulesDetails {
 	private static final AutoScalingStatisticsFactory STATISTICS_FACTORY = new AutoScalingStatisticsFactory();
 	
 	private static final AutoScalingStatistics DEFAULT_TIME_STATISTICS = STATISTICS_FACTORY.average();
-	
-	/**
-	 * default statistics is average, since it is unwise to trigger an auto scale operation
-	 * based on a single instance gone wild.
-	 */
 	private static final AutoScalingStatistics DEFAULT_INSTANCES_STATISTICS = STATISTICS_FACTORY.average();
-	private static final AutoScalingStatistics DEFAULT_STATISTICS = STATISTICS_FACTORY.average();
 	
 	private long samplingPeriodInSeconds = DEFAULT_SAMPLING_PERIOD_SECONDS;
 	
@@ -63,28 +57,26 @@ public class ScalingRulesDetails {
 	
 	private AutoScalingStatistics instancesStatistics = DEFAULT_INSTANCES_STATISTICS;
 	
-	private AutoScalingStatistics statistics = DEFAULT_STATISTICS;
-	
 	private Comparable<?> highThreshold;
 	
 	private Comparable<?> lowThreshold;
 
 	/**
 	 * @param statistics 
-	 * 			    The algorithm for aggregating metric samples.
+	 * 			    The algorithm for aggregating metric samples by instances (first argument in the list) and by time (the second argument in the list).
      *              Metric samples are aggregated separately per instance in the specified time range,
      *	            and then aggregated again for all instances.
-     *              Default: statistics.average
-     * 		        Possible values: statistics.average, statistics.minimum, statistics.maximum
+     *              Default: Statistics.averageOfAverages
+     * 		        Possible values: Statistics.maximumOfAverages, Statistics.minimumOfAverages, Statistics.averageOfAverages, Statistics.percentileOfAverages(90)
+     *                               Statistics.maximumOfMaximums, Statistics.minimumOfMinimums
      */
-	public void setStatistics(final AutoScalingStatistics statistics) {
-		this.statistics = statistics;
-		setTimeStatistics(statistics);
-		setInstancesStatistics(statistics);
+	public void setStatistics(final AutoScalingStatisticsPair statistics) {
+		setInstancesStatistics(statistics.getInstancesStatistics());
+		setTimeStatistics(statistics.getTimeStatistics());
 	}
 	
-	public AutoScalingStatistics getStatistics() {
-		return statistics;
+	public AutoScalingStatisticsPair getStatistics() {
+		return new AutoScalingStatisticsPair (getInstancesStatistics(), getTimeStatistics());
 	}
 
 	public AutoScalingStatistics getTimeStatistics() {

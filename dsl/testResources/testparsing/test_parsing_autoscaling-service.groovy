@@ -32,7 +32,7 @@ service {
     // The name of the metric that is the basis for the scale rule decision
     metric "counter"
  
-    statistics Statistics.average
+    statistics Statistics.averageOfAverages
    
     // The moving time range (in seconds) for aggregating per-instance metric samples
     // The number of samples in the time windows equals the time window divided by the sampling period plus one.
