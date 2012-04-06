@@ -1374,7 +1374,7 @@ public class ServiceController {
 			final Service service, final int externalProcessMemoryInMB)
 			throws DSLException {
 
-		ScalingRulesDetails autoScaling = service.getScalingRules();
+		ScalingRulesDetails scalingRule = service.getScalingRules();
 
 		if (service.getMinAllowedInstances() <= 0) {
 			throw new DSLException("Minimum number of instances (" + service.getMinAllowedInstances()
@@ -1401,43 +1401,43 @@ public class ServiceController {
 
 		ProcessingUnitStatisticsId statisticsId = new ProcessingUnitStatisticsId();
 		statisticsId.setMonitor(CloudifyConstants.USM_MONITORS_SERVICE_ID);
-		statisticsId.setMetric(autoScaling.getMetric());
-		statisticsId.setInstancesStatistics(autoScaling.getInstancesStatistics().createInstancesStatistics());
+		statisticsId.setMetric(scalingRule.getMetric());
+		statisticsId.setInstancesStatistics(scalingRule.getInstancesStatistics().createInstancesStatistics());
 
-		if (autoScaling.getMovingTimeRangeInSeconds() <= autoScaling.getSamplingPeriodInSeconds()) {
+		if (scalingRule.getMovingTimeRangeInSeconds() <= scalingRule.getSamplingPeriodInSeconds()) {
 			if (logger.isLoggable(Level.FINE)) {
 				logger.fine("Deploying service " + serviceName + " with auto scaling that monitors the last sample of "
-						+ autoScaling.getMetric());
+						+ scalingRule.getMetric());
 			}
 			statisticsId.setTimeWindowStatistics(new LastSampleTimeWindowStatisticsConfig());
 		} else {
-			statisticsId.setTimeWindowStatistics(autoScaling.getTimeStatistics().createTimeWindowStatistics(
-					autoScaling.getMovingTimeRangeInSeconds(), TimeUnit.SECONDS));
+			statisticsId.setTimeWindowStatistics(scalingRule.getTimeStatistics().createTimeWindowStatistics(
+					scalingRule.getMovingTimeRangeInSeconds(), TimeUnit.SECONDS));
 		}
 
 		AutomaticCapacityScaleRuleConfig rule = new AutomaticCapacityScaleRuleConfig();
 		rule.setStatistics(statisticsId);
 		
-		if (autoScaling.getLowThreshold() == null){
+		if (scalingRule.getLowThreshold() == null){
 			if (logger.isLoggable(Level.FINE)) {
-				logger.fine(serviceName + " scalingRule " + autoScaling.getMetric() +" lowThreshold is undefined");
+				logger.fine(serviceName + " scalingRule " + scalingRule.getMetric() +" lowThreshold is undefined");
 			}
 		}
 		else {
 			
-			Comparable<?> threshold = autoScaling.getLowThreshold().getValue();
+			Comparable<?> threshold = scalingRule.getLowThreshold().getValue();
 			if (threshold == null) {
-				throw new DSLException(serviceName + " scalingRule " + autoScaling.getMetric() +" lowThreshold value is missing");
+				throw new DSLException(serviceName + " scalingRule " + scalingRule.getMetric() +" lowThreshold value is missing");
 			}
 			
-			int instancesDecrease = autoScaling.getLowThreshold().getInstancesDecrease ();
+			int instancesDecrease = scalingRule.getLowThreshold().getInstancesDecrease ();
 			if (instancesDecrease < 0) {
-				throw new DSLException(serviceName + " scalingRule " + autoScaling.getMetric() +" lowThreshold instancesDecrease cannot be a negative number ("+instancesDecrease+")");
+				throw new DSLException(serviceName + " scalingRule " + scalingRule.getMetric() +" lowThreshold instancesDecrease cannot be a negative number ("+instancesDecrease+")");
 			}
 			
 			if (instancesDecrease == 0) {
 				if (logger.isLoggable(Level.FINE)) {
-					logger.fine(serviceName + " scalingRule " + autoScaling.getMetric() +" lowThreshold instancesDecrease is 0");
+					logger.fine(serviceName + " scalingRule " + scalingRule.getMetric() +" lowThreshold instancesDecrease is 0");
 				}
 			}
 			else {
@@ -1449,25 +1449,25 @@ public class ServiceController {
 			}
 		}
 		
-		if (autoScaling.getHighThreshold() == null) {
+		if (scalingRule.getHighThreshold() == null) {
 			if (logger.isLoggable(Level.FINE)) {
-				logger.fine(serviceName + " scalingRule " + autoScaling.getMetric() +" highThreshold is undefined");
+				logger.fine(serviceName + " scalingRule " + scalingRule.getMetric() +" highThreshold is undefined");
 			}
 		}
 		else {
-			Comparable<?> threshold = autoScaling.getHighThreshold().getValue();
+			Comparable<?> threshold = scalingRule.getHighThreshold().getValue();
 			if (threshold == null) {
-				throw new DSLException(serviceName + " scalingRule " + autoScaling.getMetric() +" highThreshold value is missing");
+				throw new DSLException(serviceName + " scalingRule " + scalingRule.getMetric() +" highThreshold value is missing");
 			}
 			
-			int instancesIncrease = autoScaling.getHighThreshold().getInstancesIncrease();
+			int instancesIncrease = scalingRule.getHighThreshold().getInstancesIncrease();
 			if (instancesIncrease < 0) {
-				throw new DSLException(serviceName + " scalingRule " + autoScaling.getMetric() +" highThreshold instancesIncrease cannot be a negative number ("+instancesIncrease+")");
+				throw new DSLException(serviceName + " scalingRule " + scalingRule.getMetric() +" highThreshold instancesIncrease cannot be a negative number ("+instancesIncrease+")");
 			}
 			
 			if (instancesIncrease == 0) {
 				if (logger.isLoggable(Level.FINE)) {
-					logger.fine(serviceName + " scalingRule " + autoScaling.getMetric() +" highThreshold instancesIncrease is 0");
+					logger.fine(serviceName + " scalingRule " + scalingRule.getMetric() +" highThreshold instancesIncrease is 0");
 				}
 			}
 			else {
@@ -1500,7 +1500,7 @@ public class ServiceController {
 			.minCapacity(minCapacity)
 			.initialCapacity(initialCapacity)
 			.maxCapacity(maxCapacity)
-			.statisticsPollingInterval(autoScaling.getSamplingPeriodInSeconds(), TimeUnit.SECONDS)
+			.statisticsPollingInterval(scalingRule.getSamplingPeriodInSeconds(), TimeUnit.SECONDS)
 			.cooldownAfterScaleOut(service.getScaleOutCooldownInSeconds(),TimeUnit.SECONDS)
 			.cooldownAfterScaleIn(service.getScaleInCooldownInSeconds(),TimeUnit.SECONDS)
 			.addRule(rule)
