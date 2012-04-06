@@ -21,15 +21,23 @@ public class LowThreshold {
 	public Comparable<?> getValue() {
 		return value;
 	}
-	public void setValue(Comparable<?> value) {
+	
+	/**
+	 * @param value - the threshold value below which number of instances is decreased.
+	 */
+	public void setValue(final Comparable<?> value) {
 		this.value = value;
 	}
+	
 	public int getInstancesDecrease() {
 		return instancesDecrease;
 	}
-	public void setDecreaseNumOfInstances(int instancesDecrease) {
+	
+	/**
+	 * @param instancesDecrease - the number of instances to stop when threshold value is crossed.
+	 */
+	public void setInstancesDecrease(final int instancesDecrease) {
 		this.instancesDecrease = instancesDecrease;
 	}
-	
 	
 }

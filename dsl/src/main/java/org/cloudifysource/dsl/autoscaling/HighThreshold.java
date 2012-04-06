@@ -21,12 +21,21 @@ public class HighThreshold {
 	public Comparable<?> getValue() {
 		return value;
 	}
+
+	/**
+	 * @param value - the threshold value above which number of instances is increased.
+	 */
 	public void setValue(final Comparable<?> value) {
 		this.value = value;
 	}
+	
 	public int getInstancesIncrease() {
 		return instancesIncrease;
 	}
+	
+	/**
+	 * @param instancesIncrease - the number of instances to start when threshold value is crossed.
+	 */
 	public void setInstancesIncrease(final int instancesIncrease) {
 		this.instancesIncrease = instancesIncrease;
 	}
