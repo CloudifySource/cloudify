@@ -1446,7 +1446,7 @@ public class ServiceController {
 			
 			Comparable<?> threshold = autoScaling.getHighThreshold().getValue();
 			if (threshold == null) {
-				throw new DSLException("lowThreshold value is missing");
+				throw new DSLException("highThreshold value is missing");
 			}
 			
 			int instancesIncrease = autoScaling.getHighThreshold().getInstancesIncrease();
