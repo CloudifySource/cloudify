@@ -112,7 +112,6 @@ import org.openspaces.admin.pu.elastic.ElasticStatelessProcessingUnitDeployment;
 import org.openspaces.admin.pu.elastic.config.AutomaticCapacityScaleConfig;
 import org.openspaces.admin.pu.elastic.config.AutomaticCapacityScaleConfigurer;
 import org.openspaces.admin.pu.elastic.config.AutomaticCapacityScaleRuleConfig;
-import org.openspaces.admin.pu.elastic.config.AutomaticCapacityScaleRuleConfigurer;
 import org.openspaces.admin.pu.elastic.config.CapacityRequirementsConfig;
 import org.openspaces.admin.pu.elastic.config.CapacityRequirementsConfigurer;
 import org.openspaces.admin.pu.elastic.config.DiscoveredMachineProvisioningConfigurer;
@@ -1416,32 +1415,57 @@ public class ServiceController {
 					autoScaling.getMovingTimeRangeInSeconds(), TimeUnit.SECONDS));
 		}
 
-		CapacityRequirementsConfig highThresholdIncreaseCapacity =
-				new CapacityRequirementsConfigurer()
-				.memoryCapacity(autoScaling.getHighThreshold().getInstancesIncrease() * externalProcessMemoryInMB, MemoryUnit.MEGABYTES)
-				.create();
 		
-		CapacityRequirementsConfig lowThresholdDecreaseCapacity =
-				new CapacityRequirementsConfigurer()
-				.memoryCapacity(autoScaling.getLowThreshold().getInstancesDecrease() * externalProcessMemoryInMB, MemoryUnit.MEGABYTES)
-				.create();
 		
-		AutomaticCapacityScaleRuleConfig rule = 
-				new AutomaticCapacityScaleRuleConfigurer()
-				.lowThreshold(autoScaling.getLowThreshold().getValue())
-				.lowThresholdBreachedDecrease(lowThresholdDecreaseCapacity)
-				.highThreshold(autoScaling.getHighThreshold().getValue())
-				.highThresholdBreachedIncrease(highThresholdIncreaseCapacity)
-				.statistics(statisticsId)
-				.create();
-
+		AutomaticCapacityScaleRuleConfig rule = new AutomaticCapacityScaleRuleConfig();
+		rule.setStatistics(statisticsId);
+		
+		if (autoScaling.getLowThreshold() != null){
+			
+			Comparable<?> threshold = autoScaling.getLowThreshold().getValue();
+			if (threshold == null) {
+				throw new DSLException("lowThreshold value is missing");
+			}
+			
+			int instancesDecrease = autoScaling.getLowThreshold().getInstancesDecrease ();
+			if (instancesDecrease < 0) {
+				throw new DSLException("lowThreshold instancesDecrease cannot be a negative number ("+instancesDecrease+")");
+			}
+			
+			if (instancesDecrease > 0) {
+		
+				rule.setLowThreshold(threshold);
+				rule.setLowThresholdBreachedDecrease(
+						new CapacityRequirementsConfigurer()
+						.memoryCapacity(instancesDecrease * externalProcessMemoryInMB, MemoryUnit.MEGABYTES)
+						.create());
+			}
+		}
+		
+		if (autoScaling.getHighThreshold() != null){
+			
+			Comparable<?> threshold = autoScaling.getHighThreshold().getValue();
+			if (threshold == null) {
+				throw new DSLException("lowThreshold value is missing");
+			}
+			
+			int instancesIncrease = autoScaling.getHighThreshold().getInstancesIncrease();
+			if (instancesIncrease < 0) {
+				throw new DSLException("highThreshold instancesIncrease cannot be a negative number ("+instancesIncrease+")");
+			}
+			if (instancesIncrease > 0) {
+				rule.setHighThreshold(threshold);
+				rule.setHighThresholdBreachedIncrease(
+						new CapacityRequirementsConfigurer()
+						.memoryCapacity(instancesIncrease * externalProcessMemoryInMB, MemoryUnit.MEGABYTES)
+						.create());
+			}
+		}
 
 		CapacityRequirementsConfig minCapacity = 
 			new CapacityRequirementsConfigurer()
 			.memoryCapacity((service.getMinAllowedInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
 			.create();
-
-
 
 		CapacityRequirementsConfig initialCapacity = 
 			new CapacityRequirementsConfigurer()
