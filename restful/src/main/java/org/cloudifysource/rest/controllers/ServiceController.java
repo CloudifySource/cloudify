@@ -1415,25 +1415,32 @@ public class ServiceController {
 					autoScaling.getMovingTimeRangeInSeconds(), TimeUnit.SECONDS));
 		}
 
-		
-		
 		AutomaticCapacityScaleRuleConfig rule = new AutomaticCapacityScaleRuleConfig();
 		rule.setStatistics(statisticsId);
 		
-		if (autoScaling.getLowThreshold() != null){
+		if (autoScaling.getLowThreshold() == null){
+			if (logger.isLoggable(Level.FINE)) {
+				logger.fine(serviceName + " scalingRule " + autoScaling.getMetric() +" lowThreshold is undefined");
+			}
+		}
+		else {
 			
 			Comparable<?> threshold = autoScaling.getLowThreshold().getValue();
 			if (threshold == null) {
-				throw new DSLException("lowThreshold value is missing");
+				throw new DSLException(serviceName + " scalingRule " + autoScaling.getMetric() +" lowThreshold value is missing");
 			}
 			
 			int instancesDecrease = autoScaling.getLowThreshold().getInstancesDecrease ();
 			if (instancesDecrease < 0) {
-				throw new DSLException("lowThreshold instancesDecrease cannot be a negative number ("+instancesDecrease+")");
+				throw new DSLException(serviceName + " scalingRule " + autoScaling.getMetric() +" lowThreshold instancesDecrease cannot be a negative number ("+instancesDecrease+")");
 			}
 			
-			if (instancesDecrease > 0) {
-		
+			if (instancesDecrease == 0) {
+				if (logger.isLoggable(Level.FINE)) {
+					logger.fine(serviceName + " scalingRule " + autoScaling.getMetric() +" lowThreshold instancesDecrease is 0");
+				}
+			}
+			else {
 				rule.setLowThreshold(threshold);
 				rule.setLowThresholdBreachedDecrease(
 						new CapacityRequirementsConfigurer()
@@ -1442,18 +1449,28 @@ public class ServiceController {
 			}
 		}
 		
-		if (autoScaling.getHighThreshold() != null){
-			
+		if (autoScaling.getHighThreshold() == null) {
+			if (logger.isLoggable(Level.FINE)) {
+				logger.fine(serviceName + " scalingRule " + autoScaling.getMetric() +" highThreshold is undefined");
+			}
+		}
+		else {
 			Comparable<?> threshold = autoScaling.getHighThreshold().getValue();
 			if (threshold == null) {
-				throw new DSLException("highThreshold value is missing");
+				throw new DSLException(serviceName + " scalingRule " + autoScaling.getMetric() +" highThreshold value is missing");
 			}
 			
 			int instancesIncrease = autoScaling.getHighThreshold().getInstancesIncrease();
 			if (instancesIncrease < 0) {
-				throw new DSLException("highThreshold instancesIncrease cannot be a negative number ("+instancesIncrease+")");
+				throw new DSLException(serviceName + " scalingRule " + autoScaling.getMetric() +" highThreshold instancesIncrease cannot be a negative number ("+instancesIncrease+")");
 			}
-			if (instancesIncrease > 0) {
+			
+			if (instancesIncrease == 0) {
+				if (logger.isLoggable(Level.FINE)) {
+					logger.fine(serviceName + " scalingRule " + autoScaling.getMetric() +" highThreshold instancesIncrease is 0");
+				}
+			}
+			else {
 				rule.setHighThreshold(threshold);
 				rule.setHighThresholdBreachedIncrease(
 						new CapacityRequirementsConfigurer()
