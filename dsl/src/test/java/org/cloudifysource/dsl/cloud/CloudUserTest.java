@@ -1,7 +1,5 @@
 package org.cloudifysource.dsl.cloud;
 
-import static org.junit.Assert.assertEquals;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,160 +12,6 @@ import org.junit.Test;
  * @version $Revision: 1.0 $
  */
 public class CloudUserTest {
-
-	/**
-	 * Run the String getApiKey() method test.
-	 * 
-	 * @throws Exception
-	 * 
-	 * @generatedBy CodePro at 4/5/12 10:11 AM
-	 */
-	@Test
-	public void testGetApiKey_1()
-			throws Exception {
-		final CloudUser fixture = new CloudUser();
-		fixture.setUser("");
-		fixture.setApiKey("");
-		fixture.setKeyFile("");
-
-		final String result = fixture.getApiKey();
-
-		// add additional test code here
-		assertEquals("", result);
-		// unverified
-	}
-
-	/**
-	 * Run the String getKeyFile() method test.
-	 * 
-	 * @throws Exception
-	 * 
-	 * @generatedBy CodePro at 4/5/12 10:11 AM
-	 */
-	@Test
-	public void testGetKeyFile_1()
-			throws Exception {
-		final CloudUser fixture = new CloudUser();
-		fixture.setUser("");
-		fixture.setApiKey("");
-		fixture.setKeyFile("");
-
-		final String result = fixture.getKeyFile();
-
-		// add additional test code here
-		assertEquals("", result);
-		// unverified
-	}
-
-	/**
-	 * Run the String getUser() method test.
-	 * 
-	 * @throws Exception
-	 * 
-	 * @generatedBy CodePro at 4/5/12 10:11 AM
-	 */
-	@Test
-	public void testGetUser_1()
-			throws Exception {
-		final CloudUser fixture = new CloudUser();
-		fixture.setUser("");
-		fixture.setApiKey("");
-		fixture.setKeyFile("");
-
-		final String result = fixture.getUser();
-
-		// add additional test code here
-		assertEquals("", result);
-		// unverified
-	}
-
-	/**
-	 * Run the void setApiKey(String) method test.
-	 * 
-	 * @throws Exception
-	 * 
-	 * @generatedBy CodePro at 4/5/12 10:11 AM
-	 */
-	@Test
-	public void testSetApiKey_1()
-			throws Exception {
-		final CloudUser fixture = new CloudUser();
-		fixture.setUser("");
-		fixture.setApiKey("");
-		fixture.setKeyFile("");
-		final String apiKey = "";
-
-		fixture.setApiKey(apiKey);
-
-		// add additional test code here
-		// unverified
-	}
-
-	/**
-	 * Run the void setKeyFile(String) method test.
-	 * 
-	 * @throws Exception
-	 * 
-	 * @generatedBy CodePro at 4/5/12 10:11 AM
-	 */
-	@Test
-	public void testSetKeyFile_1()
-			throws Exception {
-		final CloudUser fixture = new CloudUser();
-		fixture.setUser("");
-		fixture.setApiKey("");
-		fixture.setKeyFile("");
-		final String keyFile = "";
-
-		fixture.setKeyFile(keyFile);
-
-		// add additional test code here
-		// unverified
-	}
-
-	/**
-	 * Run the void setUser(String) method test.
-	 * 
-	 * @throws Exception
-	 * 
-	 * @generatedBy CodePro at 4/5/12 10:11 AM
-	 */
-	@Test
-	public void testSetUser_1()
-			throws Exception {
-		final CloudUser fixture = new CloudUser();
-		fixture.setUser("");
-		fixture.setApiKey("");
-		fixture.setKeyFile("");
-		final String user = "";
-
-		fixture.setUser(user);
-
-		// add additional test code here
-		// unverified
-	}
-
-	/**
-	 * Run the String toString() method test.
-	 * 
-	 * @throws Exception
-	 * 
-	 * @generatedBy CodePro at 4/5/12 10:11 AM
-	 */
-	@Test
-	public void testToString_1()
-			throws Exception {
-		final CloudUser fixture = new CloudUser();
-		fixture.setUser("");
-		fixture.setApiKey("");
-		fixture.setKeyFile("");
-
-		final String result = fixture.toString();
-
-		// add additional test code here
-		assertEquals("CloudUser [user=, keyFile=]", result);
-		// unverified
-	}
 
 	/**
 	 * Run the void validateKeyFileDefaultValue() method test.
@@ -184,7 +28,7 @@ public class CloudUserTest {
 		fixture.setApiKey("");
 		fixture.setKeyFile("");
 
-		fixture.validateKeyFileDefaultValue();
+		fixture.validateDefaultValues();
 
 		// add additional test code here
 		// unverified
@@ -205,7 +49,7 @@ public class CloudUserTest {
 		fixture.setApiKey("");
 		fixture.setKeyFile("");
 
-		fixture.validateKeyFileDefaultValue();
+		fixture.validateDefaultValues();
 
 		// add additional test code here
 		// unverified
@@ -226,7 +70,7 @@ public class CloudUserTest {
 		fixture.setApiKey("ENTER_KEY");
 		fixture.setKeyFile("");
 
-		fixture.validateKeyFileDefaultValue();
+		fixture.validateDefaultValues();
 
 		// add additional test code here
 		// unverified
@@ -247,12 +91,52 @@ public class CloudUserTest {
 		fixture.setApiKey("");
 		fixture.setKeyFile("ENTER_KEY_FILE_NAME");
 
-		fixture.validateKeyFileDefaultValue();
+		fixture.validateDefaultValues();
 
 		// add additional test code here
 		// unverified
 	}
 
+	/**
+	 * Run the void validateKeyFileDefaultValue() method test.
+	 * 
+	 * @throws Exception
+	 * 
+	 */
+	@Test
+	public void testValidateKeyFileDefaultValue_5()
+			throws Exception {
+		final CloudUser fixture = new CloudUser();
+		fixture.setUser(null);
+		fixture.setApiKey(null);
+		fixture.setKeyFile(null);
+
+		fixture.validateDefaultValues();
+
+		// add additional test code here
+		// unverified
+	}
+
+	/**
+	 * Run the void validateKeyFileDefaultValue() method test.
+	 * 
+	 * @throws Exception
+	 * 
+	 */
+	@Test
+	public void testValidateKeyFileDefaultValue_6()
+			throws Exception {
+		final CloudUser fixture = new CloudUser();
+		fixture.setUser("");
+		fixture.setApiKey("");
+		fixture.setKeyFile("");
+
+		fixture.validateDefaultValues();
+
+		// add additional test code here
+		// unverified
+	}
+	
 	/**
 	 * Perform pre-test initialization.
 	 * 

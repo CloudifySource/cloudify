@@ -64,17 +64,17 @@ public class CloudUser {
 	}
 
 	@DSLValidation
-	void validateKeyFileDefaultValue()
+	void validateDefaultValues()
 			throws DSLValidationException {
-		if (this.getUser().equals("ENTER_USER")) {
+		if ("ENTER_USER".equals(this.getUser())) {
 			throw new DSLValidationException("User field still has default configuration value of ENTER_USER");
 		}
 
-		if (this.getApiKey().equals("ENTER_KEY")) {
+		if ("ENTER_KEY".equals(this.getApiKey())) {
 			throw new DSLValidationException("Key field still has default configuration value of ENTER_KEY");
 		}
 
-		if (this.getKeyFile().equals("ENTER_KEY_FILE_NAME")) {
+		if ("ENTER_KEY_FILE_NAME".equals(this.getKeyFile())) {
 			throw new DSLValidationException(
 					"Key file name field still has default configuration value of ENTER_KEY_FILE_NAME");
 		}
