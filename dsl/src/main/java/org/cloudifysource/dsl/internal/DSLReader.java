@@ -234,8 +234,10 @@ public class DSLReader {
 			}
 
 			if (isRunningInGSC) {
-				clusterInfoToUseInGsc.setName(ServiceUtils.getAbsolutePUName(
-						CloudifyConstants.DEFAULT_APPLICATION_NAME, ((Service) result).getName()));
+				if (clusterInfoToUseInGsc.getName() == null) {
+					clusterInfoToUseInGsc.setName(ServiceUtils.getAbsolutePUName(
+							CloudifyConstants.DEFAULT_APPLICATION_NAME, ((Service) result).getName()));
+				}
 				this.context.init((Service) result, admin, workDir.getAbsolutePath(), clusterInfoToUseInGsc);
 			} else {
 				this.context.initInIntegratedContainer((Service) result, workDir.getAbsolutePath());
