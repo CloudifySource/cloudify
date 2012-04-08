@@ -43,7 +43,7 @@ public class DSLDetails implements Details {
 		final HashMap<String, Object> map = new HashMap<String, Object>();
 
 		map.put(CloudifyConstants.USM_DETAILS_ICON, service.getIcon());
-		map.put(CloudifyConstants.USM_DETAILS_URL, service.getUrl().toString());
+		map.put(CloudifyConstants.USM_DETAILS_URL, (service.getUrl() == null ? null : service.getUrl().toString()));
 
 		return map;
 	}
