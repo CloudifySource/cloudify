@@ -43,7 +43,7 @@ public final class IPUtils {
 	 * @throws UnknownHostException
 	 *             Indicates the given IP cannot be resolved
 	 * @throws CloudProvisioningException
-	 *             Indicates the given IP is invlaid
+	 *             Indicates the given IP is invalid
 	 */
 	public static long ip2Long(final String ipAddress) throws UnknownHostException, CloudProvisioningException {
 		if (!validateIPAddress(ipAddress)) {
@@ -51,7 +51,8 @@ public final class IPUtils {
 		}
 
 		final byte[] ipBytes = getBytes(ipAddress);
-		return ((long) (byte2int(ipBytes[0]) * IP_BYTE_RANGE + byte2int(ipBytes[1])) * IP_BYTE_RANGE + byte2int(ipBytes[2]))
+		return ((long) (byte2int(ipBytes[0]) * IP_BYTE_RANGE + byte2int(ipBytes[1])) * IP_BYTE_RANGE 
+				+ byte2int(ipBytes[2]))
 				* IP_BYTE_RANGE + byte2int(ipBytes[3]);
 	}
 
@@ -109,6 +110,8 @@ public final class IPUtils {
 	 * @return IP addresses formatted as a simple range
 	 * @throws UnknownHostException
 	 *             Indicates the given IP cannot be resolved
+	 * @throws CloudProvisioningException
+	 *             Indicates the given IP is invalid
 	 */
 	public static String ipCIDR2Range(final String ipCidr) throws UnknownHostException, CloudProvisioningException {
 
@@ -187,6 +190,8 @@ public final class IPUtils {
 	 * @return The following IP address
 	 * @throws UnknownHostException
 	 *             Indicates the given IP cannot be resolved
+	 * @throws CloudProvisioningException
+	 *             Indicates the given IP is invalid
 	 */
 	public static String getNextIP(final String ipAddress) throws UnknownHostException, CloudProvisioningException {
 		return long2String(ip2Long(ipAddress) + 1);
@@ -214,6 +219,23 @@ public final class IPUtils {
 			}
 		}
 		return valid;
+	}
+
+	/**
+	 * Gets the IP address of the given host name.
+	 * 
+	 * @param hostName
+	 *            The name of the host
+	 * @return The IP address of the host
+	 * @throws UnknownHostException
+	 *             Indicates the host doesn't represent an available network object
+	 */
+	public static String getIP(final String hostName) throws UnknownHostException {
+
+		InetAddress address = null;
+		address = InetAddress.getByName(hostName);
+
+		return address.getHostAddress();
 	}
 
 }
