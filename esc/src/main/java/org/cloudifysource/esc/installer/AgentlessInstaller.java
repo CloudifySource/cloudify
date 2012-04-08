@@ -90,8 +90,8 @@ public class AgentlessInstaller {
 
 	private static final String CLOUD_FILE = "CLOUD_FILE";
 
-	private static final java.util.logging.Logger logger =
-			java.util.logging.Logger.getLogger(AgentlessInstaller.class.getName());
+	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(AgentlessInstaller.class
+			.getName());
 
 	// tries opening a socket to port 22, and waits for the specified connection
 	// timeout
@@ -147,14 +147,10 @@ public class AgentlessInstaller {
 	/*******
 	 * Checks if a TCP connection to a remote machine and port is possible.
 	 * 
-	 * @param ip
-	 *            remote machine ip.
-	 * @param port
-	 *            remote machine port.
-	 * @param timeout
-	 *            duration to wait for successful connection.
-	 * @param unit
-	 *            time unit to wait.
+	 * @param ip remote machine ip.
+	 * @param port remote machine port.
+	 * @param timeout duration to wait for successful connection.
+	 * @param unit time unit to wait.
 	 * @throws InstallerException .
 	 * @throws InstallerException .
 	 * @throws TimeoutException .
@@ -201,30 +197,18 @@ public class AgentlessInstaller {
 	/****
 	 * Copies files from local dir to remote dir.
 	 * 
-	 * @param host
-	 *            host name or ip address of remote machine.
-	 * @param username
-	 *            ssh username of remote machine.
-	 * @param password
-	 *            ssh password of remote machine.
-	 * @param srcDir
-	 *            local directory.
-	 * @param toDir
-	 *            remote directory.
-	 * @param keyFile The key file of the remote machine, if used.
-	 *            private key file.
-	 * @param excludedFile
-	 *            Files that should not be copied.
-	 * @param cloudFile
-	 *            The cloud file.
-	 * @param timeout
-	 *            Time before timeout is thrown.
-	 * @param unit
-	 *            Time unit, relevant to timeout parameter.
-	 * @param fileTransferMode
-	 *            Remote file system type.
-	 * @throws IOException
-	 *             in case of an error during file transfer.
+	 * @param host host name or ip address of remote machine.
+	 * @param username ssh username of remote machine.
+	 * @param password ssh password of remote machine.
+	 * @param srcDir local directory.
+	 * @param toDir remote directory.
+	 * @param keyFile The key file of the remote machine, if used. private key file.
+	 * @param excludedFile Files that should not be copied.
+	 * @param cloudFile The cloud file.
+	 * @param timeout Time before timeout is thrown.
+	 * @param unit Time unit, relevant to timeout parameter.
+	 * @param fileTransferMode Remote file system type.
+	 * @throws IOException in case of an error during file transfer.
 	 * @throws TimeoutException
 	 * @throws URISyntaxException
 	 */
@@ -258,7 +242,8 @@ public class AgentlessInstaller {
 			createdManager = VFS.getManager();
 
 			target =
-					new java.net.URI("smb", username + ":" + password, host, CIFS_PORT, toDir, null, null).toASCIIString();
+					new java.net.URI("smb", username + ":" + password, host, CIFS_PORT, toDir, null, null)
+							.toASCIIString();
 
 			break;
 		default:
@@ -266,15 +251,15 @@ public class AgentlessInstaller {
 		}
 
 		final FileSystemManager mng = createdManager;
-		
+
 		mng.setLogger(org.apache.commons.logging.LogFactory.getLog(logger.getName()));
 		final FileObject localDir = mng.resolveFile("file:" + srcDir);
 
 		final FileObject remoteDir = mng.resolveFile(target, opts);
-		
+
 		logger.fine("Copying files to: " + target + " from local dir: " + localDir.getName().getPath() + " excluding "
 				+ excludedFiles.toString());
-				
+
 		try {
 			remoteDir.copyFrom(localDir, new FileSelector() {
 
@@ -292,7 +277,7 @@ public class AgentlessInstaller {
 						logger.fine(fileInfo.getFile().getName().getBaseName() + " missing on server");
 						return true;
 					}
-					
+
 					if (fileInfo.getFile().getType() == FileType.FILE) {
 						final long remoteSize = remoteFile.getContent().getSize();
 						final long localSize = fileInfo.getFile().getContent().getSize();
@@ -368,12 +353,9 @@ public class AgentlessInstaller {
 	/******
 	 * Performs installation on a remote machine with a known IP.
 	 * 
-	 * @param details
-	 *            the installation details.
-	 * @param timeout
-	 *            the timeout duration.
-	 * @param unit
-	 *            the timeout unit.
+	 * @param details the installation details.
+	 * @param timeout the timeout duration.
+	 * @param unit the timeout unit.
 	 * @throws InterruptedException .
 	 * @throws TimeoutException .
 	 * @throws InstallerException .
@@ -431,16 +413,17 @@ public class AgentlessInstaller {
 		final String scriptPath = remoteDirectory + "/" + scriptFileName;
 
 		final ShellCommandBuilder scb =
-				new ShellCommandBuilder(details.getRemoteExecutionMode()).exportVar(LUS_IP_ADDRESS_ENV, details.getLocator())
+				new ShellCommandBuilder(details.getRemoteExecutionMode())
+						.exportVar(LUS_IP_ADDRESS_ENV, details.getLocator())
 						.exportVar(GSA_MODE_ENV, details.isLus() ? "lus" : "agent")
 						.exportVar(NO_WEB_SERVICES_ENV, details.isNoWebServices() ? "true" : "false")
-						.exportVar(MACHINE_IP_ADDRESS_ENV, details.isBindToPrivateIp() ? details.getPrivateIp()
-								: details.getPublicIp())
+						.exportVar(MACHINE_IP_ADDRESS_ENV,
+								details.isBindToPrivateIp() ? details.getPrivateIp() : details.getPublicIp())
 						.exportVar(MACHINE_ZONES_ENV, details.getZones())
-						.exportVar(CLOUDIFY_LINK_ENV, details.getCloudifyUrl() != null ? "\""
-								+ details.getCloudifyUrl() + "\"" : "")
-						.exportVar(CLOUDIFY_OVERRIDES_LINK_ENV, details.getOverridesUrl() != null ? "\""
-								+ details.getOverridesUrl() + "\"" : "")
+						.exportVar(CLOUDIFY_LINK_ENV,
+								details.getCloudifyUrl() != null ? "\"" + details.getCloudifyUrl() + "\"" : "")
+						.exportVar(CLOUDIFY_OVERRIDES_LINK_ENV,
+								details.getOverridesUrl() != null ? "\"" + details.getOverridesUrl() + "\"" : "")
 						.exportVar(WORKING_HOME_DIRECTORY_ENV, remoteDirectory)
 						.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, details.getPrivateIp())
 						.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, details.getPublicIp());
@@ -461,11 +444,13 @@ public class AgentlessInstaller {
 
 		switch (details.getRemoteExecutionMode()) {
 		case SSH:
-			sshCommand(targetHost, command, details.getUsername(), details.getPassword(), details.getKeyFile(), Utils.millisUntil(end), TimeUnit.MILLISECONDS);
+			sshCommand(targetHost, command, details.getUsername(), details.getPassword(), details.getKeyFile(),
+					Utils.millisUntil(end), TimeUnit.MILLISECONDS);
 
 			break;
 		case WINRM:
-			powershellCommand(targetHost, command, details.getUsername(), details.getPassword(), details.getKeyFile(), Utils.millisUntil(end), TimeUnit.MILLISECONDS);
+			powershellCommand(targetHost, command, details.getUsername(), details.getPassword(), details.getKeyFile(),
+					Utils.millisUntil(end), TimeUnit.MILLISECONDS);
 			break;
 		default:
 			throw new UnsupportedOperationException();
@@ -496,7 +481,9 @@ public class AgentlessInstaller {
 			if (!details.isLus() && details.getManagementOnlyFiles() != null) {
 				excludedFiles.addAll(Arrays.asList(details.getManagementOnlyFiles()));
 			}
-			copyFiles(targetHost, details.getUsername(), details.getPassword(), details.getLocalDir(), details.getRemoteDir(), details.getKeyFile(), excludedFiles, details.getCloudFile(), Utils.millisUntil(end), TimeUnit.MILLISECONDS, details.getFileTransferMode());
+			copyFiles(targetHost, details.getUsername(), details.getPassword(), details.getLocalDir(),
+					details.getRemoteDir(), details.getKeyFile(), excludedFiles, details.getCloudFile(),
+					Utils.millisUntil(end), TimeUnit.MILLISECONDS, details.getFileTransferMode());
 		} catch (final FileSystemException e) {
 			logger.info(Arrays.toString(e.getStackTrace()));
 			throw new InstallerException("Uploading files to remote server failed.", e);
@@ -615,14 +602,12 @@ public class AgentlessInstaller {
 		return sb.toString();
 	}
 
-	private  void sshCommand(final String host, final String command, final String username,
-			final String password, final String keyFile, final long timeout, final TimeUnit unit)
+	private void sshCommand(final String host, final String command, final String username, final String password,
+			final String keyFile, final long timeout, final TimeUnit unit)
 			throws InstallerException, TimeoutException {
 
-
 		try {
-			Utils.executeSSHCommand(host, command, username, password, 
-					keyFile, timeout, unit);
+			Utils.executeSSHCommand(host, command, username, password, keyFile, timeout, unit);
 		} catch (final BuildException e) {
 			// There really should be a better way to check that this is a
 			// timeout
@@ -639,18 +624,15 @@ public class AgentlessInstaller {
 				throw new InstallerException("Command " + command + " failed to execute.", e);
 			}
 		}
-		
+
 		publishEvent("access_vm_with_ssh_success", host);
 
 	}
 
-	
-
 	/**********
 	 * Registers an event listener for installation events.
 	 * 
-	 * @param listener
-	 *            the listener.
+	 * @param listener the listener.
 	 */
 	public void addListener(final AgentlessInstallerListener listener) {
 		this.eventsListenersList.add(listener);

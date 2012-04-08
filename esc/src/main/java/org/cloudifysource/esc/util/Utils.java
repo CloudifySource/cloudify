@@ -35,7 +35,6 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.provider.sftp.SftpFileSystemConfigBuilder;
-import org.apache.tools.ant.BuildException;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -228,7 +227,7 @@ public final class Utils {
 	}
 
 	/**
-	 * Executes a SSH command.
+	 * Executes a SSH command. An Ant BuildException is thrown in case of an error.
 	 * 
 	 * @param host
 	 *            The host to run the command on
@@ -244,14 +243,12 @@ public final class Utils {
 	 *            The number of time-units to wait before throwing a TimeoutException
 	 * @param unit
 	 *            The units (e.g. seconds)
-	 * @throws BuildException
-	 *             Indicates the command execution failed
 	 * @throws TimeoutException
 	 *             Indicates the timeout was reached before the command completed
 	 */
 	public static void executeSSHCommand(final String host, final String command, final String username,
 			final String password, final String keyFile, final long timeout, final TimeUnit unit)
-			throws BuildException, TimeoutException {
+			throws TimeoutException {
 
 		final LoggerOutputStream loggerOutputStream = new LoggerOutputStream(
 				Logger.getLogger(AgentlessInstaller.SSH_OUTPUT_LOGGER_NAME));
@@ -274,11 +271,13 @@ public final class Utils {
 			task.setPassword(password);
 		}
 
-		// logger.fine("Executing command: " + command + " on " + host);
 		task.execute();
 		loggerOutputStream.close();
 	}
 
+	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Utils.class
+			.getName());
+	
 	/**
 	 * Deletes file or folder on a remote host.
 	 * 

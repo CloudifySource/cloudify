@@ -151,7 +151,7 @@ public class InstallationDetails implements Cloneable {
 	public String toString() {
 		return "InstallationDetails [privateIP=" + privateIp + ", locator=" + locator + ", username=" + username
 				+ ", password=***" + ", keyFile=" + keyFile + ", localDir=" + localDir + ", remoteDir=" + remoteDir
-				+ ", isLus=" + isLus + "]";
+				+ ", isLus=" + isLus + ", zones=" + zones + "]";
 	}
 
 	public String getKeyFile() {
@@ -214,8 +214,7 @@ public class InstallationDetails implements Cloneable {
 	@Override
 	public InstallationDetails clone() {
 		final InstallationDetails result = new InstallationDetails();
-		ReflectionUtils.shallowCopyFieldState(
-				this, result);
+		ReflectionUtils.shallowCopyFieldState(this, result);
 		return result;
 	}
 
