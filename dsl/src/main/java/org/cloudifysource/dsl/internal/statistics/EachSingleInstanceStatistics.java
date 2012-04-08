@@ -1,5 +1,6 @@
-package org.cloudifysource.dsl.statistics;
+package org.cloudifysource.dsl.internal.statistics;
 
+import org.cloudifysource.dsl.statistics.InstancesStatisticsCalculation;
 import org.openspaces.admin.pu.statistics.EachSingleInstanceStatisticsConfig;
 import org.openspaces.admin.pu.statistics.InstancesStatisticsConfig;
 
@@ -9,7 +10,7 @@ import org.openspaces.admin.pu.statistics.InstancesStatisticsConfig;
  * @since 2.1
  */
 
-public class EachSingleInstanceStatistics implements InstancesStatisticsConfigFactory {
+public class EachSingleInstanceStatistics implements InstancesStatisticsCalculation {
 
 	@Override
 	public InstancesStatisticsConfig createInstancesStatistics() {

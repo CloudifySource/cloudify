@@ -1,11 +1,12 @@
-package org.cloudifysource.dsl.statistics;
+package org.cloudifysource.dsl.internal.statistics;
 
 import java.util.concurrent.TimeUnit;
 
+import org.cloudifysource.dsl.statistics.TimeWindowStatisticsCalculation;
 import org.openspaces.admin.pu.statistics.ThroughputTimeWindowStatisticsConfigurer;
 import org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig;
 
-public class ThroughputAutoScalingStatistics implements TimeWindowStatisticsConfigFactory {
+public class ThroughputAutoScalingStatistics implements TimeWindowStatisticsCalculation {
 	
 	@Override
 	public TimeWindowStatisticsConfig createTimeWindowStatistics(long timeWindow, TimeUnit timeUnit) {

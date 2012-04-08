@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.dsl.statistics;
+package org.cloudifysource.dsl.internal.statistics;
 
 import java.util.concurrent.TimeUnit;
 
+import org.cloudifysource.dsl.statistics.StatisticsCalculation;
 import org.openspaces.admin.pu.statistics.AverageInstancesStatisticsConfig;
 import org.openspaces.admin.pu.statistics.AverageTimeWindowStatisticsConfigurer;
 import org.openspaces.admin.pu.statistics.InstancesStatisticsConfig;
 import org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig;
 
-public class AverageAutoScalingStatistics implements TimeWindowStatisticsConfigFactory, InstancesStatisticsConfigFactory {
+public class AverageStatisticsCalculation implements StatisticsCalculation {
 
 	@Override
 	public TimeWindowStatisticsConfig createTimeWindowStatistics(long timeWindow,

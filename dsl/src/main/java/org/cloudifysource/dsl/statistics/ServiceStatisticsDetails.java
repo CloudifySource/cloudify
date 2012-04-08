@@ -30,32 +30,20 @@ public class ServiceStatisticsDetails extends AbstractStatisticsDetails {
      * instancesStatistics Statistics.maximum
      *
      */
-	public void setStatistics(final AutoScalingStatisticsPair statistics) {
-		setInstancesStatistics(statistics.getInstancesStatistics());
-		setTimeStatistics(statistics.getTimeStatistics());
+	public void setStatistics(final ServiceStatisticsCalculation statistics) {
+		super.setInstancesStatistics(statistics.getInstancesStatistics());
+		super.setTimeStatistics(statistics.getTimeStatistics());
 	}
 	
-	public AutoScalingStatisticsPair getStatistics() {
-		return new AutoScalingStatisticsPair (getInstancesStatistics(), getTimeStatistics());
-	}
-	
-	@Override
-	public TimeWindowStatisticsConfigFactory getTimeStatistics() {
-		return super.getTimeStatistics();
+	public ServiceStatisticsCalculation getStatistics() {
+		return new ServiceStatisticsCalculation (getInstancesStatistics(), getTimeStatistics());
 	}
 
+	/**
+	 * @see AbstractStatisticsDetails#setInstancesStatistics(InstancesStatisticsCalculation)
+	 */
 	@Override
-	public void setTimeStatistics(final TimeWindowStatisticsConfigFactory timeStatistics) {
-		super.setTimeStatistics(timeStatistics);
-	}
-
-	@Override
-	public InstancesStatisticsConfigFactory getInstancesStatistics() {
-		return super.getInstancesStatistics();
-	}
-
-	@Override
-	public void setInstancesStatistics(final InstancesStatisticsConfigFactory instancesStatistics) {
+	public void setInstancesStatistics(final InstancesStatisticsCalculation instancesStatistics) {
 		super.setInstancesStatistics(instancesStatistics);
 	}
 }

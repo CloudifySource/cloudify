@@ -1,6 +1,7 @@
 package org.cloudifysource.dsl.statistics;
 
 
+
 /**
  * Base class for serviceStatistics and serviceInstanceStatistics
  * 
@@ -17,15 +18,15 @@ public class AbstractStatisticsDetails {
 	/**
 	 * This helper method is automatically imported to the DSL recipe.
 	 * import org.cloudifysource.dsl.autoscaling.AtuoScalingDetails.statisticsFatory as statistics
-	 * This exposes the {link {@link AutoScalingStatisticsFactory} as a singleton. 
+	 * This exposes the {link {@link StatisticsCalculationFactory} as a singleton. 
 	 * For example: statistics.average, statistics.percentile(30)
 	 * @see org.cloudifysource.dsl.internal.DSLReader#createCompilerConfiguration() for more details
 	 *
 	 */
-	private static final AutoScalingStatisticsFactory STATISTICS_FACTORY = new AutoScalingStatisticsFactory();
+	private static final StatisticsCalculationFactory STATISTICS_FACTORY = new StatisticsCalculationFactory();
 	
-	private static final AverageAutoScalingStatistics DEFAULT_TIME_STATISTICS = STATISTICS_FACTORY.average();
-	private static final AverageAutoScalingStatistics DEFAULT_INSTANCES_STATISTICS = STATISTICS_FACTORY.average();
+	private static final TimeWindowStatisticsCalculation DEFAULT_TIME_STATISTICS = STATISTICS_FACTORY.average();
+	private static final InstancesStatisticsCalculation DEFAULT_INSTANCES_STATISTICS = STATISTICS_FACTORY.average();
 
 	private String name;
 	
@@ -33,9 +34,9 @@ public class AbstractStatisticsDetails {
 
 	private long timeRangeSeconds = DEFAULT_TIME_WINDOW_SECONDS;
 	
-	private TimeWindowStatisticsConfigFactory timeStatistics = DEFAULT_TIME_STATISTICS;
+	private TimeWindowStatisticsCalculation timeStatistics = DEFAULT_TIME_STATISTICS;
 	
-	private InstancesStatisticsConfigFactory instancesStatistics = DEFAULT_INSTANCES_STATISTICS;
+	private InstancesStatisticsCalculation instancesStatistics = DEFAULT_INSTANCES_STATISTICS;
 
 	public long getMovingTimeRangeInSeconds() {
 		return timeRangeSeconds;
@@ -61,7 +62,7 @@ public class AbstractStatisticsDetails {
 		this.metric = metric;
 	}
 	
-	public TimeWindowStatisticsConfigFactory getTimeStatistics() {
+	public TimeWindowStatisticsCalculation getTimeStatistics() {
 		return timeStatistics;
 	}
 
@@ -72,11 +73,11 @@ public class AbstractStatisticsDetails {
      * 			Default: statistics.average
      * 			Possible values: statistics.average, statistics.minimum, statistics.maximum, statistics.percentile(n)
      */
-	protected void setTimeStatistics(final TimeWindowStatisticsConfigFactory timeStatistics) {
+	public void setTimeStatistics(final TimeWindowStatisticsCalculation timeStatistics) {
 		this.timeStatistics = timeStatistics;
 	}
 
-	public InstancesStatisticsConfigFactory getInstancesStatistics() {
+	public InstancesStatisticsCalculation getInstancesStatistics() {
 		return instancesStatistics;
 	}
 
@@ -87,7 +88,7 @@ public class AbstractStatisticsDetails {
 	 *            Default value: statistics.average. 
 	 *            Possible values: statistics.average, statistics.minimum, statistics.maximum, statistics.percentile(n)
 	 */
-	protected void setInstancesStatistics(final InstancesStatisticsConfigFactory instancesStatistics) {
+	protected void setInstancesStatistics(final InstancesStatisticsCalculation instancesStatistics) {
 		this.instancesStatistics = instancesStatistics;
 	}
 

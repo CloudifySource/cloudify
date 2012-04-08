@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.dsl.statistics;
+package org.cloudifysource.dsl.internal.statistics;
 
 import java.util.concurrent.TimeUnit;
 
+import org.cloudifysource.dsl.statistics.StatisticsCalculation;
 import org.openspaces.admin.pu.statistics.InstancesStatisticsConfig;
 import org.openspaces.admin.pu.statistics.PercentileInstancesStatisticsConfigurer;
 import org.openspaces.admin.pu.statistics.PercentileTimeWindowStatisticsConfigurer;
 import org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig;
 
-public class PercentileAutoScalingStatistics implements TimeWindowStatisticsConfigFactory, InstancesStatisticsConfigFactory {
+public class PercentileStatisticsCalculation implements StatisticsCalculation {
 
 	private final double percentile;
 
-	public PercentileAutoScalingStatistics(double percentile) {
+	public PercentileStatisticsCalculation(double percentile) {
 		this.percentile = percentile;
 	}
 

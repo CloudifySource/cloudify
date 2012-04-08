@@ -1,6 +1,7 @@
 package org.cloudifysource.dsl.statistics;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.cloudifysource.dsl.internal.statistics.EachSingleInstanceStatistics;
 
 
 /**
@@ -20,31 +21,17 @@ public class PerInstanceStatisticsDetails extends AbstractStatisticsDetails {
 	}
 
 	/**
-	 * @see #getTimeStatistics()
+	 * @see AbstractStatisticsDetails#getTimeStatistics()
 	 */
-	public TimeWindowStatisticsConfigFactory getStatistics() {
+	public TimeWindowStatisticsCalculation getStatistics() {
 		return getTimeStatistics();
 	}
 
 	/**
-	 * @see #setTimeStatistics(TimeWindowStatisticsConfigFactory)
+	 * @see AbstractStatisticsDetails#setTimeStatistics(TimeWindowStatisticsCalculation)
 	 */
-	public void setStatistics(final TimeWindowStatisticsConfigFactory timeStatistics) {
-		setTimeStatistics(timeStatistics);
-	}
-
-	@Override
-	public TimeWindowStatisticsConfigFactory getTimeStatistics() {
-		return super.getTimeStatistics();
-	}
-
-	@Override
-	public void setTimeStatistics(final TimeWindowStatisticsConfigFactory timeStatistics) {
+	public void setStatistics(final TimeWindowStatisticsCalculation timeStatistics) {
 		super.setTimeStatistics(timeStatistics);
 	}
 
-	@Override
-	public InstancesStatisticsConfigFactory getInstancesStatistics() {
-		return super.getInstancesStatistics();
-	}
 }
