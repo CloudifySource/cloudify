@@ -705,7 +705,13 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 				// or that a specific string was printed to a log file.
 				logger.info("Executing process liveness test");
 				if (!getUsmLifecycleBean().isProcessLivenessTestPassed()) {
-					throw new USMException("The Start Detection test failed! Shutting down this instance.");
+					UniversalServiceManagerConfiguration configuration = getUsmLifecycleBean().getConfiguration();
+					long startDetectionTimeoutMilliSecs = configuration.getStartDetectionTimeoutMSecs();
+					long startDetectionTimeoutSecs = TimeUnit.SECONDS
+								.convert(startDetectionTimeoutMilliSecs, TimeUnit.MILLISECONDS);
+					throw new USMException("The Start Detection test failed in the defined time period: " 
+							+ startDetectionTimeoutSecs + " seconds."
+							+ " Shutting down this instance.");
 				}
 				logger.info("Process liveness test passed");
 
