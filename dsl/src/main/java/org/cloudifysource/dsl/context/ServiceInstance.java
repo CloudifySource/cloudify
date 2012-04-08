@@ -27,7 +27,8 @@ import java.util.concurrent.TimeoutException;
 public interface ServiceInstance {
 
 	/***************
-	 * Returns the instance id. When not running in a GSC, defaults to 1.
+	 * Returns the instance id. Note that instance IDs are 1-based.
+	 * When not running in a GSC, defaults to 1.
 	 * 
 	 * @return the instance id.
 	 */

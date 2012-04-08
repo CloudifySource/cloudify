@@ -15,6 +15,7 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.cloud;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -47,7 +48,7 @@ public class CloudProvider {
 
 	private String sshLoggingLevel = Level.INFO.toString();
 
-	private List<String> zones;
+	private List<String> zones = Arrays.asList("agent"); 
 
 	private String managementGroup;
 	private int numberOfManagementMachines;
