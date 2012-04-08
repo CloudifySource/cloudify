@@ -51,8 +51,8 @@ import org.fusesource.jansi.Ansi.Color;
 		+ " path it will be packed and deployed. If you sepcify a service archive, the shell will deploy that file.")
 public class InstallService extends AdminAwareCommand {
 
-	@Argument(required = true, name = "service-file", description = "The service recipe folder or archive")
-	private File serviceFile;
+	@Argument(required = true, name = "recipe", description = "The service recipe folder or archive")
+	private File recipe;
 
 	@Option(required = false, name = "-zone", description = "The machines zone in which to install the service")
 	private String zone;
@@ -63,6 +63,10 @@ public class InstallService extends AdminAwareCommand {
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is "
 			+ "done. Defaults to 5 minutes.")
 	private int timeoutInMinutes = 5;
+	
+	@Option(required = false, name = "-service-file-name", description = "Name of the service file in the "
+		+ "recipe folder. If not specified, uses the default file name")
+	private String serviceFileName = null;
 
 	private static final String TIMEOUT_ERROR_MESSAGE = "Service installation timed out";
 
@@ -71,8 +75,8 @@ public class InstallService extends AdminAwareCommand {
 	 */
 	@Override
 	protected Object doExecute() throws Exception {
-		if (!serviceFile.exists()) {
-			throw new CLIStatusException("service_file_doesnt_exist", serviceFile.getPath());
+		if (!recipe.exists()) {
+			throw new CLIStatusException("service_file_doesnt_exist", recipe.getPath());
 		}
 
 		File packedFile;
@@ -82,17 +86,28 @@ public class InstallService extends AdminAwareCommand {
 		int plannedNumberOfInstances = 1;
 		Service service = null;
 		try {
-			if (serviceFile.getName().endsWith(".jar") || serviceFile.getName().endsWith(".war")) {
+			if (recipe.getName().endsWith(".jar") || recipe.getName().endsWith(".war")) {
 				// legacy XAP Processing Unit
-				packedFile = serviceFile;
-			} else if (serviceFile.isDirectory()) {
+				packedFile = recipe;
+			} else if (recipe.isDirectory()) {
 				// Assume that a folder will contain a DSL file?
-				packedFile = Packager.pack(serviceFile);
+				
+				if (serviceFileName != null) {
+					File fullPathToRecipe = new File(recipe.getAbsolutePath() + "/" + serviceFileName);
+					if (!fullPathToRecipe.exists()) {
+						throw new CLIStatusException("service_file_doesnt_exist", fullPathToRecipe.getPath());
+					}
+					packedFile = Packager.pack(fullPathToRecipe);
+					service = ServiceReader.readService(fullPathToRecipe);
+				}
+				else {
+					packedFile = Packager.pack(recipe);
+					service = ServiceReader.readService(recipe);
+				}
 				packedFile.deleteOnExit();
-				service = ServiceReader.readService(serviceFile);
 			} else {
 				// serviceFile is a zip file
-				packedFile = serviceFile;
+				packedFile = recipe;
 				service = ServiceReader.readServiceFromZip(packedFile, CloudifyConstants.DEFAULT_APPLICATION_NAME);
 			}
 		} catch (final IOException e) {
@@ -106,6 +121,9 @@ public class InstallService extends AdminAwareCommand {
 		Properties props = null;
 		if (service != null) {
 			props = createServiceContextProperties(service);
+			if (serviceFileName != null) {
+				props.setProperty(CloudifyConstants.CONTEXT_PROPERTY_SERVICE_FILE_NAME, serviceFileName);
+			}
 			plannedNumberOfInstances = service.getNumInstances();
 			if (serviceName == null || serviceName.length() == 0) {
 				serviceName = service.getName();
@@ -113,7 +131,7 @@ public class InstallService extends AdminAwareCommand {
 		}
 
 		if (serviceName == null || serviceName.length() == 0) {
-			serviceName = serviceFile.getName();
+			serviceName = recipe.getName();
 			final int endIndex = serviceName.lastIndexOf('.');
 			if (endIndex > 0) {
 				serviceName = serviceName.substring(0, endIndex);
@@ -143,7 +161,7 @@ public class InstallService extends AdminAwareCommand {
 		}
 
 		// if a zip file was created, delete it at the end of use.
-		if (serviceFile.isDirectory()) {
+		if (recipe.isDirectory()) {
 			FileUtils.deleteQuietly(packedFile.getParentFile());
 		}
 

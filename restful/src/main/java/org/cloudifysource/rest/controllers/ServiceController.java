@@ -1430,8 +1430,16 @@ public class ServiceController {
 		if (srcFile.getName().endsWith(
 				".zip")) {
 			projectDir = ServiceReader.extractProjectFile(srcFile);
-			final DSLServiceCompilationResult result = ServiceReader.getServiceFromDirectory(
-					new File(projectDir, "ext"), applicationName);
+			File workingProjectDir = new File(projectDir, "ext");
+			String serviceFileName = propsFile.getProperty(CloudifyConstants.CONTEXT_PROPERTY_SERVICE_FILE_NAME);
+			DSLServiceCompilationResult result;
+			if (serviceFileName != null) {
+				result = ServiceReader.getServiceFromFile(new File(workingProjectDir, serviceFileName), workingProjectDir);
+			}
+			else {
+				result = ServiceReader.getServiceFromDirectory(
+						workingProjectDir, applicationName);	
+			}
 			service = result.getService();
 			// cloud = ServiceReader.getCloudFromDirectory(new File(projectDir,
 			// "ext"));
