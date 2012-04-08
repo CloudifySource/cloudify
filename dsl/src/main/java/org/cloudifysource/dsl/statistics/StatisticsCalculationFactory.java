@@ -15,6 +15,7 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.statistics;
 
+import org.cloudifysource.dsl.internal.statistics.AverageCpuPercentageAutoScalingStatistics;
 import org.cloudifysource.dsl.internal.statistics.AverageStatisticsCalculation;
 import org.cloudifysource.dsl.internal.statistics.MaximumStatisticsCalculation;
 import org.cloudifysource.dsl.internal.statistics.MinimumStatisticsCalculation;
@@ -92,6 +93,14 @@ public class StatisticsCalculationFactory {
 	}
 	
 	public TimeWindowStatisticsCalculation getThroughput() {
+		return throughput();
+	}
+	
+	public TimeWindowStatisticsCalculation averageCpuPercentage() {
+		return new AverageCpuPercentageAutoScalingStatistics();
+	}
+	
+	public TimeWindowStatisticsCalculation getAverageCpuPercentage() {
 		return throughput();
 	}
 		
