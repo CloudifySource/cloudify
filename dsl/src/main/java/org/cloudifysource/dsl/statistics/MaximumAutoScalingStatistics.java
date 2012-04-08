@@ -13,42 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.dsl.autoscaling;
+package org.cloudifysource.dsl.statistics;
 
 import java.util.concurrent.TimeUnit;
 
 import org.openspaces.admin.pu.statistics.InstancesStatisticsConfig;
-import org.openspaces.admin.pu.statistics.PercentileInstancesStatisticsConfigurer;
-import org.openspaces.admin.pu.statistics.PercentileTimeWindowStatisticsConfigurer;
+import org.openspaces.admin.pu.statistics.MaximumInstancesStatisticsConfig;
+import org.openspaces.admin.pu.statistics.MaximumTimeWindowStatisticsConfigurer;
 import org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig;
 
-public class PercentileAutoScalingStatistics implements TimeWindowStatisticsConfigFactory, InstancesStatisticsConfigFactory {
+public class MaximumAutoScalingStatistics implements TimeWindowStatisticsConfigFactory, InstancesStatisticsConfigFactory {
 
-	private final double percentile;
-
-	public PercentileAutoScalingStatistics(double percentile) {
-		this.percentile = percentile;
-	}
-
-	public double getPercentile() {
-		return percentile;
-	}
-	
 	@Override
 	public TimeWindowStatisticsConfig createTimeWindowStatistics(long timeWindow, TimeUnit timeUnit) {
 		return 
-			new PercentileTimeWindowStatisticsConfigurer()
-			.percentile(percentile)
+			new MaximumTimeWindowStatisticsConfigurer()
 			.timeWindow(timeWindow, timeUnit)
 			.create();
 	}
 
 	@Override
 	public InstancesStatisticsConfig createInstancesStatistics() {
-		return 
-		    new PercentileInstancesStatisticsConfigurer()
-		    .percentile(percentile)
-		    .create();
+		return new MaximumInstancesStatisticsConfig();
 	}
-
 }

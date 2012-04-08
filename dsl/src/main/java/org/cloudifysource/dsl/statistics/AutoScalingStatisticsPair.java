@@ -1,4 +1,7 @@
-package org.cloudifysource.dsl.autoscaling;
+package org.cloudifysource.dsl.statistics;
+
+import org.cloudifysource.dsl.statistics.InstancesStatisticsConfigFactory;
+import org.cloudifysource.dsl.statistics.TimeWindowStatisticsConfigFactory;
 
 /**
  * @see AutoScalingStatisticsFactory

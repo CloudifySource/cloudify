@@ -42,15 +42,17 @@ import org.cloudifysource.dsl.ServiceNetwork;
 import org.cloudifysource.dsl.Sla;
 import org.cloudifysource.dsl.StatefulProcessingUnit;
 import org.cloudifysource.dsl.StatelessProcessingUnit;
-import org.cloudifysource.dsl.autoscaling.HighThreshold;
-import org.cloudifysource.dsl.autoscaling.LowThreshold;
-import org.cloudifysource.dsl.autoscaling.ScalingRulesDetails;
+import org.cloudifysource.dsl.autoscaling.HighThresholdDetails;
+import org.cloudifysource.dsl.autoscaling.LowThresholdDetails;
+import org.cloudifysource.dsl.autoscaling.ScalingRuleDetails;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudConfiguration;
 import org.cloudifysource.dsl.cloud.CloudProvider;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.cloud.CloudUser;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
+import org.cloudifysource.dsl.statistics.PerInstanceStatisticsDetails;
+import org.cloudifysource.dsl.statistics.ServiceStatisticsDetails;
 import org.openspaces.ui.BalanceGauge;
 import org.openspaces.ui.BarLineChart;
 import org.openspaces.ui.MetricGroup;
@@ -377,9 +379,11 @@ public abstract class BaseDslScript extends Script {
 			dslObjectInitializersByName.put("barLineChart", new DSLObjectInitializerData(
 					"barLineChart", BarLineChart.class, false, true, "widgetGroup"));
 
-			addObjectInitializerForClass(dslObjectInitializersByName, ScalingRulesDetails.class);
-			addObjectInitializerForClass(dslObjectInitializersByName, HighThreshold.class);
-			addObjectInitializerForClass(dslObjectInitializersByName, LowThreshold.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, ScalingRuleDetails.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, HighThresholdDetails.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, LowThresholdDetails.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, ServiceStatisticsDetails.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, PerInstanceStatisticsDetails.class);
 		}
 		return dslObjectInitializersByName;
 

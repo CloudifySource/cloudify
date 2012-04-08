@@ -20,8 +20,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.cloudifysource.dsl.autoscaling.ScalingRulesDetails;
+import org.cloudifysource.dsl.autoscaling.ScalingRuleDetails;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.cloudifysource.dsl.statistics.PerInstanceStatisticsDetails;
+import org.cloudifysource.dsl.statistics.ServiceStatisticsDetails;
 import org.openspaces.ui.UserInterface;
 
 /****************************
@@ -36,8 +38,8 @@ import org.openspaces.ui.UserInterface;
 		parent = "application")
 public class Service {
 
-	private static final int DEFAULT_MAX_JAR_SIZE = 150 * 1024 * 1024; // 150 MB
-	
+	private static final int DEFAULT_MAX_JAR_SIZE = 150 * 1024 * 1024; // 150 MB	
+	private static final long DEFAULT_SAMPLING_PERIOD_SECONDS = 60;
 	
 	/******
 	 * The service Name.
@@ -86,11 +88,30 @@ public class Service {
 
 	private String url = null;
 	
-	private ScalingRulesDetails scalingRules;
+	private List<ScalingRuleDetails> scalingRules;
 
 	private long scaleOutCooldownInSeconds = 0;
 	private long scaleInCooldownInSeconds = 0;
+
+
+	private List<ServiceStatisticsDetails> serviceStatistics;
+	private List<PerInstanceStatisticsDetails> perInstanceStatistics;
 	
+	
+	private long samplingPeriodInSeconds = DEFAULT_SAMPLING_PERIOD_SECONDS;
+	
+	public long getSamplingPeriodInSeconds() {
+		return samplingPeriodInSeconds;
+	}
+
+	/**
+	 * @param samplingPeriodInSeconds The time (in seconds) between two consecutive metric samples.
+	 * This figure should be set when using scale rules
+	 */
+	public void setSamplingPeriodInSeconds(final long samplingPeriodInSeconds) {
+		this.samplingPeriodInSeconds = samplingPeriodInSeconds;
+	}
+
 	public boolean isElastic() {
 		return elastic;
 	}
@@ -148,6 +169,22 @@ public class Service {
 		this.plugins = plugins;
 	}
 
+	public void setServiceStatistics(final List<ServiceStatisticsDetails> calculatedStatistics) {
+		this.serviceStatistics = calculatedStatistics;
+	}
+	
+	public List<PerInstanceStatisticsDetails> getPerInstanceStatistics() {
+		return this.perInstanceStatistics;
+	}
+	
+	public void setPerInstanceStatistics(final List<PerInstanceStatisticsDetails> perInstanceStatistics) {
+		this.perInstanceStatistics = perInstanceStatistics;
+	}
+	
+	public List<ServiceStatisticsDetails> getServiceStatistics() {
+		return this.serviceStatistics;
+	}
+	
 	public List<PluginDescriptor> getPlugins() {
 		return plugins;
 	}
@@ -313,11 +350,11 @@ public class Service {
 		this.url = url;
 	}
 
-	public ScalingRulesDetails getScalingRules() {
+	public List<ScalingRuleDetails> getScalingRules() {
 		return scalingRules;
 	}
 
-	public void setScalingRules(final ScalingRulesDetails scalingRules) {
+	public void setScalingRules(final List<ScalingRuleDetails> scalingRules) {
 		this.scalingRules = scalingRules;
 	}
 

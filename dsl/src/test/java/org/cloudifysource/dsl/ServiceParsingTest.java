@@ -18,14 +18,17 @@ package org.cloudifysource.dsl;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.List;
 
 import junit.framework.Assert;
 
-import org.cloudifysource.dsl.autoscaling.HighThreshold;
-import org.cloudifysource.dsl.autoscaling.LowThreshold;
-import org.cloudifysource.dsl.autoscaling.ScalingRulesDetails;
+import org.cloudifysource.dsl.autoscaling.HighThresholdDetails;
+import org.cloudifysource.dsl.autoscaling.LowThresholdDetails;
+import org.cloudifysource.dsl.autoscaling.ScalingRuleDetails;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.statistics.PerInstanceStatisticsDetails;
+import org.cloudifysource.dsl.statistics.ServiceStatisticsDetails;
 import org.junit.Test;
 
 public class ServiceParsingTest {
@@ -160,23 +163,38 @@ public class ServiceParsingTest {
 		Assert.assertEquals(1,service.getScaleInCooldownInSeconds());
 		Assert.assertEquals(1,service.getScaleOutCooldownInSeconds());
 		Assert.assertEquals(1,service.getScaleCooldownInSeconds());
+		Assert.assertNotNull(service.getSamplingPeriodInSeconds());
+		
 		Assert.assertEquals("scalingRules", service.getName());
+
+		List<ServiceStatisticsDetails> serviceStatistics = service.getServiceStatistics();
+		Assert.assertEquals(1,serviceStatistics.size());
+		Assert.assertNotNull(serviceStatistics.get(0));
+		Assert.assertNotNull(serviceStatistics.get(0).getMetric());
+		Assert.assertNotNull(serviceStatistics.get(0).getInstancesStatistics());
+		Assert.assertNotNull(serviceStatistics.get(0).getTimeStatistics());
+		Assert.assertNotNull(serviceStatistics.get(0).getMovingTimeRangeInSeconds());
 		
-		ScalingRulesDetails scalingRules = service.getScalingRules();
+		List<PerInstanceStatisticsDetails> perInstanceStatistics = service.getPerInstanceStatistics();
+		Assert.assertEquals(1,perInstanceStatistics.size());
+		Assert.assertNotNull(perInstanceStatistics.get(0));
+		Assert.assertNotNull(perInstanceStatistics.get(0).getMetric());
+		Assert.assertNotNull(perInstanceStatistics.get(0).getInstancesStatistics());
+		Assert.assertNotNull(perInstanceStatistics.get(0).getTimeStatistics());
+		Assert.assertNotNull(perInstanceStatistics.get(0).getMovingTimeRangeInSeconds());
+		
+		List<ScalingRuleDetails> scalingRules = service.getScalingRules();
 		Assert.assertNotNull(scalingRules);
-		Assert.assertNotNull(scalingRules.getHighThreshold());
-		Assert.assertNotNull(scalingRules.getLowThreshold());
-		Assert.assertNotNull(scalingRules.getMetric());
-		Assert.assertNotNull(scalingRules.getInstancesStatistics());
-		Assert.assertNotNull(scalingRules.getSamplingPeriodInSeconds());
-		Assert.assertNotNull(scalingRules.getTimeStatistics());
-		Assert.assertNotNull(scalingRules.getMovingTimeRangeInSeconds());
+		Assert.assertEquals(1, scalingRules.size());
+		Assert.assertNotNull(scalingRules.get(0).getHighThreshold());
+		Assert.assertNotNull(scalingRules.get(0).getLowThreshold());
+		Assert.assertNotNull(scalingRules.get(0).getStatistics());
 		
-		HighThreshold highThreshold = scalingRules.getHighThreshold();
+		HighThresholdDetails highThreshold = scalingRules.get(0).getHighThreshold();
 		Assert.assertNotNull(highThreshold.getValue());
 		Assert.assertNotNull(highThreshold.getInstancesIncrease());
 		
-		LowThreshold lowThreshold = scalingRules.getLowThreshold();
+		LowThresholdDetails lowThreshold = scalingRules.get(0).getLowThreshold();
 		Assert.assertNotNull(lowThreshold.getValue());
 		Assert.assertNotNull(lowThreshold.getInstancesDecrease());
 

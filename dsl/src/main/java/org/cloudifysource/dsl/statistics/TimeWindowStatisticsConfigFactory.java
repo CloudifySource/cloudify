@@ -1,4 +1,4 @@
-package org.cloudifysource.dsl.autoscaling;
+package org.cloudifysource.dsl.statistics;
 
 import java.util.concurrent.TimeUnit;
 

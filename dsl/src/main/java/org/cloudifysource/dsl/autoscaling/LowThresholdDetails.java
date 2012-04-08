@@ -11,9 +11,9 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
  * @see org.cloudifysource.dsl.Service
  */
 
-@CloudifyDSLEntity(name = "lowThreshold" , clazz = LowThreshold.class , 
-		allowInternalNode = true , allowRootNode = false , parent = "scalingRules")
-public class LowThreshold {
+@CloudifyDSLEntity(name = "lowThreshold" , clazz = LowThresholdDetails.class , 
+		allowInternalNode = true , allowRootNode = false , parent = "scalingRule")
+public class LowThresholdDetails {
 
 	private Comparable<?> value;
 	private int instancesDecrease;

@@ -13,27 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.dsl.autoscaling;
+package org.cloudifysource.dsl.statistics;
 
 import java.util.concurrent.TimeUnit;
 
 import org.openspaces.admin.pu.statistics.InstancesStatisticsConfig;
-import org.openspaces.admin.pu.statistics.MaximumInstancesStatisticsConfig;
-import org.openspaces.admin.pu.statistics.MaximumTimeWindowStatisticsConfigurer;
+import org.openspaces.admin.pu.statistics.MinimumInstancesStatisticsConfig;
+import org.openspaces.admin.pu.statistics.MinimumTimeWindowStatisticsConfigurer;
 import org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig;
 
-public class MaximumAutoScalingStatistics implements TimeWindowStatisticsConfigFactory, InstancesStatisticsConfigFactory {
+public class MinimumAutoScalingStatistics implements TimeWindowStatisticsConfigFactory, InstancesStatisticsConfigFactory {
 
 	@Override
 	public TimeWindowStatisticsConfig createTimeWindowStatistics(long timeWindow, TimeUnit timeUnit) {
 		return 
-			new MaximumTimeWindowStatisticsConfigurer()
+			new MinimumTimeWindowStatisticsConfigurer()
 			.timeWindow(timeWindow, timeUnit)
 			.create();
 	}
 
 	@Override
 	public InstancesStatisticsConfig createInstancesStatistics() {
-		return new MaximumInstancesStatisticsConfig();
+		return new MinimumInstancesStatisticsConfig();
 	}
 }
