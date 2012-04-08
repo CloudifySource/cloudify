@@ -55,14 +55,21 @@ public class ServiceContextImpl implements ServiceContext {
 	private volatile long externalProcessId;
 
 	/*************
-	 * Default construtor.
+	 * Default constructor.
+	 * 
+	 * @param clusterInfo the cluster info.
+	 * 
 	 */
-	public ServiceContextImpl() {
+	public ServiceContextImpl(final ClusterInfo clusterInfo) {
+		if (clusterInfo == null) {
+			throw new NullPointerException("Cluster Info provided to service context cannot be null!");
+		}
+		this.clusterInfo = clusterInfo;
 
 	}
 
 	/**********
-	 * Late object initialization. 
+	 * Late object initialization.
 	 * 
 	 * @param service .
 	 * @param admin .
@@ -73,23 +80,21 @@ public class ServiceContextImpl implements ServiceContext {
 		this.service = service;
 		this.admin = admin;
 		this.serviceDirectory = dir;
-		this.clusterInfo = clusterInfo;
 
+		// TODO - is the null path even possible?
 		if (clusterInfo == null) {
 			this.applicationName = CloudifyConstants.DEFAULT_APPLICATION_NAME;
 			this.serviceName = service.getName();
 		} else {
-			logger.info("Parsing full service name from PU name: " + clusterInfo.getName());
+			logger.fine("Parsing full service name from PU name: " + clusterInfo.getName());
 			final FullServiceName fullServiceName = ServiceUtils.getFullServiceName(clusterInfo.getName());
-			logger.info("Got full service name: " + fullServiceName);
+			logger.fine("Got full service name: " + fullServiceName);
 			this.serviceName = fullServiceName.getServiceName();
 			this.applicationName = fullServiceName.getApplicationName();
 
 		}
 		if (admin != null) {
-			final boolean found = this.admin.getLookupServices().waitFor(1,
-					30,
-					TimeUnit.SECONDS);
+			final boolean found = this.admin.getLookupServices().waitFor(1, 30, TimeUnit.SECONDS);
 			if (!found) {
 				throw new AdminException(
 						"A service context could not be created as the Admin API could not find a lookup service "
@@ -103,6 +108,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 	/************
 	 * Late initializer, used in the integrated container (i.e. test-recipe)
+	 * 
 	 * @param service .
 	 * @param dir .
 	 */
@@ -131,19 +137,17 @@ public class ServiceContextImpl implements ServiceContext {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.cloudifysource.dsl.context.IServiceContext#getInstanceId()
 	 */
 	@Override
 	public int getInstanceId() {
-		checkInitialized();
+		// checkInitialized();
 
 		return clusterInfo.getInstanceId();
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.cloudifysource.dsl.context.IServiceContext#waitForService(java.lang.String, int,
 	 * java.util.concurrent.TimeUnit)
 	 */
@@ -153,11 +157,8 @@ public class ServiceContextImpl implements ServiceContext {
 		checkInitialized();
 
 		if (this.admin != null) {
-			final String puName = ServiceUtils.getAbsolutePUName(this.applicationName,
-					name);
-			final ProcessingUnit pu = waitForProcessingUnitFromAdmin(puName,
-					timeout,
-					unit);
+			final String puName = ServiceUtils.getAbsolutePUName(this.applicationName, name);
+			final ProcessingUnit pu = waitForProcessingUnitFromAdmin(puName, timeout, unit);
 			if (pu == null) {
 				return null;
 			} else {
@@ -180,9 +181,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 	private ProcessingUnit waitForProcessingUnitFromAdmin(final String name, final long timeout, final TimeUnit unit) {
 
-		final ProcessingUnit pu = admin.getProcessingUnits().waitFor(name,
-				timeout,
-				unit);
+		final ProcessingUnit pu = admin.getProcessingUnits().waitFor(name, timeout, unit);
 		if (pu == null) {
 			logger.warning("Processing unit with name: " + name
 					+ " was not found in the cluster. Are you running in an IntegratedProcessingUnitContainer? "
@@ -194,7 +193,6 @@ public class ServiceContextImpl implements ServiceContext {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.cloudifysource.dsl.context.IServiceContext#getServiceDirectory()
 	 */
 	@Override
@@ -222,14 +220,12 @@ public class ServiceContextImpl implements ServiceContext {
 		this.service = service;
 	}
 
-	
 	public ClusterInfo getClusterInfo() {
 		return clusterInfo;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.cloudifysource.dsl.context.IServiceContext#getServiceName()
 	 */
 	@Override
@@ -239,7 +235,6 @@ public class ServiceContextImpl implements ServiceContext {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.cloudifysource.dsl.context.IServiceContext#getApplicationName()
 	 */
 	@Override
@@ -249,7 +244,6 @@ public class ServiceContextImpl implements ServiceContext {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see org.cloudifysource.dsl.context.IServiceContext#getAttributes()
 	 */
 	@Override

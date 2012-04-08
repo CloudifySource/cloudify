@@ -72,7 +72,7 @@ public final class ServiceContextFactory {
 			} catch (DSLException e) {
 				throw new IllegalArgumentException("Failed to read service", e);
 			}
-			ServiceContextImpl newContext = new ServiceContextImpl();
+			ServiceContextImpl newContext = new ServiceContextImpl(info);
 
 			newContext.init(service, getAdmin(), new File(".").getAbsolutePath(),
 					info);

@@ -50,7 +50,7 @@ public final class ServiceUtils {
 		int portCounter = 0;
 		for (final int port : portList) {
 			if (!isPortOccupied(port)) {
-				logger.info("port: " + port + " is open.");
+				logger.fine("port: " + port + " is open.");
 				portCounter++;
 			}
 			if (portCounter == portList.size()) {

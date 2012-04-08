@@ -40,6 +40,7 @@ import java.util.logging.Logger;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.context.ServiceContext;
 import org.cloudifysource.dsl.internal.context.ServiceContextImpl;
+import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
@@ -191,7 +192,7 @@ public class DSLReader {
 	}
 
 	private Object readDslObject()
-			throws DSLException, DSLValidationException {
+			throws DSLException {
 		try {
 			init();
 		} catch (final IOException e) {
@@ -207,9 +208,19 @@ public class DSLReader {
 			throw new IllegalArgumentException("Failed to load properties file " + this.propertiesFile, e);
 		}
 
+		ClusterInfo clusterInfoToUseInGsc = this.clusterInfo;
+		if (clusterInfoToUseInGsc == null) {
+			clusterInfoToUseInGsc = new ClusterInfo(null, 1, 0, 1, 0);
+		}
+
 		// create an uninitialized service context
 		if (this.createServiceContext) {
-			this.context = new ServiceContextImpl();
+			if (isRunningInGSC) {
+				this.context = new ServiceContextImpl(clusterInfoToUseInGsc);
+			} else {
+				this.context = new ServiceContextImpl(new ClusterInfo(null, 1, 0, 1, 0));
+			}
+
 		}
 		// create the groovy shell, loaded with our settings
 		final GroovyShell gs = createGroovyShell(properties);
@@ -221,15 +232,17 @@ public class DSLReader {
 						"The DSL reader cannot create a service context to a DSL that does not evaluate to a Sevice. "
 								+ "Set the 'createServiceContext' option to false if you do not need a service conext");
 			}
+
 			if (isRunningInGSC) {
-				this.context.init((Service) result, admin, workDir.getAbsolutePath(), clusterInfo);
+				clusterInfoToUseInGsc.setName(ServiceUtils.getAbsolutePUName(
+						CloudifyConstants.DEFAULT_APPLICATION_NAME, ((Service) result).getName()));
+				this.context.init((Service) result, admin, workDir.getAbsolutePath(), clusterInfoToUseInGsc);
 			} else {
 				this.context.initInIntegratedContainer((Service) result, workDir.getAbsolutePath());
 			}
 		}
 
 		return result;
-		// return new DSLServiceCompilationResult(service, ctx, dslFile);
 
 	}
 
