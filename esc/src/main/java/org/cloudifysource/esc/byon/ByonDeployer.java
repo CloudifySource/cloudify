@@ -126,7 +126,7 @@ public class ByonDeployer {
 		final List<CustomNode> invalidNodesPool = templateLists.get(NODES_LIST_INVALID);
 
 		if (freeNodesPool.size() == 0 && invalidNodesPool.size() == 0) {
-			throw new CloudProvisioningException("Failed to create new cloud node for template \"" + templateName
+			throw new CloudProvisioningException("Failed to create a new cloud node for template \"" + templateName
 					+ "\", all available nodes are currently used");
 		}
 
