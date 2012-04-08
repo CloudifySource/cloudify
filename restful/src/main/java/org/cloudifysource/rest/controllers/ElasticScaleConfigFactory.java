@@ -29,6 +29,7 @@ import org.openspaces.core.util.MemoryUnit;
 
 public class ElasticScaleConfigFactory {
 
+	private static final String SCALING_RULE_MUST_SPECIFY_SERVICE_STATISTICS_ERROR_MSG = "scalingRule must specify serviceStatistics (either a closure or reference a predefined serviceStatistics name).";
 	private static final Logger logger = Logger.getLogger(ElasticScaleConfigFactory.class.getName());
 
 
@@ -133,29 +134,38 @@ public class ElasticScaleConfigFactory {
 			.cooldownAfterScaleIn(service.getScaleInCooldownInSeconds(),TimeUnit.SECONDS);
 			
 		Map<String, ServiceStatisticsDetails> serviceStatisticsByName = new HashMap<String, ServiceStatisticsDetails>();
-		for (AbstractStatisticsDetails calculatedStatistics : service.getServiceStatistics()) {
-			if (calculatedStatistics instanceof ServiceStatisticsDetails) {
-				serviceStatisticsByName.put(calculatedStatistics.getName(), (ServiceStatisticsDetails)calculatedStatistics);
+		if (service.getServiceStatistics() != null) {
+			for (AbstractStatisticsDetails calculatedStatistics : service.getServiceStatistics()) {
+				if (calculatedStatistics instanceof ServiceStatisticsDetails) {
+					serviceStatisticsByName.put(calculatedStatistics.getName(), (ServiceStatisticsDetails)calculatedStatistics);
+				}
 			}
 		}
-		
-		if (serviceStatisticsByName.isEmpty()) {
-			throw new DSLException("calculatedStatistics must define at least one serviceStatistics entry");
-		}
-		
+				
 		for (ScalingRuleDetails scalingRule : scalingRules) {
 			
-			String serviceStatisticsName = scalingRule.getStatistics();
-			if (serviceStatisticsName == null) {
-				throw new DSLException("scalingRule must specify statistics (serviceStatistics name)");
+			Object serviceStatisticsObject = scalingRule.getServiceStatistics();
+			if (serviceStatisticsObject == null) {
+				throw new DSLException(SCALING_RULE_MUST_SPECIFY_SERVICE_STATISTICS_ERROR_MSG);
 			}
 			
-			ServiceStatisticsDetails serviceStatistics = serviceStatisticsByName.get(serviceStatisticsName);
+			ServiceStatisticsDetails serviceStatistics = null;
 			
-			if (serviceStatistics == null) {
-				throw new DSLException("scalingRule must specify a valid statistics (serviceStatistics name). " + serviceStatisticsName + " is not recognized. Possible values are: "+ serviceStatisticsByName.keySet());
+			if (serviceStatisticsObject instanceof String) {
+				String serviceStatisticsName = (String)serviceStatisticsObject;
+				serviceStatistics = serviceStatisticsByName.get(serviceStatisticsName);
+				
+				if (serviceStatistics == null) {
+					throw new DSLException(SCALING_RULE_MUST_SPECIFY_SERVICE_STATISTICS_ERROR_MSG + " " + serviceStatisticsName + " is not recognized. Possible values are: "+ serviceStatisticsByName.keySet());
+				}
 			}
-		
+			else if (serviceStatisticsObject instanceof ServiceStatisticsDetails) {
+				serviceStatistics = (ServiceStatisticsDetails) serviceStatisticsObject;
+			}
+			else {
+				throw new DSLException(SCALING_RULE_MUST_SPECIFY_SERVICE_STATISTICS_ERROR_MSG +" Unsupported type " + serviceStatisticsObject.getClass() );
+			}
+			
 			ProcessingUnitStatisticsId statisticsId = new ProcessingUnitStatisticsId();
 			statisticsId.setMonitor(CloudifyConstants.USM_MONITORS_SERVICE_ID);
 			statisticsId.setMetric(serviceStatistics.getMetric());
@@ -177,24 +187,24 @@ public class ElasticScaleConfigFactory {
 			
 			if (scalingRule.getLowThreshold() == null){
 				if (logger.isLoggable(Level.FINE)) {
-					logger.fine(serviceName + " scalingRule for " + serviceStatisticsName +" lowThreshold is undefined");
+					logger.fine(serviceName + " scalingRule for " + serviceStatistics.getMetric() +" lowThreshold is undefined");
 				}
 			}
 			else {
 				
 				Comparable<?> threshold = scalingRule.getLowThreshold().getValue();
 				if (threshold == null) {
-					throw new DSLException(serviceName + " scalingRule for " + serviceStatisticsName +" lowThreshold value is missing");
+					throw new DSLException(serviceName + " scalingRule for " + serviceStatistics.getMetric() +" lowThreshold value is missing");
 				}
 				
 				int instancesDecrease = scalingRule.getLowThreshold().getInstancesDecrease ();
 				if (instancesDecrease < 0) {
-					throw new DSLException(serviceName + " scalingRule for " + serviceStatisticsName +" lowThreshold instancesDecrease cannot be a negative number ("+instancesDecrease+")");
+					throw new DSLException(serviceName + " scalingRule for " + serviceStatistics.getMetric() +" lowThreshold instancesDecrease cannot be a negative number ("+instancesDecrease+")");
 				}
 				
 				if (instancesDecrease == 0) {
 					if (logger.isLoggable(Level.FINE)) {
-						logger.fine(serviceName + " scalingRule for " + serviceStatisticsName +" lowThreshold instancesDecrease is 0");
+						logger.fine(serviceName + " scalingRule for " + serviceStatistics.getMetric() +" lowThreshold instancesDecrease is 0");
 					}
 				}
 				else {
@@ -208,23 +218,23 @@ public class ElasticScaleConfigFactory {
 			
 			if (scalingRule.getHighThreshold() == null) {
 				if (logger.isLoggable(Level.FINE)) {
-					logger.fine(serviceName + " scalingRule for " + serviceStatisticsName +" highThreshold is undefined");
+					logger.fine(serviceName + " scalingRule for " + serviceStatistics.getMetric() +" highThreshold is undefined");
 				}
 			}
 			else {
 				Comparable<?> threshold = scalingRule.getHighThreshold().getValue();
 				if (threshold == null) {
-					throw new DSLException(serviceName + " scalingRule for " + serviceStatisticsName +" highThreshold value is missing");
+					throw new DSLException(serviceName + " scalingRule for " + serviceStatistics.getMetric() +" highThreshold value is missing");
 				}
 				
 				int instancesIncrease = scalingRule.getHighThreshold().getInstancesIncrease();
 				if (instancesIncrease < 0) {
-					throw new DSLException(serviceName + " scalingRule for " + serviceStatisticsName +" highThreshold instancesIncrease cannot be a negative number ("+instancesIncrease+")");
+					throw new DSLException(serviceName + " scalingRule for " + serviceStatistics.getMetric() +" highThreshold instancesIncrease cannot be a negative number ("+instancesIncrease+")");
 				}
 				
 				if (instancesIncrease == 0) {
 					if (logger.isLoggable(Level.FINE)) {
-						logger.fine(serviceName + " scalingRule for " + serviceStatisticsName +" highThreshold instancesIncrease is 0");
+						logger.fine(serviceName + " scalingRule for " + serviceStatistics.getMetric() +" highThreshold instancesIncrease is 0");
 					}
 				}
 				else {

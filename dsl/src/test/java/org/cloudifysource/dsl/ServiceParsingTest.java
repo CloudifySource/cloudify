@@ -19,6 +19,7 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import junit.framework.Assert;
 
@@ -170,6 +171,7 @@ public class ServiceParsingTest {
 		List<ServiceStatisticsDetails> serviceStatistics = service.getServiceStatistics();
 		Assert.assertEquals(1,serviceStatistics.size());
 		Assert.assertNotNull(serviceStatistics.get(0));
+		String servicestatisticsName = serviceStatistics.get(0).getName();
 		Assert.assertNotNull(serviceStatistics.get(0).getMetric());
 		Assert.assertNotNull(serviceStatistics.get(0).getInstancesStatistics());
 		Assert.assertNotNull(serviceStatistics.get(0).getTimeStatistics());
@@ -185,10 +187,10 @@ public class ServiceParsingTest {
 		
 		List<ScalingRuleDetails> scalingRules = service.getScalingRules();
 		Assert.assertNotNull(scalingRules);
-		Assert.assertEquals(1, scalingRules.size());
+		Assert.assertEquals(2, scalingRules.size());
 		Assert.assertNotNull(scalingRules.get(0).getHighThreshold());
 		Assert.assertNotNull(scalingRules.get(0).getLowThreshold());
-		Assert.assertNotNull(scalingRules.get(0).getStatistics());
+		Assert.assertEquals(servicestatisticsName,scalingRules.get(0).getServiceStatistics());
 		
 		HighThresholdDetails highThreshold = scalingRules.get(0).getHighThreshold();
 		Assert.assertNotNull(highThreshold.getValue());
@@ -198,5 +200,12 @@ public class ServiceParsingTest {
 		Assert.assertNotNull(lowThreshold.getValue());
 		Assert.assertNotNull(lowThreshold.getInstancesDecrease());
 
+		Assert.assertEquals(((ServiceStatisticsDetails)scalingRules.get(1).getServiceStatistics()).getMetric(),serviceStatistics.get(0).getMetric());
+		Assert.assertEquals(((ServiceStatisticsDetails)scalingRules.get(1).getServiceStatistics()).getInstancesStatistics().createInstancesStatistics(),serviceStatistics.get(0).getInstancesStatistics().createInstancesStatistics());
+		Assert.assertEquals(((ServiceStatisticsDetails)scalingRules.get(1).getServiceStatistics()).getTimeStatistics().createTimeWindowStatistics(1, TimeUnit.MINUTES),serviceStatistics.get(0).getTimeStatistics().createTimeWindowStatistics(1, TimeUnit.MINUTES));
+		Assert.assertEquals(((ServiceStatisticsDetails)scalingRules.get(1).getServiceStatistics()).getMovingTimeRangeInSeconds(),serviceStatistics.get(0).getMovingTimeRangeInSeconds());
+		
+		Assert.assertNotNull(scalingRules.get(1).getHighThreshold());
+		Assert.assertNotNull(scalingRules.get(1).getLowThreshold());
 	}
 }

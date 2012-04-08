@@ -37,8 +37,6 @@ service {
       
       // The name of the metric that is the basis for the scale rule decision
       metric "counter"
-   
-      statistics Statistics.averageOfAverages
       
       // The moving time range (in seconds) for aggregating per-instance metric samples
       // The number of samples in the time windows equals the time window divided by the sampling period plus one.
@@ -55,7 +53,7 @@ service {
       // The aggregation of all instances' timeStatistics
       // Default value: Statistics.maximum
       // Possible values: Statistics.average, Statistics.minimum, Statistics.maximum, Statistics.percentile(n)
-      instancesStatistics Statistics.maximum
+      instancesStatistics Statistics.average
       
     }
     ])
@@ -86,7 +84,37 @@ service {
 	// Defines an automatic scaling rule based on "counter" metric value
   scalingRules ([
     scalingRule {
-      statistics "avgOfAvg.counter"
+      
+      serviceStatistics "avgOfAvg.counter"
+      
+      highThreshold {
+          
+          // The value above which the number of instances is increased
+          value 90
+          
+          // The number of instances to increase when above threshold
+          instancesIncrease 1
+        }
+        
+      lowThreshold {
+          // The value below which the number of instances is decreased
+          value 10
+          
+          // The number of instances to decrease when below threshold
+          instancesDecrease 1
+       }
+    },
+    scalingRule {
+      
+      serviceStatistics {
+        
+        metric "counter"
+     
+        statistics Statistics.averageOfAverages
+        
+        movingTimeRangeInSeconds 5
+        
+      }
       
       highThreshold {
           

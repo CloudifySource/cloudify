@@ -9,8 +9,8 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
  * @since 2.1
  * 
  */
-@CloudifyDSLEntity(name = "serviceStatistics", clazz = ServiceStatisticsDetails.class, allowInternalNode = true, allowRootNode = false,
-parent = "service")
+@CloudifyDSLEntity(name = "serviceStatistics", clazz = ServiceStatisticsDetails.class, allowInternalNode = true, allowRootNode = false/*,
+parent = "service"*/)
 public class ServiceStatisticsDetails extends AbstractStatisticsDetails {
 	
 	/**

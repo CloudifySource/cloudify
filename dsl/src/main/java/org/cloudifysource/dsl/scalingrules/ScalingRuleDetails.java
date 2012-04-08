@@ -29,7 +29,7 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 	allowInternalNode = true, allowRootNode = false, parent = "service")
 public class ScalingRuleDetails {
 
-	private String statistics;
+	private Object serviceStatistics;
 	
 	private HighThresholdDetails highThreshold;
 	
@@ -59,14 +59,14 @@ public class ScalingRuleDetails {
 		this.lowThreshold = lowThreshold;
 	}
 
-	public String getStatistics() {
-		return statistics;
+	public Object getServiceStatistics() {
+		return serviceStatistics;
 	}
 
 	/**
-	 * @param statistics - The statistics name to compare the threshold against.
+	 * @param serviceStatistics - The statistics name to compare the threshold against. This could either be a string referencing a predefined serviceStatistics or a serviceStatistics closure
 	 */
-	public void setStatistics(String statistics) {
-		this.statistics = statistics;
+	public void setServiceStatistics(final Object serviceStatistics) {
+		this.serviceStatistics = serviceStatistics;
 	}
 }
