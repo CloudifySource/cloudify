@@ -22,11 +22,11 @@ import java.util.List;
 
 import junit.framework.Assert;
 
-import org.cloudifysource.dsl.autoscaling.HighThresholdDetails;
-import org.cloudifysource.dsl.autoscaling.LowThresholdDetails;
-import org.cloudifysource.dsl.autoscaling.ScalingRuleDetails;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.scalingrules.HighThresholdDetails;
+import org.cloudifysource.dsl.scalingrules.LowThresholdDetails;
+import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
 import org.cloudifysource.dsl.statistics.PerInstanceStatisticsDetails;
 import org.cloudifysource.dsl.statistics.ServiceStatisticsDetails;
 import org.junit.Test;

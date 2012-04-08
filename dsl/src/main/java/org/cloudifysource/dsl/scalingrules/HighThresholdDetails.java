@@ -1,4 +1,4 @@
-package org.cloudifysource.dsl.autoscaling;
+package org.cloudifysource.dsl.scalingrules;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 

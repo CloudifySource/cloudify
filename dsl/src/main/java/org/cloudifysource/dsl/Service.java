@@ -20,8 +20,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.cloudifysource.dsl.autoscaling.ScalingRuleDetails;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
 import org.cloudifysource.dsl.statistics.PerInstanceStatisticsDetails;
 import org.cloudifysource.dsl.statistics.ServiceStatisticsDetails;
 import org.openspaces.ui.UserInterface;
