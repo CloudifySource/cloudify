@@ -1405,30 +1405,30 @@ public class ServiceController {
 		}
 		
 		CapacityRequirementsConfig minCapacity = 
-				new CapacityRequirementsConfigurer()
-				.memoryCapacity((service.getMinAllowedInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
-				.create();
+			new CapacityRequirementsConfigurer()
+			.memoryCapacity((service.getMinAllowedInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
+			.create();
 		
 		CapacityRequirementsConfig initialCapacity = 
-				new CapacityRequirementsConfigurer()
-				.memoryCapacity((service.getNumInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
-				.create();
-		
+			new CapacityRequirementsConfigurer()
+			.memoryCapacity((service.getNumInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
+			.create();
+	
 		
 		CapacityRequirementsConfig maxCapacity = 
-				new CapacityRequirementsConfigurer()
-				.memoryCapacity((service.getMaxAllowedInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
-				.create();
-		
+			new CapacityRequirementsConfigurer()
+			.memoryCapacity((service.getMaxAllowedInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
+			.create();
+	
 		AutomaticCapacityScaleConfigurer scaleConfigurer = 
-				new AutomaticCapacityScaleConfigurer()
-		.minCapacity(minCapacity)
-		.initialCapacity(initialCapacity)
-		.maxCapacity(maxCapacity)
-		.statisticsPollingInterval(service.getSamplingPeriodInSeconds(), TimeUnit.SECONDS)
-		.cooldownAfterScaleOut(service.getScaleOutCooldownInSeconds(),TimeUnit.SECONDS)
-		.cooldownAfterScaleIn(service.getScaleInCooldownInSeconds(),TimeUnit.SECONDS);
-		
+			new AutomaticCapacityScaleConfigurer()
+			.minCapacity(minCapacity)
+			.initialCapacity(initialCapacity)
+			.maxCapacity(maxCapacity)
+			.statisticsPollingInterval(service.getSamplingPeriodInSeconds(), TimeUnit.SECONDS)
+			.cooldownAfterScaleOut(service.getScaleOutCooldownInSeconds(),TimeUnit.SECONDS)
+			.cooldownAfterScaleIn(service.getScaleInCooldownInSeconds(),TimeUnit.SECONDS);
+			
 		Map<String, ServiceStatisticsDetails> serviceStatisticsByName = new HashMap<String, ServiceStatisticsDetails>();
 		for (AbstractStatisticsDetails calculatedStatistics : service.getServiceStatistics()) {
 			if (calculatedStatistics instanceof ServiceStatisticsDetails) {
