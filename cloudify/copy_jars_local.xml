@@ -15,20 +15,20 @@
 
 	<property name="target.dir" value="${giga.base.dir}/${giga.version}" />
 	<property name="ec2.dir"
-		value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/ec2/upload/overrides" />
+		value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/ec2/upload/cloudify-overrides" />
 	<property name="cloudstack.dir"
-		value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/cloudstack/upload/overrides" />
+		value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/cloudstack/upload/cloudify-overrides" />
 
 
 	<target name="Copy Cloudify jars to install dir" depends="">
 		<echo message="Copying Cloudify jar files to ${target.dir}"  />
-		<copy todir="${target.dir}/lib/platform/usm" file="../USM/target/usm.jar" />
-		<copy todir="${target.dir}/tools/cli" file="../CLI/target/cli.jar" />
-		<copy todir="${target.dir}/tools/rest" file="../restful/target/rest.war" />
-		<copy todir="${target.dir}/lib/required" file="../dsl/target/dsl.jar" />
-		<copy todir="${target.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.1.0.jar" />
-		<copy todir="${target.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
-		<copy todir="${target.dir}/tools/cli/plugins/azure" file="../azure/azure/target/azure.jar" />
+		<copy todir="${target.dir}/lib/platform/usm" file="../USM/target/usm.jar" overwrite="true" />
+		<copy todir="${target.dir}/tools/cli" file="../CLI/target/cli.jar" overwrite="true" />
+		<copy todir="${target.dir}/tools/rest" file="../restful/target/rest.war" overwrite="true" />
+		<copy todir="${target.dir}/lib/required" file="../dsl/target/dsl.jar" overwrite="true" />
+		<copy todir="${target.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.1.0.jar" overwrite="true" />
+		<copy todir="${target.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" overwrite="true" />
+		<copy todir="${target.dir}/tools/cli/plugins/azure" file="../azure/azure/target/azure.jar" overwrite="true" />
 
 	</target>
 
@@ -41,7 +41,7 @@
 			/> -->
 		<!-- <copy todir="${ec2.dir}/lib/required" file="../dsl/target/dsl.jar" 
 			/> -->
-		<copy todir="${ec2.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.0.0.jar" />
+		<copy todir="${ec2.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.1.0.jar" />
 		<!-- <copy todir="${ec2.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" 
 			/> -->
 		<!-- <copy todir="${ec2.dir}/tools/cli/plugins/azure" file="../azure/azure/target/azure.jar" 
