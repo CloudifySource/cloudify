@@ -46,17 +46,25 @@ public class CommandManager {
 	 * @param root - the root command's object
 	 */
 	public CommandManager(HttpServletRequest request, Object root){
-		String executionPath = getExecutionPath(request);
-		this.commandURL = getRestUrl(request) + "/" + executionPath;
-		initilizeCommandList(executionPath, root);
+	    final String prefix = "/admin/";
+        String executionPath = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
+        if (executionPath.endsWith("/")) {
+        	executionPath = executionPath.substring(0, executionPath.length() - 1);
+        }
+        if (!executionPath.startsWith(prefix)) {
+            throw new IllegalArgumentException("Bad request URL " + request.getRequestURL());
+        }
+        String restUrl = "http://" + request.getLocalAddr() + ":" + request.getLocalPort() + request.getContextPath();
+        this.commandURL = restUrl + executionPath;
+        initilizeCommandList(executionPath.substring(prefix.length()), root);
 	}
 	
 	/**
 	 * run the initialized commands one by one, with each command 
 	 * depending on the previous command's output.
 	 */
-	public void runCommands(){
-	    for (CommandObject command : listOfCommands){
+	public void runCommands() {
+	    for (CommandObject command : listOfCommands) {
             command.runCommand();
 	    }
 	}
@@ -85,16 +93,6 @@ public class CommandManager {
 		return this.listOfCommands.get(listOfCommands.size() - 1).getCommandName();
 	}
 	
-	//TODO: change get attribute 
-	private String getExecutionPath(HttpServletRequest request) {
-		//String executionPath = request.getRequestURI().substring(15);
-		String executionPath = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
-		if (executionPath.endsWith("/")) {
-			executionPath = executionPath.substring(0, executionPath.length() - 1);
-		}
-		return executionPath;
-	}
-	
 	//Initialize the list of commands. each command will hold a reference to its previous command.
 	private void initilizeCommandList(String commands, Object root) {
 		this.listOfCommands = new ArrayList<CommandObject>();
@@ -110,12 +108,4 @@ public class CommandManager {
 			previousCommand = commandObject;
 		}
 	}
-	
-	private String getRestUrl(HttpServletRequest httpServletRequest){
-		String localAddress = httpServletRequest.getLocalAddr();
-		String contextPath = httpServletRequest.getContextPath();
-		int localPort = httpServletRequest.getLocalPort();
-		return "http://" + localAddress + ":" + localPort + contextPath + "/admin";
-	}
-
 }
