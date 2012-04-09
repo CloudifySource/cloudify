@@ -39,7 +39,7 @@ cloud {
 		// Mandatory. Files from the local directory will be copied to this directory on the remote machine. 
 		remoteDirectory "/tmp/gs-files"
 		// Mandatory. The HTTP/S URL where cloudify can be downloaded from by newly started machines.
-		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.0/gigaspaces-cloudify-2.1.0-m4-b1195-111.zip"
+		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.0/gigaspaces-cloudify-2.1.0-m4-b1195-112.zip"
 		// Mandatory. The prefix for new machines started for servies.
 		machineNamePrefix "cloudify_agent_"
 		// Optional. Defaults to true. Specifies whether cloudify should try to deploy services on the management machine.
