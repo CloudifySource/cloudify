@@ -61,7 +61,7 @@ fi
 
 if [ ! -z "$CLOUDIFY_OVERRIDES_LINK" ]; then
 	echo Downloading cloudify overrides
-	wget -q $CLOUDIFY_LINK -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.zip || error_exit $? "Failed downloading cloudify overrides"
+	wget -q $CLOUDIFY_OVERRIDES_LINK -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.zip || error_exit $? "Failed downloading cloudify overrides"
 fi
 
 # Todo: Check this condition
