@@ -46,10 +46,14 @@ public abstract class AbstractJmxPlugin implements Plugin{
 	}
 
 	public void setPort(final int port) {
+		if(logger.isLoggable(Level.FINE)){
+			logger.fine(this.getClass().getName() + "port= " + port);
+			
+		}
 		this.port = port;
 	}
 
-	public String getHost() {
+	public String getHost() {	
 		return host;
 	}
 
@@ -65,7 +69,7 @@ public abstract class AbstractJmxPlugin implements Plugin{
 			try {
 	
 				if (entry.getKey().equalsIgnoreCase("port")) {
-					this.setPort((Integer) entry.getValue());
+					this.setPort(new Integer( entry.getValue().toString()).intValue());
 				} else if (entry.getKey().equalsIgnoreCase("host")) {
 					this.setHost((String) entry.getValue());
 				} else if (entry.getKey().equalsIgnoreCase("username")) {
@@ -74,8 +78,8 @@ public abstract class AbstractJmxPlugin implements Plugin{
 					this.password = (String) entry.getValue();
 				} else {
 					
-					List<String> list = (List<String>) entry.getValue();
-					JmxAttribute att = new JmxAttribute(list.get(0), list.get(1), entry.getKey());
+					List<?> list = (List<?>) entry.getValue();
+					JmxAttribute att = new JmxAttribute(list.get(0).toString(), list.get(1).toString(), entry.getKey());
 					this.targets.add(att);
 					//final JmxTarget target = JmxTargetParser.parse((String) entry.getValue());
 					//target.setDispName(entry.getKey());
@@ -85,7 +89,8 @@ public abstract class AbstractJmxPlugin implements Plugin{
 				
 			} catch (final Exception e) {
 				logger.log(Level.SEVERE,
-						"Failed to process Jmx Configuration entry: " + entry.getKey() + "=" + entry.getValue());
+						"Failed to process Jmx Configuration entry: " + entry.getKey() + "=" + entry.getValue(), e);
+				
 			}
 		}
 	
