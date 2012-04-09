@@ -191,7 +191,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 				this.state = USMState.RUNNING;
 
 				return;
-			} 
+			}
 			try {
 				// Launch the process
 				startProcessLifecycle();
@@ -200,10 +200,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 				try {
 					this.shutdown();
 				} catch (final Exception e) {
-					logger.log(Level.SEVERE,
-							"While shutting down the USM due to a failure in initialization, "
-									+ "the following exception occured: " + e.getMessage(),
-									e);
+					logger.log(Level.SEVERE, "While shutting down the USM due to a failure in initialization, "
+							+ "the following exception occured: " + e.getMessage(), e);
 				}
 				throw usme;
 			}
@@ -213,8 +211,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 	/********
 	 * The USM Bean entry point. This is where processing of a service instance starts.
 	 * 
-	 * @throws USMException
-	 *             if initialization failed.
+	 * @throws USMException if initialization failed.
 	 * @throws TimeoutException .
 	 */
 	@PostConstruct
@@ -269,8 +266,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 					+ InetAddress.getLocalHost().getHostName();
 		} catch (final UnknownHostException e) {
 			logger.log(Level.WARNING,
-					"Failed to resolve localhost name - this usually indicates a problem with the OS configuration",
-					e);
+					"Failed to resolve localhost name - this usually indicates a problem with the OS configuration", e);
 			return clusterName + "_" + this.instanceId + "_" + username + "@127.0.0.1";
 		}
 
@@ -291,8 +287,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		final int timeout = Integer.parseInt(timeoutValue);
 
 		logger.info("USM is running in Test mode. USM will shut down in: " + timeout + " seconds");
-		this.executors.schedule(new TestRecipeShutdownRunnable(this.applicationContext, this),
-				timeout,
+		this.executors.schedule(new TestRecipeShutdownRunnable(this.applicationContext, this), timeout,
 				TimeUnit.SECONDS);
 	}
 
@@ -337,20 +332,17 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			try {
 				getUsmLifecycleBean().fireShutdown();
 			} catch (final USMException e) {
-				logger.log(Level.SEVERE,
-						"Failed to execute shutdown event: " + e.getMessage(),
-						e);
+				logger.log(Level.SEVERE, "Failed to execute shutdown event: " + e.getMessage(), e);
 			}
 
 			USMUtils.shutdownAdmin();
 		}
-		//Sleep for 10 seconds to allow rest to poll for shutdown lifecycle events
-		//form the GSC logs before GSC is destroyed.
+		// Sleep for 10 seconds to allow rest to poll for shutdown lifecycle events
+		// form the GSC logs before GSC is destroyed.
 		try {
 			Thread.sleep(10000);
 		} catch (InterruptedException e) {
-			logger.log(Level.INFO, 
-					"Failed to stall GSC shutdown. Some lifecycle logs may not have been recorded.", e);
+			logger.log(Level.INFO, "Failed to stall GSC shutdown. Some lifecycle logs may not have been recorded.", e);
 		}
 		logger.info("USM shut down completed!");
 	}
@@ -415,23 +407,18 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 				try {
 					installAndRun();
 				} catch (final Exception e) {
-					logger.log(Level.SEVERE,
-							"Asynchronous install failed with message: " + e.getMessage() + ". Instance will shut down",
-							e);
+					logger.log(Level.SEVERE, "Asynchronous install failed with message: " + e.getMessage()
+							+ ". Instance will shut down", e);
 					shutdownUSMException = e;
 				}
 
 			}
-		},
-				5,
-				TimeUnit.SECONDS);
+		}, 5, TimeUnit.SECONDS);
 	}
 
 	private void registerPostPUILifecycleTask() {
 		final Admin admin = USMUtils.getAdmin();
-		final ProcessingUnit pu = admin.getProcessingUnits().waitFor(this.clusterName,
-				30,
-				TimeUnit.SECONDS);
+		final ProcessingUnit pu = admin.getProcessingUnits().waitFor(this.clusterName, 30, TimeUnit.SECONDS);
 
 		final int instanceIdToMatch = this.instanceId;
 
@@ -455,10 +442,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 						// separate thread???
 						installAndRun();
 					} catch (final Exception e) {
-						logger.log(Level.SEVERE,
-								"Asynchronous install failed with message: " + e.getMessage()
-										+ ". Instance will shut down",
-								e);
+						logger.log(Level.SEVERE, "Asynchronous install failed with message: " + e.getMessage()
+								+ ". Instance will shut down", e);
 						shutdownUSMException = e;
 					}
 				}
@@ -484,13 +469,9 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		for (final String dependantService : this.dependencies) {
 
 			logger.info("Waiting for dependency: " + dependantService);
-			final ProcessingUnit pu = waitForPU(endTime,
-					admin,
-					dependantService);
+			final ProcessingUnit pu = waitForPU(endTime, admin, dependantService);
 
-			waitForPUI(endTime,
-					dependantService,
-					pu);
+			waitForPUI(endTime, dependantService, pu);
 			logger.info("Dependency " + dependantService + " is available");
 
 		}
@@ -512,9 +493,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			// sampling routine is a workaround for a
 			// possible bug in the admin api where the admin does not recognize
 			// the PUI.
-			final boolean found = pu.waitFor(1,
-					2,
-					TimeUnit.MILLISECONDS);
+			final boolean found = pu.waitFor(1, 2, TimeUnit.MILLISECONDS);
 
 			logger.info("Timeout ended. processing unit " + dependantService + " found result is " + found);
 			if (found) {
@@ -568,9 +547,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			// sampling routine is a workaround for a
 			// possible bug in the admin api where the admin does not recognize
 			// the PU.
-			pu = admin.getProcessingUnits().waitFor(dependantService,
-					2,
-					TimeUnit.MILLISECONDS);
+			pu = admin.getProcessingUnits().waitFor(dependantService, 2, TimeUnit.MILLISECONDS);
 			if (pu != null) {
 				return pu;
 			}
@@ -582,10 +559,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 	 * 
 	 * @return true if a valid pid file matching a running process was found.
 	 * 
-	 * @throws IOException
-	 *             if the PID file could not be read.
-	 * @throws USMException
-	 *             if there was a problem checking for a PID file.
+	 * @throws IOException if the PID file could not be read.
+	 * @throws USMException if there was a problem checking for a PID file.
 	 */
 	private boolean checkForPIDFile()
 			throws USMException {
@@ -617,9 +592,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 				try {
 					logProcessDetails();
 				} catch (final SigarException e) {
-					logger.log(Level.SEVERE,
-							"Failed to log process details",
-							e);
+					logger.log(Level.SEVERE, "Failed to log process details", e);
 				}
 				return true;
 			} else {
@@ -659,11 +632,9 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 
 			try {
 				this.process =
-						getUsmLifecycleBean().getLauncher().launchProcessAsync(getUsmLifecycleBean().getConfiguration()
-								.getStartCommand(),
-								this.puExtDir,
-								getOutputFile(),
-								getErrorFile());
+						getUsmLifecycleBean().getLauncher().launchProcessAsync(
+								getUsmLifecycleBean().getConfiguration().getStartCommand(), this.puExtDir,
+								getOutputFile(), getErrorFile());
 			} catch (final USMException e) {
 				getUsmLifecycleBean().logProcessStartFailureEvent(e.getMessage());
 				throw e;
@@ -726,8 +697,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 				// until
 				// the
 				// process is ready
-				findProcessIDs(childrenBefore,
-						null); // pidFile);
+				findProcessIDs(childrenBefore, null); // pidFile);
 			}
 
 			// At this point, we assume that the main process has started, so we
@@ -756,12 +726,10 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		}
 		final long[] allPids = getAllPids();
 		final Map<Long, Set<Long>> procTree = createProcessTree(allPids);
-		this.childProcessID = findNewChildProcessID(childrenBefore,
-				procTree);
+		this.childProcessID = findNewChildProcessID(childrenBefore, procTree);
 
 		logger.info("Looking for actual process ID in process tree");
-		this.actualProcessID = findLeafProcessID(this.childProcessID,
-				procTree);
+		this.actualProcessID = findLeafProcessID(this.childProcessID, procTree);
 
 		checkForConsoleProcess(this.actualProcessID);
 
@@ -775,22 +743,19 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 					e);
 		}
 
-		((DSLConfiguration) this.getUsmLifecycleBean().getConfiguration()).getServiceContext()
-				.setExternalProcessId(this.actualProcessID);
+		((DSLConfiguration) this.getUsmLifecycleBean().getConfiguration()).getServiceContext().setExternalProcessId(
+				this.actualProcessID);
 
 		try {
 			logProcessDetails();
 		} catch (final SigarException e) {
-			logger.log(Level.SEVERE,
-					"Failed to log process details",
-					e);
+			logger.log(Level.SEVERE, "Failed to log process details", e);
 		}
 	}
 
 	private void writePidToFile(final long pid)
 			throws IOException {
-		FileUtils.writeStringToFile(getPidFile(),
-				Long.toString(pid));
+		FileUtils.writeStringToFile(getPidFile(), Long.toString(pid));
 
 	}
 
@@ -810,8 +775,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			}
 		} catch (final SigarException e) {
 			logger.log(Level.SEVERE,
-					"While checking if process is a console, failed to read the process name for process: " + pid,
-					e);
+					"While checking if process is a console, failed to read the process name for process: " + pid, e);
 		}
 
 	}
@@ -871,8 +835,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		}
 
 		// Recursive call
-		return findLeafProcessID(pid,
-				procTree);
+		return findLeafProcessID(pid, procTree);
 	}
 
 	protected long findNewChildProcessID(final Set<Long> childrenBefore, final Map<Long, Set<Long>> procTree)
@@ -909,8 +872,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 	private Set<Long> getChildProcesses(final long ppid)
 			throws USMException {
 		final long[] pids = getAllPids();
-		return getChildProcesses(ppid,
-				pids);
+		return getChildProcesses(ppid, pids);
 	}
 
 	public long getContainerPid() {
@@ -940,8 +902,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		for (final long pid : pids) {
 			final Set<Long> childSet = map.get(pid);
 			if (childSet == null) {
-				map.put(pid,
-						new HashSet<Long>());
+				map.put(pid, new HashSet<Long>());
 			}
 
 			try {
@@ -950,14 +911,11 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 				Set<Long> set = map.get(ppid);
 				if (set == null) {
 					set = new HashSet<Long>();
-					map.put(ppid,
-							set);
+					map.put(ppid, set);
 				}
 				set.add(pid);
 			} catch (final SigarException e) {
-				logger.log(Level.WARNING,
-						"Failed to get Parent Process for process: " + pid,
-						e);
+				logger.log(Level.WARNING, "Failed to get Parent Process for process: " + pid, e);
 			}
 		}
 
@@ -974,10 +932,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 					children.add(pid);
 				}
 			} catch (final SigarException e) {
-				logger.log(Level.WARNING,
-						"While scanning for child processes of process " + ppid
-								+ ", could not read process state of Process: " + pid + ". Ignoring.",
-						e);
+				logger.log(Level.WARNING, "While scanning for child processes of process " + ppid
+						+ ", could not read process state of Process: " + pid + ". Ignoring.", e);
 
 			}
 
@@ -1017,10 +973,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 
 			}
 		};
-		executors.scheduleWithFixedDelay(task,
-				2,
-				5,
-				TimeUnit.SECONDS);
+		executors.scheduleWithFixedDelay(task, 2, 5, TimeUnit.SECONDS);
 
 	}
 
@@ -1032,10 +985,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			this.tailer = createFileTailerTask();
 		}
 		logger.info("Launching tailer task");
-		executors.scheduleWithFixedDelay(tailer,
-				1,
-				fileTailerIntervalSecs,
-				TimeUnit.SECONDS);
+		executors.scheduleWithFixedDelay(tailer, 1, fileTailerIntervalSecs, TimeUnit.SECONDS);
 	}
 
 	private Runnable createProcessWaitTask(final ProcessDeathNotifier notifier) {
@@ -1086,8 +1036,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 	 * Kill process chain, starting from the actual process and going up the process tree. Does not kill the current
 	 * process, of-course.
 	 * 
-	 * @throws USMException
-	 *             if there was a problem accessing the process table
+	 * @throws USMException if there was a problem accessing the process table
 	 */
 	private void killMonitoredProcessChain()
 			throws USMException {
@@ -1103,8 +1052,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			// kill all processes in the chain, starting from the actual process
 			// and moving up
 			// to its parents, until we reach the GSC (not including the GSC).
-			list = USMUtils.getProcessParentChain(this.actualProcessID,
-					this.myPid);
+			list = USMUtils.getProcessParentChain(this.actualProcessID, this.myPid);
 		}
 		logger.info("Killing child processes in chain: " + list);
 		for (final Long pid : list) {
@@ -1121,9 +1069,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		try {
 			getUsmLifecycleBean().firePreStop(reason);
 		} catch (final USMException e) {
-			logger.log(Level.SEVERE,
-					"Failed to execute pre stop event: " + e.getMessage(),
-					e);
+			logger.log(Level.SEVERE, "Failed to execute pre stop event: " + e.getMessage(), e);
 		}
 
 		// First kill the monitored process, then all is parents, up to and not
@@ -1132,9 +1078,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			// this.processKiller.killProcess(this.actualProcessID);
 			killMonitoredProcessChain();
 		} catch (final USMException e) {
-			logger.log(Level.SEVERE,
-					"Failed to shut down actual process (" + this.actualProcessID + ")",
-					e);
+			logger.log(Level.SEVERE, "Failed to shut down actual process (" + this.actualProcessID + ")", e);
 		}
 
 		if (this.actualProcessID != this.childProcessID && this.childProcessID != 0) {
@@ -1143,18 +1087,14 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 					getUsmLifecycleBean().getProcessKiller().killProcess(this.childProcessID);
 				}
 			} catch (final USMException e) {
-				logger.log(Level.SEVERE,
-						"Failed to shut down child process (" + this.childProcessID + ")",
-						e);
+				logger.log(Level.SEVERE, "Failed to shut down child process (" + this.childProcessID + ")", e);
 			}
 		}
 
 		try {
 			getUsmLifecycleBean().firePostStop(reason);
 		} catch (final USMException e) {
-			logger.log(Level.SEVERE,
-					"Failed to execute post stop event: " + e.getMessage(),
-					e);
+			logger.log(Level.SEVERE, "Failed to execute post stop event: " + e.getMessage(), e);
 		}
 	}
 
@@ -1231,10 +1171,10 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 				// unexpected process failure
 				getUsmLifecycleBean().firePostStop(StopReason.PROCESS_FAILURE);
 			} catch (final Exception e) {
-				logger.log(Level.SEVERE,
+				logger.log(
+						Level.SEVERE,
 						"The Post Stop event failed to execute after an anexpected failure of the process: "
-								+ e.getMessage(),
-						e);
+								+ e.getMessage(), e);
 			}
 
 			// kill all current tasks, and create new thread pool for tasks
@@ -1259,9 +1199,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 						launch();
 						logger.info("Finished Relaunching process after unexpected process death");
 					} catch (final USMException e) {
-						logger.log(Level.SEVERE,
-								"Failed to re-launch the external process after a previous failure: " + e.getMessage(),
-								e);
+						logger.log(Level.SEVERE, "Failed to re-launch the external process after a previous failure: "
+								+ e.getMessage(), e);
 						logger.severe("Marking this USM as failed so it will be recycled by GSM");
 						markUSMAsFailed(e);
 					} catch (final TimeoutException e) {
@@ -1304,14 +1243,12 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 
 			try {
 				logger.fine("Executing details: " + details);
-				final Map<String, Object> detailsValues = details.getDetails(this,
-						getUsmLifecycleBean().getConfiguration());
+				final Map<String, Object> detailsValues =
+						details.getDetails(this, getUsmLifecycleBean().getConfiguration());
 				removeNonSerializableObjectsFromMap(detailsValues, "details");
 				result.putAll(detailsValues);
 			} catch (final Exception e) {
-				logger.log(Level.SEVERE,
-						"Failed to execute service details",
-						e);
+				logger.log(Level.SEVERE, "Failed to execute service details", e);
 			}
 
 		}
@@ -1338,8 +1275,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		final USMState currentState = getState();
 		// If the underlying service is not running
 		if (!currentState.equals(USMState.RUNNING)) {
-			csm.getMonitors().put(CloudifyConstants.USM_MONITORS_STATE_ID,
-					currentState.ordinal());
+			csm.getMonitors().put(CloudifyConstants.USM_MONITORS_STATE_ID, currentState.ordinal());
 			return res;
 		}
 
@@ -1350,15 +1286,13 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		for (final Monitor monitor : getUsmLifecycleBean().getMonitors()) {
 			try {
 				logger.fine("Executing monitor: " + monitor);
-				final Map<String, Number> monitorValues = monitor.getMonitorValues(this,
-						getUsmLifecycleBean().getConfiguration());
+				final Map<String, Number> monitorValues =
+						monitor.getMonitorValues(this, getUsmLifecycleBean().getConfiguration());
 				removeNonSerializableObjectsFromMap(monitorValues, "monitors");
 				// add monitor values to Monitors map
 				map.putAll(monitorValues);
 			} catch (final Exception e) {
-				logger.log(Level.SEVERE,
-						"Failed to execute a USM service monitor",
-						e);
+				logger.log(Level.SEVERE, "Failed to execute a USM service monitor", e);
 			}
 		}
 
@@ -1380,21 +1314,20 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 
 			// a closure can not be serialized
 			// TODO - write a unit test for this.
-			if (!(entry.getValue() instanceof java.io.Serializable) || entry.getValue() instanceof Closure<?>) {
-				logger.info("Entry " + entry.getKey() + " with value: " + entry.getValue().toString() 
-						+ "  is not serializable and was not inserted to the " + mapName + " map");
-				entries.remove();
+			if (entry.getValue() != null) {
+				if (!(entry.getValue() instanceof java.io.Serializable) || entry.getValue() instanceof Closure<?>) {
+					logger.info("Entry " + entry.getKey() + " with value: " + entry.getValue().toString()
+							+ "  is not serializable and was not inserted to the " + mapName + " map");
+					entries.remove();
+				}
 			}
 		}
 	}
 
 	private void putDefaultMonitorsInMap(final Map<String, Object> map) {
-		map.put(CloudifyConstants.USM_MONITORS_CHILD_PROCESS_ID,
-				this.childProcessID);
-		map.put(CloudifyConstants.USM_MONITORS_ACTUAL_PROCESS_ID,
-				this.actualProcessID);
-		map.put(CloudifyConstants.USM_MONITORS_STATE_ID,
-				getState().ordinal());
+		map.put(CloudifyConstants.USM_MONITORS_CHILD_PROCESS_ID, this.childProcessID);
+		map.put(CloudifyConstants.USM_MONITORS_ACTUAL_PROCESS_ID, this.actualProcessID);
+		map.put(CloudifyConstants.USM_MONITORS_STATE_ID, getState().ordinal());
 	}
 
 	public long getActualProcessID() {
@@ -1458,8 +1391,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		// invocationResult.setInstanceId(instanceId);
 
 		final Map<String, Object> result = new HashMap<String, Object>();
-		result.put(CloudifyConstants.INVOCATION_RESPONSE_INSTANCE_ID,
-				this.instanceId);
+		result.put(CloudifyConstants.INVOCATION_RESPONSE_INSTANCE_ID, this.instanceId);
 
 		if (namedArgs == null) {
 			logger.severe("recieved empty named arguments map");
@@ -1475,8 +1407,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 
 		}
 
-		result.put(CloudifyConstants.INVOCATION_RESPONSE_COMMAND_NAME,
-				commandName);
+		result.put(CloudifyConstants.INVOCATION_RESPONSE_COMMAND_NAME, commandName);
 
 		final Service service = ((DSLConfiguration) getUsmLifecycleBean().getConfiguration()).getService();
 		final Object customCommand = service.getCustomCommands().get(commandName);
@@ -1495,22 +1426,15 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 					new DSLEntryExecutor(customCommand, this.getUsmLifecycleBean().getLauncher(), this.getPuExtDir(),
 							namedArgs).run();
 
-			result.put(CloudifyConstants.INVOCATION_RESPONSE_STATUS,
-					executionResult.isSuccess());
-			result.put(CloudifyConstants.INVOCATION_RESPONSE_EXCEPTION,
-					executionResult.getException());
-			result.put(CloudifyConstants.INVOCATION_RESPONSE_RESULT,
-					executionResult.getResult());
+			result.put(CloudifyConstants.INVOCATION_RESPONSE_STATUS, executionResult.isSuccess());
+			result.put(CloudifyConstants.INVOCATION_RESPONSE_EXCEPTION, executionResult.getException());
+			result.put(CloudifyConstants.INVOCATION_RESPONSE_RESULT, executionResult.getResult());
 
 		} catch (final Exception e) {
-			logger.log(Level.SEVERE,
-					"Failed to execute the executeOnAllInstances section of custom command " + commandName
-							+ " on instance " + instanceId,
-					e);
-			result.put(CloudifyConstants.INVOCATION_RESPONSE_STATUS,
-					false);
-			result.put(CloudifyConstants.INVOCATION_RESPONSE_EXCEPTION,
-					e);
+			logger.log(Level.SEVERE, "Failed to execute the executeOnAllInstances section of custom command "
+					+ commandName + " on instance " + instanceId, e);
+			result.put(CloudifyConstants.INVOCATION_RESPONSE_STATUS, false);
+			result.put(CloudifyConstants.INVOCATION_RESPONSE_EXCEPTION, e);
 		}
 		return result;
 
@@ -1529,10 +1453,11 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 	}
 
 	@Override
-	public boolean isAlive() throws Exception {
+	public boolean isAlive()
+			throws Exception {
 		if (shutdownUSMException == null) {
 			return true;
-		} 
+		}
 		logger.severe("USM is Alive() exiting with exception due to previous failure. Exception message was: "
 				+ shutdownUSMException.getMessage());
 		throw shutdownUSMException;
@@ -1542,9 +1467,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 	public void setBeanLevelProperties(final BeanLevelProperties beanLevelProperties) {
 
 		final String value =
-				beanLevelProperties.getContextProperties()
-						.getProperty(CloudifyConstants.CONTEXT_PROPERTY_ASYNC_INSTALL,
-								ASYNC_INSTALL_DEFAULT_VALUE);
+				beanLevelProperties.getContextProperties().getProperty(
+						CloudifyConstants.CONTEXT_PROPERTY_ASYNC_INSTALL, ASYNC_INSTALL_DEFAULT_VALUE);
 		logger.info("Async Install Setting: " + value);
 		this.asyncInstall = Boolean.parseBoolean(value);
 
@@ -1558,9 +1482,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 
 	private String[] parseDependenciesString(final String dependenciesString) {
 		// remove brackets
-		final String internalString = dependenciesString.replace("[",
-				"").replace("]",
-				"").trim();
+		final String internalString = dependenciesString.replace("[", "").replace("]", "").trim();
 		if (internalString.length() == 0) {
 			return new String[0];
 		}
