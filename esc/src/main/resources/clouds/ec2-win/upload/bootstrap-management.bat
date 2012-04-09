@@ -35,7 +35,7 @@ cd %WORKING_HOME_DIRECTORY%
 echo executing bootstrap script
 powershell .\bootstrap-management.ps1 
 echo scheduling cloudify task
-schtasks.exe /create /TN cloudify-task /SC ONSTART /TR %CD%\run.bat
+schtasks.exe /create /TN cloudify-task /SC ONSTART /TR %CD%\run.bat /RU SYSTEM
 echo running cloudify task
 schtasks.exe /run /TN cloudify-task 
 
