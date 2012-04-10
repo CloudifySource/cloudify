@@ -1,6 +1,6 @@
 import org.openspaces.admin.AdminFactory;
 import java.util.concurrent.TimeUnit;
-import org.cloudifysource.usm.USMUtils;
+
 
 this.setProperty("catalinaHome", "install")
 this.setProperty("javaHome", System.getProperty("java.home"))
@@ -24,7 +24,7 @@ try {
 	def builder = new ProcessBuilder()
 	builder.environment().put("CATALINA_HOME", catalinaHome)
 	builder.environment().put("CASSANDRA_IP",cassandraIP)
-	if(USMUtils.isWindows()) {
+	if(ServiceUtils.isWindows()) {
 		builder.command("catalina-run.bat")
 	} else {
 		new File("catalina-run.sh").setExecutable(true);
