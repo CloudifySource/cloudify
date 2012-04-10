@@ -10,10 +10,6 @@ service {
 		preStop "nginx_stop.groovy"
 	}
 
-	//	startDetection {
-	//		USMUtils.checkPortsOpen ([8080], "127.0.0.1", 60)
-	//	}
-
 	plugins([
 		plugin {
 			name "portLiveness"
