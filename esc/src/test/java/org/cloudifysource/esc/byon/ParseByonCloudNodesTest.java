@@ -49,7 +49,9 @@ public class ParseByonCloudNodesTest {
 	public void test() {
 		try {
 			// load the cloud file
-			final File cloudFile = new File("testbyon-cloud.groovy");
+			String testClasses = this.getClass().getProtectionDomain().getCodeSource().getLocation().toString().substring(5);
+			String packageName = this.getClass().getPackage().getName().replace(".", "/");
+			final File cloudFile = new File(testClasses + packageName + "/testbyon-cloud.groovy");
 			System.out.println("Trying to read cloud file " + cloudFile.getAbsolutePath());
 			final Cloud cloud = ServiceReader.readCloud(cloudFile);
 
