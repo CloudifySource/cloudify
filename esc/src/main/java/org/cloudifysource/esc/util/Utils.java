@@ -57,7 +57,7 @@ public final class Utils {
 	// timeout in seconds, waiting for a socket to connect
 	private static final int DEFAULT_CONNECTION_TIMEOUT = 10;
 	// timeout for SFTP connection
-	private static final int SFTP_DISCONNECT_DETECTION_TIMEOUT_MILLIS = 10 * 1000;
+	private static final Integer SFTP_DISCONNECT_DETECTION_TIMEOUT_MILLIS = Integer.valueOf(10 * 1000);
 
 	private Utils() {
 	}
@@ -143,16 +143,14 @@ public final class Utils {
 			if (endPoint.isUnresolved()) {
 				throw new IllegalArgumentException("Failed to connect to: " + ipAddress + ":" + port
 						+ ", address could not be resolved.");
-			} else {
-				socket.connect(endPoint, Utils.safeLongToInt(TimeUnit.SECONDS.toMillis(timeout), true));
-			}
+			} 
+
+			socket.connect(endPoint, Utils.safeLongToInt(TimeUnit.SECONDS.toMillis(timeout), true));
 		} finally {
-			if (socket != null) {
-				try {
-					socket.close();
-				} catch (final IOException ioe) {
-					// ignore
-				}
+			try {
+				socket.close();
+			} catch (final IOException ioe) {
+				// ignore
 			}
 		}
 	}
@@ -275,9 +273,6 @@ public final class Utils {
 		loggerOutputStream.close();
 	}
 
-	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Utils.class
-			.getName());
-	
 	/**
 	 * Deletes file or folder on a remote host.
 	 * 
