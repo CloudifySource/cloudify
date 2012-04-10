@@ -41,6 +41,7 @@ public class ParseByonCloudNodesTest {
 
 	private static final String PROVIDER = "BYON";
 	private static final String CLOUD_NODES_LIST = "nodesList";
+	private static final String TEST_RESOURCES = "testResources/byon";
 
 	/**
 	 * Test parsing.
@@ -49,9 +50,7 @@ public class ParseByonCloudNodesTest {
 	public void test() {
 		try {
 			// load the cloud file
-			String testClasses = this.getClass().getProtectionDomain().getCodeSource().getLocation().toString().substring(5);
-			String packageName = this.getClass().getPackage().getName().replace(".", "/");
-			final File cloudFile = new File(testClasses + packageName + "/testbyon-cloud.groovy");
+			final File cloudFile = new File(TEST_RESOURCES + "/testbyon-cloud.groovy");
 			System.out.println("Trying to read cloud file " + cloudFile.getAbsolutePath());
 			final Cloud cloud = ServiceReader.readCloud(cloudFile);
 
