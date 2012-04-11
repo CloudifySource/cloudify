@@ -1,5 +1,5 @@
 import org.cloudifysource.dsl.context.ServiceContextFactory
-
+import org.cloudifysource.dsl.utils.ServiceUtils;
 
 def config = new ConfigSlurper().parse(new File("mongoConfig.properties").toURL())
 def osConfig = ServiceUtils.isWindows() ? config.win32 : config.unix

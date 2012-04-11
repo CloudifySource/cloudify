@@ -1,3 +1,4 @@
+import org.cloudifysource.dsl.utils.ServiceUtils;
 
 
 config = new ConfigSlurper().parse(new File("mongo-cfg.properties").toURL())

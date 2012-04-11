@@ -14,6 +14,7 @@
 * limitations under the License.
 *******************************************************************************/
 
+import org.cloudifysource.dsl.utils.ServiceUtils;
 
 config = new ConfigSlurper().parse(new File("mongos.properties").toURL())
 osConfig = ServiceUtils.isWindows() ? config.win32 : config.linux
