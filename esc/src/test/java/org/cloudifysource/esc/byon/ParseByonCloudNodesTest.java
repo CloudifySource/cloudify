@@ -41,6 +41,7 @@ public class ParseByonCloudNodesTest {
 
 	private static final String PROVIDER = "BYON";
 	private static final String CLOUD_NODES_LIST = "nodesList";
+	private static final String TEST_RESOURCES = "testResources/byon";
 
 	/**
 	 * Test parsing.
@@ -49,7 +50,7 @@ public class ParseByonCloudNodesTest {
 	public void test() {
 		try {
 			// load the cloud file
-			final File cloudFile = new File("testbyon-cloud.groovy");
+			final File cloudFile = new File(TEST_RESOURCES + "/testbyon-cloud.groovy");
 			System.out.println("Trying to read cloud file " + cloudFile.getAbsolutePath());
 			final Cloud cloud = ServiceReader.readCloud(cloudFile);
 
@@ -79,8 +80,10 @@ public class ParseByonCloudNodesTest {
 			// id, ip
 			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test02", "0.0.0.2", null, null, "byon-test02"));
 			// idPrefix, ipList
-			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test11", "0.0.0.3", null, null, "byon-test11"));
-			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test12", "0.0.0.4", null, null, "byon-test12"));
+			//expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test11", "0.0.0.3", null, null, "byon-test11"));
+			//expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test12", "0.0.0.4", null, null, "byon-test12"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test11", "192.168.9.59", null, null, "byon-test11"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test12", "192.168.9.60", null, null, "byon-test12"));
 			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test13", "0.0.0.5", null, null, "byon-test13"));
 			// id (template), ipList
 			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test21", "0.0.0.6", null, null, "byon-test21"));

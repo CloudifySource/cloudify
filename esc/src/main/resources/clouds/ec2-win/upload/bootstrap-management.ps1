@@ -118,7 +118,7 @@ rm -Force firewall.bat
 if ($ENV:GSA_MODE -eq "agent")
 {
 	Write-Host "Starting agent node"
-	$commandLine = "$workDirectory\gigaspaces\tools\cli\cloudify.bat start-agent -timeout 30 --verbose -zone $ENV:MACHINE_ZONES -auto-shutdown"
+	$commandLine = "$workDirectory\gigaspaces\tools\cli\cloudify.bat start-agent -timeout 30 --verbose -zone $ENV:MACHINE_ZONES -auto-shutdown > run.log"
 }
 else {
 	# Cloud file in Java must use slash ('/') not back-slash ('\')
@@ -126,11 +126,11 @@ else {
 
 	if ($ENV:NO_WEB_SERVICES -eq "true") 
 	{
-		$commandLine = "$workDirectory\gigaspaces\tools\cli\\cloudify.bat start-management -no-web-services -no-management-space -timeout 30 --verbose -auto-shutdown -cloud-file $cloudFile"
+		$commandLine = "$workDirectory\gigaspaces\tools\cli\\cloudify.bat start-management -no-web-services -no-management-space -timeout 30 --verbose -auto-shutdown -cloud-file $cloudFile > run.log"
 	} 
 	else {
 		Write-Host "Starting management node"
-		$commandLine = "$workDirectory\gigaspaces\tools\cli\cloudify.bat start-management -timeout 30 --verbose -auto-shutdown -cloud-file $cloudFile"
+		$commandLine = "$workDirectory\gigaspaces\tools\cli\cloudify.bat start-management -timeout 30 --verbose -auto-shutdown -cloud-file $cloudFile > run.log"
 	}
 
 }

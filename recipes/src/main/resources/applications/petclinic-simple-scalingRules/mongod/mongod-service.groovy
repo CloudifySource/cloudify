@@ -1,12 +1,15 @@
+import com.mongodb.CommandResult;
+import com.mongodb.Mongo;
+import com.mongodb.DB;
 service {
 	
 	name "mongod"
 	icon "mongodb.png"
 	type "NOSQL_DB"
 	numInstances 1
-	
+		
 	compute {
-		template "SMALL_LINUX_32"
+		template "SMALL_LINUX"
 	}
 
 	lifecycle {
@@ -14,30 +17,34 @@ service {
 		start "mongod_start.groovy"			
 		startDetectionTimeoutSecs 240
 		startDetection {
-			ServiceUtils.isPortOccupied(context.attributes.thisInstance["port"])
+			ServiceUtils.isPortOccupied(port)
+		}
+
+		monitors{
+			try { 
+				mongo = new Mongo("127.0.0.1", port)			
+				db = mongo.getDB("mydb")
+														
+				result = db.command("serverStatus")
+				println "mongod-service.groovy: result is ${result}"	
+														
+				return [
+					"Active Read Clients":result.globalLock.activeClients.readers,
+					"Active Write Clients":result.globalLock.activeClients.writers, 
+					"Read Clients Waiting":result.globalLock.currentQueue.readers, 
+					"Write Clients Waiting":result.globalLock.currentQueue.writers, 
+					"Current Active Connections":result.connections.current,
+					"Open Cursors":result.cursors.totalOpen
+				]
+			}
+			finally {
+				if (mongo != null) 
+					mongo.close()
+			}
+			
 		}
 	}
-	
-	plugins([ 	
-		plugin {
-			name "MongoDBMonitorsPlugin"
-			className "org.cloudifysource.mongodb.MongoDBMonitorsPlugin"
-			config([				
-				"host":"127.0.0.1",				
-				"dbName":"mydb",
-				"dataSpec" : [
-				    "Active Read Clients":"globalLock.activeClients.readers", 
-					"Active Write Clients":"globalLock.activeClients.writers", 
-					"Read Clients Waiting":"globalLock.currentQueue.readers", 
-					"Write Clients Waiting":"globalLock.currentQueue.writers", 
-					"Current Active Connections":"connections.current",
-					"Open Cursors":"cursors.totalOpen"
-				]
-			])
-		}
 		
-	])
-
 	userInterface {
 		metricGroups = ([
 			metricGroup {

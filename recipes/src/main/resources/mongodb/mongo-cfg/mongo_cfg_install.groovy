@@ -1,7 +1,7 @@
-import org.cloudifysource.usm.USMUtils
+
 
 config = new ConfigSlurper().parse(new File("mongo-cfg.properties").toURL())
-osConfig = USMUtils.isWindows() ? config.win32 : config.linux
+osConfig = ServiceUtils.isWindows() ? config.win32 : config.linux
 
 builder = new AntBuilder()
 builder.sequential {
@@ -9,7 +9,7 @@ builder.sequential {
 	get(src:osConfig.downloadPath, dest:"${config.installDir}/${osConfig.zipName}", skipexisting:true)
 }
 
-if(USMUtils.isWindows()) {
+if(ServiceUtils.isWindows()) {
 	builder.unzip(src:"${config.installDir}/${osConfig.zipName}", dest:config.installDir, overwrite:true)
 } else {
 	builder.untar(src:"${config.installDir}/${osConfig.zipName}", dest:config.installDir, compression:"gzip", overwrite:true)

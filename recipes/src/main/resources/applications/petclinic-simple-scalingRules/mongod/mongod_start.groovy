@@ -29,7 +29,7 @@ new AntBuilder().sequential {
 	mkdir(dir:"${dataDir}")
     
 	exec(executable:"${script}") {
-		arg line:"--journal"
+		arg line:"--journal"		
 		arg line:"--dbpath \"${dataDir}\""
 		arg line:"--port ${intPort}"
 	}

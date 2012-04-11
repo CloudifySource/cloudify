@@ -66,6 +66,8 @@ public class AgentlessInstaller {
 
 	// private static final int LOCAL_FILE_BUFFER_SIZE = 1024;
 
+	private static final int POWERSHELL_PORT = 5985;
+
 	private static final int CIFS_PORT = 445;
 
 	private static final int DEFAULT_ROUTE_RESOLUTION_TIMEOUT = 2 * 60 * 1000; // 2 minutes
@@ -211,11 +213,13 @@ public class AgentlessInstaller {
 	 * @throws IOException in case of an error during file transfer.
 	 * @throws TimeoutException
 	 * @throws URISyntaxException
+	 * @throws InstallerException 
+	 * @throws InterruptedException 
 	 */
 	private void copyFiles(final String host, final String username, final String password, final String srcDir,
 			final String toDir, final String keyFile, final Set<String> excludedFiles, final File cloudFile,
 			final long timeout, final TimeUnit unit, final FileTransferModes fileTransferMode)
-			throws IOException, TimeoutException, URISyntaxException {
+			throws IOException, TimeoutException, URISyntaxException, InterruptedException, InstallerException {
 
 		if (timeout < 0) {
 			throw new TimeoutException("Uploading files to host " + host + " timed out");
@@ -239,6 +243,7 @@ public class AgentlessInstaller {
 			target = new java.net.URI("sftp", userDetails, host, SSH_PORT, toDir, null, null).toASCIIString();
 			break;
 		case CIFS:
+			checkConnection(host, CIFS_PORT, timeout, unit);
 			createdManager = VFS.getManager();
 
 			target =
@@ -475,7 +480,7 @@ public class AgentlessInstaller {
 	}
 
 	private void uploadFilesToServer(final InstallationDetails details, final long end, final String targetHost)
-			throws TimeoutException, InstallerException {
+			throws TimeoutException, InstallerException, InterruptedException {
 		try {
 			final Set<String> excludedFiles = new HashSet<String>();
 			if (!details.isLus() && details.getManagementOnlyFiles() != null) {
@@ -496,16 +501,18 @@ public class AgentlessInstaller {
 		}
 	}
 
+	// IMPORTANT - single quotes in powershell are used to prevent variable expansions and escape sequences
+	// Since password can contain '$' and '*' characters, it is used here for the username and password.
 	private static final String POWER_SHELL_COMMAND_TEMPLATE = "$ErrorActionPreference=\"Stop\"\n"
-			+ "$securePassword = ConvertTo-SecureString -AsPlainText -Force \"%s\"\n"
-			+ "$cred = New-Object System.Management.Automation.PSCredential \"%s\", $securePassword\n"
+			+ "$securePassword = ConvertTo-SecureString -AsPlainText -Force '%s'\n"
+			+ "$cred = New-Object System.Management.Automation.PSCredential '%s', $securePassword\n"
 			+ "Invoke-Command -ComputerName %s -Credential $cred -ScriptBlock { %s }\n"
 			+ "Write-Host \"Command finished\"";
 	private static final String[] POWER_SHELL_PREFIX = { "powershell.exe", "-inputformat", "none", "-File" };
 
 	private void powershellCommand(final String targetHost, final String command, final String username,
 			final String password, final String keyFile, final long millisUntil, final TimeUnit milliseconds)
-			throws InstallerException, InterruptedException {
+			throws InstallerException, InterruptedException, TimeoutException {
 		try {
 			checkPowershellInstalled();
 		} catch (final IOException e) {
@@ -525,7 +532,8 @@ public class AgentlessInstaller {
 		final List<String> fullCommand = new LinkedList<String>();
 		fullCommand.addAll(Arrays.asList(POWER_SHELL_PREFIX));
 		fullCommand.add(tempScriptFile.getAbsolutePath());
-
+		
+		checkConnection(targetHost, POWERSHELL_PORT, millisUntil, milliseconds);
 		final ProcessBuilder pb = new ProcessBuilder(fullCommand);
 		pb.redirectErrorStream(true);
 

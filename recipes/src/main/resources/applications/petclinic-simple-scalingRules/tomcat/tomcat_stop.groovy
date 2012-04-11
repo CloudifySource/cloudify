@@ -1,8 +1,9 @@
-
+import org.cloudifysource.dsl.context.ServiceContextFactory
 println "tomcat_stop.groovy: About to stop tomcat..."
 
-config = new ConfigSlurper().parse(new File("tomcat.properties").toURL())
+def serviceContext = ServiceContextFactory.getServiceContext()
 
+def instanceID=serviceContext.instanceId
 def home= serviceContext.attributes.thisInstance["home"]
 println "tomcat_stop.groovy: tomcat(${instanceID}) home ${home}"
 

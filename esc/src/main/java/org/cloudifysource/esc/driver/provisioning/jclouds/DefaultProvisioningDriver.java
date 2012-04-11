@@ -47,7 +47,6 @@ import org.jclouds.compute.domain.NodeState;
 import org.jclouds.domain.LoginCredentials;
 
 import com.google.common.base.Predicate;
-import com.j_spaces.kernel.Environment;
 
 /**************
  * A jclouds-based CloudifyProvisioning implementation. Uses the JClouds Compute Context API to provision an image with
@@ -201,16 +200,17 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	private void handleEC2WindowsCredentials(final long end, final NodeMetadata node,
 			final MachineDetails machineDetails, final CloudTemplate cloudTemplate)
 			throws FileNotFoundException, InterruptedException, TimeoutException, CloudProvisioningException {
-		final String baseDirectory =
-				this.management ? Environment.getHomeDirectory() : this.cloud.getProvider().getRemoteDirectory();
-		final File localDirectory = new File(baseDirectory, this.cloud.getProvider().getLocalDirectory());
+		// final String baseDirectory =
+		// this.management ? Environment.getHomeDirectory() : this.cloud.getProvider().getRemoteDirectory();
+		// final File localDirectory = new File(baseDirectory, this.cloud.getProvider().getLocalDirectory());
 
-		final File pemFile = new File(localDirectory, this.cloud.getUser().getKeyFile());
-		logger.fine("PEM file is located at: " + pemFile);
+		final File pemFile = new File(this.cloud.getUser().getKeyFile());
+		logger.info("PEM file is located at: " + pemFile);
 		if (!pemFile.exists()) {
 			logger.severe("Could not find pem file: " + pemFile);
 			throw new FileNotFoundException("Could not find key file: " + pemFile);
 		}
+		logger.info("PEM file exists!");
 		String password;
 		if (cloudTemplate.getPassword() == null) {
 			// get the password using Amazon API

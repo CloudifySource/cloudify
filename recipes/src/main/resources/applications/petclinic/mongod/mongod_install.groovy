@@ -1,10 +1,10 @@
 import org.cloudifysource.dsl.context.ServiceContextFactory
-import org.cloudifysource.usm.USMUtils
+
 
 serviceContext = ServiceContextFactory.getServiceContext()
 
 config = new ConfigSlurper().parse(new File("mongod.properties").toURL())
-osConfig = USMUtils.isWindows() ? config.win32 : config.unix
+osConfig = ServiceUtils.isWindows() ? config.win32 : config.unix
 
 
 
@@ -35,7 +35,7 @@ builder.sequential {
 	get(src:"${osConfig.downloadPath}", dest:"${installDir}/${osConfig.zipName}", skipexisting:true)
 }
 
-if(USMUtils.isWindows()) {
+if(ServiceUtils.isWindows()) {
 	builder.unzip(src:"${installDir}/${osConfig.zipName}", dest:"${installDir}", overwrite:true)
 } else {
 	builder.untar(src:"${installDir}/${osConfig.zipName}", dest:"${installDir}", compression:"gzip", overwrite:true)

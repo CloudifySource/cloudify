@@ -1,19 +1,20 @@
 import org.cloudifysource.dsl.context.ServiceContextFactory
-import org.cloudifysource.usm.USMUtils
+
 
 serviceContext = ServiceContextFactory.getServiceContext()
 
-config = new ConfigSlurper().parse(new File("mongod.properties").toURL())
-osConfig = USMUtils.isWindows() ? config.win32 : config.unix
+config = new ConfigSlurper().parse(new File("mongod-service.properties").toURL())
+osConfig = ServiceUtils.isWindows() ? config.win32 : config.unix
 
 
 
 instanceID = serviceContext.getInstanceId()
 
-installDir = System.properties["user.home"]+ "/.cloudify/${config.service}" + instanceID
+installDir = System.properties["user.home"]+ "/.cloudify/mongod" + instanceID
 
 
 home = "${serviceContext.serviceDirectory}/mongodb-${config.version}"
+
 
 serviceContext.attributes.thisInstance["home"] = "${home}"
 println "mongod_install.groovy: mongod(${instanceID}) home is ${home}"
@@ -21,12 +22,7 @@ println "mongod_install.groovy: mongod(${instanceID}) home is ${home}"
 serviceContext.attributes.thisInstance["script"] = "${home}/bin/mongod"
 println "mongod_install.groovy: mongod(${instanceID}) script is ${home}/bin/mongod"
 
-serviceContext.attributes.thisInstance["port"] = config.basePort+instanceID
-
-def port = serviceContext.attributes.thisInstance["port"] 
-intPort=port.intValue()
-println "mongod_install.groovy: mongod(${instanceID}) port ${intPort}"
-
+serviceContext.attributes.thisInstance["port"] = config.port
 
 builder = new AntBuilder()
 builder.sequential {
@@ -34,7 +30,7 @@ builder.sequential {
 	get(src:"${osConfig.downloadPath}", dest:"${installDir}/${osConfig.zipName}", skipexisting:true)
 }
 
-if(USMUtils.isWindows()) {
+if(ServiceUtils.isWindows()) {
 	builder.unzip(src:"${installDir}/${osConfig.zipName}", dest:"${installDir}", overwrite:true)
 } else {
 	builder.untar(src:"${installDir}/${osConfig.zipName}", dest:"${installDir}", compression:"gzip", overwrite:true)

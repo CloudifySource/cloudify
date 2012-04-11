@@ -26,7 +26,19 @@ import java.util.List;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 
+/******************
+ * ServiceUtils exposes a range of methods that recipes can use in closures, including TCP port checks, HTTP requests
+ * and OS tests. The ServiceUtils is always imported into a recipe, so there is no need to add an import statement to a
+ * service recipe for it.
+ * 
+ * @author barakme, adaml
+ * @since 1.0
+ * 
+ */
 public final class ServiceUtils {
+
+	private static final int DEFAULT_HTTP_READ_TIMEOUT = 1000;
+	private static final int DEFAULT_HTTP_CONNECTION_TIMEOUT = 1000;
 
 	private ServiceUtils() {
 		// private constructor to prevent initialization.
@@ -34,7 +46,11 @@ public final class ServiceUtils {
 
 	private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger(ServiceUtils.class.getName());
 
-	
+	/***********
+	 * Tests if a port of the localhost interface is in use.
+	 * @param port the port number.
+	 * @return true if the port is not in use, false otherwise.
+	 */
 	public static boolean isPortFree(final int port) {
 		return !isPortOccupied(port);
 	}
@@ -42,8 +58,7 @@ public final class ServiceUtils {
 	/**
 	 * Checks that the specified ports are free.
 	 * 
-	 * @param portList
-	 *            - list of ports to check.
+	 * @param portList - list of ports to check.
 	 * @return - true if all ports are free
 	 */
 	public static boolean arePortsFree(final List<Integer> portList) {
@@ -65,8 +80,7 @@ public final class ServiceUtils {
 	/**
 	 * Checks whether a specified port is occupied.
 	 * 
-	 * @param port
-	 *            - port to check.
+	 * @param port - port to check.
 	 * @return - true if port is occupied
 	 */
 	public static boolean isPortOccupied(final int port) {
@@ -94,8 +108,7 @@ public final class ServiceUtils {
 	 * whether the ports are open. Having all the tested ports opened means that the process has completed loading
 	 * successfully and is up and running.
 	 * 
-	 * @param portList
-	 *            list of port to check.
+	 * @param portList list of port to check.
 	 * @return true if all ports are in use, false otherwise.
 	 * 
 	 * 
@@ -117,37 +130,31 @@ public final class ServiceUtils {
 	/*********
 	 * Executes an HTTP GET Request to the given URL, using a one second connect timeout and read timeout.
 	 * 
-	 * @param url
-	 *            the HTTP URL.
+	 * @param url the HTTP URL.
 	 * @return the HTTP return code. If an error occured while sending the request, for instance if a connection could
 	 *         not be made, returns 500
 	 */
 	public static boolean isHttpURLAvailable(final String url) {
-		return getHttpReturnCode(url) == 200;
+		return getHttpReturnCode(url) == HttpURLConnection.HTTP_OK;
 	}
 
 	/*********
 	 * Executes an HTTP GET Request to the given URL, using a one second connect timeout and read timeout.
 	 * 
-	 * @param url
-	 *            the HTTP URL.
+	 * @param url the HTTP URL.
 	 * @return the HTTP return code. If an error occured while sending the request, for instance if a connection could
 	 *         not be made, returns 500
 	 */
 	public static int getHttpReturnCode(final String url) {
-		return getHttpReturnCode(
-				url, 1000, 1000);
+		return getHttpReturnCode(url, DEFAULT_HTTP_CONNECTION_TIMEOUT, DEFAULT_HTTP_READ_TIMEOUT);
 	}
 
 	/*********
 	 * Executes an HTTP GET Request to the given URL.
 	 * 
-	 * @param url
-	 *            the HTTP URL.
-	 * @param connectTimeout
-	 *            the connection timeout.
-	 * @param readTimeout
-	 *            the read timeout.
+	 * @param url the HTTP URL.
+	 * @param connectTimeout the connection timeout.
+	 * @param readTimeout the read timeout.
 	 * @return the HTTP return code. If an error occured while sending the request, for instance if a connection could
 	 *         not be made, returns 500
 	 */
@@ -173,7 +180,7 @@ public final class ServiceUtils {
 			final int responseCode = connection.getResponseCode();
 			return responseCode;
 		} catch (final IOException ioe) {
-			return 500;
+			return HttpURLConnection.HTTP_INTERNAL_ERROR;
 		} finally {
 			if (connection != null) {
 				connection.disconnect();
@@ -181,19 +188,38 @@ public final class ServiceUtils {
 		}
 	}
 
-	// Important: when changing this method you must also change the
-	// getApplicationServiceName
-	// method that extracts the service name from the absolute processing unit's
-	// name.
+	/************
+	 * Returns the PU name for a service.
+	 * 
+	 * Important: when changing this method you must also change the getApplicationServiceName method that extracts the
+	 * service name from the absolute processing unit's name.
+	 * 
+	 * @param applicationName the service's application name.
+	 * @param serviceName the service name.
+	 * @return the PU name.
+	 */
+	// .
 	public static String getAbsolutePUName(final String applicationName, final String serviceName) {
 		return applicationName + "." + serviceName;
 	}
 
+	/**********
+	 * Full name details of a service.
+	 * 
+	 * @author adaml, barakme
+	 * 
+	 */
 	public static class FullServiceName {
 
 		private final String serviceName;
 		private final String applicationName;
 
+		/************
+		 * Constructor.
+		 * 
+		 * @param applicationName .
+		 * @param serviceName .
+		 */
 		public FullServiceName(final String applicationName, final String serviceName) {
 			super();
 			this.serviceName = serviceName;
@@ -215,8 +241,13 @@ public final class ServiceUtils {
 
 	}
 
-	// extracts the service name from the absolutePuName. correlates with
-	// getAbsolutePUName
+	/***************
+	 * Return the service name of a PU.
+	 * 
+	 * @param absolutePuName the PU name.
+	 * @param applicationName the application name.
+	 * @return the service name.
+	 */
 	public static String getApplicationServiceName(final String absolutePuName, final String applicationName) {
 		// Management services do no have the application prefix in their processing unit's name.
 		if (applicationName.equalsIgnoreCase(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
@@ -233,6 +264,12 @@ public final class ServiceUtils {
 		return absolutePuName;
 	}
 
+	/***********
+	 * Returns the application name and service name of a PU.
+	 * 
+	 * @param puName the pu name.
+	 * @return the application and service names.
+	 */
 	public static FullServiceName getFullServiceName(final String puName) {
 		final int index = puName.lastIndexOf('.');
 		if (index < 0) {
@@ -240,9 +277,29 @@ public final class ServiceUtils {
 					+ " to read service and application names.");
 		}
 
-		final String applicationName = puName.substring(
-				0, index);
+		final String applicationName = puName.substring(0, index);
 		final String serviceName = puName.substring(index + 1);
 		return new FullServiceName(applicationName, serviceName);
 	}
+
+	/***********
+	 * Returns true if the current operating system is some variant of Windows.
+	 * 
+	 * @return true if running on Windows.
+	 */
+	public static boolean isWindows() {
+		final String os = System.getProperty("os.name").toLowerCase();
+		return (os.indexOf("win") >= 0);
+	}
+
+	/***********
+	 * Returns true if the current operating system is NOT some variant of Windows.
+	 * 
+	 * 
+	 * @return true if not running on Windows.
+	 */
+	public static boolean isLinuxOrUnix() {
+		return !isWindows();
+	}
+
 }

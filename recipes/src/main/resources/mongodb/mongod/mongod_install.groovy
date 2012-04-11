@@ -14,10 +14,10 @@
 * limitations under the License.
 *******************************************************************************/
 import org.cloudifysource.dsl.context.ServiceContextFactory
-import org.cloudifysource.usm.USMUtils
+
 
 println("Checking operating system's compatibility with mongod")
-if (!USMUtils.isWindows()){
+if (!ServiceUtils.isWindows()){
 	String command = "uname -a"
 	Process pr = command.execute()
 	pr.waitFor();
@@ -33,7 +33,7 @@ instanceIdFile = new File("./instanceId.txt")
 instanceIdFile.text = serviceContext.instanceId
 
 config = new ConfigSlurper().parse(new File("mongod.properties").toURL())
-osConfig = USMUtils.isWindows() ? config.win32 : config.linux
+osConfig = ServiceUtils.isWindows() ? config.win32 : config.linux
 
 portFile = new File("./port.txt")
 portFile.text = config.port
@@ -44,7 +44,7 @@ builder.sequential {
 	get(src:osConfig.downloadPath, dest:"${config.installDir}/${osConfig.zipName}", skipexisting:true)
 }
 
-if(USMUtils.isWindows()) {
+if(ServiceUtils.isWindows()) {
 	builder.unzip(src:"${config.installDir}/${osConfig.zipName}", dest:config.installDir, overwrite:true)
 } else {
 	builder.untar(src:"${config.installDir}/${osConfig.zipName}", dest:config.installDir, compression:"gzip", overwrite:true)

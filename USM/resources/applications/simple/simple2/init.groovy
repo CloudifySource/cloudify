@@ -1,12 +1,12 @@
 import org.cloudifysource.dsl.context.ServiceContext
-import org.cloudifysource.usm.USMUtils
+import org.cloudifysource.dsl.context.ServiceContextFactory;
+
 
 println "Classpath is: " + System.getenv().get("CLASSPATH");
 println "This is the init event"
-ServiceContext context = USMUtils.getServiceContext ()
-USMUtils.invokeMethod "getServiceContext", null
 
-//ServiceContext ctx =org.cloudifysource.usm.USMUtils.getServiceContext
+ServiceContext context = ServiceContextFactory.getServiceContext()
+
 println "Context: " + context
 println "Context Service: " + context.service
 println "Service Name: " + context.service.name

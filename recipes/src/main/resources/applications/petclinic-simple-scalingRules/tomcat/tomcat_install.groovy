@@ -27,10 +27,19 @@ new AntBuilder().sequential {
 	chmod(dir:"${home}/bin", perm:'+x', includes:"*.sh")
 }
 
-println "tomcat_install.groovy: Replacing default tomcat port with port ${config.port}"
+portIncrement = instanceID - 1
+println "tomcat_install.groovy: Replacing default tomcat port with port ${config.port + portIncrement}"
+
 def serverXmlFile = new File("${home}/conf/server.xml") 
 def serverXmlText = serverXmlFile.text	
-def portStr = "port=\"${config.port}\""
-serverXmlFile.text = serverXmlText.replace('port="8080"', portStr) 
+portReplacementStr = "port=\"${config.port + portIncrement}\""
+ajpPortReplacementStr = "port=\"${config.ajpPort + portIncrement}\""
+shutdownPortReplacementStr = "port=\"${config.shutdownPort + portIncrement}\""
+serverXmlText = serverXmlText.replace("port=\"${config.port}\"", portReplacementStr) 
+serverXmlText = serverXmlText.replace("port=\"${config.ajpPort}\"", ajpPortReplacementStr) 
+serverXmlText = serverXmlText.replace("port=\"${config.shutdownPort}\"", shutdownPortReplacementStr) 
+serverXmlText = serverXmlText.replace('unpackWARs="true"', 'unpackWARs="false"')
+serverXmlFile.write(serverXmlText)
+
 
 println "tomcat_install.groovy: Tomcat installation ended"

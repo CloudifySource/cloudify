@@ -216,9 +216,9 @@ public class DSLReader {
 		// create an uninitialized service context
 		if (this.createServiceContext) {
 			if (isRunningInGSC) {
-				this.context = new ServiceContextImpl(clusterInfoToUseInGsc);
+				this.context = new ServiceContextImpl(clusterInfoToUseInGsc, workDir.getAbsolutePath());
 			} else {
-				this.context = new ServiceContextImpl(new ClusterInfo(null, 1, 0, 1, 0));
+				this.context = new ServiceContextImpl(new ClusterInfo(null, 1, 0, 1, 0), workDir.getAbsolutePath());
 			}
 
 		}
@@ -238,9 +238,9 @@ public class DSLReader {
 					clusterInfoToUseInGsc.setName(ServiceUtils.getAbsolutePUName(
 							CloudifyConstants.DEFAULT_APPLICATION_NAME, ((Service) result).getName()));
 				}
-				this.context.init((Service) result, admin, workDir.getAbsolutePath(), clusterInfoToUseInGsc);
+				this.context.init((Service) result, admin, clusterInfoToUseInGsc);
 			} else {
-				this.context.initInIntegratedContainer((Service) result, workDir.getAbsolutePath());
+				this.context.initInIntegratedContainer((Service) result);
 			}
 		}
 

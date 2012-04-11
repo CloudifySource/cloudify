@@ -1,8 +1,8 @@
 import org.cloudifysource.dsl.context.ServiceContextFactory
-import org.cloudifysource.usm.USMUtils
+
 
 def config = new ConfigSlurper().parse(new File("mongos.properties").toURL())
-def osConfig = USMUtils.isWindows() ? config.win32 : config.unix
+def osConfig = ServiceUtils.isWindows() ? config.win32 : config.unix
 
 def serviceContext = ServiceContextFactory.getServiceContext()
 def instanceID = serviceContext.getInstanceId()
@@ -26,7 +26,7 @@ builder.sequential {
 	get(src:"${osConfig.downloadPath}", dest:"${config.installDir}/${osConfig.zipName}", skipexisting:true)
 }
 
-if(USMUtils.isWindows()) {
+if(ServiceUtils.isWindows()) {
 	builder.unzip(src:"${config.installDir}/${osConfig.zipName}", dest:"${config.installDir}", overwrite:true)
 } else {
 	builder.untar(src:"${config.installDir}/${osConfig.zipName}", dest:"${config.installDir}", compression:"gzip", overwrite:true)

@@ -58,13 +58,15 @@ public class ServiceContextImpl implements ServiceContext {
 	 * Default constructor.
 	 * 
 	 * @param clusterInfo the cluster info.
+	 * @param serviceDirectory the service directory.
 	 * 
 	 */
-	public ServiceContextImpl(final ClusterInfo clusterInfo) {
+	public ServiceContextImpl(final ClusterInfo clusterInfo, final String serviceDirectory) {
 		if (clusterInfo == null) {
 			throw new NullPointerException("Cluster Info provided to service context cannot be null!");
 		}
 		this.clusterInfo = clusterInfo;
+		this.serviceDirectory = serviceDirectory;
 
 	}
 
@@ -73,13 +75,12 @@ public class ServiceContextImpl implements ServiceContext {
 	 * 
 	 * @param service .
 	 * @param admin .
-	 * @param dir .
 	 * @param clusterInfo .
 	 */
-	public void init(final Service service, final Admin admin, final String dir, final ClusterInfo clusterInfo) {
+	public void init(final Service service, final Admin admin, final ClusterInfo clusterInfo) {
 		this.service = service;
 		this.admin = admin;
-		this.serviceDirectory = dir;
+		
 
 		// TODO - is the null path even possible?
 		if (clusterInfo == null) {
@@ -110,11 +111,10 @@ public class ServiceContextImpl implements ServiceContext {
 	 * Late initializer, used in the integrated container (i.e. test-recipe)
 	 * 
 	 * @param service .
-	 * @param dir .
 	 */
-	public void initInIntegratedContainer(final Service service, final String dir) {
+	public void initInIntegratedContainer(final Service service) {
 		this.service = service;
-		this.serviceDirectory = dir;
+		
 		this.clusterInfo = new ClusterInfo(null, 1, 0, 1, 0);
 		if (service != null) {
 			this.clusterInfo.setName(service.getName());
@@ -197,7 +197,7 @@ public class ServiceContextImpl implements ServiceContext {
 	 */
 	@Override
 	public String getServiceDirectory() {
-		checkInitialized();
+		//checkInitialized();
 
 		return serviceDirectory;
 	}

@@ -15,9 +15,7 @@
  *******************************************************************************/
 package org.cloudifysource.usm;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -45,20 +43,35 @@ import org.springframework.core.io.Resource;
 
 import com.gigaspaces.internal.sigar.SigarHolder;
 
+/*********
+ * Utility class for the USM package.
+ * 
+ * @author barakme
+ * 
+ */
 public final class USMUtils {
 
-	
-
-	//private static final int POST_SYNC_PROCESS_SLEEP_INTERVAL = 500;
+	// private static final int POST_SYNC_PROCESS_SLEEP_INTERVAL = 500;
 
 	private USMUtils() {
 		// private constructor to prevent instantiation.
 	}
-	private static java.util.logging.Logger logger =
-			java.util.logging.Logger.getLogger(USMUtils.class.getName());
+
+	private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger(USMUtils.class.getName());
 	private static Admin admin;
 
-	public static boolean markFileAsExecutable(final Sigar sigar, final File file) throws USMException {
+	/********
+	 * Marks a file as executable by the operating system. On windows, always returns true. Otherwise, attempts will be
+	 * made to mark the file as executable using Java 6 API, if possible. If not, will attempt to use sigar. If this
+	 * fails, a chmod command will be executed.
+	 * 
+	 * @param sigar an instance of sigar.
+	 * @param file the file to make as executable.
+	 * @return true if the file was successfully marked as executable, false otherwise.
+	 * @throws USMException in case of an error.
+	 */
+	public static boolean markFileAsExecutable(final Sigar sigar, final File file)
+			throws USMException {
 
 		if (!file.exists()) {
 			return false;
@@ -73,13 +86,14 @@ public final class USMUtils {
 
 		if (USMUtils.isFileExecutableSigar(file)) {
 			return true;
-		} 
-		
+		}
+
 		logger.info("File " + file + " is not executable according to sigar");
 		return USMUtils.markFileAsExecutableUsingChmod(file);
 	}
 
-	private static boolean markFileAsExecutableUsingJdk(final File file) throws USMException {
+	private static boolean markFileAsExecutableUsingJdk(final File file)
+			throws USMException {
 		// TODO - refactor this - just catch exception on the whole block
 		logger.fine("Attempting to set file as executable using REFLECTION");
 		Method method = null;
@@ -92,17 +106,18 @@ public final class USMUtils {
 		}
 
 		if (method == null) {
-			logger.warning("setExecutable not supported by JDK. GigaSpaces Cloudify should be executed on Java Version >= 1.6");
+			logger.warning("setExecutable not supported by JDK. "
+					+ "GigaSpaces Cloudify should be executed on Java Version >= 1.6");
 			return false;
-		} 
+		}
 
 		try {
 			final boolean retval = (Boolean) method.invoke(file, true);
 			logger.fine("File " + file + " was marked as executable");
 			if (!retval) {
-				logger.warning("File: " + file + " is not executable. " +
-						"Attempt to mark it as executable has failed. " +
-				"Execution of this command may not be possible");
+				logger.warning("File: " + file + " is not executable. "
+						+ "Attempt to mark it as executable has failed. "
+						+ "Execution of this command may not be possible");
 			}
 			return retval;
 		} catch (final IllegalArgumentException e) {
@@ -114,7 +129,8 @@ public final class USMUtils {
 		}
 	}
 
-	private static boolean isFileExecutableSigar(final File file) throws USMException {
+	private static boolean isFileExecutableSigar(final File file)
+			throws USMException {
 		long mode;
 		try {
 			logger.info("Checking if file " + file + " is executable using sigar");
@@ -124,20 +140,23 @@ public final class USMUtils {
 		}
 
 		final long executable = mode & FileInfo.MODE_UEXECUTE;
-		return (executable > 0);
+		return executable > 0;
 
 	}
 
-	protected static boolean markFileAsExecutableUsingChmod(final File file) throws USMException {
+	private static boolean markFileAsExecutableUsingChmod(final File file)
+			throws USMException {
 		try {
 			logger.info("File " + file + " will be marked as executable using chmod command");
 			final Process p = Runtime.getRuntime().exec(new String[] { "chmod", "+x", file.getAbsolutePath() });
 			final int result = p.waitFor();
 			logger.info("chmod command finished with result = " + result);
 			if (result != 0) {
-				logger.warning("chmod command did not terminate successfully. File " + file + " may not be executable!");
+				final String msg =
+						"chmod command did not terminate successfully. File " + file + " may not be executable!";
+				logger.warning(msg);
 			}
-			return (result == 0);
+			return result == 0;
 		} catch (final IOException e) {
 			throw new USMException("Failed to execute chmod command:  chmod +x " + file.getAbsolutePath(), e);
 		} catch (final InterruptedException e) {
@@ -145,27 +164,51 @@ public final class USMUtils {
 		}
 	}
 
+	/***********
+	 * Returns true if the current operating system is some variant of Windows.
+	 * 
+	 * @return true if running on Windows.
+	 * @deprecated moved to ServiceUtils in the dsl project.
+	 */
+	@Deprecated
 	public static boolean isWindows() {
 		final String os = System.getProperty("os.name").toLowerCase();
-		return (os.indexOf("win") >= 0);
+		return os.indexOf("win") >= 0;
 	}
 
+	/***********
+	 * Returns true if the current operating system is NOT some variant of Windows.
+	 * 
+	 * 
+	 * @return true if not running on Windows.
+	 * @deprecated moved to ServiceUtils in the dsl project.
+	 */
+	@Deprecated
 	public static boolean isLinuxOrUnix() {
 		return !isWindows();
-//		final String os = System.getProperty("os.name").toLowerCase();
-//		// linux or unix
-//		return ((os.indexOf("nix") >= 0) || (os.indexOf("nux") >= 0));
 	}
 
+	/*******
+	 * Returns true if current process is a GSC.
+	 * 
+	 * @param ctx the spring application context.
+	 * @return .
+	 */
 	public static boolean isRunningInGSC(final ApplicationContext ctx) {
-		return (ctx.getClassLoader() instanceof ServiceClassLoader) ;
+		return ctx.getClassLoader() instanceof ServiceClassLoader;
 	}
-	
+
+	/*************
+	 * Return's the working directory of a PU.
+	 * 
+	 * @param ctx the spring application context.
+	 * @return the working directory.
+	 */
 	public static File getPUWorkDir(final ApplicationContext ctx) {
 		File puWorkDir = null;
 
-		if (isRunningInGSC(ctx)) {// running in
-																	// GSC
+		if (isRunningInGSC(ctx)) {
+			// running in GSC
 			final ServiceClassLoader scl = (ServiceClassLoader) ctx.getClassLoader();
 
 			final URL url = scl.getSlashPath();
@@ -173,7 +216,6 @@ public final class USMUtils {
 			try {
 				uri = url.toURI();
 			} catch (final URISyntaxException e) {
-				// TODO Auto-generated catch block
 				throw new IllegalArgumentException("Failed to create URI from URL: " + url, e);
 			}
 
@@ -192,9 +234,8 @@ public final class USMUtils {
 				for (final Resource resource : resources) {
 					// find META-INF/spring/pu.xml
 					final File file = resource.getFile();
-					if (file.getName().equals("pu.xml") &&
-							file.getParentFile().getName().equals("spring") &&
-							file.getParentFile().getParentFile().getName().equals("META-INF")) {
+					if (file.getName().equals("pu.xml") && file.getParentFile().getName().equals("spring")
+							&& file.getParentFile().getParentFile().getName().equals("META-INF")) {
 						puWorkDir = resource.getFile().getParentFile().getParentFile().getParentFile();
 						break;
 					}
@@ -221,58 +262,42 @@ public final class USMUtils {
 
 		return puWorkDir;
 	}
-	
-	public static String readFile(final File file) throws USMException {
-		// TODO - rewrite using read(file.size())
-		BufferedReader reader = null;
-		try {
-			reader = new BufferedReader(new FileReader(file));
-			final StringBuilder sb = new StringBuilder();
-			while (true) {
-				final String line = reader.readLine();
-				if (line == null) {
-					break;
-				} else {
-					sb.append(line).append("\n");
-				}
-			}
-			reader.close();
-			return sb.toString();
-		} catch (final IOException ioe) {
-			throw new USMException("Failed to read contents of file: " + file, ioe);
-		} finally {
-			if (reader != null) {
-				try {
-					reader.close();
-				} catch (final IOException ioe) {
-					// ignore
-				}
 
-			}
-		}
-	}
-
+	/***********
+	 * Returns a cached admin instance.
+	 * 
+	 * @return the admin API instance.
+	 */
 	public static synchronized Admin getAdmin() {
 		if (admin != null) {
 			return admin;
 		}
 
-		// TODO: Should I handle LOOKUPGROUPS values with double quotes (")?
 		final AdminFactory factory = new AdminFactory();
 		factory.useDaemonThreads(true);
 		admin = factory.createAdmin();
 
-		logger.info("Created new Admin Object with groups: " + Arrays.toString(admin.getGroups())
-				+ " and Locators: " + Arrays.toString(admin.getLocators()));
+		logger.info("Created new Admin Object with groups: " + Arrays.toString(admin.getGroups()) + " and Locators: "
+				+ Arrays.toString(admin.getLocators()));
 
 		return admin;
 	}
 
-	public static List<Long> getProcessParentChain(final long childPid, final long myPid) throws USMException {
+	/*********
+	 * Returns the list of parent processes, starting by the child pid and ending with the current pid.
+	 * 
+	 * @param childPid the list starting point.
+	 * @param myPid the curennt process pid.
+	 * @return the pid list.
+	 * @throws USMException in case of an error.
+	 */
+	public static List<Long> getProcessParentChain(final long childPid, final long myPid)
+			throws USMException {
 
 		final LinkedList<Long> list = new LinkedList<Long>();
 		if (childPid == 0) {
-			logger.warning("The child PID is 0 - this usually means that this USM instance had a problem during startup. Please check the logs for more details.");
+			logger.warning("The child PID is 0 - this usually means that this USM instance had a problem "
+					+ "during startup. Please check the logs for more details.");
 			return list;
 		}
 
@@ -296,7 +321,15 @@ public final class USMUtils {
 		return list;
 	}
 
-	public static long getParentPid(final long pid) throws USMException {
+	/******
+	 * Returns the parent pid for the given pid.
+	 * 
+	 * @param pid the process pid.
+	 * @return the parent pid for the given pid.
+	 * @throws USMException in case of an error.
+	 */
+	public static long getParentPid(final long pid)
+			throws USMException {
 		ProcState procState = null;
 
 		procState = USMUtils.getProcState(pid);
@@ -308,18 +341,26 @@ public final class USMUtils {
 
 	}
 
-	public static boolean isProcessAlive(final long pid) throws USMException {
+	/*********
+	 * Checks, using Sigar, is a given process is alive.
+	 * 
+	 * @param pid the process pid.
+	 * @return true if the process is alive (i.e. not stopped or zombie).
+	 * @throws USMException in case of an error.
+	 */
+	public static boolean isProcessAlive(final long pid)
+			throws USMException {
 
 		final ProcState procState = USMUtils.getProcState(pid);
-		if ((procState == null) || (procState.getState() == ProcState.STOP)
-				|| (procState.getState() == ProcState.ZOMBIE)) {
+		if (procState == null || procState.getState() == ProcState.STOP || procState.getState() == ProcState.ZOMBIE) {
 			return false;
 		}
 
 		return true;
 	}
 
-	private static ProcState getProcState(final long pid) throws USMException {
+	private static ProcState getProcState(final long pid)
+			throws USMException {
 		final Sigar sigar = SigarHolder.getSigar();
 		ProcState procState = null;
 		try {
@@ -329,43 +370,48 @@ public final class USMUtils {
 				return null;
 			}
 
-			throw new USMException("Failed to check if process with PID: "
-					+ pid + " is alive. Error was: "
+			throw new USMException("Failed to check if process with PID: " + pid + " is alive. Error was: "
 					+ e.getMessage(), e);
 		}
 		return procState;
 	}
-	
 
-	//converts a map of type <String, Object> to a Map of <String, Number>
-	public static Map<String, Number> convertMapToNumericValues(Map<String, Object> map) {
-		Map<String, Number> returnMap = new HashMap<String, Number>();
-		for (Map.Entry<String, Object> entryObject : map.entrySet()){
+	/***********
+	 * Given a map, returns a new map where the values are numbers, matching entries from the original list which were
+	 * numbers or strings that can be parsed as numbers. Other entries are discarded.
+	 * 
+	 * @param map the original map.
+	 * @return the numbers map.
+	 */
+	// converts a map of type <String, Object> to a Map of <String, Number>
+	public static Map<String, Number> convertMapToNumericValues(final Map<String, Object> map) {
+		final Map<String, Number> returnMap = new HashMap<String, Number>();
+		for (final Map.Entry<String, Object> entryObject : map.entrySet()) {
 			if (entryObject.getValue() instanceof Number) {
-				returnMap.put(entryObject.getKey(),
-						(Number) entryObject.getValue());
+				returnMap.put(entryObject.getKey(), (Number) entryObject.getValue());
 			} else if (entryObject.getValue() instanceof String) {
 				if (NumberUtils.isNumber((String) entryObject.getValue())) {
-					Number number = NumberUtils
-					.createNumber((String) entryObject.getValue());
+					final Number number = NumberUtils.createNumber((String) entryObject.getValue());
 					returnMap.put(entryObject.getKey(), number);
 				}
-			}else{
+			} else {
 				logger.info("monitor value is expected to be numeric: " + entryObject.getValue().toString());
 			}
 		}
 		return returnMap;
 	}
 
-	public static void shutdownAdmin() {
+	/**********
+	 * Closes the cached admin instance.
+	 * 
+	 */
+	public static synchronized void shutdownAdmin() {
 		if (admin == null) {
 			return;
 		}
-		
+
 		admin.close();
 
 	}
 
-
-	
 }
