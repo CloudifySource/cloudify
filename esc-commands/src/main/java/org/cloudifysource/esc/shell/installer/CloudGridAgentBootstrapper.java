@@ -133,7 +133,7 @@ public class CloudGridAgentBootstrapper {
 			this.provisioning.close();
 		}
 	}
-
+	
 	/**
 	 * Bootstraps and waits until the management machines are running, or until the timeout is reached.
 	 * 
@@ -155,7 +155,6 @@ public class CloudGridAgentBootstrapper {
 		final long end = System.currentTimeMillis() + timeoutUnit.toMillis(timeout);
 
 		createProvisioningDriver();
-		this.provisioning.addListener(new CliProvisioningDriverListener());
 
 		try {
 			// Start the cloud machines!!!
@@ -241,6 +240,8 @@ public class CloudGridAgentBootstrapper {
 			final ProvisioningDriverClassContextAware contextAware = (ProvisioningDriverClassContextAware) provisioning;
 			contextAware.setProvisioningDriverClassContext(new DefaultProvisioningDriverClassContext());
 		}
+		
+		this.provisioning.addListener(new CliProvisioningDriverListener());
 		provisioning.setConfig(cloud, cloud.getConfiguration().getManagementMachineTemplate(), true);
 	}
 

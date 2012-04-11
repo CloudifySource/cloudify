@@ -15,6 +15,7 @@
  *******************************************************************************/
 package org.cloudifysource.esc.shell.listener;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriverListener;
@@ -31,7 +32,10 @@ public class CliProvisioningDriverListener extends AbstractEventListener impleme
 	
 	@Override
 	public void onProvisioningEvent(String eventName, Object... args) {
-		logger.info(getFormattedMessage(eventName, args));
+		String formattedMessage = getFormattedMessage(eventName, args);
+		System.out.println(formattedMessage);
+		System.out.flush();
+		logger.log(Level.FINE, formattedMessage);
 	}
 
 }
