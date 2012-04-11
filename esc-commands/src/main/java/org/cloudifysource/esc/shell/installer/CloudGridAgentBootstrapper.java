@@ -55,6 +55,12 @@ import org.cloudifysource.shell.installer.ManagementWebServiceInstaller;
 import com.gigaspaces.internal.utils.StringUtils;
 import com.j_spaces.kernel.Environment;
 
+/**
+ * This class handles the bootstrapping of machines, activation of management processes and cloud tear-down.
+ * @author barakm, adaml
+ * @since 2.0.0
+ *
+ */
 public class CloudGridAgentBootstrapper {
 
 	private static final String MANAGEMENT_APPLICATION = ManagementWebServiceInstaller.MANAGEMENT_APPLICATION_NAME;
@@ -83,52 +89,71 @@ public class CloudGridAgentBootstrapper {
 
 	private File cloudFile;
 
-	public void setProviderDirectory(File providerDirecotry) {
+	public void setProviderDirectory(final File providerDirecotry) {
 		this.providerDirecotry = providerDirecotry;
 	}
 
-	public void setAdminFacade(AdminFacade adminFacade) {
+	public void setAdminFacade(final AdminFacade adminFacade) {
 		this.adminFacade = adminFacade;
 	}
 
-	public void setVerbose(boolean verbose) {
+	public void setVerbose(final boolean verbose) {
 		this.verbose = verbose;
 	}
 
-	public void setProgressInSeconds(int progressInSeconds) {
+	public void setProgressInSeconds(final int progressInSeconds) {
 		this.progressInSeconds = progressInSeconds;
 	}
 
-	public void setForce(boolean force) {
+	public void setForce(final boolean force) {
 		this.force = force;
 	}
-	
-	private static String nodePrefix(MachineDetails node) {
+
+	private static String nodePrefix(final MachineDetails node) {
 		return "[" + node.getMachineId() + "] ";
 	}
 
-	private static void logServerDetails(MachineDetails server) {
+	private static void logServerDetails(final MachineDetails server) {
 		if (logger.isLoggable(Level.FINE)) {
 			logger.fine(nodePrefix(server) + "Cloud Server was created.");
 
-			logger.fine(nodePrefix(server) + "Public IP: " + (server.getPublicAddress() == null ? "" : server.getPublicAddress()));
-			logger.fine(nodePrefix(server) + "Private IP: " + (server.getPrivateAddress() == null?"":server.getPrivateAddress()));
-			
-			
+			logger.fine(nodePrefix(server) + "Public IP: "
+					+ (server.getPublicAddress() == null ? "" : server.getPublicAddress()));
+			logger.fine(nodePrefix(server) + "Private IP: "
+					+ (server.getPrivateAddress() == null ? "" : server.getPrivateAddress()));
+
 		}
 	}
 
-
-	public void close (){ 
-		if(this.provisioning != null) {
+	/**
+	 * Closes the provisioning driver.
+	 */
+	public void close() {
+		if (this.provisioning != null) {
 			this.provisioning.close();
 		}
 	}
-	public void boostrapCloudAndWait(long timeout, TimeUnit timeoutUnit) throws InstallerException,
+
+	/**
+	 * Bootstraps and waits until the management machines are running, or until the timeout is reached.
+	 * 
+	 * @param timeout
+	 *            The number of {@link TimeUnit}s to wait before timing out
+	 * @param timeoutUnit
+	 *            The time unit to use (seconds, minutes etc.)
+	 * @throws InstallerException
+	 *             Indicates the provisioning driver failed to start management machines or that the
+	 *             management processes failed to start
+	 * @throws CLIException
+	 *             Indicates a basic failure or a time out. a detailed message is included
+	 * @throws InterruptedException
+	 *             Indicates a thread was interrupted while waiting
+	 */
+	public void boostrapCloudAndWait(final long timeout, final TimeUnit timeoutUnit) throws InstallerException,
 			CLIException, InterruptedException {
 
-		long end = System.currentTimeMillis() + timeoutUnit.toMillis(timeout);
-		
+		final long end = System.currentTimeMillis() + timeoutUnit.toMillis(timeout);
+
 		createProvisioningDriver();
 		this.provisioning.addListener(new CliProvisioningDriverListener());
 
@@ -137,156 +162,165 @@ public class CloudGridAgentBootstrapper {
 			MachineDetails[] servers;
 			try {
 				servers = provisioning.startManagementMachines(timeout, timeoutUnit);
-			} catch (CloudProvisioningException e) {
+			} catch (final CloudProvisioningException e) {
 				throw new InstallerException("Failed to start managememnt servers. Reason: " + e.getMessage(), e);
 			}
 
 			if (servers.length == 0) {
 				throw new IllegalArgumentException("Received zero management servers from provisioning implementation");
 			}
-			
-			if(logger.isLoggable(Level.INFO)) {
-				for (MachineDetails server: servers) {
+
+			if (logger.isLoggable(Level.INFO)) {
+				for (final MachineDetails server : servers) {
 					logServerDetails(server);
 				}
 			}
-			
+
 			// Start the management agents and other processes
 			if (servers[0].isAgentRunning()) {
 				// must be using existing machines.
-				
+
 				// TODO - check if management machines are running properly. If so - use them, like connect.
-				throw new IllegalStateException("Cloud bootstrapper found existing management machines with the same name. Please shut them down before continuing");
-				
+				throw new IllegalStateException(
+						"Cloud bootstrapper found existing management machines with the same name. "
+								+ "Please shut them down before continuing");
 
 			} else {
 				startManagememntProcesses(servers, end);
 			}
 
-			
 			// Wait for rest to become available
 			// When the rest gateway is up and running, the cloud is ready to go
-			for (MachineDetails server : servers) {
-				String ipAddress =null;
-				if(cloud.getConfiguration().isBootstrapManagementOnPublicIp()) {
+			for (final MachineDetails server : servers) {
+				String ipAddress = null;
+				if (cloud.getConfiguration().isBootstrapManagementOnPublicIp()) {
 					ipAddress = server.getPublicAddress();
 				} else {
 					ipAddress = server.getPrivateAddress();
 				}
 
-				URL restAdminUrl = new URI("http", null, ipAddress, REST_GATEWAY_PORT, null, null, null).toURL();
-				URL webUIUrl = new URI("http", null, ipAddress, WEBUI_PORT, null, null, null).toURL();
+				final URL restAdminUrl = new URI("http", null, ipAddress, REST_GATEWAY_PORT, null, null, null).toURL();
+				final URL webUIUrl = new URI("http", null, ipAddress, WEBUI_PORT, null, null, null).toURL();
 
 				// We are relying on start-management command to be run on the
-				// new machine, so
-				// everything should be up if the rest admin is up
+				// new machine, so everything should be up if the rest admin is up
 				waitForConnection(restAdminUrl, Utils.millisUntil(end), TimeUnit.MILLISECONDS);
 
 				logger.info("Rest service is available at: " + restAdminUrl + '.');
 				logger.info("Webui service is available at: " + webUIUrl + '.');
 			}
 
-		} catch (IOException e) {
-			throw new CLIException("Cloudify bootstrap on provider "
-					+ this.cloud.getProvider().getProvider() + " failed. Reason: " + e.getMessage() , e);
-		} catch (URISyntaxException e) {
+		} catch (final IOException e) {
+			throw new CLIException("Cloudify bootstrap on provider " + this.cloud.getProvider().getProvider()
+					+ " failed. Reason: " + e.getMessage(), e);
+		} catch (final URISyntaxException e) {
 			throw new CLIException("Bootstrap-cloud failed. Reason: " + e.getMessage(), e);
-		} catch (TimeoutException e) {
-			throw new CLIException("Cloudify bootstrap on provider "
-					+ this.cloud.getProvider().getProvider() + " timed-out. "
-					+ "Please try to run again using the –timeout option." , e);
+		} catch (final TimeoutException e) {
+			throw new CLIException("Cloudify bootstrap on provider " + this.cloud.getProvider().getProvider()
+					+ " timed-out. " + "Please try to run again using the –timeout option.", e);
 		}
-		
+
 	}
 
 	/**
-	 * load the provisioning class and set it up
-	 * @throws CLIException
+	 * loads the provisioning driver class and sets it up.
+	 * 
+	 * @throws CLIException Indicates the configured could not be found and instantiated
 	 */
 	private void createProvisioningDriver() throws CLIException {
 		try {
-			this.provisioning = (ProvisioningDriver) Class.forName(this.cloud.getConfiguration().getClassName()).newInstance();
-		} catch (ClassNotFoundException e) {
-			throw new CLIException("Failed to load provisioning class for cloud: " + this.cloud.getName() + ". Class not found: " + this.cloud.getConfiguration().getClassName(), e);
-		} catch (Exception e) {
+			this.provisioning = (ProvisioningDriver) Class.forName(this.cloud.getConfiguration().getClassName())
+					.newInstance();
+		} catch (final ClassNotFoundException e) {
+			throw new CLIException("Failed to load provisioning class for cloud: " + this.cloud.getName()
+					+ ". Class not found: " + this.cloud.getConfiguration().getClassName(), e);
+		} catch (final Exception e) {
 			throw new CLIException("Failed to load provisioning class for cloud: " + this.cloud.getName(), e);
 		}
 		if (provisioning instanceof ProvisioningDriverClassContextAware) {
-			ProvisioningDriverClassContextAware contextAware = (ProvisioningDriverClassContextAware)provisioning;
+			final ProvisioningDriverClassContextAware contextAware = (ProvisioningDriverClassContextAware) provisioning;
 			contextAware.setProvisioningDriverClassContext(new DefaultProvisioningDriverClassContext());
-        }
+		}
 		provisioning.setConfig(cloud, cloud.getConfiguration().getManagementMachineTemplate(), true);
 	}
 
-	public void teardownCloudAndWait(long timeout, TimeUnit timeoutUnit) throws TimeoutException,
+	/**
+	 * 
+	 * @param timeout
+	 *            The number of {@link TimeUnit}s to wait before timing out
+	 * @param timeoutUnit
+	 *            The time unit to use (seconds, minutes etc.)
+	 * @throws TimeoutException
+	 *             Indicates the time out was reached before the tear-down completed
+	 * @throws CLIException
+	 *             Indicates a basic failure tear-down the cloud. a detailed message is included
+	 * @throws InterruptedException
+	 *             Indicates a thread was interrupted while waiting
+	 */
+	public void teardownCloudAndWait(final long timeout, final TimeUnit timeoutUnit) throws TimeoutException,
 			CLIException, InterruptedException {
 
-		long end = System.currentTimeMillis() + timeoutUnit.toMillis(timeout);
-		
+		final long end = System.currentTimeMillis() + timeoutUnit.toMillis(timeout);
+
 		createProvisioningDriver();
-		
+
 		ShellUtils.checkNotNull("providerDirectory", providerDirecotry);
 
 		destroyManagementServers(Utils.millisUntil(end), TimeUnit.MILLISECONDS);
 
 	}
 
-	private void destroyManagementServers(long timeout, TimeUnit timeoutUnit) throws CLIException,
+	private void destroyManagementServers(final long timeout, final TimeUnit timeoutUnit) throws CLIException,
 			InterruptedException, TimeoutException {
 
-		long end = System.currentTimeMillis() + timeoutUnit.toMillis(timeout);
-
-
+		final long end = System.currentTimeMillis() + timeoutUnit.toMillis(timeout);
 
 		if (!force) {
-			
+
 			if (!adminFacade.isConnected()) {
 				throw new CLIException("Please connect to the cloud before tearing down");
 			}
-			
+
 			uninstallApplications(end);
 
 		} else {
-			
+
 			if (adminFacade.isConnected()) {
-				try { 
-				uninstallApplications(end);
-				} catch(InterruptedException e) { 
+				try {
+					uninstallApplications(end);
+				} catch (final InterruptedException e) {
 					throw e;
-				}catch(TimeoutException e) {
-					logger.fine("Failed to uninstall applications. Shut down of managememnt machines will continue");							
-				}catch(CLIException e) {
+				} catch (final TimeoutException e) {
+					logger.fine("Failed to uninstall applications. Shut down of managememnt machines will continue");
+				} catch (final CLIException e) {
 					logger.fine("Failed to uninstall applications. Shut down of managememnt machines will continue");
 				}
 			}
-			
-			
-	
+
 		}
 
 		logger.info("Terminating cloud machines");
 
 		try {
 			provisioning.stopManagementMachines();
-		} catch (CloudProvisioningException e) {
+		} catch (final CloudProvisioningException e) {
 			throw new CLIException("Failed to shut down management machine during tear down of cloud: "
 					+ e.getMessage(), e);
 		}
 
 	}
 
-	private void uninstallApplications(long end) throws CLIException,
-			InterruptedException, TimeoutException {
-		for (String application : adminFacade.getApplicationsList()) {
+	private void uninstallApplications(final long end) throws CLIException, InterruptedException, TimeoutException {
+		for (final String application : adminFacade.getApplicationsList()) {
 			if (!application.equals(MANAGEMENT_APPLICATION)) {
-				adminFacade.uninstallApplication(application, (int)end);
+				adminFacade.uninstallApplication(application, (int) end);
 			}
 		}
 
 		waitForUninstallApplications(Utils.millisUntil(end), TimeUnit.MILLISECONDS);
 	}
 
-	protected static InstallationDetails createInstallationDetails(final Cloud cloud) throws FileNotFoundException {
+	private static InstallationDetails createInstallationDetails(final Cloud cloud) throws FileNotFoundException {
 		final InstallationDetails details = new InstallationDetails();
 		details.setLocalDir(cloud.getProvider().getLocalDirectory());
 		details.setZones(StringUtils.join(cloud.getProvider().getZones().toArray(new String[0]), ",", 0, cloud
@@ -300,9 +334,9 @@ public class CloudGridAgentBootstrapper {
 		details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		details.setUsername(cloud.getUser().getUser());
 		details.setBindToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
-		
-		//if ((cloud.getUser().getKeyPair() != null) && (cloud.getUser().getKeyPair().length() > 0)) {
-		if(cloud.getUser().getKeyFile() != null && cloud.getUser().getKeyFile().length() > 0) {
+
+		// if ((cloud.getUser().getKeyPair() != null) && (cloud.getUser().getKeyPair().length() > 0)) {
+		if (cloud.getUser().getKeyFile() != null && cloud.getUser().getKeyFile().length() > 0) {
 			File keyFile = new File(cloud.getUser().getKeyFile());
 			if (!keyFile.isAbsolute()) {
 				keyFile = new File(details.getLocalDir(), cloud.getUser().getKeyFile());
@@ -312,11 +346,11 @@ public class CloudGridAgentBootstrapper {
 			}
 			details.setKeyFile(keyFile.getAbsolutePath());
 		}
-		//}
+		// }
 		return details;
 	}
 
-	private MachineDetails[] startManagememntProcesses(MachineDetails[] machines, final long endTime)
+	private MachineDetails[] startManagememntProcesses(final MachineDetails[] machines, final long endTime)
 			throws InterruptedException, TimeoutException, InstallerException, IOException {
 
 		final AgentlessInstaller installer = new AgentlessInstaller();
@@ -330,29 +364,29 @@ public class CloudGridAgentBootstrapper {
 
 		final int numOfManagementMachines = machines.length;
 
-		InstallationDetails[] installations = createInstallationDetails(numOfManagementMachines, machines);
+		final InstallationDetails[] installations = createInstallationDetails(numOfManagementMachines, machines);
 		// only one machine should try and deploy the WebUI and Rest Admin
 		for (int i = 1; i < installations.length; i++) {
 			installations[i].setNoWebServices(true);
 		}
 
-		String lookup = createLocatorsString(installations);
-		for (InstallationDetails detail : installations) {
+		final String lookup = createLocatorsString(installations);
+		for (final InstallationDetails detail : installations) {
 			detail.setLocator(lookup);
 		}
 
 		// copy cloud file to local upload directory so that cloud settings
 		// will be available when rest gateway is deployed
 		// TODO - this is a bit of a hack. Makes more sense to add the option for the installer
-		// to copy additional files to the target. 
-		File uploadDir = new File(cloud.getProvider().getLocalDirectory());
+		// to copy additional files to the target.
+		final File uploadDir = new File(cloud.getProvider().getLocalDirectory());
 		try {
 			FileUtils.copyFileToDirectory(this.cloudFile, uploadDir);
 			// executes the agentless installer on all of the machines,
 			// asynchronously
 			installOnMachines(endTime, installer, numOfManagementMachines, installations);
 		} finally {
-			
+
 			FileUtils.forceDelete(new File(uploadDir, this.cloudFile.getName()));
 		}
 		return machines;
@@ -360,32 +394,35 @@ public class CloudGridAgentBootstrapper {
 	}
 
 	private void installOnMachines(final long endTime, final AgentlessInstaller installer,
-			final int numOfManagementMachines, InstallationDetails[] installations) throws InterruptedException,
+			final int numOfManagementMachines, final InstallationDetails[] installations) throws InterruptedException,
 			TimeoutException, InstallerException {
-		ExecutorService executors = Executors.newFixedThreadPool(numOfManagementMachines);
+		final ExecutorService executors = Executors.newFixedThreadPool(numOfManagementMachines);
 
-		BootstrapLogsFilters bootstrapLogs = new BootstrapLogsFilters(verbose);
+		final BootstrapLogsFilters bootstrapLogs = new BootstrapLogsFilters(verbose);
 		try {
 
 			bootstrapLogs.applyLogFilters();
 
-			List<Future<Exception>> futures = new ArrayList<Future<Exception>>();
+			final List<Future<Exception>> futures = new ArrayList<Future<Exception>>();
 
 			for (final InstallationDetails detail : installations) {
-				Future<Exception> future = executors.submit(new Callable<Exception>() {
+				final Future<Exception> future = executors.submit(new Callable<Exception>() {
 
 					@Override
 					public Exception call() {
 						try {
 							installer.installOnMachineWithIP(detail, Utils.millisUntil(endTime), TimeUnit.MILLISECONDS);
-						} catch (TimeoutException e) {
-							logger.log(Level.INFO, "Failed accessing management VM " + detail.getPublicIp() + " Reason: " + e.getMessage(), e);
+						} catch (final TimeoutException e) {
+							logger.log(Level.INFO, "Failed accessing management VM " + detail.getPublicIp()
+									+ " Reason: " + e.getMessage(), e);
 							return e;
-						} catch (InterruptedException e) {
-							logger.log(Level.INFO, "Failed accessing management VM " + detail.getPublicIp() + " Reason: " + e.getMessage(), e);
+						} catch (final InterruptedException e) {
+							logger.log(Level.INFO, "Failed accessing management VM " + detail.getPublicIp()
+									+ " Reason: " + e.getMessage(), e);
 							return e;
-						} catch (InstallerException e) {
-							logger.log(Level.INFO, "Failed accessing management VM " + detail.getPublicIp() + " Reason: " + e.getMessage(), e);
+						} catch (final InstallerException e) {
+							logger.log(Level.INFO, "Failed accessing management VM " + detail.getPublicIp()
+									+ " Reason: " + e.getMessage(), e);
 							return e;
 						}
 						return null;
@@ -395,9 +432,9 @@ public class CloudGridAgentBootstrapper {
 
 			}
 
-			for (Future<Exception> future : futures) {
+			for (final Future<Exception> future : futures) {
 				try {
-					Exception e = future.get();
+					final Exception e = future.get();
 					if (e != null) {
 						if (e instanceof TimeoutException) {
 							throw (TimeoutException) e;
@@ -410,7 +447,7 @@ public class CloudGridAgentBootstrapper {
 						}
 						throw new InstallerException("Failed creating machines.", e);
 					}
-				} catch (ExecutionException e) {
+				} catch (final ExecutionException e) {
 					throw new InstallerException("Failed creating machines.", e);
 				}
 			}
@@ -421,11 +458,11 @@ public class CloudGridAgentBootstrapper {
 		}
 	}
 
-	private String createLocatorsString(InstallationDetails[] installations) {
-		StringBuilder lookupSb = new StringBuilder();
-		for (InstallationDetails detail : installations) {
-			final String ip = (cloud.getConfiguration().isConnectToPrivateIp() ? detail.getPrivateIp() : detail
-					.getPublicIp());
+	private String createLocatorsString(final InstallationDetails[] installations) {
+		final StringBuilder lookupSb = new StringBuilder();
+		for (final InstallationDetails detail : installations) {
+			final String ip = cloud.getConfiguration().isConnectToPrivateIp() ? detail.getPrivateIp() : detail
+					.getPublicIp();
 			lookupSb.append(ip).append(",");
 		}
 
@@ -434,16 +471,16 @@ public class CloudGridAgentBootstrapper {
 		return lookupSb.toString();
 	}
 
-	// TODO: This code should be places in a Util package somewhere. It is used both 
+	// TODO: This code should be places in a Util package somewhere. It is used both
 	// here and in the esc project, for starting new agent machines.
 	private InstallationDetails[] createInstallationDetails(final int numOfManagementMachines,
-			MachineDetails[] machineDetails) throws FileNotFoundException {
-		InstallationDetails template = createInstallationDetails(cloud);
+			final MachineDetails[] machineDetails) throws FileNotFoundException {
+		final InstallationDetails template = createInstallationDetails(cloud);
 
-		InstallationDetails[] details = new InstallationDetails[numOfManagementMachines];
+		final InstallationDetails[] details = new InstallationDetails[numOfManagementMachines];
 		for (int i = 0; i < details.length; i++) {
-			MachineDetails machine = machineDetails[i];
-			InstallationDetails installationDetails = template.clone();
+			final MachineDetails machine = machineDetails[i];
+			final InstallationDetails installationDetails = template.clone();
 			installationDetails.setUsername(machine.getRemoteUsername());
 			installationDetails.setPassword(machine.getRemotePassword());
 			installationDetails.setPrivateIp(machine.getPrivateAddress());
@@ -459,8 +496,7 @@ public class CloudGridAgentBootstrapper {
 		return details;
 	}
 
-	
-	private void fixConfigRelativePaths(Cloud config) {
+	private void fixConfigRelativePaths(final Cloud config) {
 		if (config.getProvider().getLocalDirectory() != null
 				&& !new File(config.getProvider().getLocalDirectory()).isAbsolute()) {
 			logger.fine("Assuming " + config.getProvider().getLocalDirectory() + " is in "
@@ -471,18 +507,17 @@ public class CloudGridAgentBootstrapper {
 		}
 	}
 
-	
-	private void waitForUninstallApplications(final long timeout, final TimeUnit timeunit) throws InterruptedException,
-			TimeoutException, CLIException {
+	private void waitForUninstallApplications(final long timeout, final TimeUnit timeunit)
+			throws InterruptedException, TimeoutException, CLIException {
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
 
 			@Override
 			public boolean isDone() throws CLIException, InterruptedException {
-				List<String> applications = adminFacade.getApplicationsList();
+				final List<String> applications = adminFacade.getApplicationsList();
 
 				boolean done = true;
 
-				for (String application : applications) {
+				for (final String application : applications) {
 					if (!MANAGEMENT_APPLICATION.equals(application)) {
 						done = false;
 						break;
@@ -511,7 +546,7 @@ public class CloudGridAgentBootstrapper {
 				try {
 					adminFacade.connect(null, null, restAdminUrl.toString());
 					return true;
-				} catch (CLIException e) {
+				} catch (final CLIException e) {
 					if (verbose) {
 						logger.log(Level.INFO, "Error connecting to rest service.", e);
 					}
@@ -522,19 +557,17 @@ public class CloudGridAgentBootstrapper {
 		});
 	}
 
-	private ConditionLatch createConditionLatch(long timeout, TimeUnit timeunit) {
+	private ConditionLatch createConditionLatch(final long timeout, final TimeUnit timeunit) {
 		return new ConditionLatch().timeout(timeout, timeunit).pollingInterval(progressInSeconds, TimeUnit.SECONDS)
 				.timeoutErrorMessage(OPERATION_TIMED_OUT).verbose(verbose);
 	}
 
-	
-
-	public void setCloud(Cloud cloud) {
+	public void setCloud(final Cloud cloud) {
 		this.cloud = cloud;
 
 	}
 
-	public void setCloudFile(File cloudFile) {
+	public void setCloudFile(final File cloudFile) {
 		this.cloudFile = cloudFile;
 	}
 
