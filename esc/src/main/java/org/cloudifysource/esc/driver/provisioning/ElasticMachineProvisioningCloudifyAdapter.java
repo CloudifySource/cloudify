@@ -17,7 +17,9 @@ package org.cloudifysource.esc.driver.provisioning;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -101,7 +103,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		details.setLocalDir(cloud.getProvider().getLocalDirectory());
 		details.setRemoteDir(cloud.getProvider().getRemoteDirectory());
-		details.setManagementOnlyFiles(cloud.getProvider().getManagementOnlyFiles());
+		// Create a copy of managementOnly files and mutate
+		List<String> managementOnlyFiles = new ArrayList<String>(cloud.getProvider().getManagementOnlyFiles());
+		managementOnlyFiles.add(cloud.getUser().getKeyFile()); //keyFile is always a management file
+		details.setManagementOnlyFiles(managementOnlyFiles);
 		final String[] zones = this.config.getGridServiceAgentZones();
 		details.setZones(StringUtils.join(zones, ",", 0, zones.length));
 
