@@ -44,6 +44,8 @@ public class MachineDetails {
 	private FileTransferModes fileTransferMode = FileTransferModes.SCP;
 	private RemoteExecutionModes remoteExecutionMode = RemoteExecutionModes.SSH;
 
+	private String remoteDirectory;
+
 	public String getMachineId() {
 		return machineId;
 	}
@@ -162,6 +164,14 @@ public class MachineDetails {
 
 	public void setRemoteExecutionMode(final RemoteExecutionModes remoteExecutionMode) {
 		this.remoteExecutionMode = remoteExecutionMode;
+	}
+
+	public String getRemoteDirectory() {
+		return remoteDirectory;
+	}
+
+	public void setRemoteDirectory(final String remoteDirectory) {
+		this.remoteDirectory = remoteDirectory;
 	}
 
 }

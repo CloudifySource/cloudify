@@ -47,6 +47,7 @@ import org.jclouds.compute.domain.NodeState;
 import org.jclouds.domain.LoginCredentials;
 
 import com.google.common.base.Predicate;
+import com.j_spaces.kernel.Environment;
 
 /**************
  * A jclouds-based CloudifyProvisioning implementation. Uses the JClouds Compute Context API to provision an image with
@@ -179,7 +180,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 			if (this.cloud.getProvider().getProvider().equals("aws-ec2") && fileTransfer.equals(FileTransferModes.CIFS)) {
 				// Special password handling for windows on EC2
-				handleEC2WindowsCredentials(end, node, machineDetails, cloudTemplate);
+				if (machineDetails.getRemotePassword() == null) {
+					// The template did not specify a password, so we must be using the aws windows password mechanism.
+					handleEC2WindowsCredentials(end, node, machineDetails, cloudTemplate);
+				}
 
 			} else {
 				// Credentials required special handling.
@@ -200,11 +204,27 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	private void handleEC2WindowsCredentials(final long end, final NodeMetadata node,
 			final MachineDetails machineDetails, final CloudTemplate cloudTemplate)
 			throws FileNotFoundException, InterruptedException, TimeoutException, CloudProvisioningException {
-		// final String baseDirectory =
-		// this.management ? Environment.getHomeDirectory() : this.cloud.getProvider().getRemoteDirectory();
-		// final File localDirectory = new File(baseDirectory, this.cloud.getProvider().getLocalDirectory());
+		File pemFile = null;
+		logger.info("Gigaspaces base is: " + Environment.getHomeDirectory());
+		logger.info("Local directory is: " + this.cloud.getProvider().getLocalDirectory());
+		if (this.management) {
+			final String baseDirectory = Environment.getHomeDirectory();
+			final File localDirectory = new File(baseDirectory, this.cloud.getProvider().getLocalDirectory());
 
-		final File pemFile = new File(this.cloud.getUser().getKeyFile());
+			pemFile = new File(localDirectory, this.cloud.getUser().getKeyFile());
+		} else {
+			String localDirectoryName = this.cloud.getProvider().getLocalDirectory();
+			logger.info("local dir name is: " + localDirectoryName);
+			final File localDirectory = new File(localDirectoryName);
+
+			pemFile = new File(localDirectory, this.cloud.getUser().getKeyFile());
+		}
+		// final String baseDirectory = this.management ? Environment.getHomeDirectory() :
+		// this.cloud.getProvider().getRemoteDirectory();
+		// final File localDirectory = new File(baseDirectory, this.cloud.getProvider().getLocalDirectory());
+		//
+		// final File pemFile = new File(this.cloud.getUser().getKeyFile());
+
 		logger.info("PEM file is located at: " + pemFile);
 		if (!pemFile.exists()) {
 			logger.severe("Could not find pem file: " + pemFile);
@@ -259,38 +279,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 		}
 		throw new TimeoutException("Node failed to reach RUNNING mode in time");
-	}
-
-	/*********
-	 * Periodically gets the server status from the cloud, until the server's status changes to ACTIVE, or a timeout
-	 * expires.
-	 * 
-	 * @param serverId The server ID.
-	 * @param milliseconds
-	 * @param l
-	 * @return The server status - should always be ACTIVE.
-	 */
-	private void waitUntilServerIsActive(final String serverId, final long timeout, final TimeUnit unit)
-			throws TimeoutException, InterruptedException {
-		final long endTime = System.currentTimeMillis() + unit.toMillis(timeout);
-		NodeMetadata server;
-		while (true) {
-			server = deployer.getServerByID(serverId);
-			if (server != null && server.getState() == NodeState.RUNNING) {
-				break;
-			}
-
-			if (System.currentTimeMillis() > endTime) {
-				throw new TimeoutException("Server [ " + serverId + " ] has been starting up for more more than "
-						+ TimeUnit.MINUTES.convert(WAIT_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS) + " minutes!");
-			}
-
-			if (logger.isLoggable(Level.FINE)) {
-				final String serverName = server != null ? server.getState().name() : serverId;
-				logger.fine("Server Status (" + serverName + ") still not active, please wait...");
-			}
-			Thread.sleep(WAIT_THREAD_SLEEP_MILLIS);
-		}
 	}
 
 	/*********
@@ -541,23 +529,62 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			md.setPublicAddress(node.getPublicAddresses().iterator().next());
 		}
 
-		if (node.getCredentials() == null) {
-			md.setRemoteUsername(cloud.getConfiguration().getRemoteUsername());
-		} else {
-			final String serverIdentity = node.getCredentials().identity;
-			if (serverIdentity != null) {
-				md.setRemoteUsername(serverIdentity);
-			} else {
-				md.setRemoteUsername(cloud.getConfiguration().getRemoteUsername());
-			}
+		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplateName);
+		final String username = createMachineUsername(node, template);
+		final String password = createMachinePassword(node, template);
 
-			if (node.getCredentials().getOptionalPassword().isPresent()) {
-				md.setRemotePassword(node.getCredentials().getPassword());
-			}
-		}
+		md.setRemoteUsername(username);
+		md.setRemotePassword(password);
 
 		md.setUsePrivateAddress(this.cloud.getConfiguration().isConnectToPrivateIp());
 		return md;
+	}
+
+	private String createMachineUsername(final NodeMetadata node, final CloudTemplate template) {
+
+		// Template configuration takes precedence.
+		if (template.getUsername() != null) {
+			return template.getUsername();
+		}
+
+		// Global configuration comes next.
+		// This should probably be deprecated.
+		if (cloud.getConfiguration().getRemoteUsername() != null) {
+			return cloud.getConfiguration().getRemoteUsername();
+		}
+
+		// Check if node returned a username
+		if (node.getCredentials() != null) {
+			final String serverIdentity = node.getCredentials().identity;
+			if (serverIdentity != null) {
+				return serverIdentity;
+			}
+		}
+
+		return null;
+	}
+
+	private String createMachinePassword(final NodeMetadata node, final CloudTemplate template) {
+
+		// Template configuration takes precedence.
+		if (template.getPassword() != null) {
+			return template.getPassword();
+		}
+
+		// Global configuration comes next.
+		// This should probably be deprecated.
+		if (cloud.getConfiguration().getRemotePassword() != null) {
+			return cloud.getConfiguration().getRemotePassword();
+		}
+
+		// Check if node returned a username
+		if (node.getCredentials() != null) {
+			if (node.getCredentials().getOptionalPassword().isPresent()) {
+				return node.getCredentials().getPassword();
+			}
+		}
+
+		return null;
 	}
 
 	@Override

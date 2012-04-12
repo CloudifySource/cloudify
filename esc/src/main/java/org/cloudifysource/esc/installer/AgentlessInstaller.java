@@ -51,7 +51,6 @@ import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.util.ShellCommandBuilder;
 import org.cloudifysource.esc.util.Utils;
-import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioningException;
 
 /************
  * The agentless installer class is responsible for installing gigaspaces on a remote machine, using only ssh. It will
@@ -213,8 +212,8 @@ public class AgentlessInstaller {
 	 * @throws IOException in case of an error during file transfer.
 	 * @throws TimeoutException
 	 * @throws URISyntaxException
-	 * @throws InstallerException 
-	 * @throws InterruptedException 
+	 * @throws InstallerException
+	 * @throws InterruptedException
 	 */
 	private void copyFiles(final String host, final String username, final String password, final String srcDir,
 			final String toDir, final String keyFile, final Set<String> excludedFiles, final File cloudFile,
@@ -277,7 +276,8 @@ public class AgentlessInstaller {
 
 					}
 					final FileObject remoteFile =
-							mng.resolveFile(remoteDir, localDir.getName().getRelativeName(fileInfo.getFile().getName()));
+							mng.resolveFile(remoteDir, 
+									localDir.getName().getRelativeName(fileInfo.getFile().getName()));
 					if (!remoteFile.exists()) {
 						logger.fine(fileInfo.getFile().getName().getBaseName() + " missing on server");
 						return true;
@@ -532,7 +532,7 @@ public class AgentlessInstaller {
 		final List<String> fullCommand = new LinkedList<String>();
 		fullCommand.addAll(Arrays.asList(POWER_SHELL_PREFIX));
 		fullCommand.add(tempScriptFile.getAbsolutePath());
-		
+
 		checkConnection(targetHost, POWERSHELL_PORT, millisUntil, milliseconds);
 		final ProcessBuilder pb = new ProcessBuilder(fullCommand);
 		pb.redirectErrorStream(true);

@@ -100,7 +100,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		final InstallationDetails details = new InstallationDetails();
 
 		details.setLocalDir(cloud.getProvider().getLocalDirectory());
-		details.setRemoteDir(cloud.getProvider().getRemoteDirectory());
+		final String remoteDir = getRemoteDir();
+		details.setRemoteDir(remoteDir);
 		details.setManagementOnlyFiles(cloud.getProvider().getManagementOnlyFiles());
 		final String[] zones = this.config.getGridServiceAgentZones();
 		details.setZones(StringUtils.join(zones, ",", 0, zones.length));
@@ -136,6 +137,16 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		logger.info("Created new Installation Details: " + details);
 		return details;
 
+	}
+
+	private String getRemoteDir() {
+		// TODO - there really should be a template field
+		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplate);
+		if (template.getRemoteDirectory() != null) {
+			return template.getRemoteDirectory();
+		}
+
+		return this.cloud.getProvider().getRemoteDirectory();
 	}
 
 	@Override
@@ -428,7 +439,24 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 			// This code runs on the ESM in the remote machine,
 			// so set the local directory to the value of the remote directory
-			cloud.getProvider().setLocalDirectory(cloud.getProvider().getRemoteDirectory());
+			// TODO - change the condition to ServiceUtils.isWindows
+			logger.info("Remote Directory is: " + cloud.getProvider().getRemoteDirectory());
+			if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
+				logger.info("Windows machine - modifying local directory location");
+				String localDirectoryName = cloud.getProvider().getRemoteDirectory();
+				localDirectoryName = localDirectoryName.replace("$", "");
+				if (localDirectoryName.startsWith("/")) {
+					localDirectoryName = localDirectoryName.substring(1);
+				}
+				if (localDirectoryName.charAt(1) == '/') {
+					localDirectoryName = localDirectoryName.substring(0, 1) + ":" + localDirectoryName.substring(1);
+				}
+				logger.info("Modified local dir name is: " + localDirectoryName);
+
+				cloud.getProvider().setLocalDirectory(localDirectoryName);
+			} else {
+				cloud.getProvider().setLocalDirectory(cloud.getProvider().getRemoteDirectory());
+			}
 
 			// load the provisioning class and set it up
 			try {
