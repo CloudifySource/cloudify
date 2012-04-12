@@ -22,7 +22,7 @@
 # Example:
 # Invoke-Command -ComputerName ec2-107-21-132-11.compute-1.amazonaws.com -Credential $cred -ScriptBlock {#$ENV:LUS_IP_ADDRESS=10.46.178;$ENV:GSA_MODE=lus;$ENV:NO_WEB_SERVICES=false;$ENV:MACHINE_IP_ADDRESS=10.46.178.72;$ENV:MACHINE_ZONES="ZONE";$ENV:WORKING_HOME_DIRECTORY="C:\Users\Administrator\Documents";$ENV:CLOUDIFY_LINK="http://repository.cloudifysource.org/org/cloudifysource/2.1.0/gigaspaces-cloudify-2.1.0-m2-b1193-82.zip";$ENV:CLOUD_FILE="ec2-cloud.groovy";.\bootstrap-management.ps1 }
 #  
-
+#
 # The following environment variables should be set before calling this script:
 # 	$LUS_IP_ADDRESS - Ip of the head node that runs a LUS and ESM. May be my IP. (Required)
 #   $GSA_MODE - 'agent' if this node should join an already running node. Otherwise, any value.
@@ -40,12 +40,13 @@
 
 Function unzip ($zipFile, $destinationDirName)
 {
-
 	Write-Host Extracting $zipFile to $destinationDirName
 	$shellApplication = new-object -com shell.application 
 	$zipPackage = $shellApplication.NameSpace($zipFile) 
 	mkdir $destinationDirName | Out-Null
+
 	$destinationFolder = $shellApplication.NameSpace($destinationDirName) 
+
 	# CopyHere vOptions 
 	# 4- Do not display a progress dialog box. 
 	# 16 - Respond with "Yes to All" for any dialog box that is displayed. 
@@ -71,41 +72,48 @@ Function insert-line($file, $content)
 $ErrorActionPreference="Stop"
 CD $ENV:WORKING_HOME_DIRECTORY
 $workDirectory= (Get-Location).Path
+$parentDirectory = Split-Path -parent $workDirectory
+
+$javaZip = "$parentDirectory\java.zip"
+$javaDir = "$parentDirectory\java"
+
 
 # Multicast is off by default in Cloudify
 $Env:EXT_JAVA_OPTIONS="-Dcom.gs.multicast.enabled=false"
 
 # Download Java
-download "http://repository.cloudifysource.org/com/oracle/java/1.6.0_25/jdk1.6.0_25_x64.zip" $workDirectory\java.zip
+download "http://repository.cloudifysource.org/com/oracle/java/1.6.0_25/jdk1.6.0_25_x64.zip" $javaZip
 # Unzip Java
-unzip $workDirectory\java.zip $workDirectory\java
+unzip $javaZip $javaDir
 # move one folder up, to standardize across versions
-move $workDirectory\java\*\* $workDirectory\java\
+move $javaDir\*\* $javaDir
+
+$cloudifyZip = "$parentDirectory\gigaspaces.zip"
+$cloudifyDir = "$parentDirectory\gigaspaces"
 
 # Download Cloudify
-download $ENV:CLOUDIFY_LINK $workDirectory\gigaspaces.zip
+download $ENV:CLOUDIFY_LINK $cloudifyZip
 # unzip Cloudify
-unzip $workDirectory\gigaspaces.zip $workDirectory\gigaspaces
+unzip $cloudifyZip $cloudifyDir
 # move one folder up, to standardize across versions
-move $workDirectory\gigaspaces\*\* $workDirectory\gigaspaces\
+move $cloudifyDir\*\* $cloudifyDir
 
 # Download Cloudify Overrides
 if(Test-Path Env:\CLOUDIFY_OVERRIDES_LINK) {
-	download $ENV:CLOUDIFY_OVERRIDES_LINK ".\gigaspaces-overrides.zip"
+	download $ENV:CLOUDIFY_OVERRIDES_LINK $parentDirectory\gigaspaces-overrides.zip
 	# unzip Cloudify-overrides
-	unzip ".\gigaspaces-overrides.zip" ".\gigaspaces"
-
+	unzip $parentDirectory\gigaspaces-overrides.zip $cloudifyDir
 }
 
 if(Test-Path $workDirectory\cloudify-overrides) {
-	copy -Recurse -Force $workDirectory\cloudify-overrides\* $workDirectory\gigaspaces
+	copy -Recurse -Force $workDirectory\cloudify-overrides\* $cloudifyDir
 }
 
 # UPDATE SETENV SCRIPT...
 Write-Host Updating environment script
-insert-line $workDirectory\gigaspaces\bin\setenv.bat "set NIC_ADDR=$ENV:MACHINE_IP_ADDRESS"
-insert-line $workDirectory\gigaspaces\bin\setenv.bat "set LOOKUPLOCATORS=$ENV:LUS_IP_ADDRESS"
-insert-line $workDirectory\gigaspaces\bin\setenv.bat "set JAVA_HOME=$workDirectory\java"
+insert-line $cloudifyDir\bin\setenv.bat "set NIC_ADDR=$ENV:MACHINE_IP_ADDRESS"
+insert-line $cloudifyDir\bin\setenv.bat "set LOOKUPLOCATORS=$ENV:LUS_IP_ADDRESS"
+insert-line $cloudifyDir\bin\setenv.bat "set JAVA_HOME=$workDirectory\..\java"
 
 Write-Host "Disabling local firewall"
 $firewallCommand = "netsh advfirewall set allprofiles state off"
@@ -118,7 +126,7 @@ rm -Force firewall.bat
 if ($ENV:GSA_MODE -eq "agent")
 {
 	Write-Host "Starting agent node"
-	$commandLine = "$workDirectory\gigaspaces\tools\cli\cloudify.bat start-agent -timeout 30 --verbose -zone $ENV:MACHINE_ZONES -auto-shutdown > run.log"
+	$commandLine = "$cloudifyDir\tools\cli\cloudify.bat start-agent -timeout 30 --verbose -zone $ENV:MACHINE_ZONES -auto-shutdown > $workDirectory\run.log"
 }
 else {
 	# Cloud file in Java must use slash ('/') not back-slash ('\')
@@ -126,11 +134,11 @@ else {
 
 	if ($ENV:NO_WEB_SERVICES -eq "true") 
 	{
-		$commandLine = "$workDirectory\gigaspaces\tools\cli\\cloudify.bat start-management -no-web-services -no-management-space -timeout 30 --verbose -auto-shutdown -cloud-file $cloudFile > run.log"
+		$commandLine = "$cloudifyDir\tools\cli\\cloudify.bat start-management -no-web-services -no-management-space -timeout 30 --verbose -auto-shutdown -cloud-file $cloudFile > $workDirectory\run.log"
 	} 
 	else {
 		Write-Host "Starting management node"
-		$commandLine = "$workDirectory\gigaspaces\tools\cli\cloudify.bat start-management -timeout 30 --verbose -auto-shutdown -cloud-file $cloudFile > run.log"
+		$commandLine = "$cloudifyDir\tools\cli\cloudify.bat start-management -timeout 30 --verbose -auto-shutdown -cloud-file $cloudFile > $workDirectory\run.log"
 	}
 
 }
