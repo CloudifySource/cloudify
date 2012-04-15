@@ -32,6 +32,8 @@ portIncrement = context.getInstanceId() - 1
 new AntBuilder().sequential {
 	exec(executable:"${script}.sh", osfamily:"unix") {
         env(key:"CATALINA_HOME", value: "${home}")
+    env(key:"CATALINA_BASE", value: "${home}")
+    env(key:"CATALINA_TMPDIR", value: "${home}/temp")
 		env(key:"CATALINA_OPTS", value:"-Dcom.sun.management.jmxremote.port=${->config.jmxPort+portIncrement} -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false")
 		env(key:"MONGO_HOST", value: "${mongoServiceHost}")
         env(key:"MONGO_PORT", value: "${mongoServicePort}")
@@ -39,6 +41,8 @@ new AntBuilder().sequential {
 	}
 	exec(executable:"${script}.bat", osfamily:"windows") { 
         env(key:"CATALINA_HOME", value: "${home}")
+    env(key:"CATALINA_BASE", value: "${home}")
+    env(key:"CATALINA_TMPDIR", value: "${home}/temp")
 		env(key:"CATALINA_OPTS", value:"-Dcom.sun.management.jmxremote.port=${->config.jmxPort+portIncrement} -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false")
 		env(key:"MONGO_HOST", value: "${mongoServiceHost}")
         env(key:"MONGO_PORT", value: "${mongoServicePort}")

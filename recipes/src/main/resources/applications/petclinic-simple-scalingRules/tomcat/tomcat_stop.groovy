@@ -15,10 +15,14 @@ println "tomcat_stop.groovy: executing command ${script}"
 new AntBuilder().sequential {
 	exec(executable:"${script}.sh", osfamily:"unix") {
         env(key:"CATALINA_HOME", value: "${home}")
+    env(key:"CATALINA_BASE", value: "${home}")
+    env(key:"CATALINA_TMPDIR", value: "${home}/temp")
 		arg(value:"stop")
 	}
 	exec(executable:"${script}.bat", osfamily:"windows"){
         env(key:"CATALINA_HOME", value: "${home}")
+    env(key:"CATALINA_BASE", value: "${home}")
+    env(key:"CATALINA_TMPDIR", value: "${home}/temp")
 		arg(value:"stop")
 	}
 }
