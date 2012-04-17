@@ -434,7 +434,8 @@
 	
 	<target name="extend.xap.with.cloudify.modules">
 		<!-- this target is invoked from XAP xap-release.xml. ${xap.installation.dir} is passed as a parameter -->
-		<add.cloudify.modules installation.dir="${xap.installation.dir}"/>
+		<add.cloudify.modules installation.dir=""/>
+		<delete dir="${xap.installation.dir}/recipes" excludes="mongodb/**, cassandra/**" includeemptydirs="true"/>	
 	</target>
 	
 	<target name="commit.service.configuration">
