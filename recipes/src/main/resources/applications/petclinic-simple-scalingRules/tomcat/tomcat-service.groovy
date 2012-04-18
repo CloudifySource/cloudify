@@ -4,7 +4,11 @@ service {
 	name "tomcat"
 	icon "tomcat.gif"
 	type "WEB_SERVER"
-	def portIncrement = {-> context.getInstanceId()-1};
+	
+	def portIncrement = { -> 
+    context.isLocalCloud() ? context.getInstanceId()-1 : 0
+  };
+  
 	def readConfig = { ->
 		return new ConfigSlurper().parse(new File(context.serviceDirectory.toString(),"tomcat.properties").toURL())
 	}

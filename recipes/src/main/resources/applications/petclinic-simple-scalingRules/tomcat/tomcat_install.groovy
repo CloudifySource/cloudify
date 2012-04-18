@@ -27,8 +27,11 @@ new AntBuilder().sequential {
 	chmod(dir:"${home}/bin", perm:'+x', includes:"*.sh")
 }
 
-portIncrement = instanceID - 1
-println "tomcat_install.groovy: Replacing default tomcat port with port ${config.port + portIncrement}"
+portIncrement = 0
+if (serviceContext.isLocalCloud()) {
+  portIncrement = instanceID - 1
+  println "tomcat_install.groovy: Replacing default tomcat port with port ${config.port + portIncrement}"
+}
 
 def serverXmlFile = new File("${home}/conf/server.xml") 
 def serverXmlText = serverXmlFile.text	

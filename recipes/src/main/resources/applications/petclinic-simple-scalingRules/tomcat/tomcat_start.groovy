@@ -28,7 +28,12 @@ def mongoServicePort = mongoServiceInstances[1].port
 
 println "tomcat_start.groovy executing ${script}"
 context = ServiceContextFactory.getServiceContext()
-portIncrement = context.getInstanceId() - 1
+portIncrement = 0
+if (serviceContext.isLocalCloud()) {
+  portIncrement = instanceID - 1
+  println "tomcat_start.groovy: Replacing default jmx port with port ${config.jmxPort + portIncrement}"
+}
+
 new AntBuilder().sequential {
 	exec(executable:"${script}.sh", osfamily:"unix") {
         env(key:"CATALINA_HOME", value: "${home}")
