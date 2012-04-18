@@ -115,6 +115,9 @@ public abstract class BaseDslScript extends Script {
 		}
 
 		try {
+			if (logger.isLoggable(Level.FINEST)) {
+				logger.finest("BeanUtils.setProperty(object="+object+",name="+name+",value="+value+",value.getClass()="+value.getClass());
+			}
 			// Then set it
 			BeanUtils.setProperty(object, name, value);
 

@@ -22,7 +22,7 @@
 		<dependency>
 			<groupId>commons-beanutils</groupId>
 			<artifactId>commons-beanutils</artifactId>
-			<version>1.7.0</version>
+			<version>1.8.3</version>
 			<exclusions>
 				<!-- Exclude commons logging - because the scope of beanutils is compile, 
 					the assembly plugin adds commons logging to the dsl jar file -->
