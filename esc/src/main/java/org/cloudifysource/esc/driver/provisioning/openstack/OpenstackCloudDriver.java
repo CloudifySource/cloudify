@@ -48,6 +48,11 @@ import com.sun.jersey.api.client.filter.LoggingFilter;
 
 /**************
  * A custom cloud driver for OpenStack, using keystone authentication.
+ * In order to be able to define a floating IP for a machine
+ * Changes will have to be made in the cloud driver. a floating ip should
+ * be allocated and attached to the server in the newServer method, and detach and
+ * deleted upon machine shutdown. 
+ * 
  * 
  * @author barakme
  * @since 2.1
@@ -55,10 +60,10 @@ import com.sun.jersey.api.client.filter.LoggingFilter;
  */
 public class OpenstackCloudDriver extends CloudDriverSupport implements ProvisioningDriver {
 
+	private static final String MACHINE_STATUS_ACTIVE = "ACTIVE";
 	private static final int HTTP_NOT_FOUND = 404;
 	private static final int SERVER_POLLING_INTERVAL_MILLIS = 1000;
 	private static final int DEFAULT_SHUTDOWN_TIMEOUT_MILLIS = 5 * 60 * 1000; // 5 minutes
-	private static final String OPENSTACK_ALLOCATE_FLOATING_IP = "openstack.allocate-floating-ip";
 	private static final String OPENSTACK_OPENSTACK_IDENTITY_ENDPOINT = "openstack.identity.endpoint";
 	private static final String OPENSTACK_WIRE_LOG = "openstack.wireLog";
 	private static final String OPENSTACK_KEY_PAIR = "openstack.keyPair";
@@ -67,7 +72,6 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 	private static final String OPENSTACK_TENANT = "openstack.tenant";
 
 	private final XPath xpath = XPathFactory.newInstance().newXPath();
-	// private Admin admin = null;
 
 	private final DocumentBuilder documentBuilder;
 	private final Client client;
@@ -308,17 +312,21 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 			node.setStatus(xpath.evaluate("/server/@status", xmlDoc));
 			node.setName(xpath.evaluate("/server/@name", xmlDoc));
 
+			// We expect to get 2 IP addresses, public and private. Currently we get them both in an xml 
+			// under a private node attribute. this is expected to change.
 			final NodeList addresses =
 					(NodeList) xpath.evaluate("/server/addresses/network/ip/@addr", xmlDoc, XPathConstants.NODESET);
-
-			if (addresses.getLength() > 0) {
+			if  (node.getStatus().equalsIgnoreCase(MACHINE_STATUS_ACTIVE)) {
+				
+				if (addresses.getLength() != 2) {
+					throw new IllegalStateException("Expected 2 addresses, private and public, got " 
+							+ addresses.getLength() + " addresses");
+				}
+				
 				node.setPrivateIp(addresses.item(0).getTextContent());
-
-			}
-
-			if (addresses.getLength() > 1) {
 				node.setPublicIp(addresses.item(1).getTextContent());
 			}
+			
 		} catch (XPathExpressionException e) {
 			throw new OpenstackException("Failed to parse XML Response from server. Response was: " + response
 					+ ", Error was: " + e.getMessage(), e);
@@ -426,12 +434,6 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 		// detach public ip and delete the servers
 		for (final String serverId : serverIds) {
-
-			final Node node = getNode(serverId, token);
-			if (node.getPublicIp() != null) {
-				detachFloatingIP(serverId, node.getPublicIp(), token);
-				deleteFloatingIP(node.getPublicIp(), token);
-			}
 			try {
 				service.path(this.pathPrefix + "servers/" + serverId).header("X-Auth-Token", token)
 						.accept(MediaType.APPLICATION_XML).delete();
@@ -485,20 +487,12 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 		try {
 			final MachineDetails md = new MachineDetails();
 			// wait until complete
-			waitForServerToReachStatus(md, endTime, serverId, token, "ACTIVE");
+			waitForServerToReachStatus(md, endTime, serverId, token, MACHINE_STATUS_ACTIVE);
 
-			// if here, we have a node with a private ip.
-
-			// allocate the public ip, if required.
-			final String allocateIp = (String) serverTemplate.getOptions().get(OPENSTACK_ALLOCATE_FLOATING_IP);
-			if (allocateIp == null || Boolean.parseBoolean(allocateIp)) {
-
-				final String floatingIp = allocateFloatingIP(token);
-
-				addFloatingIP(String.valueOf(serverId), floatingIp, token);
-				md.setPublicAddress(floatingIp);
-			}
-
+			// if here, we have a node with a private and public ip.
+			Node node = this.getNode(serverId, token);
+			
+			md.setPublicAddress(node.getPublicIp());
 			md.setMachineId(serverId);
 			md.setAgentRunning(false);
 			md.setCloudifyInstalled(false);

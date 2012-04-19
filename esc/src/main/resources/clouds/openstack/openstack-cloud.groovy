@@ -41,9 +41,7 @@ cloud {
 					//locationId "us-east-1"
 					options ([
 						"openstack.securityGroup" : "test",
-						"openstack.keyPair" : "hp-cloud-demo",
-						// indicates if a floating IP should be assigned to this machine. Defaults to true.
-						"openstack.allocate-floating-ip" : "true"
+						"openstack.keyPair" : "hp-cloud-demo"
 					])
 					
 				}
