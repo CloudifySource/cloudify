@@ -63,6 +63,7 @@ import net.jini.core.discovery.LookupLocator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.dsl.ComputeDetails;
 import org.cloudifysource.dsl.DataGrid;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.Sla;
@@ -1096,10 +1097,18 @@ public class ServiceController {
 		return successStatus(resultsMap);
 	}
 
-	private Object doDeployApplication(final String applicationName, final File applicationFile, int timeout)
+	private Object doDeployApplication(final String applicationName, final File applicationFile, final int timeout)
 			throws IOException, DSLException {
 		final DSLApplicationCompilatioResult result = ServiceReader.getApplicationFromFile(applicationFile);
 		final List<Service> services = createServiceDependencyOrder(result.getApplication());
+		
+		//validate the template specified by each server (if specified) is available on this cloud
+		for (Service service : services) {
+			ComputeDetails compute = service.getCompute();
+			if (compute != null && StringUtils.isNotBlank(compute.getTemplate())) {
+				getComputeTemplate(cloud, compute.getTemplate());	
+			}
+		}		
 
 		logger.log(Level.INFO, "Starting to poll for installation lifecycle events.");
 		UUID lifecycleEventContainerID =
