@@ -27,7 +27,7 @@ def mongoServicePort = mongoServiceInstances[1].port
 
 
 println "tomcat_start.groovy executing ${script}"
-context = ServiceContextFactory.getServiceContext()
+
 portIncrement = 0
 if (serviceContext.isLocalCloud()) {
   portIncrement = instanceID - 1
