@@ -1,63 +1,50 @@
-/*******************************************************************************
-* Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*       http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+import com.mongodb.CommandResult;
+import com.mongodb.Mongo;
+import com.mongodb.DB;
 service {
 	
 	name "mongod"
 	icon "mongodb.png"
 	type "NOSQL_DB"
 	numInstances 2
+	
+	compute {
+		template "SMALL_LINUX"
+	}
 
 	lifecycle {
-		init "mongod_install.groovy"
-		start "mongod_start.groovy"		
-		postStart "mongod_poststart.groovy"
-	}
-	
-	plugins([
-        plugin {
-            name "portLiveness"
-            className "org.cloudifysource.mongodb.MongoLivenessDetector"
-            config ([
-                "portFile":"port.txt", 
-				//"port" : 10000,
-                "timeoutInSeconds" : 60,
-                "host" : "127.0.0.1"
-            ])
-        }, 
-		plugin {
-			name "MongoDBMonitorsPlugin"
-			className "org.cloudifysource.mongodb.MongoDBMonitorsPlugin"
-			config([				
-				"host":"127.0.0.1",
-				"portFile":"port.txt", 
-				//"port" : 10000,
-				"dbName":"mydb",
-				"dataSpec" : [
-				    "Active Read Clients":"globalLock.activeClients.readers", 
-					"Active Write Clients":"globalLock.activeClients.writers", 
-					"Read Clients Waiting":"globalLock.currentQueue.readers", 
-					"Write Clients Waiting":"globalLock.currentQueue.writers", 
-					"Current Active Connections":"connections.current",
-					"Open Cursors":"cursors.totalOpen"
+		install "mongod_install.groovy"
+		start "mongod_start.groovy"			
+		startDetectionTimeoutSecs 240
+		startDetection {
+			ServiceUtils.isPortOccupied(context.attributes.thisInstance["port"])
+		}
+
+		monitors{
+			try { 
+				port  = context.attributes.thisInstance["port"] as int
+				mongo = new Mongo("127.0.0.1", port)			
+				db = mongo.getDB("mydb")
+														
+				result = db.command("serverStatus")
+				println "mongod-service.groovy: result is ${result}"	
+														
+				return [
+					"Active Read Clients":result.globalLock.activeClients.readers,
+					"Active Write Clients":result.globalLock.activeClients.writers, 
+					"Read Clients Waiting":result.globalLock.currentQueue.readers, 
+					"Write Clients Waiting":result.globalLock.currentQueue.writers, 
+					"Current Active Connections":result.connections.current,
+					"Open Cursors":result.cursors.totalOpen
 				]
-			])
-		} 
-		
-		
-	])
+			}			
+			finally {
+				if (null!=mongo) mongo.close()
+			}
+			
+			
+		}
+	}
 
 	userInterface {
 		metricGroups = ([
