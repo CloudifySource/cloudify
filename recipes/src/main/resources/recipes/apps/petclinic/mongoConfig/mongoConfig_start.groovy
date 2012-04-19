@@ -1,21 +1,21 @@
 import org.cloudifysource.dsl.context.ServiceContextFactory
 
-def config = new ConfigSlurper().parse(new File('mongoConfig.properties').toURL())
+config = new ConfigSlurper().parse(new File('mongoConfig-service.properties').toURL())
 
-def serviceContext = ServiceContextFactory.getServiceContext()
-def instanceID = serviceContext.getInstanceId()
+serviceContext = ServiceContextFactory.getServiceContext()
+instanceID = serviceContext.getInstanceId()
 
-def intPort = serviceContext.attributes.thisInstance["port"] as int
+intPort = serviceContext.attributes.thisInstance["port"] as int
 println "mongoConfig_start.groovy: mongoConfig#${instanceID} is using port ${intPort}"
 
-def home = serviceContext.attributes.thisInstance["home"]
+home = serviceContext.attributes.thisInstance["home"]
 println "mongoConfig_start.groovy: home ${home}"
 
-def script= serviceContext.attributes.thisInstance["script"]
+script= serviceContext.attributes.thisInstance["script"]
 println "mongoConfig_start.groovy: script ${script}"
 
 
-def dataDir = "${home}/data/cfg"
+dataDir = "${home}/data/cfg"
 println "mongoConfig_start.groovy: dataDir is ${dataDir}"
 
 println "mongoConfig_start.groovy: Running script ${script} for mongoConfig#${instanceID}..."
