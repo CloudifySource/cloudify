@@ -28,7 +28,7 @@ service {
 					println "tomcat-service.groovy(updateWar custom command): warUrl is ${warUrl}..."
 					context.attributes.thisInstance["warUrl"] = "${warUrl}"
 					println "tomcat-service.groovy(updateWar customCommand): invoking updateWarFile custom command ..."
-					context.waitForService("tomcat", 60, TimeUnit.SECONDS).invoke("updateWarFile")
+					context.waitForService(currentServiceName, 60, TimeUnit.SECONDS).invoke("updateWarFile")
 					println "tomcat-service.groovy(updateWar customCommand): End"
 					return true
 				} ,
@@ -54,7 +54,7 @@ service {
 							"backlog"
 						],
 						"Active Sessions":[
-							"Catalina:type=Manager,context=/petclinic-mongo,host=localhost",
+	                                                "Catalina:type=Manager,context=/${appFolder},host=localhost",
 							"activeSessions"
 			                        ],
 						"Total Requests Count": [
