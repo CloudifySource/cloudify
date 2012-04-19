@@ -50,7 +50,7 @@ public final class ShellUtils {
 	private static final char FIRST_ESC_CHAR = 27;
 	private static final char SECOND_ESC_CHAR = '[';
 	private static final char COMMAND_CHAR = 'm';
-	private static ResourceBundle defaultMessageBundle;
+	private static volatile ResourceBundle defaultMessageBundle;
 
 	private ShellUtils() {
 
