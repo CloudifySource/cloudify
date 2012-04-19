@@ -15,8 +15,9 @@ def script= serviceContext.attributes.thisInstance["script"]
 println "mongod_start.groovy: mongod(${instanceID}) script ${script}"
 
 def port = serviceContext.attributes.thisInstance["port"] 
+intPort=port.intValue()
 
-println "mongod_start.groovy: mongod(${instanceID}) port ${port}"
+println "mongod_start.groovy: mongod(${instanceID}) port ${intPort}"
 
 def dataDir = "${home}/data"
 println "mongod_start.groovy: mongod(${instanceID}) dataDir ${dataDir}"
@@ -34,7 +35,7 @@ if (config.sharded) {
 			arg line:"--journal"
 			arg line:"--shardsvr"
 			arg line:"--dbpath \"${dataDir}\""
-			arg line:"--port ${port}"
+			arg line:"--port ${intPort}"
 		}
 	}
 } else {
@@ -42,7 +43,7 @@ if (config.sharded) {
 		exec(executable:"${script}") {
 			arg line:"--journal"
 			arg line:"--dbpath \"${dataDir}\""
-			arg line:"--port ${port}"
+			arg line:"--port ${intPort}"
 		}
 	}
 }
