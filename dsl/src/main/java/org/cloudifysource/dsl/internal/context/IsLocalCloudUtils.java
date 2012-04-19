@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 
 import net.jini.core.discovery.LookupLocator;
 
-import org.openspaces.admin.Admin;
+import org.jini.rio.boot.BootUtil;
 
 /**
  * A helper class for {@link ServiceContextImpl#isLocalCloud()}.
@@ -23,13 +23,12 @@ public final class IsLocalCloudUtils {
 	private static final Logger logger = Logger.getLogger(IsLocalCloudUtils.class.getName());
 	
 	/**
-	 * @param admin - the current Admin API used to extract locators.
 	 * @return true if there is a single lookup locator, and its hostname/ipaddress is the local machine
 	 */
-	public static boolean isLocalCloud(final Admin admin) {
+	public static boolean isLocalCloud() {
 	
 		boolean isLocalCloud = false;
-		LookupLocator[] locators = admin.getLocators();
+		LookupLocator[] locators = getLocators();
 		
 		if (locators.length == 1) {
 			String locatorIP = locators[0].getHost();
@@ -71,4 +70,20 @@ public final class IsLocalCloudUtils {
 		}
 	}
 
+	/**
+	 * Method that retrieves the same locators that the Admin API would use.
+	 * At this stage we may not have an Admin API initialized yet.
+	 * copied from {@link org.openspaces.admin.internal.discovery.DiscoveryService#getLocators()}
+	 */
+	public static LookupLocator[] getLocators() {
+        String locators = null;
+	    String locatorsProperty = System.getProperty("com.gs.jini_lus.locators");
+        if (locatorsProperty == null) {
+            locatorsProperty = System.getenv("LOOKUPLOCATORS");
+        }
+        if (locatorsProperty != null) {
+            locators = locatorsProperty;
+        }
+        return BootUtil.toLookupLocators(locators);
+    }
 }

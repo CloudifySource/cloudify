@@ -271,7 +271,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 	@Override
 	public boolean isLocalCloud() {
-		return IsLocalCloudUtils.isLocalCloud(admin);
+		return IsLocalCloudUtils.isLocalCloud();
 	}
 
 }
