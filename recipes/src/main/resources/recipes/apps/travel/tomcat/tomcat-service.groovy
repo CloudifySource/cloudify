@@ -14,5 +14,5 @@
 * limitations under the License.
 *******************************************************************************/
 service {
-	extend "../../../recipes/tomcat"
+	extend "../../../services/tomcat"
 }
