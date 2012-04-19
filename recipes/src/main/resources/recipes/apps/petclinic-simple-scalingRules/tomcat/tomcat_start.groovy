@@ -30,16 +30,18 @@ println "tomcat_start.groovy executing ${script}"
 
 portIncrement = 0
 if (serviceContext.isLocalCloud()) {
-  portIncrement = instanceID - 1
-  println "tomcat_start.groovy: Replacing default jmx port with port ${config.jmxPort + portIncrement}"
+  portIncrement = instanceID - 1  
 }
+
+currJmxPort=config.jmxPort+portIncrement
+println "tomcat_start.groovy: Replacing default jmx port with port ${currJmxPort}"
 
 new AntBuilder().sequential {
 	exec(executable:"${script}.sh", osfamily:"unix") {
         env(key:"CATALINA_HOME", value: "${home}")
     env(key:"CATALINA_BASE", value: "${home}")
     env(key:"CATALINA_TMPDIR", value: "${home}/temp")
-		env(key:"CATALINA_OPTS", value:"-Dcom.sun.management.jmxremote.port=${->config.jmxPort+portIncrement} -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false")
+		env(key:"CATALINA_OPTS", value:"-Dcom.sun.management.jmxremote.port=${currJmxPort} -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false")
 		env(key:"MONGO_HOST", value: "${mongoServiceHost}")
         env(key:"MONGO_PORT", value: "${mongoServicePort}")
 		arg(value:"run")
@@ -48,7 +50,7 @@ new AntBuilder().sequential {
         env(key:"CATALINA_HOME", value: "${home}")
     env(key:"CATALINA_BASE", value: "${home}")
     env(key:"CATALINA_TMPDIR", value: "${home}/temp")
-		env(key:"CATALINA_OPTS", value:"-Dcom.sun.management.jmxremote.port=${->config.jmxPort+portIncrement} -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false")
+		env(key:"CATALINA_OPTS", value:"-Dcom.sun.management.jmxremote.port=${currJmxPort} -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false")
 		env(key:"MONGO_HOST", value: "${mongoServiceHost}")
         env(key:"MONGO_PORT", value: "${mongoServicePort}")
 		arg(value:"run")
