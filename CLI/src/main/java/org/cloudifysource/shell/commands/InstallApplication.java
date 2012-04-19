@@ -160,23 +160,4 @@ public class InstallApplication extends AdminAwareCommand {
 			}
 		}
 	}
-
-	/**
-	 * Gets a service object from the given application, by service name. In case a service by that name is
-	 * not found - an IllegalStateException is thrown.
-	 * 
-	 * @param application
-	 *            The Application object containing the service
-	 * @param serviceName
-	 *            The name of the required service
-	 * @return Service object
-	 */
-	private Service getServiceByName(final Application application, final String serviceName) {
-		for (final Service service : application.getServices()) {
-			if (serviceName.equals(service.getName())) {
-				return service;
-			}
-		}
-		throw new IllegalStateException("Cannot find service " + serviceName + " in application.");
-	}
 }
