@@ -1,5 +1,5 @@
-import org.cloudifysource.dsl.context.ServiceContextFactory
 import org.cloudifysource.dsl.utils.ServiceUtils;
+import org.cloudifysource.dsl.context.ServiceContextFactory
 
 
 serviceContext = ServiceContextFactory.getServiceContext()
@@ -11,11 +11,11 @@ osConfig = ServiceUtils.isWindows() ? config.win32 : config.unix
 
 instanceID = serviceContext.getInstanceId()
 
-installDir = System.properties["user.home"]+ "/.cloudify/${config.service}" + instanceID
+installDir = System.properties["user.home"]+ "/.cloudify/${config.serviceName}" + instanceID
 
 
 home = "${serviceContext.serviceDirectory}/mongodb-${config.version}"
-//home = "${installDir}/mongodb-${config.version}"
+
 
 serviceContext.attributes.thisInstance["home"] = "${home}"
 println "mongod_install.groovy: mongod(${instanceID}) home is ${home}"
