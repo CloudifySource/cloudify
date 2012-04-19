@@ -40,10 +40,14 @@ if(ServiceUtils.isWindows()) {
 	builder.unzip(src:"${installDir}/${osConfig.zipName}", dest:"${installDir}", overwrite:true)
 } else {
 	builder.untar(src:"${installDir}/${osConfig.zipName}", dest:"${installDir}", compression:"gzip", overwrite:true)
-	builder.chmod(dir:"${installDir}/${osConfig.name}/bin", perm:'+x', includes:"*")
 }
 
 println "mongod_install.groovy: mongod(${instanceID}) moving ${installDir}/${osConfig.name} to ${home}..."
 builder.move(file:"${installDir}/${osConfig.name}", tofile:"${home}")
+
+if(!ServiceUtils.isWindows()) {
+	println "calling chmod on ${home}/bin"
+	builder.chmod(dir:"${home}/bin", perm:'+x', includes:"*")
+}
 
 println "mongod_install.groovy: mongod(${instanceID}) ended"
