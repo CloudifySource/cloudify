@@ -24,21 +24,8 @@ rem Author: barakm
 rem Since: 2.1
 
 
+rem Setting the execution policy has to happen outside the powershell script.
 echo Setting execution policy
 powershell Set-ExecutionPolicy Unrestricted
 
-rem powershell set-item wsman:localhost\Shell\MaxMemoryPerShellMB 2048
-
-echo Moving to Directory: %WORKING_HOME_DIRECTORY%
-cd %WORKING_HOME_DIRECTORY%
-
-echo executing bootstrap script
-powershell .\bootstrap-management.ps1 
-echo scheduling cloudify task
-schtasks.exe /create /TN cloudify-task /SC ONSTART /TR %CD%\run.bat /RU SYSTEM
-echo running cloudify task
-schtasks.exe /run /TN cloudify-task 
-
-echo Cloudify Task scheduled for immediate execution. Please wait for Cloudify agent to become available.
-
-rem schtasks.exe /delete /F /TN cloudify-task 
+powershell %WORKING_HOME_DIRECTORY%\bootstrap-management.ps1 
