@@ -5,8 +5,7 @@ service {
 	icon "tomcat.gif"
 	type "WEB_SERVER"
 	
-	//def portIncrement =  context.isLocalCloud() ? context.getInstanceId()-1 : 0	
-	def portIncrement =  context.getInstanceId()-1
+	def portIncrement =  context.isLocalCloud() ? context.getInstanceId()-1 : 0	
 	def currJmxPort = jmxPort + portIncrement
 	def currHttpPort = port + portIncrement
 	def currAjpPort = ajpPort + portIncrement
