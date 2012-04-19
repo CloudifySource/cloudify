@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -30,6 +31,9 @@ import org.cloudifysource.esc.driver.provisioning.CloudDriverSupport;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -618,76 +622,26 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
                 "/v2.0/tokens").header(
                 "Content-Type", "application/json").post(
                 String.class, json);
-
-	    String[] parts = resp.split("\"endpoints\"");
-	    String tenantIdValue = null;
-	    String tokenIdValue = null;
-	    String publicURLValue = null;
-	    for(String part : parts){
-			String[] words = part.split("\"");
-			boolean token = false;
-			boolean compute = false;
-			String idValue=null;
-			String tenantValue = null;
-			String URLValue = null;
-			for(int i=0;i<words.length;i++)
-			{
-			    String word = words[i];
-			    if(word.compareToIgnoreCase("token")==0)
-			    {
-			        token = true;
-			    }
-			    if(word.compareToIgnoreCase("compute")==0)
-			    {
-			        compute = true;
-			    }
-			    if(word.compareToIgnoreCase("id")==0)
-			    {
-			        idValue = i + 2 < words.length?words[i+2]:null;
-			    }
-			    if(word.compareToIgnoreCase("tenantId")==0)
-			    {
-			         tenantValue = i + 2 < words.length?words[i+2]:null;    
-			    }
-			    if(word.compareToIgnoreCase("publicURL")==0)
-			    {
-			         URLValue = i + 2 < words.length?words[i+2]:null;    
-			         StringBuilder sb = new StringBuilder(URLValue.length());
-			         for(char c : URLValue.toCharArray())
-			        	 if(c != '\\')
-			        		 sb.append(c);
-			         URLValue = sb.toString();
-			    }
-			    if(compute)
-			    {
-			        tenantIdValue = tenantValue==null?tenantIdValue:tenantValue;
-			        publicURLValue = URLValue==null?publicURLValue:URLValue;
-			    }
-			    if(token)
-			    {
-			        tokenIdValue = idValue==null?tokenIdValue:idValue;
-			    }
-			}
-	    }
 		
-		int pos = 0;
-		for(int j=0;j<3;j++)
-		{
-		    pos = publicURLValue.indexOf('/',pos);
-		    if(pos <0)
-		        break;
-		    pos++;
+		String autenticationTokenId = getAutenticationTokenIdFromResponse(resp);
+		return autenticationTokenId;
+	}
+
+	@SuppressWarnings("unchecked")
+	private String getAutenticationTokenIdFromResponse(final String resp) {
+		final ObjectMapper mapper = new ObjectMapper(); 
+		try {
+			Map<String, Object> readValue = mapper.readValue(new StringReader(resp), Map.class);
+			Map<String, Object> accessMap = (Map<String, Object>) readValue.get("access");
+			Map<String, String> tokenMap = (Map<String, String>) accessMap.get("token");
+			String tokenId = tokenMap.get("id");
+			return tokenId;
+		} catch (JsonParseException e) {
+			throw new RuntimeException(e);
+		} catch (JsonMappingException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
 		}
-		if(pos >0)
-		{
-			pos--;
-			this.pathPrefix = publicURLValue.substring(pos);
-			if(this.pathPrefix.charAt(this.pathPrefix.length()-1)!='/')
-				this.pathPrefix += '/'; 
-			this.endpoint = publicURLValue.substring(0,pos);
-			this.service = client.resource(this.endpoint);
-       		return tokenIdValue;
-		}
-        throw new RuntimeException("error:" + resp);
 	}
 }
