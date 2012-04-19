@@ -117,7 +117,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 		} else {
 			final Collection<ProcessLauncher> launchers =
 					this.context.getBeanFactory().getBeansOfType(ProcessLauncher.class).values();
-			if (launchers.size() == 0) {
+			if (launchers.isEmpty()) {
 				throw new IllegalStateException("No ProcessLauncher was found in Context!");
 			}
 			this.launcher = launchers.iterator().next();
@@ -192,7 +192,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			return null;
 		}
 		final List<PluginDescriptor> plugins = this.service.getPlugins();
-		if (plugins == null || plugins.size() == 0) {
+		if (plugins == null || plugins.isEmpty()) {
 			return null;
 		}
 
@@ -287,7 +287,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 		if (!active) {
 			return null;
 		}
-		if (typeToCheck == null || this.context.getBeanFactory().getBeansOfType(typeToCheck).size() == 0) {
+		if (typeToCheck == null || this.context.getBeanFactory().getBeansOfType(typeToCheck).isEmpty()) {
 			return bean;
 		}
 		return null;

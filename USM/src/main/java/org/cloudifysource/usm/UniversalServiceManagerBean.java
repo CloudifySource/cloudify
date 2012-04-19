@@ -846,7 +846,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		}
 		childrenAfter.removeAll(childrenBefore);
 
-		if (childrenAfter.size() == 0) {
+		if (childrenAfter.isEmpty()) {
 			throw new USMException("New process could not be found!");
 		}
 

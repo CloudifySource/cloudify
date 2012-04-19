@@ -81,7 +81,7 @@ public class ElasticScaleConfigFactory {
 			throws DSLException {
 
 		List<ScalingRuleDetails> scalingRules = service.getScalingRules();
-		if (scalingRules.size() == 0) {
+		if (scalingRules.isEmpty()) {
 			throw new DSLException("scalingRules cannot be empty");
 		}
 		
