@@ -22,6 +22,7 @@ service {
 
 		monitors{
 			try { 
+				port  = context.attributes.thisInstance["port"] as int
 				mongo = new Mongo("127.0.0.1", port)			
 				db = mongo.getDB("mydb")
 														
@@ -36,15 +37,15 @@ service {
 					"Current Active Connections":result.connections.current,
 					"Open Cursors":result.cursors.totalOpen
 				]
-			}
+			}			
 			finally {
-				if (mongo != null) 
-					mongo.close()
+				if (null!=mongo) mongo.close()
 			}
+			
 			
 		}
 	}
-		
+
 	userInterface {
 		metricGroups = ([
 			metricGroup {
