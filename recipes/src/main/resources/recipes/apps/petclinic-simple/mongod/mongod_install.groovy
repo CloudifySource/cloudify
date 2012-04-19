@@ -23,7 +23,14 @@ println "mongod_install.groovy: mongod(${instanceID}) home is ${home}"
 serviceContext.attributes.thisInstance["script"] = "${home}/bin/mongod"
 println "mongod_install.groovy: mongod(${instanceID}) script is ${home}/bin/mongod"
 
-serviceContext.attributes.thisInstance["port"] = config.port
+port = config.port
+if (serviceContext.isLocalCloud()) {
+	port+=instanceID-1
+}
+serviceContext.attributes.thisInstance["port"] = port
+
+println "mongod_install.groovy: mongod(${instanceID}) port ${port}"
+
 
 builder = new AntBuilder()
 builder.sequential {
