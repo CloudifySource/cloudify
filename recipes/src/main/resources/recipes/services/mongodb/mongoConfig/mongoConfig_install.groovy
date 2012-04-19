@@ -30,8 +30,12 @@ if(ServiceUtils.isWindows()) {
 	builder.unzip(src:"${config.installDir}/${osConfig.zipName}", dest:"${config.installDir}", overwrite:true)
 } else {
 	builder.untar(src:"${config.installDir}/${osConfig.zipName}", dest:"${config.installDir}", compression:"gzip", overwrite:true)
-	builder.chmod(dir:"${config.installDir}/${osConfig.name}/bin", perm:'+x', includes:"*")
 }
 builder.move(file:"${config.installDir}/${osConfig.name}", tofile:"${home}")
+
+if(!ServiceUtils.isWindows()) {
+	println "calling chmod on ${home}/bin"
+	builder.chmod(dir:"${home}/bin", perm:'+x', includes:"*")
+}
 
 println "mongoConfig_install.groovy: Installation of mongoConfig(${instanceID}) ended"
