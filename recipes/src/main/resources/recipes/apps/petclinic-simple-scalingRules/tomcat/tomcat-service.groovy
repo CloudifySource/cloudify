@@ -191,6 +191,10 @@ service {
 		)
 	}
 	
+	network {
+          port = currHttpPort
+          protocolDescription ="HTTP"
+        }
 	// global flag that enables changing number of instances for this service
 	elastic true
 
