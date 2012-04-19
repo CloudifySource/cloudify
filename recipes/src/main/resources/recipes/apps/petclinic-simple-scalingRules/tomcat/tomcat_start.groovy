@@ -1,7 +1,7 @@
 import org.cloudifysource.dsl.context.ServiceContextFactory
 import java.util.concurrent.TimeUnit
 
-def config=new ConfigSlurper().parse(new File("tomcat.properties").toURL())
+def config=new ConfigSlurper().parse(new File("tomcat-service.properties").toURL())
 
 println "tomcat_start.groovy: Calculating mongoServiceHost..."
 def serviceContext = ServiceContextFactory.getServiceContext()

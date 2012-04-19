@@ -4,17 +4,10 @@ service {
 	name "tomcat"
 	icon "tomcat.gif"
 	type "WEB_SERVER"
-	
-	def portIncrement = { -> 
-    context.isLocalCloud() ? context.getInstanceId()-1 : 0
-  };
-  
-	def readConfig = { ->
-		return new ConfigSlurper().parse(new File(context.serviceDirectory.toString(),"tomcat.properties").toURL())
-	}
-	def getJmxPort = {-> readConfig().jmxPort + portIncrement()}
-	def getHttpPort = {-> readConfig().port + portIncrement()}
-	def getAjpPort = {-> readConfig().ajpPort + portIncrement()}
+	def portIncrement =  context.isLocalCloud() ? context.getInstanceId()-1 : 0
+	def currJmxPort = jmxPort + portIncrement
+	def currHttpPort = port + portIncrement
+	def currAjpPort = ajpPort + portIncrement
 	compute {
 		template "SMALL_LINUX"
 	}
@@ -25,7 +18,8 @@ service {
 		preStop "tomcat_stop.groovy"
 		startDetectionTimeoutSecs 240
 		startDetection {
-			!ServiceUtils.arePortsFree([getHttpPort(), getAjpPort()] )
+			println "tomcat-service.groovy(startDetection): arePortsFree http=${currHttpPort} ajp=${currAjpPort} ..."
+			!ServiceUtils.arePortsFree([currHttpPort, currAjpPort] )
 		}
 	}
 
@@ -48,26 +42,26 @@ service {
 			className "org.cloudifysource.usm.jmx.JmxMonitor"
 			config([
 						"Current Http Threads Busy": [
-							"Catalina:type=ThreadPool,name=\"http-bio-${->getHttpPort()}\"",
+					"Catalina:type=ThreadPool,name=\"http-bio-${currHttpPort}\"",
 							"currentThreadsBusy"
 						],
 						"Current Http Threads Count": [
-							"Catalina:type=ThreadPool,name=\"http-bio-${->getHttpPort()}\"",
+							"Catalina:type=ThreadPool,name=\"http-bio-${currHttpPort}\"",
 							"currentThreadCount"
 						],
 						"Backlog": [
-							"Catalina:type=ProtocolHandler,port=${->getHttpPort()}",
+							"Catalina:type=ProtocolHandler,port=${currHttpPort}",
 							"backlog"
 						],
 						"Active Sessions":[
 							"Catalina:type=Manager,context=/petclinic-mongo,host=localhost",
 							"activeSessions"
-						],
+			                        ],
 						"Total Requests Count": [
-							"Catalina:type=GlobalRequestProcessor,name=\"http-bio-${->getHttpPort()}\"",
+							"Catalina:type=GlobalRequestProcessor,name=\"http-bio-${currHttpPort}\"",
 							"requestCount"
 						],
-						port: "${->getJmxPort()}"
+						port: "${currJmxPort}"
 
 					])
 		}
