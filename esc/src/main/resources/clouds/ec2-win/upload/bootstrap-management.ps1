@@ -70,6 +70,16 @@ Function insert-line($file, $content)
 
 
 $ErrorActionPreference="Stop"
+
+# Can't set policy here, since the policy has to be set BEFORE the script runs.
+# So we have a batch file that sets this and then calls the powershell script.
+# Write-Host Setting execution policy
+# Set-ExecutionPolicy Unrestricted
+
+# Write-Host Moving to Directory: $ENV:WORKING_HOME_DIRECTORY
+# cd $ENV:WORKING_HOME_DIRECTORY
+
+
 CD $ENV:WORKING_HOME_DIRECTORY
 $workDirectory= (Get-Location).Path
 $parentDirectory = Split-Path -parent $workDirectory
@@ -113,7 +123,7 @@ if(Test-Path $workDirectory\cloudify-overrides) {
 Write-Host Updating environment script
 insert-line $cloudifyDir\bin\setenv.bat "set NIC_ADDR=$ENV:MACHINE_IP_ADDRESS"
 insert-line $cloudifyDir\bin\setenv.bat "set LOOKUPLOCATORS=$ENV:LUS_IP_ADDRESS"
-insert-line $cloudifyDir\bin\setenv.bat "set JAVA_HOME=$workDirectory\..\java"
+insert-line $cloudifyDir\bin\setenv.bat "set JAVA_HOME=$javaDir"
 
 Write-Host "Disabling local firewall"
 $firewallCommand = "netsh advfirewall set allprofiles state off"
@@ -121,27 +131,82 @@ Set-Content -Encoding ASCII firewall.bat $firewallCommand
 cmd.exe /c firewall.bat
 rm -Force firewall.bat
 
-
 # create the launch commandline
 if ($ENV:GSA_MODE -eq "agent")
 {
 	Write-Host "Starting agent node"
-	$commandLine = "$cloudifyDir\tools\cli\cloudify.bat start-agent -timeout 30 --verbose -zone $ENV:MACHINE_ZONES -auto-shutdown > $workDirectory\run.log"
+	$cloudifyCommand = "$cloudifyDir\tools\cli\cloudify.bat start-agent -timeout 30 --verbose -zone $ENV:MACHINE_ZONES -auto-shutdown"
 }
 else {
+	
 	# Cloud file in Java must use slash ('/') not back-slash ('\')
 	$cloudFile = $ENV:CLOUD_FILE.replace("\", "/")
 
+	Write-Host "Starting management node"
 	if ($ENV:NO_WEB_SERVICES -eq "true") 
 	{
-		$commandLine = "$cloudifyDir\tools\cli\\cloudify.bat start-management -no-web-services -no-management-space -timeout 30 --verbose -auto-shutdown -cloud-file $cloudFile > $workDirectory\run.log"
+		$cloudifyCommand = "cmd.exe /c $cloudifyDir\tools\cli\cloudify.bat start-management -no-web-services -no-management-space -timeout 30 --verbose -auto-shutdown -cloud-file $cloudFile"
 	} 
 	else {
-		Write-Host "Starting management node"
-		$commandLine = "$cloudifyDir\tools\cli\cloudify.bat start-management -timeout 30 --verbose -auto-shutdown -cloud-file $cloudFile > $workDirectory\run.log"
+		$cloudifyCommand = "cmd.exe /c $cloudifyDir\tools\cli\cloudify.bat start-management -timeout 30 --verbose -auto-shutdown -cloud-file $cloudFile"
 	}
 
 }
-Set-Content -Encoding ASCII $workDirectory\run.bat $commandLine
+
+# Invoke-Command -ComputerName localhost -ScriptBlock {Invoke-Expression $args[0]} -ArgumentList $cloudifyCommand
+
+# Executing the $cloudifyCommand command will work, but on EC2 we get error 1816 on one of the started processes.
+# this prevents the managememnt server from starting correctly.
+# So the actual start command needs to run in a separate session. Tried doing this with a remote command to 'localhost'
+# but we get an access denied error. So this has to happen with a scheduled task.
+# here we create the batch file that the task runs
+Set-Content -Encoding ASCII -Force -Value $cloudifyCommand run.bat
+
+Write-Host scheduling cloudify task with password $ENV:PASSWORD
+schtasks.exe /create /TN cloudify-task /SC ONSTART /TR $ENV:WORKING_HOME_DIRECTORY\run.bat /RU "$ENV:USERNAME" /RP "$ENV:PASSWORD"
+Write-Host running cloudify task
+schtasks.exe /run /TN cloudify-task 
+
+# Note that the password environment variable is NOT passed to the agent, as the agent runs in a different session, spawned from the task scheduler!
+Write-Host Cloudify Task scheduled for immediate execution. Please wait for Cloudify agent to become available.
+
+$endTime = (get-date).addMinutes(1)
+
+while($true) {
+	schtasks /query | select-string cloudify-task | %{$found = $true}
+	
+	if($found -eq $true) {
+		break
+	} else {
+		Write-Host "Cloudify task still not available"
+		if((get-date) -gt $endTime) {
+			Write-Host "Timeout while waiting for cloudify task to become available"
+			exit(100)
+		}
+	}
+	 start-sleep -s 5
+	
+}
+
+Write-Host "Cloudify Task is available"
+
+$endTime = (get-date).addMinutes(10)
+
+while($true) {
+	schtasks /query | select-string cloudify-task |%{
+		if ($_.tostring().contains("Running")) {
+			Write-Host "Cloudify startup is still executing"
+		} else  {
+			break
+		}
+	}
+
+	if((get-date) -gt $endTime) {
+		Write-Host "Timeout while waiting for cloudify task to finish"
+		exit(100)
+	}
+	 start-sleep -s 10
+	
+}
 
 exit 0
