@@ -112,7 +112,7 @@ public class AgentlessInstaller {
 			"none", "-?" };
 
 	// indicates if powershell is installed on this host. If null, installation test was not performed.
-	private static Boolean powerShellInstalled = null;
+	private static volatile Boolean powerShellInstalled = null;
 	/******
 	 * Name of the logger used for piping out ssh output.
 	 */
