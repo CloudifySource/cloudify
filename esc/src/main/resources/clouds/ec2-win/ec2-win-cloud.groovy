@@ -30,7 +30,7 @@ cloud {
 		provider "aws-ec2"
 		
 		// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.  
-		localDirectory "tools/cli/plugins/esc/ec2/upload"
+		localDirectory "tools/cli/plugins/esc/ec2-win/upload"
 		// Mandatory. Files from the local directory will be copied to this directory on the remote machine. 
 		remoteDirectory "/C\$/Users/Administrator/gs-files"
 		// Mandatory. The HTTP/S URL where cloudify can be downloaded from by newly started machines.
