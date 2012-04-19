@@ -9,7 +9,7 @@
 	<includeBaseDirectory>false</includeBaseDirectory>
 	<fileSets>
 		<fileSet>
-			<directory>src/main/resources</directory>
+			<directory>src/main/resources/recipes</directory>
 			<includes>
 				<include>**/*</include>
 			</includes>
