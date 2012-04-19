@@ -99,7 +99,7 @@ public abstract class CloudDriverSupport implements ProvisioningDriver {
 		this.management = management;
 		this.templateName = templateName;
 
-		if (this.cloud.getTemplates().size() == 0) {
+		if (this.cloud.getTemplates().isEmpty()) {
 			throw new IllegalArgumentException("No templates defined for this cloud");
 		}
 

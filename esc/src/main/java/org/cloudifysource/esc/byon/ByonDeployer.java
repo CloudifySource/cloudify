@@ -109,14 +109,14 @@ public class ByonDeployer {
 	 */
 	public synchronized CustomNode createServer(final String templateName, final String serverName)
 			throws CloudProvisioningException {
-		CustomNode node = null;
+		
 
 		if (org.apache.commons.lang.StringUtils.isBlank(serverName)) {
 			throw new CloudProvisioningException("Failed to create new cloud node, server name is missing");
 		}
 
 		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
-		if (templateLists == null || templateLists.size() == 0) {
+		if (templateLists == null || templateLists.isEmpty()) {
 			throw new CloudProvisioningException("Failed to create new cloud node. \"" + templateName
 					+ "\" is not a known template.");
 		}
@@ -124,11 +124,12 @@ public class ByonDeployer {
 		final List<CustomNode> allocatedNodesPool = templateLists.get(NODES_LIST_ALLOCATED);
 		final List<CustomNode> invalidNodesPool = templateLists.get(NODES_LIST_INVALID);
 
-		if (freeNodesPool.size() == 0 && invalidNodesPool.size() == 0) {
+		if (freeNodesPool.isEmpty()&& invalidNodesPool.isEmpty()) {
 			throw new CloudProvisioningException("Failed to create a new cloud node for template \"" + templateName
 					+ "\", all available nodes are currently used");
 		}
 
+		CustomNode node = null;
 		if (freeNodesPool.size() > 0) {
 			node = freeNodesPool.iterator().next();
 			if (!allocatedNodesPool.contains(node)) {
@@ -175,7 +176,7 @@ public class ByonDeployer {
 	public synchronized void setAllocated(final String templateName, final Set<String> ipAddresses)
 			throws CloudProvisioningException {
 		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
-		if (templateLists == null || templateLists.size() == 0) {
+		if (templateLists == null || templateLists.isEmpty()) {
 			throw new CloudProvisioningException("Failed to set allocated servers. \"" + templateName
 					+ "\" is not a known template.");
 		}
@@ -214,7 +215,7 @@ public class ByonDeployer {
 		}
 
 		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
-		if (templateLists == null || templateLists.size() == 0) {
+		if (templateLists == null || templateLists.isEmpty()) {
 			throw new CloudProvisioningException("Failed to shutdown server \"" + serverName + "\". \"" + templateName
 					+ "\" is not a known template.");
 		}
@@ -344,7 +345,7 @@ public class ByonDeployer {
 		final Set<CustomNode> allNodes = new HashSet<CustomNode>();
 
 		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
-		if (templateLists == null || templateLists.size() == 0) {
+		if (templateLists == null || templateLists.isEmpty()) {
 			throw new CloudProvisioningException("Failed to get servers list. \"" + templateName
 					+ "\" is not a known template.");
 		}
@@ -378,7 +379,7 @@ public class ByonDeployer {
 		// attempting to remove the invalid node from the active lists so it will not be used anymore, just to
 		// be sure.
 		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
-		if (templateLists == null || templateLists.size() == 0) {
+		if (templateLists == null || templateLists.isEmpty()) {
 			throw new CloudProvisioningException("Failed to invalidate server. \"" + templateName
 					+ "\" is not a known template.");
 		}
@@ -405,7 +406,7 @@ public class ByonDeployer {
 
 		for (final String templateName : nodesListsByTemplates.keySet()) {
 			final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
-			if (templateLists == null || templateLists.size() == 0) {
+			if (templateLists == null || templateLists.isEmpty()) {
 				throw new CloudProvisioningException("Failed to get servers list. \"" + templateName
 						+ "\" is not a known template.");
 			}
