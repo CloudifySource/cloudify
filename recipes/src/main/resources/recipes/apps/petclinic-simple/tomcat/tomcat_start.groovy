@@ -19,11 +19,11 @@ println "tomcat_start.groovy: tomcat(${instanceID}) script ${script}"
 println "tomcat_start.groovy: waiting for ${config.mongoService}..."
 def mongoService = serviceContext.waitForService(config.mongoService, 20, TimeUnit.SECONDS) 
 def mongoInstances = mongoService.waitForInstances(mongoService.numberOfPlannedInstances, 60, TimeUnit.SECONDS) 
-def mongoServiceHost = mongoInstances[instanceID-1].hostAddress
+def mongoServiceHost = mongoInstances[0].hostAddress
 println "tomcat_start.groovy: Mongo service host is ${mongoServiceHost}"
 
 def mongoServiceInstances = serviceContext.attributes[config.mongoService].instances
-def mongoServicePort = mongoServiceInstances[instanceID].port
+def mongoServicePort = mongoServiceInstances[1].port
 
 
 println "tomcat_start.groovy executing ${script}"
@@ -39,19 +39,19 @@ println "tomcat_start.groovy: Replacing default jmx port with port ${currJmxPort
 new AntBuilder().sequential {
 	exec(executable:"${script}.sh", osfamily:"unix") {
         env(key:"CATALINA_HOME", value: "${home}")
-    env(key:"CATALINA_BASE", value: "${home}")
-    env(key:"CATALINA_TMPDIR", value: "${home}/temp")
+        env(key:"CATALINA_BASE", value: "${home}")
+        env(key:"CATALINA_TMPDIR", value: "${home}/temp")
 		env(key:"CATALINA_OPTS", value:"-Dcom.sun.management.jmxremote.port=${currJmxPort} -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false")
-		env(key:"MONGO_HOST", value: "${mongoServiceHost}")
+        env(key:"MONGO_HOST", value: "${mongoServiceHost}")
         env(key:"MONGO_PORT", value: "${mongoServicePort}")
 		arg(value:"run")
 	}
 	exec(executable:"${script}.bat", osfamily:"windows") { 
         env(key:"CATALINA_HOME", value: "${home}")
-    env(key:"CATALINA_BASE", value: "${home}")
-    env(key:"CATALINA_TMPDIR", value: "${home}/temp")
+        env(key:"CATALINA_BASE", value: "${home}")
+        env(key:"CATALINA_TMPDIR", value: "${home}/temp")
 		env(key:"CATALINA_OPTS", value:"-Dcom.sun.management.jmxremote.port=${currJmxPort} -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false")
-		env(key:"MONGO_HOST", value: "${mongoServiceHost}")
+        env(key:"MONGO_HOST", value: "${mongoServiceHost}")
         env(key:"MONGO_PORT", value: "${mongoServicePort}")
 		arg(value:"run")
 	}
