@@ -183,7 +183,7 @@
 	        <echo message="Copy recipes component"/>
 	        <mkdir dir="@{installation.dir}/recipes/services"/>
 	     
-	        <unzip src="${recipes.local.copy}/target/services.zip" dest="@{installation.dir}/recipes/services" />
+	        <unzip src="${recipes.local.copy}/target/recipes.zip" dest="@{installation.dir}/recipes" />
 	   
 	    		
 	        <echo message="Copy dsl component"/>
@@ -221,18 +221,7 @@
 	        </copy>
 		</sequential>
     </macrodef>
-	
-	<target name="add.examples">
-		<move todir="${tmp.dir}/${cloudify.installation.dir}/examples">
-	        <fileset dir="${tmp.dir}/${cloudify.installation.dir}/recipes/apps"/>
-	    </move>
-	
-		<mkdir dir="${tmp.dir}/${cloudify.installation.dir}/examples/azure/travel" />
-		<move todir="${tmp.dir}/${cloudify.installation.dir}/examples/azure/travel">
-			<fileset dir="${tmp.dir}/${cloudify.installation.dir}/examples/travel-azure">
-			</fileset>
-		</move>
-	</target>
+
 	
 	<target name="add.cloudify.javadoc">
 		<!-- Add Cloudify Javadoc archive to Cloudify/docs folder. If the folder doesn't exist please run: mvn javadoc:javadoc --> 
@@ -271,7 +260,6 @@
     	<ant target="remove.xap.related.modules" />
         <ant target="update.lus.groups"/>
         <add.cloudify.modules/>
-    	<ant target="add.examples"/>
     	<ant target="add.cloudify.javadoc"/>
     	<ant target="replace.xap.content.with.cloudify.related"/>
         <ant target="replace.cloudify.license"/>
@@ -412,7 +400,7 @@
 		<replaceregexp byline="true"
     		match="&lt;Setting name=&quot;GigaSpaces\.XAP\.DownloadUrl&quot; value=&quot;(.*)&quot; /&gt;" 
     		replace="&lt;Setting name=&quot;GigaSpaces\.XAP\.DownloadUrl&quot; value=&quot;${cloudify.url.encoded}&quot; /&gt;">
-    		<fileset 
+    		<fileset
     			dir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles/GigaSpacesWorkerRoles" 
     			includes="ServiceConfiguration.Cloud.cscfg" />
     		<fileset 
