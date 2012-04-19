@@ -236,17 +236,20 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			}
 
 			if (machineIp != null && machineIp.trim().length() > 0) {
-				final GridServiceAgent agent = waitForGsa(machineIp, end);
-				if (agent != null) {
-					logger.info("handleExceptionAfterMachineCreated is shutting down agent: " + agent + " on host: "
-							+ machineIp);
-					try {
+				try {
+					final GridServiceAgent agent = getGSAByIpOrHost(machineIp);
+					if (agent != null) {
+						logger.info("handleExceptionAfterMachineCreated is shutting down agent: " + agent
+								+ " on host: " + machineIp);
+
 						agent.shutdown();
 						logger.fine("Agent on host: " + machineIp + " successfully shut down");
-					} catch (final Exception e) {
-						logger.log(Level.WARNING, "Failed to shutdown agent on host: " + machineIp
-								+ ". Continuing with shutdown of " + "machine.", e);
+
 					}
+				} catch (final Exception e) {
+					// even if shutting down the agent failed, this node will be shut down later
+					logger.log(Level.WARNING, "Failed to shutdown agent on host: " + machineIp
+							+ ". Continuing with shutdown of " + "machine.", e);
 				}
 			}
 
@@ -335,12 +338,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			throws InterruptedException, TimeoutException {
 
 		while (Utils.millisUntil(end) > 0) {
-			GridServiceAgent gsa = admin.getGridServiceAgents().getHostAddress().get(machineIp);
-			if (gsa != null) {
-				return gsa;
-			}
-
-			gsa = admin.getGridServiceAgents().getHostNames().get(machineIp);
+			GridServiceAgent gsa = getGSAByIpOrHost(machineIp);
 			if (gsa != null) {
 				return gsa;
 			}
@@ -350,6 +348,19 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		}
 		return null;
 
+	}
+
+	private GridServiceAgent getGSAByIpOrHost(final String machineIp) {
+		GridServiceAgent gsa = admin.getGridServiceAgents().getHostAddress().get(machineIp);
+		if (gsa != null) {
+			return gsa;
+		}
+
+		gsa = admin.getGridServiceAgents().getHostNames().get(machineIp);
+		if (gsa != null) {
+			return gsa;
+		}
+		return null;
 	}
 
 	@Override

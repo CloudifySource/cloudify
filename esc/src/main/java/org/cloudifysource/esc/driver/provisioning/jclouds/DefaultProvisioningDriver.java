@@ -17,6 +17,7 @@ package org.cloudifysource.esc.driver.provisioning.jclouds;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -74,33 +75,19 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			// TODO - jcloudsUniqueId should be unique per cloud configuration.
 			// TODO - The deployer object should be reusable across templates. The current API is not appropriate.
 			// TODO - key should be based on entire cloud configuraion!
-			this.deployer =
-					(JCloudsDeployer) context.getOrCreate("UNIQUE_JCLOUDS_DEPLOYER_ID_" + this.cloudTemplateName,
-							new Callable<Object>() {
-
-								@Override
-								public Object call()
-										throws Exception {
-									logger.fine("Creating JClouds context deployer with user: "
-											+ cloud.getUser().getUser());
-									final CloudTemplate cloudTemplate = cloud.getTemplates().get(cloudTemplateName);
-
-									logger.fine("Cloud Template: " + cloudTemplateName + ". Details: " + cloudTemplate);
-									final Properties props = new Properties();
-									props.putAll(cloudTemplate.getOverrides());
-
-									deployer =
-											new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser()
-													.getUser(), cloud.getUser().getApiKey(), props);
-
-									deployer.setImageId(cloudTemplate.getImageId());
-									deployer.setMinRamMegabytes(cloudTemplate.getMachineMemoryMB());
-									deployer.setHardwareId(cloudTemplate.getHardwareId());
-									deployer.setLocationId(cloudTemplate.getLocationId());
-									deployer.setExtraOptions(cloudTemplate.getOptions());
-									return deployer;
-								}
-							});
+			// TODO - this shared context only works if we have reference counting, to check when this item is 
+			// no longer there. Otherwise, either this context will leak, or it will be shutdown by the first
+			// service to by undeployed.
+			this.deployer = createDeployer(cloud);
+//					(JCloudsDeployer) context.getOrCreate("UNIQUE_JCLOUDS_DEPLOYER_ID_" + this.cloudTemplateName,
+//							new Callable<Object>() {
+//
+//								@Override
+//								public Object call()
+//										throws Exception {
+//									return createDeplyer(cloud);
+//								}
+//							});
 		} catch (final Exception e) {
 			publishEvent("connection_to_cloud_api_failed", cloud.getProvider().getProvider());
 			throw new IllegalStateException("Failed to create cloud Deployer", e);
@@ -111,7 +98,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	public MachineDetails startMachine(final long timeout, final TimeUnit unit)
 			throws TimeoutException, CloudProvisioningException {
 
-		logger.info(this.getClass().getName() + ": startMachine, management mode: " + management);
+		logger.fine(this.getClass().getName() + ": startMachine, management mode: " + management);
 		final long end = System.currentTimeMillis() + unit.toMillis(timeout);
 
 		if (System.currentTimeMillis() > end) {
@@ -144,7 +131,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			throws Exception {
 
 		final String groupName = createNewServerName();
-		logger.info("Starting a new cloud server with group: " + groupName);
+		logger.fine("Starting a new cloud server with group: " + groupName);
 		return createServer(end, groupName);
 	}
 
@@ -205,8 +192,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			final MachineDetails machineDetails, final CloudTemplate cloudTemplate)
 			throws FileNotFoundException, InterruptedException, TimeoutException, CloudProvisioningException {
 		File pemFile = null;
-		logger.info("Gigaspaces base is: " + Environment.getHomeDirectory());
-		logger.info("Local directory is: " + this.cloud.getProvider().getLocalDirectory());
+		
 		if (this.management) {
 			final String baseDirectory = Environment.getHomeDirectory();
 			final File localDirectory = new File(baseDirectory, this.cloud.getProvider().getLocalDirectory());
@@ -214,18 +200,12 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			pemFile = new File(localDirectory, this.cloud.getUser().getKeyFile());
 		} else {
 			String localDirectoryName = this.cloud.getProvider().getLocalDirectory();
-			logger.info("local dir name is: " + localDirectoryName);
+			logger.fine("local dir name is: " + localDirectoryName);
 			final File localDirectory = new File(localDirectoryName);
 
 			pemFile = new File(localDirectory, this.cloud.getUser().getKeyFile());
 		}
-		// final String baseDirectory = this.management ? Environment.getHomeDirectory() :
-		// this.cloud.getProvider().getRemoteDirectory();
-		// final File localDirectory = new File(baseDirectory, this.cloud.getProvider().getLocalDirectory());
-		//
-		// final File pemFile = new File(this.cloud.getUser().getKeyFile());
 
-		logger.info("PEM file is located at: " + pemFile);
 		if (!pemFile.exists()) {
 			logger.severe("Could not find pem file: " + pemFile);
 			throw new FileNotFoundException("Could not find key file: " + pemFile);
@@ -234,9 +214,12 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		String password;
 		if (cloudTemplate.getPassword() == null) {
 			// get the password using Amazon API
+			logger.info("Waiting for Windows Password to become available");
 			final LoginCredentials credentials =
 					new EC2WindowsPasswordHandler().getPassword(node, this.deployer.getContext(), end, pemFile);
 			password = credentials.getPassword();
+			logger.info("Windows Password retrieved");
+
 		} else {
 			password = cloudTemplate.getPassword();
 		}
@@ -590,6 +573,28 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	@Override
 	public void close() {
 		deployer.close();
+	}
+
+	private JCloudsDeployer createDeployer(final Cloud cloud)
+			throws IOException {
+		logger.fine("Creating JClouds context deployer with user: "
+				+ cloud.getUser().getUser());
+		final CloudTemplate cloudTemplate = cloud.getTemplates().get(cloudTemplateName);
+
+		logger.fine("Cloud Template: " + cloudTemplateName + ". Details: " + cloudTemplate);
+		final Properties props = new Properties();
+		props.putAll(cloudTemplate.getOverrides());
+
+		deployer =
+				new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser()
+						.getUser(), cloud.getUser().getApiKey(), props);
+
+		deployer.setImageId(cloudTemplate.getImageId());
+		deployer.setMinRamMegabytes(cloudTemplate.getMachineMemoryMB());
+		deployer.setHardwareId(cloudTemplate.getHardwareId());
+		deployer.setLocationId(cloudTemplate.getLocationId());
+		deployer.setExtraOptions(cloudTemplate.getOptions());
+		return deployer;
 	}
 
 }
