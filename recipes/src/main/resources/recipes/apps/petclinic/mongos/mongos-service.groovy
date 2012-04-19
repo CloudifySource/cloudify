@@ -1,3 +1,6 @@
+import com.mongodb.CommandResult;
+import com.mongodb.Mongo;
+import com.mongodb.DB;
 service {
 	
 	name "mongos"
@@ -17,23 +20,26 @@ service {
 		startDetection {
 			ServiceUtils.isPortOccupied(context.attributes.thisInstance["port"])
 		}
+		
+		monitors{
+			try { 
+				port  = context.attributes.thisInstance["port"] as int
+				mongo = new Mongo("127.0.0.1", port)			
+				db = mongo.getDB("mydb")
+														
+				result = db.command("serverStatus")
+				println "mongod-service.groovy: result is ${result}"	
+														
+				return [
+					"Current Active Connections":result.connections.current					
+				]
+			}			
+			finally {
+				if (null!=mongo) mongo.close()
+			}					
+		}		
 	}
 	
-	plugins([		        
-		plugin {
-			name "MongoDBMonitorsPlugin"
-			className "org.cloudifysource.mongodb.MongoDBMonitorsPlugin"
-			config([				
-				"host":"127.0.0.1",				
-				"dbName":"admin", 
-				"dataSpec":([				    
-					"Current Active Connections":"connections.current"					
-				])
-			])
-		}
-		
-	])
-
 	userInterface {
 		metricGroups = ([
 			metricGroup {
