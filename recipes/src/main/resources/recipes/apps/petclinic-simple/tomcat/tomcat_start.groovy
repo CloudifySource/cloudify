@@ -19,11 +19,11 @@ println "tomcat_start.groovy: tomcat(${instanceID}) script ${script}"
 println "tomcat_start.groovy: waiting for ${config.mongoService}..."
 def mongoService = serviceContext.waitForService(config.mongoService, 20, TimeUnit.SECONDS) 
 def mongoInstances = mongoService.waitForInstances(mongoService.numberOfPlannedInstances, 60, TimeUnit.SECONDS) 
-def mongoServiceHost = mongoInstances[instanceId-1].hostAddress
+def mongoServiceHost = mongoInstances[instanceID-1].hostAddress
 println "tomcat_start.groovy: Mongo service host is ${mongoServiceHost}"
 
 def mongoServiceInstances = serviceContext.attributes[config.mongoService].instances
-def mongoServicePort = mongoServiceInstances[instanceId].port
+def mongoServicePort = mongoServiceInstances[instanceID].port
 
 
 println "tomcat_start.groovy executing ${script}"
