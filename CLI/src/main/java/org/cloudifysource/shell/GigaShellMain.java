@@ -179,7 +179,7 @@ public final class GigaShellMain extends Main implements Action {
 			final URI someURI = new URI("http://www.example.com");
 			final ProxySelector defaultSelector = ProxySelector.getDefault();
 			final List<Proxy> proxies = defaultSelector.select(someURI);
-			return !(proxies.size() == 0) && !proxies.get(0).equals(Proxy.NO_PROXY);
+			return !proxies.isEmpty() && !proxies.get(0).equals(Proxy.NO_PROXY);
 		} catch (final URISyntaxException e) {
 			// Will not happen
 			return false;
