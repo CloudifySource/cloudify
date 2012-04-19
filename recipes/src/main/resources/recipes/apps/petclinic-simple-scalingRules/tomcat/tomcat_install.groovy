@@ -15,6 +15,10 @@ serviceContext.attributes.thisInstance["script"] = "${script}"
 println "tomcat_install.groovy: tomcat(${instanceID}) home is ${home}"
 
 
+warUrl= serviceContext.attributes.thisService["warUrl"]
+if ( warUrl == null ) {  
+	warUrl = "${config.applicationWarUrl}"
+}
 
 //download apache tomcat
 new AntBuilder().sequential {	
@@ -22,7 +26,7 @@ new AntBuilder().sequential {
 	get(src:"${config.downloadPath}", dest:"${config.installDir}/${config.zipName}", skipexisting:true)
 	unzip(src:"${config.installDir}/${config.zipName}", dest:"${config.installDir}", overwrite:true)
 	move(file:"${config.installDir}/${config.name}", tofile:"${home}")
-	get(src:"${config.applicationWarUrl}", dest:"${config.applicationWar}", skipexisting:true)
+	get(src:"${warUrl}", dest:"${config.applicationWar}", skipexisting:true)
 	copy(todir: "${home}/webapps", file:"${config.applicationWar}", overwrite:true)
 	chmod(dir:"${home}/bin", perm:'+x', includes:"*.sh")
 }

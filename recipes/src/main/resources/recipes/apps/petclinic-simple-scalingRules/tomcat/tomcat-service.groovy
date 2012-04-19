@@ -24,11 +24,19 @@ service {
 	}
 
 	customCommands ([
-				"updateWar" : {warUrl ->
-					println "tomcat-service.groovy(updateWar custom command): warUrl is ${warUrl}..."
-					context.attributes.thisInstance["warUrl"] = "${warUrl}"
-					println "tomcat-service.groovy(updateWar customCommand): invoking updateWarFile custom command ..."
-					context.waitForService(currentServiceName, 60, TimeUnit.SECONDS).invoke("updateWarFile")
+		"updateWar" : {warUrl -> 
+			println "tomcat-service.groovy(updateWar custom command): warUrl is ${warUrl}..."
+			context.attributes.thisService["warUrl"] = "${warUrl}"
+			println "tomcat-service.groovy(updateWar customCommand): invoking updateWarFile custom command ..."
+			tomcatService = context.waitForService(currentServiceName, 60, TimeUnit.SECONDS)
+			tomcatInstances=tomcatService.waitForInstances(tomcatService.numberOfPlannedInstances,60, TimeUnit.SECONDS)				
+			instanceProcessID=context.getInstanceId()			                       
+			tomcatInstances.each {
+				if ( instanceProcessID == it.instanceID ) {
+					println "tomcat-service.groovy(updateWar customCommand):  instanceProcessID is ${instanceProcessID} now invoking updateWarFile..."
+					it.invoke("updateWarFile")
+				}
+			}
 					println "tomcat-service.groovy(updateWar customCommand): End"
 					return true
 				} ,

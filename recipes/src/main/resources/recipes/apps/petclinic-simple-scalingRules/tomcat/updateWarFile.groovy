@@ -1,8 +1,28 @@
-import groovy.util.ConfigSlurper
+import org.cloudifysource.dsl.context.ServiceContextFactory
 
-def config=new ConfigSlurper().parse(new File("tomcat.properties").toURL())
+println "updateWarFile.groovy: Starting..."
 
-def ant = new AntBuilder();  
+context = ServiceContextFactory.getServiceContext()
+config  = new ConfigSlurper().parse(new File("${context.serviceDirectory}/tomcat-service.properties").toURL())
 
-ant.get(src:config.applicationWarUrl, dest:config.applicationWar, skipexisting:false)
-ant.copy(todir: "${catalinaHome}/webapps",  file:config.applicationWar, overwrite:true)
+newWarFile=context.attributes.thisService["warUrl"] 
+println "updateWarFile.groovy: newWarFile is ${newWarFile}"
+
+home = context.attributes.thisInstance["home"]
+webApps="${home}/webapps"
+destWarFile="${webApps}/${config.warName}"
+println "updateWarFile.groovy: destWarFile is ${destWarFile}"
+
+new AntBuilder().sequential {
+	
+	echo(message:"updateWarFile.groovy: Getting ${newWarFile} ...")
+	get(src:"${newWarFile}", dest:"${config.applicationWar}", skipexisting:false)
+	
+	echo(message:"updateWarFile.groovy: Copying ${config.applicationWar} to ${webApps}...")
+	copy(todir: "${webApps}", file:"${config.applicationWar}", overwrite:true)	
+}
+
+println "updateWarFile.groovy: End"
+return true
+
+
