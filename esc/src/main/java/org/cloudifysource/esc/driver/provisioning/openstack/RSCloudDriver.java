@@ -60,12 +60,15 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 	private static final int DEFAULT_SHUTDOWN_TIMEOUT_MILLIS = 5 * 60 * 1000; // 5 minutes
 	private static final String OPENSTACK_OPENSTACK_IDENTITY_ENDPOINT = "openstack.identity.endpoint";
 	private static final String OPENSTACK_WIRE_LOG = "openstack.wireLog";
+	private static final String RS_OPENSTACK_TENANT = "openstack.tenant";
+	private static final String OPENSTACK_OPENSTACK_ENDPOINT = "openstack.endpoint";
 
 	private final XPath xpath = XPathFactory.newInstance().newXPath();
 
 	private final DocumentBuilder documentBuilder;
 	private final Client client;
 
+	private String tenant;
 	private String serverNamePrefix;
 	private String endpoint;
 	private WebResource service;
@@ -110,6 +113,19 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 		} else {
 			this.serverNamePrefix = this.cloud.getProvider().getMachineNamePrefix();
 		}
+		
+		this.tenant = (String) this.cloud.getCustom().get(RS_OPENSTACK_TENANT);
+		if (tenant == null) {
+			throw new IllegalArgumentException("Custom field '" + RS_OPENSTACK_TENANT + "' must be set");
+		}
+
+		this.pathPrefix = "/v1.0/" + tenant + "/";
+
+		this.endpoint = (String) this.cloud.getCustom().get(OPENSTACK_OPENSTACK_ENDPOINT);
+		if (this.endpoint == null) {
+			throw new IllegalArgumentException("Custom field '" + OPENSTACK_OPENSTACK_ENDPOINT + "' must be set");
+		}
+		this.service = client.resource(this.endpoint);
 
 		this.identityEndpoint = (String) this.cloud.getCustom().get(
 				OPENSTACK_OPENSTACK_IDENTITY_ENDPOINT);
@@ -609,21 +625,20 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 	
 	/**********
 	 * Creates an openstack keystone authentication token.
-	 * 
 	 * @return the authentication token.
 	 */
 
 	public String createAuthenticationToken() {
-	final String json =
-			"{\"auth\":{\"RAX-KSKEY:apiKeyCredentials\":{\"username\":\"" + this.cloud.getUser().getUser()
-					+ "\",\"apiKey\":\"" + this.cloud.getUser().getApiKey() + "\"}}}";
+		final String json =
+		"{\"auth\":{\"RAX-KSKEY:apiKeyCredentials\":{\"username\":\"" + this.cloud.getUser().getUser()
+				+ "\",\"apiKey\":\"" + this.cloud.getUser().getApiKey() + "\"}}}";
 	final WebResource service = client.resource(this.identityEndpoint);
         final String resp = service.path(
                 "/v2.0/tokens").header(
                 "Content-Type", "application/json").post(
                 String.class, json);
 		
-		String autenticationTokenId = getAutenticationTokenIdFromResponse(resp);
+        String autenticationTokenId = getAutenticationTokenIdFromResponse(resp);
 		return autenticationTokenId;
 	}
 

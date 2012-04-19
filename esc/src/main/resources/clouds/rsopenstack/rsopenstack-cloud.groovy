@@ -37,7 +37,9 @@ cloud {
 			])
 			
 	custom ([
+		"openstack.endpoint" : "https://servers.api.rackspacecloud.com",
 		"openstack.identity.endpoint": "https://auth.api.rackspacecloud.com/",
+		"openstack.tenant" : "ENTER_TENANT",
 		"openstack.wireLog": "false"
 
 	])
