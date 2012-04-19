@@ -1,20 +1,20 @@
-import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.dsl.context.ServiceContextFactory
+import org.cloudifysource.dsl.utils.ServiceUtils;
 
 
-def config = new ConfigSlurper().parse(new File("mongos.properties").toURL())
-def osConfig = ServiceUtils.isWindows() ? config.win32 : config.unix
+config = new ConfigSlurper().parse(new File("mongos-service.properties").toURL())
+osConfig = ServiceUtils.isWindows() ? config.win32 : config.unix
 
-def serviceContext = ServiceContextFactory.getServiceContext()
-def instanceID = serviceContext.getInstanceId()
+serviceContext = ServiceContextFactory.getServiceContext()
+instanceID = serviceContext.getInstanceId()
 
 println "mongos_install.groovy: Writing mongos port to this instance(${instanceID}) attributes..."
 serviceContext.attributes.thisInstance["port"] = config.basePort+instanceID
 port = serviceContext.attributes.thisInstance["port"] 
 println "mongos_install.groovy: mongos(${instanceID}) port ${port}"
 
-def home = "${serviceContext.serviceDirectory}/mongodb-${config.version}"
-def script = "${home}/bin/mongos"
+home = "${serviceContext.serviceDirectory}/mongodb-${config.version}"
+script = "${home}/bin/mongos"
 
 serviceContext.attributes.thisInstance["home"] = "${home}"
 serviceContext.attributes.thisInstance["script"] = "${script}"
