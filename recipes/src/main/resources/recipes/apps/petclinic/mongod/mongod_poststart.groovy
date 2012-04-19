@@ -2,7 +2,7 @@
 import com.gmongo.GMongo
 import org.cloudifysource.dsl.context.ServiceContextFactory
 
-config = new ConfigSlurper().parse(new File("mongod.properties").toURL())
+config = new ConfigSlurper().parse(new File("mongod-service.properties").toURL())
 
 serviceContext = ServiceContextFactory.getServiceContext()
 

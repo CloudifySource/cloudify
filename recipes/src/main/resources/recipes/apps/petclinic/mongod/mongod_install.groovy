@@ -4,7 +4,7 @@ import org.cloudifysource.dsl.utils.ServiceUtils;
 
 serviceContext = ServiceContextFactory.getServiceContext()
 
-config = new ConfigSlurper().parse(new File("mongod.properties").toURL())
+config = new ConfigSlurper().parse(new File("mongod-service.properties").toURL())
 osConfig = ServiceUtils.isWindows() ? config.win32 : config.unix
 
 
