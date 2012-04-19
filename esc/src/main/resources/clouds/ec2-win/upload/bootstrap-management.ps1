@@ -24,15 +24,17 @@
 #  
 #
 # The following environment variables should be set before calling this script:
-# 	$LUS_IP_ADDRESS - Ip of the head node that runs a LUS and ESM. May be my IP. (Required)
-#   $GSA_MODE - 'agent' if this node should join an already running node. Otherwise, any value.
-#	$NO_WEB_SERVICES - 'true' if web-services (rest, webui) should not be deployed (only if GSA_MODE != 'agent')
-#   $MACHINE_IP_ADDRESS - The IP of this server (Useful if multiple NICs exist)
-#	$MACHINE_ZONES - This is required if this is not a management machine
-# 	$WORKING_HOME_DIRECTORY - This is where the files were copied to (cloudify installation, etc..)
-#	$CLOUDIFY_LINK - If this url is found, it will be downloaded to $WORKING_HOME_DIRECTORY/gigaspaces.zip
-#	$CLOUDIFY_OVERRIDES_LINK - If this url is found, it will be downloaded to $WORKING_HOME_DIRECTORY/gigaspaces.zip
-#   $CLOUD_FILE - File name of the cloud file, which should be placed in the WORKING_HOME_DIRECTORY
+# 	LUS_IP_ADDRESS - Ip of the head node that runs a LUS and ESM. May be my IP. (Required)
+#   GSA_MODE - 'agent' if this node should join an already running node. Otherwise, any value.
+#	NO_WEB_SERVICES - 'true' if web-services (rest, webui) should not be deployed (only if GSA_MODE != 'agent')
+#   MACHINE_IP_ADDRESS - The IP of this server (Useful if multiple NICs exist)
+#	MACHINE_ZONES - This is required if this is not a management machine
+# 	WORKING_HOME_DIRECTORY - This is where the files were copied to (cloudify installation, etc..)
+#	CLOUDIFY_LINK - If this url is found, it will be downloaded to $WORKING_HOME_DIRECTORY/gigaspaces.zip
+#	CLOUDIFY_OVERRIDES_LINK - If this url is found, it will be downloaded to $WORKING_HOME_DIRECTORY/gigaspaces.zip
+#   CLOUD_FILE - File name of the cloud file, which should be placed in the WORKING_HOME_DIRECTORY
+#   USERNAME - Username of the account.
+#   PASSWORD - Password of the account.
 #
 # Author: barakm
 # Since: 2.1

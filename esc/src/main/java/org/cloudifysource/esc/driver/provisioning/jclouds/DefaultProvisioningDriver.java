@@ -210,15 +210,17 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			logger.severe("Could not find pem file: " + pemFile);
 			throw new FileNotFoundException("Could not find key file: " + pemFile);
 		}
-		logger.info("PEM file exists!");
+
 		String password;
 		if (cloudTemplate.getPassword() == null) {
 			// get the password using Amazon API
-			logger.info("Waiting for Windows Password to become available");
+			this.publishEvent("waiting_for_ec2_windows_password", node.getId());
+			
 			final LoginCredentials credentials =
 					new EC2WindowsPasswordHandler().getPassword(node, this.deployer.getContext(), end, pemFile);
 			password = credentials.getPassword();
-			logger.info("Windows Password retrieved");
+			
+			this.publishEvent("ec2_windows_password_retrieved", node.getId());
 
 		} else {
 			password = cloudTemplate.getPassword();
