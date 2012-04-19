@@ -181,9 +181,9 @@
 	        </copy>
 	
 	        <echo message="Copy recipes component"/>
-	        <mkdir dir="@{installation.dir}/recipes"/>
+	        <mkdir dir="@{installation.dir}/recipes/services"/>
 	     
-	        <unzip src="${recipes.local.copy}/target/recipes.zip" dest="@{installation.dir}/recipes" />
+	        <unzip src="${recipes.local.copy}/target/services.zip" dest="@{installation.dir}/recipes/services" />
 	   
 	    		
 	        <echo message="Copy dsl component"/>
@@ -224,7 +224,7 @@
 	
 	<target name="add.examples">
 		<move todir="${tmp.dir}/${cloudify.installation.dir}/examples">
-	        <fileset dir="${tmp.dir}/${cloudify.installation.dir}/recipes/applications"/>
+	        <fileset dir="${tmp.dir}/${cloudify.installation.dir}/recipes/apps"/>
 	    </move>
 	
 		<mkdir dir="${tmp.dir}/${cloudify.installation.dir}/examples/azure/travel" />

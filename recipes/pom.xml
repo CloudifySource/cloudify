@@ -78,7 +78,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>recipes</finalName>
+		<finalName>services</finalName>
 		<plugins>
 			
 			<plugin>
