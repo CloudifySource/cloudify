@@ -31,7 +31,7 @@ import org.junit.Test;
 
 public class ApplicationSetUpTest {
 
-	private final static String LEGAL_RESOURCES_PATH = "target/classes/recpies/apps/";
+	private final static String LEGAL_RESOURCES_PATH = "target/classes/recipes/apps/";
 	private String travelAppName = "travel";
 	private File appDslFile;
 	private Application application;

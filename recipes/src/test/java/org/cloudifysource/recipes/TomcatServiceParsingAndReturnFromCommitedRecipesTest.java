@@ -25,7 +25,7 @@ import org.junit.Test;
 
 public class TomcatServiceParsingAndReturnFromCommitedRecipesTest {
 	
-	private final static String LEGAL_RESOURCES_PATH = "target/classes/recpies/services/tomcat/";
+	private final static String LEGAL_RESOURCES_PATH = "target/classes/recipes/services/tomcat/";
 	private String nameInGroovy = "tomcat";
 	private File tomcatDslFile;
 	private File tomcatWorkDir;

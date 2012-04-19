@@ -25,7 +25,7 @@ import org.junit.Test;
 
 public class CassandraServiceParsingAndReturnFromCommitedRecipesTest {
 	
-	private final static String LEGAL_RESOURCES_PATH = "target/classes/recpies/services/cassandra/";
+	private final static String LEGAL_RESOURCES_PATH = "target/classes/recipes/services/cassandra/";
 	private String nameInGroovy = "cassandra";
 	private File cassandraDslFile;
 	private File cassandraWorkDir;
