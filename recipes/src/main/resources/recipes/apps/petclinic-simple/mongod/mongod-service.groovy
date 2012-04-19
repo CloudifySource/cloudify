@@ -17,7 +17,7 @@ service {
 		start "mongod_start.groovy"			
 		startDetectionTimeoutSecs 240
 		startDetection {
-			ServiceUtils.isPortOccupied(port)
+			ServiceUtils.isPortOccupied(context.attributes.thisInstance["port"])
 		}
 
 		monitors{
