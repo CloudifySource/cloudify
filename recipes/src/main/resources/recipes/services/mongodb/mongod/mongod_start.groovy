@@ -1,29 +1,57 @@
-/*******************************************************************************
-* Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*       http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
-config = new ConfigSlurper().parse(new File('mongod.properties').toURL())
+import org.cloudifysource.dsl.context.ServiceContextFactory
+config = new ConfigSlurper().parse(new File("mongod-service.properties").toURL())
 
-dataDir = "${config.home}/data"
+def serviceContext = ServiceContextFactory.getServiceContext()
+
+
+
+instanceID = serviceContext.getInstanceId()
+println "mongod_start.groovy: mongod instanceID is ${instanceID}"
+
+def home= serviceContext.attributes.thisInstance["home"]
+println "mongod_start.groovy: mongod(${instanceID}) home ${home}"
+
+def script= serviceContext.attributes.thisInstance["script"]
+println "mongod_start.groovy: mongod(${instanceID}) script ${script}"
+
+def port = serviceContext.attributes.thisInstance["port"] 
+intPort=port.intValue()
+
+println "mongod_start.groovy: mongod(${instanceID}) port ${intPort}"
+
+def dataDir = "${home}/data"
+println "mongod_start.groovy: mongod(${instanceID}) dataDir ${dataDir}"
+
+println "mongod_start.groovy: Running mongod(${instanceID}) script ${script} ..."
 
 new AntBuilder().sequential {
 	//creating the data directory 	
 	mkdir(dir:"${dataDir}")
-    delete(file:"${dataDir}/mongod.lock")
-	exec(executable:config.script) {
-		arg line:"--shardsvr"
-		arg line:"--dbpath \"${dataDir}\""
-		arg line:"--port ${config.port}"
+}
+
+if (config.sharded) {
+	new AntBuilder().sequential {
+		exec(executable:"${script}") {
+			arg line:"--journal"
+			arg line:"--shardsvr"
+			arg line:"--dbpath \"${dataDir}\""
+			arg line:"--port ${intPort}"
+		}
+	}
+} else {
+	new AntBuilder().sequential {
+		exec(executable:"${script}") {
+			arg line:"--journal"
+			arg line:"--dbpath \"${dataDir}\""
+			arg line:"--port ${intPort}"
+		}
 	}
 }
+
+
+
+
+println "mongod_start.groovy: mongod(${instanceID}) script ${script} ended"
+
+
+
