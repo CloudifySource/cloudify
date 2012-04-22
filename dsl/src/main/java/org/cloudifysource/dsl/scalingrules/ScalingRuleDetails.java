@@ -52,7 +52,7 @@ public class ScalingRuleDetails {
 	}
 
 	/**
-	 * @param highThreshold
+	 * @param lowThreshold
 	 * 			a wrapper object for the breach value and the decrease action value
 	 */
 	public void setLowThreshold(final LowThresholdDetails lowThreshold) {

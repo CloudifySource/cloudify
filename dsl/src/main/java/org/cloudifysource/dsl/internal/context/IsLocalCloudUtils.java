@@ -47,7 +47,7 @@ public final class IsLocalCloudUtils {
 	/**
 	 * @param ip - the ip to check if it refers to the local machine.
 	 * @return true - if the specified ip is the local mahcine
-	 * @see http://stackoverflow.com/questions/2406341/how-to-check-if-an-ip-address-is-the-local-host-on-a-multi-homed-system
+	 * @see "http://stackoverflow.com/questions/2406341/how-to-check-if-an-ip-address-is-the-local-host-on-a-multi-homed-system"
 	 */
 	public static boolean isThisMyIpAddress(final String ip) {
 		InetAddress addr;
