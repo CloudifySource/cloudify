@@ -391,8 +391,9 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 			return ids;
 
 		} catch (final UniformInterfaceException e) {
-			throw new OpenstackException(e);
-
+			final String responseEntity = e.getResponse().getEntity(String.class).toString();
+			throw new OpenstackException(e + " Response entity: " + responseEntity);
+			
 		} catch (SAXException e) {
 			throw new OpenstackException("Failed to parse XML Response from server. Response was: " + response
 					+ ", Error was: " + e.getMessage(), e);
@@ -458,7 +459,8 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 						"X-Auth-Token", token).accept(
 						MediaType.APPLICATION_XML).delete();
 			} catch (final UniformInterfaceException e) {
-				throw new IllegalArgumentException(e);
+				final String responseEntity = e.getResponse().getEntity(String.class).toString();
+				throw new IllegalArgumentException(e + " Response entity: " + responseEntity);
 			}
 
 		}
@@ -554,7 +556,8 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 				MediaType.APPLICATION_XML).post(
 					String.class, json);
 		} catch (final UniformInterfaceException e) {
-			throw new OpenstackException(e);
+			final String responseEntity = e.getResponse().getEntity(String.class).toString();
+			throw new OpenstackException(e + " Response entity: " + responseEntity);
 		}
 
 		try {
