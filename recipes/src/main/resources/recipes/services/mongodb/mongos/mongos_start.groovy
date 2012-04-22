@@ -12,8 +12,8 @@ mongoCfgHost = mongoCfgInstances[instanceID-1].hostAddress
 println "mongos_start.groovy: mongos#${instanceID} is using mongoConfig ${mongoCfgHost}"
 
 
-intPort = serviceContext.attributes.thisInstance["port"] as int 
-println "mongos_start.groovy: mongos(${instanceID}) port ${intPort}"
+currPort = serviceContext.attributes.thisInstance["port"]
+println "mongos_start.groovy: mongos(${instanceID}) port ${currPort}"
 
 
 cfgPort=serviceContext.attributes."mongoConfig".instances[instanceID].port
@@ -26,7 +26,7 @@ println "mongos_start.groovy: script ${script}"
 println "mongos_start.groovy: Running script ${script} for mongos#${instanceID} ..."
 new AntBuilder().exec(executable:"${script}") {
 	arg line:"--configdb ${mongoCfgHost}:${cfgPort}"
-	arg line:"--port ${intPort}"
+	arg line:"--port ${currPort}"
 	arg line:"--chunkSize 1"
 }
 

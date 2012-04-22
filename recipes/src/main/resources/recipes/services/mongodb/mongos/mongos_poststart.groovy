@@ -20,12 +20,12 @@ mongodHostInstances = mongodService.waitForInstances(mongodService.numberOfPlann
 
 println "mongos_poststart.groovy: mongodHostInstances length is "+mongodHostInstances.length
 
-intPort = serviceContext.attributes.thisInstance["port"] as int
-println "mongos_poststart.groovy: Connecting to mongos on port ${intPort} ..."
+currPort = serviceContext.attributes.thisInstance["port"] as int
+println "mongos_poststart.groovy: Connecting to mongos on port ${currPort} ..."
 
-mongo = new GMongo("127.0.0.1", intPort)
+mongo = new GMongo("127.0.0.1", currPort)
 	
-println "mongos_poststart.groovy: After new GMongo port ${intPort} ..."
+println "mongos_poststart.groovy: After new GMongo port ${currPort} ..."
 	
 db = mongo.getDB("admin")
 assert db != null 	
