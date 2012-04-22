@@ -110,7 +110,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 	private static final int DEFAULT_POST_LAUNCH_WAIT_PERIOD_MILLIS = 2000;
 	private static final int DEFAULT_POST_DEATH_WAIT_PERIOD_MILLIS = 2000;
 
-	private static java.util.logging.Logger logger = java.util.logging.Logger
+	private final static java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(UniversalServiceManagerBean.class.getName());
 
 	// process names for well-known shell
