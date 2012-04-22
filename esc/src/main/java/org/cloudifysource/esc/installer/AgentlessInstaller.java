@@ -52,10 +52,10 @@ import org.cloudifysource.esc.util.ShellCommandBuilder;
 import org.cloudifysource.esc.util.Utils;
 
 /************
- * The agentless installer class is responsible for installing gigaspaces on a remote machine, using only ssh. It will
- * upload all relevant files and start the gigaspaces agent.
+ * The agentless installer class is responsible for installing Cloudify on a remote machine, using only SSH. It will
+ * upload all relevant files and start the Cloudify agent.
  * 
- * File transfer is handled using apache commons vfs.
+ * File transfer is handled using Apache commons vfs.
  * 
  * @author barakme
  * 
@@ -137,8 +137,7 @@ public class AgentlessInstaller {
 		while (System.currentTimeMillis() < endTime) {
 
 			try {
-				final InetAddress inetAddress = InetAddress.getByName(ip);
-				return inetAddress;
+				return InetAddress.getByName(ip);
 			} catch (final IOException e) {
 				lastException = e;
 			}
@@ -354,8 +353,7 @@ public class AgentlessInstaller {
 		}
 
 		SftpFileSystemConfigBuilder.getInstance().setTimeout(opts, SFTP_DISCONNECT_DETECTION_TIMEOUT_MILLIS);
-		final FileSystemManager mng = VFS.getManager();
-		return mng;
+		return VFS.getManager();
 	}
 
 	/******
@@ -658,9 +656,7 @@ public class AgentlessInstaller {
 
 		} finally {
 			try {
-				if (reader != null) {
-					reader.close();
-				}
+				reader.close();
 			} catch (final IOException e) {
 				logger.log(Level.SEVERE, "Error while closingprocess input stream: " + e.getMessage(), e);
 
