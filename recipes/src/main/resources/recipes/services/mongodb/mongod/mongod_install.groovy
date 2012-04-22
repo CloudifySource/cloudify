@@ -11,7 +11,7 @@ osConfig = ServiceUtils.isWindows() ? config.win32 : config.unix
 
 instanceID = serviceContext.getInstanceId()
 
-installDir = System.properties["user.home"]+ "/.cloudify/${config.serviceName}" + instanceID
+installDir = "${serviceContext.serviceDirectory}/${config.serviceName}" + instanceID
 
 
 home = "${serviceContext.serviceDirectory}/mongodb-${config.version}"
