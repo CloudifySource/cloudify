@@ -53,7 +53,8 @@ public class ByonDeployer {
 	private static final String CLOUD_NODE_USERNAME = "username";
 	private static final String CLOUD_NODE_CREDENTIAL = "credential";
 
-	private final Map<String, Map<String, List<CustomNode>>> nodesListsByTemplates = new Hashtable<String, Map<String, List<CustomNode>>>();
+	private final Map<String, Map<String, List<CustomNode>>> nodesListsByTemplates = 
+			new Hashtable<String, Map<String, List<CustomNode>>>();
 
 	/**
 	 * Constructor.
@@ -124,7 +125,7 @@ public class ByonDeployer {
 		final List<CustomNode> allocatedNodesPool = templateLists.get(NODES_LIST_ALLOCATED);
 		final List<CustomNode> invalidNodesPool = templateLists.get(NODES_LIST_INVALID);
 
-		if (freeNodesPool.isEmpty()&& invalidNodesPool.isEmpty()) {
+		if (freeNodesPool.isEmpty() && invalidNodesPool.isEmpty()) {
 			throw new CloudProvisioningException("Failed to create a new cloud node for template \"" + templateName
 					+ "\", all available nodes are currently used");
 		}
@@ -156,7 +157,9 @@ public class ByonDeployer {
 			}
 		}
 
-		((CustomNodeImpl) node).setNodeName(serverName);
+		if (node != null) {
+			((CustomNodeImpl) node).setNodeName(serverName);			
+		}
 
 		return node;
 	}
