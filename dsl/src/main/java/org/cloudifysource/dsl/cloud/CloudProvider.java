@@ -74,6 +74,7 @@ public class CloudProvider {
 	 * @deprecated use CloudTemplate.getRemoteDirectory instead.
 	 * @return .
 	 */
+	@Deprecated
 	public String getRemoteDirectory() {
 		return remoteDirectory;
 	}
@@ -82,6 +83,7 @@ public class CloudProvider {
 	 * @param remoteDirectory .
 	 * @deprecated use CloudTemplate.setRemoteDirectory instead.
 	 */
+	@Deprecated
 	public void setRemoteDirectory(final String remoteDirectory) {
 		this.remoteDirectory = remoteDirectory;
 	}
