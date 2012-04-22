@@ -5,8 +5,8 @@ config = new ConfigSlurper().parse(new File('mongoConfig-service.properties').to
 serviceContext = ServiceContextFactory.getServiceContext()
 instanceID = serviceContext.getInstanceId()
 
-intPort = serviceContext.attributes.thisInstance["port"] as int
-println "mongoConfig_start.groovy: mongoConfig#${instanceID} is using port ${intPort}"
+currPort = serviceContext.attributes.thisInstance["port"]
+println "mongoConfig_start.groovy: mongoConfig#${instanceID} is using port ${currPort}"
 
 home = serviceContext.attributes.thisInstance["home"]
 println "mongoConfig_start.groovy: home ${home}"
@@ -27,7 +27,7 @@ new AntBuilder().sequential {
 		arg line:"--journal"
 		arg value:"--configsvr"
 		arg line:"--dbpath \"${dataDir}\""
-		arg line:"--port ${intPort}"
+		arg line:"--port ${currPort}"
     }
 }
 
