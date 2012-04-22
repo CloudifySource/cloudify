@@ -11,7 +11,7 @@ osConfig = ServiceUtils.isWindows() ? config.win32 : config.unix
 
 instanceID = serviceContext.getInstanceId()
 
-installDir = System.properties["user.home"]+ "/.cloudify/${config.serviceName}" + instanceID
+installDir = "${serviceContext.serviceDirectory}/${config.serviceName}" + instanceID
 
 
 home = "${serviceContext.serviceDirectory}/mongodb-${config.version}"
@@ -26,7 +26,7 @@ println "mongod_install.groovy: mongod(${instanceID}) script is ${home}/bin/mong
 currPort=config.port
 if (serviceContext.isLocalCloud()) {
 	if (config.sharded) {
-		currPort+=instanceID
+		currPort+=instanceID-1
 	}
 }
 
