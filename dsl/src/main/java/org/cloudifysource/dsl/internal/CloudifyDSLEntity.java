@@ -49,7 +49,7 @@ public @interface CloudifyDSLEntity {
 	
 	/*******
 	 * True if the POJO may be an internal node of a DSL file, false otherwise.
-	 * @return
+	 * @return boolean, True if the POJO may be an internal node of a DSL file, false otherwise. 
 	 */
 	boolean allowInternalNode();
 	
