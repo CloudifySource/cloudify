@@ -186,7 +186,7 @@ public interface AdminFacade {
 	 *            The name of the application the service is currently deployed in
 	 * @param serviceName
 	 *            The name of the service to undeploy
-	 * @return 
+	 * @return The undeploy response, as a key-value map
 	 * @throws CLIException
 	 *             Reporting a failure to undeploy the service
 	 */
@@ -265,7 +265,7 @@ public interface AdminFacade {
 	 * 
 	 * @param applicationName
 	 *            The name of the application to uninstall
-	 * @return 
+	 * @return The uninstall response, as a key-value map
 	 * @throws CLIException
 	 *             Reporting a failure to uninstall the application
 	 */
