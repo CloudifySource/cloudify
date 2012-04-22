@@ -16,7 +16,7 @@ serviceContext.attributes.thisInstance["script"] = "${script}"
 println "mongoConfig_install.groovy: mongoConfig(${instanceID}) home is ${home}"
 
 
-serviceContext.attributes.thisInstance["port"]=config.basePort+instanceID
+serviceContext.attributes.thisInstance["port"]=config.port
 port=serviceContext.attributes.thisInstance["port"]
 println "mongoConfig_install.groovy: mongoConfig(${instanceID}) is using port ${port}"
 

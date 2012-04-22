@@ -9,9 +9,9 @@ serviceContext = ServiceContextFactory.getServiceContext()
 instanceID = serviceContext.getInstanceId()
 
 println "mongos_install.groovy: Writing mongos port to this instance(${instanceID}) attributes..."
-serviceContext.attributes.thisInstance["port"] = config.basePort+instanceID
-port = serviceContext.attributes.thisInstance["port"] 
-println "mongos_install.groovy: mongos(${instanceID}) port ${port}"
+serviceContext.attributes.thisInstance["port"] = config.port
+
+
 
 home = "${serviceContext.serviceDirectory}/mongodb-${config.version}"
 script = "${home}/bin/mongos"

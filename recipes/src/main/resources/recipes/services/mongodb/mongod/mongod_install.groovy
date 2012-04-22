@@ -23,9 +23,11 @@ println "mongod_install.groovy: mongod(${instanceID}) home is ${home}"
 serviceContext.attributes.thisInstance["script"] = "${home}/bin/mongod"
 println "mongod_install.groovy: mongod(${instanceID}) script is ${home}/bin/mongod"
 
-currPort=config.basePort
+currPort=config.port
 if (serviceContext.isLocalCloud()) {
-	currPort+=instanceID
+	if (config.sharded) {
+		currPort+=instanceID
+	}
 }
 
 serviceContext.attributes.thisInstance["port"] = currPort
