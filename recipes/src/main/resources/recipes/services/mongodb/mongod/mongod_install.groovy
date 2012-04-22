@@ -26,7 +26,7 @@ println "mongod_install.groovy: mongod(${instanceID}) script is ${home}/bin/mong
 currPort=config.port
 if (serviceContext.isLocalCloud()) {
 	if (config.sharded) {
-		currPort+=instanceID
+		currPort+=instanceID-1
 	}
 }
 
