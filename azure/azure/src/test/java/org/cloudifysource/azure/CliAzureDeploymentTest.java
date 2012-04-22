@@ -91,7 +91,7 @@ public class CliAzureDeploymentTest {
             "WgBDXc+tBT2eo8ktROXDG7VDc";
 
     // path to travel application relative to cloudify installation
-	private static final String RELATIVE_APPLICATION_EXAMPLE_PATH = "examples\\azure\\travel";
+	private static final String RELATIVE_APPLICATION_EXAMPLE_PATH = "recipes\\apps\\travel-azure";
 
     // arguments for cli
     private static final int TIMEOUT_IN_MINUTES = 60;
