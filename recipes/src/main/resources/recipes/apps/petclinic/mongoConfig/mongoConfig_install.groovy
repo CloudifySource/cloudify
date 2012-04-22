@@ -6,6 +6,9 @@ osConfig = ServiceUtils.isWindows() ? config.win32 : config.unix
 
 serviceContext = ServiceContextFactory.getServiceContext()
 instanceID = serviceContext.getInstanceId()
+
+installDir = "${serviceContext.serviceDirectory}/${config.serviceName}" + instanceID
+
 println "mongoConfig_install.groovy: Writing mongoConfig port to this instance(${instanceID}) attributes..."
 
 home = "${serviceContext.serviceDirectory}/mongodb-${config.version}"
@@ -22,16 +25,16 @@ println "mongoConfig_install.groovy: mongoConfig(${instanceID}) is using port ${
 
 builder = new AntBuilder()
 builder.sequential {
-	mkdir(dir:"${config.installDir}")
-	get(src:"${osConfig.downloadPath}", dest:"${config.installDir}/${osConfig.zipName}", skipexisting:true)
+	mkdir(dir:"${installDir}")
+	get(src:"${osConfig.downloadPath}", dest:"${installDir}/${osConfig.zipName}", skipexisting:true)
 }
 
 if(ServiceUtils.isWindows()) {
-	builder.unzip(src:"${config.installDir}/${osConfig.zipName}", dest:"${config.installDir}", overwrite:true)
+	builder.unzip(src:"${installDir}/${osConfig.zipName}", dest:"${installDir}", overwrite:true)
 } else {
-	builder.untar(src:"${config.installDir}/${osConfig.zipName}", dest:"${config.installDir}", compression:"gzip", overwrite:true)
+	builder.untar(src:"${installDir}/${osConfig.zipName}", dest:"${installDir}", compression:"gzip", overwrite:true)
 }
-builder.move(file:"${config.installDir}/${osConfig.name}", tofile:"${home}")
+builder.move(file:"${installDir}/${osConfig.name}", tofile:"${home}")
 
 if(!ServiceUtils.isWindows()) {
 	println "calling chmod on ${home}/bin"
