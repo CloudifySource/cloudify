@@ -23,17 +23,31 @@ import org.cloudifysource.esc.installer.AgentlessInstallerListener;
  * Event listener for events originated in the AgentlessInstaller.
  * 
  * @author adaml
- *
+ * 
  */
 public class CliAgentlessInstallerListener extends AbstractEventListener implements AgentlessInstallerListener {
 
+	private static final String VERBOSE_MARKER = "VERBOSE:";
 	private static final Logger logger = Logger.getLogger(CliAgentlessInstallerListener.class.getName());
-	
+	private final boolean verbose;
+
+	public CliAgentlessInstallerListener(final boolean verbose) {
+		this.verbose = verbose;
+	}
+
 	@Override
 	public void onInstallerEvent(String eventName, Object... args) {
-		logger.info(getFormattedMessage(eventName, args));
-	}
-	
+		String formattedMessage = getFormattedMessage(eventName, args);
+		if (formattedMessage.startsWith(VERBOSE_MARKER)) {
+			// Message is marked to be printed only in Verbose mode
+			if (this.verbose) {
+				formattedMessage = formattedMessage.substring(VERBOSE_MARKER.length());
+				logger.info(formattedMessage);
+			}
 
+		} else {
+			logger.info(formattedMessage);
+		}
+	}
 
 }

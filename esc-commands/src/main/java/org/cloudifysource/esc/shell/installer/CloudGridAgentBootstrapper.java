@@ -355,7 +355,7 @@ public class CloudGridAgentBootstrapper {
 			throws InterruptedException, TimeoutException, InstallerException, IOException {
 
 		final AgentlessInstaller installer = new AgentlessInstaller();
-		installer.addListener(new CliAgentlessInstallerListener());
+		installer.addListener(new CliAgentlessInstallerListener(this.verbose));
 
 		// Update the logging level of jsch used by the AgentlessInstaller
 		Logger.getLogger(AgentlessInstaller.SSH_LOGGER_NAME).setLevel(
