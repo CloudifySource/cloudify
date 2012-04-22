@@ -99,7 +99,8 @@ cloud {
 
 					// Optional. Overrides to default cloud driver behavior.
 					// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
-					overrides ([:])
+				overrides (["jclouds.ec2.ami-query":"",
+								"jclouds.ec2.cc-ami-query":""])
 
 
 
