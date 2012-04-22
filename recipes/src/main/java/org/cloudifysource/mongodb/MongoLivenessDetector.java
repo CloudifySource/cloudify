@@ -41,7 +41,8 @@ public class MongoLivenessDetector extends AbstractMongoPlugin implements Livene
 	private int timeoutInSeconds = DEFAULT_TIMEOUT_SECONDS ;
 
 
-    public void init() {
+    @Override
+	public void init() {
         if(config.get(TIMEOUT_KEY) != null) {
             timeoutInSeconds = (Integer) config.get(TIMEOUT_KEY);
         }
@@ -55,18 +56,22 @@ public class MongoLivenessDetector extends AbstractMongoPlugin implements Livene
 	 * @throws USMException 
 	 * 
 	 */
+	@Override
 	public boolean isProcessAlive() throws TimeoutException {
         if (!initialized) init();
         ServiceUtils.arePortsOccupied(Collections.singletonList(port));
         return true;
 	}
 
+	@Override
 	public void init(UniversalServiceManagerBean usm) {}
 
+	@Override
 	public int getOrder() {
 		return 5;
 	}
 
+	@Override
 	public EventResult onPreStart(StartReason reason) {
         if (!initialized) init();
 		Socket sock = new Socket();
