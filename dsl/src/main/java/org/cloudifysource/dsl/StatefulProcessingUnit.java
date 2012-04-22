@@ -16,13 +16,14 @@
 package org.cloudifysource.dsl;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.openspaces.admin.pu.elastic.ElasticStatefulProcessingUnitDeployment;
 
 /**
  * Defines an elastic deployment of a processing unit that contains an embedded space. The steteful Processing unit
  * configuration POJO is initialized by the service groovy DSL and holds all of the required information regarding the
  * deployment of stateful processing units.
  * 
- * @see org.openspaces.admin.pu.elastic.ElasticStatefulProcessingUnitDeployment
+ * @see ElasticStatefulProcessingUnitDeployment
  * 
  * @author adaml
  * 
