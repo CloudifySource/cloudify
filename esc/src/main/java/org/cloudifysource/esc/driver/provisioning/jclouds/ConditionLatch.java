@@ -28,7 +28,7 @@ public class ConditionLatch {
 	private static final long DEFAULT_INTERVAL_SECONDS = 10;
 	private static final String DEFAULT_TIMEOUT_ERROR_MESSAGE = "Operation timed out";
 	
-	private final Logger logger = Logger.getLogger(this.getClass().getName());
+	private final static Logger logger = Logger.getLogger(ConditionLatch.class.getName());
 	private String timeoutErrorMessage = DEFAULT_TIMEOUT_ERROR_MESSAGE;
 	private long pollingIntervalMilliseconds = TimeUnit.SECONDS.toMillis(DEFAULT_INTERVAL_SECONDS);
 	private boolean verbose = false;
