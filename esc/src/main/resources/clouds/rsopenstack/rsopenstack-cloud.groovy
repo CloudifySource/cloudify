@@ -24,8 +24,8 @@ cloud {
 		
 	}
 	user {
-		user "gsrackspace"
-		apiKey "e844c76f985f2e00d7278f51c0ef1333"
+		user "USER_NAME"
+		apiKey "API_KEY"
 	}
 	templates ([
 				SMALL_LINUX : template{
