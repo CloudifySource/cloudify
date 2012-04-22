@@ -28,7 +28,7 @@ public @interface CloudifyDSLEntity {
 	
 	/**********
 	 * The name used to identify the POJO in the DSL.
-	 * @return
+	 * @return The name used to identify the POJO in the DSL.
 	 */
 	String name();
 	
