@@ -7,7 +7,6 @@ import org.junit.Test;
 /**
  * The class <code>CloudUserTest</code> contains tests for the class <code>{@link CloudUser}</code>.
  * 
- * @generatedBy CodePro at 4/5/12 10:11 AM
  * @author barakme
  * @version $Revision: 1.0 $
  */
@@ -17,8 +16,6 @@ public class CloudUserTest {
 	 * Run the void validateKeyFileDefaultValue() method test.
 	 * 
 	 * @throws Exception
-	 * 
-	 * @generatedBy CodePro at 4/5/12 10:11 AM
 	 */
 	@Test
 	public void testValidateKeyFileDefaultValue_1()
@@ -38,8 +35,6 @@ public class CloudUserTest {
 	 * Run the void validateKeyFileDefaultValue() method test.
 	 * 
 	 * @throws Exception
-	 * 
-	 * @generatedBy CodePro at 4/5/12 10:11 AM
 	 */
 	@Test(expected = org.cloudifysource.dsl.internal.DSLValidationException.class)
 	public void testValidateKeyFileDefaultValue_2()
@@ -59,8 +54,6 @@ public class CloudUserTest {
 	 * Run the void validateKeyFileDefaultValue() method test.
 	 * 
 	 * @throws Exception
-	 * 
-	 * @generatedBy CodePro at 4/5/12 10:11 AM
 	 */
 	@Test(expected = org.cloudifysource.dsl.internal.DSLValidationException.class)
 	public void testValidateKeyFileDefaultValue_3()
@@ -80,8 +73,6 @@ public class CloudUserTest {
 	 * Run the void validateKeyFileDefaultValue() method test.
 	 * 
 	 * @throws Exception
-	 * 
-	 * @generatedBy CodePro at 4/5/12 10:11 AM
 	 */
 	@Test(expected = org.cloudifysource.dsl.internal.DSLValidationException.class)
 	public void testValidateKeyFileDefaultValue_4()
@@ -141,8 +132,6 @@ public class CloudUserTest {
 	 * Perform pre-test initialization.
 	 * 
 	 * @throws Exception if the initialization fails for some reason
-	 * 
-	 * @generatedBy CodePro at 4/5/12 10:11 AM
 	 */
 	@Before
 	public void setUp()
@@ -154,8 +143,6 @@ public class CloudUserTest {
 	 * Perform post-test clean-up.
 	 * 
 	 * @throws Exception if the clean-up fails for some reason
-	 * 
-	 * @generatedBy CodePro at 4/5/12 10:11 AM
 	 */
 	@After
 	public void tearDown()
