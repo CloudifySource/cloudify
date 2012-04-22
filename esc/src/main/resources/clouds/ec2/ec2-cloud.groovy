@@ -104,33 +104,7 @@ cloud {
 
 
 
-				},
-				MEDIUM_WIN : template{
-					// Mandatory. Image ID.
-					imageId "eu-west-1/ami-9b8fb6ef"
-					// Mandatory. Amount of RAM available to machine.
-					machineMemoryMB 1600
-					// Mandatory. Hardware ID.
-					hardwareId "m1.medium"
-					// Optional. Location ID.
-					locationId "eu-west-1"
-
-					// Additional template options.
-					// When used with the default driver, the option names are considered
-					// method names invoked on the TemplateOptions object with the value as the parameter.
-					options ([
-								"securityGroups" : ["default"]as String[],
-								"keyPair" : "win-test"
-							])
-
-					// Optional. Overrides to default cloud driver behavior.
-					// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
-					overrides ([:])
-
-
-
 				}
-
 			])
 
 
