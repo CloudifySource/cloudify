@@ -1,3 +1,3 @@
 service {
-	extend "../../../../services/cassandra"
+	extend "../../../services/cassandra"
 }
