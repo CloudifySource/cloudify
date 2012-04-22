@@ -16,6 +16,7 @@
 package org.cloudifysource.shell;
 
 /**
+ * Mark the Admin type used.
  * @author adaml
  * @since 2.0.0
  */
