@@ -651,6 +651,7 @@ public class AgentlessInstaller {
 				if (line == null) {
 					break;
 				}
+				this.publishEvent("powershell_output_line", line);
 				logger.fine(line);
 				sb.append(line).append(newline);
 			}
