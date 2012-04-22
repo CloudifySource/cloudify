@@ -4,10 +4,18 @@ service {
 	name "tomcat"
 	icon "tomcat.gif"
 	type "WEB_SERVER"
-	def portIncrement =  context.isLocalCloud() ? context.getInstanceId()-1 : 0
+	
+    elastic true
+	numInstances 1
+	minAllowedInstances 1
+	maxAllowedInstances 2
+	
+	def portIncrement =  context.isLocalCloud() ? context.getInstanceId()-1 : 0		
+	
 	def currJmxPort = jmxPort + portIncrement
 	def currHttpPort = port + portIncrement
 	def currAjpPort = ajpPort + portIncrement
+	
 	compute {
 		template "SMALL_LINUX"
 	}
@@ -23,7 +31,7 @@ service {
 		}
 	}
 
-	customCommands ([
+	customCommands ([       	
 		"updateWar" : {warUrl -> 
 			println "tomcat-service.groovy(updateWar custom command): warUrl is ${warUrl}..."
 			context.attributes.thisService["warUrl"] = "${warUrl}"
@@ -37,12 +45,13 @@ service {
 					it.invoke("updateWarFile")
 				}
 			}
-					println "tomcat-service.groovy(updateWar customCommand): End"
-					return true
-				} ,
-
-				"updateWarFile" : "updateWarFile.groovy"
-			])
+						
+			println "tomcat-service.groovy(updateWar customCommand): End"
+			return true
+		} ,
+		 
+		"updateWarFile" : "updateWarFile.groovy"
+    ])
 
 	plugins([
 		plugin {
@@ -50,7 +59,7 @@ service {
 			className "org.cloudifysource.usm.jmx.JmxMonitor"
 			config([
 						"Current Http Threads Busy": [
-					"Catalina:type=ThreadPool,name=\"http-bio-${currHttpPort}\"",
+							"Catalina:type=ThreadPool,name=\"http-bio-${currHttpPort}\"",
 							"currentThreadsBusy"
 						],
 						"Current Http Threads Count": [
@@ -62,9 +71,9 @@ service {
 							"backlog"
 						],
 						"Active Sessions":[
-	                                                "Catalina:type=Manager,context=/${appFolder},host=localhost",
+							"Catalina:type=Manager,context=/${appFolder},host=localhost",
 							"activeSessions"
-			                        ],
+						],
 						"Total Requests Count": [
 							"Catalina:type=GlobalRequestProcessor,name=\"http-bio-${currHttpPort}\"",
 							"requestCount"
@@ -192,34 +201,11 @@ service {
 	}
 	
 	network {
-          port = currHttpPort
-          protocolDescription ="HTTP"
-        }
-	// global flag that enables changing number of instances for this service
-	elastic true
-
-	// the initial number of instances
-	numInstances 1
-
-	// The minimum number of service instances
-	// Used together with scaling rules
-	minAllowedInstances 1
-
-	// The maximum number of service instances
-	// Used together with scaling rules
-	maxAllowedInstances 2
-
-	// The time (in seconds) that scaling rules are disabled after scale in (instances removed)
-	// and scale out (instances added)
-	//
-	// This has the same effect as setting scaleInCooldownInSeconds and scaleOutCooldownInSeconds separately.
-	//
-	// Used together with scaling rules
+        port = currHttpPort
+        protocolDescription ="HTTP"
+    }
+	
 	scaleCooldownInSeconds 20
-
-
-	// The time (in seconds) between two consecutive metric samples
-	// Used together with scaling rules
 	samplingPeriodInSeconds 1
 
 	// Defines an automatic scaling rule based on "counter" metric value
@@ -227,50 +213,17 @@ service {
 		scalingRule {
 
 			serviceStatistics {
-
-        // The name of the metric that is the basis for the scale rule decision
 				metric "Total Requests Count"
-
-        // (Optional)
-        // The sliding time range (in seconds) for aggregating per-instance metric samples
-        // The number of samples in the time windows equals the time window divided by the sampling period
-        // Default: 300
-				movingTimeRangeInSeconds 20
-
-        // (Optional)
-        // The algorithms for aggregating metric samples by instances and by time.
-        // Metric samples are aggregated separately per instance in the specified time range,
-        // and then aggregated again for all instances.
-        // Default: Statistics.averageOfAverages
-        // Possible values: Statistics.maximumOfAverages, Statistics.minimumOfAverages, Statistics.averageOfAverages, Statistics.percentileOfAverages(90)
-        //                  Statistics.maximumOfMaximums, Statistics.minimumOfMinimums, Statistics.maximumThroughput
-        //
-        // This has the same effect as setting instancesStatistics and timeStatistics separately. 
-        // For example: 
-        // statistics Statistics.maximumOfAverages
-        // is the same as:
-        // timeStatistics Statistics.average
-        // instancesStatistics Statistics.maximum
-        // 
 				statistics Statistics.maximumThroughput
 			}
 
-
 			highThreshold {
-			
-        // The value above which the number of instances is increased			
 				value 1
-				
-				// The number of instances to increase when above threshold
 				instancesIncrease 1
 			}
 
 			lowThreshold {
-			
-        // The value below which the number of instances is decreased
 				value 0.2
-				
-				// The number of instances to decrease when below threshold
 				instancesDecrease 1
 			}
 		}
