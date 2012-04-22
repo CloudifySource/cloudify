@@ -62,13 +62,13 @@
 		<dependency>
 			<groupId>org.hyperic</groupId>
 			<artifactId>sigar</artifactId>
-			<version>1.6.5</version>
+			<version>${sigarVersion}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy</artifactId>
-			<version>1.8.0</version>
+			<version>${groovyVersion}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

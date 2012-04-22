@@ -107,7 +107,7 @@
 		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy</artifactId>
-			<version>1.8.0</version>
+			<version>${groovyVersion}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
