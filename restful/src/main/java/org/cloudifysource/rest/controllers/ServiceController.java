@@ -97,7 +97,6 @@ import org.openspaces.admin.AdminException;
 import org.openspaces.admin.application.Application;
 import org.openspaces.admin.application.Applications;
 import org.openspaces.admin.esm.ElasticServiceManager;
-import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.internal.admin.InternalAdmin;
 import org.openspaces.admin.internal.pu.DefaultProcessingUnitInstance;
@@ -187,10 +186,6 @@ public class ServiceController {
 		} else {
 			logger.info("Service Controller is running in local cloud mode");
 		}
-		
-		if (isLocalCloud()) {
-			useLocalCloud = true;
-		}
 
 		/**
 		 * Sets the folder used for temporary files. The value can be set in the configuration file
@@ -233,8 +228,8 @@ public class ServiceController {
 		this.cloudFileContents = getCloudConfigurationFromManagementSpace();
 		if (this.cloudFileContents == null) {
 			// must be local cloud
+			useLocalCloud = true;
 			return null;
-
 		}
 		Cloud cloudConfiguration = null;
 		try {
@@ -1293,24 +1288,6 @@ public class ServiceController {
 				+ "cloudExternalProcessMemoryInMB = cloud.machineMemoryMB - "
 				+ "cloud.reservedMemoryCapacityPerMachineInMB" + " = " + cloudExternalProcessMemoryInMB);
 		return cloudExternalProcessMemoryInMB;
-	}
-
-	/**
-	 * Local-Cloud has one agent without any zone.
-	 */
-	private boolean isLocalCloud() {
-		final GridServiceAgent[] agents = admin.getGridServiceAgents().getAgents();
-		final boolean isOnlyOneAgent = agents.length == 1;
-		final boolean isAgentWithoutZones = agents[0].getZones().isEmpty();
-		final boolean isLocalCloud = isOnlyOneAgent && isAgentWithoutZones;
-		if (logger.isLoggable(Level.FINE)) {
-			if (!isOnlyOneAgent) {
-				logger.fine("Not a local cloud since there are " + agents.length + " agents");
-			} else if (!isAgentWithoutZones) {
-				logger.fine("Not a local cloud since agent has zones " + agents[0].getZones());
-			}
-		}
-		return isLocalCloud;
 	}
 
 	/******
