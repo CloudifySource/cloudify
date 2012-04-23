@@ -99,14 +99,30 @@ sed -i "1i export LOOKUPLOCATORS=$LUS_IP_ADDRESS" setenv.sh || error_exit $? "Fa
 cd ~/gigaspaces/tools/cli || error_exit $? "Failed changing directory to cli directory"
 
 # START AGENT ALONE OR WITH MANAGEMENT
+if [ -f nohup.out ]; then
+  rm nohup.out
+fi
+
+if [ -f nohup.out ]; then
+   error_exit 1 "Failed to remove nohup.out Probably used by another process"
+fi
+
 if [ "$GSA_MODE" = "agent" ]; then
-	nohup ./cloudify.sh start-agent -timeout 30 --verbose -zone $MACHINE_ZONES -auto-shutdown || error_exit $? "Failed starting agent"
+	ERRMSG="Failed starting agent"
+	nohup ./cloudify.sh start-agent -timeout 30 --verbose -zone $MACHINE_ZONES -auto-shutdown
 else
+	ERRMSG="Failed starting management services"
 	if [ "$NO_WEB_SERVICES" = "true" ]; then
-		nohup ./cloudify.sh start-management -no-web-services -no-management-space -timeout 30 --verbose -auto-shutdown -cloud-file $CLOUD_FILE || error_exit $? "Failed starting management services"
+		nohup ./cloudify.sh start-management -no-web-services -no-management-space -timeout 30 --verbose -auto-shutdown -cloud-file $CLOUD_FILE
 	else
-		nohup ./cloudify.sh start-management -timeout 30 --verbose -auto-shutdown -cloud-file $CLOUD_FILE || error_exit $? "Failed starting management services"
+		nohup ./cloudify.sh start-management -timeout 30 --verbose -auto-shutdown -cloud-file $CLOUD_FILE
 	fi
 fi	
 
+RETVAL=$?
+echo cat nohup.out
+cat nohup.out
+if [ $RETVAL -ne 0 ]; then
+  error_exit $RETVAL $ERRMSG
+fi
 exit 0
