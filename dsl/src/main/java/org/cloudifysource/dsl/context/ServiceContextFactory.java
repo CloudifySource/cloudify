@@ -74,6 +74,7 @@ public final class ServiceContextFactory {
 			}
 			ServiceContextImpl newContext = new ServiceContextImpl(info, new File(".").getAbsolutePath());
 
+			// TODO - this code assumes running code only from a GSC. Test-recipe will not work here!
 			newContext.init(service, getAdmin(),
 					info);
 			context = newContext;
