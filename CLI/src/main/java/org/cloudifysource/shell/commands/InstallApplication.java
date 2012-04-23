@@ -81,15 +81,15 @@ public class InstallApplication extends AdminAwareCommand {
 			throw new CLIStatusException("application_already_deployed", application.getName());
 		}
 
-		File zipFile = null;
-		if (!applicationFile.isFile()) {
-			zipFile = Packager.packApplication(application, applicationFile);
-		} else {
+		File zipFile;
+		if (applicationFile.isFile()) {
 			if (applicationFile.getName().endsWith(".zip") || applicationFile.getName().endsWith(".jar")) {
 				zipFile = applicationFile;
 			} else {
 				throw new CLIStatusException("application_file_format_mismatch", applicationFile.getPath());
 			}
+		} else {//pack an application folder
+			zipFile = Packager.packApplication(application, applicationFile);			
 		}
 
 		// toString of string list (i.e. [service1, service2])
@@ -149,10 +149,10 @@ public class InstallApplication extends AdminAwareCommand {
 	 *            The Application object
 	 */
 	private void normalizeApplicationName(final Application application) {
-		if (applicationName == null || applicationName.length() == 0) {
+		if (applicationName == null || applicationName.isEmpty()) {
 			applicationName = application.getName();
 		}
-		if (applicationName == null || applicationName.length() == 0) {
+		if (applicationName == null || applicationName.isEmpty()) {
 			applicationName = applicationFile.getName();
 			final int endIndex = applicationName.lastIndexOf('.');
 			if (endIndex > 0) {
