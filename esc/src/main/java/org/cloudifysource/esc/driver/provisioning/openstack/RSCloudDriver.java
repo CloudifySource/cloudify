@@ -421,10 +421,12 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 	private Node getNodeByIp(final String serverIp, final String token)
 			throws OpenstackException {
 		final List<Node> nodes = listServers(token);
+		logger.log(Level.INFO, "Looking for node ip " + serverIp);
 		for (final Node node : nodes) {
-			if (node.getPrivateIp() != null && node.getPrivateIp().equals(
-					serverIp) || node.getPublicIp() != null && node.getPublicIp().equals(
-					serverIp)) {
+			logger.log(Level.INFO, "node private ip is " + node.getPrivateIp());
+			logger.log(Level.INFO, "node public ip is " + node.getPublicIp());
+			if ((node.getPrivateIp() != null && node.getPrivateIp().equalsIgnoreCase(serverIp)) || 
+					(node.getPublicIp() != null && node.getPublicIp().equalsIgnoreCase(serverIp))) {
 				return node;
 			}
 		}
@@ -441,18 +443,8 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 	private void terminateServers(final List<String> serverIds, final String token, final long endTime)
 			throws Exception {
 
-		// detach public ip and delete the servers
+		
 		for (final String serverId : serverIds) {
-
-/*			final Node node = getNode(
-					serverId, token);
-			if (node.getPublicIp() != null) {
-				detachFloatingIP(
-						serverId, node.getPublicIp(), token);
-				deleteFloatingIP(
-						node.getPublicIp(), token);
-			}
-*/
 			try {
 				service.path(
 						this.pathPrefix + "servers/" + serverId).header(

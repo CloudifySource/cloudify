@@ -416,8 +416,8 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 			throws OpenstackException {
 		final List<Node> nodes = listServers(token);
 		for (final Node node : nodes) {
-			if (node.getPrivateIp() != null && node.getPrivateIp().equals(serverIp) || node.getPublicIp() != null
-					&& node.getPublicIp().equals(serverIp)) {
+			if ((node.getPrivateIp() != null && node.getPrivateIp().equalsIgnoreCase(serverIp)) || 
+					(node.getPublicIp() != null && node.getPublicIp().equalsIgnoreCase(serverIp))) {
 				return node;
 			}
 		}
