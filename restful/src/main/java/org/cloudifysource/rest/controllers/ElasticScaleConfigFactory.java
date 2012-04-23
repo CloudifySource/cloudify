@@ -45,6 +45,10 @@ public class ElasticScaleConfigFactory {
 			final int externalProcessMemoryInMB)
 			throws DSLException {
 
+		if (externalProcessMemoryInMB <= 0) {
+			throw new IllegalArgumentException ("externalProcessMemoryInMB must be positive");
+		}
+		
 		int numberOfInstances = 1;
 		if (service == null) {
 			logger.info("Deploying service " + serviceName + " without a recipe. Assuming number of instances is 1");
@@ -80,6 +84,10 @@ public class ElasticScaleConfigFactory {
 			final int externalProcessMemoryInMB)
 			throws DSLException {
 
+		if (externalProcessMemoryInMB <=0) {
+			throw new IllegalArgumentException("externalProcessMemoryInMB must be positive");
+		}
+		
 		List<ScalingRuleDetails> scalingRules = service.getScalingRules();
 		if (scalingRules.isEmpty()) {
 			throw new DSLException("scalingRules cannot be empty");
