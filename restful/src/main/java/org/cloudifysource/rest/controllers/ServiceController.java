@@ -1271,14 +1271,24 @@ public class ServiceController {
 		return locators.toString();
 	}
 
-	private long calculateExternalProcessMemory(final Cloud cloud, final CloudTemplate template) {
+	private long calculateExternalProcessMemory(final Cloud cloud, final CloudTemplate template) throws DSLException {
 		// TODO remove hardcoded number
 		logger.info("Calculating external proc mem for template: " + template);
+		int machineMemoryMB = template.getMachineMemoryMB();
+		int reservedMemoryCapacityPerMachineInMB = cloud.getProvider().getReservedMemoryCapacityPerMachineInMB();
+		final int safteyMargin = 100; // get rid of this constant. see CLOUDIFY-297
 		final long cloudExternalProcessMemoryInMB =
-				template.getMachineMemoryMB() - cloud.getProvider().getReservedMemoryCapacityPerMachineInMB() - 100;
+				machineMemoryMB - reservedMemoryCapacityPerMachineInMB - safteyMargin;
+		if (cloudExternalProcessMemoryInMB <= 0) {
+			throw new DSLException(
+					"Cloud template machineMemoryMB ("
+					+ machineMemoryMB+ "MB) must be bigger than "+
+					"reservedMemoryCapacityPerMachineInMB+"+safteyMargin+" ("
+					+ (reservedMemoryCapacityPerMachineInMB+safteyMargin) + ")");
+		}
 		logger.fine("template.machineMemoryMB = " + template.getMachineMemoryMB() + "MB\n"
 				+ "cloud.provider.reservedMemoryCapacityPerMachineInMB = "
-				+ cloud.getProvider().getReservedMemoryCapacityPerMachineInMB() + "MB\n"
+				+ reservedMemoryCapacityPerMachineInMB + "MB\n"
 				+ "cloudExternalProcessMemoryInMB = " + cloudExternalProcessMemoryInMB + "MB"
 				+ "cloudExternalProcessMemoryInMB = cloud.machineMemoryMB - "
 				+ "cloud.reservedMemoryCapacityPerMachineInMB" + " = " + cloudExternalProcessMemoryInMB);
@@ -1807,7 +1817,7 @@ public class ServiceController {
 	public @ResponseBody
 	Map<String, Object> setServiceInstances(@PathVariable final String applicationName,
 			@PathVariable final String serviceName, @PathVariable final int timeout, @RequestParam(value = "count",
-					required = true) final int count) {
+					required = true) final int count) throws DSLException {
 
 		Map<String, Object> returnMap = new HashMap<String, Object>();
 		final String puName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
