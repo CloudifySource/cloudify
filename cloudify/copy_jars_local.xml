@@ -11,7 +11,7 @@
 
 	<property name="giga.base.dir" value="D:/Gigaspaces" />
 
-	<property name="giga.version" value="gigaspaces-cloudify-2.1.0-m4" />
+	<property name="giga.version" value="gigaspaces-cloudify-2.1.0-ga" />
 
 	<property name="target.dir" value="${giga.base.dir}/${giga.version}" />
 	<property name="ec2.dir"
