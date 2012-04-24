@@ -62,7 +62,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 	private static final String MACHINE_STATUS_ACTIVE = "ACTIVE";
 	private static final int HTTP_NOT_FOUND = 404;
-	private static final int SERVER_POLLING_INTERVAL_MILLIS = 1000;
+	private static final int SERVER_POLLING_INTERVAL_MILLIS = 10 * 1000; // 10 seconds
 	private static final int DEFAULT_SHUTDOWN_TIMEOUT_MILLIS = 5 * 60 * 1000; // 5 minutes
 	private static final String OPENSTACK_OPENSTACK_IDENTITY_ENDPOINT = "openstack.identity.endpoint";
 	private static final String OPENSTACK_WIRE_LOG = "openstack.wireLog";
@@ -460,7 +460,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 					}
 					throw e;
 				}
-
+				Thread.sleep(SERVER_POLLING_INTERVAL_MILLIS);
 			}
 
 		}
