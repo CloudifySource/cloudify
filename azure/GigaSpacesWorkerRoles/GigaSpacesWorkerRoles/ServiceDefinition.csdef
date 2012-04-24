@@ -29,7 +29,7 @@
       <InternalEndpoint name="LRMI" protocol="tcp">
         <FixedPortRange max="9999" min="5000" />
       </InternalEndpoint>
-      <InternalEndpoint name="LookupService" protocol="tcp" port="4166" />
+      <InternalEndpoint name="LookupService" protocol="tcp" port="4170" />
       <InputEndpoint name="IIS" protocol="tcp" port="80" localPort="80" />
     </Endpoints>
     <LocalStorage name="LocalTempFolder" sizeInMB="20000" cleanOnRoleRecycle="true" />
