@@ -15,17 +15,22 @@
 *******************************************************************************/
 config = new ConfigSlurper().parse(new File("tomcat.properties").toURL())
 
+def serviceContext = ServiceContextFactory.getServiceContext()
+def instanceID = serviceContext.getInstanceId()
+installDir = System.properties["user.home"]+ "/.cloudify/${config.serviceName}" + instanceID
+applicationWar = "${installDir}/${config.warName}"
+
 //download apache tomcat
 new AntBuilder().sequential {	
-	mkdir(dir:config.installDir)
-	get(src:config.downloadPath, dest:"${config.installDir}/${config.zipName}", skipexisting:true)
-	unzip(src:"${config.installDir}/${config.zipName}", dest:config.installDir, overwrite:true)
+	mkdir(dir:installDir)
+	get(src:config.downloadPath, dest:"${installDir}/${config.zipName}", skipexisting:true)
+	unzip(src:"${installDir}/${config.zipName}", dest:config.installDir, overwrite:true)
 }
 
-if (config.applicationWarUrl && config.applicationWar) {
+if (config.applicationWarUrl && config.warName) {
   new AntBuilder().sequential {	
-    get(src:config.applicationWarUrl, dest:config.applicationWar, skipexisting:true)
-    copy(todir: "${config.home}/webapps", file:config.applicationWar, overwrite:true)
+    get(src:config.applicationWarUrl, dest:applicationWar, skipexisting:true)
+    copy(todir: "${config.home}/webapps", file:applicationWar, overwrite:true)
   }
 }
 
