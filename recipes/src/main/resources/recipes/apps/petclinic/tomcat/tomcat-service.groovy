@@ -36,7 +36,7 @@ service {
 			println "tomcat-service.groovy(updateWar custom command): warUrl is ${warUrl}..."
 			context.attributes.thisService["warUrl"] = "${warUrl}"
 			println "tomcat-service.groovy(updateWar customCommand): invoking updateWarFile custom command ..."
-			tomcatService = context.waitForService(currentServiceName, 60, TimeUnit.SECONDS)
+			tomcatService = context.waitForService(serviceName, 60, TimeUnit.SECONDS)
 			tomcatInstances=tomcatService.waitForInstances(tomcatService.numberOfPlannedInstances,60, TimeUnit.SECONDS)				
 			instanceProcessID=context.getInstanceId()			                       
 			tomcatInstances.each {
