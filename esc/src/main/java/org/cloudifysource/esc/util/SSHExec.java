@@ -240,7 +240,7 @@ public class SSHExec extends SSHBase {
             session = openSession();
             /* called once */
             if (command != null) {
-                log("cmd : " + command, Project.MSG_INFO);
+                log("cmd : " + command, Project.MSG_DEBUG);
                 executeCommand(session, command, output);
             } else { // read command resource and execute for each command
                 try {
