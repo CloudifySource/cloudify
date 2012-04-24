@@ -17,10 +17,14 @@ import java.util.concurrent.TimeUnit
 
 config = new ConfigSlurper().parse(new File("cassandra.properties").toURL())
 
+serviceContext = ServiceContextFactory.getServiceContext()
+instanceID = serviceContext.getInstanceId()
+installDir = System.properties["user.home"]+ "/.cloudify/${config.serviceName}" + instanceID
+
 new AntBuilder().sequential {
-	mkdir(dir:config.installDir)
-	get(src:config.downloadPath, dest:"${config.installDir}/${config.zipName}", skipexisting:true)
-	untar(src:"${config.installDir}/${config.zipName}", dest:config.installDir, compression:"gzip")
+	mkdir(dir:installDir)
+	get(src:config.downloadPath, dest:"${installDir}/${config.zipName}", skipexisting:true)
+	untar(src:"${installDir}/${config.zipName}", dest:installDir, compression:"gzip")
 	chmod(dir:"${config.home}/bin", perm:'+x', excludes:"*.bat")
 }	
 
