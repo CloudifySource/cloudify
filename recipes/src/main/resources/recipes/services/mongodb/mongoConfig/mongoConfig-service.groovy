@@ -6,6 +6,8 @@ service {
 	name "mongoConfig"
 	icon "mongodb.png"
 	type "NOSQL_DB"
+
+  // number of mongo config instances must be 1 or 3
 	numInstances 1
 	
 	compute {
