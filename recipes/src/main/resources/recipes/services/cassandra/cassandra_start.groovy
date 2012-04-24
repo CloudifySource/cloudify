@@ -14,12 +14,16 @@
 * limitations under the License.
 *******************************************************************************/
 import groovy.util.ConfigSlurper
+import org.cloudifysource.dsl.context.ServiceContextFactory
 
 config = new ConfigSlurper().parse(new File("cassandra.properties").toURL())
+serviceContext = ServiceContextFactory.getServiceContext()
+home = "${serviceContext.serviceDirectory}/${config.unzipFolder}"
+script = "${home}/bin/cassandra"
 
 new AntBuilder().sequential {
-	exec(executable:config.script, osfamily:"unix") {
+	exec(executable:script, osfamily:"unix") {
 		arg value:"-f"
 	}
-	exec(executable:"${config.script}.bat", osfamily:"windows")
+	exec(executable:"${script}.bat", osfamily:"windows")
 }

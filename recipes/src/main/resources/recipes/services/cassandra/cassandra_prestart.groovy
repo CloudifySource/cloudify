@@ -15,6 +15,7 @@
 *******************************************************************************/
 import  org.openspaces.admin.AdminFactory;
 import  org.openspaces.admin.Admin;
+import org.cloudifysource.dsl.context.ServiceContextFactory
 import groovy.util.ConfigSlurper;
 import java.util.concurrent.TimeUnit
 
@@ -32,7 +33,10 @@ try {
 	ip = InetAddress.localHost.hostAddress;
 	println "ip is:" + ip
 
-  home = "${config.installDir}/${->new File(config.zipName).getName()}"
+  serviceContext = ServiceContextFactory.getServiceContext()
+  instanceID = serviceContext.getInstanceId()
+  installDir = System.properties["user.home"]+ "/.cloudify/${config.serviceName}" + instanceID
+  home = "${serviceContext.serviceDirectory}/${config.unzipFolder}"
   conf = "${home}/conf"
 	yaml = new File("${conf}/cassandra.yaml")
 	println "cassandra yaml location: " + yaml.getAbsolutePath()
