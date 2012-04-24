@@ -7,7 +7,7 @@ osConfig = ServiceUtils.isWindows() ? config.win32 : config.unix
 serviceContext = ServiceContextFactory.getServiceContext()
 instanceID = serviceContext.getInstanceId()
 
-installDir = "${serviceContext.serviceDirectory}/${config.serviceName}" + instanceID
+installDir = System.properties["user.home"]+ "/.cloudify/${config.serviceName}" + instanceID
 
 println "mongoConfig_install.groovy: Writing mongoConfig port to this instance(${instanceID}) attributes..."
 
