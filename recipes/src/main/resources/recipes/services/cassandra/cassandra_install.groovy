@@ -21,11 +21,12 @@ config = new ConfigSlurper().parse(new File("cassandra.properties").toURL())
 serviceContext = ServiceContextFactory.getServiceContext()
 instanceID = serviceContext.getInstanceId()
 installDir = System.properties["user.home"]+ "/.cloudify/${config.serviceName}" + instanceID
+home = "${config.installDir}/${->new File(config.zipName).getName()}"
 
 new AntBuilder().sequential {
 	mkdir(dir:installDir)
 	get(src:config.downloadPath, dest:"${installDir}/${config.zipName}", skipexisting:true)
 	untar(src:"${installDir}/${config.zipName}", dest:installDir, compression:"gzip")
-	chmod(dir:"${config.home}/bin", perm:'+x', excludes:"*.bat")
+	chmod(dir:"${home}/bin", perm:'+x', excludes:"*.bat")
 }	
 

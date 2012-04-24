@@ -32,7 +32,8 @@ try {
 	ip = InetAddress.localHost.hostAddress;
 	println "ip is:" + ip
 
-	conf = "${config.home}/conf"
+  home = "${config.installDir}/${->new File(config.zipName).getName()}"
+  conf = "${home}/conf"
 	yaml = new File("${conf}/cassandra.yaml")
 	println "cassandra yaml location: " + yaml.getAbsolutePath()
 	yamltext = yaml.text
