@@ -15,7 +15,10 @@ println "mongos_poststart.groovy: serviceContext object is " + serviceContext
 
 //waiting for mongod service to become available, will not be needed in one of the upcoming builds 
 println "mongos_poststart.groovy: Waiting for mongod..."
-mongodService = serviceContext.waitForService("mongod", 20, TimeUnit.SECONDS) 
+mongodService = serviceContext.waitForService("mongod", 20, TimeUnit.SECONDS)
+if (mongodService == null) {
+	throw new IllegalStateException("mongod service not found. mongod must be installed before mongos.");
+}
 mongodHostInstances = mongodService.waitForInstances(mongodService.numberOfPlannedInstances, 60, TimeUnit.SECONDS) 
 
 println "mongos_poststart.groovy: mongodHostInstances length is "+mongodHostInstances.length
