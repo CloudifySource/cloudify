@@ -29,10 +29,12 @@ new AntBuilder().sequential {
 	unzip(src:"${installDir}/${config.zipName}", dest:config.installDir, overwrite:true)
 }
 
+home = "${config.installDir}/${->new File(config.zipName).getName()}"
+
 if (config.applicationWarUrl && config.warName) {
   new AntBuilder().sequential {	
     get(src:config.applicationWarUrl, dest:applicationWar, skipexisting:true)
-    copy(todir: "${config.home}/webapps", file:applicationWar, overwrite:true)
+    copy(todir: "${home}/webapps", file:applicationWar, overwrite:true)
   }
 }
 
