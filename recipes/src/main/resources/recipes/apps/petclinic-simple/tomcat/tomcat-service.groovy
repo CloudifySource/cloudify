@@ -215,6 +215,7 @@ service {
 			serviceStatistics {
 				metric "Total Requests Count"
 				statistics Statistics.maximumThroughput
+				movingTimeRangeInSeconds 20
 			}
 
 			highThreshold {
