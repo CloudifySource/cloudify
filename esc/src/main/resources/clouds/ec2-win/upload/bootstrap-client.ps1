@@ -35,7 +35,7 @@ $cred = New-Object System.Management.Automation.PSCredential $username, $secureP
 Write-Host "Connecting to management service of $target"
 Connect-WSMan -Credential $cred $target 
 
-set-item WSMan:\$target\Client\TrustedHOsts -Value * -Force
+set-item WSMan:\$target\Client\TrustedHosts -Value * -Force
 set-item WSMan:\$target\Shell\MaxMemoryPerShellMB -Value 0 -Force
 
 Write-Host Invoking command on Remote host $target

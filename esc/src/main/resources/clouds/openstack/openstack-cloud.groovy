@@ -27,6 +27,9 @@ cloud {
 		zones (["agent"])
 		reservedMemoryCapacityPerMachineInMB 1024
 		
+		sshLoggingLevel "WARNING"
+		
+		
 	}
 	user {
 		user "ENTER_USER"
@@ -38,7 +41,7 @@ cloud {
 					imageId "221"
 					machineMemoryMB 1600
 					hardwareId "102"
-					//locationId "us-east-1"
+										
 					options ([
 						"openstack.securityGroup" : "test",
 						"openstack.keyPair" : "hp-cloud-demo"

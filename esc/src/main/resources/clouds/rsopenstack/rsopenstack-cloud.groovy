@@ -22,6 +22,8 @@ cloud {
 		zones (["agent"])
 		reservedMemoryCapacityPerMachineInMB 1024
 		
+		sshLoggingLevel "WARNING"
+		
 	}
 	user {
 		user "USER_NAME"
