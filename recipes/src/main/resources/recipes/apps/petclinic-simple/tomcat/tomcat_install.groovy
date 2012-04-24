@@ -20,14 +20,17 @@ if ( warUrl == null ) {
 	warUrl = "${config.applicationWarUrl}"
 }
 
+installDir = System.properties["user.home"]+ "/.cloudify/${config.serviceName}" + instanceID
+applicationWar = "${installDir}/${config.warName}"
+
 //download apache tomcat
 new AntBuilder().sequential {	
-	mkdir(dir:"${config.installDir}")
-	get(src:"${config.downloadPath}", dest:"${config.installDir}/${config.zipName}", skipexisting:true)
-	unzip(src:"${config.installDir}/${config.zipName}", dest:"${config.installDir}", overwrite:true)
-	move(file:"${config.installDir}/${config.name}", tofile:"${home}")
-	get(src:"${warUrl}", dest:"${config.applicationWar}", skipexisting:true)
-	copy(todir: "${home}/webapps", file:"${config.applicationWar}", overwrite:true)
+	mkdir(dir:"${installDir}")
+	get(src:"${config.downloadPath}", dest:"${installDir}/${config.zipName}", skipexisting:true)
+	unzip(src:"${installDir}/${config.zipName}", dest:"${installDir}", overwrite:true)
+	move(file:"${installDir}/${config.name}", tofile:"${home}")
+	get(src:"${warUrl}", dest:"${applicationWar}", skipexisting:true)
+	copy(todir: "${home}/webapps", file:"${applicationWar}", overwrite:true)
 	chmod(dir:"${home}/bin", perm:'+x', includes:"*.sh")
 }
 
