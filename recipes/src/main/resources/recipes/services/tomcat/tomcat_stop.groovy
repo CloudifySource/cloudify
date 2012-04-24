@@ -13,20 +13,25 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
-config = new ConfigSlurper().parse(new File("tomcat.properties").toURL())
+import org.cloudifysource.dsl.context.ServiceContextFactory
 
-println "executing command ${config.script}"
+config = new ConfigSlurper().parse(new File("tomcat.properties").toURL())
+serviceContext = ServiceContextFactory.getServiceContext()
+home = "${serviceContext.serviceDirectory}/${config.unzipFolder}"
+script = "${home}/bin/catalina"
+
+println "executing command ${script}"
 new AntBuilder().sequential {
-	exec(executable:"${config.script}.sh", osfamily:"unix") {
-		env(key:"CATALINA_HOME", value: "${config.home}")
-    env(key:"CATALINA_BASE", value: "${config.home}")
-    env(key:"CATALINA_TMPDIR", value: "${config.home}/temp")
+	exec(executable:"${script}.sh", osfamily:"unix") {
+		env(key:"CATALINA_HOME", value: "${home}")
+    env(key:"CATALINA_BASE", value: "${home}")
+    env(key:"CATALINA_TMPDIR", value: "${home}/temp")
 		arg(value:"stop")
 	}
-	exec(executable:"${config.script}.bat", osfamily:"windows"){
-		env(key:"CATALINA_HOME", value: "${config.home}")
-    env(key:"CATALINA_BASE", value: "${config.home}")
-    env(key:"CATALINA_TMPDIR", value: "${config.home}/temp")		
+	exec(executable:"${script}.bat", osfamily:"windows"){
+		env(key:"CATALINA_HOME", value: "${home}")
+    env(key:"CATALINA_BASE", value: "${home}")
+    env(key:"CATALINA_TMPDIR", value: "${home}/temp")		
 		arg(value:"stop")
 	}
 }

@@ -20,30 +20,29 @@ config = new ConfigSlurper().parse(new File("tomcat.properties").toURL())
 def serviceContext = ServiceContextFactory.getServiceContext()
 def instanceID = serviceContext.getInstanceId()
 installDir = System.properties["user.home"]+ "/.cloudify/${config.serviceName}" + instanceID
-applicationWar = "${installDir}/${config.warName}"
+home = "${serviceContext.serviceDirectory}/${config.unzipFolder}"
 
 //download apache tomcat
 new AntBuilder().sequential {	
 	mkdir(dir:installDir)
 	get(src:config.downloadPath, dest:"${installDir}/${config.zipName}", skipexisting:true)
-	unzip(src:"${installDir}/${config.zipName}", dest:config.installDir, overwrite:true)
+	unzip(src:"${installDir}/${config.zipName}", dest:installDir, overwrite:true)
+	move(file:"${installDir}/${config.unzipFolder}", tofile:"${home}")
 }
-
-home = "${config.installDir}/${->new File(config.zipName).getName()}"
 
 if (config.applicationWarUrl && config.warName) {
   new AntBuilder().sequential {	
-    get(src:config.applicationWarUrl, dest:applicationWar, skipexisting:true)
-    copy(todir: "${home}/webapps", file:applicationWar, overwrite:true)
+    get(src:config.applicationWarUrl, dest:"${installDir}/${config.warName}", skipexisting:true)
+    copy(todir: "${home}/webapps", file:"${installDir}/${config.warName}", overwrite:true)
   }
 }
 
 new AntBuilder().sequential {	
-	chmod(dir:"${config.home}/bin", perm:'+x', includes:"*.sh")
+	chmod(dir:"${home}/bin", perm:'+x', includes:"*.sh")
 }
 
 println "Replacing default tomcat port with port ${config.port}"
-serverXmlFile = new File("${config.home}/conf/server.xml") 
+serverXmlFile = new File("${home}/conf/server.xml") 
 serverXmlText = serverXmlFile.text	
 portStr = "port=\"${config.port}\""
 serverXmlFile.text = serverXmlText.replace('port="8080"', portStr) 

@@ -17,21 +17,24 @@ import org.cloudifysource.dsl.context.ServiceContextFactory
 import java.util.concurrent.TimeUnit
 
 config = new ConfigSlurper().parse(new File("tomcat.properties").toURL())
+serviceContext = ServiceContextFactory.getServiceContext()
+home = "${serviceContext.serviceDirectory}/${config.unzipFolder}"
+script = "${home}/bin/catalina"
 
 //start tomcat
-println "executing command ${config.script}"
+println "executing command ${script}"
 new AntBuilder().sequential {
-	exec(executable:"${config.script}.sh", osfamily:"unix") {
-        env(key:"CATALINA_HOME", value: "${config.home}")
-    env(key:"CATALINA_BASE", value: "${config.home}")
-    env(key:"CATALINA_TMPDIR", value: "${config.home}/temp")
+	exec(executable:"${script}.sh", osfamily:"unix") {
+        env(key:"CATALINA_HOME", value: "${home}")
+    env(key:"CATALINA_BASE", value: "${home}")
+    env(key:"CATALINA_TMPDIR", value: "${home}/temp")
 		env(key:"CATALINA_OPTS", value:"-Dcom.sun.management.jmxremote.port=11099 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false")
 		arg(value:"run")
 	}
-	exec(executable:"${config.script}.bat", osfamily:"windows") {
-        env(key:"CATALINA_HOME", value: "${config.home}")
-    env(key:"CATALINA_BASE", value: "${config.home}")
-    env(key:"CATALINA_TMPDIR", value: "${config.home}/temp")        
+	exec(executable:"${script}.bat", osfamily:"windows") {
+        env(key:"CATALINA_HOME", value: "${home}")
+    env(key:"CATALINA_BASE", value: "${home}")
+    env(key:"CATALINA_TMPDIR", value: "${home}/temp")        
 		env(key:"CATALINA_OPTS", value:"-Dcom.sun.management.jmxremote.port=11099 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false")
 		arg(value:"run")
 	}
