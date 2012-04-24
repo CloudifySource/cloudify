@@ -122,26 +122,12 @@
 		                                replace='${version.field} = "${cloudify.version}";'/>
    </target>
 	
+	<!-- Remark: XAP  properties are updated from the XAP build --> 
 	<target name="replace.build.related.settings" if="cloudify.build.number">
-       <property name="gs.version.field" value="gs.version"/>
-       <property name="gs.milestone.field" value="gs.milestone" />
-       <property name="gs.build.number.field" value="gs.build.number" />
 	   <property name="s3.gs.publish.folder.suffix.field" value="s3.gs.publish.folder.suffix" />
 		<property name="cloudify.version.field" value="cloudify.version" />
 		<property name="cloudify.build.number.field" value="cloudify.build.number" />
 		<property name="cloudify.milestone.field" value="cloudify.milestone" />
-	
-       <replaceregexp file="${build.properties.file}"
-            match="${gs.version.field}=(.*)"
-            replace="${gs.version.field}=${gs.version}"/>
-
-       <replaceregexp file="${build.properties.file}"
-            match="${gs.milestone.field}=(.*)"
-            replace="${gs.milestone.field}=${gs.milestone}"/>
-
-       <replaceregexp file="${build.properties.file}"
-            match="${gs.build.number.field}=(.*)"
-            replace="${gs.build.number.field}=${gs.build.number}"/>
 		
 		<replaceregexp file="${build.properties.file}"
             match="${s3.gs.publish.folder.suffix.field}=(.*)"
