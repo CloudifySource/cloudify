@@ -71,6 +71,8 @@ cloud {
 	templates ([
 				// Mandatory. Template Name.
 				SMALL_LINUX : template{
+				// Mandatory. Amount of RAM available to machine.
+				machineMemoryMB 1600
 				// Mandatory for BYON.
 					custom ([
 						// Mandatory for BYON. The nodesList custom property lists the nodes that compose this cloud-like environment.
