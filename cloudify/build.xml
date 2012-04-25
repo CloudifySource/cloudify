@@ -231,7 +231,7 @@
 			<unzip src="${tmp.dir}/${xap.zip.name}" dest="${tmp.dir}" />
 			<delete file="${tmp.dir}/${xap.zip.name}"/>
 			<move file="${tmp.dir}/${xap.installation.dir}" tofile="${tmp.dir}/@{new.installation.dir.name}" />
-			<chmod dir="${tmp.dir}/${new.installation.dir.name}" includes="**/*.sh, **/*groovy*" perm="775"  />
+			<chmod dir="${tmp.dir}/@{new.installation.dir.name}" includes="**/*.sh, **/*groovy*" perm="775"  />
 		</sequential>
 	</macrodef>
 
