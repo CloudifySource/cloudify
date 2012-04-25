@@ -372,7 +372,9 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 		String response = null;
 		try {
 			response = service.path(
-					this.pathPrefix + "servers").header(
+					this.pathPrefix + "servers")
+					.queryParam("dummyReq", Long.toString(System.currentTimeMillis()))
+					.header(
 					"X-Auth-Token", token).accept(
 					MediaType.APPLICATION_XML).get(
 					String.class);
@@ -542,7 +544,8 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 		String serverBootResponse = null;
 		try {
 			serverBootResponse = service.path(
-					this.pathPrefix + "servers").header(
+					this.pathPrefix + "servers")
+					.header(
 					"Content-Type", "application/json").header(
 					"X-Auth-Token", token).accept(
 				MediaType.APPLICATION_XML).post(
