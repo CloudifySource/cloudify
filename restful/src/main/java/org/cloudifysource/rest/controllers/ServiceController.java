@@ -97,6 +97,7 @@ import org.openspaces.admin.AdminException;
 import org.openspaces.admin.application.Application;
 import org.openspaces.admin.application.Applications;
 import org.openspaces.admin.esm.ElasticServiceManager;
+import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.internal.admin.InternalAdmin;
 import org.openspaces.admin.internal.pu.DefaultProcessingUnitInstance;
@@ -142,12 +143,9 @@ public class ServiceController {
 	private static final int THREAD_POOL_SIZE = 20;
 	private static final String SHARED_ISOLATION_ID = "public";
 	private static final int PU_DISCOVERY_TIMEOUT_SEC = 8;
-	
 	private final Map<UUID, LifecycleEventsContainer> lifecyclePollingContainer =
 			new ConcurrentHashMap<UUID, LifecycleEventsContainer>();
 	private final int LIFECYCLE_EVENT_POLLING_INTERVAL = 4;
-	
-	private boolean useLocalCloud = false;
 
 	/**
 	 * A set containing all of the executed lifecycle events. used to avoid duplicate prints.
@@ -227,9 +225,9 @@ public class ServiceController {
 
 		this.cloudFileContents = getCloudConfigurationFromManagementSpace();
 		if (this.cloudFileContents == null) {
-			// must be local cloud
-			useLocalCloud = true;
+			// must be local cloud or azure
 			return null;
+
 		}
 		Cloud cloudConfiguration = null;
 		try {
@@ -1105,7 +1103,7 @@ public class ServiceController {
 		final List<Service> services = createServiceDependencyOrder(result.getApplication());
 		
 		//validate the template specified by each server (if specified) is available on this cloud
-		if (!useLocalCloud) {
+		if (!isLocalCloud()) {
 			for (Service service : services) {
 				ComputeDetails compute = service.getCompute();
 				if (compute != null && StringUtils.isNotBlank(compute.getTemplate())) {
@@ -1186,7 +1184,7 @@ public class ServiceController {
 												MemoryUnit.MEGABYTES).create());
 
 		if (cloud == null) {
-			if (!useLocalCloud) {
+			if (!isLocalCloud()) {
 
 				// Azure: Eager scale (1 container per machine per PU)
 				deployment.scale(ElasticScaleConfigFactory.createEagerScaleConfig());
@@ -1288,6 +1286,24 @@ public class ServiceController {
 				+ "cloudExternalProcessMemoryInMB = cloud.machineMemoryMB - "
 				+ "cloud.reservedMemoryCapacityPerMachineInMB" + " = " + cloudExternalProcessMemoryInMB);
 		return cloudExternalProcessMemoryInMB;
+	}
+
+	/**
+	 * Local-Cloud has one agent without any zone.
+	 */
+	private boolean isLocalCloud() {
+		final GridServiceAgent[] agents = admin.getGridServiceAgents().getAgents();
+		final boolean isOnlyOneAgent = agents.length == 1;
+		final boolean isAgentWithoutZones = agents[0].getZones().isEmpty();
+		final boolean isLocalCloud = isOnlyOneAgent && isAgentWithoutZones;
+		if (logger.isLoggable(Level.FINE)) {
+			if (!isOnlyOneAgent) {
+				logger.fine("Not local cloud since there are " + agents.length + " agents");
+			} else if (!isAgentWithoutZones) {
+				logger.fine("Not local cloud since agent has zones " + agents[0].getZones());
+			}
+		}
+		return isLocalCloud;
 	}
 
 	/******
@@ -1534,7 +1550,7 @@ public class ServiceController {
 		if (cloud == null) {
 			setSharedMachineProvisioning(deployment, zone, reservedMemoryCapacityPerMachineInMB);
 
-			if (useLocalCloud) {
+			if (isLocalCloud()) {
 				deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(dataGridConfig));
 
 			} else {
@@ -1615,7 +1631,7 @@ public class ServiceController {
 			setSharedMachineProvisioning(deployment, zone, reservedMemoryCapacityPerMachineInMB);
 			verifyEsmExistsInCluster();
 
-			if (useLocalCloud) {
+			if (isLocalCloud()) {
 				deployment.scale(new ManualCapacityScaleConfigurer().memoryCapacity(
 						containerMemoryInMB * numberOfInstances, MemoryUnit.MEGABYTES).create());
 			} else {
@@ -1681,7 +1697,7 @@ public class ServiceController {
 		if (cloud == null) {
 			setSharedMachineProvisioning(deployment, zone, reservedMemoryCapacityPerMachineInMB);
 			verifyEsmExistsInCluster();
-			if (useLocalCloud) {
+			if (isLocalCloud()) {
 				deployment.scale(new ManualCapacityScaleConfigurer().memoryCapacity(
 						puConfig.getSla().getMemoryCapacity(), MemoryUnit.MEGABYTES).create());
 			} else {
@@ -1815,7 +1831,7 @@ public class ServiceController {
 
 		UUID eventContainerID;
 		if (cloud == null) {
-			if (useLocalCloud) {
+			if (isLocalCloud()) {
 				// Manual scale by number of instances
 				pu.scale(new ManualCapacityScaleConfigurer().memoryCapacity(512 * count, MemoryUnit.MEGABYTES).create());
 			} else {
