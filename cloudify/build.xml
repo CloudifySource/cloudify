@@ -452,7 +452,7 @@
 		<property name="cloudify.url" value="${cloudify.cdn.publish.url}/${cloudify.put.target}" />
 
 		<!-- Here we encode cloudify.url -->
-		<property name="groovy.dir" value="${tmp.dir}/${cloudify.installation.dir}tools/groovy/bin" />
+		<property name="groovy.dir" value="${tmp.dir}/${cloudify.installation.dir}/tools/groovy/bin" />
 
 		<condition property="groovy.path" value="${groovy.dir}/groovy.bat">
 			<os family="windows"/>
