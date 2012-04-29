@@ -33,7 +33,7 @@
     <property environment="env."/>
 	<property name="tmp.dir" value="${basedir}/tmp" />
 	<property name="xap.files.tmp.dir" value="${basedir}/xap.files.tmp.dir" />
-	<property name="xap.big.data.dir" value="xap-bigdata" />
+	<property name="xap.bigdata.dir" value="xap-bigdata" />
 	<property name="xap.installation.dir" value="gigaspaces-xap-premium-${gs.version}-${gs.milestone}" />
 	<property name="xap.zip.name" value="${xap.installation.dir}-b${gs.build.number}.zip" />
 	<property name="xap.zip.full.path" value="${build.repository.path}/${gs.version}/build_${gs.build.number}/xap-premium/1.5/${xap.zip.name}" />
@@ -62,7 +62,9 @@
 	<property name="cloudify.base.container" value="gigaspaces-repository" />
 	<property name="cloudify.cdn.publish.url" value="http://repository.cloudifysource.org" />
  	<property name="cloudify.put.target" value="org/cloudifysource/${cloudify.version}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
+	<property name="bigdata.put.target" value="com/gigaspaces/xap/${s3.gs.publish.folder}/${xap.zip.name}" />
  	<property name="cloudify.put.source" value="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
+	<property name="bigdata.put.source" value="${releases.dir}/build_${gs.build.number}/${xap.bigdata.dir}/1.5/${xap.zip.name}" />
 	<property name="tools.lib.dir" value="${basedir}/tools/lib" />
 	<property name="cloudify.base.container" value="gigaspaces-repository" />
 	<property name="cloudify.base.publish.url" value="https://s3.amazonaws.com/${cloudify.base.container}" />
@@ -323,8 +325,8 @@
 	<target name="archive.bigdata.version">
 		<loadproperties srcfile="${basedir}/${build.properties.file}"/>
 		<delete dir="${releases.dir}/build_${gs.build.number}"/>
-        <mkdir dir="${releases.dir}/build_${gs.build.number}/${xap.big.data.dir}/1.5"/>
-        <zip destfile="${releases.dir}/build_${gs.build.number}/${xap.big.data.dir}/1.5/${xap.zip.name}">
+        <mkdir dir="${releases.dir}/build_${gs.build.number}/${xap.bigdata.dir}/1.5"/>
+        <zip destfile="${releases.dir}/build_${gs.build.number}/${xap.bigdata.dir}/1.5/${xap.zip.name}">
             <zipfileset dir="${tmp.dir}" includes="**/*" filemode="775"/>
         </zip>
     </target>
@@ -370,6 +372,11 @@
 		<delete dir="${tmp.dir}/${xap.installation.dir}/recipes/apps" includeemptydirs="true"/>
 		<dos2unix dir="${tmp.dir}/${xap.installation.dir}" />
 		<ant target="archive.bigdata.version" />
+
+		<!-- conditional task (with property: publish.cloudify.build) -->
+    	<ant target="prepare.bigdata.for.publish" />
+    	<!-- conditional task (with property: publish.cloudify.build) -->
+    	<ant target="publish.bigdata.to.storage" />
 	</target>
 	
 
@@ -387,55 +394,77 @@
 		</exec>
 	</target>
 	
+	<target name="publish.bigdata.to.storage" if="publish.cloudify.build">
+		
+		<echo message="uploading bigdata installation to public storage (S3) at: ${bigdata.put.target}" />
+			
+		<exec executable="${env.M2_HOME}/bin/${mvn.executable}">
+			<arg value="s3client:put" />
+			<arg value="-Dput.user=${put.user}" />
+			<arg value="-Dput.key=${put.key}" />
+			<arg value="-Dput.source=${bigdata.put.source}" />
+			<arg value="-Dput.target=${bigdata.put.target}" />
+			<arg value="-Dcontainer=${cloudify.base.container}"/>
+		</exec>
+	</target>
+	
+	<target name="prepare.bigdata.for.publish" description="publish cloudify build to gigaspaces repository" if="publish.cloudify.build">
+		<update.service.configuration.url put.target="${bigdata.put.target}" installation.dir="${tmp.dir}/${xap.installation.dir}"/>
+	</target>
+	
 	<target name="prepare.cloudify.for.publish" description="publish cloudify build to gigaspaces repository" if="publish.cloudify.build">
-		<ant target="update.service.configuration.url" />
+		<update.service.configuration.url put.target="${cloudify.put.source}" installation.dir="${tmp.dir}/${cloudify.installation.dir}" />
 		<ant target="commit.service.configuration" />
 	</target>
 	
-	<target name="update.service.configuration.url">
-        <echo message="Updating ServiceConfiguration in directory: ${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles/GigaSpacesWorkerRoles ..."/>
-		
-		<property name="cloudify.url" value="${cloudify.cdn.publish.url}/${cloudify.put.target}" />
-
-		<!-- Here we encode cloudify.url -->
-		<property name="groovy.dir" value="${tmp.dir}/${cloudify.installation.dir}/tools/groovy/bin" />
-
-		<condition property="groovy.path" value="${groovy.dir}/groovy.bat">
-			<os family="windows"/>
-		</condition>
-		<condition property="groovy.path" value="${groovy.dir}/groovy">
-			<os family="unix"/>
-		</condition>
-		
-		<exec executable="${groovy.path}" outputproperty="cloudify.url.encoded">
-			<env key="JAVA_HOME" value="${java.home}" />
-			<arg value="-e" />
-			<arg value="&quot;println(java.net.URLEncoder.encode('${cloudify.url}'))&quot;" />
-		</exec>
-
-		<!-- Update files in ${tmp.dir}/${cloudify.installation.dir} and in source folders -->
-		<replaceregexp byline="true"
-    		match="&lt;Setting name=&quot;GigaSpaces\.XAP\.DownloadUrl&quot; value=&quot;(.*)&quot; /&gt;" 
-    		replace="&lt;Setting name=&quot;GigaSpaces\.XAP\.DownloadUrl&quot; value=&quot;${cloudify.url.encoded}&quot; /&gt;">
-    		<fileset
-    			dir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles/GigaSpacesWorkerRoles" 
-    			includes="ServiceConfiguration.Cloud.cscfg" />
-    		<fileset 
-    			dir="${azure.local.copy}/GigaSpacesWorkerRoles/GigaSpacesWorkerRoles" 
-    			includes="ServiceConfiguration.Cloud.cscfg" />		
-    	</replaceregexp>
-		
-		<replaceregexp byline="true"
-    		match="cloudifyUrl &quot;(.*)&quot;" 
-    		replace="cloudifyUrl &quot;${cloudify.url}&quot;" >
-    		<fileset 
-    			dir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/esc" 
-    			includes="**/*-cloud.groovy" />
-    		<fileset 
-    			dir="${esc.local.copy}/src/main/resources/clouds" 
-    			includes="**/*-cloud.groovy" />
-    	</replaceregexp>		
-   </target>
+	<macrodef name="update.service.configuration.url">
+		<attribute name="put.target"/>
+		<attribute name="installation.dir"/>
+		<sequential>
+	        <echo message="Updating ServiceConfiguration in directory: ${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles/GigaSpacesWorkerRoles ..."/>
+			
+			<property name="package.url" value="${cloudify.cdn.publish.url}/@{put.target}" />
+	
+			<!-- Here we encode cloudify.url -->
+			<property name="groovy.dir" value="@{installation.dir}/tools/groovy/bin" />
+	
+			<condition property="groovy.path" value="${groovy.dir}/groovy.bat">
+				<os family="windows"/>
+			</condition>
+			<condition property="groovy.path" value="${groovy.dir}/groovy">
+				<os family="unix"/>
+			</condition>
+			
+			<exec executable="${groovy.path}" outputproperty="package.url.encoded">
+				<env key="JAVA_HOME" value="${java.home}" />
+				<arg value="-e" />
+				<arg value="&quot;println(java.net.URLEncoder.encode('${package.url}'))&quot;" />
+			</exec>
+	
+			<!-- Update files in ${tmp.dir}/${cloudify.installation.dir} and in source folders -->
+			<replaceregexp byline="true"
+	    		match="&lt;Setting name=&quot;GigaSpaces\.XAP\.DownloadUrl&quot; value=&quot;(.*)&quot; /&gt;" 
+	    		replace="&lt;Setting name=&quot;GigaSpaces\.XAP\.DownloadUrl&quot; value=&quot;${package.url.encoded}&quot; /&gt;">
+	    		<fileset
+	    			dir="@{installation.dir}/tools/cli/plugins/azure/WorkerRoles/GigaSpacesWorkerRoles" 
+	    			includes="ServiceConfiguration.Cloud.cscfg" />
+	    		<fileset 
+	    			dir="${azure.local.copy}/GigaSpacesWorkerRoles/GigaSpacesWorkerRoles" 
+	    			includes="ServiceConfiguration.Cloud.cscfg" />		
+	    	</replaceregexp>
+			
+			<replaceregexp byline="true"
+	    		match="cloudifyUrl &quot;(.*)&quot;" 
+	    		replace="cloudifyUrl &quot;${package.url}&quot;" >
+	    		<fileset 
+	    			dir="@{installation.dir}/tools/cli/plugins/esc" 
+	    			includes="**/*-cloud.groovy" />
+	    		<fileset 
+	    			dir="${esc.local.copy}/src/main/resources/clouds" 
+	    			includes="**/*-cloud.groovy" />
+	    	</replaceregexp>
+		</sequential>	
+   </macrodef>
 	
 	<target name="commit.service.configuration">
 			
@@ -510,7 +539,7 @@
 		<loadproperties srcfile="${basedir}/${build.properties.file}"/>
 		<mkdir dir="${xap.files.tmp.dir}" /> 
 		<echo message="Please wait. Downloading ${cloudify.cdn.publish.url}/com/gigaspaces/${gs.version}.${s3.gs.publish.folder}/gigaspaces-xap-premium-${gs.version}-ga-b${gs.build.number}.zip." />
-		<get verbose="true" src="${cloudify.cdn.publish.url}/com/gigaspaces/${s3.gs.publish.folder}/${xap.zip.name}" dest="${xap.files.tmp.dir}"/>
+		<get verbose="true" src="${cloudify.cdn.publish.url}/com/gigaspaces/xap-core/${s3.gs.publish.folder}/${xap.zip.name}" dest="${xap.files.tmp.dir}"/>
 	</target>
 	
 	<target name="cloudify.install">
