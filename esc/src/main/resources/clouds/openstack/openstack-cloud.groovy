@@ -16,7 +16,7 @@ cloud {
 		provider "openstack"
 		localDirectory "tools/cli/plugins/esc/openstack/upload"
 		remoteDirectory "/root/gs-files"
-		cloudifyUrl "http://repository.cloudifysource.org//ramdisk/buildserver/working/root/cloudify/trunk/cloudify/publish/checkouts/cloudify/cloudify/releases/build_1196-169/cloudify/1.5/gigaspaces-cloudify-2.1.0-ga-b1196-169.zip" 
+		cloudifyUrl "${cloudiy.url}" 
 		machineNamePrefix "cloudify_agent_"
 		
 		dedicatedManagementMachines true
