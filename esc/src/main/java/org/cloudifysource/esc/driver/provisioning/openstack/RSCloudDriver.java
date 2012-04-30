@@ -64,8 +64,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 	private static final String OPENSTACK_OPENSTACK_ENDPOINT = "openstack.endpoint";
 
 	private final XPath xpath = XPathFactory.newInstance().newXPath();
-
-	private final DocumentBuilder documentBuilder;
+	
 	private final Client client;
 
 	private String tenant;
@@ -75,22 +74,34 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 	private String pathPrefix;
 	private String identityEndpoint;
 
+	private final Object xmlFactoryMutex = new Object();
+	private final DocumentBuilderFactory dbf;
+
 	/************
 	 * Constructor.
 	 * 
 	 * @throws ParserConfigurationException
 	 */
 	public RSCloudDriver() {
-		final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+		dbf = DocumentBuilderFactory.newInstance();
 		dbf.setNamespaceAware(false);
-		try {
-			this.documentBuilder = dbf.newDocumentBuilder();
-		} catch (final ParserConfigurationException e) {
-			throw new IllegalStateException("Failed to set up XML Parser", e);
-		}
+		
 
 		final ClientConfig config = new DefaultClientConfig();
 		this.client = Client.create(config);
+
+	}
+	
+	private DocumentBuilder createDocumentBuilder() {
+		synchronized (xmlFactoryMutex) {
+			// Document builder is not guaranteed to be thread sage
+			try {
+				// Document builders are not thread safe
+				return dbf.newDocumentBuilder();
+			} catch (final ParserConfigurationException e) {
+				throw new IllegalStateException("Failed to set up XML Parser", e);
+			}
+		}
 
 	}
 
@@ -314,7 +325,8 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 				String.class);
 		final Node node = new Node();
 		try {
-			final Document xmlDoc = this.documentBuilder.parse(new InputSource(new StringReader(response)));
+			final DocumentBuilder documentBuilder = createDocumentBuilder();
+			final Document xmlDoc = documentBuilder.parse(new InputSource(new StringReader(response)));
 
 			node.setId(xpath.evaluate(
 					"/server/@id", xmlDoc));
@@ -379,7 +391,8 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 					MediaType.APPLICATION_XML).get(
 					String.class);
 
-			final Document xmlDoc = this.documentBuilder.parse(new InputSource(new StringReader(response)));
+			final DocumentBuilder documentBuilder = createDocumentBuilder();
+			final Document xmlDoc = documentBuilder.parse(new InputSource(new StringReader(response)));
 
 			final NodeList idNodes = (NodeList) xpath.evaluate(
 					"/servers/server/@id", xmlDoc, XPathConstants.NODESET);
@@ -427,8 +440,8 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 		for (final Node node : nodes) {
 			logger.log(Level.INFO, "node private ip is " + node.getPrivateIp());
 			logger.log(Level.INFO, "node public ip is " + node.getPublicIp());
-			if ((node.getPrivateIp() != null && node.getPrivateIp().equalsIgnoreCase(serverIp)) || 
-					(node.getPublicIp() != null && node.getPublicIp().equalsIgnoreCase(serverIp))) {
+			if ((node.getPrivateIp() != null && node.getPrivateIp().equalsIgnoreCase(serverIp))
+					|| (node.getPublicIp() != null && node.getPublicIp().equalsIgnoreCase(serverIp))) {
 				return node;
 			}
 		}
@@ -499,6 +512,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 	 *            the cloud template to use for this server
 	 * @return the server id
 	 */
+	@SuppressWarnings("deprecation")
 	private MachineDetails newServer(final String token, final long endTime, final CloudTemplate serverTemplate)
 			throws Exception {
 
@@ -525,7 +539,8 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 			} catch (final Exception e2) {
 				logger.log(
 						Level.WARNING,
-						"Error while shutting down failed machine: " + md.getMachineId() + ". Error was: " + e.getMessage()
+						"Error while shutting down failed machine: " + md.getMachineId() 
+						+ ". Error was: " + e.getMessage()
 								+ ".It may be leaking.", e);
 			}
 			throw e;
@@ -557,6 +572,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 
 		try {
 			// if we are here, the machine started!
+			final DocumentBuilder documentBuilder = createDocumentBuilder();
 			final Document doc = documentBuilder.parse(new InputSource(new StringReader(serverBootResponse)));
 
 			final String status = xpath.evaluate(

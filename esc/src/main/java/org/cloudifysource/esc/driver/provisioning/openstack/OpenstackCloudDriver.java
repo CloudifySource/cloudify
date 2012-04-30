@@ -47,11 +47,9 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.LoggingFilter;
 
 /**************
- * A custom cloud driver for OpenStack, using keystone authentication.
- * In order to be able to define a floating IP for a machine
- * Changes will have to be made in the cloud driver. a floating ip should
- * be allocated and attached to the server in the newServer method, and detach and
- * deleted upon machine shutdown. 
+ * A custom cloud driver for OpenStack, using keystone authentication. In order to be able to define a floating IP for a
+ * machine Changes will have to be made in the cloud driver. a floating ip should be allocated and attached to the
+ * server in the newServer method, and detach and deleted upon machine shutdown.
  * 
  * 
  * @author barakme
@@ -73,7 +71,6 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 	private final XPath xpath = XPathFactory.newInstance().newXPath();
 
-	private final DocumentBuilder documentBuilder;
 	private final Client client;
 
 	private String serverNamePrefix;
@@ -82,6 +79,8 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 	private WebResource service;
 	private String pathPrefix;
 	private String identityEndpoint;
+	private final DocumentBuilderFactory dbf;
+	private final Object xmlFactoryMutex = new Object();
 
 	/************
 	 * Constructor.
@@ -89,16 +88,24 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 	 * @throws ParserConfigurationException
 	 */
 	public OpenstackCloudDriver() {
-		final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+		dbf = DocumentBuilderFactory.newInstance();
 		dbf.setNamespaceAware(false);
-		try {
-			this.documentBuilder = dbf.newDocumentBuilder();
-		} catch (final ParserConfigurationException e) {
-			throw new IllegalStateException("Failed to set up XML Parser", e);
-		}
 
 		final ClientConfig config = new DefaultClientConfig();
 		this.client = Client.create(config);
+
+	}
+
+	private DocumentBuilder createDocumentBuilder() {
+		synchronized (xmlFactoryMutex) {
+			// Document builder is not guaranteed to be thread sage
+			try {
+				// Document builders are not thread safe
+				return dbf.newDocumentBuilder();
+			} catch (final ParserConfigurationException e) {
+				throw new IllegalStateException("Failed to set up XML Parser", e);
+			}
+		}
 
 	}
 
@@ -306,34 +313,35 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 						.accept(MediaType.APPLICATION_XML).get(String.class);
 		final Node node = new Node();
 		try {
-			final Document xmlDoc = this.documentBuilder.parse(new InputSource(new StringReader(response)));
+			final DocumentBuilder documentBuilder = createDocumentBuilder();
+			final Document xmlDoc = documentBuilder.parse(new InputSource(new StringReader(response)));
 
 			node.setId(xpath.evaluate("/server/@id", xmlDoc));
 			node.setStatus(xpath.evaluate("/server/@status", xmlDoc));
 			node.setName(xpath.evaluate("/server/@name", xmlDoc));
 
-			// We expect to get 2 IP addresses, public and private. Currently we get them both in an xml 
+			// We expect to get 2 IP addresses, public and private. Currently we get them both in an xml
 			// under a private node attribute. this is expected to change.
 			final NodeList addresses =
 					(NodeList) xpath.evaluate("/server/addresses/network/ip/@addr", xmlDoc, XPathConstants.NODESET);
-			if  (node.getStatus().equalsIgnoreCase(MACHINE_STATUS_ACTIVE)) {
-				
+			if (node.getStatus().equalsIgnoreCase(MACHINE_STATUS_ACTIVE)) {
+
 				if (addresses.getLength() != 2) {
-					throw new IllegalStateException("Expected 2 addresses, private and public, got " 
+					throw new IllegalStateException("Expected 2 addresses, private and public, got "
 							+ addresses.getLength() + " addresses");
 				}
-				
+
 				node.setPrivateIp(addresses.item(0).getTextContent());
 				node.setPublicIp(addresses.item(1).getTextContent());
 			}
-			
-		} catch (XPathExpressionException e) {
+
+		} catch (final XPathExpressionException e) {
 			throw new OpenstackException("Failed to parse XML Response from server. Response was: " + response
 					+ ", Error was: " + e.getMessage(), e);
-		} catch (SAXException e) {
+		} catch (final SAXException e) {
 			throw new OpenstackException("Failed to parse XML Response from server. Response was: " + response
 					+ ", Error was: " + e.getMessage(), e);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			throw new OpenstackException("Failed to send request to server. Response was: " + response
 					+ ", Error was: " + e.getMessage(), e);
 		}
@@ -374,8 +382,8 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 			response =
 					service.path(this.pathPrefix + "servers").header("X-Auth-Token", token)
 							.accept(MediaType.APPLICATION_XML).get(String.class);
-
-			final Document xmlDoc = this.documentBuilder.parse(new InputSource(new StringReader(response)));
+			final DocumentBuilder documentBuilder = createDocumentBuilder();
+			final Document xmlDoc = documentBuilder.parse(new InputSource(new StringReader(response)));
 
 			final NodeList idNodes = (NodeList) xpath.evaluate("/servers/server/@id", xmlDoc, XPathConstants.NODESET);
 			final int howmany = idNodes.getLength();
@@ -388,15 +396,15 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 		} catch (final UniformInterfaceException e) {
 			final String responseEntity = e.getResponse().getEntity(String.class).toString();
-			throw new OpenstackException(e + " Response entity: " + responseEntity);
+			throw new OpenstackException(e + " Response entity: " + responseEntity, e);
 
-		} catch (SAXException e) {
+		} catch (final SAXException e) {
 			throw new OpenstackException("Failed to parse XML Response from server. Response was: " + response
 					+ ", Error was: " + e.getMessage(), e);
-		} catch (XPathException e) {
+		} catch (final XPathException e) {
 			throw new OpenstackException("Failed to parse XML Response from server. Response was: " + response
 					+ ", Error was: " + e.getMessage(), e);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			throw new OpenstackException("Failed to send request to server. Response was: " + response
 					+ ", Error was: " + e.getMessage(), e);
 
@@ -416,8 +424,8 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 			throws OpenstackException {
 		final List<Node> nodes = listServers(token);
 		for (final Node node : nodes) {
-			if ((node.getPrivateIp() != null && node.getPrivateIp().equalsIgnoreCase(serverIp)) || 
-					(node.getPublicIp() != null && node.getPublicIp().equalsIgnoreCase(serverIp))) {
+			if (node.getPrivateIp() != null && node.getPrivateIp().equalsIgnoreCase(serverIp)
+					|| node.getPublicIp() != null && node.getPublicIp().equalsIgnoreCase(serverIp)) {
 				return node;
 			}
 		}
@@ -481,6 +489,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 	 * @param serverTemplate the cloud template to use for this server
 	 * @return the server id
 	 */
+	@SuppressWarnings("deprecation")
 	private MachineDetails newServer(final String token, final long endTime, final CloudTemplate serverTemplate)
 			throws Exception {
 
@@ -492,8 +501,8 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 			waitForServerToReachStatus(md, endTime, serverId, token, MACHINE_STATUS_ACTIVE);
 
 			// if here, we have a node with a private and public ip.
-			Node node = this.getNode(serverId, token);
-			
+			final Node node = this.getNode(serverId, token);
+
 			md.setPublicAddress(node.getPublicIp());
 			md.setMachineId(serverId);
 			md.setAgentRunning(false);
@@ -538,13 +547,14 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 							.header("X-Auth-Token", token).accept(MediaType.APPLICATION_XML).post(String.class, json);
 		} catch (final UniformInterfaceException e) {
 			final String responseEntity = e.getResponse().getEntity(String.class).toString();
-			throw new OpenstackException(e + " Response entity: " + responseEntity);
+			throw new OpenstackException(e + " Response entity: " + responseEntity, e);
 		}
 
 		try {
 			// if we are here, the machine started!
+			final DocumentBuilder documentBuilder = createDocumentBuilder();
 			final Document doc = documentBuilder.parse(new InputSource(new StringReader(serverBootResponse)));
-
+			
 			final String status = xpath.evaluate("/server/@status", doc);
 			if (!status.startsWith("BUILD")) {
 				throw new IllegalStateException("Expected server status of BUILD(*), got: " + status);
@@ -552,13 +562,13 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 			final String serverId = xpath.evaluate("/server/@id", doc);
 			return serverId;
-		} catch (XPathExpressionException e) {
+		} catch (final XPathExpressionException e) {
 			throw new OpenstackException("Failed to parse XML Response from server. Response was: "
 					+ serverBootResponse + ", Error was: " + e.getMessage(), e);
-		} catch (SAXException e) {
+		} catch (final SAXException e) {
 			throw new OpenstackException("Failed to parse XML Response from server. Response was: "
 					+ serverBootResponse + ", Error was: " + e.getMessage(), e);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			throw new OpenstackException("Failed to send request to server. Response was: " + serverBootResponse
 					+ ", Error was: " + e.getMessage(), e);
 		}
@@ -652,7 +662,15 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 		return null;
 	}
 
-	private void deleteFloatingIP(final String ip, final String token)
+	/*********************
+	 * Deletes a floating IP.
+	 * 
+	 * @param ip .
+	 * @param token .
+	 * @throws SAXException .
+	 * @throws IOException .
+	 */
+	public void deleteFloatingIP(final String ip, final String token)
 			throws SAXException, IOException {
 
 		final FloatingIP floatingIp = getFloatingIpByIp(ip, token);
@@ -666,7 +684,13 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 	}
 
-	private String allocateFloatingIP(final String token) {
+	/**************
+	 * Allocates a floating IP.
+	 * 
+	 * @param token .
+	 * @return .
+	 */
+	public String allocateFloatingIP(final String token) {
 
 		try {
 			final String resp =
@@ -695,12 +719,12 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 	/**
 	 * Attaches a previously allocated floating ip to a server.
 	 * 
-	 * @param serverid
-	 * @param ip public ip to be assigned
-	 * @param token
-	 * @throws Exception
+	 * @param serverid .
+	 * @param ip public ip to be assigned .
+	 * @param token .
+	 * @throws Exception .
 	 */
-	private void addFloatingIP(final String serverid, final String ip, final String token)
+	public void addFloatingIP(final String serverid, final String ip, final String token)
 			throws Exception {
 
 		service.path(this.pathPrefix + "servers/" + serverid + "/action")
@@ -712,14 +736,22 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 	}
 
-	private void detachFloatingIP(final String serverId, final String ip, final String token) {
+	/**********
+	 * Detaches a floating IP from a server.
+	 * 
+	 * @param serverId .
+	 * @param ip .
+	 * @param token .
+	 */
+	public void detachFloatingIP(final String serverId, final String ip, final String token) {
 
 		service.path(this.pathPrefix + "servers/" + serverId + "/action")
 				.header("Content-type", "application/json")
 				.header("X-Auth-Token", token)
 				.accept(MediaType.APPLICATION_JSON)
 				.post(String.class,
-						String.format("{\"removeFloatingIp\":{\"server\": \"%s\", \"address\": \"%s\"}}", serverId, ip));
+						String.format("{\"removeFloatingIp\":{\"server\": \"%s\", \"address\": \"%s\"}}",
+								serverId, ip));
 
 	}
 
