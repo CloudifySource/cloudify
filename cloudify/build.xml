@@ -370,6 +370,7 @@
 		<add.cloudify.modules installation.dir="${tmp.dir}/${xap.installation.dir}"/>
 		<delete dir="${tmp.dir}/${xap.installation.dir}/recipes/services" excludes="mongodb/**, cassandra/**" includeemptydirs="true"/>	
 		<delete dir="${tmp.dir}/${xap.installation.dir}/recipes/apps" includeemptydirs="true"/>
+		<delete dir="${tmp.dir}/${xap.installation.dir}/bin" includes="cloudify*"/>
 		<dos2unix dir="${tmp.dir}/${xap.installation.dir}" />
 		<!-- conditional task (with property: publish.cloudify.build) -->
     	<ant target="prepare.bigdata.for.publish" />
