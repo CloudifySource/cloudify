@@ -371,10 +371,11 @@
 		<delete dir="${tmp.dir}/${xap.installation.dir}/recipes/services" excludes="mongodb/**, cassandra/**" includeemptydirs="true"/>	
 		<delete dir="${tmp.dir}/${xap.installation.dir}/recipes/apps" includeemptydirs="true"/>
 		<dos2unix dir="${tmp.dir}/${xap.installation.dir}" />
-		<ant target="archive.bigdata.version" />
-
 		<!-- conditional task (with property: publish.cloudify.build) -->
     	<ant target="prepare.bigdata.for.publish" />
+		
+		<ant target="archive.bigdata.version" />
+		
     	<!-- conditional task (with property: publish.cloudify.build) -->
     	<ant target="publish.bigdata.to.storage" />
 	</target>
