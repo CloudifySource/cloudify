@@ -418,28 +418,11 @@
 	</target>
 	
 	<target name="update.bigdata.service.configuration.url">
-		
-		<property name="cloudify.url" value="${cloudify.cdn.publish.url}/${bigdata.put.target}" />
+		<property name="bigdata.url" value="${cloudify.cdn.publish.url}/${bigdata.put.target}" />
 
-		<!-- Here we encode cloudify.url -->
-		<property name="groovy.dir" value="${tmp.dir}/${xap.installation.dir}/tools/groovy/bin" />
-
-		<condition property="groovy.path" value="${groovy.dir}/groovy.bat">
-			<os family="windows"/>
-		</condition>
-		<condition property="groovy.path" value="${groovy.dir}/groovy">
-			<os family="unix"/>
-		</condition>
-		
-		<exec executable="${groovy.path}" outputproperty="cloudify.url.encoded">
-			<env key="JAVA_HOME" value="${java.home}" />
-			<arg value="-e" />
-			<arg value="&quot;println(java.net.URLEncoder.encode('${cloudify.url}'))&quot;" />
-		</exec>
-		
 		<replaceregexp byline="true"
     		match="cloudifyUrl &quot;(.*)&quot;" 
-    		replace="cloudifyUrl &quot;${cloudiy.url}&quot;" >
+    		replace="cloudifyUrl &quot;${bigdata.url}&quot;" >
     		<fileset 
     			dir="${tmp.dir}/${xap.installation.dir}/tools/cli/plugins/esc" 
     			includes="**/*-cloud.groovy" />
@@ -481,7 +464,7 @@
 		
 		<replaceregexp byline="true"
     		match="cloudifyUrl &quot;(.*)&quot;" 
-    		replace="cloudifyUrl &quot;${cloudiy.url}&quot;" >
+    		replace="cloudifyUrl &quot;${cloudify.url}&quot;" >
     		<fileset 
     			dir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/esc" 
     			includes="**/*-cloud.groovy" />
