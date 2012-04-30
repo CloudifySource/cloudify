@@ -44,7 +44,7 @@ cloud {
 										
 					options ([
 						"openstack.securityGroup" : "test",
-						"openstack.keyPair" : "hp-cloud-demo"
+						"openstack.keyPair" : "ENTER_KEY_PAIR_NAME"
 					])
 					
 				}

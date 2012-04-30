@@ -94,7 +94,7 @@ cloud {
 					// method names invoked on the TemplateOptions object with the value as the parameter.
 					options ([
 								"securityGroups" : ["default"]as String[],
-								"keyPair" : "cloud-demo"
+								"keyPair" : "ENTER_KEY_PAIR_NAME"
 							])
 
 					// Optional. Overrides to default cloud driver behavior.
