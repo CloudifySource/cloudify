@@ -145,10 +145,11 @@ public class ByonDeployer {
 					currentNode = nodesIterator.next();
 					try {
 						Utils.validateConnection(currentNode.getPrivateIP(), CloudifyConstants.SSH_PORT);
-						if (!allocatedNodesPool.contains(node)) {
-							allocatedNodesPool.add(node);
+						if (!allocatedNodesPool.contains(currentNode)) {
+							allocatedNodesPool.add(currentNode);
 						}
-						invalidNodesPool.remove(node);
+						invalidNodesPool.remove(currentNode);
+						node = currentNode;
 						break;
 					} catch (final Exception ex) {
 						// ignore and continue
@@ -157,9 +158,12 @@ public class ByonDeployer {
 			}
 		}
 
-		if (node != null) {
-			((CustomNodeImpl) node).setNodeName(serverName);			
+		if (node == null) {
+			throw new CloudProvisioningException("Failed to create a new cloud node for template \"" + templateName
+					+ "\", all available nodes are currently used");
 		}
+		
+		((CustomNodeImpl) node).setNodeName(serverName);			
 
 		return node;
 	}
