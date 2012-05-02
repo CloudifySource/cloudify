@@ -49,6 +49,7 @@ import org.openspaces.core.bean.Bean;
 import org.openspaces.grid.gsm.capacity.CapacityRequirements;
 import org.openspaces.grid.gsm.capacity.CpuCapacityRequirement;
 import org.openspaces.grid.gsm.capacity.MemoryCapacityRequirement;
+import org.openspaces.grid.gsm.machines.isolation.ElasticProcessingUnitMachineIsolation;
 import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioning;
 import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioningException;
 
@@ -79,8 +80,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private String cloudTemplate;
 	private String lookupLocatorsString;
 	private CloudifyMachineProvisioningConfig config;
-	private static final java.util.logging.Logger logger = java.util.logging.Logger
-			.getLogger(ElasticMachineProvisioningCloudifyAdapter.class.getName());
+	private java.util.logging.Logger logger;
+	private ElasticProcessingUnitMachineIsolation isolation;
 
 	@Override
 	public boolean isStartMachineSupported() {
@@ -435,6 +436,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	@Override
 	public void afterPropertiesSet()
 			throws Exception {
+		
+		 logger = java.util.logging.Logger
+					.getLogger(ElasticMachineProvisioningCloudifyAdapter.class.getName());
+		
 		final String cloudContents = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION);
 		if (cloudContents == null) {
 			throw new IllegalArgumentException("Cloud configuration was not set!");
@@ -536,6 +541,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	public void destroy()
 			throws Exception {
 		this.cloudifyProvisioning.close();
+	}
+
+	@Override
+	public void setElasticProcessingUnitMachineIsolation(ElasticProcessingUnitMachineIsolation isolation) {
+		this.isolation = isolation;
 	}
 
 }
