@@ -463,7 +463,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 							return false;
 						}
 
-						return node.getGroup().startsWith(managementMachinePrefix);
+						return node.getGroup().toLowerCase().startsWith(managementMachinePrefix.toLowerCase());
 
 					}
 				});
