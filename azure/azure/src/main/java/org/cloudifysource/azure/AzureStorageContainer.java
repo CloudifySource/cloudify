@@ -31,7 +31,7 @@ public class AzureStorageContainer {
     private final String accountKey;
     private final String containerName;
     
-    private BlobStorageClient client;
+    
     private IBlobContainer container;
     
     public AzureStorageContainer(String accountName, String accountKey, String containerName) {
@@ -41,7 +41,7 @@ public class AzureStorageContainer {
     }
 
     public void connect() {
-        client = AzureStorageUtils.createStorageAccess(accountName, accountKey);
+    	BlobStorageClient client = AzureStorageUtils.createStorageAccess(accountName, accountKey);
         boolean containerExist = client.isContainerExist(containerName);
         if (!containerExist) {
         	boolean isPublicContainer = true;
