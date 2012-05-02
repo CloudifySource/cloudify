@@ -296,6 +296,9 @@ public class CloudGridAgentBootstrapper {
 				} catch (final CLIException e) {
 					logger.fine("Failed to uninstall applications. Shut down of managememnt machines will continue");
 				}
+			} else {
+				logger.info("Teardown performed without connection to the cloud, only management machines will be "
+						+ "terminated.");
 			}
 
 		}
