@@ -47,7 +47,7 @@ cloud {
 		// Optional. Logging level for the intenal cloud provider logger. Defaults to INFO.
 		sshLoggingLevel "WARNING"
 
-		// Mandatory. Name of the new machine/s started as cloudify management machines.
+		// Mandatory. Name of the new machine/s started as cloudify management machines. Names are case-insensitive.
 		managementGroup "cloudify_manager"
 		// Mandatory. Number of management machines to start on bootstrap-cloud. In production, should be 2. Can be 1 for dev.
 		numberOfManagementMachines 1
