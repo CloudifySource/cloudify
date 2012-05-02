@@ -7,7 +7,7 @@
 	<packaging>pom</packaging>
 
 	<properties>
-		<gsVersion>9.0.1-m1-6694-43</gsVersion>
+		<gsVersion>9.0.1-m1-6694-50</gsVersion>
 		<springVersion>3.1.1.RELEASE</springVersion>
 		<junitVersion>4.8.2</junitVersion>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
