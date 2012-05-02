@@ -380,7 +380,6 @@ public class AgentlessInstaller {
 
 		final String targetHost = details.isConnectedToPrivateIp() ? details.getPrivateIp() : details.getPublicIp();
 
-
 		int port = 0;
 		switch (details.getFileTransferMode()) {
 		case CIFS:
@@ -393,8 +392,8 @@ public class AgentlessInstaller {
 			throw new UnsupportedOperationException("File Transfer Mode: " + details.getFileTransferMode()
 					+ " not supported");
 		}
-		
-		publishEvent("attempting_to_access_vm", targetHost);		
+
+		publishEvent("attempting_to_access_vm", targetHost);
 		checkConnection(targetHost, port, Utils.millisUntil(end), TimeUnit.MILLISECONDS);
 
 		// upload bootstrap files
@@ -604,8 +603,6 @@ public class AgentlessInstaller {
 		}
 	}
 
-
-
 	private void checkPowershellInstalled()
 			throws IOException, InterruptedException, InstallerException {
 		if (powerShellInstalled != null) {
@@ -675,17 +672,20 @@ public class AgentlessInstaller {
 		} catch (final BuildException e) {
 			// There really should be a better way to check that this is a
 			// timeout
+			logger.log(Level.FINE, "The remote boostrap command failed with error: " + e.getMessage()
+					+ ". The command that failed to execute is : " + command, e);
+
 			if (e instanceof BuildTimeoutException) {
 				final TimeoutException ex =
-						new TimeoutException("Command " + command + " failed to execute: " + e.getMessage());
+						new TimeoutException("Remote bootstrap command failed to execute: " + e.getMessage());
 				ex.initCause(e);
 				throw ex;
 			} else if (e instanceof ExitStatusException) {
 				final ExitStatusException ex = (ExitStatusException) e;
 				final int ec = ex.getStatus();
-				throw new InstallerException("Command " + command + " failed with exit code: " + ec, e);
+				throw new InstallerException("Remote bootstrap command failed with exit code: " + ec, e);
 			} else {
-				throw new InstallerException("Command " + command + " failed to execute.", e);
+				throw new InstallerException("Remote bootstrap command failed to execute.", e);
 			}
 		}
 
