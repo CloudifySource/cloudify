@@ -22,6 +22,8 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.usm.UniversalServiceManagerBean;
 import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
 
+import com.gigaspaces.lrmi.nio.info.NIOInfoHelper;
+
 /**************
  * Process level static data exposed to client.
  * @author barakme
@@ -40,12 +42,18 @@ public class ProcessDetails implements Details {
 
 		final String privateIp = System.getenv(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP);
 		final String publicIp = System.getenv(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP);
-
+				
+		final String bindHost = NIOInfoHelper.getDetails().getBindHost();
 		if (privateIp != null) {
 			map.put(CloudifyConstants.USM_DETAILS_PRIVATE_IP, privateIp);
+		} else {
+			map.put(CloudifyConstants.USM_DETAILS_PRIVATE_IP, bindHost);
 		}
+		
 		if (publicIp != null) {
 			map.put(CloudifyConstants.USM_DETAILS_PUBLIC_IP, publicIp);
+		} else {
+			map.put(CloudifyConstants.USM_DETAILS_PRIVATE_IP, bindHost);
 		}
 
 		return map;
