@@ -26,15 +26,15 @@ public class CloudifyVersion implements ProductVersion {
 	// !!!IMPORTANT, read below
 	// Must be of this format otherwise PlatformLogicalVersion will fail
 	// parsing!!!
-	private String VERSION = "2.1.0";
-	private String MILESTONE = "ga";
+	private String VERSION = "2.1.1";
+	private String MILESTONE = "m1";
 	private String BUILD_TYPE = "regular";
 	private String V_NUM = VERSION + '-' + EDITION + '-' + MILESTONE;
 	private String V_LICENSE_NUM = "2.0" + EDITION;
 	// !!!IMPORTANT, read below
 	// Must be of either "int-int-string", "int-int" or "int" format otherwise
 	// PlatformLogicalVersion will fail parsing!!!
-	private final String BUILD_NUM = "1200-5";
+	private final String BUILD_NUM = "1394-6";
 	private final String V_NAME = "GigaSpaces";
 	private final String PRODUCT_HELP_URL = "http://www.cloudifysource.org/guide";
 
