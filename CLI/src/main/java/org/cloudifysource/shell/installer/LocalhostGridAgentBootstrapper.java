@@ -1257,6 +1257,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	private Admin createAdmin() {
 		final AdminFactory adminFactory = new AdminFactory();
+		adminFactory.useGsLogging(false);
 		if (lookupGroups != null) {
 			adminFactory.addGroups(lookupGroups);
 		}
