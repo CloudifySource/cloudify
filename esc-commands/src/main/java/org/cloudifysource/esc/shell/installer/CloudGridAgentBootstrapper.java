@@ -40,6 +40,7 @@ import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
+import org.cloudifysource.esc.driver.provisioning.jclouds.ManagementWebServiceInstaller;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
@@ -50,7 +51,6 @@ import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.CLIException;
-import org.cloudifysource.shell.installer.ManagementWebServiceInstaller;
 
 import com.gigaspaces.internal.utils.StringUtils;
 import com.j_spaces.kernel.Environment;
@@ -281,7 +281,6 @@ public class CloudGridAgentBootstrapper {
 			if (!adminFacade.isConnected()) {
 				throw new CLIException("Please connect to the cloud before tearing down");
 			}
-
 			uninstallApplications(end);
 
 		} else {
@@ -315,9 +314,13 @@ public class CloudGridAgentBootstrapper {
 	}
 
 	private void uninstallApplications(final long end) throws CLIException, InterruptedException, TimeoutException {
-		for (final String application : adminFacade.getApplicationsList()) {
-			if (!application.equals(MANAGEMENT_APPLICATION)) {
-				adminFacade.uninstallApplication(application, (int) end);
+		List<String> applicationsList = adminFacade.getApplicationsList();
+		if (applicationsList.size() > 0){
+			logger.info("Uninstalling the currently deployed applications");
+			for (final String application : applicationsList) {
+				if (!application.equals(MANAGEMENT_APPLICATION)) {
+					adminFacade.uninstallApplication(application, (int) end);
+				}
 			}
 		}
 
