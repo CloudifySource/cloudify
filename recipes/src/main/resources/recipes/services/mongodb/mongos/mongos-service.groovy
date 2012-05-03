@@ -62,5 +62,9 @@ service {
 				])
 			}			
 		])
-	}  
+	}
+	network {
+		port = 30001
+		protocolDescription ="HTTP"
+	} 
 }
