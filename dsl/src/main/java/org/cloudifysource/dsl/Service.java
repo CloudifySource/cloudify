@@ -228,11 +228,10 @@ public class Service {
 	 *            .
 	 */
 	public void setStatelessProcessingUnit(final StatelessProcessingUnit statelessProcessingUnit) {
-		if (this.statelessProcessingUnit == null) {
-			this.statelessProcessingUnit = statelessProcessingUnit;
-		} else if (this.statelessProcessingUnit != null) {
+		if (this.statelessProcessingUnit != null) {
 			throw new IllegalStateException("DSL File contains more then 1 ProcessingUnit type");
 		}
+		this.statelessProcessingUnit = statelessProcessingUnit;
 	}
 
 	/*************
@@ -242,11 +241,10 @@ public class Service {
 	 *            .
 	 */
 	public void setMirrorProcessingUnit(final MirrorProcessingUnit mirrorProcessingUnit) {
-		if (this.mirrorProcessingUnit == null) {
+		 if (this.mirrorProcessingUnit != null) {
+				throw new IllegalStateException("DSL File contains more then 1 ProcessingUnit type");
+			}
 			this.mirrorProcessingUnit = mirrorProcessingUnit;
-		} else if (this.mirrorProcessingUnit != null) {
-			throw new IllegalStateException("DSL File contains more then 1 ProcessingUnit type");
-		}
 	}
 
 	/*******
@@ -256,11 +254,10 @@ public class Service {
 	 *            .
 	 */
 	public void setStatefulProcessingUnit(final StatefulProcessingUnit statefulProcessingUnit) {
-		if (this.statefulProcessingUnit == null) {
-			this.statefulProcessingUnit = statefulProcessingUnit;
-		} else if (this.statefulProcessingUnit != null) {
+		if (this.statefulProcessingUnit != null) {
 			throw new IllegalStateException("DSL File contains more then 1 ProcessingUnit type");
 		}
+		this.statefulProcessingUnit = statefulProcessingUnit;
 	}
 
 	/**************
@@ -270,11 +267,10 @@ public class Service {
 	 *            .
 	 */
 	public void setDataGrid(final DataGrid dataGrid) {
-		if (this.datagrid == null) {
-			this.datagrid = dataGrid;
-		} else if (this.datagrid != null) {
+		if (this.datagrid != null) {
 			throw new IllegalStateException("DSL File contains more then 1 ProcessingUnit type");
 		}
+		this.datagrid = dataGrid;
 	}
 
 	/**********
@@ -283,11 +279,10 @@ public class Service {
 	 * @param memcached .
 	 */
 	public void setMemcached(final Memcached memcached) {
-		if (this.memcachedProcessingUnit == null) {
-			this.memcachedProcessingUnit = memcached;
-		} else if (this.memcachedProcessingUnit != null) {
+		if (this.memcachedProcessingUnit != null)
 			throw new IllegalStateException("DSL File contains more then one ProcessingUnit type");
-		}
+		
+		this.memcachedProcessingUnit = memcached;
 	}
 
 	public Memcached getMemcached() {

@@ -112,19 +112,14 @@ public class ServiceImpl implements Service {
 	@Override
 	public ServiceInstance[] waitForInstances(final int howmany, final long timeout, final TimeUnit timeUnit) {
 
-		if (this.pu != null) {
-			final boolean result = pu.waitFor(howmany,
-					timeout,
-					timeUnit);
-			if (result) {
-				return getInstances();
-			} else {
-				return null;
-			}
-		} else {
+		if (this.pu == null) {
 			return new ServiceInstance[] { new ServiceInstanceImpl(null) };
 		}
-
+		final boolean result = pu.waitFor(howmany, timeout, timeUnit);
+		if (result) {
+			return getInstances();
+		}
+		return null;
 	}
 
 	/* (non-Javadoc)

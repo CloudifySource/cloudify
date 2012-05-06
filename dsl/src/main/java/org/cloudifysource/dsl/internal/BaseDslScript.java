@@ -432,7 +432,7 @@ public abstract class BaseDslScript extends Script {
 			// internal node
 			if (data.isAllowInternalNode()) {
 				// check that node is nested under allowed element
-				if (data.getParentElement() != null && data.getParentElement().length() > 0) {
+				if (data.getParentElement() != null && !data.getParentElement().isEmpty()) {
 					final DSLObjectInitializerData parentType = getDSLInitializers().get(data.getParentElement());
 					if (parentType == null) {
 						throw new IllegalStateException("The DSL type " + name + " has a declared parent type of "
