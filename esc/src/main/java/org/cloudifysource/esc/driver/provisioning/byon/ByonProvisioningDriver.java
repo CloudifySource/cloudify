@@ -143,13 +143,15 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 		final Set<String> activeMachinesIPs = admin.getMachines().getHostsByAddress().keySet();
 		deployer.setAllocated(cloudTemplateName, activeMachinesIPs);
-		logger.info("Verifying the active machines are not in the free pool (currently used machines: "
-				+ Arrays.toString(activeMachinesIPs.toArray()) + ", free machines pool: "
-				+ Arrays.toString(deployer.getFreeNodesByTemplateName(cloudTemplateName).toArray())
-				+ ", allocated machines pool: "
-				+ Arrays.toString(deployer.getAllocatedNodesByTemplateName(cloudTemplateName).toArray())
-				+ ", invalid machines pool: "
-				+ Arrays.toString(deployer.getInvalidNodesByTemplateName(cloudTemplateName).toArray()) + ")");
+		if (logger.isLoggable(Level.INFO)) {
+			logger.info("Verifying the active machines are not in the free pool (currently used machines: "
+					+ Arrays.toString(activeMachinesIPs.toArray()) + ", free machines pool: "
+					+ Arrays.toString(deployer.getFreeNodesByTemplateName(cloudTemplateName).toArray())
+					+ ", allocated machines pool: "
+					+ Arrays.toString(deployer.getAllocatedNodesByTemplateName(cloudTemplateName).toArray())
+					+ ", invalid machines pool: "
+					+ Arrays.toString(deployer.getInvalidNodesByTemplateName(cloudTemplateName).toArray()) + ")");	
+		}
 		final String newServerName = createNewServerName();
 		logger.info("Attempting to start a new cloud machine");
 		return createServer(newServerName, endTime);
