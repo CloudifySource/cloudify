@@ -67,7 +67,7 @@ public class AzureConfigExe {
 	 * @param azureConfigExeFile - path to azureconfig.exe that implements the azure API in C#
 	 * @param verbose - true prints full exception stack trace, false prints only the message
 	 */
-	AzureConfigExe(File azureConfigExeFile, File encUtilExeFile, String subscriptionId, String certificateThumbprint, boolean verbose) {
+	protected AzureConfigExe(File azureConfigExeFile, File encUtilExeFile, String subscriptionId, String certificateThumbprint, boolean verbose) {
 		this.azureConfigExeFile = azureConfigExeFile;
 		this.encUtilExeFile = encUtilExeFile;
 		this.subscriptionId = subscriptionId;
@@ -93,17 +93,17 @@ public class AzureConfigExe {
 
 		String[] cmd = new String[args.length + (verbose?2:1)];
 		int targetIndex = 0;
+		
 		// file path
-		cmd[targetIndex] = exeFile;
-		targetIndex++;
+		cmd[targetIndex++] = exeFile;
+
 		// requested command
-		cmd[targetIndex] = args[0];
-		targetIndex++;
+		cmd[targetIndex++] = args[0];
+
 		// optional verbose flag
 		if (verbose) {
 			// the /verbose instructs azureconfig.exe to print full exception stack trace
-			cmd[targetIndex] = argument("verbose");
-			targetIndex++;
+			cmd[targetIndex++] = argument("verbose");
 		}
 		
 		// other options
