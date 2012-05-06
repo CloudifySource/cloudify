@@ -53,8 +53,7 @@ public class ByonDeployer {
 	private static final String CLOUD_NODE_USERNAME = "username";
 	private static final String CLOUD_NODE_CREDENTIAL = "credential";
 
-	private final Map<String, Map<String, List<CustomNode>>> nodesListsByTemplates = 
-			new Hashtable<String, Map<String, List<CustomNode>>>();
+	private final Map<String, Map<String, List<CustomNode>>> nodesListsByTemplates = new Hashtable<String, Map<String, List<CustomNode>>>();
 
 	/**
 	 * Constructor.
@@ -110,7 +109,6 @@ public class ByonDeployer {
 	 */
 	public synchronized CustomNode createServer(final String templateName, final String serverName)
 			throws CloudProvisioningException {
-		
 
 		if (org.apache.commons.lang.StringUtils.isBlank(serverName)) {
 			throw new CloudProvisioningException("Failed to create new cloud node, server name is missing");
@@ -162,8 +160,8 @@ public class ByonDeployer {
 			throw new CloudProvisioningException("Failed to create a new cloud node for template \"" + templateName
 					+ "\", all available nodes are currently used");
 		}
-		
-		((CustomNodeImpl) node).setNodeName(serverName);			
+
+		((CustomNodeImpl) node).setNodeName(serverName);
 
 		return node;
 	}
@@ -363,6 +361,76 @@ public class ByonDeployer {
 		allNodes.addAll(freeNodesPool);
 		allNodes.addAll(allocatedNodesPool);
 		allNodes.addAll(invalidNodesPool);
+
+		return allNodes;
+	}
+
+	/**
+	 * Retrieves all free nodes.
+	 * 
+	 * @param templateName
+	 *            The name of the nodes-list' template to use
+	 * @return A collection of all the free nodes of the specified template
+	 * @throws CloudProvisioningException
+	 *             Indicates the servers list could not be obtained for the given template name
+	 */
+	public Set<CustomNode> getFreeNodesByTemplateName(final String templateName) throws CloudProvisioningException {
+		final Set<CustomNode> allNodes = new HashSet<CustomNode>();
+
+		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
+		if (templateLists == null || templateLists.isEmpty()) {
+			throw new CloudProvisioningException("Failed to get servers list. \"" + templateName
+					+ "\" is not a known template.");
+		}
+
+		allNodes.addAll(templateLists.get(NODES_LIST_FREE));
+
+		return allNodes;
+	}
+
+	/**
+	 * Retrieves all allocated nodes.
+	 * 
+	 * @param templateName
+	 *            The name of the nodes-list' template to use
+	 * @return A collection of all the allocated (active, in use) nodes of the specified template
+	 * @throws CloudProvisioningException
+	 *             Indicates the servers list could not be obtained for the given template name
+	 */
+	public Set<CustomNode> getAllocatedNodesByTemplateName(final String templateName)
+			throws CloudProvisioningException {
+		final Set<CustomNode> allNodes = new HashSet<CustomNode>();
+
+		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
+		if (templateLists == null || templateLists.isEmpty()) {
+			throw new CloudProvisioningException("Failed to get servers list. \"" + templateName
+					+ "\" is not a known template.");
+		}
+
+		allNodes.addAll(templateLists.get(NODES_LIST_ALLOCATED));
+
+		return allNodes;
+	}
+
+	/**
+	 * Retrieves all invalid nodes.
+	 * 
+	 * @param templateName
+	 *            The name of the nodes-list' template to use
+	 * @return A collection of all the invalid nodes of the specified template
+	 * @throws CloudProvisioningException
+	 *             Indicates the servers list could not be obtained for the given template name
+	 */
+	public Set<CustomNode> getInvalidNodesByTemplateName(final String templateName) throws CloudProvisioningException {
+		final Set<CustomNode> allNodes = new HashSet<CustomNode>();
+
+		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
+		if (templateLists == null || templateLists.isEmpty()) {
+			throw new CloudProvisioningException("Failed to get servers list. \"" + templateName
+					+ "\" is not a known template.");
+		}
+
+		allNodes.addAll(templateLists.get(NODES_LIST_INVALID));
 
 		return allNodes;
 	}

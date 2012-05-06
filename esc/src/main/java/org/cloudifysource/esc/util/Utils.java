@@ -23,6 +23,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -35,6 +37,7 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.provider.sftp.SftpFileSystemConfigBuilder;
+import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -143,7 +146,7 @@ public final class Utils {
 			if (endPoint.isUnresolved()) {
 				throw new IllegalArgumentException("Failed to connect to: " + ipAddress + ":" + port
 						+ ", address could not be resolved.");
-			} 
+			}
 
 			socket.connect(endPoint, Utils.safeLongToInt(TimeUnit.SECONDS.toMillis(timeout), true));
 		} finally {
@@ -282,25 +285,32 @@ public final class Utils {
 	 *            The name of the user that deletes the file/folder
 	 * @param password
 	 *            The password of the above user
-	 * @param fileSystemObject
-	 *            The file or folder to delete
+	 * @param fileSystemObjects
+	 *            The files or folders to delete
 	 * @param keyFile
 	 *            The key file, if used
 	 * @param timeout
 	 *            The number of time-units (i.e. seconds, minutes) before a timeout exception is thrown
 	 * @param unit
 	 *            The time unit to use (e.g. seconds)
+	 * @param fileTransferMode
+	 *            SCP for secure copy in linux, or CIFS for windows file sharing
 	 * @throws IOException
 	 *             Indicates the deletion failed
 	 * @throws TimeoutException
 	 *             Indicates the action was not completed before the timout was reached
 	 */
 	public static void deleteFileSystemObject(final String host, final String username, final String password,
-			final String fileSystemObject, final String keyFile, final long timeout, final TimeUnit unit)
-			throws IOException, TimeoutException {
+			final List<String> fileSystemObjects, final String keyFile, final long timeout, final TimeUnit unit,
+			final FileTransferModes fileTransferMode) throws IOException, TimeoutException {
 
+		if (!fileTransferMode.equals(FileTransferModes.SCP)) {
+			throw new IOException("File deletion is currently not supported for this file transfer protocol ("
+					+ fileTransferMode + ")");
+		}
 		if (timeout < 0) {
-			throw new TimeoutException("Deleting \"" + fileSystemObject + "\" from server " + host + " timed out");
+			throw new TimeoutException("Deleting files (" + Arrays.toString(fileSystemObjects.toArray()) + ") "
+					+ "from server " + host + " timed out");
 		}
 		final long end = System.currentTimeMillis() + unit.toMillis(timeout);
 
@@ -323,32 +333,39 @@ public final class Utils {
 		final FileSystemManager mng = VFS.getManager();
 
 		String scpTarget = null;
-		if (password != null && !password.isEmpty()) {
-			scpTarget = "sftp://" + username + ':' + password + '@' + host + fileSystemObject;
-		} else {
-			scpTarget = "sftp://" + username + '@' + host + fileSystemObject;
-		}
-
-		final FileObject remoteDir = mng.resolveFile(scpTarget, opts);
+		FileObject remoteDir = null;
 		try {
-			remoteDir.delete(new FileSelector() {
-
-				@Override
-				public boolean includeFile(final FileSelectInfo fileInfo) throws Exception {
-					return true;
+			for (final String fileSystemObject : fileSystemObjects) {
+				if (password != null && !password.isEmpty()) {
+					scpTarget = "sftp://" + username + ':' + password + '@' + host + fileSystemObject;
+				} else {
+					scpTarget = "sftp://" + username + '@' + host + fileSystemObject;
 				}
 
-				@Override
-				public boolean traverseDescendents(final FileSelectInfo fileInfo) throws Exception {
-					return true;
-				}
-			});
+				remoteDir = mng.resolveFile(scpTarget, opts);
+
+				remoteDir.delete(new FileSelector() {
+
+					@Override
+					public boolean includeFile(final FileSelectInfo fileInfo) throws Exception {
+						return true;
+					}
+
+					@Override
+					public boolean traverseDescendents(final FileSelectInfo fileInfo) throws Exception {
+						return true;
+					}
+				});
+			}
 		} finally {
-			mng.closeFileSystem(remoteDir.getFileSystem());
+			if (remoteDir != null) {
+				mng.closeFileSystem(remoteDir.getFileSystem());
+			}
 		}
 
 		if (end < System.currentTimeMillis()) {
-			throw new TimeoutException("Deleting \"" + fileSystemObject + "\" on server " + host + " timed out");
+			throw new TimeoutException("Deleting files (" + Arrays.toString(fileSystemObjects.toArray()) + ") from"
+					+ " server " + host + " timed out");
 		}
 	}
 
