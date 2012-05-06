@@ -1483,7 +1483,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 	private String[] parseDependenciesString(final String dependenciesString) {
 		// remove brackets
 		final String internalString = dependenciesString.replace("[", "").replace("]", "").trim();
-		if (internalString.length() == 0) {
+		if (internalString.isEmpty()) {
 			return new String[0];
 		}
 

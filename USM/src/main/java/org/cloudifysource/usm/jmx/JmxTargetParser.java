@@ -33,17 +33,16 @@ public class JmxTargetParser {
 
 	
 	public static JmxTarget parse(String targetStr) {
-		if (targetStr == null || targetStr.length() == 0) {
+		if (targetStr == null || targetStr.isEmpty()) {
 			return null;
 		}
 		StringTokenizer tok2 = new StringTokenizer(targetStr, ":");
 		int ctr = 0;
 		String domain = "", type = "", attr = "", dispName = "";
-		String castTo = null;
 				
 		while (tok2.hasMoreTokens()) {
 			String elem = tok2.nextToken();
-			if (elem.length() == 0) {
+			if (elem.isEmpty()) {
 				continue;
 			}
 			ctr++;

@@ -69,7 +69,7 @@ public abstract class AbstractJmxPlugin implements Plugin{
 			try {
 	
 				if (entry.getKey().equalsIgnoreCase("port")) {
-					this.setPort(new Integer( entry.getValue().toString()).intValue());
+					this.setPort( Integer.parseInt(entry.getValue().toString()));
 				} else if (entry.getKey().equalsIgnoreCase("host")) {
 					this.setHost((String) entry.getValue());
 				} else if (entry.getKey().equalsIgnoreCase("username")) {

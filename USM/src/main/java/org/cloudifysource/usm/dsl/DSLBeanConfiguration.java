@@ -229,7 +229,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 		Class<?> clazz = null;
 		try {
 			final String className = descriptor.getClassName();
-			if (className == null || className.length() == 0) {
+			if (className == null || className.isEmpty()) {
 				throw new IllegalArgumentException("Plugin must have a class name");
 			}
 

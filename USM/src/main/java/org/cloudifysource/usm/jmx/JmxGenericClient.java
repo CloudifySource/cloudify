@@ -254,7 +254,7 @@ public class JmxGenericClient {
 		String name;
 		for (final JmxAttribute t : resArr) {
 			name = t.getDisplayName();
-			if ((name == null) || (name.length() == 0)) {
+			if (name == null || name.isEmpty()) {
 				name = t.getAttributeName();
 			}
 			results.put(name, t.getValue());
