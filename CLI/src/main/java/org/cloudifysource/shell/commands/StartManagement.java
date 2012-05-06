@@ -137,7 +137,7 @@ public class StartManagement extends AbstractGSCommand {
 		File cloudFile = null;
 
 		String cloudConfigurationContents = null;
-		if (cloudFileName != null && cloudFileName.trim().length() > 0) {
+		if (cloudFileName != null && !cloudFileName.trim().isEmpty()) {
 			cloudFile = new File(cloudFileName);
 			cloudConfigurationContents = FileUtils.readFileToString(cloudFile);
 			final Cloud cloud = parseCloud(cloudFile);

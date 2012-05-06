@@ -965,7 +965,7 @@ public class LocalhostGridAgentBootstrapper {
 	public void startAgentOnLocalhostAndWait(final long timeout, final TimeUnit timeunit) throws CLIException,
 			InterruptedException, TimeoutException {
 
-		if (zone == null || zone.length() == 0) {
+		if (zone == null || zone.isEmpty()) {
 			throw new CLIException("Agent must be started with a zone");
 		}
 

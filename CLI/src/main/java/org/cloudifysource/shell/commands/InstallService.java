@@ -125,32 +125,33 @@ public class InstallService extends AdminAwareCommand {
 				props.setProperty(CloudifyConstants.CONTEXT_PROPERTY_SERVICE_FILE_NAME, serviceFileName);
 			}
 			plannedNumberOfInstances = service.getNumInstances();
-			if (serviceName == null || serviceName.length() == 0) {
+			if (serviceName == null || serviceName.isEmpty()) {
 				serviceName = service.getName();
 			}
 		}
 
-		if (serviceName == null || serviceName.length() == 0) {
+		if (serviceName == null || serviceName.isEmpty()) {
 			serviceName = recipe.getName();
 			final int endIndex = serviceName.lastIndexOf('.');
 			if (endIndex > 0) {
 				serviceName = serviceName.substring(0, endIndex);
 			}
 		}
-		if (zone == null || zone.length() == 0) {
+		if (zone == null || zone.isEmpty()) {
 			zone = serviceName;
 		}
 
-		String templateName = null;
+		String templateName;
 		// service is null when a simple deploying war for example
-		if (service != null && service.getCompute() != null) {
+		if (service == null || service.getCompute() == null) {
+			templateName = "";
+		}else{
 			templateName = service.getCompute().getTemplate();
 			if (templateName == null) {
 				templateName = "";
 			}
-		} else {
-			templateName = "";
 		}
+		
 		String lifecycleEventContainerPollingID = adminFacade.installElastic(packedFile, currentApplicationName, serviceName, zone, props, templateName, timeoutInMinutes);
 
 		if (lifecycleEventContainerPollingID != null){

@@ -80,10 +80,7 @@ public final class ShellUtils {
 	 * @return A formatted message text
 	 */
 	public static String getColorMessage(final String message, final Color color) {
-		String formattedMessage = message;
-		formattedMessage = Ansi.ansi().fg(
-				color).a(
-				message).toString();
+		 String formattedMessage = Ansi.ansi().fg(color).a(message).toString();
 		return formattedMessage + FIRST_ESC_CHAR + SECOND_ESC_CHAR + '0' + COMMAND_CHAR;
 	}
 

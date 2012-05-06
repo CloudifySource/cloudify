@@ -54,8 +54,6 @@ public class UninstallService extends AdminAwareCommand {
 
 	private static final String TIMEOUT_ERROR_MESSAGE = "Timeout waiting for service to uninstall";
 
-	private String lastMessage;
-
 	@Argument(index = 0, required = true, name = "service-name")
 	private String serviceName;
 
