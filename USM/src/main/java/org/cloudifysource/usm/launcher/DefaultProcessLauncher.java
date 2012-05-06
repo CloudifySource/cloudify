@@ -935,7 +935,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 		}
 
-		if (this.groovyEnvironmentClassPath != null && this.groovyEnvironmentClassPath.length() > 0) {
+		if (groovyEnvironmentClassPath != null && !groovyEnvironmentClassPath.isEmpty()) {
 			map.put("CLASSPATH",
 					this.groovyEnvironmentClassPath);
 		}

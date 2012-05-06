@@ -44,7 +44,7 @@ public final class GroovyExceptionHandler {
 	 */
 	public static String getExceptionString(final String input) {
 		String exceptionReason = getRuntimeException(input);
-		if (exceptionReason.length() == 0) {
+		if (exceptionReason.isEmpty()) {
 			// No runtime exception was found. look for a compilation exception.
 			exceptionReason = getCompilationException(input);
 		}
