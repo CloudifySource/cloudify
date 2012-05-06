@@ -24,7 +24,6 @@ import com.gigaspaces.internal.sigar.SigarHolder;
 
 public class DefaultProcessKiller implements ProcessKiller {
 
-	private static final int KILL_RETRIES = 2;
 	private static final int POST_KILL_SLEEP_INTERVAL = 100;
 	private static final int PROCESS_STATUS_CHECK_INTERVAL = 200;
 	private static final int PROCESS_STATUS_CHECK_ATTEMPTS = 5;
@@ -32,6 +31,8 @@ public class DefaultProcessKiller implements ProcessKiller {
 	private static java.util.logging.Logger logger =
 			java.util.logging.Logger.getLogger(DefaultProcessKiller.class.getName());
 
+	private int killRetries = 2;
+	
 	@Override
 	public void killProcess(final long pid) throws USMException {
 		if (pid == 0) {
@@ -40,7 +41,7 @@ public class DefaultProcessKiller implements ProcessKiller {
 		}
 		final Sigar sigar = SigarHolder.getSigar();
 
-		for (int retries = 0; retries <= KILL_RETRIES; ++retries) {
+		for (int retries = 0; retries <= killRetries; ++retries) {
 			try {
 				logger.info("Killing process: " + pid);
 				sigar.kill(pid, "SIGTERM"); // (9 is the only signal used for
@@ -78,5 +79,11 @@ public class DefaultProcessKiller implements ProcessKiller {
 
 	}
 
+	public int getKillRetries() {
+		return killRetries;
+	}
 
+	public void setKillRetries(int killRetries) {
+		this.killRetries = killRetries;
+	}
 }
