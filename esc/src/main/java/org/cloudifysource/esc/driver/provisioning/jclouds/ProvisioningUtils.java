@@ -98,7 +98,7 @@ public class ProvisioningUtils {
 				Map<String, Object> propertyMap = PropertyUtils.describe(bean);
 				Set<Entry<String, Object>> entries = propertyMap.entrySet();
 				for (Entry<String, Object> entry : entries) {
-					if (keyPrefix.length() == 0) {
+					if (keyPrefix.isEmpty()) {
 						populateMapFromBean(map, entry.getValue(),
 								entry.getKey());
 					} else {

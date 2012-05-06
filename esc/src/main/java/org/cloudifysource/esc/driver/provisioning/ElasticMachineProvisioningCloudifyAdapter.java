@@ -236,7 +236,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				machineIp = machineDetails.getPublicAddress();
 			}
 
-			if (machineIp != null && machineIp.trim().length() > 0) {
+			if (machineIp != null && !machineIp.trim().isEmpty()) {
 				try {
 					final GridServiceAgent agent = getGSAByIpOrHost(machineIp);
 					if (agent != null) {
@@ -529,9 +529,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		final LookupLocator[] locators = this.admin.getLocators();
 		final StringBuilder sb = new StringBuilder();
 		for (final LookupLocator lookupLocator : locators) {
-			sb.append(lookupLocator.getHost()).append(":").append(lookupLocator.getPort()).append(",");
+			sb.append(lookupLocator.getHost()).append(':').append(lookupLocator.getPort()).append(',');
 		}
-		if (sb.toString().length() > 0) {
+		if (!sb.toString().isEmpty()) {
 			sb.setLength(sb.length() - 1);
 		}
 		return sb.toString();

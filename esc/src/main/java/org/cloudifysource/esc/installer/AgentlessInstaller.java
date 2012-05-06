@@ -237,7 +237,7 @@ public class AgentlessInstaller {
 			createdManager = createRemoteSSHFileSystem(keyFile, opts);
 
 			final String userDetails;
-			if (password != null && password.length() > 0) {
+			if (password != null && !password.isEmpty()) {
 				userDetails = username + ":" + password;
 			} else {
 				userDetails = username;
@@ -343,7 +343,7 @@ public class AgentlessInstaller {
 
 		SftpFileSystemConfigBuilder.getInstance().setUserDirIsRoot(opts, false);
 
-		if (keyFile != null && keyFile.length() > 0) {
+		if (keyFile != null && !keyFile.isEmpty()) {
 			final File temp = new File(keyFile);
 			if (!temp.exists()) {
 				throw new FileNotFoundException("Could not find key file: " + temp + ". KeyFile " + keyFile

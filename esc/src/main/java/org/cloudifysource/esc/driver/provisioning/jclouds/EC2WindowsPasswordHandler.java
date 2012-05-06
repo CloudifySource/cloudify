@@ -88,7 +88,7 @@ public class EC2WindowsPasswordHandler {
 					region.getId(), amiId);
 
 			if (passwordData == null || passwordData.getPasswordData() == null
-					|| passwordData.getPasswordData().length() == 0) {
+					|| passwordData.getPasswordData().isEmpty()) {
 				Thread.sleep(PASSWORD_POLLING_INTERVAL_MILLIS);
 			} else {
 				final String encryptedPassword = passwordData.getPasswordData();

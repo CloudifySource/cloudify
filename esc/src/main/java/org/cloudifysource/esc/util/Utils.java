@@ -310,7 +310,7 @@ public final class Utils {
 
 		SftpFileSystemConfigBuilder.getInstance().setUserDirIsRoot(opts, false);
 
-		if (keyFile != null && keyFile.length() > 0) {
+		if (keyFile != null && !keyFile.isEmpty()) {
 			final File temp = new File(keyFile);
 			if (!temp.exists()) {
 				throw new FileNotFoundException("Could not find key file: " + temp + ". KeyFile " + keyFile
@@ -323,10 +323,10 @@ public final class Utils {
 		final FileSystemManager mng = VFS.getManager();
 
 		String scpTarget = null;
-		if (password != null && password.length() > 0) {
-			scpTarget = "sftp://" + username + ":" + password + "@" + host + fileSystemObject;
+		if (password != null && !password.isEmpty()) {
+			scpTarget = "sftp://" + username + ':' + password + '@' + host + fileSystemObject;
 		} else {
-			scpTarget = "sftp://" + username + "@" + host + fileSystemObject;
+			scpTarget = "sftp://" + username + '@' + host + fileSystemObject;
 		}
 
 		final FileObject remoteDir = mng.resolveFile(scpTarget, opts);

@@ -64,7 +64,7 @@ public class SmbFileNameParser extends URLFileNameParser
 
         // Extract the share
         final String share = UriParser.extractFirstElement(name);
-        if (share == null || share.length() == 0)
+        if (share == null || share.isEmpty())
         {
             throw new FileSystemException("vfs.provider.smb/missing-share-name.error", filename);
         }
