@@ -184,14 +184,14 @@ public class CloudGridAgentBootstrapper {
 						"Cloud bootstrapper found existing management machines with the same name. "
 								+ "Please shut them down before continuing");
 
-			} else {
-				startManagememntProcesses(servers, end);
 			}
+			
+			startManagememntProcesses(servers, end);
 
 			// Wait for rest to become available
 			// When the rest gateway is up and running, the cloud is ready to go
 			for (final MachineDetails server : servers) {
-				String ipAddress = null;
+				String ipAddress;
 				if (cloud.getConfiguration().isBootstrapManagementOnPublicIp()) {
 					ipAddress = server.getPublicAddress();
 				} else {
@@ -228,20 +228,20 @@ public class CloudGridAgentBootstrapper {
 	 */
 	private void createProvisioningDriver() throws CLIException {
 		try {
-			this.provisioning = (ProvisioningDriver) Class.forName(this.cloud.getConfiguration().getClassName())
+			provisioning = (ProvisioningDriver) Class.forName(cloud.getConfiguration().getClassName())
 					.newInstance();
 		} catch (final ClassNotFoundException e) {
-			throw new CLIException("Failed to load provisioning class for cloud: " + this.cloud.getName()
-					+ ". Class not found: " + this.cloud.getConfiguration().getClassName(), e);
+			throw new CLIException("Failed to load provisioning class for cloud: " + cloud.getName()
+					+ ". Class not found: " + cloud.getConfiguration().getClassName(), e);
 		} catch (final Exception e) {
-			throw new CLIException("Failed to load provisioning class for cloud: " + this.cloud.getName(), e);
+			throw new CLIException("Failed to load provisioning class for cloud: " + cloud.getName(), e);
 		}
 		if (provisioning instanceof ProvisioningDriverClassContextAware) {
 			final ProvisioningDriverClassContextAware contextAware = (ProvisioningDriverClassContextAware) provisioning;
 			contextAware.setProvisioningDriverClassContext(new DefaultProvisioningDriverClassContext());
 		}
 		
-		this.provisioning.addListener(new CliProvisioningDriverListener());
+		provisioning.addListener(new CliProvisioningDriverListener());
 		provisioning.setConfig(cloud, cloud.getConfiguration().getManagementMachineTemplate(), true);
 	}
 
@@ -343,10 +343,11 @@ public class CloudGridAgentBootstrapper {
 		details.setBindToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 
 		// if ((cloud.getUser().getKeyPair() != null) && (cloud.getUser().getKeyPair().length() > 0)) {
-		if (cloud.getUser().getKeyFile() != null && cloud.getUser().getKeyFile().length() > 0) {
-			File keyFile = new File(cloud.getUser().getKeyFile());
+		String keyFileName = cloud.getUser().getKeyFile();
+		if (keyFileName != null && !keyFileName.isEmpty()) {
+			File keyFile = new File(keyFileName);
 			if (!keyFile.isAbsolute()) {
-				keyFile = new File(details.getLocalDir(), cloud.getUser().getKeyFile());
+				keyFile = new File(details.getLocalDir(), keyFileName);
 			}
 			if (!keyFile.isFile()) {
 				throw new FileNotFoundException("keyfile : " + keyFile.getAbsolutePath() + " not found");
@@ -470,7 +471,7 @@ public class CloudGridAgentBootstrapper {
 		for (final InstallationDetails detail : installations) {
 			final String ip = cloud.getConfiguration().isConnectToPrivateIp() ? detail.getPrivateIp() : detail
 					.getPublicIp();
-			lookupSb.append(ip).append(",");
+			lookupSb.append(ip).append(',');
 		}
 
 		lookupSb.setLength(lookupSb.length() - 1);
