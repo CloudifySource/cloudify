@@ -21,14 +21,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
+
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.CompleterValues;
 import org.apache.felix.gogo.commands.Option;
 import org.apache.karaf.util.Properties.PropertiesReader;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.rest.RestAdminFacade;
 
@@ -48,10 +47,6 @@ import org.cloudifysource.shell.rest.RestAdminFacade;
 @Command(scope = "cloudify", name = "uninstall-service", description = "undeploy a service")
 public class UninstallService extends AdminAwareCommand {
 
-	private static final int UNINSTALL_POOLING_INTERVAL = 5;
-
-	private static final String DEFAULT_APPLICATION_NAME = "default";
-
 	private static final String TIMEOUT_ERROR_MESSAGE = "Timeout waiting for service to uninstall";
 
 	@Argument(index = 0, required = true, name = "service-name")
@@ -65,7 +60,7 @@ public class UninstallService extends AdminAwareCommand {
 	@CompleterValues(index = 0)
 	public Collection<String> getServiceList() {
 		try {
-			return getRestAdminFacade().getServicesList(DEFAULT_APPLICATION_NAME);
+			return getRestAdminFacade().getServicesList(CloudifyConstants.DEFAULT_APPLICATION_NAME);
 		} catch (final Exception e) {
 			return new ArrayList<String>();
 		}
@@ -127,20 +122,4 @@ public class UninstallService extends AdminAwareCommand {
 		// Shell is running in nonInteractive mode. we skip the question.
 		return true;
 	}
-
-	/**
-	 * Creates a condition latch object with the specified timeout. If the condition times out, a
-	 * {@link TimeoutException} is thrown.
-	 * 
-	 * @param timeout
-	 *            number of timeunits to wait
-	 * @param timeunit
-	 *            type of timeunits to wait
-	 * @return Configured condition latch
-	 */
-	private ConditionLatch createConditionLatch(final long timeout, final TimeUnit timeunit) {
-		return new ConditionLatch().timeout(timeout, timeunit).pollingInterval(UNINSTALL_POOLING_INTERVAL, TimeUnit.SECONDS)
-		.timeoutErrorMessage(TIMEOUT_ERROR_MESSAGE).verbose(verbose);
-	}
-
 }
