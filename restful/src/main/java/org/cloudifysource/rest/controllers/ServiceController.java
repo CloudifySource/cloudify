@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -57,6 +56,7 @@ import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
 import net.jini.core.discovery.LookupLocator;
@@ -841,17 +841,18 @@ public class ServiceController {
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
 	public void resolveDocumentNotFoundException(final HttpServletResponse response, final Exception e)
-			throws IOException {
+	        throws IOException {
 
-		if (response.isCommitted()) {
-			logger.log(Level.WARNING,
-					"Caught exception, but response already commited. Not sending error message based on exception", e);
-		} else {
-			final Writer writer = response.getWriter();
-			final String message = "{\"status\":\"error\", \"error\":\"" + e.getMessage() + "\"}";
-			logger.log(Level.SEVERE, "caught exception. Sending response message " + message, e);
-			writer.write(message);
-		}
+	    if (response.isCommitted()) {
+	        logger.log(Level.WARNING,
+	                "Caught exception, but response already commited. Not sending error message based on exception", e);
+	    } else {
+	        ServletOutputStream outputStream = response.getOutputStream();
+	        final String message = "{\"status\":\"error\", \"error\":\"" + e.getMessage() + "\"}";
+	        logger.log(Level.SEVERE, "caught exception. Sending response message " + message, e);
+	        byte[] messageBytes = message.getBytes();
+	        outputStream.write(messageBytes);
+	    }
 	}
 
 	/******************
