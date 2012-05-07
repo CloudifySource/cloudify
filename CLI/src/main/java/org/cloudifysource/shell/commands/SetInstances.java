@@ -36,7 +36,8 @@ public class SetInstances extends AdminAwareCommand {
 	@Option(required = false, name = "-timeout", description = "number of minutes to wait for instances. Default is set to 1 minute")
 	protected int timeout = DEFAULT_TIMEOUT_MINUTES;
 	
-	private static final String TIMEOUT_ERROR_MESSAGE = "Set-Instances timed out";
+	private static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out. " 
+				+ "Try to increase the timeout using the -timeout flag";
 
 	// THIS DOES NOT WORK
 	// The Karaf @CompleterValues annotation only works on statis lists - the method is only invoked once, on loading of
