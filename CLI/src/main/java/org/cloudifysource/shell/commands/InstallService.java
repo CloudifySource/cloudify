@@ -67,8 +67,9 @@ public class InstallService extends AdminAwareCommand {
 	@Option(required = false, name = "-service-file-name", description = "Name of the service file in the "
 		+ "recipe folder. If not specified, uses the default file name")
 	private String serviceFileName = null;
-
-	private static final String TIMEOUT_ERROR_MESSAGE = "Service installation timed out";
+	
+	private static final String TIMEOUT_ERROR_MESSAGE = "Service installation timed out." 
+				+ " Configure the timeout using the -timeout flag.";
 
 	/**
 	 * {@inheritDoc}

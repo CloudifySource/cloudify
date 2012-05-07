@@ -61,7 +61,8 @@ public class InstallApplication extends AdminAwareCommand {
 			+ " is done. Defaults to 10 minutes.")
 	private int timeoutInMinutes = 10;
 
-	private static final String TIMEOUT_ERROR_MESSAGE = "Application installation timed out";
+	private static final String TIMEOUT_ERROR_MESSAGE = "Application installation timed out." 
+				+ " Configure the timeout using the -timeout flag.";
 
 	/**
 	 * {@inheritDoc}
