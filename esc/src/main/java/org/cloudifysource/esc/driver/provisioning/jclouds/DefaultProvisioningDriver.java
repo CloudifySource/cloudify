@@ -26,7 +26,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -75,19 +74,19 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			// TODO - jcloudsUniqueId should be unique per cloud configuration.
 			// TODO - The deployer object should be reusable across templates. The current API is not appropriate.
 			// TODO - key should be based on entire cloud configuraion!
-			// TODO - this shared context only works if we have reference counting, to check when this item is 
+			// TODO - this shared context only works if we have reference counting, to check when this item is
 			// no longer there. Otherwise, either this context will leak, or it will be shutdown by the first
 			// service to by undeployed.
 			this.deployer = createDeployer(cloud);
-//					(JCloudsDeployer) context.getOrCreate("UNIQUE_JCLOUDS_DEPLOYER_ID_" + this.cloudTemplateName,
-//							new Callable<Object>() {
-//
-//								@Override
-//								public Object call()
-//										throws Exception {
-//									return createDeplyer(cloud);
-//								}
-//							});
+			// (JCloudsDeployer) context.getOrCreate("UNIQUE_JCLOUDS_DEPLOYER_ID_" + this.cloudTemplateName,
+			// new Callable<Object>() {
+			//
+			// @Override
+			// public Object call()
+			// throws Exception {
+			// return createDeplyer(cloud);
+			// }
+			// });
 		} catch (final Exception e) {
 			publishEvent("connection_to_cloud_api_failed", cloud.getProvider().getProvider());
 			throw new IllegalStateException("Failed to create cloud Deployer", e);
@@ -113,15 +112,15 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 			// Special handling for cloudstack on ALU - for unknown reason, the context throws rejected exception.
 			// Looks like the thread pool is exhausted, though not clear why. Does not repro outside their cloud.
-			if (e instanceof RejectedExecutionException
-					&& this.cloud.getProvider().getProvider().equalsIgnoreCase("cloudstack")) {
-				logger.warning("Detected Jclouds execution problem. Reseting Jclouds context");
-				try {
-					this.deployer.reset(currentContext);
-				} catch (final Exception e2) {
-					logger.log(Level.WARNING, "Failed to reset jclouds context", e2);
-				}
-			}
+			// if (e instanceof RejectedExecutionException
+			// && this.cloud.getProvider().getProvider().equalsIgnoreCase("cloudstack")) {
+			// logger.warning("Detected Jclouds execution problem. Reseting Jclouds context");
+			// try {
+			// this.deployer.reset(currentContext);
+			// } catch (final Exception e2) {
+			// logger.log(Level.WARNING, "Failed to reset jclouds context", e2);
+			// }
+			// }
 
 			throw new CloudProvisioningException("Failed to start cloud machine", e);
 		}
@@ -192,14 +191,14 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			final MachineDetails machineDetails, final CloudTemplate cloudTemplate)
 			throws FileNotFoundException, InterruptedException, TimeoutException, CloudProvisioningException {
 		File pemFile = null;
-		
+
 		if (this.management) {
 			final String baseDirectory = Environment.getHomeDirectory();
 			final File localDirectory = new File(baseDirectory, this.cloud.getProvider().getLocalDirectory());
 
 			pemFile = new File(localDirectory, this.cloud.getUser().getKeyFile());
 		} else {
-			String localDirectoryName = this.cloud.getProvider().getLocalDirectory();
+			final String localDirectoryName = this.cloud.getProvider().getLocalDirectory();
 			logger.fine("local dir name is: " + localDirectoryName);
 			final File localDirectory = new File(localDirectoryName);
 
@@ -215,11 +214,11 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		if (cloudTemplate.getPassword() == null) {
 			// get the password using Amazon API
 			this.publishEvent("waiting_for_ec2_windows_password", node.getId());
-			
+
 			final LoginCredentials credentials =
 					new EC2WindowsPasswordHandler().getPassword(node, this.deployer.getContext(), end, pemFile);
 			password = credentials.getPassword();
-			
+
 			this.publishEvent("ec2_windows_password_retrieved", node.getId());
 
 		} else {
