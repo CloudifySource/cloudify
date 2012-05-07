@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -96,12 +97,14 @@ import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.application.Application;
 import org.openspaces.admin.application.Applications;
+import org.openspaces.admin.dump.DumpResult;
 import org.openspaces.admin.esm.ElasticServiceManager;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.internal.admin.InternalAdmin;
 import org.openspaces.admin.internal.pu.DefaultProcessingUnitInstance;
 import org.openspaces.admin.internal.pu.InternalProcessingUnitInstance;
+import org.openspaces.admin.machine.Machine;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitDeployment;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
@@ -160,6 +163,11 @@ public class ServiceController {
 	private Cloud cloud = null;
 
 	private static final Logger logger = Logger.getLogger(ServiceController.class.getName());
+	private static final long DEFAULT_DUMP_FILE_SIZE_LIMIT = 5 * 1024 * 1024;
+
+	private static final String[] DEFAULT_DUMP_PROCESSORS = new String[] {
+			"summary", "network", "thread", "log", "processingUnits;"
+	};
 	private String cloudFileContents;
 	private String defaultTemplateName;
 
@@ -206,6 +214,119 @@ public class ServiceController {
 	public void destroy() {
 		this.executorService.shutdownNow();
 		this.scheduledExecutor.shutdownNow();
+	}
+
+	@RequestMapping(value = "/dump", method = RequestMethod.GET)
+	public @ResponseBody
+	Map<String, Object> getMachineDumpFile(@RequestParam(required = false) final String processors
+			, @RequestParam(defaultValue = "0") final long fileSizeLimit)
+			throws IOException {
+		return getMachineDumpFile(null, processors, fileSizeLimit);
+	}
+
+	@RequestMapping(value = "/dump/{ip}", method = RequestMethod.GET)
+	public @ResponseBody
+	Map<String, Object> getMachineDumpFile(@PathVariable final String ip,
+			@RequestParam(required = false) final String processors
+			, @RequestParam(defaultValue = "0") final long fileSizeLimit)
+			throws IOException {
+		// check for non-default processors
+		final String[] actualProcessors = getProcessorsFromRequest(processors);
+
+		try {
+			if ((ip != null) && (ip.length() > 0)) {
+				// first find the relevant agent
+				Machine machine = this.admin.getMachines().getHostsByAddress().get(ip);
+				if (machine == null) {
+					machine = this.admin.getMachines().getHostsByName().get(ip);
+				}
+
+				if (machine == null) {
+					return errorStatus("machine_not_found", ip);
+				}
+
+				final byte[] dumpBytes = generateMachineDumpData(fileSizeLimit, machine, actualProcessors);
+
+				return successStatus(dumpBytes);
+
+			} else {
+
+				long totalSize = 0;
+				Iterator<Machine> iterator = this.admin.getMachines().iterator();
+				Map<String, Object> map = successStatus();
+				while (iterator.hasNext()) {
+					Machine machine = iterator.next();
+
+					final byte[] dumpBytes = generateMachineDumpData(fileSizeLimit, machine, actualProcessors);
+					totalSize += dumpBytes.length;
+					if (totalSize > fileSizeLimit) {
+						throw new RestServiceException("dump_file_too_large", Long.toString(dumpBytes.length),
+								Long.toString(totalSize));
+					}
+					map.put(machine.getHostAddress(), dumpBytes);
+
+				}
+
+				return map;
+
+			}
+		} catch (RestServiceException e) {
+			return errorStatus(e.getMessageName(), e.getParams());
+		}
+
+	}
+
+	private String[] getProcessorsFromRequest(final String processors) {
+		String[] actualProcessors = DEFAULT_DUMP_PROCESSORS;
+
+		if (processors != null && processors.length() > 0) {
+			final String[] parts = processors.split(",");
+
+			for (int i = 0; i < parts.length; i++) {
+				parts[i] = parts[i].trim();
+			}
+
+			actualProcessors = parts;
+		}
+		return actualProcessors;
+	}
+
+	private byte[]
+			generateMachineDumpData(final long fileSizeLimit, Machine machine, String[] actualProcessors)
+					throws IOException, RestServiceException {
+		// generator the dump
+		final DumpResult dump =
+				machine.generateDump("Rest_API", null, actualProcessors);
+
+		// Download to local temp file
+		final File target = File.createTempFile("dump", ".zip", new File(this.temporaryFolder));
+		target.deleteOnExit();
+
+		dump.download(target, null);
+
+		try {
+			// check for maximum file size limit
+			long actualFileSizeLimit = DEFAULT_DUMP_FILE_SIZE_LIMIT;
+			if (fileSizeLimit != 0) {
+				actualFileSizeLimit = fileSizeLimit;
+			}
+
+			if (target.length() >= actualFileSizeLimit) {
+				throw new RestServiceException("dump_file_too_large", Long.toString(target.length()),
+						Long.toString(actualFileSizeLimit));
+			}
+
+			// load file contents into memory
+			final byte[] dumpBytes = FileUtils.readFileToByteArray(target);
+			return dumpBytes;
+
+		} finally {
+			final boolean tempFileDeleteResult = target.delete();
+			if (!tempFileDeleteResult) {
+				logger.warning("Failed to download temporary dump file: " + target);
+			}
+
+		}
 	}
 
 	private String getCloudConfigurationFromManagementSpace() {
@@ -1101,17 +1222,17 @@ public class ServiceController {
 			throws IOException, DSLException {
 		final DSLApplicationCompilatioResult result = ServiceReader.getApplicationFromFile(applicationFile);
 		final List<Service> services = createServiceDependencyOrder(result.getApplication());
-		
-		//validate the template specified by each server (if specified) is available on this cloud
+
+		// validate the template specified by each server (if specified) is available on this cloud
 		if (!isLocalCloud()) {
 			for (Service service : services) {
 				ComputeDetails compute = service.getCompute();
 				if (compute != null && StringUtils.isNotBlank(compute.getTemplate())) {
-					getComputeTemplate(cloud, compute.getTemplate());	
+					getComputeTemplate(cloud, compute.getTemplate());
 				}
-			}	
+			}
 		}
-			
+
 		logger.log(Level.INFO, "Starting to poll for installation lifecycle events.");
 		UUID lifecycleEventContainerID =
 				startPollingForLifecycleEvents(result.getApplication(), timeout, TimeUnit.MINUTES);
@@ -1213,9 +1334,8 @@ public class ServiceController {
 					new CloudifyMachineProvisioningConfig(cloud, template, cloudFileContents, templateName);
 
 			final String[] zones = new String[] { serviceName };
-			
+
 			config.setGridServiceAgentZones(zones);
-			
 
 			final String locators = extractLocators(admin);
 			config.setLocator(locators);
@@ -1264,7 +1384,8 @@ public class ServiceController {
 		return locators.toString();
 	}
 
-	private long calculateExternalProcessMemory(final Cloud cloud, final CloudTemplate template) throws DSLException {
+	private long calculateExternalProcessMemory(final Cloud cloud, final CloudTemplate template)
+			throws DSLException {
 		// TODO remove hardcoded number
 		logger.info("Calculating external proc mem for template: " + template);
 		int machineMemoryMB = template.getMachineMemoryMB();
@@ -1275,9 +1396,9 @@ public class ServiceController {
 		if (cloudExternalProcessMemoryInMB <= 0) {
 			throw new DSLException(
 					"Cloud template machineMemoryMB ("
-					+ machineMemoryMB+ "MB) must be bigger than "+
-					"reservedMemoryCapacityPerMachineInMB+"+safteyMargin+" ("
-					+ (reservedMemoryCapacityPerMachineInMB+safteyMargin) + ")");
+							+ machineMemoryMB + "MB) must be bigger than " +
+							"reservedMemoryCapacityPerMachineInMB+" + safteyMargin + " ("
+							+ (reservedMemoryCapacityPerMachineInMB + safteyMargin) + ")");
 		}
 		logger.fine("template.machineMemoryMB = " + template.getMachineMemoryMB() + "MB\n"
 				+ "cloud.provider.reservedMemoryCapacityPerMachineInMB = "
@@ -1810,7 +1931,8 @@ public class ServiceController {
 	public @ResponseBody
 	Map<String, Object> setServiceInstances(@PathVariable final String applicationName,
 			@PathVariable final String serviceName, @PathVariable final int timeout, @RequestParam(value = "count",
-					required = true) final int count) throws DSLException {
+					required = true) final int count)
+			throws DSLException {
 
 		Map<String, Object> returnMap = new HashMap<String, Object>();
 		final String puName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
