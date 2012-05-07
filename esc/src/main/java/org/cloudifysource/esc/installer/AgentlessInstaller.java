@@ -264,7 +264,7 @@ public class AgentlessInstaller {
 
 		final FileObject remoteDir = mng.resolveFile(target, opts);
 
-		logger.fine("Copying files to: " + target + " from local dir: " + localDir.getName().getPath() + " excluding "
+		logger.fine("Copying files to: " + host + " from local dir: " + localDir.getName().getPath() + " excluding "
 				+ excludedFiles.toString());
 
 		try {
@@ -279,7 +279,9 @@ public class AgentlessInstaller {
 
 					}
 					final FileObject remoteFile =
-							mng.resolveFile(remoteDir, localDir.getName().getRelativeName(fileInfo.getFile().getName()));
+							mng.resolveFile(remoteDir,
+									localDir.getName().getRelativeName(fileInfo.getFile().getName()));
+					
 					if (!remoteFile.exists()) {
 						logger.fine(fileInfo.getFile().getName().getBaseName() + " missing on server");
 						return true;
@@ -534,9 +536,9 @@ public class AgentlessInstaller {
 							+ clientScriptFile.getAbsolutePath());
 		}
 		final String[] commandLineParts =
-				{ "powershell.exe", "-inputformat", "none", "-File", clientScriptFile.getAbsolutePath(), "-target",
-						target, "-password", quoteString(password), "-username", quoteString(username), "-command",
-						quoteString(command) };
+		{ "powershell.exe", "-inputformat", "none", "-File", clientScriptFile.getAbsolutePath(), "-target",
+				target, "-password", quoteString(password), "-username", quoteString(username), "-command",
+				quoteString(command) };
 
 		return Arrays.asList(commandLineParts);
 	}
@@ -544,15 +546,6 @@ public class AgentlessInstaller {
 	private String quoteString(final String input) {
 		return "\"" + input + "\"";
 	}
-
-	// private String formatRemoteCommand(final String targetHost, final String username, final String password,
-	// final String command) {
-	// final String formattedCommand =
-	// String.format(POWER_SHELL_COMMAND_TEMPLATE, password, username, targetHost, targetHost, targetHost,
-	// command);
-	// return formattedCommand;
-	//
-	// }
 
 	private void powershellCommand(final String targetHost, final String command, final String username,
 			final String password, final String keyFile, final long millisUntil, final TimeUnit milliseconds,
