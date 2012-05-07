@@ -1220,40 +1220,45 @@ public class ServiceController {
 	}
 
 	private Object doDeployApplication(final String applicationName, final File applicationFile, final int timeout)
-			throws IOException, DSLException {
-		final DSLApplicationCompilatioResult result = ServiceReader.getApplicationFromFile(applicationFile);
-		final List<Service> services = createServiceDependencyOrder(result.getApplication());
+            throws IOException, DSLException {
+        final DSLApplicationCompilatioResult result = ServiceReader.getApplicationFromFile(applicationFile);
+        final List<Service> services = createServiceDependencyOrder(result.getApplication());
 
-		// validate the template specified by each server (if specified) is available on this cloud
-		if (!isLocalCloud()) {
-			for (Service service : services) {
-				ComputeDetails compute = service.getCompute();
-				if (compute != null && StringUtils.isNotBlank(compute.getTemplate())) {
-					getComputeTemplate(cloud, compute.getTemplate());
-				}
-			}
-		}
+        // validate the template specified by each server (if specified) is available on this cloud
+        if (!isLocalCloud()) {
+            for (Service service : services) {
+                ComputeDetails compute = service.getCompute();
+                if (compute != null && StringUtils.isNotBlank(compute.getTemplate())) {
+                    getComputeTemplate(cloud, compute.getTemplate());
+                }
+            }
+        }
 
-		logger.log(Level.INFO, "Starting to poll for installation lifecycle events.");
-		UUID lifecycleEventContainerID =
-				startPollingForLifecycleEvents(result.getApplication(), timeout, TimeUnit.MINUTES);
+        final ApplicationInstallerRunnable installer =
+                new ApplicationInstallerRunnable(this, result, applicationName, services, this.cloud);
+        
+          if (installer.isAsyncInstallPossibleForApplication()) {
+                installer.run();
+            } else {
+                this.executorService.execute(installer);
+            }
 
-		final ApplicationInstallerRunnable installer =
-				new ApplicationInstallerRunnable(this, result, applicationName, services, this.cloud);
-		this.executorService.execute(installer);
+          logger.log(Level.INFO, "Starting to poll for installation lifecycle events.");
+          UUID lifecycleEventContainerID =
+                  startPollingForLifecycleEvents(result.getApplication(), timeout, TimeUnit.MINUTES);
+          
+        final String[] serviceOrder = new String[services.size()];
+        for (int i = 0; i < serviceOrder.length; i++) {
+            serviceOrder[i] = services.get(i).getName();
+        }
+        Map<String, Object> returnMap = new HashMap<String, Object>();
+        returnMap.put(CloudifyConstants.SERVICE_ORDER, Arrays.toString(serviceOrder));
+        returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, lifecycleEventContainerID);
+        final Map<String, Object> retval = successStatus(returnMap);
 
-		final String[] serviceOrder = new String[services.size()];
-		for (int i = 0; i < serviceOrder.length; i++) {
-			serviceOrder[i] = services.get(i).getName();
-		}
-		Map<String, Object> returnMap = new HashMap<String, Object>();
-		returnMap.put(CloudifyConstants.SERVICE_ORDER, Arrays.toString(serviceOrder));
-		returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, lifecycleEventContainerID);
-		final Map<String, Object> retval = successStatus(returnMap);
+        return retval;
 
-		return retval;
-
-	}
+    }
 
 	private File copyMultipartFileToLocalFile(final MultipartFile srcFile)
 			throws IOException {

@@ -64,6 +64,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 	@Override
 	public void run() {
+
 		File appDir = result.getApplicationDir();
 
 		// final List<Service> services = application.getServices();
@@ -160,7 +161,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 		}
 	}
 
-	private boolean isAsyncInstallPossibleForApplication() {
+	public boolean isAsyncInstallPossibleForApplication() {
 
 		// check if all services are USM
 		for (Service service : this.services) {
