@@ -47,7 +47,8 @@ import org.cloudifysource.shell.rest.RestAdminFacade;
 @Command(scope = "cloudify", name = "uninstall-service", description = "undeploy a service")
 public class UninstallService extends AdminAwareCommand {
 
-	private static final String TIMEOUT_ERROR_MESSAGE = "Timeout waiting for service to uninstall";
+	private static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out. "
+				+ "Try to increase the timeout using the -timeout flag";
 
 	@Argument(index = 0, required = true, name = "service-name")
 	private String serviceName;

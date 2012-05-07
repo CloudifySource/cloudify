@@ -37,7 +37,7 @@ import org.cloudifysource.shell.rest.RestAdminFacade;
  * @since 2.0.0
  * 
  *        Uninstalls an application.
- *	
+ *		
  *        Required arguments:
  *         applicationName - The name of the application
  *        
@@ -50,7 +50,8 @@ import org.cloudifysource.shell.rest.RestAdminFacade;
 @Command(scope = "cloudify", name = "uninstall-application", description = "Uninstalls an application.")
 public class UninstallApplication extends AdminAwareCommand {
 
-	private static final String TIMEOUT_ERROR_MESSAGE = "Timeout waiting for application to uninstall";
+	private static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out. "
+				+ "Try to increase the timeout using the -timeout flag";
 
 	@Argument(index = 0, required = true, name = "The name of the application")
 	private String applicationName;
