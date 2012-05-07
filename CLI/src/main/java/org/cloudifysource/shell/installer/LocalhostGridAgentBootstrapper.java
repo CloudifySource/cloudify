@@ -88,7 +88,8 @@ public class LocalhostGridAgentBootstrapper {
 	private static final String LUS_PORT_CONTEXT_PROPERTY = "com.sun.jini.reggie.initialUnicastDiscoveryPort";
 	private static final String AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT = "-Dcom.gs.agent.auto-shutdown-enabled=true";
 	private static final int WAIT_AFTER_ADMIN_CLOSED_MILLIS = 10 * 1000;
-	private static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out waiting for the agent to start";
+	private static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out waiting for the agent to start."
+			+ " Configure the timeout using the -timeout flag.";
 	private static final int GSA_MEMORY_IN_MB = 128;
 	private static final int LUS_MEMORY_IN_MB = 128;
 	private static final int GSM_MEMORY_IN_MB = 128;
