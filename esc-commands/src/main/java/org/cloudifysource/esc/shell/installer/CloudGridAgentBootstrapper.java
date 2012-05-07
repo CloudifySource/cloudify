@@ -69,7 +69,8 @@ public class CloudGridAgentBootstrapper {
 
 	private static final int REST_GATEWAY_PORT = 8100;
 
-	private static final String OPERATION_TIMED_OUT = "Operation timed out";
+	private static final String OPERATION_TIMED_OUT = "The operation timed out. " 
+				+ "Try to increase the timeout using the -timeout flag";
 
 	private static final Logger logger = Logger.getLogger(CloudGridAgentBootstrapper.class.getName());
 
