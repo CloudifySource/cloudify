@@ -34,7 +34,7 @@ import org.cloudifysource.shell.ShellUtils;
  */
 public class ShellFormatter extends SimpleFormatter {
 
-	private final String newLineChar = System.getProperty("line.separator");
+	private final static String NEW_LINE_CHAR = System.getProperty("line.separator");
 	protected ResourceBundle messages = ShellUtils.getMessageBundle();
 
 	/**
@@ -60,14 +60,13 @@ public class ShellFormatter extends SimpleFormatter {
 			if (t.getStackTrace().length == 0) {
 				message = t.getLocalizedMessage();
 			} else {
-				message = t.toString();
 				final StringWriter sw = new StringWriter();
 				t.printStackTrace(new PrintWriter(sw));
 				message = sw.toString();
 			}
 			outputMessage = MessageFormat.format(messages.getString("op_failed"), message);
 
-			if (record.getMessage() != null && record.getMessage().length() > 0) {
+			if (record.getMessage() != null && !record.getMessage().isEmpty()) {
 				outputMessage = super.formatMessage(record) + ": " + outputMessage;
 			}
 		} else {
@@ -75,7 +74,7 @@ public class ShellFormatter extends SimpleFormatter {
 		}
 
 		// don't use message formatter here since outputMessage may contain illegal "{}" string.
-		return outputMessage + newLineChar;
+		return outputMessage + NEW_LINE_CHAR;
 	}
 
 }

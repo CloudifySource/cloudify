@@ -11,7 +11,7 @@ namespace GigaSpaces
         //see: http://www.gigaspaces.com/wiki/display/XAP8/How+to+Set+GigaSpaces+Over+a+Firewall
         public static readonly int XAP_LRMI_MINPORT = 6000;
         public static readonly int XAP_LRMI_MAXPORT = 7999;
-        public static readonly int XAP_LUS_PORT = 4166;
+        public static readonly int XAP_LUS_PORT = 4170;
         public static readonly int XAP_WEBUI_PORT = 8099;
         public static readonly int XAP_WEBSTER_PORT =9099;
         public static readonly int XAP_REGISTRY_PORT = 9298; //default is 10098

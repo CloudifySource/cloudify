@@ -33,6 +33,7 @@
     <property environment="env."/>
 	<property name="tmp.dir" value="${basedir}/tmp" />
 	<property name="xap.files.tmp.dir" value="${basedir}/xap.files.tmp.dir" />
+	<property name="xap.bigdata.dir" value="xap-bigdata" />
 	<property name="xap.installation.dir" value="gigaspaces-xap-premium-${gs.version}-${gs.milestone}" />
 	<property name="xap.zip.name" value="${xap.installation.dir}-b${gs.build.number}.zip" />
 	<property name="xap.zip.full.path" value="${build.repository.path}/${gs.version}/build_${gs.build.number}/xap-premium/1.5/${xap.zip.name}" />
@@ -61,7 +62,9 @@
 	<property name="cloudify.base.container" value="gigaspaces-repository" />
 	<property name="cloudify.cdn.publish.url" value="http://repository.cloudifysource.org" />
  	<property name="cloudify.put.target" value="org/cloudifysource/${cloudify.version}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
+	<property name="bigdata.put.target" value="com/gigaspaces/xap/${s3.gs.publish.folder}/${xap.zip.name}" />
  	<property name="cloudify.put.source" value="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
+	<property name="bigdata.put.source" value="${releases.dir}/build_${gs.build.number}/${xap.bigdata.dir}/1.5/${xap.zip.name}" />
 	<property name="tools.lib.dir" value="${basedir}/tools/lib" />
 	<property name="cloudify.base.container" value="gigaspaces-repository" />
 	<property name="cloudify.base.publish.url" value="https://s3.amazonaws.com/${cloudify.base.container}" />
@@ -122,30 +125,12 @@
 		                                replace='${version.field} = "${cloudify.version}";'/>
    </target>
 	
+	<!-- Remark: XAP  properties are updated from the XAP build --> 
 	<target name="replace.build.related.settings" if="cloudify.build.number">
-       <property name="gs.version.field" value="gs.version"/>
-       <property name="gs.milestone.field" value="gs.milestone" />
-       <property name="gs.build.number.field" value="gs.build.number" />
-	   <property name="s3.gs.publish.folder.suffix.field" value="s3.gs.publish.folder.suffix" />
 		<property name="cloudify.version.field" value="cloudify.version" />
 		<property name="cloudify.build.number.field" value="cloudify.build.number" />
 		<property name="cloudify.milestone.field" value="cloudify.milestone" />
-	
-       <replaceregexp file="${build.properties.file}"
-            match="${gs.version.field}=(.*)"
-            replace="${gs.version.field}=${gs.version}"/>
-
-       <replaceregexp file="${build.properties.file}"
-            match="${gs.milestone.field}=(.*)"
-            replace="${gs.milestone.field}=${gs.milestone}"/>
-
-       <replaceregexp file="${build.properties.file}"
-            match="${gs.build.number.field}=(.*)"
-            replace="${gs.build.number.field}=${gs.build.number}"/>
 		
-		<replaceregexp file="${build.properties.file}"
-            match="${s3.gs.publish.folder.suffix.field}=(.*)"
-            replace="${s3.gs.publish.folder.suffix.field}=${s3.gs.publish.folder.suffix}"/>
 		
 		<replaceregexp file="${build.properties.file}"
             match="${cloudify.version.field}=(.*)"
@@ -168,115 +153,113 @@
     	</replaceregexp>
     </target>
 
-    <target name="add.cloudify.modules">
-        <echo message="Copy USM component"/>
-        <copy todir="${tmp.dir}/${cloudify.installation.dir}/lib/platform/usm" overwrite="true">
-            <fileset dir="${usm.local.copy}/target/" includes="usm.jar" excludes=".svn"/>
-        </copy>
+    <macrodef name="add.cloudify.modules">
+    	<attribute name="installation.dir" default="${tmp.dir}/${cloudify.installation.dir}"/>
+    	<sequential>	
+	        <echo message="Copy USM component"/>
+	        <copy todir="@{installation.dir}/lib/platform/usm" overwrite="true">
+	            <fileset dir="${usm.local.copy}/target/" includes="usm.jar" excludes=".svn"/>
+	        </copy>
+	
+	        <copy todir="@{installation.dir}/lib/platform/esm" overwrite="true">
+	            <fileset dir="${esc.local.copy}/target/esc/lib" includes="*.jar" excludes=".svn"/>
+	        </copy>
+	
+	        <echo message="Copy recipes component"/>
+	        <mkdir dir="@{installation.dir}/recipes/services"/>
+	     
+	        <unzip src="${recipes.local.copy}/target/recipes.zip" dest="@{installation.dir}/recipes" />
+	   
+	    		
+	        <echo message="Copy dsl component"/>
+	        <copy todir="@{installation.dir}/lib/required" overwrite="true">
+	            <fileset dir="${dsl.local.copy}/target/" includes="dsl.jar" excludes=".svn"/>
+	        </copy>
+	
+	        <echo message="Copy CLOUDIFY CLI component"/>
+	        <copy todir="@{installation.dir}/tools/cli/" overwrite="true">
+	            <fileset dir="${cli.local.copy}/target/" includes="cli.jar" excludes=".svn"/>
+	            <fileset dir="${cli.local.copy}/" includes="cloudify.*" excludes=".svn"/>
+	        </copy>
+	    	<copy todir="@{installation.dir}/bin" overwrite="true">
+	            <fileset dir="${gigaspaces.related.folder}/bin" includes="cloudify.*" excludes=".svn"/>
+	        </copy>
+	
+	        <echo message="Copy CLOUDIFY Azure component"/>
+	        <copy todir="@{installation.dir}/tools/cli/plugins/azure" overwrite="true">
+	            <fileset dir="${azure.local.copy}/azure/src/main/resources/azure" includes="**/*" excludes=".svn"/>
+	            <fileset dir="${azure.local.copy}/azure/target/" includes="azure.jar" excludes=".svn"/>
+	        </copy>
+	
+	        <echo message="Copy CLOUDIFY Rest component"/>
+	        <copy todir="@{installation.dir}/tools/rest/" overwrite="true">
+	            <fileset dir="${restful.local.copy}/target/" includes="rest.war" excludes=".svn"/>
+	        </copy>
+	
+	        <echo message="Copy CLOUDIFY esc-command component"/>
+	        <copy todir="@{installation.dir}/tools/cli/plugins/esc" overwrite="true">
+	            <fileset dir="${esc-commands.local.copy}/target" includes="esc-commands.jar" excludes=".svn"/>
+	        </copy>
+	        
+	        <copy todir="@{installation.dir}/tools/cli/plugins/esc" overwrite="true">
+	          <fileset dir="${esc.local.copy}/src/main/resources/clouds" includes="**/*" excludes=".svn"/>
+	        </copy>
+		</sequential>
+    </macrodef>
 
-        <copy todir="${tmp.dir}/${cloudify.installation.dir}/lib/platform/esm" overwrite="true">
-            <fileset dir="${esc.local.copy}/target/esc/lib" includes="*.jar" excludes=".svn"/>
-        </copy>
-
-        <echo message="Copy recipes component"/>
-        <mkdir dir="${tmp.dir}/${cloudify.installation.dir}/recipes"/>
-     
-        <unzip src="${recipes.local.copy}/target/recipes.zip" dest="${tmp.dir}/${cloudify.installation.dir}/recipes" />
-     
-        <move todir="${tmp.dir}/${cloudify.installation.dir}/examples">
-            <fileset dir="${tmp.dir}/${cloudify.installation.dir}/recipes/applications"/>
-        </move>
-
-    	<mkdir dir="${tmp.dir}/${cloudify.installation.dir}/examples/azure/travel" />
-		<move todir="${tmp.dir}/${cloudify.installation.dir}/examples/azure/travel">
-			<fileset dir="${tmp.dir}/${cloudify.installation.dir}/examples/travel-azure">
-			</fileset>
-		</move>
-    		
-        <echo message="Copy dsl component"/>
-        <copy todir="${tmp.dir}/${cloudify.installation.dir}/lib/required" overwrite="true">
-            <fileset dir="${dsl.local.copy}/target/" includes="dsl.jar" excludes=".svn"/>
-        </copy>
-
-        <echo message="Copy CLOUDIFY CLI component"/>
-        <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/" overwrite="true">
-            <fileset dir="${cli.local.copy}/target/" includes="cli.jar" excludes=".svn"/>
-            <fileset dir="${cli.local.copy}/" includes="cloudify.*" excludes=".svn"/>
-        </copy>
-    	<copy todir="${tmp.dir}/${cloudify.installation.dir}/bin" overwrite="true">
-            <fileset dir="${gigaspaces.related.folder}/bin" includes="cloudify.*" excludes=".svn"/>
-        </copy>
-
-        <echo message="Copy CLOUDIFY Azure component"/>
-        <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure" overwrite="true">
-            <fileset dir="${azure.local.copy}/azure/src/main/resources/azure" includes="**/*" excludes=".svn"/>
-            <fileset dir="${azure.local.copy}/azure/target/" includes="azure.jar" excludes=".svn"/>
-        </copy>
-
-        <echo message="Copy CLOUDIFY Rest component"/>
-        <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/rest/" overwrite="true">
-            <fileset dir="${restful.local.copy}/target/" includes="rest.war" excludes=".svn"/>
-        </copy>
-
-        <echo message="Copy CLOUDIFY esc-command component"/>
-        <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/esc" overwrite="true">
-            <fileset dir="${esc-commands.local.copy}/target" includes="esc-commands.jar" excludes=".svn"/>
-        </copy>
-        
-        <copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/esc" overwrite="true">
-          <fileset dir="${esc.local.copy}/src/main/resources/clouds" includes="**/*" excludes=".svn"/>
-        </copy>
-    	
-    	<!-- Add Cloudify Javadoc archive to Cloudify/docs folder. If the folder doesn't exist please run: mvn javadoc:javadoc --> 
+	
+	<target name="add.cloudify.javadoc">
+		<!-- Add Cloudify Javadoc archive to Cloudify/docs folder. If the folder doesn't exist please run: mvn javadoc:javadoc --> 
     	<zip file="${tmp.dir}/${cloudify.installation.dir}/docs/cloudify-javadoc.zip">
     		<fileset dir="${basedir}/target/site/apidocs"/>
 		</zip>
-    	
+	</target>
+	
+	<target name="replace.xap.content.with.cloudify.related">
 		<copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${gigaspaces.related.folder}/START_HERE.htm"/>
-    	
+			    	
     	<!-- replace dynamic_props.js in gs-webui war -->
     	<war warfile="${tmp.dir}/${cloudify.installation.dir}/tools/gs-webui/${gs.webui.war}" update="true">
             <fileset dir="${gs-webui.related.folder}/war"/>
         </war>
-    </target>
-	
-	<target name="lala" >
-		<!-- Add Cloudify Javadoc archive to Cloudify/docs folder -->
-	    	<zip zipfile="${basedir}/cloudify-javadoc.zip" >
-	    		<fileset dir="${basedir}/target/site/apidocs"/>
-			</zip>
 	</target>
 
-	<target name="unzip.xap">
-		<delete dir="${tmp.dir}"/>
-		<mkdir dir="${tmp.dir}"/>
-		<copy file="${xap.zip.full.path}" todir="${tmp.dir}"/>
-		<unzip src="${tmp.dir}/${xap.zip.name}" dest="${tmp.dir}" />
-		<delete file="${tmp.dir}/${xap.zip.name}"/>
-		<move file="${tmp.dir}/${xap.installation.dir}" tofile="${tmp.dir}/${cloudify.installation.dir}" />
-		<chmod dir="${tmp.dir}/${cloudify.installation.dir}" includes="**/*.sh, **/*groovy*" perm="775"  />
-	</target>
+	<macrodef name="unzip.xap">
+		<attribute name="new.installation.dir.name"/>
+		<sequential>
+			<delete dir="${tmp.dir}"/>
+			<mkdir dir="${tmp.dir}"/>
+			<copy file="${xap.zip.full.path}" todir="${tmp.dir}"/>
+			<unzip src="${tmp.dir}/${xap.zip.name}" dest="${tmp.dir}" />
+			<delete file="${tmp.dir}/${xap.zip.name}"/>
+			<move file="${tmp.dir}/${xap.installation.dir}" tofile="${tmp.dir}/@{new.installation.dir.name}" />
+			<chmod dir="${tmp.dir}/@{new.installation.dir.name}" includes="**/*.sh, **/*groovy*" perm="775"  />
+		</sequential>
+	</macrodef>
 
-    <target name="prepare.cloudify.package">
+    <target name="prepare.cloudify.package" >
 		<loadproperties srcfile="${basedir}/${build.properties.file}"/>
     	<condition property="working.roles.exists">
     		<resourceexists>
                     <file file="${azure.local.copy}/WorkerRoles.zip"/>
             </resourceexists>
     	</condition>
+    	<unzip.xap new.installation.dir.name="${cloudify.installation.dir}"/>
     	<ant target="update.gs.runtime" />
     	<ant target="remove.xap.related.modules" />
         <ant target="update.lus.groups"/>
-        <ant target="add.cloudify.modules"/>
+        <add.cloudify.modules/>
+    	<ant target="add.cloudify.javadoc"/>
+    	<ant target="replace.xap.content.with.cloudify.related"/>
         <ant target="replace.cloudify.license"/>
     	<ant target="replace.cloudify.notice"/>
     	<ant target="add.azure.artifacts" />
-    	<ant target="dos2unix" />
+    	<dos2unix dir="${tmp.dir}/${cloudify.installation.dir}" />
  
     	<!-- conditional task (with property: publish.cloudify.build) -->
     	<ant target="prepare.cloudify.for.publish" />
     	 
-        <ant target="archive.versions"/>
+        <ant target="archive.cloudify.versions"/>
     	
     	<!-- conditional task (with property: publish.cloudify.build) -->
     	<ant target="publish.cloudify.to.storage" />
@@ -302,24 +285,27 @@
         <copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${gigaspaces.related.folder}/notice.txt"/>
     </target>
 	
-	<target name="dos2unix">
-    	<!-- Replaces EOLs with LF characters and removes eof characters 
-    	from the shell scripts. Tabs and spaces are left as is. -->
-    	<fixcrlf srcdir="${tmp.dir}/${cloudify.installation.dir}" 
-	    		eol="lf"    		       
-	    		eof="remove"
-    			includes="**/*.sh" 
-	    		defaultexcludes="no"
-    	/>
-    	<!-- Replaces all EOLs with cr-lf pairs in the batch files. 
-    	Tabs and spaces are left as is. EOF characters are left alone if run on DOS systems, 
-    	and are removed if run on Unix systems. -->
-		<fixcrlf srcdir="${tmp.dir}/${cloudify.installation.dir}"
-		       eol="crlf"
-		       includes="**/*.bat"
-				defaultexcludes="no"
-		/>
-	</target>
+	<macrodef name="dos2unix">
+		<attribute name="dir"/>
+		<sequential>
+			<!-- Replaces EOLs with LF characters and removes eof characters 
+			from the shell scripts. Tabs and spaces are left as is. -->
+			<fixcrlf srcdir="@{dir}" 
+		    		eol="lf"    		       
+		    		eof="remove"
+					includes="**/*.sh" 
+		    		defaultexcludes="no"
+			/>
+			<!-- Replaces all EOLs with cr-lf pairs in the batch files. 
+			Tabs and spaces are left as is. EOF characters are left alone if run on DOS systems, 
+			and are removed if run on Unix systems. -->
+			<fixcrlf srcdir="@{dir}"
+			       eol="crlf"
+			       includes="**/*.bat"
+					defaultexcludes="no"
+			/>
+		</sequential>
+	</macrodef>
 
    
     <!-- - - - - - - - - - - - - - - - - -
@@ -328,7 +314,7 @@
            - creates  Cloudify
       - - - - - - - - - - - - - - - - - -->
 
-    <target name="archive.versions">
+    <target name="archive.cloudify.versions">
     		<delete dir="${releases.dir}/build_${cloudify.build.number}"/>
             <mkdir dir="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5"/>
             <zip destfile="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip">
@@ -336,10 +322,24 @@
             </zip>
     </target>
 	
+	<target name="archive.bigdata.version">
+		<loadproperties srcfile="${basedir}/${build.properties.file}"/>
+		<delete dir="${releases.dir}/build_${gs.build.number}"/>
+        <mkdir dir="${releases.dir}/build_${gs.build.number}/${xap.bigdata.dir}/1.5"/>
+        <zip destfile="${releases.dir}/build_${gs.build.number}/${xap.bigdata.dir}/1.5/${xap.zip.name}">
+            <zipfileset dir="${tmp.dir}" includes="**/*" filemode="775"/>
+        </zip>
+    </target>
+	
 	<target name="copy.packages.to.build.repository" description="copy packages to build repository" unless="gs.internal.systems.not.available">
+	   <loadproperties srcfile="${basedir}/${build.properties.file}"/>
        <copy todir="${build.repository.path}/${cloudify}/${cloudify.version}/${build.prefix}${cloudify.build.number}">
            <fileset dir="${releases.dir}/${build.prefix}${cloudify.build.number}"/>
        </copy>
+	   <copy todir="${build.repository.path}/${gs.version}/${build.prefix}${gs.build.number}">
+			<fileset dir="${releases.dir}/${build.prefix}${gs.build.number}"/>
+	   </copy>
+		
    	</target>
 	
 	<target name="add.azure.artifacts" if="working.roles.exists">
@@ -347,7 +347,7 @@
        		<fileset dir="${azure.local.copy}" includes="azureconfig.exe*"/>
 		</copy>
 		
-		<copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure" failonerror="false" >
+		<copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure" failonerror="false"  >
        		<fileset dir="${azure.local.copy}" includes="WorkerRoles.zip"/>
 		</copy>
 
@@ -359,7 +359,27 @@
 				
 	</target>
 	
-	<target name="prepare.and.copy.package" depends="update_platform_version,unzip.xap,prepare.cloudify.package, copy.packages.to.build.repository" />
+	<target name="prepare.and.copy.packages" depends="update_platform_version">
+		<ant target="prepare.cloudify.package" />
+		<ant target="prepare.bigdata.package" />
+		<ant target="copy.packages.to.build.repository" />
+	</target>
+	
+	<target name="prepare.bigdata.package">
+		<unzip.xap new.installation.dir.name="${xap.installation.dir}"/>
+		<add.cloudify.modules installation.dir="${tmp.dir}/${xap.installation.dir}"/>
+		<delete dir="${tmp.dir}/${xap.installation.dir}/recipes/services" excludes="mongodb/**, cassandra/**" includeemptydirs="true"/>	
+		<delete dir="${tmp.dir}/${xap.installation.dir}/recipes/apps" includeemptydirs="true"/>
+		<delete dir="${tmp.dir}/${xap.installation.dir}/bin" includes="cloudify*"/>
+		<dos2unix dir="${tmp.dir}/${xap.installation.dir}" />
+		<!-- conditional task (with property: publish.cloudify.build) -->
+    	<ant target="prepare.bigdata.for.publish" />
+		
+		<ant target="archive.bigdata.version" />
+		
+    	<!-- conditional task (with property: publish.cloudify.build) -->
+    	<ant target="publish.bigdata.to.storage" />
+	</target>
 	
 
 	<target name="publish.cloudify.to.storage" if="publish.cloudify.build">
@@ -376,12 +396,42 @@
 		</exec>
 	</target>
 	
+	<target name="publish.bigdata.to.storage" if="publish.cloudify.build">
+		
+		<echo message="uploading bigdata installation to public storage (S3) at: ${bigdata.put.target}" />
+			
+		<exec executable="${env.M2_HOME}/bin/${mvn.executable}">
+			<arg value="s3client:put" />
+			<arg value="-Dput.user=${put.user}" />
+			<arg value="-Dput.key=${put.key}" />
+			<arg value="-Dput.source=${bigdata.put.source}" />
+			<arg value="-Dput.target=${bigdata.put.target}" />
+			<arg value="-Dcontainer=${cloudify.base.container}"/>
+		</exec>
+	</target>
+	
+	<target name="prepare.bigdata.for.publish" description="publish cloudify build to gigaspaces repository" if="publish.cloudify.build">
+		<ant target="update.bigdata.service.configuration.url"/>
+	</target>
+	
 	<target name="prepare.cloudify.for.publish" description="publish cloudify build to gigaspaces repository" if="publish.cloudify.build">
-		<ant target="update.service.configuration.url" />
+		<ant target="update.cloudify.service.configuration.url"/>
 		<ant target="commit.service.configuration" />
 	</target>
 	
-	<target name="update.service.configuration.url">
+	<target name="update.bigdata.service.configuration.url">
+		<property name="bigdata.url" value="${cloudify.cdn.publish.url}/${bigdata.put.target}" />
+
+		<replaceregexp byline="true"
+    		match="cloudifyUrl &quot;(.*)&quot;" 
+    		replace="cloudifyUrl &quot;${bigdata.url}&quot;" >
+    		<fileset 
+    			dir="${tmp.dir}/${xap.installation.dir}/tools/cli/plugins/esc" 
+    			includes="**/*-cloud.groovy" />
+    	</replaceregexp>
+   </target>
+	
+	<target name="update.cloudify.service.configuration.url">
         <echo message="Updating ServiceConfiguration in directory: ${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles/GigaSpacesWorkerRoles ..."/>
 		
 		<property name="cloudify.url" value="${cloudify.cdn.publish.url}/${cloudify.put.target}" />
@@ -403,10 +453,10 @@
 		</exec>
 
 		<!-- Update files in ${tmp.dir}/${cloudify.installation.dir} and in source folders -->
-		<replaceregexp byline="true"
+		<replaceregexp byline="true" 
     		match="&lt;Setting name=&quot;GigaSpaces\.XAP\.DownloadUrl&quot; value=&quot;(.*)&quot; /&gt;" 
     		replace="&lt;Setting name=&quot;GigaSpaces\.XAP\.DownloadUrl&quot; value=&quot;${cloudify.url.encoded}&quot; /&gt;">
-    		<fileset 
+    		<fileset
     			dir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles/GigaSpacesWorkerRoles" 
     			includes="ServiceConfiguration.Cloud.cscfg" />
     		<fileset 
@@ -423,9 +473,8 @@
     		<fileset 
     			dir="${esc.local.copy}/src/main/resources/clouds" 
     			includes="**/*-cloud.groovy" />
-    	</replaceregexp>		
+    	</replaceregexp>
    </target>
-	
 	
 	<target name="commit.service.configuration">
 			
@@ -499,17 +548,18 @@
 	<target name="download.zip" unless="appropriate.xap.zip.present">
 		<loadproperties srcfile="${basedir}/${build.properties.file}"/>
 		<mkdir dir="${xap.files.tmp.dir}" /> 
-		<echo message="Please wait. Downloading ${cloudify.cdn.publish.url}/com/gigaspaces/${gs.version}.${s3.gs.publish.folder.suffix}/gigaspaces-xap-premium-${gs.version}-ga-b${gs.build.number}.zip." />
-		<get verbose="true" src="${cloudify.cdn.publish.url}/com/gigaspaces/${gs.version}.${s3.gs.publish.folder.suffix}/${xap.zip.name}" dest="${xap.files.tmp.dir}"/>
+		<echo message="Please wait. Downloading ${cloudify.cdn.publish.url}/com/gigaspaces/${s3.gs.publish.folder}/gigaspaces-xap-premium-${gs.version}-ga-b${gs.build.number}.zip." />
+		<get verbose="true" src="${cloudify.cdn.publish.url}/com/gigaspaces/xap-core/${s3.gs.publish.folder}/${xap.zip.name}" dest="${xap.files.tmp.dir}"/>
 	</target>
 	
 	<target name="cloudify.install">
-		<exec dir="${basedir}" executable="${mvn.executable}">
-			<arg line="install -Dmaven.test.skip=true"/>
+		<exec dir="${basedir}" executable="${mvn.executable}" failonerror="true">
+			<arg line="install javadoc:javadoc -Dmaven.test.skip=true"/>
 		</exec>
 	</target>
 	
 	<target name="cloudify.zip" depends="prepare.env, cloudify.install, prepare.cloudify.package" />
+	<target name="bigdata.zip" depends="prepare.env, cloudify.install, prepare.bigdata.package" />
 	<target name="clean.all">
 		<delete dir="${tmp.dir}"/>
 		<delete dir="${xap.files.tmp.dir}"/>

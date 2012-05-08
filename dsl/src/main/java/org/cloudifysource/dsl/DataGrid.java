@@ -16,6 +16,7 @@
 package org.cloudifysource.dsl;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.openspaces.admin.space.ElasticSpaceDeployment;
 
 /**
  * Defines an elastic deployment of a partitioned data grid (space). The datagrid Processing unit configuration POJO is

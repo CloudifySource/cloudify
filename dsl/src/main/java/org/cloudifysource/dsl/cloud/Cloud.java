@@ -18,7 +18,9 @@ package org.cloudifysource.dsl.cloud;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.cloudifysource.dsl.DSLValidation;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.cloudifysource.dsl.internal.DSLValidationException;
 
 /***********
  * Cloud doman object. Includes all of the details required for the cloud driver to use a cloud provider.
@@ -88,6 +90,22 @@ public class Cloud {
 	public String toString() {
 		return "Cloud [name=" + name + ", provider=" + provider + ", user=" + user + ", configuration=" + configuration
 				+ ", templates=" + templates + ", custom=" + custom + "]";
+	}
+	
+	
+	@DSLValidation
+	void validateTemplateConfiguration()
+			throws DSLValidationException {
+		
+		CloudConfiguration configuration = getConfiguration();
+		Map<String, CloudTemplate> templates = getTemplates();
+		
+		String managementTemplateName = configuration.getManagementMachineTemplate();
+		if (!templates.containsKey(managementTemplateName)) {
+			throw new DSLValidationException("The management machine template \"" + managementTemplateName + "\" is "
+					+ "not listed in the cloud's templates section");
+		}
+
 	}
 
 }

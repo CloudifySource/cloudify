@@ -110,7 +110,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 	private static final int DEFAULT_POST_LAUNCH_WAIT_PERIOD_MILLIS = 2000;
 	private static final int DEFAULT_POST_DEATH_WAIT_PERIOD_MILLIS = 2000;
 
-	private static java.util.logging.Logger logger = java.util.logging.Logger
+	private final static java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(UniversalServiceManagerBean.class.getName());
 
 	// process names for well-known shell
@@ -846,7 +846,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		}
 		childrenAfter.removeAll(childrenBefore);
 
-		if (childrenAfter.size() == 0) {
+		if (childrenAfter.isEmpty()) {
 			throw new USMException("New process could not be found!");
 		}
 
@@ -1483,7 +1483,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 	private String[] parseDependenciesString(final String dependenciesString) {
 		// remove brackets
 		final String internalString = dependenciesString.replace("[", "").replace("]", "").trim();
-		if (internalString.length() == 0) {
+		if (internalString.isEmpty()) {
 			return new String[0];
 		}
 

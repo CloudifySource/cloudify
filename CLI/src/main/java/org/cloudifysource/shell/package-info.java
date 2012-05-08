@@ -30,12 +30,13 @@
  * e.g. adds a default adminFacade to the session, sets the prompt text, sets a default application and more.
  * <p>
  * 
- * {@link org.cloudifysource.shell.ConditionLatch} - waits for a specific process (defined as a {@link Predicate})
+ * {@link org.cloudifysource.shell.ConditionLatch} - waits for a specific process (defined as a
+ * {@link com.gigaspaces.internal.utils.ConditionLatch.Predicate})
  * to complete.
  * <br>
  * It samples its status according to a specified polling interval and if the process is not completed
- * before the specified timeout is reached, a {@link TimeoutException} is thrown, with the configured
- * error message.
+ * before the specified timeout is reached, a {@link java.util.concurrent.TimeoutException} is thrown, with the 
+ * configured error message.
  * <p>
  * 
  * {@link org.cloudifysource.shell.AdminFacade} - The Interface/API of the admin facade. 

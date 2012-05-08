@@ -72,7 +72,7 @@ public class AzureUtils {
     
     public static File getFileProperty(Properties properties, String name) throws CLIException {
         String pathname = getProperty(properties,name);
-        if (pathname == null || pathname.length() == 0) {
+        if (pathname == null || pathname.isEmpty()) {
             throw new CLIException("Cannot find property " + name + " in file " + AzureUtils.getAzurePropertiesFile().getAbsolutePath());
         }
         File file = toAbsoluteFile(pathname);

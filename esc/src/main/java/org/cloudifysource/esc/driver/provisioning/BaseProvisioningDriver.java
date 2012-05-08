@@ -70,8 +70,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	/**
 	 * Initializing the cloud deployer according to the given cloud configuration.
 	 * 
-	 * @param cloud
-	 *            Cloud object to use
+	 * @param cloud Cloud object to use
 	 */
 	protected abstract void initDeployer(final Cloud cloud);
 
@@ -103,11 +102,9 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		this.cloudTemplateName = cloudTemplateName;
 		this.management = management;
 		this.cloudName = cloud.getName();
-		publishEvent(
-				EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
+		publishEvent(EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
 		initDeployer(cloud);
-		publishEvent(
-				EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
+		publishEvent(EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
 
 		logger.fine("Initializing Cloud Provisioning - management mode: " + management + ". Using template: "
 				+ cloudTemplateName + " with cloud: " + cloudName);
@@ -145,19 +142,18 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	}
 
 	/**
-	 * Handles credentials for accessing the server - in this order: 1. Password or key file set for this
-	 * specific server 2. Key file set for the entire cloud 3. Password set for the entire cloud
+	 * Handles credentials for accessing the server - in this order: 1. Password or key file set for this specific
+	 * server 2. Key file set for the entire cloud 3. Password set for the entire cloud
 	 * 
-	 * @param machineDetails
-	 *            The MachineDetails object that represents this server
-	 * @throws CloudProvisioningException
-	 *             Indicates missing credentials or IOException (when a key file is used)
+	 * @param machineDetails The MachineDetails object that represents this server
+	 * @throws CloudProvisioningException Indicates missing credentials or IOException (when a key file is used)
 	 */
-	protected void handleServerCredentials(final MachineDetails machineDetails) throws CloudProvisioningException {
+	protected void handleServerCredentials(final MachineDetails machineDetails)
+			throws CloudProvisioningException {
 		File tempFile = null;
 
 		if (StringUtils.isBlank(machineDetails.getRemotePassword())) {
-			if (org.apache.commons.lang.StringUtils.isBlank(cloud.getUser().getKeyFile())) {
+			if (StringUtils.isBlank(cloud.getUser().getKeyFile())) {
 				logger.fine("No key file specified in the cloud configuration file");
 				// no key file. Check for password
 				if (StringUtils.isBlank(cloud.getConfiguration().getRemotePassword())) {
@@ -174,42 +170,35 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 			// using a key file
 			logger.fine("Cloud has provided a key file for connections to new machine");
 			try {
-				tempFile = File.createTempFile(
-						"gs-esm-key", ".pem");
+				tempFile = File.createTempFile("gs-esm-key", ".pem");
 				tempFile.deleteOnExit();
-				FileUtils.write(
-						tempFile, machineDetails.getRemotePassword());
-				cloud.getUser().setKeyFile(
-						tempFile.getAbsolutePath());
+				FileUtils.write(tempFile, machineDetails.getRemotePassword());
+				cloud.getUser().setKeyFile(tempFile.getAbsolutePath());
 			} catch (final IOException e) {
-				throw new CloudProvisioningException("Failed to create a temporary file for cloud server's key file", e);
+				throw new CloudProvisioningException("Failed to create a temporary "
+						+ "file for cloud server's key file", e);
 			}
 
 		} else {
 			// using a password
 			logger.fine("Cloud has provided a password for remote connections to new machine");
-			cloud.getConfiguration().setRemotePassword(
-					machineDetails.getRemotePassword());
+			cloud.getConfiguration().setRemotePassword(machineDetails.getRemotePassword());
 		}
 
 		final File keyFile = tempFile;
-		logServerDetails(
-				machineDetails, keyFile);
+		logServerDetails(machineDetails, keyFile);
 
 	}
 
 	/**
 	 * Publish a provisioning event occurred for the listeners registered on this class.
 	 * 
-	 * @param eventName
-	 *            The name of the event (must be in the message bundle)
-	 * @param args
-	 *            Arguments that complement the event message
+	 * @param eventName The name of the event (must be in the message bundle)
+	 * @param args Arguments that complement the event message
 	 */
 	protected void publishEvent(final String eventName, final Object... args) {
 		for (final ProvisioningDriverListener listener : this.eventsListenersList) {
-			listener.onProvisioningEvent(
-					eventName, args);
+			listener.onProvisioningEvent(eventName, args);
 		}
 	}
 }

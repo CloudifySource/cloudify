@@ -9,7 +9,7 @@
 	<includeBaseDirectory>false</includeBaseDirectory>
 	<fileSets>
 		<fileSet>
-			<directory>src/main/resources</directory>
+			<directory>src/main/resources/recipes</directory>
 			<includes>
 				<include>**/*</include>
 			</includes>
@@ -24,6 +24,7 @@
 				<exclude>**/couchdb/**</exclude>
 				<exclude>**/redis/**</exclude>
 				<exclude>**/voltdb/**</exclude>
+                <exclude>**/simple/**</exclude>
 			</excludes>
 			<outputDirectory>/</outputDirectory>
 		</fileSet>

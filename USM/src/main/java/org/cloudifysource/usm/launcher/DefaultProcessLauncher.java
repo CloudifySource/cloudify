@@ -127,7 +127,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	private List<String> createCommandLineFromAlternativeOS(final File puWorkDir,
 			final List<String> alternateCommandLine, final AlternativeExecutableFileNameFilter fileNameFilter) {
 
-		if (alternateCommandLine == null || alternateCommandLine.size() == 0) {
+		if (alternateCommandLine == null || alternateCommandLine.isEmpty()) {
 			return null;
 		}
 
@@ -935,7 +935,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 		}
 
-		if (this.groovyEnvironmentClassPath != null && this.groovyEnvironmentClassPath.length() > 0) {
+		if (groovyEnvironmentClassPath != null && !groovyEnvironmentClassPath.isEmpty()) {
 			map.put("CLASSPATH",
 					this.groovyEnvironmentClassPath);
 		}

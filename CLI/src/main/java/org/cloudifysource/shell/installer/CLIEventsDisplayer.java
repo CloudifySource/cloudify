@@ -24,7 +24,7 @@ import org.fusesource.jansi.Ansi.Color;
 
 public class CLIEventsDisplayer {
 
-	private final int PROGRESS_BAR_MAX_LENGTH = 6;
+	private final static int PROGRESS_BAR_MAX_LENGTH = 6;
 	
 	private int progressCounter = 0;
 	

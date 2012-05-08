@@ -22,7 +22,7 @@
 		<dependency>
 			<groupId>commons-beanutils</groupId>
 			<artifactId>commons-beanutils</artifactId>
-			<version>1.7.0</version>
+			<version>1.8.3</version>
 			<exclusions>
 				<!-- Exclude commons logging - because the scope of beanutils is compile, 
 					the assembly plugin adds commons logging to the dsl jar file -->
@@ -35,7 +35,7 @@
 		<dependency>
 			<groupId>org.hyperic</groupId>
 			<artifactId>sigar</artifactId>
-			<version>1.6.5</version>
+			<version>${sigarVersion}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -58,7 +58,7 @@
 		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy</artifactId>
-			<version>1.8.0</version>
+			<version>${groovyVersion}</version>
 			<scope>provided</scope>
 		</dependency>
 

@@ -91,7 +91,7 @@ public class CliAzureDeploymentTest {
             "WgBDXc+tBT2eo8ktROXDG7VDc";
 
     // path to travel application relative to cloudify installation
-	private static final String RELATIVE_APPLICATION_EXAMPLE_PATH = "examples\\azure\\travel";
+	private static final String RELATIVE_APPLICATION_EXAMPLE_PATH = "recipes\\apps\\travel-azure";
 
     // arguments for cli
     private static final int TIMEOUT_IN_MINUTES = 60;
@@ -150,10 +150,9 @@ public class CliAzureDeploymentTest {
         File cscfgFile = new File(cliExecutablePath.getParent(), RELATIVE_WORKER_ROLE_DIR + "\\ServiceConfiguration.Cloud.cscfg");
 
         // update worker roles configuration to upload logs
-        // Disabled since we suspect some issues arise only when logs are disabled.
         AzureDeploymentConfigurationFile cscfg = new AzureDeploymentConfigurationFile(cscfgFile);
-        //cscfg.setUploadAgentLogs(true);
-        //cscfg.setUploadAllLogs(true);
+        cscfg.setUploadAgentLogs(true);
+        cscfg.setUploadAllLogs(true);
         cscfg.flush();
         
         Properties newAzureProps = new Properties();
@@ -211,7 +210,7 @@ public class CliAzureDeploymentTest {
 					} catch(Exception e) {
 						logger.log(Level.SEVERE,"Failed to send email",e);
 					}
-					//after();
+					after();
 					// no need to break since an exception was raised and is going to fail the test
 				}
 				else {

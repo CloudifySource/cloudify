@@ -57,11 +57,11 @@ public class TeardownLocalCloud extends AbstractGSCommand {
 
 	@Option(required = false, name = "-nic-address", description = "The ip address of the local host network card. "
 			+ "Specify when local machine has more than one network adapter, and a specific network card should be"
-			+ " used for network communication. Defaults to 127.0.0.1.")
+			+ " used for network communication.")
 	private String nicAddress = "127.0.0.1";
 
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is"
-			+ " done. By default waits 5 minutes.")
+			+ " done.")
 	private int timeoutInMinutes = 5;
 	
 	@Option(required = false, name = "-force",

@@ -244,8 +244,7 @@ public abstract class AbstractGSCommand implements Action {
 			return msgName;
 		}
 		try {
-			return MessageFormat.format(
-					message, arguments);
+			return MessageFormat.format( message, arguments);
 		} catch (final IllegalArgumentException e) {
 			logger.warning("Failed to format message: " + msgName + " with format: " + message + " and arguments: "
 					+ Arrays.toString(arguments));

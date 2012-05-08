@@ -82,5 +82,13 @@ public interface ServiceContext {
 	 * @return the process ID of the monitored process.
 	 */
 	long getExternalProcessId();
+	
+
+	/**
+	 * @return true if running on localcloud, false otherwise
+	 * @author itaif
+	 * @since 2.1
+	 */
+	boolean isLocalCloud();
 
 }

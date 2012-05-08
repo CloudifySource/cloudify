@@ -47,7 +47,7 @@ import org.cloudifysource.shell.rest.RestAdminFacade;
 		description = "Starts Cloudify Agent without any zone, and the Cloudify management processes on the provided cloud.")
 public class BootstrapCloud extends AbstractGSCommand {
 
-	@Argument(required = true, name = "provider", description = "the cloud prodiver to use")
+	@Argument(required = true, name = "provider", description = "the cloud provider to use")
 	String cloudProvider;
 
 	@Option(required = false, name = "-timeout",

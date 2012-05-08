@@ -46,7 +46,6 @@ import org.xml.sax.SAXException;
 //    If there is a small bug here I am not sure the system test will catch it. Big headache
 public class XMLXPathEditor {
 
-    private final DocumentBuilder documentBuilder;
     private final Document document;
     private final XPath xPath;
 
@@ -54,7 +53,7 @@ public class XMLXPathEditor {
         try {
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             documentBuilderFactory.setNamespaceAware(false);
-            documentBuilder = documentBuilderFactory.newDocumentBuilder();
+            final DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
             document = documentBuilder.parse(cscfgFile);
             XPathFactory xPathFactory = XPathFactory.newInstance();
             xPath = xPathFactory.newXPath();

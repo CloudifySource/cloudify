@@ -66,18 +66,20 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	private static final int THREAD_WAITING_IDLE_TIME_IN_SECS = 10;
 	private static final int AGENT_SHUTDOWN_TIMEOUT_IN_MINUTES = 2;
 	private static final int FILE_DELETION_TIMEOUT_IN_MINUTES = 1;
-	private static final String GS_FOLDER = "/tmp/gs-files";
 	private static final String CLOUD_NODES_LIST = "nodesList";
 	private static final String CLEAN_GS_FILES_ON_SHUTDOWN = "cleanGsFilesOnShutdown";
+	private static final String CLOUDIFY_ITEMS_TO_CLEAN = "itemsToClean";
 
-	private ByonDeployer deployer;
 	private boolean cleanGsFilesOnShutdown = false;
+	private List<String> cloudifyItems;
+	private ByonDeployer deployer;
 
 	@Override
 	protected void initDeployer(final Cloud cloud) {
 		try {
 			deployer = (ByonDeployer) context.getOrCreate("UNIQUE_BYON_DEPLOYER_ID", new Callable<Object>() {
 
+				@SuppressWarnings("unchecked")
 				@Override
 				public Object call() throws Exception {
 					logger.info("Creating BYON context deployer for cloud: " + cloud.getName());
@@ -97,23 +99,37 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 						deployer.addNodesList(templateName, nodesList);
 					}
 
-					// set custom settings
-					final Map<String, Object> customSettings = cloud.getCustom();
-					if (customSettings != null) {
-						if (customSettings.containsKey(CLEAN_GS_FILES_ON_SHUTDOWN)) {
-							final Object cleanOnShutdownStr = customSettings.get(CLEAN_GS_FILES_ON_SHUTDOWN);
-							if (cleanOnShutdownStr != null && StringUtils.isNotBlank((String) cleanOnShutdownStr)) {
-								cleanGsFilesOnShutdown = ((String) cleanOnShutdownStr).equalsIgnoreCase("true");
-							}
-						}
-					}
-
 					return deployer;
 				}
 			});
 		} catch (final Exception e) {
 			publishEvent("connection_to_cloud_api_failed", cloud.getProvider().getProvider());
 			throw new IllegalStateException("Failed to create cloud deployer", e);
+		}
+
+		setCustomSettings(cloud);
+	}
+
+	private void setCustomSettings(final Cloud cloud) {
+		// set custom settings
+		final Map<String, Object> customSettings = cloud.getCustom();
+		if (customSettings != null) {
+			// clean GS files on shutdown
+			if (customSettings.containsKey(CLEAN_GS_FILES_ON_SHUTDOWN)) {
+				final Object cleanOnShutdownStr = customSettings.get(CLEAN_GS_FILES_ON_SHUTDOWN);
+				if (cleanOnShutdownStr != null && StringUtils.isNotBlank((String) cleanOnShutdownStr)) {
+					cleanGsFilesOnShutdown = ((String) cleanOnShutdownStr).equalsIgnoreCase("true");
+					if (cleanGsFilesOnShutdown) {
+						// Cloudify download directory
+						if (customSettings.containsKey(CLOUDIFY_ITEMS_TO_CLEAN)) {
+							final Object cloudifyItemsStr = customSettings.get(CLOUDIFY_ITEMS_TO_CLEAN);
+							if (cloudifyItemsStr != null) {
+								cloudifyItems = (List<String>) cloudifyItemsStr;
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -127,11 +143,17 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 		final Set<String> activeMachinesIPs = admin.getMachines().getHostsByAddress().keySet();
 		deployer.setAllocated(cloudTemplateName, activeMachinesIPs);
-		logger.info("Verifying the active machines are not in the free pool (active machines: "
-				+ Arrays.toString(activeMachinesIPs.toArray()) + ", all machines in pool: "
-				+ Arrays.toString(deployer.getAllNodesByTemplateName(cloudTemplateName).toArray()) + ")");
+		if (logger.isLoggable(Level.INFO)) {
+			logger.info("Verifying the active machines are not in the free pool (currently used machines: "
+					+ Arrays.toString(activeMachinesIPs.toArray()) + ", free machines pool: "
+					+ Arrays.toString(deployer.getFreeNodesByTemplateName(cloudTemplateName).toArray())
+					+ ", allocated machines pool: "
+					+ Arrays.toString(deployer.getAllocatedNodesByTemplateName(cloudTemplateName).toArray())
+					+ ", invalid machines pool: "
+					+ Arrays.toString(deployer.getInvalidNodesByTemplateName(cloudTemplateName).toArray()) + ")");	
+		}
 		final String newServerName = createNewServerName();
-		logger.info("Starting a new cloud machine with name: " + newServerName);
+		logger.info("Attempting to start a new cloud machine");
 		return createServer(newServerName, endTime);
 	}
 
@@ -140,10 +162,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 		final CustomNode node;
 		final MachineDetails machineDetails;
-		logger.info("Cloudify Deployer is creating a new server with name: " + serverName
-				+ ". This may take a few minutes");
+		logger.info("Cloudify Deployer is creating a machine named: " + serverName + ". This may take a few minutes");
 		node = deployer.createServer(cloudTemplateName, serverName);
-		logger.info("New node is allocated, name: " + serverName);
 
 		machineDetails = createMachineDetailsFromNode(node);
 
@@ -175,6 +195,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			throw new TimeoutException();
 		}
 
+		logger.info("Machine successfully allocated");
 		return machineDetails;
 	}
 
@@ -368,7 +389,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			}
 		} catch (final Exception e) {
 			publishEvent("prov_management_lookup_failed");
-			throw new CloudProvisioningException("Failed to lookup existing management servers.");
+			throw new CloudProvisioningException("Failed to lookup existing management servers.", e);
 		}
 
 		for (final CustomNode customNode : managementServers) {
@@ -459,14 +480,15 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		try {
 			machineDetails = createMachineDetailsFromNode(cloudNode);
 			Utils.deleteFileSystemObject(machineDetails.getPrivateAddress(), machineDetails.getRemoteUsername(),
-					machineDetails.getRemotePassword(), GS_FOLDER, null/* key file */,
-					FILE_DELETION_TIMEOUT_IN_MINUTES, TimeUnit.MINUTES);
+					machineDetails.getRemotePassword(), cloudifyItems, null/* key file */,
+					FILE_DELETION_TIMEOUT_IN_MINUTES, TimeUnit.MINUTES, machineDetails.getFileTransferMode());
 		} catch (final Exception e) {
 			if (machineDetails != null) {
 				logger.info("ByonProvisioningDriver: Failed to delete system files from server: "
-						+ machineDetails.getPrivateAddress());
+						+ machineDetails.getPrivateAddress() + ", error: " + e.getMessage());
 			} else {
-				logger.info("ByonProvisioningDriver: Failed to delete system files from server.");
+				logger.info("ByonProvisioningDriver: Failed to delete system files from server, error: "
+						+ e.getMessage());
 			}
 		}
 	}

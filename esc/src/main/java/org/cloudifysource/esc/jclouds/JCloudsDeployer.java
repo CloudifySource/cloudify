@@ -459,30 +459,30 @@ public class JCloudsDeployer {
 			logger.fine("Creating Cloud Template. This may take a few seconds");
 
 			final TemplateBuilder builder = this.context.getComputeService().templateBuilder();
-			if (this.imageId != null && this.imageId.length() > 0) {
-				builder.imageId(this.imageId);
+			if (imageId != null && !imageId.isEmpty()) {
+				builder.imageId(imageId);
 			}
 
-			if (this.minRamMegabytes > 0) {
+			if (minRamMegabytes > 0) {
 				builder.minRam(minRamMegabytes);
 			}
 
-			if (this.hardwareId != null && hardwareId.length() > 0) {
+			if (hardwareId != null && !hardwareId.isEmpty()) {
 				builder.hardwareId(hardwareId);
 			}
 
-			if (this.locationId != null && locationId.length() > 0) {
-				builder.locationId(this.locationId);
+			if (locationId != null && !locationId.isEmpty()) {
+				builder.locationId(locationId);
 			}
 
 			// this is usually a remote call, and may take a while to return.
-			this.template = builder.build();
+			template = builder.build();
 
 			handleExtraOptions();
 			logger.fine("Cloud Template is ready for use.");
 		}
 
-		return this.template;
+		return template;
 	}
 
 	private void handleExtraOptions() {
@@ -672,7 +672,7 @@ public class JCloudsDeployer {
 
 	/* CHECKSTYLE:OFF */
 	public void setMinRamMegabytes(final String minRamMegabytes_str) {
-		if (minRamMegabytes_str != null && minRamMegabytes_str.length() > 0) {
+		if (minRamMegabytes_str != null && !minRamMegabytes_str.isEmpty()) {
 			setMinRamMegabytes(Integer.parseInt(minRamMegabytes_str));
 		}
 	}

@@ -38,7 +38,7 @@ import com.j_spaces.kernel.Environment;
 
 public class ApplicationInstallerRunnable implements Runnable {
 
-	private static final int SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES = 30;
+	private static final int SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES = 60;
 
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
 	.getLogger(ApplicationInstallerRunnable.class.getName());
@@ -64,6 +64,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 	@Override
 	public void run() {
+
 		File appDir = result.getApplicationDir();
 
 		// final List<Service> services = application.getServices();
@@ -160,7 +161,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 		}
 	}
 
-	private boolean isAsyncInstallPossibleForApplication() {
+	public boolean isAsyncInstallPossibleForApplication() {
 
 		// check if all services are USM
 		for (Service service : this.services) {

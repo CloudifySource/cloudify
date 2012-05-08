@@ -16,7 +16,7 @@ cloud {
 		provider "openstack"
 		localDirectory "tools/cli/plugins/esc/openstack/upload"
 		remoteDirectory "/root/gs-files"
-		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.0/gigaspaces-cloudify-2.1.0-m4-b1195-135.zip" 
+		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.1/gigaspaces-cloudify-2.1.1-m1-b1394-31.zip" 
 		machineNamePrefix "cloudify_agent_"
 		
 		dedicatedManagementMachines true
@@ -26,6 +26,9 @@ cloud {
 		numberOfManagementMachines 1
 		zones (["agent"])
 		reservedMemoryCapacityPerMachineInMB 1024
+		
+		sshLoggingLevel "WARNING"
+		
 		
 	}
 	user {
@@ -38,12 +41,10 @@ cloud {
 					imageId "221"
 					machineMemoryMB 1600
 					hardwareId "102"
-					//locationId "us-east-1"
+										
 					options ([
 						"openstack.securityGroup" : "test",
-						"openstack.keyPair" : "hp-cloud-demo",
-						// indicates if a floating IP should be assigned to this machine. Defaults to true.
-						"openstack.allocate-floating-ip" : "true"
+						"openstack.keyPair" : "ENTER_KEY_PAIR_NAME"
 					])
 					
 				}

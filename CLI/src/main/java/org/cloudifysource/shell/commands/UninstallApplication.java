@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.CompleterValues;
@@ -38,7 +37,7 @@ import org.cloudifysource.shell.rest.RestAdminFacade;
  * @since 2.0.0
  * 
  *        Uninstalls an application.
- *	
+ *		
  *        Required arguments:
  *         applicationName - The name of the application
  *        
@@ -51,11 +50,8 @@ import org.cloudifysource.shell.rest.RestAdminFacade;
 @Command(scope = "cloudify", name = "uninstall-application", description = "Uninstalls an application.")
 public class UninstallApplication extends AdminAwareCommand {
 
-	private static final int UNINSTALL_POOLING_INTERVAL = 5;
-
-	private static final String TIMEOUT_ERROR_MESSAGE = "Timeout waiting for application to uninstall";
-
-	private String lastMessage;
+	private static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out. "
+				+ "Try to increase the timeout using the -timeout flag";
 
 	@Argument(index = 0, required = true, name = "The name of the application")
 	private String applicationName;
@@ -110,27 +106,6 @@ public class UninstallApplication extends AdminAwareCommand {
 		session.put(Constants.ACTIVE_APP, "default");
 		GigaShellMain.getInstance().setCurrentApplicationName("default");
 		return getFormattedMessage("application_uninstalled_succesfully", this.applicationName);
-	}
-
-	/**
-	 * Logs a status message, if not identical to the last message written to the log.
-	 * 
-	 * @param remainingApplicationContainers
-	 *            The number of application containers still running
-	 * @param allApplicationContainers
-	 *            Total number of application container
-	 * @param remainingContainerIDs
-	 *            The IDs of the application containers that are still running
-	 */
-	private void printStatusMessage(final int remainingApplicationContainers, final int allApplicationContainers,
-			final Set<String> remainingContainerIDs) {
-		final String message = "Waiting for all service instances to uninstall. " + "Currently "
-		+ remainingApplicationContainers + " instances of " + allApplicationContainers + " are still running.";
-
-		if (!StringUtils.equals(message, lastMessage)) {
-			logger.info(message + (verbose ? " " + remainingContainerIDs : ""));
-			this.lastMessage = message;
-		}
 	}
 
 	// returns true if the answer to the question was 'Yes'.

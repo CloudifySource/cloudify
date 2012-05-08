@@ -17,6 +17,7 @@ package org.cloudifysource.usm;
 
 import java.io.File;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -27,13 +28,21 @@ import org.openspaces.core.cluster.ClusterInfo;
 import org.openspaces.core.cluster.ClusterInfoAware;
 import org.openspaces.core.properties.BeanLevelProperties;
 import org.openspaces.core.properties.BeanLevelPropertiesAware;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 
+/***************************
+ * Configuration factory for the USM component. Returns a configuration bean.
+ * Note that this was useful when we had multiple input types for services. Now that we have standardized
+ * on groovy for all services, this is kind of redundant.
+ * 
+ * @author barakme
+ * @since 1.0
+ *
+ */
 @Component
 public class USMConfigurationFactoryBean implements FactoryBean<UniversalServiceManagerConfiguration>,
 		ApplicationContextAware, ClusterInfoAware, BeanLevelPropertiesAware {
@@ -52,6 +61,8 @@ public class USMConfigurationFactoryBean implements FactoryBean<UniversalService
 
 	private boolean isRunningInGSC;
 
+	private static final Logger logger = 
+			Logger.getLogger(USMConfigurationFactoryBean.class.getName());
 
 	@Override
 	public UniversalServiceManagerConfiguration getObject() throws USMException {
@@ -78,10 +89,12 @@ public class USMConfigurationFactoryBean implements FactoryBean<UniversalService
 		dslReader.setDslFile(dslFile);
 		dslReader.setWorkDir(this.puExtDir);
 		dslReader.setDslFileNameSuffix(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX);
+		
 		// When loading a service in the USM, expect the jar files to 
 		// be available in the pu lib dir, and ignore the contents of usmlib
 		dslReader.setLoadUsmLib(false);
 		
+		logger.info("Calling DSL Reader from USM Config Factory");
 		Service service = dslReader.readDslEntity(Service.class);
 		return new DSLConfiguration(service, dslReader.getContext(),  this.puExtDir, dslReader.getDslFile());
 	}
@@ -97,7 +110,7 @@ public class USMConfigurationFactoryBean implements FactoryBean<UniversalService
 	}
 
 	@Override
-	public void setApplicationContext(final ApplicationContext ctx) throws BeansException {
+	public void setApplicationContext(final ApplicationContext ctx) {
 
 		this.isRunningInGSC = USMUtils.isRunningInGSC(ctx);
 		this.puWorkDir = USMUtils.getPUWorkDir(ctx);

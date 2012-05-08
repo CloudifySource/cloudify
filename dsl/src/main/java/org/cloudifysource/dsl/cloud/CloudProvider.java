@@ -70,10 +70,20 @@ public class CloudProvider {
 		this.localDirectory = localDirectory;
 	}
 
+	/******
+	 * @deprecated use CloudTemplate.getRemoteDirectory instead.
+	 * @return .
+	 */
+	@Deprecated
 	public String getRemoteDirectory() {
 		return remoteDirectory;
 	}
 
+	/******
+	 * @param remoteDirectory .
+	 * @deprecated use CloudTemplate.setRemoteDirectory instead.
+	 */
+	@Deprecated
 	public void setRemoteDirectory(final String remoteDirectory) {
 		this.remoteDirectory = remoteDirectory;
 	}

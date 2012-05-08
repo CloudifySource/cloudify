@@ -51,6 +51,7 @@ import org.openspaces.core.bean.Bean;
 import org.openspaces.grid.gsm.capacity.CapacityRequirements;
 import org.openspaces.grid.gsm.capacity.CpuCapacityRequirement;
 import org.openspaces.grid.gsm.capacity.MemoryCapacityRequirement;
+import org.openspaces.grid.gsm.machines.isolation.ElasticProcessingUnitMachineIsolation;
 import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioning;
 import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioningException;
 
@@ -81,8 +82,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private String cloudTemplate;
 	private String lookupLocatorsString;
 	private CloudifyMachineProvisioningConfig config;
-	private static final java.util.logging.Logger logger = java.util.logging.Logger
-			.getLogger(ElasticMachineProvisioningCloudifyAdapter.class.getName());
+	private java.util.logging.Logger logger;
+	private ElasticProcessingUnitMachineIsolation isolation;
 
 	@Override
 	public boolean isStartMachineSupported() {
@@ -102,11 +103,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		final InstallationDetails details = new InstallationDetails();
 
 		details.setLocalDir(cloud.getProvider().getLocalDirectory());
-		details.setRemoteDir(cloud.getProvider().getRemoteDirectory());
-		// Create a copy of managementOnly files and mutate
-		List<String> managementOnlyFiles = new ArrayList<String>(cloud.getProvider().getManagementOnlyFiles());
-		managementOnlyFiles.add(cloud.getUser().getKeyFile()); //keyFile is always a management file
-		details.setManagementOnlyFiles(managementOnlyFiles);
+		final String remoteDir = getRemoteDir();
+		details.setRemoteDir(remoteDir);
+		details.setManagementOnlyFiles(cloud.getProvider().getManagementOnlyFiles());
 		final String[] zones = this.config.getGridServiceAgentZones();
 		details.setZones(StringUtils.join(zones, ",", 0, zones.length));
 
@@ -141,6 +140,16 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		logger.info("Created new Installation Details: " + details);
 		return details;
 
+	}
+
+	private String getRemoteDir() {
+		// TODO - there really should be a template field
+		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplate);
+		if (template.getRemoteDirectory() != null) {
+			return template.getRemoteDirectory();
+		}
+
+		return this.cloud.getProvider().getRemoteDirectory();
 	}
 
 	@Override
@@ -229,18 +238,21 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				machineIp = machineDetails.getPublicAddress();
 			}
 
-			if (machineIp != null && machineIp.trim().length() > 0) {
-				final GridServiceAgent agent = waitForGsa(machineIp, end);
-				if (agent != null) {
-					logger.info("handleExceptionAfterMachineCreated is shutting down agent: " + agent + " on host: "
-							+ machineIp);
-					try {
+			if (machineIp != null && !machineIp.trim().isEmpty()) {
+				try {
+					final GridServiceAgent agent = getGSAByIpOrHost(machineIp);
+					if (agent != null) {
+						logger.info("handleExceptionAfterMachineCreated is shutting down agent: " + agent
+								+ " on host: " + machineIp);
+
 						agent.shutdown();
 						logger.fine("Agent on host: " + machineIp + " successfully shut down");
-					} catch (final Exception e) {
-						logger.log(Level.WARNING, "Failed to shutdown agent on host: " + machineIp
-								+ ". Continuing with shutdown of " + "machine.", e);
+
 					}
+				} catch (final Exception e) {
+					// even if shutting down the agent failed, this node will be shut down later
+					logger.log(Level.WARNING, "Failed to shutdown agent on host: " + machineIp
+							+ ". Continuing with shutdown of " + "machine.", e);
 				}
 			}
 
@@ -329,12 +341,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			throws InterruptedException, TimeoutException {
 
 		while (Utils.millisUntil(end) > 0) {
-			GridServiceAgent gsa = admin.getGridServiceAgents().getHostAddress().get(machineIp);
-			if (gsa != null) {
-				return gsa;
-			}
-
-			gsa = admin.getGridServiceAgents().getHostNames().get(machineIp);
+			GridServiceAgent gsa = getGSAByIpOrHost(machineIp);
 			if (gsa != null) {
 				return gsa;
 			}
@@ -344,6 +351,19 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		}
 		return null;
 
+	}
+
+	private GridServiceAgent getGSAByIpOrHost(final String machineIp) {
+		GridServiceAgent gsa = admin.getGridServiceAgents().getHostAddress().get(machineIp);
+		if (gsa != null) {
+			return gsa;
+		}
+
+		gsa = admin.getGridServiceAgents().getHostNames().get(machineIp);
+		if (gsa != null) {
+			return gsa;
+		}
+		return null;
 	}
 
 	@Override
@@ -418,6 +438,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	@Override
 	public void afterPropertiesSet()
 			throws Exception {
+		
+		 logger = java.util.logging.Logger
+					.getLogger(ElasticMachineProvisioningCloudifyAdapter.class.getName());
+		
 		final String cloudContents = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION);
 		if (cloudContents == null) {
 			throw new IllegalArgumentException("Cloud configuration was not set!");
@@ -433,7 +457,24 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 			// This code runs on the ESM in the remote machine,
 			// so set the local directory to the value of the remote directory
-			cloud.getProvider().setLocalDirectory(cloud.getProvider().getRemoteDirectory());
+			// TODO - change the condition to ServiceUtils.isWindows
+			logger.info("Remote Directory is: " + cloud.getProvider().getRemoteDirectory());
+			if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
+				logger.info("Windows machine - modifying local directory location");
+				String localDirectoryName = cloud.getProvider().getRemoteDirectory();
+				localDirectoryName = localDirectoryName.replace("$", "");
+				if (localDirectoryName.startsWith("/")) {
+					localDirectoryName = localDirectoryName.substring(1);
+				}
+				if (localDirectoryName.charAt(1) == '/') {
+					localDirectoryName = localDirectoryName.substring(0, 1) + ":" + localDirectoryName.substring(1);
+				}
+				logger.info("Modified local dir name is: " + localDirectoryName);
+
+				cloud.getProvider().setLocalDirectory(localDirectoryName);
+			} else {
+				cloud.getProvider().setLocalDirectory(cloud.getProvider().getRemoteDirectory());
+			}
 
 			// load the provisioning class and set it up
 			try {
@@ -490,9 +531,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		final LookupLocator[] locators = this.admin.getLocators();
 		final StringBuilder sb = new StringBuilder();
 		for (final LookupLocator lookupLocator : locators) {
-			sb.append(lookupLocator.getHost()).append(":").append(lookupLocator.getPort()).append(",");
+			sb.append(lookupLocator.getHost()).append(':').append(lookupLocator.getPort()).append(',');
 		}
-		if (sb.toString().length() > 0) {
+		if (!sb.toString().isEmpty()) {
 			sb.setLength(sb.length() - 1);
 		}
 		return sb.toString();
@@ -502,6 +543,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	public void destroy()
 			throws Exception {
 		this.cloudifyProvisioning.close();
+	}
+
+	@Override
+	public void setElasticProcessingUnitMachineIsolation(ElasticProcessingUnitMachineIsolation isolation) {
+		this.isolation = isolation;
 	}
 
 }

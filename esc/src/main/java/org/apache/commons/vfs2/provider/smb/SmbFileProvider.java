@@ -75,7 +75,8 @@ public class SmbFileProvider
         return new SmbFileSystem(name, fileSystemOptions);
     }
 
-    public Collection<Capability> getCapabilities()
+    @Override
+	public Collection<Capability> getCapabilities()
     {
         return capabilities;
     }

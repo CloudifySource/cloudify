@@ -30,7 +30,7 @@ public class ShellCommandBuilder {
 
 	private static final String CIFS_ABSOLUTE_PATH_WITH_DRIVE_REGEX = "/[a-zA-Z][$]/.*";
 	private static final String SSH_COMMAND_SEPARATOR = ";";
-	private static final String POWERSHELL_COMMAND_SEPARATOR = System.getProperty("line.separator");
+	private static final String POWERSHELL_COMMAND_SEPARATOR = ";"; // System.getProperty("line.separator");
 	private static Pattern pattern;
 
 	private final StringBuilder sb = new StringBuilder();
@@ -60,8 +60,7 @@ public class ShellCommandBuilder {
 	/********
 	 * Constructor.
 	 * 
-	 * @param mode
-	 *            the execution mode.
+	 * @param mode the execution mode.
 	 */
 	public ShellCommandBuilder(final RemoteExecutionModes mode) {
 		this.mode = mode;
@@ -88,8 +87,7 @@ public class ShellCommandBuilder {
 	/*******
 	 * Adds a command to the command line.
 	 * 
-	 * @param str
-	 *            the command to add.
+	 * @param str the command to add.
 	 * @return this.
 	 */
 	public ShellCommandBuilder call(final String str) {
@@ -107,8 +105,7 @@ public class ShellCommandBuilder {
 	 * Given a path of the type /C$/PATH - indicating an absolute cifs path, returns /PATH. If the string does not
 	 * match, returns the original unmodified string.
 	 * 
-	 * @param str
-	 *            the input path.
+	 * @param str the input path.
 	 * @return the input path, adjusted to remove the cifs drive letter, if it exists, or the original path if the drive
 	 *         letter is not present.
 	 */
@@ -138,10 +135,8 @@ public class ShellCommandBuilder {
 	/*********
 	 * Adds an environment variable to the command line.
 	 * 
-	 * @param name
-	 *            variable name.
-	 * @param value
-	 *            variable value.
+	 * @param name variable name.
+	 * @param value variable value.
 	 * @return this.
 	 */
 	public ShellCommandBuilder exportVar(final String name, final String value) {
@@ -157,8 +152,12 @@ public class ShellCommandBuilder {
 			break;
 		case WINRM:
 			String normalizedValue = normalizeCifsPath(value);
-			if (!(value.startsWith("\"") && value.endsWith("\""))) {
-				normalizedValue = "\"" + normalizedValue + "\"";
+			if (value.startsWith("\"") && value.endsWith("\"")) {
+				normalizedValue = value.replace("\"", "'");
+			} else {
+				if (!(value.startsWith("\"") && value.endsWith("\""))) {
+					normalizedValue = "'" + normalizedValue + "'";
+				}
 			}
 
 			sb.append("$ENV:").append(name).append("=").append(normalizedValue);
@@ -176,8 +175,7 @@ public class ShellCommandBuilder {
 	/******
 	 * Marks a file as executable.
 	 * 
-	 * @param path
-	 *            the file path.
+	 * @param path the file path.
 	 * @return this.
 	 */
 	public ShellCommandBuilder chmodExecutable(final String path) {

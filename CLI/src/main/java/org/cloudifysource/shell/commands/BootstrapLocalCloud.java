@@ -15,6 +15,8 @@
  *******************************************************************************/
 package org.cloudifysource.shell.commands;
 
+import java.io.File;
+import java.io.FileFilter;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.gogo.commands.Command;
@@ -23,22 +25,22 @@ import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.installer.CLILocalhostBootstrapperListener;
 import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
+import org.fusesource.jansi.Ansi.Color;
 
 /**
  * @author rafi, barakm
  * @since 2.0.0
  * 
- *        Starts Cloudify Agent without any zone, and the Cloudify management processes on local machine.
- *        These processes are isolated from Cloudify processes running on other machines.
- *        
- *        Optional arguments:
- *         lookup-groups - A unique name that is used to group together Cloudify components (default: localcloud).
- *         nic-address - The IP address of the local host network card. Specify when local machine has more than one
- *          network adapter, and a specific network card should be used for network communication.
- *         timeout - The number of minutes to wait until the operation is completed (default: 5).
+ *        Starts Cloudify Agent without any zone, and the Cloudify management processes on local machine. These
+ *        processes are isolated from Cloudify processes running on other machines.
  * 
- *        Command syntax: bootstrap-localcloud [-lookup-groups lookup-groups] [-nic-address nic-address]
- *        				[-timeout timeout]
+ *        Optional arguments: lookup-groups - A unique name that is used to group together Cloudify components (default:
+ *        localcloud). nic-address - The IP address of the local host network card. Specify when local machine has more
+ *        than one network adapter, and a specific network card should be used for network communication. timeout - The
+ *        number of minutes to wait until the operation is completed (default: 5).
+ * 
+ *        Command syntax: bootstrap-localcloud [-lookup-groups lookup-groups] [-nic-address nic-address] [-timeout
+ *        timeout]
  */
 @Command(scope = "cloudify", name = "bootstrap-localcloud", description = "Starts Cloudify Agent without any zone,"
 		+ " and the Cloudify management processes on local machine. These processes are isolated from Cloudify "
@@ -57,21 +59,29 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 
 	@Option(required = false, name = "-nic-address", description = "The ip address of the local host network card. "
 			+ "Specify when local machine has more than one network adapter, and a specific network card should be "
-			+ "used for network communication. Defaults to 127.0.0.1")
-	private String nicAddress = "127.0.0.1";
+			+ "used for network communication.")
+	private final String nicAddress = "127.0.0.1";
 
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is "
-			+ "done. By default waits 5 minutes.")
-	private int timeoutInMinutes = DEFAULT_TIMEOUT;
+			+ "done.")
+	private final int timeoutInMinutes = DEFAULT_TIMEOUT;
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected Object doExecute() throws Exception {
+	protected Object doExecute()
+			throws Exception {
 
-		if (timeoutInMinutes < 0) {
-			throw new CLIException("-timeout cannot be negative");
+		// first check java home is correctly configured
+		final String javaHome = System.getenv("JAVA_HOME");
+		if (javaHome == null || javaHome.trim().length() == 0) {
+			return messages.getString("missing_java_home");
+		}
+
+		final boolean javaHomeValid = isJavaHomeValid(javaHome);
+		if (!javaHomeValid) {
+			return getFormattedMessage("incorrect_java_home", Color.RED, javaHome);
 		}
 
 		final LocalhostGridAgentBootstrapper installer = new LocalhostGridAgentBootstrapper();
@@ -84,7 +94,35 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 
 		installer.startLocalCloudOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);
-		
+
 		return messages.getString("local_cloud_started");
 	}
+
+	private boolean isJavaHomeValid(final String javaHome) {
+		final File javaHomeDir = new File(javaHome);
+		if (!javaHomeDir.exists() || !javaHomeDir.isDirectory()) {
+			return false;
+		}
+
+		final File binDir = new File(javaHomeDir, "bin");
+		if (!binDir.exists() || !binDir.isDirectory()) {
+			return false;
+		}
+
+		final File[] javacCandidates = binDir.listFiles(new FileFilter() {
+
+			@Override
+			public boolean accept(final File pathname) {
+				if (!pathname.isFile()) {
+					return false;
+				}
+
+				return pathname.getName().startsWith("javac");
+			}
+		});
+
+		return javacCandidates.length > 0;
+
+	}
+
 }

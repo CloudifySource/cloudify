@@ -27,7 +27,7 @@ import org.openspaces.admin.space.Space;
 import org.openspaces.core.GigaSpace;
 
 /**
- * Facade for putting and getting attributes over cloudify management space
+ * Facade for putting and getting attributes over cloudify management space.
  * 
  * @author eitany
  * @since 2.0
@@ -48,6 +48,11 @@ public class AttributesFacade extends GroovyObjectSupport {
 	private final Object managementSpaceLock = new Object();
 	private final Admin admin;
 
+	/***********
+	 * Constructor.
+	 * @param serviceContext .
+	 * @param admin .
+	 */
 	public AttributesFacade(final ServiceContext serviceContext, final Admin admin) {
 		this.serviceContext = serviceContext;
 		this.admin = admin;
@@ -97,6 +102,10 @@ public class AttributesFacade extends GroovyObjectSupport {
 		return serviceAttributesAccessor;
 	}
 
+	/******
+	 * Accessor.
+	 * @return .
+	 */
 	public InstanceAttributesAccessor getThisInstance() {
 		if (instanceAttributesAccessor == null) {
 			this.instanceAttributesAccessor =

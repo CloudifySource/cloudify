@@ -69,7 +69,7 @@ public class LifecycleEventsContainer {
     
     private final Object lock = new Object();
 
-    private final Logger logger = Logger.getLogger(getClass().getName());
+    private final static Logger logger = Logger.getLogger(LifecycleEventsContainer.class.getName());
 
     /**
      * LifecycleEventsContainer constructor.

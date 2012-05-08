@@ -44,7 +44,7 @@ import org.cloudifysource.shell.rest.RestAdminFacade;
 @Command(scope = "cloudify", name = "teardown-cloud", description = "Terminates management machines.")
 public class TeardownCloud extends AbstractGSCommand {
 
-	@Argument(required = true, name = "provider", description = "the cloud prodiver to use")
+	@Argument(required = true, name = "provider", description = "the cloud provider to use")
 	String cloudProvider;
 
 	@Option(required = false, name = "-timeout",

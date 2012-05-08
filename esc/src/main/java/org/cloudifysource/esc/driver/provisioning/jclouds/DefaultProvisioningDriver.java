@@ -17,6 +17,7 @@ package org.cloudifysource.esc.driver.provisioning.jclouds;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -25,7 +26,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -47,6 +47,7 @@ import org.jclouds.compute.domain.NodeState;
 import org.jclouds.domain.LoginCredentials;
 
 import com.google.common.base.Predicate;
+import com.j_spaces.kernel.Environment;
 
 /**************
  * A jclouds-based CloudifyProvisioning implementation. Uses the JClouds Compute Context API to provision an image with
@@ -73,33 +74,19 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			// TODO - jcloudsUniqueId should be unique per cloud configuration.
 			// TODO - The deployer object should be reusable across templates. The current API is not appropriate.
 			// TODO - key should be based on entire cloud configuraion!
-			this.deployer =
-					(JCloudsDeployer) context.getOrCreate("UNIQUE_JCLOUDS_DEPLOYER_ID_" + this.cloudTemplateName,
-							new Callable<Object>() {
-
-								@Override
-								public Object call()
-										throws Exception {
-									logger.fine("Creating JClouds context deployer with user: "
-											+ cloud.getUser().getUser());
-									final CloudTemplate cloudTemplate = cloud.getTemplates().get(cloudTemplateName);
-
-									logger.fine("Cloud Template: " + cloudTemplateName + ". Details: " + cloudTemplate);
-									final Properties props = new Properties();
-									props.putAll(cloudTemplate.getOverrides());
-
-									deployer =
-											new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser()
-													.getUser(), cloud.getUser().getApiKey(), props);
-
-									deployer.setImageId(cloudTemplate.getImageId());
-									deployer.setMinRamMegabytes(cloudTemplate.getMachineMemoryMB());
-									deployer.setHardwareId(cloudTemplate.getHardwareId());
-									deployer.setLocationId(cloudTemplate.getLocationId());
-									deployer.setExtraOptions(cloudTemplate.getOptions());
-									return deployer;
-								}
-							});
+			// TODO - this shared context only works if we have reference counting, to check when this item is
+			// no longer there. Otherwise, either this context will leak, or it will be shutdown by the first
+			// service to by undeployed.
+			this.deployer = createDeployer(cloud);
+			// (JCloudsDeployer) context.getOrCreate("UNIQUE_JCLOUDS_DEPLOYER_ID_" + this.cloudTemplateName,
+			// new Callable<Object>() {
+			//
+			// @Override
+			// public Object call()
+			// throws Exception {
+			// return createDeplyer(cloud);
+			// }
+			// });
 		} catch (final Exception e) {
 			publishEvent("connection_to_cloud_api_failed", cloud.getProvider().getProvider());
 			throw new IllegalStateException("Failed to create cloud Deployer", e);
@@ -110,7 +97,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	public MachineDetails startMachine(final long timeout, final TimeUnit unit)
 			throws TimeoutException, CloudProvisioningException {
 
-		logger.info(this.getClass().getName() + ": startMachine, management mode: " + management);
+		logger.fine(this.getClass().getName() + ": startMachine, management mode: " + management);
 		final long end = System.currentTimeMillis() + unit.toMillis(timeout);
 
 		if (System.currentTimeMillis() > end) {
@@ -125,15 +112,15 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 			// Special handling for cloudstack on ALU - for unknown reason, the context throws rejected exception.
 			// Looks like the thread pool is exhausted, though not clear why. Does not repro outside their cloud.
-			if (e instanceof RejectedExecutionException
-					&& this.cloud.getProvider().getProvider().equalsIgnoreCase("cloudstack")) {
-				logger.warning("Detected Jclouds execution problem. Reseting Jclouds context");
-				try {
-					this.deployer.reset(currentContext);
-				} catch (final Exception e2) {
-					logger.log(Level.WARNING, "Failed to reset jclouds context", e2);
-				}
-			}
+			// if (e instanceof RejectedExecutionException
+			// && this.cloud.getProvider().getProvider().equalsIgnoreCase("cloudstack")) {
+			// logger.warning("Detected Jclouds execution problem. Reseting Jclouds context");
+			// try {
+			// this.deployer.reset(currentContext);
+			// } catch (final Exception e2) {
+			// logger.log(Level.WARNING, "Failed to reset jclouds context", e2);
+			// }
+			// }
 
 			throw new CloudProvisioningException("Failed to start cloud machine", e);
 		}
@@ -143,7 +130,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			throws Exception {
 
 		final String groupName = createNewServerName();
-		logger.info("Starting a new cloud server with group: " + groupName);
+		logger.fine("Starting a new cloud server with group: " + groupName);
 		return createServer(end, groupName);
 	}
 
@@ -179,7 +166,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 			if (this.cloud.getProvider().getProvider().equals("aws-ec2") && fileTransfer.equals(FileTransferModes.CIFS)) {
 				// Special password handling for windows on EC2
-				handleEC2WindowsCredentials(end, node, machineDetails, cloudTemplate);
+				if (machineDetails.getRemotePassword() == null) {
+					// The template did not specify a password, so we must be using the aws windows password mechanism.
+					handleEC2WindowsCredentials(end, node, machineDetails, cloudTemplate);
+				}
 
 			} else {
 				// Credentials required special handling.
@@ -200,23 +190,37 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	private void handleEC2WindowsCredentials(final long end, final NodeMetadata node,
 			final MachineDetails machineDetails, final CloudTemplate cloudTemplate)
 			throws FileNotFoundException, InterruptedException, TimeoutException, CloudProvisioningException {
-		// final String baseDirectory =
-		// this.management ? Environment.getHomeDirectory() : this.cloud.getProvider().getRemoteDirectory();
-		// final File localDirectory = new File(baseDirectory, this.cloud.getProvider().getLocalDirectory());
+		File pemFile = null;
 
-		final File pemFile = new File(this.cloud.getUser().getKeyFile());
-		logger.info("PEM file is located at: " + pemFile);
+		if (this.management) {
+			final String baseDirectory = Environment.getHomeDirectory();
+			final File localDirectory = new File(baseDirectory, this.cloud.getProvider().getLocalDirectory());
+
+			pemFile = new File(localDirectory, this.cloud.getUser().getKeyFile());
+		} else {
+			final String localDirectoryName = this.cloud.getProvider().getLocalDirectory();
+			logger.fine("local dir name is: " + localDirectoryName);
+			final File localDirectory = new File(localDirectoryName);
+
+			pemFile = new File(localDirectory, this.cloud.getUser().getKeyFile());
+		}
+
 		if (!pemFile.exists()) {
 			logger.severe("Could not find pem file: " + pemFile);
 			throw new FileNotFoundException("Could not find key file: " + pemFile);
 		}
-		logger.info("PEM file exists!");
+
 		String password;
 		if (cloudTemplate.getPassword() == null) {
 			// get the password using Amazon API
+			this.publishEvent("waiting_for_ec2_windows_password", node.getId());
+
 			final LoginCredentials credentials =
 					new EC2WindowsPasswordHandler().getPassword(node, this.deployer.getContext(), end, pemFile);
 			password = credentials.getPassword();
+
+			this.publishEvent("ec2_windows_password_retrieved", node.getId());
+
 		} else {
 			password = cloudTemplate.getPassword();
 		}
@@ -259,38 +263,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 		}
 		throw new TimeoutException("Node failed to reach RUNNING mode in time");
-	}
-
-	/*********
-	 * Periodically gets the server status from the cloud, until the server's status changes to ACTIVE, or a timeout
-	 * expires.
-	 * 
-	 * @param serverId The server ID.
-	 * @param milliseconds
-	 * @param l
-	 * @return The server status - should always be ACTIVE.
-	 */
-	private void waitUntilServerIsActive(final String serverId, final long timeout, final TimeUnit unit)
-			throws TimeoutException, InterruptedException {
-		final long endTime = System.currentTimeMillis() + unit.toMillis(timeout);
-		NodeMetadata server;
-		while (true) {
-			server = deployer.getServerByID(serverId);
-			if (server != null && server.getState() == NodeState.RUNNING) {
-				break;
-			}
-
-			if (System.currentTimeMillis() > endTime) {
-				throw new TimeoutException("Server [ " + serverId + " ] has been starting up for more more than "
-						+ TimeUnit.MINUTES.convert(WAIT_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS) + " minutes!");
-			}
-
-			if (logger.isLoggable(Level.FINE)) {
-				final String serverName = server != null ? server.getState().name() : serverId;
-				logger.fine("Server Status (" + serverName + ") still not active, please wait...");
-			}
-			Thread.sleep(WAIT_THREAD_SLEEP_MILLIS);
-		}
 	}
 
 	/*********
@@ -490,7 +462,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 							return false;
 						}
 
-						return node.getGroup().startsWith(managementMachinePrefix);
+						return node.getGroup().toLowerCase().startsWith(managementMachinePrefix.toLowerCase());
 
 					}
 				});
@@ -541,28 +513,89 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			md.setPublicAddress(node.getPublicAddresses().iterator().next());
 		}
 
-		if (node.getCredentials() == null) {
-			md.setRemoteUsername(cloud.getConfiguration().getRemoteUsername());
-		} else {
-			final String serverIdentity = node.getCredentials().identity;
-			if (serverIdentity != null) {
-				md.setRemoteUsername(serverIdentity);
-			} else {
-				md.setRemoteUsername(cloud.getConfiguration().getRemoteUsername());
-			}
+		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplateName);
+		final String username = createMachineUsername(node, template);
+		final String password = createMachinePassword(node, template);
 
-			if (node.getCredentials().getOptionalPassword().isPresent()) {
-				md.setRemotePassword(node.getCredentials().getPassword());
-			}
-		}
+		md.setRemoteUsername(username);
+		md.setRemotePassword(password);
 
 		md.setUsePrivateAddress(this.cloud.getConfiguration().isConnectToPrivateIp());
 		return md;
 	}
 
+	private String createMachineUsername(final NodeMetadata node, final CloudTemplate template) {
+
+		// Template configuration takes precedence.
+		if (template.getUsername() != null) {
+			return template.getUsername();
+		}
+
+		// Global configuration comes next.
+		// This should probably be deprecated.
+		if (cloud.getConfiguration().getRemoteUsername() != null) {
+			return cloud.getConfiguration().getRemoteUsername();
+		}
+
+		// Check if node returned a username
+		if (node.getCredentials() != null) {
+			final String serverIdentity = node.getCredentials().identity;
+			if (serverIdentity != null) {
+				return serverIdentity;
+			}
+		}
+
+		return null;
+	}
+
+	private String createMachinePassword(final NodeMetadata node, final CloudTemplate template) {
+
+		// Template configuration takes precedence.
+		if (template.getPassword() != null) {
+			return template.getPassword();
+		}
+
+		// Global configuration comes next.
+		// This should probably be deprecated.
+		if (cloud.getConfiguration().getRemotePassword() != null) {
+			return cloud.getConfiguration().getRemotePassword();
+		}
+
+		// Check if node returned a username
+		if (node.getCredentials() != null) {
+			if (node.getCredentials().getOptionalPassword().isPresent()) {
+				return node.getCredentials().getPassword();
+			}
+		}
+
+		return null;
+	}
+
 	@Override
 	public void close() {
 		deployer.close();
+	}
+
+	private JCloudsDeployer createDeployer(final Cloud cloud)
+			throws IOException {
+		logger.fine("Creating JClouds context deployer with user: "
+				+ cloud.getUser().getUser());
+		final CloudTemplate cloudTemplate = cloud.getTemplates().get(cloudTemplateName);
+
+		logger.fine("Cloud Template: " + cloudTemplateName + ". Details: " + cloudTemplate);
+		final Properties props = new Properties();
+		props.putAll(cloudTemplate.getOverrides());
+
+		deployer =
+				new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser()
+						.getUser(), cloud.getUser().getApiKey(), props);
+
+		deployer.setImageId(cloudTemplate.getImageId());
+		deployer.setMinRamMegabytes(cloudTemplate.getMachineMemoryMB());
+		deployer.setHardwareId(cloudTemplate.getHardwareId());
+		deployer.setLocationId(cloudTemplate.getLocationId());
+		deployer.setExtraOptions(cloudTemplate.getOptions());
+		return deployer;
 	}
 
 }

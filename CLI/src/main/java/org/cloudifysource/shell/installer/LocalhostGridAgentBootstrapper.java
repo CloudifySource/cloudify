@@ -20,9 +20,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -40,6 +37,7 @@ import net.jini.core.discovery.LookupLocator;
 import net.jini.discovery.Constants;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.context.IsLocalCloudUtils;
 import org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.shell.AdminFacade;
@@ -90,7 +88,8 @@ public class LocalhostGridAgentBootstrapper {
 	private static final String LUS_PORT_CONTEXT_PROPERTY = "com.sun.jini.reggie.initialUnicastDiscoveryPort";
 	private static final String AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT = "-Dcom.gs.agent.auto-shutdown-enabled=true";
 	private static final int WAIT_AFTER_ADMIN_CLOSED_MILLIS = 10 * 1000;
-	private static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out waiting for the agent to start";
+	private static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out waiting for the agent to start."
+			+ " Configure the timeout using the -timeout flag.";
 	private static final int GSA_MEMORY_IN_MB = 128;
 	private static final int LUS_MEMORY_IN_MB = 128;
 	private static final int GSM_MEMORY_IN_MB = 128;
@@ -967,7 +966,7 @@ public class LocalhostGridAgentBootstrapper {
 	public void startAgentOnLocalhostAndWait(final long timeout, final TimeUnit timeunit) throws CLIException,
 			InterruptedException, TimeoutException {
 
-		if (zone == null || zone.length() == 0) {
+		if (zone == null || zone.isEmpty()) {
 			throw new CLIException("Agent must be started with a zone");
 		}
 
@@ -1131,7 +1130,7 @@ public class LocalhostGridAgentBootstrapper {
 				final String agentLookupGroups = getLookupGroups(agent);
 				final boolean checkLookupGroups = lookupGroups != null && lookupGroups.equals(agentLookupGroups);
 				final boolean checkNicAddress = nicAddress != null && agentNicAddress.equals(nicAddress)
-						|| isThisMyIpAddress(agentNicAddress);
+						|| IsLocalCloudUtils.isThisMyIpAddress(agentNicAddress);
 				if (verbose) {
 					String message = "Discovered agent nic-address=" + agentNicAddress + " lookup-groups="
 							+ agentLookupGroups + ". ";
@@ -1146,32 +1145,6 @@ public class LocalhostGridAgentBootstrapper {
 					publishEvent(message);
 				}
 				return checkLookupGroups && checkNicAddress;
-			}
-
-			/**
-			 * @see http
-			 *      ://stackoverflow.com/questions/2406341/how-to-check-if-an-ip-address-is-the-local-host-
-			 *      on-a-multi-homed-system
-			 */
-			public boolean isThisMyIpAddress(final String ip) {
-				InetAddress addr;
-				try {
-					addr = InetAddress.getByName(ip);
-				} catch (final UnknownHostException e) {
-					return false;
-				}
-
-				// Check if the address is a valid special local or loop back
-				if (addr.isAnyLocalAddress() || addr.isLoopbackAddress()) {
-					return true;
-				}
-
-				// Check if the address is defined on any interface
-				try {
-					return NetworkInterface.getByInetAddress(addr) != null;
-				} catch (final SocketException e) {
-					return false;
-				}
 			}
 
 			private String getLookupGroups(final VirtualMachineAware component) {
@@ -1285,6 +1258,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	private Admin createAdmin() {
 		final AdminFactory adminFactory = new AdminFactory();
+		adminFactory.useGsLogging(false);
 		if (lookupGroups != null) {
 			adminFactory.addGroups(lookupGroups);
 		}

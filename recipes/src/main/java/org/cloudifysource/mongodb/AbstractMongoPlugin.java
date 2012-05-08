@@ -36,7 +36,6 @@ public abstract class AbstractMongoPlugin implements Plugin {
     private final Log log = LogFactory.getLog(getClass());
 
     private final static String DEFAULT_HOST = "localhost";
-    private final static int DEFAULT_PORT = 27017;
     private static final String DEFAULT_DB_NAME = "admin";
 
     protected ServiceContext serviceContext;

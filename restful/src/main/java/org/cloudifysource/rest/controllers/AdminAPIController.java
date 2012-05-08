@@ -79,16 +79,19 @@ public class AdminAPIController  {
     private static final Logger logger = Logger.getLogger(AdminAPIController.class.getName());
 	
 	/**
-	 * redirects to index view
+	 * redirects to index view.
 	 * @return
 	 */
 	@RequestMapping(value = "/", method = RequestMethod.GET)
-	public ModelAndView redirectToIndex(){
+	public ModelAndView redirectToIndex() {
 		return new ModelAndView("index");
 	}
 
 	/**
-	 * REST GET requests handler wrapper
+	 * REST GET requests handler wrapper.
+	 * @param httpServletRequest The request
+	 * @return The response as a map
+	 * @throws Exception Indicates the request failed
 	 */
 	@RequestMapping(value = "/**", method = RequestMethod.GET)
 	public @ResponseBody Map<String, Object> get(HttpServletRequest httpServletRequest) throws Exception{

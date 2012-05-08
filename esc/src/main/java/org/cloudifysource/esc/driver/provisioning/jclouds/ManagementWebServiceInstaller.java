@@ -46,7 +46,7 @@ public class ManagementWebServiceInstaller {
 
 	private static final String TIMEOUT_ERROR_MESSAGE = "operation timed out waiting for the rest service to start";
 
-	private final Logger logger = Logger.getLogger(this.getClass().getName());
+	private final static Logger logger = Logger.getLogger(ConditionLatch.class.getName());
 	private Admin admin;
 	private boolean verbose;
 	private long progressInSeconds;

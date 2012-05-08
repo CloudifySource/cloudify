@@ -34,7 +34,7 @@ cloud {
 		// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
 		remoteDirectory "/home/ec2-user/gs-files"
 		// Mandatory. The HTTP/S URL where cloudify can be downloaded from by newly started machines.
-		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.0/gigaspaces-cloudify-2.1.0-m4-b1195-135.zip"
+		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.1/gigaspaces-cloudify-2.1.1-m1-b1394-31.zip"
 		// Mandatory. The prefix for new machines started for servies.
 		machineNamePrefix "cloudify_agent_"
 		// Optional. Defaults to true. Specifies whether cloudify should try to deploy services on the management machine.
@@ -47,7 +47,7 @@ cloud {
 		// Optional. Logging level for the intenal cloud provider logger. Defaults to INFO.
 		sshLoggingLevel "WARNING"
 
-		// Mandatory. Name of the new machine/s started as cloudify management machines.
+		// Mandatory. Name of the new machine/s started as cloudify management machines. Names are case-insensitive.
 		managementGroup "cloudify_manager"
 		// Mandatory. Number of management machines to start on bootstrap-cloud. In production, should be 2. Can be 1 for dev.
 		numberOfManagementMachines 1
@@ -94,42 +94,17 @@ cloud {
 					// method names invoked on the TemplateOptions object with the value as the parameter.
 					options ([
 								"securityGroups" : ["default"]as String[],
-								"keyPair" : "cloud-demo"
+								"keyPair" : "ENTER_KEY_PAIR_NAME"
 							])
 
 					// Optional. Overrides to default cloud driver behavior.
 					// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
-					overrides ([:])
-
-
-
-				},
-				MEDIUM_WIN : template{
-					// Mandatory. Image ID.
-					imageId "eu-west-1/ami-9b8fb6ef"
-					// Mandatory. Amount of RAM available to machine.
-					machineMemoryMB 1600
-					// Mandatory. Hardware ID.
-					hardwareId "m1.medium"
-					// Optional. Location ID.
-					locationId "eu-west-1"
-
-					// Additional template options.
-					// When used with the default driver, the option names are considered
-					// method names invoked on the TemplateOptions object with the value as the parameter.
-					options ([
-								"securityGroups" : ["default"]as String[],
-								"keyPair" : "win-test"
-							])
-
-					// Optional. Overrides to default cloud driver behavior.
-					// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
-					overrides ([:])
+				overrides (["jclouds.ec2.ami-query":"",
+								"jclouds.ec2.cc-ami-query":""])
 
 
 
 				}
-
 			])
 
 

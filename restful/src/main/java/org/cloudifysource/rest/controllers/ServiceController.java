@@ -30,11 +30,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -56,6 +56,7 @@ import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
 import net.jini.core.discovery.LookupLocator;
@@ -63,6 +64,7 @@ import net.jini.core.discovery.LookupLocator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.dsl.ComputeDetails;
 import org.cloudifysource.dsl.DataGrid;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.Sla;
@@ -95,12 +97,14 @@ import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.application.Application;
 import org.openspaces.admin.application.Applications;
+import org.openspaces.admin.dump.DumpResult;
 import org.openspaces.admin.esm.ElasticServiceManager;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.internal.admin.InternalAdmin;
 import org.openspaces.admin.internal.pu.DefaultProcessingUnitInstance;
 import org.openspaces.admin.internal.pu.InternalProcessingUnitInstance;
+import org.openspaces.admin.machine.Machine;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitDeployment;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
@@ -159,6 +163,11 @@ public class ServiceController {
 	private Cloud cloud = null;
 
 	private static final Logger logger = Logger.getLogger(ServiceController.class.getName());
+	private static final long DEFAULT_DUMP_FILE_SIZE_LIMIT = 5 * 1024 * 1024;
+
+	private static final String[] DEFAULT_DUMP_PROCESSORS = new String[] {
+			"summary", "network", "thread", "log", "processingUnits;"
+	};
 	private String cloudFileContents;
 	private String defaultTemplateName;
 
@@ -207,6 +216,119 @@ public class ServiceController {
 		this.scheduledExecutor.shutdownNow();
 	}
 
+	@RequestMapping(value = "/dump", method = RequestMethod.GET)
+	public @ResponseBody
+	Map<String, Object> getMachineDumpFile(@RequestParam(required = false) final String processors
+			, @RequestParam(defaultValue = "0") final long fileSizeLimit)
+			throws IOException {
+		return getMachineDumpFile(null, processors, fileSizeLimit);
+	}
+
+	@RequestMapping(value = "/dump/{ip}", method = RequestMethod.GET)
+	public @ResponseBody
+	Map<String, Object> getMachineDumpFile(@PathVariable final String ip,
+			@RequestParam(required = false) final String processors
+			, @RequestParam(defaultValue = "0") final long fileSizeLimit)
+			throws IOException {
+		// check for non-default processors
+		final String[] actualProcessors = getProcessorsFromRequest(processors);
+
+		try {
+			if ((ip != null) && (ip.length() > 0)) {
+				// first find the relevant agent
+				Machine machine = this.admin.getMachines().getHostsByAddress().get(ip);
+				if (machine == null) {
+					machine = this.admin.getMachines().getHostsByName().get(ip);
+				}
+
+				if (machine == null) {
+					return errorStatus("machine_not_found", ip);
+				}
+
+				final byte[] dumpBytes = generateMachineDumpData(fileSizeLimit, machine, actualProcessors);
+
+				return successStatus(dumpBytes);
+
+			} else {
+
+				long totalSize = 0;
+				Iterator<Machine> iterator = this.admin.getMachines().iterator();
+				Map<String, Object> map = successStatus();
+				while (iterator.hasNext()) {
+					Machine machine = iterator.next();
+
+					final byte[] dumpBytes = generateMachineDumpData(fileSizeLimit, machine, actualProcessors);
+					totalSize += dumpBytes.length;
+					if (totalSize > fileSizeLimit) {
+						throw new RestServiceException("dump_file_too_large", Long.toString(dumpBytes.length),
+								Long.toString(totalSize));
+					}
+					map.put(machine.getHostAddress(), dumpBytes);
+
+				}
+
+				return map;
+
+			}
+		} catch (RestServiceException e) {
+			return errorStatus(e.getMessageName(), e.getParams());
+		}
+
+	}
+
+	private String[] getProcessorsFromRequest(final String processors) {
+		String[] actualProcessors = DEFAULT_DUMP_PROCESSORS;
+
+		if (processors != null && processors.length() > 0) {
+			final String[] parts = processors.split(",");
+
+			for (int i = 0; i < parts.length; i++) {
+				parts[i] = parts[i].trim();
+			}
+
+			actualProcessors = parts;
+		}
+		return actualProcessors;
+	}
+
+	private byte[]
+			generateMachineDumpData(final long fileSizeLimit, Machine machine, String[] actualProcessors)
+					throws IOException, RestServiceException {
+		// generator the dump
+		final DumpResult dump =
+				machine.generateDump("Rest_API", null, actualProcessors);
+
+		// Download to local temp file
+		final File target = File.createTempFile("dump", ".zip", new File(this.temporaryFolder));
+		target.deleteOnExit();
+
+		dump.download(target, null);
+
+		try {
+			// check for maximum file size limit
+			long actualFileSizeLimit = DEFAULT_DUMP_FILE_SIZE_LIMIT;
+			if (fileSizeLimit != 0) {
+				actualFileSizeLimit = fileSizeLimit;
+			}
+
+			if (target.length() >= actualFileSizeLimit) {
+				throw new RestServiceException("dump_file_too_large", Long.toString(target.length()),
+						Long.toString(actualFileSizeLimit));
+			}
+
+			// load file contents into memory
+			final byte[] dumpBytes = FileUtils.readFileToByteArray(target);
+			return dumpBytes;
+
+		} finally {
+			final boolean tempFileDeleteResult = target.delete();
+			if (!tempFileDeleteResult) {
+				logger.warning("Failed to download temporary dump file: " + target);
+			}
+
+		}
+	}
+
 	private String getCloudConfigurationFromManagementSpace() {
 		logger.info("Waiting for cloud configuration to become available in management space");
 		final CloudConfigurationHolder config = gigaSpace.read(new CloudConfigurationHolder(), 1000 * 60);
@@ -224,7 +346,7 @@ public class ServiceController {
 
 		this.cloudFileContents = getCloudConfigurationFromManagementSpace();
 		if (this.cloudFileContents == null) {
-			// must be local cloud
+			// must be local cloud or azure
 			return null;
 
 		}
@@ -719,17 +841,18 @@ public class ServiceController {
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
 	public void resolveDocumentNotFoundException(final HttpServletResponse response, final Exception e)
-			throws IOException {
+	        throws IOException {
 
-		if (response.isCommitted()) {
-			logger.log(Level.WARNING,
-					"Caught exception, but response already commited. Not sending error message based on exception", e);
-		} else {
-			final Writer writer = response.getWriter();
-			final String message = "{\"status\":\"error\", \"error\":\"" + e.getMessage() + "\"}";
-			logger.log(Level.SEVERE, "caught exception. Sending response message " + message, e);
-			writer.write(message);
-		}
+	    if (response.isCommitted()) {
+	        logger.log(Level.WARNING,
+	                "Caught exception, but response already commited. Not sending error message based on exception", e);
+	    } else {
+	        ServletOutputStream outputStream = response.getOutputStream();
+	        final String message = "{\"status\":\"error\", \"error\":\"" + e.getMessage() + "\"}";
+	        logger.log(Level.SEVERE, "caught exception. Sending response message " + message, e);
+	        byte[] messageBytes = message.getBytes();
+	        outputStream.write(messageBytes);
+	    }
 	}
 
 	/******************
@@ -1096,31 +1219,46 @@ public class ServiceController {
 		return successStatus(resultsMap);
 	}
 
-	private Object doDeployApplication(final String applicationName, final File applicationFile, int timeout)
-			throws IOException, DSLException {
-		final DSLApplicationCompilatioResult result = ServiceReader.getApplicationFromFile(applicationFile);
-		final List<Service> services = createServiceDependencyOrder(result.getApplication());
+	private Object doDeployApplication(final String applicationName, final File applicationFile, final int timeout)
+            throws IOException, DSLException {
+        final DSLApplicationCompilatioResult result = ServiceReader.getApplicationFromFile(applicationFile);
+        final List<Service> services = createServiceDependencyOrder(result.getApplication());
 
-		logger.log(Level.INFO, "Starting to poll for installation lifecycle events.");
-		UUID lifecycleEventContainerID =
-				startPollingForLifecycleEvents(result.getApplication(), timeout, TimeUnit.MINUTES);
+        // validate the template specified by each server (if specified) is available on this cloud
+        if (!isLocalCloud()) {
+            for (Service service : services) {
+                ComputeDetails compute = service.getCompute();
+                if (compute != null && StringUtils.isNotBlank(compute.getTemplate())) {
+                    getComputeTemplate(cloud, compute.getTemplate());
+                }
+            }
+        }
 
-		final ApplicationInstallerRunnable installer =
-				new ApplicationInstallerRunnable(this, result, applicationName, services, this.cloud);
-		this.executorService.execute(installer);
+        final ApplicationInstallerRunnable installer =
+                new ApplicationInstallerRunnable(this, result, applicationName, services, this.cloud);
+        
+          if (installer.isAsyncInstallPossibleForApplication()) {
+                installer.run();
+            } else {
+                this.executorService.execute(installer);
+            }
 
-		final String[] serviceOrder = new String[services.size()];
-		for (int i = 0; i < serviceOrder.length; i++) {
-			serviceOrder[i] = services.get(i).getName();
-		}
-		Map<String, Object> returnMap = new HashMap<String, Object>();
-		returnMap.put(CloudifyConstants.SERVICE_ORDER, Arrays.toString(serviceOrder));
-		returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, lifecycleEventContainerID);
-		final Map<String, Object> retval = successStatus(returnMap);
+          logger.log(Level.INFO, "Starting to poll for installation lifecycle events.");
+          UUID lifecycleEventContainerID =
+                  startPollingForLifecycleEvents(result.getApplication(), timeout, TimeUnit.MINUTES);
+          
+        final String[] serviceOrder = new String[services.size()];
+        for (int i = 0; i < serviceOrder.length; i++) {
+            serviceOrder[i] = services.get(i).getName();
+        }
+        Map<String, Object> returnMap = new HashMap<String, Object>();
+        returnMap.put(CloudifyConstants.SERVICE_ORDER, Arrays.toString(serviceOrder));
+        returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, lifecycleEventContainerID);
+        final Map<String, Object> retval = successStatus(returnMap);
 
-		return retval;
+        return retval;
 
-	}
+    }
 
 	private File copyMultipartFileToLocalFile(final MultipartFile srcFile)
 			throws IOException {
@@ -1202,9 +1340,8 @@ public class ServiceController {
 					new CloudifyMachineProvisioningConfig(cloud, template, cloudFileContents, templateName);
 
 			final String[] zones = new String[] { serviceName };
-			
+
 			config.setGridServiceAgentZones(zones);
-			
 
 			final String locators = extractLocators(admin);
 			config.setLocator(locators);
@@ -1253,14 +1390,25 @@ public class ServiceController {
 		return locators.toString();
 	}
 
-	private long calculateExternalProcessMemory(final Cloud cloud, final CloudTemplate template) {
+	private long calculateExternalProcessMemory(final Cloud cloud, final CloudTemplate template)
+			throws DSLException {
 		// TODO remove hardcoded number
 		logger.info("Calculating external proc mem for template: " + template);
+		int machineMemoryMB = template.getMachineMemoryMB();
+		int reservedMemoryCapacityPerMachineInMB = cloud.getProvider().getReservedMemoryCapacityPerMachineInMB();
+		final int safteyMargin = 100; // get rid of this constant. see CLOUDIFY-297
 		final long cloudExternalProcessMemoryInMB =
-				template.getMachineMemoryMB() - cloud.getProvider().getReservedMemoryCapacityPerMachineInMB() - 100;
+				machineMemoryMB - reservedMemoryCapacityPerMachineInMB - safteyMargin;
+		if (cloudExternalProcessMemoryInMB <= 0) {
+			throw new DSLException(
+					"Cloud template machineMemoryMB ("
+							+ machineMemoryMB + "MB) must be bigger than " +
+							"reservedMemoryCapacityPerMachineInMB+" + safteyMargin + " ("
+							+ (reservedMemoryCapacityPerMachineInMB + safteyMargin) + ")");
+		}
 		logger.fine("template.machineMemoryMB = " + template.getMachineMemoryMB() + "MB\n"
 				+ "cloud.provider.reservedMemoryCapacityPerMachineInMB = "
-				+ cloud.getProvider().getReservedMemoryCapacityPerMachineInMB() + "MB\n"
+				+ reservedMemoryCapacityPerMachineInMB + "MB\n"
 				+ "cloudExternalProcessMemoryInMB = " + cloudExternalProcessMemoryInMB + "MB"
 				+ "cloudExternalProcessMemoryInMB = cloud.machineMemoryMB - "
 				+ "cloud.reservedMemoryCapacityPerMachineInMB" + " = " + cloudExternalProcessMemoryInMB);
@@ -1789,7 +1937,8 @@ public class ServiceController {
 	public @ResponseBody
 	Map<String, Object> setServiceInstances(@PathVariable final String applicationName,
 			@PathVariable final String serviceName, @PathVariable final int timeout, @RequestParam(value = "count",
-					required = true) final int count) {
+					required = true) final int count)
+			throws DSLException {
 
 		Map<String, Object> returnMap = new HashMap<String, Object>();
 		final String puName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);

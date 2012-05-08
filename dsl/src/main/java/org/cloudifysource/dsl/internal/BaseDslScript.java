@@ -115,6 +115,10 @@ public abstract class BaseDslScript extends Script {
 		}
 
 		try {
+			if (logger.isLoggable(Level.FINEST)) {
+				logger.finest("BeanUtils.setProperty(object=" + object + ",name=" + name + ",value=" + value
+						+ ",value.getClass()=" + value.getClass());
+			}
 			// Then set it
 			BeanUtils.setProperty(object, name, value);
 
@@ -261,15 +265,15 @@ public abstract class BaseDslScript extends Script {
 					logger.finer("reading extended service file [" + extendedServiceAbsPath + "]");
 				}
 				// Read the extended service
-				final Service baseService = ServiceReader.readService(extendedServiceAbsPath);
+				final Service baseService = readServiceToExtend(extendedServiceAbsPath);
+				// ServiceReader.readService(extendedServiceAbsPath);
+
 				// Populate the current service with the extended service
 				BeanUtils.copyProperties(this.activeObject, baseService);
 				final Service activeService = (Service) activeObject;
 				// Add extended service to the extension list
 				activeService.getExtendedServicesPaths().addFirst(extendServicePath);
 				return true;
-			} catch (final PackagingException e) {
-				throw new DSLException("Failed to parse extended service: " + extendServicePath, e);
 			} catch (final IllegalAccessException e) {
 				throw new DSLException("Failed to parse extended service: " + extendServicePath, e);
 			} catch (final InvocationTargetException e) {
@@ -277,6 +281,31 @@ public abstract class BaseDslScript extends Script {
 			}
 		}
 		return false;
+	}
+
+	private Service readServiceToExtend(final File serviceFileToExtend)
+			throws DSLException {
+		@SuppressWarnings("unchecked")
+		Map<Object, Object> currentVars = this.getBinding().getVariables();
+
+		DSLReader dslReader = new DSLReader();
+		dslReader.setBindingVariables(currentVars);
+		dslReader.setAdmin(null);
+		dslReader.setClusterInfo(null);
+		dslReader.setContext(null);
+		dslReader.setCreateServiceContext(false);
+		if (serviceFileToExtend.isDirectory()) {
+			dslReader.setWorkDir(serviceFileToExtend);
+		} else {
+			dslReader.setDslFile(serviceFileToExtend);
+		}
+		dslReader.setDslFileNameSuffix(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX);
+		// dslReader.setLoadUsmLib(true)
+		dslReader.setPropertiesFileName(null);
+
+		final Service service = dslReader.readDslEntity(Service.class);
+
+		return service;
 	}
 
 	private static class DSLObjectInitializerData {
@@ -331,10 +360,8 @@ public abstract class BaseDslScript extends Script {
 			throw new IllegalStateException("Incorrect configuration - class " + clazz.getName()
 					+ " is not a DSL entity");
 		}
-		map.put(entityDetails.name(),
-				new DSLObjectInitializerData(
-						entityDetails.name(), entityDetails.clazz(), entityDetails.allowRootNode(), entityDetails
-								.allowInternalNode(), entityDetails.parent()));
+		map.put(entityDetails.name(), new DSLObjectInitializerData(entityDetails.name(), entityDetails.clazz(),
+				entityDetails.allowRootNode(), entityDetails.allowInternalNode(), entityDetails.parent()));
 
 	}
 
@@ -367,17 +394,17 @@ public abstract class BaseDslScript extends Script {
 			addObjectInitializerForClass(dslObjectInitializersByName, ComputeDetails.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, Sla.class);
 
-			dslObjectInitializersByName.put("userInterface", new DSLObjectInitializerData(
-					"userInterface", UserInterface.class, false, true, "service"));
+			dslObjectInitializersByName.put("userInterface", new DSLObjectInitializerData("userInterface",
+					UserInterface.class, false, true, "service"));
 
-			dslObjectInitializersByName.put("metricGroup", new DSLObjectInitializerData(
-					"metricGroup", MetricGroup.class, false, true, "userInterface"));
-			dslObjectInitializersByName.put("widgetGroup", new DSLObjectInitializerData(
-					"widgetGroup", WidgetGroup.class, false, true, "userInterface"));
-			dslObjectInitializersByName.put("balanceGauge", new DSLObjectInitializerData(
-					"balanceGauge", BalanceGauge.class, false, true, "widgetGroup"));
-			dslObjectInitializersByName.put("barLineChart", new DSLObjectInitializerData(
-					"barLineChart", BarLineChart.class, false, true, "widgetGroup"));
+			dslObjectInitializersByName.put("metricGroup", new DSLObjectInitializerData("metricGroup",
+					MetricGroup.class, false, true, "userInterface"));
+			dslObjectInitializersByName.put("widgetGroup", new DSLObjectInitializerData("widgetGroup",
+					WidgetGroup.class, false, true, "userInterface"));
+			dslObjectInitializersByName.put("balanceGauge", new DSLObjectInitializerData("balanceGauge",
+					BalanceGauge.class, false, true, "widgetGroup"));
+			dslObjectInitializersByName.put("barLineChart", new DSLObjectInitializerData("barLineChart",
+					BarLineChart.class, false, true, "widgetGroup"));
 
 			addObjectInitializerForClass(dslObjectInitializersByName, ScalingRuleDetails.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, HighThresholdDetails.class);
@@ -405,7 +432,7 @@ public abstract class BaseDslScript extends Script {
 			// internal node
 			if (data.isAllowInternalNode()) {
 				// check that node is nested under allowed element
-				if (data.getParentElement() != null && data.getParentElement().length() > 0) {
+				if (data.getParentElement() != null && !data.getParentElement().isEmpty()) {
 					final DSLObjectInitializerData parentType = getDSLInitializers().get(data.getParentElement());
 					if (parentType == null) {
 						throw new IllegalStateException("The DSL type " + name + " has a declared parent type of "
@@ -519,14 +546,14 @@ public abstract class BaseDslScript extends Script {
 		try {
 			result = ServiceReader.getServiceFromDirectory(serviceDir, ((Application) this.rootObject).getName());
 		} catch (final FileNotFoundException e) {
-			throw new IllegalArgumentException(
-					"Failed to load service: " + serviceName + " while loading application", e);
+			throw new IllegalArgumentException("Failed to load service: " + serviceName + " while loading application",
+					e);
 		} catch (final PackagingException e) {
-			throw new IllegalArgumentException(
-					"Failed to load service: " + serviceName + " while loading application", e);
+			throw new IllegalArgumentException("Failed to load service: " + serviceName + " while loading application",
+					e);
 		} catch (final DSLException e) {
-			throw new IllegalArgumentException(
-					"Failed to load service: " + serviceName + " while loading application", e);
+			throw new IllegalArgumentException("Failed to load service: " + serviceName + " while loading application",
+					e);
 		}
 		final Service service = result.getService();
 

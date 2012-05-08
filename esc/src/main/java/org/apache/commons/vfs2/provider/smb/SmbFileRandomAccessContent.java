@@ -107,92 +107,110 @@ class SmbFileRandomAccessContent extends AbstractRandomAccessContent
         }
     }
 
-    public long getFilePointer() throws IOException
+    @Override
+	public long getFilePointer() throws IOException
     {
         return raf.getFilePointer();
     }
 
-    public void seek(long pos) throws IOException
+    @Override
+	public void seek(long pos) throws IOException
     {
         raf.seek(pos);
     }
 
-    public long length() throws IOException
+    @Override
+	public long length() throws IOException
     {
         return raf.length();
     }
 
-    public void close() throws IOException
+    @Override
+	public void close() throws IOException
     {
         raf.close();
     }
 
-    public byte readByte() throws IOException
+    @Override
+	public byte readByte() throws IOException
     {
         return raf.readByte();
     }
 
-    public char readChar() throws IOException
+    @Override
+	public char readChar() throws IOException
     {
         return raf.readChar();
     }
 
-    public double readDouble() throws IOException
+    @Override
+	public double readDouble() throws IOException
     {
         return raf.readDouble();
     }
 
-    public float readFloat() throws IOException
+    @Override
+	public float readFloat() throws IOException
     {
         return raf.readFloat();
     }
 
-    public int readInt() throws IOException
+    @Override
+	public int readInt() throws IOException
     {
         return raf.readInt();
     }
 
-    public int readUnsignedByte() throws IOException
+    @Override
+	public int readUnsignedByte() throws IOException
     {
         return raf.readUnsignedByte();
     }
 
-    public int readUnsignedShort() throws IOException
+    @Override
+	public int readUnsignedShort() throws IOException
     {
         return raf.readUnsignedShort();
     }
 
-    public long readLong() throws IOException
+    @Override
+	public long readLong() throws IOException
     {
         return raf.readLong();
     }
 
-    public short readShort() throws IOException
+    @Override
+	public short readShort() throws IOException
     {
         return raf.readShort();
     }
 
-    public boolean readBoolean() throws IOException
+    @Override
+	public boolean readBoolean() throws IOException
     {
         return raf.readBoolean();
     }
 
-    public int skipBytes(int n) throws IOException
+    @Override
+	public int skipBytes(int n) throws IOException
     {
         return raf.skipBytes(n);
     }
 
-    public void readFully(byte b[]) throws IOException
+    @Override
+	public void readFully(byte b[]) throws IOException
     {
         raf.readFully(b);
     }
 
-    public void readFully(byte b[], int off, int len) throws IOException
+    @Override
+	public void readFully(byte b[], int off, int len) throws IOException
     {
         raf.readFully(b, off, len);
     }
 
-    public String readUTF() throws IOException
+    @Override
+	public String readUTF() throws IOException
     {
         return raf.readUTF();
     }
@@ -281,7 +299,8 @@ class SmbFileRandomAccessContent extends AbstractRandomAccessContent
         raf.writeUTF(str);
     }
 
-    public InputStream getInputStream() throws IOException
+    @Override
+	public InputStream getInputStream() throws IOException
     {
         return rafis;
     }

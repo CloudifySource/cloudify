@@ -61,7 +61,8 @@ public class InstallApplication extends AdminAwareCommand {
 			+ " is done. Defaults to 10 minutes.")
 	private int timeoutInMinutes = 10;
 
-	private static final String TIMEOUT_ERROR_MESSAGE = "Application installation timed out";
+	private static final String TIMEOUT_ERROR_MESSAGE = "Application installation timed out." 
+				+ " Configure the timeout using the -timeout flag.";
 
 	/**
 	 * {@inheritDoc}
@@ -81,15 +82,15 @@ public class InstallApplication extends AdminAwareCommand {
 			throw new CLIStatusException("application_already_deployed", application.getName());
 		}
 
-		File zipFile = null;
-		if (!applicationFile.isFile()) {
-			zipFile = Packager.packApplication(application, applicationFile);
-		} else {
+		File zipFile;
+		if (applicationFile.isFile()) {
 			if (applicationFile.getName().endsWith(".zip") || applicationFile.getName().endsWith(".jar")) {
 				zipFile = applicationFile;
 			} else {
 				throw new CLIStatusException("application_file_format_mismatch", applicationFile.getPath());
 			}
+		} else {//pack an application folder
+			zipFile = Packager.packApplication(application, applicationFile);			
 		}
 
 		// toString of string list (i.e. [service1, service2])
@@ -149,34 +150,15 @@ public class InstallApplication extends AdminAwareCommand {
 	 *            The Application object
 	 */
 	private void normalizeApplicationName(final Application application) {
-		if (applicationName == null || applicationName.length() == 0) {
+		if (applicationName == null || applicationName.isEmpty()) {
 			applicationName = application.getName();
 		}
-		if (applicationName == null || applicationName.length() == 0) {
+		if (applicationName == null || applicationName.isEmpty()) {
 			applicationName = applicationFile.getName();
 			final int endIndex = applicationName.lastIndexOf('.');
 			if (endIndex > 0) {
 				applicationName = applicationName.substring(0, endIndex);
 			}
 		}
-	}
-
-	/**
-	 * Gets a service object from the given application, by service name. In case a service by that name is
-	 * not found - an IllegalStateException is thrown.
-	 * 
-	 * @param application
-	 *            The Application object containing the service
-	 * @param serviceName
-	 *            The name of the required service
-	 * @return Service object
-	 */
-	private Service getServiceByName(final Application application, final String serviceName) {
-		for (final Service service : application.getServices()) {
-			if (serviceName.equals(service.getName())) {
-				return service;
-			}
-		}
-		throw new IllegalStateException("Cannot find service " + serviceName + " in application.");
 	}
 }

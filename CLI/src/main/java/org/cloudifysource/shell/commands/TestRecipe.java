@@ -123,7 +123,12 @@ public class TestRecipe extends AbstractGSCommand {
 				serviceFolder.getAbsolutePath()).append(
 				File.separator).append(
 				File.pathSeparator);
+		sb.append(
+				serviceFolder.getAbsolutePath()).append(
+				File.separator).append("lib").append(File.separator).append("*")
+				.append(File.pathSeparator);
 
+		//sb.append(serviceFolder.getAbsolutePath() + "/ext/usmlib")
 		// TODO - add local recipe jar files!
 		return sb.toString();
 

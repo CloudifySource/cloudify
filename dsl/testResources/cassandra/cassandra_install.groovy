@@ -18,22 +18,22 @@ if (!(new File("apache-cassandra-0.8.0-bin.tar.gz").exists())) {
 }
 
 
-def ant = new AntBuilder()   // create an antbuilder
+new AntBuilder().sequential {  // create an antbuilder
 
-ant.mkdir(dir:cassnadraHome)
+	mkdir(dir:cassnadraHome)
 
-ant.gunzip(src:"apache-cassandra-0.8.0-bin.tar.gz",
-            dest:cassnadraHome + "/apache-cassandra-0.8.0-bin.tar"  )
+	gunzip(src:"apache-cassandra-0.8.0-bin.tar.gz", 
+		dest:cassnadraHome + "/apache-cassandra-0.8.0-bin.tar"  )
 			
-ant.untar(src:cassnadraHome + "/" + "apache-cassandra-0.8.0-bin.tar", dest:cassnadraHome)
+	untar(src:cassnadraHome + "/" + "apache-cassandra-0.8.0-bin.tar", dest:cassnadraHome)
 
-ant.move(todir: cassnadraHome, overwrite:true) {
-        fileset(dir:cassnadraHome + "/" + zipName, includes:"**/*")
-     }
+	move(todir: cassnadraHome, overwrite:true) {
+		fileset(dir:cassnadraHome + "/" + zipName, includes:"**/*")
+	}
 
-ant.delete(file:"${zipName}-bin.tar.gz") ;
-ant.delete(dir:"${cassnadraHome}/${zipName}") ;
-
+	delete(file:"${zipName}-bin.tar.gz") 
+	delete(dir:"${cassnadraHome}/${zipName}") 
+}
 //configure the YAML
 def af = new AdminFactory();
 def admin = af.createAdmin();

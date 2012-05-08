@@ -269,4 +269,9 @@ public class ServiceContextImpl implements ServiceContext {
 		this.externalProcessId = externalProcessId;
 	}
 
+	@Override
+	public boolean isLocalCloud() {
+		return IsLocalCloudUtils.isLocalCloud();
+	}
+
 }

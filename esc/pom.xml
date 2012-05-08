@@ -107,7 +107,7 @@
 		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy</artifactId>
-			<version>1.8.0</version>
+			<version>${groovyVersion}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -156,6 +156,6 @@
 		</plugins>
 	</build>
 	<properties>
-		<jcloudsVersion>1.4.0-rc.2</jcloudsVersion>
+		<jcloudsVersion>1.4.0</jcloudsVersion>
 	</properties>
 </project>

@@ -82,6 +82,13 @@ public class DSLReader {
 
 	private String dslContents;
 
+	/*******
+	 * Variables injected into the context of a groovy compilation (binding)
+	 * Used with the service extension mechanism to pass defined properties, and the context, to the
+	 * compilation of the parent service.
+	 */
+	private Map<Object, Object> variables;
+
 	/*********
 	 * Default file name suffix for service files.
 	 */
@@ -208,6 +215,9 @@ public class DSLReader {
 			throw new IllegalArgumentException("Failed to load properties file " + this.propertiesFile, e);
 		}
 
+		if (this.variables != null) {
+			properties.putAll(this.variables);
+		}
 		ClusterInfo clusterInfoToUseInGsc = this.clusterInfo;
 		if (clusterInfoToUseInGsc == null) {
 			clusterInfoToUseInGsc = new ClusterInfo(null, 1, 0, 1, 0);
@@ -215,13 +225,16 @@ public class DSLReader {
 
 		// create an uninitialized service context
 		if (this.createServiceContext) {
-			if (isRunningInGSC) {
-				this.context = new ServiceContextImpl(clusterInfoToUseInGsc, workDir.getAbsolutePath());
-			} else {
-				this.context = new ServiceContextImpl(new ClusterInfo(null, 1, 0, 1, 0), workDir.getAbsolutePath());
+			if (this.context == null) {
+				if (isRunningInGSC) {
+					this.context = new ServiceContextImpl(clusterInfoToUseInGsc, workDir.getAbsolutePath());
+				} else {
+					this.context = new ServiceContextImpl(new ClusterInfo(null, 1, 0, 1, 0), workDir.getAbsolutePath());
+				}
 			}
 
 		}
+		
 		// create the groovy shell, loaded with our settings
 		final GroovyShell gs = createGroovyShell(properties);
 		final Object result = evaluateGroovyScript(gs);
@@ -238,8 +251,11 @@ public class DSLReader {
 					clusterInfoToUseInGsc.setName(ServiceUtils.getAbsolutePUName(
 							CloudifyConstants.DEFAULT_APPLICATION_NAME, ((Service) result).getName()));
 				}
+				
+				
 				this.context.init((Service) result, admin, clusterInfoToUseInGsc);
 			} else {
+				
 				this.context.initInIntegratedContainer((Service) result);
 			}
 		}
@@ -539,6 +555,11 @@ public class DSLReader {
 
 	public void setLoadUsmLib(final boolean loadUsmLib) {
 		this.loadUsmLib = loadUsmLib;
+	}
+
+	public void setBindingVariables(final Map<Object, Object> variables) {
+		this.variables = variables;
+
 	}
 
 }

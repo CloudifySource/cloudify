@@ -53,7 +53,7 @@
 		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy</artifactId>
-			<version>1.8.0</version>
+			<version>${groovyVersion}</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
