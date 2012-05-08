@@ -553,7 +553,7 @@
 	</target>
 	
 	<target name="cloudify.install">
-		<exec dir="${basedir}" executable="${mvn.executable}">
+		<exec dir="${basedir}" executable="${mvn.executable}" failonerror="true">
 			<arg line="install javadoc:javadoc -Dmaven.test.skip=true"/>
 		</exec>
 	</target>
