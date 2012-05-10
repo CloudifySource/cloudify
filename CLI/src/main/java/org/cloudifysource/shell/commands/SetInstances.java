@@ -25,7 +25,7 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 @Command(scope = "cloudify", name = "set-instances", description = "Sets the number of services of an elastic service")
 public class SetInstances extends AdminAwareCommand {
 
-	private static final int DEFAULT_TIMEOUT_MINUTES = 1;
+	private static final int DEFAULT_TIMEOUT_MINUTES = 10;
 
 	@Argument(index = 0, name = "service-name", required = true, description = "the service to scale")
 	private String serviceName;
