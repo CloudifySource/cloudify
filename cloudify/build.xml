@@ -12,13 +12,10 @@
 
 <project name="Cloudify-Assembly" default="usage" basedir=".">
 	
-	<condition property="build.repository.path" value="\\tarzan\builds">
-		<os family="windows" />
-	</condition>
-
-	<condition property="build.repository.path" value="/export/builds">
-		<os family="unix" />
-	</condition>
+	<available file="\\tarzan\builds" property="build.repository.path" value="\\tarzan\builds"/>
+	<available file="/export/builds" property="build.repository.path" value="/export/builds"/>
+	<!-- by default it is downloaded to here -->
+	<property name="build.repository.path" value="target/build-repository"/>
 
 	<condition property="mvn.executable" value="mvn.bat">
             <os family="windows" />
@@ -39,7 +36,6 @@
 	<property name="xap.zip.full.path" value="${build.repository.path}/${gs.version}/build_${gs.build.number}/xap-premium/1.5/${xap.zip.name}" />
 	<property name="cloudify.installation.dir" value="gigaspaces-cloudify-${cloudify.version}-${cloudify.milestone}" />
 	<property name="cloudify.zip.name" value="${cloudify.installation.dir}-b${cloudify.build.number}.zip" />
-	<property name="xap.zip.full.path" value="${build.repository.path}/cloudify/${cloudify.version}/build_${cloudify.build.number}/product/${xap.zip.name}" />
 	<property name="CLOUDIFY" value="Cloudify" />
 	<property name="cloudify" value="cloudify" />
 	<property name="gs.runtime.jar" value="gs-runtime.jar" />
@@ -539,6 +535,9 @@
 		
 		<available file="${xap.files.tmp.dir}/${xap.zip.name}" property="appropriate.xap.zip.present"/>
 		<ant target="download.zip" />
+
+		<!-- part of the build assumes this is available (perhaps it shouldn't but for now this fixes failures) -->
+		<copy file="${xap.files.tmp.dir}/${xap.zip.name}" tofile="${xap.zip.full.path}"/>
 			
 		<unzip src="${xap.files.tmp.dir}/${xap.zip.name}" dest="${tmp.dir}" />	
 		<move file="${tmp.dir}/${xap.installation.dir}" tofile="${tmp.dir}/${cloudify.installation.dir}" />

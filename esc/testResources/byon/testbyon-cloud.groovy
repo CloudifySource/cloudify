@@ -39,6 +39,7 @@ cloud {
 		// Mandatory. Files from the local directory will be copied to this directory on the remote machine. 
 		remoteDirectory "/tmp/gs-files"
 		// Mandatory. The HTTP/S URL where cloudify can be downloaded from by newly started machines.
+		// FIXME this should point to either a public maven repo or latest release build by default
 		cloudifyUrl "http://pc-lab25:8087/publish/gigaspaces.zip"
 		// Mandatory. The prefix for new machines started for servies.
 		machineNamePrefix "cloudify_agent_"
@@ -84,7 +85,7 @@ cloud {
 										]),
 										([
 											"id" : "byon-test1",
-											"ip" : "pc-lab39,pc-lab40,0.0.0.5"
+											"ip" : "0.0.0.3,0.0.0.4,0.0.0.5"
 										]),
 										([
 											"id" : "byon-test2{0}",
