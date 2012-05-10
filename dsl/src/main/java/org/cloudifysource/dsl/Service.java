@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
 import org.cloudifysource.dsl.statistics.PerInstanceStatisticsDetails;
 import org.cloudifysource.dsl.statistics.ServiceStatisticsDetails;
@@ -425,6 +426,16 @@ public class Service {
 	 */
 	public long getScaleCooldownInSeconds() {
 		return Math.max(this.scaleOutCooldownInSeconds,this.scaleInCooldownInSeconds);
+	}
+	
+	@DSLValidation
+	void validateDefaultValues()
+			throws DSLValidationException {
+		if (this.numInstances > this.maxAllowedInstances) {
+			throw new DSLValidationException("The defined number of instances is bigger " 
+					+ "than the maximum allowed number of instances: " 
+					+ this.numInstances + ">" + this.maxAllowedInstances);
+		}
 	}
 	
 }
