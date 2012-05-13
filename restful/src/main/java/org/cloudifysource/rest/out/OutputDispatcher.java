@@ -35,13 +35,16 @@ public class OutputDispatcher {
 			outputMap.put(manager.getFinalCommandName(), OutputUtils.NULL_OBJECT_DENOTER);
 			return outputMap;
 		}
-		String nextCommandURL = OutputUtils.getNextCommandUrl(manager.getFinalCommand().getPreviousCommandObject(), manager.getCommandURL(), manager.getFinalCommandName());
+		String nextCommandURL;
 		Class<?> aClass = object.getClass();
 		if (aClass.isArray()){
+		    nextCommandURL = OutputUtils.getNextCommandUrl(manager.getCommandURL(), manager.getFinalCommandName(), true);
 			OutputUtils.outputArrayToMap(object, outputMap, nextCommandURL);
 		}else if (Map.class.isAssignableFrom(aClass)) {
+		    nextCommandURL = OutputUtils.getNextCommandUrl(manager.getCommandURL(), manager.getFinalCommandName(), true);
 			OutputUtils.outputMapToMap(object, outputMap, nextCommandURL);
 		}else if (List.class.isAssignableFrom(aClass)) {
+		    nextCommandURL = OutputUtils.getNextCommandUrl(manager.getCommandURL(), manager.getFinalCommandName(), true);
 			OutputUtils.outputListToMap(object, outputMap, nextCommandURL);
 		}else{
 			OutputUtils.outputObjectToMap(manager, outputMap);
