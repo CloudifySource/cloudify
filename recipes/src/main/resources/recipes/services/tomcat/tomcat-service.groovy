@@ -1,37 +1,57 @@
-/*******************************************************************************
-* Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*       http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+import java.util.concurrent.TimeUnit;
+
 service {
 	name "tomcat"
 	icon "tomcat.gif"
 	type "WEB_SERVER"
+	
+    elastic true
 	numInstances 1
-	lifecycle{
+	minAllowedInstances 1
+	maxAllowedInstances 2
+	
+	def portIncrement =  context.isLocalCloud() ? context.getInstanceId()-1 : 0		
+	
+	def currJmxPort = jmxPort + portIncrement
+	def currHttpPort = port + portIncrement
+	def currAjpPort = ajpPort + portIncrement
+	
+	compute {
+		template "SMALL_LINUX"
+	}
 
-		init "tomcat_install.groovy"
+	lifecycle {
+		install "tomcat_install.groovy"
 		start "tomcat_start.groovy"
 		preStop "tomcat_stop.groovy"
-
+		startDetectionTimeoutSecs 240
 		startDetection {
-			!ServiceUtils.arePortsFree([8080, 8009] )
+			println "tomcat-service.groovy(startDetection): arePortsFree http=${currHttpPort} ajp=${currAjpPort} ..."
+			!ServiceUtils.arePortsFree([currHttpPort, currAjpPort] )
 		}
 	}
 
-	customCommands ([
-				"updateWar" : "update_war.groovy"
-			])
+	customCommands ([       	
+		"updateWar" : {warUrl -> 
+			println "tomcat-service.groovy(updateWar custom command): warUrl is ${warUrl}..."
+			context.attributes.thisService["warUrl"] = "${warUrl}"
+			println "tomcat-service.groovy(updateWar customCommand): invoking updateWarFile custom command ..."
+			tomcatService = context.waitForService(serviceName, 60, TimeUnit.SECONDS)
+			tomcatInstances=tomcatService.waitForInstances(tomcatService.numberOfPlannedInstances,60, TimeUnit.SECONDS)				
+			instanceProcessID=context.getInstanceId()			                       
+			tomcatInstances.each {
+				if ( instanceProcessID == it.instanceID ) {
+					println "tomcat-service.groovy(updateWar customCommand):  instanceProcessID is ${instanceProcessID} now invoking updateWarFile..."
+					it.invoke("updateWarFile")
+				}
+			}
+						
+			println "tomcat-service.groovy(updateWar customCommand): End"
+			return true
+		} ,
+		 
+		"updateWarFile" : "updateWarFile.groovy"
+    ])
 
 	plugins([
 		plugin {
@@ -39,22 +59,27 @@ service {
 			className "org.cloudifysource.usm.jmx.JmxMonitor"
 			config([
 						"Current Http Threads Busy": [
-							"Catalina:type=ThreadPool,name=\"http-bio-8080\"",
+							"Catalina:type=ThreadPool,name=\"http-bio-${currHttpPort}\"",
 							"currentThreadsBusy"
 						],
-						"Current Http Threads count": [
-							"Catalina:type=ThreadPool,name=\"http-bio-8080\"",
+						"Current Http Threads Count": [
+							"Catalina:type=ThreadPool,name=\"http-bio-${currHttpPort}\"",
 							"currentThreadCount"
 						],
-						"Request Backlog": [
-							"Catalina:type=ProtocolHandler,port=8080",
+						"Backlog": [
+							"Catalina:type=ProtocolHandler,port=${currHttpPort}",
 							"backlog"
 						],
-						"Active Sessions": [
-							"Catalina:type=Manager,context=/,host=localhost",
+						"Active Sessions":[
+							"Catalina:type=Manager,context=/${appFolder},host=localhost",
 							"activeSessions"
 						],
-						port: 11099
+						"Total Requests Count": [
+							"Catalina:type=GlobalRequestProcessor,name=\"http-bio-${currHttpPort}\"",
+							"requestCount"
+						],
+						port: "${currJmxPort}"
+
 					])
 		}
 	])
@@ -78,8 +103,9 @@ service {
 
 				metrics([
 					"Current Http Threads Busy",
-					"Current Http Threads count",
-					"Request Backlog"
+					"Current Http Threads Count",
+					"Backlog",
+					"Total Requests Count"
 				])
 			} ,
 
@@ -130,11 +156,22 @@ service {
 			} ,
 			widgetGroup {
 
+				name "Current Http Threads Count"
+				widgets([
+					balanceGauge{metric = "Current Http Thread Count"},
+					barLineChart {
+						metric "Current Http Thread Count"
+						axisYUnit Unit.REGULAR
+					}
+				])
+			} ,
+			widgetGroup {
+
 				name "Request Backlog"
 				widgets([
-					balanceGauge{metric = "Request Backlog"},
+					balanceGauge{metric = "Backlog"},
 					barLineChart {
-						metric "Request Backlog"
+						metric "Backlog"
 						axisYUnit Unit.REGULAR
 					}
 				])
@@ -148,13 +185,48 @@ service {
 						axisYUnit Unit.REGULAR
 					}
 				])
+			},
+			widgetGroup {
+				name "Total Requests Count"
+				widgets([
+					balanceGauge{metric = "Total Requests Count"},
+					barLineChart {
+						metric "Total Requests Count"
+						axisYUnit Unit.REGULAR
+					}
+				])
 			}
 		]
 		)
 	}
-
+	
 	network {
-		port = 8080
-		protocolDescription ="HTTP"
-	}
+        port = currHttpPort
+        protocolDescription ="HTTP"
+    }
+	
+	scaleCooldownInSeconds 20
+	samplingPeriodInSeconds 1
+
+	// Defines an automatic scaling rule based on "counter" metric value
+	scalingRules ([
+		scalingRule {
+
+			serviceStatistics {
+				metric "Total Requests Count"
+				statistics Statistics.maximumThroughput
+				movingTimeRangeInSeconds 20
+			}
+
+			highThreshold {
+				value 1
+				instancesIncrease 1
+			}
+
+			lowThreshold {
+				value 0.2
+				instancesDecrease 1
+			}
+		}
+	])
 }
