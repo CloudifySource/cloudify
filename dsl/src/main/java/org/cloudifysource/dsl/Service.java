@@ -432,9 +432,9 @@ public class Service {
 	void validateDefaultValues()
 			throws DSLValidationException {
 		if (this.numInstances > this.maxAllowedInstances) {
-			throw new DSLValidationException("The defined number of instances is bigger " 
-					+ "than the maximum allowed number of instances: " 
-					+ this.numInstances + ">" + this.maxAllowedInstances);
+			throw new DSLValidationException("The requested number of instances ("
+					+ this.numInstances + ") exceeds the maximum number of instances allowed" 
+					+ " (" + this.maxAllowedInstances + ") for service " + this.name + ".");
 		}
 	}
 	
