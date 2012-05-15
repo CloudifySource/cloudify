@@ -36,8 +36,7 @@ cloud {
 		
 		// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.  
 		localDirectory "tools/cli/plugins/esc/byon/upload"
-		// Mandatory. Files from the local directory will be copied to this directory on the remote machine. 
-		remoteDirectory "/tmp/gs-files"
+		
 		// Mandatory. The HTTP/S URL where cloudify can be downloaded from by newly started machines.
 		cloudifyUrl "http://pc-lab25:8087/publish/gigaspaces.zip"
 		// Mandatory. The prefix for new machines started for servies.
@@ -70,6 +69,8 @@ cloud {
 	 */
 	templates ([
 				SMALL_LINUX : template{
+					// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+					remoteDirectory "/tmp/gs-files"
 					custom ([
 						"nodesList" : ([
 										([
