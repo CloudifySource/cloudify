@@ -26,6 +26,8 @@ import java.net.Socket;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
@@ -37,15 +39,21 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.provider.sftp.SftpFileSystemConfigBuilder;
+import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
+import org.cloudifysource.esc.installer.InstallationDetails;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
 import org.openspaces.admin.gsm.GridServiceManagers;
+
+import com.gigaspaces.internal.utils.StringUtils;
 
 /**
  * Utilities class.
@@ -368,5 +376,72 @@ public final class Utils {
 					+ " server " + host + " timed out");
 		}
 	}
+	
+	/*************************
+	 * Creates an Agentless Installer's InstallationDetails input object from a machine details
+	 * object returned from a provisioning implementation.
+	 * 
+	 * @param md the machine details.
+	 * @param cloud The cloud configuration.
+	 * @param template the cloud template used for this machine.
+	 * @param zones the zones that the new machine should start in.
+	 * @param lookupLocatorsString the lookup locators string to pass to the new machine.
+	 * @param admin an admin object, may be null.
+	 * @return the installation details.
+	 * @throws FileNotFoundException if a key file is specified and is not found.
+	 */
+	public static InstallationDetails createInstallationDetails(final MachineDetails md, 
+			final Cloud cloud, final CloudTemplate template, final String[] zones, 
+			final String lookupLocatorsString, final Admin admin)
+			throws FileNotFoundException {
+		// TODO - move this to a util package - it is copied in bootstrap-cloud
+		final InstallationDetails details = new InstallationDetails();
+
+		details.setLocalDir(cloud.getProvider().getLocalDirectory());
+		final String remoteDir = template.getRemoteDirectory();
+		details.setRemoteDir(remoteDir);
+		details.setManagementOnlyFiles(cloud.getProvider().getManagementOnlyFiles());
+	
+		details.setZones(StringUtils.join(zones, ",", 0, zones.length));
+
+		if (org.apache.commons.lang.StringUtils.isNotBlank(cloud.getUser().getKeyFile())) {
+			final File keyFile = new File(cloud.getProvider().getLocalDirectory(), cloud.getUser().getKeyFile());
+			if (keyFile.exists()) {
+				details.setKeyFile(keyFile.getAbsolutePath());
+			} else {
+				throw new FileNotFoundException(
+						"Could not find key file matching specified cloud configuration key file: "
+								+ cloud.getUser().getKeyFile() + ". Tried: " + keyFile + " but file does not exist");
+			}
+
+		}
+
+		details.setPrivateIp(md.getPrivateAddress());
+		details.setPublicIp(md.getPublicAddress());
+
+		details.setLocator(lookupLocatorsString);
+		details.setLus(false);
+		details.setCloudifyUrl(cloud.getProvider().getCloudifyUrl());
+		details.setOverridesUrl(cloud.getProvider().getCloudifyOverridesUrl());
+		details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
+		details.setAdmin(admin);
+
+		details.setUsername(md.getRemoteUsername());
+		details.setPassword(md.getRemotePassword());
+		details.setRemoteExecutionMode(md.getRemoteExecutionMode());
+		details.setFileTransferMode(md.getFileTransferMode());
+
+		// Add all template custom data fields starting with 'installer.' to the installation details
+		Set<Entry<String, Object>> customEntries = template.getCustom().entrySet();
+		for (Entry<String, Object> entry : customEntries) {
+			if (entry.getKey().startsWith("installer.")) {
+				details.getCustomData().put(entry.getKey(), entry.getValue());
+			}
+		}
+
+		return details;
+
+	}
+
 
 }
