@@ -658,7 +658,7 @@ public class AgentlessInstaller {
 			try {
 				reader.close();
 			} catch (final IOException e) {
-				logger.log(Level.SEVERE, "Error while closingprocess input stream: " + e.getMessage(), e);
+				logger.log(Level.SEVERE, "Error while closing process input stream: " + e.getMessage(), e);
 
 			}
 
