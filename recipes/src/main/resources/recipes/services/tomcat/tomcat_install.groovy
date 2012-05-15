@@ -28,10 +28,17 @@ new AntBuilder().sequential {
 	mkdir(dir:"${installDir}")
 	get(src:"${config.downloadPath}", dest:"${installDir}/${config.zipName}", skipexisting:true)
 	unzip(src:"${installDir}/${config.zipName}", dest:"${installDir}", overwrite:true)
-	move(file:"${installDir}/${config.name}", tofile:"${home}")
-	get(src:"${warUrl}", dest:"${applicationWar}", skipexisting:true)
-	copy(todir: "${home}/webapps", file:"${applicationWar}", overwrite:true)
+	move(file:"${installDir}/${config.name}", tofile:"${home}")	
 	chmod(dir:"${home}/bin", perm:'+x', includes:"*.sh")
+}
+
+if ( warUrl != null && "${warUrl}" != "" ) {    
+	new AntBuilder().sequential {	
+		echo(message:"Getting ${warUrl} to ${applicationWar} ...")
+		get(src:"${warUrl}", dest:"${applicationWar}", skipexisting:false)
+		echo(message:"Copying ${applicationWar} to ${home}/webapps ...")
+		copy(todir: "${home}/webapps", file:"${applicationWar}", overwrite:true)
+	}
 }
 
 portIncrement = 0
