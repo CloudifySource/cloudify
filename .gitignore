@@ -131,3 +131,9 @@
 /restful/.settings
 /restful/.classpath
 /restful/.project
+
+#/cloudify
+/cloudify/target
+/cloudify/releases
+/cloudify/tmp
+/cloudify/xap.files.tmp.dir
