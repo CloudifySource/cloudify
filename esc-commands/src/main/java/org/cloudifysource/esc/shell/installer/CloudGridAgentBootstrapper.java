@@ -154,69 +154,94 @@ public class CloudGridAgentBootstrapper {
 
 		createProvisioningDriver();
 
-		try {
 			// Start the cloud machines!!!
 			MachineDetails[] servers;
 			try {
 				servers = provisioning.startManagementMachines(timeout, timeoutUnit);
 			} catch (final CloudProvisioningException e) {
 				throw new InstallerException("Failed to start managememnt servers. Reason: " + e.getMessage(), e);
+			} catch (final TimeoutException e) {
+				throw new CLIException("Cloudify bootstrap on provider " + this.cloud.getProvider().getProvider()
+						+ " timed-out. " + "Please try to run again using the –timeout option.", e);
 			}
 
 			if (servers.length == 0) {
 				throw new IllegalArgumentException("Received zero management servers from provisioning implementation");
 			}
 
-			if (logger.isLoggable(Level.INFO)) {
-				for (final MachineDetails server : servers) {
-					logServerDetails(server);
+			//from this point on - close machines if an exception is thrown (to avoid leaks).
+			try {
+				if (logger.isLoggable(Level.INFO)) {
+					for (final MachineDetails server : servers) {
+						logServerDetails(server);
+					}
 				}
-			}
 
-			// Start the management agents and other processes
-			if (servers[0].isAgentRunning()) {
-				// must be using existing machines.
-
-				// TODO - check if management machines are running properly. If so - use them, like connect.
-				throw new IllegalStateException(
+				// Start the management agents and other processes
+				if (servers[0].isAgentRunning()) {
+					// must be using existing machines.
+					// TODO - check if management machines are running properly. If so - use them, like connect.
+					throw new IllegalStateException(
 						"Cloud bootstrapper found existing management machines with the same name. "
 								+ "Please shut them down before continuing");
-
-			}
-			
-			startManagememntProcesses(servers, end);
-
-			// Wait for rest to become available
-			// When the rest gateway is up and running, the cloud is ready to go
-			for (final MachineDetails server : servers) {
-				String ipAddress;
-				if (cloud.getConfiguration().isBootstrapManagementOnPublicIp()) {
-					ipAddress = server.getPublicAddress();
-				} else {
-					ipAddress = server.getPrivateAddress();
 				}
+			
+				startManagememntProcesses(servers, end);
 
-				final URL restAdminUrl = new URI("http", null, ipAddress, REST_GATEWAY_PORT, null, null, null).toURL();
-				final URL webUIUrl = new URI("http", null, ipAddress, WEBUI_PORT, null, null, null).toURL();
+				// Wait for rest to become available
+				// When the rest gateway is up and running, the cloud is ready to go
+				for (final MachineDetails server : servers) {
+					String ipAddress = null;
+					if (cloud.getConfiguration().isBootstrapManagementOnPublicIp()) {
+						ipAddress = server.getPublicAddress();
+					} else {
+						ipAddress = server.getPrivateAddress();
+					}
 
-				// We are relying on start-management command to be run on the
-				// new machine, so everything should be up if the rest admin is up
-				waitForConnection(restAdminUrl, Utils.millisUntil(end), TimeUnit.MILLISECONDS);
+					final URL restAdminUrl = new URI("http", null, ipAddress, REST_GATEWAY_PORT, null, null, null)
+						.toURL();
+					final URL webUIUrl = new URI("http", null, ipAddress, WEBUI_PORT, null, null, null).toURL();
 
-				logger.info("Rest service is available at: " + restAdminUrl + '.');
-				logger.info("Webui service is available at: " + webUIUrl + '.');
+					// We are relying on start-management command to be run on the
+					// new machine, so everything should be up if the rest admin is up
+					waitForConnection(restAdminUrl, Utils.millisUntil(end), TimeUnit.MILLISECONDS);
+
+					logger.info("Rest service is available at: " + restAdminUrl + '.');
+					logger.info("Webui service is available at: " + webUIUrl + '.');
+				}
+			} catch (final IOException e) {
+				stopManagementMachines();
+				throw new CLIException("Cloudify bootstrap on provider " + this.cloud.getProvider().getProvider()
+						+ " failed. Reason: " + e.getMessage(), e);
+			} catch (final URISyntaxException e) {
+				stopManagementMachines();
+				throw new CLIException("Bootstrap-cloud failed. Reason: " + e.getMessage(), e);
+			} catch (final TimeoutException e) {
+				stopManagementMachines();
+				throw new CLIException("Cloudify bootstrap on provider " + this.cloud.getProvider().getProvider()
+						+ " timed-out. " + "Please try to run again using the –timeout option.", e);
+			} catch (CLIException e) {
+				stopManagementMachines();
+				throw e;
+			} catch (InstallerException e) {
+				stopManagementMachines();
+				throw e;
+			} catch (InterruptedException e) {
+				stopManagementMachines();
+				throw e;
 			}
-
-		} catch (final IOException e) {
-			throw new CLIException("Cloudify bootstrap on provider " + this.cloud.getProvider().getProvider()
-					+ " failed. Reason: " + e.getMessage(), e);
-		} catch (final URISyntaxException e) {
-			throw new CLIException("Bootstrap-cloud failed. Reason: " + e.getMessage(), e);
-		} catch (final TimeoutException e) {
-			throw new CLIException("Cloudify bootstrap on provider " + this.cloud.getProvider().getProvider()
-					+ " timed-out. " + "Please try to run again using the –timeout option.", e);
+	}
+	
+	private void stopManagementMachines() {
+		try {
+			provisioning.stopManagementMachines();
+		} catch (CloudProvisioningException e) {
+			//log a warning, don't throw an exception on this failure
+			logger.warning("Failed to clean management machines after provisioning failure, reported error: " + e.getMessage());
+		} catch (TimeoutException e) {
+			//log a warning, don't throw an exception on this failure
+			logger.warning("Failed to clean management machines after provisioning failure, the operation timed out (" + e.getMessage() + ")");
 		}
-
 	}
 
 	/**
