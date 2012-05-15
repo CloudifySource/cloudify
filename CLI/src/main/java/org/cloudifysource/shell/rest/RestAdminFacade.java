@@ -488,6 +488,25 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	/**
 	 * {@inheritDoc}
 	 */
+	public Map<String, String> dumpAgent(final String ip) throws CLIException {
+
+		Map<String, String> result = null;
+		try {
+			final String url = SERVICE_CONTROLLER_URL + "dump/" + ip;
+			result = (Map<String, String>)client.get(url);
+		} catch (final ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+		} catch (final RestException e) {
+			throw new CLIException(e);
+		}
+
+		return result;
+	}
+	
+	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Map<String, String> installApplication(final File applicationFile, final String applicationName, int timeout) throws CLIException {
 
