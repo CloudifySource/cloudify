@@ -35,6 +35,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
@@ -52,14 +53,14 @@ import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.CLIException;
 
-import com.gigaspaces.internal.utils.StringUtils;
 import com.j_spaces.kernel.Environment;
 
 /**
  * This class handles the bootstrapping of machines, activation of management processes and cloud tear-down.
+ * 
  * @author barakm, adaml
  * @since 2.0.0
- *
+ * 
  */
 public class CloudGridAgentBootstrapper {
 
@@ -134,23 +135,19 @@ public class CloudGridAgentBootstrapper {
 			this.provisioning.close();
 		}
 	}
-	
+
 	/**
 	 * Bootstraps and waits until the management machines are running, or until the timeout is reached.
 	 * 
-	 * @param timeout
-	 *            The number of {@link TimeUnit}s to wait before timing out
-	 * @param timeoutUnit
-	 *            The time unit to use (seconds, minutes etc.)
-	 * @throws InstallerException
-	 *             Indicates the provisioning driver failed to start management machines or that the
-	 *             management processes failed to start
-	 * @throws CLIException
-	 *             Indicates a basic failure or a time out. a detailed message is included
-	 * @throws InterruptedException
-	 *             Indicates a thread was interrupted while waiting
+	 * @param timeout The number of {@link TimeUnit}s to wait before timing out
+	 * @param timeoutUnit The time unit to use (seconds, minutes etc.)
+	 * @throws InstallerException Indicates the provisioning driver failed to start management machines or that the
+	 *         management processes failed to start
+	 * @throws CLIException Indicates a basic failure or a time out. a detailed message is included
+	 * @throws InterruptedException Indicates a thread was interrupted while waiting
 	 */
-	public void boostrapCloudAndWait(final long timeout, final TimeUnit timeoutUnit) throws InstallerException,
+	public void boostrapCloudAndWait(final long timeout, final TimeUnit timeoutUnit)
+			throws InstallerException,
 			CLIException, InterruptedException {
 
 		final long end = System.currentTimeMillis() + timeoutUnit.toMillis(timeout);
@@ -227,7 +224,8 @@ public class CloudGridAgentBootstrapper {
 	 * 
 	 * @throws CLIException Indicates the configured could not be found and instantiated
 	 */
-	private void createProvisioningDriver() throws CLIException {
+	private void createProvisioningDriver()
+			throws CLIException {
 		try {
 			provisioning = (ProvisioningDriver) Class.forName(cloud.getConfiguration().getClassName())
 					.newInstance();
@@ -241,25 +239,21 @@ public class CloudGridAgentBootstrapper {
 			final ProvisioningDriverClassContextAware contextAware = (ProvisioningDriverClassContextAware) provisioning;
 			contextAware.setProvisioningDriverClassContext(new DefaultProvisioningDriverClassContext());
 		}
-		
+
 		provisioning.addListener(new CliProvisioningDriverListener());
 		provisioning.setConfig(cloud, cloud.getConfiguration().getManagementMachineTemplate(), true);
 	}
 
 	/**
 	 * 
-	 * @param timeout
-	 *            The number of {@link TimeUnit}s to wait before timing out
-	 * @param timeoutUnit
-	 *            The time unit to use (seconds, minutes etc.)
-	 * @throws TimeoutException
-	 *             Indicates the time out was reached before the tear-down completed
-	 * @throws CLIException
-	 *             Indicates a basic failure tear-down the cloud. a detailed message is included
-	 * @throws InterruptedException
-	 *             Indicates a thread was interrupted while waiting
+	 * @param timeout The number of {@link TimeUnit}s to wait before timing out
+	 * @param timeoutUnit The time unit to use (seconds, minutes etc.)
+	 * @throws TimeoutException Indicates the time out was reached before the tear-down completed
+	 * @throws CLIException Indicates a basic failure tear-down the cloud. a detailed message is included
+	 * @throws InterruptedException Indicates a thread was interrupted while waiting
 	 */
-	public void teardownCloudAndWait(final long timeout, final TimeUnit timeoutUnit) throws TimeoutException,
+	public void teardownCloudAndWait(final long timeout, final TimeUnit timeoutUnit)
+			throws TimeoutException,
 			CLIException, InterruptedException {
 
 		final long end = System.currentTimeMillis() + timeoutUnit.toMillis(timeout);
@@ -272,7 +266,8 @@ public class CloudGridAgentBootstrapper {
 
 	}
 
-	private void destroyManagementServers(final long timeout, final TimeUnit timeoutUnit) throws CLIException,
+	private void destroyManagementServers(final long timeout, final TimeUnit timeoutUnit)
+			throws CLIException,
 			InterruptedException, TimeoutException {
 
 		final long end = System.currentTimeMillis() + timeoutUnit.toMillis(timeout);
@@ -314,7 +309,8 @@ public class CloudGridAgentBootstrapper {
 
 	}
 
-	private void uninstallApplications(final long end) throws CLIException, InterruptedException, TimeoutException {
+	private void uninstallApplications(final long end)
+			throws CLIException, InterruptedException, TimeoutException {
 		List<String> applicationsList = adminFacade.getApplicationsList();
 		if (applicationsList.size() > 0){
 			logger.info("Uninstalling the currently deployed applications");
@@ -326,37 +322,6 @@ public class CloudGridAgentBootstrapper {
 		}
 
 		waitForUninstallApplications(Utils.millisUntil(end), TimeUnit.MILLISECONDS);
-	}
-
-	private static InstallationDetails createInstallationDetails(final Cloud cloud) throws FileNotFoundException {
-		final InstallationDetails details = new InstallationDetails();
-		details.setLocalDir(cloud.getProvider().getLocalDirectory());
-		details.setZones(StringUtils.join(cloud.getProvider().getZones().toArray(new String[0]), ",", 0, cloud
-				.getProvider().getZones().size()));
-		details.setRemoteDir(cloud.getProvider().getRemoteDirectory());
-		details.setLocator(null);
-		details.setPrivateIp(null);
-		details.setLus(true);
-		details.setCloudifyUrl(cloud.getProvider().getCloudifyUrl());
-		details.setOverridesUrl(cloud.getProvider().getCloudifyOverridesUrl());
-		details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
-		details.setUsername(cloud.getUser().getUser());
-		details.setBindToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
-
-		// if ((cloud.getUser().getKeyPair() != null) && (cloud.getUser().getKeyPair().length() > 0)) {
-		String keyFileName = cloud.getUser().getKeyFile();
-		if (keyFileName != null && !keyFileName.isEmpty()) {
-			File keyFile = new File(keyFileName);
-			if (!keyFile.isAbsolute()) {
-				keyFile = new File(details.getLocalDir(), keyFileName);
-			}
-			if (!keyFile.isFile()) {
-				throw new FileNotFoundException("keyfile : " + keyFile.getAbsolutePath() + " not found");
-			}
-			details.setKeyFile(keyFile.getAbsolutePath());
-		}
-		// }
-		return details;
 	}
 
 	private MachineDetails[] startManagememntProcesses(final MachineDetails[] machines, final long endTime)
@@ -403,7 +368,8 @@ public class CloudGridAgentBootstrapper {
 	}
 
 	private void installOnMachines(final long endTime, final AgentlessInstaller installer,
-			final int numOfManagementMachines, final InstallationDetails[] installations) throws InterruptedException,
+			final int numOfManagementMachines, final InstallationDetails[] installations)
+			throws InterruptedException,
 			TimeoutException, InstallerException {
 		final ExecutorService executors = Executors.newFixedThreadPool(numOfManagementMachines);
 
@@ -483,26 +449,37 @@ public class CloudGridAgentBootstrapper {
 	// TODO: This code should be places in a Util package somewhere. It is used both
 	// here and in the esc project, for starting new agent machines.
 	private InstallationDetails[] createInstallationDetails(final int numOfManagementMachines,
-			final MachineDetails[] machineDetails) throws FileNotFoundException {
-		final InstallationDetails template = createInstallationDetails(cloud);
-
+			final MachineDetails[] machineDetails)
+			throws FileNotFoundException {
 		final InstallationDetails[] details = new InstallationDetails[numOfManagementMachines];
+
+		final String managementTemplateName = this.cloud.getConfiguration().getManagementMachineTemplate();
+		final CloudTemplate cloudTemplate = this.cloud.getTemplates().get(managementTemplateName);
+
 		for (int i = 0; i < details.length; i++) {
-			final MachineDetails machine = machineDetails[i];
-			final InstallationDetails installationDetails = template.clone();
-			installationDetails.setUsername(machine.getRemoteUsername());
-			installationDetails.setPassword(machine.getRemotePassword());
-			installationDetails.setPrivateIp(machine.getPrivateAddress());
-			installationDetails.setPublicIp(machine.getPublicAddress());
-			// Bootstrapping is usually done from a different network
-			installationDetails.setConnectedToPrivateIp(!cloud.getConfiguration().isBootstrapManagementOnPublicIp());
-			installationDetails.setBindToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
-			installationDetails.setCloudFile(this.cloudFile);
-			installationDetails.setRemoteExecutionMode(machine.getRemoteExecutionMode());
-			installationDetails.setFileTransferMode(machine.getFileTransferMode());
-			details[i] = installationDetails;
+			details[i] = Utils.createInstallationDetails(machineDetails[i], cloud,
+					cloudTemplate, cloud.getProvider().getZones().toArray(new String[0]), null, null);
 		}
+
 		return details;
+		// final InstallationDetails template = createInstallationDetails(cloud);
+		//
+		// for (int i = 0; i < details.length; i++) {
+		// final MachineDetails machine = machineDetails[i];
+		// final InstallationDetails installationDetails = template.clone();
+		// installationDetails.setUsername(machine.getRemoteUsername());
+		// installationDetails.setPassword(machine.getRemotePassword());
+		// installationDetails.setPrivateIp(machine.getPrivateAddress());
+		// installationDetails.setPublicIp(machine.getPublicAddress());
+		// // Bootstrapping is usually done from a different network
+		// installationDetails.setConnectedToPrivateIp(!cloud.getConfiguration().isBootstrapManagementOnPublicIp());
+		// installationDetails.setBindToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
+		// installationDetails.setCloudFile(this.cloudFile);
+		// installationDetails.setRemoteExecutionMode(machine.getRemoteExecutionMode());
+		// installationDetails.setFileTransferMode(machine.getFileTransferMode());
+		// details[i] = installationDetails;
+		// }
+		// return details;
 	}
 
 	private void fixConfigRelativePaths(final Cloud config) {
@@ -521,7 +498,8 @@ public class CloudGridAgentBootstrapper {
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
 
 			@Override
-			public boolean isDone() throws CLIException, InterruptedException {
+			public boolean isDone()
+					throws CLIException, InterruptedException {
 				final List<String> applications = adminFacade.getApplicationsList();
 
 				boolean done = true;
@@ -550,7 +528,8 @@ public class CloudGridAgentBootstrapper {
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
 
 			@Override
-			public boolean isDone() throws CLIException, InterruptedException {
+			public boolean isDone()
+					throws CLIException, InterruptedException {
 
 				try {
 					adminFacade.connect(null, null, restAdminUrl.toString());
