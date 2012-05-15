@@ -49,11 +49,18 @@ public class ByonDeployer {
 	private static final String NODES_LIST_INVALID = "INVALID";
 	private static final String NODES_LIST_TERMINATED = "TERMINATED";
 	private static final String CLOUD_NODE_ID = "id";
-	private static final String CLOUD_NODE_IP = "ip";
+	private static final String CLOUD_NODE_HOST_LIST = "host-list";
+	private static final String CLOUD_NODE_HOST_RANGE = "host-range";
 	private static final String CLOUD_NODE_USERNAME = "username";
 	private static final String CLOUD_NODE_CREDENTIAL = "credential";
+	
+	private static final String INVALID_HOSTS_ERR_MESSAGE = "Failed to start cloud node, invalid hosts configuration.";
+	private static final String EMPTY_HOSTS_ERR_MESSAGE = "Failed to start cloud node, empty ID configuration";
+	private static final String EMPTY_IP_RANGE_ERR_MESSAGE = "Failed to start cloud node, invalid IP range "
+			+ "configuration: missing \"-\"";
 
-	private final Map<String, Map<String, List<CustomNode>>> nodesListsByTemplates = new Hashtable<String, Map<String, List<CustomNode>>>();
+	private final Map<String, Map<String, List<CustomNode>>> nodesListsByTemplates = 
+			new Hashtable<String, Map<String, List<CustomNode>>>();
 
 	/**
 	 * Constructor.
@@ -503,100 +510,121 @@ public class ByonDeployer {
 		final List<CustomNode> cloudNodes = new ArrayList<CustomNode>();
 
 		for (final Map<String, String> nodeMap : nodesMapList) {
-			if (StringUtils.isBlank(nodeMap.get(CLOUD_NODE_ID)) || StringUtils.isBlank(nodeMap.get(CLOUD_NODE_IP))) {
-				throw new CloudProvisioningException("Failed to start cloud node, invalid IP/ID configuration.");
+			
+			String nodeId = nodeMap.get(CLOUD_NODE_ID);
+			String hostList = nodeMap.get(CLOUD_NODE_HOST_LIST);
+			String hostRange = nodeMap.get(CLOUD_NODE_HOST_RANGE);
+			
+			if (StringUtils.isBlank(nodeId)) {
+				throw new CloudProvisioningException(EMPTY_HOSTS_ERR_MESSAGE);
 			}
-
-			if (isIPList(nodeMap)) {
-				cloudNodes.addAll(parseNodeList(nodeMap));
-			} else if (isIPRange(nodeMap)) {
-				cloudNodes.addAll(parseNodeRange(nodeMap));
-			} else if (isIPCIDR(nodeMap)) {
-				cloudNodes.addAll(parseNodeCIDR(nodeMap));
+			
+			if (StringUtils.isNotBlank(hostList)) {
+				if (isIPList(hostList.trim())) {
+					cloudNodes.addAll(parseNodeList(nodeMap));
+				} else {
+					cloudNodes.add(parseOneNode(nodeMap));
+				}
+			} else if (StringUtils.isNotBlank(hostRange)) {
+				if (isIPRange(hostRange.trim())) {
+					cloudNodes.addAll(parseNodeRange(nodeMap));
+				} else if (isIPCIDR(hostRange.trim())) {
+					cloudNodes.addAll(parseNodeCIDR(nodeMap));
+				} else {
+					throw new CloudProvisioningException(INVALID_HOSTS_ERR_MESSAGE + ": " + hostList);
+				}
 			} else {
-				cloudNodes.add(parseOneNode(nodeMap));
+				throw new CloudProvisioningException(INVALID_HOSTS_ERR_MESSAGE);
 			}
 		}
 
 		return cloudNodes;
 	}
 
-	private boolean isIPList(final Map<String, String> nodeMap) {
+	private boolean isIPList(final String hostList) {
 		boolean result = false;
 
-		if (nodeMap.get(CLOUD_NODE_IP).contains(",")) {
+		if (hostList != null && hostList.contains(",")) {
 			result = true;
 		}
 
 		return result;
 	}
 
-	private boolean isIPRange(final Map<String, String> nodeMap) throws CloudProvisioningException {
+	private boolean isIPRange(final String hostRange) throws CloudProvisioningException {
 		boolean result = false;
 
-		final String ip = nodeMap.get(CLOUD_NODE_IP);
-
-		if (ip.contains("-")) {
-			final String ipRangeStart = ip.substring(0, ip.indexOf("-"));
+		if (hostRange.contains("-")) {
+			final String ipRangeStart = hostRange.substring(0, hostRange.indexOf("-"));
 			if (IPUtils.validateIPAddress(ipRangeStart)) {
 				result = true;
-			} else {
-				// maybe it's a host name...
-				try {
-					IPUtils.getIP(ip);
-				} catch (final Exception e) {
-					// it's not a valid IP or host name
-					throw new CloudProvisioningException("Invalid IP address: " + ip);
-				}
-				// it's a host name that contains a dash, not an IP range
-				result = false;
-			}
+			} 
 		}
 
 		return result;
 	}
 
-	private boolean isIPCIDR(final Map<String, String> nodeMap) {
+	private boolean isIPCIDR(final String hostRange) {
 		boolean result = false;
 
-		if (nodeMap.get(CLOUD_NODE_IP).contains("/")) {
+		if (hostRange.contains("/")) {
 			result = true;
 		}
 
 		return result;
 	}
 
-	private boolean isIdTemplate(final Map<String, String> nodeMap) {
+	/**
+	 * Checks if the specified id is a single-valued id or a template for multiple id-s.
+	 * @param nodeId The id to examine
+	 * @return true if this id is a template, false if it's a single-values id.
+	 */
+	private boolean isIdTemplate(final String nodeId) {
 		boolean result = false;
 
-		if (nodeMap.get(CLOUD_NODE_ID).contains("{0}")) {
+		if (nodeId.contains("{0}")) {
 			result = true;
 		}
 
 		return result;
 	}
 
-	private CustomNode parseOneNode(final Map<String, String> nodeMap) throws CloudProvisioningException {
-		String ip = nodeMap.get(CLOUD_NODE_IP);
+	/**
+	 * Parses a single byon cloud node.
+	 * @param nodeMap The map of attributes related to this node (ID, IP or host name)
+	 * @return A {@link CustomNode} object
+	 */
+	private CustomNode parseOneNode(final Map<String, String> nodeMap) {
+		
+		//It was decided not to validate the connection to the host at this stage. commected out.
+		
+		/*String host = nodeMap.get(CLOUD_NODE_HOST_LIST);
 		// validate the IP
-		if (!IPUtils.validateIPAddress(ip)) {
+		if (!IPUtils.validateIPAddress(host)) {
 			// maybe this is a host name
 			try {
-				ip = IPUtils.getIP(ip);
+				host = IPUtils.getIP(host);
 			} catch (final Exception e) {
-				throw new CloudProvisioningException("Invalid IP address: " + ip);
+				throw new CloudProvisioningException("Invalid host name or address: " + host);
 			}
 
-			if (!IPUtils.validateIPAddress(ip)) {
-				throw new CloudProvisioningException("Invalid IP address: " + ip);
+			if (!IPUtils.validateIPAddress(host)) {
+				throw new CloudProvisioningException("Invalid host name or address: " + host);
 			}
-		}
+		}*/
 
 		// create a new node
-		return new CustomNodeImpl(PROVIDER_ID, nodeMap.get(CLOUD_NODE_ID), ip, nodeMap.get(CLOUD_NODE_USERNAME),
-				nodeMap.get(CLOUD_NODE_CREDENTIAL), nodeMap.get(CLOUD_NODE_ID));
+		return new CustomNodeImpl(PROVIDER_ID, nodeMap.get(CLOUD_NODE_ID).trim(), 
+				nodeMap.get(CLOUD_NODE_HOST_LIST).trim(), nodeMap.get(CLOUD_NODE_USERNAME),
+				nodeMap.get(CLOUD_NODE_CREDENTIAL), nodeMap.get(CLOUD_NODE_ID).trim());
 	}
 
+	/**
+	 * Parses a range of nodes (e.g. 192.168.9.1-192.168.9.8)
+	 * @param nodeMap The map of attributes related to this node (ID, IP range)
+	 * @return A list of {@link CustomNode} objects
+	 * @throws CloudProvisioningException Indicated an invalid IP address is used
+	 */
 	private List<CustomNode> parseNodeRange(final Map<String, String> nodeMap) throws CloudProvisioningException {
 
 		final List<CustomNode> cloudNodes = new ArrayList<CustomNode>();
@@ -606,23 +634,22 @@ public class ByonDeployer {
 		int index = 1;
 		String currnentId;
 
-		final String id = nodeMap.get(CLOUD_NODE_ID);
-		final String ipRange = nodeMap.get(CLOUD_NODE_IP);
+		final String nodeId = nodeMap.get(CLOUD_NODE_ID).trim();
+		final String ipRange = nodeMap.get(CLOUD_NODE_HOST_RANGE).trim();
 
 		// syntax validation (IPs are validated later, through IPUtils)
 		final int ipDashIndex = ipRange.indexOf("-");
 		if (ipDashIndex < 0) {
-			throw new CloudProvisioningException("Failed to start cloud node, invalid IP range configuration: "
-					+ "ip is missing the token \"-\"");
+			throw new CloudProvisioningException(EMPTY_IP_RANGE_ERR_MESSAGE);
 		}
 
 		// run through the range of IPs
 		final String ipRangeStart = ipRange.substring(0, ipRange.indexOf("-"));
 		final String ipRangeEnd = ipRange.substring(ipRange.indexOf("-") + 1);
 
-		try {
+		//try {
 			if (IPUtils.ip2Long(ipRangeStart) < IPUtils.ip2Long(ipRangeEnd)) {
-				if (isIdTemplate(nodeMap)) {
+				if (isIdTemplate(nodeId)) {
 					useIdAsTemplate = true;
 				} else {
 					useIdAsPrefix = true;
@@ -640,12 +667,12 @@ public class ByonDeployer {
 
 				// set the id
 				if (useIdAsTemplate) {
-					currnentId = MessageFormat.format(id, index);
+					currnentId = MessageFormat.format(nodeId, index);
 				} else if (useIdAsPrefix) {
-					currnentId = id + index;
+					currnentId = nodeId + index;
 				} else {
 					// just one IPs
-					currnentId = id;
+					currnentId = nodeId;
 				}
 
 				// create a new node
@@ -655,16 +682,22 @@ public class ByonDeployer {
 				index++;
 				ip = IPUtils.getNextIP(ip);
 			}
-		} catch (final Exception e) {
-			throw new CloudProvisioningException("Failed to start cloud machine.", e);
-		}
+		//} catch (final Exception e) {
+		//	throw new CloudProvisioningException("Failed to start cloud machine.", e);
+		//}
 
 		return cloudNodes;
 	}
 
+	/**
+	 * Parses a range of nodes formatted as a CIDR (e.g. 192.168.9.60/31)
+	 * @param nodeMap The map of attributes related to this node (ID, IPs as CIDR)
+	 * @return A list of {@link CustomNode} objects
+	 * @throws CloudProvisioningException Indicated an invalid IP address is used
+	 */
 	private List<CustomNode> parseNodeCIDR(final Map<String, String> nodeMap) throws CloudProvisioningException {
 		try {
-			nodeMap.put(CLOUD_NODE_IP, IPUtils.ipCIDR2Range(nodeMap.get(CLOUD_NODE_IP)));
+			nodeMap.put(CLOUD_NODE_HOST_RANGE, IPUtils.ipCIDR2Range(nodeMap.get(CLOUD_NODE_HOST_RANGE).trim()));
 		} catch (final Exception e) {
 			throw new CloudProvisioningException("Failed to start cloud machine.", e);
 		}
@@ -672,7 +705,12 @@ public class ByonDeployer {
 		return parseNodeRange(nodeMap);
 	}
 
-	private List<CustomNode> parseNodeList(final Map<String, String> nodeMap) throws CloudProvisioningException {
+	/**
+	 * Parses a list of nodes (comma-separated IPs or host names).
+	 * @param nodeMap The map of attributes related to this node (ID, IPs or hosts list)
+	 * @return A list of {@link CustomNode} objects
+	 */
+	private List<CustomNode> parseNodeList(final Map<String, String> nodeMap) {
 
 		final List<CustomNode> cloudNodes = new ArrayList<CustomNode>();
 
@@ -681,12 +719,12 @@ public class ByonDeployer {
 		int index = 1;
 		String currnentId;
 
-		final String id = nodeMap.get(CLOUD_NODE_ID);
-		final String ipList = nodeMap.get(CLOUD_NODE_IP);
+		final String nodeId = nodeMap.get(CLOUD_NODE_ID).trim();
+		final String ipList = nodeMap.get(CLOUD_NODE_HOST_LIST).trim();
 
 		final String[] ipsArr = ipList.split(",");
 		if (ipsArr.length > 1) {
-			if (isIdTemplate(nodeMap)) {
+			if (isIdTemplate(nodeId)) {
 				useIdAsTemplate = true;
 			} else {
 				useIdAsPrefix = true;
@@ -697,7 +735,10 @@ public class ByonDeployer {
 
 			// validate the IP
 			ip = ip.trim();
-			if (!IPUtils.validateIPAddress(ip)) {
+			
+			//It was decided not to validate the connection to the host at this stage. commected out.
+			
+			/*if (!IPUtils.validateIPAddress(ip)) {
 				// maybe this is a host name
 				try {
 					ip = IPUtils.getIP(ip);
@@ -708,16 +749,16 @@ public class ByonDeployer {
 				if (!IPUtils.validateIPAddress(ip)) {
 					throw new CloudProvisioningException("Invalid IP address: " + ip);
 				}
-			}
+			}*/
 
 			// set the id
 			if (useIdAsTemplate) {
-				currnentId = MessageFormat.format(id, index);
+				currnentId = MessageFormat.format(nodeId, index);
 			} else if (useIdAsPrefix) {
-				currnentId = id + index;
+				currnentId = nodeId + index;
 			} else {
 				// just one IPs
-				currnentId = id;
+				currnentId = nodeId;
 			}
 
 			// create a new node

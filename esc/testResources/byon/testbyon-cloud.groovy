@@ -75,29 +75,29 @@ cloud {
 						"nodesList" : ([
 										([
 											"id" : "byon-test01",
-											"ip" : "0.0.0.1",
+											"host-list" : "0.0.0.1",
 											"username" : "tgrid1",
 											"credential" : "tgrid1"
 										]),
 										([
 											"id" : "byon-test02",
-											"ip" : "0.0.0.2"
+											"host-list" : "0.0.0.2"
 										]),
 										([
 											"id" : "byon-test1",
-											"ip" : "pc-lab39,pc-lab40,0.0.0.5"
+											"host-list" : "pc-lab39,pc-lab40,0.0.0.5"
 										]),
 										([
 											"id" : "byon-test2{0}",
-											"ip" : "0.0.0.6,0.0.0.7,0.0.0.8"
+											"host-list" : "0.0.0.6,0.0.0.7,0.0.0.8"
 										]),
 										([
 											"id" : "byon-test3{0}",
-											"ip" : "0.0.0.9-0.0.0.11"
+											"host-range" : "0.0.0.9-0.0.0.11"
 										]),
 										([
 											"id" : "byon-test4{0}",
-											"ip" : "0.0.0.12/31"
+											"host-range" : "0.0.0.12/31"
 										])
 						])
 					])
