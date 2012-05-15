@@ -152,7 +152,10 @@ public class InstallationDetails implements Cloneable {
 
 	@Override
 	public String toString() {
-		return "InstallationDetails [privateIP=" + privateIp + ", locator=" + locator + ", username=" + username
+		return "InstallationDetails [privateIP=" + privateIp + ", publicIP=" + publicIp 
+				+ ", locator=" + locator + ", connectToPrivateIP=" + connectedToPrivateIp
+				+ ", bindToPrivateIP=" + bindToPrivateIp
+				+ ", username=" + username
 				+ ", password=***" + ", keyFile=" + keyFile + ", localDir=" + localDir + ", remoteDir=" + remoteDir
 				+ ", isLus=" + isLus + ", zones=" + zones + "]";
 	}

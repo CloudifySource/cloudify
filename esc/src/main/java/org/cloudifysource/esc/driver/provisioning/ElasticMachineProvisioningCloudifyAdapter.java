@@ -98,7 +98,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplateName);
 		final String[] zones = this.config.getGridServiceAgentZones();
 		final InstallationDetails details =
-				Utils.createInstallationDetails(md, cloud, template, zones, lookupLocatorsString, this.admin);
+				Utils.createInstallationDetails(md, cloud, template, zones, lookupLocatorsString, this.admin, false,
+						null);
 
 		logger.info("Created new Installation Details: " + details);
 		return details;
@@ -397,10 +398,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	@Override
 	public void afterPropertiesSet()
 			throws Exception {
-		
-		 logger = java.util.logging.Logger
-					.getLogger(ElasticMachineProvisioningCloudifyAdapter.class.getName());
-		
+
+		logger = java.util.logging.Logger
+				.getLogger(ElasticMachineProvisioningCloudifyAdapter.class.getName());
+
 		final String cloudContents = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION);
 		if (cloudContents == null) {
 			throw new IllegalArgumentException("Cloud configuration was not set!");
