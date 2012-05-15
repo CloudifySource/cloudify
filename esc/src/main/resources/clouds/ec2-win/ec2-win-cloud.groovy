@@ -31,8 +31,7 @@ cloud {
 		
 		// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.  
 		localDirectory "tools/cli/plugins/esc/ec2-win/upload"
-		// Mandatory. Files from the local directory will be copied to this directory on the remote machine. 
-		remoteDirectory "/C\$/Users/Administrator/gs-files"
+
 		// Mandatory. The HTTP/S URL where cloudify can be downloaded from by newly started machines.
 		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.1/gigaspaces-cloudify-2.1.1-m1-b1394-48.zip"
 		// Mandatory. The prefix for new machines started for servies.
@@ -88,6 +87,9 @@ cloud {
 					// Optional. Location ID.
 					locationId "us-east-1c"
 
+					// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+					remoteDirectory "/C\$/Users/Administrator/gs-files"
+					
 					// File transfer mode. Optional, defaults to SCP.
 					fileTransfer org.cloudifysource.dsl.cloud.FileTransferModes.CIFS
 					// Remote execution mode. Options, defaults to SSH.
