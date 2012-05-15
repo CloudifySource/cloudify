@@ -15,7 +15,6 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.Date;
@@ -33,6 +32,7 @@ import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
@@ -52,8 +52,6 @@ import org.openspaces.grid.gsm.capacity.MemoryCapacityRequirement;
 import org.openspaces.grid.gsm.machines.isolation.ElasticProcessingUnitMachineIsolation;
 import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioning;
 import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioningException;
-
-import com.gigaspaces.internal.utils.StringUtils;
 
 /****************************
  * An ESM machine provisioning implementation used by the Cloudify cloud driver. All calls to start/stop a machine are
@@ -77,7 +75,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private Admin admin;
 	private Map<String, String> properties;
 	private Cloud cloud;
-	private String cloudTemplate;
+	private String cloudTemplateName;
 	private String lookupLocatorsString;
 	private CloudifyMachineProvisioningConfig config;
 	private java.util.logging.Logger logger;
@@ -97,57 +95,14 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private InstallationDetails createInstallationDetails(final Cloud cloud, final MachineDetails md)
 			throws FileNotFoundException {
-		// TODO - move this to a util package - it is copied in bootstrap-cloud
-		final InstallationDetails details = new InstallationDetails();
-
-		details.setLocalDir(cloud.getProvider().getLocalDirectory());
-		final String remoteDir = getRemoteDir();
-		details.setRemoteDir(remoteDir);
-		details.setManagementOnlyFiles(cloud.getProvider().getManagementOnlyFiles());
+		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplateName);
 		final String[] zones = this.config.getGridServiceAgentZones();
-		details.setZones(StringUtils.join(zones, ",", 0, zones.length));
+		final InstallationDetails details =
+				Utils.createInstallationDetails(md, cloud, template, zones, lookupLocatorsString, this.admin);
 
-		if (org.apache.commons.lang.StringUtils.isNotBlank(cloud.getUser().getKeyFile())) {
-			logger.info("Key file has been specified in cloud configuration: " + cloud.getUser().getKeyFile());
-			final File keyFile = new File(cloud.getProvider().getLocalDirectory(), cloud.getUser().getKeyFile());
-			if (keyFile.exists()) {
-				details.setKeyFile(keyFile.getAbsolutePath());
-				logger.info("Using key file: " + keyFile);
-			} else {
-				throw new FileNotFoundException(
-						"Could not find key file matching specified cloud configuration key file: "
-								+ cloud.getUser().getKeyFile() + ". Tried: " + keyFile + " but file does not exist");
-			}
-
-		}
-
-		details.setPrivateIp(md.getPrivateAddress());
-		details.setPublicIp(md.getPublicAddress());
-
-		details.setLocator(this.lookupLocatorsString);
-		details.setLus(false);
-		details.setCloudifyUrl(cloud.getProvider().getCloudifyUrl());
-		details.setOverridesUrl(cloud.getProvider().getCloudifyOverridesUrl());
-		details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
-		details.setAdmin(this.admin);
-
-		details.setUsername(md.getRemoteUsername());
-		details.setPassword(md.getRemotePassword());
-		details.setRemoteExecutionMode(md.getRemoteExecutionMode());
-		details.setFileTransferMode(md.getFileTransferMode());
 		logger.info("Created new Installation Details: " + details);
 		return details;
 
-	}
-
-	private String getRemoteDir() {
-		// TODO - there really should be a template field
-		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplate);
-		if (template.getRemoteDirectory() != null) {
-			return template.getRemoteDirectory();
-		}
-
-		return this.cloud.getProvider().getRemoteDirectory();
 	}
 
 	@Override
@@ -174,16 +129,23 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			// check for timeout
 			checkForProvisioningTimeout(end, machineDetails);
 
-			// TODO - finish this section - support picking up existing
-			// installations and agent. - i.e. machineDetails.cloudifyInstalled == true
+			if (machineDetails.isAgentRunning()) {
+				logger.info("Machine provisioning provided a machine and indicated that an agent is already running");
+			} else {
+				// install gigaspaces and start agent
+				logger.info("Cloudify Adapter is installing Cloudify on new machine");
+				installAndStartAgent(machineDetails, end);
+				// check for timeout again - the installation step can also take a
+				// while to complete.
+				checkForProvisioningTimeout(end, machineDetails);
 
-			// install gigaspaces and start agent
-			logger.info("Cloudify Adapter is installing Cloudify on new machine");
-			installAndStartAgent(machineDetails, end);
+			}
 
-			// check for timeout again - the installation step can also take a
-			// while to complete.
-			checkForProvisioningTimeout(end, machineDetails);
+			// There is another case here, that we do not handle - where the started image
+			// has the cloudify distro, but the agent is not running. This means we should
+			// run a modified remote execution script. Not sure if we really need this, though,
+			// as this scenario really does not offer a better experience. If required, handling will
+			// be added here.
 
 			// which IP should be used in the cluster
 			String machineIp = null;
@@ -339,7 +301,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			throws InterruptedException, TimeoutException {
 
 		while (Utils.millisUntil(end) > 0) {
-			GridServiceAgent gsa = getGSAByIpOrHost(machineIp);
+			final GridServiceAgent gsa = getGSAByIpOrHost(machineIp);
 			if (gsa != null) {
 				return gsa;
 			}
@@ -366,7 +328,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	@Override
 	public CapacityRequirements getCapacityOfSingleMachine() {
-		final CloudTemplate template = cloud.getTemplates().get(this.cloudTemplate);
+		final CloudTemplate template = cloud.getTemplates().get(this.cloudTemplateName);
 		final CapacityRequirements capacityRequirements =
 				new CapacityRequirements(new MemoryCapacityRequirement((long) template.getMachineMemoryMB()),
 						new CpuCapacityRequirement(template.getNumberOfCores()));
@@ -379,7 +341,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	public boolean stopMachine(final GridServiceAgent agent, final long duration, final TimeUnit unit)
 			throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
 
-		// TODO - move INFO printouts to FINE
 		final String machineIp = agent.getMachine().getHostAddress();
 		logger.fine("Shutting down agent: " + agent + " on host: " + machineIp);
 		try {
@@ -394,7 +355,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			logger.fine("Cloudify Adapter is shutting down machine with ip: " + machineIp);
 
 			final boolean shutdownResult = this.cloudifyProvisioning.stopMachine(machineIp, duration, unit);
-			logger.info("Shutdown result of machine: " + machineIp + " was: " + shutdownResult);
+			logger.fine("Shutdown result of machine: " + machineIp + " was: " + shutdownResult);
 
 			return shutdownResult;
 
@@ -447,19 +408,24 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		try {
 			this.cloud = ServiceReader.readCloud(cloudContents);
-			this.cloudTemplate = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME);
+			this.cloudTemplateName = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME);
 
-			if (this.cloudTemplate == null) {
+			if (this.cloudTemplateName == null) {
 				throw new BeanConfigurationException("Cloud template was not set!");
+			}
+
+			final CloudTemplate cloudTemplate = this.cloud.getTemplates().get(this.cloudTemplateName);
+			if (cloudTemplate == null) {
+				throw new BeanConfigurationException("The provided cloud template name: " + this.cloudTemplateName
+						+ " was not found in the cloud configuration");
 			}
 
 			// This code runs on the ESM in the remote machine,
 			// so set the local directory to the value of the remote directory
-			// TODO - change the condition to ServiceUtils.isWindows
-			logger.info("Remote Directory is: " + cloud.getProvider().getRemoteDirectory());
-			if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
+			logger.info("Remote Directory is: " + cloudTemplate.getRemoteDirectory());
+			if (ServiceUtils.isWindows()) {
 				logger.info("Windows machine - modifying local directory location");
-				String localDirectoryName = cloud.getProvider().getRemoteDirectory();
+				String localDirectoryName = cloudTemplate.getRemoteDirectory();
 				localDirectoryName = localDirectoryName.replace("$", "");
 				if (localDirectoryName.startsWith("/")) {
 					localDirectoryName = localDirectoryName.substring(1);
@@ -471,7 +437,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 				cloud.getProvider().setLocalDirectory(localDirectoryName);
 			} else {
-				cloud.getProvider().setLocalDirectory(cloud.getProvider().getRemoteDirectory());
+				cloud.getProvider().setLocalDirectory(cloudTemplate.getRemoteDirectory());
 			}
 
 			// load the provisioning class and set it up
@@ -487,7 +453,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					contextAware.setProvisioningDriverClassContext(provisioningDriverContext);
 				}
 
-				this.cloudifyProvisioning.setConfig(cloud, cloudTemplate, false);
+				this.cloudifyProvisioning.setConfig(cloud, cloudTemplateName, false);
 
 			} catch (final ClassNotFoundException e) {
 				throw new BeanConfigurationException("Failed to load provisioning class for cloud: "
@@ -544,7 +510,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	@Override
-	public void setElasticProcessingUnitMachineIsolation(ElasticProcessingUnitMachineIsolation isolation) {
+	public void setElasticProcessingUnitMachineIsolation(final ElasticProcessingUnitMachineIsolation isolation) {
 		this.isolation = isolation;
 	}
 
