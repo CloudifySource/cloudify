@@ -220,7 +220,7 @@ public class AgentlessInstaller {
 	 */
 	private void copyFiles(final String host, final String username, final String password, final String srcDir,
 			final String toDir, final String keyFile, final Set<String> excludedFiles, final File cloudFile,
-			final long timeout, final TimeUnit unit, final FileTransferModes fileTransferMode)
+			final long timeout, final TimeUnit unit, final FileTransferModes fileTransferMode, final InstallationDetails details)
 			throws IOException, TimeoutException, URISyntaxException, InterruptedException, InstallerException {
 
 		if (timeout < 0) {
@@ -234,10 +234,10 @@ public class AgentlessInstaller {
 		String target = null;
 		switch (fileTransferMode) {
 		case SCP:
-			createdManager = createRemoteSSHFileSystem(keyFile, opts);
+			createdManager = createRemoteSSHFileSystem(keyFile, opts, details);
 
 			final String userDetails;
-			if (password != null && !password.isEmpty()) {
+			if (password != null && password.length() > 0) {
 				userDetails = username + ":" + password;
 			} else {
 				userDetails = username;
@@ -264,7 +264,7 @@ public class AgentlessInstaller {
 
 		final FileObject remoteDir = mng.resolveFile(target, opts);
 
-		logger.fine("Copying files to: " + host + " from local dir: " + localDir.getName().getPath() + " excluding "
+		logger.fine("Copying files to: " + target + " from local dir: " + localDir.getName().getPath() + " excluding "
 				+ excludedFiles.toString());
 
 		try {
@@ -281,7 +281,7 @@ public class AgentlessInstaller {
 					final FileObject remoteFile =
 							mng.resolveFile(remoteDir,
 									localDir.getName().getRelativeName(fileInfo.getFile().getName()));
-					
+
 					if (!remoteFile.exists()) {
 						logger.fine(fileInfo.getFile().getName().getBaseName() + " missing on server");
 						return true;
@@ -339,13 +339,23 @@ public class AgentlessInstaller {
 		}
 	}
 
-	private FileSystemManager createRemoteSSHFileSystem(final String keyFile, final FileSystemOptions opts)
+	private FileSystemManager createRemoteSSHFileSystem(final String keyFile, final FileSystemOptions opts,
+			final InstallationDetails details)
 			throws FileSystemException, FileNotFoundException {
 		SftpFileSystemConfigBuilder.getInstance().setStrictHostKeyChecking(opts, "no");
 
+		final Object preferredAuthenticationMethods =
+				details.getCustomData().get(
+						CloudifyConstants.INSTALLER_CUSTOM_DATA_SFTP_PREFERRED_AUTHENTICATION_METHODS_KEY);
+
+		if (preferredAuthenticationMethods != null && String.class.isInstance(preferredAuthenticationMethods)) {
+			SftpFileSystemConfigBuilder.getInstance().setPreferredAuthentications(opts,
+					(String) preferredAuthenticationMethods);
+		}
+
 		SftpFileSystemConfigBuilder.getInstance().setUserDirIsRoot(opts, false);
 
-		if (keyFile != null && !keyFile.isEmpty()) {
+		if (keyFile != null && keyFile.length() > 0) {
 			final File temp = new File(keyFile);
 			if (!temp.exists()) {
 				throw new FileNotFoundException("Could not find key file: " + temp + ". KeyFile " + keyFile
@@ -502,7 +512,7 @@ public class AgentlessInstaller {
 			}
 			copyFiles(targetHost, details.getUsername(), details.getPassword(), details.getLocalDir(),
 					details.getRemoteDir(), details.getKeyFile(), excludedFiles, details.getCloudFile(),
-					Utils.millisUntil(end), TimeUnit.MILLISECONDS, details.getFileTransferMode());
+					Utils.millisUntil(end), TimeUnit.MILLISECONDS, details.getFileTransferMode(), details);
 		} catch (final FileSystemException e) {
 			throw new InstallerException("Uploading files to remote server failed.", e);
 		} catch (final IOException e) {
@@ -693,7 +703,13 @@ public class AgentlessInstaller {
 		this.eventsListenersList.add(listener);
 	}
 
-	private void publishEvent(final String eventName, final Object... args) {
+	/*********
+	 * This method is public so that implementation classes for file copy and remote execution can publish events.
+	 * 
+	 * @param eventName .
+	 * @param args .
+	 */
+	public void publishEvent(final String eventName, final Object... args) {
 		for (final AgentlessInstallerListener listner : this.eventsListenersList) {
 			try {
 				listner.onInstallerEvent(eventName, args);
