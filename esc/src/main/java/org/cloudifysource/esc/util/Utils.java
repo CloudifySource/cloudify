@@ -439,6 +439,19 @@ public final class Utils {
 			}
 		}
 
+		
+		String keyFileName = cloud.getUser().getKeyFile();
+		if (keyFileName != null && !keyFileName.isEmpty()) {
+			File keyFile = new File(keyFileName);
+			if (!keyFile.isAbsolute()) {
+				keyFile = new File(details.getLocalDir(), keyFileName);
+			}
+			if (!keyFile.isFile()) {
+				throw new FileNotFoundException("keyfile : " + keyFile.getAbsolutePath() + " not found");
+			}
+			details.setKeyFile(keyFile.getAbsolutePath());
+		}
+		
 		return details;
 
 	}
