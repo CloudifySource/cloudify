@@ -414,4 +414,22 @@ public final class USMUtils {
 
 	}
 
+	/*********
+	 * Returns the exit code of the given process handle, or null if the process has not terminated.
+	 * 
+	 * @param processToCheck the process.
+	 * @return the exit code, or null.
+	 */
+	public static Integer getProcessExitCode(final Process processToCheck) {
+		if (processToCheck == null) {
+			return null;
+		}
+		try {
+			int val = processToCheck.exitValue();
+			return val;
+		} catch (final Exception e) {
+			return null;
+		}
+	}
+
 }

@@ -15,26 +15,38 @@
  *******************************************************************************/
 package org.cloudifysource.usm;
 
+/*********
+ * Contains the results of the execution of an external process, including its exit code and its output stream in string
+ * format (which also includes its error stream output).
+ * 
+ * @author barakme
+ * 
+ */
 public class ExternalProcessResult {
 
 	private int exitValue;
-	public ExternalProcessResult(int exitValue, String output) {
+	private String output;
+
+	public ExternalProcessResult(final int exitValue, final String output) {
 		super();
 		this.exitValue = exitValue;
 		this.output = output;
 	}
-	private String output;
+
 	public int getExitValue() {
 		return exitValue;
 	}
-	public void setExitValue(int exitValue) {
+
+	public void setExitValue(final int exitValue) {
 		this.exitValue = exitValue;
 	}
+
 	public String getOutput() {
 		return output;
 	}
-	public void setOutput(String output) {
+
+	public void setOutput(final String output) {
 		this.output = output;
 	}
-	
+
 }

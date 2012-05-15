@@ -9,37 +9,51 @@ import org.cloudifysource.usm.events.PreStartListener;
 import org.cloudifysource.usm.events.StartReason;
 import org.cloudifysource.usm.liveness.LivenessDetector;
 
+/*****************
+ * A USM component that checks if the network port required by a service, as defined in its network block, is free in
+ * the preStart phase, and is in use in the start detection phase. This class is a good way to avoid some boierplate
+ * code in service files.
+ * 
+ * @author barakme
+ * 
+ */
 public class TCPPortEventListener implements PreStartListener, LivenessDetector {
 
-	private int port;
+	private static final int DEFAULT_ORDER = 5;
+	private final int port;
 
+	/**************
+	 * Constructor.
+	 * @param port the port number specified in the service network block.
+	 */
 	public TCPPortEventListener(final int port) {
 		this.port = port;
 	}
 
 	@Override
-	public void init(UniversalServiceManagerBean usm) {
+	public void init(final UniversalServiceManagerBean usm) {
 
 	}
 
 	@Override
 	public int getOrder() {
-		return 5;
+		return DEFAULT_ORDER;
 	}
 
 	@Override
-	public boolean isProcessAlive() throws USMException, TimeoutException {
+	public boolean isProcessAlive()
+			throws USMException, TimeoutException {
 		return ServiceUtils.isPortOccupied(port);
 	}
 
 	@Override
-	public EventResult onPreStart(StartReason reason) {
-		return (ServiceUtils.isPortFree(port) ? EventResult.SUCCESS
+	public EventResult onPreStart(final StartReason reason) {
+		return ServiceUtils.isPortFree(port) ? EventResult.SUCCESS
 				: new EventResult(
 						new IOException(
 								"Port "
 										+ port
-										+ " which is required for this service is already in use!")));
+										+ " which is required for this service is already in use!"));
 	}
 
 }

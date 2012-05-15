@@ -22,12 +22,11 @@ import java.util.logging.Level;
 import org.cloudifysource.usm.monitors.MonitorException;
 import org.hyperic.sigar.ProcCpu;
 import org.hyperic.sigar.ProcCred;
-import org.hyperic.sigar.ProcCredName;
+
 import org.hyperic.sigar.ProcMem;
 import org.hyperic.sigar.ProcState;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
-
 
 /**
  * Adds monitor targets to be polled by the JMX monitor thread
@@ -51,7 +50,8 @@ public class MonitorData {
 		}
 	}
 
-	private void gatherData(final Sigar sigar, final long pid) throws SigarException {
+	private void gatherData(final Sigar sigar, final long pid)
+			throws SigarException {
 
 		try {
 			final ProcCpu pcpu = sigar.getProcCpu(pid);
@@ -61,12 +61,7 @@ public class MonitorData {
 		} catch (final SigarException e) {
 			logger.log(Level.FINE, "Failed to gather process info from Sigar: " + e.getMessage(), e);
 		}
-
-		try {
-			processArguments = sigar.getProcArgs(pid);
-		} catch (final SigarException e) {
-			logger.log(Level.FINE, "Failed to gather process info from Sigar: " + e.getMessage(), e);
-		}
+		
 
 		try {
 			final ProcCred prcred = sigar.getProcCred(pid);
@@ -76,14 +71,7 @@ public class MonitorData {
 			logger.log(Level.FINE, "Failed to gather process info from Sigar: " + e.getMessage(), e);
 		}
 
-		try {
-			final ProcCredName prcredname = sigar.getProcCredName(pid);
-			processOwnerGroupName = prcredname.getGroup();
-			processOwnerUserName = prcredname.getUser();
-		} catch (final SigarException e) {
-			logger.log(Level.FINE, "Failed to gather process info from Sigar: " + e.getMessage(), e);
-		}
-
+	
 		try {
 			final ProcMem pmem = sigar.getProcMem(pid);
 			totalNumOfPageFaults = pmem.getPageFaults();
@@ -121,7 +109,7 @@ public class MonitorData {
 		monitorMap.put("Process GroupId", processGroupId);
 		monitorMap.put("Process User Id", processUserId);
 
-		//monitorMap.put("Process Owner Group Name", MonitorData.safeS(processOwnerGroupName));
+		// monitorMap.put("Process Owner Group Name", MonitorData.safeS(processOwnerGroupName));
 		// monitorMap.put("Process Owner User Name", MonitorData.safeS(processOwnerUserName));
 
 		monitorMap.put("Total Num Of PageFaults", totalNumOfPageFaults);
@@ -132,80 +120,48 @@ public class MonitorData {
 		monitorMap.put("Kernel Scheduling Priority", kernelSchedulingPriority);
 		monitorMap.put("Num Of Active Threads", numOfActiveThreads);
 
-		//monitorMap.put(KEY_ARCH, MonitorData.safeS(arch));
+		// monitorMap.put(KEY_ARCH, MonitorData.safeS(arch));
 		monitorMap.put(KEY_AVAIL_PROCESSORS, availableProcessors);
 		monitorMap.put(KEY_COMMIT_VIRT_MEM_SIZE, committedVirtualMemorySize);
-		//monitorMap.put(KEY_OS_NAME, MonitorData.safeS(osName));
+		// monitorMap.put(KEY_OS_NAME, MonitorData.safeS(osName));
 		monitorMap.put(KEY_PROC_CPU_TIME, processCpuTime);
 		// map.put("Classpath", safeS(classPath));
 		monitorMap.put(KEY_THREAD_COUNT, threadCount);
 		monitorMap.put(KEY_PEAK_THREAD_COUNT, peakThreadCount);
 	}
 
-	private static String flattenStrArr(final String[] arr) {
-		if (arr == null) {
-			return "";
-		}
-		final StringBuilder res = new StringBuilder();
-		for (final String str : arr) {
-			res.append(' ').append(str);
-		}
-		return res.toString();
-	}
 
-	private static String safeS(final String v) {
-		if (v == null) {
-			return "";
-		}
-		if (v.equals("null")) {
-			return "";
-		}
-		return v;
-	}
+	private double processCpuUsage;
+	private long processCpuKernelTime;
+	private long totalProcessCpuTime;
 
-	// ProcCpu pcpu = sigar.getProcCpu(pid);
-	private double processCpuUsage;// = pcpu.getPercent();
-	private long processCpuKernelTime;// = pcpu.getSys();
-	private long totalProcessCpuTime;// = pcpu.getTotal(); // sum of users+sys
+	private long processGroupId;
+	private long processUserId;
 
-	private String[] processArguments;// = sigar.getProcArgs(pid) ;
 
-	// ProcCred prcred = sigar.getProcCred(pid);
-	private long processGroupId;// = prcred.getGid();
-	private long processUserId;// = prcred.getUid();
 
-	// ProcCredName prcredname = sigar.getProcCredName(pid);
-	private String processOwnerGroupName;// = prcredname.getGroup();
-	private String processOwnerUserName;// = prcredname.getUser();
 
-	// ProcMem pmem = sigar.getProcMem(pid);
-	private long totalNumOfPageFaults;// = pmem.getPageFaults();
-	private long totalProcessResidentalMemory;// = pmem.getResident();
-	private long totalProcessSharedMemory;// = pmem.getShare();
-	private long totalProcessVirtualMemory;// = pmem.getSize();
 
-	// ProcState prcstat = sigar.getProcState(pid);
-	private int kernelSchedulingPriority;// = prcstat.getPriority();
-	private long numOfActiveThreads;// = prcstat.getThreads();
+	private long totalNumOfPageFaults;
+	private long totalProcessResidentalMemory;
+	private long totalProcessSharedMemory;
+	private long totalProcessVirtualMemory;
 
-	// from jmx
-	private String arch; // = (String) resMap.get("Arch"); // s="x86"
-	private int availableProcessors; // =
-										// (Integer)resMap.get("AvailableProcessors");
-	private long committedVirtualMemorySize; // =
-												// (Long)resMap.get("CommittedVirtualMemorySize");
-	private String osName; // = (String) resMap.get("Name"); // s="Windows XP"
-	private long processCpuTime; // = (Long)resMap.get("ProcessCpuTime");
-	// private String classPath; // = (String) resMap.get("ClassPath");
-	private int threadCount; // = (Integer) resMap.get("ThreadCount");
-	private int peakThreadCount; // = (Integer) resMap.get("PeakThreadCount");
 
-	private static final String KEY_ARCH = "Arch";
+	private int kernelSchedulingPriority;
+	private long numOfActiveThreads;
+
+	private int availableProcessors; 
+	private long committedVirtualMemorySize; 
+	
+	private long processCpuTime; 
+	private int threadCount; 
+	private int peakThreadCount; 
+
+
 	private static final String KEY_AVAIL_PROCESSORS = "Available Processors";
 	private static final String KEY_COMMIT_VIRT_MEM_SIZE = "Committed Virtual Memory Size";
-	private static final String KEY_OS_NAME = "OS Name"; // s="Windows XP"
 	private static final String KEY_PROC_CPU_TIME = "Process Cpu Time";
-	// private static final String KEY_CLASSPATH = "ClassPath";
 	private static final String KEY_THREAD_COUNT = "Thread Count";
 	private static final String KEY_PEAK_THREAD_COUNT = "Peak Thread Count";
 

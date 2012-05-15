@@ -15,20 +15,19 @@
  *******************************************************************************/
 package org.cloudifysource.usm.tail;
 
-/**
- * RollingFileReader was created in-order for an application to be able to access
- * a file and tail it without locking it. whenever lines are added to the file, the RFR
- * will open the file for a brief moment, "grab" the new lines added and close the file.
- * the RFR remembers it's file-pointer and when reopening the file, the RFR will read the
- * lines from the point where it left-off.
- * 
- * @author adaml
- */
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+/**
+ * RollingFileReader was created in-order for an application to be able to access a file and tail it without locking it.
+ * whenever lines are added to the file, the RFR will open the file for a brief moment, "grab" the new lines added and
+ * close the file. the RFR remembers it's file-pointer and when reopening the file, the RFR will read the lines from the
+ * point where it left-off.
+ * 
+ * @author adaml
+ */
 public class RollingFileReader {
 
 	private static final int TIMEOUT_BETWEEN_RETRIES = 1000;
@@ -46,6 +45,7 @@ public class RollingFileReader {
 
 	/**
 	 * Constructor.
+	 * 
 	 * @param file The file to read
 	 */
 	public RollingFileReader(final File file) {
@@ -56,8 +56,7 @@ public class RollingFileReader {
 	}
 
 	/**
-	 * checks if the modification time of the file matches the last modification time since the file was last
-	 * tailed.
+	 * checks if the modification time of the file matches the last modification time since the file was last tailed.
 	 * 
 	 * @return true if the file has been modified since last polled.
 	 */
@@ -67,18 +66,19 @@ public class RollingFileReader {
 	}
 
 	/**
-	 * reads the new lines added to the log file. The method supports RollingFileAppender tailing by not
-	 * keeping the file open and opening the file only when a changes have been made to it. After reading the
-	 * changes, the file will be closed and all relevant pointers and properties such as last modified date
-	 * will be saved for the next iteration.
+	 * reads the new lines added to the log file. The method supports RollingFileAppender tailing by not keeping the
+	 * file open and opening the file only when a changes have been made to it. After reading the changes, the file will
+	 * be closed and all relevant pointers and properties such as last modified date will be saved for the next
+	 * iteration.
 	 * 
-	 * note that the file is being closed in-order to enable the RFA to properly roll the file without having
-	 * lock issues.
+	 * note that the file is being closed in-order to enable the RFA to properly roll the file without having lock
+	 * issues.
 	 * 
 	 * @return new lines added to the log file.
 	 * @throws IOException Indicates the lines were not read because of an IO exception
 	 */
-	public String readLines() throws IOException {
+	public String readLines()
+			throws IOException {
 
 		RandomAccessFile randomAccessFile = null;
 
@@ -112,9 +112,8 @@ public class RollingFileReader {
 			this.fileLength = file.length();
 
 			return new String(buffer);
-		}
-		// in-case we try to access the file at the exact time it is being rolled.
-		catch (final FileNotFoundException e) {
+		} catch (final FileNotFoundException e) {
+			// in-case we try to access the file at the exact time it is being rolled.
 			retryCounter++;
 			if (retryCounter > DEFAULT_NUMBER_OF_RETRIES) {
 				logger.warning("In RollingFileReader: file not found." + DEFAULT_NUMBER_OF_RETRIES
@@ -138,11 +137,10 @@ public class RollingFileReader {
 	}
 
 	/**
-	 * returns false if the file has been removed from the system and was not recreated after a certain time
-	 * period.
+	 * returns false if the file has been removed from the system and was not recreated after a certain time period.
 	 * 
-	 * @return returns false if the file has been removed from the system and was not recreated after a
-	 *         certain time period.
+	 * @return returns false if the file has been removed from the system and was not recreated after a certain time
+	 *         period.
 	 */
 	public boolean exists() {
 		return exists;

@@ -15,7 +15,11 @@
  *******************************************************************************/
 package org.cloudifysource.usm.monitors.process;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.cloudifysource.usm.UniversalServiceManagerBean;
 import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
@@ -29,14 +33,36 @@ public class ProcessMonitor implements Monitor {
 
 	private final Sigar sigar = SigarHolder.getSigar();
 
-	
 	@Override
 	public Map<String, Number> getMonitorValues(final UniversalServiceManagerBean usm,
-			final UniversalServiceManagerConfiguration config) throws MonitorException {
-		
-		final MonitorData data = new MonitorData(sigar, usm.getActualProcessID());
-		final Map<String, Number> map = data.getDataMap();
-		return map;
+			final UniversalServiceManagerConfiguration config)
+			throws MonitorException {
+
+		final List<Long> pids = usm.getServiceProcessesList();
+
+		if (pids.size() == 0) {
+			return new HashMap<String, Number>();
+		} else if (pids.size() == 1) {
+			final MonitorData data = new MonitorData(sigar, pids.get(0));
+			final Map<String, Number> map = data.getDataMap();
+			return map;
+		} else {
+			// Collect data for all processes, add PID to key name, and return all in one map.
+			final Map<String, Number> allProcessesMap = new HashMap<String, Number>();
+			for (Long pid : pids) {
+				final MonitorData data = new MonitorData(sigar, pid);
+				final Map<String, Number> map = data.getDataMap();
+				Set<Entry<String, Number>> entries = map.entrySet();
+				final String postfix = "-" + pid;
+				for (Entry<String, Number> entry : entries) {
+					allProcessesMap.put(entry.getKey() + postfix, entry.getValue());
+				}
+
+			}
+
+			return allProcessesMap;
+
+		}
 
 	}
 

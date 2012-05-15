@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+ * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.usm;
+package org.cloudifysource.usm.stopDetection;
 
-/********
- * Marker interface for components used by the USM.
- * @author barakme
- * @since 1.0
- *
- */
-public interface USMComponent {
-
-}
+/**************************
+ * Stop detection interface and default implementations.
+ * 
+ * @author barakme.
+ *****************************/

@@ -15,36 +15,79 @@
  *******************************************************************************/
 package org.cloudifysource.usm.stopDetection;
 
-import java.util.logging.Logger;
+import java.util.List;
 
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.USMUtils;
 import org.cloudifysource.usm.UniversalServiceManagerBean;
+import org.cloudifysource.usm.dsl.DSLConfiguration;
+import org.cloudifysource.usm.events.AbstractUSMEventListener;
 
+/***************
+ * A stop detection implementation that checks if the monitored processes are still alive by checking their state using
+ * the SIGAR library, using their PIDs.
+ * 
+ * @author barakme
+ * 
+ */
+public class ProcessStopDetector extends AbstractUSMEventListener implements StopDetector {
 
-public class ProcessStopDetector implements StopDetector {
+	private boolean stopOnAllProcessesDead = true;
 
-	private UniversalServiceManagerBean usm;
-
-	private final static Logger logger = Logger.getLogger(ProcessStopDetector.class.getName());
 	@Override
-	public boolean isServiceStopped() throws USMException {
-		final long pid = usm.getActualProcessID();
-		final boolean processStopped = !USMUtils.isProcessAlive(pid);
-		if(processStopped) {
-			logger.warning("Process Stop Detector execution has found that process: " + pid + " is not alive!");
+	public void init(final UniversalServiceManagerBean usm) {
+		super.init(usm);
+		final String setting =
+				((DSLConfiguration) usm.getUsmLifecycleBean().getConfiguration()).getService().getCustomProperties()
+						.get(CloudifyConstants.CUSTOM_PROPERTY_STOP_DETECTION_ON_ALL_PROCESSES);
+		if (setting != null) {
+			this.stopOnAllProcessesDead = Boolean.parseBoolean(setting);
 		}
-		return processStopped;
 	}
 
 	@Override
-	public void init(UniversalServiceManagerBean usm) {
-		this.usm = usm;
+	public boolean isServiceStopped()
+			throws USMException {
+		final List<Long> pids = usm.getServiceProcessesList();
+		
+		// special handling for the 'recipe about nothing' scenario.
+		if (pids.size() == 0) {
+			return false;
+		}
+		if (stopOnAllProcessesDead) {
+			return checkForAllProcessesDead(pids);
+		} else {
+			return checkForOneProcessDead(pids);
+		}
+
 	}
 
-	@Override
-	public int getOrder() {
-		return 5;
+	private boolean checkForOneProcessDead(final List<Long> pids)
+			throws USMException {
+		for (final Long pid : pids) {
+			final boolean processAlive = USMUtils.isProcessAlive(pid);
+
+			if (!processAlive) {
+				return true;
+			}
+		}
+
+		return false;
+
+	}
+
+	private boolean checkForAllProcessesDead(final List<Long> pids)
+			throws USMException {
+		for (final Long pid : pids) {
+			final boolean processAlive = USMUtils.isProcessAlive(pid);
+
+			if (processAlive) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 }
