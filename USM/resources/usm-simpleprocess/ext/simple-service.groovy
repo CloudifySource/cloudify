@@ -1,20 +1,25 @@
+import framework.utils.usm.StringWrapper
 
-def abc="!23"
 service {
 	name "kitchensink-service"
 	icon "icon.png"
+	
+	url "http://" + InetAddress.localHost.hostName + ":7777"
 
-	url "aaaa" + "ggg ${abc}"
 	lifecycle{
 		// DO NOT CHANGE THE PRINTOUTS - SGTEST LOOKS FOR THEM!
-		init { println "init fired " + context }
+		init {
+			 println "init fired ${var1}"
+			 println new StringWrapper("init external class")
+			}
 		preInstall{ println "preInstall fired ${var2}"}
+		install{println "install event fired"}
 		postInstall{ println "postInstall fired " + var1 }
 		preStart{ println "preStart fired " + var2 }
-		start ([ "Linux": "run.sh -dieOnParentDeath true -port 7777" ,
-					"Win.*": "run.bat -dieOnParentDeath true -port 7777" ])
+		start ([ "Linux": "run.sh -dieOnParentDeath false -port 7777" ,
+					"Win.*": "run.bat -dieOnParentDeath false -port 7777" ])
 
-		//postStart "post_start.groovy"
+		postStart "post_start.groovy"
 
 		preStop ([
 			"pre_stop.groovy",
@@ -30,12 +35,9 @@ service {
 
 		details(["stam":{"HA HA HAAAAAAAAAAAAAAAAAAA"},
 			"SomeKey":{"22222222222222222222222222"}])
-		monitors (["NumberTwo":{println context
-			return 2},
-			"NumberOne":{println context
-				return "1"}])
+		monitors (["NumberTwo":{return 2},
+			"NumberOne":{return "1"}])
 
-		
 	}
 
 
@@ -44,7 +46,9 @@ service {
 				"cmd2" : { throw new Exception("This is the cmd2 custom command - This is an error test")},
 				"cmd3" : { "This is the cmd3 custom command. Service Dir is: " + context.serviceDirectory },
 				"cmd4" : "context_command.groovy",
-				"cmd5" : {"this is the custom parameters command. expecting 123: "+1+x+y}
+				"cmd5" : {x, y -> return ("this is the custom parameters command. expecting 123: "+1+x+y)},
+				"cmd6" : "someScript.groovy",
+				"cmd7" : {x -> "Single parameter test:parameter=" + x}
 			])
 
 
@@ -66,18 +70,18 @@ service {
 
 			config ([
 
-						"Details" : [
-							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
-							"Details"
-						],
-						"Counter" : [
-							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
-							"Counter"
-						],
-						"Type" : [
-							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
-							"Type"
-						],
+//						"Details" : [
+//							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
+//							"Details"
+//						],
+//						"Counter" : [
+//							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
+//							"Counter"
+//						],
+//						"Type" : [
+//							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
+//							"Type"
+//						],
 						port : 9999
 					])
 		},
@@ -89,18 +93,18 @@ service {
 
 			config ([
 
-						"Details" : [
-							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
-							"Details"
-						],
-						"Counter" : [
-							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
-							"Counter"
-						],
-						"Type" : [
-							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
-							"Type"
-						],
+//						"Details" : [
+//							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
+//							"Details"
+//						],
+//						"Counter" : [
+//							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
+//							"Counter"
+//						],
+//						"Type" : [
+//							"org.openspaces.usm.examples.simplejavaprocess:type=SimpleBlockingJavaProcess",
+//							"Type"
+//						],
 						port : 9999
 					])
 		}
