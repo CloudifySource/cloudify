@@ -135,6 +135,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.gigaspaces.internal.dump.pu.ProcessingUnitsDumpProcessor;
+
 /**
  * @author rafi, barakm, adaml, noak
  * @since 2.0.0
@@ -165,9 +167,10 @@ public class ServiceController {
 	private static final Logger logger = Logger.getLogger(ServiceController.class.getName());
 	private static final long DEFAULT_DUMP_FILE_SIZE_LIMIT = 5 * 1024 * 1024;
 
-	private static final String[] DEFAULT_DUMP_PROCESSORS = new String[] {
-			"summary", "network", "thread", "log", "processingUnits;"
-	};
+	private static final String DEFAULT_DUMP_PROCESSORS = "summary, network, thread, log";
+	// private static final String[] DEFAULT_DUMP_PROCESSORS = new String[] {
+	// "summary", "network", "thread", "log", "processingUnits;"
+	// };
 	private String cloudFileContents;
 	private String defaultTemplateName;
 
@@ -216,19 +219,19 @@ public class ServiceController {
 		this.scheduledExecutor.shutdownNow();
 	}
 
-	@RequestMapping(value = "/dump", method = RequestMethod.GET)
+	@RequestMapping(value = "/dump/machines", method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object> getMachineDumpFile(@RequestParam(required = false) final String processors
-			, @RequestParam(defaultValue = "0") final long fileSizeLimit)
+			, @RequestParam(defaultValue = "" + DEFAULT_DUMP_FILE_SIZE_LIMIT) final long fileSizeLimit)
 			throws IOException {
 		return getMachineDumpFile(null, processors, fileSizeLimit);
 	}
 
-	@RequestMapping(value = "/dump/{ip}", method = RequestMethod.GET)
+	@RequestMapping(value = "/dump/machine/{ip}/", method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object> getMachineDumpFile(@PathVariable final String ip,
-			@RequestParam(required = false) final String processors
-			, @RequestParam(defaultValue = "0") final long fileSizeLimit)
+			@RequestParam(defaultValue = DEFAULT_DUMP_PROCESSORS) final String processors
+			, @RequestParam(defaultValue = "" + DEFAULT_DUMP_FILE_SIZE_LIMIT) final long fileSizeLimit)
 			throws IOException {
 		// check for non-default processors
 		final String[] actualProcessors = getProcessorsFromRequest(processors);
@@ -276,19 +279,43 @@ public class ServiceController {
 
 	}
 
-	private String[] getProcessorsFromRequest(final String processors) {
-		String[] actualProcessors = DEFAULT_DUMP_PROCESSORS;
+	@RequestMapping(value = "/dump/processing-units/", method = RequestMethod.GET)
+	public @ResponseBody
+	Map<String, Object> getPUDumpFile(
+			@RequestParam(defaultValue = "" + DEFAULT_DUMP_FILE_SIZE_LIMIT) final long fileSizeLimit)
+			throws IOException {
 
-		if (processors != null && processors.length() > 0) {
-			final String[] parts = processors.split(",");
+		// if ((name == null) || (name.isEmpty())) {
+		// throw new IllegalArgumentException("PU Name is missing");
+		// }
+		//
+		// // first find the relevant PU
+		// ProcessingUnit pu = this.admin.getProcessingUnits().getNames().get(name);
+		// if (pu == null) {
+		// return errorStatus("dump_pu_not_found", name);
+		// }
 
-			for (int i = 0; i < parts.length; i++) {
-				parts[i] = parts[i].trim();
-			}
+		final DumpResult dump =
+				admin.generateDump("Rest Service user request", null, ProcessingUnitsDumpProcessor.NAME);
+		byte[] data;
+		try {
+			data = getDumpRawData(dump, fileSizeLimit);
+			return successStatus(data);
 
-			actualProcessors = parts;
+		} catch (RestServiceException e) {
+			return errorStatus(e.getMessageName(), e.getParams());
 		}
-		return actualProcessors;
+
+	}
+
+	private String[] getProcessorsFromRequest(final String processors) {
+		final String[] parts = processors.split(",");
+
+		for (int i = 0; i < parts.length; i++) {
+			parts[i] = parts[i].trim();
+		}
+
+		return parts;
 	}
 
 	private byte[]
@@ -298,7 +325,13 @@ public class ServiceController {
 		final DumpResult dump =
 				machine.generateDump("Rest_API", null, actualProcessors);
 
-		// Download to local temp file
+		final byte[] data = getDumpRawData(dump, fileSizeLimit);
+		return data;
+
+	}
+
+	private byte[] getDumpRawData(final DumpResult dump, final long fileSizeLimit)
+			throws IOException, RestServiceException {
 		final File target = File.createTempFile("dump", ".zip", new File(this.temporaryFolder));
 		target.deleteOnExit();
 
@@ -327,6 +360,7 @@ public class ServiceController {
 			}
 
 		}
+
 	}
 
 	private String getCloudConfigurationFromManagementSpace() {
@@ -360,10 +394,7 @@ public class ServiceController {
 
 		logger.info("Successfully loaded cloud configuration file from management space");
 
-		logger.info("Setting cloud local directory to: " + cloudConfiguration.getProvider().getRemoteDirectory());
-		cloudConfiguration.getProvider().setLocalDirectory(cloudConfiguration.getProvider().getRemoteDirectory());
-		logger.info("Loaded cloud: " + cloudConfiguration);
-
+		
 		return cloudConfiguration;
 
 	}
