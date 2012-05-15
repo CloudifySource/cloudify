@@ -512,7 +512,6 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 	 *            the cloud template to use for this server
 	 * @return the server id
 	 */
-	@SuppressWarnings("deprecation")
 	private MachineDetails newServer(final String token, final long endTime, final CloudTemplate serverTemplate)
 			throws Exception {
 
@@ -526,7 +525,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 
 			md.setAgentRunning(false);
 			md.setCloudifyInstalled(false);
-			md.setInstallationDirectory(cloud.getProvider().getRemoteDirectory());
+			md.setInstallationDirectory(serverTemplate.getRemoteDirectory());
 
 			return md;
 		} catch (final Exception e) {

@@ -489,7 +489,6 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 	 * @param serverTemplate the cloud template to use for this server
 	 * @return the server id
 	 */
-	@SuppressWarnings("deprecation")
 	private MachineDetails newServer(final String token, final long endTime, final CloudTemplate serverTemplate)
 			throws Exception {
 
@@ -507,8 +506,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 			md.setMachineId(serverId);
 			md.setAgentRunning(false);
 			md.setCloudifyInstalled(false);
-			md.setInstallationDirectory(serverTemplate.getRemoteDirectory() != null ? serverTemplate
-					.getRemoteDirectory() : cloud.getProvider().getRemoteDirectory());
+			md.setInstallationDirectory(serverTemplate.getRemoteDirectory());
 
 			md.setRemoteUsername("root");
 
