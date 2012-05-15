@@ -24,7 +24,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.apache.commons.beanutils.BeanUtils;
@@ -78,17 +80,28 @@ public abstract class BaseDslScript extends Script {
 	private Object rootObject;
 	private int propertyCounter;
 
+	private Set<String> usedProperties;
+
 	@Override
 	public void setProperty(final String name, final Object value) {
 
+		//Check for duplicate properties. 
+		if (this.usedProperties.contains(name)) {
+			if (!isDuplicatePropertyAllowed(value))
+				throw new IllegalArgumentException("Property duplication was found: Property " 
+						+ name + " is defined more than once.");
+		}
+		this.usedProperties.add(name);
+		
 		if (this.activeObject == null) {
 			super.setProperty(name, value);
 			return;
 		}
+		
 		// if(this.activeObject == null) {
 		// super.setProperty(name, value);
 		// }
-
+		
 		if (value.getClass().isArray()) {
 			final Object[] arr = (Object[]) value;
 			if (arr.length > 1) {
@@ -100,6 +113,15 @@ public abstract class BaseDslScript extends Script {
 			applyPropertyToObject(this.activeObject, name, value);
 		}
 
+	}
+
+	private boolean isDuplicatePropertyAllowed(Object value) {
+		//Application allows duplicate service values.
+		if (this.activeObject instanceof Application && value instanceof Service){
+			return true;
+		}
+		
+		return false;
 	}
 
 	private boolean isProperyExistsInBean(final Object bean, final String propertyName) {
@@ -175,6 +197,7 @@ public abstract class BaseDslScript extends Script {
 						// this will happen every time there is a dsl object
 						// declaration
 						// inside something like a groovy map or list.
+						this.usedProperties.remove(name);
 					}
 				}
 				return retval;
@@ -497,14 +520,20 @@ public abstract class BaseDslScript extends Script {
 	}
 
 	private void swapActiveObject(final Closure<Object> closure, final Object obj) {
-		final Object prevObject = this.activeObject;
-		this.activeObject = obj;
+        final Object prevObject = this.activeObject;
+        final Set<String> prevSet = this.usedProperties;
+        
+        this.activeObject = obj;
+        this.usedProperties = new HashSet<String>();
+        
+        closure.setResolveStrategy(Closure.OWNER_FIRST);
+        closure.call();
+        
+        activeObject = prevObject;
+        this.usedProperties = prevSet;
 
-		closure.setResolveStrategy(Closure.OWNER_FIRST);
-		closure.call();
-		activeObject = prevObject;
+        return;
 
-		return;
 	}
 
 	// //////////////////////////////////////////////////////////////////////////////////
