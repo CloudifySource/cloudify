@@ -39,15 +39,15 @@ import org.openspaces.ui.UserInterface;
 		parent = "application")
 public class Service {
 
-	private static final int DEFAULT_MAX_JAR_SIZE = 150 * 1024 * 1024; // 150 MB	
+	private static final int DEFAULT_MAX_JAR_SIZE = 150 * 1024 * 1024; // 150 MB
 	private static final long DEFAULT_SAMPLING_PERIOD_SECONDS = 60;
-	
+
 	/******
 	 * The service Name.
 	 */
 	private String name;
 	private String icon;
-	
+
 	private ServiceLifecycle lifecycle;
 	private UserInterface userInterface;
 
@@ -58,13 +58,13 @@ public class Service {
 	private ServiceNetwork network;
 
 	private int numInstances = 1;
-	
+
 	private int minAllowedInstances = 1;
-	
+
 	private int maxAllowedInstances = 1;
-	
+
 	private long maxJarSize = DEFAULT_MAX_JAR_SIZE;
-	
+
 	private Map<String, Object> customCommands = new HashMap<String, Object>();
 
 	private String type;
@@ -88,26 +88,24 @@ public class Service {
 	private boolean elastic = false;
 
 	private String url = null;
-	
+
 	private List<ScalingRuleDetails> scalingRules;
 
 	private long scaleOutCooldownInSeconds = 0;
 	private long scaleInCooldownInSeconds = 0;
 
-
 	private List<ServiceStatisticsDetails> serviceStatistics;
 	private List<PerInstanceStatisticsDetails> perInstanceStatistics;
-	
-	
+
 	private long samplingPeriodInSeconds = DEFAULT_SAMPLING_PERIOD_SECONDS;
-	
+
 	public long getSamplingPeriodInSeconds() {
 		return samplingPeriodInSeconds;
 	}
 
 	/**
-	 * @param samplingPeriodInSeconds The time (in seconds) between two consecutive metric samples.
-	 * This figure should be set when using scale rules
+	 * @param samplingPeriodInSeconds The time (in seconds) between two consecutive metric samples. This figure should
+	 *        be set when using scale rules
 	 */
 	public void setSamplingPeriodInSeconds(final long samplingPeriodInSeconds) {
 		this.samplingPeriodInSeconds = samplingPeriodInSeconds;
@@ -173,19 +171,19 @@ public class Service {
 	public void setServiceStatistics(final List<ServiceStatisticsDetails> calculatedStatistics) {
 		this.serviceStatistics = calculatedStatistics;
 	}
-	
+
 	public List<PerInstanceStatisticsDetails> getPerInstanceStatistics() {
 		return this.perInstanceStatistics;
 	}
-	
+
 	public void setPerInstanceStatistics(final List<PerInstanceStatisticsDetails> perInstanceStatistics) {
 		this.perInstanceStatistics = perInstanceStatistics;
 	}
-	
+
 	public List<ServiceStatisticsDetails> getServiceStatistics() {
 		return this.serviceStatistics;
 	}
-	
+
 	public List<PluginDescriptor> getPlugins() {
 		return plugins;
 	}
@@ -213,7 +211,7 @@ public class Service {
 	public void setCustomProperties(final Map<String, String> customProperties) {
 		this.customProperties = customProperties;
 	}
-	
+
 	public String getType() {
 		return type;
 	}
@@ -225,8 +223,7 @@ public class Service {
 	/******
 	 * .
 	 * 
-	 * @param statelessProcessingUnit
-	 *            .
+	 * @param statelessProcessingUnit .
 	 */
 	public void setStatelessProcessingUnit(final StatelessProcessingUnit statelessProcessingUnit) {
 		if (this.statelessProcessingUnit != null) {
@@ -238,21 +235,19 @@ public class Service {
 	/*************
 	 * .
 	 * 
-	 * @param mirrorProcessingUnit
-	 *            .
+	 * @param mirrorProcessingUnit .
 	 */
 	public void setMirrorProcessingUnit(final MirrorProcessingUnit mirrorProcessingUnit) {
-		 if (this.mirrorProcessingUnit != null) {
-				throw new IllegalStateException("DSL File contains more then 1 ProcessingUnit type");
-			}
-			this.mirrorProcessingUnit = mirrorProcessingUnit;
+		if (this.mirrorProcessingUnit != null) {
+			throw new IllegalStateException("DSL File contains more then 1 ProcessingUnit type");
+		}
+		this.mirrorProcessingUnit = mirrorProcessingUnit;
 	}
 
 	/*******
 	 * .
 	 * 
-	 * @param statefulProcessingUnit
-	 *            .
+	 * @param statefulProcessingUnit .
 	 */
 	public void setStatefulProcessingUnit(final StatefulProcessingUnit statefulProcessingUnit) {
 		if (this.statefulProcessingUnit != null) {
@@ -264,8 +259,7 @@ public class Service {
 	/**************
 	 * .
 	 * 
-	 * @param dataGrid
-	 *            .
+	 * @param dataGrid .
 	 */
 	public void setDataGrid(final DataGrid dataGrid) {
 		if (this.datagrid != null) {
@@ -280,9 +274,10 @@ public class Service {
 	 * @param memcached .
 	 */
 	public void setMemcached(final Memcached memcached) {
-		if (this.memcachedProcessingUnit != null)
+		if (this.memcachedProcessingUnit != null) {
 			throw new IllegalStateException("DSL File contains more then one ProcessingUnit type");
-		
+		}
+
 		this.memcachedProcessingUnit = memcached;
 	}
 
@@ -376,9 +371,8 @@ public class Service {
 
 	/**
 	 * 
-	 * @param scaleOutCooldownInSeconds
-	 *            - The time (in seconds) that scaling rules are disabled after
-	 *            scale out (instances added)
+	 * @param scaleOutCooldownInSeconds - The time (in seconds) that scaling rules are disabled after scale out
+	 *        (instances added)
 	 * 
 	 * @see #setScaleOutCooldownInSeconds(long)
 	 * @see #setScaleCooldownInSeconds(long)
@@ -393,9 +387,8 @@ public class Service {
 
 	/**
 	 * 
-	 * @param scaleInCooldownInSeconds
-	 *            - The time (in seconds) that scaling rules are disabled after
-	 *            scale in (instances removed)
+	 * @param scaleInCooldownInSeconds - The time (in seconds) that scaling rules are disabled after scale in (instances
+	 *        removed)
 	 * @see #setScaleCooldownInSeconds(long)
 	 * @see #setScaleOutCooldownInSeconds(long)
 	 */
@@ -405,37 +398,37 @@ public class Service {
 
 	/**
 	 * 
-	 * @param scaleCooldownInSeconds
-	 * 	          - The time (in seconds) that scaling rules are disabled after
-	 *            scale in (instances removed) or scale out (instances added)
-	 *
-	 * This has the same effect as calling {@link #setScaleInCooldownInSeconds(long)} and {@link #setScaleOutCooldownInSeconds(long)} separately.
+	 * @param scaleCooldownInSeconds - The time (in seconds) that scaling rules are disabled after scale in (instances
+	 *        removed) or scale out (instances added)
+	 * 
+	 *        This has the same effect as calling {@link #setScaleInCooldownInSeconds(long)} and
+	 *        {@link #setScaleOutCooldownInSeconds(long)} separately.
 	 * 
 	 * @see #setScaleInCooldownInSeconds(long)
 	 * @see #setScaleOutCooldownInSeconds(long)
 	 */
-	public void setScaleCooldownInSeconds(long scaleCooldownInSeconds) {
+	public void setScaleCooldownInSeconds(final long scaleCooldownInSeconds) {
 		this.scaleOutCooldownInSeconds = scaleCooldownInSeconds;
 		this.scaleInCooldownInSeconds = scaleCooldownInSeconds;
 	}
-	
+
 	/**
 	 * 
-	 * @return the time in seconds that scaling rules are disabled after scale in or scale out.
-	 * In case the scale in and scale out values are different it returns the bigger value.
+	 * @return the time in seconds that scaling rules are disabled after scale in or scale out. In case the scale in and
+	 *         scale out values are different it returns the bigger value.
 	 */
 	public long getScaleCooldownInSeconds() {
-		return Math.max(this.scaleOutCooldownInSeconds,this.scaleInCooldownInSeconds);
+		return Math.max(this.scaleOutCooldownInSeconds, this.scaleInCooldownInSeconds);
 	}
-	
+
 	@DSLValidation
 	void validateDefaultValues()
 			throws DSLValidationException {
 		if (this.numInstances > this.maxAllowedInstances) {
 			throw new DSLValidationException("The requested number of instances ("
-					+ this.numInstances + ") exceeds the maximum number of instances allowed" 
+					+ this.numInstances + ") exceeds the maximum number of instances allowed"
 					+ " (" + this.maxAllowedInstances + ") for service " + this.name + ".");
 		}
 	}
-	
+
 }

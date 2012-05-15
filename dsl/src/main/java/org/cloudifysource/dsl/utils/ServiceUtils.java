@@ -15,6 +15,9 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.utils;
 
+import org.hyperic.sigar.Sigar;
+import org.hyperic.sigar.SigarException;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
@@ -22,9 +25,12 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.Socket;
 import java.net.URL;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+
+import com.gigaspaces.internal.sigar.SigarHolder;
 
 /******************
  * ServiceUtils exposes a range of methods that recipes can use in closures, including TCP port checks, HTTP requests
@@ -48,6 +54,7 @@ public final class ServiceUtils {
 
 	/***********
 	 * Tests if a port of the localhost interface is in use.
+	 * 
 	 * @param port the port number.
 	 * @return true if the port is not in use, false otherwise.
 	 */
@@ -302,4 +309,30 @@ public final class ServiceUtils {
 		return !isWindows();
 	}
 
+	public static class ProcessUtils {
+
+		private ProcessUtils() {
+			//
+		}
+
+		public static List<Long> getPidsWithName(final String name)
+				throws SigarException {
+
+			Sigar sigar = SigarHolder.getSigar();
+
+			final List<Long> result = new LinkedList<Long>();
+			final long[] pids = sigar.getProcList();
+			for (long pid : pids) {
+				try {
+					final String procName = sigar.getProcExe(pid).getName();
+					if (procName.equals(name)) {
+						result.add(pid);
+					}
+				} catch (SigarException e) {
+					logger.fine("Could not access process details for PID: " + pid);
+				}
+			}
+			return result;
+		}
+	}
 }

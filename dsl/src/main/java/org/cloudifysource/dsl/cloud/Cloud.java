@@ -18,6 +18,7 @@ package org.cloudifysource.dsl.cloud;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.DSLValidation;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationException;
@@ -91,16 +92,20 @@ public class Cloud {
 		return "Cloud [name=" + name + ", provider=" + provider + ", user=" + user + ", configuration=" + configuration
 				+ ", templates=" + templates + ", custom=" + custom + "]";
 	}
-	
-	
+
 	@DSLValidation
-	void validateTemplateConfiguration()
+	void validateManagementTemplateName()
 			throws DSLValidationException {
-		
+
 		CloudConfiguration configuration = getConfiguration();
 		Map<String, CloudTemplate> templates = getTemplates();
-		
+
 		String managementTemplateName = configuration.getManagementMachineTemplate();
+
+		if (StringUtils.isBlank(managementTemplateName)) {
+			throw new DSLValidationException("managementTemplateName may not be empty");
+		}
+		
 		if (!templates.containsKey(managementTemplateName)) {
 			throw new DSLValidationException("The management machine template \"" + managementTemplateName + "\" is "
 					+ "not listed in the cloud's templates section");

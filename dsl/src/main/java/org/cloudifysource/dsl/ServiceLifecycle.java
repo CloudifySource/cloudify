@@ -72,6 +72,7 @@ public class ServiceLifecycle implements Serializable {
 
 	private Object locator;
 	
+	// TODO - this should be a string, something like "15s" or "15000mil"
 	private int startDetectionTimeoutSecs = DEFAULT_START_DETECTION_SECONDS;
 
 	public int getStartDetectionTimeoutSecs() {

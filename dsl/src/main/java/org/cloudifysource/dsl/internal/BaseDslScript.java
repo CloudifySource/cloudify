@@ -59,10 +59,19 @@ import org.openspaces.ui.MetricGroup;
 import org.openspaces.ui.UserInterface;
 import org.openspaces.ui.WidgetGroup;
 
+/*************
+ * Base class for DSL files. 
+ * @author barakme
+ * @since 1.0
+ *
+ */
 public abstract class BaseDslScript extends Script {
 
 	private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger(BaseDslScript.class.getName());
 
+	/********
+	 * DSL property indicating extension of recipe.
+	 */
 	public static final String EXTEND_PROPERTY_NAME = "extend";
 
 	protected Object activeObject = null;
