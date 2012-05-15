@@ -120,7 +120,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		try {
 			machineDetails = provisionMachine(duration, unit);
 		} catch (final Exception e) {
-			logger.log(Level.SEVERE, "Failed to provisiong machine: " + e.getMessage(), e);
+			logger.log(Level.WARNING, "Failed to provision machine, reason: " + e.getMessage(), e);
 			throw new ElasticMachineProvisioningException("Failed to provisiong machine: " + e.getMessage(), e);
 		}
 
@@ -223,7 +223,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE, TimeUnit.MINUTES);
 		} catch (final Exception e) {
 			logger.log(
-					Level.SEVERE,
+					Level.WARNING,
 					"Machine Provisioning failed. "
 							+ "An error was encountered while trying to shutdown the new machine ( "
 							+ machineDetails.toString() + "). Error was: " + e.getMessage(), e);
@@ -291,7 +291,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		if (machineDetails == null) {
 			throw new IllegalStateException("Provisioning provider: " + cloudifyProvisioning.getClass().getName()
-					+ " returned a null when calling startMachine");
+					+ " returned null when calling startMachine");
 		}
 
 		logger.info("New machine was provisioned. Machine details: " + machineDetails);
