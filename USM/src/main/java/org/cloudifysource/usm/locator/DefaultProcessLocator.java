@@ -130,7 +130,8 @@ public class DefaultProcessLocator extends AbstractUSMEventListener implements P
 		childrenAfter.removeAll(childrenBefore);
 
 		if (childrenAfter.isEmpty()) {
-			throw new USMException("New process could not be found!");
+			throw new USMException("Default process locator could not find a new process! "
+					+ "Are you running your service as a background process or a system service?");
 		}
 
 		if (childrenAfter.size() > 1) {
