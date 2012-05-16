@@ -84,7 +84,7 @@ cloud {
 						"nodesList" : ([
 										([
 											"id" : "byon-pc-lab{0}",
-											"ip" : "0.0.0.0"
+											"host-list" : "0.0.0.0"
 										])
 						])
 					])
