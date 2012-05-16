@@ -110,6 +110,7 @@ cloud {
 	 // Optional. Sets whether to delete the remoteDirectory created by the cloud driver, when shutting down.
 	custom ([
 		"cleanGsFilesOnShutdown": "false"
+		"itemsToClean": ""
 	])
 
 }
