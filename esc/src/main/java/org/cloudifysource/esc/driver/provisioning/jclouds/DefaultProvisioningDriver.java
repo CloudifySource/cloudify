@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
-import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
@@ -325,28 +324,11 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		// launch the management machines
 		publishEvent(EVENT_ATTEMPT_START_MGMT_VMS);
 		final int numberOfManagementMachines = this.cloud.getProvider().getNumberOfManagementMachines();
-		validateKeySettings();
 		final MachineDetails[] createdMachines = doStartManagementMachines(endTime, numberOfManagementMachines);
 		publishEvent(EVENT_MGMT_VMS_STARTED);
 		return createdMachines;
 	}
 
-	private void validateKeySettings() throws CloudProvisioningException {
-		File keyFile = null;
-		String keyFileStr = cloud.getUser().getKeyFile();
-		if (StringUtils.isNotBlank(keyFileStr)) {
-			fixConfigRelativePaths(cloud);
-			keyFile = new File(keyFileStr);
-			if (!keyFile.isAbsolute()) {
-				keyFile = new File(cloud.getProvider().getLocalDirectory(), keyFileStr);
-			}
-			if (!keyFile.isFile()) {
-				throw new CloudProvisioningException("The specified key file is missing: " 
-						+ keyFile.getAbsolutePath());
-			}
-		}	
-	}
-	
 	private MachineDetails[] doStartManagementMachines(final long endTime, final int numberOfManagementMachines)
 			throws TimeoutException, CloudProvisioningException {
 		

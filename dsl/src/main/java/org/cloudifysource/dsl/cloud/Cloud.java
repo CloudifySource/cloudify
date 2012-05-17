@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+' * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.cloud;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,6 +23,8 @@ import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.DSLValidation;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationException;
+
+import com.j_spaces.kernel.Environment;
 
 /***********
  * Cloud doman object. Includes all of the details required for the cloud driver to use a cloud provider.
@@ -111,6 +114,34 @@ public class Cloud {
 					+ "not listed in the cloud's templates section");
 		}
 
+	}
+	
+	@DSLValidation
+	void validateKeySettings() throws DSLValidationException {
+		File keyFile = null;
+		String keyFileStr = getUser().getKeyFile();
+		if (StringUtils.isNotBlank(keyFileStr)) {
+			keyFile = new File(keyFileStr);
+			if (!keyFile.isAbsolute()) {
+				fixConfigRelativePaths();
+				keyFile = new File(getProvider().getLocalDirectory(), keyFileStr);
+			}
+			if (!keyFile.isFile()) {
+				throw new DSLValidationException("The specified key file is missing: \"" 
+						+ keyFile.getAbsolutePath() + "\"");
+			}
+		}	
+	}
+	
+	/**
+	 * Sets the localDirectory setting of the given cloud object to an absolute path, based on the home directory.
+	 */
+	private void fixConfigRelativePaths() {
+		String configLocalDir = getProvider().getLocalDirectory();
+		if (configLocalDir != null && !new File(configLocalDir).isAbsolute()) {
+			String envHomeDir = Environment.getHomeDirectory();
+			getProvider().setLocalDirectory(new File(envHomeDir, configLocalDir).getAbsolutePath());
+		}
 	}
 
 }
