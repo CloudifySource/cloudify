@@ -80,7 +80,7 @@ public abstract class BaseDslScript extends Script {
 	private Object rootObject;
 	private int propertyCounter;
 
-	private Set<String> usedProperties;
+	private Set<String> usedProperties = new HashSet<String>();
 
 	@Override
 	public void setProperty(final String name, final Object value) {
