@@ -87,7 +87,9 @@ public abstract class BaseDslScript extends Script {
 
 		//Check for duplicate properties. 
 		if (this.usedProperties == null){
-			throw new IllegalArgumentException("used properties can not be null");
+			throw new IllegalArgumentException("used properties can not be null. Property: " +
+						name + ", Value: " + value.toString() +
+						", Active object: " + this.activeObject);
 		}
 		if (this.usedProperties.contains(name)) {
 			if (!isDuplicatePropertyAllowed(value))
