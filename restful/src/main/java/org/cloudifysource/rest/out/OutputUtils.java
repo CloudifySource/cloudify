@@ -178,17 +178,17 @@ public class OutputUtils {
 			}
 			else if (methodReturnType.isArray()){
 				resultObject = safeInvoke(method, object);
-				nextCommandURL = getNextCommandUrl(resultObject, commandURL, commandName);
+				nextCommandURL = getNextCommandUrl(commandURL, commandName, false);
 				OutputUtils.outputArrayToMap(resultObject, outputMap, nextCommandURL);
 			}
 			else if (Map.class.isAssignableFrom(methodReturnType)){
 				resultObject = safeInvoke(method, object);
-				nextCommandURL = getNextCommandUrl(resultObject, commandURL, commandName);
+				nextCommandURL = getNextCommandUrl(commandURL, commandName, false);
 				OutputUtils.outputMapToMap(resultObject, outputMap, nextCommandURL);
 			}
 			else if (List.class.isAssignableFrom(methodReturnType)){
 				resultObject = safeInvoke(method, object);
-				nextCommandURL = getNextCommandUrl(resultObject, commandURL, commandName);
+				nextCommandURL = getNextCommandUrl(commandURL, commandName, false);
 				OutputUtils.outputListToMap(resultObject, outputMap, nextCommandURL);
 			}
 			else if (PrimitiveWrapper.is(methodReturnType)) {
@@ -198,7 +198,8 @@ public class OutputUtils {
 				}
 
 			}else{
-				outputMap.put(commandName, commandURL.concat("/" + commandName));
+			    nextCommandURL = getNextCommandUrl(commandURL, commandName, false);
+				outputMap.put(commandName, nextCommandURL);
 				// Special treatment for enum objects.
 				resultObject = safeInvoke(method, object);
 				if (!isNull(resultObject)){
@@ -215,33 +216,23 @@ public class OutputUtils {
 	}
 
 	/**
-	 * The next command url depends on the parent object type.
-	 * if the parent object type is Map, and the next command
-	 * returns a DS such as Map, Array or List, then the next command
-	 * url should NOT include a duplication of the command name.  
-	 * @param parentObject
+	 * returns the next command's url with the correct relative path.
+	 * if the last(top most) object is of type Map/List/Array
+	 * than we should NOT include a duplication of the command name in the url. 
+	 * 
 	 * @param commandURI
 	 * @param commandName
+	 * @param isLastObjectAndCollection
 	 * @return next command url
 	 */
-	public static String getNextCommandUrl(Object parentObject, String commandURI, String commandName) {
-		if (isNull(parentObject)){
-			return commandURI;
-		}
-		boolean isPreLastObjectMap = Map.class.isAssignableFrom(parentObject.getClass());
-		String[] allCommands = commandURI.split("/");
-		String lastCommandName = allCommands[allCommands.length - 1];
-		String outputUrl = null;
-		if (isPreLastObjectMap && commandName.equals(lastCommandName)){
-			outputUrl = commandURI;
-		}
-		else{
-			outputUrl = commandURI + "/" + commandName;
-		}
-		outputUrl = getRelativePathURLS(outputUrl);
+    public static String getNextCommandUrl(String commandURI, String commandName, boolean isLastObjectAndCollection) {
+        String outputUrl = getRelativePathURLS(commandURI);
+        if (!isLastObjectAndCollection){
+            outputUrl = outputUrl + "/" + commandName;
+        }
 
-		return outputUrl;
-	}
+        return outputUrl;
+    }
 
 	//Trunk is/get
 	private static String getGetterCommandName(String getterName) {

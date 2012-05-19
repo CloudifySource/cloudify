@@ -16,7 +16,9 @@
 package org.cloudifysource.esc.installer;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
@@ -90,6 +92,7 @@ public class InstallationDetails implements Cloneable {
 	private FileTransferModes fileTransferMode = FileTransferModes.SCP;
 	private RemoteExecutionModes remoteExecutionMode = RemoteExecutionModes.SSH;
 
+	private Map<String, Object> customData = new HashMap<String, Object>();
 	public Admin getAdmin() {
 		return admin;
 	}
@@ -149,7 +152,10 @@ public class InstallationDetails implements Cloneable {
 
 	@Override
 	public String toString() {
-		return "InstallationDetails [privateIP=" + privateIp + ", locator=" + locator + ", username=" + username
+		return "InstallationDetails [privateIP=" + privateIp + ", publicIP=" + publicIp 
+				+ ", locator=" + locator + ", connectToPrivateIP=" + connectedToPrivateIp
+				+ ", bindToPrivateIP=" + bindToPrivateIp
+				+ ", username=" + username
 				+ ", password=***" + ", keyFile=" + keyFile + ", localDir=" + localDir + ", remoteDir=" + remoteDir
 				+ ", isLus=" + isLus + ", zones=" + zones + "]";
 	}
@@ -272,6 +278,10 @@ public class InstallationDetails implements Cloneable {
 
 	public void setRemoteExecutionMode(final RemoteExecutionModes remoteExecutionMode) {
 		this.remoteExecutionMode = remoteExecutionMode;
+	}
+
+	public Map<String, Object> getCustomData() {
+		return customData;
 	}
 
 }

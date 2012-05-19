@@ -15,6 +15,9 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.utils;
 
+import org.hyperic.sigar.Sigar;
+import org.hyperic.sigar.SigarException;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
@@ -66,6 +69,7 @@ public final class ServiceUtils {
 
 	/***********
 	 * Tests if a port of some host is in use.
+     * 
 	 * @param host the host to check.
 	 * @param port the port number.
 	 * @return true if the port is not in use, false otherwise.
@@ -95,7 +99,7 @@ public final class ServiceUtils {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Checks whether a specified port is occupied.
 	 * 
@@ -332,4 +336,30 @@ public final class ServiceUtils {
 		return !isWindows();
 	}
 
+	public static class ProcessUtils {
+
+		private ProcessUtils() {
+			//
+		}
+
+		public static List<Long> getPidsWithName(final String name)
+				throws SigarException {
+
+			Sigar sigar = SigarHolder.getSigar();
+
+			final List<Long> result = new LinkedList<Long>();
+			final long[] pids = sigar.getProcList();
+			for (long pid : pids) {
+				try {
+					final String procName = sigar.getProcExe(pid).getName();
+					if (procName.equals(name)) {
+						result.add(pid);
+					}
+				} catch (SigarException e) {
+					logger.fine("Could not access process details for PID: " + pid);
+				}
+			}
+			return result;
+		}
+	}
 }

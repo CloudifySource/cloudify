@@ -540,14 +540,15 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		// address.
 		md.setUsePrivateAddress(true);
 
-		// if the node has user/pwd - use it. Otherwise - take them from the cloud's settings.
+		// if the node has user/pwd - use it. Otherwise - take the use/password from the template's settings.
+		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplateName);
 		if (!StringUtils.isBlank(node.getUsername()) && !StringUtils.isBlank(node.getCredential())) {
 			md.setRemoteUsername(node.getUsername());
 			md.setRemotePassword(node.getCredential());
-		} else if (!StringUtils.isBlank(cloud.getConfiguration().getRemoteUsername())
-				&& !StringUtils.isBlank(cloud.getConfiguration().getRemotePassword())) {
-			md.setRemoteUsername(cloud.getConfiguration().getRemoteUsername());
-			md.setRemotePassword(cloud.getConfiguration().getRemotePassword());
+		} else if (!StringUtils.isBlank(template.getUsername())
+				&& !StringUtils.isBlank(template.getPassword())) {
+			md.setRemoteUsername(template.getUsername());
+			md.setRemotePassword(template.getPassword());
 		} else {
 			logger.severe("Cloud node loading failed, missing credentials for server: " + node.toString());
 			publishEvent("prov_node_loading_failed", node.toString());

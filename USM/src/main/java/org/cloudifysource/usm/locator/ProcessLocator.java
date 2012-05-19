@@ -19,6 +19,7 @@ package org.cloudifysource.usm.locator;
 import java.util.List;
 
 import org.cloudifysource.usm.USMComponent;
+import org.cloudifysource.usm.USMException;
 
 /*************
  * A process locator is used with services running in background mode, or service running multiple processes. Process
@@ -34,6 +35,7 @@ public interface ProcessLocator extends USMComponent {
 	 * Returns the list of process IDs.
 	 * 
 	 * @return the process IDs.
+	 * @throws USMException in case of an error.
 	 */
-	List<Long> getProcessIDs();
+	List<Long> getProcessIDs() throws USMException;
 }

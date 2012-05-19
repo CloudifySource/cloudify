@@ -33,7 +33,6 @@ public class CloudProvider {
 
 	private String provider;
 	private String localDirectory;
-	private String remoteDirectory;
 	private String cloudifyUrl;
 
 	// location of zip file where additional cloudify files are places.
@@ -66,27 +65,11 @@ public class CloudProvider {
 		return localDirectory;
 	}
 
+	
 	public void setLocalDirectory(final String localDirectory) {
 		this.localDirectory = localDirectory;
 	}
 
-	/******
-	 * @deprecated use CloudTemplate.getRemoteDirectory instead.
-	 * @return .
-	 */
-	@Deprecated
-	public String getRemoteDirectory() {
-		return remoteDirectory;
-	}
-
-	/******
-	 * @param remoteDirectory .
-	 * @deprecated use CloudTemplate.setRemoteDirectory instead.
-	 */
-	@Deprecated
-	public void setRemoteDirectory(final String remoteDirectory) {
-		this.remoteDirectory = remoteDirectory;
-	}
 
 	public String getCloudifyUrl() {
 		return cloudifyUrl;
@@ -164,8 +147,9 @@ public class CloudProvider {
 
 	@Override
 	public String toString() {
-		return "CloudProvider [provider=" + provider + ", localDirectory=" + localDirectory + ", remoteDirectory="
-				+ remoteDirectory + ", cloudifyUrl=" + cloudifyUrl + ", machineNamePrefix=" + machineNamePrefix
+		return "CloudProvider [provider=" + provider + ", localDirectory=" + localDirectory 
+				+ ", cloudifyUrl=" + cloudifyUrl 
+				+ ", machineNamePrefix=" + machineNamePrefix
 				+ ", dedicatedManagementMachines=" + dedicatedManagementMachines + ", managementOnlyFiles="
 				+ managementOnlyFiles + ",  sshLoggingLevel=" + sshLoggingLevel + ", zones=" + zones
 				+ ", managementGroup=" + managementGroup + ", numberOfManagementMachines=" + numberOfManagementMachines

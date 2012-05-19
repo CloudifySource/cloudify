@@ -15,22 +15,28 @@
  *******************************************************************************/
 package org.cloudifysource.usm;
 
+/*********
+ * Exception class thrown by the USM.
+ * 
+ * @author barakme
+ * @since 1.0
+ */
 public class USMException extends Exception {
-	
+
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public USMException(String msg, Throwable cause) {
+	public USMException(final String msg, final Throwable cause) {
 		super(msg, cause);
 	}
-	
-	public USMException(String msg) {
+
+	public USMException(final String msg) {
 		super(msg);
 	}
-	
-	public USMException(Throwable cause) {
+
+	public USMException(final Throwable cause) {
 		super(cause);
 	}
 

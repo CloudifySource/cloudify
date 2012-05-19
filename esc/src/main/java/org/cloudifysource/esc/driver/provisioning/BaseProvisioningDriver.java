@@ -32,6 +32,8 @@ import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClas
 import org.jclouds.util.CredentialUtils;
 import org.openspaces.admin.Admin;
 
+import com.j_spaces.kernel.Environment;
+
 /**
  * @author noak
  * @since 2.0.1
@@ -142,52 +144,61 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	}
 
 	/**
-	 * Handles credentials for accessing the server - in this order: 1. Password or key file set for this specific
-	 * server 2. Key file set for the entire cloud 3. Password set for the entire cloud
+	 * Handles credentials for accessing the server - in this order: 
+	 * 1. pem file (set as a key file on the user block in the groovy file)
+	 * 2. machine's remote password (set previously by the cloud driver)
 	 * 
 	 * @param machineDetails The MachineDetails object that represents this server
 	 * @throws CloudProvisioningException Indicates missing credentials or IOException (when a key file is used)
 	 */
 	protected void handleServerCredentials(final MachineDetails machineDetails)
 			throws CloudProvisioningException {
-		File tempFile = null;
-
-		if (StringUtils.isBlank(machineDetails.getRemotePassword())) {
-			if (StringUtils.isBlank(cloud.getUser().getKeyFile())) {
-				logger.fine("No key file specified in the cloud configuration file");
-				// no key file. Check for password
-				if (StringUtils.isBlank(cloud.getConfiguration().getRemotePassword())) {
-					logger.severe("No Password or key file specified in the cloud configuration file - connection to"
-							+ " the new machine is not possible.");
-					throw new CloudProvisioningException(
-							"No credentials (password or key file) supplied with the cloud configuration file");
-				}
-				machineDetails.setRemotePassword(cloud.getConfiguration().getRemotePassword());
-			} else {
-				tempFile = new File(cloud.getUser().getKeyFile());
+		
+		File keyFile = null;
+		// using a key (pem) file
+		String keyFileStr = cloud.getUser().getKeyFile();
+		if (StringUtils.isNotBlank(keyFileStr)) {
+			fixConfigRelativePaths(cloud);
+			keyFile = new File(keyFileStr);
+			if (!keyFile.isAbsolute()) {
+				keyFile = new File(cloud.getProvider().getLocalDirectory(), keyFileStr);
 			}
-		} else if (CredentialUtils.isPrivateKeyCredential(machineDetails.getRemotePassword())) {
-			// using a key file
-			logger.fine("Cloud has provided a key file for connections to new machine");
-			try {
-				tempFile = File.createTempFile("gs-esm-key", ".pem");
-				tempFile.deleteOnExit();
-				FileUtils.write(tempFile, machineDetails.getRemotePassword());
-				cloud.getUser().setKeyFile(tempFile.getAbsolutePath());
-			} catch (final IOException e) {
-				throw new CloudProvisioningException("Failed to create a temporary "
-						+ "file for cloud server's key file", e);
+			if (keyFile != null && !keyFile.exists()) {
+				throw new CloudProvisioningException("The specified key file could not be found: " 
+						+ keyFile.getAbsolutePath());
 			}
-
 		} else {
 			// using a password
-			logger.fine("Cloud has provided a password for remote connections to new machine");
-			cloud.getConfiguration().setRemotePassword(machineDetails.getRemotePassword());
+			String remotePassword = machineDetails.getRemotePassword();
+			if (StringUtils.isNotBlank(remotePassword)) {
+				//is this actually a pem file?
+				if (CredentialUtils.isPrivateKeyCredential(remotePassword)) {
+					logger.fine("Cloud has provided a key file for connections to new machines");
+					try {
+						keyFile = File.createTempFile("gs-esm-key", ".pem");
+						keyFile.deleteOnExit();
+						FileUtils.write(keyFile, remotePassword);
+						// TODO : stop settings the machine's private key as the entire cloud's key. This would cause
+						// a problem if the cloud (i.e. Rackspace) returns a different key for each machine.
+						cloud.getUser().setKeyFile(keyFile.getAbsolutePath());
+					} catch (final IOException e) {
+						throw new CloudProvisioningException("Failed to create a temporary "
+								+ "file for cloud server's key file", e);
+					}
+				} else {
+					// this is a password
+					logger.fine("Cloud has provided a password for remote connections to new machines");
+				}
+			} else {
+				//if we got here - there is no key file or password on the cloud or node.
+				logger.severe("No Password or key file specified in the cloud configuration file - connection to"
+						+ " the new machine is not possible.");
+				throw new CloudProvisioningException(
+						"No credentials (password or key file) supplied with the cloud configuration file");
+			}
 		}
 
-		final File keyFile = tempFile;
 		logServerDetails(machineDetails, keyFile);
-
 	}
 
 	/**
@@ -199,6 +210,19 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	protected void publishEvent(final String eventName, final Object... args) {
 		for (final ProvisioningDriverListener listener : this.eventsListenersList) {
 			listener.onProvisioningEvent(eventName, args);
+		}
+	}
+	
+	/**
+	 * Sets the localDirectory setting of the given cloud object to an absolute path, based on the home directory.
+	 * @param cloud The cloud object to configure
+	 */
+	protected void fixConfigRelativePaths(final Cloud cloud) {
+		String configLocalDir = cloud.getProvider().getLocalDirectory();
+		if (configLocalDir != null && !new File(configLocalDir).isAbsolute()) {
+			String envHomeDir = Environment.getHomeDirectory();
+			logger.fine("Assuming " + configLocalDir + " is in " + envHomeDir);
+			cloud.getProvider().setLocalDirectory(new File(envHomeDir, configLocalDir).getAbsolutePath());
 		}
 	}
 }

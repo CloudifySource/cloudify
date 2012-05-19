@@ -36,10 +36,9 @@ cloud {
 		
 		// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.  
 		localDirectory "tools/cli/plugins/esc/byon/upload"
-		// Mandatory. Files from the local directory will be copied to this directory on the remote machine. 
-		remoteDirectory "/tmp/gs-files"
+		
 		// Mandatory. The HTTP/S URL where cloudify can be downloaded from by newly started machines.
-		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.1/gigaspaces-cloudify-2.1.1-m1-b1394-43.zip"
+		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.1/gigaspaces-cloudify-2.1.1-m1-b1394-61.zip"
 		// Mandatory. The prefix for new machines started for servies.
 		machineNamePrefix "cloudify_agent_"
 		// Optional. Defaults to true. Specifies whether cloudify should try to deploy services on the management machine.
@@ -73,6 +72,8 @@ cloud {
 				SMALL_LINUX : template{
 				// Mandatory. Amount of RAM available to machine.
 				machineMemoryMB 1600
+				// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+				remoteDirectory "/tmp/gs-files"
 				// Mandatory for BYON.
 					custom ([
 						// Mandatory for BYON. The nodesList custom property lists the nodes that compose this cloud-like environment.
@@ -83,7 +84,7 @@ cloud {
 						"nodesList" : ([
 										([
 											"id" : "byon-pc-lab{0}",
-											"ip" : "0.0.0.0"
+											"host-list" : "0.0.0.0"
 										])
 						])
 					])
@@ -96,6 +97,7 @@ cloud {
 	 // Optional. Sets whether to delete the remoteDirectory created by the cloud driver, when shutting down.
 	custom ([
 		"cleanGsFilesOnShutdown": "false"
+		"itemsToClean": ""
 	])
 
 }

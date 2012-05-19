@@ -139,6 +139,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 		NodeMetadata node;
 		final MachineDetails machineDetails;
+			
 		try {
 			logger.fine("Cloudify Deployer is creating a new server with tag: " + groupName
 					+ ". This may take a few minutes");
@@ -330,6 +331,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 	private MachineDetails[] doStartManagementMachines(final long endTime, final int numberOfManagementMachines)
 			throws TimeoutException, CloudProvisioningException {
+		
 		final ExecutorService executors = Executors.newFixedThreadPool(numberOfManagementMachines);
 
 		@SuppressWarnings("unchecked")

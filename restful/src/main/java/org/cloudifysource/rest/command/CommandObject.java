@@ -18,6 +18,7 @@ package org.cloudifysource.rest.command;
 import java.util.List;
 import java.util.Map;
 
+import org.cloudifysource.rest.out.OutputUtils;
 import org.cloudifysource.rest.util.NotFoundHttpException;
 
 
@@ -59,11 +60,11 @@ public class CommandObject {
 	 * for example: if the previous command returned an object of type Array, it's next command,
 	 * if exists, will have to be an array index and will be treated as such.
 	 */
-	public void runCommand(){
+	public void runCommand() {
 		
 		Object previousCommandObject = previousCommand.getCommandObject(); 
-		if (previousCommandObject == null) {
-			throw new NotFoundHttpException();
+		if (OutputUtils.isNull(previousCommandObject)) {
+			throw new NotFoundHttpException("Method invocation returned null value: " + previousCommand.commandName);
 		}
 			
 		Class<?> previousCommandObjectClass = previousCommandObject.getClass();
@@ -80,7 +81,7 @@ public class CommandObject {
 		else{
 			this.commandObjectOutput = CommandUtils.getObjectByCommand(commandName, previousCommandObject);
 		}
-	
+
 	}
 	
 	/**

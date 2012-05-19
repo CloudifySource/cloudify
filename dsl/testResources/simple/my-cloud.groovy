@@ -4,7 +4,7 @@ cloud2 {
 	provider {
 		provider "aws-ec2"
 		localDirectory "tools/cli/plugins/esc/ec2/upload"
-		remoteDirectory "/home/ec2-user/gs-files"
+		
 		cloudifyUrl "https://s3.amazonaws.com/test-repository-ec2dev/cloudify/gigaspaces.zip"
 		machineNamePrefix "gs_esm_gsa_"
 		securityGroup "default"
@@ -30,6 +30,7 @@ cloud2 {
 					imageId "us-east-1/ami-76f0061f"
 					machineMemoryMB "1600"
 					hardwareId "m1.small"
+					remoteDirectory "/home/ec2-user/gs-files"
 				}
 			])
 }

@@ -5,6 +5,7 @@ service {
     name "iisproxy"
     
     numInstances 2
+    maxAllowedInstances 2
     
     lifecycle {
         init "iisproxy_install.groovy"

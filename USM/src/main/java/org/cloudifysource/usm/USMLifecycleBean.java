@@ -15,9 +15,11 @@
  *******************************************************************************/
 package org.cloudifysource.usm;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
@@ -48,6 +50,7 @@ import org.cloudifysource.usm.events.USMEvent;
 import org.cloudifysource.usm.installer.USMInstaller;
 import org.cloudifysource.usm.launcher.ProcessLauncher;
 import org.cloudifysource.usm.liveness.LivenessDetector;
+import org.cloudifysource.usm.locator.ProcessLocator;
 import org.cloudifysource.usm.monitors.Monitor;
 import org.cloudifysource.usm.shutdown.ProcessKiller;
 import org.cloudifysource.usm.stopDetection.StopDetector;
@@ -76,6 +79,8 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	private LivenessDetector[] livenessDetectors = new LivenessDetector[0];
 	@Autowired(required = false)
 	private final StopDetector[] stopDetectors = new StopDetector[0];
+	@Autowired(required = false)
+	private final ProcessLocator[] processLocators = new ProcessLocator[0];
 
 	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(USMLifecycleBean.class
 			.getName());
@@ -124,14 +129,9 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	private Details[] details = new Details[0];
 	private String eventPrefix;
 
-	// ////////////////////////////
-	// A field that is toggled when the external process is started/stopped
-	// Used by the start detection implementation to abort start detection
-	// if the process failed to start
-	private volatile boolean processIsRunning;
-	// This thread will be interrupted if the process died
-	private volatile Thread livenessDetectorThread;
-
+	/**********
+	 * Post construct method.
+	 */
 	@PostConstruct
 	public void init() {
 		if (this.eventLogger == null) {
@@ -180,12 +180,20 @@ public class USMLifecycleBean implements ClusterInfoAware {
 		}
 	}
 
+	/********
+	 * logs the start event.
+	 */
 	public void logProcessStartEvent() {
 		if (eventLogger.isLoggable(Level.INFO)) {
 			eventLogger.info(eventPrefix + "START invoked");
 		}
 	}
 
+	/*******
+	 * Logs the start failed event.
+	 * 
+	 * @param exceptionMessage start failure description.
+	 */
 	public void logProcessStartFailureEvent(final String exceptionMessage) {
 		if (eventLogger.isLoggable(Level.INFO)) {
 			eventLogger.info(eventPrefix + "START failed. Reason: " + exceptionMessage);
@@ -207,6 +215,12 @@ public class USMLifecycleBean implements ClusterInfoAware {
 		}
 	}
 
+	/*********
+	 * Fires the pre-stop event
+	 * 
+	 * @param reason .
+	 * @throws USMException .
+	 */
 	public void firePreStop(final StopReason reason)
 			throws USMException {
 		fireEvent(
@@ -312,11 +326,13 @@ public class USMLifecycleBean implements ClusterInfoAware {
 					er = ((PreServiceStopListener) listener).onPreServiceStop();
 					break;
 
+				default:
+					break;
 				}
 
 				if (er == null) {
 					throw new IllegalStateException("An event execution returned a null value!");
-				} 
+				}
 				if (!er.isSuccess()) {
 					logEventFailure(
 							event, listeners, er);
@@ -496,44 +512,74 @@ public class USMLifecycleBean implements ClusterInfoAware {
 		return this.preServiceStopListeners;
 	}
 
-	public void externalProcessStarted() {
-		this.processIsRunning = true;
+	public Map<String, String> getCustomProperties() {
+		return ((DSLConfiguration) this.configuration).getService().getCustomProperties();
 	}
 
-	public void externalProcessDied() {
-		this.processIsRunning = false;
-		final Thread thread = this.livenessDetectorThread;
-		if (thread != null) {
-			thread.interrupt();
+	public ProcessLocator[] getProcessLocators() {
+		return processLocators;
+	}
+
+	private Integer getProcessExitValue(final Process processToCheck) {
+		try {
+			return processToCheck.exitValue();
+		} catch (final Exception e) {
+			return null;
+		}
+	}
+
+	/**********
+	 * Returns the list of Process IDs calculated by this service's process locators.
+	 * @return the list of PIDs.
+	 * @throws USMException if one of the locators failed to execute.
+	 */
+	public List<Long> getServiceProcesses() throws USMException {
+		Set<Long> set = new HashSet<Long>();
+		ProcessLocator[] locators = this.processLocators;
+		for (ProcessLocator processLocator : locators) {
+			set.addAll(processLocator.getProcessIDs());
 		}
 
+		return new ArrayList<Long>(set);
 	}
 
-	public boolean isProcessLivenessTestPassed()
+	/********
+	 * Executes all start detection implementations, until all have passed or a timeout is reached.
+	 * Once a start detector passes, it is not executed again.
+	 * 
+	 * @param launchedProcess the process launched by the service's 'start' implementation.
+	 * @return true if liveness test passed, false if the timeout is reached without the tests passing.
+	 * @throws USMException if a start detector failed, or if the 'start' process exited with a non-zero exit code.
+	 * @throws TimeoutException if a start detector implementation timed out.
+	 */
+	public boolean isProcessLivenessTestPassed(final Process launchedProcess)
 			throws USMException, TimeoutException {
 		if (this.livenessDetectors.length == 0) {
 			logger.warning("No Start Detectors have been set for this service. "
-					+ "This may cause the USM to monitor the parent of the actual process. "
-					+ "Consider adding a start detector before going to production");
+					+ "This may cause the USM to monitor an irrelevant process.");
+			return true;
 		}
 
 		final long startTime = System.currentTimeMillis();
 		final long endTime = startTime + configuration.getStartDetectionTimeoutMSecs();
 		int currentTestIndex = 0;
 
-		// save the thread in a field, so it can be interrupted if the process
-		// died.
-		this.livenessDetectorThread = Thread.currentThread();
-		try {
-			while (System.currentTimeMillis() < endTime && currentTestIndex < this.livenessDetectors.length) {
+		boolean processIsRunning = true;
+		while (System.currentTimeMillis() < endTime && currentTestIndex < this.livenessDetectors.length) {
 
-				logger.info("Executing iteration of liveness detection test");
-				if (!this.processIsRunning) {
-					logger.warning("While executing the Process Start Detection, process failure was detected. "
-							+ "Aborting start detection test.");
-					return false;
-				}
-				final LivenessDetector detector = this.livenessDetectors[currentTestIndex];
+			// first check if process ended
+			if (processIsRunning) {
+				processIsRunning = checkProcessIsRunning(launchedProcess);
+			}
+
+			logger.info("Executing iteration of liveness detection test");
+			int index = currentTestIndex;
+			logger.info("Executing liveness detectors from index: " + index);
+			logger.info("Liveness detectors: " + Arrays.toString(this.livenessDetectors));
+			logger.info("detectors length: " + this.livenessDetectors.length);
+			while (index < this.livenessDetectors.length) {
+				logger.info("getting detector at index: " + index);
+				final LivenessDetector detector = this.livenessDetectors[index];
 
 				boolean testResult = false;
 				try {
@@ -551,22 +597,49 @@ public class USMLifecycleBean implements ClusterInfoAware {
 
 				if (testResult) {
 					// this liveness detector has succeeded.
-					++currentTestIndex;
+					++index;
 				} else {
-					try {
-						Thread.sleep(configuration.getStartDetectionIntervalMSecs());
-					} catch (final InterruptedException ie) {
-						// ignore
-					}
+					break;
 				}
 
 			}
 
-			return currentTestIndex == this.livenessDetectors.length;
-		} finally {
-			this.livenessDetectorThread = null;
-		}
+			if (index == this.livenessDetectors.length) {
+				// all tests passed
+				return true;
+			} else  { 
+				currentTestIndex = index;
+			}
 
+			try {
+				Thread.sleep(configuration.getStartDetectionIntervalMSecs());
+			} catch (final InterruptedException e) {
+				throw new USMException("Interruped while waiting for start detection", e);
+			}
+		}
+		return false;
+
+	}
+
+	private boolean checkProcessIsRunning(final Process launchedProcess)
+			throws USMException {
+		final Integer exitCode = getProcessExitValue(launchedProcess);
+		if (exitCode == null) {
+			return true;
+		} else {
+			// the process terminated!
+			if (exitCode != 0) {
+				// A non-zero exit code indicates an error
+				final String msg = "The launched process exited with the error exit code: " + exitCode
+						+ ". Consult the logs for more details.";
+				logProcessStartFailureEvent(msg);
+				throw new USMException(msg);
+			} else {
+				// launched process terminated with no error. The actual process may be running in the
+				// background, or as an OS service.
+				return false;
+			}
+		}
 	}
 
 	@Override
@@ -625,6 +698,11 @@ public class USMLifecycleBean implements ClusterInfoAware {
 
 	}
 
+	/********
+	 * Sorts the event arrays and initializes them.
+	 * 
+	 * @param usm .
+	 */
 	public void initEvents(final UniversalServiceManagerBean usm) {
 
 		final Comparator<USMEvent> comp = new Comparator<USMEvent>() {
@@ -670,7 +748,21 @@ public class USMLifecycleBean implements ClusterInfoAware {
 
 	}
 
-	public Map<String, String> getCustomProperties() {
-		return ((DSLConfiguration) this.configuration).getService().getCustomProperties();
+	/********
+	 * Executes all process locators, returning a list of all PIDs located, minus any duplicates.
+	 * 
+	 * @return the pid list.
+	 * @throws USMException if any of the locators failed to execute.
+	 */
+	public List<Long> executeProcessLocators()
+			throws USMException {
+		final Set<Long> resultSet = new HashSet<Long>();
+		for (ProcessLocator locator : this.processLocators) {
+			resultSet.addAll(locator.getProcessIDs());
+		}
+
+		final List<Long> list = new ArrayList<Long>(resultSet.size());
+		list.addAll(resultSet);
+		return list;
 	}
 }

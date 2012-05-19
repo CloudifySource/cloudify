@@ -21,8 +21,6 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import junit.framework.Assert;
-
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.scalingrules.HighThresholdDetails;
@@ -30,6 +28,7 @@ import org.cloudifysource.dsl.scalingrules.LowThresholdDetails;
 import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
 import org.cloudifysource.dsl.statistics.PerInstanceStatisticsDetails;
 import org.cloudifysource.dsl.statistics.ServiceStatisticsDetails;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class ServiceParsingTest {
@@ -50,6 +49,30 @@ public class ServiceParsingTest {
 		Assert.assertNotNull(lifecycle.getStart());
 		Assert.assertNotNull(lifecycle.getPostStart());
 		Assert.assertNotNull(lifecycle.getPreStop());
+	}
+	
+	@Test
+	public void testDuplicateLifecycleEventParsing() throws DSLException {
+		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH + "test_parsing_on_duplicate_property_in_inner_class-service.groovy");
+		final File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
+		try {
+			ServiceReader.getServiceFromFile(testParsingBaseDslFile, testParsingBaseWorkDir)
+				.getService();
+		} catch (IllegalArgumentException e){
+			System.out.println("Test passed. found duplication: " + e.getMessage());
+		}
+	}
+	
+	@Test
+	public void testDuplicateServicePropertyParsing() throws DSLException {
+		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH + "test_parsing_on_duplicate_property_in_service_class-service.groovy");
+		final File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
+		try {
+			ServiceReader.getServiceFromFile(testParsingBaseDslFile, testParsingBaseWorkDir)
+				.getService();
+		} catch (IllegalArgumentException e){
+			System.out.println("Test passed. found duplication: " + e.getMessage());
+		}
 	}
 
 	

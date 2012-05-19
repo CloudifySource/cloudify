@@ -102,6 +102,7 @@
       <property name="scope" value="protected"/>
       <property name="allowMissingPropertyJavadoc" value="true"/>
       <property name="suppressLoadErrors" value="true"/>
+      <property name="tokens" value="METHOD_DEF"/>
     </module>
   </module>
   <module name="JavadocPackage">

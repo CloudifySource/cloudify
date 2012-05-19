@@ -7,6 +7,7 @@ service {
 	icon "mongodb.png"
 	type "NOSQL_DB"
 	numInstances 2
+	maxAllowedInstances 2
 	
 	compute {
 		template "SMALL_LINUX"

@@ -15,25 +15,35 @@
  *******************************************************************************/
 package org.cloudifysource.usm;
 
+/********
+ * A simple wrapper to the usm, passed to threads that can notify the USM of the failure of the service. Having one such
+ * object makes it easier to handle concurrent notifications of such a failure..
+ * 
+ * @author barakme
+ * 
+ */
 public class ProcessDeathNotifier {
 
 	private boolean processDead = false;
-	private UniversalServiceManagerBean usm;
-	
-	
-	public ProcessDeathNotifier(UniversalServiceManagerBean usm) {
+	private final UniversalServiceManagerBean usm;
+
+	public ProcessDeathNotifier(final UniversalServiceManagerBean usm) {
 		super();
 		this.usm = usm;
 	}
 
-
+	/*********
+	 * Called by an object on a different thread, typically a stop detector, to notify the USM that the service is down.
+	 * Only the first invocation by a thread that the service has died will be passed to the USM.
+	 * This method blocks until the USM has finished handling the service death notification.
+	 */
 	public synchronized void processDeathDetected() {
-		if(processDead) {
+		if (processDead) {
 			return;
 		}
-		
+
 		processDead = true;
 		usm.onProcessDeath();
 	}
-	
+
 }

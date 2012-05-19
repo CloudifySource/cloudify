@@ -31,6 +31,9 @@
 		<copy todir="${target.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.1.0.jar" overwrite="true" />
 		<copy todir="${target.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" overwrite="true" />
 		<copy todir="${target.dir}/tools/cli/plugins/azure" file="../azure/azure/target/azure.jar" overwrite="true" />
+		<copy todir="${target.dir}/recipes"  overwrite="true" >
+			<fileset dir="../recipes/src/main/resources/recipes"/>
+		</copy>
 		
 
 	</target>

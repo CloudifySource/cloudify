@@ -82,8 +82,8 @@ public class ParseByonCloudNodesTest {
 			// idPrefix, ipList
 			//expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test11", "0.0.0.3", null, null, "byon-test11"));
 			//expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test12", "0.0.0.4", null, null, "byon-test12"));
-			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test11", "192.168.9.59", null, null, "byon-test11"));
-			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test12", "192.168.9.60", null, null, "byon-test12"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test11", "pc-lab39", null, null, "byon-test11"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test12", "pc-lab40", null, null, "byon-test12"));
 			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test13", "0.0.0.5", null, null, "byon-test13"));
 			// id (template), ipList
 			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test21", "0.0.0.6", null, null, "byon-test21"));

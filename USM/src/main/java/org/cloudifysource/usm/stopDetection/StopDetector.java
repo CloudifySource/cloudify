@@ -18,8 +18,22 @@ package org.cloudifysource.usm.stopDetection;
 import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.events.USMEvent;
 
+/**************
+ * Stop detection event interface. An implementation is expected to check if the monitored service is up or not.
+ * 
+ * @author barakme
+ * 
+ */
+public interface StopDetector extends USMEvent {
 
-public interface StopDetector extends USMEvent{
-	public boolean isServiceStopped() throws USMException;
+	/********
+	 * Called periodically to check if the service is up.
+	 * 
+	 * @return true if the service is stopped, false if it is functioning correctly.
+	 * @throws USMException in case of an error while executing the detector. An exception will not cause the service to
+	 *         be considered stopped.
+	 */
+	boolean isServiceStopped()
+			throws USMException;
 
 }

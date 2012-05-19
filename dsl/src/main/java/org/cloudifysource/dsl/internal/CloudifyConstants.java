@@ -84,8 +84,8 @@ public final class CloudifyConstants {
 	 * Key names for USM Monitors
 	 */
 	public static final String USM_MONITORS_STATE_ID = "USM_State";
-	public static final String USM_MONITORS_CHILD_PROCESS_ID = "Child Process ID";
-	public static final String USM_MONITORS_ACTUAL_PROCESS_ID = "Actual Process ID";
+	public static final String USM_MONITORS_CHILD_PROCESS_ID = "USM_Child Process ID";
+	public static final String USM_MONITORS_ACTUAL_PROCESS_ID = "USM_Actual Process ID";
 	
 	/****************
 	 * Key names for USM Details
@@ -159,6 +159,8 @@ public final class CloudifyConstants {
 	 */
 	public static final String CUSTOM_PROPERTY_ENABLE_PID_MONITOR = "org.cloudifysource.enable-pid-monitor";
 	public static final String CUSTOM_PROPERTY_ENABLE_TCP_PORT_MONITOR = "org.cloudifysource.enable-port-monitor";
+	public static final String CUSTOM_PROPERTY_ENABLE_START_PROCESS_MONITOR = "org.cloudifysource.enable-start-process-monitor";
+	public static final String CUSTOM_PROPERTY_STOP_DETECTION_ON_ALL_PROCESSES = "org.cloudifysource.stop-detection-on-all-processes";
 	
 	/*******************
 	 * event lifecycle polling parameters. 
@@ -181,6 +183,12 @@ public final class CloudifyConstants {
 	public static final int DEFAULT_LUS_PORT = net.jini.discovery.Constants.getDiscoveryPort();
 	public static final int DEFAULT_LOCALCLOUD_LUS_PORT = DEFAULT_LUS_PORT + 2;
 
+	
+	/************************
+	 * Keys used by Agentless Installer to modify default installer behavior.
+	 */
+	public static final String INSTALLER_CUSTOM_DATA_SFTP_PREFERRED_AUTHENTICATION_METHODS_KEY = "installer.sftp.preferredAuthentications";
+	
 	private CloudifyConstants() {
 		// private constructor to prevent initialization.
 	}

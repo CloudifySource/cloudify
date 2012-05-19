@@ -29,10 +29,10 @@ import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 public final class IPUtils {
 
 	// hidden constructor
-	private IPUtils() {
-	}
+	private IPUtils() { }
 
 	private static final int IP_BYTE_RANGE = 256;
+	private static final int IP_PARTS = 4;
 
 	/**
 	 * Converts a standard IP address to a long-format IP address.
@@ -40,12 +40,10 @@ public final class IPUtils {
 	 * @param ipAddress
 	 *            A standard IP address
 	 * @return IP address as a long value
-	 * @throws UnknownHostException
-	 *             Indicates the given IP cannot be resolved
 	 * @throws CloudProvisioningException
 	 *             Indicates the given IP is invalid
 	 */
-	public static long ip2Long(final String ipAddress) throws UnknownHostException, CloudProvisioningException {
+	public static long ip2Long(final String ipAddress) throws CloudProvisioningException {
 		if (!validateIPAddress(ipAddress)) {
 			throw new CloudProvisioningException("Invalid IP address: " + ipAddress);
 		}
@@ -77,12 +75,24 @@ public final class IPUtils {
 	 * 
 	 * @param ipAddress
 	 *            IP address as a standard IP address (dotted decimal format)
-	 * @return IP as a 4-element array
-	 * @throws UnknownHostException
-	 *             Indicates the given IP cannot be resolved
+	 * @return IP as a 4-element byte array
+	 * @throws CloudProvisioningException
+	 *             Indicates the given IP is invalid
 	 */
-	public static byte[] getBytes(final String ipAddress) throws UnknownHostException {
-		return InetAddress.getByName(ipAddress).getAddress();
+	public static byte[] getBytes(final String ipAddress) throws CloudProvisioningException {
+		//This implementation is commented out because it involves resolving the host, which we want to avoid.
+		//return InetAddress.getByName(ipAddress).getAddress();
+		byte[] addrArr = new byte[IP_PARTS];
+		final String[] ipParts = ipAddress.split("\\.");
+		if (ipParts.length == IP_PARTS) {
+			for (int i = 0; i < IP_PARTS; i++) {
+				addrArr[i] = (byte) Integer.parseInt(ipParts[i]);
+			}
+		} else {
+			throw new CloudProvisioningException("Invalid IP address: " + ipAddress);
+		}
+		
+		return addrArr;
 	}
 
 	/**
@@ -157,7 +167,7 @@ public final class IPUtils {
 	 * @return IP as a 4-element array
 	 */
 	public static int[] toArray(final int ip) {
-		final int ret[] = new int[4];
+		final int[] ret = new int[IP_PARTS];
 		for (int j = 3; j >= 0; --j) {
 			ret[j] |= ip >>> 8 * (3 - j) & 0xff;
 		}
@@ -188,12 +198,10 @@ public final class IPUtils {
 	 * @param ipAddress
 	 *            IP address (dotted decimal format)
 	 * @return The following IP address
-	 * @throws UnknownHostException
-	 *             Indicates the given IP cannot be resolved
 	 * @throws CloudProvisioningException
 	 *             Indicates the given IP is invalid
 	 */
-	public static String getNextIP(final String ipAddress) throws UnknownHostException, CloudProvisioningException {
+	public static String getNextIP(final String ipAddress) throws CloudProvisioningException {
 		return long2String(ip2Long(ipAddress) + 1);
 	}
 
@@ -209,10 +217,10 @@ public final class IPUtils {
 
 		// a simple split by dots (.), escaped.
 		final String[] ipParts = ipAddress.split("\\.");
-		if (ipParts.length == 4) {
+		if (ipParts.length == IP_PARTS) {
 			for (final String part : ipParts) {
 				final int intValue = Integer.parseInt(part);
-				if (intValue < 0 || intValue > 255) {
+				if (intValue < 0 || intValue > (IP_BYTE_RANGE - 1)) {
 					break;
 				}
 				valid = true;

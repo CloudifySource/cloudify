@@ -18,7 +18,9 @@ package org.cloudifysource.dsl.cloud;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.cloudifysource.dsl.DSLValidation;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.cloudifysource.dsl.internal.DSLValidationException;
 
 /**
  * @author barakme
@@ -239,6 +241,15 @@ public class CloudTemplate {
 
 	public void setRemoteExecution(final RemoteExecutionModes remoteExecution) {
 		this.remoteExecution = remoteExecution;
+	}
+
+	@DSLValidation
+	void validateDefaultValues()
+			throws DSLValidationException {
+		if (this.getRemoteDirectory() == null || this.getRemoteDirectory().trim().isEmpty()) {
+			throw new DSLValidationException("Remote directory for template is missing");
+		}
+
 	}
 
 }

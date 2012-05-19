@@ -165,7 +165,7 @@ public class StartManagement extends AbstractGSCommand {
 		installer.setCloudContents(cloudConfigurationContents);
 		installer.startManagementOnLocalhostAndWait(timeoutInMinutes,
 				TimeUnit.MINUTES);
-		return "Management started succesfully. Use the shutdown-management command to shutdown"
+		return "Management started successfully. Use the shutdown-management command to shutdown"
 				+ " management processes running on local machine.";
 	}
 

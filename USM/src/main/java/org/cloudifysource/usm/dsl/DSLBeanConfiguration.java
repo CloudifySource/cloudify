@@ -46,6 +46,9 @@ import org.cloudifysource.usm.installer.USMInstaller;
 import org.cloudifysource.usm.launcher.DefaultProcessLauncher;
 import org.cloudifysource.usm.launcher.ProcessLauncher;
 import org.cloudifysource.usm.liveness.LivenessDetector;
+import org.cloudifysource.usm.locator.DefaultProcessLocator;
+import org.cloudifysource.usm.locator.ProcessLocator;
+import org.cloudifysource.usm.locator.ProcessLocatorExecutor;
 import org.cloudifysource.usm.monitors.Monitor;
 import org.cloudifysource.usm.monitors.MonitorException;
 import org.cloudifysource.usm.monitors.process.ProcessMonitor;
@@ -84,7 +87,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 
 	// There is lots of boiler plate code here - ignore checkstyle.
 	// CHECKSTYLE:OFF
-	
+
 	@PostConstruct
 	public void init() {
 		this.active = configuration instanceof DSLConfiguration;
@@ -229,7 +232,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 		Class<?> clazz = null;
 		try {
 			final String className = descriptor.getClassName();
-			if (className == null || className.isEmpty()) {
+			if (className == null || className.length() == 0) {
 				throw new IllegalArgumentException("Plugin must have a class name");
 			}
 
@@ -374,7 +377,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 					final Object obj = ((Closure<?>) monitor).call();
 					if (obj instanceof Map<?, ?>) {
 						return USMUtils.convertMapToNumericValues((Map<String, Object>) obj);
-					} 
+					}
 					throw new IllegalArgumentException(
 							"The Monitor closure defined in the DSL file does not evaluate to a Map! "
 									+ "Received object was of type: " + obj.getClass().getName());
@@ -425,10 +428,72 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 
 		if (enabled) {
 			return new ProcessStopDetector();
-		} 
+		}
 		logger.warning("PID Based stop detection has been disabled due to custom property setting: "
 				+ CloudifyConstants.CUSTOM_PROPERTY_ENABLE_PID_MONITOR);
 		return null;
+	}
+
+	/*******
+	 * Stop detection implementation that checks if the start command exited abnormally. This detector flags a service
+	 * as stopped if the start command has exited with a non-zero exit code.
+	 * 
+	 * @return
+	 */
+	@Bean
+	public USMEvent getStartProcessStopDetection() {
+
+		boolean enabled = true;
+		final String enabledProperty =
+				this.service.getCustomProperties().get(CloudifyConstants.CUSTOM_PROPERTY_ENABLE_START_PROCESS_MONITOR);
+		if (enabledProperty != null) {
+			enabled = Boolean.parseBoolean(enabledProperty);
+		}
+
+		if (!enabled) {
+			logger.warning("Monitoring of the start command process has been disabled due to custom property setting: "
+					+ CloudifyConstants.CUSTOM_PROPERTY_ENABLE_START_PROCESS_MONITOR);
+			return null;
+		}
+
+		return new StopDetector() {
+
+			private UniversalServiceManagerBean usm;
+
+			@Override
+			public void init(final UniversalServiceManagerBean usm) {
+				this.usm = usm;
+			}
+
+			@Override
+			public int getOrder() {
+				return 5;
+			}
+
+			@Override
+			public boolean isServiceStopped()
+					throws USMException {
+				final Integer exitCode = USMUtils.getProcessExitCode(usm.getStartProcess());
+				// start process has not terminated, indicating a foreground process
+				if (exitCode == null) {
+					return false;
+				}
+				// start process has terminated.
+
+				if (exitCode == 0) {
+					// 0 exit code indicates start command finished successfully - must be a background process.
+					return false;
+				}
+
+				// start command exited with error
+				logger.severe("The start command has exited with the abnormal exit code: " + exitCode
+						+ ". Service will now stop!");
+
+				return true;
+
+			}
+		};
+
 	}
 
 	@Bean
@@ -487,14 +552,16 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 					final Object retcode = result.getResult();
 					if (retcode instanceof Boolean) {
 						return (Boolean) retcode;
-					} 
-					//process ended successfully
-					return true;
-				} 
-				//process exited with abnormal status code
-				logger.log(Level.WARNING, "Liveness Detector failed to execut. Exception was: "
-				+ result.getException(), result.getException());
-				return false;
+					} else {
+						throw new IllegalArgumentException(
+								"A liveness detector returned a result that is not a boolean. Result was of type: "
+										+ retcode.getClass().getName() + ".Result was: " + retcode);
+					}
+				} else {
+					throw new USMException("A Liveness Detector failed to execute. Exception was: "
+							+ result.getException(), result.getException());
+				}
+
 			}
 
 			@Override
@@ -535,7 +602,19 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			return null;
 		}
 	}
-	
+
+	@Bean
+	public ProcessLocator getDslLocator() {
+
+		final Object locator = this.service.getLifecycle().getLocator();
+		if (locator != null) {
+			return new ProcessLocatorExecutor(locator, launcher, puExtDir);
+		} else {
+			return new DefaultProcessLocator();
+		}
+		// DefaultProcessLocator(locator, this.launcher, this.puExtDir);
+	}
+
 	// CHECKSTYLE:ON
 
 }

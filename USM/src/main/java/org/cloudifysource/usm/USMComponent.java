@@ -15,6 +15,12 @@
  *******************************************************************************/
 package org.cloudifysource.usm;
 
+/********
+ * Marker interface for components used by the USM.
+ * @author barakme
+ * @since 1.0
+ *
+ */
 public interface USMComponent {
 
 }

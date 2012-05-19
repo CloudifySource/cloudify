@@ -15,8 +15,8 @@ cloud {
 		// optional 
 		provider "openstack"
 		localDirectory "tools/cli/plugins/esc/openstack/upload"
-		remoteDirectory "/root/gs-files"
-		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.1/gigaspaces-cloudify-2.1.1-m1-b1394-43.zip" 
+		
+		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.1/gigaspaces-cloudify-2.1.1-m1-b1394-61.zip" 
 		machineNamePrefix "cloudify_agent_"
 		
 		dedicatedManagementMachines true
@@ -41,7 +41,8 @@ cloud {
 					imageId "221"
 					machineMemoryMB 1600
 					hardwareId "102"
-										
+					remoteDirectory "/root/gs-files"
+					
 					options ([
 						"openstack.securityGroup" : "test",
 						"openstack.keyPair" : "ENTER_KEY_PAIR_NAME"

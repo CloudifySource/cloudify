@@ -26,6 +26,8 @@ import java.net.Socket;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
@@ -37,15 +39,21 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.provider.sftp.SftpFileSystemConfigBuilder;
+import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
+import org.cloudifysource.esc.installer.InstallationDetails;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
 import org.openspaces.admin.gsm.GridServiceManagers;
+
+import com.gigaspaces.internal.utils.StringUtils;
 
 /**
  * Utilities class.
@@ -68,13 +76,12 @@ public final class Utils {
 	/**
 	 * Calculates the milliseconds remaining until the given end time.
 	 * 
-	 * @param end
-	 *            The end time, in milliseconds
+	 * @param end The end time, in milliseconds
 	 * @return Number of milliseconds remaining until the given end time
-	 * @throws TimeoutException
-	 *             Thrown when the end time is in the past
+	 * @throws TimeoutException Thrown when the end time is in the past
 	 */
-	public static long millisUntil(final long end) throws TimeoutException {
+	public static long millisUntil(final long end)
+			throws TimeoutException {
 		final long millisUntilEnd = end - System.currentTimeMillis();
 		if (millisUntilEnd < 0) {
 			throw new TimeoutException("Cloud operation timed out");
@@ -85,11 +92,9 @@ public final class Utils {
 	/**
 	 * Safely casts long to int.
 	 * 
-	 * @param longValue
-	 *            The long to cast
-	 * @param roundIfNeeded
-	 *            Indicating whether to change the value of the number if it exceeds int's max/min values. If
-	 *            set to false and the long is too large/small, an {@link IllegalArgumentException} is thrown.
+	 * @param longValue The long to cast
+	 * @param roundIfNeeded Indicating whether to change the value of the number if it exceeds int's max/min values. If
+	 *        set to false and the long is too large/small, an {@link IllegalArgumentException} is thrown.
 	 * @return int representing of the given long.
 	 */
 	public static int safeLongToInt(final long longValue, final boolean roundIfNeeded) {
@@ -113,28 +118,22 @@ public final class Utils {
 	/**
 	 * Validates a connection can be made to the given address and port, within the given time limit.
 	 * 
-	 * @param ipAddress
-	 *            The IP address to connect to
-	 * @param port
-	 *            The port number to use
-	 * @throws IOException
-	 *             Reports a failure to connect or resolve the given address.
+	 * @param ipAddress The IP address to connect to
+	 * @param port The port number to use
+	 * @throws IOException Reports a failure to connect or resolve the given address.
 	 */
-	public static void validateConnection(final String ipAddress, final int port) throws IOException {
+	public static void validateConnection(final String ipAddress, final int port)
+			throws IOException {
 		validateConnection(ipAddress, port, DEFAULT_CONNECTION_TIMEOUT);
 	}
 
 	/**
 	 * Validates a connection can be made to the given address and port, within the given time limit.
 	 * 
-	 * @param ipAddress
-	 *            The IP address to connect to
-	 * @param port
-	 *            The port number to use
-	 * @param timeout
-	 *            The time to wait before timing out, in seconds
-	 * @throws IOException
-	 *             Reports a failure to connect or resolve the given address.
+	 * @param ipAddress The IP address to connect to
+	 * @param port The port number to use
+	 * @param timeout The time to wait before timing out, in seconds
+	 * @throws IOException Reports a failure to connect or resolve the given address.
 	 */
 	public static void validateConnection(final String ipAddress, final int port, final int timeout)
 			throws IOException {
@@ -161,13 +160,12 @@ public final class Utils {
 	/**
 	 * Returns the content of a given input stream, as a String object.
 	 * 
-	 * @param is
-	 *            the input stream to read.
+	 * @param is the input stream to read.
 	 * @return the content of the given input stream
-	 * @throws IOException
-	 *             Reporting failure to read from the InputStream
+	 * @throws IOException Reporting failure to read from the InputStream
 	 */
-	public static String getStringFromStream(final InputStream is) throws IOException {
+	public static String getStringFromStream(final InputStream is)
+			throws IOException {
 		final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
 		final StringBuilder sb = new StringBuilder();
 		String line = null;
@@ -180,35 +178,31 @@ public final class Utils {
 	/**
 	 * Converts a json String to a Map<String, Object>.
 	 * 
-	 * @param response
-	 *            a json-format String to convert to a map
+	 * @param response a json-format String to convert to a map
 	 * @return a Map<String, Object> based on the given String
-	 * @throws IOException
-	 *             Reporting failure to read or map the String
+	 * @throws IOException Reporting failure to read or map the String
 	 */
-	public static Map<String, Object> jsonToMap(final String response) throws IOException {
+	public static Map<String, Object> jsonToMap(final String response)
+			throws IOException {
 		@SuppressWarnings("deprecation")
 		final JavaType javaType = TypeFactory.type(Map.class);
 		return new ObjectMapper().readValue(response, javaType);
 	}
 
 	/**
-	 * Gets a "full" admin object. The function waits until all GridServiceManagers are found before returning
-	 * the object.
+	 * Gets a "full" admin object. The function waits until all GridServiceManagers are found before returning the
+	 * object.
 	 * 
-	 * @param managementIP
-	 *            The IP of the management machine to connect to (through the default LUS port)
-	 * @param expectedGsmCount
-	 *            The number of GridServiceManager objects that are expected to be found. Only when this
-	 *            number is reached, the admin object is considered loaded and can be returned
+	 * @param managementIP The IP of the management machine to connect to (through the default LUS port)
+	 * @param expectedGsmCount The number of GridServiceManager objects that are expected to be found. Only when this
+	 *        number is reached, the admin object is considered loaded and can be returned
 	 * @return An updated admin object
-	 * @throws TimeoutException
-	 *             Indicates the timeout (default is 90 seconds) was reached before the admin object was fully
-	 *             loaded
-	 * @throws InterruptedException
-	 *             Indicated the thread was interrupted while waiting
+	 * @throws TimeoutException Indicates the timeout (default is 90 seconds) was reached before the admin object was
+	 *         fully loaded
+	 * @throws InterruptedException Indicated the thread was interrupted while waiting
 	 */
-	public static Admin getAdminObject(final String managementIP, final int expectedGsmCount) throws TimeoutException,
+	public static Admin getAdminObject(final String managementIP, final int expectedGsmCount)
+			throws TimeoutException,
 			InterruptedException {
 		final AdminFactory adminFactory = new AdminFactory();
 		adminFactory.addLocator(managementIP + ":" + CloudifyConstants.DEFAULT_LUS_PORT);
@@ -230,22 +224,14 @@ public final class Utils {
 	/**
 	 * Executes a SSH command. An Ant BuildException is thrown in case of an error.
 	 * 
-	 * @param host
-	 *            The host to run the command on
-	 * @param command
-	 *            The command to execute
-	 * @param username
-	 *            The name of the user executing the command
-	 * @param password
-	 *            The password for the executing user, if used
-	 * @param keyFile
-	 *            The key file, if used
-	 * @param timeout
-	 *            The number of time-units to wait before throwing a TimeoutException
-	 * @param unit
-	 *            The units (e.g. seconds)
-	 * @throws TimeoutException
-	 *             Indicates the timeout was reached before the command completed
+	 * @param host The host to run the command on
+	 * @param command The command to execute
+	 * @param username The name of the user executing the command
+	 * @param password The password for the executing user, if used
+	 * @param keyFile The key file, if used
+	 * @param timeout The number of time-units to wait before throwing a TimeoutException
+	 * @param unit The units (e.g. seconds)
+	 * @throws TimeoutException Indicates the timeout was reached before the command completed
 	 */
 	public static void executeSSHCommand(final String host, final String command, final String username,
 			final String password, final String keyFile, final long timeout, final TimeUnit unit)
@@ -279,30 +265,21 @@ public final class Utils {
 	/**
 	 * Deletes file or folder on a remote host.
 	 * 
-	 * @param host
-	 *            The host to connect to
-	 * @param username
-	 *            The name of the user that deletes the file/folder
-	 * @param password
-	 *            The password of the above user
-	 * @param fileSystemObjects
-	 *            The files or folders to delete
-	 * @param keyFile
-	 *            The key file, if used
-	 * @param timeout
-	 *            The number of time-units (i.e. seconds, minutes) before a timeout exception is thrown
-	 * @param unit
-	 *            The time unit to use (e.g. seconds)
-	 * @param fileTransferMode
-	 *            SCP for secure copy in linux, or CIFS for windows file sharing
-	 * @throws IOException
-	 *             Indicates the deletion failed
-	 * @throws TimeoutException
-	 *             Indicates the action was not completed before the timout was reached
+	 * @param host The host to connect to
+	 * @param username The name of the user that deletes the file/folder
+	 * @param password The password of the above user
+	 * @param fileSystemObjects The files or folders to delete
+	 * @param keyFile The key file, if used
+	 * @param timeout The number of time-units (i.e. seconds, minutes) before a timeout exception is thrown
+	 * @param unit The time unit to use (e.g. seconds)
+	 * @param fileTransferMode SCP for secure copy in linux, or CIFS for windows file sharing
+	 * @throws IOException Indicates the deletion failed
+	 * @throws TimeoutException Indicates the action was not completed before the timout was reached
 	 */
 	public static void deleteFileSystemObject(final String host, final String username, final String password,
 			final List<String> fileSystemObjects, final String keyFile, final long timeout, final TimeUnit unit,
-			final FileTransferModes fileTransferMode) throws IOException, TimeoutException {
+			final FileTransferModes fileTransferMode)
+			throws IOException, TimeoutException {
 
 		if (!fileTransferMode.equals(FileTransferModes.SCP)) {
 			throw new IOException("File deletion is currently not supported for this file transfer protocol ("
@@ -347,12 +324,14 @@ public final class Utils {
 				remoteDir.delete(new FileSelector() {
 
 					@Override
-					public boolean includeFile(final FileSelectInfo fileInfo) throws Exception {
+					public boolean includeFile(final FileSelectInfo fileInfo)
+							throws Exception {
 						return true;
 					}
 
 					@Override
-					public boolean traverseDescendents(final FileSelectInfo fileInfo) throws Exception {
+					public boolean traverseDescendents(final FileSelectInfo fileInfo)
+							throws Exception {
 						return true;
 					}
 				});
@@ -367,6 +346,87 @@ public final class Utils {
 			throw new TimeoutException("Deleting files (" + Arrays.toString(fileSystemObjects.toArray()) + ") from"
 					+ " server " + host + " timed out");
 		}
+	}
+
+	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Utils.class.getName());
+
+	/*************************
+	 * Creates an Agentless Installer's InstallationDetails input object from a machine details object returned from a
+	 * provisioning implementation.
+	 * 
+	 * @param md the machine details.
+	 * @param cloud The cloud configuration.
+	 * @param template the cloud template used for this machine.
+	 * @param zones the zones that the new machine should start in.
+	 * @param lookupLocatorsString the lookup locators string to pass to the new machine.
+	 * @param admin an admin object, may be null.
+	 * @param isManagement true if this machine will be installed as a cloudify controller, false otherwise.
+	 * @param cloudFile the cloud file, required only when isManagement == true.
+	 * @return the installation details.
+	 * @throws FileNotFoundException if a key file is specified and is not found.
+	 */
+	public static InstallationDetails createInstallationDetails(final MachineDetails md,
+			final Cloud cloud, final CloudTemplate template, final String[] zones,
+			final String lookupLocatorsString, final Admin admin, final boolean isManagement, final File cloudFile)
+			throws FileNotFoundException {
+
+		final InstallationDetails details = new InstallationDetails();
+
+		details.setLocalDir(cloud.getProvider().getLocalDirectory());
+		final String remoteDir = template.getRemoteDirectory();
+		details.setRemoteDir(remoteDir);
+		details.setManagementOnlyFiles(cloud.getProvider().getManagementOnlyFiles());
+
+		details.setZones(StringUtils.join(zones, ",", 0, zones.length));
+
+		details.setPrivateIp(md.getPrivateAddress());
+		details.setPublicIp(md.getPublicAddress());
+
+		details.setLocator(lookupLocatorsString);
+
+		details.setCloudifyUrl(cloud.getProvider().getCloudifyUrl());
+		details.setOverridesUrl(cloud.getProvider().getCloudifyOverridesUrl());
+		details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
+		details.setAdmin(admin);
+
+		details.setUsername(md.getRemoteUsername());
+		details.setPassword(md.getRemotePassword());
+		details.setRemoteExecutionMode(md.getRemoteExecutionMode());
+		details.setFileTransferMode(md.getFileTransferMode());
+
+		details.setCloudFile(cloudFile);
+		details.setLus(isManagement);
+		if (isManagement) {
+			details.setConnectedToPrivateIp(!cloud.getConfiguration().isBootstrapManagementOnPublicIp());
+		} else {
+			details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
+		}
+
+		// Add all template custom data fields starting with 'installer.' to the installation details
+		Set<Entry<String, Object>> customEntries = template.getCustom().entrySet();
+		for (Entry<String, Object> entry : customEntries) {
+			if (entry.getKey().startsWith("installer.")) {
+				details.getCustomData().put(entry.getKey(), entry.getValue());
+			}
+		}
+
+		String keyFileName = cloud.getUser().getKeyFile();
+		if (keyFileName != null && !keyFileName.isEmpty()) {
+			File keyFile = new File(keyFileName);
+			if (!keyFile.isAbsolute()) {
+				keyFile = new File(details.getLocalDir(), keyFileName);
+			}
+			if (!keyFile.isFile()) {
+				throw new FileNotFoundException(
+						"Could not find key file matching specified cloud configuration key file: "
+								+ cloud.getUser().getKeyFile() + ". Tried: " + keyFile + " but file does not exist");
+			}
+			details.setKeyFile(keyFile.getAbsolutePath());
+		}
+
+		logger.info("Created InstallationDetails: " + details);
+		return details;
+
 	}
 
 }

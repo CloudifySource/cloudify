@@ -15,6 +15,12 @@
  *******************************************************************************/
 package org.cloudifysource.usm;
 
+/***********
+ * TODO - this interface is no longer needed. The USM should use the Service object directly.
+ * 
+ * @author barakme
+ *
+ */
 public interface UniversalServiceManagerConfiguration {
 	
 	// TODO - Remove dead commands from this interface
