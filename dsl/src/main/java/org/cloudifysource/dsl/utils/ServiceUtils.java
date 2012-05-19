@@ -26,9 +26,10 @@ import java.net.ProtocolException;
 import java.net.Socket;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.LinkedList;
 import java.util.List;
-
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import com.gigaspaces.internal.sigar.SigarHolder;
 
 /******************
  * ServiceUtils exposes a range of methods that recipes can use in closures, including TCP port checks, HTTP requests
