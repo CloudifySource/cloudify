@@ -234,7 +234,7 @@ public class ServiceParsingTest {
 		Assert.assertNotNull(scalingRules.get(1).getLowThreshold());
 	}
 
-	//@Test
+	@Test
 	public void testPropertyInCustomCommand() throws DSLException {
 		final File testParsingExtendDslFile = new File(TEST_PARSING_RESOURCE_PATH
 				+ "test_property_in_custom_command-service.groovy");
