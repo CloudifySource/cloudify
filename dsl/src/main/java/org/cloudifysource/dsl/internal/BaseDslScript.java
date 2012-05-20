@@ -84,19 +84,6 @@ public abstract class BaseDslScript extends Script {
 
 	@Override
 	public void setProperty(final String name, final Object value) {
-
-		//Check for duplicate properties. 
-		if (this.usedProperties == null){
-			throw new IllegalArgumentException("used properties can not be null. Property: " +
-						name + ", Value: " + value.toString() +
-						", Active object: " + this.activeObject);
-		}
-		if (this.usedProperties.contains(name)) {
-			if (!isDuplicatePropertyAllowed(value))
-				throw new IllegalArgumentException("Property duplication was found: Property " 
-						+ name + " is defined more than once.");
-		}
-		this.usedProperties.add(name);
 		
 		if (this.activeObject == null) {
 			super.setProperty(name, value);
@@ -149,7 +136,21 @@ public abstract class BaseDslScript extends Script {
 		if (!isProperyExistsInBean(object, name)) {
 			throw new IllegalArgumentException("Could not find property: " + name + " on Object: " + object);
 		}
-
+		
+		//Check for duplicate properties. 
+		if (this.usedProperties == null){
+			throw new IllegalArgumentException("used properties can not be null. Property: " +
+						name + ", Value: " + value.toString() +
+						", Active object: " + this.activeObject);
+		}
+		if (this.usedProperties.contains(name)) {
+			if (!isDuplicatePropertyAllowed(value))
+				throw new IllegalArgumentException("Property duplication was found: Property " 
+						+ name + " is defined more than once.");
+		}
+		
+		this.usedProperties.add(name);
+		
 		try {
 			if (logger.isLoggable(Level.FINEST)) {
 				logger.finest("BeanUtils.setProperty(object=" + object + ",name=" + name + ",value=" + value
