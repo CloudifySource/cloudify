@@ -52,9 +52,9 @@ def serverXmlText = serverXmlFile.text
 portReplacementStr = "port=\"${config.port + portIncrement}\""
 ajpPortReplacementStr = "port=\"${config.ajpPort + portIncrement}\""
 shutdownPortReplacementStr = "port=\"${config.shutdownPort + portIncrement}\""
-serverXmlText = serverXmlText.replace("port=\"${config.port}\"", portReplacementStr) 
-serverXmlText = serverXmlText.replace("port=\"${config.ajpPort}\"", ajpPortReplacementStr) 
-serverXmlText = serverXmlText.replace("port=\"${config.shutdownPort}\"", shutdownPortReplacementStr) 
+serverXmlText = serverXmlText.replace("port=\"8080\"", portReplacementStr) 
+serverXmlText = serverXmlText.replace("port=\"8009\"", ajpPortReplacementStr) 
+serverXmlText = serverXmlText.replace("port=\"8005\"", shutdownPortReplacementStr) 
 serverXmlText = serverXmlText.replace('unpackWARs="true"', 'unpackWARs="false"')
 serverXmlFile.write(serverXmlText)
 
