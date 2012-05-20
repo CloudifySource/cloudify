@@ -77,6 +77,7 @@ import com.j_spaces.kernel.Environment;
  */
 public class LocalhostGridAgentBootstrapper {
 
+	private static final int GSM_REQUEST_DELAY_MILLI = 60000;
 	private static final int MIN_PROC_ERROR_TIME = 2000;
 	// isolate localcloud from default lookup settings
 	/**
@@ -85,6 +86,7 @@ public class LocalhostGridAgentBootstrapper {
 	public static final String LOCALCLOUD_LOOKUPGROUP = "localcloud";
 
 	private static final String MANAGEMENT_APPLICATION = ManagementWebServiceInstaller.MANAGEMENT_APPLICATION_NAME;
+	private static final String GSM_PENDING_REQUEST_DELAY = "org.jini.rio.monitor.pendingRequestDelay";
 	private static final String LUS_PORT_CONTEXT_PROPERTY = "com.sun.jini.reggie.initialUnicastDiscoveryPort";
 	private static final String AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT = "-Dcom.gs.agent.auto-shutdown-enabled=true";
 	private static final int WAIT_AFTER_ADMIN_CLOSED_MILLIS = 10 * 1000;
@@ -1196,7 +1198,8 @@ public class LocalhostGridAgentBootstrapper {
 			gsaJavaOptions += " " + AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT;
 		}
 		String lusJavaOptions = "-Xmx" + LUS_MEMORY_IN_MB + "m" + " -D" + LUS_PORT_CONTEXT_PROPERTY + "=" + lusPort;
-		String gsmJavaOptions = "-Xmx" + GSM_MEMORY_IN_MB + "m" + " -D" + LUS_PORT_CONTEXT_PROPERTY + "=" + lusPort;
+		String gsmJavaOptions = "-Xmx" + GSM_MEMORY_IN_MB + "m" + " -D" + LUS_PORT_CONTEXT_PROPERTY + "=" + lusPort 
+																+ " -D" + GSM_PENDING_REQUEST_DELAY + "=" + Integer.toString(GSM_REQUEST_DELAY_MILLI);
 		String esmJavaOptions = "-Xmx" + ESM_MEMORY_IN_MB + "m";
 		String gscJavaOptions = "-Dcom.gigaspaces.client.router.disableNewRouter=true";
 
