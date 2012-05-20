@@ -15,6 +15,8 @@
  *******************************************************************************/
 package org.cloudifysource.dsl;
 
+import groovy.lang.Closure;
+
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -231,4 +233,18 @@ public class ServiceParsingTest {
 		Assert.assertNotNull(scalingRules.get(1).getHighThreshold());
 		Assert.assertNotNull(scalingRules.get(1).getLowThreshold());
 	}
+
+	@Test
+	public void testPropertyInCustomCommand() throws DSLException {
+		final File testParsingExtendDslFile = new File(TEST_PARSING_RESOURCE_PATH
+				+ "test_property_in_custom_command-service.groovy");
+		final File testParsingExtendWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
+		Service service = ServiceReader.getServiceFromFile(testParsingExtendDslFile, testParsingExtendWorkDir).getService();
+		Closure<?> customCommand = (Closure<?>) service.getCustomCommands().get("custom_command");
+		String[] params = new String[2];
+		params[0] = "name";
+		params[1] = "port";
+		final Object result = customCommand.call(params);
+	}
+	
 }
