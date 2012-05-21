@@ -77,7 +77,7 @@ import com.j_spaces.kernel.Environment;
  */
 public class LocalhostGridAgentBootstrapper {
 
-	private static final int GSM_REQUEST_DELAY_MILLI = 4000;
+	private static final int GSM_REQUEST_DELAY_MILLI = 6000;
 	private static final int MIN_PROC_ERROR_TIME = 2000;
 	// isolate localcloud from default lookup settings
 	/**
