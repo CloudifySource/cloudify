@@ -221,7 +221,7 @@ public class ServiceController {
 
 	@RequestMapping(value = "/dump/machines", method = RequestMethod.GET)
 	public @ResponseBody
-	Map<String, Object> getMachineDumpFile(@RequestParam(required = false) final String processors
+	Map<String, Object> getMachineDumpFile(@RequestParam(defaultValue = DEFAULT_DUMP_PROCESSORS) final String processors
 			, @RequestParam(defaultValue = "" + DEFAULT_DUMP_FILE_SIZE_LIMIT) final long fileSizeLimit)
 			throws IOException {
 		return getMachineDumpFile(null, processors, fileSizeLimit);
