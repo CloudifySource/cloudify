@@ -31,7 +31,7 @@ public class CloudPemValidationTest {
 	public void testCloudParser() throws Exception {
 		try {
 			org.cloudifysource.dsl.cloud.Cloud cloud = ServiceReader.readCloud(new File(EC2_MISSING_PEM_PATH));
-			//if we got to the next line - the validation exception wwasn't thrown.
+			//if we got to the next line - the validation exception wasn't thrown.
 			assertTrue("The key file is not found yet no error was thrown", false);
 		} catch (Throwable e) {
 			assertTrue("The key file is not found yet no error was thrown", 
