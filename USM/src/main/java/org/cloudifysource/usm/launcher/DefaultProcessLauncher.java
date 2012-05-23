@@ -843,9 +843,11 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 			try {
 				logger.info("Parsed command line: " + commandLineParams);
+
 				final String fileInitialMessage =
-						"Starting service process at: " + new Date() + " with command: " + commandLineParams
-								+ System.getProperty("line.separator");
+						"Starting service process in working directory:'" + workingDir + "' "+
+						"at:'" + new Date() + "' with command:'" + commandLineParams +"'" +
+						System.getProperty("line.separator");	
 				if (outputFile != null) {
 					appendMessageToFile(fileInitialMessage,
 							outputFile);
