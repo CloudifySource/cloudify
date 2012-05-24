@@ -15,9 +15,6 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.utils;
 
-import org.hyperic.sigar.Sigar;
-import org.hyperic.sigar.SigarException;
-
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
@@ -25,10 +22,14 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.Socket;
 import java.net.URL;
-import java.util.LinkedList;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.hyperic.sigar.Sigar;
+import org.hyperic.sigar.SigarException;
+import org.hyperic.sigar.ptql.ProcessFinder;
 
 import com.gigaspaces.internal.sigar.SigarHolder;
 
@@ -85,16 +86,27 @@ public final class ServiceUtils {
 	}
 
 	/**
-	 * Checks whether a specified port is occupied.
+	 * Checks whether the specified port is in use on the the localhost ("127.0.0.1") interface.
 	 * 
-	 * @param port - port to check.
-	 * @return - true if port is occupied
+	 * @param port the port to check.
+	 * @return true if in use, false otherwise.
 	 */
 	public static boolean isPortOccupied(final int port) {
+		return isPortOccupied("127.0.0.1", port);
+	}
+
+	/**
+	 * Checks whether a specified port is occupied.
+	 * 
+	 * @param host - the interface/host to test.
+	 * @param port - port to check.
+	 * @return - true if port is occupied.
+	 */
+	public static boolean isPortOccupied(final String host, final int port) {
 		final Socket sock = new Socket();
 		logger.fine("Checking port " + port);
 		try {
-			sock.connect(new InetSocketAddress("127.0.0.1", port));
+			sock.connect(new InetSocketAddress(host, port));
 			logger.fine("Connected to port " + port);
 			sock.close();
 			return true;
@@ -296,7 +308,7 @@ public final class ServiceUtils {
 	 */
 	public static boolean isWindows() {
 		final String os = System.getProperty("os.name").toLowerCase();
-		return (os.indexOf("win") >= 0);
+		return os.indexOf("win") >= 0;
 	}
 
 	/***********
@@ -309,30 +321,162 @@ public final class ServiceUtils {
 		return !isWindows();
 	}
 
-	public static class ProcessUtils {
+	/******
+	 * Returns the primary local-host address. If the local-host interface could not be resolved,
+	 * "localhost" is returned.
+	 * 
+	 * @return the primary local-host address.
+	 */
+	public static String getPrimaryInetAddress() {
+		try {
+			return java.net.InetAddress.getLocalHost().toString();
+		} catch (UnknownHostException e) {
+			logger.severe(e.getMessage());
+			return "localhost";
+		}
+	}
+
+	/***********
+	 * 
+	 * Tests if a port of some host is in use.
+	 * 
+	 * @param host the host to check.
+	 * 
+	 * @param port the port number.
+	 * 
+	 * @return true if the port is not in use, false otherwise.
+	 */
+
+	public static boolean isPortFree(final String host, final int port) {
+
+		return !isPortOccupied(host, port);
+
+	}
+
+	/**********
+	 * Utility method related to operating system processes..
+	 * 
+	 * @author barakme
+	 * @since 2.1.1
+	 * 
+	 */
+	public static final class ProcessUtils {
 
 		private ProcessUtils() {
 			//
 		}
 
+		/***********
+		 * Retrieves an instance of SIGAR, which offers access to Operating System level information not typically
+		 * available in the JDK.
+		 * 
+		 * Important note: Not all SIGAR functions are implemented on all operating systems and architecture platforms.
+		 * If you use SIGAR directly, make sure to test first on your target platform.
+		 * 
+		 * For more information on SIGAR, please see: http://support.hyperic.com/display/SIGAR/Home
+		 * 
+		 * @return the sigar instance.
+		 */
+		public static Sigar getSigar() {
+			return SigarHolder.getSigar();
+		}
+
+		/*************
+		 * Executes a SIGAR PTQL query, returning the PIDs of the processes that match the query. For more info on
+		 * SIGAR's PTQL - Process Table Query Language, see: http://support.hyperic.com/display/SIGAR/PTQL
+		 * 
+		 * @param query the PTQL query.
+		 * @return the pids.
+		 * @throws SigarException in case of an error.
+		 */
+		public static List<Long> getPidsWithQuery(final String query)
+				throws SigarException {
+			final Sigar sigar = getSigar();
+			final ProcessFinder finder = new ProcessFinder(sigar);
+
+			final long[] results = finder.find(query);
+			final List<Long> list = new ArrayList<Long>(results.length);
+			for (final long result : results) {
+				list.add(result);
+			}
+
+			return list;
+
+		}
+
+		/*********
+		 * Returns the pids of Java processes where the name specified in in the process arguments. This will usually be
+		 * the java process' main class, though that may not always be the case.
+		 * 
+		 * PTQL Query: "State.Name.eq=java,Args.*.eq=" + name
+		 * 
+		 * @param name the java main class or jar file name.
+		 * @return the pids that match the query, may be zero, one or more.
+		 * @throws SigarException in case of an error.
+		 */
+		public static List<Long> getPidsWithMainClass(final String name)
+				throws SigarException {
+			return getPidsWithQuery("State.Name.eq=java,Args.*.eq=" + name);
+		}
+
+		/*************
+		 * Returns the pids of processes where the base name of the process executable is as specified. PTQL Query:
+		 * "State.Name.eq=" + name
+		 * 
+		 * @param name the process name.
+		 * @return the matching PIDs.
+		 * @throws SigarException in case of an error.
+		 */
 		public static List<Long> getPidsWithName(final String name)
 				throws SigarException {
-
-			Sigar sigar = SigarHolder.getSigar();
-
-			final List<Long> result = new LinkedList<Long>();
-			final long[] pids = sigar.getProcList();
-			for (long pid : pids) {
-				try {
-					final String procName = sigar.getProcExe(pid).getName();
-					if (procName.equals(name)) {
-						result.add(pid);
-					}
-				} catch (SigarException e) {
-					logger.fine("Could not access process details for PID: " + pid);
-				}
-			}
-			return result;
+			return getPidsWithQuery("State.Name.eq=" + name);
 		}
+
+		/*************
+		 * Returns the pids of processes where the full name of the process executable is as specified. PTQL Query:
+		 * "Exe.Name.eq=" + name.
+		 * 
+		 * @param name the process name.
+		 * @return the matching PIDs.
+		 * @throws SigarException in case of an error.
+		 */
+		public static List<Long> getPidsWithFullName(final String name)
+				throws SigarException {
+			return getPidsWithQuery("Exe.Name.eq=" + name);
+		}
+
+		/*************
+		 * Returns PID of process that has the specified port open.
+		 * 
+		 * @param port the port number.
+		 * @return pid of the process.
+		 * @throws SigarException in case of an error.
+		 */
+		// TODO - this does not work - SIGAR has not implemented getProPort on Win 7, Win 2008 and Solaris, no we can't
+		// really use this.
+		// public static List<Long> getPidWithPort(final int port)
+		// throws SigarException {
+		// final Sigar sigar = getSigar();
+		// final long pid = sigar.getProcPort(NetFlags.CONN_TCP, port);
+		// if (pid > 0) {
+		// return Arrays.asList(pid);
+		// } else {
+		// return Arrays.asList();
+		// }
+		//
+		// // NetConnection[] list = sigar.getNetConnectionList(NetFlags.CONN_SERVER | NetFlags.CONN_PROTOCOLS);
+		// // for (NetConnection netConnection : list) {
+		// // int localPort = (int) netConnection.getLocalPort();
+		// // int state = netConnection.getState();
+		// //
+		// // if (state == NetFlags.TCP_LISTEN) {
+		// // if (localPort == port) {
+		// // netConnection.get
+		// // return true;
+		// // }
+		// // }
+		// // }
+		// }
 	}
+
 }
