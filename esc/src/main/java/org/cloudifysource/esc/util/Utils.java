@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -375,6 +376,15 @@ public final class Utils {
 		details.setLocalDir(cloud.getProvider().getLocalDirectory());
 		final String remoteDir = template.getRemoteDirectory();
 		details.setRemoteDir(remoteDir);
+
+		// Create a copy of managementOnly files and mutate
+		List<String> managementOnlyFiles = new ArrayList<String>(cloud.getProvider().getManagementOnlyFiles());
+		if (cloud.getUser().getKeyFile() != null) {
+			// keyFile, if used, is always a management file.
+			managementOnlyFiles.add(cloud.getUser().getKeyFile());
+		}
+		details.setManagementOnlyFiles(managementOnlyFiles);
+
 		details.setManagementOnlyFiles(cloud.getProvider().getManagementOnlyFiles());
 
 		details.setZones(StringUtils.join(zones, ",", 0, zones.length));
