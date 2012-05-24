@@ -25,11 +25,10 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.Socket;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.cloudifysource.dsl.internal.CloudifyConstants;
-
 import com.gigaspaces.internal.sigar.SigarHolder;
 
 /******************
@@ -52,9 +51,16 @@ public final class ServiceUtils {
 
 	private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger(ServiceUtils.class.getName());
 
+	public static String getPrimaryInetAddress() {
+		try {
+			return java.net.InetAddress.getLocalHost().toString();
+		} catch (UnknownHostException e) {
+			logger.severe(e.getMessage());
+			return "localhost";
+		}
+	}
 	/***********
-	 * Tests if a port of the localhost interface is in use.
-	 * 
+	 * Tests if a port of the primary interface is in use.
 	 * @param port the port number.
 	 * @return true if the port is not in use, false otherwise.
 	 */
@@ -62,6 +68,17 @@ public final class ServiceUtils {
 		return !isPortOccupied(port);
 	}
 
+	/***********
+	 * Tests if a port of some host is in use.
+     * 
+	 * @param host the host to check.
+	 * @param port the port number.
+	 * @return true if the port is not in use, false otherwise.
+	 */
+	public static boolean isPortFree(final String host, final int port) {
+		return !isPortOccupied(host, port);
+	}
+	
 	/**
 	 * Checks that the specified ports are free.
 	 * 
@@ -91,10 +108,21 @@ public final class ServiceUtils {
 	 * @return - true if port is occupied
 	 */
 	public static boolean isPortOccupied(final int port) {
+		return isPortOccupied(getPrimaryInetAddress(), port);
+	}
+	
+	/**
+	 * Checks whether a specified port is occupied.
+	 * 
+	 * @param host - host to check.
+	 * @param port - port to check.
+	 * @return - true if port is occupied
+	 */
+	public static boolean isPortOccupied(final String host, final int port) {
 		final Socket sock = new Socket();
 		logger.fine("Checking port " + port);
 		try {
-			sock.connect(new InetSocketAddress("127.0.0.1", port));
+			sock.connect(new InetSocketAddress(host, port));
 			logger.fine("Connected to port " + port);
 			sock.close();
 			return true;
