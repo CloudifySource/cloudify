@@ -135,8 +135,8 @@ public class Cloud {
 				String configLocalDir = getProvider().getLocalDirectory();
 				
 				if (configLocalDir != null && !new File(configLocalDir).isAbsolute()) {
-					boolean keyFileFoundOnLocalMachinePath = isKeyFileFoundOnLocalMachinePath(configLocalDir);
-					boolean keyFileFoundOnRemoteMachinePath = isKeyFileFoundOnRemoteMachinePath(configLocalDir);
+					boolean keyFileFoundOnLocalMachinePath = isKeyFileFoundOnLocalMachinePath();
+					boolean keyFileFoundOnRemoteMachinePath = isKeyFileFoundOnRemoteMachinePath();
 					if (!keyFileFoundOnRemoteMachinePath && !keyFileFoundOnLocalMachinePath){
 						throw new DSLValidationException("The specified key file is missing: \"" 
 								+ keyFile.getAbsolutePath() + "\"");
@@ -151,7 +151,7 @@ public class Cloud {
 		}	
 	}
 
-	private boolean isKeyFileFoundOnRemoteMachinePath(String configLocalDir) {
+	private boolean isKeyFileFoundOnRemoteMachinePath() {
 		String managementMachineTemplateName = getConfiguration().getManagementMachineTemplate();
 		CloudTemplate cloudTemplate = getTemplates().get(managementMachineTemplateName);
 		String remoteEnvDirectoryPath = cloudTemplate.getRemoteDirectory();
@@ -160,7 +160,8 @@ public class Cloud {
 		return remoteKeyFile.isFile();
 	}
 
-	private boolean isKeyFileFoundOnLocalMachinePath(String configLocalDir) {
+	private boolean isKeyFileFoundOnLocalMachinePath() {
+		String configLocalDir = getProvider().getLocalDirectory();
 		//getting the local config directory
 		String envHomeDir = Environment.getHomeDirectory();
 		String localAbsolutePath = new File(envHomeDir, configLocalDir).getAbsolutePath();
