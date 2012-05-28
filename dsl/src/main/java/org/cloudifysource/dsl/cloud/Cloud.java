@@ -109,7 +109,7 @@ public class Cloud {
 		String managementTemplateName = configuration.getManagementMachineTemplate();
 
 		if (StringUtils.isBlank(managementTemplateName)) {
-			throw new DSLValidationException("managementTemplateName may not be empty");
+			throw new DSLValidationException("managementMachineTemplate may not be empty");
 		}
 		
 		if (!templates.containsKey(managementTemplateName)) {
