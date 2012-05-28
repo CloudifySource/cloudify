@@ -85,9 +85,6 @@ public class AbstractCliAzureDeploymentTest {
     protected static final String RELATIVE_AZURE_PROPERTIES_PATH = "tools/cli/plugins/azure/azure.properties";
     protected static final String RELATIVE_AZURE_CONFIG_EXEC_PATH = "tools/cli/plugins/azure/azureconfig.exe";
 
-    // expected number of instances on azure after successful bootstrap
-    protected static final int EXPECTED_NUMBER_OF_MACHINES = 5;
-
     // system properties
     protected static final String IS_DEBUG_MODE_SYSTEM_PROPERTY = "test.debug.mode";
     protected static final String LOCAL_WORKING_DIR_SYSTEM_PROPERTY_KEY = "local.working.dir";

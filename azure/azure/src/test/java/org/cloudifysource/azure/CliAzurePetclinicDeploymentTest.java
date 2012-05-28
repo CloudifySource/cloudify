@@ -49,6 +49,15 @@ public class CliAzurePetclinicDeploymentTest extends AbstractCliAzureDeploymentT
     private static final String NUMBER_OF_INSTANCES_FOR_TOMCAT_SERVICE = "2";
     private static final String TOMCAT_SERVICE = "tomcat";
 
+    // expected number of instances on azure after successful bootstrap
+    // 2 mgt machines
+    // 1 webui machine
+    // 1 tomcat machine
+    // 1 mongos machine
+    // 1 mongoConfig machine
+    // 2 mongod machines
+    private static final int EXPECTED_NUMBER_OF_MACHINES = 8;
+
     @Test(timeout = 120 * 60 * 1000L)
     public void repeatTest() throws Throwable {
         DateFormat df = new SimpleDateFormat("_yyyy-MM-dd_hh-mm");

@@ -49,6 +49,13 @@ public class CliAzureTravelDeploymentTest extends AbstractCliAzureDeploymentTest
     private static final String NUMBER_OF_INSTANCES_FOR_TOMCAT_SERVICE = "2";
     private static final String TOMCAT_SERVICE = "tomcat";
 
+    // expected number of instances on azure after successful bootstrap
+    // 2 mgt machines
+    // 1 webui machine
+    // 1 tomcat machine
+    // 1 cassandra machine
+    private static final int EXPECTED_NUMBER_OF_MACHINES = 5;
+
     // Disabled to see if petclinic test pass
     // @Test(timeout = 120 * 60 * 1000L)
     public void repeatTest() throws Throwable {
