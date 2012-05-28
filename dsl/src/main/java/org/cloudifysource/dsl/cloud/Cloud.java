@@ -18,6 +18,7 @@ package org.cloudifysource.dsl.cloud;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.DSLValidation;
@@ -35,6 +36,8 @@ import com.j_spaces.kernel.Environment;
 @CloudifyDSLEntity(name = "cloud", clazz = Cloud.class, allowInternalNode = false, allowRootNode = true)
 public class Cloud {
 
+	private static java.util.logging.Logger logger =
+			java.util.logging.Logger.getLogger(Cloud.class.getName());
 	private String name;
 	private CloudProvider provider;
 	private CloudUser user = new CloudUser();
@@ -152,8 +155,8 @@ public class Cloud {
 		String managementMachineTemplateName = getConfiguration().getManagementMachineTemplate();
 		CloudTemplate cloudTemplate = getTemplates().get(managementMachineTemplateName);
 		String remoteEnvDirectoryPath = cloudTemplate.getRemoteDirectory();
-		String remoteKeyFilePath = new File(remoteEnvDirectoryPath, configLocalDir).getAbsolutePath();
-		File remoteKeyFile = new File(remoteKeyFilePath, getUser().getKeyFile());
+		File remoteKeyFile = new File(remoteEnvDirectoryPath, getUser().getKeyFile());
+		logger.log(Level.INFO, "Looking for key file on remote machine: " + remoteKeyFile.getAbsolutePath());
 		return remoteKeyFile.isFile();
 	}
 
@@ -162,6 +165,7 @@ public class Cloud {
 		String envHomeDir = Environment.getHomeDirectory();
 		String localAbsolutePath = new File(envHomeDir, configLocalDir).getAbsolutePath();
 		File localKeyFile = new File(localAbsolutePath, getUser().getKeyFile());
+		logger.log(Level.INFO, "Looking for key file on local machine: " + localKeyFile.getAbsolutePath());
 		return localKeyFile.isFile();
 	}
 }
