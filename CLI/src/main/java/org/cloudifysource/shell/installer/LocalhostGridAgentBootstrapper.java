@@ -1201,7 +1201,7 @@ public class LocalhostGridAgentBootstrapper {
 		String gsmJavaOptions = "-Xmx" + GSM_MEMORY_IN_MB + "m" + " -D" + LUS_PORT_CONTEXT_PROPERTY + "=" + lusPort 
 																+ " -D" + GSM_PENDING_REQUEST_DELAY + "=" + Integer.toString(GSM_REQUEST_DELAY_MILLI);
 		String esmJavaOptions = "-Xmx" + ESM_MEMORY_IN_MB + "m";
-		String gscJavaOptions = "-Dcom.gigaspaces.client.router.disableNewRouter=true";
+		String gscJavaOptions = "";
 
 		final Map<String, String> environment = pb.environment();
 		if (lookupGroups != null) {
@@ -1225,7 +1225,7 @@ public class LocalhostGridAgentBootstrapper {
 		if (zone != null) {
 			gsaJavaOptions += " -Dcom.gs.zones=" + zone;
 		}
-
+		
 		environment.put("GSA_JAVA_OPTIONS", gsaJavaOptions);
 		environment.put("LUS_JAVA_OPTIONS", lusJavaOptions);
 		environment.put("GSM_JAVA_OPTIONS", gsmJavaOptions);
