@@ -264,8 +264,13 @@ public class GSRestClient {
 			final HttpResponse response = httpClient.execute(httpMethod);
 			final int statusCode = response.getStatusLine().getStatusCode();
 			if (statusCode != HTTP_STATUS_OK) {
-				logger.log(Level.FINE, httpMethod.getURI() + MSG_RESPONSE_CODE + statusCode);
+				if (logger.isLoggable(Level.FINE)) {
+					logger.log(Level.FINE, httpMethod.getURI() + MSG_RESPONSE_CODE + statusCode);
+				}
 				responseBody = getResponseBody(response, httpMethod);
+				if (logger.isLoggable(Level.FINE)) {
+					logger.log(Level.FINE, httpMethod.getURI() + " response body "+responseBody);
+				}
 				try {
 					final Map<String, Object> errorMap = GSRestClient.jsonToMap(responseBody);
 					throw new ErrorStatusException("Remote_rest_gateway_exception", errorMap.get(ERROR));
