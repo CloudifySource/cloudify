@@ -17,7 +17,6 @@ package org.cloudifysource.azure;
 
 import junit.framework.Assert;
 import org.cloudifysource.azure.test.utils.RepetativeConditionProvider;
-import org.junit.Test;
 
 import java.io.File;
 import java.net.URI;
