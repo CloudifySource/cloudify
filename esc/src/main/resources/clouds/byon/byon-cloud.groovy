@@ -22,9 +22,6 @@ cloud {
 		connectToPrivateIp true
 		//Indicates whether communications with the management servers should use the machine private IP.
 		bootstrapManagementOnPublicIp false
-		// Optional. Cloud-generic credentials. Can be overridden by specific credentials on each node, in the templates section.
-		remoteUsername "ENTER_CLOUD_USER"
-		remotePassword "ENTER_CLOUD_PASSWORD"
 	}
 
 	/*************
@@ -74,6 +71,9 @@ cloud {
 				machineMemoryMB 1600
 				// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
 				remoteDirectory "/tmp/gs-files"
+				// Optional. template-generic credentials. Can be overridden by specific credentials on each node, in the nodesList section.
+				username "ENTER_USER"
+				password "ENTER_PASSWORD"
 				// Mandatory for BYON.
 					custom ([
 						// Mandatory for BYON. The nodesList custom property lists the nodes that compose this cloud-like environment.
