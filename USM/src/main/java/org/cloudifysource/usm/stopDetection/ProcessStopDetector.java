@@ -16,6 +16,7 @@
 package org.cloudifysource.usm.stopDetection;
 
 import java.util.List;
+import java.util.logging.Level;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.usm.USMException;
@@ -46,11 +47,20 @@ public class ProcessStopDetector extends AbstractUSMEventListener implements Sto
 		}
 	}
 
+	private static final java.util.logging.Logger logger =
+			java.util.logging.Logger.getLogger(ProcessStopDetector.class.getName());
+
 	@Override
 	public boolean isServiceStopped()
 			throws USMException {
+
 		final List<Long> pids = usm.getServiceProcessesList();
-		
+
+		// TODO - change to FINE
+		if (logger.isLoggable(Level.INFO)) {
+			logger.info("Process based stop detection is running. Scanning processes: " + pids);
+		}
+
 		// special handling for the 'recipe about nothing' scenario.
 		if (pids.size() == 0) {
 			return false;

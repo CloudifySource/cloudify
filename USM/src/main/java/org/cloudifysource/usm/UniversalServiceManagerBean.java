@@ -194,15 +194,15 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			try {
 				// Launch the process
 				startProcessLifecycle();
-			} catch (final USMException usme) {
-				logger.severe("Process lifecycle failed to start. Shutting down the USM instance");
+			} catch (final USMException e) {
+				logger.log(Level.SEVERE, "Process lifecycle failed to start. Shutting down the USM instance", e);
 				try {
 					this.shutdown();
-				} catch (final Exception e) {
+				} catch (final Exception e2) {
 					logger.log(Level.SEVERE, "While shutting down the USM due to a failure in initialization, "
 							+ "the following exception occured: " + e.getMessage(), e);
 				}
-				throw usme;
+				throw e;
 			}
 		}
 	}
@@ -579,7 +579,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			// Found a PID file - read it
 			String pidString;
 			try {
-				pidString = FileUtils.readFileToString(file);
+				pidString = FileUtils.readFileToString(file).trim();
 			} catch (final IOException e) {
 				throw new USMException("Failed to read pid file contents from file: " + file, e);
 			}
@@ -630,6 +630,10 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 
 	private List<Long> parsePIDsString(final File file, final String pidString)
 			throws USMException {
+		if (pidString.length() == 0) {
+			return new ArrayList<Long>(0);
+		}
+
 		final String[] pidParts = pidString.split(",");
 		final List<Long> pidsFromFile = new ArrayList<Long>(pidParts.length);
 		for (final String part : pidParts) {

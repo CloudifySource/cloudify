@@ -669,10 +669,12 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	 * @return true if a detector discovered that the service is stopped, false otherwise.
 	 */
 	public boolean runStopDetection() {
+		logger.info("Running iteration of stop detection");
 		for (final StopDetector detector : this.stopDetectors) {
 
 			try {
 				if (detector.isServiceStopped()) {
+					logger.info("Stop detection - sevice has stopped!");
 					return true;
 				}
 			} catch (final USMException e) {

@@ -473,14 +473,17 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			@Override
 			public boolean isServiceStopped()
 					throws USMException {
+				logger.fine("Start Process Fail Detection - Running");
 				final Integer exitCode = USMUtils.getProcessExitCode(usm.getStartProcess());
 				// start process has not terminated, indicating a foreground process
 				if (exitCode == null) {
+					logger.fine("Start Process Fail Detection - Process is still running");
 					return false;
 				}
 				// start process has terminated.
 
 				if (exitCode == 0) {
+					logger.fine("Start Process Fail Detection - Process has stopped successfully");
 					// 0 exit code indicates start command finished successfully - must be a background process.
 					return false;
 				}
@@ -588,9 +591,12 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 		}
 
 		final String protocol = this.service.getNetwork().getProtocolDescription();
-		if (protocol.equalsIgnoreCase("tcp") || protocol.equalsIgnoreCase("http")) {
+		final int port = this.service.getNetwork().getPort();
 
-			final int port = this.service.getNetwork().getPort();
+		if (protocol == null) {
+			return new TCPPortEventListener(port);
+		} else if (protocol.equalsIgnoreCase("tcp") || protocol.equalsIgnoreCase("http")) {
+
 			if (port <= 0) {
 				return null;
 			}
@@ -608,11 +614,22 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 		if (locator != null) {
 			return new ProcessLocatorExecutor(locator, launcher, puExtDir);
 		} else {
+			
+			// Yaron Parasol
+			// Barak. It is critical for UX that if a user wrote a start detection and did not specify a process
+			// locator,
+			// the default process locator does not apply. same is true for stop detector.
+			// It should not apply if the user wrote a custom stop detector.
+
+			// if a custom start detection is specified, do not use default process locator.
+			if (this.service.getLifecycle().getStartDetection() != null) {
+				return null;
+			} else if (this.service.getLifecycle().getStopDetection() != null) {
+				return null;
+			}
 			return new DefaultProcessLocator();
 		}
-		// DefaultProcessLocator(locator, this.launcher, this.puExtDir);
 	}
-
 	// CHECKSTYLE:ON
 
 }
