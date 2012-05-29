@@ -1256,7 +1256,8 @@ public class ServiceController {
         final List<Service> services = createServiceDependencyOrder(result.getApplication());
 
         // validate the template specified by each server (if specified) is available on this cloud
-        if (!isLocalCloud()) {
+        // cloud could be null in case of eager mode deployment (such as in azure)
+        if (!isLocalCloud() && cloud != null) {
             for (Service service : services) {
                 ComputeDetails compute = service.getCompute();
                 if (compute != null && StringUtils.isNotBlank(compute.getTemplate())) {
