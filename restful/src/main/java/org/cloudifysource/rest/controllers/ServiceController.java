@@ -256,7 +256,7 @@ public class ServiceController {
 
 				long totalSize = 0;
 				Iterator<Machine> iterator = this.admin.getMachines().iterator();
-				Map<String, Object> map = successStatus();
+				Map<String, Object> map = new HashMap<String, Object>();
 				while (iterator.hasNext()) {
 					Machine machine = iterator.next();
 
@@ -269,8 +269,7 @@ public class ServiceController {
 					map.put(machine.getHostAddress(), dumpBytes);
 
 				}
-
-				return map;
+				return successStatus(map);
 
 			}
 		} catch (RestServiceException e) {
