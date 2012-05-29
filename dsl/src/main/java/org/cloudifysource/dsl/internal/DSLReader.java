@@ -83,9 +83,8 @@ public class DSLReader {
 	private String dslContents;
 
 	/*******
-	 * Variables injected into the context of a groovy compilation (binding)
-	 * Used with the service extension mechanism to pass defined properties, and the context, to the
-	 * compilation of the parent service.
+	 * Variables injected into the context of a groovy compilation (binding) Used with the service extension mechanism
+	 * to pass defined properties, and the context, to the compilation of the parent service.
 	 */
 	private Map<Object, Object> variables;
 
@@ -234,7 +233,7 @@ public class DSLReader {
 			}
 
 		}
-		
+
 		// create the groovy shell, loaded with our settings
 		final GroovyShell gs = createGroovyShell(properties);
 		final Object result = evaluateGroovyScript(gs);
@@ -251,11 +250,10 @@ public class DSLReader {
 					clusterInfoToUseInGsc.setName(ServiceUtils.getAbsolutePUName(
 							CloudifyConstants.DEFAULT_APPLICATION_NAME, ((Service) result).getName()));
 				}
-				
-				
+
 				this.context.init((Service) result, admin, clusterInfoToUseInGsc);
 			} else {
-				
+
 				this.context.initInIntegratedContainer((Service) result);
 			}
 		}
@@ -369,6 +367,17 @@ public class DSLReader {
 		final String baseClassName = BaseDslScript.class.getName();
 
 		final List<String> serviceJarFiles = createJarFileListForService();
+		String classpathDir = null;
+		if (this.getWorkDir() != null) {
+			classpathDir = this.getWorkDir().getAbsolutePath();
+		} else if (this.getDslFile() != null) {
+			classpathDir = this.getDslFile().getParentFile().getAbsolutePath();
+		}
+
+		if (classpathDir != null) {
+			serviceJarFiles.add(classpathDir);
+		}
+
 		final CompilerConfiguration cc = createCompilerConfiguration(baseClassName, serviceJarFiles);
 
 		final Binding binding = createGroovyBinding(properties, context, dslFile);
