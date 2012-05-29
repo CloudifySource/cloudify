@@ -22,9 +22,6 @@ cloud {
 		connectToPrivateIp true
 		//Indicates whether communications with the management servers should use the machine private IP.
 		bootstrapManagementOnPublicIp false
-		// Optional. Cloud-generic credentials. Can be overridden by specific credentials on each node, in the templates section.
-		remoteUsername "tgrid"
-		remotePassword "tgrid"
 	}
 
 	/*************
@@ -71,6 +68,9 @@ cloud {
 				SMALL_LINUX : template{
 					// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
 					remoteDirectory "/tmp/gs-files"
+					// Optional. template-generic credentials. Can be overridden by specific credentials on each node, in the nodesList section.
+					username "tgrid"
+					password "tgrid"
 					custom ([
 						"nodesList" : ([
 										([
@@ -84,7 +84,7 @@ cloud {
 											"host-list" : "0.0.0.2"
 										]),
 										([
-											"id" : "byon-test1",
+											"id" : "byon-test1{0}",
 											"host-list" : "pc-lab39,pc-lab40,0.0.0.5"
 										]),
 										([
