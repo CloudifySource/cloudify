@@ -31,6 +31,7 @@ import java.util.logging.Level;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.Application;
 import org.cloudifysource.dsl.ComputeDetails;
 import org.cloudifysource.dsl.DSLValidation;
@@ -75,12 +76,16 @@ public abstract class BaseDslScript extends Script {
 	 * DSL property indicating extension of recipe.
 	 */
 	public static final String EXTEND_PROPERTY_NAME = "extend";
+	
+	private Set<String> processingUnitTypes;
+	private String processingUnitType;
 
 	protected Object activeObject = null;
 	private Object rootObject;
 	private int propertyCounter;
 
 	private Set<String> usedProperties = new HashSet<String>();
+
 
 	@Override
 	public void setProperty(final String name, final Object value) {
@@ -408,26 +413,23 @@ public abstract class BaseDslScript extends Script {
 			dslObjectInitializersByName = new HashMap<String, BaseDslScript.DSLObjectInitializerData>();
 
 			addObjectInitializerForClass(dslObjectInitializersByName, Application.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, Service.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, PluginDescriptor.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, ServiceNetwork.class);
+
 			addObjectInitializerForClass(dslObjectInitializersByName, DataGrid.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, Memcached.class);
-			addObjectInitializerForClass(dslObjectInitializersByName, PluginDescriptor.class);
-			addObjectInitializerForClass(dslObjectInitializersByName, Service.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, ServiceLifecycle.class);
-			addObjectInitializerForClass(dslObjectInitializersByName, ServiceNetwork.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, StatefulProcessingUnit.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, StatelessProcessingUnit.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, MirrorProcessingUnit.class);
 
 			addObjectInitializerForClass(dslObjectInitializersByName, Cloud.class);
-
 			addObjectInitializerForClass(dslObjectInitializersByName, CloudProvider.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, CloudUser.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, CloudTemplate.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, CloudConfiguration.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, ComputeDetails.class);
-
-			addObjectInitializerForClass(dslObjectInitializersByName, StatefulProcessingUnit.class);
-			addObjectInitializerForClass(dslObjectInitializersByName, StatelessProcessingUnit.class);
 
 			addObjectInitializerForClass(dslObjectInitializersByName, ComputeDetails.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, Sla.class);
@@ -459,6 +461,11 @@ public abstract class BaseDslScript extends Script {
 		final DSLObjectInitializerData data = getDSLInitializers().get(name);
 		if (data == null) {
 			return null;
+		}
+		
+		if (isDuplicateProcessingUnit(name)){
+			throw new DSLException("There may only be one type of processing unit defined. Found more than one: "
+								+ "[" + name + ", " + this.processingUnitType + "]");
 		}
 
 		if (this.activeObject == null) {
@@ -514,6 +521,34 @@ public abstract class BaseDslScript extends Script {
 			throw new DSLException("Failed to copy existing element of type " + data.getName() + " with class: "
 					+ data.clazz, e);
 		}
+	}
+
+	//Only one of stateless/stateful/lifecycle may be set
+	private boolean isDuplicateProcessingUnit(String name) {
+		
+		Set<String> processingUnitTypes = getProcessingUnitTypes();
+		if (processingUnitTypes.contains(name)) {
+			if (StringUtils.isEmpty(this.processingUnitType)) {
+				this.processingUnitType = name;
+			} else {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private Set<String> getProcessingUnitTypes() {
+		
+		if (this.processingUnitTypes == null){
+			this.processingUnitTypes = new HashSet<String>();
+			this.processingUnitTypes.add("lifecycle");
+			this.processingUnitTypes.add("statefulProcessingUnit");
+			this.processingUnitTypes.add("statelessProcessingUnit");
+			this.processingUnitTypes.add("dataGrid");
+			this.processingUnitTypes.add("mirrorProcessingUnit");
+		}
+		
+		return this.processingUnitTypes;
 	}
 
 	@Override
