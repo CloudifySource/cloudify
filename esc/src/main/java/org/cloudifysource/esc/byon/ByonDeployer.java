@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.cloudifysource.esc.byon;
 
+import java.net.UnknownHostException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -333,12 +334,18 @@ public class ByonDeployer {
 			throws CloudProvisioningException {
 		CustomNode selectedNode = null;
 
-		for (final CustomNode node : getAllNodesByTemplateName(templateName)) {
-			if (StringUtils.isNotBlank(node.getPrivateIP()) && node.getPrivateIP().equalsIgnoreCase(ipAddress)
-					|| StringUtils.isNotBlank(node.getPublicIP()) && node.getPublicIP().equalsIgnoreCase(ipAddress)) {
-				selectedNode = node;
-				break;
+		try {
+			for (final CustomNode node : getAllNodesByTemplateName(templateName)) {
+				if (StringUtils.isNotBlank(node.getPrivateIP()) 
+							&& IPUtils.resolveHostName(node.getPrivateIP()).equalsIgnoreCase(ipAddress)
+						|| StringUtils.isNotBlank(node.getPublicIP()) 
+							&& IPUtils.resolveHostName(node.getPublicIP()).equalsIgnoreCase(ipAddress)) {
+					selectedNode = node;
+					break;
+				}
 			}
+		} catch (UnknownHostException e) {
+			throw new CloudProvisioningException("Failed to resolve a host name", e);
 		}
 
 		return selectedNode;

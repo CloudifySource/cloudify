@@ -228,9 +228,9 @@ public final class IPUtils {
 		}
 		return valid;
 	}
-
+	
 	/**
-	 * Gets the IP address of the given host name.
+	 * Resolves the host name and returns its IP address.
 	 * 
 	 * @param hostName
 	 *            The name of the host
@@ -238,7 +238,7 @@ public final class IPUtils {
 	 * @throws UnknownHostException
 	 *             Indicates the host doesn't represent an available network object
 	 */
-	public static String getIP(final String hostName) throws UnknownHostException {
+	public static String resolveHostName(final String hostName)  throws UnknownHostException {
 
 		InetAddress address = null;
 		address = InetAddress.getByName(hostName);

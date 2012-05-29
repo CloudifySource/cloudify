@@ -383,10 +383,10 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 		try {
 			managementServers = getExistingManagementServers(cloud.getProvider().getNumberOfManagementMachines());
-			if (managementServers == null || managementServers.isEmpty()) {
+			/*if (managementServers == null || managementServers.isEmpty()) {
 				publishEvent("prov_management_server_not_found");
 				throw new CloudProvisioningException("Could not find any management machines for this cloud");
-			}
+			}*/
 		} catch (final Exception e) {
 			publishEvent("prov_management_lookup_failed");
 			throw new CloudProvisioningException("Failed to lookup existing management servers.", e);
@@ -479,9 +479,9 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		MachineDetails machineDetails = null;
 		try {
 			machineDetails = createMachineDetailsFromNode(cloudNode);
-			Utils.deleteFileSystemObject(machineDetails.getPrivateAddress(), machineDetails.getRemoteUsername(),
-					machineDetails.getRemotePassword(), cloudifyItems, null/* key file */,
-					FILE_DELETION_TIMEOUT_IN_MINUTES, TimeUnit.MINUTES, machineDetails.getFileTransferMode());
+			Utils.deleteFileSystemObjects(machineDetails.getPrivateAddress(), machineDetails.getRemoteUsername(),
+					machineDetails.getRemotePassword(), null/* key file */, cloudifyItems, 
+					machineDetails.getFileTransferMode());
 		} catch (final Exception e) {
 			if (machineDetails != null) {
 				logger.info("ByonProvisioningDriver: Failed to delete system files from server: "
