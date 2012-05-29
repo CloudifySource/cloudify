@@ -33,7 +33,7 @@ cloud {
 		localDirectory "tools/cli/plugins/esc/ec2-win/upload"
 
 		// Mandatory. The HTTP/S URL where cloudify can be downloaded from by newly started machines.
-		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.1/gigaspaces-cloudify-2.1.1-m2-b1395-31.zip"
+		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.1/gigaspaces-cloudify-2.1.1-m2-b1395-32.zip"
 		// Mandatory. The prefix for new machines started for servies.
 		machineNamePrefix "cloudify_agent_"
 		// Optional. Defaults to true. Specifies whether cloudify should try to deploy services on the management machine.
