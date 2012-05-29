@@ -17,6 +17,7 @@ package org.cloudifysource.azure;
 
 import junit.framework.Assert;
 import org.cloudifysource.azure.test.utils.RepetativeConditionProvider;
+import org.junit.Test;
 
 import java.io.File;
 import java.net.URI;
@@ -55,8 +56,7 @@ public class CliAzureTravelDeploymentTest extends AbstractCliAzureDeploymentTest
     // 1 cassandra machine
     private static final int EXPECTED_NUMBER_OF_MACHINES = 5;
 
-    // Disabled to see if petclinic test pass
-    // @Test(timeout = 120 * 60 * 1000L)
+    @Test(timeout = 120 * 60 * 1000L)
     public void repeatTest() throws Throwable {
         DateFormat df = new SimpleDateFormat("_yyyy-MM-dd_hh-mm");
         int repeat = 1;
