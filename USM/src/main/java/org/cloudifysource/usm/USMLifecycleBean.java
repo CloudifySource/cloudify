@@ -530,22 +530,26 @@ public class USMLifecycleBean implements ClusterInfoAware {
 
 	/**********
 	 * Returns the list of Process IDs calculated by this service's process locators.
+	 * 
 	 * @return the list of PIDs.
 	 * @throws USMException if one of the locators failed to execute.
 	 */
-	public List<Long> getServiceProcesses() throws USMException {
+	public List<Long> getServiceProcesses()
+			throws USMException {
 		Set<Long> set = new HashSet<Long>();
 		ProcessLocator[] locators = this.processLocators;
 		for (ProcessLocator processLocator : locators) {
-			set.addAll(processLocator.getProcessIDs());
+			if (processLocator != null) {
+				set.addAll(processLocator.getProcessIDs());
+			}
 		}
 
 		return new ArrayList<Long>(set);
 	}
 
 	/********
-	 * Executes all start detection implementations, until all have passed or a timeout is reached.
-	 * Once a start detector passes, it is not executed again.
+	 * Executes all start detection implementations, until all have passed or a timeout is reached. Once a start
+	 * detector passes, it is not executed again.
 	 * 
 	 * @param launchedProcess the process launched by the service's 'start' implementation.
 	 * @return true if liveness test passed, false if the timeout is reached without the tests passing.
@@ -607,7 +611,7 @@ public class USMLifecycleBean implements ClusterInfoAware {
 			if (index == this.livenessDetectors.length) {
 				// all tests passed
 				return true;
-			} else  { 
+			} else {
 				currentTestIndex = index;
 			}
 
