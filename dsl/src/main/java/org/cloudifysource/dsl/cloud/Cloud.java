@@ -156,7 +156,7 @@ public class Cloud {
 		CloudTemplate cloudTemplate = getTemplates().get(managementMachineTemplateName);
 		String remoteEnvDirectoryPath = cloudTemplate.getRemoteDirectory();
 		File remoteKeyFile = new File(remoteEnvDirectoryPath, getUser().getKeyFile());
-		logger.log(Level.INFO, "Looking for key file on remote machine: " + remoteKeyFile.getAbsolutePath());
+		logger.log(Level.FINE, "Looking for key file on remote machine: " + remoteKeyFile.getAbsolutePath());
 		return remoteKeyFile.isFile();
 	}
 
@@ -166,7 +166,7 @@ public class Cloud {
 		String envHomeDir = Environment.getHomeDirectory();
 		String localAbsolutePath = new File(envHomeDir, configLocalDir).getAbsolutePath();
 		File localKeyFile = new File(localAbsolutePath, getUser().getKeyFile());
-		logger.log(Level.INFO, "Looking for key file on local machine: " + localKeyFile.getAbsolutePath());
+		logger.log(Level.FINE, "Looking for key file on local machine: " + localKeyFile.getAbsolutePath());
 		return localKeyFile.isFile();
 	}
 }
