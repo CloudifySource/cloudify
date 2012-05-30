@@ -11,7 +11,7 @@
 
 	<property name="giga.base.dir" value="D:/Gigaspaces" />
 
-	<property name="giga.version" value="gigaspaces-cloudify-2.1.0-ga" />
+	<property name="giga.version" value="gigaspaces-cloudify-2.1.1-m2" />
 
 	<property name="target.dir" value="${giga.base.dir}/${giga.version}" />
 	<property name="ec2.dir"
@@ -40,8 +40,8 @@
 
 	<target name="Copy Cloudify jars to ec2 upload dir" depends="">
 		<echo message="Copying Cloudify jar files to ${ec2.dir}" />
-		<!-- <copy todir="${ec2.dir}/lib/platform/usm" file="../USM/target/usm.jar" 
-			/> -->
+	    <copy todir="${ec2.dir}/lib/platform/usm" file="../USM/target/usm.jar" 
+			/> 
 		<!-- <copy todir="${ec2.dir}/tools/cli" file="../CLI/target/cli.jar" /> -->
 		<!-- <copy todir="${ec2.dir}/tools/rest" file="../restful/target/rest.war" 
 			/> -->
