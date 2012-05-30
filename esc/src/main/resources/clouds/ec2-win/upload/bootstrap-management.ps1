@@ -35,6 +35,8 @@
 #   CLOUD_FILE - File name of the cloud file, which should be placed in the WORKING_HOME_DIRECTORY
 #   USERNAME - Username of the account.
 #   PASSWORD - Password of the account.
+#	CLOUDIFY_CLOUD_IMAGE_ID - If set, indicates the image ID for this machine.
+#	CLOUDIFY_CLOUD_HARDWARE_ID - If set, indicates the hardware ID for this machine.
 #
 # Author: barakm
 # Since: 2.1
@@ -128,6 +130,9 @@ insert-line $cloudifyDir\bin\setenv.bat "set LOOKUPLOCATORS=$ENV:LUS_IP_ADDRESS"
 insert-line $cloudifyDir\bin\setenv.bat "set JAVA_HOME=$javaDir"
 insert-line $cloudifyDir\bin\setenv.bat 'set CLOUDIFY_AGENT_ENV_PRIVATE_IP=$ENV:CLOUDIFY_AGENT_ENV_PRIVATE_IP'
 insert-line $cloudifyDir\bin\setenv.bat 'set CLOUDIFY_AGENT_ENV_PUBLIC_IP=$ENV:CLOUDIFY_AGENT_ENV_PUBLIC_IP'
+insert-line $cloudifyDir\bin\setenv.bat 'set CLOUDIFY_CLOUD_IMAGE_ID=$ENV:CLOUDIFY_CLOUD_IMAGE_ID'
+insert-line $cloudifyDir\bin\setenv.bat 'set CLOUDIFY_CLOUD_HARDWARE_ID=$ENV:CLOUDIFY_CLOUD_HARDWARE_ID'
+
 
 Write-Host "Disabling local firewall"
 $firewallCommand = "netsh advfirewall set allprofiles state off"

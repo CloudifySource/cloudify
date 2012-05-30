@@ -12,6 +12,11 @@
 #	$MACHINE_ZONES - This is required if this is not a management machine
 # 	$WORKING_HOME_DIRECTORY - This is where the files were copied to (cloudify installation, etc..)
 #	$CLOUDIFY_LINK - If this url is found, it will be downloaded to $WORKING_HOME_DIRECTORY/gigaspaces.zip
+#	$CLOUDIFY_OVERRIDES_LINK - If this url is found, it will be downloaded and unzipped into the same location as cloudify
+#	$CLOUD_FILE - Location of the cloud configuration file. Only available in bootstrap of management machines.
+#	$NO_WEB_SERVICES - If set to 'true', indicates that the rest and web-ui services should not be deployed in this machine.
+#	$CLOUDIFY_CLOUD_IMAGE_ID - If set, indicates the image ID for this machine.
+#	$CLOUDIFY_CLOUD_HARDWARE_ID - If set, indicates the hardware ID for this machine.
 #############################################################################
 
 # args:
@@ -87,6 +92,8 @@ cd $WORKING_HOME_DIRECTORY/gigaspaces/bin || error_exit $? "Failed changing dire
 
 sed -i "1i export NIC_ADDR=$MACHINE_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "1i export LOOKUPLOCATORS=$LUS_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "1i export CLOUDIFY_CLOUD_IMAGE_ID=$CLOUDIFY_CLOUD_IMAGE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "1i export CLOUDIFY_CLOUD_HARDWARE_ID=$CLOUDIFY_CLOUD_HARDWARE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
 
 cd $WORKING_HOME_DIRECTORY/gigaspaces/tools/cli || error_exit $? "Failed changing directory to cli directory"
 
