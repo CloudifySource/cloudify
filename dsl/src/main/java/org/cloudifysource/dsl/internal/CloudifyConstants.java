@@ -134,6 +134,8 @@ public final class CloudifyConstants {
 	 */
 	public static final String CLOUDIFY_AGENT_ENV_PRIVATE_IP = "CLOUDIFY_AGENT_ENV_PRIVATE_IP";
 	public static final String CLOUDIFY_AGENT_ENV_PUBLIC_IP = "CLOUDIFY_AGENT_ENV_PUBLIC_IP";
+	public static final String CLOUDIFY_CLOUD_IMAGE_ID = "CLOUDIFY_CLOUD_IMAGE_ID";
+	public static final String CLOUDIFY_CLOUD_HARDWARE_ID = "CLOUDIFY_CLOUD_HARDWARE_ID";
 	
 	
 	

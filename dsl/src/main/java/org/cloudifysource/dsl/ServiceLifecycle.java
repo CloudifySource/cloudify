@@ -74,7 +74,8 @@ public class ServiceLifecycle implements Serializable {
 	
 	// TODO - this should be a string, something like "15s" or "15000mil"
 	private int startDetectionTimeoutSecs = DEFAULT_START_DETECTION_SECONDS;
-
+	private int startDetectionIntervalSecs = 1;
+	
 	public int getStartDetectionTimeoutSecs() {
 		return startDetectionTimeoutSecs;
 	}
@@ -91,7 +92,7 @@ public class ServiceLifecycle implements Serializable {
 		this.startDetectionIntervalSecs = startDetectionIntervalSecs;
 	}
 
-	private int startDetectionIntervalSecs = 1;
+
 
 	private Object stopDetection;
 
