@@ -919,10 +919,12 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		}
 	}
 
+	// CHECKSTYLE:OFF - this is an openspaces interface.
+	
 	@Override
 	public void setApplicationContext(final ApplicationContext arg0)
 			throws BeansException {
-
+		// CHECKSTYLE:ON
 		this.applicationContext = arg0;
 
 		if (arg0.getClassLoader() instanceof ServiceClassLoader) {

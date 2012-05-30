@@ -48,7 +48,7 @@ public class ProcessDetails implements Details {
 		if (usm.isRunningInGSC()) {
 			bindHost = NIOInfoHelper.getDetails().getBindHost();
 		} else {
-			// running in integrated container, so use sefault value.
+			// running in integrated container, so use default value.
 			bindHost = "127.0.0.1";
 		}
 		if (privateIp != null) {
@@ -61,6 +61,16 @@ public class ProcessDetails implements Details {
 			map.put(CloudifyConstants.USM_DETAILS_PUBLIC_IP, publicIp);
 		} else {
 			map.put(CloudifyConstants.USM_DETAILS_PUBLIC_IP, bindHost);
+		}
+
+		final String imageId = System.getenv(CloudifyConstants.CLOUDIFY_CLOUD_IMAGE_ID);
+		if (imageId != null) {
+			map.put(CloudifyConstants.CLOUDIFY_CLOUD_IMAGE_ID, imageId);
+		}
+
+		final String hardwareId = System.getenv(CloudifyConstants.CLOUDIFY_CLOUD_HARDWARE_ID);
+		if (hardwareId != null) {
+			map.put(CloudifyConstants.CLOUDIFY_CLOUD_HARDWARE_ID, hardwareId);
 		}
 
 		return map;

@@ -59,6 +59,12 @@ import org.openspaces.core.cluster.ClusterInfoAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**************
+ * Bean that wraps the various USM lifecycle listeners, events and invocations.
+ * @author barakme
+ * @since 1.0
+ *
+ */
 @Component
 public class USMLifecycleBean implements ClusterInfoAware {
 
@@ -216,7 +222,7 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	}
 
 	/*********
-	 * Fires the pre-stop event
+	 * Fires the pre-stop event.
 	 * 
 	 * @param reason .
 	 * @throws USMException .
@@ -236,12 +242,24 @@ public class USMLifecycleBean implements ClusterInfoAware {
 		return configuration.getServiceName() + "-Error";
 	}
 
+	/***********
+	 * Fires an event.
+	 * 
+	 * @param reason the start reason.
+	 * @throws USMException if an event listener failed.
+	 */
 	public void firePostStart(final StartReason reason)
 			throws USMException {
 		fireEvent(
 				LifecycleEvents.POST_START, this.postStartListeners, reason);
 	}
 
+	/***********
+	 * Fires an event.
+	 * 
+	 * @param reason the start reason.
+	 * @throws USMException if an event listener failed.
+	 */
 	public void firePreStart(final StartReason reason)
 			throws USMException {
 		fireEvent(
@@ -249,6 +267,11 @@ public class USMLifecycleBean implements ClusterInfoAware {
 
 	}
 
+	/***********
+	 * Executes the install phase.
+	 * 
+	 * @throws USMException in case of an error.
+	 */
 	public void install()
 			throws USMException {
 		firePreInstall();
@@ -266,18 +289,33 @@ public class USMLifecycleBean implements ClusterInfoAware {
 				LifecycleEvents.INSTALL, this.installListeners, null);
 	}
 
+	/***********
+	 * Fires an event.
+	 * 
+	 * @throws USMException if an event listener failed.
+	 */
 	public void firePostInstall()
 			throws USMException {
 		fireEvent(
 				LifecycleEvents.POST_INSTALL, this.postInstallListeners, null);
 	}
 
+	/***********
+	 * Fires an event.
+	 * 
+	 * @throws USMException if an event listener failed.
+	 */
 	public void fireShutdown()
 			throws USMException {
 		fireEvent(
 				LifecycleEvents.SHUTDOWN, this.shutdownListeners, null);
 	}
 
+	/***********
+	 * Fires an event.
+	 * 
+	 * @throws USMException if an event listener failed.
+	 */
 	public void firePreInstall()
 			throws USMException {
 		fireEvent(
@@ -345,24 +383,44 @@ public class USMLifecycleBean implements ClusterInfoAware {
 		}
 	}
 
+	/***********
+	 * Fires an event.
+	 * 
+	 * @throws USMException if an event listener failed.
+	 */
 	public void fireInit()
 			throws USMException {
 		fireEvent(
 				LifecycleEvents.INIT, this.initListeners, null);
 	}
 
+	/***********
+	 * Fires an event.
+	 * @param reason the stop reason.
+	 * @throws USMException if an event listener failed.
+	 */
 	public void firePostStop(final StopReason reason)
 			throws USMException {
 		fireEvent(
 				LifecycleEvents.POST_STOP, this.postStopListeners, reason);
 	}
 
+	/***********
+	 * Fires an event.
+	 * 
+	 * @throws USMException if an event listener failed.
+	 */
 	public void firePreServiceStart()
 			throws USMException {
 		fireEvent(
 				LifecycleEvents.PRE_SERVICE_START, this.preServiceStartListeners, null);
 	}
 
+	/***********
+	 * Fires an event.
+	 * 
+	 * @throws USMException if an event listener failed.
+	 */
 	public void firePreServiceStop()
 			throws USMException {
 		fireEvent(

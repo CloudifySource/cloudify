@@ -17,14 +17,20 @@ package org.cloudifysource.usm;
 
 import java.util.List;
 
+/******
+ * Wrapper class for the elements in a command line, as it is passed to the operating system.
+ * @author barakme
+ * @since 1.0
+ *
+ */
 public class CommandParts {
 
 	private List<String> part;
-	
+
 	public CommandParts() {
 	}
 
-	public CommandParts(List<String> part) {
+	public CommandParts(final List<String> part) {
 		super();
 		this.part = part;
 	}
@@ -33,8 +39,8 @@ public class CommandParts {
 		return part;
 	}
 
-	public void setPart(List<String> part) {
+	public void setPart(final List<String> part) {
 		this.part = part;
 	}
-	
+
 }
