@@ -304,7 +304,7 @@ public final class Utils {
 		} else {
 			scpTargetBase = "sftp://" + username + '@' + host;
 		}
-		
+
 		FileObject remoteDir = null;
 		try {
 			for (final String fileSystemObject : fileSystemObjects) {
@@ -334,10 +334,9 @@ public final class Utils {
 	}
 
 	/**
-	 * Checks whether the files or folders exist on a remote host.
-	 * The returned value depends on the last parameter - "allMustExist".
-	 * If allMustExist is True the returned value is True only if all listed objects exist.
-	 * If allMustExist is False, the returned value is True if at least one object exists.
+	 * Checks whether the files or folders exist on a remote host. The returned value depends on the last parameter -
+	 * "allMustExist". If allMustExist is True the returned value is True only if all listed objects exist. If
+	 * allMustExist is False, the returned value is True if at least one object exists.
 	 * 
 	 * @param host The host to connect to
 	 * @param username The name of the user that deletes the file/folder
@@ -345,8 +344,8 @@ public final class Utils {
 	 * @param keyFile The key file, if used
 	 * @param fileSystemObjects The files or folders to delete
 	 * @param fileTransferMode SCP for secure copy in Linux, or CIFS for windows file sharing
-	 * @param allMustExist If set to True the function will return True only if all listed objects exist.
-	 * 			If set to False, the function will return True if at least one object exists.
+	 * @param allMustExist If set to True the function will return True only if all listed objects exist. If set to
+	 *        False, the function will return True if at least one object exists.
 	 * @return depends on allMustExist
 	 * @throws IOException Indicates the deletion failed
 	 */
@@ -354,7 +353,7 @@ public final class Utils {
 			final String keyFile, final List<String> fileSystemObjects, final FileTransferModes fileTransferMode,
 			final boolean allMustExist)
 			throws IOException {
-		
+
 		boolean objectsExist;
 		if (allMustExist) {
 			objectsExist = true;
@@ -363,7 +362,7 @@ public final class Utils {
 		}
 
 		if (!fileTransferMode.equals(FileTransferModes.SCP)) {
-			//TODO Support get with CIFS as well
+			// TODO Support get with CIFS as well
 			throw new IOException("File resolving is currently not supported for this file transfer protocol ("
 					+ fileTransferMode + ")");
 		}
@@ -388,7 +387,7 @@ public final class Utils {
 		} else {
 			scpTargetBase = "sftp://" + username + '@' + host;
 		}
-		
+
 		FileObject remoteDir = null;
 		try {
 			for (final String fileSystemObject : fileSystemObjects) {
@@ -411,11 +410,10 @@ public final class Utils {
 				mng.closeFileSystem(remoteDir.getFileSystem());
 			}
 		}
-		
+
 		return objectsExist;
 	}
 
-	
 	/*************************
 	 * Creates an Agentless Installer's InstallationDetails input object from a machine details object returned from a
 	 * provisioning implementation.
@@ -497,6 +495,17 @@ public final class Utils {
 								+ cloud.getUser().getKeyFile() + ". Tried: " + keyFile + " but file does not exist");
 			}
 			details.setKeyFile(keyFile.getAbsolutePath());
+		}
+	
+		if (template.getHardwareId() != null) {
+			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.CLOUDIFY_CLOUD_HARDWARE_ID,
+					template.getHardwareId());
+			
+		}
+
+		if (template.getImageId() != null) {
+			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.CLOUDIFY_CLOUD_IMAGE_ID,
+					template.getImageId());
 		}
 
 		logger.info("Created InstallationDetails: " + details);

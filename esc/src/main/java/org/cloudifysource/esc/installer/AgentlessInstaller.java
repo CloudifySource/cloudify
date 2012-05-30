@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -463,6 +464,12 @@ public class AgentlessInstaller {
 			scb.exportVar("PASSWORD", details.getPassword());
 		}
 
+		
+		Set<Entry<String, String>> entries = details.getExtraRemoteEnvironmentVariables().entrySet();
+		for (Entry<String, String> entry : entries) {
+			scb.exportVar(entry.getKey(), entry.getValue());
+		}
+		
 		scb.chmodExecutable(scriptPath).call(scriptPath);
 
 		final String command = scb.toString();

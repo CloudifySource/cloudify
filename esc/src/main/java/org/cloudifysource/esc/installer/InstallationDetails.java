@@ -92,7 +92,10 @@ public class InstallationDetails implements Cloneable {
 	private FileTransferModes fileTransferMode = FileTransferModes.SCP;
 	private RemoteExecutionModes remoteExecutionMode = RemoteExecutionModes.SSH;
 
-	private Map<String, Object> customData = new HashMap<String, Object>();
+	private final Map<String, Object> customData = new HashMap<String, Object>();
+
+	private Map<String, String> extraRemoteEnvironmentVariables = new HashMap<String, String>();
+
 	public Admin getAdmin() {
 		return admin;
 	}
@@ -152,12 +155,13 @@ public class InstallationDetails implements Cloneable {
 
 	@Override
 	public String toString() {
-		return "InstallationDetails [privateIP=" + privateIp + ", publicIP=" + publicIp 
+		return "InstallationDetails [privateIP=" + privateIp + ", publicIP=" + publicIp
 				+ ", locator=" + locator + ", connectToPrivateIP=" + connectedToPrivateIp
 				+ ", bindToPrivateIP=" + bindToPrivateIp
 				+ ", username=" + username
 				+ ", password=***" + ", keyFile=" + keyFile + ", localDir=" + localDir + ", remoteDir=" + remoteDir
-				+ ", isLus=" + isLus + ", zones=" + zones + "]";
+				+ ", isLus=" + isLus + ", zones=" + zones + ", extraRemoteEnvironmentVariables = "
+				+ extraRemoteEnvironmentVariables + "]";
 	}
 
 	public String getKeyFile() {
@@ -282,6 +286,14 @@ public class InstallationDetails implements Cloneable {
 
 	public Map<String, Object> getCustomData() {
 		return customData;
+	}
+
+	public Map<String, String> getExtraRemoteEnvironmentVariables() {
+		return extraRemoteEnvironmentVariables;
+	}
+
+	public void setExtraRemoteEnvironmentVariables(final Map<String, String> extraRemoteEnvironmentVariables) {
+		this.extraRemoteEnvironmentVariables = extraRemoteEnvironmentVariables;
 	}
 
 }
