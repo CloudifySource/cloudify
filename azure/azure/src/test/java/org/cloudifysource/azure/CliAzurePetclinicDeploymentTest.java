@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 public class CliAzurePetclinicDeploymentTest extends AbstractCliAzureDeploymentTest {
 
     // path to petclinic application relative to cloudify installation
-    private static final String RELATIVE_APPLICATION_EXAMPLE_PATH = "recipes\\apps\\petclinic";
+    private static final String RELATIVE_APPLICATION_EXAMPLE_PATH = "recipes\\apps\\petclinic-simple";
 
     // arguments for cli
     private static final int TIMEOUT_IN_MINUTES = 60;
@@ -49,6 +49,7 @@ public class CliAzurePetclinicDeploymentTest extends AbstractCliAzureDeploymentT
     private static final String NUMBER_OF_INSTANCES_FOR_TOMCAT_SERVICE = "2";
     private static final String TOMCAT_SERVICE = "tomcat";
 
+    //petclinic
     // expected number of instances on azure after successful bootstrap
     // 2 mgt machines
     // 1 webui machine
@@ -56,7 +57,14 @@ public class CliAzurePetclinicDeploymentTest extends AbstractCliAzureDeploymentT
     // 1 mongos machine
     // 1 mongoConfig machine
     // 2 mongod machines
-    private static final int EXPECTED_NUMBER_OF_MACHINES = 8;
+
+    //petclinic-simple
+    // expected number of instances on azure after successful bootstrap
+    // 2 mgt machines
+    // 1 webui machine
+    // 1 tomcat machine
+    // 1 mongod machine
+    private static final int EXPECTED_NUMBER_OF_MACHINES = 5; //petclinic = 8
 
     @Test(timeout = 120 * 60 * 1000L)
     public void repeatTest() throws Throwable {
