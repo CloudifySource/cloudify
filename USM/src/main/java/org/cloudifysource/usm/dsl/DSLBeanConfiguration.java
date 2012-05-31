@@ -621,12 +621,14 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			// the default process locator does not apply. same is true for stop detector.
 			// It should not apply if the user wrote a custom stop detector.
 
+			// TODO - this section is a little questionable. What should teh behaviour be for default process location?
+			
 			// if a custom start detection is specified, do not use default process locator.
-			if (this.service.getLifecycle().getStartDetection() != null) {
-				return null;
-			} else if (this.service.getLifecycle().getStopDetection() != null) {
-				return null;
-			}
+//			if (this.service.getLifecycle().getStartDetection() != null) {
+//				return null;
+//			} else if (this.service.getLifecycle().getStopDetection() != null) {
+//				return null;
+//			}
 			return new DefaultProcessLocator();
 		}
 	}
