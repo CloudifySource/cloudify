@@ -84,13 +84,14 @@ public class CliAzurePetclinicDeploymentTest extends AbstractCliAzureDeploymentT
                 test();
             } catch (Throwable t) {
                 failed = true;
+                logger.log(Level.SEVERE,"Test failed with the following exception",t);
                 throw t;
             } finally {
                 if (failed) {
                     logger.info("Failed test iteration #" + i + ". Machines are left running for manual diagnostics");
                     logger.removeHandler(fileHandler);
                     try {
-                        SimpleMail.send("Azure test failed\nSubscription ID=" + credentials.getHostedServicesSubscriptionId(), new File(filePattern));
+                        SimpleMail.send("Azure "+APPLICATION_NAME+" test failed\nSubscription ID=" + credentials.getHostedServicesSubscriptionId(), new File(filePattern));
                     } catch (Exception e) {
                         logger.log(Level.SEVERE, "Failed to send email", e);
                     }
