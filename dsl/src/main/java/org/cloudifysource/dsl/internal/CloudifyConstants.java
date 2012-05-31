@@ -194,6 +194,28 @@ public final class CloudifyConstants {
 	private CloudifyConstants() {
 		// private constructor to prevent initialization.
 	}
+	
+	/*******************
+	 * USM process metrics
+	 */
+	// TODO : this port should be configurable
+	public static final String USM_METRIC_PROCESS_CPU_USAGE = "Process Cpu Usage";
+	public static final String USM_METRIC_PROCESS_CPU_TIME = "Process Cpu Time";
+	public static final String USM_METRIC_PROCESS_CPU_KERNEL_TIME = "Process Cpu Kernel Time";
+	public static final String USM_METRIC_PROCESS_TOTAL_CPU_TIME = "Total Process Cpu Time";
+	public static final String USM_METRIC_PROCESS_GROUP_ID = "Process GroupId";
+	public static final String USM_METRIC_PROCESS_USER_ID = "Process User Id";
+	public static final String USM_METRIC_PROCESS_TOTAL_PAGE_FAULTS = "Total Num Of PageFaults";
+	public static final String USM_METRIC_PROCESS_TOTAL_RESIDENTAL_MEMORY = "Total Process Residental Memory";
+	public static final String USM_METRIC_PROCESS_TOTAL_SHARED_MEMORY = "Total Process Shared Memory";
+	public static final String USM_METRIC_PROCESS_CPU_TOTAL_VIRTUAL_MEMORY = "Total Process Virtual Memory";
+	public static final String USM_METRIC_PROCESS_KERNEL_SCHEDULING_PRIORITY = "Kernel Scheduling Priority";
+	public static final String USM_METRIC_PROCESS_ACTIVE_THREADS = "Num Of Active Threads";
+	public static final String USM_METRIC_AVAILABLE_PROCESSORS = "Available Processors";
+	public static final String USM_METRIC_COMMITTED_VIRTUAL_MEM_SIZE = "Committed Virtual Memory Size";
+	public static final String USM_METRIC_THREAD_COUNT = "Thread Count";
+	public static final String USM_METRIC_PEAK_THREAD_COUNT = "Peak Thread Count";
+
 
 	// CHECKSTYLE:ON
 }
