@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.usm.monitors.MonitorException;
 import org.hyperic.sigar.ProcCpu;
 import org.hyperic.sigar.ProcCred;
@@ -100,34 +101,34 @@ public class MonitorData {
 	}
 
 	public void addDataToMonitor(final Map<String, Number> monitorMap) {
-		monitorMap.put("Process Cpu Usage", processCpuUsage);
-		monitorMap.put("Process Cpu Kernel Time", processCpuKernelTime);
-		monitorMap.put("Total Process Cpu Time", totalProcessCpuTime);
+		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_CPU_USAGE, processCpuUsage);
+		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_CPU_KERNEL_TIME, processCpuKernelTime);
+		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_TOTAL_CPU_TIME, totalProcessCpuTime);
 
 		// monitorMap.put("Process Arguments", MonitorData.flattenStrArr(processArguments));
 
-		monitorMap.put("Process GroupId", processGroupId);
-		monitorMap.put("Process User Id", processUserId);
+		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_GROUP_ID, processGroupId);
+		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_USER_ID, processUserId);
 
 		// monitorMap.put("Process Owner Group Name", MonitorData.safeS(processOwnerGroupName));
 		// monitorMap.put("Process Owner User Name", MonitorData.safeS(processOwnerUserName));
 
-		monitorMap.put("Total Num Of PageFaults", totalNumOfPageFaults);
-		monitorMap.put("Total Process Residental Memory", totalProcessResidentalMemory);
-		monitorMap.put("Total Process Shared Memory", totalProcessSharedMemory);
-		monitorMap.put("Total Process Virtual Memory", totalProcessVirtualMemory);
+		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_TOTAL_PAGE_FAULTS, totalNumOfPageFaults);
+		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_TOTAL_RESIDENTAL_MEMORY, totalProcessResidentalMemory);
+		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_TOTAL_SHARED_MEMORY, totalProcessSharedMemory);
+		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_CPU_TOTAL_VIRTUAL_MEMORY, totalProcessVirtualMemory);
 
-		monitorMap.put("Kernel Scheduling Priority", kernelSchedulingPriority);
-		monitorMap.put("Num Of Active Threads", numOfActiveThreads);
+		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_KERNEL_SCHEDULING_PRIORITY, kernelSchedulingPriority);
+		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_ACTIVE_THREADS, numOfActiveThreads);
 
 		// monitorMap.put(KEY_ARCH, MonitorData.safeS(arch));
-		monitorMap.put(KEY_AVAIL_PROCESSORS, availableProcessors);
-		monitorMap.put(KEY_COMMIT_VIRT_MEM_SIZE, committedVirtualMemorySize);
+		monitorMap.put(CloudifyConstants.USM_METRIC_AVAILABLE_PROCESSORS, availableProcessors);
+		monitorMap.put(CloudifyConstants.USM_METRIC_COMMITTED_VIRTUAL_MEM_SIZE, committedVirtualMemorySize);
 		// monitorMap.put(KEY_OS_NAME, MonitorData.safeS(osName));
-		monitorMap.put(KEY_PROC_CPU_TIME, processCpuTime);
+		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_CPU_TIME, processCpuTime);
 		// map.put("Classpath", safeS(classPath));
-		monitorMap.put(KEY_THREAD_COUNT, threadCount);
-		monitorMap.put(KEY_PEAK_THREAD_COUNT, peakThreadCount);
+		monitorMap.put(CloudifyConstants.USM_METRIC_THREAD_COUNT, threadCount);
+		monitorMap.put(CloudifyConstants.USM_METRIC_PEAK_THREAD_COUNT, peakThreadCount);
 	}
 
 
@@ -157,12 +158,4 @@ public class MonitorData {
 	private long processCpuTime; 
 	private int threadCount; 
 	private int peakThreadCount; 
-
-
-	private static final String KEY_AVAIL_PROCESSORS = "Available Processors";
-	private static final String KEY_COMMIT_VIRT_MEM_SIZE = "Committed Virtual Memory Size";
-	private static final String KEY_PROC_CPU_TIME = "Process Cpu Time";
-	private static final String KEY_THREAD_COUNT = "Thread Count";
-	private static final String KEY_PEAK_THREAD_COUNT = "Peak Thread Count";
-
 }
