@@ -1,0 +1,8 @@
+language: java
+jdk:
+  - openjdk6
+  - openjdk7
+  - oraclejdk7
+before_script: "mvn install -f ./cloudify/pom.xml --quiet -DskipTests=true"
+script: "mvn test -f ./cloudify/pom.xml"
+
