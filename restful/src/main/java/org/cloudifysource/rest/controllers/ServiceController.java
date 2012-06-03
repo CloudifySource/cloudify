@@ -1205,6 +1205,7 @@ public class ServiceController {
 		Map<String, Object> resultsMap = new HashMap<String, Object>();
 		resultsMap.put(CloudifyConstants.POLLING_TIMEOUT_EXCEPTION, false);
 		resultsMap.put(CloudifyConstants.POLLING_EXCEPTION, false);
+		
 		if (!lifecyclePollingContainer.containsKey(UUID.fromString(lifecycleEventContainerID))) {
 			return errorStatus("Lifecycle events container with UUID: " + lifecycleEventContainerID
 					+ " does not exist or expired.");
@@ -1239,9 +1240,11 @@ public class ServiceController {
 		List<String> lifecycleEvents = container.getLifecycleEvents(cursor);
 
 		if (lifecycleEvents != null) {
+		    //avoid concurrency issues. create a copy of the list
+		    List<String> copy = new ArrayList<String>(lifecycleEvents);
 			int newCursorPos = cursor + lifecycleEvents.size();
 			resultsMap.put(CloudifyConstants.CURSOR_POS, newCursorPos);
-			resultsMap.put(CloudifyConstants.LIFECYCLE_LOGS, lifecycleEvents);
+			resultsMap.put(CloudifyConstants.LIFECYCLE_LOGS, copy);
 		} else {
 			resultsMap.put(CloudifyConstants.CURSOR_POS, cursor);
 		}
