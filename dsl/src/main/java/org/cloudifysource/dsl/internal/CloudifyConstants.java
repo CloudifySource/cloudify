@@ -181,7 +181,6 @@ public final class CloudifyConstants {
 	 */
 	// TODO : this port should be configurable
 	public static final int DEFAULT_REST_PORT = 8100;
-	public static final int SSH_PORT = 22;
 	public static final int DEFAULT_LUS_PORT = net.jini.discovery.Constants.getDiscoveryPort();
 	public static final int DEFAULT_LOCALCLOUD_LUS_PORT = DEFAULT_LUS_PORT + 2;
 
