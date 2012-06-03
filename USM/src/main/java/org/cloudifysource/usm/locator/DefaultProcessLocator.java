@@ -182,9 +182,10 @@ public class DefaultProcessLocator extends AbstractUSMEventListener implements P
 		findLeafProcessIDs(this.childProcessID, procTree, resultList);
 
 		if (resultList.size() == 0) {
-			throw new USMException("Default process locator was unable to locate service processes. "
+			logger.warning("Default process locator was unable to locate service processes. "
 					+ "The default implementation can only locate foreground processes. "
-					+ "If you are running backgorund processes or OS services, you must set a process locator");
+					+ "If you are running backgorund processes or OS services, you must " 
+					+ "set a process locator to get process level metrics and monitoring");
 		}
 
 		this.serviceProcesses = resultList;
