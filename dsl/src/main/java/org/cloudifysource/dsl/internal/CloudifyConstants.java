@@ -215,6 +215,8 @@ public final class CloudifyConstants {
 	public static final String USM_METRIC_THREAD_COUNT = "Thread Count";
 	public static final String USM_METRIC_PEAK_THREAD_COUNT = "Peak Thread Count";
 
+	
+	public static final int SSH_PORT = 22;
 
 	// CHECKSTYLE:ON
 }
