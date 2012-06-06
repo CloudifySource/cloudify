@@ -8,6 +8,7 @@ def home= serviceContext.attributes.thisInstance["home"]
 println "tomcat_stop.groovy: tomcat(${instanceID}) home ${home}"
 
 def script= serviceContext.attributes.thisInstance["script"]
+if (script) {
 println "tomcat_stop.groovy: tomcat(${instanceID}) script ${script}"
 
 
@@ -28,3 +29,4 @@ new AntBuilder().sequential {
 }
 
 println "tomcat_stop.groovy: tomcat is stopped"
+}
