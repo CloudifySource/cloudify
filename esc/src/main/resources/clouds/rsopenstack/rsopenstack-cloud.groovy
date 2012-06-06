@@ -11,7 +11,7 @@ cloud {
 		provider "rackspace"
 		localDirectory "tools/cli/plugins/esc/rsopenstack/upload"
 		
-		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.1/gigaspaces-cloudify-2.1.1-ga-b1396-5.zip" 
+		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.1/gigaspaces-cloudify-2.1.1-ga-b1396-216.zip" 
 		machineNamePrefix "agent"
 		
 		dedicatedManagementMachines true
