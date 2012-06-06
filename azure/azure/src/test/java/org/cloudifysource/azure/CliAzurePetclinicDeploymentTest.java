@@ -187,7 +187,7 @@ public class CliAzurePetclinicDeploymentTest extends AbstractCliAzureDeploymentT
             }
         };
 
-        repetativeAssert("Failed waiting for travel application", applicationInstalledCondition);
+        repetativeAssert("Failed waiting for travel application: " + travelApplicationUrl.toString(), applicationInstalledCondition);
 
         List<String> setInstancesScaleOutCommand = Arrays.asList(
                 "azure:set-instances",
