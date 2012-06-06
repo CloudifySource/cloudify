@@ -1,6 +1,6 @@
 language: java
 jdk:
-  - oraclejdk6
-before_script: "mvn install -f ./cloudify/pom.xml --quiet -DskipTests=true"
+  - oraclejdk7
+install: "mvn install -f ./cloudify/pom.xml --quiet -DskipTests=true"
 script: "mvn test -f ./cloudify/pom.xml"
 
