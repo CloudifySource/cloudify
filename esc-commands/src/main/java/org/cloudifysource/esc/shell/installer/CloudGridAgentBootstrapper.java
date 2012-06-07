@@ -482,8 +482,9 @@ public class CloudGridAgentBootstrapper {
 		final CloudTemplate cloudTemplate = this.cloud.getTemplates().get(managementTemplateName);
 
 		for (int i = 0; i < details.length; i++) {
+			List<String> zones = cloud.getProvider().getZones();
 			details[i] = Utils.createInstallationDetails(machineDetails[i], cloud,
-					cloudTemplate, cloud.getProvider().getZones().toArray(new String[0]), null, null, true, this.cloudFile);
+					cloudTemplate, zones.toArray(new String[zones.size()]), null, null, true, this.cloudFile);
 		}
 
 		return details;
