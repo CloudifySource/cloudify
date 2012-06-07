@@ -65,11 +65,26 @@ public interface CustomNode {
 	String getPublicIP();
 
 	/**
-	 * Gets the private IP address, the IP address used for internal communication.
+	 * Gets the private IP address (or host name), used for internal communication.
 	 * 
 	 * @return The private IP address as a {@link String}
 	 */
 	String getPrivateIP();
+	
+	/**
+	 * Sets the resolved IP address (always an IP address, not a host).
+	 * 
+	 * @param resolvedIP
+	 *            the resolved IP address (always an IP address, not a host).
+	 */
+	void setResolvedIP(String resolvedIP);
+	
+	/**
+	 * Gets the resolved IP address (always an IP address, not a host).
+	 * 
+	 * @return The resolved IP address as a {@link String}
+	 */
+	String getResolvedIP();
 
 	/**
 	 * Sets the node name.

@@ -15,10 +15,7 @@
  ******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.byon;
 
-import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.esc.driver.provisioning.CustomNode;
-import org.cloudifysource.esc.driver.provisioning.jclouds.DefaultProvisioningDriver;
-import org.jclouds.compute.domain.NodeMetadata;
 
 /**
  * Implementation for a custom cloud node, used for example by the BYON cloud driver.
@@ -34,29 +31,13 @@ public class CustomNodeImpl implements CustomNode {
 	public static final int DEFAULT_LOGIN_PORT = 22;
 
 	// TODO : Currently using private IP. Add public IP in phase 2.
-	private String providerId, id, ipAddress, nodeName, group;
+	private String providerId, id, ipAddress, resolvedIpAddress, nodeName, group;
 	// credential can be a password or a private key
 	private String username, credential;
 
 	// making sure an empty cloud node is never created
 	private CustomNodeImpl() {
 	};
-
-	/**
-	 * Constructor, creates a CustomNodeImpl object based on NodeMetadata (an object used by JClouds, and in
-	 * {@link DefaultProvisioningDriver}).
-	 * 
-	 * @param nodeMetadata
-	 *            an object representing a node, used by JClouds and in {@link DefaultProvisioningDriver}.
-	 */
-	public CustomNodeImpl(final NodeMetadata nodeMetadata) {
-		this(nodeMetadata.getProviderId(), nodeMetadata.getId(), nodeMetadata.getPrivateAddresses().iterator().next(),
-				nodeMetadata.getCredentials().identity, nodeMetadata.getCredentials().credential, nodeMetadata
-						.getName());
-		if (StringUtils.isNotBlank(nodeMetadata.getGroup())) {
-			group = nodeMetadata.getGroup();
-		}
-	}
 
 	/**
 	 * Constructor.
@@ -66,7 +47,7 @@ public class CustomNodeImpl implements CustomNode {
 	 * @param id
 	 *            A unique ID for the node
 	 * @param ipAddress
-	 *            The node's IP address
+	 *            The node's IP address or host name
 	 * @param username
 	 *            The username required to access the node
 	 * @param credential
@@ -181,6 +162,23 @@ public class CustomNodeImpl implements CustomNode {
 	@Override
 	public String getPrivateIP() {
 		return ipAddress;
+	}
+	
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void setResolvedIP(final String resolvedIP) {
+		this.resolvedIpAddress = resolvedIP;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String getResolvedIP() {
+		return resolvedIpAddress;
 	}
 
 	/**

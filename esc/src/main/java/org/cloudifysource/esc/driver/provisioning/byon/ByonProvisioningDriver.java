@@ -144,12 +144,14 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		final Set<String> activeMachinesIPs = admin.getMachines().getHostsByAddress().keySet();
 		deployer.setAllocated(cloudTemplateName, activeMachinesIPs);
 		if (logger.isLoggable(Level.INFO)) {
-			logger.info("Verifying the active machines are not in the free pool (currently used machines: "
-					+ Arrays.toString(activeMachinesIPs.toArray()) + ", free machines pool: "
+			logger.info("Verifying the active machines are not in the free pool: "
+					+ "\n Admin reports the currently used machines are: "
+					+ Arrays.toString(activeMachinesIPs.toArray()) 
+					+ "\n Byon deployer reports the free machines for template " + cloudTemplateName + " are: "
 					+ Arrays.toString(deployer.getFreeNodesByTemplateName(cloudTemplateName).toArray())
-					+ ", allocated machines pool: "
+					+ "\n Byon deployer reports the currently used machines for template " + cloudTemplateName + " are:"
 					+ Arrays.toString(deployer.getAllocatedNodesByTemplateName(cloudTemplateName).toArray())
-					+ ", invalid machines pool: "
+					+ "\n Byon deployer reports the invalid used machines for template " + cloudTemplateName + " are: "
 					+ Arrays.toString(deployer.getInvalidNodesByTemplateName(cloudTemplateName).toArray()) + ")");	
 		}
 		final String newServerName = createNewServerName();
@@ -172,19 +174,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		try {
 			handleServerCredentials(machineDetails);
 		} catch (final CloudProvisioningException e) {
-			deployer.invalidateServer(cloudTemplateName, node, true);
-			throw e;
-		}
-
-		try {
-			// check that a SSH connection can be made
-			Utils.validateConnection(machineDetails.getIp(), CloudifyConstants.SSH_PORT);
-		} catch (final Exception e) {
-			// catch any exception - to prevent a cloud machine leaking.
-			logger.log(Level.SEVERE, "Cloud server could not be started on " + machineDetails.getIp()
-					+ ", SSH connection failed.", e);
 			try {
-				deployer.invalidateServer(cloudTemplateName, node, false);
+				deployer.invalidateServer(cloudTemplateName, node);
 			} catch (final CloudProvisioningException ie) {
 				logger.log(Level.SEVERE, "Failed to mark machine " + machineDetails.getIp() + " as Invalid.", ie);
 			}
@@ -536,8 +527,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		md.setMachineId(node.getId());
 		md.setPrivateAddress(node.getPrivateIP());
 		md.setPublicAddress(node.getPublicIP());
-		// By default, cloud nodes connect to each other using their private
-		// address.
+		// By default, cloud nodes connect to each other using their private ip.
 		md.setUsePrivateAddress(true);
 
 		// if the node has user/pwd - use it. Otherwise - take the use/password from the template's settings.

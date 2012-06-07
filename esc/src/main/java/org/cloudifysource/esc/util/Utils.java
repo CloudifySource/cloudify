@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -145,8 +146,7 @@ public final class Utils {
 		try {
 			final InetSocketAddress endPoint = new InetSocketAddress(ipAddress, port);
 			if (endPoint.isUnresolved()) {
-				throw new IllegalArgumentException("Failed to connect to: " + ipAddress + ":" + port
-						+ ", address could not be resolved.");
+				throw new UnknownHostException(ipAddress);
 			}
 
 			socket.connect(endPoint, Utils.safeLongToInt(TimeUnit.SECONDS.toMillis(timeout), true));
