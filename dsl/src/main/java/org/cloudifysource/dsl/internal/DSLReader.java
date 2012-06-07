@@ -160,7 +160,7 @@ public class DSLReader {
 		}
 
 		if (files.length == 0) {
-			throw new IllegalArgumentException("Cannot find configuration file in " + dir.getAbsolutePath());
+			throw new IllegalArgumentException("Cannot find configuration file in " + dir.getAbsolutePath() +"/*"+fileNameSuffix);
 		}
 
 		return files[0];
