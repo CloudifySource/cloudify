@@ -42,6 +42,7 @@ import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.util.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
+import org.openspaces.admin.AdminFactory;
 import org.openspaces.admin.bean.BeanConfigurationException;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.pu.elastic.ElasticMachineProvisioningConfig;
@@ -73,6 +74,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private ProvisioningDriver cloudifyProvisioning;
 	private Admin admin;
+	private Admin provisioningAdmin;
 	private Map<String, String> properties;
 	private Cloud cloud;
 	private String cloudTemplateName;
@@ -283,7 +285,16 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		MachineDetails machineDetails;
 		try {
 			// delegate provisioning to the cloud driver implementation
-			cloudifyProvisioning.setAdmin(admin);
+			logger.fine("creating a new admin instance for provisioning");
+			AdminFactory factory = new AdminFactory();
+			for (String group : admin.getGroups()) {
+				factory.addGroup(group);
+			}
+			for (LookupLocator locator : admin.getLocators()) {
+				factory.addLocator(locator.getHost() + ":" + locator.getPort());
+			}
+			provisioningAdmin = factory.createAdmin();
+			cloudifyProvisioning.setAdmin(provisioningAdmin);
 			machineDetails = cloudifyProvisioning.startMachine(duration, unit);
 		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Failed to start machine: " + e.getMessage(), e);
@@ -508,6 +519,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	public void destroy()
 			throws Exception {
 		this.cloudifyProvisioning.close();
+		try {
+			if (provisioningAdmin != null) {
+				provisioningAdmin.close();
+			}
+		} catch (final Exception ex) {
+			logger.info("Failed to close provisioning admin");
+		}
 	}
 
 	@Override
