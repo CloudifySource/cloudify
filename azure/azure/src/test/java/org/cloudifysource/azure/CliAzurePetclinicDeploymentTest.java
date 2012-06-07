@@ -95,8 +95,7 @@ public class CliAzurePetclinicDeploymentTest extends AbstractCliAzureDeploymentT
                     } catch (Exception e) {
                         logger.log(Level.SEVERE, "Failed to send email", e);
                     }
-                    //itaif:leave machine running to debug petclinic
-                    //after(AZURE_HOSTED_SERVICE, TIMEOUT_IN_MINUTES, POLLING_INTERVAL_IN_MINUTES);
+                    after(AZURE_HOSTED_SERVICE, TIMEOUT_IN_MINUTES, POLLING_INTERVAL_IN_MINUTES);
                     
                     // no need to break since an exception was raised and is going to fail the test
                 } else {
