@@ -15,10 +15,6 @@
  *******************************************************************************/
 package org.cloudifysource.azure;
 
-import junit.framework.Assert;
-import org.cloudifysource.azure.test.utils.RepetativeConditionProvider;
-import org.junit.Test;
-
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
@@ -32,6 +28,10 @@ import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.SimpleFormatter;
 import java.util.regex.Pattern;
+
+import junit.framework.Assert;
+
+import org.cloudifysource.azure.test.utils.RepetativeConditionProvider;
 
 public class CliAzureTravelDeploymentTest extends AbstractCliAzureDeploymentTest {
 
@@ -55,8 +55,8 @@ public class CliAzureTravelDeploymentTest extends AbstractCliAzureDeploymentTest
     // 1 tomcat machine
     // 1 cassandra machine
     private static final int EXPECTED_NUMBER_OF_MACHINES = 5;
-
-    @Test(timeout = 120 * 60 * 1000L)
+    /*itaif:disabled temporarily for debuggin petclinic
+    @Test(timeout = 120 * 60 * 1000L)*/
     public void repeatTest() throws Throwable {
         DateFormat df = new SimpleDateFormat("_yyyy-MM-dd_hh-mm");
         int repeat = 1;
@@ -91,7 +91,7 @@ public class CliAzureTravelDeploymentTest extends AbstractCliAzureDeploymentTest
                     logger.info("Passed test iteration #" + i);
                     logger.removeHandler(fileHandler);
                     try {
-                        SimpleMail.send("Azure test passed\nSubscription ID=" + credentials.getHostedServicesSubscriptionId(), new File(filePattern));
+                        SimpleMail.send("Azure "+ APPLICATION_NAME+ " test passed\nSubscription ID=" + credentials.getHostedServicesSubscriptionId(), new File(filePattern));
                     } catch (Exception e) {
                         logger.log(Level.SEVERE, "Failed to send email", e);
                     }
