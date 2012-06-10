@@ -35,10 +35,6 @@ public class CustomNodeImpl implements CustomNode {
 	// credential can be a password or a private key
 	private String username, credential;
 
-	// making sure an empty cloud node is never created
-	private CustomNodeImpl() {
-	};
-
 	/**
 	 * Constructor.
 	 * 
