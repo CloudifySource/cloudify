@@ -183,8 +183,8 @@ public class ByonDeployer {
 				while (nodesIterator.hasNext()) {
 					currentNode = nodesIterator.next();
 					try {
-						String resolvedIP = IPUtils.resolveHostName(node.getPrivateIP());
-						node.setResolvedIP(resolvedIP);
+						String resolvedIP = IPUtils.resolveHostName(currentNode.getPrivateIP());
+						currentNode.setResolvedIP(resolvedIP);
 						Utils.validateConnection(currentNode.getPrivateIP(), currentNode.getLoginPort());
 						if (!allocatedNodesPool.contains(currentNode)) {
 							allocatedNodesPool.add(currentNode);
