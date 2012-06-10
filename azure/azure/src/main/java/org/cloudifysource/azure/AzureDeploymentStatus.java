@@ -18,18 +18,18 @@ package org.cloudifysource.azure;
 //CR: Where did you get the strings from ? according to http://msdn.microsoft.com/en-us/library/ee460804.aspx it is different
 //CR: Document which Azure API version this enum conforms to
 public enum AzureDeploymentStatus {
-    Running("Running"), 
-    Suspended("Suspended"), 
-    RunningTransitioning("RunningTransitioning"),
-    SuspendedTransitioning("SuspendedTransitioning"),
-    Starting("Starting"),
-    Suspending("Suspending"),
-    Deploying("Deploying"), 
-    Deleting("Deleting"),
+    RUNNING("Running"), 
+    SUSPENDED("Suspended"), 
+    RUNNING_TRANSITIONING("RunningTransitioning"),
+    SUSPENDED_TRANSITIONING("SuspendedTransitioning"),
+    STARTING("Starting"),
+    SUSPENDING("Suspending"),
+    DEPLOYING("Deploying"), 
+    DELETING("Deleting"),
     
     // Not actual status, possible output of azureconfig
-    NotFound("NotFound"), 
-    InternalServerError("Intenal Server Error");
+    NOT_FOUND("NotFound"), 
+    INTERNAL_SERVER_ERROR("Intenal Server Error");
     
     private String status;
     

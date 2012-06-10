@@ -105,7 +105,7 @@ public class AzureSetNumberOfInstances extends AdminAwareCommand {
 		
 		logger.info(ShellUtils.getExpectedExecutionTimeMessage());
 		
-		azureDeploymentWrapper.waitForAzureDeploymentStatus(AzureDeploymentStatus.Running, ShellUtils.millisUntil(TIMEOUT_ERROR_STRING, end), TimeUnit.MILLISECONDS);
+		azureDeploymentWrapper.waitForAzureDeploymentStatus(AzureDeploymentStatus.RUNNING, ShellUtils.millisUntil(TIMEOUT_ERROR_STRING, end), TimeUnit.MILLISECONDS);
 
 		if (!adminFacade.isConnected()) {
 			azureDeploymentWrapper.connect(adminFacade);

@@ -67,7 +67,7 @@ public class AzureDeploymentWrapper {
     public boolean deploy() {
         try {
             azureConfig.createDeployment(hostedService, name, label, slot, cscfgFile, packageUri);
-            return waitForStatus(AzureDeploymentStatus.Running, statusTimeoutInMillis, TimeUnit.MILLISECONDS);
+            return waitForStatus(AzureDeploymentStatus.RUNNING, statusTimeoutInMillis, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             Assert.fail("Failed deploying: " + e.getLocalizedMessage());
         }
@@ -76,8 +76,8 @@ public class AzureDeploymentWrapper {
     
     public boolean stop() {
         try {
-            azureConfig.updateDeployment(hostedService, slot, AzureDeploymentStatus.Suspended);
-            return waitForStatus(AzureDeploymentStatus.Suspended, statusTimeoutInMillis, TimeUnit.MILLISECONDS);
+            azureConfig.updateDeployment(hostedService, slot, AzureDeploymentStatus.SUSPENDED);
+            return waitForStatus(AzureDeploymentStatus.SUSPENDED, statusTimeoutInMillis, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             Assert.fail("Failed stopping: " + e.getLocalizedMessage());
         }
@@ -87,7 +87,7 @@ public class AzureDeploymentWrapper {
     public boolean delete() {
         try {
             azureConfig.deleteDeployment(hostedService, slot);
-            return waitForStatus(AzureDeploymentStatus.NotFound, statusTimeoutInMillis, TimeUnit.MILLISECONDS);
+            return waitForStatus(AzureDeploymentStatus.NOT_FOUND, statusTimeoutInMillis, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             Assert.fail("Failed deleting: " + e.getLocalizedMessage());
         }

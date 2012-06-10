@@ -230,7 +230,7 @@ public class AzureBootstrapApplication extends AbstractGSCommand {
 		if (timeoutInMinutes > 0) {
 		    
 		    logger.info(ShellUtils.getExpectedExecutionTimeMessage());
-		    waitForStatus(azureDeploymentWrapper,AzureDeploymentStatus.Running,ShellUtils.millisUntil(TIMEOUT_ERROR_STRING,end),TimeUnit.MILLISECONDS);
+		    waitForStatus(azureDeploymentWrapper,AzureDeploymentStatus.RUNNING,ShellUtils.millisUntil(TIMEOUT_ERROR_STRING,end),TimeUnit.MILLISECONDS);
     		try {
     			URI url = azureDeploymentWrapper.connectAndWait(adminFacade, ShellUtils.millisUntil(TIMEOUT_ERROR_STRING,end),TimeUnit.MILLISECONDS);
     			logger.log(Level.INFO, "Cloudify REST gateway URL is " + url);

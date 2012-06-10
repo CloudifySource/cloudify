@@ -139,7 +139,7 @@ public class AzureDeploymentWrapper {
 	
 	public void stopDeployment() throws InterruptedException, CLIException {
 	    try {
-			getAzureDeployment().updateDeployment(azureHostedServiceName, AzureSlot.fromString(azureDeploymentSlotName), AzureDeploymentStatus.Suspended);
+			getAzureDeployment().updateDeployment(azureHostedServiceName, AzureSlot.fromString(azureDeploymentSlotName), AzureDeploymentStatus.SUSPENDED);
 	    } catch (AzureDeploymentException e) {
 			throw new CLIException(e);
 		}
@@ -174,7 +174,7 @@ public class AzureDeploymentWrapper {
 		long end = System.currentTimeMillis() + timeUnit.toMillis(timeout);
 	
 		logger.log(Level.INFO,"Waiting for azure deployment to run.");
-		waitForAzureDeploymentStatus(AzureDeploymentStatus.Running, ShellUtils.millisUntil(timeoutErrorMessage,end), TimeUnit.MILLISECONDS);
+		waitForAzureDeploymentStatus(AzureDeploymentStatus.RUNNING, ShellUtils.millisUntil(timeoutErrorMessage,end), TimeUnit.MILLISECONDS);
 
 		try {
 			String restAdminUrl = getRestAdminUrl(getAzureDeployment());

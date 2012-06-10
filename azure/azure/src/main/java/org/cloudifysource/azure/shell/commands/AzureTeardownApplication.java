@@ -91,14 +91,14 @@ public class AzureTeardownApplication extends AbstractGSCommand {
 		azureDeploymentWrapper.setSubscriptionId(subscriptionId);
 		azureDeploymentWrapper.setTimeoutErrorMessage(TIMEOUT_ERROR_STRING);
 		azureDeploymentWrapper.stopDeployment();
-		azureDeploymentWrapper.waitForAzureDeploymentStatus(AzureDeploymentStatus.Suspended, 5000, ShellUtils.millisUntil(TIMEOUT_ERROR_STRING, end), TimeUnit.MILLISECONDS);
+		azureDeploymentWrapper.waitForAzureDeploymentStatus(AzureDeploymentStatus.SUSPENDED, 5000, ShellUtils.millisUntil(TIMEOUT_ERROR_STRING, end), TimeUnit.MILLISECONDS);
 		
         azureDeploymentWrapper.deleteDeployment();
         if (timeoutInMinutes == 0) {
         	return "Started application teardown.";	
         }
          
-        azureDeploymentWrapper.waitForAzureDeploymentStatus(AzureDeploymentStatus.NotFound, ShellUtils.millisUntil(TIMEOUT_ERROR_STRING, end), TimeUnit.MILLISECONDS);
+        azureDeploymentWrapper.waitForAzureDeploymentStatus(AzureDeploymentStatus.NOT_FOUND, ShellUtils.millisUntil(TIMEOUT_ERROR_STRING, end), TimeUnit.MILLISECONDS);
         
         disconnect();
         

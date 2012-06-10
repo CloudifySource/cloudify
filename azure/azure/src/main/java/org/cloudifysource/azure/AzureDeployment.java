@@ -105,7 +105,7 @@ public class AzureDeployment extends AzureConfigExe{
             String hostedServiceName,
             AzureSlot deploymentSlot,
             AzureDeploymentStatus status) throws InterruptedException, AzureDeploymentException {
-        if (!(status == AzureDeploymentStatus.Running || status == AzureDeploymentStatus.Suspended)) {
+        if (!(status == AzureDeploymentStatus.RUNNING || status == AzureDeploymentStatus.SUSPENDED)) {
             throw new IllegalArgumentException("status must be either Running or Suspended");
         }
         
