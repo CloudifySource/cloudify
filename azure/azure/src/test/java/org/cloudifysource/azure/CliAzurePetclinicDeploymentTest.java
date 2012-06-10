@@ -173,7 +173,7 @@ public class CliAzurePetclinicDeploymentTest extends AbstractCliAzureDeploymentT
         runCliCommands(cliExecutablePath, commands, isDebugMode);
         commands.clear();
 
-        final URI applicationUrl = getApplicationUrl(deploymentUrl,"petclinic_mongo").toURI();
+        final URI applicationUrl = getApplicationUrl(deploymentUrl,"petclinic-mongo").toURI();
 
         RepetativeConditionProvider applicationInstalledCondition = new RepetativeConditionProvider() {
             @Override
