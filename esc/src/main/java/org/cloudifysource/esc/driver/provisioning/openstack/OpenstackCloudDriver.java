@@ -414,7 +414,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 			return ids;
 
 		} catch (final UniformInterfaceException e) {
-			final String responseEntity = e.getResponse().getEntity(String.class).toString();
+			final String responseEntity = e.getResponse().getEntity(String.class);
 			throw new OpenstackException(e + " Response entity: " + responseEntity, e);
 
 		} catch (final SAXException e) {
@@ -466,7 +466,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 				service.path(this.pathPrefix + "servers/" + serverId).header("X-Auth-Token", token)
 						.accept(MediaType.APPLICATION_XML).delete();
 			} catch (final UniformInterfaceException e) {
-				final String responseEntity = e.getResponse().getEntity(String.class).toString();
+				final String responseEntity = e.getResponse().getEntity(String.class);
 				throw new IllegalArgumentException(e + " Response entity: " + responseEntity);
 			}
 
@@ -563,7 +563,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 					service.path(this.pathPrefix + "servers").header("Content-Type", "application/json")
 							.header("X-Auth-Token", token).accept(MediaType.APPLICATION_XML).post(String.class, json);
 		} catch (final UniformInterfaceException e) {
-			final String responseEntity = e.getResponse().getEntity(String.class).toString();
+			final String responseEntity = e.getResponse().getEntity(String.class);
 			throw new OpenstackException(e + " Response entity: " + responseEntity, e);
 		}
 
