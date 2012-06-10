@@ -162,22 +162,22 @@ public class CliAzureTravelDeploymentTest extends AbstractCliAzureDeploymentTest
         runCliCommands(cliExecutablePath, commands, isDebugMode);
         commands.clear();
 
-        final URI travelApplicationUrl = getTravelApplicationUrl(deploymentUrl).toURI();
+        final URI applicationUrl = getApplicationUrl(deploymentUrl,"travel").toURI();
 
         RepetativeConditionProvider applicationInstalledCondition = new RepetativeConditionProvider() {
             @Override
             public boolean getCondition() {
                 try {
-                    URL url = travelApplicationUrl.toURL();
+                    URL url = applicationUrl.toURL();
                     return isUrlAvailable(url);
                 } catch (Exception e) {
-                    logger.log(Level.WARNING, "Exception while checking if " + travelApplicationUrl.toString() + " is available", e);
+                    logger.log(Level.WARNING, "Exception while checking if " + applicationUrl.toString() + " is available", e);
                     return false;
                 }
             }
         };
 
-        repetativeAssert("Failed waiting for travel application", applicationInstalledCondition);
+        repetativeAssert("Failed waiting for application: " + applicationUrl, applicationInstalledCondition);
 
         List<String> setInstancesScaleOutCommand = Arrays.asList(
                 "azure:set-instances",
@@ -217,7 +217,7 @@ public class CliAzureTravelDeploymentTest extends AbstractCliAzureDeploymentTest
         runCliCommands(cliExecutablePath, commands, isDebugMode);
         commands.clear();
 
-        Assert.assertFalse("Travel application should not be running", isUrlAvailable(travelApplicationUrl.toURL()));
+        Assert.assertFalse("Travel application should not be running", isUrlAvailable(applicationUrl.toURL()));
 
         List<String> setInstancesScaleInCommand = Arrays.asList(
                 "azure:set-instances",

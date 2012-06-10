@@ -215,8 +215,8 @@ public class AbstractCliAzureDeploymentTest {
         return str.substring(0, str.length() - 1);
     }
 
-    protected static URL getTravelApplicationUrl(String url) throws Exception {
-        return new URL(stripSlash(url) + "/travel/");
+    protected static URL getApplicationUrl(String url, String warName) throws Exception {
+        return new URL(stripSlash(url) + "/"+warName+"/");
     }
 
     protected static URL getMachinesUrl(String url) throws Exception {
