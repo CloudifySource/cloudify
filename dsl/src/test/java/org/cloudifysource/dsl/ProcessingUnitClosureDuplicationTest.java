@@ -20,6 +20,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
@@ -64,11 +65,9 @@ public class ProcessingUnitClosureDuplicationTest {
 			Assert.assertTrue("the proper exception was not thrown. expecting parsing to fail due to multiple processingUnit closures in serviceFile"
 									, cause.getMessage().contains("There may only be one type of processing unit defined. Found more than one"));
 		} catch (DSLException e) {
-			e.printStackTrace();
-			Assert.assertFalse("Failed on packaging. Exception was " + e.getMessage(), true);
+			Assert.assertFalse("Failed on packaging. Exception was " + ExceptionUtils.getStackTrace(e), true);
 		} catch (IOException e) {
-			e.printStackTrace();
-			Assert.assertFalse("Failed to read file. Exception was " + e.getMessage(), true);
+			Assert.assertFalse("Failed to read file. Exception was " + ExceptionUtils.getStackTrace(e), true);
 		}
 	}
 
