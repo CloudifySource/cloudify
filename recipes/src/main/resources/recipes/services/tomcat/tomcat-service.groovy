@@ -23,6 +23,7 @@ service {
 	lifecycle {
 		install "tomcat_install.groovy"
 		start "tomcat_start.groovy"
+		postStart "tomcat_post_start.groovy"
 		preStop "tomcat_stop.groovy"
 		startDetectionTimeoutSecs 240
 		startDetection {

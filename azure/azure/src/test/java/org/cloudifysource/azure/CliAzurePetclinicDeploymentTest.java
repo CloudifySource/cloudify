@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 public class CliAzurePetclinicDeploymentTest extends AbstractCliAzureDeploymentTest {
 
     // path to petclinic application relative to cloudify installation
-    private static final String RELATIVE_APPLICATION_EXAMPLE_PATH = "recipes\\apps\\petclinic-simple";
+    private static final String RELATIVE_APPLICATION_EXAMPLE_PATH = "recipes\\apps\\petclinic-simple-azure";
 
     // arguments for cli
     private static final int TIMEOUT_IN_MINUTES = 60;
