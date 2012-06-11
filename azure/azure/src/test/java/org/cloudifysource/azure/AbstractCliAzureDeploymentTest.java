@@ -22,6 +22,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.cloudifysource.azure.files.AzureDeploymentConfigurationFile;
 import org.cloudifysource.azure.test.utils.RepetativeConditionProvider;
 import org.cloudifysource.azure.test.utils.TestUtils;
@@ -310,9 +311,7 @@ public class AbstractCliAzureDeploymentTest {
         httpGet.addHeader("Cache-Control", "no-cache");
         try {
             HttpResponse response = client.execute(httpGet);
-            System.out.print("HTTP GET " + url + "Response:");
-            response.getEntity().writeTo(System.out);
-            System.out.print("");
+            logger.info("HTTP GET " + url + " returned " + response.getStatusLine().getReasonPhrase() + " Response:" +EntityUtils.toString(response.getEntity()));
             if (response.getStatusLine().getStatusCode() == 404) {
                 return false;
             }
