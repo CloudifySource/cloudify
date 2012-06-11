@@ -311,8 +311,8 @@ public class AbstractCliAzureDeploymentTest {
         httpGet.addHeader("Cache-Control", "no-cache");
         try {
             HttpResponse response = client.execute(httpGet);
-            logger.info("HTTP GET " + url + " returned " + response.getStatusLine().getReasonPhrase() + " Response:" +EntityUtils.toString(response.getEntity()));
-            if (response.getStatusLine().getStatusCode() == 404) {
+            logger.info("HTTP GET " + url + " returned " + response.getStatusLine().getReasonPhrase() +" Response: ["+response.getStatusLine().getStatusCode()+"] "+EntityUtils.toString(response.getEntity()));
+            if (response.getStatusLine().getStatusCode() == 404 || response.getStatusLine().getStatusCode() == 502) {
                 return false;
             }
             return true;
