@@ -55,6 +55,9 @@ public class CliAzureTravelDeploymentTest extends AbstractCliAzureDeploymentTest
     // 1 tomcat machine
     // 1 cassandra machine
     private static final int EXPECTED_NUMBER_OF_MACHINES = 5;
+
+	private static final boolean leaveMachinesRunningOnFailure = false;
+	
     /*itaif:disabled temporarily for debuggin petclinic
     @Test(timeout = 120 * 60 * 1000L)*/
     public void repeatTest() throws Throwable {
@@ -78,24 +81,29 @@ public class CliAzureTravelDeploymentTest extends AbstractCliAzureDeploymentTest
                 throw t;
             } finally {
                 if (failed) {
-                    logger.info("Failed test iteration #" + i + ". Machines are left running for manual diagnostics");
-                    logger.removeHandler(fileHandler);
-                    try {
+                	try {
                         SimpleMail.send("Azure "+APPLICATION_NAME+" test failed\nSubscription ID=" + credentials.getHostedServicesSubscriptionId(), new File(filePattern));
                     } catch (Exception e) {
                         logger.log(Level.SEVERE, "Failed to send email", e);
                     }
-                    after(AZURE_HOSTED_SERVICE, TIMEOUT_IN_MINUTES, POLLING_INTERVAL_IN_MINUTES);
+                    if (leaveMachinesRunningOnFailure ) {
+                    	logger.info("Failed test iteration #" + i + ". Machines are left running for manual diagnostics");
+                    }
+                    else {
+                        logger.info("Failed test iteration #" + i);
+                        after(AZURE_HOSTED_SERVICE, TIMEOUT_IN_MINUTES, POLLING_INTERVAL_IN_MINUTES);
+                    }
+                    logger.removeHandler(fileHandler);
                     // no need to break since an exception was raised and is going to fail the test
                 } else {
                     logger.info("Passed test iteration #" + i);
-                    logger.removeHandler(fileHandler);
                     try {
                         SimpleMail.send("Azure "+ APPLICATION_NAME+ " test passed\nSubscription ID=" + credentials.getHostedServicesSubscriptionId(), new File(filePattern));
                     } catch (Exception e) {
                         logger.log(Level.SEVERE, "Failed to send email", e);
                     }
                     after(AZURE_HOSTED_SERVICE, TIMEOUT_IN_MINUTES, POLLING_INTERVAL_IN_MINUTES);
+                    logger.removeHandler(fileHandler);
                     // no need to break since we want to test the run multiple times (or until it fails)
                 }
             }
