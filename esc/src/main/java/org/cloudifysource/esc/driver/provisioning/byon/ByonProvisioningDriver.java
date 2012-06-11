@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -433,12 +434,12 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		final Map<String, GridServiceAgent> agentsMap = admin.getGridServiceAgents().getHostAddress();
 		// GridServiceAgent agent = agentsMap.get(ipAddress);
 		GSA agent = null;
-		final Set<String> keys = agentsMap.keySet();
-		for (final String key : keys) {
-			if (key.equalsIgnoreCase(ipAddress)) {
-				agent = ((InternalGridServiceAgent) agentsMap.get(key)).getGSA();
+		for (Entry<String, GridServiceAgent> agentEntry : agentsMap.entrySet()) {
+			if (agentEntry.getKey().equalsIgnoreCase(ipAddress)) {
+				agent = ((InternalGridServiceAgent) agentEntry.getValue()).getGSA();
 			}
 		}
+
 		if (agent != null) {
 			logger.info("ByonProvisioningDriver: shutting down agent on server: " + ipAddress);
 			try {
@@ -552,7 +553,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	private void shutdownServerGracefully(final CustomNode cloudNode, final boolean isManagement)
 			throws CloudProvisioningException {
 		try {
-			stopAgentAndWait(cloud.getProvider().getNumberOfManagementMachines(), cloudNode.getPrivateIP());
+			stopAgentAndWait(cloud.getProvider().getNumberOfManagementMachines(), cloudNode.getResolvedIP());
 			if (cleanGsFilesOnShutdown) {
 				deleteGsFiles(cloudNode);
 			}
@@ -570,13 +571,13 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 	@Override
 	public void close() {
-		try {
+		/*try {
 			if (admin != null) {
 				admin.close();
 			}
 		} catch (final Exception ex) {
 			logger.info("ByonProvisioningDriver.close() failed to close agent");
-		}
+		}*/
 
 		if (deployer != null) {
 			deployer.close();

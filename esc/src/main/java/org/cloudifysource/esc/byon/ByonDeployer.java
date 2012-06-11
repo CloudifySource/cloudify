@@ -96,7 +96,7 @@ public class ByonDeployer {
 		for (CustomNode node : parsedNodes) {
 			try {
 				node.setResolvedIP(IPUtils.resolveHostName(node.getPrivateIP()));
-				Utils.validateConnection(node.getPrivateIP(), node.getLoginPort());
+				Utils.validateConnection(node.getResolvedIP(), node.getLoginPort());
 				resolvedNodes.add(node);
 			} catch (final Exception ex) {
 				//this node is not reachable - add it to the invalid nodes pool
@@ -161,7 +161,7 @@ public class ByonDeployer {
 					//verify this node is still resolvable and reachable
 					String resolvedIP = IPUtils.resolveHostName(node.getPrivateIP());
 					node.setResolvedIP(resolvedIP);
-					Utils.validateConnection(node.getPrivateIP(), node.getLoginPort());
+					Utils.validateConnection(node.getResolvedIP(), node.getLoginPort());
 					allocatedNodesPool.add(node);
 					freeNodesPool.remove(node);
 				} catch (final Exception e) {
@@ -853,8 +853,8 @@ public class ByonDeployer {
 
 		for (final CustomNode newNode : newNodes) {
 			for (final CustomNode oldNode : oldNodes) {
-				if (oldNode.getPrivateIP().equalsIgnoreCase(newNode.getPrivateIP())) {
-					existingIPs.add(oldNode.getPrivateIP());
+				if (oldNode.getResolvedIP().equalsIgnoreCase(newNode.getResolvedIP())) {
+					existingIPs.add(oldNode.getResolvedIP());
 					break;
 				}
 			}
