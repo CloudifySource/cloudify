@@ -71,7 +71,7 @@
 						<goals>
 							<goal>jar</goal>
 						</goals>
-						<phase>site</phase>
+						<phase>install</phase>
 					</execution>
 				</executions>
 			</plugin>
