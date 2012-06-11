@@ -28,7 +28,7 @@
 		<copy todir="${target.dir}/tools/cli" file="../CLI/target/cli.jar" overwrite="true" />
 		<copy todir="${target.dir}/tools/rest" file="../restful/target/rest.war" overwrite="true" />
 		<copy todir="${target.dir}/lib/required" file="../dsl/target/dsl.jar" overwrite="true" />
-		<copy todir="${target.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.1.0.jar" overwrite="true" />
+		<copy todir="${target.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.1.1.jar" overwrite="true" />
 		<copy todir="${target.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" overwrite="true" />
 		<copy todir="${target.dir}/tools/cli/plugins/azure" file="../azure/azure/target/azure.jar" overwrite="true" />
 		<copy todir="${target.dir}/recipes"  overwrite="true" >
@@ -47,7 +47,7 @@
 			/> -->
 		<!-- <copy todir="${ec2.dir}/lib/required" file="../dsl/target/dsl.jar" 
 			/> -->
-		<copy todir="${ec2.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.1.0.jar" />
+		<copy todir="${ec2.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.1.1.jar" />
 		<!-- <copy todir="${ec2.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" 
 			/> -->
 		<!-- <copy todir="${ec2.dir}/tools/cli/plugins/azure" file="../azure/azure/target/azure.jar" 
@@ -64,7 +64,7 @@
 			/> -->
 		<!-- <copy todir="${ec2.dir}/lib/required" file="../dsl/target/dsl.jar" 
 			/> -->
-		<copy todir="${ec2-win.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.1.0.jar" />
+		<copy todir="${ec2-win.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.1.1.jar" />
 		<!-- <copy todir="${ec2.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" 
 			/> -->
 		<!-- <copy todir="${ec2.dir}/tools/cli/plugins/azure" file="../azure/azure/target/azure.jar" 
@@ -80,7 +80,7 @@
 			/> -->
 		<!-- <copy todir="${ec2.dir}/lib/required" file="../dsl/target/dsl.jar" 
 			/> -->
-		<copy todir="${cloudstack.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.1.0.jar" />
+		<copy todir="${cloudstack.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.1.1.jar" />
 		<!-- <copy todir="${ec2.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" 
 			/> -->
 		<!-- <copy todir="${ec2.dir}/tools/cli/plugins/azure" file="../azure/azure/target/azure.jar" 
@@ -113,7 +113,7 @@
 	<target name="Create overrides zip" depends="">
 		<delete file="${target.dir}/../gigaspaces-overrides.zip" />
 		<zip destfile="${target.dir}/../gigaspaces-overrides.zip" basedir="${target.dir}"
-			includes="indicator.txt,lib/platform/esm/esc-2.1.0.jar,tools/cli/cli.jar,tools/rest/rest.war">
+			includes="indicator.txt,lib/platform/esm/esc-2.1.1.jar,tools/cli/cli.jar,tools/rest/rest.war">
 
 		</zip>
 	</target>
