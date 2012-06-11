@@ -71,10 +71,31 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	// TODO: Store this object inside ElasticMachineProvisioningContext instead of a static variable
 	private static final Map<String, ProvisioningDriverClassContext> PROVISIONING_DRIVER_CONTEXT_PER_DRIVER_CLASSNAME =
 			new HashMap<String, ProvisioningDriverClassContext>();
+	
+	private static Admin globalAdminInstance = null;
+	private static final Object globalAdminMutex = new Object();
+	
+	private static Admin getGlobalAdminInstance(final Admin esmAdminInstance) {
+		synchronized (globalAdminMutex) {
+			if(globalAdminInstance == null) {
+				// create admin clone from esm instance
+				AdminFactory factory = new AdminFactory();
+				for (String group : esmAdminInstance.getGroups()) {
+					factory.addGroup(group);
+				}
+				for (LookupLocator locator : esmAdminInstance.getLocators()) {
+					factory.addLocator(locator.getHost() + ":" + locator.getPort());
+				}
+				globalAdminInstance = factory.createAdmin();
+			}
+			
+			return globalAdminInstance;
+		}
+	}
+			
 
 	private ProvisioningDriver cloudifyProvisioning;
-	private Admin admin;
-	private Admin provisioningAdmin;
+	private Admin originalESMAdmin;
 	private Map<String, String> properties;
 	private Cloud cloud;
 	private String cloudTemplateName;
@@ -91,8 +112,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	@Override
 	public GridServiceAgent[] getDiscoveredMachines(final long duration, final TimeUnit unit)
 			throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
-		// TODO - query the cloud and cross reference with the admin
-		return this.admin.getGridServiceAgents().getAgents();
+		// TODO - query the cloud and cross reference with the originalESMAdmin
+		return this.originalESMAdmin.getGridServiceAgents().getAgents();
 	}
 
 	private InstallationDetails createInstallationDetails(final Cloud cloud, final MachineDetails md)
@@ -100,7 +121,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplateName);
 		final String[] zones = this.config.getGridServiceAgentZones();
 		final InstallationDetails details =
-				Utils.createInstallationDetails(md, cloud, template, zones, lookupLocatorsString, this.admin, false,
+				Utils.createInstallationDetails(md, cloud, template, zones, lookupLocatorsString, this.originalESMAdmin, false,
 						null);
 
 		logger.info("Created new Installation Details: " + details);
@@ -120,6 +141,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		logger.info("Calling provisioning implementation for new machine");
 		MachineDetails machineDetails = null;
 		try {
+			cloudifyProvisioning.setAdmin(getGlobalAdminInstance(originalESMAdmin));
 			machineDetails = provisionMachine(duration, unit);
 		} catch (final Exception e) {
 			logger.log(Level.WARNING, "Failed to provision machine, reason: " + e.getMessage(), e);
@@ -284,17 +306,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			throws TimeoutException, ElasticMachineProvisioningException {
 		MachineDetails machineDetails;
 		try {
-			// delegate provisioning to the cloud driver implementation
-			logger.fine("creating a new admin instance for provisioning");
-			AdminFactory factory = new AdminFactory();
-			for (String group : admin.getGroups()) {
-				factory.addGroup(group);
-			}
-			for (LookupLocator locator : admin.getLocators()) {
-				factory.addLocator(locator.getHost() + ":" + locator.getPort());
-			}
-			provisioningAdmin = factory.createAdmin();
-			cloudifyProvisioning.setAdmin(provisioningAdmin);
 			machineDetails = cloudifyProvisioning.startMachine(duration, unit);
 		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Failed to start machine: " + e.getMessage(), e);
@@ -326,12 +337,12 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	private GridServiceAgent getGSAByIpOrHost(final String machineIp) {
-		GridServiceAgent gsa = admin.getGridServiceAgents().getHostAddress().get(machineIp);
+		GridServiceAgent gsa = originalESMAdmin.getGridServiceAgents().getHostAddress().get(machineIp);
 		if (gsa != null) {
 			return gsa;
 		}
 
-		gsa = admin.getGridServiceAgents().getHostNames().get(machineIp);
+		gsa = originalESMAdmin.getGridServiceAgents().getHostNames().get(machineIp);
 		if (gsa != null) {
 			return gsa;
 		}
@@ -390,7 +401,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	// //////////////////////////////////
 	@Override
 	public void setAdmin(final Admin admin) {
-		this.admin = admin;
+		this.originalESMAdmin = admin;
+		
 
 	}
 
@@ -504,7 +516,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	private String createLocatorsString() {
-		final LookupLocator[] locators = this.admin.getLocators();
+		final LookupLocator[] locators = this.originalESMAdmin.getLocators();
 		final StringBuilder sb = new StringBuilder();
 		for (final LookupLocator lookupLocator : locators) {
 			sb.append(lookupLocator.getHost()).append(':').append(lookupLocator.getPort()).append(',');
@@ -519,13 +531,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	public void destroy()
 			throws Exception {
 		this.cloudifyProvisioning.close();
-		try {
-			if (provisioningAdmin != null) {
-				provisioningAdmin.close();
-			}
-		} catch (final Exception ex) {
-			logger.info("Failed to close provisioning admin");
-		}
+		//not closing globalAdminMutex, it's a static object, and this is intentional.
 	}
 
 	@Override
