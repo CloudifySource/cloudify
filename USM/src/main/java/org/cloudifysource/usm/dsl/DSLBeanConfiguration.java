@@ -54,6 +54,7 @@ import org.cloudifysource.usm.monitors.MonitorException;
 import org.cloudifysource.usm.monitors.process.ProcessMonitor;
 import org.cloudifysource.usm.shutdown.DefaultProcessKiller;
 import org.cloudifysource.usm.shutdown.ProcessKiller;
+import org.cloudifysource.usm.stopDetection.ProcessStopDetector;
 import org.cloudifysource.usm.stopDetection.StopDetector;
 import org.openspaces.pu.container.support.ResourceApplicationContext;
 import org.openspaces.ui.UserInterface;
@@ -418,23 +419,23 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 	// The sigar based process detection is problematic. When a process dies, sigar sometimes does not detect the death.
 	// Worse, the sigar API requests may actually get stuck, locking up the stop detection thread.
 
-	// @Bean
-	// public USMEvent getProcessStopDetection() {
-	//
-	// boolean enabled = true;
-	// final String enabledProperty =
-	// this.service.getCustomProperties().get(CloudifyConstants.CUSTOM_PROPERTY_ENABLE_PID_MONITOR);
-	// if (enabledProperty != null) {
-	// enabled = Boolean.parseBoolean(enabledProperty);
-	// }
-	//
-	// if (enabled) {
-	// return new ProcessStopDetector();
-	// }
-	// logger.warning("PID Based stop detection has been disabled due to custom property setting: "
-	// + CloudifyConstants.CUSTOM_PROPERTY_ENABLE_PID_MONITOR);
-	// return null;
-	// }
+	 @Bean
+	 public USMEvent getProcessStopDetection() {
+	
+	 boolean enabled = true;
+	 final String enabledProperty =
+	 this.service.getCustomProperties().get(CloudifyConstants.CUSTOM_PROPERTY_ENABLE_PID_MONITOR);
+	 if (enabledProperty != null) {
+	 enabled = Boolean.parseBoolean(enabledProperty);
+	 }
+	
+	 if (enabled) {
+	 return new ProcessStopDetector();
+	 }
+	 logger.warning("PID Based stop detection has been disabled due to custom property setting: "
+	 + CloudifyConstants.CUSTOM_PROPERTY_ENABLE_PID_MONITOR);
+	 return null;
+	 }
 
 	/*******
 	 * Stop detection implementation that checks if the start command exited abnormally. This detector flags a service
