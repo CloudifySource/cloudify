@@ -54,7 +54,6 @@ import org.cloudifysource.usm.monitors.MonitorException;
 import org.cloudifysource.usm.monitors.process.ProcessMonitor;
 import org.cloudifysource.usm.shutdown.DefaultProcessKiller;
 import org.cloudifysource.usm.shutdown.ProcessKiller;
-import org.cloudifysource.usm.stopDetection.ProcessStopDetector;
 import org.cloudifysource.usm.stopDetection.StopDetector;
 import org.openspaces.pu.container.support.ResourceApplicationContext;
 import org.openspaces.ui.UserInterface;
@@ -416,23 +415,26 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 		};
 	}
 
-	@Bean
-	public USMEvent getProcessStopDetection() {
+	// The sigar based process detection is problematic. When a process dies, sigar sometimes does not detect the death.
+	// Worse, the sigar API requests may actually get stuck, locking up the stop detection thread.
 
-		boolean enabled = true;
-		final String enabledProperty =
-				this.service.getCustomProperties().get(CloudifyConstants.CUSTOM_PROPERTY_ENABLE_PID_MONITOR);
-		if (enabledProperty != null) {
-			enabled = Boolean.parseBoolean(enabledProperty);
-		}
-
-		if (enabled) {
-			return new ProcessStopDetector();
-		}
-		logger.warning("PID Based stop detection has been disabled due to custom property setting: "
-				+ CloudifyConstants.CUSTOM_PROPERTY_ENABLE_PID_MONITOR);
-		return null;
-	}
+	// @Bean
+	// public USMEvent getProcessStopDetection() {
+	//
+	// boolean enabled = true;
+	// final String enabledProperty =
+	// this.service.getCustomProperties().get(CloudifyConstants.CUSTOM_PROPERTY_ENABLE_PID_MONITOR);
+	// if (enabledProperty != null) {
+	// enabled = Boolean.parseBoolean(enabledProperty);
+	// }
+	//
+	// if (enabled) {
+	// return new ProcessStopDetector();
+	// }
+	// logger.warning("PID Based stop detection has been disabled due to custom property setting: "
+	// + CloudifyConstants.CUSTOM_PROPERTY_ENABLE_PID_MONITOR);
+	// return null;
+	// }
 
 	/*******
 	 * Stop detection implementation that checks if the start command exited abnormally. This detector flags a service
@@ -555,13 +557,13 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 					final Object retcode = result.getResult();
 					if (retcode instanceof Boolean) {
 						return (Boolean) retcode;
-					} 
-					//process ended successfully
+					}
+					// process ended successfully
 					return true;
-				} 
-				//process exited with abnormal status code
+				}
+				// process exited with abnormal status code
 				logger.log(Level.WARNING, "Liveness Detector failed to execut. Exception was: "
-				+ result.getException(), result.getException());
+						+ result.getException(), result.getException());
 				return false;
 			}
 
@@ -614,7 +616,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 		if (locator != null) {
 			return new ProcessLocatorExecutor(locator, launcher, puExtDir);
 		} else {
-			
+
 			// Yaron Parasol
 			// Barak. It is critical for UX that if a user wrote a start detection and did not specify a process
 			// locator,
@@ -622,13 +624,13 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			// It should not apply if the user wrote a custom stop detector.
 
 			// TODO - this section is a little questionable. What should teh behaviour be for default process location?
-			
+
 			// if a custom start detection is specified, do not use default process locator.
-//			if (this.service.getLifecycle().getStartDetection() != null) {
-//				return null;
-//			} else if (this.service.getLifecycle().getStopDetection() != null) {
-//				return null;
-//			}
+			// if (this.service.getLifecycle().getStartDetection() != null) {
+			// return null;
+			// } else if (this.service.getLifecycle().getStopDetection() != null) {
+			// return null;
+			// }
 			return new DefaultProcessLocator();
 		}
 	}
