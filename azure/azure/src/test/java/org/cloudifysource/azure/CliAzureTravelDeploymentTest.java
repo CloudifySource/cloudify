@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 import junit.framework.Assert;
 
 import org.cloudifysource.azure.test.utils.RepetativeConditionProvider;
+import org.junit.Test;
 
 public class CliAzureTravelDeploymentTest extends AbstractCliAzureDeploymentTest {
 
@@ -58,8 +59,8 @@ public class CliAzureTravelDeploymentTest extends AbstractCliAzureDeploymentTest
 
 	private static final boolean leaveMachinesRunningOnFailure = false;
 	
-    /*itaif:disabled temporarily for debuggin petclinic
-    @Test(timeout = 120 * 60 * 1000L)*/
+    
+    @Test(timeout = 120 * 60 * 1000L)
     public void repeatTest() throws Throwable {
         DateFormat df = new SimpleDateFormat("_yyyy-MM-dd_hh-mm");
         int repeat = 1;

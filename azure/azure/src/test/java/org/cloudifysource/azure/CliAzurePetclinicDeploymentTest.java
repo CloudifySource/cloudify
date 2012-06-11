@@ -68,7 +68,8 @@ public class CliAzurePetclinicDeploymentTest extends AbstractCliAzureDeploymentT
 
 	private static final boolean leaveMachinesRunningOnFailure = true;
 
-    @Test(timeout = 120 * 60 * 1000L)
+	//[itaif] disabled temporarily
+    //@Test(timeout = 120 * 60 * 1000L)
     public void repeatTest() throws Throwable {
         DateFormat df = new SimpleDateFormat("_yyyy-MM-dd_hh-mm");
         int repeat = 1;
