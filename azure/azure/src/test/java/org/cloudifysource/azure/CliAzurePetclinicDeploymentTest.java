@@ -15,10 +15,6 @@
  *******************************************************************************/
 package org.cloudifysource.azure;
 
-import junit.framework.Assert;
-import org.cloudifysource.azure.test.utils.RepetativeConditionProvider;
-import org.junit.Test;
-
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
@@ -32,6 +28,11 @@ import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.SimpleFormatter;
 import java.util.regex.Pattern;
+
+import junit.framework.Assert;
+
+import org.cloudifysource.azure.test.utils.RepetativeConditionProvider;
+import org.junit.Test;
 
 public class CliAzurePetclinicDeploymentTest extends AbstractCliAzureDeploymentTest {
 
@@ -68,8 +69,8 @@ public class CliAzurePetclinicDeploymentTest extends AbstractCliAzureDeploymentT
 
 	private static final boolean leaveMachinesRunningOnFailure = true;
 
-	//[itaif] disabled temporarily
-    //@Test(timeout = 120 * 60 * 1000L)
+	
+    @Test(timeout = 120 * 60 * 1000L)
     public void repeatTest() throws Throwable {
         DateFormat df = new SimpleDateFormat("_yyyy-MM-dd_hh-mm");
         int repeat = 1;
