@@ -61,9 +61,8 @@ public class ProcessStopDetector extends AbstractUSMEventListener implements Sto
 
 		final List<Long> pids = usm.getServiceProcessesList();
 
-		// TODO - change to FINE
-		if (logger.isLoggable(Level.INFO)) {
-			logger.info("Process based stop detection is running. Scanning processes: " + pids);
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Process based stop detection is running. Scanning processes: " + pids);
 		}
 
 		// special handling for the 'recipe about nothing' scenario.
