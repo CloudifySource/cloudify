@@ -30,7 +30,9 @@ import org.openspaces.core.cluster.ClusterInfo;
 
 /***************
  * A factory class used to set up a ServiceContext from external classes.
- * NEVER USE INSIDE A GSC!
+ * This factory should never be used inside a service recipe - recipes already have the 'context' variable injected to them automatically.
+ * External Groovy scripts that require access to the CLoudify Service context may use this factory to access it. Using this factory inside a service
+ * file will not work, as it relies on environment variables that cloudify adds to commands it launches. 
  * 
  * @author barakme
  *

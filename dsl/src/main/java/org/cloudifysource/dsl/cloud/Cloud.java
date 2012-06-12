@@ -111,44 +111,45 @@ public class Cloud {
 		if (StringUtils.isBlank(managementTemplateName)) {
 			throw new DSLValidationException("managementMachineTemplate may not be empty");
 		}
-		
+
 		if (!templates.containsKey(managementTemplateName)) {
 			throw new DSLValidationException("The management machine template \"" + managementTemplateName + "\" is "
 					+ "not listed in the cloud's templates section");
 		}
 
 	}
-	
+
 	/**
 	 * This validation method runs both locally and on the remote server.
-	 *   
+	 * 
 	 * @throws DSLValidationException
 	 */
 	@DSLValidation
-	void validateKeySettings() throws DSLValidationException {
+	void validateKeySettings()
+			throws DSLValidationException {
 		File keyFile = null;
 		String keyFileStr = getUser().getKeyFile();
 		if (StringUtils.isNotBlank(keyFileStr)) {
 			keyFile = new File(keyFileStr);
-			
+
 			if (!keyFile.isAbsolute()) {
 				String configLocalDir = getProvider().getLocalDirectory();
-				
+
 				if (configLocalDir != null && !new File(configLocalDir).isAbsolute()) {
 					boolean keyFileFoundOnLocalMachinePath = isKeyFileFoundOnLocalMachinePath();
 					boolean keyFileFoundOnRemoteMachinePath = isKeyFileFoundOnRemoteMachinePath();
-					if (!keyFileFoundOnRemoteMachinePath && !keyFileFoundOnLocalMachinePath){
-						throw new DSLValidationException("The specified key file is missing: \"" 
+					if (!keyFileFoundOnRemoteMachinePath && !keyFileFoundOnLocalMachinePath) {
+						throw new DSLValidationException("The specified key file is missing: \""
 								+ keyFile.getAbsolutePath() + "\"");
 					}
 				}
 			} else {
-				if (!keyFile.isFile()){
-					throw new DSLValidationException("The specified key file is missing: \"" 
+				if (!keyFile.isFile()) {
+					throw new DSLValidationException("The specified key file is missing: \""
 							+ keyFile.getAbsolutePath() + "\"");
 				}
 			}
-		}	
+		}
 	}
 
 	private boolean isKeyFileFoundOnRemoteMachinePath() {
@@ -162,7 +163,7 @@ public class Cloud {
 
 	private boolean isKeyFileFoundOnLocalMachinePath() {
 		String configLocalDir = getProvider().getLocalDirectory();
-		//getting the local config directory
+		// getting the local config directory
 		String envHomeDir = Environment.getHomeDirectory();
 		String localAbsolutePath = new File(envHomeDir, configLocalDir).getAbsolutePath();
 		File localKeyFile = new File(localAbsolutePath, getUser().getKeyFile());
