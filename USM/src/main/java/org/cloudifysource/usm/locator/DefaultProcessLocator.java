@@ -16,6 +16,7 @@
 
 package org.cloudifysource.usm.locator;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -132,9 +133,9 @@ public class DefaultProcessLocator extends AbstractUSMEventListener implements P
 		if (childrenAfter.isEmpty()) {
 			logger.warning("Default process locator could not find a new process! "
 					+ "Are you running your service as a background process or a system service?");
-		}
+			return 0;
 
-		if (childrenAfter.size() > 1) {
+		} else if (childrenAfter.size() > 1) {
 			logger.warning("Multiple new processes have been found: " + childrenAfter.toString()
 					+ ". Using the first as child process ID!");
 		}
@@ -176,20 +177,28 @@ public class DefaultProcessLocator extends AbstractUSMEventListener implements P
 		final long[] allPids = getAllPids();
 		final Map<Long, Set<Long>> procTree = createProcessTree(allPids);
 		this.childProcessID = findNewChildProcessID(childrenBeforeStart, procTree);
-
-		logger.info("Looking for actual process ID in process tree");
-		final List<Long> resultList = new LinkedList<Long>();
-		findLeafProcessIDs(this.childProcessID, procTree, resultList);
-
-		if (resultList.size() == 0) {
-			logger.warning("Default process locator was unable to locate service processes. "
+		if (this.childProcessID == 0) {
+			logger.warning("Default foreground process locator was unable to locate a new child process. "
 					+ "The default implementation can only locate foreground processes. "
-					+ "If you are running backgorund processes or OS services, you must " 
+					+ "If you are running backgorund processes or OS services, you must "
 					+ "set a process locator to get process level metrics and monitoring");
-		}
+			this.serviceProcesses = new ArrayList<Long>(0);
+		} else {
 
-		this.serviceProcesses = resultList;
-		checkForConsoleProcess();
+			logger.info("Looking for actual process ID in process tree");
+			final List<Long> resultList = new LinkedList<Long>();
+			findLeafProcessIDs(this.childProcessID, procTree, resultList);
+
+			if (resultList.size() == 0) {
+				logger.warning("Default process locator was unable to locate service processes. "
+						+ "The default implementation can only locate foreground processes. "
+						+ "If you are running backgorund processes or OS services, you must "
+						+ "set a process locator to get process level metrics and monitoring");
+			}
+
+			this.serviceProcesses = resultList;
+			checkForConsoleProcess();
+		}
 
 	}
 
