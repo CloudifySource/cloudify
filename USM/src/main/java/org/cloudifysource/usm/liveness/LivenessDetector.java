@@ -20,9 +20,25 @@ import java.util.concurrent.TimeoutException;
 import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.events.USMEvent;
 
-
+/***************
+ * Interface for service health check implementations. The USM will run each of the liveness detector registered, and
+ * will consider a service failed if any of the liveness detectors fails.
+ * 
+ * @author barakme
+ * 
+ */
 
 public interface LivenessDetector extends USMEvent {
 
-	public boolean isProcessAlive() throws USMException, TimeoutException; 
+	/****************
+	 * Returns true if the monitored service is alive, false if the service is down or unhealthy. It is sufficient for
+	 * one liveness detector implementation to fail to mark a service as down.
+	 * 
+	 * @return true if the service is up, false otherwise.
+	 * @throws USMException If the liveness detector failed to run. This will cause the start detection test to fail!
+	 * @throws TimeoutException If the liveness detector failed to finish in time. This will cause the start detection
+	 *         test to fail!
+	 */
+	boolean isProcessAlive()
+			throws USMException, TimeoutException;
 }
