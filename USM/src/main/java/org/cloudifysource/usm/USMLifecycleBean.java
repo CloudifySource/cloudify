@@ -61,9 +61,10 @@ import org.springframework.stereotype.Component;
 
 /**************
  * Bean that wraps the various USM lifecycle listeners, events and invocations.
+ * 
  * @author barakme
  * @since 1.0
- *
+ * 
  */
 @Component
 public class USMLifecycleBean implements ClusterInfoAware {
@@ -396,6 +397,7 @@ public class USMLifecycleBean implements ClusterInfoAware {
 
 	/***********
 	 * Fires an event.
+	 * 
 	 * @param reason the stop reason.
 	 * @throws USMException if an event listener failed.
 	 */
@@ -634,19 +636,21 @@ public class USMLifecycleBean implements ClusterInfoAware {
 				processIsRunning = checkProcessIsRunning(launchedProcess);
 			}
 
-			logger.info("Executing iteration of liveness detection test");
 			int index = currentTestIndex;
-			logger.info("Executing liveness detectors from index: " + index);
-			logger.info("Liveness detectors: " + Arrays.toString(this.livenessDetectors));
-			logger.info("detectors length: " + this.livenessDetectors.length);
+			if (logger.isLoggable(Level.FINE)) {
+				logger.fine("Executing iteration of liveness detection test");
+				logger.fine("Executing liveness detectors from index: " + index);
+				logger.fine("Liveness detectors: " + Arrays.toString(this.livenessDetectors));
+				logger.fine("detectors length: " + this.livenessDetectors.length);
+			}
 			while (index < this.livenessDetectors.length) {
-				logger.info("getting detector at index: " + index);
+				logger.fine("getting detector at index: " + index);
 				final LivenessDetector detector = this.livenessDetectors[index];
 
 				boolean testResult = false;
 				try {
 					testResult = detector.isProcessAlive();
-					logger.info("Detection Test results are: " + testResult);
+					logger.fine("Detection Test results are: " + testResult);
 				} catch (final USMException e) {
 					// may indicate that the underlying process has terminated
 					if (e.getCause() instanceof InterruptedException) {
@@ -731,7 +735,7 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	 * @return true if a detector discovered that the service is stopped, false otherwise.
 	 */
 	public boolean runStopDetection() {
-		logger.info("Running iteration of stop detection");
+		logger.fine("Running iteration of stop detection");
 		for (final StopDetector detector : this.stopDetectors) {
 
 			try {
