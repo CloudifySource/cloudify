@@ -73,11 +73,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			new HashMap<String, ProvisioningDriverClassContext>();
 	
 	private static Admin globalAdminInstance = null;
-	private static final Object globalAdminMutex = new Object();
+	private static final Object GLOBAL_ADMIN_MUTEX = new Object();
 	
 	private static Admin getGlobalAdminInstance(final Admin esmAdminInstance) {
-		synchronized (globalAdminMutex) {
-			if(globalAdminInstance == null) {
+		synchronized (GLOBAL_ADMIN_MUTEX) {
+			if (globalAdminInstance == null) {
 				// create admin clone from esm instance
 				AdminFactory factory = new AdminFactory();
 				for (String group : esmAdminInstance.getGroups()) {

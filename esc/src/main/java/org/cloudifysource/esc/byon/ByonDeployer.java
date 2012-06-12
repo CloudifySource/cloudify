@@ -368,8 +368,10 @@ public class ByonDeployer {
 		CustomNode selectedNode = null;
 
 		for (final CustomNode node : getAllNodesByTemplateName(templateName)) {
-			if (StringUtils.isNotBlank(node.getResolvedIP())
-					&& node.getResolvedIP().equalsIgnoreCase(ipAddress)) {
+			if ((StringUtils.isNotBlank(node.getResolvedIP())
+					&& node.getResolvedIP().equalsIgnoreCase(ipAddress)) ||
+					(StringUtils.isNotBlank(node.getPrivateIP())
+							&& node.getPrivateIP().equalsIgnoreCase(ipAddress))) {
 				selectedNode = node;
 				break;
 			}

@@ -43,6 +43,7 @@ import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.cloudifysource.esc.util.Utils;
+import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.gsm.GridServiceManager;
@@ -385,6 +386,13 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		}
 
 		for (final CustomNode customNode : managementServers) {
+			try {
+				stopAgentAndWait(cloud.getProvider().getNumberOfManagementMachines(), customNode.getResolvedIP());
+			} catch (final Exception e) {
+				publishEvent("prov_failed_to_stop_management_machine");
+				throw new CloudProvisioningException(e);
+			}
+			
 			shutdownServerGracefully(customNode, true);
 		}
 	}
@@ -407,18 +415,21 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 		// If a management server was found - connect it and get all management machines
 		if (StringUtils.isNotBlank(managementIP)) {
-			if (admin == null) {
-				admin = Utils.getAdminObject(managementIP, expectedGsmCount);
-			}
-			final GridServiceManagers gsms = admin.getGridServiceManagers();
-			for (final GridServiceManager gsm : gsms) {
-				final CustomNode managementServer = deployer.getServerByIP(cloudTemplateName, gsm.getMachine()
-						.getHostAddress());
-				if (managementServer != null) {
-					existingManagementServers.add(managementServer);
+			//TODO don't fly if timeout reached because expectedGsmCount wasn't reached
+			Admin admin = Utils.getAdminObject(managementIP, expectedGsmCount);
+			try {
+				final GridServiceManagers gsms = admin.getGridServiceManagers();
+				for (final GridServiceManager gsm : gsms) {
+					final CustomNode managementServer = deployer.getServerByIP(cloudTemplateName, gsm.getMachine()
+							.getHostAddress());
+					if (managementServer != null) {
+						existingManagementServers.add(managementServer);
+					}
 				}
+			} finally {
+				admin.close();
 			}
-			admin.close();
+			
 		}
 
 		return existingManagementServers;
@@ -553,7 +564,6 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	private void shutdownServerGracefully(final CustomNode cloudNode, final boolean isManagement)
 			throws CloudProvisioningException {
 		try {
-			stopAgentAndWait(cloud.getProvider().getNumberOfManagementMachines(), cloudNode.getResolvedIP());
 			if (cleanGsFilesOnShutdown) {
 				deleteGsFiles(cloudNode);
 			}
