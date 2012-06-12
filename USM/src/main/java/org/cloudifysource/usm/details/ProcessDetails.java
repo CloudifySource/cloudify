@@ -65,12 +65,12 @@ public class ProcessDetails implements Details {
 
 		final String imageId = System.getenv(CloudifyConstants.CLOUDIFY_CLOUD_IMAGE_ID);
 		if (imageId != null) {
-			map.put(CloudifyConstants.CLOUDIFY_CLOUD_IMAGE_ID, imageId);
+			map.put(CloudifyConstants.USM_DETAILS_IMAGE_ID, imageId);
 		}
 
 		final String hardwareId = System.getenv(CloudifyConstants.CLOUDIFY_CLOUD_HARDWARE_ID);
 		if (hardwareId != null) {
-			map.put(CloudifyConstants.CLOUDIFY_CLOUD_HARDWARE_ID, hardwareId);
+			map.put(CloudifyConstants.USM_DETAILS_HARDWARE_ID, hardwareId);
 		}
 
 		return map;
