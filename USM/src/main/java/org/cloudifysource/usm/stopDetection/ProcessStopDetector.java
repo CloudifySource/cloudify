@@ -39,7 +39,7 @@ public class ProcessStopDetector extends AbstractUSMEventListener implements Sto
 	private boolean stopOnAllProcessesDead = true;
 	private Sigar sigarInstance = null;
 	private long sigarCreationTime = System.currentTimeMillis();
-	private final long SIGAR_RECREATION_INTERVAL = 60 * 1000;
+	private static final long SIGAR_RECREATION_INTERVAL = 60 * 1000;
 
 	@Override
 	public void init(final UniversalServiceManagerBean usm) {
@@ -76,26 +76,26 @@ public class ProcessStopDetector extends AbstractUSMEventListener implements Sto
 		}
 
 	}
-	
+
 	private ProcState getProcState(final long pid)
 			throws USMException {
-		
-		if (sigarInstance == null){
+
+		if (sigarInstance == null) {
 			sigarInstance = new Sigar();
 			sigarCreationTime = System.currentTimeMillis();
 		} else {
-		
-			if (sigarCreationTime + SIGAR_RECREATION_INTERVAL < System.currentTimeMillis()){
+
+			if (sigarCreationTime + SIGAR_RECREATION_INTERVAL < System.currentTimeMillis()) {
 				logger.log(Level.FINE, "recycling Sigar instance");
 				sigarInstance.close();
 				sigarInstance = null;
-				
+
 				sigarInstance = new Sigar();
 				sigarCreationTime = System.currentTimeMillis();
 				logger.log(Level.FINE, "a new sigar instance was created successfully");
 			}
 		}
-		
+
 		ProcState procState = null;
 		try {
 			procState = sigarInstance.getProcState(pid);
@@ -107,11 +107,10 @@ public class ProcessStopDetector extends AbstractUSMEventListener implements Sto
 			throw new USMException("Failed to check if process with PID: " + pid + " is alive. Error was: "
 					+ e.getMessage(), e);
 		}
-		
+
 		return procState;
 	}
-	
-	
+
 	// The sigar based process detection is problematic. When a process dies, sigar sometimes does not detect the death.
 	// We solve this by creating a new sigar instance every predetermined time interval.
 	/*********
