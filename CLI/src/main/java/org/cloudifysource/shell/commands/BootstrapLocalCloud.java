@@ -60,11 +60,27 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 	@Option(required = false, name = "-nic-address", description = "The ip address of the local host network card. "
 			+ "Specify when local machine has more than one network adapter, and a specific network card should be "
 			+ "used for network communication.")
-	private final String nicAddress = "127.0.0.1";
+	private String nicAddress = "127.0.0.1";
+
+	public String getNicAddress() {
+		return nicAddress;
+	}
+
+	public void setNicAddress(final String nicAddress) {
+		this.nicAddress = nicAddress;
+	}
+
+	public int getTimeoutInMinutes() {
+		return timeoutInMinutes;
+	}
+
+	public void setTimeoutInMinutes(final int timeoutInMinutes) {
+		this.timeoutInMinutes = timeoutInMinutes;
+	}
 
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is "
 			+ "done.")
-	private final int timeoutInMinutes = DEFAULT_TIMEOUT;
+	private int timeoutInMinutes = DEFAULT_TIMEOUT;
 
 	/**
 	 * {@inheritDoc}
