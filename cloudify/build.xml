@@ -236,15 +236,14 @@
 			<chmod dir="${tmp.dir}/@{new.installation.dir.name}" includes="**/*.sh, **/*groovy*" perm="775"  />
 		</sequential>
 	</macrodef>
-
-    <target name="prepare.cloudify.package" >
+	
+	<target name="prepare.cloudify.package.without.unzip">
 		<loadproperties srcfile="${basedir}/${build.properties.file}"/>
     	<condition property="working.roles.exists">
     		<resourceexists>
                     <file file="${azure.local.copy}/WorkerRoles.zip"/>
             </resourceexists>
     	</condition>
-    	<unzip.xap new.installation.dir.name="${cloudify.installation.dir}"/>
     	<ant target="update.gs.runtime" />
     	<ant target="remove.xap.related.modules" />
         <ant target="update.lus.groups"/>
@@ -264,7 +263,14 @@
     	<!-- conditional task (with property: publish.cloudify.build) -->
     	<ant target="publish.cloudify.to.storage" />
     	
-    </target>
+ 	</target>	
+	
+
+    <target name="prepare.cloudify.package">
+    	<loadproperties srcfile="${basedir}/${build.properties.file}"/>
+    	<unzip.xap new.installation.dir.name="${cloudify.installation.dir}"/>
+    	<ant target="prepare.cloudify.package.without.unzip"/>
+   </target>
 	
 	<target name="remove.xap.related.modules">
 		<delete file="${tmp.dir}/${cloudify.installation.dir}/docs/xap-javadoc.zip" />
@@ -554,11 +560,14 @@
 	
 	<target name="cloudify.install">
 		<exec dir="${basedir}" executable="${mvn.executable}" failonerror="true">
-			<arg line="install javadoc:javadoc -Dmaven.test.skip=true"/>
+			<arg line="install -Dmaven.test.skip=true"/>
+		</exec>
+		<exec dir="${basedir}" executable="${mvn.executable}" failonerror="true">
+			<arg line="javadoc:javadoc -Dmaven.test.skip=true"/>
 		</exec>
 	</target>
 	
-	<target name="cloudify.zip" depends="prepare.env, cloudify.install, prepare.cloudify.package" />
+	<target name="cloudify.zip" depends="prepare.env, cloudify.install, prepare.cloudify.package.without.unzip" />
 	<target name="bigdata.zip" depends="prepare.env, cloudify.install, prepare.bigdata.package" />
 	<target name="clean.all">
 		<delete dir="${tmp.dir}"/>
