@@ -57,7 +57,7 @@ public class HttpLivenessDetector extends AbstractUSMEventListener implements
 
 	@Override
 	public void setConfig(Map<String, Object> config) {
-		this.url = (String) config.get(URL_KEY);
+		this.url = config.get(URL_KEY).toString();
 
 		if (this.url == null) {
 			throw new IllegalArgumentException("Argument url in "
