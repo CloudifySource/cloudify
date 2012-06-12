@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
 
 import org.cloudifysource.dsl.Plugin;
 import org.cloudifysource.dsl.context.ServiceContext;
@@ -42,10 +43,12 @@ import org.cloudifysource.usm.events.AbstractUSMEventListener;
 public class HttpLivenessDetector extends AbstractUSMEventListener implements
 		LivenessDetector, Plugin {
 	
+	private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger(HttpLivenessDetector.class.getName());
+	
 	// constants
 	private static final List<Integer> DEFAULT_SUCCESS_RESPONSE_CODES = Arrays
 			.asList(200);
-
+	
 	private static final String URL_KEY = "url";
 	private static final String RESPONSE_CODES_KEY = "responseCodes";
 
@@ -83,7 +86,11 @@ public class HttpLivenessDetector extends AbstractUSMEventListener implements
 	@Override
 	public boolean isProcessAlive() throws TimeoutException {
 		final int responseCode = ServiceUtils.getHttpReturnCode(this.url);
-		return this.allowedResponseCodes.contains(responseCode);
+		boolean isProcessAlive = this.allowedResponseCodes.contains(responseCode);
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine(this.url + " response code " + responseCode+". isProcessAlive="+isProcessAlive);
+		}
+		return isProcessAlive;
 	}
 
 	@Override
