@@ -362,6 +362,7 @@ public final class USMUtils {
 	private static ProcState getProcState(final long pid)
 			throws USMException {
 		final Sigar sigar = SigarHolder.getSigar();
+
 		ProcState procState = null;
 		try {
 			procState = sigar.getProcState(pid);
