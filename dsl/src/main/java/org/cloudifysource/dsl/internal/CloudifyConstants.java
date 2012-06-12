@@ -94,6 +94,8 @@ public final class CloudifyConstants {
 	public static final String USM_DETAILS_PUBLIC_IP= "Cloud Public IP";
 	public  static final String USM_DETAILS_URL = "url";
 	public static final String USM_DETAILS_ICON = "icon";
+	public static final String USM_DETAILS_IMAGE_ID= "Cloud Image ID";
+	public static final String USM_DETAILS_HARDWARE_ID= "Cloud Hardware ID";
 	
 	
 	
