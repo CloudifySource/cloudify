@@ -16,7 +16,6 @@
 package org.cloudifysource.dsl;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
-import org.openspaces.admin.pu.elastic.ElasticStatelessProcessingUnitDeployment;
 
 /**
  * Defines an elastic processing unit deployment that does not contain a space. The stateless Processing unit

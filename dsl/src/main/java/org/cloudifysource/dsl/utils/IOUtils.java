@@ -32,6 +32,8 @@ import java.util.List;
  */
 public final class IOUtils {
 
+	private static final int DEFAULT_HTTP_READ_TIMEOUT = 1000;
+	private static final int DEFAULT_HTTP_CONNECTION_TIMEOUT = 1000;
 	private static final int HTTP_ERROR = 500;
 	private static final int HTTP_SUCCESS = 200;
 
@@ -149,7 +151,7 @@ public final class IOUtils {
 	 */
 	public static int getHttpReturnCode(final String url) {
 		return getHttpReturnCode(
-				url, 1000, 1000);
+				url, DEFAULT_HTTP_CONNECTION_TIMEOUT, DEFAULT_HTTP_READ_TIMEOUT);
 	}
 
 	/*********

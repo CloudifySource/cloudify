@@ -64,7 +64,8 @@ public class ScalingRuleDetails {
 	}
 
 	/**
-	 * @param serviceStatistics - The statistics name to compare the threshold against. This could either be a string referencing a predefined serviceStatistics or a serviceStatistics closure
+	 * @param serviceStatistics - The statistics name to compare the threshold against. 
+	 * This could either be a string referencing a predefined serviceStatistics or a serviceStatistics closure
 	 */
 	public void setServiceStatistics(final Object serviceStatistics) {
 		this.serviceStatistics = serviceStatistics;

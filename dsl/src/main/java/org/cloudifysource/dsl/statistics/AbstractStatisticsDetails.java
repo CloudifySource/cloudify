@@ -3,7 +3,7 @@ package org.cloudifysource.dsl.statistics;
 
 
 /**
- * Base class for serviceStatistics and serviceInstanceStatistics
+ * Base class for serviceStatistics and serviceInstanceStatistics.
  * 
  * @author itaif
  * @since 2.1
