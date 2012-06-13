@@ -32,7 +32,6 @@ import java.util.regex.Pattern;
 import junit.framework.Assert;
 
 import org.cloudifysource.azure.test.utils.RepetativeConditionProvider;
-import org.junit.Test;
 
 public class CliAzurePetclinicDeploymentTest extends AbstractCliAzureDeploymentTest {
 
@@ -67,10 +66,11 @@ public class CliAzurePetclinicDeploymentTest extends AbstractCliAzureDeploymentT
     // 1 mongod machine
     private static final int EXPECTED_NUMBER_OF_MACHINES = 5; //petclinic = 8
 
-	private static final boolean leaveMachinesRunningOnFailure = true;
+	private static final boolean leaveMachinesRunningOnFailure = false;
 
+	//disable 
 	
-    @Test(timeout = 120 * 60 * 1000L)
+    //@Test(timeout = 120 * 60 * 1000L)
     public void repeatTest() throws Throwable {
         DateFormat df = new SimpleDateFormat("_yyyy-MM-dd_hh-mm");
         int repeat = 1;
