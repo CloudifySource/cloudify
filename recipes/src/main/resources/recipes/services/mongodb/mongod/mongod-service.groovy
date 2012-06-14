@@ -28,7 +28,7 @@ service {
 				db = mongo.getDB("mydb")
 														
 				result = db.command("serverStatus")
-				println "mongod-service.groovy: result is ${result}"	
+				
 														
 				return [
 					"Active Read Clients":result.globalLock.activeClients.readers,
