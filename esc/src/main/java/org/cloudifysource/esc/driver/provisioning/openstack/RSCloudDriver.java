@@ -119,6 +119,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 		super.setConfig(
 				cloud, templateName, management);
 
+		validateCloudConfig();
 		if (this.management) {
 			this.serverNamePrefix = this.cloud.getProvider().getManagementGroup();
 		} else {
@@ -153,6 +154,19 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 			}
 		}
 
+	}
+
+	private void validateCloudConfig() {
+		String managementMachineNamePrefix = this.cloud.getProvider().getManagementGroup();
+		if (managementMachineNamePrefix.contains("_")){
+			throw new IllegalArgumentException("The '_' character is not allowed in the attribute " +
+					"'managementGroup' for the rackspace cloud-driver as it is not supported in the rackspace cloud");
+		}
+		String agentMachineNamePrefix = this.cloud.getProvider().getMachineNamePrefix();
+		if (agentMachineNamePrefix.contains("_")){
+			throw new IllegalArgumentException("The '_' character is not allowed in the attribute " +
+					"'machineNamePrefix' for the rackspace cloud-driver as it is not supported in the rackspace cloud");
+		}
 	}
 
 	@Override

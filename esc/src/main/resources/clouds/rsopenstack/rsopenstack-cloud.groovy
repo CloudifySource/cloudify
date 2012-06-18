@@ -12,11 +12,13 @@ cloud {
 		localDirectory "tools/cli/plugins/esc/rsopenstack/upload"
 		
 		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.1/gigaspaces-cloudify-2.1.1-ga-b1396-286.zip" 
+		//The machineNamePrefix property may not contain the char '_' in Rackspace
 		machineNamePrefix "agent"
 		
 		dedicatedManagementMachines true
 		managementOnlyFiles ([])
 		
+		//The managementGroup property may not contain the char '_' in Rackspace
 		managementGroup "management"
 		numberOfManagementMachines 1
 		zones (["agent"])
