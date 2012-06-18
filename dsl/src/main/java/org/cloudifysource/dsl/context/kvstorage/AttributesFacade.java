@@ -44,7 +44,7 @@ public class AttributesFacade extends GroovyObjectSupport {
 	// This needs to be lazy initiated because service instaceId is not available at construction time
 	private InstanceAttributesAccessor instanceAttributesAccessor;
 
-	private GigaSpace managementSpace;
+	private volatile GigaSpace managementSpace;
 	private final Object managementSpaceLock = new Object();
 	private final Admin admin;
 
