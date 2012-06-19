@@ -333,8 +333,9 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 	private Node getNode(final String nodeId, final String token)
 			throws OpenstackException {
 		final String response = service.path(
-				this.pathPrefix + "servers/" + nodeId).header(
-				"X-Auth-Token", token).accept(
+				this.pathPrefix + "servers/" + nodeId).
+				queryParam("dummyReq", Long.toString(System.currentTimeMillis())).
+				header("X-Auth-Token", token).accept(
 				MediaType.APPLICATION_XML).get(
 				String.class);
 		final Node node = new Node();
