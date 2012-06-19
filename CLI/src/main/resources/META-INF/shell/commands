@@ -24,7 +24,6 @@ org.cloudifysource.shell.commands.Connect
 org.cloudifysource.shell.commands.Disconnect
 #org.cloudifysource.shell.commands.Install
 org.cloudifysource.shell.commands.InstallService
-#org.cloudifysource.shell.commands.Restart
 #org.cloudifysource.shell.commands.AddInstance
 # removed. Code is in Archive folder. May be restored in separate package.
 #org.cloudifysource.shell.commands.AddBareMetalInstance
