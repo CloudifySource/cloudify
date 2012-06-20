@@ -165,7 +165,7 @@ public class RestPollingRunnable implements Runnable {
             pollForLogs();
 
         } catch (Throwable e) {
-            logger.log(Level.INFO, "Polling task terminated. Reason: " + e.getMessage());
+            logger.log(Level.INFO, "Polling task terminated. Reason: " + e.getMessage(), e);
             this.lifecycleEventsContainer.setExecutionException(e);
             //this exception should not be caught. it is meant to make the scheduler stop
             //the thread execution.
