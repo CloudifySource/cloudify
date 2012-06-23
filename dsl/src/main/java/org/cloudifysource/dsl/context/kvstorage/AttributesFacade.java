@@ -36,7 +36,7 @@ public class AttributesFacade extends GroovyObjectSupport {
 
 	private static final long MANAGEMENT_SPACE_FIND_TIMEOUT = 10; // 10 seconds
 	private static final long MANAGEMENT_SPACE_FIND_REPEAT = 3; // 3 repeats
-
+	
 	private final ServiceContext serviceContext;
 
 	private final ApplicationAttributesAccessor applicationAttributesAccessor;
@@ -63,7 +63,7 @@ public class AttributesFacade extends GroovyObjectSupport {
 				new ServiceAttributesAccessor(this, serviceContext.getApplicationName(),
 						serviceContext.getServiceName(), serviceContext);
 		this.globalAttributesAccessor =
-				new GlobalAttributesAccessor(this, serviceContext.getApplicationName());
+				new GlobalAttributesAccessor(this);
 	}
 
 	GigaSpace getManagementSpace() {

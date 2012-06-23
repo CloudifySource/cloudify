@@ -22,13 +22,12 @@ import org.cloudifysource.dsl.context.kvstorage.spaceentries.GlobalCloudifyAttri
  * @since 2.1
  */
 public class GlobalAttributesAccessor extends AbstractAttributesAccessor {
-
+	private static final String APPLICATION_NAME_STUB = "__GLOBAL__";
 	/**
 	 * @param attributesFacade
-	 * @param applicationName
 	 */
-	public GlobalAttributesAccessor(AttributesFacade attributesFacade, String applicationName) {
-		super(attributesFacade, applicationName);
+	public GlobalAttributesAccessor(AttributesFacade attributesFacade) {
+		super(attributesFacade, APPLICATION_NAME_STUB);
 	}
 
 	/* (non-Javadoc)
