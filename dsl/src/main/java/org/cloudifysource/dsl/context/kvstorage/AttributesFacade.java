@@ -36,11 +36,12 @@ public class AttributesFacade extends GroovyObjectSupport {
 
 	private static final long MANAGEMENT_SPACE_FIND_TIMEOUT = 10; // 10 seconds
 	private static final long MANAGEMENT_SPACE_FIND_REPEAT = 3; // 3 repeats
-
+	
 	private final ServiceContext serviceContext;
 
 	private final ApplicationAttributesAccessor applicationAttributesAccessor;
 	private final ServiceAttributesAccessor serviceAttributesAccessor;
+	private final GlobalAttributesAccessor globalAttributesAccessor;
 	// This needs to be lazy initiated because service instaceId is not available at construction time
 	private InstanceAttributesAccessor instanceAttributesAccessor;
 
@@ -61,6 +62,8 @@ public class AttributesFacade extends GroovyObjectSupport {
 		this.serviceAttributesAccessor =
 				new ServiceAttributesAccessor(this, serviceContext.getApplicationName(),
 						serviceContext.getServiceName(), serviceContext);
+		this.globalAttributesAccessor =
+				new GlobalAttributesAccessor(this);
 	}
 
 	GigaSpace getManagementSpace() {
@@ -96,6 +99,10 @@ public class AttributesFacade extends GroovyObjectSupport {
 
 	public ApplicationAttributesAccessor getThisApplication() {
 		return applicationAttributesAccessor;
+	}
+
+	public GlobalAttributesAccessor getGlobal() {
+		return globalAttributesAccessor;
 	}
 
 	public ServiceAttributesAccessor getThisService() {
