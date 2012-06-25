@@ -43,11 +43,6 @@ function error_exit_on_level {
 }
 
 export EXT_JAVA_OPTIONS="-Dcom.gs.multicast.enabled=false"
-#export JAVA_HOME=/usr/lib/jvm/jre
-if [ -z "$JAVA_HOME" ]; then
-	echo -- SETTING JAVA_HOME TO /usr/lib/jvm/jre
-	export JAVA_HOME=/usr/lib/jvm/jre
-fi
 
 # Some distros do not come with unzip built-in
 if [ ! -f "/usr/bin/unzip" ]; then
@@ -90,7 +85,12 @@ fi
 
 # install Java
 echo Installing Java
-yum -yq install java
+yum -y install java-1.6.0-openjdk-devel
+if [ -z "$JAVA_HOME" ]; then
+	echo -- SETTING JAVA_HOME TO /usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_64
+	export JAVA_HOME=/usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_64
+fi
+
 
 # UPDATE SETENV SCRIPT...
 echo Updating environment script
