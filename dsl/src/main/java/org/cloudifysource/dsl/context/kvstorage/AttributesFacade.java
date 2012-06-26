@@ -41,6 +41,7 @@ public class AttributesFacade extends GroovyObjectSupport {
 
 	private final ApplicationAttributesAccessor applicationAttributesAccessor;
 	private final ServiceAttributesAccessor serviceAttributesAccessor;
+	private final GlobalAttributesAccessor globalAttributesAccessor;
 	// This needs to be lazy initiated because service instaceId is not available at construction time
 	private InstanceAttributesAccessor instanceAttributesAccessor;
 
@@ -61,6 +62,8 @@ public class AttributesFacade extends GroovyObjectSupport {
 		this.serviceAttributesAccessor =
 				new ServiceAttributesAccessor(this, serviceContext.getApplicationName(),
 						serviceContext.getServiceName(), serviceContext);
+		this.globalAttributesAccessor = 
+				new GlobalAttributesAccessor(this);
 	}
 
 	GigaSpace getManagementSpace() {
@@ -98,6 +101,10 @@ public class AttributesFacade extends GroovyObjectSupport {
 		return applicationAttributesAccessor;
 	}
 
+	public GlobalAttributesAccessor getThisGlobal() {
+		return this.globalAttributesAccessor;
+	}
+	
 	public ServiceAttributesAccessor getThisService() {
 		return serviceAttributesAccessor;
 	}
