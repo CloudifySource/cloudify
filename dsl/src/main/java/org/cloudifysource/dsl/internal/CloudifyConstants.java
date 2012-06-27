@@ -165,6 +165,7 @@ public final class CloudifyConstants {
 	public static final String CUSTOM_PROPERTY_ENABLE_TCP_PORT_MONITOR = "org.cloudifysource.enable-port-monitor";
 	public static final String CUSTOM_PROPERTY_ENABLE_START_PROCESS_MONITOR = "org.cloudifysource.enable-start-process-monitor";
 	public static final String CUSTOM_PROPERTY_STOP_DETECTION_ON_ALL_PROCESSES = "org.cloudifysource.stop-detection-on-all-processes";
+	public static final String CUSTOM_PROPERTY_MONITORS_CACHE_EXPIRATION_TIMEOUT = "org.cloudifysource.monitors-cache-timeout";
 	
 	/*******************
 	 * event lifecycle polling parameters. 

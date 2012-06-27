@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
@@ -428,6 +429,22 @@ public class Service {
 			throw new DSLValidationException("The requested number of instances ("
 					+ this.numInstances + ") exceeds the maximum number of instances allowed"
 					+ " (" + this.maxAllowedInstances + ") for service " + this.name + ".");
+		}
+	}
+
+	@DSLValidation
+	void validateCustomProperties()
+			throws DSLValidationException {
+		if (this.customProperties.containsKey(CloudifyConstants.CUSTOM_PROPERTY_MONITORS_CACHE_EXPIRATION_TIMEOUT)) {
+			try {
+				Long.parseLong(this.customProperties
+						.get(CloudifyConstants.CUSTOM_PROPERTY_MONITORS_CACHE_EXPIRATION_TIMEOUT));
+
+			} catch (NumberFormatException e) {
+				throw new DSLValidationException("The "
+						+ CloudifyConstants.CUSTOM_PROPERTY_MONITORS_CACHE_EXPIRATION_TIMEOUT
+						+ " property must be a long value", e);
+			}
 		}
 	}
 

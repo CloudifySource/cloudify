@@ -21,11 +21,14 @@ import java.util.logging.Level;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 
+import com.j_spaces.kernel.PlatformVersion;
+
 /**********************
  * A POJO for the provider specific configuration of a cloud driver.
+ * 
  * @author barakme
  * @since 2.0.0
- *
+ * 
  */
 @CloudifyDSLEntity(name = "provider", clazz = CloudProvider.class, allowInternalNode = true, allowRootNode = false,
 		parent = "cloud")
@@ -33,7 +36,11 @@ public class CloudProvider {
 
 	private String provider;
 	private String localDirectory;
-	private String cloudifyUrl;
+
+	private String cloudifyUrl = "http://repository.cloudifysource.org/org/cloudifysource/"
+			+ PlatformVersion.getVersion()
+			+ "/gigaspaces-cloudify-" + PlatformVersion.getVersion() + "-" + PlatformVersion.getMilestone() 
+			+ "-b" + PlatformVersion.getBuildNumber() + ".zip";
 
 	// location of zip file where additional cloudify files are places.
 	// They will be copied on top of the cloudify distribution.
@@ -47,7 +54,7 @@ public class CloudProvider {
 
 	private String sshLoggingLevel = Level.INFO.toString();
 
-	private List<String> zones = Arrays.asList("agent"); 
+	private List<String> zones = Arrays.asList("agent");
 
 	private String managementGroup;
 	private int numberOfManagementMachines;
@@ -65,11 +72,9 @@ public class CloudProvider {
 		return localDirectory;
 	}
 
-	
 	public void setLocalDirectory(final String localDirectory) {
 		this.localDirectory = localDirectory;
 	}
-
 
 	public String getCloudifyUrl() {
 		return cloudifyUrl;
@@ -147,8 +152,8 @@ public class CloudProvider {
 
 	@Override
 	public String toString() {
-		return "CloudProvider [provider=" + provider + ", localDirectory=" + localDirectory 
-				+ ", cloudifyUrl=" + cloudifyUrl 
+		return "CloudProvider [provider=" + provider + ", localDirectory=" + localDirectory
+				+ ", cloudifyUrl=" + cloudifyUrl
 				+ ", machineNamePrefix=" + machineNamePrefix
 				+ ", dedicatedManagementMachines=" + dedicatedManagementMachines + ", managementOnlyFiles="
 				+ managementOnlyFiles + ",  sshLoggingLevel=" + sshLoggingLevel + ", zones=" + zones
