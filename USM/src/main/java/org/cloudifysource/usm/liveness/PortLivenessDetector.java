@@ -54,14 +54,9 @@ public class PortLivenessDetector extends AbstractUSMEventListener implements Li
 
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(PortLivenessDetector.class.getName());
-	private static final String HOST_KEY = "Host";
 	private static final String PORT_KEY = "Port";
-
-	private static final String DEFAULT_HOST = "127.0.0.1";
-
 	// Injected values
 	private List<Integer> portList;
-	private String hostName = DEFAULT_HOST;
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -70,10 +65,6 @@ public class PortLivenessDetector extends AbstractUSMEventListener implements Li
 		if (this.portList == null) {
 			throw new IllegalArgumentException("Parameter portList of Plugin " + this.getClass().getName()
 					+ " is mandatory");
-		}
-
-		if (config.get(HOST_KEY) != null) {
-			this.hostName = (String) config.get(HOST_KEY);
 		}
 	}
 
