@@ -157,6 +157,7 @@ public class InstallationDetails implements Cloneable {
 	public String toString() {
 		return "InstallationDetails [privateIP=" + privateIp + ", publicIP=" + publicIp
 				+ ", locator=" + locator + ", connectToPrivateIP=" + connectedToPrivateIp
+				+ ", cloudifyUrl=" + cloudifyUrl
 				+ ", bindToPrivateIP=" + bindToPrivateIp
 				+ ", username=" + username
 				+ ", password=***" + ", keyFile=" + keyFile + ", localDir=" + localDir + ", remoteDir=" + remoteDir
