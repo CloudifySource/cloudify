@@ -33,7 +33,7 @@ import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
  */
 public class DSLConfiguration implements UniversalServiceManagerConfiguration {
 
-	private static final int MILLIS_IN_SECOND = 1000;
+	private static final long MILLIS_IN_SECOND = 1000L;
 	private final Service service;
 	private final File puExtDir;
 	private final ServiceContextImpl serviceContext;

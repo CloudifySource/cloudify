@@ -15,8 +15,6 @@
  *******************************************************************************/
 package org.cloudifysource.usm;
 
-import groovy.lang.Closure;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -28,10 +26,8 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -49,13 +45,11 @@ import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
 import org.cloudifysource.dsl.utils.ServiceUtils;
-import org.cloudifysource.usm.details.Details;
 import org.cloudifysource.usm.dsl.DSLConfiguration;
 import org.cloudifysource.usm.dsl.DSLEntryExecutor;
 import org.cloudifysource.usm.events.EventResult;
 import org.cloudifysource.usm.events.StartReason;
 import org.cloudifysource.usm.events.StopReason;
-import org.cloudifysource.usm.monitors.Monitor;
 import org.cloudifysource.usm.tail.RollingFileAppenderTailer;
 import org.cloudifysource.usm.tail.RollingFileAppenderTailer.LineHandler;
 import org.hyperic.sigar.Sigar;
@@ -71,8 +65,6 @@ import org.openspaces.core.cluster.MemberAliveIndicator;
 import org.openspaces.core.properties.BeanLevelProperties;
 import org.openspaces.core.properties.BeanLevelPropertiesAware;
 import org.openspaces.pu.container.support.ResourceApplicationContext;
-import org.openspaces.pu.service.CustomServiceDetails;
-import org.openspaces.pu.service.CustomServiceMonitors;
 import org.openspaces.pu.service.InvocableService;
 import org.openspaces.pu.service.ServiceDetails;
 import org.openspaces.pu.service.ServiceDetailsProvider;
@@ -100,6 +92,7 @@ import com.j_spaces.kernel.Environment;
 public class UniversalServiceManagerBean implements ApplicationContextAware, ClusterInfoAware, ServiceMonitorsProvider,
 		ServiceDetailsProvider, InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 
+	private static final int DEFAULT_MONITORS_CACHE_EXPIRATION_TIMEOUT = 5000;
 	private static final int THREAD_POOL_SIZE = 5;
 	private static final int STOP_DETECTION_INTERVAL_SECS = 5;
 	private static final int STOP_DETECTION_INITIAL_INTERVAL_SECS = 2;
@@ -144,11 +137,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 
 	private File puExtDir;
 
-	private String serviceType = CustomServiceDetails.SERVICE_TYPE;
-	private String serviceSubType = "USM";
-	private String serviceDescription = "USM";
-	private String serviceLongDescription = "USM";
-
 	private long postLaunchWaitPeriodMillis = DEFAULT_POST_LAUNCH_WAIT_PERIOD_MILLIS;
 	private final long postDeathWaitPeriodMillis = DEFAULT_POST_DEATH_WAIT_PERIOD_MILLIS;
 	private Thread shutdownHookThread;
@@ -165,6 +153,9 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 	// asynchronous installation
 	private boolean asyncInstall = false;
 	private List<Long> serviceProcessPIDs;
+
+	// monitors accessor and thread-safe cache.
+	private MonitorsCache monitorsCache;
 
 	// called on USM startup, or if the process died unexpectedly and is being
 	// restarted
@@ -217,6 +208,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 	public void init()
 			throws USMException, TimeoutException {
 
+		initMonitorsCache();
+
 		initUniqueFileName();
 		initCustomProperties();
 		this.myPid = this.sigar.getPid();
@@ -228,6 +221,17 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 
 		reset(existingProcessFound);
 
+	}
+
+	private void initMonitorsCache() {
+		final String tmp =
+				((DSLConfiguration) this.usmLifecycleBean.getConfiguration()).getService().getCustomProperties()
+						.get(CloudifyConstants.CUSTOM_PROPERTY_MONITORS_CACHE_EXPIRATION_TIMEOUT);
+		long cacheExpirationTimeout = DEFAULT_MONITORS_CACHE_EXPIRATION_TIMEOUT;
+		if (tmp != null) {
+			cacheExpirationTimeout = Long.parseLong(tmp);
+		}
+		this.monitorsCache = new MonitorsCache(this, this.usmLifecycleBean, cacheExpirationTimeout);
 	}
 
 	private void initCustomProperties() {
@@ -920,7 +924,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 	}
 
 	// CHECKSTYLE:OFF - this is an openspaces interface.
-	
+
 	@Override
 	public void setApplicationContext(final ApplicationContext arg0)
 			throws BeansException {
@@ -1058,146 +1062,18 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 	@Override
 	public ServiceDetails[] getServicesDetails() {
 		logger.fine("Executing getServiceDetails()");
-		@SuppressWarnings("deprecation")
-		final CustomServiceDetails csd =
-				new CustomServiceDetails(CloudifyConstants.USM_DETAILS_SERVICE_ID, CustomServiceDetails.SERVICE_TYPE,
-						this.serviceSubType, this.serviceDescription, this.serviceLongDescription);
-
-		final ServiceDetails[] res = new ServiceDetails[] { csd };
-
-		final Details[] alldetails = getUsmLifecycleBean().getDetails();
-		final Map<String, Object> result = csd.getAttributes();
-		for (final Details details : alldetails) {
-
-			try {
-				logger.fine("Executing details: " + details);
-				final Map<String, Object> detailsValues =
-						details.getDetails(this, getUsmLifecycleBean().getConfiguration());
-				removeNonSerializableObjectsFromMap(detailsValues, "details");
-				result.putAll(detailsValues);
-			} catch (final Exception e) {
-				logger.log(Level.SEVERE, "Failed to execute service details", e);
-			}
-
-		}
-
-		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("Details are: " + Arrays.toString(res));
-		}
-		return res;
-
+		return this.monitorsCache.getServicesDetails();
 	}
 
 	@Override
 	public ServiceMonitors[] getServicesMonitors() {
 		logger.fine("Executing getServiceMonitors()");
 
-		// This wait is removed. If an async install fails, the shutdown methd
-		// will not be called until all blocked threads are
-		// removed. So we get a deadlock.
-		// waitForServiceToStart();
-		final CustomServiceMonitors csm = new CustomServiceMonitors(CloudifyConstants.USM_MONITORS_SERVICE_ID);
-
-		final ServiceMonitors[] res = new ServiceMonitors[] { csm };
-
-		final USMState currentState = getState();
-		// If the underlying service is not running
-		if (!currentState.equals(USMState.RUNNING)) {
-			csm.getMonitors().put(CloudifyConstants.USM_MONITORS_STATE_ID, currentState.ordinal());
-			return res;
-		}
-
-		final Map<String, Object> map = csm.getMonitors();
-		// default monitors
-		putDefaultMonitorsInMap(map);
-
-		for (final Monitor monitor : getUsmLifecycleBean().getMonitors()) {
-			try {
-				logger.fine("Executing monitor: " + monitor);
-				final Map<String, Number> monitorValues =
-						monitor.getMonitorValues(this, getUsmLifecycleBean().getConfiguration());
-				removeNonSerializableObjectsFromMap(monitorValues, "monitors");
-				// add monitor values to Monitors map
-				map.putAll(monitorValues);
-			} catch (final Exception e) {
-				logger.log(Level.SEVERE, "Failed to execute a USM service monitor", e);
-			}
-		}
-
-		if (logger.isLoggable(Level.FINE)) {
-			logger.fine("Monitors are: " + Arrays.toString(res));
-		}
-
-		return res;
-	}
-
-	private void removeNonSerializableObjectsFromMap(final Map<?, ?> map, final String mapName) {
-
-		if (map == null || map.keySet().isEmpty()) {
-			return;
-		}
-		final Iterator<?> entries = map.entrySet().iterator();
-		while (entries.hasNext()) {
-			final Entry<?, ?> entry = (Entry<?, ?>) entries.next();
-
-			// a closure can not be serialized
-			// TODO - write a unit test for this.
-			if (entry.getValue() != null) {
-				if (!(entry.getValue() instanceof java.io.Serializable) || entry.getValue() instanceof Closure<?>) {
-					logger.info("Entry " + entry.getKey() + " with value: " + entry.getValue().toString()
-							+ "  is not serializable and was not inserted to the " + mapName + " map");
-					entries.remove();
-				}
-			}
-		}
-	}
-
-	private void putDefaultMonitorsInMap(final Map<String, Object> map) {
-		map.put(CloudifyConstants.USM_MONITORS_CHILD_PROCESS_ID, this.childProcessID);
-		if (this.serviceProcessPIDs.size() > 0) {
-			if (this.serviceProcessPIDs.size() == 1) {
-				map.put(CloudifyConstants.USM_MONITORS_ACTUAL_PROCESS_ID, this.serviceProcessPIDs.get(0));
-			} else {
-				map.put(CloudifyConstants.USM_MONITORS_ACTUAL_PROCESS_ID, this.serviceProcessPIDs);
-			}
-		}
-		map.put(CloudifyConstants.USM_MONITORS_STATE_ID, getState().ordinal());
+		return this.monitorsCache.getMonitors();
 	}
 
 	public List<Long> getServiceProcessesList() {
 		return this.serviceProcessPIDs;
-	}
-
-	public String getServiceType() {
-		return serviceType;
-	}
-
-	public void setServiceType(final String serviceType) {
-		this.serviceType = serviceType;
-	}
-
-	public String getServiceSubType() {
-		return serviceSubType;
-	}
-
-	public void setServiceSubType(final String serviceSubType) {
-		this.serviceSubType = serviceSubType;
-	}
-
-	public String getServiceDescription() {
-		return serviceDescription;
-	}
-
-	public void setServiceDescription(final String serviceDescription) {
-		this.serviceDescription = serviceDescription;
-	}
-
-	public String getServiceLongDescription() {
-		return serviceLongDescription;
-	}
-
-	public void setServiceLongDescription(final String serviceLongDescription) {
-		this.serviceLongDescription = serviceLongDescription;
 	}
 
 	public long getPostLaunchWaitPeriodMillis() {
@@ -1340,4 +1216,9 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 	public boolean isRunningInGSC() {
 		return this.runningInGSC;
 	}
+
+	public long getChildProcessID() {
+		return childProcessID;
+	}
+
 }
