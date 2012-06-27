@@ -59,8 +59,6 @@ import com.gigaspaces.log.LogEntryMatcher;
  */
 public class RestPollingRunnable implements Runnable {
 
-    private static final int UNINSTALL_POLLING_INTERVAL = 2000;
-
     // a map containing all of the application services and their planned number
     // of instances.
     // The services are ordered according to the installation order defined by
