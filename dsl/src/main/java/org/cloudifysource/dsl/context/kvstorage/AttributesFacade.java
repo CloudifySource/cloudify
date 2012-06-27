@@ -101,7 +101,7 @@ public class AttributesFacade extends GroovyObjectSupport {
 		return applicationAttributesAccessor;
 	}
 
-	public GlobalAttributesAccessor getThisGlobal() {
+	public GlobalAttributesAccessor getGlobal() {
 		return this.globalAttributesAccessor;
 	}
 	
