@@ -29,7 +29,7 @@ import org.junit.Test;
 
 public class ProcessingUnitClosureDuplicationTest {
 
-	private final String DUPLICATED_SERVICE_FILE_PATH = "testResources/testparsing/duplicatePUService.groovy";
+	private static final String DUPLICATED_SERVICE_FILE_PATH = "testResources/testparsing/duplicatePUService.groovy";
 	private final String[] processingUnitTypes = {"lifecycle", "statefulProcessingUnit"
 										, "statelessProcessingUnit", "dataGrid"
 										, "mirrorProcessingUnit"};
