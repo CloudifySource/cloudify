@@ -359,11 +359,15 @@ public class CloudGridAgentBootstrapper {
 		Logger.getLogger(AgentlessInstaller.SSH_LOGGER_NAME).setLevel(
 				Level.parse(cloud.getProvider().getSshLoggingLevel()));
 
-		fixConfigRelativePaths(cloud);
+		final CloudTemplate template = cloud.getTemplates().get(cloud.getConfiguration().getManagementMachineTemplate());
+		
+		fixConfigRelativePaths(cloud, template);
 
 		final int numOfManagementMachines = machines.length;
 
-		final InstallationDetails[] installations = createInstallationDetails(numOfManagementMachines, machines);
+		
+		
+		final InstallationDetails[] installations = createInstallationDetails(numOfManagementMachines, machines, template);
 		// only one machine should try and deploy the WebUI and Rest Admin
 		for (int i = 1; i < installations.length; i++) {
 			installations[i].setNoWebServices(true);
@@ -373,12 +377,14 @@ public class CloudGridAgentBootstrapper {
 		for (final InstallationDetails detail : installations) {
 			detail.setLocator(lookup);
 		}
+		
+		
 
 		// copy cloud file to local upload directory so that cloud settings
 		// will be available when rest gateway is deployed
 		// TODO - this is a bit of a hack. Makes more sense to add the option for the installer
 		// to copy additional files to the target.
-		final File uploadDir = new File(cloud.getProvider().getLocalDirectory());
+		final File uploadDir = new File(template.getLocalDirectory());
 		try {
 			FileUtils.copyFileToDirectory(this.cloudFile, uploadDir);
 			// executes the agentless installer on all of the machines,
@@ -474,17 +480,16 @@ public class CloudGridAgentBootstrapper {
 	// TODO: This code should be places in a Util package somewhere. It is used both
 	// here and in the esc project, for starting new agent machines.
 	private InstallationDetails[] createInstallationDetails(final int numOfManagementMachines,
-			final MachineDetails[] machineDetails)
+			final MachineDetails[] machineDetails, final CloudTemplate template)
 			throws FileNotFoundException {
 		final InstallationDetails[] details = new InstallationDetails[numOfManagementMachines];
 
-		final String managementTemplateName = this.cloud.getConfiguration().getManagementMachineTemplate();
-		final CloudTemplate cloudTemplate = this.cloud.getTemplates().get(managementTemplateName);
+		
 
 		for (int i = 0; i < details.length; i++) {
 			List<String> zones = cloud.getProvider().getZones();
 			details[i] = Utils.createInstallationDetails(machineDetails[i], cloud,
-					cloudTemplate, zones.toArray(new String[zones.size()]), null, null, true, this.cloudFile);
+					template, zones.toArray(new String[zones.size()]), null, null, true, this.cloudFile);
 		}
 
 		return details;
@@ -508,13 +513,13 @@ public class CloudGridAgentBootstrapper {
 		// return details;
 	}
 
-	private void fixConfigRelativePaths(final Cloud config) {
-		if (config.getProvider().getLocalDirectory() != null
-				&& !new File(config.getProvider().getLocalDirectory()).isAbsolute()) {
-			logger.fine("Assuming " + config.getProvider().getLocalDirectory() + " is in "
+	private void fixConfigRelativePaths(final Cloud config, final CloudTemplate template) {
+		if (template.getLocalDirectory() != null
+				&& !new File(template.getLocalDirectory()).isAbsolute()) {
+			logger.fine("Assuming " + template.getLocalDirectory() + " is in "
 					+ Environment.getHomeDirectory());
-			config.getProvider().setLocalDirectory(
-					new File(Environment.getHomeDirectory(), config.getProvider().getLocalDirectory())
+			template.setLocalDirectory(
+					new File(Environment.getHomeDirectory(), template.getLocalDirectory())
 							.getAbsolutePath());
 		}
 	}
