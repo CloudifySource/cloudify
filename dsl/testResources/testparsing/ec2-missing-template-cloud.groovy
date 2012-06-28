@@ -9,7 +9,7 @@ cloud {
 
 	provider {
 		provider "aws-ec2"
-		localDirectory "tools/cli/plugins/esc/ec2/upload"
+		
 		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.0.1/gigaspaces-cloudify-2.0.1-m1-b1190-13.zip" 
 		machineNamePrefix "NOA_test.cli.cloudify.cloud.MissingPemEc2Testsgtest_cloudify_agent1"
 		
@@ -25,12 +25,14 @@ cloud {
 		
 	}
 	user {
-		user "0VCFNJS3FXHYC7M6Y782"
-		apiKey "fPdu7rYBF0mtdJs1nmzcdA8yA/3kbV20NgInn4NO"
-		keyFile "cloud-demo.pem"
+		user "XXXXXXXXXXXXXXXXXX"
+		apiKey "XXXXXXXXXXXXXXXXX"
+
 	}
 	templates ([
 				SMALL_LINUX : template{
+					keyFile "cloud-demo.pem"
+					localDirectory "tools/cli/plugins/esc/ec2/upload"
 					imageId "us-east-1/ami-76f0061f"
 					machineMemoryMB 1600
 					remoteDirectory "/home/ec2-user/gs-files"

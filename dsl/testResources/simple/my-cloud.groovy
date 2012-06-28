@@ -20,13 +20,14 @@ cloud2 {
 		reservedMemoryCapacityPerMachineInMB 1024
 	}
 	user {
-		user "0VCFNJS3FXHYC7M6Y782"
-		apiKey "fPdu7rYBF0mtdJs1nmzcdA8yA/3kbV20NgInn4NO"
-		keyFile "cloud-demo.pem"
+		user "XXXXXXXXXXXXXXXXXXX"
+		apiKey "XXXXXXXXXXXXXXXXXXXXXXXXX"
+		
 		keyPair "cloud-demo"
 	}
 	templates ([
 				SMALL_LINUX : template{
+					keyFile "cloud-demo.pem"
 					imageId "us-east-1/ami-76f0061f"
 					machineMemoryMB "1600"
 					hardwareId "m1.small"
