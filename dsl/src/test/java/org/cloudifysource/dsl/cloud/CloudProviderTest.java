@@ -34,7 +34,7 @@ public class CloudProviderTest {
 		fixture.setProvider("");
 		fixture.setManagementOnlyFiles(new ArrayList());
 		fixture.setZones(new ArrayList());
-		fixture.setLocalDirectory("");
+		
 		fixture.setCloudifyUrl("");
 		fixture.setDedicatedManagementMachines(true);
 		fixture.setNumberOfManagementMachines(1);
@@ -65,7 +65,7 @@ public class CloudProviderTest {
 		fixture.setProvider("");
 		fixture.setManagementOnlyFiles(new ArrayList());
 		fixture.setZones(new ArrayList());
-		fixture.setLocalDirectory("");
+		
 
 		fixture.setDedicatedManagementMachines(true);
 		fixture.setNumberOfManagementMachines(1);

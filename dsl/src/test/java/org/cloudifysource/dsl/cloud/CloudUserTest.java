@@ -23,7 +23,7 @@ public class CloudUserTest {
 		final CloudUser fixture = new CloudUser();
 		fixture.setUser("");
 		fixture.setApiKey("");
-		fixture.setKeyFile("");
+		
 
 		fixture.validateDefaultValues();
 
@@ -42,7 +42,7 @@ public class CloudUserTest {
 		final CloudUser fixture = new CloudUser();
 		fixture.setUser("ENTER_USER");
 		fixture.setApiKey("");
-		fixture.setKeyFile("");
+		
 
 		fixture.validateDefaultValues();
 
@@ -61,7 +61,7 @@ public class CloudUserTest {
 		final CloudUser fixture = new CloudUser();
 		fixture.setUser("");
 		fixture.setApiKey("ENTER_KEY");
-		fixture.setKeyFile("");
+		
 
 		fixture.validateDefaultValues();
 
@@ -69,65 +69,9 @@ public class CloudUserTest {
 		// unverified
 	}
 
-	/**
-	 * Run the void validateKeyFileDefaultValue() method test.
-	 * 
-	 * @throws Exception
-	 */
-	@Test(expected = org.cloudifysource.dsl.internal.DSLValidationException.class)
-	public void testValidateKeyFileDefaultValue_4()
-			throws Exception {
-		final CloudUser fixture = new CloudUser();
-		fixture.setUser("");
-		fixture.setApiKey("");
-		fixture.setKeyFile("ENTER_KEY_FILE_NAME");
 
-		fixture.validateDefaultValues();
 
-		// add additional test code here
-		// unverified
-	}
-
-	/**
-	 * Run the void validateKeyFileDefaultValue() method test.
-	 * 
-	 * @throws Exception
-	 * 
-	 */
-	@Test
-	public void testValidateKeyFileDefaultValue_5()
-			throws Exception {
-		final CloudUser fixture = new CloudUser();
-		fixture.setUser(null);
-		fixture.setApiKey(null);
-		fixture.setKeyFile(null);
-
-		fixture.validateDefaultValues();
-
-		// add additional test code here
-		// unverified
-	}
-
-	/**
-	 * Run the void validateKeyFileDefaultValue() method test.
-	 * 
-	 * @throws Exception
-	 * 
-	 */
-	@Test
-	public void testValidateKeyFileDefaultValue_6()
-			throws Exception {
-		final CloudUser fixture = new CloudUser();
-		fixture.setUser("");
-		fixture.setApiKey("");
-		fixture.setKeyFile("");
-
-		fixture.validateDefaultValues();
-
-		// add additional test code here
-		// unverified
-	}
-	
+		
 	/**
 	 * Perform pre-test initialization.
 	 * 

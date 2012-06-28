@@ -35,7 +35,7 @@ public class CloudMissingTemplateTest {
 			//if we got to the next line - the validation exception wasn't thrown.
 			assertTrue("The management template does not exist yet no error was thrown", false);
 		} catch (Throwable e) {
-			assertTrue("The management template does not exist yet no error was thrown", 
+			assertTrue("The management template does not exist yet no error was thrown. Error was: " + e.getMessage(), 
 					e.getMessage().contains("is not listed in the cloud's templates section")
 					|| e.getMessage().contains("managementMachineTemplate"));
 		}
