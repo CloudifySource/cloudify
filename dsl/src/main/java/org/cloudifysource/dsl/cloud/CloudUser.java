@@ -32,7 +32,7 @@ public class CloudUser {
 
 	private String user;
 	private String apiKey;
-	private String keyFile;
+	
 
 	public String getUser() {
 		return user;
@@ -50,17 +50,10 @@ public class CloudUser {
 		this.apiKey = apiKey;
 	}
 
-	public String getKeyFile() {
-		return keyFile;
-	}
-
-	public void setKeyFile(final String keyFile) {
-		this.keyFile = keyFile;
-	}
-
+	
 	@Override
 	public String toString() {
-		return "CloudUser [user=" + user + ", keyFile=" + keyFile + "]";
+		return "CloudUser [user=" + user + "]";
 	}
 
 	@DSLValidation
@@ -73,12 +66,6 @@ public class CloudUser {
 		if ("ENTER_KEY".equals(this.getApiKey())) {
 			throw new DSLValidationException("Key field still has default configuration value of ENTER_KEY");
 		}
-
-		if ("ENTER_KEY_FILE_NAME".equals(this.getKeyFile())) {
-			throw new DSLValidationException(
-					"Key file name field still has default configuration value of ENTER_KEY_FILE_NAME");
-		}
-
 
 	}
 }

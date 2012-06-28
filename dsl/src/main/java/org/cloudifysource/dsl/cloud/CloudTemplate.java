@@ -18,6 +18,7 @@ package org.cloudifysource.dsl.cloud;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.DSLValidation;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationException;
@@ -38,6 +39,8 @@ public class CloudTemplate {
 	private int machineMemoryMB;
 	private String hardwareId;
 	private String locationId;
+	private String localDirectory;
+	private String keyFile;
 
 	private int numberOfCores = 1;
 
@@ -200,7 +203,7 @@ public class CloudTemplate {
 	public String toString() {
 		return "CloudTemplate [imageId=" + imageId + ", machineMemoryMB=" + machineMemoryMB + ", hardwareId="
 				+ hardwareId + ", locationId=" + locationId + ", numberOfCores=" + numberOfCores + ", options="
-				+ options + ", overrides=" + overrides + ", nodesList=" + custom + "]";
+				+ options + ", overrides=" + overrides + ", custom=" + custom + "]";
 	}
 
 	public String getUsername() {
@@ -243,13 +246,40 @@ public class CloudTemplate {
 		this.remoteExecution = remoteExecution;
 	}
 
+	public String getLocalDirectory() {
+		return localDirectory;
+	}
+
+	public void setLocalDirectory(final String localDirectory) {
+		this.localDirectory = localDirectory;
+	}
+
+	public String getKeyFile() {
+		return keyFile;
+	}
+
+	public void setKeyFile(final String keyFile) {
+		this.keyFile = keyFile;
+	}
+
 	@DSLValidation
 	void validateDefaultValues()
 			throws DSLValidationException {
 		if (this.getRemoteDirectory() == null || this.getRemoteDirectory().trim().isEmpty()) {
 			throw new DSLValidationException("Remote directory for template is missing");
 		}
+		
+		if (StringUtils.isBlank(this.getLocalDirectory())) {
+			throw new DSLValidationException("Local directory for template is missing");
+		}
+
+		if ("ENTER_KEY_FILE_NAME".equals(this.getKeyFile())) {
+			throw new DSLValidationException(
+					"Key file name field still has default configuration value of ENTER_KEY_FILE_NAME");
+		}
+
 
 	}
+	
 
 }

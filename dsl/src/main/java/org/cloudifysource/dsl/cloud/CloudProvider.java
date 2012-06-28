@@ -35,7 +35,7 @@ import com.j_spaces.kernel.PlatformVersion;
 public class CloudProvider {
 
 	private String provider;
-	private String localDirectory;
+	
 
 	private String cloudifyUrl = "http://repository.cloudifysource.org/org/cloudifysource/"
 			+ PlatformVersion.getVersion()
@@ -66,15 +66,7 @@ public class CloudProvider {
 
 	public void setProvider(final String provider) {
 		this.provider = provider;
-	}
-
-	public String getLocalDirectory() {
-		return localDirectory;
-	}
-
-	public void setLocalDirectory(final String localDirectory) {
-		this.localDirectory = localDirectory;
-	}
+	}	
 
 	public String getCloudifyUrl() {
 		return cloudifyUrl;
@@ -152,7 +144,7 @@ public class CloudProvider {
 
 	@Override
 	public String toString() {
-		return "CloudProvider [provider=" + provider + ", localDirectory=" + localDirectory
+		return "CloudProvider [provider=" + provider 
 				+ ", cloudifyUrl=" + cloudifyUrl
 				+ ", machineNamePrefix=" + machineNamePrefix
 				+ ", dedicatedManagementMachines=" + dedicatedManagementMachines + ", managementOnlyFiles="

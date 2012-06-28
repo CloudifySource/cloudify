@@ -128,45 +128,51 @@ public class Cloud {
 	void validateKeySettings()
 			throws DSLValidationException {
 		File keyFile = null;
-		String keyFileStr = getUser().getKeyFile();
-		if (StringUtils.isNotBlank(keyFileStr)) {
-			keyFile = new File(keyFileStr);
 
-			if (!keyFile.isAbsolute()) {
-				String configLocalDir = getProvider().getLocalDirectory();
+		for (CloudTemplate template : this.templates.values()) {
 
-				if (configLocalDir != null && !new File(configLocalDir).isAbsolute()) {
-					boolean keyFileFoundOnLocalMachinePath = isKeyFileFoundOnLocalMachinePath();
-					boolean keyFileFoundOnRemoteMachinePath = isKeyFileFoundOnRemoteMachinePath();
-					if (!keyFileFoundOnRemoteMachinePath && !keyFileFoundOnLocalMachinePath) {
+			String keyFileStr = template.getKeyFile();
+			if (StringUtils.isNotBlank(keyFileStr)) {
+				keyFile = new File(keyFileStr);
+
+				if (!keyFile.isAbsolute()) {
+					String configLocalDir = template.getLocalDirectory();
+
+					if (configLocalDir != null && !new File(configLocalDir).isAbsolute()) {
+						boolean keyFileFoundOnLocalMachinePath = isKeyFileFoundOnLocalMachinePath(template);
+						boolean keyFileFoundOnRemoteMachinePath = isKeyFileFoundOnRemoteMachinePath(template);
+						if (!keyFileFoundOnRemoteMachinePath && !keyFileFoundOnLocalMachinePath) {
+							throw new DSLValidationException("The specified key file is missing: \""
+									+ keyFile.getAbsolutePath() + "\"");
+						}
+					}
+				} else {
+					if (!keyFile.isFile()) {
 						throw new DSLValidationException("The specified key file is missing: \""
 								+ keyFile.getAbsolutePath() + "\"");
 					}
 				}
-			} else {
-				if (!keyFile.isFile()) {
-					throw new DSLValidationException("The specified key file is missing: \""
-							+ keyFile.getAbsolutePath() + "\"");
-				}
 			}
+
 		}
+
 	}
 
-	private boolean isKeyFileFoundOnRemoteMachinePath() {
+	private boolean isKeyFileFoundOnRemoteMachinePath(final CloudTemplate template) {
 		String managementMachineTemplateName = getConfiguration().getManagementMachineTemplate();
 		CloudTemplate cloudTemplate = getTemplates().get(managementMachineTemplateName);
 		String remoteEnvDirectoryPath = cloudTemplate.getRemoteDirectory();
-		File remoteKeyFile = new File(remoteEnvDirectoryPath, getUser().getKeyFile());
+		File remoteKeyFile = new File(remoteEnvDirectoryPath, template.getKeyFile());
 		logger.log(Level.FINE, "Looking for key file on remote machine: " + remoteKeyFile.getAbsolutePath());
 		return remoteKeyFile.isFile();
 	}
 
-	private boolean isKeyFileFoundOnLocalMachinePath() {
-		String configLocalDir = getProvider().getLocalDirectory();
+	private boolean isKeyFileFoundOnLocalMachinePath(final CloudTemplate template) {
+		String configLocalDir = template.getLocalDirectory();
 		// getting the local config directory
 		String envHomeDir = Environment.getHomeDirectory();
 		String localAbsolutePath = new File(envHomeDir, configLocalDir).getAbsolutePath();
-		File localKeyFile = new File(localAbsolutePath, getUser().getKeyFile());
+		File localKeyFile = new File(localAbsolutePath, template.getKeyFile());
 		logger.log(Level.FINE, "Looking for key file on local machine: " + localKeyFile.getAbsolutePath());
 		return localKeyFile.isFile();
 	}

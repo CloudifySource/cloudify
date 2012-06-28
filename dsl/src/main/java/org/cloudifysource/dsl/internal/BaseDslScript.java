@@ -63,10 +63,11 @@ import org.openspaces.ui.UserInterface;
 import org.openspaces.ui.WidgetGroup;
 
 /*************
- * Base class for DSL files. 
+ * Base class for DSL files.
+ * 
  * @author barakme
  * @since 1.0
- *
+ * 
  */
 public abstract class BaseDslScript extends Script {
 
@@ -76,7 +77,7 @@ public abstract class BaseDslScript extends Script {
 	 * DSL property indicating extension of recipe.
 	 */
 	public static final String EXTEND_PROPERTY_NAME = "extend";
-	
+
 	private Set<String> processingUnitTypes;
 	private String processingUnitType;
 
@@ -86,19 +87,18 @@ public abstract class BaseDslScript extends Script {
 
 	private Set<String> usedProperties = new HashSet<String>();
 
-
 	@Override
 	public void setProperty(final String name, final Object value) {
-		
+
 		if (this.activeObject == null) {
 			super.setProperty(name, value);
 			return;
 		}
-		
+
 		// if(this.activeObject == null) {
 		// super.setProperty(name, value);
 		// }
-		
+
 		if (value.getClass().isArray()) {
 			final Object[] arr = (Object[]) value;
 			if (arr.length > 1) {
@@ -112,12 +112,12 @@ public abstract class BaseDslScript extends Script {
 
 	}
 
-	private boolean isDuplicatePropertyAllowed(Object value) {
-		//Application allows duplicate service values.
-		if (this.activeObject instanceof Application && value instanceof Service){
+	private boolean isDuplicatePropertyAllowed(final Object value) {
+		// Application allows duplicate service values.
+		if (this.activeObject instanceof Application && value instanceof Service) {
 			return true;
 		}
-		
+
 		return false;
 	}
 
@@ -141,21 +141,22 @@ public abstract class BaseDslScript extends Script {
 		if (!isProperyExistsInBean(object, name)) {
 			throw new IllegalArgumentException("Could not find property: " + name + " on Object: " + object);
 		}
-		
-		//Check for duplicate properties. 
-		if (this.usedProperties == null){
+
+		// Check for duplicate properties.
+		if (this.usedProperties == null) {
 			throw new IllegalArgumentException("used properties can not be null. Property: " +
-						name + ", Value: " + value.toString() +
-						", Active object: " + this.activeObject);
+					name + ", Value: " + value.toString() +
+					", Active object: " + this.activeObject);
 		}
 		if (this.usedProperties.contains(name)) {
-			if (!isDuplicatePropertyAllowed(value))
-				throw new IllegalArgumentException("Property duplication was found: Property " 
+			if (!isDuplicatePropertyAllowed(value)) {
+				throw new IllegalArgumentException("Property duplication was found: Property "
 						+ name + " is defined more than once.");
+			}
 		}
-		
+
 		this.usedProperties.add(name);
-		
+
 		try {
 			if (logger.isLoggable(Level.FINEST)) {
 				logger.finest("BeanUtils.setProperty(object=" + object + ",name=" + name + ",value=" + value
@@ -198,7 +199,7 @@ public abstract class BaseDslScript extends Script {
 				swapActiveObject(closure, retval);
 				try {
 					validateObject(retval);
-				} catch (DSLValidationException e) {
+				} catch (final DSLValidationException e) {
 					throw new DSLValidationRuntimeException(e);
 				}
 				if (this.activeObject != null) {
@@ -329,9 +330,9 @@ public abstract class BaseDslScript extends Script {
 	private Service readServiceToExtend(final File serviceFileToExtend)
 			throws DSLException {
 		@SuppressWarnings("unchecked")
-		Map<Object, Object> currentVars = this.getBinding().getVariables();
+		final Map<Object, Object> currentVars = this.getBinding().getVariables();
 
-		DSLReader dslReader = new DSLReader();
+		final DSLReader dslReader = new DSLReader();
 		dslReader.setBindingVariables(currentVars);
 		dslReader.setAdmin(null);
 		dslReader.setClusterInfo(null);
@@ -351,7 +352,7 @@ public abstract class BaseDslScript extends Script {
 		return service;
 	}
 
-	private static class DSLObjectInitializerData {
+	public static class DSLObjectInitializerData {
 
 		private final Class<?> clazz;
 		private final boolean allowRootNode;
@@ -408,7 +409,11 @@ public abstract class BaseDslScript extends Script {
 
 	}
 
-	private static synchronized Map<String, DSLObjectInitializerData> getDSLInitializers() {
+	/***********
+	 * Returns the DSL Meta-data required to translate DSL elements into POJOs.
+	 * @return DSL meta-data.
+	 */
+	public static synchronized Map<String, DSLObjectInitializerData> getDSLInitializers() {
 		if (dslObjectInitializersByName == null) {
 			dslObjectInitializersByName = new HashMap<String, BaseDslScript.DSLObjectInitializerData>();
 
@@ -462,10 +467,10 @@ public abstract class BaseDslScript extends Script {
 		if (data == null) {
 			return null;
 		}
-		
-		if (isDuplicateProcessingUnit(name)){
+
+		if (isDuplicateProcessingUnit(name)) {
 			throw new DSLException("There may only be one type of processing unit defined. Found more than one: "
-								+ "[" + name + ", " + this.processingUnitType + "]");
+					+ "[" + name + ", " + this.processingUnitType + "]");
 		}
 
 		if (this.activeObject == null) {
@@ -523,10 +528,10 @@ public abstract class BaseDslScript extends Script {
 		}
 	}
 
-	//Only one of stateless/stateful/lifecycle may be set
-	private boolean isDuplicateProcessingUnit(String name) {
-		
-		Set<String> processingUnitTypes = getProcessingUnitTypes();
+	// Only one of stateless/stateful/lifecycle may be set
+	private boolean isDuplicateProcessingUnit(final String name) {
+
+		final Set<String> processingUnitTypes = getProcessingUnitTypes();
 		if (processingUnitTypes.contains(name)) {
 			if (StringUtils.isEmpty(this.processingUnitType)) {
 				this.processingUnitType = name;
@@ -538,8 +543,8 @@ public abstract class BaseDslScript extends Script {
 	}
 
 	private Set<String> getProcessingUnitTypes() {
-		
-		if (this.processingUnitTypes == null){
+
+		if (this.processingUnitTypes == null) {
 			this.processingUnitTypes = new HashSet<String>();
 			this.processingUnitTypes.add("lifecycle");
 			this.processingUnitTypes.add("statefulProcessingUnit");
@@ -547,7 +552,7 @@ public abstract class BaseDslScript extends Script {
 			this.processingUnitTypes.add("dataGrid");
 			this.processingUnitTypes.add("mirrorProcessingUnit");
 		}
-		
+
 		return this.processingUnitTypes;
 	}
 
@@ -561,19 +566,19 @@ public abstract class BaseDslScript extends Script {
 	}
 
 	private void swapActiveObject(final Closure<Object> closure, final Object obj) {
-        final Object prevObject = this.activeObject;
-        final Set<String> prevSet = this.usedProperties;
-        
-        this.activeObject = obj;
-        this.usedProperties = new HashSet<String>();
-        
-        closure.setResolveStrategy(Closure.OWNER_FIRST);
-        closure.call();
-        
-        activeObject = prevObject;
-        this.usedProperties = prevSet;
+		final Object prevObject = this.activeObject;
+		final Set<String> prevSet = this.usedProperties;
 
-        return;
+		this.activeObject = obj;
+		this.usedProperties = new HashSet<String>();
+
+		closure.setResolveStrategy(Closure.OWNER_FIRST);
+		closure.call();
+
+		activeObject = prevObject;
+		this.usedProperties = prevSet;
+
+		return;
 
 	}
 
