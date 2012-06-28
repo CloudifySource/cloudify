@@ -436,15 +436,15 @@ public final class Utils {
 
 		final InstallationDetails details = new InstallationDetails();
 
-		details.setLocalDir(cloud.getProvider().getLocalDirectory());
+		details.setLocalDir(template.getLocalDirectory());
 		final String remoteDir = template.getRemoteDirectory();
 		details.setRemoteDir(remoteDir);
 
 		// Create a copy of managementOnly files and mutate
 		List<String> managementOnlyFiles = new ArrayList<String>(cloud.getProvider().getManagementOnlyFiles());
-		if (cloud.getUser().getKeyFile() != null) {
+		if (template.getKeyFile() != null) {
 			// keyFile, if used, is always a management file.
-			managementOnlyFiles.add(cloud.getUser().getKeyFile());
+			managementOnlyFiles.add(template.getKeyFile());
 		}
 		details.setManagementOnlyFiles(managementOnlyFiles);
 
@@ -483,7 +483,7 @@ public final class Utils {
 			}
 		}
 
-		String keyFileName = cloud.getUser().getKeyFile();
+		String keyFileName = template.getKeyFile();
 		if (keyFileName != null && !keyFileName.isEmpty()) {
 			File keyFile = new File(keyFileName);
 			if (!keyFile.isAbsolute()) {
@@ -492,7 +492,7 @@ public final class Utils {
 			if (!keyFile.isFile()) {
 				throw new FileNotFoundException(
 						"Could not find key file matching specified cloud configuration key file: "
-								+ cloud.getUser().getKeyFile() + ". Tried: " + keyFile + " but file does not exist");
+								+ template.getKeyFile() + ". Tried: " + keyFile + " but file does not exist");
 			}
 			details.setKeyFile(keyFile.getAbsolutePath());
 		}
@@ -508,7 +508,7 @@ public final class Utils {
 					template.getImageId());
 		}
 
-		logger.info("Created InstallationDetails: " + details);
+		logger.fine("Created InstallationDetails: " + details);
 		return details;
 
 	}

@@ -158,10 +158,12 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		}
 		final String newServerName = createNewServerName();
 		logger.info("Attempting to start a new cloud machine");
-		return createServer(newServerName, endTime);
+		final CloudTemplate template = this.cloud.getTemplates().get(cloudTemplateName);
+		
+		return createServer(newServerName, endTime, template);
 	}
 
-	private MachineDetails createServer(final String serverName, final long endTime)
+	private MachineDetails createServer(final String serverName, final long endTime, final CloudTemplate template)
 			throws CloudProvisioningException, TimeoutException {
 
 		final CustomNode node;
@@ -174,7 +176,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		// At this point the machine is starting. Any error beyond this point
 		// must clean up the machine.
 		try {
-			handleServerCredentials(machineDetails);
+			handleServerCredentials(machineDetails, template);
 		} catch (final CloudProvisioningException e) {
 			try {
 				deployer.invalidateServer(cloudTemplateName, node);
@@ -276,6 +278,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		@SuppressWarnings("unchecked")
 		final Future<MachineDetails>[] futures = (Future<MachineDetails>[]) new Future<?>[numberOfManagementMachines];
 
+		final CloudTemplate managementTemplate = this.cloud.getTemplates().get(this.cloud.getConfiguration().getManagementMachineTemplate());
 		try {
 			// Call startMachine asynchronously once for each management
 			// machine
@@ -285,7 +288,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 					@Override
 					public MachineDetails call() throws Exception {
-						return createServer(serverNamePrefix + index, endTime);
+						return createServer(serverNamePrefix + index, endTime, managementTemplate);
 					}
 				});
 

@@ -422,8 +422,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	public void afterPropertiesSet()
 			throws Exception {
 
+		final String[] zones = this.config.getGridServiceAgentZones();
 		logger = java.util.logging.Logger
-				.getLogger(ElasticMachineProvisioningCloudifyAdapter.class.getName());
+				.getLogger(ElasticMachineProvisioningCloudifyAdapter.class.getName() + "-" + Arrays.toString(zones));
 
 		final String cloudContents = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION);
 		if (cloudContents == null) {
@@ -459,9 +460,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				}
 				logger.info("Modified local dir name is: " + localDirectoryName);
 
-				cloud.getProvider().setLocalDirectory(localDirectoryName);
+				cloudTemplate.setLocalDirectory(localDirectoryName);
 			} else {
-				cloud.getProvider().setLocalDirectory(cloudTemplate.getRemoteDirectory());
+				cloudTemplate.setLocalDirectory(cloudTemplate.getRemoteDirectory());
 			}
 
 			// load the provisioning class and set it up

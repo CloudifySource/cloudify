@@ -27,6 +27,7 @@ import java.util.logging.Level;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.jclouds.util.CredentialUtils;
@@ -151,17 +152,17 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	 * @param machineDetails The MachineDetails object that represents this server
 	 * @throws CloudProvisioningException Indicates missing credentials or IOException (when a key file is used)
 	 */
-	protected void handleServerCredentials(final MachineDetails machineDetails)
+	protected void handleServerCredentials(final MachineDetails machineDetails, final CloudTemplate template)
 			throws CloudProvisioningException {
 		
 		File keyFile = null;
 		// using a key (pem) file
-		String keyFileStr = cloud.getUser().getKeyFile();
+		String keyFileStr = template.getKeyFile();
 		if (StringUtils.isNotBlank(keyFileStr)) {
-			fixConfigRelativePaths(cloud);
+			fixConfigRelativePaths(cloud, template);
 			keyFile = new File(keyFileStr);
 			if (!keyFile.isAbsolute()) {
-				keyFile = new File(cloud.getProvider().getLocalDirectory(), keyFileStr);
+				keyFile = new File(template.getLocalDirectory(), keyFileStr);
 			}
 			if (keyFile != null && !keyFile.exists()) {
 				throw new CloudProvisioningException("The specified key file could not be found: " 
@@ -180,7 +181,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 						FileUtils.write(keyFile, remotePassword);
 						// TODO : stop settings the machine's private key as the entire cloud's key. This would cause
 						// a problem if the cloud (i.e. Rackspace) returns a different key for each machine.
-						cloud.getUser().setKeyFile(keyFile.getAbsolutePath());
+						template.setKeyFile(keyFile.getAbsolutePath());
 					} catch (final IOException e) {
 						throw new CloudProvisioningException("Failed to create a temporary "
 								+ "file for cloud server's key file", e);
@@ -217,12 +218,12 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	 * Sets the localDirectory setting of the given cloud object to an absolute path, based on the home directory.
 	 * @param cloud The cloud object to configure
 	 */
-	protected void fixConfigRelativePaths(final Cloud cloud) {
-		String configLocalDir = cloud.getProvider().getLocalDirectory();
+	protected void fixConfigRelativePaths(final Cloud cloud, final CloudTemplate template) {
+		String configLocalDir = template.getLocalDirectory();
 		if (configLocalDir != null && !new File(configLocalDir).isAbsolute()) {
 			String envHomeDir = Environment.getHomeDirectory();
 			logger.fine("Assuming " + configLocalDir + " is in " + envHomeDir);
-			cloud.getProvider().setLocalDirectory(new File(envHomeDir, configLocalDir).getAbsolutePath());
+			template.setLocalDirectory(new File(envHomeDir, configLocalDir).getAbsolutePath());
 		}
 	}
 }

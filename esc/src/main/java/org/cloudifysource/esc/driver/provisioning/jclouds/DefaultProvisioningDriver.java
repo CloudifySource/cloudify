@@ -174,7 +174,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 			} else {
 				// Credentials required special handling.
-				handleServerCredentials(machineDetails);
+				handleServerCredentials(machineDetails, cloudTemplate);
 			}
 
 		} catch (final Exception e) {
@@ -195,15 +195,15 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 		if (this.management) {
 			final String baseDirectory = Environment.getHomeDirectory();
-			final File localDirectory = new File(baseDirectory, this.cloud.getProvider().getLocalDirectory());
+			final File localDirectory = new File(baseDirectory, cloudTemplate.getLocalDirectory());
 
-			pemFile = new File(localDirectory, this.cloud.getUser().getKeyFile());
+			pemFile = new File(localDirectory, cloudTemplate.getKeyFile());
 		} else {
-			final String localDirectoryName = this.cloud.getProvider().getLocalDirectory();
+			final String localDirectoryName = cloudTemplate.getLocalDirectory();
 			logger.fine("local dir name is: " + localDirectoryName);
 			final File localDirectory = new File(localDirectoryName);
 
-			pemFile = new File(localDirectory, this.cloud.getUser().getKeyFile());
+			pemFile = new File(localDirectory, cloudTemplate.getKeyFile());
 		}
 
 		if (!pemFile.exists()) {
