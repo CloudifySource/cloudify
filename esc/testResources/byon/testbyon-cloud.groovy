@@ -31,9 +31,6 @@ cloud {
 		// Mandatory. The name of the provider.
 		provider "byon"
 		
-		// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.  
-		localDirectory "tools/cli/plugins/esc/byon/upload"
-		
 		// Mandatory. The HTTP/S URL where cloudify can be downloaded from by newly started machines.
 		cloudifyUrl "http://pc-lab25:8087/publish/gigaspaces.zip"
 		// Mandatory. The prefix for new machines started for servies.
@@ -57,8 +54,7 @@ cloud {
 	 * Cloud authentication information
 	 */
 	user {
-		// Optional. Key file used to access the cloud.
-		keyFile ""
+
 	}
 	
 	/***********
@@ -71,6 +67,8 @@ cloud {
 					// Optional. template-generic credentials. Can be overridden by specific credentials on each node, in the nodesList section.
 					username "tgrid"
 					password "tgrid"
+					// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+					localDirectory "tools/cli/plugins/esc/byon/upload"
 					custom ([
 						"nodesList" : ([
 										([
