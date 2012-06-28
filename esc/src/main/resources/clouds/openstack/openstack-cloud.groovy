@@ -14,9 +14,14 @@ cloud {
 	provider {
 		// optional 
 		provider "openstack"
-		localDirectory "tools/cli/plugins/esc/openstack/upload"
+			
+		// Optional. The HTTP/S URL where cloudify can be downloaded from by newly started machines. Defaults to downloading the
+		// cloudify version matching that of the client from the cloudify CDN.
+		// Change this if your compute nodes do not have access to an internet connection, or if you prefer to use a
+		// different HTTP server instead.
+		// 
+		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.1/gigaspaces-cloudify-2.1.1-ga-b1396-251.zip"
 		
-		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.1/gigaspaces-cloudify-2.1.1-ga-b1396-346.zip" 
 		machineNamePrefix "cloudify_agent_"
 		
 		dedicatedManagementMachines true
@@ -34,7 +39,7 @@ cloud {
 	user {
 		user "ENTER_USER"
 		apiKey "ENTER_API_KEY"
-		keyFile "ENTER_KEY_FILE"
+		
 	}
 	templates ([
 				SMALL_LINUX : template{
@@ -42,6 +47,8 @@ cloud {
 					machineMemoryMB 1600
 					hardwareId "102"
 					remoteDirectory "/root/gs-files"
+					localDirectory "tools/cli/plugins/esc/openstack/upload"
+					keyFile "ENTER_KEY_FILE"
 					
 					options ([
 						"openstack.securityGroup" : "test",

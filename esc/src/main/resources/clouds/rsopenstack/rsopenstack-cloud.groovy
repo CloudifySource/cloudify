@@ -9,9 +9,7 @@ cloud {
 
 	provider {
 		provider "rackspace"
-		localDirectory "tools/cli/plugins/esc/rsopenstack/upload"
 		
-		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.1/gigaspaces-cloudify-2.1.1-ga-b1396-346.zip" 
 		//The machineNamePrefix property may not contain the char '_' in Rackspace
 		machineNamePrefix "agent"
 		
@@ -37,6 +35,7 @@ cloud {
 					machineMemoryMB 1600
 					hardwareId "4"
 					remoteDirectory "/root/gs-files"
+					localDirectory "tools/cli/plugins/esc/rsopenstack/upload"
 					
 				}
 			])

@@ -29,11 +29,13 @@ cloud {
 		// When using the default cloud driver, maps to the Compute Service Context provider name.
 		provider "aws-ec2"
 
-		// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
-		localDirectory "tools/cli/plugins/esc/ec2/upload"
 
-		// Mandatory. The HTTP/S URL where cloudify can be downloaded from by newly started machines.
-		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.1/gigaspaces-cloudify-2.1.1-ga-b1396-346.zip"
+		// Optional. The HTTP/S URL where cloudify can be downloaded from by newly started machines. Defaults to downloading the 
+		// cloudify version matching that of the client from the cloudify CDN.
+		// Change this if your compute nodes do not have access to an internet connection, or if you prefer to use a 
+		// different HTTP server instead.  
+		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.1/gigaspaces-cloudify-2.1.1-ga-b1396-251.zip"
+		
 		// Mandatory. The prefix for new machines started for servies.
 		machineNamePrefix "cloudify_agent_"
 		// Optional. Defaults to true. Specifies whether cloudify should try to deploy services on the management machine.
@@ -69,7 +71,7 @@ cloud {
 		apiKey "ENTER_API_KEY"
 
 
-		keyFile "ENTER_KEY_FILE"
+		
 	}
 
 
@@ -89,6 +91,11 @@ cloud {
 					hardwareId "m1.small"
 					// Optional. Location ID.
 					locationId "us-east-1"
+					// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+					localDirectory "tools/cli/plugins/esc/ec2/upload"
+					// Optional. Name of key file to use for authenticating to the remot machine. Remove this line if key files
+					// are not used. 
+					keyFile "ENTER_KEY_FILE"
 
 					// Additional template options.
 					// When used with the default driver, the option names are considered

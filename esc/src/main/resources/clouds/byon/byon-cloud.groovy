@@ -31,11 +31,13 @@ cloud {
 		// Mandatory. The name of the provider.
 		provider "byon"
 		
-		// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.  
-		localDirectory "tools/cli/plugins/esc/byon/upload"
+	
+		// Optional. The HTTP/S URL where cloudify can be downloaded from by newly started machines. Defaults to downloading the 
+		// cloudify version matching that of the client from the cloudify CDN.
+		// Change this if your compute nodes do not have access to an internet connection, or if you prefer to use a 
+		// different HTTP server instead.  
+		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.1/gigaspaces-cloudify-2.1.1-ga-b1396-251.zip"
 		
-		// Mandatory. The HTTP/S URL where cloudify can be downloaded from by newly started machines.
-		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.1/gigaspaces-cloudify-2.1.1-ga-b1396-346.zip"
 		// Mandatory. The prefix for new machines started for servies.
 		machineNamePrefix "cloudify_agent_"
 		// Optional. Defaults to true. Specifies whether cloudify should try to deploy services on the management machine.
@@ -56,9 +58,8 @@ cloud {
 	/*************
 	 * Cloud authentication information
 	 */
-	user {
-		// Optional. Key file used to access the cloud.
-		keyFile ""
+	user {		
+		
 	}
 	
 	/***********
@@ -74,6 +75,10 @@ cloud {
 				// Optional. template-generic credentials. Can be overridden by specific credentials on each node, in the nodesList section.
 				username "ENTER_USER"
 				password "ENTER_PASSWORD"
+				
+				// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+				localDirectory "tools/cli/plugins/esc/byon/upload"
+				
 				// Mandatory for BYON.
 					custom ([
 						// Mandatory for BYON. The nodesList custom property lists the nodes that compose this cloud-like environment.
