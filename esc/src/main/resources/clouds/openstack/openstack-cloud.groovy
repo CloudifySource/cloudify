@@ -16,7 +16,7 @@ cloud {
 		provider "openstack"
 		localDirectory "tools/cli/plugins/esc/openstack/upload"
 		
-		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.2/gigaspaces-cloudify-2.1.2-m1-b1589-7.zip" 
+		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.1.1/gigaspaces-cloudify-2.1.1-ga-b1396-344.zip" 
 		machineNamePrefix "cloudify_agent_"
 		
 		dedicatedManagementMachines true
