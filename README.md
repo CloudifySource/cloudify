@@ -22,10 +22,26 @@ Requirements
 
 Build Instructions
 ------------------
-1. Fetch latest Cloudify source code from GitHub (git@github.com:CloudifySource/cloudify.git)
-2. Open command line prompt in current directory
-3. Run: cd cloudify
-4. Run: ant cloudify.zip
+1. make sure that you have git, ant and maven installed.
+2. In git, run the following commands:
+   git clone https://github.com/CloudifySource/cloudify.git
+   cd cloudify
+   ant cloudify.zip
+3. The Cloudify distribution will be available under the 'cloudify/tmp' directory
+
+Import Cloudify to Eclipse
+-----------------
+1. Make sure that the Maven Eclipse Plugin is installed
+2. Import the Cloudify maven project. In the file menu click:
+   'Import>Maven>Existing Maven Projects projects' then select: cloudify/cloudify/pom.xml 
+
+
+Debugging the CLI without cloud plugin support
+-----------------
+1. To debug the CLI without plugin support
+cd cloudify/CLI/
+mvndebug –e compile exec:java
+2. Connect the eclipse project to port 8000 and start the remote debugging.
 
 
 
