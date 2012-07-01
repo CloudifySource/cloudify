@@ -45,6 +45,8 @@ import org.cloudifysource.shell.rest.RestAdminFacade;
 @Command(scope = "cloudify", name = "teardown-cloud", description = "Terminates management machines.")
 public class TeardownCloud extends AbstractGSCommand {
 
+	private static final int POLLING_INTERVAT_SEC = 10;
+
 	@Argument(required = true, name = "provider", description = "the cloud provider to use")
 	String cloudProvider;
 
@@ -77,7 +79,7 @@ public class TeardownCloud extends AbstractGSCommand {
 			installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 		}
 
-		installer.setProgressInSeconds(10);
+		installer.setProgressInSeconds(POLLING_INTERVAT_SEC);
 		installer.setVerbose(verbose);
 		installer.setForce(force);
 		installer.setCloud(cloud);
