@@ -37,6 +37,7 @@ import org.cloudifysource.esc.driver.provisioning.jclouds.DefaultProvisioningDri
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
+import org.cloudifysource.shell.GigaShellMain;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.AbstractGSCommand;
 import org.cloudifysource.shell.rest.RestAdminFacade;
@@ -90,6 +91,8 @@ public class TeardownCloud extends AbstractGSCommand {
 		limitLoggingLevel();
 		try {
 			installer.teardownCloudAndWait(timeoutInMinutes, TimeUnit.MINUTES);
+			session.put(Constants.ACTIVE_APP, "default");
+			GigaShellMain.getInstance().setCurrentApplicationName("default");
 			return getFormattedMessage("cloud_terminated_successfully", cloudProvider);
 		} finally {
 			installer.close();
@@ -102,7 +105,8 @@ public class TeardownCloud extends AbstractGSCommand {
 
 	}
 
-	private static final String[] NON_VERBOSE_LOGGERS = { DefaultProvisioningDriver.class.getName(), AgentlessInstaller.class.getName() };
+	private static final String[] NON_VERBOSE_LOGGERS = { DefaultProvisioningDriver.
+		class.getName(), AgentlessInstaller.class.getName() };
 	private Map<String, Level> loggerStates = new HashMap<String, Level>();
 
 	private void limitLoggingLevel() {

@@ -24,6 +24,7 @@ import org.apache.felix.gogo.commands.Option;
 import org.apache.karaf.util.Properties.PropertiesReader;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
+import org.cloudifysource.shell.GigaShellMain;
 import org.cloudifysource.shell.installer.CLILocalhostBootstrapperListener;
 import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 
@@ -88,6 +89,8 @@ public class TeardownLocalCloud extends AbstractGSCommand {
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 
 		installer.teardownLocalCloudOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);
+		session.put(Constants.ACTIVE_APP, "default");
+		GigaShellMain.getInstance().setCurrentApplicationName("default");
 		return getFormattedMessage("teardown_localcloud_terminated_successfully");
 	}
 	
