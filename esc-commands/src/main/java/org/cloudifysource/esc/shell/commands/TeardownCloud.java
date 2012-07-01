@@ -135,7 +135,7 @@ public class TeardownCloud extends AbstractGSCommand {
 
 	}
 	
-	private File findCloudFile(File providerDirectory) throws FileNotFoundException {
+	private File findCloudFile(final File providerDirectory) throws FileNotFoundException {
 		if (!providerDirectory.exists() || !providerDirectory.isDirectory()) {
 			throw new FileNotFoundException("Could not find cloud provider directory: " + providerDirectory);
 		}
@@ -143,7 +143,7 @@ public class TeardownCloud extends AbstractGSCommand {
 		File[] cloudFiles = providerDirectory.listFiles(new FilenameFilter() {
 
 			@Override
-			public boolean accept(File dir, String name) {
+			public boolean accept(final File dir, final String name) {
 				return name.endsWith("-cloud.groovy");
 			}
 
