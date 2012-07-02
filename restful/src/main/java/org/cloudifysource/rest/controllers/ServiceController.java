@@ -1234,7 +1234,6 @@ public class ServiceController {
 				resultsMap.put(CloudifyConstants.IS_TASK_DONE, true);
 			}
 			futureTask.cancel(true);
-			lifecyclePollingContainer.remove(UUID.fromString(lifecycleEventContainerID));
 			break;
 		}
 
@@ -1248,6 +1247,10 @@ public class ServiceController {
 			resultsMap.put(CloudifyConstants.LIFECYCLE_LOGS, copy);
 		} else {
 			resultsMap.put(CloudifyConstants.CURSOR_POS, cursor);
+		}
+		//if done, remove all cached lifecycle events
+		if (runnableState.equals(PollingState.ENDED)) {
+		    lifecyclePollingContainer.remove(UUID.fromString(lifecycleEventContainerID));
 		}
 
 		return successStatus(resultsMap);
