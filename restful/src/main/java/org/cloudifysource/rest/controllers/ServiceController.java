@@ -1234,6 +1234,7 @@ public class ServiceController {
 				resultsMap.put(CloudifyConstants.IS_TASK_DONE, true);
 			}
 			futureTask.cancel(true);
+			lifecyclePollingContainer.remove(UUID.fromString(lifecycleEventContainerID));
 			break;
 		}
 
