@@ -41,12 +41,13 @@ function error_exit_on_level {
 		error_exit ${1} ${2}
 	fi
 }
+sudo yum -y install java-1.6.0-openjdk-devel
+export JAVA_HOME=/usr/lib/jvm/java-1.6.0-openjdk
 
 export EXT_JAVA_OPTIONS="-Dcom.gs.multicast.enabled=false"
-#export JAVA_HOME=/usr/lib/jvm/jre
 if [ -z "$JAVA_HOME" ]; then
-	echo -- SETTING JAVA_HOME TO /usr/lib/jvm/jre
-	export JAVA_HOME=/usr/lib/jvm/jre
+	echo -- SETTING JAVA_HOME TO /usr/lib/jvm/java-1.6.0-openjdk
+	export JAVA_HOME=/usr/lib/jvm/java-1.6.0-openjdk
 fi
 
 # Some distros do not come with unzip built-in
@@ -101,6 +102,7 @@ sed -i "1i export NIC_ADDR=$MACHINE_IP_ADDRESS" setenv.sh || error_exit $? "Fail
 sed -i "1i export LOOKUPLOCATORS=$LUS_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "1i export CLOUDIFY_CLOUD_IMAGE_ID=$CLOUDIFY_CLOUD_IMAGE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "1i export CLOUDIFY_CLOUD_HARDWARE_ID=$CLOUDIFY_CLOUD_HARDWARE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "1i export PATH=$JAVA_HOME/bin:$PATH" setenv.sh || error_exit $? "Failed updating setenv.sh"
 
 cd ~/gigaspaces/tools/cli || error_exit $? "Failed changing directory to cli directory"
 
