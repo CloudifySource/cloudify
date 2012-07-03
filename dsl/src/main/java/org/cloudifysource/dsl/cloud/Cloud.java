@@ -19,6 +19,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.DSLValidation;
@@ -36,14 +37,16 @@ import com.j_spaces.kernel.Environment;
 @CloudifyDSLEntity(name = "cloud", clazz = Cloud.class, allowInternalNode = false, allowRootNode = true)
 public class Cloud {
 
-	private static java.util.logging.Logger logger =
-			java.util.logging.Logger.getLogger(Cloud.class.getName());
+	private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Cloud.class.getName());
 	private String name;
 	private CloudProvider provider;
 	private CloudUser user = new CloudUser();
 	private CloudConfiguration configuration = new CloudConfiguration();
 	private Map<String, CloudTemplate> templates = new HashMap<String, CloudTemplate>();
 	private Map<String, Object> custom = new HashMap<String, Object>();
+
+	// CIFS drive regex (for example: /C$ or /d$)
+	private static final String CIFS_ABSOLUTE_PATH_WITH_DRIVE_REGEX = "^/[a-zA-Z][$]/.*";
 
 	public Map<String, Object> getCustom() {
 		return custom;
@@ -95,13 +98,12 @@ public class Cloud {
 
 	@Override
 	public String toString() {
-		return "Cloud [name=" + name + ", provider=" + provider + ", user=" + user + ", configuration=" + configuration
-				+ ", templates=" + templates + ", custom=" + custom + "]";
+		return "Cloud [name=" + name + ", provider=" + provider + ", user=" + user + ", configuration="
+				+ configuration + ", templates=" + templates + ", custom=" + custom + "]";
 	}
 
 	@DSLValidation
-	void validateManagementTemplateName()
-			throws DSLValidationException {
+	void validateManagementTemplateName() throws DSLValidationException {
 
 		CloudConfiguration configuration = getConfiguration();
 		Map<String, CloudTemplate> templates = getTemplates();
@@ -125,8 +127,7 @@ public class Cloud {
 	 * @throws DSLValidationException
 	 */
 	@DSLValidation
-	void validateKeySettings()
-			throws DSLValidationException {
+	void validateKeySettings() throws DSLValidationException {
 		File keyFile = null;
 
 		for (CloudTemplate template : this.templates.values()) {
@@ -142,8 +143,10 @@ public class Cloud {
 						boolean keyFileFoundOnLocalMachinePath = isKeyFileFoundOnLocalMachinePath(template);
 						boolean keyFileFoundOnRemoteMachinePath = isKeyFileFoundOnRemoteMachinePath(template);
 						if (!keyFileFoundOnRemoteMachinePath && !keyFileFoundOnLocalMachinePath) {
-							throw new DSLValidationException("The specified key file is missing: \""
-									+ keyFile.getAbsolutePath() + "\"");
+							throw new DSLValidationException(
+									"The specified key file is not found on these locations: \""
+											+ (new File(getLocalDirPath(), keyFileStr)).getAbsolutePath() + "\", \""
+											+ (new File(getRemoteDirPath(), keyFileStr)).getAbsolutePath() + "\"");
 						}
 					}
 				} else {
@@ -153,27 +156,55 @@ public class Cloud {
 					}
 				}
 			}
-
 		}
+	}
 
+	/****************
+	 * Given a path of the type /C$/PATH - indicating an absolute CIFS path, returns /PATH. If the string does
+	 * not match, returns the original unmodified string.
+	 * 
+	 * @param path
+	 *            the input path.
+	 * @return the input path, adjusted to remove the CIFS drive letter, if it exists, or the original path if
+	 *         the drive letter is not present.
+	 */
+	public static String normalizeCifsPath(final String path) {
+		final String expression = CIFS_ABSOLUTE_PATH_WITH_DRIVE_REGEX;
+		Pattern pattern = Pattern.compile(expression);
+
+		if (pattern.matcher(path).matches()) {
+			final char drive = path.charAt(1);
+			return drive + ":\\" + path.substring("/c$/".length()).replace('/', '\\');
+		}
+		return path;
 	}
 
 	private boolean isKeyFileFoundOnRemoteMachinePath(final CloudTemplate template) {
-		String managementMachineTemplateName = getConfiguration().getManagementMachineTemplate();
-		CloudTemplate cloudTemplate = getTemplates().get(managementMachineTemplateName);
-		String remoteEnvDirectoryPath = cloudTemplate.getRemoteDirectory();
+		String remoteEnvDirectoryPath = getRemoteDirPath();
 		File remoteKeyFile = new File(remoteEnvDirectoryPath, template.getKeyFile());
 		logger.log(Level.FINE, "Looking for key file on remote machine: " + remoteKeyFile.getAbsolutePath());
 		return remoteKeyFile.isFile();
 	}
 
 	private boolean isKeyFileFoundOnLocalMachinePath(final CloudTemplate template) {
-		String configLocalDir = template.getLocalDirectory();
-		// getting the local config directory
-		String envHomeDir = Environment.getHomeDirectory();
-		String localAbsolutePath = new File(envHomeDir, configLocalDir).getAbsolutePath();
+		String localAbsolutePath = getLocalDirPath();
 		File localKeyFile = new File(localAbsolutePath, template.getKeyFile());
 		logger.log(Level.FINE, "Looking for key file on local machine: " + localKeyFile.getAbsolutePath());
 		return localKeyFile.isFile();
+	}
+
+	private String getLocalDirPath() {
+		String configLocalDir = getProvider().getLocalDirectory();
+		// getting the local config directory
+		String envHomeDir = Environment.getHomeDirectory();
+		return new File(envHomeDir, configLocalDir).getAbsolutePath();
+	}
+
+	private String getRemoteDirPath() {
+		String managementMachineTemplateName = getConfiguration().getManagementMachineTemplate();
+		CloudTemplate cloudTemplate = getTemplates().get(managementMachineTemplateName);
+		String remoteEnvDirectoryPath = cloudTemplate.getRemoteDirectory();
+		// fix the remote path if formatted for vfs2, so it would be parsed correctly.
+		return normalizeCifsPath(remoteEnvDirectoryPath);
 	}
 }
