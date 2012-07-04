@@ -35,7 +35,7 @@ public class CloudPemValidationTest {
 			assertTrue("The key file is not found yet no error was thrown", false);
 		} catch (Throwable e) {
 			assertTrue("The key file is not found yet no error was thrown. Error was: " + e.getMessage(), 
-					e.getMessage().contains("The specified key file is missing"));
+					e.getMessage().contains("The specified key file is missing") || e.getMessage().contains("The specified key file is not found"));
 		}
 	}
 
