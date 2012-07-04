@@ -357,7 +357,7 @@ public class AzureBootstrapApplication extends AbstractGSCommand {
 
 			String line = reader.readLine();
 			while (line != null) {
-				sb.append(line).append("\n");
+				sb.append(line).append('\n');
 				line = reader.readLine();
 			}
 
