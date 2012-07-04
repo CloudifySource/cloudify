@@ -145,8 +145,9 @@ public class Cloud {
 						if (!keyFileFoundOnRemoteMachinePath && !keyFileFoundOnLocalMachinePath) {
 							throw new DSLValidationException(
 									"The specified key file is not found on these locations: \""
-											+ (new File(getLocalDirPath(template), keyFileStr)).getAbsolutePath() + "\", \""
-											+ (new File(getRemoteDirPath(), keyFileStr)).getAbsolutePath() + "\"");
+											+ (new File(getLocalDirPath(template), keyFileStr)).getAbsolutePath()
+											+ "\", \"" + (new File(getRemoteDirPath(), keyFileStr)).getAbsolutePath()
+											+ "\"");
 						}
 					}
 				} else {
@@ -193,7 +194,7 @@ public class Cloud {
 		return localKeyFile.isFile();
 	}
 
-	private String getLocalDirPath(CloudTemplate template) {
+	private String getLocalDirPath(final CloudTemplate template) {
 		String configLocalDir = template.getLocalDirectory();
 		// getting the local config directory
 		String envHomeDir = Environment.getHomeDirectory();
