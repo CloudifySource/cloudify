@@ -84,7 +84,6 @@ public class InstallService extends AdminAwareCommand {
 
 		// TODO: this logics should not be done twice. should be done directly in the rest server.
 		// also figure out how to treat war/jar files that have no .groovy file. create default?
-		int plannedNumberOfInstances = 1;
 		Service service = null;
 		try {
 			if (recipe.getName().endsWith(".jar") || recipe.getName().endsWith(".war")) {
@@ -100,8 +99,7 @@ public class InstallService extends AdminAwareCommand {
 					}
 					packedFile = Packager.pack(fullPathToRecipe);
 					service = ServiceReader.readService(fullPathToRecipe);
-				}
-				else {
+				} else {
 					packedFile = Packager.pack(recipe);
 					service = ServiceReader.readService(recipe);
 				}
@@ -125,7 +123,6 @@ public class InstallService extends AdminAwareCommand {
 			if (serviceFileName != null) {
 				props.setProperty(CloudifyConstants.CONTEXT_PROPERTY_SERVICE_FILE_NAME, serviceFileName);
 			}
-			plannedNumberOfInstances = service.getNumInstances();
 			if (serviceName == null || serviceName.isEmpty()) {
 				serviceName = service.getName();
 			}
@@ -146,20 +143,22 @@ public class InstallService extends AdminAwareCommand {
 		// service is null when a simple deploying war for example
 		if (service == null || service.getCompute() == null) {
 			templateName = "";
-		}else{
+		} else {
 			templateName = service.getCompute().getTemplate();
 			if (templateName == null) {
 				templateName = "";
 			}
 		}
 		
-		String lifecycleEventContainerPollingID = adminFacade.installElastic(packedFile, currentApplicationName, serviceName, zone, props, templateName, timeoutInMinutes);
+		String lifecycleEventContainerPollingID = adminFacade.installElastic(packedFile,
+				currentApplicationName, serviceName, zone, props, templateName, timeoutInMinutes);
 
-		if (lifecycleEventContainerPollingID != null){
-			this.adminFacade.waitForLifecycleEvents(lifecycleEventContainerPollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
+		if (lifecycleEventContainerPollingID != null) {
+			this.adminFacade.waitForLifecycleEvents(lifecycleEventContainerPollingID,
+					timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
 		} else {
-			throw new CLIException("Failed to retrieve lifecycle logs from rest. " +
-			"Check logs for more details.");
+			throw new CLIException("Failed to retrieve lifecycle logs from rest. " 
+			+ "Check logs for more details.");
 		}
 
 		// if a zip file was created, delete it at the end of use.
