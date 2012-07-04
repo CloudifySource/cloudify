@@ -62,26 +62,11 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 			+ "used for network communication.")
 	private String nicAddress = "127.0.0.1";
 
-	public String getNicAddress() {
-		return nicAddress;
-	}
-
-	public void setNicAddress(final String nicAddress) {
-		this.nicAddress = nicAddress;
-	}
-
-	public int getTimeoutInMinutes() {
-		return timeoutInMinutes;
-	}
-
-	public void setTimeoutInMinutes(final int timeoutInMinutes) {
-		this.timeoutInMinutes = timeoutInMinutes;
-	}
-
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is "
 			+ "done.")
 	private int timeoutInMinutes = DEFAULT_TIMEOUT;
 
+		
 	/**
 	 * {@inheritDoc}
 	 */
@@ -140,5 +125,25 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 		return javacCandidates.length > 0;
 
 	}
+	
+	public String getNicAddress() {
+		return nicAddress;
+	}
+
+	
+	public void setNicAddress(final String nicAddress) {
+		this.nicAddress = nicAddress;
+	}
+
+	public int getTimeoutInMinutes() {
+		return timeoutInMinutes;
+	}
+
+	public void setTimeoutInMinutes(final int timeoutInMinutes) {
+		this.timeoutInMinutes = timeoutInMinutes;
+	}
+
+
+	
 
 }
