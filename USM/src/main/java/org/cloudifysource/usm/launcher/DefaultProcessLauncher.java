@@ -711,7 +711,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 				logger.log(Level.SEVERE,
 						"Event lifecycle external process failed: " + result);
-				// TODO:Add result string to exception if not groovy exception.
+
 				throw new USMException("Event lifecycle external process exited with abnormal status code: "
 						+ exitValue + " " + exceptionReason);
 			}

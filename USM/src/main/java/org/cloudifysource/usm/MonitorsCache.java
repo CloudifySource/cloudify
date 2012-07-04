@@ -48,7 +48,6 @@ public class MonitorsCache {
 
 	private USMLifecycleBean lifecycleBean;
 
-	
 	private ServiceMonitors[] lastResult;
 	private UniversalServiceManagerBean usm;
 
@@ -74,16 +73,12 @@ public class MonitorsCache {
 	 */
 	public synchronized ServiceMonitors[] getMonitors() {
 		final long now = System.currentTimeMillis();
-		
-		logger.info("REquesting monitors at: " + now);
-		if (now >= cacheExpirationTime) {
 
-			logger.info("Reloading monitors at: " + now);	
+		if (now >= cacheExpirationTime) {
+			logger.fine("Reloading monitors at: " + now);
 			this.lastResult = createMonitors();
 			this.cacheExpirationTime = now + cacheExpirationTimeout;
-		} else {
-			logger.info("Serving monitors from cache");
-		}
+		} 
 
 		return this.lastResult;
 

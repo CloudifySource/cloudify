@@ -48,6 +48,11 @@ public final class GroovyExceptionHandler {
 			// No runtime exception was found. look for a compilation exception.
 			exceptionReason = getCompilationException(input);
 		}
+		
+		if (exceptionReason.isEmpty()) {
+			// No compilation exception was found. Return the entire process output.
+			exceptionReason = input;
+		}
 		return exceptionReason;
 	}
 
