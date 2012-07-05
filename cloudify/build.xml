@@ -28,8 +28,6 @@
             <os family="unix" />
     </condition>
 	
-	<loadproperties srcfile="${basedir}/build.properties" />
-	
     <property environment="env."/>
 	<property name="tmp.dir" value="${basedir}/tmp" />
 	<property name="xap.files.tmp.dir" value="${basedir}/xap.files.tmp.dir" />
@@ -131,7 +129,11 @@
 		<property name="cloudify.build.number.field" value="cloudify.build.number" />
 		<property name="cloudify.milestone.field" value="cloudify.milestone" />
 		
-		
+		<property name="gs.version.field" value="gs.version"/>
+	    <property name="gs.milestone.field" value="gs.milestone" />
+	    <property name="gs.build.number.field" value="gs.build.number" />
+		<property name="s3.gs.publish.folder.field" value="s3.gs.publish.folder" />
+			 
 		<replaceregexp file="${build.properties.file}"
             match="${cloudify.version.field}=(.*)"
             replace="${cloudify.version.field}=${cloudify.version}"/>
@@ -143,6 +145,24 @@
 		<replaceregexp file="${build.properties.file}"
             match="${cloudify.milestone.field}=(.*)"
             replace="${cloudify.milestone.field}=${cloudify.milestone}"/>
+		
+		
+		<replaceregexp file="${build.properties.file}"
+	         match="${gs.version.field}=(.*)"
+	         replace="${gs.version.field}=${gs.product.version}"/>
+
+	    <replaceregexp file="${build.properties.file}"
+	         match="${gs.milestone.field}=(.*)"
+	         replace="${gs.milestone.field}=${milestone}"/>
+
+	    <replaceregexp file="${build.properties.file}"
+	         match="${gs.build.number.field}=(.*)"
+	         replace="${gs.build.number.field}=${new.build.number}"/>
+	   	
+	   	<replaceregexp file="${build.properties.file}"
+	   	            match="${s3.gs.publish.folder.field}=(.*)"
+	   	            replace="${s3.gs.publish.folder.field}=${s3.publish.folder}"/>
+
    </target>
 	
     <target name="update.lus.groups">
