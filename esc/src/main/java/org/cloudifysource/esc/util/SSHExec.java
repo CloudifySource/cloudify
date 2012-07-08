@@ -235,7 +235,7 @@ public class SSHExec extends SSHBase {
         }
 
         Session session = null;
-        StringBuffer output = new StringBuffer();
+        StringBuilder output = new StringBuilder();
         try {
             session = openSession();
             /* called once */
@@ -251,7 +251,7 @@ public class SSHExec extends SSHBase {
                         log("cmd : " + cmd, Project.MSG_INFO);
                         output.append(cmd).append(" : ");
                         executeCommand(session, cmd, output);
-                        output.append("\n");
+                        output.append('\n');
                     }
                     FileUtils.close(br);
                 } catch (IOException e) {
@@ -279,7 +279,7 @@ public class SSHExec extends SSHBase {
         }
     }
 
-    private void executeCommand(Session session, String cmd, StringBuffer sb)
+    private void executeCommand(Session session, String cmd, StringBuilder sb)
         throws BuildException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         // Cloudify Modification
