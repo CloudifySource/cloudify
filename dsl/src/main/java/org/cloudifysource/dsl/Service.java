@@ -15,14 +15,15 @@
  *******************************************************************************/
 package org.cloudifysource.dsl;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationException;
+import org.cloudifysource.dsl.internal.ServiceTierType;
 import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
 import org.cloudifysource.dsl.statistics.PerInstanceStatisticsDetails;
 import org.cloudifysource.dsl.statistics.ServiceStatisticsDetails;
@@ -425,26 +426,32 @@ public class Service {
 	@DSLValidation
 	void validateDefaultValues()
 			throws DSLValidationException {
+		validateInstanceNumber();
+		validateServiceType();
+	}
+
+	private void validateServiceType() throws DSLValidationException {
+		boolean typeExists = false;
+		String[] enumAsString = new String[ServiceTierType.values().length];
+		int counter = 0;
+		for (ServiceTierType tierType : ServiceTierType.values()) {
+			enumAsString[counter] = tierType.toString();
+			counter++;
+			if (this.type.equalsIgnoreCase(tierType.toString())) {
+				typeExists = true;
+			}
+		}
+		if (!typeExists) {
+			throw new DSLValidationException("The service type '" + this.type + "' is undefined."
+					+ "The known service types include " + Arrays.toString(enumAsString));
+		}
+	}
+	
+	private void validateInstanceNumber() throws DSLValidationException {
 		if (this.numInstances > this.maxAllowedInstances) {
 			throw new DSLValidationException("The requested number of instances ("
 					+ this.numInstances + ") exceeds the maximum number of instances allowed"
 					+ " (" + this.maxAllowedInstances + ") for service " + this.name + ".");
-		}
-	}
-
-	@DSLValidation
-	void validateCustomProperties()
-			throws DSLValidationException {
-		if (this.customProperties.containsKey(CloudifyConstants.CUSTOM_PROPERTY_MONITORS_CACHE_EXPIRATION_TIMEOUT)) {
-			try {
-				Long.parseLong(this.customProperties
-						.get(CloudifyConstants.CUSTOM_PROPERTY_MONITORS_CACHE_EXPIRATION_TIMEOUT));
-
-			} catch (NumberFormatException e) {
-				throw new DSLValidationException("The "
-						+ CloudifyConstants.CUSTOM_PROPERTY_MONITORS_CACHE_EXPIRATION_TIMEOUT
-						+ " property must be a long value", e);
-			}
 		}
 	}
 
