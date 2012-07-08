@@ -36,7 +36,7 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
  * @since 2.0.0
  * 
  */
-@CloudifyDSLEntity(name = "lifecycle", clazz = ServiceLifecycle.class, allowInternalNode = true, allowRootNode = false,
+@CloudifyDSLEntity(name = "lifecycle", clazz = ServiceLifecycle.class, allowInternalNode = true, allowRootNode = true,
 		parent = "service")
 public class ServiceLifecycle implements Serializable {
 

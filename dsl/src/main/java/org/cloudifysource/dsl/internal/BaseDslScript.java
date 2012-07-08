@@ -230,6 +230,63 @@ public abstract class BaseDslScript extends Script {
 
 	}
 
+	/*************
+	 * Loads an object from an external file.
+	 * 
+	 * @param fileName the filename, relative to the current file.
+	 * @return the object.
+	 */
+	public Object load(final String fileName) {
+
+		final String dslFilePath = (String) getProperty(ServiceReader.DSL_FILE_PATH_PROPERTY_NAME);
+		if (dslFilePath == null) {
+			throw new IllegalStateException("No dsl file path present in binding context");
+		}
+		final File activeServiceDirectory = new File(dslFilePath).getParentFile();
+		final File externalFile = new File(activeServiceDirectory, fileName);
+		if (!externalFile.exists()) {
+			throw new IllegalArgumentException("While processing DSL file, could not find file to load " + fileName);
+		}
+
+		if (!externalFile.isFile()) {
+			throw new IllegalArgumentException("While processing DSL file, could not load file " + fileName
+					+ " as it is not a file");
+		}
+
+		Object result;
+		try {
+			result = readExternalDSLFile(externalFile);
+			if (result instanceof Closure<?>) {
+				Closure<?> closure = (Closure<?>) result;
+				closure.setDelegate(this);
+				closure.setResolveStrategy(Closure.DELEGATE_ONLY);
+			}
+			return result;
+		} catch (final DSLException e) {
+			throw new IllegalArgumentException("Failed to load external DSL file: " + fileName, e);
+		}
+
+	}
+
+	private Object readExternalDSLFile(final File externalFile)
+			throws DSLException {
+		@SuppressWarnings("unchecked")
+		final Map<Object, Object> currentVars = this.getBinding().getVariables();
+
+		final DSLReader dslReader = new DSLReader();
+		dslReader.setBindingVariables(currentVars);
+		dslReader.setAdmin(null);
+		dslReader.setClusterInfo(null);
+		dslReader.setContext(null);
+		dslReader.setCreateServiceContext(false);
+		dslReader.setDslFile(externalFile);
+		dslReader.setPropertiesFileName(null);
+
+		final Object result = dslReader.readDslEntity(Object.class);
+
+		return result;
+	}
+
 	private void validateObject(final Object obj)
 			throws DSLValidationException {
 
@@ -411,6 +468,7 @@ public abstract class BaseDslScript extends Script {
 
 	/***********
 	 * Returns the DSL Meta-data required to translate DSL elements into POJOs.
+	 * 
 	 * @return DSL meta-data.
 	 */
 	public static synchronized Map<String, DSLObjectInitializerData> getDSLInitializers() {
@@ -440,7 +498,7 @@ public abstract class BaseDslScript extends Script {
 			addObjectInitializerForClass(dslObjectInitializersByName, Sla.class);
 
 			dslObjectInitializersByName.put("userInterface", new DSLObjectInitializerData("userInterface",
-					UserInterface.class, false, true, "service"));
+					UserInterface.class,  true, true, "service"));
 
 			dslObjectInitializersByName.put("metricGroup", new DSLObjectInitializerData("metricGroup",
 					MetricGroup.class, false, true, "userInterface"));
