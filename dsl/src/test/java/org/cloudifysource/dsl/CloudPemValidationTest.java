@@ -22,20 +22,28 @@ import java.io.File;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.Test;
 
-
+/**
+ * @author noak
+ * This test validates a missing pem file error throws the correct error message.
+ */
 public class CloudPemValidationTest {
 
-	private final static String EC2_MISSING_PEM_PATH = "testResources/testparsing/ec2-missing-pem-cloud.groovy";
+	private static final String EC2_MISSING_PEM_PATH = "testResources/testparsing/ec2-missing-pem-cloud.groovy";
 	
+	/**
+	 * Parses the given cloud groovy file, which point to a fake pem file.
+	 * The missing pem file should cause a dsl-validation error, with a proper message.
+	 */
 	@Test
-	public void testCloudParser() throws Exception {
+	public void testCloudParser() {
 		try {
-			org.cloudifysource.dsl.cloud.Cloud cloud = ServiceReader.readCloud(new File(EC2_MISSING_PEM_PATH));
+			ServiceReader.readCloud(new File(EC2_MISSING_PEM_PATH));
 			//if we got to the next line - the validation exception wasn't thrown.
 			assertTrue("The key file is not found yet no error was thrown", false);
 		} catch (Throwable e) {
 			assertTrue("The key file is not found yet no error was thrown. Error was: " + e.getMessage(), 
-					e.getMessage().contains("The specified key file is missing") || e.getMessage().contains("The specified key file is not found"));
+					e.getMessage().contains("The specified key file is missing") 
+					|| e.getMessage().contains("The specified key file is not found"));
 		}
 	}
 
