@@ -26,9 +26,6 @@ import org.cloudifysource.usm.monitors.MonitorException;
 
 public class JmxMonitor extends AbstractJmxPlugin implements Monitor {
 
-	private static java.util.logging.Logger logger = java.util.logging.Logger
-	.getLogger(AbstractJmxPlugin.class.getName());
-
 	@Override
 	public Map<String, Number> getMonitorValues(final UniversalServiceManagerBean usm,
 			final UniversalServiceManagerConfiguration config) throws MonitorException {

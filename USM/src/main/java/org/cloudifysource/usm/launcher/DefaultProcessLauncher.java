@@ -289,7 +289,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 		final ArrayList<String> groovyCommandParams = new ArrayList<String>();
 		groovyCommandParams.add(groovyPath);
-		if (USMUtils.isWindows()) {
+		if (ServiceUtils.isWindows()) {
 			modifyWindowsCommandLine(groovyCommandParams,
 					workingDir);
 		}
@@ -319,7 +319,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		final File groovyDir = new File(toolsDir, "groovy");
 		final File binDir = new File(groovyDir, "bin");
 		File groovyFile = null;
-		if (USMUtils.isWindows()) {
+		if (ServiceUtils.isWindows()) {
 			groovyFile = new File(binDir, "groovy.bat");
 		} else {
 			groovyFile = new File(binDir, "groovy");
@@ -329,7 +329,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			throw new FileNotFoundException("Could not find groovy executable: " + groovyFile.getAbsolutePath());
 		}
 
-		if (USMUtils.isLinuxOrUnix()) {
+		if (ServiceUtils.isLinuxOrUnix()) {
 			USMUtils.markFileAsExecutable(sigar,
 					groovyFile);
 		}
@@ -342,7 +342,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			throws USMException {
 		final String runParam = commandLineParams.get(0);
 
-		if (USMUtils.isWindows()) {
+		if (ServiceUtils.isWindows()) {
 			modifyWindowsCommandLine(commandLineParams,
 					puWorkDir);
 		} else {
@@ -535,7 +535,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	}
 
 	private List<String> createAlternativeCommandLine(final Map<String, Object> map, final File workDir) {
-		if (USMUtils.isWindows()) {
+		if (ServiceUtils.isWindows()) {
 			List<String> otherCommandLine = null;
 
 			if (map.entrySet().size() > 1) {
@@ -766,7 +766,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 				outputFile,
 				errorFile);
 
-		if (USMUtils.isLinuxOrUnix()) {
+		if (ServiceUtils.isLinuxOrUnix()) {
 			// run the whole command in a shell session
 			logger.info("Command before shell modification: " + commandLineParams);
 			final StringBuilder sb = new StringBuilder();

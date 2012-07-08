@@ -55,15 +55,18 @@ public class FileLivenessDetector extends AbstractUSMEventListener implements Li
 
 	@Override
 	public void setConfig(final Map<String, Object> config) {
-		if (config.get(FILE_PATH_KEY) != null) {
-			this.filePath = (String) config.get(FILE_PATH_KEY);
+		final String filePath = (String) config.get(FILE_PATH_KEY);
+		if (filePath != null) {
+			this.filePath = filePath;
 		}
 
-		if (config.get(TIMEOUT_IN_SECONDS_KEY) != null) {
-			this.timeoutInSeconds = (Integer) config.get(TIMEOUT_IN_SECONDS_KEY);
+		final Integer timeout = (Integer)config.get(TIMEOUT_IN_SECONDS_KEY);
+		if (timeout != null) {
+			this.timeoutInSeconds = timeout;
 		}
-		if (config.get(REGULAR_EXPRESSION_KEY) != null) {
-			this.regex = (String) config.get(REGULAR_EXPRESSION_KEY);
+		final String regex = (String) config.get(REGULAR_EXPRESSION_KEY);
+		if (regex != null) {
+			this.regex = regex;
 		}
 	}
 
@@ -78,7 +81,7 @@ public class FileLivenessDetector extends AbstractUSMEventListener implements Li
 	@Override
 	public boolean isProcessAlive()
 			throws USMException {
-		if (this.regex == "" || this.filePath == "") {
+		if (this.regex.isEmpty() || this.filePath.isEmpty()) {
 			throw new USMException(
 					"When using the FileLivnessDetector, both the file path and regex should be defined.");
 		}
@@ -90,7 +93,7 @@ public class FileLivenessDetector extends AbstractUSMEventListener implements Li
 		Tailer tailer = null;
 		try {
 			final long startTime = System.currentTimeMillis();
-			while (System.currentTimeMillis() < startTime + timeoutInSeconds * 1000) {
+			while (System.currentTimeMillis() < startTime + timeoutInSeconds * 1000L) {
 				if (file.exists()) {
 					if (tailer == null) {
 						tailer = Tailer.create(file, listener, TIMEOUT_BETWEEN_FILE_QUERYING, false);
