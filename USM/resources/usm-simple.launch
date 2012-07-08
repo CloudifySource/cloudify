@@ -28,5 +28,5 @@
 <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-cluster id=1 total_members=1"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="UniversalServiceManager"/>
 <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.m2e.launchconfig.sourcepathProvider"/>
-<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dorg.hyperic.sigar.path=${XAP_LATEST}/lib/platform/sigar&#13;&#10;-Dcom.gs.home=${XAP_LATEST}"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dorg.hyperic.sigar.path=${CLOUDIFY_LATEST}/lib/platform/sigar&#13;&#10;-Dcom.gs.home=${CLOUDIFY_LATEST}"/>
 </launchConfiguration>
