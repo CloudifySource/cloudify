@@ -102,7 +102,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private String lookupLocatorsString;
 	private CloudifyMachineProvisioningConfig config;
 	private java.util.logging.Logger logger;
-	private ElasticProcessingUnitMachineIsolation isolation;
 
 	@Override
 	public boolean isStartMachineSupported() {
@@ -537,7 +536,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	@Override
 	public void setElasticProcessingUnitMachineIsolation(final ElasticProcessingUnitMachineIsolation isolation) {
-		this.isolation = isolation;
+		
 	}
 
 }

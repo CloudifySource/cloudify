@@ -40,7 +40,6 @@ import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.jclouds.JCloudsDeployer;
-import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.domain.ComputeMetadata;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.NodeState;
@@ -104,7 +103,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			throw new TimeoutException("Starting a new machine timed out");
 		}
 
-		final ComputeServiceContext currentContext = this.deployer.getContext();
 		try {
 			final MachineDetails md = doStartMachine(end);
 			return md;
@@ -460,12 +458,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 							return false;
 						}
 						// only running or pending nodes are interesting
-						if (!(node.getState() == NodeState.RUNNING || node.getState() == NodeState.PENDING)) {
-							return false;
+						if (node.getState() == NodeState.RUNNING || node.getState() == NodeState.PENDING) {
+							return node.getGroup().toLowerCase().startsWith(managementMachinePrefix.toLowerCase());
 						}
-
-						return node.getGroup().toLowerCase().startsWith(managementMachinePrefix.toLowerCase());
-
+						return false;
 					}
 				});
 

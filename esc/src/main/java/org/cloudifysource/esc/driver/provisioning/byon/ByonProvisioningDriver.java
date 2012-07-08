@@ -67,7 +67,6 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 	private static final int THREAD_WAITING_IDLE_TIME_IN_SECS = 10;
 	private static final int AGENT_SHUTDOWN_TIMEOUT_IN_MINUTES = 2;
-	private static final int FILE_DELETION_TIMEOUT_IN_MINUTES = 1;
 	private static final String CLOUD_NODES_LIST = "nodesList";
 	private static final String CLEAN_GS_FILES_ON_SHUTDOWN = "cleanGsFilesOnShutdown";
 	private static final String CLOUDIFY_ITEMS_TO_CLEAN = "itemsToClean";
