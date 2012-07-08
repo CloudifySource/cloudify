@@ -37,6 +37,7 @@ public class ServiceValidationTest {
 		//no num instances defined. using default values:
 		try {
 			Service service = new Service();
+			service.setType("WEB_SERVER");
 			service.validateDefaultValues();
 		}catch (DSLValidationException e) {
 			fail("Validation of service failed");
@@ -46,6 +47,28 @@ public class ServiceValidationTest {
 			Service service = new Service();
 			service.setNumInstances(1);
 			service.setMaxAllowedInstances(1);
+			service.setType("WEB_SERVER");
+			service.validateDefaultValues();
+		}catch (DSLValidationException e) {
+			fail("Validation of service failed");
+		}
+	}
+	
+	@Test
+	public void testIllegalServiceType() {
+		//illegal number of instances:
+		try {
+			Service service = new Service();
+			service.setType("NonExistionType");
+			service.validateDefaultValues();
+			fail("an invalid service was successfully validated");
+		} catch (DSLValidationException e) {
+			
+		}
+		//no num instances defined. using default values:
+		try {
+			Service service = new Service();
+			service.setType("WEB_SERVER");
 			service.validateDefaultValues();
 		}catch (DSLValidationException e) {
 			fail("Validation of service failed");
