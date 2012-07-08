@@ -41,10 +41,12 @@ import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
 
 /**
+ *  This class implements the {@link AdminFacade}, relying on the abstract implementation of
+ *  {@link AbstractAdminFacade}. It discovers and manages applications, services, containers and other components
+ *  over REST, using the {@link GSRestClient}.
+ *  
  * @author rafi, barakm, adaml, noak
- * @since 2.0.0 This class implements the {@link AdminFacade}, relying on the abstract implementation of
- *        {@link AbstractAdminFacade}. It discovers and manages applications, services, containers and other components
- *        over REST, using the {@link GSRestClient}.
+ * @since 2.0.0
  */
 public class RestAdminFacade extends AbstractAdminFacade {
 
@@ -61,7 +63,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	public void doConnect(final String user, final String password, final String url) throws CLIException {
 		String formattedURL = url;
 		if (!formattedURL.endsWith("/")) {
-			formattedURL = formattedURL + "/";
+			formattedURL = formattedURL + '/';
 		}
 		if (!formattedURL.startsWith("http://")) {
 			formattedURL = "http://" + formattedURL;
@@ -89,9 +91,9 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	}
 
 	private URL getUrlWithDefaultPort(final URL urlObj) throws MalformedURLException {
-		StringBuffer url = new StringBuffer(urlObj.toString());
+		StringBuilder url = new StringBuilder(urlObj.toString());
 		final int portIndex = url.indexOf("/", "http://".length());
-		url = url.insert(portIndex, ":" + CloudifyConstants.DEFAULT_REST_PORT);
+		url.insert(portIndex, ':' + CloudifyConstants.DEFAULT_REST_PORT);
 		return new URL(url.toString());
 	}
 
@@ -109,9 +111,10 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	@Override
 	public void removeInstance(final String applicationName, final String serviceName, final int instanceId)
 			throws CLIException {
+		
+		final String relativeUrl = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/"
+				+ serviceName + "/instances/" + instanceId + "/remove";
 		try {
-			final String relativeUrl = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/"
-					+ serviceName + "/instances/" + instanceId + "/remove";
 			client.delete(relativeUrl);
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
@@ -131,35 +134,29 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 * {@inheritDoc}
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
 	public List<String> getApplicationsList() throws CLIException {
-
-		List<String> applicationsList = null;
-
 		try {
-			applicationsList = (List<String>) client.get("/service/applications");
+			@SuppressWarnings("unchecked")
+			List<String> applications = (List<String>) client.get("/service/applications");
+			return applications;
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
-
-		return applicationsList;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
+	
 	public List<String> getServicesList(final String applicationName) throws CLIException {
-
-		List<String> servicesList = null;
 		try {
-			servicesList = (List<String>) client.get("/service/applications/" + applicationName + "/services");
+			@SuppressWarnings("unchecked")
+			List<String> services = (List<String>) client.get("/service/applications/" + applicationName + "/services");
+			return services;
 		} catch (final ErrorStatusException ese) {
 			throw new CLIStatusException(ese, ese.getReasonCode(), ese.getArgs());
 		}
-
-		return servicesList;
 	}
 
 	/**
@@ -167,18 +164,14 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 */
 	@Override
 	protected String doDeploy(final String applicationName, final File packedFile) throws CLIException {
-
-		String result = null;
+		final String url = SERVICE_CONTROLLER_URL + CLOUD_CONTROLLER_URL + "deploy?applicationName=" + applicationName;
 		try {
-			result = (String)client.postFile(SERVICE_CONTROLLER_URL + CLOUD_CONTROLLER_URL + "deploy?" + "applicationName="
-					+ applicationName, packedFile);
+			return (String)client.postFile( url, packedFile);
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		} catch (final RestException e) {
 			throw new CLIException(e);
 		}
-
-		return result;
 	}
 
 	/**
@@ -194,9 +187,11 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 */
 	@Override
 	public Map<String, String> undeploy(final String applicationName, final String serviceName, int timeoutInMinutes) throws CLIException {
+		
+		final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName +
+				"/timeout/" + timeoutInMinutes + "/undeploy"  ;
 		try {
-			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName + "/timeout/" + timeoutInMinutes
-					+ "/undeploy"  ;
+			@SuppressWarnings("unchecked")
 			Map<String, String> response = (Map<String, String>) client.delete(url);
 			return response;
 		} catch (final ErrorStatusException e) {
@@ -210,9 +205,10 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	@Override
 	public void addInstance(final String applicationName, final String serviceName, final int timeout)
 			throws CLIException {
+		
+		final String url = SERVICE_CONTROLLER_URL + "applications/na/services/" + serviceName + "/addinstance";
+		final Map<String, String> params = new HashMap<String, String>();
 		try {
-			final String url = SERVICE_CONTROLLER_URL + "applications/na/services/" + serviceName + "/addinstance";
-			final Map<String, String> params = new HashMap<String, String>();
 			params.put("timeout", Integer.toString(timeout));
 			client.post(url, params);
 		} catch (final ErrorStatusException e) {
@@ -226,20 +222,18 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 * {@inheritDoc}
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
 	public Map<String, Object> getInstanceList(final String applicationName, final String serviceName)
 			throws CLIException {
 
-		Map<String, Object> instanceList = null;
+		final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" +
+				serviceName + "/instances";
 		try {
-			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName
-					+ "/instances";
-			instanceList = (Map<String, Object>) client.get(url);
+			@SuppressWarnings("unchecked")
+			Map<String, Object> instances = (Map<String, Object>) client.get(url);
+			return instances;
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
-
-		return instanceList;
 	}
 
 	/**
@@ -249,18 +243,15 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	public String installElastic(final File packedFile, final String applicationName, final String serviceName,
 			final String zone, final Properties contextProperties, final String templateName, int timeout) throws CLIException {
 
-		String result = null;
+		final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName + 
+				"/timeout/" + timeout + "?zone=" + zone + "&template=" + templateName;
 		try {
-			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName + "/timeout/" + timeout;
-			result = (String)client.postFile(url + "?zone=" + zone + "&template=" + templateName, packedFile,
-					contextProperties);
+			return (String)client.postFile(url, packedFile, contextProperties);
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		} catch (final RestException e) {
 			throw new CLIException(e);
 		}
-
-		return result;
 	}
 	
 	/**
@@ -284,7 +275,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName
 				+ "/beans/" + beanName + "/invoke";
 
-		Object result = null;
+		Object result;
 		try {
 			result = client.post(url, buildCustomCommandParams(commandName, params));
 		} catch (final ErrorStatusException e) {
@@ -323,10 +314,12 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			throws CLIException {
 		final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName
 				+ "/instances/" + instanceId + "/beans/" + beanName + "/invoke";
-		@SuppressWarnings("unchecked")
+
 		Map<String, String> resultMap;
 		try {
-			resultMap = (Map<String, String>) client.post(url, buildCustomCommandParams(commandName, paramsMap));
+			@SuppressWarnings("unchecked")
+			Map<String, String> response = (Map<String, String>) client.post(url, buildCustomCommandParams(commandName, paramsMap));
+			resultMap = response;
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		} catch (final RestException e) {
@@ -341,9 +334,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		// InvocationResult invocationResult = InvocationResult
 		// .createInvocationResult(curr);
 		//
-		final InvocationResult invocationResult = InvocationResult.createInvocationResult(resultMap);
-
-		return invocationResult;
+		return InvocationResult.createInvocationResult(resultMap);
 		// return GSRestClient.mapToInvocationResult(resultMap);
 
 	}
@@ -365,7 +356,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	@Override
 	public List<String> getMachines() throws CLIException {
 
-		Map<String, Object> map = null;
+		Map<String, Object> map;
 		try {
 			map = client.getAdminData("machines/HostsByAddress");
 		} catch (final ErrorStatusException e) {
@@ -389,8 +380,10 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 */
 	@Override
 	public Map<String, String> uninstallApplication(final String applicationName, int timeoutInMinutes) throws CLIException {
+		
+		final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/timeout/" + timeoutInMinutes;
 		try {
-			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/timeout/" + timeoutInMinutes; 
+			@SuppressWarnings("unchecked")
 			Map<String, String> response = (Map<String, String>) client.delete(url);
 			return response;
 		} catch (final ErrorStatusException e) {
@@ -467,7 +460,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 *             Reporting a failure to locate the requested GSCs or get the UIDs.
 	 */
 	public Set<String> getGridServiceContainerUids() throws CLIException {
-		Map<String, Object> container = null;
+		Map<String, Object> container;
 		try {
 			container = client.getAdmin("GridServiceContainers");
 		} catch (final ErrorStatusException e) {
@@ -490,17 +483,14 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 */
 	public Map<String, String> dumpAgent(final String ip) throws CLIException {
 
-		Map<String, String> result = null;
+		final String url = SERVICE_CONTROLLER_URL + "dump/" + ip;
 		try {
-			final String url = SERVICE_CONTROLLER_URL + "dump/" + ip;
-			result = (Map<String, String>)client.get(url);
+			@SuppressWarnings("unchecked")
+			Map<String, String> response = (Map<String, String>)client.get(url);
+			return response;
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-		} catch (final RestException e) {
-			throw new CLIException(e);
 		}
-
-		return result;
 	}
 	
 	
@@ -510,25 +500,26 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	@Override
 	public Map<String, String> installApplication(final File applicationFile, final String applicationName, int timeout) throws CLIException {
 
-		Map<String, String> result = null;
+		final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/timeout/" + timeout;
 		try {
-			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/timeout/" + timeout;
-			result = (Map<String, String>)client.postFile(url, applicationFile);
+			@SuppressWarnings("unchecked")
+			Map<String, String> response = (Map<String, String>)client.postFile(url, applicationFile);
+			return response;
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		} catch (final RestException e) {
 			throw new CLIException(e);
 		}
-
-		return result;
 	}
 
 	@Override
 	public Map<String, String> setInstances(final String applicationName, final String serviceName, final int count, int timeout)
 			throws CLIException {
+		
+		final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName + 
+				"/timeout/" + timeout + "/set-instances?count=" + count;
 		try {
-			final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName  + "/timeout/" + timeout
-					+ "/set-instances?count=" + count;
+			@SuppressWarnings("unchecked")
 			Map<String, String> response = (Map<String, String>) client.post(url);
 			return response;
 		} catch (final ErrorStatusException e) {
