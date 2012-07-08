@@ -31,9 +31,11 @@ import org.junit.Test;
 public class ServiceWithExternalFileLoadingTest {
 
 	private static final String RECIPE_PATH = "testResources/testparsing/externalLoad/test_loading.groovy";
+	private static final String RECIPE_PATH_MISSING_FILE =
+			"testResources/testparsing/externalLoad/test_loading_error.groovy";
 
 	@Test
-	public void testCloudParser()
+	public void testServiceParser()
 			throws Exception {
 		Service service = ServiceReader.readService(new File(RECIPE_PATH));
 		Assert.assertNotNull("lifecycle loaded from external file should not be null", service.getLifecycle());
@@ -42,6 +44,19 @@ public class ServiceWithExternalFileLoadingTest {
 		Assert.assertNotNull("userinterface loaded from external file should not be null", service.getUserInterface());
 		Assert.assertEquals("unexpected value in UI field", 1, service.getUserInterface().getMetricGroups().size());
 		Assert.assertEquals("unexpected value in UI field", 2, service.getUserInterface().getWidgetGroups().size());
+
+	}
+
+	@Test
+	public void testServiceParserWithMissingFile()
+			throws Exception {
+		try {
+			ServiceReader.readService(new File(RECIPE_PATH_MISSING_FILE));
+			Assert.fail("Service parsing succeeded but it should have failed");
+		} catch (Exception e) {
+			Assert.assertTrue("Incorrent error message in parse error of service with missing external file", e
+					.getMessage().contains("ui_MISSING.groovy"));
+		}
 
 	}
 
