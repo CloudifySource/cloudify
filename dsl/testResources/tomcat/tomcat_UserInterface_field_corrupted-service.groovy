@@ -1,7 +1,7 @@
 service {
 	name "tomcat"
 	icon "tomcat.gif"
-
+	type "WEB_SERVER"
 	lifecycle{
 
 		init "tomcat_install.groovy"
