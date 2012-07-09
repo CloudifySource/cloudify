@@ -1,6 +1,6 @@
 service {
 	name "test parsing base"
-
+	type "WEB_SERVER"
 	lifecycle{
 
 		init "test_parsing_base_install.groovy"

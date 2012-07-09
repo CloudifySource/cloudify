@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicLong;
 service {
   
 	name "scalingRules"
- 
+	type "WEB_SERVER"
   lifecycle {
 
       //sleep forever

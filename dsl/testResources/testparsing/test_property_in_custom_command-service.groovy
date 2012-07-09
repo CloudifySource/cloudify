@@ -1,6 +1,7 @@
 service {
 
     name "iisproxy" 
+	type "WEB_SERVER"
     numInstances 2
     maxAllowedInstances 2
     lifecycle {
@@ -12,7 +13,7 @@ service {
 	customCommands ([
 		"custom_command" : { 
 			name,port ->
-        pattern = "^${name}/(.*)"	
+			pattern = "^${name}/(.*)"	
 		}
 	])
       

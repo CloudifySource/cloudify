@@ -1,6 +1,7 @@
 service {
 	name "test features"
 	url "http://" + InetAddress.localHost.hostName + ":8080"
+	type "WEB_SERVER"
 
 	lifecycle{
 
