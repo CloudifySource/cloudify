@@ -149,19 +149,19 @@
 		
 		<replaceregexp file="${build.properties.file}"
 	         match="${gs.version.field}=(.*)"
-	         replace="${gs.version.field}=${gs.product.version}"/>
+	         replace="${gs.version.field}=${gs.version}"/>
 
 	    <replaceregexp file="${build.properties.file}"
 	         match="${gs.milestone.field}=(.*)"
-	         replace="${gs.milestone.field}=${milestone}"/>
+	         replace="${gs.milestone.field}=${gs.milestone}"/>
 
 	    <replaceregexp file="${build.properties.file}"
 	         match="${gs.build.number.field}=(.*)"
-	         replace="${gs.build.number.field}=${new.build.number}"/>
+	         replace="${gs.build.number.field}=${gs.build.number}"/>
 	   	
 	   	<replaceregexp file="${build.properties.file}"
 	   	            match="${s3.gs.publish.folder.field}=(.*)"
-	   	            replace="${s3.gs.publish.folder.field}=${s3.publish.folder}"/>
+	   	            replace="${s3.gs.publish.folder.field}=${s3.gs.publish.folder}"/>
 
    </target>
 	
