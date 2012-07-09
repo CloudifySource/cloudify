@@ -24,9 +24,11 @@ Build Instructions
 ------------------
 1. make sure that you have git, ant and maven installed.
 2. In git, run the following commands:
-   git clone https://github.com/CloudifySource/cloudify.git
-   cd cloudify
-   ant cloudify.zip
+```
+git clone https://github.com/CloudifySource/cloudify.git
+cd cloudify
+ant cloudify.zip
+```
 3. The Cloudify distribution will be available under the 'cloudify/tmp' directory
 
 Import Cloudify to Eclipse
@@ -39,16 +41,24 @@ Import Cloudify to Eclipse
 Debugging the CLI without cloud plugin support
 -----------------
 1. To debug the CLI without plugin support
+```
 cd cloudify/CLI/
 mvndebug –e compile exec:java
+```
 2. Connect the eclipse project to port 8000 and start the remote debugging.
 
 Debugging the CLI with cloud plugin support
 -----------------
 1. Build cloudify as described above
 2. Enable debugging option in the cloudify startup script:
-   On Linux edit cloudify/tmp/tools/cli/cloudify.sh and append ${CLOUDIFY_DEBUG_OPTIONS} to the commandline adjacent to ${CLOUDIFY_JAVA_OPTIONS}
-   On Windows edit cloudify/tmptools/cli/cloudify.bat and append %CLOUDIFY_DEBUG_OPTIONS% to the commandline adjacent to %CLOUDIFY_JAVA_OPTIONS%
+   On Linux edit cloudify/tmp/tools/cli/cloudify.sh and append ${CLOUDIFY_DEBUG_OPTIONS} to the commandline adjacent to 
+   ```
+   ${CLOUDIFY_JAVA_OPTIONS}
+   ```
+   On Windows edit cloudify/tmptools/cli/cloudify.bat and append %CLOUDIFY_DEBUG_OPTIONS% to the commandline adjacent to 
+   ```
+   %CLOUDIFY_JAVA_OPTIONS%
+   ```
 3. Connect the eclipse project to port 9000 and start the remote debugging.
 
 
