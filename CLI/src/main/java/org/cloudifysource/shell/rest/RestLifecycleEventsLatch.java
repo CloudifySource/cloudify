@@ -27,7 +27,6 @@ import org.cloudifysource.restclient.ErrorStatusException;
 import org.cloudifysource.restclient.GSRestClient;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.commands.CLIException;
-import org.cloudifysource.shell.commands.CLIStatusException;
 import org.cloudifysource.shell.installer.CLIEventsDisplayer;
 import org.cloudifysource.shell.ConditionLatch.Predicate;
 /**
@@ -63,8 +62,6 @@ public class RestLifecycleEventsLatch {
 
 	boolean isDone = false;
 
-	boolean exceptionOnServer = false;
-
 	String url;
 
 	Map<String, Object> lifecycleEventLogs = null;
@@ -94,7 +91,6 @@ public class RestLifecycleEventsLatch {
 	public void waitForLifecycleEvents(final int timeout, TimeUnit timeUnit) 
 			throws InterruptedException, TimeoutException, CLIException {
 		createConditionLatch(timeout, TimeUnit.MINUTES).waitFor(new Predicate() {
-			//		this.endTime = System.currentTimeMillis() + timeUnit.toMillis(timeout);
 
 			@Override
 			public boolean isDone() throws CLIException, InterruptedException {
@@ -103,13 +99,13 @@ public class RestLifecycleEventsLatch {
 				try {
 					lifecycleEventLogs = (Map<String, Object>) client.get(url);
 				} catch (final ErrorStatusException e) {
-					throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+					throw new CLIException("Event polling task failed on remote server." 
+							+ "For more information regarding the installation, please refer to full logs", e);
 				}
 
 				List<String> events = (List<String>) lifecycleEventLogs.get(CloudifyConstants.LIFECYCLE_LOGS);
 				cursor = (Integer) lifecycleEventLogs.get(CloudifyConstants.CURSOR_POS);
 				isDone = (Boolean) lifecycleEventLogs.get(CloudifyConstants.IS_TASK_DONE);
-				exceptionOnServer = (Boolean) lifecycleEventLogs.get(CloudifyConstants.POLLING_EXCEPTION);
 				remoteTaskLeaseExpiration = Long.valueOf((String) lifecycleEventLogs.
 						get(CloudifyConstants.SERVER_POLLING_TASK_EXPIRATION_MILLI)) + System.currentTimeMillis();
 
@@ -120,14 +116,9 @@ public class RestLifecycleEventsLatch {
 				}
 
 				if (isDone) {
-					if (exceptionOnServer) {
-						throw new CLIException("Event polling task failed on remote server." 
-								+ "For more information regarding the installation, please refer to full logs");
-					}
 					displayer.eraseCurrentLine();
 					return true;
 				}
-				//			Thread.sleep(pollingInterval);
 				return false;
 			}
 		});
