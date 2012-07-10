@@ -437,7 +437,7 @@ public class Service {
 		for (ServiceTierType tierType : ServiceTierType.values()) {
 			enumAsString[counter] = tierType.toString();
 			counter++;
-			if (this.type.equalsIgnoreCase(tierType.toString())) {
+			if (tierType.toString().equalsIgnoreCase(this.type)) {
 				typeExists = true;
 			}
 		}
