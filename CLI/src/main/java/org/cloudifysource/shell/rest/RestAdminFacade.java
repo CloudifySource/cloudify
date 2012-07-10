@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -258,12 +259,20 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void waitForLifecycleEvents(final String pollingID, int timeout, String timeoutMessage) 
+	public boolean waitForLifecycleEvents(final String pollingID, final int timeout) 
 			throws CLIException, InterruptedException, TimeoutException {
-		
 		RestLifecycleEventsLatch restLifecycleEventsLatch = new RestLifecycleEventsLatch();
-		restLifecycleEventsLatch.setTimeoutMessage(timeoutMessage);
-		restLifecycleEventsLatch.waitForLifecycleEvents(pollingID, client, timeout);
+		restLifecycleEventsLatch.setPollingId(pollingID);
+		restLifecycleEventsLatch.setRestClient(client);
+		return restLifecycleEventsLatch.waitForLifecycleEvents(timeout, TimeUnit.MINUTES);
+	}
+	
+	@Override
+	public RestLifecycleEventsLatch getLifecycleEventsPollingLatch(final String pollingID) {	
+		RestLifecycleEventsLatch restLifecycleEventsLatch = new RestLifecycleEventsLatch();
+		restLifecycleEventsLatch.setPollingId(pollingID);
+		restLifecycleEventsLatch.setRestClient(client);
+		return restLifecycleEventsLatch;
 	}
 
 	/**

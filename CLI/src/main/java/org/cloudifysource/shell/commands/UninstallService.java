@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
@@ -90,10 +91,13 @@ public class UninstallService extends AdminAwareCommand {
 		Map<String, String> undeployServiceResponse = adminFacade.undeploy(getCurrentApplicationName(), serviceName, timeoutInMinutes);
 		if (undeployServiceResponse.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)){
 			String pollingID = undeployServiceResponse.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
-			this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
+			boolean waitForLifecycleEvents = this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes);
+			if (!waitForLifecycleEvents) {
+				throw new TimeoutException(TIMEOUT_ERROR_MESSAGE);
+			}
 		} else {
 			throw new CLIException("Failed to retrieve lifecycle logs from rest. " +
-			"Check logs for more details.");
+					"Check logs for more details.");
 		}
 		return getFormattedMessage("undeployed_successfully", serviceName);
 	}
@@ -114,7 +118,10 @@ public class UninstallService extends AdminAwareCommand {
 			System.out.print(confirmationQuestion);
 			System.out.flush();
 			final PropertiesReader pr = new PropertiesReader(new InputStreamReader(System.in));
-			final String answer = pr.readProperty();
+			String answer = "";
+			while (!answer.equalsIgnoreCase("y") && !answer.equalsIgnoreCase("n")) {
+				answer = pr.readProperty();
+			}
 			System.out.println();
 			System.out.flush();
 			return "y".equalsIgnoreCase(answer);

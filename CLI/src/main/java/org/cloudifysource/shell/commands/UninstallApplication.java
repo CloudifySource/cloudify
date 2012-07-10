@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
@@ -97,7 +98,10 @@ public class UninstallApplication extends AdminAwareCommand {
 
 		if (uninstallApplicationResponse.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
 			String pollingID = uninstallApplicationResponse.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
-			this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
+			boolean waitForLifecycleEvents = this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes);
+			if (!waitForLifecycleEvents) {
+				throw new TimeoutException(TIMEOUT_ERROR_MESSAGE);
+			}
 		} else {
 			throw new CLIException("Failed to retrieve lifecycle logs from rest. " 
 			+ "Check logs for more details.");
@@ -125,7 +129,10 @@ public class UninstallApplication extends AdminAwareCommand {
 			System.out.print(confirmationQuestion);
 			System.out.flush();
 			final PropertiesReader pr = new PropertiesReader(new InputStreamReader(System.in));
-			final String readLine = pr.readProperty();
+			String readLine = "";
+			while (!readLine.equalsIgnoreCase("y") && !readLine.equalsIgnoreCase("n")) {
+				readLine = pr.readProperty();
+			}
 			System.out.println();
 			System.out.flush();
 			return "y".equalsIgnoreCase(readLine);

@@ -24,6 +24,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.cloudifysource.restclient.InvocationResult;
 import org.cloudifysource.shell.commands.CLIException;
+import org.cloudifysource.shell.rest.RestLifecycleEventsLatch;
 
 /**
  * @author rafi, barakm, adaml, noak
@@ -286,9 +287,11 @@ public interface AdminFacade {
 	 * @throws TimeoutException 
 	 * 				Reporting the timeout was reached
 	 */
-	public void waitForLifecycleEvents(final String pollingID, int timeout, String timeoutMessage) 
+	public boolean waitForLifecycleEvents(final String pollingID, int timeout) 
 			throws CLIException, InterruptedException, TimeoutException;
 	
 	Map<String, String> setInstances(String applicationName, String serviceName, int count, int timeout) throws CLIException;
+	
+	public RestLifecycleEventsLatch getLifecycleEventsPollingLatch(final String pollingID); 
 	
 }

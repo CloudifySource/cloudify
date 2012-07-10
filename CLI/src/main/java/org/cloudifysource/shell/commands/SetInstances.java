@@ -16,6 +16,7 @@
 package org.cloudifysource.shell.commands;
 
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
@@ -78,7 +79,10 @@ public class SetInstances extends AdminAwareCommand {
 
 		if (response.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
 			String pollingID = response.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
-			this.adminFacade.waitForLifecycleEvents(pollingID, timeout, TIMEOUT_ERROR_MESSAGE);
+			boolean waitForLifecycleEvents = this.adminFacade.waitForLifecycleEvents(pollingID, timeout);
+			if (!waitForLifecycleEvents) {
+				throw new TimeoutException(TIMEOUT_ERROR_MESSAGE);
+			}
 		} else {
 			logger.info("Failed to retrieve lifecycle logs from rest. " 
 			+ "Check logs for more details.");

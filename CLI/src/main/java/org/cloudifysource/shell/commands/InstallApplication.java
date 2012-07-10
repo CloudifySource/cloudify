@@ -16,11 +16,16 @@
 package org.cloudifysource.shell.commands;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
+import org.apache.karaf.util.Properties.PropertiesReader;
 import org.cloudifysource.dsl.Application;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -28,6 +33,7 @@ import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
+import org.cloudifysource.shell.rest.RestLifecycleEventsLatch;
 import org.fusesource.jansi.Ansi.Color;
 
 /**
@@ -108,18 +114,64 @@ public class InstallApplication extends AdminAwareCommand {
 		}
 		
 		printApplicationInfo(application);
-		if (result.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)){
+		if (result.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
 			String pollingID = result.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
-			this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
+			RestLifecycleEventsLatch lifecycleEventsPollingLatch = 
+					this.adminFacade.getLifecycleEventsPollingLatch(pollingID);
+			boolean isDone = lifecycleEventsPollingLatch.waitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
+			while (!isDone) {
+				boolean continueInstallation = promptWouldYouLikeToContinueQuestion();
+				if (!continueInstallation) {
+					//uninstallApplication();
+				} else { 
+					isDone = lifecycleEventsPollingLatch.continueWaitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
+				}
+			}
 		} else {
-			throw new CLIException("Failed to retrieve lifecycle logs from rest. " +
-			"Check logs for more details.");
+			throw new CLIException("Failed to retrieve lifecycle logs from rest. " 
+			+ "Check logs for more details.");
 		}
 
 		session.put(Constants.ACTIVE_APP, applicationName);
 		GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
 
 		return this.getFormattedMessage("application_installed_succesfully", Color.GREEN, applicationName);
+	}
+
+	private void uninstallApplication() throws CLIException,
+			InterruptedException, TimeoutException {
+		Map<String, String> uninstallApplicationResponse = this.adminFacade
+				.uninstallApplication(this.applicationName, timeoutInMinutes);
+
+		if (uninstallApplicationResponse.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
+			String uninstallPollingID = uninstallApplicationResponse
+					.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
+			this.adminFacade.waitForLifecycleEvents(uninstallPollingID, timeoutInMinutes);
+		} else {
+			throw new CLIException("Failed to retrieve lifecycle logs from rest. " 
+					+ "Check logs for more details.");
+		}
+	}
+
+	private boolean promptWouldYouLikeToContinueQuestion() throws IOException {
+		// we skip question if the shell is running a script.
+		if ((Boolean) session.get(Constants.INTERACTIVE_MODE)) {
+			final String confirmationQuestion = getFormattedMessage(
+					"would_you_like_to_continue_application_installation",
+					this.applicationName);
+			System.out.print(confirmationQuestion);
+			System.out.flush();
+			final PropertiesReader pr = new PropertiesReader(new InputStreamReader(System.in));
+			String readLine = "";
+			while (!readLine.equalsIgnoreCase("y") && !readLine.equalsIgnoreCase("n")) {
+				readLine = pr.readProperty();
+			}
+			System.out.println();
+			System.out.flush();
+			return "y".equalsIgnoreCase(readLine);
+		}
+		// Shell is running in nonInteractive mode. we skip the question.
+		return true;
 	}
 
 	/**
