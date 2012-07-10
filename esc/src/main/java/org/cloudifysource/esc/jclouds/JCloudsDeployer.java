@@ -349,8 +349,7 @@ public class JCloudsDeployer {
 
 			@Override
 			public boolean apply(final ComputeMetadata compute) {
-				return compute.getId().equals(
-						serverID);
+				return compute.getId().equals( serverID);
 			}
 
 		};
@@ -368,8 +367,8 @@ public class JCloudsDeployer {
 	 * @return node meta data
 	 */
 	public NodeMetadata getServerByName(final String serverName) {
-		final String adaptedServerName = serverName.replace(
-				"_", "") + "-";
+		final String adaptedServerName = serverName.replace( "_", "") + "-";
+		
 		final Predicate<ComputeMetadata> filter = new Predicate<ComputeMetadata>() {
 
 			@Override
@@ -377,8 +376,7 @@ public class JCloudsDeployer {
 				if (compute.getName() == null) {
 					return false;
 				}
-				return compute.getName().startsWith(
-						adaptedServerName);
+				return compute.getName().startsWith( adaptedServerName);
 			}
 
 		};
@@ -394,8 +392,7 @@ public class JCloudsDeployer {
 	 * @return the nodes.
 	 */
 	public Set<? extends NodeMetadata> getServers(final Predicate<ComputeMetadata> filter) {
-		return this.context.getComputeService().listNodesDetailsMatching(
-				filter);
+		return this.context.getComputeService().listNodesDetailsMatching( filter);
 	}
 
 	/*******************
@@ -411,8 +408,7 @@ public class JCloudsDeployer {
 			@Override
 			public boolean apply(final ComputeMetadata input) {
 				final NodeMetadata node = (NodeMetadata) input;
-				return node.getGroup() != null && node.getGroup().equals(
-						group);
+				return node.getGroup() != null && node.getGroup().equals( group);
 			}
 		});
 
@@ -431,14 +427,7 @@ public class JCloudsDeployer {
 			@Override
 			public boolean apply(final ComputeMetadata compute) {
 				final NodeMetadata node = (NodeMetadata) compute;
-				if (node.getPrivateAddresses().contains(
-						ip)) {
-					return true;
-				}
-
-				return node.getPublicAddresses().contains(
-						ip);
-
+				return node.getPrivateAddresses().contains(ip);
 			}
 
 		};
@@ -759,8 +748,7 @@ public class JCloudsDeployer {
 
 					@Override
 					public boolean apply(final NodeMetadata input) {
-						return input.getGroup() != null && input.getGroup().equals(
-								group);
+						return input.getGroup() != null && input.getGroup().equals( group);
 					}
 				});
 	}
@@ -801,13 +789,10 @@ public class JCloudsDeployer {
 				if (node.getGroup() == null) {
 					return false;
 				}
-				if (node.getGroup().equals(
-						tag)) {
+				if (node.getGroup().equals(tag)) {
 					return true;
 				}
-				if (node.getGroup().equals(
-						tag.replace(
-								"_", ""))) {
+				if (node.getGroup().equals( tag.replace( "_", ""))) {
 					return true;
 				}
 				return false;
