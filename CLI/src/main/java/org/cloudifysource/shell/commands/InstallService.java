@@ -18,7 +18,6 @@ package org.cloudifysource.shell.commands;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -180,9 +179,7 @@ public class InstallService extends AdminAwareCommand {
 					}
 					boolean continueInstallation = promptWouldYouLikeToContinueQuestion();
 					if (!continueInstallation) {
-						uninstallService();
-						isDone = true;
-						returnMessage = getFormattedMessage("undeployed_successfully", serviceName);
+						throw new CLIStatusException(e, "service_installation_timed_out_on_client", serviceName);
 					} else {
 						continues = true;
 					}
@@ -199,19 +196,6 @@ public class InstallService extends AdminAwareCommand {
 		}
 
 		return returnMessage;
-	}
-
-	private void uninstallService() throws CLIException, InterruptedException,
-			TimeoutException {
-		Map<String, String> undeployServiceResponse = adminFacade.undeploy(getCurrentApplicationName(),
-				serviceName, timeoutInMinutes);
-		if (undeployServiceResponse.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
-			String pollingID = undeployServiceResponse.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
-			this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes, UninstallService.TIMEOUT_ERROR_MESSAGE);
-		} else {
-			throw new CLIException("Failed to retrieve lifecycle logs from rest. " 
-			+ "Check logs for more details.");
-		}
 	}
 
 	private boolean promptWouldYouLikeToContinueQuestion() throws IOException {

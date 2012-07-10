@@ -136,10 +136,8 @@ public class InstallApplication extends AdminAwareCommand {
 					}
 					boolean continueInstallation = promptWouldYouLikeToContinueQuestion();
 					if (!continueInstallation) {
-						uninstallApplication();
-						returnMessage = getFormattedMessage("application_uninstalled_succesfully",
-								this.applicationName);
-						isDone = true;
+						throw new CLIStatusException(e, "application_installation_timed_out_on_client", 
+								applicationName);
 					} else {
 						continues = true;
 					}
@@ -154,22 +152,6 @@ public class InstallApplication extends AdminAwareCommand {
 		GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
 
 		return returnMessage;
-	}
-
-	private void uninstallApplication() throws CLIException,
-			InterruptedException, TimeoutException {
-		Map<String, String> uninstallApplicationResponse = this.adminFacade
-				.uninstallApplication(this.applicationName, timeoutInMinutes);
-
-		if (uninstallApplicationResponse.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
-			String uninstallPollingID = uninstallApplicationResponse
-					.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
-			this.adminFacade.waitForLifecycleEvents(uninstallPollingID, timeoutInMinutes,
-					UninstallApplication.TIMEOUT_ERROR_MESSAGE);
-		} else {
-			throw new CLIException("Failed to retrieve lifecycle logs from rest. " 
-					+ "Check logs for more details.");
-		}
 	}
 
 	private boolean promptWouldYouLikeToContinueQuestion() throws IOException {
