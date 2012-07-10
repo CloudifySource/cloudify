@@ -36,12 +36,6 @@ public class CloudConfiguration {
 	private boolean bootstrapManagementOnPublicIp = true;
 	private boolean connectToPrivateIp = true;
 
-	// Remote access credentials for a cloud machine.
-	// These credentials will be used if the cloud does not provide machine specific details.
-	// The password is only used if a key file is not supplied.
-	private String remoteUsername;
-	private String remotePassword;
-
 	public String getNicAddress() {
 		return nicAddress;
 	}
@@ -97,29 +91,14 @@ public class CloudConfiguration {
 	public void setConnectToPrivateIp(final boolean connectToPrivateIp) {
 		this.connectToPrivateIp = connectToPrivateIp;
 	}
-
-	public String getRemoteUsername() {
-		return remoteUsername;
-	}
-
-	public void setRemoteUsername(final String remoteUsername) {
-		this.remoteUsername = remoteUsername;
-	}
-
-	public String getRemotePassword() {
-		return remotePassword;
-	}
-
-	public void setRemotePassword(final String remotePassword) {
-		this.remotePassword = remotePassword;
-	}
+	
 
 	@Override
 	public String toString() {
 		return "CloudConfiguration [className=" + className + ", nicAddress=" + nicAddress + ", lookupGroups="
 				+ lookupGroups + ", lookupLocators=" + lookupLocators + ", managementMachineTemplate="
 				+ managementMachineTemplate + ", bootstrapManagementOnPublicIp=" + bootstrapManagementOnPublicIp
-				+ ", connectToPrivateIp=" + connectToPrivateIp + ", remoteUsername=" + remoteUsername
+				+ ", connectToPrivateIp=" + connectToPrivateIp 
 				+ ", remotePassword=***]";
 	}
 
