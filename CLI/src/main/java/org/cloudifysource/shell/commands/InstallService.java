@@ -160,22 +160,37 @@ public class InstallService extends AdminAwareCommand {
 		String lifecycleEventContainerPollingID = adminFacade.installElastic(packedFile,
 				currentApplicationName, serviceName, zone, props, templateName, timeoutInMinutes);
 
+		String returnMessage = getFormattedMessage("service_install_ended", Color.GREEN, serviceName);
 		if (lifecycleEventContainerPollingID != null) {
 			RestLifecycleEventsLatch lifecycleEventsPollingLatch = this.adminFacade.
-					getLifecycleEventsPollingLatch(lifecycleEventContainerPollingID);
-			boolean isDone = lifecycleEventsPollingLatch.waitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
+					getLifecycleEventsPollingLatch(lifecycleEventContainerPollingID, TIMEOUT_ERROR_MESSAGE);
+			boolean isDone = false;
+			boolean continues = false;
 			while (!isDone) {
-				boolean continueInstallation = promptWouldYouLikeToContinueQuestion();
-				if (!continueInstallation) {
-					//uninstallService();
+				try {
+					if (!continues) {
+						lifecycleEventsPollingLatch.waitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
+					} else {
+						lifecycleEventsPollingLatch.continueWaitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
+					}
 					isDone = true;
-				} else {
-					isDone = lifecycleEventsPollingLatch.continueWaitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
+				} catch (TimeoutException e) {
+					if (!(Boolean) session.get(Constants.INTERACTIVE_MODE)) {
+						throw e;
+					}
+					boolean continueInstallation = promptWouldYouLikeToContinueQuestion();
+					if (!continueInstallation) {
+						uninstallService();
+						isDone = true;
+						returnMessage = getFormattedMessage("undeployed_successfully", serviceName);
+					} else {
+						continues = true;
+					}
 				}
 			}
 		} else {
 			throw new CLIException("Failed to retrieve lifecycle logs from rest. " 
-			+ "Check logs for more details.");
+					+ "Check logs for more details.");
 		}
 
 		// if a zip file was created, delete it at the end of use.
@@ -183,7 +198,7 @@ public class InstallService extends AdminAwareCommand {
 			FileUtils.deleteQuietly(packedFile.getParentFile());
 		}
 
-		return getFormattedMessage("service_install_ended", Color.GREEN, serviceName);
+		return returnMessage;
 	}
 
 	private void uninstallService() throws CLIException, InterruptedException,
@@ -192,7 +207,7 @@ public class InstallService extends AdminAwareCommand {
 				serviceName, timeoutInMinutes);
 		if (undeployServiceResponse.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
 			String pollingID = undeployServiceResponse.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
-			this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes);
+			this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes, UninstallService.TIMEOUT_ERROR_MESSAGE);
 		} else {
 			throw new CLIException("Failed to retrieve lifecycle logs from rest. " 
 			+ "Check logs for more details.");

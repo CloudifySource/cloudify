@@ -287,11 +287,11 @@ public interface AdminFacade {
 	 * @throws TimeoutException 
 	 * 				Reporting the timeout was reached
 	 */
-	public boolean waitForLifecycleEvents(final String pollingID, int timeout) 
+	public void waitForLifecycleEvents(final String pollingID, final int timeout, String timeoutMessage) 
 			throws CLIException, InterruptedException, TimeoutException;
 	
 	Map<String, String> setInstances(String applicationName, String serviceName, int count, int timeout) throws CLIException;
 	
-	public RestLifecycleEventsLatch getLifecycleEventsPollingLatch(final String pollingID); 
+	public RestLifecycleEventsLatch getLifecycleEventsPollingLatch(final String pollingID, String timeoutMessage); 
 	
 }

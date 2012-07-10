@@ -29,6 +29,7 @@ import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
 import org.cloudifysource.shell.installer.CLIEventsDisplayer;
+import org.cloudifysource.shell.ConditionLatch.Predicate;
 /**
  * The RestLifecycleEventsLatch will poll the rest for installation lifecycle events 
  * and print the new events to the CLI console. 
@@ -57,21 +58,21 @@ public class RestLifecycleEventsLatch {
 	private GSRestClient client;
 
 	private long endTime;
-	
+
 	int cursor = 0;
-	
+
 	boolean isDone = false;
-	
+
 	boolean exceptionOnServer = false;
-	
+
 	String url;
-	
+
 	Map<String, Object> lifecycleEventLogs = null;
 
 	private long remoteTaskLeaseExpiration;
-	
+
 	private static final Logger logger = Logger.getLogger(RestLifecycleEventsLatch.class.getName());
-	
+
 	/**
 	 * Constructor.
 	 */
@@ -90,46 +91,48 @@ public class RestLifecycleEventsLatch {
 	 * @throws TimeoutException
 	 * @throws CLIException
 	 */
-	public boolean waitForLifecycleEvents(final int timeout, TimeUnit timeUnit) 
+	public void waitForLifecycleEvents(final int timeout, TimeUnit timeUnit) 
 			throws InterruptedException, TimeoutException, CLIException {
+		createConditionLatch(timeout, TimeUnit.MINUTES).waitFor(new Predicate() {
+			//		this.endTime = System.currentTimeMillis() + timeUnit.toMillis(timeout);
 
-		this.endTime = System.currentTimeMillis() + timeUnit.toMillis(timeout);
-		
-		while (System.currentTimeMillis() < this.endTime) {
-			url = "/service/lifecycleEventContainerID/" + pollingID
-					+ "/cursor/" + cursor;
-			try {
-				lifecycleEventLogs = (Map<String, Object>) client.get(url);
-			} catch (final ErrorStatusException e) {
-				throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-			}
-
-			List<String> events = (List<String>) lifecycleEventLogs.get(CloudifyConstants.LIFECYCLE_LOGS);
-			this.cursor = (Integer) lifecycleEventLogs.get(CloudifyConstants.CURSOR_POS);
-			this.isDone = (Boolean) lifecycleEventLogs.get(CloudifyConstants.IS_TASK_DONE);
-			this.exceptionOnServer = (Boolean) lifecycleEventLogs.get(CloudifyConstants.POLLING_EXCEPTION);
-			this.remoteTaskLeaseExpiration = Long.valueOf((String) lifecycleEventLogs.
-					get(CloudifyConstants.SERVER_POLLING_TASK_EXPIRATION_MILLI)) + System.currentTimeMillis();
-
-			if (events == null) {
-				displayer.printNoChange();
-			} else {
-				displayer.printEvents(events);
-			}
-
-			if (isDone) {
-				if (exceptionOnServer) {
-					throw new CLIException("Event polling task failed on remote server." 
-							+ "For more information regarding the installation, please refer to full logs");
+			@Override
+			public boolean isDone() throws CLIException, InterruptedException {
+				url = "/service/lifecycleEventContainerID/" + pollingID
+						+ "/cursor/" + cursor;
+				try {
+					lifecycleEventLogs = (Map<String, Object>) client.get(url);
+				} catch (final ErrorStatusException e) {
+					throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 				}
-				displayer.eraseCurrentLine();
-				return true;
+
+				List<String> events = (List<String>) lifecycleEventLogs.get(CloudifyConstants.LIFECYCLE_LOGS);
+				cursor = (Integer) lifecycleEventLogs.get(CloudifyConstants.CURSOR_POS);
+				isDone = (Boolean) lifecycleEventLogs.get(CloudifyConstants.IS_TASK_DONE);
+				exceptionOnServer = (Boolean) lifecycleEventLogs.get(CloudifyConstants.POLLING_EXCEPTION);
+				remoteTaskLeaseExpiration = Long.valueOf((String) lifecycleEventLogs.
+						get(CloudifyConstants.SERVER_POLLING_TASK_EXPIRATION_MILLI)) + System.currentTimeMillis();
+
+				if (events == null) {
+					displayer.printNoChange();
+				} else {
+					displayer.printEvents(events);
+				}
+
+				if (isDone) {
+					if (exceptionOnServer) {
+						throw new CLIException("Event polling task failed on remote server." 
+								+ "For more information regarding the installation, please refer to full logs");
+					}
+					displayer.eraseCurrentLine();
+					return true;
+				}
+				//			Thread.sleep(pollingInterval);
+				return false;
 			}
-			Thread.sleep(pollingInterval);
-		}
-		return false;
+		});
 	}
-	
+
 	/**
 	 * Continue an already started polling task. Used for when polling was interrupted on the client side.
 	 * 
@@ -140,12 +143,12 @@ public class RestLifecycleEventsLatch {
 	 * @throws TimeoutException
 	 * @throws CLIException if the polling task has expired on the remote server side
 	 */
-	public boolean continueWaitForLifecycleEvents(final int timeout, final TimeUnit timeUnit) 
+	public void continueWaitForLifecycleEvents(final int timeout, final TimeUnit timeUnit) 
 			throws InterruptedException, TimeoutException, CLIException {
 		if (System.currentTimeMillis() > this.remoteTaskLeaseExpiration) {
 			throw new CLIException("Events polling task has expired on remote server side");
 		}
-		return waitForLifecycleEvents(timeout, timeUnit);
+		waitForLifecycleEvents(timeout, timeUnit);
 	}
 
 	/**
@@ -160,8 +163,8 @@ public class RestLifecycleEventsLatch {
 	 */
 	private ConditionLatch createConditionLatch(final long timeout, final TimeUnit timeunit) {
 		return new ConditionLatch().timeout(timeout, timeunit)
-		.pollingInterval(this.pollingInterval, TimeUnit.MILLISECONDS)
-		.timeoutErrorMessage(this.timeoutMessage);
+				.pollingInterval(this.pollingInterval, TimeUnit.MILLISECONDS)
+				.timeoutErrorMessage(this.timeoutMessage);
 	}
 
 	/**
@@ -179,21 +182,21 @@ public class RestLifecycleEventsLatch {
 							" interval allowed: " + MIN_POLLING_INTERVAL + "seconds");
 		}
 	}
-	
+
 	public void setPollingId(String pollingID) {
 		this.pollingID = pollingID;
 	}
-	
+
 	public void setRestClient(final GSRestClient client) {
 		this.client = client;
 	}
 
-//	/**
-//	 * Sets the timeout exception message.
-//	 * @param timeoutMessage The timeout exception message.
-//	 */
-//	public void setTimeoutMessage(final String timeoutMessage) {
-//		this.timeoutMessage = timeoutMessage;
-//
-//	}
+	/**
+	 * Sets the timeout exception message.
+	 * @param timeoutMessage The timeout exception message.
+	 */
+	public void setTimeoutMessage(final String timeoutMessage) {
+		this.timeoutMessage = timeoutMessage;
+
+	}
 }

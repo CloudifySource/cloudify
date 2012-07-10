@@ -114,17 +114,35 @@ public class InstallApplication extends AdminAwareCommand {
 		}
 		
 		printApplicationInfo(application);
+		String returnMessage = this.getFormattedMessage("application_installed_succesfully",
+				Color.GREEN, applicationName);
 		if (result.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
 			String pollingID = result.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
 			RestLifecycleEventsLatch lifecycleEventsPollingLatch = 
-					this.adminFacade.getLifecycleEventsPollingLatch(pollingID);
-			boolean isDone = lifecycleEventsPollingLatch.waitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
+					this.adminFacade.getLifecycleEventsPollingLatch(pollingID, TIMEOUT_ERROR_MESSAGE);
+			boolean isDone = false;
+			boolean continues = false;
 			while (!isDone) {
-				boolean continueInstallation = promptWouldYouLikeToContinueQuestion();
-				if (!continueInstallation) {
-					//uninstallApplication();
-				} else { 
-					isDone = lifecycleEventsPollingLatch.continueWaitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
+				try {
+					if (!continues) {
+						lifecycleEventsPollingLatch.waitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
+					} else {
+						lifecycleEventsPollingLatch.continueWaitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
+					}
+					isDone = true;
+				} catch (TimeoutException e) {
+					if (!(Boolean) session.get(Constants.INTERACTIVE_MODE)) {
+						throw e;
+					}
+					boolean continueInstallation = promptWouldYouLikeToContinueQuestion();
+					if (!continueInstallation) {
+						uninstallApplication();
+						returnMessage = getFormattedMessage("application_uninstalled_succesfully",
+								this.applicationName);
+						isDone = true;
+					} else {
+						continues = true;
+					}
 				}
 			}
 		} else {
@@ -135,7 +153,7 @@ public class InstallApplication extends AdminAwareCommand {
 		session.put(Constants.ACTIVE_APP, applicationName);
 		GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
 
-		return this.getFormattedMessage("application_installed_succesfully", Color.GREEN, applicationName);
+		return returnMessage;
 	}
 
 	private void uninstallApplication() throws CLIException,
@@ -146,7 +164,8 @@ public class InstallApplication extends AdminAwareCommand {
 		if (uninstallApplicationResponse.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
 			String uninstallPollingID = uninstallApplicationResponse
 					.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
-			this.adminFacade.waitForLifecycleEvents(uninstallPollingID, timeoutInMinutes);
+			this.adminFacade.waitForLifecycleEvents(uninstallPollingID, timeoutInMinutes,
+					UninstallApplication.TIMEOUT_ERROR_MESSAGE);
 		} else {
 			throw new CLIException("Failed to retrieve lifecycle logs from rest. " 
 					+ "Check logs for more details.");

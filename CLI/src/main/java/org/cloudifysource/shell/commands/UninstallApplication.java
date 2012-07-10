@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeoutException;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
@@ -51,7 +50,7 @@ import org.cloudifysource.shell.rest.RestAdminFacade;
 @Command(scope = "cloudify", name = "uninstall-application", description = "Uninstalls an application.")
 public class UninstallApplication extends AdminAwareCommand {
 
-	private static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out. "
+	public static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out. "
 				+ "Try to increase the timeout using the -timeout flag";
 
 	@Argument(index = 0, required = true, name = "The name of the application")
@@ -98,10 +97,7 @@ public class UninstallApplication extends AdminAwareCommand {
 
 		if (uninstallApplicationResponse.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
 			String pollingID = uninstallApplicationResponse.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
-			boolean waitForLifecycleEvents = this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes);
-			if (!waitForLifecycleEvents) {
-				throw new TimeoutException(TIMEOUT_ERROR_MESSAGE);
-			}
+			this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
 		} else {
 			throw new CLIException("Failed to retrieve lifecycle logs from rest. " 
 			+ "Check logs for more details.");

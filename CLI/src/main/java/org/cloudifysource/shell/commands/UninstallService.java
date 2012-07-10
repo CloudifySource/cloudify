@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeoutException;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
@@ -48,7 +47,7 @@ import org.cloudifysource.shell.rest.RestAdminFacade;
 @Command(scope = "cloudify", name = "uninstall-service", description = "undeploy a service")
 public class UninstallService extends AdminAwareCommand {
 
-	private static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out. "
+	public static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out. "
 				+ "Try to increase the timeout using the -timeout flag";
 
 	@Argument(index = 0, required = true, name = "service-name")
@@ -91,10 +90,7 @@ public class UninstallService extends AdminAwareCommand {
 		Map<String, String> undeployServiceResponse = adminFacade.undeploy(getCurrentApplicationName(), serviceName, timeoutInMinutes);
 		if (undeployServiceResponse.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)){
 			String pollingID = undeployServiceResponse.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
-			boolean waitForLifecycleEvents = this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes);
-			if (!waitForLifecycleEvents) {
-				throw new TimeoutException(TIMEOUT_ERROR_MESSAGE);
-			}
+			this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
 		} else {
 			throw new CLIException("Failed to retrieve lifecycle logs from rest. " +
 					"Check logs for more details.");

@@ -94,7 +94,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	private URL getUrlWithDefaultPort(final URL urlObj) throws MalformedURLException {
 		StringBuilder url = new StringBuilder(urlObj.toString());
 		final int portIndex = url.indexOf("/", "http://".length());
-		url.insert(portIndex, ':' + CloudifyConstants.DEFAULT_REST_PORT);
+		url.insert(portIndex, ':' + Integer.toString(CloudifyConstants.DEFAULT_REST_PORT));
 		return new URL(url.toString());
 	}
 
@@ -259,19 +259,21 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean waitForLifecycleEvents(final String pollingID, final int timeout) 
+	public void waitForLifecycleEvents(final String pollingID, final int timeout, String timeoutMessage) 
 			throws CLIException, InterruptedException, TimeoutException {
 		RestLifecycleEventsLatch restLifecycleEventsLatch = new RestLifecycleEventsLatch();
 		restLifecycleEventsLatch.setPollingId(pollingID);
 		restLifecycleEventsLatch.setRestClient(client);
-		return restLifecycleEventsLatch.waitForLifecycleEvents(timeout, TimeUnit.MINUTES);
+		restLifecycleEventsLatch.setTimeoutMessage(timeoutMessage);
+		restLifecycleEventsLatch.waitForLifecycleEvents(timeout, TimeUnit.MINUTES);
 	}
 	
 	@Override
-	public RestLifecycleEventsLatch getLifecycleEventsPollingLatch(final String pollingID) {	
+	public RestLifecycleEventsLatch getLifecycleEventsPollingLatch(final String pollingID, String timeoutMessage) {	
 		RestLifecycleEventsLatch restLifecycleEventsLatch = new RestLifecycleEventsLatch();
 		restLifecycleEventsLatch.setPollingId(pollingID);
 		restLifecycleEventsLatch.setRestClient(client);
+		restLifecycleEventsLatch.setTimeoutMessage(timeoutMessage);
 		return restLifecycleEventsLatch;
 	}
 
