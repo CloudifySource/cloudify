@@ -3,7 +3,7 @@ service {
     // This service assumed it is run on a 64bit windows 2008 server machine where IIS7 is installed
     // and the rewrite module is installed on it
     name "iisproxy"
-    
+    type "LOAD_BALANCER"
     numInstances 2
     maxAllowedInstances 2
     
