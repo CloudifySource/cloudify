@@ -171,7 +171,7 @@ else {
 # here we create the batch file that the task runs
 Set-Content -Encoding ASCII -Force -Value $cloudifyCommand run.bat
 
-Write-Host scheduling cloudify task with password $ENV:PASSWORD
+Write-Host scheduling cloudify task 
 schtasks.exe /create /TN cloudify-task /SC ONSTART /TR $ENV:WORKING_HOME_DIRECTORY\run.bat /RU "$ENV:USERNAME" /RP "$ENV:PASSWORD"
 Write-Host running cloudify task
 schtasks.exe /run /TN cloudify-task 

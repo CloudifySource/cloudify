@@ -113,6 +113,34 @@ if [ -f nohup.out ]; then
    error_exit 1 "Failed to remove nohup.out Probably used by another process"
 fi
 
+
+# Privileged mode handling
+
+if [ "$CLOUDIFY_AGENT_ENV_PRIVILEGED" = "true" ]; then
+	echo Setting privileged mode
+	export CLOUDIFY_USER=`whoami`
+	if [ "$CLOUDIFY_USER" = "root" ]; then
+		# root is privileged by definition
+		echo Already running as root
+	else
+		sudo -n ls || error_exit_on_level $? "Current user is not a sudoer, or requires a password for sudo" 1
+		
+		if [ ! -f "/etc/sudoers" ]; then
+			error_exit 101 "Could not find sudoers file at expected location (/etc/sudoers)"
+		fi
+		
+		echo Setting privileged mode
+		sudo sed -i 's/^Defaults requiretty/# Defaults requiretty/g' /etc/sudoers || error_exit_on_level $? "Failed to edit sudoers file to disable requiretty directive" 1
+		
+	fi
+
+fi
+
+if [ ! -z "$CLOUDIFY_AGENT_ENV_INIT_COMMAND" ]; then
+	echo Executing initialization command
+	$CLOUDIFY_AGENT_ENV_INIT_COMMAND
+fi
+
 if [ "$GSA_MODE" = "agent" ]; then
 	ERRMSG="Failed starting agent"
 	nohup ./cloudify.sh start-agent -timeout 30 --verbose -zone $MACHINE_ZONES -auto-shutdown
