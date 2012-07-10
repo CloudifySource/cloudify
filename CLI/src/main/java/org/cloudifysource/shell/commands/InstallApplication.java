@@ -114,8 +114,6 @@ public class InstallApplication extends AdminAwareCommand {
 		}
 		
 		printApplicationInfo(application);
-		String returnMessage = this.getFormattedMessage("application_installed_succesfully",
-				Color.GREEN, applicationName);
 		if (result.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
 			String pollingID = result.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
 			RestLifecycleEventsLatch lifecycleEventsPollingLatch = 
@@ -151,7 +149,7 @@ public class InstallApplication extends AdminAwareCommand {
 		session.put(Constants.ACTIVE_APP, applicationName);
 		GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
 
-		return returnMessage;
+		return this.getFormattedMessage("application_installed_succesfully", Color.GREEN, applicationName);
 	}
 
 	private boolean promptWouldYouLikeToContinueQuestion() throws IOException {

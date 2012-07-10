@@ -159,7 +159,6 @@ public class InstallService extends AdminAwareCommand {
 		String lifecycleEventContainerPollingID = adminFacade.installElastic(packedFile,
 				currentApplicationName, serviceName, zone, props, templateName, timeoutInMinutes);
 
-		String returnMessage = getFormattedMessage("service_install_ended", Color.GREEN, serviceName);
 		if (lifecycleEventContainerPollingID != null) {
 			RestLifecycleEventsLatch lifecycleEventsPollingLatch = this.adminFacade.
 					getLifecycleEventsPollingLatch(lifecycleEventContainerPollingID, TIMEOUT_ERROR_MESSAGE);
@@ -195,7 +194,7 @@ public class InstallService extends AdminAwareCommand {
 			FileUtils.deleteQuietly(packedFile.getParentFile());
 		}
 
-		return returnMessage;
+		return getFormattedMessage("service_install_ended", Color.GREEN, serviceName);
 	}
 
 	private boolean promptWouldYouLikeToContinueQuestion() throws IOException {
