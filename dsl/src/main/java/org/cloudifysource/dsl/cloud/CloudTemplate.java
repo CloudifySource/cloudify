@@ -55,6 +55,10 @@ public class CloudTemplate {
 	private String password;
 	private String remoteDirectory;
 
+	private boolean privileged = false;
+	private String initializationCommand = null;
+
+	private Map<String, String> env = new HashMap<String, String>();
 	/**
 	 * Gets the image ID.
 	 * 
@@ -268,7 +272,7 @@ public class CloudTemplate {
 		if (this.getRemoteDirectory() == null || this.getRemoteDirectory().trim().isEmpty()) {
 			throw new DSLValidationException("Remote directory for template is missing");
 		}
-		
+
 		if (StringUtils.isBlank(this.getLocalDirectory())) {
 			throw new DSLValidationException("Local directory for template is missing");
 		}
@@ -278,8 +282,47 @@ public class CloudTemplate {
 					"Key file name field still has default configuration value of ENTER_KEY_FILE_NAME");
 		}
 
-
 	}
-	
+
+	/************
+	 * True if services running in this template should have privileged access. This usually means that the service will
+	 * run with higher Operating System permissions - root/sudoer on Linux, Administrator on Windows. Default is false.
+	 * 
+	 * @return true if services on this template will run in privileged mode.
+	 */
+	public boolean isPrivileged() {
+		return privileged;
+	}
+
+	public void setPrivileged(final boolean privileged) {
+		this.privileged = privileged;
+	}
+
+	/**************
+	 * A command line that will be executed before the bootstrapping process of a machine from this template ends
+	 * (before the Cloudify agent starts, after JDK and Cloudify are installed).
+	 * 
+	 * @return the initialization command line.
+	 */
+	public String getInitializationCommand() {
+		return initializationCommand;
+	}
+
+	public void setInitializationCommand(final String initializationCommand) {
+		this.initializationCommand = initializationCommand;
+	}
+
+	/*************
+	 * Environment variables set for a specific template.
+	 * 
+	 * @return the environment variables.
+	 */
+	public Map<String, String> getEnv() {
+		return env;
+	}
+
+	public void setEnv(final Map<String, String> env) {
+		this.env = env;
+	}
 
 }
