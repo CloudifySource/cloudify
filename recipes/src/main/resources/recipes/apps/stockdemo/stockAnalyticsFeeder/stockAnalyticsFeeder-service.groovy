@@ -2,6 +2,7 @@ service {
 	
 	icon "gigaspaces_logo.gif"
 	name "stockAnalyticsFeeder"
+	type "UNDEFINED"
 	statefulProcessingUnit {
 		binaries "stockAnalyticsFeeder.jar" //can be a folder, or a war file   		
 		sla {
