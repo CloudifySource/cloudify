@@ -53,8 +53,12 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 			<version>${springVersion}</version>
-
 		</dependency>
+		<!-- dependency>
+ 			<groupId>org.springframework</groupId>
+ 			<artifactId>spring-test-mvc</artifactId>
+  			<version>1.0.0.BUILD-SNAPSHOT</version>
+		</dependency-->
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>servlet-api</artifactId>
@@ -123,6 +127,11 @@
 			<artifactId>spring-expression</artifactId>
 			<version>${springVersion}</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>3.0.2.RELEASE</version>
 		</dependency>
 		<dependency>
 			<groupId>org.cloudifysource</groupId>
