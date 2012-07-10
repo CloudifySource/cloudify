@@ -1249,7 +1249,6 @@ public class ServiceController {
 	public @ResponseBody
 	Object getLifecycleEvents(@PathVariable final String lifecycleEventContainerID, @PathVariable final int cursor) {
 		Map<String, Object> resultsMap = new HashMap<String, Object>();
-		resultsMap.put(CloudifyConstants.POLLING_EXCEPTION, false);
 		
 		if (!lifecyclePollingThreadContainer.containsKey(UUID.fromString(lifecycleEventContainerID))) {
 			return errorStatus("Lifecycle events container with UUID: " + lifecycleEventContainerID
@@ -1269,8 +1268,7 @@ public class ServiceController {
 			Throwable t = restPollingRunnable.getExecutionException();
 			if (t != null) {
 			    logger.log(Level.INFO, "Lifecycle events polling ended unexpectedly.", t);
-			    resultsMap.put(CloudifyConstants.POLLING_EXCEPTION, true);
-			    resultsMap.put(CloudifyConstants.IS_TASK_DONE, true);
+			    return errorStatus(t.getMessage());
 			} else {
 				logger.log(Level.INFO, "Lifecycle events polling ended successfully.");
 				resultsMap.put(CloudifyConstants.IS_TASK_DONE, true);
