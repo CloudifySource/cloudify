@@ -180,6 +180,15 @@ public class RestPollingRunnable implements Runnable {
     }
     
     /**
+     * Extends the runnable's lifetime lease.
+     * @param timeout timeout period
+     * @param timeunit timeout timeunit
+     */
+    public synchronized void increaseEndTimeBy(final long timeout, final TimeUnit timeunit) {
+        this.endTime = endTime + timeunit.toMillis(timeout);
+    }
+    
+    /**
      * Returns the thread's end time.
      * @return the thread's end time.
      */

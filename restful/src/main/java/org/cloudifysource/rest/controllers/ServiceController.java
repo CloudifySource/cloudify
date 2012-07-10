@@ -1299,7 +1299,7 @@ public class ServiceController {
 	private void extendThreadTimeout(final RestPollingRunnable pollingRunnable, final int timeoutInMinutes) {
 	    long taskExpiration = pollingRunnable.getEndTime() - System.currentTimeMillis();
 	    if (taskExpiration < MINIMAL_POLLING_TASK_EXPIRATION) {
-	        pollingRunnable.setEndTime(timeoutInMinutes, TimeUnit.MINUTES);
+	        pollingRunnable.increaseEndTimeBy(timeoutInMinutes, TimeUnit.MINUTES);
 	    }
     }
 
