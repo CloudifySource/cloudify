@@ -21,6 +21,7 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import org.cloudifysource.dsl.internal.DSLException;
@@ -246,6 +247,22 @@ public class ServiceParsingTest {
 		params[1] = "port";
 		customCommand.call(params);
 		customCommand.call(params);
+	}
+	
+	@Test
+	public void testNoLocatorsParsing() throws Exception {
+		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH + "test_no_locators_statement-service.groovy");
+		final File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
+		final Service service = ServiceReader.getServiceFromFile(testParsingBaseDslFile, testParsingBaseWorkDir)
+				.getService();
+		
+		
+		Assert.assertNotNull("Lifecycle should not be null", service.getLifecycle());
+		Assert.assertNotNull("Lifecycle should not be null", service.getLifecycle().getLocator());
+		Object result = ((Callable<Object>) service.getLifecycle().getLocator()).call();
+		Assert.assertNotNull("locators result should not be null", result);
+		List<Long> list = (List<Long>)result;
+		Assert.assertEquals("Expected empty list", 0, list.size());
 	}
 	
 }
