@@ -137,7 +137,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 		NodeMetadata node;
 		final MachineDetails machineDetails;
-			
+
 		try {
 			logger.fine("Cloudify Deployer is creating a new server with tag: " + groupName
 					+ ". This may take a few minutes");
@@ -163,7 +163,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 			final FileTransferModes fileTransfer = cloudTemplate.getFileTransfer();
 
-			if (this.cloud.getProvider().getProvider().equals("aws-ec2") && fileTransfer.equals(FileTransferModes.CIFS)) {
+			if (this.cloud.getProvider().getProvider().equals("aws-ec2")
+					&& fileTransfer.equals(FileTransferModes.CIFS)) {
 				// Special password handling for windows on EC2
 				if (machineDetails.getRemotePassword() == null) {
 					// The template did not specify a password, so we must be using the aws windows password mechanism.
@@ -225,9 +226,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		}
 
 		String username = cloudTemplate.getUsername();
-		if (username == null) {
-			username = cloud.getConfiguration().getRemoteUsername();
-		}
 
 		if (username == null) {
 			username = DEFAULT_EC2_WINDOWS_USERNAME;
@@ -329,7 +327,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 	private MachineDetails[] doStartManagementMachines(final long endTime, final int numberOfManagementMachines)
 			throws TimeoutException, CloudProvisioningException {
-		
+
 		final ExecutorService executors = Executors.newFixedThreadPool(numberOfManagementMachines);
 
 		@SuppressWarnings("unchecked")
@@ -518,7 +516,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		md.setRemoteUsername(username);
 		md.setRemotePassword(password);
 
-		md.setUsePrivateAddress(this.cloud.getConfiguration().isConnectToPrivateIp());
 		return md;
 	}
 
@@ -527,12 +524,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		// Template configuration takes precedence.
 		if (template.getUsername() != null) {
 			return template.getUsername();
-		}
-
-		// Global configuration comes next.
-		// This should probably be deprecated.
-		if (cloud.getConfiguration().getRemoteUsername() != null) {
-			return cloud.getConfiguration().getRemoteUsername();
 		}
 
 		// Check if node returned a username
@@ -553,13 +544,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			return template.getPassword();
 		}
 
-		// Global configuration comes next.
-		// This should probably be deprecated.
-		if (cloud.getConfiguration().getRemotePassword() != null) {
-			return cloud.getConfiguration().getRemotePassword();
-		}
-
-		// Check if node returned a username
+		// Check if node returned a username - some clouds support this (Rackspace, for instance)
 		if (node.getCredentials() != null) {
 			if (node.getCredentials().getOptionalPassword().isPresent()) {
 				return node.getCredentials().getPassword();

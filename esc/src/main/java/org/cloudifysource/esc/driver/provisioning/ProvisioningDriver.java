@@ -46,7 +46,9 @@ public interface ProvisioningDriver {
 
 	/**************
 	 * Passes an Admin API object that can be used to query the current cluster state. The Admin API is typically only
-	 * required for advanced use cases, like BYON.
+	 * required for advanced use cases, like BYON. Note that this method is only called when the cloud driver is running in the ESM. The cloud
+	 * driver instance used to create management machines will not get an Admin instance (in all likelihood, an Admin instance running in the client
+	 * is not useful, as it will run on the wrong side of the firewall.) 
 	 * 
 	 * IMPORTANT: do not perform any blocking operations on this Admin instance as it is running in single threaded
 	 * mode. Trying to use waitFor() methods on this instance will wither block forever or fail with a timeout.

@@ -441,7 +441,7 @@ public final class Utils {
 		details.setRemoteDir(remoteDir);
 
 		// Create a copy of managementOnly files and mutate
-		List<String> managementOnlyFiles = new ArrayList<String>(cloud.getProvider().getManagementOnlyFiles());
+		final List<String> managementOnlyFiles = new ArrayList<String>(cloud.getProvider().getManagementOnlyFiles());
 		if (template.getKeyFile() != null) {
 			// keyFile, if used, is always a management file.
 			managementOnlyFiles.add(template.getKeyFile());
@@ -459,6 +459,7 @@ public final class Utils {
 
 		details.setCloudifyUrl(cloud.getProvider().getCloudifyUrl());
 		details.setOverridesUrl(cloud.getProvider().getCloudifyOverridesUrl());
+		
 		details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		details.setAdmin(admin);
 
@@ -476,14 +477,14 @@ public final class Utils {
 		}
 
 		// Add all template custom data fields starting with 'installer.' to the installation details
-		Set<Entry<String, Object>> customEntries = template.getCustom().entrySet();
-		for (Entry<String, Object> entry : customEntries) {
+		final Set<Entry<String, Object>> customEntries = template.getCustom().entrySet();
+		for (final Entry<String, Object> entry : customEntries) {
 			if (entry.getKey().startsWith("installer.")) {
 				details.getCustomData().put(entry.getKey(), entry.getValue());
 			}
 		}
 
-		String keyFileName = template.getKeyFile();
+		final String keyFileName = template.getKeyFile();
 		if (keyFileName != null && !keyFileName.isEmpty()) {
 			File keyFile = new File(keyFileName);
 			if (!keyFile.isAbsolute()) {
@@ -496,17 +497,34 @@ public final class Utils {
 			}
 			details.setKeyFile(keyFile.getAbsolutePath());
 		}
-	
+
 		if (template.getHardwareId() != null) {
 			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.CLOUDIFY_CLOUD_HARDWARE_ID,
 					template.getHardwareId());
-			
+
 		}
 
 		if (template.getImageId() != null) {
 			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.CLOUDIFY_CLOUD_IMAGE_ID,
 					template.getImageId());
 		}
+
+		// Add the template privileged mode flag
+		details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVILEGED,
+				Boolean.toString(template.isPrivileged()));
+
+		// Add the template initialization command
+		if (!org.apache.commons.lang.StringUtils.isBlank(template.getInitializationCommand())) {
+			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.CLOUDIFY_AGENT_ENV_INIT_COMMAND,
+					template.getInitializationCommand());
+		}
+		
+		// Add the template custom environment
+		final Set<Entry<String, String>> entries = template.getEnv().entrySet();
+		for (Entry<String, String> entry : entries) {
+			details.getExtraRemoteEnvironmentVariables().put(entry.getKey(), entry.getValue());
+		}
+		
 
 		logger.fine("Created InstallationDetails: " + details);
 		return details;

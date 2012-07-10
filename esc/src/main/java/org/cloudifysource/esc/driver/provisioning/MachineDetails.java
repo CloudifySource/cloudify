@@ -29,9 +29,7 @@ public class MachineDetails {
 
 	private String privateAddress;
 	private String publicAddress;
-	private String clusterAddress; // TODO: WTF IS THIS
-	private boolean usePrivateAddress = true;
-
+	
 	private boolean cloudifyInstalled = false;
 	private String installationDirectory = null;
 	private boolean agentRunning = false;
@@ -94,44 +92,12 @@ public class MachineDetails {
 		this.installationDirectory = installationDirectory;
 	}
 
-	@Deprecated
-	public String getClusterAddress() {
-		return clusterAddress;
-	}
-
-	@Deprecated
-	public void setClusterAddress(final String clusterAddress) {
-		this.clusterAddress = clusterAddress;
-	}
 
 	@Override
 	public String toString() {
 		return "MachineDetails [machineId=" + machineId + ", privateAddress=" + privateAddress + ", publicAddress="
-				+ publicAddress + ", clusterAddress=" + clusterAddress + ", gigaspacesInstalled=" + cloudifyInstalled
+				+ publicAddress + ", gigaspacesInstalled=" + cloudifyInstalled
 				+ ", agentRunning=" + agentRunning + ", installationDirectory=" + installationDirectory + "]";
-	}
-
-	public boolean isUsePrivateAddress() {
-		return usePrivateAddress;
-	}
-
-	// TODO - this flag should be removed - it should only be set in the adapter, not in the driver.
-	public void setUsePrivateAddress(final boolean usePrivateAddress) {
-		this.usePrivateAddress = usePrivateAddress;
-	}
-
-	/*****
-	 * Returns the IP that should be used for cluster communications.
-	 * 
-	 * @return the IP.
-	 */
-	public String getIp() {
-		if (this.isUsePrivateAddress()) {
-			return this.getPrivateAddress();
-
-		} else {
-			return this.getPublicAddress();
-		}
 	}
 
 	public String getRemoteUsername() {

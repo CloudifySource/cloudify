@@ -71,10 +71,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	// TODO: Store this object inside ElasticMachineProvisioningContext instead of a static variable
 	private static final Map<String, ProvisioningDriverClassContext> PROVISIONING_DRIVER_CONTEXT_PER_DRIVER_CLASSNAME =
 			new HashMap<String, ProvisioningDriverClassContext>();
-	
+
 	private static Admin globalAdminInstance = null;
 	private static final Object GLOBAL_ADMIN_MUTEX = new Object();
-	
+
 	private static Admin getGlobalAdminInstance(final Admin esmAdminInstance) {
 		synchronized (GLOBAL_ADMIN_MUTEX) {
 			if (globalAdminInstance == null) {
@@ -88,11 +88,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				}
 				globalAdminInstance = factory.createAdmin();
 			}
-			
+
 			return globalAdminInstance;
 		}
 	}
-			
 
 	private ProvisioningDriver cloudifyProvisioning;
 	private Admin originalESMAdmin;
@@ -120,7 +119,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplateName);
 		final String[] zones = this.config.getGridServiceAgentZones();
 		final InstallationDetails details =
-				Utils.createInstallationDetails(md, cloud, template, zones, lookupLocatorsString, this.originalESMAdmin, false,
+				Utils.createInstallationDetails(md, cloud, template, zones, lookupLocatorsString,
+						this.originalESMAdmin, false,
 						null);
 
 		logger.info("Created new Installation Details: " + details);
@@ -149,6 +149,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		logger.info("Machine was provisioned by implementation. Machine is: " + machineDetails);
 
+		// which IP should be used in the cluster
+		String machineIp = null;
+		if (cloud.getConfiguration().isConnectToPrivateIp()) {
+			machineIp = machineDetails.getPrivateAddress();
+		} else {
+			machineIp = machineDetails.getPublicAddress();
+		}
 		try {
 			// check for timeout
 			checkForProvisioningTimeout(end, machineDetails);
@@ -171,14 +178,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			// as this scenario really does not offer a better experience. If required, handling will
 			// be added here.
 
-			// which IP should be used in the cluster
-			String machineIp = null;
-			if (machineDetails.isUsePrivateAddress()) {
-				machineIp = machineDetails.getPrivateAddress();
-			} else {
-				machineIp = machineDetails.getPublicAddress();
-			}
-
 			if (machineIp == null) {
 				throw new IllegalArgumentException("The IP of the new machine is null! Machine Details are: "
 						+ machineDetails + " .");
@@ -196,32 +195,26 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		} catch (final ElasticMachineProvisioningException e) {
 			logger.info("ElasticMachineProvisioningException occurred, " + e.getMessage());
 			logger.info(Arrays.toString(e.getStackTrace()));
-			handleExceptionAfterMachineCreated(machineDetails, end);
+			handleExceptionAfterMachineCreated(machineIp, machineDetails, end);
 			throw e;
 		} catch (final TimeoutException e) {
 			logger.info("TimeoutException occurred, " + e.getMessage());
 			logger.info(Arrays.toString(e.getStackTrace()));
-			handleExceptionAfterMachineCreated(machineDetails, end);
+			handleExceptionAfterMachineCreated(machineIp, machineDetails, end);
 			throw e;
 		} catch (final InterruptedException e) {
 			logger.info("InterruptedException occurred, " + e.getMessage());
 			logger.info(Arrays.toString(e.getStackTrace()));
-			handleExceptionAfterMachineCreated(machineDetails, end);
+			handleExceptionAfterMachineCreated(machineIp, machineDetails, end);
 			throw e;
 		}
 
 	}
 
-	private void handleExceptionAfterMachineCreated(final MachineDetails machineDetails, final long end) {
+	private void handleExceptionAfterMachineCreated(final String machineIp, final MachineDetails machineDetails,
+			final long end) {
 		try {
 			// if an agent is found (not supposed to, we got here after it wasn't found earlier) - shut it down
-			String machineIp = null;
-			if (machineDetails.isUsePrivateAddress()) {
-				machineIp = machineDetails.getPrivateAddress();
-			} else {
-				machineIp = machineDetails.getPublicAddress();
-			}
-
 			if (machineIp != null && !machineIp.trim().isEmpty()) {
 				try {
 					final GridServiceAgent agent = getGSAByIpOrHost(machineIp);
@@ -401,7 +394,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	@Override
 	public void setAdmin(final Admin admin) {
 		this.originalESMAdmin = admin;
-		
 
 	}
 
@@ -531,7 +523,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	public void destroy()
 			throws Exception {
 		this.cloudifyProvisioning.close();
-		//not closing globalAdminMutex, it's a static object, and this is intentional.
+		// not closing globalAdminMutex, it's a static object, and this is intentional.
 	}
 
 	@Override

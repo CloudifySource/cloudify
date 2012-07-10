@@ -54,9 +54,9 @@ import org.openspaces.admin.internal.support.NetworkExceptionHelper;
 import com.gigaspaces.grid.gsa.GSA;
 
 /**************
- * A bring-your-own-node (BYON) CloudifyProvisioning implementation. Parses a groovy file as a source of
- * available machines to operate as cloud nodes, assuming the nodes are Linux machines with SSH installed. If
- * GigaSpaces is not already installed on a node, this class will install GigaSpaces and run the agent.
+ * A bring-your-own-node (BYON) CloudifyProvisioning implementation. Parses a groovy file as a source of available
+ * machines to operate as cloud nodes, assuming the nodes are Linux machines with SSH installed. If GigaSpaces is not
+ * already installed on a node, this class will install GigaSpaces and run the agent.
  * 
  * @author noak
  * @since 2.0.1
@@ -82,7 +82,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 				@SuppressWarnings("unchecked")
 				@Override
-				public Object call() throws Exception {
+				public Object call()
+						throws Exception {
 					logger.info("Creating BYON context deployer for cloud: " + cloud.getName());
 					final ByonDeployer deployer = new ByonDeployer();
 					List<Map<String, String>> nodesList = null;
@@ -135,7 +136,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	}
 
 	@Override
-	public MachineDetails startMachine(final long timeout, final TimeUnit timeUnit) throws TimeoutException,
+	public MachineDetails startMachine(final long timeout, final TimeUnit timeUnit)
+			throws TimeoutException,
 			CloudProvisioningException {
 
 		final long endTime = System.currentTimeMillis() + timeUnit.toMillis(timeout);
@@ -147,18 +149,19 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		if (logger.isLoggable(Level.INFO)) {
 			logger.info("Verifying the active machines are not in the free pool: "
 					+ "\n Admin reports the currently used machines are: "
-					+ Arrays.toString(activeMachinesIPs.toArray()) 
+					+ Arrays.toString(activeMachinesIPs.toArray())
 					+ "\n Byon deployer reports the free machines for template " + cloudTemplateName + " are: "
 					+ Arrays.toString(deployer.getFreeNodesByTemplateName(cloudTemplateName).toArray())
-					+ "\n Byon deployer reports the currently used machines for template " + cloudTemplateName + " are:"
+					+ "\n Byon deployer reports the currently used machines for template " + cloudTemplateName
+					+ " are:"
 					+ Arrays.toString(deployer.getAllocatedNodesByTemplateName(cloudTemplateName).toArray())
 					+ "\n Byon deployer reports the invalid used machines for template " + cloudTemplateName + " are: "
-					+ Arrays.toString(deployer.getInvalidNodesByTemplateName(cloudTemplateName).toArray()) + ")");	
+					+ Arrays.toString(deployer.getInvalidNodesByTemplateName(cloudTemplateName).toArray()) + ")");
 		}
 		final String newServerName = createNewServerName();
 		logger.info("Attempting to start a new cloud machine");
 		final CloudTemplate template = this.cloud.getTemplates().get(cloudTemplateName);
-		
+
 		return createServer(newServerName, endTime, template);
 	}
 
@@ -180,7 +183,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			try {
 				deployer.invalidateServer(cloudTemplateName, node);
 			} catch (final CloudProvisioningException ie) {
-				logger.log(Level.SEVERE, "Failed to mark machine " + machineDetails.getIp() + " as Invalid.", ie);
+				logger.log(Level.SEVERE, "Failed to mark machine [" + machineDetails.getPublicAddress() + "/"
+						+ machineDetails.getPrivateAddress() + "] as Invalid.", ie);
 			}
 			throw new CloudProvisioningException(e);
 		}
@@ -194,15 +198,14 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	}
 
 	/*********
-	 * Looks for a free server name by appending a counter to the pre-calculated server name prefix. If the
-	 * max counter value is reached, code will loop back to 0, so that previously used server names will be
-	 * reused.
+	 * Looks for a free server name by appending a counter to the pre-calculated server name prefix. If the max counter
+	 * value is reached, code will loop back to 0, so that previously used server names will be reused.
 	 * 
 	 * @return the server name.
-	 * @throws CloudProvisioningException
-	 *             Indicated a free server name was not found.
+	 * @throws CloudProvisioningException Indicated a free server name was not found.
 	 */
-	private String createNewServerName() throws CloudProvisioningException {
+	private String createNewServerName()
+			throws CloudProvisioningException {
 
 		String serverName = null;
 		int attempts = 0;
@@ -230,7 +233,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	}
 
 	@Override
-	public MachineDetails[] startManagementMachines(final long duration, final TimeUnit unit) throws TimeoutException,
+	public MachineDetails[] startManagementMachines(final long duration, final TimeUnit unit)
+			throws TimeoutException,
 			CloudProvisioningException {
 		if (duration < 0) {
 			throw new TimeoutException("Starting a new machine timed out");
@@ -277,7 +281,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		@SuppressWarnings("unchecked")
 		final Future<MachineDetails>[] futures = (Future<MachineDetails>[]) new Future<?>[numberOfManagementMachines];
 
-		final CloudTemplate managementTemplate = this.cloud.getTemplates().get(this.cloud.getConfiguration().getManagementMachineTemplate());
+		final CloudTemplate managementTemplate =
+				this.cloud.getTemplates().get(this.cloud.getConfiguration().getManagementMachineTemplate());
 		try {
 			// Call startMachine asynchronously once for each management
 			// machine
@@ -286,7 +291,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 				futures[i] = executors.submit(new Callable<MachineDetails>() {
 
 					@Override
-					public MachineDetails call() throws Exception {
+					public MachineDetails call()
+							throws Exception {
 						return createServer(serverNamePrefix + index, endTime, managementTemplate);
 					}
 				});
@@ -372,16 +378,18 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	}
 
 	@Override
-	public void stopManagementMachines() throws TimeoutException, CloudProvisioningException {
+	public void stopManagementMachines()
+			throws TimeoutException, CloudProvisioningException {
 
 		Set<CustomNode> managementServers = null;
 
 		try {
 			managementServers = getExistingManagementServers(cloud.getProvider().getNumberOfManagementMachines());
-			/*if (managementServers == null || managementServers.isEmpty()) {
-				publishEvent("prov_management_server_not_found");
-				throw new CloudProvisioningException("Could not find any management machines for this cloud");
-			}*/
+			/*
+			 * if (managementServers == null || managementServers.isEmpty()) {
+			 * publishEvent("prov_management_server_not_found"); throw new
+			 * CloudProvisioningException("Could not find any management machines for this cloud"); }
+			 */
 		} catch (final Exception e) {
 			publishEvent("prov_management_lookup_failed");
 			throw new CloudProvisioningException("Failed to lookup existing management servers.", e);
@@ -394,7 +402,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 				publishEvent("prov_failed_to_stop_management_machine");
 				throw new CloudProvisioningException(e);
 			}
-			
+
 			shutdownServerGracefully(customNode, true);
 		}
 	}
@@ -417,7 +425,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 		// If a management server was found - connect it and get all management machines
 		if (StringUtils.isNotBlank(managementIP)) {
-			//TODO don't fly if timeout reached because expectedGsmCount wasn't reached
+			// TODO don't fly if timeout reached because expectedGsmCount wasn't reached
 			Admin admin = Utils.getAdminObject(managementIP, expectedGsmCount);
 			try {
 				final GridServiceManagers gsms = admin.getGridServiceManagers();
@@ -431,13 +439,14 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			} finally {
 				admin.close();
 			}
-			
+
 		}
 
 		return existingManagementServers;
 	}
 
-	private void stopAgentAndWait(final int expectedGsmCount, final String ipAddress) throws TimeoutException,
+	private void stopAgentAndWait(final int expectedGsmCount, final String ipAddress)
+			throws TimeoutException,
 			InterruptedException {
 
 		if (admin == null) {
@@ -485,7 +494,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		try {
 			machineDetails = createMachineDetailsFromNode(cloudNode);
 			Utils.deleteFileSystemObjects(machineDetails.getPrivateAddress(), machineDetails.getRemoteUsername(),
-					machineDetails.getRemotePassword(), null/* key file */, cloudifyItems, 
+					machineDetails.getRemotePassword(), null/* key file */, cloudifyItems,
 					machineDetails.getFileTransferMode());
 		} catch (final Exception e) {
 			if (machineDetails != null) {
@@ -533,7 +542,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 						+ firstCreationException.getMessage(), firstCreationException);
 	}
 
-	private MachineDetails createMachineDetailsFromNode(final CustomNode node) throws CloudProvisioningException {
+	private MachineDetails createMachineDetailsFromNode(final CustomNode node)
+			throws CloudProvisioningException {
 		final MachineDetails md = new MachineDetails();
 		md.setAgentRunning(false);
 		md.setCloudifyInstalled(false);
@@ -541,8 +551,6 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		md.setMachineId(node.getId());
 		md.setPrivateAddress(node.getPrivateIP());
 		md.setPublicAddress(node.getPublicIP());
-		// By default, cloud nodes connect to each other using their private ip.
-		md.setUsePrivateAddress(true);
 
 		// if the node has user/pwd - use it. Otherwise - take the use/password from the template's settings.
 		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplateName);
@@ -583,13 +591,10 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 	@Override
 	public void close() {
-		/*try {
-			if (admin != null) {
-				admin.close();
-			}
-		} catch (final Exception ex) {
-			logger.info("ByonProvisioningDriver.close() failed to close agent");
-		}*/
+		/*
+		 * try { if (admin != null) { admin.close(); } } catch (final Exception ex) {
+		 * logger.info("ByonProvisioningDriver.close() failed to close agent"); }
+		 */
 
 		if (deployer != null) {
 			deployer.close();

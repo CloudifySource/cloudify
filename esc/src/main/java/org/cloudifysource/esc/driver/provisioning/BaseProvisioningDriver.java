@@ -138,23 +138,23 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 				logger.fine(nodePrefix + "Key File: " + tempFile.getAbsolutePath());
 			}
 
-			logger.fine(nodePrefix
-					+ (machineDetails.isUsePrivateAddress() ? "Using Private IP: " : "Using Public IP: ")
-					+ machineDetails.getIp());
+			if (logger.isLoggable(Level.FINE)) {
+				logger.fine("Private IP: " + machineDetails.getPrivateAddress());
+				logger.fine("Public IP: " + machineDetails.getPublicAddress());
+			}
 		}
 	}
 
 	/**
-	 * Handles credentials for accessing the server - in this order: 
-	 * 1. pem file (set as a key file on the user block in the groovy file)
-	 * 2. machine's remote password (set previously by the cloud driver)
+	 * Handles credentials for accessing the server - in this order: 1. pem file (set as a key file on the user block in
+	 * the groovy file) 2. machine's remote password (set previously by the cloud driver)
 	 * 
 	 * @param machineDetails The MachineDetails object that represents this server
 	 * @throws CloudProvisioningException Indicates missing credentials or IOException (when a key file is used)
 	 */
 	protected void handleServerCredentials(final MachineDetails machineDetails, final CloudTemplate template)
 			throws CloudProvisioningException {
-		
+
 		File keyFile = null;
 		// using a key (pem) file
 		String keyFileStr = template.getKeyFile();
@@ -165,14 +165,14 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 				keyFile = new File(template.getLocalDirectory(), keyFileStr);
 			}
 			if (keyFile != null && !keyFile.exists()) {
-				throw new CloudProvisioningException("The specified key file could not be found: " 
+				throw new CloudProvisioningException("The specified key file could not be found: "
 						+ keyFile.getAbsolutePath());
 			}
 		} else {
 			// using a password
 			String remotePassword = machineDetails.getRemotePassword();
 			if (StringUtils.isNotBlank(remotePassword)) {
-				//is this actually a pem file?
+				// is this actually a pem file?
 				if (CredentialUtils.isPrivateKeyCredential(remotePassword)) {
 					logger.fine("Cloud has provided a key file for connections to new machines");
 					try {
@@ -191,7 +191,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 					logger.fine("Cloud has provided a password for remote connections to new machines");
 				}
 			} else {
-				//if we got here - there is no key file or password on the cloud or node.
+				// if we got here - there is no key file or password on the cloud or node.
 				logger.severe("No Password or key file specified in the cloud configuration file - connection to"
 						+ " the new machine is not possible.");
 				throw new CloudProvisioningException(
@@ -213,9 +213,10 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 			listener.onProvisioningEvent(eventName, args);
 		}
 	}
-	
+
 	/**
 	 * Sets the localDirectory setting of the given cloud object to an absolute path, based on the home directory.
+	 * 
 	 * @param cloud The cloud object to configure
 	 */
 	protected void fixConfigRelativePaths(final Cloud cloud, final CloudTemplate template) {
