@@ -200,8 +200,8 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 		}
 
 		for (final PluginDescriptor descriptor : plugins) {
-			final Plugin plugin = createPlugin(descriptor);
-			if (plugin != null) {
+			final Class<?> pluginClass = getPluginClass(descriptor);
+			if (pluginClass != null) {
 				final String name = descriptor.getName() == null ? descriptor.getClassName() : descriptor.getName();
 
 				try {
@@ -212,11 +212,16 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 				} catch (final NoSuchBeanDefinitionException e) {
 					// ignore - this is the expected result
 				}
+				final Object createdBean = this.context.getBeanFactory().createBean(pluginClass);
 
-				this.context.getBeanFactory().registerSingleton(name,
-						plugin);
+				final Plugin component = (Plugin) createdBean;
+				component.setServiceContext(this.serviceContext);
+				component.setConfig(descriptor.getConfig());
 
-				this.context.getBeanFactory().autowireBean(plugin);
+				// this.context.getBeanFactory().registerSingleton(name,
+				// plugin);
+
+				// this.context.getBeanFactory().autowireBean(plugin);
 
 			}
 		}
@@ -227,7 +232,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 	private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger(DSLBeanConfiguration.class
 			.getName());
 
-	private Plugin createPlugin(final PluginDescriptor descriptor) {
+	private Class<?> getPluginClass(final PluginDescriptor descriptor) {
 
 		Class<?> clazz = null;
 		try {
@@ -245,44 +250,15 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 					+ descriptor.getName(), e);
 		}
 
-		Object obj;
-		try {
-			obj = clazz.newInstance();
-		} catch (final InstantiationException e) {
-			logger.log(Level.SEVERE,
-					"Plugin of class " + descriptor.getClassName() + " could not be created",
-					e);
-			return null;
-		} catch (final IllegalAccessException e) {
-			logger.log(Level.SEVERE,
-					"Plugin of class " + descriptor.getClassName() + " could not be created",
-					e);
-			return null;
+
+		if (!USMComponent.class.isAssignableFrom(clazz)) {
+
+			throw new IllegalArgumentException("Plugin of class: " + descriptor.getClassName()
+					+ " does not implement the USMComponent interface");
 		}
 
-		Plugin plugin = null;
-		if (obj instanceof Plugin) {
-			plugin = (Plugin) obj;
 
-		} else {
-			logger.log(Level.SEVERE,
-					"Plugin of class " + descriptor.getClassName() + " does not "
-							+ "implement the required Plugin interface and will not be created");
-			return null;
-		}
-
-		if (!(plugin instanceof USMComponent)) {
-			logger.log(Level.SEVERE,
-					"Plugin of class " + descriptor.getClassName() + " does not "
-							+ "implement the required USMComponent interface and will not be created");
-			throw new IllegalArgumentException("Plugin of class " + descriptor.getClassName() + " does not "
-					+ "implement the required USMComponent interface and will not be created");
-		}
-
-		plugin.setServiceContext(this.serviceContext);
-		plugin.setConfig(descriptor.getConfig());
-
-		return plugin;
+		return clazz;
 
 	}
 
@@ -419,23 +395,23 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 	// The sigar based process detection is problematic. When a process dies, sigar sometimes does not detect the death.
 	// Worse, the sigar API requests may actually get stuck, locking up the stop detection thread.
 
-	 @Bean
-	 public USMEvent getProcessStopDetection() {
-	
-	 boolean enabled = true;
-	 final String enabledProperty =
-	 this.service.getCustomProperties().get(CloudifyConstants.CUSTOM_PROPERTY_ENABLE_PID_MONITOR);
-	 if (enabledProperty != null) {
-	 enabled = Boolean.parseBoolean(enabledProperty);
-	 }
-	
-	 if (enabled) {
-	 return new ProcessStopDetector();
-	 }
-	 logger.warning("PID Based stop detection has been disabled due to custom property setting: "
-	 + CloudifyConstants.CUSTOM_PROPERTY_ENABLE_PID_MONITOR);
-	 return null;
-	 }
+	@Bean
+	public USMEvent getProcessStopDetection() {
+
+		boolean enabled = true;
+		final String enabledProperty =
+				this.service.getCustomProperties().get(CloudifyConstants.CUSTOM_PROPERTY_ENABLE_PID_MONITOR);
+		if (enabledProperty != null) {
+			enabled = Boolean.parseBoolean(enabledProperty);
+		}
+
+		if (enabled) {
+			return new ProcessStopDetector();
+		}
+		logger.warning("PID Based stop detection has been disabled due to custom property setting: "
+				+ CloudifyConstants.CUSTOM_PROPERTY_ENABLE_PID_MONITOR);
+		return null;
+	}
 
 	/*******
 	 * Stop detection implementation that checks if the start command exited abnormally. This detector flags a service
