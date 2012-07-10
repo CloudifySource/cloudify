@@ -25,6 +25,8 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -86,6 +88,12 @@ public abstract class BaseDslScript extends Script {
 	private int propertyCounter;
 
 	private Set<String> usedProperties = new HashSet<String>();
+
+	/********
+	 * syntactic sigar for an empty list that process locator implementations can use to specify an empty process IDs
+	 * list.
+	 */
+	public static final List<Long> NO_PROCESS_LOCATORS = new LinkedList<Long>();
 
 	@Override
 	public void setProperty(final String name, final Object value) {
@@ -498,7 +506,7 @@ public abstract class BaseDslScript extends Script {
 			addObjectInitializerForClass(dslObjectInitializersByName, Sla.class);
 
 			dslObjectInitializersByName.put("userInterface", new DSLObjectInitializerData("userInterface",
-					UserInterface.class,  true, true, "service"));
+					UserInterface.class, true, true, "service"));
 
 			dslObjectInitializersByName.put("metricGroup", new DSLObjectInitializerData("metricGroup",
 					MetricGroup.class, false, true, "userInterface"));
