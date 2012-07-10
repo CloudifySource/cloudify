@@ -21,30 +21,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.cloudifysource.dsl.internal.EventLogConstants;
-
+/**
+ * a container holding all of the lifecycle events.  
+ * @author adaml
+ *
+ */
 public class LifecycleEventsContainer {
 
-
-    public enum PollingState{
-        RUNNING,
-        ENDED;
-    }
-
     /**
-     * indicates whether thread threw an exception.
-     */
-    private Throwable executionException;
-
-
-    /**
-     * A list of processed events, .
+     * A list of processed events.
      */
     private List<String> eventsList;
 
@@ -54,22 +43,8 @@ public class LifecycleEventsContainer {
     private Set<String> lifecycleEventsSet;
 
     private Set<String> serviceInstanceCountEventsSet;
-
-    private UUID containerUUID;
-
-    /**
-     * future container polling task.
-     */
-    private Future<?> futureTask;
-
-    /**
-     * indicates the polling thread state
-     */
-    private PollingState runnableState;
     
-    private final Object lock = new Object();
-
-    private final static Logger logger = Logger.getLogger(LifecycleEventsContainer.class.getName());
+    private final Logger logger = Logger.getLogger(LifecycleEventsContainer.class.getName());
 
     /**
      * LifecycleEventsContainer constructor.
@@ -77,15 +52,19 @@ public class LifecycleEventsContainer {
     public LifecycleEventsContainer() {
         this.serviceInstanceCountEventsSet = new HashSet<String>();
         this.eventsList = new ArrayList<String>();
-        this.runnableState = PollingState.RUNNING;
     }
 
-    public synchronized List<String> getLifecycleEvents(int curser){
+    /**
+     * gets the lifecycle events according to the cursor position.
+     * @param curser the cursor position
+     * @return a list of lifecycle events
+     */
+    public synchronized List<String> getLifecycleEvents(final int curser) {
         if (curser >= this.eventsList.size()  
                 || curser < 0) {
             return null;
         }
-        return eventsList.subList(curser, eventsList.size());
+        return new ArrayList<String>(eventsList.subList(curser, eventsList.size()));
     }
 
     /**
@@ -126,8 +105,8 @@ public class LifecycleEventsContainer {
      * 
      * @param event event to add
      */
-    public final synchronized void addInstanceCountEvent(String event) {
-        if (this.serviceInstanceCountEventsSet.contains(event)){
+    public final synchronized void addInstanceCountEvent(final String event) {
+        if (this.serviceInstanceCountEventsSet.contains(event)) {
             if (logger.isLoggable(Level.FINEST)) {
                 logger.finest("Ignoring Instance Count Event: " + event);
             }
@@ -158,54 +137,7 @@ public class LifecycleEventsContainer {
         return outputMessage;
     }
 
-    public void setUUID(UUID lifecycleEventsContainerUUIID) {
-        this.containerUUID = lifecycleEventsContainerUUIID;
-
-    }
-
-    public UUID getUUID() {
-        return  this.containerUUID;
-    }
-
-    public void setFutureTask(Future<?> future) {
-        this.futureTask = future;
-    }
-
-    public Future<?> getFutureTask() {
-        return this.futureTask;
-    }
-
-    public void setPollingState(PollingState state) {
-        synchronized (this.lock) {
-            this.runnableState = state;
-        }
-    }
-
-    public void setExecutionException(Throwable e) {
-        synchronized (this.lock) {
-            if (this.runnableState.equals(PollingState.RUNNING)){
-                this.executionException = e;
-                this.runnableState = PollingState.ENDED;
-            }
-        }
-    }
-
-    public ExecutionException getExecutionException() {
-        synchronized (this.lock) {
-            if (this.executionException == null) {
-                return null;
-            }
-            return new ExecutionException(this.executionException);
-        }
-    }
-
-    public PollingState getPollingState() {
-        synchronized (this.lock) {
-            return this.runnableState;
-        }
-    }
-
-    public void setEventsSet(Set<String> eventsSet){
+    public void setEventsSet(final Set<String> eventsSet) {
         this.lifecycleEventsSet = eventsSet;
     }
 }

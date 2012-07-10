@@ -85,8 +85,8 @@ import org.cloudifysource.esc.driver.provisioning.CloudifyMachineProvisioningCon
 import org.cloudifysource.rest.ResponseConstants;
 import org.cloudifysource.rest.util.ApplicationInstallerRunnable;
 import org.cloudifysource.rest.util.LifecycleEventsContainer;
-import org.cloudifysource.rest.util.LifecycleEventsContainer.PollingState;
 import org.cloudifysource.rest.util.RestPollingRunnable;
+import org.cloudifysource.rest.util.RestPollingRunnable.PollingState;
 import org.cloudifysource.rest.util.RestUtils;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.CycleDetector;
@@ -145,12 +145,15 @@ import com.gigaspaces.internal.dump.pu.ProcessingUnitsDumpProcessor;
 @RequestMapping("/service")
 public class ServiceController {
 
-	private static final int THREAD_POOL_SIZE = 20;
+	private static final int DEFAULT_TIME_EXTENTION_POLLING_TASK = 5;
+    private static final int THREAD_POOL_SIZE = 20;
 	private static final String SHARED_ISOLATION_ID = "public";
 	private static final int PU_DISCOVERY_TIMEOUT_SEC = 8;
-	private final Map<UUID, LifecycleEventsContainer> lifecyclePollingContainer =
-			new ConcurrentHashMap<UUID, LifecycleEventsContainer>();
-	private final int LIFECYCLE_EVENT_POLLING_INTERVAL = 4;
+	private final Map<UUID, RestPollingRunnable> lifecyclePollingThreadContainer =
+			new ConcurrentHashMap<UUID, RestPollingRunnable>();
+	private final int LIFECYCLE_EVENT_POLLING_INTERVAL_SEC = 4;
+	private final long LIFECYCLE_EVENT_CLEANUP_INTERVAL_SEC = 60;
+	private final long MINIMAL_POLLING_TASK_EXPIRATION = 5 * 60 * 1000;
 
 	/**
 	 * A set containing all of the executed lifecycle events. used to avoid duplicate prints.
@@ -208,6 +211,34 @@ public class ServiceController {
 			logger.log(Level.SEVERE, "ServiceController failed to locate temp directory", e);
 			throw new IllegalStateException("ServiceController failed to locate temp directory", e);
 		}
+		
+		startLifecycleLogsCleanupTask();
+	}
+
+	private void startLifecycleLogsCleanupTask() {
+	    this.lifecycleEventsCleaner.scheduleWithFixedDelay(new Runnable() {
+
+	        @Override
+	        public void run() {
+	            if (lifecyclePollingThreadContainer != null) {
+	                Iterator<Entry<UUID, RestPollingRunnable>> it = lifecyclePollingThreadContainer.
+	                        entrySet().iterator();
+	                while (it.hasNext()) {
+	                    Map.Entry<UUID, RestPollingRunnable> entry = it.next();
+	                    RestPollingRunnable restPollingRunnable = entry.getValue();
+	                    if (System.currentTimeMillis() > restPollingRunnable.getEndTime()) {
+	                        Future<?> futureTask = restPollingRunnable.getFutureTask();
+	                        //I can create that throws a RuntimeException in the thread in-order to kill it.
+	                        futureTask.cancel(true);
+	                        logger.log(Level.INFO, "Polling Task with UUID " + entry.getKey().toString()
+	                                + " has expired");
+	                        it.remove();
+	                    }
+	                }
+	            }
+
+	        }
+	    }, 0, LIFECYCLE_EVENT_CLEANUP_INTERVAL_SEC, TimeUnit.MINUTES);
 	}
 
 	/**
@@ -217,6 +248,7 @@ public class ServiceController {
 	public void destroy() {
 		this.executorService.shutdownNow();
 		this.scheduledExecutor.shutdownNow();
+		this.lifecycleEventsCleaner.shutdownNow();
 	}
 
 	@RequestMapping(value = "/dump/machines", method = RequestMethod.GET)
@@ -393,24 +425,35 @@ public class ServiceController {
 
 		logger.info("Successfully loaded cloud configuration file from management space");
 
-		
 		return cloudConfiguration;
-
 	}
-
+	
+	private final ScheduledExecutorService lifecycleEventsCleaner = Executors.newScheduledThreadPool(1, new ThreadFactory() {
+        
+	    final AtomicInteger threadNumber = new AtomicInteger(1);
+	    
+        @Override
+        public Thread newThread(Runnable r) {
+            final Thread thread =
+                    new Thread(r, "LifecycleEventsPollingExecutor-" + threadNumber.getAndIncrement());
+            thread.setDaemon(true);
+            return thread;
+        }
+    });
+    
 	private final ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(10,
-			new ThreadFactory() {
+	        new ThreadFactory() {
 
-				final AtomicInteger threadNumber = new AtomicInteger(1);
+	    final AtomicInteger threadNumber = new AtomicInteger(1);
 
-				@Override
-				public Thread newThread(Runnable r) {
-					final Thread thread =
-							new Thread(r, "LifecycleEventsPollingExecutor-" + threadNumber.getAndIncrement());
-					thread.setDaemon(true);
-					return thread;
-				}
-			});
+	    @Override
+	    public Thread newThread(Runnable r) {
+	        final Thread thread =
+	                new Thread(r, "LifecycleEventsPollingExecutor-" + threadNumber.getAndIncrement());
+	        thread.setDaemon(true);
+	        return thread;
+	    }
+	});
 
 	// Set up a small thread pool with daemon threads.
 	private final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE, new ThreadFactory() {
@@ -749,12 +792,11 @@ public class ServiceController {
 		return successStatus(returnMap);
 	}
 
-	private UUID startPollingForServiceUninstallLifecycleEvents(String applicationName, String serviceName,
-			int timeoutInMinutes) {
+	private UUID startPollingForServiceUninstallLifecycleEvents(final String applicationName, final String serviceName,
+			final int timeoutInMinutes) {
 		RestPollingRunnable restPollingRunnable;
 		LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
 		UUID lifecycleEventsContainerID = UUID.randomUUID();
-		this.lifecyclePollingContainer.put(lifecycleEventsContainerID, lifecycleEventsContainer);
 		lifecycleEventsContainer.setEventsSet(this.eventsSet);
 
 		restPollingRunnable = new RestPollingRunnable(applicationName, timeoutInMinutes, TimeUnit.MINUTES);
@@ -764,12 +806,12 @@ public class ServiceController {
 		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
 		restPollingRunnable.setIsUninstall(true);
 		restPollingRunnable.setEndTime(timeoutInMinutes, TimeUnit.MINUTES);
-
+		
 		ScheduledFuture<?> scheduleWithFixedDelay =
-				scheduledExecutor.scheduleWithFixedDelay(restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL,
+				scheduledExecutor.scheduleWithFixedDelay(restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL_SEC,
 						TimeUnit.SECONDS);
-		lifecycleEventsContainer.setFutureTask(scheduleWithFixedDelay);
-
+		restPollingRunnable.setFutureTask(scheduleWithFixedDelay);
+		this.lifecyclePollingThreadContainer.put(lifecycleEventsContainerID, restPollingRunnable);
 		logger.log(Level.INFO, "polling container UUID is " + lifecycleEventsContainerID.toString());
 		return lifecycleEventsContainerID;
 	}
@@ -1111,13 +1153,12 @@ public class ServiceController {
 
 	}
 
-	private UUID startPollingForApplicationUninstallLifecycleEvents(String applicationName,
-			List<ProcessingUnit> uninstallOrder, int timeoutInMinutes) {
+	private UUID startPollingForApplicationUninstallLifecycleEvents(final String applicationName,
+			final List<ProcessingUnit> uninstallOrder, final int timeoutInMinutes) {
 
 		RestPollingRunnable restPollingRunnable;
 		LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
 		UUID lifecycleEventsContainerID = UUID.randomUUID();
-		this.lifecyclePollingContainer.put(lifecycleEventsContainerID, lifecycleEventsContainer);
 		lifecycleEventsContainer.setEventsSet(this.eventsSet);
 
 		restPollingRunnable = new RestPollingRunnable(applicationName, timeoutInMinutes, TimeUnit.MINUTES);
@@ -1131,11 +1172,11 @@ public class ServiceController {
 		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
 		restPollingRunnable.setIsUninstall(true);
 		restPollingRunnable.setEndTime(timeoutInMinutes, TimeUnit.MINUTES);
-
+		this.lifecyclePollingThreadContainer.put(lifecycleEventsContainerID, restPollingRunnable);
 		ScheduledFuture<?> scheduleWithFixedDelay =
-				scheduledExecutor.scheduleWithFixedDelay(restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL,
+				scheduledExecutor.scheduleWithFixedDelay(restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL_SEC,
 						TimeUnit.SECONDS);
-		lifecycleEventsContainer.setFutureTask(scheduleWithFixedDelay);
+		restPollingRunnable.setFutureTask(scheduleWithFixedDelay);
 
 		logger.log(Level.INFO, "polling container UUID is " + lifecycleEventsContainerID.toString());
 		return lifecycleEventsContainerID;
@@ -1144,13 +1185,13 @@ public class ServiceController {
 
 	// TODO: Start executer service
 	private UUID startPollingForLifecycleEvents(final String serviceName, final String applicationName,
-			final int plannedNumberOfInstances, boolean isServiceInstall, final int timeout, final TimeUnit minutes) {
+			final int plannedNumberOfInstances, final boolean isServiceInstall,
+			final int timeout, final TimeUnit minutes) {
 		RestPollingRunnable restPollingRunnable;
 		logger.info("starting POLL on service : " + serviceName + " app: " + applicationName);
 
 		LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
 		UUID lifecycleEventsContainerID = UUID.randomUUID();
-		this.lifecyclePollingContainer.put(lifecycleEventsContainerID, lifecycleEventsContainer);
 		lifecycleEventsContainer.setEventsSet(this.eventsSet);
 
 		restPollingRunnable = new RestPollingRunnable(applicationName, timeout, minutes);
@@ -1159,11 +1200,11 @@ public class ServiceController {
 		restPollingRunnable.setIsServiceInstall(isServiceInstall);
 		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
 		restPollingRunnable.setEndTime(timeout, TimeUnit.MINUTES);
-
+		this.lifecyclePollingThreadContainer.put(lifecycleEventsContainerID, restPollingRunnable);
 		ScheduledFuture<?> scheduleWithFixedDelay =
-				scheduledExecutor.scheduleWithFixedDelay(restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL,
+				scheduledExecutor.scheduleWithFixedDelay(restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL_SEC,
 						TimeUnit.SECONDS);
-		lifecycleEventsContainer.setFutureTask(scheduleWithFixedDelay);
+		restPollingRunnable.setFutureTask(scheduleWithFixedDelay);
 
 		logger.log(Level.INFO, "polling container UUID is " + lifecycleEventsContainerID.toString());
 		return lifecycleEventsContainerID;
@@ -1175,8 +1216,6 @@ public class ServiceController {
 
 		LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
 		UUID lifecycleEventsContainerUUID = UUID.randomUUID();
-		lifecycleEventsContainer.setUUID(lifecycleEventsContainerUUID);
-		this.lifecyclePollingContainer.put(lifecycleEventsContainerUUID, lifecycleEventsContainer);
 		lifecycleEventsContainer.setEventsSet(this.eventsSet);
 
 		RestPollingRunnable restPollingRunnable = new RestPollingRunnable(application.getName(), timeout, timeUnit);
@@ -1187,76 +1226,84 @@ public class ServiceController {
 		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
 		restPollingRunnable.setAdmin(admin);
 		restPollingRunnable.setEndTime(timeout, TimeUnit.MINUTES);
-
+		this.lifecyclePollingThreadContainer.put(lifecycleEventsContainerUUID, restPollingRunnable);
 		ScheduledFuture<?> scheduleWithFixedDelay =
-				scheduledExecutor.scheduleWithFixedDelay(restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL,
+				scheduledExecutor.scheduleWithFixedDelay(restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL_SEC,
 						TimeUnit.SECONDS);
-		lifecycleEventsContainer.setFutureTask(scheduleWithFixedDelay);
+		restPollingRunnable.setFutureTask(scheduleWithFixedDelay);
 
 		logger.log(Level.INFO, "polling container UUID is " + lifecycleEventsContainerUUID.toString());
 		return lifecycleEventsContainerUUID;
 	}
-
-	// TODO remove cursor
+	
+	/**
+	 * Returns the lifecycle events according to the lifecycleEventContainerID id that is returned as a response
+	 * when installing/un-installing a service/application and according to the cursor position.
+	 * 
+	 * @param lifecycleEventContainerID the unique task ID.
+	 * @param cursor event entry cursor
+	 * @return a map containing the events and the task state.
+	 */
 	@RequestMapping(value = "/lifecycleEventContainerID/{lifecycleEventContainerID}/cursor/{cursor}",
 			method = RequestMethod.GET)
 	public @ResponseBody
 	Object getLifecycleEvents(@PathVariable final String lifecycleEventContainerID, @PathVariable final int cursor) {
 		Map<String, Object> resultsMap = new HashMap<String, Object>();
-		resultsMap.put(CloudifyConstants.POLLING_TIMEOUT_EXCEPTION, false);
 		resultsMap.put(CloudifyConstants.POLLING_EXCEPTION, false);
 		
-		if (!lifecyclePollingContainer.containsKey(UUID.fromString(lifecycleEventContainerID))) {
+		if (!lifecyclePollingThreadContainer.containsKey(UUID.fromString(lifecycleEventContainerID))) {
 			return errorStatus("Lifecycle events container with UUID: " + lifecycleEventContainerID
 					+ " does not exist or expired.");
 		}
-		LifecycleEventsContainer container = lifecyclePollingContainer.get(UUID.fromString(lifecycleEventContainerID));
-		Future<?> futureTask = container.getFutureTask();
-		PollingState runnableState = container.getPollingState();
+		RestPollingRunnable restPollingRunnable = lifecyclePollingThreadContainer.
+		             get(UUID.fromString(lifecycleEventContainerID));
+		
+		LifecycleEventsContainer container = restPollingRunnable.getLifecycleEventsContainer();
+		PollingState runnableState = restPollingRunnable.getPollingState();
 		switch (runnableState) {
 		case RUNNING:
+		    extendThreadTimeout(restPollingRunnable, DEFAULT_TIME_EXTENTION_POLLING_TASK);
 			resultsMap.put(CloudifyConstants.IS_TASK_DONE, false);
 			break;
 		case ENDED:
-			Throwable t = container.getExecutionException();
+			Throwable t = restPollingRunnable.getExecutionException();
 			if (t != null) {
-				if (t.getCause() instanceof TimeoutException) {
-					logger.log(Level.INFO, "Lifecycle events polling task timed out.");
-					resultsMap.put(CloudifyConstants.POLLING_TIMEOUT_EXCEPTION, true);
-					resultsMap.put(CloudifyConstants.IS_TASK_DONE, true);
-				} else {
-					logger.log(Level.INFO, "Lifecycle events polling ended unexpectedly.", t);
-					resultsMap.put(CloudifyConstants.POLLING_EXCEPTION, true);
-					resultsMap.put(CloudifyConstants.IS_TASK_DONE, true);
-				}
+			    logger.log(Level.INFO, "Lifecycle events polling ended unexpectedly.", t);
+			    resultsMap.put(CloudifyConstants.POLLING_EXCEPTION, true);
+			    resultsMap.put(CloudifyConstants.IS_TASK_DONE, true);
 			} else {
 				logger.log(Level.INFO, "Lifecycle events polling ended successfully.");
 				resultsMap.put(CloudifyConstants.IS_TASK_DONE, true);
 			}
-			futureTask.cancel(true);
 			break;
+		default:
+		    return errorStatus("an unexpected error occurred. Polling task status is null.");
 		}
 
 		List<String> lifecycleEvents = container.getLifecycleEvents(cursor);
 
 		if (lifecycleEvents != null) {
-		    //avoid concurrency issues. create a copy of the list
-		    List<String> copy = new ArrayList<String>(lifecycleEvents);
 			int newCursorPos = cursor + lifecycleEvents.size();
 			resultsMap.put(CloudifyConstants.CURSOR_POS, newCursorPos);
-			resultsMap.put(CloudifyConstants.LIFECYCLE_LOGS, copy);
+			resultsMap.put(CloudifyConstants.LIFECYCLE_LOGS, lifecycleEvents);
 		} else {
 			resultsMap.put(CloudifyConstants.CURSOR_POS, cursor);
 		}
-		//if done, remove all cached lifecycle events
-		if (runnableState.equals(PollingState.ENDED)) {
-		    lifecyclePollingContainer.remove(UUID.fromString(lifecycleEventContainerID));
-		}
+		long timeBeforeTaskTerminationMillis = restPollingRunnable.getEndTime() - System.currentTimeMillis();
+		resultsMap.put(CloudifyConstants.SERVER_POLLING_TASK_EXPIRATION_MILLI,
+		        Long.toString(timeBeforeTaskTerminationMillis));
 
 		return successStatus(resultsMap);
 	}
 
-	private Object doDeployApplication(final String applicationName, final File applicationFile, final int timeout)
+	private void extendThreadTimeout(final RestPollingRunnable pollingRunnable, final int timeoutInMinutes) {
+	    long taskExpiration = pollingRunnable.getEndTime() - System.currentTimeMillis();
+	    if (taskExpiration < MINIMAL_POLLING_TASK_EXPIRATION) {
+	        pollingRunnable.setEndTime(timeoutInMinutes, TimeUnit.MINUTES);
+	    }
+    }
+
+    private Object doDeployApplication(final String applicationName, final File applicationFile, final int timeout)
             throws IOException, DSLException {
         final DSLApplicationCompilatioResult result = ServiceReader.getApplicationFromFile(applicationFile);
         final List<Service> services = createServiceDependencyOrder(result.getApplication());

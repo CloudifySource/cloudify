@@ -25,6 +25,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -33,7 +35,6 @@ import java.util.logging.Logger;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.EventLogConstants;
 import org.cloudifysource.dsl.utils.ServiceUtils;
-import org.cloudifysource.rest.util.LifecycleEventsContainer.PollingState;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.internal.pu.DefaultProcessingUnit;
@@ -71,7 +72,7 @@ public class RestPollingRunnable implements Runnable {
 
     private Admin admin;
 
-    private long endTime;
+    private volatile long endTime;
 
     private static final String USM_EVENT_LOGGER_NAME = ".*.USMEventLogger.{0}\\].*";
 
@@ -80,6 +81,28 @@ public class RestPollingRunnable implements Runnable {
     private LifecycleEventsContainer lifecycleEventsContainer;
 
     private boolean isServiceInstall;
+    
+    /**
+     * indicates whether thread threw an exception.
+     */
+    private Throwable executionException;
+    
+    /**
+     * indicates the polling thread state.
+     */
+    private PollingState runnableState = PollingState.RUNNING;
+    
+    /**
+     * future container polling task.
+     */
+    private Future<?> futureTask;
+    
+    private final Object lock = new Object();
+    
+    public enum PollingState{
+        RUNNING,
+        ENDED;
+    }
 
     private static final Logger logger = Logger.getLogger(RestPollingRunnable.class.getName());
 
@@ -119,6 +142,14 @@ public class RestPollingRunnable implements Runnable {
             final LifecycleEventsContainer lifecycleEventsContainer) {
         this.lifecycleEventsContainer = lifecycleEventsContainer;
     }
+    
+    /**
+     * gets the lifecycle event container.
+     * @return the lifecycle event container of the runnable thread
+     */
+    public LifecycleEventsContainer getLifecycleEventsContainer() {
+        return this.lifecycleEventsContainer;
+    }
 
     /**
      * Add a service to the polling callable. the service will be sampled 
@@ -138,10 +169,70 @@ public class RestPollingRunnable implements Runnable {
     public void setIsServiceInstall(final boolean isServiceInstall) {
         this.isServiceInstall = isServiceInstall;
     }
-
-    public void setEndTime(final long timeout, final TimeUnit timeunit) {
+    
+    /**
+     * Sets the runnable's lifetime lease.
+     * @param timeout timeout period
+     * @param timeunit timeout timeunit
+     */
+    public synchronized void setEndTime(final long timeout, final TimeUnit timeunit) {
         this.endTime = System.currentTimeMillis() + timeunit.toMillis(timeout);
     }
+    
+    /**
+     * Returns the thread's end time.
+     * @return the thread's end time.
+     */
+    public synchronized long getEndTime() {
+        return endTime;
+    }
+    
+    private void setPollingState(final PollingState state) {
+        synchronized (this.lock) {
+            this.runnableState = state;
+        }
+    }
+
+    private void setExecutionException(final Throwable e) {
+        synchronized (this.lock) {
+            if (this.runnableState.equals(PollingState.RUNNING)) {
+                this.executionException = e;
+                this.runnableState = PollingState.ENDED;
+            }
+        }
+    }
+
+    /**
+     * gets the execution exception that occurred on the polling thread.
+     * @return the execution exception that occurred on the polling thread or null
+     */
+    public ExecutionException getExecutionException() {
+        synchronized (this.lock) {
+            if (this.executionException == null) {
+                return null;
+            }
+            return new ExecutionException(this.executionException);
+        }
+    }
+
+    /**
+     * gets the runnable's state. It is expected to be in either RUNNING or ENDED state.
+     * @return the runnable's state
+     */
+    public PollingState getPollingState() {
+        synchronized (this.lock) {
+            return this.runnableState;
+        }
+    }
+    
+    public void setFutureTask(final Future<?> future) {
+        this.futureTask = future;
+    }
+
+    public Future<?> getFutureTask() {
+        return this.futureTask;
+    }
+
 
 
     @Override
@@ -149,9 +240,9 @@ public class RestPollingRunnable implements Runnable {
         
         try {
         if (this.serviceNames.isEmpty()) {
-            logger.log(Level.INFO, "Polling Polling for lifecycle events has ended successfully." 
+            logger.log(Level.INFO, "Polling for lifecycle events has ended successfully." 
                     + " Terminating the polling task");
-            this.lifecycleEventsContainer.setPollingState(PollingState.ENDED);
+            setPollingState(PollingState.ENDED);
             //We stop the thread from being scheduled again.
             throw new RuntimeException("Polling has ended successfully");
         } 
@@ -161,10 +252,10 @@ public class RestPollingRunnable implements Runnable {
             }
 
             pollForLogs();
-
+            
         } catch (Throwable e) {
             logger.log(Level.INFO, "Polling task terminated. Reason: " + e.getMessage(), e);
-            this.lifecycleEventsContainer.setExecutionException(e);
+            setExecutionException(e);
             //this exception should not be caught. it is meant to make the scheduler stop
             //the thread execution.
             throw new RuntimeException(e);
@@ -190,7 +281,7 @@ public class RestPollingRunnable implements Runnable {
         }
     }
 
-    private void addServiceLifecycleLogs(Entry<String, Integer> entry) {
+    private void addServiceLifecycleLogs(final Entry<String, Integer> entry) {
         List<Map<String, String>> servicesLifecycleEventDetailes;
         servicesLifecycleEventDetailes = new ArrayList<Map<String, String>>();
         String serviceName = entry.getKey();
@@ -239,7 +330,7 @@ public class RestPollingRunnable implements Runnable {
         }
     }
 
-    private void addServiceInstanceCountEvents(Entry<String, Integer> entry) {
+    private void addServiceInstanceCountEvents(final Entry<String, Integer> entry) {
 
         String serviceName = entry.getKey();
         String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
@@ -403,6 +494,4 @@ public class RestPollingRunnable implements Runnable {
 
         return returnMap;
     }
-
-
 }
