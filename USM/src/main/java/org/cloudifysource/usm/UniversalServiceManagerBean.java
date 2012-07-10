@@ -331,9 +331,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			executors.shutdown();
 			removeShutdownHook();
 
-			if (this.runningInGSC) {
-				deleteExtDirContents(); // avoid deleting contents in Integrated PU
-			}
 
 			try {
 				getUsmLifecycleBean().fireShutdown();
@@ -341,6 +338,14 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 				logger.log(Level.SEVERE, "Failed to execute shutdown event: " + e.getMessage(), e);
 			}
 
+			// after shutdown, no further events are expected to be executed. 
+			// So we delete the service folder contents. This is just in case the GSC does
+			// not properly clean up the service folder. If an underlying process is leaking,
+			// this may cause all sorts of problems, though.
+			if (this.runningInGSC) {
+				deleteExtDirContents(); // avoid deleting contents in Integrated PU
+			}
+			
 			USMUtils.shutdownAdmin();
 		}
 		// Sleep for 10 seconds to allow rest to poll for shutdown lifecycle events
@@ -894,15 +899,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		} catch (final USMException e) {
 			logger.log(Level.SEVERE, "Failed to execute pre stop event: " + e.getMessage(), e);
 		}
-
-		// Removed for 2.1.1 - only the actual service process should be killed.
-		// First kill the monitored process, then all is parents, up to and not
-		// including this one
-		// try {
-		// killMonitoredProcessChain();
-		// } catch (final USMException e) {
-		// logger.log(Level.SEVERE, "Failed to shut down actual process (" + this.actualProcessID + ")", e);
-		// }
 
 		final List<Long> pids = this.serviceProcessPIDs;
 		for (final Long pid : pids) {
