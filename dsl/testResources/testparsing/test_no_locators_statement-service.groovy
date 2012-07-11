@@ -4,6 +4,8 @@ service {
     name "iisproxy" 
     numInstances 2
     maxAllowedInstances 2
+	type "WEB_SERVER"
+	
 	lifecycle{
 		
 				init "test_parsing_base_install.groovy"
