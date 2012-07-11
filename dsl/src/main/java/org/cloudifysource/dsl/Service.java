@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationException;
@@ -41,6 +42,7 @@ import org.openspaces.ui.UserInterface;
 		parent = "application")
 public class Service {
 
+	private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Service.class.getName());
 	private static final int DEFAULT_MAX_JAR_SIZE = 150 * 1024 * 1024; // 150 MB
 	private static final long DEFAULT_SAMPLING_PERIOD_SECONDS = 60;
 
@@ -431,19 +433,28 @@ public class Service {
 	}
 
 	private void validateServiceType() throws DSLValidationException {
-		boolean typeExists = false;
-		String[] enumAsString = new String[ServiceTierType.values().length];
-		int counter = 0;
-		for (ServiceTierType tierType : ServiceTierType.values()) {
-			enumAsString[counter] = tierType.toString();
-			counter++;
-			if (tierType.toString().equalsIgnoreCase(this.type)) {
-				typeExists = true;
+		
+		if (this.type == null) {
+			this.type = ServiceTierType.UNDEFINED.toString();
+			logger.log(Level.FINE, "The service type was not defined." +
+					" Using the default service type.");
+			return;
+		} else {
+			boolean typeExists = false;
+			String[] enumAsString = new String[ServiceTierType.values().length];
+			int counter = 0;
+			for (ServiceTierType tierType : ServiceTierType.values()) {
+				enumAsString[counter] = tierType.toString();
+				counter++;
+				if (tierType.toString().equalsIgnoreCase(this.type)) {
+					typeExists = true;
+					break;
+				}
 			}
-		}
-		if (!typeExists) {
-			throw new DSLValidationException("The service type '" + this.type + "' is undefined."
-					+ "The known service types include " + Arrays.toString(enumAsString));
+			if (!typeExists) {
+				throw new DSLValidationException("The service type '" + this.type + "' is undefined."
+						+ "The known service types include " + Arrays.toString(enumAsString));
+			}
 		}
 	}
 	
