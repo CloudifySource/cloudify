@@ -60,6 +60,8 @@ import org.openspaces.pu.container.support.ResourceApplicationContext;
 import org.openspaces.ui.UserInterface;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
@@ -212,18 +214,20 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 				} catch (final NoSuchBeanDefinitionException e) {
 					// ignore - this is the expected result
 				}
-				final Object createdBean = this.context.getBeanFactory().createBean(pluginClass);
 
-				final Plugin component = (Plugin) createdBean;
+				// Add the bean definition to the application context
+				((DefaultListableBeanFactory) this.context.getBeanFactory()).registerBeanDefinition(pluginClass
+						.getSimpleName(), BeanDefinitionBuilder.rootBeanDefinition(pluginClass.getName())
+						.getBeanDefinition());
+
+				// Initialize the bean
+				final Object pluginObject = this.context.getBeanFactory().getBean(pluginClass);
+				final Plugin component = (Plugin) pluginObject;
 				component.setServiceContext(this.serviceContext);
 				component.setConfig(descriptor.getConfig());
 
-				// this.context.getBeanFactory().registerSingleton(name,
-				// plugin);
-
-				// this.context.getBeanFactory().autowireBean(plugin);
-
 			}
+
 		}
 
 		return null;
@@ -250,13 +254,11 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 					+ descriptor.getName(), e);
 		}
 
-
 		if (!USMComponent.class.isAssignableFrom(clazz)) {
 
 			throw new IllegalArgumentException("Plugin of class: " + descriptor.getClassName()
 					+ " does not implement the USMComponent interface");
 		}
-
 
 		return clazz;
 
