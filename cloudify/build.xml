@@ -28,6 +28,8 @@
             <os family="unix" />
     </condition>
 	
+	<loadproperties srcfile="${basedir}/${build.properties.file}"/>
+	
     <property environment="env."/>
 	<property name="tmp.dir" value="${basedir}/tmp" />
 	<property name="xap.files.tmp.dir" value="${basedir}/xap.files.tmp.dir" />
