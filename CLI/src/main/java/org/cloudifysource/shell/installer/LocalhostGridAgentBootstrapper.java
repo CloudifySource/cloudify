@@ -1222,6 +1222,7 @@ public class LocalhostGridAgentBootstrapper {
 		if (nicAddress != null) {
 			environment.put("NIC_ADDR", nicAddress);
 		}
+		environment.put("RMI_OPTIONS", "");
 
 		if (zone != null) {
 			gsaJavaOptions += " -Dcom.gs.zones=" + zone;
