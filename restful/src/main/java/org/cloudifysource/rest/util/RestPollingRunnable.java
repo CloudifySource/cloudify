@@ -35,6 +35,7 @@ import java.util.logging.Logger;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.EventLogConstants;
 import org.cloudifysource.dsl.utils.ServiceUtils;
+import org.cloudifysource.rest.controllers.RestServiceException;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.internal.pu.DefaultProcessingUnit;
@@ -72,7 +73,7 @@ public class RestPollingRunnable implements Runnable {
 
     private Admin admin;
 
-    private volatile long endTime;
+    private long endTime;
 
     private static final String USM_EVENT_LOGGER_NAME = ".*.USMEventLogger.{0}\\].*";
 
@@ -88,21 +89,13 @@ public class RestPollingRunnable implements Runnable {
     private Throwable executionException;
     
     /**
-     * indicates the polling thread state.
-     */
-    private PollingState runnableState = PollingState.RUNNING;
-    
-    /**
      * future container polling task.
      */
     private Future<?> futureTask;
     
-    private final Object lock = new Object();
+    private boolean isDone = false;
     
-    public enum PollingState{
-        RUNNING,
-        ENDED;
-    }
+    private final Object lock = new Object();
 
     private static final Logger logger = Logger.getLogger(RestPollingRunnable.class.getName());
 
@@ -180,6 +173,14 @@ public class RestPollingRunnable implements Runnable {
     }
     
     /**
+     * returns true if the task is done.
+     * @return true if thread has ended, false otherwise.
+     */
+    public boolean isDone() {
+        return this.isDone;
+    }
+    
+    /**
      * Extends the runnable's lifetime lease.
      * @param timeout timeout period
      * @param timeunit timeout timeunit
@@ -196,18 +197,9 @@ public class RestPollingRunnable implements Runnable {
         return endTime;
     }
     
-    private void setPollingState(final PollingState state) {
-        synchronized (this.lock) {
-            this.runnableState = state;
-        }
-    }
-
     private void setExecutionException(final Throwable e) {
         synchronized (this.lock) {
-            if (this.runnableState.equals(PollingState.RUNNING)) {
                 this.executionException = e;
-                this.runnableState = PollingState.ENDED;
-            }
         }
     }
 
@@ -223,26 +215,10 @@ public class RestPollingRunnable implements Runnable {
             return new ExecutionException(this.executionException);
         }
     }
-
-    /**
-     * gets the runnable's state. It is expected to be in either RUNNING or ENDED state.
-     * @return the runnable's state
-     */
-    public PollingState getPollingState() {
-        synchronized (this.lock) {
-            return this.runnableState;
-        }
-    }
     
     public void setFutureTask(final Future<?> future) {
         this.futureTask = future;
     }
-
-    public Future<?> getFutureTask() {
-        return this.futureTask;
-    }
-
-
 
     @Override
     public void run() {
@@ -251,9 +227,8 @@ public class RestPollingRunnable implements Runnable {
         if (this.serviceNames.isEmpty()) {
             logger.log(Level.INFO, "Polling for lifecycle events has ended successfully." 
                     + " Terminating the polling task");
-            setPollingState(PollingState.ENDED);
             //We stop the thread from being scheduled again.
-            throw new RuntimeException("Polling has ended successfully");
+            throw new RestServiceException("Polling has ended successfully");
         } 
             
             if (System.currentTimeMillis() > this.endTime) {
@@ -263,14 +238,26 @@ public class RestPollingRunnable implements Runnable {
             pollForLogs();
             
         } catch (Throwable e) {
-            logger.log(Level.INFO, "Polling task terminated. Reason: " + e.getMessage(), e);
-            setExecutionException(e);
+            terminateTaskGracefully();
+            if (!(e instanceof RestServiceException)) {
+                logger.log(Level.INFO, "Polling task ended unexpectedly. Reason: " + e.getMessage(), e);
+                setExecutionException(e);
+            } else {
+                logger.log(Level.INFO, "Polling task ended successfully.");
+            }
             //this exception should not be caught. it is meant to make the scheduler stop
             //the thread execution.
             throw new RuntimeException(e);
 
         } 
 
+    }
+
+    private void terminateTaskGracefully() {
+        this.isDone = true;
+        if (this.futureTask != null) {
+            this.futureTask.cancel(true);
+        }
     }
 
     /**

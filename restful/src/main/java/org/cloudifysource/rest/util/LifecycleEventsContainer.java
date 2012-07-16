@@ -44,6 +44,8 @@ public class LifecycleEventsContainer {
 
     private Set<String> serviceInstanceCountEventsSet;
     
+    private final Object lock = new Object();
+    
     private final Logger logger = Logger.getLogger(LifecycleEventsContainer.class.getName());
 
     /**
@@ -59,12 +61,14 @@ public class LifecycleEventsContainer {
      * @param curser the cursor position
      * @return a list of lifecycle events
      */
-    public synchronized List<String> getLifecycleEvents(final int curser) {
-        if (curser >= this.eventsList.size()  
-                || curser < 0) {
-            return null;
+    public List<String> getLifecycleEvents(final int curser) {
+        synchronized (this.lock) {
+            if (curser >= this.eventsList.size()  
+                    || curser < 0) {
+                return null;
+            }
+            return new ArrayList<String>(eventsList.subList(curser, eventsList.size()));
         }
-        return new ArrayList<String>(eventsList.subList(curser, eventsList.size()));
     }
 
     /**
@@ -73,27 +77,29 @@ public class LifecycleEventsContainer {
      * 
      * @param allLifecycleEvents - All events logged.
      */
-    public final synchronized void addLifecycleEvents(
+    public final void addLifecycleEvents(
             final List<Map<String, String>> allLifecycleEvents) {
+        synchronized (this.lock) {
 
-        if (allLifecycleEvents == null || allLifecycleEvents.isEmpty()) {
-            return;
-        }
-        String outputMessage;
-        for (Map<String, String> map : allLifecycleEvents) {
-            Map<String, Object> sortedMap = new TreeMap<String, Object>(map);
-            if (this.lifecycleEventsSet.contains(sortedMap.toString())) {
-                if (logger.isLoggable(Level.FINEST)) {
-                    outputMessage = getParsedLifecyceEventMessageFromMap(sortedMap);
-                    logger.finest("Ignoring Lifecycle Event: " + outputMessage);
-                }
+            if (allLifecycleEvents == null || allLifecycleEvents.isEmpty()) {
+                return;
             }
-            else {
-                this.lifecycleEventsSet.add(sortedMap.toString());
-                outputMessage = getParsedLifecyceEventMessageFromMap(sortedMap);
-                this.eventsList.add(outputMessage);
-                if (logger.isLoggable(Level.FINE)) {
-                    logger.fine("Lifecycle Event: " + outputMessage);
+            String outputMessage;
+            for (Map<String, String> map : allLifecycleEvents) {
+                Map<String, Object> sortedMap = new TreeMap<String, Object>(map);
+                if (this.lifecycleEventsSet.contains(sortedMap.toString())) {
+                    if (logger.isLoggable(Level.FINEST)) {
+                        outputMessage = getParsedLifecyceEventMessageFromMap(sortedMap);
+                        logger.finest("Ignoring Lifecycle Event: " + outputMessage);
+                    }
+                }
+                else {
+                    this.lifecycleEventsSet.add(sortedMap.toString());
+                    outputMessage = getParsedLifecyceEventMessageFromMap(sortedMap);
+                    this.eventsList.add(outputMessage);
+                    if (logger.isLoggable(Level.FINE)) {
+                        logger.fine("Lifecycle Event: " + outputMessage);
+                    }
                 }
             }
         }
@@ -105,17 +111,19 @@ public class LifecycleEventsContainer {
      * 
      * @param event event to add
      */
-    public final synchronized void addInstanceCountEvent(final String event) {
-        if (this.serviceInstanceCountEventsSet.contains(event)) {
-            if (logger.isLoggable(Level.FINEST)) {
-                logger.finest("Ignoring Instance Count Event: " + event);
+    public final void addInstanceCountEvent(final String event) {
+        synchronized (this.lock) {
+            if (this.serviceInstanceCountEventsSet.contains(event)) {
+                if (logger.isLoggable(Level.FINEST)) {
+                    logger.finest("Ignoring Instance Count Event: " + event);
+                }
             }
-        }
-        else {
-            this.serviceInstanceCountEventsSet.add(event);
-            this.eventsList.add(event);
-            if (logger.isLoggable(Level.FINE)) {
-                logger.fine("Instance Count Event: " + event);
+            else {
+                this.serviceInstanceCountEventsSet.add(event);
+                this.eventsList.add(event);
+                if (logger.isLoggable(Level.FINE)) {
+                    logger.fine("Instance Count Event: " + event);
+                }
             }
         }
     }

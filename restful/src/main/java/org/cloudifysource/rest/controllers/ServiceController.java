@@ -86,7 +86,6 @@ import org.cloudifysource.rest.ResponseConstants;
 import org.cloudifysource.rest.util.ApplicationInstallerRunnable;
 import org.cloudifysource.rest.util.LifecycleEventsContainer;
 import org.cloudifysource.rest.util.RestPollingRunnable;
-import org.cloudifysource.rest.util.RestPollingRunnable.PollingState;
 import org.cloudifysource.rest.util.RestUtils;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.CycleDetector;
@@ -226,10 +225,7 @@ public class ServiceController {
 	                while (it.hasNext()) {
 	                    Map.Entry<UUID, RestPollingRunnable> entry = it.next();
 	                    RestPollingRunnable restPollingRunnable = entry.getValue();
-	                    if (System.currentTimeMillis() > restPollingRunnable.getEndTime()) {
-	                        Future<?> futureTask = restPollingRunnable.getFutureTask();
-	                        //I can create that throws a RuntimeException in the thread in-order to kill it.
-	                        futureTask.cancel(true);
+	                    if (restPollingRunnable.isDone()) {
 	                        logger.log(Level.INFO, "Polling Task with UUID " + entry.getKey().toString()
 	                                + " has expired");
 	                        it.remove();
@@ -1258,26 +1254,19 @@ public class ServiceController {
 		             get(UUID.fromString(lifecycleEventContainerID));
 		
 		LifecycleEventsContainer container = restPollingRunnable.getLifecycleEventsContainer();
-		PollingState runnableState = restPollingRunnable.getPollingState();
-		switch (runnableState) {
-		case RUNNING:
+		boolean done = restPollingRunnable.isDone();
+		if (!done) {
 		    extendThreadTimeout(restPollingRunnable, DEFAULT_TIME_EXTENTION_POLLING_TASK);
-			resultsMap.put(CloudifyConstants.IS_TASK_DONE, false);
-			break;
-		case ENDED:
+		} else {
 			Throwable t = restPollingRunnable.getExecutionException();
 			if (t != null) {
 			    logger.log(Level.INFO, "Lifecycle events polling ended unexpectedly.", t);
 			    return errorStatus(t.getMessage());
 			} else {
-				logger.log(Level.INFO, "Lifecycle events polling ended successfully.");
-				resultsMap.put(CloudifyConstants.IS_TASK_DONE, true);
+				logger.log(Level.FINE, "Lifecycle events polling ended successfully.");
 			}
-			break;
-		default:
-		    return errorStatus("an unexpected error occurred. Polling task status is null.");
 		}
-
+		resultsMap.put(CloudifyConstants.IS_TASK_DONE, done);
 		List<String> lifecycleEvents = container.getLifecycleEvents(cursor);
 
 		if (lifecycleEvents != null) {
