@@ -28,6 +28,7 @@ import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.rest.RestAdminFacade;
+import org.fusesource.jansi.Ansi.Color;
 
 /**
  * @author rafi, adaml, barakm
@@ -91,7 +92,7 @@ public class UninstallService extends AdminAwareCommand {
 		String pollingID = undeployServiceResponse.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
 
 		this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
-		return getFormattedMessage("undeployed_successfully", serviceName);
+		return getFormattedMessage("undeployed_successfully", Color.GREEN, serviceName);
 	}
 
 	/**
