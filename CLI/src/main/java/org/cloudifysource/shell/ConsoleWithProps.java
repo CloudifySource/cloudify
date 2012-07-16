@@ -41,12 +41,13 @@ import java.util.logging.Logger;
  */
 public class ConsoleWithProps extends Console {
 
+	private static final int FIVE_SECONDS_IN_MILLI = 5000;
 	private static final String DEFAULT_APP_NAME = "default";
 	private String currentAppName = DEFAULT_APP_NAME;
 	private final ConsoleWithPropsActions consoleActions;
 
     private final Logger logger = Logger.getLogger(getClass().getName());
-    private static final long ONE_MONTH_MILLIS = 0;//86400000L * 30L;
+    private static final long TWO_WEEKS_IN_MILLIS = 86400000L * 14L;
 
     ConsoleWithProps(final CommandProcessor commandProcessor, final InputStream input, final PrintStream output,
 			final PrintStream err, final Terminal terminal, final CloseCallback callback, final boolean isInteractive)
@@ -80,7 +81,7 @@ public class ConsoleWithProps extends Console {
         long lastAskedTS = getLastTimeAskedAboutVersionCheck();
         //check only if checked over a month ago and user agrees
         try {
-            if (lastAskedTS <= (System.currentTimeMillis() - ONE_MONTH_MILLIS) && ShellUtils.promptUser(session, "version_check_confirmation")) {
+            if (lastAskedTS <= (System.currentTimeMillis() - TWO_WEEKS_IN_MILLIS) && ShellUtils.promptUser(session, "version_check_confirmation")) {
                 session.getConsole().println("Checking version...");
 
                 String currentBuildStr = PlatformVersion.getBuildNumber();
@@ -110,7 +111,7 @@ public class ConsoleWithProps extends Console {
     private int getLatestBuildNumber(int currentVersion) {
         try {
             HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-            requestFactory.setReadTimeout(3000);
+            requestFactory.setReadTimeout(FIVE_SECONDS_IN_MILLI);
             RestTemplate template = new RestTemplate(requestFactory);
             String versionStr = template.getForObject("http://www.gigaspaces.com/downloadgen/latest-cloudify-version?build="+currentVersion, String.class);
             logger.fine("Latest cloudify version is " + versionStr);
@@ -126,7 +127,7 @@ public class ConsoleWithProps extends Console {
     }
 
     private long getLastTimeAskedAboutVersionCheck() {
-        long lastVersionCheckTS = System.currentTimeMillis();
+        long lastVersionCheckTS = 0;
         File lastVersionCheckFile = new File(System.getProperty("user.home")+"/.karaf/lastVersionCheckTimestamp");
         if (lastVersionCheckFile.exists()){
             DataInputStream dis = null;
@@ -146,7 +147,7 @@ public class ConsoleWithProps extends Console {
         DataOutputStream dos = null;
         try {
             dos = new DataOutputStream(new FileOutputStream(lastVersionCheckFile));
-            dos.writeLong(lastVersionCheckTS);
+            dos.writeLong(System.currentTimeMillis());
         } catch (IOException e) {
             logger.log(Level.INFO, "failed to write last checked version timestamp file", e);
         } finally {
