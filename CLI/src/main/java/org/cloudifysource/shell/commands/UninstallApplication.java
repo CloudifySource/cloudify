@@ -30,6 +30,7 @@ import org.apache.karaf.util.Properties.PropertiesReader;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
+import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.rest.RestAdminFacade;
 
 /**
@@ -117,23 +118,6 @@ public class UninstallApplication extends AdminAwareCommand {
 	 *             Reporting a failure to get the user's confirmation
 	 */
 	private boolean askUninstallConfirmationQuestion() throws IOException {
-
-		// we skip question if the shell is running a script.
-		if ((Boolean) session.get(Constants.INTERACTIVE_MODE)) {
-			final String confirmationQuestion = getFormattedMessage("application_uninstall_confirmation",
-					applicationName);
-			System.out.print(confirmationQuestion);
-			System.out.flush();
-			final PropertiesReader pr = new PropertiesReader(new InputStreamReader(System.in));
-			String readLine = "";
-			while (!readLine.equalsIgnoreCase("y") && !readLine.equalsIgnoreCase("n")) {
-				readLine = pr.readProperty();
-			}
-			System.out.println();
-			System.out.flush();
-			return "y".equalsIgnoreCase(readLine);
-		}
-		// Shell is running in nonInteractive mode. we skip the question.
-		return true;
-	}
+        return ShellUtils.promptUser(session, "application_uninstall_confirmation", applicationName);
+    }
 }

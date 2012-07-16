@@ -15,17 +15,21 @@
  *******************************************************************************/
 package org.cloudifysource.shell;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.Properties;
-
+import com.j_spaces.kernel.PlatformVersion;
 import jline.Terminal;
-
 import org.apache.felix.service.command.CommandProcessor;
 import org.apache.karaf.shell.console.jline.Console;
 import org.cloudifysource.shell.rest.RestAdminFacade;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
+
+import java.io.*;
+import java.util.HashMap;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 /**
  * @author uri
@@ -41,7 +45,10 @@ public class ConsoleWithProps extends Console {
 	private String currentAppName = DEFAULT_APP_NAME;
 	private final ConsoleWithPropsActions consoleActions;
 
-	ConsoleWithProps(final CommandProcessor commandProcessor, final InputStream input, final PrintStream output,
+    private final Logger logger = Logger.getLogger(getClass().getName());
+    private static final long ONE_MONTH_MILLIS = 0;//86400000L * 30L;
+
+    ConsoleWithProps(final CommandProcessor commandProcessor, final InputStream input, final PrintStream output,
 			final PrintStream err, final Terminal terminal, final CloseCallback callback, final boolean isInteractive)
 			throws Exception {
 		super(commandProcessor, input, output, err, terminal, callback);
@@ -57,7 +64,103 @@ public class ConsoleWithProps extends Console {
 		session.put(Constants.INTERACTIVE_MODE, isInteractive);
 	}
 
-	/**
+    @Override
+    protected void welcome() {
+        Properties props = loadBrandingProperties();
+        String welcome = props.getProperty("welcome");
+
+        if (welcome != null && welcome.length() > 0) {
+            session.getConsole().println(welcome);
+        }
+        doVersionCheckIfNeeded();
+
+    }
+
+    private void doVersionCheckIfNeeded() {
+        long lastAskedTS = getLastTimeAskedAboutVersionCheck();
+        //check only if checked over a month ago and user agrees
+        try {
+            if (lastAskedTS <= (System.currentTimeMillis() - ONE_MONTH_MILLIS) && ShellUtils.promptUser(session, "version_check_confirmation")) {
+                session.getConsole().println("Checking version...");
+
+                String currentBuildStr = PlatformVersion.getBuildNumber();
+                if(currentBuildStr.contains("-")) {
+                    currentBuildStr = currentBuildStr.substring(0, currentBuildStr.indexOf("-"));
+                }
+                int currentVersion = Integer.parseInt(currentBuildStr);
+                int latestBuild = getLatestBuildNumber(currentVersion);
+                String message;
+                if (latestBuild == -1) {
+                    message = ShellUtils.getFormattedMessage("could_not_get_version");
+                } else if (latestBuild > currentVersion) {
+                    message = ShellUtils.getFormattedMessage("newer_version_exists");
+                } else {
+                    message = ShellUtils.getFormattedMessage("version_up_to_date");
+
+                }
+                session.getConsole().println(message);
+                session.getConsole().println();
+
+            }
+        } catch (IOException e) {
+            logger.log(Level.INFO, "Failed to prompt user", e);
+        }
+    }
+
+    private int getLatestBuildNumber(int currentVersion) {
+        try {
+            HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+            requestFactory.setReadTimeout(3000);
+            RestTemplate template = new RestTemplate(requestFactory);
+            String versionStr = template.getForObject("http://www.gigaspaces.com/downloadgen/latest-cloudify-version?build="+currentVersion, String.class);
+            logger.fine("Latest cloudify version is " + versionStr);
+            return Integer.parseInt(versionStr);
+        } catch (RestClientException e) {
+            logger.log(Level.FINE, "Could not get version from server", e);
+            return -1;
+        } catch (NumberFormatException e) {
+            logger.fine("Get version response is not a number");
+            return -1;
+        }
+
+    }
+
+    private long getLastTimeAskedAboutVersionCheck() {
+        long lastVersionCheckTS = System.currentTimeMillis();
+        File lastVersionCheckFile = new File(System.getProperty("user.home")+"/.karaf/lastVersionCheckTimestamp");
+        if (lastVersionCheckFile.exists()){
+            DataInputStream dis = null;
+            try {
+                dis = new DataInputStream(new FileInputStream(lastVersionCheckFile));
+                lastVersionCheckTS = dis.readLong();
+            } catch (IOException e) {
+                logger.log(Level.INFO, "failed to read last checked version timestamp file", e);
+            } finally {
+                if (dis != null) {
+                    try {
+                        dis.close();
+                    } catch (IOException e) {}
+                }
+            }
+        }
+        DataOutputStream dos = null;
+        try {
+            dos = new DataOutputStream(new FileOutputStream(lastVersionCheckFile));
+            dos.writeLong(lastVersionCheckTS);
+        } catch (IOException e) {
+            logger.log(Level.INFO, "failed to write last checked version timestamp file", e);
+        } finally {
+            if (dos != null) {
+                try {
+                    dos.close();
+                } catch (IOException e) {}
+            }
+        }
+        return lastVersionCheckTS;
+    }
+
+
+    /**
 	 * {@inheritDoc}
 	 */
 	@Override

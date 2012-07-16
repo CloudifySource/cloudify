@@ -15,29 +15,19 @@
  *******************************************************************************/
 package org.cloudifysource.shell;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.concurrent.TimeoutException;
-
+import com.j_spaces.kernel.Environment;
 import org.apache.felix.service.command.CommandSession;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.Ansi.Color;
 
-import com.j_spaces.kernel.Environment;
+import java.io.*;
+import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 
 /**
  * @author rafi, barakm
@@ -47,14 +37,61 @@ import com.j_spaces.kernel.Environment;
  */
 public final class ShellUtils {
 
-	private static final char FIRST_ESC_CHAR = 27;
+    protected static final Logger logger = Logger.getLogger(ShellUtils.class.getName());
+
+    private static final char FIRST_ESC_CHAR = 27;
 	private static final char SECOND_ESC_CHAR = '[';
 	private static final char COMMAND_CHAR = 'm';
+    private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 	private static volatile ResourceBundle defaultMessageBundle;
 
 	private ShellUtils() {
 
 	}
+
+
+    public static String getFormattedMessage(final String msgName, final Object... arguments) {
+
+        final String message = getMessageBundle().getString(msgName);
+        if (message == null) {
+            logger.warning("Missing resource in messages resource bundle: " + msgName);
+            return msgName;
+        }
+        try {
+            return MessageFormat.format( message, arguments);
+        } catch (final IllegalArgumentException e) {
+            logger.fine("Failed to format message: " + msgName + " with format: " + message + " and arguments: " + Arrays.toString(arguments));
+            return msgName;
+        }
+    }
+
+    public static boolean promptUser(final CommandSession session, final String messageKey) throws IOException {
+        return promptUser(session, messageKey, EMPTY_OBJECT_ARRAY);
+
+    }
+    public static boolean promptUser(final CommandSession session, final String messageKey, final Object... messageArgs) throws IOException {
+        if ((Boolean) session.get(Constants.INTERACTIVE_MODE)) {
+            final String confirmationQuestion = ShellUtils.getFormattedMessage(messageKey, messageArgs);
+            session.getConsole().print(confirmationQuestion + " ");
+            session.getConsole().flush();
+            char responseChar = '\0';
+            StringBuilder responseBuffer = new StringBuilder();
+            while (true) {
+                responseChar = (char) session.getKeyboard().read();
+                if (responseChar == '\n') {
+                    session.getConsole().println();
+                    break;
+                }
+                session.getConsole().print(responseChar);
+                responseBuffer.append(responseChar);
+                session.getConsole().flush();
+            }
+            String responseStr = responseBuffer.toString().trim();
+            return "y".equalsIgnoreCase(responseStr) || "yes".equalsIgnoreCase(responseStr);
+        }
+        // Shell is running in nonInteractive mode. we skip the question.
+        return true;
+    }
 
 	/**
 	 * Gets the types of the managed components as a collection of lower case Strings.

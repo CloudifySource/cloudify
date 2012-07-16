@@ -18,6 +18,7 @@ package org.cloudifysource.esc.shell.commands;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -61,6 +62,10 @@ public class TeardownCloud extends AbstractGSCommand {
 	@Override
 	protected Object doExecute() throws Exception {
 
+        if (!confirmTeardown()){
+            return getFormattedMessage("teardown_aborted");
+        }
+
 		CloudGridAgentBootstrapper installer = new CloudGridAgentBootstrapper();
 
 		// TODO use DSL
@@ -100,12 +105,11 @@ public class TeardownCloud extends AbstractGSCommand {
 			installer.close();
 			restoreLoggingLevel();
 		}
-
-		
-
-
-
 	}
+
+    private boolean confirmTeardown() throws IOException {
+        return ShellUtils.promptUser(session, "teardown_cloud_confirmation_question");
+    }
 
 	private static final String[] NON_VERBOSE_LOGGERS = { DefaultProvisioningDriver.
 		class.getName(), AgentlessInstaller.class.getName() };

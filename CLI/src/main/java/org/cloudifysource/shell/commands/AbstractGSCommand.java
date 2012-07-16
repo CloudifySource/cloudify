@@ -233,23 +233,7 @@ public abstract class AbstractGSCommand implements Action {
 	 * @return formatted message as a String
 	 */
 	protected final String getFormattedMessage(final String msgName, final Object... arguments) {
-		if (messages == null) {
-			logger.warning("Messages resource bundle was not initialized! " + "Message: " + msgName
-					+ " could not be displayed.");
-			return msgName;
-		}
-		final String message = messages.getString(msgName);
-		if (message == null) {
-			logger.warning("Missing resource in messages resource bundle: " + msgName);
-			return msgName;
-		}
-		try {
-			return MessageFormat.format( message, arguments);
-		} catch (final IllegalArgumentException e) {
-			logger.warning("Failed to format message: " + msgName + " with format: " + message + " and arguments: "
-					+ Arrays.toString(arguments));
-			return msgName;
-		}
+		return ShellUtils.getFormattedMessage(msgName, arguments);
 	}
 
 	/**

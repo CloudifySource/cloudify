@@ -16,15 +16,14 @@
 package org.cloudifysource.shell.commands;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
-import org.apache.karaf.util.Properties.PropertiesReader;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
+import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.installer.CLILocalhostBootstrapperListener;
 import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 
@@ -75,7 +74,7 @@ public class TeardownLocalCloud extends AbstractGSCommand {
 	@Override
 	protected Object doExecute() throws Exception {
 
-		if (!askUninstallConfirmationQuestion()){
+		if (!confirmTeardown()){
 			return getFormattedMessage("teardown_aborted");
 		}
 		
@@ -94,20 +93,7 @@ public class TeardownLocalCloud extends AbstractGSCommand {
 		return getFormattedMessage("teardown_localcloud_terminated_successfully");
 	}
 	
-	private boolean askUninstallConfirmationQuestion() throws IOException {
-
-		// we skip question if the shell is running a script.
-		if ((Boolean) session.get(Constants.INTERACTIVE_MODE)) {
-			final String confirmationQuestion = getFormattedMessage("teardown_confirmation_question");
-			System.out.print(confirmationQuestion);
-			System.out.flush();
-			final PropertiesReader pr = new PropertiesReader(new InputStreamReader(System.in));
-			final String readLine = pr.readProperty();
-			System.out.println();
-			System.out.flush();
-			return "y".equalsIgnoreCase(readLine);
-		}
-		// Shell is running in nonInteractive mode. we skip the question.
-		return true;
+	private boolean confirmTeardown() throws IOException {
+        return ShellUtils.promptUser(session, "teardown_localcloud_confirmation_question");
 	}
 }

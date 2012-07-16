@@ -48,7 +48,7 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
  */
 @Command(scope = "cloudify", name = "start-agent", description = "Starts Cloudify Agent with the specified zone. The"
 		+ " agent communicates with other agent and management machines.")
-public class StartAgent extends AbstractGSCommand {
+public class    StartAgent extends AbstractGSCommand {
 
 	private static final int DEFAULT_POLLING_INTERVAL = 10;
 

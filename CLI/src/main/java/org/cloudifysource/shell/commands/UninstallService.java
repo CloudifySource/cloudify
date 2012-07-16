@@ -29,6 +29,7 @@ import org.apache.felix.gogo.commands.Option;
 import org.apache.karaf.util.Properties.PropertiesReader;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.shell.Constants;
+import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.rest.RestAdminFacade;
 
 /**
@@ -107,23 +108,6 @@ public class UninstallService extends AdminAwareCommand {
 	 */
 	// returns true if the answer to the question was 'Yes'.
 	private boolean askUninstallConfirmationQuestion() throws IOException {
-
-		// we skip question if the shell is running a script.
-		if ((Boolean) session.get(Constants.INTERACTIVE_MODE)) {
-			final String confirmationQuestion = getFormattedMessage("service_uninstall_confirmation", serviceName);
-			System.out.print(confirmationQuestion);
-			System.out.flush();
-			final PropertiesReader pr = new PropertiesReader(new InputStreamReader(System.in));
-			String answer = "";
-			while (!answer.equalsIgnoreCase("y") && !answer.equalsIgnoreCase("n")) {
-				answer = pr.readProperty();
-			}
-			System.out.println();
-			System.out.flush();
-			return "y".equalsIgnoreCase(answer);
-
-		}
-		// Shell is running in nonInteractive mode. we skip the question.
-		return true;
+        return ShellUtils.promptUser(session, "service_uninstall_confirmation", serviceName);
 	}
 }
