@@ -27,6 +27,8 @@ import java.util.logging.Level;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.usm.details.Details;
 import org.cloudifysource.usm.dsl.DSLCommandsLifecycleListener;
@@ -69,6 +71,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class USMLifecycleBean implements ClusterInfoAware {
 
+	private static final int DEFAULT_PIDS_SIZE_LIMIT = 10;
 	@Autowired(required = true)
 	private UniversalServiceManagerConfiguration configuration;
 	@Autowired(required = true)
@@ -596,15 +599,48 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	 */
 	public List<Long> getServiceProcesses()
 			throws USMException {
-		Set<Long> set = new HashSet<Long>();
-		ProcessLocator[] locators = this.processLocators;
-		for (ProcessLocator processLocator : locators) {
+		final Set<Long> set = new HashSet<Long>();
+		final ProcessLocator[] locators = this.processLocators;
+		for (final ProcessLocator processLocator : locators) {
 			if (processLocator != null) {
-				set.addAll(processLocator.getProcessIDs());
+				final List<Long> processIDs = processLocator.getProcessIDs();
+				if (processIDs.isEmpty()) {
+					logger.warning("A process locator returned no process IDs. "
+							+ "If this is normal, you can ignote this warning. "
+							+ "Otherwise, check that your process locator is correctly configured");
+
+				}
+				set.addAll(processIDs);
 			}
 		}
 
+		final long pidsLimit = getPidsSizeLimit();
+		if (set.isEmpty()) {
+			logger.warning("No process IDs were found. No process level metrics will be available.");
+		} else if (set.size() > pidsLimit) {
+			final String msg = "Number of process IDs found for a service exceeded the limit of: " + pidsLimit;
+			logger.severe(msg);
+			throw new USMException(msg);
+		}
+
 		return new ArrayList<Long>(set);
+	}
+
+	private int getPidsSizeLimit() {
+		final Service service = ((DSLConfiguration) this.configuration).getService();
+		final String limitString = service.getCustomProperties().get(CloudifyConstants.CUSTOM_PROPERTY_PIDS_SIZE_LIMIT);
+		if (StringUtils.isBlank(limitString)) {
+			return DEFAULT_PIDS_SIZE_LIMIT;
+		} else {
+			try {
+				final int limit = Integer.parseInt(limitString);
+				return limit;
+			} catch (final NumberFormatException e) {
+				throw new IllegalArgumentException("Failed to parse the pids size limit service custom property ("
+						+ CloudifyConstants.CUSTOM_PROPERTY_PIDS_SIZE_LIMIT + "). Error was: " + e.getMessage(), e);
+			}
+		}
+
 	}
 
 	/********
@@ -816,21 +852,4 @@ public class USMLifecycleBean implements ClusterInfoAware {
 
 	}
 
-	/********
-	 * Executes all process locators, returning a list of all PIDs located, minus any duplicates.
-	 * 
-	 * @return the pid list.
-	 * @throws USMException if any of the locators failed to execute.
-	 */
-	public List<Long> executeProcessLocators()
-			throws USMException {
-		final Set<Long> resultSet = new HashSet<Long>();
-		for (ProcessLocator locator : this.processLocators) {
-			resultSet.addAll(locator.getProcessIDs());
-		}
-
-		final List<Long> list = new ArrayList<Long>(resultSet.size());
-		list.addAll(resultSet);
-		return list;
-	}
 }
