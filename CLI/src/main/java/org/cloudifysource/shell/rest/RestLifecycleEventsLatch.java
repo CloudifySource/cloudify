@@ -108,6 +108,10 @@ public class RestLifecycleEventsLatch {
 				isDone = (Boolean) lifecycleEventLogs.get(CloudifyConstants.IS_TASK_DONE);
 				remoteTaskLeaseExpiration = Long.valueOf((String) lifecycleEventLogs.
 						get(CloudifyConstants.SERVER_POLLING_TASK_EXPIRATION_MILLI)) + System.currentTimeMillis();
+				
+				if (System.currentTimeMillis() > remoteTaskLeaseExpiration) {
+					throw new CLIException("Events polling task has expired on remote server side");
+				}
 
 				if (events == null) {
 					displayer.printNoChange();

@@ -159,34 +159,29 @@ public class InstallService extends AdminAwareCommand {
 		String lifecycleEventContainerPollingID = adminFacade.installElastic(packedFile,
 				currentApplicationName, serviceName, zone, props, templateName, timeoutInMinutes);
 
-		if (lifecycleEventContainerPollingID != null) {
-			RestLifecycleEventsLatch lifecycleEventsPollingLatch = this.adminFacade.
-					getLifecycleEventsPollingLatch(lifecycleEventContainerPollingID, TIMEOUT_ERROR_MESSAGE);
-			boolean isDone = false;
-			boolean continues = false;
-			while (!isDone) {
-				try {
-					if (!continues) {
-						lifecycleEventsPollingLatch.waitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
-					} else {
-						lifecycleEventsPollingLatch.continueWaitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
-					}
-					isDone = true;
-				} catch (TimeoutException e) {
-					if (!(Boolean) session.get(Constants.INTERACTIVE_MODE)) {
-						throw e;
-					}
-					boolean continueInstallation = promptWouldYouLikeToContinueQuestion();
-					if (!continueInstallation) {
-						throw new CLIStatusException(e, "service_installation_timed_out_on_client", serviceName);
-					} else {
-						continues = true;
-					}
+		RestLifecycleEventsLatch lifecycleEventsPollingLatch = this.adminFacade.
+				getLifecycleEventsPollingLatch(lifecycleEventContainerPollingID, TIMEOUT_ERROR_MESSAGE);
+		boolean isDone = false;
+		boolean continues = false;
+		while (!isDone) {
+			try {
+				if (!continues) {
+					lifecycleEventsPollingLatch.waitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
+				} else {
+					lifecycleEventsPollingLatch.continueWaitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
+				}
+				isDone = true;
+			} catch (TimeoutException e) {
+				if (!(Boolean) session.get(Constants.INTERACTIVE_MODE)) {
+					throw e;
+				}
+				boolean continueInstallation = promptWouldYouLikeToContinueQuestion();
+				if (!continueInstallation) {
+					throw new CLIStatusException(e, "service_installation_timed_out_on_client", serviceName);
+				} else {
+					continues = true;
 				}
 			}
-		} else {
-			throw new CLIException("Failed to retrieve lifecycle logs from rest. " 
-					+ "Check logs for more details.");
 		}
 
 		// if a zip file was created, delete it at the end of use.

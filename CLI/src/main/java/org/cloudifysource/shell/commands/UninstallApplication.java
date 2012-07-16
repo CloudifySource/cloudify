@@ -16,7 +16,6 @@
 package org.cloudifysource.shell.commands;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -26,12 +25,12 @@ import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.CompleterValues;
 import org.apache.felix.gogo.commands.Option;
-import org.apache.karaf.util.Properties.PropertiesReader;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.rest.RestAdminFacade;
+import org.fusesource.jansi.Ansi.Color;
 
 /**
  * @author rafi, adaml, barakm
@@ -96,17 +95,12 @@ public class UninstallApplication extends AdminAwareCommand {
 		Map<String, String> uninstallApplicationResponse = this.adminFacade
 		.uninstallApplication(this.applicationName, timeoutInMinutes);
 
-		if (uninstallApplicationResponse.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
-			String pollingID = uninstallApplicationResponse.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
-			this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
-		} else {
-			throw new CLIException("Failed to retrieve lifecycle logs from rest. " 
-			+ "Check logs for more details.");
-		}
+		String pollingID = uninstallApplicationResponse.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
+		this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
 
 		session.put(Constants.ACTIVE_APP, "default");
 		GigaShellMain.getInstance().setCurrentApplicationName("default");
-		return getFormattedMessage("application_uninstalled_succesfully", this.applicationName);
+		return getFormattedMessage("application_uninstalled_succesfully", Color.GREEN, this.applicationName);
 	}
 
 	// returns true if the answer to the question was 'Yes'.

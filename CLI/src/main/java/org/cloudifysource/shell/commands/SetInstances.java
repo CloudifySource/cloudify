@@ -76,13 +76,8 @@ public class SetInstances extends AdminAwareCommand {
 
 		Map<String, String> response = adminFacade.setInstances(applicationName, serviceName, count, timeout);
 
-		if (response.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
-			String pollingID = response.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
-			this.adminFacade.waitForLifecycleEvents(pollingID, timeout, TIMEOUT_ERROR_MESSAGE);
-		} else {
-			logger.info("Failed to retrieve lifecycle logs from rest. " 
-			+ "Check logs for more details.");
-		}
+		String pollingID = response.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
+		this.adminFacade.waitForLifecycleEvents(pollingID, timeout, TIMEOUT_ERROR_MESSAGE);
 		
 		return getFormattedMessage("set_instances_completed_successfully", serviceName, count);
 	}

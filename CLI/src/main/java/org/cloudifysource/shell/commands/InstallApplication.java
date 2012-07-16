@@ -114,36 +114,31 @@ public class InstallApplication extends AdminAwareCommand {
 		}
 		
 		printApplicationInfo(application);
-		if (result.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
-			String pollingID = result.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
-			RestLifecycleEventsLatch lifecycleEventsPollingLatch = 
-					this.adminFacade.getLifecycleEventsPollingLatch(pollingID, TIMEOUT_ERROR_MESSAGE);
-			boolean isDone = false;
-			boolean continues = false;
-			while (!isDone) {
-				try {
-					if (!continues) {
-						lifecycleEventsPollingLatch.waitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
-					} else {
-						lifecycleEventsPollingLatch.continueWaitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
-					}
-					isDone = true;
-				} catch (TimeoutException e) {
-					if (!(Boolean) session.get(Constants.INTERACTIVE_MODE)) {
-						throw e;
-					}
-					boolean continueInstallation = promptWouldYouLikeToContinueQuestion();
-					if (!continueInstallation) {
-						throw new CLIStatusException(e, "application_installation_timed_out_on_client", 
-								applicationName);
-					} else {
-						continues = true;
-					}
+		String pollingID = result.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
+		RestLifecycleEventsLatch lifecycleEventsPollingLatch = 
+				this.adminFacade.getLifecycleEventsPollingLatch(pollingID, TIMEOUT_ERROR_MESSAGE);
+		boolean isDone = false;
+		boolean continues = false;
+		while (!isDone) {
+			try {
+				if (!continues) {
+					lifecycleEventsPollingLatch.waitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
+				} else {
+					lifecycleEventsPollingLatch.continueWaitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
+				}
+				isDone = true;
+			} catch (TimeoutException e) {
+				if (!(Boolean) session.get(Constants.INTERACTIVE_MODE)) {
+					throw e;
+				}
+				boolean continueInstallation = promptWouldYouLikeToContinueQuestion();
+				if (!continueInstallation) {
+					throw new CLIStatusException(e, "application_installation_timed_out_on_client", 
+							applicationName);
+				} else {
+					continues = true;
 				}
 			}
-		} else {
-			throw new CLIException("Failed to retrieve lifecycle logs from rest. " 
-			+ "Check logs for more details.");
 		}
 
 		session.put(Constants.ACTIVE_APP, applicationName);

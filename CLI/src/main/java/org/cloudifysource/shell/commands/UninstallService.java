@@ -16,7 +16,6 @@
 package org.cloudifysource.shell.commands;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -26,9 +25,7 @@ import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.CompleterValues;
 import org.apache.felix.gogo.commands.Option;
-import org.apache.karaf.util.Properties.PropertiesReader;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.rest.RestAdminFacade;
 
@@ -88,14 +85,12 @@ public class UninstallService extends AdminAwareCommand {
 			logger.info("Found containers: " + containerIdsOfService);
 		}
 
-		Map<String, String> undeployServiceResponse = adminFacade.undeploy(getCurrentApplicationName(), serviceName, timeoutInMinutes);
-		if (undeployServiceResponse.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)){
-			String pollingID = undeployServiceResponse.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
-			this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
-		} else {
-			throw new CLIException("Failed to retrieve lifecycle logs from rest. " +
-					"Check logs for more details.");
-		}
+		Map<String, String> undeployServiceResponse = adminFacade.undeploy(getCurrentApplicationName(),
+				serviceName, timeoutInMinutes);
+
+		String pollingID = undeployServiceResponse.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
+
+		this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
 		return getFormattedMessage("undeployed_successfully", serviceName);
 	}
 
