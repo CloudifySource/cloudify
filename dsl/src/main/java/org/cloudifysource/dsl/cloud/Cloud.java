@@ -120,6 +120,21 @@ public class Cloud {
 		}
 
 	}
+	/**
+	 * Validate that a tenant id was assigned if required.
+	 * The tenant id property is required only in openstack based clouds.
+	 * 
+	 * @throws DSLValidationException
+	 */
+	@DSLValidation
+	void validateTenantId() throws DSLValidationException {
+		if (this.custom.containsKey("openstack.tenant")) {
+			String tenantId = (String)custom.get("openstack.tenant");
+			if (tenantId.equalsIgnoreCase("ENTER_TENANT")) {
+				throw new DSLValidationException("The tenant id property must be set");
+			}
+		}
+	}
 
 	/**
 	 * This validation method runs both locally and on the remote server.

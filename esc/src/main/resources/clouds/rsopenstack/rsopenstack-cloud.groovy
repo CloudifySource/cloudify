@@ -43,6 +43,7 @@ cloud {
 	custom ([
 		"openstack.endpoint" : "https://servers.api.rackspacecloud.com",
 		"openstack.identity.endpoint": "https://auth.api.rackspacecloud.com/",
+		//The tenant id is referred to as 'cloud account number' in Rackspace
 		"openstack.tenant" : "ENTER_TENANT",
 		"openstack.wireLog": "false"
 
