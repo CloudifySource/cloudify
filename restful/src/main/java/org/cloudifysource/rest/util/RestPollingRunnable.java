@@ -69,8 +69,6 @@ public class RestPollingRunnable implements Runnable {
 
     private final String applicationName;
 
-    private final int FIVE_MINUTES_MILLISECONDS = 60 * 1000 * 5;
-
     private Admin admin;
 
     private long endTime;
@@ -79,9 +77,11 @@ public class RestPollingRunnable implements Runnable {
 
     private boolean isUninstall = false;
 
+    private boolean isSetInstances = false;
+    
+    private boolean isServiceInstall = false;
+    
     private LifecycleEventsContainer lifecycleEventsContainer;
-
-    private boolean isServiceInstall;
     
     /**
      * indicates whether thread threw an exception.
@@ -94,6 +94,8 @@ public class RestPollingRunnable implements Runnable {
     private Future<?> futureTask;
     
     private boolean isDone = false;
+    
+    private Map<String, Date> gscStartTimeMap = new HashMap<String, Date>();
     
     private final Object lock = new Object();
 
@@ -161,6 +163,16 @@ public class RestPollingRunnable implements Runnable {
      */
     public void setIsServiceInstall(final boolean isServiceInstall) {
         this.isServiceInstall = isServiceInstall;
+    }
+    
+    /**
+     * Set to true if the action invoked was setInstances.
+     * @param isSetInstances is the action a set instances action. 
+     *                          default is set to false.
+     */
+    public void setIsSetInstances(final boolean isSetInstances) {
+        this.isSetInstances = isSetInstances;
+        
     }
     
     /**
@@ -274,7 +286,20 @@ public class RestPollingRunnable implements Runnable {
             addServiceLifecycleLogs(entry);
 
             addServiceInstanceCountEvents(entry);
+            
+            removeEndedServicesFromPollingList(entry);
         }
+    }
+
+    private void removeEndedServicesFromPollingList(final Entry<String, Integer> entry) {
+        String serviceName = entry.getKey();
+        String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+        int plannedNumberOfInstances = getPlannedNumberOfInstances(serviceName);
+        int numberOfServiceInstances = getNumberOfServiceInstances(absolutePuName);
+        if (plannedNumberOfInstances == numberOfServiceInstances) {
+            this.serviceNames.remove(serviceName);
+        }
+        
     }
 
     private void addServiceLifecycleLogs(final Entry<String, Integer> entry) {
@@ -305,15 +330,11 @@ public class RestPollingRunnable implements Runnable {
             logger.log(Level.FINE, 
                     "Polling GSC with uid: " + container.getUid());
             final LogEntries logEntries = container.logEntries(matcher);
-            //Get lifecycle events.
+            //Get lifecycle events.  
+            final Date pollingStartTime = getGSCSamplingStartTime(container); 
             for (final LogEntry logEntry : logEntries) {
                 if (logEntry.isLog()) {
-                    final Date fiveMinutesAgoGscTime = new Date(
-                            new Date().getTime()
-                            + container.getOperatingSystem()
-                            .getTimeDelta()
-                            - FIVE_MINUTES_MILLISECONDS);
-                    if (fiveMinutesAgoGscTime.before(new Date(logEntry
+                    if (pollingStartTime.before(new Date(logEntry
                             .getTimestamp()))) {
                         final Map<String, String> serviceEventsMap = getEventDetailes(
                                 logEntry, container, absolutePuName);
@@ -323,6 +344,20 @@ public class RestPollingRunnable implements Runnable {
             }
 
             this.lifecycleEventsContainer.addLifecycleEvents(servicesLifecycleEventDetailes);
+        }
+    }
+    
+    //Returns the time the polling started for the specific gsc.
+    private Date getGSCSamplingStartTime(final GridServiceContainer gsc) {
+        if (this.gscStartTimeMap.containsKey(gsc.getUid())) {
+            return this.gscStartTimeMap.get(gsc.getUid());
+        } else {
+            Date date = new Date(
+                    new Date().getTime()
+                    + gsc.getOperatingSystem()
+                    .getTimeDelta());
+            this.gscStartTimeMap.put(gsc.getUid(), date);
+            return date;
         }
     }
 
@@ -349,13 +384,10 @@ public class RestPollingRunnable implements Runnable {
 
         if (plannedNumberOfInstances ==  numberOfServiceInstances) {
             if (!isServiceInstall) {
-                if (!isUninstall) {
+                if (!isUninstall && !isSetInstances) {
                     this.lifecycleEventsContainer.addInstanceCountEvent("Service \"" + serviceName 
                             + "\" successfully installed (" + numberOfServiceInstances + " Instances)");
-                    this.serviceNames.remove(serviceName);
-                } 
-            } else {
-                this.serviceNames.remove(serviceName);
+                }
             }
         }
 
@@ -397,7 +429,7 @@ public class RestPollingRunnable implements Runnable {
             }
         }
 
-        if (serviceName.contains(serviceName)) {
+        if (serviceNames.containsKey(serviceName)) {
             return serviceNames.get(serviceName);
         }
         throw new IllegalStateException("Service planned number of instances is undefined");

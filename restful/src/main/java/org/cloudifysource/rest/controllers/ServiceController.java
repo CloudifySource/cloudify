@@ -1196,6 +1196,7 @@ public class ServiceController {
 		restPollingRunnable.setIsServiceInstall(isServiceInstall);
 		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
 		restPollingRunnable.setEndTime(timeout, TimeUnit.MINUTES);
+		restPollingRunnable.setIsSetInstances(true);
 		this.lifecyclePollingThreadContainer.put(lifecycleEventsContainerID, restPollingRunnable);
 		ScheduledFuture<?> scheduleWithFixedDelay =
 				scheduledExecutor.scheduleWithFixedDelay(restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL_SEC,
