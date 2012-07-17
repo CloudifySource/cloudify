@@ -16,38 +16,48 @@
 package org.cloudifysource.shell;
 
 import com.j_spaces.kernel.Environment;
+import com.j_spaces.kernel.PlatformVersion;
 import org.apache.felix.service.command.CommandSession;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.Ansi.Color;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.*;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * @author rafi, barakm
  * @since 2.0.0
- * 
+ *        <p/>
  *        This class includes different utilities used across the CLI.
  */
 public final class ShellUtils {
 
     protected static final Logger logger = Logger.getLogger(ShellUtils.class.getName());
 
+    private static final long TWO_WEEKS_IN_MILLIS = 86400000L * 14L;
+    private static final File VERSION_CHECK_FILE = new File(System.getProperty("user.home") + "/.karaf/lastVersionCheckTimestamp");
+
+    private static final int VERSION_CHECK_READ_TIMEOUT = 5000;
+
     private static final char FIRST_ESC_CHAR = 27;
-	private static final char SECOND_ESC_CHAR = '[';
-	private static final char COMMAND_CHAR = 'm';
+    private static final char SECOND_ESC_CHAR = '[';
+    private static final char COMMAND_CHAR = 'm';
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
-	private static volatile ResourceBundle defaultMessageBundle;
+    private static volatile ResourceBundle defaultMessageBundle;
 
-	private ShellUtils() {
+    private ShellUtils() {
 
-	}
+    }
 
 
     public static String getFormattedMessage(final String msgName, final Object... arguments) {
@@ -58,7 +68,7 @@ public final class ShellUtils {
             return msgName;
         }
         try {
-            return MessageFormat.format( message, arguments);
+            return MessageFormat.format(message, arguments);
         } catch (final IllegalArgumentException e) {
             logger.fine("Failed to format message: " + msgName + " with format: " + message + " and arguments: " + Arrays.toString(arguments));
             return msgName;
@@ -69,6 +79,7 @@ public final class ShellUtils {
         return promptUser(session, messageKey, EMPTY_OBJECT_ARRAY);
 
     }
+
     public static boolean promptUser(final CommandSession session, final String messageKey, final Object... messageArgs) throws IOException {
         if ((Boolean) session.get(Constants.INTERACTIVE_MODE)) {
             final String confirmationQuestion = ShellUtils.getFormattedMessage(messageKey, messageArgs);
@@ -93,182 +104,258 @@ public final class ShellUtils {
         return true;
     }
 
-	/**
-	 * Gets the types of the managed components as a collection of lower case Strings.
-	 * 
-	 * @return The types of the managed components as a collection of lower case Strings.
-	 */
-	public static Collection<String> getComponentTypesAsLowerCaseStringCollection() {
-		final ComponentType[] componentTypes = ComponentType.values();
-		final ArrayList<String> componentTypesAsString = new ArrayList<String>(componentTypes.length);
-		for (final ComponentType type : componentTypes) {
-			componentTypesAsString.add(type.toString().toLowerCase());
-		}
-		return componentTypesAsString;
-	}
+    /**
+     * Gets the types of the managed components as a collection of lower case Strings.
+     *
+     * @return The types of the managed components as a collection of lower case Strings.
+     */
+    public static Collection<String> getComponentTypesAsLowerCaseStringCollection() {
+        final ComponentType[] componentTypes = ComponentType.values();
+        final ArrayList<String> componentTypesAsString = new ArrayList<String>(componentTypes.length);
+        for (final ComponentType type : componentTypes) {
+            componentTypesAsString.add(type.toString().toLowerCase());
+        }
+        return componentTypesAsString;
+    }
 
-	/**
-	 * Gets the given message formatted to be displayed in the specified color.
-	 * 
-	 * @param message
-	 *            The text message
-	 * @param color
-	 *            The color the message should be displayed in
-	 * @return A formatted message text
-	 */
-	public static String getColorMessage(final String message, final Color color) {
-		 String formattedMessage = Ansi.ansi().fg(color).a(message).toString();
-		return formattedMessage + FIRST_ESC_CHAR + SECOND_ESC_CHAR + '0' + COMMAND_CHAR;
-	}
+    /**
+     * Gets the given message formatted to be displayed in the specified color.
+     *
+     * @param message The text message
+     * @param color   The color the message should be displayed in
+     * @return A formatted message text
+     */
+    public static String getColorMessage(final String message, final Color color) {
+        String formattedMessage = Ansi.ansi().fg(color).a(message).toString();
+        return formattedMessage + FIRST_ESC_CHAR + SECOND_ESC_CHAR + '0' + COMMAND_CHAR;
+    }
 
-	/**
-	 * Converts a comma-delimited string of instance IDs to a set of Integers.
-	 * 
-	 * @param componentInstanceIDs
-	 *            a comma-delimited string of instance IDs
-	 * @return instance IDs as a set of Integers
-	 */
-	public static Set<Integer> delimitedStringToSet(final String componentInstanceIDs)
-			{
-		final String[] delimited = componentInstanceIDs.split(",");
-		final Set<Integer> intSet = new HashSet<Integer>();
-		for (final String str : delimited) {
-			intSet.add(Integer.valueOf(str));
-		}
-		return intSet;
-	}
+    /**
+     * Converts a comma-delimited string of instance IDs to a set of Integers.
+     *
+     * @param componentInstanceIDs a comma-delimited string of instance IDs
+     * @return instance IDs as a set of Integers
+     */
+    public static Set<Integer> delimitedStringToSet(final String componentInstanceIDs) {
+        final String[] delimited = componentInstanceIDs.split(",");
+        final Set<Integer> intSet = new HashSet<Integer>();
+        for (final String str : delimited) {
+            intSet.add(Integer.valueOf(str));
+        }
+        return intSet;
+    }
 
-	/**
-	 * Gets the recipes map from the session.
-	 * 
-	 * @param session
-	 *            The command session to query
-	 * @return The recipes map
-	 */
-	@SuppressWarnings("unchecked")
-	public static Map<String, File> getRecipes(final CommandSession session) {
-		return (Map<String, File>) session.get(Constants.RECIPES);
-	}
+    /**
+     * Gets the recipes map from the session.
+     *
+     * @param session The command session to query
+     * @return The recipes map
+     */
+    @SuppressWarnings("unchecked")
+    public static Map<String, File> getRecipes(final CommandSession session) {
+        return (Map<String, File>) session.get(Constants.RECIPES);
+    }
 
-	/**
-	 * Gets the built-in messages bundle, with the default locale.
-	 * 
-	 * @return The messages bundle
-	 */
-	public static ResourceBundle getMessageBundle() {
+    /**
+     * Gets the built-in messages bundle, with the default locale.
+     *
+     * @return The messages bundle
+     */
+    public static ResourceBundle getMessageBundle() {
 
-		if (defaultMessageBundle == null) {
-			defaultMessageBundle = ResourceBundle.getBundle(
-					"MessagesBundle", Locale.getDefault());
-		}
-		return defaultMessageBundle;
+        if (defaultMessageBundle == null) {
+            defaultMessageBundle = ResourceBundle.getBundle(
+                    "MessagesBundle", Locale.getDefault());
+        }
+        return defaultMessageBundle;
 
-	}
+    }
 
-	/**
-	 * Converts the named component to a {@link ComponentType}.
-	 * 
-	 * @param lowerCaseComponentName
-	 *            The component name, in lower case
-	 * @return The matching {@link ComponentType}
-	 * @throws CLIException
-	 *             Reporting failure to find a matching {@link ComponentType} for the given name
-	 */
-	public static ComponentType componentTypeFromLowerCaseComponentName(final String lowerCaseComponentName)
-			throws CLIException {
-		try {
-			return ComponentType.valueOf(lowerCaseComponentName.toUpperCase());
-		} catch (final IllegalArgumentException e) {
-			throw new CLIStatusException("unknown_component_type", lowerCaseComponentName, e);
-		}
-	}
+    /**
+     * Converts the named component to a {@link ComponentType}.
+     *
+     * @param lowerCaseComponentName The component name, in lower case
+     * @return The matching {@link ComponentType}
+     * @throws CLIException Reporting failure to find a matching {@link ComponentType} for the given name
+     */
+    public static ComponentType componentTypeFromLowerCaseComponentName(final String lowerCaseComponentName)
+            throws CLIException {
+        try {
+            return ComponentType.valueOf(lowerCaseComponentName.toUpperCase());
+        } catch (final IllegalArgumentException e) {
+            throw new CLIStatusException("unknown_component_type", lowerCaseComponentName, e);
+        }
+    }
 
-	/**
-	 * Calculates how many milliseconds ahead is the specified target time. If it has passed already, throws a
-	 * {@link TimeoutException} with the given error message.
-	 * 
-	 * @param errorMessage
-	 *            The error message of the {@link TimeoutException}, if thrown
-	 * @param end
-	 *            The target time, formatted in milliseconds
-	 * @return The number of milliseconds ahead, before the target time is reached
-	 * @throws TimeoutException
-	 *             Indicating the target time is in the past
-	 */
-	public static long millisUntil(final String errorMessage, final long end)
-			throws TimeoutException {
-		final long millisUntilEnd = end - System.currentTimeMillis();
-		if (millisUntilEnd < 0) {
-			throw new TimeoutException(errorMessage);
-		}
-		return millisUntilEnd;
-	}
+    /**
+     * Calculates how many milliseconds ahead is the specified target time. If it has passed already, throws a
+     * {@link TimeoutException} with the given error message.
+     *
+     * @param errorMessage The error message of the {@link TimeoutException}, if thrown
+     * @param end          The target time, formatted in milliseconds
+     * @return The number of milliseconds ahead, before the target time is reached
+     * @throws TimeoutException Indicating the target time is in the past
+     */
+    public static long millisUntil(final String errorMessage, final long end)
+            throws TimeoutException {
+        final long millisUntilEnd = end - System.currentTimeMillis();
+        if (millisUntilEnd < 0) {
+            throw new TimeoutException(errorMessage);
+        }
+        return millisUntilEnd;
+    }
 
-	/**
-	 * Gets an "expected execution time" formatted message, with the current time in this format: HH:mm.
-	 * 
-	 * @return a formatted "expected execution time" message
-	 */
-	public static String getExpectedExecutionTimeMessage() {
-		final String currentTime = new SimpleDateFormat("HH:mm").format(new Date());
-		return MessageFormat.format(
-				getMessageBundle().getString(
-						"expected_execution_time"), currentTime);
-	}
+    /**
+     * Gets an "expected execution time" formatted message, with the current time in this format: HH:mm.
+     *
+     * @return a formatted "expected execution time" message
+     */
+    public static String getExpectedExecutionTimeMessage() {
+        final String currentTime = new SimpleDateFormat("HH:mm").format(new Date());
+        return MessageFormat.format(
+                getMessageBundle().getString(
+                        "expected_execution_time"), currentTime);
+    }
 
-	/**
-	 * Gets the CLI directory.
-	 * 
-	 * @return the CLI directory
-	 */
-	public static File getCliDirectory() {
-		return new File(Environment.getHomeDirectory(), "/tools/cli");
-	}
+    /**
+     * Gets the CLI directory.
+     *
+     * @return the CLI directory
+     */
+    public static File getCliDirectory() {
+        return new File(Environment.getHomeDirectory(), "/tools/cli");
+    }
 
-	/**
-	 * Verifies the given value is not null. If it is - throws an IllegalArgumentException with the message: <name>
-	 * cannot be null.
-	 * 
-	 * @param name
-	 *            The name to be used in the exception, if thrown
-	 * @param value
-	 *            The value to verify
-	 */
-	public static void checkNotNull(final String name, final Object value) {
-		if (value == null) {
-			throw new IllegalArgumentException(name + " cannot be null");
-		}
-	}
+    /**
+     * Verifies the given value is not null. If it is - throws an IllegalArgumentException with the message: <name>
+     * cannot be null.
+     *
+     * @param name  The name to be used in the exception, if thrown
+     * @param value The value to verify
+     */
+    public static void checkNotNull(final String name, final Object value) {
+        if (value == null) {
+            throw new IllegalArgumentException(name + " cannot be null");
+        }
+    }
 
-	/**
-	 * Reads the properties from the specified file, and loads them into a {@link Properties} object.
-	 * 
-	 * @param propertiesFile
-	 *            The file to read properties from
-	 * @return A populated properties object
-	 * @throws IOException
-	 *             Thrown if the specified file is not found or accessed appropriately
-	 */
-	public static Properties loadProperties(final File propertiesFile)
-			throws IOException {
-		final Properties properties = new Properties();
-		final FileInputStream fis = new FileInputStream(propertiesFile);
-		try {
-			properties.load(fis);
-		} finally {
-			fis.close();
-		}
-		return properties;
-	}
+    /**
+     * Reads the properties from the specified file, and loads them into a {@link Properties} object.
+     *
+     * @param propertiesFile The file to read properties from
+     * @return A populated properties object
+     * @throws IOException Thrown if the specified file is not found or accessed appropriately
+     */
+    public static Properties loadProperties(final File propertiesFile)
+            throws IOException {
+        final Properties properties = new Properties();
+        final FileInputStream fis = new FileInputStream(propertiesFile);
+        try {
+            properties.load(fis);
+        } finally {
+            fis.close();
+        }
+        return properties;
+    }
 
-	/**
-	 * Checks if the operating system on this machine is Windows.
-	 * 
-	 * @return True - if using Windows, False - otherwise.
-	 */
-	public static boolean isWindows() {
-		final String os = System.getProperty(
-				"os.name").toLowerCase();
-		return os.indexOf("win") >= 0;
-	}
+    /**
+     * Checks if the operating system on this machine is Windows.
+     *
+     * @return True - if using Windows, False - otherwise.
+     */
+    public static boolean isWindows() {
+        final String os = System.getProperty(
+                "os.name").toLowerCase();
+        return os.indexOf("win") >= 0;
+    }
+
+    public static boolean shouldDoVersionCheck(CommandSession session) {
+        long lastAskedTS = getLastTimeAskedAboutVersionCheck();
+        //check only if checked over a two weeks ago and user agrees
+        try {
+            if (lastAskedTS <= (System.currentTimeMillis() - TWO_WEEKS_IN_MILLIS)) {
+                boolean userConfirms = ShellUtils.promptUser(session, "version_check_confirmation");
+                registerVersionCheck();
+                return userConfirms;
+            }
+        } catch (IOException e) {
+            logger.log(Level.FINE, "Failed to prompt user", e);
+        }
+        return false;
+    }
+
+    public static void doVersionCheck(CommandSession session) {
+        String currentBuildStr = PlatformVersion.getBuildNumber();
+        if (currentBuildStr.contains("-")) {
+            currentBuildStr = currentBuildStr.substring(0, currentBuildStr.indexOf("-"));
+        }
+        int currentVersion = Integer.parseInt(currentBuildStr);
+        int latestBuild = getLatestBuildNumber(currentVersion);
+        String message;
+        if (latestBuild == -1) {
+            message = ShellUtils.getFormattedMessage("could_not_get_version");
+        } else if (latestBuild > currentVersion) {
+            message = ShellUtils.getFormattedMessage("newer_version_exists");
+        } else {
+            message = ShellUtils.getFormattedMessage("version_up_to_date");
+        }
+        session.getConsole().println(message);
+        session.getConsole().println();
+    }
+
+    public static int getLatestBuildNumber(int currentVersion) {
+        try {
+            HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+            requestFactory.setReadTimeout(VERSION_CHECK_READ_TIMEOUT);
+            RestTemplate template = new RestTemplate(requestFactory);
+            String versionStr = template.getForObject("http://www.gigaspaces.com/downloadgen/latest-cloudify-version?build=" + currentVersion, String.class);
+            logger.fine("Latest cloudify version is " + versionStr);
+            return Integer.parseInt(versionStr);
+        } catch (RestClientException e) {
+            logger.log(Level.FINE, "Could not get version from server", e);
+            return -1;
+        } catch (NumberFormatException e) {
+            logger.fine("Get version response is not a number");
+            return -1;
+        }
+
+    }
+
+    public static long getLastTimeAskedAboutVersionCheck() {
+        long lastVersionCheckTS = 0;
+        if (VERSION_CHECK_FILE.exists()) {
+            DataInputStream dis = null;
+            try {
+                dis = new DataInputStream(new FileInputStream(VERSION_CHECK_FILE));
+                lastVersionCheckTS = dis.readLong();
+            } catch (IOException e) {
+                logger.log(Level.FINE, "failed to read last checked version timestamp file", e);
+            } finally {
+                if (dis != null) {
+                    try {
+                        dis.close();
+                    } catch (IOException e) {
+                    }
+                }
+            }
+        }
+        return lastVersionCheckTS;
+    }
+
+    public static void registerVersionCheck() {
+        DataOutputStream dos = null;
+        try {
+            dos = new DataOutputStream(new FileOutputStream(VERSION_CHECK_FILE));
+            dos.writeLong(System.currentTimeMillis());
+        } catch (IOException e) {
+            logger.log(Level.FINE, "failed to write last checked version timestamp file", e);
+        } finally {
+            if (dos != null) {
+                try {
+                    dos.close();
+                } catch (IOException e) {
+                }
+            }
+        }
+    }
 }

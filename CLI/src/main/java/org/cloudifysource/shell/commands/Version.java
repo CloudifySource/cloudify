@@ -16,32 +16,35 @@ package org.cloudifysource.shell.commands;
  * limitations under the License.
  *******************************************************************************/
 
-import org.apache.felix.gogo.commands.Command;
-
 import com.j_spaces.kernel.PlatformVersion;
+import org.apache.felix.gogo.commands.Command;
+import org.cloudifysource.shell.ShellUtils;
 
 /**
  * @author rafi, barakm
  * @since 2.0.0
- * 
+ *        <p/>
  *        Displays the XAP and cloudify versions.
- *        
+ *        <p/>
  *        Command syntax: version
  */
 @Command(scope = "cloudify", name = "version", description = "Displays the XAP and cloudify versions")
 public class Version extends AbstractGSCommand {
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	protected Object doExecute() throws Exception {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected Object doExecute() throws Exception {
 
-		final String platformInfo = PlatformVersion.getOfficialVersion();
-		final String cloudifyInfo = "Cloudify version 2.1";
-
-		final String info = platformInfo + System.getProperty("line.separator") + cloudifyInfo;
-
-		return info;
-	}
+        final String platformInfo = PlatformVersion.getOfficialVersion();
+        final String cloudifyInfo = "Cloudify version 2.1";
+        final String info = platformInfo + System.getProperty("line.separator") + cloudifyInfo;
+        session.getConsole().println(info);
+        if (ShellUtils.promptUser(session, "version_check_confirmation")) {
+            ShellUtils.registerVersionCheck();
+            ShellUtils.doVersionCheck(session);
+        }
+        return null;
+    }
 }
