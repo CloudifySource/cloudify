@@ -50,13 +50,13 @@ goto :END
 	
 	@rem Add esc dependencies
 
-	set ESC_JARS=%JSHOMEDIR%\lib\platform\esm\*
+	set ESC_JARS="%JSHOMEDIR%\lib\platform\esm\*"
 	
 	@rem Add plugins and dependencies
 	set PLUGIN_JARS=
 	
 	pushd "%SCRIPT_PATH%\plugins"
-		for /D %%G in (*) do call:ITERATE_JARS %SCRIPT_PATH%plugins\%%G
+		for /D %%G in (*) do call:ITERATE_JARS "%SCRIPT_PATH%plugins\%%G"
 	popd
 	
 	set CLOUDIFY_CLASSPATH=%CLI_JARS%;%DEPLOY_JARS%;%GS_JARS%;%SIGAR_JARS%;%GROOVY_JARS%;%ESC_JARS%;%PLUGIN_JARS%
