@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationException;
@@ -71,7 +70,7 @@ public class Service {
 
 	private Map<String, Object> customCommands = new HashMap<String, Object>();
 
-	private String type;
+	private String type =  ServiceTierType.UNDEFINED.toString();
 
 	private StatelessProcessingUnit statelessProcessingUnit;
 
@@ -433,28 +432,20 @@ public class Service {
 	}
 
 	private void validateServiceType() throws DSLValidationException {
-		
-		if (this.type == null) {
-			this.type = ServiceTierType.UNDEFINED.toString();
-			logger.log(Level.FINE, "The service type was not defined." +
-					" Using the default service type.");
-			return;
-		} else {
-			boolean typeExists = false;
-			String[] enumAsString = new String[ServiceTierType.values().length];
-			int counter = 0;
-			for (ServiceTierType tierType : ServiceTierType.values()) {
-				enumAsString[counter] = tierType.toString();
-				counter++;
-				if (tierType.toString().equalsIgnoreCase(this.type)) {
-					typeExists = true;
-					break;
-				}
+		boolean typeExists = false;
+		String[] enumAsString = new String[ServiceTierType.values().length];
+		int counter = 0;
+		for (ServiceTierType tierType : ServiceTierType.values()) {
+			enumAsString[counter] = tierType.toString();
+			counter++;
+			if (tierType.toString().equalsIgnoreCase(this.type)) {
+				typeExists = true;
+				break;
 			}
-			if (!typeExists) {
-				throw new DSLValidationException("The service type '" + this.type + "' is undefined."
-						+ "The known service types include " + Arrays.toString(enumAsString));
-			}
+		}
+		if (!typeExists) {
+			throw new DSLValidationException("The service type '" + this.type + "' is undefined."
+					+ "The known service types include " + Arrays.toString(enumAsString));
 		}
 	}
 	
