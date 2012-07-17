@@ -41,13 +41,14 @@ import java.util.logging.Logger;
  */
 public class ConsoleWithProps extends Console {
 
-	private static final int FIVE_SECONDS_IN_MILLI = 5000;
 	private static final String DEFAULT_APP_NAME = "default";
-	private String currentAppName = DEFAULT_APP_NAME;
+    public static final int VERSION_CHECK_READ_TIMEOUT = 5000;
+    private String currentAppName = DEFAULT_APP_NAME;
 	private final ConsoleWithPropsActions consoleActions;
 
     private final Logger logger = Logger.getLogger(getClass().getName());
     private static final long TWO_WEEKS_IN_MILLIS = 86400000L * 14L;
+    public static final File VERSION_CHECK_FILE = new File(System.getProperty("user.home") + "/.karaf/lastVersionCheckTimestamp");
 
     ConsoleWithProps(final CommandProcessor commandProcessor, final InputStream input, final PrintStream output,
 			final PrintStream err, final Terminal terminal, final CloseCallback callback, final boolean isInteractive)
@@ -83,7 +84,6 @@ public class ConsoleWithProps extends Console {
         try {
             if (lastAskedTS <= (System.currentTimeMillis() - TWO_WEEKS_IN_MILLIS) && ShellUtils.promptUser(session, "version_check_confirmation")) {
                 session.getConsole().println("Checking version...");
-
                 String currentBuildStr = PlatformVersion.getBuildNumber();
                 if(currentBuildStr.contains("-")) {
                     currentBuildStr = currentBuildStr.substring(0, currentBuildStr.indexOf("-"));
@@ -97,21 +97,20 @@ public class ConsoleWithProps extends Console {
                     message = ShellUtils.getFormattedMessage("newer_version_exists");
                 } else {
                     message = ShellUtils.getFormattedMessage("version_up_to_date");
-
                 }
+                registerVersionCheck();
                 session.getConsole().println(message);
                 session.getConsole().println();
-
             }
         } catch (IOException e) {
-            logger.log(Level.INFO, "Failed to prompt user", e);
+            logger.log(Level.FINE, "Failed to prompt user", e);
         }
     }
 
     private int getLatestBuildNumber(int currentVersion) {
         try {
             HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-            requestFactory.setReadTimeout(FIVE_SECONDS_IN_MILLI);
+            requestFactory.setReadTimeout(VERSION_CHECK_READ_TIMEOUT);
             RestTemplate template = new RestTemplate(requestFactory);
             String versionStr = template.getForObject("http://www.gigaspaces.com/downloadgen/latest-cloudify-version?build="+currentVersion, String.class);
             logger.fine("Latest cloudify version is " + versionStr);
@@ -128,14 +127,13 @@ public class ConsoleWithProps extends Console {
 
     private long getLastTimeAskedAboutVersionCheck() {
         long lastVersionCheckTS = 0;
-        File lastVersionCheckFile = new File(System.getProperty("user.home")+"/.karaf/lastVersionCheckTimestamp");
-        if (lastVersionCheckFile.exists()){
+        if (VERSION_CHECK_FILE.exists()){
             DataInputStream dis = null;
             try {
-                dis = new DataInputStream(new FileInputStream(lastVersionCheckFile));
+                dis = new DataInputStream(new FileInputStream(VERSION_CHECK_FILE));
                 lastVersionCheckTS = dis.readLong();
             } catch (IOException e) {
-                logger.log(Level.INFO, "failed to read last checked version timestamp file", e);
+                logger.log(Level.FINE, "failed to read last checked version timestamp file", e);
             } finally {
                 if (dis != null) {
                     try {
@@ -144,12 +142,16 @@ public class ConsoleWithProps extends Console {
                 }
             }
         }
+        return lastVersionCheckTS;
+    }
+
+    private void registerVersionCheck() {
         DataOutputStream dos = null;
         try {
-            dos = new DataOutputStream(new FileOutputStream(lastVersionCheckFile));
+            dos = new DataOutputStream(new FileOutputStream(VERSION_CHECK_FILE));
             dos.writeLong(System.currentTimeMillis());
         } catch (IOException e) {
-            logger.log(Level.INFO, "failed to write last checked version timestamp file", e);
+            logger.log(Level.FINE, "failed to write last checked version timestamp file", e);
         } finally {
             if (dos != null) {
                 try {
@@ -157,7 +159,6 @@ public class ConsoleWithProps extends Console {
                 } catch (IOException e) {}
             }
         }
-        return lastVersionCheckTS;
     }
 
 
