@@ -1366,7 +1366,9 @@ public class ServiceController {
 		final int externalProcessMemoryInMB = 512;
 		final int containerMemoryInMB = 128;
 		final int reservedMemoryCapacityPerMachineInMB = 256;
-
+		
+		contextProperties.put(CloudifyConstants.CONTEXT_PROPERTY_ASYNC_INSTALL, "true");
+		
 		final ElasticStatelessProcessingUnitDeployment deployment =
 				new ElasticStatelessProcessingUnitDeployment(serviceFile)
 						.memoryCapacityPerContainer(externalProcessMemoryInMB, MemoryUnit.MEGABYTES)
