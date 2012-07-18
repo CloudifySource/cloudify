@@ -61,6 +61,8 @@ import com.gigaspaces.log.LogEntryMatcher;
  */
 public class RestPollingRunnable implements Runnable {
 
+    private static final int FIVE_SECONDS_MILLI = 5000;
+
     // a map containing all of the application services and their planned number
     // of instances.
     // The services are ordered according to the installation order defined by
@@ -329,13 +331,13 @@ public class RestPollingRunnable implements Runnable {
                 .getGridServiceContainers()) {
             logger.log(Level.FINE, 
                     "Polling GSC with uid: " + container.getUid());
+            
+            final Date pollingStartTime = getGSCSamplingStartTime(container); 
             final LogEntries logEntries = container.logEntries(matcher);
             //Get lifecycle events.  
-            final Date pollingStartTime = getGSCSamplingStartTime(container); 
             for (final LogEntry logEntry : logEntries) {
                 if (logEntry.isLog()) {
-                    if (pollingStartTime.before(new Date(logEntry
-                            .getTimestamp()))) {
+                    if (pollingStartTime.before(new Date(logEntry.getTimestamp()))) {
                         final Map<String, String> serviceEventsMap = getEventDetailes(
                                 logEntry, container, absolutePuName);
                         servicesLifecycleEventDetailes.add(serviceEventsMap);
@@ -349,14 +351,13 @@ public class RestPollingRunnable implements Runnable {
     
     //Returns the time the polling started for the specific gsc.
     private Date getGSCSamplingStartTime(final GridServiceContainer gsc) {
-        if (this.gscStartTimeMap.containsKey(gsc.getUid())) {
-            return this.gscStartTimeMap.get(gsc.getUid());
+        final String uid = gsc.getUid();
+        if (this.gscStartTimeMap.containsKey(uid)) {
+            return this.gscStartTimeMap.get(uid);
         } else {
             Date date = new Date(
-                    new Date().getTime()
-                    + gsc.getOperatingSystem()
-                    .getTimeDelta());
-            this.gscStartTimeMap.put(gsc.getUid(), date);
+                    new Date().getTime() + gsc.getOperatingSystem().getTimeDelta() - FIVE_SECONDS_MILLI);
+            this.gscStartTimeMap.put(uid, date);
             return date;
         }
     }
