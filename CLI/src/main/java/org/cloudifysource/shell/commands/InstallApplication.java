@@ -118,10 +118,10 @@ public class InstallApplication extends AdminAwareCommand {
 		RestLifecycleEventsLatch lifecycleEventsPollingLatch = 
 				this.adminFacade.getLifecycleEventsPollingLatch(pollingID, TIMEOUT_ERROR_MESSAGE);
 		boolean isDone = false;
-		boolean continues = false;
+		boolean Continuous = false;
 		while (!isDone) {
 			try {
-				if (!continues) {
+				if (!Continuous) {
 					lifecycleEventsPollingLatch.waitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
 				} else {
 					lifecycleEventsPollingLatch.continueWaitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
@@ -136,7 +136,7 @@ public class InstallApplication extends AdminAwareCommand {
 					throw new CLIStatusException(e, "application_installation_timed_out_on_client", 
 							applicationName);
 				} else {
-					continues = true;
+					Continuous = true;
 				}
 			}
 		}
