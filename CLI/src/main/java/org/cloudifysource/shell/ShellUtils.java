@@ -42,7 +42,8 @@ import java.util.logging.Logger;
  */
 public final class ShellUtils {
 
-    private static final char RETURN_CHAR = '\r';
+    private static final char WIN_RETURN_CHAR = '\r';
+    private static final char LINUX_RETURN_CHAR = '\n';
 
 	protected static final Logger logger = Logger.getLogger(ShellUtils.class.getName());
 
@@ -91,7 +92,7 @@ public final class ShellUtils {
             StringBuilder responseBuffer = new StringBuilder();
             while (true) {
                 responseChar = (char) session.getKeyboard().read();
-                if (responseChar == RETURN_CHAR) {
+                if (responseChar == WIN_RETURN_CHAR || responseChar == LINUX_RETURN_CHAR) {
                     session.getConsole().println();
                     break;
                 }
