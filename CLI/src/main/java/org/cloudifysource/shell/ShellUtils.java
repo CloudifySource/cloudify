@@ -43,6 +43,9 @@ import java.util.logging.Logger;
 public final class ShellUtils {
 
 	protected static final Logger logger = Logger.getLogger(ShellUtils.class.getName());
+	
+	 private static final char WIN_RETURN_CHAR = '\r';
+	 private static final char LINUX_RETURN_CHAR = '\n';
 
     private static final long TWO_WEEKS_IN_MILLIS = 86400000L * 14L;
     private static final File VERSION_CHECK_FILE = new File(System.getProperty("user.home") + "/.karaf/lastVersionCheckTimestamp");
@@ -89,7 +92,7 @@ public final class ShellUtils {
             StringBuilder responseBuffer = new StringBuilder();
             while (true) {
                 responseChar = (char) session.getKeyboard().read();
-                if (responseChar == Character.LINE_SEPARATOR) {
+                if (responseChar == WIN_RETURN_CHAR || responseChar == LINUX_RETURN_CHAR) {
                     session.getConsole().println();
                     break;
                 }
