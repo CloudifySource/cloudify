@@ -93,11 +93,10 @@ public final class ShellUtils {
             StringBuilder responseBuffer = new StringBuilder();
             while (true) {
                 response = readAvailable(session.getKeyboard());
-                if (LINE_SEPARATOR.equals(response)) {
-                    session.getConsole().println();
+                session.getConsole().print(response);
+                if (response.endsWith(LINE_SEPARATOR)) {
                     break;
                 }
-                session.getConsole().print(response);
                 responseBuffer.append(response);
                 session.getConsole().flush();
             }
