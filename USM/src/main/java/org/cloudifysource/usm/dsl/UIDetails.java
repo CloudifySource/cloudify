@@ -19,16 +19,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.cloudifysource.usm.UniversalServiceManagerBean;
-import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
 import org.cloudifysource.usm.details.Details;
 import org.cloudifysource.usm.details.DetailsException;
 import org.openspaces.ui.UserInterface;
 
 /**************
  * A USM details implementation the exposes the UI POJO as a Detail.
+ * 
  * @author barakme
  * @since 2.0.0
- *
+ * 
  */
 public class UIDetails implements Details {
 
@@ -36,6 +36,7 @@ public class UIDetails implements Details {
 
 	/**********
 	 * .
+	 * 
 	 * @param ui .
 	 */
 	public UIDetails(final UserInterface ui) {
@@ -45,7 +46,7 @@ public class UIDetails implements Details {
 
 	@Override
 	public Map<String, Object> getDetails(final UniversalServiceManagerBean usm,
-			final UniversalServiceManagerConfiguration config)
+			final ServiceConfiguration config)
 			throws DetailsException {
 		final Map<String, Object> map = new HashMap<String, Object>();
 		map.put("USM.UI", ui);

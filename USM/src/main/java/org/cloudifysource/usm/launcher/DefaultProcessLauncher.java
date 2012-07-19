@@ -39,13 +39,17 @@ import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import org.cloudifysource.dsl.entry.ClosureExecutableEntry;
+import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
+import org.cloudifysource.dsl.entry.ExecutableDSLEntryType;
+import org.cloudifysource.dsl.entry.ListExecutableEntry;
+import org.cloudifysource.dsl.entry.StringExecutableEntry;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils.FullServiceName;
 import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.USMUtils;
-import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
-import org.cloudifysource.usm.dsl.DSLConfiguration;
+import org.cloudifysource.usm.dsl.ServiceConfiguration;
 import org.hyperic.sigar.Sigar;
 import org.openspaces.core.cluster.ClusterInfo;
 import org.openspaces.core.cluster.ClusterInfoAware;
@@ -76,7 +80,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	private String groovyEnvironmentClassPath;
 
 	@Autowired
-	private UniversalServiceManagerConfiguration configutaion;
+	private ServiceConfiguration configutaion;
 
 	private List<String> switchFirstPartOfCommandLine(final List<String> originalCommandLine, final String newPart) {
 
@@ -443,10 +447,12 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		return list;
 	}
 
-	private List<String> getCommandLineFromArgument(final Object arg, final File workDir, final List<String> params) {
-		if (arg instanceof String) {
+	private List<String> getCommandLineFromArgument(final ExecutableDSLEntry arg, final File workDir,
+			final List<String> params) {
+		if (arg.getEntryType() == ExecutableDSLEntryType.STRING) {
 			// Split the command into parts
-			final List<String> commandLineStringInParts = convertCommandLineStringToParts((String) arg);
+			final List<String> commandLineStringInParts =
+					convertCommandLineStringToParts(((StringExecutableEntry) arg).getCommand());
 			// Add the custom command parameters as args to the split commands
 			// array
 			if (params != null) {
@@ -456,9 +462,9 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			return commandLineStringInParts;
 		}
 
-		if (arg instanceof Map<?, ?>) {
+		if (arg.getEntryType() == ExecutableDSLEntryType.MAP) {
 			@SuppressWarnings("unchecked")
-			final Map<String, Object> map = (Map<String, Object>) arg;
+			final Map<String, ExecutableDSLEntry> map = (Map<String, ExecutableDSLEntry>) arg;
 
 			final String os = System.getProperty("os.name");
 			if (logger.isLoggable(Level.FINE)) {
@@ -483,8 +489,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 		}
 
-		if (arg instanceof List<?>) {
-			final List<?> originalList = (List<?>) arg;
+		if (arg.getEntryType() == ExecutableDSLEntryType.LIST) {
+			final List<?> originalList = ((ListExecutableEntry) arg).getCommand();
 
 			final List<String> resultList = new ArrayList<String>(originalList.size());
 			for (final Object elem : originalList) {
@@ -496,12 +502,12 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 	}
 
-	private List<String> getCommandLineFromValue(final Object value) {
-		if (value instanceof String) {
-			return convertCommandLineStringToParts((String) value);
-		} else if (value instanceof List<?>) {
+	private List<String> getCommandLineFromValue(final ExecutableDSLEntry value) {
+		if (value.getEntryType() == ExecutableDSLEntryType.STRING) {
+			return convertCommandLineStringToParts(((StringExecutableEntry) value).getCommand());
+		} else if (value.getEntryType() == ExecutableDSLEntryType.LIST) {
 			@SuppressWarnings("unchecked")
-			final List<String> result = (List<String>) value;
+			final List<String> result = ((ListExecutableEntry) value).getCommand();
 			return result;
 		} else {
 			throw new IllegalArgumentException("The value: " + value
@@ -509,11 +515,11 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		}
 	}
 
-	private List<String> lookUpCommandLineForOS(final Map<String, Object> map, final String os) {
-		final Set<Entry<String, Object>> entries = map.entrySet();
-		for (final Entry<String, Object> entry : entries) {
+	private List<String> lookUpCommandLineForOS(final Map<String, ExecutableDSLEntry> map, final String os) {
+		final Set<Entry<String, ExecutableDSLEntry>> entries = map.entrySet();
+		for (final Entry<String, ExecutableDSLEntry> entry : entries) {
 			final String key = entry.getKey();
-			final Object value = entry.getValue();
+			final ExecutableDSLEntry value = entry.getValue();
 			try {
 				if (Pattern.matches(key,
 						os)) {
@@ -534,7 +540,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		return null;
 	}
 
-	private List<String> createAlternativeCommandLine(final Map<String, Object> map, final File workDir) {
+	private List<String> createAlternativeCommandLine(final Map<String, ExecutableDSLEntry> map, final File workDir) {
 		if (ServiceUtils.isWindows()) {
 			List<String> otherCommandLine = null;
 
@@ -570,7 +576,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	}
 
 	@Override
-	public Process launchProcessAsync(final Object arg, final File workingDir, final int retries,
+	public Process launchProcessAsync(final ExecutableDSLEntry arg, final File workingDir, final int retries,
 			final boolean redirectErrorStream, final List<String> params)
 			throws USMException {
 		return launchAsync(arg,
@@ -582,12 +588,12 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 				params);
 	}
 
-	private Process launchAsync(final Object arg, final File workingDir, final int retries,
+	private Process launchAsync(final ExecutableDSLEntry arg, final File workingDir, final int retries,
 			final boolean redirectErrorStream, final File outputFile, final File errorFile, final List<String> params)
 			throws USMException {
-		if (arg instanceof Callable<?>) {
+		if (arg.getEntryType() == ExecutableDSLEntryType.CLOSURE) {
 			// in process execution of a closure
-			return launchAsyncFromClosure(arg);
+			return launchAsyncFromClosure(((ClosureExecutableEntry) arg).getCommand());
 
 		}
 		commandLine = getCommandLineFromArgument(arg,
@@ -632,28 +638,20 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	}
 
 	@Override
-	public Object launchProcess(final Object arg, final File workingDir, final int retries,
+	public Object launchProcess(final ExecutableDSLEntry arg, final File workingDir, final int retries,
 			final boolean redirectErrorStream, final Map<String, Object> params)
 			throws USMException {
 
 		final List<String> paramsList = getParamsListFromMap(params);
-		if (arg instanceof Closure<?>) {
+		if (arg.getEntryType() == ExecutableDSLEntryType.CLOSURE) {
 			// in process execution of a closure
-			final Closure<?> closure = (Closure<?>) arg;
+			final Closure<?> closure = ((ClosureExecutableEntry) arg).getCommand();
 
 			try {
 				if (logger.isLoggable(Level.FINE)) {
 					logger.fine("Closure Parameters: " + paramsList.toString());
 				}
-				// if (closure.getMaximumNumberOfParameters() != paramsList.size()){
-				// USMException e = new USMException("Invalid number of parameters."
-				// +" Expecting " + closure.getMaximumNumberOfParameters()
-				// + " parameters, got " + paramsList.size()
-				// + ": " + paramsList.toString());
-				// logger.log(Level.SEVERE, e.getMessage());
-				// throw e;
-				// }
-				// invoke the command closure.
+
 				final Object result = closure.call(paramsList.toArray());
 				return result;
 			} catch (final Exception e) {
@@ -768,7 +766,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 		if (ServiceUtils.isLinuxOrUnix()) {
 			// run the whole command in a shell session
-			logger.info("Command before shell modification: " + commandLineParams);
+			logger.fine("Command before shell modification: " + commandLineParams);
 			final StringBuilder sb = new StringBuilder();
 			for (final String param : commandLineParams) {
 				sb.append(param).append(" ");
@@ -778,7 +776,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 					"sh",
 					"-c",
 					sb.toString()));
-			logger.info("Command after shell modification: " + commandLineParams);
+			logger.fine("Command after shell modification: " + commandLineParams);
 
 		}
 	}
@@ -842,12 +840,12 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			Process proc;
 
 			try {
-				logger.info("Parsed command line: " + commandLineParams);
+				logger.fine("Parsed command line: " + commandLineParams);
 
 				final String fileInitialMessage =
-						"Starting service process in working directory:'" + workingDir + "' "+
-						"at:'" + new Date() + "' with command:'" + commandLineParams +"'" +
-						System.getProperty("line.separator");	
+						"Starting service process in working directory:'" + workingDir + "' " +
+								"at:'" + new Date() + "' with command:'" + commandLineParams + "'" +
+								System.getProperty("line.separator");
 				if (outputFile != null) {
 					appendMessageToFile(fileInitialMessage,
 							outputFile);
@@ -933,7 +931,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			map.put(CloudifyConstants.USM_ENV_RUNNING_NUMBER,
 					"" + clusterInfo.getRunningNumber());
 			map.put(CloudifyConstants.USM_ENV_SERVICE_FILE_NAME,
-					"" + ((DSLConfiguration) this.configutaion).getServiceFile().getName());
+					"" + this.configutaion.getServiceFile().getName());
 
 		}
 
@@ -980,7 +978,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	}
 
 	@Override
-	public Object launchProcess(final Object arg, final File workingDir, final Map<String, Object> params)
+	public Object launchProcess(final ExecutableDSLEntry arg, final File workingDir, final Map<String, Object> params)
 			throws USMException {
 		return launchProcess(arg,
 				workingDir,
@@ -991,7 +989,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	}
 
 	@Override
-	public Object launchProcess(final Object arg, final File workingDir)
+	public Object launchProcess(final ExecutableDSLEntry arg, final File workingDir)
 			throws USMException {
 		return launchProcess(arg,
 				workingDir,
@@ -1000,7 +998,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	}
 
 	@Override
-	public Process launchProcessAsync(final Object arg, final File workingDir, final File outputFile,
+	public Process launchProcessAsync(final ExecutableDSLEntry arg, final File workingDir, final File outputFile,
 			final File errorFile)
 			throws USMException {
 		return launchAsync(arg,

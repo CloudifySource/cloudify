@@ -19,6 +19,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.usm.USMComponent;
 import org.cloudifysource.usm.USMException;
 
@@ -56,7 +57,7 @@ public interface ProcessLauncher extends USMComponent {
 	 * @return the process result.
 	 * @throws USMException if there was a problem launching the process, or the process did not terminate successfully.
 	 */
-	Object launchProcess(final Object arg, final File workingDir)
+	Object launchProcess(final ExecutableDSLEntry arg, final File workingDir)
 			throws USMException;
 
 	/*******************
@@ -70,7 +71,8 @@ public interface ProcessLauncher extends USMComponent {
 	 * @return the process result.
 	 * @throws USMException if there was a problem launching the process, or the process did not terminate successfully.
 	 */
-	Object launchProcess(final Object arg, final File workingDir, final int retries, boolean redirectErrorStream,
+	Object launchProcess(final ExecutableDSLEntry arg, final File workingDir,
+			final int retries, boolean redirectErrorStream,
 			Map<String, Object> params)
 			throws USMException;
 
@@ -83,7 +85,7 @@ public interface ProcessLauncher extends USMComponent {
 	 * @return the process handle.
 	 * @throws USMException if there was a problem launching the process.
 	 */
-	Process launchProcessAsync(final Object arg, final File workingDir, final File outputFile, final File errorFile)
+	Process launchProcessAsync(final ExecutableDSLEntry arg, final File workingDir, final File outputFile, final File errorFile)
 			throws USMException;
 
 	/***********************
@@ -96,7 +98,7 @@ public interface ProcessLauncher extends USMComponent {
 	 * @return the process handle.
 	 * @throws USMException if there was a problem launching the process.
 	 */
-	Process launchProcessAsync(final Object arg, final File workingDir, final int retries, boolean redirectErrorStream,
+	Process launchProcessAsync(final ExecutableDSLEntry arg, final File workingDir, final int retries, boolean redirectErrorStream,
 			List<String> params)
 			throws USMException;
 
@@ -108,6 +110,6 @@ public interface ProcessLauncher extends USMComponent {
 	 * @return the process result.
 	 * @throws USMException if there was a problem launching the process, or the process did not terminate successfully.
 	 */
-	Object launchProcess(Object arg, File workingDir, Map<String, Object> params)
+	Object launchProcess(ExecutableDSLEntry arg, File workingDir, Map<String, Object> params)
 			throws USMException;
 }

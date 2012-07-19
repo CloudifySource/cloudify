@@ -25,19 +25,25 @@ import java.util.logging.Level;
 import org.cloudifysource.dsl.Plugin;
 import org.cloudifysource.dsl.context.ServiceContext;
 
+/***************
+ * A base class for plugins that read JMX data.
+ * 
+ * @author barakme
+ * 
+ */
 
+public abstract class AbstractJmxPlugin implements Plugin {
 
-public abstract class AbstractJmxPlugin implements Plugin{
 	private static java.util.logging.Logger logger =
 			java.util.logging.Logger.getLogger(AbstractJmxPlugin.class.getName());
-	
-	//protected List<JmxTarget> targets = new LinkedList<JmxTarget>();
+
+	// protected List<JmxTarget> targets = new LinkedList<JmxTarget>();
 	protected List<JmxAttribute> targets = new LinkedList<JmxAttribute>();
-	
+
 	protected String host = "127.0.0.1";
 	protected int port;
 	protected JmxGenericClient client;
-	
+
 	protected String username;
 	protected String password;
 
@@ -46,14 +52,10 @@ public abstract class AbstractJmxPlugin implements Plugin{
 	}
 
 	public void setPort(final int port) {
-		if(logger.isLoggable(Level.FINE)){
-			logger.fine(this.getClass().getName() + "port= " + port);
-			
-		}
 		this.port = port;
 	}
 
-	public String getHost() {	
+	public String getHost() {
 		return host;
 	}
 
@@ -63,13 +65,13 @@ public abstract class AbstractJmxPlugin implements Plugin{
 
 	@Override
 	public void setConfig(final Map<String, Object> config) {
-	
+
 		final Set<Entry<String, Object>> entries = config.entrySet();
 		for (final Entry<String, Object> entry : entries) {
 			try {
-	
+
 				if (entry.getKey().equalsIgnoreCase("port")) {
-					this.setPort( Integer.parseInt(entry.getValue().toString()));
+					this.setPort(Integer.parseInt(entry.getValue().toString()));
 				} else if (entry.getKey().equalsIgnoreCase("host")) {
 					this.setHost((String) entry.getValue());
 				} else if (entry.getKey().equalsIgnoreCase("username")) {
@@ -77,23 +79,24 @@ public abstract class AbstractJmxPlugin implements Plugin{
 				} else if (entry.getKey().equalsIgnoreCase("password")) {
 					this.password = (String) entry.getValue();
 				} else {
-					
-					List<?> list = (List<?>) entry.getValue();
-					JmxAttribute att = new JmxAttribute(list.get(0).toString(), list.get(1).toString(), entry.getKey());
+
+					final List<?> list = (List<?>) entry.getValue();
+					final JmxAttribute att =
+							new JmxAttribute(list.get(0).toString(), list.get(1).toString(), entry.getKey());
 					this.targets.add(att);
-					//final JmxTarget target = JmxTargetParser.parse((String) entry.getValue());
-					//target.setDispName(entry.getKey());
-					//this.targets.add(target);
-	
+					// final JmxTarget target = JmxTargetParser.parse((String) entry.getValue());
+					// target.setDispName(entry.getKey());
+					// this.targets.add(target);
+
 				}
-				
+
 			} catch (final Exception e) {
 				logger.log(Level.SEVERE,
 						"Failed to process Jmx Configuration entry: " + entry.getKey() + "=" + entry.getValue(), e);
-				
+
 			}
 		}
-	
+
 	}
 
 	public List<JmxAttribute> getTargets() {
@@ -104,22 +107,24 @@ public abstract class AbstractJmxPlugin implements Plugin{
 		this.targets = targets;
 	}
 
+	/**********
+	 * Collects and returns the JMX data.
+	 * @return the JMX data.
+	 */
 	protected Map<String, Object> getJmxAttributes() {
 		if (this.client == null) {
 			client = new JmxGenericClient();
 			client.setHost(this.host);
 			client.setPort(this.port);
 			client.setTargets(this.targets);
-			// client.getAttrs(); // TODO - test this
 		}
-	
+
 		return client.getAttributes();
 	}
-	
+
 	@Override
-	public void setServiceContext(ServiceContext context) {	
+	public void setServiceContext(final ServiceContext context) {
 		// ignore
 	}
-	
 
 }

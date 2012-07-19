@@ -19,12 +19,13 @@ import java.util.Map;
 
 import org.cloudifysource.usm.USMComponent;
 import org.cloudifysource.usm.UniversalServiceManagerBean;
-import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
+import org.cloudifysource.usm.dsl.ServiceConfiguration;
 
 /***************
  * Interface for classes that expose details to the service grid.
+ * 
  * @author barakme
- *
+ * 
  */
 public interface Details extends USMComponent {
 
@@ -32,15 +33,12 @@ public interface Details extends USMComponent {
 	 * Returns a map of static details. Details are collected using the GigaSpaces Service Grid and are available via
 	 * the GigaSpaces Admin API.
 	 * 
-	 * @param usm
-	 *            the USM bean.
-	 * @param config
-	 *            the initial configuration of the USM.
+	 * @param usm the USM bean.
+	 * @param config the initial configuration of the USM.
 	 * @return The details.
-	 * @throws DetailsException
-	 *             in case there was an error while generating the details.
+	 * @throws DetailsException in case there was an error while generating the details.
 	 */
-	Map<String, Object> getDetails(UniversalServiceManagerBean usm, UniversalServiceManagerConfiguration config)
+	Map<String, Object> getDetails(UniversalServiceManagerBean usm, ServiceConfiguration config)
 			throws DetailsException;
 
 }

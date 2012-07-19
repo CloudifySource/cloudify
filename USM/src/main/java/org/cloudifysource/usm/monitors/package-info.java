@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.usm.installer;
+package org.cloudifysource.usm.monitors;
 
-import org.cloudifysource.usm.USMComponent;
-
-public interface USMInstaller extends USMComponent {
-
-	void install();
-}
+/**************************
+ * Monitors are periodically collected numerical values, for example: CPU usage, TPs, etc.
+ * 
+ * @author barakme.
+ * @since 1.0.
+ *****************************/

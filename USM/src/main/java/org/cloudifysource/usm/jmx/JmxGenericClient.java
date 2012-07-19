@@ -36,7 +36,7 @@ import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
 /**
- * Generic fetcher for external-process JMX data
+ * Generic fetcher for external-process JMX data.
  * 
  * @author giladh
  * @since 8.0.1
@@ -44,6 +44,7 @@ import javax.management.remote.JMXServiceURL;
  */
 public class JmxGenericClient {
 
+	// CHECKSTYLE:OFF
 	private static java.util.logging.Logger logger =
 			java.util.logging.Logger.getLogger(JmxGenericClient.class.getName());
 
@@ -77,7 +78,7 @@ public class JmxGenericClient {
 		private final List<JmxAttribute> attributes = new LinkedList<JmxAttribute>();
 		private final Map<String, JmxAttribute> attributesByName = new HashMap<String, JmxAttribute>();
 
-		public JmxBeanAttributes(String objectName) {
+		public JmxBeanAttributes(final String objectName) {
 			this.objectName = objectName;
 		}
 
@@ -129,8 +130,8 @@ public class JmxGenericClient {
 
 		JmxBeanAttributes current = null;
 		for (final JmxAttribute jmxAttribute : list) {
-			if ((current == null) ||
-					(!jmxAttribute.getObjectName().equals(current.getObjectName()))) {
+			if (current == null ||
+					!jmxAttribute.getObjectName().equals(current.getObjectName())) {
 				current = new JmxBeanAttributes(jmxAttribute.getObjectName());
 				this.targetList.add(current);
 			}
@@ -177,7 +178,8 @@ public class JmxGenericClient {
 	}
 
 	protected void handleJMXBean(final ArrayList<JmxAttribute> resultList, final MBeanServerConnection mbsc,
-			final JmxBeanAttributes t) throws MalformedObjectNameException {
+			final JmxBeanAttributes t)
+			throws MalformedObjectNameException {
 
 		final ObjectName beanName = new ObjectName(t.getObjectName());
 		final String[] attributeNames = t.getAttributeNames();
@@ -239,7 +241,7 @@ public class JmxGenericClient {
 	}
 
 	private boolean hasCredentials() {
-		return ((this.username != null) || (this.password != null));
+		return this.username != null || this.password != null;
 
 	}
 
@@ -279,4 +281,5 @@ public class JmxGenericClient {
 		this.password = password;
 	}
 
+	// CHECKSTYLE:ON
 }

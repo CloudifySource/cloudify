@@ -30,19 +30,19 @@ import org.cloudifysource.dsl.Plugin;
 import org.cloudifysource.dsl.PluginDescriptor;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.context.ServiceContext;
+import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
+import org.cloudifysource.dsl.entry.ExecutableDSLEntryFactory;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.usm.TCPPortEventListener;
 import org.cloudifysource.usm.USMComponent;
 import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.USMUtils;
 import org.cloudifysource.usm.UniversalServiceManagerBean;
-import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
 import org.cloudifysource.usm.details.Details;
 import org.cloudifysource.usm.details.DetailsException;
 import org.cloudifysource.usm.details.ProcessDetails;
 import org.cloudifysource.usm.events.EventResult;
 import org.cloudifysource.usm.events.USMEvent;
-import org.cloudifysource.usm.installer.USMInstaller;
 import org.cloudifysource.usm.launcher.DefaultProcessLauncher;
 import org.cloudifysource.usm.launcher.ProcessLauncher;
 import org.cloudifysource.usm.liveness.LivenessDetector;
@@ -78,7 +78,7 @@ import org.springframework.context.annotation.Configuration;
 public class DSLBeanConfiguration implements ApplicationContextAware {
 
 	@Autowired(required = false)
-	private UniversalServiceManagerConfiguration configuration;
+	private ServiceConfiguration configuration;
 	private boolean active;
 	private ResourceApplicationContext context;
 	private Service service;
@@ -92,11 +92,11 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 
 	@PostConstruct
 	public void init() {
-		this.active = configuration instanceof DSLConfiguration;
+		this.active = configuration instanceof ServiceConfiguration;
 		if (this.active) {
-			this.service = ((DSLConfiguration) configuration).getService();
-			this.puExtDir = ((DSLConfiguration) configuration).getPuExtDir();
-			this.serviceContext = ((DSLConfiguration) configuration).getServiceContext();
+			this.service = configuration.getService();
+			this.puExtDir = configuration.getPuExtDir();
+			this.serviceContext = configuration.getServiceContext();
 		}
 	}
 
@@ -134,20 +134,6 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 	public USMComponent getDslKiller() {
 		return createBeanIfNotExistsType(new DefaultProcessKiller(),
 				ProcessKiller.class);
-	}
-
-	@Bean
-	public USMComponent getDslInstaller() {
-
-		return createBeanIfNotExistsType(new USMInstaller() {
-
-			@Override
-			public void install() {
-				new DSLEntryExecutor(service.getLifecycle().getInstall(), launcher, puExtDir);
-
-			}
-		},
-				USMInstaller.class);
 	}
 
 	@Bean
@@ -275,20 +261,6 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 
 	}
 
-	@Override
-	public void setApplicationContext(final ApplicationContext applicationContext) {
-		this.context = (ResourceApplicationContext) applicationContext;
-
-	}
-
-	public UniversalServiceManagerConfiguration getConfiguration() {
-		return configuration;
-	}
-
-	public void setConfiguration(final UniversalServiceManagerConfiguration configuration) {
-		this.configuration = configuration;
-	}
-
 	@Bean
 	public USMComponent getDetails() {
 		final Object details = this.service.getLifecycle().getDetails();
@@ -300,18 +272,19 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			@SuppressWarnings("unchecked")
 			@Override
 			public Map<String, Object> getDetails(final UniversalServiceManagerBean usm,
-					final UniversalServiceManagerConfiguration config)
+					final ServiceConfiguration config)
 					throws DetailsException {
 				try {
 					final Map<String, Object> returnMap = new HashMap<String, Object>();
-					// Map can appear in 2 forms. As a map of as a closure that
+					// Map can appear in 2 forms. As a map or as a closure that
 					// returns a map
 					logger.fine("getting Details map from details closure");
 					if (details instanceof Map<?, ?>) {
 						for (final Map.Entry<String, Object> entry : ((Map<String, Object>) details).entrySet()) {
 							if (entry.getValue() instanceof Closure) {
 								final EventResult value =
-										new DSLEntryExecutor(entry.getValue(), launcher, puExtDir).run();
+										new DSLEntryExecutor(ExecutableDSLEntryFactory.createEntry(entry.getValue(),
+												"details"), launcher, puExtDir).run();
 								if (value.isSuccess()) {
 									returnMap.put(entry.getKey(),
 											value.getResult());
@@ -324,7 +297,9 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 							}
 						}
 					} else if (details instanceof Closure) {
-						final EventResult result = new DSLEntryExecutor(details, launcher, puExtDir).run();
+						final EventResult result =
+								new DSLEntryExecutor(ExecutableDSLEntryFactory.createEntry(details, "details"),
+										launcher, puExtDir).run();
 						if (result.isSuccess()) {
 							returnMap.putAll((Map<String, Object>) result.getResult());
 						}
@@ -350,7 +325,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 				@SuppressWarnings("unchecked")
 				@Override
 				public Map<String, Number> getMonitorValues(final UniversalServiceManagerBean usm,
-						final UniversalServiceManagerConfiguration config)
+						final ServiceConfiguration config)
 						throws MonitorException {
 					final Object obj = ((Closure<?>) monitor).call();
 					if (obj instanceof Map<?, ?>) {
@@ -371,14 +346,17 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			@SuppressWarnings("unchecked")
 			@Override
 			public Map<String, Number> getMonitorValues(final UniversalServiceManagerBean usm,
-					final UniversalServiceManagerConfiguration config)
+					final ServiceConfiguration config)
 					throws MonitorException {
 				final Map<String, Object> returnMap = new HashMap<String, Object>();
 				if (monitor instanceof Map<?, ?>) {
 
 					for (final Map.Entry<String, Object> entryObject : ((Map<String, Object>) monitor).entrySet()) {
 						final Object object = entryObject.getValue();
-						final EventResult result = new DSLEntryExecutor(object, launcher, puExtDir).run();
+						final EventResult result =
+								new DSLEntryExecutor(
+										ExecutableDSLEntryFactory.createEntry(object, entryObject.getKey()), launcher,
+										puExtDir).run();
 						if (!result.isSuccess()) {
 							logger.log(Level.WARNING,
 									"DSL Entry failed to execute: " + result.getException());
@@ -482,7 +460,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 
 	@Bean
 	public USMEvent getDSLStopDetection() {
-		final Object detector = this.service.getLifecycle().getStopDetection();
+		final ExecutableDSLEntry detector = this.service.getLifecycle().getStopDetection();
 		if (detector == null) {
 			return null;
 		}
@@ -521,7 +499,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 
 	@Bean
 	public USMEvent getDSLStartDetection() {
-		final Object detector = this.service.getLifecycle().getStartDetection();
+		final ExecutableDSLEntry detector = this.service.getLifecycle().getStartDetection();
 		if (detector == null) {
 			return null;
 		}
@@ -591,28 +569,29 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 	@Bean
 	public ProcessLocator getDslLocator() {
 
-		final Object locator = this.service.getLifecycle().getLocator();
+		final ExecutableDSLEntry locator = this.service.getLifecycle().getLocator();
 		if (locator != null) {
 			return new ProcessLocatorExecutor(locator, launcher, puExtDir);
 		} else {
 
-			// Yaron Parasol
-			// Barak. It is critical for UX that if a user wrote a start detection and did not specify a process
-			// locator,
-			// the default process locator does not apply. same is true for stop detector.
-			// It should not apply if the user wrote a custom stop detector.
-
-			// TODO - this section is a little questionable. What should teh behaviour be for default process location?
-
-			// if a custom start detection is specified, do not use default process locator.
-			// if (this.service.getLifecycle().getStartDetection() != null) {
-			// return null;
-			// } else if (this.service.getLifecycle().getStopDetection() != null) {
-			// return null;
-			// }
 			return new DefaultProcessLocator();
 		}
 	}
+
+	@Override
+	public void setApplicationContext(final ApplicationContext applicationContext) {
+		this.context = (ResourceApplicationContext) applicationContext;
+
+	}
+
+	public ServiceConfiguration getConfiguration() {
+		return configuration;
+	}
+
+	public void setConfiguration(final ServiceConfiguration configuration) {
+		this.configuration = configuration;
+	}
+
 	// CHECKSTYLE:ON
 
 }

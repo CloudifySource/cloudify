@@ -32,7 +32,7 @@ import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.usm.details.Details;
 import org.cloudifysource.usm.dsl.DSLCommandsLifecycleListener;
-import org.cloudifysource.usm.dsl.DSLConfiguration;
+import org.cloudifysource.usm.dsl.ServiceConfiguration;
 import org.cloudifysource.usm.events.EventResult;
 import org.cloudifysource.usm.events.InitListener;
 import org.cloudifysource.usm.events.InstallListener;
@@ -49,7 +49,6 @@ import org.cloudifysource.usm.events.ShutdownListener;
 import org.cloudifysource.usm.events.StartReason;
 import org.cloudifysource.usm.events.StopReason;
 import org.cloudifysource.usm.events.USMEvent;
-import org.cloudifysource.usm.installer.USMInstaller;
 import org.cloudifysource.usm.launcher.ProcessLauncher;
 import org.cloudifysource.usm.liveness.LivenessDetector;
 import org.cloudifysource.usm.locator.ProcessLocator;
@@ -71,16 +70,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class USMLifecycleBean implements ClusterInfoAware {
 
+	private static final int MILLIS_IN_SECOND = 1000;
 	private static final int DEFAULT_PIDS_SIZE_LIMIT = 10;
 	@Autowired(required = true)
-	private UniversalServiceManagerConfiguration configuration;
+	private ServiceConfiguration configuration;
 	@Autowired(required = true)
 	private USMComponent[] components = new USMComponent[0];
 	// /////////////////////////////
 	// Lifecycle Implementations //
 	// /////////////////////////////
-	@Autowired(required = true)
-	private USMInstaller installer = null;
 	@Autowired(required = true)
 	private ProcessLauncher launcher = null;
 	@Autowired(required = true)
@@ -239,11 +237,11 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	}
 
 	public String getOutputReaderLoggerName() {
-		return configuration.getServiceName() + "-Output";
+		return configuration.getService().getName() + "-Output";
 	}
 
 	public String getErrorReaderLoggerName() {
-		return configuration.getServiceName() + "-Error";
+		return configuration.getService().getName() + "-Error";
 	}
 
 	/***********
@@ -279,9 +277,6 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	public void install()
 			throws USMException {
 		firePreInstall();
-		if (this.installer != null) {
-			this.installer.install();
-		}
 		fireInstall();
 		firePostInstall();
 
@@ -435,14 +430,6 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	// /////////////
 	// Accessors //
 	// /////////////
-	public USMInstaller getInstaller() {
-		return this.installer;
-	}
-
-	public void setInstaller(final USMInstaller installer) {
-		this.installer = installer;
-	}
-
 	public ProcessLauncher getLauncher() {
 		return this.launcher;
 	}
@@ -523,7 +510,7 @@ public class USMLifecycleBean implements ClusterInfoAware {
 		this.monitors = monitors;
 	}
 
-	public UniversalServiceManagerConfiguration getConfiguration() {
+	public ServiceConfiguration getConfiguration() {
 		return this.configuration;
 	}
 
@@ -576,7 +563,7 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	}
 
 	public Map<String, String> getCustomProperties() {
-		return ((DSLConfiguration) this.configuration).getService().getCustomProperties();
+		return this.configuration.getService().getCustomProperties();
 	}
 
 	public ProcessLocator[] getProcessLocators() {
@@ -627,7 +614,7 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	}
 
 	private int getPidsSizeLimit() {
-		final Service service = ((DSLConfiguration) this.configuration).getService();
+		final Service service = this.configuration.getService();
 		final String limitString = service.getCustomProperties().get(CloudifyConstants.CUSTOM_PROPERTY_PIDS_SIZE_LIMIT);
 		if (StringUtils.isBlank(limitString)) {
 			return DEFAULT_PIDS_SIZE_LIMIT;
@@ -661,7 +648,9 @@ public class USMLifecycleBean implements ClusterInfoAware {
 		}
 
 		final long startTime = System.currentTimeMillis();
-		final long endTime = startTime + configuration.getStartDetectionTimeoutMSecs();
+		final long endTime =
+				startTime
+						+ (configuration.getService().getLifecycle().getStartDetectionTimeoutSecs() * MILLIS_IN_SECOND);
 		int currentTestIndex = 0;
 
 		boolean processIsRunning = true;
@@ -714,7 +703,8 @@ public class USMLifecycleBean implements ClusterInfoAware {
 			}
 
 			try {
-				Thread.sleep(configuration.getStartDetectionIntervalMSecs());
+				Thread.sleep(configuration.getService().getLifecycle().getStartDetectionIntervalSecs()
+						* MILLIS_IN_SECOND);
 			} catch (final InterruptedException e) {
 				throw new USMException("Interruped while waiting for start detection", e);
 			}

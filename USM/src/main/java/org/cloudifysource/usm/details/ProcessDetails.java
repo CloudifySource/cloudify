@@ -20,7 +20,7 @@ import java.util.Map;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.usm.UniversalServiceManagerBean;
-import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
+import org.cloudifysource.usm.dsl.ServiceConfiguration;
 
 import com.gigaspaces.lrmi.nio.info.NIOInfoHelper;
 
@@ -35,7 +35,7 @@ public class ProcessDetails implements Details {
 
 	@Override
 	public Map<String, Object> getDetails(final UniversalServiceManagerBean usm,
-			final UniversalServiceManagerConfiguration config)
+			final ServiceConfiguration config)
 			throws DetailsException {
 		final Map<String, Object> map = new HashMap<String, Object>();
 		map.put("GSC PID", usm.getContainerPid());

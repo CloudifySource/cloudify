@@ -23,7 +23,7 @@ import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
-import org.cloudifysource.usm.dsl.DSLConfiguration;
+import org.cloudifysource.usm.dsl.ServiceConfiguration;
 import org.openspaces.core.cluster.ClusterInfo;
 import org.openspaces.core.cluster.ClusterInfoAware;
 import org.openspaces.core.properties.BeanLevelProperties;
@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
  *
  */
 @Component
-public class USMConfigurationFactoryBean implements FactoryBean<UniversalServiceManagerConfiguration>,
+public class USMConfigurationFactoryBean implements FactoryBean<ServiceConfiguration>,
 		ApplicationContextAware, ClusterInfoAware, BeanLevelPropertiesAware {
 
 	private File puWorkDir;
@@ -65,16 +65,18 @@ public class USMConfigurationFactoryBean implements FactoryBean<UniversalService
 			Logger.getLogger(USMConfigurationFactoryBean.class.getName());
 
 	@Override
-	public UniversalServiceManagerConfiguration getObject() throws USMException {
+	public ServiceConfiguration getObject() throws USMException {
 
 		try {
-			return handleDsl();
+			ServiceConfiguration handleDsl = handleDsl();
+			logger.info("Successfully read Groovy based DSL");
+			return handleDsl;
 		} catch (DSLException e) {
 			throw new USMException(e);
 		}
 	}
 
-	private UniversalServiceManagerConfiguration handleDsl() throws DSLException {
+	private ServiceConfiguration handleDsl() throws DSLException {
 		File dslFile = null;
 		
 		if (serviceFileName != null) {
@@ -94,14 +96,14 @@ public class USMConfigurationFactoryBean implements FactoryBean<UniversalService
 		// be available in the pu lib dir, and ignore the contents of usmlib
 		dslReader.setLoadUsmLib(false);
 		
-		logger.info("Calling DSL Reader from USM Config Factory");
+		logger.info("Loading Service configuration from DSL File");
 		Service service = dslReader.readDslEntity(Service.class);
-		return new DSLConfiguration(service, dslReader.getContext(),  this.puExtDir, dslReader.getDslFile());
+		return new ServiceConfiguration(service, dslReader.getContext(),  this.puExtDir, dslReader.getDslFile());
 	}
 
 	@Override
 	public Class<?> getObjectType() {
-		return UniversalServiceManagerConfiguration.class;
+		return ServiceConfiguration.class;
 	}
 
 	@Override

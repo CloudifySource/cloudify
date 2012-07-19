@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.usm.installer;
+package org.cloudifysource.usm.monitors.process;
 
-public class DefaultInstaller implements USMInstaller {
-
-	@Override
-	public void install() {
-		// do nothing
-	}
-
-}
+/**************************
+ * Process level statistics collection.
+ * 
+ * @author barakme.
+ * @since 1.0.
+ *****************************/

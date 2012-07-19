@@ -13,26 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.usm;
+package org.cloudifysource.usm.jmx;
 
-/***********
- * TODO - this interface is no longer needed. The USM should use the Service object directly.
+/**************************
+ * JMX handling and JMX related USM components.
  * 
- * @author barakme
- *
- */
-public interface UniversalServiceManagerConfiguration {
-	
-	// TODO - Remove dead commands from this interface
-
-	Object getStartCommand();
-
-	int getNumberOfLaunchRetries();
-
-	String getPidFile();
-	
-	String getServiceName();
-	
-	long getStartDetectionTimeoutMSecs();
-	long getStartDetectionIntervalMSecs();
-}
+ * @author barakme.
+ * @since 2.0.0
+ *****************************/

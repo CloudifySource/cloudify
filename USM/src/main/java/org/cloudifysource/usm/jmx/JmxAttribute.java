@@ -15,55 +15,58 @@
  *******************************************************************************/
 package org.cloudifysource.usm.jmx;
 
-
 /**
- * Simple object for JMX Attribute
+ * Simple object for JMX Attribute.
  * 
  * @author barakme
  * @since 2.0.0
- *
+ * 
  */
 public class JmxAttribute implements Comparable<JmxAttribute> {
-	
+
 	private String objectName;
 	private String attributeName;
 	private String displayName;
-	private Object value; 
-	
-	public JmxAttribute(String objectName, String attributeName, String displayName) {
+	private Object value;
+
+	public JmxAttribute(final String objectName, final String attributeName, final String displayName) {
 		super();
 		this.objectName = objectName;
 		this.attributeName = attributeName;
 		this.displayName = displayName;
 	}
-	
-	
+
 	public String getObjectName() {
 		return objectName;
 	}
-	public void setObjectName(String objectName) {
+
+	public void setObjectName(final String objectName) {
 		this.objectName = objectName;
 	}
+
 	public String getAttributeName() {
 		return attributeName;
 	}
-	public void setAttributeName(String attributeName) {
+
+	public void setAttributeName(final String attributeName) {
 		this.attributeName = attributeName;
 	}
+
 	public Object getValue() {
 		return value;
 	}
-	public void setValue(Object value) {
+
+	public void setValue(final Object value) {
 		this.value = value;
 	}
-	
+
 	public String getDisplayName() {
 		return displayName;
 	}
-	public void setDisplayName(String displayName) {
+
+	public void setDisplayName(final String displayName) {
 		this.displayName = displayName;
 	}
-
 
 	@Override
 	public String toString() {
@@ -71,17 +74,13 @@ public class JmxAttribute implements Comparable<JmxAttribute> {
 				+ displayName + "]";
 	}
 
-
 	@Override
-	public int compareTo(JmxAttribute o) {
-		int beanComparison = this.getObjectName().compareTo(o.getObjectName());
-		if(beanComparison != 0) {
+	public int compareTo(final JmxAttribute o) {
+		final int beanComparison = this.getObjectName().compareTo(o.getObjectName());
+		if (beanComparison != 0) {
 			return beanComparison;
 		}
 		return this.getAttributeName().compareTo(o.getAttributeName());
 	}
-	
-	
-	
 
 }

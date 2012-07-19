@@ -19,21 +19,17 @@ import java.io.File;
 
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.context.ServiceContextImpl;
-import org.cloudifysource.usm.CommandParts;
-import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
 
 /************
  * DSL based USM configuration.
  * 
- * TODO - phase out the USMConfig - it is not really needed any more.
  * 
  * @author barakme
  * @since 2.0.0
  * 
  */
-public class DSLConfiguration implements UniversalServiceManagerConfiguration {
+public class ServiceConfiguration {
 
-	private static final long MILLIS_IN_SECOND = 1000L;
 	private final Service service;
 	private final File puExtDir;
 	private final ServiceContextImpl serviceContext;
@@ -50,47 +46,17 @@ public class DSLConfiguration implements UniversalServiceManagerConfiguration {
 	/************
 	 * Constructor.
 	 * 
-	 * @param service
-	 *            the service POJO.
-	 * @param serviceContext
-	 *            the service context.
-	 * @param puExtDir
-	 *            the ext dir for the PI instance.
-	 * @param serviceFile
-	 *            the DSL dile.
+	 * @param service the service POJO.
+	 * @param serviceContext the service context.
+	 * @param puExtDir the ext dir for the PI instance.
+	 * @param serviceFile the DSL dile.
 	 */
-	public DSLConfiguration(final Service service, final ServiceContextImpl serviceContext, final File puExtDir,
+	public ServiceConfiguration(final Service service, final ServiceContextImpl serviceContext, final File puExtDir,
 			final File serviceFile) {
 		this.service = service;
 		this.serviceContext = serviceContext;
 		this.puExtDir = puExtDir;
 		this.serviceFile = serviceFile;
-	}
-
-	@Override
-	public Object getStartCommand() {
-		final Object start = this.service.getLifecycle().getStart();
-
-		return start;
-
-	}
-
-	@Override
-	public int getNumberOfLaunchRetries() {
-		return 0;
-	}
-
-	@Override
-	public String getPidFile() {
-		return null;
-	}
-
-	public CommandParts getWindowsCommandParts() {
-		return null;
-	}
-
-	public CommandParts getLinuxCommandParts() {
-		return null;
 	}
 
 	public Service getService() {
@@ -99,21 +65,6 @@ public class DSLConfiguration implements UniversalServiceManagerConfiguration {
 
 	public File getPuExtDir() {
 		return puExtDir;
-	}
-
-	@Override
-	public String getServiceName() {
-		return this.service.getName();
-	}
-
-	@Override
-	public long getStartDetectionTimeoutMSecs() {
-		return this.service.getLifecycle().getStartDetectionTimeoutSecs() * MILLIS_IN_SECOND;
-	}
-
-	@Override
-	public long getStartDetectionIntervalMSecs() {
-		return this.service.getLifecycle().getStartDetectionIntervalSecs() * MILLIS_IN_SECOND;
 	}
 
 }

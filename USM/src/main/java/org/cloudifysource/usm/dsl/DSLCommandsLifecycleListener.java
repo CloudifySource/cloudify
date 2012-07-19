@@ -18,7 +18,7 @@ package org.cloudifysource.usm.dsl;
 import javax.annotation.PostConstruct;
 
 import org.cloudifysource.dsl.ServiceLifecycle;
-import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
+import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.usm.events.AbstractUSMEventListener;
 import org.cloudifysource.usm.events.EventResult;
 import org.cloudifysource.usm.events.LifecycleEvents;
@@ -28,15 +28,16 @@ import org.cloudifysource.usm.events.StopReason;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /*********
- * A service lifecycle listener that delegates all events to the servcie recipe DSL. 
+ * A service lifecycle listener that delegates all events to the servcie recipe DSL.
+ * 
  * @author barakme
  * @since 2.0.0
- *
+ * 
  */
 public class DSLCommandsLifecycleListener extends AbstractUSMEventListener implements LifecycleListener {
 
 	@Autowired(required = true)
-	private UniversalServiceManagerConfiguration configuration;
+	private ServiceConfiguration configuration;
 
 	private ServiceLifecycle lifecycle;
 
@@ -45,15 +46,16 @@ public class DSLCommandsLifecycleListener extends AbstractUSMEventListener imple
 	 */
 	@PostConstruct
 	public void afterPropertiesSet() {
-		this.lifecycle = ((DSLConfiguration) configuration).getService().getLifecycle();
+		this.lifecycle = configuration.getService().getLifecycle();
 	}
 
-	private EventResult executeEntry(final Object entry) {
+	private EventResult executeEntry(final ExecutableDSLEntry entry) {
 		return new DSLEntryExecutor(entry, this.usm.getUsmLifecycleBean().getLauncher(), this.usm.getPuExtDir()).run();
 	}
 
 	/**********
 	 * Indicates if a specific lifecycle event is implemented by this DSL.
+	 * 
 	 * @param event the event.
 	 * @return true if the event is implemented, false otherwise.
 	 */

@@ -30,10 +30,10 @@ import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 
 /**
- * Adds monitor targets to be polled by the JMX monitor thread
+ * Adds monitor targets to be polled by the JMX monitor thread.
  * 
  * @author giladh, barakme
- * @since 8.0.2
+ * @since 1.0.
  * 
  */
 public class MonitorData {
@@ -94,13 +94,17 @@ public class MonitorData {
 
 	}
 
+	/*******
+	 * Returns the collected information.
+	 * @return the collection information.
+	 */
 	public Map<String, Number> getDataMap() {
 		final Map<String, Number> map = new HashMap<String, Number>();
 		addDataToMonitor(map);
 		return map;
 	}
 
-	public void addDataToMonitor(final Map<String, Number> monitorMap) {
+	private void addDataToMonitor(final Map<String, Number> monitorMap) {
 		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_CPU_USAGE, processCpuUsage);
 		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_CPU_KERNEL_TIME, processCpuKernelTime);
 		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_TOTAL_CPU_TIME, totalProcessCpuTime);

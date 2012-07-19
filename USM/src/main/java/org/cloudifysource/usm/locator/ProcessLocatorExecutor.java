@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.dsl.DSLEntryExecutor;
 import org.cloudifysource.usm.events.EventResult;
@@ -34,7 +35,7 @@ import org.cloudifysource.usm.launcher.ProcessLauncher;
  */
 public class ProcessLocatorExecutor implements ProcessLocator {
 
-	private final Object locator;
+	private final ExecutableDSLEntry locator;
 	private final ProcessLauncher launcher;
 	private final File puExtDir;
 
@@ -45,7 +46,8 @@ public class ProcessLocatorExecutor implements ProcessLocator {
 	 * @param launcher .
 	 * @param puExtDir .
 	 */
-	public ProcessLocatorExecutor(final Object locator, final ProcessLauncher launcher, final File puExtDir) {
+	public ProcessLocatorExecutor(final ExecutableDSLEntry locator, final ProcessLauncher launcher,
+			final File puExtDir) {
 		this.locator = locator;
 		this.launcher = launcher;
 		this.puExtDir = puExtDir;

@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
+import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.events.EventResult;
 import org.cloudifysource.usm.launcher.ProcessLauncher;
@@ -33,7 +34,7 @@ import org.cloudifysource.usm.launcher.ProcessLauncher;
  */
 public class DSLEntryExecutor {
 
-	private final Object entry;
+	private final ExecutableDSLEntry entry;
 	private final ProcessLauncher launcher;
 	private final File workDir;
 	private final Map<String, Object> params;
@@ -47,7 +48,7 @@ public class DSLEntryExecutor {
 	 * @param launcher .
 	 * @param workDir .
 	 */
-	public DSLEntryExecutor(final Object entry, final ProcessLauncher launcher, final File workDir) {
+	public DSLEntryExecutor(final ExecutableDSLEntry entry, final ProcessLauncher launcher, final File workDir) {
 		this(entry, launcher, workDir, new HashMap<String, Object>());
 	}
 
@@ -58,7 +59,7 @@ public class DSLEntryExecutor {
 	 * @param workDir .
 	 * @param params .
 	 */
-	public DSLEntryExecutor(final Object entry, final ProcessLauncher launcher, final File workDir,
+	public DSLEntryExecutor(final ExecutableDSLEntry entry, final ProcessLauncher launcher, final File workDir,
 			final Map<String, Object> params) {
 		this.entry = entry;
 		this.launcher = launcher;

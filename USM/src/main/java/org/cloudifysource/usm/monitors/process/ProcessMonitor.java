@@ -22,20 +22,27 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.cloudifysource.usm.UniversalServiceManagerBean;
-import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
+import org.cloudifysource.usm.dsl.ServiceConfiguration;
 import org.cloudifysource.usm.monitors.Monitor;
 import org.cloudifysource.usm.monitors.MonitorException;
 import org.hyperic.sigar.Sigar;
 
 import com.gigaspaces.internal.sigar.SigarHolder;
 
+/*************
+ * Monitor implementation that collects operating system metrics using SIGAR.
+ * 
+ * @author barakme
+ * @since 2.1.0
+ * 
+ */
 public class ProcessMonitor implements Monitor {
 
 	private final Sigar sigar = SigarHolder.getSigar();
 
 	@Override
 	public Map<String, Number> getMonitorValues(final UniversalServiceManagerBean usm,
-			final UniversalServiceManagerConfiguration config)
+			final ServiceConfiguration config)
 			throws MonitorException {
 
 		final List<Long> pids = usm.getServiceProcessesList();
@@ -49,12 +56,12 @@ public class ProcessMonitor implements Monitor {
 		} else {
 			// Collect data for all processes, add PID to key name, and return all in one map.
 			final Map<String, Number> allProcessesMap = new HashMap<String, Number>();
-			for (Long pid : pids) {
+			for (final Long pid : pids) {
 				final MonitorData data = new MonitorData(sigar, pid);
 				final Map<String, Number> map = data.getDataMap();
-				Set<Entry<String, Number>> entries = map.entrySet();
+				final Set<Entry<String, Number>> entries = map.entrySet();
 				final String postfix = "-" + pid;
-				for (Entry<String, Number> entry : entries) {
+				for (final Entry<String, Number> entry : entries) {
 					allProcessesMap.put(entry.getKey() + postfix, entry.getValue());
 				}
 

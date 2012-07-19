@@ -19,18 +19,24 @@ import java.util.Map;
 
 import org.cloudifysource.usm.USMUtils;
 import org.cloudifysource.usm.UniversalServiceManagerBean;
-import org.cloudifysource.usm.UniversalServiceManagerConfiguration;
+import org.cloudifysource.usm.dsl.ServiceConfiguration;
 import org.cloudifysource.usm.monitors.Monitor;
 import org.cloudifysource.usm.monitors.MonitorException;
 
-
+/************
+ * A monitor implementation that reads info from a JMX server.
+ * 
+ * @author barakme
+ * 
+ */
 public class JmxMonitor extends AbstractJmxPlugin implements Monitor {
 
 	@Override
 	public Map<String, Number> getMonitorValues(final UniversalServiceManagerBean usm,
-			final UniversalServiceManagerConfiguration config) throws MonitorException {
+			final ServiceConfiguration config)
+			throws MonitorException {
 
-		Map<String, Object> jmxAttributes = getJmxAttributes();
+		final Map<String, Object> jmxAttributes = getJmxAttributes();
 
 		return USMUtils.convertMapToNumericValues(jmxAttributes);
 	}

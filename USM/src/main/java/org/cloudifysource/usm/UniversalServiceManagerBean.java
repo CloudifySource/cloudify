@@ -42,10 +42,11 @@ import javax.annotation.PreDestroy;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.Service;
+import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
 import org.cloudifysource.dsl.utils.ServiceUtils;
-import org.cloudifysource.usm.dsl.DSLConfiguration;
+import org.cloudifysource.usm.dsl.ServiceConfiguration;
 import org.cloudifysource.usm.dsl.DSLEntryExecutor;
 import org.cloudifysource.usm.events.EventResult;
 import org.cloudifysource.usm.events.StartReason;
@@ -102,7 +103,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 	private static final String OUTPUT_FILE_NAME_SUFFIX = ".out";
 	private static final int WAIT_FOR_DEPENDENCIES_INTERVAL_MILLIS = 5000;
 	private static final int WAIT_FOR_DEPENDENCIES_TIMEOUT_MILLIS = 1000 * 60 * 30;
-	private static final String ASYNC_INSTALL_DEFAULT_VALUE = "false";
+	private static final String ASYNC_INSTALL_DEFAULT_VALUE = "true";
 	private static final int FILE_TAILER_INTERVAL_SECS_DEFAULT = 5;
 	private static final int DEFAULT_POST_LAUNCH_WAIT_PERIOD_MILLIS = 2000;
 	private static final int DEFAULT_POST_DEATH_WAIT_PERIOD_MILLIS = 2000;
@@ -219,13 +220,16 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		// Initialize and sort events
 		initEvents();
 
-		reset(existingProcessFound);
+		reset(existingProcessFound);		
+		
+				
+		
 
 	}
 
 	private void initMonitorsCache() {
 		final String tmp =
-				((DSLConfiguration) this.usmLifecycleBean.getConfiguration()).getService().getCustomProperties()
+				((ServiceConfiguration) this.usmLifecycleBean.getConfiguration()).getService().getCustomProperties()
 						.get(CloudifyConstants.CUSTOM_PROPERTY_MONITORS_CACHE_EXPIRATION_TIMEOUT);
 		long cacheExpirationTimeout = DEFAULT_MONITORS_CACHE_EXPIRATION_TIMEOUT;
 		if (tmp != null) {
@@ -331,21 +335,20 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			executors.shutdown();
 			removeShutdownHook();
 
-
 			try {
 				getUsmLifecycleBean().fireShutdown();
 			} catch (final USMException e) {
 				logger.log(Level.SEVERE, "Failed to execute shutdown event: " + e.getMessage(), e);
 			}
 
-			// after shutdown, no further events are expected to be executed. 
+			// after shutdown, no further events are expected to be executed.
 			// So we delete the service folder contents. This is just in case the GSC does
 			// not properly clean up the service folder. If an underlying process is leaking,
 			// this may cause all sorts of problems, though.
 			if (this.runningInGSC) {
 				deleteExtDirContents(); // avoid deleting contents in Integrated PU
 			}
-			
+
 			USMUtils.shutdownAdmin();
 		}
 		// Sleep for 10 seconds to allow rest to poll for shutdown lifecycle events
@@ -416,7 +419,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			@Override
 			public void run() {
 				try {
-					installAndRun();
+					installAndRun();				
 				} catch (final Exception e) {
 					logger.log(Level.SEVERE, "Asynchronous install failed with message: " + e.getMessage()
 							+ ". Instance will shut down", e);
@@ -462,6 +465,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 										+ ". Instance will shut down", e);
 								shutdownUSMException = e;
 							}
+
 						}
 					});
 
@@ -477,7 +481,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		if (this.asyncInstall) {
 			waitForDependencies();
 		}
-		launch();
+		launch();		
 	}
 
 	private void waitForDependencies() {
@@ -698,7 +702,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 				// same for the process list.
 				this.serviceProcessPIDs = new ArrayList<Long>(0);
 
-				final Object startCommand = getUsmLifecycleBean().getConfiguration().getStartCommand();
+				final ExecutableDSLEntry startCommand =
+						getUsmLifecycleBean().getConfiguration().getService().getLifecycle().getStart();
 				if (startCommand == null) {
 					logger.info("No start command specified in recipe. No processes will be launched or monitored");
 					this.serviceProcessPIDs = new ArrayList<Long>(0);
@@ -727,10 +732,10 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 				// or that a specific string was printed to a log file.
 				logger.info("Executing process liveness test");
 				if (!getUsmLifecycleBean().isProcessLivenessTestPassed(this.process)) {
-					final UniversalServiceManagerConfiguration configuration = getUsmLifecycleBean().getConfiguration();
-					final long startDetectionTimeoutMilliSecs = configuration.getStartDetectionTimeoutMSecs();
-					final long startDetectionTimeoutSecs = TimeUnit.SECONDS
-							.convert(startDetectionTimeoutMilliSecs, TimeUnit.MILLISECONDS);
+					final long startDetectionTimeoutSecs =
+							getUsmLifecycleBean().getConfiguration().getService().getLifecycle()
+									.getStartDetectionTimeoutSecs();
+
 					throw new USMException("The Start Detection test failed in the defined time period: "
 							+ startDetectionTimeoutSecs + " seconds."
 							+ " Shutting down this instance.");
@@ -1088,6 +1093,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		return this.puWorkDir;
 	}
 
+	
 	@Override
 	public Object invoke(final Map<String, Object> namedArgs) {
 
@@ -1106,6 +1112,13 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 
 		final String commandName = (String) namedArgs.get(CloudifyConstants.INVOCATION_PARAMETER_COMMAND_NAME);
 
+		invokeCustomCommand(commandName, namedArgs, result);
+		return result;
+
+	}
+
+	private void invokeCustomCommand(final String commandName, final Map<String, Object> namedArgs,
+			final Map<String, Object> result) {
 		if (commandName == null) {
 
 			logger.severe("Command Name parameter in invoke is missing");
@@ -1115,8 +1128,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 
 		result.put(CloudifyConstants.INVOCATION_RESPONSE_COMMAND_NAME, commandName);
 
-		final Service service = ((DSLConfiguration) getUsmLifecycleBean().getConfiguration()).getService();
-		final Object customCommand = service.getCustomCommands().get(commandName);
+		final Service service = getUsmLifecycleBean().getConfiguration().getService();
+		final ExecutableDSLEntry customCommand = service.getCustomCommands().get(commandName);
 
 		if (customCommand == null) {
 			throw new IllegalArgumentException("Command: " + commandName + " does not exist in service: "
@@ -1142,8 +1155,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			result.put(CloudifyConstants.INVOCATION_RESPONSE_STATUS, false);
 			result.put(CloudifyConstants.INVOCATION_RESPONSE_EXCEPTION, e);
 		}
-		return result;
-
 	}
 
 	private Exception shutdownUSMException;

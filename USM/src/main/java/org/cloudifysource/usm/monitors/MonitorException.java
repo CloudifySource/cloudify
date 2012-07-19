@@ -15,16 +15,29 @@
  *******************************************************************************/
 package org.cloudifysource.usm.monitors;
 
+/********
+ * Exception class used when a monitor fails to execute.
+ * 
+ * @author barakme
+ * @since 1.0
+ * 
+ */
 public class MonitorException extends Exception {
-	public MonitorException(String msg, Throwable cause) {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public MonitorException(final String msg, final Throwable cause) {
 		super(msg, cause);
 	}
-	
-	public MonitorException(String msg) {
+
+	public MonitorException(final String msg) {
 		super(msg);
 	}
-	
-	public MonitorException(Throwable cause) {
+
+	public MonitorException(final Throwable cause) {
 		super(cause);
 	}
 }
