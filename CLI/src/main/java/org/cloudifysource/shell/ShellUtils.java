@@ -42,10 +42,9 @@ import java.util.logging.Logger;
  */
 public final class ShellUtils {
 
-	protected static final Logger logger = Logger.getLogger(ShellUtils.class.getName());
-	
-	 private static final char WIN_RETURN_CHAR = '\r';
-	 private static final char LINUX_RETURN_CHAR = '\n';
+    private static final String LINE_SEPARATOR = System.getProperty("line.separator");
+
+    protected static final Logger logger = Logger.getLogger(ShellUtils.class.getName());
 
     private static final long TWO_WEEKS_IN_MILLIS = 86400000L * 14L;
     private static final File VERSION_CHECK_FILE = new File(System.getProperty("user.home") + "/.karaf/lastVersionCheckTimestamp");
@@ -57,6 +56,8 @@ public final class ShellUtils {
     private static final char COMMAND_CHAR = 'm';
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
     private static volatile ResourceBundle defaultMessageBundle;
+
+    private static final byte[] inputBuffer = new byte[20];
 
     private ShellUtils() {
 
@@ -88,16 +89,16 @@ public final class ShellUtils {
             final String confirmationQuestion = ShellUtils.getFormattedMessage(messageKey, messageArgs);
             session.getConsole().print(confirmationQuestion + " ");
             session.getConsole().flush();
-            char responseChar = '\0';
+            String response = null;
             StringBuilder responseBuffer = new StringBuilder();
             while (true) {
-                responseChar = (char) session.getKeyboard().read();
-                if (responseChar == WIN_RETURN_CHAR || responseChar == LINUX_RETURN_CHAR) {
+                response = readAvailable(session.getKeyboard());
+                if (LINE_SEPARATOR.equals(response)) {
                     session.getConsole().println();
                     break;
                 }
-                session.getConsole().print(responseChar);
-                responseBuffer.append(responseChar);
+                session.getConsole().print(response);
+                responseBuffer.append(response);
                 session.getConsole().flush();
             }
             String responseStr = responseBuffer.toString().trim();
@@ -105,6 +106,11 @@ public final class ShellUtils {
         }
         // Shell is running in nonInteractive mode. we skip the question.
         return true;
+    }
+
+    private static String readAvailable(InputStream keyboard) throws IOException {
+        int bytesRead = keyboard.read(inputBuffer);
+        return new String(inputBuffer, 0, bytesRead);
     }
 
     /**
