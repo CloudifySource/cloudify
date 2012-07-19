@@ -42,7 +42,9 @@ import java.util.logging.Logger;
  */
 public final class ShellUtils {
 
-    private static final String LINE_SEPARATOR = System.getProperty("line.separator");
+    private static final String BOLD_ANSI_CHAR_SEQUENCE = "\u001B[1m";
+
+	private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
     protected static final Logger logger = Logger.getLogger(ShellUtils.class.getName());
 
@@ -107,7 +109,7 @@ public final class ShellUtils {
         return true;
     }
 
-    private static String readAvailable(InputStream keyboard) throws IOException {
+    private static String readAvailable(final InputStream keyboard) throws IOException {
         int bytesRead = keyboard.read(inputBuffer);
         return new String(inputBuffer, 0, bytesRead);
     }
@@ -147,8 +149,8 @@ public final class ShellUtils {
      * 			A formatted message text
      */
     public static String getBoldMessage(final String message) {
-        String formattedMessage = Ansi.ansi().bold().a(message).toString();
-        return formattedMessage + FIRST_ESC_CHAR + SECOND_ESC_CHAR + '0' + COMMAND_CHAR;
+        return  BOLD_ANSI_CHAR_SEQUENCE + message + FIRST_ESC_CHAR
+        		+ SECOND_ESC_CHAR + '0' + COMMAND_CHAR;
     }
 
     /**
@@ -290,7 +292,7 @@ public final class ShellUtils {
         return os.indexOf("win") >= 0;
     }
 
-    public static boolean shouldDoVersionCheck(CommandSession session) {
+    public static boolean shouldDoVersionCheck(final CommandSession session) {
         long lastAskedTS = getLastTimeAskedAboutVersionCheck();
         //check only if checked over a two weeks ago and user agrees
         try {
@@ -305,7 +307,7 @@ public final class ShellUtils {
         return false;
     }
 
-    public static void doVersionCheck(CommandSession session) {
+    public static void doVersionCheck(final CommandSession session) {
         String currentBuildStr = PlatformVersion.getBuildNumber();
         if (currentBuildStr.contains("-")) {
             currentBuildStr = currentBuildStr.substring(0, currentBuildStr.indexOf("-"));
@@ -324,7 +326,7 @@ public final class ShellUtils {
         session.getConsole().println();
     }
 
-    public static int getLatestBuildNumber(int currentVersion) {
+    public static int getLatestBuildNumber(final int currentVersion) {
         try {
             HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
             requestFactory.setReadTimeout(VERSION_CHECK_READ_TIMEOUT);
