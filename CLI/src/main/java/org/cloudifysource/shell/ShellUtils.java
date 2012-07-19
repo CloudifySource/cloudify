@@ -42,9 +42,6 @@ import java.util.logging.Logger;
  */
 public final class ShellUtils {
 
-    private static final char WIN_RETURN_CHAR = '\r';
-    private static final char LINUX_RETURN_CHAR = '\n';
-
 	protected static final Logger logger = Logger.getLogger(ShellUtils.class.getName());
 
     private static final long TWO_WEEKS_IN_MILLIS = 86400000L * 14L;
@@ -92,7 +89,7 @@ public final class ShellUtils {
             StringBuilder responseBuffer = new StringBuilder();
             while (true) {
                 responseChar = (char) session.getKeyboard().read();
-                if (responseChar == WIN_RETURN_CHAR || responseChar == LINUX_RETURN_CHAR) {
+                if (responseChar == Character.LINE_SEPARATOR) {
                     session.getConsole().println();
                     break;
                 }
