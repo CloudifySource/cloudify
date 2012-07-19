@@ -99,6 +99,8 @@ import org.openspaces.admin.application.Applications;
 import org.openspaces.admin.dump.DumpResult;
 import org.openspaces.admin.esm.ElasticServiceManager;
 import org.openspaces.admin.gsa.GridServiceAgent;
+import org.openspaces.admin.gsc.GridServiceContainer;
+import org.openspaces.admin.gsc.GridServiceContainers;
 import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.internal.admin.InternalAdmin;
 import org.openspaces.admin.internal.pu.DefaultProcessingUnitInstance;
@@ -117,6 +119,7 @@ import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfig;
 import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfigurer;
 import org.openspaces.admin.pu.elastic.topology.ElasticDeploymentTopology;
 import org.openspaces.admin.space.ElasticSpaceDeployment;
+import org.openspaces.admin.zone.Zone;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.context.GigaSpaceContext;
 import org.openspaces.core.util.MemoryUnit;
@@ -135,6 +138,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.gigaspaces.internal.dump.pu.ProcessingUnitsDumpProcessor;
+import com.gigaspaces.log.LastNLogEntryMatcher;
+import com.gigaspaces.log.LogEntries;
+import com.gigaspaces.log.LogEntry;
+import com.gigaspaces.log.LogEntryMatchers;
 
 /**
  * @author rafi, barakm, adaml, noak
@@ -2056,5 +2063,137 @@ public class ServiceController {
 		returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, eventContainerID);
 
 		return successStatus(returnMap);
+	}
+	
+	/**
+	 * Retrieves the tail of a service log. This method used the service name and instance id
+	 * To retrieve the the instance log tail.
+	 * @param applicationName 
+	 *         The application name.
+	 * @param serviceName
+	 *         The service name.
+	 * @param instanceId
+	 *         The service instance id.
+	 * @param numLines 
+	 *         The number of lines to tail.
+	 * @return 
+	 *         The last n lines of log of the requested service.
+	 */
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
+	        + "/instances/{instanceId}/lines/{numLines}/tail",
+	        method = RequestMethod.GET)
+	public @ResponseBody
+	Map<String, Object> getLogTailByInstanceId(
+	        @PathVariable final String applicationName,
+	        @PathVariable final String serviceName, 
+	        @PathVariable final int instanceId,
+	        @PathVariable final int numLines) {
+
+	    GridServiceContainer container = null;
+	    try {
+	        container = getContainerAccordingToInstanceId(applicationName,
+	                serviceName, instanceId);
+	    }
+	    catch (IllegalStateException e) {
+	        logger.log(Level.INFO, "Failed retrieving the service logs. Reason: " + e.getMessage());
+	        return errorStatus(e.getMessage());
+	    }
+	    String logTailFromContainer = getLogTailFromContainer(container, numLines);
+
+	    return successStatus(logTailFromContainer);
+	}
+	
+	/**
+     * Retrieves the tail of a service log. This method used the service name and the instance host address
+     * To retrieve the the instance log tail.
+     * @param applicationName 
+     *         The application name.
+     * @param serviceName
+     *         The service name.
+     * @param hostAddress
+     *         The service instance's host address.
+     * @param numLines 
+     *         The number of lines to tail.
+     * @return 
+     *         The last n lines of log of the requested service.
+     */
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
+	        + "/address/{hostAddress}/lines/{numLines}/tail",
+	        method = RequestMethod.GET)
+	public @ResponseBody
+	Map<String, Object> getLogTailByHostAddress(
+	        @PathVariable final String applicationName,
+	        @PathVariable final String serviceName, 
+	        @PathVariable final String hostAddress,
+	        @PathVariable final int numLines) {
+	    GridServiceContainer container = null;
+
+	    try {
+	        container = getContainerAccordingToHostAddress(applicationName,
+	                serviceName, hostAddress);
+	    } catch (IllegalStateException e) {
+	        logger.log(Level.INFO, "Failed retrieving the service logs. Reason: " + e.getMessage());
+	        return errorStatus(e.getMessage());
+	    }
+	    String logTail = getLogTailFromContainer(container, numLines);
+
+	    return successStatus(logTail);
+	}
+
+	private String getLogTailFromContainer(final GridServiceContainer container, final int numLines) {
+
+	    final LastNLogEntryMatcher matcher = LogEntryMatchers.lastN(numLines);
+	    final LogEntries logEntries = container.logEntries(matcher);
+	    StringBuilder sb = new StringBuilder();
+	    for (final LogEntry logEntry : logEntries) {
+	        sb.append(logEntry.getText());
+	        sb.append(System.getProperty("line.separator"));
+	    }
+	    return sb.toString();
+	}
+
+	private GridServiceContainer getContainerAccordingToInstanceId(
+	        final String applicationName, final String serviceName, final int instanceId) {
+	    final Zone zone = getZone(applicationName, serviceName);
+
+	    GridServiceContainers gridServiceContainers = zone.getGridServiceContainers();
+
+	    for (GridServiceContainer container : gridServiceContainers) {
+	        ProcessingUnitInstance[] processingUnitInstances = container.getProcessingUnitInstances();
+	        for (ProcessingUnitInstance processingUnitInstance : processingUnitInstances) {
+	            if (processingUnitInstance.getInstanceId() == instanceId) {
+	                return container;
+	            }
+	        }
+
+	    }
+	    throw new IllegalStateException("ServiceController failed to locate a grid" 
+	            + " service container with instance id " + instanceId);
+	}
+
+	private Zone getZone(final String applicationName,
+	        final String serviceName) {
+	    String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+	    final Zone zone = admin.getZones().getByName(absolutePuName);
+	    if (zone == null) {
+	        logger.log(Level.FINE, "Zone " + absolutePuName + " does not exist");
+	        throw new IllegalStateException("The service " + absolutePuName + " does not exist");
+	    }
+	    return zone;
+	}
+
+	private GridServiceContainer getContainerAccordingToHostAddress(
+	        final String applicationName, final String serviceName, final String hostAddress) {
+
+	    final Zone zone = getZone(applicationName, serviceName);
+
+	    GridServiceContainers gridServiceContainers = zone.getGridServiceContainers();
+	    for (GridServiceContainer container : gridServiceContainers) {
+	        if (container.getMachine().getUid().equals(hostAddress)) {
+	            return container;
+	        }
+	    }
+	    throw new IllegalStateException("ServiceController failed to locate a grid"
+	            + " service container with host address " + hostAddress);
 	}
 }
