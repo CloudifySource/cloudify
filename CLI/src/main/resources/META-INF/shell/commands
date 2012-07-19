@@ -48,4 +48,5 @@ org.cloudifysource.shell.commands.ShutdownManagement
 org.cloudifysource.shell.commands.SetInstances
 org.cloudifysource.shell.commands.ListServices
 org.cloudifysource.shell.commands.ListApplications
+org.cloudifysource.shell.commands.Tail
 

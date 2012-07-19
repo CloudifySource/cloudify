@@ -137,6 +137,19 @@ public final class ShellUtils {
         String formattedMessage = Ansi.ansi().fg(color).a(message).toString();
         return formattedMessage + FIRST_ESC_CHAR + SECOND_ESC_CHAR + '0' + COMMAND_CHAR;
     }
+    
+    /**
+     * Gets the given message formatted to be displayed in bold characters.
+     *
+     * @param message 
+     * 			The text message
+     * @return 
+     * 			A formatted message text
+     */
+    public static String getBoldMessage(final String message) {
+        String formattedMessage = Ansi.ansi().bold().a(message).toString();
+        return formattedMessage + FIRST_ESC_CHAR + SECOND_ESC_CHAR + '0' + COMMAND_CHAR;
+    }
 
     /**
      * Converts a comma-delimited string of instance IDs to a set of Integers.

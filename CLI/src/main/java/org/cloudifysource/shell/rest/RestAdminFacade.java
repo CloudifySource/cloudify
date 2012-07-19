@@ -524,11 +524,12 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	}
 
 	@Override
-	public Map<String, String> setInstances(final String applicationName, final String serviceName, final int count, int timeout)
+	public Map<String, String> setInstances(final String applicationName,
+			final String serviceName, final int count, final int timeout)
 			throws CLIException {
 		
-		final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName + 
-				"/timeout/" + timeout + "/set-instances?count=" + count;
+		final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName  
+				+ "/timeout/" + timeout + "/set-instances?count=" + count;
 		try {
 			@SuppressWarnings("unchecked")
 			Map<String, String> response = (Map<String, String>) client.post(url);
@@ -539,5 +540,35 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			throw new CLIException(e);
 		}
 
+	}
+	
+	@Override
+	public String getTailByInstanceId(final String serviceName, final String applicationName,
+								final int instanceId, final int numLines)
+			throws CLIException {
+		final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName  
+				+ "/instances/" + instanceId + "/lines/" + numLines + "/tail";
+		try {
+			@SuppressWarnings("unchecked")
+			String response = (String) client.get(url);
+			return response;
+		} catch (final ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+		}
+	}
+	
+	@Override
+	public String getTailByHostAddress(final String serviceName, final String applicationName, 
+			final String hostAddress, final int numLines)
+			throws CLIException {
+		final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName  
+				+ "/address/" + hostAddress + "/lines/" + numLines + "/tail";
+		try {
+			@SuppressWarnings("unchecked")
+			String response = (String) client.get(url);
+			return response;
+		} catch (final ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+		}
 	}
 }

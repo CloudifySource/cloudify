@@ -292,6 +292,40 @@ public interface AdminFacade {
 	
 	Map<String, String> setInstances(String applicationName, String serviceName, int count, int timeout) throws CLIException;
 	
-	public RestLifecycleEventsLatch getLifecycleEventsPollingLatch(final String pollingID, String timeoutMessage); 
+	public RestLifecycleEventsLatch getLifecycleEventsPollingLatch(final String pollingID, String timeoutMessage);
+
+	/**
+	 * Retrieves the tail of a service log. This method used the service name and instance id
+	 * To retrieve the the instance log tail.
+	 * @param applicationName 
+	 *         The application name.
+	 * @param serviceName
+	 *         The service name.
+	 * @param instanceId
+	 *         The service instance id.
+	 * @param numLines 
+	 *         The number of lines to tail.
+	 * @return 
+	 *         The last n lines of log of the requested service.
+	 */
+	String getTailByInstanceId(String serviceName, String applicationName, int instanceId,
+			int numLines) throws CLIException;
+
+	/**
+     * Retrieves the tail of a service log. This method used the service name and the instance host address
+     * To retrieve the the instance log tail.
+     * @param applicationName 
+     *         The application name.
+     * @param serviceName
+     *         The service name.
+     * @param hostAddress
+     *         The service instance's host address.
+     * @param numLines 
+     *         The number of lines to tail.
+     * @return 
+     *         The last n lines of log of the requested service.
+     */
+	String getTailByHostAddress(String serviceName, String applicationName,
+			String hostAddress, int numLines) throws CLIException; 
 	
 }
