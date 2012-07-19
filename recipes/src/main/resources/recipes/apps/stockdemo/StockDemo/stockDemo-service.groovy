@@ -2,7 +2,6 @@ service {
 	
 	icon "gigaspaces_logo.gif"
 	name "StockDemo"
-	type "UNDEFINED"
 	statelessProcessingUnit {
 		binaries "stockDemo.war" //can be a folder, or a war file   		
 		sla {
