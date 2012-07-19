@@ -18,6 +18,7 @@ package org.cloudifysource.dsl.internal;
 import groovy.lang.Closure;
 import groovy.lang.Script;
 
+import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
@@ -52,6 +53,9 @@ import org.cloudifysource.dsl.cloud.CloudConfiguration;
 import org.cloudifysource.dsl.cloud.CloudProvider;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.cloud.CloudUser;
+import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
+import org.cloudifysource.dsl.entry.ExecutableDSLEntryFactory;
+import org.cloudifysource.dsl.entry.ExecutableEntriesMap;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.scalingrules.HighThresholdDetails;
 import org.cloudifysource.dsl.scalingrules.LowThresholdDetails;
@@ -95,6 +99,9 @@ public abstract class BaseDslScript extends Script {
 	 */
 	public static final List<Long> NO_PROCESS_LOCATORS = new LinkedList<Long>();
 
+	// DSL Initializer meta data
+	private static Map<String, DSLObjectInitializerData> dslObjectInitializersByName = null;
+
 	@Override
 	public void setProperty(final String name, final Object value) {
 
@@ -102,10 +109,6 @@ public abstract class BaseDslScript extends Script {
 			super.setProperty(name, value);
 			return;
 		}
-
-		// if(this.activeObject == null) {
-		// super.setProperty(name, value);
-		// }
 
 		if (value.getClass().isArray()) {
 			final Object[] arr = (Object[]) value;
@@ -152,9 +155,9 @@ public abstract class BaseDslScript extends Script {
 
 		// Check for duplicate properties.
 		if (this.usedProperties == null) {
-			throw new IllegalArgumentException("used properties can not be null. Property: " +
-					name + ", Value: " + value.toString() +
-					", Active object: " + this.activeObject);
+			throw new IllegalArgumentException("used properties can not be null. Property: "
+					+ name + ", Value: " + value.toString()
+					+ ", Active object: " + this.activeObject);
 		}
 		if (this.usedProperties.contains(name)) {
 			if (!isDuplicatePropertyAllowed(value)) {
@@ -166,12 +169,24 @@ public abstract class BaseDslScript extends Script {
 		this.usedProperties.add(name);
 
 		try {
-			if (logger.isLoggable(Level.FINEST)) {
-				logger.finest("BeanUtils.setProperty(object=" + object + ",name=" + name + ",value=" + value
-						+ ",value.getClass()=" + value.getClass());
+			PropertyDescriptor descriptor = PropertyUtils.getPropertyDescriptor(object, name);
+			Class<?> propertyType = descriptor.getPropertyType();
+			if (propertyType.equals(ExecutableDSLEntry.class)) {
+				final ExecutableDSLEntry executableEntry = ExecutableDSLEntryFactory.createEntry(value, name);
+				BeanUtils.setProperty(object, name, executableEntry);
+			} else if (propertyType.equals(ExecutableEntriesMap.class)) {
+				final ExecutableEntriesMap entriesMap = ExecutableDSLEntryFactory.createEntriesMap(value, name);
+				BeanUtils.setProperty(object, name, entriesMap);
+
+			} else {
+
+				if (logger.isLoggable(Level.FINEST)) {
+					logger.finest("BeanUtils.setProperty(object=" + object + ",name=" + name + ",value=" + value
+							+ ",value.getClass()=" + value.getClass());
+				}
+				// Then set it
+				BeanUtils.setProperty(object, name, value);
 			}
-			// Then set it
-			BeanUtils.setProperty(object, name, value);
 
 		} catch (final Exception e) {
 			throw new IllegalArgumentException("Failed   to set property " + name + " of Object " + object
@@ -308,7 +323,6 @@ public abstract class BaseDslScript extends Script {
 					method.invoke(obj);
 
 				} catch (final InvocationTargetException e) {
-					// TODO Auto-generated catch block
 					throw new DSLValidationException(e.getTargetException().getMessage(), e.getTargetException());
 				} catch (final Exception e) {
 					throw new DSLValidationException("Failed to execute DSL validation: " + e.getMessage(), e);
@@ -456,10 +470,6 @@ public abstract class BaseDslScript extends Script {
 		}
 
 	}
-
-	private static Map<String, DSLObjectInitializerData> dslObjectInitializersByName = null;// new
-																							// HashMap<String,
-																							// BaseDslScript.DSLObjectInitializerData>();
 
 	private static void addObjectInitializerForClass(final Map<String, DSLObjectInitializerData> map,
 			final Class<?> clazz) {

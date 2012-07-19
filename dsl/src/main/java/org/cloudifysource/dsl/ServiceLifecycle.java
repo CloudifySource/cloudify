@@ -17,18 +17,17 @@ package org.cloudifysource.dsl;
 
 import java.io.Serializable;
 
+import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 
 /*************
  * Domain POJO of the service lifecycle, part of the Service Recipe declaration. Non-null Elements in the lifecycle POJO
  * indicate actions that should be executed when the service reaches a certain lifecycle phase. Executable entries can
  * take one of several forms: <br>
- * 1. String - indicates a command line to execute (command lines may be modified according
- * to USM rules) 
- * 2. Closure - code that executes in-process 3. Map<String, String> - Where keys are Java regular
- * expressions and values are command lines (as in 1). The entry to be executed is the first one where 
- * the key regex matches the operating system name of the host running the service. 
- * Common keys include 'Win.*', 'Linux.*', etc.
+ * 1. String - indicates a command line to execute (command lines may be modified according to USM rules) 2. Closure -
+ * code that executes in-process 3. Map<String, String> - Where keys are Java regular expressions and values are command
+ * lines (as in 1). The entry to be executed is the first one where the key regex matches the operating system name of
+ * the host running the service. Common keys include 'Win.*', 'Linux.*', etc.
  * 
  * See the documentation for examples.
  * 
@@ -47,35 +46,37 @@ public class ServiceLifecycle implements Serializable {
      */
 	private static final long serialVersionUID = 1L;
 
-	private Object init;
+	private ExecutableDSLEntry init;
 
-	private Object preInstall;
-	private Object install;
-	private Object postInstall;
+	private ExecutableDSLEntry preInstall;
+	private ExecutableDSLEntry install;
+	private ExecutableDSLEntry postInstall;
 
-	private Object preStart;
-	private Object start;
-	private Object postStart;
+	private ExecutableDSLEntry preStart;
+	private ExecutableDSLEntry start;
+	private ExecutableDSLEntry postStart;
 
-	private Object preStop;
-	private Object stop;
-	private Object postStop;
+	private ExecutableDSLEntry preStop;
+	private ExecutableDSLEntry stop;
+	private ExecutableDSLEntry postStop;
 
-	private Object shutdown;
+	private ExecutableDSLEntry shutdown;
 
-	private Object preServiceStart;
-	private Object preServiceStop;
+	private ExecutableDSLEntry preServiceStart;
+	private ExecutableDSLEntry preServiceStop;
 
-	private Object startDetection;
+	private ExecutableDSLEntry startDetection;
 	private Object monitors;
 	private Object details;
 
-	private Object locator;
-	
+	private ExecutableDSLEntry locator;
+
+	private ExecutableDSLEntry stopDetection;
+
 	// TODO - this should be a string, something like "15s" or "15000mil"
 	private int startDetectionTimeoutSecs = DEFAULT_START_DETECTION_SECONDS;
 	private int startDetectionIntervalSecs = 1;
-	
+
 	public int getStartDetectionTimeoutSecs() {
 		return startDetectionTimeoutSecs;
 	}
@@ -92,14 +93,6 @@ public class ServiceLifecycle implements Serializable {
 		this.startDetectionIntervalSecs = startDetectionIntervalSecs;
 	}
 
-
-
-	private Object stopDetection;
-
-	public void setStopDetection(final Object stopDetection) {
-		this.stopDetection = stopDetection;
-	}
-
 	/********
 	 * Default Constructor.
 	 */
@@ -107,143 +100,148 @@ public class ServiceLifecycle implements Serializable {
 
 	}
 
-	public Object getInit() {
+	public ExecutableDSLEntry getInit() {
 		return init;
 	}
 
-	public void setInit(final Object init) {
+	public void setInit(final ExecutableDSLEntry init) {
 		this.init = init;
 	}
 
-	public Object getPreInstall() {
+	public ExecutableDSLEntry getPreInstall() {
 		return preInstall;
 	}
 
-	public void setPreInstall(final Object preInstall) {
+	public void setPreInstall(final ExecutableDSLEntry preInstall) {
 		this.preInstall = preInstall;
 	}
 
-	public Object getInstall() {
+	public ExecutableDSLEntry getInstall() {
 		return install;
 	}
 
-	public void setInstall(final Object install) {
+	public void setInstall(final ExecutableDSLEntry install) {
 		this.install = install;
 	}
 
-	public Object getPostInstall() {
+	public ExecutableDSLEntry getPostInstall() {
 		return postInstall;
 	}
 
-	public void setPostInstall(final Object postInstall) {
+	public void setPostInstall(final ExecutableDSLEntry postInstall) {
 		this.postInstall = postInstall;
 	}
 
-	public Object getPreStart() {
+	public ExecutableDSLEntry getPreStart() {
 		return preStart;
 	}
 
-	public void setPreStart(final Object preStart) {
+	public void setPreStart(final ExecutableDSLEntry preStart) {
 		this.preStart = preStart;
 	}
 
-	public Object getStart() {
+	public ExecutableDSLEntry getStart() {
 		return start;
 	}
 
-	public void setStart(final Object start) {
+	public void setStart(final ExecutableDSLEntry start) {
 		this.start = start;
 	}
 
-	public Object getPostStart() {
+	public ExecutableDSLEntry getPostStart() {
 		return postStart;
 	}
 
-	public void setPostStart(final Object postStart) {
+	public void setPostStart(final ExecutableDSLEntry postStart) {
 		this.postStart = postStart;
 	}
 
-	public Object getPreStop() {
+	public ExecutableDSLEntry getPreStop() {
 		return preStop;
 	}
 
-	public void setPreStop(final Object preStop) {
+	public void setPreStop(final ExecutableDSLEntry preStop) {
 		this.preStop = preStop;
 	}
 
-	public Object getStop() {
+	public ExecutableDSLEntry getStop() {
 		return stop;
 	}
 
-	public void setStop(final Object stop) {
+	public void setStop(final ExecutableDSLEntry stop) {
 		this.stop = stop;
 	}
 
-	public Object getPostStop() {
+	public ExecutableDSLEntry getPostStop() {
 		return postStop;
 	}
 
-	public void setPostStop(final Object postStop) {
+	public void setPostStop(final ExecutableDSLEntry postStop) {
 		this.postStop = postStop;
 	}
 
-	public Object getShutdown() {
+	public ExecutableDSLEntry getShutdown() {
 		return shutdown;
 	}
 
-	public void setShutdown(final Object shutdown) {
+	public void setShutdown(final ExecutableDSLEntry shutdown) {
 		this.shutdown = shutdown;
 	}
 
-	public void setPreServiceStart(final Object preServiceStart) {
+	public ExecutableDSLEntry getPreServiceStart() {
+		return preServiceStart;
+	}
+
+	public void setPreServiceStart(final ExecutableDSLEntry preServiceStart) {
 		this.preServiceStart = preServiceStart;
 	}
 
-	public Object getPreServiceStart() {
-		return this.preServiceStart;
+	public ExecutableDSLEntry getPreServiceStop() {
+		return preServiceStop;
 	}
 
-	public void setPreServiceStop(final Object preServiceStop) {
+	public void setPreServiceStop(final ExecutableDSLEntry preServiceStop) {
 		this.preServiceStop = preServiceStop;
 	}
 
-	public Object getPreServiceStop() {
-		return this.preServiceStop;
+	public ExecutableDSLEntry getStartDetection() {
+		return startDetection;
 	}
 
-	public void setStartDetection(final Object startDetection) {
+	public void setStartDetection(final ExecutableDSLEntry startDetection) {
 		this.startDetection = startDetection;
 	}
 
-	public Object getStartDetection() {
-		return this.startDetection;
-	}
-
-	public Object getStopDetection() {
-		return this.stopDetection;
+	public Object getMonitors() {
+		return monitors;
 	}
 
 	public void setMonitors(final Object monitors) {
 		this.monitors = monitors;
 	}
 
-	public Object getMonitors() {
-		return this.monitors;
+	public Object getDetails() {
+		return details;
 	}
 
 	public void setDetails(final Object details) {
 		this.details = details;
 	}
 
-	public Object getDetails() {
-		return details;
-	}
-
-	public Object getLocator() {
+	public ExecutableDSLEntry getLocator() {
 		return locator;
 	}
 
-	public void setLocator(final Object locator) {
+	public void setLocator(final ExecutableDSLEntry locator) {
 		this.locator = locator;
 	}
+
+	public ExecutableDSLEntry getStopDetection() {
+		return stopDetection;
+	}
+
+	public void setStopDetection(final ExecutableDSLEntry stopDetection) {
+		this.stopDetection = stopDetection;
+	}
+
 }

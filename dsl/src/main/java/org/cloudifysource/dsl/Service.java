@@ -21,6 +21,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.cloudifysource.dsl.entry.ExecutableEntriesMap;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.cloudifysource.dsl.internal.ServiceTierType;
@@ -68,7 +70,7 @@ public class Service {
 
 	private long maxJarSize = DEFAULT_MAX_JAR_SIZE;
 
-	private Map<String, Object> customCommands = new HashMap<String, Object>();
+	private ExecutableEntriesMap customCommands = new ExecutableEntriesMap();
 
 	private String type =  ServiceTierType.UNDEFINED.toString();
 
@@ -304,14 +306,6 @@ public class Service {
 		return this.datagrid;
 	}
 
-	public Map<String, Object> getCustomCommands() {
-		return customCommands;
-	}
-
-	public void setCustomCommands(final Map<String, Object> customCommands) {
-		this.customCommands = customCommands;
-	}
-
 	public List<String> getDependsOn() {
 		return dependsOn;
 	}
@@ -455,6 +449,30 @@ public class Service {
 					+ this.numInstances + ") exceeds the maximum number of instances allowed"
 					+ " (" + this.maxAllowedInstances + ") for service " + this.name + ".");
 		}
+	}
+
+	@DSLValidation
+	void validateCustomProperties()
+			throws DSLValidationException {
+		if (this.customProperties.containsKey(CloudifyConstants.CUSTOM_PROPERTY_MONITORS_CACHE_EXPIRATION_TIMEOUT)) {
+			try {
+				Long.parseLong(this.customProperties
+						.get(CloudifyConstants.CUSTOM_PROPERTY_MONITORS_CACHE_EXPIRATION_TIMEOUT));
+
+			} catch (final NumberFormatException e) {
+				throw new DSLValidationException("The "
+						+ CloudifyConstants.CUSTOM_PROPERTY_MONITORS_CACHE_EXPIRATION_TIMEOUT
+						+ " property must be a long value", e);
+			}
+		}
+	}
+
+	public ExecutableEntriesMap getCustomCommands() {
+		return customCommands;
+	}
+
+	public void setCustomCommands(final ExecutableEntriesMap customCommands) {
+		this.customCommands = customCommands;
 	}
 
 }
