@@ -41,7 +41,7 @@ public class Tail extends AdminAwareCommand {
 	private String hostAddress;
 	
 	@Option(required = false, description = "the service instance number", name = "-instanceId")
-	private int instanceId;
+	private Integer instanceId;
 	
 	@Override
 	protected Object doExecute() throws Exception {
@@ -49,10 +49,16 @@ public class Tail extends AdminAwareCommand {
 		String applicationName = getCurrentApplicationName();
 		String logTail;
 		
+		if ((StringUtils.isNotBlank(hostAddress)) && (instanceId != null)) {
+			throw new CLIStatusException("you_must_set_one_of_tail_option");
+		}
+		
 		if (StringUtils.isNotBlank(hostAddress)) {
 			logTail = adminFacade.getTailByHostAddress(serviceName, applicationName, hostAddress, numLines);
-		} else {
+		} else if (instanceId != null) {
 			logTail = adminFacade.getTailByInstanceId(serviceName, applicationName, instanceId, numLines);
+		} else {
+			throw new CLIStatusException("you_must_set_one_of_tail_option");
 		}
 		
 		String coloredLogTail = colorLogTail(logTail);
