@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -283,31 +282,38 @@ public class RestPollingRunnable implements Runnable {
         LinkedHashMap<String, Integer> serviceNamesClone = new LinkedHashMap<String, Integer>();
         serviceNamesClone.putAll(this.serviceNames);
 
-        for (Map.Entry<String, Integer> entry : serviceNamesClone.entrySet()) {
-
-            addServiceLifecycleLogs(entry);
-
-            addServiceInstanceCountEvents(entry);
+        for (String serviceName : serviceNamesClone.keySet()) {
             
-            removeEndedServicesFromPollingList(entry);
+            addServiceLifecycleLogs(serviceName);
+            
+            int plannedNumberOfInstances = getPlannedNumberOfInstances(serviceName);
+            int numberOfServiceInstances = getNumberOfServiceInstances(serviceName);
+            
+            addServiceInstanceCountEvents(serviceName, plannedNumberOfInstances, numberOfServiceInstances);
+            
+            removeEndedServicesFromPollingList(serviceName, plannedNumberOfInstances, numberOfServiceInstances);
         }
     }
 
-    private void removeEndedServicesFromPollingList(final Entry<String, Integer> entry) {
-        String serviceName = entry.getKey();
-        String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-        int plannedNumberOfInstances = getPlannedNumberOfInstances(serviceName);
-        int numberOfServiceInstances = getNumberOfServiceInstances(absolutePuName);
-        if (plannedNumberOfInstances == numberOfServiceInstances) {
-            this.serviceNames.remove(serviceName);
-        }
+    private void removeEndedServicesFromPollingList(String serviceName, 
+            int plannedNumberOfInstances, int numberOfServiceInstances) {
         
+        if (isUninstall) { 
+            String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+            final Zone zone = admin.getZones().waitFor(absolutePuName, 2, TimeUnit.SECONDS);
+            if (zone == null) {
+                this.serviceNames.remove(serviceName);
+            }
+        } else {
+            if (plannedNumberOfInstances == numberOfServiceInstances) {
+                this.serviceNames.remove(serviceName);
+            }
+        }
     }
 
-    private void addServiceLifecycleLogs(final Entry<String, Integer> entry) {
+    private void addServiceLifecycleLogs(final String serviceName) {
         List<Map<String, String>> servicesLifecycleEventDetailes;
         servicesLifecycleEventDetailes = new ArrayList<Map<String, String>>();
-        String serviceName = entry.getKey();
         final String absolutePuName = ServiceUtils.getAbsolutePUName(
                 this.applicationName, serviceName);
         logger.log(Level.FINE, 
@@ -327,11 +333,9 @@ public class RestPollingRunnable implements Runnable {
         final String regex = MessageFormat.format(USM_EVENT_LOGGER_NAME,
                 absolutePuName);
         final LogEntryMatcher matcher = regex(regex);
-        for (final GridServiceContainer container : zone
-                .getGridServiceContainers()) {
-            logger.log(Level.FINE, 
-                    "Polling GSC with uid: " + container.getUid());
-            
+        for (final GridServiceContainer container : zone.getGridServiceContainers()) {
+            logger.log(Level.FINE, "Polling GSC with uid: " + container.getUid());
+        
             final Date pollingStartTime = getGSCSamplingStartTime(container); 
             final LogEntries logEntries = container.logEntries(matcher);
             //Get lifecycle events.  
@@ -362,12 +366,9 @@ public class RestPollingRunnable implements Runnable {
         }
     }
 
-    private void addServiceInstanceCountEvents(final Entry<String, Integer> entry) {
+    private void addServiceInstanceCountEvents(String serviceName, int plannedNumberOfInstances, int numberOfServiceInstances) {
 
-        String serviceName = entry.getKey();
         String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-        int plannedNumberOfInstances = getPlannedNumberOfInstances(serviceName);
-        int numberOfServiceInstances = getNumberOfServiceInstances(absolutePuName);
 
         if (numberOfServiceInstances == 0) {
             if (!isUninstall) {
@@ -445,8 +446,8 @@ public class RestPollingRunnable implements Runnable {
      * @param absolutePuName The absolute service name.
      * @return the service's number of running instances.
      */
-    private int getNumberOfServiceInstances(final String absolutePuName) {
-
+    private int getNumberOfServiceInstances(final String serviceName) {
+        String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
         ProcessingUnit processingUnit = admin.getProcessingUnits().getProcessingUnit(absolutePuName);
 
         if (processingUnit != null) {
