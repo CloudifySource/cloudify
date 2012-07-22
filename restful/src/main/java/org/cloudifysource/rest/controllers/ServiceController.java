@@ -2080,14 +2080,14 @@ public class ServiceController {
 	 *         The last n lines of log of the requested service.
 	 */
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
-	        + "/instances/{instanceId}/lines/{numLines}/tail",
+	        + "/instances/{instanceId}/tail",
 	        method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object> getLogTailByInstanceId(
 	        @PathVariable final String applicationName,
 	        @PathVariable final String serviceName, 
 	        @PathVariable final int instanceId,
-	        @PathVariable final int numLines) {
+	        @RequestParam(value = "numLines", required = true) final int numLines) {
 
 	    GridServiceContainer container = null;
 	    try {
@@ -2118,14 +2118,14 @@ public class ServiceController {
      *         The last n lines of log of the requested service.
      */
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
-	        + "/address/{hostAddress}/lines/{numLines}/tail",
+	        + "/address/{hostAddress}/tail",
 	        method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object> getLogTailByHostAddress(
 	        @PathVariable final String applicationName,
 	        @PathVariable final String serviceName, 
 	        @PathVariable final String hostAddress,
-	        @PathVariable final int numLines) {
+	        @RequestParam(value = "numLines", required = true) final int numLines) {
 	    GridServiceContainer container = null;
 
 	    try {
@@ -2184,7 +2184,6 @@ public class ServiceController {
 
 	private GridServiceContainer getContainerAccordingToHostAddress(
 	        final String applicationName, final String serviceName, final String hostAddress) {
-
 	    final Zone zone = getZone(applicationName, serviceName);
 
 	    GridServiceContainers gridServiceContainers = zone.getGridServiceContainers();
