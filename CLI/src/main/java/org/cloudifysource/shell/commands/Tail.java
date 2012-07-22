@@ -49,16 +49,17 @@ public class Tail extends AdminAwareCommand {
 		String applicationName = getCurrentApplicationName();
 		String logTail;
 		
-		if ((StringUtils.isNotBlank(hostAddress)) && (instanceId != null)) {
+		boolean twoTailOptionsEntered = (StringUtils.isNotBlank(hostAddress)) && (instanceId != null);
+		boolean noTailOptionsEntered = (!StringUtils.isNotBlank(hostAddress)) && (instanceId == null);
+		
+		if (twoTailOptionsEntered || noTailOptionsEntered) {
 			throw new CLIStatusException("you_must_set_one_of_tail_option");
 		}
 		
 		if (StringUtils.isNotBlank(hostAddress)) {
 			logTail = adminFacade.getTailByHostAddress(serviceName, applicationName, hostAddress, numLines);
-		} else if (instanceId != null) {
-			logTail = adminFacade.getTailByInstanceId(serviceName, applicationName, instanceId, numLines);
 		} else {
-			throw new CLIStatusException("you_must_set_one_of_tail_option");
+			logTail = adminFacade.getTailByInstanceId(serviceName, applicationName, instanceId, numLines);
 		}
 		
 		String coloredLogTail = colorLogTail(logTail);

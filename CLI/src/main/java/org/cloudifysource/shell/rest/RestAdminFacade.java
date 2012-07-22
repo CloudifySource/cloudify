@@ -547,7 +547,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 								final int instanceId, final int numLines)
 			throws CLIException {
 		final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName  
-				+ "/instances/" + instanceId + "/lines/" + numLines + "/tail";
+				+ "/instances/" + instanceId + "/tail/" + "?numLines=" + numLines;
 		try {
 			@SuppressWarnings("unchecked")
 			String response = (String) client.get(url);
@@ -562,7 +562,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			final String hostAddress, final int numLines)
 			throws CLIException {
 		final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName  
-				+ "/address/" + hostAddress + "/lines/" + numLines + "/tail";
+				+ "/address/" + hostAddress + "/tail/" + "?numLines=" + numLines;
 		try {
 			@SuppressWarnings("unchecked")
 			String response = (String) client.get(url);
