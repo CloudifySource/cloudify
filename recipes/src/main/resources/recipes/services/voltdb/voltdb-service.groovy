@@ -17,7 +17,7 @@ service {
 
 	name "voltdb"
 	type "NOSQL_DB"
-	icon "voltdb.jpg"
+	icon "voltdb.png"
 
 	lifecycle{
 		init "voltdb_install.groovy"
