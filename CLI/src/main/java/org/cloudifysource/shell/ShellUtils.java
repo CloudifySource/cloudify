@@ -42,11 +42,10 @@ import java.util.logging.Logger;
  */
 public final class ShellUtils {
 
-    private static final String BOLD_ANSI_CHAR_SEQUENCE = "\u001B[1m";
-
-	private static final String LINE_SEPARATOR = System.getProperty("line.separator");
-
     protected static final Logger logger = Logger.getLogger(ShellUtils.class.getName());
+
+    private static final char WIN_RETURN_CHAR = '\r';
+    private static final char LINUX_RETURN_CHAR = '\n';
 
     private static final long TWO_WEEKS_IN_MILLIS = 86400000L * 14L;
     private static final File VERSION_CHECK_FILE = new File(System.getProperty("user.home") + "/.karaf/lastVersionCheckTimestamp");
@@ -58,8 +57,6 @@ public final class ShellUtils {
     private static final char COMMAND_CHAR = 'm';
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
     private static volatile ResourceBundle defaultMessageBundle;
-
-    private static final byte[] inputBuffer = new byte[20];
 
     private ShellUtils() {
 
@@ -91,15 +88,22 @@ public final class ShellUtils {
             final String confirmationQuestion = ShellUtils.getFormattedMessage(messageKey, messageArgs);
             session.getConsole().print(confirmationQuestion + " ");
             session.getConsole().flush();
-            String response = null;
+            char responseChar = '\0';
             StringBuilder responseBuffer = new StringBuilder();
             while (true) {
-                response = readAvailable(session.getKeyboard());
-                session.getConsole().print(response);
-                if (response.endsWith(LINE_SEPARATOR)) {
+                responseChar = (char) session.getKeyboard().read();
+                if (responseChar == '\u007F') { //backspace
+                    if (responseBuffer.length() > 0) {
+                        responseBuffer.deleteCharAt(responseBuffer.length() - 1);
+                        session.getConsole().print(Ansi.ansi().cursorLeft(1).eraseLine());
+                    }
+                } else if (responseChar == WIN_RETURN_CHAR || responseChar == LINUX_RETURN_CHAR) {
+                    session.getConsole().println();
                     break;
+                } else {
+                    session.getConsole().print(responseChar);
+                    responseBuffer.append(responseChar);
                 }
-                responseBuffer.append(response);
                 session.getConsole().flush();
             }
             String responseStr = responseBuffer.toString().trim();
@@ -107,11 +111,6 @@ public final class ShellUtils {
         }
         // Shell is running in nonInteractive mode. we skip the question.
         return true;
-    }
-
-    private static String readAvailable(final InputStream keyboard) throws IOException {
-        int bytesRead = keyboard.read(inputBuffer);
-        return new String(inputBuffer, 0, bytesRead);
     }
 
     /**
@@ -139,18 +138,16 @@ public final class ShellUtils {
         String formattedMessage = Ansi.ansi().fg(color).a(message).toString();
         return formattedMessage + FIRST_ESC_CHAR + SECOND_ESC_CHAR + '0' + COMMAND_CHAR;
     }
-    
+
     /**
      * Gets the given message formatted to be displayed in bold characters.
      *
-     * @param message 
-     * 			The text message
-     * @return 
-     * 			A formatted message text
+     * @param message The text message
+     * @return A formatted message text
      */
     public static String getBoldMessage(final String message) {
-        return  BOLD_ANSI_CHAR_SEQUENCE + message + FIRST_ESC_CHAR
-        		+ SECOND_ESC_CHAR + '0' + COMMAND_CHAR;
+        String formattedMessage = Ansi.ansi().bold().a(message).toString();
+        return formattedMessage + FIRST_ESC_CHAR + SECOND_ESC_CHAR + '0' + COMMAND_CHAR;
     }
 
     /**
@@ -292,7 +289,7 @@ public final class ShellUtils {
         return os.indexOf("win") >= 0;
     }
 
-    public static boolean shouldDoVersionCheck(final CommandSession session) {
+    public static boolean shouldDoVersionCheck(CommandSession session) {
         long lastAskedTS = getLastTimeAskedAboutVersionCheck();
         //check only if checked over a two weeks ago and user agrees
         try {
@@ -307,7 +304,7 @@ public final class ShellUtils {
         return false;
     }
 
-    public static void doVersionCheck(final CommandSession session) {
+    public static void doVersionCheck(CommandSession session) {
         String currentBuildStr = PlatformVersion.getBuildNumber();
         if (currentBuildStr.contains("-")) {
             currentBuildStr = currentBuildStr.substring(0, currentBuildStr.indexOf("-"));
@@ -326,7 +323,7 @@ public final class ShellUtils {
         session.getConsole().println();
     }
 
-    public static int getLatestBuildNumber(final int currentVersion) {
+    public static int getLatestBuildNumber(int currentVersion) {
         try {
             HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
             requestFactory.setReadTimeout(VERSION_CHECK_READ_TIMEOUT);
