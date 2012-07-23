@@ -47,6 +47,7 @@ import org.cloudifysource.usm.events.PreStartListener;
 import org.cloudifysource.usm.events.PreStopListener;
 import org.cloudifysource.usm.events.ShutdownListener;
 import org.cloudifysource.usm.events.StartReason;
+import org.cloudifysource.usm.events.StopListener;
 import org.cloudifysource.usm.events.StopReason;
 import org.cloudifysource.usm.events.USMEvent;
 import org.cloudifysource.usm.launcher.ProcessLauncher;
@@ -115,6 +116,8 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	private PostStartListener[] postStartListeners = new PostStartListener[0];
 	@Autowired(required = false)
 	private PreStopListener[] preStopListeners = new PreStopListener[0];
+	@Autowired(required = false)
+	private StopListener[] stopListeners = new StopListener[0];
 	@Autowired(required = false)
 	private PostStopListener[] postStopListeners = new PostStopListener[0];
 	@Autowired(required = false)
@@ -235,6 +238,20 @@ public class USMLifecycleBean implements ClusterInfoAware {
 				LifecycleEvents.PRE_STOP, this.preStopListeners, reason);
 
 	}
+	
+	/*********
+	 * Fires the stop event.
+	 * 
+	 * @param reason .
+	 * @throws USMException .
+	 */
+	public void fireStop(final StopReason reason)
+			throws USMException {
+		fireEvent(
+				LifecycleEvents.STOP, this.stopListeners, reason);
+
+	}
+	
 
 	public String getOutputReaderLoggerName() {
 		return configuration.getService().getName() + "-Output";
@@ -352,6 +369,9 @@ public class USMLifecycleBean implements ClusterInfoAware {
 					break;
 				case PRE_STOP:
 					er = ((PreStopListener) listener).onPreStop((StopReason) reason);
+					break;
+				case STOP:
+					er = ((StopListener) listener).onStop((StopReason) reason);
 					break;
 				case POST_STOP:
 					er = ((PostStopListener) listener).onPostStop((StopReason) reason);
@@ -488,6 +508,9 @@ public class USMLifecycleBean implements ClusterInfoAware {
 
 	public PreStopListener[] getPreStopListeners() {
 		return this.preStopListeners;
+	}
+	public StopListener[] getStopListeners() {
+		return this.stopListeners;
 	}
 
 	public void setPreStopListeners(final PreStopListener[] preStopListeners) {
@@ -822,6 +845,8 @@ public class USMLifecycleBean implements ClusterInfoAware {
 				allEvents, getPostStartListeners(), comp);
 		initEvents(
 				allEvents, getPreStopListeners(), comp);
+		initEvents(
+				allEvents, getStopListeners(), comp);
 		initEvents(
 				allEvents, getPostStopListeners(), comp);
 		initEvents(

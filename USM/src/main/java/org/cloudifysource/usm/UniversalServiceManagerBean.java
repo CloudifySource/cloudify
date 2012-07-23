@@ -46,7 +46,6 @@ import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
 import org.cloudifysource.dsl.utils.ServiceUtils;
-import org.cloudifysource.usm.dsl.ServiceConfiguration;
 import org.cloudifysource.usm.dsl.DSLEntryExecutor;
 import org.cloudifysource.usm.events.EventResult;
 import org.cloudifysource.usm.events.StartReason;
@@ -140,7 +139,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 
 	private long postLaunchWaitPeriodMillis = DEFAULT_POST_LAUNCH_WAIT_PERIOD_MILLIS;
 	private final long postDeathWaitPeriodMillis = DEFAULT_POST_DEATH_WAIT_PERIOD_MILLIS;
-	private Thread shutdownHookThread;
+	
 	private int instanceId;
 	private boolean runningInGSC = true;
 	private ApplicationContext applicationContext;
@@ -220,16 +219,14 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		// Initialize and sort events
 		initEvents();
 
-		reset(existingProcessFound);		
-		
-				
-		
+		reset(existingProcessFound);
+			
 
 	}
 
 	private void initMonitorsCache() {
 		final String tmp =
-				((ServiceConfiguration) this.usmLifecycleBean.getConfiguration()).getService().getCustomProperties()
+				this.usmLifecycleBean.getConfiguration().getService().getCustomProperties()
 						.get(CloudifyConstants.CUSTOM_PROPERTY_MONITORS_CACHE_EXPIRATION_TIMEOUT);
 		long cacheExpirationTimeout = DEFAULT_MONITORS_CACHE_EXPIRATION_TIMEOUT;
 		if (tmp != null) {
@@ -298,16 +295,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 				TimeUnit.SECONDS);
 	}
 
-	private void removeShutdownHook() {
-		if (this.shutdownHookThread != null) {
-			final boolean result = Runtime.getRuntime().removeShutdownHook(this.shutdownHookThread);
-			if (!result) {
-				logger.severe("Failed to remove JVM shutdown hook during shutdown! ");
-			}
-		}
-
-	}
-
+	
 	private void initEvents() {
 
 		getUsmLifecycleBean().initEvents(this);
@@ -333,7 +321,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			stop(StopReason.UNDEPLOY);
 
 			executors.shutdown();
-			removeShutdownHook();
 
 			try {
 				getUsmLifecycleBean().fireShutdown();
@@ -419,7 +406,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			@Override
 			public void run() {
 				try {
-					installAndRun();				
+					installAndRun();
 				} catch (final Exception e) {
 					logger.log(Level.SEVERE, "Asynchronous install failed with message: " + e.getMessage()
 							+ ". Instance will shut down", e);
@@ -481,7 +468,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		if (this.asyncInstall) {
 			waitForDependencies();
 		}
-		launch();		
+		launch();
+		
 	}
 
 	private void waitForDependencies() {
@@ -905,16 +893,10 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			logger.log(Level.SEVERE, "Failed to execute pre stop event: " + e.getMessage(), e);
 		}
 
-		final List<Long> pids = this.serviceProcessPIDs;
-		for (final Long pid : pids) {
-
-			try {
-				if (USMUtils.isProcessAlive(pid)) {
-					getUsmLifecycleBean().getProcessKiller().killProcess(pid);
-				}
-			} catch (final USMException e) {
-				logger.log(Level.SEVERE, "Failed to kill process with pid: " + pid, e);
-			}
+		try {
+			getUsmLifecycleBean().fireStop(reason);
+		} catch (final USMException e) {
+			logger.log(Level.SEVERE, "Failed to execute stop event: " + e.getMessage(), e);
 		}
 
 		try {
@@ -924,8 +906,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		}
 	}
 
-	// CHECKSTYLE:OFF - this is an openspaces interface.
-
+	// CHECKSTYLE:OFF - BeansException is a XAP openspaces interface.
 	@Override
 	public void setApplicationContext(final ApplicationContext arg0)
 			throws BeansException {
@@ -1093,7 +1074,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		return this.puWorkDir;
 	}
 
-	
 	@Override
 	public Object invoke(final Map<String, Object> namedArgs) {
 

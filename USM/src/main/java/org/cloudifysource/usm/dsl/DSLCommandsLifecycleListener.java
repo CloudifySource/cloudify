@@ -79,6 +79,8 @@ public class DSLCommandsLifecycleListener extends AbstractUSMEventListener imple
 			return lifecycle.getPostStart();
 		case PRE_STOP:
 			return lifecycle.getPreStop();
+		case STOP:
+			return lifecycle.getStop();
 		case POST_STOP:
 			return lifecycle.getPostStop();
 		case SHUTDOWN:
@@ -132,12 +134,20 @@ public class DSLCommandsLifecycleListener extends AbstractUSMEventListener imple
 		return executeEntry(lifecycle.getPreStop());
 
 	}
+	
 
 	@Override
 	public EventResult onPostStop(final StopReason reason) {
 		return executeEntry(lifecycle.getPostStop());
 
 	}
+	
+	@Override
+	public EventResult onStop(final StopReason reason) {
+		return executeEntry(lifecycle.getStop());
+
+	}
+
 
 	@Override
 	public EventResult onShutdown() {

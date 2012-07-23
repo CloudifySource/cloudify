@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+ * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.usm.events;
+package org.cloudifysource.usm.shutdown;
 
-/********************
- * Listener interface for all USM lifecycle events.
+/**************************
+ * Classes related to service and process shutdown.
  * 
- * @author barakme
- * @since 1.0
- * 
- */
-public interface LifecycleListener extends InitListener, InstallListener, StartListener, StopLifecyleListener,
-		ShutdownListener, ServiceActionListener {
-
-}
+ * @author barakme.
+ *****************************/

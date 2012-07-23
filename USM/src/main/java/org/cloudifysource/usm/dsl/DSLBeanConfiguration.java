@@ -53,6 +53,7 @@ import org.cloudifysource.usm.monitors.Monitor;
 import org.cloudifysource.usm.monitors.MonitorException;
 import org.cloudifysource.usm.monitors.process.ProcessMonitor;
 import org.cloudifysource.usm.shutdown.DefaultProcessKiller;
+import org.cloudifysource.usm.shutdown.DefaultStop;
 import org.cloudifysource.usm.shutdown.ProcessKiller;
 import org.cloudifysource.usm.stopDetection.ProcessStopDetector;
 import org.cloudifysource.usm.stopDetection.StopDetector;
@@ -565,6 +566,19 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			return null;
 		}
 	}
+	
+	@Bean
+	public USMEvent getStop() {
+
+		final ExecutableDSLEntry stop = this.service.getLifecycle().getStop();
+		if (stop != null) {
+			// will be executed by the dsl command lifecycle listener.
+			return null;
+
+		} else {
+			return new DefaultStop();
+		}
+	}
 
 	@Bean
 	public ProcessLocator getDslLocator() {
@@ -577,6 +591,8 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			return new DefaultProcessLocator();
 		}
 	}
+
+
 
 	@Override
 	public void setApplicationContext(final ApplicationContext applicationContext) {

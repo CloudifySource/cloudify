@@ -15,7 +15,19 @@
  *******************************************************************************/
 package org.cloudifysource.usm.events;
 
+/********
+ * Listener interface for the PreStop event.
+ * 
+ * @author barakme
+ * 
+ */
 public interface PreStopListener extends USMEvent {
 
+	/**********
+	 * Called when the preStop USM event is called.
+	 * 
+	 * @param reason the stop reason.
+	 * @return the event result.
+	 */
 	EventResult onPreStop(StopReason reason);
 }

@@ -22,7 +22,7 @@ public class AbstractUSMEventListener implements USMEvent {
 	protected UniversalServiceManagerBean usm;
 
 	@Override
-	public void init(UniversalServiceManagerBean usm) {
+	public void init(final UniversalServiceManagerBean usm) {
 		this.usm = usm;
 
 	}

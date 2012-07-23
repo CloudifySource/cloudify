@@ -28,6 +28,7 @@ public enum LifecycleEvents {
 	PRE_START("preStart"),
 	POST_START("postStart"),
 	PRE_STOP("preStop"),
+	STOP("Stop"),
 	POST_STOP("postStop"),
 	SHUTDOWN("shutdown"),
 	PRE_SERVICE_STOP("preServiceStop");

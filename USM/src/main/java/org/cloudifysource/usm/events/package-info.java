@@ -15,14 +15,9 @@
  *******************************************************************************/
 package org.cloudifysource.usm.events;
 
-/********************
- * Listener interface for all USM lifecycle events.
+/**************************
+ * Interfaces and classes for event handling in the USM. 
  * 
- * @author barakme
- * @since 1.0
- * 
- */
-public interface LifecycleListener extends InitListener, InstallListener, StartListener, StopLifecyleListener,
-		ShutdownListener, ServiceActionListener {
-
-}
+ * @author barakme.
+ * @since 2.0.0
+ *****************************/

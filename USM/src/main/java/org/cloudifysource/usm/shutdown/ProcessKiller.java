@@ -15,11 +15,24 @@
  *******************************************************************************/
 package org.cloudifysource.usm.shutdown;
 
-
 import org.cloudifysource.usm.USMComponent;
 import org.cloudifysource.usm.USMException;
 
+/**********
+ * Interface for process killer USM component, responsible for shutting down a service process.
+ * 
+ * @author barakme.
+ * @since 1.0
+ * 
+ */
 public interface ProcessKiller extends USMComponent {
 
-	void killProcess(long pid) throws USMException;
+	/*********
+	 * Kills a process by its pid.
+	 * 
+	 * @param pid the process ID.
+	 * @throws USMException if failed to kill the process.
+	 */
+	void killProcess(long pid)
+			throws USMException;
 }

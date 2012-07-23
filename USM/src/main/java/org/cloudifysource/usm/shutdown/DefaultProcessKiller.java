@@ -22,6 +22,12 @@ import org.hyperic.sigar.SigarException;
 
 import com.gigaspaces.internal.sigar.SigarHolder;
 
+/**********
+ * The default process killer implementation, which uses SIGAR to kill processes.
+ * 
+ * @author barakme
+ * 
+ */
 public class DefaultProcessKiller implements ProcessKiller {
 
 	private static final int POST_KILL_SLEEP_INTERVAL = 100;
@@ -32,9 +38,10 @@ public class DefaultProcessKiller implements ProcessKiller {
 			java.util.logging.Logger.getLogger(DefaultProcessKiller.class.getName());
 
 	private int killRetries = 2;
-	
+
 	@Override
-	public void killProcess(final long pid) throws USMException {
+	public void killProcess(final long pid)
+			throws USMException {
 		if (pid == 0) {
 			return; // this is possible in some end case situations, in the
 					// IntegratedProcessingUnitContainer
@@ -83,7 +90,7 @@ public class DefaultProcessKiller implements ProcessKiller {
 		return killRetries;
 	}
 
-	public void setKillRetries(int killRetries) {
+	public void setKillRetries(final int killRetries) {
 		this.killRetries = killRetries;
 	}
 }

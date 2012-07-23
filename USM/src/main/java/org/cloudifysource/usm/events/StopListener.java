@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+ * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,19 @@
  *******************************************************************************/
 package org.cloudifysource.usm.events;
 
-public interface StopListener extends PreStopListener, PostStopListener {
+/********
+ * Listener interface for the Stop event.
+ * 
+ * @author barakme
+ * 
+ */
+public interface StopListener extends USMEvent {
 
-	
+	/**********
+	 * Called when the Stop USM event is called.
+	 * 
+	 * @param reason the stop reason.
+	 * @return the event result.
+	 */
+	EventResult onStop(StopReason reason);
 }
