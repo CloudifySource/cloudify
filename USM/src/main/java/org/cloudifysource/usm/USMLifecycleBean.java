@@ -28,6 +28,7 @@ import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DurationFormatUtils;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.usm.details.Details;
@@ -211,10 +212,13 @@ public class USMLifecycleBean implements ClusterInfoAware {
 		}
 	}
 
-	private void logEventSuccess(final LifecycleEvents event, final USMEvent[] listeners) {
+	private void logEventSuccess(final LifecycleEvents event, final USMEvent[] listeners, final long eventStartTime) {
 		if (isLoggableEvent(
 				event, listeners)) {
-			eventLogger.info(eventPrefix + event + CloudifyConstants.USM_EVENT_EXEC_SUCCESSFULLY);
+			long eventExecDuration = System.currentTimeMillis() - eventStartTime;
+			String durationAsString = DurationFormatUtils.formatDuration(eventExecDuration, "s.S 'seconds'");
+			eventLogger.info(eventPrefix + event + CloudifyConstants.USM_EVENT_EXEC_SUCCESSFULLY 
+					+ ", duration: " + durationAsString + ".");
 		}
 	}
 
@@ -225,7 +229,7 @@ public class USMLifecycleBean implements ClusterInfoAware {
 
 		}
 	}
-
+	
 	/*********
 	 * Fires the pre-stop event.
 	 * 
@@ -343,6 +347,7 @@ public class USMLifecycleBean implements ClusterInfoAware {
 		if (listeners != null && listeners.length > 0) {
 			logEventStart(
 					event, listeners);
+			long eventStartTime = System.currentTimeMillis();
 			for (final USMEvent listener : listeners) {
 				EventResult er = null;
 				switch (event) {
@@ -398,7 +403,7 @@ public class USMLifecycleBean implements ClusterInfoAware {
 				}
 			}
 			logEventSuccess(
-					event, listeners);
+					event, listeners, eventStartTime);
 		}
 	}
 
