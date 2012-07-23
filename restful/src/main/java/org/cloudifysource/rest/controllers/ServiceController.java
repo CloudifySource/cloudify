@@ -100,7 +100,6 @@ import org.openspaces.admin.dump.DumpResult;
 import org.openspaces.admin.esm.ElasticServiceManager;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.gsc.GridServiceContainer;
-import org.openspaces.admin.gsc.GridServiceContainers;
 import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.internal.admin.InternalAdmin;
 import org.openspaces.admin.internal.pu.DefaultProcessingUnitInstance;
@@ -119,7 +118,6 @@ import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfig;
 import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfigurer;
 import org.openspaces.admin.pu.elastic.topology.ElasticDeploymentTopology;
 import org.openspaces.admin.space.ElasticSpaceDeployment;
-import org.openspaces.admin.zone.Zone;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.context.GigaSpaceContext;
 import org.openspaces.core.util.MemoryUnit;
@@ -2094,7 +2092,7 @@ public class ServiceController {
 	        container = getContainerAccordingToInstanceId(applicationName,
 	                serviceName, instanceId);
 	    }
-	    catch (IllegalStateException e) {
+	    catch (RestServiceException e) {
 	        logger.log(Level.INFO, "Failed retrieving the service logs. Reason: " + e.getMessage());
 	        return errorStatus(e.getMessage());
 	    }
@@ -2131,7 +2129,7 @@ public class ServiceController {
 	    try {
 	        container = getContainerAccordingToHostAddress(applicationName,
 	                serviceName, hostAddress);
-	    } catch (IllegalStateException e) {
+	    } catch (RestServiceException e) {
 	        logger.log(Level.INFO, "Failed retrieving the service logs. Reason: " + e.getMessage());
 	        return errorStatus(e.getMessage());
 	    }
@@ -2153,46 +2151,50 @@ public class ServiceController {
 	}
 
 	private GridServiceContainer getContainerAccordingToInstanceId(
-	        final String applicationName, final String serviceName, final int instanceId) {
-	    final Zone zone = getZone(applicationName, serviceName);
-
-	    GridServiceContainers gridServiceContainers = zone.getGridServiceContainers();
-
-	    for (GridServiceContainer container : gridServiceContainers) {
-	        ProcessingUnitInstance[] processingUnitInstances = container.getProcessingUnitInstances();
-	        for (ProcessingUnitInstance processingUnitInstance : processingUnitInstances) {
-	            if (processingUnitInstance.getInstanceId() == instanceId) {
-	                return container;
-	            }
-	        }
-
+	        final String applicationName, final String serviceName, final int instanceId) 
+	                throws RestServiceException {
+	    
+	    String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+	    ProcessingUnit processingUnit = admin.getProcessingUnits().getProcessingUnit(absolutePUName);
+	    if (processingUnit == null) {
+	        logger.log(Level.FINE, "a Processing unit with the name " + absolutePUName + " was not found");
+	        throw new RestServiceException("a Processing unit with the name " + absolutePUName + " was not found");
 	    }
-	    throw new IllegalStateException("ServiceController failed to locate a grid" 
+	    for (ProcessingUnitInstance processingUnitInstance : processingUnit) {
+	        if (processingUnitInstance.getInstanceId() == instanceId) {
+                return processingUnitInstance.getGridServiceContainer();
+            }
+        }
+	    throw new RestServiceException("ServiceController failed to locate a grid" 
 	            + " service container with instance id " + instanceId);
-	}
 
-	private Zone getZone(final String applicationName,
-	        final String serviceName) {
-	    String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-	    final Zone zone = admin.getZones().getByName(absolutePuName);
-	    if (zone == null) {
-	        logger.log(Level.FINE, "Zone " + absolutePuName + " does not exist");
-	        throw new IllegalStateException("The service " + absolutePuName + " does not exist");
-	    }
-	    return zone;
 	}
 
 	private GridServiceContainer getContainerAccordingToHostAddress(
-	        final String applicationName, final String serviceName, final String hostAddress) {
-	    final Zone zone = getZone(applicationName, serviceName);
-
-	    GridServiceContainers gridServiceContainers = zone.getGridServiceContainers();
-	    for (GridServiceContainer container : gridServiceContainers) {
-	        if (container.getMachine().getUid().equals(hostAddress)) {
-	            return container;
+	        final String applicationName, final String serviceName, final String hostAddress) 
+	                throws RestServiceException {
+	    
+	    Machine machine = admin.getMachines().getHostsByAddress().get(hostAddress);
+	    if (machine == null) {
+	        logger.log(Level.FINE, "a machine with host address " + hostAddress + " was not found in the cluster.");
+	        throw new RestServiceException("a machine with host address "
+	                + hostAddress + " was not found in the cluster.");
+	    }
+	    String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+	    ProcessingUnitInstance[] processingUnitInstances = machine.getProcessingUnitInstances(absolutePUName);
+	    if (processingUnitInstances == null) {
+	        logger.log(Level.FINE, "a Processing unit instance with the name " + absolutePUName + " was not found");
+	        throw new RestServiceException("a Processing unit instance with the name "
+	                + absolutePUName + " was not found");
+	    }
+	    
+	    for (ProcessingUnitInstance instance : processingUnitInstances) {
+	        if (instance.getOperatingSystem().getDetails().getHostAddress().equals(hostAddress)) {
+	            return instance.getGridServiceContainer();
 	        }
 	    }
-	    throw new IllegalStateException("ServiceController failed to locate a grid"
+	    
+	    throw new RestServiceException("ServiceController failed to locate a grid"
 	            + " service container with host address " + hostAddress);
 	}
 }
