@@ -11,7 +11,7 @@
 
 	<property name="giga.base.dir" value="D:/Gigaspaces" />
 
-	<property name="giga.version" value="gigaspaces-cloudify-2.1.1-m2" />
+	<property name="giga.version" value="gigaspaces-cloudify-2.2.0-m2" />
 
 	<property name="target.dir" value="${giga.base.dir}/${giga.version}" />
 	<property name="ec2.dir"
@@ -31,6 +31,7 @@
 		<copy todir="${target.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.1.1.jar" overwrite="true" />
 		<copy todir="${target.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" overwrite="true" />
 		<copy todir="${target.dir}/tools/cli/plugins/azure" file="../azure/azure/target/azure.jar" overwrite="true" />
+		
 		<copy todir="${target.dir}/recipes"  overwrite="true" >
 			<fileset dir="../recipes/src/main/resources/recipes"/>
 		</copy>
@@ -42,14 +43,14 @@
 		<echo message="Copying Cloudify jar files to ${ec2.dir}" />
 	    <copy todir="${ec2.dir}/lib/platform/usm" file="../USM/target/usm.jar" 
 			/> 
-		<!-- <copy todir="${ec2.dir}/tools/cli" file="../CLI/target/cli.jar" /> -->
+		<copy todir="${ec2.dir}/tools/cli" file="../CLI/target/cli.jar" /> 
 		<!-- <copy todir="${ec2.dir}/tools/rest" file="../restful/target/rest.war" 
 			/> -->
-		<!-- <copy todir="${ec2.dir}/lib/required" file="../dsl/target/dsl.jar" 
-			/> -->
+		<copy todir="${ec2.dir}/lib/required" file="../dsl/target/dsl.jar" 
+			/> 
 		<copy todir="${ec2.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-2.1.1.jar" />
-		<!-- <copy todir="${ec2.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" 
-			/> -->
+		<copy todir="${ec2.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" 
+			/>
 		<!-- <copy todir="${ec2.dir}/tools/cli/plugins/azure" file="../azure/azure/target/azure.jar" 
 			/> -->
 
