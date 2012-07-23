@@ -17,7 +17,6 @@ package org.cloudifysource.shell.commands;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -26,13 +25,13 @@ import org.apache.commons.io.FileUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
-import org.apache.karaf.util.Properties.PropertiesReader;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.shell.Constants;
+import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.rest.RestLifecycleEventsLatch;
 import org.fusesource.jansi.Ansi.Color;
 
@@ -193,23 +192,7 @@ public class InstallService extends AdminAwareCommand {
 	}
 
 	private boolean promptWouldYouLikeToContinueQuestion() throws IOException {
-		// we skip question if the shell is running a script.
-		if ((Boolean) session.get(Constants.INTERACTIVE_MODE)) {
-			final String confirmationQuestion = getFormattedMessage("would_you_like_to_continue_service_installation",
-					serviceName);
-			System.out.print(confirmationQuestion);
-			System.out.flush();
-			final PropertiesReader pr = new PropertiesReader(new InputStreamReader(System.in));
-			String readLine = "";
-			while (!readLine.equalsIgnoreCase("y") && !readLine.equalsIgnoreCase("n")) {
-				readLine = pr.readProperty();
-			}
-			System.out.println();
-			System.out.flush();
-			return "y".equalsIgnoreCase(readLine);
-		}
-		// Shell is running in nonInteractive mode. we skip the question.
-		return true;
+		return ShellUtils.promptUser(session, "would_you_like_to_continue_service_installation", serviceName);
 	}
 
 	// TODO: THIS CODE IS COPIED AS IS FROM THE REST PROJECT
