@@ -25,43 +25,39 @@ import org.fusesource.jansi.Ansi.Color;
 /**
  * @author rafi, adaml, barakm
  * @since 2.0.0
- * 
+ *        <p/>
  *        Connects to a REST server.
- * 
+ *        <p/>
  *        Required arguments:
- *         URL - The URL of the REST server
- * 
+ *        URL - The URL of the REST server
+ *        <p/>
  *        Optional arguments:
- *         user - The username for a secure connection to the rest server
- *         pwd - The password for a secure connection to the rest server
- * 
+ *        user - The username for a secure connection to the rest server
+ *        pwd - The password for a secure connection to the rest server
+ *        <p/>
  *        Command syntax: connect [-user username] [-pwd password] URL
  */
 @Command(scope = "cloudify", name = "connect", description = "connects to the target admin REST server")
 public class Connect extends AbstractGSCommand {
 
-	@Option(required = false, description = "The username when connecting to a secure admin server", name = "-user")
-	private String user;
+    @Option(required = false, description = "The username when connecting to a secure admin server", name = "-user")
+    private String user;
 
-	@Option(required = false, description = "The password when connecting to a secure admin server", name = "-pwd",
-			aliases = { "-password" })
-	private String password;
+    @Option(required = false, description = "The password when connecting to a secure admin server", name = "-pwd",
+            aliases = {"-password"})
+    private String password;
 
-	@Argument(required = true, name = "URL", description = "the URL of the REST admin server to connect to")
-	private String url = "";
+    @Argument(required = true, name = "URL", description = "the URL of the REST admin server to connect to")
+    private String url = "";
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	protected Object doExecute() throws Exception {
-		final AdminFacade adminFacade = (AdminFacade) session.get(Constants.ADMIN_FACADE);
-		adminFacade.connect(user, password, url);
-		// We keep a reference to the facade so that the CompleterValue methods will be able
-		// to access it.
-		setRestAdminFacade(adminFacade);
-
-		return getFormattedMessage("connected_successfully", Color.GREEN);
-	}
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected Object doExecute() throws Exception {
+        final AdminFacade adminFacade = (AdminFacade) session.get(Constants.ADMIN_FACADE);
+        adminFacade.connect(user, password, url);
+        return getFormattedMessage("connected_successfully", Color.GREEN);
+    }
 
 }
