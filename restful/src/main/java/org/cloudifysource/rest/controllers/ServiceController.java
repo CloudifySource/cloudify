@@ -2080,7 +2080,7 @@ public class ServiceController {
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
 	        + "/instances/{instanceId}/tail",
 	        method = RequestMethod.GET)
-	public @ResponseBody
+	@ResponseBody public 
 	Map<String, Object> getLogTailByInstanceId(
 	        @PathVariable final String applicationName,
 	        @PathVariable final String serviceName, 
@@ -2102,8 +2102,9 @@ public class ServiceController {
 	}
 	
 	/**
-     * Retrieves the tail of a service log. This method used the service name and the instance host address
-     * To retrieve the the instance log tail.
+     * Retrieves the tail of a service log. This method uses the service name and the instance host address
+     * to retrieve the the instance log tail. Important: a machine might hold more than one service instance.
+     * In such a scenario, only one of the service instance logs will be tailed and returned.
      * @param applicationName 
      *         The application name.
      * @param serviceName
@@ -2118,7 +2119,7 @@ public class ServiceController {
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
 	        + "/address/{hostAddress}/tail",
 	        method = RequestMethod.GET)
-	public @ResponseBody
+	@ResponseBody public
 	Map<String, Object> getLogTailByHostAddress(
 	        @PathVariable final String applicationName,
 	        @PathVariable final String serviceName, 
@@ -2137,6 +2138,46 @@ public class ServiceController {
 
 	    return successStatus(logTail);
 	}
+	
+	/**
+     * Retrieves the log tail from all of the specified service's instances. 
+     * To retrieve the the instance log tail.
+     * @param applicationName 
+     *         The application name.
+     * @param serviceName
+     *         The service name.
+     * @param numLines 
+     *         The number of lines to tail.
+     * @return 
+     *         The last n lines of log from each service instance.
+     */
+    @RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
+            + "/tail",
+            method = RequestMethod.GET)
+    @ResponseBody public 
+    Map<String, Object> getLogTailByServiceName(
+            @PathVariable final String applicationName,
+            @PathVariable final String serviceName, 
+            @RequestParam(value = "numLines", required = true) final int numLines) {
+
+        StringBuilder stringBuilder = new StringBuilder();
+        try {
+            ProcessingUnit processingUnit = getProcessingUnit(applicationName, serviceName);
+            String instanceLogTail;
+            for (ProcessingUnitInstance processingUnitInstance : processingUnit) {
+                stringBuilder.append("service instance id #" + processingUnitInstance.getInstanceId() 
+                        + System.getProperty("line.separator"));
+                instanceLogTail = getLogTailFromContainer(processingUnitInstance.getGridServiceContainer(), numLines);
+                stringBuilder.append(instanceLogTail);
+                
+            }
+
+        } catch (RestServiceException e) {
+            logger.log(Level.INFO, "Failed retrieving the service logs. Reason: " + e.getMessage());
+            return errorStatus(e.getMessage());
+        }
+        return successStatus(stringBuilder.toString());
+    }
 
 	private String getLogTailFromContainer(final GridServiceContainer container, final int numLines) {
 
@@ -2154,12 +2195,7 @@ public class ServiceController {
 	        final String applicationName, final String serviceName, final int instanceId) 
 	                throws RestServiceException {
 	    
-	    String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-	    ProcessingUnit processingUnit = admin.getProcessingUnits().getProcessingUnit(absolutePUName);
-	    if (processingUnit == null) {
-	        logger.log(Level.FINE, "a Processing unit with the name " + absolutePUName + " was not found");
-	        throw new RestServiceException("a Processing unit with the name " + absolutePUName + " was not found");
-	    }
+	    ProcessingUnit processingUnit = getProcessingUnit(applicationName, serviceName);
 	    for (ProcessingUnitInstance processingUnitInstance : processingUnit) {
 	        if (processingUnitInstance.getInstanceId() == instanceId) {
                 return processingUnitInstance.getGridServiceContainer();
@@ -2169,6 +2205,17 @@ public class ServiceController {
 	            + " service container with instance id " + instanceId);
 
 	}
+
+    private ProcessingUnit getProcessingUnit(final String applicationName,
+            final String serviceName) throws RestServiceException {
+        String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+	    ProcessingUnit processingUnit = admin.getProcessingUnits().getProcessingUnit(absolutePUName);
+	    if (processingUnit == null) {
+	        logger.log(Level.FINE, "a Processing unit with the name " + absolutePUName + " was not found");
+	        throw new RestServiceException("a Processing unit with the name " + absolutePUName + " was not found");
+	    }
+        return processingUnit;
+    }
 
 	private GridServiceContainer getContainerAccordingToHostAddress(
 	        final String applicationName, final String serviceName, final String hostAddress) 
