@@ -22,6 +22,7 @@ import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.Ansi.Color;
+import org.fusesource.jansi.Ansi.Erase;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -85,6 +86,7 @@ public final class ShellUtils {
 
     public static boolean promptUser(final CommandSession session, final String messageKey, final Object... messageArgs) throws IOException {
         if ((Boolean) session.get(Constants.INTERACTIVE_MODE)) {
+        	session.getConsole().print(Ansi.ansi().eraseLine(Erase.ALL));
             final String confirmationQuestion = ShellUtils.getFormattedMessage(messageKey, messageArgs);
             session.getConsole().print(confirmationQuestion + " ");
             session.getConsole().flush();
