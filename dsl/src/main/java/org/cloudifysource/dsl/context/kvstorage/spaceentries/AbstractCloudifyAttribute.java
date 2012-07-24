@@ -21,49 +21,59 @@ import com.gigaspaces.annotation.pojo.SpaceIndex;
 
 /**
  * Base pojo for context properties which is stored in the space
+ *
  * @author eitany
  * @since 2.0
  */
 @SpaceClass
 public abstract class AbstractCloudifyAttribute {
 
-	private String applicationName;
-	private String key;
-	private Object value;
-	private String uid;
+    protected AbstractCloudifyAttribute() {
+    }
 
-	@SpaceId(autoGenerate = true)
-	public String getUid() {
-		return uid;
-	}
+    protected AbstractCloudifyAttribute(String applicationName, String key, Object value) {
+        this.applicationName = applicationName;
+        this.key = key;
+        this.value = value;
+    }
 
-	public void setUid(String uid) {
-		this.uid = uid;
-	}
+    private String applicationName;
+    private String key;
+    private Object value;
+    private String uid;
 
-	public void setApplicationName(String applicationName) {
-		this.applicationName = applicationName;
-	}
+    @SpaceId(autoGenerate = true)
+    public String getUid() {
+        return uid;
+    }
 
-	public String getApplicationName() {
-		return applicationName;
-	}
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
 
-	public void setKey(String key) {
-		this.key = key;
-	}
+    public void setApplicationName(String applicationName) {
+        this.applicationName = applicationName;
+    }
 
-	@SpaceIndex
-	public String getKey() {
-		return key;
-	}
+    public String getApplicationName() {
+        return applicationName;
+    }
 
-	public void setValue(Object value) {
-		this.value = value;
-	}
+    public void setKey(String key) {
+        this.key = key;
+    }
 
-	public Object getValue() {
-		return value;
-	}
+    @SpaceIndex
+    public String getKey() {
+        return key;
+    }
+
+    public void setValue(Object value) {
+        this.value = value;
+    }
+
+    public Object getValue() {
+        return value;
+    }
 
 }

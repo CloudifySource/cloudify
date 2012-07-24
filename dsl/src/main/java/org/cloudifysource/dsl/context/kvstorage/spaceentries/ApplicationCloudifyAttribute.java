@@ -17,9 +17,16 @@ package org.cloudifysource.dsl.context.kvstorage.spaceentries;
 
 /**
  * Context level property
+ *
  * @author eitany
  * @since 2.0
  */
 public class ApplicationCloudifyAttribute extends AbstractCloudifyAttribute {
 
+    public ApplicationCloudifyAttribute() {
+    }
+
+    public ApplicationCloudifyAttribute(String applicationName, String key, Object value) {
+        super(applicationName, key, value);
+    }
 }
