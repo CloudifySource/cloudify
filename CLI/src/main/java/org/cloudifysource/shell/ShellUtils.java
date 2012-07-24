@@ -44,7 +44,7 @@ import java.util.logging.Logger;
 public final class ShellUtils {
 
     protected static final Logger logger = Logger.getLogger(ShellUtils.class.getName());
-
+    
     private static final char WIN_RETURN_CHAR = '\r';
     private static final char LINUX_RETURN_CHAR = '\n';
 
@@ -54,6 +54,7 @@ public final class ShellUtils {
 
     private static final int VERSION_CHECK_READ_TIMEOUT = 5000;
 
+    private static final String BOLD_ANSI_CHAR_SEQUENCE = "\u001B[1m";
     private static final char FIRST_ESC_CHAR = 27;
     private static final char SECOND_ESC_CHAR = '[';
     private static final char COMMAND_CHAR = 'm';
@@ -179,12 +180,14 @@ public final class ShellUtils {
     /**
      * Gets the given message formatted to be displayed in bold characters.
      *
-     * @param message The text message
-     * @return A formatted message text
+     * @param message 
+     * 			The text message
+     * @return 
+     * 			A formatted message text
      */
     public static String getBoldMessage(final String message) {
-        String formattedMessage = Ansi.ansi().bold().a(message).toString();
-        return formattedMessage + FIRST_ESC_CHAR + SECOND_ESC_CHAR + '0' + COMMAND_CHAR;
+        return  BOLD_ANSI_CHAR_SEQUENCE + message + FIRST_ESC_CHAR
+        		+ SECOND_ESC_CHAR + '0' + COMMAND_CHAR;
     }
 
     /**
