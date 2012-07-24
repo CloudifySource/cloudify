@@ -466,8 +466,31 @@ public class Service {
 			File iconFile = new File(dslFile.getParent(), icon);
 			
 			if (!iconFile.isFile()) {
-				throw new DSLValidationException("The icon file \"" + iconFile.getAbsolutePath()
-						+ "\" does not exist.");
+				//check extended paths
+				boolean iconFound = false;
+				if (getExtendedServicesPaths() != null) {
+					for (final String extendedPath : getExtendedServicesPaths()) {
+						String prefix;
+						if (dslFile.isFile()) {
+							prefix = dslFile.getParent();
+						} else {
+							prefix = dslFile.getPath();
+						}
+						iconFile = new File(prefix + "/" + extendedPath, icon);
+						if (iconFile.isFile()) {
+							iconFound = true;
+							break;
+						}
+					}
+				}
+				
+				if (!iconFound) {
+					System.out.println("The icon file \"" + iconFile.getAbsolutePath()
+										+ "\" does not exist.");
+				//	throw new DSLValidationException("The icon file \"" + iconFile.getAbsolutePath()
+				//			+ "\" does not exist.");
+				}
+
 			}
 		}
 		

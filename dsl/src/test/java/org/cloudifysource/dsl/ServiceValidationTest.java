@@ -19,6 +19,7 @@ import static org.junit.Assert.fail;
 
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -97,6 +98,7 @@ public class ServiceValidationTest {
 	/**
 	 * Double-test for the service icon.
 	 */
+	@Ignore
 	@Test
 	public void testMissingServiceIcon() {
 		
