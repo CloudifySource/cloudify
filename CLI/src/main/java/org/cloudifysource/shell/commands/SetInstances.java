@@ -21,6 +21,7 @@ import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.fusesource.jansi.Ansi.Color;
 
 @Command(scope = "cloudify", name = "set-instances", description = "Sets the number of services of an elastic service")
 public class SetInstances extends AdminAwareCommand {
@@ -79,7 +80,7 @@ public class SetInstances extends AdminAwareCommand {
 		String pollingID = response.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
 		this.adminFacade.waitForLifecycleEvents(pollingID, timeout, TIMEOUT_ERROR_MESSAGE);
 		
-		return getFormattedMessage("set_instances_completed_successfully", serviceName, count);
+		return getFormattedMessage("set_instances_completed_successfully", Color.GREEN, serviceName, count);
 	}
 
 }
