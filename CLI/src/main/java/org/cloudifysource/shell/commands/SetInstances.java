@@ -15,12 +15,18 @@
  *******************************************************************************/
 package org.cloudifysource.shell.commands;
 
+import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.shell.Constants;
+import org.cloudifysource.shell.ShellUtils;
+import org.cloudifysource.shell.rest.RestLifecycleEventsLatch;
 import org.fusesource.jansi.Ansi.Color;
 
 @Command(scope = "cloudify", name = "set-instances", description = "Sets the number of services of an elastic service")
@@ -36,9 +42,9 @@ public class SetInstances extends AdminAwareCommand {
 
 	@Option(required = false, name = "-timeout", description = "number of minutes to wait for instances. Default is set to 1 minute")
 	protected int timeout = DEFAULT_TIMEOUT_MINUTES;
-	
+
 	private static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out. " 
-				+ "Try to increase the timeout using the -timeout flag";
+			+ "Try to increase the timeout using the -timeout flag";
 
 	// THIS DOES NOT WORK
 	// The Karaf @CompleterValues annotation only works on statis lists - the method is only invoked once, on loading of
@@ -78,9 +84,37 @@ public class SetInstances extends AdminAwareCommand {
 		Map<String, String> response = adminFacade.setInstances(applicationName, serviceName, count, timeout);
 
 		String pollingID = response.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
-		this.adminFacade.waitForLifecycleEvents(pollingID, timeout, TIMEOUT_ERROR_MESSAGE);
-		
+		RestLifecycleEventsLatch lifecycleEventsPollingLatch = 
+				this.adminFacade.getLifecycleEventsPollingLatch(pollingID, TIMEOUT_ERROR_MESSAGE);
+		boolean isDone = false;
+		boolean continuous = false;
+		while (!isDone) {
+			try {
+				if (!continuous) {
+					lifecycleEventsPollingLatch.waitForLifecycleEvents(timeout, TimeUnit.MINUTES);
+				} else {
+					lifecycleEventsPollingLatch.continueWaitForLifecycleEvents(timeout, TimeUnit.MINUTES);
+				}
+				isDone = true;
+			} catch (TimeoutException e) {
+				if (!(Boolean) session.get(Constants.INTERACTIVE_MODE)) {
+					throw e;
+				}
+				boolean continueInstallation = promptWouldYouLikeToContinueQuestion();
+				if (!continueInstallation) {
+					throw new CLIStatusException(e, "application_installation_timed_out_on_client", 
+							applicationName);
+				} else {
+					continuous = continueInstallation;
+				}
+			}
+		}
+
 		return getFormattedMessage("set_instances_completed_successfully", Color.GREEN, serviceName, count);
+	}
+
+	private boolean promptWouldYouLikeToContinueQuestion() throws IOException {
+		return ShellUtils.promptUser(session, "would_you_like_to_continue_polling_on_instance_lifecycle_events");
 	}
 
 }
