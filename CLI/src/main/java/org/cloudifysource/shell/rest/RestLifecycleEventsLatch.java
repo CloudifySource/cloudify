@@ -83,12 +83,11 @@ public class RestLifecycleEventsLatch {
 	 * 
 	 * @param timeout
 	 * @param timeUnit
-	 * @return
 	 * @throws InterruptedException
 	 * @throws TimeoutException
 	 * @throws CLIException
 	 */
-	public void waitForLifecycleEvents(final int timeout, TimeUnit timeUnit) 
+	public void waitForLifecycleEvents(final int timeout, final TimeUnit timeUnit) 
 			throws InterruptedException, TimeoutException, CLIException {
 		createConditionLatch(timeout, TimeUnit.MINUTES).waitFor(new Predicate() {
 
@@ -133,7 +132,6 @@ public class RestLifecycleEventsLatch {
 	 * 
 	 * @param timeout
 	 * @param timeUnit
-	 * @return
 	 * @throws InterruptedException
 	 * @throws TimeoutException
 	 * @throws CLIException if the polling task has expired on the remote server side
@@ -165,20 +163,23 @@ public class RestLifecycleEventsLatch {
 	/**
 	 * Sets the polling interval.
 	 * 
-	 * @param pollingIntervalInMillis Polling interval in milliseconds.
+	 * @param pollingInterval 
+	 * 			Polling interval.
+	 * @param timeUnit 
+	 * 			The polling interval time unit.
 	 */
-	public void setPollingInterval(final long pollingInterval, TimeUnit timeUnit) {
+	public void setPollingInterval(final long pollingInterval, final TimeUnit timeUnit) {
 		long pollingIntervalInMillis = timeUnit.toMillis(pollingInterval);
 		if (!(pollingIntervalInMillis < MIN_POLLING_INTERVAL)) {
 			this.pollingInterval = pollingIntervalInMillis;
 		} else {
 			logger.log(Level.INFO, 
-					"Polling interveal was set to the minimum polling" +
-							" interval allowed: " + MIN_POLLING_INTERVAL + "seconds");
+					"Polling interveal was set to the minimum polling" 
+						+ " interval allowed: " + MIN_POLLING_INTERVAL + "seconds");
 		}
 	}
 
-	public void setPollingId(String pollingID) {
+	public void setPollingId(final String pollingID) {
 		this.pollingID = pollingID;
 	}
 
