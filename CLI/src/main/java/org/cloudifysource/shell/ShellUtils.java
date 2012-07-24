@@ -49,7 +49,8 @@ public final class ShellUtils {
     private static final char LINUX_RETURN_CHAR = '\n';
 
     private static final long TWO_WEEKS_IN_MILLIS = 86400000L * 14L;
-    private static final File VERSION_CHECK_FILE = new File(System.getProperty("user.home") + "/.karaf/lastVersionCheckTimestamp");
+    private static final File VERSION_CHECK_FILE = 
+    		new File(System.getProperty("user.home") + "/.karaf/lastVersionCheckTimestamp");
 
     private static final int VERSION_CHECK_READ_TIMEOUT = 5000;
 
@@ -63,7 +64,15 @@ public final class ShellUtils {
 
     }
 
-
+    /**
+     * returns the message as it appears in the message bundle.
+     * @param msgName
+     * 			the message key as it is defined in the message bundle.
+     * @param arguments
+     * 			the message arguments
+     * @return
+     * 			the formatted message according to the message key.
+     */
     public static String getFormattedMessage(final String msgName, final Object... arguments) {
 
         final String message = getMessageBundle().getString(msgName);
@@ -74,17 +83,43 @@ public final class ShellUtils {
         try {
             return MessageFormat.format(message, arguments);
         } catch (final IllegalArgumentException e) {
-            logger.fine("Failed to format message: " + msgName + " with format: " + message + " and arguments: " + Arrays.toString(arguments));
+            logger.fine("Failed to format message: " + msgName + " with format: " 
+            					+ message + " and arguments: " + Arrays.toString(arguments));
             return msgName;
         }
     }
 
+    /**
+     * 
+     * @param session
+     * 			the command session.
+     * @param messageKey
+     * 			the message key.
+     * @return
+     * 			true if user hits 'y' OR 'yes' else returns false 
+     * @throws IOException
+     *			indicates a failure while accessing the session's stdout.
+     */
     public static boolean promptUser(final CommandSession session, final String messageKey) throws IOException {
         return promptUser(session, messageKey, EMPTY_OBJECT_ARRAY);
 
     }
-
-    public static boolean promptUser(final CommandSession session, final String messageKey, final Object... messageArgs) throws IOException {
+    
+    /**
+     * prompts the user with the given question.
+     * @param session 
+     * 			the command session.
+     * @param messageKey
+     * 			the message key.
+     * @param messageArgs
+     * 			the message arguments.
+     * @return 
+     * 			true if user hits 'y' OR 'yes' else returns false 
+     * @throws IOException
+     * 			Indicates a failure while accessing the session's stdout.
+     */
+    public static boolean promptUser(final CommandSession session, final String messageKey,
+    		final Object... messageArgs) throws IOException {
         if ((Boolean) session.get(Constants.INTERACTIVE_MODE)) {
         	session.getConsole().print(Ansi.ansi().eraseLine(Erase.ALL));
             final String confirmationQuestion = ShellUtils.getFormattedMessage(messageKey, messageArgs);
@@ -291,7 +326,14 @@ public final class ShellUtils {
         return os.indexOf("win") >= 0;
     }
 
-    public static boolean shouldDoVersionCheck(CommandSession session) {
+    /**
+     * returns true if the last version check was done more than two weeks ago.
+     * @param session 
+     * 			the command session.
+     * @return
+     * 			true if a version check is required else returns false.
+     */
+    public static boolean shouldDoVersionCheck(final CommandSession session) {
         long lastAskedTS = getLastTimeAskedAboutVersionCheck();
         //check only if checked over a two weeks ago and user agrees
         try {
@@ -306,7 +348,12 @@ public final class ShellUtils {
         return false;
     }
 
-    public static void doVersionCheck(CommandSession session) {
+    /**
+     * Checks if the latest version is used.
+     * @param session
+     * 			the command session.
+     */
+    public static void doVersionCheck(final CommandSession session) {
         String currentBuildStr = PlatformVersion.getBuildNumber();
         if (currentBuildStr.contains("-")) {
             currentBuildStr = currentBuildStr.substring(0, currentBuildStr.indexOf("-"));
@@ -325,12 +372,21 @@ public final class ShellUtils {
         session.getConsole().println();
     }
 
-    public static int getLatestBuildNumber(int currentVersion) {
+    /**
+     * returns the latest cloudify version.
+     * @param currentVersion
+     * 			the current version.
+     * @return
+     * 			the latest cloudify version.
+     */
+    public static int getLatestBuildNumber(final int currentVersion) {
         try {
             HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
             requestFactory.setReadTimeout(VERSION_CHECK_READ_TIMEOUT);
             RestTemplate template = new RestTemplate(requestFactory);
-            String versionStr = template.getForObject("http://www.gigaspaces.com/downloadgen/latest-cloudify-version?build=" + currentVersion, String.class);
+            String versionStr = template.getForObject(
+            					"http://www.gigaspaces.com/downloadgen/latest-cloudify-version?build=" + currentVersion,
+            					String.class);
             logger.fine("Latest cloudify version is " + versionStr);
             return Integer.parseInt(versionStr);
         } catch (RestClientException e) {
@@ -342,7 +398,12 @@ public final class ShellUtils {
         }
 
     }
-
+    
+    /**
+     * Returns the last time a version check was performed.
+     * @return
+     * 			the last time a version check was performed.
+     */
     public static long getLastTimeAskedAboutVersionCheck() {
         long lastVersionCheckTS = 0;
         if (VERSION_CHECK_FILE.exists()) {
@@ -363,7 +424,10 @@ public final class ShellUtils {
         }
         return lastVersionCheckTS;
     }
-
+    
+    /**
+     * updates the file that contains the last version check time.
+     */
     public static void registerVersionCheck() {
         DataOutputStream dos = null;
         try {
