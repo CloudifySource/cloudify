@@ -23,7 +23,6 @@ package org.cloudifysource.dsl.internal;
 public class DSLValidationContext {
 	
 	private String filePath;
-	private String workDirectory;
 	
 	/**
 	 * Gets the path of the DSL file being validated.
@@ -39,22 +38,6 @@ public class DSLValidationContext {
 	 */
 	public void setFilePath(final String filePath) {
 		this.filePath = filePath;
-	}
-
-	/**
-	 * Gets the work directory.
-	 * @return The path to the work directory
-	 */
-	public String getWorkDirectory() {
-		return workDirectory;
-	}
-
-	/**
-	 * Sets the path of the work directory.
-	 * @param workDirectory The path to the work directory
-	 */
-	public void setWorkDirectory(final String workDirectory) {
-		this.workDirectory = workDirectory;
 	}
 
 }

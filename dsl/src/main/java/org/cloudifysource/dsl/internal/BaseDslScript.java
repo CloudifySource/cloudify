@@ -85,7 +85,6 @@ public abstract class BaseDslScript extends Script {
 	public static final String EXTEND_PROPERTY_NAME = "extend";
 	
 	private static final String DSL_FILE_PATH_VAR = "dslFilePath";
-	private static final String DSL_WORK_DIR_VAR = "workDirectory";
 
 	private Set<String> processingUnitTypes;
 	private String processingUnitType;
@@ -324,7 +323,6 @@ public abstract class BaseDslScript extends Script {
 					final Map<Object, Object> currentVars = this.getBinding().getVariables();
 					DSLValidationContext validationContext = new DSLValidationContext();
 					validationContext.setFilePath((String) currentVars.get(DSL_FILE_PATH_VAR));
-					validationContext.setWorkDirectory((String) currentVars.get(DSL_WORK_DIR_VAR));
 					method.setAccessible(true);
 					method.invoke(obj, validationContext);
 
