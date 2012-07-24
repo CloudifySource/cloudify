@@ -59,7 +59,10 @@ public class CloudTemplate {
 	private boolean privileged = false;
 	private String initializationCommand = null;
 
+	private String javaUrl;
+
 	private Map<String, String> env = new HashMap<String, String>();
+
 	/**
 	 * Gets the image ID.
 	 * 
@@ -268,7 +271,7 @@ public class CloudTemplate {
 	}
 
 	@DSLValidation
-	void validateDefaultValues(final DSLValidationContext validationContext)
+	void validateDefaultValues(final DSLValidationContext context)
 			throws DSLValidationException {
 		if (this.getRemoteDirectory() == null || this.getRemoteDirectory().trim().isEmpty()) {
 			throw new DSLValidationException("Remote directory for template is missing");
@@ -324,6 +327,18 @@ public class CloudTemplate {
 
 	public void setEnv(final Map<String, String> env) {
 		this.env = env;
+	}
+
+	/**************
+	 * The url where the JDK used by Cloudify should be downloaded from.
+	 * @return the JDK url.
+	 */
+	public String getJavaUrl() {
+		return javaUrl;
+	}
+
+	public void setJavaUrl(final String javaUrl) {
+		this.javaUrl = javaUrl;
 	}
 
 }

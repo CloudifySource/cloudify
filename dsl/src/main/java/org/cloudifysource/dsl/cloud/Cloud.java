@@ -104,7 +104,8 @@ public class Cloud {
 	}
 
 	@DSLValidation
-	void validateManagementTemplateName(final DSLValidationContext validationContext) throws DSLValidationException {
+	void validateManagementTemplateName(final DSLValidationContext validationContext)
+			throws DSLValidationException {
 
 		CloudConfiguration configuration = getConfiguration();
 		Map<String, CloudTemplate> templates = getTemplates();
@@ -121,16 +122,18 @@ public class Cloud {
 		}
 
 	}
+
 	/**
-	 * Validate that a tenant id was assigned if required.
-	 * The tenant id property is required only in openstack based clouds.
+	 * Validate that a tenant id was assigned if required. The tenant id property is required only in openstack based
+	 * clouds.
 	 * 
 	 * @throws DSLValidationException
 	 */
 	@DSLValidation
-	void validateTenantId(final DSLValidationContext validationContext) throws DSLValidationException {
+	void validateTenantId(final DSLValidationContext validationContext)
+			throws DSLValidationException {
 		if (this.custom.containsKey("openstack.tenant")) {
-			String tenantId = (String)custom.get("openstack.tenant");
+			String tenantId = (String) custom.get("openstack.tenant");
 			if (tenantId.equalsIgnoreCase("ENTER_TENANT")) {
 				throw new DSLValidationException("The tenant id property must be set");
 			}
@@ -143,7 +146,8 @@ public class Cloud {
 	 * @throws DSLValidationException
 	 */
 	@DSLValidation
-	void validateKeySettings(final DSLValidationContext validationContext) throws DSLValidationException {
+	void validateKeySettings(final DSLValidationContext validationContext)
+			throws DSLValidationException {
 		File keyFile = null;
 
 		for (CloudTemplate template : this.templates.values()) {
@@ -178,13 +182,12 @@ public class Cloud {
 	}
 
 	/****************
-	 * Given a path of the type /C$/PATH - indicating an absolute CIFS path, returns /PATH. If the string does
-	 * not match, returns the original unmodified string.
+	 * Given a path of the type /C$/PATH - indicating an absolute CIFS path, returns /PATH. If the string does not
+	 * match, returns the original unmodified string.
 	 * 
-	 * @param path
-	 *            the input path.
-	 * @return the input path, adjusted to remove the CIFS drive letter, if it exists, or the original path if
-	 *         the drive letter is not present.
+	 * @param path the input path.
+	 * @return the input path, adjusted to remove the CIFS drive letter, if it exists, or the original path if the drive
+	 *         letter is not present.
 	 */
 	public static String normalizeCifsPath(final String path) {
 		final String expression = CIFS_ABSOLUTE_PATH_WITH_DRIVE_REGEX;
@@ -219,7 +222,7 @@ public class Cloud {
 	}
 
 	private String getRemoteDirPath(final CloudTemplate template) {
-		//String managementMachineTemplateName = getConfiguration().getManagementMachineTemplate();
+		// String managementMachineTemplateName = getConfiguration().getManagementMachineTemplate();
 		String remoteEnvDirectoryPath = template.getRemoteDirectory();
 		// fix the remote path if formatted for vfs2, so it would be parsed correctly.
 		return normalizeCifsPath(remoteEnvDirectoryPath);
