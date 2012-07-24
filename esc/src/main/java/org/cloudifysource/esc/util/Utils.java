@@ -525,6 +525,10 @@ public final class Utils {
 			details.getExtraRemoteEnvironmentVariables().put(entry.getKey(), entry.getValue());
 		}
 		
+		
+		if(!org.apache.commons.lang.StringUtils.isBlank(template.getJavaUrl())) {
+			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.CLOUDIFY_AGENT_ENV_JAVA_URL, template.getJavaUrl());
+		}
 
 		logger.fine("Created InstallationDetails: " + details);
 		return details;
