@@ -49,4 +49,7 @@ org.cloudifysource.shell.commands.SetInstances
 org.cloudifysource.shell.commands.ListServices
 org.cloudifysource.shell.commands.ListApplications
 org.cloudifysource.shell.commands.Tail
+org.cloudifysource.shell.commands.SetAttributes
+org.cloudifysource.shell.commands.ListAttributes
+org.cloudifysource.shell.commands.RemoveAttributes
 

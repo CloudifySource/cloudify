@@ -23,47 +23,53 @@ import java.io.InputStreamReader;
 /**
  * This class offers static methods to evaluate Strings and read from an input
  * stream.
- * 
+ *
  * @author rafi
  * @since 2.0.0
  */
 public final class StringUtils {
-	
-	/**
-	 * Private Ctor, to avoid instantiation of this utility class.
-	 */
-	private StringUtils() { }
 
-	/**
-	 * Checks if a given String is not null or empty.
-	 * 
-	 * @param str
-	 *            The String object to evaluate
-	 * @return true/false
-	 */
-	public static boolean notEmpty(final String str) {
-		return str != null && !str.isEmpty();
-	}
+    /**
+     * Private Ctor, to avoid instantiation of this utility class.
+     */
+    private StringUtils() {
+    }
 
-	/**
-	 * Returns the content of a given input stream, as a String object.
-	 * 
-	 * @param is
-	 *            the input stream to read.
-	 * @return the content of the given input stream
-	 * @throws IOException
-	 *             Reporting failure to read from the InputStream
-	 */
-	public static String getStringFromStream(final InputStream is)
-			throws IOException {
-		BufferedReader bufferedReader = new BufferedReader(
-				new InputStreamReader(is));
-		StringBuilder sb = new StringBuilder();
-		String line = null;
-		while ((line = bufferedReader.readLine()) != null) {
-			sb.append(line);
-		}
-		return sb.toString();
-	}
+    /**
+     * Checks if a given String is not null or empty.
+     *
+     * @param str The String object to evaluate
+     * @return true/false
+     */
+    public static boolean notEmpty(final String str) {
+        return str != null && !str.isEmpty();
+    }
+
+    /**
+     * Returns the content of a given input stream, as a String object.
+     *
+     * @param is the input stream to read.
+     * @return the content of the given input stream
+     * @throws IOException Reporting failure to read from the InputStream
+     */
+    public static String getStringFromStream(final InputStream is)
+            throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(
+                new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+        String line = null;
+        while ((line = bufferedReader.readLine()) != null) {
+            sb.append(line);
+        }
+        return sb.toString();
+    }
+
+    public static Integer safeParseInt(String str) {
+        try {
+            return Integer.parseInt(str);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
 
 }
