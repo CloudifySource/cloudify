@@ -636,4 +636,18 @@ public class RestAdminFacade extends AbstractAdminFacade {
             throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
         }
     }
+
+	@Override
+	public String getTailByServiceName(final String serviceName,
+			final String applicationName, final int numLines) throws CLIException {
+        final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName
+                + "/tail/" + "?numLines=" + numLines;
+        try {
+            @SuppressWarnings("unchecked")
+            String response = (String) client.get(url);
+            return response;
+        } catch (final ErrorStatusException e) {
+            throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+        }
+	}
 }

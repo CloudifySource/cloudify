@@ -238,11 +238,18 @@ public interface AdminFacade {
      * Retrieves the tail of a service log. This method used the service name and instance id
      * To retrieve the the instance log tail.
      *
-     * @param applicationName The application name.
-     * @param serviceName     The service name.
-     * @param instanceId      The service instance id.
-     * @param numLines        The number of lines to tail.
-     * @return The last n lines of log of the requested service.
+     * @param applicationName 
+     * 				The application name.
+     * @param serviceName     
+     * 				The service name.
+     * @param instanceId      
+     * 				The service instance id.
+     * @param numLines        
+     * 				The number of lines to tail.
+     * @return 
+     * 				The last n lines of log of the requested service according to it's instance id.
+     * @throws CLIException
+     * 				a CLI exception is thrown if an error occurred on the remote server.
      */
     String getTailByInstanceId(String serviceName, String applicationName, int instanceId,
                                int numLines) throws CLIException;
@@ -251,14 +258,37 @@ public interface AdminFacade {
      * Retrieves the tail of a service log. This method used the service name and the instance host address
      * To retrieve the the instance log tail.
      *
-     * @param applicationName The application name.
-     * @param serviceName     The service name.
-     * @param hostAddress     The service instance's host address.
-     * @param numLines        The number of lines to tail.
-     * @return The last n lines of log of the requested service.
+     * @param applicationName 
+     * 				The application name.
+     * @param serviceName     
+     * 				The service name.
+     * @param hostAddress     
+     * 				The service instance's host address.
+     * @param numLines        
+     * 				The number of lines to tail.
+     * @return 
+     * 				The last n lines of log of the requested service instance according to it's host address.
+ 	 * @throws CLIException
+     * 				a CLI exception is thrown if an error occurred on the remote server.
      */
     String getTailByHostAddress(String serviceName, String applicationName,
                                 String hostAddress, int numLines) throws CLIException;
+    
+    /**
+     * returns the last n lines of log from each service instance.
+     * @param serviceName
+     * 			The service name.
+     * @param applicationName
+     * 				The application name.
+     * @param numLines
+     * 				The number of lines to tail.
+     * @return
+     * 				The last n lines of log from each service instance.
+     * @throws CLIException
+     * 				a CLI exception is thrown if an error occurred on the remote server.
+     */
+    String getTailByServiceName(String serviceName, String applicationName,
+    		int numLines) throws CLIException;
 
 
     /**
@@ -298,4 +328,5 @@ public interface AdminFacade {
      * @param attributeNames  the names of the attributes to delete
      */
     void deleteAttributes(String scope, String applicationName, String... attributeNames) throws CLIException;
+
 }
