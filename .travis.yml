@@ -4,5 +4,3 @@ jdk:
 install: "mvn install -f ./cloudify/pom.xml --quiet -DskipTests=true"
 script: "mvn test -f ./cloudify/pom.xml"
 after_script: "ant -f ./cloudify/build.xml cloudify.zip"
-notifications:
-  irc: "irc.freenode.org#cloudify"
