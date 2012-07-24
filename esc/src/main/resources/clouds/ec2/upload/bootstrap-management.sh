@@ -41,14 +41,46 @@ function error_exit_on_level {
 		error_exit ${1} ${2}
 	fi
 }
-sudo yum -y install java-1.6.0-openjdk-devel
-export JAVA_HOME=/usr/lib/jvm/java-1.6.0-openjdk
+
+
+JAVA_32_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-i586.bin"
+JAVA_64_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-x64.bin"
+
+if [ -z "$CLOUDIFY_AGENT_ENV_JAVA_URL" ]; then
+	ARCH=`uname -m`
+	echo Machine Architecture -- $ARCH
+	if [ "$ARCH" = "i686" ]; then
+		export CLOUDIFY_AGENT_ENV_JAVA_URL=$JAVA_32_URL
+	elif [ "$ARCH" = "x86_64" ]; then
+		export CLOUDIFY_AGENT_ENV_JAVA_URL=$JAVA_64_URL
+	else 
+		echo Unknown architecture -- $ARCH -- defaulting to 32 bit JDK
+		export CLOUDIFY_AGENT_ENV_JAVA_URL=$JAVA_32_URL
+	fi
+	
+fi  
+
+if [ "$CLOUDIFY_AGENT_ENV_JAVA_URL" = "NO_INSTALL" ]; then
+	echo "JDK will not be installed"
+else
+	echo Previous JAVA_HOME value -- $JAVA_HOME 
+	export CLOUDIFY_ORIGINAL_JAVA_HOME=$JAVA_HOME
+
+	echo Downloading JDK from $CLOUDIFY_AGENT_ENV_JAVA_URL    
+	wget -q -O $WORKING_HOME_DIRECTORY/java.bin $CLOUDIFY_AGENT_ENV_JAVA_URL
+	chmod +x $WORKING_HOME_DIRECTORY/java.bin
+	echo -e "\n" > $WORKING_HOME_DIRECTORY/input.txt
+	mkdir ~/java
+	cd ~/java
+	
+	echo Installing JDK
+	$WORKING_HOME_DIRECTORY/java.bin < $WORKING_HOME_DIRECTORY/input.txt > /dev/null
+	mv ~/java/*/* ~/java || error_exit $? "Failed moving JDK installation"
+	rm -f $WORKING_HOME_DIRECTORY/input.txt
+    export JAVA_HOME=~/java
+fi  
 
 export EXT_JAVA_OPTIONS="-Dcom.gs.multicast.enabled=false"
-if [ -z "$JAVA_HOME" ]; then
-	echo -- SETTING JAVA_HOME TO /usr/lib/jvm/java-1.6.0-openjdk
-	export JAVA_HOME=/usr/lib/jvm/java-1.6.0-openjdk
-fi
 
 # Some distros do not come with unzip built-in
 if [ ! -f "/usr/bin/unzip" ]; then
@@ -124,14 +156,15 @@ if [ "$CLOUDIFY_AGENT_ENV_PRIVILEGED" = "true" ]; then
 		# root is privileged by definition
 		echo Already running as root
 	else
-		sudo -n ls || error_exit_on_level $? "Current user is not a sudoer, or requires a password for sudo" 1
+		sudo -n ls > /dev/null || error_exit_on_level $? "Current user is not a sudoer, or requires a password for sudo" 1
 		
 		if [ ! -f "/etc/sudoers" ]; then
 			error_exit 101 "Could not find sudoers file at expected location (/etc/sudoers)"
 		fi
 		
-		echo Setting privileged mode
-		sudo sed -i 's/^Defaults requiretty/# Defaults requiretty/g' /etc/sudoers || error_exit_on_level $? "Failed to edit sudoers file to disable requiretty directive" 1
+		echo Disabling requiretty directive
+		sudo sed -i 's/^Defaults    requiretty/# Defaults    requiretty/g' /etc/sudoers || error_exit_on_level $? "Failed to edit sudoers file to disable requiretty directive" 1
+		
 		
 	fi
 
