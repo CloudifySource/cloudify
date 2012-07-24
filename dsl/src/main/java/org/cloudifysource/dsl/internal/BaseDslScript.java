@@ -78,11 +78,14 @@ import org.openspaces.ui.WidgetGroup;
 public abstract class BaseDslScript extends Script {
 
 	private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger(BaseDslScript.class.getName());
-
+	
 	/********
 	 * DSL property indicating extension of recipe.
 	 */
 	public static final String EXTEND_PROPERTY_NAME = "extend";
+	
+	private static final String DSL_FILE_PATH_VAR = "dslFilePath";
+	private static final String DSL_WORK_DIR_VAR = "workDirectory";
 
 	private Set<String> processingUnitTypes;
 	private String processingUnitType;
@@ -318,9 +321,12 @@ public abstract class BaseDslScript extends Script {
 			if (method.getAnnotation(DSLValidation.class) != null) {
 				final boolean accessible = method.isAccessible();
 				try {
-
+					final Map<Object, Object> currentVars = this.getBinding().getVariables();
+					DSLValidationContext validationContext = new DSLValidationContext();
+					validationContext.setFilePath((String) currentVars.get(DSL_FILE_PATH_VAR));
+					validationContext.setWorkDirectory((String) currentVars.get(DSL_WORK_DIR_VAR));
 					method.setAccessible(true);
-					method.invoke(obj);
+					method.invoke(obj, validationContext);
 
 				} catch (final InvocationTargetException e) {
 					throw new DSLValidationException(e.getTargetException().getMessage(), e.getTargetException());

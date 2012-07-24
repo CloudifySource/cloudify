@@ -21,6 +21,7 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.DSLValidation;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 
 /**
@@ -267,7 +268,7 @@ public class CloudTemplate {
 	}
 
 	@DSLValidation
-	void validateDefaultValues()
+	void validateDefaultValues(final DSLValidationContext validationContext)
 			throws DSLValidationException {
 		if (this.getRemoteDirectory() == null || this.getRemoteDirectory().trim().isEmpty()) {
 			throw new DSLValidationException("Remote directory for template is missing");

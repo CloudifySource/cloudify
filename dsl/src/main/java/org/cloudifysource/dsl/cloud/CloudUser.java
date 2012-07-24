@@ -17,6 +17,7 @@ package org.cloudifysource.dsl.cloud;
 
 import org.cloudifysource.dsl.DSLValidation;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 
 /********************
@@ -57,7 +58,7 @@ public class CloudUser {
 	}
 
 	@DSLValidation
-	void validateDefaultValues()
+	void validateDefaultValues(final DSLValidationContext validationContext)
 			throws DSLValidationException {
 		if ("ENTER_USER".equals(this.getUser())) {
 			throw new DSLValidationException("User field still has default configuration value of ENTER_USER");

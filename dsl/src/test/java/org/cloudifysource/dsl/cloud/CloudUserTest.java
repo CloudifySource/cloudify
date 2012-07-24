@@ -1,5 +1,6 @@
 package org.cloudifysource.dsl.cloud;
 
+import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +26,7 @@ public class CloudUserTest {
 		fixture.setApiKey("");
 		
 
-		fixture.validateDefaultValues();
+		fixture.validateDefaultValues(new DSLValidationContext());
 
 		// add additional test code here
 		// unverified
@@ -44,7 +45,7 @@ public class CloudUserTest {
 		fixture.setApiKey("");
 		
 
-		fixture.validateDefaultValues();
+		fixture.validateDefaultValues(new DSLValidationContext());
 
 		// add additional test code here
 		// unverified
@@ -63,7 +64,7 @@ public class CloudUserTest {
 		fixture.setApiKey("ENTER_KEY");
 		
 
-		fixture.validateDefaultValues();
+		fixture.validateDefaultValues(new DSLValidationContext());
 
 		// add additional test code here
 		// unverified

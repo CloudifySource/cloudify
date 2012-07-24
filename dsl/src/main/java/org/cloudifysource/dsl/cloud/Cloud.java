@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.DSLValidation;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 
 import com.j_spaces.kernel.Environment;
@@ -103,7 +104,7 @@ public class Cloud {
 	}
 
 	@DSLValidation
-	void validateManagementTemplateName() throws DSLValidationException {
+	void validateManagementTemplateName(final DSLValidationContext validationContext) throws DSLValidationException {
 
 		CloudConfiguration configuration = getConfiguration();
 		Map<String, CloudTemplate> templates = getTemplates();
@@ -127,7 +128,7 @@ public class Cloud {
 	 * @throws DSLValidationException
 	 */
 	@DSLValidation
-	void validateTenantId() throws DSLValidationException {
+	void validateTenantId(final DSLValidationContext validationContext) throws DSLValidationException {
 		if (this.custom.containsKey("openstack.tenant")) {
 			String tenantId = (String)custom.get("openstack.tenant");
 			if (tenantId.equalsIgnoreCase("ENTER_TENANT")) {
@@ -142,7 +143,7 @@ public class Cloud {
 	 * @throws DSLValidationException
 	 */
 	@DSLValidation
-	void validateKeySettings() throws DSLValidationException {
+	void validateKeySettings(final DSLValidationContext validationContext) throws DSLValidationException {
 		File keyFile = null;
 
 		for (CloudTemplate template : this.templates.values()) {

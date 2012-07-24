@@ -15,6 +15,7 @@
  *******************************************************************************/
 package org.cloudifysource.dsl;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -24,6 +25,7 @@ import java.util.Map;
 import org.cloudifysource.dsl.entry.ExecutableEntriesMap;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.cloudifysource.dsl.internal.ServiceTierType;
 import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
@@ -419,7 +421,7 @@ public class Service {
 	}
 
 	@DSLValidation
-	void validateDefaultValues()
+	void validateDefaultValues(final DSLValidationContext validationContext)
 			throws DSLValidationException {
 		validateInstanceNumber();
 		validateServiceType();
@@ -450,9 +452,30 @@ public class Service {
 					+ " (" + this.maxAllowedInstances + ") for service " + this.name + ".");
 		}
 	}
+	
+	/**
+	 * Validate the icon property (if set) points to an existing file.
+	 * @param validationContext The DSLValidationContext object
+	 * @throws DSLValidationException Indicates the icon could not be found
+	 */
+	@DSLValidation
+	void validateIcon(final DSLValidationContext validationContext) throws DSLValidationException {
+
+		if (icon != null) {
+			File dslFile = new File(validationContext.getFilePath());
+			File iconFile = new File(dslFile.getParent(), icon);
+			
+			if (!iconFile.isFile()) {
+				throw new DSLValidationException("The icon file \"" + iconFile.getAbsolutePath()
+						+ "\" does not exist.");
+			}
+		}
+		
+
+	}
 
 	@DSLValidation
-	void validateCustomProperties()
+	void validateCustomProperties(final DSLValidationContext validationContext)
 			throws DSLValidationException {
 		if (this.customProperties.containsKey(CloudifyConstants.CUSTOM_PROPERTY_MONITORS_CACHE_EXPIRATION_TIMEOUT)) {
 			try {

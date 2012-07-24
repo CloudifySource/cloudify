@@ -2,6 +2,7 @@ package org.cloudifysource.dsl.cloud;
 
 import java.util.HashMap;
 
+import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,7 +41,7 @@ public class CloudTemplateTest {
 		fixture.setPassword("");
 		fixture.setMachineMemoryMB(1);
 
-		fixture.validateDefaultValues();
+		fixture.validateDefaultValues(new DSLValidationContext());
 
 		// add additional test code here
 		// unverified
@@ -71,7 +72,7 @@ public class CloudTemplateTest {
 		fixture.setPassword("");
 		fixture.setMachineMemoryMB(1);
 
-		fixture.validateDefaultValues();
+		fixture.validateDefaultValues(new DSLValidationContext());
 
 		// add additional test code here
 		// unverified
@@ -102,7 +103,7 @@ public class CloudTemplateTest {
 		fixture.setPassword("");
 		fixture.setMachineMemoryMB(1);
 
-		fixture.validateDefaultValues();
+		fixture.validateDefaultValues(new DSLValidationContext());
 
 		// add additional test code here
 		// unverified

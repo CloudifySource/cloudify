@@ -1,6 +1,7 @@
 
 package org.cloudifysource.dsl;
 
+import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,7 +31,7 @@ public class ServiceNetworkTest {
 		fixture.setPort(1);
 		fixture.setProtocolDescription("");
 
-		fixture.checkDescription();
+		fixture.checkDescription(new DSLValidationContext());
 
 		// add additional test code here
 		// unverified
@@ -50,7 +51,7 @@ public class ServiceNetworkTest {
 		fixture.setPort(1);
 		fixture.setProtocolDescription((String) null);
 
-		fixture.checkDescription();
+		fixture.checkDescription(new DSLValidationContext());
 
 	}
 
@@ -68,7 +69,7 @@ public class ServiceNetworkTest {
 		fixture.setPort(1);
 		fixture.setProtocolDescription("");
 
-		fixture.checkPortValue();
+		fixture.checkPortValue(new DSLValidationContext());
 
 	}
 
@@ -86,7 +87,7 @@ public class ServiceNetworkTest {
 		fixture.setPort(0);
 		fixture.setProtocolDescription("");
 
-		fixture.checkPortValue();
+		fixture.checkPortValue(new DSLValidationContext());
 
 	}
 
