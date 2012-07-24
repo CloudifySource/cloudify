@@ -162,7 +162,8 @@ public class Cloud {
 							throw new DSLValidationException(
 									"The specified key file is not found on these locations: \""
 											+ (new File(getLocalDirPath(template), keyFileStr)).getAbsolutePath()
-											+ "\", \"" + (new File(getRemoteDirPath(), keyFileStr)).getAbsolutePath()
+											+ "\", \""
+											+ (new File(getRemoteDirPath(template), keyFileStr)).getAbsolutePath()
 											+ "\"");
 						}
 					}
@@ -197,7 +198,7 @@ public class Cloud {
 	}
 
 	private boolean isKeyFileFoundOnRemoteMachinePath(final CloudTemplate template) {
-		String remoteEnvDirectoryPath = getRemoteDirPath();
+		String remoteEnvDirectoryPath = getRemoteDirPath(template);
 		File remoteKeyFile = new File(remoteEnvDirectoryPath, template.getKeyFile());
 		logger.log(Level.FINE, "Looking for key file on remote machine: " + remoteKeyFile.getAbsolutePath());
 		return remoteKeyFile.isFile();
@@ -217,10 +218,9 @@ public class Cloud {
 		return new File(envHomeDir, configLocalDir).getAbsolutePath();
 	}
 
-	private String getRemoteDirPath() {
-		String managementMachineTemplateName = getConfiguration().getManagementMachineTemplate();
-		CloudTemplate cloudTemplate = getTemplates().get(managementMachineTemplateName);
-		String remoteEnvDirectoryPath = cloudTemplate.getRemoteDirectory();
+	private String getRemoteDirPath(final CloudTemplate template) {
+		//String managementMachineTemplateName = getConfiguration().getManagementMachineTemplate();
+		String remoteEnvDirectoryPath = template.getRemoteDirectory();
 		// fix the remote path if formatted for vfs2, so it would be parsed correctly.
 		return normalizeCifsPath(remoteEnvDirectoryPath);
 	}
