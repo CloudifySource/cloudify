@@ -85,7 +85,7 @@ fi
 
 # install Java
 echo Installing Java
-yum -y install java-1.6.0-openjdk-devel
+yum -y -q install java-1.6.0-openjdk-devel
 if [ -z "$JAVA_HOME" ]; then
 	echo -- SETTING JAVA_HOME TO /usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_64
 	export JAVA_HOME=/usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_64
