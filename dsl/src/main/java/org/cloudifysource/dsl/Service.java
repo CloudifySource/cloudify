@@ -25,6 +25,7 @@ import java.util.Map;
 import org.cloudifysource.dsl.entry.ExecutableEntriesMap;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.cloudifysource.dsl.internal.ServiceTierType;
@@ -460,40 +461,37 @@ public class Service {
 	 */
 	@DSLValidation
 	void validateIcon(final DSLValidationContext validationContext) throws DSLValidationException {
-
-		if (icon != null) {
-			File dslFile = new File(validationContext.getFilePath());
+		boolean isServiceFile = false;
+		String serviceSuffix = DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX.toLowerCase().trim();
+		String filePath = validationContext.getFilePath().toLowerCase().trim();
+		
+		// execute this validation only if an icon was set and this is a Service's groovy file (not an Application's) 
+		if (filePath.lastIndexOf(serviceSuffix) + 1 + serviceSuffix.length() ==  filePath.length()) {
+			isServiceFile = true;
+		}
+		
+		if (icon != null && isServiceFile) {
+			File dslFile = new File(filePath);
 			File iconFile = new File(dslFile.getParent(), icon);
 			
 			if (!iconFile.isFile()) {
-				//check extended paths
-				boolean iconFound = false;
+				// check the icon at the extended path location, required for service that extend another Service file
 				if (getExtendedServicesPaths() != null) {
 					for (final String extendedPath : getExtendedServicesPaths()) {
-						String prefix;
-						if (dslFile.isFile()) {
-							prefix = dslFile.getParent();
-						} else {
-							prefix = dslFile.getPath();
-						}
-						iconFile = new File(prefix + "/" + extendedPath, icon);
+						iconFile = new File(dslFile.getParent() + "/" + extendedPath, icon);
 						if (iconFile.isFile()) {
-							iconFound = true;
 							break;
 						}
 					}
 				}
 				
-				if (!iconFound) {
-					System.out.println("The icon file \"" + iconFile.getAbsolutePath()
-										+ "\" does not exist.");
-				//	throw new DSLValidationException("The icon file \"" + iconFile.getAbsolutePath()
-				//			+ "\" does not exist.");
+				if (!iconFile.isFile()) {
+					throw new DSLValidationException("The icon file \"" + iconFile.getAbsolutePath()
+							+ "\" does not exist.");
 				}
 
 			}
 		}
-		
 
 	}
 
