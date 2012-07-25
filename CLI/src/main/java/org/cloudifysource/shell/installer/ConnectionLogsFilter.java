@@ -85,7 +85,7 @@ public class ConnectionLogsFilter {
 			}
 			
 			private boolean isConnectException(final Throwable t) {
-				return (t instanceof java.net.ConnectException) 
+				return (t instanceof java.net.SocketException) 
 						|| (t instanceof java.rmi.ConnectException);
 			}
 		};
