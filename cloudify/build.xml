@@ -12,11 +12,11 @@
 
 <project name="Cloudify-Assembly" default="usage" basedir=".">
 	
-	<condition property="build.repository.path" value="\\tarzan\builds">
+	<condition property="build.repository.path" value=".\target\build">
 		<os family="windows" />
 	</condition>
 
-	<condition property="build.repository.path" value="/export/builds">
+	<condition property="build.repository.path" value="./target/build">
 		<os family="unix" />
 	</condition>
 
@@ -212,7 +212,7 @@
 	            <fileset dir="${azure.local.copy}/azure/src/main/resources/azure" includes="**/*" excludes=".svn"/>
 	            <fileset dir="${azure.local.copy}/azure/target/" includes="azure.jar" excludes=".svn"/>
 	        </copy>
-	
+
 	        <echo message="Copy CLOUDIFY Rest component"/>
 	        <copy todir="@{installation.dir}/tools/rest/" overwrite="true">
 	            <fileset dir="${restful.local.copy}/target/" includes="rest.war" excludes=".svn"/>
