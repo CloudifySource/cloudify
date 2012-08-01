@@ -40,8 +40,10 @@ import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.internal.pu.DefaultProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
+import org.openspaces.admin.pu.ProcessingUnitInstanceStatistics;
 import org.openspaces.admin.pu.ProcessingUnitType;
 import org.openspaces.admin.zone.Zone;
+import org.openspaces.pu.service.ServiceMonitors;
 
 import com.gigaspaces.log.LogEntries;
 import com.gigaspaces.log.LogEntry;
@@ -466,21 +468,43 @@ public class RestPollingRunnable implements Runnable {
     private int getNumberOfUSMServicesWithRunningState(
             final String absolutePUName) {
 
-        int puiInstanceCounter = 0;
+        int puInstanceCounter = 0;
         ProcessingUnit processingUnit = admin.getProcessingUnits()
                 .getProcessingUnit(absolutePUName);
 
         for (ProcessingUnitInstance pui : processingUnit) {
             // TODO: get the instanceState step
-            int instanceState = (Integer) pui.getStatistics().getMonitors()
-                    .get("USM").getMonitors()
-                    .get(CloudifyConstants.USM_MONITORS_STATE_ID);
-            if (CloudifyConstants.USMState.values()[instanceState]
-                    .equals(CloudifyConstants.USMState.RUNNING)) {
-                puiInstanceCounter++;
+            if (isUsmStateOfPuiRunning(pui)) {
+                puInstanceCounter++;
             }
         }
-        return puiInstanceCounter;
+        return puInstanceCounter;
+    }
+
+    private boolean isUsmStateOfPuiRunning(final ProcessingUnitInstance pui) {
+        ProcessingUnitInstanceStatistics statistics = pui.getStatistics();
+        if (statistics == null) {
+            return false;
+        }
+        Map<String, ServiceMonitors> puMonitors = statistics.getMonitors();
+        if (puMonitors == null) {
+            return false;
+        }
+        ServiceMonitors serviceMonitors = puMonitors.get("USM");
+        if (serviceMonitors == null) {
+            return false;
+        }
+        Map<String, Object> monitors = serviceMonitors.getMonitors();
+        if (monitors == null) {
+            return false;
+        }
+        
+        int instanceState = (Integer) monitors.get(CloudifyConstants.USM_MONITORS_STATE_ID);
+        if (CloudifyConstants.USMState.values()[instanceState]
+                .equals(CloudifyConstants.USMState.RUNNING)) {
+            return true;
+        }
+        return false;
     }
 
     /**
