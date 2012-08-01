@@ -2087,14 +2087,13 @@ public class ServiceController {
 	        @PathVariable final int instanceId,
 	        @RequestParam(value = "numLines", required = true) final int numLines) {
 
-	    GridServiceContainer container = null;
-	    try {
-	        container = getContainerAccordingToInstanceId(applicationName,
+	    GridServiceContainer container = getContainerAccordingToInstanceId(applicationName,
 	                serviceName, instanceId);
-	    }
-	    catch (RestServiceException e) {
-	        logger.log(Level.INFO, "Failed retrieving the service logs. Reason: " + e.getMessage());
-	        return errorStatus(e.getMessage());
+	    
+	    if (container == null) {
+            String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+            logger.severe("Could not find service " + absolutePuName);
+            return unavailableServiceError(absolutePuName);
 	    }
 	    String logTailFromContainer = getLogTailFromContainer(container, numLines);
 
@@ -2125,14 +2124,13 @@ public class ServiceController {
 	        @PathVariable final String serviceName, 
 	        @PathVariable final String hostAddress,
 	        @RequestParam(value = "numLines", required = true) final int numLines) {
-	    GridServiceContainer container = null;
-
-	    try {
-	        container = getContainerAccordingToHostAddress(applicationName,
-	                serviceName, hostAddress);
-	    } catch (RestServiceException e) {
-	        logger.log(Level.INFO, "Failed retrieving the service logs. Reason: " + e.getMessage());
-	        return errorStatus(e.getMessage());
+	    
+	    GridServiceContainer container = getContainerAccordingToHostAddress(applicationName,
+	            serviceName, hostAddress);
+	    if (container == null) {
+	        String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+	        logger.severe("Could not find service " + absolutePuName);
+	        return unavailableServiceError(absolutePuName);
 	    }
 	    String logTail = getLogTailFromContainer(container, numLines);
 
@@ -2151,33 +2149,33 @@ public class ServiceController {
      * @return 
      *         The last n lines of log from each service instance.
      */
-    @RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
-            + "/tail",
-            method = RequestMethod.GET)
-    @ResponseBody public 
-    Map<String, Object> getLogTailByServiceName(
-            @PathVariable final String applicationName,
-            @PathVariable final String serviceName, 
-            @RequestParam(value = "numLines", required = true) final int numLines) {
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
+	        + "/tail",
+	        method = RequestMethod.GET)
+	@ResponseBody public 
+	Map<String, Object> getLogTailByServiceName(
+	        @PathVariable final String applicationName,
+	        @PathVariable final String serviceName, 
+	        @RequestParam(value = "numLines", required = true) final int numLines) {
 
-        StringBuilder stringBuilder = new StringBuilder();
-        try {
-            ProcessingUnit processingUnit = getProcessingUnit(applicationName, serviceName);
-            String instanceLogTail;
-            for (ProcessingUnitInstance processingUnitInstance : processingUnit) {
-                stringBuilder.append("service instance id #" + processingUnitInstance.getInstanceId() 
-                        + System.getProperty("line.separator"));
-                instanceLogTail = getLogTailFromContainer(processingUnitInstance.getGridServiceContainer(), numLines);
-                stringBuilder.append(instanceLogTail);
-                
-            }
+	    StringBuilder stringBuilder = new StringBuilder();
+	    ProcessingUnit processingUnit = getProcessingUnit(applicationName, serviceName);
+	    if (processingUnit == null) {
+	        String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+	        logger.severe("Could not find service " + absolutePuName);
+	        return unavailableServiceError(absolutePuName);
+	    }
 
-        } catch (RestServiceException e) {
-            logger.log(Level.INFO, "Failed retrieving the service logs. Reason: " + e.getMessage());
-            return errorStatus(e.getMessage());
-        }
-        return successStatus(stringBuilder.toString());
-    }
+	    String instanceLogTail;
+	    for (ProcessingUnitInstance processingUnitInstance : processingUnit) {
+	        stringBuilder.append("service instance id #" + processingUnitInstance.getInstanceId() 
+	                + System.getProperty("line.separator"));
+	        instanceLogTail = getLogTailFromContainer(processingUnitInstance.getGridServiceContainer(), numLines);
+	        stringBuilder.append(instanceLogTail);
+	    }
+
+	    return successStatus(stringBuilder.toString());
+	}
 
 	private String getLogTailFromContainer(final GridServiceContainer container, final int numLines) {
 
@@ -2192,8 +2190,7 @@ public class ServiceController {
 	}
 
 	private GridServiceContainer getContainerAccordingToInstanceId(
-	        final String applicationName, final String serviceName, final int instanceId) 
-	                throws RestServiceException {
+	        final String applicationName, final String serviceName, final int instanceId) {
 	    
 	    ProcessingUnit processingUnit = getProcessingUnit(applicationName, serviceName);
 	    for (ProcessingUnitInstance processingUnitInstance : processingUnit) {
@@ -2201,38 +2198,33 @@ public class ServiceController {
                 return processingUnitInstance.getGridServiceContainer();
             }
         }
-	    throw new RestServiceException("ServiceController failed to locate a grid" 
-	            + " service container with instance id " + instanceId);
-
+	    return null;
 	}
 
     private ProcessingUnit getProcessingUnit(final String applicationName,
-            final String serviceName) throws RestServiceException {
+            final String serviceName) {
         String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 	    ProcessingUnit processingUnit = admin.getProcessingUnits().getProcessingUnit(absolutePUName);
 	    if (processingUnit == null) {
 	        logger.log(Level.FINE, "a Processing unit with the name " + absolutePUName + " was not found");
-	        throw new RestServiceException("a Processing unit with the name " + absolutePUName + " was not found");
+	        return null;
 	    }
         return processingUnit;
     }
 
 	private GridServiceContainer getContainerAccordingToHostAddress(
-	        final String applicationName, final String serviceName, final String hostAddress) 
-	                throws RestServiceException {
+	        final String applicationName, final String serviceName, final String hostAddress) {
 	    
 	    Machine machine = admin.getMachines().getHostsByAddress().get(hostAddress);
 	    if (machine == null) {
 	        logger.log(Level.FINE, "a machine with host address " + hostAddress + " was not found in the cluster.");
-	        throw new RestServiceException("a machine with host address "
-	                + hostAddress + " was not found in the cluster.");
+	        return null; 
 	    }
 	    String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 	    ProcessingUnitInstance[] processingUnitInstances = machine.getProcessingUnitInstances(absolutePUName);
 	    if (processingUnitInstances == null) {
 	        logger.log(Level.FINE, "a Processing unit instance with the name " + absolutePUName + " was not found");
-	        throw new RestServiceException("a Processing unit instance with the name "
-	                + absolutePUName + " was not found");
+	        return null;
 	    }
 	    
 	    for (ProcessingUnitInstance instance : processingUnitInstances) {
@@ -2240,8 +2232,6 @@ public class ServiceController {
 	            return instance.getGridServiceContainer();
 	        }
 	    }
-	    
-	    throw new RestServiceException("ServiceController failed to locate a grid"
-	            + " service container with host address " + hostAddress);
+	    return null;
 	}
 }
