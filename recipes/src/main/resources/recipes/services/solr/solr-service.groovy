@@ -5,7 +5,7 @@ service {
 	icon "solr.png"
 
 	lifecycle{
-		init "solr_install.groovy"
+		install "solr_install.groovy"
 		start "solr_start.groovy"
 	}
 	
