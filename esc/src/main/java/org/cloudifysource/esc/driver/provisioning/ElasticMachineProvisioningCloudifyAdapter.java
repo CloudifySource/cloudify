@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 
 import net.jini.core.discovery.LookupLocator;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -194,17 +195,17 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			return gsa;
 		} catch (final ElasticMachineProvisioningException e) {
 			logger.info("ElasticMachineProvisioningException occurred, " + e.getMessage());
-			logger.info(Arrays.toString(e.getStackTrace()));
+			logger.info(ExceptionUtils.getFullStackTrace(e));
 			handleExceptionAfterMachineCreated(machineIp, machineDetails, end);
 			throw e;
 		} catch (final TimeoutException e) {
 			logger.info("TimeoutException occurred, " + e.getMessage());
-			logger.info(Arrays.toString(e.getStackTrace()));
+			logger.info(ExceptionUtils.getFullStackTrace(e));
 			handleExceptionAfterMachineCreated(machineIp, machineDetails, end);
 			throw e;
 		} catch (final InterruptedException e) {
 			logger.info("InterruptedException occurred, " + e.getMessage());
-			logger.info(Arrays.toString(e.getStackTrace()));
+			logger.info(ExceptionUtils.getFullStackTrace(e));
 			handleExceptionAfterMachineCreated(machineIp, machineDetails, end);
 			throw e;
 		}
