@@ -29,12 +29,12 @@ cloud {
 		
 		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.2.0/gigaspaces-cloudify-2.2.0-m2-b2492-9.zip"
 		
-		machineNamePrefix "eli_azure_cloudify_agent_"
+		machineNamePrefix "cloudify_agent_"
 		
 		dedicatedManagementMachines true
 		managementOnlyFiles ([])
 		
-		managementGroup "eli_azure_cloudify_manager"
+		managementGroup "cloudify_manager"
 		numberOfManagementMachines 1
 		zones (["agent"])
 		reservedMemoryCapacityPerMachineInMB 1024
@@ -47,7 +47,7 @@ cloud {
 	user {
 		
 		// Azure subscription id
-		user "9f24fac0-f989-4873-b3d5-6886fbc6cd29"
+		user "ENTER_SUBSCRIPTION_ID"
 			
 	}
 
@@ -57,32 +57,32 @@ cloud {
 					imageId "OpenLogic__OpenLogic-CentOS-62-20120531-en-us-30GB.vhd"
 					machineMemoryMB 1600
 					hardwareId "Small"
-					remoteDirectory "/home/elip/gs-files"
+					remoteDirectory "/home/user/gs-files"
 					localDirectory "tools/cli/plugins/esc/azure/upload"
 					
-					username "elip"
-					password "1408Rokk"
+					username "ENTER_USER_NAME"
+					password "ENTER_PASSWORD"
 					
 					custom ([
 					
 						// Optional. each availability set represents a different fault domain.
 						
-						"azure.availability.set" : "eliset1",
+						"azure.availability.set" : "ENTER_AVAILABILITY_SET",
 						
 						// Choose whether do deploy this instance in Staging or Production environment. defaults to Staging
 						
-						"azure.deployment.slot": "Staging",
+						"azure.deployment.slot": "ENTER_DEPLOYMENT_SLOT",
 						
 						/**************************************************************
 						 * Mandatory only for templates used for management machines. *
 						 * Put this file under the path specified in 'localDirectory' *
 						***************************************************************/
 						
-						"azure.pfx.file": "eli-azure-cert.pfx",
+						"azure.pfx.file": "ENTER_PFX_FILE",
 						
 						// Password that was used to create the certificate
 						
-						"azure.pfx.password" : "1408Rokk"
+						"azure.pfx.password" : "ENTER_PFX_PASSWORD"
 					])
 				},
 				
@@ -91,21 +91,21 @@ cloud {
 					imageId "OpenLogic__OpenLogic-CentOS-62-20120531-en-us-30GB.vhd"
 					machineMemoryMB 1600
 					hardwareId "Small"
-					remoteDirectory "/home/elip/gs-files"
+					remoteDirectory "/home/user/gs-files"
 					localDirectory "tools/cli/plugins/esc/azure/upload"
 					
-					username "elip"
-					password "1408Rokk"
+					username "ENTER_USERNAME"
+					password "ENTER_PASSWORD"
 					
 					custom ([
 					
 						// Optional. each availability set represents a different fault domain.
 						
-						"azure.availability.set" : "eliset1",
+						"azure.availability.set" : "ENTER_AVAILABILITY_SET",
 						
 						// Choose whether do deploy this instance in Staging or Production environment. defaults to Staging
 						
-						"azure.deployment.slot": "Staging",
+						"azure.deployment.slot": "ENTER_DEPLOYMENT_SLOT",
 						
 						// Tcp EndPoints to open
 						
@@ -116,11 +116,11 @@ cloud {
 												])
 											]),
 						
-						"azure.pfx.file": "eli-azure-cert.pfx",
+						"azure.pfx.file": "ENTER_PFX_FILE",
 						
 						// Password that was used to create the certificate
 						
-						"azure.pfx.password" : "1408Rokk"
+						"azure.pfx.password" : "ENTER_PFX_PASSWORD"
 					])
 				}
 			])
@@ -134,14 +134,14 @@ cloud {
 		 * in this case, you must specify the 'azure.address.space' property					 *	 
 		******************************************************************************************/
 		
-		"azure.network.name" : "elitestnetwork",
+		"azure.network.name" : "ENTER_NETWORK_NAME",
 		
 		/***************************************************************************************
 		 * CIDR notation specifying the Address Space for your Virtaul Network. 			   *
 		 * All VM's will be assigned a private ip from this address space.					   *
 		****************************************************************************************/
 		
-		"azure.address.space" : "10.4.0.0/16",
+		"azure.address.space" : "ENTER_ADDRESS_SPACE",
 		
 		/****************************************************************************************	
 		 * An Affinity Group name.																*
@@ -149,7 +149,7 @@ cloud {
 		 * in this case, you must specify the 'azure.affinity.location' property				*
 		*****************************************************************************************/
 		
-		"azure.affinity.group" : "cloudifyaffinitygroup",
+		"azure.affinity.group" : "ENTER_AFFINITY_GROUP",
 
 		/********************************************************************************************************************************
 		 * The MS Data Center location. 																								*
@@ -157,7 +157,7 @@ cloud {
 		 * Mandatory only if the affinity group specifed above is not a pre-existing one.												*
 		*********************************************************************************************************************************/
 		
-		"azure.affinity.location" : "East US",
+		"azure.affinity.location" : "ENTER_LOCATION",
 		
 		/*****************************************************************************************
 		 * A Storage Account name.																 *
@@ -165,7 +165,7 @@ cloud {
 		 * If the specified account does not exist, it will be created automatically for you.	 *
 		******************************************************************************************/
 
-		"azure.storage.account" : "cloudifystorage",
+		"azure.storage.account" : "ENTER_STORAGE_ACCOUNT",
 		
 		// Specify whether or not to delete the network (if found) when you execute a teardown command. 
 		
