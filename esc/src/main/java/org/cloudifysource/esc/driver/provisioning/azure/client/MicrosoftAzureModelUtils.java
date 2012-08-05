@@ -69,7 +69,7 @@ public final class MicrosoftAzureModelUtils {
 			Document doc = createEmptyDocument();
 			m.marshal(body, doc);
 			String xml = getStringFromDocument(doc);
-			if (network) {
+			if (network) { // so stupid !! TODO eli - find a proper way to deal with different name spaces under the space JAXBContext instance.
 				xml = addNameSpaceToRootElement(xml,
 						"http://schemas.microsoft.com/ServiceHosting/2011/07/NetworkConfiguration");
 			} else {
