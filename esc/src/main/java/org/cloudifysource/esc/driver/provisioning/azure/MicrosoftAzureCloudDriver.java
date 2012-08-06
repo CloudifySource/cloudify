@@ -78,8 +78,9 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	private static final int REST_PORT = 8100;
 	private static final int SSH_PORT = 22;
 
-	private static final Logger logger = Logger.getLogger(MicrosoftAzureCloudDriver.class.getName());
-	
+	private static final Logger logger = Logger
+			.getLogger(MicrosoftAzureCloudDriver.class.getName());
+
 	private MicrosoftAzureRestClient azureClient;
 
 	public MicrosoftAzureCloudDriver() {
@@ -92,7 +93,8 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		super.setConfig(cloud, templateName, management);
 
 		// Per template properties
-		this.availabilitySet = (String) this.template.getCustom().get(AZURE_AVAILABILITY_SET);
+		this.availabilitySet = (String) this.template.getCustom().get(
+				AZURE_AVAILABILITY_SET);
 		String pfxFile = (String) this.template.getCustom().get(AZURE_PFX_FILE);
 		if (pfxFile == null && management) {
 			throw new IllegalArgumentException("Custom field '"
@@ -118,8 +120,9 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		if (deploymentSlot == null) {
 			deploymentSlot = "Staging";
 		}
-		this.endpoints = (List<Map<String, String>>) this.template.getCustom().get(AZURE_ENDPOINTS);
-		
+		this.endpoints = (List<Map<String, String>>) this.template.getCustom()
+				.get(AZURE_ENDPOINTS);
+
 		this.imageName = this.template.getImageId();
 		this.userName = this.template.getUsername();
 		this.password = this.template.getPassword();
@@ -185,6 +188,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 
 		MachineDetails machineDetails = new MachineDetails();
 		String cloudServiceName = null;
+		CreatePersistentVMRoleDeploymentDescriptor desc = null;
 		try {
 			logger.fine("Creating Cloud Service");
 
@@ -193,16 +197,17 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 
 			logger.fine("Cloud Service Created : " + cloudServiceName);
 
-			CreatePersistentVMRoleDeploymentDescriptor desc = new CreatePersistentVMRoleDeploymentDescriptor();
+			desc = new CreatePersistentVMRoleDeploymentDescriptor();
+			desc.setRoleName(serverNamePrefix + "_role");
 			desc.setDeploymentName(cloudServiceName);
 			desc.setDeploymentSlot(deploymentSlot);
 			desc.setImageName(imageName);
 			desc.setAvailabilitySetName(availabilitySet);
 
 			InputEndpoints inputEndpoints = new InputEndpoints();
-			
+
 			// Add End Point for each port
-			
+
 			if (this.endpoints != null) {
 				for (Map<String, String> endpointPair : this.endpoints) {
 					String name = endpointPair.get("name");
@@ -246,7 +251,6 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			desc.setInputEndpoints(inputEndpoints);
 			desc.setNetworkName(networkName);
 			desc.setPassword(password);
-			desc.setServerPrefix(serverNamePrefix);
 			desc.setSize(size);
 			desc.setStorageAccountName(storageAccountName);
 			desc.setUserName(userName);
@@ -273,25 +277,29 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 
 			return machineDetails;
 		} catch (final MicrosoftAzureException e) {
-			logger.warning("Failed Starting Virtual Machine. " 
-					+ "trying to delete any services that were pre dedicated for this instance");
+			logger.warning("Failed Starting Virtual Machine properly. "
+					+ "trying to delete it and any services that were pre dedicated for this instance");
+			if (desc != null) {
+				logger.warning("deleting role " + desc.getRoleName());
+				try {
+					azureClient.deleteRole(cloudServiceName,
+							desc.getDeploymentName(), desc.getRoleName(),
+							duration, unit);
+				} catch (MicrosoftAzureException e1) {
+					logger.log(Level.WARNING,
+							"Failed deleting role " + desc.getRoleName(), e1);
+				}
+			}
 
-			if (cloudServiceName != null) { // storage account was created
+			if (cloudServiceName != null) {
 				logger.warning("the Cloud Service " + cloudServiceName
 						+ " was created, deleting it...");
 				try {
-					azureClient.deleteCloudService(cloudServiceName, duration, unit);
+					azureClient.deleteCloudService(cloudServiceName, duration,
+							unit);
 				} catch (MicrosoftAzureException e1) {
-					logger.log(Level.WARNING, "Failed deleting Cloud Service " + cloudServiceName, e1);
-				}
-			}
-			if (storageAccountName != null) { // storage account was created
-				logger.warning("the Storage Account " + storageAccountName
-						+ " was created, deleting it...");
-				try {
-					azureClient.deleteStorageAccount(storageAccountName, duration, unit);
-				} catch (MicrosoftAzureException e1) {
-					logger.log(Level.WARNING, "Failed deleting Storage Account " + storageAccountName, e1);
+					logger.log(Level.WARNING, "Failed deleting Cloud Service "
+							+ cloudServiceName, e1);
 				}
 			}
 
@@ -306,17 +314,20 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 
 		try {
 			logger.fine("Creating Affinity Group : " + affinityGroup);
-			
-			azureClient.createAffinityGroup(affinityGroup, location, duration, unit);
-			
+
+			azureClient.createAffinityGroup(affinityGroup, location, duration,
+					unit);
+
 			logger.fine("Creating Virtual Network : " + networkName);
-			
-			azureClient.createVirtualNetwork(addressSpace, affinityGroup, networkName, duration, unit);
-			
+
+			azureClient.createVirtualNetwork(addressSpace, affinityGroup,
+					networkName, duration, unit);
+
 			logger.fine("Creating a Storage Account : " + storageAccountName);
-			
-			azureClient.createStorageAccount(affinityGroup, storageAccountName, duration, unit);
-			
+
+			azureClient.createStorageAccount(affinityGroup, storageAccountName,
+					duration, unit);
+
 		} catch (final MicrosoftAzureException e) {
 			throw new CloudProvisioningException(e);
 		}
@@ -359,21 +370,26 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 
 		try {
 			logger.fine("Deleting Virtual Machine : " + details.getRoleName());
-			
+
 			azureClient.deleteRole(details.getHostedServiceName(),
-					details.getDeploymentName(), details.getRoleName(), duration, unit);
-			
+					details.getDeploymentName(), details.getRoleName(),
+					duration, unit);
+
 			logger.fine("Deleting OS Disk : " + details.getOsDisk());
-			
+
 			azureClient.deleteOSDisk(details.getOsDisk(), duration, unit);
-			
-			logger.fine("Deleting Storage Account : " + details.getStorageAccountName());
-			
-			azureClient.deleteStorageAccount(details.getStorageAccountName(), duration, unit);
-			
-			logger.fine("Deleteing Cloud Service : " + details.getHostedServiceName());
-			
-			azureClient.deleteCloudService(details.getHostedServiceName(), duration, unit);
+
+			logger.fine("Deleting Storage Account : "
+					+ details.getStorageAccountName());
+
+			azureClient.deleteStorageAccount(details.getStorageAccountName(),
+					duration, unit);
+
+			logger.fine("Deleteing Cloud Service : "
+					+ details.getHostedServiceName());
+
+			azureClient.deleteCloudService(details.getHostedServiceName(),
+					duration, unit);
 
 		} catch (MicrosoftAzureException e) {
 			return false;
