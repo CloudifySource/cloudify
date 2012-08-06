@@ -50,11 +50,10 @@ import com.sun.jersey.api.client.filter.LoggingFilter;
 import com.sun.jersey.client.urlconnection.HTTPSProperties;
 
 /**********************************************************************************
- * A REST client implementation for the Azure REST API.							  *
- * Custom made for consuming the IaaS deployment.								  *
- * 																				  *						
- * this is still a work in progress.											  *
- * @author elip																	  *
+ * A REST client implementation for the Azure REST API. * Custom made for
+ * consuming the IaaS deployment. * * this is still a work in progress. *
+ * 
+ * @author elip *
  **********************************************************************************/
 public class MicrosoftAzureRestClient {
 
@@ -131,9 +130,12 @@ public class MicrosoftAzureRestClient {
 
 	/**
 	 * 
-	 * @param affinityGroup - the affinity group for the cloud service.
-	 * @param timeout .
-	 * @param timeunit .
+	 * @param affinityGroup
+	 *            - the affinity group for the cloud service.
+	 * @param timeout
+	 *            .
+	 * @param timeunit
+	 *            .
 	 * @return - the newly created cloud service name.
 	 * @throws MicrosoftAzureException .
 	 * @throws TimeoutException .
@@ -156,17 +158,24 @@ public class MicrosoftAzureRestClient {
 	}
 
 	/**
-	 * this method creates a storage account with the given name, or does nothing if the account exists.
-	 * @param affinityGroup - the affinity group for the storage account.
-	 * @param storageAccountName - the name for the storage account to create.
-	 * @param timeout .
-	 * @param timeunit .
+	 * this method creates a storage account with the given name, or does
+	 * nothing if the account exists.
+	 * 
+	 * @param affinityGroup
+	 *            - the affinity group for the storage account.
+	 * @param storageAccountName
+	 *            - the name for the storage account to create.
+	 * @param timeout
+	 *            .
+	 * @param timeunit
+	 *            .
 	 * @throws MicrosoftAzureException .
 	 * @throws TimeoutException .
 	 */
 	public void createStorageAccount(final String affinityGroup,
 			final String storageAccountName, final long timeout,
-			final TimeUnit timeunit) throws MicrosoftAzureException, TimeoutException {
+			final TimeUnit timeunit) throws MicrosoftAzureException,
+			TimeoutException {
 
 		CreateStorageServiceInput createStorageServiceInput = requestBodyBuilder
 				.buildCreateStorageAccount(affinityGroup, storageAccountName);
@@ -184,16 +193,24 @@ public class MicrosoftAzureRestClient {
 		String requestId = extractRequestId(response);
 		waitForRequestToFinish(requestId, timeout, timeunit);
 	}
-	
+
 	/**
-	 * this method creates a virtual network with the given name, or does nothing if the network exists.
-	 * @param addressSpace - CIDR notation specifying the address space for the virtual network.
-	 * @param affinityGroup - the affinity group for this virtual network
-	 * @param networkName - the name for the network to create
-	 * @param timeout .
-	 * @param timeunit .
+	 * this method creates a virtual network with the given name, or does
+	 * nothing if the network exists.
+	 * 
+	 * @param addressSpace
+	 *            - CIDR notation specifying the address space for the virtual
+	 *            network.
+	 * @param affinityGroup
+	 *            - the affinity group for this virtual network
+	 * @param networkName
+	 *            - the name for the network to create
+	 * @param timeout
+	 *            .
+	 * @param timeunit
+	 *            .
 	 * @throws MicrosoftAzureException .
-	 * @throws TimeoutException . 
+	 * @throws TimeoutException .
 	 */
 	public void createVirtualNetwork(final String addressSpace,
 			final String affinityGroup, final String networkName,
@@ -220,11 +237,17 @@ public class MicrosoftAzureRestClient {
 	}
 
 	/**
-	 * this method creates an affinity group with the given name, or does nothing if the group exists.
-	 * @param affinityGroup - the name of the affinity group to create
-	 * @param location - one of MS Data Centers locations.
-	 * @param timeout .
-	 * @param timeunit .
+	 * this method creates an affinity group with the given name, or does
+	 * nothing if the group exists.
+	 * 
+	 * @param affinityGroup
+	 *            - the name of the affinity group to create
+	 * @param location
+	 *            - one of MS Data Centers locations.
+	 * @param timeout
+	 *            .
+	 * @param timeunit
+	 *            .
 	 * @throws MicrosoftAzureException .
 	 * @throws TimeoutException .
 	 */
@@ -248,13 +271,18 @@ public class MicrosoftAzureRestClient {
 		waitForRequestToFinish(requestId, timeout, timeunit);
 		logger.fine("created affinity group : " + affinityGroup);
 	}
-	
+
 	/**
 	 * this method creates a standalone virtual machine.
-	 * @param deplyomentDesc .
-	 * @param serviceName - the cloud service to host the vm.
-	 * @param timeout .
-	 * @param timeunit .
+	 * 
+	 * @param deplyomentDesc
+	 *            .
+	 * @param serviceName
+	 *            - the cloud service to host the vm.
+	 * @param timeout
+	 *            .
+	 * @param timeunit
+	 *            .
 	 * @return - an object that wraps the public and private ip of the vm.
 	 * @throws MicrosoftAzureException .
 	 * @throws TimeoutException .
@@ -270,7 +298,7 @@ public class MicrosoftAzureRestClient {
 
 		String xmlRequest = MicrosoftAzureModelUtils
 				.marshall(deployment, false);
-		
+
 		ClientResponse response = doPost("/" + subscriptionId
 				+ "/services/hostedservices/" + serviceName + "/deployments",
 				xmlRequest);
@@ -287,13 +315,15 @@ public class MicrosoftAzureRestClient {
 		roleAddressDetails
 				.setPrivateIp(deploymentResponse.getRoleInstanceList()
 						.getRoleInstances().get(0).getIpAddress());
-		ConfigurationSets configurationSets = deploymentResponse.getRoleList().getRoles().get(0).getConfigurationSets();
-		
+		ConfigurationSets configurationSets = deploymentResponse.getRoleList()
+				.getRoles().get(0).getConfigurationSets();
+
 		String publicIp = null;
 		for (ConfigurationSet configurationSet : configurationSets) {
 			if (configurationSet instanceof NetworkConfigurationSet) {
 				NetworkConfigurationSet networkConfigurationSet = (NetworkConfigurationSet) configurationSet;
- 				publicIp = networkConfigurationSet.getInputEndpoints().getInputEndpoints().get(0).getvIp();
+				publicIp = networkConfigurationSet.getInputEndpoints()
+						.getInputEndpoints().get(0).getvIp();
 			}
 		}
 		roleAddressDetails.setPublicIp(publicIp);
@@ -313,7 +343,7 @@ public class MicrosoftAzureRestClient {
 			return true;
 		}
 		return false;
-		
+
 	}
 
 	/**
@@ -322,15 +352,16 @@ public class MicrosoftAzureRestClient {
 	 *         to the subscription
 	 * @throws MicrosoftAzureException
 	 *             - indicates an exception was caught during the API call
+	 * @throws TimeoutException 
 	 */
-	public String listOsImages() throws MicrosoftAzureException {
+	public String listOsImages() throws MicrosoftAzureException, TimeoutException {
 		ClientResponse response = doGet(subscriptionId + "/services/images");
 		return response.getEntity(String.class);
 
 	}
 
 	public String listDeployments(final String cloudServiceName,
-			final String deploymentSlot) throws MicrosoftAzureException {
+			final String deploymentSlot) throws MicrosoftAzureException, TimeoutException {
 		ClientResponse response = doGet(subscriptionId
 				+ "/services/hostedservices/" + cloudServiceName
 				+ "/deployments/" + deploymentSlot);
@@ -424,9 +455,10 @@ public class MicrosoftAzureRestClient {
 	 * @param roleName
 	 * @return
 	 * @throws MicrosoftAzureException
+	 * @throws TimeoutException 
 	 */
 	public PersistentVMRole getRole(String serviceName, String deploymentName,
-			String roleName) throws MicrosoftAzureException {
+			String roleName) throws MicrosoftAzureException, TimeoutException {
 		ClientResponse response = doGet(subscriptionId
 				+ "/services/hostedservices/" + serviceName + "/deployments/"
 				+ deploymentName + "/roles/" + roleName);
@@ -440,13 +472,14 @@ public class MicrosoftAzureRestClient {
 	 * 
 	 * @return
 	 * @throws MicrosoftAzureException
+	 * @throws TimeoutException 
 	 */
-	public String listLocations() throws MicrosoftAzureException {
+	public String listLocations() throws MicrosoftAzureException, TimeoutException {
 		ClientResponse response = doGet(subscriptionId + "/locations");
 		return response.getEntity(String.class);
 	}
 
-	public HostedServices listHostedServices() throws MicrosoftAzureException {
+	public HostedServices listHostedServices() throws MicrosoftAzureException, TimeoutException {
 		ClientResponse response = doGet(subscriptionId
 				+ "/services/hostedservices");
 		String responseBody = response.getEntity(String.class);
@@ -491,7 +524,7 @@ public class MicrosoftAzureRestClient {
 		waitForRequestToFinish(requestId, timeout, timeunit);
 	}
 
-	public AffinityGroups listAffinityGroups() throws MicrosoftAzureException {
+	public AffinityGroups listAffinityGroups() throws MicrosoftAzureException, TimeoutException {
 		ClientResponse response = doGet("/" + subscriptionId
 				+ "/affinitygroups");
 		String responseBody = response.getEntity(String.class);
@@ -501,7 +534,7 @@ public class MicrosoftAzureRestClient {
 		return affinityGroups;
 	}
 
-	public StorageServices listStorageServices() throws MicrosoftAzureException {
+	public StorageServices listStorageServices() throws MicrosoftAzureException, TimeoutException {
 		ClientResponse response = doGet("/" + subscriptionId
 				+ "/services/storageservices");
 		String responseBody = response.getEntity(String.class);
@@ -564,12 +597,31 @@ public class MicrosoftAzureRestClient {
 	}
 
 	private ClientResponse doGet(final String url)
-			throws MicrosoftAzureException {
-		ClientResponse response = resource.path(url)
-				.header(X_MS_VERSION_HEADER_NAME, X_MS_VERSION_HEADER_VALUE)
-				.header(CONTENT_TYPE_HEADER_NAME, CONTENT_TYPE_HEADER_VALUE)
-				.get(ClientResponse.class);
-		checkForError(response);
+			throws MicrosoftAzureException, TimeoutException {
+		
+		ClientResponse response = null; 
+		for (int i = 0; i < MAX_RETRIES; i++) {
+			try {
+				response = resource
+						.path(url)
+						.header(X_MS_VERSION_HEADER_NAME,
+								X_MS_VERSION_HEADER_VALUE)
+						.header(CONTENT_TYPE_HEADER_NAME,
+								CONTENT_TYPE_HEADER_VALUE)
+						.get(ClientResponse.class);
+				checkForError(response);
+				break;
+			} catch (ClientHandlerException e) {
+				logger.warning("Caught an exception while executing GET with url "
+						+ url + ". Message :" + e.getMessage());
+				logger.warning("retrying request");
+				continue;
+			}
+		}
+		if (response == null) {
+			throw new TimeoutException("Timed out while executing GET after " + MAX_RETRIES);
+		}
+		
 		return response;
 	}
 
@@ -584,7 +636,7 @@ public class MicrosoftAzureRestClient {
 	}
 
 	private boolean affinityExists(final String affinityGroupName)
-			throws MicrosoftAzureException {
+			throws MicrosoftAzureException, TimeoutException {
 		AffinityGroups affinityGroups = listAffinityGroups();
 		if (affinityGroups.contains(affinityGroupName)) {
 			return true;
@@ -605,7 +657,7 @@ public class MicrosoftAzureRestClient {
 	}
 
 	private boolean storageExists(final String storageAccouhtName)
-			throws MicrosoftAzureException {
+			throws MicrosoftAzureException, TimeoutException {
 		StorageServices storageServices = listStorageServices();
 		if (storageServices.contains(storageAccouhtName)) {
 			return true;
@@ -655,18 +707,22 @@ public class MicrosoftAzureRestClient {
 		while (true) {
 			Deployment deployment = getDeployment(hostedServiceName,
 					deploymentSlot);
-			String roleName = deployment.getRoleList().getRoles().get(0).getRoleName();
+			String roleName = deployment.getRoleList().getRoles().get(0)
+					.getRoleName();
 			String deploymentName = deployment.getName();
 			String status = deployment.getRoleInstanceList().getRoleInstances()
 					.get(0).getInstanceStatus();
 			boolean error = checkVirtualMachineStatusForError(status);
 			if (error) {
-				logger.warning("Virtual Machine " + roleName + " was provisioned but found in status " + status);
+				logger.warning("Virtual Machine " + roleName
+						+ " was provisioned but found in status " + status);
 				logger.warning("This role is unhealthy, deleting it");
 				try {
-					deleteRole(hostedServiceName, deploymentName, roleName, timeout, timeunit);
+					deleteRole(hostedServiceName, deploymentName, roleName,
+							timeout, timeunit);
 				} catch (MicrosoftAzureException e) {
-					logger.warning("Failed deleting role unhealthy role " + roleName);
+					logger.warning("Failed deleting role unhealthy role "
+							+ roleName);
 					throw e;
 				}
 			}
@@ -689,28 +745,21 @@ public class MicrosoftAzureRestClient {
 	 * @param deploymentSlot
 	 * @return
 	 * @throws MicrosoftAzureException
+	 * @throws TimeoutException 
 	 */
 	public Deployment getDeployment(String hostedServiceName,
-			String deploymentSlot) throws MicrosoftAzureException {
+			String deploymentSlot) throws MicrosoftAzureException, TimeoutException {
 		
 		ClientResponse response = null;
-		for (int i = 0; i < MAX_RETRIES; i++) {
-			try {
-			response = resource
-					.path("/" + subscriptionId + "/services/hostedservices/"
-							+ hostedServiceName + "/deploymentslots/"
-							+ deploymentSlot)
-					.header(X_MS_VERSION_HEADER_NAME, X_MS_VERSION_HEADER_VALUE)
-					.get(ClientResponse.class);
-			} catch (ClientHandlerException e) {
-				logger.warning("Caught an exception while polling for deployment details :" + e.getMessage());
-				logger.warning("retrying request");
-				continue;
-			}
+		try {
+			response = doGet("/" + subscriptionId
+					+ "/services/hostedservices/" + hostedServiceName
+					+ "/deploymentslots/" + deploymentSlot);
+		} catch (TimeoutException e) {
+			logger.warning("Timed out while waiting for deployment details. this may cause a leaking node");
+			throw e;
 		}
-		if (response == null) {
-			throw new MicrosoftAzureException("Failed getting deployment details after " + MAX_RETRIES + " attempts");
-		}
+
 		String responseBody = response.getEntity(String.class);
 		Deployment deployment = (Deployment) MicrosoftAzureModelUtils
 				.unmarshall(responseBody);

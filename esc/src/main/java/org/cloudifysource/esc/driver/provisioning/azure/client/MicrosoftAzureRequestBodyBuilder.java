@@ -47,7 +47,6 @@ public class MicrosoftAzureRequestBodyBuilder {
 	private static final String CLOUDIFY_CLOUD_SERVICE_PREFIX = "cloudifycloudservice";
 	private static final String CLOUDIFY_STORAGE_ACCOUNT_PREFIX = "cloudifystorage";
 	private static final String CLOUDIFY_DEPLOYMENT_PREFIX = "cloudifydeployment";
-	private static final String CLOUDIFY_IMAGE_PREFIX = "cloudifyimage";
 
 	private static final int UUID_LENGTH = 8;
 	private static final int UUID_ROLE_LENGTH = 4;
@@ -129,7 +128,6 @@ public class MicrosoftAzureRequestBodyBuilder {
 	
 	public Deployment buildDeployment(CreatePersistentVMRoleDeploymentDescriptor desc) {
 
-		String serverPrefix = desc.getServerPrefix();
 		String deploymentSlot = desc.getDeploymentSlot();
 		String imageName = desc.getImageName();
 		String storageAccountName = desc.getStorageAccountName();
@@ -139,10 +137,8 @@ public class MicrosoftAzureRequestBodyBuilder {
 		String size = desc.getSize();
 		String deploymentName = desc.getDeploymentName();
 		InputEndpoints endPoints = desc.getInputEndpoints();
-		
-		String roleName = serverPrefix 
-				+ "_role" 
-				+ UUIDHelper.generateRandomUUID(UUID_ROLE_LENGTH);
+		String roleName = desc.getRoleName(); 
+				
 		
 		Deployment deployment = new Deployment();
 		deployment.setDeploymentSlot(deploymentSlot);

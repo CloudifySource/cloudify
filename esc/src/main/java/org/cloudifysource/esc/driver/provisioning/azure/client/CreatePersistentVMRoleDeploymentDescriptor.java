@@ -10,9 +10,10 @@ import org.cloudifysource.esc.driver.provisioning.azure.model.InputEndpoints;
  *
  */
 public class CreatePersistentVMRoleDeploymentDescriptor {
+		
+	private static final int ROLE_NAME_UID_LENGTH = 4;
 	
 	private String deploymentName;
-	private String serverPrefix;
 	private String deploymentSlot;
 	private String imageName;
 	private String storageAccountName;
@@ -21,6 +22,11 @@ public class CreatePersistentVMRoleDeploymentDescriptor {
 	private String size;
 	private String networkName;
 	private String availabilitySetName;
+	private String roleName;
+	
+	public void setRoleName(final String roleName) {
+		this.roleName = roleName + UUIDHelper.generateRandomUUID(ROLE_NAME_UID_LENGTH);
+	}
 	
 	public String getDeploymentName() {
 		return deploymentName;
@@ -48,12 +54,9 @@ public class CreatePersistentVMRoleDeploymentDescriptor {
 
 	private InputEndpoints inputEndpoints;
 	
-	public String getServerPrefix() {
-		return serverPrefix;
-	}
 	
-	public void setServerPrefix(final String serverPrefix) {
-		this.serverPrefix = serverPrefix;
+	public String getRoleName() {
+		return roleName;
 	}
 	
 	public String getDeploymentSlot() {
