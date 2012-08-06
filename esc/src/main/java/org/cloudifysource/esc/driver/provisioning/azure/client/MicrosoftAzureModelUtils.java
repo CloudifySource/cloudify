@@ -70,6 +70,7 @@ public final class MicrosoftAzureModelUtils {
 			m.marshal(body, doc);
 			String xml = getStringFromDocument(doc);
 			if (network) { // so stupid !! TODO eli - find a proper way to deal with different name spaces under the space JAXBContext instance.
+							// i cant seem to find the azure xsd anywhere so that i can generate proper model object using xjc.
 				xml = addNameSpaceToRootElement(xml,
 						"http://schemas.microsoft.com/ServiceHosting/2011/07/NetworkConfiguration");
 			} else {
