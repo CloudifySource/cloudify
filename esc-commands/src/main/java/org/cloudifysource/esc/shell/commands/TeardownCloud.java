@@ -21,8 +21,8 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,37 +32,44 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.internal.ServiceReader;
-import org.cloudifysource.esc.shell.installer.CloudGridAgentBootstrapper;
-
 import org.cloudifysource.esc.driver.provisioning.jclouds.DefaultProvisioningDriver;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
+import org.cloudifysource.esc.shell.installer.CloudGridAgentBootstrapper;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.AbstractGSCommand;
-import org.cloudifysource.shell.rest.RestAdminFacade;
-
+/**
+ * Tears down the remote Cloud.
+ * 
+ * Optional arguments:
+ * 		timeout - The number of minutes to wait until the operation is completed (default: 60 minutes)
+ * 		force - states whether the management machine be shutdown if other applications are installed
+ * 
+ * @author barakme, adaml
+ *
+ */
 @Command(scope = "cloudify", name = "teardown-cloud", description = "Terminates management machines.")
 public class TeardownCloud extends AbstractGSCommand {
 
 	private static final int POLLING_INTERVAT_SEC = 10;
 
 	@Argument(required = true, name = "provider", description = "the cloud provider to use")
-	String cloudProvider;
+	private String cloudProvider;
 
 	@Option(required = false, name = "-timeout",
 			description = "The number of minutes to wait until the operation is done. By default waits 5 minutes.")
-	int timeoutInMinutes = 60;
+	private int timeoutInMinutes = 60;
 
 	@Option(required = false, name = "-force",
 			description = "Should management machine be shutdown if other applications are installed")
-	boolean force = false;
+	private boolean force = false;
 
 	@Override
 	protected Object doExecute() throws Exception {
 
-        if (!confirmTeardown()){
+        if (!confirmTeardown()) {
             return getFormattedMessage("teardown_aborted");
         }
 
@@ -164,14 +171,4 @@ public class TeardownCloud extends AbstractGSCommand {
 
 		return cloudFiles[0];
 	}
-
-	public static void main(String[] args) throws Exception {
-		TeardownCloud cmd = new TeardownCloud();
-		cmd.cloudProvider = "ec2";
-		cmd.verbose = true;
-		cmd.adminFacade = new RestAdminFacade();
-		cmd.adminFacade.connect(null, null, "http://107.20.37.95:8100/");
-		cmd.execute(null);
-	}
-
 }
