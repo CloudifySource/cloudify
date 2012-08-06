@@ -54,8 +54,8 @@ public class AbstractCliAzureDeploymentTest {
     protected static final int POLLING_INTERVAL_IN_MILLIS = 5000;
     protected static final int TIMEOUT_IN_MILLIS = 60 * 60 * 1000;
 
-    protected static final String AZURE_REGION = "North Central US";
-    //private static final String AZURE_REGION="South Central US";
+    //Use one of the following locations: [West Europe, Anywhere Europe, West US, East Asia, Anywhere Asia, North Europe, East US, Southeast Asia]
+    protected static final String AZURE_REGION = "East US"; //same as storage account region
 
     // keys and partial values for azure.properties
     protected static final String AZURE_PROPERITES_SUBSCRIPTION_ID_KEY = "subscriptionId";
