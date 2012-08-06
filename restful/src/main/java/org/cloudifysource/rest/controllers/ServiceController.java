@@ -149,7 +149,8 @@ import com.gigaspaces.log.LogEntryMatchers;
 @RequestMapping("/service")
 public class ServiceController {
 
-	private static final int DEFAULT_TIME_EXTENTION_POLLING_TASK = 5;
+	private static final int MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED = 1000;
+    private static final int DEFAULT_TIME_EXTENTION_POLLING_TASK = 5;
     private static final int THREAD_POOL_SIZE = 20;
 	private static final String SHARED_ISOLATION_ID = "public";
 	private static final int PU_DISCOVERY_TIMEOUT_SEC = 8;
@@ -2178,13 +2179,25 @@ public class ServiceController {
 	}
 
 	private String getLogTailFromContainer(final GridServiceContainer container, final int numLines) {
-
-	    final LastNLogEntryMatcher matcher = LogEntryMatchers.lastN(numLines);
+	    int numberOfLinesToTail;
+	    final String msg = "tail is limited to no more than " + MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED 
+	            + " lines.";
+	    boolean tailThresholdBreached = numLines > MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED;
+	    if (tailThresholdBreached) {
+            logger.log(Level.INFO, msg);
+	        numberOfLinesToTail = MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED;
+	    } else {
+	        numberOfLinesToTail = numLines;
+	    }
+	    final LastNLogEntryMatcher matcher = LogEntryMatchers.lastN(numberOfLinesToTail);
 	    final LogEntries logEntries = container.logEntries(matcher);
 	    StringBuilder sb = new StringBuilder();
 	    for (final LogEntry logEntry : logEntries) {
 	        sb.append(logEntry.getText());
 	        sb.append(System.getProperty("line.separator"));
+	    }
+	    if (tailThresholdBreached) {
+	        sb.append(msg);
 	    }
 	    return sb.toString();
 	}
