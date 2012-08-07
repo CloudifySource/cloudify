@@ -139,7 +139,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		// provision the machine
 		logger.info("Calling provisioning implementation for new machine");
-		MachineDetails machineDetails = null;
+		MachineDetails machineDetails;
 		try {
 			cloudifyProvisioning.setAdmin(getGlobalAdminInstance(originalESMAdmin));
 			machineDetails = provisionMachine(duration, unit);
@@ -151,7 +151,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		logger.info("Machine was provisioned by implementation. Machine is: " + machineDetails);
 
 		// which IP should be used in the cluster
-		String machineIp = null;
+		String machineIp;
 		if (cloud.getConfiguration().isConnectToPrivateIp()) {
 			machineIp = machineDetails.getPrivateAddress();
 		} else {
