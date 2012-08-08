@@ -168,7 +168,8 @@ public class InstallApplication extends AdminAwareCommand {
 		}
 
 		if (!this.cloudConfiguration.exists()) {
-			throw new CLIStatusException("cloud_configuration_file_not_found", this.cloudConfiguration.getAbsolutePath());
+			throw new CLIStatusException("cloud_configuration_file_not_found",
+					this.cloudConfiguration.getAbsolutePath());
 		}
 
 		// create a temp file in a temp directory
