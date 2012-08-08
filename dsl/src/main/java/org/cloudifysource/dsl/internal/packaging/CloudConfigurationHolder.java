@@ -17,7 +17,12 @@ package org.cloudifysource.dsl.internal.packaging;
 
 import com.gigaspaces.annotation.pojo.SpaceId;
 
-
+/******************
+ * Wrapper object for the cloud configuration object placed in the management space.
+ * @author barakme
+ * @since 1.0
+ *
+ */
 public class CloudConfigurationHolder {
 
 	private String cloudConfiguration;

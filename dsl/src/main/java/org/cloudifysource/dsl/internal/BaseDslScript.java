@@ -78,12 +78,12 @@ import org.openspaces.ui.WidgetGroup;
 public abstract class BaseDslScript extends Script {
 
 	private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger(BaseDslScript.class.getName());
-	
+
 	/********
 	 * DSL property indicating extension of recipe.
 	 */
 	public static final String EXTEND_PROPERTY_NAME = "extend";
-	
+
 	private static final String DSL_FILE_PATH_VAR = "dslFilePath";
 
 	private Set<String> processingUnitTypes;
@@ -174,10 +174,15 @@ public abstract class BaseDslScript extends Script {
 			PropertyDescriptor descriptor = PropertyUtils.getPropertyDescriptor(object, name);
 			Class<?> propertyType = descriptor.getPropertyType();
 			if (propertyType.equals(ExecutableDSLEntry.class)) {
-				final ExecutableDSLEntry executableEntry = ExecutableDSLEntryFactory.createEntry(value, name);
+				final File workDirectory = getDSLFile().getParentFile();
+
+				final ExecutableDSLEntry executableEntry =
+						ExecutableDSLEntryFactory.createEntry(value, name, workDirectory);
 				BeanUtils.setProperty(object, name, executableEntry);
 			} else if (propertyType.equals(ExecutableEntriesMap.class)) {
-				final ExecutableEntriesMap entriesMap = ExecutableDSLEntryFactory.createEntriesMap(value, name);
+				final File workDirectory = getDSLFile().getParentFile();
+				final ExecutableEntriesMap entriesMap =
+						ExecutableDSLEntryFactory.createEntriesMap(value, name, workDirectory);
 				BeanUtils.setProperty(object, name, entriesMap);
 
 			} else {
@@ -189,7 +194,8 @@ public abstract class BaseDslScript extends Script {
 				// Then set it
 				BeanUtils.setProperty(object, name, value);
 			}
-
+		} catch (final DSLValidationException e) {
+			throw new DSLValidationRuntimeException(e);
 		} catch (final Exception e) {
 			throw new IllegalArgumentException("Failed   to set property " + name + " of Object " + object
 					+ " to value: " + value, e);
@@ -197,6 +203,10 @@ public abstract class BaseDslScript extends Script {
 
 		checkForApplicationServiceBlockNameParameter(name, value);
 
+	}
+
+	private File getDSLFile() {
+		return new File((String) this.getBinding().getVariable(DSL_FILE_PATH_VAR));
 	}
 
 	@Override

@@ -18,19 +18,25 @@ package org.cloudifysource.dsl.internal.packaging;
 import java.io.File;
 import java.io.FileFilter;
 
-public class SVNFileFilter implements FileFilter {
+/************
+ * File filter to remove SVN related files when iterating over files - useful when creating zip files
+ * from directories so un-required svn related files will not be packaged.
+ * @author barakme
+ *
+ */
+public final class SVNFileFilter implements FileFilter {
 
 	private static SVNFileFilter instance = new SVNFileFilter();
-	
-	private SVNFileFilter(){};
-	
+
+	private SVNFileFilter() {
+	};
+
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see java.io.FileFilter#accept(java.io.File)
 	 */
 	@Override
-	public boolean accept(File pathname) {
+	public boolean accept(final File pathname) {
 		return !pathname.getName().equals(".svn");
 	}
 

@@ -19,20 +19,26 @@
 package org.cloudifysource.dsl.internal.packaging;
 
 /**
+ * Exception class for packaging related errors.
  * @author rafi
  * @since 2.0.0
  */
-public class PackagingException extends Exception{
+public class PackagingException extends Exception {
 
-	public PackagingException(String msg, Throwable cause) {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public PackagingException(final String msg, final Throwable cause) {
 		super(msg, cause);
 	}
-	
-	public PackagingException(String msg) {
+
+	public PackagingException(final String msg) {
 		super(msg);
 	}
-	
-	public PackagingException(Throwable cause) {
+
+	public PackagingException(final Throwable cause) {
 		super(cause);
 	}
 }

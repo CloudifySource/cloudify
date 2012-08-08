@@ -25,6 +25,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -39,13 +40,34 @@ import org.cloudifysource.dsl.internal.ServiceReader;
 import com.gigaspaces.internal.utils.StringUtils;
 import com.j_spaces.kernel.Environment;
 
-public class Packager {
+/************
+ * Implementation of the packaging logic required to create a zip file containing the service or application files and
+ * additional required files.
+ * 
+ * @author barakme
+ * @since 1.0
+ * 
+ */
+public final class Packager {
 
-	public final static java.util.logging.Logger logger = java.util.logging.Logger
+	private static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(Packager.class.getName());
 
-	public static final String USM_JAR_PATH_PROP = "usmJarPath";
+	private static final String USM_JAR_PATH_PROP = "usmJarPath";
 
+	private Packager() {
+
+	}
+
+	/*************
+	 * Pack a service recipe folder into a zip file.
+	 * 
+	 * @param recipeDirOrFile the recipe directory or recipe file.
+	 * @return the packed file.
+	 * @throws IOException .
+	 * @throws PackagingException .
+	 * @throws DSLException .
+	 */
 	public static File pack(final File recipeDirOrFile)
 			throws IOException, PackagingException, DSLException {
 		// Locate recipe file
@@ -63,9 +85,9 @@ public class Packager {
 	 * @param recipeDirOrFile - Folder or file to pack.
 	 * @param destFileName - The packed file name.
 	 * @return Packed file named as specified.
-	 * @throws IOException
-	 * @throws PackagingException
-	 * @throws DSLException
+	 * @throws IOException .
+	 * @throws PackagingException .
+	 * @throws DSLException .
 	 */
 	public static File pack(final File recipeDirOrFile, final String destFileName)
 			throws IOException, PackagingException, DSLException {
@@ -87,6 +109,15 @@ public class Packager {
 	}
 
 	// This method is being used by SGTest. Do not change visibility.
+	/****************
+	 * Packs a service folder.
+	 * 
+	 * @param recipeFile .
+	 * @param service .
+	 * @return .
+	 * @throws IOException .
+	 * @throws PackagingException .
+	 */
 	public static File pack(final File recipeFile, final Service service)
 			throws IOException, PackagingException {
 		if (!recipeFile.isFile()) {
@@ -207,7 +238,33 @@ public class Packager {
 		return destPuFolder;
 	}
 
+	/*************
+	 * .
+	 * 
+	 * @see org.cloudifysource.dsl.internal.packaging.Packager.packApplication(Application, File, File[])
+	 * @param application .
+	 * @param applicationDir .
+	 * @return .
+	 * @throws IOException .
+	 * @throws PackagingException .
+	 */
 	public static File packApplication(final Application application, final File applicationDir)
+			throws IOException, PackagingException {
+		return packApplication(application, applicationDir, new File[0]);
+	}
+
+	/***************
+	 * Packs an application folder into a zip file.
+	 * 
+	 * @param application the application object as read from the application file.
+	 * @param applicationDir the directory where the application was read from.
+	 * @param additionalServiceFiles additional files that should be packaged into each service directory.
+	 * @return the packaged zip file.
+	 * @throws IOException .
+	 * @throws PackagingException .
+	 */
+	public static File packApplication(final Application application, final File applicationDir,
+			final File[] additionalServiceFiles)
 			throws IOException, PackagingException {
 
 		boolean hasExtendedServices = false;
@@ -221,10 +278,7 @@ public class Packager {
 		// If there are no extended service we don't need to prepare an application folder to pack with all the
 		// extended services content.
 		if (hasExtendedServices) {
-			final File destApplicationFolder = File.createTempFile("gs_application_", "");
-			FileUtils.forceDelete(destApplicationFolder);
-			FileUtils.forceMkdir(destApplicationFolder);
-			FileUtils.copyDirectory(applicationDir, destApplicationFolder, SVNFileFilter.getFilter());
+			final File destApplicationFolder = createCopyDirectory(applicationFolderToPack);
 
 			for (final Service service : application.getServices()) {
 				final File extFolder = new File(destApplicationFolder + "/" + service.getName());
@@ -237,11 +291,43 @@ public class Packager {
 			applicationFolderToPack = destApplicationFolder;
 		}
 
+		if ((additionalServiceFiles != null) && (additionalServiceFiles.length > 0)) {
+			// if a copy directory was already created, use the existing one, otherwise
+			// create a new one.
+			if (applicationFolderToPack == applicationDir) {
+				applicationFolderToPack = createCopyDirectory(applicationFolderToPack);
+			}
+			List<Service> services = application.getServices();
+			for (Service service : services) {
+				File serviceDir = new File(applicationFolderToPack, service.getName());
+				if (!serviceDir.exists()) {
+					throw new PackagingException("Could not find service folder at: " + serviceDir);
+				}
+				if (!serviceDir.isDirectory()) {
+					throw new PackagingException("Was expecting a directory at: " + serviceDir);
+				}
+
+				for (File fileToCopy : additionalServiceFiles) {
+					FileUtils.copyFileToDirectory(fileToCopy, serviceDir);
+				}
+
+			}
+
+		}
 		// zip the application folder.
 		final File zipFile = File.createTempFile("application", ".zip");
 		zipFile.deleteOnExit();
 		ZipUtils.zip(applicationFolderToPack, zipFile);
 		return zipFile;
+	}
+
+	private static File createCopyDirectory(final File applicationDir)
+			throws IOException {
+		final File destApplicationFolder = File.createTempFile("gs_application_", "");
+		FileUtils.forceDelete(destApplicationFolder);
+		FileUtils.forceMkdir(destApplicationFolder);
+		FileUtils.copyDirectory(applicationDir, destApplicationFolder, SVNFileFilter.getFilter());
+		return destApplicationFolder;
 	}
 
 	private static void copyExtendedServiceFiles(final Service service,

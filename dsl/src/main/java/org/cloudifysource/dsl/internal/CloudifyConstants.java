@@ -152,8 +152,9 @@ public final class CloudifyConstants {
 	public static final String MANAGEMENT_SPACE_NAME = LicenseManagerVerifier.MANAGEMENT_SPACE_NAME;
 	public static final String MANAGEMENT_APPLICATION_NAME = "management";
 	public static final String USM_LIB_DIR = "usmlib";
-	// TODO - remove forward slashes
 	public static final String SERVICE_EXTERNAL_FOLDER = "/ext/";
+	public static final String SERVICE_CLOUD_CONFIGURATION_FILE_NAME = "__Cloud_Configuration.zip";
+	
 	
 	/***************
 	 * Reason codes for rest exceptions
@@ -186,7 +187,6 @@ public final class CloudifyConstants {
 	/*******************
 	 * default ports (LUS and REST)
 	 */
-	// TODO : this port should be configurable
 	public static final int DEFAULT_REST_PORT = 8100;
 	public static final int DEFAULT_LUS_PORT = net.jini.discovery.Constants.getDiscoveryPort();
 	public static final int DEFAULT_LOCALCLOUD_LUS_PORT = DEFAULT_LUS_PORT + 2;
@@ -204,7 +204,6 @@ public final class CloudifyConstants {
 	/*******************
 	 * USM process metrics
 	 */
-	// TODO : this port should be configurable
 	public static final String USM_METRIC_PROCESS_CPU_USAGE = "Process Cpu Usage";
 	public static final String USM_METRIC_PROCESS_CPU_TIME = "Process Cpu Time";
 	public static final String USM_METRIC_PROCESS_CPU_KERNEL_TIME = "Process Cpu Kernel Time";

@@ -15,7 +15,14 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.internal.packaging;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.util.Enumeration;
 import java.util.Stack;
@@ -23,22 +30,78 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
-public class ZipUtils {
+/*********
+ * Static utility methods for using zip and unzip.
+ * 
+ * @author barakme
+ * @since 1.0
+ * 
+ */
+public final class ZipUtils {
 
-	public static void zip(File directory, File zipfile) throws IOException {
-		URI base = directory.toURI();
-		File toZip = new File(zipfile, "");
+	private static final int BUFFER_SIZE = 1024;
+
+	private ZipUtils() {
+
+	}
+
+	/***********
+	 * Zips a single source file into the given file.
+	 * 
+	 * @param sourceFile the file to zip.
+	 * @param zipfile the zip file to create.
+	 * @throws IOException in case of an error.
+	 */
+	public static void zipSingleFile(final File sourceFile, final File zipfile)
+			throws IOException {
+
+		if (!sourceFile.exists()) {
+			throw new FileNotFoundException("Could not find: " + sourceFile);
+		}
+
+		if (!sourceFile.isFile()) {
+			throw new IllegalArgumentException(sourceFile + " is not a file!");
+		}
+		
+		final File toZip = new File(zipfile, "");
+
 		toZip.setWritable(true);
-		Stack<File> stack = new Stack<File>();
-		stack.push(directory);
-		OutputStream out = new FileOutputStream(toZip);
-		Closeable res = out;
+		final ZipOutputStream zout = new ZipOutputStream(new FileOutputStream(toZip));
+
 		try {
-			ZipOutputStream zout = new ZipOutputStream(out);
+			String name = sourceFile.getName();
+			zout.putNextEntry(new ZipEntry(name));
+			copy(sourceFile, zout);
+			zout.closeEntry();
+
+		} finally {
+			zout.close();
+		}
+	}
+
+	/***********
+	 * Zips a directory into the given file.
+	 * 
+	 * @param directory the directory to zip.
+	 * @param zipfile the zip file to create.
+	 * @throws IOException in case of an error.
+	 */
+	public static void zip(final File directory, final File zipfile)
+			throws IOException {
+		final URI base = directory.toURI();
+		final File toZip = new File(zipfile, "");
+		toZip.setWritable(true);
+		final Stack<File> stack = new Stack<File>();
+		stack.push(directory);
+		final OutputStream out = new FileOutputStream(toZip);
+		Closeable res = out;
+
+		try {
+			final ZipOutputStream zout = new ZipOutputStream(out);
 			res = zout;
 			while (!stack.isEmpty()) {
-				directory = stack.pop();
-				for (File kid : directory.listFiles()) {
+				final File currentDirectory = stack.pop();
+				for (final File kid : currentDirectory.listFiles()) {
 					String name = base.relativize(kid.toURI()).getPath();
 					if (kid.isDirectory()) {
 						stack.push(kid);
@@ -56,27 +119,35 @@ public class ZipUtils {
 		}
 	}
 
-	public static void unzip(File zipfile, File directory) throws IOException {
-		ZipFile zfile = new ZipFile(zipfile);
-		Enumeration<? extends ZipEntry> entries = zfile.entries();
+	/*************
+	 * Unzip the given zip file into the specified directory.
+	 * 
+	 * @param zipfile the zip file.
+	 * @param directory the target directory.
+	 * @throws IOException .
+	 */
+	public static void unzip(final File zipfile, final File directory)
+			throws IOException {
+		final ZipFile zfile = new ZipFile(zipfile);
+		final Enumeration<? extends ZipEntry> entries = zfile.entries();
 		while (entries.hasMoreElements()) {
-			ZipEntry entry = entries.nextElement();
-			File file = new File(directory, entry.getName());
+			final ZipEntry entry = entries.nextElement();
+			final File file = new File(directory, entry.getName());
 			if (entry.isDirectory()) {
-				boolean mkdirs = file.mkdirs();
+				final boolean mkdirs = file.mkdirs();
 				if (!mkdirs) {
 					zfile.close();
 					throw new IllegalStateException("cant create dir" + file.getAbsolutePath());
 				}
 			} else {
-				if (!file.getParentFile().exists()){
-					boolean mkdirs = file.getParentFile().mkdirs();
+				if (!file.getParentFile().exists()) {
+					final boolean mkdirs = file.getParentFile().mkdirs();
 					if (!mkdirs) {
 						zfile.close();
 						throw new IllegalStateException("cant create dir" + file.getParentFile().getAbsolutePath());
 					}
 				}
-				InputStream in = zfile.getInputStream(entry);
+				final InputStream in = zfile.getInputStream(entry);
 				try {
 					copy(in, file);
 				} finally {
@@ -86,10 +157,11 @@ public class ZipUtils {
 		}
 	}
 
-	private static void copy(InputStream in, OutputStream out) throws IOException {
-		byte[] buffer = new byte[1024];
+	private static void copy(final InputStream in, final OutputStream out)
+			throws IOException {
+		final byte[] buffer = new byte[BUFFER_SIZE];
 		while (true) {
-			int readCount = in.read(buffer);
+			final int readCount = in.read(buffer);
 			if (readCount < 0) {
 				break;
 			}
@@ -97,8 +169,9 @@ public class ZipUtils {
 		}
 	}
 
-	private static void copy(File file, OutputStream out) throws IOException {
-		InputStream in = new FileInputStream(file);
+	private static void copy(final File file, final OutputStream out)
+			throws IOException {
+		final InputStream in = new FileInputStream(file);
 		try {
 			copy(in, out);
 		} finally {
@@ -106,8 +179,9 @@ public class ZipUtils {
 		}
 	}
 
-	private static void copy(InputStream in, File file) throws IOException {
-		OutputStream out = new FileOutputStream(file);
+	private static void copy(final InputStream in, final File file)
+			throws IOException {
+		final OutputStream out = new FileOutputStream(file);
 		try {
 			copy(in, out);
 		} finally {

@@ -18,10 +18,15 @@ package org.cloudifysource.dsl.entry;
 
 import groovy.lang.Closure;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import org.cloudifysource.dsl.internal.DSLValidationException;
+import org.cloudifysource.dsl.internal.GroovyFileCompilationResult;
+import org.cloudifysource.dsl.internal.GroovyFileValidater;
 
 /***********
  * Factory class for creating an executable DSL entry from a DSL value.
@@ -32,38 +37,80 @@ import java.util.Set;
  */
 public final class ExecutableDSLEntryFactory {
 
+	private static GroovyFileValidater groovyValidater = new GroovyFileValidater();
+
 	private ExecutableDSLEntryFactory() {
 		// private constructor to prevent instantiation
 	}
 
-	@SuppressWarnings("unchecked")
-	public static ExecutableEntriesMap createEntriesMap(final Object arg, final Object entryName) {
-		
+	/************
+	 * Creates a map of executable entries, keyed by the name of the entry. Useful for custom commands, though it may
+	 * come in handy elsewhere.
+	 * 
+	 * @param arg the input value.
+	 * @param entryName the entry name.
+	 * @param workDirectory the work directory for this entry.
+	 * @return the executable entries map.
+	 * @throws DSLValidationException if an entry is invalid.
+	 */
+	public static ExecutableEntriesMap createEntriesMap(final Object arg, final Object entryName,
+			final File workDirectory)
+			throws DSLValidationException {
+
 		final ExecutableEntriesMap result = new ExecutableEntriesMap();
-		copyElementsToEntriesMap(arg, entryName, result);
+		copyElementsToEntriesMap(arg, entryName, result, workDirectory);
 		return result;
-		
+
 	}
+
+	private static void
+			validateStringEntry(final StringExecutableEntry stringExecutableEntry, final File workDirectory)
+					throws DSLValidationException {
+		final String command = stringExecutableEntry.getCommand();
+		final String[] parts = command.split(" ");
+		final String fileName = parts[0];
+		if (fileName.endsWith(".groovy")) {
+			File file = new File(fileName);
+			if (!file.isAbsolute()) {
+				file = new File(workDirectory, fileName);
+			}
+
+			// TODO - re-enable this to activate groovy file validations
+			if (file.exists() && file.isFile()) {
+				GroovyFileCompilationResult result = groovyValidater.validateFile(file);
+				if (!result.isSuccess()) {
+					throw new DSLValidationException(result.getErrorMessage(), result.getCause());
+				}
+			}
+		}
+
+	}
+
 	/****************
 	 * Created an executable entry from a DSL value. The argument must be from one of the supported types.
 	 * 
 	 * @param arg the dsl value.
 	 * @param entryName the dsl entry name.
+	 * @param workDirectory The directory where the DSL is being processed.
 	 * @return the executable entry wrapper for the given arg.
+	 * @throws DSLValidationException if the entry is invalid.
 	 */
 	@SuppressWarnings("unchecked")
-	public static ExecutableDSLEntry createEntry(final Object arg, final Object entryName) {
+	public static ExecutableDSLEntry createEntry(final Object arg, final Object entryName, final File workDirectory)
+			throws DSLValidationException {
 		if (arg instanceof Closure<?>) {
 			return new ClosureExecutableEntry((Closure<?>) arg);
 		} else if (arg instanceof String) {
-			return new StringExecutableEntry((String) arg);
+			final StringExecutableEntry stringExecutableEntry = new StringExecutableEntry((String) arg);
+			validateStringEntry(stringExecutableEntry, workDirectory);
+			return stringExecutableEntry;
 		} else if (arg instanceof List<?>) {
 			return new ListExecutableEntry((List<String>) arg);
 		} else if (arg instanceof Map<?, ?>) {
-			
+
 			// verify types of keys and objects, and create a new map with wrapper entry objects for each value.
 			final MapExecutableEntry result = new MapExecutableEntry();
-			copyElementsToEntriesMap(arg, entryName, result);
+			copyElementsToEntriesMap(arg, entryName, result, workDirectory);
 			return result;
 		}
 		throw new IllegalArgumentException("The entry: " + entryName
@@ -73,17 +120,19 @@ public final class ExecutableDSLEntryFactory {
 	}
 
 	private static void copyElementsToEntriesMap(final Object arg, final Object entryName,
-			final Map<String, ExecutableDSLEntry> result) {
+			final Map<String, ExecutableDSLEntry> result, final File workDirectory)
+			throws DSLValidationException {
+		@SuppressWarnings("unchecked")
 		final Map<Object, Object> originalMap = (Map<Object, Object>) arg;
 		final Set<Entry<Object, Object>> entries = originalMap.entrySet();
-		
+
 		for (final Entry<Object, Object> entry : entries) {
 			if (!(entry.getKey() instanceof String)) {
 				throw new IllegalArgumentException("Entry " + entryName
 						+ " has a sub entry key which is not a string. Subentry was: " + entry.getKey());
 			}
 			// RECURSIVE CALL!
-			final ExecutableDSLEntry executableEntry = createEntry(entry.getValue(), entry.getKey());
+			final ExecutableDSLEntry executableEntry = createEntry(entry.getValue(), entry.getKey(), workDirectory);
 			result.put((String) entry.getKey(), executableEntry);
 
 		}
