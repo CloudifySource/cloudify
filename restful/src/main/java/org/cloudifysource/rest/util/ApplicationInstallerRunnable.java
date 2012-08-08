@@ -41,7 +41,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 	private static final int SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES = 60;
 
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
-	.getLogger(ApplicationInstallerRunnable.class.getName());
+			.getLogger(ApplicationInstallerRunnable.class.getName());
 
 	private ServiceController controller;
 	private DSLApplicationCompilatioResult result;
@@ -67,15 +67,13 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 		File appDir = result.getApplicationDir();
 
-		// final List<Service> services = application.getServices();
-
 		logger.fine("Installing application " + applicationName
 				+ " with the following services: " + services);
 
 		final boolean asyncInstallPossible = isAsyncInstallPossibleForApplication();
 		logger.info("async install setting: " + asyncInstallPossible);
-		installServices(appDir, applicationName, asyncInstallPossible, cloud);
 		try {
+			installServices(appDir, applicationName, asyncInstallPossible, cloud);
 			FileUtils.deleteDirectory(appDir);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -83,9 +81,10 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 	}
 
-	private void installServices(File appDir, String applicationName, final boolean async, final Cloud cloud) {
+	private void installServices(File appDir, String applicationName, final boolean async, final Cloud cloud) throws IOException {
 		// TODO: refactor the last part of this method
-		logger.info("Installing service for application: " + applicationName + ". Async install: " + async +". Number of services: " + this.services.size());
+		logger.info("Installing service for application: " + applicationName + ". Async install: " + async
+				+ ". Number of services: " + this.services.size());
 		for (final Service service : services) {
 			logger.info("Installing service: " + service.getName() + " for application: " + applicationName);
 			service.getCustomProperties().put("usmJarPath",
@@ -95,28 +94,44 @@ public class ApplicationInstallerRunnable implements Runnable {
 					service, applicationName, async, cloud);
 
 			final String serviceName = service.getName();
+			String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+			File serviceDirectory = new File(appDir, serviceName);
+
+			// scan for service cloud configuration file
+
+			File serviceCloudConfiguration =
+					new File(serviceDirectory, CloudifyConstants.SERVICE_CLOUD_CONFIGURATION_FILE_NAME);
+			byte[] serviceCloudConfigurationContents = null;
+			
+			if(serviceCloudConfiguration.exists()) {
+				serviceCloudConfigurationContents = FileUtils.readFileToByteArray(serviceCloudConfiguration);
+				FileUtils.forceDelete(serviceCloudConfiguration);
+			}
+			
 			boolean found = false;
 			try {
-				String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-				//Pack the folder and name it absolutePuName
-				File packedFile = Packager.pack(new File(appDir, serviceName), absolutePUName);
+				// Pack the folder and name it absolutePuName
+
+				File packedFile = Packager.pack(serviceDirectory, absolutePUName);
 				result.getApplicationFile().delete();
 				packedFile.deleteOnExit();
-				//Deployment will be done using the service's absolute PU name.
-				logger.info("Deploying PU: " + absolutePUName + ". File: " + packedFile + ". Properties: " + contextProperties);
-				final String templateName = (service.getCompute() == null ? null : service.getCompute().getTemplate() );
+				// Deployment will be done using the service's absolute PU name.
+				logger.info("Deploying PU: " + absolutePUName + ". File: " + packedFile + ". Properties: "
+						+ contextProperties);
+				final String templateName = (service.getCompute() == null ? null : service.getCompute().getTemplate());
 				controller.deployElasticProcessingUnit(absolutePUName,
 						applicationName, serviceName, packedFile,
-						contextProperties, templateName, true, 0, TimeUnit.SECONDS);
-				try { 
+						contextProperties, templateName, true, 0, TimeUnit.SECONDS, serviceCloudConfigurationContents);
+				try {
 					FileUtils.deleteDirectory(packedFile.getParentFile());
-				} catch(IOException ioe) {
+				} catch (IOException ioe) {
 					// sometimes this delete fails. Not sure why. Maybe deploy is async?
 					logger.warning("Failed to delete temporary directory: " + packedFile.getParentFile());
 				}
-				
+
 				if (!async) {
-					logger.info("Waiting for instance of service: " +serviceName + " of application: " + applicationName);
+					logger.info("Waiting for instance of service: " + serviceName + " of application: "
+							+ applicationName);
 					boolean instanceFound = controller.waitForServiceInstance(
 							applicationName, serviceName,
 							SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES,
@@ -124,12 +139,12 @@ public class ApplicationInstallerRunnable implements Runnable {
 					if (!instanceFound) {
 						throw new TimeoutException(
 								"Service "
-								+ serviceName
-								+ " of application "
-								+ applicationName
-								+ " was installed, but no instance of the service has started after "
-								+ SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES
-								+ " minutes.");
+										+ serviceName
+										+ " of application "
+										+ applicationName
+										+ " was installed, but no instance of the service has started after "
+										+ SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES
+										+ " minutes.");
 					}
 					logger.info("Found instance of: " + serviceName);
 				}
@@ -140,12 +155,12 @@ public class ApplicationInstallerRunnable implements Runnable {
 				logger.log(
 						Level.SEVERE,
 						"Failed to install service: "
-						+ serviceName
-						+ " of application: "
-						+ applicationName
-						+ ". Application installation will halt. "
-						+ "Some services may already have started, and should be shutdown manually. Error was: "
-						+ e.getMessage(), e);
+								+ serviceName
+								+ " of application: "
+								+ applicationName
+								+ ". Application installation will halt. "
+								+ "Some services may already have started, and should be shutdown manually. Error was: "
+								+ e.getMessage(), e);
 				return;
 			}
 
@@ -180,17 +195,17 @@ public class ApplicationInstallerRunnable implements Runnable {
 		if (service.getDependsOn() != null) {
 			String serviceNames = service.getDependsOn().toString();
 			serviceNames = serviceNames.substring(1, serviceNames.length() - 1);
-			if (serviceNames.equals("")){
+			if (serviceNames.equals("")) {
 				contextProperties.setProperty(
 						CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON, "[]");
-			}else{
+			} else {
 				String[] splitServiceNames = serviceNames.split(",");
 				List<String> absoluteServiceNames = new ArrayList<String>();
 				for (String name : splitServiceNames) {
 					absoluteServiceNames.add(ServiceUtils.getAbsolutePUName(applicationName, name.trim()));
 				}
 				contextProperties.setProperty(
-						CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON, 
+						CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON,
 						Arrays.toString(absoluteServiceNames.toArray()));
 			}
 		}
@@ -206,19 +221,19 @@ public class ApplicationInstallerRunnable implements Runnable {
 		}
 		if (service.getNetwork() != null) {
 			contextProperties
-			.setProperty(
-					CloudifyConstants.CONTEXT_PROPERTY_NETWORK_PROTOCOL_DESCRIPTION,
-					service.getNetwork().getProtocolDescription());
+					.setProperty(
+							CloudifyConstants.CONTEXT_PROPERTY_NETWORK_PROTOCOL_DESCRIPTION,
+							service.getNetwork().getProtocolDescription());
 		}
 
 		contextProperties.setProperty(
 				CloudifyConstants.CONTEXT_PROPERTY_ASYNC_INSTALL,
 				Boolean.toString(async));
-		
-		if(cloud != null) {
+
+		if (cloud != null) {
 			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_CLOUD_NAME, cloud.getName());
 		}
-		
+
 		contextProperties.setProperty(
 				CloudifyConstants.CONTEXT_PROPERTY_ELASTIC,
 				Boolean.toString(service.isElastic()));

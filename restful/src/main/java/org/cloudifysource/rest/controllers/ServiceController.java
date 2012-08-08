@@ -1366,8 +1366,8 @@ public class ServiceController {
 	}
 
 	private void doDeploy(final String applicationName, final String serviceName, final String templateName,
-			final String zone, final File serviceFile, final Properties contextProperties, Service service)
-			throws TimeoutException, DSLException {
+			final String zone, final File serviceFile, final Properties contextProperties, Service service, final byte[] serviceCloudConfigurationContents)
+			throws TimeoutException, DSLException{
 
 		final int externalProcessMemoryInMB = 512;
 		final int containerMemoryInMB = 128;
@@ -1424,6 +1424,11 @@ public class ServiceController {
 
 			config.setGridServiceAgentZones(zones);
 
+			if(serviceCloudConfigurationContents != null) {
+			
+				config.setServiceCloudConfiguration(serviceCloudConfigurationContents);
+			}
+			
 			final String locators = extractLocators(admin);
 			config.setLocator(locators);
 
@@ -1542,7 +1547,7 @@ public class ServiceController {
 
 	public String deployElasticProcessingUnit(final String serviceName, final String applicationName,
 			final String zone, final File srcFile, final Properties propsFile, final String originalTemplateName,
-			boolean isApplicationInstall, int timeout, TimeUnit timeUnit)
+			boolean isApplicationInstall, int timeout, TimeUnit timeUnit, final byte[] serviceCloudConfigurationContents)
 			throws TimeoutException, PackagingException, IOException, AdminException, DSLException {
 
 		String templateName;
@@ -1580,7 +1585,7 @@ public class ServiceController {
 		if (service == null) {
 			doDeploy(applicationName, serviceName, templateName, zone, srcFile, propsFile);
 		} else if (service.getLifecycle() != null) {
-			doDeploy(applicationName, serviceName, templateName, zone, srcFile, propsFile, service);
+			doDeploy(applicationName, serviceName, templateName, zone, srcFile, propsFile, service, serviceCloudConfigurationContents);
 		} else if (service.getDataGrid() != null) {
 			deployDataGrid(applicationName, serviceName, zone, srcFile, propsFile, service.getDataGrid(), templateName);
 		} else if (service.getStatelessProcessingUnit() != null) {
@@ -1626,7 +1631,7 @@ public class ServiceController {
 	private void doDeploy(String applicationName, String serviceName, String templateName, String zone, File srcFile,
 			Properties propsFile)
 			throws TimeoutException, DSLException {
-		doDeploy(applicationName, serviceName, templateName, zone, srcFile, propsFile, null);
+		doDeploy(applicationName, serviceName, templateName, zone, srcFile, propsFile, null, null);
 	}
 
 	// TODO: add getters for service processing units in the service class that
@@ -1642,7 +1647,6 @@ public class ServiceController {
 					required = true) final MultipartFile propsFile)
 			throws TimeoutException, PackagingException, IOException, AdminException, DSLException {
 
-		logger.finer("received request to deploy");
 		logger.info("Deploying service with template: " + templateName);
 		String actualTemplateName = templateName;
 
@@ -1677,14 +1681,14 @@ public class ServiceController {
 			FileUtils.deleteQuietly(dest);
 			lifecycleEventsContainerID =
 					deployElasticProcessingUnit(absolutePuName, applicationName, zone, destFile, props,
-							actualTemplateName, false, timeout, TimeUnit.MINUTES);
+							actualTemplateName, false, timeout, TimeUnit.MINUTES, null);
 			destFile.deleteOnExit();
 		} else {
 			logger.warning("Deployment file could not be renamed to the absolute pu name."
 					+ " Deploaying using the name " + dest.getName());
 			lifecycleEventsContainerID =
 					deployElasticProcessingUnit(absolutePuName, applicationName, zone, dest, props, actualTemplateName,
-							false, timeout, TimeUnit.MINUTES);
+							false, timeout, TimeUnit.MINUTES, null);
 			dest.deleteOnExit();
 		}
 
