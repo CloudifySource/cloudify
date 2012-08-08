@@ -64,7 +64,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 	private static final String OPENSTACK_OPENSTACK_ENDPOINT = "openstack.endpoint";
 
 	private final XPath xpath = XPathFactory.newInstance().newXPath();
-	
+
 	private final Client client;
 
 	private String tenant;
@@ -85,13 +85,12 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 	public RSCloudDriver() {
 		dbf = DocumentBuilderFactory.newInstance();
 		dbf.setNamespaceAware(false);
-		
 
 		final ClientConfig config = new DefaultClientConfig();
 		this.client = Client.create(config);
 
 	}
-	
+
 	private DocumentBuilder createDocumentBuilder() {
 		synchronized (xmlFactoryMutex) {
 			// Document builder is not guaranteed to be thread sage
@@ -115,9 +114,10 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 	}
 
 	@Override
-	public void setConfig(final Cloud cloud, final String templateName, final boolean management) {
+	public void setConfig(final Cloud cloud, final String templateName,
+			final boolean management, final String[] zones) {
 		super.setConfig(
-				cloud, templateName, management);
+				cloud, templateName, management, zones);
 
 		validateCloudConfig();
 		if (this.management) {
@@ -125,7 +125,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 		} else {
 			this.serverNamePrefix = this.cloud.getProvider().getMachineNamePrefix();
 		}
-		
+
 		this.tenant = (String) this.cloud.getCustom().get(RS_OPENSTACK_TENANT);
 		if (tenant == null) {
 			throw new IllegalArgumentException("Custom field '" + RS_OPENSTACK_TENANT + "' must be set");
@@ -158,14 +158,16 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 
 	private void validateCloudConfig() {
 		String managementMachineNamePrefix = this.cloud.getProvider().getManagementGroup();
-		if (managementMachineNamePrefix.contains("_")){
-			throw new IllegalArgumentException("The '_' character is not allowed in the attribute " +
-					"'managementGroup' for the rackspace cloud-driver as it is not supported in the rackspace cloud");
+		if (managementMachineNamePrefix.contains("_")) {
+			throw new IllegalArgumentException("The '_' character is not allowed in the attribute "
+					+ "'managementGroup' for the rackspace cloud-driver as it is not supported in the rackspace cloud");
 		}
 		String agentMachineNamePrefix = this.cloud.getProvider().getMachineNamePrefix();
-		if (agentMachineNamePrefix.contains("_")){
-			throw new IllegalArgumentException("The '_' character is not allowed in the attribute " +
-					"'machineNamePrefix' for the rackspace cloud-driver as it is not supported in the rackspace cloud");
+		if (agentMachineNamePrefix.contains("_")) {
+			throw new IllegalArgumentException(
+					"The '_' character is not allowed in the attribute "
+							+ "'machineNamePrefix' for the rackspace cloud-driver as it " 
+							+ "is not supported in the rackspace cloud");
 		}
 	}
 
@@ -336,8 +338,8 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 				this.pathPrefix + "servers/" + nodeId).
 				queryParam("dummyReq", Long.toString(System.currentTimeMillis())).
 				header("X-Auth-Token", token).accept(
-				MediaType.APPLICATION_XML).get(
-				String.class);
+						MediaType.APPLICATION_XML).get(
+						String.class);
 		final Node node = new Node();
 		try {
 			final DocumentBuilder documentBuilder = createDocumentBuilder();
@@ -360,7 +362,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 			}
 
 			addresses = (NodeList) xpath.evaluate(
-					"/server/addresses/public/ip/@addr", xmlDoc, XPathConstants.NODESET);			
+					"/server/addresses/public/ip/@addr", xmlDoc, XPathConstants.NODESET);
 			if (addresses.getLength() > 0) {
 				node.setPublicIp(addresses.item(
 						0).getTextContent());
@@ -402,9 +404,9 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 					this.pathPrefix + "servers")
 					.queryParam("dummyReq", Long.toString(System.currentTimeMillis()))
 					.header(
-					"X-Auth-Token", token).accept(
-					MediaType.APPLICATION_XML).get(
-					String.class);
+							"X-Auth-Token", token).accept(
+							MediaType.APPLICATION_XML).get(
+							String.class);
 
 			final DocumentBuilder documentBuilder = createDocumentBuilder();
 			final Document xmlDoc = documentBuilder.parse(new InputSource(new StringReader(response)));
@@ -423,7 +425,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 		} catch (final UniformInterfaceException e) {
 			final String responseEntity = e.getResponse().getEntity(String.class);
 			throw new OpenstackException(e + " Response entity: " + responseEntity);
-			
+
 		} catch (SAXException e) {
 			throw new OpenstackException("Failed to parse XML Response from server. Response was: " + response
 					+ ", Error was: " + e.getMessage(), e);
@@ -473,7 +475,6 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 	private void terminateServers(final List<String> serverIds, final String token, final long endTime)
 			throws Exception {
 
-		
 		for (final String serverId : serverIds) {
 			try {
 				service.path(
@@ -519,12 +520,9 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 	/**
 	 * Creates server. Block until complete. Returns id
 	 * 
-	 * @param name
-	 *            the server name
-	 * @param timeout
-	 *            the timeout in seconds
-	 * @param serverTemplate
-	 *            the cloud template to use for this server
+	 * @param name the server name
+	 * @param timeout the timeout in seconds
+	 * @param serverTemplate the cloud template to use for this server
 	 * @return the server id
 	 */
 	private MachineDetails newServer(final String token, final long endTime, final CloudTemplate serverTemplate)
@@ -533,7 +531,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 		final MachineDetails md = createServer(
 				token, serverTemplate);
 
-		try {			 
+		try {
 			// wait until complete
 			waitForServerToReachStatus(
 					md, endTime, md.getMachineId(), token, "ACTIVE");
@@ -553,8 +551,8 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 			} catch (final Exception e2) {
 				logger.log(
 						Level.WARNING,
-						"Error while shutting down failed machine: " + md.getMachineId() 
-						+ ". Error was: " + e.getMessage()
+						"Error while shutting down failed machine: " + md.getMachineId()
+								+ ". Error was: " + e.getMessage()
 								+ ".It may be leaking.", e);
 			}
 			throw e;
@@ -575,10 +573,10 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 			serverBootResponse = service.path(
 					this.pathPrefix + "servers")
 					.header(
-					"Content-Type", "application/json").header(
-					"X-Auth-Token", token).accept(
-				MediaType.APPLICATION_XML).post(
-					String.class, json);
+							"Content-Type", "application/json").header(
+							"X-Auth-Token", token).accept(
+							MediaType.APPLICATION_XML).post(
+							String.class, json);
 		} catch (final UniformInterfaceException e) {
 			final String responseEntity = e.getResponse().getEntity(String.class);
 			throw new OpenstackException(e + " Response entity: " + responseEntity);
@@ -597,8 +595,8 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 
 			final String serverId = xpath.evaluate(
 					"/server/@id", doc);
-		        final String rootPassword = xpath.evaluate(
-                    			"/server/@adminPass", doc);
+			final String rootPassword = xpath.evaluate(
+					"/server/@adminPass", doc);
 			MachineDetails md = new MachineDetails();
 			md.setMachineId(serverId);
 			md.setRemoteUsername("root");
@@ -650,29 +648,30 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 		}
 
 	}
-	
+
 	/**********
 	 * Creates an openstack keystone authentication token.
+	 * 
 	 * @return the authentication token.
 	 */
 
 	public String createAuthenticationToken() {
 		final String json =
-		"{\"auth\":{\"RAX-KSKEY:apiKeyCredentials\":{\"username\":\"" + this.cloud.getUser().getUser()
-				+ "\",\"apiKey\":\"" + this.cloud.getUser().getApiKey() + "\"}}}";
-	final WebResource service = client.resource(this.identityEndpoint);
-        final String resp = service.path(
-                "/v2.0/tokens").header(
-                "Content-Type", "application/json").post(
-                String.class, json);
-		
-        String autenticationTokenId = getAutenticationTokenIdFromResponse(resp);
+				"{\"auth\":{\"RAX-KSKEY:apiKeyCredentials\":{\"username\":\"" + this.cloud.getUser().getUser()
+						+ "\",\"apiKey\":\"" + this.cloud.getUser().getApiKey() + "\"}}}";
+		final WebResource service = client.resource(this.identityEndpoint);
+		final String resp = service.path(
+				"/v2.0/tokens").header(
+				"Content-Type", "application/json").post(
+				String.class, json);
+
+		String autenticationTokenId = getAutenticationTokenIdFromResponse(resp);
 		return autenticationTokenId;
 	}
 
 	@SuppressWarnings("unchecked")
 	private String getAutenticationTokenIdFromResponse(final String resp) {
-		final ObjectMapper mapper = new ObjectMapper(); 
+		final ObjectMapper mapper = new ObjectMapper();
 		try {
 			Map<String, Object> readValue = mapper.readValue(new StringReader(resp), Map.class);
 			Map<String, Object> accessMap = (Map<String, Object>) readValue.get("access");

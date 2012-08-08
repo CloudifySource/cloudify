@@ -89,8 +89,8 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	@SuppressWarnings("unchecked")
 	@Override
 	public void setConfig(final Cloud cloud, final String templateName,
-			final boolean management) {
-		super.setConfig(cloud, templateName, management);
+			final boolean management, final String[] zones) {
+		super.setConfig(cloud, templateName, management, zones);
 
 		// Per template properties
 		this.availabilitySet = (String) this.template.getCustom().get(

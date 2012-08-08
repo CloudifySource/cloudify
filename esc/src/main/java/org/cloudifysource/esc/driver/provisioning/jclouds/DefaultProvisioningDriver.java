@@ -35,6 +35,7 @@ import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
+import org.cloudifysource.esc.driver.provisioning.CustomServiceDataAware;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
@@ -57,7 +58,7 @@ import com.j_spaces.kernel.Environment;
  * @since 2.0.0
  */
 public class DefaultProvisioningDriver extends BaseProvisioningDriver implements ProvisioningDriver,
-		ProvisioningDriverClassContextAware {
+		ProvisioningDriverClassContextAware, CustomServiceDataAware {
 
 	private static final String DEFAULT_EC2_WINDOWS_USERNAME = "Administrator";
 	private static final int CLOUD_NODE_STATE_POLLING_INTERVAL = 2000;
@@ -579,6 +580,11 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		deployer.setLocationId(cloudTemplate.getLocationId());
 		deployer.setExtraOptions(cloudTemplate.getOptions());
 		return deployer;
+	}
+
+	@Override
+	public void setCustomDataFile(final File customDataFile) {
+		logger.info("Received custom data file: " + customDataFile);
 	}
 
 }

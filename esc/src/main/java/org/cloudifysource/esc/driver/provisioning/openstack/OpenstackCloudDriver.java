@@ -58,6 +58,7 @@ import com.sun.jersey.api.client.filter.LoggingFilter;
  */
 public class OpenstackCloudDriver extends CloudDriverSupport implements ProvisioningDriver {
 
+	private static final int MILLIS_IN_SECOND = 1000;
 	private static final String MACHINE_STATUS_ACTIVE = "ACTIVE";
 	private static final int HTTP_NOT_FOUND = 404;
 	private static final int INTERNAL_SERVER_ERROR = 500;
@@ -72,9 +73,9 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 	private static final String OPENSTACK_TENANT = "openstack.tenant";
 	private static final String STARTING_THROTTLING = "The cloud reported an Internal Server Error (status 500)."
 			+ " Requests for new machines will be suspended for "
-			+ DEFAULT_TIMEOUT_AFTER_CLOUD_INTERNAL_ERROR / 1000 + " seconds";
+			+ DEFAULT_TIMEOUT_AFTER_CLOUD_INTERNAL_ERROR / MILLIS_IN_SECOND + " seconds";
 	private static final String RUNNING_THROTTLING = "Requests for new machines are currently suspended";
-	
+
 	private final XPath xpath = XPathFactory.newInstance().newXPath();
 
 	private final Client client;
@@ -88,7 +89,6 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 	private String identityEndpoint;
 	private final DocumentBuilderFactory dbf;
 	private final Object xmlFactoryMutex = new Object();
-
 
 	/************
 	 * Constructor.
@@ -127,8 +127,9 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 	}
 
 	@Override
-	public void setConfig(final Cloud cloud, final String templateName, final boolean management) {
-		super.setConfig(cloud, templateName, management);
+	public void setConfig(final Cloud cloud, final String templateName,
+			final boolean management, final String[] zones) {
+		super.setConfig(cloud, templateName, management, zones);
 
 		if (this.management) {
 			this.serverNamePrefix = this.cloud.getProvider().getManagementGroup();
@@ -167,7 +168,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 	@Override
 	public MachineDetails startMachine(final long duration, final TimeUnit unit)
 			throws TimeoutException, CloudProvisioningException {
-		
+
 		if (isThrottling()) {
 			throw new CloudProvisioningException(RUNNING_THROTTLING);
 		}
@@ -179,13 +180,13 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 		try {
 			md = newServer(token, endTime, this.template);
 		} catch (final Exception e) {
-			if (e instanceof UniformInterfaceException 
+			if (e instanceof UniformInterfaceException
 					&& ((UniformInterfaceException) e).getResponse().getStatus() == INTERNAL_SERVER_ERROR) {
-				throttlingTimeout = calcEndTimeInMillis(DEFAULT_TIMEOUT_AFTER_CLOUD_INTERNAL_ERROR, 
+				throttlingTimeout = calcEndTimeInMillis(DEFAULT_TIMEOUT_AFTER_CLOUD_INTERNAL_ERROR,
 						TimeUnit.MILLISECONDS);
 				throw new CloudProvisioningException(STARTING_THROTTLING, e);
 			} else {
-				throw new CloudProvisioningException(e);	
+				throw new CloudProvisioningException(e);
 			}
 		}
 		return md;
@@ -510,7 +511,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 	 */
 	private MachineDetails newServer(final String token, final long endTime, final CloudTemplate serverTemplate)
 			throws Exception {
-		
+
 		final String serverId = createServer(token, serverTemplate);
 
 		try {
@@ -571,7 +572,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 			// if we are here, the machine started!
 			final DocumentBuilder documentBuilder = createDocumentBuilder();
 			final Document doc = documentBuilder.parse(new InputSource(new StringReader(serverBootResponse)));
-			
+
 			final String status = xpath.evaluate("/server/@status", doc);
 			if (!status.startsWith("BUILD")) {
 				throw new IllegalStateException("Expected server status of BUILD(*), got: " + status);
@@ -799,9 +800,10 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 		throw new RuntimeException("error:" + resp);
 	}
-	
+
 	/**
 	 * Checks if throttling is now activated, to avoid overloading the cloud.
+	 * 
 	 * @return True if throttling is activate, false otherwise
 	 */
 	public boolean isThrottling() {
@@ -809,7 +811,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 		if (throttlingTimeout > 0 && throttlingTimeout - System.currentTimeMillis() > 0) {
 			throttling = true;
 		}
-		
+
 		return throttling;
 	}
 }

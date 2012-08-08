@@ -112,6 +112,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		setCustomSettings(cloud);
 	}
 
+	@SuppressWarnings("unchecked")
 	private void setCustomSettings(final Cloud cloud) {
 		// set custom settings
 		final Map<String, Object> customSettings = cloud.getCustom();

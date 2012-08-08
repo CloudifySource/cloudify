@@ -38,7 +38,7 @@ public class LocalCloudProvisioningDriver implements ProvisioningDriver {
 
 	
 	@Override
-	public void setConfig(Cloud cloud, String cloudTemplate, boolean management) {
+	public void setConfig(Cloud cloud, String cloudTemplate, boolean management, final String[] zones) {
 		this.lookupGroups = cloud.getConfiguration().getLookupGroups();
 		this.nicAddress= cloud.getConfiguration().getNicAddress();
 		

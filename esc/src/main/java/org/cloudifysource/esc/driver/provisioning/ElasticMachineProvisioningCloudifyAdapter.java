@@ -15,7 +15,9 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -27,12 +29,15 @@ import java.util.logging.Logger;
 
 import net.jini.core.discovery.LookupLocator;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.internal.packaging.ZipUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContext;
@@ -96,8 +101,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private ProvisioningDriver cloudifyProvisioning;
 	private Admin originalESMAdmin;
-	private Map<String, String> properties;
 	private Cloud cloud;
+	private Map<String, String> properties;
 	private String cloudTemplateName;
 	private String lookupLocatorsString;
 	private CloudifyMachineProvisioningConfig config;
@@ -470,7 +475,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					contextAware.setProvisioningDriverClassContext(provisioningDriverContext);
 				}
 
-				this.cloudifyProvisioning.setConfig(cloud, cloudTemplateName, false);
+				// checks if a service level configuration exists. If so, save the configuration to local file and pass
+				// to cloud driver.
+				handleServiceCloudConfiguration();
+				this.cloudifyProvisioning.setConfig(cloud, cloudTemplateName, false, zones);
 
 			} catch (final ClassNotFoundException e) {
 				throw new BeanConfigurationException("Failed to load provisioning class for cloud: "
@@ -491,6 +499,50 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					+ ": " + e.getMessage());
 		}
 
+	}
+
+	private void handleServiceCloudConfiguration()
+			throws IOException {
+		final byte[] serviceCloudConfigurationContents = this.config.getServiceCloudConfiguration();
+		logger.info("serviceCloudConfigurationContents is: " + serviceCloudConfigurationContents);
+		if (serviceCloudConfigurationContents != null) {
+			logger.info("Found service cloud configuration - saving to file");
+			File tempZipFile = File.createTempFile("__CLOUD_DRIVER_SERVICE_CONFIGURATION_FILE", ".zip");
+			FileUtils.writeByteArrayToFile(tempZipFile, serviceCloudConfigurationContents);
+			logger.info("Wrote file: " + tempZipFile);
+			
+			
+			File tempServiceConfigurationDirectory =
+					File.createTempFile("__CLOUD_DRIVER_SERVICE_CONFIGURATION_DIRECTORY", ".tmp");
+			logger.info("Unzipping file to: " + tempServiceConfigurationDirectory);
+			FileUtils.forceDelete(tempServiceConfigurationDirectory);
+			tempServiceConfigurationDirectory.mkdirs();
+
+			ZipUtils.unzip(tempZipFile, tempServiceConfigurationDirectory);
+			
+			File[] childFiles = tempServiceConfigurationDirectory.listFiles();
+			
+			logger.info("Unzipped configuration contained top-level entries: " + childFiles);
+			if (childFiles.length != 1) {
+				throw new BeanConfigurationException(
+						"Received a service cloud configuration file, "
+								+ "but root of zip file had more then one entry!");
+			}
+
+			final File serviceCloudConfigurationFile = childFiles[0];
+
+			if (this.cloudifyProvisioning instanceof CustomServiceDataAware) {
+				logger.info("Setting service cloud configuration in cloud driver to: " + serviceCloudConfigurationFile);
+				final CustomServiceDataAware custom = (CustomServiceDataAware) this.cloudifyProvisioning;
+				custom.setCustomDataFile(serviceCloudConfigurationFile);
+			} else {
+				throw new BeanConfigurationException(
+						"Cloud driver configuration inclouded a service cloud configuration file,"
+								+ " but the cloud driver "
+								+ this.cloudifyProvisioning.getClass().getName() + " does not implement the "
+								+ CustomServiceDataAware.class.getName() + " interface");
+			}
+		}
 	}
 
 	private static ProvisioningDriverClassContext lazyCreateProvisioningDriverClassContext(
@@ -529,7 +581,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	@Override
 	public void setElasticProcessingUnitMachineIsolation(final ElasticProcessingUnitMachineIsolation isolation) {
-		
+
 	}
 
 }

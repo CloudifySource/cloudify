@@ -66,6 +66,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	private static final String RESREVED_DRIVES_CAPACITY_MEGABYTES_PER_MACHINE_PAIR_SEPERATOR = ",";
 
 	private static final String LOCATOR_KEY = "locator";
+	private static final String SERVICE_CLOUD_CONFIGURATION_KEY = "SERVICE_CLOUD_CONFIGURATION_KEY";
 
 	private StringProperties properties = new StringProperties(new HashMap<String, String>());
 
@@ -177,6 +178,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 
 	/**********
 	 * .
+	 * 
 	 * @return .
 	 */
 	public Map<String, Long> getReservedDriveCapacityPerMachineInMB() {
@@ -278,6 +280,32 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 
 	public String getLocator() {
 		return properties.get(LOCATOR_KEY);
+	}
+
+	/************
+	 * Setter.
+	 * 
+	 * @param serviceCloudConfiguration .
+	 */
+	public void setServiceCloudConfiguration(final byte[] serviceCloudConfiguration) {
+		final String encodedResult = jcifs.util.Base64.encode(serviceCloudConfiguration);
+
+		properties.put(SERVICE_CLOUD_CONFIGURATION_KEY, encodedResult);
+	}
+
+	/**********
+	 * Getter.
+	 * @return .
+	 */
+	public byte[] getServiceCloudConfiguration() {
+		final String encodedFile = properties.get(SERVICE_CLOUD_CONFIGURATION_KEY);
+		if (encodedFile == null) {
+			return null;
+		}
+
+		final byte[] decodedFile = jcifs.util.Base64.decode(encodedFile);
+		return decodedFile;
+
 	}
 
 }

@@ -100,12 +100,12 @@ fi
 
 
 if [ ! -z "$CLOUDIFY_LINK" ]; then
-	echo Downloading cloudify installation
+	echo Downloading cloudify installation from $CLOUDIFY_LINK
 	wget -q $CLOUDIFY_LINK -O $WORKING_HOME_DIRECTORY/gigaspaces.zip || error_exit $? "Failed downloading cloudify installation"
 fi
 
 if [ ! -z "$CLOUDIFY_OVERRIDES_LINK" ]; then
-	echo Downloading cloudify overrides
+	echo Downloading cloudify overrides from $CLOUDIFY_OVERRIDES_LINK
 	wget -q $CLOUDIFY_OVERRIDES_LINK -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.zip || error_exit $? "Failed downloading cloudify overrides"
 fi
 

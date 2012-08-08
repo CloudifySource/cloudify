@@ -69,6 +69,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	protected final List<ProvisioningDriverListener> eventsListenersList = new LinkedList<ProvisioningDriverListener>();
 
 	protected final Map<String, Long> stoppingMachines = new ConcurrentHashMap<String, Long>();
+	protected String[] zones;
 
 	/**
 	 * Initializing the cloud deployer according to the given cloud configuration.
@@ -99,11 +100,13 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	}
 
 	@Override
-	public void setConfig(final Cloud cloud, final String cloudTemplateName, final boolean management) {
+	public void setConfig(final Cloud cloud, final String cloudTemplateName, 
+			final boolean management, final String[] zones) {
 
 		this.cloud = cloud;
 		this.cloudTemplateName = cloudTemplateName;
 		this.management = management;
+		this.zones = zones;
 		this.cloudName = cloud.getName();
 		publishEvent(EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
 		initDeployer(cloud);
@@ -150,6 +153,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	 * the groovy file) 2. machine's remote password (set previously by the cloud driver)
 	 * 
 	 * @param machineDetails The MachineDetails object that represents this server
+	 * @param template the cloud template.
 	 * @throws CloudProvisioningException Indicates missing credentials or IOException (when a key file is used)
 	 */
 	protected void handleServerCredentials(final MachineDetails machineDetails, final CloudTemplate template)
@@ -218,6 +222,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	 * Sets the localDirectory setting of the given cloud object to an absolute path, based on the home directory.
 	 * 
 	 * @param cloud The cloud object to configure
+	 * @param template the cloud template
 	 */
 	protected void fixConfigRelativePaths(final Cloud cloud, final CloudTemplate template) {
 		String configLocalDir = template.getLocalDirectory();

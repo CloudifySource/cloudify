@@ -16,13 +16,28 @@
 package org.cloudifysource.esc.driver.provisioning;
 
 /**
- * a Listener for all published events in the DefaultProvisioningDriver class.
+ * A Listener for all published events in the DefaultProvisioningDriver class.
+ * 
+ * Registering a listener to a cloud driver allows an application that uses the cloud driver (like the Cloudify CLI) to
+ * receive notifications about provisioning events. This is usually used for things like progress bars and on-screen
+ * notifications, though you are of-course free to use as you wish.
+ * 
+ * A listener MUST NOT throw an exception - if it throws a runtime exception, the current cloud driver provisioning
+ * action will stop. A listener MUST NOT perform long running operations - the listener implementation is called on the
+ * same thread as the provisioning action and a long running operation may delay time sensitive cloud driver actions.
  * 
  * @author adaml
- *
+ * @since 2.0
+ * 
  */
 public interface ProvisioningDriverListener {
-	
+
+	/****************
+	 * Callback method for a provisioning event.
+	 * 
+	 * @param eventName Event name.
+	 * @param args Event arguments.
+	 */
 	void onProvisioningEvent(String eventName, Object... args);
-	
+
 }
