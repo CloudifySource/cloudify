@@ -218,7 +218,7 @@ public class USMLifecycleBean implements ClusterInfoAware {
 			long eventExecDuration = System.currentTimeMillis() - eventStartTime;
 			String durationAsString = DurationFormatUtils.formatDuration(eventExecDuration, "s.S");
 			float formattedDurationAsLong = Float.parseFloat(durationAsString);
-			String formattedDurationAsString = String.format("%.1f", (float) formattedDurationAsLong);
+			String formattedDurationAsString = String.format("%.1f", formattedDurationAsLong);
 			eventLogger.info(eventPrefix + event + CloudifyConstants.USM_EVENT_EXEC_SUCCESSFULLY 
 					+ ", duration: " + formattedDurationAsString + " seconds");
 		}
