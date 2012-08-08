@@ -35,19 +35,20 @@ import org.fusesource.jansi.Ansi.Color;
  * @since 2.0.0
  * 
  *        Uninstalls a service. Required arguments: service-name The name of the service to uninstall.
- *        
- *        Optional arguments:
- *        timeout - The number of minutes to wait until the operation is completed (default: 5 minutes)
- *        progress - The polling time interval in seconds, used for checking if the operation is completed
- *         (default: 5 seconds)
+ * 
+ *        Optional arguments: timeout - The number of minutes to wait until the operation is completed (default: 5
+ *        minutes) progress - The polling time interval in seconds, used for checking if the operation is completed
+ *        (default: 5 seconds)
  * 
  *        Command syntax: uninstall-service [-timeout timeout] [-progress progress] service-name
  */
 @Command(scope = "cloudify", name = "uninstall-service", description = "undeploy a service")
 public class UninstallService extends AdminAwareCommand {
 
-	public static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out. "
-				+ "Try to increase the timeout using the -timeout flag";
+	private static final int DEFAULT_TIMEOUT_MINUTES = 5;
+
+	private static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out. "
+			+ "Try to increase the timeout using the -timeout flag";
 
 	@Argument(index = 0, required = true, name = "service-name")
 	private String serviceName;
@@ -67,21 +68,22 @@ public class UninstallService extends AdminAwareCommand {
 	}
 
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is"
-		+ " done. Defaults to 5 minutes.")
-		private int timeoutInMinutes = 5;
+			+ " done. Defaults to 5 minutes.")
+	private int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected Object doExecute() throws Exception {
+	protected Object doExecute()
+			throws Exception {
 
 		if (!askUninstallConfirmationQuestion()) {
 			return getFormattedMessage("uninstall_aborted");
 		}
 
 		final Set<String> containerIdsOfService = ((RestAdminFacade) adminFacade)
-		.getGridServiceContainerUidsForService(getCurrentApplicationName(), serviceName);
+				.getGridServiceContainerUidsForService(getCurrentApplicationName(), serviceName);
 		if (verbose) {
 			logger.info("Found containers: " + containerIdsOfService);
 		}
@@ -99,11 +101,11 @@ public class UninstallService extends AdminAwareCommand {
 	 * Asks the user for confirmation to uninstall the service.
 	 * 
 	 * @return true if the user confirmed, false otherwise
-	 * @throws IOException
-	 *             Reporting a failure to get the user's confirmation
+	 * @throws IOException Reporting a failure to get the user's confirmation
 	 */
 	// returns true if the answer to the question was 'Yes'.
-	private boolean askUninstallConfirmationQuestion() throws IOException {
-        return ShellUtils.promptUser(session, "service_uninstall_confirmation", serviceName);
+	private boolean askUninstallConfirmationQuestion()
+			throws IOException {
+		return ShellUtils.promptUser(session, "service_uninstall_confirmation", serviceName);
 	}
 }

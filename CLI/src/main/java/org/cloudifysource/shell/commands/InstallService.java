@@ -56,6 +56,8 @@ import org.fusesource.jansi.Ansi.Color;
 		+ " path it will be packed and deployed. If you sepcify a service archive, the shell will deploy that file.")
 public class InstallService extends AdminAwareCommand {
 
+	private static final int DEFAULT_TIMEOUT_MINUTES = 5;
+
 	@Argument(required = true, name = "recipe", description = "The service recipe folder or archive")
 	private File recipe;
 
@@ -67,7 +69,7 @@ public class InstallService extends AdminAwareCommand {
 
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is "
 			+ "done. Defaults to 5 minutes.")
-	private int timeoutInMinutes = 5;
+	private int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
 	
 	@Option(required = false, name = "-service-file-name", description = "Name of the service file in the "
 		+ "recipe folder. If not specified, uses the default file name")

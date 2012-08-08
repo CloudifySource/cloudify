@@ -34,14 +34,11 @@ import org.cloudifysource.restclient.InvocationResult;
  * 
  *        Invokes a custom command on a specific service over REST.
  * 
- *        Required arguments:
- *         service-name - The service to invoke the command on
- *         command-name - The name of the command to invoke
- *         params - Command parameters
+ *        Required arguments: service-name - The service to invoke the command on command-name - The name of the command
+ *        to invoke params - Command parameters
  * 
- *        Optional arguments:
- *         beanname - Bean name
- *         instanceid - If provided, the command will be invoked only on that specific instance
+ *        Optional arguments: beanname - Bean name instanceid - If provided, the command will be invoked only on that
+ *        specific instance
  * 
  *        Command syntax: invoke [-beanname beanname] [-instanceid instanceid] service-name command-name params
  */
@@ -55,7 +52,7 @@ public class Invoke extends AdminAwareCommand {
 	private String commandName;
 
 	@Option(name = "-beanname", description = "bean name")
-	private String beanName = "universalServiceManagerBean";
+	private final String beanName = "universalServiceManagerBean";
 
 	@Option(name = "-instanceid", description = "If provided, the command will be invoked only on that specific "
 			+ "instance")
@@ -63,13 +60,14 @@ public class Invoke extends AdminAwareCommand {
 
 	@Argument(index = 2, multiValued = true, name = "params", required = false, description = "Command Custom "
 			+ "parameters.")
-	private List<String> params = new ArrayList<String>();
+	private final List<String> params = new ArrayList<String>();
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected Object doExecute() throws Exception {
+	protected Object doExecute()
+			throws Exception {
 		// Containing all the success invocation messages.
 		final StringBuilder invocationSuccessStringBuilder = new StringBuilder();
 		// Containing all the failed invocation messages.
@@ -107,7 +105,7 @@ public class Invoke extends AdminAwareCommand {
 					invocationFailedStringBuilder.append(failedMessage + System.getProperty("line.separator"));
 				}
 			}
-		} else {// instanceID specified. invoking command on specific instance.
+		} else { // instanceID specified. invoking command on specific instance.
 
 			final InvocationResult invocationResult = adminFacade.invokeInstanceCommand(applicationName, serviceName,
 					beanName, instanceId, commandName, paramsMap);

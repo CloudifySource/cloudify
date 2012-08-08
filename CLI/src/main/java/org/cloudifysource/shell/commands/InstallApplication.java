@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
@@ -29,6 +30,7 @@ import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
+import org.cloudifysource.dsl.internal.packaging.ZipUtils;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
 import org.cloudifysource.shell.ShellUtils;
@@ -41,12 +43,10 @@ import org.fusesource.jansi.Ansi.Color;
  * 
  *        Installs an application, including it's contained services ordered according to their dependencies.
  * 
- *        Required arguments:
- *         application-file - The application recipe file path, folder or archive (zip/jar)
+ *        Required arguments: application-file - The application recipe file path, folder or archive (zip/jar)
  * 
- *        Optional arguments:
- *         name - The name of the application
- *         timeout - The number of minutes to wait until the operation is completed (default: 10 minutes)
+ *        Optional arguments: name - The name of the application timeout - The number of minutes to wait until the
+ *        operation is completed (default: 10 minutes)
  * 
  *        Command syntax: install-application [-name name] [-timeout timeout] application-file
  */
@@ -54,6 +54,8 @@ import org.fusesource.jansi.Ansi.Color;
 		+ " a folder path it will be packed and deployed. If you sepcify an application archive, the shell will deploy"
 		+ " that file.")
 public class InstallApplication extends AdminAwareCommand {
+
+	private static final int DEFAULT_TIMEOUT_MINUTES = 10;
 
 	@Argument(required = true, name = "application-file", description = "The application recipe file path, folder "
 			+ "or archive")
@@ -64,16 +66,22 @@ public class InstallApplication extends AdminAwareCommand {
 
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation"
 			+ " is done. Defaults to 10 minutes.")
-	private int timeoutInMinutes = 10;
+	private final int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
 
-	private static final String TIMEOUT_ERROR_MESSAGE = "Application installation timed out." 
-				+ " Configure the timeout using the -timeout flag.";
+	@Option(required = false, name = "-cloudConfiguration",
+			description = "File of directory containing configuration information to be used by the cloud driver "
+					+ "for this application")
+	private File cloudConfiguration;
+
+	private static final String TIMEOUT_ERROR_MESSAGE = "Application installation timed out."
+			+ " Configure the timeout using the -timeout flag.";
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected Object doExecute() throws Exception {
+	protected Object doExecute()
+			throws Exception {
 		if (!applicationFile.exists()) {
 			throw new CLIStatusException("application_not_found", applicationFile.getAbsolutePath());
 		}
@@ -87,6 +95,7 @@ public class InstallApplication extends AdminAwareCommand {
 			throw new CLIStatusException("application_already_deployed", application.getName());
 		}
 
+		File cloudConfigurationZipFile = createCloudConfigurationZipFile();
 		File zipFile;
 		if (applicationFile.isFile()) {
 			if (applicationFile.getName().endsWith(".zip") || applicationFile.getName().endsWith(".jar")) {
@@ -94,14 +103,20 @@ public class InstallApplication extends AdminAwareCommand {
 			} else {
 				throw new CLIStatusException("application_file_format_mismatch", applicationFile.getPath());
 			}
-		} else {//pack an application folder
-			zipFile = Packager.packApplication(application, applicationFile);			
+		} else { // pack an application folder
+			if (cloudConfigurationZipFile == null) {
+				zipFile = Packager.packApplication(application, applicationFile);
+			} else {
+				zipFile =
+						Packager.packApplication(application, applicationFile,
+								new File[] { cloudConfigurationZipFile });
+			}
 		}
 
 		// toString of string list (i.e. [service1, service2])
 		logger.info("Uploading application " + applicationName);
-		Map<String, String> result = adminFacade.installApplication(zipFile, applicationName, timeoutInMinutes);
-		String serviceOrder = result.get(CloudifyConstants.SERVICE_ORDER);
+		final Map<String, String> result = adminFacade.installApplication(zipFile, applicationName, timeoutInMinutes);
+		final String serviceOrder = result.get(CloudifyConstants.SERVICE_ORDER);
 
 		// If temp file was created, Delete it.
 		if (!applicationFile.isFile()) {
@@ -111,10 +126,10 @@ public class InstallApplication extends AdminAwareCommand {
 		if (serviceOrder.charAt(0) != '[' && serviceOrder.charAt(serviceOrder.length() - 1) != ']') {
 			throw new IllegalStateException("Cannot parse service order response: " + serviceOrder);
 		}
-		
+
 		printApplicationInfo(application);
-		String pollingID = result.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
-		RestLifecycleEventsLatch lifecycleEventsPollingLatch = 
+		final String pollingID = result.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
+		final RestLifecycleEventsLatch lifecycleEventsPollingLatch =
 				this.adminFacade.getLifecycleEventsPollingLatch(pollingID, TIMEOUT_ERROR_MESSAGE);
 		boolean isDone = false;
 		boolean continuous = false;
@@ -126,13 +141,13 @@ public class InstallApplication extends AdminAwareCommand {
 					lifecycleEventsPollingLatch.continueWaitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
 				}
 				isDone = true;
-			} catch (TimeoutException e) {
+			} catch (final TimeoutException e) {
 				if (!(Boolean) session.get(Constants.INTERACTIVE_MODE)) {
 					throw e;
 				}
-				boolean continueInstallation = promptWouldYouLikeToContinueQuestion();
+				final boolean continueInstallation = promptWouldYouLikeToContinueQuestion();
 				if (!continueInstallation) {
-					throw new CLIStatusException(e, "application_installation_timed_out_on_client", 
+					throw new CLIStatusException(e, "application_installation_timed_out_on_client",
 							applicationName);
 				} else {
 					continuous = true;
@@ -146,17 +161,48 @@ public class InstallApplication extends AdminAwareCommand {
 		return this.getFormattedMessage("application_installed_succesfully", Color.GREEN, applicationName);
 	}
 
-	private boolean promptWouldYouLikeToContinueQuestion() throws IOException {
+	private File createCloudConfigurationZipFile()
+			throws CLIStatusException, IOException {
+		if (this.cloudConfiguration == null) {
+			return null;
+		}
+
+		if (!this.cloudConfiguration.exists()) {
+			throw new CLIStatusException("cloud_configuration_file_not_found", this.cloudConfiguration.getAbsolutePath());
+		}
+
+		// create a temp file in a temp directory
+		File tempDir = File.createTempFile("__Cloudify_Cloud_configuration", ".tmp");
+		FileUtils.forceDelete(tempDir);
+		tempDir.mkdirs();
+		
+		File tempFile = new File(tempDir, CloudifyConstants.SERVICE_CLOUD_CONFIGURATION_FILE_NAME);
+		
+		// mark files for deletion on JVM exit
+		tempFile.deleteOnExit();
+		tempDir.deleteOnExit();
+		
+		if (this.cloudConfiguration.isDirectory()) {
+			ZipUtils.zip(this.cloudConfiguration, tempFile);
+		} else if (this.cloudConfiguration.isFile()) {
+			ZipUtils.zipSingleFile(this.cloudConfiguration, tempFile);
+		} else {
+			throw new IOException(this.cloudConfiguration + " is neither a file nor a directory");
+		}
+
+		return tempFile;
+	}
+
+	private boolean promptWouldYouLikeToContinueQuestion()
+			throws IOException {
 		return ShellUtils.promptUser(session, "would_you_like_to_continue_application_installation",
 				this.applicationName);
 	}
 
 	/**
-	 * Prints Application data - the application name and it's services name, dependencies and number of
-	 * instances.
+	 * Prints Application data - the application name and it's services name, dependencies and number of instances.
 	 * 
-	 * @param application
-	 *            Application object to analyze
+	 * @param application Application object to analyze
 	 */
 	private void printApplicationInfo(final Application application) {
 		logger.info("Application [" + applicationName + "] with " + application.getServices().size() + " services");
@@ -171,12 +217,11 @@ public class InstallApplication extends AdminAwareCommand {
 	}
 
 	/**
-	 * Set the application name, according to this logic: 1. If an application name argument is passed - use
-	 * it. 2. If not - use the name configured in the Application object 3. If the configured name is empty -
-	 * use the application's file name (preceding the "." sign)
+	 * Set the application name, according to this logic: 1. If an application name argument is passed - use it. 2. If
+	 * not - use the name configured in the Application object 3. If the configured name is empty - use the
+	 * application's file name (preceding the "." sign)
 	 * 
-	 * @param application
-	 *            The Application object
+	 * @param application The Application object
 	 */
 	private void normalizeApplicationName(final Application application) {
 		if (applicationName == null || applicationName.isEmpty()) {
@@ -189,5 +234,13 @@ public class InstallApplication extends AdminAwareCommand {
 				applicationName = applicationName.substring(0, endIndex);
 			}
 		}
+	}
+
+	public File getCloudConfiguration() {
+		return cloudConfiguration;
+	}
+
+	public void setCloudConfiguration(final File cloudConfiguration) {
+		this.cloudConfiguration = cloudConfiguration;
 	}
 }

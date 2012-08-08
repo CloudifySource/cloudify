@@ -37,21 +37,24 @@ import org.fusesource.jansi.Ansi.Color;
  * @since 2.0.0
  * 
  *        Uninstalls an application.
- *		
- *        Required arguments:
- *         applicationName - The name of the application
- *        
- *        Optional arguments:
- *         timeout - The number of minutes to wait until the operation is completed (default: 5).
- *  
+ * 
+ *        Required arguments: applicationName - The name of the application
+ * 
+ *        Optional arguments: timeout - The number of minutes to wait until the operation is completed (default: 5).
+ * 
  *        Command syntax: uninstall-application [-timeout timeout] applicationName
  * 
  */
 @Command(scope = "cloudify", name = "uninstall-application", description = "Uninstalls an application.")
 public class UninstallApplication extends AdminAwareCommand {
 
+	private static final int DEFAULT_TIMEOUT_MINUTES = 5;
+
+	/****
+	 * this is public as used elsewhere.
+	 */
 	public static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out. "
-				+ "Try to increase the timeout using the -timeout flag";
+			+ "Try to increase the timeout using the -timeout flag";
 
 	@Argument(index = 0, required = true, name = "The name of the application")
 	private String applicationName;
@@ -71,14 +74,15 @@ public class UninstallApplication extends AdminAwareCommand {
 	}
 
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is"
-		+ " done. Defaults to 5 minutes.")
-		private int timeoutInMinutes = 5;
+			+ " done. Defaults to 5 minutes.")
+	private int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected Object doExecute() throws Exception {
+	protected Object doExecute()
+			throws Exception {
 
 		if (!askUninstallConfirmationQuestion()) {
 			return getFormattedMessage("uninstall_aborted");
@@ -87,13 +91,13 @@ public class UninstallApplication extends AdminAwareCommand {
 		// we need to look at all containers since the application already undeployed and we cannot get only
 		// the application containers
 		final Set<String> containerIdsOfApplication = ((RestAdminFacade) adminFacade)
-		.getGridServiceContainerUidsForApplication(applicationName);
+				.getGridServiceContainerUidsForApplication(applicationName);
 		if (verbose) {
 			logger.info("Containers running PUs of application " + applicationName + ":" + containerIdsOfApplication);
 		}
 
 		Map<String, String> uninstallApplicationResponse = this.adminFacade
-		.uninstallApplication(this.applicationName, timeoutInMinutes);
+				.uninstallApplication(this.applicationName, timeoutInMinutes);
 
 		String pollingID = uninstallApplicationResponse.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
 		this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
@@ -108,10 +112,10 @@ public class UninstallApplication extends AdminAwareCommand {
 	 * Asks the user for confirmation to uninstall the application.
 	 * 
 	 * @return true if the user confirmed, false otherwise
-	 * @throws IOException
-	 *             Reporting a failure to get the user's confirmation
+	 * @throws IOException Reporting a failure to get the user's confirmation
 	 */
-	private boolean askUninstallConfirmationQuestion() throws IOException {
-        return ShellUtils.promptUser(session, "application_uninstall_confirmation", applicationName);
-    }
+	private boolean askUninstallConfirmationQuestion()
+			throws IOException {
+		return ShellUtils.promptUser(session, "application_uninstall_confirmation", applicationName);
+	}
 }
