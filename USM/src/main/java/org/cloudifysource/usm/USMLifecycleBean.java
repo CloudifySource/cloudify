@@ -22,13 +22,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DurationFormatUtils;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.usm.details.Details;
@@ -215,11 +215,12 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	private void logEventSuccess(final LifecycleEvents event, final USMEvent[] listeners, final long eventStartTime) {
 		if (isLoggableEvent(
 				event, listeners)) {
-			long eventExecDuration = TimeUnit.SECONDS.convert(
-					System.currentTimeMillis() - eventStartTime, TimeUnit.MILLISECONDS);
-			String formattedDuration = String.format("%.1f", (float) eventExecDuration);
+			long eventExecDuration = System.currentTimeMillis() - eventStartTime;
+			String durationAsString = DurationFormatUtils.formatDuration(eventExecDuration, "s.S");
+			float formattedDurationAsLong = Float.parseFloat(durationAsString);
+			String formattedDurationAsString = String.format("%.1f", (float) formattedDurationAsLong);
 			eventLogger.info(eventPrefix + event + CloudifyConstants.USM_EVENT_EXEC_SUCCESSFULLY 
-					+ ", duration: " + formattedDuration);
+					+ ", duration: " + formattedDurationAsString + " seconds");
 		}
 	}
 
