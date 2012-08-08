@@ -33,6 +33,7 @@ import org.cloudifysource.dsl.context.ServiceContext;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntryFactory;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.cloudifysource.usm.TCPPortEventListener;
 import org.cloudifysource.usm.USMComponent;
 import org.cloudifysource.usm.USMException;
@@ -285,7 +286,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 							if (entry.getValue() instanceof Closure) {
 								final EventResult value =
 										new DSLEntryExecutor(ExecutableDSLEntryFactory.createEntry(entry.getValue(),
-												"details"), launcher, puExtDir).run();
+												"details", puExtDir), launcher, puExtDir).run();
 								if (value.isSuccess()) {
 									returnMap.put(entry.getKey(),
 											value.getResult());
@@ -299,7 +300,8 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 						}
 					} else if (details instanceof Closure) {
 						final EventResult result =
-								new DSLEntryExecutor(ExecutableDSLEntryFactory.createEntry(details, "details"),
+								new DSLEntryExecutor(
+										ExecutableDSLEntryFactory.createEntry(details, "details", puExtDir),
 										launcher, puExtDir).run();
 						if (result.isSuccess()) {
 							returnMap.putAll((Map<String, Object>) result.getResult());
@@ -340,6 +342,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			};
 
 		}
+
 		// else if the monitor is of type Map we run all of the map's values
 		// as closures and return the output map.
 		return new Monitor() {
@@ -354,10 +357,16 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 
 					for (final Map.Entry<String, Object> entryObject : ((Map<String, Object>) monitor).entrySet()) {
 						final Object object = entryObject.getValue();
-						final EventResult result =
-								new DSLEntryExecutor(
-										ExecutableDSLEntryFactory.createEntry(object, entryObject.getKey()), launcher,
-										puExtDir).run();
+						EventResult result;
+						try {
+							result =
+									new DSLEntryExecutor(
+											ExecutableDSLEntryFactory.createEntry(object, entryObject.getKey(),
+													puExtDir), launcher,
+											puExtDir).run();
+						} catch (final DSLValidationException e) {
+							throw new MonitorException("Executable entry in monitor is invalid", e);
+						}
 						if (!result.isSuccess()) {
 							logger.log(Level.WARNING,
 									"DSL Entry failed to execute: " + result.getException());
@@ -566,7 +575,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			return null;
 		}
 	}
-	
+
 	@Bean
 	public USMEvent getStop() {
 
@@ -591,8 +600,6 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			return new DefaultProcessLocator();
 		}
 	}
-
-
 
 	@Override
 	public void setApplicationContext(final ApplicationContext applicationContext) {
