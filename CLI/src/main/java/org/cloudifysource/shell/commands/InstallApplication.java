@@ -126,8 +126,11 @@ public class InstallApplication extends AdminAwareCommand {
 		if (serviceOrder.charAt(0) != '[' && serviceOrder.charAt(serviceOrder.length() - 1) != ']') {
 			throw new IllegalStateException("Cannot parse service order response: " + serviceOrder);
 		}
-
 		printApplicationInfo(application);
+		
+		session.put(Constants.ACTIVE_APP, applicationName);
+		GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
+		
 		final String pollingID = result.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
 		final RestLifecycleEventsLatch lifecycleEventsPollingLatch =
 				this.adminFacade.getLifecycleEventsPollingLatch(pollingID, TIMEOUT_ERROR_MESSAGE);
@@ -154,9 +157,6 @@ public class InstallApplication extends AdminAwareCommand {
 				}
 			}
 		}
-
-		session.put(Constants.ACTIVE_APP, applicationName);
-		GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
 
 		return this.getFormattedMessage("application_installed_succesfully", Color.GREEN, applicationName);
 	}
