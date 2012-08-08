@@ -14,7 +14,7 @@
 		<cloudifyVersion>${project.version}</cloudifyVersion>
 		<springSecurityVersion>3.0.7.RELEASE</springSecurityVersion>
 		<sigarVersion>1.6.5</sigarVersion>
-		<groovyVersion>2.0.0</groovyVersion>
+		<groovyVersion>1.8.6</groovyVersion>
 	</properties>
 
 	<modules>
