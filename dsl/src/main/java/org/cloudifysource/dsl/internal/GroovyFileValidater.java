@@ -35,7 +35,7 @@ public class GroovyFileValidater {
 	private final GroovyShell groovyShell;
 
 	public GroovyFileValidater() {
-		this.groovyShell = new GroovyShell();
+		this.groovyShell = new GroovyShell(Thread.currentThread().getContextClassLoader());
 
 	}
 
@@ -47,6 +47,7 @@ public class GroovyFileValidater {
 	 */
 	public GroovyFileCompilationResult validateFile(final File groovyFile) {
 		try {
+
 			this.groovyShell.parse(groovyFile);
 			return GroovyFileCompilationResult.SUCCESS;
 		} catch (final CompilationFailedException e) {
