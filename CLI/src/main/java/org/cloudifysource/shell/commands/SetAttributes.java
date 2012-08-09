@@ -22,20 +22,22 @@ import org.cloudifysource.restclient.GSRestClient;
 import java.io.IOException;
 import java.util.Map;
 
+
 /**
- * Created with IntelliJ IDEA.
- * User: uri1803
- * Date: 7/22/12
- * Time: 6:15 PM
- * To change this template use File | Settings | File Templates.
+ * @author uri
+ * @since 2.2.0
+ * 
+ *        Sets attributes in the cloudify controller attribute store.
+ * 
+ *        Command syntax: set-attributes '{"att1":"value2","att2":"value2"}'
  */
 @Command(scope = "cloudify", name = "set-attributes", description = "Sets attributes in the cloudify controller attribute store")
 public class SetAttributes extends AbstractAttributesCommand {
 
     @Argument(required = true, name = "attributes", description = "A list of one or more attributes to store. List " +
-            "should use a valid JSON format, e.g. '{\"attribute 1 name\":\"attribute 1 value\",\"attribute 2 name\":\"attribute 2 value\"}' " +
+            "should use a valid JSON format, e.g. '{\"att1\":\"value1\",\"att2\":\"value2\"}' " +
             "(make sure to use single quotes (') around this argument to make sure all JSON attributes are escaped properly.")
-    protected String attributes = null;
+    protected String attributes;
 
     @Override
     protected Object doExecute() throws Exception {

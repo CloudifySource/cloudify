@@ -19,19 +19,20 @@ import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 
 /**
- * Created with IntelliJ IDEA.
- * User: uri1803
- * Date: 7/22/12
- * Time: 6:15 PM
- * To change this template use File | Settings | File Templates.
+ * @author uri
+ * @since 2.2.0
+ * 
+ *        Removes attributes from the cloudify controller attribute store.
+ * 
+ *        Command syntax: remove-attributes 'att1,att2'
  */
 @Command(scope = "cloudify", name = "remove-attributes", description = "Removes attributes from the cloudify controller attribute store")
 public class RemoveAttributes extends AbstractAttributesCommand {
 
-    @Argument(required = true, name = "attributes", description = "A list of one or more attributes names to delete. List " +
-            "should use the following format: 'attribute 1 name,attribute 2 name\' (make sure to use single quotes (') around " +
+	@Argument(required = true, name = "attributes", description = "A list of one or more attributes names to delete. List " +
+            "should use the following format: 'att1,att2' (make sure to use single quotes (') around " +
             "this argument to make sure all attribute names are escaped properly.")
-    protected String attributes = null;
+    protected String attributes;
 
     @Override
     protected Object doExecute() throws Exception {
