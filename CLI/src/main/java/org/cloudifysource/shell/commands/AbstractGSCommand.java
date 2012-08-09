@@ -43,9 +43,6 @@ import java.util.logging.Logger;
 public abstract class AbstractGSCommand implements Action {
 
     protected static final Logger logger = Logger.getLogger(AbstractGSCommand.class.getName());
-    // Used for CompleterValues methods that don't have access to the
-    // sessions admin facade
-    private AdminFacade restAdminFacade;
 
     @Option(required = false, name = "--verbose", description = "show detailed execution result including exception"
             + " stack trace")
