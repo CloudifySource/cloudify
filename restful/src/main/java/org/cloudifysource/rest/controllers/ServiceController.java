@@ -1695,7 +1695,7 @@ public class ServiceController {
 		// TODO: move this Key String to the DSL project as a constant.
 		// Map<String, String> serviceDetails = new HashMap<String, String>();
 		// serviceDetails.put("lifecycleEventsContainerID", lifecycleEventsContainerID.toString());
-		return successStatus(lifecycleEventsContainerID.toString());
+		return successStatus(lifecycleEventsContainerID);
 	}
 
 	private File getJarFileFromDir(File serviceFileOrDir, final File serviceDirectory, final String jarName)
