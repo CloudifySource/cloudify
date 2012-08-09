@@ -16,10 +16,12 @@
 
 package org.cloudifysource.dsl.internal;
 
-//import groovy.lang.GroovyShell;
+import groovy.lang.GroovyShell;
 
 import java.io.File;
+import java.io.IOException;
 
+import org.codehaus.groovy.control.CompilationFailedException;
 
 /******************
  * Validates that groovy script files are valid, meaning there are no syntax errors in the files. Validation is performs
@@ -30,55 +32,13 @@ import java.io.File;
  */
 public class GroovyFileValidater {
 
-	//private final GroovyShell groovyShell;
+	private final GroovyShell groovyShell;
 
 	public GroovyFileValidater() {
-		// final CompilerConfiguration cc = new CompilerConfiguration();
 
-		// final List<String> groovyLibJarFiles = getGroovyLibJarFiles();
-		//
-		// cc.setClasspathList(groovyLibJarFiles);
-
-		//this.groovyShell = new GroovyShell(Thread.currentThread().getContextClassLoader());
-		// , new Binding(), cc);
-		// groovyShell.a
+		this.groovyShell = new GroovyShell(Thread.currentThread().getContextClassLoader());
 
 	}
-
-	// private List<String> getGroovyLibJarFiles() {
-	// final String gsHome = Environment.getHomeDirectory();
-	// final String groovyLibDirPath = gsHome + "/tools/groovy/lib";
-	// final File groovyLibDir = new File(groovyLibDirPath);
-	//
-	// if (!groovyLibDir.exists()) {
-	// throw new IllegalStateException("Excepted to find groovy lib directory at: " + groovyLibDir);
-	// }
-	//
-	// if (!groovyLibDir.isDirectory()) {
-	// throw new IllegalStateException("Expected " + groovyLibDir + " to be a directory");
-	// }
-	// final File[] jars = groovyLibDir.listFiles(new FileFilter() {
-	//
-	// @Override
-	// public boolean accept(final File file) {
-	// if (!file.getName().endsWith(".jar")) {
-	// return false;
-	// }
-	//
-	// if (file.isDirectory()) {
-	// return false;
-	// }
-	// return true;
-	// }
-	// });
-	//
-	// final List<String> jarPaths = new ArrayList<String>(jars.length);
-	// for (final File file : jars) {
-	// jarPaths.add(file.getAbsolutePath());
-	// }
-	//
-	// return jarPaths;
-	// }
 
 	/*************
 	 * Validates the given file.
@@ -87,30 +47,27 @@ public class GroovyFileValidater {
 	 * @return the validation result.
 	 */
 	public GroovyFileCompilationResult validateFile(final File groovyFile) {
-		
+		try {
+
+			this.groovyShell.parse(groovyFile);
 			return GroovyFileCompilationResult.SUCCESS;
-		
-		// try {
-		//
-		// this.groovyShell.parse(groovyFile);
-		// return GroovyFileCompilationResult.SUCCESS;
-		// } catch (final CompilationFailedException e) {
-		//
-		// return new GroovyFileCompilationResult(false, e.getMessage(), "Failed to parse groovy file "
-		// + groovyFile.getName() + ": "
-		// + e.getMessage(), e);
-		//
-		// } catch (final IOException e) {
-		// return new GroovyFileCompilationResult(false, e.getMessage(), "Failed to parse groovy file "
-		// + groovyFile.getName() + ": "
-		// + e.getMessage(), e);
-		//
-		// } catch (final Throwable t) {
-		// return new GroovyFileCompilationResult(false, t.getMessage(), "Failed to parse groovy file "
-		// + groovyFile.getName() + ": "
-		// + t.getMessage(), t);
-		//
-		// }
+		} catch (final CompilationFailedException e) {
+
+			return new GroovyFileCompilationResult(false, e.getMessage(), "Failed to parse groovy file "
+					+ groovyFile.getName() + ": "
+					+ e.getMessage(), e);
+
+		} catch (final IOException e) {
+			return new GroovyFileCompilationResult(false, e.getMessage(), "Failed to parse groovy file "
+					+ groovyFile.getName() + ": "
+					+ e.getMessage(), e);
+
+		} catch (final Throwable t) {
+			return new GroovyFileCompilationResult(false, t.getMessage(), "Failed to parse groovy file "
+					+ groovyFile.getName() + ": "
+					+ t.getMessage(), t);
+
+		}
 	}
 
 }

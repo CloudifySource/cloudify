@@ -25,8 +25,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.cloudifysource.dsl.internal.DSLValidationException;
-import org.cloudifysource.dsl.internal.GroovyFileCompilationResult;
-import org.cloudifysource.dsl.internal.GroovyFileValidater;
 
 /***********
  * Factory class for creating an executable DSL entry from a DSL value.
@@ -37,7 +35,7 @@ import org.cloudifysource.dsl.internal.GroovyFileValidater;
  */
 public final class ExecutableDSLEntryFactory {
 
-	private static GroovyFileValidater groovyValidater = new GroovyFileValidater();
+	// private static GroovyFileValidater groovyValidater = new GroovyFileValidater();
 
 	private ExecutableDSLEntryFactory() {
 		// private constructor to prevent instantiation
@@ -76,12 +74,12 @@ public final class ExecutableDSLEntryFactory {
 			}
 
 			// TODO - re-enable this to activate groovy file validations
-			if (file.exists() && file.isFile()) {
-				GroovyFileCompilationResult result = groovyValidater.validateFile(file);
-				if (!result.isSuccess()) {
-					throw new DSLValidationException(result.getErrorMessage(), result.getCause());
-				}
-			}
+			// if (file.exists() && file.isFile()) {
+			// GroovyFileCompilationResult result = groovyValidater.validateFile(file);
+			// if (!result.isSuccess()) {
+			// throw new DSLValidationException(result.getErrorMessage(), result.getCause());
+			// }
+			// }
 		}
 
 	}
