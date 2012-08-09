@@ -256,7 +256,7 @@ public abstract class BaseDslScript extends Script {
 				return null;
 			}
 		} catch (final DSLException e) {
-			throw new IllegalArgumentException("Failed to set: " + name, e);
+			throw new IllegalArgumentException("Failed to set " + name + ": " + e.getMessage(), e);
 		}
 
 		// not an object declaration
