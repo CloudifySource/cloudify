@@ -105,7 +105,7 @@ public class TeardownCloud extends AbstractGSCommand {
 		limitLoggingLevel();
 		try {
 			installer.teardownCloudAndWait(timeoutInMinutes, TimeUnit.MINUTES);
-			adminFacade.disconnect();
+
 			session.put(Constants.ACTIVE_APP, "default");
 			GigaShellMain.getInstance().setCurrentApplicationName("default");
 			return getFormattedMessage("cloud_terminated_successfully", cloudProvider);

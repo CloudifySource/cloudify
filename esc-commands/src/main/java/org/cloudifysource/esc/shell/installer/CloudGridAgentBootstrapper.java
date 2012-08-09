@@ -331,6 +331,7 @@ public class CloudGridAgentBootstrapper {
 			throw new CLIException("Failed to shut down management machine during tear down of cloud: "
 					+ e.getMessage(), e);
 		}
+		adminFacade.disconnect();
 
 	}
 
