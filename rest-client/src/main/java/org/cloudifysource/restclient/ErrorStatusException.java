@@ -41,12 +41,12 @@ public class ErrorStatusException extends RestException {
 	 * unique reason code describing this exception. Matches a formatted message
 	 * in the messages bundle.
 	 */
-	private String reasonCode;
+	private final String reasonCode;
 
 	/**
 	 * an array of possible arguments to complete the reason code.
 	 */
-	private Object[] args;
+	private final Object[] args;
 
 	/**
 	 * @param cause
