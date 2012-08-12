@@ -156,19 +156,15 @@ if [ "$CLOUDIFY_AGENT_ENV_PRIVILEGED" = "true" ]; then
 	export CLOUDIFY_USER=`whoami`
 	if [ "$CLOUDIFY_USER" = "root" ]; then
 		# root is privileged by definition
-		echo Already running as root
+		echo Running as root
 	else
-		sudo -n ls > /dev/null || error_exit_on_level $? "Current user is not a sudoer, or requires a password for sudo" 1
-		
-		if [ ! -f "/etc/sudoers" ]; then
-			error_exit 101 "Could not find sudoers file at expected location (/etc/sudoers)"
-		fi
-		
-		echo Disabling requiretty directive
-		sudo sed -i 's/^Defaults    requiretty/# Defaults    requiretty/g' /etc/sudoers || error_exit_on_level $? "Failed to edit sudoers file to disable requiretty directive" 1
-		
-		
+		sudo -n ls || error_exit_on_level $? "Current user is not a sudoer, or requires a password for sudo" 1
 	fi
+	if [ ! -f "/etc/sudoers" ]; then
+		error_exit 101 "Could not find sudoers file at expected location (/etc/sudoers)"
+	fi	
+	echo Setting privileged mode
+	sudo sed -i 's/^Defaults.*requiretty/#&/g' /etc/sudoers  || error_exit_on_level $? "Failed to edit sudoers file to disable requiretty directive"
 
 fi
 
