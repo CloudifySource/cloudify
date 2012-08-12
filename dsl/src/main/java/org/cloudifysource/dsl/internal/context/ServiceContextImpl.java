@@ -67,9 +67,11 @@ public class ServiceContextImpl implements ServiceContext {
 		}
 		this.clusterInfo = clusterInfo;
 		this.serviceDirectory = serviceDirectory;
-//		FullServiceName fullName = ServiceUtils.getFullServiceName(clusterInfo.getName());
-//		this.applicationName = fullName.getApplicationName();
-//		this.serviceName = fullName.getServiceName();
+		if (clusterInfo.getName() != null) {
+			FullServiceName fullName = ServiceUtils.getFullServiceName(clusterInfo.getName());
+			this.applicationName = fullName.getApplicationName();
+			this.serviceName = fullName.getServiceName();
+		}
 
 	}
 
@@ -83,7 +85,6 @@ public class ServiceContextImpl implements ServiceContext {
 	public void init(final Service service, final Admin admin, final ClusterInfo clusterInfo) {
 		this.service = service;
 		this.admin = admin;
-		
 
 		// TODO - is the null path even possible?
 		if (clusterInfo == null) {
@@ -117,7 +118,7 @@ public class ServiceContextImpl implements ServiceContext {
 	 */
 	public void initInIntegratedContainer(final Service service) {
 		this.service = service;
-		
+
 		this.clusterInfo = new ClusterInfo(null, 1, 0, 1, 0);
 		if (service != null) {
 			this.clusterInfo.setName(service.getName());
@@ -200,7 +201,7 @@ public class ServiceContextImpl implements ServiceContext {
 	 */
 	@Override
 	public String getServiceDirectory() {
-		//checkInitialized();
+		// checkInitialized();
 
 		return serviceDirectory;
 	}
