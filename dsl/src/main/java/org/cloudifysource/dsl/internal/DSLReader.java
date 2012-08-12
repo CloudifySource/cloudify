@@ -160,7 +160,8 @@ public class DSLReader {
 		}
 
 		if (files.length == 0) {
-			throw new IllegalArgumentException("Cannot find configuration file in " + dir.getAbsolutePath() +"/*"+fileNameSuffix);
+			throw new IllegalArgumentException("Cannot find configuration file in " + dir.getAbsolutePath() + "/*"
+					+ fileNameSuffix);
 		}
 
 		return files[0];
@@ -238,10 +239,13 @@ public class DSLReader {
 		final GroovyShell gs = createGroovyShell(properties);
 		final Object result = evaluateGroovyScript(gs);
 
+		if (result == null) {
+			throw new DSLException("The DSL evaluated to a null - check your syntax and try again");
+		}
 		if (this.createServiceContext) {
 			if (!(result instanceof Service)) {
 				throw new IllegalArgumentException(
-						"The DSL reader cannot create a service context to a DSL that does not evaluate to a Sevice. "
+						"The DSL reader cannot create a service context to a DSL that does not evaluate to a Service. "
 								+ "Set the 'createServiceContext' option to false if you do not need a service conext");
 			}
 
