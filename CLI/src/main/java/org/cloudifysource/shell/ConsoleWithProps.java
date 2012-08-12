@@ -15,107 +15,104 @@
  *******************************************************************************/
 package org.cloudifysource.shell;
 
-import jline.Terminal;
-import org.apache.felix.service.command.CommandProcessor;
-import org.apache.karaf.shell.console.jline.Console;
-import org.cloudifysource.shell.rest.RestAdminFacade;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Properties;
-import java.util.logging.Logger;
 
+import jline.Terminal;
+
+import org.apache.felix.service.command.CommandProcessor;
+import org.apache.karaf.shell.console.jline.Console;
+import org.cloudifysource.shell.rest.RestAdminFacade;
 
 /**
  * @author uri
  * @since 2.0.0
  *        <p/>
- *        Extends the karaf framework Console Object. This class adds some branding and functionality on top
- *        of the base class, e.g., adds a default adminFacade to the session, overrides the get prompt method,
- *        set a default application and more.
+ *        Extends the karaf framework Console Object. This class adds some branding and functionality on top of the base
+ *        class, e.g., adds a default adminFacade to the session, overrides the get prompt method, set a default
+ *        application and more.
  */
 public class ConsoleWithProps extends Console {
 
-    private static final String DEFAULT_APP_NAME = "default";
+	private static final String DEFAULT_APP_NAME = "default";
 
-    private String currentAppName = DEFAULT_APP_NAME;
-    private final ConsoleWithPropsActions consoleActions;
+	private String currentAppName = DEFAULT_APP_NAME;
+	private final ConsoleWithPropsActions consoleActions;
 
-    private final Logger logger = Logger.getLogger(getClass().getName());
+	ConsoleWithProps(final CommandProcessor commandProcessor, final InputStream input, final PrintStream output,
+			final PrintStream err, final Terminal terminal, final CloseCallback callback, final boolean isInteractive)
+			throws Exception {
+		super(commandProcessor, input, output, err, terminal, callback);
 
-    ConsoleWithProps(final CommandProcessor commandProcessor, final InputStream input, final PrintStream output,
-                     final PrintStream err, final Terminal terminal, final CloseCallback callback, final boolean isInteractive)
-            throws Exception {
-        super(commandProcessor, input, output, err, terminal, callback);
+		consoleActions = isInteractive ? new ConsoleWithPropsInteractive() : new ConsoleWithPropsNonInteractive();
 
-        consoleActions = isInteractive ? new ConsoleWithPropsInteractive() : new ConsoleWithPropsNonInteractive();
+		callback.setSession(session);
+		// TODO choose default admin or make it configurable
+		final AdminFacade adminFacade = new RestAdminFacade();
+		session.put(Constants.ADMIN_FACADE, adminFacade);
+		session.put(Constants.RECIPES, new HashMap<String, File>());
+		session.put(Constants.ACTIVE_APP, DEFAULT_APP_NAME);
+		session.put(Constants.INTERACTIVE_MODE, isInteractive);
+	}
 
-        callback.setSession(session);
-        // TODO choose default admin or make it configurable
-        final AdminFacade adminFacade = new RestAdminFacade();
-        session.put(Constants.ADMIN_FACADE, adminFacade);
-        session.put(Constants.RECIPES, new HashMap<String, File>());
-        session.put(Constants.ACTIVE_APP, DEFAULT_APP_NAME);
-        session.put(Constants.INTERACTIVE_MODE, isInteractive);
-    }
+	@Override
+	protected void welcome() {
+		final Properties props = loadBrandingProperties();
+		final String welcome = props.getProperty("welcome");
 
-    @Override
-    protected void welcome() {
-        Properties props = loadBrandingProperties();
-        String welcome = props.getProperty("welcome");
+		if (welcome != null && welcome.length() > 0) {
+			session.getConsole().println(welcome);
+		}
+		if (ShellUtils.shouldDoVersionCheck(session)) {
+			session.getConsole().println("Checking version...");
+			ShellUtils.doVersionCheck(session);
+		}
 
-        if (welcome != null && welcome.length() > 0) {
-            session.getConsole().println(welcome);
-        }
-        if (ShellUtils.shouldDoVersionCheck(session)) {
-            session.getConsole().println("Checking version...");
-            ShellUtils.doVersionCheck(session);
-        }
+	}
 
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected String getPrompt() {
+		return consoleActions.getPromptInternal(currentAppName);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected String getPrompt() {
-        return consoleActions.getPromptInternal(currentAppName);
-    }
+	/**
+	 * Sets the application name.
+	 * 
+	 * @param currentAppName The application name to set
+	 */
+	public void setCurrentApplicationName(final String currentAppName) {
+		this.currentAppName = currentAppName;
+	}
 
-    /**
-     * Sets the application name.
-     *
-     * @param currentAppName The application name to set
-     */
-    public void setCurrentApplicationName(final String currentAppName) {
-        this.currentAppName = currentAppName;
-    }
+	/**
+	 * Gets the application name.
+	 * 
+	 * @return The current application name
+	 */
+	public String getCurrentApplicationName() {
+		return currentAppName;
+	}
 
-    /**
-     * Gets the application name.
-     *
-     * @return The current application name
-     */
-    public String getCurrentApplicationName() {
-        return currentAppName;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void setSessionProperties() {
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void setSessionProperties() {
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected Properties loadBrandingProperties() {
-        final Properties props = new Properties();
-        loadProps(props, consoleActions.getBrandingPropertiesResourcePath());
-        return props;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected Properties loadBrandingProperties() {
+		final Properties props = new Properties();
+		loadProps(props, consoleActions.getBrandingPropertiesResourcePath());
+		return props;
+	}
 }

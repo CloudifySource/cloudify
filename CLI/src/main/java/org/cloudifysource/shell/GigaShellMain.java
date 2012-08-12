@@ -67,15 +67,14 @@ public final class GigaShellMain extends Main implements Action {
 
 	/**
 	 * This is the shell's main method. It starts the shell, sets the logging configurations, and the proxy if
-	 * configured. Arguments, if passed, are expected in 1 of these 2 formats: -f <file_name> OR <command
-	 * 1>;<command 2>;<command 3>;.... Passing commands set the interactive mode off.
+	 * configured. Arguments, if passed, are expected in 1 of these 2 formats: -f <file_name> OR <command 1>;<command
+	 * 2>;<command 3>;.... Passing commands set the interactive mode off.
 	 * 
-	 * @param args
-	 *            The commands to be executed, either in a file or as a list.
-	 * @throws Exception
-	 *             Reporting a failure to start the shell or execute the commands
+	 * @param args The commands to be executed, either in a file or as a list.
+	 * @throws Exception Reporting a failure to start the shell or execute the commands
 	 */
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args)
+			throws Exception {
 		initializeLogConfiguration();
 
 		initializeProxyConfiguration();
@@ -119,6 +118,7 @@ public final class GigaShellMain extends Main implements Action {
 			instance = new GigaShellMain(isInteractive);
 			instance.setApplication("cloudify");
 			Ansi.ansi();
+			
 			instance.run(args);
 		} finally {
 			if (is != null) {
@@ -135,7 +135,7 @@ public final class GigaShellMain extends Main implements Action {
 		this.isInteractive = isInteractive;
 	}
 
-	private static void initializeLogConfiguration() throws SecurityException {
+	private static void initializeLogConfiguration() {
 
 		// Replace the console Handler's formatter.
 		final Handler[] handlers = Logger.getLogger("").getHandlers();
@@ -199,7 +199,8 @@ public final class GigaShellMain extends Main implements Action {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Object execute(final CommandSession session) throws Exception {
+	public Object execute(final CommandSession session)
+			throws Exception {
 		run(session, args);
 		return null;
 	}
@@ -209,7 +210,8 @@ public final class GigaShellMain extends Main implements Action {
 	 */
 	@Override
 	protected Console createConsole(final CommandProcessorImpl commandProcessor, final InputStream input,
-			final PrintStream output, final PrintStream err, final Terminal terminal) throws Exception {
+			final PrintStream output, final PrintStream err, final Terminal terminal)
+			throws Exception {
 		// Disable PC speaker beep
 		System.setProperty(ConsoleReader.JLINE_NOBELL, Boolean.toString(true));
 		final CloseCallback callback = new CloseCallback();
@@ -220,8 +222,7 @@ public final class GigaShellMain extends Main implements Action {
 	/**
 	 * Sets the current application name.
 	 * 
-	 * @param applicationName
-	 *            The application name
+	 * @param applicationName The application name
 	 */
 	public void setCurrentApplicationName(final String applicationName) {
 		console.setCurrentApplicationName(applicationName);
