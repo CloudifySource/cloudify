@@ -720,13 +720,16 @@ public abstract class BaseDslScript extends Script {
 		try {
 			result = ServiceReader.getServiceFromDirectory(serviceDir, ((Application) this.rootObject).getName());
 		} catch (final FileNotFoundException e) {
-			throw new IllegalArgumentException("Failed to load service: " + serviceName + " while loading application",
+			throw new IllegalArgumentException("Failed to load service: " + serviceName
+					+ " while loading application: " + e.getMessage(),
 					e);
 		} catch (final PackagingException e) {
-			throw new IllegalArgumentException("Failed to load service: " + serviceName + " while loading application",
+			throw new IllegalArgumentException("Failed to load service: " + serviceName
+					+ " while loading application: " + e.getMessage(),
 					e);
 		} catch (final DSLException e) {
-			throw new IllegalArgumentException("Failed to load service: " + serviceName + " while loading application",
+			throw new IllegalArgumentException("Failed to load service: " + serviceName
+					+ " while loading application: " + e.getMessage(),
 					e);
 		}
 		final Service service = result.getService();
