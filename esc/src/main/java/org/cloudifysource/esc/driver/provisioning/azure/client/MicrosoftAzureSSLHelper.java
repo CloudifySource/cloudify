@@ -89,7 +89,9 @@ public class MicrosoftAzureSSLHelper {
 
 			return context;
 		} finally {
-			pfxFile.close();
+			if (pfxFile != null) {
+				pfxFile.close();
+			}
 		}
 	}
 }

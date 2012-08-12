@@ -181,7 +181,7 @@ public class MicrosoftAzureRestClient {
 			this.requestBodyBuilder = new MicrosoftAzureRequestBodyBuilder(
 					affinityPrefix, cloudServicePrefix, storagePrefix);
 		} catch (final Exception e) {
-			throw new RuntimeException("Failed initializing rest client", e);
+			throw new RuntimeException("Failed initializing rest client : " + e.getMessage() , e);
 		}
 	}
 
