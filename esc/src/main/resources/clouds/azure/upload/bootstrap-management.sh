@@ -177,7 +177,7 @@ if [ "$CLOUDIFY_AGENT_ENV_PRIVILEGED" = "true" ]; then
 
 fi
 
-# add localhost mapping to /etc/hosts (god dammit azure)
+# add localhost mapping to /etc/hosts
 
 HOST_NAME=`hostname`
 echo -e "#! /bin/bash\n echo $PASSWORD" > $WORKING_HOME_DIRECTORY/password.sh
