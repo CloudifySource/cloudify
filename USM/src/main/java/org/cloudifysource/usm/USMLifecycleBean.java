@@ -683,7 +683,8 @@ public class USMLifecycleBean implements ClusterInfoAware {
 						+ (configuration.getService().getLifecycle().getStartDetectionTimeoutSecs() * MILLIS_IN_SECOND);
 		int currentTestIndex = 0;
 
-		boolean processIsRunning = true;
+		// indicates if the process launched by START (if it exitst) is still running
+		boolean processIsRunning = (launchedProcess != null);
 		while (System.currentTimeMillis() < endTime && currentTestIndex < this.livenessDetectors.length) {
 
 			// first check if process ended

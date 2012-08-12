@@ -139,7 +139,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 
 	private long postLaunchWaitPeriodMillis = DEFAULT_POST_LAUNCH_WAIT_PERIOD_MILLIS;
 	private final long postDeathWaitPeriodMillis = DEFAULT_POST_DEATH_WAIT_PERIOD_MILLIS;
-	
+
 	private int instanceId;
 	private boolean runningInGSC = true;
 	private ApplicationContext applicationContext;
@@ -220,7 +220,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		initEvents();
 
 		reset(existingProcessFound);
-			
 
 	}
 
@@ -295,7 +294,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 				TimeUnit.SECONDS);
 	}
 
-	
 	private void initEvents() {
 
 		getUsmLifecycleBean().initEvents(this);
@@ -469,7 +467,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 			waitForDependencies();
 		}
 		launch();
-		
+
 	}
 
 	private void waitForDependencies() {
@@ -736,12 +734,11 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 				// in case of an error, process start failure or start detection failure, we still want to run process
 				// locators
 				// so we know what processes to kill.
+				logger.info("Executing Process Locators!");
+				this.serviceProcessPIDs = getUsmLifecycleBean().getServiceProcesses();
+				logger.info("Monitored processes: " + this.serviceProcessPIDs);
+				writePidsToFile();
 
-				if (!this.processMode.equals(USMProcessMode.NO_PROCESS)) {
-					this.serviceProcessPIDs = getUsmLifecycleBean().getServiceProcesses();
-					logger.info("Monitored processes: " + this.serviceProcessPIDs);
-					writePidsToFile();
-				}
 			}
 
 			getUsmLifecycleBean().firePostStart(StartReason.DEPLOY);
