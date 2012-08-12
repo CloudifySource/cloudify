@@ -53,8 +53,7 @@ import com.google.inject.Module;
  * A JClouds based deployer that creates and queries JClouds complaint servers. All of the JClouds features used in the
  * cloud ESM Machine Provisioning are called from this class.
  * 
- * TODO - the current API is not thread-safe. Multiple clients should be able to use the same deployer and set their
- * configurations for creating servers.
+ * 
  * 
  * @author barakme
  * 
@@ -119,12 +118,9 @@ public class JCloudsDeployer {
 	/********
 	 * .
 	 * 
-	 * @param provider
-	 *            .
-	 * @param account
-	 *            .
-	 * @param key
-	 *            .
+	 * @param provider .
+	 * @param account .
+	 * @param key .
 	 * @throws IOException .
 	 */
 	public JCloudsDeployer(final String provider, final String account, final String key) throws IOException {
@@ -135,14 +131,10 @@ public class JCloudsDeployer {
 	/*************
 	 * .
 	 * 
-	 * @param provider
-	 *            .
-	 * @param account
-	 *            .
-	 * @param key
-	 *            .
-	 * @param overrides
-	 *            .
+	 * @param provider .
+	 * @param account .
+	 * @param key .
+	 * @param overrides .
 	 * @throws IOException .
 	 */
 	public JCloudsDeployer(final String provider, final String account, final String key, final Properties overrides)
@@ -177,8 +169,7 @@ public class JCloudsDeployer {
 	 * Starts up a server based on the deployer's template, and returns its meta data. The server may not have started
 	 * yet when this call returns.
 	 * 
-	 * @param serverName
-	 *            server name.
+	 * @param serverName server name.
 	 * @return the new server meta data.
 	 * @throws InstallerException .
 	 */
@@ -209,13 +200,10 @@ public class JCloudsDeployer {
 	/***********
 	 * Creates the specified number of servers from the given template.
 	 * 
-	 * @param groupName
-	 *            server group name.
-	 * @param numberOfMachines
-	 *            number of machines.
+	 * @param groupName server group name.
+	 * @param numberOfMachines number of machines.
 	 * @return the created nodes.
-	 * @throws InstallerException
-	 *             if creation of one or more nodes failed.
+	 * @throws InstallerException if creation of one or more nodes failed.
 	 */
 	public Set<? extends NodeMetadata> createServers(final String groupName, final int numberOfMachines)
 			throws InstallerException {
@@ -244,10 +232,8 @@ public class JCloudsDeployer {
 	/********
 	 * Creates a server with the given name and template.
 	 * 
-	 * @param serverName
-	 *            the server name.
-	 * @param template
-	 *            the template.
+	 * @param serverName the server name.
+	 * @param template the template.
 	 * @return the server meta data.
 	 * @throws RunNodesException .
 	 */
@@ -278,8 +264,7 @@ public class JCloudsDeployer {
 	/********
 	 * Useful testing method for cloud tests. In production, you should use a template.
 	 * 
-	 * @param name
-	 *            the server name.
+	 * @param name the server name.
 	 * @return the node meta data.
 	 * @throws RunNodesException .
 	 */
@@ -314,8 +299,7 @@ public class JCloudsDeployer {
 	 * Queries the cloud for a single server that matches the given critetia. If more then one is returned, throws an
 	 * exception.
 	 * 
-	 * @param filter
-	 *            the query filter.
+	 * @param filter the query filter.
 	 * @return the node meta data, or null if no match is found.
 	 */
 	public NodeMetadata getServer(final Predicate<ComputeMetadata> filter) {
@@ -340,8 +324,7 @@ public class JCloudsDeployer {
 	/********
 	 * Looks for a server with an ID that matches the given ID.
 	 * 
-	 * @param serverID
-	 *            the server ID.
+	 * @param serverID the server ID.
 	 * @return the node meta data, or null.
 	 */
 	public NodeMetadata getServerByID(final String serverID) {
@@ -349,7 +332,7 @@ public class JCloudsDeployer {
 
 			@Override
 			public boolean apply(final ComputeMetadata compute) {
-				return compute.getId().equals( serverID);
+				return compute.getId().equals(serverID);
 			}
 
 		};
@@ -362,13 +345,12 @@ public class JCloudsDeployer {
 	 * Queries for a server whose name STARTS WITH the given name. Note that underscores in the name ('_') are replaced
 	 * with blanks.
 	 * 
-	 * @param serverName
-	 *            the server name.
+	 * @param serverName the server name.
 	 * @return node meta data
 	 */
 	public NodeMetadata getServerByName(final String serverName) {
-		final String adaptedServerName = serverName.replace( "_", "") + "-";
-		
+		final String adaptedServerName = serverName.replace("_", "") + "-";
+
 		final Predicate<ComputeMetadata> filter = new Predicate<ComputeMetadata>() {
 
 			@Override
@@ -376,7 +358,7 @@ public class JCloudsDeployer {
 				if (compute.getName() == null) {
 					return false;
 				}
-				return compute.getName().startsWith( adaptedServerName);
+				return compute.getName().startsWith(adaptedServerName);
 			}
 
 		};
@@ -387,19 +369,17 @@ public class JCloudsDeployer {
 	/*******************
 	 * Returns all nodes that match the given criteria.
 	 * 
-	 * @param filter
-	 *            the filter criteria.
+	 * @param filter the filter criteria.
 	 * @return the nodes.
 	 */
 	public Set<? extends NodeMetadata> getServers(final Predicate<ComputeMetadata> filter) {
-		return this.context.getComputeService().listNodesDetailsMatching( filter);
+		return this.context.getComputeService().listNodesDetailsMatching(filter);
 	}
 
 	/*******************
 	 * Returns all nodes that match the group provided.
 	 * 
-	 * @param group
-	 *            the group.
+	 * @param group the group.
 	 * @return the nodes.
 	 */
 	public Set<? extends NodeMetadata> getServers(final String group) {
@@ -408,7 +388,7 @@ public class JCloudsDeployer {
 			@Override
 			public boolean apply(final ComputeMetadata input) {
 				final NodeMetadata node = (NodeMetadata) input;
-				return node.getGroup() != null && node.getGroup().equals( group);
+				return node.getGroup() != null && node.getGroup().equals(group);
 			}
 		});
 
@@ -417,8 +397,7 @@ public class JCloudsDeployer {
 	/***********
 	 * Returns a server whose private or public IPs contain the given IP.
 	 * 
-	 * @param ip
-	 *            the IP to look for.
+	 * @param ip the IP to look for.
 	 * @return the node meta data, or null.
 	 */
 	public NodeMetadata getServerWithIP(final String ip) {
@@ -487,12 +466,20 @@ public class JCloudsDeployer {
 				if (entryValue == null) {
 					handleNullValueTemplateOption(
 							optionEntries, templateOptions, entry, entryKey);
-				} else if (List.class.isAssignableFrom(entryValue.getClass())) {
-					handleListParameterOption(
-							templateOptions, entryKey, entryValue, templateOptionsMethods);
 				} else {
-					handleSingleParameterOption(
+					final boolean found = handleSingleParameterOption(
 							templateOptions, entryKey, entryValue, templateOptionsMethods);
+
+					if (!found) {
+						if (entryValue instanceof List<?>) {
+							handleListParameterOption(
+									templateOptions, entryKey, entryValue, templateOptionsMethods);
+						} else {
+							throw new IllegalArgumentException(
+									"Could not find a template option method matching name: " + entryKey
+											+ " and value: " + entryValue + ".");
+						}
+					}
 				}
 
 			}
@@ -501,62 +488,44 @@ public class JCloudsDeployer {
 
 	private void handleListParameterOption(final TemplateOptions templateOptions, final String entryKey,
 			final Object entryValue, final Method[] templateOptionMethods) {
-		// first check for a single arg option with a list
-		// parameter
-		Method m = null;
-		try {
-			m = templateOptions.getClass().getMethod(
-					entryKey, entryValue.getClass());
-		} catch (final SecurityException e) {
-			throw new IllegalArgumentException("Error while loo king for method to match option: " + entryKey
-					+ " with option value: " + entryValue + ". Error was: " + e.getMessage(), e);
-		} catch (final NoSuchMethodException e) {
-			// ignore
-		}
+		// no method accepts a list - try for a method that
+		// takes a
+		// parameter for each list entry
+		@SuppressWarnings("unchecked")
+		final List<Object> paramList = (List<Object>) entryValue;
+		final Object[] paramArray = paramList.toArray();
 
-		if (m != null) {
-			// found a relevant method
-			handleSingleParameterOption(
-					templateOptions, entryKey, entryValue, templateOptionMethods);
-		} else {
-			// no method accepts a list - try for a method that
-			// takes a
-			// parameter for each list entry
-			@SuppressWarnings("unchecked")
-			final List<Object> paramList = (List<Object>) entryValue;
-			final Object[] paramArray = paramList.toArray();
-			final Class<?>[] classArray = new Class<?>[paramArray.length];
-			for (int i = 0; i < classArray.length; i++) {
-				classArray[i] = paramArray[i].getClass();
-			}
+		// final Class<?>[] classArray = new Class<?>[paramArray.length];
+		// for (int i = 0; i < classArray.length; i++) {
+		// classArray[i] = paramArray[i].getClass();
+		// }
 
-			try {
-				m = templateOptions.getClass().getMethod(
-						entryKey, classArray);
-			} catch (final SecurityException e) {
-				throw new IllegalArgumentException("Error while looking for method to match option: " + entryKey
-						+ " with option value: " + entryValue + ". Error was: " + e.getMessage(), e);
-			} catch (final NoSuchMethodException e) {
-				// ignore
-			}
-
-			if (m == null) {
-				throw new IllegalArgumentException("Could not find a matching method to set template option: "
-						+ entryKey + " with the following values: " + paramList);
-			} else {
-				try {
-					m.invoke(
-							templateOptions, paramArray);
-				} catch (final Exception e) {
-					throw new IllegalArgumentException("Failed to set option: " + entryKey + " by invoking method: "
-							+ m + " with value: " + entryValue + ". Error was: " + e.getMessage(), e);
+		for (Method m : templateOptionMethods) {
+			if (m.getName().equals(entryKey)) {
+				if (m.getParameterTypes().length == paramList.size()) {
+					try {
+						m.invoke(templateOptions, paramArray);
+						return;
+					} catch (IllegalArgumentException e) {
+						throw new IllegalArgumentException("Failed to set option: " + entryKey
+								+ " by invoking method: "
+								+ m + " with value: " + paramArray + ". Error was: " + e.getMessage(), e);
+					} catch (IllegalAccessException e) {
+						throw new IllegalArgumentException("Failed to set option: " + entryKey
+								+ " by invoking method: "
+								+ m + " with value: " + paramArray + ". Error was: " + e.getMessage(), e);
+					} catch (InvocationTargetException e) {
+						throw new IllegalArgumentException("Failed to set option: " + entryKey
+								+ " by invoking method: "
+								+ m + " with value: " + paramArray + ". Error was: " + e.getMessage(), e);
+					}
 				}
 			}
-
 		}
+
 	}
 
-	private void handleSingleParameterOption(final TemplateOptions templateOptions, final String entryKey,
+	private boolean handleSingleParameterOption(final TemplateOptions templateOptions, final String entryKey,
 			final Object entryValue, final Method[] templateOptionsMethods) {
 
 		int numOfMethodsFound = 0;
@@ -571,7 +540,7 @@ public class JCloudsDeployer {
 						method.invoke(
 								templateOptions, entryValue);
 						// invoked successfully
-						return;
+						return true;
 					} catch (final IllegalArgumentException e) {
 						invocationException = e;
 					} catch (final IllegalAccessException e) {
@@ -585,8 +554,9 @@ public class JCloudsDeployer {
 
 		// If I am here, either no method was found, or an exception was thrown
 		if (invocationException == null) {
-			throw new IllegalArgumentException("Failed to set template option: " + entryKey + " to value: "
-					+ entryValue + ". Could not find a matching method.");
+			return false;
+			// throw new IllegalArgumentException("Failed to set template option: " + entryKey + " to value: "
+			// + entryValue + ". Could not find a matching method.");
 
 		} else {
 			throw new IllegalArgumentException("Failed to set template option: " + entryKey + " to value: "
@@ -671,8 +641,7 @@ public class JCloudsDeployer {
 	/******
 	 * Shuts down a server with the given ID.
 	 * 
-	 * @param serverId
-	 *            the server ID.
+	 * @param serverId the server ID.
 	 */
 	public void shutdownMachine(final String serverId) {
 		this.context.getComputeService().destroyNode(
@@ -682,14 +651,10 @@ public class JCloudsDeployer {
 	/*********
 	 * Shutdown the server.
 	 * 
-	 * @param serverId
-	 *            the server id.
-	 * @param unit
-	 *            time unit to wait.
-	 * @param duration
-	 *            duration to wait.
-	 * @throws TimeoutException
-	 *             if timeout expired.
+	 * @param serverId the server id.
+	 * @param unit time unit to wait.
+	 * @param duration duration to wait.
+	 * @throws TimeoutException if timeout expired.
 	 * @throws InterruptedException .
 	 */
 	public void shutdownMachineAndWait(final String serverId, final TimeUnit unit, final long duration)
@@ -740,6 +705,7 @@ public class JCloudsDeployer {
 
 	/******
 	 * Shutdown all nodes in group.
+	 * 
 	 * @param group group name.
 	 */
 	public void shutdownMachineGroup(final String group) {
@@ -748,13 +714,14 @@ public class JCloudsDeployer {
 
 					@Override
 					public boolean apply(final NodeMetadata input) {
-						return input.getGroup() != null && input.getGroup().equals( group);
+						return input.getGroup() != null && input.getGroup().equals(group);
 					}
 				});
 	}
 
 	/********
 	 * Shutdown servers by ips.
+	 * 
 	 * @param ips list of IPs. Any node which has one of these IPs will be shut down.
 	 */
 	public void shutdownMachinesWithIPs(final Set<String> ips) {
@@ -776,8 +743,7 @@ public class JCloudsDeployer {
 	 * Returns a server with a tag that equals the given tag. Note that comparison is also performed with the given tag
 	 * with underscores removed.
 	 * 
-	 * @param tag
-	 *            the tag to look for.
+	 * @param tag the tag to look for.
 	 * @return the node meta data, or null.
 	 */
 	public NodeMetadata getServerByTag(final String tag) {
@@ -792,7 +758,7 @@ public class JCloudsDeployer {
 				if (node.getGroup().equals(tag)) {
 					return true;
 				}
-				if (node.getGroup().equals( tag.replace( "_", ""))) {
+				if (node.getGroup().equals(tag.replace("_", ""))) {
 					return true;
 				}
 				return false;
@@ -847,6 +813,7 @@ public class JCloudsDeployer {
 
 	/*******
 	 * Resets the instance of the compute context.
+	 * 
 	 * @param currentContext .
 	 */
 	public synchronized void reset(final ComputeServiceContext currentContext) {
