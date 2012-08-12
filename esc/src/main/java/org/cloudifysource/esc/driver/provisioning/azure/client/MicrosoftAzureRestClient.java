@@ -761,7 +761,7 @@ public class MicrosoftAzureRestClient {
 
 			try {
 
-				logger.info("[" + Thread.currentThread().getName()
+				logger.fine("[" + Thread.currentThread().getName()
 						+ "] - deleting deployment of virtual machine from : "
 						+ deploymentName);
 
