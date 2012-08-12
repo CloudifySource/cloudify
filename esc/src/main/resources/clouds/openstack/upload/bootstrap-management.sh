@@ -164,7 +164,7 @@ if [ "$CLOUDIFY_AGENT_ENV_PRIVILEGED" = "true" ]; then
 		fi
 		
 		echo Disabling requiretty directive
-		sudo sed -i 's/^Defaults    requiretty/# Defaults    requiretty/g' /etc/sudoers || error_exit_on_level $? "Failed to edit sudoers file to disable requiretty directive" 1
+		sudo sed -i -e 's/^Defaults.*requiretty/# Defaults requiretty/g' /etc/sudoers  || error_exit_on_level $? "Failed to edit sudoers file to disable requiretty directive"
 		
 		
 	fi
