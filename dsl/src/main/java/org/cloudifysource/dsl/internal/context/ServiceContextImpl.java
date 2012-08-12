@@ -67,9 +67,9 @@ public class ServiceContextImpl implements ServiceContext {
 		}
 		this.clusterInfo = clusterInfo;
 		this.serviceDirectory = serviceDirectory;
-		FullServiceName fullName = ServiceUtils.getFullServiceName(clusterInfo.getName());
-		this.applicationName = fullName.getApplicationName();
-		this.serviceName = fullName.getServiceName();
+//		FullServiceName fullName = ServiceUtils.getFullServiceName(clusterInfo.getName());
+//		this.applicationName = fullName.getApplicationName();
+//		this.serviceName = fullName.getServiceName();
 
 	}
 
