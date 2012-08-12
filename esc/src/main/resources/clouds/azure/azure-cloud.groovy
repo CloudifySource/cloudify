@@ -27,7 +27,7 @@ cloud {
 		 * different HTTP server instead.																						 *
 		************************************************ *************************************************************************/
 		
-		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.2.0/gigaspaces-cloudify-2.2.0-m3-b2491-54.zip"
+		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.2.0/gigaspaces-cloudify-2.2.0-m2-b2492-9.zip"
 		
 		machineNamePrefix "cloudify_agent_"
 		
@@ -57,11 +57,12 @@ cloud {
 					imageId "OpenLogic__OpenLogic-CentOS-62-20120531-en-us-30GB.vhd"
 					machineMemoryMB 1600
 					hardwareId "Small"
-					remoteDirectory "/home/user/gs-files"
 					localDirectory "tools/cli/plugins/esc/azure/upload"
 					
 					username "ENTER_USER_NAME"
 					password "ENTER_PASSWORD"
+					
+					remoteDirectory "/home/${username}/gs-files"
 					
 					custom ([
 					
@@ -84,57 +85,19 @@ cloud {
 						
 						"azure.pfx.password" : "ENTER_PFX_PASSWORD"
 					])
-				},
-				
-				HTTP_OUT : template{
-				
-					imageId "OpenLogic__OpenLogic-CentOS-62-20120531-en-us-30GB.vhd"
-					machineMemoryMB 1600
-					hardwareId "Small"
-					remoteDirectory "/home/user/gs-files"
-					localDirectory "tools/cli/plugins/esc/azure/upload"
-					
-					username "ENTER_USERNAME"
-					password "ENTER_PASSWORD"
-					
-					custom ([
-					
-						// Optional. each availability set represents a different fault domain.
-						
-						"azure.availability.set" : "ENTER_AVAILABILITY_SET",
-						
-						// Choose whether do deploy this instance in Staging or Production environment. defaults to Staging
-						
-						"azure.deployment.slot": "ENTER_DEPLOYMENT_SLOT",
-						
-						// Tcp EndPoints to open
-						
-						"azure.endpoints" : ([
-												([
-													"name" : "WEB",
-													"port" : "8080" 
-												])
-											]),
-						
-						"azure.pfx.file": "ENTER_PFX_FILE",
-						
-						// Password that was used to create the certificate
-						
-						"azure.pfx.password" : "ENTER_PFX_PASSWORD"
-					])
 				}
 			])
 			
 	custom ([
 			
 		/*****************************************************************************************
-		 * A Virtaul Network name.																 *
-		 * All VM's will belong to this network. 												 *
-		 * If the specified network does not exist, it will be created automatically for you.	 *
+		 * A Virtaul Network Site name.																 *
+		 * All VM's will belong to this network site. 												 *
+		 * If the specified network site does not exist, it will be created automatically for you.	 *
 		 * in this case, you must specify the 'azure.address.space' property					 *	 
 		******************************************************************************************/
 		
-		"azure.network.name" : "ENTER_NETWORK_NAME",
+		"azure.networksite.name" : "ENTER_VIRTUAL_NETWORK_SITE_NAME",
 		
 		/***************************************************************************************
 		 * CIDR notation specifying the Address Space for your Virtaul Network. 			   *
@@ -169,7 +132,12 @@ cloud {
 		
 		// Specify whether or not to delete the network (if found) when you execute a teardown command. 
 		
-		"azure.delete.network.on.teardown" : "true",
+		/*************************************************************************************************************************
+		 * If set to 'true', the storage account, affinity group, and network specified above will be deleted upon teardown.	 *
+		 * NOTE : if you are using pre exsisting services and you dont want them to be deleted, please set this value to 'false' *
+		**************************************************************************************************************************/
+		
+		"azure.cleanup.on.teardown" : "true",
 
 		// Enable/Disable Cloud Requests Logging. 
 		
