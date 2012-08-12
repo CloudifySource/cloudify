@@ -26,7 +26,6 @@
 # 
 # an error message is printed and the script exists with the provided error code
 function error_exit {
-	echo "in error_exit"
 	echo "$2 : error code: $1"
 	exit ${1}
 }
@@ -48,6 +47,7 @@ function error_exit_on_level {
 JAVA_32_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-i586.bin"
 JAVA_64_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-x64.bin"
 
+# If not JDK specified, determine which JDK to install based on hardware architecture
 if [ -z "$CLOUDIFY_AGENT_ENV_JAVA_URL" ]; then
 	ARCH=`uname -m`
 	echo Machine Architecture -- $ARCH

@@ -17,6 +17,7 @@
 #	$NO_WEB_SERVICES - If set to 'true', indicates that the rest and web-ui services should not be deployed in this machine.
 #	$CLOUDIFY_CLOUD_IMAGE_ID - If set, indicates the image ID for this machine.
 #	$CLOUDIFY_CLOUD_HARDWARE_ID - If set, indicates the hardware ID for this machine.
+#	$PASSWORD - the machine password
 #############################################################################
 
 # args:
@@ -32,7 +33,7 @@ function error_exit {
 # args:
 # $1 the error code of the last command (should be explicitly passed)
 # $2 the message to print in case of an error 
-# $3 the theshold to exit on
+# $3 the threshold to exit on
 #
 # if (last_error_code [$1]) >= (threshold [$3]) the provided message[$2] is printed and the script
 # exists with the provided error code ($1)
@@ -65,8 +66,8 @@ if [ ! -z "$CLOUDIFY_LINK" ]; then
 fi
 
 if [ ! -z "$CLOUDIFY_OVERRIDES_LINK" ]; then
-	echo Downloading cloudify overrides from $CLOUDIFY_OVERRIDES_LINK 
-	wget -q $CLOUDIFY_LINK -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.zip || error_exit $? "Failed downloading cloudify overrides"
+	echo Downloading cloudify overrides from $CLOUDIFY_OVERRIDES_LINK
+	wget -q $CLOUDIFY_OVERRIDES_LINK -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.zip || error_exit $? "Failed downloading cloudify overrides"
 fi
 
 # Always override cloudify files

@@ -32,7 +32,7 @@ function error_exit {
 # args:
 # $1 the error code of the last command (should be explicitly passed)
 # $2 the message to print in case of an error 
-# $3 the theshold to exit on
+# $3 the threshold to exit on
 #
 # if (last_error_code [$1]) >= (threshold [$3]) the provided message[$2] is printed and the script
 # exists with the provided error code ($1)
@@ -41,6 +41,45 @@ function error_exit_on_level {
 		error_exit ${1} ${2}
 	fi
 }
+
+
+JAVA_32_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-i586.bin"
+JAVA_64_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-x64.bin"
+
+# If not JDK specified, determine which JDK to install based on hardware architecture
+if [ -z "$CLOUDIFY_AGENT_ENV_JAVA_URL" ]; then
+	ARCH=`uname -m`
+	echo Machine Architecture -- $ARCH
+	if [ "$ARCH" = "i686" ]; then
+		export CLOUDIFY_AGENT_ENV_JAVA_URL=$JAVA_32_URL
+	elif [ "$ARCH" = "x86_64" ]; then
+		export CLOUDIFY_AGENT_ENV_JAVA_URL=$JAVA_64_URL
+	else 
+		echo Unknown architecture -- $ARCH -- defaulting to 32 bit JDK
+		export CLOUDIFY_AGENT_ENV_JAVA_URL=$JAVA_32_URL
+	fi
+	
+fi  
+
+if [ "$CLOUDIFY_AGENT_ENV_JAVA_URL" = "NO_INSTALL" ]; then
+	echo "JDK will not be installed"
+else
+	echo Previous JAVA_HOME value -- $JAVA_HOME 
+	export CLOUDIFY_ORIGINAL_JAVA_HOME=$JAVA_HOME
+
+	echo Downloading JDK from $CLOUDIFY_AGENT_ENV_JAVA_URL    
+	wget -q -O $WORKING_HOME_DIRECTORY/java.bin $CLOUDIFY_AGENT_ENV_JAVA_URL
+	chmod +x $WORKING_HOME_DIRECTORY/java.bin
+	echo -e "\n" > $WORKING_HOME_DIRECTORY/input.txt
+	mkdir ~/java
+	cd ~/java
+	
+	echo Installing JDK
+	$WORKING_HOME_DIRECTORY/java.bin < $WORKING_HOME_DIRECTORY/input.txt > /dev/null
+	mv ~/java/*/* ~/java || error_exit $? "Failed moving JDK installation"
+	rm -f $WORKING_HOME_DIRECTORY/input.txt
+    export JAVA_HOME=~/java
+fi  
 
 export EXT_JAVA_OPTIONS="-Dcom.gs.multicast.enabled=false"
 
@@ -83,14 +122,10 @@ if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.zip -nt ~/gigaspa
 	fi
 fi
 
-# install Java
-echo Installing Java
-yum -y -q install java-1.6.0-openjdk-devel
-if [ -z "$JAVA_HOME" ]; then
-	echo -- SETTING JAVA_HOME TO /usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_64
-	export JAVA_HOME=/usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_64
+# if an overrides directory exists, copy it into the cloudify distribution
+if [ -d $WORKING_HOME_DIRECTORY/cloudify-overrides ]; then
+	cp -rf $WORKING_HOME_DIRECTORY/cloudify-overrides/* ~/gigaspaces
 fi
-
 
 # UPDATE SETENV SCRIPT...
 echo Updating environment script
@@ -100,7 +135,7 @@ sed -i "1i export NIC_ADDR=$MACHINE_IP_ADDRESS" setenv.sh || error_exit $? "Fail
 sed -i "1i export LOOKUPLOCATORS=$LUS_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "1i export CLOUDIFY_CLOUD_IMAGE_ID=$CLOUDIFY_CLOUD_IMAGE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "1i export CLOUDIFY_CLOUD_HARDWARE_ID=$CLOUDIFY_CLOUD_HARDWARE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
-
+sed -i "1i export PATH=$JAVA_HOME/bin:$PATH" setenv.sh || error_exit $? "Failed updating setenv.sh"
 
 cd ~/gigaspaces/tools/cli || error_exit $? "Failed changing directory to cli directory"
 
@@ -113,7 +148,6 @@ if [ -f nohup.out ]; then
    error_exit 1 "Failed to remove nohup.out Probably used by another process"
 fi
 
-
 # Privileged mode handling
 
 if [ "$CLOUDIFY_AGENT_ENV_PRIVILEGED" = "true" ]; then
@@ -123,14 +157,15 @@ if [ "$CLOUDIFY_AGENT_ENV_PRIVILEGED" = "true" ]; then
 		# root is privileged by definition
 		echo Already running as root
 	else
-		sudo -n ls || error_exit_on_level $? "Current user is not a sudoer, or requires a password for sudo" 1
+		sudo -n ls > /dev/null || error_exit_on_level $? "Current user is not a sudoer, or requires a password for sudo" 1
 		
 		if [ ! -f "/etc/sudoers" ]; then
 			error_exit 101 "Could not find sudoers file at expected location (/etc/sudoers)"
 		fi
 		
-		echo Setting privileged mode
-		sudo sed -i 's/^Defaults requiretty/# Defaults requiretty/g' /etc/sudoers || error_exit_on_level $? "Failed to edit sudoers file to disable requiretty directive" 1
+		echo Disabling requiretty directive
+		sudo sed -i 's/^Defaults    requiretty/# Defaults    requiretty/g' /etc/sudoers || error_exit_on_level $? "Failed to edit sudoers file to disable requiretty directive" 1
+		
 		
 	fi
 

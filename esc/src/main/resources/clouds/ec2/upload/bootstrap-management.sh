@@ -17,6 +17,7 @@
 #	$NO_WEB_SERVICES - If set to 'true', indicates that the rest and web-ui services should not be deployed in this machine.
 #	$CLOUDIFY_CLOUD_IMAGE_ID - If set, indicates the image ID for this machine.
 #	$CLOUDIFY_CLOUD_HARDWARE_ID - If set, indicates the hardware ID for this machine.
+#	$PASSWORD - the machine password
 #############################################################################
 
 # args:
@@ -46,6 +47,7 @@ function error_exit_on_level {
 JAVA_32_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-i586.bin"
 JAVA_64_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-x64.bin"
 
+# If not JDK specified, determine which JDK to install based on hardware architecture
 if [ -z "$CLOUDIFY_AGENT_ENV_JAVA_URL" ]; then
 	ARCH=`uname -m`
 	echo Machine Architecture -- $ARCH
