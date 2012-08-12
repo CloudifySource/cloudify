@@ -151,7 +151,6 @@ fi
 # Privileged mode handling
 
 if [ "$CLOUDIFY_AGENT_ENV_PRIVILEGED" = "true" ]; then
-	echo Setting privileged mode
 	export CLOUDIFY_USER=`whoami`
 	if [ "$CLOUDIFY_USER" = "root" ]; then
 		# root is privileged by definition
