@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.math.NumberUtils;
+import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.hyperic.sigar.FileInfo;
 import org.hyperic.sigar.ProcState;
 import org.hyperic.sigar.Sigar;
@@ -76,7 +77,7 @@ public final class USMUtils {
 		if (!file.exists()) {
 			return false;
 		}
-		if (USMUtils.isWindows()) {
+		if (ServiceUtils.isWindows()) {
 			return true; // not used in windows
 		}
 
@@ -162,30 +163,6 @@ public final class USMUtils {
 		} catch (final InterruptedException e) {
 			throw new USMException("Failed to execute chmod command on file " + file, e);
 		}
-	}
-
-	/***********
-	 * Returns true if the current operating system is some variant of Windows.
-	 * 
-	 * @return true if running on Windows.
-	 * @deprecated moved to ServiceUtils in the dsl project.
-	 */
-	@Deprecated
-	public static boolean isWindows() {
-		final String os = System.getProperty("os.name").toLowerCase();
-		return os.indexOf("win") >= 0;
-	}
-
-	/***********
-	 * Returns true if the current operating system is NOT some variant of Windows.
-	 * 
-	 * 
-	 * @return true if not running on Windows.
-	 * @deprecated moved to ServiceUtils in the dsl project.
-	 */
-	@Deprecated
-	public static boolean isLinuxOrUnix() {
-		return !isWindows();
 	}
 
 	/*******
