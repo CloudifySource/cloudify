@@ -643,10 +643,7 @@ public class MicrosoftAzureRestClient {
 			final String cloudServiceName, final String deploymentName,
 			final long endTime) throws TimeoutException,
 			MicrosoftAzureException, InterruptedException {
-
-		boolean roleDeleted = false;
-		boolean osDiskDeleted = false;
-
+		
 		String diskName = null;
 		String roleName = null;
 
@@ -665,13 +662,13 @@ public class MicrosoftAzureRestClient {
 				}
 			}
 
-			roleDeleted = deleteDeployment(cloudServiceName, deploymentName,
+			deleteDeployment(cloudServiceName, deploymentName,
 					endTime);
 
 			logger.fine("deleting os disk : " + diskName
 					+ " that belonged to the virtual machine " + roleName);
 
-			osDiskDeleted = deleteOSDisk(diskName, endTime);
+			deleteOSDisk(diskName, endTime);
 
 			logger.fine("deleteing cloud service : " + cloudServiceName
 					+ " that was dedicated for virtual machine " + roleName);
