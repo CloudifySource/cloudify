@@ -18,7 +18,7 @@ function setEnv() {
 
 function setCloudifyJavaOptions() {
 	CLOUDIFY_DEBUG_OPTIONS="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9000 -Xnoagent -Djava.compiler=NONE"
-	CLOUDIFY_JAVA_OPTIONS="-Xmx500m -Dcom.gigaspaces.logger.RollingFileHandler.debug-level=WARNING -Dcom.gigaspaces.client.router.disableNewRouter=true ${EXT_CLOUDIFY_JAVA_OPTIONS}"
+	CLOUDIFY_JAVA_OPTIONS="-Xmx500m -Dcom.gigaspaces.logger.RollingFileHandler.debug-level=WARNING ${EXT_CLOUDIFY_JAVA_OPTIONS}"
 }
 
 function setCloudifyClassPath() {
