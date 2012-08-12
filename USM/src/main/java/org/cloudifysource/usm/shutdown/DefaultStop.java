@@ -19,6 +19,7 @@ package org.cloudifysource.usm.shutdown;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.cloudifysource.dsl.Service;
 import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.USMUtils;
 import org.cloudifysource.usm.events.AbstractUSMEventListener;
@@ -41,6 +42,13 @@ public class DefaultStop extends AbstractUSMEventListener implements StopListene
 	@Override
 	public EventResult onStop(final StopReason reason) {
 		final List<Long> pids = this.usm.getServiceProcessesList();
+
+		Service service = this.usm.getUsmLifecycleBean().getConfiguration().getService();
+		if (service.getLifecycle().getStart() == null) {
+			logger.info("Service did not specify a 'start' element,"
+					+ " so default stop implementation will not shutdown any processes. Current service process list: "
+					+ pids);
+		}
 
 		USMException firstException = null;
 		for (final Long pid : pids) {
