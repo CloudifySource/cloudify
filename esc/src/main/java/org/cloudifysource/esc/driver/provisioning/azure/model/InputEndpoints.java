@@ -14,6 +14,11 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType
 public class InputEndpoints {
 
+	@Override
+	public String toString() {
+		return "InputEndpoints [inputEndpoints=" + inputEndpoints + "]";
+	}
+
 	private List<InputEndpoint> inputEndpoints = new ArrayList<InputEndpoint>();
 
 	@XmlElement(name = "InputEndpoint")

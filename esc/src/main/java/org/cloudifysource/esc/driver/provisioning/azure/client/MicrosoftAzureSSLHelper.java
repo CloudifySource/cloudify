@@ -31,11 +31,17 @@ import java.security.cert.CertificateException;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 
-/**
- * 
- * @author elip
- * 
- */
+/**************************************************************************************
+ * This class is responsible for creating an appropriate SSL Context				  
+ * for making requests to azure over SSL.											  
+ * uses a pfx format file and the password that protects it.						  
+ * NOTE : in order for this to work the .cer file that is associated with the .pfx 	  
+ * must be uploaded as a management certificate via the azure portal.			      
+ * 																					  
+ * @author elip																		  
+ * 																					  
+ **************************************************************************************/
+
 public class MicrosoftAzureSSLHelper {
 
 	// Key store constants
@@ -64,22 +70,26 @@ public class MicrosoftAzureSSLHelper {
 			KeyStoreException, CertificateException, IOException,
 			UnrecoverableKeyException, KeyManagementException {
 
+		InputStream pfxFile = null;
 		SSLContext context = null;
-		InputStream pfxFile = new FileInputStream(new File(pathToPfxFile));
+		try {
+			pfxFile = new FileInputStream(new File(pathToPfxFile));
+			KeyManagerFactory keyManagerFactory = KeyManagerFactory
+					.getInstance(SUN_X_509_ALGORITHM);
+			KeyStore keyStore = KeyStore.getInstance(KEY_STORE_CONTEXT);
 
-		KeyManagerFactory keyManagerFactory = KeyManagerFactory
-				.getInstance(SUN_X_509_ALGORITHM);
-		KeyStore keyStore = KeyStore.getInstance(KEY_STORE_CONTEXT);
+			keyStore.load(pfxFile, pfxPassword.toCharArray());
+			pfxFile.close();
 
-		keyStore.load(pfxFile, pfxPassword.toCharArray());
-		pfxFile.close();
+			keyManagerFactory.init(keyStore, pfxPassword.toCharArray());
 
-		keyManagerFactory.init(keyStore, pfxPassword.toCharArray());
+			context = SSLContext.getInstance("SSL");
+			context.init(keyManagerFactory.getKeyManagers(), null,
+					new SecureRandom());
 
-		context = SSLContext.getInstance("SSL");
-		context.init(keyManagerFactory.getKeyManagers(), null,
-				new SecureRandom());
-
-		return context;
+			return context;
+		} finally {
+			pfxFile.close();
+		}
 	}
 }

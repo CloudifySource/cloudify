@@ -33,11 +33,16 @@ public class StorageServices implements Iterable<StorageService> {
 		return storageServices;
 	}
 
-	public void setStorageServices(List<StorageService> storageServices) {
+	public void setStorageServices(final List<StorageService> storageServices) {
 		this.storageServices = storageServices;
 	}	
 	
-	public boolean contains(String storageServiceName) {
+	/**
+	 * 
+	 * @param storageServiceName .
+	 * @return .
+	 */
+	public boolean contains(final String storageServiceName) {
 		
 		for (StorageService service : storageServices) {
 			if (service.getServiceName().equals(storageServiceName)) {

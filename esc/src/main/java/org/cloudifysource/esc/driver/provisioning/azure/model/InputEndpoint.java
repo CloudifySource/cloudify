@@ -9,8 +9,16 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlType(name = "InputEndpoint", propOrder = { "loadBalancedEndpointSetName",
-		"localPort", "name", "port", "protocol" , "vIp"})
+		"localPort", "name", "port", "protocol" , "vIp" })
 public class InputEndpoint {
+
+	@Override
+	public String toString() {
+		return "InputEndpoint [loadBalancedEndpointSetName="
+				+ loadBalancedEndpointSetName + ", localPort=" + localPort
+				+ ", name=" + name + ", port=" + port + ", protocol="
+				+ protocol + ", vIp=" + vIp + "]";
+	}
 
 	private String loadBalancedEndpointSetName;
 	private int localPort;
@@ -18,13 +26,21 @@ public class InputEndpoint {
 	private int port;
 	private String protocol;
 	private String vIp;
-
+	
+	/**
+	 * 
+	 * @return - Public IP for this endpoint.
+	 */
 	@XmlElement(name = "Vip")
 	public String getvIp() {
 		return vIp;
 	}
 
-	public void setvIp(String vIp) {
+	/**
+	 * 
+	 * @param vIp .
+	 */
+	public void setvIp(final String vIp) {
 		this.vIp = vIp;
 	}
 

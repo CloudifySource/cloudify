@@ -37,11 +37,11 @@ public final class UUIDHelper {
 	public static String generateRandomUUID(final int length) {
         UUID uuid = UUID.randomUUID();
         char[] uuidChars = uuid.toString().toCharArray();
-        String newUUID = "";
+        StringBuilder builder = new StringBuilder();
         for (int i = 0; i < length; i++) {
-            newUUID += uuidChars[i];
+            builder.append(uuidChars[i]);
         }                           
-        return newUUID;
+        return builder.toString();
 	}
 
 }

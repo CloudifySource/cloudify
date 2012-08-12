@@ -7,7 +7,7 @@ package org.cloudifysource.esc.driver.provisioning.azure.client;
  * @author elip
  *
  */
-public class RoleAddressDetails {
+public class RoleDetails {
 	
 	private String privateIp;
 	private String publicIp;

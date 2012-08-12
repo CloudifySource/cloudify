@@ -13,12 +13,22 @@ import javax.xml.bind.annotation.XmlType;
  */
 
 @XmlRootElement(name = "HostedService")
-@XmlType(propOrder = {"url" , "serviceName" })
+@XmlType(propOrder = {"url" , "serviceName" , "deployments" })
 public class HostedService {
 
 	private String url;
 	private String serviceName;
+	private Deployments deployments;
 	
+	@XmlElement(name = "Deployments")
+	public Deployments getDeployments() {
+		return deployments;
+	}
+
+	public void setDeployments(final Deployments deployments) {
+		this.deployments = deployments;
+	}
+
 	@XmlElement(name = "Url")
 	public String getUrl() {
 		return url;

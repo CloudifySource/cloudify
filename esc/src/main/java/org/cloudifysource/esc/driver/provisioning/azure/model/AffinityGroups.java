@@ -33,11 +33,16 @@ public class AffinityGroups implements Iterable<AffinityGroup> {
 		return affinityGroups;
 	}
 	
-	public void setAffinityGroups(List<AffinityGroup> affinityGroups) {
+	public void setAffinityGroups(final List<AffinityGroup> affinityGroups) {
 		this.affinityGroups = affinityGroups;
 	}
 	
-	public boolean contains(String affinityGroupName) {
+	/**
+	 * 
+	 * @param affinityGroupName .
+	 * @return .
+	 */
+	public boolean contains(final String affinityGroupName) {
 		for (AffinityGroup group : affinityGroups) {
 			if (group.getName().equals(affinityGroupName)) {
 				return true;

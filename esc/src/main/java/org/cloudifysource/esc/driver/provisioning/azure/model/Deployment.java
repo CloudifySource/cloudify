@@ -11,7 +11,7 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlRootElement(name = "Deployment")
 @XmlType(propOrder = { "name", "deploymentSlot", "privateId", "status",
-		"label" , "roleInstanceList" , "roleList", "virtualNetworkName" })
+		"label" , "roleInstanceList" , "roleList", "virtualNetworkName" , "hostedServiceName" })
 public class Deployment {
 
 	private String name;
@@ -22,6 +22,17 @@ public class Deployment {
 	private RoleInstanceList roleInstanceList;
 	private RoleList roleList;
 	private String virtualNetworkName;
+	
+	// not azure model
+	private String hostedServiceName;
+
+	public String getHostedServiceName() {
+		return hostedServiceName;
+	}
+
+	public void setHostedServiceName(final String hostedServiceName) {
+		this.hostedServiceName = hostedServiceName;
+	}
 
 	@XmlElement(name = "RoleInstanceList")
 	public RoleInstanceList getRoleInstanceList() {

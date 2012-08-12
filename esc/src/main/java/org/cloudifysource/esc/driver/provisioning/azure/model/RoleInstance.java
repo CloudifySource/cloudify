@@ -32,14 +32,14 @@ public class RoleInstance {
 	public String getInstanceName() {
 		return instanceName;
 	}
-	public void setInstanceName(String instanceName) {
+	public void setInstanceName(final String instanceName) {
 		this.instanceName = instanceName;
 	}
 	@XmlElement(name = "InstanceStatus")
 	public String getInstanceStatus() {
 		return instanceStatus;
 	}
-	public void setInstanceStatus(String instanceStatus) {
+	public void setInstanceStatus(final String instanceStatus) {
 		this.instanceStatus = instanceStatus;
 	}
 	
@@ -47,7 +47,7 @@ public class RoleInstance {
 	public int getInstanceFaultDomain() {
 		return instanceFaultDomain;
 	}
-	public void setInstanceFaultDomain(int instanceFaultDomain) {
+	public void setInstanceFaultDomain(final int instanceFaultDomain) {
 		this.instanceFaultDomain = instanceFaultDomain;
 	}
 	
@@ -55,7 +55,7 @@ public class RoleInstance {
 	public String getIpAddress() {
 		return ipAddress;
 	}
-	public void setIpAddress(String ipAddress) {
+	public void setIpAddress(final String ipAddress) {
 		this.ipAddress = ipAddress;
 	}
 

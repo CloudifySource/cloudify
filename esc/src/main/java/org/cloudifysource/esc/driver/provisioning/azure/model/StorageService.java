@@ -21,7 +21,7 @@ public class StorageService {
 	public String getUrl() {
 		return url;
 	}
-	public void setUrl(String url) {
+	public void setUrl(final String url) {
 		this.url = url;
 	}
 	
@@ -29,7 +29,7 @@ public class StorageService {
 	public String getServiceName() {
 		return serviceName;
 	}
-	public void setServiceName(String serviceName) {
+	public void setServiceName(final String serviceName) {
 		this.serviceName = serviceName;
 	}
 	

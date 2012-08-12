@@ -42,7 +42,7 @@ import org.xml.sax.SAXException;
  * A Utility class for marshaling and unmarshaling azure model related objects.
  * *
  * 
- * @author elip * *
+ * @author elip 
  ***************************************************************************************/
 public final class MicrosoftAzureModelUtils {
 
@@ -54,6 +54,9 @@ public final class MicrosoftAzureModelUtils {
 	 * 
 	 * @param body
 	 *            - the object to marshal
+	 * @param network
+	 *            - whether or not this object belongs to the network domain
+	 *            model.
 	 * @return - a String representation in the form of an XML of the body
 	 * @throws MicrosoftAzureException
 	 *             - indicates a marshaling exception happened
@@ -69,8 +72,12 @@ public final class MicrosoftAzureModelUtils {
 			Document doc = createEmptyDocument();
 			m.marshal(body, doc);
 			String xml = getStringFromDocument(doc);
-			if (network) { // so stupid !! TODO eli - find a proper way to deal with different name spaces under the space JAXBContext instance.
-							// i cant seem to find the azure xsd anywhere so that i can generate proper model object using xjc.
+			if (network) { // so stupid !! TODO eli - find a proper way to deal
+							// with different name spaces under the space
+							// JAXBContext instance.
+							// i cant seem to find the azure xsd anywhere so
+							// that i can generate proper model object using
+							// xjc.
 				xml = addNameSpaceToRootElement(xml,
 						"http://schemas.microsoft.com/ServiceHosting/2011/07/NetworkConfiguration");
 			} else {
@@ -87,7 +94,7 @@ public final class MicrosoftAzureModelUtils {
 	 * @param doc
 	 * @param string
 	 */
-	private static String addNameSpaceToRootElement(String xml, String nameSpace) {
+	private static String addNameSpaceToRootElement(final String xml, final String nameSpace) {
 		int count = 0;
 		int i = 0;
 		while (count < 2) {
@@ -113,7 +120,7 @@ public final class MicrosoftAzureModelUtils {
 	 * @throws MicrosoftAzureException .
 	 */
 	public static Object unmarshall(final String entity)
-			throws MicrosoftAzureException {		
+			throws MicrosoftAzureException {
 		JAXBContext context = ModelContextFactory.createInstance();
 		Document xmlDoc = parse(entity);
 		Unmarshaller um = null;
@@ -154,7 +161,7 @@ public final class MicrosoftAzureModelUtils {
 		}
 	}
 
-	private static String getStringFromDocument(Document doc)
+	private static String getStringFromDocument(final Document doc)
 			throws MicrosoftAzureException {
 		try {
 			DOMSource domSource = new DOMSource(doc);

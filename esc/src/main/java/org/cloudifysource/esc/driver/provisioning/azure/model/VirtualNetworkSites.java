@@ -31,7 +31,12 @@ public class VirtualNetworkSites implements Iterable<VirtualNetworkSite> {
 		this.virtualNetworkSites = virtualNetworkSites;
 	}
 	
-	public boolean contains(String networkName) {
+	/**
+	 * 
+	 * @param networkName . 
+	 * @return .
+	 */
+	public boolean contains(final String networkName) {
 		for (VirtualNetworkSite site : virtualNetworkSites) {
 			if (site.getName().equals(networkName)) {
 				return true;

@@ -38,7 +38,6 @@ public final class ModelContextFactory {
 		CLASSES.add(RestartRoleOperation.class);
 		CLASSES.add(HostedServices.class);
 		CLASSES.add(HostedService.class);
-		CLASSES.add(PersistentVMRole.class);
 		CLASSES.add(AffinityGroups.class);
 		CLASSES.add(AffinityGroup.class);
 		CLASSES.add(RoleInstance.class);
@@ -52,6 +51,9 @@ public final class ModelContextFactory {
 		CLASSES.add(VirtualNetworkConfiguration.class);
 		CLASSES.add(VirtualNetworkSite.class);
 		CLASSES.add(VirtualNetworkSites.class);
+		CLASSES.add(AttachedTo.class);
+		CLASSES.add(Disk.class);
+		CLASSES.add(Disks.class);
 	}
 	
 	

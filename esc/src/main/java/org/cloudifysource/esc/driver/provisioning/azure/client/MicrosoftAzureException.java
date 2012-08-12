@@ -17,16 +17,26 @@
 package org.cloudifysource.esc.driver.provisioning.azure.client;
 
 /****************************************************************************************************
- * An exception wrapping all possible exceptions that could happen while calling azure REST API.    *
- * @author elip																						*
- *																									*
+ * An exception wrapping all possible exceptions that could happen while calling azure REST API. 
+ * @author elip																						
+ *																									
  ****************************************************************************************************/
 public class MicrosoftAzureException extends Exception {
-
+	
+	private String status;
+	private String message;
+	
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	public MicrosoftAzureException(final String status, final String message) {
+		this.status = status;
+		this.message = message;
+	}
+	
+	
 	
 	/**
 	 * 
@@ -39,6 +49,22 @@ public class MicrosoftAzureException extends Exception {
 	 */
 	public MicrosoftAzureException(final String message) {
 		super(message);
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(final String status) {
+		this.status = status;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(final String message) {
+		this.message = message;
 	}
 
 	/**

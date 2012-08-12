@@ -22,7 +22,8 @@ public class ConfigurationSetAdapter
 	 */
 	@Override
 	public ConfigurationSet unmarshal(
-			AdaptedConfigurationSet adaptedConfigurationSet) throws Exception {
+			final AdaptedConfigurationSet adaptedConfigurationSet)
+			throws Exception {
 		if (adaptedConfigurationSet == null) {
 			return null;
 		}
@@ -35,7 +36,8 @@ public class ConfigurationSetAdapter
 					.setInputEndpoints(adaptedConfigurationSet.inputEndpoints);
 			return networkConfigurationSet;
 		} else {
-			LinuxProvisioningConfigurationSet linuxProvisioningConfigurationSet = new LinuxProvisioningConfigurationSet();
+			LinuxProvisioningConfigurationSet linuxProvisioningConfigurationSet = 
+					new LinuxProvisioningConfigurationSet();
 			linuxProvisioningConfigurationSet
 					.setDisableSshPasswordAuthentication(adaptedConfigurationSet.disableSshPasswordAuthentication);
 			linuxProvisioningConfigurationSet
@@ -56,7 +58,7 @@ public class ConfigurationSetAdapter
 	 * javax.xml.bind.annotation.adapters.XmlAdapter#marshal(java.lang.Object)
 	 */
 	@Override
-	public AdaptedConfigurationSet marshal(ConfigurationSet configurationSet)
+	public AdaptedConfigurationSet marshal(final ConfigurationSet configurationSet)
 			throws Exception {
 
 		if (configurationSet == null) {
@@ -65,7 +67,8 @@ public class ConfigurationSetAdapter
 
 		AdaptedConfigurationSet adaptedConfigurationSet = new AdaptedConfigurationSet();
 		if (configurationSet instanceof LinuxProvisioningConfigurationSet) {
-			LinuxProvisioningConfigurationSet linuxProvisioningConfigurationSet = (LinuxProvisioningConfigurationSet) configurationSet;
+			LinuxProvisioningConfigurationSet linuxProvisioningConfigurationSet
+								= (LinuxProvisioningConfigurationSet) configurationSet;
 			adaptedConfigurationSet.configurationSetType = linuxProvisioningConfigurationSet
 					.getConfigurationSetType();
 			adaptedConfigurationSet.disableSshPasswordAuthentication = linuxProvisioningConfigurationSet
@@ -86,26 +89,31 @@ public class ConfigurationSetAdapter
 
 		return adaptedConfigurationSet;
 	}
-
-	public static class AdaptedConfigurationSet {
+	
+	/**
+	 * 
+	 * @author elip
+	 *
+	 */
+	static class AdaptedConfigurationSet {
 
 		@XmlElement(name = "ConfigurationSetType")
-		public String configurationSetType = "LinuxProvisioningConfiguration";
+		private String configurationSetType = "LinuxProvisioningConfiguration";
 
 		@XmlElement(name = "HostName")
-		public String hostName;
+		private String hostName;
 
 		@XmlElement(name = "UserName")
-		public String userName;
+		private String userName;
 
 		@XmlElement(name = "UserPassword")
-		public String userPassword;
+		private String userPassword;
 
 		@XmlElement(name = "DisableSshPasswordAuthentication")
-		public boolean disableSshPasswordAuthentication;
+		private boolean disableSshPasswordAuthentication;
 
 		@XmlElement(name = "InputEndpoints")
-		public InputEndpoints inputEndpoints;
+		private InputEndpoints inputEndpoints;
 
 	}
 }

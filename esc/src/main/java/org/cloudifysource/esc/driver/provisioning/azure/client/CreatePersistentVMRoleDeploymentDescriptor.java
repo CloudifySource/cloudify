@@ -5,10 +5,14 @@ package org.cloudifysource.esc.driver.provisioning.azure.client;
 
 import org.cloudifysource.esc.driver.provisioning.azure.model.InputEndpoints;
 
-/**
- * @author elip
- *
- */
+/************************************************************************************************
+ * 																							    *
+ * A POJO holding all necessary properties for create a new vm to an existing virtual network.  *
+ * 																								*
+ * @author elip																					*
+ *																								*
+ ************************************************************************************************/
+
 public class CreatePersistentVMRoleDeploymentDescriptor {
 		
 	private static final int ROLE_NAME_UID_LENGTH = 4;
@@ -23,7 +27,25 @@ public class CreatePersistentVMRoleDeploymentDescriptor {
 	private String networkName;
 	private String availabilitySetName;
 	private String roleName;
+	private String affinityGroup;
+	private String hostedServiceName;
 	
+	public String getHostedServiceName() {
+		return hostedServiceName;
+	}
+
+	public void setHostedServiceName(final String hostedServiceName) {
+		this.hostedServiceName = hostedServiceName;
+	}
+
+	public String getAffinityGroup() {
+		return affinityGroup;
+	}
+
+	public void setAffinityGroup(final String affinityGroup) {
+		this.affinityGroup = affinityGroup;
+	}
+
 	public void setRoleName(final String roleName) {
 		this.roleName = roleName + UUIDHelper.generateRandomUUID(ROLE_NAME_UID_LENGTH);
 	}
@@ -114,4 +136,18 @@ public class CreatePersistentVMRoleDeploymentDescriptor {
 	public void setInputEndpoints(final InputEndpoints inputEndpoints) {
 		this.inputEndpoints = inputEndpoints;
 	}
+
+	@Override
+	public String toString() {
+		return "CreatePersistentVMRoleDeploymentDescriptor [deploymentName="
+				+ deploymentName + ", deploymentSlot=" + deploymentSlot
+				+ ", imageName=" + imageName + ", storageAccountName="
+				+ storageAccountName + ", size=" + size + ", networkName="
+				+ networkName + ", availabilitySetName=" + availabilitySetName
+				+ ", roleName=" + roleName + ", affinityGroup=" + affinityGroup
+				+ ", hostedServiceName=" + hostedServiceName
+				+ ", inputEndpoints=" + inputEndpoints + "]";
+	}
+	
+	
 }

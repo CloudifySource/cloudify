@@ -19,22 +19,30 @@ import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.azure.client.CreatePersistentVMRoleDeploymentDescriptor;
-import org.cloudifysource.esc.driver.provisioning.azure.client.DeletePersistentRoleVMDeploymentDetails;
 import org.cloudifysource.esc.driver.provisioning.azure.client.MicrosoftAzureException;
 import org.cloudifysource.esc.driver.provisioning.azure.client.MicrosoftAzureRestClient;
-import org.cloudifysource.esc.driver.provisioning.azure.client.RoleAddressDetails;
+import org.cloudifysource.esc.driver.provisioning.azure.client.RoleDetails;
+import org.cloudifysource.esc.driver.provisioning.azure.model.AttachedTo;
+import org.cloudifysource.esc.driver.provisioning.azure.model.Disk;
+import org.cloudifysource.esc.driver.provisioning.azure.model.Disks;
 import org.cloudifysource.esc.driver.provisioning.azure.model.InputEndpoint;
 import org.cloudifysource.esc.driver.provisioning.azure.model.InputEndpoints;
+import org.codehaus.plexus.util.ExceptionUtils;
 
 import com.j_spaces.kernel.Environment;
 
-/****************************************************************************
- * A custom Cloud Driver implementation for provisioning machines on Azure. * *
+/***************************************************************************************
+ * A custom Cloud Driver implementation for provisioning machines on Azure.
  * 
- * @author elip *
- */
+ * @author elip
+ ***************************************************************************************/
+
 public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		ProvisioningDriver {
+
+	private static final String CLOUDIFY_AFFINITY_PREFIX = "cloudifyaffinity";
+	private static final String CLOUDIFY_CLOUD_SERVICE_PREFIX = "cloudifycloudservice";
+	private static final String CLOUDIFY_STORAGE_ACCOUNT_PREFIX = "cloudifystorage";
 
 	// Custom template DSL properties
 	private static final String AZURE_PFX_FILE = "azure.pfx.file";
@@ -47,9 +55,12 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	private static final String AZURE_AFFINITY_LOCATION = "azure.affinity.location";
 	private static final String AZURE_NETOWRK_ADDRESS_SPACE = "azure.address.space";
 	private static final String AZURE_AFFINITY_GROUP = "azure.affinity.group";
-	private static final String AZURE_NETWORK_NAME = "azure.network.name";
+	private static final String AZURE_NETWORK_NAME = "azure.networksite.name";
 	private static final String AZURE_STORAGE_ACCOUNT = "azure.storage.account";
 	private static final String AZURE_AVAILABILITY_SET = "azure.availability.set";
+	private static final String AZURE_CLEANUP_ON_TEARDOWN = "azure.cleanup.on.teardown";
+
+	private boolean cleanup;
 
 	private String serverNamePrefix;
 
@@ -62,6 +73,9 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	private String networkName;
 	private String affinityGroup;
 	private String storageAccountName;
+
+	private static final long DEFAULT_SHUTDOWN_DURATION = 15 * 60 * 1000; // 15
+	// minutes
 
 	// Arguments per template
 	private String deploymentSlot;
@@ -81,9 +95,24 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	private static final Logger logger = Logger
 			.getLogger(MicrosoftAzureCloudDriver.class.getName());
 
-	private MicrosoftAzureRestClient azureClient;
+	private static MicrosoftAzureRestClient azureClient;
 
 	public MicrosoftAzureCloudDriver() {
+	}
+
+	private static synchronized void initRestClient(
+			final String subscriptionId, final String pathToPfxFile,
+			final String pfxPassword, final boolean enableWireLog) {
+		if (azureClient == null) {
+			logger.fine("initializing Azure REST client");
+			azureClient = new MicrosoftAzureRestClient(subscriptionId,
+					pathToPfxFile, pfxPassword, CLOUDIFY_AFFINITY_PREFIX,
+					CLOUDIFY_CLOUD_SERVICE_PREFIX,
+					CLOUDIFY_STORAGE_ACCOUNT_PREFIX);
+			if (enableWireLog) {
+				azureClient.setLoggingFilter(logger);
+			}
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -130,6 +159,9 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 
 		this.subscriptionId = this.cloud.getUser().getUser();
 
+		this.cleanup = Boolean.parseBoolean((String) this.cloud.getCustom()
+				.get(AZURE_CLEANUP_ON_TEARDOWN));
+
 		this.location = (String) this.cloud.getCustom().get(
 				AZURE_AFFINITY_LOCATION);
 		if (location == null) {
@@ -169,84 +201,41 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 					.getMachineNamePrefix();
 		}
 
-		logger.fine("Initializing Azure REST Client");
-		this.azureClient = new MicrosoftAzureRestClient(this.subscriptionId,
-				this.pathToPfxFile, this.pfxPassword);
-
 		final String wireLog = (String) this.cloud.getCustom().get(
 				AZURE_WIRE_LOG);
+
+		boolean enableWireLog = false;
 		if (wireLog != null) {
-			if (Boolean.parseBoolean(wireLog)) {
-				this.azureClient.setLoggingFilter(logger);
-			}
+			enableWireLog = Boolean.parseBoolean(wireLog);
 		}
+		initRestClient(this.subscriptionId, this.pathToPfxFile,
+				this.pfxPassword, enableWireLog);
 	}
 
 	@Override
 	public MachineDetails startMachine(final long duration, final TimeUnit unit)
 			throws TimeoutException, CloudProvisioningException {
+		long endTime = System.currentTimeMillis() + unit.toMillis(duration);
+		return startMachine(endTime);
+
+	}
+
+	private MachineDetails startMachine(final long endTime)
+			throws TimeoutException, CloudProvisioningException {
 
 		MachineDetails machineDetails = new MachineDetails();
-		String cloudServiceName = null;
 		CreatePersistentVMRoleDeploymentDescriptor desc = null;
+		RoleDetails roleAddressDetails = null;
 		try {
-			logger.fine("Creating Cloud Service");
-
-			cloudServiceName = azureClient.createCloudService(affinityGroup,
-					duration, unit);
-
-			logger.fine("Cloud Service Created : " + cloudServiceName);
 
 			desc = new CreatePersistentVMRoleDeploymentDescriptor();
 			desc.setRoleName(serverNamePrefix + "_role");
-			desc.setDeploymentName(cloudServiceName);
 			desc.setDeploymentSlot(deploymentSlot);
 			desc.setImageName(imageName);
 			desc.setAvailabilitySetName(availabilitySet);
+			desc.setAffinityGroup(affinityGroup);
 
-			InputEndpoints inputEndpoints = new InputEndpoints();
-
-			// Add End Point for each port
-
-			if (this.endpoints != null) {
-				for (Map<String, String> endpointPair : this.endpoints) {
-					String name = endpointPair.get("name");
-					int port = Integer.parseInt(endpointPair.get("port"));
-					InputEndpoint endpoint = new InputEndpoint();
-					endpoint.setLocalPort(port);
-					endpoint.setPort(port);
-					endpoint.setName(name);
-					endpoint.setProtocol("TCP");
-					inputEndpoints.getInputEndpoints().add(endpoint);
-
-				}
-			}
-
-			// open the SSH port on all vm's
-			InputEndpoint sshEndpoint = new InputEndpoint();
-			sshEndpoint.setLocalPort(SSH_PORT);
-			sshEndpoint.setPort(SSH_PORT);
-			sshEndpoint.setName("SSH");
-			sshEndpoint.setProtocol("TCP");
-			inputEndpoints.getInputEndpoints().add(sshEndpoint);
-
-			// open WEBUI and REST ports for management machines
-			if (this.management) {
-
-				InputEndpoint webuiEndpoint = new InputEndpoint();
-				webuiEndpoint.setLocalPort(WEBUI_PORT);
-				webuiEndpoint.setPort(WEBUI_PORT);
-				webuiEndpoint.setName("Webui");
-				webuiEndpoint.setProtocol("TCP");
-				inputEndpoints.getInputEndpoints().add(webuiEndpoint);
-
-				InputEndpoint restEndpoint = new InputEndpoint();
-				restEndpoint.setLocalPort(REST_PORT);
-				restEndpoint.setPort(REST_PORT);
-				restEndpoint.setName("Rest");
-				restEndpoint.setProtocol("TCP");
-				inputEndpoints.getInputEndpoints().add(restEndpoint);
-			}
+			InputEndpoints inputEndpoints = createInputEndPoints();
 
 			desc.setInputEndpoints(inputEndpoints);
 			desc.setNetworkName(networkName);
@@ -255,11 +244,10 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			desc.setStorageAccountName(storageAccountName);
 			desc.setUserName(userName);
 
-			logger.fine("Launching Virtual Machine...");
+			logger.info("creating a virtual machine with details : " + desc);
 
-			RoleAddressDetails roleAddressDetails = azureClient
-					.createVirtualMachineDeployment(desc, cloudServiceName,
-							duration, unit);
+			roleAddressDetails = azureClient.createVirtualMachineDeployment(
+					desc, endTime);
 
 			machineDetails.setPrivateAddress(roleAddressDetails.getPrivateIp());
 			machineDetails.setPublicAddress(roleAddressDetails.getPublicIp());
@@ -273,38 +261,44 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			machineDetails.setRemotePassword(password);
 			machineDetails.setRemoteUsername(userName);
 
-			logger.fine("Virtual Machine Started : " + machineDetails);
+			logger.info("virtual machine started and is ready for use : "
+					+ machineDetails);
 
 			return machineDetails;
 		} catch (final MicrosoftAzureException e) {
-			logger.warning("Failed Starting Virtual Machine properly. "
-					+ "trying to delete it and any services that were pre dedicated for this instance");
-			if (desc != null) {
-				logger.warning("deleting role " + desc.getRoleName());
-				try {
-					azureClient.deleteRole(cloudServiceName,
-							desc.getDeploymentName(), desc.getRoleName(),
-							duration, unit);
-				} catch (MicrosoftAzureException e1) {
-					logger.log(Level.WARNING,
-							"Failed deleting role " + desc.getRoleName(), e1);
-				}
-			}
+			logger.severe("failed creating virtual machine properly"
+					+ e.getMessage());
 
-			if (cloudServiceName != null) {
-				logger.warning("the Cloud Service " + cloudServiceName
-						+ " was created, deleting it...");
+			// this means a cloud service was created and a request for A VM was
+			// made.
+			if (desc.getHostedServiceName() != null) {
 				try {
-					azureClient.deleteCloudService(cloudServiceName, duration,
-							unit);
-				} catch (MicrosoftAzureException e1) {
-					logger.log(Level.WARNING, "Failed deleting Cloud Service "
-							+ cloudServiceName, e1);
+					// this will also delete the cloud service that was created.
+					azureClient.deleteVirtualMachineByDeploymentIfExists(
+							desc.getHostedServiceName(),
+							desc.getDeploymentName(), endTime);
+				} catch (final Exception e1) {
+					if (e1 instanceof TimeoutException) {
+						throw new TimeoutException(e1.getMessage());
+					} else {
+						throw new CloudProvisioningException(e1);
+					}
 				}
+				// this means that a failure happened while trying to create the
+				// cloud service. no request for VM was made, so no need to try
+				// and delete it.
+			} else {
+				logger.fine("not attempting to shutdown virtual machine "
+						+ desc.getRoleName()
+						+ " since a failure happened while to create a cloud service for this vm.");
+
 			}
 
 			throw new CloudProvisioningException(e);
+		} catch (InterruptedException e) {
+			throw new CloudProvisioningException(e);
 		}
+
 	}
 
 	@Override
@@ -312,23 +306,20 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			final TimeUnit unit) throws TimeoutException,
 			CloudProvisioningException {
 
+		long endTime = System.currentTimeMillis() + unit.toMillis(duration);
+
 		try {
-			logger.fine("Creating Affinity Group : " + affinityGroup);
+			azureClient.createAffinityGroup(affinityGroup, location, endTime);
 
-			azureClient.createAffinityGroup(affinityGroup, location, duration,
-					unit);
-
-			logger.fine("Creating Virtual Network : " + networkName);
-
-			azureClient.createVirtualNetwork(addressSpace, affinityGroup,
-					networkName, duration, unit);
-
-			logger.fine("Creating a Storage Account : " + storageAccountName);
+			azureClient.createVirtualNetworkSite(addressSpace, affinityGroup,
+					networkName, endTime);
 
 			azureClient.createStorageAccount(affinityGroup, storageAccountName,
-					duration, unit);
+					endTime);
 
 		} catch (final MicrosoftAzureException e) {
+			throw new CloudProvisioningException(e);
+		} catch (InterruptedException e) {
 			throw new CloudProvisioningException(e);
 		}
 
@@ -337,28 +328,66 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 
 		final ExecutorService executorService = Executors
 				.newFixedThreadPool(numberOfManagementMachines);
+
+		try {
+			return startManagementMachines(endTime, numberOfManagementMachines,
+					executorService);
+		} finally {
+			executorService.shutdown();
+		}
+
+	}
+
+	/**
+	 * @param endTime
+	 * @param numberOfManagementMachines
+	 * @param executorService
+	 * @param results
+	 * @return
+	 * @throws CloudProvisioningException
+	 * @throws TimeoutException
+	 */
+	private MachineDetails[] startManagementMachines(final long endTime,
+			final int numberOfManagementMachines,
+			final ExecutorService executorService)
+			throws CloudProvisioningException, TimeoutException {
+
 		final List<Future<MachineDetails>> results = new ArrayList<Future<MachineDetails>>(
 				numberOfManagementMachines);
 
 		for (int i = 0; i < numberOfManagementMachines; i++) {
-			StartMachineCallable task = new StartMachineCallable(duration, unit);
+			StartMachineCallable task = new StartMachineCallable(endTime);
 			Future<MachineDetails> future = executorService.submit(task);
 			results.add(future);
 		}
 
-		// block until all machines are ready
+		// block until tasks have stopped execution
+		List<Exception> exceptionsOnManagementStart = new ArrayList<Exception>();
+
 		List<MachineDetails> managementMachinesDetails = new ArrayList<MachineDetails>();
 		for (Future<MachineDetails> future : results) {
 			try {
 				managementMachinesDetails.add(future.get());
 			} catch (final Exception e) {
-				throw new CloudProvisioningException(e);
+				exceptionsOnManagementStart.add(e);
 			}
 		}
+		if (exceptionsOnManagementStart.size() == 0) {
+			return managementMachinesDetails
+					.toArray(new MachineDetails[numberOfManagementMachines]);
+		} else {
+			if (logger.isLoggable(Level.FINEST)) {
+				logger.finest("here are all the exception caught from all threads");
+				for (Exception e : exceptionsOnManagementStart) {
+					logger.finest(ExceptionUtils.getFullStackTrace(e));
+				}
+			}
+			stopManagementMachines();
+			throw new CloudProvisioningException(
+					"Failed starting management machines",
+					exceptionsOnManagementStart.get(0));
 
-		return managementMachinesDetails
-				.toArray(new MachineDetails[numberOfManagementMachines]);
-
+		}
 	}
 
 	@Override
@@ -366,52 +395,131 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			final TimeUnit unit) throws InterruptedException, TimeoutException,
 			CloudProvisioningException {
 
-		DeletePersistentRoleVMDeploymentDetails details = getDeletePersistentRoleVMDeploymentDetails(machineIp);
-
-		try {
-			logger.fine("Deleting Virtual Machine : " + details.getRoleName());
-
-			azureClient.deleteRole(details.getHostedServiceName(),
-					details.getDeploymentName(), details.getRoleName(),
-					duration, unit);
-
-			logger.fine("Deleting OS Disk : " + details.getOsDisk());
-
-			azureClient.deleteOSDisk(details.getOsDisk(), duration, unit);
-
-			logger.fine("Deleting Storage Account : "
-					+ details.getStorageAccountName());
-
-			azureClient.deleteStorageAccount(details.getStorageAccountName(),
-					duration, unit);
-
-			logger.fine("Deleteing Cloud Service : "
-					+ details.getHostedServiceName());
-
-			azureClient.deleteCloudService(details.getHostedServiceName(),
-					duration, unit);
-
-		} catch (MicrosoftAzureException e) {
+		if (isStopRequestRecent(machineIp)) {
 			return false;
 		}
 
-		return true;
-	}
+		long endTime = System.currentTimeMillis() + unit.toMillis(duration);
 
-	/**
-	 * @param machineIp
-	 * @return
-	 */
-	private DeletePersistentRoleVMDeploymentDetails getDeletePersistentRoleVMDeploymentDetails(
-			final String machineIp) {
-		// TODO Auto-generated method stub
-		return null;
+		boolean connectToPrivateIp = this.cloud.getConfiguration()
+				.isConnectToPrivateIp();
+		try {
+			azureClient.deleteVirtualMachineByIp(machineIp, connectToPrivateIp,
+					endTime);
+			return true;
+		} catch (MicrosoftAzureException e) {
+			throw new CloudProvisioningException(e);
+		}
 	}
 
 	@Override
 	public void stopManagementMachines() throws TimeoutException,
 			CloudProvisioningException {
-		// TODO Auto-generated method stub
+
+		long endTime = System.currentTimeMillis() + DEFAULT_SHUTDOWN_DURATION;
+
+		ExecutorService service = Executors.newCachedThreadPool();
+		try {
+			stopManagementMachines(endTime, service);
+		} finally {
+			service.shutdown();
+		}
+
+		boolean deletedNetwork = false;
+		boolean deletedStorage = false;
+		Exception first = null;
+		if (cleanup) {
+			try {
+				deletedNetwork = azureClient.deleteVirtualNetworkSite(
+						networkName, endTime);
+				logger.fine("deleted virtual network site : " + networkName);
+			} catch (final Exception e) {
+				first = e;
+				logger.warning("failed deleting virtual network site : "
+						+ networkName);
+				logger.warning(ExceptionUtils.getFullStackTrace(e));
+			}
+			try {
+				deletedStorage = azureClient.deleteStorageAccount(
+						storageAccountName, endTime);
+			} catch (final Exception e) {
+				logger.warning("failed deleting storage account : "
+						+ networkName);
+				logger.warning(ExceptionUtils.getFullStackTrace(e));
+			}
+			if (deletedNetwork && deletedStorage) {
+				try {
+					azureClient.deleteAffinityGroup(affinityGroup, endTime);
+				} catch (final Exception e) {
+					logger.warning("failed deleting affinity group : "
+							+ affinityGroup);
+					logger.warning(ExceptionUtils.getFullStackTrace(e));
+				}
+			} else {
+				logger.warning("not deleting affinity group since "
+						+ "failed deleting virtual network site and storage account.");
+			}
+			if (first != null) {
+				throw new CloudProvisioningException(first);
+			}
+		}
+	}
+
+	/**
+	 * @param endTime
+	 * @param service
+	 * @throws TimeoutException
+	 * @throws CloudProvisioningException
+	 */
+	private void stopManagementMachines(final long endTime,
+			final ExecutorService service) throws TimeoutException,
+			CloudProvisioningException {
+
+		List<Future<?>> futures = new ArrayList<Future<?>>();
+				
+		Disks disks = null;
+		try {
+			disks = azureClient.listOSDisks();
+		} catch (MicrosoftAzureException e1) {
+			throw new CloudProvisioningException(e1);
+		}
+		for (Disk disk : disks) {
+			AttachedTo attachedTo = disk.getAttachedTo();
+			if (attachedTo != null) { // protect against zombie disks
+				String roleName = attachedTo.getRoleName();
+				if (roleName.startsWith(this.serverNamePrefix)) {					
+					final String diskName = disk.getName();
+					final String deploymentName = attachedTo.getDeploymentName();
+					final String hostedServiceName = attachedTo
+							.getHostedServiceName();
+					StopManagementMachineCallable task = new StopManagementMachineCallable(
+							deploymentName, hostedServiceName, diskName,
+							endTime);
+					futures.add(service.submit(task));
+				}
+			}
+		}
+
+		// block until all tasks stop execution
+		List<Exception> exceptionOnStopMachines = new ArrayList<Exception>();
+		for (Future<?> future : futures) {
+			try {
+				future.get();
+			} catch (final Exception e) {
+				exceptionOnStopMachines.add(e);
+			}
+		}
+		if (exceptionOnStopMachines.size() != 0) {
+			if (logger.isLoggable(Level.FINEST)) {
+				logger.finest("here are all the exception caught from all threads");
+				for (Exception e : exceptionOnStopMachines) {
+					logger.finest(ExceptionUtils.getFullStackTrace(e));
+				}
+			}
+			throw new CloudProvisioningException(
+					"Failed terminating management machines",
+					exceptionOnStopMachines.get(0));
+		}
 
 	}
 
@@ -433,12 +541,10 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	 */
 	private class StartMachineCallable implements Callable<MachineDetails> {
 
-		private long duration;
-		private TimeUnit unit;
+		private long endTime;
 
-		public StartMachineCallable(final long duration, final TimeUnit unit) {
-			this.duration = duration;
-			this.unit = unit;
+		public StartMachineCallable(final long endTime) {
+			this.endTime = endTime;
 		}
 
 		/*
@@ -448,8 +554,107 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		 */
 		@Override
 		public MachineDetails call() throws Exception {
-			final MachineDetails machineDetails = startMachine(duration, unit);
+			final MachineDetails machineDetails = startMachine(endTime);
 			return machineDetails;
 		}
+	}
+
+	/**
+	 * 
+	 * @author elip
+	 * 
+	 */
+	private class StopManagementMachineCallable implements Callable<Boolean> {
+
+		private String deploymentName;
+		private String hostedServiceName;
+		private long endTime;
+
+		public StopManagementMachineCallable(final String deploymentName,
+				final String hostedServiceName, final String diskName,
+				final long endTime) {
+			this.deploymentName = deploymentName;
+			this.hostedServiceName = hostedServiceName;
+			this.endTime = endTime;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see java.lang.Runnable#run()
+		 */
+		@Override
+		public Boolean call() throws CloudProvisioningException,
+				TimeoutException {
+
+			return stopManagementMachine(hostedServiceName, deploymentName,
+					endTime);
+
+		}
+	}
+
+	private boolean stopManagementMachine(final String hostedServiceName,
+			final String deploymentName, final long endTime)
+			throws CloudProvisioningException, TimeoutException {
+
+		try {
+			azureClient.deleteVirtualMachineByDeploymentName(hostedServiceName,
+					deploymentName, endTime);
+			return true;
+		} catch (MicrosoftAzureException e) {
+			throw new CloudProvisioningException(e);
+		} catch (InterruptedException e) {
+			throw new CloudProvisioningException(e);
+		}
+
+	}
+
+	private InputEndpoints createInputEndPoints() {
+
+		InputEndpoints inputEndpoints = new InputEndpoints();
+
+		// Add End Point for each port
+
+		if (this.endpoints != null) {
+			for (Map<String, String> endpointMap : this.endpoints) {
+				String name = endpointMap.get("name");
+				int port = Integer.parseInt(endpointMap.get("port"));
+				String protocol = endpointMap.get("protocol");
+				InputEndpoint endpoint = new InputEndpoint();
+				endpoint.setLocalPort(port);
+				endpoint.setPort(port);
+				endpoint.setName(name);
+				endpoint.setProtocol(protocol);
+				inputEndpoints.getInputEndpoints().add(endpoint);
+
+			}
+		}
+
+		// open the SSH port on all vm's
+		InputEndpoint sshEndpoint = new InputEndpoint();
+		sshEndpoint.setLocalPort(SSH_PORT);
+		sshEndpoint.setPort(SSH_PORT);
+		sshEndpoint.setName("SSH");
+		sshEndpoint.setProtocol("TCP");
+		inputEndpoints.getInputEndpoints().add(sshEndpoint);
+
+		// open WEBUI and REST ports for management machines
+		if (this.management) {
+
+			InputEndpoint webuiEndpoint = new InputEndpoint();
+			webuiEndpoint.setLocalPort(WEBUI_PORT);
+			webuiEndpoint.setPort(WEBUI_PORT);
+			webuiEndpoint.setName("Webui");
+			webuiEndpoint.setProtocol("TCP");
+			inputEndpoints.getInputEndpoints().add(webuiEndpoint);
+
+			InputEndpoint restEndpoint = new InputEndpoint();
+			restEndpoint.setLocalPort(REST_PORT);
+			restEndpoint.setPort(REST_PORT);
+			restEndpoint.setName("Rest");
+			restEndpoint.setProtocol("TCP");
+			inputEndpoints.getInputEndpoints().add(restEndpoint);
+		}
+		return inputEndpoints;
 	}
 }

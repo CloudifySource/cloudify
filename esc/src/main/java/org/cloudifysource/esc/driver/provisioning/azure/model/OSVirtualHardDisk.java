@@ -13,6 +13,16 @@ public class OSVirtualHardDisk {
 	
 	private String mediaLink;	
 	private String sourceImageName;
+	private String name;
+
+	@XmlElement(name = "DiskName")
+	public String getName() {
+		return name;
+	}
+
+	public void setName(final String name) {
+		this.name = name;
+	}
 
 	@XmlElement(name = "MediaLink")
 	public String getMediaLink() {
