@@ -21,9 +21,9 @@ import groovy.lang.MissingPropertyException;
 import org.cloudifysource.dsl.context.kvstorage.spaceentries.AbstractCloudifyAttribute;
 import org.openspaces.core.GigaSpace;
 
-
 /**
- * Base class for accessing attributes
+ * Base class for accessing attributes.
+ * 
  * @author eitany
  * @since 2.0
  */
@@ -32,85 +32,120 @@ public abstract class AbstractAttributesAccessor extends GroovyObjectSupport {
 	protected final AttributesFacade attributesFacade;
 	protected final String applicationName;
 
-	public AbstractAttributesAccessor(AttributesFacade attributesFacade, String applicationName) {
+	public AbstractAttributesAccessor(final AttributesFacade attributesFacade, final String applicationName) {
 		this.attributesFacade = attributesFacade;
-		this.applicationName = applicationName; 
+		this.applicationName = applicationName;
 	}
 
-	public Object putAt(Object key, Object value) {
-		if (!(key instanceof String))
+	/**********
+	 * Groovy implementation for setter.
+	 * @param key element key.
+	 * @param value element value/
+	 * @return previous value.
+	 */
+	public Object putAt(final Object key, final Object value) {
+		if (!(key instanceof String)) {
 			throw new IllegalArgumentException("key must be a string");
-		
+		}
+
 		return put((String) key, value);
 	}
-	
+
 	@Override
-	public void setProperty(String name, Object value) {
-		try{
+	public void setProperty(final String name, final Object value) {
+		try {
 			super.setProperty(name, value);
-		} catch(MissingPropertyException e){
+		} catch (final MissingPropertyException e) {
 			put(name, value);
 		}
 	}
 
-	private Object put(String key, Object value) {
-		GigaSpace managementSpace = attributesFacade.getManagementSpace();
-		AbstractCloudifyAttribute attributeEntry = prepareAttributeTemplate(key);
-		AbstractCloudifyAttribute previousValue = managementSpace.take(attributeEntry);
+	private Object put(final String key, final Object value) {
+		final GigaSpace managementSpace = attributesFacade.getManagementSpace();
+		final AbstractCloudifyAttribute attributeEntry = prepareAttributeTemplate(key);
+		final AbstractCloudifyAttribute previousValue = managementSpace.take(attributeEntry);
 		attributeEntry.setValue(value);
 		managementSpace.write(attributeEntry);
-		return previousValue != null? previousValue.getValue() : null;
+		return previousValue != null ? previousValue.getValue() : null;
 	}
 
-	public Object getAt(Object key) {
-		if (!(key instanceof String))
+	/************
+	 * Groovy getter.
+	 * @param key element key.
+	 * @return element value.
+	 */
+	public Object getAt(final Object key) {
+		if (!(key instanceof String)) {
 			throw new IllegalArgumentException("key must be a string");
-		
+		}
+
 		return get((String) key);
 	}
-	
+
 	@Override
-	public Object getProperty(String property) {
-		try{
+	public Object getProperty(final String property) {
+		try {
 			return super.getProperty(property);
-		} catch(MissingPropertyException e){
+		} catch (final MissingPropertyException e) {
 			return get(property);
 		}
 	}
-	
-	public Object remove(String key){
-	    GigaSpace managementSpace = attributesFacade.getManagementSpace();
-        AbstractCloudifyAttribute removeTemplate = prepareAttributeTemplate(key);
-        AbstractCloudifyAttribute previousValue = managementSpace.take(removeTemplate);
-        return previousValue != null? previousValue.getValue() : null;
-	}
-	
-	public void clear(){
-	    GigaSpace managementSpace = attributesFacade.getManagementSpace();
-	    AbstractCloudifyAttribute clearTemplate = prepareAttributeTemplate(null);
-	    managementSpace.clear(clearTemplate);
+
+	/********
+	 * Groovy element remover.
+	 * @param key element key.
+	 * @return the element.
+	 */
+	public Object remove(final String key) {
+		final GigaSpace managementSpace = attributesFacade.getManagementSpace();
+		final AbstractCloudifyAttribute removeTemplate = prepareAttributeTemplate(key);
+		final AbstractCloudifyAttribute previousValue = managementSpace.take(removeTemplate);
+		return previousValue != null ? previousValue.getValue() : null;
 	}
 
-	public Object get(String key) {
-		GigaSpace managementSpace = attributesFacade.getManagementSpace();
-		AbstractCloudifyAttribute propertyEntry = prepareAttributeTemplate(key);
-		AbstractCloudifyAttribute valueEntry = managementSpace.read(propertyEntry);
-		return valueEntry != null? valueEntry.getValue() : null;
+	/*********
+	 * Clears the attributes.
+	 */
+	public void clear() {
+		final GigaSpace managementSpace = attributesFacade.getManagementSpace();
+		final AbstractCloudifyAttribute clearTemplate = prepareAttributeTemplate(null);
+		managementSpace.clear(clearTemplate);
 	}
 
-	public boolean containsKey(String key) {
-		GigaSpace managementSpace = attributesFacade.getManagementSpace();
-		AbstractCloudifyAttribute propertyEntry = prepareAttributeTemplate(key);
+	/*********
+	 * Groovy element accessor.
+	 * @param key the element key.
+	 * @return the element value.
+	 */
+	public Object get(final String key) {
+		final GigaSpace managementSpace = attributesFacade.getManagementSpace();
+		final AbstractCloudifyAttribute propertyEntry = prepareAttributeTemplate(key);
+		final AbstractCloudifyAttribute valueEntry = managementSpace.read(propertyEntry);
+		return valueEntry != null ? valueEntry.getValue() : null;
+	}
+
+	/**************
+	 * check if attribute with specified key exists.
+	 * @param key the element key.
+	 * @return true if the an element with this key exists, false otherwise.
+	 */
+	public boolean containsKey(final String key) {
+		final GigaSpace managementSpace = attributesFacade.getManagementSpace();
+		final AbstractCloudifyAttribute propertyEntry = prepareAttributeTemplate(key);
 		return managementSpace.count(propertyEntry) > 0;
 	}
 
-	private AbstractCloudifyAttribute prepareAttributeTemplate(String key) {
-		AbstractCloudifyAttribute propertyAttribute = prepareAttributeTemplate();
+	private AbstractCloudifyAttribute prepareAttributeTemplate(final String key) {
+		final AbstractCloudifyAttribute propertyAttribute = prepareAttributeTemplate();
 		propertyAttribute.setApplicationName(applicationName);
 		propertyAttribute.setKey(key);
 		return propertyAttribute;
 	}
 
+	/********
+	 * Initialize a POJO with the specific type used with this class.
+	 * @return the created POJO.
+	 */
 	protected abstract AbstractCloudifyAttribute prepareAttributeTemplate();
 
 }

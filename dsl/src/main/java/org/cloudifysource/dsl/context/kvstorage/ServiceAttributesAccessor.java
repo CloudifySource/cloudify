@@ -25,6 +25,11 @@ import org.cloudifysource.dsl.context.Service;
 import org.cloudifysource.dsl.context.ServiceContext;
 import org.cloudifysource.dsl.context.kvstorage.spaceentries.ServiceCloudifyAttribute;
 
+/*********
+ * .
+ * @author Eitan
+ *
+ */
 public class ServiceAttributesAccessor extends AbstractAttributesAccessor {
 
 	private final String serviceName;
@@ -48,6 +53,11 @@ public class ServiceAttributesAccessor extends AbstractAttributesAccessor {
 		return instancesFacade;
 	}
 
+	/************
+	 * .
+	 * @author Eitan.
+	 *
+	 */
 	// This is serializable just because groovy .each method returns the iterator as a result, if the user
 	// will write each method as a last command in a closue with no other return value he will get serialization error
 	public static class InstancesFacade extends GroovyObjectSupport implements Iterable<InstanceAttributesAccessor>,
@@ -74,6 +84,11 @@ public class ServiceAttributesAccessor extends AbstractAttributesAccessor {
 			return new InstanceFacadeIterator();
 		}
 
+		/********
+		 * Accessor.
+		 * @param key .
+		 * @return .
+		 */
 		public Object getAt(final Object key) {
 			if (!(key instanceof Integer)) {
 				throw new IllegalArgumentException("key must be integer and represent service instance id");
@@ -88,6 +103,11 @@ public class ServiceAttributesAccessor extends AbstractAttributesAccessor {
 			return "";
 		}
 
+		/************
+		 * .
+		 * @author barakme
+		 *
+		 */
 		public class InstanceFacadeIterator implements Iterator<InstanceAttributesAccessor>, Serializable {
 
 			private static final long serialVersionUID = 1L;

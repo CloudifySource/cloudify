@@ -16,29 +16,30 @@
 package org.cloudifysource.dsl.context.kvstorage.spaceentries;
 
 /**
- * Service level property
- *
+ * Service level property.
+ * 
  * @author eitany
  * @since 2.0
  */
 public class ServiceCloudifyAttribute extends AbstractCloudifyAttribute {
 
-    public ServiceCloudifyAttribute() {
-    }
+	public ServiceCloudifyAttribute() {
+	}
 
-    public ServiceCloudifyAttribute(String applicationName, String serviceName, String key, Object value) {
-        super(applicationName, key, value);
-        this.serviceName = serviceName;
-    }
+	public ServiceCloudifyAttribute(final String applicationName, final String serviceName, final String key,
+			final Object value) {
+		super(applicationName, key, value);
+		this.serviceName = serviceName;
+	}
 
-    private String serviceName;
+	private String serviceName;
 
-    public void setServiceName(String serviceName) {
-        this.serviceName = serviceName;
-    }
+	public void setServiceName(final String serviceName) {
+		this.serviceName = serviceName;
+	}
 
-    public String getServiceName() {
-        return serviceName;
-    }
+	public String getServiceName() {
+		return serviceName;
+	}
 
 }

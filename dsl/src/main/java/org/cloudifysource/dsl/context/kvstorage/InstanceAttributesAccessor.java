@@ -17,13 +17,18 @@ package org.cloudifysource.dsl.context.kvstorage;
 
 import org.cloudifysource.dsl.context.kvstorage.spaceentries.InstanceCloudifyAttribute;
 
+/*************
+ * Instance attribute accessor.
+ * @author Eitan
+ *
+ */
 public class InstanceAttributesAccessor extends AbstractAttributesAccessor {
 
 	private final String serviceName;
 	private final int instanceId;
 
-	public InstanceAttributesAccessor(AttributesFacade attributesFacade,
-			String applicationName, String serviceName, int instanceId) {
+	public InstanceAttributesAccessor(final AttributesFacade attributesFacade,
+			final String applicationName, final String serviceName, final int instanceId) {
 		super(attributesFacade, applicationName);
 		this.serviceName = serviceName;
 		this.instanceId = instanceId;
@@ -31,7 +36,7 @@ public class InstanceAttributesAccessor extends AbstractAttributesAccessor {
 
 	@Override
 	protected InstanceCloudifyAttribute prepareAttributeTemplate() {
-		InstanceCloudifyAttribute attribute = new InstanceCloudifyAttribute();
+		final InstanceCloudifyAttribute attribute = new InstanceCloudifyAttribute();
 		attribute.setInstanceId(instanceId);
 		attribute.setServiceName(serviceName);
 		return attribute;

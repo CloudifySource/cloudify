@@ -29,13 +29,13 @@ import org.openspaces.admin.AdminFactory;
 import org.openspaces.core.cluster.ClusterInfo;
 
 /***************
- * A factory class used to set up a ServiceContext from external classes.
- * This factory should never be used inside a service recipe - recipes already have the 'context' variable injected to them automatically.
- * External Groovy scripts that require access to the CLoudify Service context may use this factory to access it. Using this factory inside a service
- * file will not work, as it relies on environment variables that cloudify adds to commands it launches. 
+ * A factory class used to set up a ServiceContext from external classes. This factory should never be used inside a
+ * service recipe - recipes already have the 'context' variable injected to them automatically. External Groovy scripts
+ * that require access to the CLoudify Service context may use this factory to access it. Using this factory inside a
+ * service file will not work, as it relies on environment variables that cloudify adds to commands it launches.
  * 
  * @author barakme
- *
+ * 
  */
 public final class ServiceContextFactory {
 
@@ -48,15 +48,15 @@ public final class ServiceContextFactory {
 	 * Private constructor to avoid initialization.
 	 */
 	private ServiceContextFactory() {
- 
+
 	}
-	
+
 	/****
 	 * NEVER USE THIS INSIDE THE GSC. Should only be used by external scripts.
 	 * 
 	 * @return A newly created service context.
 	 */
-	public  static synchronized ServiceContext getServiceContext() {
+	public static synchronized ServiceContext getServiceContext() {
 
 		if (context == null) {
 

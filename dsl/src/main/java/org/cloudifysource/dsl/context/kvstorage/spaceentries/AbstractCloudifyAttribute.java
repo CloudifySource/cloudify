@@ -20,60 +20,60 @@ import com.gigaspaces.annotation.pojo.SpaceId;
 import com.gigaspaces.annotation.pojo.SpaceIndex;
 
 /**
- * Base pojo for context properties which is stored in the space
- *
+ * Base pojo for context properties which is stored in the space.
+ * 
  * @author eitany
  * @since 2.0
  */
 @SpaceClass
 public abstract class AbstractCloudifyAttribute {
 
-    protected AbstractCloudifyAttribute() {
-    }
+	protected AbstractCloudifyAttribute() {
+	}
 
-    protected AbstractCloudifyAttribute(String applicationName, String key, Object value) {
-        this.applicationName = applicationName;
-        this.key = key;
-        this.value = value;
-    }
+	protected AbstractCloudifyAttribute(final String applicationName, final String key, final Object value) {
+		this.applicationName = applicationName;
+		this.key = key;
+		this.value = value;
+	}
 
-    private String applicationName;
-    private String key;
-    private Object value;
-    private String uid;
+	private String applicationName;
+	private String key;
+	private Object value;
+	private String uid;
 
-    @SpaceId(autoGenerate = true)
-    public String getUid() {
-        return uid;
-    }
+	@SpaceId(autoGenerate = true)
+	public String getUid() {
+		return uid;
+	}
 
-    public void setUid(String uid) {
-        this.uid = uid;
-    }
+	public void setUid(final String uid) {
+		this.uid = uid;
+	}
 
-    public void setApplicationName(String applicationName) {
-        this.applicationName = applicationName;
-    }
+	public void setApplicationName(final String applicationName) {
+		this.applicationName = applicationName;
+	}
 
-    public String getApplicationName() {
-        return applicationName;
-    }
+	public String getApplicationName() {
+		return applicationName;
+	}
 
-    public void setKey(String key) {
-        this.key = key;
-    }
+	public void setKey(final String key) {
+		this.key = key;
+	}
 
-    @SpaceIndex
-    public String getKey() {
-        return key;
-    }
+	@SpaceIndex
+	public String getKey() {
+		return key;
+	}
 
-    public void setValue(Object value) {
-        this.value = value;
-    }
+	public void setValue(final Object value) {
+		this.value = value;
+	}
 
-    public Object getValue() {
-        return value;
-    }
+	public Object getValue() {
+		return value;
+	}
 
 }

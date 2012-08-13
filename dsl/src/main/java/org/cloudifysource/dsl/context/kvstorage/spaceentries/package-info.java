@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+ * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,10 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.context.kvstorage.spaceentries;
 
-/**
- * Application level attribute.
+/**************************
+ * Attribute types used with the service context attribute-store.
  * 
- * @author eitany
- * @since 2.0
- */
-public class ApplicationCloudifyAttribute extends AbstractCloudifyAttribute {
-
-	public ApplicationCloudifyAttribute() {
-	}
-
-	public ApplicationCloudifyAttribute(final String applicationName, final String key, final Object value) {
-		super(applicationName, key, value);
-	}
-}
+ * 
+ * @author barakme.
+ * @since 2.0.
+ *****************************/

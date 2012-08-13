@@ -20,11 +20,11 @@ package org.cloudifysource.dsl.context.kvstorage.spaceentries;
  * @since 2.1
  */
 public class GlobalCloudifyAttribute extends AbstractCloudifyAttribute {
-    public GlobalCloudifyAttribute(String key, Object value) {
-        super(null, key, value);
-    }
 
-    public GlobalCloudifyAttribute() {
-    }
+	public GlobalCloudifyAttribute(final String key, final Object value) {
+		super(null, key, value);
+	}
+
+	public GlobalCloudifyAttribute() {
+	}
 }
-
