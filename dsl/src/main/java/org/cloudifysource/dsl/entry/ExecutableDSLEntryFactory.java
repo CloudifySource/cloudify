@@ -26,6 +26,7 @@ import java.util.Set;
 
 import org.cloudifysource.dsl.internal.DSLValidationException;
 
+
 /***********
  * Factory class for creating an executable DSL entry from a DSL value.
  * 
@@ -35,7 +36,7 @@ import org.cloudifysource.dsl.internal.DSLValidationException;
  */
 public final class ExecutableDSLEntryFactory {
 
-	// private static GroovyFileValidater groovyValidater = new GroovyFileValidater();
+	//private static GroovyFileValidater groovyValidater = new GroovyFileValidater();
 
 	private ExecutableDSLEntryFactory() {
 		// private constructor to prevent instantiation

@@ -16,7 +16,6 @@
 
 package org.cloudifysource.dsl.entry;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 /***************
@@ -38,13 +37,5 @@ public class MapExecutableEntry extends LinkedHashMap<String, ExecutableDSLEntry
 	public ExecutableDSLEntryType getEntryType() {
 		return ExecutableDSLEntryType.MAP;
 	}
-
-	public static void main(final String[] args) {
-		final Object map = new HashMap<String, ExecutableDSLEntry>();
-		final Class<? extends Object> clazz = map.getClass();
-		System.out.println(clazz.getTypeParameters());
-		System.out.println(clazz.getTypeParameters()[0].getName());
-	}
-	
 
 }
