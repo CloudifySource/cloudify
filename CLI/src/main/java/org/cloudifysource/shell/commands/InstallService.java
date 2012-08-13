@@ -158,7 +158,7 @@ public class InstallService extends AdminAwareCommand {
 		}
 		
 		String lifecycleEventContainerPollingID = adminFacade.installElastic(packedFile,
-				currentApplicationName, serviceName, zone, props, templateName, timeoutInMinutes);
+				currentApplicationName, serviceName, zone, props, templateName, getTimeoutInMinutes());
 
 		RestLifecycleEventsLatch lifecycleEventsPollingLatch = this.adminFacade.
 				getLifecycleEventsPollingLatch(lifecycleEventContainerPollingID, TIMEOUT_ERROR_MESSAGE);
@@ -167,9 +167,9 @@ public class InstallService extends AdminAwareCommand {
 		while (!isDone) {
 			try {
 				if (!continuous) {
-					lifecycleEventsPollingLatch.waitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
+					lifecycleEventsPollingLatch.waitForLifecycleEvents(getTimeoutInMinutes(), TimeUnit.MINUTES);
 				} else {
-					lifecycleEventsPollingLatch.continueWaitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
+					lifecycleEventsPollingLatch.continueWaitForLifecycleEvents(getTimeoutInMinutes(), TimeUnit.MINUTES);
 				}
 				isDone = true;
 			} catch (TimeoutException e) {
@@ -237,5 +237,13 @@ public class InstallService extends AdminAwareCommand {
 				Boolean.toString(service.isElastic()));
 		
 		return contextProperties;
+	}
+
+	public int getTimeoutInMinutes() {
+		return timeoutInMinutes;
+	}
+
+	public void setTimeoutInMinutes(final int timeoutInMinutes) {
+		this.timeoutInMinutes = timeoutInMinutes;
 	}
 }

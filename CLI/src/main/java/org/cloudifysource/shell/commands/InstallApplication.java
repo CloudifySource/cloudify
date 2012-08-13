@@ -66,7 +66,7 @@ public class InstallApplication extends AdminAwareCommand {
 
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation"
 			+ " is done. Defaults to 10 minutes.")
-	private final int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
+	private int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
 
 	@Option(required = false, name = "-cloudConfiguration",
 			description = "File of directory containing configuration information to be used by the cloud driver "
@@ -115,7 +115,7 @@ public class InstallApplication extends AdminAwareCommand {
 
 		// toString of string list (i.e. [service1, service2])
 		logger.info("Uploading application " + applicationName);
-		final Map<String, String> result = adminFacade.installApplication(zipFile, applicationName, timeoutInMinutes);
+		final Map<String, String> result = adminFacade.installApplication(zipFile, applicationName, getTimeoutInMinutes());
 		final String serviceOrder = result.get(CloudifyConstants.SERVICE_ORDER);
 
 		// If temp file was created, Delete it.
@@ -139,9 +139,9 @@ public class InstallApplication extends AdminAwareCommand {
 		while (!isDone) {
 			try {
 				if (!continuous) {
-					lifecycleEventsPollingLatch.waitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
+					lifecycleEventsPollingLatch.waitForLifecycleEvents(getTimeoutInMinutes(), TimeUnit.MINUTES);
 				} else {
-					lifecycleEventsPollingLatch.continueWaitForLifecycleEvents(timeoutInMinutes, TimeUnit.MINUTES);
+					lifecycleEventsPollingLatch.continueWaitForLifecycleEvents(getTimeoutInMinutes(), TimeUnit.MINUTES);
 				}
 				isDone = true;
 			} catch (final TimeoutException e) {
@@ -243,5 +243,13 @@ public class InstallApplication extends AdminAwareCommand {
 
 	public void setCloudConfiguration(final File cloudConfiguration) {
 		this.cloudConfiguration = cloudConfiguration;
+	}
+
+	public int getTimeoutInMinutes() {
+		return timeoutInMinutes;
+	}
+
+	public void setTimeoutInMinutes(final int timeoutInMinutes) {
+		this.timeoutInMinutes = timeoutInMinutes;
 	}
 }
