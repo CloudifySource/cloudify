@@ -3,7 +3,6 @@ package org.cloudifysource.dsl.statistics;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.statistics.EachSingleInstanceStatistics;
 
-
 /**
  * Domain POJO for a calculated statistics that is aggregated by time for each instance separately.
  * 
@@ -11,8 +10,9 @@ import org.cloudifysource.dsl.internal.statistics.EachSingleInstanceStatistics;
  * @since 2.1
  * 
  */
-@CloudifyDSLEntity(name = "perInstanceStatistics", clazz = PerInstanceStatisticsDetails.class, allowInternalNode = true, allowRootNode = false,
-parent = "service")
+@CloudifyDSLEntity(name = "perInstanceStatistics", clazz = PerInstanceStatisticsDetails.class,
+		allowInternalNode = true, allowRootNode = false,
+		parent = "service")
 public class PerInstanceStatisticsDetails extends AbstractStatisticsDetails {
 
 	public PerInstanceStatisticsDetails() {
