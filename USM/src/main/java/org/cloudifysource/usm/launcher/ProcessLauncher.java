@@ -24,14 +24,13 @@ import org.cloudifysource.usm.USMComponent;
 import org.cloudifysource.usm.USMException;
 
 /***************
- * Interface for a process launcher component. A process launcher can process any of the following arguments: 
- * 1. Groovy closure - in this case, a process will NOT be launcher. Instead, the closure will be executed in-process.
- * The return value of this execution will be the closure return value. 
- * 2. String - the string will be considered a command line an executed. The return value of the invocation
- * will be the String output from the combined system out and system error of the process. If the process exit code
- * is a value other then zero, an exception will be thrown, and the output will be included in the exception message. 
- * 3. Map<String,String> - A map where the keys are regular expression of Operating System names, 
- * and the values are String, which represent the command line to be executed.
+ * Interface for a process launcher component. A process launcher can process any of the following arguments: 1. Groovy
+ * closure - in this case, a process will NOT be launcher. Instead, the closure will be executed in-process. The return
+ * value of this execution will be the closure return value. 2. String - the string will be considered a command line an
+ * executed. The return value of the invocation will be the String output from the combined system out and system error
+ * of the process. If the process exit code is a value other then zero, an exception will be thrown, and the output will
+ * be included in the exception message. 3. Map<String,String> - A map where the keys are regular expression of
+ * Operating System names, and the values are String, which represent the command line to be executed.
  * 
  * TODO - some the overrides in this interface are no longer used - remove them.
  * 
@@ -50,7 +49,7 @@ public interface ProcessLauncher extends USMComponent {
 	String getCommandLine();
 
 	/************
-	 * Launch a process. 
+	 * Launch a process.
 	 * 
 	 * @param arg the process argument.
 	 * @param workingDir the working directory for the process.
@@ -78,6 +77,7 @@ public interface ProcessLauncher extends USMComponent {
 
 	/**********
 	 * Launch a process asynchronously, without waiting for it to terminate.
+	 * 
 	 * @param arg the process argument.
 	 * @param workingDir the working directory for the process.
 	 * @param outputFile the file where the process output stream will be redirected.
@@ -85,11 +85,13 @@ public interface ProcessLauncher extends USMComponent {
 	 * @return the process handle.
 	 * @throws USMException if there was a problem launching the process.
 	 */
-	Process launchProcessAsync(final ExecutableDSLEntry arg, final File workingDir, final File outputFile, final File errorFile)
+	Process launchProcessAsync(final ExecutableDSLEntry arg, final File workingDir, final File outputFile,
+			final File errorFile)
 			throws USMException;
 
 	/***********************
 	 * Launch a process asynchronously, without waiting for it to terminate.
+	 * 
 	 * @param arg the process argument.
 	 * @param workingDir the working directory for the process.
 	 * @param retries number of retries.
@@ -98,12 +100,14 @@ public interface ProcessLauncher extends USMComponent {
 	 * @return the process handle.
 	 * @throws USMException if there was a problem launching the process.
 	 */
-	Process launchProcessAsync(final ExecutableDSLEntry arg, final File workingDir, final int retries, boolean redirectErrorStream,
+	Process launchProcessAsync(final ExecutableDSLEntry arg, final File workingDir, final int retries,
+			boolean redirectErrorStream,
 			List<String> params)
 			throws USMException;
 
 	/*********************
 	 * Launches a process.
+	 * 
 	 * @param arg the process argument.
 	 * @param workingDir the process working directory.
 	 * @param params the process parameters.

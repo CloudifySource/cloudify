@@ -181,7 +181,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		return prefixToSearch;
 	}
 
-	private List<String> createLinuxCommandLineFromWindows(final List<String> windowsCommandLine, final File puWorkDir) {
+	private List<String> createLinuxCommandLineFromWindows(final List<String> windowsCommandLine,
+			final File puWorkDir) {
 		final AlternativeExecutableFileNameFilter filter = new AlternativeExecutableFileNameFilter() {
 
 			private String prefix;
@@ -506,7 +507,6 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		if (value.getEntryType() == ExecutableDSLEntryType.STRING) {
 			return convertCommandLineStringToParts(((StringExecutableEntry) value).getCommand());
 		} else if (value.getEntryType() == ExecutableDSLEntryType.LIST) {
-			@SuppressWarnings("unchecked")
 			final List<String> result = ((ListExecutableEntry) value).getCommand();
 			return result;
 		} else {
@@ -625,16 +625,17 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		}
 
 		if (retval == null) {
-			throw new USMException("Launch of process from closure did not return a process handle!");
+			return null; // this is the expected behavior
 		}
 
-		if (!(retval instanceof Process)) {
-			throw new USMException(
-					"Launch of process from closure returned a result that is not a process handle. Result was: "
-							+ retval);
+		if (retval instanceof Process) {
+			return (Process) retval;
 		}
+		logger.warning("The Start closure returned a non-null value that is not a Process. "
+				+ "This value will be ignored! Returned value was of type: "
+				+ retval.getClass().getName() + ". Value was: " + retval);
 
-		return (Process) retval;
+		return null;
 	}
 
 	@Override
@@ -843,9 +844,9 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 				logger.fine("Parsed command line: " + commandLineParams);
 
 				final String fileInitialMessage =
-						"Starting service process in working directory:'" + workingDir + "' " +
-								"at:'" + new Date() + "' with command:'" + commandLineParams + "'" +
-								System.getProperty("line.separator");
+						"Starting service process in working directory:'" + workingDir + "' "
+								+ "at:'" + new Date() + "' with command:'" + commandLineParams + "'"
+								+ System.getProperty("line.separator");
 				if (outputFile != null) {
 					appendMessageToFile(fileInitialMessage,
 							outputFile);
