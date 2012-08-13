@@ -28,7 +28,7 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 		allowRootNode = false, parent = "cloud")
 public class CloudConfiguration {
 
-	private String className = "org.cloudifysource.esc.driver.provisioning.jclouds.DefaultCloudProvisioning";
+	private String className = "org.cloudifysource.esc.driver.provisioning.jclouds.DefaultProvisioningDriver";
 	private String nicAddress;
 	private String lookupGroups;
 	private String lookupLocators;
