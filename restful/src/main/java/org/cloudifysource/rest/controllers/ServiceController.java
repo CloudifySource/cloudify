@@ -150,8 +150,8 @@ import com.gigaspaces.log.LogEntryMatchers;
 public class ServiceController {
 
 	private static final int MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED = 1000;
-    private static final int DEFAULT_TIME_EXTENTION_POLLING_TASK = 5;
-    private static final int THREAD_POOL_SIZE = 20;
+	private static final int DEFAULT_TIME_EXTENTION_POLLING_TASK = 5;
+	private static final int THREAD_POOL_SIZE = 20;
 	private static final String SHARED_ISOLATION_ID = "public";
 	private static final int PU_DISCOVERY_TIMEOUT_SEC = 8;
 	private final Map<UUID, RestPollingRunnable> lifecyclePollingThreadContainer =
@@ -163,7 +163,7 @@ public class ServiceController {
 	/**
 	 * A set containing all of the executed lifecycle events. used to avoid duplicate prints.
 	 */
-	private Set<String> eventsSet = new HashSet<String>();
+	private final Set<String> eventsSet = new HashSet<String>();
 
 	@Autowired(required = true)
 	private Admin admin;
@@ -216,31 +216,31 @@ public class ServiceController {
 			logger.log(Level.SEVERE, "ServiceController failed to locate temp directory", e);
 			throw new IllegalStateException("ServiceController failed to locate temp directory", e);
 		}
-		
+
 		startLifecycleLogsCleanupTask();
 	}
 
 	private void startLifecycleLogsCleanupTask() {
-	    this.lifecycleEventsCleaner.scheduleWithFixedDelay(new Runnable() {
+		this.lifecycleEventsCleaner.scheduleWithFixedDelay(new Runnable() {
 
-	        @Override
-	        public void run() {
-	            if (lifecyclePollingThreadContainer != null) {
-	                Iterator<Entry<UUID, RestPollingRunnable>> it = lifecyclePollingThreadContainer.
-	                        entrySet().iterator();
-	                while (it.hasNext()) {
-	                    Map.Entry<UUID, RestPollingRunnable> entry = it.next();
-	                    RestPollingRunnable restPollingRunnable = entry.getValue();
-	                    if (restPollingRunnable.isDone()) {
-	                        logger.log(Level.INFO, "Polling Task with UUID " + entry.getKey().toString()
-	                                + " has expired");
-	                        it.remove();
-	                    }
-	                }
-	            }
+			@Override
+			public void run() {
+				if (lifecyclePollingThreadContainer != null) {
+					final Iterator<Entry<UUID, RestPollingRunnable>> it = lifecyclePollingThreadContainer.
+							entrySet().iterator();
+					while (it.hasNext()) {
+						final Map.Entry<UUID, RestPollingRunnable> entry = it.next();
+						final RestPollingRunnable restPollingRunnable = entry.getValue();
+						if (restPollingRunnable.isDone()) {
+							logger.log(Level.INFO, "Polling Task with UUID " + entry.getKey().toString()
+									+ " has expired");
+							it.remove();
+						}
+					}
+				}
 
-	        }
-	    }, 0, LIFECYCLE_EVENT_CLEANUP_INTERVAL_SEC, TimeUnit.MINUTES);
+			}
+		}, 0, LIFECYCLE_EVENT_CLEANUP_INTERVAL_SEC, TimeUnit.MINUTES);
 	}
 
 	/**
@@ -271,7 +271,7 @@ public class ServiceController {
 		final String[] actualProcessors = getProcessorsFromRequest(processors);
 
 		try {
-			if ((ip != null) && (ip.length() > 0)) {
+			if (ip != null && ip.length() > 0) {
 				// first find the relevant agent
 				Machine machine = this.admin.getMachines().getHostsByAddress().get(ip);
 				if (machine == null) {
@@ -289,10 +289,10 @@ public class ServiceController {
 			} else {
 
 				long totalSize = 0;
-				Iterator<Machine> iterator = this.admin.getMachines().iterator();
-				Map<String, Object> map = new HashMap<String, Object>();
+				final Iterator<Machine> iterator = this.admin.getMachines().iterator();
+				final Map<String, Object> map = new HashMap<String, Object>();
 				while (iterator.hasNext()) {
-					Machine machine = iterator.next();
+					final Machine machine = iterator.next();
 
 					final byte[] dumpBytes = generateMachineDumpData(fileSizeLimit, machine, actualProcessors);
 					totalSize += dumpBytes.length;
@@ -306,7 +306,7 @@ public class ServiceController {
 				return successStatus(map);
 
 			}
-		} catch (RestServiceException e) {
+		} catch (final RestServiceException e) {
 			return errorStatus(e.getMessageName(), e.getParams());
 		}
 
@@ -335,7 +335,7 @@ public class ServiceController {
 			data = getDumpRawData(dump, fileSizeLimit);
 			return successStatus(data);
 
-		} catch (RestServiceException e) {
+		} catch (final RestServiceException e) {
 			return errorStatus(e.getMessageName(), e.getParams());
 		}
 
@@ -352,7 +352,7 @@ public class ServiceController {
 	}
 
 	private byte[]
-			generateMachineDumpData(final long fileSizeLimit, Machine machine, String[] actualProcessors)
+			generateMachineDumpData(final long fileSizeLimit, final Machine machine, final String[] actualProcessors)
 					throws IOException, RestServiceException {
 		// generator the dump
 		final DumpResult dump =
@@ -429,33 +429,34 @@ public class ServiceController {
 
 		return cloudConfiguration;
 	}
-	
-	private final ScheduledExecutorService lifecycleEventsCleaner = Executors.newScheduledThreadPool(1, new ThreadFactory() {
-        
-	    final AtomicInteger threadNumber = new AtomicInteger(1);
-	    
-        @Override
-        public Thread newThread(Runnable r) {
-            final Thread thread =
-                    new Thread(r, "LifecycleEventsPollingExecutor-" + threadNumber.getAndIncrement());
-            thread.setDaemon(true);
-            return thread;
-        }
-    });
-    
+
+	private final ScheduledExecutorService lifecycleEventsCleaner = Executors.newScheduledThreadPool(1,
+			new ThreadFactory() {
+
+				final AtomicInteger threadNumber = new AtomicInteger(1);
+
+				@Override
+				public Thread newThread(final Runnable r) {
+					final Thread thread =
+							new Thread(r, "LifecycleEventsPollingExecutor-" + threadNumber.getAndIncrement());
+					thread.setDaemon(true);
+					return thread;
+				}
+			});
+
 	private final ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(10,
-	        new ThreadFactory() {
+			new ThreadFactory() {
 
-	    final AtomicInteger threadNumber = new AtomicInteger(1);
+				final AtomicInteger threadNumber = new AtomicInteger(1);
 
-	    @Override
-	    public Thread newThread(Runnable r) {
-	        final Thread thread =
-	                new Thread(r, "LifecycleEventsPollingExecutor-" + threadNumber.getAndIncrement());
-	        thread.setDaemon(true);
-	        return thread;
-	    }
-	});
+				@Override
+				public Thread newThread(final Runnable r) {
+					final Thread thread =
+							new Thread(r, "LifecycleEventsPollingExecutor-" + threadNumber.getAndIncrement());
+					thread.setDaemon(true);
+					return thread;
+				}
+			});
 
 	// Set up a small thread pool with daemon threads.
 	private final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE, new ThreadFactory() {
@@ -503,7 +504,7 @@ public class ServiceController {
 		if (gsm == null) {
 			return errorStatus(FAILED_TO_LOCATE_GSM);
 		}
-		ProcessingUnit pu =
+		final ProcessingUnit pu =
 				gsm.deploy(new ProcessingUnitDeployment(dest).setContextProperty(
 						CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName));
 		dest.delete();
@@ -786,10 +787,10 @@ public class ServiceController {
 		}
 
 		logger.log(Level.INFO, "Starting to poll for uninstall lifecycle events.");
-		UUID lifecycleEventContainerID =
+		final UUID lifecycleEventContainerID =
 				startPollingForServiceUninstallLifecycleEvents(applicationName, serviceName, timeoutInMinutes);
 		processingUnit.undeploy();
-		Map<String, Object> returnMap = new HashMap<String, Object>();
+		final Map<String, Object> returnMap = new HashMap<String, Object>();
 		returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, lifecycleEventContainerID);
 		return successStatus(returnMap);
 	}
@@ -797,8 +798,8 @@ public class ServiceController {
 	private UUID startPollingForServiceUninstallLifecycleEvents(final String applicationName, final String serviceName,
 			final int timeoutInMinutes) {
 		RestPollingRunnable restPollingRunnable;
-		LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
-		UUID lifecycleEventsContainerID = UUID.randomUUID();
+		final LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
+		final UUID lifecycleEventsContainerID = UUID.randomUUID();
 		lifecycleEventsContainer.setEventsSet(this.eventsSet);
 
 		restPollingRunnable = new RestPollingRunnable(applicationName, timeoutInMinutes, TimeUnit.MINUTES);
@@ -808,8 +809,8 @@ public class ServiceController {
 		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
 		restPollingRunnable.setIsUninstall(true);
 		restPollingRunnable.setEndTime(timeoutInMinutes, TimeUnit.MINUTES);
-		
-		ScheduledFuture<?> scheduleWithFixedDelay =
+
+		final ScheduledFuture<?> scheduleWithFixedDelay =
 				scheduledExecutor.scheduleWithFixedDelay(restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL_SEC,
 						TimeUnit.SECONDS);
 		restPollingRunnable.setFutureTask(scheduleWithFixedDelay);
@@ -915,18 +916,18 @@ public class ServiceController {
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
 	public void resolveDocumentNotFoundException(final HttpServletResponse response, final Exception e)
-	        throws IOException {
+			throws IOException {
 
-	    if (response.isCommitted()) {
-	        logger.log(Level.WARNING,
-	                "Caught exception, but response already commited. Not sending error message based on exception", e);
-	    } else {
-	        ServletOutputStream outputStream = response.getOutputStream();
-	        final String message = "{\"status\":\"error\", \"error\":\"" + e.getMessage() + "\"}";
-	        logger.log(Level.SEVERE, "caught exception. Sending response message " + message, e);
-	        byte[] messageBytes = message.getBytes();
-	        outputStream.write(messageBytes);
-	    }
+		if (response.isCommitted()) {
+			logger.log(Level.WARNING,
+					"Caught exception, but response already commited. Not sending error message based on exception", e);
+		} else {
+			final ServletOutputStream outputStream = response.getOutputStream();
+			final String message = "{\"status\":\"error\", \"error\":\"" + e.getMessage() + "\"}";
+			logger.log(Level.SEVERE, "caught exception. Sending response message " + message, e);
+			final byte[] messageBytes = message.getBytes();
+			outputStream.write(messageBytes);
+		}
 	}
 
 	/******************
@@ -954,7 +955,7 @@ public class ServiceController {
 		final List<ProcessingUnit> uninstallOrder = createUninstallOrder(pus, applicationName);
 		// TODO: Add timeout.
 		logger.log(Level.INFO, "Starting to poll for uninstall lifecycle events.");
-		UUID lifecycleEventContainerID =
+		final UUID lifecycleEventContainerID =
 				startPollingForApplicationUninstallLifecycleEvents(applicationName, uninstallOrder, timeoutInMinutes);
 		if (uninstallOrder.size() > 0) {
 
@@ -989,7 +990,7 @@ public class ServiceController {
 
 		final String errors = sb.toString();
 		if (errors.length() == 0) {
-			Map<String, Object> returnMap = new HashMap<String, Object>();
+			final Map<String, Object> returnMap = new HashMap<String, Object>();
 			returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, lifecycleEventContainerID);
 			return RestUtils.successStatus(returnMap);
 		}
@@ -1159,14 +1160,14 @@ public class ServiceController {
 			final List<ProcessingUnit> uninstallOrder, final int timeoutInMinutes) {
 
 		RestPollingRunnable restPollingRunnable;
-		LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
-		UUID lifecycleEventsContainerID = UUID.randomUUID();
+		final LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
+		final UUID lifecycleEventsContainerID = UUID.randomUUID();
 		lifecycleEventsContainer.setEventsSet(this.eventsSet);
 
 		restPollingRunnable = new RestPollingRunnable(applicationName, timeoutInMinutes, TimeUnit.MINUTES);
-		for (ProcessingUnit processingUnit : uninstallOrder) {
-			String processingUnitName = processingUnit.getName();
-			String serviceName = ServiceUtils.getApplicationServiceName(processingUnitName, applicationName);
+		for (final ProcessingUnit processingUnit : uninstallOrder) {
+			final String processingUnitName = processingUnit.getName();
+			final String serviceName = ServiceUtils.getApplicationServiceName(processingUnitName, applicationName);
 			restPollingRunnable.addService(serviceName, 0);
 		}
 		restPollingRunnable.setIsServiceInstall(false);
@@ -1175,7 +1176,7 @@ public class ServiceController {
 		restPollingRunnable.setIsUninstall(true);
 		restPollingRunnable.setEndTime(timeoutInMinutes, TimeUnit.MINUTES);
 		this.lifecyclePollingThreadContainer.put(lifecycleEventsContainerID, restPollingRunnable);
-		ScheduledFuture<?> scheduleWithFixedDelay =
+		final ScheduledFuture<?> scheduleWithFixedDelay =
 				scheduledExecutor.scheduleWithFixedDelay(restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL_SEC,
 						TimeUnit.SECONDS);
 		restPollingRunnable.setFutureTask(scheduleWithFixedDelay);
@@ -1192,8 +1193,8 @@ public class ServiceController {
 		RestPollingRunnable restPollingRunnable;
 		logger.info("starting POLL on service : " + serviceName + " app: " + applicationName);
 
-		LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
-		UUID lifecycleEventsContainerID = UUID.randomUUID();
+		final LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
+		final UUID lifecycleEventsContainerID = UUID.randomUUID();
 		lifecycleEventsContainer.setEventsSet(this.eventsSet);
 
 		restPollingRunnable = new RestPollingRunnable(applicationName, timeout, minutes);
@@ -1204,7 +1205,7 @@ public class ServiceController {
 		restPollingRunnable.setEndTime(timeout, TimeUnit.MINUTES);
 		restPollingRunnable.setIsSetInstances(true);
 		this.lifecyclePollingThreadContainer.put(lifecycleEventsContainerID, restPollingRunnable);
-		ScheduledFuture<?> scheduleWithFixedDelay =
+		final ScheduledFuture<?> scheduleWithFixedDelay =
 				scheduledExecutor.scheduleWithFixedDelay(restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL_SEC,
 						TimeUnit.SECONDS);
 		restPollingRunnable.setFutureTask(scheduleWithFixedDelay);
@@ -1217,12 +1218,13 @@ public class ServiceController {
 	private UUID startPollingForLifecycleEvents(final org.cloudifysource.dsl.Application application,
 			final int timeout, final TimeUnit timeUnit) {
 
-		LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
-		UUID lifecycleEventsContainerUUID = UUID.randomUUID();
+		final LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
+		final UUID lifecycleEventsContainerUUID = UUID.randomUUID();
 		lifecycleEventsContainer.setEventsSet(this.eventsSet);
 
-		RestPollingRunnable restPollingRunnable = new RestPollingRunnable(application.getName(), timeout, timeUnit);
-		for (Service service : application.getServices()) {
+		final RestPollingRunnable restPollingRunnable =
+				new RestPollingRunnable(application.getName(), timeout, timeUnit);
+		for (final Service service : application.getServices()) {
 			restPollingRunnable.addService(service.getName(), service.getNumInstances());
 		}
 		restPollingRunnable.setIsServiceInstall(false);
@@ -1230,7 +1232,7 @@ public class ServiceController {
 		restPollingRunnable.setAdmin(admin);
 		restPollingRunnable.setEndTime(timeout, TimeUnit.MINUTES);
 		this.lifecyclePollingThreadContainer.put(lifecycleEventsContainerUUID, restPollingRunnable);
-		ScheduledFuture<?> scheduleWithFixedDelay =
+		final ScheduledFuture<?> scheduleWithFixedDelay =
 				scheduledExecutor.scheduleWithFixedDelay(restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL_SEC,
 						TimeUnit.SECONDS);
 		restPollingRunnable.setFutureTask(scheduleWithFixedDelay);
@@ -1238,10 +1240,10 @@ public class ServiceController {
 		logger.log(Level.INFO, "polling container UUID is " + lifecycleEventsContainerUUID.toString());
 		return lifecycleEventsContainerUUID;
 	}
-	
+
 	/**
-	 * Returns the lifecycle events according to the lifecycleEventContainerID id that is returned as a response
-	 * when installing/un-installing a service/application and according to the cursor position.
+	 * Returns the lifecycle events according to the lifecycleEventContainerID id that is returned as a response when
+	 * installing/un-installing a service/application and according to the cursor position.
 	 * 
 	 * @param lifecycleEventContainerID the unique task ID.
 	 * @param cursor event entry cursor
@@ -1251,93 +1253,93 @@ public class ServiceController {
 			method = RequestMethod.GET)
 	public @ResponseBody
 	Object getLifecycleEvents(@PathVariable final String lifecycleEventContainerID, @PathVariable final int cursor) {
-		Map<String, Object> resultsMap = new HashMap<String, Object>();
-		
+		final Map<String, Object> resultsMap = new HashMap<String, Object>();
+
 		if (!lifecyclePollingThreadContainer.containsKey(UUID.fromString(lifecycleEventContainerID))) {
 			return errorStatus("Lifecycle events container with UUID: " + lifecycleEventContainerID
 					+ " does not exist or expired.");
 		}
-		RestPollingRunnable restPollingRunnable = lifecyclePollingThreadContainer.
-		             get(UUID.fromString(lifecycleEventContainerID));
-		
-		LifecycleEventsContainer container = restPollingRunnable.getLifecycleEventsContainer();
-		boolean done = restPollingRunnable.isDone();
+		final RestPollingRunnable restPollingRunnable = lifecyclePollingThreadContainer.
+				get(UUID.fromString(lifecycleEventContainerID));
+
+		final LifecycleEventsContainer container = restPollingRunnable.getLifecycleEventsContainer();
+		final boolean done = restPollingRunnable.isDone();
 		if (!done) {
-		    extendThreadTimeout(restPollingRunnable, DEFAULT_TIME_EXTENTION_POLLING_TASK);
+			extendThreadTimeout(restPollingRunnable, DEFAULT_TIME_EXTENTION_POLLING_TASK);
 		} else {
-			Throwable t = restPollingRunnable.getExecutionException();
+			final Throwable t = restPollingRunnable.getExecutionException();
 			if (t != null) {
-			    logger.log(Level.INFO, "Lifecycle events polling ended unexpectedly.", t);
-			    return errorStatus(t.getMessage());
+				logger.log(Level.INFO, "Lifecycle events polling ended unexpectedly.", t);
+				return errorStatus(t.getMessage());
 			} else {
 				logger.log(Level.FINE, "Lifecycle events polling ended successfully.");
 			}
 		}
 		resultsMap.put(CloudifyConstants.IS_TASK_DONE, done);
-		List<String> lifecycleEvents = container.getLifecycleEvents(cursor);
+		final List<String> lifecycleEvents = container.getLifecycleEvents(cursor);
 
 		if (lifecycleEvents != null) {
-			int newCursorPos = cursor + lifecycleEvents.size();
+			final int newCursorPos = cursor + lifecycleEvents.size();
 			resultsMap.put(CloudifyConstants.CURSOR_POS, newCursorPos);
 			resultsMap.put(CloudifyConstants.LIFECYCLE_LOGS, lifecycleEvents);
 		} else {
 			resultsMap.put(CloudifyConstants.CURSOR_POS, cursor);
 		}
-		long timeBeforeTaskTerminationMillis = restPollingRunnable.getEndTime() - System.currentTimeMillis();
+		final long timeBeforeTaskTerminationMillis = restPollingRunnable.getEndTime() - System.currentTimeMillis();
 		resultsMap.put(CloudifyConstants.SERVER_POLLING_TASK_EXPIRATION_MILLI,
-		        Long.toString(timeBeforeTaskTerminationMillis));
+				Long.toString(timeBeforeTaskTerminationMillis));
 
 		return successStatus(resultsMap);
 	}
 
 	private void extendThreadTimeout(final RestPollingRunnable pollingRunnable, final int timeoutInMinutes) {
-	    long taskExpiration = pollingRunnable.getEndTime() - System.currentTimeMillis();
-	    if (taskExpiration < MINIMAL_POLLING_TASK_EXPIRATION) {
-	        pollingRunnable.increaseEndTimeBy(timeoutInMinutes, TimeUnit.MINUTES);
-	    }
-    }
+		final long taskExpiration = pollingRunnable.getEndTime() - System.currentTimeMillis();
+		if (taskExpiration < MINIMAL_POLLING_TASK_EXPIRATION) {
+			pollingRunnable.increaseEndTimeBy(timeoutInMinutes, TimeUnit.MINUTES);
+		}
+	}
 
-    private Object doDeployApplication(final String applicationName, final File applicationFile, final int timeout)
-            throws IOException, DSLException {
-        final DSLApplicationCompilatioResult result = ServiceReader.getApplicationFromFile(applicationFile);
-        final List<Service> services = createServiceDependencyOrder(result.getApplication());
+	private Object doDeployApplication(final String applicationName, final File applicationFile, final int timeout)
+			throws IOException, DSLException {
+		final DSLApplicationCompilatioResult result = ServiceReader.getApplicationFromFile(applicationFile);
+		final List<Service> services = createServiceDependencyOrder(result.getApplication());
 
-        // validate the template specified by each server (if specified) is available on this cloud
-        // cloud could be null in case of eager mode deployment (such as in azure)
-        if (!isLocalCloud() && cloud != null) {
-            for (Service service : services) {
-                ComputeDetails compute = service.getCompute();
-                if (compute != null && StringUtils.isNotBlank(compute.getTemplate())) {
-                    getComputeTemplate(cloud, compute.getTemplate());
-                }
-            }
-        }
+		// validate the template specified by each server (if specified) is available on this cloud
+		// cloud could be null in case of eager mode deployment (such as in azure)
+		if (!isLocalCloud() && cloud != null) {
+			for (final Service service : services) {
+				final ComputeDetails compute = service.getCompute();
+				if (compute != null && StringUtils.isNotBlank(compute.getTemplate())) {
+					getComputeTemplate(cloud, compute.getTemplate());
+				}
+			}
+		}
 
-        final ApplicationInstallerRunnable installer =
-                new ApplicationInstallerRunnable(this, result, applicationName, services, this.cloud);
-        
-          if (installer.isAsyncInstallPossibleForApplication()) {
-                installer.run();
-            } else {
-                this.executorService.execute(installer);
-            }
+		final ApplicationInstallerRunnable installer =
+				new ApplicationInstallerRunnable(this, result, applicationName, services, this.cloud);
 
-          logger.log(Level.INFO, "Starting to poll for installation lifecycle events.");
-          UUID lifecycleEventContainerID =
-                  startPollingForLifecycleEvents(result.getApplication(), timeout, TimeUnit.MINUTES);
-          
-        final String[] serviceOrder = new String[services.size()];
-        for (int i = 0; i < serviceOrder.length; i++) {
-            serviceOrder[i] = services.get(i).getName();
-        }
-        Map<String, Object> returnMap = new HashMap<String, Object>();
-        returnMap.put(CloudifyConstants.SERVICE_ORDER, Arrays.toString(serviceOrder));
-        returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, lifecycleEventContainerID);
-        final Map<String, Object> retval = successStatus(returnMap);
+		if (installer.isAsyncInstallPossibleForApplication()) {
+			installer.run();
+		} else {
+			this.executorService.execute(installer);
+		}
 
-        return retval;
+		logger.log(Level.INFO, "Starting to poll for installation lifecycle events.");
+		final UUID lifecycleEventContainerID =
+				startPollingForLifecycleEvents(result.getApplication(), timeout, TimeUnit.MINUTES);
 
-    }
+		final String[] serviceOrder = new String[services.size()];
+		for (int i = 0; i < serviceOrder.length; i++) {
+			serviceOrder[i] = services.get(i).getName();
+		}
+		final Map<String, Object> returnMap = new HashMap<String, Object>();
+		returnMap.put(CloudifyConstants.SERVICE_ORDER, Arrays.toString(serviceOrder));
+		returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, lifecycleEventContainerID);
+		final Map<String, Object> retval = successStatus(returnMap);
+
+		return retval;
+
+	}
 
 	private File copyMultipartFileToLocalFile(final MultipartFile srcFile)
 			throws IOException {
@@ -1366,15 +1368,16 @@ public class ServiceController {
 	}
 
 	private void doDeploy(final String applicationName, final String serviceName, final String templateName,
-			final String zone, final File serviceFile, final Properties contextProperties, Service service, final byte[] serviceCloudConfigurationContents)
-			throws TimeoutException, DSLException{
+			final String zone, final File serviceFile, final Properties contextProperties, final Service service,
+			final byte[] serviceCloudConfigurationContents)
+			throws TimeoutException, DSLException {
 
 		final int externalProcessMemoryInMB = 512;
 		final int containerMemoryInMB = 128;
 		final int reservedMemoryCapacityPerMachineInMB = 256;
-		
+
 		contextProperties.put(CloudifyConstants.CONTEXT_PROPERTY_ASYNC_INSTALL, "true");
-		
+
 		final ElasticStatelessProcessingUnitDeployment deployment =
 				new ElasticStatelessProcessingUnitDeployment(serviceFile)
 						.memoryCapacityPerContainer(externalProcessMemoryInMB, MemoryUnit.MEGABYTES)
@@ -1424,11 +1427,11 @@ public class ServiceController {
 
 			config.setGridServiceAgentZones(zones);
 
-			if(serviceCloudConfigurationContents != null) {
-			
+			if (serviceCloudConfigurationContents != null) {
+
 				config.setServiceCloudConfiguration(serviceCloudConfigurationContents);
 			}
-			
+
 			final String locators = extractLocators(admin);
 			config.setLocator(locators);
 
@@ -1480,8 +1483,8 @@ public class ServiceController {
 			throws DSLException {
 		// TODO remove hardcoded number
 		logger.info("Calculating external proc mem for template: " + template);
-		int machineMemoryMB = template.getMachineMemoryMB();
-		int reservedMemoryCapacityPerMachineInMB = cloud.getProvider().getReservedMemoryCapacityPerMachineInMB();
+		final int machineMemoryMB = template.getMachineMemoryMB();
+		final int reservedMemoryCapacityPerMachineInMB = cloud.getProvider().getReservedMemoryCapacityPerMachineInMB();
 		final int safteyMargin = 100; // get rid of this constant. see CLOUDIFY-297
 		final long cloudExternalProcessMemoryInMB =
 				machineMemoryMB - reservedMemoryCapacityPerMachineInMB - safteyMargin;
@@ -1547,7 +1550,8 @@ public class ServiceController {
 
 	public String deployElasticProcessingUnit(final String serviceName, final String applicationName,
 			final String zone, final File srcFile, final Properties propsFile, final String originalTemplateName,
-			boolean isApplicationInstall, int timeout, TimeUnit timeUnit, final byte[] serviceCloudConfigurationContents)
+			final boolean isApplicationInstall, final int timeout, final TimeUnit timeUnit,
+			final byte[] serviceCloudConfigurationContents)
 			throws TimeoutException, PackagingException, IOException, AdminException, DSLException {
 
 		String templateName;
@@ -1566,8 +1570,8 @@ public class ServiceController {
 		// Cloud cloud = null;
 		if (srcFile.getName().endsWith(".zip")) {
 			projectDir = ServiceReader.extractProjectFile(srcFile);
-			File workingProjectDir = new File(projectDir, "ext");
-			String serviceFileName = propsFile.getProperty(CloudifyConstants.CONTEXT_PROPERTY_SERVICE_FILE_NAME);
+			final File workingProjectDir = new File(projectDir, "ext");
+			final String serviceFileName = propsFile.getProperty(CloudifyConstants.CONTEXT_PROPERTY_SERVICE_FILE_NAME);
 			DSLServiceCompilationResult result;
 			if (serviceFileName != null) {
 				result =
@@ -1585,7 +1589,8 @@ public class ServiceController {
 		if (service == null) {
 			doDeploy(applicationName, serviceName, templateName, zone, srcFile, propsFile);
 		} else if (service.getLifecycle() != null) {
-			doDeploy(applicationName, serviceName, templateName, zone, srcFile, propsFile, service, serviceCloudConfigurationContents);
+			doDeploy(applicationName, serviceName, templateName, zone, srcFile, propsFile, service,
+					serviceCloudConfigurationContents);
 		} else if (service.getDataGrid() != null) {
 			deployDataGrid(applicationName, serviceName, zone, srcFile, propsFile, service.getDataGrid(), templateName);
 		} else if (service.getStatelessProcessingUnit() != null) {
@@ -1628,8 +1633,9 @@ public class ServiceController {
 		return lifecycleEventContainerID;
 	}
 
-	private void doDeploy(String applicationName, String serviceName, String templateName, String zone, File srcFile,
-			Properties propsFile)
+	private void doDeploy(final String applicationName, final String serviceName, final String templateName,
+			final String zone, final File srcFile,
+			final Properties propsFile)
 			throws TimeoutException, DSLException {
 		doDeploy(applicationName, serviceName, templateName, zone, srcFile, propsFile, null, null);
 	}
@@ -1674,14 +1680,21 @@ public class ServiceController {
 			FileUtils.deleteQuietly(destFile);
 		}
 
-		// UUID lifecycleEventsContainerID = StartPollingForLifecycleEvents(dest, serviceName, timeout,
-		// TimeUnit.MINUTES);
 		String lifecycleEventsContainerID = "";
 		if (dest.renameTo(destFile)) {
 			FileUtils.deleteQuietly(dest);
+
+			final File cloudConfigurationFile =
+					ZipUtils.unzipEntry(destFile, "ext/" + CloudifyConstants.SERVICE_CLOUD_CONFIGURATION_FILE_NAME,
+							CloudifyConstants.SERVICE_CLOUD_CONFIGURATION_FILE_NAME);
+			byte[] cloudConfigurationContents = null;
+			if (cloudConfigurationFile != null) {
+				cloudConfigurationContents = FileUtils.readFileToByteArray(cloudConfigurationFile);
+			}
+
 			lifecycleEventsContainerID =
 					deployElasticProcessingUnit(absolutePuName, applicationName, zone, destFile, props,
-							actualTemplateName, false, timeout, TimeUnit.MINUTES, null);
+							actualTemplateName, false, timeout, TimeUnit.MINUTES, cloudConfigurationContents);
 			destFile.deleteOnExit();
 		} else {
 			logger.warning("Deployment file could not be renamed to the absolute pu name."
@@ -2025,14 +2038,14 @@ public class ServiceController {
 					required = true) final int count)
 			throws DSLException {
 
-		Map<String, Object> returnMap = new HashMap<String, Object>();
+		final Map<String, Object> returnMap = new HashMap<String, Object>();
 		final String puName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-		ProcessingUnit pu = admin.getProcessingUnits().getProcessingUnit(puName);
+		final ProcessingUnit pu = admin.getProcessingUnits().getProcessingUnit(puName);
 		if (pu == null) {
 			return errorStatus(ResponseConstants.FAILED_TO_LOCATE_SERVICE, serviceName);
 		}
 
-		Properties contextProperties = pu.getBeanLevelProperties().getContextProperties();
+		final Properties contextProperties = pu.getBeanLevelProperties().getContextProperties();
 		final String elasticProp = contextProperties.getProperty(CloudifyConstants.CONTEXT_PROPERTY_ELASTIC);
 		final String templateName = contextProperties.getProperty(CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE);
 
@@ -2067,188 +2080,176 @@ public class ServiceController {
 
 		return successStatus(returnMap);
 	}
-	
+
 	/**
-	 * Retrieves the tail of a service log. This method used the service name and instance id
-	 * To retrieve the the instance log tail.
-	 * @param applicationName 
-	 *         The application name.
-	 * @param serviceName
-	 *         The service name.
-	 * @param instanceId
-	 *         The service instance id.
-	 * @param numLines 
-	 *         The number of lines to tail.
-	 * @return 
-	 *         The last n lines of log of the requested service.
+	 * Retrieves the tail of a service log. This method used the service name and instance id To retrieve the the
+	 * instance log tail.
+	 * 
+	 * @param applicationName The application name.
+	 * @param serviceName The service name.
+	 * @param instanceId The service instance id.
+	 * @param numLines The number of lines to tail.
+	 * @return The last n lines of log of the requested service.
 	 */
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
-	        + "/instances/{instanceId}/tail",
-	        method = RequestMethod.GET)
-	@ResponseBody public 
-	Map<String, Object> getLogTailByInstanceId(
-	        @PathVariable final String applicationName,
-	        @PathVariable final String serviceName, 
-	        @PathVariable final int instanceId,
-	        @RequestParam(value = "numLines", required = true) final int numLines) {
+			+ "/instances/{instanceId}/tail",
+			method = RequestMethod.GET)
+	@ResponseBody
+	public Map<String, Object> getLogTailByInstanceId(
+			@PathVariable final String applicationName,
+			@PathVariable final String serviceName,
+			@PathVariable final int instanceId,
+			@RequestParam(value = "numLines", required = true) final int numLines) {
 
-	    GridServiceContainer container = getContainerAccordingToInstanceId(applicationName,
-	                serviceName, instanceId);
-	    
-	    if (container == null) {
-            String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-            logger.severe("Could not find service " + absolutePuName);
-            return unavailableServiceError(absolutePuName);
-	    }
-	    String logTailFromContainer = getLogTailFromContainer(container, numLines);
+		final GridServiceContainer container = getContainerAccordingToInstanceId(applicationName,
+				serviceName, instanceId);
 
-	    return successStatus(logTailFromContainer);
+		if (container == null) {
+			final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+			logger.severe("Could not find service " + absolutePuName);
+			return unavailableServiceError(absolutePuName);
+		}
+		final String logTailFromContainer = getLogTailFromContainer(container, numLines);
+
+		return successStatus(logTailFromContainer);
 	}
-	
-	/**
-     * Retrieves the tail of a service log. This method uses the service name and the instance host address
-     * to retrieve the the instance log tail. Important: a machine might hold more than one service instance.
-     * In such a scenario, only one of the service instance logs will be tailed and returned.
-     * @param applicationName 
-     *         The application name.
-     * @param serviceName
-     *         The service name.
-     * @param hostAddress
-     *         The service instance's host address.
-     * @param numLines 
-     *         The number of lines to tail.
-     * @return 
-     *         The last n lines of log of the requested service.
-     */
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
-	        + "/address/{hostAddress}/tail",
-	        method = RequestMethod.GET)
-	@ResponseBody public
-	Map<String, Object> getLogTailByHostAddress(
-	        @PathVariable final String applicationName,
-	        @PathVariable final String serviceName, 
-	        @PathVariable final String hostAddress,
-	        @RequestParam(value = "numLines", required = true) final int numLines) {
-	    
-	    GridServiceContainer container = getContainerAccordingToHostAddress(applicationName,
-	            serviceName, hostAddress);
-	    if (container == null) {
-	        String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-	        logger.severe("Could not find service " + absolutePuName);
-	        return unavailableServiceError(absolutePuName);
-	    }
-	    String logTail = getLogTailFromContainer(container, numLines);
 
-	    return successStatus(logTail);
+	/**
+	 * Retrieves the tail of a service log. This method uses the service name and the instance host address to retrieve
+	 * the the instance log tail. Important: a machine might hold more than one service instance. In such a scenario,
+	 * only one of the service instance logs will be tailed and returned.
+	 * 
+	 * @param applicationName The application name.
+	 * @param serviceName The service name.
+	 * @param hostAddress The service instance's host address.
+	 * @param numLines The number of lines to tail.
+	 * @return The last n lines of log of the requested service.
+	 */
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
+			+ "/address/{hostAddress}/tail",
+			method = RequestMethod.GET)
+	@ResponseBody
+	public Map<String, Object> getLogTailByHostAddress(
+			@PathVariable final String applicationName,
+			@PathVariable final String serviceName,
+			@PathVariable final String hostAddress,
+			@RequestParam(value = "numLines", required = true) final int numLines) {
+
+		final GridServiceContainer container = getContainerAccordingToHostAddress(applicationName,
+				serviceName, hostAddress);
+		if (container == null) {
+			final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+			logger.severe("Could not find service " + absolutePuName);
+			return unavailableServiceError(absolutePuName);
+		}
+		final String logTail = getLogTailFromContainer(container, numLines);
+
+		return successStatus(logTail);
 	}
-	
+
 	/**
-     * Retrieves the log tail from all of the specified service's instances. 
-     * To retrieve the the instance log tail.
-     * @param applicationName 
-     *         The application name.
-     * @param serviceName
-     *         The service name.
-     * @param numLines 
-     *         The number of lines to tail.
-     * @return 
-     *         The last n lines of log from each service instance.
-     */
+	 * Retrieves the log tail from all of the specified service's instances. To retrieve the the instance log tail.
+	 * 
+	 * @param applicationName The application name.
+	 * @param serviceName The service name.
+	 * @param numLines The number of lines to tail.
+	 * @return The last n lines of log from each service instance.
+	 */
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
-	        + "/tail",
-	        method = RequestMethod.GET)
-	@ResponseBody public 
-	Map<String, Object> getLogTailByServiceName(
-	        @PathVariable final String applicationName,
-	        @PathVariable final String serviceName, 
-	        @RequestParam(value = "numLines", required = true) final int numLines) {
+			+ "/tail",
+			method = RequestMethod.GET)
+	@ResponseBody
+	public Map<String, Object> getLogTailByServiceName(
+			@PathVariable final String applicationName,
+			@PathVariable final String serviceName,
+			@RequestParam(value = "numLines", required = true) final int numLines) {
 
-	    StringBuilder stringBuilder = new StringBuilder();
-	    ProcessingUnit processingUnit = getProcessingUnit(applicationName, serviceName);
-	    if (processingUnit == null) {
-	        String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-	        logger.severe("Could not find service " + absolutePuName);
-	        return unavailableServiceError(absolutePuName);
-	    }
+		final StringBuilder stringBuilder = new StringBuilder();
+		final ProcessingUnit processingUnit = getProcessingUnit(applicationName, serviceName);
+		if (processingUnit == null) {
+			final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+			logger.severe("Could not find service " + absolutePuName);
+			return unavailableServiceError(absolutePuName);
+		}
 
-	    String instanceLogTail;
-	    for (ProcessingUnitInstance processingUnitInstance : processingUnit) {
-	        stringBuilder.append("service instance id #" + processingUnitInstance.getInstanceId() 
-	                + System.getProperty("line.separator"));
-	        instanceLogTail = getLogTailFromContainer(processingUnitInstance.getGridServiceContainer(), numLines);
-	        stringBuilder.append(instanceLogTail);
-	    }
+		String instanceLogTail;
+		for (final ProcessingUnitInstance processingUnitInstance : processingUnit) {
+			stringBuilder.append("service instance id #" + processingUnitInstance.getInstanceId()
+					+ System.getProperty("line.separator"));
+			instanceLogTail = getLogTailFromContainer(processingUnitInstance.getGridServiceContainer(), numLines);
+			stringBuilder.append(instanceLogTail);
+		}
 
-	    return successStatus(stringBuilder.toString());
+		return successStatus(stringBuilder.toString());
 	}
 
 	private String getLogTailFromContainer(final GridServiceContainer container, final int numLines) {
-	    int numberOfLinesToTail;
-	    final String msg = "tail is limited to no more than " + MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED 
-	            + " lines.";
-	    boolean tailThresholdBreached = numLines > MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED;
-	    if (tailThresholdBreached) {
-            logger.log(Level.INFO, msg);
-	        numberOfLinesToTail = MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED;
-	    } else {
-	        numberOfLinesToTail = numLines;
-	    }
-	    final LastNLogEntryMatcher matcher = LogEntryMatchers.lastN(numberOfLinesToTail);
-	    final LogEntries logEntries = container.logEntries(matcher);
-	    StringBuilder sb = new StringBuilder();
-	    for (final LogEntry logEntry : logEntries) {
-	        sb.append(logEntry.getText());
-	        sb.append(System.getProperty("line.separator"));
-	    }
-	    if (tailThresholdBreached) {
-	        sb.append(msg);
-	    }
-	    return sb.toString();
+		int numberOfLinesToTail;
+		final String msg = "tail is limited to no more than " + MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED
+				+ " lines.";
+		final boolean tailThresholdBreached = numLines > MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED;
+		if (tailThresholdBreached) {
+			logger.log(Level.INFO, msg);
+			numberOfLinesToTail = MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED;
+		} else {
+			numberOfLinesToTail = numLines;
+		}
+		final LastNLogEntryMatcher matcher = LogEntryMatchers.lastN(numberOfLinesToTail);
+		final LogEntries logEntries = container.logEntries(matcher);
+		final StringBuilder sb = new StringBuilder();
+		for (final LogEntry logEntry : logEntries) {
+			sb.append(logEntry.getText());
+			sb.append(System.getProperty("line.separator"));
+		}
+		if (tailThresholdBreached) {
+			sb.append(msg);
+		}
+		return sb.toString();
 	}
 
 	private GridServiceContainer getContainerAccordingToInstanceId(
-	        final String applicationName, final String serviceName, final int instanceId) {
-	    
-	    ProcessingUnit processingUnit = getProcessingUnit(applicationName, serviceName);
-	    for (ProcessingUnitInstance processingUnitInstance : processingUnit) {
-	        if (processingUnitInstance.getInstanceId() == instanceId) {
-                return processingUnitInstance.getGridServiceContainer();
-            }
-        }
-	    return null;
+			final String applicationName, final String serviceName, final int instanceId) {
+
+		final ProcessingUnit processingUnit = getProcessingUnit(applicationName, serviceName);
+		for (final ProcessingUnitInstance processingUnitInstance : processingUnit) {
+			if (processingUnitInstance.getInstanceId() == instanceId) {
+				return processingUnitInstance.getGridServiceContainer();
+			}
+		}
+		return null;
 	}
 
-    private ProcessingUnit getProcessingUnit(final String applicationName,
-            final String serviceName) {
-        String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-	    ProcessingUnit processingUnit = admin.getProcessingUnits().getProcessingUnit(absolutePUName);
-	    if (processingUnit == null) {
-	        logger.log(Level.FINE, "a Processing unit with the name " + absolutePUName + " was not found");
-	        return null;
-	    }
-        return processingUnit;
-    }
+	private ProcessingUnit getProcessingUnit(final String applicationName,
+			final String serviceName) {
+		final String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+		final ProcessingUnit processingUnit = admin.getProcessingUnits().getProcessingUnit(absolutePUName);
+		if (processingUnit == null) {
+			logger.log(Level.FINE, "a Processing unit with the name " + absolutePUName + " was not found");
+			return null;
+		}
+		return processingUnit;
+	}
 
 	private GridServiceContainer getContainerAccordingToHostAddress(
-	        final String applicationName, final String serviceName, final String hostAddress) {
-	    
-	    Machine machine = admin.getMachines().getHostsByAddress().get(hostAddress);
-	    if (machine == null) {
-	        logger.log(Level.FINE, "a machine with host address " + hostAddress + " was not found in the cluster.");
-	        return null; 
-	    }
-	    String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-	    ProcessingUnitInstance[] processingUnitInstances = machine.getProcessingUnitInstances(absolutePUName);
-	    if (processingUnitInstances == null) {
-	        logger.log(Level.FINE, "a Processing unit instance with the name " + absolutePUName + " was not found");
-	        return null;
-	    }
-	    
-	    for (ProcessingUnitInstance instance : processingUnitInstances) {
-	        if (instance.getOperatingSystem().getDetails().getHostAddress().equals(hostAddress)) {
-	            return instance.getGridServiceContainer();
-	        }
-	    }
-	    return null;
+			final String applicationName, final String serviceName, final String hostAddress) {
+
+		final Machine machine = admin.getMachines().getHostsByAddress().get(hostAddress);
+		if (machine == null) {
+			logger.log(Level.FINE, "a machine with host address " + hostAddress + " was not found in the cluster.");
+			return null;
+		}
+		final String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+		final ProcessingUnitInstance[] processingUnitInstances = machine.getProcessingUnitInstances(absolutePUName);
+		if (processingUnitInstances == null) {
+			logger.log(Level.FINE, "a Processing unit instance with the name " + absolutePUName + " was not found");
+			return null;
+		}
+
+		for (final ProcessingUnitInstance instance : processingUnitInstances) {
+			if (instance.getOperatingSystem().getDetails().getHostAddress().equals(hostAddress)) {
+				return instance.getGridServiceContainer();
+			}
+		}
+		return null;
 	}
 }

@@ -112,7 +112,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 			try {
 				// Pack the folder and name it absolutePuName
 
-				File packedFile = Packager.pack(serviceDirectory, absolutePUName);
+				File packedFile = Packager.pack(serviceDirectory, absolutePUName, new File[0] );
 				result.getApplicationFile().delete();
 				packedFile.deleteOnExit();
 				// Deployment will be done using the service's absolute PU name.
