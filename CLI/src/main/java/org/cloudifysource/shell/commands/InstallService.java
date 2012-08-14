@@ -30,6 +30,7 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
+import org.cloudifysource.dsl.internal.packaging.ZipUtils;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.rest.RestLifecycleEventsLatch;
@@ -39,16 +40,13 @@ import org.fusesource.jansi.Ansi.Color;
  * @author rafi, adaml, barakm
  * @since 2.0.0
  * 
- *        Installs a service by deploying the service files as one packed file (zip, war or jar). Service
- *        files can also be supplied as a folder containing multiple files.
+ *        Installs a service by deploying the service files as one packed file (zip, war or jar). Service files can also
+ *        be supplied as a folder containing multiple files.
  * 
- *        Required arguments:
- *         service-file - Path to the service's packed file or folder
+ *        Required arguments: service-file - Path to the service's packed file or folder
  * 
- *        Optional arguments:
- *         zone - The machines zone in which to install the service
- *         name - The name of the service
- *         timeout - The number of minutes to wait until the operation is completed (default: 5 minutes)
+ *        Optional arguments: zone - The machines zone in which to install the service name - The name of the service
+ *        timeout - The number of minutes to wait until the operation is completed (default: 5 minutes)
  * 
  *        Command syntax: install-service [-zone zone] [-name name] [-timeout timeout] service-file
  */
@@ -70,24 +68,32 @@ public class InstallService extends AdminAwareCommand {
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is "
 			+ "done. Defaults to 5 minutes.")
 	private int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
-	
+
 	@Option(required = false, name = "-service-file-name", description = "Name of the service file in the "
-		+ "recipe folder. If not specified, uses the default file name")
-	private String serviceFileName = null;
-	
-	private static final String TIMEOUT_ERROR_MESSAGE = "Service installation timed out." 
-				+ " Configure the timeout using the -timeout flag.";
+			+ "recipe folder. If not specified, uses the default file name")
+	private final String serviceFileName = null;
+
+	@Option(required = false, name = "-cloudConfiguration",
+			description = "File of directory containing configuration information to be used by the cloud driver "
+					+ "for this application")
+	private File cloudConfiguration;
+
+	private static final String TIMEOUT_ERROR_MESSAGE = "Service installation timed out."
+			+ " Configure the timeout using the -timeout flag.";
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected Object doExecute() throws Exception {
+	protected Object doExecute()
+			throws Exception {
 		if (!recipe.exists()) {
 			throw new CLIStatusException("service_file_doesnt_exist", recipe.getPath());
 		}
 
 		File packedFile;
+
+		final File cloudConfigurationZipFile = createCloudConfigurationZipFile();
 
 		// TODO: this logics should not be done twice. should be done directly in the rest server.
 		// also figure out how to treat war/jar files that have no .groovy file. create default?
@@ -98,16 +104,16 @@ public class InstallService extends AdminAwareCommand {
 				packedFile = recipe;
 			} else if (recipe.isDirectory()) {
 				// Assume that a folder will contain a DSL file?
-				
+
 				if (serviceFileName != null) {
-					File fullPathToRecipe = new File(recipe.getAbsolutePath() + "/" + serviceFileName);
+					final File fullPathToRecipe = new File(recipe.getAbsolutePath() + "/" + serviceFileName);
 					if (!fullPathToRecipe.exists()) {
 						throw new CLIStatusException("service_file_doesnt_exist", fullPathToRecipe.getPath());
 					}
-					packedFile = Packager.pack(fullPathToRecipe);
+					packedFile = Packager.pack(fullPathToRecipe, new File[] { cloudConfigurationZipFile });
 					service = ServiceReader.readService(fullPathToRecipe);
 				} else {
-					packedFile = Packager.pack(recipe);
+					packedFile = Packager.pack(recipe, new File[] { cloudConfigurationZipFile });
 					service = ServiceReader.readService(recipe);
 				}
 				packedFile.deleteOnExit();
@@ -123,7 +129,6 @@ public class InstallService extends AdminAwareCommand {
 		}
 		final String currentApplicationName = getCurrentApplicationName();
 
-		// TODO: All packaging logic should be moved to the REST server
 		Properties props = null;
 		if (service != null) {
 			props = createServiceContextProperties(service);
@@ -156,11 +161,11 @@ public class InstallService extends AdminAwareCommand {
 				templateName = "";
 			}
 		}
-		
-		String lifecycleEventContainerPollingID = adminFacade.installElastic(packedFile,
+
+		final String lifecycleEventContainerPollingID = adminFacade.installElastic(packedFile,
 				currentApplicationName, serviceName, zone, props, templateName, getTimeoutInMinutes());
 
-		RestLifecycleEventsLatch lifecycleEventsPollingLatch = this.adminFacade.
+		final RestLifecycleEventsLatch lifecycleEventsPollingLatch = this.adminFacade.
 				getLifecycleEventsPollingLatch(lifecycleEventContainerPollingID, TIMEOUT_ERROR_MESSAGE);
 		boolean isDone = false;
 		boolean continuous = false;
@@ -172,11 +177,11 @@ public class InstallService extends AdminAwareCommand {
 					lifecycleEventsPollingLatch.continueWaitForLifecycleEvents(getTimeoutInMinutes(), TimeUnit.MINUTES);
 				}
 				isDone = true;
-			} catch (TimeoutException e) {
+			} catch (final TimeoutException e) {
 				if (!(Boolean) session.get(Constants.INTERACTIVE_MODE)) {
 					throw e;
 				}
-				boolean continueInstallation = promptWouldYouLikeToContinueQuestion();
+				final boolean continueInstallation = promptWouldYouLikeToContinueQuestion();
 				if (!continueInstallation) {
 					throw new CLIStatusException(e, "service_installation_timed_out_on_client", serviceName);
 				} else {
@@ -193,7 +198,8 @@ public class InstallService extends AdminAwareCommand {
 		return getFormattedMessage("service_install_ended", Color.GREEN, serviceName);
 	}
 
-	private boolean promptWouldYouLikeToContinueQuestion() throws IOException {
+	private boolean promptWouldYouLikeToContinueQuestion()
+			throws IOException {
 		return ShellUtils.promptUser(session, "would_you_like_to_continue_service_installation", serviceName);
 	}
 
@@ -201,12 +207,11 @@ public class InstallService extends AdminAwareCommand {
 	// It is used originally in ApplicationInstallerRunnable
 	// This copy is a bad idea, and should be moved out of here as soon as possible.
 	/**
-	 * Create Properties object with settings from the service object, if found on the given service. The
-	 * supported settings are: com.gs.application.dependsOn com.gs.service.type com.gs.service.icon
+	 * Create Properties object with settings from the service object, if found on the given service. The supported
+	 * settings are: com.gs.application.dependsOn com.gs.service.type com.gs.service.icon
 	 * com.gs.service.network.protocolDescription
 	 * 
-	 * @param service
-	 *            The service object the read the settings from
+	 * @param service The service object the read the settings from
 	 * @return Properties object populated with the above properties, if found on the given service.
 	 */
 	private Properties createServiceContextProperties(final Service service) {
@@ -231,12 +236,53 @@ public class InstallService extends AdminAwareCommand {
 						.getNetwork().getProtocolDescription());
 			}
 		}
-		
+
 		contextProperties.setProperty(
 				CloudifyConstants.CONTEXT_PROPERTY_ELASTIC,
 				Boolean.toString(service.isElastic()));
-		
+
 		return contextProperties;
+	}
+
+	private File createCloudConfigurationZipFile()
+			throws CLIStatusException, IOException {
+		if (this.cloudConfiguration == null) {
+			return null;
+		}
+
+		if (!this.cloudConfiguration.exists()) {
+			throw new CLIStatusException("cloud_configuration_file_not_found",
+					this.cloudConfiguration.getAbsolutePath());
+		}
+
+		// create a temp file in a temp directory
+		File tempDir = File.createTempFile("__Cloudify_Cloud_configuration", ".tmp");
+		FileUtils.forceDelete(tempDir);
+		tempDir.mkdirs();
+
+		File tempFile = new File(tempDir, CloudifyConstants.SERVICE_CLOUD_CONFIGURATION_FILE_NAME);
+
+		// mark files for deletion on JVM exit
+		tempFile.deleteOnExit();
+		tempDir.deleteOnExit();
+
+		if (this.cloudConfiguration.isDirectory()) {
+			ZipUtils.zip(this.cloudConfiguration, tempFile);
+		} else if (this.cloudConfiguration.isFile()) {
+			ZipUtils.zipSingleFile(this.cloudConfiguration, tempFile);
+		} else {
+			throw new IOException(this.cloudConfiguration + " is neither a file nor a directory");
+		}
+
+		return tempFile;
+	}
+
+	public File getCloudConfiguration() {
+		return cloudConfiguration;
+	}
+
+	public void setCloudConfiguration(final File cloudConfiguration) {
+		this.cloudConfiguration = cloudConfiguration;
 	}
 
 	public int getTimeoutInMinutes() {
@@ -246,4 +292,5 @@ public class InstallService extends AdminAwareCommand {
 	public void setTimeoutInMinutes(final int timeoutInMinutes) {
 		this.timeoutInMinutes = timeoutInMinutes;
 	}
+
 }

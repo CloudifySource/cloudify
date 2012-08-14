@@ -42,232 +42,235 @@ import java.util.logging.Logger;
  */
 public abstract class AbstractGSCommand implements Action {
 
-    protected static final Logger logger = Logger.getLogger(AbstractGSCommand.class.getName());
+	protected static final Logger logger = Logger.getLogger(AbstractGSCommand.class.getName());
+	// Used for CompleterValues methods that don't have access to the
+	// sessions admin facade
+	private AdminFacade restAdminFacade;
 
-    @Option(required = false, name = "--verbose", description = "show detailed execution result including exception"
-            + " stack trace")
-    protected boolean verbose;
-    protected CommandSession session;
-    protected ResourceBundle messages;
-    protected boolean adminAware = false;
-    protected AdminFacade adminFacade;
+	@Option(required = false, name = "--verbose", description = "show detailed execution result including exception"
+			+ " stack trace")
+	protected boolean verbose;
+	protected CommandSession session;
+	protected ResourceBundle messages;
+	protected boolean adminAware = false;
+	protected AdminFacade adminFacade;
 
-    /**
-     * Initializes the messages bundle, and takes the admin facade objects from the session when command is admin-aware. Calls
-     * doExecute (must be implemented separately in the extending classes).
-     *
-     * @param session The command session to be used.
-     * @return Object The object returned from the call to doExecute
-     * @throws Exception Reporting a failure to execute this command
-     */
-    @Override
-    public Object execute(final CommandSession session)
-            throws Exception {
-        this.session = session;
-        messages = ShellUtils.getMessageBundle();
-        try {
-            if (adminAware) {
-                adminFacade = (AdminFacade) session.get(Constants.ADMIN_FACADE);
+	/**
+	 * Initializes the messages bundle, and takes the admin facade objects from the session when command is admin-aware.
+	 * Calls doExecute (must be implemented separately in the extending classes).
+	 * 
+	 * @param session The command session to be used.
+	 * @return Object The object returned from the call to doExecute
+	 * @throws Exception Reporting a failure to execute this command
+	 */
+	@Override
+	public Object execute(final CommandSession session)
+			throws Exception {
+		this.session = session;
+		messages = ShellUtils.getMessageBundle();
+		try {
+			if (adminAware) {
+				adminFacade = (AdminFacade) session.get(Constants.ADMIN_FACADE);
 
-                if (!adminFacade.isConnected()) {
-                    throw new CLIStatusException("not_connected");
-                }
-            }
-            final Object result = doExecute();
-            return result;
+				if (!adminFacade.isConnected()) {
+					throw new CLIStatusException("not_connected");
+				}
+			}
+			final Object result = doExecute();
+			return result;
 
-        } catch (final CLIStatusException cse) {
-            if (verbose) {
-                logger.log(
-                        Level.WARNING, getFormattedMessageFromErrorStatusException(cse), cse);
-            } else {
-                logger.log(
-                        Level.WARNING, getFormattedMessageFromErrorStatusException(cse));
-            }
-            raiseCloseShellExceptionIfNonInteractive(
-                    session, cse);
-        } catch (final CLIException e) {
-            if (!verbose) {
-                e.setStackTrace(new StackTraceElement[]{});
-            }
-            logger.log(
-                    Level.WARNING, "", e);
-            raiseCloseShellExceptionIfNonInteractive(
-                    session, e);
-        } catch (final InterruptedException e) {
-            final String msg = messages.getString("command_interrupted");
-            if (verbose) {
-                logger.log(
-                        Level.SEVERE, msg, e);
-            } else {
-                logger.log(
-                        Level.SEVERE, msg);
-            }
-            raiseCloseShellExceptionIfNonInteractive(
-                    session, e);
-        } catch (final Throwable e) {
-            if (verbose) {
-                logger.log(
-                        Level.SEVERE, "", e);
-            } else {
-                logger.log(
-                        Level.SEVERE, e.getMessage());
-            }
-            raiseCloseShellExceptionIfNonInteractive(
-                    session, e);
-        }
-        return getFormattedMessage(
-                "op_failed", Color.RED, "");
-    }
+		} catch (final CLIStatusException cse) {
+			if (verbose) {
+				logger.log(
+						Level.WARNING, getFormattedMessageFromErrorStatusException(cse), cse);
+			} else {
+				logger.log(
+						Level.WARNING, getFormattedMessageFromErrorStatusException(cse));
+			}
+			raiseCloseShellExceptionIfNonInteractive(
+					session, cse);
+		} catch (final CLIException e) {
+			if (!verbose) {
+				e.setStackTrace(new StackTraceElement[] {});
+			}
+			logger.log(
+					Level.WARNING, "", e);
+			raiseCloseShellExceptionIfNonInteractive(
+					session, e);
+		} catch (final InterruptedException e) {
+			final String msg = messages.getString("command_interrupted");
+			if (verbose) {
+				logger.log(
+						Level.SEVERE, msg, e);
+			} else {
+				logger.log(
+						Level.SEVERE, msg);
+			}
+			raiseCloseShellExceptionIfNonInteractive(
+					session, e);
+		} catch (final Throwable e) {
+			if (verbose) {
+				logger.log(
+						Level.SEVERE, "", e);
+			} else {
+				logger.log(
+						Level.SEVERE, e.getMessage());
+			}
+			raiseCloseShellExceptionIfNonInteractive(
+					session, e);
+		}
+		return getFormattedMessage(
+				"op_failed", Color.RED, "");
+	}
 
-    /**
-     * Gets a formatted message from the given CLIStatusException, using the exception's reason code as the message name
-     * and the exception's args field, if not null.
-     *
-     * @param e The CLIStatusException to base on
-     * @return The formatted message
-     */
-    private String getFormattedMessageFromErrorStatusException(final CLIStatusException e) {
-        String message = getFormattedMessage(
-                e.getReasonCode(), (Object[]) null);
-        if (message == null) {
-            message = e.getReasonCode();
-        }
+	/**
+	 * Gets a formatted message from the given CLIStatusException, using the exception's reason code as the message name
+	 * and the exception's args field, if not null.
+	 * 
+	 * @param e The CLIStatusException to base on
+	 * @return The formatted message
+	 */
+	private String getFormattedMessageFromErrorStatusException(final CLIStatusException e) {
+		String message = getFormattedMessage(
+				e.getReasonCode(), (Object[]) null);
+		if (message == null) {
+			message = e.getReasonCode();
+		}
 
-        if (e.getArgs() == null || e.getArgs().length == 0) {
-            return message;
-        } else {
-            return MessageFormat.format(
-                    message, e.getArgs());
-        }
-    }
+		if (e.getArgs() == null || e.getArgs().length == 0) {
+			return message;
+		} else {
+			return MessageFormat.format(
+					message, e.getArgs());
+		}
+	}
 
-    // private String
-    // getFormattedMessageFromErrorStatusException(ErrorStatusException e,
-    // Color color) {
-    // String message = getFormattedMessageFromErrorStatusException(e);
-    // return ShellUtils.getColorMessage(message, color);
-    // }
+	// private String
+	// getFormattedMessageFromErrorStatusException(ErrorStatusException e,
+	// Color color) {
+	// String message = getFormattedMessageFromErrorStatusException(e);
+	// return ShellUtils.getColorMessage(message, color);
+	// }
 
-    /**
-     * If not using the CLI in interactive mode - the method adds the given throwable to the session and throws a
-     * CloseShellException.
-     *
-     * @param session current command session
-     * @param t       The throwable to add to the session
-     * @throws CloseShellException Indicates the console to close.
-     */
-    private static void raiseCloseShellExceptionIfNonInteractive(final CommandSession session, final Throwable t)
-            throws CloseShellException {
-        if (!(Boolean) session.get(Constants.INTERACTIVE_MODE)) {
-            session.put(
-                    Constants.LAST_COMMAND_EXCEPTION, t);
-            throw new CloseShellException();
-        }
-    }
+	/**
+	 * If not using the CLI in interactive mode - the method adds the given throwable to the session and throws a
+	 * CloseShellException.
+	 * 
+	 * @param session current command session
+	 * @param t The throwable to add to the session
+	 * @throws CloseShellException Indicates the console to close.
+	 */
+	private static void raiseCloseShellExceptionIfNonInteractive(final CommandSession session, final Throwable t)
+			throws CloseShellException {
+		if (!(Boolean) session.get(Constants.INTERACTIVE_MODE)) {
+			session.put(
+					Constants.LAST_COMMAND_EXCEPTION, t);
+			throw new CloseShellException();
+		}
+	}
 
-    /**
-     * Gets the name of the current application.
-     *
-     * @return Name of the current application, as a String.
-     */
-    protected final String getCurrentApplicationName() {
-        if (session == null) {
-            return null;
-        }
+	/**
+	 * Gets the name of the current application.
+	 * 
+	 * @return Name of the current application, as a String.
+	 */
+	protected final String getCurrentApplicationName() {
+		if (session == null) {
+			return null;
+		}
 
-        return (String) session.get(Constants.ACTIVE_APP);
-    }
+		return (String) session.get(Constants.ACTIVE_APP);
+	}
 
-    /**
-     * Gets a message from the message bundle, without argument. If the message cannot be retrieved the message name is
-     * returned and the failure is logged.
-     *
-     * @param msgName the message name used to retrieve from the message bundle
-     * @return formatted message as a String
-     */
-    protected final String getFormattedMessage(final String msgName) {
-        return getFormattedMessage(
-                msgName, new Object[0]);
-    }
+	/**
+	 * Gets a message from the message bundle, without argument. If the message cannot be retrieved the message name is
+	 * returned and the failure is logged.
+	 * 
+	 * @param msgName the message name used to retrieve from the message bundle
+	 * @return formatted message as a String
+	 */
+	protected final String getFormattedMessage(final String msgName) {
+		return getFormattedMessage(
+				msgName, new Object[0]);
+	}
 
-    /**
-     * Gets a message from the message bundle, embedded with the given arguments if supplied. If the message cannot be
-     * retrieved the message name is returned and the failure is logged.
-     *
-     * @param msgName   the message name used to retrieve from the message bundle
-     * @param color     The color to be used when displaying the message in the console
-     * @param arguments arguments to embed in the message text
-     * @return formatted message as a String
-     */
-    protected final String getFormattedMessage(final String msgName, final Color color, final Object... arguments) {
-        final String outputMessage = getFormattedMessage(
-                msgName, arguments);
-        return ShellUtils.getColorMessage(
-                outputMessage, color);
-    }
+	/**
+	 * Gets a message from the message bundle, embedded with the given arguments if supplied. If the message cannot be
+	 * retrieved the message name is returned and the failure is logged.
+	 * 
+	 * @param msgName the message name used to retrieve from the message bundle
+	 * @param color The color to be used when displaying the message in the console
+	 * @param arguments arguments to embed in the message text
+	 * @return formatted message as a String
+	 */
+	protected final String getFormattedMessage(final String msgName, final Color color, final Object... arguments) {
+		final String outputMessage = getFormattedMessage(
+				msgName, arguments);
+		return ShellUtils.getColorMessage(
+				outputMessage, color);
+	}
 
-    /**
-     * Gets a message from the message bundle, embedded with the given arguments if supplied. If the message cannot be
-     * retrieved the message name is returned and the failure is logged.
-     *
-     * @param msgName   the message name used to retrieve from the message bundle
-     * @param arguments arguments to embed in the message text
-     * @return formatted message as a String
-     */
-    protected final String getFormattedMessage(final String msgName, final Object... arguments) {
-        return ShellUtils.getFormattedMessage(msgName, arguments);
-    }
+	/**
+	 * Gets a message from the message bundle, embedded with the given arguments if supplied. If the message cannot be
+	 * retrieved the message name is returned and the failure is logged.
+	 * 
+	 * @param msgName the message name used to retrieve from the message bundle
+	 * @param arguments arguments to embed in the message text
+	 * @return formatted message as a String
+	 */
+	protected final String getFormattedMessage(final String msgName, final Object... arguments) {
+		return ShellUtils.getFormattedMessage(msgName, arguments);
+	}
 
-    /**
-     * The main method to be implemented by all extending classes.
-     *
-     * @return Object Return value from the executed command
-     * @throws Exception Reporting a failure to execute this command
-     */
-    protected abstract Object doExecute()
-            throws Exception;
+	/**
+	 * The main method to be implemented by all extending classes.
+	 * 
+	 * @return Object Return value from the executed command
+	 * @throws Exception Reporting a failure to execute this command
+	 */
+	protected abstract Object doExecute()
+			throws Exception;
 
-    /**
-     * Creates Properties object for the given service, with value for: com.gs.application.depends com.gs.service.type
-     * com.gs.service.icon com.gs.service.network.protocolDescription
-     * <p/>
-     * in case the above properties are not null.
-     *
-     * @param serviceNamesString Service name
-     * @param service            Service object to use for the properties creation
-     * @return Properties object
-     */
-    protected final Properties createServiceContextProperties(final String serviceNamesString, final Service service) {
-        final Properties contextProperties = new Properties();
+	/**
+	 * Creates Properties object for the given service, with value for: com.gs.application.depends com.gs.service.type
+	 * com.gs.service.icon com.gs.service.network.protocolDescription
+	 * <p/>
+	 * in case the above properties are not null.
+	 * 
+	 * @param serviceNamesString Service name
+	 * @param service Service object to use for the properties creation
+	 * @return Properties object
+	 */
+	protected final Properties createServiceContextProperties(final String serviceNamesString, final Service service) {
+		final Properties contextProperties = new Properties();
 
-        // contextProperties.setProperty("com.gs.application.services",
-        // serviceNamesString);
-        if (service.getDependsOn() != null) {
-            contextProperties.setProperty(
-                    "com.gs.application.depends", service.getDependsOn().toString());
-        }
-        if (service.getType() != null) {
-            contextProperties.setProperty(
-                    "com.gs.service.type", service.getType());
-        }
-        if (service.getIcon() != null) {
-            contextProperties.setProperty(
-                    "com.gs.service.icon", service.getIcon());
-        }
-        if (service.getNetwork() != null) {
-            contextProperties.setProperty(
-                    "com.gs.service.network.protocolDescription", service.getNetwork().getProtocolDescription());
-        }
-        return contextProperties;
-    }
+		// contextProperties.setProperty("com.gs.application.services",
+		// serviceNamesString);
+		if (service.getDependsOn() != null) {
+			contextProperties.setProperty(
+					"com.gs.application.depends", service.getDependsOn().toString());
+		}
+		if (service.getType() != null) {
+			contextProperties.setProperty(
+					"com.gs.service.type", service.getType());
+		}
+		if (service.getIcon() != null) {
+			contextProperties.setProperty(
+					"com.gs.service.icon", service.getIcon());
+		}
+		if (service.getNetwork() != null) {
+			contextProperties.setProperty(
+					"com.gs.service.network.protocolDescription", service.getNetwork().getProtocolDescription());
+		}
+		return contextProperties;
+	}
 
-    /**
-     * Gets the restAdminFacade.
-     *
-     * @return The AdminFacade object used by rest commands
-     */
-    protected AdminFacade getRestAdminFacade() {
-        return (AdminFacade) session.get(Constants.ADMIN_FACADE);
-    }
+	/**
+	 * Gets the restAdminFacade.
+	 * 
+	 * @return The AdminFacade object used by rest commands
+	 */
+	protected AdminFacade getRestAdminFacade() {
+		return (AdminFacade) session.get(Constants.ADMIN_FACADE);
+	}
 }

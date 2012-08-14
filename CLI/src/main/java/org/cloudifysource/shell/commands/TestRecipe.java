@@ -461,7 +461,7 @@ public class TestRecipe extends AbstractGSCommand {
 	public File doPack(final File recipeDirOrFile)
 			throws CLIException {
 		try {
-			return Packager.pack(recipeDirOrFile);
+			return Packager.pack(recipeDirOrFile, null);
 		} catch (final IOException e) {
 			throw new CLIException(e);
 		} catch (final PackagingException e) {

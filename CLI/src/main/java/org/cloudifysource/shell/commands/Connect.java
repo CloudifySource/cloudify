@@ -44,7 +44,7 @@ public class Connect extends AbstractGSCommand {
     private String user;
 
     @Option(required = false, description = "The password when connecting to a secure admin server", name = "-pwd",
-            aliases = {"-password"})
+            aliases = {"-password" })
     private String password;
 
     @Argument(required = true, name = "URL", description = "the URL of the REST admin server to connect to")

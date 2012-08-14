@@ -95,7 +95,7 @@ public class InstallApplication extends AdminAwareCommand {
 			throw new CLIStatusException("application_already_deployed", application.getName());
 		}
 
-		File cloudConfigurationZipFile = createCloudConfigurationZipFile();
+		final File cloudConfigurationZipFile = createCloudConfigurationZipFile();
 		File zipFile;
 		if (applicationFile.isFile()) {
 			if (applicationFile.getName().endsWith(".zip") || applicationFile.getName().endsWith(".jar")) {
@@ -115,7 +115,10 @@ public class InstallApplication extends AdminAwareCommand {
 
 		// toString of string list (i.e. [service1, service2])
 		logger.info("Uploading application " + applicationName);
-		final Map<String, String> result = adminFacade.installApplication(zipFile, applicationName, getTimeoutInMinutes());
+
+		final Map<String, String> result =
+				adminFacade.installApplication(zipFile, applicationName, getTimeoutInMinutes());
+
 		final String serviceOrder = result.get(CloudifyConstants.SERVICE_ORDER);
 
 		// If temp file was created, Delete it.
@@ -173,16 +176,16 @@ public class InstallApplication extends AdminAwareCommand {
 		}
 
 		// create a temp file in a temp directory
-		File tempDir = File.createTempFile("__Cloudify_Cloud_configuration", ".tmp");
+		final File tempDir = File.createTempFile("__Cloudify_Cloud_configuration", ".tmp");
 		FileUtils.forceDelete(tempDir);
 		tempDir.mkdirs();
-		
-		File tempFile = new File(tempDir, CloudifyConstants.SERVICE_CLOUD_CONFIGURATION_FILE_NAME);
-		
+
+		final File tempFile = new File(tempDir, CloudifyConstants.SERVICE_CLOUD_CONFIGURATION_FILE_NAME);
+
 		// mark files for deletion on JVM exit
 		tempFile.deleteOnExit();
 		tempDir.deleteOnExit();
-		
+
 		if (this.cloudConfiguration.isDirectory()) {
 			ZipUtils.zip(this.cloudConfiguration, tempFile);
 		} else if (this.cloudConfiguration.isFile()) {
