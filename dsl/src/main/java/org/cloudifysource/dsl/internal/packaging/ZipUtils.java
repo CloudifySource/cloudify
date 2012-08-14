@@ -62,14 +62,14 @@ public final class ZipUtils {
 		if (!sourceFile.isFile()) {
 			throw new IllegalArgumentException(sourceFile + " is not a file!");
 		}
-		
+
 		final File toZip = new File(zipfile, "");
 
 		toZip.setWritable(true);
 		final ZipOutputStream zout = new ZipOutputStream(new FileOutputStream(toZip));
 
 		try {
-			String name = sourceFile.getName();
+			final String name = sourceFile.getName();
 			zout.putNextEntry(new ZipEntry(name));
 			copy(sourceFile, zout);
 			zout.closeEntry();
@@ -155,6 +155,42 @@ public final class ZipUtils {
 				}
 			}
 		}
+	}
+
+	/***************
+	 * Unzips a specific entry from a zip file to a temporary directory. 
+	 * 
+	 * @param zipfile the zip file.
+	 * @param entryName the entry to unzip.
+	 * @param fileName the file name of the created file, which will be placed in a directory.
+	 * @return the unzipped file matching the entry, or null if the entry name was not found.
+	 * @throws IOException if an error occured.
+	 * 
+	 */
+	public static File unzipEntry(final File zipfile, final String entryName, final String fileName)
+			throws IOException {
+		final ZipFile zfile = new ZipFile(zipfile);
+		final ZipEntry entry = zfile.getEntry(entryName);
+		if (entry == null) {
+			return null;
+		}
+
+		final InputStream in = zfile.getInputStream(entry);
+		final File entryDirectory = File.createTempFile("cloudConfiguFile", ".tmp");
+		entryDirectory.delete();
+		entryDirectory.mkdirs();
+		final File entryFile = new File(entryDirectory, fileName);
+
+		entryFile.deleteOnExit();
+		entryDirectory.deleteOnExit();
+
+		try {
+			copy(in, entryFile);
+		} finally {
+			in.close();
+		}
+		return entryFile;
+
 	}
 
 	private static void copy(final InputStream in, final OutputStream out)

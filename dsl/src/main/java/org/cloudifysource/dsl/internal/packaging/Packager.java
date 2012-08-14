@@ -63,12 +63,13 @@ public final class Packager {
 	 * Pack a service recipe folder into a zip file.
 	 * 
 	 * @param recipeDirOrFile the recipe directory or recipe file.
+	 * @param additionalServiceFiles files to add to the service directory.
 	 * @return the packed file.
 	 * @throws IOException .
 	 * @throws PackagingException .
 	 * @throws DSLException .
 	 */
-	public static File pack(final File recipeDirOrFile)
+	public static File pack(final File recipeDirOrFile, final File[] additionalServiceFiles)
 			throws IOException, PackagingException, DSLException {
 		// Locate recipe file
 		final File recipeFile =
@@ -76,7 +77,7 @@ public final class Packager {
 						recipeDirOrFile) : recipeDirOrFile;
 		// Parse recipe into service
 		final Service service = ServiceReader.readService(recipeFile);
-		return Packager.pack(recipeFile, service);
+		return Packager.pack(recipeFile, service, additionalServiceFiles);
 	}
 
 	/**
@@ -89,9 +90,9 @@ public final class Packager {
 	 * @throws PackagingException .
 	 * @throws DSLException .
 	 */
-	public static File pack(final File recipeDirOrFile, final String destFileName)
+	public static File pack(final File recipeDirOrFile, final String destFileName, final File[] additionalServiceFiles)
 			throws IOException, PackagingException, DSLException {
-		final File packed = pack(recipeDirOrFile);
+		final File packed = pack(recipeDirOrFile, additionalServiceFiles);
 		final File destFile = new File(packed.getParent(), destFileName + ".zip");
 		if (destFile.exists()) {
 			FileUtils.deleteQuietly(destFile);
@@ -118,14 +119,14 @@ public final class Packager {
 	 * @throws IOException .
 	 * @throws PackagingException .
 	 */
-	public static File pack(final File recipeFile, final Service service)
+	public static File pack(final File recipeFile, final Service service, final File[] additionalServiceFiles)
 			throws IOException, PackagingException {
 		if (!recipeFile.isFile()) {
 			throw new IllegalArgumentException(recipeFile + " is not a file");
 		}
 
 		logger.info("packing folder " + recipeFile.getParent());
-		final File createdPuFolder = buildPuFolder(service, recipeFile);
+		final File createdPuFolder = buildPuFolder(service, recipeFile, additionalServiceFiles);
 		final File puZipFile = createZippedPu(service, createdPuFolder, recipeFile);
 		logger.info("created " + puZipFile.getCanonicalFile());
 		if (FileUtils.deleteQuietly(createdPuFolder)) {
@@ -171,8 +172,9 @@ public final class Packager {
 	 * @throws IOException
 	 * @throws PackagingException
 	 */
-	private static File buildPuFolder(final Service service, final File recipeFile)
-			throws IOException, PackagingException {
+	private static File
+			buildPuFolder(final Service service, final File recipeFile, final File[] additionalServiceFiles)
+					throws IOException, PackagingException {
 		final File srcFolder = recipeFile.getParentFile();
 		final File destPuFolder = File.createTempFile("gs_usm_", "");
 		FileUtils.forceDelete(destPuFolder);
@@ -188,16 +190,13 @@ public final class Packager {
 		FileUtils.forceMkdir(springFolder);
 		logger.finer("created pu structure under " + destPuFolder);
 
-		// copy all files except usmlib from working dir to ext
-		// FileUtils.copyDirectory(srcFolder, extFolder, new FileFilter() {
-		//
-		// @Override
-		// public boolean accept(File pathname) {
-		// boolean f1 = SVNFileFilter.getFilter().accept(pathname);
-		// boolean f2 = !(pathname.isDirectory() && pathname.getName().equals("usmlib"));
-		// return f1 && f2;
-		// }
-		// });
+		// Copy additional files to service directory
+		if (additionalServiceFiles != null) {
+			for (File file : additionalServiceFiles) {
+				FileUtils.copyFileToDirectory(file, extFolder);
+			}
+		}
+
 		FileUtils.copyDirectory(srcFolder, extFolder);
 
 		logger.finer("copied files from " + srcFolder.getAbsolutePath() + " to " + extFolder.getAbsolutePath());
