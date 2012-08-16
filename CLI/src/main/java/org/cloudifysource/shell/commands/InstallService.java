@@ -113,7 +113,11 @@ public class InstallService extends AdminAwareCommand {
 					packedFile = Packager.pack(fullPathToRecipe, new File[] { cloudConfigurationZipFile });
 					service = ServiceReader.readService(fullPathToRecipe);
 				} else {
-					packedFile = Packager.pack(recipe, new File[] { cloudConfigurationZipFile });
+					if (cloudConfigurationZipFile != null) {
+						packedFile = Packager.pack(recipe, new File[] { cloudConfigurationZipFile });
+					} else {
+						packedFile = Packager.pack(recipe, new File[0]);
+					}
 					service = ServiceReader.readService(recipe);
 				}
 				packedFile.deleteOnExit();
