@@ -48,6 +48,7 @@ public class CloudProvider {
 
 	private String machineNamePrefix;
 
+	@Deprecated
 	private boolean dedicatedManagementMachines = true;
 
 	private List<String> managementOnlyFiles;
@@ -85,10 +86,12 @@ public class CloudProvider {
 		this.machineNamePrefix = machineNamePrefix;
 	}
 
+	@Deprecated
 	public boolean isDedicatedManagementMachines() {
 		return dedicatedManagementMachines;
 	}
 
+	@Deprecated
 	public void setDedicatedManagementMachines(final boolean dedicatedManagementMachines) {
 		this.dedicatedManagementMachines = dedicatedManagementMachines;
 	}
