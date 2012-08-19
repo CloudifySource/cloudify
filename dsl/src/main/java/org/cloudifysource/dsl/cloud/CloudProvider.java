@@ -54,6 +54,7 @@ public class CloudProvider {
 
 	private String sshLoggingLevel = Level.INFO.toString();
 
+	@Deprecated
 	private List<String> zones = Arrays.asList("agent");
 
 	private String managementGroup;
@@ -108,10 +109,12 @@ public class CloudProvider {
 		this.sshLoggingLevel = sshLoggingLevel;
 	}
 
+	@Deprecated
 	public List<String> getZones() {
 		return zones;
 	}
-
+	
+	@Deprecated
 	public void setZones(final List<String> zones) {
 		this.zones = zones;
 	}

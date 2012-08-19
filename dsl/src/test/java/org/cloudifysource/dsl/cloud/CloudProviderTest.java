@@ -33,7 +33,6 @@ public class CloudProviderTest {
 		fixture.setReservedMemoryCapacityPerMachineInMB(1);
 		fixture.setProvider("");
 		fixture.setManagementOnlyFiles(new ArrayList());
-		fixture.setZones(new ArrayList());
 		
 		fixture.setCloudifyUrl("");
 		fixture.setDedicatedManagementMachines(true);
@@ -64,7 +63,6 @@ public class CloudProviderTest {
 		fixture.setReservedMemoryCapacityPerMachineInMB(1);
 		fixture.setProvider("");
 		fixture.setManagementOnlyFiles(new ArrayList());
-		fixture.setZones(new ArrayList());
 		
 
 		fixture.setDedicatedManagementMachines(true);
