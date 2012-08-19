@@ -13,14 +13,14 @@ cloud {
 		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.0.1/gigaspaces-cloudify-2.0.1-m1-b1190-13.zip" 
 		machineNamePrefix "NOA_test.cli.cloudify.cloud.MissingPemEc2Testsgtest_cloudify_agent1"
 		
-		dedicatedManagementMachines true
+		
 		managementOnlyFiles ([])
 		
 
 		sshLoggingLevel "WARNING"
 		managementGroup "NOA_test.cli.cloudify.cloud.MissingPemEc2Testsgtest_test.cli.cloudify.cloud.MissingPemEc2Testsgtest_test.cli.cloudify.cloud.MissingPemEc2Testsgtest_test.cli.cloudify.cloud.MissingPemEc2Testsgtest_test.cli.cloudify.cloud.MissingPemEc2Testsgtest_test.cli.cloudify.cloud.CleanGSFilesByonTestsgtest_cloudify_manager_1"
 		numberOfManagementMachines 2
-		zones (["agent"])
+		
 		reservedMemoryCapacityPerMachineInMB 1024
 		
 	}

@@ -13,13 +13,13 @@ cloud {
 		//The machineNamePrefix property may not contain the char '_' in Rackspace
 		machineNamePrefix "agent"
 		
-		dedicatedManagementMachines true
+		
 		managementOnlyFiles ([])
 		
 		//The managementGroup property may not contain the char '_' in Rackspace
 		managementGroup "management"
 		numberOfManagementMachines 1
-		zones (["agent"])
+		
 		reservedMemoryCapacityPerMachineInMB 1024
 		
 		sshLoggingLevel "WARNING"

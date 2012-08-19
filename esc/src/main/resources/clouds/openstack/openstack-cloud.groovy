@@ -24,12 +24,12 @@ cloud {
 		
 		machineNamePrefix "cloudify_agent_"
 		
-		dedicatedManagementMachines true
+		
 		managementOnlyFiles ([])
 		
 		managementGroup "cloudify_manager"
 		numberOfManagementMachines 1
-		zones (["agent"])
+		
 		reservedMemoryCapacityPerMachineInMB 1024
 		
 		sshLoggingLevel "WARNING"

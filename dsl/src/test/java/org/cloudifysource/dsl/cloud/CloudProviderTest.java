@@ -35,7 +35,6 @@ public class CloudProviderTest {
 		fixture.setManagementOnlyFiles(new ArrayList());
 		
 		fixture.setCloudifyUrl("");
-		fixture.setDedicatedManagementMachines(true);
 		fixture.setNumberOfManagementMachines(1);
 		fixture.setManagementGroup("");
 		fixture.setCloudifyOverridesUrl("");
@@ -63,9 +62,6 @@ public class CloudProviderTest {
 		fixture.setReservedMemoryCapacityPerMachineInMB(1);
 		fixture.setProvider("");
 		fixture.setManagementOnlyFiles(new ArrayList());
-		
-
-		fixture.setDedicatedManagementMachines(true);
 		fixture.setNumberOfManagementMachines(1);
 		fixture.setManagementGroup("");
 		fixture.setCloudifyOverridesUrl("");

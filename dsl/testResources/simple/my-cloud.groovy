@@ -9,14 +9,14 @@ cloud2 {
 		machineNamePrefix "gs_esm_gsa_"
 		securityGroup "default"
 
-		dedicatedManagementMachines true
+		
 		managementOnlyFiles ([])
 		connectedToPrivateIp false
 
 		sshLoggingLevel java.util.logging.Level.WARNING
 		managementGroup "management_machine"
 		numberOfManagementMachines 2
-		zones (["agent"])
+		
 		reservedMemoryCapacityPerMachineInMB 1024
 	}
 	user {

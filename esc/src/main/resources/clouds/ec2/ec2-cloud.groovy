@@ -40,7 +40,7 @@ cloud {
 		machineNamePrefix "cloudify_agent_"
 		// Optional. Defaults to true. Specifies whether cloudify should try to deploy services on the management machine.
 		// Do not change this unless you know EXACTLY what you are doing.
-		dedicatedManagementMachines true
+		
 
 		//
 		managementOnlyFiles ([])
@@ -52,7 +52,7 @@ cloud {
 		managementGroup "cloudify_manager"
 		// Mandatory. Number of management machines to start on bootstrap-cloud. In production, should be 2. Can be 1 for dev.
 		numberOfManagementMachines 1
-		zones (["agent"])
+		
 
 		reservedMemoryCapacityPerMachineInMB 1024
 
