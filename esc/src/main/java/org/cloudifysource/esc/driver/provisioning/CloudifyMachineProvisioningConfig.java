@@ -69,7 +69,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 
 	private static final String LOCATOR_KEY = "locator";
 	private static final String SERVICE_CLOUD_CONFIGURATION_KEY = "SERVICE_CLOUD_CONFIGURATION_KEY";
-
+    
 	private StringProperties properties = new StringProperties(new HashMap<String, String>());
 
 	/****************
@@ -84,8 +84,6 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 			final String cloudFileContents, final String cloudTemplateName) {
 
 		setMinimumNumberOfCpuCoresPerMachine(template.getNumberOfCores());
-
-		setDedicatedManagementMachines(cloud.getProvider().isDedicatedManagementMachines());
 
 		setReservedMemoryCapacityPerMachineInMB(cloud.getProvider().getReservedMemoryCapacityPerMachineInMB());
 
@@ -307,5 +305,4 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 		return decodedFile;
 
 	}
-
 }
