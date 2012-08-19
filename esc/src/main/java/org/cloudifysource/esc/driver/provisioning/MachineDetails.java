@@ -17,7 +17,6 @@ package org.cloudifysource.esc.driver.provisioning;
 
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
-import org.cloudifysource.dsl.internal.CloudifyConstants;
 
 /*******
  * Described a Machine started by a cloud driver.

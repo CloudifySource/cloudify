@@ -18,9 +18,7 @@ package org.cloudifysource.esc.driver.provisioning.jclouds;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -46,8 +44,6 @@ import org.cloudifysource.esc.jclouds.JCloudsDeployer;
 import org.jclouds.compute.domain.ComputeMetadata;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.NodeState;
-import org.jclouds.domain.Location;
-import org.jclouds.domain.LocationScope;
 import org.jclouds.domain.LoginCredentials;
 
 import com.google.common.base.Predicate;

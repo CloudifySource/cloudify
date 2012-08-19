@@ -82,9 +82,6 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 			final String cloudFileContents, final String cloudTemplateName) {
 
 		setMinimumNumberOfCpuCoresPerMachine(template.getNumberOfCores());
-		properties.putArray(
-				ZONES_KEY, cloud.getProvider().getZones().toArray(
-						new String[0]), ZONES_SEPARATOR);
 
 		setDedicatedManagementMachines(cloud.getProvider().isDedicatedManagementMachines());
 

@@ -35,7 +35,6 @@ import net.jini.core.discovery.LookupLocator;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.commons.logging.impl.AvalonLogger;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -50,7 +49,6 @@ import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.util.Utils;
-import org.codehaus.groovy.util.StringUtil;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.AdminFactory;
@@ -163,10 +161,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		try {
 			cloudifyProvisioning.setAdmin(getGlobalAdminInstance(originalESMAdmin));
 			
-			List<String> cloudProviderZones = this.cloud.getProvider().getZones();
-			List<String> defaultZones = Arrays.asList(config.getGridServiceAgentZones());
-			defaultZones.addAll(cloudProviderZones);
-			
+			List<String> defaultZones = Arrays.asList(config.getGridServiceAgentZones());			
 			
 			List<String> cloudZones = new ArrayList<String>();
 			
@@ -184,7 +179,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				// to support choosing from many availability zones.
 				// logic goes here to choose exactly which one. 
 				// for now just take the first one.
-				machineDetails = provisionMachine(duration, unit, cloudZones.get(0)); 
+				machineDetails = provisionMachine(cloudZones.get(0), duration, unit); 
 				
 			} 
 			if (cloudZones.size() > 1) {
@@ -346,7 +341,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return remaining;
 	}
 
-	private MachineDetails provisionMachine(final long duration, final TimeUnit unit, String location)
+	private MachineDetails provisionMachine(final String location, final long duration, final TimeUnit unit)
 			throws TimeoutException, ElasticMachineProvisioningException {
 		
 		MachineDetails machineDetails;
@@ -373,7 +368,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	
 	private MachineDetails provisionMachine(final long duration, final TimeUnit unit)
 			throws TimeoutException, ElasticMachineProvisioningException {
-		return provisionMachine(duration, unit, null);
+		return provisionMachine(null, duration, unit);
 	}
 
 
