@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.cloudifysource.dsl.DataGrid;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
@@ -33,43 +32,15 @@ public class ElasticScaleConfigFactory {
 	private static final Logger logger = Logger.getLogger(ElasticScaleConfigFactory.class.getName());
 
 
-	/**
-	 * @param serviceName - the absolute name of the service
-	 * @param service - the service DSL or null if not exists
-	 * @param externalProcessMemoryInMB - MB memory allocated for the GSC plus the external service.
-	 * @return a @{link ManualCapacityScaleConfig} based on the specified service and memory.
-	 */
-	public static ManualCapacityScaleConfig createManualCapacityScaleConfig(
-			final String serviceName, 
-			Service service,
-			final int externalProcessMemoryInMB)
-			throws DSLException {
-
-		if (externalProcessMemoryInMB <= 0) {
-			throw new IllegalArgumentException ("externalProcessMemoryInMB must be positive");
-		}
-		
-		int numberOfInstances = 1;
-		if (service == null) {
-			logger.info("Deploying service " + serviceName + " without a recipe. Assuming number of instances is 1");
-		} else if (service.getNumInstances() > 0) {
-			numberOfInstances = service.getNumInstances();
-			logger.info("Deploying service " + serviceName + " with " + numberOfInstances + " instances.");
-		} else {
-			throw new DSLException("Number of instances must be at least 1");
-		}
-
-		return new ManualCapacityScaleConfigurer().memoryCapacity(
-				externalProcessMemoryInMB * numberOfInstances, MemoryUnit.MEGABYTES).create();
+	public static ManualCapacityScaleConfig createManualCapacityScaleConfig(int totalMemoryInMB) {
+		return new ManualCapacityScaleConfigurer()
+			   .memoryCapacity(totalMemoryInMB, MemoryUnit.MEGABYTES)
+			   .atMostOneContainerPerMachine()
+			   .create();
 	}
 
 	public static EagerScaleConfig createEagerScaleConfig() {
 		return new EagerScaleConfigurer().atMostOneContainerPerMachine().create();
-	}
-
-	public static ManualCapacityScaleConfig createManualCapacityScaleConfig(final DataGrid dataGridConfig) {
-		return new ManualCapacityScaleConfigurer().memoryCapacity(
-				dataGridConfig.getSla().getMemoryCapacity(), MemoryUnit.MEGABYTES).create();
 	}
 
 	/**

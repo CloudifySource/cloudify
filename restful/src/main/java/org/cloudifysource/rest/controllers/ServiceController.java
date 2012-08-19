@@ -1403,9 +1403,9 @@ public class ServiceController {
 				// local cloud
 				if (service == null || service.getScalingRules() == null) {
 
+					int totalMemoryInMB = calculateTotalMemoryInMB(serviceName, service, externalProcessMemoryInMB);
 					final ManualCapacityScaleConfig scaleConfig =
-							ElasticScaleConfigFactory.createManualCapacityScaleConfig(serviceName, service,
-									externalProcessMemoryInMB);
+							new ManualCapacityScaleConfigurer().memoryCapacity(totalMemoryInMB,MemoryUnit.MEGABYTES).create();
 					deployment.scale(scaleConfig);
 				} else {
 					final AutomaticCapacityScaleConfig scaleConfig =
@@ -1439,10 +1439,9 @@ public class ServiceController {
 			deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
 
 			if (service == null || service.getScalingRules() == null) {
-
+				int totalMemoryInMB = calculateTotalMemoryInMB(serviceName, service, (int) cloudExternalProcessMemoryInMB);
 				final ManualCapacityScaleConfig scaleConfig =
-						ElasticScaleConfigFactory.createManualCapacityScaleConfig(serviceName, service,
-								(int) cloudExternalProcessMemoryInMB);
+						ElasticScaleConfigFactory.createManualCapacityScaleConfig(totalMemoryInMB);
 
 				scaleConfig.setAtMostOneContainerPerMachine(true);
 				deployment.scale(scaleConfig);
@@ -1463,6 +1462,35 @@ public class ServiceController {
 
 	}
 
+	/**
+	 * @param serviceName - the absolute name of the service
+	 * @param service - the service DSL or null if not exists
+	 * @param externalProcessMemoryInMB - MB memory allocated for the GSC plus the external service.
+	 * @return a @{link ManualCapacityScaleConfig} based on the specified service and memory.
+	 */
+	public static int calculateTotalMemoryInMB(
+			final String serviceName, 
+			Service service,
+			final int externalProcessMemoryInMB)
+			throws DSLException {
+
+		if (externalProcessMemoryInMB <= 0) {
+			throw new IllegalArgumentException ("externalProcessMemoryInMB must be positive");
+		}
+		
+		int numberOfInstances = 1;
+		if (service == null) {
+			logger.info("Deploying service " + serviceName + " without a recipe. Assuming number of instances is 1");
+		} else if (service.getNumInstances() > 0) {
+			numberOfInstances = service.getNumInstances();
+			logger.info("Deploying service " + serviceName + " with " + numberOfInstances + " instances.");
+		} else {
+			throw new DSLException("Number of instances must be at least 1");
+		}
+
+		return externalProcessMemoryInMB * numberOfInstances;
+	}
+	
 	private static String extractLocators(final Admin admin) {
 
 		final LookupLocator[] locatorsArray = admin.getLocators();
@@ -1783,7 +1811,8 @@ public class ServiceController {
 			setSharedMachineProvisioning(deployment, zone, reservedMemoryCapacityPerMachineInMB);
 
 			if (isLocalCloud()) {
-				deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(dataGridConfig));
+				deployment.scale(new ManualCapacityScaleConfigurer().memoryCapacity(
+				dataGridConfig.getSla().getMemoryCapacity(), MemoryUnit.MEGABYTES).create());
 
 			} else {
 				// eager scaling. 1 container per machine
@@ -1809,9 +1838,8 @@ public class ServiceController {
 			setDedicatedMachineProvisioning(deployment, config);
 			deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
 
-			deployment.scale(new ManualCapacityScaleConfigurer()
-					.memoryCapacity((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES)
-					.atMostOneContainerPerMachine().create());
+			//TODO: [itaif] Why only capacity of one container ?
+			deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig((int) cloudExternalProcessMemoryInMB));
 		}
 
 		deployAndWait(serviceName, deployment);
@@ -1887,9 +1915,7 @@ public class ServiceController {
 			setDedicatedMachineProvisioning(deployment, config);
 			deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
 
-			deployment.scale(new ManualCapacityScaleConfigurer()
-					.memoryCapacity(containerMemoryInMB * numberOfInstances, MemoryUnit.MEGABYTES)
-					.atMostOneContainerPerMachine().create());
+			deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(containerMemoryInMB * numberOfInstances));
 		}
 		deployAndWait(serviceName, deployment);
 		jarFile.delete();
@@ -1951,9 +1977,7 @@ public class ServiceController {
 
 			setDedicatedMachineProvisioning(deployment, config);
 
-			deployment.scale(new ManualCapacityScaleConfigurer()
-					.memoryCapacity(puConfig.getSla().getMemoryCapacity(), MemoryUnit.MEGABYTES)
-					.atMostOneContainerPerMachine().create());
+			deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(puConfig.getSla().getMemoryCapacity()));
 
 		}
 
@@ -2076,9 +2100,7 @@ public class ServiceController {
 
 			final CloudTemplate template = getComputeTemplate(cloud, templateName);
 			final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
-			pu.scale(new ManualCapacityScaleConfigurer()
-					.memoryCapacity((int) (cloudExternalProcessMemoryInMB * count), MemoryUnit.MEGABYTES)
-					.atMostOneContainerPerMachine().create());
+			pu.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig((int) (cloudExternalProcessMemoryInMB * count)));
 		}
 
 		logger.log(Level.INFO, "Starting to poll for lifecycle events.");
