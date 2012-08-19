@@ -43,6 +43,9 @@ public class SetInstances extends AdminAwareCommand {
 	@Option(required = false, name = "-timeout", description = "number of minutes to wait for instances. Default is set to 1 minute")
 	protected int timeout = DEFAULT_TIMEOUT_MINUTES;
 
+	@Option(required = false, name = "-location-affinity", description = "When true re-starts failed machines in the same cloud location. Default is set to false.")
+	protected boolean locationAffinity = false;
+	
 	private static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out. " 
 			+ "Try to increase the timeout using the -timeout flag";
 
@@ -81,7 +84,7 @@ public class SetInstances extends AdminAwareCommand {
 			return getFormattedMessage("num_instanes_already_met", count);
 		}
 
-		Map<String, String> response = adminFacade.setInstances(applicationName, serviceName, count, timeout);
+		Map<String, String> response = adminFacade.setInstances(applicationName, serviceName, count, locationAffinity, timeout);
 
 		String pollingID = response.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
 		RestLifecycleEventsLatch lifecycleEventsPollingLatch = 
