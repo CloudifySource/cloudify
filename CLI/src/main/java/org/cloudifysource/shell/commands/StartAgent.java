@@ -97,7 +97,7 @@ public class    StartAgent extends AbstractGSCommand {
 		installer.setNicAddress(nicAddress);
 		installer.setProgressInSeconds(DEFAULT_POLLING_INTERVAL);
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
-		installer.setZone(zone);
+		installer.setGridServiceAgentZone(zone);
 		installer.setAutoShutdown(autoShutdown);
 
 		installer.startAgentOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);

@@ -89,6 +89,7 @@ public class LocalhostGridAgentBootstrapper {
 	private static final String MANAGEMENT_APPLICATION = ManagementWebServiceInstaller.MANAGEMENT_APPLICATION_NAME;
 	private static final String GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE = "gsm.excludeGscOnFailedInstance.disabled";
 	private static final String LUS_PORT_CONTEXT_PROPERTY = "com.sun.jini.reggie.initialUnicastDiscoveryPort";
+	private static final String ZONES_PROPERTY = "com.gs.zones";
 	private static final String AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT = "-Dcom.gs.agent.auto-shutdown-enabled=true";
 	private static final int WAIT_AFTER_ADMIN_CLOSED_MILLIS = 10 * 1000;
 	private static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out waiting for the agent to start."
@@ -109,8 +110,8 @@ public class LocalhostGridAgentBootstrapper {
 	private static final String MANAGEMENT_SPACE_NAME = CloudifyConstants.MANAGEMENT_SPACE_NAME;
 
 	private static final String LINUX_SCRIPT_PREFIX = "#!/bin/bash\n";
-	private static final String MANAGEMENT_GSA_ZONE = "management";
-	private static final String LOCALCLOUD_GSA_ZONE = MANAGEMENT_GSA_ZONE+",localcloud";
+	private static final String MANAGEMENT_ZONE = "management";
+	private static final String LOCALCLOUD_GSA_ZONES = MANAGEMENT_ZONE+",localcloud";
 	private static final long WAIT_EXISTING_AGENT_TIMEOUT_SECONDS = 10;
 
 	// management agent starts 1 global esm, 1 gsm,1 lus
@@ -140,7 +141,7 @@ public class LocalhostGridAgentBootstrapper {
 	private String lookupGroups;
 	private String lookupLocators;
 	private String nicAddress;
-	private String zone;
+	private String gsaZones;
 	private int progressInSeconds;
 	private AdminFacade adminFacade;
 	private boolean noWebServices;
@@ -200,8 +201,8 @@ public class LocalhostGridAgentBootstrapper {
 	 * @param zone
 	 *            Zone name
 	 */
-	public void setZone(final String zone) {
-		this.zone = zone;
+	public void setGridServiceAgentZone(final String zone) {
+		this.gsaZones = zone;
 	}
 
 	/**
@@ -316,7 +317,7 @@ public class LocalhostGridAgentBootstrapper {
 	public void startLocalCloudOnLocalhostAndWait(final int timeout, final TimeUnit timeunit) throws CLIException,
 			InterruptedException, TimeoutException {
 
-		setZone(LOCALCLOUD_GSA_ZONE);
+		setGridServiceAgentZone(LOCALCLOUD_GSA_ZONES);
 		
 		setDefaultNicAddress();
 
@@ -369,7 +370,7 @@ public class LocalhostGridAgentBootstrapper {
 	public void startManagementOnLocalhostAndWait(final int timeout, final TimeUnit timeunit) throws CLIException,
 			InterruptedException, TimeoutException {
 
-		setZone(MANAGEMENT_GSA_ZONE);
+		setGridServiceAgentZone(MANAGEMENT_ZONE);
 
 		setDefaultNicAddress();
 
@@ -778,6 +779,10 @@ public class LocalhostGridAgentBootstrapper {
 			TimeoutException {
 		final long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
 
+		if (gsaZones == null || gsaZones.isEmpty()) {
+			throw new CLIException("Agent must be started with a zone");
+		}
+		
 		final ConnectionLogsFilter connectionLogs = new ConnectionLogsFilter();
 		connectionLogs.supressConnectionErrors();
 		final Admin admin = createAdmin();
@@ -819,7 +824,7 @@ public class LocalhostGridAgentBootstrapper {
 					managementSpaceInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
 					managementSpaceInstaller.setMemory(MANAGEMENT_SPACE_MEMORY_IN_MB, MemoryUnit.MEGABYTES);
 					managementSpaceInstaller.setServiceName(MANAGEMENT_SPACE_NAME);
-					managementSpaceInstaller.setManagementZone(MANAGEMENT_GSA_ZONE);
+					managementSpaceInstaller.setManagementZone(MANAGEMENT_ZONE);
 					managementSpaceInstaller.setHighlyAvailable(highlyAvailable);
 					managementSpaceInstaller.addListeners(this.eventsListenersList);
 					try {
@@ -842,7 +847,7 @@ public class LocalhostGridAgentBootstrapper {
 					webuiInstaller.setPort(WEBUI_PORT);
 					webuiInstaller.setWarFile(new File(WEBUI_FILE));
 					webuiInstaller.setServiceName(WEBUI_NAME);
-					webuiInstaller.setManagementZone(MANAGEMENT_GSA_ZONE);
+					webuiInstaller.setManagementZone(MANAGEMENT_ZONE);
 					webuiInstaller.addListeners(this.eventsListenersList);
 					try {
 						webuiInstaller.install();
@@ -867,7 +872,7 @@ public class LocalhostGridAgentBootstrapper {
 					restInstaller.setPort(REST_PORT);
 					restInstaller.setWarFile(new File(REST_FILE));
 					restInstaller.setServiceName(REST_NAME);
-					restInstaller.setManagementZone(MANAGEMENT_GSA_ZONE);
+					restInstaller.setManagementZone(MANAGEMENT_ZONE);
 					restInstaller.dependencies.add(CloudifyConstants.MANAGEMENT_SPACE_NAME);
 					restInstaller.setWaitForConnection();
 					restInstaller.addListeners(this.eventsListenersList);
@@ -968,7 +973,7 @@ public class LocalhostGridAgentBootstrapper {
 	public void startAgentOnLocalhostAndWait(final long timeout, final TimeUnit timeunit) throws CLIException,
 			InterruptedException, TimeoutException {
 
-		if (zone == null || zone.isEmpty()) {
+		if (gsaZones == null || gsaZones.isEmpty()) {
 			throw new CLIException("Agent must be started with a zone");
 		}
 
@@ -1197,10 +1202,12 @@ public class LocalhostGridAgentBootstrapper {
 		if (autoShutdown) {
 			gsaJavaOptions += " " + AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT;
 		}
-		String lusJavaOptions = "-Xmx" + LUS_MEMORY_IN_MB + "m" + " -D" + LUS_PORT_CONTEXT_PROPERTY + "=" + lusPort;
+		String lusJavaOptions = "-Xmx" + LUS_MEMORY_IN_MB + "m" + " -D" + LUS_PORT_CONTEXT_PROPERTY + "=" + lusPort
+																+ " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;		
 		String gsmJavaOptions = "-Xmx" + GSM_MEMORY_IN_MB + "m" + " -D" + LUS_PORT_CONTEXT_PROPERTY + "=" + lusPort 
-																+ " -D" + GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "=" + GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL;
-		String esmJavaOptions = "-Xmx" + ESM_MEMORY_IN_MB + "m";
+																+ " -D" + GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "=" + GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL
+																+ " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;
+		String esmJavaOptions = "-Xmx" + ESM_MEMORY_IN_MB + "m" + " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;			
 		String gscJavaOptions = "";
 
 		final Map<String, String> environment = pb.environment();
@@ -1223,8 +1230,8 @@ public class LocalhostGridAgentBootstrapper {
 		}
 		environment.put("RMI_OPTIONS", "");
 
-		if (zone != null) {
-			gsaJavaOptions += " -Dcom.gs.zones=" + zone;
+		if (gsaZones != null) {
+			gsaJavaOptions += " -D"+ZONES_PROPERTY+"=" + gsaZones;
 		}
 		
 		environment.put("GSA_JAVA_OPTIONS", gsaJavaOptions);
