@@ -47,12 +47,14 @@ import org.cloudifysource.shell.rest.RestAdminFacade;
 		description = "Starts Cloudify Agent without any zone, and the Cloudify management processes on the provided cloud.")
 public class BootstrapCloud extends AbstractGSCommand {
 
+	private static final int DEFAULT_TIMEOUT_MINUTES = 60;
+
 	@Argument(required = true, name = "provider", description = "the cloud provider to use")
 	String cloudProvider;
 
 	@Option(required = false, name = "-timeout",
-			description = "The number of minutes to wait until the operation is done. By default waits 5 minutes.")
-	int timeoutInMinutes = 60;
+			description = "The number of minutes to wait until the operation is done.")
+	int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
 
 	
 	private static final String[] NON_VERBOSE_LOGGERS = { DefaultProvisioningDriver.class.getName(), AgentlessInstaller.class.getName() };
