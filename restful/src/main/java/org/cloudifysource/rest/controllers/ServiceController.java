@@ -113,6 +113,7 @@ import org.openspaces.admin.pu.elastic.ElasticMachineProvisioningConfig;
 import org.openspaces.admin.pu.elastic.ElasticStatefulProcessingUnitDeployment;
 import org.openspaces.admin.pu.elastic.ElasticStatelessProcessingUnitDeployment;
 import org.openspaces.admin.pu.elastic.config.AutomaticCapacityScaleConfig;
+import org.openspaces.admin.pu.elastic.config.DiscoveredMachineProvisioningConfig;
 import org.openspaces.admin.pu.elastic.config.DiscoveredMachineProvisioningConfigurer;
 import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfig;
 import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfigurer;
@@ -1371,7 +1372,7 @@ public class ServiceController {
 	}
 
 	private void doDeploy(final String applicationName, final String serviceName, final String templateName,
-			final String zone, final File serviceFile, final Properties contextProperties, final Service service, 
+			final String[] agentZones, final File serviceFile, final Properties contextProperties, final Service service, 
 			final byte[] serviceCloudConfigurationContents)
 			throws TimeoutException, DSLException{
 
@@ -1385,22 +1386,18 @@ public class ServiceController {
 		final int reservedMemoryCapacityPerMachineInMB = 256;
 
 		contextProperties.put(CloudifyConstants.CONTEXT_PROPERTY_ASYNC_INSTALL, "true");
-
+		
 		final ElasticStatelessProcessingUnitDeployment deployment =
 				new ElasticStatelessProcessingUnitDeployment(serviceFile)
 						.memoryCapacityPerContainer(externalProcessMemoryInMB, MemoryUnit.MEGABYTES)
 						.addCommandLineArgument("-Xmx" + containerMemoryInMB + "m")
 						.addCommandLineArgument("-Xms" + containerMemoryInMB + "m")
 						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName)
-						.name(serviceName)
-						// All PUs on this role share the same machine. Machines
-						// are identified by zone.
-						.sharedMachineProvisioning(
-								SHARED_ISOLATION_ID,
-								new DiscoveredMachineProvisioningConfigurer()
-										.addGridServiceAgentZone(zone)
-										.reservedMemoryCapacityPerMachine(reservedMemoryCapacityPerMachineInMB,
-												MemoryUnit.MEGABYTES).create());
+						.name(serviceName);
+		
+		// All PUs on this role share the same machine. 
+		// Machines are identified by zone.
+		setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
 
 		if (cloud == null) {
 			if (!isLocalCloud()) {
@@ -1431,7 +1428,7 @@ public class ServiceController {
 			final CloudifyMachineProvisioningConfig config =
 					new CloudifyMachineProvisioningConfig(cloud, template, cloudFileContents, templateName);
 
-			final String[] zones = new String[] { serviceName };
+			final String[] zones = new String[] { serviceName }; //TODO: [itaif] consider using agentZones
 
 			config.setGridServiceAgentZones(zones);
 
@@ -1625,28 +1622,28 @@ public class ServiceController {
 
 		}
 
-		String fixedZone = zone;
+		String[] agentZones;
 		if (isLocalCloud()) {
-			if (!fixedZone.isEmpty()) {
-				fixedZone += ",";
-			}
-			fixedZone += LOCALCLOUD_ZONE;
+			agentZones = new String[] { zone, LOCALCLOUD_ZONE};
+		}
+		else {
+			agentZones = new String[] { zone };
 		}
 		
 		if (service == null) {
-			doDeploy(applicationName, serviceName, templateName, fixedZone, srcFile, propsFile);
+			doDeploy(applicationName, serviceName, templateName, agentZones, srcFile, propsFile);
 		} else if (service.getLifecycle() != null) {
-			doDeploy(applicationName, serviceName, templateName, fixedZone, srcFile, propsFile, service, serviceCloudConfigurationContents);
+			doDeploy(applicationName, serviceName, templateName, agentZones, srcFile, propsFile, service, serviceCloudConfigurationContents);
 		} else if (service.getDataGrid() != null) {
-			deployDataGrid(applicationName, serviceName, fixedZone, srcFile, propsFile, service.getDataGrid(), templateName, service.isLocationAware());
+			deployDataGrid(applicationName, serviceName, agentZones, srcFile, propsFile, service.getDataGrid(), templateName, service.isLocationAware());
 		} else if (service.getStatelessProcessingUnit() != null) {
-			deployStatelessProcessingUnitAndWait(applicationName, serviceName, fixedZone, new File(projectDir, "ext"),
+			deployStatelessProcessingUnitAndWait(applicationName, serviceName, agentZones, new File(projectDir, "ext"),
 					propsFile, service.getStatelessProcessingUnit(), templateName, service.getNumInstances(), service.isLocationAware());
 		} else if (service.getMirrorProcessingUnit() != null) {
-			deployStatelessProcessingUnitAndWait(applicationName, serviceName, fixedZone, new File(projectDir, "ext"),
+			deployStatelessProcessingUnitAndWait(applicationName, serviceName, agentZones, new File(projectDir, "ext"),
 					propsFile, service.getMirrorProcessingUnit(), templateName, service.getNumInstances(),  service.isLocationAware());
 		} else if (service.getStatefulProcessingUnit() != null) {
-			deployStatefulProcessingUnit(applicationName, serviceName, fixedZone, new File(projectDir, "ext"), propsFile,
+			deployStatefulProcessingUnit(applicationName, serviceName, agentZones, new File(projectDir, "ext"), propsFile,
 					service.getStatefulProcessingUnit(), templateName,  service.isLocationAware());
 		} else {
 			throw new IllegalStateException("Unsupported service type");
@@ -1680,10 +1677,10 @@ public class ServiceController {
 	}
 
 	private void doDeploy(final String applicationName, final String serviceName, final String templateName,
-			final String zone, final File srcFile,
+			final String[] agentZones, final File srcFile,
 			final Properties propsFile)
 			throws TimeoutException, DSLException {
-		doDeploy(applicationName, serviceName, templateName, zone, srcFile, propsFile, null, null);
+		doDeploy(applicationName, serviceName, templateName, agentZones, srcFile, propsFile, null, null);
 	}
 
 	// TODO: add getters for service processing units in the service class that
@@ -1796,7 +1793,7 @@ public class ServiceController {
 
 	// TODO: consider adding MemoryUnits to DSL
 	// TODO: add memory unit to names
-	private void deployDataGrid(final String applicationName, final String serviceName, final String zone,
+	private void deployDataGrid(final String applicationName, final String serviceName, final String[] agentZones,
 			final File srcFile, final Properties contextProperties, final DataGrid dataGridConfig,
 			final String templateName, final boolean locationAware)
 			throws AdminException, TimeoutException, DSLException {
@@ -1819,7 +1816,7 @@ public class ServiceController {
 		setContextProperties(deployment, contextProperties);
 
 		if (cloud == null) {
-			setSharedMachineProvisioning(deployment, zone, reservedMemoryCapacityPerMachineInMB);
+			setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
 
 			if (isLocalCloud()) {
 				deployment.scale(new ManualCapacityScaleConfigurer().memoryCapacity(
@@ -1864,15 +1861,18 @@ public class ServiceController {
 		}
 	}
 
-	private void setSharedMachineProvisioning(final ElasticDeploymentTopology deployment, final String zone,
+	private void setSharedMachineProvisioning(final ElasticDeploymentTopology deployment, final String[] agentZones,
 			final int reservedMemoryCapacityPerMachineInMB) {
 		// All PUs on this role share the same machine. Machines
 		// are identified by zone.
-		deployment.sharedMachineProvisioning(SHARED_ISOLATION_ID,
-				new DiscoveredMachineProvisioningConfigurer().addGridServiceAgentZone(zone)
-						.reservedMemoryCapacityPerMachine(reservedMemoryCapacityPerMachineInMB, MemoryUnit.MEGABYTES)
-						.removeGridServiceAgentsWithoutZone()
-						.create());
+		DiscoveredMachineProvisioningConfig machineProvisioning = 
+				new DiscoveredMachineProvisioningConfigurer()
+				.reservedMemoryCapacityPerMachine(reservedMemoryCapacityPerMachineInMB, MemoryUnit.MEGABYTES)
+				.create();
+		machineProvisioning.setGridServiceAgentZones(agentZones);
+		
+		
+		deployment.sharedMachineProvisioning(SHARED_ISOLATION_ID, machineProvisioning);
 	}
 
 	private void setDedicatedMachineProvisioning(final ElasticDeploymentTopology deployment,
@@ -1881,7 +1881,7 @@ public class ServiceController {
 	}
 
 	private void deployStatelessProcessingUnitAndWait(final String applicationName, final String serviceName,
-			final String zone, final File extractedServiceFolder, final Properties contextProperties,
+			final String[] agentZones, final File extractedServiceFolder, final Properties contextProperties,
 			final StatelessProcessingUnit puConfig, final String templateName, final int numberOfInstances, 
 			final boolean locationAware)
 			throws IOException, AdminException, TimeoutException, DSLException {
@@ -1901,7 +1901,7 @@ public class ServiceController {
 		setContextProperties(deployment, contextProperties);
 
 		if (cloud == null) {
-			setSharedMachineProvisioning(deployment, zone, reservedMemoryCapacityPerMachineInMB);
+			setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
 			verifyEsmExistsInCluster();
 
 			if (isLocalCloud()) {
@@ -1947,7 +1947,7 @@ public class ServiceController {
 
 	// TODO:Clean this class it has a lot of code duplications
 	private void deployStatefulProcessingUnit(final String applicationName, final String serviceName,
-			final String zone, final File extractedServiceFolder, final Properties contextProperties,
+			final String[] agentZones, final File extractedServiceFolder, final Properties contextProperties,
 			final StatefulProcessingUnit puConfig, final String templateName, final boolean locationAware)
 			throws IOException, AdminException, TimeoutException, DSLException {
 
@@ -1966,7 +1966,7 @@ public class ServiceController {
 		setContextProperties(deployment, contextProperties);
 
 		if (cloud == null) {
-			setSharedMachineProvisioning(deployment, zone, reservedMemoryCapacityPerMachineInMB);
+			setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
 			verifyEsmExistsInCluster();
 			if (isLocalCloud()) {
 				deployment.scale(new ManualCapacityScaleConfigurer().memoryCapacity(
