@@ -1832,6 +1832,7 @@ public class ServiceController {
 		deployment.sharedMachineProvisioning(SHARED_ISOLATION_ID,
 				new DiscoveredMachineProvisioningConfigurer().addGridServiceAgentZone(zone)
 						.reservedMemoryCapacityPerMachine(reservedMemoryCapacityPerMachineInMB, MemoryUnit.MEGABYTES)
+						.removeGridServiceAgentsWithoutZone()
 						.create());
 	}
 
