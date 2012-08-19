@@ -110,6 +110,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	private static final String LINUX_SCRIPT_PREFIX = "#!/bin/bash\n";
 	private static final String MANAGEMENT_GSA_ZONE = "management";
+	private static final String LOCALCLOUD_GSA_ZONE = MANAGEMENT_GSA_ZONE+",localcloud";
 	private static final long WAIT_EXISTING_AGENT_TIMEOUT_SECONDS = 10;
 
 	// management agent starts 1 global esm, 1 gsm,1 lus
@@ -315,6 +316,8 @@ public class LocalhostGridAgentBootstrapper {
 	public void startLocalCloudOnLocalhostAndWait(final int timeout, final TimeUnit timeunit) throws CLIException,
 			InterruptedException, TimeoutException {
 
+		setZone(LOCALCLOUD_GSA_ZONE);
+		
 		setDefaultNicAddress();
 
 		setDefaultLocalcloudLookup();
@@ -545,10 +548,6 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	private void setDefaultLocalcloudLookup() {
-
-		if (zone != null) {
-			throw new IllegalStateException("Local-cloud does not use zones");
-		}
 
 		lusPort = CloudifyConstants.DEFAULT_LOCALCLOUD_LUS_PORT;
 

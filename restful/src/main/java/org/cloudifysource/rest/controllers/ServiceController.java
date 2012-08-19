@@ -1586,21 +1586,28 @@ public class ServiceController {
 
 		}
 
+		String fixedZone = zone;
+		if (isLocalCloud()) {
+			if (!fixedZone.isEmpty()) {
+				fixedZone += ",";
+			}
+			fixedZone += "localcloud";
+		}
+		
 		if (service == null) {
-			doDeploy(applicationName, serviceName, templateName, zone, srcFile, propsFile);
+			doDeploy(applicationName, serviceName, templateName, fixedZone, srcFile, propsFile);
 		} else if (service.getLifecycle() != null) {
-			doDeploy(applicationName, serviceName, templateName, zone, srcFile, propsFile, service,
-					serviceCloudConfigurationContents);
+			doDeploy(applicationName, serviceName, templateName, fixedZone, srcFile, propsFile, service, serviceCloudConfigurationContents);
 		} else if (service.getDataGrid() != null) {
-			deployDataGrid(applicationName, serviceName, zone, srcFile, propsFile, service.getDataGrid(), templateName);
+			deployDataGrid(applicationName, serviceName, fixedZone, srcFile, propsFile, service.getDataGrid(), templateName);
 		} else if (service.getStatelessProcessingUnit() != null) {
-			deployStatelessProcessingUnitAndWait(applicationName, serviceName, zone, new File(projectDir, "ext"),
+			deployStatelessProcessingUnitAndWait(applicationName, serviceName, fixedZone, new File(projectDir, "ext"),
 					propsFile, service.getStatelessProcessingUnit(), templateName, service.getNumInstances());
 		} else if (service.getMirrorProcessingUnit() != null) {
-			deployStatelessProcessingUnitAndWait(applicationName, serviceName, zone, new File(projectDir, "ext"),
+			deployStatelessProcessingUnitAndWait(applicationName, serviceName, fixedZone, new File(projectDir, "ext"),
 					propsFile, service.getMirrorProcessingUnit(), templateName, service.getNumInstances());
 		} else if (service.getStatefulProcessingUnit() != null) {
-			deployStatefulProcessingUnit(applicationName, serviceName, zone, new File(projectDir, "ext"), propsFile,
+			deployStatefulProcessingUnit(applicationName, serviceName, fixedZone, new File(projectDir, "ext"), propsFile,
 					service.getStatefulProcessingUnit(), templateName);
 		} else {
 			throw new IllegalStateException("Unsupported service type");
