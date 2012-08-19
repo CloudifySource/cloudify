@@ -25,6 +25,8 @@ import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.openspaces.admin.pu.elastic.ElasticMachineProvisioningConfig;
+import org.openspaces.admin.zone.config.AtLeastOneZoneConfig;
+import org.openspaces.admin.zone.config.AtLeastOneZoneConfigurer;
 import org.openspaces.core.util.StringProperties;
 import org.openspaces.grid.gsm.capacity.CapacityRequirement;
 import org.openspaces.grid.gsm.capacity.CapacityRequirements;
@@ -229,9 +231,10 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	}
 
 	@Override
-	public String[] getGridServiceAgentZones() {
-		return properties.getArray(
+	public AtLeastOneZoneConfig getGridServiceAgentZones() {
+		String[] zones = properties.getArray(
 				ZONES_KEY, ZONES_SEPARATOR, ZONES_DEFAULT);
+		return new AtLeastOneZoneConfigurer().addZones(zones).create();
 	}
 
 	/************

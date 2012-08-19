@@ -53,6 +53,7 @@ import org.codehaus.jackson.type.JavaType;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
 import org.openspaces.admin.gsm.GridServiceManagers;
+import org.openspaces.admin.zone.config.ExactZonesConfig;
 
 import com.gigaspaces.internal.utils.StringUtils;
 
@@ -430,7 +431,7 @@ public final class Utils {
 	 * @throws FileNotFoundException if a key file is specified and is not found.
 	 */
 	public static InstallationDetails createInstallationDetails(final MachineDetails md,
-			final Cloud cloud, final CloudTemplate template, final String[] zones,
+			final Cloud cloud, final CloudTemplate template, final ExactZonesConfig zones,
 			final String lookupLocatorsString, final Admin admin, final boolean isManagement, final File cloudFile)
 			throws FileNotFoundException {
 
@@ -449,12 +450,8 @@ public final class Utils {
 		details.setManagementOnlyFiles(managementOnlyFiles);
 
 		details.setManagementOnlyFiles(cloud.getProvider().getManagementOnlyFiles());
-
-		// we add the machine location id to the zone.
-		// this way in case this machine failes, we can look at the zones and conclude where it was allocated.
-		final String[] zonesWithLocation = StringUtils.addStringToArray(zones, md.getLocationId());
 		
-		details.setZones(StringUtils.join(zonesWithLocation, ",", 0, zonesWithLocation.length));
+		details.setZones(StringUtils.collectionToCommaDelimitedString(zones.getZones()));
 
 		details.setPrivateIp(md.getPrivateAddress());
 		details.setPublicIp(md.getPublicAddress());
