@@ -71,7 +71,6 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	protected final List<ProvisioningDriverListener> eventsListenersList = new LinkedList<ProvisioningDriverListener>();
 
 	protected final Map<String, Long> stoppingMachines = new ConcurrentHashMap<String, Long>();
-	protected String[] zones;
 
 	/**
 	 * Initializing the cloud deployer according to the given cloud configuration.
@@ -114,12 +113,11 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 
 	@Override
 	public void setConfig(final Cloud cloud, final String cloudTemplateName, 
-			final boolean management, final String[] zones) {
+			final boolean management) {
 
 		this.cloud = cloud;
 		this.cloudTemplateName = cloudTemplateName;
 		this.management = management;
-		this.zones = zones;
 		this.cloudName = cloud.getName();
 		publishEvent(EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
 		initDeployer(cloud);

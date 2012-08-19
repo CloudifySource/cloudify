@@ -58,7 +58,6 @@ public abstract class CloudDriverSupport implements ProvisioningDriver {
 
 	// maps ip to time when last shut down request for that machine was sent
 	private final Map<String, Long> stoppingMachines = new ConcurrentHashMap<String, Long>();
-	protected String[] zones;
 
 	private static final int MULTIPLE_SHUTDOWN_REQUEST_IGNORE_TIMEOUT = 120000;
 
@@ -104,12 +103,11 @@ public abstract class CloudDriverSupport implements ProvisioningDriver {
 	}
 
 	@Override
-	public void setConfig(final Cloud cloud, final String templateName, final boolean management, final String[] zones) {
+	public void setConfig(final Cloud cloud, final String templateName, final boolean management) {
 		
 		this.cloud = cloud;
 		this.management = management;
 		this.templateName = templateName;
-		this.zones = zones;
 		
 		if (this.cloud.getTemplates().isEmpty()) {
 			throw new IllegalArgumentException("No templates defined for this cloud");

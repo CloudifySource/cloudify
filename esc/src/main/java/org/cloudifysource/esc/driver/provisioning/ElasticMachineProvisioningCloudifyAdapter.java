@@ -18,7 +18,6 @@ package org.cloudifysource.esc.driver.provisioning;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -477,9 +476,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	public void afterPropertiesSet()
 			throws Exception {
 
-		final String[] zones = this.config.getGridServiceAgentZones().getZones().toArray(new String[0]);
 		logger = java.util.logging.Logger
-				.getLogger(ElasticMachineProvisioningCloudifyAdapter.class.getName() + "-" + Arrays.toString(zones));
+				.getLogger(ElasticMachineProvisioningCloudifyAdapter.class.getName());
 
 		final String cloudContents = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION);
 		if (cloudContents == null) {
@@ -536,7 +534,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				// checks if a service level configuration exists. If so, save the configuration to local file and pass
 				// to cloud driver.
 				handleServiceCloudConfiguration();
-				this.cloudifyProvisioning.setConfig(cloud, cloudTemplateName, false, zones);
+				this.cloudifyProvisioning.setConfig(cloud, cloudTemplateName, false);
 
 			} catch (final ClassNotFoundException e) {
 				throw new BeanConfigurationException("Failed to load provisioning class for cloud: "

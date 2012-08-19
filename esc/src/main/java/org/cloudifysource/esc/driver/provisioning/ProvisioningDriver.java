@@ -37,11 +37,9 @@ public interface ProvisioningDriver {
 	 * @param cloud The cloud configuration for this driver
 	 * @param cloudTemplate The template required for this cloud driver.
 	 * @param management true if this driver will launch management machines, false otherwise.
-	 * @param zones the zones that this agent will be long to - generally matches the services that will run on nodes
-	 *        started by this driver.
 	 * 
 	 */
-	void setConfig(Cloud cloud, String cloudTemplate, boolean management, String[] zones);
+	void setConfig(Cloud cloud, String cloudTemplate, boolean management);
 
 	/**************
 	 * Passes an Admin API object that can be used to query the current cluster state. The Admin API is typically only

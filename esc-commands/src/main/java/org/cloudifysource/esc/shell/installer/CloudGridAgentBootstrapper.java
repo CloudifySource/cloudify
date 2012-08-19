@@ -45,6 +45,7 @@ import org.cloudifysource.esc.driver.provisioning.jclouds.ManagementWebServiceIn
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
+import org.cloudifysource.esc.shell.installer.BootstrapLogsFilters;
 import org.cloudifysource.esc.shell.listener.CliAgentlessInstallerListener;
 import org.cloudifysource.esc.shell.listener.CliProvisioningDriverListener;
 import org.cloudifysource.esc.util.Utils;
@@ -52,6 +53,8 @@ import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.CLIException;
+import org.openspaces.admin.zone.config.ExactZonesConfig;
+import org.openspaces.admin.zone.config.ExactZonesConfigurer;
 
 import com.j_spaces.kernel.Environment;
 
@@ -65,7 +68,8 @@ import com.j_spaces.kernel.Environment;
 public class CloudGridAgentBootstrapper {
 
 	private static final String MANAGEMENT_APPLICATION = ManagementWebServiceInstaller.MANAGEMENT_APPLICATION_NAME;
-
+	private static final String MANAGEMENT_GSA_ZONE = "management";
+	
 	private static final int WEBUI_PORT = 8099;
 
 	private static final int REST_GATEWAY_PORT = 8100;
@@ -266,7 +270,7 @@ public class CloudGridAgentBootstrapper {
 		}
 
 		provisioning.addListener(new CliProvisioningDriverListener());
-		provisioning.setConfig(cloud, cloud.getConfiguration().getManagementMachineTemplate(), true, new String[] {"management"});
+		provisioning.setConfig(cloud, cloud.getConfiguration().getManagementMachineTemplate(), true);
 	}
 
 	/**
@@ -488,9 +492,9 @@ public class CloudGridAgentBootstrapper {
 		
 
 		for (int i = 0; i < details.length; i++) {
-			List<String> zones = cloud.getProvider().getZones();
+			ExactZonesConfig zones = new ExactZonesConfigurer().addZone(MANAGEMENT_GSA_ZONE).create();
 			details[i] = Utils.createInstallationDetails(machineDetails[i], cloud,
-					template, zones.toArray(new String[zones.size()]), null, null, true, this.cloudFile);
+					template, zones, null, null, true, this.cloudFile);
 		}
 
 		return details;
