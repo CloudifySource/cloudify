@@ -1376,9 +1376,9 @@ public class ServiceController {
 			throws TimeoutException, DSLException{
 
 		
-		boolean locationAffinity = false;
+		boolean locationAware = false;
 		if (service != null) {
-			locationAffinity = service.isLocationAffinity();
+			locationAware = service.isLocationAware();
 		}
 		final int externalProcessMemoryInMB = 512;
 		final int containerMemoryInMB = 128;
@@ -1449,7 +1449,7 @@ public class ServiceController {
 			if (service == null || service.getScalingRules() == null) {
 				int totalMemoryInMB = calculateTotalMemoryInMB(serviceName, service, (int) cloudExternalProcessMemoryInMB);
 				final ManualCapacityScaleConfig scaleConfig =
-						ElasticScaleConfigFactory.createManualCapacityScaleConfig(totalMemoryInMB, locationAffinity);
+						ElasticScaleConfigFactory.createManualCapacityScaleConfig(totalMemoryInMB, locationAware);
 
 				scaleConfig.setAtMostOneContainerPerMachine(true);
 				deployment.scale(scaleConfig);
@@ -1638,16 +1638,16 @@ public class ServiceController {
 		} else if (service.getLifecycle() != null) {
 			doDeploy(applicationName, serviceName, templateName, fixedZone, srcFile, propsFile, service, serviceCloudConfigurationContents);
 		} else if (service.getDataGrid() != null) {
-			deployDataGrid(applicationName, serviceName, fixedZone, srcFile, propsFile, service.getDataGrid(), templateName, service.isLocationAffinity());
+			deployDataGrid(applicationName, serviceName, fixedZone, srcFile, propsFile, service.getDataGrid(), templateName, service.isLocationAware());
 		} else if (service.getStatelessProcessingUnit() != null) {
 			deployStatelessProcessingUnitAndWait(applicationName, serviceName, fixedZone, new File(projectDir, "ext"),
-					propsFile, service.getStatelessProcessingUnit(), templateName, service.getNumInstances(), service.isLocationAffinity());
+					propsFile, service.getStatelessProcessingUnit(), templateName, service.getNumInstances(), service.isLocationAware());
 		} else if (service.getMirrorProcessingUnit() != null) {
 			deployStatelessProcessingUnitAndWait(applicationName, serviceName, fixedZone, new File(projectDir, "ext"),
-					propsFile, service.getMirrorProcessingUnit(), templateName, service.getNumInstances(),  service.isLocationAffinity());
+					propsFile, service.getMirrorProcessingUnit(), templateName, service.getNumInstances(),  service.isLocationAware());
 		} else if (service.getStatefulProcessingUnit() != null) {
 			deployStatefulProcessingUnit(applicationName, serviceName, fixedZone, new File(projectDir, "ext"), propsFile,
-					service.getStatefulProcessingUnit(), templateName,  service.isLocationAffinity());
+					service.getStatefulProcessingUnit(), templateName,  service.isLocationAware());
 		} else {
 			throw new IllegalStateException("Unsupported service type");
 		}
@@ -1798,7 +1798,7 @@ public class ServiceController {
 	// TODO: add memory unit to names
 	private void deployDataGrid(final String applicationName, final String serviceName, final String zone,
 			final File srcFile, final Properties contextProperties, final DataGrid dataGridConfig,
-			final String templateName, final boolean locationAffinity)
+			final String templateName, final boolean locationAware)
 			throws AdminException, TimeoutException, DSLException {
 
 		final int containerMemoryInMB = dataGridConfig.getSla().getMemoryCapacityPerContainer();
@@ -1850,7 +1850,7 @@ public class ServiceController {
 			deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
 
 			//TODO: [itaif] Why only capacity of one container ?
-			deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig((int) cloudExternalProcessMemoryInMB, locationAffinity));
+			deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig((int) cloudExternalProcessMemoryInMB, locationAware));
 		}
 
 		deployAndWait(serviceName, deployment);
@@ -1883,7 +1883,7 @@ public class ServiceController {
 	private void deployStatelessProcessingUnitAndWait(final String applicationName, final String serviceName,
 			final String zone, final File extractedServiceFolder, final Properties contextProperties,
 			final StatelessProcessingUnit puConfig, final String templateName, final int numberOfInstances, 
-			final boolean locationAffinity)
+			final boolean locationAware)
 			throws IOException, AdminException, TimeoutException, DSLException {
 
 		final File jarFile = getJarFileFromDir(new File(puConfig.getBinaries()), extractedServiceFolder, serviceName);
@@ -1927,7 +1927,7 @@ public class ServiceController {
 			setDedicatedMachineProvisioning(deployment, config);
 			deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
 
-			deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(containerMemoryInMB * numberOfInstances, locationAffinity));
+			deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(containerMemoryInMB * numberOfInstances, locationAware));
 		}
 		deployAndWait(serviceName, deployment);
 		jarFile.delete();
@@ -1948,7 +1948,7 @@ public class ServiceController {
 	// TODO:Clean this class it has a lot of code duplications
 	private void deployStatefulProcessingUnit(final String applicationName, final String serviceName,
 			final String zone, final File extractedServiceFolder, final Properties contextProperties,
-			final StatefulProcessingUnit puConfig, final String templateName, final boolean locationAffinity)
+			final StatefulProcessingUnit puConfig, final String templateName, final boolean locationAware)
 			throws IOException, AdminException, TimeoutException, DSLException {
 
 		final File jarFile = getJarFileFromDir(new File(puConfig.getBinaries()), extractedServiceFolder, serviceName);
@@ -1989,7 +1989,7 @@ public class ServiceController {
 
 			setDedicatedMachineProvisioning(deployment, config);
 
-			deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(puConfig.getSla().getMemoryCapacity(), locationAffinity));
+			deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(puConfig.getSla().getMemoryCapacity(), locationAware));
 
 		}
 
@@ -2080,7 +2080,7 @@ public class ServiceController {
 	Map<String, Object> setServiceInstances(@PathVariable final String applicationName,
 			@PathVariable final String serviceName, @PathVariable final int timeout, 
 			@RequestParam(value = "count", required = true) final int count,
-			@RequestParam(value = "location-affinity", required = true) final boolean locationAffinity)
+			@RequestParam(value = "location-aware", required = true) final boolean locationAware)
 			throws DSLException {
 
 		final Map<String, Object> returnMap = new HashMap<String, Object>();
@@ -2113,7 +2113,7 @@ public class ServiceController {
 
 			final CloudTemplate template = getComputeTemplate(cloud, templateName);
 			final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
-			pu.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig((int) (cloudExternalProcessMemoryInMB * count), locationAffinity));
+			pu.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig((int) (cloudExternalProcessMemoryInMB * count), locationAware));
 		}
 
 		logger.log(Level.INFO, "Starting to poll for lifecycle events.");

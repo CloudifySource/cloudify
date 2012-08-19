@@ -32,12 +32,12 @@ public class ElasticScaleConfigFactory {
 	private static final Logger logger = Logger.getLogger(ElasticScaleConfigFactory.class.getName());
 
 
-	public static ManualCapacityScaleConfig createManualCapacityScaleConfig(int totalMemoryInMB, boolean locationAffinity) {
+	public static ManualCapacityScaleConfig createManualCapacityScaleConfig(int totalMemoryInMB, boolean locationAware) {
 		ManualCapacityScaleConfig config = new ManualCapacityScaleConfigurer()
 			   .memoryCapacity(totalMemoryInMB, MemoryUnit.MEGABYTES)
 			   .atMostOneContainerPerMachine()
 			   .create();
-		config.setGridServiceAgentZonesAffinity(locationAffinity);
+		config.setGridServiceAgentZonesAware(locationAware);
 		return config;
 	}
 

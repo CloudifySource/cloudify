@@ -230,7 +230,7 @@ public interface AdminFacade {
     public void waitForLifecycleEvents(final String pollingID, final int timeout, String timeoutMessage)
             throws CLIException, InterruptedException, TimeoutException;
 
-    Map<String, String> setInstances(String applicationName, String serviceName, int count, boolean locationAffinity, int timeout) throws CLIException;
+    Map<String, String> setInstances(String applicationName, String serviceName, int count, boolean locationAware, int timeout) throws CLIException;
 
     public RestLifecycleEventsLatch getLifecycleEventsPollingLatch(final String pollingID, String timeoutMessage);
 

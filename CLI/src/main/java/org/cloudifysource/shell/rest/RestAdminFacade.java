@@ -510,11 +510,11 @@ public class RestAdminFacade extends AbstractAdminFacade {
     @Override
     public Map<String, String> setInstances(final String applicationName,
                                             final String serviceName, final int count, 
-                                            final boolean locationAffinity, final int timeout)
+                                            final boolean locationAware, final int timeout)
             throws CLIException {
 
         final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/services/" + serviceName
-                + "/timeout/" + timeout + "/set-instances?count=" + count+"&location-affinity=" + locationAffinity;
+                + "/timeout/" + timeout + "/set-instances?count=" + count+"&location-aware=" + locationAware;
         try {
             @SuppressWarnings("unchecked")
             Map<String, String> response = (Map<String, String>) client.post(url);

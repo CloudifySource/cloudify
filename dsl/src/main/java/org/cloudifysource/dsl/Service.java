@@ -107,7 +107,7 @@ public class Service {
 
 	private long samplingPeriodInSeconds = DEFAULT_SAMPLING_PERIOD_SECONDS;
 
-	private boolean locationAffinity = false;
+	private boolean locationAware = false;
 	
 	public long getSamplingPeriodInSeconds() {
 		return samplingPeriodInSeconds;
@@ -521,11 +521,11 @@ public class Service {
 		this.customCommands = customCommands;
 	}
 
-	public boolean isLocationAffinity() {
-		return locationAffinity;
+	public boolean isLocationAware() {
+		return locationAware;
 	}
 
-	public void setLocationAffinity(final boolean locationAffinity) {
-		this.locationAffinity = locationAffinity;
+	public void setLocationAware(final boolean locationAware) {
+		this.locationAware = locationAware;
 	}
 }
