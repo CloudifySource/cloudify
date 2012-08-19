@@ -20,8 +20,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 import net.jini.core.discovery.LookupLocator;
@@ -40,13 +38,6 @@ import org.openspaces.admin.AdminFactory;
  * 
  */
 public abstract class CloudDriverSupport implements ProvisioningDriver {
-
-	@Override
-	public MachineDetails startMachine(String zone, long duration, TimeUnit unit)
-			throws TimeoutException, CloudProvisioningException {
-		return startMachine(duration, unit);
-	}
-
 
 	protected final List<ProvisioningDriverListener> listeners = new LinkedList<ProvisioningDriverListener>();
 	protected Admin singleThreadedAdmin;

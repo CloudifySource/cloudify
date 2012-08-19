@@ -172,7 +172,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 	}
 
 	@Override
-	public MachineDetails startMachine(final long duration, final TimeUnit unit)
+	public MachineDetails startMachine(final String locationId, final long duration, final TimeUnit unit)
 			throws TimeoutException, CloudProvisioningException {
 
 		final long endTime = System.currentTimeMillis() + unit.toMillis(duration);

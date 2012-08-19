@@ -78,7 +78,7 @@ public class LocalCloudProvisioningDriver implements ProvisioningDriver {
 //	}
 
 	@Override
-	public MachineDetails startMachine(long duration, TimeUnit unit)
+	public MachineDetails startMachine(final String locationId, long duration, TimeUnit unit)
 			throws TimeoutException {
 		throw new UnsupportedOperationException("Not available on local cloud");
 	}
@@ -142,10 +142,7 @@ public class LocalCloudProvisioningDriver implements ProvisioningDriver {
 	@Override
 	public void setAdmin(Admin admin) {
 		// ignore - not required;
-		
 	}
-
-
 
 	@Override
 	public MachineDetails[] startManagementMachines(long duration, TimeUnit unit) throws TimeoutException,
@@ -170,14 +167,4 @@ public class LocalCloudProvisioningDriver implements ProvisioningDriver {
 		// TODO Auto-generated method stub
 		
 	}
-
-	@Override
-	public MachineDetails startMachine(String zone, long duration, TimeUnit unit)
-			throws TimeoutException, CloudProvisioningException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
-	
 }

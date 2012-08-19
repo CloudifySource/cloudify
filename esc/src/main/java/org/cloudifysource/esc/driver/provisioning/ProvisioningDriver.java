@@ -70,22 +70,6 @@ public interface ProvisioningDriver {
 	MachineDetails startMachine(String locationId, long duration, TimeUnit unit)
 			throws TimeoutException, CloudProvisioningException;
 	
-	/***************
-	 * Starts an additional machine on the cloud to scale out this specific service. In case of an error while
-	 * provisioning the machine, any allocated resources should be freed before throwing a CloudProvisioningException or
-	 * TimeoutException to the caller.
-	 * 
-	 * @param duration Time duration to wait for the instance.
-	 * @param unit Time unit to wait for the instance.
-	 * @return The details of the started instance.
-	 * @throws TimeoutException In case the instance was not started in the allotted time.
-	 * @throws CloudProvisioningException If a problem was encountered while starting the machine.
-	 */
-	MachineDetails startMachine(long duration, TimeUnit unit)
-			throws TimeoutException, CloudProvisioningException;
-	
-	
-
 	/******************
 	 * Start the management machines for this cluster. This method is called once by the cloud administrator when
 	 * bootstrapping a new cluster.

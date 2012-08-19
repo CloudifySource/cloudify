@@ -213,7 +213,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	}
 
 	@Override
-	public MachineDetails startMachine(final long duration, final TimeUnit unit)
+	public MachineDetails startMachine(final String locationId, final long duration, final TimeUnit unit)
 			throws TimeoutException, CloudProvisioningException {
 		long endTime = System.currentTimeMillis() + unit.toMillis(duration);
 		return startMachine(endTime);

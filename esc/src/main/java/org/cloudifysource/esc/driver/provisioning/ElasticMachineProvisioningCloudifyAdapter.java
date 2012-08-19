@@ -185,13 +185,15 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			}
 		}
 		
+		
 		try {
-			if (locationId != null) {
-				machineDetails = provisionMachine(locationId, duration, unit); 
+			if (locationId == null) {
+				final CloudTemplate template = cloud.getTemplates().get(this.cloudTemplateName);
+				locationId = template.getLocationId();
 			}
-			else {
-				machineDetails = provisionMachine(duration, unit);
-			}			
+			
+			machineDetails = provisionMachine(locationId, duration, unit); 
+
 		} catch (final Exception e) {
 			logger.log(Level.WARNING, "Failed to provision machine, reason: " + e.getMessage(), e);
 			throw new ElasticMachineProvisioningException("Failed to provisiong machine: " + e.getMessage(), e);
@@ -344,17 +346,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return remaining;
 	}
 
-	private MachineDetails provisionMachine(final String location, final long duration, final TimeUnit unit)
+	private MachineDetails provisionMachine(final String locationId, final long duration, final TimeUnit unit)
 			throws TimeoutException, ElasticMachineProvisioningException {
 		
 		MachineDetails machineDetails;
 		try {
 			
-			if (location == null) { // this means that the zone received from the ESM has not significance as to cloud availability zones.
-				machineDetails = cloudifyProvisioning.startMachine(duration, unit);
-			} else { // this means was want our cloud driver to start a machine to a specific location.
-				machineDetails = cloudifyProvisioning.startMachine(location, duration, unit);				
-			}
+			machineDetails = cloudifyProvisioning.startMachine(locationId, duration, unit);				
 			
 		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Failed to start machine: " + e.getMessage(), e);
@@ -369,12 +367,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return machineDetails;
 	}
 	
-	private MachineDetails provisionMachine(final long duration, final TimeUnit unit)
-			throws TimeoutException, ElasticMachineProvisioningException {
-		return provisionMachine(null, duration, unit);
-	}
-
-
 	private GridServiceAgent waitForGsa(final String machineIp, final long end)
 			throws InterruptedException, TimeoutException {
 

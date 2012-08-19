@@ -166,7 +166,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 	}
 
 	@Override
-	public MachineDetails startMachine(final long duration, final TimeUnit unit)
+	public MachineDetails startMachine(final String locationId, final long duration, final TimeUnit unit)
 			throws TimeoutException, CloudProvisioningException {
 
 		if (isThrottling()) {

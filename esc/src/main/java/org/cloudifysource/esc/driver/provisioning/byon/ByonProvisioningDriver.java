@@ -137,7 +137,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	}
 
 	@Override
-	public MachineDetails startMachine(final long timeout, final TimeUnit timeUnit)
+	public MachineDetails startMachine(final String locationId, final long timeout, final TimeUnit timeUnit)
 			throws TimeoutException,
 			CloudProvisioningException {
 

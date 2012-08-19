@@ -596,10 +596,4 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	public void setCustomDataFile(final File customDataFile) {
 		logger.info("Received custom data file: " + customDataFile);
 	}
-
-	@Override
-	public MachineDetails startMachine(long duration, TimeUnit unit)
-			throws TimeoutException, CloudProvisioningException {
-		return startMachine(null, duration, unit);
-	}
 }
