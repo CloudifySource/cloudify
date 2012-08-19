@@ -64,12 +64,12 @@ public interface ProvisioningDriver {
 	 * 
 	 * @param duration Time duration to wait for the instance.
 	 * @param unit Time unit to wait for the instance.
-	 * @param location the location to allocate the machine to.
+	 * @param locationId the location to allocate the machine to.
 	 * @return The details of the started instance.
 	 * @throws TimeoutException In case the instance was not started in the allotted time.
 	 * @throws CloudProvisioningException If a problem was encountered while starting the machine.
 	 */
-	MachineDetails startMachine(String location, long duration, TimeUnit unit)
+	MachineDetails startMachine(String locationId, long duration, TimeUnit unit)
 			throws TimeoutException, CloudProvisioningException;
 	
 	/***************

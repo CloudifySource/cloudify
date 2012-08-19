@@ -132,6 +132,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		// these are the default zone for a VM (aka service-name).
 		final String[] zones = this.config.getGridServiceAgentZones();
 		
+		// append a unique prefix to the location id. this is to distinguish this zone from the default zone which is the service name.
+		// TODO - remove the service name from the machine zone. in the case of cloudify, agent zones should be only their physical location.
+		md.setLocationId(CLOUD_ZONE_PREFIX + md.getLocationId()); 
+		
 		final InstallationDetails details =
 				Utils.createInstallationDetails(md, cloud, template, zones, lookupLocatorsString,
 						this.originalESMAdmin, false,
