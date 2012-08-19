@@ -168,7 +168,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		cloudifyProvisioning.setAdmin(getGlobalAdminInstance(originalESMAdmin));
 		
 		AtLeastOneZoneConfig defaultZones = config.getGridServiceAgentZones();			
-		if (!defaultZones.satisfiedBy(zones)) {
+		if (!defaultZones.isSatisfiedBy(zones)) {
 			throw new IllegalArgumentException("The specified zones " + zones + " does not satisfy the configuration zones " + defaultZones);
 		}
 		
