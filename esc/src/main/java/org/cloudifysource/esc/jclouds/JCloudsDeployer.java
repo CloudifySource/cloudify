@@ -81,8 +81,6 @@ public class JCloudsDeployer {
 
 	private String hardwareId;
 
-	private String locationId;
-
 	private Map<String, Object> extraOptions;
 
 	private final String provider;
@@ -106,14 +104,6 @@ public class JCloudsDeployer {
 
 	public void setHardwareId(final String hardwareId) {
 		this.hardwareId = hardwareId;
-	}
-
-	public void setLocationId(final String locationId) {
-		this.locationId = locationId;
-	}
-
-	public String getLocationId() {
-		return locationId;
 	}
 
 	/********
@@ -174,7 +164,7 @@ public class JCloudsDeployer {
 	 * @return the new server meta data.
 	 * @throws InstallerException .
 	 */
-	public NodeMetadata createServer(final String serverName)
+	public NodeMetadata createServer(final String serverName, final String locationId)
 			throws InstallerException {
 
 		Set<? extends NodeMetadata> nodes = null;
@@ -182,7 +172,7 @@ public class JCloudsDeployer {
 			logger.fine("Cloudify Deployer is creating a new server with tag: " + serverName
 					+ ". This may take a few minutes");
 			nodes = createServersWithRetry(
-					serverName, 1, getTemplate());
+					serverName, 1, getTemplate(locationId));
 		} catch (final RunNodesException e) {
 			throw new InstallerException("Failed to start Cloud server", e);
 		}
@@ -206,7 +196,7 @@ public class JCloudsDeployer {
 	 * @return the created nodes.
 	 * @throws InstallerException if creation of one or more nodes failed.
 	 */
-	public Set<? extends NodeMetadata> createServers(final String groupName, final int numberOfMachines)
+	public Set<? extends NodeMetadata> createServers(final String groupName, final int numberOfMachines, final String locationId)
 			throws InstallerException {
 
 		Set<? extends NodeMetadata> nodes = null;
@@ -214,7 +204,7 @@ public class JCloudsDeployer {
 			logger.fine("JClouds Deployer is creating new machines with group: " + groupName
 					+ ". This may take a few minutes");
 			nodes = createServersWithRetry(
-					groupName, numberOfMachines, getTemplate());
+					groupName, numberOfMachines, getTemplate(locationId));
 		} catch (final RunNodesException e) {
 			throw new InstallerException("Failed to start Cloud server with JClouds", e);
 		}
@@ -426,7 +416,7 @@ public class JCloudsDeployer {
 	 * 
 	 * @return the template.
 	 */
-	public Template getTemplate() {
+	public Template getTemplate(String locationId) {
 		if (this.template == null) {
 
 			logger.fine("Creating Cloud Template. This may take a few seconds");

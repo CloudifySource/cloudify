@@ -94,7 +94,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	@Override
-	public MachineDetails startMachine(String zone, final long timeout, final TimeUnit unit)
+	public MachineDetails startMachine(String locationId, final long timeout, final TimeUnit unit)
 			throws TimeoutException, CloudProvisioningException {
 
 		logger.fine(this.getClass().getName() + ": startMachine, management mode: " + management);
@@ -105,12 +105,9 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		}
 
 		try {
-			
-			if (zone != null) { // override the default location from the template with the specific availability zone.
-				deployer.setLocationId(zone);
-			}
-			
-			final MachineDetails md = doStartMachine(end);
+			final String groupName = createNewServerName();
+			logger.fine("Starting a new cloud server with group: " + groupName);
+			final MachineDetails md = createServer(end, groupName, locationId);
 			return md;
 		} catch (final Exception e) {
 
@@ -130,24 +127,30 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		}
 	}
 
-	private MachineDetails doStartMachine(final long end)
-			throws Exception {
-
-		final String groupName = createNewServerName();
-		logger.fine("Starting a new cloud server with group: " + groupName);
-		return createServer(end, groupName);
-	}
-
 	private MachineDetails createServer(final long end, final String groupName)
 			throws CloudProvisioningException {
+		return createServer(end, groupName, null);
+	}
+	
+	private MachineDetails createServer(final long end, final String groupName, final String locationIdOverride)
+			throws CloudProvisioningException {
 
+		final CloudTemplate cloudTemplate = this.cloud.getTemplates().get(this.cloudTemplateName);
+		String locationId;
+		if (locationIdOverride == null) {
+			locationId = cloudTemplate.getLocationId();
+		}
+		else {
+			locationId = locationIdOverride;
+		}
+		
 		NodeMetadata node;
 		final MachineDetails machineDetails;
 
 		try {
 			logger.fine("Cloudify Deployer is creating a new server with tag: " + groupName
 					+ ". This may take a few minutes");
-			node = deployer.createServer(groupName);
+			node = deployer.createServer(groupName, locationId);
 		} catch (final InstallerException e) {
 			throw new CloudProvisioningException("Failed to create cloud server", e);
 		}
@@ -164,8 +167,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 			// Create MachineDetails for the node metadata.
 			machineDetails = createMachineDetailsFromNode(node);
-
-			final CloudTemplate cloudTemplate = this.cloud.getTemplates().get(this.cloudTemplateName);
 
 			final FileTransferModes fileTransfer = cloudTemplate.getFileTransfer();
 
@@ -587,7 +588,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		deployer.setImageId(cloudTemplate.getImageId());
 		deployer.setMinRamMegabytes(cloudTemplate.getMachineMemoryMB());
 		deployer.setHardwareId(cloudTemplate.getHardwareId());
-		deployer.setLocationId(cloudTemplate.getLocationId());
 		deployer.setExtraOptions(cloudTemplate.getOptions());
 		return deployer;
 	}
