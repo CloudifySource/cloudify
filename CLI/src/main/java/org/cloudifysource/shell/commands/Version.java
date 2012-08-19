@@ -38,9 +38,7 @@ public class Version extends AbstractGSCommand {
     protected Object doExecute() throws Exception {
 
         final String platformInfo = PlatformVersion.getOfficialVersion();
-        final String cloudifyInfo = "Cloudify version 2.1";
-        final String info = platformInfo + System.getProperty("line.separator") + cloudifyInfo;
-        session.getConsole().println(info);
+        session.getConsole().println(platformInfo);
         if (ShellUtils.promptUser(session, "version_check_confirmation")) {
             ShellUtils.registerVersionCheck();
             ShellUtils.doVersionCheck(session);
