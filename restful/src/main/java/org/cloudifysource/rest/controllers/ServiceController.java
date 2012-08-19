@@ -118,6 +118,8 @@ import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfig;
 import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfigurer;
 import org.openspaces.admin.pu.elastic.topology.ElasticDeploymentTopology;
 import org.openspaces.admin.space.ElasticSpaceDeployment;
+import org.openspaces.admin.zone.config.AtLeastOneZoneConfig;
+import org.openspaces.admin.zone.config.AtLeastOneZoneConfigurer;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.context.GigaSpaceContext;
 import org.openspaces.core.util.MemoryUnit;
@@ -149,6 +151,7 @@ import com.gigaspaces.log.LogEntryMatchers;
 @RequestMapping("/service")
 public class ServiceController {
 
+	private static final String LOCALCLOUD_ZONE = "localcloud";
 	private static final int MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED = 1000;
 	private static final int DEFAULT_TIME_EXTENTION_POLLING_TASK = 5;
 	private static final int THREAD_POOL_SIZE = 20;
@@ -1538,13 +1541,16 @@ public class ServiceController {
 	private boolean isLocalCloud() {
 		final GridServiceAgent[] agents = admin.getGridServiceAgents().getAgents();
 		final boolean isOnlyOneAgent = agents.length == 1;
-		final boolean isAgentWithoutZones = agents[0].getZones().isEmpty();
-		final boolean isLocalCloud = isOnlyOneAgent && isAgentWithoutZones;
+		GridServiceAgent agent = agents[0];
+		AtLeastOneZoneConfig requiredContainerZone = new AtLeastOneZoneConfigurer().addZone(LOCALCLOUD_ZONE).create();
+		
+		final boolean isLocalCloudZone = agent.getExactZones().isStasfies(requiredContainerZone);
+		final boolean isLocalCloud = isOnlyOneAgent && isLocalCloudZone;
 		if (logger.isLoggable(Level.FINE)) {
 			if (!isOnlyOneAgent) {
 				logger.fine("Not local cloud since there are " + agents.length + " agents");
-			} else if (!isAgentWithoutZones) {
-				logger.fine("Not local cloud since agent has zones " + agents[0].getZones());
+			} else if (!isLocalCloudZone) {
+				logger.fine("Not local cloud since no " + LOCALCLOUD_ZONE + " in agent zones " + agent.getExactZones());
 			}
 		}
 		return isLocalCloud;
@@ -1619,7 +1625,7 @@ public class ServiceController {
 			if (!fixedZone.isEmpty()) {
 				fixedZone += ",";
 			}
-			fixedZone += "localcloud";
+			fixedZone += LOCALCLOUD_ZONE;
 		}
 		
 		if (service == null) {
