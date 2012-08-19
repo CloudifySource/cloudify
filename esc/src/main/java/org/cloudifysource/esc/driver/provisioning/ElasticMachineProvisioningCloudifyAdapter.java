@@ -18,10 +18,14 @@ package org.cloudifysource.esc.driver.provisioning;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -31,7 +35,7 @@ import net.jini.core.discovery.LookupLocator;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-
+import org.apache.commons.logging.impl.AvalonLogger;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -46,6 +50,7 @@ import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.util.Utils;
+import org.codehaus.groovy.util.StringUtil;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.AdminFactory;
@@ -73,6 +78,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private static final int MILLISECONDS_IN_SECOND = 1000;
 
 	private static final int DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE = 5;
+	
+	public static final String CLOUD_ZONE_PREFIX = "__cloud.zone";
 
 	// TODO: Store this object inside ElasticMachineProvisioningContext instead of a static variable
 	private static final Map<String, ProvisioningDriverClassContext> PROVISIONING_DRIVER_CONTEXT_PER_DRIVER_CLASSNAME =
@@ -123,7 +130,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private InstallationDetails createInstallationDetails(final Cloud cloud, final MachineDetails md)
 			throws FileNotFoundException {
 		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplateName);
+		
+		// these are the default zone for a VM (aka service-name).
 		final String[] zones = this.config.getGridServiceAgentZones();
+		
 		final InstallationDetails details =
 				Utils.createInstallationDetails(md, cloud, template, zones, lookupLocatorsString,
 						this.originalESMAdmin, false,
@@ -133,9 +143,14 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return details;
 
 	}
-
 	@Override
 	public GridServiceAgent startMachine(final long duration, final TimeUnit unit)
+			throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
+		return startMachine(new HashSet<String>(), duration, unit);
+	}
+
+	@Override
+	public GridServiceAgent startMachine(final Set<String> zones, final long duration, final TimeUnit unit)
 			throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
 
 		logger.info("Cloudify Adapter is starting a new machine");
@@ -147,7 +162,38 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		MachineDetails machineDetails;
 		try {
 			cloudifyProvisioning.setAdmin(getGlobalAdminInstance(originalESMAdmin));
-			machineDetails = provisionMachine(duration, unit);
+			
+			List<String> cloudProviderZones = this.cloud.getProvider().getZones();
+			List<String> defaultZones = Arrays.asList(config.getGridServiceAgentZones());
+			defaultZones.addAll(cloudProviderZones);
+			
+			
+			List<String> cloudZones = new ArrayList<String>();
+			
+			for (String zone : zones) {
+				if (zone.startsWith(CLOUD_ZONE_PREFIX)) {
+					cloudZones.add(zone.substring(CLOUD_ZONE_PREFIX.length(), zone.length() - 1));
+				} else {
+					if (!defaultZones.contains(zone)) {
+						throw new UnsupportedOperationException("discovered an unsupported zone for machine allocation : " + zone);
+					}
+				}				
+			}
+			if (cloudZones.size() != 0) {
+				
+				// to support choosing from many availability zones.
+				// logic goes here to choose exactly which one. 
+				// for now just take the first one.
+				machineDetails = provisionMachine(duration, unit, cloudZones.get(0)); 
+				
+			} 
+			if (cloudZones.size() > 1) {
+				throw new UnsupportedOperationException("found multiple zones for machine allocation : " + cloudZones);
+			}
+			else {
+				machineDetails = provisionMachine(duration, unit);
+			}
+			
 		} catch (final Exception e) {
 			logger.log(Level.WARNING, "Failed to provision machine, reason: " + e.getMessage(), e);
 			throw new ElasticMachineProvisioningException("Failed to provisiong machine: " + e.getMessage(), e);
@@ -300,11 +346,18 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return remaining;
 	}
 
-	private MachineDetails provisionMachine(final long duration, final TimeUnit unit)
+	private MachineDetails provisionMachine(final long duration, final TimeUnit unit, String location)
 			throws TimeoutException, ElasticMachineProvisioningException {
+		
 		MachineDetails machineDetails;
 		try {
-			machineDetails = cloudifyProvisioning.startMachine(duration, unit);
+			
+			if (location == null) { // this means that the zone received from the ESM has not significance as to cloud availability zones.
+				machineDetails = cloudifyProvisioning.startMachine(duration, unit);
+			} else { // this means was want our cloud driver to start a machine to a specific location.
+				machineDetails = cloudifyProvisioning.startMachine(location, duration, unit);				
+			}
+			
 		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Failed to start machine: " + e.getMessage(), e);
 		}
@@ -317,6 +370,12 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		logger.info("New machine was provisioned. Machine details: " + machineDetails);
 		return machineDetails;
 	}
+	
+	private MachineDetails provisionMachine(final long duration, final TimeUnit unit)
+			throws TimeoutException, ElasticMachineProvisioningException {
+		return provisionMachine(duration, unit, null);
+	}
+
 
 	private GridServiceAgent waitForGsa(final String machineIp, final long end)
 			throws InterruptedException, TimeoutException {

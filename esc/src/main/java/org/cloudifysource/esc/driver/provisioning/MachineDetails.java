@@ -17,6 +17,7 @@ package org.cloudifysource.esc.driver.provisioning;
 
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 
 /*******
  * Described a Machine started by a cloud driver.
@@ -26,7 +27,7 @@ import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
  * 
  */
 public class MachineDetails {
-
+	
 	private String privateAddress;
 	private String publicAddress;
 	
@@ -43,6 +44,16 @@ public class MachineDetails {
 	private RemoteExecutionModes remoteExecutionMode = RemoteExecutionModes.SSH;
 
 	private String remoteDirectory;
+	
+	private String locationId;
+
+	public String getLocationId() {
+		return locationId;
+	}
+
+	public void setLocationId(String locationId) {
+		this.locationId = locationId;
+	}
 
 	public String getMachineId() {
 		return machineId;

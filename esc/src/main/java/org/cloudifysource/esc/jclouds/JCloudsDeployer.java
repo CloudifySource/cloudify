@@ -42,6 +42,7 @@ import org.jclouds.compute.domain.NodeState;
 import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.domain.TemplateBuilder;
 import org.jclouds.compute.options.TemplateOptions;
+import org.jclouds.domain.Location;
 import org.jclouds.logging.jdk.config.JDKLoggingModule;
 import org.jclouds.rest.ResourceNotFoundException;
 
@@ -237,9 +238,9 @@ public class JCloudsDeployer {
 	 * @return the server meta data.
 	 * @throws RunNodesException .
 	 */
-	public NodeMetadata createServer(final String serverName, final Template template)
+	public NodeMetadata createServer(final String serverName, Template template)
 			throws RunNodesException {
-
+		
 		final Set<? extends NodeMetadata> nodes = createServersWithRetry(
 				serverName, 1, template);
 
@@ -281,6 +282,10 @@ public class JCloudsDeployer {
 	public Set<? extends ComputeMetadata> getAllServers() {
 		return this.context.getComputeService().listNodes();
 
+	}
+	
+	public Set<? extends Location> getAllLocations() {
+		return this.context.getComputeService().listAssignableLocations();
 	}
 
 	public ComputeServiceContext getContext() {

@@ -450,7 +450,11 @@ public final class Utils {
 
 		details.setManagementOnlyFiles(cloud.getProvider().getManagementOnlyFiles());
 
-		details.setZones(StringUtils.join(zones, ",", 0, zones.length));
+		// we add the machine location id to the zone.
+		// this way in case this machine failes, we can look at the zones and conclude where it was allocated.
+		final String[] zonesWithLocation = StringUtils.addStringToArray(zones, md.getLocationId());
+		
+		details.setZones(StringUtils.join(zonesWithLocation, ",", 0, zonesWithLocation.length));
 
 		details.setPrivateIp(md.getPrivateAddress());
 		details.setPublicIp(md.getPublicAddress());

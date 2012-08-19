@@ -171,6 +171,13 @@ public class LocalCloudProvisioningDriver implements ProvisioningDriver {
 		
 	}
 
+	@Override
+	public MachineDetails startMachine(String zone, long duration, TimeUnit unit)
+			throws TimeoutException, CloudProvisioningException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 	
 }

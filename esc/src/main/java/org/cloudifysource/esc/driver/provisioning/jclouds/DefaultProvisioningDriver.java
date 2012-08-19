@@ -18,7 +18,9 @@ package org.cloudifysource.esc.driver.provisioning.jclouds;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -44,6 +46,8 @@ import org.cloudifysource.esc.jclouds.JCloudsDeployer;
 import org.jclouds.compute.domain.ComputeMetadata;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.NodeState;
+import org.jclouds.domain.Location;
+import org.jclouds.domain.LocationScope;
 import org.jclouds.domain.LoginCredentials;
 
 import com.google.common.base.Predicate;
@@ -94,7 +98,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	@Override
-	public MachineDetails startMachine(final long timeout, final TimeUnit unit)
+	public MachineDetails startMachine(String zone, final long timeout, final TimeUnit unit)
 			throws TimeoutException, CloudProvisioningException {
 
 		logger.fine(this.getClass().getName() + ": startMachine, management mode: " + management);
@@ -105,6 +109,11 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		}
 
 		try {
+			
+			if (zone != null) { // override the default location from the template with the specific availability zone.
+				deployer.setLocationId(zone);
+			}
+			
 			final MachineDetails md = doStartMachine(end);
 			return md;
 		} catch (final Exception e) {
@@ -499,6 +508,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 	private MachineDetails createMachineDetailsFromNode(final NodeMetadata node) {
 		final MachineDetails md = new MachineDetails();
+		
 		md.setAgentRunning(false);
 		md.setCloudifyInstalled(false);
 		md.setInstallationDirectory(null);
@@ -516,6 +526,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 		md.setRemoteUsername(username);
 		md.setRemotePassword(password);
+		
+		// this will ensure that the availability zone is added to GSA that starts on this machine.
+		String locationId = node.getLocation().getId();
+		md.setLocationId(locationId);
 
 		return md;
 	}
@@ -587,4 +601,9 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		logger.info("Received custom data file: " + customDataFile);
 	}
 
+	@Override
+	public MachineDetails startMachine(long duration, TimeUnit unit)
+			throws TimeoutException, CloudProvisioningException {
+		return startMachine(null, duration, unit);
+	}
 }
