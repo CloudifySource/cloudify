@@ -27,6 +27,7 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
@@ -110,14 +111,11 @@ public class InstallService extends AdminAwareCommand {
 					if (!fullPathToRecipe.exists()) {
 						throw new CLIStatusException("service_file_doesnt_exist", fullPathToRecipe.getPath());
 					}
-					packedFile = Packager.pack(fullPathToRecipe, new File[] { cloudConfigurationZipFile });
+					packedFile = getPackedFile(cloudConfigurationZipFile,
+							fullPathToRecipe);
 					service = ServiceReader.readService(fullPathToRecipe);
 				} else {
-					if (cloudConfigurationZipFile != null) {
-						packedFile = Packager.pack(recipe, new File[] { cloudConfigurationZipFile });
-					} else {
-						packedFile = Packager.pack(recipe, new File[0]);
-					}
+					packedFile = getPackedFile(cloudConfigurationZipFile, recipe);
 					service = ServiceReader.readService(recipe);
 				}
 				packedFile.deleteOnExit();
@@ -200,6 +198,18 @@ public class InstallService extends AdminAwareCommand {
 		}
 
 		return getFormattedMessage("service_install_ended", Color.GREEN, serviceName);
+	}
+
+	private File getPackedFile(final File cloudConfigurationZipFile,
+			final File fullPathToRecipe) throws IOException,
+			PackagingException, DSLException {
+		File packedFile;
+		if (cloudConfigurationZipFile != null) {
+			packedFile = Packager.pack(fullPathToRecipe, new File[] { cloudConfigurationZipFile });
+		} else {
+			packedFile = Packager.pack(fullPathToRecipe, new File[0]);
+		}
+		return packedFile;
 	}
 
 	private boolean promptWouldYouLikeToContinueQuestion()
