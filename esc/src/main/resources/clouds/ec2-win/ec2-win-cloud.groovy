@@ -33,7 +33,7 @@ cloud {
 		// cloudify version matching that of the client from the cloudify CDN.
 		// Change this if your compute nodes do not have access to an internet connection, or if you prefer to use a
 		// different HTTP server instead.
-		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.2.0/gigaspaces-cloudify-2.2.0-m4-b2493-7.zip"
+		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.2.0/gigaspaces-cloudify-2.2.0-m4-b2493-8.zip"
 
 		// Mandatory. The prefix for new machines started for servies.
 		machineNamePrefix "cloudify_agent_"
