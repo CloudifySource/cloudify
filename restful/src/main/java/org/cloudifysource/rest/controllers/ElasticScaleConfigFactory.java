@@ -24,6 +24,7 @@ import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfig;
 import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfigurer;
 import org.openspaces.admin.pu.statistics.LastSampleTimeWindowStatisticsConfig;
 import org.openspaces.admin.pu.statistics.ProcessingUnitStatisticsId;
+import org.openspaces.admin.zone.config.AnyZonesConfig;
 import org.openspaces.core.util.MemoryUnit;
 
 public class ElasticScaleConfigFactory {
@@ -162,7 +163,9 @@ public class ElasticScaleConfigFactory {
 				statisticsId.setTimeWindowStatistics(serviceStatistics.getTimeStatistics().createTimeWindowStatistics(
 						serviceStatistics.getMovingTimeRangeInSeconds(), TimeUnit.SECONDS));
 			}
-	
+			
+			statisticsId.setAgentZones(new AnyZonesConfig());
+			
 			AutomaticCapacityScaleRuleConfig rule = new AutomaticCapacityScaleRuleConfig();
 			rule.setStatistics(statisticsId);
 			
