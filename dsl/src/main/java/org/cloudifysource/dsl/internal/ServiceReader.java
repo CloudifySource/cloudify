@@ -237,6 +237,7 @@ public final class ServiceReader {
 		dslReader.setCreateServiceContext(false);
 		dslReader.setDslContents(dslContents);
 		dslReader.setDslFile(dslFile);
+		dslReader.setWorkDir(dslFile.getParentFile());
 
 		final Cloud cloud = dslReader.readDslEntity(Cloud.class);
 		return cloud;
