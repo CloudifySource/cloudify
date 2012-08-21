@@ -24,34 +24,44 @@ import java.util.Map;
 
 
 /**
+<<<<<<< .mine
+ * Created with IntelliJ IDEA. User: uri1803 Date: 7/22/12 Time: 6:15 PM To change this template use File | Settings |
+ * File Templates.
+=======
  * @author uri
  * @since 2.2.0
  * 
  *        Sets attributes in the cloudify controller attribute store.
  * 
  *        Command syntax: set-attributes '{"att1":"value2","att2":"value2"}'
+>>>>>>> .r126695
  */
-@Command(scope = "cloudify", name = "set-attributes", description = "Sets attributes in the cloudify controller attribute store")
+@Command(scope = "cloudify", name = "set-attributes",
+		description = "Sets attributes in the cloudify controller attribute store")
 public class SetAttributes extends AbstractAttributesCommand {
 
-    @Argument(required = true, name = "attributes", description = "A list of one or more attributes to store. List " +
-            "should use a valid JSON format, e.g. '{\"att1\":\"value1\",\"att2\":\"value2\"}' " +
-            "(make sure to use single quotes (') around this argument to make sure all JSON attributes are escaped properly.")
-    protected String attributes;
+	@Argument(required = true, name = "attributes", description = "A list of one or more attributes to store. List " 
+			+ "should use a valid JSON format, e.g.:"
+			+ " '{\"att1\":\"value1\",\"att2\":\"value2\"}' "
+			+ "(make sure to use single quotes (') around this argument to make sure all JSON attributes are "
+			+ "escaped properly.")
+	protected String attributes = null;
 
-    @Override
-    protected Object doExecute() throws Exception {
-        Map attributes = parseAttributes();
-        getRestAdminFacade().updateAttributes(scope, getCurrentApplicationName(), attributes);
-        return getFormattedMessage("attributes_updated_successfully");
-    }
+	@Override
+	protected Object doExecute()
+			throws Exception {
+		Map attributes = parseAttributes();
+		getRestAdminFacade().updateAttributes(scope, getCurrentApplicationName(), attributes);
+		return getFormattedMessage("attributes_updated_successfully");
+	}
 
-    private Map<String, Object> parseAttributes() throws CLIException {
-        try {
-            return GSRestClient.jsonToMap(attributes);
-        } catch (IOException e) {
-            throw new CLIStatusException("illegal_attribute_format", attributes);
-        }
-    }
+	private Map<String, Object> parseAttributes()
+			throws CLIException {
+		try {
+			return GSRestClient.jsonToMap(attributes);
+		} catch (IOException e) {
+			throw new CLIStatusException("illegal_attribute_format", attributes);
+		}
+	}
 
 }

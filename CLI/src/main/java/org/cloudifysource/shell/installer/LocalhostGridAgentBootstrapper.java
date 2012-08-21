@@ -73,12 +73,14 @@ import com.j_spaces.kernel.Environment;
  * @author rafi, barakm, adaml, noak
  * @since 2.0.0
  * 
- *        This class handles the start up and shut down of the cloud components - management components (LUS,
- *        GSM, ESM), containers (GSCs) and an agent.
+ *        This class handles the start up and shut down of the cloud components - management components (LUS, GSM, ESM),
+ *        containers (GSCs) and an agent.
  */
 public class LocalhostGridAgentBootstrapper {
 
 	private static final String GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL = "true";
+	private static final String GSM_PENDING_REQUESTS_DELAY = "-Dorg.jini.rio.monitor.pendingRequestDelay=1000";
+
 	private static final int MIN_PROC_ERROR_TIME = 2000;
 	// isolate localcloud from default lookup settings
 	/**
@@ -111,7 +113,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	private static final String LINUX_SCRIPT_PREFIX = "#!/bin/bash\n";
 	private static final String MANAGEMENT_ZONE = "management";
-	private static final String LOCALCLOUD_GSA_ZONES = MANAGEMENT_ZONE+",localcloud";
+	private static final String LOCALCLOUD_GSA_ZONES = MANAGEMENT_ZONE + ",localcloud";
 	private static final long WAIT_EXISTING_AGENT_TIMEOUT_SECONDS = 10;
 
 	// management agent starts 1 global esm, 1 gsm,1 lus
@@ -152,14 +154,13 @@ public class LocalhostGridAgentBootstrapper {
 	private boolean waitForWebUi;
 	private String cloudContents;
 	private boolean force;
-	private final List<LocalhostBootstrapperListener> eventsListenersList = 
-		new ArrayList<LocalhostBootstrapperListener>();
+	private final List<LocalhostBootstrapperListener> eventsListenersList =
+			new ArrayList<LocalhostBootstrapperListener>();
 
 	/**
 	 * Sets verbose mode.
 	 * 
-	 * @param verbose
-	 *            mode (true - on, false - off)
+	 * @param verbose mode (true - on, false - off)
 	 */
 	public void setVerbose(final boolean verbose) {
 		this.verbose = verbose;
@@ -168,8 +169,7 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Sets the lookup groups.
 	 * 
-	 * @param lookupGroups
-	 *            lookup groups
+	 * @param lookupGroups lookup groups
 	 */
 	public void setLookupGroups(final String lookupGroups) {
 		this.lookupGroups = lookupGroups;
@@ -178,8 +178,7 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Sets the lookup locators.
 	 * 
-	 * @param lookupLocators
-	 *            lookup locators
+	 * @param lookupLocators lookup locators
 	 */
 	public void setLookupLocators(final String lookupLocators) {
 		this.lookupLocators = lookupLocators;
@@ -188,8 +187,7 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Sets the nic address.
 	 * 
-	 * @param nicAddress
-	 *            nic address
+	 * @param nicAddress nic address
 	 */
 	public void setNicAddress(final String nicAddress) {
 		this.nicAddress = nicAddress;
@@ -198,8 +196,7 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Sets the zone.
 	 * 
-	 * @param zone
-	 *            Zone name
+	 * @param zone Zone name
 	 */
 	public void setGridServiceAgentZone(final String zone) {
 		this.gsaZones = zone;
@@ -208,8 +205,7 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Sets the number of minutes between each progress check.
 	 * 
-	 * @param progressInSeconds
-	 *            number of seconds
+	 * @param progressInSeconds number of seconds
 	 */
 	public void setProgressInSeconds(final int progressInSeconds) {
 		this.progressInSeconds = progressInSeconds;
@@ -218,8 +214,7 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Sets the admin facade to work with.
 	 * 
-	 * @param adminFacade
-	 *            Admin facade object
+	 * @param adminFacade Admin facade object
 	 */
 	public void setAdminFacade(final AdminFacade adminFacade) {
 		this.adminFacade = adminFacade;
@@ -228,8 +223,7 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Sets web services limitation mode (i.e. activation of webui and REST).
 	 * 
-	 * @param noWebServices
-	 *            web services limitation mode (true - not active, false - active web services)
+	 * @param noWebServices web services limitation mode (true - not active, false - active web services)
 	 */
 	public void setNoWebServices(final boolean noWebServices) {
 		this.noWebServices = noWebServices;
@@ -238,9 +232,8 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Sets management space limitation mode.
 	 * 
-	 * @param noManagementSpace
-	 *            noManagementSpace limitation mode (true - management space will not be installed, false - it
-	 *            will be installed)
+	 * @param noManagementSpace noManagementSpace limitation mode (true - management space will not be installed, false
+	 *        - it will be installed)
 	 */
 	public void setNoManagementSpace(final boolean noManagementSpace) {
 		this.noManagementSpace = noManagementSpace;
@@ -249,8 +242,7 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Sets automatic shutdown on the agent.
 	 * 
-	 * @param autoShutdown
-	 *            automatic shutdown mode (true - on, false - off)
+	 * @param autoShutdown automatic shutdown mode (true - on, false - off)
 	 */
 	public void setAutoShutdown(final boolean autoShutdown) {
 		this.autoShutdown = autoShutdown;
@@ -259,20 +251,17 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Sets whether to wait for the web UI installation to complete when starting management components.
 	 * 
-	 * @param waitForWebui
-	 *            waitForWebui mode (true - wait, false - return without waiting)
+	 * @param waitForWebui waitForWebui mode (true - wait, false - return without waiting)
 	 */
 	public void setWaitForWebui(final boolean waitForWebui) {
 		this.waitForWebUi = waitForWebui;
 	}
 
 	/**
-	 * Sets the availability mode of the space - if a backup space is required for the space to become
-	 * available.
+	 * Sets the availability mode of the space - if a backup space is required for the space to become available.
 	 * 
-	 * @param notHighlyAvailableManagementSpace
-	 *            high-availability mode (true - the space will be available without a backup space, false - a
-	 *            backup space is required)
+	 * @param notHighlyAvailableManagementSpace high-availability mode (true - the space will be available without a
+	 *        backup space, false - a backup space is required)
 	 */
 	public void setNotHighlyAvailableManagementSpace(final boolean notHighlyAvailableManagementSpace) {
 		this.notHighlyAvailableManagementSpace = notHighlyAvailableManagementSpace;
@@ -281,44 +270,39 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Gets the availability mode of the space.
 	 * 
-	 * @return high-availability mode (true - the space is available when a single instance is ready, false -
-	 *         a backup space is required for the space to become available).
+	 * @return high-availability mode (true - the space is available when a single instance is ready, false - a backup
+	 *         space is required for the space to become available).
 	 */
 	public boolean isNotHighlyAvailableManagementSpace() {
 		return notHighlyAvailableManagementSpace;
 	}
 
 	/**
-	 * Enables force teardown. The force flag will terminate the gs agent without forcing uninstall on the
-	 * currently deployed applications.
+	 * Enables force teardown. The force flag will terminate the gs agent without forcing uninstall on the currently
+	 * deployed applications.
 	 * 
-	 * @param force
-	 *            Boolean flag.
+	 * @param force Boolean flag.
 	 */
 	public void setForce(final boolean force) {
 		this.force = force;
 	}
 
 	/**
-	 * Starts management processes (LUS, GSM, ESM) on a local cloud, and waits until the requested service
-	 * installations complete (space, webui, REST), or until the timeout is reached.
+	 * Starts management processes (LUS, GSM, ESM) on a local cloud, and waits until the requested service installations
+	 * complete (space, webui, REST), or until the timeout is reached.
 	 * 
-	 * @param timeout
-	 *            number of {@link TimeUnit}s to wait
-	 * @param timeunit
-	 *            the {@link TimeUnit} to use, to calculate the timeout
-	 * @throws CLIException
-	 *             Reporting a failure to start the processes and services
-	 * @throws InterruptedException
-	 *             Reporting the thread was interrupted while waiting
-	 * @throws TimeoutException
-	 *             Reporting the timeout was reached
+	 * @param timeout number of {@link TimeUnit}s to wait
+	 * @param timeunit the {@link TimeUnit} to use, to calculate the timeout
+	 * @throws CLIException Reporting a failure to start the processes and services
+	 * @throws InterruptedException Reporting the thread was interrupted while waiting
+	 * @throws TimeoutException Reporting the timeout was reached
 	 */
-	public void startLocalCloudOnLocalhostAndWait(final int timeout, final TimeUnit timeunit) throws CLIException,
+	public void startLocalCloudOnLocalhostAndWait(final int timeout, final TimeUnit timeunit)
+			throws CLIException,
 			InterruptedException, TimeoutException {
 
 		setGridServiceAgentZone(LOCALCLOUD_GSA_ZONES);
-		
+
 		setDefaultNicAddress();
 
 		setDefaultLocalcloudLookup();
@@ -326,7 +310,8 @@ public class LocalhostGridAgentBootstrapper {
 		startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_MANAGEMENT_ARGUMENTS, timeout, timeunit, true);
 	}
 
-	private void setDefaultNicAddress() throws CLIException {
+	private void setDefaultNicAddress()
+			throws CLIException {
 
 		if (nicAddress == null) {
 			try {
@@ -353,21 +338,17 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	/**
-	 * Starts management processes (LUS, GSM, ESM) and waits until the requested service installations
-	 * complete (space, webui, REST), or until the timeout is reached. The cloud is not a local cloud.
+	 * Starts management processes (LUS, GSM, ESM) and waits until the requested service installations complete (space,
+	 * webui, REST), or until the timeout is reached. The cloud is not a local cloud.
 	 * 
-	 * @param timeout
-	 *            number of {@link TimeUnit}s to wait
-	 * @param timeunit
-	 *            the {@link TimeUnit} to use, to calculate the timeout
-	 * @throws CLIException
-	 *             Reporting a failure to start the processes and services
-	 * @throws InterruptedException
-	 *             Reporting the thread was interrupted while waiting
-	 * @throws TimeoutException
-	 *             Reporting the timeout was reached
+	 * @param timeout number of {@link TimeUnit}s to wait
+	 * @param timeunit the {@link TimeUnit} to use, to calculate the timeout
+	 * @throws CLIException Reporting a failure to start the processes and services
+	 * @throws InterruptedException Reporting the thread was interrupted while waiting
+	 * @throws TimeoutException Reporting the timeout was reached
 	 */
-	public void startManagementOnLocalhostAndWait(final int timeout, final TimeUnit timeunit) throws CLIException,
+	public void startManagementOnLocalhostAndWait(final int timeout, final TimeUnit timeunit)
+			throws CLIException,
 			InterruptedException, TimeoutException {
 
 		setGridServiceAgentZone(MANAGEMENT_ZONE);
@@ -378,22 +359,15 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	/**
-	 * Shuts down the local agent, if exists, and waits until shutdown is complete or until the timeout is
-	 * reached. If management processes (GSM, ESM, LUS) are still active, the agent is not shutdown and a
-	 * CLIException is thrown.
+	 * Shuts down the local agent, if exists, and waits until shutdown is complete or until the timeout is reached. If
+	 * management processes (GSM, ESM, LUS) are still active, the agent is not shutdown and a CLIException is thrown.
 	 * 
-	 * @param force
-	 *            Force the agent to shut down even if the GSC still runs active services
-	 * @param timeout
-	 *            number of {@link TimeUnit}s to wait
-	 * @param timeunit
-	 *            the {@link TimeUnit} to use, to calculate the timeout
-	 * @throws CLIException
-	 *             Reporting a failure to shutdown the agent
-	 * @throws InterruptedException
-	 *             Reporting the thread was interrupted while waiting
-	 * @throws TimeoutException
-	 *             Reporting the timeout was reached
+	 * @param force Force the agent to shut down even if the GSC still runs active services
+	 * @param timeout number of {@link TimeUnit}s to wait
+	 * @param timeunit the {@link TimeUnit} to use, to calculate the timeout
+	 * @throws CLIException Reporting a failure to shutdown the agent
+	 * @throws InterruptedException Reporting the thread was interrupted while waiting
+	 * @throws TimeoutException Reporting the timeout was reached
 	 */
 	public void shutdownAgentOnLocalhostAndWait(final boolean force, final int timeout, final TimeUnit timeunit)
 			throws CLIException, InterruptedException, TimeoutException {
@@ -404,21 +378,17 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	/**
-	 * Shuts down the local agent, management processes (GSM, ESM, LUS) and GSC. Waits until shutdown is
-	 * complete or until the timeout is reached. Active services are forced to shut down.
+	 * Shuts down the local agent, management processes (GSM, ESM, LUS) and GSC. Waits until shutdown is complete or
+	 * until the timeout is reached. Active services are forced to shut down.
 	 * 
-	 * @param timeout
-	 *            number of {@link TimeUnit}s to wait
-	 * @param timeunit
-	 *            the {@link TimeUnit} to use, to calculate the timeout
-	 * @throws CLIException
-	 *             Reporting a failure to shutdown the agent
-	 * @throws InterruptedException
-	 *             Reporting the thread was interrupted while waiting
-	 * @throws TimeoutException
-	 *             Reporting the timeout was reached
+	 * @param timeout number of {@link TimeUnit}s to wait
+	 * @param timeunit the {@link TimeUnit} to use, to calculate the timeout
+	 * @throws CLIException Reporting a failure to shutdown the agent
+	 * @throws InterruptedException Reporting the thread was interrupted while waiting
+	 * @throws TimeoutException Reporting the timeout was reached
 	 */
-	public void shutdownManagementOnLocalhostAndWait(final int timeout, final TimeUnit timeunit) throws CLIException,
+	public void shutdownManagementOnLocalhostAndWait(final int timeout, final TimeUnit timeunit)
+			throws CLIException,
 			InterruptedException, TimeoutException {
 
 		setDefaultNicAddress();
@@ -429,16 +399,11 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Shuts down the local cloud, and waits until shutdown is complete or until the timeout is reached.
 	 * 
-	 * @param timeout
-	 *            number of {@link TimeUnit}s to wait
-	 * @param timeunit
-	 *            the {@link TimeUnit} to use, to calculate the timeout
-	 * @throws InterruptedException
-	 *             Reporting the thread was interrupted while waiting
-	 * @throws TimeoutException
-	 *             Reporting the timeout was reached
-	 * @throws CLIException
-	 *             Reporting a failure to shutdown the agent
+	 * @param timeout number of {@link TimeUnit}s to wait
+	 * @param timeunit the {@link TimeUnit} to use, to calculate the timeout
+	 * @throws InterruptedException Reporting the thread was interrupted while waiting
+	 * @throws TimeoutException Reporting the timeout was reached
+	 * @throws CLIException Reporting a failure to shutdown the agent
 	 */
 	public void teardownLocalCloudOnLocalhostAndWait(final long timeout, final TimeUnit timeunit)
 			throws InterruptedException, TimeoutException, CLIException {
@@ -452,7 +417,8 @@ public class LocalhostGridAgentBootstrapper {
 		shutdownAgentOnLocalhostAndWaitInternal(true, true, timeout, timeunit);
 	}
 
-	private void uninstallApplications(final long timeout, final TimeUnit timeunit) throws InterruptedException,
+	private void uninstallApplications(final long timeout, final TimeUnit timeunit)
+			throws InterruptedException,
 			TimeoutException, CLIException {
 
 		List<String> applicationsList = null;
@@ -496,12 +462,13 @@ public class LocalhostGridAgentBootstrapper {
 							, (int) timeout);
 					if (uninstallApplicationResponse.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
 						String pollingID = uninstallApplicationResponse
-						.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
+								.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
 						((RestAdminFacade) this.adminFacade)
-						.waitForLifecycleEvents(pollingID, (int) timeout, UninstallApplication.TIMEOUT_ERROR_MESSAGE);
+								.waitForLifecycleEvents(pollingID, (int) timeout,
+										UninstallApplication.TIMEOUT_ERROR_MESSAGE);
 					} else {
-						publishEvent("Failed to retrieve lifecycle logs from rest. " 
-						+ "Check logs for more details.");
+						publishEvent("Failed to retrieve lifecycle logs from rest. "
+								+ "Check logs for more details.");
 					}
 				}
 			} catch (final CLIException e) {
@@ -530,7 +497,8 @@ public class LocalhostGridAgentBootstrapper {
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
 
 			@Override
-			public boolean isDone() throws CLIException, InterruptedException {
+			public boolean isDone()
+					throws CLIException, InterruptedException {
 				final List<String> applications = adminFacade.getApplicationsList();
 
 				boolean done = true;
@@ -562,28 +530,21 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	/**
-	 * Shuts down the local agent, if exists, and waits until shutdown is complete or until the timeout is
-	 * reached.
+	 * Shuts down the local agent, if exists, and waits until shutdown is complete or until the timeout is reached.
 	 * 
-	 * @param allowManagement
-	 *            Allow the agent to shut down even the management processes (GSM, ESM, LUS) it started are
-	 *            still active
-	 * @param allowContainers
-	 *            Allow the agent to shut down even the GSC still runs active services
-	 * @param timeout
-	 *            number of {@link TimeUnit}s to wait
-	 * @param timeunit
-	 *            the {@link TimeUnit} to use, to calculate the timeout
-	 * @throws CLIException
-	 *             Reporting a failure to shutdown the agent, or the management/services components still
-	 *             require it
-	 * @throws InterruptedException
-	 *             Reporting the thread was interrupted while waiting
-	 * @throws TimeoutException
-	 *             Reporting the timeout was reached
+	 * @param allowManagement Allow the agent to shut down even the management processes (GSM, ESM, LUS) it started are
+	 *        still active
+	 * @param allowContainers Allow the agent to shut down even the GSC still runs active services
+	 * @param timeout number of {@link TimeUnit}s to wait
+	 * @param timeunit the {@link TimeUnit} to use, to calculate the timeout
+	 * @throws CLIException Reporting a failure to shutdown the agent, or the management/services components still
+	 *         require it
+	 * @throws InterruptedException Reporting the thread was interrupted while waiting
+	 * @throws TimeoutException Reporting the timeout was reached
 	 */
 	public void shutdownAgentOnLocalhostAndWaitInternal(final boolean allowManagement, final boolean allowContainers,
-			final long timeout, final TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
+			final long timeout, final TimeUnit timeunit)
+			throws CLIException, InterruptedException, TimeoutException {
 
 		final long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
 		final ConnectionLogsFilter connectionLogs = new ConnectionLogsFilter();
@@ -602,7 +563,8 @@ public class LocalhostGridAgentBootstrapper {
 			if (agent == null) {
 				logger.fine("Agent not running on local machine");
 				if (verbose) {
-					String agentNotFoundMessage = ShellUtils.getMessageBundle().getString("agent_not_found_on_teardown_command");
+					String agentNotFoundMessage =
+							ShellUtils.getMessageBundle().getString("agent_not_found_on_teardown_command");
 					publishEvent(agentNotFoundMessage);
 				}
 				throw new CLIStatusException("teardown_failed_agent_not_found");
@@ -665,18 +627,12 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Shuts down the given agent, and waits until shutdown is complete or until the timeout is reached.
 	 * 
-	 * @param agent
-	 *            The agent to shutdown
-	 * @param timeout
-	 *            number of {@link TimeUnit}s to wait
-	 * @param timeunit
-	 *            the {@link TimeUnit} to use, to calculate the timeout
-	 * @throws InterruptedException
-	 *             Reporting the thread was interrupted while waiting
-	 * @throws TimeoutException
-	 *             Reporting the timeout was reached
-	 * @throws CLIException
-	 *             Reporting a failure to shutdown the agent
+	 * @param agent The agent to shutdown
+	 * @param timeout number of {@link TimeUnit}s to wait
+	 * @param timeunit the {@link TimeUnit} to use, to calculate the timeout
+	 * @throws InterruptedException Reporting the thread was interrupted while waiting
+	 * @throws TimeoutException Reporting the timeout was reached
+	 * @throws CLIException Reporting a failure to shutdown the agent
 	 */
 	private void shutdownAgentAndWait(final GridServiceAgent agent, final long timeout, final TimeUnit timeunit)
 			throws InterruptedException, TimeoutException, CLIException {
@@ -697,21 +653,24 @@ public class LocalhostGridAgentBootstrapper {
 		}
 
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
-			boolean messagePublished = false;
+
+			private boolean messagePublished = false;
+
 			/**
 			 * Pings the agent to verify it's not available, indicating it was shut down.
 			 */
 			@Override
-			public boolean isDone() throws CLIException, InterruptedException {
-				if (!messagePublished){
+			public boolean isDone()
+					throws CLIException, InterruptedException {
+				if (!messagePublished) {
 					String shuttingDownAgentMessage = ShellUtils.getMessageBundle()
-					.getString("shutting_down_cloudify_agent_teardown_localcloud");
+							.getString("shutting_down_cloudify_agent_teardown_localcloud");
 					publishEvent(shuttingDownAgentMessage);
-					
+
 					String shuttingDownManagmentMessage = ShellUtils.getMessageBundle()
-					.getString("shutting_down_cloudify_managment");
+							.getString("shutting_down_cloudify_managment");
 					publishEvent(shuttingDownManagmentMessage);
-					
+
 					messagePublished = true;
 				}
 				logger.fine("Waiting for agent to shutdown");
@@ -728,7 +687,8 @@ public class LocalhostGridAgentBootstrapper {
 		});
 	}
 
-	private void runGsAgentOnLocalHost(final String name, final String[] gsAgentArguments) throws CLIException,
+	private void runGsAgentOnLocalHost(final String name, final String[] gsAgentArguments)
+			throws CLIException,
 			InterruptedException {
 
 		final List<String> args = new ArrayList<String>();
@@ -742,11 +702,11 @@ public class LocalhostGridAgentBootstrapper {
 			command = Arrays.copyOf(LINUX_COMMAND, LINUX_COMMAND.length);
 			args.addAll(Arrays.asList(LINUX_ARGUMENTS_POSTFIX));
 		}
-		if (verbose){
+		if (verbose) {
 			String message = "Starting "
-				+ name
-				+ (verbose ? ":\n" + StringUtils.collectionToDelimitedString(Arrays.asList(command), " ") + " "
-						+ StringUtils.collectionToDelimitedString(args, " ") : "");
+					+ name
+					+ (verbose ? ":\n" + StringUtils.collectionToDelimitedString(Arrays.asList(command), " ") + " "
+							+ StringUtils.collectionToDelimitedString(args, " ") : "");
 			publishEvent(message);
 			logger.fine(message);
 		}
@@ -756,33 +716,27 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	/**
-	 * Starts management processes (LUS, GSM, ESM), and waits until the requested service installations
-	 * complete (space, webui, REST), or until the timeout is reached.
+	 * Starts management processes (LUS, GSM, ESM), and waits until the requested service installations complete (space,
+	 * webui, REST), or until the timeout is reached.
 	 * 
-	 * @param gsAgentArgs
-	 *            GS agent start-up switches
-	 * @param timeout
-	 *            number of {@link TimeUnit}s to wait
-	 * @param timeunit
-	 *            the {@link TimeUnit} to use, to calculate the timeout
-	 * @param isLocalCloud
-	 *            Is this a local cloud (true - yes, false - no)
-	 * @throws CLIException
-	 *             Reporting a failure to start the processes and services
-	 * @throws InterruptedException
-	 *             Reporting the thread was interrupted while waiting
-	 * @throws TimeoutException
-	 *             Reporting the timeout was reached
+	 * @param gsAgentArgs GS agent start-up switches
+	 * @param timeout number of {@link TimeUnit}s to wait
+	 * @param timeunit the {@link TimeUnit} to use, to calculate the timeout
+	 * @param isLocalCloud Is this a local cloud (true - yes, false - no)
+	 * @throws CLIException Reporting a failure to start the processes and services
+	 * @throws InterruptedException Reporting the thread was interrupted while waiting
+	 * @throws TimeoutException Reporting the timeout was reached
 	 */
 	private void startManagementOnLocalhostAndWaitInternal(final String[] gsAgentArgs, final int timeout,
-			final TimeUnit timeunit, final boolean isLocalCloud) throws CLIException, InterruptedException,
+			final TimeUnit timeunit, final boolean isLocalCloud)
+			throws CLIException, InterruptedException,
 			TimeoutException {
 		final long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
 
 		if (gsaZones == null || gsaZones.isEmpty()) {
 			throw new CLIException("Agent must be started with a zone");
 		}
-		
+
 		final ConnectionLogsFilter connectionLogs = new ConnectionLogsFilter();
 		connectionLogs.supressConnectionErrors();
 		final Admin admin = createAdmin();
@@ -810,7 +764,7 @@ public class LocalhostGridAgentBootstrapper {
 			waitForManagementProcesses(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
 					TimeUnit.MILLISECONDS);
 
-			final List<AbstractManagementServiceInstaller> waitForManagementServices = 
+			final List<AbstractManagementServiceInstaller> waitForManagementServices =
 					new LinkedList<AbstractManagementServiceInstaller>();
 
 			connectionLogs.supressConnectionErrors();
@@ -867,7 +821,7 @@ public class LocalhostGridAgentBootstrapper {
 					restInstaller.setAdmin(agent.getAdmin());
 					restInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
 					restInstaller.setVerbose(verbose);
-					
+
 					restInstaller.setMemory(REST_MEMORY_IN_MB, MemoryUnit.MEGABYTES);
 					restInstaller.setPort(REST_PORT);
 					restInstaller.setWarFile(new File(REST_FILE));
@@ -893,7 +847,7 @@ public class LocalhostGridAgentBootstrapper {
 							ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
 					if (managementServiceInstaller instanceof ManagementSpaceServiceInstaller) {
 						logger.fine("Writing cloud configuration to space.");
-						if (verbose){
+						if (verbose) {
 							publishEvent("Writing cloud configuration to space.");
 						}
 						final GigaSpace gigaspace = managementSpaceInstaller.getGigaSpace();
@@ -922,8 +876,8 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	/**
-	 * This method assumes that the admin has been supplied with this.lookupLocators and this.lookupGroups and
-	 * that it applied the defaults if these were null.
+	 * This method assumes that the admin has been supplied with this.lookupLocators and this.lookupGroups and that it
+	 * applied the defaults if these were null.
 	 * 
 	 * @param admin
 	 */
@@ -939,11 +893,10 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	/**
-	 * Converts the given locators to a String of comma-delimited locator names. The locator names are of this
-	 * format: <locator_host>:<locator_port>
+	 * Converts the given locators to a String of comma-delimited locator names. The locator names are of this format:
+	 * <locator_host>:<locator_port>
 	 * 
-	 * @param locators
-	 *            an array of {@link LookupLocator} objects to convert to String
+	 * @param locators an array of {@link LookupLocator} objects to convert to String
 	 * @return A comma-delimited list of lookup locators
 	 */
 	public static String convertLookupLocatorToString(final LookupLocator[] locators) {
@@ -959,18 +912,14 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Starts an agent on the local host. If an agent is already running, a CLIException is thrown.
 	 * 
-	 * @param timeout
-	 *            number of {@link TimeUnit}s to wait
-	 * @param timeunit
-	 *            the {@link TimeUnit} to use, to calculate the timeout
-	 * @throws CLIException
-	 *             Reporting a failure to start the processes and services
-	 * @throws InterruptedException
-	 *             Reporting the thread was interrupted while waiting
-	 * @throws TimeoutException
-	 *             Reporting the timeout was reached
+	 * @param timeout number of {@link TimeUnit}s to wait
+	 * @param timeunit the {@link TimeUnit} to use, to calculate the timeout
+	 * @throws CLIException Reporting a failure to start the processes and services
+	 * @throws InterruptedException Reporting the thread was interrupted while waiting
+	 * @throws TimeoutException Reporting the timeout was reached
 	 */
-	public void startAgentOnLocalhostAndWait(final long timeout, final TimeUnit timeunit) throws CLIException,
+	public void startAgentOnLocalhostAndWait(final long timeout, final TimeUnit timeunit)
+			throws CLIException,
 			InterruptedException, TimeoutException {
 
 		if (gsaZones == null || gsaZones.isEmpty()) {
@@ -1012,7 +961,8 @@ public class LocalhostGridAgentBootstrapper {
 			 * {@inheritDoc}
 			 */
 			@Override
-			public boolean isDone() throws CLIException, InterruptedException {
+			public boolean isDone()
+					throws CLIException, InterruptedException {
 
 				boolean isDone = true;
 
@@ -1044,11 +994,11 @@ public class LocalhostGridAgentBootstrapper {
 					logger.fine("Waiting for Management processes to start.");
 					publishEvent("Waiting for Management processes to start.");
 				}
-				
-				if (!isDone){
+
+				if (!isDone) {
 					publishEvent(null);
 				}
-				
+
 				return isDone;
 			}
 
@@ -1078,7 +1028,7 @@ public class LocalhostGridAgentBootstrapper {
 						publishEvent(message);
 					}
 				}
-				if (!verbose){
+				if (!verbose) {
 					publishEvent(null);
 				}
 				return found;
@@ -1102,16 +1052,19 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	private GridServiceAgent waitForAgent(final Admin admin, final boolean existingAgent, final long timeout,
-			final TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException {
+			final TimeUnit timeunit)
+			throws InterruptedException, TimeoutException, CLIException {
 
 		final AtomicReference<GridServiceAgent> agentOnLocalhost = new AtomicReference<GridServiceAgent>();
 
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
+
 			/**
 			 * {@inheritDoc}
 			 */
 			@Override
-			public boolean isDone() throws CLIException, InterruptedException {
+			public boolean isDone()
+					throws CLIException, InterruptedException {
 
 				boolean isDone = false;
 				for (final GridServiceAgent agent : admin.getGridServiceAgents()) {
@@ -1122,12 +1075,12 @@ public class LocalhostGridAgentBootstrapper {
 					}
 				}
 				if (!isDone) {
-						if (existingAgent) {
-							logger.fine("Looking for an existing agent running on local machine");
-						} else {
-							logger.fine("Waiting for the agent on the local machine to start.");
-						}
-						publishEvent(null);
+					if (existingAgent) {
+						logger.fine("Looking for an existing agent running on local machine");
+					} else {
+						logger.fine("Waiting for the agent on the local machine to start.");
+					}
+					publishEvent(null);
 				}
 				return isDone;
 			}
@@ -1160,7 +1113,8 @@ public class LocalhostGridAgentBootstrapper {
 				return getCommandLineArgumentRemovePrefix(component, prefix);
 			}
 
-			private String getCommandLineArgumentRemovePrefix(final VirtualMachineAware component, final String prefix) {
+			private String getCommandLineArgumentRemovePrefix(final VirtualMachineAware component,
+					final String prefix) {
 				final String[] commandLineArguments = component.getVirtualMachine().getDetails().getInputArguments();
 				String requiredArg = null;
 				for (final String arg : commandLineArguments) {
@@ -1183,7 +1137,8 @@ public class LocalhostGridAgentBootstrapper {
 		return System.getProperty("os.name").toLowerCase().contains("win");
 	}
 
-	private void runCommand(final String[] command, final String[] args) throws CLIException, InterruptedException {
+	private void runCommand(final String[] command, final String[] args)
+			throws CLIException, InterruptedException {
 
 		final File directory = new File(Environment.getHomeDirectory(), "/bin").getAbsoluteFile();
 
@@ -1203,11 +1158,13 @@ public class LocalhostGridAgentBootstrapper {
 			gsaJavaOptions += " " + AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT;
 		}
 		String lusJavaOptions = "-Xmx" + LUS_MEMORY_IN_MB + "m" + " -D" + LUS_PORT_CONTEXT_PROPERTY + "=" + lusPort
-																+ " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;		
-		String gsmJavaOptions = "-Xmx" + GSM_MEMORY_IN_MB + "m" + " -D" + LUS_PORT_CONTEXT_PROPERTY + "=" + lusPort 
-																+ " -D" + GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "=" + GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL
-																+ " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;
-		String esmJavaOptions = "-Xmx" + ESM_MEMORY_IN_MB + "m" + " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;			
+				+ " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;
+		String gsmJavaOptions = "-Xmx" + GSM_MEMORY_IN_MB + "m"
+				+ " -D" + LUS_PORT_CONTEXT_PROPERTY + "=" + lusPort
+				+ " -D" + GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "=" + GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL
+				+ " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE
+				+ " " + GSM_PENDING_REQUESTS_DELAY;
+		String esmJavaOptions = "-Xmx" + ESM_MEMORY_IN_MB + "m" + " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;
 		String gscJavaOptions = "";
 
 		final Map<String, String> environment = pb.environment();
@@ -1231,9 +1188,9 @@ public class LocalhostGridAgentBootstrapper {
 		environment.put("RMI_OPTIONS", "");
 
 		if (gsaZones != null) {
-			gsaJavaOptions += " -D"+ZONES_PROPERTY+"=" + gsaZones;
+			gsaJavaOptions += " -D" + ZONES_PROPERTY + "=" + gsaZones;
 		}
-		
+
 		environment.put("GSA_JAVA_OPTIONS", gsaJavaOptions);
 		environment.put("LUS_JAVA_OPTIONS", lusJavaOptions);
 		environment.put("GSM_JAVA_OPTIONS", gsmJavaOptions);
@@ -1298,7 +1255,8 @@ public class LocalhostGridAgentBootstrapper {
 				.timeoutErrorMessage(TIMEOUT_ERROR_MESSAGE).verbose(verbose);
 	}
 
-	private File createScript(final String text) throws CLIException {
+	private File createScript(final String text)
+			throws CLIException {
 		File tempFile;
 		try {
 			tempFile = File.createTempFile("run-gs-agent", isWindows() ? ".bat" : ".sh");
@@ -1340,18 +1298,16 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Sets the cloud configuration content.
 	 * 
-	 * @param cloudContents
-	 *            Cloud configuration
+	 * @param cloudContents Cloud configuration
 	 */
 	public void setCloudContents(final String cloudContents) {
 		this.cloudContents = cloudContents;
 	}
-	
+
 	/**********
 	 * Registers an event listener for installation events.
 	 * 
-	 * @param listener
-	 *            the listener.
+	 * @param listener the listener.
 	 */
 	public void addListener(final LocalhostBootstrapperListener listener) {
 		this.eventsListenersList.add(listener);

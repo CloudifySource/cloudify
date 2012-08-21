@@ -50,9 +50,13 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
  *        [-lookup-locators lookup-locators] [-auto-shutdown auto-shutdown] [-no-web-services no-web-services]
  *        [-no-management-space no-management-space] [-cloud-file cloud-file]
  */
-@Command(scope = "cloudify", name = "start-management", description = "Starts Cloudify Agent with management zone, "
-		+ "and the Cloudify management processes on local machine. The management processes communicate with other"
-		+ " agent and management machines.")
+@Command(
+		scope = "cloudify",
+		name = "start-management",
+		description = "For internal use only! Starts Cloudify Agent with management zone, "
+				+ "and the Cloudify management processes on local machine. " 
+				+ "The management processes communicate with other"
+				+ " agent and management machines.")
 public class StartManagement extends AbstractGSCommand {
 
 	private static final int DEFAULT_PROGRESS_INTERVAL_SECONDS = 10;
@@ -96,8 +100,7 @@ public class StartManagement extends AbstractGSCommand {
 	/**
 	 * Parses the cloud configuration file.
 	 * 
-	 * @param cloudFile
-	 *            The cloud configuration file
+	 * @param cloudFile The cloud configuration file
 	 * @return Cloud object, configured according to the given file
 	 * @throws IOException
 	 */

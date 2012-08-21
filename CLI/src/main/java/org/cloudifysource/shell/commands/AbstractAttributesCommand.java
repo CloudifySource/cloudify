@@ -12,10 +12,12 @@ import org.apache.felix.gogo.commands.Option;
 public abstract class AbstractAttributesCommand extends AdminAwareCommand {
 
 
-    @Option(required = false, name = "-scope", description = "The attributes scope. Can be \"global\", \"application\", which will apply " +
-            "to the current application, \"service:<service name>\", which will apply to the service with the given name of the current " +
-            "application, or \"service:<service name>:<instance id>\", which will apply to the instance with the give ID of the given " +
-            "service of the current application. You can also specify \"service:<service name>:all-instances\" to apply to the instance-level " +
-            "attributes of all instances of a specific service")
+    @Option(required = false, name = "-scope", 
+    		description = "The attributes scope. Can be \"global\", \"application\"," 
+    		+ " which will apply to the current application, \"service:<service name>\", which will apply to the " 
+    		+ " service with the given name of the current application, or \"service:<service name>:<instance id>\", " 
+    		+ " which will apply to the instance with the give ID of the given service of the current application."
+    		+ " You can also specify \"service:<service name>:all-instances\" to apply to the instance-level" 
+            + " attributes of all instances of a specific service")
     protected String scope = "global";
 }
