@@ -30,7 +30,7 @@ public class CloudifyVersion implements ProductVersion {
 	private String MILESTONE = "m4";
 	private String BUILD_TYPE = "regular";
 	private String V_NUM = VERSION + '-' + EDITION + '-' + MILESTONE;
-	private String V_LICENSE_NUM = "2.1" + EDITION;
+	private String V_LICENSE_NUM = "2.2" + EDITION;
 	// !!!IMPORTANT, read below
 	// Must be of either "int-int-string", "int-int" or "int" format otherwise
 	// PlatformLogicalVersion will fail parsing!!!
