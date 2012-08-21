@@ -445,7 +445,8 @@ public class CloudGridAgentBootstrapper {
 
 			for (final Future<Exception> future : futures) {
 				try {
-					final Exception e = future.get();
+					final long millisToEnd = endTime - System.currentTimeMillis();
+					final Exception e = future.get(millisToEnd, TimeUnit.MILLISECONDS);
 					if (e != null) {
 						if (e instanceof TimeoutException) {
 							throw (TimeoutException) e;
