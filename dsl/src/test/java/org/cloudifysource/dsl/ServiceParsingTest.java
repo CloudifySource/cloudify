@@ -281,8 +281,8 @@ public class ServiceParsingTest {
 		final String[] params = new String[2];
 		params[0] = "name";
 		params[1] = "port";
-		customCommand.call(params);
-		customCommand.call(params);
+		customCommand.call((Object[])params);
+		customCommand.call((Object[])params);
 	}
 
 	@Test
