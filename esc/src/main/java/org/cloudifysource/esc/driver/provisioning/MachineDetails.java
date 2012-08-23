@@ -107,7 +107,7 @@ public class MachineDetails {
 	public String toString() {
 		return "MachineDetails [machineId=" + machineId + ", privateAddress=" + privateAddress + ", publicAddress="
 				+ publicAddress + ", gigaspacesInstalled=" + cloudifyInstalled
-				+ ", agentRunning=" + agentRunning + ", installationDirectory=" + installationDirectory + "]";
+				+ ", agentRunning=" + agentRunning + ", installationDirectory=" + installationDirectory + ", locationId=" + locationId + "]";
 	}
 
 	public String getRemoteUsername() {

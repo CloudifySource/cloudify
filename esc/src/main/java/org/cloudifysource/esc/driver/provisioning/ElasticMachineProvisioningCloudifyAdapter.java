@@ -162,7 +162,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	public GridServiceAgent startMachine(final ExactZonesConfig zones, final long duration, final TimeUnit unit)
 			throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
 
-		logger.info("Cloudify Adapter is starting a new machine");
+		logger.info("Cloudify Adapter is starting a new machine with zones " + zones.getZones());
 		// calculate timeout
 		final long end = System.currentTimeMillis() + unit.toMillis(duration);
 
@@ -171,17 +171,22 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		MachineDetails machineDetails;
 		cloudifyProvisioning.setAdmin(getGlobalAdminInstance(originalESMAdmin));
 		
-		AtLeastOneZoneConfig defaultZones = config.getGridServiceAgentZones();			
+		AtLeastOneZoneConfig defaultZones = config.getGridServiceAgentZones();
+		logger.fine("default zones = " + defaultZones.getZones());
 		if (!defaultZones.isSatisfiedBy(zones)) {
 			throw new IllegalArgumentException("The specified zones " + zones + " does not satisfy the configuration zones " + defaultZones);
 		}
 		
 		String locationId = null;
 		
+		logger.fine("searching for cloud specific zone");
 		for (String zone : zones.getZones()) {
+			logger.fine("current zone = " + zone);
 			if (zone.startsWith(CLOUD_ZONE_PREFIX)) {
+				logger.fine("found a zone with " + CLOUD_ZONE_PREFIX + " prefix : " + zone);
 				if (locationId == null) {
 					locationId = zone.substring(CLOUD_ZONE_PREFIX.length());
+					logger.fine("passing locationId to machine provisioning as " + locationId);
 				}
 				else {
 					throw new IllegalArgumentException("The specified zones " + zones + " should include only one zone with the " + CLOUD_ZONE_PREFIX + " prefix:" + locationId);
