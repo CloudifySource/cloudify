@@ -41,14 +41,16 @@ public class ServiceParsingTest {
 	private static final String TEST_PARSING_RESOURCE_PATH = "testResources/testparsing/";
 
 	@Test
-	public void testFeaturesParsing()
-			throws DSLException, UnknownHostException {
-		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH + "test_features-service.groovy");
+	public void testFeaturesParsing() throws DSLException, UnknownHostException {
+		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH
+				+ "test_features-service.groovy");
 		final File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
-		final Service service = ServiceReader.getServiceFromFile(testParsingBaseDslFile, testParsingBaseWorkDir)
-				.getService();
+		final Service service = ServiceReader.getServiceFromFile(
+				testParsingBaseDslFile, testParsingBaseWorkDir).getService();
 		Assert.assertEquals("test features", service.getName());
-		Assert.assertEquals("http://" + InetAddress.getLocalHost().getHostName() + ":8080", service.getUrl());
+		Assert.assertEquals("http://"
+				+ InetAddress.getLocalHost().getHostName() + ":8080",
+				service.getUrl());
 		final ServiceLifecycle lifecycle = service.getLifecycle();
 
 		Assert.assertNotNull(lifecycle.getStart());
@@ -57,45 +59,46 @@ public class ServiceParsingTest {
 	}
 
 	@Test
-	public void testDuplicateLifecycleEventParsing()
-			throws DSLException {
-		final File testParsingBaseDslFile =
-				new File(TEST_PARSING_RESOURCE_PATH
+	public void testDuplicateLifecycleEventParsing() throws DSLException {
+		final File testParsingBaseDslFile = new File(
+				TEST_PARSING_RESOURCE_PATH
 						+ "test_parsing_on_duplicate_property_in_inner_class-service.groovy");
 		final File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
 		try {
-			ServiceReader.getServiceFromFile(testParsingBaseDslFile, testParsingBaseWorkDir)
-					.getService();
+			ServiceReader.getServiceFromFile(testParsingBaseDslFile,
+					testParsingBaseWorkDir).getService();
 		} catch (final IllegalArgumentException e) {
-			System.out.println("Test passed. found duplication: " + e.getMessage());
+			System.out.println("Test passed. found duplication: "
+					+ e.getMessage());
 		}
 	}
 
 	@Test
-	public void testDuplicateServicePropertyParsing()
-			throws DSLException {
-		final File testParsingBaseDslFile =
-				new File(TEST_PARSING_RESOURCE_PATH
+	public void testDuplicateServicePropertyParsing() throws DSLException {
+		final File testParsingBaseDslFile = new File(
+				TEST_PARSING_RESOURCE_PATH
 						+ "test_parsing_on_duplicate_property_in_service_class-service.groovy");
 		final File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
 		try {
-			ServiceReader.getServiceFromFile(testParsingBaseDslFile, testParsingBaseWorkDir)
-					.getService();
+			ServiceReader.getServiceFromFile(testParsingBaseDslFile,
+					testParsingBaseWorkDir).getService();
 		} catch (final IllegalArgumentException e) {
-			System.out.println("Test passed. found duplication: " + e.getMessage());
+			System.out.println("Test passed. found duplication: "
+					+ e.getMessage());
 		}
 	}
 
 	@Test
-	public void testBasicParsing()
-			throws DSLException {
-		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH + "test_parsing_base-service.groovy");
+	public void testBasicParsing() throws DSLException {
+		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH
+				+ "test_parsing_base-service.groovy");
 		final File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
-		final Service service = ServiceReader.getServiceFromFile(testParsingBaseDslFile, testParsingBaseWorkDir)
-				.getService();
+		final Service service = ServiceReader.getServiceFromFile(
+				testParsingBaseDslFile, testParsingBaseWorkDir).getService();
 		Assert.assertEquals("test parsing base", service.getName());
 		final ServiceLifecycle lifecycle = service.getLifecycle();
-		Assert.assertEquals(ExecutableDSLEntryType.STRING, lifecycle.getInit().getEntryType());
+		Assert.assertEquals(ExecutableDSLEntryType.STRING, lifecycle.getInit()
+				.getEntryType());
 		Assert.assertEquals("test_parsing_base_install.groovy",
 				((StringExecutableEntry) lifecycle.getInit()).getCommand());
 		Assert.assertNotNull(lifecycle.getStart());
@@ -104,26 +107,31 @@ public class ServiceParsingTest {
 	}
 
 	@Test
-	public void testBasicExtendParsing()
-			throws DSLException {
+	public void testBasicExtendParsing() throws DSLException {
 
-		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH + "test_parsing_base-service.groovy");
+		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH
+				+ "test_parsing_base-service.groovy");
 		final File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
-		final Service baseService = ServiceReader.getServiceFromFile(testParsingBaseDslFile, testParsingBaseWorkDir)
-				.getService();
+		final Service baseService = ServiceReader.getServiceFromFile(
+				testParsingBaseDslFile, testParsingBaseWorkDir).getService();
 		Assert.assertFalse(baseService.getName().equals("test parsing extend"));
 		final ServiceLifecycle baseLifecycle = baseService.getLifecycle();
-		Assert.assertFalse(baseLifecycle.getInit().equals("test_parsing_extend_install.groovy"));
+		Assert.assertFalse(baseLifecycle.getInit().equals(
+				"test_parsing_extend_install.groovy"));
 		Assert.assertNull(baseLifecycle.getStop());
 
-		final File testParsingExtendDslFile = new File(TEST_PARSING_RESOURCE_PATH
-				+ "test_parsing_extend-service.groovy");
-		final File testParsingExtendWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
-		final Service service = ServiceReader.getServiceFromFile(testParsingExtendDslFile, testParsingExtendWorkDir)
+		final File testParsingExtendDslFile = new File(
+				TEST_PARSING_RESOURCE_PATH
+						+ "test_parsing_extend-service.groovy");
+		final File testParsingExtendWorkDir = new File(
+				TEST_PARSING_RESOURCE_PATH);
+		final Service service = ServiceReader.getServiceFromFile(
+				testParsingExtendDslFile, testParsingExtendWorkDir)
 				.getService();
 		Assert.assertEquals("test parsing extend", service.getName());
 		final ServiceLifecycle lifecycle = service.getLifecycle();
-		Assert.assertEquals(ExecutableDSLEntryType.STRING, lifecycle.getInit().getEntryType());
+		Assert.assertEquals(ExecutableDSLEntryType.STRING, lifecycle.getInit()
+				.getEntryType());
 		Assert.assertEquals("test_parsing_extend_install.groovy",
 				((StringExecutableEntry) lifecycle.getInit()).getCommand());
 		Assert.assertNotNull(lifecycle.getStart());
@@ -131,16 +139,20 @@ public class ServiceParsingTest {
 		Assert.assertNotNull(lifecycle.getPreStop());
 		Assert.assertNotNull(lifecycle.getStop());
 		Assert.assertEquals(1, service.getExtendedServicesPaths().size());
-		Assert.assertEquals("test_parsing_base-service.groovy", service.getExtendedServicesPaths().getFirst());
+		Assert.assertEquals("test_parsing_base-service.groovy", service
+				.getExtendedServicesPaths().getFirst());
 	}
 
 	@Test
 	public void testBasicExtendIllegalPropertyLocation() {
-		final File testParsingExtendDslFile = new File(TEST_PARSING_RESOURCE_PATH
-				+ "test_parsing_extend_illegal-service.groovy");
-		final File testParsingExtendWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
+		final File testParsingExtendDslFile = new File(
+				TEST_PARSING_RESOURCE_PATH
+						+ "test_parsing_extend_illegal-service.groovy");
+		final File testParsingExtendWorkDir = new File(
+				TEST_PARSING_RESOURCE_PATH);
 		try {
-			ServiceReader.getServiceFromFile(testParsingExtendDslFile, testParsingExtendWorkDir).getService();
+			ServiceReader.getServiceFromFile(testParsingExtendDslFile,
+					testParsingExtendWorkDir).getService();
 			Assert.fail("No exception thrown while extend resides in illegal place");
 		} catch (final Exception e) {
 			// ignore
@@ -149,11 +161,14 @@ public class ServiceParsingTest {
 
 	@Test
 	public void testBasicExtendIllegalNestedPropertyLocation() {
-		final File testParsingExtendDslFile = new File(TEST_PARSING_RESOURCE_PATH
-				+ "test_parsing_extend_illegal_nested-service.groovy");
-		final File testParsingExtendWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
+		final File testParsingExtendDslFile = new File(
+				TEST_PARSING_RESOURCE_PATH
+						+ "test_parsing_extend_illegal_nested-service.groovy");
+		final File testParsingExtendWorkDir = new File(
+				TEST_PARSING_RESOURCE_PATH);
 		try {
-			ServiceReader.getServiceFromFile(testParsingExtendDslFile, testParsingExtendWorkDir).getService();
+			ServiceReader.getServiceFromFile(testParsingExtendDslFile,
+					testParsingExtendWorkDir).getService();
 			Assert.fail("No exception thrown while extend resides in illegal place");
 		} catch (final Exception e) {
 			// ignore
@@ -161,26 +176,31 @@ public class ServiceParsingTest {
 	}
 
 	@Test
-	public void testTwoLevelExtension()
-			throws DSLException {
-		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH + "test_parsing_base-service.groovy");
+	public void testTwoLevelExtension() throws DSLException {
+		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH
+				+ "test_parsing_base-service.groovy");
 		final File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
-		final Service baseService = ServiceReader.getServiceFromFile(testParsingBaseDslFile, testParsingBaseWorkDir)
-				.getService();
+		final Service baseService = ServiceReader.getServiceFromFile(
+				testParsingBaseDslFile, testParsingBaseWorkDir).getService();
 		Assert.assertFalse(baseService.getName().equals("test parsing extend"));
 		final ServiceLifecycle baseLifecycle = baseService.getLifecycle();
-		Assert.assertFalse(baseLifecycle.getInit().equals("test_parsing_extend_install.groovy"));
+		Assert.assertFalse(baseLifecycle.getInit().equals(
+				"test_parsing_extend_install.groovy"));
 		Assert.assertNull(baseLifecycle.getStop());
 		Assert.assertFalse(baseLifecycle.getStart().equals("start"));
 
-		final File testParsingExtendDslFile = new File(TEST_PARSING_RESOURCE_PATH
-				+ "test_parsing_extend_two_level-service.groovy");
-		final File testParsingExtendWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
-		final Service service = ServiceReader.getServiceFromFile(testParsingExtendDslFile, testParsingExtendWorkDir)
+		final File testParsingExtendDslFile = new File(
+				TEST_PARSING_RESOURCE_PATH
+						+ "test_parsing_extend_two_level-service.groovy");
+		final File testParsingExtendWorkDir = new File(
+				TEST_PARSING_RESOURCE_PATH);
+		final Service service = ServiceReader.getServiceFromFile(
+				testParsingExtendDslFile, testParsingExtendWorkDir)
 				.getService();
 		Assert.assertEquals("test parsing extend two level", service.getName());
 		final ServiceLifecycle lifecycle = service.getLifecycle();
-		Assert.assertEquals(ExecutableDSLEntryType.STRING, lifecycle.getInit().getEntryType());
+		Assert.assertEquals(ExecutableDSLEntryType.STRING, lifecycle.getInit()
+				.getEntryType());
 		Assert.assertEquals("test_parsing_extend_install.groovy",
 				((StringExecutableEntry) lifecycle.getInit()).getCommand());
 
@@ -189,30 +209,36 @@ public class ServiceParsingTest {
 		Assert.assertNotNull(lifecycle.getPreStop());
 		Assert.assertNotNull(lifecycle.getStop());
 
-		Assert.assertEquals(ExecutableDSLEntryType.STRING, lifecycle.getInstall().getEntryType());
+		Assert.assertEquals(ExecutableDSLEntryType.STRING, lifecycle
+				.getInstall().getEntryType());
 		Assert.assertEquals("install",
 				((StringExecutableEntry) lifecycle.getInstall()).getCommand());
 
-		Assert.assertEquals(ExecutableDSLEntryType.STRING, lifecycle.getStart().getEntryType());
+		Assert.assertEquals(ExecutableDSLEntryType.STRING, lifecycle.getStart()
+				.getEntryType());
 		Assert.assertEquals("start",
 				((StringExecutableEntry) lifecycle.getStart()).getCommand());
 
 		Assert.assertEquals(2, service.getExtendedServicesPaths().size());
-		Assert.assertEquals("test_parsing_extend-service.groovy", service.getExtendedServicesPaths().getFirst());
-		Assert.assertEquals("test_parsing_base-service.groovy", service.getExtendedServicesPaths().getLast());
+		Assert.assertEquals("test_parsing_extend-service.groovy", service
+				.getExtendedServicesPaths().getFirst());
+		Assert.assertEquals("test_parsing_base-service.groovy", service
+				.getExtendedServicesPaths().getLast());
 	}
 
 	@Test
-	public void testAutoScalingParsing()
-			throws DSLException, UnknownHostException {
-		final File testParsingBaseDslFile =
-				new File(TEST_PARSING_RESOURCE_PATH + "test_parsing_autoscaling-service.groovy");
+	public void testAutoScalingParsing() throws DSLException,
+			UnknownHostException {
+		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH
+				+ "test_parsing_autoscaling-service.groovy");
 		final File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
-		final Service service = ServiceReader.getServiceFromFile(testParsingBaseDslFile, testParsingBaseWorkDir)
-				.getService();
+		final Service service = ServiceReader.getServiceFromFile(
+				testParsingBaseDslFile, testParsingBaseWorkDir).getService();
 		Assert.assertTrue(service.getMinAllowedInstances() > 1);
-		Assert.assertTrue(service.getNumInstances() >= service.getMinAllowedInstances());
-		Assert.assertTrue(service.getMaxAllowedInstances() >= service.getNumInstances());
+		Assert.assertTrue(service.getNumInstances() >= service
+				.getMinAllowedInstances());
+		Assert.assertTrue(service.getMaxAllowedInstances() >= service
+				.getNumInstances());
 		Assert.assertEquals(1, service.getScaleInCooldownInSeconds());
 		Assert.assertEquals(1, service.getScaleOutCooldownInSeconds());
 		Assert.assertEquals(1, service.getScaleCooldownInSeconds());
@@ -220,48 +246,60 @@ public class ServiceParsingTest {
 
 		Assert.assertEquals("scalingRules", service.getName());
 
-		final List<ServiceStatisticsDetails> serviceStatistics = service.getServiceStatistics();
+		final List<ServiceStatisticsDetails> serviceStatistics = service
+				.getServiceStatistics();
 		Assert.assertEquals(1, serviceStatistics.size());
 		Assert.assertNotNull(serviceStatistics.get(0));
 		final String servicestatisticsName = serviceStatistics.get(0).getName();
 		Assert.assertNotNull(serviceStatistics.get(0).getMetric());
 		Assert.assertNotNull(serviceStatistics.get(0).getInstancesStatistics());
 		Assert.assertNotNull(serviceStatistics.get(0).getTimeStatistics());
-		Assert.assertNotNull(serviceStatistics.get(0).getMovingTimeRangeInSeconds());
+		Assert.assertNotNull(serviceStatistics.get(0)
+				.getMovingTimeRangeInSeconds());
 
-		final List<PerInstanceStatisticsDetails> perInstanceStatistics = service.getPerInstanceStatistics();
+		final List<PerInstanceStatisticsDetails> perInstanceStatistics = service
+				.getPerInstanceStatistics();
 		Assert.assertEquals(1, perInstanceStatistics.size());
 		Assert.assertNotNull(perInstanceStatistics.get(0));
 		Assert.assertNotNull(perInstanceStatistics.get(0).getMetric());
-		Assert.assertNotNull(perInstanceStatistics.get(0).getInstancesStatistics());
+		Assert.assertNotNull(perInstanceStatistics.get(0)
+				.getInstancesStatistics());
 		Assert.assertNotNull(perInstanceStatistics.get(0).getTimeStatistics());
-		Assert.assertNotNull(perInstanceStatistics.get(0).getMovingTimeRangeInSeconds());
+		Assert.assertNotNull(perInstanceStatistics.get(0)
+				.getMovingTimeRangeInSeconds());
 
 		final List<ScalingRuleDetails> scalingRules = service.getScalingRules();
 		Assert.assertNotNull(scalingRules);
 		Assert.assertEquals(2, scalingRules.size());
 		Assert.assertNotNull(scalingRules.get(0).getHighThreshold());
 		Assert.assertNotNull(scalingRules.get(0).getLowThreshold());
-		Assert.assertEquals(servicestatisticsName, scalingRules.get(0).getServiceStatistics());
+		Assert.assertEquals(servicestatisticsName, scalingRules.get(0)
+				.getServiceStatistics());
 
-		final HighThresholdDetails highThreshold = scalingRules.get(0).getHighThreshold();
+		final HighThresholdDetails highThreshold = scalingRules.get(0)
+				.getHighThreshold();
 		Assert.assertNotNull(highThreshold.getValue());
 		Assert.assertNotNull(highThreshold.getInstancesIncrease());
 
-		final LowThresholdDetails lowThreshold = scalingRules.get(0).getLowThreshold();
+		final LowThresholdDetails lowThreshold = scalingRules.get(0)
+				.getLowThreshold();
 		Assert.assertNotNull(lowThreshold.getValue());
 		Assert.assertNotNull(lowThreshold.getInstancesDecrease());
 
-		Assert.assertEquals(((ServiceStatisticsDetails) scalingRules.get(1).getServiceStatistics()).getMetric(),
-				serviceStatistics.get(0).getMetric());
-		Assert.assertEquals(((ServiceStatisticsDetails) scalingRules.get(1).getServiceStatistics())
-				.getInstancesStatistics().createInstancesStatistics(), serviceStatistics.get(0)
+		Assert.assertEquals(((ServiceStatisticsDetails) scalingRules.get(1)
+				.getServiceStatistics()).getMetric(), serviceStatistics.get(0)
+				.getMetric());
+		Assert.assertEquals(((ServiceStatisticsDetails) scalingRules.get(1)
+				.getServiceStatistics()).getInstancesStatistics()
+				.createInstancesStatistics(), serviceStatistics.get(0)
 				.getInstancesStatistics().createInstancesStatistics());
-		Assert.assertEquals(((ServiceStatisticsDetails) scalingRules.get(1).getServiceStatistics()).getTimeStatistics()
-				.createTimeWindowStatistics(1, TimeUnit.MINUTES), serviceStatistics.get(0).getTimeStatistics()
-				.createTimeWindowStatistics(1, TimeUnit.MINUTES));
-		Assert.assertEquals(
-				((ServiceStatisticsDetails) scalingRules.get(1).getServiceStatistics()).getMovingTimeRangeInSeconds(),
+		Assert.assertEquals(((ServiceStatisticsDetails) scalingRules.get(1)
+				.getServiceStatistics()).getTimeStatistics()
+				.createTimeWindowStatistics(1, TimeUnit.MINUTES),
+				serviceStatistics.get(0).getTimeStatistics()
+						.createTimeWindowStatistics(1, TimeUnit.MINUTES));
+		Assert.assertEquals(((ServiceStatisticsDetails) scalingRules.get(1)
+				.getServiceStatistics()).getMovingTimeRangeInSeconds(),
 				serviceStatistics.get(0).getMovingTimeRangeInSeconds());
 
 		Assert.assertNotNull(scalingRules.get(1).getHighThreshold());
@@ -269,15 +307,17 @@ public class ServiceParsingTest {
 	}
 
 	@Test
-	public void testPropertyInCustomCommand()
-			throws DSLException {
-		final File testParsingExtendDslFile = new File(TEST_PARSING_RESOURCE_PATH
-				+ "test_property_in_custom_command-service.groovy");
-		final File testParsingExtendWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
-		final Service service =
-				ServiceReader.getServiceFromFile(testParsingExtendDslFile, testParsingExtendWorkDir).getService();
-		final Closure<?> customCommand =
-				((ClosureExecutableEntry) service.getCustomCommands().get("custom_command")).getCommand();
+	public void testPropertyInCustomCommand() throws DSLException {
+		final File testParsingExtendDslFile = new File(
+				TEST_PARSING_RESOURCE_PATH
+						+ "test_property_in_custom_command-service.groovy");
+		final File testParsingExtendWorkDir = new File(
+				TEST_PARSING_RESOURCE_PATH);
+		final Service service = ServiceReader.getServiceFromFile(
+				testParsingExtendDslFile, testParsingExtendWorkDir)
+				.getService();
+		final Closure<?> customCommand = ((ClosureExecutableEntry) service
+				.getCustomCommands().get("custom_command")).getCommand();
 		final String[] params = new String[2];
 		params[0] = "name";
 		params[1] = "port";
@@ -286,20 +326,36 @@ public class ServiceParsingTest {
 	}
 
 	@Test
-	public void testNoLocatorsParsing()
-			throws Exception {
-		final File testParsingBaseDslFile =
-				new File(TEST_PARSING_RESOURCE_PATH + "test_no_locators_statement-service.groovy");
+	public void testNoLocatorsParsing() throws Exception {
+		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH
+				+ "test_no_locators_statement-service.groovy");
 		final File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
-		final Service service = ServiceReader.getServiceFromFile(testParsingBaseDslFile, testParsingBaseWorkDir)
-				.getService();
+		final Service service = ServiceReader.getServiceFromFile(
+				testParsingBaseDslFile, testParsingBaseWorkDir).getService();
 
-		Assert.assertNotNull("Lifecycle should not be null", service.getLifecycle());
-		Assert.assertNotNull("Lifecycle should not be null", service.getLifecycle().getLocator());
-		final Object result = ((ClosureExecutableEntry) service.getLifecycle().getLocator()).getCommand().call();
+		Assert.assertNotNull("Lifecycle should not be null",
+				service.getLifecycle());
+		Assert.assertNotNull("Lifecycle should not be null", service
+				.getLifecycle().getLocator());
+		final Object result = ((ClosureExecutableEntry) service.getLifecycle()
+				.getLocator()).getCommand().call();
 		Assert.assertNotNull("locators result should not be null", result);
 		final List<Long> list = (List<Long>) result;
 		Assert.assertEquals("Expected empty list", 0, list.size());
+	}
+
+	@Test
+	public void testLocationAwareParsing() throws Exception {
+		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH
+				+ "test_location-aware-service.groovy");
+		final File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
+		final Service service = ServiceReader.getServiceFromFile(
+				testParsingBaseDslFile, testParsingBaseWorkDir).getService();
+
+		Assert.assertTrue(
+				"service.isLocationAware() returned false even though locationAware property is set to true",
+				service.isLocationAware());
+
 	}
 
 }
