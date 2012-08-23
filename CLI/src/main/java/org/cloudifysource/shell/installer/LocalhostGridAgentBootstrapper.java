@@ -78,6 +78,7 @@ import com.j_spaces.kernel.Environment;
  */
 public class LocalhostGridAgentBootstrapper {
 
+	private static final int LOCALCLOUD_MEMORY_IN_MB = 128;
 	private static final String GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL = "true";
 	private static final String GSM_PENDING_REQUESTS_DELAY = "-Dorg.jini.rio.monitor.pendingRequestDelay=1000";
 
@@ -121,15 +122,26 @@ public class LocalhostGridAgentBootstrapper {
 			"gsa.gsc", "0", "gsa.global.gsm", "0", "gsa.gsm", "1", "gsa.global.esm", "1" };
 
 	// localcloud management agent starts 1 esm, 1 gsm,1 lus
-	private static final String[] LOCALCLOUD_MANAGEMENT_ARGUMENTS = new String[] { "gsa.global.lus", "0", "gsa.lus",
-			"0", "gsa.gsc", "0", "gsa.global.gsm", "0", "gsa.gsm_lus", "1", "gsa.global.esm", "0", "gsa.esm", "1" };
+	private static final String[] LOCALCLOUD_WIN_MANAGEMENT_ARGUMENTS = new String[] {"start", "startLH", "startGSM",
+				"startESM", "startGSA", "gsa.global.lus", "0", "gsa.lus", "0", "gsa.gsc", "0", "gsa.global.gsm",
+				"0", "gsa.gsm_lus", "0", "gsa.global.esm", "0", "gsa.esm", "0" };
+	// localcloud management agent starts 1 esm, 1 gsm,1 lus
+	private static final String[] LOCALCLOUD_LINUX_MANAGEMENT_ARGUMENTS = new String[] {"start",
+		"\"com.gigaspaces.start.services=\\\"LH,GSM,GSA,ESM\\\"\"", "gsa.global.lus", "0", "gsa.lus", "0",
+		"gsa.gsc", "0", "gsa.global.gsm", "0", "gsa.gsm_lus", "0", "gsa.global.esm", "0", "gsa.esm", "0" };
+	
 
 	private static final String[] AGENT_ARGUMENTS = new String[] { "gsa.global.lus", "0", "gsa.gsc", "0",
 			"gsa.global.gsm", "0", "gsa.global.esm", "0" };
 
 	// script must spawn a daemon process (that is not a child process)
-	private static final String[] WINDOWS_COMMAND = new String[] { "cmd.exe", "/c", "gs-agent.bat" };
-	private static final String[] LINUX_COMMAND = new String[] { "gs-agent.sh" };
+	private static final String[] WINDOWS_LOCALCLOUD_COMMAND = new String[] { "cmd.exe", "/c",
+	"@call", "\"gs.bat\""};
+	private static final String[] LINUX_LOCALCLOUD_COMMAND = new String[] {"gs.sh"};
+
+	// script must spawn a daemon process (that is not a child process)
+	private static final String[] WINDOWS_CLOUD_COMMAND = new String[] { "cmd.exe", "/c", "gs-agent.bat" };
+	private static final String[] LINUX_CLOUD_COMMAND = new String[] { "gs-agent.sh" };
 
 	// script must suppress output, since this process is not consuming it and
 	// so any output could block it.
@@ -156,6 +168,7 @@ public class LocalhostGridAgentBootstrapper {
 	private boolean force;
 	private final List<LocalhostBootstrapperListener> eventsListenersList =
 			new ArrayList<LocalhostBootstrapperListener>();
+	private boolean isLocalCloud;
 
 	/**
 	 * Sets verbose mode.
@@ -307,7 +320,11 @@ public class LocalhostGridAgentBootstrapper {
 
 		setDefaultLocalcloudLookup();
 
-		startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_MANAGEMENT_ARGUMENTS, timeout, timeunit, true);
+		if (isWindows()) {
+			startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_WIN_MANAGEMENT_ARGUMENTS, timeout, timeunit, true);
+		} else {
+			startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_LINUX_MANAGEMENT_ARGUMENTS, timeout, timeunit, true);
+		}
 	}
 
 	private void setDefaultNicAddress()
@@ -687,20 +704,29 @@ public class LocalhostGridAgentBootstrapper {
 		});
 	}
 
-	private void runGsAgentOnLocalHost(final String name, final String[] gsAgentArguments)
-			throws CLIException,
+	private void runGsAgentOnLocalHost(final String name, final String[] gsAgentArguments) throws CLIException,
 			InterruptedException {
 
 		final List<String> args = new ArrayList<String>();
 		args.addAll(Arrays.asList(gsAgentArguments));
 
 		String[] command;
-		if (isWindows()) {
-			command = Arrays.copyOf(WINDOWS_COMMAND, WINDOWS_COMMAND.length);
-			args.addAll(Arrays.asList(WINDOWS_ARGUMENTS_POSTFIX));
+		if (isLocalCloud) {
+			if (isWindows()) {
+				command = Arrays.copyOf(WINDOWS_LOCALCLOUD_COMMAND, WINDOWS_LOCALCLOUD_COMMAND.length);
+				args.addAll(Arrays.asList(WINDOWS_ARGUMENTS_POSTFIX));
+			} else {
+				command = Arrays.copyOf(LINUX_LOCALCLOUD_COMMAND, LINUX_LOCALCLOUD_COMMAND.length);
+				args.addAll(Arrays.asList(LINUX_ARGUMENTS_POSTFIX));
+			}
 		} else {
-			command = Arrays.copyOf(LINUX_COMMAND, LINUX_COMMAND.length);
-			args.addAll(Arrays.asList(LINUX_ARGUMENTS_POSTFIX));
+			if (isWindows()) {
+				command = Arrays.copyOf(WINDOWS_CLOUD_COMMAND, WINDOWS_CLOUD_COMMAND.length);
+				args.addAll(Arrays.asList(WINDOWS_ARGUMENTS_POSTFIX));
+			} else {
+				command = Arrays.copyOf(LINUX_CLOUD_COMMAND, LINUX_CLOUD_COMMAND.length);
+				args.addAll(Arrays.asList(LINUX_ARGUMENTS_POSTFIX));
+			}
 		}
 		if (verbose) {
 			String message = "Starting "
@@ -713,6 +739,10 @@ public class LocalhostGridAgentBootstrapper {
 		publishEvent(ShellUtils.getMessageBundle().getString("starting_cloudify_management"));
 		runCommand(command, args.toArray(new String[args.size()]));
 
+	}
+
+	private void setIsLocalCloud(final boolean isLocalCloud) {
+		this.isLocalCloud = isLocalCloud;
 	}
 
 	/**
@@ -731,6 +761,8 @@ public class LocalhostGridAgentBootstrapper {
 			final TimeUnit timeunit, final boolean isLocalCloud)
 			throws CLIException, InterruptedException,
 			TimeoutException {
+		setIsLocalCloud(isLocalCloud);
+		
 		final long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
 
 		if (gsaZones == null || gsaZones.isEmpty()) {
@@ -921,7 +953,9 @@ public class LocalhostGridAgentBootstrapper {
 	public void startAgentOnLocalhostAndWait(final long timeout, final TimeUnit timeunit)
 			throws CLIException,
 			InterruptedException, TimeoutException {
-
+		
+		setIsLocalCloud(false);
+		
 		if (gsaZones == null || gsaZones.isEmpty()) {
 			throw new CLIException("Agent must be started with a zone");
 		}
@@ -1004,10 +1038,16 @@ public class LocalhostGridAgentBootstrapper {
 
 			private boolean isDone(final Iterable<? extends AgentGridComponent> components, final String serviceName) {
 				boolean found = false;
-				for (final AgentGridComponent component : components) {
-					if (checkAgent(component)) {
+				if (isLocalCloud) {
+					if (components.iterator().hasNext()) {
 						found = true;
-						break;
+					}
+				} else {
+					for (final AgentGridComponent component : components) {
+						if (checkAgent(component)) {
+							found = true;
+							break;
+						}
 					}
 				}
 
@@ -1152,8 +1192,14 @@ public class LocalhostGridAgentBootstrapper {
 		final String commandString = StringUtils.collectionToDelimitedString(commandLine, " ");
 		final File filename = createScript(commandString);
 		final ProcessBuilder pb = new ProcessBuilder().command(filename.getAbsolutePath()).directory(directory);
-
-		String gsaJavaOptions = "-Xmx" + GSA_MEMORY_IN_MB + "m";
+		
+		String localCloudOptions = "-Xmx" + LOCALCLOUD_MEMORY_IN_MB + "m" 
+				+ " -D" + LUS_PORT_CONTEXT_PROPERTY + "=" + lusPort
+				+ " -D" + GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "=" + GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL
+				+ " " + GSM_PENDING_REQUESTS_DELAY
+				+ " -D" + ZONES_PROPERTY + "=" + gsaZones;
+		String gsaJavaOptions = "-Xmx" + GSA_MEMORY_IN_MB + "m"
+				+ " -D" + ZONES_PROPERTY + "=" + gsaZones;
 		if (autoShutdown) {
 			gsaJavaOptions += " " + AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT;
 		}
@@ -1173,13 +1219,14 @@ public class LocalhostGridAgentBootstrapper {
 		}
 
 		if (lookupLocators != null) {
-			environment.put("LOOKUPLOCATORS", lookupLocators);
 			final String disableMulticast = "-Dcom.gs.multicast.enabled=false";
+			environment.put("LOOKUPLOCATORS", lookupLocators);
 			gsaJavaOptions += " " + disableMulticast;
 			lusJavaOptions += " " + disableMulticast;
 			gsmJavaOptions += " " + disableMulticast;
 			esmJavaOptions += " " + disableMulticast;
-			gscJavaOptions += disableMulticast;
+			gscJavaOptions += " " + disableMulticast;
+			localCloudOptions += " " + disableMulticast;
 		}
 
 		if (nicAddress != null) {
@@ -1187,16 +1234,15 @@ public class LocalhostGridAgentBootstrapper {
 		}
 		environment.put("RMI_OPTIONS", "");
 
-		if (gsaZones != null) {
-			gsaJavaOptions += " -D" + ZONES_PROPERTY + "=" + gsaZones;
+		if (isLocalCloud) {
+			environment.put("COMPONENT_JAVA_OPTIONS", localCloudOptions);
+		} else {
+			environment.put("GSA_JAVA_OPTIONS", gsaJavaOptions);
+			environment.put("LUS_JAVA_OPTIONS", lusJavaOptions);
+			environment.put("GSM_JAVA_OPTIONS", gsmJavaOptions);
+			environment.put("ESM_JAVA_OPTIONS", esmJavaOptions);
+			environment.put("GSC_JAVA_OPTIONS", gscJavaOptions);
 		}
-
-		environment.put("GSA_JAVA_OPTIONS", gsaJavaOptions);
-		environment.put("LUS_JAVA_OPTIONS", lusJavaOptions);
-		environment.put("GSM_JAVA_OPTIONS", gsmJavaOptions);
-		environment.put("ESM_JAVA_OPTIONS", esmJavaOptions);
-		environment.put("GSC_JAVA_OPTIONS", gscJavaOptions);
-
 		// start process
 		// there is no need to redirect output, since the process suppresses
 		// output
