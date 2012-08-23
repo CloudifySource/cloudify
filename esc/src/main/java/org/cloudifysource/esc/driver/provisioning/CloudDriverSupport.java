@@ -94,7 +94,7 @@ public abstract class CloudDriverSupport implements ProvisioningDriver {
 	}
 
 	@Override
-	public void setConfig(final Cloud cloud, final String templateName, final boolean management) {
+	public void setConfig(final Cloud cloud, final String templateName, final boolean management, final String serviceName) {
 		
 		this.cloud = cloud;
 		this.management = management;

@@ -115,9 +115,9 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 
 	@Override
 	public void setConfig(final Cloud cloud, final String templateName,
-			final boolean management) {
+			final boolean management, final String serviceName) {
 		super.setConfig(
-				cloud, templateName, management);
+				cloud, templateName, management, serviceName);
 
 		validateCloudConfig();
 		if (this.management) {

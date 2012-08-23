@@ -57,7 +57,9 @@ import org.openspaces.core.bean.Bean;
 import org.openspaces.grid.gsm.capacity.CapacityRequirements;
 import org.openspaces.grid.gsm.capacity.CpuCapacityRequirement;
 import org.openspaces.grid.gsm.capacity.MemoryCapacityRequirement;
+import org.openspaces.grid.gsm.machines.isolation.DedicatedMachineIsolation;
 import org.openspaces.grid.gsm.machines.isolation.ElasticProcessingUnitMachineIsolation;
+import org.openspaces.grid.gsm.machines.isolation.SharedMachineIsolation;
 import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioning;
 import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioningException;
 
@@ -110,6 +112,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private String lookupLocatorsString;
 	private CloudifyMachineProvisioningConfig config;
 	private java.util.logging.Logger logger;
+
+	private String serviceName;
 
 	@Override
 	public boolean isStartMachineSupported() {
@@ -526,7 +530,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				// checks if a service level configuration exists. If so, save the configuration to local file and pass
 				// to cloud driver.
 				handleServiceCloudConfiguration();
-				this.cloudifyProvisioning.setConfig(cloud, cloudTemplateName, false);
+				this.cloudifyProvisioning.setConfig(cloud, cloudTemplateName, false, serviceName);
 
 			} catch (final ClassNotFoundException e) {
 				throw new BeanConfigurationException("Failed to load provisioning class for cloud: "
@@ -627,9 +631,15 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		// not closing globalAdminMutex, it's a static object, and this is intentional.
 	}
 
+	/**
+	 * @param isolation - describes the relation between different service instances on the same machine
+	 * 				Assuming each service has a dedicated machine {@link DedicatedMachineIsolation}, the machine isolation name is the service name.
+     * 				This would change when instances from different services would be installed on the same machine using {@link SharedMachineIsolation}.
+	 */
 	@Override
 	public void setElasticProcessingUnitMachineIsolation(final ElasticProcessingUnitMachineIsolation isolation) {
-
+		
+		this.serviceName = isolation.getName();
 	}
 
 }

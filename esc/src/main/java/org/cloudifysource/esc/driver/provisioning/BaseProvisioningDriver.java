@@ -100,7 +100,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 
 	@Override
 	public void setConfig(final Cloud cloud, final String cloudTemplateName, 
-			final boolean management) {
+			final boolean management, final String serviceName) {
 
 		this.cloud = cloud;
 		this.cloudTemplateName = cloudTemplateName;
