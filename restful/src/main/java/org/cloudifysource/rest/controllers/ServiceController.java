@@ -1415,7 +1415,7 @@ public class ServiceController {
 				} else {
 					final AutomaticCapacityScaleConfig scaleConfig =
 							ElasticScaleConfigFactory.createAutomaticCapacityScaleConfig(serviceName, service,
-									externalProcessMemoryInMB);
+									externalProcessMemoryInMB, false);
 					deployment.scale(scaleConfig);
 				}
 			}
@@ -1453,7 +1453,7 @@ public class ServiceController {
 			} else {
 				final AutomaticCapacityScaleConfig scaleConfig =
 						ElasticScaleConfigFactory.createAutomaticCapacityScaleConfig(serviceName, service,
-								(int) cloudExternalProcessMemoryInMB);
+								(int) cloudExternalProcessMemoryInMB,locationAware);
 				scaleConfig.setAtMostOneContainerPerMachine(true);
 				deployment.scale(scaleConfig);
 			}

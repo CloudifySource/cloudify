@@ -50,12 +50,13 @@ public class ElasticScaleConfigFactory {
 	 * @param serviceName - the absolute name of the service
 	 * @param service - the service DSL or null if not exists
 	 * @param externalProcessMemoryInMB - MB memory allocated for the GSC plus the external service.
+	 * @param locationAware 
 	 * @return a @{link AutomaticCapacityScaleConfig} based on the specified service and memory.
 	 */
 	public static AutomaticCapacityScaleConfig createAutomaticCapacityScaleConfig(
 			final String serviceName,
 			final Service service, 
-			final int externalProcessMemoryInMB)
+			final int externalProcessMemoryInMB, boolean locationAware)
 			throws DSLException {
 
 		if (externalProcessMemoryInMB <=0) {
@@ -114,6 +115,10 @@ public class ElasticScaleConfigFactory {
 			.statisticsPollingInterval(service.getSamplingPeriodInSeconds(), TimeUnit.SECONDS)
 			.cooldownAfterScaleOut(service.getScaleOutCooldownInSeconds(),TimeUnit.SECONDS)
 			.cooldownAfterScaleIn(service.getScaleInCooldownInSeconds(),TimeUnit.SECONDS);
+		
+		if (locationAware) {
+			scaleConfigurer.enableGridServiceAgentZonesAware();
+		}
 			
 		Map<String, ServiceStatisticsDetails> serviceStatisticsByName = new HashMap<String, ServiceStatisticsDetails>();
 		if (service.getServiceStatistics() != null) {
