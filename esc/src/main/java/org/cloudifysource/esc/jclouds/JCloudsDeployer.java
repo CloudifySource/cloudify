@@ -417,38 +417,36 @@ public class JCloudsDeployer {
 	 * @return the template.
 	 */
 	public Template getTemplate(String locationId) {
-		if (this.template == null) {
 
-			logger.fine("Creating Cloud Template. This may take a few seconds");
+		logger.fine("Creating Cloud Template with locationId=" + locationId + ". This may take a few seconds");
 
-			final TemplateBuilder builder = this.context.getComputeService().templateBuilder();
-			if (imageId != null && !imageId.isEmpty()) {
-				builder.imageId(imageId);
-			}
-
-			if (minRamMegabytes > 0) {
-				builder.minRam(minRamMegabytes);
-			}
-
-			if (hardwareId != null && !hardwareId.isEmpty()) {
-				builder.hardwareId(hardwareId);
-			}
-
-			if (locationId != null && !locationId.isEmpty()) {
-				builder.locationId(locationId);
-			}
-
-			// this is usually a remote call, and may take a while to return.
-			template = builder.build();
-
-			handleExtraOptions();
-			logger.fine("Cloud Template is ready for use.");
+		final TemplateBuilder builder = this.context.getComputeService().templateBuilder();
+		if (imageId != null && !imageId.isEmpty()) {
+			builder.imageId(imageId);
 		}
+
+		if (minRamMegabytes > 0) {
+			builder.minRam(minRamMegabytes);
+		}
+
+		if (hardwareId != null && !hardwareId.isEmpty()) {
+			builder.hardwareId(hardwareId);
+		}
+
+		if (locationId != null && !locationId.isEmpty()) {
+			builder.locationId(locationId);
+		}
+
+		// this is usually a remote call, and may take a while to return.
+		Template template = builder.build();
+
+		handleExtraOptions(template);
+		logger.fine("Cloud Template is ready for use. " + template);
 
 		return template;
 	}
 
-	private void handleExtraOptions() {
+	private void handleExtraOptions(Template template) {
 		if (this.extraOptions != null) {
 			// use reflection to set extra options
 			final Set<Entry<String, Object>> optionEntries = this.extraOptions.entrySet();
@@ -775,6 +773,7 @@ public class JCloudsDeployer {
 		do {
 			retry = false;
 			try {
+				logger.info("starting machine with template : " + template);
 				nodes = this.context.getComputeService().createNodesInGroup(
 						group, count, template);
 			} catch (final ResourceNotFoundException e) {
