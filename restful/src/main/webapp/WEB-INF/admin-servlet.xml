@@ -31,6 +31,10 @@
 
 	<context:component-scan base-package="org.cloudifysource.rest" />
 
+	<mvc:interceptors>
+        <bean class="org.cloudifysource.rest.controllers.VersionValidateInterceptor" />
+	</mvc:interceptors>
+
 	<bean
 		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
 		<property name="prefix" value="/WEB-INF/views/" />

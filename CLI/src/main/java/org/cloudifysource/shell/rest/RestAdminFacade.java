@@ -15,21 +15,34 @@
  *******************************************************************************/
 package org.cloudifysource.shell.rest;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.utils.ServiceUtils;
-import org.cloudifysource.restclient.*;
+import org.cloudifysource.restclient.ErrorStatusException;
+import org.cloudifysource.restclient.GSRestClient;
+import org.cloudifysource.restclient.InvocationResult;
+import org.cloudifysource.restclient.RestException;
+import org.cloudifysource.restclient.StringUtils;
 import org.cloudifysource.shell.AbstractAdminFacade;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ComponentType;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
 
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import com.j_spaces.kernel.PlatformVersion;
 
 /**
  * This class implements the {@link AdminFacade}, relying on the abstract implementation of
@@ -71,7 +84,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
         }
 
         try {
-            client = new GSRestClient(user, password, urlObj);
+			client = new GSRestClient(user, password, urlObj, PlatformVersion.getVersionNumber());
             // test connection
             client.get(SERVICE_CONTROLLER_URL + "testrest");
         } catch (final ErrorStatusException e) {

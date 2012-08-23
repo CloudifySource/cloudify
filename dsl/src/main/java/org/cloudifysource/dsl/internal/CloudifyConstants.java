@@ -224,6 +224,10 @@ public final class CloudifyConstants {
 	
 	public static final int SSH_PORT = 22;
 	
+	/*******************
+	 * REST Headers
+	 */
+	public static final String REST_API_VERSION_HEADER = "cloudify-api-version";
 
 	// CHECKSTYLE:ON
 }

@@ -15,8 +15,28 @@
  ******************************************************************************/
 package org.cloudifysource.restclient;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpException;
 import org.apache.http.HttpHeaders;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.auth.AuthScope;
@@ -39,22 +59,11 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.protocol.HttpContext;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.security.*;
-import java.security.cert.CertificateException;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author rafi
@@ -101,9 +110,10 @@ public class GSRestClient {
      * @param username Username for the HTTP client, optional.
      * @param password Password for the HTTP client, optional.
      * @param url      URL to the rest service.
+     * @param version  cloudify api version of the client 
      * @throws RestException Reporting failure to create a SSL HTTP client.
      */
-    public GSRestClient(final String username, final String password, final URL url) throws RestException {
+    public GSRestClient(final String username, final String password, final URL url, final String version) throws RestException {
 
         this.url = url;
         this.urlStr = createUrlStr();
@@ -113,7 +123,15 @@ public class GSRestClient {
         } else {
             httpClient = new DefaultHttpClient();
         }
-
+        httpClient.addRequestInterceptor(new HttpRequestInterceptor() {
+			
+			@Override
+			public void process(HttpRequest request, HttpContext context)
+					throws HttpException, IOException {
+				request.addHeader(CloudifyConstants.REST_API_VERSION_HEADER, version);
+			}
+		});
+        
         // TODO use userdetails instead of user/pass
         if (StringUtils.notEmpty(username) && StringUtils.notEmpty(password)) {
             httpClient.getCredentialsProvider().setCredentials(new AuthScope(AuthScope.ANY),
@@ -248,7 +266,7 @@ public class GSRestClient {
      * @throws ErrorStatusException Reporting errors of all types (IO, HTTP, rest etc.)
      */
     private Object executeHttpMethod(final HttpRequestBase httpMethod) throws ErrorStatusException {
-        return executeHttpMethod(httpMethod, "response");
+    	return executeHttpMethod(httpMethod, "response");
     }
 
     /**
@@ -530,7 +548,7 @@ public class GSRestClient {
 
         final HttpPost httppost = new HttpPost(getFullUrl(relativeUrl));
         httppost.setEntity(reqEntity);
-
+        
         return executeHttpMethod(httppost);
     }
 
