@@ -27,7 +27,7 @@ cloud {
 		 * different HTTP server instead.																						 *
 		************************************************ *************************************************************************/
 		
-		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.2.0/gigaspaces-cloudify-2.2.0-m4-b2493-39.zip"
+		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.2.0/gigaspaces-cloudify-2.2.0-m4-b2493-40.zip"
 		
 		machineNamePrefix "cloudify_agent_"
 		
