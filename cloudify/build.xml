@@ -79,9 +79,9 @@
 	
 	<!-- ${svnant.repository.user} and ${svnant.repository.passwd} are defined in Basic Settings of root configuration in QuickBUild -->
 	
-	<target name="update_platform_version" depends="replace.build.related.settings,replace.cloudify.build.number" unless="gs.internal.systems.not.available">
+	<target name="update_platform_version_svn" depends="replace.build.related.settings,replace.cloudify.build.number" unless="gs.internal.systems.not.available" if="svn.repository">
        <svn javahl="false" username="${svnant.repository.user}" password="${svnant.repository.passwd}" failonerror="false">
-           <commit message="803 Build version advanced to ${cloudify.build.number}">
+           <commit message="GS-803 Build version advanced to ${cloudify.build.number}">
            		<fileset dir="${basedir}">
        				<include name="**/${platform.verion.file.name}" />
    					<include name="${build.properties.file}" />
@@ -89,6 +89,26 @@
            </commit>
        </svn>
    </target>
+	
+	<target name="update_platform_version_git" depends="replace.build.related.settings,replace.cloudify.build.number" unless="gs.internal.systems.not.available" if="git.repository">
+	       	<exec executable="git" dir="${basedir}">
+				<arg value="checkout" />
+				<arg value="${branchname}" />			
+			</exec>
+			<exec executable="git" dir="${basedir}">
+				<arg value="add" />
+				<arg value="**/${platform.verion.file.name}" />
+				<arg value="${build.properties.file}" />			
+			</exec>
+			<exec executable="git" dir="${basedir}">
+				<arg value="commit" />
+				<arg value="-m" />
+				<arg value="GS-803 Build version advanced to ${cloudify.build.number}" />			
+			</exec>
+			<exec executable="git" dir="${basedir}">
+				<arg value="push" />
+			</exec>
+	   </target>
 	
 	<target name="usage">
 	        <echo message=""/>
@@ -387,7 +407,7 @@
 				
 	</target>
 	
-	<target name="prepare.and.copy.packages" depends="update_platform_version">
+	<target name="prepare.and.copy.packages" depends="update_platform_version_svn, update_platform_version_git">
 		<ant target="prepare.cloudify.package" />
 		<ant target="prepare.bigdata.package" />
 		<ant target="copy.packages.to.build.repository" />
@@ -444,7 +464,8 @@
 	
 	<target name="prepare.cloudify.for.publish" description="publish cloudify build to gigaspaces repository" if="publish.cloudify.build">
 		<ant target="update.cloudify.service.configuration.url"/>
-		<ant target="commit.service.configuration" />
+		<ant target="commit.service.configuration.svn" />
+		<ant target="commit.service.configuration.git" />
 	</target>
 	
 	<target name="update.bigdata.service.configuration.url">
@@ -504,7 +525,7 @@
     	</replaceregexp>
    </target>
 	
-	<target name="commit.service.configuration">
+	<target name="commit.service.configuration.svn" if="svn.repository">
 			
 		<exec executable="svn" dir="${basedir}/..">
 			<arg value="commit" />
@@ -516,6 +537,27 @@
 			<arg value="Update cloudify url" />
 			<arg value="azure/GigaSpacesWorkerRoles/GigaSpacesWorkerRoles" />
 			<arg value="esc/src/main/resources/clouds" />			
+		</exec>
+	</target>
+	
+	<target name="commit.service.configuration.git" if="git.repository">
+			
+		<exec executable="git" dir="${basedir}/..">
+			<arg value="checkout" />
+			<arg value="${branchname}" />			
+		</exec>
+		<exec executable="git" dir="${basedir}/..">
+			<arg value="add" />
+			<arg value="*.groovy" />
+			<arg value="*.cscfg" />			
+		</exec>
+		<exec executable="git" dir="${basedir}/..">
+			<arg value="commit" />
+			<arg value="-m" />
+			<arg value="Update cloudify url" />			
+		</exec>
+		<exec executable="git" dir="${basedir}/..">
+			<arg value="push" />
 		</exec>
 	</target>
 	
