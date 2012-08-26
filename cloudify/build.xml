@@ -365,14 +365,15 @@
       - - - - - - - - - - - - - - - - - -->
 
     <target name="archive.cloudify.versions">
-    		<delete dir="${releases.dir}/build_${cloudify.build.number}"/>
-            <mkdir dir="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5"/>
-            <zip destfile="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip">
-                <zipfileset dir="${tmp.dir}" includes="**/*" filemode="775"/>
-            </zip>
-    		<gzip destfile="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.tar.gz">
-                <zipfileset dir="${tmp.dir}" includes="**/*" filemode="775"/>
-            </gzip>
+		<delete dir="${releases.dir}/build_${cloudify.build.number}"/>
+        <mkdir dir="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5"/>
+        <zip destfile="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip">
+            <zipfileset dir="${tmp.dir}" includes="**/*" filemode="775"/>
+        </zip>
+	
+		<tar destfile="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.tar.gz" compression="gzip">
+	  		<zipfileset src="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip"/>
+		</tar>
     </target>
 	
 	<target name="archive.bigdata.version">
