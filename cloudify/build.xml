@@ -480,7 +480,7 @@
     	</replaceregexp>
    </target>
 	
-	<target name="update.cloudify.service.configuration.url">
+	<target name="update.cloudify.service.configuration.url" if="release.build">
         <echo message="Updating ServiceConfiguration in directory: ${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles/GigaSpacesWorkerRoles ..."/>
 		
 		<property name="cloudify.url" value="${cloudify.cdn.publish.url}/${cloudify.put.target}" />
