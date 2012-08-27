@@ -68,7 +68,7 @@ cloud {
 					username "tgrid"
 					password "tgrid"
 					// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
-					localDirectory "tools/cli/plugins/esc/byon/upload"
+					localDirectory "upload"
 					custom ([
 						"nodesList" : ([
 										([

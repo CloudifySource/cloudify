@@ -76,7 +76,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private static final int MILLISECONDS_IN_SECOND = 1000;
 
 	private static final int DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE = 5;
-	
+
+	/**********
+	 * .
+	 */
 	public static final String CLOUD_ZONE_PREFIX = "__cloud.zone.";
 
 	// TODO: Store this object inside ElasticMachineProvisioningContext instead of a static variable
@@ -90,11 +93,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		synchronized (GLOBAL_ADMIN_MUTEX) {
 			if (globalAdminInstance == null) {
 				// create admin clone from esm instance
-				AdminFactory factory = new AdminFactory();
-				for (String group : esmAdminInstance.getGroups()) {
+				final AdminFactory factory = new AdminFactory();
+				for (final String group : esmAdminInstance.getGroups()) {
 					factory.addGroup(group);
 				}
-				for (LookupLocator locator : esmAdminInstance.getLocators()) {
+				for (final LookupLocator locator : esmAdminInstance.getLocators()) {
 					factory.addLocator(locator.getHost() + ":" + locator.getPort());
 				}
 				globalAdminInstance = factory.createAdmin();
@@ -130,19 +133,19 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private InstallationDetails createInstallationDetails(final Cloud cloud, final MachineDetails md)
 			throws FileNotFoundException {
 		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplateName);
-		
-		// Start with the default zone that are also used for discovering agents 
+
+		// Start with the default zone that are also used for discovering agents
 		// By default cloudify puts the service-name as the zone.
 		// We then add the location of the machine to the zone, so if it fails the ESM starts it with these zones
 		// and this adapter can look for the CLOUD_ZONE_PREFIX and start a machine with the same location.
 		// TODO Fix GS-9484 and then remove the service name from the machine zone and remove the CLOUD_ZONE_PREFIX.
-				
-		final ExactZonesConfig zones = 
+
+		final ExactZonesConfig zones =
 				new ExactZonesConfigurer()
-				.addZones(config.getGridServiceAgentZones().getZones())
-				.addZone(CLOUD_ZONE_PREFIX + md.getLocationId())
-				.create();
-		
+						.addZones(config.getGridServiceAgentZones().getZones())
+						.addZone(CLOUD_ZONE_PREFIX + md.getLocationId())
+						.create();
+
 		final InstallationDetails details =
 				Utils.createInstallationDetails(md, cloud, template, zones, lookupLocatorsString,
 						this.originalESMAdmin, false,
@@ -152,6 +155,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return details;
 
 	}
+
 	@Override
 	public GridServiceAgent startMachine(final long duration, final TimeUnit unit)
 			throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
@@ -174,9 +178,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		AtLeastOneZoneConfig defaultZones = config.getGridServiceAgentZones();
 		logger.fine("default zones = " + defaultZones.getZones());
 		if (!defaultZones.isSatisfiedBy(zones)) {
-			throw new IllegalArgumentException("The specified zones " + zones + " does not satisfy the configuration zones " + defaultZones);
+			throw new IllegalArgumentException("The specified zones " + zones
+					+ " does not satisfy the configuration zones " + defaultZones);
 		}
-		
+
 		String locationId = null;
 		
 		logger.fine("searching for cloud specific zone");
@@ -188,20 +193,16 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					locationId = zone.substring(CLOUD_ZONE_PREFIX.length());
 					logger.fine("passing locationId to machine provisioning as " + locationId);
 				}
-				else {
-					throw new IllegalArgumentException("The specified zones " + zones + " should include only one zone with the " + CLOUD_ZONE_PREFIX + " prefix:" + locationId);
-				}
 			}
 		}
-		
-		
+
 		try {
 			if (locationId == null) {
 				final CloudTemplate template = cloud.getTemplates().get(this.cloudTemplateName);
 				locationId = template.getLocationId();
 			}
-			
-			machineDetails = provisionMachine(locationId, duration, unit); 
+
+			machineDetails = provisionMachine(locationId, duration, unit);
 
 		} catch (final Exception e) {
 			logger.log(Level.WARNING, "Failed to provision machine, reason: " + e.getMessage(), e);
@@ -221,7 +222,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			throw new IllegalStateException("The IP of the new machine is null! Machine Details are: "
 					+ machineDetails + " .");
 		}
-		
+
 		try {
 			// check for timeout
 			checkForProvisioningTimeout(end, machineDetails);
@@ -357,12 +358,12 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private MachineDetails provisionMachine(final String locationId, final long duration, final TimeUnit unit)
 			throws TimeoutException, ElasticMachineProvisioningException {
-		
+
 		MachineDetails machineDetails;
 		try {
-			
-			machineDetails = cloudifyProvisioning.startMachine(locationId, duration, unit);				
-			
+
+			machineDetails = cloudifyProvisioning.startMachine(locationId, duration, unit);
+
 		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Failed to start machine: " + e.getMessage(), e);
 		}
@@ -375,7 +376,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		logger.info("New machine was provisioned. Machine details: " + machineDetails);
 		return machineDetails;
 	}
-	
+
 	private GridServiceAgent waitForGsa(final String machineIp, final long end)
 			throws InterruptedException, TimeoutException {
 
@@ -480,13 +481,15 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		logger = java.util.logging.Logger
 				.getLogger(ElasticMachineProvisioningCloudifyAdapter.class.getName());
 
-		final String cloudContents = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION);
-		if (cloudContents == null) {
-			throw new IllegalArgumentException("Cloud configuration was not set!");
+		final String cloudConfigDirectory =
+				properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION_DIRECTORY);
+		if (cloudConfigDirectory == null) {
+			logger.severe("Missing cloud configuration property. Properties are: " + this.properties);
+			throw new IllegalArgumentException("Cloud configuration directory was not set!");
 		}
 
 		try {
-			this.cloud = ServiceReader.readCloud(cloudContents);
+			this.cloud = ServiceReader.readCloudFromDirectory(cloudConfigDirectory);
 			this.cloudTemplateName = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME);
 
 			if (this.cloudTemplateName == null) {
@@ -551,9 +554,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			logger.info("Locators string used for new instances will be: " + this.lookupLocatorsString);
 
 		} catch (final DSLException e) {
-			logger.severe("Could not parse the provided cloud configuration: " + cloudContents + ": " + e.getMessage());
-			throw new BeanConfigurationException("Could not parse the prvided cloud configuration: " + cloudContents
-					+ ": " + e.getMessage());
+			logger.severe("Could not parse the provided cloud configuration from : " + cloudConfigDirectory + ": "
+					+ e.getMessage());
+			throw new BeanConfigurationException("Could not parse the prvided cloud configuration: "
+					+ cloudConfigDirectory
+					+ ": " + e.getMessage(), e);
 		}
 
 	}
@@ -564,21 +569,20 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		logger.info("serviceCloudConfigurationContents is: " + serviceCloudConfigurationContents);
 		if (serviceCloudConfigurationContents != null) {
 			logger.info("Found service cloud configuration - saving to file");
-			File tempZipFile = File.createTempFile("__CLOUD_DRIVER_SERVICE_CONFIGURATION_FILE", ".zip");
+			final File tempZipFile = File.createTempFile("__CLOUD_DRIVER_SERVICE_CONFIGURATION_FILE", ".zip");
 			FileUtils.writeByteArrayToFile(tempZipFile, serviceCloudConfigurationContents);
 			logger.info("Wrote file: " + tempZipFile);
-			
-			
-			File tempServiceConfigurationDirectory =
+
+			final File tempServiceConfigurationDirectory =
 					File.createTempFile("__CLOUD_DRIVER_SERVICE_CONFIGURATION_DIRECTORY", ".tmp");
 			logger.info("Unzipping file to: " + tempServiceConfigurationDirectory);
 			FileUtils.forceDelete(tempServiceConfigurationDirectory);
 			tempServiceConfigurationDirectory.mkdirs();
 
 			ZipUtils.unzip(tempZipFile, tempServiceConfigurationDirectory);
-			
-			File[] childFiles = tempServiceConfigurationDirectory.listFiles();
-			
+
+			final File[] childFiles = tempServiceConfigurationDirectory.listFiles();
+
 			logger.info("Unzipped configuration contained top-level entries: " + childFiles);
 			if (childFiles.length != 1) {
 				throw new BeanConfigurationException(

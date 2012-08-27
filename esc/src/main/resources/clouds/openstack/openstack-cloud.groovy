@@ -47,7 +47,7 @@ cloud {
 					machineMemoryMB 1600
 					hardwareId "102"
 					remoteDirectory "/root/gs-files"
-					localDirectory "tools/cli/plugins/esc/openstack/upload"
+					localDirectory "upload"
 					keyFile "ENTER_KEY_FILE"
 					
 					options ([

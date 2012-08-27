@@ -118,8 +118,9 @@ public final class CloudifyConstants {
 	 * Keys for Elastic Provisioning properties used with ESM machine provisioning.
 	 * 
 	 */
-	public static final String ELASTIC_PROPERTIES_CLOUD_CONFIGURATION = "__CLOUDIFY__CLOUD_CONFIGURATION";
 	public static final String ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME = "__CLOUDIFY__CLOUD_TEMPLATE_NAME";
+	public static final String ELASTIC_PROPERTIES_CLOUD_CONFIGURATION_DIRECTORY = "__CLOUDIFY__CLOUD_CONFIGURATION_DIRECTORY";
+	
 
 
 	/********************

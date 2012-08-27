@@ -183,7 +183,7 @@ public class ServiceController {
 	// private static final String[] DEFAULT_DUMP_PROCESSORS = new String[] {
 	// "summary", "network", "thread", "log", "processingUnits;"
 	// };
-	private String cloudFileContents;
+	private CloudConfigurationHolder cloudConfigurationHolder;
 	private String defaultTemplateName;
 
 	@Value("${restful.temporaryFolder}")
@@ -400,7 +400,7 @@ public class ServiceController {
 
 	}
 
-	private String getCloudConfigurationFromManagementSpace() {
+	private CloudConfigurationHolder getCloudConfigurationFromManagementSpace() {
 		logger.info("Waiting for cloud configuration to become available in management space");
 		final CloudConfigurationHolder config = gigaSpace.read(new CloudConfigurationHolder(), 1000 * 60);
 		if (config == null) {
@@ -409,23 +409,27 @@ public class ServiceController {
 					+ " Defaulting to local cloud!");
 			return null;
 		}
-		return config.getCloudConfiguration();
+		return config;
 	}
 
 	private Cloud readCloud() {
 		logger.info("Loading cloud configuration");
 
-		this.cloudFileContents = getCloudConfigurationFromManagementSpace();
-		if (this.cloudFileContents == null) {
+		this.cloudConfigurationHolder = getCloudConfigurationFromManagementSpace();
+		logger.info("Cloud Configuration: " + this.cloudConfigurationHolder);
+		if (this.cloudConfigurationHolder.getCloudConfigurationFilePath() == null) {
 			// must be local cloud or azure
 			return null;
 
 		}
 		Cloud cloudConfiguration = null;
 		try {
-			cloudConfiguration = ServiceReader.readCloud(cloudFileContents);
+			cloudConfiguration = ServiceReader.readCloud( new File(this.cloudConfigurationHolder.getCloudConfigurationFilePath()));
 		} catch (final DSLException e) {
-			throw new IllegalArgumentException("Failed to read cloud configuration file: " + cloudFileContents
+			throw new IllegalArgumentException("Failed to read cloud configuration file: " + cloudConfigurationHolder
+					+ ". Error was: " + e.getMessage(), e);
+		} catch (IOException e) {
+			throw new IllegalArgumentException("Failed to read cloud configuration file: " + cloudConfigurationHolder
 					+ ". Error was: " + e.getMessage(), e);
 		}
 
@@ -1429,8 +1433,9 @@ public class ServiceController {
 
 			final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
 
+			logger.info("Creating cloud machine provisioning config. Template remote directory is: " + template.getRemoteDirectory());
 			final CloudifyMachineProvisioningConfig config =
-					new CloudifyMachineProvisioningConfig(cloud, template, cloudFileContents, templateName);
+					new CloudifyMachineProvisioningConfig(cloud, template, templateName);
 
 			final String[] zones = new String[] { serviceName }; //TODO: [itaif] consider using agentZones
 
@@ -1840,7 +1845,7 @@ public class ServiceController {
 			final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
 
 			final CloudifyMachineProvisioningConfig config =
-					new CloudifyMachineProvisioningConfig(cloud, template, cloudFileContents, templateName);
+					new CloudifyMachineProvisioningConfig(cloud, template, templateName);
 			// CloudMachineProvisioningConfig config =
 			// CloudDSLToCloudMachineProvisioningConfig.convert(cloud);
 
@@ -1938,7 +1943,7 @@ public class ServiceController {
 			final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
 
 			final CloudifyMachineProvisioningConfig config =
-					new CloudifyMachineProvisioningConfig(cloud, template, cloudFileContents, templateName);
+					new CloudifyMachineProvisioningConfig(cloud, template, templateName);
 			// CloudMachineProvisioningConfig config =
 			// CloudDSLToCloudMachineProvisioningConfig.convert(cloud);
 
@@ -2004,7 +2009,7 @@ public class ServiceController {
 			validateAndPrepareStatefulSla(serviceName, puConfig.getSla(), cloud, template);
 
 			final CloudifyMachineProvisioningConfig config =
-					new CloudifyMachineProvisioningConfig(cloud, template, cloudFileContents, templateName);
+					new CloudifyMachineProvisioningConfig(cloud, template, templateName);
 
 			final String locators = extractLocators(admin);
 			config.setLocator(locators);

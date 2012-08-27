@@ -437,7 +437,9 @@ public final class Utils {
 
 		final InstallationDetails details = new InstallationDetails();
 
-		details.setLocalDir(template.getLocalDirectory());
+		details.setLocalDir(template.getAbsoluteUploadDir());
+		details.setRelativeLocalDir(template.getLocalDirectory());
+
 		final String remoteDir = template.getRemoteDirectory();
 		details.setRemoteDir(remoteDir);
 
@@ -450,7 +452,7 @@ public final class Utils {
 		details.setManagementOnlyFiles(managementOnlyFiles);
 
 		details.setManagementOnlyFiles(cloud.getProvider().getManagementOnlyFiles());
-		
+
 		details.setZones(StringUtils.collectionToCommaDelimitedString(zones.getZones()));
 
 		details.setPrivateIp(md.getPrivateAddress());
@@ -460,7 +462,7 @@ public final class Utils {
 
 		details.setCloudifyUrl(cloud.getProvider().getCloudifyUrl());
 		details.setOverridesUrl(cloud.getProvider().getCloudifyOverridesUrl());
-		
+
 		details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		details.setAdmin(admin);
 
@@ -519,16 +521,16 @@ public final class Utils {
 			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.CLOUDIFY_AGENT_ENV_INIT_COMMAND,
 					template.getInitializationCommand());
 		}
-		
+
 		// Add the template custom environment
 		final Set<Entry<String, String>> entries = template.getEnv().entrySet();
 		for (Entry<String, String> entry : entries) {
 			details.getExtraRemoteEnvironmentVariables().put(entry.getKey(), entry.getValue());
 		}
-		
-		
-		if(!org.apache.commons.lang.StringUtils.isBlank(template.getJavaUrl())) {
-			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.CLOUDIFY_AGENT_ENV_JAVA_URL, template.getJavaUrl());
+
+		if (!org.apache.commons.lang.StringUtils.isBlank(template.getJavaUrl())) {
+			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.CLOUDIFY_AGENT_ENV_JAVA_URL,
+					template.getJavaUrl());
 		}
 
 		logger.fine("Created InstallationDetails: " + details);

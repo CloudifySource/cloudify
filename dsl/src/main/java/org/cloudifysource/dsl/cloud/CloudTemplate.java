@@ -15,6 +15,7 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.cloud;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,12 +55,14 @@ public class CloudTemplate {
 
 	private String username;
 	private String password;
-	private String remoteDirectory;
+	private String remoteDirectory = "upload";
 
 	private boolean privileged = false;
 	private String initializationCommand = null;
 
 	private String javaUrl;
+
+	private String absoluteUploadDir;
 
 	private Map<String, String> env = new HashMap<String, String>();
 
@@ -270,24 +273,6 @@ public class CloudTemplate {
 		this.keyFile = keyFile;
 	}
 
-	@DSLValidation
-	void validateDefaultValues(final DSLValidationContext context)
-			throws DSLValidationException {
-		if (this.getRemoteDirectory() == null || this.getRemoteDirectory().trim().isEmpty()) {
-			throw new DSLValidationException("Remote directory for template is missing");
-		}
-
-		if (StringUtils.isBlank(this.getLocalDirectory())) {
-			throw new DSLValidationException("Local directory for template is missing");
-		}
-
-		if ("ENTER_KEY_FILE_NAME".equals(this.getKeyFile())) {
-			throw new DSLValidationException(
-					"Key file name field still has default configuration value of ENTER_KEY_FILE_NAME");
-		}
-
-	}
-
 	/************
 	 * True if services running in this template should have privileged access. This usually means that the service will
 	 * run with higher Operating System permissions - root/sudoer on Linux, Administrator on Windows. Default is false.
@@ -331,6 +316,7 @@ public class CloudTemplate {
 
 	/**************
 	 * The url where the JDK used by Cloudify should be downloaded from.
+	 * 
 	 * @return the JDK url.
 	 */
 	public String getJavaUrl() {
@@ -341,4 +327,96 @@ public class CloudTemplate {
 		this.javaUrl = javaUrl;
 	}
 
+	@DSLValidation
+	void validateDefaultValues(final DSLValidationContext context)
+			throws DSLValidationException {
+		if (this.getRemoteDirectory() == null || this.getRemoteDirectory().trim().isEmpty()) {
+			throw new DSLValidationException("Remote directory for template is missing");
+		}
+
+		if (StringUtils.isBlank(this.getLocalDirectory())) {
+			throw new DSLValidationException("Local directory for template is missing");
+		}
+
+		if ("ENTER_KEY_FILE_NAME".equals(this.getKeyFile())) {
+			throw new DSLValidationException(
+					"Key file name field still has default configuration value of ENTER_KEY_FILE_NAME");
+		}
+
+	}
+
+	@DSLValidation
+	void validateRelativeUploadDir(final DSLValidationContext context)
+			throws DSLValidationException {
+		final File uploadDir = findUploadDir(context);
+
+		// check key file!
+		if (StringUtils.isNotBlank(this.getKeyFile())) {
+			final File keyFile = new File(uploadDir, this.getKeyFile());
+			if (!keyFile.exists() || !keyFile.isFile()) {
+				throw new DSLValidationException("The specified key file was not found: " + keyFile);
+			}
+
+		}
+
+		// this.localDirectory = uploadDir.getAbsolutePath();
+		// logger.info("SETTING LOCAL DIRECTORY TO ABSOLUTE PATH: " + this.localDirectory);
+
+	}
+
+	private File findUploadDir(final DSLValidationContext context)
+			throws DSLValidationException {
+		final File relativeUploadDir = new File(this.getLocalDirectory());
+		if (relativeUploadDir.isAbsolute()) {
+			throw new DSLValidationException(
+					"Upload directory of a cloud template must be a relative path, "
+							+ "relative to the cloud configuration directory");
+		}
+
+		File dslDir = null;
+		if (context.getFilePath() == null) {
+			throw new IllegalStateException("The DSL File location is not set! Cannot validate!");
+		} else {
+			final File dslFile = new File(context.getFilePath());
+			dslDir = dslFile.getParentFile();
+		}
+
+		final File uploadDir = new File(dslDir, getLocalDirectory());
+		if (!uploadDir.exists()) {
+			throw new DSLValidationException(
+					"Could not find upload directory at: " + uploadDir);
+		}
+
+		if (!uploadDir.isDirectory()) {
+			throw new DSLValidationException(
+					"Upload directory, set to: " + uploadDir + " is not a directory");
+		}
+		return uploadDir;
+	}
+
+	/************
+	 * This is a unique situation: we need two pieces of information - the absolute location of the local directory, and
+	 * the relative location of the local directory. So this validation fills in this field - note that the absolute
+	 * field does not have a setter - groovy files can't directly set this value.
+	 * 
+	 * @param context .
+	 * @throws DSLValidationException .
+	 */
+	@DSLValidation
+	void validateAbsoluteUploadDir(final DSLValidationContext context)
+			throws DSLValidationException {
+		if (absoluteUploadDir != null) {
+			throw new DSLValidationException("absolute upload directory may not be set by external code");
+		}
+		this.absoluteUploadDir = findUploadDir(context).getAbsolutePath();
+		logger.info("SETTING ABSOLUTE LOCAL UPLOAD DIRECTORY TO ABSOLUTE PATH: " + this.absoluteUploadDir);
+
+	}
+
+	public String getAbsoluteUploadDir() {
+		return absoluteUploadDir;
+	}
+
+	private static final java.util.logging.Logger logger =
+			java.util.logging.Logger.getLogger(CloudTemplate.class.getName());
 }

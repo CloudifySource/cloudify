@@ -224,11 +224,6 @@ public final class ServiceReader {
 
 	}
 
-	public static Cloud readCloud(final String dslContents)
-			throws DSLException {
-		return readCloud(dslContents, null);
-	}
-
 	private static Cloud readCloud(final String dslContents, final File dslFile)
 			throws DSLException {
 
@@ -237,7 +232,7 @@ public final class ServiceReader {
 		dslReader.setCreateServiceContext(false);
 		dslReader.setDslContents(dslContents);
 		dslReader.setDslFile(dslFile);
-		if(dslFile != null) {
+		if (dslFile != null) {
 			dslReader.setWorkDir(dslFile.getParentFile());
 		}
 
@@ -268,6 +263,16 @@ public final class ServiceReader {
 		} else {
 			throw new IllegalArgumentException(dslFileOrDir + " is neither a file nor a directory");
 		}
+
 	}
 
+	public static Cloud readCloudFromDirectory(final String cloudConfigDirectory)
+			throws DSLException {
+		final DSLReader reader = new DSLReader();
+		reader.setDslFileNameSuffix(DSLReader.CLOUD_DSL_FILE_NAME_SUFFIX);
+		reader.setWorkDir(new File(cloudConfigDirectory));
+		reader.setCreateServiceContext(false);
+		final Cloud cloud = reader.readDslEntity(Cloud.class);
+		return cloud;
+	}
 }

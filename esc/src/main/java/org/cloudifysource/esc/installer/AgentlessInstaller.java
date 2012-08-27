@@ -47,10 +47,10 @@ import org.apache.commons.vfs2.provider.sftp.SftpFileSystemConfigBuilder;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.ExitStatusException;
 import org.apache.tools.ant.taskdefs.optional.testing.BuildTimeoutException;
-import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.util.ShellCommandBuilder;
 import org.cloudifysource.esc.util.Utils;
+import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioningException;
 
 /************
  * The agentless installer class is responsible for installing Cloudify on a remote machine, using only SSH. It will
@@ -219,9 +219,8 @@ public class AgentlessInstaller {
 	 * @throws InstallerException
 	 * @throws InterruptedException
 	 */
-	private void copyFiles(final String host, final String username, final String password, final String srcDir,
-			final String toDir, final String keyFile, final Set<String> excludedFiles, final File cloudFile,
-			final long timeout, final TimeUnit unit, final FileTransferModes fileTransferMode, final InstallationDetails details)
+	private void copyFiles(final InstallationDetails details, final String host,
+			final Set<String> excludedFiles, final long timeout, final TimeUnit unit)
 			throws IOException, TimeoutException, URISyntaxException, InterruptedException, InstallerException {
 
 		if (timeout < 0) {
@@ -233,35 +232,50 @@ public class AgentlessInstaller {
 
 		FileSystemManager createdManager = null;
 		String target = null;
-		switch (fileTransferMode) {
+		switch (details.getFileTransferMode()) {
 		case SCP:
-			createdManager = createRemoteSSHFileSystem(keyFile, opts, details);
+			createdManager = createRemoteSSHFileSystem(details.getKeyFile(), opts, details);
 
 			final String userDetails;
-			if (password != null && password.length() > 0) {
-				userDetails = username + ":" + password;
+			if (details.getPassword() != null && details.getPassword().length() > 0) {
+				userDetails = details.getUsername() + ":" + details.getPassword();
 			} else {
-				userDetails = username;
+				userDetails = details.getUsername();
 			}
-			target = new java.net.URI("sftp", userDetails, host, SSH_PORT, toDir, null, null).toASCIIString();
+			target = new java.net.URI("sftp", userDetails, host, SSH_PORT,
+					details.getRemoteDir(), null, null).toASCIIString();
 			break;
 		case CIFS:
 			checkConnection(host, CIFS_PORT, timeout, unit);
 			createdManager = VFS.getManager();
 
 			target =
-					new java.net.URI("smb", username + ":" + password, host, CIFS_PORT, toDir, null, null)
-							.toASCIIString();
+					new java.net.URI("smb", details.getUsername() + ":" + details.getPassword(),
+							host, CIFS_PORT, details.getRemoteDir(), null, null).toASCIIString();
 
 			break;
 		default:
-			throw new UnsupportedOperationException("Unsupported Remote File System: " + fileTransferMode.toString());
+			throw new UnsupportedOperationException("Unsupported Remote File System: "
+					+ details.getFileTransferMode().toString());
 		}
 
+		// when bootstrapping a management machine, pass all of the cloud configuration, including all template
+		// for an agent machine, just pass the upload dir fot the specific template.
+		String localDirPath = details.getLocalDir();
+		if (details.isLus()) {
+			if (details.getCloudFile() == null) {
+				throw new IllegalArgumentException("While bootstrapping a management machine, cloud file is null");
+			}
+
+			localDirPath = details.getCloudFile().getParentFile().getAbsolutePath();
+
+		}
+
+		logger.info("Setting local directory for file upload to: " + localDirPath);
 		final FileSystemManager mng = createdManager;
 
 		mng.setLogger(org.apache.commons.logging.LogFactory.getLog(logger.getName()));
-		final FileObject localDir = mng.resolveFile("file:" + srcDir);
+		final FileObject localDir = mng.resolveFile("file:" + localDirPath);
 
 		final FileObject remoteDir = mng.resolveFile(target, opts);
 
@@ -308,10 +322,11 @@ public class AgentlessInstaller {
 				}
 			});
 
-			if (cloudFile != null) {
-				// copy cloud file too
-				final FileObject cloudFileParentObject = mng.resolveFile(cloudFile.getParentFile().getAbsolutePath());
-				final FileObject cloudFileObject = mng.resolveFile(cloudFile.getAbsolutePath());
+			if (details.getCloudFile() != null) {
+				// copy cloud file too TODO - remote this
+				final FileObject cloudFileParentObject =
+						mng.resolveFile(details.getCloudFile().getParentFile().getAbsolutePath());
+				final FileObject cloudFileObject = mng.resolveFile(details.getCloudFile().getAbsolutePath());
 				remoteDir.copyFrom(cloudFileParentObject, new FileSelector() {
 
 					@Override
@@ -428,9 +443,14 @@ public class AgentlessInstaller {
 		final String scriptFileName = getScriptFileName(details);
 
 		String remoteDirectory = details.getRemoteDir();
-		if (remoteDirectory.endsWith("/")) {
+		if (remoteDirectory.endsWith("/")) { 
 			remoteDirectory = remoteDirectory.substring(0, remoteDirectory.length() - 1);
 		}
+		if (details.isLus()) { // TODO - fix - use local dir of template
+			// add the relative path to the cloud file location
+			remoteDirectory = remoteDirectory + "/" + details.getRelativeLocalDir();
+		}
+
 		final String scriptPath = remoteDirectory + "/" + scriptFileName;
 
 		final ShellCommandBuilder scb =
@@ -464,12 +484,11 @@ public class AgentlessInstaller {
 			scb.exportVar("PASSWORD", details.getPassword());
 		}
 
-		
-		Set<Entry<String, String>> entries = details.getExtraRemoteEnvironmentVariables().entrySet();
-		for (Entry<String, String> entry : entries) {
+		final Set<Entry<String, String>> entries = details.getExtraRemoteEnvironmentVariables().entrySet();
+		for (final Entry<String, String> entry : entries) {
 			scb.exportVar(entry.getKey(), entry.getValue());
 		}
-				
+
 		scb.chmodExecutable(scriptPath).call(scriptPath);
 
 		final String command = scb.toString();
@@ -517,9 +536,8 @@ public class AgentlessInstaller {
 			if (!details.isLus() && details.getManagementOnlyFiles() != null) {
 				excludedFiles.addAll(Arrays.asList(details.getManagementOnlyFiles()));
 			}
-			copyFiles(targetHost, details.getUsername(), details.getPassword(), details.getLocalDir(),
-					details.getRemoteDir(), details.getKeyFile(), excludedFiles, details.getCloudFile(),
-					Utils.millisUntil(end), TimeUnit.MILLISECONDS, details.getFileTransferMode(), details);
+			copyFiles(details, targetHost, excludedFiles,
+					Utils.millisUntil(end), TimeUnit.MILLISECONDS);
 		} catch (final FileSystemException e) {
 			throw new InstallerException("Uploading files to remote server failed.", e);
 		} catch (final IOException e) {
@@ -528,19 +546,6 @@ public class AgentlessInstaller {
 			throw new InstallerException("Uploading files to remote server failed.", e);
 		}
 	}
-
-	// IMPORTANT - single quotes in powershell are used to prevent variable expansions and escape sequences
-	// Since password can contain '$' and '*' characters, it is used here for the username and password.
-
-	// TODO - this code required that trusted hosts be set to *!.
-	// private static final String POWER_SHELL_COMMAND_TEMPLATE = "$ErrorActionPreference=\"Stop\"\r\n"
-	// + "$securePassword = ConvertTo-SecureString -AsPlainText -Force '%s'\r\n"
-	// + "$cred = New-Object System.Management.Automation.PSCredential '%s', $securePassword\r\n"
-	// + "Connect-WSMan -Credential $cred %s \r\n"
-	// + "set-item WSMan:\\%s\\Client\\TrustedHosts -Value * -Force \r\n"
-	// + "Invoke-Command -ComputerName %s -Credential $cred -ScriptBlock { %s }\r\n"
-	// + "Write-Host \"Command finished\"\r\n" + "\r\n";
-	// private static final String[] POWER_SHELL_PREFIX = { "powershell.exe", "-inputformat", "none", "-File" };
 
 	private List<String> getPowershellCommandLine(final String target, final String username, final String password,
 			final String command, final String localDir)

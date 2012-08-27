@@ -69,7 +69,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 
 	private static final String LOCATOR_KEY = "locator";
 	private static final String SERVICE_CLOUD_CONFIGURATION_KEY = "SERVICE_CLOUD_CONFIGURATION_KEY";
-    
+
 	private StringProperties properties = new StringProperties(new HashMap<String, String>());
 
 	/****************
@@ -81,16 +81,20 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	 * @param cloudTemplateName .
 	 */
 	public CloudifyMachineProvisioningConfig(final Cloud cloud, final CloudTemplate template,
-			final String cloudFileContents, final String cloudTemplateName) {
+			final String cloudTemplateName) {
 
 		setMinimumNumberOfCpuCoresPerMachine(template.getNumberOfCores());
 
 		setReservedMemoryCapacityPerMachineInMB(cloud.getProvider().getReservedMemoryCapacityPerMachineInMB());
 
-		setCloudConfiguration(cloudFileContents);
+		setCloudConfigurationDirectory(template.getRemoteDirectory());
+		logger.info("Setting cloud configuration directory to: " + template.getRemoteDirectory());
 		setCloudTemplateName(cloudTemplateName);
 
 	}
+
+	private static final java.util.logging.Logger logger =
+			java.util.logging.Logger.getLogger(CloudifyMachineProvisioningConfig.class.getName());
 
 	/**************
 	 * .
@@ -132,19 +136,6 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 				NUMBER_OF_CPU_CORES_PER_MACHINE_KEY, minimumCpuCoresPerMachine);
 	}
 
-	public String getCloudConfiguration() {
-		return properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION);
-	}
-
-	/*******
-	 * 
-	 * @param cloudConfiguration .
-	 */
-	public void setCloudConfiguration(final String cloudConfiguration) {
-		properties.put(
-				CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION, cloudConfiguration);
-	}
-
 	public String getCloudTemplateName() {
 		return properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME);
 	}
@@ -157,6 +148,20 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	public void setCloudTemplateName(final String cloudTemplateName) {
 		properties.put(
 				CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME, cloudTemplateName);
+	}
+
+	public String getCloudConfigurationDirectory() {
+		return properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION_DIRECTORY);
+	}
+
+	/***************
+	 * Setter.
+	 * 
+	 * @param cloudConfigurationDirectory .
+	 */
+	public void setCloudConfigurationDirectory(final String cloudConfigurationDirectory) {
+		properties.put(
+				CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION_DIRECTORY, cloudConfigurationDirectory);
 	}
 
 	@Override
@@ -230,7 +235,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 
 	@Override
 	public AtLeastOneZoneConfig getGridServiceAgentZones() {
-		String[] zones = properties.getArray(
+		final String[] zones = properties.getArray(
 				ZONES_KEY, ZONES_SEPARATOR, ZONES_DEFAULT);
 		return new AtLeastOneZoneConfigurer().addZones(zones).create();
 	}
@@ -293,6 +298,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 
 	/**********
 	 * Getter.
+	 * 
 	 * @return .
 	 */
 	public byte[] getServiceCloudConfiguration() {

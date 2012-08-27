@@ -31,7 +31,7 @@ cloud {
 	}
 	templates ([
 				SMALL_LINUX : template{
-					localDirectory "tools/cli/plugins/esc/ec2/upload"
+					localDirectory "upload"
 					keyFile "cloud-demo1.pem"
 					imageId "us-east-1/ami-76f0061f"
 					machineMemoryMB 1600

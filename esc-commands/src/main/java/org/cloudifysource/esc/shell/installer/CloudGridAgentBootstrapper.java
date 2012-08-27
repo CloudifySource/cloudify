@@ -45,7 +45,6 @@ import org.cloudifysource.esc.driver.provisioning.jclouds.ManagementWebServiceIn
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
-import org.cloudifysource.esc.shell.installer.BootstrapLogsFilters;
 import org.cloudifysource.esc.shell.listener.CliAgentlessInstallerListener;
 import org.cloudifysource.esc.shell.listener.CliProvisioningDriverListener;
 import org.cloudifysource.esc.util.Utils;
@@ -55,8 +54,6 @@ import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.CLIException;
 import org.openspaces.admin.zone.config.ExactZonesConfig;
 import org.openspaces.admin.zone.config.ExactZonesConfigurer;
-
-import com.j_spaces.kernel.Environment;
 
 /**
  * This class handles the bootstrapping of machines, activation of management processes and cloud tear-down.
@@ -69,13 +66,13 @@ public class CloudGridAgentBootstrapper {
 
 	private static final String MANAGEMENT_APPLICATION = ManagementWebServiceInstaller.MANAGEMENT_APPLICATION_NAME;
 	private static final String MANAGEMENT_GSA_ZONE = "management";
-	
+
 	private static final int WEBUI_PORT = 8099;
 
 	private static final int REST_GATEWAY_PORT = 8100;
 
-	private static final String OPERATION_TIMED_OUT = "The operation timed out. " 
-				+ "Try to increase the timeout using the -timeout flag";
+	private static final String OPERATION_TIMED_OUT = "The operation timed out. "
+			+ "Try to increase the timeout using the -timeout flag";
 
 	private static final Logger logger = Logger.getLogger(CloudGridAgentBootstrapper.class.getName());
 
@@ -158,93 +155,97 @@ public class CloudGridAgentBootstrapper {
 
 		createProvisioningDriver();
 
-			// Start the cloud machines!!!
-			MachineDetails[] servers;
-			try {
-				servers = provisioning.startManagementMachines(timeout, timeoutUnit);
-			} catch (final CloudProvisioningException e) {
-				throw new InstallerException("Failed to start managememnt servers. Reason: " + e.getMessage(), e);
-			} catch (final TimeoutException e) {
-				throw new CLIException("Cloudify bootstrap on provider " + this.cloud.getProvider().getProvider()
-						+ " timed-out. " + "Please try to run again using the –timeout option.", e);
-			}
+		// Start the cloud machines!!!
+		MachineDetails[] servers;
+		try {
+			servers = provisioning.startManagementMachines(timeout, timeoutUnit);
+		} catch (final CloudProvisioningException e) {
+			throw new InstallerException("Failed to start managememnt servers. Reason: " + e.getMessage(), e);
+		} catch (final TimeoutException e) {
+			throw new CLIException("Cloudify bootstrap on provider " + this.cloud.getProvider().getProvider()
+					+ " timed-out. " + "Please try to run again using the –timeout option.", e);
+		}
 
-			if (servers.length == 0) {
-				throw new IllegalArgumentException("Received zero management servers from provisioning implementation");
-			}
+		if (servers.length == 0) {
+			throw new IllegalArgumentException("Received zero management servers from provisioning implementation");
+		}
 
-			//from this point on - close machines if an exception is thrown (to avoid leaks).
-			try {
-				if (logger.isLoggable(Level.INFO)) {
-					for (final MachineDetails server : servers) {
-						logServerDetails(server);
-					}
+		// from this point on - close machines if an exception is thrown (to avoid leaks).
+		try {
+
+			// log details in FINE
+			if (logger.isLoggable(Level.FINE)) {
+				for (final MachineDetails server : servers) {
+					logServerDetails(server);
 				}
+			}
 
-				// Start the management agents and other processes
-				if (servers[0].isAgentRunning()) {
-					// must be using existing machines.
-					// TODO - check if management machines are running properly. If so - use them, like connect.
-					throw new IllegalStateException(
+			// Start the management agents and other processes
+			if (servers[0].isAgentRunning()) {
+				// must be using existing machines.
+				// TODO - check if management machines are running properly. If so - use them, like connect.
+				throw new IllegalStateException(
 						"Cloud bootstrapper found existing management machines with the same name. "
 								+ "Please shut them down before continuing");
-				}
-			
-				startManagememntProcesses(servers, end);
-
-				// Wait for rest to become available
-				// When the rest gateway is up and running, the cloud is ready to go
-				for (final MachineDetails server : servers) {
-					String ipAddress = null;
-					if (cloud.getConfiguration().isBootstrapManagementOnPublicIp()) {
-						ipAddress = server.getPublicAddress();
-					} else {
-						ipAddress = server.getPrivateAddress();
-					}
-
-					final URL restAdminUrl = new URI("http", null, ipAddress, REST_GATEWAY_PORT, null, null, null)
-						.toURL();
-					final URL webUIUrl = new URI("http", null, ipAddress, WEBUI_PORT, null, null, null).toURL();
-
-					// We are relying on start-management command to be run on the
-					// new machine, so everything should be up if the rest admin is up
-					waitForConnection(restAdminUrl, Utils.millisUntil(end), TimeUnit.MILLISECONDS);
-
-					logger.info("Rest service is available at: " + restAdminUrl + '.');
-					logger.info("Webui service is available at: " + webUIUrl + '.');
-				}
-			} catch (final IOException e) {
-				stopManagementMachines();
-				throw new CLIException("Cloudify bootstrap on provider " + this.cloud.getProvider().getProvider()
-						+ " failed. Reason: " + e.getMessage(), e);
-			} catch (final URISyntaxException e) {
-				stopManagementMachines();
-				throw new CLIException("Bootstrap-cloud failed. Reason: " + e.getMessage(), e);
-			} catch (final TimeoutException e) {
-				stopManagementMachines();
-				throw new CLIException("Cloudify bootstrap on provider " + this.cloud.getProvider().getProvider()
-						+ " timed-out. " + "Please try to run again using the –timeout option.", e);
-			} catch (CLIException e) {
-				stopManagementMachines();
-				throw e;
-			} catch (InstallerException e) {
-				stopManagementMachines();
-				throw e;
-			} catch (InterruptedException e) {
-				stopManagementMachines();
-				throw e;
 			}
+
+			startManagememntProcesses(servers, end);
+
+			// Wait for rest to become available
+			// When the rest gateway is up and running, the cloud is ready to go
+			for (final MachineDetails server : servers) {
+				String ipAddress = null;
+				if (cloud.getConfiguration().isBootstrapManagementOnPublicIp()) {
+					ipAddress = server.getPublicAddress();
+				} else {
+					ipAddress = server.getPrivateAddress();
+				}
+
+				final URL restAdminUrl = new URI("http", null, ipAddress, REST_GATEWAY_PORT, null, null, null)
+						.toURL();
+				final URL webUIUrl = new URI("http", null, ipAddress, WEBUI_PORT, null, null, null).toURL();
+
+				// We are relying on start-management command to be run on the
+				// new machine, so everything should be up if the rest admin is up
+				waitForConnection(restAdminUrl, Utils.millisUntil(end), TimeUnit.MILLISECONDS);
+
+				logger.info("Rest service is available at: " + restAdminUrl + '.');
+				logger.info("Webui service is available at: " + webUIUrl + '.');
+			}
+		} catch (final IOException e) {
+			stopManagementMachines();
+			throw new CLIException("Cloudify bootstrap on provider " + this.cloud.getProvider().getProvider()
+					+ " failed. Reason: " + e.getMessage(), e);
+		} catch (final URISyntaxException e) {
+			stopManagementMachines();
+			throw new CLIException("Bootstrap-cloud failed. Reason: " + e.getMessage(), e);
+		} catch (final TimeoutException e) {
+			stopManagementMachines();
+			throw new CLIException("Cloudify bootstrap on provider " + this.cloud.getProvider().getProvider()
+					+ " timed-out. " + "Please try to run again using the –timeout option.", e);
+		} catch (final CLIException e) {
+			stopManagementMachines();
+			throw e;
+		} catch (final InstallerException e) {
+			stopManagementMachines();
+			throw e;
+		} catch (final InterruptedException e) {
+			stopManagementMachines();
+			throw e;
+		}
 	}
-	
+
 	private void stopManagementMachines() {
 		try {
 			provisioning.stopManagementMachines();
-		} catch (CloudProvisioningException e) {
-			//log a warning, don't throw an exception on this failure
-			logger.warning("Failed to clean management machines after provisioning failure, reported error: " + e.getMessage());
-		} catch (TimeoutException e) {
-			//log a warning, don't throw an exception on this failure
-			logger.warning("Failed to clean management machines after provisioning failure, the operation timed out (" + e.getMessage() + ")");
+		} catch (final CloudProvisioningException e) {
+			// log a warning, don't throw an exception on this failure
+			logger.warning("Failed to clean management machines after provisioning failure, reported error: "
+					+ e.getMessage());
+		} catch (final TimeoutException e) {
+			// log a warning, don't throw an exception on this failure
+			logger.warning("Failed to clean management machines after provisioning failure, the operation timed out ("
+					+ e.getMessage() + ")");
 		}
 	}
 
@@ -342,8 +343,8 @@ public class CloudGridAgentBootstrapper {
 
 	private void uninstallApplications(final long end)
 			throws CLIException, InterruptedException, TimeoutException {
-		List<String> applicationsList = adminFacade.getApplicationsList();
-		if (applicationsList.size() > 0){
+		final List<String> applicationsList = adminFacade.getApplicationsList();
+		if (applicationsList.size() > 0) {
 			logger.info("Uninstalling the currently deployed applications");
 			for (final String application : applicationsList) {
 				if (!application.equals(MANAGEMENT_APPLICATION)) {
@@ -365,15 +366,15 @@ public class CloudGridAgentBootstrapper {
 		Logger.getLogger(AgentlessInstaller.SSH_LOGGER_NAME).setLevel(
 				Level.parse(cloud.getProvider().getSshLoggingLevel()));
 
-		final CloudTemplate template = cloud.getTemplates().get(cloud.getConfiguration().getManagementMachineTemplate());
-		
-		fixConfigRelativePaths(cloud, template);
+		final CloudTemplate template =
+				cloud.getTemplates().get(cloud.getConfiguration().getManagementMachineTemplate());
+
+		// fixConfigRelativePaths(cloud, template);
 
 		final int numOfManagementMachines = machines.length;
 
-		
-		
-		final InstallationDetails[] installations = createInstallationDetails(numOfManagementMachines, machines, template);
+		final InstallationDetails[] installations =
+				createInstallationDetails(numOfManagementMachines, machines, template);
 		// only one machine should try and deploy the WebUI and Rest Admin
 		for (int i = 1; i < installations.length; i++) {
 			installations[i].setNoWebServices(true);
@@ -383,8 +384,6 @@ public class CloudGridAgentBootstrapper {
 		for (final InstallationDetails detail : installations) {
 			detail.setLocator(lookup);
 		}
-		
-		
 
 		// copy cloud file to local upload directory so that cloud settings
 		// will be available when rest gateway is deployed
@@ -490,10 +489,8 @@ public class CloudGridAgentBootstrapper {
 			throws FileNotFoundException {
 		final InstallationDetails[] details = new InstallationDetails[numOfManagementMachines];
 
-		
-
 		for (int i = 0; i < details.length; i++) {
-			ExactZonesConfig zones = new ExactZonesConfigurer().addZone(MANAGEMENT_GSA_ZONE).create();
+			final ExactZonesConfig zones = new ExactZonesConfigurer().addZone(MANAGEMENT_GSA_ZONE).create();
 			details[i] = Utils.createInstallationDetails(machineDetails[i], cloud,
 					template, zones, null, null, true, this.cloudFile);
 		}
@@ -519,16 +516,16 @@ public class CloudGridAgentBootstrapper {
 		// return details;
 	}
 
-	private void fixConfigRelativePaths(final Cloud config, final CloudTemplate template) {
-		if (template.getLocalDirectory() != null
-				&& !new File(template.getLocalDirectory()).isAbsolute()) {
-			logger.fine("Assuming " + template.getLocalDirectory() + " is in "
-					+ Environment.getHomeDirectory());
-			template.setLocalDirectory(
-					new File(Environment.getHomeDirectory(), template.getLocalDirectory())
-							.getAbsolutePath());
-		}
-	}
+	// private void fixConfigRelativePaths(final Cloud config, final CloudTemplate template) {
+	// if (template.getLocalDirectory() != null
+	// && !new File(template.getLocalDirectory()).isAbsolute()) {
+	// logger.fine("Assuming " + template.getLocalDirectory() + " is in "
+	// + Environment.getHomeDirectory());
+	// template.setLocalDirectory(
+	// new File(Environment.getHomeDirectory(), template.getLocalDirectory())
+	// .getAbsolutePath());
+	// }
+	// }
 
 	private void waitForUninstallApplications(final long timeout, final TimeUnit timeunit)
 			throws InterruptedException, TimeoutException, CLIException {

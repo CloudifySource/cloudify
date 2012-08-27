@@ -1,0 +1,1 @@
+Upload folder must exist to pass cloud parsing validation test

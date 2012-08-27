@@ -22,24 +22,24 @@ import java.io.File;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.Test;
 
-
 public class CloudMissingTemplateTest {
 
-	private final static String EC2_MISSING_TEMPLATE_PATH = 
+	private  static final String EC2_MISSING_TEMPLATE_PATH =
 			"testResources/testparsing/ec2-missing-template-cloud.groovy";
-	
+
 	@Test
-	public void testCloudParser() throws Exception {
+	public void testCloudParser()
+			throws Exception {
 		try {
-			org.cloudifysource.dsl.cloud.Cloud cloud = ServiceReader.readCloud(new File(EC2_MISSING_TEMPLATE_PATH));
-			//if we got to the next line - the validation exception wasn't thrown.
+			final org.cloudifysource.dsl.cloud.Cloud cloud =
+					ServiceReader.readCloud(new File(EC2_MISSING_TEMPLATE_PATH));
+			// if we got to the next line - the validation exception wasn't thrown.
 			assertTrue("The management template does not exist yet no error was thrown", false);
-		} catch (Throwable e) {
-			assertTrue("The management template does not exist yet no error was thrown. Error was: " + e.getMessage(), 
+		} catch (final Throwable e) {
+			assertTrue("The management template does not exist yet no error was thrown. Error was: " + e.getMessage(),
 					e.getMessage().contains("is not listed in the cloud's templates section")
-					|| e.getMessage().contains("managementMachineTemplate"));
+							|| e.getMessage().contains("managementMachineTemplate"));
 		}
 	}
-
 
 }

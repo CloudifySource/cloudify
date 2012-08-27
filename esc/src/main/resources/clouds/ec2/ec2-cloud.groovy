@@ -92,7 +92,7 @@ cloud {
 					// Optional. Location ID.
 					locationId "us-east-1"
 					// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
-					localDirectory "tools/cli/plugins/esc/ec2/upload"
+					localDirectory "upload"
 					// Optional. Name of key file to use for authenticating to the remot machine. Remove this line if key files
 					// are not used. 
 					keyFile "ENTER_KEY_FILE"

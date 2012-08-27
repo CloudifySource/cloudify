@@ -77,7 +77,7 @@ cloud {
 				password "ENTER_PASSWORD"
 				
 				// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
-				localDirectory "tools/cli/plugins/esc/byon/upload"
+				localDirectory "upload"
 				
 				// Mandatory for BYON.
 					custom ([

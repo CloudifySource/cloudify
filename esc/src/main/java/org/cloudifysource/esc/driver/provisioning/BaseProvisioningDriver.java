@@ -161,10 +161,10 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		// using a key (pem) file
 		String keyFileStr = template.getKeyFile();
 		if (StringUtils.isNotBlank(keyFileStr)) {
-			fixConfigRelativePaths(cloud, template);
+			//fixConfigRelativePaths(cloud, template);
 			keyFile = new File(keyFileStr);
 			if (!keyFile.isAbsolute()) {
-				keyFile = new File(template.getLocalDirectory(), keyFileStr);
+				keyFile = new File(template.getAbsoluteUploadDir(), keyFileStr);
 			}
 			if (keyFile != null && !keyFile.exists()) {
 				throw new CloudProvisioningException("The specified key file could not be found: "
@@ -223,7 +223,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	 * @param template the cloud template
 	 */
 	protected void fixConfigRelativePaths(final Cloud cloud, final CloudTemplate template) {
-		String configLocalDir = template.getLocalDirectory();
+		String configLocalDir = template.getLocalDirectory(); // TODO - this code is not needed sinc
 		if (configLocalDir != null && !new File(configLocalDir).isAbsolute()) {
 			String envHomeDir = Environment.getHomeDirectory();
 			logger.fine("Assuming " + configLocalDir + " is in " + envHomeDir);

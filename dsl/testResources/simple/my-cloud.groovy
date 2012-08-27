@@ -3,7 +3,7 @@ cloud2 {
 	
 	provider {
 		provider "aws-ec2"
-		localDirectory "tools/cli/plugins/esc/ec2/upload"
+		localDirectory "upload"
 		
 		cloudifyUrl "https://s3.amazonaws.com/test-repository-ec2dev/cloudify/gigaspaces.zip"
 		machineNamePrefix "gs_esm_gsa_"

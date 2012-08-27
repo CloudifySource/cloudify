@@ -35,7 +35,7 @@ cloud {
 					machineMemoryMB 1600
 					hardwareId "4"
 					remoteDirectory "/root/gs-files"
-					localDirectory "tools/cli/plugins/esc/rsopenstack/upload"
+					localDirectory "upload"
 					
 				}
 			])

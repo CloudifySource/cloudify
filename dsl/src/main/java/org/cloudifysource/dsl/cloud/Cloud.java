@@ -15,10 +15,8 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.cloud;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
@@ -26,8 +24,6 @@ import org.cloudifysource.dsl.DSLValidation;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
-
-import com.j_spaces.kernel.Environment;
 
 /***********
  * Cloud doman object. Includes all of the details required for the cloud driver to use a cloud provider.
@@ -38,7 +34,6 @@ import com.j_spaces.kernel.Environment;
 @CloudifyDSLEntity(name = "cloud", clazz = Cloud.class, allowInternalNode = false, allowRootNode = true)
 public class Cloud {
 
-	private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Cloud.class.getName());
 	private String name;
 	private CloudProvider provider;
 	private CloudUser user = new CloudUser();
@@ -107,10 +102,10 @@ public class Cloud {
 	void validateManagementTemplateName(final DSLValidationContext validationContext)
 			throws DSLValidationException {
 
-		CloudConfiguration configuration = getConfiguration();
-		Map<String, CloudTemplate> templates = getTemplates();
+		final CloudConfiguration configuration = getConfiguration();
+		final Map<String, CloudTemplate> templates = getTemplates();
 
-		String managementTemplateName = configuration.getManagementMachineTemplate();
+		final String managementTemplateName = configuration.getManagementMachineTemplate();
 
 		if (StringUtils.isBlank(managementTemplateName)) {
 			throw new DSLValidationException("managementMachineTemplate may not be empty");
@@ -133,53 +128,62 @@ public class Cloud {
 	void validateTenantId(final DSLValidationContext validationContext)
 			throws DSLValidationException {
 		if (this.custom.containsKey("openstack.tenant")) {
-			String tenantId = (String) custom.get("openstack.tenant");
+			final String tenantId = (String) custom.get("openstack.tenant");
 			if (tenantId.equalsIgnoreCase("ENTER_TENANT")) {
 				throw new DSLValidationException("The tenant id property must be set");
 			}
 		}
 	}
 
+	// moved this into template object
 	/**
 	 * This validation method runs both locally and on the remote server.
 	 * 
 	 * @throws DSLValidationException
 	 */
-	@DSLValidation
-	void validateKeySettings(final DSLValidationContext validationContext)
-			throws DSLValidationException {
-		File keyFile = null;
-
-		for (CloudTemplate template : this.templates.values()) {
-
-			String keyFileStr = template.getKeyFile();
-			if (StringUtils.isNotBlank(keyFileStr)) {
-				keyFile = new File(keyFileStr);
-
-				if (!keyFile.isAbsolute()) {
-					String configLocalDir = template.getLocalDirectory();
-
-					if (configLocalDir != null && !new File(configLocalDir).isAbsolute()) {
-						boolean keyFileFoundOnLocalMachinePath = isKeyFileFoundOnLocalMachinePath(template);
-						boolean keyFileFoundOnRemoteMachinePath = isKeyFileFoundOnRemoteMachinePath(template);
-						if (!keyFileFoundOnRemoteMachinePath && !keyFileFoundOnLocalMachinePath) {
-							throw new DSLValidationException(
-									"The specified key file is not found on these locations: \""
-											+ (new File(getLocalDirPath(template), keyFileStr)).getAbsolutePath()
-											+ "\", \""
-											+ (new File(getRemoteDirPath(template), keyFileStr)).getAbsolutePath()
-											+ "\"");
-						}
-					}
-				} else {
-					if (!keyFile.isFile()) {
-						throw new DSLValidationException("The specified key file is missing: \""
-								+ keyFile.getAbsolutePath() + "\"");
-					}
-				}
-			}
-		}
-	}
+	// @DSLValidation
+	// void validateKeySettings(final DSLValidationContext validationContext)
+	// throws DSLValidationException {
+	// File keyFile = null;
+	//
+	// for (CloudTemplate template : this.templates.values()) {
+	//
+	// String keyFileStr = template.getKeyFile();
+	// if (StringUtils.isNotBlank(keyFileStr)) {
+	// keyFile = new File(keyFileStr);
+	//
+	// if (!keyFile.isAbsolute()) {
+	//
+	// //final File localDir = new File(validationContext.getFilePath()).getParentFile();
+	// // expected to be absolute path at this point
+	// final File uploadDir = new File(template.getLocalDirectory());
+	// final File absoluteKeyFile = new File(uploadDir, keyFileStr);
+	// if (!absoluteKeyFile.exists()) {
+	// throw new DSLValidationException("The specified key file was not found: " + absoluteKeyFile);
+	// }
+	//
+	// // String configLocalDir = template.getLocalDirectory();
+	// // if (configLocalDir != null && !new File(configLocalDir).isAbsolute()) {
+	// // boolean keyFileFoundOnLocalMachinePath = isKeyFileFoundOnLocalMachinePath(template);
+	// // boolean keyFileFoundOnRemoteMachinePath = isKeyFileFoundOnRemoteMachinePath(template);
+	// // if (!keyFileFoundOnRemoteMachinePath && !keyFileFoundOnLocalMachinePath) {
+	// // throw new DSLValidationException(
+	// // "The specified key file is not found on these locations: \""
+	// // + (new File(getLocalDirPath(template), keyFileStr)).getAbsolutePath()
+	// // + "\", \""
+	// // + (new File(getRemoteDirPath(template), keyFileStr)).getAbsolutePath()
+	// // + "\"");
+	// // }
+	// // }
+	// } else {
+	// if (!keyFile.isFile()) {
+	// throw new DSLValidationException("The specified key file is missing: \""
+	// + keyFile.getAbsolutePath() + "\"");
+	// }
+	// }
+	// }
+	// }
+	// }
 
 	/****************
 	 * Given a path of the type /C$/PATH - indicating an absolute CIFS path, returns /PATH. If the string does not
@@ -191,7 +195,7 @@ public class Cloud {
 	 */
 	public static String normalizeCifsPath(final String path) {
 		final String expression = CIFS_ABSOLUTE_PATH_WITH_DRIVE_REGEX;
-		Pattern pattern = Pattern.compile(expression);
+		final Pattern pattern = Pattern.compile(expression);
 
 		if (pattern.matcher(path).matches()) {
 			final char drive = path.charAt(1);
@@ -200,31 +204,31 @@ public class Cloud {
 		return path;
 	}
 
-	private boolean isKeyFileFoundOnRemoteMachinePath(final CloudTemplate template) {
-		String remoteEnvDirectoryPath = getRemoteDirPath(template);
-		File remoteKeyFile = new File(remoteEnvDirectoryPath, template.getKeyFile());
-		logger.log(Level.FINE, "Looking for key file on remote machine: " + remoteKeyFile.getAbsolutePath());
-		return remoteKeyFile.isFile();
-	}
+	// private boolean isKeyFileFoundOnRemoteMachinePath(final CloudTemplate template) {
+	// String remoteEnvDirectoryPath = getRemoteDirPath(template);
+	// File remoteKeyFile = new File(remoteEnvDirectoryPath, template.getKeyFile());
+	// logger.log(Level.FINE, "Looking for key file on remote machine: " + remoteKeyFile.getAbsolutePath());
+	// return remoteKeyFile.isFile();
+	// }
+	//
+	// private boolean isKeyFileFoundOnLocalMachinePath(final CloudTemplate template) {
+	// String localAbsolutePath = getLocalDirPath(template);
+	// File localKeyFile = new File(localAbsolutePath, template.getKeyFile());
+	// logger.log(Level.FINE, "Looking for key file on local machine: " + localKeyFile.getAbsolutePath());
+	// return localKeyFile.isFile();
+	// }
 
-	private boolean isKeyFileFoundOnLocalMachinePath(final CloudTemplate template) {
-		String localAbsolutePath = getLocalDirPath(template);
-		File localKeyFile = new File(localAbsolutePath, template.getKeyFile());
-		logger.log(Level.FINE, "Looking for key file on local machine: " + localKeyFile.getAbsolutePath());
-		return localKeyFile.isFile();
-	}
-
-	private String getLocalDirPath(final CloudTemplate template) {
-		String configLocalDir = template.getLocalDirectory();
-		// getting the local config directory
-		String envHomeDir = Environment.getHomeDirectory();
-		return new File(envHomeDir, configLocalDir).getAbsolutePath();
-	}
-
-	private String getRemoteDirPath(final CloudTemplate template) {
-		// String managementMachineTemplateName = getConfiguration().getManagementMachineTemplate();
-		String remoteEnvDirectoryPath = template.getRemoteDirectory();
-		// fix the remote path if formatted for vfs2, so it would be parsed correctly.
-		return normalizeCifsPath(remoteEnvDirectoryPath);
-	}
+	// private String getLocalDirPath(final CloudTemplate template) {
+	// String configLocalDir = template.getLocalDirectory();
+	// // getting the local config directory
+	// String envHomeDir = Environment.getHomeDirectory();
+	// return new File(envHomeDir, configLocalDir).getAbsolutePath();
+	// }
+	//
+	// private String getRemoteDirPath(final CloudTemplate template) {
+	// // String managementMachineTemplateName = getConfiguration().getManagementMachineTemplate();
+	// String remoteEnvDirectoryPath = template.getRemoteDirectory();
+	// // fix the remote path if formatted for vfs2, so it would be parsed correctly.
+	// return normalizeCifsPath(remoteEnvDirectoryPath);
+	// }
 }

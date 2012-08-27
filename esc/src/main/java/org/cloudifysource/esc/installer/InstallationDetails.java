@@ -66,11 +66,13 @@ public class InstallationDetails implements Cloneable {
 	private boolean noWebServices;
 
 	// directory on local machine where installation files are
-	// placed. At a minimum, the start-sm.sh should be placed there.
+	// placed. At a minimum, the start-management.sh should be placed there.
 	// Other files may include the gigaspaces installation, java,
 	// and any other required scripts.
 	private String localDir;
 
+	// relative path to the local dir.
+	private String relativeLocalDir;
 	// The directory on the remote machine where installation
 	// files will be uploaded to.
 	private String remoteDir;
@@ -295,6 +297,14 @@ public class InstallationDetails implements Cloneable {
 
 	public void setExtraRemoteEnvironmentVariables(final Map<String, String> extraRemoteEnvironmentVariables) {
 		this.extraRemoteEnvironmentVariables = extraRemoteEnvironmentVariables;
+	}
+
+	public String getRelativeLocalDir() {
+		return relativeLocalDir;
+	}
+
+	public void setRelativeLocalDir(final String relativeLocalDir) {
+		this.relativeLocalDir = relativeLocalDir;
 	}
 
 }
