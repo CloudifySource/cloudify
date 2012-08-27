@@ -29,20 +29,19 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
  * 
  *        Shuts down the management agent running on the local machine.
  * 
- *        Optional arguments:
- *         lookup-groups - A unique name that is used to group together Cloudify components.
- *         Override in order to start multiple local clouds on the local machine.
- *         nic-address - The ip address of the local host network card. Specify when local machine has more
- *         than one network adapter, and a specific network card should be used for network communication.
- *         timeout - The number of minutes to wait until the operation is completed (default: 5 minutes)
- *         lookup-locators - A list of IP addresses used to identify all management machines.
- *         Override when using a network without multicast support (Default: null).
+ *        Optional arguments: lookup-groups - A unique name that is used to group together Cloudify components. Override
+ *        in order to start multiple local clouds on the local machine. nic-address - The ip address of the local host
+ *        network card. Specify when local machine has more than one network adapter, and a specific network card should
+ *        be used for network communication. timeout - The number of minutes to wait until the operation is completed
+ *        (default: 5 minutes) lookup-locators - A list of IP addresses used to identify all management machines.
+ *        Override when using a network without multicast support (Default: null).
  * 
  *        Command syntax: shutdown-management [-lookup-groups lookup-groups] [-nicAddress nicAddress] [-timeout timeout]
- *        					[-lookup-locators lookup-locators]
+ *        [-lookup-locators lookup-locators]
  */
-@Command(scope = "cloudify", name = "shutdown-management", description = "Shuts down the agent running on the local"
-		+ " machine.")
+@Command(scope = "cloudify", name = "shutdown-management",
+		description = "For internal use only! Shuts down the agent running "
+				+ "on the local machine.")
 public class ShutdownManagement extends AbstractGSCommand {
 
 	@Option(required = false, name = "-lookup-groups", description = "A unique name that is used to group together "
@@ -64,11 +63,12 @@ public class ShutdownManagement extends AbstractGSCommand {
 	private String lookupLocators = null;
 
 	/**
-	 * Shuts down the local agent, management processes (GSM, ESM, LUS) and GSC. Waits until shutdown is
-	 * complete or until the timeout is reached. Active services are forced to shut down.
+	 * Shuts down the local agent, management processes (GSM, ESM, LUS) and GSC. Waits until shutdown is complete or
+	 * until the timeout is reached. Active services are forced to shut down.
 	 */
 	@Override
-	protected Object doExecute() throws Exception {
+	protected Object doExecute()
+			throws Exception {
 
 		final LocalhostGridAgentBootstrapper installer = new LocalhostGridAgentBootstrapper();
 		installer.setVerbose(verbose);

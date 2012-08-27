@@ -28,7 +28,7 @@ import org.cloudifysource.shell.ShellUtils;
  *        <p/>
  *        Command syntax: version
  */
-@Command(scope = "cloudify", name = "version", description = "Displays the XAP and cloudify versions")
+@Command(scope = "cloudify", name = "version", description = "Displays the Cloudify versions")
 public class Version extends AbstractGSCommand {
 
     /**

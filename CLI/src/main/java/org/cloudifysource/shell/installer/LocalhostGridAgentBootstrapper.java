@@ -166,7 +166,8 @@ public class LocalhostGridAgentBootstrapper {
 	private int lusPort = CloudifyConstants.DEFAULT_LUS_PORT;
 	private boolean autoShutdown;
 	private boolean waitForWebUi;
-	private String cloudContents;
+
+	private String cloudFilePath;
 	private boolean force;
 	private final List<LocalhostBootstrapperListener> eventsListenersList =
 			new ArrayList<LocalhostBootstrapperListener>();
@@ -471,16 +472,17 @@ public class LocalhostGridAgentBootstrapper {
 		if (applicationsExist && !force) {
 			throw new CLIStatusException("apps_deployed_before_teardown_localcloud", applicationsList.toString());
 		}
-		String uninstallMessage = ShellUtils.getMessageBundle().getString("uninstalling_applications_before_teardown");
+		final String uninstallMessage =
+				ShellUtils.getMessageBundle().getString("uninstalling_applications_before_teardown");
 		publishEvent(uninstallMessage);
 		for (final String appName : applicationsList) {
 			try {
 				if (!appName.equals(MANAGEMENT_APPLICATION)) {
 					logger.fine("Uninstalling application " + appName);
-					Map<String, String> uninstallApplicationResponse = adminFacade.uninstallApplication(appName
+					final Map<String, String> uninstallApplicationResponse = adminFacade.uninstallApplication(appName
 							, (int) timeout);
 					if (uninstallApplicationResponse.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
-						String pollingID = uninstallApplicationResponse
+						final String pollingID = uninstallApplicationResponse
 								.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
 						((RestAdminFacade) this.adminFacade)
 								.waitForLifecycleEvents(pollingID, (int) timeout,
@@ -582,7 +584,7 @@ public class LocalhostGridAgentBootstrapper {
 			if (agent == null) {
 				logger.fine("Agent not running on local machine");
 				if (verbose) {
-					String agentNotFoundMessage =
+					final String agentNotFoundMessage =
 							ShellUtils.getMessageBundle().getString("agent_not_found_on_teardown_command");
 					publishEvent(agentNotFoundMessage);
 				}
@@ -682,11 +684,11 @@ public class LocalhostGridAgentBootstrapper {
 			public boolean isDone()
 					throws CLIException, InterruptedException {
 				if (!messagePublished) {
-					String shuttingDownAgentMessage = ShellUtils.getMessageBundle()
+					final String shuttingDownAgentMessage = ShellUtils.getMessageBundle()
 							.getString("shutting_down_cloudify_agent_teardown_localcloud");
 					publishEvent(shuttingDownAgentMessage);
 
-					String shuttingDownManagmentMessage = ShellUtils.getMessageBundle()
+					final String shuttingDownManagmentMessage = ShellUtils.getMessageBundle()
 							.getString("shutting_down_cloudify_managment");
 					publishEvent(shuttingDownManagmentMessage);
 
@@ -731,7 +733,7 @@ public class LocalhostGridAgentBootstrapper {
 			}
 		}
 		if (verbose) {
-			String message = "Starting "
+			final String message = "Starting "
 					+ name
 					+ (verbose ? ":\n" + StringUtils.collectionToDelimitedString(Arrays.asList(command), " ") + " "
 							+ StringUtils.collectionToDelimitedString(args, " ") : "");
@@ -892,7 +894,9 @@ public class LocalhostGridAgentBootstrapper {
 						}
 						final GigaSpace gigaspace = managementSpaceInstaller.getGigaSpace();
 
-						final CloudConfigurationHolder holder = new CloudConfigurationHolder(getCloudContents());
+						
+						final CloudConfigurationHolder holder = new CloudConfigurationHolder(null, getCloudFilePath());
+						logger.info("Writing cloud Configuration to space: " + holder);
 						gigaspace.write(holder);
 						// Shut down the space proxy so that if the cloud is turned down later, there will not
 						// be any discovery errors.
@@ -1348,24 +1352,6 @@ public class LocalhostGridAgentBootstrapper {
 		return tempFile;
 	}
 
-	/**
-	 * Gets the cloud configuration.
-	 * 
-	 * @return cloudContents Cloud configuration content
-	 */
-	public String getCloudContents() {
-		return cloudContents;
-	}
-
-	/**
-	 * Sets the cloud configuration content.
-	 * 
-	 * @param cloudContents Cloud configuration
-	 */
-	public void setCloudContents(final String cloudContents) {
-		this.cloudContents = cloudContents;
-	}
-
 	/**********
 	 * Registers an event listener for installation events.
 	 * 
@@ -1379,6 +1365,14 @@ public class LocalhostGridAgentBootstrapper {
 		for (final LocalhostBootstrapperListener listener : this.eventsListenersList) {
 			listener.onLocalhostBootstrapEvent(event);
 		}
+	}
+
+	public String getCloudFilePath() {
+		return cloudFilePath;
+	}
+
+	public void setCloudFilePath(final String cloudFilePath) {
+		this.cloudFilePath = cloudFilePath;
 	}
 
 }

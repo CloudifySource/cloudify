@@ -29,26 +29,23 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
  * 
  *        Starts Cloudify Agent with the specified zone.
  * 
- *        Required arguments:
- *         zone - The agent zone that specifies the name of the service that can run on the machine
- *         
- *        Optional arguments:
- *         lookup-groups - A unique name that is used to group together Cloudify components.
- *         Override in order to group together cloudify managements/agents on a network that supports multicast.
- *         nic-address - The ip address of the local host network card. Specify when local machine has more
- *         than one network adapter, and a specific network card should be used for network communication.
- *         timeout - The number of minutes to wait until the operation is completed (default: 5 minutes)
- *         lookup-locators - A list of IP addresses used to identify all management machines.
- *         Override when using a network without multicast support (Default: null).
- *         auto-shutdown - etermines if undeploying or scaling-in the last service instance on the machine also
- *         triggers agent shutdown (default: false).
+ *        Required arguments: zone - The agent zone that specifies the name of the service that can run on the machine
  * 
- *        Command syntax: start-agent -zone zone [-lookup-groups lookup-groups] [-nicAddress nicAddress]
- *        					[-timeout timeout] [-lookup-locators lookup-locators] [-auto-shutdown auto-shutdown]
+ *        Optional arguments: lookup-groups - A unique name that is used to group together Cloudify components. Override
+ *        in order to group together cloudify managements/agents on a network that supports multicast. nic-address - The
+ *        ip address of the local host network card. Specify when local machine has more than one network adapter, and a
+ *        specific network card should be used for network communication. timeout - The number of minutes to wait until
+ *        the operation is completed (default: 5 minutes) lookup-locators - A list of IP addresses used to identify all
+ *        management machines. Override when using a network without multicast support (Default: null). auto-shutdown -
+ *        etermines if undeploying or scaling-in the last service instance on the machine also triggers agent shutdown
+ *        (default: false).
+ * 
+ *        Command syntax: start-agent -zone zone [-lookup-groups lookup-groups] [-nicAddress nicAddress] [-timeout
+ *        timeout] [-lookup-locators lookup-locators] [-auto-shutdown auto-shutdown]
  */
-@Command(scope = "cloudify", name = "start-agent", description = "Starts Cloudify Agent with the specified zone. The"
-		+ " agent communicates with other agent and management machines.")
-public class    StartAgent extends AbstractGSCommand {
+@Command(scope = "cloudify", name = "start-agent", description = "For internal use only! Starts Cloudify Agent with "
+		+ "the specified zone. The agent communicates with other agent and management machines.")
+public class StartAgent extends AbstractGSCommand {
 
 	private static final int DEFAULT_POLLING_INTERVAL = 10;
 
@@ -84,7 +81,8 @@ public class    StartAgent extends AbstractGSCommand {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected Object doExecute() throws Exception {
+	protected Object doExecute()
+			throws Exception {
 
 		if (timeoutInMinutes < 0) {
 			throw new CLIException("-timeout cannot be negative");
