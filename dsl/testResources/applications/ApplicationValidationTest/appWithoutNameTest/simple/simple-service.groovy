@@ -1,0 +1,3 @@
+service {
+extend "../../appWithEmptyNameTest/simple"
+}

@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
@@ -89,7 +90,9 @@ public class InstallApplication extends AdminAwareCommand {
 		logger.info("Validating file " + applicationFile.getName());
 		final Application application = ServiceReader.getApplicationFromFile(applicationFile).getApplication();
 
-		normalizeApplicationName(application);
+		if (StringUtils.isBlank(applicationName)) {
+			applicationName = application.getName();
+		}
 
 		if (adminFacade.getApplicationsList().contains(applicationName)) {
 			throw new CLIStatusException("application_already_deployed", application.getName());
@@ -216,26 +219,6 @@ public class InstallApplication extends AdminAwareCommand {
 			} else { // Service has dependencies
 				logger.info("Service [" + service.getName() + "] depends on " + service.getDependsOn().toString()
 						+ " " + service.getNumInstances() + " planned instances");
-			}
-		}
-	}
-
-	/**
-	 * Set the application name, according to this logic: 1. If an application name argument is passed - use it. 2. If
-	 * not - use the name configured in the Application object 3. If the configured name is empty - use the
-	 * application's file name (preceding the "." sign)
-	 * 
-	 * @param application The Application object
-	 */
-	private void normalizeApplicationName(final Application application) {
-		if (applicationName == null || applicationName.isEmpty()) {
-			applicationName = application.getName();
-		}
-		if (applicationName == null || applicationName.isEmpty()) {
-			applicationName = applicationFile.getName();
-			final int endIndex = applicationName.lastIndexOf('.');
-			if (endIndex > 0) {
-				applicationName = applicationName.substring(0, endIndex);
 			}
 		}
 	}

@@ -141,12 +141,13 @@ public class InstallService extends AdminAwareCommand {
 				serviceName = service.getName();
 			}
 		}
-
-		if (serviceName == null || serviceName.isEmpty()) {
-			serviceName = recipe.getName();
-			final int endIndex = serviceName.lastIndexOf('.');
-			if (endIndex > 0) {
-				serviceName = serviceName.substring(0, endIndex);
+		else {
+			if (serviceName == null || serviceName.isEmpty()) {
+				serviceName = recipe.getName();
+				final int endIndex = serviceName.lastIndexOf('.');
+				if (endIndex > 0) {
+					serviceName = serviceName.substring(0, endIndex);
+				}
 			}
 		}
 		if (zone == null || zone.isEmpty()) {

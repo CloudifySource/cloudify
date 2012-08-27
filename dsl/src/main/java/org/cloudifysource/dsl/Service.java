@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.entry.ExecutableEntriesMap;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
@@ -510,6 +511,15 @@ public class Service {
 						+ CloudifyConstants.CUSTOM_PROPERTY_MONITORS_CACHE_EXPIRATION_TIMEOUT
 						+ " property must be a long value", e);
 			}
+		}
+	}
+
+	@DSLValidation
+	void validateNameExists(final DSLValidationContext validationContext)
+			throws DSLValidationException {
+		if (StringUtils.isBlank(name)) {
+			throw new DSLValidationException("Service.validateNameExists: The service's name " 
+					+ (name == null ? "is missing" : "is empty"));
 		}
 	}
 

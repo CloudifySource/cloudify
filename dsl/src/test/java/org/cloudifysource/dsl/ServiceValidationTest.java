@@ -17,8 +17,14 @@ package org.cloudifysource.dsl;
 
 import static org.junit.Assert.fail;
 
+import java.io.File;
+
+import junit.framework.Assert;
+
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
+import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -32,6 +38,11 @@ public class ServiceValidationTest {
 	private static final String VALID_DSL_PATH = "testResources/applications/simple/mydsl.groovy";
 	private static final String INVALID_DSL_PATH = "testResources/applications/mydsl.groovy";
 	private static final String ICON_FILE = "icon.png";
+	
+	private static final String SERVICE_WITHOUT_NAME_GROOVY 
+	= "testResources/applications/ServiceValidationTest/serviceWithoutNameTest";
+	private static final String SERVICE_WITH_EMPTY_NAME_GROOVY 
+	= "testResources/applications/ServiceValidationTest/serviceWithEmptyNameTest";
 	
 	/**
 	 * Triple-test for the instances number (invalid configuration, default configuration and a valid configuration).
@@ -95,6 +106,64 @@ public class ServiceValidationTest {
 		}
 	}
 	
+	/*******
+	 * Tests the validation of an illegal service's name 
+	 * (service without a name or with an empty name).
+	 * <p>Should throw <code>DSLValidationException</code>.
+	 */
+	@Test
+	public void testIllegalServiceName() {
+		Service service = new Service();
+		try {
+			service.validateNameExists(new DSLValidationContext());
+			fail("A service without a name was successfully validated");
+		} catch (DSLValidationException e) {
+			//OK - the invalid service name caused the exception
+		}
+		
+		try {
+			service.setName(StringUtils.EMPTY);
+			service.validateNameExists(new DSLValidationContext());
+			fail("A service with an empty name was successfully validated");
+		} catch (DSLValidationException e) {
+			//OK - the invalid service name caused the exception
+		}
+	}
+	
+	/*******
+	 * Tests the validation of a service without a name using DSL parsing of a groovy file.
+	 * <p>Should throw <code>DSLValidationException</code>.
+	 */
+	@Test
+	public void testServiceWithoutNameGroovy() {
+		try {
+			ServiceReader.readService(new File(SERVICE_WITHOUT_NAME_GROOVY));
+			Assert.fail("Service name is missing, DSLValidationException expected."); 
+		} catch (DSLValidationException e) {
+			//OK - the invalid service name caused the exception
+		} catch (Exception e) {
+			Assert.fail("Service name is missing, DSLValidationException expected, instead " 
+					+ e.getClass() + " was thrown.");
+		}
+	}
+
+	/*******
+	 * Tests the validation of a service without a name using DSL parsing of a groovy file.
+	 * <p>Should throw <code>DSLValidationException</code>
+	 */
+	@Test
+	public void testServiceWithEmptyNameGroovy() {
+		try {
+			ServiceReader.readService(new File(SERVICE_WITH_EMPTY_NAME_GROOVY));
+			Assert.fail("Service name is empty, DSLValidationException expected.");
+		} catch (DSLValidationException e) {
+			//OK - the invalid service name caused the exception
+		} catch (Exception e) {
+			Assert.fail("Service name is empty, DSLValidationException expected, instead " 
+					+ e.getClass() + " was thrown.");
+		}
+	}
+	
 	/**
 	 * Double-test for the service icon.
 	 */
@@ -105,7 +174,6 @@ public class ServiceValidationTest {
 		Service service = new Service();
 		service.setIcon(ICON_FILE);
 		DSLValidationContext validationContext = new DSLValidationContext();
-		
 		
 		//missing icon file:
 		try {
