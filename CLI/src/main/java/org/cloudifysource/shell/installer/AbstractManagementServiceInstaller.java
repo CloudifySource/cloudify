@@ -50,7 +50,7 @@ public abstract class AbstractManagementServiceInstaller {
 	protected boolean verbose;
 	protected int memoryInMB;
 	protected String serviceName;
-	protected String zone;
+	protected String agentZone;
 	protected long progressInSeconds;
 	List<String> dependencies = new ArrayList<String>();
 	
@@ -117,7 +117,7 @@ public abstract class AbstractManagementServiceInstaller {
 	 *            Zone name
 	 */
 	public void setManagementZone(final String zone) {
-		this.zone = zone;
+		this.agentZone = zone;
 	}
 
 	/**

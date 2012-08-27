@@ -53,6 +53,7 @@ import org.openspaces.admin.AdminFactory;
 import org.openspaces.admin.AgentGridComponent;
 import org.openspaces.admin.esm.ElasticServiceManager;
 import org.openspaces.admin.gsa.GridServiceAgent;
+import org.openspaces.admin.gsa.GridServiceContainerOptions;
 import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.internal.gsa.InternalGridServiceAgent;
 import org.openspaces.admin.internal.support.NetworkExceptionHelper;
@@ -78,6 +79,7 @@ import com.j_spaces.kernel.Environment;
  */
 public class LocalhostGridAgentBootstrapper {
 
+	private static final int MANAGEMENT_SERVICES_MEMORY_IN_MB = 256;
 	private static final int LOCALCLOUD_MEMORY_IN_MB = 128;
 	private static final String GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL = "true";
 	private static final String GSM_PENDING_REQUESTS_DELAY = "-Dorg.jini.rio.monitor.pendingRequestDelay=1000";
@@ -757,8 +759,8 @@ public class LocalhostGridAgentBootstrapper {
 	 * @throws InterruptedException Reporting the thread was interrupted while waiting
 	 * @throws TimeoutException Reporting the timeout was reached
 	 */
-	private void startManagementOnLocalhostAndWaitInternal(final String[] gsAgentArgs, final int timeout,
-			final TimeUnit timeunit, final boolean isLocalCloud)
+	private void startManagementOnLocalhostAndWaitInternal(final String[] gsAgentArgs,
+			final int timeout, final TimeUnit timeunit, final boolean isLocalCloud)
 			throws CLIException, InterruptedException,
 			TimeoutException {
 		setIsLocalCloud(isLocalCloud);
@@ -799,6 +801,10 @@ public class LocalhostGridAgentBootstrapper {
 			final List<AbstractManagementServiceInstaller> waitForManagementServices =
 					new LinkedList<AbstractManagementServiceInstaller>();
 
+			if (isLocalCloud) {
+				startLocalCloudManagementServicesContainer(agent);
+			}
+			
 			connectionLogs.supressConnectionErrors();
 			try {
 				ManagementSpaceServiceInstaller managementSpaceInstaller = null;
@@ -813,8 +819,9 @@ public class LocalhostGridAgentBootstrapper {
 					managementSpaceInstaller.setManagementZone(MANAGEMENT_ZONE);
 					managementSpaceInstaller.setHighlyAvailable(highlyAvailable);
 					managementSpaceInstaller.addListeners(this.eventsListenersList);
+					managementSpaceInstaller.setIsLocalCloud(isLocalCloud);
 					try {
-						managementSpaceInstaller.install();
+						managementSpaceInstaller.installSpace();
 						waitForManagementServices.add(managementSpaceInstaller);
 					} catch (final ProcessingUnitAlreadyDeployedException e) {
 						if (verbose) {
@@ -823,7 +830,7 @@ public class LocalhostGridAgentBootstrapper {
 						}
 					}
 				}
-
+				
 				if (!noWebServices) {
 					final ManagementWebServiceInstaller webuiInstaller = new ManagementWebServiceInstaller();
 					webuiInstaller.setAdmin(agent.getAdmin());
@@ -835,8 +842,9 @@ public class LocalhostGridAgentBootstrapper {
 					webuiInstaller.setServiceName(WEBUI_NAME);
 					webuiInstaller.setManagementZone(MANAGEMENT_ZONE);
 					webuiInstaller.addListeners(this.eventsListenersList);
+					webuiInstaller.setIsLocalCloud(isLocalCloud);
 					try {
-						webuiInstaller.install();
+						webuiInstaller.installWebService();
 					} catch (final ProcessingUnitAlreadyDeployedException e) {
 						if (verbose) {
 							logger.fine("Service " + WEBUI_NAME + " already installed");
@@ -848,7 +856,6 @@ public class LocalhostGridAgentBootstrapper {
 					} else {
 						webuiInstaller.logServiceLocation();
 					}
-
 					final ManagementWebServiceInstaller restInstaller = new ManagementWebServiceInstaller();
 					restInstaller.setAdmin(agent.getAdmin());
 					restInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
@@ -862,8 +869,9 @@ public class LocalhostGridAgentBootstrapper {
 					restInstaller.dependencies.add(CloudifyConstants.MANAGEMENT_SPACE_NAME);
 					restInstaller.setWaitForConnection();
 					restInstaller.addListeners(this.eventsListenersList);
+					restInstaller.setIsLocalCloud(isLocalCloud);
 					try {
-						restInstaller.install();
+						restInstaller.installWebService();
 					} catch (final ProcessingUnitAlreadyDeployedException e) {
 						if (verbose) {
 							logger.fine("Service " + REST_NAME + " already installed");
@@ -901,6 +909,14 @@ public class LocalhostGridAgentBootstrapper {
 		} finally {
 			admin.close();
 		}
+	}
+
+	private void startLocalCloudManagementServicesContainer(
+			final GridServiceAgent agent) {
+		GridServiceContainerOptions options = new GridServiceContainerOptions()
+				.vmInputArgument("-Xmx" + MANAGEMENT_SERVICES_MEMORY_IN_MB + "m")
+				.vmInputArgument("-Dcom.gs.zones=rest,cloudifyManagementSpace,webui");
+		agent.startGridServiceAndWait(options);
 	}
 
 	private boolean fastExistingAgentCheck() {

@@ -31,6 +31,7 @@ import org.openspaces.admin.pu.elastic.config.DiscoveredMachineProvisioningConfi
 import org.openspaces.admin.pu.elastic.config.EagerScaleConfigurer;
 import org.openspaces.admin.space.ElasticSpaceDeployment;
 import org.openspaces.admin.space.Space;
+import org.openspaces.admin.space.SpaceDeployment;
 import org.openspaces.admin.space.SpacePartition;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.util.MemoryUnit;
@@ -50,6 +51,8 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 
 	private List<LocalhostBootstrapperListener> eventsListenersList = new ArrayList<LocalhostBootstrapperListener>();
 
+	private boolean isLocalcloud;
+
 	/**
 	 * Sets the management space availability behavior. A highly-available space is a space that must always
 	 * have a backup instance, running on a separate machine.
@@ -59,6 +62,14 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 	 */
 	public void setHighlyAvailable(final boolean highlyAvailable) {
 		this.highlyAvailable = highlyAvailable;
+	}
+	
+	public void installSpace() throws ProcessingUnitAlreadyDeployedException, CLIException {
+		if (isLocalcloud) {
+			installOnLocalCloud();
+		} else {
+			install();
+		}
 	}
 
 	/**
@@ -73,7 +84,7 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 	@Override
 	public void install() throws ProcessingUnitAlreadyDeployedException, CLIException {
 
-		if (zone == null) {
+		if (agentZone == null) {
 			throw new IllegalStateException("Management services must be installed on management zone");
 		}
 
@@ -84,7 +95,7 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 				// are identified by zone.
 				.sharedMachineProvisioning(
 						"public",
-						new DiscoveredMachineProvisioningConfigurer().addGridServiceAgentZone(zone)
+						new DiscoveredMachineProvisioningConfigurer().addGridServiceAgentZone(agentZone)
 								.reservedMemoryCapacityPerMachine(RESERVED_MEMORY_IN_MB, MemoryUnit.MEGABYTES)
 								.create())
 				// Eager scale (1 container per machine per PU)
@@ -92,6 +103,38 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 
 		for (final Entry<Object, Object> prop : getContextProperties().entrySet()) {
 			deployment.addContextProperty(prop.getKey().toString(), prop.getValue().toString());
+		}
+
+		for (final String requiredPUName : dependencies) {
+			deployment.addDependencies(new ProcessingUnitDeploymentDependenciesConfigurer()
+					.dependsOnMinimumNumberOfDeployedInstancesPerPartition(requiredPUName, 1).create());
+		}
+
+		getGridServiceManager().deploy(deployment);
+
+	}
+	
+	/**
+	 * Installs the management space with the configured settings inside the 
+	 * localcloud dedicated management service container. If a dependency on another PU is set,
+	 *  the deployment will wait until at least 1 instance of that PU is available.
+	 * 
+	 * @throws ProcessingUnitAlreadyDeployedException
+	 *             Reporting installation failure because the PU is already installed
+	 * @throws CLIException
+	 *             Reporting a failure to get the Grid Service Manager (GSM) to install the service
+	 */
+	public void installOnLocalCloud() 
+			throws ProcessingUnitAlreadyDeployedException, CLIException {
+
+		if (agentZone == null) {
+			throw new IllegalStateException("Management services must be installed on management zone");
+		}
+
+		SpaceDeployment deployment = new SpaceDeployment(serviceName).addZone(serviceName);
+
+		for (final Entry<Object, Object> prop : getContextProperties().entrySet()) {
+			deployment.setContextProperty(prop.getKey().toString(), prop.getValue().toString());
 		}
 
 		for (final String requiredPUName : dependencies) {
@@ -177,6 +220,11 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 		for (final LocalhostBootstrapperListener listner : this.eventsListenersList) {
 			listner.onLocalhostBootstrapEvent(event);
 		}
+	}
+
+	public void setIsLocalCloud(boolean isLocalCloud) {
+		this.isLocalcloud = isLocalCloud;
+		
 	}
 	
 }

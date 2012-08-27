@@ -39,6 +39,7 @@ import org.cloudifysource.shell.commands.CLIException;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitAlreadyDeployedException;
+import org.openspaces.admin.pu.ProcessingUnitDeployment;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
 import org.openspaces.admin.pu.dependency.ProcessingUnitDeploymentDependenciesConfigurer;
 import org.openspaces.admin.pu.elastic.ElasticStatelessProcessingUnitDeployment;
@@ -62,6 +63,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	private File warFile;
 	private boolean waitForConnection;
 	private List<LocalhostBootstrapperListener> eventsListenersList = new ArrayList<LocalhostBootstrapperListener>();
+	private boolean isLocalcloud;
 
 	/**
 	 * Sets the service's port.
@@ -82,6 +84,14 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	public void setWarFile(final File warFile) {
 		this.warFile = warFile;
 	}
+	
+	public void installWebService() throws CLIException {
+		if (isLocalcloud) {
+			installLocalCloud();
+		} else {
+			install();
+		}
+	}
 
 	/**
 	 * Installs the management web service with the configured settings (e.g. memory, scale). If a dependency
@@ -93,9 +103,9 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	 *             Reporting a failure to get the Grid Service Manager (GSM) to install the service
 	 */
 	@Override
-	public void install() throws CLIException, ProcessingUnitAlreadyDeployedException {
+	public void install() throws CLIException {
 
-		if (zone == null) {
+		if (agentZone == null) {
 			throw new IllegalStateException("Management services must be installed on management zone");
 		}
 
@@ -107,7 +117,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 				// are identified by zone.
 				.sharedMachineProvisioning(
 						"public",
-						new DiscoveredMachineProvisioningConfigurer().addGridServiceAgentZone(zone)
+						new DiscoveredMachineProvisioningConfigurer().addGridServiceAgentZone(agentZone)
 								.reservedMemoryCapacityPerMachine(RESERVED_MEMORY_IN_MB, MemoryUnit.MEGABYTES)
 								.create())
 				// Eager scale (1 container per machine per PU)
@@ -115,6 +125,39 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 
 		for (final Entry<Object, Object> prop : getContextProperties().entrySet()) {
 			deployment.addContextProperty(prop.getKey().toString(), prop.getValue().toString());
+		}
+
+		for (final String requiredPUName : dependencies) {
+			deployment.addDependencies(new ProcessingUnitDeploymentDependenciesConfigurer()
+					.dependsOnMinimumNumberOfDeployedInstancesPerPartition(requiredPUName, 1).create());
+		}
+
+		getGridServiceManager().deploy(deployment);
+	}
+	
+	/**
+	 * Installs the management web service with the configured settings inside the 
+	 * localcloud dedicated management service container. If a dependency on another PU is set,
+	 * the deployment will wait until at least 1 instance of that PU is available.
+	 * 
+	 * @throws ProcessingUnitAlreadyDeployedException
+	 *             Reporting installation failure because the PU is already installed
+	 * @throws CLIException
+	 *             Reporting a failure to get the Grid Service Manager (GSM) to install the service
+	 */
+	public void installLocalCloud() throws CLIException {
+
+		if (agentZone == null) {
+			throw new IllegalStateException("Management services must be installed on management zone");
+		}
+		
+		final ProcessingUnitDeployment deployment = new ProcessingUnitDeployment(
+				getGSFile(warFile))
+				.addZone(serviceName) 
+				.name(serviceName);
+
+		for (final Entry<Object, Object> prop : getContextProperties().entrySet()) {
+			deployment.setContextProperty(prop.getKey().toString(), prop.getValue().toString());
 		}
 
 		for (final String requiredPUName : dependencies) {
@@ -277,6 +320,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 		return props;
 	}
 
+	//TODO:consider delete.
 	/**
 	 * Waits for the management processes (GSM and ESM) to be available. If the timeout is reached before a
 	 * connection could be established, a {@link TimeoutException} is thrown.
@@ -405,6 +449,10 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 		for (final LocalhostBootstrapperListener listner : this.eventsListenersList) {
 			listner.onLocalhostBootstrapEvent(event);
 		}
+	}
+
+	public void setIsLocalCloud(boolean isLocalCloud) {
+		this.isLocalcloud = isLocalCloud;
 	}
 
 }
