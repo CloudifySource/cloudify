@@ -1395,9 +1395,13 @@ public class ServiceController {
 						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName)
 						.name(serviceName);
 		
+        if (isLocalCloud()) {
+            setPublicMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
+        } else {
 		// All PUs on this role share the same machine. 
 		// Machines are identified by zone.
-		setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
+            setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
+        }
 
 		if (cloud == null) {
 			if (!isLocalCloud()) {
@@ -1816,13 +1820,13 @@ public class ServiceController {
 		setContextProperties(deployment, contextProperties);
 
 		if (cloud == null) {
-			setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
-
 			if (isLocalCloud()) {
+			    setPublicMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
 				deployment.scale(new ManualCapacityScaleConfigurer().memoryCapacity(
 				dataGridConfig.getSla().getMemoryCapacity(), MemoryUnit.MEGABYTES).create());
 
 			} else {
+			    setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
 				// eager scaling. 1 container per machine
 				deployment.scale(ElasticScaleConfigFactory.createEagerScaleConfig());
 			}
@@ -1871,8 +1875,24 @@ public class ServiceController {
 				.create();
 		machineProvisioning.setGridServiceAgentZones(agentZones);
 		
-		
-		deployment.sharedMachineProvisioning(SHARED_ISOLATION_ID, machineProvisioning);
+		if (isLocalCloud()) {
+		    deployment.publicMachineProvisioning(machineProvisioning);
+		} else {
+		    deployment.sharedMachineProvisioning(SHARED_ISOLATION_ID, machineProvisioning);
+		}
+	}
+	
+	private void setPublicMachineProvisioning(final ElasticDeploymentTopology deployment, final String[] agentZones,
+	        final int reservedMemoryCapacityPerMachineInMB) {
+	    // All PUs on this role share the same machine. Machines
+	    // are identified by zone.
+	    DiscoveredMachineProvisioningConfig machineProvisioning = 
+	            new DiscoveredMachineProvisioningConfigurer()
+	    .reservedMemoryCapacityPerMachine(reservedMemoryCapacityPerMachineInMB, MemoryUnit.MEGABYTES)
+	    .create();
+	    machineProvisioning.setGridServiceAgentZones(agentZones);
+
+	    deployment.publicMachineProvisioning(machineProvisioning);
 	}
 
 	private void setDedicatedMachineProvisioning(final ElasticDeploymentTopology deployment,
@@ -1901,13 +1921,14 @@ public class ServiceController {
 		setContextProperties(deployment, contextProperties);
 
 		if (cloud == null) {
-			setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
 			verifyEsmExistsInCluster();
 
 			if (isLocalCloud()) {
+			    setPublicMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
 				deployment.scale(new ManualCapacityScaleConfigurer().memoryCapacity(
 						containerMemoryInMB * numberOfInstances, MemoryUnit.MEGABYTES).create());
 			} else {
+			    setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
 				// eager scaling. one container per machine
 				deployment.scale(ElasticScaleConfigFactory.createEagerScaleConfig());
 			}
@@ -1966,12 +1987,13 @@ public class ServiceController {
 		setContextProperties(deployment, contextProperties);
 
 		if (cloud == null) {
-			setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
 			verifyEsmExistsInCluster();
 			if (isLocalCloud()) {
+			    setPublicMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
 				deployment.scale(new ManualCapacityScaleConfigurer().memoryCapacity(
 						puConfig.getSla().getMemoryCapacity(), MemoryUnit.MEGABYTES).create());
 			} else {
+			    setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
 				// eager scaling. one container per machine
 				deployment.scale(ElasticScaleConfigFactory.createEagerScaleConfig());
 			}
