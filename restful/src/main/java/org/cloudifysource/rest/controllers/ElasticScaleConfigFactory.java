@@ -107,11 +107,23 @@ public class ElasticScaleConfigFactory {
 			.memoryCapacity((service.getMaxAllowedInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
 			.create();
 	
+		CapacityRequirementsConfig minCapacityPerZone = 
+				new CapacityRequirementsConfigurer()
+				.memoryCapacity((service.getMinAllowedInstancesPerLocation() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
+				.create();
+		
+		CapacityRequirementsConfig maxCapacityPerZone = 
+				new CapacityRequirementsConfigurer()
+				.memoryCapacity((service.getMaxAllowedInstancesPerLocation() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
+				.create();
+		
 		AutomaticCapacityScaleConfigurer scaleConfigurer = 
 			new AutomaticCapacityScaleConfigurer()
 			.minCapacity(minCapacity)
 			.initialCapacity(initialCapacity)
 			.maxCapacity(maxCapacity)
+			.minCapacityPerZone(minCapacityPerZone)
+			.maxCapacityPerZone(maxCapacityPerZone)
 			.statisticsPollingInterval(service.getSamplingPeriodInSeconds(), TimeUnit.SECONDS)
 			.cooldownAfterScaleOut(service.getScaleOutCooldownInSeconds(),TimeUnit.SECONDS)
 			.cooldownAfterScaleIn(service.getScaleInCooldownInSeconds(),TimeUnit.SECONDS);

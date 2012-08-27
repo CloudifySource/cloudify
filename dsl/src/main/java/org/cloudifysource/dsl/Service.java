@@ -72,6 +72,10 @@ public class Service {
 
 	private int maxAllowedInstances = 1;
 
+	private int minAllowedInstancesPerLocation = 1;
+
+	private int maxAllowedInstancesPerLocation = 1;
+	
 	private long maxJarSize = DEFAULT_MAX_JAR_SIZE;
 
 	private ExecutableEntriesMap customCommands = new ExecutableEntriesMap();
@@ -366,6 +370,22 @@ public class Service {
 
 	public void setMaxAllowedInstances(final int maxAllowedInstances) {
 		this.maxAllowedInstances = maxAllowedInstances;
+	}
+	
+	public int getMinAllowedInstancesPerLocation() {
+		return minAllowedInstancesPerLocation;
+	}
+
+	public void setMinAllowedInstancesPerLocation(final int minAllowedInstancesPerLocation) {
+		this.minAllowedInstancesPerLocation = minAllowedInstancesPerLocation;
+	}
+
+	public int getMaxAllowedInstancesPerLocation() {
+		return maxAllowedInstancesPerLocation;
+	}
+
+	public void setMaxAllowedInstancesPerLocation(final int maxAllowedInstancesPerLocation) {
+		this.maxAllowedInstancesPerLocation = maxAllowedInstancesPerLocation;
 	}
 
 	public long getScaleOutCooldownInSeconds() {
