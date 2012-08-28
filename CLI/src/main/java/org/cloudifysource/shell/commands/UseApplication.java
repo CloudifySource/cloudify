@@ -15,10 +15,13 @@
  *******************************************************************************/
 package org.cloudifysource.shell.commands;
 
+import java.util.List;
+
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
+import org.cloudifysource.shell.ShellUtils;
 import org.fusesource.jansi.Ansi.Color;
 
 /**
@@ -43,8 +46,17 @@ public class UseApplication extends AdminAwareCommand {
 	 */
 	@Override
 	protected Object doExecute() throws Exception {
-		session.put(Constants.ACTIVE_APP, applicationName);
-		GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
-		return getFormattedMessage("using_application", Color.GREEN, applicationName);
+		boolean useApplicaiton = true;
+		List<String> applicationsList = adminFacade.getApplicationsList();
+		if (!applicationsList.contains(applicationName)) {
+			useApplicaiton = ShellUtils.promptUser(session, "application_does_not_exist", applicationName);
+		}
+		if (useApplicaiton) {
+			session.put(Constants.ACTIVE_APP, applicationName);
+			GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
+			return getFormattedMessage("using_application", Color.GREEN, applicationName);
+		} else {
+			return getFormattedMessage("operation_aborted", Color.RED, "\"use-application\"");
+		}
 	}
 }
