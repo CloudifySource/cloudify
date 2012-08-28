@@ -193,6 +193,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					locationId = zone.substring(CLOUD_ZONE_PREFIX.length());
 					logger.fine("passing locationId to machine provisioning as " + locationId);
 				}
+	             else {
+	                throw new IllegalArgumentException("The specified zones " + zones + " should include only one zone with the " + CLOUD_ZONE_PREFIX + " prefix:" + locationId);
+	             }
 			}
 		}
 
