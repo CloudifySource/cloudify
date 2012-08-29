@@ -26,7 +26,7 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
  * @see org.cloudifysource.dsl.Service
  */
 @CloudifyDSLEntity(name = "scalingRule", clazz = ScalingRuleDetails.class, 
-	allowInternalNode = true, allowRootNode = false, parent = "service")
+	allowInternalNode = true, allowRootNode = true, parent = "service")
 public class ScalingRuleDetails {
 
 	private Object serviceStatistics;

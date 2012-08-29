@@ -39,6 +39,7 @@ import org.junit.Test;
 public class ServiceParsingTest {
 
 	private static final String TEST_PARSING_RESOURCE_PATH = "testResources/testparsing/";
+	private static final String TEST_PARSING_RESOURCE_PATH2 = "src/test/resources/ExternalDSLFiles/";
 
 	@Test
 	public void testFeaturesParsing() throws DSLException, UnknownHostException {
@@ -355,6 +356,29 @@ public class ServiceParsingTest {
 		Assert.assertTrue(
 				"service.isLocationAware() returned false even though locationAware property is set to true",
 				service.isLocationAware());
+
+	}
+	
+	@Test
+	public void testExternalScalingRule() throws Exception {
+		final File dir = new File(TEST_PARSING_RESOURCE_PATH2 
+				+ "loadScalingRule");
+		
+		final Service service = ServiceReader.getServiceFromDirectory(dir, "default").getService();
+				
+
+		Assert.assertTrue(service.getScalingRules().size() > 0);
+
+	}
+	@Test
+	public void testExternalScalingRules() throws Exception {
+		final File dir = new File(TEST_PARSING_RESOURCE_PATH2 
+				+ "loadScalingRules");
+		
+		final Service service = ServiceReader.getServiceFromDirectory(dir, "default").getService();
+				
+
+		Assert.assertTrue(service.getScalingRules().size() > 0);
 
 	}
 
