@@ -47,7 +47,7 @@
 	<property name="gs.webui.war" value="gs-webui.war" />
 	<property name="usm.local.copy" value="${basedir}/../USM" />
 	<property name="esc.local.copy" value="${basedir}/../esc" />
-	<property name="recipes.local.copy" value="${basedir}/../recipes" />
+	<property name="recipes.local.copy" value="${basedir}/../../cloudify-recipes" />
 	<property name="dsl.local.copy" value="${basedir}/../dsl" />
 	<property name="cli.local.copy" value="${basedir}/../CLI" />
 	<property name="azure.local.copy" value="${basedir}/../azure" />
@@ -209,7 +209,11 @@
 	            <fileset dir="${esc.local.copy}/target/esc/lib" includes="*.jar" excludes=".svn"/>
 	        </copy>
 	
-	        <echo message="Copy recipes component"/>
+	        <echo message="Create and Copy recipes component"/>
+			<exec executable="${env.M2_HOME}/bin/${mvn.executable}" dir="${recipes.local.copy}">
+				<arg value="package" />
+			</exec>
+			
 	        <mkdir dir="@{installation.dir}/recipes/services"/>
 	     
 	        <unzip src="${recipes.local.copy}/target/recipes.zip" dest="@{installation.dir}/recipes" />
