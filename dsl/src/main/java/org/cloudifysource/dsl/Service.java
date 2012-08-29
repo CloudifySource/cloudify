@@ -47,7 +47,6 @@ import org.openspaces.ui.UserInterface;
 		parent = "application")
 public class Service {
 
-	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Service.class.getName());
 	private static final int DEFAULT_MAX_JAR_SIZE = 150 * 1024 * 1024; // 150 MB
 	private static final long DEFAULT_SAMPLING_PERIOD_SECONDS = 60;
 

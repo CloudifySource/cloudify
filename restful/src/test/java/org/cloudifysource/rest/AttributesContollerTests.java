@@ -61,7 +61,6 @@ public class AttributesContollerTests {
     private static final String SERVICE_NAME = "tomcat";
     private static final String INSTANCE_ID = "1";
     private static final String ATTRIBUTE_NAME = "myAttr";
-    ;
     private static final String HTTP_GET = "GET";
     private static final String HTTP_POST = "POST";
     private static final String HTTP_DELETE = "DELETE";

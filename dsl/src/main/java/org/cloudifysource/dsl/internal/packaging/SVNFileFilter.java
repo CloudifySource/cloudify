@@ -29,7 +29,7 @@ public final class SVNFileFilter implements FileFilter {
 	private static SVNFileFilter instance = new SVNFileFilter();
 
 	private SVNFileFilter() {
-	};
+	}
 
 	/*
 	 * (non-Javadoc)

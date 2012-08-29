@@ -75,7 +75,7 @@ public class MicrosoftAzureRestClient {
 	private static final int HTTP_CREATED = 201;
 	private static final int HTTP_ACCEPTED = 202;
 
-	private static final int BAD_CHAR = 65279;
+	private static final char BAD_CHAR = 65279;
 
 	private String affinityPrefix;
 	private String cloudServicePrefix;
@@ -860,7 +860,7 @@ public class MicrosoftAzureRestClient {
 			return null;
 		}
 		String responseBody = response.getEntity(String.class);
-		if ((int) responseBody.charAt(0) == BAD_CHAR) {
+		if ( responseBody.charAt(0) == BAD_CHAR) {
 			responseBody = responseBody.substring(1);
 		}
 

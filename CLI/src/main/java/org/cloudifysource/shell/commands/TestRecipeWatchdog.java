@@ -44,6 +44,6 @@ public class TestRecipeWatchdog extends ExecuteWatchdog {
 				+ "The process watchdog is about to kill the test container.");
 		super.timeoutOccured(arg0);
 
-	};
+	}
 
 }
