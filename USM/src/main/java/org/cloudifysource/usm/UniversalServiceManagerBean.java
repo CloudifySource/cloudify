@@ -1205,4 +1205,10 @@ public class UniversalServiceManagerBean implements ApplicationContextAware, Clu
 		return childProcessID;
 	}
 
+	public USMProcessMode getProcessMode() {
+		return processMode;
+	}
+
+
+
 }
