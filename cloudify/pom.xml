@@ -25,7 +25,6 @@
 		<module>../USM</module>
 		<module>../restful</module>
 		<module>../dsl</module>
-		<module>../recipes</module>
 		<module>../rest-client</module>
 	</modules>
 
