@@ -27,7 +27,7 @@ import org.junit.Test;
 public class CassandraServiceParsingAndReturnTest {
 
 	private final static String CORRUPTED_RESOURCES_PATH = "testResources/cassandra/";
-	private final String nameInGroovy = "cassandra";
+	private final static String NAME_IN_GROOVY = "cassandra";
 
 	@Test
 	public void minConfigedGroovy()
@@ -37,7 +37,7 @@ public class CassandraServiceParsingAndReturnTest {
 		final File cassandraWorkDir = new File(CORRUPTED_RESOURCES_PATH);
 		final Service service = ServiceReader.getServiceFromFile(cassandraDslFile, cassandraWorkDir).getService();
 		assertNotNull(service);
-		ServiceTestUtil.validateName(service, nameInGroovy);
+		ServiceTestUtil.validateName(service, NAME_IN_GROOVY);
 	}
 
 	@Test
@@ -49,7 +49,7 @@ public class CassandraServiceParsingAndReturnTest {
 		final Service service = ServiceReader.getServiceFromFile(cassandraDslFile, cassandraWorkDir).getService();
 		assertNotNull(service);
 		assertNull(service.getUserInterface());
-		ServiceTestUtil.validateName(service, nameInGroovy);
+		ServiceTestUtil.validateName(service, NAME_IN_GROOVY);
 		ServiceTestUtil.validateIcon(service, CORRUPTED_RESOURCES_PATH);
 	}
 
