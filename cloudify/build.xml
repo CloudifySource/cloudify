@@ -70,7 +70,10 @@
 	<property name="cloudify.base.publish.url" value="https://s3.amazonaws.com/${cloudify.base.container}" />
 	<property name="build.properties.file" value="build.properties"/>
 	<taskdef resource="org/tigris/subversion/svnant/svnantlib.xml" classpath="${tools.lib.dir}/svn/svnant.jar;${tools.lib.dir}/svn/svnClientAdapter.jar"/>
-							
+	
+	<condition property="recipes.available" value="true">
+      <available type="dir" file="${recipes.local.copy}"/>
+    </condition>	
 	<!-- these should be injected when running the publish build
 	<property name="publish.cloudify.build" value="run" /> 
 	<property name="put.user" value="AWS User" />
@@ -207,15 +210,7 @@
 	            <fileset dir="${esc.local.copy}/target/esc/lib" includes="*.jar" excludes=".svn"/>
 	        </copy>
 	
-	        <echo message="Create and Copy recipes component"/>
-			<exec executable="${env.M2_HOME}/bin/${mvn.executable}" dir="${recipes.local.copy}">
-				<arg value="package" />
-			</exec>
-			
-	        <mkdir dir="@{installation.dir}/recipes/services"/>
-	     
-	        <unzip src="${recipes.local.copy}/target/recipes.zip" dest="@{installation.dir}/recipes" />
-	   
+	        <ant target="create.recipes.zip" />
 	    		
 	        <echo message="Copy dsl component"/>
 	        <copy todir="@{installation.dir}/lib/required" overwrite="true">
@@ -252,6 +247,17 @@
 	        </copy>
 		</sequential>
     </macrodef>
+	
+	<target name="create.recipes.zip" if="recipes.available">
+		<echo message="Create and Copy recipes component"/>
+		<exec executable="${env.M2_HOME}/bin/${mvn.executable}" dir="${recipes.local.copy}">
+			<arg value="package" />
+		</exec>
+		
+		<mkdir dir="@{installation.dir}/recipes/services"/>
+	 
+		<unzip src="${recipes.local.copy}/target/recipes.zip" dest="@{installation.dir}/recipes" />
+	</target>
 
 	
 	<target name="add.cloudify.javadoc">
