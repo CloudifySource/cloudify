@@ -41,7 +41,7 @@ public class RemoveAttributes extends AbstractAttributesCommand {
         return getFormattedMessage("attributes_removed_successfully");
     }
 
-    private String[] parseAttributeNames() throws CLIException {
+    private String[] parseAttributeNames(){
         return attributes.split(",");
     }
 
