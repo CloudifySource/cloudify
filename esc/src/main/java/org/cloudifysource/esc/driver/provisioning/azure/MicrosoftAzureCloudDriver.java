@@ -29,8 +29,6 @@ import org.cloudifysource.esc.driver.provisioning.azure.model.InputEndpoint;
 import org.cloudifysource.esc.driver.provisioning.azure.model.InputEndpoints;
 import org.codehaus.plexus.util.ExceptionUtils;
 
-import com.j_spaces.kernel.Environment;
-
 /***************************************************************************************
  * A custom Cloud Driver implementation for provisioning machines on Azure.
  * 
@@ -129,14 +127,8 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			throw new IllegalArgumentException("Custom field '"
 					+ AZURE_PFX_FILE + "' must be set");
 		}
-		if (this.management) {
-			this.pathToPfxFile = Environment.getHomeDirectory()
-					+ File.separator + this.template.getLocalDirectory()
-					+ File.separator + pfxFile;
-		} else {
-			this.pathToPfxFile = this.template.getRemoteDirectory()
-					+ File.separator + pfxFile;
-		}
+
+		this.pathToPfxFile = this.template.getAbsoluteUploadDir() + File.separator + pfxFile;
 
 		this.pfxPassword = (String) this.template.getCustom().get(
 				AZURE_PFX_PASSWORD);
