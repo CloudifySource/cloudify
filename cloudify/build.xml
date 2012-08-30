@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
 <!--
- * Title:        GigaSpaces Cloudify ant file.
- make sure that root directory is updated with latest src and files from SVN.
-
+ * Title:        Cloudify package ant file.
+ 
  * Copyright:    Copyright (c) 2011
  * Company:      GigaSpaces Technologies Ltd.
  * @author       Alex Beresnev
