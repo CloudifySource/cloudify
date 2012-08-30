@@ -19,16 +19,16 @@
 	</condition>
 
 	<condition property="mvn.executable" value="mvn.bat">
-            <os family="windows" />
-    </condition>
+        	<os family="windows" />
+	</condition>
 
-    <condition property="mvn.executable" value="mvn">
-            <os family="unix" />
-    </condition>
+	<condition property="mvn.executable" value="mvn">
+		<os family="unix" />
+	</condition>
 	
 	<loadproperties srcfile="${basedir}/build.properties" />
 	
-    <property environment="env."/>
+	<property environment="env."/>
 	<property name="tmp.dir" value="${basedir}/tmp" />
 	<property name="xap.files.tmp.dir" value="${basedir}/xap.files.tmp.dir" />
 	<property name="xap.bigdata.dir" value="xap-bigdata" />
@@ -79,16 +79,16 @@
 	
 	<!-- ${svnant.repository.user} and ${svnant.repository.passwd} are defined in Basic Settings of root configuration in QuickBUild -->
 	
-	<target name="update_platform_version_svn" depends="replace.build.related.settings,replace.cloudify.build.number" unless="gs.internal.systems.not.available" if="svn.repository">
-       <svn javahl="false" username="${svnant.repository.user}" password="${svnant.repository.passwd}" failonerror="false">
-           <commit message="GS-803 Build version advanced to ${cloudify.build.number}">
-           		<fileset dir="${basedir}">
-       				<include name="**/${platform.verion.file.name}" />
+   	<target name="update_platform_version_svn" depends="replace.build.related.settings,replace.cloudify.build.number" unless="gs.internal.systems.not.available" if="svn.repository">
+       		<svn javahl="false" username="${svnant.repository.user}" password="${svnant.repository.passwd}" failonerror="false">
+           		<commit message="GS-803 Build version advanced to ${cloudify.build.number}">
+           			<fileset dir="${basedir}">
+       					<include name="**/${platform.verion.file.name}" />
    					<include name="${build.properties.file}" />
    				</fileset>
-           </commit>
-       </svn>
-   </target>
+           		</commit>
+       		</svn>
+   	</target>
 	
 	<target name="update_platform_version_git" depends="replace.build.related.settings,replace.cloudify.build.number" unless="gs.internal.systems.not.available" if="git.repository">
 	       	<exec executable="git" dir="${basedir}">
