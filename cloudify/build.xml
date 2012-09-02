@@ -210,8 +210,14 @@
 	            <fileset dir="${esc.local.copy}/target/esc/lib" includes="*.jar" excludes=".svn"/>
 	        </copy>
 	
-	        <ant target="create.recipes.zip" />
-	    		
+			<echo message="Create and Copy recipes component"/>
+			<exec executable="${env.M2_HOME}/bin/${mvn.executable}" dir="${recipes.local.copy}">
+				<arg value="package" />
+			</exec>
+			
+			<mkdir dir="@{installation.dir}/recipes/services"/>
+		 	<unzip src="${recipes.local.copy}/target/recipes.zip" dest="@{installation.dir}/recipes" />
+
 	        <echo message="Copy dsl component"/>
 	        <copy todir="@{installation.dir}/lib/required" overwrite="true">
 	            <fileset dir="${dsl.local.copy}/target/" includes="dsl.jar" excludes=".svn"/>
@@ -247,17 +253,6 @@
 	        </copy>
 		</sequential>
     </macrodef>
-	
-	<target name="create.recipes.zip" if="recipes.available">
-		<echo message="Create and Copy recipes component"/>
-		<exec executable="${env.M2_HOME}/bin/${mvn.executable}" dir="${recipes.local.copy}">
-			<arg value="package" />
-		</exec>
-		
-		<mkdir dir="@{installation.dir}/recipes/services"/>
-	 
-		<unzip src="${recipes.local.copy}/target/recipes.zip" dest="@{installation.dir}/recipes" />
-	</target>
 
 	
 	<target name="add.cloudify.javadoc">
