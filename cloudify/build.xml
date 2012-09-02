@@ -210,8 +210,6 @@
 	            <fileset dir="${esc.local.copy}/target/esc/lib" includes="*.jar" excludes=".svn"/>
 	        </copy>
 	
-	        <ant target="create.recipes.zip" />
-	    		
 	        <echo message="Copy dsl component"/>
 	        <copy todir="@{installation.dir}/lib/required" overwrite="true">
 	            <fileset dir="${dsl.local.copy}/target/" includes="dsl.jar" excludes=".svn"/>
@@ -248,15 +246,20 @@
 		</sequential>
     </macrodef>
 	
-	<target name="create.recipes.zip" if="recipes.available">
-		<echo message="Create and Copy recipes component"/>
+	<target name="fetch.recipes.cloudify" if="recipes.available">
+		<echo message="Create and Copy recipes component for Cloudify"/>
 		<exec executable="${env.M2_HOME}/bin/${mvn.executable}" dir="${recipes.local.copy}">
 			<arg value="package" />
 		</exec>
-		
-		<mkdir dir="@{installation.dir}/recipes/services"/>
-	 
-		<unzip src="${recipes.local.copy}/target/recipes.zip" dest="@{installation.dir}/recipes" />
+		<unzip src="${recipes.local.copy}/target/recipes.zip" dest="${tmp.dir}/${cloudify.installation.dir}/recipes" />
+	</target>
+	
+	<target name="fetch.recipes.bigdata" if="recipes.available">
+		<echo message="Create and Copy recipes component for BigData"/>
+		<exec executable="${env.M2_HOME}/bin/${mvn.executable}" dir="${recipes.local.copy}">
+			<arg value="package" />
+		</exec>
+		<unzip src="${recipes.local.copy}/target/recipes.zip" dest="${tmp.dir}/${xap.installation.dir}/recipes" />
 	</target>
 
 	
@@ -300,6 +303,7 @@
     	<ant target="remove.xap.related.modules" />
         <ant target="update.lus.groups"/>
         <add.cloudify.modules/>
+		<ant target="fetch.recipes.cloudify" />
     	<ant target="add.cloudify.javadoc"/>
     	<ant target="replace.xap.content.with.cloudify.related"/>
         <ant target="replace.cloudify.license"/>
@@ -430,6 +434,7 @@
 	<target name="prepare.bigdata.package">
 		<unzip.xap new.installation.dir.name="${xap.installation.dir}"/>
 		<add.cloudify.modules installation.dir="${tmp.dir}/${xap.installation.dir}"/>
+		<ant target="fetch.recipes.bigdata" />
 		<delete dir="${tmp.dir}/${xap.installation.dir}/recipes/services" excludes="mongodb/**, cassandra/**" includeemptydirs="true"/>	
 		<delete dir="${tmp.dir}/${xap.installation.dir}/recipes/apps" includeemptydirs="true"/>
 		<delete dir="${tmp.dir}/${xap.installation.dir}/bin" includes="cloudify*"/>

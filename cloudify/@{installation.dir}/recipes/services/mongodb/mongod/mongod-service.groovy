@@ -1,0 +1,128 @@
+import com.mongodb.CommandResult;
+import com.mongodb.Mongo;
+import com.mongodb.DB;
+service {
+	
+	name "mongod"
+	icon "mongodb.png"
+	type "NOSQL_DB"
+	numInstances 2
+	maxAllowedInstances 2
+	
+	compute {
+		template "SMALL_LINUX"
+	}
+
+	lifecycle {
+		install "mongod_install.groovy"
+		start "mongod_start.groovy"			
+		startDetectionTimeoutSecs 240
+		startDetection {
+			ServiceUtils.isPortOccupied(context.attributes.thisInstance["port"])
+		}
+
+		monitors{
+			try { 
+				port  = context.attributes.thisInstance["port"] as int
+				mongo = new Mongo("127.0.0.1", port)			
+				db = mongo.getDB("mydb")
+														
+				result = db.command("serverStatus")
+				
+														
+				return [
+					"Active Read Clients":result.globalLock.activeClients.readers,
+					"Active Write Clients":result.globalLock.activeClients.writers, 
+					"Read Clients Waiting":result.globalLock.currentQueue.readers, 
+					"Write Clients Waiting":result.globalLock.currentQueue.writers, 
+					"Current Active Connections":result.connections.current,
+					"Open Cursors":result.cursors.totalOpen
+				]
+			}			
+			finally {
+				if (null!=mongo) mongo.close()
+			}
+			
+			
+		}
+	}
+
+	userInterface {
+		metricGroups = ([
+			metricGroup {
+				name "MongoDB"
+				metrics([
+					"Open Cursors", 
+					"Current Active Connections",
+					"Active Read Clients",
+					"Active Write Clients",
+					"Read Clients Waiting",
+					"Write Clients Waiting"					
+				])
+			}
+		])
+
+		widgetGroups = ([
+			widgetGroup {
+				name "Open Cursors"
+				widgets ([
+					balanceGauge{metric = "Open Cursors"},
+					barLineChart{
+						metric "Open Cursors"
+						axisYUnit Unit.REGULAR
+					},
+				])
+			}, 
+			widgetGroup {
+				name "Current Active Connections"
+				widgets ([
+					balanceGauge{metric = "Current Active Connections"},
+					barLineChart{
+						metric "Current Active Connections"
+						axisYUnit Unit.REGULAR
+					},
+				])
+			}, 			
+			widgetGroup {
+				name "Active Read Clients"
+				widgets ([
+					balanceGauge{metric = "Active Read Clients"},
+					barLineChart{
+						metric "Active Read Clients"
+						axisYUnit Unit.REGULAR
+					},
+				])
+			}, 
+			widgetGroup {
+				name "Active Write Clients"
+				widgets ([
+					balanceGauge{metric = "Active Write Clients"},
+					barLineChart{
+						metric "Active Write Clients"
+						axisYUnit Unit.REGULAR
+					},
+				])
+			}, 
+			widgetGroup {
+				name "Read Clients Waiting"
+				widgets ([
+					balanceGauge{metric = "Read Clients Waiting"},
+					barLineChart{
+						metric "Read Clients Waiting"
+						axisYUnit Unit.REGULAR
+					},
+				])
+			}, 
+		    widgetGroup {
+				name "Write Clients Waiting"
+				widgets ([
+					balanceGauge{metric = "Write Clients Waiting"},
+					barLineChart{
+							metric "Write Clients Waiting"
+							axisYUnit Unit.REGULAR
+					},
+				])
+			}    
+		])
+	}  
+}
