@@ -249,7 +249,7 @@
 	<target name="fetch.recipes.cloudify" if="recipes.available">
 		<echo message="Create and Copy recipes component for Cloudify"/>
 		<exec executable="${env.M2_HOME}/bin/${mvn.executable}" dir="${recipes.local.copy}">
-			<arg value="clean package" />
+			<arg line="clean package" />
 		</exec>
 		<unzip src="${recipes.local.copy}/target/recipes.zip" dest="${tmp.dir}/${cloudify.installation.dir}/recipes" />
 	</target>
@@ -257,7 +257,7 @@
 	<target name="fetch.recipes.bigdata" if="recipes.available">
 		<echo message="Create and Copy recipes component for BigData"/>
 		<exec executable="${env.M2_HOME}/bin/${mvn.executable}" dir="${recipes.local.copy}">
-			<arg value="package" />
+			<arg line="clean package" />
 		</exec>
 		<unzip src="${recipes.local.copy}/target/recipes.zip" dest="${tmp.dir}/${xap.installation.dir}/recipes" />
 	</target>
