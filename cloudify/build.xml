@@ -249,7 +249,7 @@
 	<target name="fetch.recipes.cloudify" if="recipes.available">
 		<echo message="Create and Copy recipes component for Cloudify"/>
 		<exec executable="${env.M2_HOME}/bin/${mvn.executable}" dir="${recipes.local.copy}">
-			<arg value="package" />
+			<arg value="clean package" />
 		</exec>
 		<unzip src="${recipes.local.copy}/target/recipes.zip" dest="${tmp.dir}/${cloudify.installation.dir}/recipes" />
 	</target>
@@ -652,7 +652,7 @@
 	
 	<target name="cloudify.install">
 		<exec dir="${basedir}" executable="${mvn.executable}" failonerror="true">
-			<arg line="install -Dmaven.test.skip=true"/>
+			<arg line="clean install -Dmaven.test.skip=true"/>
 		</exec>
 		<exec dir="${basedir}" executable="${mvn.executable}" failonerror="true">
 			<arg line="javadoc:javadoc -Dmaven.test.skip=true"/>
