@@ -340,11 +340,11 @@
 	</target>
 
     <target name="replace.cloudify.license">
-        <copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${gigaspaces.related.folder}/gslicense.xml"/>
+        <copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${gigaspaces.related.folder}/gslicense.xml" overwrite="true"/>
     </target>
 	
 	<target name="replace.cloudify.notice">
-        <copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${gigaspaces.related.folder}/notice.txt"/>
+        <copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${gigaspaces.related.folder}/notice.txt" overwrite="true"/>
     </target>
 	
 	<macrodef name="dos2unix">
