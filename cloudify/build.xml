@@ -248,7 +248,7 @@
 	
 	<target name="fetch.recipes.cloudify" if="recipes.available">
 		<echo message="Create and Copy recipes component for Cloudify"/>
-		<exec executable="${env.M2_HOME}/bin/${mvn.executable}" dir="${recipes.local.copy}">
+		<exec executable="${mvn.executable}" dir="${recipes.local.copy}">
 			<arg line="clean package" />
 		</exec>
 		<unzip src="${recipes.local.copy}/target/recipes.zip" dest="${tmp.dir}/${cloudify.installation.dir}/recipes" />
@@ -256,7 +256,7 @@
 	
 	<target name="fetch.recipes.bigdata" if="recipes.available">
 		<echo message="Create and Copy recipes component for BigData"/>
-		<exec executable="${env.M2_HOME}/bin/${mvn.executable}" dir="${recipes.local.copy}">
+		<exec executable="${mvn.executable}" dir="${recipes.local.copy}">
 			<arg line="clean package" />
 		</exec>
 		<unzip src="${recipes.local.copy}/target/recipes.zip" dest="${tmp.dir}/${xap.installation.dir}/recipes" />
@@ -453,7 +453,7 @@
 		
 		<echo message="uploading cloudify installation to public storage (S3) at: ${cloudify.put.target}" />
 			
-		<exec executable="${env.M2_HOME}/bin/${mvn.executable}">
+		<exec executable="${mvn.executable}">
 			<arg value="s3client:put" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
@@ -462,7 +462,7 @@
 			<arg value="-Dcontainer=${cloudify.base.container}"/>
 		</exec>
 		
-		<exec executable="${env.M2_HOME}/bin/${mvn.executable}">
+		<exec executable="${mvn.executable}">
 			<arg value="s3client:put" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
@@ -476,7 +476,7 @@
 		
 		<echo message="uploading bigdata installation to public storage (S3) at: ${bigdata.put.target}" />
 			
-		<exec executable="${env.M2_HOME}/bin/${mvn.executable}">
+		<exec executable="${mvn.executable}">
 			<arg value="s3client:put" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
