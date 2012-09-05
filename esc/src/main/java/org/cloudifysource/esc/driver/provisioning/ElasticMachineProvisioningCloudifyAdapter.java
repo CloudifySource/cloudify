@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 import net.jini.core.discovery.LookupLocator;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
@@ -62,6 +63,7 @@ import org.openspaces.grid.gsm.machines.isolation.ElasticProcessingUnitMachineIs
 import org.openspaces.grid.gsm.machines.isolation.SharedMachineIsolation;
 import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioning;
 import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioningException;
+
 
 /****************************
  * An ESM machine provisioning implementation used by the Cloudify cloud driver. All calls to start/stop a machine are
@@ -140,11 +142,14 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		// and this adapter can look for the CLOUD_ZONE_PREFIX and start a machine with the same location.
 		// TODO Fix GS-9484 and then remove the service name from the machine zone and remove the CLOUD_ZONE_PREFIX.
 
-		final ExactZonesConfig zones =
-				new ExactZonesConfigurer()
-						.addZones(config.getGridServiceAgentZones().getZones())
-						.addZone(CLOUD_ZONE_PREFIX + md.getLocationId())
-						.create();
+		ExactZonesConfigurer configurer = new ExactZonesConfigurer()
+				.addZones(config.getGridServiceAgentZones().getZones());
+		
+		if (!StringUtils.isBlank(md.getLocationId())) {
+			configurer.addZone(CLOUD_ZONE_PREFIX + md.getLocationId());
+		}
+		
+		final ExactZonesConfig zones = configurer.create();
 
 		final InstallationDetails details =
 				Utils.createInstallationDetails(md, cloud, template, zones, lookupLocatorsString,
