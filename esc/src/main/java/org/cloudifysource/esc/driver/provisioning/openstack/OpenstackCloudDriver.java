@@ -367,7 +367,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 					+ ", Error was: " + e.getMessage(), e);
 		} catch (UniformInterfaceException e) {
 			throw new OpenstackException("Failed on get for server with node id " + nodeId + ". Response was: " + response
-					+ ", Error was: " + e.getMessage()	, e);
+					+ ", Error was: " + e.getMessage(), e);
 		}
 
 		return node;
