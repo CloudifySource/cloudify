@@ -328,11 +328,12 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 	private Node getNode(final String nodeId, final String token)
 			throws OpenstackException {
-		final String response =
-				service.path(this.pathPrefix + "servers/" + nodeId).header("X-Auth-Token", token)
-						.accept(MediaType.APPLICATION_XML).get(String.class);
 		final Node node = new Node();
+		String response = "";
 		try {
+			response =
+					service.path(this.pathPrefix + "servers/" + nodeId).header("X-Auth-Token", token)
+					.accept(MediaType.APPLICATION_XML).get(String.class);
 			final DocumentBuilder documentBuilder = createDocumentBuilder();
 			final Document xmlDoc = documentBuilder.parse(new InputSource(new StringReader(response)));
 
@@ -364,6 +365,9 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 		} catch (final IOException e) {
 			throw new OpenstackException("Failed to send request to server. Response was: " + response
 					+ ", Error was: " + e.getMessage(), e);
+		} catch (UniformInterfaceException e) {
+			throw new OpenstackException("Failed on get for server with node id " + nodeId + ". Response was: " + response
+					+ ", Error was: " + e.getMessage()	, e);
 		}
 
 		return node;
@@ -373,10 +377,15 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 	List<Node> listServers(final String token)
 			throws OpenstackException {
 		final List<String> ids = listServerIds(token);
-		final List<Node> nodes = new ArrayList<Node>(ids.size());
-
+		final List<Node> nodes = new ArrayList<Node>();
+	
 		for (final String id : ids) {
-			nodes.add(getNode(id, token));
+			try {
+			Node node = getNode(id, token);
+			nodes.add(node);
+			} catch (OpenstackException e) {
+				//Do nothing.
+			}
 		}
 
 		return nodes;
@@ -433,10 +442,12 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 	private void terminateServerByIp(final String serverIp, final String token, final long endTime)
 			throws Exception {
+		logger.log(Level.INFO, "Terminating machine with IP " + serverIp);
 		final Node node = getNodeByIp(serverIp, token);
 		if (node == null) {
 			throw new IllegalArgumentException("Could not find a server with IP: " + serverIp);
 		}
+		logger.log(Level.INFO, "Terminating node with the following detailes: " + node.toString());
 		terminateServer(node.getId(), token, endTime);
 	}
 
@@ -444,8 +455,9 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 			throws OpenstackException {
 		final List<Node> nodes = listServers(token);
 		for (final Node node : nodes) {
-			if (node.getPrivateIp() != null && node.getPrivateIp().equalsIgnoreCase(serverIp)
-					|| node.getPublicIp() != null && node.getPublicIp().equalsIgnoreCase(serverIp)) {
+			if ((node.getPrivateIp() != null && node.getPrivateIp().equalsIgnoreCase(serverIp))
+					|| (node.getPublicIp() != null && node.getPublicIp().equalsIgnoreCase(serverIp))) {
+				logger.log(Level.INFO, "Server with IP " + serverIp + " Matches node: " + node.toString());
 				return node;
 			}
 		}
@@ -481,10 +493,12 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 				try {
 					this.getNode(serverId, token);
 
-				} catch (final UniformInterfaceException e) {
-					if (e.getResponse().getStatus() == HTTP_NOT_FOUND) {
-						++successCounter;
-						break;
+				} catch (final OpenstackException e) {
+					if (e.getCause() instanceof UniformInterfaceException) {
+						if (((UniformInterfaceException) e.getCause()).getResponse().getStatus() == HTTP_NOT_FOUND) {
+							++successCounter;
+							break;
+						}
 					}
 					throw e;
 				}
