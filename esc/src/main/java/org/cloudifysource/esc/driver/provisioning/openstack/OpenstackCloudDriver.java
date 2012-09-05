@@ -436,7 +436,6 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 		} catch (final IOException e) {
 			throw new OpenstackException("Failed to send request to server. Response was: " + response
 					+ ", Error was: " + e.getMessage(), e);
-
 		}
 	}
 
