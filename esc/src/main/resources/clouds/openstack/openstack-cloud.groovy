@@ -55,6 +55,10 @@ cloud {
 						"openstack.keyPair" : "ENTER_KEY_PAIR_NAME"
 					])
 					
+					// enable sudo.
+					privileged true
+
+					
 				}
 			])
 			

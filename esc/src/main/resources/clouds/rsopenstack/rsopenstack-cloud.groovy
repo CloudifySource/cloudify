@@ -38,6 +38,10 @@ cloud {
 					localDirectory "upload"
 					
 				}
+				
+				// enable sudo.
+				privileged true
+
 			])
 			
 	custom ([
