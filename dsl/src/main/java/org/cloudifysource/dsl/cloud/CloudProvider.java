@@ -40,7 +40,7 @@ public class CloudProvider {
 	private String cloudifyUrl = "http://repository.cloudifysource.org/org/cloudifysource/"
 			+ PlatformVersion.getVersion()
 			+ "/gigaspaces-cloudify-" + PlatformVersion.getVersion() + "-" + PlatformVersion.getMilestone() 
-			+ "-b" + PlatformVersion.getBuildNumber() + ".zip";
+			+ "-b" + PlatformVersion.getBuildNumber();
 
 	// location of zip file where additional cloudify files are places.
 	// They will be copied on top of the cloudify distribution.
