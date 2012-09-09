@@ -409,7 +409,7 @@ public class CloudTemplate {
 			throw new DSLValidationException("absolute upload directory may not be set by external code");
 		}
 		this.absoluteUploadDir = findUploadDir(context).getAbsolutePath();
-		logger.info("SETTING ABSOLUTE LOCAL UPLOAD DIRECTORY TO ABSOLUTE PATH: " + this.absoluteUploadDir);
+		logger.fine("SETTING ABSOLUTE LOCAL UPLOAD DIRECTORY TO ABSOLUTE PATH: " + this.absoluteUploadDir);
 
 	}
 

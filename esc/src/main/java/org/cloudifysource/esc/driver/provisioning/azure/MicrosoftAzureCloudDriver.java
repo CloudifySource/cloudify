@@ -436,7 +436,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 						storageAccountName, endTime);
 			} catch (final Exception e) {
 				logger.warning("failed deleting storage account : "
-						+ networkName);
+						+ storageAccountName);
 				logger.warning(ExceptionUtils.getFullStackTrace(e));
 			}
 			if (deletedNetwork && deletedStorage) {

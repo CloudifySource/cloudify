@@ -1,3 +1,0 @@
-service {
-	extend "../../../services/cassandra"
-}
