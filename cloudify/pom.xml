@@ -18,7 +18,6 @@
 	</properties>
 
 	<modules>
-		<module>../azure/azure</module>
 		<module>../CLI</module>
 		<module>../esc</module>
 		<module>../esc-commands</module>
