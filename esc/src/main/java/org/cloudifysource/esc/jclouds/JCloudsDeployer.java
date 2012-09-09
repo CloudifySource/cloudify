@@ -18,6 +18,7 @@ package org.cloudifysource.esc.jclouds;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -502,15 +503,15 @@ public class JCloudsDeployer {
 					} catch (IllegalArgumentException e) {
 						throw new IllegalArgumentException("Failed to set option: " + entryKey
 								+ " by invoking method: "
-								+ m + " with value: " + paramArray + ". Error was: " + e.getMessage(), e);
+								+ m + " with value: " + Arrays.toString(paramArray) + ". Error was: " + e.getMessage(), e);
 					} catch (IllegalAccessException e) {
 						throw new IllegalArgumentException("Failed to set option: " + entryKey
 								+ " by invoking method: "
-								+ m + " with value: " + paramArray + ". Error was: " + e.getMessage(), e);
+								+ m + " with value: " + Arrays.toString(paramArray) + ". Error was: " + e.getMessage(), e);
 					} catch (InvocationTargetException e) {
 						throw new IllegalArgumentException("Failed to set option: " + entryKey
 								+ " by invoking method: "
-								+ m + " with value: " + paramArray + ". Error was: " + e.getMessage(), e);
+								+ m + " with value: " + Arrays.toString(paramArray) + ". Error was: " + e.getMessage(), e);
 					}
 				}
 			}

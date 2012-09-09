@@ -575,7 +575,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private void handleServiceCloudConfiguration()
 			throws IOException {
 		final byte[] serviceCloudConfigurationContents = this.config.getServiceCloudConfiguration();
-		logger.info("serviceCloudConfigurationContents is: " + serviceCloudConfigurationContents);
 		if (serviceCloudConfigurationContents != null) {
 			logger.info("Found service cloud configuration - saving to file");
 			final File tempZipFile = File.createTempFile("__CLOUD_DRIVER_SERVICE_CONFIGURATION_FILE", ".zip");
