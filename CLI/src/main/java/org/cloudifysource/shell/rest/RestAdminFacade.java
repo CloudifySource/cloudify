@@ -557,13 +557,12 @@ public class RestAdminFacade extends AbstractAdminFacade {
     public Map<String, String> listAttributes(String scope, String applicationName) throws CLIException {
         String url = getRelativeUrlForAttributes(scope, applicationName);
         try {
-            return (Map<String, String>) client.get(url, null);
+        	@SuppressWarnings("unchecked")
+			Map<String, String> response = (Map<String, String>) client.get(url, null);
+            return response;
         } catch (final ErrorStatusException e) {
             throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-        } catch (final RestException e) {
-            throw new CLIException(e);
-        }
-
+        } 
     }
 
     @Override
@@ -574,48 +573,45 @@ public class RestAdminFacade extends AbstractAdminFacade {
                 client.delete(url + "/" + attributeName);
             } catch (final ErrorStatusException e) {
                 throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-            } catch (final RestException e) {
-                throw new CLIException(e);
             }
         }
 
     }
 
     private String getRelativeUrlForAttributes(String scope, String applicationName) throws CLIException {
-        if ("global".equals(scope)) {
-            return "/attributes/globals";
-        } else if ("application".equals(scope)) {
-            return "/attributes/applications/" + applicationName;
-        } else if (scope.toLowerCase().startsWith("service")) {
-            String[] serviceScope = scope.split(":");
-            if (serviceScope.length < 2) {
-                throw new CLIStatusException("service_scope_must_contain_service_name");
-            }
-            String serviceName = serviceScope[1];
-            if (serviceScope.length == 2) {
-                return "/attributes/services/" + applicationName + "/" + serviceName;
-            } else {
-                String instanceIdentifier = serviceScope[2];
-                if ("all-instances".equalsIgnoreCase(instanceIdentifier)) {
-                    return "/attributes/instances";
-                }
-                Integer instanceId = StringUtils.safeParseInt(instanceIdentifier);
-                if (instanceIdentifier != null) {
-                    validateInstanceId(instanceId, applicationName, serviceName);
-                    return "/attributes/instances/" + applicationName + "/" + serviceName + "/" + instanceIdentifier;
-                } else {
-                    throw new CLIStatusException("illegal_instance_identifier", instanceIdentifier);
-                }
-            }
-        } else {
-            throw new CLIStatusException("illegal_scope", scope);
-        }
+    	if ("global".equals(scope)) {
+    		return "/attributes/globals";
+    	}
+    	if ("application".equals(scope)) {
+    		return "/attributes/applications/" + applicationName;
+    	}
+    	if (!scope.toLowerCase().startsWith("service")) {
+    		throw new CLIStatusException("illegal_scope", scope);
+    	}
+    	String[] serviceScope = scope.split(":");
+    	if (serviceScope.length < 2) {
+    		throw new CLIStatusException("service_scope_must_contain_service_name");
+    	}
+    	final String serviceName = serviceScope[1];
+    	if (serviceScope.length == 2) {
+    		return "/attributes/services/" + applicationName + "/" + serviceName;
+    	} 
+    	final String instanceIdentifier = serviceScope[2];
+    	if ("all-instances".equalsIgnoreCase(instanceIdentifier)) {
+    		return "/attributes/instances";
+    	}
+    	Integer instanceId = StringUtils.safeParseInt(instanceIdentifier);
+    	if (instanceIdentifier == null) {
+    		throw new CLIStatusException("illegal_instance_identifier", instanceIdentifier);
+    	}
+    	validateInstanceId(instanceId, applicationName, serviceName);
+    	return "/attributes/instances/" + applicationName + "/" + serviceName + "/" + instanceIdentifier;
     }
 
     private void validateInstanceId(Integer instanceId, String applicationName, String serviceName) throws CLIException {
         if (instanceId != null) {
-            Map instanceList = getInstanceList(applicationName, serviceName);
-            if (instanceList == null || instanceList.size() == 0) {
+            Map<String, Object> instanceList = getInstanceList(applicationName, serviceName);
+            if (instanceList == null || instanceList.isEmpty()) {
                 throw new CLIStatusException("service_has_no_instances", serviceName);
             }
         }
