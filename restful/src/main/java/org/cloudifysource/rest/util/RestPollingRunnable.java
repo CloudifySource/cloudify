@@ -17,6 +17,7 @@ package org.cloudifysource.rest.util;
 
 import static com.gigaspaces.log.LogEntryMatchers.regex;
 
+import java.sql.Time;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -62,7 +64,9 @@ import com.gigaspaces.log.LogEntryMatcher;
  */
 public class RestPollingRunnable implements Runnable {
 
-    private static final int FIVE_SECONDS_MILLI = 5000;
+    private static final int ONE_SEC = 1;
+
+	private static final int FIVE_SECONDS_MILLI = 5000;
 
     // a map containing all of the application services and their planned number
     // of instances.
@@ -101,6 +105,8 @@ public class RestPollingRunnable implements Runnable {
     private Map<String, Date> gscStartTimeMap = new HashMap<String, Date>();
     
     private final Object lock = new Object();
+
+	private FutureTask<Boolean> undeployTask;
 
     private static final Logger logger = Logger.getLogger(RestPollingRunnable.class.getName());
 
@@ -238,33 +244,33 @@ public class RestPollingRunnable implements Runnable {
     @Override
     public void run() {
         
-        try {
-        if (this.serviceNames.isEmpty()) {
-            logger.log(Level.INFO, "Polling for lifecycle events has ended successfully." 
-                    + " Terminating the polling task");
-            //We stop the thread from being scheduled again.
-            throw new RestServiceException("Polling has ended successfully");
-        } 
-            
-            if (System.currentTimeMillis() > this.endTime) {
-                throw new TimeoutException("Timed out");
-            }
+    	try {
+    		if (this.serviceNames.isEmpty()) {
+    			logger.log(Level.INFO, "Polling for lifecycle events has ended successfully." 
+    					+ " Terminating the polling task");
+    			//We stop the thread from being scheduled again.
+    			throw new RestServiceException("Polling has ended successfully");
+    		} 
 
-            pollForLogs();
-            
-        } catch (Throwable e) {
-            terminateTaskGracefully();
-            if (!(e instanceof RestServiceException)) {
-                logger.log(Level.INFO, "Polling task ended unexpectedly. Reason: " + e.getMessage(), e);
-                setExecutionException(e);
-            } else {
-                logger.log(Level.INFO, "Polling task ended successfully.");
-            }
-            //this exception should not be caught. it is meant to make the scheduler stop
-            //the thread execution.
-            throw new RuntimeException(e);
+    		if (System.currentTimeMillis() > this.endTime) {
+    			throw new TimeoutException("Timed out");
+    		}
 
-        } 
+    		pollForLogs();
+
+    	} catch (Throwable e) {
+    		terminateTaskGracefully();
+    		if (!(e instanceof RestServiceException)) {
+    			logger.log(Level.INFO, "Polling task ended unexpectedly. Reason: " + e.getMessage(), e);
+    			setExecutionException(e);
+    		} else {
+    			logger.log(Level.INFO, "Polling task ended successfully.");
+    		}
+    		//this exception should not be caught. it is meant to make the scheduler stop
+    		//the thread execution.
+    		throw new RuntimeException(e);
+
+    	} 
 
     }
 
@@ -278,8 +284,9 @@ public class RestPollingRunnable implements Runnable {
     /**
      * Goes over each service defined prior to the callable execution 
      * and polls it for lifecycle and instance count events.
+     * @throws ExecutionException 
      */
-    private void pollForLogs() {
+    private void pollForLogs() throws ExecutionException {
 
         LinkedHashMap<String, Integer> serviceNamesClone = new LinkedHashMap<String, Integer>();
         serviceNamesClone.putAll(this.serviceNames);
@@ -298,13 +305,23 @@ public class RestPollingRunnable implements Runnable {
     }
 
     private void removeEndedServicesFromPollingList(String serviceName, 
-            int plannedNumberOfInstances, int numberOfServiceInstances) {
+            int plannedNumberOfInstances, int numberOfServiceInstances) throws ExecutionException {
         
         if (isUninstall) { 
             String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
             final Zone zone = admin.getZones().waitFor(absolutePuName, 2, TimeUnit.SECONDS);
             if (zone == null) {
-                this.serviceNames.remove(serviceName);
+            	try {
+            		Boolean undeployedSuccessfully = this.undeployTask.get(ONE_SEC, TimeUnit.MINUTES);
+            		if (undeployedSuccessfully) {
+            			this.serviceNames.remove(serviceName);
+            		}
+            	} catch (Exception e) {
+            		String message = "undeploy task has ended unsuccessfully. Some machines may not have been terminated!";
+            		logger.log(Level.WARNING, message, e);
+            		lifecycleEventsContainer.addInstanceCountEvent(message);
+            		throw new ExecutionException(message, e);
+				}
             }
         } else {
             if (plannedNumberOfInstances == numberOfServiceInstances) {
@@ -548,4 +565,9 @@ public class RestPollingRunnable implements Runnable {
 
         return returnMap;
     }
+
+	public void setUndeployTask(FutureTask<Boolean> undeployTask) {
+		this.undeployTask = undeployTask;
+		
+	}
 }

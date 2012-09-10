@@ -41,10 +41,12 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
@@ -800,17 +802,24 @@ public class ServiceController implements ServiceDetailsProvider{
 			return unavailableServiceError(absolutePuName);
 		}
 
-		logger.log(Level.INFO, "Starting to poll for uninstall lifecycle events.");
+		FutureTask<Boolean> undeployTask = new FutureTask<Boolean>(  
+				new Callable<Boolean>() {  
+					public Boolean call() throws Exception {  
+						return processingUnit.undeployAndWait(timeoutInMinutes, TimeUnit.MINUTES);
+					}  
+
+				});
 		final UUID lifecycleEventContainerID =
-				startPollingForServiceUninstallLifecycleEvents(applicationName, serviceName, timeoutInMinutes);
-		processingUnit.undeploy();
+				startPollingForServiceUninstallLifecycleEvents(applicationName, serviceName,
+						timeoutInMinutes, undeployTask);
+		
 		final Map<String, Object> returnMap = new HashMap<String, Object>();
 		returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, lifecycleEventContainerID);
 		return successStatus(returnMap);
 	}
 
 	private UUID startPollingForServiceUninstallLifecycleEvents(final String applicationName, final String serviceName,
-			final int timeoutInMinutes) {
+			final int timeoutInMinutes, FutureTask<Boolean> undeployTask) {
 		RestPollingRunnable restPollingRunnable;
 		final LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
 		final UUID lifecycleEventsContainerID = UUID.randomUUID();
@@ -822,12 +831,13 @@ public class ServiceController implements ServiceDetailsProvider{
 		restPollingRunnable.setAdmin(admin);
 		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
 		restPollingRunnable.setIsUninstall(true);
+		restPollingRunnable.setUndeployTask(undeployTask);
 		restPollingRunnable.setEndTime(timeoutInMinutes, TimeUnit.MINUTES);
-
 		final ScheduledFuture<?> scheduleWithFixedDelay =
 				scheduledExecutor.scheduleWithFixedDelay(restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL_SEC,
 						TimeUnit.SECONDS);
 		restPollingRunnable.setFutureTask(scheduleWithFixedDelay);
+		logger.log(Level.INFO, "Starting to poll for uninstall lifecycle events.");
 		this.lifecyclePollingThreadContainer.put(lifecycleEventsContainerID, restPollingRunnable);
 		logger.log(Level.INFO, "polling container UUID is " + lifecycleEventsContainerID.toString());
 		return lifecycleEventsContainerID;
@@ -968,23 +978,22 @@ public class ServiceController implements ServiceDetailsProvider{
 		final StringBuilder sb = new StringBuilder();
 		final List<ProcessingUnit> uninstallOrder = createUninstallOrder(pus, applicationName);
 		// TODO: Add timeout.
+		FutureTask<Boolean> undeployTask = null;
 		logger.log(Level.INFO, "Starting to poll for uninstall lifecycle events.");
-		final UUID lifecycleEventContainerID =
-				startPollingForApplicationUninstallLifecycleEvents(applicationName, uninstallOrder, timeoutInMinutes);
 		if (uninstallOrder.size() > 0) {
-
-			((InternalAdmin) admin).scheduleAdminOperation(new Runnable() {
-
+			undeployTask = new FutureTask<Boolean>(new Runnable() {
+				long startTime = System.currentTimeMillis();
 				@Override
 				public void run() {
 					for (final ProcessingUnit processingUnit : uninstallOrder) {
+						long undeployTimeout = TimeUnit.MINUTES.toMillis(timeoutInMinutes) - (System.currentTimeMillis() - startTime);
 						try {
 							if (processingUnit.waitForManaged(10, TimeUnit.SECONDS) == null) {
 								logger.log(Level.WARNING, "Failed to locate GSM that is managing Processing Unit "
 										+ processingUnit.getName());
 							} else {
 								logger.log(Level.INFO, "Undeploying Processing Unit " + processingUnit.getName());
-								processingUnit.undeploy();
+								processingUnit.undeployAndWait(undeployTimeout, TimeUnit.MINUTES);
 							}
 						} catch (final Exception e) {
 							final String msg =
@@ -998,9 +1007,13 @@ public class ServiceController implements ServiceDetailsProvider{
 					}
 					logger.log(Level.INFO, "Application " + applicationName + " undeployment complete");
 				}
-			});
+			}, true);
+			
+			((InternalAdmin) admin).scheduleAdminOperation(undeployTask);
 
 		}
+		final UUID lifecycleEventContainerID =
+				startPollingForApplicationUninstallLifecycleEvents(applicationName, uninstallOrder, timeoutInMinutes, undeployTask);
 
 		final String errors = sb.toString();
 		if (errors.length() == 0) {
@@ -1171,7 +1184,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	}
 
 	private UUID startPollingForApplicationUninstallLifecycleEvents(final String applicationName,
-			final List<ProcessingUnit> uninstallOrder, final int timeoutInMinutes) {
+			final List<ProcessingUnit> uninstallOrder, final int timeoutInMinutes, FutureTask<Boolean> undeployTask) {
 
 		RestPollingRunnable restPollingRunnable;
 		final LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
@@ -1188,6 +1201,7 @@ public class ServiceController implements ServiceDetailsProvider{
 		restPollingRunnable.setAdmin(admin);
 		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
 		restPollingRunnable.setIsUninstall(true);
+		restPollingRunnable.setFutureTask(undeployTask);
 		restPollingRunnable.setEndTime(timeoutInMinutes, TimeUnit.MINUTES);
 		this.lifecyclePollingThreadContainer.put(lifecycleEventsContainerID, restPollingRunnable);
 		final ScheduledFuture<?> scheduleWithFixedDelay =
