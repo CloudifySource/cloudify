@@ -1074,20 +1074,22 @@ public class LocalhostGridAgentBootstrapper {
 				}
 
 				if (verbose) {
-					for (final Object component : components) {
-						final GridServiceAgent agentThatStartedComponent = ((AgentGridComponent) component)
-								.getGridServiceAgent();
-						String agentUid = null;
-						if (agentThatStartedComponent != null) {
-							agentUid = agentThatStartedComponent.getUid();
+					if (!isLocalCloud) {
+						for (final Object component : components) {
+							final GridServiceAgent agentThatStartedComponent = ((AgentGridComponent) component)
+									.getGridServiceAgent();
+							String agentUid = null;
+							if (agentThatStartedComponent != null) {
+								agentUid = agentThatStartedComponent.getUid();
+							}
+							String message = "Detected " + serviceName + " management process " + " started by agent "
+									+ agentUid + " ";
+							if (!checkAgent((AgentGridComponent) component)) {
+								message += " expected agent " + agent.getUid();
+							}
+							logger.fine(message);
+							publishEvent(message);
 						}
-						String message = "Detected " + serviceName + " management process " + " started by agent "
-								+ agentUid + " ";
-						if (!checkAgent((AgentGridComponent) component)) {
-							message += " expected agent " + agent.getUid();
-						}
-						logger.fine(message);
-						publishEvent(message);
 					}
 				}
 				if (!verbose) {
