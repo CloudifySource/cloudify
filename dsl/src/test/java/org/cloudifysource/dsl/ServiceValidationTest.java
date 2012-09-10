@@ -218,7 +218,7 @@ public class ServiceValidationTest {
 			validationContext.setFilePath(SERVICE_WITH_ICON_PATH);
 			service.validateIcon(validationContext);
 		} catch (DSLValidationException e) {
-			fail("Validation of service failed on a valid icon path: " + SERVICE_WITH_ICON_PATH);
+			fail("Validation of service failed on a valid icon path: " + SERVICE_WITH_ICON_PATH + ": " + e.getMessage());
 		}
 	}
 	
