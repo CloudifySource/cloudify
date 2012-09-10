@@ -124,6 +124,8 @@ import org.openspaces.admin.zone.config.AtLeastOneZoneConfigurer;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.context.GigaSpaceContext;
 import org.openspaces.core.util.MemoryUnit;
+import org.openspaces.pu.service.ServiceDetails;
+import org.openspaces.pu.service.ServiceDetailsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -150,7 +152,7 @@ import com.gigaspaces.log.LogEntryMatchers;
  */
 @Controller
 @RequestMapping("/service")
-public class ServiceController {
+public class ServiceController implements ServiceDetailsProvider{
 
 	private static final String LOCALCLOUD_ZONE = "localcloud";
 	private static final int MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED = 1000;
@@ -2324,6 +2326,12 @@ public class ServiceController {
 				return instance.getGridServiceContainer();
 			}
 		}
+		return null;
+	}
+
+	@Override
+	public ServiceDetails[] getServicesDetails() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 }
