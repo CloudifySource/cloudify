@@ -54,11 +54,10 @@ public class ServiceInstanceImpl implements ServiceInstance {
 	 */
 	@Override
 	public int getInstanceID() {
-		if (pui != null) {
-			return pui.getInstanceId();
-		} else {
+		if (pui == null) {
 			return 1;
-		}
+		} 
+		return pui.getInstanceId();
 	}
 
 	/* (non-Javadoc)

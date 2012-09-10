@@ -664,12 +664,13 @@ public class MicrosoftAzureRestClient {
 
 			deleteDeployment(cloudServiceName, deploymentName,
 					endTime);
-
-			logger.fine("deleting os disk : " + diskName
-					+ " that belonged to the virtual machine " + roleName);
-
-			deleteOSDisk(diskName, endTime);
-
+			
+			if (diskName != null) {
+				logger.fine("deleting os disk : " + diskName
+						+ " that belonged to the virtual machine " + roleName);
+				deleteOSDisk(diskName, endTime);
+			}
+			
 			logger.fine("deleteing cloud service : " + cloudServiceName
 					+ " that was dedicated for virtual machine " + roleName);
 
