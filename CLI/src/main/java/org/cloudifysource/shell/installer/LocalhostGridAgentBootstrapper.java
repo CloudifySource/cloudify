@@ -716,6 +716,7 @@ public class LocalhostGridAgentBootstrapper {
 
 		String[] command;
 		if (isLocalCloud) {
+			publishEvent(ShellUtils.getMessageBundle().getString("starting_bootstrap_localcloud"));
 			if (isWindows()) {
 				command = Arrays.copyOf(WINDOWS_LOCALCLOUD_COMMAND, WINDOWS_LOCALCLOUD_COMMAND.length);
 				args.addAll(Arrays.asList(WINDOWS_ARGUMENTS_POSTFIX));
@@ -740,6 +741,7 @@ public class LocalhostGridAgentBootstrapper {
 			publishEvent(message);
 			logger.fine(message);
 		}
+		
 		publishEvent(ShellUtils.getMessageBundle().getString("starting_cloudify_management"));
 		runCommand(command, args.toArray(new String[args.size()]));
 
