@@ -214,7 +214,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			machineDetails = provisionMachine(locationId, duration, unit);
 
 		} catch (final Exception e) {
-			logger.log(Level.WARNING, "Failed to provision machine, reason: " + e.getMessage(), e);
 			throw new ElasticMachineProvisioningException("Failed to provisiong machine: " + e.getMessage(), e);
 		}
 
