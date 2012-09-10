@@ -34,15 +34,12 @@ import com.gigaspaces.lrmi.nio.info.NIOInfoHelper;
 public class ProcessDetails implements Details {
 
 	@Override
-	public Map<String, Object> getDetails(final UniversalServiceManagerBean usm,
-			final ServiceConfiguration config)
-			throws DetailsException {
+	public Map<String, Object> getDetails(
+			final UniversalServiceManagerBean usm,
+			final ServiceConfiguration config) throws DetailsException {
 		final Map<String, Object> map = new HashMap<String, Object>();
 		map.put("GSC PID", usm.getContainerPid());
 		map.put("Working Directory", usm.getPuExtDir().getAbsolutePath());
-
-		final String privateIp = System.getenv(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP);
-		final String publicIp = System.getenv(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP);
 
 		String bindHost = null;
 		if (usm.isRunningInGSC()) {
@@ -51,6 +48,18 @@ public class ProcessDetails implements Details {
 			// running in integrated container, so use default value.
 			bindHost = "127.0.0.1";
 		}
+		addCloudDetailsToMap(map, bindHost);
+
+		return map;
+	}
+
+	public void addCloudDetailsToMap(final Map<String, Object> map,
+			String bindHost) {
+		final String privateIp = System
+				.getenv(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP);
+		final String publicIp = System
+				.getenv(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP);
+
 		if (privateIp != null) {
 			map.put(CloudifyConstants.USM_DETAILS_PRIVATE_IP, privateIp);
 		} else {
@@ -63,17 +72,17 @@ public class ProcessDetails implements Details {
 			map.put(CloudifyConstants.USM_DETAILS_PUBLIC_IP, bindHost);
 		}
 
-		final String imageId = System.getenv(CloudifyConstants.CLOUDIFY_CLOUD_IMAGE_ID);
+		final String imageId = System
+				.getenv(CloudifyConstants.CLOUDIFY_CLOUD_IMAGE_ID);
 		if (imageId != null) {
 			map.put(CloudifyConstants.USM_DETAILS_IMAGE_ID, imageId);
 		}
 
-		final String hardwareId = System.getenv(CloudifyConstants.CLOUDIFY_CLOUD_HARDWARE_ID);
+		final String hardwareId = System
+				.getenv(CloudifyConstants.CLOUDIFY_CLOUD_HARDWARE_ID);
 		if (hardwareId != null) {
 			map.put(CloudifyConstants.USM_DETAILS_HARDWARE_ID, hardwareId);
 		}
-
-		return map;
 	}
 
 }

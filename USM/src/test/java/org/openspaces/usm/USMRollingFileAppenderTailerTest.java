@@ -179,7 +179,7 @@ public class USMRollingFileAppenderTailerTest {
 
 	//Add a logging handler.
 	private StringHandler addHandlerToJavaUtilsLogger() {
-		java.util.logging.Logger logger = java.util.logging.Logger.getLogger("");;
+		java.util.logging.Logger logger = java.util.logging.Logger.getLogger("");
 		StringHandler sh = new StringHandler(); 
 		logger.addHandler(sh);
 		Handler[] handlers = logger.getHandlers();

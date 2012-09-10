@@ -84,34 +84,24 @@ fi
 
 export EXT_JAVA_OPTIONS="-Dcom.gs.multicast.enabled=false"
 
-# Some distros do not come with unzip built-in
-if [ ! -f "/usr/bin/unzip" ]; then
-	chmod +x $WORKING_HOME_DIRECTORY/unzip || error_exit $? "Failed changing execution permission to unzip"
-	chmod +x $WORKING_HOME_DIRECTORY/unzipsfx || error_exit $? "Failed changing execution permission to unzip"
-	
-	cp $WORKING_HOME_DIRECTORY/unzip /usr/bin || error_exit $? "Failed copying unzip"
-	cp $WORKING_HOME_DIRECTORY/unzipsfx /usr/bin || error_exit $? "Failed copying unzip"
-fi
-
-
 if [ ! -z "$CLOUDIFY_LINK" ]; then
-	echo Downloading cloudify installation from $CLOUDIFY_LINK
-	wget -q $CLOUDIFY_LINK -O $WORKING_HOME_DIRECTORY/gigaspaces.zip || error_exit $? "Failed downloading cloudify installation"
+	echo Downloading cloudify installation from $CLOUDIFY_LINK.tar.gz
+	wget -q $CLOUDIFY_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz || error_exit $? "Failed downloading cloudify installation"
 fi
 
 if [ ! -z "$CLOUDIFY_OVERRIDES_LINK" ]; then
-	echo Downloading cloudify overrides from $CLOUDIFY_OVERRIDES_LINK
-	wget -q $CLOUDIFY_OVERRIDES_LINK -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.zip || error_exit $? "Failed downloading cloudify overrides"
+	echo Downloading cloudify overrides from $CLOUDIFY_OVERRIDES_LINK.tar.gz
+	wget -q $CLOUDIFY_OVERRIDES_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz || error_exit $? "Failed downloading cloudify overrides"
 fi
 
 # Todo: Check this condition
-if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.zip -nt ~/gigaspaces ]; then
+if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -nt ~/gigaspaces ]; then
 	rm -rf ~/gigaspaces || error_exit $? "Failed removing old gigaspaces directory"
 	mkdir ~/gigaspaces || error_exit $? "Failed creating gigaspaces directory"
 	
 	# 2 is the error level threshold. 1 means only warnings
 	# this is needed for testing purposes on zip files created on the windows platform 
-	unzip -q $WORKING_HOME_DIRECTORY/gigaspaces.zip -d ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify installation" 2 
+	tar xfz $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -C ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify installation" 2 
 
 	# Todo: consider removing this line
 	chmod -R 777 ~/gigaspaces || error_exit $? "Failed changing permissions in cloudify installion"
@@ -119,7 +109,7 @@ if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.zip -nt ~/gigaspa
 	
 	if [ ! -z "$CLOUDIFY_OVERRIDES_LINK" ]; then
 		echo Copying overrides into cloudify distribution
-		unzip -qo $WORKING_HOME_DIRECTORY/gigaspaces_overrides.zip -d ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify overrides" 2 		
+		tar xfz $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz -d ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify overrides" 2 		
 	fi
 fi
 

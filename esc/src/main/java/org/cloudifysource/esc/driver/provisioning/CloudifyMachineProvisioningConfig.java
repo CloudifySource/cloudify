@@ -81,13 +81,13 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	 * @param cloudTemplateName .
 	 */
 	public CloudifyMachineProvisioningConfig(final Cloud cloud, final CloudTemplate template,
-			final String cloudTemplateName) {
+			final String cloudTemplateName, final String managementTemplateRemoteDirectory) {
 
 		setMinimumNumberOfCpuCoresPerMachine(template.getNumberOfCores());
 
 		setReservedMemoryCapacityPerMachineInMB(cloud.getProvider().getReservedMemoryCapacityPerMachineInMB());
 
-		setCloudConfigurationDirectory(template.getRemoteDirectory());
+		setCloudConfigurationDirectory(managementTemplateRemoteDirectory);
 		logger.info("Setting cloud configuration directory to: " + template.getRemoteDirectory());
 		setCloudTemplateName(cloudTemplateName);
 
