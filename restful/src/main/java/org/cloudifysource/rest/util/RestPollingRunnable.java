@@ -17,7 +17,6 @@ package org.cloudifysource.rest.util;
 
 import static com.gigaspaces.log.LogEntryMatchers.regex;
 
-import java.sql.Time;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
