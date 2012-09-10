@@ -809,6 +809,7 @@ public class ServiceController implements ServiceDetailsProvider{
 					}  
 
 				});
+		undeployTask.run();
 		final UUID lifecycleEventContainerID =
 				startPollingForServiceUninstallLifecycleEvents(applicationName, serviceName,
 						timeoutInMinutes, undeployTask);
