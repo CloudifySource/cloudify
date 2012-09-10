@@ -31,7 +31,7 @@ import org.junit.Test;
  * @author yael
  * 
  */
-public class ApllicationValidationTest {
+public class ApplicationValidationTest {
 
 	private static final String APPLICATION_WITHOUT_NAME_GROOVY 
 	= "testResources/applications/ApplicationValidationTest/appWithoutNameTest";
@@ -79,11 +79,11 @@ public class ApllicationValidationTest {
 		try {
 			ServiceReader.getApplicationFromFile(applicationFile)
 					.getApplication();
-			Assert.fail("Application name is empty, DSLValidationException expected.");
-		} catch (final DSLValidationException e) {
+			Assert.fail("Application name is empty, IllegalArgumentException expected.");
+		} catch (final IllegalArgumentException e) {
 			// OK - the invalid application name caused the exception
 		} catch (final Exception e) {
-			Assert.fail("Application name is empty, DSLValidationException expected, instead "
+			Assert.fail("Application name is empty, IllegalArgumentException expected, instead "
 					+ e.getClass() + " was thrown.");
 		}
 
@@ -101,11 +101,11 @@ public class ApllicationValidationTest {
 		try {
 			ServiceReader.getApplicationFromFile(applicationFile)
 					.getApplication();
-			Assert.fail("Application name is missing, DSLValidationException expected.");
-		} catch (final DSLValidationException e) {
+			Assert.fail("Application name is missing, IllegalArgumentException expected.");
+		} catch (final IllegalArgumentException e) {
 			// OK - the invalid application name caused the exception
 		} catch (final Exception e) {
-			Assert.fail("Application name is missing, DSLValidationException expected, instead "
+			Assert.fail("Application name is missing, IllegalArgumentException expected, instead "
 					+ e.getClass() + " was thrown.");
 			e.printStackTrace();
 		}

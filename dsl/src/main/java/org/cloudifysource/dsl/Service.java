@@ -488,7 +488,7 @@ public class Service {
 		String filePath = validationContext.getFilePath().toLowerCase().trim();
 		
 		// execute this validation only if an icon was set and this is a Service's groovy file (not an Application's) 
-		if (filePath.lastIndexOf(serviceSuffix) + 1 + serviceSuffix.length() ==  filePath.length()) {
+		if (filePath.endsWith(serviceSuffix)) {
 			isServiceFile = true;
 		}
 		

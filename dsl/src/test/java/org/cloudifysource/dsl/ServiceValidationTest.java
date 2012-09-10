@@ -25,7 +25,7 @@ import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.cloudifysource.dsl.internal.ServiceReader;
-import org.junit.Ignore;
+import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.junit.Test;
 
 /**
@@ -35,8 +35,10 @@ import org.junit.Test;
  */
 public class ServiceValidationTest {
 
-	private static final String VALID_DSL_PATH = "testResources/applications/simple/mydsl.groovy";
-	private static final String INVALID_DSL_PATH = "testResources/applications/mydsl.groovy";
+	private static final String SERVICE_WITHOUT_ICON_PATH = "testResources/simple/simple-service.groovy";
+	private static final String SERVICE_WITH_ICON_PATH = "testResources/applications/simple/service1/service1-service.groovy";
+	private static final String APPLICATION_MISSING_SERVICE_ICON_PATH = "testResources/applications/ApplicationValidationTest/appMissingServiceIconTest";
+
 	private static final String ICON_FILE = "icon.png";
 	
 	private static final String SERVICE_WITHOUT_NAME_GROOVY 
@@ -164,10 +166,37 @@ public class ServiceValidationTest {
 		}
 	}
 	
+	@Test
+	public void testApplicationMissingServiceIcon() {
+		final File applicationFile = new File(APPLICATION_MISSING_SERVICE_ICON_PATH);
+		try {
+			ServiceReader.getApplicationFromFile(applicationFile).getApplication();
+			Assert.fail("Application has a service without an icon, IllegalArgumentException expected.");
+		} catch (final IllegalArgumentException e) {
+			// OK - the invalid application name caused the exception
+		} catch (final Exception e) {
+			Assert.fail("Application has a service without an icon, IllegalArgumentException expected, instead "
+					+ e.getClass() + " was thrown.");
+		}
+	}
+	
+	@Test
+	public void testServiceWithoutIconGroovy() {
+		try {
+			ServiceReader.readService(new File(SERVICE_WITHOUT_ICON_PATH));
+			Assert.fail("Service name is empty, DSLValidationException expected.");
+		} catch (PackagingException e) {
+			//OK - the invalid service name caused the exception
+		} catch (Exception e) {
+			Assert.fail("Service name is empty, DSLValidationException expected, instead " 
+					+ e.getClass() + " was thrown.");
+		}
+	}
+	
 	/**
 	 * Double-test for the service icon.
 	 */
-	@Ignore
+	
 	@Test
 	public void testMissingServiceIcon() {
 		
@@ -177,19 +206,19 @@ public class ServiceValidationTest {
 		
 		//missing icon file:
 		try {
-			validationContext.setFilePath(INVALID_DSL_PATH);
+			validationContext.setFilePath(SERVICE_WITHOUT_ICON_PATH);
 			service.validateIcon(validationContext);
-			fail("an invalid icon path was successfully validated: " + INVALID_DSL_PATH);
+			fail("an invalid icon path was successfully validated: " + SERVICE_WITHOUT_ICON_PATH);
 		} catch (DSLValidationException e) {
 			//OK - the invalid icon path caused the exception
 		}
 		
 		//valid icon file:
 		try {
-			validationContext.setFilePath(VALID_DSL_PATH);
+			validationContext.setFilePath(SERVICE_WITH_ICON_PATH);
 			service.validateIcon(validationContext);
 		} catch (DSLValidationException e) {
-			fail("Validation of service failed on a valid icon path: " + VALID_DSL_PATH);
+			fail("Validation of service failed on a valid icon path: " + SERVICE_WITH_ICON_PATH);
 		}
 	}
 	
