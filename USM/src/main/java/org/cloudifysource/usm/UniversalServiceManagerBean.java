@@ -328,62 +328,57 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	@PreDestroy
 	public void shutdown() {
 
-		try {
-			logger.info("USM is shutting down!");
+		logger.info("USM is shutting down!");
 
-			synchronized (this.stateMutex) {
-				this.state = USMState.SHUTTING_DOWN;
+		synchronized (this.stateMutex) {
+			this.state = USMState.SHUTTING_DOWN;
 
-				if (!FileUtils.deleteQuietly(getPidFile())) {
-					logger.severe("Attempted to delete PID file: "
-							+ getPidFile()
-							+ " but failed. The file may remain and be picked up by a new GSC");
-				}
-
-				stop(StopReason.UNDEPLOY);
-
-				if (executors != null) {
-					executors.shutdown();
-				}
-
-				try {
-					getUsmLifecycleBean().fireShutdown();
-				} catch (final USMException e) {
-					logger.log(
-							Level.SEVERE,
-							"Failed to execute shutdown event: "
-									+ e.getMessage(), e);
-				}
-
-				// after shutdown, no further events are expected to be
-				// executed.
-				// So we delete the service folder contents. This is just in
-				// case the GSC does
-				// not properly clean up the service folder. If an underlying
-				// process is leaking,
-				// this may cause all sorts of problems, though.
-				if (this.runningInGSC) {
-					deleteExtDirContents(); // avoid deleting contents in
-											// Integrated PU
-				}
-
-				USMUtils.shutdownAdmin();
+			if (!FileUtils.deleteQuietly(getPidFile())) {
+				logger.severe("Attempted to delete PID file: "
+						+ getPidFile()
+						+ " but failed. The file may remain and be picked up by a new GSC");
 			}
-			// Sleep for 10 seconds to allow rest to poll for shutdown lifecycle
-			// events
-			// form the GSC logs before GSC is destroyed.
+
+			stop(StopReason.UNDEPLOY);
+
+			if (executors != null) {
+				executors.shutdown();
+			}
+
 			try {
-				Thread.sleep(PRE_SHUTDOWN_TIMEOUT_MILLIS);
-			} catch (final InterruptedException e) {
-				logger.log(
-						Level.INFO,
-						"Failed to stall GSC shutdown. Some lifecycle logs may not have been recorded.",
-						e);
+				getUsmLifecycleBean().fireShutdown();
+			} catch (final USMException e) {
+				logger.log(Level.SEVERE, "Failed to execute shutdown event: "
+						+ e.getMessage(), e);
 			}
-			logger.info("USM shut down completed!");
-		} catch (Exception e) {
-			logger.log(Level.SEVERE, "NPE!!", e);
+
+			// after shutdown, no further events are expected to be
+			// executed.
+			// So we delete the service folder contents. This is just in
+			// case the GSC does
+			// not properly clean up the service folder. If an underlying
+			// process is leaking,
+			// this may cause all sorts of problems, though.
+			if (this.runningInGSC) {
+				deleteExtDirContents(); // avoid deleting contents in
+										// Integrated PU
+			}
+
+			USMUtils.shutdownAdmin();
 		}
+		// Sleep for 10 seconds to allow rest to poll for shutdown lifecycle
+		// events
+		// form the GSC logs before GSC is destroyed.
+		try {
+			Thread.sleep(PRE_SHUTDOWN_TIMEOUT_MILLIS);
+		} catch (final InterruptedException e) {
+			logger.log(
+					Level.INFO,
+					"Failed to stall GSC shutdown. Some lifecycle logs may not have been recorded.",
+					e);
+		}
+		logger.info("USM shut down completed!");
+
 	}
 
 	private void deleteExtDirContents() {
