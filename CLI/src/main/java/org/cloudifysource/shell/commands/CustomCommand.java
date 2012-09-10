@@ -20,7 +20,6 @@ package org.cloudifysource.shell.commands;
  * @since 2.0.0
  */
 public class CustomCommand extends AdminAwareCommand {
-	protected String name;
 
 	/**
 	 * {@inheritDoc}
