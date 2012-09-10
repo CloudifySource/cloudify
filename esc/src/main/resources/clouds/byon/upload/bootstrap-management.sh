@@ -98,8 +98,8 @@ sed -i "1i export CLOUDIFY_CLOUD_HARDWARE_ID=$CLOUDIFY_CLOUD_HARDWARE_ID" setenv
 
 cd $WORKING_HOME_DIRECTORY/gigaspaces/tools/cli || error_exit $? "Failed changing directory to cli directory"
 
-chmod +x /tmp/gs-files/gigaspaces/bin/*.sh
-chmod +x /tmp/gs-files/gigaspaces/tools/cli/*.sh
+chmod +x /tmp/upload/gs-files/gigaspaces/bin/*.sh
+chmod +x /tmp/upload/gs-files/gigaspaces/tools/cli/*.sh
 
 # START AGENT ALONE OR WITH MANAGEMENT
 if [ -f nohup.out ]; then

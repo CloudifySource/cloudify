@@ -271,7 +271,7 @@ public class AgentlessInstaller {
 
 		}
 
-		logger.info("Setting local directory for file upload to: " + localDirPath);
+		logger.fine("Setting local directory for file upload to: " + localDirPath);
 		final FileSystemManager mng = createdManager;
 
 		mng.setLogger(org.apache.commons.logging.LogFactory.getLog(logger.getName()));

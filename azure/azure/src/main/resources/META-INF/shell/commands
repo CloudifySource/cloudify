@@ -1,4 +1,0 @@
-org.cloudifysource.azure.shell.commands.AzureSetNumberOfInstances
-org.cloudifysource.azure.shell.commands.AzureBootstrapApplication
-org.cloudifysource.azure.shell.commands.AzureConnectApplication
-org.cloudifysource.azure.shell.commands.AzureTeardownApplication

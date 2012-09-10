@@ -48,7 +48,6 @@
 	<property name="recipes.local.copy" value="${basedir}/../../cloudify-recipes" />
 	<property name="dsl.local.copy" value="${basedir}/../dsl" />
 	<property name="cli.local.copy" value="${basedir}/../CLI" />
-	<property name="azure.local.copy" value="${basedir}/../azure" />
 	<property name="restful.local.copy" value="${basedir}/../restful" />
 	<property name="esc-commands.local.copy" value="${basedir}/../esc-commands" />
 	<property name="releases.dir" value="${basedir}/releases" />
@@ -224,12 +223,6 @@
 	            <fileset dir="${gigaspaces.related.folder}/bin" includes="cloudify.*" excludes=".svn"/>
 	        </copy>
 	
-	        <echo message="Copy CLOUDIFY Azure component"/>
-	        <copy todir="@{installation.dir}/tools/cli/plugins/azure" overwrite="true">
-	            <fileset dir="${azure.local.copy}/azure/src/main/resources/azure" includes="**/*" excludes=".svn"/>
-	            <fileset dir="${azure.local.copy}/azure/target/" includes="azure.jar" excludes=".svn"/>
-	        </copy>
-	
 	        <echo message="Copy CLOUDIFY Rest component"/>
 	        <copy todir="@{installation.dir}/tools/rest/" overwrite="true">
 	            <fileset dir="${restful.local.copy}/target/" includes="rest.war" excludes=".svn"/>
@@ -294,11 +287,6 @@
 	
 	<target name="prepare.cloudify.package.without.unzip">
 		<loadproperties srcfile="${basedir}/${build.properties.file}"/>
-    	<condition property="working.roles.exists">
-    		<resourceexists>
-                    <file file="${azure.local.copy}/WorkerRoles.zip"/>
-            </resourceexists>
-    	</condition>
     	<ant target="update.gs.runtime" />
     	<ant target="remove.xap.related.modules" />
         <ant target="update.lus.groups"/>
@@ -308,7 +296,6 @@
     	<ant target="replace.xap.content.with.cloudify.related"/>
         <ant target="replace.cloudify.license"/>
     	<ant target="replace.cloudify.notice"/>
-    	<ant target="add.azure.artifacts" />
     	<dos2unix dir="${tmp.dir}/${cloudify.installation.dir}" />
  
     	<!-- conditional task (with property: publish.cloudify.build) -->
@@ -408,23 +395,6 @@
 		
    	</target>
 	
-	<target name="add.azure.artifacts" if="working.roles.exists">
-		<copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure" failonerror="false">
-       		<fileset dir="${azure.local.copy}" includes="azureconfig.exe*"/>
-		</copy>
-		
-		<copy todir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure" failonerror="false"  >
-       		<fileset dir="${azure.local.copy}" includes="WorkerRoles.zip"/>
-		</copy>
-
-		<unzip 
-			dest="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure" 
-			src="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles.zip">
-		</unzip>
-		<delete file="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles.zip" />
-				
-	</target>
-	
 	<target name="prepare.and.copy.packages" depends="update_platform_version_svn, update_platform_version_git">
 		<ant target="prepare.cloudify.package" />
 		<ant target="prepare.bigdata.package" />
@@ -509,7 +479,7 @@
    </target>
 	
 	<target name="update.cloudify.service.configuration.url" if="release.build">
-        <echo message="Updating ServiceConfiguration in directory: ${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles/GigaSpacesWorkerRoles ..."/>
+        <echo message="Updating ServiceConfiguration in directory: ${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/esc ..."/>
 		
 		<property name="cloudify.url" value="${cloudify.cdn.publish.url}/${cloudify.put.target}" />
 
@@ -530,17 +500,6 @@
 		</exec>
 
 		<!-- Update files in ${tmp.dir}/${cloudify.installation.dir} and in source folders -->
-		<replaceregexp byline="true" 
-    		match="&lt;Setting name=&quot;GigaSpaces\.XAP\.DownloadUrl&quot; value=&quot;(.*)&quot; /&gt;" 
-    		replace="&lt;Setting name=&quot;GigaSpaces\.XAP\.DownloadUrl&quot; value=&quot;${cloudify.url.encoded}&quot; /&gt;">
-    		<fileset
-    			dir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/azure/WorkerRoles/GigaSpacesWorkerRoles" 
-    			includes="ServiceConfiguration.Cloud.cscfg" />
-    		<fileset 
-    			dir="${azure.local.copy}/GigaSpacesWorkerRoles/GigaSpacesWorkerRoles" 
-    			includes="ServiceConfiguration.Cloud.cscfg" />		
-    	</replaceregexp>
-		
 		<replaceregexp byline="true"
     		match="cloudifyUrl &quot;(.*)&quot;" 
     		replace="cloudifyUrl &quot;${cloudify.url}&quot;" >
@@ -563,7 +522,6 @@
 			<arg value="${svnant.repository.passwd}" />
 			<arg value="-m" />
 			<arg value="Update cloudify url" />
-			<arg value="azure/GigaSpacesWorkerRoles/GigaSpacesWorkerRoles" />
 			<arg value="esc/src/main/resources/clouds" />			
 		</exec>
 	</target>

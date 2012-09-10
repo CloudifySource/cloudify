@@ -18,6 +18,7 @@ package org.cloudifysource.esc.driver.provisioning;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -213,7 +214,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			machineDetails = provisionMachine(locationId, duration, unit);
 
 		} catch (final Exception e) {
-			logger.log(Level.WARNING, "Failed to provision machine, reason: " + e.getMessage(), e);
 			throw new ElasticMachineProvisioningException("Failed to provisiong machine: " + e.getMessage(), e);
 		}
 
@@ -574,7 +574,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private void handleServiceCloudConfiguration()
 			throws IOException {
 		final byte[] serviceCloudConfigurationContents = this.config.getServiceCloudConfiguration();
-		logger.info("serviceCloudConfigurationContents is: " + serviceCloudConfigurationContents);
 		if (serviceCloudConfigurationContents != null) {
 			logger.info("Found service cloud configuration - saving to file");
 			final File tempZipFile = File.createTempFile("__CLOUD_DRIVER_SERVICE_CONFIGURATION_FILE", ".zip");
@@ -591,7 +590,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 			final File[] childFiles = tempServiceConfigurationDirectory.listFiles();
 
-			logger.info("Unzipped configuration contained top-level entries: " + childFiles);
+			logger.info("Unzipped configuration contained top-level entries: " + Arrays.toString(childFiles));
 			if (childFiles.length != 1) {
 				throw new BeanConfigurationException(
 						"Received a service cloud configuration file, "

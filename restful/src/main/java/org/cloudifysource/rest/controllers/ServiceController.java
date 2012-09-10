@@ -124,6 +124,8 @@ import org.openspaces.admin.zone.config.AtLeastOneZoneConfigurer;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.context.GigaSpaceContext;
 import org.openspaces.core.util.MemoryUnit;
+import org.openspaces.pu.service.ServiceDetails;
+import org.openspaces.pu.service.ServiceDetailsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -150,7 +152,7 @@ import com.gigaspaces.log.LogEntryMatchers;
  */
 @Controller
 @RequestMapping("/service")
-public class ServiceController {
+public class ServiceController implements ServiceDetailsProvider{
 
 	private static final String LOCALCLOUD_ZONE = "localcloud";
 	private static final int MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED = 1000;
@@ -175,7 +177,8 @@ public class ServiceController {
 	private GigaSpace gigaSpace;
 
 	private Cloud cloud = null;
-
+	private CloudTemplate managementTemplate;
+	
 	private static final Logger logger = Logger.getLogger(ServiceController.class.getName());
 	private static final long DEFAULT_DUMP_FILE_SIZE_LIMIT = 5 * 1024 * 1024;
 
@@ -188,6 +191,7 @@ public class ServiceController {
 
 	@Value("${restful.temporaryFolder}")
 	private String temporaryFolder;
+	
 
 	/**
 	 * Initializing the cloud configuration. Executed by Spring after the object is instantiated and the dependencies
@@ -204,6 +208,8 @@ public class ServiceController {
 			this.defaultTemplateName = this.cloud.getTemplates().keySet().iterator().next();
 			logger.info("Setting default template name to: " + defaultTemplateName
 					+ ". This template will be used for services that do not specify an explicit template");
+			
+			this.managementTemplate = this.cloud.getTemplates().get(this.cloud.getConfiguration().getManagementMachineTemplate());
 		} else {
 			logger.info("Service Controller is running in local cloud mode");
 		}
@@ -1435,7 +1441,7 @@ public class ServiceController {
 
 			logger.info("Creating cloud machine provisioning config. Template remote directory is: " + template.getRemoteDirectory());
 			final CloudifyMachineProvisioningConfig config =
-					new CloudifyMachineProvisioningConfig(cloud, template, templateName);
+					new CloudifyMachineProvisioningConfig(cloud, template, templateName, this.managementTemplate.getRemoteDirectory());
 
 			final String[] zones = new String[] { serviceName }; //TODO: [itaif] consider using agentZones
 
@@ -1845,7 +1851,7 @@ public class ServiceController {
 			final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
 
 			final CloudifyMachineProvisioningConfig config =
-					new CloudifyMachineProvisioningConfig(cloud, template, templateName);
+					new CloudifyMachineProvisioningConfig(cloud, template, templateName, this.managementTemplate.getRemoteDirectory());
 			// CloudMachineProvisioningConfig config =
 			// CloudDSLToCloudMachineProvisioningConfig.convert(cloud);
 
@@ -1943,7 +1949,7 @@ public class ServiceController {
 			final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
 
 			final CloudifyMachineProvisioningConfig config =
-					new CloudifyMachineProvisioningConfig(cloud, template, templateName);
+					new CloudifyMachineProvisioningConfig(cloud, template, templateName, this.managementTemplate.getRemoteDirectory());
 			// CloudMachineProvisioningConfig config =
 			// CloudDSLToCloudMachineProvisioningConfig.convert(cloud);
 
@@ -2009,7 +2015,7 @@ public class ServiceController {
 			validateAndPrepareStatefulSla(serviceName, puConfig.getSla(), cloud, template);
 
 			final CloudifyMachineProvisioningConfig config =
-					new CloudifyMachineProvisioningConfig(cloud, template, templateName);
+					new CloudifyMachineProvisioningConfig(cloud, template, templateName, this.managementTemplate.getRemoteDirectory());
 
 			final String locators = extractLocators(admin);
 			config.setLocator(locators);
@@ -2320,6 +2326,12 @@ public class ServiceController {
 				return instance.getGridServiceContainer();
 			}
 		}
+		return null;
+	}
+
+	@Override
+	public ServiceDetails[] getServicesDetails() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 }
