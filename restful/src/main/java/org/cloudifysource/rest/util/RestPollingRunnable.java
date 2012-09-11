@@ -312,7 +312,7 @@ public class RestPollingRunnable implements Runnable {
             if (zone == null) {
             	try {
             		Boolean undeployedSuccessfully = this.undeployTask.get(ONE_SEC, TimeUnit.MINUTES);
-            		if (undeployedSuccessfully) {
+            		if (undeployedSuccessfully != null && undeployedSuccessfully) {
             			this.serviceNames.remove(serviceName);
             		}
             	} catch (Exception e) {
