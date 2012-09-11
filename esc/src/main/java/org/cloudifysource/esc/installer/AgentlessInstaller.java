@@ -50,7 +50,7 @@ import org.apache.tools.ant.taskdefs.optional.testing.BuildTimeoutException;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.util.ShellCommandBuilder;
 import org.cloudifysource.esc.util.Utils;
-import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioningException;
+import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticMachineProvisioningException;
 
 /************
  * The agentless installer class is responsible for installing Cloudify on a remote machine, using only SSH. It will
