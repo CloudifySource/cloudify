@@ -484,11 +484,11 @@ public class Service {
 	@DSLValidation
 	void validateIcon(final DSLValidationContext validationContext) throws DSLValidationException {
 		boolean isServiceFile = false;
-		String serviceSuffix = DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX.toLowerCase().trim();
-		String filePath = validationContext.getFilePath().toLowerCase().trim();
+		String serviceSuffix = DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX.trim();
+		String filePath = validationContext.getFilePath().trim();
 		
 		// execute this validation only if an icon was set and this is a Service's groovy file (not an Application's) 
-		if (filePath.lastIndexOf(serviceSuffix) + 1 + serviceSuffix.length() ==  filePath.length()) {
+		if (filePath.endsWith(serviceSuffix)) {
 			isServiceFile = true;
 		}
 		
