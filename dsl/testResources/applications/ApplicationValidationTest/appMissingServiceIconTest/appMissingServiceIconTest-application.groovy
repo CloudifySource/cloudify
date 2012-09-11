@@ -1,0 +1,5 @@
+application {
+	service {
+		name = "simple"
+	}
+}

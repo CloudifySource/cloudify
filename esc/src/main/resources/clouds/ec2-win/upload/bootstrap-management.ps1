@@ -106,7 +106,7 @@ $cloudifyZip = "$parentDirectory\gigaspaces.zip"
 $cloudifyDir = "$parentDirectory\gigaspaces"
 
 # Download Cloudify
-download $ENV:CLOUDIFY_LINK $cloudifyZip
+download "$ENV:CLOUDIFY_LINK.zip" $cloudifyZip
 # unzip Cloudify
 unzip $cloudifyZip $cloudifyDir
 # move one folder up, to standardize across versions
@@ -114,7 +114,7 @@ move $cloudifyDir\*\* $cloudifyDir
 
 # Download Cloudify Overrides
 if(Test-Path Env:\CLOUDIFY_OVERRIDES_LINK) {
-	download $ENV:CLOUDIFY_OVERRIDES_LINK $parentDirectory\gigaspaces-overrides.zip
+	download "$ENV:CLOUDIFY_OVERRIDES_LINK.zip" $parentDirectory\gigaspaces-overrides.zip
 	# unzip Cloudify-overrides
 	unzip $parentDirectory\gigaspaces-overrides.zip $cloudifyDir
 }

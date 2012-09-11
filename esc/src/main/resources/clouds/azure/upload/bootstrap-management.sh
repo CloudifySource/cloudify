@@ -47,6 +47,16 @@ function error_exit_on_level {
 JAVA_32_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-i586.bin"
 JAVA_64_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-x64.bin"
 
+# add localhost mapping to /etc/hosts
+
+HOST_NAME=`hostname`
+echo -e "#! /bin/bash\n echo $PASSWORD" > $WORKING_HOME_DIRECTORY/password.sh
+chmod +x $WORKING_HOME_DIRECTORY/password.sh
+SUDO_ASKPASS=$WORKING_HOME_DIRECTORY/password.sh
+export SUDO_ASKPASS
+echo "$MACHINE_IP_ADDRESS $HOST_NAME" | sudo -A tee -a /etc/hosts
+rm $WORKING_HOME_DIRECTORY/password.sh
+
 # If not JDK specified, determine which JDK to install based on hardware architecture
 if [ -z "$CLOUDIFY_AGENT_ENV_JAVA_URL" ]; then
 	ARCH=`uname -m`
@@ -66,11 +76,6 @@ if [ "$CLOUDIFY_AGENT_ENV_JAVA_URL" = "NO_INSTALL" ]; then
 	echo "JDK will not be installed"
 else
 	echo Previous JAVA_HOME value -- $JAVA_HOME 
-	if [ -d ~/java ] 
-	then 
-		echo "Deleteing previous java installtion"
-		rm -rf ~/java
-	fi
 	export CLOUDIFY_ORIGINAL_JAVA_HOME=$JAVA_HOME
 
 	echo Downloading JDK from $CLOUDIFY_AGENT_ENV_JAVA_URL    
@@ -89,34 +94,24 @@ fi
 
 export EXT_JAVA_OPTIONS="-Dcom.gs.multicast.enabled=false"
 
-# Some distros do not come with unzip built-in
-if [ ! -f "/usr/bin/unzip" ]; then
-	chmod +x $WORKING_HOME_DIRECTORY/unzip || error_exit $? "Failed changing execution permission to unzip"
-	chmod +x $WORKING_HOME_DIRECTORY/unzipsfx || error_exit $? "Failed changing execution permission to unzip"
-	
-	cp $WORKING_HOME_DIRECTORY/unzip /usr/bin || error_exit $? "Failed copying unzip"
-	cp $WORKING_HOME_DIRECTORY/unzipsfx /usr/bin || error_exit $? "Failed copying unzip"
-fi
-
-
 if [ ! -z "$CLOUDIFY_LINK" ]; then
-	echo Downloading cloudify installation from $CLOUDIFY_LINK
-	wget -q $CLOUDIFY_LINK -O $WORKING_HOME_DIRECTORY/gigaspaces.zip || error_exit $? "Failed downloading cloudify installation"
+	echo Downloading cloudify installation from $CLOUDIFY_LINK.tar.gz
+	wget -q $CLOUDIFY_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz || error_exit $? "Failed downloading cloudify installation"
 fi
 
 if [ ! -z "$CLOUDIFY_OVERRIDES_LINK" ]; then
-	echo Downloading cloudify overrides from $CLOUDIFY_OVERRIDES_LINK
-	wget -q $CLOUDIFY_OVERRIDES_LINK -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.zip || error_exit $? "Failed downloading cloudify overrides"
+	echo Downloading cloudify overrides from $CLOUDIFY_OVERRIDES_LINK.tar.gz
+	wget -q $CLOUDIFY_OVERRIDES_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz || error_exit $? "Failed downloading cloudify overrides"
 fi
 
 # Todo: Check this condition
-if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.zip -nt ~/gigaspaces ]; then
+if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -nt ~/gigaspaces ]; then
 	rm -rf ~/gigaspaces || error_exit $? "Failed removing old gigaspaces directory"
 	mkdir ~/gigaspaces || error_exit $? "Failed creating gigaspaces directory"
 	
 	# 2 is the error level threshold. 1 means only warnings
 	# this is needed for testing purposes on zip files created on the windows platform 
-	unzip -q $WORKING_HOME_DIRECTORY/gigaspaces.zip -d ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify installation" 2 
+	tar xfz $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -C ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify installation" 2 
 
 	# Todo: consider removing this line
 	chmod -R 777 ~/gigaspaces || error_exit $? "Failed changing permissions in cloudify installion"
@@ -124,7 +119,7 @@ if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.zip -nt ~/gigaspa
 	
 	if [ ! -z "$CLOUDIFY_OVERRIDES_LINK" ]; then
 		echo Copying overrides into cloudify distribution
-		unzip -qo $WORKING_HOME_DIRECTORY/gigaspaces_overrides.zip -d ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify overrides" 2 		
+		tar xfz $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz -d ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify overrides" 2 		
 	fi
 fi
 
@@ -142,6 +137,7 @@ sed -i "1i export LOOKUPLOCATORS=$LUS_IP_ADDRESS" setenv.sh || error_exit $? "Fa
 sed -i "1i export CLOUDIFY_CLOUD_IMAGE_ID=$CLOUDIFY_CLOUD_IMAGE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "1i export CLOUDIFY_CLOUD_HARDWARE_ID=$CLOUDIFY_CLOUD_HARDWARE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "1i export PATH=$JAVA_HOME/bin:$PATH" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "1i export JAVA_HOME=$JAVA_HOME" setenv.sh || error_exit $? "Failed updating setenv.sh"
 
 cd ~/gigaspaces/tools/cli || error_exit $? "Failed changing directory to cli directory"
 
@@ -157,35 +153,20 @@ fi
 # Privileged mode handling
 
 if [ "$CLOUDIFY_AGENT_ENV_PRIVILEGED" = "true" ]; then
-	echo Setting privileged mode
 	export CLOUDIFY_USER=`whoami`
 	if [ "$CLOUDIFY_USER" = "root" ]; then
 		# root is privileged by definition
-		echo Already running as root
+		echo Running as root
 	else
-		sudo -n ls > /dev/null || error_exit_on_level $? "Current user is not a sudoer, or requires a password for sudo" 1
-		
-		if [ ! -f "/etc/sudoers" ]; then
-			error_exit 101 "Could not find sudoers file at expected location (/etc/sudoers)"
-		fi
-		
-		echo Disabling requiretty directive
-		sudo sed -i 's/^Defaults    requiretty/# Defaults    requiretty/g' /etc/sudoers || error_exit_on_level $? "Failed to edit sudoers file to disable requiretty directive" 1
-		
-		
+		sudo -n ls || error_exit_on_level $? "Current user is not a sudoer, or requires a password for sudo" 1
 	fi
+	if [ ! -f "/etc/sudoers" ]; then
+		error_exit 101 "Could not find sudoers file at expected location (/etc/sudoers)"
+	fi	
+	echo Setting privileged mode
+	sudo sed -i 's/^Defaults.*requiretty/#&/g' /etc/sudoers  || error_exit_on_level $? "Failed to edit sudoers file to disable requiretty directive" 1
 
 fi
-
-# add localhost mapping to /etc/hosts
-
-HOST_NAME=`hostname`
-echo -e "#! /bin/bash\n echo $PASSWORD" > $WORKING_HOME_DIRECTORY/password.sh
-chmod +x $WORKING_HOME_DIRECTORY/password.sh
-SUDO_ASKPASS=$WORKING_HOME_DIRECTORY/password.sh
-export SUDO_ASKPASS
-echo "$MACHINE_IP_ADDRESS $HOST_NAME" | sudo -A tee -a /etc/hosts
-rm $WORKING_HOME_DIRECTORY/password.sh
 
 if [ ! -z "$CLOUDIFY_AGENT_ENV_INIT_COMMAND" ]; then
 	echo Executing initialization command

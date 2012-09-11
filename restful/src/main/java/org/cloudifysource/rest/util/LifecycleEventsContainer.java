@@ -127,7 +127,7 @@ public class LifecycleEventsContainer {
             }
         }
     }
-
+    
     /**
      * Creates a formatted message based on a given map of details.
      * 

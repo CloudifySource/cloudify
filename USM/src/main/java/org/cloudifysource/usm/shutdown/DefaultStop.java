@@ -28,22 +28,25 @@ import org.cloudifysource.usm.events.StopListener;
 import org.cloudifysource.usm.events.StopReason;
 
 /************
- * Default USM service stopper - responsible for shutting down service processes using SIGAR kill commands.
+ * Default USM service stopper - responsible for shutting down service processes
+ * using SIGAR kill commands.
  * 
  * @author barakme
  * @since 2.2
  * 
  */
-public class DefaultStop extends AbstractUSMEventListener implements StopListener {
+public class DefaultStop extends AbstractUSMEventListener implements
+		StopListener {
 
-	private static final java.util.logging.Logger logger =
-			java.util.logging.Logger.getLogger(DefaultStop.class.getName());
+	private static final java.util.logging.Logger logger = java.util.logging.Logger
+			.getLogger(DefaultStop.class.getName());
 
 	@Override
 	public EventResult onStop(final StopReason reason) {
 		final List<Long> pids = this.usm.getServiceProcessesList();
 
-		Service service = this.usm.getUsmLifecycleBean().getConfiguration().getService();
+		Service service = this.usm.getUsmLifecycleBean().getConfiguration()
+				.getService();
 		if (service.getLifecycle().getStart() == null) {
 			logger.info("Service did not specify a 'start' element,"
 					+ " so default stop implementation will not shutdown any processes. Current service process list: "
@@ -51,22 +54,27 @@ public class DefaultStop extends AbstractUSMEventListener implements StopListene
 		}
 
 		USMException firstException = null;
-		for (final Long pid : pids) {
+		if (pids != null) {
+			for (final Long pid : pids) {
 
-			try {
-				if (USMUtils.isProcessAlive(pid)) {
-					usm.getUsmLifecycleBean().getProcessKiller().killProcess(pid);
+				try {
+					if (USMUtils.isProcessAlive(pid)) {
+						usm.getUsmLifecycleBean().getProcessKiller()
+								.killProcess(pid);
+					}
+				} catch (final USMException e) {
+					firstException = e;
+					logger.log(Level.SEVERE,
+							"Failed to kill process with pid: " + pid, e);
 				}
-			} catch (final USMException e) {
-				firstException = e;
-				logger.log(Level.SEVERE, "Failed to kill process with pid: " + pid, e);
 			}
 		}
 
 		if (firstException == null) {
 			return EventResult.SUCCESS;
 		} else {
-			logger.log(Level.SEVERE,
+			logger.log(
+					Level.SEVERE,
 					"Default stop implementation failed to stop at least one process. "
 							+ "This process may be leaking. First exception was: "
 							+ firstException.getMessage(), firstException);

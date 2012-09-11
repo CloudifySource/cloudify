@@ -716,6 +716,7 @@ public class LocalhostGridAgentBootstrapper {
 
 		String[] command;
 		if (isLocalCloud) {
+			publishEvent(ShellUtils.getMessageBundle().getString("starting_bootstrap_localcloud"));
 			if (isWindows()) {
 				command = Arrays.copyOf(WINDOWS_LOCALCLOUD_COMMAND, WINDOWS_LOCALCLOUD_COMMAND.length);
 				args.addAll(Arrays.asList(WINDOWS_ARGUMENTS_POSTFIX));
@@ -740,6 +741,7 @@ public class LocalhostGridAgentBootstrapper {
 			publishEvent(message);
 			logger.fine(message);
 		}
+		
 		publishEvent(ShellUtils.getMessageBundle().getString("starting_cloudify_management"));
 		runCommand(command, args.toArray(new String[args.size()]));
 
@@ -896,7 +898,7 @@ public class LocalhostGridAgentBootstrapper {
 
 						
 						final CloudConfigurationHolder holder = new CloudConfigurationHolder(null, getCloudFilePath());
-						logger.info("Writing cloud Configuration to space: " + holder);
+						logger.fine("Writing cloud Configuration to space: " + holder);
 						gigaspace.write(holder);
 						// Shut down the space proxy so that if the cloud is turned down later, there will not
 						// be any discovery errors.
@@ -1072,20 +1074,22 @@ public class LocalhostGridAgentBootstrapper {
 				}
 
 				if (verbose) {
-					for (final Object component : components) {
-						final GridServiceAgent agentThatStartedComponent = ((AgentGridComponent) component)
-								.getGridServiceAgent();
-						String agentUid = null;
-						if (agentThatStartedComponent != null) {
-							agentUid = agentThatStartedComponent.getUid();
+					if (!isLocalCloud) {
+						for (final Object component : components) {
+							final GridServiceAgent agentThatStartedComponent = ((AgentGridComponent) component)
+									.getGridServiceAgent();
+							String agentUid = null;
+							if (agentThatStartedComponent != null) {
+								agentUid = agentThatStartedComponent.getUid();
+							}
+							String message = "Detected " + serviceName + " management process " + " started by agent "
+									+ agentUid + " ";
+							if (!checkAgent((AgentGridComponent) component)) {
+								message += " expected agent " + agent.getUid();
+							}
+							logger.fine(message);
+							publishEvent(message);
 						}
-						String message = "Detected " + serviceName + " management process " + " started by agent "
-								+ agentUid + " ";
-						if (!checkAgent((AgentGridComponent) component)) {
-							message += " expected agent " + agent.getUid();
-						}
-						logger.fine(message);
-						publishEvent(message);
 					}
 				}
 				if (!verbose) {
