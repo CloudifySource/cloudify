@@ -898,7 +898,7 @@ public class LocalhostGridAgentBootstrapper {
 
 						
 						final CloudConfigurationHolder holder = new CloudConfigurationHolder(null, getCloudFilePath());
-						logger.info("Writing cloud Configuration to space: " + holder);
+						logger.fine("Writing cloud Configuration to space: " + holder);
 						gigaspace.write(holder);
 						// Shut down the space proxy so that if the cloud is turned down later, there will not
 						// be any discovery errors.
