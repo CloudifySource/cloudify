@@ -308,11 +308,11 @@ public class RestPollingRunnable implements Runnable {
         
         if (isUninstall) { 
             String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-            final Zone zone = admin.getZones().waitFor(absolutePuName, 2, TimeUnit.SECONDS);
+            final Zone zone = admin.getZones().waitFor(absolutePuName, ONE_SEC, TimeUnit.SECONDS);
             if (zone == null) {
             	try {
-            		Boolean undeployedSuccessfully = this.undeployTask.get(ONE_SEC, TimeUnit.MINUTES);
-            		if (undeployedSuccessfully != null && undeployedSuccessfully) {
+            		Boolean undeployedSuccessfully = this.undeployTask.get(ONE_SEC, TimeUnit.SECONDS);
+            		if (undeployedSuccessfully) {
             			this.serviceNames.remove(serviceName);
             		}
             	} catch (Exception e) {

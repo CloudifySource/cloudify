@@ -1379,7 +1379,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		restPollingRunnable
 				.setLifecycleEventsContainer(lifecycleEventsContainer);
 		restPollingRunnable.setIsUninstall(true);
-		restPollingRunnable.setFutureTask(undeployTask);
+		restPollingRunnable.setUndeployTask(undeployTask);
 		restPollingRunnable.setEndTime(timeoutInMinutes, TimeUnit.MINUTES);
 		this.lifecyclePollingThreadContainer.put(lifecycleEventsContainerID,
 				restPollingRunnable);
