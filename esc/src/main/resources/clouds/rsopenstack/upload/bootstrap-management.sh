@@ -17,6 +17,7 @@
 #	$NO_WEB_SERVICES - If set to 'true', indicates that the rest and web-ui services should not be deployed in this machine.
 #	$CLOUDIFY_CLOUD_IMAGE_ID - If set, indicates the image ID for this machine.
 #	$CLOUDIFY_CLOUD_HARDWARE_ID - If set, indicates the hardware ID for this machine.
+#	$PASSWORD - the machine password
 #############################################################################
 
 # args:
@@ -83,31 +84,24 @@ fi
 
 export EXT_JAVA_OPTIONS="-Dcom.gs.multicast.enabled=false"
 
-# Some distros - especially on rackspace - do not come with unzip built-in
-if [ ! -f "/usr/bin/unzip" ]; then
-	yum -y -q update
-	yum -y -q install unzip
-fi
-
-
 if [ ! -z "$CLOUDIFY_LINK" ]; then
-	echo Downloading cloudify installation from $CLOUDIFY_LINK
-	wget -q $CLOUDIFY_LINK -O $WORKING_HOME_DIRECTORY/gigaspaces.zip || error_exit $? "Failed downloading cloudify installation"
+	echo Downloading cloudify installation from $CLOUDIFY_LINK.tar.gz
+	wget -q $CLOUDIFY_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz || error_exit $? "Failed downloading cloudify installation"
 fi
 
 if [ ! -z "$CLOUDIFY_OVERRIDES_LINK" ]; then
-	echo Downloading cloudify overrides from $CLOUDIFY_OVERRIDES_LINK
-	wget -q $CLOUDIFY_OVERRIDES_LINK -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.zip || error_exit $? "Failed downloading cloudify overrides"
+	echo Downloading cloudify overrides from $CLOUDIFY_OVERRIDES_LINK.tar.gz
+	wget -q $CLOUDIFY_OVERRIDES_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz || error_exit $? "Failed downloading cloudify overrides"
 fi
 
 # Todo: Check this condition
-if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.zip -nt ~/gigaspaces ]; then
+if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -nt ~/gigaspaces ]; then
 	rm -rf ~/gigaspaces || error_exit $? "Failed removing old gigaspaces directory"
 	mkdir ~/gigaspaces || error_exit $? "Failed creating gigaspaces directory"
 	
 	# 2 is the error level threshold. 1 means only warnings
 	# this is needed for testing purposes on zip files created on the windows platform 
-	unzip -q $WORKING_HOME_DIRECTORY/gigaspaces.zip -d ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify installation" 2 
+	tar xfz $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -C ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify installation" 2 
 
 	# Todo: consider removing this line
 	chmod -R 777 ~/gigaspaces || error_exit $? "Failed changing permissions in cloudify installion"
@@ -115,7 +109,7 @@ if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.zip -nt ~/gigaspa
 	
 	if [ ! -z "$CLOUDIFY_OVERRIDES_LINK" ]; then
 		echo Copying overrides into cloudify distribution
-		unzip -qo $WORKING_HOME_DIRECTORY/gigaspaces_overrides.zip -d ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify overrides" 2 		
+		tar xfz $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz -d ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify overrides" 2 		
 	fi
 fi
 
@@ -133,9 +127,7 @@ sed -i "1i export LOOKUPLOCATORS=$LUS_IP_ADDRESS" setenv.sh || error_exit $? "Fa
 sed -i "1i export CLOUDIFY_CLOUD_IMAGE_ID=$CLOUDIFY_CLOUD_IMAGE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "1i export CLOUDIFY_CLOUD_HARDWARE_ID=$CLOUDIFY_CLOUD_HARDWARE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "1i export PATH=$JAVA_HOME/bin:$PATH" setenv.sh || error_exit $? "Failed updating setenv.sh"
-
-# Stop the iptables firewall. Firewall configuration should be specific to each applicatio/service	
-/etc/init.d/iptables stop
+sed -i "1i export JAVA_HOME=$JAVA_HOME" setenv.sh || error_exit $? "Failed updating setenv.sh"
 
 cd ~/gigaspaces/tools/cli || error_exit $? "Failed changing directory to cli directory"
 
