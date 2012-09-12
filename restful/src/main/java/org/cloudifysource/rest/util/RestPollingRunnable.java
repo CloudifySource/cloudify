@@ -316,10 +316,14 @@ public class RestPollingRunnable implements Runnable {
             			this.serviceNames.remove(serviceName);
             		}
             	} catch (Exception e) {
-            		String message = "undeploy task has ended unsuccessfully. Some machines may not have been terminated!";
-            		logger.log(Level.WARNING, message, e);
-            		lifecycleEventsContainer.addInstanceCountEvent(message);
-            		throw new ExecutionException(message, e);
+            		if (e instanceof TimeoutException) {
+            			//ignore
+            		} else {
+            			String message = "undeploy task has ended unsuccessfully. Some machines may not have been terminated!";
+            			logger.log(Level.WARNING, message, e);
+            			lifecycleEventsContainer.addInstanceCountEvent(message);
+            			throw new ExecutionException(message, e);
+            		}
 				}
             }
         } else {
