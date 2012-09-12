@@ -913,11 +913,11 @@ public class ServiceController implements ServiceDetailsProvider {
 					}  
 
 				});
+		serviceUndeployExecutor.execute(undeployTask);
 		final UUID lifecycleEventContainerID =
 				startPollingForServiceUninstallLifecycleEvents(applicationName, serviceName,
 						timeoutInMinutes, undeployTask);
 		
-		serviceUndeployExecutor.execute(undeployTask);
 		final Map<String, Object> returnMap = new HashMap<String, Object>();
 		returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID,
 				lifecycleEventContainerID);
