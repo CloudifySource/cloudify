@@ -38,7 +38,6 @@ import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.print.attribute.standard.Severity;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
