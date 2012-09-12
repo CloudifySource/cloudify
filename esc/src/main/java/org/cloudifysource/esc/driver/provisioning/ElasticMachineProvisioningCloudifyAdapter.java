@@ -65,6 +65,10 @@ import org.openspaces.grid.gsm.machines.isolation.DedicatedMachineIsolation;
 import org.openspaces.grid.gsm.machines.isolation.ElasticProcessingUnitMachineIsolation;
 import org.openspaces.grid.gsm.machines.isolation.SharedMachineIsolation;
 import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioning;
+import org.openspaces.grid.gsm.machines.plugins.events.GridServiceAgentStartRequestedEvent;
+import org.openspaces.grid.gsm.machines.plugins.events.GridServiceAgentStartedEvent;
+import org.openspaces.grid.gsm.machines.plugins.events.MachineStartRequestedEvent;
+import org.openspaces.grid.gsm.machines.plugins.events.MachineStartedEvent;
 import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticGridServiceAgentProvisioningException;
 import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticMachineProvisioningException;
 
@@ -211,6 +215,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			}
 		}
 
+		//TODO: Derive cloudify specific event and include more event details as specified in CLOUDIFY-10651
+		machineEventListener.elasticMachineProvisioningProgressChanged(new MachineStartRequestedEvent());
+
 		try {
 			if (locationId == null) {
 				final CloudTemplate template = cloud.getTemplates().get(this.cloudTemplateName);
@@ -236,7 +243,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			throw new IllegalStateException("The IP of the new machine is null! Machine Details are: "
 					+ machineDetails + " .");
 		}
-
+		//TODO: Derive cloudify specific event and include more event details as specified in CLOUDIFY-10651
+		machineEventListener.elasticMachineProvisioningProgressChanged(new MachineStartedEvent(machineIp));
+		//TODO: Derive cloudify specific event and include more event details as specified in CLOUDIFY-10651
+		agentEventListener.elasticGridServiceAgentProvisioningProgressChanged(new GridServiceAgentStartRequestedEvent(machineIp));
 		try {
 			// check for timeout
 			checkForProvisioningTimeout(end, machineDetails);
@@ -267,6 +277,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				throw new TimeoutException("New machine was provisioned and Cloudify was installed, "
 						+ "but a GSA was not discovered on the new machine: " + machineDetails);
 			}
+			//TODO: Derive cloudify specific event and include more event details as specified in CLOUDIFY-10651
+			agentEventListener.elasticGridServiceAgentProvisioningProgressChanged(new GridServiceAgentStartedEvent(machineIp, gsa.getUid()));
 			return gsa;
 		} catch (final ElasticMachineProvisioningException e) {
 			logger.info("ElasticMachineProvisioningException occurred, " + e.getMessage());
@@ -379,9 +391,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		MachineDetails machineDetails;
 		try {
-
 			machineDetails = cloudifyProvisioning.startMachine(locationId, duration, unit);
-
 		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Failed to start machine: " + e.getMessage(), e);
 		}
