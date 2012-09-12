@@ -167,6 +167,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	private static final String SHARED_ISOLATION_ID = "public";
 	private static final int PU_DISCOVERY_TIMEOUT_SEC = 8;
 	private final Map<UUID, RestPollingRunnable> lifecyclePollingThreadContainer = new ConcurrentHashMap<UUID, RestPollingRunnable>();
+	private final ExecutorService serviceUndeployExecutor = Executors.newFixedThreadPool(10);
 	private final int LIFECYCLE_EVENT_POLLING_INTERVAL_SEC = 4;
 	private final long LIFECYCLE_EVENT_CLEANUP_INTERVAL_SEC = 60;
 	private final long MINIMAL_POLLING_TASK_EXPIRATION = 5 * 60 * 1000;
@@ -912,11 +913,11 @@ public class ServiceController implements ServiceDetailsProvider {
 					}  
 
 				});
-		undeployTask.run();
 		final UUID lifecycleEventContainerID =
 				startPollingForServiceUninstallLifecycleEvents(applicationName, serviceName,
 						timeoutInMinutes, undeployTask);
 		
+		serviceUndeployExecutor.execute(undeployTask);
 		final Map<String, Object> returnMap = new HashMap<String, Object>();
 		returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID,
 				lifecycleEventContainerID);
