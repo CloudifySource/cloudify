@@ -36,12 +36,10 @@ cloud {
 					hardwareId "4"
 					remoteDirectory "/root/gs-files"
 					localDirectory "upload"
-					
+					// enable sudo.
+					privileged true
 				}
 				
-				// enable sudo.
-				privileged true
-
 			])
 			
 	custom ([
