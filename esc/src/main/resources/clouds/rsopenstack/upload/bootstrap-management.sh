@@ -163,6 +163,10 @@ if [ ! -z "$CLOUDIFY_AGENT_ENV_INIT_COMMAND" ]; then
 	$CLOUDIFY_AGENT_ENV_INIT_COMMAND
 fi
 
+# shutdown the internal firewall.
+# NOTE : this is Rackspace specific. other clouds do no require this option.
+/etc/init.d/iptables stop
+
 if [ "$GSA_MODE" = "agent" ]; then
 	ERRMSG="Failed starting agent"
 	nohup ./cloudify.sh start-agent -timeout 30 --verbose -zone $MACHINE_ZONES -auto-shutdown
