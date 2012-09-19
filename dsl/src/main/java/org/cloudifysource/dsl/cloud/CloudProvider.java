@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 
 import com.j_spaces.kernel.PlatformVersion;
@@ -36,10 +37,9 @@ public class CloudProvider {
 
 	private String provider;
 	
-
-	private String cloudifyUrl = "http://repository.cloudifysource.org/org/cloudifysource/"
-			+ PlatformVersion.getVersion()
-			+ "/gigaspaces-cloudify-" + PlatformVersion.getVersion() + "-" + PlatformVersion.getMilestone() 
+	private String cloudifyUrl = "http://repository.cloudifysource.org/" 
+			+ "%s/" + PlatformVersion.getVersion() + "%s/gigaspaces-%s-" 
+			+ PlatformVersion.getVersion() + "-" + PlatformVersion.getMilestone() 
 			+ "-b" + PlatformVersion.getBuildNumber();
 
 	// location of zip file where additional cloudify files are places.
@@ -71,7 +71,7 @@ public class CloudProvider {
 	}	
 
 	public String getCloudifyUrl() {
-		return cloudifyUrl;
+		return getCloudifyUrlAccordingToPlatformVersion();
 	}
 
 	public void setCloudifyUrl(final String cloudifyUrl) {
@@ -166,5 +166,36 @@ public class CloudProvider {
 	public void setCloudifyOverridesUrl(final String cloudifyOverridesUrl) {
 		this.cloudifyOverridesUrl = cloudifyOverridesUrl;
 	}
+	
+	private String getCloudifyUrlAccordingToPlatformVersion() {
+
+		String productUri;
+		String versionPostFix;
+		String editionUrlVariable;
+		
+		if (PlatformVersion.getEdition().equalsIgnoreCase(CloudifyConstants.CLOUDIFY_EDITION)) {
+			productUri = "org/cloudifysource";
+			versionPostFix = "";
+			editionUrlVariable = "cloudify";
+			return String.format(this.cloudifyUrl, productUri, versionPostFix, editionUrlVariable);
+		} else {
+			productUri = "com/gigaspaces/xap";
+			editionUrlVariable = "xap-premium";
+			if (PlatformVersion.getBuildNumber().contains("-")) {
+				versionPostFix = ".SNAPSHOT";
+			} else {
+				versionPostFix = ".RELEASE";
+			}
+			return String.format(cloudifyUrl, productUri, versionPostFix, editionUrlVariable);
+		}
+	}
+	
+	public static void main(String[] args) {
+		CloudProvider cp = new CloudProvider();
+		String cloudifyUrl2 = cp.getCloudifyUrl();
+		System.out.println(cloudifyUrl2);
+	}
+	
+	
 
 }
