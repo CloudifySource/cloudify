@@ -158,7 +158,7 @@ if [ "$CLOUDIFY_AGENT_ENV_PRIVILEGED" = "true" ]; then
 		# root is privileged by definition
 		echo Running as root
 	else
-		sudo -n ls || error_exit_on_level $? "Current user is not a sudoer, or requires a password for sudo" 1
+		sudo -n ls > /dev/null || error_exit_on_level $? "Current user is not a sudoer, or requires a password for sudo" 1
 	fi
 	if [ ! -f "/etc/sudoers" ]; then
 		error_exit 101 "Could not find sudoers file at expected location (/etc/sudoers)"
