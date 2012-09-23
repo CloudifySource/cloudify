@@ -589,7 +589,9 @@ public class ServiceController implements ServiceDetailsProvider {
 		final Applications apps = admin.getApplications();
 		final List<String> appNames = new ArrayList<String>(apps.getSize());
 		for (final Application app : apps) {
-			appNames.add(app.getName());
+			if (!app.getName().equals(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
+				appNames.add(app.getName());
+			}
 		}
 		return successStatus(appNames);
 	}
