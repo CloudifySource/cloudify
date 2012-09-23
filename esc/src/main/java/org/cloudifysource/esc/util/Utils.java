@@ -451,8 +451,6 @@ public final class Utils {
 		}
 		details.setManagementOnlyFiles(managementOnlyFiles);
 
-		details.setManagementOnlyFiles(cloud.getProvider().getManagementOnlyFiles());
-
 		details.setZones(StringUtils.collectionToCommaDelimitedString(zones.getZones()));
 
 		details.setPrivateIp(md.getPrivateAddress());
