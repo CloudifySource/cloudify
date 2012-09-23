@@ -31,6 +31,7 @@ cloud {
 	}
 	templates ([
 				SMALL_LINUX : template{
+					username = "root"
 					imageId "118"
 					machineMemoryMB 1600
 					hardwareId "4"

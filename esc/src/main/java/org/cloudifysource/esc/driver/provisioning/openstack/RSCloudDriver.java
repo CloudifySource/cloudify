@@ -599,7 +599,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 					"/server/@adminPass", doc);
 			MachineDetails md = new MachineDetails();
 			md.setMachineId(serverId);
-			md.setRemoteUsername("root");
+			md.setRemoteUsername(md.getRemoteUsername());
 			md.setRemotePassword(rootPassword);
 			return md;
 		} catch (XPathExpressionException e) {
