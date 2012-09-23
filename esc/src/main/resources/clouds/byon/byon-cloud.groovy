@@ -103,8 +103,7 @@ cloud {
 	custom ([
 		"cleanGsFilesOnShutdown": "true",
 		"itemsToClean": ([
-			"/tmp/gs-files/upload/gigaspaces/work",
-			"/tmp/gs-files/upload/gigaspaces.zip"
+			"/tmp/gs-files/gigaspaces.tar.gz"
 		])
 	])
 
