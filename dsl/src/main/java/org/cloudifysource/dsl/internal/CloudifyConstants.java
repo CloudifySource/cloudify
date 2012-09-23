@@ -230,11 +230,5 @@ public final class CloudifyConstants {
 	 */
 	public static final String REST_API_VERSION_HEADER = "cloudify-api-version";
 	
-	/******************
-	 * Cloudify Platform editions
-	 */
-	public static final String CLOUDIFY_BIGDATA_EDITION = "XAPPremium";
-	public static final String CLOUDIFY_EDITION = "Cloudify";
-
 	// CHECKSTYLE:ON
 }

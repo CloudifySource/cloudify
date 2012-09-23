@@ -5,8 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 
-import org.cloudifysource.dsl.cloud.CloudProvider;
-import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,37 +50,9 @@ public class CloudProviderTest {
 		// unverified
 	}
 
-	/**
-	 * Run the String getCloudifyUrl() method test with the default value.
-	 * 
-	 * @throws Exception
-	 * 
-	 * @generatedBy CodePro at 6/27/12 1:00 PM
-	 */
-	@Test
-	public void testGetCloudifyUrl_2()
-			throws Exception {
-		final CloudProvider fixture = new CloudProvider();
-		fixture.setMachineNamePrefix("");
-		fixture.setReservedMemoryCapacityPerMachineInMB(1);
-		fixture.setProvider("");
-		fixture.setManagementOnlyFiles(new ArrayList());
-		fixture.setNumberOfManagementMachines(1);
-		fixture.setManagementGroup("");
-		fixture.setCloudifyOverridesUrl("");
-		fixture.setSshLoggingLevel("");
-
-		final String result = fixture.getCloudifyUrl();
-
-		// add additional test code here
-		assertTrue("Default cloudify url should point to the cloudifysource repo",
-				result.startsWith("http://repository.cloudifysource.org"));
-		// unverified
-	}
-
 
 	/**
-	 * Run the String getCloudifyUrl() method and check the edition.
+	 * Run the String getCloudifyUrl() method and check it's validity. 
 	 * 
 	 * @throws Exception
 	 * 
@@ -100,13 +71,25 @@ public class CloudProviderTest {
 		fixture.setSshLoggingLevel("");
 
 		final String result = fixture.getCloudifyUrl();
+		assertTrue("Default cloudify url should point to the cloudifysource repo",
+				result.startsWith("http://repository.cloudifysource.org"));
+		
 		String cloudifyEdition = PlatformVersion.getEdition();
 		assertTrue("Can not recognize cloudify edition.",
-				cloudifyEdition.equals(CloudifyConstants.CLOUDIFY_BIGDATA_EDITION) || cloudifyEdition.equals(CloudifyConstants.CLOUDIFY_EDITION));
-		assertTrue("cloudify url not containing any of he known editions", 
+				cloudifyEdition.equals(PlatformVersion.EDITION_XAP_PREMIUM) || cloudifyEdition.equals(PlatformVersion.EDITION_CLOUDIFY));
+		assertTrue("cloudify url not containing any of the known editions", 
 				result.contains("/gigaspaces-xap-premium-") || result.contains("/gigaspaces-cloudify-"));
 		assertTrue("cloudify url not containing valid product key", 
 				result.contains("com/gigaspaces/xap") || result.contains("org/cloudifysource"));
+		assertTrue("Cloudify url was not formatted properly", !result.contains("%s"));
+		validateUrlFormat(result);
+		
+	}
+
+	private void validateUrlFormat(final String result) {
+		String[] schema = {"http"};
+		UrlValidator urlValidator = new UrlValidator(schema);
+		assertTrue("Cloudify URL validation on url " + result + " failed", urlValidator.isValid(result));
 	}
 
 	/**
