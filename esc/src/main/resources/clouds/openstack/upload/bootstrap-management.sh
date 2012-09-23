@@ -141,23 +141,41 @@ if [ -f nohup.out ]; then
 fi
 
 # Privileged mode handling
-
 if [ "$CLOUDIFY_AGENT_ENV_PRIVILEGED" = "true" ]; then
+	# First check if sudo is allowed for current session
 	export CLOUDIFY_USER=`whoami`
 	if [ "$CLOUDIFY_USER" = "root" ]; then
 		# root is privileged by definition
 		echo Running as root
 	else
-		sudo -n ls > /dev/null  || error_exit_on_level $? "Current user is not a sudoer, or requires a password for sudo" 1
+		sudo -n ls > /dev/null || error_exit_on_level $? "Current user is not a sudoer, or requires a password for sudo" 1
 	fi
-	if [ ! -f "/etc/sudoers" ]; then
-		error_exit 101 "Could not find sudoers file at expected location (/etc/sudoers)"
-	fi	
-	echo Setting privileged mode
-	sudo sed -i 's/^Defaults.*requiretty/#&/g' /etc/sudoers  || error_exit_on_level $? "Failed to edit sudoers file to disable requiretty directive" 1
+	
+	# now modify sudoers configuration to allow execution without tty
+	echo Checking for Ubuntu
+	grep -i ubuntu /proc/version > /dev/null
+	if [ "$?" -eq "0" ]; then
+			# ubuntu
+			echo Running on Ubuntu
+			if sudo grep -q -E '[^!]requiretty' /etc/sudoers; then
+				echo creating sudoers user file
+				echo "Defaults:`whoami` !requiretty" | sudo tee /etc/sudoers.d/`whoami` >/dev/null
+				sudo chmod 0440 /etc/sudoers.d/`whoami`
+			else
+				echo No requiretty directive found, nothing to do
+			fi
+	else
+			# other - modify sudoers file
+			if [ ! -f "/etc/sudoers" ]; then
+					error_exit 101 "Could not find sudoers file at expected location (/etc/sudoers)"
+			fi
+			echo Setting privileged mode
+			sudo sed -i 's/^Defaults.*requiretty/#&/g' /etc/sudoers || error_exit_on_level $? "Failed to edit sudoers file to disable requiretty directive" 1
+	fi
 
 fi
 
+# Execute per-template command
 if [ ! -z "$CLOUDIFY_AGENT_ENV_INIT_COMMAND" ]; then
 	echo Executing initialization command
 	$CLOUDIFY_AGENT_ENV_INIT_COMMAND
