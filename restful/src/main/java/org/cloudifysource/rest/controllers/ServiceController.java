@@ -1121,6 +1121,11 @@ public class ServiceController implements ServiceDetailsProvider {
 			return RestUtils.errorStatus(
 					ResponseConstants.FAILED_TO_LOCATE_APP, applicationName);
 		}
+		if (app.getName().equals(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)){
+			logger.log(Level.INFO, "Cannot uninstall the Management application.");
+			return RestUtils.errorStatus(
+					ResponseConstants.CANNOT_UNINSTALL_MANAGEMENT_APP);
+		}
 		final ProcessingUnit[] pus = app.getProcessingUnits()
 				.getProcessingUnits();
 
