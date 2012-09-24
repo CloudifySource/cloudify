@@ -80,19 +80,23 @@ cloud {
 				localDirectory "upload"
 				
 				// Mandatory for BYON.
-					custom ([
-						// Mandatory for BYON. The nodesList custom property lists the nodes that compose this cloud-like environment.
-						// For each node required:
-						// An alias for this node. can be static or use a template with an dynamic-index.
-						// The server's private (local) IP. can be a single IP, a list, a range or CIDR.
-						//Optional - user and password for the node. can be taken from general cloud configuration.
-						"nodesList" : ([
-										([
-											"id" : "byon-pc-lab{0}",
-											"host-list" : "0.0.0.0"
-										])
-						])
+				custom ([
+					// Mandatory for BYON. The nodesList custom property lists the nodes that compose this cloud-like environment.
+					// For each node required:
+					// An alias for this node. can be static or use a template with an dynamic-index.
+					// The server's private (local) IP. can be a single IP, a list, a range or CIDR.
+					//Optional - user and password for the node. can be taken from general cloud configuration.
+					"nodesList" : ([
+									([
+										"id" : "byon-pc-lab{0}",
+										"host-list" : "0.0.0.0"
+									])
 					])
+				])
+				
+				// enable sudo.
+				privileged true
+				
 				}
 	])
 	
