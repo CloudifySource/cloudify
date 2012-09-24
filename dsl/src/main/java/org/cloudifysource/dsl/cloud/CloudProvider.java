@@ -18,8 +18,6 @@ package org.cloudifysource.dsl.cloud;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
-
-import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 
 import com.j_spaces.kernel.PlatformVersion;
