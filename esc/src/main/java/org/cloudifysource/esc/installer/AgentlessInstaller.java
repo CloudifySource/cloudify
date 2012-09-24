@@ -63,6 +63,10 @@ import org.cloudifysource.esc.util.Utils;
  */
 public class AgentlessInstaller {
 
+	private static final int MACHINE_ACCESS_NUMBER_OF_RETRIES = 3;
+
+	private static final int TIMEOUT_BETWEEN_MACHINE_ACCESS_ATTEMPTS_MILLIS = 5000;
+
 	private static final String POWERSHELL_CLIENT_SCRIPT = "bootstrap-client.ps1";
 
 	private static final int POWERSHELL_PORT = 5985;
@@ -412,9 +416,10 @@ public class AgentlessInstaller {
 			throws FileSystemException {
 		FileSystemException lastException = null;
 		// TODO - move these constants to an external configuration file
-		for (int i = 0; i < 3; ++i) {
+		for (int i = 0; i < MACHINE_ACCESS_NUMBER_OF_RETRIES; ++i) {
 			try {
 				FileObject targetDirectory = mng.resolveFile(target, opts);
+				logger.fine("Remote directory resolved successfully.");
 				return targetDirectory;
 			} catch (FileSystemException fse) {
 				logger.fine("Attempt number: "
@@ -422,7 +427,7 @@ public class AgentlessInstaller {
 						+ " to reslve remote directory failed."
 						+ " This may be a temporary issue while remote machine is starting up.");
 				try {
-					Thread.sleep(5000);
+					Thread.sleep(TIMEOUT_BETWEEN_MACHINE_ACCESS_ATTEMPTS_MILLIS);
 				} catch (InterruptedException e) {
 					// ignore
 				}
