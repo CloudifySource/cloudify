@@ -34,6 +34,8 @@ public interface ResponseConstants {
     String SERVICE_NOT_ELASTIC = "service_not_elastic";
     String SET_INSTANCES_NOT_SUPPORTED_IN_EAGER = "set_instances_not_supported_on_eager";
     String NO_PROCESSING_UNIT_INSTANCES_FOUND_FOR_INVOCATION = "no_processing_unit_instances_found_for_invocation";
+	String MACHINE_NOT_FOUND = "machine_not_found";
+	String DUMP_FILE_TOO_LARGE = "dump_file_too_large";
 
     
     
