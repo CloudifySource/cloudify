@@ -24,17 +24,12 @@ import java.util.Map;
 
 
 /**
-<<<<<<< .mine
- * Created with IntelliJ IDEA. User: uri1803 Date: 7/22/12 Time: 6:15 PM To change this template use File | Settings |
- * File Templates.
-=======
- * @author uri
- * @since 2.2.0
- * 
  *        Sets attributes in the cloudify controller attribute store.
  * 
  *        Command syntax: set-attributes '{"att1":"value2","att2":"value2"}'
->>>>>>> .r126695
+ *        
+ * @author uri
+ * @since 2.2.0
  */
 @Command(scope = "cloudify", name = "set-attributes",
 		description = "Sets attributes in the cloudify controller attribute store")
