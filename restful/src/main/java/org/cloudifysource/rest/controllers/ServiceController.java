@@ -910,6 +910,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		FutureTask<Boolean> undeployTask = new FutureTask<Boolean>(  
 				new Callable<Boolean>() {  
+					@Override
 					public Boolean call() throws Exception {  
 						return processingUnit.undeployAndWait(timeoutInMinutes, TimeUnit.MINUTES);
 					}  
