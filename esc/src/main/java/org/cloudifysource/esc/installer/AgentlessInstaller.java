@@ -35,6 +35,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelectInfo;
 import org.apache.commons.vfs2.FileSelector;
@@ -340,6 +341,19 @@ public class AgentlessInstaller {
 						return false;
 
 					}
+					//The key file shouldn't be copied to any machine aside from the management machine.
+					if (details.getKeyFile() != null) {
+						if (fileInfo.getFile().getType() == FileType.FILE) {
+							String fileName = new File(fileInfo.getFile().getURL().toString()).getName();
+							String keyFileName =  new File(details.getKeyFile()).getName();
+							if (StringUtils.equals(keyFileName, fileName)) {
+								if (!details.isLus()) {
+									return false;
+								}
+							}
+						}
+					}
+					
 					final FileObject remoteFile = mng.resolveFile(
 							remoteDir,
 							localDir.getName().getRelativeName(
