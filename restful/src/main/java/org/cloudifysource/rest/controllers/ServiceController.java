@@ -2357,7 +2357,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
 			+ "/address/{hostAddress}/tail",
 			method = RequestMethod.GET)
-	@ResponseBo
+	@ResponseBody
 	public Map<String, Object> getLogTailByHostAddress(
 			@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
