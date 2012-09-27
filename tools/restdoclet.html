@@ -1,0 +1,2360 @@
+<html>
+	<head>
+		<title>Cloudify  REST API</title>
+	</head>
+	<body>
+											<div class="panel" style="border-color: #f7681a; border-width: 2px;">
+				<div class="panelContent">
+					<h1><a name="REST_API-ServiceController"></a> ServiceController</h1>
+					<p><font color="#f7681a"> Mapping of URIs that begin with /service </font></p>
+					<p></p>
+					<hr />
+				</div>
+			</div>
+	
+																<h2><a name="REST_API- /service/applications"></a> /service/applications</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>Creates and returns a map containing all of the deployed application names.</p>
+										
+																									
+																									
+																										<h3><a name="REST_API-Response"></a> Response</h3>
+													<div class="code panel" style="border-width: 1px;">
+								<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+									<b>Response to a GET on /service/applications</b>
+								</div>	
+								<div class="codeContent panelContent">
+									<pre>{
+  "status" : "success",
+  "response" : [ "petclinic", "travel" ]
+}</pre>
+								</div>
+							</div>
+																			<p>In the example, the deployed applications in the service grid are petclinic and travel</p>
+																						<ul>
+																					<li>Returns "200 OK".</li> 
+																			</ul>
+																<h2><a name="REST_API- /service/applications/{applicationName}/services"></a> /service/applications/{applicationName}/services</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>Creates and returns a map containing all of the deployed service names installed under a specific application
+ context.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td></td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																										<h3><a name="REST_API-Response"></a> Response</h3>
+													<div class="code panel" style="border-width: 1px;">
+								<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+									<b>Response to a GET on /service/applications/{applicationName}/services</b>
+								</div>	
+								<div class="codeContent panelContent">
+									<pre>{
+  "status" : "sucess",
+  "response" : [ "service1", "service2" ]
+}</pre>
+								</div>
+							</div>
+																												<ul>
+																					<li>Returns "200 OK".</li> 
+																												<li>Returns "200 OK" - failed_to_locate_app.</li> 
+																			</ul>
+																<h2><a name="REST_API- /service/applications/{applicationName}/services/{serviceName}/addinstance"></a> /service/applications/{applicationName}/services/{serviceName}/addinstance</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> POST</h4>
+											<p>Increments the Processing unit instance number of the specified service.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name where the service resides</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.util.Map</td>
+									<td>params</td> 
+																			<td>map that holds a timeout value for this action</td> 
+																		<td>true</td>
+									<td>in request's body</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																				<h2><a name="REST_API- /service/applications/{applicationName}/services/{serviceName}/address/{hostAddress}/tail"></a> /service/applications/{applicationName}/services/{serviceName}/address/{hostAddress}/tail</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>Retrieves the tail of a service log. This method uses the service name and the instance host address to retrieve
+ the the instance log tail. Important: a machine might hold more than one service instance. In such a scenario,
+ only one of the service instance logs will be tailed and returned.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>hostAddress</td> 
+																			<td>The service instance's host address</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>int</td>
+									<td>numLines</td> 
+																			<td>The number of lines to tail</td> 
+																		<td>true</td>
+									<td>in request's parameters</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																										<h3><a name="REST_API-Request"></a> Request</h3>
+													<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+								<b>Request body for a GET on /service/applications/{applicationName}/services/{serviceName}/address/{hostAddress}/tail</b>
+							</div>
+							<div class="codeContent panelContent">
+								<pre>{
+  "numLines" : 10
+}</pre>
+							</div>
+																						
+																										<h3><a name="REST_API-Response"></a> Response</h3>
+													<div class="code panel" style="border-width: 1px;">
+								<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+									<b>Response to a GET on /service/applications/{applicationName}/services/{serviceName}/address/{hostAddress}/tail</b>
+								</div>	
+								<div class="codeContent panelContent">
+									<pre>{
+  "status" : "success",
+  "response" : "numLines lines of log tail"
+}</pre>
+								</div>
+							</div>
+																												<ul>
+																					<li>Returns "200 OK".</li> 
+																												<li>Returns "200 OK" - failed_to_locate_service.</li> 
+																			</ul>
+																<h2><a name="REST_API- /service/applications/{applicationName}/services/{serviceName}/beans/{beanName}/invoke"></a> /service/applications/{applicationName}/services/{serviceName}/beans/{beanName}/invoke</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> POST</h4>
+											<p>Invokes a custom command on all of the specified service instances. 
+ Custom parameters are passed as a map using
+ the POST method and contain the command name and parameter values for the specified command.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>beanName</td> 
+																			<td>deprecated</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.util.Map</td>
+									<td>params</td> 
+																			<td>The command parameters</td> 
+																		<td>true</td>
+									<td>in request's body</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																										<h3><a name="REST_API-Request"></a> Request</h3>
+													<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+								<b>Request body for a POST on /service/applications/{applicationName}/services/{serviceName}/beans/{beanName}/invoke</b>
+							</div>
+							<div class="codeContent panelContent">
+								<pre>{
+  "param1 name" : "param1",
+  "param2 name" : "param2"
+}</pre>
+							</div>
+																						
+																										<h3><a name="REST_API-Response"></a> Response</h3>
+													<div class="code panel" style="border-width: 1px;">
+								<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+									<b>Response to a POST on /service/applications/{applicationName}/services/{serviceName}/beans/{beanName}/invoke</b>
+								</div>	
+								<div class="codeContent panelContent">
+									<pre>{
+  "status" : "success",
+  "response" : {
+    "instance #1@127.0.0.1" : {
+      "Invocation_Instance_Name" : "instance #1@127.0.0.1",
+      "Invocation_Instance_ID" : "1",
+      "Invocation_Result" : "the invocation result as specified in the service file",
+      "Invocation_Success" : "true",
+      "Invocation_Exception" : null,
+      "Invocation_Command_Name" : "custom command name"
+    }
+  }
+}</pre>
+								</div>
+							</div>
+																												<ul>
+																					<li>Returns "200 OK".</li> 
+																												<li>Returns "200 OK" - failed_to_locate_service.</li> 
+																												<li>Returns "200 OK" - no_processing_unit_instances_found_for_invocation.</li> 
+																			</ul>
+																<h2><a name="REST_API- /service/applications/{applicationName}/services/{serviceName}/instances"></a> /service/applications/{applicationName}/services/{serviceName}/instances</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>Creates a list of all service instances in the specified application.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																										<h3><a name="REST_API-Response"></a> Response</h3>
+													<div class="code panel" style="border-width: 1px;">
+								<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+									<b>Response to a GET on /service/applications/{applicationName}/services/{serviceName}/instances</b>
+								</div>	
+								<div class="codeContent panelContent">
+									<pre>{
+  "status" : "success",
+  "response" : {
+    "1" : "12.7.0.0.1"
+  }
+}</pre>
+								</div>
+							</div>
+																			<p>In the example instance id is 1 and the HOST is 127.0.0.1</p>
+																						<ul>
+																					<li>Returns "200 OK".</li> 
+																												<li>Returns "200 OK" - failed_to_locate_service.</li> 
+																			</ul>
+																<h2><a name="REST_API- /service/applications/{applicationName}/services/{serviceName}/instances/{instanceId}/beans/{beanName}/invoke"></a> /service/applications/{applicationName}/services/{serviceName}/instances/{instanceId}/beans/{beanName}/invoke</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> POST</h4>
+											<p>Invokes a custom command on a specific service instance. Custom parameters are passed as a map using POST method
+ and contain the command name and parameter values for the specified command.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>int</td>
+									<td>instanceId</td> 
+																			<td>The service instance number to be invoked</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>beanName</td> 
+																			<td>depreciated</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.util.Map</td>
+									<td>params</td> 
+																			<td>a Map containing the result of each invocation on a service instance</td> 
+																		<td>true</td>
+									<td>in request's body</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																										<h3><a name="REST_API-Request"></a> Request</h3>
+													<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+								<b>Request body for a POST on /service/applications/{applicationName}/services/{serviceName}/instances/{instanceId}/beans/{beanName}/invoke</b>
+							</div>
+							<div class="codeContent panelContent">
+								<pre>{
+  "param1 name" : "param1",
+  "param2 name" : "param2"
+}</pre>
+							</div>
+																						
+																										<h3><a name="REST_API-Response"></a> Response</h3>
+													<div class="code panel" style="border-width: 1px;">
+								<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+									<b>Response to a POST on /service/applications/{applicationName}/services/{serviceName}/instances/{instanceId}/beans/{beanName}/invoke</b>
+								</div>	
+								<div class="codeContent panelContent">
+									<pre>{
+  "status" : "success",
+  "response" : {
+    "Invocation_Instance_Name" : "instance #1@127.0.0.1",
+    "Invocation_Instance_ID" : "1",
+    "Invocation_Result" : "the invocation result as specified in the service file",
+    "Invocation_Success" : "true",
+    "Invocation_Exception" : null,
+    "Invocation_Command_Name" : "custom command name"
+  }
+}</pre>
+								</div>
+							</div>
+																												<ul>
+																					<li>Returns "200 OK".</li> 
+																												<li>Returns "200 OK" - failed_to_locate_service.</li> 
+																												<li>Returns "200 OK" - service_instance_unavailable.</li> 
+																												<li>Returns "200 OK" - failed_to_invoke_instance.</li> 
+																			</ul>
+																<h2><a name="REST_API- /service/applications/{applicationName}/services/{serviceName}/instances/{instanceId}/remove"></a> /service/applications/{applicationName}/services/{serviceName}/instances/{instanceId}/remove</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> DELETE</h4>
+											<p>Decrements the Processing unit instance number of the specified service.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name where the service resides</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>int</td>
+									<td>instanceId</td> 
+																			<td>the service instance ID to remove</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																															<ul>
+																					<li>Returns "200 OK".</li> 
+																												<li>Returns "200 OK" - failed_to_locate_service.</li> 
+																												<li>Returns "200 OK" - service_instance_unavailable.</li> 
+																			</ul>
+																<h2><a name="REST_API- /service/applications/{applicationName}/services/{serviceName}/instances/{instanceId}/tail"></a> /service/applications/{applicationName}/services/{serviceName}/instances/{instanceId}/tail</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>Retrieves the tail of a service log. This method used the service name and instance id To retrieve the the
+ instance log tail.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>int</td>
+									<td>instanceId</td> 
+																			<td>The service instance id</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>int</td>
+									<td>numLines</td> 
+																			<td>The number of lines to tail</td> 
+																		<td>true</td>
+									<td>in request's parameters</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																										<h3><a name="REST_API-Request"></a> Request</h3>
+													<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+								<b>Request body for a GET on /service/applications/{applicationName}/services/{serviceName}/instances/{instanceId}/tail</b>
+							</div>
+							<div class="codeContent panelContent">
+								<pre>{
+  "numLines" : 10
+}</pre>
+							</div>
+																						
+																										<h3><a name="REST_API-Response"></a> Response</h3>
+													<div class="code panel" style="border-width: 1px;">
+								<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+									<b>Response to a GET on /service/applications/{applicationName}/services/{serviceName}/instances/{instanceId}/tail</b>
+								</div>	
+								<div class="codeContent panelContent">
+									<pre>{
+  "status" : "success",
+  "response" : "log tail from container"
+}</pre>
+								</div>
+							</div>
+																												<ul>
+																					<li>Returns "200 OK".</li> 
+																												<li>Returns "200 OK" - failed_to_locate_service.</li> 
+																			</ul>
+																<h2><a name="REST_API- /service/applications/{applicationName}/services/{serviceName}/tail"></a> /service/applications/{applicationName}/services/{serviceName}/tail</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>Retrieves the log tail from all of the specified service's instances. To retrieve the the instance log tail.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>int</td>
+									<td>numLines</td> 
+																			<td>The number of lines to tail</td> 
+																		<td>true</td>
+									<td>in request's parameters</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																										<h3><a name="REST_API-Request"></a> Request</h3>
+													<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+								<b>Request body for a GET on /service/applications/{applicationName}/services/{serviceName}/tail</b>
+							</div>
+							<div class="codeContent panelContent">
+								<pre>{
+  "numLines" : 10
+}</pre>
+							</div>
+																						
+																										<h3><a name="REST_API-Response"></a> Response</h3>
+													<div class="code panel" style="border-width: 1px;">
+								<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+									<b>Response to a GET on /service/applications/{applicationName}/services/{serviceName}/tail</b>
+								</div>	
+								<div class="codeContent panelContent">
+									<pre>{
+  "status" : "success",
+  "response" : "instance log tail"
+}</pre>
+								</div>
+							</div>
+																												<ul>
+																					<li>Returns "200 OK".</li> 
+																												<li>Returns "200 OK" - failed_to_locate_service.</li> 
+																			</ul>
+																<h2><a name="REST_API- /service/applications/{applicationName}/services/{serviceName}/timeout/{timeoutInMinutes}/undeploy"></a> /service/applications/{applicationName}/services/{serviceName}/timeout/{timeoutInMinutes}/undeploy</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> DELETE</h4>
+											<p>undeploys the specified service of the specific application.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>int</td>
+									<td>timeoutInMinutes</td> 
+																			<td></td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																										<h3><a name="REST_API-Response"></a> Response</h3>
+													<div class="code panel" style="border-width: 1px;">
+								<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+									<b>Response to a DELETE on /service/applications/{applicationName}/services/{serviceName}/timeout/{timeoutInMinutes}/undeploy</b>
+								</div>	
+								<div class="codeContent panelContent">
+									<pre>{
+  "status" : "success",
+  "response" : {
+    "lifecycleEventContainerID" : "bfae0a89-b5a0-4250-b393-6cedbf63ac76"
+  }
+}</pre>
+								</div>
+							</div>
+																												<ul>
+																					<li>Returns "200 OK".</li> 
+																												<li>Returns "200 OK" - failed_to_locate_service.</li> 
+																			</ul>
+																<h2><a name="REST_API- /service/applications/{applicationName}/services/{serviceName}/timeout/{timeout}"></a> /service/applications/{applicationName}/services/{serviceName}/timeout/{timeout}</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> POST</h4>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td></td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td></td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>int</td>
+									<td>timeout</td> 
+																			<td></td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>templateName</td> 
+																			<td></td> 
+																		<td>false</td>
+									<td>in request's parameters</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>zone</td> 
+																			<td></td> 
+																		<td>true</td>
+									<td>in request's parameters</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>org.springframework.web.multipart.MultipartFile</td>
+									<td>srcFile</td> 
+																			<td></td> 
+																		<td>true</td>
+									<td>in request's parameters</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>org.springframework.web.multipart.MultipartFile</td>
+									<td>propsFile</td> 
+																			<td></td> 
+																		<td>true</td>
+									<td>in request's parameters</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																										<h3><a name="REST_API-Request"></a> Request</h3>
+													<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+								<b>Request body for a POST on /service/applications/{applicationName}/services/{serviceName}/timeout/{timeout}</b>
+							</div>
+							<div class="codeContent panelContent">
+								<pre>{
+  "zone" : 5,
+  "template" : "SMALL_LINUX",
+  "file" : "packaged service file",
+  "props" : "packaged properties file"
+}</pre>
+							</div>
+																						
+																										<h3><a name="REST_API-Response"></a> Response</h3>
+													<div class="code panel" style="border-width: 1px;">
+								<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+									<b>Response to a POST on /service/applications/{applicationName}/services/{serviceName}/timeout/{timeout}</b>
+								</div>	
+								<div class="codeContent panelContent">
+									<pre>{
+  "status" : "success",
+  "response" : "b41febb7-f48e-48d4-b14a-a6000d402d93"
+}</pre>
+								</div>
+							</div>
+																												<ul>
+																					<li>Returns "200 OK".</li> 
+																												<li>Returns "500 Internal Server Error" - TimeoutException.</li> 
+																												<li>Returns "500 Internal Server Error" - PackagingException.</li> 
+																												<li>Returns "500 Internal Server Error" - IOException.</li> 
+																												<li>Returns "500 Internal Server Error" - AdminException.</li> 
+																												<li>Returns "500 Internal Server Error" - DSLException.</li> 
+																			</ul>
+																<h2><a name="REST_API- /service/applications/{applicationName}/services/{serviceName}/timeout/{timeout}/set-instances"></a> /service/applications/{applicationName}/services/{serviceName}/timeout/{timeout}/set-instances</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> POST</h4>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td></td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td></td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>int</td>
+									<td>timeout</td> 
+																			<td></td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>int</td>
+									<td>count</td> 
+																			<td></td> 
+																		<td>true</td>
+									<td>in request's parameters</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>boolean</td>
+									<td>locationAware</td> 
+																			<td></td> 
+																		<td>true</td>
+									<td>in request's parameters</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																										<h3><a name="REST_API-Request"></a> Request</h3>
+													<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+								<b>Request body for a POST on /service/applications/{applicationName}/services/{serviceName}/timeout/{timeout}/set-instances</b>
+							</div>
+							<div class="codeContent panelContent">
+								<pre>{
+  "count" : 1,
+  "location-aware" : true
+}</pre>
+							</div>
+																						
+																										<h3><a name="REST_API-Response"></a> Response</h3>
+													<div class="code panel" style="border-width: 1px;">
+								<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+									<b>Response to a POST on /service/applications/{applicationName}/services/{serviceName}/timeout/{timeout}/set-instances</b>
+								</div>	
+								<div class="codeContent panelContent">
+									<pre>{
+  "status" : "success",
+  "response" : {
+    "lifecycleEventContainerID" : "eventContainerID"
+  }
+}</pre>
+								</div>
+							</div>
+																												<ul>
+																					<li>Returns "200 OK".</li> 
+																												<li>Returns "200 OK" - failed_to_locate_service.</li> 
+																												<li>Returns "200 OK" - service_not_elastic.</li> 
+																			</ul>
+																<h2><a name="REST_API- /service/applications/{applicationName}/timeout/{timeoutInMinutes}"></a> /service/applications/{applicationName}/timeout/{timeoutInMinutes}</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> DELETE</h4>
+											<p>Uninstalls an application by uninstalling all of its services. Order of uninstallations is determined by the
+ context property 'com.gs.application.services' which should exist in all service PUs.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>int</td>
+									<td>timeoutInMinutes</td> 
+																			<td></td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																										<h3><a name="REST_API-Response"></a> Response</h3>
+													<div class="code panel" style="border-width: 1px;">
+								<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+									<b>Response to a DELETE on /service/applications/{applicationName}/timeout/{timeoutInMinutes}</b>
+								</div>	
+								<div class="codeContent panelContent">
+									<pre>{
+  "status" : "success",
+  "response" : {
+    "lifecycleEventContainerID" : "bfae0a89-b5a0-4250-b393-6cedbf63ac76"
+  }
+}</pre>
+								</div>
+							</div>
+																												<ul>
+																					<li>Returns "200 OK".</li> 
+																												<li>Returns "200 OK" - failed_to_locate_app.</li> 
+																			</ul>
+																<h2><a name="REST_API- /service/applications/{applicationName}/timeout/{timeout}"></a> /service/applications/{applicationName}/timeout/{timeout}</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> POST</h4>
+											<p>Deploys an application to the service grid. 
+ An application is consisted of a group of services that might have dependencies between themselves. 
+ The application will be deployed according to the dependency order defined in
+ the application file and deployed asynchronously if possible.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>int</td>
+									<td>timeout</td> 
+																			<td></td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>org.springframework.web.multipart.MultipartFile</td>
+									<td>srcFile</td> 
+																			<td>The compressed application file</td> 
+																		<td>true</td>
+									<td>in request's parameters</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																										<h3><a name="REST_API-Request"></a> Request</h3>
+													<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+								<b>Request body for a POST on /service/applications/{applicationName}/timeout/{timeout}</b>
+							</div>
+							<div class="codeContent panelContent">
+								<pre>{
+  "applicationName" : "petclinic",
+  "srcFile" : "packaged application file"
+}</pre>
+							</div>
+																						
+																										<h3><a name="REST_API-Response"></a> Response</h3>
+													<div class="code panel" style="border-width: 1px;">
+								<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+									<b>Response to a POST on /service/applications/{applicationName}/timeout/{timeout}</b>
+								</div>	
+								<div class="codeContent panelContent">
+									<pre>{
+  "status" : "success",
+  "response" : {
+    "srviceOrder" : "[mongod,mongoConfig,apacheLB,mongos,tomcat]",
+    "lifecycleEventContainerID" : "07db2a16-62f8-4669-ac41-ed9afe3a3b02"
+  }
+}</pre>
+								</div>
+							</div>
+																												<ul>
+																					<li>Returns "200 OK".</li> 
+																												<li>Returns "500 Internal Server Error" - DSLException.</li> 
+																												<li>Returns "500 Internal Server Error" - IOException.</li> 
+																			</ul>
+																<h2><a name="REST_API- /service/cloudcontroller/deploy"></a> /service/cloudcontroller/deploy</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> POST</h4>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td></td> 
+																		<td>false</td>
+									<td>in request's parameters</td>
+																			<td>default</td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>org.springframework.web.multipart.MultipartFile</td>
+									<td>srcFile</td> 
+																			<td></td> 
+																		<td>false</td>
+									<td>in request's parameters</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																				<h2><a name="REST_API- /service/dump/machine/{ip}/"></a> /service/dump/machine/{ip}/</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>Get the dump of a given machine, by its ip.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>ip</td> 
+																			<td></td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>processors</td> 
+																			<td>The list of processors to be used</td> 
+																		<td>false</td>
+									<td>in request's parameters</td>
+																			<td>summary, network, thread, log</td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>long</td>
+									<td>fileSizeLimit</td> 
+																			<td></td> 
+																		<td>false</td>
+									<td>in request's parameters</td>
+																			<td>5242880</td> 
+																	</tr>
+													</table>
+										
+																										<h3><a name="REST_API-Request"></a> Request</h3>
+													<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+								<b>Request body for a GET on /service/dump/machine/{ip}/</b>
+							</div>
+							<div class="codeContent panelContent">
+								<pre>{
+  "fileSizeLimit" : 50000000,
+  "processors" : "summary, network, log"
+}</pre>
+							</div>
+																						
+																										<h3><a name="REST_API-Response"></a> Response</h3>
+													<div class="code panel" style="border-width: 1px;">
+								<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+									<b>Response to a GET on /service/dump/machine/{ip}/</b>
+								</div>	
+								<div class="codeContent panelContent">
+									<pre>{
+  "status" : "success",
+  "response" : {
+    "&ltmachine's ip&gt" : "&ltbyte array of the dump file&gt"
+  }
+}</pre>
+								</div>
+							</div>
+																												<ul>
+																					<li>Returns "200 OK".</li> 
+																												<li>Returns "200 OK" - machine_not_found.</li> 
+																												<li>Returns "200 OK" - dump_file_too_large.</li> 
+																												<li>Returns "200 OK" - Failed to generate dump.</li> 
+																												<li>Returns "500 Internal Server Error" - IOException.</li> 
+																			</ul>
+																<h2><a name="REST_API- /service/dump/machines"></a> /service/dump/machines</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>Get the dump of all the machines.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>processors</td> 
+																			<td>The list of processors to be used</td> 
+																		<td>false</td>
+									<td>in request's parameters</td>
+																			<td>summary, network, thread, log</td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>long</td>
+									<td>fileSizeLimit</td> 
+																			<td></td> 
+																		<td>false</td>
+									<td>in request's parameters</td>
+																			<td>5242880</td> 
+																	</tr>
+													</table>
+										
+																										<h3><a name="REST_API-Request"></a> Request</h3>
+													<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+								<b>Request body for a GET on /service/dump/machines</b>
+							</div>
+							<div class="codeContent panelContent">
+								<pre>{
+  "fileSizeLimit" : 50000000,
+  "processors" : "summary, thread, log"
+}</pre>
+							</div>
+																						
+																										<h3><a name="REST_API-Response"></a> Response</h3>
+													<div class="code panel" style="border-width: 1px;">
+								<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+									<b>Response to a GET on /service/dump/machines</b>
+								</div>	
+								<div class="codeContent panelContent">
+									<pre>{
+  "status" : "success",
+  "response" : {
+    "192.168.2.100" : "&ltbyte array of the dump file&gt",
+    "192.168.2.200" : "&ltbyte array of the dump file&gt",
+    "192.168.2.300" : "&ltbyte array of the dump file&gt"
+  }
+}</pre>
+								</div>
+							</div>
+																												<ul>
+																					<li>Returns "200 OK".</li> 
+																												<li>Returns "200 OK" - machine_not_found.</li> 
+																												<li>Returns "200 OK" - dump_file_too_large.</li> 
+																												<li>Returns "200 OK" - Failed to generate dump.</li> 
+																												<li>Returns "500 Internal Server Error" - IOException.</li> 
+																			</ul>
+																<h2><a name="REST_API- /service/dump/processing-units/"></a> /service/dump/processing-units/</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>Get the dump of all the processing units.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>long</td>
+									<td>fileSizeLimit</td> 
+																			<td></td> 
+																		<td>false</td>
+									<td>in request's parameters</td>
+																			<td>5242880</td> 
+																	</tr>
+													</table>
+										
+																										<h3><a name="REST_API-Request"></a> Request</h3>
+													<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+								<b>Request body for a GET on /service/dump/processing-units/</b>
+							</div>
+							<div class="codeContent panelContent">
+								<pre>{
+  "fileSizeLimit" : 50000000
+}</pre>
+							</div>
+																						
+																															<ul>
+																					<li>Returns "200 OK".</li> 
+																												<li>Returns "200 OK" - dump_file_too_large.</li> 
+																												<li>Returns "200 OK" - Failed to generate dump.</li> 
+																												<li>Returns "500 Internal Server Error" - IOException.</li> 
+																			</ul>
+																<h2><a name="REST_API- /service/lifecycleEventContainerID/{lifecycleEventContainerID}/cursor/{cursor}"></a> /service/lifecycleEventContainerID/{lifecycleEventContainerID}/cursor/{cursor}</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>Returns the lifecycle events according to the lifecycleEventContainerID id that is returned as a response when
+ installing/un-installing a service/application and according to the cursor position.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>lifecycleEventContainerID</td> 
+																			<td>the unique task ID</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>int</td>
+									<td>cursor</td> 
+																			<td>event entry cursor</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																										<h3><a name="REST_API-Response"></a> Response</h3>
+													<div class="code panel" style="border-width: 1px;">
+								<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+									<b>Response to a GET on /service/lifecycleEventContainerID/{lifecycleEventContainerID}/cursor/{cursor}</b>
+								</div>	
+								<div class="codeContent panelContent">
+									<pre>{
+  "status" : "success",
+  "response" : {
+    "isDone" : false,
+    "lifecycleLogs" : [ "[service1] Deployed 1 planned 1", "Service &#92&#34service1&#92&#34 successfully installed (1 Instances)" ],
+    "PollingTaskExpirationTimeMillis" : "575218",
+    "curserPos" : 12
+  }
+}</pre>
+								</div>
+							</div>
+																												<ul>
+																					<li>Returns "200 OK".</li> 
+																												<li>Returns "200 OK" - Lifecycle events container with UUID ... does not exist or expired.</li> 
+																												<li>Returns "200 OK" - execution exception message.</li> 
+																			</ul>
+																<h2><a name="REST_API- /service/testrest"></a> /service/testrest</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>Tests whether the restful service is able to locate the service grid using the admin API. 
+ <p>The admin API searches for a LUS (Lookup Service) according to the lookup groups/locators defined.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>lifecycleEventContainerID</td> 
+																			<td>the unique task ID</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>int</td>
+									<td>cursor</td> 
+																			<td>event entry cursor</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																										<h3><a name="REST_API-Response"></a> Response</h3>
+													<div class="code panel" style="border-width: 1px;">
+								<div class="codeHeader panelHeader" style="border-bottom-width: 1px;">
+									<b>Response to a GET on /service/testrest</b>
+								</div>	
+								<div class="codeContent panelContent">
+									<pre>{
+  "status" : "error",
+  "response" : {
+    "error" : "failed_to_locate_lookup_service",
+    "error_args" : [ [ "localcloud" ], [ "jini://127.0.0.1:4172/" ] ]
+  }
+}</pre>
+								</div>
+							</div>
+																			<p>response status is success if the restful service located the service grid, otherwise it is error and the response's body will contain error description, the groups and locators.</p>
+																						<ul>
+																					<li>Returns "200 OK" - success.</li> 
+																												<li>Returns "200 OK" - failed_to_locate_lookup_service.</li> 
+																			</ul>
+																	<div class="panel" style="border-color: #f7681a; border-width: 2px;">
+				<div class="panelContent">
+					<h1><a name="REST_API-ServiceController"></a> AttributesController</h1>
+					<p><font color="#f7681a"> Mapping of URIs that begin with /attributes </font></p>
+					<p></p>
+					<hr />
+				</div>
+			</div>
+	
+																<h2><a name="REST_API- /attributes/applications/{applicationName}"></a> /attributes/applications/{applicationName}</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>Gets multiple attributes' values, scope: application attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																		<h4><a name="REST_API-GET"></a> POST</h4>
+											<p>Sets multiple attributes' values, scope: application attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.util.Map</td>
+									<td>attributesMap</td> 
+																			<td>a Map containing the attributes' names (keys) and values to set</td> 
+																		<td>true</td>
+									<td>in request's body</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																		<h4><a name="REST_API-GET"></a> DELETE</h4>
+											<p>Deletes multiple attributes, scope: application attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																				<h2><a name="REST_API- /attributes/applications/{applicationName}/{attributeName}"></a> /attributes/applications/{applicationName}/{attributeName}</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>Gets an attribute value, scope: application attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>attributeName</td> 
+																			<td>The name (key) of the attribute to get</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																		<h4><a name="REST_API-GET"></a> POST</h4>
+											<p>Sets an attribute value, scope: application attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>attributeName</td> 
+																			<td>The name of the attribute to get</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.Object</td>
+									<td>attributeValue</td> 
+																			<td>The value to set</td> 
+																		<td>true</td>
+									<td>in request's body</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																		<h4><a name="REST_API-GET"></a> DELETE</h4>
+											<p>Deletes an attribute value, scope: application attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>attributeName</td> 
+																			<td>The name of the attribute to get</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																				<h2><a name="REST_API- /attributes/globals"></a> /attributes/globals</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>Gets multiple attributes' values, scope: global attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>attributeName</td> 
+																			<td>The name of the attribute to get</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																		<h4><a name="REST_API-GET"></a> POST</h4>
+											<p>Sets multiple attributes' values, scope: global attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.util.Map</td>
+									<td>attributesMap</td> 
+																			<td>a Map containing the attributes' names (keys) and values to set</td> 
+																		<td>true</td>
+									<td>in request's body</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																		<h4><a name="REST_API-GET"></a> DELETE</h4>
+											<p>Deletes multiple attributes, scope: global attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.util.Map</td>
+									<td>attributesMap</td> 
+																			<td>a Map containing the attributes' names (keys) and values to set</td> 
+																		<td>true</td>
+									<td>in request's body</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																				<h2><a name="REST_API- /attributes/globals/{attributeName}"></a> /attributes/globals/{attributeName}</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>Gets an attribute value, scope: global attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>attributeName</td> 
+																			<td>The name (key) of the attribute to get</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																		<h4><a name="REST_API-GET"></a> POST</h4>
+											<p>Sets an attribute value, scope: global attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>attributeName</td> 
+																			<td>The name of the attribute to get</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.Object</td>
+									<td>attributeValue</td> 
+																			<td>The value to set</td> 
+																		<td>true</td>
+									<td>in request's body</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																		<h4><a name="REST_API-GET"></a> DELETE</h4>
+											<p>Deletes an attribute, scope: global attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>attributeName</td> 
+																			<td>The name of the attribute to delete</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																				<h2><a name="REST_API- /attributes/instances/{applicationName}/{serviceName}/{instanceId}"></a> /attributes/instances/{applicationName}/{serviceName}/{instanceId}</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>Gets multiple attributes' values, scope: instance attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>int</td>
+									<td>instanceId</td> 
+																			<td>The service instance id</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																		<h4><a name="REST_API-GET"></a> POST</h4>
+											<p>Sets multiple attributes' values, scope: instance attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>int</td>
+									<td>instanceId</td> 
+																			<td>The service instance id</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.util.Map</td>
+									<td>attributesMap</td> 
+																			<td>a Map containing the attributes' names (keys) and values to set</td> 
+																		<td>true</td>
+									<td>in request's body</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																		<h4><a name="REST_API-GET"></a> DELETE</h4>
+											<p>Deletes multiple attributes, scope: instance attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>int</td>
+									<td>instanceId</td> 
+																			<td>The service instance id</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																				<h2><a name="REST_API- /attributes/instances/{applicationName}/{serviceName}/{instanceId}/{attributeName}"></a> /attributes/instances/{applicationName}/{serviceName}/{instanceId}/{attributeName}</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>Gets an attribute value, scope: instance attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>int</td>
+									<td>instanceId</td> 
+																			<td>The service instance id</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>attributeName</td> 
+																			<td>The name (key) of the attribute to get</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																		<h4><a name="REST_API-GET"></a> POST</h4>
+											<p>Sets an attribute value, scope: instance attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>int</td>
+									<td>instanceId</td> 
+																			<td>The service instance id</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>attributeName</td> 
+																			<td>The name of the attribute to get</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.Object</td>
+									<td>attributeValue</td> 
+																			<td>The value to set</td> 
+																		<td>true</td>
+									<td>in request's body</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																		<h4><a name="REST_API-GET"></a> DELETE</h4>
+											<p>Deletes an attribute value, scope: instance attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>int</td>
+									<td>instanceId</td> 
+																			<td>The service instance id</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>attributeName</td> 
+																			<td>The name of the attribute to get</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																				<h2><a name="REST_API- /attributes/services/{applicationName}/{serviceName}"></a> /attributes/services/{applicationName}/{serviceName}</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>Gets multiple attributes' values, scope: service attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																		<h4><a name="REST_API-GET"></a> POST</h4>
+											<p>Sets multiple attributes' values, scope: service attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.util.Map</td>
+									<td>attributesMap</td> 
+																			<td>a Map containing the attributes' names (keys) and values to set</td> 
+																		<td>true</td>
+									<td>in request's body</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																		<h4><a name="REST_API-GET"></a> DELETE</h4>
+											<p>Deletes multiple attributes, scope: service attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																				<h2><a name="REST_API- /attributes/services/{applicationName}/{serviceName}/{attributeName}"></a> /attributes/services/{applicationName}/{serviceName}/{attributeName}</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>Gets an attribute value, scope: service attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>attributeName</td> 
+																			<td>The name (key) of the attribute to get</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																		<h4><a name="REST_API-GET"></a> POST</h4>
+											<p>Sets an attribute value, scope: service attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>attributeName</td> 
+																			<td>The name of the attribute to get</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.Object</td>
+									<td>attributeValue</td> 
+																			<td>The value to set</td> 
+																		<td>true</td>
+									<td>in request's body</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																		<h4><a name="REST_API-GET"></a> DELETE</h4>
+											<p>Deletes an attribute value, scope: service attributes.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>attributeName</td> 
+																			<td>The name of the attribute to get</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																					<div class="panel" style="border-color: #f7681a; border-width: 2px;">
+				<div class="panelContent">
+					<h1><a name="REST_API-ServiceController"></a> AdminAPIController</h1>
+					<p><font color="#f7681a"> Mapping of URIs that begin with /admin/* </font></p>
+					<p>Spring MVC controller for the RESTful Admin API 
+ via a reflection-based implementation of dispatcher pattern
+
+  - Accepts a generic uri path which denotes a specific Admin request
+  
+  - Parses and walks through the uri by activating getter methods
+    to "dig into" the admin object hierarchy
+     
+  - Results marshaled as a generic document serialized to a JSON object
+
+             
+	 Usage examples:
+	     http://localhost:8099/admin/ElasticServiceManagers/Managers
+	     http://localhost:8099/admin/GridServiceManagers/size
+	     http://localhost:8099/admin/Spaces
+	     http://localhost:8099/admin/VirtualMachines/VirtualMachines
+	     http://localhost:8099/admin/VirtualMachines/VirtualMachines/3
+	     http://localhost:8099/admin/VirtualMachines/VirtualMachines/3/Statistics/Machine/GridServiceAgents
+	     DETAILS:  http://localhost:8099/admin/GridServiceManagers/Uids/49a6e2ef-5fd3-471a-94ff-c961a52ffd0f
+	     STATIST:  http://localhost:8099/admin/GridServiceManagers/Uids/49a6e2ef-5fd3-471a-94ff-c961a52ffd0f
+              
+  Note that the wiring and marshaling services are provided by Spring framework
+  
+  Note 2: It is highly recommended that results will be viewed
+  on FF with JsonView plugin</p>
+					<hr />
+				</div>
+			</div>
+	
+																<h2><a name="REST_API- /admin/*/"></a> /admin/*/</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>redirects to index view.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>attributeName</td> 
+																			<td>The name of the attribute to get</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																				<h2><a name="REST_API- /admin/*/**"></a> /admin/*/**</h2>
+					
+								<h3><a name="REST_API-HTTPMethods"></a> HTTP Methods</h3>
+									<h4><a name="REST_API-GET"></a> GET</h4>
+											<p>REST GET requests handler wrapper.</p>
+										
+																										<h3><a name="REST_API-Parameters"></a> Parameters</h3>
+						<table border="1">
+							<tr style="background-color: #D8D8D8;">
+								<th>Type</th>
+								<th>Name</th>
+								<th>Decription</th>
+								<th>Mandatory</th>
+								<th>Location</th>
+								<th>Default value</th>
+							</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>applicationName</td> 
+																			<td>The application name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>serviceName</td> 
+																			<td>The service name</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+															<tr style="background-color: #FFFFCC;">
+									<td>java.lang.String</td>
+									<td>attributeName</td> 
+																			<td>The name of the attribute to get</td> 
+																		<td>true</td>
+									<td>in path</td>
+																			<td></td> 
+																	</tr>
+													</table>
+										
+																									
+																																			</body>
+</html>
