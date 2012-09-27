@@ -211,7 +211,7 @@ public class Generator {
 
 		List<DocAnnotation> annotations = generateAnnotations(classDoc
 				.annotations());
-		if (Utils.filterControllerClass(classDoc, annotations))
+		if (Utils.filterOutControllerClass(classDoc, annotations))
 			return null;
 
 		controller.setUri(Utils.getRequestMappingAnnotation(annotations)

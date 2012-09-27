@@ -80,7 +80,7 @@ public class AdminAPIController  {
 	
 	/**
 	 * redirects to index view.
-	 * @return
+	 * @return a ModelAndView object with viewName = index
 	 */
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	public ModelAndView redirectToIndex() {

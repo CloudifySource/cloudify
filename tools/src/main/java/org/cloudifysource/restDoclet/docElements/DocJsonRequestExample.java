@@ -26,10 +26,7 @@ public class DocJsonRequestExample extends DocAnnotation {
 
 	@Override
 	public void addAttribute(String attrName, Object attrValue) {
-		String value = attrValue.toString().replace("\\\"", "\"").trim();
-
-		if(value.startsWith("\"") && value.endsWith("\""))
-			value = value.substring(1,value.length()-1);
+		String value = attrValue.toString().trim();
 
 		String shortAttrName = getShortName(attrName);
 

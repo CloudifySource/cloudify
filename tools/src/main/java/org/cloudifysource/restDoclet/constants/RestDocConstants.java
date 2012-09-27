@@ -9,7 +9,8 @@ public class RestDocConstants {
 	public static final String SOURCES_PATH = "../restful/src/main/java";
 	public static final String CONTROLLERS_PACKAGE = "org.cloudifysource.rest.controllers";
 	public static final String SERVICE_CONTROLLER_CLASS_NAME = "org.cloudifysource.rest.controllers.ServiceController";
-	
+	public static final String ADMIN_API_CONTROLLER_CLASS_NAME = "org.cloudifysource.rest.controllers.AdminAPIController";
+
 	public static final String VELOCITY_TEMPLATE_PATH_FLAG = "-velocityTemplateFilePath";
 	public static final String DOC_DEST_PATH_FLAG = "-docletDestdir";
 	
@@ -56,7 +57,6 @@ public class RestDocConstants {
 	public static final String HTTP_MATHOD_GET = "GET";
 	public static final String HTTP_MATHOD_POST = "POST";
 	public static final String HTTP_MATHOD_DELETE = "DELETE";
-	
 	
 	public enum DocAnnotationTypes {
 		CONTROLLER,

@@ -96,9 +96,11 @@ public class Utils {
 		return paramComments;
 	}
 
-	protected static boolean filterControllerClass(ClassDoc classDoc, 
+	protected static boolean filterOutControllerClass(ClassDoc classDoc, 
 			List<DocAnnotation> annotations) {
-		return Utils.getAnnotation(annotations, RestDocConstants.CONTROLLER_ANNOTATION) == null;
+		return 
+				(Utils.getAnnotation(annotations, RestDocConstants.CONTROLLER_ANNOTATION) == null ||
+				classDoc.qualifiedTypeName().equals(RestDocConstants.ADMIN_API_CONTROLLER_CLASS_NAME));
 		//return !(classDoc.qualifiedTypeName().equals(RestDocConstants.SERVICE_CONTROLLER_CLASS_NAME));
 	}
 

@@ -272,7 +272,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * Get the dump of all the machines.
 	 * @param processors The list of processors to be used.
 	 * @param fileSizeLimit
-	 * @return
+	 * @return A map contains byte array of the dump file for each machine.
 	 * @throws IOException
 	 */
 	@JsonRequestExample(requestBody="{\"fileSizeLimit\" : 50000000, \"processors\" : \"summary, thread, log\"}")
@@ -295,7 +295,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @param ip
 	 * @param processors The list of processors to be used.
 	 * @param fileSizeLimit
-	 * @return
+	 * @return A byte array of the dump file in case ip is not null and a map contains byte array of the dump file for each machine otherwise.
 	 * @throws IOException
 	 */
 	@JsonRequestExample(requestBody="{\"fileSizeLimit\" : 50000000, \"processors\" : \"summary, network, log\"}")
@@ -356,7 +356,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	/**
 	 * Get the dump of all the processing units.
 	 * @param fileSizeLimit
-	 * @return
+	 * @return the dump of all the processing units
 	 * @throws IOException
 	 */
 	@JsonRequestExample(requestBody = "{\"fileSizeLimit\" : 50000000}")
@@ -550,7 +550,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @deprecated
 	 * @param applicationName
 	 * @param srcFile
-	 * @return
+	 * @return the name of the pu
 	 * @throws IOException
 	 */
 	@Deprecated
@@ -1821,7 +1821,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @param zone
 	 * @param srcFile
 	 * @param propsFile
-	 * @return
+	 * @return the lifecycleEventsContainerID
 	 * @throws TimeoutException
 	 * @throws PackagingException
 	 * @throws IOException
@@ -2247,7 +2247,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @param timeout
 	 * @param count
 	 * @param locationAware
-	 * @return
+	 * @return lifecycleEventContainerID
 	 * @throws DSLException
 	 */
 	@JsonRequestExample(requestBody = "{\"count\":1,\"location-aware\":true}")
