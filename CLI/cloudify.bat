@@ -34,7 +34,7 @@ goto :END
 	if "%~1" == "-use-proxy" (
 		set PROXY_JAVA_OPTIONS=-Dorg.cloudifysource.cli.proxy.enable=true
 	)
-	set CLOUDIFY_JAVA_OPTIONS=-Xmx500m -Dcom.gigaspaces.logger.RollingFileHandler.debug-level=WARNING %PROXY_JAVA_OPTIONS% %EXT_CLOUDIFY_JAVA_OPTIONS%
+	set CLOUDIFY_JAVA_OPTIONS=-Xmx500m -Dcom.gigaspaces.logger.RollingFileHandler.debug-level=WARNING %PROXY_JAVA_OPTIONS% %EXT_JAVA_OPTIONS%
 	
 goto :END
 

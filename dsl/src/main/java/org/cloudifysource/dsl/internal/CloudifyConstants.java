@@ -229,6 +229,6 @@ public final class CloudifyConstants {
 	 * REST Headers
 	 */
 	public static final String REST_API_VERSION_HEADER = "cloudify-api-version";
-
+	
 	// CHECKSTYLE:ON
 }

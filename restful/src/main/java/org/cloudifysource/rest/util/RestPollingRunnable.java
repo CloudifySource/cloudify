@@ -308,18 +308,22 @@ public class RestPollingRunnable implements Runnable {
         
         if (isUninstall) { 
             String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-            final Zone zone = admin.getZones().waitFor(absolutePuName, 2, TimeUnit.SECONDS);
+            final Zone zone = admin.getZones().waitFor(absolutePuName, ONE_SEC, TimeUnit.SECONDS);
             if (zone == null) {
             	try {
-            		Boolean undeployedSuccessfully = this.undeployTask.get(ONE_SEC, TimeUnit.MINUTES);
+            		Boolean undeployedSuccessfully = this.undeployTask.get(ONE_SEC, TimeUnit.SECONDS);
             		if (undeployedSuccessfully) {
             			this.serviceNames.remove(serviceName);
             		}
             	} catch (Exception e) {
-            		String message = "undeploy task has ended unsuccessfully. Some machines may not have been terminated!";
-            		logger.log(Level.WARNING, message, e);
-            		lifecycleEventsContainer.addInstanceCountEvent(message);
-            		throw new ExecutionException(message, e);
+            		if (e instanceof TimeoutException) {
+            			//ignore
+            		} else {
+            			String message = "undeploy task has ended unsuccessfully. Some machines may not have been terminated!";
+            			logger.log(Level.WARNING, message, e);
+            			lifecycleEventsContainer.addInstanceCountEvent(message);
+            			throw new ExecutionException(message, e);
+            		}
 				}
             }
         } else {

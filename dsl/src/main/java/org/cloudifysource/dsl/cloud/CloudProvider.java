@@ -18,7 +18,6 @@ package org.cloudifysource.dsl.cloud;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
-
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 
 import com.j_spaces.kernel.PlatformVersion;
@@ -36,11 +35,7 @@ public class CloudProvider {
 
 	private String provider;
 	
-
-	private String cloudifyUrl = "http://repository.cloudifysource.org/org/cloudifysource/"
-			+ PlatformVersion.getVersion()
-			+ "/gigaspaces-cloudify-" + PlatformVersion.getVersion() + "-" + PlatformVersion.getMilestone() 
-			+ "-b" + PlatformVersion.getBuildNumber();
+	private String cloudifyUrl = getCloudifyUrlAccordingToPlatformVersion();
 
 	// location of zip file where additional cloudify files are places.
 	// They will be copied on top of the cloudify distribution.
@@ -71,7 +66,7 @@ public class CloudProvider {
 	}	
 
 	public String getCloudifyUrl() {
-		return cloudifyUrl;
+		return this.cloudifyUrl;
 	}
 
 	public void setCloudifyUrl(final String cloudifyUrl) {
@@ -166,5 +161,33 @@ public class CloudProvider {
 	public void setCloudifyOverridesUrl(final String cloudifyOverridesUrl) {
 		this.cloudifyOverridesUrl = cloudifyOverridesUrl;
 	}
-
+	
+	private String getCloudifyUrlAccordingToPlatformVersion() {
+		
+		String cloudifyUrlPattern = "http://repository.cloudifysource.org/" 
+				+ "%s/" + PlatformVersion.getVersion() + "%s/gigaspaces-%s-" 
+				+ PlatformVersion.getVersion() + "-" + PlatformVersion.getMilestone() 
+				+ "-b" + PlatformVersion.getBuildNumber();
+		
+		String productUri;
+		String versionPostFix;
+		String editionUrlVariable;
+		
+		if (PlatformVersion.getEdition().equalsIgnoreCase(PlatformVersion.EDITION_CLOUDIFY)) {
+			productUri = "org/cloudifysource";
+			versionPostFix = "";
+			editionUrlVariable = "cloudify";
+			return String.format(cloudifyUrlPattern, productUri, versionPostFix, editionUrlVariable);
+		} else {
+			productUri = "com/gigaspaces/xap";
+			editionUrlVariable = "xap-premium";
+			if (PlatformVersion.getBuildNumber().contains("-")) {
+				versionPostFix = ".SNAPSHOT";
+			} else {
+				versionPostFix = ".RELEASE";
+			}
+			
+			return String.format(cloudifyUrlPattern, productUri, versionPostFix, editionUrlVariable);
+		}
+	}
 }

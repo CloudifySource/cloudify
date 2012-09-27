@@ -44,7 +44,7 @@ import org.openspaces.ui.UserInterface;
  * 
  */
 @CloudifyDSLEntity(name = "service", clazz = Service.class, allowInternalNode = true, allowRootNode = true,
-		parent = "application")
+parent = "application")
 public class Service {
 
 	private static final int DEFAULT_MAX_JAR_SIZE = 150 * 1024 * 1024; // 150 MB
@@ -74,7 +74,7 @@ public class Service {
 	private int minAllowedInstancesPerLocation = 1;
 
 	private int maxAllowedInstancesPerLocation = 1;
-	
+
 	private long maxJarSize = DEFAULT_MAX_JAR_SIZE;
 
 	private ExecutableEntriesMap customCommands = new ExecutableEntriesMap();
@@ -112,7 +112,7 @@ public class Service {
 	private long samplingPeriodInSeconds = DEFAULT_SAMPLING_PERIOD_SECONDS;
 
 	private boolean locationAware = false;
-	
+
 	public long getSamplingPeriodInSeconds() {
 		return samplingPeriodInSeconds;
 	}
@@ -370,7 +370,7 @@ public class Service {
 	public void setMaxAllowedInstances(final int maxAllowedInstances) {
 		this.maxAllowedInstances = maxAllowedInstances;
 	}
-	
+
 	public int getMinAllowedInstancesPerLocation() {
 		return minAllowedInstancesPerLocation;
 	}
@@ -467,7 +467,7 @@ public class Service {
 					+ "The known service types include " + Arrays.toString(enumAsString));
 		}
 	}
-	
+
 	private void validateInstanceNumber() throws DSLValidationException {
 		if (this.numInstances > this.maxAllowedInstances) {
 			throw new DSLValidationException("The requested number of instances ("
@@ -475,7 +475,7 @@ public class Service {
 					+ " (" + this.maxAllowedInstances + ") for service " + this.name + ".");
 		}
 	}
-	
+
 	/**
 	 * Validate the icon property (if set) points to an existing file.
 	 * @param validationContext The DSLValidationContext object
@@ -486,27 +486,36 @@ public class Service {
 		boolean isServiceFile = false;
 		String serviceSuffix = DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX.trim();
 		String filePath = validationContext.getFilePath().trim();
-		
+
 		// execute this validation only if an icon was set and this is a Service's groovy file (not an Application's) 
 		if (filePath.endsWith(serviceSuffix)) {
 			isServiceFile = true;
 		}
-		
+
 		if (icon != null && isServiceFile) {
 			File dslFile = new File(filePath);
 			File iconFile = new File(dslFile.getParent(), icon);
-			
+
 			if (!iconFile.isFile()) {
+
 				// check the icon at the extended path location, required for service that extend another Service file
+
+				File dslDirectory = dslFile.getParentFile();
 				if (getExtendedServicesPaths() != null) {
 					for (final String extendedPath : getExtendedServicesPaths()) {
-						iconFile = new File(dslFile.getParent() + "/" + extendedPath, icon);
+						if (isAbsolutePath(extendedPath)) {
+							dslDirectory = new File(extendedPath);
+						} else {
+							// climb up the extend hierarchy to look for the icno
+							dslDirectory = new File(dslDirectory.getAbsolutePath() + "/" + extendedPath);
+						}
+						iconFile = new File(dslDirectory.getAbsolutePath(), icon);
 						if (iconFile.isFile()) {
 							break;
 						}
 					}
 				}
-				
+
 				if (!iconFile.isFile()) {
 					throw new DSLValidationException("The icon file \"" + iconFile.getAbsolutePath()
 							+ "\" does not exist.");
@@ -515,6 +524,10 @@ public class Service {
 			}
 		}
 
+	}
+
+	private boolean isAbsolutePath(String extendedPath) {
+		return new File(extendedPath).isAbsolute();
 	}
 
 	@DSLValidation

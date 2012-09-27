@@ -134,7 +134,6 @@ public abstract class BaseServiceScript extends Script {
 		}
 
 		// next check if this is a property assignment
-
 		final String methodName = "set" + name.substring(0, 1).toUpperCase()
 				+ name.substring(1);
 
@@ -143,24 +142,19 @@ public abstract class BaseServiceScript extends Script {
 		}
 
 		final Method m = this.activeMethods.get(methodName);
-		if (m != null) {
-			try {
-				m.invoke(this.activeObject, arg);
-				return new DSLEntryResult(true, this.activeObject);
-			} catch (final Exception e) {
-				logger.log(Level.SEVERE, "Failed to invoke method "
-						+ methodName + ": " + e.getMessage(), e);
-				throw new IllegalStateException("Failed to invoke method "
-						+ methodName + " on object " + this.activeObject, e);
-			}
-		} else {
-			// logger.severe("Method " + methodName + " not found on object: "
-			// + this.activeObject);
-			// throw new MissingPropertyException(methodName);
+		if (m == null) {
 			return new DSLEntryResult(false, null);
-
 		}
-
+			
+		try {
+			m.invoke(this.activeObject, arg);
+		} catch (final Exception e) {
+			logger.log(Level.SEVERE, "Failed to invoke method "
+					+ methodName + ": " + e.getMessage(), e);
+			throw new IllegalStateException("Failed to invoke method "
+					+ methodName + " on object " + this.activeObject, e);
+		}
+		return new DSLEntryResult(true, this.activeObject);
 	}
 
 	public Service service(final Closure<Object> closure) {
@@ -188,29 +182,41 @@ public abstract class BaseServiceScript extends Script {
 	public Object createDslObject(final String name) {
 		if (name.equals("userInterface")) {
 			return new UserInterface();
-		} else if (name.equals("plugin")) {
+		} 
+		if (name.equals("plugin")) {
 			return new PluginDescriptor();
-		} else if (name.equals("metricGroup")) {
+		} 
+		if (name.equals("metricGroup")) {
 			return new MetricGroup();
-		} else if (name.equals("widgetGroup")) {
+		} 
+		if (name.equals("widgetGroup")) {
 			return new WidgetGroup();
-		} else if (name.equals("balanceGauge")) {
+		} 
+		if (name.equals("balanceGauge")) {
 			return new BalanceGauge();
-		} else if (name.equals("barLineChart")) {
+		}
+		if (name.equals("barLineChart")) {
 			return new BarLineChart();
-		} else if (name.equals("network")) {
+		} 
+		if (name.equals("network")) {
 			return new ServiceNetwork();
-		} else if (name.equals("statelessProcessingUnit")) {
+		}
+		if (name.equals("statelessProcessingUnit")) {
 			return new StatelessProcessingUnit();
-		} else if (name.equals("statefulProcessingUnit")) {
+		}
+		if (name.equals("statefulProcessingUnit")) {
 			return new StatefulProcessingUnit();
-		}else if (name.equalsIgnoreCase("mirrorProcessingUnit")){ 
+		}
+		if (name.equalsIgnoreCase("mirrorProcessingUnit")){ 
 			return new MirrorProcessingUnit();
-		}else if (name.equals("memcached")) {
+		}
+		if (name.equals("memcached")) {
 			return new Memcached();
-		} else if (name.equals("dataGrid")) {
+		}
+		if (name.equals("dataGrid")) {
 			return new DataGrid();
-		} else if (name.equals("sla")) {
+		}
+		if (name.equals("sla")) {
 			return new Sla();
 		}
 

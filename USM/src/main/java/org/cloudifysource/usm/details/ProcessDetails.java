@@ -18,7 +18,7 @@ package org.cloudifysource.usm.details;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.tools.ServiceDetailsHelper;
 import org.cloudifysource.usm.UniversalServiceManagerBean;
 import org.cloudifysource.usm.dsl.ServiceConfiguration;
 
@@ -48,41 +48,11 @@ public class ProcessDetails implements Details {
 			// running in integrated container, so use default value.
 			bindHost = "127.0.0.1";
 		}
-		addCloudDetailsToMap(map, bindHost);
+		
+		map.putAll(ServiceDetailsHelper.createCloudDetailsMap(bindHost));
 
 		return map;
 	}
 
-	public void addCloudDetailsToMap(final Map<String, Object> map,
-			String bindHost) {
-		final String privateIp = System
-				.getenv(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP);
-		final String publicIp = System
-				.getenv(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP);
-
-		if (privateIp != null) {
-			map.put(CloudifyConstants.USM_DETAILS_PRIVATE_IP, privateIp);
-		} else {
-			map.put(CloudifyConstants.USM_DETAILS_PRIVATE_IP, bindHost);
-		}
-
-		if (publicIp != null) {
-			map.put(CloudifyConstants.USM_DETAILS_PUBLIC_IP, publicIp);
-		} else {
-			map.put(CloudifyConstants.USM_DETAILS_PUBLIC_IP, bindHost);
-		}
-
-		final String imageId = System
-				.getenv(CloudifyConstants.CLOUDIFY_CLOUD_IMAGE_ID);
-		if (imageId != null) {
-			map.put(CloudifyConstants.USM_DETAILS_IMAGE_ID, imageId);
-		}
-
-		final String hardwareId = System
-				.getenv(CloudifyConstants.CLOUDIFY_CLOUD_HARDWARE_ID);
-		if (hardwareId != null) {
-			map.put(CloudifyConstants.USM_DETAILS_HARDWARE_ID, hardwareId);
-		}
-	}
-
+	
 }
