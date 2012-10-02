@@ -72,7 +72,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class USMLifecycleBean implements ClusterInfoAware {
 
-	private static final int MILLIS_IN_SECOND = 1000;
+	private static final long MILLIS_IN_SECOND = 1000L;
 	private static final int DEFAULT_PIDS_SIZE_LIMIT = 10;
 	@Autowired(required = true)
 	private ServiceConfiguration configuration;
