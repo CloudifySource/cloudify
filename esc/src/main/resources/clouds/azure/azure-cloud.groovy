@@ -62,7 +62,7 @@ cloud {
 					username "ENTER_USER_NAME"
 					password "ENTER_PASSWORD"
 					
-					remoteDirectory "/home/ENTER_USER_NAME/gs-files"
+					remoteDirectory "/home/${username}/gs-files"
 					
 					custom ([
 					
