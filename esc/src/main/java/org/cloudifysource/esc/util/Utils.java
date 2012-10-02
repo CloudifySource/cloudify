@@ -445,13 +445,11 @@ public final class Utils {
 
 		// Create a copy of managementOnly files and mutate
 		final List<String> managementOnlyFiles = new ArrayList<String>(cloud.getProvider().getManagementOnlyFiles());
-		if (template.getKeyFile() != null) {
+		if (template.getKeyFile() != null && isManagement) {
 			// keyFile, if used, is always a management file.
 			managementOnlyFiles.add(template.getKeyFile());
 		}
 		details.setManagementOnlyFiles(managementOnlyFiles);
-
-		details.setManagementOnlyFiles(cloud.getProvider().getManagementOnlyFiles());
 
 		details.setZones(StringUtils.collectionToCommaDelimitedString(zones.getZones()));
 

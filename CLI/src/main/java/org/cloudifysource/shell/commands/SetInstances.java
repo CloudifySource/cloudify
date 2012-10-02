@@ -43,34 +43,13 @@ public class SetInstances extends AdminAwareCommand {
 	@Option(required = false, name = "-timeout", description = "number of minutes to wait for instances. Default is set to 1 minute")
 	protected int timeout = DEFAULT_TIMEOUT_MINUTES;
 
-	@Option(required = false, name = "-location-aware", description = "When true re-starts failed machines in the same cloud location. Default is set to false.")
-	protected boolean locationAware = false;
+	// NOTE: This flag has been disabled as manual scaling is not supported with location aware services in Cloudify 2.2.
+	// This issue will be revisited in the future.
+//	@Option(required = false, name = "-location-aware", description = "When true re-starts failed machines in the same cloud location. Default is set to false.")
+	private boolean locationAware = false;
 	
 	private static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out. " 
 			+ "Try to increase the timeout using the -timeout flag";
-
-	// THIS DOES NOT WORK
-	// The Karaf @CompleterValues annotation only works on statis lists - the method is only invoked once, on loading of
-	// the commands!
-	// @CompleterValues(index = 1)
-	// public Collection<String> getCompleterValues() throws Exception {
-	// try {
-	// System.out.println("getting possible completion values");
-	// String applicationName = this.getCurrentApplicationName();
-	// if (applicationName == null) {
-	// applicationName = CloudifyConstants.DEFAULT_APPLICATION_NAME;
-	// }
-	//
-	// List<String> services = adminFacade.getServicesList(applicationName);
-	//
-	// System.out.println("Returning: " + services);
-	// return services;
-	// } catch (Exception e) {
-	// System.out.println(e);
-	// throw e;
-	// }
-	//
-	// }
 
 	@Override
 	protected Object doExecute() throws Exception {
@@ -84,7 +63,7 @@ public class SetInstances extends AdminAwareCommand {
 			return getFormattedMessage("num_instanes_already_met", count);
 		}
 
-		Map<String, String> response = adminFacade.setInstances(applicationName, serviceName, count, locationAware, timeout);
+		Map<String, String> response = adminFacade.setInstances(applicationName, serviceName, count, isLocationAware(), timeout);
 
 		String pollingID = response.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
 		RestLifecycleEventsLatch lifecycleEventsPollingLatch = 
@@ -118,6 +97,14 @@ public class SetInstances extends AdminAwareCommand {
 
 	private boolean promptWouldYouLikeToContinueQuestion() throws IOException {
 		return ShellUtils.promptUser(session, "would_you_like_to_continue_polling_on_instance_lifecycle_events");
+	}
+
+	public boolean isLocationAware() {
+		return locationAware;
+	}
+
+	public void setLocationAware(boolean locationAware) {
+		this.locationAware = locationAware;
 	}
 
 }

@@ -589,7 +589,9 @@ public class ServiceController implements ServiceDetailsProvider {
 		final Applications apps = admin.getApplications();
 		final List<String> appNames = new ArrayList<String>(apps.getSize());
 		for (final Application app : apps) {
-			appNames.add(app.getName());
+			if (!app.getName().equals(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
+				appNames.add(app.getName());
+			}
 		}
 		return successStatus(appNames);
 	}
@@ -908,6 +910,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		FutureTask<Boolean> undeployTask = new FutureTask<Boolean>(  
 				new Callable<Boolean>() {  
+					@Override
 					public Boolean call() throws Exception {  
 						return processingUnit.undeployAndWait(timeoutInMinutes, TimeUnit.MINUTES);
 					}  
@@ -1118,6 +1121,11 @@ public class ServiceController implements ServiceDetailsProvider {
 					+ " since it has not been discovered yet.");
 			return RestUtils.errorStatus(
 					ResponseConstants.FAILED_TO_LOCATE_APP, applicationName);
+		}
+		if (app.getName().equals(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)){
+			logger.log(Level.INFO, "Cannot uninstall the Management application.");
+			return RestUtils.errorStatus(
+					ResponseConstants.CANNOT_UNINSTALL_MANAGEMENT_APP);
 		}
 		final ProcessingUnit[] pus = app.getProcessingUnits()
 				.getProcessingUnits();

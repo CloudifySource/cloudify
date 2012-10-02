@@ -66,11 +66,11 @@ public class InstallApplication extends AdminAwareCommand {
 	private String applicationName = null;
 
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation"
-			+ " is done. Defaults to 10 minutes.")
+			+ " is done.")
 	private int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
 
 	@Option(required = false, name = "-cloudConfiguration",
-			description = "File of directory containing configuration information to be used by the cloud driver "
+			description = "File or directory containing configuration information to be used by the cloud driver "
 					+ "for this application")
 	private File cloudConfiguration;
 

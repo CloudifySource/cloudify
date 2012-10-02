@@ -58,7 +58,7 @@ public class VersionValidateInterceptor extends HandlerInterceptorAdapter {
 					+ version + " current REST-API version = " + currentVersion);
 		}
 		if (version == null) {
-			logger.log(Level.WARNING,
+			logger.log(Level.FINE,
 					"The " + CloudifyConstants.REST_API_VERSION_HEADER
 							+ " header is missing, the request URI is "
 							+ request.getRequestURI());
