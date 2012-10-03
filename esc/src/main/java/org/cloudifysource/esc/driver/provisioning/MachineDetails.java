@@ -15,8 +15,15 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
+
+import com.gigaspaces.internal.io.IOUtils;
 
 /*******
  * Described a Machine started by a cloud driver.
@@ -25,7 +32,7 @@ import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
  * @since 2.0.0
  * 
  */
-public class MachineDetails {
+public class MachineDetails implements Externalizable {
 	
 	private String privateAddress;
 	private String publicAddress;
@@ -34,7 +41,9 @@ public class MachineDetails {
 	private String installationDirectory = null;
 	private boolean agentRunning = false;
 
+	// not serializable
 	private String remoteUsername;
+	// not serializable
 	private String remotePassword;
 
 	private String machineId;
@@ -148,6 +157,43 @@ public class MachineDetails {
 
 	public void setRemoteDirectory(final String remoteDirectory) {
 		this.remoteDirectory = remoteDirectory;
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException,
+			ClassNotFoundException {
+		
+		privateAddress = IOUtils.readString(in);
+		publicAddress = IOUtils.readString(in);
+		cloudifyInstalled = in.readBoolean();
+		installationDirectory = IOUtils.readString(in);
+		agentRunning = in.readBoolean();
+		//Do not pass username/password over the network! (PII)
+		//remoteUsername = IOUtils.readString(in);
+		//remotePassword = IOUtils.readString(in);
+		machineId = IOUtils.readString(in);
+		fileTransferMode = FileTransferModes.valueOf(IOUtils.readString(in));
+		remoteExecutionMode = RemoteExecutionModes.valueOf(IOUtils.readString(in));
+		remoteDirectory = IOUtils.readString(in);
+		locationId = IOUtils.readString(in);
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+
+		IOUtils.writeString(out, privateAddress);
+		IOUtils.writeString(out, publicAddress);
+		out.writeBoolean(cloudifyInstalled);
+		IOUtils.writeString(out, installationDirectory);
+		out.writeBoolean(agentRunning);
+		//Do not pass username/password over the network! (PII)
+		//IOUtils.writeString(out, remoteUsername);
+		//IOUtils.writeString(out, remotePassword);
+		IOUtils.writeString(out, machineId);
+		IOUtils.writeString(out, fileTransferMode.name());
+		IOUtils.writeString(out, remoteExecutionMode.name());
+		IOUtils.writeString(out, remoteDirectory);
+		IOUtils.writeString(out, locationId);
 	}
 
 }

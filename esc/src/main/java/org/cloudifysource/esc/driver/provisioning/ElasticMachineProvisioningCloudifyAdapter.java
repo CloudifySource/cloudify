@@ -42,6 +42,8 @@ import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
+import org.cloudifysource.esc.driver.provisioning.events.MachineStartRequestedCloudifyEvent;
+import org.cloudifysource.esc.driver.provisioning.events.MachineStartedCloudifyEvent;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
@@ -67,8 +69,10 @@ import org.openspaces.grid.gsm.machines.isolation.SharedMachineIsolation;
 import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioning;
 import org.openspaces.grid.gsm.machines.plugins.events.GridServiceAgentStartRequestedEvent;
 import org.openspaces.grid.gsm.machines.plugins.events.GridServiceAgentStartedEvent;
-import org.openspaces.grid.gsm.machines.plugins.events.MachineStartRequestedEvent;
-import org.openspaces.grid.gsm.machines.plugins.events.MachineStartedEvent;
+import org.openspaces.grid.gsm.machines.plugins.events.GridServiceAgentStopRequestedEvent;
+import org.openspaces.grid.gsm.machines.plugins.events.GridServiceAgentStoppedEvent;
+import org.openspaces.grid.gsm.machines.plugins.events.MachineStopRequestedEvent;
+import org.openspaces.grid.gsm.machines.plugins.events.MachineStoppedEvent;
 import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticGridServiceAgentProvisioningException;
 import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticMachineProvisioningException;
 
@@ -215,8 +219,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			}
 		}
 
-		//TODO: Derive cloudify specific event and include more event details as specified in CLOUDIFY-10651
-		machineEventListener.elasticMachineProvisioningProgressChanged(new MachineStartRequestedEvent());
+		MachineStartRequestedCloudifyEvent machineStartEvent = new MachineStartRequestedCloudifyEvent();
+		machineStartEvent.setTemplateName(cloudTemplateName);
+		machineStartEvent.setLocationId(locationId);
+		machineEventListener.elasticMachineProvisioningProgressChanged(machineStartEvent);
 
 		try {
 			if (locationId == null) {
@@ -243,10 +249,15 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			throw new IllegalStateException("The IP of the new machine is null! Machine Details are: "
 					+ machineDetails + " .");
 		}
-		//TODO: Derive cloudify specific event and include more event details as specified in CLOUDIFY-10651
-		machineEventListener.elasticMachineProvisioningProgressChanged(new MachineStartedEvent(machineIp));
-		//TODO: Derive cloudify specific event and include more event details as specified in CLOUDIFY-10651
-		agentEventListener.elasticGridServiceAgentProvisioningProgressChanged(new GridServiceAgentStartRequestedEvent(machineIp));
+
+		MachineStartedCloudifyEvent machineStartedEvent = new MachineStartedCloudifyEvent();
+		machineStartedEvent.setMachineDetails(machineDetails);
+		machineEventListener.elasticMachineProvisioningProgressChanged(machineStartedEvent);
+
+		GridServiceAgentStartRequestedEvent agentStartEvent = new GridServiceAgentStartRequestedEvent();
+		agentStartEvent.setHostAddress(machineIp);
+		agentEventListener.elasticGridServiceAgentProvisioningProgressChanged(agentStartEvent);
+		
 		try {
 			// check for timeout
 			checkForProvisioningTimeout(end, machineDetails);
@@ -450,20 +461,41 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
 
 		final String machineIp = agent.getMachine().getHostAddress();
+		
+		GridServiceAgentStopRequestedEvent agentStopEvent = new GridServiceAgentStopRequestedEvent();
+		agentStopEvent.setHostAddress(machineIp);
+		agentStopEvent.setAgentUid(agent.getUid());
+		agentEventListener.elasticGridServiceAgentProvisioningProgressChanged(agentStopEvent);
+		
 		logger.fine("Shutting down agent: " + agent + " on host: " + machineIp);
 		try {
 			agent.shutdown();
 			logger.fine("Agent on host: " + machineIp + " successfully shut down");
+			
+			GridServiceAgentStoppedEvent agentStoppedEvent = new GridServiceAgentStoppedEvent();
+			agentStoppedEvent.setHostAddress(machineIp);
+			agentStoppedEvent.setAgentUid(agent.getUid());
+			agentEventListener.elasticGridServiceAgentProvisioningProgressChanged(agentStoppedEvent);
 		} catch (final Exception e) {
 			logger.log(Level.WARNING, "Failed to shutdown agent on host: " + machineIp
 					+ ". Continuing with shutdown of machine.", e);
 		}
 
 		try {
+			
+			MachineStopRequestedEvent machineStopEvent = new MachineStopRequestedEvent();
+			machineStopEvent.setHostAddress(machineIp);
+			machineEventListener.elasticMachineProvisioningProgressChanged(machineStopEvent);
+			
 			logger.fine("Cloudify Adapter is shutting down machine with ip: " + machineIp);
-
 			final boolean shutdownResult = this.cloudifyProvisioning.stopMachine(machineIp, duration, unit);
 			logger.fine("Shutdown result of machine: " + machineIp + " was: " + shutdownResult);
+			
+			if (shutdownResult) {
+				MachineStoppedEvent machineStoppedEvent = new MachineStoppedEvent();
+				machineStopEvent.setHostAddress(machineIp);
+				machineEventListener.elasticMachineProvisioningProgressChanged(machineStoppedEvent);
+			}
 
 			return shutdownResult;
 
