@@ -25,6 +25,7 @@
 		<module>../restful</module>
 		<module>../dsl</module>
 		<module>../rest-client</module>
+		<module>../tools</module>
 	</modules>
 
 	<build>
