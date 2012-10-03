@@ -63,10 +63,8 @@ public class VersionValidateInterceptor extends HandlerInterceptorAdapter {
 							+ " header is missing, the request URI is "
 							+ request.getRequestURI());
 		} else if (!version.equals(currentVersion)) {
-			throw new ServletException("The value of "
-					+ CloudifyConstants.REST_API_VERSION_HEADER + " header of request URI "
-					+ request.getRequestURI() + " expected [" + currentVersion
-					+ "] but was [" + version + "]");
+			throw new ServletException("Version mismatch between Cloudify REST gateway and Cloudify CLI: CLI version is ["
+					+ version + "] while server version is [" + currentVersion + "]");
 		}
 		return true;
 	}
