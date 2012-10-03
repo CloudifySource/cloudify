@@ -80,7 +80,7 @@ cloud {
 	templates ([
 				MEDIUM_WIN : template{
 					// Mandatory. Image ID.
-					imageId "us-east-1/ami-2b41ef42"
+					imageId "us-east-1/ami-cbc87da2"
 					// Mandatory. Amount of RAM available to machine.
 					machineMemoryMB 1600
 					// Mandatory. Hardware ID.

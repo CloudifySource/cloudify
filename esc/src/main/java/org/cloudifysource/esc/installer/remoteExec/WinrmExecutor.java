@@ -38,29 +38,25 @@ import org.cloudifysource.esc.util.Utils;
 
 public class WinrmExecutor implements RemoteExecutor {
 
-	private static final String[] POWERSHELL_INSTALLED_COMMAND = new String[] { "powershell.exe", "-inputformat",
-			"none", "-?" };
-
-	private final String separator = POWERSHELL_COMMAND_SEPARATOR;
-	private final StringBuilder sb = new StringBuilder();
-
-	private boolean runInBackground = false;
-
-	private AgentlessInstaller installer;
-
 	private static final java.util.logging.Logger logger =
 			java.util.logging.Logger.getLogger(SshExecutor.class.getName());
 
-	private static final String CIFS_ABSOLUTE_PATH_WITH_DRIVE_REGEX = "/[a-zA-Z][$]/.*";
+	private static final String[] POWERSHELL_INSTALLED_COMMAND = new String[] { "powershell.exe", "-inputformat",
+			"none", "-?" };
 	private static final String POWERSHELL_COMMAND_SEPARATOR = ";"; // System.getProperty("line.separator");
+	private static final String SEPARATOR = POWERSHELL_COMMAND_SEPARATOR;
+	private static final String CIFS_ABSOLUTE_PATH_WITH_DRIVE_REGEX = "/[a-zA-Z][$]/.*";
+	private static final String POWERSHELL_CLIENT_SCRIPT = "bootstrap-client.ps1";
+	private static final int POWERSHELL_PORT = 5985;
+
+	private final StringBuilder sb = new StringBuilder();
+	private boolean runInBackground = false;
+	private AgentlessInstaller installer;
+
 	private static Pattern pattern;
 
 	// indicates if powershell is installed on this host. If null, installation test was not performed.
 	private static volatile Boolean powerShellInstalled = null;
-
-	private static final String POWERSHELL_CLIENT_SCRIPT = "bootstrap-client.ps1";
-
-	private static final int POWERSHELL_PORT = 5985;
 
 	@Override
 	public void initialize(final AgentlessInstaller installer, final InstallationDetails details) {
@@ -109,7 +105,7 @@ public class WinrmExecutor implements RemoteExecutor {
 	 */
 	@Override
 	public RemoteExecutor separate() {
-		sb.append(this.separator);
+		sb.append(this.SEPARATOR);
 		return this;
 	}
 

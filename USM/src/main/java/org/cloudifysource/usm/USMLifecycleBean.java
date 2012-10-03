@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
@@ -72,7 +73,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class USMLifecycleBean implements ClusterInfoAware {
 
-	private static final int MILLIS_IN_SECOND = 1000;
 	private static final int DEFAULT_PIDS_SIZE_LIMIT = 10;
 	@Autowired(required = true)
 	private ServiceConfiguration configuration;
@@ -678,9 +678,7 @@ public class USMLifecycleBean implements ClusterInfoAware {
 		}
 
 		final long startTime = System.currentTimeMillis();
-		final long endTime =
-				startTime
-						+ (configuration.getService().getLifecycle().getStartDetectionTimeoutSecs() * MILLIS_IN_SECOND);
+		final long endTime = startTime + TimeUnit.SECONDS.toMillis(configuration.getService().getLifecycle().getStartDetectionTimeoutSecs());
 		int currentTestIndex = 0;
 
 		// indicates if the process launched by START (if it exitst) is still running
@@ -734,8 +732,7 @@ public class USMLifecycleBean implements ClusterInfoAware {
 			}
 
 			try {
-				Thread.sleep(configuration.getService().getLifecycle().getStartDetectionIntervalSecs()
-						* MILLIS_IN_SECOND);
+				Thread.sleep(TimeUnit.SECONDS.toMillis(configuration.getService().getLifecycle().getStartDetectionIntervalSecs()));
 			} catch (final InterruptedException e) {
 				throw new USMException("Interruped while waiting for start detection", e);
 			}
