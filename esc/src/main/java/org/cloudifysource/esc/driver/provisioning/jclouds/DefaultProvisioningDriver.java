@@ -47,7 +47,6 @@ import org.jclouds.compute.domain.NodeState;
 import org.jclouds.domain.LoginCredentials;
 
 import com.google.common.base.Predicate;
-import com.j_spaces.kernel.Environment;
 
 /**************
  * A jclouds-based CloudifyProvisioning implementation. Uses the JClouds Compute
@@ -223,9 +222,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		File pemFile = null;
 
 		if (this.management) {
-			final String baseDirectory = Environment.getHomeDirectory();
-			final File localDirectory = new File(baseDirectory,
-					cloudTemplate.getLocalDirectory());
+			final File localDirectory = new File(cloudTemplate.getAbsoluteUploadDir());
 
 			pemFile = new File(localDirectory, cloudTemplate.getKeyFile());
 		} else {

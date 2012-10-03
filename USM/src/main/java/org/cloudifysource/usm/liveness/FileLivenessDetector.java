@@ -17,6 +17,7 @@ package org.cloudifysource.usm.liveness;
 
 import java.io.File;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.input.Tailer;
@@ -93,7 +94,7 @@ public class FileLivenessDetector extends AbstractUSMEventListener implements Li
 		Tailer tailer = null;
 		try {
 			final long startTime = System.currentTimeMillis();
-			while (System.currentTimeMillis() < startTime + timeoutInSeconds * 1000L) {
+			while (System.currentTimeMillis() < startTime + TimeUnit.SECONDS.toMillis(timeoutInSeconds)) {
 				if (file.exists()) {
 					if (tailer == null) {
 						tailer = Tailer.create(file, listener, TIMEOUT_BETWEEN_FILE_QUERYING, false);

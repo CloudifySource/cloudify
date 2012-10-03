@@ -60,17 +60,16 @@ public class ProcessLocatorExecutor implements ProcessLocator {
 		if (result.isSuccess()) {
 			final Object retval = result.getResult();
 			if (retval instanceof List<?>) {
-				@SuppressWarnings("unchecked")
-				final List<Object> closureResultList = (List<Object>) retval;
+				final List<?> closureResultList = (List<?>) retval;
 				final List<Long> targetList = new ArrayList<Long>(closureResultList.size());
 				for (final Object listItem : closureResultList) {
-					if (Long.class.isInstance(listItem)) {
+					if (listItem instanceof Long) {
 						targetList.add((Long) listItem);
-					} else if (Integer.class.isInstance(listItem)) {
-						targetList.add(new Long((Integer) listItem));
-					} else if (String.class.isInstance(listItem)) {
+					} else if (listItem instanceof Integer) {
+						targetList.add( Long.valueOf((Integer) listItem));
+					} else if (listItem instanceof String) {
 						try {
-							final Long temp = Long.parseLong((String) listItem);
+							final Long temp = Long.valueOf((String) listItem);
 							targetList.add(temp);
 						} catch (final NumberFormatException e) {
 							throw new IllegalArgumentException(
@@ -93,7 +92,7 @@ public class ProcessLocatorExecutor implements ProcessLocator {
 				final List<Long> resultList = new ArrayList<Long>(parts.length);
 				for (final String part : parts) {
 					try {
-						final Long pid = Long.parseLong(part);
+						final Long pid = Long.valueOf(part);
 						resultList.add(pid);
 					} catch (final NumberFormatException e) {
 						throw new IllegalArgumentException(

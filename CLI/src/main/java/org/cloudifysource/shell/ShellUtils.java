@@ -43,7 +43,7 @@ import java.util.logging.Logger;
  */
 public final class ShellUtils {
 
-	protected static final Logger logger = Logger.getLogger(ShellUtils.class.getName());
+	private static final Logger logger = Logger.getLogger(ShellUtils.class.getName());
 
 	private static final char WIN_RETURN_CHAR = '\r';
 	private static final char LINUX_RETURN_CHAR = '\n';
