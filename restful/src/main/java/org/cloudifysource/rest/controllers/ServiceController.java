@@ -30,6 +30,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -82,6 +84,7 @@ import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
+import org.cloudifysource.dsl.internal.tools.ServiceDetailsHelper;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.esc.driver.provisioning.CloudifyMachineProvisioningConfig;
 import org.cloudifysource.rest.ResponseConstants;
@@ -129,6 +132,7 @@ import org.openspaces.admin.zone.config.AtLeastOneZoneConfigurer;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.context.GigaSpaceContext;
 import org.openspaces.core.util.MemoryUnit;
+import org.openspaces.pu.service.CustomServiceDetails;
 import org.openspaces.pu.service.ServiceDetails;
 import org.openspaces.pu.service.ServiceDetailsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -165,8 +169,8 @@ public class ServiceController implements ServiceDetailsProvider{
 	private static final int THREAD_POOL_SIZE = 20;
 	private static final String SHARED_ISOLATION_ID = "public";
 	private static final int PU_DISCOVERY_TIMEOUT_SEC = 8;
-	private final Map<UUID, RestPollingRunnable> lifecyclePollingThreadContainer =
-			new ConcurrentHashMap<UUID, RestPollingRunnable>();
+	private final Map<UUID, RestPollingRunnable> lifecyclePollingThreadContainer = new ConcurrentHashMap<UUID, RestPollingRunnable>();
+	private final ExecutorService serviceUndeployExecutor = Executors.newFixedThreadPool(10);
 	private final int LIFECYCLE_EVENT_POLLING_INTERVAL_SEC = 4;
 	private final long LIFECYCLE_EVENT_CLEANUP_INTERVAL_SEC = 60;
 	private final long MINIMAL_POLLING_TASK_EXPIRATION = 5 * 60 * 1000;
@@ -184,7 +188,8 @@ public class ServiceController implements ServiceDetailsProvider{
 	private Cloud cloud = null;
 	private CloudTemplate managementTemplate;
 	
-	private static final Logger logger = Logger.getLogger(ServiceController.class.getName());
+	private static final Logger logger = Logger
+			.getLogger(ServiceController.class.getName());
 	private static final long DEFAULT_DUMP_FILE_SIZE_LIMIT = 5 * 1024 * 1024;
 
 	private static final String DEFAULT_DUMP_PROCESSORS = "summary, network, thread, log";
@@ -208,13 +213,18 @@ public class ServiceController implements ServiceDetailsProvider{
 		this.cloud = readCloud();
 		if (cloud != null) {
 			if (this.cloud.getTemplates().isEmpty()) {
-				throw new IllegalArgumentException("No templates defined in cloud configuration!");
+				throw new IllegalArgumentException(
+						"No templates defined in cloud configuration!");
 			}
-			this.defaultTemplateName = this.cloud.getTemplates().keySet().iterator().next();
-			logger.info("Setting default template name to: " + defaultTemplateName
+			this.defaultTemplateName = this.cloud.getTemplates().keySet()
+					.iterator().next();
+			logger.info("Setting default template name to: " 
+					+ defaultTemplateName
 					+ ". This template will be used for services that do not specify an explicit template");
 			
-			this.managementTemplate = this.cloud.getTemplates().get(this.cloud.getConfiguration().getManagementMachineTemplate());
+			this.managementTemplate = this.cloud.getTemplates().get(
+					this.cloud.getConfiguration()
+								.getManagementMachineTemplate());
 		} else {
 			logger.info("Service Controller is running in local cloud mode");
 		}
@@ -599,7 +609,9 @@ public class ServiceController implements ServiceDetailsProvider{
 		final Applications apps = admin.getApplications();
 		final List<String> appNames = new ArrayList<String>(apps.getSize());
 		for (final Application app : apps) {
-			appNames.add(app.getName());
+			if (!app.getName().equals(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
+				appNames.add(app.getName());
+			}
 		}
 		return successStatus(appNames);
 	}
@@ -891,7 +903,7 @@ public class ServiceController implements ServiceDetailsProvider{
 					}  
 
 				});
-		undeployTask.run();
+		serviceUndeployExecutor.execute(undeployTask);
 		final UUID lifecycleEventContainerID =
 				startPollingForServiceUninstallLifecycleEvents(applicationName, serviceName,
 						timeoutInMinutes, undeployTask);
@@ -1059,6 +1071,11 @@ public class ServiceController implements ServiceDetailsProvider{
 			logger.log(Level.INFO, "Cannot uninstall application " + applicationName
 					+ " since it has not been discovered yet.");
 			return RestUtils.errorStatus(ResponseConstants.FAILED_TO_LOCATE_APP, applicationName);
+		}
+		if (app.getName().equals(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)){
+			logger.log(Level.INFO, "Cannot uninstall the Management application.");
+			return RestUtils.errorStatus(
+					ResponseConstants.CANNOT_UNINSTALL_MANAGEMENT_APP);
 		}
 		final ProcessingUnit[] pus = app.getProcessingUnits().getProcessingUnits();
 
@@ -2488,7 +2505,31 @@ public class ServiceController implements ServiceDetailsProvider{
 
 	@Override
 	public ServiceDetails[] getServicesDetails() {
-		// TODO Auto-generated method stub
-		return null;
+		logger.info("Creating service details");
+		String bindHost;
+		try {
+			bindHost = InetAddress.getLocalHost().getHostAddress();
+		} catch (UnknownHostException e) {
+			logger.log(Level.SEVERE,
+					"Failed to get local host, defaulting to 127.0.0.1", e);
+			bindHost = "127.0.0.1";
+		}
+
+		final Map<String, Object> map = ServiceDetailsHelper
+				.createCloudDetailsMap(bindHost);
+
+		@SuppressWarnings("deprecation")
+		final CustomServiceDetails csd = new CustomServiceDetails(
+				CloudifyConstants.USM_DETAILS_SERVICE_ID,
+				CustomServiceDetails.SERVICE_TYPE, "REST", "REST", "REST");
+
+		final ServiceDetails[] res = new ServiceDetails[] { csd };
+
+		final Map<String, Object> result = csd.getAttributes();
+		result.putAll(map);
+
+		logger.info("Service details created: " + result);
+		return res;
+
 	}
 }
