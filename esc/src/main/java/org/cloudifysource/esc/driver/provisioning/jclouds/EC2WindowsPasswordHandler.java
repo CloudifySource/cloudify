@@ -120,7 +120,7 @@ public class EC2WindowsPasswordHandler {
 
 		final WindowsLoginCredentialsFromEncryptedData f = new WindowsLoginCredentialsFromEncryptedData(crypto);
 
-		final LoginCredentials credentials = f.apply(new EncryptedPasswordAndPrivateKey(encryptedPassword, key));
+		final LoginCredentials credentials = f.apply(EncryptedPasswordAndPrivateKey.builder().encryptedPassword(encryptedPassword).privateKey(key).build());
 
 		return credentials;
 
