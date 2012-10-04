@@ -54,11 +54,8 @@
 			<artifactId>spring-webmvc</artifactId>
 			<version>${springVersion}</version>
 		</dependency>
-		<!-- dependency>
- 			<groupId>org.springframework</groupId>
- 			<artifactId>spring-test-mvc</artifactId>
-  			<version>1.0.0.BUILD-SNAPSHOT</version>
-		</dependency-->
+		<!-- dependency> <groupId>org.springframework</groupId> <artifactId>spring-test-mvc</artifactId> 
+			<version>1.0.0.BUILD-SNAPSHOT</version> </dependency -->
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>servlet-api</artifactId>
@@ -331,7 +328,7 @@
 	<build>
 		<defaultGoal>install</defaultGoal>
 		<plugins>
-			
+
 			<plugin>
 				<groupId>org.mortbay.jetty</groupId>
 				<artifactId>jetty-maven-plugin</artifactId>
@@ -355,6 +352,34 @@
 					</webAppConfig>
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<!-- To run javadoc: mvn javadoc:javadoc -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.8.1</version>
+				<configuration>
+					<doctitle>REST ${project.version} API</doctitle>
+					<windowtitle>REST ${project.version} API</windowtitle>
+					<name>RestDoclet</name>
+					<description>REST ${project.version} API documentation.</description>
+					<!--docletPath>${basedir}/src/main/java</docletPath -->
+					<doclet>org.cloudifysource.restDoclet.generation.RestDoclet</doclet>
+					<sourcepath>${basedir}/src/main/java/org/cloudifysource/rest/controllers;</sourcepath>
+					<docletArtifact>
+						<groupId>org.cloudifysource</groupId>
+						<artifactId>tools</artifactId>
+						<version>2.2.0</version>
+					</docletArtifact>
+					<useStandardDocletOptions>false</useStandardDocletOptions>
+					<reportOutputDirectory>${basedir}/target/site</reportOutputDirectory>
+					<destDir>restdoclet</destDir>
+					<!-- additionalJOption>-version ${project.version}</additionalJOption -->
+					<!--additionalJOption>-velocityTemplateFilePath <path to template file> 
+						-docletDestdir <path to html file></additionalJOption -->
+				</configuration>
+			</plugin>
+
 		</plugins>
 		<finalName>rest</finalName>
 	</build>
