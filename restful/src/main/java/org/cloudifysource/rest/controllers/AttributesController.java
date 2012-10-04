@@ -19,6 +19,9 @@ import com.gigaspaces.client.WriteModifiers;
 import net.jini.core.lease.Lease;
 import org.cloudifysource.dsl.context.kvstorage.spaceentries.*;
 import org.cloudifysource.dsl.utils.ServiceUtils;
+import org.cloudifysource.restDoclet.annotations.JsonRequestExample;
+import org.cloudifysource.restDoclet.annotations.JsonResponseExample;
+import org.cloudifysource.restDoclet.annotations.PossibleResponseStatuses;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.context.GigaSpaceContext;
 import org.springframework.stereotype.Controller;
@@ -54,6 +57,8 @@ public class AttributesController {
      * @param attributeName   The name (key) of the attribute to get.
      * @return The attribute's value.
      */
+    @JsonResponseExample(status = "success", responseBody = "{\"attributeName\":\"attributeValue\"}")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "instances/{applicationName}/{serviceName}/{instanceId}/{attributeName}",
             method = RequestMethod.GET)
     @ResponseBody
@@ -85,6 +90,8 @@ public class AttributesController {
      * @param instanceId      The service instance id.
      * @return a Map containing the attributes' names (keys) and values.
      */
+    @JsonResponseExample(status = "success", responseBody = "{\"attribute1Name\":\"attribute1Value\",\"attribute2Name\":\"attribute2Value\"}")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "instances/{applicationName}/{serviceName}/{instanceId}",
             method = RequestMethod.GET)
     @ResponseBody
@@ -116,11 +123,14 @@ public class AttributesController {
      * @param attributeName   The name (key) of the attribute to get.
      * @return The attribute's value.
      */
+    @JsonResponseExample(status = "success", responseBody = "{\"attributeName\":\"attributeValue\"}")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "services/{applicationName}/{serviceName}/{attributeName}",
             method = RequestMethod.GET)
     @ResponseBody
     public Object getServiceAttribute(@PathVariable final String applicationName,
-                                      @PathVariable final String serviceName, @PathVariable final String attributeName) {
+                                      @PathVariable final String serviceName, 
+                                      @PathVariable final String attributeName) {
 
         if (logger.isLoggable(Level.FINER)) {
             logger.finer("received request to get attribute " + attributeName + " of service "
@@ -145,6 +155,8 @@ public class AttributesController {
      * @param serviceName     The service name.
      * @return a Map containing the attributes' names (keys) and values.
      */
+    @JsonResponseExample(status = "success", responseBody = "{\"attribute1Name\":\"attribute1Value\",\"attribute2Name\":\"attribute2Value\"}")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "services/{applicationName}/{serviceName}", method = RequestMethod.GET)
     @ResponseBody
     public Map<String, Object> getServiceAttributes(@PathVariable final String applicationName,
@@ -174,6 +186,8 @@ public class AttributesController {
      * @param attributeName   The name (key) of the attribute to get.
      * @return The attribute's value.
      */
+    @JsonResponseExample(status = "success", responseBody = "{\"attributeName\":\"attributeValue\"}")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "applications/{applicationName}/{attributeName}", method = RequestMethod.GET)
     @ResponseBody
     public Object getApplicationAttribute(@PathVariable final String applicationName,
@@ -199,6 +213,8 @@ public class AttributesController {
      * @param applicationName The application name.
      * @return a Map containing the attributes' names (keys) and values.
      */
+    @JsonResponseExample(status = "success", responseBody = "{\"attribute1Name\":\"attribute1Value\",\"attribute2Name\":\"attribute2Value\"}")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "applications/{applicationName}", method = RequestMethod.GET)
     @ResponseBody
     public Map<String, Object> getApplicationAttributes(@PathVariable final String applicationName) {
@@ -224,6 +240,8 @@ public class AttributesController {
      * @param attributeName The name (key) of the attribute to get.
      * @return The attribute's value.
      */
+    @JsonResponseExample(status = "success", responseBody = "{\"attributeName\":\"attributeValue\"}")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "globals/{attributeName}", method = RequestMethod.GET)
     @ResponseBody
     public Object getGlobalAttribute(@PathVariable final String attributeName) {
@@ -247,6 +265,8 @@ public class AttributesController {
      *
      * @return a Map containing the attributes' names (keys) and values.
      */
+    @JsonResponseExample(status = "success", responseBody = "{\"attribute1Name\":\"attribute1Value\",\"attribute2Name\":\"attribute2Value\"}")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "globals", method = RequestMethod.GET)
     @ResponseBody
     public Map<String, Object> getGlobalAttributes() {
@@ -276,6 +296,9 @@ public class AttributesController {
      * @param attributeValue  The value to set.
      * @return The previous value.
      */
+    @JsonRequestExample(requestBody = "\"attributeValue\"")
+    @JsonResponseExample(status = "success", responseBody = "{\"attributeName\":\"attributeValue\"}", comments = "attributeValue is the previous value (before changed)")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "instances/{applicationName}/{serviceName}/{instanceId}/{attributeName}",
             method = RequestMethod.POST)
     @ResponseBody
@@ -311,6 +334,9 @@ public class AttributesController {
      * @param attributesMap   a Map containing the attributes' names (keys) and values to set.
      * @return The status of the operation.
      */
+    @JsonRequestExample(requestBody = "{\"attribute1Name\":\"attribute1Value\", \"attribute2Name\":\"attribute2Value\"}")
+    @JsonResponseExample(status = "success")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "instances/{applicationName}/{serviceName}/{instanceId}",
             method = RequestMethod.POST)
     @ResponseBody
@@ -336,6 +362,9 @@ public class AttributesController {
      * @param attributeValue  The value to set.
      * @return The previous value.
      */
+    @JsonRequestExample(requestBody = "\"attributeValue\"")
+    @JsonResponseExample(status = "success", responseBody = "{\"attributeName\":\"attributeValue\"}", comments = "attributeValue is the previous value (before changed)")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "services/{applicationName}/{serviceName}/{attributeName}",
             method = RequestMethod.POST)
     @ResponseBody
@@ -370,6 +399,9 @@ public class AttributesController {
      * @param attributesMap   a Map containing the attributes' names (keys) and values to set.
      * @return A map of the previous values.
      */
+    @JsonRequestExample(requestBody = "{\"attribute1Name\":\"attribute1Value\", \"attribute2Name\":\"attribute2Value\"}")
+    @JsonResponseExample(status = "success")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "services/{applicationName}/{serviceName}", method = RequestMethod.POST)
     @ResponseBody
     public Object setServiceAttributes(@PathVariable final String applicationName,
@@ -393,6 +425,9 @@ public class AttributesController {
      * @param attributeValue  The value to set.
      * @return The previous value.
      */
+    @JsonRequestExample(requestBody = "\"attributeValue\"")
+    @JsonResponseExample(status = "success", responseBody = "{\"attributeName\":\"attributeValue\"}", comments = "attributeValue is the previous value (before changed)")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "applications/{applicationName}/{attributeName}", method = RequestMethod.POST)
     @ResponseBody
     public Object setApplicationAttribute(@PathVariable final String applicationName,
@@ -423,6 +458,9 @@ public class AttributesController {
      * @param attributesMap   a Map containing the attributes' names (keys) and values to set.
      * @return A map of the previous values.
      */
+    @JsonRequestExample(requestBody = "{\"attribute1Name\":\"attribute1Value\", \"attribute2Name\":\"attribute2Value\"}")
+    @JsonResponseExample(status = "success")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "applications/{applicationName}", method = RequestMethod.POST)
     @ResponseBody
     public Object setApplicationAttributes(@PathVariable final String applicationName,
@@ -471,6 +509,9 @@ public class AttributesController {
      * @param attributeValue The value to set.
      * @return The previous value.
      */
+    @JsonRequestExample(requestBody = "\"attributeValue\"")
+    @JsonResponseExample(status = "success", responseBody = "{\"attributeName\":\"attributeValue\"}", comments = "attributeValue is the previous value (before changed)")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "globals/{attributeName}", method = RequestMethod.POST)
     @ResponseBody
     public Object setGlobalAttribute(@PathVariable final String attributeName,
@@ -499,6 +540,9 @@ public class AttributesController {
      * @param attributesMap a Map containing the attributes' names (keys) and values to set.
      * @return A map of the previous values.
      */
+    @JsonRequestExample(requestBody = "{\"attribute1Name\":\"attribute1Value\",\"attribute2Name\":\"attribute2Value\"}")
+    @JsonResponseExample(status = "success")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "globals", method = RequestMethod.POST)
     @ResponseBody
     public Object setGlobalAttributes(@RequestBody final Map<String, Object> attributesMap) {
@@ -520,6 +564,8 @@ public class AttributesController {
      * @param attributeName   The name of the attribute to get.
      * @return The previous value.
      */
+    @JsonResponseExample(status = "success", responseBody = "{\"attributeName\":\"attributeValue\"}", comments = "attributeValue is the previous value (before deleted)")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "instances/{applicationName}/{serviceName}/{instanceId}/{attributeName}",
             method = RequestMethod.DELETE)
     @ResponseBody
@@ -551,6 +597,9 @@ public class AttributesController {
      * @param instanceId      The service instance id.
      * @return A map of the previous values.
      */
+    @JsonResponseExample(status = "success", responseBody = "{\"attribute1Name\":\"attribute1Value\",\"attribute2Name\":\"attribute2Value\"}", 
+    		comments = "attribute1Value and attribute2Value are the previous values (before deleted)")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "instances/{applicationName}/{serviceName}/{instanceId}",
             method = RequestMethod.DELETE)
     @ResponseBody
@@ -582,6 +631,8 @@ public class AttributesController {
      * @param attributeName   The name of the attribute to get.
      * @return The previous value.
      */
+    @JsonResponseExample(status = "success", responseBody = "{\"attributeName\":\"attributeValue\"}", comments = "attributeValue is the previous value (before deleted)")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "services/{applicationName}/{serviceName}/{attributeName}",
             method = RequestMethod.DELETE)
     @ResponseBody
@@ -611,6 +662,9 @@ public class AttributesController {
      * @param serviceName     The service name.
      * @return A map of the previous values.
      */
+    @JsonResponseExample(status = "success", responseBody = "{\"attribute1Name\":\"attribute1Value\",\"attribute2Name\":\"attribute2Value\"}", 
+    		comments = "attribute1Value and attribute2Value are the previous values (before deleted)")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "services/{applicationName}/{serviceName}", method = RequestMethod.DELETE)
     @ResponseBody
     public Object deleteServiceAttributes(@PathVariable final String applicationName,
@@ -640,6 +694,8 @@ public class AttributesController {
      * @param attributeName   The name of the attribute to get.
      * @return The previous value.
      */
+    @JsonResponseExample(status = "success", responseBody = "{\"attributeName\":\"attributeValue\"}", comments = "attributeValue is the previous value (before deleted)")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "applications/{applicationName}/{attributeName}", method = RequestMethod.DELETE)
     @ResponseBody
     public Object deleteApplicationAttribute(@PathVariable final String applicationName,
@@ -666,6 +722,9 @@ public class AttributesController {
      * @param applicationName The application name.
      * @return A map of the previous values.
      */
+    @JsonResponseExample(status = "success", responseBody = "{\"attribute1Name\":\"attribute1Value\",\"attribute2Name\":\"attribute2Value\"}", 
+    		comments = "attribute1Value and attribute2Value are the previous values (before deleted)")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "applications/{applicationName}", method = RequestMethod.DELETE)
     @ResponseBody
     public Object deleteApplicationAttributes(@PathVariable final String applicationName) {
@@ -691,6 +750,8 @@ public class AttributesController {
      * @param attributeName The name of the attribute to delete.
      * @return The previous value.
      */
+    @JsonResponseExample(status = "success", responseBody = "{\"attributeName\":\"attributeValue\"}", comments = "attributeValue is the previous value (before deleted)")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "globals/{attributeName}", method = RequestMethod.DELETE)
     @ResponseBody
     public Object deleteGlobalAttribute(@PathVariable final String attributeName) {
@@ -714,6 +775,9 @@ public class AttributesController {
      *
      * @return A list of the previous values.
      */
+    @JsonResponseExample(status = "success", responseBody = "{\"attribute1Name\":\"attribute1Value\",\"attribute2Name\":\"attribute2Value\"}", 
+    		comments = "attribute1Value and attribute2Value are the previous values (before deleted)")
+    @PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
     @RequestMapping(value = "globals", method = RequestMethod.DELETE)
     @ResponseBody
     public Object deleteGlobalAttributes() {
