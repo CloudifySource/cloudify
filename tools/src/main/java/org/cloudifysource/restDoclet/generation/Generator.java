@@ -134,8 +134,6 @@ public class Generator {
 
 		// GENERATE DOCUMENTATIONS IN DOC CLASSES
 		List<DocController> controllers = generateControllers(documentation.classes());
-
-		Utils.printMethodsToFile(controllers, "methods");
 		
 		// TRANSLATE DOC CLASSES INTO HTML DOCUMENTATION USING VELOCITY TEMPLATE
 		String generatedHtml = generateHtmlDocumentation(controllers);
