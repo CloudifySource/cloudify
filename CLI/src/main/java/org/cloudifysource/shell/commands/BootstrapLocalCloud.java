@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.shell.AdminFacade;
-import org.cloudifysource.shell.CloudifyLicenseVerifier;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.installer.CLILocalhostBootstrapperListener;
 import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
@@ -75,7 +74,7 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 	protected Object doExecute()
 			throws Exception {
 
-		new CloudifyLicenseVerifier().verifyLicense();
+		//new CloudifyLicenseVerifier().verifyLicense();
 		
 		// first check java home is correctly configured
 		final String javaHome = System.getenv("JAVA_HOME");
