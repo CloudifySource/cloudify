@@ -81,7 +81,7 @@
 	-->
 	
 
-	<target name="update_platform_version_git" depends="replace.build.related.settings,replace.cloudify.build.number" unless="gs.internal.systems.not.available" if="git.repository">
+	<target name="update_platform_version" depends="replace.build.related.settings,replace.cloudify.build.number" unless="gs.internal.systems.not.available">
 	       	<exec executable="git" dir="${basedir}">
 				<arg value="checkout" />
 				<arg value="${branchname}" />			
@@ -385,7 +385,7 @@
 		
    	</target>
 	
-	<target name="prepare.and.copy.packages" depends="update_platform_version_git">
+	<target name="prepare.and.copy.packages" depends="update_platform_version">
 		<ant target="prepare.cloudify.package" />
 		<ant target="prepare.bigdata.package" />
 		<ant target="copy.packages.to.build.repository" />
@@ -462,7 +462,7 @@
 	
 	<target name="prepare.cloudify.for.publish" description="publish cloudify build to gigaspaces repository" if="publish.cloudify.build">
 		<ant target="update.cloudify.service.configuration.url"/>
-		<ant target="commit.service.configuration.git" />
+		<ant target="commit.service.configuration" />
 	</target>
 	
 	<target name="update.bigdata.service.configuration.url">
@@ -512,7 +512,7 @@
    </target>
 	
 	
-	<target name="commit.service.configuration.git" if="git.repository">
+	<target name="commit.service.configuration">
 			
 		<exec executable="git" dir="${basedir}/..">
 			<arg value="checkout" />
