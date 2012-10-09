@@ -296,7 +296,6 @@
 		<ant target="fetch.recipes.cloudify" />
     	<ant target="add.cloudify.javadoc"/>
     	<ant target="replace.xap.content.with.cloudify.related"/>
-        <ant target="replace.cloudify.license"/>
     	<ant target="replace.cloudify.notice"/>
     	<dos2unix dir="${tmp.dir}/${cloudify.installation.dir}" />
  
@@ -324,6 +323,7 @@
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/tools/apache"/>
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/tools/alert-integration"/>
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/tools/maven/apache-maven-3.0.2"/>
+		<delete dir="${tmp.dir}/${cloudify.installation.dir}/gslicense.xml"/>
 		<delete>	
             <fileset dir="${tmp.dir}/${cloudify.installation.dir}/bin" includes="gs-focalserver.*, gsInstance.*,
             startJiniTxMahalo.*, puInstance.*, gs-memcached.*, gs-ui.*"/>
