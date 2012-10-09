@@ -322,16 +322,12 @@
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/tools/benchmark"/>
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/tools/apache"/>
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/tools/alert-integration"/>
-		<delete dir="${tmp.dir}/${cloudify.installation.dir}/gslicense.xml"/>
+		<delete file="${tmp.dir}/${cloudify.installation.dir}/gslicense.xml"/>
 		<delete>	
             <fileset dir="${tmp.dir}/${cloudify.installation.dir}/bin" includes="gs-focalserver.*, gsInstance.*,
             startJiniTxMahalo.*, puInstance.*, gs-memcached.*, gs-ui.*"/>
         </delete>
 	</target>
-
-    <target name="replace.cloudify.license">
-        <copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${gigaspaces.related.folder}/gslicense.xml" overwrite="true"/>
-    </target>
 	
 	<target name="replace.cloudify.notice">
         <copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${gigaspaces.related.folder}/notice.txt" overwrite="true"/>
@@ -423,6 +419,23 @@
 		
     	<!-- conditional task (with property: publish.cloudify.build) -->
     	<ant target="publish.bigdata.to.storage" />
+	</target>
+	
+	
+	<target name="kuku">
+			
+		
+			
+		<exec executable="${mvn.executable}">
+			<arg value="s3client:put" />
+			<arg value="-Dput.user=AKIAI4OVPQZZQT53O6SQ" />
+			<arg value="-Dput.key=xI/BDTPh0LE9PcC0aHhn5GEUh+/hjOiRcKwCNVP5" />
+			<arg value="-Dput.source=D:\Users\alexb.GSPACES\.m2\repository\org\cloudifysource\usm" />
+			<arg value="-Dput.target=org/cloudifysource/2.2.0/2.2.0-rc" />
+			<arg value="-Dcontainer=${cloudify.base.container}"/>
+		</exec>
+		
+
 	</target>
 	
 
