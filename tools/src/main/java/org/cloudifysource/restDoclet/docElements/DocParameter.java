@@ -62,18 +62,14 @@ public class DocParameter {
 		String location = "";
 		for (DocAnnotation docAnnotation : annotations) {
 			String annotationName = docAnnotation.getName();
-			switch (DocAnnotationTypes.fromName(annotationName)) {
-			case REQUEST_PARAM:
+			if(!location.isEmpty())
+				location += " or ";
+			location += annotationName;
+			DocAnnotationTypes docAnnotationType = DocAnnotationTypes.fromName(annotationName);
+			if(docAnnotationType == DocAnnotationTypes.REQUEST_PARAM)
 				requestParamAnnotation = (DocRequestParamAnnotation) docAnnotation;
-			case PATH_VARIABLE:
-			case REQUEST_BODY:
-				if(!location.isEmpty())
-					location += " or ";
-				location += annotationName;
-				break;
-			default:
+			else if(docAnnotationType != DocAnnotationTypes.PATH_VARIABLE && docAnnotationType != DocAnnotationTypes.REQUEST_BODY)
 				throw new IllegalArgumentException("Unsupported parameter annotation - " + annotationName);
-			}
 		}
 		this.location = location;
 	}

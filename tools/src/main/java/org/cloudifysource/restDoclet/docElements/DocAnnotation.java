@@ -74,7 +74,7 @@ public class DocAnnotation {
 			for (Entry<String, Object> entry : attributes.entrySet()) {
 				str += entry.getKey().toString() + "=" + entry.getValue().toString() + ", ";
 			}
-			str.substring(0, str.lastIndexOf(","));
+			str = str.substring(0, str.lastIndexOf(","));
 			str += "}";
 		}
 		return str;
