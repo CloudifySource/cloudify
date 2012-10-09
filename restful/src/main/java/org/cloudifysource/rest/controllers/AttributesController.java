@@ -479,7 +479,9 @@ public class AttributesController {
         AbstractCloudifyAttribute[] attributesToWrite = new AbstractCloudifyAttribute[attributesMap.size()];
         int i = 0;
         for (final Entry<String, Object> attrEntry : attributesMap.entrySet()) {
-            AbstractCloudifyAttribute newAttr = createCloudifyAttribute(applicationName, serviceName, instanceId, attrEntry.getKey(), attrEntry.getValue());
+            AbstractCloudifyAttribute newAttr = createCloudifyAttribute(applicationName, serviceName, instanceId, attrEntry.getKey(), null);
+            gigaSpace.take(newAttr);
+            newAttr.setValue(attrEntry.getValue());
             attributesToWrite[i++] = newAttr;
         }
         gigaSpace.writeMultiple(attributesToWrite, Lease.FOREVER, WriteModifiers.UPDATE_OR_WRITE);
