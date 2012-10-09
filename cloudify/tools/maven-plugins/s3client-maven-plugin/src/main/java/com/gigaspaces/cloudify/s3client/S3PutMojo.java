@@ -110,48 +110,6 @@ public class S3PutMojo extends AbstractMojo {
 
 			uploadFile( source, target, store);
 			
-			/*if (source.isDirectory())
-			{
-				getLog().info("Source " + source + " is a directory. Adding all files");
-
-				for (File f : source. listFiles())
-				{
-					getLog().info("Processing " + source + "/" + f.getName() + ", upload size is: " + (source+"/"+f.getName()).length() + ". Target: " + target + "/" + f.getName());
-					store.putBlob(container, store.blobBuilder(target + "/" + f.getName())
-							.payload(new File(source.getPath() + "/" + f.getName()))
-							.build());
-					getLog().info("Upload of " + source + "/" + f.getName() + " was ended successfully");
-
-			 if (publicUrl != null && Boolean.parseBoolean(publicUrl)) {
-						S3Client client = S3Client.class.cast(context.getProviderSpecificContext().getApi());
-						String ownerId = client.getObjectACL(container, target+"/"+f.getName()).getOwner().getId();
-
-						client. putObjectACL(container, target+"/"+f.getName(), 
-								AccessControlList.fromCannedAccessPolicy(CannedAccessPolicy.PUBLIC_READ, ownerId));
-					}
-				}
-
-			}
-			else
-			{
-				Blob newBlob = store.blobBuilder(target)
-				.payload(source)
-				.build();
-				getLog().info("upload size is: " + source.length());
-				getLog().info("waiting for upload to end");
-				store.putBlob(container, newBlob);
-				
-				if (publicUrl != null && Boolean.parseBoolean(publicUrl)) {
-					S3Client client = S3Client.class.cast(context.getProviderSpecificContext().getApi());
-					String ownerId = client.getObjectACL(container, target).getOwner().getId();
-
-					client. putObjectACL(container, target, 
-							AccessControlList.fromCannedAccessPolicy(CannedAccessPolicy.PUBLIC_READ, ownerId));
-				}
-
-			}*/
-
-
 		} catch (Exception e) {
 			throw new MojoFailureException("Failed put operation", e);
 		} finally {
