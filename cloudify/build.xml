@@ -70,7 +70,6 @@
 	<property name="cloudify.base.container" value="gigaspaces-repository" />
 	<property name="cloudify.base.publish.url" value="https://s3.amazonaws.com/${cloudify.base.container}" />
 	<property name="build.properties.file" value="build.properties"/>
-	<taskdef resource="org/tigris/subversion/svnant/svnantlib.xml" classpath="${tools.lib.dir}/svn/svnant.jar;${tools.lib.dir}/svn/svnClientAdapter.jar"/>
 	
 	<condition property="recipes.available" value="true">
       <available type="dir" file="${recipes.local.copy}"/>
@@ -81,19 +80,7 @@
 	<property name="put.key" value="AWS Key />
 	-->
 	
-	<!-- ${svnant.repository.user} and ${svnant.repository.passwd} are defined in Basic Settings of root configuration in QuickBUild -->
-	
-   	<target name="update_platform_version_svn" depends="replace.build.related.settings,replace.cloudify.build.number" unless="gs.internal.systems.not.available" if="svn.repository">
-       		<svn javahl="false" username="${svnant.repository.user}" password="${svnant.repository.passwd}" failonerror="false">
-           		<commit message="GS-803 Build version advanced to ${cloudify.build.number}">
-           			<fileset dir="${basedir}">
-       					<include name="**/${platform.verion.file.name}" />
-   					<include name="${build.properties.file}" />
-   				</fileset>
-           		</commit>
-       		</svn>
-   	</target>
-	
+
 	<target name="update_platform_version_git" depends="replace.build.related.settings,replace.cloudify.build.number" unless="gs.internal.systems.not.available" if="git.repository">
 	       	<exec executable="git" dir="${basedir}">
 				<arg value="checkout" />
@@ -398,7 +385,7 @@
 		
    	</target>
 	
-	<target name="prepare.and.copy.packages" depends="update_platform_version_svn, update_platform_version_git">
+	<target name="prepare.and.copy.packages" depends="update_platform_version_git">
 		<ant target="prepare.cloudify.package" />
 		<ant target="prepare.bigdata.package" />
 		<ant target="copy.packages.to.build.repository" />
@@ -419,23 +406,6 @@
 		
     	<!-- conditional task (with property: publish.cloudify.build) -->
     	<ant target="publish.bigdata.to.storage" />
-	</target>
-	
-	
-	<target name="kuku">
-			
-		
-			
-		<exec executable="${mvn.executable}">
-			<arg value="s3client:put" />
-			<arg value="-Dput.user=AKIAI4OVPQZZQT53O6SQ" />
-			<arg value="-Dput.key=xI/BDTPh0LE9PcC0aHhn5GEUh+/hjOiRcKwCNVP5" />
-			<arg value="-Dput.source=D:\Users\alexb.GSPACES\.m2\repository\org\cloudifysource\usm" />
-			<arg value="-Dput.target=org/cloudifysource/2.2.0/2.2.0-rc" />
-			<arg value="-Dcontainer=${cloudify.base.container}"/>
-		</exec>
-		
-
 	</target>
 	
 
@@ -492,7 +462,6 @@
 	
 	<target name="prepare.cloudify.for.publish" description="publish cloudify build to gigaspaces repository" if="publish.cloudify.build">
 		<ant target="update.cloudify.service.configuration.url"/>
-		<ant target="commit.service.configuration.svn" />
 		<ant target="commit.service.configuration.git" />
 	</target>
 	
@@ -542,19 +511,6 @@
     	</replaceregexp>
    </target>
 	
-	<target name="commit.service.configuration.svn" if="svn.repository">
-			
-		<exec executable="svn" dir="${basedir}/..">
-			<arg value="commit" />
-			<arg value="--username" />
-			<arg value="${svnant.repository.user}" />
-			<arg value="--password" />
-			<arg value="${svnant.repository.passwd}" />
-			<arg value="-m" />
-			<arg value="Update cloudify url" />
-			<arg value="esc/src/main/resources/clouds" />			
-		</exec>
-	</target>
 	
 	<target name="commit.service.configuration.git" if="git.repository">
 			
