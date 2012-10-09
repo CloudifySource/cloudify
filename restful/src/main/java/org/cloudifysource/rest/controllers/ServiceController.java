@@ -22,6 +22,7 @@ import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_SERVICE;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_SERVICE_AFTER_DEPLOYMENT;
 import static org.cloudifysource.rest.ResponseConstants.SERVICE_INSTANCE_UNAVAILABLE;
+import static org.cloudifysource.rest.util.RestUtils.errorStatus;
 import static org.cloudifysource.rest.util.RestUtils.successStatus;
 
 import java.io.ByteArrayInputStream;
@@ -94,7 +95,6 @@ import org.cloudifysource.rest.util.RestUtils;
 import org.cloudifysource.restDoclet.annotations.JsonRequestExample;
 import org.cloudifysource.restDoclet.annotations.JsonResponseExample;
 import org.cloudifysource.restDoclet.annotations.PossibleResponseStatuses;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.CycleDetector;
 import org.jgrapht.graph.DefaultDirectedGraph;
@@ -284,21 +284,19 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @param fileSizeLimit
 	 * @return A map contains byte array of the dump file for each machine.
 	 * @throws IOException
-	 * @throws RestErrorException 
-	 * 				Machine not found, machine dump generation failed, dump file is too large.
 	 */
 	@JsonRequestExample(requestBody="{\"fileSizeLimit\" : 50000000, \"processors\" : \"summary, thread, log\"}")
 	@JsonResponseExample(status="success", 
 	responseBody="{\"192.168.2.100\":\"&ltbyte array of the dump file&gt\"" +
 			", \"192.168.2.200\":\"&ltbyte array of the dump file&gt\"" +
 			", \"192.168.2.300\":\"&ltbyte array of the dump file&gt\"}")
-	@PossibleResponseStatuses(codes={200, 500, 500, 500, 500}, 
+	@PossibleResponseStatuses(codes={200, 200, 200, 200, 500}, 
 	descriptions={"success", ResponseConstants.MACHINE_NOT_FOUND, ResponseConstants.DUMP_FILE_TOO_LARGE, "Failed to generate dump", "IOException"})
 	@RequestMapping(value = "/dump/machines", method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object> getMachineDumpFile(@RequestParam(defaultValue = DEFAULT_DUMP_PROCESSORS) final String processors
 			, @RequestParam(defaultValue = "" + DEFAULT_DUMP_FILE_SIZE_LIMIT) final long fileSizeLimit)
-			throws IOException, RestErrorException {
+			throws IOException {
 		return getMachineDumpFile(null, processors, fileSizeLimit);
 	}
 
@@ -309,19 +307,17 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @param fileSizeLimit
 	 * @return A byte array of the dump file in case ip is not null and a map contains byte array of the dump file for each machine otherwise.
 	 * @throws IOException
-	 * @throws RestErrorException 
-	 * 			Machine not found, machine dump generation failed, dump file is too large.
 	 */
 	@JsonRequestExample(requestBody="{\"fileSizeLimit\" : 50000000, \"processors\" : \"summary, network, log\"}")
 	@JsonResponseExample(status="success", responseBody="{\"&ltmachine's ip&gt\":\"&ltbyte array of the dump file&gt\"}")
-	@PossibleResponseStatuses(codes={200, 500, 500, 500, 500}, 
+	@PossibleResponseStatuses(codes={200, 200, 200, 200, 500}, 
 	descriptions={"success", ResponseConstants.MACHINE_NOT_FOUND, ResponseConstants.DUMP_FILE_TOO_LARGE, "Failed to generate dump", "IOException"})
 	@RequestMapping(value = "/dump/machine/{ip}/", method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object> getMachineDumpFile(@PathVariable final String ip,
 			@RequestParam(defaultValue = DEFAULT_DUMP_PROCESSORS) final String processors
 			, @RequestParam(defaultValue = "" + DEFAULT_DUMP_FILE_SIZE_LIMIT) final long fileSizeLimit)
-			throws IOException, RestErrorException {
+			throws IOException {
 		// check for non-default processors
 		final String[] actualProcessors = getProcessorsFromRequest(processors);
 
@@ -334,7 +330,7 @@ public class ServiceController implements ServiceDetailsProvider{
 				}
 
 				if (machine == null) {
-					throw new RestErrorException(ResponseConstants.MACHINE_NOT_FOUND, ip);
+					return errorStatus(ResponseConstants.MACHINE_NOT_FOUND, ip);
 				}
 
 				final byte[] dumpBytes = generateMachineDumpData(fileSizeLimit, machine, actualProcessors);
@@ -362,7 +358,7 @@ public class ServiceController implements ServiceDetailsProvider{
 
 			}
 		} catch (final RestServiceException e) {
-			throw new RestErrorException(e.getMessageName(), e.getParams());
+			return errorStatus(e.getMessageName(), e.getParams());
 		}
 
 	}
@@ -372,16 +368,14 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @param fileSizeLimit
 	 * @return the dump of all the processing units
 	 * @throws IOException
-	 * @throws RestErrorException 
-	 * 			Machine not found, dump file is too large, machine dump generation failed.
 	 */
 	@JsonRequestExample(requestBody = "{\"fileSizeLimit\" : 50000000}")
-	@PossibleResponseStatuses(codes={200, 500, 500, 500},descriptions={"success", ResponseConstants.DUMP_FILE_TOO_LARGE, "Failed to generate dump", "IOException"})
+	@PossibleResponseStatuses(codes={200, 200, 200, 500},descriptions={"success", ResponseConstants.DUMP_FILE_TOO_LARGE, "Failed to generate dump", "IOException"})
 	@RequestMapping(value = "/dump/processing-units/", method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object> getPUDumpFile(
 			@RequestParam(defaultValue = "" + DEFAULT_DUMP_FILE_SIZE_LIMIT) final long fileSizeLimit)
-			throws IOException, RestErrorException {
+			throws IOException {
 
 		// if ((name == null) || (name.isEmpty())) {
 		// throw new IllegalArgumentException("PU Name is missing");
@@ -390,7 +384,7 @@ public class ServiceController implements ServiceDetailsProvider{
 		// // first find the relevant PU
 		// ProcessingUnit pu = this.admin.getProcessingUnits().getNames().get(name);
 		// if (pu == null) {
-		// throw new RestErrorException("dump_pu_not_found", name);
+		// return errorStatus("dump_pu_not_found", name);
 		// }
 
 		final DumpResult dump =
@@ -401,7 +395,7 @@ public class ServiceController implements ServiceDetailsProvider{
 			return successStatus(data);
 
 		} catch (final RestServiceException e) {
-			throw new RestErrorException(e.getMessageName(), e.getParams());
+			return errorStatus(e.getMessageName(), e.getParams());
 		}
 
 	}
@@ -545,23 +539,21 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * <p>The admin API searches for a LUS (Lookup Service) according to the lookup groups/locators defined.
 	 * 
 	 * @return - Map<String, Object> object containing the test results.
-	 * @throws RestErrorException 
-	 * 			When lookup service not found.
 	 */
-	@PossibleResponseStatuses(codes = {200,500}, descriptions = {"success", FAILED_TO_LOCATE_LUS})
+	@PossibleResponseStatuses(codes = {200,200}, descriptions = {"success", FAILED_TO_LOCATE_LUS})
 	@JsonResponseExample(status = "error",
 	responseBody="{\"error\":\"failed_to_locate_lookup_service\", \"error_args\":[[\"localcloud\"],[\"jini://127.0.0.1:4172/\"]]}",
 	comments="response status is success if the restful service located the service grid" +
 			", otherwise it is error and the response's body will contain error description, the groups and locators.")
 	@RequestMapping(value = "/testrest", method = RequestMethod.GET)
 	public @ResponseBody
-	Object test() throws RestErrorException {
+	Object test() {
 		if (admin.getLookupServices().getSize() > 0) {
 			return successStatus();
 		}
 		final String groups = Arrays.toString(admin.getGroups());
 		final String locators = Arrays.toString(admin.getLocators());
-		throw new RestErrorException(FAILED_TO_LOCATE_LUS, groups, locators);
+		return errorStatus(FAILED_TO_LOCATE_LUS, groups, locators);
 	}
 
 	/**
@@ -570,8 +562,6 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @param srcFile
 	 * @return the name of the pu
 	 * @throws IOException
-	 * @throws RestErrorException 
-	 * 			GSM not found, service not found after deployment.
 	 */
 	@Deprecated
 	@RequestMapping(value = "/cloudcontroller/deploy", method = RequestMethod.POST)
@@ -579,7 +569,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	Map<String, Object> deploy(
 			@RequestParam(value = "applicationName", defaultValue = "default") final String applicationName,
 			@RequestParam(value = "file") final MultipartFile srcFile)
-			throws IOException, RestErrorException {
+			throws IOException {
 		logger.finer("Deploying a service");
 		final File tmpfile = File.createTempFile("gs___", null);
 		final File dest = new File(tmpfile.getParent(), srcFile.getOriginalFilename());
@@ -588,7 +578,7 @@ public class ServiceController implements ServiceDetailsProvider{
 
 		final GridServiceManager gsm = getGsm();
 		if (gsm == null) {
-			throw new RestErrorException(FAILED_TO_LOCATE_GSM);
+			return errorStatus(FAILED_TO_LOCATE_GSM);
 		}
 		final ProcessingUnit pu =
 				gsm.deploy(new ProcessingUnitDeployment(dest).setContextProperty(
@@ -596,7 +586,7 @@ public class ServiceController implements ServiceDetailsProvider{
 		dest.delete();
 
 		if (pu == null) {
-			throw new RestErrorException(FAILED_TO_LOCATE_SERVICE_AFTER_DEPLOYMENT, applicationName);
+			return errorStatus(FAILED_TO_LOCATE_SERVICE_AFTER_DEPLOYMENT, applicationName);
 		}
 		return successStatus(pu.getName());
 	}
@@ -632,20 +622,18 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * 
 	 * @return a list of the deployed services in the service grid that were deployed as a part of a specific
 	 *         application.
-	 * @throws RestErrorException 
-	 * 			When application is not found.
 	 */
 	@JsonResponseExample(status = "sucess", responseBody="[\"service1\",\"service2\"]")
-	@PossibleResponseStatuses(codes={200, 500}, descriptions={"success", "failed_to_locate_app"})
+	@PossibleResponseStatuses(codes={200, 200}, descriptions={"success", "failed_to_locate_app"})
 	@RequestMapping(value = "/applications/{applicationName}/services", method = RequestMethod.GET)
 	public @ResponseBody
-	Map<String, Object> getServicesList(@PathVariable final String applicationName) throws RestErrorException {
+	Map<String, Object> getServicesList(@PathVariable final String applicationName) {
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to list applications");
 		}
 		final Application app = admin.getApplications().waitFor(applicationName, 5, TimeUnit.SECONDS);
 		if (app == null) {
-			throw new RestErrorException(FAILED_TO_LOCATE_APP, applicationName);
+			return errorStatus(FAILED_TO_LOCATE_APP, applicationName);
 		}
 		final ProcessingUnits pus = app.getProcessingUnits();
 		final List<String> serviceNames = new ArrayList<String>(pus.getSize());
@@ -662,17 +650,15 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @param applicationName The application name.
 	 * @param serviceName The service name.
 	 * @return a Map containing all service instances of the specified application
-	 * @throws RestErrorException 
-	 * 			When service is not found.
 	 */
 	@JsonResponseExample(status = "success", responseBody = "{\"1\":\"12.7.0.0.1\"}",
 			comments = "In the example instance id is 1 and the HOST is 127.0.0.1")
-	@PossibleResponseStatuses(codes = {200,500}, descriptions = {"success","failed_to_locate_service"})
+	@PossibleResponseStatuses(codes = {200,200}, descriptions = {"success","failed_to_locate_service"})
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances",
 			method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object> getServiceInstanceList(@PathVariable final String applicationName,
-			@PathVariable final String serviceName) throws RestErrorException {
+			@PathVariable final String serviceName) {
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to list instances for service " + absolutePuName + " of application "
@@ -704,8 +690,6 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @param beanName deprecated.
 	 * @param params The command parameters.
 	 * @return a Map containing the result of each invocation on a service instance.
-	 * @throws RestErrorException 
-	 * 			When lookup service not found or no processing unit instance is found for the requested service.
 	 */
 	@JsonRequestExample(requestBody = "{\"param1 name\":\"param1\",\"param2 name\":\"param2\"}")
 	@JsonResponseExample(status = "success", 
@@ -714,13 +698,13 @@ public class ServiceController implements ServiceDetailsProvider{
 			",\"Invocation_Result\":\"the invocation result as specified in the service file\"" +
 			",\"Invocation_Success\":\"true\"," +
 			"\"Invocation_Exception\":null,\"Invocation_Command_Name\":\"custom command name\"}}")
-	@PossibleResponseStatuses(codes = {200,500,500}, 
+	@PossibleResponseStatuses(codes = {200,200,200}, 
 	descriptions = {"success", "failed_to_locate_service", "no_processing_unit_instances_found_for_invocation"})
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/beans/{beanName}/invoke",
 			method = RequestMethod.POST)
 	public @ResponseBody
 	Map<String, Object> invoke(@PathVariable final String applicationName, @PathVariable final String serviceName,
-			@PathVariable final String beanName, @RequestBody final Map<String, Object> params) throws RestErrorException {
+			@PathVariable final String beanName, @RequestBody final Map<String, Object> params) {
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to invoke bean " + beanName + " of service " + absolutePuName
@@ -740,7 +724,7 @@ public class ServiceController implements ServiceDetailsProvider{
 		final ProcessingUnitInstance[] instances = pu.getInstances();
 
 		if (instances.length == 0) {
-			throw new RestErrorException(ResponseConstants.NO_PROCESSING_UNIT_INSTANCES_FOUND_FOR_INVOCATION, serviceName);
+			return errorStatus(ResponseConstants.NO_PROCESSING_UNIT_INSTANCES_FOUND_FOR_INVOCATION, serviceName);
 		}
 
 		// Why a map? TODO: Use an array here instead.
@@ -805,8 +789,6 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @param beanName depreciated
 	 * @param params a Map containing the result of each invocation on a service instance.
 	 * @return a Map containing the invocation result on the specified instance.
-	 * @throws RestErrorException 
-	 * 			When failed to locate service/service instance or invocation failed.
 	 */
 	@JsonRequestExample(requestBody = "{\"param1 name\":\"param1\",\"param2 name\":\"param2\"}")
 	@JsonResponseExample(status = "success", 
@@ -815,7 +797,7 @@ public class ServiceController implements ServiceDetailsProvider{
 			",\"Invocation_Result\":\"the invocation result as specified in the service file\"" +
 			",\"Invocation_Success\":\"true\"," +
 			"\"Invocation_Exception\":null,\"Invocation_Command_Name\":\"custom command name\"}")
-	@PossibleResponseStatuses(codes = {200,500,500,500}, 
+	@PossibleResponseStatuses(codes = {200,200,200,200}, 
 	descriptions = {"success", "failed_to_locate_service", "service_instance_unavailable", "failed_to_invoke_instance"})
 	@RequestMapping(
 			value = "applications/{applicationName}/services/{serviceName}/instances/{instanceId}/beans/{beanName}/invoke",
@@ -823,7 +805,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	public @ResponseBody
 			Map<String, Object> invokeInstance(@PathVariable final String applicationName,
 					@PathVariable final String serviceName, @PathVariable final int instanceId,
-					@PathVariable final String beanName, @RequestBody final Map<String, Object> params) throws RestErrorException {
+					@PathVariable final String beanName, @RequestBody final Map<String, Object> params) {
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to invoke bean " + beanName + " of service " + serviceName
@@ -843,7 +825,7 @@ public class ServiceController implements ServiceDetailsProvider{
 
 		if (pui == null) {
 			logger.severe("Could not find service instance " + instanceId + " for service " + absolutePuName);
-			throw new RestErrorException(ResponseConstants.SERVICE_INSTANCE_UNAVAILABLE, applicationName, absolutePuName,
+			return errorStatus(ResponseConstants.SERVICE_INSTANCE_UNAVAILABLE, applicationName, absolutePuName,
 					Integer.toString(instanceId));
 		}
 		final String instanceName = buildServiceInstanceName(pui);
@@ -856,7 +838,7 @@ public class ServiceController implements ServiceDetailsProvider{
 		} catch (final Exception e) {
 			logger.severe("Error invoking pu instance " + absolutePuName + ":" + instanceId + " on host "
 					+ pui.getVirtualMachine().getMachine().getHostName());
-			throw new RestErrorException(FAILED_TO_INVOKE_INSTANCE, absolutePuName, Integer.toString(instanceId), e.getMessage());
+			return errorStatus(FAILED_TO_INVOKE_INSTANCE, absolutePuName, Integer.toString(instanceId), e.getMessage());
 		}
 	}
 
@@ -874,10 +856,10 @@ public class ServiceController implements ServiceDetailsProvider{
 		return "instance #" + instance.getInstanceId() + "@" + instance.getVirtualMachine().getMachine().getHostName();
 	}
 
-	private Map<String, Object> unavailableServiceError(final String serviceName) throws RestErrorException {
+	private Map<String, Object> unavailableServiceError(final String serviceName) {
 		// TODO: Consider telling the user he might be using the wrong
 		// application name.
-		throw new RestErrorException(FAILED_TO_LOCATE_SERVICE, ServiceUtils.getFullServiceName(serviceName).getServiceName());
+		return errorStatus(FAILED_TO_LOCATE_SERVICE, ServiceUtils.getFullServiceName(serviceName).getServiceName());
 	}
 
 	private GridServiceManager getGsm(final String id) {
@@ -897,17 +879,15 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @param applicationName The application name.
 	 * @param serviceName The service name.
 	 * @return success status if service was undeployed successfully, else returns failure status.
-	 * @throws RestErrorException 
-	 * 			When failed to locate service.
 	 */
 	@JsonResponseExample(status = "success", responseBody = "{\"lifecycleEventContainerID\":\"bfae0a89-b5a0-4250-b393-6cedbf63ac76\"}")
-	@PossibleResponseStatuses(codes = {200,500}, descriptions = {"success", "failed_to_locate_service"})
+	@PossibleResponseStatuses(codes = {200,200}, descriptions = {"success", "failed_to_locate_service"})
 	@RequestMapping(
 			value = "applications/{applicationName}/services/{serviceName}/timeout/{timeoutInMinutes}/undeploy",
 			method = RequestMethod.DELETE)
 	public @ResponseBody
 	Map<String, Object> undeploy(@PathVariable final String applicationName, @PathVariable final String serviceName,
-			@PathVariable final int timeoutInMinutes) throws RestErrorException {
+			@PathVariable final int timeoutInMinutes) {
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		final ProcessingUnit processingUnit =
 				admin.getProcessingUnits().waitFor(absolutePuName, PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
@@ -966,14 +946,12 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @param serviceName The service name.
 	 * @param params map that holds a timeout value for this action.
 	 * @return success status map if succeeded, else returns an error status.
-	 * @throws RestErrorException 
-	 * 			When service processing unit not found or failed to add the instance.
 	 */
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/addinstance",
 			method = RequestMethod.POST)
 	public @ResponseBody
 	Map<String, Object> addInstance(@PathVariable final String applicationName, @PathVariable final String serviceName,
-			@RequestBody final Map<String, String> params) throws RestErrorException {
+			@RequestBody final Map<String, String> params) {
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		final int timeout = Integer.parseInt(params.get("timeout"));
 		final ProcessingUnit processingUnit =
@@ -987,7 +965,7 @@ public class ServiceController implements ServiceDetailsProvider{
 		if (result) {
 			return successStatus();
 		}
-		throw new RestErrorException(ResponseConstants.FAILED_TO_ADD_INSTANCE, applicationName, serviceName);
+		return errorStatus(ResponseConstants.FAILED_TO_ADD_INSTANCE, applicationName, serviceName);
 	}
 
 	/**
@@ -998,15 +976,13 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @param serviceName The service name.
 	 * @param instanceId the service instance ID to remove.
 	 * @return success status map if succeeded, else returns an error status.
-	 * @throws RestErrorException 
-	 * 			When failed to locate the service or if the service instance is not available.
 	 */
-	@PossibleResponseStatuses(codes = {200,500,500}, descriptions = {"success","failed_to_locate_service", "service_instance_unavailable"})
+	@PossibleResponseStatuses(codes = {200,200,200}, descriptions = {"success","failed_to_locate_service", "service_instance_unavailable"})
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances/{instanceId}/remove",
 			method = RequestMethod.DELETE)
 	public @ResponseBody
 	Map<String, Object> removeInstance(@PathVariable final String applicationName,
-			@PathVariable final String serviceName, @PathVariable final int instanceId) throws RestErrorException {
+			@PathVariable final String serviceName, @PathVariable final int instanceId) {
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		// todo: application awareness
 		final ProcessingUnit processingUnit =
@@ -1020,7 +996,7 @@ public class ServiceController implements ServiceDetailsProvider{
 				return successStatus();
 			}
 		}
-		throw new RestErrorException(SERVICE_INSTANCE_UNAVAILABLE);
+		return errorStatus(SERVICE_INSTANCE_UNAVAILABLE);
 	}
 
 	private void deployAndWait(final String serviceName, final ElasticSpaceDeployment deployment)
@@ -1073,44 +1049,6 @@ public class ServiceController implements ServiceDetailsProvider{
 			outputStream.write(messageBytes);
 		}
 	}
-	
-	/**
-	 * Exception handler for all of known internal server exceptions.
-	 * 
-	 * @param response The response object to edit, if not committed yet.
-	 * @param e The exception that occurred, from which data is read for logging and for the response error message.
-	 * @throws IOException Reporting failure to edit the response object
-	 */
-	@ExceptionHandler(RestErrorException.class)
-	@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR, reason = "an internal server error has occurred")
-	public void handleServerErrors(final HttpServletResponse response, final RestErrorException e)
-			throws IOException {
-
-		if (response.isCommitted()) {
-			logger.log(Level.WARNING,
-					"Caught exception, but response already commited. Not sending error message based on exception", e);
-		} else {
-			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			final ServletOutputStream outputStream = response.getOutputStream();
-			Map<String, Object> errorDescriptionMap = e.getErrorDescription();
-			String mapAsJson = new ObjectMapper().writeValueAsString(errorDescriptionMap);
-			logger.log(Level.INFO, "caught exception. Sending response message " 
-					+ (String) errorDescriptionMap.get("error"), e);
-			final byte[] messageBytes = mapAsJson.getBytes();
-			outputStream.write(messageBytes);
-		}
-	}
-	
-    /**
-     * Converts a Map<String, ?> to a json String.
-     *
-     * @param map a map to convert to String
-     * @return a json-format String based on the given map
-     * @throws IOException Reporting failure to read the map or convert it
-     */
-    public static String mapToJson(final Map<String, ?> map) throws IOException {
-        return new ObjectMapper().writeValueAsString(map);
-    }
 
 	/******************
 	 * Uninstalls an application by uninstalling all of its services. Order of uninstallations is determined by the
@@ -1118,28 +1056,25 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * 
 	 * @param applicationName The application name.
 	 * @return Map with return value; @ .
-	 * @throws RestErrorException 
-	 * 			When application not found or when attempting to remove management services.
 	 */
 	@JsonResponseExample(status="success", 
 			responseBody="{\"lifecycleEventContainerID\":\"bfae0a89-b5a0-4250-b393-6cedbf63ac76\"}")
-	@PossibleResponseStatuses(codes={200, 500, 500}, 
-	descriptions={"success", "failed_to_locate_app", "cannot_uninstall_management_application"})
+	@PossibleResponseStatuses(codes={200, 200}, descriptions={"success", "failed_to_locate_app"})
 	@RequestMapping(value = "applications/{applicationName}/timeout/{timeoutInMinutes}", method = RequestMethod.DELETE)
 	public @ResponseBody
 	Map<String, Object> uninstallApplication(@PathVariable final String applicationName,
-			@PathVariable final int timeoutInMinutes) throws RestErrorException {
+			@PathVariable final int timeoutInMinutes) {
 
 		// Check that Application exists
 		final Application app = this.admin.getApplications().waitFor(applicationName, 10, TimeUnit.SECONDS);
 		if (app == null) {
 			logger.log(Level.INFO, "Cannot uninstall application " + applicationName
 					+ " since it has not been discovered yet.");
-			throw new RestErrorException(FAILED_TO_LOCATE_APP, applicationName);
+			return RestUtils.errorStatus(ResponseConstants.FAILED_TO_LOCATE_APP, applicationName);
 		}
 		if (app.getName().equals(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)){
 			logger.log(Level.INFO, "Cannot uninstall the Management application.");
-			throw new RestErrorException(
+			return RestUtils.errorStatus(
 					ResponseConstants.CANNOT_UNINSTALL_MANAGEMENT_APP);
 		}
 		final ProcessingUnit[] pus = app.getProcessingUnits().getProcessingUnits();
@@ -1190,7 +1125,7 @@ public class ServiceController implements ServiceDetailsProvider{
 			returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, lifecycleEventContainerID);
 			return RestUtils.successStatus(returnMap);
 		}
-		throw new RestErrorException(errors);
+		return RestUtils.errorStatus(errors);
 	}
 
 	private List<ProcessingUnit> createUninstallOrder(final ProcessingUnit[] pus, final String applicationName) {
@@ -1451,23 +1386,21 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @param lifecycleEventContainerID the unique task ID.
 	 * @param cursor event entry cursor
 	 * @return a map containing the events and the task state.
-	 * @throws RestErrorException 
-	 * 			When polling task has expired or if the task ended unexpectedly. 
 	 */
 	@JsonResponseExample(status="success", 
 			responseBody= "{\"isDone\":false,\"lifecycleLogs\":[\"[service1] Deployed 1 planned 1\"," +
 					"\"Service &#92&#34service1&#92&#34 successfully installed (1 Instances)\"]," +
 					"\"PollingTaskExpirationTimeMillis\":\"575218\",\"curserPos\":12}")
-	@PossibleResponseStatuses(codes = {200,500,500}, 
+	@PossibleResponseStatuses(codes = {200,200,200}, 
 	descriptions = {"success", "Lifecycle events container with UUID ... does not exist or expired", "execution exception message"})
 	@RequestMapping(value = "/lifecycleEventContainerID/{lifecycleEventContainerID}/cursor/{cursor}",
 			method = RequestMethod.GET)
 	public @ResponseBody
-	Object getLifecycleEvents(@PathVariable final String lifecycleEventContainerID, @PathVariable final int cursor) throws RestErrorException {
+	Object getLifecycleEvents(@PathVariable final String lifecycleEventContainerID, @PathVariable final int cursor) {
 		final Map<String, Object> resultsMap = new HashMap<String, Object>();
 
 		if (!lifecyclePollingThreadContainer.containsKey(UUID.fromString(lifecycleEventContainerID))) {
-			throw new RestErrorException("Lifecycle events container with UUID: " + lifecycleEventContainerID
+			return errorStatus("Lifecycle events container with UUID: " + lifecycleEventContainerID
 					+ " does not exist or expired.");
 		}
 		final RestPollingRunnable restPollingRunnable = lifecyclePollingThreadContainer.
@@ -1481,7 +1414,7 @@ public class ServiceController implements ServiceDetailsProvider{
 			final Throwable t = restPollingRunnable.getExecutionException();
 			if (t != null) {
 				logger.log(Level.INFO, "Lifecycle events polling ended unexpectedly.", t);
-				throw new RestErrorException(t.getMessage());
+				return errorStatus(t.getMessage());
 			} else {
 				logger.log(Level.FINE, "Lifecycle events polling ended successfully.");
 			}
@@ -2334,12 +2267,10 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @param locationAware
 	 * @return lifecycleEventContainerID
 	 * @throws DSLException
-	 * @throws RestErrorException 
-	 * 			When failed to locate service or in the case where the service is not elastic.
 	 */
 	@JsonRequestExample(requestBody = "{\"count\":1,\"location-aware\":true}")
 	@JsonResponseExample(status = "success", responseBody = "{\"lifecycleEventContainerID\":\"eventContainerID\"}") 
-	@PossibleResponseStatuses(codes = {200,500,500}, 
+	@PossibleResponseStatuses(codes = {200,200,200}, 
 			descriptions = {"success", ResponseConstants.FAILED_TO_LOCATE_SERVICE, ResponseConstants.SERVICE_NOT_ELASTIC})
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeout}/set-instances",
 			method = RequestMethod.POST)
@@ -2348,13 +2279,13 @@ public class ServiceController implements ServiceDetailsProvider{
 			@PathVariable final String serviceName, @PathVariable final int timeout, 
 			@RequestParam(value = "count", required = true) final int count,
 			@RequestParam(value = "location-aware", required = true) final boolean locationAware)
-			throws DSLException, RestErrorException {
+			throws DSLException {
 
 		final Map<String, Object> returnMap = new HashMap<String, Object>();
 		final String puName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		final ProcessingUnit pu = admin.getProcessingUnits().getProcessingUnit(puName);
 		if (pu == null) {
-			throw new RestErrorException(ResponseConstants.FAILED_TO_LOCATE_SERVICE, serviceName);
+			return errorStatus(ResponseConstants.FAILED_TO_LOCATE_SERVICE, serviceName);
 		}
 
 		final Properties contextProperties = pu.getBeanLevelProperties().getContextProperties();
@@ -2362,7 +2293,7 @@ public class ServiceController implements ServiceDetailsProvider{
 		final String templateName = contextProperties.getProperty(CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE);
 
 		if (elasticProp == null || !Boolean.parseBoolean(elasticProp)) {
-			throw new RestErrorException(ResponseConstants.SERVICE_NOT_ELASTIC, serviceName);
+			return errorStatus(ResponseConstants.SERVICE_NOT_ELASTIC, serviceName);
 		}
 
 		logger.info("Scaling " + puName + " to " + count + " instances");
@@ -2374,7 +2305,7 @@ public class ServiceController implements ServiceDetailsProvider{
 				pu.scale(new ManualCapacityScaleConfigurer().memoryCapacity(512 * count, MemoryUnit.MEGABYTES).create());
 			} else {
 				// Eager scale (1 container per machine per PU)
-				throw new RestErrorException(ResponseConstants.SET_INSTANCES_NOT_SUPPORTED_IN_EAGER);
+				return errorStatus(ResponseConstants.SET_INSTANCES_NOT_SUPPORTED_IN_EAGER);
 			}
 		} else {
 
@@ -2400,12 +2331,10 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @param instanceId The service instance id.
 	 * @param numLines The number of lines to tail.
 	 * @return The last n lines of log of the requested service.
-	 * @throws RestErrorException 
-	 * 			When service not found.
 	 */
 	@JsonRequestExample(requestBody = "{\"numLines\":10}")
 	@JsonResponseExample(status = "success", responseBody = "\"log tail from container\"")
-	@PossibleResponseStatuses(codes = {200,500}, descriptions = {"success", "failed_to_locate_service"})
+	@PossibleResponseStatuses(codes = {200,200}, descriptions = {"success", "failed_to_locate_service"})
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
 			+ "/instances/{instanceId}/tail",
 			method = RequestMethod.GET)
@@ -2414,7 +2343,7 @@ public class ServiceController implements ServiceDetailsProvider{
 			@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
 			@PathVariable final int instanceId,
-			@RequestParam(value = "numLines", required = true) final int numLines) throws RestErrorException {
+			@RequestParam(value = "numLines", required = true) final int numLines) {
 
 		final GridServiceContainer container = getContainerAccordingToInstanceId(applicationName,
 				serviceName, instanceId);
@@ -2439,12 +2368,10 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @param hostAddress The service instance's host address.
 	 * @param numLines The number of lines to tail.
 	 * @return The last n lines of log of the requested service.
-	 * @throws RestErrorException 
-	 * 			When service not found.
 	 */
 	@JsonRequestExample(requestBody = "{\"numLines\" : 10}")
 	@JsonResponseExample(status = "success", responseBody = "\"numLines lines of log tail\"")
-	@PossibleResponseStatuses(codes = {200, 500}, descriptions = {"success", "failed_to_locate_service"})
+	@PossibleResponseStatuses(codes = {200, 200}, descriptions = {"success", "failed_to_locate_service"})
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
 			+ "/address/{hostAddress}/tail",
 			method = RequestMethod.GET)
@@ -2453,7 +2380,7 @@ public class ServiceController implements ServiceDetailsProvider{
 			@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
 			@PathVariable final String hostAddress,
-			@RequestParam(value = "numLines", required = true) final int numLines) throws RestErrorException {
+			@RequestParam(value = "numLines", required = true) final int numLines) {
 
 		final GridServiceContainer container = getContainerAccordingToHostAddress(applicationName,
 				serviceName, hostAddress);
@@ -2474,12 +2401,10 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @param serviceName The service name.
 	 * @param numLines The number of lines to tail.
 	 * @return The last n lines of log from each service instance.
-	 * @throws RestErrorException
-	 * 			When service not found. 
 	 */
 	@JsonRequestExample(requestBody = "{\"numLines\":10}")
 	@JsonResponseExample(status = "success", responseBody = "\"instance log tail\"")
-	@PossibleResponseStatuses(codes = {200,500}, descriptions = {"success", "failed_to_locate_service"})
+	@PossibleResponseStatuses(codes = {200,200}, descriptions = {"success", "failed_to_locate_service"})
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
 			+ "/tail",
 			method = RequestMethod.GET)
@@ -2487,7 +2412,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	public Map<String, Object> getLogTailByServiceName(
 			@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
-			@RequestParam(value = "numLines", required = true) final int numLines) throws RestErrorException {
+			@RequestParam(value = "numLines", required = true) final int numLines) {
 
 		final StringBuilder stringBuilder = new StringBuilder();
 		final ProcessingUnit processingUnit = getProcessingUnit(applicationName, serviceName);
