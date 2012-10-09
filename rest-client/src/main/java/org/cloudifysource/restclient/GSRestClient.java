@@ -298,8 +298,17 @@ public class GSRestClient {
                     logger.log(Level.FINE, httpMethod.getURI() + " response body " + responseBody);
                 }
                 try {
-                    final Map<String, Object> errorMap = GSRestClient.jsonToMap(responseBody);
-                    throw new ErrorStatusException("Remote_rest_gateway_exception", errorMap.get(ERROR));
+                	final Map<String, Object> errorMap = GSRestClient.jsonToMap(responseBody);
+                    final String status = (String) errorMap.get(STATUS_KEY);
+                    if (ERROR.equals(status)) {
+                        final String reason = (String) errorMap.get(ERROR);
+                        @SuppressWarnings("unchecked")
+                        final List<String> reasonsArgs = (List<String>) errorMap.get(ERROR_ARGS);
+                        final ErrorStatusException e = new ErrorStatusException(reason,
+                                reasonsArgs != null ? reasonsArgs.toArray() : null);
+                        logger.log(Level.FINE, reason, e);
+                        throw e;
+                    }
                 } catch (final IOException e) {
                     if (statusCode == NOT_FOUND_404_ERROR_CODE) {
                         throw new ErrorStatusException(e, "URL_not_found", httpMethod.getURI());
@@ -309,16 +318,6 @@ public class GSRestClient {
             }
             responseBody = getResponseBody(response, httpMethod);
             final Map<String, Object> responseMap = GSRestClient.jsonToMap(responseBody);
-            final String status = (String) responseMap.get(STATUS_KEY);
-            if (ERROR.equals(status)) {
-                final String reason = (String) responseMap.get(ERROR);
-                @SuppressWarnings("unchecked")
-                final List<String> reasonsArgs = (List<String>) responseMap.get(ERROR_ARGS);
-                final ErrorStatusException e = new ErrorStatusException(reason,
-                        reasonsArgs != null ? reasonsArgs.toArray() : null);
-                logger.log(Level.FINE, reason, e);
-                throw e;
-            }
             return responseJsonKey != null ? responseMap.get(RESPONSE_KEY) : responseMap;
         } catch (final ClientProtocolException e) {
             logger.log(Level.FINE, httpMethod.getURI() + MSG_REST_API_ERR, e);
