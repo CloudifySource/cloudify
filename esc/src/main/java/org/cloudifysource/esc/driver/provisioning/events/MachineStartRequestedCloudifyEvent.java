@@ -50,5 +50,17 @@ public class MachineStartRequestedCloudifyEvent extends MachineStartRequestedEve
         templateName = IOUtils.readString(in);
         locationId = IOUtils.readString(in);
     }
-
+    
+    @Override
+    public String getDecisionDescription() {
+        StringBuilder desc = new StringBuilder(super.getDecisionDescription());
+        if (templateName != null ) { 
+        	desc.append(" using template " + templateName);
+        }
+        if (locationId != null) {
+        	desc.append(" in location " + locationId);
+        }
+        return desc.toString();
+    }
+    
 }
