@@ -321,6 +321,8 @@
 		<delete file="${tmp.dir}/${cloudify.installation.dir}/docs/xap-javadoc.zip" />
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/examples" />
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/tools/benchmark"/>
+		<delete dir="${tmp.dir}/${cloudify.installation.dir}/tools/apache"/>
+		<delete dir="${tmp.dir}/${cloudify.installation.dir}/tools/alert-integration"/>
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/tools/maven/apache-maven-3.0.2"/>
 		<delete>	
             <fileset dir="${tmp.dir}/${cloudify.installation.dir}/bin" includes="gs-focalserver.*, gsInstance.*,
