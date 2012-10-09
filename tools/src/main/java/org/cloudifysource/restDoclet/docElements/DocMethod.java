@@ -6,7 +6,7 @@ import java.util.List;
 public class DocMethod {
 	private String uri;
 	private String description;
-	private List<DocHttpMethod> httpMethods;
+	private final List<DocHttpMethod> httpMethods;
 	
 	public DocMethod(DocHttpMethod httpMethod) {
 		httpMethods = new LinkedList<DocHttpMethod>();
