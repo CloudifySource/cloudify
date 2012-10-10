@@ -72,14 +72,10 @@ public class DocAnnotation {
 		if(attributes != null && attributes.size() > 0) {
 			StringBuilder attrStr = new StringBuilder();
 			for (Entry<String, Object> entry : attributes.entrySet()) {
-<<<<<<< Updated upstream
-				str += entry.getKey() + "=" + entry.getValue() + ", ";
-=======
 				attrStr.append(entry.getKey())
 				.append("=")
 				.append(entry.getValue().toString())
 				.append(", ");
->>>>>>> Stashed changes
 			}
 			if(attrStr.length() == 0)
 				str += " {No attributes}";

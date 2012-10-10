@@ -7,7 +7,6 @@ import org.cloudifysource.restDoclet.constants.RestDocConstants.DocAnnotationTyp
 import com.sun.javadoc.Type;
 
 public class DocParameter {
-<<<<<<< Updated upstream
 	private final Type type;
 	private final String name;
 	private String description;
@@ -15,15 +14,7 @@ public class DocParameter {
 	
 	private List<DocAnnotation> annotations;
 	private DocRequestParamAnnotation requestParamAnnotation;
-=======
-	Type type;
-	String name;
-	String description;
-	String location;
 
-	List<DocAnnotation> annotations;
-	DocRequestParamAnnotation requestParamAnnotation;
->>>>>>> Stashed changes
 
 	public DocParameter(String name, Type type) {
 		this.name = name;

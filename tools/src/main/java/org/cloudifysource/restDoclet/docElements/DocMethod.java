@@ -6,13 +6,7 @@ import java.util.List;
 public class DocMethod {
 	private String uri;
 	private String description;
-<<<<<<< Updated upstream
 	private final List<DocHttpMethod> httpMethods;
-	
-=======
-	private List<DocHttpMethod> httpMethods;
-
->>>>>>> Stashed changes
 	public DocMethod(DocHttpMethod httpMethod) {
 		httpMethods = new LinkedList<DocHttpMethod>();
 		httpMethods.add(httpMethod);
