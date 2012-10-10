@@ -28,14 +28,14 @@ public class DocRequestParamAnnotation extends DocAnnotation {
 		String shortAttrValueStr = (shortAttrValue instanceof String) ? ((String) shortAttrValue).trim() : null;
 		String shortAttrName = getShortName(attrName);
 		
-		if(shortAttrName.equals(RestDocConstants.REQUEST_PARAMS_VALUE))
+		if(RestDocConstants.REQUEST_PARAMS_VALUE.equals(shortAttrName))
 			value = shortAttrValueStr;
-		if(shortAttrName.equals(RestDocConstants.REQUEST_PARAMS_DEFAULT_VALUE))
+		if(RestDocConstants.REQUEST_PARAMS_DEFAULT_VALUE.equals(shortAttrName))
 			defaultValue = shortAttrValueStr;
-		if(shortAttrName.equals(RestDocConstants.REQUEST_PARAMS_REQUIRED))
+		if(RestDocConstants.REQUEST_PARAMS_REQUIRED.equals(shortAttrName))
 			requierd = (Boolean) attrValue;
 		
-		attributes.put(shortAttrName, shortAttrValue);
+		super.addAttribute(shortAttrName, shortAttrValue);
 	}
 	
 	@Override
@@ -49,8 +49,7 @@ public class DocRequestParamAnnotation extends DocAnnotation {
 			str	+= RestDocConstants.REQUEST_PARAMS_DEFAULT_VALUE + " = \"" + defaultValue + "\"";
 		if(requierd != null)
 			str	+= RestDocConstants.REQUEST_PARAMS_REQUIRED + " = \"" + requierd + "\"";
-		str += "}";
-		return str;
+		return str + "}";
 	}
 	
 

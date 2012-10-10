@@ -55,6 +55,8 @@ public class DocHttpMethod {
 		return annotatedParams;
 	}
 	public void setAnnotatedParams() {
+		if(params == null)
+			return;
 		for (DocParameter docParameter : params) {
 			DocRequestParamAnnotation requestParamAnnotation = docParameter.getRequestParamAnnotation();
 			if(requestParamAnnotation != null) {
@@ -62,7 +64,8 @@ public class DocHttpMethod {
 					requestParamAnnotationParamValues = new HashMap<String, String>();
 				requestParamAnnotationParamValues.put(docParameter.getName(), ("<" + docParameter.getType() + ">"));
 			}
-			if(docParameter.getAnnotations() != null && !docParameter.getAnnotations().isEmpty()) {
+			List<DocAnnotation> annotations = docParameter.getAnnotations();
+			if(annotations != null && !annotations.isEmpty()) {
 				if(annotatedParams == null)
 					annotatedParams = new LinkedList<DocParameter>();
 				annotatedParams.add(docParameter);
@@ -104,15 +107,16 @@ public class DocHttpMethod {
 
 	@Override
 	public String toString() {
-		String httpMethodShort = httpMethodName.substring(httpMethodName.lastIndexOf(".")+1);
+		String httpMethodShort = httpMethodName.substring(httpMethodName.lastIndexOf('.')+1);
 		String str = "http method: " + httpMethodShort + "\n";
 		if(StringUtils.isBlank(description))
 			str += "description: " + description + "\n";
-		if(params != null && params.size() != 0) {
-			str += "parameters: \n";
+		if(params != null && !params.isEmpty()) {
+			StringBuilder paramsStr = new StringBuilder();
 			for (DocParameter param : params) {
-				str += "   " + param + "\n";
+				paramsStr.append("   ").append(param).append("\n");
 			}
+			str += 	"parameters: \n" + paramsStr;		
 		}
 		str += "returns " + returnDetails;
 		if(jsonResponseExample != null)
@@ -121,10 +125,11 @@ public class DocHttpMethod {
 			str += "Request example: " + jsonRequestExample + "\n";
 		
 		if(possibleResponseStatuses != null) {
-			str += "Returns: ";
+			StringBuilder responseStatusStr = new StringBuilder();
 			for (DocResponseStatus responseStatus : possibleResponseStatuses) {
-				str += "* " + responseStatus + "\n";
+				responseStatusStr.append("* ").append(responseStatus).append("\n");
 			}
+			str += "Returns: " + responseStatusStr;
 		}
 		return str;
 	}

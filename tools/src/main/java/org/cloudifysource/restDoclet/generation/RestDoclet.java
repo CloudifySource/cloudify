@@ -25,9 +25,9 @@ public class RestDoclet extends Doclet {
 	}
 
 	public static int optionLength(String option) {
-		if(option.equals(RestDocConstants.VELOCITY_TEMPLATE_PATH_FLAG)
-				|| option.equals(RestDocConstants.DOC_DEST_PATH_FLAG)
-				|| option.equals(RestDocConstants.VERSION_FLAG)) {
+		if(RestDocConstants.VELOCITY_TEMPLATE_PATH_FLAG.equals(option)
+				|| RestDocConstants.DOC_DEST_PATH_FLAG.equals(option)
+				|| RestDocConstants.VERSION_FLAG.equals(option)) {
 			return 2;
 		}
 		return 0;

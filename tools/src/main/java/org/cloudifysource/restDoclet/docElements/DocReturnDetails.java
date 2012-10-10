@@ -3,14 +3,14 @@ package org.cloudifysource.restDoclet.docElements;
 import com.sun.javadoc.Type;
 
 public class DocReturnDetails {
-	private Type returnType;
+	private final Type returnType;
 	private String description;
-	
+
+	public DocReturnDetails(Type returnType) {
+		this.returnType = returnType;
+	}
 	public Type getReturnType() {
 		return returnType;
-	}
-	public void setReturnType(Type type) {
-		this.returnType = type;
 	}
 	public String getDescription() {
 		return description;
@@ -23,7 +23,7 @@ public class DocReturnDetails {
 	public String toString() {
 		String str = returnType.typeName();
 		if(description != null)
-		str += ": " + description;
+			str += ": " + description;
 		return str;
 	}
 }

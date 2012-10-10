@@ -71,23 +71,23 @@ public class RestDocConstants {
 		DEFAULT;
 
 		public static DocAnnotationTypes fromName(String annotationName) {
-			if(annotationName.equals(CONTROLLER_ANNOTATION))
+			if(CONTROLLER_ANNOTATION.equals(annotationName))
 				return CONTROLLER;
-			else if(annotationName.equals(REQUEST_MAPPING_ANNOTATION))
+			else if(REQUEST_MAPPING_ANNOTATION.equals(annotationName))
 				return REQUEST_MAPPING;
-			else if(annotationName.equals(REQUEST_PARAMS_ANNOTATION))
+			else if(REQUEST_PARAMS_ANNOTATION.equals(annotationName))
 				return REQUEST_PARAM;
-			else if(annotationName.equals(REQUEST_BODY_ANNOTATION))
+			else if(REQUEST_BODY_ANNOTATION.equals(annotationName))
 				return REQUEST_BODY;
-			else if(annotationName.equals(RESPONSE_BODY_ANNOTATION))
+			else if(RESPONSE_BODY_ANNOTATION.equals(annotationName))
 				return RESPONSE_BODY;
-			else if(annotationName.equals(PATH_VARIABLE_ANNOTATION))
+			else if(PATH_VARIABLE_ANNOTATION.equals(annotationName))
 				return PATH_VARIABLE;
-			else if(annotationName.equals(JSON_RESPONSE_EXAMPLE_ANNOTATION))
+			else if(JSON_RESPONSE_EXAMPLE_ANNOTATION.equals(annotationName))
 				return JSON_RESPONSE_EXAMPLE;
-			else if(annotationName.equals(JSON_REQUEST_EXAMPLE_ANNOTATION))
+			else if(JSON_REQUEST_EXAMPLE_ANNOTATION.equals(annotationName))
 				return JSON_REQUEST_EXAMPLE;
-			else if(annotationName.endsWith(POSSIBLE_RESPONSE_STATUSES_ANNOTATION))
+			else if(POSSIBLE_RESPONSE_STATUSES_ANNOTATION.endsWith(annotationName))
 				return POSSIBLE_RESPONSE_STATUSES;
 			else 
 				return DEFAULT;

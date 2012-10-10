@@ -1,9 +1,9 @@
 package org.cloudifysource.restDoclet.docElements;
 
 public class DocResponseStatus {
-	int code;
-	String codeName;
-	String description;
+	private final int code;
+	private final String codeName;
+	private final String description;
 	
 	public DocResponseStatus(int code, String codeName, String description) {
 		this.code = code;

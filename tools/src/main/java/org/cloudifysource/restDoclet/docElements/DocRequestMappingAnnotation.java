@@ -37,26 +37,28 @@ public class DocRequestMappingAnnotation extends DocAnnotation {
 	@Override
 	public void addAttribute(String attrName, Object attrValue) {
 		Object shortAttrValue = getShortValue(attrValue);
-		String shortAttrValueStr = (shortAttrValue instanceof String[]) 
-				? ((String[]) shortAttrValue)[0].trim() : 
-					( (shortAttrValue instanceof String) 
-							? ((String) shortAttrValue).trim() : null);
+		String shortAttrValueStr = null;
+		Class<? extends Object> class1 = shortAttrValue.getClass();
+		if(class1.isArray() && String.class.equals(class1.getComponentType()))
+			shortAttrValueStr = ((String[]) shortAttrValue)[0].trim();
+		else if((shortAttrValue instanceof String))
+			shortAttrValueStr = ((String) shortAttrValue).trim();
 		String shortAttrName = getShortName(attrName);
 		
-		if(shortAttrName.equals(RestDocConstants.REQUEST_MAPPING_VALUE)) 
+		if(RestDocConstants.REQUEST_MAPPING_VALUE.equals(shortAttrName)) 
 			value = shortAttrValueStr.startsWith("/") ? shortAttrValueStr : ("/" + shortAttrValueStr);
-		if(shortAttrName.equals(RestDocConstants.REQUEST_MAPPING_METHOD))
+		if(RestDocConstants.REQUEST_MAPPING_METHOD.equals(shortAttrName))
 			method = (((FieldDocImpl[]) attrValue)[0]).name();
-		if(shortAttrName.equals(RestDocConstants.REQUEST_MAPPING_HEADERS))
+		if(RestDocConstants.REQUEST_MAPPING_HEADERS.equals(shortAttrName))
 			headers = shortAttrValueStr;
-		if(shortAttrName.equals(RestDocConstants.REQUEST_MAPPING_PARAMS))
+		if(RestDocConstants.REQUEST_MAPPING_PARAMS.equals(shortAttrName))
 			params = shortAttrValueStr;
-		if(shortAttrName.equals(RestDocConstants.REQUEST_MAPPING_PRODUCES))
+		if(RestDocConstants.REQUEST_MAPPING_PRODUCES.equals(shortAttrName))
 			produces = shortAttrValueStr;
-		if(shortAttrName.equals(RestDocConstants.REQUEST_MAPPING_CONSUMED))
+		if(RestDocConstants.REQUEST_MAPPING_CONSUMED.equals(shortAttrName))
 			consumes = shortAttrValueStr;
 		
-		attributes.put(shortAttrName, shortAttrValue);
+		super.addAttribute(shortAttrName, shortAttrValue);
 	}
 	
 	@Override
@@ -74,9 +76,9 @@ public class DocRequestMappingAnnotation extends DocAnnotation {
 				str	+= RestDocConstants.REQUEST_MAPPING_PRODUCES + " = \"" + produces + "\", ";
 			if(consumes != null)
 				str	+= RestDocConstants.REQUEST_MAPPING_CONSUMED + " = \"" + consumes + "\", ";
-			if(str.lastIndexOf(",") != -1)
-				str = str.substring(0, str.lastIndexOf(","));
-			str += "}";
-			return str;
+			int lastIndexOf = str.lastIndexOf(',');
+			if(lastIndexOf != -1)
+				str = str.substring(0, lastIndexOf);
+			return str + "}";
 	}
 }

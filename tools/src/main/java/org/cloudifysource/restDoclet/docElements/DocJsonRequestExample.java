@@ -30,12 +30,12 @@ public class DocJsonRequestExample extends DocAnnotation {
 
 		String shortAttrName = getShortName(attrName);
 
-		if(shortAttrName.equals(RestDocConstants.JSON_REQUEST_EXAMPLE_REQUEST_PARAMS))
+		if(RestDocConstants.JSON_REQUEST_EXAMPLE_REQUEST_PARAMS.equals(shortAttrName))
 			requestJsonBody = value;
-		else if(shortAttrName.equals(RestDocConstants.JSON_REQUEST_EXAMPLE_COMMENTS))
+		else if(RestDocConstants.JSON_REQUEST_EXAMPLE_COMMENTS.equals(shortAttrName))
 			comments = value;
 
-		attributes.put(shortAttrName, value);
+		super.addAttribute(shortAttrName, value);
 	}
 
 	@Override

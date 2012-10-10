@@ -98,19 +98,21 @@ public class Generator {
 	 * @param options
 	 */
 	private void setFlags(String[][] options) {
+		int flagPos = 0;
+		int contentPos = 1;
 		for (int i = 0; i < options.length; i++) {
-			if (options[i][0].equals(RestDocConstants.VELOCITY_TEMPLATE_PATH_FLAG)) {
-				velocityTemplatePath = options[i][1];
+			if (RestDocConstants.VELOCITY_TEMPLATE_PATH_FLAG.equals(options[i][flagPos])) {
+				velocityTemplatePath = options[i][contentPos];
 				isUserDefineTemplatePath = true;
 			}
-			else if (options[i][0].equals(RestDocConstants.DOC_DEST_PATH_FLAG)) 
-				docPath = options[i][1];
-			else if(options[i][0].equals(RestDocConstants.VERSION_FLAG))
-				version = options[i][1];
+			else if (RestDocConstants.DOC_DEST_PATH_FLAG.equals(options[i][flagPos])) 
+				docPath = options[i][contentPos];
+			else if(RestDocConstants.VERSION_FLAG.equals(options[i][flagPos]))
+				version = options[i][contentPos];
 		}
 
 		if(velocityTemplatePath != null) {
-			int fileNameIndex = velocityTemplatePath.lastIndexOf("/") + 1;
+			int fileNameIndex = velocityTemplatePath.lastIndexOf('/') + 1;
 			velocityTemplateFileName = velocityTemplatePath.substring(fileNameIndex);
 			velocityTemplatePath = velocityTemplatePath.substring(0, fileNameIndex - 1);
 		}
@@ -142,8 +144,11 @@ public class Generator {
 		FileWriter velocityfileWriter = null;
 		try {
 			File file = new File(docPath);
-			if(file.getParentFile() != null)
-				file.getParentFile().mkdirs();
+			File parentFile = file.getParentFile();
+			if(parentFile != null) {
+				if(parentFile.mkdirs())
+					logger.log(Level.FINEST, "The directory " + parentFile.getAbsolutePath() + " was created, along with all necessary parent directories.");
+			}
 			logger.log(Level.INFO, "Write generated velocity to " + file.getAbsolutePath());
 			velocityfileWriter = new FileWriter(file);
 			velocityfileWriter.write(generatedHtml);
@@ -193,7 +198,7 @@ public class Generator {
 
 	}
 
-	private List<DocController> generateControllers(ClassDoc[] classes) {
+	private static List<DocController> generateControllers(ClassDoc[] classes) {
 		List<DocController> controllers = new LinkedList<DocController>();
 		for (ClassDoc classDoc : classes) {
 			DocController controller = generateController(classDoc);
@@ -204,11 +209,9 @@ public class Generator {
 		return controllers;
 	}
 
-	private DocController generateController(ClassDoc classDoc) {
+	private static DocController generateController(ClassDoc classDoc) {
 		DocController controller = new DocController(classDoc.typeName());
-
-		List<DocAnnotation> annotations = generateAnnotations(classDoc
-				.annotations());
+		List<DocAnnotation> annotations = generateAnnotations(classDoc.annotations());
 		if (Utils.filterOutControllerClass(classDoc, annotations))
 			return null;
 
@@ -228,18 +231,14 @@ public class Generator {
 		return controller;
 	}
 
-	private List<DocAnnotation> generateAnnotations(AnnotationDesc[] annotations) {
+	private static List<DocAnnotation> generateAnnotations(AnnotationDesc[] annotations) {
 		List<DocAnnotation> docAnnotations = new LinkedList<DocAnnotation>();
 		for (AnnotationDesc annotationDesc : annotations) {
-			DocAnnotation docAnnotation = Utils
-					.createNewAnnotation(annotationDesc.annotationType()
-							.typeName());
+			DocAnnotation docAnnotation = Utils.createNewAnnotation(annotationDesc.annotationType().typeName());
 			// add annotation's attributes
-			for (ElementValuePair elementValuePair : annotationDesc
-					.elementValues()) {
+			for (ElementValuePair elementValuePair : annotationDesc.elementValues()) {
 				String element = elementValuePair.element().toString();
-				Object constractAttrValue = docAnnotation
-						.constractAttrValue(elementValuePair.value().value());
+				Object constractAttrValue = DocAnnotation.constractAttrValue(elementValuePair.value().value());
 				docAnnotation.addAttribute(element, constractAttrValue);
 			}
 			docAnnotations.add(docAnnotation);
@@ -247,27 +246,22 @@ public class Generator {
 		return docAnnotations;
 	}
 
-	private SortedMap<String, DocMethod> generateMethods(MethodDoc[] methods) {
+	private static SortedMap<String, DocMethod> generateMethods(MethodDoc[] methods) {
 		SortedMap<String, DocMethod> docMethods = new TreeMap<String, DocMethod>();
 
 		for (MethodDoc methodDoc : methods) {
-			List<DocAnnotation> annotations = generateAnnotations(methodDoc
-					.annotations());
-			DocRequestMappingAnnotation requestMappingAnnotation = Utils
-					.getRequestMappingAnnotation(annotations);
+			List<DocAnnotation> annotations = generateAnnotations(methodDoc.annotations());
+			DocRequestMappingAnnotation requestMappingAnnotation = Utils.getRequestMappingAnnotation(annotations);
 
 			if (requestMappingAnnotation == null)
 				continue;
 
-			DocHttpMethod httpMethod = generateHttpMethod(methodDoc,
-					requestMappingAnnotation.getMethod(), annotations);
+			DocHttpMethod httpMethod = generateHttpMethod(methodDoc, requestMappingAnnotation.getMethod(), annotations);
 			String uri = requestMappingAnnotation.getValue();
 
 			if (StringUtils.isBlank(uri))
 				throw new IllegalArgumentException(
-						"method "
-								+ methodDoc.name()
-								+ " is missing request mapping annotation's value (uri).");
+						"method " + methodDoc.name() + " is missing request mapping annotation's value (uri).");
 			// If method uri already exist, add the current httpMethod to the
 			// existing method.
 			// There can be several httpMethods (GET, POST, DELETE) for each
@@ -285,7 +279,7 @@ public class Generator {
 		return docMethods;
 	}
 
-	private DocHttpMethod generateHttpMethod(MethodDoc methodDoc,
+	private static DocHttpMethod generateHttpMethod(MethodDoc methodDoc,
 			String httpMethodName, List<DocAnnotation> annotations) {
 
 		DocHttpMethod httpMethod = new DocHttpMethod(methodDoc.name(), httpMethodName);
@@ -321,7 +315,7 @@ public class Generator {
 		return httpMethod;
 	}
 
-	private List<DocParameter> generateParameters(MethodDoc methodDoc) {
+	private static List<DocParameter> generateParameters(MethodDoc methodDoc) {
 		List<DocParameter> paramsList = new LinkedList<DocParameter>();
 
 		for (Parameter parameter : methodDoc.parameters()) {
@@ -337,9 +331,8 @@ public class Generator {
 		return paramsList;
 	}
 
-	private DocReturnDetails generateReturnDetails(MethodDoc methodDoc) {
-		DocReturnDetails returnDetails = new DocReturnDetails();
-		returnDetails.setReturnType(methodDoc.returnType());
+	private static DocReturnDetails generateReturnDetails(MethodDoc methodDoc) {
+		DocReturnDetails returnDetails = new DocReturnDetails(methodDoc.returnType());
 		Tag[] returnTags = methodDoc.tags("return");
 		if (returnTags.length > 0) {
 			returnDetails.setDescription(returnTags[0].text());

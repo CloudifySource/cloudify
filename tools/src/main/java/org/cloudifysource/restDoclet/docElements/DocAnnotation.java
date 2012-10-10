@@ -8,41 +8,44 @@ import java.util.Map.Entry;
 import com.sun.javadoc.AnnotationValue;
 
 public class DocAnnotation {
-	String name;
-	Map<String, Object> attributes;
+	private final String name;
+	private final Map<String, Object> attributes;
 
 	public DocAnnotation(String name) {
 		this.name = name;
 		attributes = new HashMap<String, Object>();
 	}
-	
+
 	public String getName() {
 		return name;
 	}	
-	
-	protected String getShortName(String name) {
-		int beginIndex = name.lastIndexOf(".") + 1;
+
+	protected static String getShortName(String name) {
+		int beginIndex = name.lastIndexOf('.') + 1;
 		int endIndex = name.lastIndexOf("()");
 		if(endIndex == -1)
 			endIndex = name.length();
 		return name.substring(beginIndex, endIndex);
 	}
 
-	protected Object getShortValue(Object value) {
-		String strValue = value.toString();
+	protected static Object getShortValue(Object value) {
 		if(!(value instanceof String))
 			return value;
-		int beginIndex =0;
-		int endIndex = strValue.length();
+
+		String strValue = (String)value;
+
+		int beginIndex = 0;
 		if(strValue.startsWith("\""))
 			beginIndex = 1;
+
+		int endIndex = strValue.length();
 		if(strValue.endsWith("\""))
 			endIndex--;
-		
+
 		return strValue.substring(beginIndex, endIndex);
 	}
-	
-	public Object constractAttrValue(Object value) {
+
+	public static Object constractAttrValue(Object value) {
 		Class<? extends Object> class1 = value.getClass();
 		if(class1.isArray()) {
 			AnnotationValue[] values = (AnnotationValue[])value;
@@ -53,13 +56,10 @@ public class DocAnnotation {
 				Array.set(constractedValues, i, currentValue);
 			}
 			//if(values.length == 1)
-				//return firstValue;
+			//return firstValue;
 			return constractedValues;
 		}
-		else
-		{
-			return value;
-		}
+		return value;
 	}
 
 	public void addAttribute(String attrName, Object attrValue) {
@@ -70,12 +70,21 @@ public class DocAnnotation {
 	public String toString() {
 		String str = "@" + name;
 		if(attributes != null && attributes.size() > 0) {
-			str += "{";
+			StringBuilder attrStr = new StringBuilder();
 			for (Entry<String, Object> entry : attributes.entrySet()) {
+<<<<<<< Updated upstream
 				str += entry.getKey() + "=" + entry.getValue() + ", ";
+=======
+				attrStr.append(entry.getKey())
+				.append("=")
+				.append(entry.getValue().toString())
+				.append(", ");
+>>>>>>> Stashed changes
 			}
-			str = str.substring(0, str.lastIndexOf(","));
-			str += "}";
+			if(attrStr.length() == 0)
+				str += " {No attributes}";
+			else
+				str += " {" + attrStr.substring(0, str.lastIndexOf(',')) + "}";
 		}
 		return str;
 	}

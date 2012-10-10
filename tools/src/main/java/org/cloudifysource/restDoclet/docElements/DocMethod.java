@@ -6,8 +6,13 @@ import java.util.List;
 public class DocMethod {
 	private String uri;
 	private String description;
+<<<<<<< Updated upstream
 	private final List<DocHttpMethod> httpMethods;
 	
+=======
+	private List<DocHttpMethod> httpMethods;
+
+>>>>>>> Stashed changes
 	public DocMethod(DocHttpMethod httpMethod) {
 		httpMethods = new LinkedList<DocHttpMethod>();
 		httpMethods.add(httpMethod);
@@ -30,22 +35,21 @@ public class DocMethod {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	
+
 	@Override
 	public String toString() {
 		String str = "\nmapping: " + uri + "\n";
 		if(description != null && !description.isEmpty()) {
-			str += "description: \n";
-			String[] split = description.trim().split("\n");
-			for (String string : split) {
-				str += "   " + string + "\n";				
-			}
+			str += "description: \n" + description + "\n";
 		}
 		if(httpMethods != null) {
 			str += "httpMethods:\n";
-		for (DocHttpMethod httpMethod : httpMethods) {
-			str += httpMethod + "\n";
-		}
+			StringBuilder httpMethodsStr = new StringBuilder();
+			for (DocHttpMethod httpMethod : httpMethods) {
+				httpMethodsStr.append(httpMethod);
+				httpMethodsStr.append("\n");
+			}
+			str += httpMethodsStr;
 		}
 		return str;
 	}

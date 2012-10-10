@@ -44,15 +44,15 @@ public class DocJsonResponseExample extends DocAnnotation{
 		
 		String shortAttrName = getShortName(attrName);
 
-		if(shortAttrName.equals(RestDocConstants.JSON_RESPONSE_EXAMPLE_STATUS))
+		if(RestDocConstants.JSON_RESPONSE_EXAMPLE_STATUS.equals(shortAttrName))
 			status = value;
-		if(shortAttrName.equals(RestDocConstants.JSON_RESPONSE_EXAMPLE_RESPONSE)) {
+		if(RestDocConstants.JSON_RESPONSE_EXAMPLE_RESPONSE.equals(shortAttrName)) {
 			response = value;
 		}
-		else if(shortAttrName.equals(RestDocConstants.JSON_RESPONSE_EXAMPLE_COMMENTS))
+		else if(RestDocConstants.JSON_RESPONSE_EXAMPLE_COMMENTS.equals(shortAttrName))
 			comments = value;
 
-		attributes.put(shortAttrName, value);
+		super.addAttribute(shortAttrName, value);
 	}
 
 	@Override

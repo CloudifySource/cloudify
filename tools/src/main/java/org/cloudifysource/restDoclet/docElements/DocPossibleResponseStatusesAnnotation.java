@@ -6,7 +6,7 @@ public class DocPossibleResponseStatusesAnnotation extends DocAnnotation {
 
 	private Integer[] codes;
 	private String[] descriptions;
-	
+
 	public DocPossibleResponseStatusesAnnotation(String name) {
 		super(name);
 	}
@@ -22,39 +22,46 @@ public class DocPossibleResponseStatusesAnnotation extends DocAnnotation {
 	 * @return the descriptions
 	 */
 	public String[] getDescriptions() {
-		return descriptions;
+		return this.descriptions;
 	}
-	
+
 	@Override
 	public void addAttribute(String attrName, Object attrValue) {
 		String shortAttrName = getShortName(attrName);
-		
+
 		if(shortAttrName.endsWith(RestDocConstants.POSSIBLE_RESPONSE_STATUSES_CODES)) {
 			codes = (Integer[])attrValue;
 		}
 		else if(shortAttrName.endsWith(RestDocConstants.POSSIBLE_RESPONSE_STATUSES_DESCRIPTIONS)) {
 			descriptions = (String[])attrValue;
 		}
-		
-		attributes.put(shortAttrName, attrValue);
+
+		super.addAttribute(shortAttrName, attrValue);
 	}
-	
+
 	@Override
 	public String toString() {
 		String str = "@" + RestDocConstants.POSSIBLE_RESPONSE_STATUSES_ANNOTATION + "[";
-		str += "codes: {";
-		for (int i = 0; i < codes.length; i++) {		
-			if(i != 0)
-				str += ", ";
-			str += codes[i];
+		if(codes != null) {
+			str += "codes: {";
+			StringBuilder codesStr = new StringBuilder();
+			for (int i = 0; i < codes.length; i++) {		
+				if(i != 0)
+					codesStr.append(", ");
+				codesStr.append(codes[i]);
+			}
+			str += codesStr + "}";
 		}
-		str += "}, descriptions: {";
-		for (int i = 0; i < descriptions.length; i++) {
-			if(i != 0)
-				str += ", ";
-			str += descriptions[i];
+		if(descriptions != null) {
+			str += " descriptions: {";
+			StringBuilder descriptionStr = new StringBuilder();
+			for (int i = 0; i < descriptions.length; i++) {
+				if(i != 0)
+					descriptionStr.append(", ");
+				descriptionStr.append(descriptions[i]);
+			}
+			str += descriptionStr + "}";
 		}
-		str += "}";
 		return str + "]";
 	}
 
