@@ -37,8 +37,7 @@
 				<version>1.1</version>
 
 				<configuration>
-					<!-- should be passed as system properties. <user></user> <key></key> -->
-					<container>gigaspaces-repository</container>
+					<!-- should be passed as system properties. <user></user> <key></key> <container></container>-->
 					<publicUrl>true</publicUrl>
 				</configuration>
 

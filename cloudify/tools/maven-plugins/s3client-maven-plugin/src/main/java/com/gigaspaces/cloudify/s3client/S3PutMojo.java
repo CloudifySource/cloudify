@@ -132,7 +132,6 @@ public class S3PutMojo extends AbstractMojo {
 		else
 		{
 			getLog().info("Processing " + source  + ", upload size is: " + (source).length() + ". Target: " + target);
-	
 			store.putBlob(container, store.blobBuilder(target)
 					.payload(source)
 					.build());
