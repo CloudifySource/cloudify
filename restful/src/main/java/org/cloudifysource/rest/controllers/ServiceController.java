@@ -287,9 +287,9 @@ public class ServiceController implements ServiceDetailsProvider{
 	 */
 	@JsonRequestExample(requestBody="{\"fileSizeLimit\" : 50000000, \"processors\" : \"summary, thread, log\"}")
 	@JsonResponseExample(status="success", 
-	responseBody="{\"192.168.2.100\":\"&ltbyte array of the dump file&gt\"" +
-			", \"192.168.2.200\":\"&ltbyte array of the dump file&gt\"" +
-			", \"192.168.2.300\":\"&ltbyte array of the dump file&gt\"}")
+	responseBody="{\"192.168.2.100\":\"&ltbyte array of the dump file&gt;\"" +
+			", \"192.168.2.200\":\"&ltbyte array of the dump file&gt;\"" +
+			", \"192.168.2.300\":\"&ltbyte array of the dump file&gt;\"}")
 	@PossibleResponseStatuses(codes={200, 200, 200, 200, 500}, 
 	descriptions={"success", ResponseConstants.MACHINE_NOT_FOUND, ResponseConstants.DUMP_FILE_TOO_LARGE, "Failed to generate dump", "IOException"})
 	@RequestMapping(value = "/dump/machines", method = RequestMethod.GET)
@@ -309,7 +309,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @throws IOException
 	 */
 	@JsonRequestExample(requestBody="{\"fileSizeLimit\" : 50000000, \"processors\" : \"summary, network, log\"}")
-	@JsonResponseExample(status="success", responseBody="{\"&ltmachine's ip&gt\":\"&ltbyte array of the dump file&gt\"}")
+	@JsonResponseExample(status="success", responseBody="{\"&ltmachine's ip&gt;\":\"&ltbyte array of the dump file&gt;\"}")
 	@PossibleResponseStatuses(codes={200, 200, 200, 200, 500}, 
 	descriptions={"success", ResponseConstants.MACHINE_NOT_FOUND, ResponseConstants.DUMP_FILE_TOO_LARGE, "Failed to generate dump", "IOException"})
 	@RequestMapping(value = "/dump/machine/{ip}/", method = RequestMethod.GET)
