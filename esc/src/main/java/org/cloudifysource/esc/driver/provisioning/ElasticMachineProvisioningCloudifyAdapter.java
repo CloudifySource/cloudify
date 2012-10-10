@@ -494,7 +494,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			
 			if (shutdownResult) {
 				MachineStoppedEvent machineStoppedEvent = new MachineStoppedEvent();
-				machineStopEvent.setHostAddress(machineIp);
+				machineStoppedEvent.setHostAddress(machineIp);
 				machineEventListener.elasticMachineProvisioningProgressChanged(machineStoppedEvent);
 			}
 
