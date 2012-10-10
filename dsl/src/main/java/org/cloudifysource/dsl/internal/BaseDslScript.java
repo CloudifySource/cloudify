@@ -84,8 +84,6 @@ public abstract class BaseDslScript extends Script {
 	 */
 	public static final String EXTEND_PROPERTY_NAME = "extend";
 
-	private static final String DSL_FILE_PATH_VAR = "dslFilePath";
-
 	private Set<String> processingUnitTypes;
 	private String processingUnitType;
 
@@ -206,7 +204,11 @@ public abstract class BaseDslScript extends Script {
 	}
 
 	private File getDSLFile() {
-		return new File((String) this.getBinding().getVariable(DSL_FILE_PATH_VAR));
+		return new File((String) this.getBinding().getVariable(DSLReader.DSL_FILE_PATH_PROPERTY_NAME));
+	}
+
+	private boolean isValidateObjects() {
+		return ((Boolean) this.getBinding().getVariable(DSLReader.DSL_VALIDATE_OBJECTS_PROPERTY_NAME));
 	}
 
 	@Override
@@ -232,10 +234,12 @@ public abstract class BaseDslScript extends Script {
 					this.rootObject = retval;
 				}
 				swapActiveObject(closure, retval);
-				try {
-					validateObject(retval);
-				} catch (final DSLValidationException e) {
-					throw new DSLValidationRuntimeException(e);
+				if(isValidateObjects()) {
+					try {
+						validateObject(retval);
+					} catch (final DSLValidationException e) {
+						throw new DSLValidationRuntimeException(e);
+					}
 				}
 				if (this.activeObject != null) {
 					try {
@@ -332,7 +336,7 @@ public abstract class BaseDslScript extends Script {
 				try {
 					final Map<Object, Object> currentVars = this.getBinding().getVariables();
 					DSLValidationContext validationContext = new DSLValidationContext();
-					validationContext.setFilePath((String) currentVars.get(DSL_FILE_PATH_VAR));
+					validationContext.setFilePath((String) currentVars.get(DSLReader.DSL_FILE_PATH_PROPERTY_NAME));
 					method.setAccessible(true);
 					method.invoke(obj, validationContext);
 
