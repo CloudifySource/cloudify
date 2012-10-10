@@ -56,7 +56,7 @@
 	<property name="gigaspaces.related.folder" value="${package.build}/gigaspaces" />
 	<property name="gs-webui.related.folder" value="${package.build}/gs-webui" />
 	<property name="platform.verion.file.name" value="CloudifyVersion.java" />
-	<property name="cloudify.base.container" value="gigaspaces-repository" />
+	<property name="cloudify.maven.container" value="gigaspaces-maven-repository" />
 	<property name="cloudify.cdn.publish.url" value="http://repository.cloudifysource.org" />
 	<property name="cloudify.put.source" value="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
  	<property name="cloudify.put.target" value="org/cloudifysource/${cloudify.version}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
@@ -389,6 +389,47 @@
 		<ant target="prepare.cloudify.package" />
 		<ant target="prepare.bigdata.package" />
 		<ant target="copy.packages.to.build.repository" />
+		<ant target="publish.cloudify.jars.to.maven.repository" />
+	</target>
+	
+	<target name="publish.cloudify.jars.to.maven.repository">
+		<echo message="uploading cloudify jar artifacts to S3" />
+				
+		<exec executable="${mvn.executable}">
+			<arg value="s3client:put" />
+			<arg value="-Dput.user=${put.user}" />
+			<arg value="-Dput.key=${put.key}" />
+			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/esc/${cloudify.version}" />
+			<arg value="-Dput.target=org/cloudifysource/esc/${cloudify.version}" />
+			<arg value="-Dput.container=${cloudify.maven.container}"/>
+		</exec>
+		
+		<exec executable="${mvn.executable}">
+			<arg value="s3client:put" />
+			<arg value="-Dput.user=${put.user}" />
+			<arg value="-Dput.key=${put.key}" />
+			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/usm/${cloudify.version}" />
+			<arg value="-Dput.target=org/cloudifysource/usm/${cloudify.version}" />
+			<arg value="-Dput.container=${cloudify.maven.container}"/>
+		</exec>
+		
+		<exec executable="${mvn.executable}">
+			<arg value="s3client:put" />
+			<arg value="-Dput.user=${put.user}" />
+			<arg value="-Dput.key=${put.key}" />
+			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/dsl/${cloudify.version}" />
+			<arg value="-Dput.target=org/cloudifysource/dsl/${cloudify.version}" />
+			<arg value="-Dput.container=${cloudify.maven.container}"/>
+		</exec>
+		
+		<exec executable="${mvn.executable}">
+			<arg value="s3client:put" />
+			<arg value="-Dput.user=${put.user}" />
+			<arg value="-Dput.key=${put.key}" />
+			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/cloudify/${cloudify.version}" />
+			<arg value="-Dput.target=org/cloudifysource/cloudify/${cloudify.version}" />
+			<arg value="-Dput.container=${cloudify.maven.container}"/>
+		</exec>
 	</target>
 	
 	<target name="prepare.bigdata.package">
@@ -419,7 +460,7 @@
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${cloudify.put.source}" />
 			<arg value="-Dput.target=${cloudify.put.target}" />
-			<arg value="-Dcontainer=${cloudify.base.container}"/>
+			<arg value="-Dput.container=${cloudify.base.container}"/>
 		</exec>
 		
 		<exec executable="${mvn.executable}">
@@ -428,7 +469,7 @@
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${cloudify.gzip.put.source}" />
 			<arg value="-Dput.target=${cloudify.gzip.put.target}" />
-			<arg value="-Dcontainer=${cloudify.base.container}"/>
+			<arg value="-Dput.container=${cloudify.base.container}"/>
 		</exec>
 	</target>
 	
@@ -442,7 +483,7 @@
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${bigdata.put.source}" />
 			<arg value="-Dput.target=${bigdata.put.target}" />
-			<arg value="-Dcontainer=${cloudify.base.container}"/>
+			<arg value="-Dput.container=${cloudify.base.container}"/>
 		</exec>
 		
 		<exec executable="${mvn.executable}">
@@ -451,7 +492,7 @@
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${bigdata.gzip.put.source}" />
 			<arg value="-Dput.target=${bigdata.gzip.put.target}" />
-			<arg value="-Dcontainer=${cloudify.base.container}"/>
+			<arg value="-Dput.container=${cloudify.base.container}"/>
 		</exec>
 		
 	</target>
