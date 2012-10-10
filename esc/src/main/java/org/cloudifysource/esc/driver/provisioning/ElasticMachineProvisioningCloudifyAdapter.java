@@ -252,6 +252,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		MachineStartedCloudifyEvent machineStartedEvent = new MachineStartedCloudifyEvent();
 		machineStartedEvent.setMachineDetails(machineDetails);
+		machineStartedEvent.setHostAddress(machineIp);
 		machineEventListener.elasticMachineProvisioningProgressChanged(machineStartedEvent);
 
 		GridServiceAgentStartRequestedEvent agentStartEvent = new GridServiceAgentStartRequestedEvent();
@@ -493,7 +494,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			
 			if (shutdownResult) {
 				MachineStoppedEvent machineStoppedEvent = new MachineStoppedEvent();
-				machineStopEvent.setHostAddress(machineIp);
+				machineStoppedEvent.setHostAddress(machineIp);
 				machineEventListener.elasticMachineProvisioningProgressChanged(machineStoppedEvent);
 			}
 

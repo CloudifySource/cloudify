@@ -7,13 +7,13 @@ import org.cloudifysource.restDoclet.constants.RestDocConstants.DocAnnotationTyp
 import com.sun.javadoc.Type;
 
 public class DocParameter {
-	Type type;
-	String name;
-	String description;
-	String location;
+	private final Type type;
+	private final String name;
+	private String description;
+	private String location;
 	
-	List<DocAnnotation> annotations;
-	DocRequestParamAnnotation requestParamAnnotation;
+	private List<DocAnnotation> annotations;
+	private DocRequestParamAnnotation requestParamAnnotation;
 
 	public DocParameter(String name, Type type) {
 		this.name = name;
@@ -62,18 +62,14 @@ public class DocParameter {
 		String location = "";
 		for (DocAnnotation docAnnotation : annotations) {
 			String annotationName = docAnnotation.getName();
-			switch (DocAnnotationTypes.fromName(annotationName)) {
-			case REQUEST_PARAM:
+			if(!location.isEmpty())
+				location += " or ";
+			location += annotationName;
+			DocAnnotationTypes docAnnotationType = DocAnnotationTypes.fromName(annotationName);
+			if(docAnnotationType == DocAnnotationTypes.REQUEST_PARAM)
 				requestParamAnnotation = (DocRequestParamAnnotation) docAnnotation;
-			case PATH_VARIABLE:
-			case REQUEST_BODY:
-				if(!location.isEmpty())
-					location += " or ";
-				location += annotationName;
-				break;
-			default:
+			else if(docAnnotationType != DocAnnotationTypes.PATH_VARIABLE && docAnnotationType != DocAnnotationTypes.REQUEST_BODY)
 				throw new IllegalArgumentException("Unsupported parameter annotation - " + annotationName);
-			}
 		}
 		this.location = location;
 	}

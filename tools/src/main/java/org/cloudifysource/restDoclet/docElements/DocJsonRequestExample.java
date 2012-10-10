@@ -47,12 +47,12 @@ public class DocJsonRequestExample extends DocAnnotation {
 			isEmpty = false;
 		}
 		if(!StringUtils.isBlank(comments)) {
-			if(isEmpty = false)
+			if(!isEmpty)
 				str += ", ";
 			str += "comments = " + comments;
 			isEmpty = false;
 		}
-		if (isEmpty == true)
+		if (isEmpty)
 			str += "annotation has no attributes";
 		return str + "]";
 	}
