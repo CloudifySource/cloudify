@@ -1,8 +1,0 @@
-<com>
-  <j_spaces>
-        <kernel>
-        	<!-- can also be set via system property using -Dcom.gs.licensekey -->
-            <licensekey>Enter Your License Here....</licensekey>
-       </kernel>
-  </j_spaces>
-</com>
