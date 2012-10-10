@@ -252,6 +252,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		MachineStartedCloudifyEvent machineStartedEvent = new MachineStartedCloudifyEvent();
 		machineStartedEvent.setMachineDetails(machineDetails);
+		machineStartedEvent.setHostAddress(machineIp);
 		machineEventListener.elasticMachineProvisioningProgressChanged(machineStartedEvent);
 
 		GridServiceAgentStartRequestedEvent agentStartEvent = new GridServiceAgentStartRequestedEvent();

@@ -72,7 +72,7 @@ public class DocAnnotation {
 		if(attributes != null && attributes.size() > 0) {
 			str += "{";
 			for (Entry<String, Object> entry : attributes.entrySet()) {
-				str += entry.getKey().toString() + "=" + entry.getValue().toString() + ", ";
+				str += entry.getKey() + "=" + entry.getValue() + ", ";
 			}
 			str = str.substring(0, str.lastIndexOf(","));
 			str += "}";

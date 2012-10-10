@@ -218,14 +218,14 @@ public class AttributesContollerTests {
     public void testMultipleAttributes() throws Exception {
 
         final Map<String, String> myInitialAttrMap = new HashMap<String, String>();
-        myInitialAttrMap.put("myInitialAttrMapKey1", "myInitialAttrMapValue1");
-        myInitialAttrMap.put("myInitialAttrMapKey2", "myInitialAttrMapValue2");
-        myInitialAttrMap.put("myInitialAttrMapKey3", "myInitialAttrMapValue3");
+        myInitialAttrMap.put("attrMapKey1", "myInitialAttrMapValue1");
+        myInitialAttrMap.put("attrMapKey2", "myInitialAttrMapValue2");
+        myInitialAttrMap.put("attrMapKey3", "myInitialAttrMapValue3");
 
         final Map<String, String> myUpdatedAttrMap = new HashMap<String, String>();
-        myUpdatedAttrMap.put("myUpdatedAttrMapKey1", "myUpdatedAttrMapValue1");
-        myUpdatedAttrMap.put("myUpdatedAttrMapKey2", "myUpdatedAttrMapValue2");
-        myUpdatedAttrMap.put("myUpdatedAttrMapKey3", "myUpdatedAttrMapValue3");
+        myUpdatedAttrMap.put("attrMapKey1", "myUpdatedAttrMapValue1");
+        myUpdatedAttrMap.put("attrMapKey2", "myUpdatedAttrMapValue2");
+        myUpdatedAttrMap.put("attrMapKey3", "myUpdatedAttrMapValue3");
 
         for (final String requestUri : multipleAttributesUrisMapping.keySet()) {
             testUriForMultipleAttributes(requestUri, myInitialAttrMap, myUpdatedAttrMap);
@@ -301,18 +301,18 @@ public class AttributesContollerTests {
         reqeust = createMockPostRequest(requestUri, convertToJson(attrUpdatedMap));
         testRequest(reqeust, uriHandlers.get(HTTP_POST), "{\"status\":\"success\"}");
 
-        Map<String, Object> merged = new HashMap<String, Object>();
+        /*Map<String, Object> merged = new HashMap<String, Object>();
         merged.putAll(attrInitialMap);
-        merged.putAll(attrUpdatedMap);
+        merged.putAll(attrUpdatedMap);*/
 
         // Get the attribute.
         // Expecting NEW_VALUE_PREFIX + @attributeValue as the response attribute value.
         reqeust = createMockGetRequest(requestUri);
-        testRequest(reqeust, uriHandlers.get(HTTP_GET), convertToJson(merged));
+        testRequest(reqeust, uriHandlers.get(HTTP_GET), convertToJson(attrUpdatedMap));
 
         // delete, to leave a "clean" space
         reqeust = createMockDeleteRequest(requestUri);
-        testRequest(reqeust, uriHandlers.get(HTTP_DELETE), convertToJson(merged));
+        testRequest(reqeust, uriHandlers.get(HTTP_DELETE), convertToJson(attrUpdatedMap));
 
         // Attempt to get the attribute after deleting it.
         // Expecting null attribute value in return (the attribute does not exists).
