@@ -247,9 +247,10 @@
 	
 	<target name="add.cloudify.javadoc">
 		<!-- Add Cloudify Javadoc archive to Cloudify/docs folder. If the folder doesn't exist please run: mvn javadoc:javadoc --> 
-    	<zip file="${tmp.dir}/${cloudify.installation.dir}/docs/cloudify-javadoc.zip">
+    	<zip file="${releases.dir}/build_${cloudify.build.number}/docs/${cloudify}">
     		<fileset dir="${basedir}/target/site/apidocs"/>
 		</zip>
+		<copy file="${restful.local.copy}/target/site/restdoclet/restdoclet.html" todir="${releases.dir}/build_${cloudify.build.number}/docs" />
 	</target>
 	
 	<target name="replace.xap.content.with.cloudify.related">
@@ -304,7 +305,8 @@
    </target>
 	
 	<target name="remove.xap.related.modules">
-		<delete file="${tmp.dir}/${cloudify.installation.dir}/docs/xap-javadoc.zip" />
+		<delete dir="${tmp.dir}/${cloudify.installation.dir}/docs" />
+		<delete dir="${tmp.dir}/${cloudify.installation.dir}/lib/optional/openspaces/gs-openspaces-src.zip" />
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/examples" />
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/tools/benchmark"/>
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/tools/apache"/>
@@ -640,6 +642,9 @@
 			<arg line="clean install -Dmaven.test.skip=true"/>
 		</exec>
 		<exec dir="${basedir}" executable="${mvn.executable}" failonerror="true">
+			<arg line="javadoc:javadoc -Dmaven.test.skip=true"/>
+		</exec>
+		<exec dir="${basedir}/../restful" executable="${mvn.executable}" failonerror="true">
 			<arg line="javadoc:javadoc -Dmaven.test.skip=true"/>
 		</exec>
 	</target>
