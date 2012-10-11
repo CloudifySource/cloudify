@@ -71,7 +71,8 @@
 	<property name="tools.lib.dir" value="${basedir}/tools/lib" />
 	<property name="cloudify.base.container" value="gigaspaces-repository" />
 	<property name="cloudify.base.publish.url" value="https://s3.amazonaws.com/${cloudify.base.container}" />
-	<property name="build.properties.file" value="build.properties"/>
+	<property name="build.properties.file" value="${basedir}/build.properties"/>
+	<property name="cloudify.parent.pom.file" value="${basedir}/pom.xml"/>
 	
 	<condition property="recipes.available" value="true">
       <available type="dir" file="${recipes.local.copy}"/>
@@ -91,12 +92,13 @@
 			<exec executable="git" dir="${basedir}">
 				<arg value="add" />
 				<arg value="**/${platform.verion.file.name}" />
-				<arg value="${build.properties.file}" />			
+				<arg value="${build.properties.file}" />
+				<arg value="${cloudify.parent.pom.file}" />
 			</exec>
 			<exec executable="git" dir="${basedir}">
 				<arg value="commit" />
 				<arg value="-m" />
-				<arg value="GS-803 Build version advanced to ${cloudify.build.number}" />			
+				<arg value="Build version advanced to ${cloudify.build.number}" />			
 			</exec>
 			<exec executable="git" dir="${basedir}">
 				<arg value="push" />
@@ -148,6 +150,7 @@
 	    <property name="gs.milestone.field" value="gs.milestone" />
 	    <property name="gs.build.number.field" value="gs.build.number" />
 		<property name="s3.gs.publish.folder.field" value="s3.gs.publish.folder" />
+		<property name="gs.version.tag" value="gsVersion" />
 			 
 		<replaceregexp file="${build.properties.file}"
             match="${cloudify.version.field}=(.*)"
@@ -177,6 +180,10 @@
 	   	<replaceregexp file="${build.properties.file}"
 	   	            match="${s3.gs.publish.folder.field}=(.*)"
 	   	            replace="${s3.gs.publish.folder.field}=${s3.gs.publish.folder}"/>
+		
+		<replaceregexp file="${cloudify.parent.pom.file}"
+			   	            match="&lt;${gs.version.tag}&gt;(.*)&lt;/${gs.version.tag}&gt;"
+			   	            replace="&lt;${gs.version.tag}&gt;${s3.gs.publish.folder}&lt;/${gs.version.tag}&gt;"/>
 
    </target>
 	
