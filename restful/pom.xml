@@ -380,6 +380,19 @@
 				</configuration>
 			</plugin>
 
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<configuration>
+					<webResources>
+						<resource>
+							<directory>${project.build.directory}/site</directory>
+							<targetPath>resources</targetPath>
+						</resource>
+					</webResources>
+				</configuration>
+			</plugin>
+
 		</plugins>
 		<finalName>rest</finalName>
 	</build>

@@ -2360,7 +2360,7 @@ public class ServiceController implements ServiceDetailsProvider{
 
 	/**
 	 * Retrieves the tail of a service log. This method uses the service name and the instance host address to retrieve
-	 * the the instance log tail. Important: a machine might hold more than one service instance. In such a scenario,
+	 * the instance log tail. Important: a machine might hold more than one service instance. In such a scenario,
 	 * only one of the service instance logs will be tailed and returned.
 	 * 
 	 * @param applicationName The application name.
