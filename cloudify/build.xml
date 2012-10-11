@@ -420,8 +420,8 @@
 			<arg value="s3client:put" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
-			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/usm/${cloudify.version}" />
-			<arg value="-Dput.target=org/cloudifysource/usm/${cloudify.version}" />
+			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/USM/${cloudify.version}" />
+			<arg value="-Dput.target=org/cloudifysource/USM/${cloudify.version}" />
 			<arg value="-Dput.container=${cloudify.maven.container}"/>
 		</exec>
 		
