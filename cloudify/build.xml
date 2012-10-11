@@ -294,7 +294,7 @@
     	
     	<!-- conditional task (with property: publish.cloudify.build) -->
     	<ant target="publish.cloudify.to.storage" />
-    	
+		<delete dir="${tmp.dir}"/>
  	</target>	
 	
 
@@ -388,6 +388,7 @@
    	</target>
 	
 	<target name="prepare.and.copy.packages" depends="update_platform_version">
+		<delete dir="${releases.dir}" />
 		<ant target="prepare.cloudify.package" />
 		<ant target="prepare.bigdata.package" />
 		<ant target="copy.packages.to.build.repository" />
@@ -449,6 +450,7 @@
 		
     	<!-- conditional task (with property: publish.cloudify.build) -->
     	<ant target="publish.bigdata.to.storage" />
+		<delete dir="${tmp.dir}"/>
 	</target>
 	
 
