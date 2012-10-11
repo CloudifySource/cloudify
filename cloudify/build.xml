@@ -259,7 +259,7 @@
     	<zip file="${releases.dir}/build_${cloudify.build.number}/docs/${cloudify}">
     		<fileset dir="${basedir}/target/site/apidocs"/>
 		</zip>
-		<copy file="${restful.local.copy}/target/site/restdoclet/restdoclet.html" todir="${releases.dir}/build_${cloudify.build.number}/docs" />
+		<!--copy file="${restful.local.copy}/target/site/restdoclet/restdoclet.html" todir="${releases.dir}/build_${cloudify.build.number}/docs" /-->
 	</target>
 	
 	<target name="replace.xap.content.with.cloudify.related">
