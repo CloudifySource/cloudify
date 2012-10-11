@@ -285,7 +285,7 @@
 	</macrodef>
 	
 	<target name="prepare.cloudify.package.without.unzip">
-		<loadproperties srcfile="${basedir}/${build.properties.file}"/>
+		<loadproperties srcfile="${build.properties.file}"/>
     	<ant target="update.gs.runtime" />
     	<ant target="remove.xap.related.modules" />
         <ant target="update.lus.groups"/>
@@ -308,7 +308,7 @@
 	
 
     <target name="prepare.cloudify.package">
-    	<loadproperties srcfile="${basedir}/${build.properties.file}"/>
+    	<loadproperties srcfile="${build.properties.file}"/>
     	<unzip.xap new.installation.dir.name="${cloudify.installation.dir}"/>
     	<ant target="prepare.cloudify.package.without.unzip"/>
    </target>
@@ -373,7 +373,7 @@
     </target>
 	
 	<target name="archive.bigdata.version">
-		<loadproperties srcfile="${basedir}/${build.properties.file}"/>
+		<loadproperties srcfile="${build.properties.file}"/>
 		<delete dir="${releases.dir}/build_${gs.build.number}"/>
         <mkdir dir="${releases.dir}/build_${gs.build.number}/${xap.bigdata.dir}/1.5"/>
         <zip destfile="${releases.dir}/build_${gs.build.number}/${xap.bigdata.dir}/1.5/${xap.zip.name}">
@@ -386,7 +386,7 @@
     </target>
 	
 	<target name="copy.packages.to.build.repository" description="copy packages to build repository" unless="gs.internal.systems.not.available">
-	   <loadproperties srcfile="${basedir}/${build.properties.file}"/>
+	   <loadproperties srcfile="${build.properties.file}"/>
        <copy todir="${build.repository.path}/${cloudify}/${cloudify.version}/${build.prefix}${cloudify.build.number}">
            <fileset dir="${releases.dir}/${build.prefix}${cloudify.build.number}"/>
        </copy>
@@ -631,7 +631,7 @@
     </target>
 
 	<target name="prepare.env">
-		<loadproperties srcfile="${basedir}/${build.properties.file}"/>
+		<loadproperties srcfile="${build.properties.file}"/>
 		
 		<delete dir="${tmp.dir}"/>
 		<mkdir dir="${tmp.dir}"/>
@@ -645,7 +645,7 @@
   	</target>
 
 	<target name="download.zip" unless="appropriate.xap.zip.present">
-		<loadproperties srcfile="${basedir}/${build.properties.file}"/>
+		<loadproperties srcfile="${build.properties.file}"/>
 		<mkdir dir="${xap.files.tmp.dir}" /> 
 		<echo message="Please wait. Downloading ${cloudify.cdn.publish.url}/com/gigaspaces/${s3.gs.publish.folder}/gigaspaces-xap-premium-${gs.version}-ga-b${gs.build.number}.zip." />
 		<get verbose="true" src="${cloudify.cdn.publish.url}/com/gigaspaces/xap-core/${s3.gs.publish.folder}/${xap.zip.name}" dest="${xap.files.tmp.dir}"/>
