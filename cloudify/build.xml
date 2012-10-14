@@ -378,7 +378,7 @@
     	
     	<!-- Add Cloudify Javadoc archive to Cloudify/docs folder. If the folder doesn't exist please run: mvn javadoc:javadoc -->
     	<mkdir dir="${releases.dir}/build_${cloudify.build.number}/docs" />
-    	<zip file="${releases.dir}/build_${cloudify.build.number}/docs/${cloudify}">
+    	<zip file="${releases.dir}/build_${cloudify.build.number}/docs/${cloudify}-javadoc.zip">
     		<fileset dir="${basedir}/target/site/apidocs"/>
 		</zip>
     	<mkdir dir="${releases.dir}/build_${cloudify.build.number}/docs/restdoclet" />
