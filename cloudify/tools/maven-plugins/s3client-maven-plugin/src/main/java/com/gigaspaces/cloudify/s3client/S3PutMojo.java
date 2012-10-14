@@ -16,9 +16,7 @@
 package org.cloudifysource.s3client;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -28,7 +26,6 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.blobstore.BlobStoreContextFactory;
-import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.s3.S3Client;
 import org.jclouds.s3.domain.AccessControlList;
 import org.jclouds.s3.domain.CannedAccessPolicy;
@@ -105,11 +102,12 @@ public class S3PutMojo extends AbstractMojo {
 		try {
 			Set<Module> wiring = new HashSet<Module>();
 			context = new BlobStoreContextFactory().createContext("aws-s3", user, key, wiring, new Properties());
+			S3Client client = S3Client.class.cast(context.getProviderSpecificContext().getApi());
 
 			BlobStore store = context.getBlobStore();
 
-			uploadFile( source, target, store);
-			
+			uploadFile( source, target, store, client);
+
 		} catch (Exception e) {
 			throw new MojoFailureException("Failed put operation", e);
 		} finally {
@@ -119,14 +117,14 @@ public class S3PutMojo extends AbstractMojo {
 		}
 
 	}
-	
-	private void uploadFile(File source, String target, BlobStore store) throws MojoFailureException
+
+	private void uploadFile(File source, String target, BlobStore store, S3Client client) throws MojoFailureException
 	{
 		if (source.isDirectory())
 		{
 			for (File f : source.listFiles())
 			{
-				uploadFile(new File(source.getPath() + "/" + f.getName()), target + "/" + f.getName(), store);
+				uploadFile(new File(source.getPath() + "/" + f.getName()), target + "/" + f.getName(), store, client);
 			}
 		}
 		else
@@ -136,8 +134,14 @@ public class S3PutMojo extends AbstractMojo {
 					.payload(source)
 					.build());
 			getLog().info("Upload of " + source + " was ended successfully");
+
+			if (publicUrl != null && Boolean.parseBoolean(publicUrl)) {
+				String ownerId = client.getObjectACL(container, target).getOwner().getId();
+				client.putObjectACL(container, target, 
+						AccessControlList.fromCannedAccessPolicy(CannedAccessPolicy.PUBLIC_READ, ownerId));
+			}
 		}
-			
+
 	}
 
 }
