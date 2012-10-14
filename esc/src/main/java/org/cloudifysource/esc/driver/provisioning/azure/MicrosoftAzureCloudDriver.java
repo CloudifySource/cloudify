@@ -258,8 +258,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 
 			return machineDetails;
 		} catch (final MicrosoftAzureException e) {
-			logger.severe("failed creating virtual machine properly"
-					+ e.getMessage());
+			logger.severe("failed creating virtual machine properly : " + e.getMessage());
 
 			// this means a cloud service was created and a request for A VM was
 			// made.
@@ -282,7 +281,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			} else {
 				logger.fine("not attempting to shutdown virtual machine "
 						+ desc.getRoleName()
-						+ " since a failure happened while to create a cloud service for this vm.");
+						+ " since a failure happened while trying to create a cloud service for this vm.");
 
 			}
 
