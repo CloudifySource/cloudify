@@ -437,6 +437,7 @@ public final class Utils {
 
 		final InstallationDetails details = new InstallationDetails();
 
+		details.setBindToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		details.setLocalDir(template.getAbsoluteUploadDir());
 		details.setRelativeLocalDir(template.getLocalDirectory());
 
