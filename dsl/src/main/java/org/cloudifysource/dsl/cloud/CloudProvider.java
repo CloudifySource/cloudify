@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.openspaces.maven.support.OutputVersion;
 
 import com.j_spaces.kernel.PlatformVersion;
 
@@ -164,30 +165,26 @@ public class CloudProvider {
 	
 	private String getCloudifyUrlAccordingToPlatformVersion() {
 		
-		String cloudifyUrlPattern = "http://repository.cloudifysource.org/" 
-				+ "%s/" + PlatformVersion.getVersion() + "%s/gigaspaces-%s-" 
-				+ PlatformVersion.getVersion() + "-" + PlatformVersion.getMilestone() 
-				+ "-b" + PlatformVersion.getBuildNumber();
-		
+		String cloudifyUrlPattern; 
 		String productUri;
-		String versionPostFix;
 		String editionUrlVariable;
 		
 		if (PlatformVersion.getEdition().equalsIgnoreCase(PlatformVersion.EDITION_CLOUDIFY)) {
 			productUri = "org/cloudifysource";
-			versionPostFix = "";
 			editionUrlVariable = "cloudify";
-			return String.format(cloudifyUrlPattern, productUri, versionPostFix, editionUrlVariable);
+			cloudifyUrlPattern = "http://repository.cloudifysource.org/" 
+				+ "%s/" + OutputVersion.computeCloudifyVersion() + "/gigaspaces-%s-" 
+				+ PlatformVersion.getVersion() + "-" + PlatformVersion.getMilestone() 
+				+ "-b" + PlatformVersion.getBuildNumber();
+			return String.format(cloudifyUrlPattern, productUri, editionUrlVariable);
 		} else {
 			productUri = "com/gigaspaces/xap";
 			editionUrlVariable = "xap-premium";
-			if (PlatformVersion.getBuildNumber().contains("-")) {
-				versionPostFix = ".SNAPSHOT";
-			} else {
-				versionPostFix = ".RELEASE";
-			}
-			
-			return String.format(cloudifyUrlPattern, productUri, versionPostFix, editionUrlVariable);
+			cloudifyUrlPattern = "http://repository.cloudifysource.org/" 
+				+ "%s/" + OutputVersion.computeXapVersion() + "/gigaspaces-%s-" 
+				+ PlatformVersion.getVersion() + "-" + PlatformVersion.getMilestone() 
+				+ "-b" + PlatformVersion.getBuildNumber();
+			return String.format(cloudifyUrlPattern, productUri, editionUrlVariable);
 		}
 	}
 }
