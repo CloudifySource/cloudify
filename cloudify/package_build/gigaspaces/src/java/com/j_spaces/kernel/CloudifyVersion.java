@@ -28,7 +28,7 @@ public class CloudifyVersion implements ProductVersion {
 	// parsing!!!
 	private String VERSION = "2.2.0";
 	private String MILESTONE = "ga";
-	private String BUILD_TYPE = "regular";
+	private String BUILD_TYPE = "${build.type}";
 	private String V_NUM = VERSION + '-' + EDITION + '-' + MILESTONE;
 	private String V_LICENSE_NUM = "2.2" + EDITION;
 	// !!!IMPORTANT, read below
