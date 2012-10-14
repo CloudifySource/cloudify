@@ -228,7 +228,7 @@ public class MicrosoftAzureRestClient {
 			logger.fine("[" + Thread.currentThread().getName()
 					+ "] - cloud cervice created : " + serviceName);
 		} catch (final Exception e) {
-			logger.warning("failed to create cloud service " + e.getMessage());
+			logger.warning("failed to create cloud service : " + e.getMessage());
 			if (e instanceof MicrosoftAzureException) {
 				throw new MicrosoftAzureException(e);
 			}
@@ -441,7 +441,7 @@ public class MicrosoftAzureRestClient {
 			} catch (final Exception e) {
 				pendingRequest.unlock();
 				logger.fine("[" + Thread.currentThread().getName()
-						+ "] - lock unlcoked");
+						+ "] - a failure occured : unlocking lock");
 				if (e instanceof MicrosoftAzureException) {
 					throw new MicrosoftAzureException(e);
 				}

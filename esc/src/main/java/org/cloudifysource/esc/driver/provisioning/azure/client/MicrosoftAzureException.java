@@ -24,7 +24,6 @@ package org.cloudifysource.esc.driver.provisioning.azure.client;
 public class MicrosoftAzureException extends Exception {
 	
 	private String status;
-	private String message;
 	
 	/**
 	 * 
@@ -33,7 +32,6 @@ public class MicrosoftAzureException extends Exception {
 	
 	public MicrosoftAzureException(final String status, final String message) {
 		this.status = status;
-		this.message = message;
 	}
 	
 	
@@ -57,15 +55,6 @@ public class MicrosoftAzureException extends Exception {
 
 	public void setStatus(final String status) {
 		this.status = status;
-	}
-
-	@Override
-	public String getMessage() {
-		return message;
-	}
-
-	public void setMessage(final String message) {
-		this.message = message;
 	}
 
 	/**
