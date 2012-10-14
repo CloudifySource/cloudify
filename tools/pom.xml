@@ -12,13 +12,6 @@
 		<relativePath>../cloudify</relativePath>
 	</parent>
 
-	<repositories>
-		<repository>
-			<id>org.openspaces</id>
-			<url>http://maven-repository.openspaces.org</url>
-		</repository>
-	</repositories>
-
 	<dependencies>
 
 		<dependency>

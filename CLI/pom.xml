@@ -17,10 +17,6 @@
     </properties>
     <repositories>
         <repository>
-            <id>org.openspaces</id>
-            <url>http://maven-repository.openspaces.org</url>
-        </repository>
-        <repository>
             <id>apache</id>
             <url>https://repository.apache.org/content/groups/snapshots-group/</url>
         </repository>

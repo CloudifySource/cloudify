@@ -17,6 +17,41 @@
 		<groovyVersion>1.8.6</groovyVersion>
 	</properties>
 
+	<repositories>
+		<repository>
+			<id>org.openspaces</id>
+			<name>OpenSpaces</name>
+			<url>http://maven-repository.openspaces.org</url>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>daily</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+				<checksumPolicy>warn</checksumPolicy>
+			</snapshots>
+		</repository>
+	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>org.openspaces</id>
+			<name>OpenSpaces-Plugin</name>
+			<url>http://maven-repository.openspaces.org</url>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>daily</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+				<checksumPolicy>warn</checksumPolicy>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
+
 	<modules>
 		<module>../CLI</module>
 		<module>../esc</module>
@@ -37,7 +72,8 @@
 				<version>1.1</version>
 
 				<configuration>
-					<!-- should be passed as system properties. <user></user> <key></key> <container></container>-->
+					<!-- should be passed as system properties. <user></user> <key></key> 
+						<container></container> -->
 					<publicUrl>true</publicUrl>
 				</configuration>
 
@@ -76,14 +112,4 @@
 		</plugins>
 
 	</build>
-
-	<pluginRepositories>
-		<pluginRepository>
-			<id>org.openspaces</id>
-			<url>http://maven-repository.openspaces.org</url>
-		</pluginRepository>
-	</pluginRepositories>
-
-
-
 </project>

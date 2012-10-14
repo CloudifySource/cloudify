@@ -12,10 +12,6 @@
 		<relativePath>../cloudify</relativePath>
 	</parent>
 	<repositories>
-		<repository>
-			<id>org.openspaces</id>
-			<url>http://maven-repository.openspaces.org</url>
-		</repository>
 		<!-- Apache snapshots repo is required for commons-vfs-sandbox, which contains the smb provider -->
 		<repository>
 			<id>apache-snapshots</id>
