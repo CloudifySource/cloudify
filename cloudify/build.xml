@@ -74,6 +74,8 @@
 	<property name="build.properties.file" value="${basedir}/build.properties"/>
 	<property name="cloudify.parent.pom.file" value="${basedir}/pom.xml"/>
 	
+	<fileset id="all-poms-fileset" dir="${basedir}/../" includes="**/pom.xml" excludes="**/tmp/**" />
+	
 	<condition property="recipes.available" value="true">
       <available type="dir" file="${recipes.local.copy}"/>
     </condition>	
@@ -83,17 +85,14 @@
 	<property name="put.key" value="AWS Key />
 	-->
 	
-
 	<target name="update_platform_version" depends="replace.build.related.settings,replace.cloudify.build.number" unless="gs.internal.systems.not.available">
+			<pathconvert property="all-poms-list" refid="all-poms-fileset" pathsep=" "/>
 	       	<exec executable="git" dir="${basedir}">
 				<arg value="checkout" />
 				<arg value="${branchname}" />			
 			</exec>
 			<exec executable="git" dir="${basedir}">
-				<arg value="add" />
-				<arg value="**/${platform.verion.file.name}" />
-				<arg value="${build.properties.file}" />
-				<arg value="${cloudify.parent.pom.file}" />
+				<arg line="add **/${platform.verion.file.name} ${build.properties.file} ${cloudify.parent.pom.file} ${all-poms-list}" />
 			</exec>
 			<exec executable="git" dir="${basedir}">
 				<arg value="commit" />
@@ -184,6 +183,12 @@
 		<replaceregexp file="${cloudify.parent.pom.file}"
 			   	            match="&lt;${gs.version.tag}&gt;(.*)&lt;/${gs.version.tag}&gt;"
 			   	            replace="&lt;${gs.version.tag}&gt;${s3.gs.publish.folder}&lt;/${gs.version.tag}&gt;"/>
+		
+		<!-- Update project POMs. ${s3.cloudify.publish.folder} is defined in QuickBuild. -->
+		<echo message="Update project POMs to new version ${s3.cloudify.publish.folder}" />
+		<exec executable="${mvn.executable}" dir="${basedir}">
+			<arg line="versions:set -DnewVersion=${s3.cloudify.publish.folder} -DgenerateBackupPoms=false" />
+		</exec>
 
    </target>
 	
