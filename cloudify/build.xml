@@ -315,7 +315,7 @@
 	
 	<target name="remove.xap.related.modules">
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/docs" />
-		<delete dir="${tmp.dir}/${cloudify.installation.dir}/lib/optional/openspaces/gs-openspaces-src.zip" />
+		<delete file="${tmp.dir}/${cloudify.installation.dir}/lib/optional/openspaces/gs-openspaces-src.zip" />
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/examples" />
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/tools/benchmark"/>
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/tools/apache"/>
