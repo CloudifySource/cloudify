@@ -260,11 +260,11 @@
 
 	
 	<target name="add.cloudify.javadoc">
-		<!-- Add Cloudify Javadoc archive to Cloudify/docs folder. If the folder doesn't exist please run: mvn javadoc:javadoc --> 
-    	<zip file="${releases.dir}/build_${cloudify.build.number}/docs/${cloudify}">
-    		<fileset dir="${basedir}/target/site/apidocs"/>
-		</zip>
-		<!--copy file="${restful.local.copy}/target/site/restdoclet/restdoclet.html" todir="${releases.dir}/build_${cloudify.build.number}/docs" /-->
+		<!-- update rest.war with restdoclet -->
+		<war destfile="${tmp.dir}/${cloudify.installation.dir}/tools/rest/rest.war" update="true" >
+			<zipfileset file="${restful.local.copy}/target/site/restdoclet/restdoclet.html" prefix="resources/restdoclet"/>			
+			<zipfileset file="${restful.local.copy}/src/main/webapp/resources/restdoclet/restdoclet.css" prefix="resources/restdoclet"/>
+		</war>
 	</target>
 	
 	<target name="replace.xap.content.with.cloudify.related">
@@ -375,6 +375,17 @@
 		<tar destfile="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.tar.gz" compression="gzip">
 	  		<zipfileset src="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip"/>
 		</tar>
+    	
+    	<!-- Add Cloudify Javadoc archive to Cloudify/docs folder. If the folder doesn't exist please run: mvn javadoc:javadoc -->
+    	<mkdir dir="${releases.dir}/build_${cloudify.build.number}/docs" />
+    	<zip file="${releases.dir}/build_${cloudify.build.number}/docs/${cloudify}">
+    		<fileset dir="${basedir}/target/site/apidocs"/>
+		</zip>
+    	<mkdir dir="${releases.dir}/build_${cloudify.build.number}/docs/restdoclet" />
+    	<copy todir="${releases.dir}/build_${cloudify.build.number}/docs/restdoclet" >
+			<fileset file="${restful.local.copy}/target/site/restdoclet/restdoclet.html"/>
+    		<fileset file="${restful.local.copy}/src/main/webapp/resources/restdoclet/restdoclet.css"/>
+    	</copy>
     </target>
 	
 	<target name="archive.bigdata.version">
