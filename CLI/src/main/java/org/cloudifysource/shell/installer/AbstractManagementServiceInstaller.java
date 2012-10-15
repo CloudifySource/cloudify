@@ -185,7 +185,7 @@ public abstract class AbstractManagementServiceInstaller {
 	 */
 	protected Properties getContextProperties() {
 		final Properties props = new Properties();
-		props.put("com.gs.application", MANAGEMENT_APPLICATION_NAME);
+		props.setProperty("com.gs.application", MANAGEMENT_APPLICATION_NAME);
 		return props;
 	}
 
