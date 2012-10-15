@@ -351,43 +351,48 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>2.8.1</version>
-				<configuration>
-					<doctitle>REST ${project.version} API</doctitle>
-					<windowtitle>REST ${project.version} API</windowtitle>
-					<name>RestDoclet</name>
-					<description>REST ${project.version} API documentation.</description>
-					<!--docletPath>${basedir}/src/main/java</docletPath -->
-					<doclet>org.cloudifysource.restDoclet.generation.RestDoclet</doclet>
-					<sourcepath>${basedir}/src/main/java/org/cloudifysource/rest/controllers;</sourcepath>
-					<docletArtifact>
-						<groupId>org.cloudifysource</groupId>
-						<artifactId>tools</artifactId>
-						<version>${project.version}</version>
-					</docletArtifact>
-					<useStandardDocletOptions>false</useStandardDocletOptions>
-					<reportOutputDirectory>${basedir}/target/site</reportOutputDirectory>
-					<destDir>restdoclet</destDir>
-					<!-- additionalJOption>-version ${project.version}</additionalJOption -->
-					<!--additionalJOption>-velocityTemplateFilePath <path to template 
-						file> -docletDestdir <path to html file></additionalJOption -->
-				</configuration>
-		
+				<executions>
+					<execution>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>javadoc</goal>
+						</goals>
+						<configuration>
+							<doctitle>REST ${project.version} API</doctitle>
+							<windowtitle>REST ${project.version} API</windowtitle>
+							<name>RestDoclet</name>
+							<description>REST ${project.version} API documentation.</description>
+							<!--docletPath>${basedir}/src/main/java</docletPath -->
+							<doclet>org.cloudifysource.restDoclet.generation.RestDoclet</doclet>
+							<sourcepath>${basedir}/src/main/java/org/cloudifysource/rest/controllers;</sourcepath>
+							<docletArtifact>
+								<groupId>org.cloudifysource</groupId>
+								<artifactId>tools</artifactId>
+								<version>${project.version}</version>
+							</docletArtifact>
+							<useStandardDocletOptions>false</useStandardDocletOptions>
+							<reportOutputDirectory>${basedir}/target/site</reportOutputDirectory>
+							<destDir>restdoclet</destDir>
+							<!-- additionalJOption>-version ${project.version}</additionalJOption -->
+							<!--additionalJOption>-velocityTemplateFilePath <path to template 
+							file> -docletDestdir <path to html file></additionalJOption -->
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>
-				<version>2.1.1</version>
 				<configuration>
-					<!--webResources>
+					<webResources>
 						<resource>
 							<directory>${project.build.directory}/site</directory>
 							<targetPath>resources</targetPath>
 						</resource>
-					</webResources> -->
+					</webResources> 
 				</configuration>
 			</plugin>
-
 		</plugins>
 		<finalName>rest</finalName>
 	</build>
