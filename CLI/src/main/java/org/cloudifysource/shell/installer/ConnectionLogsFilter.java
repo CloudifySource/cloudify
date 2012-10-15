@@ -30,7 +30,7 @@ public class ConnectionLogsFilter {
 	// overriding logger filters is very tricky, since the Logger.getLogger() may return a different instance
 	// than the one used by XAP.
 	// therefore Logger.getLogger must be called during static initialization for it to work.
-	private static Logger[] loggers = new Logger[] {
+	private final static Logger[] loggers = new Logger[] {
 		Logger.getLogger("net.jini.discovery.LookupDiscovery"),
 		Logger.getLogger("net.jini.discovery.LookupLocatorDiscovery"),
 		Logger.getLogger("net.jini.lookup.ServiceDiscoveryManager"),
