@@ -23,10 +23,10 @@ import java.util.regex.Pattern;
 
 public class CLILocalhostBootstrapperListener implements LocalhostBootstrapperListener {
 	
-	private CLIEventsDisplayer displayer;
-	private String regex = "\\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|\\s\\[]*(]*+)";
-	private Pattern pattern = Pattern.compile(regex);
-	private List<String> localcloudInfoEvents = new ArrayList<String>();
+	private final CLIEventsDisplayer displayer;
+	private final static String REGEX = "\\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|\\s\\[]*(]*+)";
+	private final Pattern pattern = Pattern.compile(REGEX);
+	private final List<String> localcloudInfoEvents = new ArrayList<String>();
 
 	public CLILocalhostBootstrapperListener(){
 		this.displayer = new CLIEventsDisplayer();
