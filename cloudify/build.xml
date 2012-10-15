@@ -31,6 +31,7 @@
 	<loadproperties srcfile="${basedir}/build.properties" />
 	
 	<property environment="env."/>
+	<property name="s3.cloudify.publish.folder" value="${cloudify.version}-SNAPSHOT"/>
 	<property name="tmp.dir" value="${basedir}/tmp" />
 	<property name="xap.files.tmp.dir" value="${basedir}/xap.files.tmp.dir" />
 	<property name="xap.bigdata.dir" value="xap-bigdata" />
@@ -61,9 +62,9 @@
 	<property name="cloudify.maven.container" value="gigaspaces-maven-repository" />
 	<property name="cloudify.cdn.publish.url" value="http://repository.cloudifysource.org" />
 	<property name="cloudify.put.source" value="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
- 	<property name="cloudify.put.target" value="org/cloudifysource/${cloudify.version}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
+ 	<property name="cloudify.put.target" value="org/cloudifysource/${s3.cloudify.publish.folder}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
 	<property name="cloudify.gzip.put.source" value="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.tar.gz" />
-	<property name="cloudify.gzip.put.target" value="org/cloudifysource/${cloudify.version}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.tar.gz" />
+	<property name="cloudify.gzip.put.target" value="org/cloudifysource/${s3.cloudify.publish.folder}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.tar.gz" />
 	<property name="bigdata.put.source" value="${releases.dir}/build_${gs.build.number}/${xap.bigdata.dir}/1.5/${xap.zip.name}" />
 	<property name="bigdata.put.target" value="com/gigaspaces/xap/${s3.gs.publish.folder}/${xap.zip.name}" />
 	<property name="bigdata.gzip.put.source" value="${releases.dir}/build_${gs.build.number}/${xap.bigdata.dir}/1.5/${xap.installation.dir}-b${gs.build.number}.tar.gz" />
@@ -73,6 +74,7 @@
 	<property name="cloudify.base.publish.url" value="https://s3.amazonaws.com/${cloudify.base.container}" />
 	<property name="build.properties.file" value="${basedir}/build.properties"/>
 	<property name="cloudify.parent.pom.file" value="${basedir}/pom.xml"/>
+	<property name="s3.cloudify.publish.folder" value="${cloudify.version}-SNAPSHOT"/>
 	
 	<fileset id="all-poms-fileset" dir="${basedir}/../" includes="**/pom.xml" excludes="**/tmp/**" />
 	
@@ -427,8 +429,8 @@
 			<arg value="s3client:put" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
-			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/esc/${cloudify.version}" />
-			<arg value="-Dput.target=org/cloudifysource/esc/${cloudify.version}" />
+			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/esc/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.target=org/cloudifysource/esc/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.container=${cloudify.maven.container}"/>
 		</exec>
 		
@@ -436,8 +438,8 @@
 			<arg value="s3client:put" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
-			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/USM/${cloudify.version}" />
-			<arg value="-Dput.target=org/cloudifysource/USM/${cloudify.version}" />
+			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/USM/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.target=org/cloudifysource/USM/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.container=${cloudify.maven.container}"/>
 		</exec>
 		
@@ -445,8 +447,8 @@
 			<arg value="s3client:put" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
-			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/dsl/${cloudify.version}" />
-			<arg value="-Dput.target=org/cloudifysource/dsl/${cloudify.version}" />
+			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/dsl/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.target=org/cloudifysource/dsl/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.container=${cloudify.maven.container}"/>
 		</exec>
 		
@@ -454,8 +456,8 @@
 			<arg value="s3client:put" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
-			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/cloudify/${cloudify.version}" />
-			<arg value="-Dput.target=org/cloudifysource/cloudify/${cloudify.version}" />
+			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/cloudify/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.target=org/cloudifysource/cloudify/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.container=${cloudify.maven.container}"/>
 		</exec>
 	</target>
