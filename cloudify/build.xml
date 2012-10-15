@@ -185,12 +185,6 @@
 		<replaceregexp file="${cloudify.parent.pom.file}"
 			   	            match="&lt;${gs.version.tag}&gt;(.*)&lt;/${gs.version.tag}&gt;"
 			   	            replace="&lt;${gs.version.tag}&gt;${s3.gs.publish.folder}&lt;/${gs.version.tag}&gt;"/>
-		
-		<!-- Update project POMs. ${s3.cloudify.publish.folder} is defined in QuickBuild. -->
-		<echo message="Update project POMs to new version ${s3.cloudify.publish.folder}" />
-		<exec executable="${mvn.executable}" dir="${basedir}">
-			<arg line="versions:set -DnewVersion=${s3.cloudify.publish.folder} -DgenerateBackupPoms=false" />
-		</exec>
 
    </target>
 	
