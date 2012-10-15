@@ -260,15 +260,6 @@
 		<unzip src="${recipes.local.copy}/target/recipes.zip" dest="${tmp.dir}/${xap.installation.dir}/recipes" />
 	</target>
 
-	
-	<target name="add.cloudify.javadoc">
-		<!-- update rest.war with restdoclet -->
-		<war destfile="${tmp.dir}/${cloudify.installation.dir}/tools/rest/rest.war" update="true" >
-			<zipfileset file="${restful.local.copy}/target/site/restdoclet/restdoclet.html" prefix="resources/restdoclet"/>			
-			<zipfileset file="${restful.local.copy}/src/main/webapp/resources/restdoclet/restdoclet.css" prefix="resources/restdoclet"/>
-		</war>
-	</target>
-	
 	<target name="replace.xap.content.with.cloudify.related">
 		<copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${gigaspaces.related.folder}/START_HERE.htm"/>
 			    	
@@ -298,7 +289,6 @@
         <ant target="update.lus.groups"/>
         <add.cloudify.modules/>
 		<ant target="fetch.recipes.cloudify" />
-    	<ant target="add.cloudify.javadoc"/>
     	<ant target="replace.xap.content.with.cloudify.related"/>
     	<ant target="replace.cloudify.notice"/>
     	<dos2unix dir="${tmp.dir}/${cloudify.installation.dir}" />
