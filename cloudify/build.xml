@@ -74,6 +74,7 @@
 	<property name="cloudify.base.publish.url" value="https://s3.amazonaws.com/${cloudify.base.container}" />
 	<property name="build.properties.file" value="${basedir}/build.properties"/>
 	<property name="cloudify.parent.pom.file" value="${basedir}/pom.xml"/>
+	<property name="streaming-bigdata.pom.file" value="${recipes.local.copy}/apps/streaming-bigdata/pom.xml"/>
 	<property name="s3.cloudify.publish.folder" value="${cloudify.version}-SNAPSHOT"/>
 	
 	<fileset id="all-poms-fileset" dir="${basedir}/../" includes="**/pom.xml" excludes="**/tmp/**" />
@@ -88,23 +89,45 @@
 	-->
 	
 	<target name="update_platform_version" depends="replace.build.related.settings,replace.cloudify.build.number" unless="gs.internal.systems.not.available">
-			<pathconvert property="all-poms-list" refid="all-poms-fileset" pathsep=" "/>
-	       	<exec executable="git" dir="${basedir}">
-				<arg value="checkout" />
-				<arg value="${branchname}" />			
-			</exec>
-			<exec executable="git" dir="${basedir}">
-				<arg line="add **/${platform.verion.file.name} ${build.properties.file} ${cloudify.parent.pom.file} ${all-poms-list}" />
-			</exec>
-			<exec executable="git" dir="${basedir}">
-				<arg value="commit" />
-				<arg value="-m" />
-				<arg value="Build version advanced to ${cloudify.build.number}" />			
-			</exec>
-			<exec executable="git" dir="${basedir}">
-				<arg value="push" />
-			</exec>
-	   </target>
+		<pathconvert property="all-poms-list" refid="all-poms-fileset" pathsep=" "/>
+       	<exec executable="git" dir="${basedir}">
+			<arg value="checkout" />
+			<arg value="${branchname}" />			
+		</exec>
+		<exec executable="git" dir="${basedir}">
+			<arg line="pull" />
+		</exec>	
+		<exec executable="git" dir="${basedir}">
+			<arg line="add **/${platform.verion.file.name} ${build.properties.file} ${cloudify.parent.pom.file} ${all-poms-list}" />
+		</exec>
+		<exec executable="git" dir="${basedir}">
+			<arg value="commit" />
+			<arg value="-m" />
+			<arg value="Build version advanced to ${cloudify.build.number}" />			
+		</exec>
+		<exec executable="git" dir="${basedir}">
+			<arg value="push" />
+		</exec>
+	
+		<exec executable="git" dir="${recipes.local.copy}">
+			<arg value="checkout" />
+			<arg value="${branchname}" />			
+		</exec>
+		<exec executable="git" dir="${recipes.local.copy}">
+			<arg line="pull" />
+		</exec>
+		<exec executable="git" dir="${recipes.local.copy}">
+			<arg line="add ${streaming-bigdata.pom.file}" />
+		</exec>
+		<exec executable="git" dir="${recipes.local.copy}">
+			<arg value="commit" />
+			<arg value="-m" />
+			<arg value="Build version advanced to ${cloudify.build.number}" />			
+		</exec>
+		<exec executable="git" dir="${recipes.local.copy}">
+			<arg value="push" />
+		</exec>
+   </target>
 	
 	<target name="usage">
 	        <echo message=""/>
@@ -185,6 +208,10 @@
 		<replaceregexp file="${cloudify.parent.pom.file}"
 			   	            match="&lt;${gs.version.tag}&gt;(.*)&lt;/${gs.version.tag}&gt;"
 			   	            replace="&lt;${gs.version.tag}&gt;${s3.gs.publish.folder}&lt;/${gs.version.tag}&gt;"/>
+		
+		<replaceregexp file="${streaming-bigdata.pom.file}"
+					   	            match="&lt;${gs.version.tag}&gt;(.*)&lt;/${gs.version.tag}&gt;"
+					   	            replace="&lt;${gs.version.tag}&gt;${s3.gs.publish.folder}&lt;/${gs.version.tag}&gt;"/>
 
    </target>
 	
