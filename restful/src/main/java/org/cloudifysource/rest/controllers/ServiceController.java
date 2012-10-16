@@ -1639,9 +1639,11 @@ public class ServiceController implements ServiceDetailsProvider{
 			final CloudifyMachineProvisioningConfig config =
 					new CloudifyMachineProvisioningConfig(cloud, template, templateName, this.managementTemplate.getRemoteDirectory());
 
+			/* we can't assign the agent a zone which is the service name
+			 * since we now want to allow for multiple services to be installed under the same agent. 
 			final String[] zones = new String[] { serviceName }; //TODO: [itaif] consider using agentZones
-
 			config.setGridServiceAgentZones(zones);
+			*/
 
 			if (serviceCloudConfigurationContents != null) {
 
