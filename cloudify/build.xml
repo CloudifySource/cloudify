@@ -255,12 +255,19 @@
 	</target>
 
 	<target name="replace.xap.content.with.cloudify.related">
-		<copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${gigaspaces.related.folder}/START_HERE.htm"/>
+		<copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${gigaspaces.related.folder}/START_HERE.htm" overwrite="true"/>
 			    	
-    	<!-- replace dynamic_props.js in gs-webui war -->
-    	<war warfile="${tmp.dir}/${cloudify.installation.dir}/tools/gs-webui/${gs.webui.war}" update="true">
-            <fileset dir="${gs-webui.related.folder}/war"/>
+    	<!-- replace dynamic_props.js in gs-webui war. WAS task doesn't update exisitng warfile 
+    		properly if the files that are intended to be added to warfile already appear in it. This is the reason for 
+    		temp file creation. -->
+    	<war warfile="${tmp.dir}/${cloudify.installation.dir}/tools/gs-webui/tmp.${gs.webui.war}">
+    		 <zipfileset src="${tmp.dir}/${cloudify.installation.dir}/tools/gs-webui/${gs.webui.war}"
+    		                        includes="**/*" excludes="dynamic_props.js" filemode="775"/>
+            <zipfileset file="${gs-webui.related.folder}/war" />
         </war>
+		
+		<delete file="${tmp.dir}/${cloudify.installation.dir}/tools/gs-webui/${gs.webui.war}"/>
+		<move file="${tmp.dir}/${cloudify.installation.dir}/tools/gs-webui/tmp.${gs.webui.war}" tofile="${tmp.dir}/${cloudify.installation.dir}/tools/gs-webui/${gs.webui.war}"/> 
 	</target>
 
 	<macrodef name="unzip.xap">
