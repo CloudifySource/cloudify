@@ -607,21 +607,19 @@
 	
 	<target name="commit.service.configuration">
 			
-		<exec executable="git" dir="${basedir}/..">
+		<exec executable="git" dir="${esc.local.copy}">
 			<arg value="checkout" />
 			<arg value="${branchname}" />			
 		</exec>
-		<exec executable="git" dir="${basedir}/..">
-			<arg value="add" />
-			<arg value="*.groovy" />
-			<arg value="*.cscfg" />			
+		<exec executable="git" dir="${esc.local.copy}">
+			<arg line="add ." />
 		</exec>
-		<exec executable="git" dir="${basedir}/..">
+		<exec executable="git" dir="${esc.local.copy}">
 			<arg value="commit" />
 			<arg value="-m" />
 			<arg value="Update cloudify url" />			
 		</exec>
-		<exec executable="git" dir="${basedir}/..">
+		<exec executable="git" dir="${esc.local.copy}">
 			<arg value="push" />
 		</exec>
 	</target>
