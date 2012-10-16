@@ -612,6 +612,9 @@
 			<arg value="${branchname}" />			
 		</exec>
 		<exec executable="git" dir="${esc.local.copy}">
+			<arg line="pull" />
+		</exec>
+		<exec executable="git" dir="${esc.local.copy}">
 			<arg line="add ." />
 		</exec>
 		<exec executable="git" dir="${esc.local.copy}">
