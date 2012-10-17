@@ -137,8 +137,10 @@ public class ElasticScaleConfigFactory {
 			.maxCapacityPerZone(maxCapacityPerZone)
 			.statisticsPollingInterval(service.getSamplingPeriodInSeconds(), TimeUnit.SECONDS)
 			.cooldownAfterScaleOut(service.getScaleOutCooldownInSeconds(),TimeUnit.SECONDS)
-			.cooldownAfterScaleIn(service.getScaleInCooldownInSeconds(),TimeUnit.SECONDS)
-			.atMostOneContainerPerMachine();
+			.cooldownAfterScaleIn(service.getScaleInCooldownInSeconds(),TimeUnit.SECONDS);
+		if (!service.isShared()) {
+			scaleConfigurer.atMostOneContainerPerMachine();
+		}
 		
 		if (locationAware) {
 			scaleConfigurer.enableGridServiceAgentZonesAware();
