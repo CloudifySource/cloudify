@@ -74,6 +74,10 @@ public class Service {
 	private int minAllowedInstancesPerLocation = 1;
 
 	private int maxAllowedInstancesPerLocation = 1;
+	
+	private int instanceMemoryMB = 128;
+	
+	private double instanceCpuCores = 0; // no cpu requirements 
 
 	private long maxJarSize = DEFAULT_MAX_JAR_SIZE;
 
@@ -98,7 +102,9 @@ public class Service {
 	private LinkedList<String> extendedServicesPaths = new LinkedList<String>();
 
 	private boolean elastic = false;
-
+	
+	private boolean shared = false;
+	
 	private String url = null;
 
 	private List<ScalingRuleDetails> scalingRules;
@@ -132,6 +138,14 @@ public class Service {
 	public void setElastic(final boolean elastic) {
 		this.elastic = elastic;
 	}
+	
+	public boolean isShared() {
+		return shared;
+	}
+
+	public void setShared(boolean shared) {
+		this.shared = shared;
+	}
 
 	public String getName() {
 		return name;
@@ -164,6 +178,22 @@ public class Service {
 
 	public ServiceNetwork getNetwork() {
 		return this.network;
+	}
+	
+	public int getInstanceMemoryMB() {
+		return instanceMemoryMB;
+	}
+
+	public void setInstanceMemoryMB(int instanceMemoryMB) {
+		this.instanceMemoryMB = instanceMemoryMB;
+	}
+
+	public double getInstanceCpuCores() {
+		return instanceCpuCores;
+	}
+
+	public void setInstanceCpuCores(int instanceCpuCores) {
+		this.instanceCpuCores = instanceCpuCores;
 	}
 
 	public void setNetwork(final ServiceNetwork network) {
