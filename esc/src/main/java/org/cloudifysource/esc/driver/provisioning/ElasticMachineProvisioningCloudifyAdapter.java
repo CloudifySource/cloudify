@@ -34,11 +34,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
-import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
@@ -87,6 +87,14 @@ import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticMachineProvisi
  */
 public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachineProvisioning, Bean {
 
+	private static final String COLON_CHAR = ":";
+	
+	private static final String REMOTE_ADMIN_SHARE_CHAR = "$";
+	
+	private static final String BACK_SLASH = "\\";
+	
+	private static final String FORWARD_SLASH = "/";
+	
 	private static final int MILLISECONDS_IN_SECOND = 1000;
 
 	private static final int DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE = 5;
@@ -548,7 +556,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			logger.severe("Missing cloud configuration property. Properties are: " + this.properties);
 			throw new IllegalArgumentException("Cloud configuration directory was not set!");
 		}
-
+		
 		try {
 			this.cloud = ServiceReader.readCloudFromDirectory(cloudConfigDirectory);
 			this.cloudTemplateName = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME);
@@ -566,19 +574,14 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			// This code runs on the ESM in the remote machine,
 			// so set the local directory to the value of the remote directory
 			logger.info("Remote Directory is: " + cloudTemplate.getRemoteDirectory());
-			if (ServiceUtils.isWindows()) {
+			//if running a windows server.
+			if (cloudTemplate.getFileTransfer().equals(FileTransferModes.CIFS)) {
 				logger.info("Windows machine - modifying local directory location");
-				String localDirectoryName = cloudTemplate.getRemoteDirectory();
-				localDirectoryName = localDirectoryName.replace("$", "");
-				if (localDirectoryName.startsWith("/")) {
-					localDirectoryName = localDirectoryName.substring(1);
-				}
-				if (localDirectoryName.charAt(1) == '/') {
-					localDirectoryName = localDirectoryName.substring(0, 1) + ":" + localDirectoryName.substring(1);
-				}
-				logger.info("Modified local dir name is: " + localDirectoryName);
+				String remoteDirName = cloudTemplate.getRemoteDirectory();
+				String windowsLocalDirPath = getWindowsLocalDirPath(remoteDirName, cloudTemplate.getLocalDirectory());
+				logger.info("Modified local dir name is: " + windowsLocalDirPath);
 
-				cloudTemplate.setLocalDirectory(localDirectoryName);
+				cloudTemplate.setLocalDirectory(windowsLocalDirPath);
 			} else {
 				cloudTemplate.setLocalDirectory(cloudTemplate.getRemoteDirectory());
 			}
@@ -622,6 +625,25 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					+ ": " + e.getMessage(), e);
 		}
 
+	}
+	
+	private String getWindowsLocalDirPath(String remoteDirectoryPath, String localDirName) {
+		String homeDirectoryName = getWindowsRemoteDirPath(remoteDirectoryPath);
+		File localDirectory = new File(homeDirectoryName, localDirName);
+		return localDirectory.getAbsolutePath();
+	}
+
+	private String getWindowsRemoteDirPath(String remoteDirectoryPath) {
+		String homeDirectoryName = remoteDirectoryPath;
+		homeDirectoryName = homeDirectoryName.replace(REMOTE_ADMIN_SHARE_CHAR, "");
+		if (homeDirectoryName.startsWith(FORWARD_SLASH)) {
+			homeDirectoryName = homeDirectoryName.substring(1);
+		}
+		if (homeDirectoryName.charAt(1) == FORWARD_SLASH.charAt(0)) {
+			homeDirectoryName = homeDirectoryName.substring(0, 1) + ":" + homeDirectoryName.substring(1);
+		}
+		homeDirectoryName = homeDirectoryName.replace(FORWARD_SLASH, BACK_SLASH);
+		return homeDirectoryName;
 	}
 
 	private void handleServiceCloudConfiguration()

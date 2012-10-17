@@ -20,9 +20,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.openspaces.admin.pu.elastic.ElasticMachineProvisioningConfig;
 import org.openspaces.admin.zone.config.AtLeastOneZoneConfig;
@@ -43,6 +45,10 @@ import org.openspaces.grid.gsm.capacity.MemoryCapacityRequirement;
  */
 public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisioningConfig {
 
+	private static final String COLON_CHAR = ":";
+	private static final String REMOTE_ADMIN_SHARE_CHAR = "$";
+	private static final String BACK_SLASH = "\\";
+	private static final String FORWARD_SLASH = "/";
 	private static final double NUMBER_OF_CPU_CORES_PER_MACHINE_DEFAULT = 4;
 	private static final String NUMBER_OF_CPU_CORES_PER_MACHINE_KEY = "number-of-cpu-cores-per-machine";
 
@@ -86,11 +92,30 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 		setMinimumNumberOfCpuCoresPerMachine(template.getNumberOfCores());
 
 		setReservedMemoryCapacityPerMachineInMB(cloud.getProvider().getReservedMemoryCapacityPerMachineInMB());
-
-		setCloudConfigurationDirectory(managementTemplateRemoteDirectory);
-		logger.info("Setting cloud configuration directory to: " + template.getRemoteDirectory());
+		
+		String remoteDir = managementTemplateRemoteDirectory;
+		logger.log(Level.FINE, "Original remote directory is: " + remoteDir);
+		if (template.getFileTransfer().equals(FileTransferModes.CIFS)) {
+			logger.log(Level.FINE, "Running on windows, modifying remote directory config. Original was: " + remoteDir);
+			remoteDir = getWindowsRemoteDirPath(managementTemplateRemoteDirectory);
+		}
+		logger.log(Level.INFO, "Setting cloud configuration directory to: " + remoteDir);
+		setCloudConfigurationDirectory(remoteDir);
 		setCloudTemplateName(cloudTemplateName);
 
+	}
+	
+	private String getWindowsRemoteDirPath(String remoteDirectory) {
+		String homeDirectoryName = remoteDirectory;
+		homeDirectoryName = homeDirectoryName.replace(REMOTE_ADMIN_SHARE_CHAR, "");
+		if (homeDirectoryName.startsWith(FORWARD_SLASH)) {
+			homeDirectoryName = homeDirectoryName.substring(1);
+		}
+		if (homeDirectoryName.charAt(1) == FORWARD_SLASH.charAt(0)) {
+			homeDirectoryName = homeDirectoryName.substring(0, 1) + COLON_CHAR + homeDirectoryName.substring(1);
+		}
+		homeDirectoryName = homeDirectoryName.replace(FORWARD_SLASH, BACK_SLASH);
+		return homeDirectoryName;
 	}
 
 	private static final java.util.logging.Logger logger =
