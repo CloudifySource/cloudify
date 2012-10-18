@@ -51,8 +51,7 @@ public class StartAgent extends AbstractGSCommand {
 
 	private static final int DEFAULT_TIMEOUT_MINUTES = 5;
 
-	@Option(required = true, name = "-zone", description = "The agent zone that specifies the name of the service that"
-			+ " can run on the machine.")
+	@Option(required = false, name = "-zone", description = "The grid service agent zone")
 	private String zone;
 
 	@Option(required = false, name = "-lookup-groups", description = "A unique name that is used to group together"
