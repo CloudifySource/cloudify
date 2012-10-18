@@ -977,10 +977,6 @@ public class LocalhostGridAgentBootstrapper {
 			InterruptedException, TimeoutException {
 		
 		setIsLocalCloud(false);
-		
-		if (gsaZones == null || gsaZones.isEmpty()) {
-			throw new CLIException("Agent must be started with a zone");
-		}
 
 		setDefaultNicAddress();
 
