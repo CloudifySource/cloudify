@@ -485,8 +485,11 @@
 		<add.cloudify.modules installation.dir="${tmp.dir}/${xap.installation.dir}"/>
 		<ant target="fetch.recipes.bigdata" />
 		<delete dir="${tmp.dir}/${xap.installation.dir}/recipes/services" excludes="mongodb/**, cassandra/**" includeemptydirs="true"/>	
-		<delete dir="${tmp.dir}/${xap.installation.dir}/recipes/apps" excludes="streaming-bigdata/**" includeemptydirs="true"/>
+		<delete dir="${tmp.dir}/${xap.installation.dir}/recipes/apps" includes="**/*" includeemptydirs="true"/>
 		<delete dir="${tmp.dir}/${xap.installation.dir}/bin" includes="cloudify*"/>
+		<copy todir="${tmp.dir}/${xap.installation.dir}/recipes/apps">
+			<fileset dir="${recipes.local.copy}/apps" includes="streaming-bigdata/**"/>
+		</copy>
 		<dos2unix dir="${tmp.dir}/${xap.installation.dir}" />
 		<!-- conditional task (with property: publish.cloudify.build) -->
     	<ant target="prepare.bigdata.for.publish" />
