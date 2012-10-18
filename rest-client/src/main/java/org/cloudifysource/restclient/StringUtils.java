@@ -66,7 +66,7 @@ public final class StringUtils {
 
     public static Integer safeParseInt(String str) {
         try {
-            return Integer.parseInt(str);
+            return Integer.valueOf(str);
         } catch (NumberFormatException e) {
             return null;
         }
