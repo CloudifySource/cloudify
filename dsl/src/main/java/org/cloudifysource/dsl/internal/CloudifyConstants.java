@@ -141,6 +141,7 @@ public final class CloudifyConstants {
 	public static final String CLOUDIFY_AGENT_ENV_INIT_COMMAND= "CLOUDIFY_AGENT_ENV_INIT_COMMAND";
 	public static final String CLOUDIFY_CLOUD_IMAGE_ID = "CLOUDIFY_CLOUD_IMAGE_ID";
 	public static final String CLOUDIFY_CLOUD_HARDWARE_ID = "CLOUDIFY_CLOUD_HARDWARE_ID";
+	public static final String CLOUDIFY_CLOUD_TEMPLATE_NAME = "CLOUDIFY_CLOUD_TEMPLATE_NAME";
 	public static final String CLOUDIFY_AGENT_ENV_JAVA_URL = "CLOUDIFY_AGENT_ENV_JAVA_URL";
 	public static final String CLOUDIFY_ORIGINAL_JAVA_HOME = "CLOUDIFY_ORIGINAL_JAVA_HOME";
 	
