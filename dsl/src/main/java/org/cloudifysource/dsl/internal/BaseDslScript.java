@@ -165,36 +165,21 @@ public abstract class BaseDslScript extends Script {
 		if (this.usedProperties.contains(name)) {
 			if (!isDuplicatePropertyAllowed(value)) {
 				throw new IllegalArgumentException("Property duplication was found: Property "
-						+ name + " is defined more than once.");
+						+ name + " is define" +
+								"d more than once.");
 			}
 		}
 
 		this.usedProperties.add(name);
-
+		Object convertedValue = null;
 		try {
-			PropertyDescriptor descriptor = PropertyUtils.getPropertyDescriptor(object, name);
-			Class<?> propertyType = descriptor.getPropertyType();
-			if (propertyType.equals(ExecutableDSLEntry.class)) {
-				final File workDirectory = getDSLFile().getParentFile();
-
-				final ExecutableDSLEntry executableEntry =
-						ExecutableDSLEntryFactory.createEntry(value, name, workDirectory);
-				BeanUtils.setProperty(object, name, executableEntry);
-			} else if (propertyType.equals(ExecutableEntriesMap.class)) {
-				final File workDirectory = getDSLFile().getParentFile();
-				final ExecutableEntriesMap entriesMap =
-						ExecutableDSLEntryFactory.createEntriesMap(value, name, workDirectory);
-				BeanUtils.setProperty(object, name, entriesMap);
-
-			} else {
-
+			convertedValue = convertValueToExecutableDSLEntryIfNeeded(getDSLFile().getParentFile(), object, name, value);
 				if (logger.isLoggable(Level.FINEST)) {
-					logger.finest("BeanUtils.setProperty(object=" + object + ",name=" + name + ",value=" + value
-							+ ",value.getClass()=" + value.getClass());
+					logger.finest("BeanUtils.setProperty(object=" + object + ",name=" + name + ",value=" + convertedValue
+							+ ",value.getClass()=" + convertedValue.getClass());
 				}
 				// Then set it
-				BeanUtils.setProperty(object, name, value);
-			}
+				BeanUtils.setProperty(object, name, convertedValue);
 		} catch (final DSLValidationException e) {
 			throw new DSLValidationRuntimeException(e);
 		} catch (final Exception e) {
@@ -206,6 +191,22 @@ public abstract class BaseDslScript extends Script {
 
 	}
 
+	public static Object convertValueToExecutableDSLEntryIfNeeded(File workDirectory, Object object
+			, String name, Object value) 
+			throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, DSLValidationException {
+		
+		PropertyDescriptor descriptor = PropertyUtils.getPropertyDescriptor(object, name);
+		Class<?> propertyType = descriptor.getPropertyType();
+		if (propertyType.equals(ExecutableDSLEntry.class)) {
+			return ExecutableDSLEntryFactory.createEntry(value, name, workDirectory);
+		} else if (propertyType.equals(ExecutableEntriesMap.class)) {
+			return ExecutableDSLEntryFactory.createEntriesMap(value, name, workDirectory);
+
+		} else {
+			return value;
+		}
+	}
+	
 	private File getDSLFile() {
 		return new File((String) this.getBinding().getVariable(DSLReader.DSL_FILE_PATH_PROPERTY_NAME));
 	}
@@ -237,7 +238,7 @@ public abstract class BaseDslScript extends Script {
 					this.rootObject = retval;
 				}
 				swapActiveObject(closure, retval);
-				if(isValidateObjects()) {
+				if (isValidateObjects()) {
 					try {
 						validateObject(retval);
 					} catch (final DSLValidationException e) {
@@ -365,7 +366,7 @@ public abstract class BaseDslScript extends Script {
 		}
 	}
 
-	private boolean handleSpecialProperty(final String name, Object arg)
+	private boolean handleSpecialProperty(final String name, final Object arg)
 			throws DSLException {
 
 		if (name.equals(EXTEND_PROPERTY_NAME)) {

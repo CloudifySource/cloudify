@@ -17,6 +17,8 @@ package org.cloudifysource.shell.commands;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -29,7 +31,8 @@ import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.Application;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.internal.DSLReader;
+import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
 import org.cloudifysource.shell.Constants;
@@ -79,6 +82,10 @@ public class InstallApplication extends AdminAwareCommand {
 					+ "for this application")
 	private File cloudConfiguration;
 
+	@Option(required = false, name = "-overrides",
+			description = "File containing proeprties to be used to overrides current application's proeprties or fields.")
+	private File overrides;
+
 	private static final String TIMEOUT_ERROR_MESSAGE = "Application installation timed out."
 			+ " Configure the timeout using the -timeout flag.";
 
@@ -93,7 +100,14 @@ public class InstallApplication extends AdminAwareCommand {
 		}
 
 		logger.info("Validating file " + applicationFile.getName());
-		final Application application = ServiceReader.getApplicationFromFile(applicationFile).getApplication();
+		
+		final DSLReader dslReader = new DSLReader();
+		File dslFile = DSLReader.findDefaultDSLFile(DSLReader.APPLICATION_DSL_FILE_NAME_SUFFIX, applicationFile);
+		dslReader.setDslFile(dslFile);
+		dslReader.setCreateServiceContext(false);
+		dslReader.addProperty(DSLUtils.APPLICATION_DIR, dslFile.getParentFile().getAbsolutePath());
+		dslReader.setOverridesFile(overrides);
+		final Application application = dslReader.readDslEntity(Application.class);		
 
 		if (StringUtils.isBlank(applicationName)) {
 			applicationName = application.getName();
@@ -112,13 +126,14 @@ public class InstallApplication extends AdminAwareCommand {
 				throw new CLIStatusException("application_file_format_mismatch", applicationFile.getPath());
 			}
 		} else { // pack an application folder
-			if (cloudConfigurationZipFile == null) {
-				zipFile = Packager.packApplication(application, applicationFile);
-			} else {
-				zipFile =
-						Packager.packApplication(application, applicationFile,
-								new File[] { cloudConfigurationZipFile });
+			List<File> additionalServiceFiles  = new LinkedList<File>();
+			if (cloudConfigurationZipFile != null) {
+				additionalServiceFiles.add(cloudConfigurationZipFile);
+			} 
+			if (overrides != null) {
+				additionalServiceFiles.add(overrides);
 			}
+			zipFile = Packager.packApplication(application, applicationFile, additionalServiceFiles);
 		}
 
 		// toString of string list (i.e. [service1, service2])
@@ -138,10 +153,10 @@ public class InstallApplication extends AdminAwareCommand {
 			throw new IllegalStateException("Cannot parse service order response: " + serviceOrder);
 		}
 		printApplicationInfo(application);
-		
+
 		session.put(Constants.ACTIVE_APP, applicationName);
 		GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
-		
+
 		final String pollingID = result.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
 		final RestLifecycleEventsLatch lifecycleEventsPollingLatch =
 				this.adminFacade.getLifecycleEventsPollingLatch(pollingID, TIMEOUT_ERROR_MESSAGE);

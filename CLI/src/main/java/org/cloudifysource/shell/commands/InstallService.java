@@ -17,6 +17,8 @@ package org.cloudifysource.shell.commands;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -27,7 +29,6 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
@@ -86,6 +87,10 @@ public class InstallService extends AdminAwareCommand {
 	private static final String TIMEOUT_ERROR_MESSAGE = "Service installation timed out."
 			+ " Configure the timeout using the -timeout flag.";
 
+	@Option(required = false, name = "-overrides",
+			description = "File containing proeprties to be used to overrides current service's proeprties or fields.")
+	private File overrides;
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -110,16 +115,20 @@ public class InstallService extends AdminAwareCommand {
 			} else if (recipe.isDirectory()) {
 				// Assume that a folder will contain a DSL file?
 
+				List<File> additionFiles = new LinkedList<File>();
+				if(cloudConfigurationZipFile != null)
+					additionFiles.add(cloudConfigurationZipFile);
+				if(overrides != null)
+					additionFiles.add(overrides);
 				if (serviceFileName != null) {
 					final File fullPathToRecipe = new File(recipe.getAbsolutePath() + "/" + serviceFileName);
 					if (!fullPathToRecipe.exists()) {
 						throw new CLIStatusException("service_file_doesnt_exist", fullPathToRecipe.getPath());
 					}
-					packedFile = getPackedFile(cloudConfigurationZipFile,
-							fullPathToRecipe);
+					packedFile = Packager.pack(fullPathToRecipe, additionFiles);
 					service = ServiceReader.readService(fullPathToRecipe);
 				} else {
-					packedFile = getPackedFile(cloudConfigurationZipFile, recipe);
+					packedFile = Packager.pack(recipe, additionFiles);
 					service = ServiceReader.readService(recipe);
 				}
 				packedFile.deleteOnExit();
@@ -205,18 +214,6 @@ public class InstallService extends AdminAwareCommand {
 		// TODO - server may have failed! We should check the service state and decide accordingly
 		// which message to display.
 		return getFormattedMessage("service_install_ended", Color.GREEN, serviceName);
-	}
-
-	private File getPackedFile(final File cloudConfigurationZipFile,
-			final File fullPathToRecipe) throws IOException,
-			PackagingException, DSLException {
-		File packedFile;
-		if (cloudConfigurationZipFile != null) {
-			packedFile = Packager.pack(fullPathToRecipe, new File[] { cloudConfigurationZipFile });
-		} else {
-			packedFile = Packager.pack(fullPathToRecipe, new File[0]);
-		}
-		return packedFile;
 	}
 
 	private boolean promptWouldYouLikeToContinueQuestion()

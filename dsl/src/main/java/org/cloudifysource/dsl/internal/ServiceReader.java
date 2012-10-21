@@ -141,8 +141,7 @@ public final class ServiceReader {
 	}
 
 	public static DSLApplicationCompilatioResult getApplicationFromFile(final File inputFile)
-			throws IOException,
-			DSLException {
+			throws IOException, DSLException {
 
 		File actualApplicationDslFile = inputFile;
 
@@ -241,8 +240,7 @@ public final class ServiceReader {
 	}
 
 	public static org.cloudifysource.dsl.cloud.Cloud readCloud(final File dslFile)
-			throws IOException,
-			DSLException {
+			throws IOException, DSLException {
 
 		if (!dslFile.exists()) {
 			throw new FileNotFoundException(dslFile.getAbsolutePath());

@@ -76,9 +76,8 @@ public final class Packager {
 	 * @throws PackagingException .
 	 * @throws DSLException .
 	 */
-	public static File pack(final File recipeDirOrFile,
-			final File[] additionalServiceFiles) throws IOException,
-			PackagingException, DSLException {
+	public static File pack(final File recipeDirOrFile, final List<File> additionalServiceFiles)
+			throws IOException, PackagingException, DSLException {
 		// Locate recipe file
 		final File recipeFile = recipeDirOrFile.isDirectory() ? DSLReader
 				.findDefaultDSLFile(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX,
@@ -100,8 +99,7 @@ public final class Packager {
 	 * @throws PackagingException .
 	 * @throws DSLException .
 	 */
-	public static File pack(final File recipeDirOrFile,
-			final String destFileName, final File[] additionalServiceFiles)
+	public static File pack(final File recipeDirOrFile, final String destFileName, final List<File> additionalServiceFiles)
 			throws IOException, PackagingException, DSLException {
 		final File packed = pack(recipeDirOrFile, additionalServiceFiles);
 		final File destFile = new File(packed.getParent(), destFileName
@@ -133,9 +131,8 @@ public final class Packager {
 	 * @throws IOException .
 	 * @throws PackagingException .
 	 */
-	public static File pack(final File recipeFile, final Service service,
-			final File[] additionalServiceFiles) throws IOException,
-			PackagingException {
+	public static File pack(final File recipeFile, final Service service, final List<File> additionalServiceFiles)
+			throws IOException, PackagingException {
 		if (!recipeFile.isFile()) {
 			throw new IllegalArgumentException(recipeFile + " is not a file");
 		}
@@ -196,9 +193,9 @@ public final class Packager {
 	 * @throws IOException
 	 * @throws PackagingException
 	 */
-	private static File buildPuFolder(final Service service,
-			final File recipeFile, final File[] additionalServiceFiles)
-			throws IOException, PackagingException {
+	private static File
+			buildPuFolder(final Service service, final File recipeFile, final List<File> additionalServiceFiles)
+					throws IOException, PackagingException {
 		final File srcFolder = recipeFile.getParentFile();
 		final File destPuFolder = File.createTempFile("gs_usm_", "");
 		FileUtils.forceDelete(destPuFolder);
@@ -316,9 +313,9 @@ public final class Packager {
 	 * @throws IOException .
 	 * @throws PackagingException .
 	 */
-	public static File packApplication(final Application application,
-			final File applicationDir) throws IOException, PackagingException {
-		return packApplication(application, applicationDir, new File[0]);
+	public static File packApplication(final Application application, final File applicationDir)
+			throws IOException, PackagingException {
+		return packApplication(application, applicationDir, new LinkedList<File>());
 	}
 
 	/***************
@@ -335,8 +332,8 @@ public final class Packager {
 	 * @throws IOException .
 	 * @throws PackagingException .
 	 */
-	public static File packApplication(final Application application,
-			final File applicationDir, final File[] additionalServiceFiles)
+	public static File packApplication(final Application application, final File applicationDir,
+			final List<File> additionalServiceFiles)
 			throws IOException, PackagingException {
 
 		boolean hasExtendedServices = false;
@@ -366,9 +363,8 @@ public final class Packager {
 			applicationFolderToPack = destApplicationFolder;
 		}
 
-		if (additionalServiceFiles != null && additionalServiceFiles.length > 0) {
-			// if a copy directory was already created, use the existing one,
-			// otherwise
+		if ((additionalServiceFiles != null) && (!additionalServiceFiles.isEmpty())) {
+			// if a copy directory was already created, use the existing one, otherwise
 			// create a new one.
 			if (applicationFolderToPack == applicationDir) {
 				applicationFolderToPack = createCopyDirectory(applicationFolderToPack);
@@ -413,7 +409,7 @@ public final class Packager {
 
 	private static void copyExtendedServiceFiles(final Service service,
 			final File recipeFile, final File extFolder)
-			throws FileNotFoundException, PackagingException, IOException {
+			throws PackagingException, IOException {
 		final LinkedList<String> extendedServicesPaths = service
 				.getExtendedServicesPaths();
 

@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -123,8 +124,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 			try {
 				// Pack the folder and name it absolutePuName
 
-				final File packedFile = Packager.pack(serviceDirectory,
-						absolutePUName, new File[0]);
+				File packedFile = Packager.pack(serviceDirectory, absolutePUName, new LinkedList<File>());
 				result.getApplicationFile().delete();
 				packedFile.deleteOnExit();
 				// Deployment will be done using the service's absolute PU name.
