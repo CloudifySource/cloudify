@@ -182,6 +182,6 @@
 		</plugins>
 	</build>
 	<properties>
-		<jcloudsVersion>1.4.0</jcloudsVersion>
+		<jcloudsVersion>1.5.0</jcloudsVersion>
 	</properties>
 </project>

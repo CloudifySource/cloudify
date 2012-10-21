@@ -45,9 +45,9 @@
 							<tr>
 								<th>Type</th>
 								<th>Name</th>
-								<th>Decription</th>
+								<th>Description</th>
 								<th>Mandatory</th>
-								<th>Location</th>
+								<th>Parameter type</th>
 								<th>Default value</th>
 							</tr>
 							#foreach($docParameter in $params)
