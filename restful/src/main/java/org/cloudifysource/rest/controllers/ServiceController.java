@@ -352,8 +352,8 @@ public class ServiceController implements ServiceDetailsProvider{
 					final byte[] dumpBytes = generateMachineDumpData(fileSizeLimit, machine, actualProcessors);
 					totalSize += dumpBytes.length;
 					if (totalSize > fileSizeLimit) {
-						throw new RestServiceException(ResponseConstants.DUMP_FILE_TOO_LARGE, Long.toString(dumpBytes.length),
-								Long.toString(totalSize));
+						throw new RestServiceException(ResponseConstants.DUMP_FILE_TOO_LARGE, 
+								Long.toString(dumpBytes.length), Long.toString(totalSize));
 					}
 					map.put(machine.getHostAddress(), dumpBytes);
 
@@ -1082,7 +1082,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @throws IOException Reporting failure to edit the response object
 	 */
 	@ExceptionHandler(RestErrorException.class)
-	@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR, reason = "an internal server error has occurred")
+	@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
 	public void handleServerErrors(final HttpServletResponse response, final RestErrorException e)
 			throws IOException {
 
@@ -1090,13 +1090,12 @@ public class ServiceController implements ServiceDetailsProvider{
 			logger.log(Level.WARNING,
 					"Caught exception, but response already commited. Not sending error message based on exception", e);
 		} else {
-			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			final ServletOutputStream outputStream = response.getOutputStream();
 			Map<String, Object> errorDescriptionMap = e.getErrorDescription();
-			String mapAsJson = new ObjectMapper().writeValueAsString(errorDescriptionMap);
+			String errorMap = new ObjectMapper().writeValueAsString(errorDescriptionMap);
 			logger.log(Level.INFO, "caught exception. Sending response message " 
 					+ (String) errorDescriptionMap.get("error"), e);
-			final byte[] messageBytes = mapAsJson.getBytes();
+			final byte[] messageBytes = errorMap.getBytes();
+			final ServletOutputStream outputStream = response.getOutputStream();
 			outputStream.write(messageBytes);
 		}
 	}
