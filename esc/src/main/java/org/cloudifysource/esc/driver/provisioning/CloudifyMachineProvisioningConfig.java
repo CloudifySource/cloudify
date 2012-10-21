@@ -27,8 +27,9 @@ import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.openspaces.admin.pu.elastic.ElasticMachineProvisioningConfig;
-import org.openspaces.admin.zone.config.AtLeastOneZoneConfig;
+import org.openspaces.admin.zone.config.AnyZonesConfig;
 import org.openspaces.admin.zone.config.AtLeastOneZoneConfigurer;
+import org.openspaces.admin.zone.config.ZonesConfig;
 import org.openspaces.core.util.StringProperties;
 import org.openspaces.grid.gsm.capacity.CapacityRequirement;
 import org.openspaces.grid.gsm.capacity.CapacityRequirements;
@@ -54,7 +55,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 
 	private static final String ZONES_KEY = "zones";
 	private static final String ZONES_SEPARATOR = ",";
-	private static final String[] ZONES_DEFAULT = new String[] { "agent" };
+	private static final String[] ZONES_DEFAULT = new String[] {}; // empty zone by default
 
 	private static final boolean DEDICATED_MANAGEMENT_MACHINES_DEFAULT = false;
 	private static final String DEDICATED_MANAGEMENT_MACHINES_KEY = "dedicated-management-machines";
@@ -259,9 +260,13 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	}
 
 	@Override
-	public AtLeastOneZoneConfig getGridServiceAgentZones() {
+	public ZonesConfig getGridServiceAgentZones() {
 		final String[] zones = properties.getArray(
 				ZONES_KEY, ZONES_SEPARATOR, ZONES_DEFAULT);
+		if (zones.length == 0) {
+			// this is ok, since a pu without any zone CAN be deployed on any agent
+			return new AnyZonesConfig();
+		}
 		return new AtLeastOneZoneConfigurer().addZones(zones).create();
 	}
 
