@@ -141,10 +141,15 @@ cmd.exe /c firewall.bat
 rm -Force firewall.bat
 
 # create the launch commandline
+$START_COMMAND_ARGS="-timeout 30 --verbose -auto-shutdown"
 if ($ENV:GSA_MODE -eq "agent")
 {
 	Write-Host "Starting agent node"
-	$cloudifyCommand = "$cloudifyDir\tools\cli\cloudify.bat start-agent -timeout 30 --verbose -zone $ENV:MACHINE_ZONES -auto-shutdown"
+	$START_COMMAND="start-agent"
+	if ($ENV:MACHINE_ZONES -ne "")
+	{
+		$START_COMMAND_ARGS="$START_COMMAND_ARGS -zone $MACHINE_ZONES"
+	}
 }
 else {
 	
@@ -152,15 +157,15 @@ else {
 	$cloudFile = $ENV:CLOUD_FILE.replace("\", "/")
 
 	Write-Host "Starting management node"
+	$START_COMMAND="start-management"
+	$START_COMMAND_ARGS="$START_COMMAND_ARGS -cloud-file $cloudFile"
 	if ($ENV:NO_WEB_SERVICES -eq "true") 
 	{
-		$cloudifyCommand = "cmd.exe /c $cloudifyDir\tools\cli\cloudify.bat start-management -no-web-services -no-management-space -timeout 30 --verbose -auto-shutdown -cloud-file $cloudFile"
+		$START_COMMAND_ARGS="$START_COMMAND_ARGS -no-web-services -no-management-space"
 	} 
-	else {
-		$cloudifyCommand = "cmd.exe /c $cloudifyDir\tools\cli\cloudify.bat start-management -timeout 30 --verbose -auto-shutdown -cloud-file $cloudFile"
-	}
-
 }
+
+$cloudifyCommand = "cmd.exe /c $cloudifyDir\tools\cli\cloudify.bat $START_COMMAND $START_COMMAND_ARGS"
 
 # Invoke-Command -ComputerName localhost -ScriptBlock {Invoke-Expression $args[0]} -ArgumentList $cloudifyCommand
 
