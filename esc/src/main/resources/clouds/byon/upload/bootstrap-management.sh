@@ -191,17 +191,24 @@ if [ ! -z "$CLOUDIFY_AGENT_ENV_INIT_COMMAND" ]; then
 	$CLOUDIFY_AGENT_ENV_INIT_COMMAND
 fi
 
+START_COMMAND_ARGS="-timeout 30 --verbose -auto-shutdown"
 if [ "$GSA_MODE" = "agent" ]; then
 	ERRMSG="Failed starting agent"
-	nohup ./cloudify.sh start-agent -timeout 30 --verbose -zone $MACHINE_ZONES -auto-shutdown
+	START_COMMAND="start-agent"
+	# Check if there any zones to start the agent with
+	if [ ! -z "$MACHINE_ZONES" ]; then
+		START_COMMAND_ARGS="${START_COMMAND_ARGS} -zone ${MACHINE_ZONES}"
+	fi	
 else
 	ERRMSG="Failed starting management services"
+	START_COMMAND="start-management"
+	START_COMMAND_ARGS="${START_COMMAND_ARGS} -cloud-file ${CLOUD_FILE}"
 	if [ "$NO_WEB_SERVICES" = "true" ]; then
-		nohup ./cloudify.sh start-management -no-web-services -no-management-space -timeout 30 --verbose -auto-shutdown -cloud-file $CLOUD_FILE
-	else
-		nohup ./cloudify.sh start-management -timeout 30 --verbose -auto-shutdown -cloud-file $CLOUD_FILE
+		START_COMMAND_ARGS="${START_COMMAND_ARGS} -no-web-services -no-management-space"
 	fi
 fi	
+
+nohup ./cloudify.sh $START_COMMAND $START_COMMAND_ARGS
 
 RETVAL=$?
 echo cat nohup.out
