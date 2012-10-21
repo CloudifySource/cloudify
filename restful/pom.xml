@@ -57,9 +57,18 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-core</artifactId>
+			<version>3.1.3.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-web</artifactId>
-			<version>${springSecurityVersion}</version>
-			<scope>provided</scope>
+			<version>3.1.3.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-config</artifactId>
+			<version>3.1.3.RELEASE</version>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.jackson</groupId>
@@ -392,7 +401,7 @@
 					</archive>
 					<webResources>
 						<resource>
-							<directory>${project.build.directory}/site</directory>
+							<directory>${project.build.directory}/rest</directory>
 							<targetPath>resources</targetPath>
 						</resource>
 					</webResources>
