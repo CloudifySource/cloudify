@@ -165,6 +165,7 @@ else {
 	} 
 }
 
+Write-Host "Cloudify Command is $cloudifyCommand"
 $cloudifyCommand = "cmd.exe /c $cloudifyDir\tools\cli\cloudify.bat $START_COMMAND $START_COMMAND_ARGS"
 
 # Invoke-Command -ComputerName localhost -ScriptBlock {Invoke-Expression $args[0]} -ArgumentList $cloudifyCommand
