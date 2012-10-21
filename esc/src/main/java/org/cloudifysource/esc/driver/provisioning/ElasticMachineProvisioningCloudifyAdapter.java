@@ -18,9 +18,11 @@ package org.cloudifysource.esc.driver.provisioning;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -57,9 +59,9 @@ import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.gsa.events.ElasticGridServiceAgentProvisioningProgressChangedEventListener;
 import org.openspaces.admin.machine.events.ElasticMachineProvisioningProgressChangedEventListener;
 import org.openspaces.admin.pu.elastic.ElasticMachineProvisioningConfig;
-import org.openspaces.admin.zone.config.AtLeastOneZoneConfig;
 import org.openspaces.admin.zone.config.ExactZonesConfig;
 import org.openspaces.admin.zone.config.ExactZonesConfigurer;
+import org.openspaces.admin.zone.config.ZonesConfig;
 import org.openspaces.core.bean.Bean;
 import org.openspaces.grid.gsm.capacity.CapacityRequirements;
 import org.openspaces.grid.gsm.capacity.CpuCapacityRequirement;
@@ -152,7 +154,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	@Override
 	public GridServiceAgent[] getDiscoveredMachines(final long duration, final TimeUnit unit)
 			throws InterruptedException, TimeoutException {
-		// TODO - query the cloud and cross reference with the originalESMAdmin
+		
+		List<GridServiceAgent> result = new ArrayList<GridServiceAgent>();
+		GridServiceAgent[] agents = this.originalESMAdmin.getGridServiceAgents().getAgents();
+		for (GridServiceAgent agent : agents) {
+			
+		}
+		
 		return this.originalESMAdmin.getGridServiceAgents().getAgents();
 	}
 
@@ -206,7 +214,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		MachineDetails machineDetails;
 		cloudifyProvisioning.setAdmin(getGlobalAdminInstance(originalESMAdmin));
 		
-		AtLeastOneZoneConfig defaultZones = config.getGridServiceAgentZones();
+		ZonesConfig defaultZones = config.getGridServiceAgentZones();
 		logger.fine("default zones = " + defaultZones.getZones());
 		if (!defaultZones.isSatisfiedBy(zones)) {
 			throw new IllegalArgumentException("The specified zones " + zones
