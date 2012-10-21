@@ -495,7 +495,6 @@ public class ServiceController implements ServiceDetailsProvider{
 		}
 
 		logger.info("Successfully loaded cloud configuration file from management space");
-
 		return cloudConfiguration;
 	}
 
@@ -1584,8 +1583,12 @@ public class ServiceController implements ServiceDetailsProvider{
 
 		
 		boolean locationAware = false;
+		boolean shared = false;
 		if (service != null) {
 			locationAware = service.isLocationAware();
+		}
+		if (service != null) {
+			shared = service.isShared();
 		}
 		final int externalProcessMemoryInMB = 512;
 		final int containerMemoryInMB = 128;
@@ -1601,21 +1604,14 @@ public class ServiceController implements ServiceDetailsProvider{
 						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName)
 						.name(serviceName);
 		
-        if (isLocalCloud()) {
-            setPublicMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
-        } else {
-		// All PUs on this role share the same machine. 
-		// Machines are identified by zone.
-            setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
-        }
-
-		if (cloud == null) {
+		if (cloud == null) { // Azure or local-cloud
 			if (!isLocalCloud()) {
-
 				// Azure: Eager scale (1 container per machine per PU)
+				setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
 				deployment.scale(ElasticScaleConfigFactory.createEagerScaleConfig());
 			} else {
 				// local cloud
+				setPublicMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
 				if (service == null || service.getScalingRules() == null) {
 
 					int totalMemoryInMB = calculateTotalMemoryInMB(serviceName, service, externalProcessMemoryInMB);
@@ -1639,12 +1635,6 @@ public class ServiceController implements ServiceDetailsProvider{
 			final CloudifyMachineProvisioningConfig config =
 					new CloudifyMachineProvisioningConfig(cloud, template, templateName, this.managementTemplate.getRemoteDirectory());
 
-			/* we can't assign the agent a zone which is the service name
-			 * since we now want to allow for multiple services to be installed under the same agent. 
-			final String[] zones = new String[] { serviceName }; //TODO: [itaif] consider using agentZones
-			config.setGridServiceAgentZones(zones);
-			*/
-
 			if (serviceCloudConfigurationContents != null) {
 
 				config.setServiceCloudConfiguration(serviceCloudConfigurationContents);
@@ -1653,21 +1643,37 @@ public class ServiceController implements ServiceDetailsProvider{
 			final String locators = extractLocators(admin);
 			config.setLocator(locators);
 
-			setDedicatedMachineProvisioning(deployment, config);
+			// management machine should be isolated from other services. no matter of the deployment mode.
+			config.setDedicatedManagementMachines(true);
+			if (shared) {
+				logger.info("public mode is on. will use public machine provisioning for " + serviceName + " deployment.");
+				// service instances can be deployed across all agents
+				setPublicMachineProvisioning(deployment, config);
+			} else {
+				// service deployment will have a dedicated agent per instance
+				setDedicatedMachineProvisioning(deployment, config);
+			}
+			
+			
 			deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
 
 			if (service == null || service.getScalingRules() == null) {
 				int totalMemoryInMB = calculateTotalMemoryInMB(serviceName, service, (int) cloudExternalProcessMemoryInMB);
+				double totalCpuCores = calculateTotalCpuCores(serviceName, service);
 				final ManualCapacityScaleConfig scaleConfig =
-						ElasticScaleConfigFactory.createManualCapacityScaleConfig(totalMemoryInMB, locationAware);
-
-				scaleConfig.setAtMostOneContainerPerMachine(true);
+						ElasticScaleConfigFactory.createManualCapacityScaleConfig(totalMemoryInMB, 
+								totalCpuCores, locationAware, shared);
+				if (!shared) {
+					scaleConfig.setAtMostOneContainerPerMachine(true);
+				}
 				deployment.scale(scaleConfig);
 			} else {
 				final AutomaticCapacityScaleConfig scaleConfig =
 						ElasticScaleConfigFactory.createAutomaticCapacityScaleConfig(serviceName, service,
 								(int) cloudExternalProcessMemoryInMB,locationAware);
-				scaleConfig.setAtMostOneContainerPerMachine(true);
+				if (!shared) {
+					scaleConfig.setAtMostOneContainerPerMachine(true);	
+				}
 				deployment.scale(scaleConfig);
 			}
 		}
@@ -1707,6 +1713,21 @@ public class ServiceController implements ServiceDetailsProvider{
 		}
 
 		return externalProcessMemoryInMB * numberOfInstances;
+	}
+	
+	public static double calculateTotalCpuCores(String serviceName, Service service) {
+
+		if (service == null) { // deploying without a service. assuming CPU requirements is 0
+			return 0;
+		}
+		double numberOfCpuCoresPerInstance = service.getInstanceCpuCores();
+		if (numberOfCpuCoresPerInstance < 0) {
+			throw new IllegalArgumentException ("instanceCpuCores must be positive");
+		}
+		
+		int numberOfInstances = service.getNumInstances();
+		
+		return numberOfInstances * numberOfCpuCoresPerInstance;
 	}
 	
 	private static String extractLocators(final Admin admin) {
@@ -2081,7 +2102,7 @@ public class ServiceController implements ServiceDetailsProvider{
 			deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
 
 			//TODO: [itaif] Why only capacity of one container ?
-			deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig((int) cloudExternalProcessMemoryInMB, locationAware));
+			deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig((int) cloudExternalProcessMemoryInMB, 0 , locationAware, false));
 		}
 
 		deployAndWait(serviceName, deployment);
@@ -2123,6 +2144,10 @@ public class ServiceController implements ServiceDetailsProvider{
 	    machineProvisioning.setGridServiceAgentZones(agentZones);
 
 	    deployment.publicMachineProvisioning(machineProvisioning);
+	}
+	
+	private void setPublicMachineProvisioning(ElasticDeploymentTopology deployment, CloudifyMachineProvisioningConfig config) {
+		deployment.publicMachineProvisioning(config);
 	}
 
 	private void setDedicatedMachineProvisioning(final ElasticDeploymentTopology deployment,
@@ -2178,7 +2203,7 @@ public class ServiceController implements ServiceDetailsProvider{
 			setDedicatedMachineProvisioning(deployment, config);
 			deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
 
-			deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(containerMemoryInMB * numberOfInstances, locationAware));
+			deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(containerMemoryInMB * numberOfInstances, 0 , locationAware, false));
 		}
 		deployAndWait(serviceName, deployment);
 		jarFile.delete();
@@ -2241,7 +2266,7 @@ public class ServiceController implements ServiceDetailsProvider{
 
 			setDedicatedMachineProvisioning(deployment, config);
 
-			deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(puConfig.getSla().getMemoryCapacity(), locationAware));
+			deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(puConfig.getSla().getMemoryCapacity(), 0 , locationAware, false));
 
 		}
 
@@ -2381,7 +2406,11 @@ public class ServiceController implements ServiceDetailsProvider{
 
 			final CloudTemplate template = getComputeTemplate(cloud, templateName);
 			final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
-			pu.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig((int) (cloudExternalProcessMemoryInMB * count), locationAware));
+			// TODO - set-instances is not supported when the "shared" flag is (CLOUDIFY-1158)
+			// currently we fall back to the previous impl
+			// CPU = 0 , memoery is calculated as usual. shared = false
+			pu.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig((int) (cloudExternalProcessMemoryInMB * count), 0, locationAware, false));
+
 		}
 
 		logger.log(Level.INFO, "Starting to poll for lifecycle events.");
