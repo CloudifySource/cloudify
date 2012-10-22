@@ -58,7 +58,7 @@ public class GroovyExceptionHandlerTest {
 
 		Assert.assertTrue("Runtime exception " + runtimeExceptionString 
 				+ " was not properly extracted from the wrapped exception string " 
-				, exceptionString.equals(runtimeExceptionString));
+				, exceptionString.contains(runtimeExceptionString));
 		
 		
 		runtimeExceptionString = "Caught: java.lang.StringIndexOutOfBoundsException: String index out of range: -1"
@@ -71,7 +71,7 @@ public class GroovyExceptionHandlerTest {
 		
 		Assert.assertTrue("Runtime exception " + runtimeExceptionString 
 				+ " was not properly extracted from the wrapped exception string " 
-				, exceptionString.equals(runtimeExceptionString));
+				, exceptionString.contains(runtimeExceptionString));
 //		//Use groovyShell to execute a script and assert output contains the exception string. 
 //		String groovyInputWithRuntimeError = "import java.lang.Exception"+ System.getProperty("line.separator") + "String s = \"sdf\".substring(4)";
 //		String groovyException = generateGroovyException(groovyInputWithRuntimeError);
