@@ -158,10 +158,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		List<GridServiceAgent> result = new ArrayList<GridServiceAgent>();
 		GridServiceAgent[] agents = this.originalESMAdmin.getGridServiceAgents().getAgents();
 		for (GridServiceAgent agent : agents) {
-			
+			String template = agent.getVirtualMachine().getDetails().getEnvironmentVariables().get(CloudifyConstants.CLOUDIFY_CLOUD_TEMPLATE_NAME);
+			if (template.equals(this.cloudTemplateName)) {
+				result.add(agent);
+			}
 		}
 		
-		return this.originalESMAdmin.getGridServiceAgents().getAgents();
+		return result.toArray(new GridServiceAgent[result.size()]);
 	}
 
 	private InstallationDetails createInstallationDetails(final Cloud cloud, final MachineDetails md, GSAReservationId reservationId)
