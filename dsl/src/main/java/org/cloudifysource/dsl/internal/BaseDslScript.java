@@ -165,17 +165,18 @@ public abstract class BaseDslScript extends Script {
 		if (this.usedProperties.contains(name)) {
 			if (!isDuplicatePropertyAllowed(value)) {
 				throw new IllegalArgumentException("Property duplication was found: Property "
-						+ name + " is define" +
-								"d more than once.");
+						+ name + " is define" + "d more than once.");
 			}
 		}
 
 		this.usedProperties.add(name);
 		Object convertedValue = null;
 		try {
-			convertedValue = convertValueToExecutableDSLEntryIfNeeded(getDSLFile().getParentFile(), object, name, value);
+			convertedValue = convertValueToExecutableDSLEntryIfNeeded(getDSLFile().getParentFile()
+					, object, name, value);
 				if (logger.isLoggable(Level.FINEST)) {
-					logger.finest("BeanUtils.setProperty(object=" + object + ",name=" + name + ",value=" + convertedValue
+					logger.finest("BeanUtils.setProperty(object=" + object + ",name=" 
+							+ name + ",value=" + convertedValue
 							+ ",value.getClass()=" + convertedValue.getClass());
 				}
 				// Then set it
@@ -338,6 +339,7 @@ public abstract class BaseDslScript extends Script {
 			if (method.getAnnotation(DSLValidation.class) != null) {
 				final boolean accessible = method.isAccessible();
 				try {
+					@SuppressWarnings("unchecked")
 					final Map<Object, Object> currentVars = this.getBinding().getVariables();
 					DSLValidationContext validationContext = new DSLValidationContext();
 					validationContext.setFilePath((String) currentVars.get(DSLReader.DSL_FILE_PATH_PROPERTY_NAME));
@@ -366,7 +368,7 @@ public abstract class BaseDslScript extends Script {
 		}
 	}
 
-	private boolean handleSpecialProperty(final String name, final Object arg)
+	private boolean handleSpecialProperty(final String name, Object arg)
 			throws DSLException {
 
 		if (name.equals(EXTEND_PROPERTY_NAME)) {

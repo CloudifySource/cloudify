@@ -426,17 +426,13 @@ public class TestRecipe extends AbstractGSCommand {
 			throw new CLIStatusException(
 					"service_file_doesnt_exist", recipeFolder.getAbsolutePath(), this.serviceFileName);
 		}
-
 		if (recipeFolder.isFile()) {
-
 			if (recipeFolder.getName().endsWith(
 					".zip") || recipeFolder.getName().endsWith(
 					".jar")) {
 				return recipeFolder;
-			} else {
-				throw new CLIStatusException("not_jar_or_zip", recipeFolder.getAbsolutePath(), this.serviceFileName);
 			}
-
+			throw new CLIStatusException("not_jar_or_zip", recipeFolder.getAbsolutePath(), this.serviceFileName);
 		}
 
 		// it's a folder
@@ -461,7 +457,7 @@ public class TestRecipe extends AbstractGSCommand {
 	public File doPack(final File recipeDirOrFile)
 			throws CLIException {
 		try {
-			return Packager.pack(recipeDirOrFile, null);
+			return Packager.pack(recipeDirOrFile);
 		} catch (final IOException e) {
 			throw new CLIException(e);
 		} catch (final PackagingException e) {

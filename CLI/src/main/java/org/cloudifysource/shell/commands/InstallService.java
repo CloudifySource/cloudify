@@ -29,6 +29,7 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
@@ -90,7 +91,7 @@ public class InstallService extends AdminAwareCommand {
 	@Option(required = false, name = "-overrides",
 			description = "File containing proeprties to be used to overrides current service's proeprties or fields.")
 	private File overrides;
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -120,17 +121,24 @@ public class InstallService extends AdminAwareCommand {
 					additionFiles.add(cloudConfigurationZipFile);
 				if(overrides != null)
 					additionFiles.add(overrides);
+				File recipeFile = recipe;
 				if (serviceFileName != null) {
 					final File fullPathToRecipe = new File(recipe.getAbsolutePath() + "/" + serviceFileName);
 					if (!fullPathToRecipe.exists()) {
 						throw new CLIStatusException("service_file_doesnt_exist", fullPathToRecipe.getPath());
 					}
-					packedFile = Packager.pack(fullPathToRecipe, additionFiles);
-					service = ServiceReader.readService(fullPathToRecipe);
+					// Locate recipe file
+					recipeFile = 
+							fullPathToRecipe.isDirectory() 
+							? DSLReader.findDefaultDSLFile(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX, fullPathToRecipe) 
+									: fullPathToRecipe;
 				} else {
-					packedFile = Packager.pack(recipe, additionFiles);
-					service = ServiceReader.readService(recipe);
+					if(recipe.isDirectory() ) {
+						recipeFile = DSLReader.findDefaultDSLFile(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX, recipe);
+					} // else recipeFile = recipe
 				}
+				service = ServiceReader.readService(recipeFile);
+				packedFile = Packager.pack(recipeFile, false, service, additionFiles);
 				packedFile.deleteOnExit();
 			} else {
 				// serviceFile is a zip file
