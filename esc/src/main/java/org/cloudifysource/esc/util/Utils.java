@@ -52,6 +52,7 @@ import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
+import org.openspaces.admin.gsa.GSAReservationId;
 import org.openspaces.admin.gsm.GridServiceManagers;
 import org.openspaces.admin.zone.config.ExactZonesConfig;
 
@@ -432,7 +433,7 @@ public final class Utils {
 	 */
 	public static InstallationDetails createInstallationDetails(final MachineDetails md,
 			final Cloud cloud, final CloudTemplate template, final ExactZonesConfig zones,
-			final String lookupLocatorsString, final Admin admin, final boolean isManagement, final File cloudFile)
+			final String lookupLocatorsString, final Admin admin, final boolean isManagement, final File cloudFile, final GSAReservationId reservationId)
 			throws FileNotFoundException {
 
 		final InstallationDetails details = new InstallationDetails();
@@ -532,6 +533,8 @@ public final class Utils {
 					template.getJavaUrl());
 		}
 
+		details.setReservationId(reservationId);
+		
 		logger.fine("Created InstallationDetails: " + details);
 		return details;
 

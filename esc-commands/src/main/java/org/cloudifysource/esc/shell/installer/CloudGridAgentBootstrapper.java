@@ -51,6 +51,7 @@ import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.CLIException;
+import org.openspaces.admin.gsa.GSAReservationId;
 import org.openspaces.admin.zone.config.ExactZonesConfig;
 import org.openspaces.admin.zone.config.ExactZonesConfigurer;
 
@@ -549,12 +550,14 @@ public class CloudGridAgentBootstrapper {
 			final MachineDetails[] machineDetails, final CloudTemplate template)
 			throws FileNotFoundException {
 		final InstallationDetails[] details = new InstallationDetails[numOfManagementMachines];
-
+		
+		final GSAReservationId reservationId = null;
+		
 		for (int i = 0; i < details.length; i++) {
 			final ExactZonesConfig zones = new ExactZonesConfigurer().addZone(
 					MANAGEMENT_GSA_ZONE).create();
 			details[i] = Utils.createInstallationDetails(machineDetails[i],
-					cloud, template, zones, null, null, true, this.cloudFile);
+					cloud, template, zones, null, null, true, this.cloudFile, reservationId);
 		}
 
 		return details;
