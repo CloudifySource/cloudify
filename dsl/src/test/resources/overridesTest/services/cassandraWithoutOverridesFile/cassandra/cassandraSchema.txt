@@ -1,0 +1,108 @@
+create keyspace travel;
+use travel;
+create column family Bookings  with comparator=UTF8Type and key_validation_class=UTF8Type
+	and column_metadata=[{column_name: id, validation_class: UTF8Type},
+	{column_name: username, validation_class: UTF8Type, index_type: KEYS},	
+	{column_name: hotel, validation_class: UTF8Type},
+	{column_name: checkinDate, validation_class: UTF8Type},
+	{column_name: checkoutDate, validation_class: UTF8Type},
+	{column_name: creditCard, validation_class: UTF8Type},
+	{column_name: creditCardName, validation_class: UTF8Type},
+	{column_name: creditCardExpiryMonth, validation_class: UTF8Type},
+	{column_name: creditCardExpiryYear, validation_class: UTF8Type},
+	{column_name: smoking, validation_class: UTF8Type},
+	{column_name: beds, validation_class: UTF8Type}
+	]; 
+
+create column family Hotels
+	with comparator = UTF8Type and key_validation_class=UTF8Type
+	and column_metadata=[{column_name: id, validation_class: UTF8Type,index_type:KEYS},
+	{column_name: name, validation_class: UTF8Type, index_type: KEYS},	
+	{column_name: address, validation_class: UTF8Type},
+	{column_name: city, validation_class: UTF8Type},
+	{column_name: state, validation_class: UTF8Type},
+	{column_name: country, validation_class: UTF8Type},
+	{column_name: zip, validation_class: UTF8Type},
+	{column_name: price, validation_class: UTF8Type}	
+	]; 
+	
+create column family Users
+	with comparator = UTF8Type and key_validation_class=UTF8Type
+	and column_metadata=[{column_name: name, validation_class: UTF8Type, index_type: KEYS},	
+	{column_name: username, validation_class: UTF8Type, index_type: KEYS},
+	{column_name: password, validation_class: UTF8Type}
+	]; 
+	
+
+set Users['Shimon']['username']='Shimon';
+set Users['Shimon']['name']='Shimon';
+set Users['Shimon']['password']='atlanta';
+
+set Users['Reuven']['username']='Reuven';
+set Users['Reuven']['name']='Reuven';
+set Users['Reuven']['password']='atlanta';
+
+set Users['Joe']['username']='Joe';
+set Users['Joe']['name']='Joe';
+set Users['Joe']['password']='atlanta';
+
+
+set Hotels['Hilton'] ['id'] = '122';
+set Hotels['Hilton'] ['name'] = 'Hilton Tel Aviv';
+set Hotels['Hilton'] ['address'] = '200 Hayarkon St';
+set Hotels['Hilton'] ['city'] = 'Tel Aviv';
+set Hotels['Hilton'] ['state'] = 'N/A';
+set Hotels['Hilton'] ['zip'] = '3333';
+set Hotels['Hilton'] ['country'] = 'Israel';
+set Hotels['Hilton'] ['price'] = '200';
+
+set Hotels['Hyatt'] ['id'] = '123';
+set Hotels['Hyatt'] ['name'] = 'Hyatt Tel Aviv';
+set Hotels['Hyatt'] ['address'] = '120 Hayarkon St';
+set Hotels['Hyatt'] ['city'] = 'Tel Aviv';
+set Hotels['Hyatt'] ['state'] = 'N/A';
+set Hotels['Hyatt'] ['zip'] = '3335';
+set Hotels['Hyatt'] ['country'] = 'Israel';
+set Hotels['Hyatt'] ['price'] = '250';
+
+
+set Bookings['Hyatt1'] ['id'] = '122';
+set Bookings['Hyatt1'] ['username'] = 'Shimon';
+set Bookings['Hyatt1'] ['hotel'] = 'Hyatt Tel Aviv';
+set Bookings['Hyatt1'] ['checkinDate'] = '1336824000';
+set Bookings['Hyatt1'] ['checkoutDate'] = '1344772800';
+set Bookings['Hyatt1'] ['creditCard'] = '1032445530026789';
+set Bookings['Hyatt1'] ['creditCardName'] = 'VISA';
+set Bookings['Hyatt1'] ['creditCardExpiryMonth'] = '03';
+set Bookings['Hyatt1'] ['creditCardExpiryYear'] = '2013';
+set Bookings['Hyatt1'] ['smoking'] = 'no';
+set Bookings['Hyatt1'] ['beds'] = '3';
+
+set Bookings['Hyatt2'] ['id'] = '122';
+set Bookings['Hyatt2'] ['username'] = 'Shimon';
+set Bookings['Hyatt2'] ['hotel'] = 'Hyatt Tel Aviv';
+set Bookings['Hyatt2'] ['checkinDate'] = '1336824000';
+set Bookings['Hyatt2'] ['checkoutDate'] = '1344772800';
+set Bookings['Hyatt2'] ['creditCard'] = '1032445530026789';
+set Bookings['Hyatt2'] ['creditCardName'] = 'VISA';
+set Bookings['Hyatt2'] ['creditCardExpiryMonth'] = '03';
+set Bookings['Hyatt2'] ['creditCardExpiryYear'] = '2013';
+set Bookings['Hyatt2'] ['smoking'] = 'no';
+set Bookings['Hyatt2'] ['beds'] = '3';
+
+set Bookings['Hilton3'] ['id'] = '122';
+set Bookings['Hilton3'] ['username'] = 'Reuven';
+set Bookings['Hilton3'] ['hotel'] = 'Hilton Tel Aviv';
+set Bookings['Hilton3'] ['checkinDate'] = '1336824000';
+set Bookings['Hilton3'] ['checkoutDate'] = '1344772800';
+set Bookings['Hilton3'] ['creditCard'] = '1032445530026789';
+set Bookings['Hilton3'] ['creditCardName'] = 'VISA';
+set Bookings['Hilton3'] ['creditCardExpiryMonth'] = '03';
+set Bookings['Hilton3'] ['creditCardExpiryYear'] = '2013';
+set Bookings['Hilton3'] ['smoking'] = 'no';
+set Bookings['Hilton3'] ['beds'] = '3';
+
+
+ 
+ 
+ 

@@ -1,0 +1,9 @@
+properties {
+	applicationName = "overridesTestApplicationOverriden"
+	service2.serviceName = "overridesTestApplicationOverridenService2"
+}
+
+fields {
+	application.services[service1].name = "overridesTestApplicationOverridenService1"
+	application.services[service2].lifecycle.init = "overridenService2_install.groovy"
+}

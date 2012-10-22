@@ -1,0 +1,7 @@
+properties{
+	serviceName =  "overridesTest"
+	error = true
+}
+fields{
+	service.numInstances = 3
+}

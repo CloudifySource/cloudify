@@ -1,0 +1,7 @@
+properties{
+	service1.error = "error"
+}
+fields{
+	application.services(service2).name = "overridesTestApplicationOverridenService2"
+
+}

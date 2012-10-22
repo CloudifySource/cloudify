@@ -1,0 +1,6 @@
+properties{
+	serviceName =  "overridesTest"
+}
+fields{
+	service.error = "error"
+}

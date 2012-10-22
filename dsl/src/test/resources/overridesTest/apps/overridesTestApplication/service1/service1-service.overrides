@@ -1,0 +1,10 @@
+properties {
+	serviceName = "overridenService1"
+}
+
+fields {
+	service.numInstances = 3
+	service.lifecycle.init = "${serviceName}_install.groovy"
+	service.plugins[0].className = "${properties.serviceName}Plugin1ClassNameOverriden"
+
+}

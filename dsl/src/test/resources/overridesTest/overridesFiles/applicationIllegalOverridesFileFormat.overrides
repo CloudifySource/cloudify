@@ -1,0 +1,3 @@
+applicationName = "overridesTestApplicationOverriden"
+application.services(service2).name = "overridesTestApplicationOverridenService2"
+
