@@ -32,6 +32,7 @@ public final class GroovyExceptionHandler {
 	private static final String RUNTIME_EXCEPTION_CAUGHT_REGEX = "(Caught:.*\\.groovy:[1-9]{1,}\\))";
 	private static final String COMPILATION_EXCEPTION_CAUGHT_REGEX =
 			"(([a-zA-Z]*:\\\\|/).+\\.groovy:\\s[1-9]+.*column\\s[1-9]+)";
+	private static Pattern compilationPattern = null;
 
 	/**
 	 * 
@@ -43,28 +44,12 @@ public final class GroovyExceptionHandler {
 	 * @return Groovy exception string. empty string if not found.
 	 */
 	public static String getExceptionString(final String input) {
-		String exceptionReason = getRuntimeException(input);
-		if (exceptionReason.isEmpty()) {
-			// No runtime exception was found. look for a compilation exception.
-			exceptionReason = getCompilationException(input);
-		}
-		
+		String exceptionReason = getCompilationException(input);
 		if (exceptionReason.isEmpty()) {
 			// No compilation exception was found. Return the entire process output.
 			exceptionReason = input;
 		}
 		return exceptionReason;
-	}
-
-	/**
-	 * returns the groovy runtime exception from a given string.
-	 * 
-	 * @param input
-	 * @return The Runtime exception string, empty string if not found.
-	 */
-	private static String getRuntimeException(final String input) {
-		return getPatternMatch(
-				input, RUNTIME_EXCEPTION_CAUGHT_REGEX, Pattern.MULTILINE + Pattern.DOTALL);
 	}
 
 	/**
@@ -74,11 +59,11 @@ public final class GroovyExceptionHandler {
 	 * @return The compilation exception string, empty string if not found.
 	 */
 	private static String getCompilationException(final String input) {
-		return getPatternMatch(
+		return getCompilationPatternMatch(
 				input, COMPILATION_EXCEPTION_CAUGHT_REGEX, Pattern.MULTILINE);
 	}
 
-	private static String getPatternMatch(final String input, final String regex, final int regexFlags) {
+	private static String getCompilationPatternMatch(final String input, final String regex, final int regexFlags) {
 
 		if (input == null) {
 			return "";
@@ -86,9 +71,11 @@ public final class GroovyExceptionHandler {
 		// create the pattern using the regex and flags.
 		// this pattern will only be used in cases where a groovy exception occurs
 		// So creating the pattern will be done locally.
-		final Pattern pattern = Pattern.compile(
-				regex, regexFlags);
-		final Matcher matcher = pattern.matcher(input);
+		if (compilationPattern == null) {
+			compilationPattern = Pattern.compile(
+					regex, regexFlags);
+		}
+		final Matcher matcher = compilationPattern.matcher(input);
 		int beginIndex = 0;
 		int endIndex = 0;
 		if (matcher.find()) {
