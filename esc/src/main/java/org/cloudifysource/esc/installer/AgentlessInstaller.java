@@ -94,6 +94,8 @@ public class AgentlessInstaller {
 	private static final String LUS_IP_ADDRESS_ENV = "LUS_IP_ADDRESS";
 
 	private static final String WORKING_HOME_DIRECTORY_ENV = "WORKING_HOME_DIRECTORY";
+	
+	private static final String GSA_RESERVATION_ID_ENV = "GSA_RESERVATION_ID";
 
 	private static final String CLOUD_FILE = "CLOUD_FILE";
 
@@ -593,6 +595,10 @@ public class AgentlessInstaller {
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP,
 						details.getPublicIp());
 
+		if (details.getReservationId() != null) {
+			scb.exportVar(GSA_RESERVATION_ID_ENV, details.getReservationId().toString());
+		}
+		
 		if (details.isLus()) {
 			String remotePath = details.getRemoteDir();
 			if (!remotePath.endsWith("/")) {

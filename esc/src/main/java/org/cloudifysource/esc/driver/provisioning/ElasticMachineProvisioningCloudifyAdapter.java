@@ -52,6 +52,7 @@ import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.AdminFactory;
 import org.openspaces.admin.bean.BeanConfigurationException;
+import org.openspaces.admin.gsa.GSAReservationId;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.gsa.events.ElasticGridServiceAgentProvisioningProgressChangedEventListener;
 import org.openspaces.admin.machine.events.ElasticMachineProvisioningProgressChangedEventListener;
@@ -155,7 +156,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return this.originalESMAdmin.getGridServiceAgents().getAgents();
 	}
 
-	private InstallationDetails createInstallationDetails(final Cloud cloud, final MachineDetails md)
+	private InstallationDetails createInstallationDetails(final Cloud cloud, final MachineDetails md, GSAReservationId reservationId)
 			throws FileNotFoundException {
 		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplateName);
 
@@ -177,7 +178,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		final InstallationDetails details =
 				Utils.createInstallationDetails(md, cloud, template, zones, lookupLocatorsString,
 						this.originalESMAdmin, false,
-						null);
+						null, reservationId);
 
 		logger.info("Created new Installation Details: " + details);
 		return details;
@@ -187,11 +188,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	@Override
 	public GridServiceAgent startMachine(final long duration, final TimeUnit unit)
 			throws ElasticMachineProvisioningException, ElasticGridServiceAgentProvisioningException, InterruptedException, TimeoutException {
-		return startMachine(new ExactZonesConfig(), duration, unit);
+		GSAReservationId reservationId = null;
+		ExactZonesConfig zones = new ExactZonesConfig();
+		return startMachine(zones, reservationId, duration, unit);
 	}
 
 	@Override
-	public GridServiceAgent startMachine(final ExactZonesConfig zones, final long duration, final TimeUnit unit)
+	public GridServiceAgent startMachine(final ExactZonesConfig zones, final GSAReservationId reservationId, final long duration, final TimeUnit unit)
 			throws ElasticMachineProvisioningException, ElasticGridServiceAgentProvisioningException, InterruptedException, TimeoutException {
 
 		logger.info("Cloudify Adapter is starting a new machine with zones " + zones.getZones());
@@ -276,7 +279,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			} else {
 				// install gigaspaces and start agent
 				logger.info("Cloudify Adapter is installing Cloudify on new machine");
-				installAndStartAgent(machineDetails, end);
+				installAndStartAgent(machineDetails, reservationId, end);
 				// check for timeout again - the installation step can also take a
 				// while to complete.
 				checkForProvisioningTimeout(end, machineDetails);
@@ -370,13 +373,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		}
 	}
 
-	private void installAndStartAgent(final MachineDetails machineDetails, final long end)
+	private void installAndStartAgent(final MachineDetails machineDetails, GSAReservationId reservationId, final long end)
 			throws TimeoutException, InterruptedException, ElasticMachineProvisioningException, ElasticGridServiceAgentProvisioningException {
 		final AgentlessInstaller installer = new AgentlessInstaller();
 
 		InstallationDetails installationDetails;
 		try {
-			installationDetails = createInstallationDetails(cloud, machineDetails);
+			installationDetails = createInstallationDetails(cloud, machineDetails, reservationId);
 		} catch (final FileNotFoundException e) {
 			throw new ElasticGridServiceAgentProvisioningException("Failed to create installation details for agent: "
 					+ e.getMessage(), e);

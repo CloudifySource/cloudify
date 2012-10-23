@@ -23,6 +23,7 @@ import java.util.Map;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
 import org.openspaces.admin.Admin;
+import org.openspaces.admin.gsa.GSAReservationId;
 
 import com.gigaspaces.internal.utils.ReflectionUtils;
 
@@ -98,6 +99,10 @@ public class InstallationDetails implements Cloneable {
 
 	private Map<String, String> extraRemoteEnvironmentVariables = new HashMap<String, String>();
 
+	// defines the com.gs.agent.reservationid system property for the GSA
+	// see InternalGridServiceAgent#getReservationId()
+	private GSAReservationId reservationId;
+	
 	public Admin getAdmin() {
 		return admin;
 	}
@@ -305,6 +310,14 @@ public class InstallationDetails implements Cloneable {
 
 	public void setRelativeLocalDir(final String relativeLocalDir) {
 		this.relativeLocalDir = relativeLocalDir;
+	}
+
+	public GSAReservationId getReservationId() {
+		return reservationId;
+	}
+
+	public void setReservationId(GSAReservationId reservationId) {
+		this.reservationId = reservationId;
 	}
 
 }
