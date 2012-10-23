@@ -33,6 +33,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
 import org.cloudifysource.dsl.internal.EventLogConstants;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.rest.controllers.RestServiceException;
@@ -51,526 +52,621 @@ import com.gigaspaces.log.LogEntry;
 import com.gigaspaces.log.LogEntryMatcher;
 
 /**
- * the RestPollingRunnable provides a service installation polling mechanism 
- * for lifecycle and instance count changes events.
- * the events will be saved in a dedicated LifecycleEventsContainer that 
- * will be sampled by the client.
+ * the RestPollingRunnable provides a service installation polling mechanism for
+ * lifecycle and instance count changes events. the events will be saved in a
+ * dedicated LifecycleEventsContainer that will be sampled by the client.
  * 
- * Initialize the Runnable with service names their planned number of instances. 
- *   
+ * Initialize the Runnable with service names their planned number of instances.
+ * 
  * @author adaml
- *
+ * 
  */
 public class RestPollingRunnable implements Runnable {
 
-    private static final int ONE_SEC = 1;
+	private static final int ONE_SEC = 1;
 
 	private static final int FIVE_SECONDS_MILLI = 5000;
 
-    // a map containing all of the application services and their planned number
-    // of instances.
-    // The services are ordered according to the installation order defined by
-    // the application.
-    private final LinkedHashMap<String, Integer> serviceNames;
+	// a map containing all of the application services and their planned number
+	// of instances.
+	// The services are ordered according to the installation order defined by
+	// the application.
+	private final LinkedHashMap<String, Integer> serviceNames;
 
-    private final String applicationName;
+	private final String applicationName;
 
-    private Admin admin;
+	private Admin admin;
 
-    private long endTime;
+	private long endTime;
 
-    private static final String USM_EVENT_LOGGER_NAME = ".*.USMEventLogger.{0}\\].*";
+	private static final String USM_EVENT_LOGGER_NAME = ".*.USMEventLogger.{0}\\].*";
 
-    private boolean isUninstall = false;
+	private boolean isUninstall = false;
 
-    private boolean isSetInstances = false;
-    
-    private boolean isServiceInstall = false;
-    
-    private LifecycleEventsContainer lifecycleEventsContainer;
-    
-    /**
-     * indicates whether thread threw an exception.
-     */
-    private Throwable executionException;
-    
-    /**
-     * future container polling task.
-     */
-    private Future<?> futureTask;
-    
-    private boolean isDone = false;
-    
-    private Map<String, Date> gscStartTimeMap = new HashMap<String, Date>();
-    
-    private final Object lock = new Object();
+	private boolean isSetInstances = false;
+
+	private boolean isServiceInstall = false;
+
+	private LifecycleEventsContainer lifecycleEventsContainer;
+
+	/**
+	 * indicates whether thread threw an exception.
+	 */
+	private Throwable executionException;
+
+	/**
+	 * future container polling task.
+	 */
+	private Future<?> futureTask;
+
+	private boolean isDone = false;
+
+	private final Map<String, Date> gscStartTimeMap = new HashMap<String, Date>();
+
+	private final Object lock = new Object();
 
 	private FutureTask<Boolean> undeployTask;
 
-    private static final Logger logger = Logger.getLogger(RestPollingRunnable.class.getName());
+	private static final Logger logger = Logger
+			.getLogger(RestPollingRunnable.class.getName());
 
-    /**
-     * Create a rest polling runnable to poll for a specific service's installation
-     * lifecycle events with the application name set to the "default" application name. 
-     * 
-     * Use this constructor if polling a single service installation.
-     * 
-     * @param serviceName
-     *            the service name to deploy
-     * @param timeout timeout polling timeout.
-     * @param plannedNumberOfInstances the planned number of instances.
-     * @param timeunit polling timeout timeunit.
-     */
-    public RestPollingRunnable(final String applicationName,
-            final long timeout, final TimeUnit timeunit) {
+	/**
+	 * Create a rest polling runnable to poll for a specific service's
+	 * installation lifecycle events with the application name set to the
+	 * "default" application name.
+	 * 
+	 * Use this constructor if polling a single service installation.
+	 * 
+	 * @param serviceName
+	 *            the service name to deploy
+	 * @param timeout
+	 *            timeout polling timeout.
+	 * @param plannedNumberOfInstances
+	 *            the planned number of instances.
+	 * @param timeunit
+	 *            polling timeout timeunit.
+	 */
+	public RestPollingRunnable(final String applicationName,
+			final long timeout, final TimeUnit timeunit) {
 
-        this.serviceNames = new LinkedHashMap<String, Integer>();
-        this.applicationName = applicationName;
-    }
+		this.serviceNames = new LinkedHashMap<String, Integer>();
+		this.applicationName = applicationName;
+	}
 
-    /**
-     * sets the admin.
-     * @param admin admin instance.
-     */
-    public void setAdmin(final Admin admin) {
-        this.admin = admin;
-    }
+	/**
+	 * sets the admin.
+	 * 
+	 * @param admin
+	 *            admin instance.
+	 */
+	public void setAdmin(final Admin admin) {
+		this.admin = admin;
+	}
 
-    /**
-     * sets the current lifecycleEventsContainer to be updated 
-     * by the callable task.
-     * @param lifecycleEventsContainer ref to a lifecycleEventsContainer.
-     */
-    public void setLifecycleEventsContainer(
-            final LifecycleEventsContainer lifecycleEventsContainer) {
-        this.lifecycleEventsContainer = lifecycleEventsContainer;
-    }
-    
-    /**
-     * gets the lifecycle event container.
-     * @return the lifecycle event container of the runnable thread
-     */
-    public LifecycleEventsContainer getLifecycleEventsContainer() {
-        return this.lifecycleEventsContainer;
-    }
+	/**
+	 * sets the current lifecycleEventsContainer to be updated by the callable
+	 * task.
+	 * 
+	 * @param lifecycleEventsContainer
+	 *            ref to a lifecycleEventsContainer.
+	 */
+	public void setLifecycleEventsContainer(
+			final LifecycleEventsContainer lifecycleEventsContainer) {
+		this.lifecycleEventsContainer = lifecycleEventsContainer;
+	}
 
-    /**
-     * Add a service to the polling callable. the service will be sampled 
-     * until it reaches it's planned number of instances or until a timeout
-     * exception is thrown.
-     * @param serviceName The absoulute pu name.
-     * @param plannedNumberOfInstances planned number of instances.
-     */
-    public void addService(final String serviceName, final int plannedNumberOfInstances) {
-        this.serviceNames.put(serviceName, plannedNumberOfInstances);
-    }
+	/**
+	 * gets the lifecycle event container.
+	 * 
+	 * @return the lifecycle event container of the runnable thread
+	 */
+	public LifecycleEventsContainer getLifecycleEventsContainer() {
+		return this.lifecycleEventsContainer;
+	}
 
-    /**
-     * sets the services to poll and their planned number of instances.
-     * @param isServiceInstall true if installation is for a single service.
-     */
-    public void setIsServiceInstall(final boolean isServiceInstall) {
-        this.isServiceInstall = isServiceInstall;
-    }
-    
-    /**
-     * Set to true if the action invoked was setInstances.
-     * @param isSetInstances is the action a set instances action. 
-     *                          default is set to false.
-     */
-    public void setIsSetInstances(final boolean isSetInstances) {
-        this.isSetInstances = isSetInstances;
-        
-    }
-    
-    /**
-     * Sets the runnable's lifetime lease.
-     * @param timeout timeout period
-     * @param timeunit timeout timeunit
-     */
-    public synchronized void setEndTime(final long timeout, final TimeUnit timeunit) {
-        this.endTime = System.currentTimeMillis() + timeunit.toMillis(timeout);
-    }
-    
-    /**
-     * returns true if the task is done.
-     * @return true if thread has ended, false otherwise.
-     */
-    public boolean isDone() {
-        return this.isDone;
-    }
-    
-    /**
-     * Extends the runnable's lifetime lease.
-     * @param timeout timeout period
-     * @param timeunit timeout timeunit
-     */
-    public synchronized void increaseEndTimeBy(final long timeout, final TimeUnit timeunit) {
-        this.endTime = endTime + timeunit.toMillis(timeout);
-    }
-    
-    /**
-     * Returns the thread's end time.
-     * @return the thread's end time.
-     */
-    public synchronized long getEndTime() {
-        return endTime;
-    }
-    
-    private void setExecutionException(final Throwable e) {
-        synchronized (this.lock) {
-                this.executionException = e;
-        }
-    }
+	/**
+	 * Add a service to the polling callable. the service will be sampled until
+	 * it reaches it's planned number of instances or until a timeout exception
+	 * is thrown.
+	 * 
+	 * @param serviceName
+	 *            The absoulute pu name.
+	 * @param plannedNumberOfInstances
+	 *            planned number of instances.
+	 */
+	public void addService(final String serviceName,
+			final int plannedNumberOfInstances) {
+		this.serviceNames.put(serviceName, plannedNumberOfInstances);
+	}
 
-    /**
-     * gets the execution exception that occurred on the polling thread.
-     * @return the execution exception that occurred on the polling thread or null
-     */
-    public ExecutionException getExecutionException() {
-        synchronized (this.lock) {
-            if (this.executionException == null) {
-                return null;
-            }
-            return new ExecutionException(this.executionException);
-        }
-    }
-    
-    public void setFutureTask(final Future<?> future) {
-        this.futureTask = future;
-    }
+	/**
+	 * sets the services to poll and their planned number of instances.
+	 * 
+	 * @param isServiceInstall
+	 *            true if installation is for a single service.
+	 */
+	public void setIsServiceInstall(final boolean isServiceInstall) {
+		this.isServiceInstall = isServiceInstall;
+	}
 
-    @Override
-    public void run() {
-        
-    	try {
-    		if (this.serviceNames.isEmpty()) {
-    			logger.log(Level.INFO, "Polling for lifecycle events has ended successfully." 
-    					+ " Terminating the polling task");
-    			//We stop the thread from being scheduled again.
-    			throw new RestServiceException("Polling has ended successfully");
-    		} 
+	/**
+	 * Set to true if the action invoked was setInstances.
+	 * 
+	 * @param isSetInstances
+	 *            is the action a set instances action. default is set to false.
+	 */
+	public void setIsSetInstances(final boolean isSetInstances) {
+		this.isSetInstances = isSetInstances;
 
-    		if (System.currentTimeMillis() > this.endTime) {
-    			throw new TimeoutException("Timed out");
-    		}
+	}
 
-    		pollForLogs();
+	/**
+	 * Sets the runnable's lifetime lease.
+	 * 
+	 * @param timeout
+	 *            timeout period
+	 * @param timeunit
+	 *            timeout timeunit
+	 */
+	public synchronized void setEndTime(final long timeout,
+			final TimeUnit timeunit) {
+		this.endTime = System.currentTimeMillis() + timeunit.toMillis(timeout);
+	}
 
-    	} catch (Throwable e) {
-    		terminateTaskGracefully();
-    		if (!(e instanceof RestServiceException)) {
-    			logger.log(Level.INFO, "Polling task ended unexpectedly. Reason: " + e.getMessage(), e);
-    			setExecutionException(e);
-    		} else {
-    			logger.log(Level.INFO, "Polling task ended successfully.");
-    		}
-    		//this exception should not be caught. it is meant to make the scheduler stop
-    		//the thread execution.
-    		throw new RuntimeException(e);
+	/**
+	 * returns true if the task is done.
+	 * 
+	 * @return true if thread has ended, false otherwise.
+	 */
+	public boolean isDone() {
+		return this.isDone;
+	}
 
-    	} 
+	/**
+	 * Extends the runnable's lifetime lease.
+	 * 
+	 * @param timeout
+	 *            timeout period
+	 * @param timeunit
+	 *            timeout timeunit
+	 */
+	public synchronized void increaseEndTimeBy(final long timeout,
+			final TimeUnit timeunit) {
+		this.endTime = endTime + timeunit.toMillis(timeout);
+	}
 
-    }
+	/**
+	 * Returns the thread's end time.
+	 * 
+	 * @return the thread's end time.
+	 */
+	public synchronized long getEndTime() {
+		return endTime;
+	}
 
-    private void terminateTaskGracefully() {
-        this.isDone = true;
-        if (this.futureTask != null) {
-            this.futureTask.cancel(true);
-        }
-    }
+	private void setExecutionException(final Throwable e) {
+		synchronized (this.lock) {
+			this.executionException = e;
+		}
+	}
 
-    /**
-     * Goes over each service defined prior to the callable execution 
-     * and polls it for lifecycle and instance count events.
-     * @throws ExecutionException 
-     */
-    private void pollForLogs() throws ExecutionException {
+	/**
+	 * gets the execution exception that occurred on the polling thread.
+	 * 
+	 * @return the execution exception that occurred on the polling thread or
+	 *         null
+	 */
+	public ExecutionException getExecutionException() {
+		synchronized (this.lock) {
+			if (this.executionException == null) {
+				return null;
+			}
+			return new ExecutionException(this.executionException);
+		}
+	}
 
-        LinkedHashMap<String, Integer> serviceNamesClone = new LinkedHashMap<String, Integer>();
-        serviceNamesClone.putAll(this.serviceNames);
+	public void setFutureTask(final Future<?> future) {
+		this.futureTask = future;
+	}
 
-        for (String serviceName : serviceNamesClone.keySet()) {
-            
-            addServiceLifecycleLogs(serviceName);
-            
-            int plannedNumberOfInstances = getPlannedNumberOfInstances(serviceName);
-            int numberOfServiceInstances = getNumberOfServiceInstances(serviceName);
-            
-            addServiceInstanceCountEvents(serviceName, plannedNumberOfInstances, numberOfServiceInstances);
-            
-            removeEndedServicesFromPollingList(serviceName, plannedNumberOfInstances, numberOfServiceInstances);
-        }
-    }
+	@Override
+	public void run() {
 
-    private void removeEndedServicesFromPollingList(String serviceName, 
-            int plannedNumberOfInstances, int numberOfServiceInstances) throws ExecutionException {
-        
-        if (isUninstall) { 
-            String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-            final Zone zone = admin.getZones().waitFor(absolutePuName, ONE_SEC, TimeUnit.SECONDS);
-            if (zone == null) {
-            	try {
-            		Boolean undeployedSuccessfully = this.undeployTask.get(ONE_SEC, TimeUnit.SECONDS);
-            		if (undeployedSuccessfully) {
-            			this.serviceNames.remove(serviceName);
-            		}
-            	} catch (Exception e) {
-            		if (e instanceof TimeoutException) {
-            			//ignore
-            		} else {
-            			String message = "undeploy task has ended unsuccessfully. Some machines may not have been terminated!";
-            			logger.log(Level.WARNING, message, e);
-            			lifecycleEventsContainer.addInstanceCountEvent(message);
-            			throw new ExecutionException(message, e);
-            		}
+		try {
+			if (this.serviceNames.isEmpty()) {
+				logger.log(Level.INFO,
+						"Polling for lifecycle events has ended successfully."
+								+ " Terminating the polling task");
+				// We stop the thread from being scheduled again.
+				throw new RestServiceException("Polling has ended successfully");
+			}
+
+			if (System.currentTimeMillis() > this.endTime) {
+				throw new TimeoutException("Timed out");
+			}
+
+			pollForLogs();
+
+		} catch (final Throwable e) {
+			terminateTaskGracefully();
+			if (!(e instanceof RestServiceException)) {
+				logger.log(
+						Level.INFO,
+						"Polling task ended unexpectedly. Reason: "
+								+ e.getMessage(), e);
+				setExecutionException(e);
+			} else {
+				logger.log(Level.INFO, "Polling task ended successfully.");
+			}
+			// this exception should not be caught. it is meant to make the
+			// scheduler stop
+			// the thread execution.
+			throw new RuntimeException(e);
+
+		}
+
+	}
+
+	private void terminateTaskGracefully() {
+		this.isDone = true;
+		if (this.futureTask != null) {
+			this.futureTask.cancel(true);
+		}
+	}
+
+	/**
+	 * Goes over each service defined prior to the callable execution and polls
+	 * it for lifecycle and instance count events.
+	 * 
+	 * @throws ExecutionException
+	 */
+	private void pollForLogs() throws ExecutionException {
+
+		final LinkedHashMap<String, Integer> serviceNamesClone = new LinkedHashMap<String, Integer>();
+		serviceNamesClone.putAll(this.serviceNames);
+
+		for (final String serviceName : serviceNamesClone.keySet()) {
+
+			addServiceLifecycleLogs(serviceName);
+
+			final int plannedNumberOfInstances = getPlannedNumberOfInstances(serviceName);
+			final int numberOfServiceInstances = getNumberOfServiceInstances(serviceName);
+			final int numberOfFailedInstances = getNumberOfFailedInstances(serviceName);
+
+			addServiceInstanceCountEvents(serviceName,
+					plannedNumberOfInstances, numberOfServiceInstances, numberOfFailedInstances);
+
+			removeEndedServicesFromPollingList(serviceName,
+					plannedNumberOfInstances, numberOfServiceInstances,
+					numberOfFailedInstances);
+		}
+	}
+
+	private void removeEndedServicesFromPollingList(final String serviceName,
+			final int plannedNumberOfInstances,
+			final int numberOfServiceInstances,
+			final int numberOfFailedInstances) throws ExecutionException {
+
+		if (isUninstall) {
+			final String absolutePuName = ServiceUtils.getAbsolutePUName(
+					applicationName, serviceName);
+			final Zone zone = admin.getZones().waitFor(absolutePuName, ONE_SEC,
+					TimeUnit.SECONDS);
+			if (zone == null) {
+				try {
+					final Boolean undeployedSuccessfully = this.undeployTask
+							.get(ONE_SEC, TimeUnit.SECONDS);
+					if (undeployedSuccessfully) {
+						this.serviceNames.remove(serviceName);
+					}
+				} catch (final Exception e) {
+					if (e instanceof TimeoutException) {
+						// ignore
+					} else {
+						final String message = "undeploy task has ended unsuccessfully. "
+								+ "Some machines may not have been terminated!";
+						logger.log(Level.WARNING, message, e);
+						lifecycleEventsContainer.addInstanceCountEvent(message);
+						throw new ExecutionException(message, e);
+					}
 				}
-            }
-        } else {
-            if (plannedNumberOfInstances == numberOfServiceInstances) {
-                this.serviceNames.remove(serviceName);
-            }
-        }
-    }
+			}
+		} else {
+			if (plannedNumberOfInstances == numberOfServiceInstances
+					+ numberOfFailedInstances) {
+				this.serviceNames.remove(serviceName);
+			}
+		}
+	}
 
-    private void addServiceLifecycleLogs(final String serviceName) {
-        List<Map<String, String>> servicesLifecycleEventDetailes;
-        servicesLifecycleEventDetailes = new ArrayList<Map<String, String>>();
-        final String absolutePuName = ServiceUtils.getAbsolutePUName(
-                this.applicationName, serviceName);
-        logger.log(Level.FINE, 
-                "Polling for lifecycle events on service: " + absolutePuName);
-        final Zone zone = admin.getZones().getByName(absolutePuName);
-        if (zone == null) {
-            logger.log(Level.FINE, "Zone " + absolutePuName + " does not exist");
-            if (isUninstall) {
-                logger.log(Level.INFO, 
-                        "Polling for service " + absolutePuName + " has ended successfully");
-                this.serviceNames.remove(serviceName);
-            }
-            return;
-        }
-        //TODO: this is not very efficient. Maybe possible to move the LogEntryMatcher
-        //as field add to init to call .
-        final String regex = MessageFormat.format(USM_EVENT_LOGGER_NAME,
-                absolutePuName);
-        final LogEntryMatcher matcher = regex(regex);
-        for (final GridServiceContainer container : zone.getGridServiceContainers()) {
-            logger.log(Level.FINE, "Polling GSC with uid: " + container.getUid());
-        
-            final Date pollingStartTime = getGSCSamplingStartTime(container); 
-            final LogEntries logEntries = container.logEntries(matcher);
-            //Get lifecycle events.  
-            for (final LogEntry logEntry : logEntries) {
-                if (logEntry.isLog()) {
-                    if (pollingStartTime.before(new Date(logEntry.getTimestamp()))) {
-                        final Map<String, String> serviceEventsMap = getEventDetailes(
-                                logEntry, container, absolutePuName);
-                        servicesLifecycleEventDetailes.add(serviceEventsMap);
-                    }
-                }
-            }
+	private void addServiceLifecycleLogs(final String serviceName) {
+		List<Map<String, String>> servicesLifecycleEventDetailes;
+		servicesLifecycleEventDetailes = new ArrayList<Map<String, String>>();
+		final String absolutePuName = ServiceUtils.getAbsolutePUName(
+				this.applicationName, serviceName);
+		logger.log(Level.FINE, "Polling for lifecycle events on service: "
+				+ absolutePuName);
+		final Zone zone = admin.getZones().getByName(absolutePuName);
+		if (zone == null) {
+			logger.log(Level.FINE, "Zone " + absolutePuName + " does not exist");
+			if (isUninstall) {
+				logger.log(Level.INFO, "Polling for service " + absolutePuName
+						+ " has ended successfully");
+				this.serviceNames.remove(serviceName);
+			}
+			return;
+		}
+		// TODO: this is not very efficient. Maybe possible to move the
+		// LogEntryMatcher
+		// as field add to init to call .
+		final String regex = MessageFormat.format(USM_EVENT_LOGGER_NAME,
+				absolutePuName);
+		final LogEntryMatcher matcher = regex(regex);
+		for (final GridServiceContainer container : zone
+				.getGridServiceContainers()) {
+			logger.log(Level.FINE,
+					"Polling GSC with uid: " + container.getUid());
 
-            this.lifecycleEventsContainer.addLifecycleEvents(servicesLifecycleEventDetailes);
-        }
-    }
-    
-    //Returns the time the polling started for the specific gsc.
-    private Date getGSCSamplingStartTime(final GridServiceContainer gsc) {
-        final String uid = gsc.getUid();
-        if (this.gscStartTimeMap.containsKey(uid)) {
-            return this.gscStartTimeMap.get(uid);
-        } else {
-            Date date = new Date(
-                    new Date().getTime() + gsc.getOperatingSystem().getTimeDelta() - FIVE_SECONDS_MILLI);
-            this.gscStartTimeMap.put(uid, date);
-            return date;
-        }
-    }
+			final Date pollingStartTime = getGSCSamplingStartTime(container);
+			final LogEntries logEntries = container.logEntries(matcher);
+			// Get lifecycle events.
+			for (final LogEntry logEntry : logEntries) {
+				if (logEntry.isLog()) {
+					if (pollingStartTime.before(new Date(logEntry
+							.getTimestamp()))) {
+						final Map<String, String> serviceEventsMap = getEventDetailes(
+								logEntry, container, absolutePuName);
+						servicesLifecycleEventDetailes.add(serviceEventsMap);
+					}
+				}
+			}
 
-    private void addServiceInstanceCountEvents(String serviceName, int plannedNumberOfInstances, int numberOfServiceInstances) {
+			this.lifecycleEventsContainer
+					.addLifecycleEvents(servicesLifecycleEventDetailes);
+		}
+	}
 
-        String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+	// Returns the time the polling started for the specific gsc.
+	private Date getGSCSamplingStartTime(final GridServiceContainer gsc) {
+		final String uid = gsc.getUid();
+		if (this.gscStartTimeMap.containsKey(uid)) {
+			return this.gscStartTimeMap.get(uid);
+		} else {
+			final Date date = new Date(new Date().getTime()
+					+ gsc.getOperatingSystem().getTimeDelta()
+					- FIVE_SECONDS_MILLI);
+			this.gscStartTimeMap.put(uid, date);
+			return date;
+		}
+	}
 
-        if (numberOfServiceInstances == 0) {
-            if (!isUninstall) {
-                this.lifecycleEventsContainer.addInstanceCountEvent("Deploying " + serviceName + " with " 
-                        + plannedNumberOfInstances + " planned instances.");
-            }
-        } else {
-            this.lifecycleEventsContainer.addInstanceCountEvent("[" 
-                    + serviceName 
-                    + "] " + "Deployed "
-                    + numberOfServiceInstances
-                    + " planned "
-                    + plannedNumberOfInstances);
-        }
+	private void addServiceInstanceCountEvents(final String serviceName,
+			final int plannedNumberOfInstances,
+			final int numberOfServiceInstances,
+			final int numberOfFailedInstances) {
 
-        if (plannedNumberOfInstances ==  numberOfServiceInstances) {
-            if (!isServiceInstall) {
-                if (!isUninstall && !isSetInstances) {
-                    this.lifecycleEventsContainer.addInstanceCountEvent("Service \"" + serviceName 
-                            + "\" successfully installed (" + numberOfServiceInstances + " Instances)");
-                }
-            }
-        }
+		final String absolutePuName = ServiceUtils.getAbsolutePUName(
+				applicationName, serviceName);
 
-        final Zone zone = admin.getZones().getByName(absolutePuName);
-        if (zone == null) {
-            logger.log(Level.FINE, "Zone " + absolutePuName + " does not exist");
-            if (isUninstall) {
-                this.lifecycleEventsContainer.addInstanceCountEvent(
-                        "Undeployed service " + serviceName + ".");
-                this.lifecycleEventsContainer.addInstanceCountEvent("Service \"" + serviceName 
-                        + "\" uninstalled successfully");
-            }
-        }
-    }
+		if (numberOfServiceInstances == 0) {
+			if (!isUninstall) {
+				this.lifecycleEventsContainer
+						.addInstanceCountEvent("Deploying " + serviceName
+								+ " with " + plannedNumberOfInstances
+								+ " planned instances.");
+			}
+		} else {
+			String event = "[" + serviceName + "] " + "Deployed "
+					+ numberOfServiceInstances + " planned "
+					+ plannedNumberOfInstances;
+			if (numberOfFailedInstances > 0) {
+				event += " failed " + numberOfFailedInstances;
+			}
+			this.lifecycleEventsContainer.addInstanceCountEvent(event);
+		}
 
-    /**
-     * The planned number of service instances is saved to the serviceNames map
-     * during initialization of the callable.
-     * in case of datagrid deployment, the planned number of instances will be 
-     * reviled only after it's PU has been created and so we need to poll the pu
-     * to get the correct number of planned instances in case the pu is of type datagrid.
-     * 
-     * @param serviceName The service name
-     * @return planned number of service instances
-     */
-    private int getPlannedNumberOfInstances(final String serviceName) {
-        if (isUninstall) {
-            return 0;
-        }
-        String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-        ProcessingUnit processingUnit = admin.getProcessingUnits().getProcessingUnit(absolutePuName);
-        if (processingUnit != null) {
-            Map<String, String> elasticProperties = ((DefaultProcessingUnit) processingUnit).getElasticProperties();
-            if (elasticProperties.containsKey("schema")) {
-                String clusterSchemaValue = elasticProperties.get("schema");
-                if ("partitioned-sync2backup".equals(clusterSchemaValue)) {
-                    return processingUnit.getTotalNumberOfInstances();
-                }
-            }
-        }
+		if (plannedNumberOfInstances == numberOfServiceInstances) {
+			if (!isServiceInstall) {
+				if (!isUninstall && !isSetInstances) {
+					this.lifecycleEventsContainer
+							.addInstanceCountEvent("Service \"" + serviceName
+									+ "\" successfully installed ("
+									+ numberOfServiceInstances + " Instances)");
+				}
+			}
+		}
 
-        if (serviceNames.containsKey(serviceName)) {
-            return serviceNames.get(serviceName);
-        }
-        throw new IllegalStateException("Service planned number of instances is undefined");
+		final Zone zone = admin.getZones().getByName(absolutePuName);
+		if (zone == null) {
+			logger.log(Level.FINE, "Zone " + absolutePuName + " does not exist");
+			if (isUninstall) {
+				this.lifecycleEventsContainer
+						.addInstanceCountEvent("Undeployed service "
+								+ serviceName + ".");
+				this.lifecycleEventsContainer
+						.addInstanceCountEvent("Service \"" + serviceName
+								+ "\" uninstalled successfully");
+			}
+		}
+	}
 
-    }
+	/**
+	 * The planned number of service instances is saved to the serviceNames map
+	 * during initialization of the callable. in case of datagrid deployment,
+	 * the planned number of instances will be reviled only after it's PU has
+	 * been created and so we need to poll the pu to get the correct number of
+	 * planned instances in case the pu is of type datagrid.
+	 * 
+	 * @param serviceName
+	 *            The service name
+	 * @return planned number of service instances
+	 */
+	private int getPlannedNumberOfInstances(final String serviceName) {
+		if (isUninstall) {
+			return 0;
+		}
+		final String absolutePuName = ServiceUtils.getAbsolutePUName(
+				applicationName, serviceName);
+		final ProcessingUnit processingUnit = admin.getProcessingUnits()
+				.getProcessingUnit(absolutePuName);
+		if (processingUnit != null) {
+			final Map<String, String> elasticProperties = ((DefaultProcessingUnit) processingUnit)
+					.getElasticProperties();
+			if (elasticProperties.containsKey("schema")) {
+				final String clusterSchemaValue = elasticProperties
+						.get("schema");
+				if ("partitioned-sync2backup".equals(clusterSchemaValue)) {
+					return processingUnit.getTotalNumberOfInstances();
+				}
+			}
+		}
 
-    /**
-     *  Gets the service instance count for every type of
-     *  service (USM/Other). if the service pu is not running
-     *  yet, returns 0.
-     *  
-     * @param absolutePuName The absolute service name.
-     * @return the service's number of running instances.
-     */
-    private int getNumberOfServiceInstances(final String serviceName) {
-        String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-        ProcessingUnit processingUnit = admin.getProcessingUnits().getProcessingUnit(absolutePuName);
+		if (serviceNames.containsKey(serviceName)) {
+			return serviceNames.get(serviceName);
+		}
+		throw new IllegalStateException(
+				"Service planned number of instances is undefined");
 
-        if (processingUnit != null) {
-            if (processingUnit.getType().equals(
-                    ProcessingUnitType.UNIVERSAL)) {
-                return getNumberOfUSMServicesWithRunningState(absolutePuName);
-            }
+	}
 
-            return admin.getProcessingUnits()
-                    .getProcessingUnit(absolutePuName).getInstances().length;
-        }
-        return 0;
-    }
+	/**
+	 * Gets the service instance count for every type of service (USM/Other). if
+	 * the service pu is not running yet, returns 0.
+	 * 
+	 * @param absolutePuName
+	 *            The absolute service name.
+	 * @return the service's number of running instances.
+	 */
+	private int getNumberOfServiceInstances(final String serviceName) {
+		final String absolutePuName = ServiceUtils.getAbsolutePUName(
+				applicationName, serviceName);
+		final ProcessingUnit processingUnit = admin.getProcessingUnits()
+				.getProcessingUnit(absolutePuName);
 
-    // returns the number of RUNNING processing unit instances.
-    private int getNumberOfUSMServicesWithRunningState(
-            final String absolutePUName) {
+		if (processingUnit != null) {
+			if (processingUnit.getType().equals(ProcessingUnitType.UNIVERSAL)) {
+				return getNumberOfUSMServicesWithState(absolutePuName,
+						USMState.RUNNING);
+			}
 
-        int puInstanceCounter = 0;
-        ProcessingUnit processingUnit = admin.getProcessingUnits()
-                .getProcessingUnit(absolutePUName);
+			return admin.getProcessingUnits().getProcessingUnit(absolutePuName)
+					.getInstances().length;
+		}
+		return 0;
+	}
 
-        for (ProcessingUnitInstance pui : processingUnit) {
-            // TODO: get the instanceState step
-            if (isUsmStateOfPuiRunning(pui)) {
-                puInstanceCounter++;
-            }
-        }
-        return puInstanceCounter;
-    }
+	private int getNumberOfFailedInstances(final String serviceName) {
+		final String absolutePuName = ServiceUtils.getAbsolutePUName(
+				applicationName, serviceName);
+		final ProcessingUnit processingUnit = admin.getProcessingUnits()
+				.getProcessingUnit(absolutePuName);
 
-    private boolean isUsmStateOfPuiRunning(final ProcessingUnitInstance pui) {
-        ProcessingUnitInstanceStatistics statistics = pui.getStatistics();
-        if (statistics == null) {
-            return false;
-        }
-        Map<String, ServiceMonitors> puMonitors = statistics.getMonitors();
-        if (puMonitors == null) {
-            return false;
-        }
-        ServiceMonitors serviceMonitors = puMonitors.get("USM");
-        if (serviceMonitors == null) {
-            return false;
-        }
-        Map<String, Object> monitors = serviceMonitors.getMonitors();
-        if (monitors == null) {
-            return false;
-        }
-        
-        int instanceState = (Integer) monitors.get(CloudifyConstants.USM_MONITORS_STATE_ID);
-        if (CloudifyConstants.USMState.values()[instanceState]
-                .equals(CloudifyConstants.USMState.RUNNING)) {
-            return true;
-        }
-        return false;
-    }
+		if (processingUnit != null) {
+			if (processingUnit.getType().equals(ProcessingUnitType.UNIVERSAL)) {
+				return getNumberOfUSMServicesWithState(absolutePuName,
+						USMState.ERROR);
+			}
 
-    /**
-     * tells the polling task to expect uninstall or install of service.
-     * the default value is set to false.
-     * @param isUninstall is the task being preformed an uninstall task.
-     */
-    public void setIsUninstall(final boolean isUninstall) {
-        this.isUninstall = isUninstall; 
-    }
+			return 0;
+		}
+		return 0;
+	}
 
-    /**
-     * generates a map containing all of the event's details.
-     * @param logEntry The event log entry originated from the GSC log
-     * @param container the GSC of the specified event
-     * @param absolutePuName the absolute processing unit name.
-     * @return returns a details map containing all of an events details.
-     */
-    private Map<String, String> getEventDetailes(final LogEntry logEntry,
-            final GridServiceContainer container, final String absolutePuName) {
+	// returns the number of RUNNING processing unit instances.
 
-        final Map<String, String> returnMap = new HashMap<String, String>();
+	private int getNumberOfUSMServicesWithState(final String absolutePUName,
+			final USMState state) {
+		int puInstanceCounter = 0;
+		final ProcessingUnit processingUnit = admin.getProcessingUnits()
+				.getProcessingUnit(absolutePUName);
 
-        returnMap.put(EventLogConstants.getTimeStampKey(),
-                Long.toString(logEntry.getTimestamp()));
-        returnMap.put(EventLogConstants.getMachineHostNameKey(), container
-                .getMachine().getHostName());
-        returnMap.put(EventLogConstants.getMachineHostAddressKey(), container
-                .getMachine().getHostAddress());
-        returnMap.put(EventLogConstants.getServiceNameKey(),
-                ServiceUtils.getApplicationServiceName(absolutePuName,
-                        this.applicationName));
-        // The string replacement is done since the service name that is
-        // received from the USM logs derived from actual PU name.
-        returnMap.put(
-                EventLogConstants.getEventTextKey(),
-                logEntry.getText().replaceFirst(
-                        absolutePuName + "-",
-                        returnMap.get(EventLogConstants.getServiceNameKey())
-                        + "-"));
+		for (final ProcessingUnitInstance pui : processingUnit) {
+			// TODO: get the instanceState step
+			if (isUsmInState(pui, state)) {
+				puInstanceCounter++;
+			}
+		}
+		return puInstanceCounter;
+	}
 
-        return returnMap;
-    }
+	private boolean isUsmInState(final ProcessingUnitInstance pui,
+			final USMState state) {
+		final ProcessingUnitInstanceStatistics statistics = pui.getStatistics();
+		if (statistics == null) {
+			return false;
+		}
+		final Map<String, ServiceMonitors> puMonitors = statistics
+				.getMonitors();
+		if (puMonitors == null) {
+			return false;
+		}
+		final ServiceMonitors serviceMonitors = puMonitors.get("USM");
+		if (serviceMonitors == null) {
+			return false;
+		}
+		final Map<String, Object> monitors = serviceMonitors.getMonitors();
+		if (monitors == null) {
+			return false;
+		}
 
-	public void setUndeployTask(FutureTask<Boolean> undeployTask) {
+		final int instanceState = (Integer) monitors
+				.get(CloudifyConstants.USM_MONITORS_STATE_ID);
+		if (CloudifyConstants.USMState.values()[instanceState].equals(state)) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * tells the polling task to expect uninstall or install of service. the
+	 * default value is set to false.
+	 * 
+	 * @param isUninstall
+	 *            is the task being preformed an uninstall task.
+	 */
+	public void setIsUninstall(final boolean isUninstall) {
+		this.isUninstall = isUninstall;
+	}
+
+	/**
+	 * generates a map containing all of the event's details.
+	 * 
+	 * @param logEntry
+	 *            The event log entry originated from the GSC log
+	 * @param container
+	 *            the GSC of the specified event
+	 * @param absolutePuName
+	 *            the absolute processing unit name.
+	 * @return returns a details map containing all of an events details.
+	 */
+	private Map<String, String> getEventDetailes(final LogEntry logEntry,
+			final GridServiceContainer container, final String absolutePuName) {
+
+		final Map<String, String> returnMap = new HashMap<String, String>();
+
+		returnMap.put(EventLogConstants.getTimeStampKey(),
+				Long.toString(logEntry.getTimestamp()));
+		returnMap.put(EventLogConstants.getMachineHostNameKey(), container
+				.getMachine().getHostName());
+		returnMap.put(EventLogConstants.getMachineHostAddressKey(), container
+				.getMachine().getHostAddress());
+		returnMap.put(EventLogConstants.getServiceNameKey(),
+				ServiceUtils.getApplicationServiceName(absolutePuName,
+						this.applicationName));
+		// The string replacement is done since the service name that is
+		// received from the USM logs derived from actual PU name.
+		returnMap.put(
+				EventLogConstants.getEventTextKey(),
+				logEntry.getText().replaceFirst(
+						absolutePuName + "-",
+						returnMap.get(EventLogConstants.getServiceNameKey())
+								+ "-"));
+
+		return returnMap;
+	}
+
+	public void setUndeployTask(final FutureTask<Boolean> undeployTask) {
 		this.undeployTask = undeployTask;
-		
+
 	}
 }

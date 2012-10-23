@@ -1279,12 +1279,17 @@ public class ServiceController implements ServiceDetailsProvider{
 			",\"lifecycleEventContainerID\":\"07db2a16-62f8-4669-ac41-ed9afe3a3b02\"}", comments="")
 	@PossibleResponseStatuses(codes = {200, 500, 500}, descriptions = {"success", "DSLException", "IOException"})
 	@RequestMapping(value = "applications/{applicationName}/timeout/{timeout}", method = RequestMethod.POST)
-	public @ResponseBody
+	
 	Object deployApplication(@PathVariable final String applicationName, @PathVariable final int timeout,
-			@RequestParam(value = "file", required = true) final MultipartFile srcFile)
+			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
+			@RequestParam(value = "selfHealing", required = false ) final Boolean selfHealing)
 			throws IOException, DSLException {
 		final File applicationFile = copyMultipartFileToLocalFile(srcFile);
-		final Object returnObject = doDeployApplication(applicationName, applicationFile, timeout);
+		boolean actualSelfHealing = true;
+		if(selfHealing != null && !selfHealing) {
+			actualSelfHealing = false;
+		}
+		final Object returnObject = doDeployApplication(applicationName, applicationFile, timeout, actualSelfHealing);
 		applicationFile.delete();
 		return returnObject;
 	}
@@ -1509,7 +1514,8 @@ public class ServiceController implements ServiceDetailsProvider{
 		}
 	}
 
-	private Object doDeployApplication(final String applicationName, final File applicationFile, final int timeout)
+	private Object doDeployApplication(final String applicationName, final File applicationFile, final int timeout, 
+			final boolean selfHealing)
 			throws IOException, DSLException {
 		final DSLApplicationCompilatioResult result = ServiceReader.getApplicationFromFile(applicationFile);
 		final List<Service> services = createServiceDependencyOrder(result.getApplication());
@@ -1526,7 +1532,7 @@ public class ServiceController implements ServiceDetailsProvider{
 		}
 
 		final ApplicationInstallerRunnable installer =
-				new ApplicationInstallerRunnable(this, result, applicationName, services, this.cloud);
+				new ApplicationInstallerRunnable(this, result, applicationName, services, this.cloud, selfHealing);
 
 		if (installer.isAsyncInstallPossibleForApplication()) {
 			installer.run();
@@ -1579,7 +1585,7 @@ public class ServiceController implements ServiceDetailsProvider{
 
 	private void doDeploy(final String applicationName, final String serviceName, final String templateName,
 			final String[] agentZones, final File serviceFile, final Properties contextProperties, final Service service, 
-			final byte[] serviceCloudConfigurationContents)
+			final byte[] serviceCloudConfigurationContents, final boolean selfHealing)
 			throws TimeoutException, DSLException{
 
 		
@@ -1592,6 +1598,10 @@ public class ServiceController implements ServiceDetailsProvider{
 		final int reservedMemoryCapacityPerMachineInMB = 256;
 
 		contextProperties.put(CloudifyConstants.CONTEXT_PROPERTY_ASYNC_INSTALL, "true");
+		if(!selfHealing) {
+			contextProperties.put(CloudifyConstants.CONTEXT_PROPERTY_DISABLE_SELF_HEALING, "false");
+		}
+		
 		
 		final ElasticStatelessProcessingUnitDeployment deployment =
 				new ElasticStatelessProcessingUnitDeployment(serviceFile)
@@ -1798,7 +1808,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	public String deployElasticProcessingUnit(final String serviceName, final String applicationName,
 			final String zone, final File srcFile, final Properties propsFile, final String originalTemplateName,
 			final boolean isApplicationInstall, final int timeout, final TimeUnit timeUnit,
-			final byte[] serviceCloudConfigurationContents)
+			final byte[] serviceCloudConfigurationContents, final boolean selfHealing)
 			throws TimeoutException, PackagingException, IOException, AdminException, DSLException {
 
 		String templateName;
@@ -1842,9 +1852,9 @@ public class ServiceController implements ServiceDetailsProvider{
 		}
 		
 		if (service == null) {
-			doDeploy(applicationName, serviceName, templateName, agentZones, srcFile, propsFile);
+			doDeploy(applicationName, serviceName, templateName, agentZones, srcFile, propsFile, selfHealing);
 		} else if (service.getLifecycle() != null) {
-			doDeploy(applicationName, serviceName, templateName, agentZones, srcFile, propsFile, service, serviceCloudConfigurationContents);
+			doDeploy(applicationName, serviceName, templateName, agentZones, srcFile, propsFile, service, serviceCloudConfigurationContents, selfHealing);
 		} else if (service.getDataGrid() != null) {
 			deployDataGrid(applicationName, serviceName, agentZones, srcFile, propsFile, service.getDataGrid(), templateName, service.isLocationAware());
 		} else if (service.getStatelessProcessingUnit() != null) {
@@ -1889,9 +1899,9 @@ public class ServiceController implements ServiceDetailsProvider{
 
 	private void doDeploy(final String applicationName, final String serviceName, final String templateName,
 			final String[] agentZones, final File srcFile,
-			final Properties propsFile)
+			final Properties propsFile, final boolean selfHealing)
 			throws TimeoutException, DSLException {
-		doDeploy(applicationName, serviceName, templateName, agentZones, srcFile, propsFile, null, null);
+		doDeploy(applicationName, serviceName, templateName, agentZones, srcFile, propsFile, null, null, selfHealing);
 	}
 
 	// TODO: add getters for service processing units in the service class that
@@ -1925,7 +1935,8 @@ public class ServiceController implements ServiceDetailsProvider{
 			@RequestParam(value = "template", required = false) final String templateName, 
 			@RequestParam(value = "zone", required = true) final String zone,
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile, 
-			@RequestParam(value = "props",required = true) final MultipartFile propsFile)
+			@RequestParam(value = "props",required = true) final MultipartFile propsFile,
+			@RequestParam(value = "selfHealing", required = false, defaultValue = "true") final Boolean selfHealing)
 			throws TimeoutException, PackagingException, IOException, AdminException, DSLException {
 
 		logger.info("Deploying service with template: " + templateName);
@@ -1969,14 +1980,14 @@ public class ServiceController implements ServiceDetailsProvider{
 
 			lifecycleEventsContainerID =
 					deployElasticProcessingUnit(absolutePuName, applicationName, zone, destFile, props,
-							actualTemplateName, false, timeout, TimeUnit.MINUTES, cloudConfigurationContents);
+							actualTemplateName, false, timeout, TimeUnit.MINUTES, cloudConfigurationContents, selfHealing);
 			destFile.deleteOnExit();
 		} else {
 			logger.warning("Deployment file could not be renamed to the absolute pu name."
 					+ " Deploaying using the name " + dest.getName());
 			lifecycleEventsContainerID =
 					deployElasticProcessingUnit(absolutePuName, applicationName, zone, dest, props, actualTemplateName,
-							false, timeout, TimeUnit.MINUTES, null);
+							false, timeout, TimeUnit.MINUTES, null,selfHealing);
 			dest.deleteOnExit();
 		}
 

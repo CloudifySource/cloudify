@@ -510,11 +510,26 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	}
 
 	private void installAndRun() throws USMException, TimeoutException {
-		getUsmLifecycleBean().install();
-		if (this.asyncInstall) {
-			waitForDependencies();
+		try {
+			getUsmLifecycleBean().install();
+			if (this.asyncInstall) {
+				waitForDependencies();
+			}
+			launch();
+		} catch (USMException e) {
+			if (this.selfHealing) {
+				throw e;
+			} else {
+				// This exception is intentionally swallowed so the USM will not be reloaded by the GSM
+				// for a retry.
+				logger.log(
+						Level.SEVERE,
+						"An exception was encountered while executing the service lifecycle. "
+								+ "Self-healing is disabled so this service will not be restarted.",
+						e);
+				this.state = USMState.ERROR;
+			}
 		}
-		launch();
 
 	}
 
@@ -1251,6 +1266,16 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	private Exception shutdownUSMException;
 	private String[] dependencies;
 
+	/******************
+	 * Self healing allows a service instance to attempt a retry in case of a
+	 * failure. If self healing is disabled, the service instance will not shut
+	 * down if an error is encountered. The service lifecycle will stop at the
+	 * current stage and will not proceed. Service monitors will not execute.
+	 * 
+	 * Defaults to true.
+	 */
+	private boolean selfHealing = true;
+
 	private void markUSMAsFailed(final Exception ex) {
 		this.shutdownUSMException = ex;
 	}
@@ -1286,6 +1311,14 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		this.dependencies = parseDependenciesString(dependenciesString);
 		logger.info("Dependencies for this service: "
 				+ Arrays.toString(this.dependencies));
+		
+		final String selfHealingProperty = beanLevelProperties.getContextProperties().getProperty(CloudifyConstants.CONTEXT_PROPERTY_DISABLE_SELF_HEALING);
+		if(selfHealingProperty != null){
+			logger.info("Disable self healing context property is set to: " + selfHealingProperty);
+			this.selfHealing = Boolean.parseBoolean(selfHealingProperty);
+		} else {
+			this.selfHealing =true;
+		}
 
 	}
 

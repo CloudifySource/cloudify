@@ -69,6 +69,11 @@ public class InstallApplication extends AdminAwareCommand {
 			+ " is done.")
 	private int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
 
+	@Option(required = false, name = "-disableSelfHealing",
+			description = "Disables service self healing")
+	private boolean disableSelfHealing = false;
+
+	
 	@Option(required = false, name = "-cloudConfiguration",
 			description = "File or directory containing configuration information to be used by the cloud driver "
 					+ "for this application")
@@ -120,7 +125,7 @@ public class InstallApplication extends AdminAwareCommand {
 		logger.info("Uploading application " + applicationName);
 
 		final Map<String, String> result =
-				adminFacade.installApplication(zipFile, applicationName, getTimeoutInMinutes());
+				adminFacade.installApplication(zipFile, applicationName, getTimeoutInMinutes(), !disableSelfHealing);
 
 		final String serviceOrder = result.get(CloudifyConstants.SERVICE_ORDER);
 

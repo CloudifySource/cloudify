@@ -35,7 +35,12 @@ public final class CloudifyConstants {
 		INITIALIZING,
 		LAUNCHING,
 		RUNNING,
-		SHUTTING_DOWN
+		SHUTTING_DOWN,
+		/**
+		 * Indicates that the service instance has failed for some reason 
+		 * but self-healing was disabled to the service instance will not shut down.
+		 */
+		ERROR
 	}
 	/***
 	 * Context properties for deployed services.
@@ -50,6 +55,7 @@ public final class CloudifyConstants {
 	public static final String CONTEXT_PROPERTY_CLOUD_NAME = "com.gs.cloudify.cloud-name";
 	public static final String CONTEXT_PROPERTY_PROPERTIES_FILE_NAME = "com.gs.cloudify.properties-file-name";
 	public static final String CONTEXT_PROPERTY_ASYNC_INSTALL = "com.gs.cloudify.async-install";
+	public static final String CONTEXT_PROPERTY_DISABLE_SELF_HEALING= "com.gs.cloudify.disable-self-healing";
 	public static final String CONTEXT_PROPERTY_APPLICATION_NAME = "com.gs.application";
 	public static final String CONTEXT_PROPERTY_ELASTIC = "com.gs.service.elastic";
 	public static final String CONTEXT_PROPERTY_TEMPLATE = "com.gs.service.template";

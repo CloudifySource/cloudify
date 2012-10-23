@@ -78,6 +78,10 @@ public class InstallService extends AdminAwareCommand {
 			description = "File of directory containing configuration information to be used by the cloud driver "
 					+ "for this application")
 	private File cloudConfiguration;
+	
+	@Option(required = false, name = "-disableSelfHealing",
+			description = "Disables service self healing")
+	private boolean disableSelfHealing = false;
 
 	private static final String TIMEOUT_ERROR_MESSAGE = "Service installation timed out."
 			+ " Configure the timeout using the -timeout flag.";
@@ -166,7 +170,7 @@ public class InstallService extends AdminAwareCommand {
 		}
 
 		final String lifecycleEventContainerPollingID = adminFacade.installElastic(packedFile,
-				currentApplicationName, serviceName, zone, props, templateName, getTimeoutInMinutes());
+				currentApplicationName, serviceName, zone, props, templateName, getTimeoutInMinutes(), !disableSelfHealing);
 
 		final RestLifecycleEventsLatch lifecycleEventsPollingLatch = this.adminFacade.
 				getLifecycleEventsPollingLatch(lifecycleEventContainerPollingID, TIMEOUT_ERROR_MESSAGE);
@@ -198,6 +202,8 @@ public class InstallService extends AdminAwareCommand {
 			FileUtils.deleteQuietly(packedFile.getParentFile());
 		}
 
+		// TODO - server may have failed! We should check the service state and decide accordingly
+		// which message to display.
 		return getFormattedMessage("service_install_ended", Color.GREEN, serviceName);
 	}
 
@@ -306,6 +312,14 @@ public class InstallService extends AdminAwareCommand {
 
 	public void setTimeoutInMinutes(final int timeoutInMinutes) {
 		this.timeoutInMinutes = timeoutInMinutes;
+	}
+
+	public boolean isDisableSelfHealing() {
+		return disableSelfHealing;
+	}
+
+	public void setDisableSelfHealing(boolean disableSelfHealing) {
+		this.disableSelfHealing = disableSelfHealing;
 	}
 
 }
