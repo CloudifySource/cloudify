@@ -178,9 +178,8 @@ public class InstallApplication extends AdminAwareCommand {
 				if (!continueInstallation) {
 					throw new CLIStatusException(e, "application_installation_timed_out_on_client",
 							applicationName);
-				} else {
-					continuous = true;
 				}
+				continuous = true;
 			}
 		}
 

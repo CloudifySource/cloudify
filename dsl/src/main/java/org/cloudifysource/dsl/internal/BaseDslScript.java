@@ -20,7 +20,6 @@ import groovy.lang.Script;
 
 import java.beans.PropertyDescriptor;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -59,7 +58,6 @@ import org.cloudifysource.dsl.cloud.CloudUser;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntryFactory;
 import org.cloudifysource.dsl.entry.ExecutableEntriesMap;
-import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.scalingrules.HighThresholdDetails;
 import org.cloudifysource.dsl.scalingrules.LowThresholdDetails;
 import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
@@ -732,19 +730,10 @@ public abstract class BaseDslScript extends Script {
 		// Load the service
 		DSLServiceCompilationResult result;
 		try {
-			result = ServiceReader.getServiceFromDirectory(serviceDir, ((Application) this.rootObject).getName());
-		} catch (final FileNotFoundException e) {
-			throw new IllegalArgumentException("Failed to load service: " + serviceName
-					+ " while loading application: " + e.getMessage(),
-					e);
-		} catch (final PackagingException e) {
-			throw new IllegalArgumentException("Failed to load service: " + serviceName
-					+ " while loading application: " + e.getMessage(),
-					e);
+			result = ServiceReader.getApplicationServiceFromDirectory(serviceDir, getBinding().getVariables());
 		} catch (final DSLException e) {
 			throw new IllegalArgumentException("Failed to load service: " + serviceName
-					+ " while loading application: " + e.getMessage(),
-					e);
+					+ " while loading application: " + e.getMessage(), e);
 		}
 		final Service service = result.getService();
 

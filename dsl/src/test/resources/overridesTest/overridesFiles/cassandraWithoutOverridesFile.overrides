@@ -1,7 +1,2 @@
-properties{
-	serviceName =  "overridesTest"
-}
-
-fields {
-	service.numInstances = 3
-}
+serviceName =  "overridesTest"
+numInstances = 3

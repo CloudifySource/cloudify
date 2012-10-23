@@ -87,6 +87,7 @@ public class DSLReader {
 	private final Map<String, Object> bindingProperties = new HashMap<String, Object>();
 	private Map<String, Object> overrideProperties = new HashMap<String, Object>();
 	private Map<String, Object> overrideFields = new HashMap<String, Object>();
+	private Map<String, Object> applicationProperties = new HashMap<String, Object>();
 
 	private String dslContents;
 
@@ -259,6 +260,7 @@ public class DSLReader {
 			properties = createDSLProperties();
 			createDSLOverrides();
 			overrideProperties(properties);
+			addApplicationProperties(properties);
 		} catch (final Exception e) {
 			// catching exception here, as groovy config slurper may throw just
 			// about anything
@@ -293,7 +295,7 @@ public class DSLReader {
 			throw new DSLException("The DSL evaluated to a null - check your syntax and try again");
 		}
 
-		overrideFields(result);
+//		overrideFields(result);
 
 		if (this.createServiceContext) {
 			if (!(result instanceof Service)) {
@@ -319,6 +321,18 @@ public class DSLReader {
 
 	}
 
+	private void addApplicationProperties(LinkedHashMap<Object, Object> properties) {
+		if (applicationProperties == null) {
+			return;
+		}
+		for (Entry<String, Object>  entry : applicationProperties.entrySet()) {
+			String propertyName = entry.getKey();
+			Object propertyValue = entry.getValue();
+
+			properties.put(propertyName, propertyValue);
+		}		
+	}
+
 	private void overrideProperties(LinkedHashMap<Object, Object> properties) {
 		if (overridesFile == null) {
 			return;
@@ -330,7 +344,7 @@ public class DSLReader {
 				properties.put(key, propertyValue);
 			}
 			else {
-				overrideFields.put(key, propertyValue);			
+				throw new IllegalArgumentException("Cannot override property[" + key + "]. It doesn't exist in the properties file.");			
 			}
 		}		
 	}
@@ -740,6 +754,14 @@ public class DSLReader {
 
 	public Map<String, Object> getOverrideFields() {
 		return this.overrideFields;
+	}
+	
+	public Map<String, Object> getApplicationProperties() {
+		return applicationProperties;
+	}
+
+	public void setApplicationProperties(Map<String, Object> applicationProperties) {
+		this.applicationProperties = applicationProperties;
 	}
 
 }

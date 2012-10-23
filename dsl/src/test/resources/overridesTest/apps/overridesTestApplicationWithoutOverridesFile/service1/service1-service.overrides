@@ -1,4 +1,2 @@
-service.numInstances = 3
 serviceName = "overridenService1"
-service.lifecycle.init = "${serviceName}_install.groovy"
-//service.plugins[0].className = "${serviceName}Plugin1ClassName"
+numInstancesProperty = 11

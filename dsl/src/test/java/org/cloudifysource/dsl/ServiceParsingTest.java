@@ -364,7 +364,7 @@ public class ServiceParsingTest {
 		final File dir = new File(TEST_PARSING_RESOURCE_PATH2 
 				+ "loadScalingRule");
 		
-		final Service service = ServiceReader.getServiceFromDirectory(dir, "default").getService();
+		final Service service = ServiceReader.getServiceFromDirectory(dir).getService();
 				
 
 		Assert.assertTrue(service.getScalingRules().size() > 0);
@@ -375,7 +375,7 @@ public class ServiceParsingTest {
 		final File dir = new File(TEST_PARSING_RESOURCE_PATH2 
 				+ "loadScalingRules");
 		
-		final Service service = ServiceReader.getServiceFromDirectory(dir, "default").getService();
+		final Service service = ServiceReader.getServiceFromDirectory(dir).getService();
 				
 
 		Assert.assertTrue(service.getScalingRules().size() > 0);

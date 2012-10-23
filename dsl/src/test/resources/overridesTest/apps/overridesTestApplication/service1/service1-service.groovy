@@ -14,11 +14,13 @@
 * limitations under the License.
 *******************************************************************************/
 service {
-  name "${serviceName}"
-  icon "test.png"
+  name serviceName
+  icon "${applicationIcon}.png"
+  
+  numInstances numInstancesProperty
+  minAllowedInstances 1
+  maxAllowedInstances 15
+  
   type "NOSQL_DB"
-  lifecycle{
-		init 		"service1_install.groovy"
-		start 		"service1_start.groovy"
-	}
+  
 }

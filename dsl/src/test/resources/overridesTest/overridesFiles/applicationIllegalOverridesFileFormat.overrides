@@ -1,3 +1,1 @@
-applicationName = "overridesTestApplicationOverriden"
-application.services(service2).name = "overridesTestApplicationOverridenService2"
-
+service1.serviceName = "service1"

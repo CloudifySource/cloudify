@@ -1,4 +1,3 @@
-service.numInstances = 3
 serviceName = "overridesTest"
-service.lifecycle.init = "${serviceName}_install.groovy"
-//service.plugins.item0.className = "cassandra1Plugin1ClassName"
+lifecycle_init = "${serviceName}_install.groovy"
+numInstances = 3

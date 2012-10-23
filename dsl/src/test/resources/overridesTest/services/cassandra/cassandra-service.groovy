@@ -17,12 +17,12 @@ service {
   name "${serviceName}"
   icon "Apache-cassandra-icon.png"
   elastic true
-  numInstances 1
+  numInstances ${numInstances}
   minAllowedInstances 1
   maxAllowedInstances 3
   type "NOSQL_DB"
   lifecycle{
-		init 		"cassandra_install.groovy"
+		init 		"${lifecycle_init}"
 		preStart 	"cassandra_prestart.groovy"
 		start 		"cassandra_start.groovy"
 		postStart 	"cassandra_poststart.groovy"

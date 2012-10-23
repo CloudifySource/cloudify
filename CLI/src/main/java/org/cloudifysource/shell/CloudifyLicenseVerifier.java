@@ -42,7 +42,7 @@ public class CloudifyLicenseVerifier {
 
 		final LicenseManager manager = new LicenseManager();
 		try {
-			manager.verifyLicenseIfExists();
+			manager.verifyLicense();
 		} catch (final LicenseException e) {
 			throw new CLIStatusException("bad_license", e.getMessage());
 		}

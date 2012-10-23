@@ -143,7 +143,7 @@ public class InstallService extends AdminAwareCommand {
 			} else {
 				// serviceFile is a zip file
 				packedFile = recipe;
-				service = ServiceReader.readServiceFromZip(packedFile, CloudifyConstants.DEFAULT_APPLICATION_NAME);
+				service = ServiceReader.readServiceFromZip(packedFile);
 			}
 		} catch (final IOException e) {
 			throw new CLIException(e);

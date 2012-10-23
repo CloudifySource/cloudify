@@ -14,7 +14,7 @@
 * limitations under the License.
 *******************************************************************************/
 application {
-	name="${applicationName}"
+	name = applicationName
 	
 	service {
 		name = "service1"	

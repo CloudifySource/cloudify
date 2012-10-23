@@ -1942,7 +1942,7 @@ public class ServiceController implements ServiceDetailsProvider{
 						ServiceReader.getServiceFromFile(new File(workingProjectDir, serviceFileName),
 								workingProjectDir);
 			} else {
-				result = ServiceReader.getServiceFromDirectory(workingProjectDir, applicationName);
+				result = ServiceReader.getServiceFromDirectory(workingProjectDir);
 			}
 			service = result.getService();
 			// cloud = ServiceReader.getCloudFromDirectory(new File(projectDir,
