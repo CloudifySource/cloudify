@@ -593,6 +593,8 @@ public class AgentlessInstaller {
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP,
 						details.getPrivateIp())
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP,
+						details.getPublicIp())
+				.exportVar(CloudifyConstants.CLOUDIFY_CLOUD_TEMPLATE_NAME,
 						details.getPublicIp());
 
 		if (details.getReservationId() != null) {
