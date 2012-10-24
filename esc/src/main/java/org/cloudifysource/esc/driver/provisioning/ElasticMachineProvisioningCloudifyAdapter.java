@@ -66,9 +66,7 @@ import org.openspaces.core.bean.Bean;
 import org.openspaces.grid.gsm.capacity.CapacityRequirements;
 import org.openspaces.grid.gsm.capacity.CpuCapacityRequirement;
 import org.openspaces.grid.gsm.capacity.MemoryCapacityRequirement;
-import org.openspaces.grid.gsm.machines.isolation.DedicatedMachineIsolation;
 import org.openspaces.grid.gsm.machines.isolation.ElasticProcessingUnitMachineIsolation;
-import org.openspaces.grid.gsm.machines.isolation.SharedMachineIsolation;
 import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioning;
 import org.openspaces.grid.gsm.machines.plugins.events.GridServiceAgentStartRequestedEvent;
 import org.openspaces.grid.gsm.machines.plugins.events.GridServiceAgentStartedEvent;
@@ -89,8 +87,6 @@ import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticMachineProvisi
  * 
  */
 public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachineProvisioning, Bean {
-
-	private static final String COLON_CHAR = ":";
 	
 	private static final String REMOTE_ADMIN_SHARE_CHAR = "$";
 	
@@ -158,20 +154,23 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		List<GridServiceAgent> result = new ArrayList<GridServiceAgent>();
 		GridServiceAgent[] agents = this.originalESMAdmin.getGridServiceAgents().getAgents();
 		for (GridServiceAgent agent : agents) {
-			String template = agent.getVirtualMachine().getDetails().getEnvironmentVariables().get(CloudifyConstants.CLOUDIFY_CLOUD_TEMPLATE_NAME);
+			String template = agent.getVirtualMachine().getDetails()
+					.getEnvironmentVariables().get(CloudifyConstants.CLOUDIFY_CLOUD_TEMPLATE_NAME);
 			if (template != null) { // management machines don't have this variable attached
 				if (template.equals(this.cloudTemplateName)) {
 					result.add(agent);
 				}
 			} else {
-				logger.fine("in getDiscoveredMachines() --> agent on host " + agent.getMachine().getHostAddress() + " does not have a template name attached to its env variables");
+				logger.fine("in getDiscoveredMachines() --> agent on host " + agent.getMachine().getHostAddress() 
+						+ " does not have a template name attached to its env variables");
 			}
 		}
 		
 		return result.toArray(new GridServiceAgent[result.size()]);
 	}
 
-	private InstallationDetails createInstallationDetails(final Cloud cloud, final MachineDetails md, GSAReservationId reservationId)
+	private InstallationDetails createInstallationDetails(final Cloud cloud, final MachineDetails md, 
+			final GSAReservationId reservationId)
 			throws FileNotFoundException {
 		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplateName);
 
@@ -203,15 +202,19 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	@Override
 	public GridServiceAgent startMachine(final long duration, final TimeUnit unit)
-			throws ElasticMachineProvisioningException, ElasticGridServiceAgentProvisioningException, InterruptedException, TimeoutException {
+			throws ElasticMachineProvisioningException, 
+			ElasticGridServiceAgentProvisioningException, InterruptedException, TimeoutException {
 		GSAReservationId reservationId = null;
 		ExactZonesConfig zones = new ExactZonesConfig();
 		return startMachine(zones, reservationId, duration, unit);
 	}
 
 	@Override
-	public GridServiceAgent startMachine(final ExactZonesConfig zones, final GSAReservationId reservationId, final long duration, final TimeUnit unit)
-			throws ElasticMachineProvisioningException, ElasticGridServiceAgentProvisioningException, InterruptedException, TimeoutException {
+	public GridServiceAgent startMachine(final ExactZonesConfig zones, final GSAReservationId reservationId, 
+			final long duration, 
+			final TimeUnit unit)
+			throws ElasticMachineProvisioningException, 
+				ElasticGridServiceAgentProvisioningException, InterruptedException, TimeoutException {
 
 		logger.info("Cloudify Adapter is starting a new machine with zones " + zones.getZones());
 		// calculate timeout
@@ -239,9 +242,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				if (locationId == null) {
 					locationId = zone.substring(CLOUD_ZONE_PREFIX.length());
 					logger.fine("passing locationId to machine provisioning as " + locationId);
-				}
-	             else {
-	                throw new IllegalArgumentException("The specified zones " + zones + " should include only one zone with the " + CLOUD_ZONE_PREFIX + " prefix:" + locationId);
+				} else {
+	                throw new IllegalArgumentException("The specified zones " + zones 
+	                		+ " should include only one zone with the " + CLOUD_ZONE_PREFIX + " prefix:" + locationId);
 	             }
 			}
 		}
@@ -317,12 +320,15 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 						+ "but a GSA was not discovered on the new machine: " + machineDetails);
 			}
 			//TODO: Derive cloudify specific event and include more event details as specified in CLOUDIFY-10651
-			agentEventListener.elasticGridServiceAgentProvisioningProgressChanged(new GridServiceAgentStartedEvent(machineIp, gsa.getUid()));
+			agentEventListener.elasticGridServiceAgentProvisioningProgressChanged(
+					new GridServiceAgentStartedEvent(machineIp, gsa.getUid()));
 			
 			// check that the agent is really started with the expected env variable of the template
 			// we inject this variable earlier on to the bootstrap-management.sh script
-			if (gsa.getVirtualMachine().getDetails().getEnvironmentVariables().get(CloudifyConstants.CLOUDIFY_CLOUD_TEMPLATE_NAME) == null) {
-				throw new ElasticGridServiceAgentProvisioningException("an agent was started. but the property " + CloudifyConstants.CLOUDIFY_CLOUD_TEMPLATE_NAME + " was missing from its environment variables.");
+			if (gsa.getVirtualMachine().getDetails().getEnvironmentVariables().
+					get(CloudifyConstants.CLOUDIFY_CLOUD_TEMPLATE_NAME) == null) {
+				throw new ElasticGridServiceAgentProvisioningException("an agent was started. but the property " 
+					+ CloudifyConstants.CLOUDIFY_CLOUD_TEMPLATE_NAME + " was missing from its environment variables.");
 			}
 			
 			return gsa;
@@ -396,8 +402,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		}
 	}
 
-	private void installAndStartAgent(final MachineDetails machineDetails, GSAReservationId reservationId, final long end)
-			throws TimeoutException, InterruptedException, ElasticMachineProvisioningException, ElasticGridServiceAgentProvisioningException {
+	private void installAndStartAgent(final MachineDetails machineDetails, 
+			final GSAReservationId reservationId, final long end)
+			throws TimeoutException, InterruptedException, 
+			ElasticMachineProvisioningException, ElasticGridServiceAgentProvisioningException {
 		final AgentlessInstaller installer = new AgentlessInstaller();
 
 		InstallationDetails installationDetails;
@@ -653,13 +661,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	}
 	
-	private String getWindowsLocalDirPath(String remoteDirectoryPath, String localDirName) {
+	private String getWindowsLocalDirPath(final String remoteDirectoryPath, final String localDirName) {
 		String homeDirectoryName = getWindowsRemoteDirPath(remoteDirectoryPath);
 		File localDirectory = new File(homeDirectoryName, localDirName);
 		return localDirectory.getAbsolutePath();
 	}
 
-	private String getWindowsRemoteDirPath(String remoteDirectoryPath) {
+	private String getWindowsRemoteDirPath(final String remoteDirectoryPath) {
 		String homeDirectoryName = remoteDirectoryPath;
 		homeDirectoryName = homeDirectoryName.replace(REMOTE_ADMIN_SHARE_CHAR, "");
 		if (homeDirectoryName.startsWith(FORWARD_SLASH)) {
@@ -750,8 +758,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	/**
 	 * @param isolation - describes the relation between different service instances on the same machine
-	 * 				Assuming each service has a dedicated machine {@link DedicatedMachineIsolation}, the machine isolation name is the service name.
-     * 				This would change when instances from different services would be installed on the same machine using {@link SharedMachineIsolation}.
+	 * 				Assuming each service has a dedicated machine 
+	 * {@link DedicatedMachineIsolation}, the machine isolation name is the service name.
+     * This would change when instances from different services would be installed 
+     * on the same machine using {@link SharedMachineIsolation}.
 	 */
 	@Override
 	public void setElasticProcessingUnitMachineIsolation(final ElasticProcessingUnitMachineIsolation isolation) {
