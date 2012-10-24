@@ -163,6 +163,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				if (template.equals(this.cloudTemplateName)) {
 					result.add(agent);
 				}
+			} else {
+				logger.fine("in getDiscoveredMachines() --> agent on host " + agent.getMachine().getHostAddress() + " does not have a template name attached to its env variables");
 			}
 		}
 		
@@ -316,6 +318,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			}
 			//TODO: Derive cloudify specific event and include more event details as specified in CLOUDIFY-10651
 			agentEventListener.elasticGridServiceAgentProvisioningProgressChanged(new GridServiceAgentStartedEvent(machineIp, gsa.getUid()));
+			
+			// check that the agent is really started with the expected env variable of the template
+			// we inject this variable earlier on to the bootstrap-management.sh script
+			if (gsa.getVirtualMachine().getDetails().getEnvironmentVariables().get(CloudifyConstants.CLOUDIFY_CLOUD_TEMPLATE_NAME) == null) {
+				throw new ElasticGridServiceAgentProvisioningException("an agent was started. but the property " + CloudifyConstants.CLOUDIFY_CLOUD_TEMPLATE_NAME + " was missing from its environment variables.");
+			}
+			
 			return gsa;
 		} catch (final ElasticMachineProvisioningException e) {
 			logger.info("ElasticMachineProvisioningException occurred, " + e.getMessage());
