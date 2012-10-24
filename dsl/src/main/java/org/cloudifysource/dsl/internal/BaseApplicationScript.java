@@ -27,7 +27,9 @@ import org.cloudifysource.dsl.Application;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 
-
+/**
+ * 
+ */
 public abstract class BaseApplicationScript extends Script {
 
 	private static java.util.logging.Logger logger = java.util.logging.Logger
@@ -74,7 +76,8 @@ public abstract class BaseApplicationScript extends Script {
 		}
 	}
 
-	private void handleServiceParameter(String name, Object value) throws FileNotFoundException, PackagingException, DSLException  {
+	private void handleServiceParameter(final String name, final Object value) 
+			throws FileNotFoundException, PackagingException, DSLException  {
 		if (!this.serviceBlockInitialized) {
 			// first element MUST be name
 			if (!"name".equals(name)) {
@@ -89,7 +92,8 @@ public abstract class BaseApplicationScript extends Script {
 
 	}
 
-	private Service loadApplicationService(String serviceName) throws FileNotFoundException, PackagingException, DSLException {
+	private Service loadApplicationService(final String serviceName) 
+			throws FileNotFoundException, PackagingException, DSLException {
 		// First find the service dir
 		final String serviceDirName = this.applicationDir + File.separator
 				+ serviceName;
@@ -112,12 +116,23 @@ public abstract class BaseApplicationScript extends Script {
 		// application.getServices().add(service);
 	}
 
+	/**
+	 * 
+	 * @param name name
+	 * @param args args
+	 * @return null
+	 */
 	public Object methodMissing(final String name, final Object args) {
 		setProperty(name, args);
 		return null;
 		
 	}
 
+	/**
+	 * 
+	 * @param closure the closure
+	 * @return application
+	 */
 	public Application application(final Closure<Object> closure) {
 		this.applicationDir = this.getProperty(DSLUtils.APPLICATION_DIR);
 		if (this.applicationDir == null) {
@@ -145,7 +160,11 @@ public abstract class BaseApplicationScript extends Script {
 	private boolean serviceBlockInitialized = false;
 	private Service currentService = null;
 
-	public void service(Closure<Object> closure) {
+	/**
+	 * 
+	 * @param closure the closure
+	 */
+	public void service(final Closure<Object> closure) {
 		if (inServiceBlock) {
 			throw new java.lang.IllegalStateException(
 					"Nested services are not supported");
@@ -170,6 +189,12 @@ public abstract class BaseApplicationScript extends Script {
 
 	}
 
+	/**
+	 * 
+	 * @param closure the closure
+	 * @param obj the object
+	 * @return null
+	 */
 	protected Object swapActiveObject(final Closure<Object> closure,
 			final Object obj) {
 		final Object prevObject = this.activeObject;

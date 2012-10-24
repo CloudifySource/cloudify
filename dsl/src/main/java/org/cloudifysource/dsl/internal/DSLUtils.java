@@ -17,16 +17,35 @@ package org.cloudifysource.dsl.internal;
 
 import org.openspaces.admin.internal.pu.InternalProcessingUnit;
 
+
 public final class DSLUtils {
 
-	// The context property set in application DSL files to indicate the directory where the application file itself can
-	// be found
-	public static final String APPLICATION_DIR = "workDirectory";
 
+	/**
+	 * The context property set in application DSL files to indicate 
+	 * the directory where the application file itself can be found.
+	 */
+	public static final String APPLICATION_DIR = "workDirectory";
+	
+	/**
+	 * The context property name of the DSL object properties as parsed at {@link DSLReader}.
+	 */
+	public static final String DSL_PROPERTIES = "dsl_properties";
+
+	public static final String OVERRIDES_FILE_SUFFIX = ".overrides";
+
+	public static final String APPLICATION_FILE_NAME_SUFFIX = "-application";
+
+	
 	private DSLUtils() {
 		// private constructor to prevent initialization
 	}
 
+	/**
+	 * 
+	 * @param processingUnit processingUnit
+	 * @return the dependencies
+	 */
 	public static String getDependencies(final InternalProcessingUnit processingUnit) {
 		final String dependencies = getContextPropertyValue(
 				processingUnit, CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON);
@@ -36,6 +55,11 @@ public final class DSLUtils {
 		return dependencies;
 	}
 
+	/**
+	 * 
+	 * @param processingUnit processingUnit
+	 * @return The tier type
+	 */
 	public static ServiceTierType getTierType(final InternalProcessingUnit processingUnit) {
 		final String tierTypeStr = getContextPropertyValue(
 				processingUnit, CloudifyConstants.CONTEXT_PROPERTY_SERVICE_TYPE);
@@ -45,6 +69,11 @@ public final class DSLUtils {
 		return ServiceTierType.valueOf(tierTypeStr);
 	}
 
+	/**
+	 * 
+	 * @param processingUnit processingUnit
+	 * @return The icon url
+	 */
 	public static String getIconUrl(final InternalProcessingUnit processingUnit) {
 		final String iconUrlStr = getContextPropertyValue(
 				processingUnit, CloudifyConstants.CONTEXT_PROPERTY_SERVICE_ICON);

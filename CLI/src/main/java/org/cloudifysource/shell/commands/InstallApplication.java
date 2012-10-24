@@ -85,7 +85,7 @@ public class InstallApplication extends AdminAwareCommand {
 	@Option(required = false, name = "-overrides",
 			description = "File containing proeprties to be used to overrides current application's proeprties or fields.")
 	private File overrides;
-
+	
 	private static final String TIMEOUT_ERROR_MESSAGE = "Application installation timed out."
 			+ " Configure the timeout using the -timeout flag.";
 
@@ -104,6 +104,7 @@ public class InstallApplication extends AdminAwareCommand {
 		final DSLReader dslReader = new DSLReader();
 		File dslFile = DSLReader.findDefaultDSLFile(DSLReader.APPLICATION_DSL_FILE_NAME_SUFFIX, applicationFile);
 		dslReader.setDslFile(dslFile);
+		dslReader.setWorkDir(dslFile.getParentFile());
 		dslReader.setCreateServiceContext(false);
 		dslReader.addProperty(DSLUtils.APPLICATION_DIR, dslFile.getParentFile().getAbsolutePath());
 		dslReader.setOverridesFile(overrides);
@@ -130,10 +131,11 @@ public class InstallApplication extends AdminAwareCommand {
 			if (cloudConfigurationZipFile != null) {
 				additionalServiceFiles.add(cloudConfigurationZipFile);
 			} 
-			if (overrides != null) {
-				additionalServiceFiles.add(overrides);
+			List<File> additionalApplicationFile = new LinkedList<File>();
+			if(overrides != null) {
+				additionalApplicationFile.add(createOverridesFile(overrides));
 			}
-			zipFile = Packager.packApplication(application, applicationFile, additionalServiceFiles);
+			zipFile = Packager.packApplication(application, applicationFile, additionalApplicationFile, additionalServiceFiles);
 		}
 
 		// toString of string list (i.e. [service1, service2])
@@ -184,6 +186,17 @@ public class InstallApplication extends AdminAwareCommand {
 		}
 
 		return this.getFormattedMessage("application_installed_succesfully", Color.GREEN, applicationName);
+	}
+
+	private File createOverridesFile(File overridesFile) throws IOException {
+		String overridesFileNamePrefix = applicationName + DSLUtils.APPLICATION_FILE_NAME_SUFFIX;
+		String overridesFileName = overridesFileNamePrefix + DSLUtils.OVERRIDES_FILE_SUFFIX;
+		if(overridesFileName.equals(overridesFile.getName()))
+			return overridesFile;
+		File copiedOverridesFile = new File(overridesFileName);
+		FileUtils.copyFile(overridesFile, copiedOverridesFile);
+		copiedOverridesFile.deleteOnExit();
+		return copiedOverridesFile;
 	}
 
 	private File createCloudConfigurationZipFile()

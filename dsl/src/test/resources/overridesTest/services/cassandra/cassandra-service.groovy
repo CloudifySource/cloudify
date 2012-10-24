@@ -14,15 +14,15 @@
 * limitations under the License.
 *******************************************************************************/
 service {
-  name "${serviceName}"
+  name serviceName
   icon "Apache-cassandra-icon.png"
   elastic true
-  numInstances ${numInstances}
+  numInstances numInstances
   minAllowedInstances 1
   maxAllowedInstances 3
   type "NOSQL_DB"
   lifecycle{
-		init 		"${lifecycle_init}"
+		init 		lifecycle_init
 		preStart 	"cassandra_prestart.groovy"
 		start 		"cassandra_start.groovy"
 		postStart 	"cassandra_poststart.groovy"

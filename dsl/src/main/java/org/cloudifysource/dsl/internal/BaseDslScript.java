@@ -133,7 +133,7 @@ public abstract class BaseDslScript extends Script {
 		return false;
 	}
 
-	private boolean isProperyExistsInBean(final Object bean, final String propertyName) {
+	private static boolean isProperyExistsInBean(final Object bean, final String propertyName) {
 		if (bean == null) {
 			throw new NullPointerException("Got a null reference to a bean while checking if a bean has the property: "
 					+ propertyName);
@@ -170,15 +170,15 @@ public abstract class BaseDslScript extends Script {
 		this.usedProperties.add(name);
 		Object convertedValue = null;
 		try {
-			convertedValue = convertValueToExecutableDSLEntryIfNeeded(getDSLFile().getParentFile()
-					, object, name, value);
-				if (logger.isLoggable(Level.FINEST)) {
-					logger.finest("BeanUtils.setProperty(object=" + object + ",name=" 
-							+ name + ",value=" + convertedValue
-							+ ",value.getClass()=" + convertedValue.getClass());
-				}
-				// Then set it
-				BeanUtils.setProperty(object, name, convertedValue);
+			convertedValue = convertValueToExecutableDSLEntryIfNeeded(getDSLFile().getParentFile(), 
+					object, name, value);
+			if (logger.isLoggable(Level.FINEST)) {
+				logger.finest("BeanUtils.setProperty(object=" + object 
+						+ ",name=" + name + ",value=" + convertedValue
+						+ ",value.getClass()=" + convertedValue.getClass());
+			}
+			// Then set it
+			BeanUtils.setProperty(object, name, convertedValue);
 		} catch (final DSLValidationException e) {
 			throw new DSLValidationRuntimeException(e);
 		} catch (final Exception e) {
@@ -190,10 +190,25 @@ public abstract class BaseDslScript extends Script {
 
 	}
 
-	public static Object convertValueToExecutableDSLEntryIfNeeded(File workDirectory, Object object
-			, String name, Object value) 
-			throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, DSLValidationException {
-		
+	/**
+	 * Convert the value to an ExecutableDSLEntry object if object's property type is 
+	 * ExecutableDSLEntry or ExecutableEntriesMap. 
+	 * Returns value otherwise.
+	 * @param workDirectory workDirectory  
+	 * @param object object
+	 * @param name property name
+	 * @param value property value
+	 * @return The converted object
+	 * @throws IllegalAccessException IllegalAccessException
+	 * @throws InvocationTargetException InvocationTargetException
+	 * @throws NoSuchMethodException NoSuchMethodException
+	 * @throws DSLValidationException DSLValidationException
+	 */
+	public static Object convertValueToExecutableDSLEntryIfNeeded(final File workDirectory, 
+			final Object object, final String name, final Object value) 
+					throws IllegalAccessException, InvocationTargetException,
+					NoSuchMethodException, DSLValidationException {
+
 		PropertyDescriptor descriptor = PropertyUtils.getPropertyDescriptor(object, name);
 		Class<?> propertyType = descriptor.getPropertyType();
 		if (propertyType.equals(ExecutableDSLEntry.class)) {
@@ -205,7 +220,7 @@ public abstract class BaseDslScript extends Script {
 			return value;
 		}
 	}
-	
+
 	private File getDSLFile() {
 		return new File((String) this.getBinding().getVariable(DSLReader.DSL_FILE_PATH_PROPERTY_NAME));
 	}
@@ -366,9 +381,9 @@ public abstract class BaseDslScript extends Script {
 		}
 	}
 
-	private boolean handleSpecialProperty(final String name, Object arg)
+	private boolean handleSpecialProperty(final String name, final Object arg)
 			throws DSLException {
-
+		Object localArg = arg;
 		if (name.equals(EXTEND_PROPERTY_NAME)) {
 			if (propertyCounter > 1) {
 				throw new DSLException(EXTEND_PROPERTY_NAME + " must be first inside the service block");
@@ -378,15 +393,15 @@ public abstract class BaseDslScript extends Script {
 				if (arr.length != 1) {
 					throw new DSLException(EXTEND_PROPERTY_NAME + " property must be a single string");
 				}
-				arg = ((Object[]) arg)[0];
+				localArg = ((Object[]) arg)[0];
 			}
-			if (!(arg instanceof String)) {
+			if (!(localArg instanceof String)) {
 				throw new DSLException(EXTEND_PROPERTY_NAME + " property must be a string");
 			}
 			if (!(this.activeObject instanceof Service)) {
 				throw new DSLException(EXTEND_PROPERTY_NAME + " property can only be used on a service");
 			}
-			final String extendServicePath = (String) arg;
+			final String extendServicePath = (String) localArg;
 			try {
 				File extendedServiceAbsPath = new File(extendServicePath);
 				if (!extendedServiceAbsPath.isAbsolute()) {
@@ -453,6 +468,10 @@ public abstract class BaseDslScript extends Script {
 		return service;
 	}
 
+	/**
+	 * 
+	 *
+	 */
 	public static class DSLObjectInitializerData {
 
 		private final Class<?> clazz;
@@ -730,7 +749,16 @@ public abstract class BaseDslScript extends Script {
 		// Load the service
 		DSLServiceCompilationResult result;
 		try {
-			result = ServiceReader.getApplicationServiceFromDirectory(serviceDir, getBinding().getVariables());
+			Object applicationProperties = getBinding().getVariables().get(DSLUtils.DSL_PROPERTIES);
+			Map<String, Object> applicationPropertiesMap = null;
+			if (applicationProperties != null) {
+				if (applicationProperties instanceof Map) {
+					applicationPropertiesMap = (Map<String, Object>) applicationProperties;
+				} else {
+					throw new DSLException("applicationProperties must be a map.");
+				}
+			}
+			result = ServiceReader.getApplicationServiceFromDirectory(serviceDir, applicationPropertiesMap);
 		} catch (final DSLException e) {
 			throw new IllegalArgumentException("Failed to load service: " + serviceName
 					+ " while loading application: " + e.getMessage(), e);

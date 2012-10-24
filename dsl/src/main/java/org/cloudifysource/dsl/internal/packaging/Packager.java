@@ -368,11 +368,29 @@ public final class Packager {
 	 *            additional files that should be packaged into each service
 	 *            directory.
 	 * @return the packaged zip file.
-	 * @throws IOException .
-	 * @throws PackagingException .
+	 * @throws IOException IOException.
+	 * @throws PackagingException PackagingException.
 	 */
-	public static File packApplication(final Application application, final File applicationDir,
+	public static File packApplication(final Application application, final File applicationDir, 
 			final List<File> additionalServiceFiles)
+					throws IOException, PackagingException {
+		return packApplication(application, applicationDir, null, additionalServiceFiles);
+	}
+	
+	
+	/***************
+	 * Packs an application folder into a zip file.
+	 * 
+	 * @param application the application object as read from the application file.
+	 * @param applicationDir the directory where the application was read from.
+	 * @param additionalApplicationFiles additional files that should be packaged into application folder.
+	 * @param additionalServiceFiles additional files that should be packaged into each service directory.
+	 * @return the packaged zip file.
+	 * @throws IOException IOException.
+	 * @throws PackagingException PackagingException.
+	 */
+	public static File packApplication(final Application application, final File applicationDir, 
+			final List<File> additionalApplicationFiles, final List<File> additionalServiceFiles)
 					throws IOException, PackagingException {
 
 		boolean hasExtendedServices = false;
@@ -402,6 +420,17 @@ public final class Packager {
 			applicationFolderToPack = destApplicationFolder;
 		}
 
+		if (additionalApplicationFiles != null && !(additionalApplicationFiles.isEmpty())) {
+			// if a copy directory was already created, use the existing one, otherwise
+			// create a new one.
+			if (applicationFolderToPack == applicationDir) {
+				applicationFolderToPack = createCopyDirectory(applicationFolderToPack);
+			}
+			for (File fileToCopy : additionalApplicationFiles) {
+				FileUtils.copyFileToDirectory(fileToCopy, applicationFolderToPack);
+			}
+		}
+		
 		if ((additionalServiceFiles != null) && (!additionalServiceFiles.isEmpty())) {
 			// if a copy directory was already created, use the existing one, otherwise
 			// create a new one.
@@ -424,10 +453,9 @@ public final class Packager {
 				for (final File fileToCopy : additionalServiceFiles) {
 					FileUtils.copyFileToDirectory(fileToCopy, serviceDir);
 				}
-
 			}
-
 		}
+		
 		// zip the application folder.
 		final File zipFile = File.createTempFile("application", ".zip");
 		zipFile.deleteOnExit();

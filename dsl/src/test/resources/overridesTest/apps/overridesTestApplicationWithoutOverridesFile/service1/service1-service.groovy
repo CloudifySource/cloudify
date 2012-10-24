@@ -17,7 +17,7 @@ service {
   name serviceName
   icon "${applicationIcon}.png"
   
-  numInstances numInstances
+  numInstances numInstancesProperty
   minAllowedInstances 1
   maxAllowedInstances 15
   
