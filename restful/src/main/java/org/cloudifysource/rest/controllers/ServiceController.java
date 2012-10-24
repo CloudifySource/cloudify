@@ -664,7 +664,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * @throws RestErrorException 
 	 * 			When service is not found.
 	 */
-	@JsonResponseExample(status = "success", responseBody = "{\"1\":\"12.7.0.0.1\"}",
+	@JsonResponseExample(status = "success", responseBody = "{\"1\":\"127.0.0.1\"}",
 			comments = "In the example instance id is 1 and the HOST is 127.0.0.1")
 	@PossibleResponseStatuses(codes = {200,500}, descriptions = {"success","failed_to_locate_service"})
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances",
