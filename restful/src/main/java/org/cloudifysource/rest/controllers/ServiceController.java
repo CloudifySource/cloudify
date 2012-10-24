@@ -1582,19 +1582,23 @@ public class ServiceController implements ServiceDetailsProvider{
 		return tempFile.getParent();
 	}
 
-	private void doDeploy(final String applicationName, final String serviceName, final String templateName,
-			final String[] agentZones, final File serviceFile, final Properties contextProperties, final Service service, 
-			final byte[] serviceCloudConfigurationContents, final boolean selfHealing)
+	private void doDeploy(final String applicationName, 
+			final String serviceName, final String templateName,
+			final String[] agentZones, final File serviceFile, 
+			final Properties contextProperties, 
+			final Service service, 
+			final byte[] serviceCloudConfigurationContents,
+			final boolean selfHealing)
 			throws TimeoutException, DSLException{
 
 		
 		boolean locationAware = false;
-		boolean shared = false;
+		boolean dedicated = true;
 		if (service != null) {
 			locationAware = service.isLocationAware();
 		}
-		if (service != null) {
-			shared = service.isShared();
+		if (service.getDeployment() != null && service.getDeployment().getGlobal() != null) {
+			dedicated = false;
 		}
 		final int externalProcessMemoryInMB = 512;
 		final int containerMemoryInMB = 128;
@@ -1626,7 +1630,8 @@ public class ServiceController implements ServiceDetailsProvider{
 
 					int totalMemoryInMB = calculateTotalMemoryInMB(serviceName, service, externalProcessMemoryInMB);
 					final ManualCapacityScaleConfig scaleConfig =
-							new ManualCapacityScaleConfigurer().memoryCapacity(totalMemoryInMB,MemoryUnit.MEGABYTES).create();
+							new ManualCapacityScaleConfigurer().
+								memoryCapacity(totalMemoryInMB, MemoryUnit.MEGABYTES).create();
 					deployment.scale(scaleConfig);
 				} else {
 					final AutomaticCapacityScaleConfig scaleConfig =
@@ -1639,16 +1644,15 @@ public class ServiceController implements ServiceDetailsProvider{
 
 			final CloudTemplate template = getComputeTemplate(cloud, templateName);
 			
-			final long cloudExternalProcessMemoryInMB;
-			if (shared) {
-				cloudExternalProcessMemoryInMB = service.getInstanceMemoryMB();
-			} else {
-				cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
-			}
+			final long cloudExternalProcessMemoryInMB = service.getDeployment().getGlobal() != null 
+					? service.getDeployment().getGlobal().getInstanceMemoryMB() 
+					: calculateExternalProcessMemory(cloud, template);
 
-			logger.info("Creating cloud machine provisioning config. Template remote directory is: " + template.getRemoteDirectory());
+			logger.info("Creating cloud machine provisioning config. Template remote directory is: " 
+						+ template.getRemoteDirectory());
 			final CloudifyMachineProvisioningConfig config =
-					new CloudifyMachineProvisioningConfig(cloud, template, templateName, this.managementTemplate.getRemoteDirectory());
+					new CloudifyMachineProvisioningConfig(cloud, template, templateName, 
+							this.managementTemplate.getRemoteDirectory());
 
 			if (serviceCloudConfigurationContents != null) {
 
@@ -1660,8 +1664,9 @@ public class ServiceController implements ServiceDetailsProvider{
 
 			// management machine should be isolated from other services. no matter of the deployment mode.
 			config.setDedicatedManagementMachines(true);
-			if (shared) {
-				logger.info("public mode is on. will use public machine provisioning for " + serviceName + " deployment.");
+			if (!dedicated) {
+				logger.info("public mode is on. will use public machine provisioning for " 
+							+ serviceName + " deployment.");
 				// service instances can be deployed across all agents
 				setPublicMachineProvisioning(deployment, config);
 			} else {
@@ -1673,20 +1678,21 @@ public class ServiceController implements ServiceDetailsProvider{
 			deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
 
 			if (service == null || service.getScalingRules() == null) {
-				int totalMemoryInMB = calculateTotalMemoryInMB(serviceName, service, (int) cloudExternalProcessMemoryInMB);
+				int totalMemoryInMB = calculateTotalMemoryInMB(serviceName, 
+						service, (int) cloudExternalProcessMemoryInMB);
 				double totalCpuCores = calculateTotalCpuCores(serviceName, service);
 				final ManualCapacityScaleConfig scaleConfig =
 						ElasticScaleConfigFactory.createManualCapacityScaleConfig(totalMemoryInMB, 
-								totalCpuCores, locationAware, shared);
-				if (!shared) {
+								totalCpuCores, locationAware, dedicated);
+				if (dedicated) {
 					scaleConfig.setAtMostOneContainerPerMachine(true);
 				}
 				deployment.scale(scaleConfig);
 			} else {
 				final AutomaticCapacityScaleConfig scaleConfig =
 						ElasticScaleConfigFactory.createAutomaticCapacityScaleConfig(serviceName, service,
-								(int) cloudExternalProcessMemoryInMB,locationAware);
-				if (!shared) {
+								(int) cloudExternalProcessMemoryInMB, locationAware);
+				if (!dedicated) {
 					scaleConfig.setAtMostOneContainerPerMachine(true);	
 				}
 				deployment.scale(scaleConfig);
@@ -1730,19 +1736,20 @@ public class ServiceController implements ServiceDetailsProvider{
 		return externalProcessMemoryInMB * numberOfInstances;
 	}
 	
-	public static double calculateTotalCpuCores(String serviceName, Service service) {
+	private static double calculateTotalCpuCores(final String serviceName, final Service service) {
 
 		if (service == null) { // deploying without a service. assuming CPU requirements is 0
 			return 0;
 		}
-		double numberOfCpuCoresPerInstance = service.getInstanceCpuCores();
-		if (numberOfCpuCoresPerInstance < 0) {
-			throw new IllegalArgumentException ("instanceCpuCores must be positive");
+		double instanceCpuCores = service.getDeployment().getGlobal() != null 
+				? service.getDeployment().getGlobal().getInstanceCpuCores() : 0;
+		if (instanceCpuCores < 0) {
+			throw new IllegalArgumentException("instanceCpuCores must be positive");
 		}
 		
 		int numberOfInstances = service.getNumInstances();
 		
-		return numberOfInstances * numberOfCpuCoresPerInstance;
+		return numberOfInstances * instanceCpuCores;
 	}
 	
 	private static String extractLocators(final Admin admin) {
