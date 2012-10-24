@@ -11,12 +11,12 @@
 #   $MACHINE_IP_ADDRESS - The IP of this server (Useful if multiple NICs exist)
 #	$MACHINE_ZONES - This is required if this is not a management machine
 # 	$WORKING_HOME_DIRECTORY - This is where the files were copied to (cloudify installation, etc..)
-#	$CLOUDIFY_LINK - If this url is found, it will be downloaded to $WORKING_HOME_DIRECTORY/gigaspaces.zip
-#	$CLOUDIFY_OVERRIDES_LINK - If this url is found, it will be downloaded and unzipped into the same location as cloudify
+#	$GIGASPACES_LINK - If this url is found, it will be downloaded to $WORKING_HOME_DIRECTORY/gigaspaces.zip
+#	$GIGASPACES_OVERRIDES_LINK - If this url is found, it will be downloaded and unzipped into the same location as cloudify
 #	$CLOUD_FILE - Location of the cloud configuration file. Only available in bootstrap of management machines.
 #	$NO_WEB_SERVICES - If set to 'true', indicates that the rest and web-ui services should not be deployed in this machine.
-#	$CLOUDIFY_CLOUD_IMAGE_ID - If set, indicates the image ID for this machine.
-#	$CLOUDIFY_CLOUD_HARDWARE_ID - If set, indicates the hardware ID for this machine.
+#	$GIGASPACES_CLOUD_IMAGE_ID - If set, indicates the image ID for this machine.
+#	$GIGASPACES_CLOUD_HARDWARE_ID - If set, indicates the hardware ID for this machine.
 #	$PASSWORD - the machine password
 #############################################################################
 
@@ -48,28 +48,28 @@ JAVA_32_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6
 JAVA_64_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-x64.bin"
 
 # If not JDK specified, determine which JDK to install based on hardware architecture
-if [ -z "$CLOUDIFY_AGENT_ENV_JAVA_URL" ]; then
+if [ -z "$GIGASPACES_AGENT_ENV_JAVA_URL" ]; then
 	ARCH=`uname -m`
 	echo Machine Architecture -- $ARCH
 	if [ "$ARCH" = "i686" ]; then
-		export CLOUDIFY_AGENT_ENV_JAVA_URL=$JAVA_32_URL
+		export GIGASPACES_AGENT_ENV_JAVA_URL=$JAVA_32_URL
 	elif [ "$ARCH" = "x86_64" ]; then
-		export CLOUDIFY_AGENT_ENV_JAVA_URL=$JAVA_64_URL
+		export GIGASPACES_AGENT_ENV_JAVA_URL=$JAVA_64_URL
 	else 
 		echo Unknown architecture -- $ARCH -- defaulting to 32 bit JDK
-		export CLOUDIFY_AGENT_ENV_JAVA_URL=$JAVA_32_URL
+		export GIGASPACES_AGENT_ENV_JAVA_URL=$JAVA_32_URL
 	fi
 	
 fi  
 
-if [ "$CLOUDIFY_AGENT_ENV_JAVA_URL" = "NO_INSTALL" ]; then
+if [ "$GIGASPACES_AGENT_ENV_JAVA_URL" = "NO_INSTALL" ]; then
 	echo "JDK will not be installed"
 else
 	echo Previous JAVA_HOME value -- $JAVA_HOME 
-	export CLOUDIFY_ORIGINAL_JAVA_HOME=$JAVA_HOME
+	export GIGASPACES_ORIGINAL_JAVA_HOME=$JAVA_HOME
 
-	echo Downloading JDK from $CLOUDIFY_AGENT_ENV_JAVA_URL    
-	wget -q -O $WORKING_HOME_DIRECTORY/java.bin $CLOUDIFY_AGENT_ENV_JAVA_URL
+	echo Downloading JDK from $GIGASPACES_AGENT_ENV_JAVA_URL    
+	wget -q -O $WORKING_HOME_DIRECTORY/java.bin $GIGASPACES_AGENT_ENV_JAVA_URL
 	chmod +x $WORKING_HOME_DIRECTORY/java.bin
 	echo -e "\n" > $WORKING_HOME_DIRECTORY/input.txt
 	mkdir ~/java
@@ -84,14 +84,14 @@ fi
 
 export EXT_JAVA_OPTIONS="-Dcom.gs.multicast.enabled=false"
 
-if [ ! -z "$CLOUDIFY_LINK" ]; then
-	echo Downloading cloudify installation from $CLOUDIFY_LINK.tar.gz
-	wget -q $CLOUDIFY_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz || error_exit $? "Failed downloading cloudify installation"
+if [ ! -z "$GIGASPACES_LINK" ]; then
+	echo Downloading cloudify installation from $GIGASPACES_LINK.tar.gz
+	wget -q $GIGASPACES_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz || error_exit $? "Failed downloading cloudify installation"
 fi
 
-if [ ! -z "$CLOUDIFY_OVERRIDES_LINK" ]; then
-	echo Downloading cloudify overrides from $CLOUDIFY_OVERRIDES_LINK.tar.gz
-	wget -q $CLOUDIFY_OVERRIDES_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz || error_exit $? "Failed downloading cloudify overrides"
+if [ ! -z "$GIGASPACES_OVERRIDES_LINK" ]; then
+	echo Downloading cloudify overrides from $GIGASPACES_OVERRIDES_LINK.tar.gz
+	wget -q $GIGASPACES_OVERRIDES_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz || error_exit $? "Failed downloading cloudify overrides"
 fi
 
 # Todo: Check this condition
@@ -107,7 +107,7 @@ if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -nt ~/giga
 	chmod -R 777 ~/gigaspaces || error_exit $? "Failed changing permissions in cloudify installion"
 	mv ~/gigaspaces/*/* ~/gigaspaces || error_exit $? "Failed moving cloudify installation"
 	
-	if [ ! -z "$CLOUDIFY_OVERRIDES_LINK" ]; then
+	if [ ! -z "$GIGASPACES_OVERRIDES_LINK" ]; then
 		echo Copying overrides into cloudify distribution
 		tar xfz $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz -d ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify overrides" 2 		
 	fi
@@ -124,8 +124,8 @@ cd ~/gigaspaces/bin || error_exit $? "Failed changing directory to bin directory
 
 sed -i "1i export NIC_ADDR=$MACHINE_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "1i export LOOKUPLOCATORS=$LUS_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export CLOUDIFY_CLOUD_IMAGE_ID=$CLOUDIFY_CLOUD_IMAGE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export CLOUDIFY_CLOUD_HARDWARE_ID=$CLOUDIFY_CLOUD_HARDWARE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "1i export GIGASPACES_CLOUD_IMAGE_ID=$GIGASPACES_CLOUD_IMAGE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "1i export GIGASPACES_CLOUD_HARDWARE_ID=$GIGASPACES_CLOUD_HARDWARE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "1i export PATH=$JAVA_HOME/bin:$PATH" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "1i export JAVA_HOME=$JAVA_HOME" setenv.sh || error_exit $? "Failed updating setenv.sh"
 
@@ -141,10 +141,10 @@ if [ -f nohup.out ]; then
 fi
 
 # Privileged mode handling
-if [ "$CLOUDIFY_AGENT_ENV_PRIVILEGED" = "true" ]; then
+if [ "$GIGASPACES_AGENT_ENV_PRIVILEGED" = "true" ]; then
 	# First check if sudo is allowed for current session
-	export CLOUDIFY_USER=`whoami`
-	if [ "$CLOUDIFY_USER" = "root" ]; then
+	export GIGASPACES_USER=`whoami`
+	if [ "$GIGASPACES_USER" = "root" ]; then
 		# root is privileged by definition
 		echo Running as root
 	else
@@ -176,26 +176,33 @@ if [ "$CLOUDIFY_AGENT_ENV_PRIVILEGED" = "true" ]; then
 fi
 
 # Execute per-template command
-if [ ! -z "$CLOUDIFY_AGENT_ENV_INIT_COMMAND" ]; then
+if [ ! -z "$GIGASPACES_AGENT_ENV_INIT_COMMAND" ]; then
 	echo Executing initialization command
-	$CLOUDIFY_AGENT_ENV_INIT_COMMAND
+	$GIGASPACES_AGENT_ENV_INIT_COMMAND
 fi
 
 # shutdown the internal firewall.
 # NOTE : this is Rackspace specific. other clouds do no require this option.
 /etc/init.d/iptables stop
 
+START_COMMAND_ARGS="-timeout 30 --verbose -auto-shutdown"
 if [ "$GSA_MODE" = "agent" ]; then
 	ERRMSG="Failed starting agent"
-	nohup ./cloudify.sh start-agent -timeout 30 --verbose -zone $MACHINE_ZONES -auto-shutdown
+	START_COMMAND="start-agent"
+	# Check if there any zones to start the agent with
+	if [ ! -z "$MACHINE_ZONES" ]; then
+		START_COMMAND_ARGS="${START_COMMAND_ARGS} -zone ${MACHINE_ZONES}"
+	fi	
 else
 	ERRMSG="Failed starting management services"
+	START_COMMAND="start-management"
+	START_COMMAND_ARGS="${START_COMMAND_ARGS} -cloud-file ${CLOUD_FILE}"
 	if [ "$NO_WEB_SERVICES" = "true" ]; then
-		nohup ./cloudify.sh start-management -no-web-services -no-management-space -timeout 30 --verbose -auto-shutdown -cloud-file $CLOUD_FILE
-	else
-		nohup ./cloudify.sh start-management -timeout 30 --verbose -auto-shutdown -cloud-file $CLOUD_FILE
+		START_COMMAND_ARGS="${START_COMMAND_ARGS} -no-web-services -no-management-space"
 	fi
 fi	
+
+nohup ./cloudify.sh $START_COMMAND $START_COMMAND_ARGS
 
 RETVAL=$?
 echo cat nohup.out

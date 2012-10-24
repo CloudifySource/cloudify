@@ -80,8 +80,8 @@ public class AgentlessInstaller {
 	private static final String LINUX_STARTUP_SCRIPT_NAME = "bootstrap-management.sh";
 	private static final String POWERSHELL_STARTUP_SCRIPT_NAME = "bootstrap-management.bat";
 
-	private static final String CLOUDIFY_LINK_ENV = "CLOUDIFY_LINK";
-	private static final String CLOUDIFY_OVERRIDES_LINK_ENV = "CLOUDIFY_OVERRIDES_LINK";
+	private static final String CLOUDIFY_LINK_ENV = "GIGASPACES_LINK";
+	private static final String CLOUDIFY_OVERRIDES_LINK_ENV = "GIGASPACES_OVERRIDES_LINK";
 
 	private static final String MACHINE_ZONES_ENV = "MACHINE_ZONES";
 
@@ -593,7 +593,9 @@ public class AgentlessInstaller {
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP,
 						details.getPrivateIp())
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP,
-						details.getPublicIp());
+						details.getPublicIp())
+				.exportVar(CloudifyConstants.CLOUDIFY_CLOUD_TEMPLATE_NAME,
+						details.getTemplateName());
 
 		if (details.getReservationId() != null) {
 			scb.exportVar(GSA_RESERVATION_ID_ENV, details.getReservationId().toString());

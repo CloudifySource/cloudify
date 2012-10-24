@@ -54,7 +54,7 @@ public class MachineDetails implements Externalizable {
 	private String remoteDirectory;
 	
 	private String locationId;
-
+	
 	public String getLocationId() {
 		return locationId;
 	}

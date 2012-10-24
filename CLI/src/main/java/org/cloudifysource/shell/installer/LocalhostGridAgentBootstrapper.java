@@ -977,10 +977,6 @@ public class LocalhostGridAgentBootstrapper {
 			InterruptedException, TimeoutException {
 		
 		setIsLocalCloud(false);
-		
-		if (gsaZones == null || gsaZones.isEmpty()) {
-			throw new CLIException("Agent must be started with a zone");
-		}
 
 		setDefaultNicAddress();
 
@@ -1222,8 +1218,10 @@ public class LocalhostGridAgentBootstrapper {
 				+ " -D" + GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "=" + GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL
 				+ " " + GSM_PENDING_REQUESTS_DELAY
 				+ " -D" + ZONES_PROPERTY + "=" + gsaZones;
-		String gsaJavaOptions = "-Xmx" + GSA_MEMORY_IN_MB + "m"
-				+ " -D" + ZONES_PROPERTY + "=" + gsaZones;
+		String gsaJavaOptions = "-Xmx" + GSA_MEMORY_IN_MB + "m";
+		if (gsaZones != null) {
+			gsaJavaOptions += " -D" + ZONES_PROPERTY + "=" + gsaZones;
+		} 
 		if (autoShutdown) {
 			gsaJavaOptions += " " + AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT;
 		}

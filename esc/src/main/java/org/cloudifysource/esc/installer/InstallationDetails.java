@@ -103,6 +103,16 @@ public class InstallationDetails implements Cloneable {
 	// see InternalGridServiceAgent#getReservationId()
 	private GSAReservationId reservationId;
 	
+	private String templateName;
+	
+	public String getTemplateName() {
+		return templateName;
+	}
+
+	public void setTemplateName(String templateName) {
+		this.templateName = templateName;
+	}
+
 	public Admin getAdmin() {
 		return admin;
 	}

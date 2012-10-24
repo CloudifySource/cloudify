@@ -33,11 +33,16 @@ public class ElasticScaleConfigFactory {
 	private static final Logger logger = Logger.getLogger(ElasticScaleConfigFactory.class.getName());
 
 
-	public static ManualCapacityScaleConfig createManualCapacityScaleConfig(int totalMemoryInMB, boolean locationAware) {
+	public static ManualCapacityScaleConfig createManualCapacityScaleConfig(int totalMemoryInMB, 
+			double totalCpuCores,
+			boolean locationAware, boolean shared) {
 		ManualCapacityScaleConfig config = new ManualCapacityScaleConfigurer()
 			   .memoryCapacity(totalMemoryInMB, MemoryUnit.MEGABYTES)
-			   .atMostOneContainerPerMachine()
+			   .numberOfCpuCores(totalCpuCores)
 			   .create();
+		if (!shared) {
+			config.setAtMostOneContainerPerMachine(true);
+		}
 		config.setGridServiceAgentZonesAware(locationAware);
 		return config;
 	}
@@ -91,30 +96,36 @@ public class ElasticScaleConfigFactory {
 					+ service.getMaxAllowedInstances() + ")");
 		}
 		
+		double instanceCpuCores = service.getInstanceCpuCores();
 		CapacityRequirementsConfig minCapacity = 
 			new CapacityRequirementsConfigurer()
 			.memoryCapacity((service.getMinAllowedInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
+			.numberOfCpuCores(service.getMinAllowedInstances() * instanceCpuCores)
 			.create();
 		
 		CapacityRequirementsConfig initialCapacity = 
 			new CapacityRequirementsConfigurer()
 			.memoryCapacity((service.getNumInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
+			.numberOfCpuCores(service.getNumInstances() * instanceCpuCores)
 			.create();
 	
 		
 		CapacityRequirementsConfig maxCapacity = 
 			new CapacityRequirementsConfigurer()
 			.memoryCapacity((service.getMaxAllowedInstances() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
+			.numberOfCpuCores(service.getMaxAllowedInstances() * instanceCpuCores)
 			.create();
 	
 		CapacityRequirementsConfig minCapacityPerZone = 
 				new CapacityRequirementsConfigurer()
 				.memoryCapacity((service.getMinAllowedInstancesPerLocation() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
+				.numberOfCpuCores(service.getMinAllowedInstancesPerLocation() * instanceCpuCores)
 				.create();
 		
 		CapacityRequirementsConfig maxCapacityPerZone = 
 				new CapacityRequirementsConfigurer()
 				.memoryCapacity((service.getMaxAllowedInstancesPerLocation() * externalProcessMemoryInMB), MemoryUnit.MEGABYTES)
+				.numberOfCpuCores(service.getMaxAllowedInstancesPerLocation() * instanceCpuCores)
 				.create();
 		
 		AutomaticCapacityScaleConfigurer scaleConfigurer = 
@@ -127,6 +138,9 @@ public class ElasticScaleConfigFactory {
 			.statisticsPollingInterval(service.getSamplingPeriodInSeconds(), TimeUnit.SECONDS)
 			.cooldownAfterScaleOut(service.getScaleOutCooldownInSeconds(),TimeUnit.SECONDS)
 			.cooldownAfterScaleIn(service.getScaleInCooldownInSeconds(),TimeUnit.SECONDS);
+		if (!service.isShared()) {
+			scaleConfigurer.atMostOneContainerPerMachine();
+		}
 		
 		if (locationAware) {
 			scaleConfigurer.enableGridServiceAgentZonesAware();
