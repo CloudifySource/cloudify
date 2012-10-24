@@ -25,7 +25,7 @@
 			<releases>
 				<enabled>true</enabled>
 				<updatePolicy>daily</updatePolicy>
-				<checksumPolicy>fail</checksumPolicy>
+				<checksumPolicy>warn</checksumPolicy>
 			</releases>
 			<snapshots>
 				<enabled>true</enabled>
@@ -60,7 +60,6 @@
 		<module>../restful</module>
 		<module>../dsl</module>
 		<module>../rest-client</module>
-		<module>../tools</module>
 	</modules>
 
 	<build>

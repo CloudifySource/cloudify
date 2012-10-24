@@ -49,7 +49,7 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 
 	private GigaSpace gigaspace = null;
 
-	private List<LocalhostBootstrapperListener> eventsListenersList = new ArrayList<LocalhostBootstrapperListener>();
+	private final List<LocalhostBootstrapperListener> eventsListenersList = new ArrayList<LocalhostBootstrapperListener>();
 
 	private boolean isLocalcloud;
 
@@ -207,7 +207,7 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 	}
 	
 	public void addListener(LocalhostBootstrapperListener listener) {
-		this.eventsListenersList .add(listener);
+		this.eventsListenersList.add(listener);
 	}
 	
 	public void addListeners(List<LocalhostBootstrapperListener> listeners) {

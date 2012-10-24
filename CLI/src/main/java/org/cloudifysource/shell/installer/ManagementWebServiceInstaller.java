@@ -314,9 +314,9 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	@Override
 	protected Properties getContextProperties() {
 		final Properties props = super.getContextProperties();
-		props.put("web.port", String.valueOf(port));
-		props.put("web.context", "/");
-		props.put("web.context.unique", "true");
+		props.setProperty("web.port", String.valueOf(port));
+		props.setProperty("web.context", "/");
+		props.setProperty("web.context.unique", "true");
 		return props;
 	}
 

@@ -94,19 +94,25 @@ public final class ExecutableDSLEntryFactory {
 	 * @return the executable entry wrapper for the given arg.
 	 * @throws DSLValidationException if the entry is invalid.
 	 */
-	@SuppressWarnings("unchecked")
 	public static ExecutableDSLEntry createEntry(final Object arg, final Object entryName, final File workDirectory)
 			throws DSLValidationException {
 		if (arg instanceof Closure<?>) {
 			return new ClosureExecutableEntry((Closure<?>) arg);
-		} else if (arg instanceof String) {
+		}
+		
+		if (arg instanceof String) {
 			final StringExecutableEntry stringExecutableEntry = new StringExecutableEntry((String) arg);
 			validateStringEntry(stringExecutableEntry, workDirectory);
 			return stringExecutableEntry;
-		} else if (arg instanceof List<?>) {
-			return new ListExecutableEntry((List<String>) arg);
-		} else if (arg instanceof Map<?, ?>) {
-
+		}
+		
+		if (arg instanceof List<?>) {
+			@SuppressWarnings("unchecked")
+			List<String> listString = (List<String>)arg;  
+			return new ListExecutableEntry(listString);
+		}
+		
+		if (arg instanceof Map<?, ?>) {
 			// verify types of keys and objects, and create a new map with wrapper entry objects for each value.
 			final MapExecutableEntry result = new MapExecutableEntry();
 			copyElementsToEntriesMap(arg, entryName, result, workDirectory);

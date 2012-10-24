@@ -81,6 +81,8 @@ public class DSLReader {
 	private final Map<String, Object> bindingProperties = new HashMap<String, Object>();
 
 	private String dslContents;
+	
+	private boolean validateObjects = true;
 
 	/*******
 	 * Variables injected into the context of a groovy compilation (binding) Used with the service extension mechanism
@@ -105,7 +107,8 @@ public class DSLReader {
 			org.cloudifysource.dsl.Service.class.getPackage().getName(), UserInterface.class.getPackage().getName(),
 			org.cloudifysource.dsl.internal.context.ServiceImpl.class.getPackage().getName() };
 
-	private static final String DSL_FILE_PATH_PROPERTY_NAME = "dslFilePath";
+	public static final String DSL_FILE_PATH_PROPERTY_NAME = "dslFilePath";
+	public static final String DSL_VALIDATE_OBJECTS_PROPERTY_NAME = "validateObjectsFlag";
 
 	private void initDslFile()
 			throws FileNotFoundException {
@@ -428,6 +431,7 @@ public class DSLReader {
 			}
 		}
 
+		binding.setVariable(DSL_VALIDATE_OBJECTS_PROPERTY_NAME, validateObjects);
 		binding.setVariable(DSL_FILE_PATH_PROPERTY_NAME, dslFile == null ? null : dslFile.getPath());
 		return binding;
 	}
@@ -573,6 +577,14 @@ public class DSLReader {
 	public void setBindingVariables(final Map<Object, Object> variables) {
 		this.variables = variables;
 
+	}
+
+	public boolean isValidateObjects() {
+		return validateObjects;
+	}
+	
+	public void setValidateObjects(boolean isValidateObjects) {
+		this.validateObjects = isValidateObjects;
 	}
 
 }

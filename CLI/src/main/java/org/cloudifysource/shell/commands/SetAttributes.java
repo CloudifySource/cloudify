@@ -40,7 +40,7 @@ public class SetAttributes extends AbstractAttributesCommand {
 			+ " '{\"att1\":\"value1\",\"att2\":\"value2\"}' "
 			+ "(make sure to use single quotes (') around this argument to make sure all JSON attributes are "
 			+ "escaped properly.")
-	protected String attributes = null;
+	protected String attributes;
 
 	@Override
 	protected Object doExecute()

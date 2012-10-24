@@ -42,33 +42,20 @@ import org.cloudifysource.shell.ConditionLatch.Predicate;
  */
 public class RestLifecycleEventsLatch {
 
-	private final long MIN_POLLING_INTERVAL = 2000;
+	private static final Logger logger = Logger.getLogger(RestLifecycleEventsLatch.class.getName());
+	private final static long MIN_POLLING_INTERVAL = 2000;
+	private final static String DEFAULT_TIMEOUT_MESSAGE = "installation timed out";
 
 	private long pollingInterval = MIN_POLLING_INTERVAL;
-
-	private final String DEFAULT_TIMEOUT_MESSAGE = "installation timed out";
-
 	private String timeoutMessage = DEFAULT_TIMEOUT_MESSAGE;
-
-	private CLIEventsDisplayer displayer;
-
+	private final CLIEventsDisplayer displayer;
 	private String pollingID;
-
 	private GSRestClient client;
-
-	private long endTime;
-
-	int cursor = 0;
-
-	boolean isDone = false;
-
-	String url;
-
-	Map<String, Object> lifecycleEventLogs = null;
-
+	private int cursor = 0;
+	private boolean isDone = false;
+	private String url;
+	private Map<String, Object> lifecycleEventLogs = null;
 	private long remoteTaskLeaseExpiration;
-
-	private static final Logger logger = Logger.getLogger(RestLifecycleEventsLatch.class.getName());
 
 	/**
 	 * Constructor.
