@@ -17,10 +17,10 @@
 	
 	<property name="ec2.dir" value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/ec2/upload/cloudify-overrides" />
 	<property name="ec2-win.dir" value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/ec2-win/upload/cloudify-overrides" />
-	<property name="byon.dir" value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/ec2-win/upload/cloudify-overrides" />
-	<property name="azure.dir" value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/ec2-win/upload/cloudify-overrides" />
-	<property name="openstack.dir" value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/ec2-win/upload/cloudify-overrides" />
-	<property name="rsopenstack.dir" value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/ec2-win/upload/cloudify-overrides" />
+	<property name="byon.dir" value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/byon/upload/cloudify-overrides" />
+	<property name="azure.dir" value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/azure/upload/cloudify-overrides" />
+	<property name="openstack.dir" value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/openstack/upload/cloudify-overrides" />
+	<property name="rsopenstack.dir" value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/rsopenstack/upload/cloudify-overrides" />
 
 
 	<target name="Copy Cloudify jars to install dir" depends="">

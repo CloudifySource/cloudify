@@ -159,8 +159,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		GridServiceAgent[] agents = this.originalESMAdmin.getGridServiceAgents().getAgents();
 		for (GridServiceAgent agent : agents) {
 			String template = agent.getVirtualMachine().getDetails().getEnvironmentVariables().get(CloudifyConstants.CLOUDIFY_CLOUD_TEMPLATE_NAME);
-			if (template.equals(this.cloudTemplateName)) {
-				result.add(agent);
+			if (template != null) { // management machines don't have this variable attached
+				if (template.equals(this.cloudTemplateName)) {
+					result.add(agent);
+				}
 			}
 		}
 		
@@ -190,6 +192,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				Utils.createInstallationDetails(md, cloud, template, zones, lookupLocatorsString,
 						this.originalESMAdmin, false,
 						null, reservationId);
+		details.setTemplateName(cloudTemplateName);
 
 		logger.info("Created new Installation Details: " + details);
 		return details;

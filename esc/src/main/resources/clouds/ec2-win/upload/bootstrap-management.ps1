@@ -20,7 +20,7 @@
 # Cloudify. The agent will function as management depending on the value of $GSA_MODE
 #
 # Example:
-# Invoke-Command -ComputerName ec2-107-21-132-11.compute-1.amazonaws.com -Credential $cred -ScriptBlock {#$ENV:LUS_IP_ADDRESS=10.46.178;$ENV:GSA_MODE=lus;$ENV:NO_WEB_SERVICES=false;$ENV:MACHINE_IP_ADDRESS=10.46.178.72;$ENV:MACHINE_ZONES="ZONE";$ENV:WORKING_HOME_DIRECTORY="C:\Users\Administrator\Documents";$ENV:CLOUDIFY_LINK="http://repository.cloudifysource.org/org/cloudifysource/2.1.0/gigaspaces-cloudify-2.1.0-m2-b1193-82.zip";$ENV:CLOUD_FILE="ec2-cloud.groovy";.\bootstrap-management.ps1 }
+# Invoke-Command -ComputerName ec2-107-21-132-11.compute-1.amazonaws.com -Credential $cred -ScriptBlock {#$ENV:LUS_IP_ADDRESS=10.46.178;$ENV:GSA_MODE=lus;$ENV:NO_WEB_SERVICES=false;$ENV:MACHINE_IP_ADDRESS=10.46.178.72;$ENV:MACHINE_ZONES="ZONE";$ENV:WORKING_HOME_DIRECTORY="C:\Users\Administrator\Documents";$ENV:GIGASPACES_LINK="http://repository.cloudifysource.org/org/cloudifysource/2.1.0/gigaspaces-cloudify-2.1.0-m2-b1193-82.zip";$ENV:CLOUD_FILE="ec2-cloud.groovy";.\bootstrap-management.ps1 }
 #  
 #
 # The following environment variables should be set before calling this script:
@@ -30,13 +30,13 @@
 #   MACHINE_IP_ADDRESS - The IP of this server (Useful if multiple NICs exist)
 #	MACHINE_ZONES - This is required if this is not a management machine
 # 	WORKING_HOME_DIRECTORY - This is where the files were copied to (cloudify installation, etc..)
-#	CLOUDIFY_LINK - If this url is found, it will be downloaded to $WORKING_HOME_DIRECTORY/gigaspaces.zip
-#	CLOUDIFY_OVERRIDES_LINK - If this url is found, it will be downloaded to $WORKING_HOME_DIRECTORY/gigaspaces.zip
+#	GIGASPACES_LINK - If this url is found, it will be downloaded to $WORKING_HOME_DIRECTORY/gigaspaces.zip
+#	GIGASPACES_OVERRIDES_LINK - If this url is found, it will be downloaded to $WORKING_HOME_DIRECTORY/gigaspaces.zip
 #   CLOUD_FILE - File name of the cloud file, which should be placed in the WORKING_HOME_DIRECTORY
 #   USERNAME - Username of the account.
 #   PASSWORD - Password of the account.
-#	CLOUDIFY_CLOUD_IMAGE_ID - If set, indicates the image ID for this machine.
-#	CLOUDIFY_CLOUD_HARDWARE_ID - If set, indicates the hardware ID for this machine.
+#	GIGASPACES_CLOUD_IMAGE_ID - If set, indicates the image ID for this machine.
+#	GIGASPACES_CLOUD_HARDWARE_ID - If set, indicates the hardware ID for this machine.
 #
 # Author: barakm
 # Since: 2.1
@@ -106,15 +106,15 @@ $cloudifyZip = "$parentDirectory\gigaspaces.zip"
 $cloudifyDir = "$parentDirectory\gigaspaces"
 
 # Download Cloudify
-download "$ENV:CLOUDIFY_LINK.zip" $cloudifyZip
+download "$ENV:GIGASPACES_LINK.zip" $cloudifyZip
 # unzip Cloudify
 unzip $cloudifyZip $cloudifyDir
 # move one folder up, to standardize across versions
 move $cloudifyDir\*\* $cloudifyDir
 
 # Download Cloudify Overrides
-if(Test-Path Env:\CLOUDIFY_OVERRIDES_LINK) {
-	download "$ENV:CLOUDIFY_OVERRIDES_LINK.zip" $parentDirectory\gigaspaces-overrides.zip
+if(Test-Path Env:\GIGASPACES_OVERRIDES_LINK) {
+	download "$ENV:GIGASPACES_OVERRIDES_LINK.zip" $parentDirectory\gigaspaces-overrides.zip
 	# unzip Cloudify-overrides
 	unzip $parentDirectory\gigaspaces-overrides.zip $cloudifyDir
 }
@@ -128,10 +128,10 @@ Write-Host Updating environment script
 insert-line $cloudifyDir\bin\setenv.bat "set NIC_ADDR=$ENV:MACHINE_IP_ADDRESS"
 insert-line $cloudifyDir\bin\setenv.bat "set LOOKUPLOCATORS=$ENV:LUS_IP_ADDRESS"
 insert-line $cloudifyDir\bin\setenv.bat "set JAVA_HOME=$javaDir"
-insert-line $cloudifyDir\bin\setenv.bat 'set CLOUDIFY_AGENT_ENV_PRIVATE_IP=$ENV:CLOUDIFY_AGENT_ENV_PRIVATE_IP'
-insert-line $cloudifyDir\bin\setenv.bat 'set CLOUDIFY_AGENT_ENV_PUBLIC_IP=$ENV:CLOUDIFY_AGENT_ENV_PUBLIC_IP'
-insert-line $cloudifyDir\bin\setenv.bat 'set CLOUDIFY_CLOUD_IMAGE_ID=$ENV:CLOUDIFY_CLOUD_IMAGE_ID'
-insert-line $cloudifyDir\bin\setenv.bat 'set CLOUDIFY_CLOUD_HARDWARE_ID=$ENV:CLOUDIFY_CLOUD_HARDWARE_ID'
+insert-line $cloudifyDir\bin\setenv.bat 'set GIGASPACES_AGENT_ENV_PRIVATE_IP=$ENV:GIGASPACES_AGENT_ENV_PRIVATE_IP'
+insert-line $cloudifyDir\bin\setenv.bat 'set GIGASPACES_AGENT_ENV_PUBLIC_IP=$ENV:GIGASPACES_AGENT_ENV_PUBLIC_IP'
+insert-line $cloudifyDir\bin\setenv.bat 'set GIGASPACES_CLOUD_IMAGE_ID=$ENV:GIGASPACES_CLOUD_IMAGE_ID'
+insert-line $cloudifyDir\bin\setenv.bat 'set GIGASPACES_CLOUD_HARDWARE_ID=$ENV:GIGASPACES_CLOUD_HARDWARE_ID'
 
 
 Write-Host "Disabling local firewall"

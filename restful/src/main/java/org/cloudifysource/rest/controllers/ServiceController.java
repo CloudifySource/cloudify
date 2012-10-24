@@ -1628,8 +1628,13 @@ public class ServiceController implements ServiceDetailsProvider{
 		} else {
 
 			final CloudTemplate template = getComputeTemplate(cloud, templateName);
-
-			final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
+			
+			final long cloudExternalProcessMemoryInMB;
+			if (shared) {
+				cloudExternalProcessMemoryInMB = service.getInstanceMemoryMB();
+			} else {
+				cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
+			}
 
 			logger.info("Creating cloud machine provisioning config. Template remote directory is: " + template.getRemoteDirectory());
 			final CloudifyMachineProvisioningConfig config =

@@ -135,15 +135,15 @@ public final class CloudifyConstants {
 	/***********************************
 	 * Key names for environment variables available to agent in a cloudify environment
 	 */
-	public static final String CLOUDIFY_AGENT_ENV_PRIVATE_IP = "CLOUDIFY_AGENT_ENV_PRIVATE_IP";
-	public static final String CLOUDIFY_AGENT_ENV_PUBLIC_IP = "CLOUDIFY_AGENT_ENV_PUBLIC_IP";
-	public static final String CLOUDIFY_AGENT_ENV_PRIVILEGED = "CLOUDIFY_AGENT_ENV_PRIVILEGED";
-	public static final String CLOUDIFY_AGENT_ENV_INIT_COMMAND= "CLOUDIFY_AGENT_ENV_INIT_COMMAND";
-	public static final String CLOUDIFY_CLOUD_IMAGE_ID = "CLOUDIFY_CLOUD_IMAGE_ID";
-	public static final String CLOUDIFY_CLOUD_HARDWARE_ID = "CLOUDIFY_CLOUD_HARDWARE_ID";
-	public static final String CLOUDIFY_CLOUD_TEMPLATE_NAME = "CLOUDIFY_CLOUD_TEMPLATE_NAME";
-	public static final String CLOUDIFY_AGENT_ENV_JAVA_URL = "CLOUDIFY_AGENT_ENV_JAVA_URL";
-	public static final String CLOUDIFY_ORIGINAL_JAVA_HOME = "CLOUDIFY_ORIGINAL_JAVA_HOME";
+	public static final String CLOUDIFY_AGENT_ENV_PRIVATE_IP = "GIGASPACES_AGENT_ENV_PRIVATE_IP";
+	public static final String CLOUDIFY_AGENT_ENV_PUBLIC_IP = "GIGASPACES_AGENT_ENV_PUBLIC_IP";
+	public static final String CLOUDIFY_AGENT_ENV_PRIVILEGED = "GIGASPACES_AGENT_ENV_PRIVILEGED";
+	public static final String CLOUDIFY_AGENT_ENV_INIT_COMMAND= "GIGASPACES_AGENT_ENV_INIT_COMMAND";
+	public static final String CLOUDIFY_CLOUD_IMAGE_ID = "GIGASPACES_CLOUD_IMAGE_ID";
+	public static final String CLOUDIFY_CLOUD_HARDWARE_ID = "GIGASPACES_CLOUD_HARDWARE_ID";
+	public static final String CLOUDIFY_CLOUD_TEMPLATE_NAME = "GIGASPACES_CLOUD_TEMPLATE_NAME";
+	public static final String CLOUDIFY_AGENT_ENV_JAVA_URL = "GIGASPACES_AGENT_ENV_JAVA_URL";
+	public static final String CLOUDIFY_ORIGINAL_JAVA_HOME = "GIGASPACES_ORIGINAL_JAVA_HOME";
 	
 	
 	
