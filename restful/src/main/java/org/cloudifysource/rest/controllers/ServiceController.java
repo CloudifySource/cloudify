@@ -1597,7 +1597,7 @@ public class ServiceController implements ServiceDetailsProvider{
 		if (service != null) {
 			locationAware = service.isLocationAware();
 		}
-		if (service.getDeployment() != null && service.getDeployment().getGlobal() != null) {
+		if (service.getDeployment().getGlobal() != null) {
 			dedicated = false;
 		}
 		final int externalProcessMemoryInMB = 512;
