@@ -26,22 +26,20 @@ import com.gigaspaces.internal.license.LicenseManagerVerifier;
 public final class CloudifyConstants {
 
 	// CHECKSTYLE:OFF
-	
+
 	/***
 	 * USM service deployment States.
 	 */
 	public static enum USMState {
 
-		INITIALIZING,
-		LAUNCHING,
-		RUNNING,
-		SHUTTING_DOWN,
+		INITIALIZING, LAUNCHING, RUNNING, SHUTTING_DOWN,
 		/**
-		 * Indicates that the service instance has failed for some reason 
-		 * but self-healing was disabled to the service instance will not shut down.
+		 * Indicates that the service instance has failed for some reason but
+		 * self-healing was disabled to the service instance will not shut down.
 		 */
 		ERROR
 	}
+
 	/***
 	 * Context properties for deployed services.
 	 */
@@ -55,11 +53,11 @@ public final class CloudifyConstants {
 	public static final String CONTEXT_PROPERTY_CLOUD_NAME = "com.gs.cloudify.cloud-name";
 	public static final String CONTEXT_PROPERTY_PROPERTIES_FILE_NAME = "com.gs.cloudify.properties-file-name";
 	public static final String CONTEXT_PROPERTY_ASYNC_INSTALL = "com.gs.cloudify.async-install";
-	public static final String CONTEXT_PROPERTY_DISABLE_SELF_HEALING= "com.gs.cloudify.disable-self-healing";
+	public static final String CONTEXT_PROPERTY_DISABLE_SELF_HEALING = "com.gs.cloudify.disable-self-healing";
 	public static final String CONTEXT_PROPERTY_APPLICATION_NAME = "com.gs.application";
 	public static final String CONTEXT_PROPERTY_ELASTIC = "com.gs.service.elastic";
 	public static final String CONTEXT_PROPERTY_TEMPLATE = "com.gs.service.template";
-	
+
 	/**********
 	 * Key names for invocation request and response parameters.
 	 */
@@ -68,10 +66,9 @@ public final class CloudifyConstants {
 	public static final String INVOCATION_RESPONSE_STATUS = "Invocation_Success";
 	public static final String INVOCATION_RESPONSE_EXCEPTION = "Invocation_Exception";
 	public static final String INVOCATION_RESPONSE_RESULT = "Invocation_Result";
-	public static final String INVOCATION_RESPONSE_COMMAND_NAME= "Invocation_Command_Name";
-	public static final String INVOCATION_RESPONSE_INSTANCE_ID= "Invocation_Instance_ID";
-	public static final String INVOCATION_RESPONSE_INSTANCE_NAME= "Invocation_Instance_Name";
-
+	public static final String INVOCATION_RESPONSE_COMMAND_NAME = "Invocation_Command_Name";
+	public static final String INVOCATION_RESPONSE_INSTANCE_ID = "Invocation_Instance_ID";
+	public static final String INVOCATION_RESPONSE_INSTANCE_NAME = "Invocation_Instance_Name";
 
 	/*************
 	 * Key names of environment variables passed to USM external scripts
@@ -85,49 +82,44 @@ public final class CloudifyConstants {
 	public static final String USM_ENV_APPLICATION_NAME = "USM_APPLICATION_NAME";
 	public static final String USM_ENV_SERVICE_NAME = "USM_SERVICE_NAME";
 
-	
 	/****************
 	 * Key names for USM Monitors
 	 */
 	public static final String USM_MONITORS_STATE_ID = "USM_State";
 	public static final String USM_MONITORS_CHILD_PROCESS_ID = "USM_Child Process ID";
 	public static final String USM_MONITORS_ACTUAL_PROCESS_ID = "USM_Actual Process ID";
-	
+
 	/****************
 	 * Key names for USM Details
 	 */
-	public static final String USM_DETAILS_PRIVATE_IP= "Cloud Private IP";
-	public static final String USM_DETAILS_PUBLIC_IP= "Cloud Public IP";
-	public  static final String USM_DETAILS_URL = "url";
+	public static final String USM_DETAILS_PRIVATE_IP = "Cloud Private IP";
+	public static final String USM_DETAILS_PUBLIC_IP = "Cloud Public IP";
+	public static final String USM_DETAILS_URL = "url";
 	public static final String USM_DETAILS_ICON = "icon";
-	public static final String USM_DETAILS_IMAGE_ID= "Cloud Image ID";
-	public static final String USM_DETAILS_HARDWARE_ID= "Cloud Hardware ID";
-	
-	
-	
+	public static final String USM_DETAILS_IMAGE_ID = "Cloud Image ID";
+	public static final String USM_DETAILS_HARDWARE_ID = "Cloud Hardware ID";
+	public static final String USM_DETAILS_INSTANCE_ID = "Instance ID";
+
 	/****************
 	 * Key names for USM Exposed Monitors and Details
 	 */
 	public static final String USM_MONITORS_SERVICE_ID = "USM";
-	public static final String USM_DETAILS_SERVICE_ID = "USM";	
-	
-	
+	public static final String USM_DETAILS_SERVICE_ID = "USM";
+
 	/*********************
-	 * Key names for USM parameters that can be configured using the service custom parameters.
+	 * Key names for USM parameters that can be configured using the service
+	 * custom parameters.
 	 * 
 	 */
 	public static final String USM_PARAMETERS_TAILER_INTERVAL = "TailerInterval";
-	
-
 
 	/*************************************
-	 * Keys for Elastic Provisioning properties used with ESM machine provisioning.
+	 * Keys for Elastic Provisioning properties used with ESM machine
+	 * provisioning.
 	 * 
 	 */
 	public static final String ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME = "__CLOUDIFY__CLOUD_TEMPLATE_NAME";
 	public static final String ELASTIC_PROPERTIES_CLOUD_CONFIGURATION_DIRECTORY = "__CLOUDIFY__CLOUD_CONFIGURATION_DIRECTORY";
-	
-
 
 	/********************
 	 * Key names for lifecycle event results.
@@ -137,22 +129,20 @@ public final class CloudifyConstants {
 	public static final String USM_EVENT_EXEC_SUCCEED_MESSAGE = "[OK]";
 	public static final String USM_EVENT_EXEC_FAILED_MESSAGE = "[ERROR]";
 
-	
 	/***********************************
-	 * Key names for environment variables available to agent in a cloudify environment
+	 * Key names for environment variables available to agent in a cloudify
+	 * environment
 	 */
 	public static final String CLOUDIFY_AGENT_ENV_PRIVATE_IP = "GIGASPACES_AGENT_ENV_PRIVATE_IP";
 	public static final String CLOUDIFY_AGENT_ENV_PUBLIC_IP = "GIGASPACES_AGENT_ENV_PUBLIC_IP";
 	public static final String CLOUDIFY_AGENT_ENV_PRIVILEGED = "GIGASPACES_AGENT_ENV_PRIVILEGED";
-	public static final String CLOUDIFY_AGENT_ENV_INIT_COMMAND= "GIGASPACES_AGENT_ENV_INIT_COMMAND";
+	public static final String CLOUDIFY_AGENT_ENV_INIT_COMMAND = "GIGASPACES_AGENT_ENV_INIT_COMMAND";
 	public static final String CLOUDIFY_CLOUD_IMAGE_ID = "GIGASPACES_CLOUD_IMAGE_ID";
 	public static final String CLOUDIFY_CLOUD_HARDWARE_ID = "GIGASPACES_CLOUD_HARDWARE_ID";
 	public static final String CLOUDIFY_CLOUD_TEMPLATE_NAME = "GIGASPACES_CLOUD_TEMPLATE_NAME";
 	public static final String CLOUDIFY_AGENT_ENV_JAVA_URL = "GIGASPACES_AGENT_ENV_JAVA_URL";
 	public static final String CLOUDIFY_ORIGINAL_JAVA_HOME = "GIGASPACES_ORIGINAL_JAVA_HOME";
-	
-	
-	
+
 	/***************
 	 * Misc.
 	 */
@@ -162,14 +152,12 @@ public final class CloudifyConstants {
 	public static final String USM_LIB_DIR = "usmlib";
 	public static final String SERVICE_EXTERNAL_FOLDER = "/ext/";
 	public static final String SERVICE_CLOUD_CONFIGURATION_FILE_NAME = "__Cloud_Configuration.zip";
-	
-	
+
 	/***************
 	 * Reason codes for rest exceptions
 	 */
 	public static final String ERR_REASON_CODE_FAILED_TO_LOCATE_APP = "failed_to_locate_app";
 
-	
 	/********************
 	 * Custom properties for known cloudify settings.
 	 * 
@@ -179,10 +167,10 @@ public final class CloudifyConstants {
 	public static final String CUSTOM_PROPERTY_ENABLE_START_PROCESS_MONITOR = "org.cloudifysource.enable-start-process-monitor";
 	public static final String CUSTOM_PROPERTY_STOP_DETECTION_ON_ALL_PROCESSES = "org.cloudifysource.stop-detection-on-all-processes";
 	public static final String CUSTOM_PROPERTY_MONITORS_CACHE_EXPIRATION_TIMEOUT = "org.cloudifysource.monitors-cache-timeout";
-	public static final String CUSTOM_PROPERTY_PIDS_SIZE_LIMIT= "org.cloudifysource.pids-size-limit";
-	
+	public static final String CUSTOM_PROPERTY_PIDS_SIZE_LIMIT = "org.cloudifysource.pids-size-limit";
+
 	/*******************
-	 * event lifecycle polling parameters. 
+	 * event lifecycle polling parameters.
 	 * 
 	 */
 	public static final String CURSOR_POS = "curserPos";
@@ -191,24 +179,24 @@ public final class CloudifyConstants {
 	public static final String LIFECYCLE_EVENT_CONTAINER_ID = "lifecycleEventContainerID";
 	public static final String SERVICE_ORDER = "srviceOrder";
 	public static final String SERVER_POLLING_TASK_EXPIRATION_MILLI = "PollingTaskExpirationTimeMillis";
-	
+
 	/*******************
 	 * default ports (LUS and REST)
 	 */
 	public static final int DEFAULT_REST_PORT = 8100;
-	public static final int DEFAULT_LUS_PORT = net.jini.discovery.Constants.getDiscoveryPort();
+	public static final int DEFAULT_LUS_PORT = net.jini.discovery.Constants
+			.getDiscoveryPort();
 	public static final int DEFAULT_LOCALCLOUD_LUS_PORT = DEFAULT_LUS_PORT + 2;
 
-	
 	/************************
 	 * Keys used by Agentless Installer to modify default installer behavior.
 	 */
 	public static final String INSTALLER_CUSTOM_DATA_SFTP_PREFERRED_AUTHENTICATION_METHODS_KEY = "installer.sftp.preferredAuthentications";
-	
+
 	private CloudifyConstants() {
 		// private constructor to prevent initialization.
 	}
-	
+
 	/*******************
 	 * USM process metrics
 	 */
@@ -229,13 +217,12 @@ public final class CloudifyConstants {
 	public static final String USM_METRIC_THREAD_COUNT = "Thread Count";
 	public static final String USM_METRIC_PEAK_THREAD_COUNT = "Peak Thread Count";
 
-	
 	public static final int SSH_PORT = 22;
-	
+
 	/*******************
 	 * REST Headers
 	 */
 	public static final String REST_API_VERSION_HEADER = "cloudify-api-version";
-	
+
 	// CHECKSTYLE:ON
 }
