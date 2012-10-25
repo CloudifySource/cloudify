@@ -1278,7 +1278,7 @@ public class ServiceController implements ServiceDetailsProvider{
 			",\"lifecycleEventContainerID\":\"07db2a16-62f8-4669-ac41-ed9afe3a3b02\"}", comments="")
 	@PossibleResponseStatuses(codes = {200, 500, 500}, descriptions = {"success", "DSLException", "IOException"})
 	@RequestMapping(value = "applications/{applicationName}/timeout/{timeout}", method = RequestMethod.POST)
-	
+	public @ResponseBody
 	Object deployApplication(@PathVariable final String applicationName, @PathVariable final int timeout,
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
 			@RequestParam(value = "selfHealing", required = false ) final Boolean selfHealing)
