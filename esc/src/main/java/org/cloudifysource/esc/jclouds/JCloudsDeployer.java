@@ -402,7 +402,7 @@ public class JCloudsDeployer {
 			@Override
 			public boolean apply(final ComputeMetadata compute) {
 				final NodeMetadata node = (NodeMetadata) compute;
-				return node.getPrivateAddresses().contains(ip);
+				return node.getPrivateAddresses().contains(ip) || node.getPublicAddresses().contains(ip);
 			}
 
 		};
