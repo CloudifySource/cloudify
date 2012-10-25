@@ -5,7 +5,7 @@
     This configuration file was written by the eclipse-cs plugin configuration editor
 -->
 <!--
-    Checkstyle-Configuration: Cloudify
+    Checkstyle-Configuration: Cloudify Checkstyle Configuration
     Description: none
 -->
 <module name="Checker">
@@ -105,9 +105,7 @@
       <property name="tokens" value="METHOD_DEF"/>
     </module>
   </module>
-  <module name="JavadocPackage">
-    <property name="allowLegacy" value="true"/>
-  </module>
+  <module name="JavadocPackage"/>
   <module name="NewlineAtEndOfFile">
     <property name="severity" value="ignore"/>
     <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
@@ -125,4 +123,7 @@
     <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
   </module>
   <module name="SuppressionCommentFilter"/>
+  <module name="SuppressionFilter">
+    <property name="file" value="${workspace_loc}/cloudify/cloudify/cloudify_checkstyle_suppressions.xml"/>
+  </module>
 </module>
