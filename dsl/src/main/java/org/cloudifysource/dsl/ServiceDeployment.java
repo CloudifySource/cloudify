@@ -40,13 +40,6 @@ public class ServiceDeployment implements Serializable {
 	private PublicServiceDeploymentDescriptor global;
 	private DedicatedServiceDeploymentDescriptor dedicated;
 	
-	/**
-	 * Default deployment will be dedicated
-	 */
-	public ServiceDeployment() {
-		dedicated = new DedicatedServiceDeploymentDescriptor();
-	}
-	
 	public PublicServiceDeploymentDescriptor getGlobal() {
 		return global;
 	}
@@ -68,11 +61,8 @@ public class ServiceDeployment implements Serializable {
 			throws DSLValidationException {
 		
 		if (global != null && dedicated != null) {
-			throw new DSLValidationException("cannot define both global and dedicated deployment types. " +
-					"please choose one or the other");
+			throw new DSLValidationException("cannot define both global and dedicated deployment types. " 
+						+ "please choose one or the other");
 		}
 	}
-
-
-
 }

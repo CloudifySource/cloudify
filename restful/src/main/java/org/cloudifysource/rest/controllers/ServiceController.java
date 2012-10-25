@@ -70,6 +70,7 @@ import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.ComputeDetails;
 import org.cloudifysource.dsl.DataGrid;
 import org.cloudifysource.dsl.Service;
+import org.cloudifysource.dsl.ServiceDeploymentFactory;
 import org.cloudifysource.dsl.Sla;
 import org.cloudifysource.dsl.StatefulProcessingUnit;
 import org.cloudifysource.dsl.StatelessProcessingUnit;
@@ -1597,9 +1598,17 @@ public class ServiceController implements ServiceDetailsProvider{
 		if (service != null) {
 			locationAware = service.isLocationAware();
 		}
-		if (service.getDeployment().getGlobal() != null) {
-			dedicated = false;
+		
+		if (service.getDeployment() == null) {
+			// no deployment was specified
+			// fall back to dedicated
+			service.setDeployment(ServiceDeploymentFactory.newDedicatedDeplyoment());
+		} else {
+			if (service.getDeployment().getGlobal() != null) {
+				dedicated = false;
+			}			
 		}
+		
 		final int externalProcessMemoryInMB = 512;
 		final int containerMemoryInMB = 128;
 		final int reservedMemoryCapacityPerMachineInMB = 256;

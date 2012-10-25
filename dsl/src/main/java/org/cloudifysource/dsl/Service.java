@@ -56,7 +56,7 @@ public class Service {
 	private String name;
 	private String icon;
 	
-	private ServiceDeployment deployment = new ServiceDeployment();
+	private ServiceDeployment deployment;
 
 	private ServiceLifecycle lifecycle;
 	private UserInterface userInterface;
