@@ -40,6 +40,13 @@ public class ServiceDeployment implements Serializable {
 	private PublicServiceDeploymentDescriptor global;
 	private DedicatedServiceDeploymentDescriptor dedicated;
 	
+	/**
+	 * Default deployment will be dedicated
+	 */
+	public ServiceDeployment() {
+		dedicated = new DedicatedServiceDeploymentDescriptor();
+	}
+	
 	public PublicServiceDeploymentDescriptor getGlobal() {
 		return global;
 	}
