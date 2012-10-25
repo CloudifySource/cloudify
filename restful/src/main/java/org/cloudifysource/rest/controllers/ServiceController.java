@@ -1692,7 +1692,7 @@ public class ServiceController implements ServiceDetailsProvider{
 				final AutomaticCapacityScaleConfig scaleConfig =
 						ElasticScaleConfigFactory.createAutomaticCapacityScaleConfig(serviceName, service,
 								(int) cloudExternalProcessMemoryInMB, locationAware);
-				if (!dedicated) {
+				if (dedicated) {
 					scaleConfig.setAtMostOneContainerPerMachine(true);	
 				}
 				deployment.scale(scaleConfig);

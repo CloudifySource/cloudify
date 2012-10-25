@@ -187,9 +187,6 @@ public final class ElasticScaleConfigFactory {
 						TimeUnit.SECONDS)
 				.cooldownAfterScaleIn(service.getScaleInCooldownInSeconds(),
 						TimeUnit.SECONDS);
-		if (service.getDeployment().getDedicated() != null) {
-			scaleConfigurer.atMostOneContainerPerMachine();
-		}
 
 		if (locationAware) {
 			scaleConfigurer.enableGridServiceAgentZonesAware();
