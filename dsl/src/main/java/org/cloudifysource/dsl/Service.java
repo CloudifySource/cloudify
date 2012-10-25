@@ -46,7 +46,7 @@ import org.openspaces.ui.UserInterface;
 @CloudifyDSLEntity(name = "service", clazz = Service.class, allowInternalNode = true, allowRootNode = true,
 parent = "application")
 public class Service {
-
+	
 	private static final int DEFAULT_MAX_JAR_SIZE = 150 * 1024 * 1024; // 150 MB
 	private static final long DEFAULT_SAMPLING_PERIOD_SECONDS = 60;
 
@@ -55,6 +55,8 @@ public class Service {
 	 */
 	private String name;
 	private String icon;
+	
+	private ServiceDeployment deployment;
 
 	private ServiceLifecycle lifecycle;
 	private UserInterface userInterface;
@@ -74,10 +76,6 @@ public class Service {
 	private int minAllowedInstancesPerLocation = 1;
 
 	private int maxAllowedInstancesPerLocation = 1;
-	
-	private int instanceMemoryMB = 128;
-	
-	private double instanceCpuCores = 0; // no cpu requirements 
 
 	private long maxJarSize = DEFAULT_MAX_JAR_SIZE;
 
@@ -102,9 +100,7 @@ public class Service {
 	private LinkedList<String> extendedServicesPaths = new LinkedList<String>();
 
 	private boolean elastic = false;
-	
-	private boolean shared = false;
-	
+		
 	private String url = null;
 
 	private List<ScalingRuleDetails> scalingRules;
@@ -119,6 +115,14 @@ public class Service {
 
 	private boolean locationAware = false;
 
+	public ServiceDeployment getDeployment() {
+		return deployment;
+	}
+
+	public void setDeployment(final ServiceDeployment deployment) {
+		this.deployment = deployment;
+	}
+	
 	public long getSamplingPeriodInSeconds() {
 		return samplingPeriodInSeconds;
 	}
@@ -139,14 +143,6 @@ public class Service {
 		this.elastic = elastic;
 	}
 	
-	public boolean isShared() {
-		return shared;
-	}
-
-	public void setShared(boolean shared) {
-		this.shared = shared;
-	}
-
 	public String getName() {
 		return name;
 	}
@@ -180,22 +176,6 @@ public class Service {
 		return this.network;
 	}
 	
-	public int getInstanceMemoryMB() {
-		return instanceMemoryMB;
-	}
-
-	public void setInstanceMemoryMB(int instanceMemoryMB) {
-		this.instanceMemoryMB = instanceMemoryMB;
-	}
-
-	public double getInstanceCpuCores() {
-		return instanceCpuCores;
-	}
-
-	public void setInstanceCpuCores(int instanceCpuCores) {
-		this.instanceCpuCores = instanceCpuCores;
-	}
-
 	public void setNetwork(final ServiceNetwork network) {
 		this.network = network;
 	}
