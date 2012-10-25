@@ -1357,5 +1357,9 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	public USMProcessMode getProcessMode() {
 		return processMode;
 	}
+	
+	public int getInstanceId() {
+		return this.instanceId;
+	}
 
 }

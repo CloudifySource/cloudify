@@ -18,6 +18,7 @@ package org.cloudifysource.usm.details;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.tools.ServiceDetailsHelper;
 import org.cloudifysource.usm.UniversalServiceManagerBean;
 import org.cloudifysource.usm.dsl.ServiceConfiguration;
@@ -40,7 +41,7 @@ public class ProcessDetails implements Details {
 		final Map<String, Object> map = new HashMap<String, Object>();
 		map.put("GSC PID", usm.getContainerPid());
 		map.put("Working Directory", usm.getPuExtDir().getAbsolutePath());
-
+		map.put(CloudifyConstants.USM_DETAILS_INSTANCE_ID, usm.getInstanceId());
 		String bindHost = null;
 		if (usm.isRunningInGSC()) {
 			bindHost = NIOInfoHelper.getDetails().getBindHost();
