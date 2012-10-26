@@ -1597,17 +1597,17 @@ public class ServiceController implements ServiceDetailsProvider{
 		boolean dedicated = true;
 		if (service != null) {
 			locationAware = service.isLocationAware();
+			if (service.getDeployment() == null) {
+				// no deployment was specified
+				// fall back to dedicated
+				service.setDeployment(ServiceDeploymentFactory.newDedicatedDeplyoment());
+			} else {
+				if (service.getDeployment().getGlobal() != null) {
+					dedicated = false;
+				}			
+			}
 		}
 		
-		if (service.getDeployment() == null) {
-			// no deployment was specified
-			// fall back to dedicated
-			service.setDeployment(ServiceDeploymentFactory.newDedicatedDeplyoment());
-		} else {
-			if (service.getDeployment().getGlobal() != null) {
-				dedicated = false;
-			}			
-		}
 		
 		final int externalProcessMemoryInMB = 512;
 		final int containerMemoryInMB = 128;
