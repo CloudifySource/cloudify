@@ -26,7 +26,7 @@ import org.cloudifysource.dsl.internal.DSLValidationException;
  *
  */
 @CloudifyDSLEntity(name = "global", clazz = GlobalIsolationSLADescriptor.class, allowInternalNode = true,
-		allowRootNode = false, parent = "deployment")
+		allowRootNode = false, parent = "isolationSLA")
 public class GlobalIsolationSLADescriptor {
 	
 	private static final int DEFAULT_SERVICE_INSTNACE_MEMORY = 128;

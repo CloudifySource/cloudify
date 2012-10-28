@@ -24,7 +24,7 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
  *
  */
 @CloudifyDSLEntity(name = "dedicated", clazz = DedicatedIsolationSLADescriptor.class, allowInternalNode = true,
-	allowRootNode = false, parent = "deployment")
+	allowRootNode = false, parent = "isolationSLA")
 public class DedicatedIsolationSLADescriptor {
 	
 }
