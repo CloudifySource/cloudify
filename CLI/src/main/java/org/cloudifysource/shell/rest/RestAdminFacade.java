@@ -39,12 +39,11 @@ import org.cloudifysource.restclient.InvocationResult;
 import org.cloudifysource.restclient.RestException;
 import org.cloudifysource.restclient.StringUtils;
 import org.cloudifysource.shell.AbstractAdminFacade;
+import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ComponentType;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
 import org.codehaus.jackson.map.ObjectMapper;
-
-import com.j_spaces.kernel.PlatformVersion;
 
 /**
  * This class implements the {@link AdminFacade}, relying on the abstract
@@ -89,7 +88,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 
 		try {
 			client = new GSRestClient(user, password, urlObj,
-					PlatformVersion.getVersionNumber());
+					"2.3.0-Cloudify-m1");
 			// test connection
 			client.get(SERVICE_CONTROLLER_URL + "testrest");
 		} catch (final ErrorStatusException e) {

@@ -23,7 +23,6 @@ import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
-import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.installer.CLILocalhostBootstrapperListener;
 import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 
@@ -94,6 +93,7 @@ public class TeardownLocalCloud extends AbstractGSCommand {
 	}
 	
 	private boolean confirmTeardown() throws IOException {
-        return ShellUtils.promptUser(session, "teardown_localcloud_confirmation_question");
+		return true;
+        //return ShellUtils.promptUser(session, "teardown_localcloud_confirmation_question");
 	}
 }
