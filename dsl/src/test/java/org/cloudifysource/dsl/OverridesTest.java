@@ -25,70 +25,80 @@ import org.junit.Test;
  */
 public class OverridesTest {
 
-	private final String SERVICE_PATH 
-	= "src/test/resources/overridesTest/services/cassandra";
-	private final String EXTERNAL_OVERRIDES_SERVICE_PATH 
-	= "src/test/resources/overridesTest/services/cassandraWithoutOverridesFile/cassandra";
+	private static final String SERVICE_PATH = 
+			"src/test/resources/overridesTest/services/cassandra";
+	private static final String EXTERNAL_OVERRIDES_SERVICE_PATH = 
+			"src/test/resources/overridesTest/services/cassandraWithoutOverridesFile/cassandra";
+	private static final String SERVICE_EXTERNAL_OVERRIDES_FILE_PATH = 
+			"src/test/resources/overridesTest/overridesFiles/cassandraWithoutOverridesFile.overrides";
+	private static final String SERVICE_ILLEGAL_OVERRIDES_FILE_FORMAT_PATH = 
+			"src/test/resources/overridesTest/overridesFiles/cassandraIllegalOverridesFileFormat.overrides";
+	private static final String SERVICE_ILLEGAL_OVERRIDES_PROPERTIES_FILE_PATH = 
+			"src/test/resources/overridesTest/overridesFiles/cassandraIllegalOverridesProperties.overrides";
 
-	private final String SERVICE_EXTERNAL_OVERRIDES_FILE_PATH 
-	= "src/test/resources/overridesTest/overridesFiles/cassandraWithoutOverridesFile.overrides";
+	private static final String APPLICATION_PATH = 
+			"src/test/resources/overridesTest/apps/overridesTestApplication";
+	private static final String EXTERNAL_OVERRIDES_APPLICATION_PATH = 
+			"src/test/resources/overridesTest/apps/overridesTestApplicationWithoutOverridesFile";
+	private static final String APPLICATION_EXTERNAL_OVERRIDES_FILE_PATH = 
+			"src/test/resources/overridesTest/overridesFiles/overridesTestApplicationWithoutOverridesFile.overrides";
+	private static final String APPLICATION_ILLEGAL_OVERRIDES_FILE_FORMAT_PATH = 
+			"src/test/resources/overridesTest/overridesFiles/applicationIllegalOverridesFileFormat.overrides";
+	private static final String APPLICATION_ILLEGAL_OVERRIDES_PROPERTIES_PATH = 
+			"src/test/resources/overridesTest/overridesFiles/applicationIllegalOverridesProperties.overrides";
 
-	final private String SERVICE_ILLEGAL_OVERRIDES_FILE_FORMAT_PATH 
-	= "src/test/resources/overridesTest/overridesFiles/cassandraIllegalOverridesFileFormat.overrides";
-	final private String SERVICE_ILLEGAL_OVERRIDES_PROPERTIES_FILE_PATH 
-	= "src/test/resources/overridesTest/overridesFiles/cassandraIllegalOverridesProperties.overrides";
-
-	private static final String APPLICATION_PATH 
-	= "src/test/resources/overridesTest/apps/overridesTestApplication";
-	private static final String EXTERNAL_OVERRIDES_APPLICATION_PATH 
-	= "src/test/resources/overridesTest/apps/overridesTestApplicationWithoutOverridesFile";
-
-	private static final String APPLICATION_EXTERNAL_OVERRIDES_FILE_PATH 
-	= "src/test/resources/overridesTest/overridesFiles/overridesTestApplicationWithoutOverridesFile.overrides";
-
-	private static final String APPLICATION_ILLEGAL_OVERRIDES_FILE_FORMAT_PATH 
-	= "src/test/resources/overridesTest/overridesFiles/applicationIllegalOverridesFileFormat.overrides";
-	private static final String APPLICATION_ILLEGAL_OVERRIDES_PROPERTIES_PATH 
-	= "src/test/resources/overridesTest/overridesFiles/applicationIllegalOverridesProperties.overrides";
-
-	private static final Map<String, Object> SERVICE_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS 
-	= new HashMap<String, Object>();
-	private static final Map<String, Object> APPLICATION_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS 
-	= new HashMap<String, Object>();
-	private static final Map<String, Object> APPLICATION_WITHOUT_OVERRIDES_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS 
-	= new HashMap<String, Object>();
+	private static final String APPLICATION_SERVICE_PATH = 
+			"src/test/resources/overridesTest/services/service1";
+	
+	private static final Map<String, Object> SERVICE_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS = 
+			new HashMap<String, Object>();
+	private static final Map<String, Object> APPLICATION_SERVICE_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS = 
+			new HashMap<String, Object>();
+	private static final Map<String, Object> APPLICATION_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS = 
+			new HashMap<String, Object>();
+	private static final Map<String, Object> APPLICATION_WITHOUT_OVERRIDES_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS = 
+			new HashMap<String, Object>();
+ 
+	private static final Integer NUM_INSTANCES = new Integer(5);
+	private static final Integer OVERRIDEN_NUM_INSTANCES = new Integer(3);
 
 	static {
 			// service with overrides file.
 			SERVICE_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS.put("name",
 					"overridesTest");
 			SERVICE_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS.put("numInstances",
-					new Integer(3));
+					OVERRIDEN_NUM_INSTANCES);
 			SERVICE_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS.put("lifecycle.init",
 					"overridesTest_install.groovy");
+
+			//service with overrides, application properties and application overrides files.
+			APPLICATION_SERVICE_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS.put(
+					"icon", "applicationIcon.png");
+			APPLICATION_SERVICE_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS.put(
+					"numInstances", OVERRIDEN_NUM_INSTANCES);
 
 			// application with overrides file.
 			APPLICATION_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS.put(
 					"services[0].icon", "applicationIcon.png");
 			APPLICATION_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS.put(
-					"services[0].numInstances", new Integer(3));
+					"services[0].numInstances", OVERRIDEN_NUM_INSTANCES);
 			APPLICATION_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS.put(
 					"services[1].icon", "applicationIcon.png");
 			APPLICATION_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS.put(
-					"services[1].numInstances", new Integer(3));
+					"services[1].numInstances", OVERRIDEN_NUM_INSTANCES);
 			APPLICATION_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS.put("name",
 					"overridesTestApplicationOverriden");
 
-			// application without an overrides file (test that application
-			// properties overrides its services properties).
+			// application without an overrides file 
+			// (test only the override of application properties of services properties).
 			APPLICATION_WITHOUT_OVERRIDES_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS
 					.put("services[0].icon", "applicationIcon.png");
 			APPLICATION_WITHOUT_OVERRIDES_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS
-					.put("services[0].numInstances", new Integer(5));
+					.put("services[0].numInstances", NUM_INSTANCES);
 			APPLICATION_WITHOUT_OVERRIDES_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS
 					.put("services[1].icon", "applicationIcon.png");
 			APPLICATION_WITHOUT_OVERRIDES_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS
-					.put("services[1].numInstances", new Integer(5));
+					.put("services[1].numInstances", NUM_INSTANCES);
 			APPLICATION_WITHOUT_OVERRIDES_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS
 					.put("name", "overridesTestApplication");
 	}
@@ -118,6 +128,18 @@ public class OverridesTest {
 		}
 	}
 
+	@Test
+	public void testServiceWithApplicationPropertiesAndOverridesFiles() 
+			throws IllegalAccessException, InvocationTargetException, 
+			NoSuchMethodException {
+		try {
+			testDSLOverrides(APPLICATION_SERVICE_PATH, null, Service.class, 
+					APPLICATION_SERVICE_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS);
+		} catch (final DSLException e) {
+			fail("Failed to read application " + APPLICATION_SERVICE_PATH + e);
+		}
+	}
+	
 	@Test
 	public void testServiceIllegalOverridesFileFormat()
 			throws IllegalAccessException, InvocationTargetException,

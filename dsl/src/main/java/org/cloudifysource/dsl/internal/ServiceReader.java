@@ -41,10 +41,8 @@ import org.openspaces.core.cluster.ClusterInfo;
  */
 public final class ServiceReader {
 
-	private static final int KILOBYTE = 1024;
 	/*******
-	 * name of property injected into DSL context containing the path to the DSL
-	 * file.
+	 * name of property injected into DSL context containing the path to the DSL file.
 	 */
 	public static final String DSL_FILE_PATH_PROPERTY_NAME = "dslFilePath";
 
@@ -56,12 +54,6 @@ public final class ServiceReader {
 
 	}
 
-	/**
-	 * 
-	 * @param projectZipFile projectZipFile
-	 * @return the project file
-	 * @throws IOException IOException
-	 */
 	public static File extractProjectFile(final File projectZipFile)
 			throws IOException {
 
@@ -76,29 +68,20 @@ public final class ServiceReader {
 
 	}
 
-	/**
-	 * 
-	 * @param serviceDirOrFile serviceDirOrFile
-	 * @param maxJarSizePermitted maxJarSizePermitted
-	 * @throws PackagingException PackagingException
-	 */
-	public static void validateFolderSize(final File serviceDirOrFile,
-			final long maxJarSizePermitted) throws PackagingException {
+	public static void validateFolderSize(final File serviceDirOrFile, final long maxJarSizePermitted)
+			throws PackagingException {
 		File folder = serviceDirOrFile;
 		if (folder.isFile()) {
 			folder = folder.getParentFile();
 		}
 		final long folderSize = FileUtils.sizeOfDirectory(folder);
 		if (folderSize == 0) {
-			throw new PackagingException("folder " + folder.getAbsolutePath()
-					+ " is empty");
+			throw new PackagingException("folder " + folder.getAbsolutePath() + " is empty");
 		}
 		final long maxJarSize = maxJarSizePermitted;
 		if (folderSize > maxJarSize || folderSize == 0) {
-			throw new PackagingException("folder " + folder.getAbsolutePath()
-					+ "size is: "
-					+ FileUtils.byteCountToDisplaySize(folderSize)
-					+ ", it must be smaller than: "
+			throw new PackagingException("folder " + folder.getAbsolutePath() + "size is: "
+					+ FileUtils.byteCountToDisplaySize(folderSize) + ", it must be smaller than: "
 					+ FileUtils.byteCountToDisplaySize(maxJarSize));
 		}
 
@@ -114,36 +97,29 @@ public final class ServiceReader {
 			throws PackagingException {
 		try {
 			return ServiceReader.getServiceFromFile(dslFile,
-			// new File(System.getProperty("user.dir"))).getService();
+					// new File(System.getProperty("user.dir"))).getService();
 					dslFile.getParentFile()).getService();
 		} catch (final CompilationFailedException e) {
-			throw new PackagingException("The file " + dslFile
-					+ " could not be compiled: " + e.getMessage(), e);
+			throw new PackagingException("The file " + dslFile + " could not be compiled: " + e.getMessage(), e);
 		} catch (final Exception e) {
-			throw new PackagingException("Failed to read service from file "
-					+ dslFile + ": " + e.getMessage(), e);
+			throw new PackagingException("Failed to read service from file " + dslFile + ": " + e.getMessage(), e);
 		}
 	}
 
 	/****************
-	 * Reads a service object from a groovy DSL file placed in the given
-	 * directory. The file name must be of the format *-service.groovy, and
-	 * there must be exactly one file in the directory with a name that matches
-	 * this format.
+	 * Reads a service object from a groovy DSL file placed in the given directory. The file name must be of the format
+	 * *-service.groovy, and there must be exactly one file in the directory with a name that matches this format.
 	 * 
-	 * @param dir
-	 *            the directory to scan for the DSL file.
-	 * @return the service
-	 * @throws PackagingException PackagingException
-	 * @throws FileNotFoundException FileNotFoundException
-	 * @throws DSLException DSLException
+	 * @param dir the directory to scan for the DSL file.
+	 * @param applicationName .
+	 * @return the service .
+	 * @throws PackagingException .
+	 * @throws FileNotFoundException .
+	 * @throws DSLException .
 	 */
-	public static DSLServiceCompilationResult getServiceFromDirectory(
-			final File dir) throws FileNotFoundException, PackagingException,
-			DSLException {
-		return ServiceReader.getServiceFromFile(null, dir, null, null, null,
-				true);
-
+	public static DSLServiceCompilationResult getServiceFromDirectory(final File dir)
+			throws DSLException {
+		return ServiceReader.getServiceFromFile(null, dir, null, null, null, true);
 	}
 
 	/**
@@ -163,7 +139,7 @@ public final class ServiceReader {
 		return ServiceReader.getServiceFromFile(dslFile, workDir, null, null,
 				null, true);
 	}
-
+	
 	/**
 	 * Reads a service object from a groovy DSL file placed in the given directory.
 	 * The file name must be of the format *-service.groovy, and
@@ -177,7 +153,7 @@ public final class ServiceReader {
 	 */
 	public static DSLServiceCompilationResult getApplicationServiceFromDirectory(
 			final File workDir, final Map<String, Object> applicationProperties)
-			throws DSLException {
+					throws DSLException {
 
 		final DSLReader dslReader = new DSLReader();
 		dslReader.setRunningInGSC(true);
@@ -185,75 +161,74 @@ public final class ServiceReader {
 		dslReader.setDslFileNameSuffix(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX);
 		dslReader.setOverridesFile(null);
 		dslReader.setApplicationProperties(applicationProperties);
-		
+
 		final Service service = dslReader.readDslEntity(Service.class);
 
-		return new DSLServiceCompilationResult(service, dslReader.getContext(),
-				null);
+		return new DSLServiceCompilationResult(service, dslReader.getContext(), null);
 	}
 
-	/**
-	 * 
-	 * @param dslFile dslFile
-	 * @param workDir workDir
-	 * @param admin admin
-	 * @param clusterInfo clusterInfo
-	 * @param propertiesFileName propertiesFileName
-	 * @param isRunningInGSC isRunningInGSC
-	 * @return the service
-	 * @throws DSLException DSLException
-	 */
-	public static DSLServiceCompilationResult getServiceFromFile(
-			final File dslFile, final File workDir, final Admin admin,
-			final ClusterInfo clusterInfo, final String propertiesFileName,
-			final boolean isRunningInGSC) throws DSLException {
+	public static DSLServiceCompilationResult getServiceFromFile(final File dslFile, final File workDir,
+			final Admin admin, final ClusterInfo clusterInfo, final String propertiesFileName,
+			final boolean isRunningInGSC)
+			throws DSLException {
 
 		final DSLReader dslReader = new DSLReader();
-		dslReader.setDslFile(dslFile);
-		dslReader.setWorkDir(workDir);
 		dslReader.setAdmin(admin);
 		dslReader.setClusterInfo(clusterInfo);
-		dslReader.setRunningInGSC(isRunningInGSC);
 		dslReader.setPropertiesFileName(propertiesFileName);
+		dslReader.setRunningInGSC(isRunningInGSC);
+		dslReader.setDslFile(dslFile);
+		dslReader.setWorkDir(workDir);
 		dslReader.setDslFileNameSuffix(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX);
 
 		final Service service = dslReader.readDslEntity(Service.class);
 
-		return new DSLServiceCompilationResult(service, dslReader.getContext(),
-				dslFile);
+		return new DSLServiceCompilationResult(service, dslReader.getContext(), dslFile);
 	}
 
 	/**
 	 * 
-	 * @param inputFile inputFile
-	 * @return the application
-	 * @throws IOException IOException
-	 * @throws DSLException DSLException
+	 * @param inputFile The application file.
+	 * @return The application.
+	 * @throws IOException IOException.
+	 * @throws DSLException DSLException.
 	 */
 	public static DSLApplicationCompilatioResult getApplicationFromFile(
 			final File inputFile) throws IOException, DSLException {
+		return getApplicationFromFile(inputFile, null);
+	}
+
+	/**
+	 * 
+	 * @param inputFile The application file.
+	 * @param overridesFile application overrides file.
+	 * @return The application.
+	 * @throws IOException IOException.
+	 * @throws DSLException DSLException.
+	 */
+	public static DSLApplicationCompilatioResult getApplicationFromFile(
+			final File inputFile, final File overridesFile) 
+					throws IOException, DSLException {
 
 		File actualApplicationDslFile = inputFile;
 
 		if (inputFile.isFile()) {
-			if (inputFile.getName().endsWith(".zip")
-					|| inputFile.getName().endsWith(".jar")) {
+			if (inputFile.getName().endsWith(".zip") || inputFile.getName().endsWith(".jar")) {
 				// Unzip application zip file to temp folder
-				final File tempFolder = ServiceReader
-						.unzipApplicationFile(inputFile);
-				actualApplicationDslFile = DSLReader.findDefaultDSLFile(
-						DSLReader.APPLICATION_DSL_FILE_NAME_SUFFIX, tempFolder);
+				final File tempFolder = ServiceReader.unzipApplicationFile(inputFile);
+				actualApplicationDslFile =
+						DSLReader.findDefaultDSLFile(DSLReader.APPLICATION_DSL_FILE_NAME_SUFFIX, tempFolder);
 			}
 		} else {
-			actualApplicationDslFile = DSLReader.findDefaultDSLFile(
-					DSLReader.APPLICATION_DSL_FILE_NAME_SUFFIX, inputFile);
+			actualApplicationDslFile =
+					DSLReader.findDefaultDSLFile(DSLReader.APPLICATION_DSL_FILE_NAME_SUFFIX, inputFile);
 		}
 
-		final Application app = ServiceReader
-				.readApplicationFromFile(actualApplicationDslFile);
 
-		return new DSLApplicationCompilatioResult(app,
-				actualApplicationDslFile.getParentFile(),
+		final Application app = ServiceReader
+				.readApplicationFromFile(actualApplicationDslFile, overridesFile);
+
+		return new DSLApplicationCompilatioResult(app, actualApplicationDslFile.getParentFile(),
 				actualApplicationDslFile);
 
 	}
@@ -268,35 +243,21 @@ public final class ServiceReader {
 
 	}
 
-	/**
-	 * 
-	 * @param inputFile inputFile
-	 * @return the service
-	 * @throws IOException IOException
-	 * @throws PackagingException PackagingException
-	 * @throws DSLException DSLException
-	 */
 	public static Service readServiceFromZip(final File inputFile)
-			throws IOException, PackagingException, DSLException {
+			throws IOException,
+			PackagingException, DSLException {
 		final File projectFolder = extractProjectFile(inputFile);
 		try {
-			return ServiceReader.getServiceFromDirectory(projectFolder)
-					.getService();
+			return ServiceReader.getServiceFromDirectory(projectFolder).getService();
 		} finally {
 			FileUtils.forceDelete(projectFolder);
 		}
 
 	}
 
-	/**
-	 * 
-	 * @param in in
-	 * @param out out
-	 * @throws IOException IOException
-	 */
-	public static void copyInputStream(final InputStream in,
-			final OutputStream out) throws IOException {
-		final byte[] buffer = new byte[KILOBYTE];
+	public static final void copyInputStream(final InputStream in, final OutputStream out)
+			throws IOException {
+		final byte[] buffer = new byte[1024];
 		int len;
 
 		while ((len = in.read(buffer)) >= 0) {
@@ -307,12 +268,8 @@ public final class ServiceReader {
 		out.close();
 	}
 
-	/**
-	 * 
-	 * @return The directory
-	 * @throws IOException IOException
-	 */
-	protected static File createTempDir() throws IOException {
+	protected static File createTempDir()
+			throws IOException {
 		final File tempFile = File.createTempFile("GS_tmp_dir", ".application");
 		final String path = tempFile.getAbsolutePath();
 		tempFile.delete();
@@ -320,16 +277,19 @@ public final class ServiceReader {
 		final File baseDir = new File(path);
 		return baseDir;
 	}
-	
-	private static Application readApplicationFromFile(final File dslFile)
+
+
+	private static Application readApplicationFromFile(final File dslFile, final File overridesFile)
 			throws DSLException {
 
 		final DSLReader dslReader = new DSLReader();
+		File workDir = dslFile.getParentFile();
 		dslReader.setDslFile(dslFile);
+		dslReader.setWorkDir(workDir);
 		dslReader.setCreateServiceContext(false);
-		dslReader.addProperty(DSLUtils.APPLICATION_DIR, dslFile.getParentFile()
-				.getAbsolutePath());
-
+		dslReader.addProperty(DSLUtils.APPLICATION_DIR, workDir.getAbsolutePath());
+		dslReader.setOverridesFile(overridesFile);
+		
 		final Application application = dslReader
 				.readDslEntity(Application.class);
 
@@ -353,15 +313,9 @@ public final class ServiceReader {
 		return cloud;
 	}
 
-	/**
-	 * 
-	 * @param dslFile dslFile
-	 * @return the cloud
-	 * @throws IOException IOException
-	 * @throws DSLException IOException
-	 */
-	public static org.cloudifysource.dsl.cloud.Cloud readCloud(
-			final File dslFile) throws IOException, DSLException {
+	public static org.cloudifysource.dsl.cloud.Cloud readCloud(final File dslFile)
+			throws IOException,
+			DSLException {
 
 		if (!dslFile.exists()) {
 			throw new FileNotFoundException(dslFile.getAbsolutePath());
@@ -373,33 +327,18 @@ public final class ServiceReader {
 		return cloud;
 	}
 
-	/**
-	 * 
-	 * @param dslFileOrDir dslFileOrDir
-	 * @return The service
-	 * @throws PackagingException PackagingException
-	 * @throws DSLException DSLException
-	 */
 	public static Service readService(final File dslFileOrDir)
 			throws PackagingException, DSLException {
 		if (dslFileOrDir.isFile()) {
 			return getServiceFromFile(dslFileOrDir);
 		} else if (dslFileOrDir.isDirectory()) {
-			return ServiceReader.getServiceFromFile(null, dslFileOrDir, null,
-					null, null, true).getService();
+			return ServiceReader.getServiceFromFile(null, dslFileOrDir, null, null, null, true).getService();
 		} else {
-			throw new IllegalArgumentException(dslFileOrDir
-					+ " is neither a file nor a directory");
+			throw new IllegalArgumentException(dslFileOrDir + " is neither a file nor a directory");
 		}
 
 	}
 
-	/**
-	 * 
-	 * @param cloudConfigDirectory cloudConfigDirectory
-	 * @return The cloud 
-	 * @throws DSLException DSLException
-	 */
 	public static Cloud readCloudFromDirectory(final String cloudConfigDirectory)
 			throws DSLException {
 		final DSLReader reader = new DSLReader();

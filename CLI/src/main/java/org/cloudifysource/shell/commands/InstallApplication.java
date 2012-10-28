@@ -100,14 +100,7 @@ public class InstallApplication extends AdminAwareCommand {
 		}
 
 		logger.info("Validating file " + applicationFile.getName());
-		
-		final DSLReader dslReader = new DSLReader();
-		File dslFile = DSLReader.findDefaultDSLFile(DSLReader.APPLICATION_DSL_FILE_NAME_SUFFIX, applicationFile);
-		dslReader.setDslFile(dslFile);
-		dslReader.setWorkDir(dslFile.getParentFile());
-		dslReader.setCreateServiceContext(false);
-		dslReader.addProperty(DSLUtils.APPLICATION_DIR, dslFile.getParentFile().getAbsolutePath());
-		dslReader.setOverridesFile(overrides);
+		final DSLReader dslReader = createDslReader();
 		final Application application = dslReader.readDslEntity(Application.class);		
 
 		if (StringUtils.isBlank(applicationName)) {
@@ -133,7 +126,7 @@ public class InstallApplication extends AdminAwareCommand {
 			} 
 			List<File> additionalApplicationFile = new LinkedList<File>();
 			if(overrides != null) {
-				additionalApplicationFile.add(createOverridesFile(overrides));
+				additionalApplicationFile.add(DSLReader.copyOverridesFile(overrides, dslReader.getDslName()));
 			}
 			zipFile = Packager.packApplication(application, applicationFile, additionalApplicationFile, additionalServiceFiles);
 		}
@@ -188,15 +181,15 @@ public class InstallApplication extends AdminAwareCommand {
 		return this.getFormattedMessage("application_installed_succesfully", Color.GREEN, applicationName);
 	}
 
-	private File createOverridesFile(File overridesFile) throws IOException {
-		String overridesFileNamePrefix = applicationName + DSLUtils.APPLICATION_FILE_NAME_SUFFIX;
-		String overridesFileName = overridesFileNamePrefix + DSLUtils.OVERRIDES_FILE_SUFFIX;
-		if(overridesFileName.equals(overridesFile.getName()))
-			return overridesFile;
-		File copiedOverridesFile = new File(overridesFileName);
-		FileUtils.copyFile(overridesFile, copiedOverridesFile);
-		copiedOverridesFile.deleteOnExit();
-		return copiedOverridesFile;
+	private DSLReader createDslReader() {
+		final DSLReader dslReader = new DSLReader();
+		File dslFile = DSLReader.findDefaultDSLFile(DSLReader.APPLICATION_DSL_FILE_NAME_SUFFIX, applicationFile);
+		dslReader.setDslFile(dslFile);
+		dslReader.setWorkDir(dslFile.getParentFile());
+		dslReader.setCreateServiceContext(false);
+		dslReader.addProperty(DSLUtils.APPLICATION_DIR, dslFile.getParentFile().getAbsolutePath());
+		dslReader.setOverridesFile(overrides);
+		return dslReader;
 	}
 
 	private File createCloudConfigurationZipFile()

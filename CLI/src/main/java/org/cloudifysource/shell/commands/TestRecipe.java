@@ -18,7 +18,6 @@ package org.cloudifysource.shell.commands;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -265,18 +264,10 @@ public class TestRecipe extends AbstractGSCommand {
 		try {
 			final File serviceFileDir = new File(serviceFolder, "ext");
 			service = ServiceReader.getServiceFromDirectory(serviceFileDir).getService();
+
 			if (service.getLifecycle() == null) {
 				throw new CLIException(getFormattedMessage("test_recipe_service_lifecycle_missing"));
 			}
-		} catch (final FileNotFoundException e) {
-			logger.log(
-					Level.SEVERE, "Service configuration file not found " + e.getMessage(), e);
-			throw new CLIException("Failed to locate service configuration file. " + e.getMessage(), e);
-		} catch (final PackagingException e) {
-			logger.log(
-					Level.SEVERE, "Packaging failed: " + e.getMessage(), e);
-			e.printStackTrace();
-			throw new CLIException("Packaging failed: " + e.getMessage(), e);
 		} catch (final DSLException e) {
 			logger.log(
 					Level.SEVERE, "DSL Parsing failed: " + e.getMessage(), e);

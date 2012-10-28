@@ -162,16 +162,16 @@ public final class Packager {
 	 * Pack the file and name it 'destFileName'.
 	 * 
 	 * @param service .
-	 * @param recipeDirOrFile - Folder or file to pack.
-	 * @param destFileName - The packed file name.
+	 * @param recipeDirOrFile Folder or file to pack.
+	 * @param destFileName The packed file name.
 	 * @param additionalServiceFiles files to add to the service directory.
 	 * @return Packed file named as specified.
-	 * @throws DSLException .
-	 * @throws IOException .
-	 * @throws PackagingException .
+	 * @throws DSLException DSLException.
+	 * @throws IOException IOException.
+	 * @throws PackagingException PackagingException.
 	 */
-	public static File pack(final Service service, final File recipeDirOrFile
-			, final String destFileName, final List<File> additionalServiceFiles)
+	public static File pack(final Service service, final File recipeDirOrFile, final String destFileName, 
+			final List<File> additionalServiceFiles)
 			throws IOException, PackagingException, DSLException {
 		final File packed = pack(recipeDirOrFile, service, additionalServiceFiles);
 		final File destFile = new File(packed.getParent(), destFileName + ".zip");

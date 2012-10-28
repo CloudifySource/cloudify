@@ -32,10 +32,30 @@ public final class DSLUtils {
 	 */
 	public static final String DSL_PROPERTIES = "dsl_properties";
 
+	/**
+	 * The expected file suffix for properties file.
+	 */
+	public static final String PROPERTIES_FILE_SUFFIX = ".properties";
+	
+	/**
+	 * The expected file suffix for overrides file.
+	 */
 	public static final String OVERRIDES_FILE_SUFFIX = ".overrides";
 
+	/**
+	 * The expected file name suffix for application files e.g. <code>*-application.groovy</code>.
+	 */
 	public static final String APPLICATION_FILE_NAME_SUFFIX = "-application";
 
+	/**
+	 * The expected file name of an application properties file after been copied to the service directory.
+	 */
+	public static final String APPLICATION_PROPERTIES_FILE_NAME = "application.properties";
+
+	/**
+	 * The expected file name of an application overrides file after been copied to the service directory.
+	 */
+	public static final String APPLICATION_OVERRIDES_FILE_NAME = "application.overrides";
 	
 	private DSLUtils() {
 		// private constructor to prevent initialization

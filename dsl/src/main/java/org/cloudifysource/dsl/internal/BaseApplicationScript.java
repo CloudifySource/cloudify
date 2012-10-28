@@ -106,6 +106,7 @@ public abstract class BaseApplicationScript extends Script {
 
 		// Load the service
 		DSLServiceCompilationResult result = ServiceReader.getServiceFromDirectory(serviceDir);
+
 		return result.getService();
 
 		// execute the closure

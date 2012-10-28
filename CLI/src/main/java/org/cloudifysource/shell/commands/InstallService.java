@@ -120,7 +120,7 @@ public class InstallService extends AdminAwareCommand {
 				if(cloudConfigurationZipFile != null)
 					additionFiles.add(cloudConfigurationZipFile);
 				if(overrides != null)
-					additionFiles.add(overrides);
+				additionFiles.add(overrides);
 				File recipeFile = recipe;
 				if (serviceFileName != null) {
 					final File fullPathToRecipe = new File(recipe.getAbsolutePath() + "/" + serviceFileName);
@@ -137,7 +137,12 @@ public class InstallService extends AdminAwareCommand {
 						recipeFile = DSLReader.findDefaultDSLFile(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX, recipe);
 					} // else recipeFile = recipe
 				}
-				service = ServiceReader.readService(recipeFile);
+				final DSLReader dslReader = createDslReader(recipeFile);
+				service = dslReader.readDslEntity(Service.class);
+				
+				if(overrides != null) {
+					additionFiles.add(DSLReader.copyOverridesFile(overrides, dslReader.getDslName()));
+				}
 				packedFile = Packager.pack(recipeFile, false, service, additionFiles);
 				packedFile.deleteOnExit();
 			} else {
@@ -223,7 +228,15 @@ public class InstallService extends AdminAwareCommand {
 		// which message to display.
 		return getFormattedMessage("service_install_ended", Color.GREEN, serviceName);
 	}
-
+	private DSLReader createDslReader(File recipeFile) {
+		final DSLReader dslReader = new DSLReader();
+		dslReader.setDslFile(recipeFile);
+		dslReader.setWorkDir(recipeFile.getParentFile());
+		dslReader.setRunningInGSC(true);
+		dslReader.setOverridesFile(overrides);
+		dslReader.setDslFileNameSuffix(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX);
+		return dslReader;
+	}
 	private boolean promptWouldYouLikeToContinueQuestion()
 			throws IOException {
 		return ShellUtils.promptUser(session, "would_you_like_to_continue_service_installation", serviceName);

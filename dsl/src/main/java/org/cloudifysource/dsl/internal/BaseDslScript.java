@@ -759,6 +759,7 @@ public abstract class BaseDslScript extends Script {
 				}
 			}
 			result = ServiceReader.getApplicationServiceFromDirectory(serviceDir, applicationPropertiesMap);
+
 		} catch (final DSLException e) {
 			throw new IllegalArgumentException("Failed to load service: " + serviceName
 					+ " while loading application: " + e.getMessage(), e);
