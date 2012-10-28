@@ -20,19 +20,14 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.cloudifysource.dsl.internal.packaging.Packager;
-
 import com.j_spaces.kernel.Environment;
 
 /**
- * 
+ * This class is used for any logic that we may need for resolving file paths passed to us by the user in the cli.
  * @author elip
  *
  */
 public class RecipePathResolver {
-	
-	private static final java.util.logging.Logger logger = java.util.logging.Logger
-			.getLogger(Packager.class.getName());
 	
 	private String defaultLocation;
 	private File resolved;
@@ -42,11 +37,18 @@ public class RecipePathResolver {
 		this.defaultLocation = defaultLocation;
 	}
 	
+	/**
+	 * resolves a given file using the following strategy : <br>
+	 * 1. if the file is absolute, check for existence. <br>
+	 * 2. if not, check for the relative path under the current directory. <br>
+	 * 3. otherwise, check for the relative path under the default location given when initializing this object. <br>
+	 * @param recipeFileOrFolder .
+	 * @return - true if the lookup strategy found a file, false otherwise.
+	 */
 	public boolean resolve(final File recipeFileOrFolder) {
 		
 		// if an absolute path was given, just return it
 		if (recipeFileOrFolder.isAbsolute()) {
-			logger.info("looking for recipe in " + recipeFileOrFolder.getAbsolutePath());
 			if (recipeFileOrFolder.exists()) {
 				resolved = recipeFileOrFolder;
 				return true;
@@ -68,14 +70,20 @@ public class RecipePathResolver {
 			resolved = recipe;
 			return true;
 		}
-		return false;
-		
+		return false;	
+	}
+	
+	public File getResolved() {
+		return resolved;
+	}
+
+	public List<String> getPathsLooked() {
+		return pathsLooked;
 	}
 	
 	private File lookInCurrentDir(final File file) {
 		String currentDir = new File(".").getAbsolutePath();
 		File fileUnderCurrentDir = new File(currentDir + File.separator + file.getPath());
-		logger.info("looking for recipe in " + fileUnderCurrentDir.getAbsolutePath());
 		if (fileUnderCurrentDir.exists()) {
 			return fileUnderCurrentDir;
 		} else {
@@ -87,7 +95,6 @@ public class RecipePathResolver {
 	private File lookInDefaultLocation(final File file) {
 		String homeDir = Environment.getHomeDirectory();
 		File fileUnderDefaultLocation = new File(homeDir + defaultLocation + File.separator + file.getPath());
-		logger.info("looking for recipe in " + fileUnderDefaultLocation.getAbsolutePath());
 		if (fileUnderDefaultLocation.exists()) {
 			return fileUnderDefaultLocation;
 		} else {
@@ -95,13 +102,4 @@ public class RecipePathResolver {
 			return null;
 		}
 	}
-
-	public File getResolved() {
-		return resolved;
-	}
-
-	public List<String> getPathsLooked() {
-		return pathsLooked;
-	}
-
 }
