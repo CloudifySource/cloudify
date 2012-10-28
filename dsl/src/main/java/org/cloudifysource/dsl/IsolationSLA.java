@@ -27,9 +27,9 @@ import org.cloudifysource.dsl.internal.DSLValidationException;
  * @author elip
  *
  */
-@CloudifyDSLEntity(name = "deployment", clazz = ServiceDeployment.class, 
+@CloudifyDSLEntity(name = "isolationSLA", clazz = IsolationSLA.class, 
 			allowInternalNode = true, allowRootNode = true, parent = "service")
-public class ServiceDeployment implements Serializable {
+public class IsolationSLA implements Serializable {
 
 	/**
 	 * 
@@ -37,22 +37,22 @@ public class ServiceDeployment implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 			
-	private PublicServiceDeploymentDescriptor global;
-	private DedicatedServiceDeploymentDescriptor dedicated;
+	private GlobalIsolationSLADescriptor global;
+	private DedicatedIsolationSLADescriptor dedicated;
 	
-	public PublicServiceDeploymentDescriptor getGlobal() {
+	public GlobalIsolationSLADescriptor getGlobal() {
 		return global;
 	}
 
-	public void setGlobal(final PublicServiceDeploymentDescriptor global) {
+	public void setGlobal(final GlobalIsolationSLADescriptor global) {
 		this.global = global;
 	}
 
-	public DedicatedServiceDeploymentDescriptor getDedicated() {
+	public DedicatedIsolationSLADescriptor getDedicated() {
 		return dedicated;
 	}
 
-	public void setDedicated(final DedicatedServiceDeploymentDescriptor dedicated) {
+	public void setDedicated(final DedicatedIsolationSLADescriptor dedicated) {
 		this.dedicated = dedicated;
 	}
 	

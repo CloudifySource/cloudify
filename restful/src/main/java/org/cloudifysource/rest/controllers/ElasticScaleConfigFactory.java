@@ -129,8 +129,8 @@ public final class ElasticScaleConfigFactory {
 							+ service.getMaxAllowedInstances() + ")");
 		}
 
-		final double instanceCpuCores = service.getDeployment().getGlobal() != null ? service
-				.getDeployment().getGlobal().getInstanceCpuCores()
+		final double instanceCpuCores = service.getIsolationSLA().getGlobal() != null ? service
+				.getIsolationSLA().getGlobal().getInstanceCpuCores()
 				: 0;
 		final CapacityRequirementsConfig minCapacity = new CapacityRequirementsConfigurer()
 				.memoryCapacity(

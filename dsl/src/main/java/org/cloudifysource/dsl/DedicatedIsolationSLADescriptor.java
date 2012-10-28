@@ -15,26 +15,16 @@
  *******************************************************************************/
 package org.cloudifysource.dsl;
 
+import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+
 /**
- * Factory class for creating service deployments easily.
+ * This class defines a dedicated service deployment. 
+ * Each service instance will be deployed on a dedicated machine.
  * @author elip
  *
  */
-public final class ServiceDeploymentFactory {
+@CloudifyDSLEntity(name = "dedicated", clazz = DedicatedIsolationSLADescriptor.class, allowInternalNode = true,
+	allowRootNode = false, parent = "deployment")
+public class DedicatedIsolationSLADescriptor {
 	
-	private ServiceDeploymentFactory() {
-		
-	}
-	
-	/**
-	 * Create a service deployment that uses dedicated machine provisioning.
-	 * this means each service instance will be deployed on a dedicated machine/agent.
-	 * @return - the service deployment type.
-	 */
-	public static ServiceDeployment newDedicatedDeplyoment() {
-		ServiceDeployment deployment = new ServiceDeployment();
-		deployment.setDedicated(new DedicatedServiceDeploymentDescriptor());
-		return deployment;
-	}
-
 }
