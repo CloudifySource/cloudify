@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
@@ -108,7 +109,8 @@ public class InstallService extends AdminAwareCommand {
 		if (pathResolver.resolve(recipe)) {
 			recipe = pathResolver.getResolved();
 		} else {
-			throw new CLIStatusException("service_file_doesnt_exist", pathResolver.getPathsLooked().toArray());
+			throw new CLIStatusException("service_file_doesnt_exist", 
+					StringUtils.join(pathResolver.getPathsLooked().toArray(), ", "));
 		}
 
 		File packedFile;

@@ -102,7 +102,8 @@ public class InstallApplication extends AdminAwareCommand {
 		if (pathResolver.resolve(applicationFile)) {
 			applicationFile = pathResolver.getResolved();
 		} else {
-			throw new CLIStatusException("application_not_found", pathResolver.getPathsLooked().toArray());
+			throw new CLIStatusException("application_not_found", 
+					StringUtils.join(pathResolver.getPathsLooked().toArray(), ", "));
 		}
 
 		logger.info("Validating file " + applicationFile.getName());
