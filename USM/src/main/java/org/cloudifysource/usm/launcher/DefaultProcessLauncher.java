@@ -241,6 +241,10 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		// <GS_HOME>/lib/platform/usm
 		addJarsFromDirectoryToList(new File(gsHome, "lib/platform/usm"),
 				list);
+		
+		addJarsFromDirectoryToList(new File(gsHome, "lib/platform/cloudify"),
+				list);
+		
 		addJarsFromDirectoryToList(new File(gsHome, "lib/platform/sigar"),
 				list);
 
@@ -272,25 +276,14 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 		final List<File> jars = getJarFilesForGroovyClasspath(homeDir,
 				workingDir);
-		// final List<String> dirs = getJarDirsForGroovyClasspath(homeDir,
-		// workingDir);
+		
 		if (jars != null) {
-			// sb.append("\"");
+		
 			for (final File jar : jars) {
 				sb.append(jar.getAbsolutePath()).append(File.pathSeparator);
 			}
-			// sb.append("\"");
+		
 		}
-
-		// final List<String> dirs = getJarDirsForGroovyClasspath(homeDir,
-		// workingDir);
-		// if (dirs != null) {
-		// sb.append("\"");
-		// for (final String dir : dirs) {
-		// sb.append(dir).append(File.pathSeparator);
-		// }
-		// sb.append("\"");
-		// }
 
 		final ArrayList<String> groovyCommandParams = new ArrayList<String>();
 		groovyCommandParams.add(groovyPath);

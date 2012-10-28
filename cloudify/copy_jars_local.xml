@@ -28,7 +28,7 @@
 		<copy todir="${target.dir}/lib/platform/usm" file="../USM/target/usm.jar" overwrite="true" />
 		<copy todir="${target.dir}/tools/cli" file="../CLI/target/cli.jar" overwrite="true" />
 		<copy todir="${target.dir}/tools/rest" file="../restful/target/rest.war" overwrite="true" />
-		<copy todir="${target.dir}/lib/required" file="../dsl/target/dsl.jar" overwrite="true" />
+		<copy todir="${target.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" overwrite="true" />
 		<copy todir="${target.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" overwrite="true" />
 		<copy todir="${target.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" overwrite="true" />
 	</target>
@@ -38,7 +38,7 @@
 		<copy todir="${ec2.dir}/lib/platform/usm" file="../USM/target/usm.jar" />
 		<copy todir="${ec2.dir}/tools/cli" file="../CLI/target/cli.jar" />
 		<copy todir="${ec2.dir}/tools/rest" file="../restful/target/rest.war" />
-		<copy todir="${ec2.dir}/lib/required" file="../dsl/target/dsl.jar" />
+		<copy todir="${ec2.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" />
 		<copy todir="${ec2.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" />
 		<copy todir="${ec2.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
 	</target>
@@ -49,7 +49,7 @@
 		<copy todir="${ec2-win.dir}/lib/platform/usm" file="../USM/target/usm.jar" />
 		<copy todir="${ec2-win.dir}/tools/cli" file="../CLI/target/cli.jar" />
 		<copy todir="${ec2-win.dir}/tools/rest" file="../restful/target/rest.war" />
-		<copy todir="${ec2-win.dir}/lib/required" file="../dsl/target/dsl.jar" />
+		<copy todir="${ec2-win.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" />
 		<copy todir="${ec2-win.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" />
 		<copy todir="${ec2-win.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
 	</target>
@@ -60,7 +60,7 @@
 		<copy todir="${azure.dir}/lib/platform/usm" file="../USM/target/usm.jar" />
 		<copy todir="${azure.dir}/tools/cli" file="../CLI/target/cli.jar" />
 		<copy todir="${azure.dir}/tools/rest" file="../restful/target/rest.war" />
-		<copy todir="${azure.dir}/lib/required" file="../dsl/target/dsl.jar" />
+		<copy todir="${azure.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" />
 		<copy todir="${azure.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" />
 		<copy todir="${azure.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
 	</target>
@@ -70,7 +70,7 @@
 		<copy todir="${byon.dir}/lib/platform/usm" file="../USM/target/usm.jar" />
 		<copy todir="${byon.dir}/tools/cli" file="../CLI/target/cli.jar" />
 		<copy todir="${byon.dir}/tools/rest" file="../restful/target/rest.war" />
-		<copy todir="${byon.dir}/lib/required" file="../dsl/target/dsl.jar" />
+		<copy todir="${byon.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" />
 		<copy todir="${byon.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" />
 		<copy todir="${byon.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
 	</target>
@@ -80,7 +80,7 @@
 		<copy todir="${openstack.dir}/lib/platform/usm" file="../USM/target/usm.jar" />
 		<copy todir="${openstack.dir}/tools/cli" file="../CLI/target/cli.jar" />
 		<copy todir="${openstack.dir}/tools/rest" file="../restful/target/rest.war" />
-		<copy todir="${openstack.dir}/lib/required" file="../dsl/target/dsl.jar" />
+		<copy todir="${openstack.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" />
 		<copy todir="${openstack.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" />
 		<copy todir="${openstack.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
 	</target>
@@ -90,7 +90,7 @@
 		<copy todir="${rsopenstack.dir}/lib/platform/usm" file="../USM/target/usm.jar" />
 		<copy todir="${rsopenstack.dir}/tools/cli" file="../CLI/target/cli.jar" />
 		<copy todir="${rsopenstack.dir}/tools/rest" file="../restful/target/rest.war" />
-		<copy todir="${rsopenstack.dir}/lib/required" file="../dsl/target/dsl.jar" />
+		<copy todir="${rsopenstack.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" />
 		<copy todir="${rsopenstack.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" />
 		<copy todir="${rsopenstack.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
 	</target>

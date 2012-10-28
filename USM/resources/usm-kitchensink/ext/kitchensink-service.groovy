@@ -3,7 +3,7 @@ import Helper
 
 service {
 	name "kitchensink-service"
-	icon "icon.png"
+	
 	
 	url "http://" + InetAddress.localHost.hostName + ":7777"
 
@@ -14,7 +14,7 @@ service {
 			 println "init " + new Helper().someField;
 			}
 		preInstall{ println "preInstall fired ${var2}"}
-		install{println "install event fired"}
+		install{throw new Exception("TEST TEST TEST")}
 		postInstall{ println "postInstall fired " + var1 }
 		preStart{ println "preStart fired " + var2 }
 		start ([ "Linux": "run.sh -dieOnParentDeath false -port 7777" ,
