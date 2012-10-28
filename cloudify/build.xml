@@ -236,7 +236,8 @@
 	        </copy>
 	
 	        <echo message="Copy dsl component"/>
-	        <copy todir="@{installation.dir}/lib/required" overwrite="true">
+    		<mkdir dir="@{installation.dir}/lib/platform/cloudify"/>
+	        <copy todir="@{installation.dir}/lib/platform/cloudify" overwrite="true">
 	            <fileset dir="${dsl.local.copy}/target/" includes="dsl.jar" excludes=".svn"/>
 	        </copy>
 	
