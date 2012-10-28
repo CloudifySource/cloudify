@@ -190,7 +190,7 @@ public class ServiceController implements ServiceDetailsProvider{
 
 	private Cloud cloud = null;
 	private CloudTemplate managementTemplate;
-	
+
 	private static final Logger logger = Logger
 			.getLogger(ServiceController.class.getName());
 	private static final long DEFAULT_DUMP_FILE_SIZE_LIMIT = 5 * 1024 * 1024;
@@ -204,7 +204,7 @@ public class ServiceController implements ServiceDetailsProvider{
 
 	@Value("${restful.temporaryFolder}")
 	private String temporaryFolder;
-	
+
 
 	/**
 	 * Initializing the cloud configuration. Executed by Spring after the object is instantiated and the dependencies
@@ -224,10 +224,10 @@ public class ServiceController implements ServiceDetailsProvider{
 			logger.info("Setting default template name to: " 
 					+ defaultTemplateName
 					+ ". This template will be used for services that do not specify an explicit template");
-			
+
 			this.managementTemplate = this.cloud.getTemplates().get(
 					this.cloud.getConfiguration()
-								.getManagementMachineTemplate());
+					.getManagementMachineTemplate());
 		} else {
 			logger.info("Service Controller is running in local cloud mode");
 		}
@@ -301,7 +301,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	public @ResponseBody
 	Map<String, Object> getMachineDumpFile(@RequestParam(defaultValue = DEFAULT_DUMP_PROCESSORS) final String processors
 			, @RequestParam(defaultValue = "" + DEFAULT_DUMP_FILE_SIZE_LIMIT) final long fileSizeLimit)
-			throws IOException, RestErrorException {
+					throws IOException, RestErrorException {
 		return getMachineDumpFile(null, processors, fileSizeLimit);
 	}
 
@@ -324,7 +324,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	Map<String, Object> getMachineDumpFile(@PathVariable final String ip,
 			@RequestParam(defaultValue = DEFAULT_DUMP_PROCESSORS) final String processors
 			, @RequestParam(defaultValue = "" + DEFAULT_DUMP_FILE_SIZE_LIMIT) final long fileSizeLimit)
-			throws IOException, RestErrorException {
+					throws IOException, RestErrorException {
 		// check for non-default processors
 		final String[] actualProcessors = getProcessorsFromRequest(processors);
 
@@ -384,7 +384,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	public @ResponseBody
 	Map<String, Object> getPUDumpFile(
 			@RequestParam(defaultValue = "" + DEFAULT_DUMP_FILE_SIZE_LIMIT) final long fileSizeLimit)
-			throws IOException, RestErrorException {
+					throws IOException, RestErrorException {
 
 		// if ((name == null) || (name.isEmpty())) {
 		// throw new IllegalArgumentException("PU Name is missing");
@@ -504,30 +504,30 @@ public class ServiceController implements ServiceDetailsProvider{
 	private final ScheduledExecutorService lifecycleEventsCleaner = Executors.newScheduledThreadPool(1,
 			new ThreadFactory() {
 
-				final AtomicInteger threadNumber = new AtomicInteger(1);
+		final AtomicInteger threadNumber = new AtomicInteger(1);
 
-				@Override
-				public Thread newThread(final Runnable r) {
-					final Thread thread =
-							new Thread(r, "LifecycleEventsPollingExecutor-" + threadNumber.getAndIncrement());
-					thread.setDaemon(true);
-					return thread;
-				}
-			});
+		@Override
+		public Thread newThread(final Runnable r) {
+			final Thread thread =
+					new Thread(r, "LifecycleEventsPollingExecutor-" + threadNumber.getAndIncrement());
+			thread.setDaemon(true);
+			return thread;
+		}
+	});
 
 	private final ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(10,
 			new ThreadFactory() {
 
-				final AtomicInteger threadNumber = new AtomicInteger(1);
+		final AtomicInteger threadNumber = new AtomicInteger(1);
 
-				@Override
-				public Thread newThread(final Runnable r) {
-					final Thread thread =
-							new Thread(r, "LifecycleEventsPollingExecutor-" + threadNumber.getAndIncrement());
-					thread.setDaemon(true);
-					return thread;
-				}
-			});
+		@Override
+		public Thread newThread(final Runnable r) {
+			final Thread thread =
+					new Thread(r, "LifecycleEventsPollingExecutor-" + threadNumber.getAndIncrement());
+			thread.setDaemon(true);
+			return thread;
+		}
+	});
 
 	// Set up a small thread pool with daemon threads.
 	private final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE, new ThreadFactory() {
@@ -581,7 +581,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	Map<String, Object> deploy(
 			@RequestParam(value = "applicationName", defaultValue = "default") final String applicationName,
 			@RequestParam(value = "file") final MultipartFile srcFile)
-			throws IOException, RestErrorException {
+					throws IOException, RestErrorException {
 		logger.finer("Deploying a service");
 		final File tmpfile = File.createTempFile("gs___", null);
 		final File dest = new File(tmpfile.getParent(), srcFile.getOriginalFilename());
@@ -678,7 +678,7 @@ public class ServiceController implements ServiceDetailsProvider{
 			comments = "In the example instance id is 1 and the HOST is 127.0.0.1")
 	@PossibleResponseStatuses(codes = {200,500}, descriptions = {"success","failed_to_locate_service"})
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances",
-			method = RequestMethod.GET)
+	method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object> getServiceInstanceList(@PathVariable final String applicationName,
 			@PathVariable final String serviceName) throws RestErrorException {
@@ -701,7 +701,7 @@ public class ServiceController implements ServiceDetailsProvider{
 		}
 		return successStatus(instanceMap);
 	}
-	
+
 	/**
 	 * Creates and returns a map containing all of the deployed application names.
 	 * 
@@ -780,7 +780,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	@PossibleResponseStatuses(codes = {200,500,500}, 
 	descriptions = {"success", "failed_to_locate_service", "no_processing_unit_instances_found_for_invocation"})
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/beans/{beanName}/invoke",
-			method = RequestMethod.POST)
+	method = RequestMethod.POST)
 	public @ResponseBody
 	Map<String, Object> invoke(@PathVariable final String applicationName, @PathVariable final String serviceName,
 			@PathVariable final String beanName, @RequestBody final Map<String, Object> params) throws RestErrorException {
@@ -828,9 +828,9 @@ public class ServiceController implements ServiceDetailsProvider{
 				// use only tostring of collection values, to avoid
 				// serialization problems
 				result = postProcessInvocationResult(result, entry.getKey());
-				
+
 				invocationResult.put(entry.getKey(), result);
-				
+
 			} catch (final Exception e) {
 				invocationResult.put(entry.getKey(), "Invocation failure: " + e.getMessage());
 			}
@@ -884,9 +884,9 @@ public class ServiceController implements ServiceDetailsProvider{
 			value = "applications/{applicationName}/services/{serviceName}/instances/{instanceId}/beans/{beanName}/invoke",
 			method = RequestMethod.POST)
 	public @ResponseBody
-			Map<String, Object> invokeInstance(@PathVariable final String applicationName,
-					@PathVariable final String serviceName, @PathVariable final int instanceId,
-					@PathVariable final String beanName, @RequestBody final Map<String, Object> params) throws RestErrorException {
+	Map<String, Object> invokeInstance(@PathVariable final String applicationName,
+			@PathVariable final String serviceName, @PathVariable final int instanceId,
+			@PathVariable final String beanName, @RequestBody final Map<String, Object> params) throws RestErrorException {
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to invoke bean " + beanName + " of service " + serviceName
@@ -990,7 +990,7 @@ public class ServiceController implements ServiceDetailsProvider{
 		final UUID lifecycleEventContainerID =
 				startPollingForServiceUninstallLifecycleEvents(applicationName, serviceName,
 						timeoutInMinutes, undeployTask);
-		
+
 		final Map<String, Object> returnMap = new HashMap<String, Object>();
 		returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, lifecycleEventContainerID);
 		return successStatus(returnMap);
@@ -1066,7 +1066,7 @@ public class ServiceController implements ServiceDetailsProvider{
 	 */
 	@PossibleResponseStatuses(codes = {200,500,500}, descriptions = {"success","failed_to_locate_service", "service_instance_unavailable"})
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances/{instanceId}/remove",
-			method = RequestMethod.DELETE)
+	method = RequestMethod.DELETE)
 	public @ResponseBody
 	Map<String, Object> removeInstance(@PathVariable final String applicationName,
 			@PathVariable final String serviceName, @PathVariable final int instanceId) throws RestErrorException {
@@ -1136,7 +1136,7 @@ public class ServiceController implements ServiceDetailsProvider{
 			outputStream.write(messageBytes);
 		}
 	}
-	
+
 	/**
 	 * Exception handler for all of known internal server exceptions.
 	 * 
@@ -1162,17 +1162,17 @@ public class ServiceController implements ServiceDetailsProvider{
 			outputStream.write(messageBytes);
 		}
 	}
-	
-    /**
-     * Converts a Map<String, ?> to a json String.
-     *
-     * @param map a map to convert to String
-     * @return a json-format String based on the given map
-     * @throws IOException Reporting failure to read the map or convert it
-     */
-    public static String mapToJson(final Map<String, ?> map) throws IOException {
-        return new ObjectMapper().writeValueAsString(map);
-    }
+
+	/**
+	 * Converts a Map<String, ?> to a json String.
+	 *
+	 * @param map a map to convert to String
+	 * @return a json-format String based on the given map
+	 * @throws IOException Reporting failure to read the map or convert it
+	 */
+	public static String mapToJson(final Map<String, ?> map) throws IOException {
+		return new ObjectMapper().writeValueAsString(map);
+	}
 
 	/******************
 	 * Uninstalls an application by uninstalling all of its services. Order of uninstallations is determined by the
@@ -1229,9 +1229,9 @@ public class ServiceController implements ServiceDetailsProvider{
 						} catch (final Exception e) {
 							final String msg =
 									"Failed to undeploy processing unit: " + processingUnit.getName()
-											+ " while uninstalling application " + applicationName
-											+ ". Uninstall will continue, but service " + processingUnit.getName()
-											+ " may remain in an unstable state";
+									+ " while uninstalling application " + applicationName
+									+ ". Uninstall will continue, but service " + processingUnit.getName()
+									+ " may remain in an unstable state";
 
 							logger.log(Level.SEVERE, msg, e);
 						}
@@ -1239,7 +1239,7 @@ public class ServiceController implements ServiceDetailsProvider{
 					logger.log(Level.INFO, "Application " + applicationName + " undeployment complete");
 				}
 			}, true);
-			
+
 			((InternalAdmin) admin).scheduleAdminOperation(undeployTask);
 
 		}
@@ -1274,7 +1274,7 @@ public class ServiceController implements ServiceDetailsProvider{
 		for (final ProcessingUnit processingUnit : pus) {
 			final String dependsOn =
 					(String) processingUnit.getBeanLevelProperties().getContextProperties()
-							.get(CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON);
+					.get(CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON);
 			if (dependsOn == null) {
 				logger.warning("Could not find the " + CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON
 						+ " property for processing unit " + processingUnit.getName());
@@ -1332,11 +1332,15 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * 
 	 * @param applicationName The application name.
 	 * @param srcFile The compressed application file.
+	 * @param recipeOverridesFile The application overrides file - to overrides the application properties.
+	 * @param selfHealing 	if true, there will be an attempt to restart the recipe in case a problem occurred in its lifecycle,
+	 * 						otherwise, if the recipe fails to execute, no attempt to recover will made.
 	 * @return Map with return value.
 	 * @throws IOException Reporting failure to create a file while opening the packaged application file
 	 * @throws DSLException Reporting failure to parse the application file
 	 */
-	@JsonRequestExample(requestBody = "{\"applicationName\" : \"petclinic\" , \"srcFile\" : \"packaged application file\"}")
+	@JsonRequestExample(requestBody = "{\"applicationName\" : \"petclinic\" , \"srcFile\" : \"packaged application file\" " +
+			", \"recipeOverridesFile\" : \"recipe overrides file\"}")
 	@JsonResponseExample(status = "success", 
 	responseBody = "{\"srviceOrder\":\"[mongod,mongoConfig,apacheLB,mongos,tomcat]\"" +
 			",\"lifecycleEventContainerID\":\"07db2a16-62f8-4669-ac41-ed9afe3a3b02\"}", comments="")
@@ -1345,817 +1349,824 @@ public class ServiceController implements ServiceDetailsProvider{
 	public @ResponseBody
 	Object deployApplication(@PathVariable final String applicationName, @PathVariable final int timeout,
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
+			@RequestParam(value = "recipeOverrides", required = false) final MultipartFile recipeOverridesFile,
 			@RequestParam(value = "selfHealing", required = false ) final Boolean selfHealing)
-			throws IOException, DSLException {
-		final File applicationFile = copyMultipartFileToLocalFile(srcFile);
-		boolean actualSelfHealing = true;
-		if(selfHealing != null && !selfHealing) {
-			actualSelfHealing = false;
-		}
-		final Object returnObject = doDeployApplication(applicationName, applicationFile, timeout, actualSelfHealing);
-		applicationFile.delete();
-		return returnObject;
-	}
-
-	private List<Service> createServiceDependencyOrder(final org.cloudifysource.dsl.Application application) {
-		final DirectedGraph<Service, DefaultEdge> graph =
-				new DefaultDirectedGraph<Service, DefaultEdge>(DefaultEdge.class);
-
-		final Map<String, Service> servicesByName = new HashMap<String, Service>();
-
-		final List<Service> services = application.getServices();
-
-		for (final Service service : services) {
-			// keep a map of names to services
-			servicesByName.put(service.getName(), service);
-			// and create the graph node
-			graph.addVertex(service);
-		}
-
-		for (final Service service : services) {
-			final List<String> dependsList = service.getDependsOn();
-			if (dependsList != null) {
-				for (final String depends : dependsList) {
-					final Service dependency = servicesByName.get(depends);
-					if (dependency == null) {
-						throw new IllegalArgumentException("Dependency '" + depends + "' of service: "
-								+ service.getName() + " was not found");
+					throws IOException, DSLException {
+						boolean actualSelfHealing = true;
+						if(selfHealing != null && !selfHealing) {
+							actualSelfHealing = false;
+						}
+						final File applicationFile = copyMultipartFileToLocalFile(srcFile);
+						final File applicationOverridesFile = copyMultipartFileToLocalFile(recipeOverridesFile);
+						final Object returnObject = doDeployApplication(applicationName, applicationFile, applicationOverridesFile, timeout, actualSelfHealing);
+						applicationFile.delete();
+						return returnObject;
 					}
 
-					graph.addEdge(dependency, service);
-				}
-			}
-		}
+					private List<Service> createServiceDependencyOrder(final org.cloudifysource.dsl.Application application) {
+						final DirectedGraph<Service, DefaultEdge> graph =
+								new DefaultDirectedGraph<Service, DefaultEdge>(DefaultEdge.class);
 
-		final CycleDetector<Service, DefaultEdge> cycleDetector = new CycleDetector<Service, DefaultEdge>(graph);
-		final boolean containsCycle = cycleDetector.detectCycles();
+						final Map<String, Service> servicesByName = new HashMap<String, Service>();
 
-		if (containsCycle) {
-			final Set<Service> servicesInCycle = cycleDetector.findCycles();
-			final StringBuilder sb = new StringBuilder();
-			boolean first = true;
-			for (final Service service : servicesInCycle) {
-				if (!first) {
-					sb.append(",");
-				} else {
-					first = false;
-				}
-				sb.append(service.getName());
-			}
+						final List<Service> services = application.getServices();
 
-			final String cycleString = sb.toString();
+						for (final Service service : services) {
+							// keep a map of names to services
+							servicesByName.put(service.getName(), service);
+							// and create the graph node
+							graph.addVertex(service);
+						}
 
-			// NOTE: This is not exactly how the cycle detector works. The
-			// returned list is the vertex set for the subgraph of all cycles.
-			// So if there are multiple cycles, the list will contain the
-			// members of all of them.
-			throw new IllegalArgumentException("The dependency graph of application: " + application.getName()
-					+ " contains one or more cycles. The services that form a cycle are part of the following group: "
-					+ cycleString);
-		}
+						for (final Service service : services) {
+							final List<String> dependsList = service.getDependsOn();
+							if (dependsList != null) {
+								for (final String depends : dependsList) {
+									final Service dependency = servicesByName.get(depends);
+									if (dependency == null) {
+										throw new IllegalArgumentException("Dependency '" + depends + "' of service: "
+												+ service.getName() + " was not found");
+									}
 
-		final TopologicalOrderIterator<Service, DefaultEdge> iterator =
-				new TopologicalOrderIterator<Service, DefaultEdge>(graph);
+									graph.addEdge(dependency, service);
+								}
+							}
+						}
 
-		final List<Service> orderedList = new ArrayList<Service>();
-		while (iterator.hasNext()) {
-			orderedList.add(iterator.next());
-		}
-		return orderedList;
+						final CycleDetector<Service, DefaultEdge> cycleDetector = new CycleDetector<Service, DefaultEdge>(graph);
+						final boolean containsCycle = cycleDetector.detectCycles();
 
-	}
+						if (containsCycle) {
+							final Set<Service> servicesInCycle = cycleDetector.findCycles();
+							final StringBuilder sb = new StringBuilder();
+							boolean first = true;
+							for (final Service service : servicesInCycle) {
+								if (!first) {
+									sb.append(",");
+								} else {
+									first = false;
+								}
+								sb.append(service.getName());
+							}
 
-	private UUID startPollingForApplicationUninstallLifecycleEvents(final String applicationName,
-			final List<ProcessingUnit> uninstallOrder, final int timeoutInMinutes, FutureTask<Boolean> undeployTask) {
+							final String cycleString = sb.toString();
 
-		RestPollingRunnable restPollingRunnable;
-		final LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
-		final UUID lifecycleEventsContainerID = UUID.randomUUID();
-		lifecycleEventsContainer.setEventsSet(this.eventsSet);
+							// NOTE: This is not exactly how the cycle detector works. The
+							// returned list is the vertex set for the subgraph of all cycles.
+							// So if there are multiple cycles, the list will contain the
+							// members of all of them.
+							throw new IllegalArgumentException("The dependency graph of application: " + application.getName()
+									+ " contains one or more cycles. The services that form a cycle are part of the following group: "
+									+ cycleString);
+						}
 
-		restPollingRunnable = new RestPollingRunnable(applicationName, timeoutInMinutes, TimeUnit.MINUTES);
-		for (final ProcessingUnit processingUnit : uninstallOrder) {
-			final String processingUnitName = processingUnit.getName();
-			final String serviceName = ServiceUtils.getApplicationServiceName(processingUnitName, applicationName);
-			restPollingRunnable.addService(serviceName, 0);
-		}
-		restPollingRunnable.setIsServiceInstall(false);
-		restPollingRunnable.setAdmin(admin);
-		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
-		restPollingRunnable.setIsUninstall(true);
-		restPollingRunnable.setUndeployTask(undeployTask);
-		restPollingRunnable.setEndTime(timeoutInMinutes, TimeUnit.MINUTES);
-		this.lifecyclePollingThreadContainer.put(lifecycleEventsContainerID, restPollingRunnable);
-		final ScheduledFuture<?> scheduleWithFixedDelay =
-				scheduledExecutor.scheduleWithFixedDelay(restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL_SEC,
-						TimeUnit.SECONDS);
-		restPollingRunnable.setFutureTask(scheduleWithFixedDelay);
+						final TopologicalOrderIterator<Service, DefaultEdge> iterator =
+								new TopologicalOrderIterator<Service, DefaultEdge>(graph);
 
-		logger.log(Level.INFO, "polling container UUID is " + lifecycleEventsContainerID.toString());
-		return lifecycleEventsContainerID;
+						final List<Service> orderedList = new ArrayList<Service>();
+						while (iterator.hasNext()) {
+							orderedList.add(iterator.next());
+						}
+						return orderedList;
 
-	}
+					}
 
-	// TODO: Start executer service
-	private UUID startPollingForLifecycleEvents(final String serviceName, final String applicationName,
-			final int plannedNumberOfInstances, final boolean isServiceInstall,
-			final int timeout, final TimeUnit minutes) {
-		RestPollingRunnable restPollingRunnable;
-		logger.info("starting POLL on service : " + serviceName + " app: " + applicationName);
+					private UUID startPollingForApplicationUninstallLifecycleEvents(final String applicationName,
+							final List<ProcessingUnit> uninstallOrder, final int timeoutInMinutes, FutureTask<Boolean> undeployTask) {
 
-		final LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
-		final UUID lifecycleEventsContainerID = UUID.randomUUID();
-		lifecycleEventsContainer.setEventsSet(this.eventsSet);
+						RestPollingRunnable restPollingRunnable;
+						final LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
+						final UUID lifecycleEventsContainerID = UUID.randomUUID();
+						lifecycleEventsContainer.setEventsSet(this.eventsSet);
 
-		restPollingRunnable = new RestPollingRunnable(applicationName, timeout, minutes);
-		restPollingRunnable.addService(serviceName, plannedNumberOfInstances);
-		restPollingRunnable.setAdmin(admin);
-		restPollingRunnable.setIsServiceInstall(isServiceInstall);
-		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
-		restPollingRunnable.setEndTime(timeout, TimeUnit.MINUTES);
-		restPollingRunnable.setIsSetInstances(true);
-		this.lifecyclePollingThreadContainer.put(lifecycleEventsContainerID, restPollingRunnable);
-		final ScheduledFuture<?> scheduleWithFixedDelay =
-				scheduledExecutor.scheduleWithFixedDelay(restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL_SEC,
-						TimeUnit.SECONDS);
-		restPollingRunnable.setFutureTask(scheduleWithFixedDelay);
+						restPollingRunnable = new RestPollingRunnable(applicationName, timeoutInMinutes, TimeUnit.MINUTES);
+						for (final ProcessingUnit processingUnit : uninstallOrder) {
+							final String processingUnitName = processingUnit.getName();
+							final String serviceName = ServiceUtils.getApplicationServiceName(processingUnitName, applicationName);
+							restPollingRunnable.addService(serviceName, 0);
+						}
+						restPollingRunnable.setIsServiceInstall(false);
+						restPollingRunnable.setAdmin(admin);
+						restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
+						restPollingRunnable.setIsUninstall(true);
+						restPollingRunnable.setUndeployTask(undeployTask);
+						restPollingRunnable.setEndTime(timeoutInMinutes, TimeUnit.MINUTES);
+						this.lifecyclePollingThreadContainer.put(lifecycleEventsContainerID, restPollingRunnable);
+						final ScheduledFuture<?> scheduleWithFixedDelay =
+								scheduledExecutor.scheduleWithFixedDelay(restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL_SEC,
+										TimeUnit.SECONDS);
+						restPollingRunnable.setFutureTask(scheduleWithFixedDelay);
 
-		logger.log(Level.INFO, "polling container UUID is " + lifecycleEventsContainerID.toString());
-		return lifecycleEventsContainerID;
-	}
+						logger.log(Level.INFO, "polling container UUID is " + lifecycleEventsContainerID.toString());
+						return lifecycleEventsContainerID;
 
-	// TODO: Start executer service
-	private UUID startPollingForLifecycleEvents(final org.cloudifysource.dsl.Application application,
-			final int timeout, final TimeUnit timeUnit) {
+					}
 
-		final LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
-		final UUID lifecycleEventsContainerUUID = UUID.randomUUID();
-		lifecycleEventsContainer.setEventsSet(this.eventsSet);
+					// TODO: Start executer service
+					private UUID startPollingForLifecycleEvents(final String serviceName, final String applicationName,
+							final int plannedNumberOfInstances, final boolean isServiceInstall,
+							final int timeout, final TimeUnit minutes) {
+						RestPollingRunnable restPollingRunnable;
+						logger.info("starting POLL on service : " + serviceName + " app: " + applicationName);
 
-		final RestPollingRunnable restPollingRunnable =
-				new RestPollingRunnable(application.getName(), timeout, timeUnit);
-		for (final Service service : application.getServices()) {
-			restPollingRunnable.addService(service.getName(), service.getNumInstances());
-		}
-		restPollingRunnable.setIsServiceInstall(false);
-		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
-		restPollingRunnable.setAdmin(admin);
-		restPollingRunnable.setEndTime(timeout, TimeUnit.MINUTES);
-		this.lifecyclePollingThreadContainer.put(lifecycleEventsContainerUUID, restPollingRunnable);
-		final ScheduledFuture<?> scheduleWithFixedDelay =
-				scheduledExecutor.scheduleWithFixedDelay(restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL_SEC,
-						TimeUnit.SECONDS);
-		restPollingRunnable.setFutureTask(scheduleWithFixedDelay);
+						final LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
+						final UUID lifecycleEventsContainerID = UUID.randomUUID();
+						lifecycleEventsContainer.setEventsSet(this.eventsSet);
 
-		logger.log(Level.INFO, "polling container UUID is " + lifecycleEventsContainerUUID.toString());
-		return lifecycleEventsContainerUUID;
-	}
+						restPollingRunnable = new RestPollingRunnable(applicationName, timeout, minutes);
+						restPollingRunnable.addService(serviceName, plannedNumberOfInstances);
+						restPollingRunnable.setAdmin(admin);
+						restPollingRunnable.setIsServiceInstall(isServiceInstall);
+						restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
+						restPollingRunnable.setEndTime(timeout, TimeUnit.MINUTES);
+						restPollingRunnable.setIsSetInstances(true);
+						this.lifecyclePollingThreadContainer.put(lifecycleEventsContainerID, restPollingRunnable);
+						final ScheduledFuture<?> scheduleWithFixedDelay =
+								scheduledExecutor.scheduleWithFixedDelay(restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL_SEC,
+										TimeUnit.SECONDS);
+						restPollingRunnable.setFutureTask(scheduleWithFixedDelay);
 
-	/**
-	 * Returns the lifecycle events according to the lifecycleEventContainerID id that is returned as a response when
-	 * installing/un-installing a service/application and according to the cursor position.
-	 * 
-	 * @param lifecycleEventContainerID the unique task ID.
-	 * @param cursor event entry cursor
-	 * @return a map containing the events and the task state.
-	 * @throws RestErrorException 
-	 * 			When polling task has expired or if the task ended unexpectedly. 
-	 */
-	@JsonResponseExample(status="success", 
-			responseBody= "{\"isDone\":false,\"lifecycleLogs\":[\"[service1] Deployed 1 planned 1\"," +
-					"\"Service &#92&#34service1&#92&#34 successfully installed (1 Instances)\"]," +
-					"\"PollingTaskExpirationTimeMillis\":\"575218\",\"curserPos\":12}")
-	@PossibleResponseStatuses(codes = {200,500,500}, 
-	descriptions = {"success", "Lifecycle events container with UUID ... does not exist or expired", "execution exception message"})
-	@RequestMapping(value = "/lifecycleEventContainerID/{lifecycleEventContainerID}/cursor/{cursor}",
-			method = RequestMethod.GET)
-	public @ResponseBody
-	Object getLifecycleEvents(@PathVariable final String lifecycleEventContainerID, @PathVariable final int cursor) throws RestErrorException {
-		final Map<String, Object> resultsMap = new HashMap<String, Object>();
+						logger.log(Level.INFO, "polling container UUID is " + lifecycleEventsContainerID.toString());
+						return lifecycleEventsContainerID;
+					}
 
-		if (!lifecyclePollingThreadContainer.containsKey(UUID.fromString(lifecycleEventContainerID))) {
-			throw new RestErrorException("Lifecycle events container with UUID: " + lifecycleEventContainerID
-					+ " does not exist or expired.");
-		}
-		final RestPollingRunnable restPollingRunnable = lifecyclePollingThreadContainer.
-				get(UUID.fromString(lifecycleEventContainerID));
+					// TODO: Start executer service
+					private UUID startPollingForLifecycleEvents(final org.cloudifysource.dsl.Application application,
+							final int timeout, final TimeUnit timeUnit) {
 
-		final LifecycleEventsContainer container = restPollingRunnable.getLifecycleEventsContainer();
-		final boolean done = restPollingRunnable.isDone();
-		if (!done) {
-			extendThreadTimeout(restPollingRunnable, DEFAULT_TIME_EXTENTION_POLLING_TASK);
-		} else {
-			final Throwable t = restPollingRunnable.getExecutionException();
-			if (t != null) {
-				logger.log(Level.INFO, "Lifecycle events polling ended unexpectedly.", t);
-				throw new RestErrorException(t.getMessage());
-			} else {
-				logger.log(Level.FINE, "Lifecycle events polling ended successfully.");
-			}
-		}
-		resultsMap.put(CloudifyConstants.IS_TASK_DONE, done);
-		final List<String> lifecycleEvents = container.getLifecycleEvents(cursor);
+						final LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
+						final UUID lifecycleEventsContainerUUID = UUID.randomUUID();
+						lifecycleEventsContainer.setEventsSet(this.eventsSet);
 
-		if (lifecycleEvents != null) {
-			final int newCursorPos = cursor + lifecycleEvents.size();
-			resultsMap.put(CloudifyConstants.CURSOR_POS, newCursorPos);
-			resultsMap.put(CloudifyConstants.LIFECYCLE_LOGS, lifecycleEvents);
-		} else {
-			resultsMap.put(CloudifyConstants.CURSOR_POS, cursor);
-		}
-		final long timeBeforeTaskTerminationMillis = restPollingRunnable.getEndTime() - System.currentTimeMillis();
-		resultsMap.put(CloudifyConstants.SERVER_POLLING_TASK_EXPIRATION_MILLI,
-				Long.toString(timeBeforeTaskTerminationMillis));
+						final RestPollingRunnable restPollingRunnable =
+								new RestPollingRunnable(application.getName(), timeout, timeUnit);
+						for (final Service service : application.getServices()) {
+							restPollingRunnable.addService(service.getName(), service.getNumInstances());
+						}
+						restPollingRunnable.setIsServiceInstall(false);
+						restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
+						restPollingRunnable.setAdmin(admin);
+						restPollingRunnable.setEndTime(timeout, TimeUnit.MINUTES);
+						this.lifecyclePollingThreadContainer.put(lifecycleEventsContainerUUID, restPollingRunnable);
+						final ScheduledFuture<?> scheduleWithFixedDelay =
+								scheduledExecutor.scheduleWithFixedDelay(restPollingRunnable, 0, LIFECYCLE_EVENT_POLLING_INTERVAL_SEC,
+										TimeUnit.SECONDS);
+						restPollingRunnable.setFutureTask(scheduleWithFixedDelay);
 
-		return successStatus(resultsMap);
-	}
+						logger.log(Level.INFO, "polling container UUID is " + lifecycleEventsContainerUUID.toString());
+						return lifecycleEventsContainerUUID;
+					}
 
-	private void extendThreadTimeout(final RestPollingRunnable pollingRunnable, final int timeoutInMinutes) {
-		final long taskExpiration = pollingRunnable.getEndTime() - System.currentTimeMillis();
-		if (taskExpiration < MINIMAL_POLLING_TASK_EXPIRATION) {
-			pollingRunnable.increaseEndTimeBy(timeoutInMinutes, TimeUnit.MINUTES);
-		}
-	}
+					/**
+					 * Returns the lifecycle events according to the lifecycleEventContainerID id that is returned as a response when
+					 * installing/un-installing a service/application and according to the cursor position.
+					 * 
+					 * @param lifecycleEventContainerID the unique task ID.
+					 * @param cursor event entry cursor
+					 * @return a map containing the events and the task state.
+					 * @throws RestErrorException 
+					 * 			When polling task has expired or if the task ended unexpectedly. 
+					 */
+					@JsonResponseExample(status="success", 
+							responseBody= "{\"isDone\":false,\"lifecycleLogs\":[\"[service1] Deployed 1 planned 1\"," +
+									"\"Service &#92&#34service1&#92&#34 successfully installed (1 Instances)\"]," +
+							"\"PollingTaskExpirationTimeMillis\":\"575218\",\"curserPos\":12}")
+					@PossibleResponseStatuses(codes = {200,500,500}, 
+					descriptions = {"success", "Lifecycle events container with UUID ... does not exist or expired", "execution exception message"})
+					@RequestMapping(value = "/lifecycleEventContainerID/{lifecycleEventContainerID}/cursor/{cursor}",
+					method = RequestMethod.GET)
+					public @ResponseBody
+					Object getLifecycleEvents(@PathVariable final String lifecycleEventContainerID, @PathVariable final int cursor) throws RestErrorException {
+						final Map<String, Object> resultsMap = new HashMap<String, Object>();
 
-	private Object doDeployApplication(final String applicationName, final File applicationFile, final int timeout, 
-			final boolean selfHealing)
-			throws IOException, DSLException {
-		final DSLApplicationCompilatioResult result = ServiceReader.getApplicationFromFile(applicationFile);
-		final List<Service> services = createServiceDependencyOrder(result.getApplication());
+						if (!lifecyclePollingThreadContainer.containsKey(UUID.fromString(lifecycleEventContainerID))) {
+							throw new RestErrorException("Lifecycle events container with UUID: " + lifecycleEventContainerID
+									+ " does not exist or expired.");
+						}
+						final RestPollingRunnable restPollingRunnable = lifecyclePollingThreadContainer.
+								get(UUID.fromString(lifecycleEventContainerID));
 
-		// validate the template specified by each server (if specified) is available on this cloud
-		// cloud could be null in case of eager mode deployment (such as in azure)
-		if (!isLocalCloud() && cloud != null) {
-			for (final Service service : services) {
-				final ComputeDetails compute = service.getCompute();
-				if (compute != null && StringUtils.isNotBlank(compute.getTemplate())) {
-					getComputeTemplate(cloud, compute.getTemplate());
-				}
-			}
-		}
+						final LifecycleEventsContainer container = restPollingRunnable.getLifecycleEventsContainer();
+						final boolean done = restPollingRunnable.isDone();
+						if (!done) {
+							extendThreadTimeout(restPollingRunnable, DEFAULT_TIME_EXTENTION_POLLING_TASK);
+						} else {
+							final Throwable t = restPollingRunnable.getExecutionException();
+							if (t != null) {
+								logger.log(Level.INFO, "Lifecycle events polling ended unexpectedly.", t);
+								throw new RestErrorException(t.getMessage());
+							} else {
+								logger.log(Level.FINE, "Lifecycle events polling ended successfully.");
+							}
+						}
+						resultsMap.put(CloudifyConstants.IS_TASK_DONE, done);
+						final List<String> lifecycleEvents = container.getLifecycleEvents(cursor);
 
-		final ApplicationInstallerRunnable installer =
-				new ApplicationInstallerRunnable(this, result, applicationName, services, this.cloud, selfHealing);
+						if (lifecycleEvents != null) {
+							final int newCursorPos = cursor + lifecycleEvents.size();
+							resultsMap.put(CloudifyConstants.CURSOR_POS, newCursorPos);
+							resultsMap.put(CloudifyConstants.LIFECYCLE_LOGS, lifecycleEvents);
+						} else {
+							resultsMap.put(CloudifyConstants.CURSOR_POS, cursor);
+						}
+						final long timeBeforeTaskTerminationMillis = 
+								restPollingRunnable.getEndTime() - System.currentTimeMillis();
+						resultsMap.put(CloudifyConstants.SERVER_POLLING_TASK_EXPIRATION_MILLI,
+								Long.toString(timeBeforeTaskTerminationMillis));
 
-		if (installer.isAsyncInstallPossibleForApplication()) {
-			installer.run();
-		} else {
-			this.executorService.execute(installer);
-		}
+						return successStatus(resultsMap);
+					}
 
-		logger.log(Level.INFO, "Starting to poll for installation lifecycle events.");
-		final UUID lifecycleEventContainerID =
-				startPollingForLifecycleEvents(result.getApplication(), timeout, TimeUnit.MINUTES);
+					private void extendThreadTimeout(final RestPollingRunnable pollingRunnable, final int timeoutInMinutes) {
+						final long taskExpiration = pollingRunnable.getEndTime() - System.currentTimeMillis();
+						if (taskExpiration < MINIMAL_POLLING_TASK_EXPIRATION) {
+							pollingRunnable.increaseEndTimeBy(timeoutInMinutes, TimeUnit.MINUTES);
+						}
+					}
 
-		final String[] serviceOrder = new String[services.size()];
-		for (int i = 0; i < serviceOrder.length; i++) {
-			serviceOrder[i] = services.get(i).getName();
-		}
-		final Map<String, Object> returnMap = new HashMap<String, Object>();
-		returnMap.put(CloudifyConstants.SERVICE_ORDER, Arrays.toString(serviceOrder));
-		returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, lifecycleEventContainerID);
-		final Map<String, Object> retval = successStatus(returnMap);
+					private Object doDeployApplication(final String applicationName, final File applicationFile
+							, final File applicationOverridesFile, final int timeout, final boolean selfHealing)
+					throws IOException, DSLException {
+						final DSLApplicationCompilatioResult result = 
+								ServiceReader.getApplicationFromFile(applicationFile, applicationOverridesFile);
+						final List<Service> services = createServiceDependencyOrder(result.getApplication());
 
-		return retval;
+						// validate the template specified by each server (if specified) is available on this cloud
+						// cloud could be null in case of eager mode deployment (such as in azure)
+						if (!isLocalCloud() && cloud != null) {
+							for (final Service service : services) {
+								final ComputeDetails compute = service.getCompute();
+								if (compute != null && StringUtils.isNotBlank(compute.getTemplate())) {
+									getComputeTemplate(cloud, compute.getTemplate());
+								}
+							}
+						}
 
-	}
+						final ApplicationInstallerRunnable installer =
+								new ApplicationInstallerRunnable(this, result, applicationName, services, this.cloud, selfHealing);
 
-	private File copyMultipartFileToLocalFile(final MultipartFile srcFile)
-			throws IOException {
-		final File tempFile = new File(temporaryFolder, srcFile.getOriginalFilename());
-		srcFile.transferTo(tempFile);
-		tempFile.deleteOnExit();
-		return tempFile;
-	}
+						if (installer.isAsyncInstallPossibleForApplication()) {
+							installer.run();
+						} else {
+							this.executorService.execute(installer);
+						}
 
-	/**
-	 * Creates a randomly-named file in the system's default temp folder, just to get the path. The file is deleted
-	 * immediately.
-	 * 
-	 * @return The path to the system's default temp folder
-	 */
-	private String getTempFolderPath()
-			throws IOException {
-		/*
-		 * long tmpNum = new SecureRandom().nextLong(); if (tmpNum == Long.MIN_VALUE) { tmpNum = 0; // corner case }
-		 * else { tmpNum = Math.abs(tmpNum); }
-		 */
-		final File tempFile = File.createTempFile("GS__", null);
-		tempFile.delete();
-		tempFile.mkdirs();
-		return tempFile.getParent();
-	}
+						logger.log(Level.INFO, "Starting to poll for installation lifecycle events.");
+						final UUID lifecycleEventContainerID =
+								startPollingForLifecycleEvents(result.getApplication(), timeout, TimeUnit.MINUTES);
 
-	private void doDeploy(final String applicationName, 
-			final String serviceName, final String templateName,
-			final String[] agentZones, final File serviceFile, 
-			final Properties contextProperties, 
-			final Service service, 
-			final byte[] serviceCloudConfigurationContents,
-			final boolean selfHealing)
-			throws TimeoutException, DSLException{
+						final String[] serviceOrder = new String[services.size()];
+						for (int i = 0; i < serviceOrder.length; i++) {
+							serviceOrder[i] = services.get(i).getName();
+						}
+						final Map<String, Object> returnMap = new HashMap<String, Object>();
+						returnMap.put(CloudifyConstants.SERVICE_ORDER, Arrays.toString(serviceOrder));
+						returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, lifecycleEventContainerID);
+						final Map<String, Object> retval = successStatus(returnMap);
 
-		
-		boolean locationAware = false;
-		boolean dedicated = true;
-		if (service != null) {
-			locationAware = service.isLocationAware();
-			if (service.getIsolationSLA() == null) {
-				// no deployment was specified
-				// fall back to dedicated
-				service.setIsolationSLA(IsolationSLAFactory.newDedicatedIsolationSLA());
-			} else {
-				if (service.getIsolationSLA().getGlobal() != null) {
-					dedicated = false;
-				}			
-			}
-		}
-		
-		
-		final int externalProcessMemoryInMB = 512;
-		final int containerMemoryInMB = 128;
-		final int reservedMemoryCapacityPerMachineInMB = 256;
+						return retval;
 
-		contextProperties.put(CloudifyConstants.CONTEXT_PROPERTY_ASYNC_INSTALL, "true");
-		if(!selfHealing) {
-			contextProperties.put(CloudifyConstants.CONTEXT_PROPERTY_DISABLE_SELF_HEALING, "false");
-		}
-		
-		
-		final ElasticStatelessProcessingUnitDeployment deployment =
-				new ElasticStatelessProcessingUnitDeployment(serviceFile)
+					}
+
+					private File copyMultipartFileToLocalFile(final MultipartFile srcFile)
+							throws IOException {
+						if (srcFile == null) {
+							return null;
+						}
+						final File tempFile = new File(temporaryFolder, srcFile.getOriginalFilename());
+						srcFile.transferTo(tempFile);
+						tempFile.deleteOnExit();
+						return tempFile;
+					}
+
+					/**
+					 * Creates a randomly-named file in the system's default temp folder, just to get the path. The file is deleted
+					 * immediately.
+					 * 
+					 * @return The path to the system's default temp folder
+					 */
+					private String getTempFolderPath()
+							throws IOException {
+						/*
+						 * long tmpNum = new SecureRandom().nextLong(); if (tmpNum == Long.MIN_VALUE) { tmpNum = 0; // corner case }
+						 * else { tmpNum = Math.abs(tmpNum); }
+						 */
+						final File tempFile = File.createTempFile("GS__", null);
+						tempFile.delete();
+						tempFile.mkdirs();
+						return tempFile.getParent();
+					}
+
+					private void doDeploy(final String applicationName, 
+							final String serviceName, final String templateName,
+							final String[] agentZones, final File serviceFile, 
+							final Properties contextProperties, 
+							final Service service, 
+							final byte[] serviceCloudConfigurationContents,
+							final boolean selfHealing)
+									throws TimeoutException, DSLException{
+
+
+						boolean locationAware = false;
+						boolean dedicated = true;
+						if (service != null) {
+							locationAware = service.isLocationAware();
+							if (service.getIsolationSLA() == null) {
+								// no deployment was specified
+								// fall back to dedicated
+								service.setIsolationSLA(IsolationSLAFactory.newDedicatedIsolationSLA());
+							} else {
+								if (service.getIsolationSLA().getGlobal() != null) {
+									dedicated = false;
+								}			
+							}
+						}
+
+
+						final int externalProcessMemoryInMB = 512;
+						final int containerMemoryInMB = 128;
+						final int reservedMemoryCapacityPerMachineInMB = 256;
+
+						contextProperties.put(CloudifyConstants.CONTEXT_PROPERTY_ASYNC_INSTALL, "true");
+						if(!selfHealing) {
+							contextProperties.put(CloudifyConstants.CONTEXT_PROPERTY_DISABLE_SELF_HEALING, "false");
+						}
+
+
+						final ElasticStatelessProcessingUnitDeployment deployment =
+								new ElasticStatelessProcessingUnitDeployment(serviceFile)
 						.memoryCapacityPerContainer(externalProcessMemoryInMB, MemoryUnit.MEGABYTES)
 						.addCommandLineArgument("-Xmx" + containerMemoryInMB + "m")
 						.addCommandLineArgument("-Xms" + containerMemoryInMB + "m")
 						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName)
 						.name(serviceName);
-		
-		if (cloud == null) { // Azure or local-cloud
-			if (!isLocalCloud()) {
-				// Azure: Eager scale (1 container per machine per PU)
-				setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
-				deployment.scale(ElasticScaleConfigFactory.createEagerScaleConfig());
-			} else {
-				// local cloud
-				setPublicMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
-				if (service == null || service.getScalingRules() == null) {
 
-					int totalMemoryInMB = calculateTotalMemoryInMB(serviceName, service, externalProcessMemoryInMB);
-					final ManualCapacityScaleConfig scaleConfig =
-							new ManualCapacityScaleConfigurer().
-								memoryCapacity(totalMemoryInMB, MemoryUnit.MEGABYTES).create();
-					deployment.scale(scaleConfig);
-				} else {
-					final AutomaticCapacityScaleConfig scaleConfig =
-							ElasticScaleConfigFactory.createAutomaticCapacityScaleConfig(serviceName, service,
-									externalProcessMemoryInMB, false);
-					deployment.scale(scaleConfig);
-				}
-			}
-		} else {
+						if (cloud == null) { // Azure or local-cloud
+							if (!isLocalCloud()) {
+								// Azure: Eager scale (1 container per machine per PU)
+								setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
+								deployment.scale(ElasticScaleConfigFactory.createEagerScaleConfig());
+							} else {
+								// local cloud
+								setPublicMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
+								if (service == null || service.getScalingRules() == null) {
 
-			final CloudTemplate template = getComputeTemplate(cloud, templateName);
-			
-			final long cloudExternalProcessMemoryInMB = service.getIsolationSLA().getGlobal() != null 
-					? service.getIsolationSLA().getGlobal().getInstanceMemoryMB() 
-					: calculateExternalProcessMemory(cloud, template);
+									int totalMemoryInMB = calculateTotalMemoryInMB(serviceName, service, externalProcessMemoryInMB);
+									final ManualCapacityScaleConfig scaleConfig =
+											new ManualCapacityScaleConfigurer().
+											memoryCapacity(totalMemoryInMB, MemoryUnit.MEGABYTES).create();
+									deployment.scale(scaleConfig);
+								} else {
+									final AutomaticCapacityScaleConfig scaleConfig =
+											ElasticScaleConfigFactory.createAutomaticCapacityScaleConfig(serviceName, service,
+													externalProcessMemoryInMB, false);
+									deployment.scale(scaleConfig);
+								}
+							}
+						} else {
 
-			logger.info("Creating cloud machine provisioning config. Template remote directory is: " 
-						+ template.getRemoteDirectory());
-			final CloudifyMachineProvisioningConfig config =
-					new CloudifyMachineProvisioningConfig(cloud, template, templateName, 
-							this.managementTemplate.getRemoteDirectory());
+							final CloudTemplate template = getComputeTemplate(cloud, templateName);
 
-			if (serviceCloudConfigurationContents != null) {
+							final long cloudExternalProcessMemoryInMB = service.getIsolationSLA().getGlobal() != null 
+									? service.getIsolationSLA().getGlobal().getInstanceMemoryMB() 
+											: calculateExternalProcessMemory(cloud, template);
 
-				config.setServiceCloudConfiguration(serviceCloudConfigurationContents);
-			}
+									logger.info("Creating cloud machine provisioning config. Template remote directory is: " 
+											+ template.getRemoteDirectory());
+									final CloudifyMachineProvisioningConfig config =
+											new CloudifyMachineProvisioningConfig(cloud, template, templateName, 
+													this.managementTemplate.getRemoteDirectory());
 
-			final String locators = extractLocators(admin);
-			config.setLocator(locators);
+									if (serviceCloudConfigurationContents != null) {
 
-			// management machine should be isolated from other services. no matter of the deployment mode.
-			config.setDedicatedManagementMachines(true);
-			if (!dedicated) {
-				logger.info("public mode is on. will use public machine provisioning for " 
-							+ serviceName + " deployment.");
-				// service instances can be deployed across all agents
-				setPublicMachineProvisioning(deployment, config);
-			} else {
-				// service deployment will have a dedicated agent per instance
-				setDedicatedMachineProvisioning(deployment, config);
-			}
-			
-			
-			deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
+										config.setServiceCloudConfiguration(serviceCloudConfigurationContents);
+									}
 
-			if (service == null || service.getScalingRules() == null) {
-				int totalMemoryInMB = calculateTotalMemoryInMB(serviceName, 
-						service, (int) cloudExternalProcessMemoryInMB);
-				double totalCpuCores = calculateTotalCpuCores(serviceName, service);
-				final ManualCapacityScaleConfig scaleConfig =
-						ElasticScaleConfigFactory.createManualCapacityScaleConfig(totalMemoryInMB, 
-								totalCpuCores, locationAware, dedicated);
-				if (dedicated) {
-					scaleConfig.setAtMostOneContainerPerMachine(true);
-				}
-				deployment.scale(scaleConfig);
-			} else {
-				final AutomaticCapacityScaleConfig scaleConfig =
-						ElasticScaleConfigFactory.createAutomaticCapacityScaleConfig(serviceName, service,
-								(int) cloudExternalProcessMemoryInMB, locationAware);
-				if (dedicated) {
-					scaleConfig.setAtMostOneContainerPerMachine(true);	
-				}
-				deployment.scale(scaleConfig);
-			}
-		}
+									final String locators = extractLocators(admin);
+									config.setLocator(locators);
 
-		// add context properties
-		setContextProperties(deployment, contextProperties);
+									// management machine should be isolated from other services. no matter of the deployment mode.
+									config.setDedicatedManagementMachines(true);
+									if (!dedicated) {
+										logger.info("public mode is on. will use public machine provisioning for " 
+												+ serviceName + " deployment.");
+										// service instances can be deployed across all agents
+										setPublicMachineProvisioning(deployment, config);
+									} else {
+										// service deployment will have a dedicated agent per instance
+										setDedicatedMachineProvisioning(deployment, config);
+									}
 
-		verifyEsmExistsInCluster();
-		deployAndWait(serviceName, deployment);
 
-	}
+									deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
 
-	/**
-	 * @param serviceName - the absolute name of the service
-	 * @param service - the service DSL or null if not exists
-	 * @param externalProcessMemoryInMB - MB memory allocated for the GSC plus the external service.
-	 * @return a @{link ManualCapacityScaleConfig} based on the specified service and memory.
-	 */
-	public static int calculateTotalMemoryInMB(
-			final String serviceName, 
-			Service service,
-			final int externalProcessMemoryInMB)
-			throws DSLException {
+									if (service == null || service.getScalingRules() == null) {
+										int totalMemoryInMB = calculateTotalMemoryInMB(serviceName, 
+												service, (int) cloudExternalProcessMemoryInMB);
+										double totalCpuCores = calculateTotalCpuCores(serviceName, service);
+										final ManualCapacityScaleConfig scaleConfig =
+												ElasticScaleConfigFactory.createManualCapacityScaleConfig(totalMemoryInMB, 
+														totalCpuCores, locationAware, dedicated);
+										if (dedicated) {
+											scaleConfig.setAtMostOneContainerPerMachine(true);
+										}
+										deployment.scale(scaleConfig);
+									} else {
+										final AutomaticCapacityScaleConfig scaleConfig =
+												ElasticScaleConfigFactory.createAutomaticCapacityScaleConfig(serviceName, service,
+														(int) cloudExternalProcessMemoryInMB, locationAware);
+										if (dedicated) {
+											scaleConfig.setAtMostOneContainerPerMachine(true);	
+										}
+										deployment.scale(scaleConfig);
+									}
+						}
 
-		if (externalProcessMemoryInMB <= 0) {
-			throw new IllegalArgumentException ("externalProcessMemoryInMB must be positive");
-		}
-		
-		int numberOfInstances = 1;
-		if (service == null) {
-			logger.info("Deploying service " + serviceName + " without a recipe. Assuming number of instances is 1");
-		} else if (service.getNumInstances() > 0) {
-			numberOfInstances = service.getNumInstances();
-			logger.info("Deploying service " + serviceName + " with " + numberOfInstances + " instances.");
-		} else {
-			throw new DSLException("Number of instances must be at least 1");
-		}
+						// add context properties
+						setContextProperties(deployment, contextProperties);
 
-		return externalProcessMemoryInMB * numberOfInstances;
-	}
-	
-	private static double calculateTotalCpuCores(final String serviceName, final Service service) {
+						verifyEsmExistsInCluster();
+						deployAndWait(serviceName, deployment);
 
-		if (service == null) { // deploying without a service. assuming CPU requirements is 0
-			return 0;
-		}
-		double instanceCpuCores = service.getIsolationSLA().getGlobal() != null 
-				? service.getIsolationSLA().getGlobal().getInstanceCpuCores() : 0;
-		if (instanceCpuCores < 0) {
-			throw new IllegalArgumentException("instanceCpuCores must be positive");
-		}
-		
-		int numberOfInstances = service.getNumInstances();
-		
-		return numberOfInstances * instanceCpuCores;
-	}
-	
-	private static String extractLocators(final Admin admin) {
+					}
 
-		final LookupLocator[] locatorsArray = admin.getLocators();
-		final StringBuilder locators = new StringBuilder();
+					/**
+					 * @param serviceName - the absolute name of the service
+					 * @param service - the service DSL or null if not exists
+					 * @param externalProcessMemoryInMB - MB memory allocated for the GSC plus the external service.
+					 * @return a @{link ManualCapacityScaleConfig} based on the specified service and memory.
+					 */
+					public static int calculateTotalMemoryInMB(
+							final String serviceName, 
+							Service service,
+							final int externalProcessMemoryInMB)
+									throws DSLException {
 
-		for (final LookupLocator locator : locatorsArray) {
-			locators.append(locator.getHost() + ":" + locator.getPort() + ",");
-		}
+						if (externalProcessMemoryInMB <= 0) {
+							throw new IllegalArgumentException ("externalProcessMemoryInMB must be positive");
+						}
 
-		if (locators.length() > 0) {
-			locators.setLength(locators.length() - 1);
-		}
+						int numberOfInstances = 1;
+						if (service == null) {
+							logger.info("Deploying service " + serviceName + " without a recipe. Assuming number of instances is 1");
+						} else if (service.getNumInstances() > 0) {
+							numberOfInstances = service.getNumInstances();
+							logger.info("Deploying service " + serviceName + " with " + numberOfInstances + " instances.");
+						} else {
+							throw new DSLException("Number of instances must be at least 1");
+						}
 
-		return locators.toString();
-	}
+						return externalProcessMemoryInMB * numberOfInstances;
+					}
 
-	private long calculateExternalProcessMemory(final Cloud cloud, final CloudTemplate template)
-			throws DSLException {
-		// TODO remove hardcoded number
-		logger.info("Calculating external proc mem for template: " + template);
-		final int machineMemoryMB = template.getMachineMemoryMB();
-		final int reservedMemoryCapacityPerMachineInMB = cloud.getProvider().getReservedMemoryCapacityPerMachineInMB();
-		final int safteyMargin = 100; // get rid of this constant. see CLOUDIFY-297
-		final long cloudExternalProcessMemoryInMB =
-				machineMemoryMB - reservedMemoryCapacityPerMachineInMB - safteyMargin;
-		if (cloudExternalProcessMemoryInMB <= 0) {
-			throw new DSLException(
-					"Cloud template machineMemoryMB ("
-							+ machineMemoryMB + "MB) must be bigger than " +
-							"reservedMemoryCapacityPerMachineInMB+" + safteyMargin + " ("
-							+ (reservedMemoryCapacityPerMachineInMB + safteyMargin) + ")");
-		}
-		logger.fine("template.machineMemoryMB = " + template.getMachineMemoryMB() + "MB\n"
-				+ "cloud.provider.reservedMemoryCapacityPerMachineInMB = "
-				+ reservedMemoryCapacityPerMachineInMB + "MB\n"
-				+ "cloudExternalProcessMemoryInMB = " + cloudExternalProcessMemoryInMB + "MB"
-				+ "cloudExternalProcessMemoryInMB = cloud.machineMemoryMB - "
-				+ "cloud.reservedMemoryCapacityPerMachineInMB" + " = " + cloudExternalProcessMemoryInMB);
-		return cloudExternalProcessMemoryInMB;
-	}
+					private static double calculateTotalCpuCores(final String serviceName, final Service service) {
 
-	/**
-	 * Local-Cloud has one agent without any zone.
-	 */
-	private boolean isLocalCloud() {
-		final GridServiceAgent[] agents = admin.getGridServiceAgents().getAgents();
-		final boolean isOnlyOneAgent = agents.length == 1;
-		GridServiceAgent agent = agents[0];
-		AtLeastOneZoneConfig requiredContainerZone = new AtLeastOneZoneConfigurer().addZone(LOCALCLOUD_ZONE).create();
-		
-		final boolean isLocalCloudZone = agent.getExactZones().isStasfies(requiredContainerZone);
-		final boolean isLocalCloud = isOnlyOneAgent && isLocalCloudZone;
-		if (logger.isLoggable(Level.FINE)) {
-			if (!isOnlyOneAgent) {
-				logger.fine("Not local cloud since there are " + agents.length + " agents");
-			} else if (!isLocalCloudZone) {
-				logger.fine("Not local cloud since no " + LOCALCLOUD_ZONE + " in agent zones " + agent.getExactZones());
-			}
-		}
-		return isLocalCloud;
-	}
+						if (service == null) { // deploying without a service. assuming CPU requirements is 0
+							return 0;
+						}
+						double instanceCpuCores = service.getIsolationSLA().getGlobal() != null 
+								? service.getIsolationSLA().getGlobal().getInstanceCpuCores() : 0;
+								if (instanceCpuCores < 0) {
+									throw new IllegalArgumentException("instanceCpuCores must be positive");
+								}
 
-	/******
-	 * Waits for a single instance of a service to become available. NOTE: currently only uses service name as
-	 * processing unit name.
-	 * 
-	 * @param applicationName not used.
-	 * @param serviceName the service name.
-	 * @param timeout the timeout period to wait for the processing unit, and then the PU instance.
-	 * @param timeUnit the time unit used to wait for the processing unit, and then the PU instance.
-	 * @return true if instance is found, false if instance is not found in the specified period.
-	 */
-	public boolean waitForServiceInstance(final String applicationName, final String serviceName, final long timeout,
-			final TimeUnit timeUnit) {
+								int numberOfInstances = service.getNumInstances();
 
-		// this should be a very fast lookup, since the service was already
-		// successfully deployed
-		final String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-		final ProcessingUnit pu = this.admin.getProcessingUnits().waitFor(absolutePUName, timeout, timeUnit);
-		if (pu == null) {
-			return false;
-		}
+								return numberOfInstances * instanceCpuCores;
+					}
 
-		// ignore the time spent on PU lookup, as it should be failry short.
-		return pu.waitFor(1, timeout, timeUnit);
+					private static String extractLocators(final Admin admin) {
 
-	}
+						final LookupLocator[] locatorsArray = admin.getLocators();
+						final StringBuilder locators = new StringBuilder();
 
-	public String deployElasticProcessingUnit(final String serviceName, final String applicationName,
-			final String zone, final File srcFile, final Properties propsFile, final String originalTemplateName,
-			final boolean isApplicationInstall, final int timeout, final TimeUnit timeUnit,
-			final byte[] serviceCloudConfigurationContents, final boolean selfHealing)
-			throws TimeoutException, PackagingException, IOException, AdminException, DSLException {
+						for (final LookupLocator locator : locatorsArray) {
+							locators.append(locator.getHost() + ":" + locator.getPort() + ",");
+						}
 
-		String templateName;
-		if (originalTemplateName == null) {
-			templateName = this.defaultTemplateName;
-		} else {
-			templateName = originalTemplateName;
-		}
+						if (locators.length() > 0) {
+							locators.setLength(locators.length() - 1);
+						}
 
-		if (templateName != null) {
-			propsFile.put(CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE, templateName);
-		}
+						return locators.toString();
+					}
 
-		Service service = null;
-		File projectDir = null;
-		// Cloud cloud = null;
-		if (srcFile.getName().endsWith(".zip")) {
-			projectDir = ServiceReader.extractProjectFile(srcFile);
-			final File workingProjectDir = new File(projectDir, "ext");
-			final String serviceFileName = propsFile.getProperty(CloudifyConstants.CONTEXT_PROPERTY_SERVICE_FILE_NAME);
-			DSLServiceCompilationResult result;
-			if (serviceFileName != null) {
-				result =
-						ServiceReader.getServiceFromFile(new File(workingProjectDir, serviceFileName),
-								workingProjectDir);
-			} else {
-				result = ServiceReader.getServiceFromDirectory(workingProjectDir);
-			}
-			service = result.getService();
-			// cloud = ServiceReader.getCloudFromDirectory(new File(projectDir,
-			// "ext"));
+					private long calculateExternalProcessMemory(final Cloud cloud, final CloudTemplate template)
+							throws DSLException {
+						// TODO remove hardcoded number
+						logger.info("Calculating external proc mem for template: " + template);
+						final int machineMemoryMB = template.getMachineMemoryMB();
+						final int reservedMemoryCapacityPerMachineInMB = cloud.getProvider().getReservedMemoryCapacityPerMachineInMB();
+						final int safteyMargin = 100; // get rid of this constant. see CLOUDIFY-297
+						final long cloudExternalProcessMemoryInMB =
+								machineMemoryMB - reservedMemoryCapacityPerMachineInMB - safteyMargin;
+						if (cloudExternalProcessMemoryInMB <= 0) {
+							throw new DSLException(
+									"Cloud template machineMemoryMB ("
+											+ machineMemoryMB + "MB) must be bigger than " +
+											"reservedMemoryCapacityPerMachineInMB+" + safteyMargin + " ("
+											+ (reservedMemoryCapacityPerMachineInMB + safteyMargin) + ")");
+						}
+						logger.fine("template.machineMemoryMB = " + template.getMachineMemoryMB() + "MB\n"
+								+ "cloud.provider.reservedMemoryCapacityPerMachineInMB = "
+								+ reservedMemoryCapacityPerMachineInMB + "MB\n"
+								+ "cloudExternalProcessMemoryInMB = " + cloudExternalProcessMemoryInMB + "MB"
+								+ "cloudExternalProcessMemoryInMB = cloud.machineMemoryMB - "
+								+ "cloud.reservedMemoryCapacityPerMachineInMB" + " = " + cloudExternalProcessMemoryInMB);
+						return cloudExternalProcessMemoryInMB;
+					}
 
-		}
+					/**
+					 * Local-Cloud has one agent without any zone.
+					 */
+					private boolean isLocalCloud() {
+						final GridServiceAgent[] agents = admin.getGridServiceAgents().getAgents();
+						final boolean isOnlyOneAgent = agents.length == 1;
+						GridServiceAgent agent = agents[0];
+						AtLeastOneZoneConfig requiredContainerZone = new AtLeastOneZoneConfigurer().addZone(LOCALCLOUD_ZONE).create();
 
-		String[] agentZones;
-		if (isLocalCloud()) {
-			agentZones = new String[] { zone, LOCALCLOUD_ZONE};
-		}
-		else {
-			agentZones = new String[] { zone };
-		}
-		
-		if (service == null) {
-			doDeploy(applicationName, serviceName, templateName, agentZones, srcFile, propsFile, selfHealing);
-		} else if (service.getLifecycle() != null) {
-			doDeploy(applicationName, serviceName, templateName, agentZones, srcFile, propsFile, service, serviceCloudConfigurationContents, selfHealing);
-		} else if (service.getDataGrid() != null) {
-			deployDataGrid(applicationName, serviceName, agentZones, srcFile, propsFile, service.getDataGrid(), templateName, service.isLocationAware());
-		} else if (service.getStatelessProcessingUnit() != null) {
-			deployStatelessProcessingUnitAndWait(applicationName, serviceName, agentZones, new File(projectDir, "ext"),
-					propsFile, service.getStatelessProcessingUnit(), templateName, service.getNumInstances(), service.isLocationAware());
-		} else if (service.getMirrorProcessingUnit() != null) {
-			deployStatelessProcessingUnitAndWait(applicationName, serviceName, agentZones, new File(projectDir, "ext"),
-					propsFile, service.getMirrorProcessingUnit(), templateName, service.getNumInstances(),  service.isLocationAware());
-		} else if (service.getStatefulProcessingUnit() != null) {
-			deployStatefulProcessingUnit(applicationName, serviceName, agentZones, new File(projectDir, "ext"), propsFile,
-					service.getStatefulProcessingUnit(), templateName,  service.isLocationAware());
-		} else {
-			throw new IllegalStateException("Unsupported service type");
-		}
-		if (projectDir != null) {
-			try {
-				FileUtils.deleteDirectory(projectDir);
-			} catch (final IOException e) {
-				// this may happen if a classloader is holding unto a jar file in the usmlib directory
-				// the files are temp files, so it should be ok if they remain on the disk
-				logger.log(Level.WARNING, "Failed to delete project files: " + e.getMessage(), e);
-			}
-		}
-		srcFile.delete();
+						final boolean isLocalCloudZone = agent.getExactZones().isStasfies(requiredContainerZone);
+						final boolean isLocalCloud = isOnlyOneAgent && isLocalCloudZone;
+						if (logger.isLoggable(Level.FINE)) {
+							if (!isOnlyOneAgent) {
+								logger.fine("Not local cloud since there are " + agents.length + " agents");
+							} else if (!isLocalCloudZone) {
+								logger.fine("Not local cloud since no " + LOCALCLOUD_ZONE + " in agent zones " + agent.getExactZones());
+							}
+						}
+						return isLocalCloud;
+					}
 
-		String lifecycleEventContainerID = "";
-		if (!isApplicationInstall) {
-			logger.log(Level.INFO, "Starting to poll for installation lifecycle events.");
-			if (service == null) {
-				lifecycleEventContainerID =
-						startPollingForLifecycleEvents(
-								ServiceUtils.getApplicationServiceName(serviceName, applicationName), applicationName,
-								1, true, timeout, timeUnit).toString();
-			} else {
-				lifecycleEventContainerID =
-						startPollingForLifecycleEvents(service.getName(), applicationName, service.getNumInstances(),
-								true, timeout, timeUnit).toString();
-			}
-		}
-		return lifecycleEventContainerID;
-	}
+					/******
+					 * Waits for a single instance of a service to become available. NOTE: currently only uses service name as
+					 * processing unit name.
+					 * 
+					 * @param applicationName not used.
+					 * @param serviceName the service name.
+					 * @param timeout the timeout period to wait for the processing unit, and then the PU instance.
+					 * @param timeUnit the time unit used to wait for the processing unit, and then the PU instance.
+					 * @return true if instance is found, false if instance is not found in the specified period.
+					 */
+					public boolean waitForServiceInstance(final String applicationName, final String serviceName, final long timeout,
+							final TimeUnit timeUnit) {
 
-	private void doDeploy(final String applicationName, final String serviceName, final String templateName,
-			final String[] agentZones, final File srcFile,
-			final Properties propsFile, final boolean selfHealing)
-			throws TimeoutException, DSLException {
-		doDeploy(applicationName, serviceName, templateName, agentZones, srcFile, propsFile, null, null, selfHealing);
-	}
+						// this should be a very fast lookup, since the service was already
+						// successfully deployed
+						final String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+						final ProcessingUnit pu = this.admin.getProcessingUnits().waitFor(absolutePUName, timeout, timeUnit);
+						if (pu == null) {
+							return false;
+						}
 
-	// TODO: add getters for service processing units in the service class that
-	// does the cast automatically.
-	/**
-	 * 
-	 * @param applicationName
-	 * @param serviceName
-	 * @param timeout
-	 * @param templateName
-	 * @param zone
-	 * @param srcFile
-	 * @param propsFile
-	 * @return the lifecycleEventsContainerID
-	 * @throws TimeoutException
-	 * @throws PackagingException
-	 * @throws IOException
-	 * @throws AdminException
-	 * @throws DSLException
-	 */
-	@JsonRequestExample(requestBody = "{\"zone\":5,\"template\":\"SMALL_LINUX\"," +
-			"\"file\":\"packaged service file\",\"props\":\"packaged properties file\"}")
-	@JsonResponseExample(status = "success", responseBody = "\"b41febb7-f48e-48d4-b14a-a6000d402d93\"")
-	@PossibleResponseStatuses(codes = {200, 500, 500, 500, 500, 500}, 
-	descriptions = {"success", "TimeoutException", "PackagingException", "IOException", "AdminException", "DSLException"})
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeout}",
-			method = RequestMethod.POST)
-	public @ResponseBody
-	Object deployElastic(@PathVariable final String applicationName, @PathVariable final String serviceName,
-			@PathVariable final int timeout,
-			@RequestParam(value = "template", required = false) final String templateName, 
-			@RequestParam(value = "zone", required = true) final String zone,
-			@RequestParam(value = "file", required = true) final MultipartFile srcFile, 
-			@RequestParam(value = "props",required = true) final MultipartFile propsFile,
-			@RequestParam(value = "selfHealing", required = false, defaultValue = "true") final Boolean selfHealing)
-			throws TimeoutException, PackagingException, IOException, AdminException, DSLException {
+						// ignore the time spent on PU lookup, as it should be failry short.
+						return pu.waitFor(1, timeout, timeUnit);
 
-		logger.info("Deploying service with template: " + templateName);
-		String actualTemplateName = templateName;
+					}
 
-		if (cloud != null) {
-			if (templateName == null || templateName.length() == 0) {
-				if (cloud.getTemplates().isEmpty()) {
-					throw new IllegalStateException("Cloud configuration has no compute template defined!");
-				}
-				actualTemplateName = cloud.getTemplates().keySet().iterator().next();
-				logger.warning("Compute Template name missing from service deployment request."
-						+ " Defaulting to first template: " + actualTemplateName);
+					public String deployElasticProcessingUnit(final String serviceName, final String applicationName,
+							final String zone, final File srcFile, final Properties propsFile, final String originalTemplateName,
+							final boolean isApplicationInstall, final int timeout, final TimeUnit timeUnit,
+							final byte[] serviceCloudConfigurationContents, final boolean selfHealing)
+									throws TimeoutException, PackagingException, IOException, AdminException, DSLException {
 
-			}
-		}
+						String templateName;
+						if (originalTemplateName == null) {
+							templateName = this.defaultTemplateName;
+						} else {
+							templateName = originalTemplateName;
+						}
 
-		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-		final byte[] propsBytes = propsFile.getBytes();
-		final Properties props = new Properties();
-		final InputStream is = new ByteArrayInputStream(propsBytes);
-		props.load(is);
-		final File dest = copyMultipartFileToLocalFile(srcFile);
-		final File destFile =
-				new File(dest.getParent(), absolutePuName + "." + FilenameUtils.getExtension(dest.getName()));
-		if (destFile.exists()) {
-			FileUtils.deleteQuietly(destFile);
-		}
+						if (templateName != null) {
+							propsFile.put(CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE, templateName);
+						}
 
-		String lifecycleEventsContainerID = "";
-		if (dest.renameTo(destFile)) {
-			FileUtils.deleteQuietly(dest);
+						Service service = null;
+						File projectDir = null;
+						// Cloud cloud = null;
+						if (srcFile.getName().endsWith(".zip")) {
+							projectDir = ServiceReader.extractProjectFile(srcFile);
+							final File workingProjectDir = new File(projectDir, "ext");
+							final String serviceFileName = propsFile.getProperty(CloudifyConstants.CONTEXT_PROPERTY_SERVICE_FILE_NAME);
+							DSLServiceCompilationResult result;
+							if (serviceFileName != null) {
+								result =
+										ServiceReader.getServiceFromFile(new File(workingProjectDir, serviceFileName),
+												workingProjectDir);
+							} else {
+								result = ServiceReader.getServiceFromDirectory(workingProjectDir);
+							}
+							service = result.getService();
+							// cloud = ServiceReader.getCloudFromDirectory(new File(projectDir,
+							// "ext"));
 
-			final File cloudConfigurationFile =
-					ZipUtils.unzipEntry(destFile, "ext/" + CloudifyConstants.SERVICE_CLOUD_CONFIGURATION_FILE_NAME,
-							CloudifyConstants.SERVICE_CLOUD_CONFIGURATION_FILE_NAME);
-			byte[] cloudConfigurationContents = null;
-			if (cloudConfigurationFile != null) {
-				cloudConfigurationContents = FileUtils.readFileToByteArray(cloudConfigurationFile);
-			}
+						}
 
-			lifecycleEventsContainerID =
-					deployElasticProcessingUnit(absolutePuName, applicationName, zone, destFile, props,
-							actualTemplateName, false, timeout, TimeUnit.MINUTES, cloudConfigurationContents, selfHealing);
-			destFile.deleteOnExit();
-		} else {
-			logger.warning("Deployment file could not be renamed to the absolute pu name."
-					+ " Deploaying using the name " + dest.getName());
-			lifecycleEventsContainerID =
-					deployElasticProcessingUnit(absolutePuName, applicationName, zone, dest, props, actualTemplateName,
-							false, timeout, TimeUnit.MINUTES, null,selfHealing);
-			dest.deleteOnExit();
-		}
+						String[] agentZones;
+						if (isLocalCloud()) {
+							agentZones = new String[] { zone, LOCALCLOUD_ZONE};
+						}
+						else {
+							agentZones = new String[] { zone };
+						}
 
-		// TODO: move this Key String to the DSL project as a constant.
-		// Map<String, String> serviceDetails = new HashMap<String, String>();
-		// serviceDetails.put("lifecycleEventsContainerID", lifecycleEventsContainerID.toString());
-		return successStatus(lifecycleEventsContainerID);
-	}
+						if (service == null) {
+							doDeploy(applicationName, serviceName, templateName, agentZones, srcFile, propsFile, selfHealing);
+						} else if (service.getLifecycle() != null) {
+							doDeploy(applicationName, serviceName, templateName, agentZones, srcFile, propsFile, service, serviceCloudConfigurationContents, selfHealing);
+						} else if (service.getDataGrid() != null) {
+							deployDataGrid(applicationName, serviceName, agentZones, srcFile, propsFile, service.getDataGrid(), templateName, service.isLocationAware());
+						} else if (service.getStatelessProcessingUnit() != null) {
+							deployStatelessProcessingUnitAndWait(applicationName, serviceName, agentZones, new File(projectDir, "ext"),
+									propsFile, service.getStatelessProcessingUnit(), templateName, service.getNumInstances(), service.isLocationAware());
+						} else if (service.getMirrorProcessingUnit() != null) {
+							deployStatelessProcessingUnitAndWait(applicationName, serviceName, agentZones, new File(projectDir, "ext"),
+									propsFile, service.getMirrorProcessingUnit(), templateName, service.getNumInstances(),  service.isLocationAware());
+						} else if (service.getStatefulProcessingUnit() != null) {
+							deployStatefulProcessingUnit(applicationName, serviceName, agentZones, new File(projectDir, "ext"), propsFile,
+									service.getStatefulProcessingUnit(), templateName,  service.isLocationAware());
+						} else {
+							throw new IllegalStateException("Unsupported service type");
+						}
+						if (projectDir != null) {
+							try {
+								FileUtils.deleteDirectory(projectDir);
+							} catch (final IOException e) {
+								// this may happen if a classloader is holding unto a jar file in the usmlib directory
+								// the files are temp files, so it should be ok if they remain on the disk
+								logger.log(Level.WARNING, "Failed to delete project files: " + e.getMessage(), e);
+							}
+						}
+						srcFile.delete();
 
-	private File getJarFileFromDir(File serviceFileOrDir, final File serviceDirectory, final String jarName)
-			throws IOException {
-		if (!serviceFileOrDir.isAbsolute()) {
-			serviceFileOrDir = new File(serviceDirectory, serviceFileOrDir.getPath());
-		}
-		final File destJar = new File(serviceDirectory.getParent(), jarName + ".jar");
-		FileUtils.deleteQuietly(destJar);
-		if (serviceFileOrDir.isDirectory()) {
-			final File jarFile = File.createTempFile(serviceFileOrDir.getName(), ".jar");
-			ZipUtils.zip(serviceFileOrDir, jarFile);
-			// rename the jar so would appear as 'Absolute pu name' in the deploy folder.
-			jarFile.renameTo(destJar);
-			jarFile.deleteOnExit();
-			return destJar;
-		} else if (serviceFileOrDir.isFile()) {
-			// rename the jar so would appear as 'Absolute pu name' in the deploy folder.
-			serviceFileOrDir.renameTo(destJar);
-			return destJar;
-		}
+						String lifecycleEventContainerID = "";
+						if (!isApplicationInstall) {
+							logger.log(Level.INFO, "Starting to poll for installation lifecycle events.");
+							if (service == null) {
+								lifecycleEventContainerID =
+										startPollingForLifecycleEvents(
+												ServiceUtils.getApplicationServiceName(serviceName, applicationName), applicationName,
+												1, true, timeout, timeUnit).toString();
+							} else {
+								lifecycleEventContainerID =
+										startPollingForLifecycleEvents(service.getName(), applicationName, service.getNumInstances(),
+												true, timeout, timeUnit).toString();
+							}
+						}
+						return lifecycleEventContainerID;
+					}
 
-		throw new FileNotFoundException("The file " + serviceFileOrDir + " was not found in the service folder");
-	}
+					private void doDeploy(final String applicationName, final String serviceName, final String templateName,
+							final String[] agentZones, final File srcFile,
+							final Properties propsFile, final boolean selfHealing)
+									throws TimeoutException, DSLException {
+						doDeploy(applicationName, serviceName, templateName, agentZones, srcFile, propsFile, null, null, selfHealing);
+					}
 
-	private CloudTemplate getComputeTemplate(final Cloud cloud, final String templateName) {
-		if (templateName == null) {
-			final Entry<String, CloudTemplate> entry = cloud.getTemplates().entrySet().iterator().next();
+					// TODO: add getters for service processing units in the service class that
+					// does the cast automatically.
+					/**
+					 * 
+					 * @param applicationName
+					 * @param serviceName
+					 * @param timeout
+					 * @param templateName
+					 * @param zone
+					 * @param srcFile
+					 * @param propsFile
+					 * @return the lifecycleEventsContainerID
+					 * @throws TimeoutException
+					 * @throws PackagingException
+					 * @throws IOException
+					 * @throws AdminException
+					 * @throws DSLException
+					 */
+					@JsonRequestExample(requestBody = "{\"zone\":5,\"template\":\"SMALL_LINUX\"," +
+							"\"file\":\"packaged service file\",\"props\":\"packaged properties file\"}")
+					@JsonResponseExample(status = "success", responseBody = "\"b41febb7-f48e-48d4-b14a-a6000d402d93\"")
+					@PossibleResponseStatuses(codes = {200, 500, 500, 500, 500, 500}, 
+					descriptions = {"success", "TimeoutException", "PackagingException", "IOException", "AdminException", "DSLException"})
+					@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeout}",
+					method = RequestMethod.POST)
+					public @ResponseBody
+					Object deployElastic(@PathVariable final String applicationName, @PathVariable final String serviceName,
+							@PathVariable final int timeout,
+							@RequestParam(value = "template", required = false) final String templateName, 
+							@RequestParam(value = "zone", required = true) final String zone,
+							@RequestParam(value = "file", required = true) final MultipartFile srcFile, 
+							@RequestParam(value = "props",required = true) final MultipartFile propsFile,
+							@RequestParam(value = "selfHealing", required = false, defaultValue = "true") final Boolean selfHealing)
+									throws TimeoutException, PackagingException, IOException, AdminException, DSLException {
 
-			logger.warning("Service does not specify template name! Defaulting to template: " + entry.getKey());
-			return entry.getValue();
-		}
-		final CloudTemplate template = cloud.getTemplates().get(templateName);
-		if (template == null) {
-			throw new IllegalArgumentException("Could not find compute template: " + templateName);
-		}
-		return template;
-	}
+						logger.info("Deploying service with template: " + templateName);
+						String actualTemplateName = templateName;
 
-	// TODO: consider adding MemoryUnits to DSL
-	// TODO: add memory unit to names
-	private void deployDataGrid(final String applicationName, final String serviceName, final String[] agentZones,
-			final File srcFile, final Properties contextProperties, final DataGrid dataGridConfig,
-			final String templateName, final boolean locationAware)
-			throws AdminException, TimeoutException, DSLException {
+						if (cloud != null) {
+							if (templateName == null || templateName.length() == 0) {
+								if (cloud.getTemplates().isEmpty()) {
+									throw new IllegalStateException("Cloud configuration has no compute template defined!");
+								}
+								actualTemplateName = cloud.getTemplates().keySet().iterator().next();
+								logger.warning("Compute Template name missing from service deployment request."
+										+ " Defaulting to first template: " + actualTemplateName);
 
-		final int containerMemoryInMB = dataGridConfig.getSla().getMemoryCapacityPerContainer();
-		final int maxMemoryInMB = dataGridConfig.getSla().getMaxMemoryCapacity();
-		final int reservedMemoryCapacityPerMachineInMB = 256;
+							}
+						}
 
-		logger.finer("received request to install datagrid");
+						final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+						final byte[] propsBytes = propsFile.getBytes();
+						final Properties props = new Properties();
+						final InputStream is = new ByteArrayInputStream(propsBytes);
+						props.load(is);
+						final File dest = copyMultipartFileToLocalFile(srcFile);
+						final File destFile =
+								new File(dest.getParent(), absolutePuName + "." + FilenameUtils.getExtension(dest.getName()));
+						if (destFile.exists()) {
+							FileUtils.deleteQuietly(destFile);
+						}
 
-		final ElasticSpaceDeployment deployment =
-				new ElasticSpaceDeployment(serviceName)
+						String lifecycleEventsContainerID = "";
+						if (dest.renameTo(destFile)) {
+							FileUtils.deleteQuietly(dest);
+
+							final File cloudConfigurationFile =
+									ZipUtils.unzipEntry(destFile, "ext/" + CloudifyConstants.SERVICE_CLOUD_CONFIGURATION_FILE_NAME,
+											CloudifyConstants.SERVICE_CLOUD_CONFIGURATION_FILE_NAME);
+							byte[] cloudConfigurationContents = null;
+							if (cloudConfigurationFile != null) {
+								cloudConfigurationContents = FileUtils.readFileToByteArray(cloudConfigurationFile);
+							}
+
+							lifecycleEventsContainerID =
+									deployElasticProcessingUnit(absolutePuName, applicationName, zone, destFile, props,
+											actualTemplateName, false, timeout, TimeUnit.MINUTES, cloudConfigurationContents, selfHealing);
+							destFile.deleteOnExit();
+						} else {
+							logger.warning("Deployment file could not be renamed to the absolute pu name."
+									+ " Deploaying using the name " + dest.getName());
+							lifecycleEventsContainerID =
+									deployElasticProcessingUnit(absolutePuName, applicationName, zone, dest, props, actualTemplateName,
+											false, timeout, TimeUnit.MINUTES, null,selfHealing);
+							dest.deleteOnExit();
+						}
+
+						// TODO: move this Key String to the DSL project as a constant.
+						// Map<String, String> serviceDetails = new HashMap<String, String>();
+						// serviceDetails.put("lifecycleEventsContainerID", lifecycleEventsContainerID.toString());
+						return successStatus(lifecycleEventsContainerID);
+					}
+
+					private File getJarFileFromDir(File serviceFileOrDir, final File serviceDirectory, final String jarName)
+							throws IOException {
+						if (!serviceFileOrDir.isAbsolute()) {
+							serviceFileOrDir = new File(serviceDirectory, serviceFileOrDir.getPath());
+						}
+						final File destJar = new File(serviceDirectory.getParent(), jarName + ".jar");
+						FileUtils.deleteQuietly(destJar);
+						if (serviceFileOrDir.isDirectory()) {
+							final File jarFile = File.createTempFile(serviceFileOrDir.getName(), ".jar");
+							ZipUtils.zip(serviceFileOrDir, jarFile);
+							// rename the jar so would appear as 'Absolute pu name' in the deploy folder.
+							jarFile.renameTo(destJar);
+							jarFile.deleteOnExit();
+							return destJar;
+						} else if (serviceFileOrDir.isFile()) {
+							// rename the jar so would appear as 'Absolute pu name' in the deploy folder.
+							serviceFileOrDir.renameTo(destJar);
+							return destJar;
+						}
+
+						throw new FileNotFoundException("The file " + serviceFileOrDir + " was not found in the service folder");
+					}
+
+					private CloudTemplate getComputeTemplate(final Cloud cloud, final String templateName) {
+						if (templateName == null) {
+							final Entry<String, CloudTemplate> entry = cloud.getTemplates().entrySet().iterator().next();
+
+							logger.warning("Service does not specify template name! Defaulting to template: " + entry.getKey());
+							return entry.getValue();
+						}
+						final CloudTemplate template = cloud.getTemplates().get(templateName);
+						if (template == null) {
+							throw new IllegalArgumentException("Could not find compute template: " + templateName);
+						}
+						return template;
+					}
+
+					// TODO: consider adding MemoryUnits to DSL
+					// TODO: add memory unit to names
+					private void deployDataGrid(final String applicationName, final String serviceName, final String[] agentZones,
+							final File srcFile, final Properties contextProperties, final DataGrid dataGridConfig,
+							final String templateName, final boolean locationAware)
+									throws AdminException, TimeoutException, DSLException {
+
+						final int containerMemoryInMB = dataGridConfig.getSla().getMemoryCapacityPerContainer();
+						final int maxMemoryInMB = dataGridConfig.getSla().getMaxMemoryCapacity();
+						final int reservedMemoryCapacityPerMachineInMB = 256;
+
+						logger.finer("received request to install datagrid");
+
+						final ElasticSpaceDeployment deployment =
+								new ElasticSpaceDeployment(serviceName)
 						.memoryCapacityPerContainer(containerMemoryInMB, MemoryUnit.MEGABYTES)
 						.maxMemoryCapacity(maxMemoryInMB, MemoryUnit.MEGABYTES)
 						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName)
@@ -2163,573 +2174,573 @@ public class ServiceController implements ServiceDetailsProvider{
 						// allow single machine for local development purposes
 						.singleMachineDeployment();
 
-		setContextProperties(deployment, contextProperties);
+						setContextProperties(deployment, contextProperties);
 
-		if (cloud == null) {
-			if (isLocalCloud()) {
-			    setPublicMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
-				deployment.scale(new ManualCapacityScaleConfigurer().memoryCapacity(
-				dataGridConfig.getSla().getMemoryCapacity(), MemoryUnit.MEGABYTES).create());
+						if (cloud == null) {
+							if (isLocalCloud()) {
+								setPublicMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
+								deployment.scale(new ManualCapacityScaleConfigurer().memoryCapacity(
+										dataGridConfig.getSla().getMemoryCapacity(), MemoryUnit.MEGABYTES).create());
 
-			} else {
-			    setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
-				// eager scaling. 1 container per machine
-				deployment.scale(ElasticScaleConfigFactory.createEagerScaleConfig());
-			}
+							} else {
+								setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
+								// eager scaling. 1 container per machine
+								deployment.scale(ElasticScaleConfigFactory.createEagerScaleConfig());
+							}
 
-		} else {
+						} else {
 
-			final CloudTemplate template = getComputeTemplate(cloud, templateName);
+							final CloudTemplate template = getComputeTemplate(cloud, templateName);
 
-			validateAndPrepareStatefulSla(serviceName, dataGridConfig.getSla(), cloud, template);
+							validateAndPrepareStatefulSla(serviceName, dataGridConfig.getSla(), cloud, template);
 
-			final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
+							final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
 
-			final CloudifyMachineProvisioningConfig config =
-					new CloudifyMachineProvisioningConfig(cloud, template, templateName, this.managementTemplate.getRemoteDirectory());
-			// CloudMachineProvisioningConfig config =
-			// CloudDSLToCloudMachineProvisioningConfig.convert(cloud);
+							final CloudifyMachineProvisioningConfig config =
+									new CloudifyMachineProvisioningConfig(cloud, template, templateName, this.managementTemplate.getRemoteDirectory());
+							// CloudMachineProvisioningConfig config =
+							// CloudDSLToCloudMachineProvisioningConfig.convert(cloud);
 
-			final String locators = extractLocators(admin);
-			config.setLocator(locators);
+							final String locators = extractLocators(admin);
+							config.setLocator(locators);
 
-			setDedicatedMachineProvisioning(deployment, config);
-			deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
+							setDedicatedMachineProvisioning(deployment, config);
+							deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
 
-			//TODO: [itaif] Why only capacity of one container ?
-			deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig((int) cloudExternalProcessMemoryInMB, 0 , locationAware, false));
-		}
+							//TODO: [itaif] Why only capacity of one container ?
+							deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig((int) cloudExternalProcessMemoryInMB, 0 , locationAware, false));
+						}
 
-		deployAndWait(serviceName, deployment);
+						deployAndWait(serviceName, deployment);
 
-	}
+					}
 
-	private void setContextProperties(final ElasticDeploymentTopology deployment, final Properties contextProperties) {
-		final Set<Entry<Object, Object>> contextPropsEntries = contextProperties.entrySet();
-		for (final Entry<Object, Object> entry : contextPropsEntries) {
-			deployment.addContextProperty((String) entry.getKey(), (String) entry.getValue());
-		}
-	}
+					private void setContextProperties(final ElasticDeploymentTopology deployment, final Properties contextProperties) {
+						final Set<Entry<Object, Object>> contextPropsEntries = contextProperties.entrySet();
+						for (final Entry<Object, Object> entry : contextPropsEntries) {
+							deployment.addContextProperty((String) entry.getKey(), (String) entry.getValue());
+						}
+					}
 
-	private void setSharedMachineProvisioning(final ElasticDeploymentTopology deployment, final String[] agentZones,
-			final int reservedMemoryCapacityPerMachineInMB) {
-		// All PUs on this role share the same machine. Machines
-		// are identified by zone.
-		DiscoveredMachineProvisioningConfig machineProvisioning = 
-				new DiscoveredMachineProvisioningConfigurer()
-				.reservedMemoryCapacityPerMachine(reservedMemoryCapacityPerMachineInMB, MemoryUnit.MEGABYTES)
-				.create();
-		machineProvisioning.setGridServiceAgentZones(agentZones);
-		
-		if (isLocalCloud()) {
-		    deployment.publicMachineProvisioning(machineProvisioning);
-		} else {
-		    deployment.sharedMachineProvisioning(SHARED_ISOLATION_ID, machineProvisioning);
-		}
-	}
-	
-	private void setPublicMachineProvisioning(final ElasticDeploymentTopology deployment, final String[] agentZones,
-	        final int reservedMemoryCapacityPerMachineInMB) {
-	    // All PUs on this role share the same machine. Machines
-	    // are identified by zone.
-	    DiscoveredMachineProvisioningConfig machineProvisioning = 
-	            new DiscoveredMachineProvisioningConfigurer()
-	    .reservedMemoryCapacityPerMachine(reservedMemoryCapacityPerMachineInMB, MemoryUnit.MEGABYTES)
-	    .create();
-	    machineProvisioning.setGridServiceAgentZones(agentZones);
+					private void setSharedMachineProvisioning(final ElasticDeploymentTopology deployment, final String[] agentZones,
+							final int reservedMemoryCapacityPerMachineInMB) {
+						// All PUs on this role share the same machine. Machines
+						// are identified by zone.
+						DiscoveredMachineProvisioningConfig machineProvisioning = 
+								new DiscoveredMachineProvisioningConfigurer()
+						.reservedMemoryCapacityPerMachine(reservedMemoryCapacityPerMachineInMB, MemoryUnit.MEGABYTES)
+						.create();
+						machineProvisioning.setGridServiceAgentZones(agentZones);
 
-	    deployment.publicMachineProvisioning(machineProvisioning);
-	}
-	
-	private void setPublicMachineProvisioning(ElasticDeploymentTopology deployment, CloudifyMachineProvisioningConfig config) {
-		deployment.publicMachineProvisioning(config);
-	}
+						if (isLocalCloud()) {
+							deployment.publicMachineProvisioning(machineProvisioning);
+						} else {
+							deployment.sharedMachineProvisioning(SHARED_ISOLATION_ID, machineProvisioning);
+						}
+					}
 
-	private void setDedicatedMachineProvisioning(final ElasticDeploymentTopology deployment,
-			final ElasticMachineProvisioningConfig config) {
-		deployment.dedicatedMachineProvisioning(config);
-	}
+					private void setPublicMachineProvisioning(final ElasticDeploymentTopology deployment, final String[] agentZones,
+							final int reservedMemoryCapacityPerMachineInMB) {
+						// All PUs on this role share the same machine. Machines
+						// are identified by zone.
+						DiscoveredMachineProvisioningConfig machineProvisioning = 
+								new DiscoveredMachineProvisioningConfigurer()
+						.reservedMemoryCapacityPerMachine(reservedMemoryCapacityPerMachineInMB, MemoryUnit.MEGABYTES)
+						.create();
+						machineProvisioning.setGridServiceAgentZones(agentZones);
 
-	private void deployStatelessProcessingUnitAndWait(final String applicationName, final String serviceName,
-			final String[] agentZones, final File extractedServiceFolder, final Properties contextProperties,
-			final StatelessProcessingUnit puConfig, final String templateName, final int numberOfInstances, 
-			final boolean locationAware)
-			throws IOException, AdminException, TimeoutException, DSLException {
+						deployment.publicMachineProvisioning(machineProvisioning);
+					}
 
-		final File jarFile = getJarFileFromDir(new File(puConfig.getBinaries()), extractedServiceFolder, serviceName);
-		// TODO:if not specified use machine memory defined in DSL
-		final int containerMemoryInMB = puConfig.getSla().getMemoryCapacityPerContainer();
-		// TODO:Read from cloud DSL
-		final int reservedMemoryCapacityPerMachineInMB = 256;
-		final ElasticStatelessProcessingUnitDeployment deployment =
-				new ElasticStatelessProcessingUnitDeployment(jarFile)
+					private void setPublicMachineProvisioning(ElasticDeploymentTopology deployment, CloudifyMachineProvisioningConfig config) {
+						deployment.publicMachineProvisioning(config);
+					}
+
+					private void setDedicatedMachineProvisioning(final ElasticDeploymentTopology deployment,
+							final ElasticMachineProvisioningConfig config) {
+						deployment.dedicatedMachineProvisioning(config);
+					}
+
+					private void deployStatelessProcessingUnitAndWait(final String applicationName, final String serviceName,
+							final String[] agentZones, final File extractedServiceFolder, final Properties contextProperties,
+							final StatelessProcessingUnit puConfig, final String templateName, final int numberOfInstances, 
+							final boolean locationAware)
+									throws IOException, AdminException, TimeoutException, DSLException {
+
+						final File jarFile = getJarFileFromDir(new File(puConfig.getBinaries()), extractedServiceFolder, serviceName);
+						// TODO:if not specified use machine memory defined in DSL
+						final int containerMemoryInMB = puConfig.getSla().getMemoryCapacityPerContainer();
+						// TODO:Read from cloud DSL
+						final int reservedMemoryCapacityPerMachineInMB = 256;
+						final ElasticStatelessProcessingUnitDeployment deployment =
+								new ElasticStatelessProcessingUnitDeployment(jarFile)
 						.memoryCapacityPerContainer(containerMemoryInMB, MemoryUnit.MEGABYTES)
 						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName)
 						.name(serviceName);
-		// TODO:read from cloud DSL
-
-		setContextProperties(deployment, contextProperties);
-
-		if (cloud == null) {
-			verifyEsmExistsInCluster();
-
-			if (isLocalCloud()) {
-			    setPublicMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
-				deployment.scale(new ManualCapacityScaleConfigurer().memoryCapacity(
-						containerMemoryInMB * numberOfInstances, MemoryUnit.MEGABYTES).create());
-			} else {
-			    setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
-				// eager scaling. one container per machine
-				deployment.scale(ElasticScaleConfigFactory.createEagerScaleConfig());
-			}
-		} else {
-			final CloudTemplate template = getComputeTemplate(cloud, templateName);
-			validateAndPrepareStatelessSla(puConfig.getSla(), cloud, template);
-			final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
+						// TODO:read from cloud DSL
+
+						setContextProperties(deployment, contextProperties);
+
+						if (cloud == null) {
+							verifyEsmExistsInCluster();
+
+							if (isLocalCloud()) {
+								setPublicMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
+								deployment.scale(new ManualCapacityScaleConfigurer().memoryCapacity(
+										containerMemoryInMB * numberOfInstances, MemoryUnit.MEGABYTES).create());
+							} else {
+								setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
+								// eager scaling. one container per machine
+								deployment.scale(ElasticScaleConfigFactory.createEagerScaleConfig());
+							}
+						} else {
+							final CloudTemplate template = getComputeTemplate(cloud, templateName);
+							validateAndPrepareStatelessSla(puConfig.getSla(), cloud, template);
+							final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
 
-			final CloudifyMachineProvisioningConfig config =
-					new CloudifyMachineProvisioningConfig(cloud, template, templateName, this.managementTemplate.getRemoteDirectory());
-			// CloudMachineProvisioningConfig config =
-			// CloudDSLToCloudMachineProvisioningConfig.convert(cloud);
-
-			final String locators = extractLocators(admin);
-			config.setLocator(locators);
+							final CloudifyMachineProvisioningConfig config =
+									new CloudifyMachineProvisioningConfig(cloud, template, templateName, this.managementTemplate.getRemoteDirectory());
+							// CloudMachineProvisioningConfig config =
+							// CloudDSLToCloudMachineProvisioningConfig.convert(cloud);
+
+							final String locators = extractLocators(admin);
+							config.setLocator(locators);
 
-			setDedicatedMachineProvisioning(deployment, config);
-			deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
+							setDedicatedMachineProvisioning(deployment, config);
+							deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
 
-			deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(containerMemoryInMB * numberOfInstances, 0 , locationAware, false));
-		}
-		deployAndWait(serviceName, deployment);
-		jarFile.delete();
+							deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(containerMemoryInMB * numberOfInstances, 0 , locationAware, false));
+						}
+						deployAndWait(serviceName, deployment);
+						jarFile.delete();
 
-	}
+					}
 
-	private void verifyEsmExistsInCluster()
-			throws IllegalStateException {
-		final ElasticServiceManager esm = getESM();
-		if (esm == null) {
-			// TODO - Add locators
-			throw new IllegalStateException("Could not find an ESM in the cluster. Groups: "
-					+ Arrays.toString(this.admin.getGroups()));
-		}
+					private void verifyEsmExistsInCluster()
+							throws IllegalStateException {
+						final ElasticServiceManager esm = getESM();
+						if (esm == null) {
+							// TODO - Add locators
+							throw new IllegalStateException("Could not find an ESM in the cluster. Groups: "
+									+ Arrays.toString(this.admin.getGroups()));
+						}
 
-	}
+					}
 
-	// TODO:Clean this class it has a lot of code duplications
-	private void deployStatefulProcessingUnit(final String applicationName, final String serviceName,
-			final String[] agentZones, final File extractedServiceFolder, final Properties contextProperties,
-			final StatefulProcessingUnit puConfig, final String templateName, final boolean locationAware)
-			throws IOException, AdminException, TimeoutException, DSLException {
+					// TODO:Clean this class it has a lot of code duplications
+					private void deployStatefulProcessingUnit(final String applicationName, final String serviceName,
+							final String[] agentZones, final File extractedServiceFolder, final Properties contextProperties,
+							final StatefulProcessingUnit puConfig, final String templateName, final boolean locationAware)
+									throws IOException, AdminException, TimeoutException, DSLException {
 
-		final File jarFile = getJarFileFromDir(new File(puConfig.getBinaries()), extractedServiceFolder, serviceName);
-		final int containerMemoryInMB = puConfig.getSla().getMemoryCapacityPerContainer();
-		final int maxMemoryCapacityInMB = puConfig.getSla().getMaxMemoryCapacity();
-		final int reservedMemoryCapacityPerMachineInMB = 256;
-
-		final ElasticStatefulProcessingUnitDeployment deployment =
-				new ElasticStatefulProcessingUnitDeployment(jarFile).name(serviceName)
-						.memoryCapacityPerContainer(containerMemoryInMB, MemoryUnit.MEGABYTES)
-						.maxMemoryCapacity(maxMemoryCapacityInMB + "m")
-						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName)
-						.highlyAvailable(puConfig.getSla().getHighlyAvailable()).singleMachineDeployment();
-
-		setContextProperties(deployment, contextProperties);
-
-		if (cloud == null) {
-			verifyEsmExistsInCluster();
-			if (isLocalCloud()) {
-			    setPublicMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
-				deployment.scale(new ManualCapacityScaleConfigurer().memoryCapacity(
-						puConfig.getSla().getMemoryCapacity(), MemoryUnit.MEGABYTES).create());
-			} else {
-			    setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
-				// eager scaling. one container per machine
-				deployment.scale(ElasticScaleConfigFactory.createEagerScaleConfig());
-			}
-		} else {
-
-			final CloudTemplate template = getComputeTemplate(cloud, templateName);
-
-			validateAndPrepareStatefulSla(serviceName, puConfig.getSla(), cloud, template);
-
-			final CloudifyMachineProvisioningConfig config =
-					new CloudifyMachineProvisioningConfig(cloud, template, templateName, this.managementTemplate.getRemoteDirectory());
-
-			final String locators = extractLocators(admin);
-			config.setLocator(locators);
-
-			setDedicatedMachineProvisioning(deployment, config);
-
-			deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(puConfig.getSla().getMemoryCapacity(), 0 , locationAware, false));
-
-		}
-
-		deployAndWait(serviceName, deployment);
-		jarFile.delete();
-
-	}
-
-	private void validateAndPrepareStatefulSla(final String serviceName, final Sla sla, final Cloud cloud,
-			final CloudTemplate template)
-			throws DSLException {
-
-		validateMemoryCapacityPerContainer(sla, cloud, template);
-
-		if (sla.getMaxMemoryCapacity() != null && sla.getMemoryCapacity() != null
-				&& sla.getMaxMemoryCapacity() < sla.getMemoryCapacity()) {
-
-			throw new DSLException("Max memory capacity is smaller than the memory capacity."
-					+ sla.getMaxMemoryCapacity() + " < " + sla.getMemoryCapacity());
-		}
-
-		final int minimumNumberOfContainers = sla.getHighlyAvailable() ? 2 : 1;
-		final int minMemoryInMB = minimumNumberOfContainers * sla.getMemoryCapacityPerContainer();
-
-		if (sla.getMemoryCapacity() == null || sla.getMemoryCapacity() < minMemoryInMB) {
-
-			logger.info("Setting memoryCapacity for service " + serviceName + " to minimum " + minMemoryInMB + "MB");
-			sla.setMemoryCapacity(minMemoryInMB);
-		}
-
-		if (sla.getMaxMemoryCapacity() == null || sla.getMaxMemoryCapacity() < sla.getMemoryCapacity()) {
-
-			logger.info("Setting maxMemoryCapacity for service " + serviceName + " to memoryCapacity "
-					+ sla.getMemoryCapacity() + "MB");
-			sla.setMaxMemoryCapacity(sla.getMemoryCapacity());
-		}
-	}
-
-	private void validateAndPrepareStatelessSla(final Sla sla, final Cloud cloud, final CloudTemplate template)
-			throws DSLException {
-
-		validateMemoryCapacityPerContainer(sla, cloud, template);
-
-		if (sla.getMemoryCapacity() != null) {
-			throw new DSLException("memoryCapacity SLA is not supported in this service");
-		}
-
-		if (sla.getMaxMemoryCapacity() != null) {
-			throw new DSLException("maxMemoryCapacity SLA is not supported in this service");
-		}
-
-	}
-
-	private void validateMemoryCapacityPerContainer(final Sla sla, final Cloud cloud, final CloudTemplate template)
-			throws DSLException {
-		if (cloud == null) {
-			// No cloud, must specify memory capacity per container explicitly
-			if (sla.getMemoryCapacityPerContainer() == null) {
-				throw new DSLException("Cannot determine memoryCapacityPerContainer SLA");
-			}
-		} else {
-			// Assuming one container per machine then container memory =
-			// machine memory
-			final int availableMemoryOnMachine = (int) calculateExternalProcessMemory(cloud, template);
-			if (sla.getMemoryCapacityPerContainer() != null
-					&& sla.getMemoryCapacityPerContainer() > availableMemoryOnMachine) {
-				throw new DSLException("memoryCapacityPerContainer SLA is larger than available memory on machine\n"
-						+ sla.getMemoryCapacityPerContainer() + " > " + availableMemoryOnMachine);
-			}
-
-			if (sla.getMemoryCapacityPerContainer() == null) {
-				sla.setMemoryCapacityPerContainer(availableMemoryOnMachine);
-			}
-		}
-	}
-
-	private void deployAndWait(final String serviceName, final ElasticStatefulProcessingUnitDeployment deployment)
-			throws TimeoutException, AdminException {
-		final ProcessingUnit pu = getGridServiceManager().deploy(deployment, 60, TimeUnit.SECONDS);
-		if (pu == null) {
-			throw new TimeoutException("Timed out waiting for Service " + serviceName + " deployment.");
-		}
-	}
-
-	/**
-	 * 
-	 * @param applicationName
-	 * @param serviceName
-	 * @param timeout
-	 * @param count
-	 * @param locationAware
-	 * @return lifecycleEventContainerID
-	 * @throws DSLException
-	 * @throws RestErrorException 
-	 * 			When failed to locate service or in the case where the service is not elastic.
-	 */
-	@JsonRequestExample(requestBody = "{\"count\":1,\"location-aware\":true}")
-	@JsonResponseExample(status = "success", responseBody = "{\"lifecycleEventContainerID\":\"eventContainerID\"}") 
-	@PossibleResponseStatuses(codes = {200,500,500}, 
-			descriptions = {"success", ResponseConstants.FAILED_TO_LOCATE_SERVICE, ResponseConstants.SERVICE_NOT_ELASTIC})
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeout}/set-instances",
-			method = RequestMethod.POST)
-	public @ResponseBody
-	Map<String, Object> setServiceInstances(@PathVariable final String applicationName,
-			@PathVariable final String serviceName, @PathVariable final int timeout, 
-			@RequestParam(value = "count", required = true) final int count,
-			@RequestParam(value = "location-aware", required = true) final boolean locationAware)
-			throws DSLException, RestErrorException {
-
-		final Map<String, Object> returnMap = new HashMap<String, Object>();
-		final String puName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-		final ProcessingUnit pu = admin.getProcessingUnits().getProcessingUnit(puName);
-		if (pu == null) {
-			throw new RestErrorException(ResponseConstants.FAILED_TO_LOCATE_SERVICE, serviceName);
-		}
-
-		final Properties contextProperties = pu.getBeanLevelProperties().getContextProperties();
-		final String elasticProp = contextProperties.getProperty(CloudifyConstants.CONTEXT_PROPERTY_ELASTIC);
-		final String templateName = contextProperties.getProperty(CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE);
-
-		if (elasticProp == null || !Boolean.parseBoolean(elasticProp)) {
-			throw new RestErrorException(ResponseConstants.SERVICE_NOT_ELASTIC, serviceName);
-		}
-
-		logger.info("Scaling " + puName + " to " + count + " instances");
-
-		UUID eventContainerID;
-		if (cloud == null) {
-			if (isLocalCloud()) {
-				// Manual scale by number of instances
-				pu.scale(new ManualCapacityScaleConfigurer().memoryCapacity(512 * count, MemoryUnit.MEGABYTES).create());
-			} else {
-				// Eager scale (1 container per machine per PU)
-				throw new RestErrorException(ResponseConstants.SET_INSTANCES_NOT_SUPPORTED_IN_EAGER);
-			}
-		} else {
-
-			final CloudTemplate template = getComputeTemplate(cloud, templateName);
-			final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
-			// TODO - set-instances is not supported when the "shared" flag is (CLOUDIFY-1158)
-			// currently we fall back to the previous impl
-			// CPU = 0 , memoery is calculated as usual. shared = false
-			pu.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig((int) (cloudExternalProcessMemoryInMB * count), 0, locationAware, false));
-
-		}
-
-		logger.log(Level.INFO, "Starting to poll for lifecycle events.");
-		eventContainerID =
-				startPollingForLifecycleEvents(serviceName, applicationName, count, false, timeout, TimeUnit.MINUTES);
-		returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, eventContainerID);
-
-		return successStatus(returnMap);
-	}
-
-	/**
-	 * Retrieves the tail of a service log. This method used the service name and instance id To retrieve the the
-	 * instance log tail.
-	 * 
-	 * @param applicationName The application name.
-	 * @param serviceName The service name.
-	 * @param instanceId The service instance id.
-	 * @param numLines The number of lines to tail.
-	 * @return The last n lines of log of the requested service.
-	 * @throws RestErrorException 
-	 * 			When service not found.
-	 */
-	@JsonRequestExample(requestBody = "{\"numLines\":10}")
-	@JsonResponseExample(status = "success", responseBody = "\"log tail from container\"")
-	@PossibleResponseStatuses(codes = {200,500}, descriptions = {"success", "failed_to_locate_service"})
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
-			+ "/instances/{instanceId}/tail",
-			method = RequestMethod.GET)
-	@ResponseBody
-	public Map<String, Object> getLogTailByInstanceId(
-			@PathVariable final String applicationName,
-			@PathVariable final String serviceName,
-			@PathVariable final int instanceId,
-			@RequestParam(value = "numLines", required = true) final int numLines) throws RestErrorException {
-
-		final GridServiceContainer container = getContainerAccordingToInstanceId(applicationName,
-				serviceName, instanceId);
-
-		if (container == null) {
-			final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-			logger.severe("Could not find service " + absolutePuName);
-			return unavailableServiceError(absolutePuName);
-		}
-		final String logTailFromContainer = getLogTailFromContainer(container, numLines);
-
-		return successStatus(logTailFromContainer);
-	}
-
-	/**
-	 * Retrieves the tail of a service log. This method uses the service name and the instance host address to retrieve
-	 * the instance log tail. Important: a machine might hold more than one service instance. In such a scenario,
-	 * only one of the service instance logs will be tailed and returned.
-	 * 
-	 * @param applicationName The application name.
-	 * @param serviceName The service name.
-	 * @param hostAddress The service instance's host address.
-	 * @param numLines The number of lines to tail.
-	 * @return The last n lines of log of the requested service.
-	 * @throws RestErrorException 
-	 * 			When service not found.
-	 */
-	@JsonRequestExample(requestBody = "{\"numLines\" : 10}")
-	@JsonResponseExample(status = "success", responseBody = "\"numLines lines of log tail\"")
-	@PossibleResponseStatuses(codes = {200, 500}, descriptions = {"success", "failed_to_locate_service"})
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
-			+ "/address/{hostAddress}/tail",
-			method = RequestMethod.GET)
-	@ResponseBody
-	public Map<String, Object> getLogTailByHostAddress(
-			@PathVariable final String applicationName,
-			@PathVariable final String serviceName,
-			@PathVariable final String hostAddress,
-			@RequestParam(value = "numLines", required = true) final int numLines) throws RestErrorException {
-
-		final GridServiceContainer container = getContainerAccordingToHostAddress(applicationName,
-				serviceName, hostAddress);
-		if (container == null) {
-			final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-			logger.severe("Could not find service " + absolutePuName);
-			return unavailableServiceError(absolutePuName);
-		}
-		final String logTail = getLogTailFromContainer(container, numLines);
-
-		return successStatus(logTail);
-	}
-
-	/**
-	 * Retrieves the log tail from all of the specified service's instances. To retrieve the the instance log tail.
-	 * 
-	 * @param applicationName The application name.
-	 * @param serviceName The service name.
-	 * @param numLines The number of lines to tail.
-	 * @return The last n lines of log from each service instance.
-	 * @throws RestErrorException
-	 * 			When service not found. 
-	 */
-	@JsonRequestExample(requestBody = "{\"numLines\":10}")
-	@JsonResponseExample(status = "success", responseBody = "\"instance log tail\"")
-	@PossibleResponseStatuses(codes = {200,500}, descriptions = {"success", "failed_to_locate_service"})
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
-			+ "/tail",
-			method = RequestMethod.GET)
-	@ResponseBody
-	public Map<String, Object> getLogTailByServiceName(
-			@PathVariable final String applicationName,
-			@PathVariable final String serviceName,
-			@RequestParam(value = "numLines", required = true) final int numLines) throws RestErrorException {
-
-		final StringBuilder stringBuilder = new StringBuilder();
-		final ProcessingUnit processingUnit = getProcessingUnit(applicationName, serviceName);
-		if (processingUnit == null) {
-			final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-			logger.severe("Could not find service " + absolutePuName);
-			return unavailableServiceError(absolutePuName);
-		}
-
-		String instanceLogTail;
-		for (final ProcessingUnitInstance processingUnitInstance : processingUnit) {
-			stringBuilder.append("service instance id #" + processingUnitInstance.getInstanceId()
-					+ System.getProperty("line.separator"));
-			instanceLogTail = getLogTailFromContainer(processingUnitInstance.getGridServiceContainer(), numLines);
-			stringBuilder.append(instanceLogTail);
-		}
-
-		return successStatus(stringBuilder.toString());
-	}
-
-	private String getLogTailFromContainer(final GridServiceContainer container, final int numLines) {
-		int numberOfLinesToTail;
-		final String msg = "tail is limited to no more than " + MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED
-				+ " lines.";
-		final boolean tailThresholdBreached = numLines > MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED;
-		if (tailThresholdBreached) {
-			logger.log(Level.INFO, msg);
-			numberOfLinesToTail = MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED;
-		} else {
-			numberOfLinesToTail = numLines;
-		}
-		final LastNLogEntryMatcher matcher = LogEntryMatchers.lastN(numberOfLinesToTail);
-		final LogEntries logEntries = container.logEntries(matcher);
-		final StringBuilder sb = new StringBuilder();
-		for (final LogEntry logEntry : logEntries) {
-			sb.append(logEntry.getText());
-			sb.append(System.getProperty("line.separator"));
-		}
-		if (tailThresholdBreached) {
-			sb.append(msg);
-		}
-		return sb.toString();
-	}
-
-	private GridServiceContainer getContainerAccordingToInstanceId(
-			final String applicationName, final String serviceName, final int instanceId) {
-
-		final ProcessingUnit processingUnit = getProcessingUnit(applicationName, serviceName);
-		for (final ProcessingUnitInstance processingUnitInstance : processingUnit) {
-			if (processingUnitInstance.getInstanceId() == instanceId) {
-				return processingUnitInstance.getGridServiceContainer();
-			}
-		}
-		return null;
-	}
-
-	private ProcessingUnit getProcessingUnit(final String applicationName,
-			final String serviceName) {
-		final String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-		final ProcessingUnit processingUnit = admin.getProcessingUnits().getProcessingUnit(absolutePUName);
-		if (processingUnit == null) {
-			logger.log(Level.FINE, "a Processing unit with the name " + absolutePUName + " was not found");
-			return null;
-		}
-		return processingUnit;
-	}
-
-	private GridServiceContainer getContainerAccordingToHostAddress(
-			final String applicationName, final String serviceName, final String hostAddress) {
-
-		final Machine machine = admin.getMachines().getHostsByAddress().get(hostAddress);
-		if (machine == null) {
-			logger.log(Level.FINE, "a machine with host address " + hostAddress + " was not found in the cluster.");
-			return null;
-		}
-		final String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-		final ProcessingUnitInstance[] processingUnitInstances = machine.getProcessingUnitInstances(absolutePUName);
-		if (processingUnitInstances == null) {
-			logger.log(Level.FINE, "a Processing unit instance with the name " + absolutePUName + " was not found");
-			return null;
-		}
-
-		for (final ProcessingUnitInstance instance : processingUnitInstances) {
-			if (instance.getOperatingSystem().getDetails().getHostAddress().equals(hostAddress)) {
-				return instance.getGridServiceContainer();
-			}
-		}
-		return null;
-	}
-
-	@Override
-	public ServiceDetails[] getServicesDetails() {
-		logger.info("Creating service details");
-		String bindHost;
-		try {
-			bindHost = InetAddress.getLocalHost().getHostAddress();
-		} catch (UnknownHostException e) {
-			logger.log(Level.SEVERE,
-					"Failed to get local host, defaulting to 127.0.0.1", e);
-			bindHost = "127.0.0.1";
-		}
-
-		final Map<String, Object> map = ServiceDetailsHelper
-				.createCloudDetailsMap(bindHost);
-
-		@SuppressWarnings("deprecation")
-		final CustomServiceDetails csd = new CustomServiceDetails(
-				CloudifyConstants.USM_DETAILS_SERVICE_ID,
-				CustomServiceDetails.SERVICE_TYPE, "REST", "REST", "REST");
-
-		final ServiceDetails[] res = new ServiceDetails[] { csd };
-
-		final Map<String, Object> result = csd.getAttributes();
-		result.putAll(map);
-
-		logger.info("Service details created: " + result);
-		return res;
-
-	}
+						final File jarFile = getJarFileFromDir(new File(puConfig.getBinaries()), extractedServiceFolder, serviceName);
+						final int containerMemoryInMB = puConfig.getSla().getMemoryCapacityPerContainer();
+						final int maxMemoryCapacityInMB = puConfig.getSla().getMaxMemoryCapacity();
+						final int reservedMemoryCapacityPerMachineInMB = 256;
+
+						final ElasticStatefulProcessingUnitDeployment deployment =
+								new ElasticStatefulProcessingUnitDeployment(jarFile).name(serviceName)
+								.memoryCapacityPerContainer(containerMemoryInMB, MemoryUnit.MEGABYTES)
+								.maxMemoryCapacity(maxMemoryCapacityInMB + "m")
+								.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName)
+								.highlyAvailable(puConfig.getSla().getHighlyAvailable()).singleMachineDeployment();
+
+						setContextProperties(deployment, contextProperties);
+
+						if (cloud == null) {
+							verifyEsmExistsInCluster();
+							if (isLocalCloud()) {
+								setPublicMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
+								deployment.scale(new ManualCapacityScaleConfigurer().memoryCapacity(
+										puConfig.getSla().getMemoryCapacity(), MemoryUnit.MEGABYTES).create());
+							} else {
+								setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
+								// eager scaling. one container per machine
+								deployment.scale(ElasticScaleConfigFactory.createEagerScaleConfig());
+							}
+						} else {
+
+							final CloudTemplate template = getComputeTemplate(cloud, templateName);
+
+							validateAndPrepareStatefulSla(serviceName, puConfig.getSla(), cloud, template);
+
+							final CloudifyMachineProvisioningConfig config =
+									new CloudifyMachineProvisioningConfig(cloud, template, templateName, this.managementTemplate.getRemoteDirectory());
+
+							final String locators = extractLocators(admin);
+							config.setLocator(locators);
+
+							setDedicatedMachineProvisioning(deployment, config);
+
+							deployment.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(puConfig.getSla().getMemoryCapacity(), 0 , locationAware, false));
+
+						}
+
+						deployAndWait(serviceName, deployment);
+						jarFile.delete();
+
+					}
+
+					private void validateAndPrepareStatefulSla(final String serviceName, final Sla sla, final Cloud cloud,
+							final CloudTemplate template)
+									throws DSLException {
+
+						validateMemoryCapacityPerContainer(sla, cloud, template);
+
+						if (sla.getMaxMemoryCapacity() != null && sla.getMemoryCapacity() != null
+								&& sla.getMaxMemoryCapacity() < sla.getMemoryCapacity()) {
+
+							throw new DSLException("Max memory capacity is smaller than the memory capacity."
+									+ sla.getMaxMemoryCapacity() + " < " + sla.getMemoryCapacity());
+						}
+
+						final int minimumNumberOfContainers = sla.getHighlyAvailable() ? 2 : 1;
+						final int minMemoryInMB = minimumNumberOfContainers * sla.getMemoryCapacityPerContainer();
+
+						if (sla.getMemoryCapacity() == null || sla.getMemoryCapacity() < minMemoryInMB) {
+
+							logger.info("Setting memoryCapacity for service " + serviceName + " to minimum " + minMemoryInMB + "MB");
+							sla.setMemoryCapacity(minMemoryInMB);
+						}
+
+						if (sla.getMaxMemoryCapacity() == null || sla.getMaxMemoryCapacity() < sla.getMemoryCapacity()) {
+
+							logger.info("Setting maxMemoryCapacity for service " + serviceName + " to memoryCapacity "
+									+ sla.getMemoryCapacity() + "MB");
+							sla.setMaxMemoryCapacity(sla.getMemoryCapacity());
+						}
+					}
+
+					private void validateAndPrepareStatelessSla(final Sla sla, final Cloud cloud, final CloudTemplate template)
+							throws DSLException {
+
+						validateMemoryCapacityPerContainer(sla, cloud, template);
+
+						if (sla.getMemoryCapacity() != null) {
+							throw new DSLException("memoryCapacity SLA is not supported in this service");
+						}
+
+						if (sla.getMaxMemoryCapacity() != null) {
+							throw new DSLException("maxMemoryCapacity SLA is not supported in this service");
+						}
+
+					}
+
+					private void validateMemoryCapacityPerContainer(final Sla sla, final Cloud cloud, final CloudTemplate template)
+							throws DSLException {
+						if (cloud == null) {
+							// No cloud, must specify memory capacity per container explicitly
+							if (sla.getMemoryCapacityPerContainer() == null) {
+								throw new DSLException("Cannot determine memoryCapacityPerContainer SLA");
+							}
+						} else {
+							// Assuming one container per machine then container memory =
+							// machine memory
+							final int availableMemoryOnMachine = (int) calculateExternalProcessMemory(cloud, template);
+							if (sla.getMemoryCapacityPerContainer() != null
+									&& sla.getMemoryCapacityPerContainer() > availableMemoryOnMachine) {
+								throw new DSLException("memoryCapacityPerContainer SLA is larger than available memory on machine\n"
+										+ sla.getMemoryCapacityPerContainer() + " > " + availableMemoryOnMachine);
+							}
+
+							if (sla.getMemoryCapacityPerContainer() == null) {
+								sla.setMemoryCapacityPerContainer(availableMemoryOnMachine);
+							}
+						}
+					}
+
+					private void deployAndWait(final String serviceName, final ElasticStatefulProcessingUnitDeployment deployment)
+							throws TimeoutException, AdminException {
+						final ProcessingUnit pu = getGridServiceManager().deploy(deployment, 60, TimeUnit.SECONDS);
+						if (pu == null) {
+							throw new TimeoutException("Timed out waiting for Service " + serviceName + " deployment.");
+						}
+					}
+
+					/**
+					 * 
+					 * @param applicationName
+					 * @param serviceName
+					 * @param timeout
+					 * @param count
+					 * @param locationAware
+					 * @return lifecycleEventContainerID
+					 * @throws DSLException
+					 * @throws RestErrorException 
+					 * 			When failed to locate service or in the case where the service is not elastic.
+					 */
+					@JsonRequestExample(requestBody = "{\"count\":1,\"location-aware\":true}")
+					@JsonResponseExample(status = "success", responseBody = "{\"lifecycleEventContainerID\":\"eventContainerID\"}") 
+					@PossibleResponseStatuses(codes = {200,500,500}, 
+					descriptions = {"success", ResponseConstants.FAILED_TO_LOCATE_SERVICE, ResponseConstants.SERVICE_NOT_ELASTIC})
+					@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeout}/set-instances",
+					method = RequestMethod.POST)
+					public @ResponseBody
+					Map<String, Object> setServiceInstances(@PathVariable final String applicationName,
+							@PathVariable final String serviceName, @PathVariable final int timeout, 
+							@RequestParam(value = "count", required = true) final int count,
+							@RequestParam(value = "location-aware", required = true) final boolean locationAware)
+									throws DSLException, RestErrorException {
+
+						final Map<String, Object> returnMap = new HashMap<String, Object>();
+						final String puName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+						final ProcessingUnit pu = admin.getProcessingUnits().getProcessingUnit(puName);
+						if (pu == null) {
+							throw new RestErrorException(ResponseConstants.FAILED_TO_LOCATE_SERVICE, serviceName);
+						}
+
+						final Properties contextProperties = pu.getBeanLevelProperties().getContextProperties();
+						final String elasticProp = contextProperties.getProperty(CloudifyConstants.CONTEXT_PROPERTY_ELASTIC);
+						final String templateName = contextProperties.getProperty(CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE);
+
+						if (elasticProp == null || !Boolean.parseBoolean(elasticProp)) {
+							throw new RestErrorException(ResponseConstants.SERVICE_NOT_ELASTIC, serviceName);
+						}
+
+						logger.info("Scaling " + puName + " to " + count + " instances");
+
+						UUID eventContainerID;
+						if (cloud == null) {
+							if (isLocalCloud()) {
+								// Manual scale by number of instances
+								pu.scale(new ManualCapacityScaleConfigurer().memoryCapacity(512 * count, MemoryUnit.MEGABYTES).create());
+							} else {
+								// Eager scale (1 container per machine per PU)
+								throw new RestErrorException(ResponseConstants.SET_INSTANCES_NOT_SUPPORTED_IN_EAGER);
+							}
+						} else {
+
+							final CloudTemplate template = getComputeTemplate(cloud, templateName);
+							final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
+							// TODO - set-instances is not supported when the "shared" flag is (CLOUDIFY-1158)
+							// currently we fall back to the previous impl
+							// CPU = 0 , memoery is calculated as usual. shared = false
+							pu.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig((int) (cloudExternalProcessMemoryInMB * count), 0, locationAware, false));
+
+						}
+
+						logger.log(Level.INFO, "Starting to poll for lifecycle events.");
+						eventContainerID =
+								startPollingForLifecycleEvents(serviceName, applicationName, count, false, timeout, TimeUnit.MINUTES);
+						returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, eventContainerID);
+
+						return successStatus(returnMap);
+					}
+
+					/**
+					 * Retrieves the tail of a service log. This method used the service name and instance id To retrieve the the
+					 * instance log tail.
+					 * 
+					 * @param applicationName The application name.
+					 * @param serviceName The service name.
+					 * @param instanceId The service instance id.
+					 * @param numLines The number of lines to tail.
+					 * @return The last n lines of log of the requested service.
+					 * @throws RestErrorException 
+					 * 			When service not found.
+					 */
+					@JsonRequestExample(requestBody = "{\"numLines\":10}")
+					@JsonResponseExample(status = "success", responseBody = "\"log tail from container\"")
+					@PossibleResponseStatuses(codes = {200,500}, descriptions = {"success", "failed_to_locate_service"})
+					@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
+							+ "/instances/{instanceId}/tail",
+							method = RequestMethod.GET)
+					@ResponseBody
+					public Map<String, Object> getLogTailByInstanceId(
+							@PathVariable final String applicationName,
+							@PathVariable final String serviceName,
+							@PathVariable final int instanceId,
+							@RequestParam(value = "numLines", required = true) final int numLines) throws RestErrorException {
+
+						final GridServiceContainer container = getContainerAccordingToInstanceId(applicationName,
+								serviceName, instanceId);
+
+						if (container == null) {
+							final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+							logger.severe("Could not find service " + absolutePuName);
+							return unavailableServiceError(absolutePuName);
+						}
+						final String logTailFromContainer = getLogTailFromContainer(container, numLines);
+
+						return successStatus(logTailFromContainer);
+					}
+
+					/**
+					 * Retrieves the tail of a service log. This method uses the service name and the instance host address to retrieve
+					 * the instance log tail. Important: a machine might hold more than one service instance. In such a scenario,
+					 * only one of the service instance logs will be tailed and returned.
+					 * 
+					 * @param applicationName The application name.
+					 * @param serviceName The service name.
+					 * @param hostAddress The service instance's host address.
+					 * @param numLines The number of lines to tail.
+					 * @return The last n lines of log of the requested service.
+					 * @throws RestErrorException 
+					 * 			When service not found.
+					 */
+					@JsonRequestExample(requestBody = "{\"numLines\" : 10}")
+					@JsonResponseExample(status = "success", responseBody = "\"numLines lines of log tail\"")
+					@PossibleResponseStatuses(codes = {200, 500}, descriptions = {"success", "failed_to_locate_service"})
+					@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
+							+ "/address/{hostAddress}/tail",
+							method = RequestMethod.GET)
+					@ResponseBody
+					public Map<String, Object> getLogTailByHostAddress(
+							@PathVariable final String applicationName,
+							@PathVariable final String serviceName,
+							@PathVariable final String hostAddress,
+							@RequestParam(value = "numLines", required = true) final int numLines) throws RestErrorException {
+
+						final GridServiceContainer container = getContainerAccordingToHostAddress(applicationName,
+								serviceName, hostAddress);
+						if (container == null) {
+							final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+							logger.severe("Could not find service " + absolutePuName);
+							return unavailableServiceError(absolutePuName);
+						}
+						final String logTail = getLogTailFromContainer(container, numLines);
+
+						return successStatus(logTail);
+					}
+
+					/**
+					 * Retrieves the log tail from all of the specified service's instances. To retrieve the the instance log tail.
+					 * 
+					 * @param applicationName The application name.
+					 * @param serviceName The service name.
+					 * @param numLines The number of lines to tail.
+					 * @return The last n lines of log from each service instance.
+					 * @throws RestErrorException
+					 * 			When service not found. 
+					 */
+					@JsonRequestExample(requestBody = "{\"numLines\":10}")
+					@JsonResponseExample(status = "success", responseBody = "\"instance log tail\"")
+					@PossibleResponseStatuses(codes = {200,500}, descriptions = {"success", "failed_to_locate_service"})
+					@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
+							+ "/tail",
+							method = RequestMethod.GET)
+					@ResponseBody
+					public Map<String, Object> getLogTailByServiceName(
+							@PathVariable final String applicationName,
+							@PathVariable final String serviceName,
+							@RequestParam(value = "numLines", required = true) final int numLines) throws RestErrorException {
+
+						final StringBuilder stringBuilder = new StringBuilder();
+						final ProcessingUnit processingUnit = getProcessingUnit(applicationName, serviceName);
+						if (processingUnit == null) {
+							final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+							logger.severe("Could not find service " + absolutePuName);
+							return unavailableServiceError(absolutePuName);
+						}
+
+						String instanceLogTail;
+						for (final ProcessingUnitInstance processingUnitInstance : processingUnit) {
+							stringBuilder.append("service instance id #" + processingUnitInstance.getInstanceId()
+									+ System.getProperty("line.separator"));
+							instanceLogTail = getLogTailFromContainer(processingUnitInstance.getGridServiceContainer(), numLines);
+							stringBuilder.append(instanceLogTail);
+						}
+
+						return successStatus(stringBuilder.toString());
+					}
+
+					private String getLogTailFromContainer(final GridServiceContainer container, final int numLines) {
+						int numberOfLinesToTail;
+						final String msg = "tail is limited to no more than " + MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED
+								+ " lines.";
+						final boolean tailThresholdBreached = numLines > MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED;
+						if (tailThresholdBreached) {
+							logger.log(Level.INFO, msg);
+							numberOfLinesToTail = MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED;
+						} else {
+							numberOfLinesToTail = numLines;
+						}
+						final LastNLogEntryMatcher matcher = LogEntryMatchers.lastN(numberOfLinesToTail);
+						final LogEntries logEntries = container.logEntries(matcher);
+						final StringBuilder sb = new StringBuilder();
+						for (final LogEntry logEntry : logEntries) {
+							sb.append(logEntry.getText());
+							sb.append(System.getProperty("line.separator"));
+						}
+						if (tailThresholdBreached) {
+							sb.append(msg);
+						}
+						return sb.toString();
+					}
+
+					private GridServiceContainer getContainerAccordingToInstanceId(
+							final String applicationName, final String serviceName, final int instanceId) {
+
+						final ProcessingUnit processingUnit = getProcessingUnit(applicationName, serviceName);
+						for (final ProcessingUnitInstance processingUnitInstance : processingUnit) {
+							if (processingUnitInstance.getInstanceId() == instanceId) {
+								return processingUnitInstance.getGridServiceContainer();
+							}
+						}
+						return null;
+					}
+
+					private ProcessingUnit getProcessingUnit(final String applicationName,
+							final String serviceName) {
+						final String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+						final ProcessingUnit processingUnit = admin.getProcessingUnits().getProcessingUnit(absolutePUName);
+						if (processingUnit == null) {
+							logger.log(Level.FINE, "a Processing unit with the name " + absolutePUName + " was not found");
+							return null;
+						}
+						return processingUnit;
+					}
+
+					private GridServiceContainer getContainerAccordingToHostAddress(
+							final String applicationName, final String serviceName, final String hostAddress) {
+
+						final Machine machine = admin.getMachines().getHostsByAddress().get(hostAddress);
+						if (machine == null) {
+							logger.log(Level.FINE, "a machine with host address " + hostAddress + " was not found in the cluster.");
+							return null;
+						}
+						final String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+						final ProcessingUnitInstance[] processingUnitInstances = machine.getProcessingUnitInstances(absolutePUName);
+						if (processingUnitInstances == null) {
+							logger.log(Level.FINE, "a Processing unit instance with the name " + absolutePUName + " was not found");
+							return null;
+						}
+
+						for (final ProcessingUnitInstance instance : processingUnitInstances) {
+							if (instance.getOperatingSystem().getDetails().getHostAddress().equals(hostAddress)) {
+								return instance.getGridServiceContainer();
+							}
+						}
+						return null;
+					}
+
+					@Override
+					public ServiceDetails[] getServicesDetails() {
+						logger.info("Creating service details");
+						String bindHost;
+						try {
+							bindHost = InetAddress.getLocalHost().getHostAddress();
+						} catch (UnknownHostException e) {
+							logger.log(Level.SEVERE,
+									"Failed to get local host, defaulting to 127.0.0.1", e);
+							bindHost = "127.0.0.1";
+						}
+
+						final Map<String, Object> map = ServiceDetailsHelper
+								.createCloudDetailsMap(bindHost);
+
+						@SuppressWarnings("deprecation")
+						final CustomServiceDetails csd = new CustomServiceDetails(
+								CloudifyConstants.USM_DETAILS_SERVICE_ID,
+								CustomServiceDetails.SERVICE_TYPE, "REST", "REST", "REST");
+
+						final ServiceDetails[] res = new ServiceDetails[] { csd };
+
+						final Map<String, Object> result = csd.getAttributes();
+						result.putAll(map);
+
+						logger.info("Service details created: " + result);
+						return res;
+
+					}
 }

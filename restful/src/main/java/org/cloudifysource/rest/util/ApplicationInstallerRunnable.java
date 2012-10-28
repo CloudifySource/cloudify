@@ -30,6 +30,8 @@ import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
+import org.cloudifysource.dsl.internal.DSLReader;
+import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.rest.controllers.ServiceController;
@@ -121,7 +123,18 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 			boolean found = false;
 			try {
-				// Pack the folder and name it absolutePuName
+				// copy application properties and overrides files to the service directory. 
+				File applicationOverridesFile = DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_OVERRIDES_FILE_NAME, appDir);
+				if(applicationOverridesFile != null) {
+					FileUtils.copyFile(applicationOverridesFile, 
+							new File(serviceDirectory, DSLUtils.APPLICATION_OVERRIDES_FILE_NAME));
+				}
+				File applicationPropertiesFile = DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_PROPERTIES_FILE_NAME, appDir);
+				if(applicationPropertiesFile != null) {
+					FileUtils.copyFile(applicationPropertiesFile, 
+							new File(serviceDirectory, DSLUtils.APPLICATION_PROPERTIES_FILE_NAME));
+				}
+				// Pack the folder and name it absolutePuName	
 				File packedFile = Packager.pack(service, serviceDirectory, absolutePUName, null);
 				result.getApplicationFile().delete();
 				packedFile.deleteOnExit();
