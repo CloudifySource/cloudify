@@ -30,6 +30,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.rest.ApplicationDescription;
+import org.cloudifysource.dsl.rest.ServiceDescription;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.restclient.ErrorStatusException;
 import org.cloudifysource.restclient.GSRestClient;
@@ -37,9 +39,11 @@ import org.cloudifysource.restclient.InvocationResult;
 import org.cloudifysource.restclient.RestException;
 import org.cloudifysource.restclient.StringUtils;
 import org.cloudifysource.shell.AbstractAdminFacade;
+import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ComponentType;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import com.j_spaces.kernel.PlatformVersion;
 
@@ -140,6 +144,49 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		// TODO: Implement
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public List<ApplicationDescription> getApplicationsDescriptionList() throws CLIException {
+		try {
+			@SuppressWarnings("unchecked")
+			final List<Object> applications = (List<Object>) client
+					.get("/service/applications/description");
+			ObjectMapper map = new ObjectMapper();
+			List<ApplicationDescription> applicationDescriptionList = new ArrayList<ApplicationDescription>();
+			for (Object object : applications) {
+				ApplicationDescription applicationDescription = map.convertValue(object, ApplicationDescription.class);
+				applicationDescriptionList.add(applicationDescription);
+			}
+			return applicationDescriptionList;
+		} catch (final ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public ApplicationDescription getServicesDescriptionList(final String applicationName)
+			throws CLIException {
+		try {
+			@SuppressWarnings("unchecked")
+			final List<Object> applicationDescriptionList =  (List<Object>) client
+					.get("/service/applications/" + applicationName
+							+ "/services/description");
+			ObjectMapper map = new ObjectMapper();
+			Object descriptionObject = applicationDescriptionList.get(0);
+			ApplicationDescription applicationDescription = map.convertValue(descriptionObject, ApplicationDescription.class);
+			return applicationDescription;
+			//http://stackoverflow.com/questions/5219073/json-deserialization-problem
+		} catch (final ErrorStatusException ese) {
+			throw new CLIStatusException(ese, ese.getReasonCode(),
+					ese.getArgs());
+		} 
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -459,7 +506,9 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			final String applicationName) throws CLIException {
 		final Set<String> containerUids = new HashSet<String>();
 
-		for (final String serviceName : getServicesList(applicationName)) {
+		ApplicationDescription servicesList = getServicesDescriptionList(applicationName);
+		for (final ServiceDescription serviceDescription : servicesList.getServicesDescription()) {
+			String serviceName = serviceDescription.getServiceName();
 			containerUids.addAll(getGridServiceContainerUidsForService(
 					applicationName, serviceName));
 		}

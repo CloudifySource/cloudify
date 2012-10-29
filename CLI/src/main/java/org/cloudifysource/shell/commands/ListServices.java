@@ -15,14 +15,12 @@
  ******************************************************************************/
 package org.cloudifysource.shell.commands;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.felix.gogo.commands.Command;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.rest.ApplicationDescription;
 
 /**
- * @author noak
+ * @author noak, adaml
  * @since 2.0.1
  * 
  *        Lists the services deployed on the current application
@@ -32,7 +30,7 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
  */
 @Command(scope = "cloudify", name = "list-services", description = "Lists all deployed services on the current"
 		+ " application")
-public class ListServices extends AdminAwareCommand {
+public class ListServices extends AbstractListCommand {
 
 	/**
 	 * Gets a list of service names, deployed on the current application.
@@ -43,19 +41,21 @@ public class ListServices extends AdminAwareCommand {
 	 */
 	@Override
 	protected Object doExecute() throws Exception {
-		List<String> services = null;
+		ApplicationDescription applicationDescription = null;
 		try {
-			services = adminFacade.getServicesList(getCurrentApplicationName());
+			String applicationName = getCurrentApplicationName();
+			applicationDescription = adminFacade.getServicesDescriptionList(applicationName);
 		} catch (final CLIStatusException e) {
 			// if this message indicates the *default* app is not found - don't throw exception, return an
 			// empty list
 			if (getCurrentApplicationName().equalsIgnoreCase(CloudifyConstants.DEFAULT_APPLICATION_NAME)
 					&& CloudifyConstants.ERR_REASON_CODE_FAILED_TO_LOCATE_APP.equalsIgnoreCase(e.getReasonCode())) {
-				services = new ArrayList<String>();
+				return "";
 			} else {
 				throw e;
 			}
 		}
-		return services;
+		
+		return getApplicationDescriptionAsString(applicationDescription);
 	}
 }

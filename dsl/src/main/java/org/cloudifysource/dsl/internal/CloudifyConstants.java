@@ -39,6 +39,12 @@ public final class CloudifyConstants {
 		 */
 		ERROR
 	}
+	
+	public static enum DeploymentState {
+		INSTALLING,
+		FAILED,
+		STARTED
+	}
 
 	/***
 	 * Context properties for deployed services.
