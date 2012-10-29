@@ -43,6 +43,7 @@ goto :END
 	set CLI_JARS="%JSHOMEDIR%\tools\cli\cli.jar"
 	set SIGAR_JARS="%JSHOMEDIR%\lib\platform\sigar\sigar.jar"
 	set GROOVY_JARS="%JSHOMEDIR%\tools\groovy\lib\*"
+	set DSL_JARS="%JSHOMEDIR%\lib\platform\cloudify\*"
 	
 	@rem Test whether this is jdk or jre
 	if EXIST "%JAVA_HOME%\jre\lib\deploy.jar" set DEPLOY_JARS="%JAVA_HOME%\jre\lib\deploy.jar"
@@ -59,7 +60,7 @@ goto :END
 		for /D %%G in (*) do call:ITERATE_JARS "%SCRIPT_PATH%plugins\%%G"
 	popd
 	
-	set CLOUDIFY_CLASSPATH=%CLI_JARS%;%DEPLOY_JARS%;%GS_JARS%;%SIGAR_JARS%;%GROOVY_JARS%;%ESC_JARS%;%PLUGIN_JARS%
+	set CLOUDIFY_CLASSPATH=%CLI_JARS%;%DSL_JARS%;%DEPLOY_JARS%;%GS_JARS%;%SIGAR_JARS%;%GROOVY_JARS%;%ESC_JARS%;%PLUGIN_JARS%
 goto :END
 
 :ITERATE_JARS
