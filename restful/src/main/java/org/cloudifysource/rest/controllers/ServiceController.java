@@ -1527,21 +1527,23 @@ public class ServiceController implements ServiceDetailsProvider{
 					 * @throws RestErrorException 
 					 * 			When polling task has expired or if the task ended unexpectedly. 
 					 */
-					@JsonResponseExample(status="success", 
-							responseBody= "{\"isDone\":false,\"lifecycleLogs\":[\"[service1] Deployed 1 planned 1\"," +
+					@JsonResponseExample(status = "success", 
+							responseBody = "{\"isDone\":false,\"lifecycleLogs\":[\"[service1] Deployed 1 planned 1\"," +
 									"\"Service &#92&#34service1&#92&#34 successfully installed (1 Instances)\"]," +
 							"\"PollingTaskExpirationTimeMillis\":\"575218\",\"curserPos\":12}")
 					@PossibleResponseStatuses(codes = {200,500,500}, 
-					descriptions = {"success", "Lifecycle events container with UUID ... does not exist or expired", "execution exception message"})
+					descriptions = 
+				{"success", "Lifecycle events container with UUID ... does not exist or expired", "execution exception message"})
 					@RequestMapping(value = "/lifecycleEventContainerID/{lifecycleEventContainerID}/cursor/{cursor}",
 					method = RequestMethod.GET)
 					public @ResponseBody
-					Object getLifecycleEvents(@PathVariable final String lifecycleEventContainerID, @PathVariable final int cursor) throws RestErrorException {
+					Object getLifecycleEvents(@PathVariable final String lifecycleEventContainerID, @PathVariable final int cursor) 
+							throws RestErrorException {
 						final Map<String, Object> resultsMap = new HashMap<String, Object>();
 
 						if (!lifecyclePollingThreadContainer.containsKey(UUID.fromString(lifecycleEventContainerID))) {
-							throw new RestErrorException("Lifecycle events container with UUID: " + lifecycleEventContainerID
-									+ " does not exist or expired.");
+							throw new RestErrorException("Lifecycle events container with UUID: " 
+									+ lifecycleEventContainerID + " does not exist or expired.");
 						}
 						final RestPollingRunnable restPollingRunnable = lifecyclePollingThreadContainer.
 								get(UUID.fromString(lifecycleEventContainerID));
@@ -1577,7 +1579,8 @@ public class ServiceController implements ServiceDetailsProvider{
 						return successStatus(resultsMap);
 					}
 
-					private void extendThreadTimeout(final RestPollingRunnable pollingRunnable, final int timeoutInMinutes) {
+					private void extendThreadTimeout(final RestPollingRunnable pollingRunnable
+							, final int timeoutInMinutes) {
 						final long taskExpiration = pollingRunnable.getEndTime() - System.currentTimeMillis();
 						if (taskExpiration < MINIMAL_POLLING_TASK_EXPIRATION) {
 							pollingRunnable.increaseEndTimeBy(timeoutInMinutes, TimeUnit.MINUTES);
@@ -1603,7 +1606,8 @@ public class ServiceController implements ServiceDetailsProvider{
 						}
 
 						final ApplicationInstallerRunnable installer =
-								new ApplicationInstallerRunnable(this, result, applicationName, services, this.cloud, selfHealing);
+								new ApplicationInstallerRunnable(this, result, applicationName
+										, applicationOverridesFile, services, this.cloud, selfHealing);
 
 						if (installer.isAsyncInstallPossibleForApplication()) {
 							installer.run();
@@ -1622,9 +1626,8 @@ public class ServiceController implements ServiceDetailsProvider{
 						final Map<String, Object> returnMap = new HashMap<String, Object>();
 						returnMap.put(CloudifyConstants.SERVICE_ORDER, Arrays.toString(serviceOrder));
 						returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID, lifecycleEventContainerID);
-						final Map<String, Object> retval = successStatus(returnMap);
 
-						return retval;
+						return successStatus(returnMap);
 
 					}
 

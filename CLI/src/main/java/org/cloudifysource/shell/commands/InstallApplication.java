@@ -83,7 +83,7 @@ public class InstallApplication extends AdminAwareCommand {
 	private File cloudConfiguration;
 
 	@Option(required = false, name = "-overrides",
-			description = "File containing proeprties to be used to overrides current application's proeprties or fields.")
+			description = "File containing proeprties to be used to overrides current application's proeprties.")
 	private File overrides;
 	
 	private static final String TIMEOUT_ERROR_MESSAGE = "Application installation timed out."
@@ -125,10 +125,11 @@ public class InstallApplication extends AdminAwareCommand {
 				additionalServiceFiles.add(cloudConfigurationZipFile);
 			} 
 			List<File> additionalApplicationFile = new LinkedList<File>();
-			if(overrides != null) {
+			if (overrides != null) {
 				additionalApplicationFile.add(DSLReader.copyOverridesFile(overrides, dslReader.getDslName()));
 			}
-			zipFile = Packager.packApplication(application, applicationFile, additionalApplicationFile, additionalServiceFiles);
+			zipFile = Packager.packApplication(application, applicationFile
+					, additionalApplicationFile, additionalServiceFiles);
 		}
 
 		// toString of string list (i.e. [service1, service2])
@@ -185,7 +186,6 @@ public class InstallApplication extends AdminAwareCommand {
 		final DSLReader dslReader = new DSLReader();
 		File dslFile = DSLReader.findDefaultDSLFile(DSLReader.APPLICATION_DSL_FILE_NAME_SUFFIX, applicationFile);
 		dslReader.setDslFile(dslFile);
-		dslReader.setWorkDir(dslFile.getParentFile());
 		dslReader.setCreateServiceContext(false);
 		dslReader.addProperty(DSLUtils.APPLICATION_DIR, dslFile.getParentFile().getAbsolutePath());
 		dslReader.setOverridesFile(overrides);

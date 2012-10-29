@@ -48,12 +48,12 @@ public final class DSLUtils {
 	public static final String APPLICATION_FILE_NAME_SUFFIX = "-application";
 
 	/**
-	 * The expected file name of an application properties file after been copied to the service directory.
+	 * The expected file name of an application properties file after it has been copied to a service directory.
 	 */
 	public static final String APPLICATION_PROPERTIES_FILE_NAME = "application.properties";
 
 	/**
-	 * The expected file name of an application overrides file after been copied to the service directory.
+	 * The expected file name of an application overrides file after it has been copied to a service directory.
 	 */
 	public static final String APPLICATION_OVERRIDES_FILE_NAME = "application.overrides";
 	

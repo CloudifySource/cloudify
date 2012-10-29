@@ -72,7 +72,7 @@ public class DSLReader {
 	private File dslFile;
 	private File workDir;
 
-	private String dslName;
+	private String dslName; 
 	private String dslFileNamePrefix;
 	private String dslFileNameSuffix;
 	
@@ -119,6 +119,9 @@ public class DSLReader {
 	private void initDslFile()
 			throws FileNotFoundException {
 		if (dslFile != null) {
+			if (workDir == null) {
+				workDir = dslFile.getParentFile();
+			}
 			return;
 		}
 
@@ -142,7 +145,10 @@ public class DSLReader {
 			throw new IllegalArgumentException(workDir.getAbsolutePath() + " must be a directory");
 		}
 
-		this.dslFile = findDefaultDSLFile(dslFileNameSuffix, workDir);
+		dslFile = findDefaultDSLFile(dslFileNameSuffix, workDir);
+		if (workDir == null) {
+			workDir = dslFile.getParentFile();
+		}
 
 	}
 
@@ -203,20 +209,8 @@ public class DSLReader {
 		initOverridesFile();
 	}
 
-	private void createDSLOverrides() throws IOException {
-		if (overridesFile == null) {
-			return;
-		}
-		try {
-			ConfigObject parse = new ConfigSlurper().parse(overridesFile.toURI().toURL());
-			parse.flatten(overrideProperties);
-		} catch (final Exception e) {
-			throw new IOException("Failed to read overrides file: " + overridesFile, e);
-		} 
-	}
-
 	private void initOverridesFile() throws IOException {
-		overridesFile = getOverridesFile(overridesFile, dslFileNamePrefix + DSLUtils.OVERRIDES_FILE_SUFFIX);		
+		overridesFile = getFileIfExist(overridesFile, dslFileNamePrefix + DSLUtils.OVERRIDES_FILE_SUFFIX);		
 	}
 
 	private static void createDSLOverrides(final File file, final Map<String, Object> overridesMap) 
@@ -232,10 +226,10 @@ public class DSLReader {
 		} 
 	}
 	private Map<String, Object> createApplicationProperties() throws IOException {
-		File externalPropertiesFile = getOverridesFile(null, DSLUtils.APPLICATION_PROPERTIES_FILE_NAME);
+		File externalPropertiesFile = getFileIfExist(null, DSLUtils.APPLICATION_PROPERTIES_FILE_NAME);
 		Map<String, Object> externalProperties = new HashMap<String, Object>();
 		createDSLOverrides(externalPropertiesFile, externalProperties);
-		File externalOverridesFile = getOverridesFile(null, DSLUtils.APPLICATION_OVERRIDES_FILE_NAME);
+		File externalOverridesFile = getFileIfExist(null, DSLUtils.APPLICATION_OVERRIDES_FILE_NAME);
 		Map<String, Object> externalOverrides = new HashMap<String, Object>();
 		createDSLOverrides(externalOverridesFile, externalOverrides);
 		if (externalOverrides != null) {
@@ -449,22 +443,7 @@ public class DSLReader {
 
 	}
 
-	private void initDslName() {
-		if (dslFile == null) {
-			return;
-		}
-		final String baseFileName = dslFile.getName();
-
-		final int indexOfLastComma = baseFileName.lastIndexOf('.');
-		String fileNamePrefix;
-		if (indexOfLastComma < 0) {
-			fileNamePrefix = baseFileName;
-		} else {
-			fileNamePrefix = baseFileName.substring(0, indexOfLastComma);
-		}
-	}
-
-	private File getOverridesFile(final File file, final String defaultOverridesFileName)
+	private File getFileIfExist(final File file, final String defaultFileName)
 			throws IOException {
 		if (file != null) {			
 			if (!file.exists()) {
@@ -481,7 +460,7 @@ public class DSLReader {
 		}
 		// look for default properties file
 		// using format <dsl file name>.suffix
-		final File defaultOverridesFile = new File(workDir, defaultOverridesFileName);
+		final File defaultOverridesFile = new File(workDir, defaultFileName);
 		if (defaultOverridesFile.exists()) {
 			return defaultOverridesFile;
 		}
@@ -580,6 +559,10 @@ public class DSLReader {
 			for (final Entry<Object, Object> entry : entries) {
 				binding.setVariable((String) entry.getKey(), entry.getValue());
 			}
+			// add variable that contains all the properties 
+			// 		to distinguish between properties and other binding variables.
+			// This will be used in loading application's service process 
+			// 		to transfer application properties to the service using the application's binding.
 			binding.setVariable(DSLUtils.DSL_PROPERTIES, properties);
 			if (context != null) {
 				binding.setVariable("context", context);
@@ -744,7 +727,7 @@ public class DSLReader {
 		return dslName;
 	}
 
-	public void setDslName(String dslName) {
+	public void setDslName(final String dslName) {
 		this.dslName = dslName;
 	}
 

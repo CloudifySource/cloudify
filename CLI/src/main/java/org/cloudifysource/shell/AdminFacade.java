@@ -38,6 +38,7 @@ import org.cloudifysource.shell.rest.RestLifecycleEventsLatch;
  */
 public interface AdminFacade {
 
+<<<<<<< HEAD
 	/**
 	 * Installs and starts a service on a given application.
 	 * 
@@ -51,6 +52,31 @@ public interface AdminFacade {
 	 *             the specified application
 	 */
 	String install(String applicationName, File file) throws CLIException;
+=======
+    /**
+     * Installs and starts a service on a given application.
+     *
+     * @param applicationName The application the service will be deployed in
+     * @param file            The service file to deploy
+     * @return Response from the server, or null if there was no response.
+     * @throws CLIException Reporting a failure to install or start the given service on the specified application
+     */
+    String install(String applicationName, File file) throws CLIException;
+
+    /**
+     * Installs the application using the given file, with the specified application name. Contained services
+     * are also installed, ordered according to their dependencies.
+     *
+     * @param applicationFile A zip file containing the relevant application files
+     * @param applicationName The name of the application
+     * @param timeout .
+     * @return A String-formatted list of the application's services' names, in the required installation
+     *         order
+     * @throws CLIException Reporting a failure to create temporary files or post the file over REST
+     */
+    Map<String, String> installApplication(File applicationFile, String applicationName, int timeout) 
+    		throws CLIException;
+>>>>>>> fda612a... CLOUDIFY-1126 add support for using the rest api to deploy application with overrides file.
 
 	/**
 	 * Installs the application using the given file, with the specified

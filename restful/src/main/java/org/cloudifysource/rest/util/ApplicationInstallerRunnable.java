@@ -45,24 +45,22 @@ public class ApplicationInstallerRunnable implements Runnable {
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(ApplicationInstallerRunnable.class.getName());
 
-	private final ServiceController controller;
-	private final DSLApplicationCompilatioResult result;
-	private final String applicationName;
-
-	private final List<Service> services;
-
+	private ServiceController controller;
+	private DSLApplicationCompilatioResult result;
+	private String applicationName;
+	private File overridesFile;
+	private List<Service> services;
 	private final Cloud cloud;
-
 	private final boolean selfHealing;
 
-	public ApplicationInstallerRunnable(final ServiceController controller,
-			final DSLApplicationCompilatioResult result,
-			final String applicationName, final List<Service> services,
-			final Cloud cloud, final boolean selfHealing) {
+	public ApplicationInstallerRunnable(ServiceController controller,
+			DSLApplicationCompilatioResult result, String applicationName,
+			File overridesFile, List<Service> services, Cloud cloud, final boolean selfHealing) {
 		super();
 		this.controller = controller;
 		this.result = result;
 		this.applicationName = applicationName;
+		this.overridesFile = overridesFile;
 		this.services = services;
 		this.cloud = cloud;
 		this.selfHealing = selfHealing;
@@ -124,7 +122,10 @@ public class ApplicationInstallerRunnable implements Runnable {
 			boolean found = false;
 			try {
 				// copy application properties and overrides files to the service directory. 
-				File applicationOverridesFile = DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_OVERRIDES_FILE_NAME, appDir);
+				File applicationOverridesFile = overridesFile;
+				if(applicationOverridesFile == null) {
+					applicationOverridesFile = DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_OVERRIDES_FILE_NAME, appDir);
+				}
 				if(applicationOverridesFile != null) {
 					FileUtils.copyFile(applicationOverridesFile, 
 							new File(serviceDirectory, DSLUtils.APPLICATION_OVERRIDES_FILE_NAME));
