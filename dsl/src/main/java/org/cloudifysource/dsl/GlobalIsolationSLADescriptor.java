@@ -13,56 +13,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-
 package org.cloudifysource.dsl;
-
-import java.io.Serializable;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 
 /**
- * 
+ * This class defines a service deployment which is shared across all machines in the cluster.
+ * Each service instance will be allocated according to the requirements specified.
  * @author elip
  *
  */
-@CloudifyDSLEntity(name = "deployment", clazz = ServiceDeployment.class, 
-			allowInternalNode = true, allowRootNode = true, parent = "service")
-public class ServiceDeployment implements Serializable {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+@CloudifyDSLEntity(name = "global", clazz = GlobalIsolationSLADescriptor.class, allowInternalNode = true,
+		allowRootNode = false, parent = "isolationSLA")
+public class GlobalIsolationSLADescriptor {
 	
-			
-	private PublicServiceDeploymentDescriptor global;
-	private DedicatedServiceDeploymentDescriptor dedicated;
+	private static final int DEFAULT_SERVICE_INSTNACE_MEMORY = 128;
 	
-	public PublicServiceDeploymentDescriptor getGlobal() {
-		return global;
+	private int instanceMemoryMB = DEFAULT_SERVICE_INSTNACE_MEMORY; // default to 128MB
+	private int instanceCpuCores = 0; // default to 0, no CPU requirements
+	
+	public int getInstanceCpuCores() {
+		return instanceCpuCores;
 	}
-
-	public void setGlobal(final PublicServiceDeploymentDescriptor global) {
-		this.global = global;
+	
+	public void setInstanceCpuCores(final int instanceCpuCores) {
+		this.instanceCpuCores = instanceCpuCores;
 	}
-
-	public DedicatedServiceDeploymentDescriptor getDedicated() {
-		return dedicated;
+	
+	public int getInstanceMemoryMB() {
+		return instanceMemoryMB;
 	}
-
-	public void setDedicated(final DedicatedServiceDeploymentDescriptor dedicated) {
-		this.dedicated = dedicated;
+	
+	public void setInstanceMemoryInMB(final int instanceMemoryMB) {
+		this.instanceMemoryMB = instanceMemoryMB;
 	}
 	
 	@DSLValidation
 	void validateDefaultValues(final DSLValidationContext validationContext)
 			throws DSLValidationException {
 		
-		if (global != null && dedicated != null) {
-			throw new DSLValidationException("cannot define both global and dedicated deployment types. " 
-						+ "please choose one or the other");
+		if (instanceMemoryMB < 0) {
+			throw new DSLValidationException("instanceMemoryInMB cannot be negative");
+		}
+		if (instanceCpuCores < 0) {
+			throw new DSLValidationException("instanceCpuCores cannot be negative");
 		}
 	}
 }

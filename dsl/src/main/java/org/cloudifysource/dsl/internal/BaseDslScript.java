@@ -39,13 +39,13 @@ import org.cloudifysource.dsl.Application;
 import org.cloudifysource.dsl.ComputeDetails;
 import org.cloudifysource.dsl.DSLValidation;
 import org.cloudifysource.dsl.DataGrid;
-import org.cloudifysource.dsl.DedicatedServiceDeploymentDescriptor;
+import org.cloudifysource.dsl.DedicatedIsolationSLADescriptor;
+import org.cloudifysource.dsl.GlobalIsolationSLADescriptor;
+import org.cloudifysource.dsl.IsolationSLA;
 import org.cloudifysource.dsl.Memcached;
 import org.cloudifysource.dsl.MirrorProcessingUnit;
 import org.cloudifysource.dsl.PluginDescriptor;
-import org.cloudifysource.dsl.PublicServiceDeploymentDescriptor;
 import org.cloudifysource.dsl.Service;
-import org.cloudifysource.dsl.ServiceDeployment;
 import org.cloudifysource.dsl.ServiceLifecycle;
 import org.cloudifysource.dsl.ServiceNetwork;
 import org.cloudifysource.dsl.Sla;
@@ -554,9 +554,9 @@ public abstract class BaseDslScript extends Script {
 			addObjectInitializerForClass(dslObjectInitializersByName, ServiceStatisticsDetails.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, PerInstanceStatisticsDetails.class);
 			
-			addObjectInitializerForClass(dslObjectInitializersByName, ServiceDeployment.class);
-			addObjectInitializerForClass(dslObjectInitializersByName, PublicServiceDeploymentDescriptor.class);
-			addObjectInitializerForClass(dslObjectInitializersByName, DedicatedServiceDeploymentDescriptor.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, IsolationSLA.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, GlobalIsolationSLADescriptor.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, DedicatedIsolationSLADescriptor.class);
 		}
 		return dslObjectInitializersByName;
 

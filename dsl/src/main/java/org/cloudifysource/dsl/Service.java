@@ -56,7 +56,7 @@ public class Service {
 	private String name;
 	private String icon;
 	
-	private ServiceDeployment deployment;
+	private IsolationSLA isolationSLA;
 
 	private ServiceLifecycle lifecycle;
 	private UserInterface userInterface;
@@ -115,12 +115,12 @@ public class Service {
 
 	private boolean locationAware = false;
 
-	public ServiceDeployment getDeployment() {
-		return deployment;
+	public IsolationSLA getIsolationSLA() {
+		return isolationSLA;
 	}
 
-	public void setDeployment(final ServiceDeployment deployment) {
-		this.deployment = deployment;
+	public void setIsolationSLA(final IsolationSLA isolationSLA) {
+		this.isolationSLA = isolationSLA;
 	}
 	
 	public long getSamplingPeriodInSeconds() {

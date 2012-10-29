@@ -69,8 +69,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.ComputeDetails;
 import org.cloudifysource.dsl.DataGrid;
+import org.cloudifysource.dsl.IsolationSLAFactory;
 import org.cloudifysource.dsl.Service;
-import org.cloudifysource.dsl.ServiceDeploymentFactory;
 import org.cloudifysource.dsl.Sla;
 import org.cloudifysource.dsl.StatefulProcessingUnit;
 import org.cloudifysource.dsl.StatelessProcessingUnit;
@@ -1597,12 +1597,12 @@ public class ServiceController implements ServiceDetailsProvider{
 		boolean dedicated = true;
 		if (service != null) {
 			locationAware = service.isLocationAware();
-			if (service.getDeployment() == null) {
+			if (service.getIsolationSLA() == null) {
 				// no deployment was specified
 				// fall back to dedicated
-				service.setDeployment(ServiceDeploymentFactory.newDedicatedDeplyoment());
+				service.setIsolationSLA(IsolationSLAFactory.newDedicatedIsolationSLA());
 			} else {
-				if (service.getDeployment().getGlobal() != null) {
+				if (service.getIsolationSLA().getGlobal() != null) {
 					dedicated = false;
 				}			
 			}
@@ -1653,8 +1653,8 @@ public class ServiceController implements ServiceDetailsProvider{
 
 			final CloudTemplate template = getComputeTemplate(cloud, templateName);
 			
-			final long cloudExternalProcessMemoryInMB = service.getDeployment().getGlobal() != null 
-					? service.getDeployment().getGlobal().getInstanceMemoryMB() 
+			final long cloudExternalProcessMemoryInMB = service.getIsolationSLA().getGlobal() != null 
+					? service.getIsolationSLA().getGlobal().getInstanceMemoryMB() 
 					: calculateExternalProcessMemory(cloud, template);
 
 			logger.info("Creating cloud machine provisioning config. Template remote directory is: " 
@@ -1750,8 +1750,8 @@ public class ServiceController implements ServiceDetailsProvider{
 		if (service == null) { // deploying without a service. assuming CPU requirements is 0
 			return 0;
 		}
-		double instanceCpuCores = service.getDeployment().getGlobal() != null 
-				? service.getDeployment().getGlobal().getInstanceCpuCores() : 0;
+		double instanceCpuCores = service.getIsolationSLA().getGlobal() != null 
+				? service.getIsolationSLA().getGlobal().getInstanceCpuCores() : 0;
 		if (instanceCpuCores < 0) {
 			throw new IllegalArgumentException("instanceCpuCores must be positive");
 		}

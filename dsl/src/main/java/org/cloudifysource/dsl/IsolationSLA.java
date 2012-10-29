@@ -13,52 +13,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
+
 package org.cloudifysource.dsl;
+
+import java.io.Serializable;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 
 /**
- * This class defines a service deployment which is shared across all machines in the cluster.
- * Each service instance will be allocated according to the requirements specified.
+ * 
  * @author elip
  *
  */
-@CloudifyDSLEntity(name = "global", clazz = PublicServiceDeploymentDescriptor.class, allowInternalNode = true,
-		allowRootNode = false, parent = "deployment")
-public class PublicServiceDeploymentDescriptor {
+@CloudifyDSLEntity(name = "isolationSLA", clazz = IsolationSLA.class, 
+			allowInternalNode = true, allowRootNode = true, parent = "service")
+public class IsolationSLA implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	
-	private static final int DEFAULT_SERVICE_INSTNACE_MEMORY = 128;
+			
+	private GlobalIsolationSLADescriptor global;
+	private DedicatedIsolationSLADescriptor dedicated;
 	
-	private int instanceMemoryMB = DEFAULT_SERVICE_INSTNACE_MEMORY; // default to 128MB
-	private int instanceCpuCores = 0; // default to 0, no CPU requirements
-	
-	public int getInstanceCpuCores() {
-		return instanceCpuCores;
+	public GlobalIsolationSLADescriptor getGlobal() {
+		return global;
 	}
-	
-	public void setInstanceCpuCores(final int instanceCpuCores) {
-		this.instanceCpuCores = instanceCpuCores;
+
+	public void setGlobal(final GlobalIsolationSLADescriptor global) {
+		this.global = global;
 	}
-	
-	public int getInstanceMemoryMB() {
-		return instanceMemoryMB;
+
+	public DedicatedIsolationSLADescriptor getDedicated() {
+		return dedicated;
 	}
-	
-	public void setInstanceMemoryInMB(final int instanceMemoryMB) {
-		this.instanceMemoryMB = instanceMemoryMB;
+
+	public void setDedicated(final DedicatedIsolationSLADescriptor dedicated) {
+		this.dedicated = dedicated;
 	}
 	
 	@DSLValidation
 	void validateDefaultValues(final DSLValidationContext validationContext)
 			throws DSLValidationException {
 		
-		if (instanceMemoryMB < 0) {
-			throw new DSLValidationException("instanceMemoryInMB cannot be negative");
-		}
-		if (instanceCpuCores < 0) {
-			throw new DSLValidationException("instanceCpuCores cannot be negative");
+		if (global != null && dedicated != null) {
+			throw new DSLValidationException("cannot define both global and dedicated deployment types. " 
+						+ "please choose one or the other");
 		}
 	}
 }
