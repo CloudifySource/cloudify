@@ -79,9 +79,6 @@ public class GSRestClient {
     private static final String STATUS_KEY = "status";
     private static final String ERROR = "error";
 
-    private static final int NOT_FOUND_404_ERROR_CODE = 404;
-
-    private static final int HTTP_STATUS_OK = 200;
     // org.springframework.http.HttpStatus.OK.value();
 
     private static final Logger logger = Logger.getLogger(GSRestClient.class.getName());
@@ -219,7 +216,7 @@ public class GSRestClient {
         InputStream instream = null;
         try {
             final HttpResponse response = httpClient.execute(httpMethod);
-            if (response.getStatusLine().getStatusCode() != HTTP_STATUS_OK) {
+            if (response.getStatusLine().getStatusCode() != CloudifyConstants.HTTP_STATUS_CODE_OK) {
                 logger.log(Level.FINE, httpMethod.getURI() + MSG_RESPONSE_CODE
                         + response.getStatusLine().getStatusCode());
                 throw new RestException(response.getStatusLine().toString());
@@ -289,7 +286,7 @@ public class GSRestClient {
         try {
             final HttpResponse response = httpClient.execute(httpMethod);
             final int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode != HTTP_STATUS_OK) {
+            if (statusCode != CloudifyConstants.HTTP_STATUS_CODE_OK) {
                 if (logger.isLoggable(Level.FINE)) {
                     logger.log(Level.FINE, httpMethod.getURI() + MSG_RESPONSE_CODE + statusCode);
                 }
@@ -310,7 +307,7 @@ public class GSRestClient {
                         throw e;
                     }
                 } catch (final IOException e) {
-                    if (statusCode == NOT_FOUND_404_ERROR_CODE) {
+                    if (statusCode == CloudifyConstants.HTTP_STATUS_NOT_FOUND) {
                         throw new ErrorStatusException(e, "URL_not_found", httpMethod.getURI());
                     }
                     throw new ErrorStatusException(e, "CLI_unable_to_parse_to_JSON", responseBody);
@@ -378,7 +375,7 @@ public class GSRestClient {
         InputStream instream = null;
         try {
             final HttpResponse response = httpClient.execute(httpMethod);
-            if (response.getStatusLine().getStatusCode() != HTTP_STATUS_OK) {
+            if (response.getStatusLine().getStatusCode() != CloudifyConstants.HTTP_STATUS_CODE_OK) {
                 final String message = httpMethod.getURI() + " response (code "
                         + response.getStatusLine().getStatusCode() + ") " + response.getStatusLine().toString();
                 if (logger.isLoggable(Level.FINE)) {

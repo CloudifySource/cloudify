@@ -230,5 +230,13 @@ public final class CloudifyConstants {
 	 */
 	public static final String REST_API_VERSION_HEADER = "cloudify-api-version";
 
+	
+	/*******************
+	 * HTTP status codes
+	 */
+	public static final int HTTP_STATUS_CODE_OK = 200;
+	public static final int HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
+	public static final int HTTP_STATUS_NOT_FOUND = 404;
+	
 	// CHECKSTYLE:ON
 }

@@ -338,8 +338,7 @@ public final class ServiceReader {
 		final String path = tempFile.getAbsolutePath();
 		tempFile.delete();
 		tempFile.mkdirs();
-		final File baseDir = new File(path);
-		return baseDir;
+		return new File(path);
 	}
 
 	private static Cloud readCloud(final String dslContents, final File dslFile)
@@ -354,8 +353,7 @@ public final class ServiceReader {
 			dslReader.setWorkDir(dslFile.getParentFile());
 		}
 
-		final Cloud cloud = dslReader.readDslEntity(Cloud.class);
-		return cloud;
+		return dslReader.readDslEntity(Cloud.class);
 	}
 
 	/**
@@ -375,8 +373,7 @@ public final class ServiceReader {
 
 		final String dslContents = FileUtils.readFileToString(dslFile);
 
-		final Cloud cloud = readCloud(dslContents, dslFile);
-		return cloud;
+		return readCloud(dslContents, dslFile);
 	}
 
 	/**
@@ -391,7 +388,6 @@ public final class ServiceReader {
 		reader.setDslFileNameSuffix(DSLReader.CLOUD_DSL_FILE_NAME_SUFFIX);
 		reader.setWorkDir(new File(cloudConfigDirectory));
 		reader.setCreateServiceContext(false);
-		final Cloud cloud = reader.readDslEntity(Cloud.class);
-		return cloud;
+		return reader.readDslEntity(Cloud.class);
 	}
 }

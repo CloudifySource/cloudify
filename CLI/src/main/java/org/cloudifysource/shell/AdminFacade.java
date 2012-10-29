@@ -38,7 +38,6 @@ import org.cloudifysource.shell.rest.RestLifecycleEventsLatch;
  */
 public interface AdminFacade {
 
-<<<<<<< HEAD
 	/**
 	 * Installs and starts a service on a given application.
 	 * 
@@ -52,31 +51,6 @@ public interface AdminFacade {
 	 *             the specified application
 	 */
 	String install(String applicationName, File file) throws CLIException;
-=======
-    /**
-     * Installs and starts a service on a given application.
-     *
-     * @param applicationName The application the service will be deployed in
-     * @param file            The service file to deploy
-     * @return Response from the server, or null if there was no response.
-     * @throws CLIException Reporting a failure to install or start the given service on the specified application
-     */
-    String install(String applicationName, File file) throws CLIException;
-
-    /**
-     * Installs the application using the given file, with the specified application name. Contained services
-     * are also installed, ordered according to their dependencies.
-     *
-     * @param applicationFile A zip file containing the relevant application files
-     * @param applicationName The name of the application
-     * @param timeout .
-     * @return A String-formatted list of the application's services' names, in the required installation
-     *         order
-     * @throws CLIException Reporting a failure to create temporary files or post the file over REST
-     */
-    Map<String, String> installApplication(File applicationFile, String applicationName, int timeout) 
-    		throws CLIException;
->>>>>>> fda612a... CLOUDIFY-1126 add support for using the rest api to deploy application with overrides file.
 
 	/**
 	 * Installs the application using the given file, with the specified
@@ -370,6 +344,7 @@ public interface AdminFacade {
 	 * 
 	 * @param applicationName
 	 *            The name of the application to uninstall
+	 * @param timeoutInMinutes .
 	 * @return The uninstall response, as a key-value map
 	 * @throws CLIException
 	 *             Reporting a failure to uninstall the application
@@ -394,14 +369,30 @@ public interface AdminFacade {
 	 * @throws TimeoutException
 	 *             Reporting the timeout was reached
 	 */
-	public void waitForLifecycleEvents(final String pollingID,
+	void waitForLifecycleEvents(final String pollingID,
 			final int timeout, String timeoutMessage) throws CLIException,
 			InterruptedException, TimeoutException;
 
+	/**
+	 * 
+	 * @param applicationName .
+	 * @param serviceName .
+	 * @param count .
+	 * @param locationAware .
+	 * @param timeout .
+	 * @return
+	 * @throws CLIException .
+	 */
 	Map<String, String> setInstances(String applicationName,
 			String serviceName, int count, boolean locationAware, int timeout)
 			throws CLIException;
 
+	/**
+	 * 
+	 * @param pollingID .
+	 * @param timeoutMessage .
+	 * @return
+	 */
 	public RestLifecycleEventsLatch getLifecycleEventsPollingLatch(
 			final String pollingID, String timeoutMessage);
 
@@ -479,13 +470,13 @@ public interface AdminFacade {
 	 *            The applicatio name
 	 * @param attributes
 	 *            the attributes to set in the given scope
-	 * @throws CLIException
+	 * @throws CLIException .
 	 */
 	void updateAttributes(String scope, String applicationName,
 			Map<String, String> attributes) throws CLIException;
 
 	/**
-	 * List attributes for the given scope
+	 * List attributes for the given scope.
 	 * 
 	 * @param scope
 	 *            A String that represents scope. Can be "global", "application"
@@ -498,13 +489,13 @@ public interface AdminFacade {
 	 * @param applicationName
 	 *            The applicatio name
 	 * @return
-	 * @throws CLIException
+	 * @throws CLIException .
 	 */
 	Map<String, String> listAttributes(String scope, String applicationName)
 			throws CLIException;
 
 	/**
-	 * Delete attributes for the given scope
+	 * Delete attributes for the given scope.
 	 * 
 	 * @param scope
 	 *            A String that represents scope. Can be "global", "application"
@@ -518,6 +509,8 @@ public interface AdminFacade {
 	 *            The applicatio name
 	 * @param attributeNames
 	 *            the names of the attributes to delete
+	 * @throws CLIException .
+
 	 */
 	void deleteAttributes(String scope, String applicationName,
 			String... attributeNames) throws CLIException;

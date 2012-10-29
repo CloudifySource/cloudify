@@ -205,15 +205,10 @@ public class InstallService extends AdminAwareCommand {
 			}
 		}
 
-<<<<<<< HEAD
-		final String lifecycleEventContainerPollingID = adminFacade.installElastic(packedFile,
-				currentApplicationName, serviceName, zone, props, templateName, getTimeoutInMinutes(), !disableSelfHealing);
-=======
 		final String lifecycleEventContainerPollingID = adminFacade
 				.installElastic(packedFile, currentApplicationName,
 						serviceName, zone, props, templateName,
-						getTimeoutInMinutes());
->>>>>>> fda612a... CLOUDIFY-1126 add support for using the rest api to deploy application with overrides file.
+						getTimeoutInMinutes(), !disableSelfHealing);
 
 		final RestLifecycleEventsLatch lifecycleEventsPollingLatch = this.adminFacade
 				.getLifecycleEventsPollingLatch(
@@ -250,14 +245,9 @@ public class InstallService extends AdminAwareCommand {
 			FileUtils.deleteQuietly(packedFile.getParentFile());
 		}
 
-<<<<<<< HEAD
 		// TODO - server may have failed! We should check the service state and decide accordingly
 		// which message to display.
 		return getFormattedMessage("service_install_ended", Color.GREEN, serviceName);
-=======
-		return getFormattedMessage("service_install_ended", Color.GREEN,
-				serviceName);
->>>>>>> fda612a... CLOUDIFY-1126 add support for using the rest api to deploy application with overrides file.
 	}
 
 	private DSLReader createDslReader(final File recipeFile) {

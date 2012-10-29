@@ -112,7 +112,6 @@ public class ApplicationInstallerRunnable implements Runnable {
 			final File serviceCloudConfiguration = new File(serviceDirectory,
 					CloudifyConstants.SERVICE_CLOUD_CONFIGURATION_FILE_NAME);
 			byte[] serviceCloudConfigurationContents = null;
-
 			if (serviceCloudConfiguration.exists()) {
 				serviceCloudConfigurationContents = FileUtils
 						.readFileToByteArray(serviceCloudConfiguration);
@@ -123,15 +122,17 @@ public class ApplicationInstallerRunnable implements Runnable {
 			try {
 				// copy application properties and overrides files to the service directory. 
 				File applicationOverridesFile = overridesFile;
-				if(applicationOverridesFile == null) {
-					applicationOverridesFile = DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_OVERRIDES_FILE_NAME, appDir);
+				if (applicationOverridesFile == null) {
+					applicationOverridesFile = 
+							DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_OVERRIDES_FILE_NAME, appDir);
 				}
-				if(applicationOverridesFile != null) {
+				if (applicationOverridesFile != null) {
 					FileUtils.copyFile(applicationOverridesFile, 
 							new File(serviceDirectory, DSLUtils.APPLICATION_OVERRIDES_FILE_NAME));
 				}
-				File applicationPropertiesFile = DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_PROPERTIES_FILE_NAME, appDir);
-				if(applicationPropertiesFile != null) {
+				File applicationPropertiesFile = 
+						DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_PROPERTIES_FILE_NAME, appDir);
+				if (applicationPropertiesFile != null) {
 					FileUtils.copyFile(applicationPropertiesFile, 
 							new File(serviceDirectory, DSLUtils.APPLICATION_PROPERTIES_FILE_NAME));
 				}
@@ -206,6 +207,10 @@ public class ApplicationInstallerRunnable implements Runnable {
 		}
 	}
 
+	/**
+	 * 
+	 * @return true if all services have Lifecycle events.
+	 */
 	public boolean isAsyncInstallPossibleForApplication() {
 
 		// check if all services are USM
