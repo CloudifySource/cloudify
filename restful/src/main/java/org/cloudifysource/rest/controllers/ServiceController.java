@@ -1224,7 +1224,7 @@ public class ServiceController implements ServiceDetailsProvider{
 										+ processingUnit.getName());
 							} else {
 								logger.log(Level.INFO, "Undeploying Processing Unit " + processingUnit.getName());
-								processingUnit.undeployAndWait(undeployTimeout, TimeUnit.MINUTES);
+								processingUnit.undeployAndWait(undeployTimeout, TimeUnit.MILLISECONDS);
 							}
 						} catch (final Exception e) {
 							final String msg =
