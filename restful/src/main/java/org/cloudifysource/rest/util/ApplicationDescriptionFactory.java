@@ -126,6 +126,7 @@ public class ApplicationDescriptionFactory {
 		String instanceState = getInstanceState(processingUnitInstance);
 		int instanceId = processingUnitInstance.getInstanceId();
 		String instanceHostName = processingUnitInstance.getVirtualMachine().getMachine().getHostName();
+		String instanceHostAddress = processingUnitInstance.getVirtualMachine().getMachine().getHostAddress();
 		String instanceName = processingUnitInstance.getName();
 		
 		InstanceDescription instanceDescription = new InstanceDescription();
@@ -133,6 +134,7 @@ public class ApplicationDescriptionFactory {
 		instanceDescription.setInstanceName(instanceName);
 		instanceDescription.setInstanceId(instanceId);
 		instanceDescription.setHostName(instanceHostName);
+		instanceDescription.setHostAddress(instanceHostAddress);
 		
 		return instanceDescription;
 	}
