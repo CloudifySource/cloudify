@@ -350,14 +350,15 @@ public class RestPollingRunnable implements Runnable {
 		if (isUninstall) {
 			final String absolutePuName = ServiceUtils.getAbsolutePUName(
 					applicationName, serviceName);
-
-			logger.info("uninstalling " + absolutePuName);
 			try {
 				final Boolean undeployedSuccessfully = this.undeployTask
 						.get(ONE_SEC, TimeUnit.SECONDS);
 				if (undeployedSuccessfully) {
 					logger.info("undeployAndWait for processing unit " + absolutePuName + " has finished");
 					this.serviceNames.remove(serviceName);
+					this.lifecycleEventsContainer
+						.addInstanceCountEvent("Service \"" + serviceName
+							+ "\" uninstalled successfully");
 				}
 			} catch (final Exception e) {
 				if (e instanceof TimeoutException) {
@@ -472,14 +473,13 @@ public class RestPollingRunnable implements Runnable {
 
 		final Zone zone = admin.getZones().getByName(absolutePuName);
 		if (zone == null) {
-			logger.log(Level.FINE, "Zone " + absolutePuName + " does not exist");
+			logger.log(Level.FINE, "Zone " + absolutePuName + " does not exist. " 
+					+ "this means processing unit instance was removed.");
+			// now waiting for machine to shutdown
 			if (isUninstall) {
 				this.lifecycleEventsContainer
-						.addInstanceCountEvent("Undeployed service "
-								+ serviceName + ".");
-				this.lifecycleEventsContainer
-						.addInstanceCountEvent("Service \"" + serviceName
-								+ "\" uninstalled successfully");
+					.addInstanceCountEvent("Service \"" + serviceName
+						+ "\" was stopped successfully , waiting for machines to shutdown...");				
 			}
 		}
 	}
