@@ -88,7 +88,7 @@ public class TestRecipe extends AbstractGSCommand {
 	private String serviceFileName;
 
 	private static final String[] JAR_DIRS = { "lib/required", "tools/groovy/lib", "lib/platform/sigar",
-			"lib/optional/spring", "lib/platform/usm", };
+			"lib/optional/spring", "lib/platform/usm", "lib/platform/cloudify" };
 
 	/**
 	 * Create a full classpath, including the existing classpath and additional paths to Jars and service files.
