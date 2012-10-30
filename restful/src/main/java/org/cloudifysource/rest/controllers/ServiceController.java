@@ -85,9 +85,11 @@ import org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
 import org.cloudifysource.dsl.internal.tools.ServiceDetailsHelper;
+import org.cloudifysource.dsl.rest.ApplicationDescription;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.esc.driver.provisioning.CloudifyMachineProvisioningConfig;
 import org.cloudifysource.rest.ResponseConstants;
+import org.cloudifysource.rest.util.ApplicationDescriptionFactory;
 import org.cloudifysource.rest.util.ApplicationInstallerRunnable;
 import org.cloudifysource.rest.util.LifecycleEventsContainer;
 import org.cloudifysource.rest.util.RestPollingRunnable;
@@ -605,6 +607,105 @@ public class ServiceController implements ServiceDetailsProvider{
 	 * Creates and returns a map containing all of the deployed application names.
 	 * 
 	 * @return a list of all the deployed applications in the service grid.
+	 * @throws RestErrorException 
+	 */
+	@JsonResponseExample(status = "success", 
+			responseBody = "[\"petclinic\", \"travel\"]",
+			comments = "In the example, the deployed applications in the service grid are petclinic and travel")
+	@PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
+	@RequestMapping(value = "/applications/description", method = RequestMethod.GET)
+	public @ResponseBody
+	Map<String, Object> getApplicationsDescriptionList() throws RestErrorException {
+		if (logger.isLoggable(Level.FINER)) {
+			logger.finer("received request to list applications");
+		}
+		final Applications apps = admin.getApplications();
+		ApplicationDescriptionFactory applicationDescriptionFactory = new ApplicationDescriptionFactory(admin);
+		List<ApplicationDescription> applicationDescriptionList = new ArrayList<ApplicationDescription>();
+		for (final Application app : apps) {
+			String applicationName = app.getName();
+			if (!app.getName().equals(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
+				ApplicationDescription applicationDescription = 
+						applicationDescriptionFactory.getApplicationDescription(applicationName);
+				applicationDescriptionList.add(applicationDescription);
+			}
+		}
+		return successStatus(applicationDescriptionList);
+	}
+
+
+	/**
+	 * Creates and returns a map containing all of the deployed service names installed under a specific application
+	 * context.
+	 * 
+	 * @return a list of the deployed services in the service grid that were deployed as a part of a specific
+	 *         application.
+	 * @throws RestErrorException 
+	 * 			When application is not found.
+	 */
+	@JsonResponseExample(status = "sucess", responseBody="[\"service1\",\"service2\"]")
+	@PossibleResponseStatuses(codes={200, 500}, descriptions={"success", "failed_to_locate_app"})
+	@RequestMapping(value = "/applications/{applicationName}/services/description", method = RequestMethod.GET)
+	public @ResponseBody
+	Map<String, Object> getServicesDescriptionList(@PathVariable final String applicationName) 
+			throws RestErrorException {
+		if (logger.isLoggable(Level.FINER)) {
+			logger.finer("received request to list applications");
+		}
+		final Application app = admin.getApplications().waitFor(applicationName, 5, TimeUnit.SECONDS);
+		if (app == null) {
+			throw new RestErrorException(FAILED_TO_LOCATE_APP, applicationName);
+		}
+		ApplicationDescriptionFactory appDescriptionFactory = new ApplicationDescriptionFactory(admin);
+		ApplicationDescription applicationDescription = appDescriptionFactory.
+				getApplicationDescription(applicationName);
+		List<ApplicationDescription> applicationDescriptionList = new ArrayList<ApplicationDescription>();
+		applicationDescriptionList.add(applicationDescription);
+		return successStatus(applicationDescriptionList);
+	}
+
+	/**
+	 * 
+	 * Creates a list of all service instances in the specified application.
+	 * 
+	 * @param applicationName The application name.
+	 * @param serviceName The service name.
+	 * @return a Map containing all service instances of the specified application
+	 * @throws RestErrorException 
+	 * 			When service is not found.
+	 */
+	@JsonResponseExample(status = "success", responseBody = "{\"1\":\"127.0.0.1\"}",
+			comments = "In the example instance id is 1 and the HOST is 127.0.0.1")
+	@PossibleResponseStatuses(codes = {200,500}, descriptions = {"success","failed_to_locate_service"})
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances",
+			method = RequestMethod.GET)
+	public @ResponseBody
+	Map<String, Object> getServiceInstanceList(@PathVariable final String applicationName,
+			@PathVariable final String serviceName) throws RestErrorException {
+		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+		if (logger.isLoggable(Level.FINER)) {
+			logger.finer("received request to list instances for service " + absolutePuName + " of application "
+					+ applicationName);
+		}
+		// todo: application awareness
+		final ProcessingUnit pu =
+				admin.getProcessingUnits().waitFor(absolutePuName, PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
+		if (pu == null) {
+			logger.severe("Could not find service " + absolutePuName);
+			return unavailableServiceError(absolutePuName);
+		}
+		final Map<Integer, String> instanceMap = new HashMap<Integer, String>();
+		final ProcessingUnitInstance[] instances = pu.getInstances();
+		for (final ProcessingUnitInstance instance : instances) {
+			instanceMap.put(instance.getInstanceId(), instance.getVirtualMachine().getMachine().getHostName());
+		}
+		return successStatus(instanceMap);
+	}
+	
+	/**
+	 * Creates and returns a map containing all of the deployed application names.
+	 * 
+	 * @return a list of all the deployed applications in the service grid.
 	 */
 	@JsonResponseExample(status = "success", 
 			responseBody = "[\"petclinic\", \"travel\"]",
@@ -653,44 +754,6 @@ public class ServiceController implements ServiceDetailsProvider{
 			serviceNames.add(ServiceUtils.getApplicationServiceName(pu.getName(), applicationName));
 		}
 		return successStatus(serviceNames);
-	}
-
-	/**
-	 * 
-	 * Creates a list of all service instances in the specified application.
-	 * 
-	 * @param applicationName The application name.
-	 * @param serviceName The service name.
-	 * @return a Map containing all service instances of the specified application
-	 * @throws RestErrorException 
-	 * 			When service is not found.
-	 */
-	@JsonResponseExample(status = "success", responseBody = "{\"1\":\"127.0.0.1\"}",
-			comments = "In the example instance id is 1 and the HOST is 127.0.0.1")
-	@PossibleResponseStatuses(codes = {200,500}, descriptions = {"success","failed_to_locate_service"})
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances",
-			method = RequestMethod.GET)
-	public @ResponseBody
-	Map<String, Object> getServiceInstanceList(@PathVariable final String applicationName,
-			@PathVariable final String serviceName) throws RestErrorException {
-		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
-		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("received request to list instances for service " + absolutePuName + " of application "
-					+ applicationName);
-		}
-		// todo: application awareness
-		final ProcessingUnit pu =
-				admin.getProcessingUnits().waitFor(absolutePuName, PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
-		if (pu == null) {
-			logger.severe("Could not find service " + absolutePuName);
-			return unavailableServiceError(absolutePuName);
-		}
-		final Map<Integer, String> instanceMap = new HashMap<Integer, String>();
-		final ProcessingUnitInstance[] instances = pu.getInstances();
-		for (final ProcessingUnitInstance instance : instances) {
-			instanceMap.put(instance.getInstanceId(), instance.getVirtualMachine().getMachine().getHostName());
-		}
-		return successStatus(instanceMap);
 	}
 
 	/**
@@ -1161,7 +1224,7 @@ public class ServiceController implements ServiceDetailsProvider{
 										+ processingUnit.getName());
 							} else {
 								logger.log(Level.INFO, "Undeploying Processing Unit " + processingUnit.getName());
-								processingUnit.undeployAndWait(undeployTimeout, TimeUnit.MINUTES);
+								processingUnit.undeployAndWait(undeployTimeout, TimeUnit.MILLISECONDS);
 							}
 						} catch (final Exception e) {
 							final String msg =

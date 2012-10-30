@@ -15,10 +15,13 @@
  ******************************************************************************/
 package org.cloudifysource.shell.commands;
 
+import java.util.List;
+
 import org.apache.felix.gogo.commands.Command;
+import org.cloudifysource.dsl.rest.ApplicationDescription;
 
 /**
- * @author noak
+ * @author noak, adaml
  * @since 2.0.1
  * 
  *        Lists all deployed applications
@@ -27,7 +30,7 @@ import org.apache.felix.gogo.commands.Command;
  * 
  */
 @Command(scope = "cloudify", name = "list-applications", description = "Lists all deployed applications")
-public class ListApplications extends AdminAwareCommand {
+public class ListApplications extends AbstractListCommand {
 
 	/**
 	 * Gets a list of all deployed applications' names.
@@ -36,6 +39,18 @@ public class ListApplications extends AdminAwareCommand {
 	 */
 	@Override
 	protected Object doExecute() throws Exception {
-		return adminFacade.getApplicationsList();
+		List<ApplicationDescription> applicationsList = adminFacade.getApplicationsDescriptionList();
+		String appsDescription = getApplicationDescriptionFromListAsString(applicationsList);
+		return appsDescription;
+	}
+
+	private String getApplicationDescriptionFromListAsString(
+			List<ApplicationDescription> applicationsList) {
+		StringBuilder sb = new StringBuilder();
+		for (ApplicationDescription applicationDescription : applicationsList) {
+			sb.append(getApplicationDescriptionAsString(applicationDescription));
+			sb.append(NEW_LINE);
+		}
+		return sb.toString();
 	}
 }

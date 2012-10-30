@@ -22,6 +22,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
+import org.cloudifysource.dsl.rest.ApplicationDescription;
 import org.cloudifysource.restclient.InvocationResult;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.rest.RestLifecycleEventsLatch;
@@ -139,6 +140,7 @@ public interface AdminFacade {
 	 */
 	void disconnect() throws CLIException;
 
+	
 	/**
 	 * Gets a list of the installed applications' names.
 	 * 
@@ -148,7 +150,7 @@ public interface AdminFacade {
 	 *             applications from the Rest server
 	 */
 	List<String> getApplicationsList() throws CLIException;
-
+	
 	/**
 	 * Gets the list of services deployed in the context of the given
 	 * application.
@@ -160,7 +162,33 @@ public interface AdminFacade {
 	 * @throws CLIException
 	 *             Reporting a failure to get the services list.
 	 */
+	
 	List<String> getServicesList(String applicationName) throws CLIException;
+	
+	/**
+	 * returns a list of POJOs containing all applications and their description.
+	 * The description includes deployment information regarding all of an application's services.
+	 * and their instances.
+	 * 
+	 * @param applicationName The application name
+	 * @return application description POJO
+	 * @throws CLIException
+	 * 			Reporting a failure to get the applications list.
+	 */
+	List<ApplicationDescription> getApplicationsDescriptionList() throws CLIException;
+	
+	/**
+	 * returns a POJO containing all of an application's services and their description.
+	 * The description includes deployment information regarding all of an application's services
+	 * and their instances.
+	 * 
+	 * @param applicationName 
+	 * 				The application name
+	 * @return application description POJO
+	 * @throws CLIException
+	 * 				Reporting a failure to get the services list.
+	 */
+	ApplicationDescription getServicesDescriptionList(String applicationName) throws CLIException;
 
 	/**
 	 * Adds a processing unit instance for the specified service, on the
