@@ -612,7 +612,7 @@ public class RestPollingRunnable implements Runnable {
 		@SuppressWarnings("boxing")
 		final int instanceState = (Integer) monitors
 				.get(CloudifyConstants.USM_MONITORS_STATE_ID);
-		if (CloudifyConstants.USMState.values()[instanceState] == CloudifyConstants.USMState.RUNNING) {
+		if (CloudifyConstants.USMState.values()[instanceState] == state) {
 			return true;
 		}
 		return false;

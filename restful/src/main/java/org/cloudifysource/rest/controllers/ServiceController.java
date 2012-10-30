@@ -657,32 +657,29 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Creates and returns a map containing all of the deployed application
-	 * names.
+	 * Creates and returns a map containing all of the deployed application names.
 	 * 
 	 * @return a list of all the deployed applications in the service grid.
-	 * @throws RestErrorException
+	 * @throws RestErrorException 
 	 */
-	@JsonResponseExample(status = "success", responseBody = "[\"petclinic\", \"travel\"]"
-			, comments = "In the example, the deployed applications in the service grid are petclinic and travel")
-	@PossibleResponseStatuses(codes = { HTTP_STATUS_CODE_OK }, descriptions = { "success" })
-	@RequestMapping(value = "/applications", method = RequestMethod.GET)
+	@JsonResponseExample(status = "success", 
+			responseBody = "[\"petclinic\", \"travel\"]",
+			comments = "In the example, the deployed applications in the service grid are petclinic and travel")
+	@PossibleResponseStatuses(codes = {200}, descriptions = {"success"})
+	@RequestMapping(value = "/applications/description", method = RequestMethod.GET)
 	public @ResponseBody
-	Map<String, Object> getApplicationsDescriptionList()
-			throws RestErrorException {
+	Map<String, Object> getApplicationsDescriptionList() throws RestErrorException {
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to list applications");
 		}
 		final Applications apps = admin.getApplications();
-		final ApplicationDescriptionFactory applicationDescriptionFactory = new ApplicationDescriptionFactory(
-				admin);
-		final List<ApplicationDescription> applicationDescriptionList = new ArrayList<ApplicationDescription>();
+		ApplicationDescriptionFactory applicationDescriptionFactory = new ApplicationDescriptionFactory(admin);
+		List<ApplicationDescription> applicationDescriptionList = new ArrayList<ApplicationDescription>();
 		for (final Application app : apps) {
-			final String applicationName = app.getName();
-			if (!app.getName().equals(
-					CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
-				final ApplicationDescription applicationDescription = applicationDescriptionFactory
-						.getApplicationDescription(applicationName);
+			String applicationName = app.getName();
+			if (!app.getName().equals(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
+				ApplicationDescription applicationDescription = 
+						applicationDescriptionFactory.getApplicationDescription(applicationName);
 				applicationDescriptionList.add(applicationDescription);
 			}
 		}
@@ -690,35 +687,31 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Creates and returns a map containing all of the deployed service names
-	 * installed under a specific application context.
+	 * Creates and returns a map containing all of the deployed service names installed under a specific application
+	 * context.
 	 * 
-	 * @return a list of the deployed services in the service grid that were
-	 *         deployed as a part of a specific application.
-	 * @throws RestErrorException
-	 *             When application is not found.
+	 * @return a list of the deployed services in the service grid that were deployed as a part of a specific
+	 *         application.
+	 * @throws RestErrorException 
+	 * 			When application is not found.
 	 */
-	@JsonResponseExample(status = "sucess", responseBody = "[\"service1\",\"service2\"]")
-	@PossibleResponseStatuses(codes = { HTTP_STATUS_CODE_OK,
-			HTTP_STATUS_CODE_OK }, descriptions = { "success","failed_to_locate_app" })
-	@RequestMapping(value = "/applications/{applicationName}/services", method = RequestMethod.GET)
+	@JsonResponseExample(status = "sucess", responseBody="[\"service1\",\"service2\"]")
+	@PossibleResponseStatuses(codes={200, 500}, descriptions={"success", "failed_to_locate_app"})
+	@RequestMapping(value = "/applications/{applicationName}/services/description", method = RequestMethod.GET)
 	public @ResponseBody
-	Map<String, Object> getServicesDescriptionList(
-			@PathVariable final String applicationName)
+	Map<String, Object> getServicesDescriptionList(@PathVariable final String applicationName) 
 			throws RestErrorException {
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to list applications");
 		}
-		final Application app = admin.getApplications().waitFor(
-				applicationName, 5, TimeUnit.SECONDS);
+		final Application app = admin.getApplications().waitFor(applicationName, 5, TimeUnit.SECONDS);
 		if (app == null) {
 			throw new RestErrorException(FAILED_TO_LOCATE_APP, applicationName);
 		}
-		final ApplicationDescriptionFactory appDescriptionFactory = new ApplicationDescriptionFactory(
-				admin);
-		final ApplicationDescription applicationDescription = appDescriptionFactory
-				.getApplicationDescription(applicationName);
-		final List<ApplicationDescription> applicationDescriptionList = new ArrayList<ApplicationDescription>();
+		ApplicationDescriptionFactory appDescriptionFactory = new ApplicationDescriptionFactory(admin);
+		ApplicationDescription applicationDescription = appDescriptionFactory.
+				getApplicationDescription(applicationName);
+		List<ApplicationDescription> applicationDescriptionList = new ArrayList<ApplicationDescription>();
 		applicationDescriptionList.add(applicationDescription);
 		return successStatus(applicationDescriptionList);
 	}
@@ -1589,7 +1582,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final String applicationName,
 			@PathVariable final int timeout,
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
-			@RequestParam(value = "recipeOverrides", required = false) final MultipartFile recipeOverridesFile,
+			@RequestParam(value = "recipeOverridesFile", required = false) final MultipartFile recipeOverridesFile,
 			@RequestParam(value = "selfHealing", required = false) final Boolean selfHealing)
 			throws IOException, DSLException {
 		boolean actualSelfHealing = true;
