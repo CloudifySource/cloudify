@@ -63,6 +63,7 @@ import org.cloudifysource.dsl.scalingrules.LowThresholdDetails;
 import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
 import org.cloudifysource.dsl.statistics.PerInstanceStatisticsDetails;
 import org.cloudifysource.dsl.statistics.ServiceStatisticsDetails;
+import org.cloudifysource.dsl.utils.RecipePathResolver;
 import org.openspaces.ui.BalanceGauge;
 import org.openspaces.ui.BarLineChart;
 import org.openspaces.ui.MetricGroup;
@@ -403,22 +404,24 @@ public abstract class BaseDslScript extends Script {
 			}
 			final String extendServicePath = (String) localArg;
 			try {
+				
 				File extendedServiceAbsPath = new File(extendServicePath);
-				if (!extendedServiceAbsPath.isAbsolute()) {
-					if (logger.isLoggable(Level.FINER)) {
-						logger.finer("locating extended file, using relative path [" + extendServicePath + "]");
-					}
-					// Extract the current service directory
-					final String dslFilePath = (String) getProperty(ServiceReader.DSL_FILE_PATH_PROPERTY_NAME);
-					if (dslFilePath == null) {
-						throw new IllegalStateException("No dsl file path present in binding context");
-					}
-					final String activeServiceDirectory = new File(dslFilePath).getParent();
-					// Construct the extended service absolute path, joining the current service directory with the
-					// extension relative path
-					extendedServiceAbsPath = new File(activeServiceDirectory + "/" + extendServicePath);
-				} else if (logger.isLoggable(Level.FINER)) {
-					logger.finer("locating extended file, using absolute path [" + extendServicePath + "]");
+				
+				RecipePathResolver resolver = new RecipePathResolver();
+				// Extract the current service directory
+				final String dslFilePath = (String) getProperty(ServiceReader.DSL_FILE_PATH_PROPERTY_NAME);
+				if (dslFilePath == null) {
+					throw new IllegalStateException("No dsl file path present in binding context");
+				}
+				logger.info("dsl file path is --> " + dslFilePath);
+				final File activeServiceDirectory = new File(dslFilePath).getParentFile();
+				logger.info("current direcotry is --> " + activeServiceDirectory.getAbsolutePath());
+				resolver.setCurrentDirectory(activeServiceDirectory);
+				if (resolver.resolveService(extendedServiceAbsPath)) {
+					extendedServiceAbsPath = resolver.getResolved();					
+				} else {
+					throw new DSLException("could not find extended service in paths " 
+							+ StringUtils.join(resolver.getPathsLooked().toArray(), ", "));
 				}
 
 				if (logger.isLoggable(Level.FINER)) {
@@ -432,7 +435,7 @@ public abstract class BaseDslScript extends Script {
 				BeanUtils.copyProperties(this.activeObject, baseService);
 				final Service activeService = (Service) activeObject;
 				// Add extended service to the extension list
-				activeService.getExtendedServicesPaths().addFirst(extendServicePath);
+				activeService.getExtendedServicesPaths().addFirst(extendedServiceAbsPath.getAbsolutePath());
 				return true;
 			} catch (final IllegalAccessException e) {
 				throw new DSLException("Failed to parse extended service: " + extendServicePath, e);

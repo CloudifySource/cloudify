@@ -35,9 +35,9 @@ import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
+import org.cloudifysource.dsl.utils.RecipePathResolver;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
-import org.cloudifysource.shell.RecipePathResolver;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.rest.RestLifecycleEventsLatch;
 import org.fusesource.jansi.Ansi.Color;
@@ -98,8 +98,8 @@ public class InstallApplication extends AdminAwareCommand {
 	protected Object doExecute()
 			throws Exception {
 		
-		RecipePathResolver pathResolver = new RecipePathResolver("/recipes/apps");
-		if (pathResolver.resolve(applicationFile)) {
+		RecipePathResolver pathResolver = new RecipePathResolver();
+		if (pathResolver.resolveApplication(applicationFile)) {
 			applicationFile = pathResolver.getResolved();
 		} else {
 			throw new CLIStatusException("application_not_found", 

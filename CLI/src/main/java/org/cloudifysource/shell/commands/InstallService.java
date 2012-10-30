@@ -35,8 +35,8 @@ import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
+import org.cloudifysource.dsl.utils.RecipePathResolver;
 import org.cloudifysource.shell.Constants;
-import org.cloudifysource.shell.RecipePathResolver;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.rest.RestLifecycleEventsLatch;
 import org.fusesource.jansi.Ansi.Color;
@@ -105,8 +105,9 @@ public class InstallService extends AdminAwareCommand {
 
 	protected Object doExecute()
 			throws Exception {
-		RecipePathResolver pathResolver = new RecipePathResolver("/recipes/services");
-		if (pathResolver.resolve(recipe)) {
+		
+		RecipePathResolver pathResolver = new RecipePathResolver();
+		if (pathResolver.resolveService(recipe)) {
 			recipe = pathResolver.getResolved();
 		} else {
 			throw new CLIStatusException("service_file_doesnt_exist", 
