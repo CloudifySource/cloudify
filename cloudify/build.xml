@@ -446,7 +446,7 @@
 		<ant target="publish.cloudify.jars.to.maven.repository" />
 	</target>
 	
-	<target name="publish.cloudify.jars.to.maven.repository">
+	<target name="publish.cloudify.jars.to.maven.repository"  if="publish.cloudify.build">
 		<echo message="uploading cloudify jar artifacts to S3" />
 				
 		<exec executable="${mvn.executable}">
