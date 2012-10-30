@@ -350,27 +350,27 @@ public class RestPollingRunnable implements Runnable {
 		if (isUninstall) {
 			final String absolutePuName = ServiceUtils.getAbsolutePUName(
 					applicationName, serviceName);
-			final Zone zone = admin.getZones().waitFor(absolutePuName, ONE_SEC,
-					TimeUnit.SECONDS);
-			if (zone == null) {
-				try {
-					final Boolean undeployedSuccessfully = this.undeployTask
-							.get(ONE_SEC, TimeUnit.SECONDS);
-					if (undeployedSuccessfully) {
-						this.serviceNames.remove(serviceName);
-					}
-				} catch (final Exception e) {
-					if (e instanceof TimeoutException) {
-						// ignore
-					} else {
-						final String message = "undeploy task has ended unsuccessfully. "
-								+ "Some machines may not have been terminated!";
-						logger.log(Level.WARNING, message, e);
-						lifecycleEventsContainer.addInstanceCountEvent(message);
-						throw new ExecutionException(message, e);
-					}
+
+			logger.info("uninstalling " + absolutePuName);
+			try {
+				final Boolean undeployedSuccessfully = this.undeployTask
+						.get(ONE_SEC, TimeUnit.SECONDS);
+				if (undeployedSuccessfully) {
+					logger.info("undeployAndWait for processing unit " + absolutePuName + " has finished");
+					this.serviceNames.remove(serviceName);
+				}
+			} catch (final Exception e) {
+				if (e instanceof TimeoutException) {
+					logger.info("undeployAndWait for processing unit " + absolutePuName + " has not finished yet");
+				} else {
+					final String message = "undeploy task has ended unsuccessfully. "
+							+ "Some machines may not have been terminated!";
+					logger.log(Level.WARNING, message, e);
+					lifecycleEventsContainer.addInstanceCountEvent(message);
+					throw new ExecutionException(message, e);
 				}
 			}
+			
 		} else {
 			if (plannedNumberOfInstances == numberOfServiceInstances
 					+ numberOfFailedInstances) {
@@ -388,12 +388,6 @@ public class RestPollingRunnable implements Runnable {
 				+ absolutePuName);
 		final Zone zone = admin.getZones().getByName(absolutePuName);
 		if (zone == null) {
-			logger.log(Level.FINE, "Zone " + absolutePuName + " does not exist");
-			if (isUninstall) {
-				logger.log(Level.INFO, "Polling for service " + absolutePuName
-						+ " has ended successfully");
-				this.serviceNames.remove(serviceName);
-			}
 			return;
 		}
 		// TODO: this is not very efficient. Maybe possible to move the
