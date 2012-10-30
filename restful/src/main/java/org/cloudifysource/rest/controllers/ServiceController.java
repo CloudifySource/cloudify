@@ -171,7 +171,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	private static final int THREAD_POOL_SIZE = 20;
 	private static final String SHARED_ISOLATION_ID = "public";
 	private static final int PU_DISCOVERY_TIMEOUT_SEC = 8;
-	private final Map<UUID, RestPollingRunnable> lifecyclePollingThreadContainer = new ConcurrentHashMap<UUID, RestPollingRunnable>();
+	private final Map<UUID, RestPollingRunnable> lifecyclePollingThreadContainer = 
+			new ConcurrentHashMap<UUID, RestPollingRunnable>();
 	private final ExecutorService serviceUndeployExecutor = Executors
 			.newFixedThreadPool(10);
 	private static final int LIFECYCLE_EVENT_POLLING_INTERVAL_SEC = 4;
@@ -202,7 +203,6 @@ public class ServiceController implements ServiceDetailsProvider {
 	// private static final String[] DEFAULT_DUMP_PROCESSORS = new String[] {
 	// "summary", "network", "thread", "log", "processingUnits;"
 	// };
-	private CloudConfigurationHolder cloudConfigurationHolder;
 	private String defaultTemplateName;
 
 	@Value("${restful.temporaryFolder}")
@@ -324,18 +324,18 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * Get the dump of a given machine, by its ip.
 	 * 
 	 * @param ip
+	 *            .
 	 * @param processors
 	 *            The list of processors to be used.
 	 * @param fileSizeLimit
+	 *            .
 	 * @return A byte array of the dump file in case ip is not null and a map
 	 *         contains byte array of the dump file for each machine otherwise.
-	 * @throws IOException
-	 * @throws RestErrorException
-	 *             Machine not found, machine dump generation failed, dump file
-	 *             is too large.
+	 * @throws IOException .
 	 */
 	@JsonRequestExample(requestBody = "{\"fileSizeLimit\" : 50000000, \"processors\" : \"summary, network, log\"}")
-	@JsonResponseExample(status = "success", responseBody = "{\"&ltmachine's ip&gt;\":\"&ltbyte array of the dump file&gt;\"}")
+	@JsonResponseExample(status = "success"
+	, responseBody = "{\"&ltmachine's ip&gt;\":\"&ltbyte array of the dump file&gt;\"}")
 	@PossibleResponseStatuses(codes = { HTTP_STATUS_CODE_OK,
 			HTTP_STATUS_CODE_OK, HTTP_STATUS_CODE_OK, HTTP_STATUS_CODE_OK,
 			HTTP_STATUS_INTERNAL_SERVER_ERROR }, descriptions = { "success",
@@ -359,13 +359,9 @@ public class ServiceController implements ServiceDetailsProvider {
 						.get(ip);
 				if (machine == null) {
 					machine = this.admin.getMachines().getHostsByName().get(ip);
-				}
-
-				if (machine == null) {
 					throw new RestErrorException(
 							ResponseConstants.MACHINE_NOT_FOUND, ip);
 				}
-
 				final byte[] dumpBytes = generateMachineDumpData(fileSizeLimit,
 						machine, actualProcessors);
 
@@ -390,7 +386,6 @@ public class ServiceController implements ServiceDetailsProvider {
 								Long.toString(totalSize));
 					}
 					map.put(machine.getHostAddress(), dumpBytes);
-
 				}
 				return successStatus(map);
 
@@ -416,7 +411,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			HTTP_STATUS_CODE_OK, HTTP_STATUS_CODE_OK,
 			HTTP_STATUS_INTERNAL_SERVER_ERROR }, descriptions = { "success",
 			ResponseConstants.DUMP_FILE_TOO_LARGE, "Failed to generate dump",
-			"IOException" })
+	"IOException" })
 	@RequestMapping(value = "/dump/processing-units/", method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object> getPUDumpFile(@RequestParam(defaultValue = ""
@@ -522,9 +517,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	private Cloud readCloud() {
 		logger.info("Loading cloud configuration");
 
-		this.cloudConfigurationHolder = getCloudConfigurationFromManagementSpace();
-		logger.info("Cloud Configuration: " + this.cloudConfigurationHolder);
-		if (this.cloudConfigurationHolder.getCloudConfigurationFilePath() == null) {
+		final CloudConfigurationHolder cloudConfigurationHolder = getCloudConfigurationFromManagementSpace();
+		logger.info("Cloud Configuration: " + cloudConfigurationHolder);
+		if (cloudConfigurationHolder.getCloudConfigurationFilePath() == null) {
 			// must be local cloud or azure
 			return null;
 
@@ -532,7 +527,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		Cloud cloudConfiguration = null;
 		try {
 			cloudConfiguration = ServiceReader.readCloud(new File(
-					this.cloudConfigurationHolder
+					cloudConfigurationHolder
 							.getCloudConfigurationFilePath()));
 		} catch (final DSLException e) {
 			throw new IllegalArgumentException(
@@ -552,8 +547,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	private final ScheduledExecutorService lifecycleEventsCleaner = Executors
 			.newScheduledThreadPool(1, new ThreadFactory() {
-
-				final AtomicInteger threadNumber = new AtomicInteger(1);
+				private final AtomicInteger threadNumber = new AtomicInteger(1);
 
 				@Override
 				public Thread newThread(final Runnable r) {
@@ -567,9 +561,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	private final ScheduledExecutorService scheduledExecutor = Executors
 			.newScheduledThreadPool(10, new ThreadFactory() {
-
-				final AtomicInteger threadNumber = new AtomicInteger(1);
-
+				private final AtomicInteger threadNumber = new AtomicInteger(1);
 				@Override
 				public Thread newThread(final Runnable r) {
 					final Thread thread = new Thread(r,
@@ -583,9 +575,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	// Set up a small thread pool with daemon threads.
 	private final ExecutorService executorService = Executors
 			.newFixedThreadPool(THREAD_POOL_SIZE, new ThreadFactory() {
-
-				final AtomicInteger threadNumber = new AtomicInteger(1);
-
+				private final AtomicInteger threadNumber = new AtomicInteger(1);
 				@Override
 				public Thread newThread(final Runnable r) {
 					final Thread thread = new Thread(r,
@@ -610,8 +600,11 @@ public class ServiceController implements ServiceDetailsProvider {
 	@PossibleResponseStatuses(codes = { HTTP_STATUS_CODE_OK,
 			HTTP_STATUS_CODE_OK }, descriptions = { "success",
 			FAILED_TO_LOCATE_LUS })
-	@JsonResponseExample(status = "error", responseBody = "{\"error\":\"failed_to_locate_lookup_service\", \"error_args\":[[\"localcloud\"],[\"jini://127.0.0.1:4172/\"]]}", comments = "response status is success if the restful service located the service grid"
-			+ ", otherwise it is error and the response's body will contain error description, the groups and locators.")
+	@JsonResponseExample(status = "error", responseBody = "{\"error\":\"failed_to_locate_lookup_service\","
+			+ " \"error_args\":[[\"localcloud\"],[\"jini://127.0.0.1:4172/\"]]}"
+			, comments = "response status is success if the restful service located the service grid"
+					+ ", otherwise it is error and the response's body will contain error description"
+					+ ", the groups and locators.")
 	@RequestMapping(value = "/testrest", method = RequestMethod.GET)
 	public @ResponseBody
 	Object test() throws RestErrorException {
@@ -670,7 +663,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @return a list of all the deployed applications in the service grid.
 	 * @throws RestErrorException
 	 */
-	@JsonResponseExample(status = "success", responseBody = "[\"petclinic\", \"travel\"]", comments = "In the example, the deployed applications in the service grid are petclinic and travel")
+	@JsonResponseExample(status = "success", responseBody = "[\"petclinic\", \"travel\"]"
+			, comments = "In the example, the deployed applications in the service grid are petclinic and travel")
 	@PossibleResponseStatuses(codes = { HTTP_STATUS_CODE_OK }, descriptions = { "success" })
 	@RequestMapping(value = "/applications", method = RequestMethod.GET)
 	public @ResponseBody
@@ -706,8 +700,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 */
 	@JsonResponseExample(status = "sucess", responseBody = "[\"service1\",\"service2\"]")
 	@PossibleResponseStatuses(codes = { HTTP_STATUS_CODE_OK,
-			HTTP_STATUS_CODE_OK }, descriptions = { "success",
-			"failed_to_locate_app" })
+			HTTP_STATUS_CODE_OK }, descriptions = { "success","failed_to_locate_app" })
 	@RequestMapping(value = "/applications/{applicationName}/services", method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object> getServicesDescriptionList(
@@ -854,7 +847,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             is found for the requested service.
 	 */
 	@JsonRequestExample(requestBody = "{\"param1 name\":\"param1\",\"param2 name\":\"param2\"}")
-	@JsonResponseExample(status = "success", responseBody = "{\"instance #1@127.0.0.1\":{\"Invocation_Instance_Name\":\"instance #1@127.0.0.1\""
+	@JsonResponseExample(status = "success"
+	, responseBody = "{\"instance #1@127.0.0.1\":{\"Invocation_Instance_Name\":\"instance #1@127.0.0.1\""
 			+ ",\"Invocation_Instance_ID\":\"1\""
 			+ ",\"Invocation_Result\":\"the invocation result as specified in the service file\""
 			+ ",\"Invocation_Success\":\"true\","
@@ -862,8 +856,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	@PossibleResponseStatuses(codes = { HTTP_STATUS_CODE_OK,
 			HTTP_STATUS_CODE_OK, HTTP_STATUS_CODE_OK }, descriptions = {
 			"success", "failed_to_locate_service",
-			"no_processing_unit_instances_found_for_invocation" })
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/beans/{beanName}/invoke", method = RequestMethod.POST)
+	"no_processing_unit_instances_found_for_invocation" })
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/beans/{beanName}/invoke"
+	, method = RequestMethod.POST)
 	public @ResponseBody
 	Map<String, Object> invoke(@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
@@ -1094,16 +1089,19 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            The application name.
 	 * @param serviceName
 	 *            The service name.
+	 * @param timeoutInMinutes .
 	 * @return success status if service was undeployed successfully, else
 	 *         returns failure status.
 	 * @throws RestErrorException
 	 *             When failed to locate service.
 	 */
-	@JsonResponseExample(status = "success", responseBody = "{\"lifecycleEventContainerID\":\"bfae0a89-b5a0-4250-b393-6cedbf63ac76\"}")
+	@JsonResponseExample(status = "success"
+			, responseBody = "{\"lifecycleEventContainerID\":\"bfae0a89-b5a0-4250-b393-6cedbf63ac76\"}")
 	@PossibleResponseStatuses(codes = { HTTP_STATUS_CODE_OK,
 			HTTP_STATUS_CODE_OK }, descriptions = { "success",
 			"failed_to_locate_service" })
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeoutInMinutes}/undeploy", method = RequestMethod.DELETE)
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeoutInMinutes}/undeploy"
+	, method = RequestMethod.DELETE)
 	public @ResponseBody
 	Map<String, Object> undeploy(@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
@@ -1182,7 +1180,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             When service processing unit not found or failed to add the
 	 *             instance.
 	 */
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/addinstance", method = RequestMethod.POST)
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/addinstance"
+			, method = RequestMethod.POST)
 	public @ResponseBody
 	Map<String, Object> addInstance(@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
@@ -1224,10 +1223,10 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             is not available.
 	 */
 	@PossibleResponseStatuses(codes = { HTTP_STATUS_CODE_OK,
-			HTTP_STATUS_CODE_OK, HTTP_STATUS_CODE_OK }, descriptions = {
-			"success", "failed_to_locate_service",
-			"service_instance_unavailable" })
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances/{instanceId}/remove", method = RequestMethod.DELETE)
+			HTTP_STATUS_CODE_OK, HTTP_STATUS_CODE_OK }
+	, descriptions = {"success", "failed_to_locate_service", "service_instance_unavailable" })
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances/{instanceId}/remove"
+	, method = RequestMethod.DELETE)
 	public @ResponseBody
 	Map<String, Object> removeInstance(
 			@PathVariable final String applicationName,
@@ -1373,15 +1372,17 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * 
 	 * @param applicationName
 	 *            The application name.
-	 * @return Map with return value; @ .
+	 * @param timeoutInMinutes .
+	 * @return Map with return value.
 	 * @throws RestErrorException
 	 *             When application not found or when attempting to remove
 	 *             management services.
 	 */
-	@JsonResponseExample(status = "success", responseBody = "{\"lifecycleEventContainerID\":\"bfae0a89-b5a0-4250-b393-6cedbf63ac76\"}")
+	@JsonResponseExample(status = "success"
+			, responseBody = "{\"lifecycleEventContainerID\":\"bfae0a89-b5a0-4250-b393-6cedbf63ac76\"}")
 	@PossibleResponseStatuses(codes = { HTTP_STATUS_CODE_OK,
 			HTTP_STATUS_CODE_OK }, descriptions = { "success",
-			"failed_to_locate_app" })
+	"failed_to_locate_app" })
 	@RequestMapping(value = "applications/{applicationName}/timeout/{timeoutInMinutes}", method = RequestMethod.DELETE)
 	public @ResponseBody
 	Map<String, Object> uninstallApplication(
@@ -1415,7 +1416,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				"Starting to poll for uninstall lifecycle events.");
 		if (uninstallOrder.size() > 0) {
 			undeployTask = new FutureTask<Boolean>(new Runnable() {
-				long startTime = System.currentTimeMillis();
+				private final long startTime = System.currentTimeMillis();
 
 				@Override
 				public void run() {
@@ -1434,6 +1435,7 @@ public class ServiceController implements ServiceDetailsProvider {
 												+ processingUnit.getName());
 								processingUnit.undeployAndWait(undeployTimeout,
 										TimeUnit.MILLISECONDS);
+
 							}
 						} catch (final Exception e) {
 							final String msg = "Failed to undeploy processing unit: "
@@ -1450,7 +1452,7 @@ public class ServiceController implements ServiceDetailsProvider {
 					logger.log(Level.INFO, "Application " + applicationName
 							+ " undeployment complete");
 				}
-			}, true);
+			}, Boolean.TRUE);
 
 			((InternalAdmin) admin).scheduleAdminOperation(undeployTask);
 
@@ -1530,8 +1532,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			return Arrays.asList(pus);
 		}
 
-		final TopologicalOrderIterator<ProcessingUnit, DefaultEdge> iterator = new TopologicalOrderIterator<ProcessingUnit, DefaultEdge>(
-				graph);
+		final TopologicalOrderIterator<ProcessingUnit, DefaultEdge> iterator = 
+				new TopologicalOrderIterator<ProcessingUnit, DefaultEdge>(graph);
 
 		final List<ProcessingUnit> orderedList = new ArrayList<ProcessingUnit>();
 		while (iterator.hasNext()) {
@@ -1664,8 +1666,8 @@ public class ServiceController implements ServiceDetailsProvider {
 							+ cycleString);
 		}
 
-		final TopologicalOrderIterator<Service, DefaultEdge> iterator = new TopologicalOrderIterator<Service, DefaultEdge>(
-				graph);
+		final TopologicalOrderIterator<Service, DefaultEdge> iterator = 
+				new TopologicalOrderIterator<Service, DefaultEdge>(graph);
 
 		final List<Service> orderedList = new ArrayList<Service>();
 		while (iterator.hasNext()) {
@@ -1790,16 +1792,19 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            event entry cursor
 	 * @return a map containing the events and the task state.
 	 * @throws RestErrorException
+	 * 				When polling task has expired or if the task ended unexpectedly.
 	 */
-	@JsonResponseExample(status = "success", responseBody = "{\"isDone\":false,\"lifecycleLogs\":[\"[service1] Deployed 1 planned 1\","
+	@JsonResponseExample(status = "success"
+			, responseBody = "{\"isDone\":false,\"lifecycleLogs\":[\"[service1] Deployed 1 planned 1\","
 			+ "\"Service &#92&#34service1&#92&#34 successfully installed (1 Instances)\"],"
 			+ "\"PollingTaskExpirationTimeMillis\":\"575218\",\"curserPos\":12}")
 	@PossibleResponseStatuses(codes = { HTTP_STATUS_CODE_OK,
 			HTTP_STATUS_CODE_OK, HTTP_STATUS_CODE_OK }, descriptions = {
 			"success",
 			"Lifecycle events container with UUID ... does not exist or expired",
-			"execution exception message" })
-	@RequestMapping(value = "/lifecycleEventContainerID/{lifecycleEventContainerID}/cursor/{cursor}", method = RequestMethod.GET)
+	"execution exception message" })
+	@RequestMapping(value = "/lifecycleEventContainerID/{lifecycleEventContainerID}/cursor/{cursor}"
+	, method = RequestMethod.GET)
 	public @ResponseBody
 	Object getLifecycleEvents(
 			@PathVariable final String lifecycleEventContainerID,
@@ -2167,7 +2172,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		final int reservedMemoryCapacityPerMachineInMB = cloud.getProvider()
 				.getReservedMemoryCapacityPerMachineInMB();
 		final int safteyMargin = 100; // get rid of this constant. see
-										// CLOUDIFY-297
+		// CLOUDIFY-297
 		final long cloudExternalProcessMemoryInMB = machineMemoryMB
 				- reservedMemoryCapacityPerMachineInMB - safteyMargin;
 		if (cloudExternalProcessMemoryInMB <= 0) {
@@ -2425,8 +2430,11 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            .
 	 * @param propsFile
 	 *            .
+<<<<<<< HEAD
 	 * @param selfHealing
 	 *            .
+=======
+>>>>>>> 88e40d7... CLOUDIFY-1126 Fix checkStyle and bugs found by findBugs.
 	 * @return status - success (error) and response - lifecycle events
 	 *         container id (error description)
 	 * @throws DSLException
@@ -2727,6 +2735,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final int numberOfInstances, final boolean locationAware)
 			throws IOException, AdminException, TimeoutException, DSLException {
 
+
 		final File jarFile = getJarFileFromDir(
 				new File(puConfig.getBinaries()), extractedServiceFolder,
 				serviceName);
@@ -2936,6 +2945,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	private void validateMemoryCapacityPerContainer(final Sla sla,
 			final Cloud cloud, final CloudTemplate template)
 			throws DSLException {
+
 		if (cloud == null) {
 			// No cloud, must specify memory capacity per container explicitly
 			if (sla.getMemoryCapacityPerContainer() == null) {
@@ -2991,7 +3001,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			HTTP_STATUS_CODE_OK, HTTP_STATUS_CODE_OK }, descriptions = {
 			"success", ResponseConstants.FAILED_TO_LOCATE_SERVICE,
 			ResponseConstants.SERVICE_NOT_ELASTIC })
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeout}/set-instances", method = RequestMethod.POST)
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeout}/set-instances"
+	, method = RequestMethod.POST)
 	public @ResponseBody
 	Map<String, Object> setServiceInstances(
 			@PathVariable final String applicationName,
@@ -3049,7 +3060,6 @@ public class ServiceController implements ServiceDetailsProvider {
 			pu.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(
 					(int) (cloudExternalProcessMemoryInMB * count), 0,
 					locationAware, false));
-
 		}
 
 		logger.log(Level.INFO, "Starting to poll for lifecycle events.");
@@ -3128,7 +3138,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	@JsonResponseExample(status = "success", responseBody = "\"numLines lines of log tail\"")
 	@PossibleResponseStatuses(codes = { HTTP_STATUS_CODE_OK,
 			HTTP_STATUS_CODE_OK }, descriptions = { "success",
-			"failed_to_locate_service" })
+	"failed_to_locate_service" })
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
 			+ "/address/{hostAddress}/tail", method = RequestMethod.GET)
 	@ResponseBody
@@ -3169,7 +3179,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	@JsonResponseExample(status = "success", responseBody = "\"instance log tail\"")
 	@PossibleResponseStatuses(codes = { HTTP_STATUS_CODE_OK,
 			HTTP_STATUS_CODE_OK }, descriptions = { "success",
-			"failed_to_locate_service" })
+	"failed_to_locate_service" })
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}"
 			+ "/tail", method = RequestMethod.GET)
 	@ResponseBody

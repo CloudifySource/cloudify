@@ -138,11 +138,10 @@ public class LifecycleEventsContainer {
         // TODO:Check nulls
         String cleanEventText = (map.get(EventLogConstants.getEventTextKey()))
                 .toString().split(" - ")[1];
-        String outputMessage = '['
+        return '['
                 + map.get(EventLogConstants.getMachineHostNameKey()).toString()
                 + '/' + map.get(EventLogConstants.getMachineHostAddressKey())
                 + "] " + cleanEventText;
-        return outputMessage;
     }
 
     public void setEventsSet(final Set<String> eventsSet) {

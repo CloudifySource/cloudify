@@ -202,8 +202,7 @@ public class CustomNodeImpl implements CustomNode {
 		result = prime * result + (providerId == null ? 0 : providerId.hashCode());
 		result = prime * result + (nodeName == null ? 0 : nodeName.hashCode());
 		result = prime * result + (group == null ? 0 : group.hashCode());
-		result = prime * result + (username == null ? 0 : username.hashCode());
-		return result;
+		return (prime * result + (username == null ? 0 : username.hashCode()));
 	}
 
 	@Override

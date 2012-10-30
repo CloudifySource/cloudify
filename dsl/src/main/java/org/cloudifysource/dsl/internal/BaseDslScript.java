@@ -603,11 +603,12 @@ public abstract class BaseDslScript extends Script {
 			// internal node
 			if (data.isAllowInternalNode()) {
 				// check that node is nested under allowed element
-				if (data.getParentElement() != null && !data.getParentElement().isEmpty()) {
-					final DSLObjectInitializerData parentType = getDSLInitializers().get(data.getParentElement());
+				String parentElement = data.getParentElement();
+				if (parentElement != null && !parentElement.isEmpty()) {
+					final DSLObjectInitializerData parentType = getDSLInitializers().get(parentElement);
 					if (parentType == null) {
 						throw new IllegalStateException("The DSL type " + name + " has a declared parent type of "
-								+ data.getParentElement() + " which is not a known type. This should not happen.");
+								+ parentElement + " which is not a known type. This should not happen.");
 					}
 					if (!parentType.getClazz().isAssignableFrom(this.activeObject.getClass())) {
 						throw new DSLException("The type: " + name + " may only be nested under elements of type "
@@ -652,8 +653,8 @@ public abstract class BaseDslScript extends Script {
 	// Only one of stateless/stateful/lifecycle may be set
 	private boolean isDuplicateProcessingUnit(final String name) {
 
-		final Set<String> processingUnitTypes = getProcessingUnitTypes();
-		if (processingUnitTypes.contains(name)) {
+		final Set<String> types = getProcessingUnitTypes();
+		if (types.contains(name)) {
 			if (StringUtils.isEmpty(this.processingUnitType)) {
 				this.processingUnitType = name;
 			} else {
@@ -731,6 +732,7 @@ public abstract class BaseDslScript extends Script {
 
 	}
 
+	@SuppressWarnings("unchecked")
 	private Service loadApplicationService(final String serviceName) {
 		// First find the service dir
 

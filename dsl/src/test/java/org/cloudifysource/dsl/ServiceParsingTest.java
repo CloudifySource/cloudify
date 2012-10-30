@@ -36,11 +36,20 @@ import org.cloudifysource.dsl.statistics.ServiceStatisticsDetails;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * 
+ *
+ */
 public class ServiceParsingTest {
 
 	private static final String TEST_PARSING_RESOURCE_PATH = "testResources/testparsing/";
 	private static final String TEST_PARSING_RESOURCE_PATH2 = "src/test/resources/ExternalDSLFiles/";
 
+	/**
+	 * 
+	 * @throws DSLException .
+	 * @throws UnknownHostException .
+	 */
 	@Test
 	public void testFeaturesParsing() throws DSLException, UnknownHostException {
 		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH
@@ -59,6 +68,10 @@ public class ServiceParsingTest {
 		Assert.assertNotNull(lifecycle.getPreStop());
 	}
 
+	/**
+	 * 
+	 * @throws DSLException .
+	 */
 	@Test
 	public void testDuplicateLifecycleEventParsing() throws DSLException {
 		final File testParsingBaseDslFile = new File(
@@ -74,6 +87,10 @@ public class ServiceParsingTest {
 		}
 	}
 
+	/**
+	 * 
+	 * @throws DSLException .
+	 */
 	@Test
 	public void testDuplicateServicePropertyParsing() throws DSLException {
 		final File testParsingBaseDslFile = new File(
@@ -89,6 +106,10 @@ public class ServiceParsingTest {
 		}
 	}
 
+	/**
+	 * 
+	 * @throws DSLException .
+	 */
 	@Test
 	public void testBasicParsing() throws DSLException {
 		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH
@@ -107,6 +128,10 @@ public class ServiceParsingTest {
 		Assert.assertNotNull(lifecycle.getPreStop());
 	}
 
+	/**
+	 * 
+	 * @throws DSLException .
+	 */
 	@Test
 	public void testBasicExtendParsing() throws DSLException {
 
@@ -144,6 +169,9 @@ public class ServiceParsingTest {
 				.getExtendedServicesPaths().getFirst());
 	}
 
+	/**
+	 * 
+	 */
 	@Test
 	public void testBasicExtendIllegalPropertyLocation() {
 		final File testParsingExtendDslFile = new File(
@@ -160,6 +188,9 @@ public class ServiceParsingTest {
 		}
 	}
 
+	/**
+	 * 
+	 */
 	@Test
 	public void testBasicExtendIllegalNestedPropertyLocation() {
 		final File testParsingExtendDslFile = new File(
@@ -176,6 +207,10 @@ public class ServiceParsingTest {
 		}
 	}
 
+	/**
+	 * 
+	 * @throws DSLException .
+	 */
 	@Test
 	public void testTwoLevelExtension() throws DSLException {
 		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH
@@ -227,6 +262,11 @@ public class ServiceParsingTest {
 				.getExtendedServicesPaths().getLast());
 	}
 
+	/**
+	 * 
+	 * @throws DSLException .
+	 * @throws UnknownHostException .
+	 */
 	@Test
 	public void testAutoScalingParsing() throws DSLException,
 			UnknownHostException {
@@ -307,6 +347,10 @@ public class ServiceParsingTest {
 		Assert.assertNotNull(scalingRules.get(1).getLowThreshold());
 	}
 
+	/**
+	 * 
+	 * @throws DSLException .
+	 */
 	@Test
 	public void testPropertyInCustomCommand() throws DSLException {
 		final File testParsingExtendDslFile = new File(
@@ -322,10 +366,14 @@ public class ServiceParsingTest {
 		final String[] params = new String[2];
 		params[0] = "name";
 		params[1] = "port";
-		customCommand.call((Object[])params);
-		customCommand.call((Object[])params);
+		customCommand.call((Object[]) params);
+		customCommand.call((Object[]) params);
 	}
 
+	/**
+	 * 
+	 * @throws Exception .
+	 */
 	@Test
 	public void testNoLocatorsParsing() throws Exception {
 		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH
@@ -345,6 +393,10 @@ public class ServiceParsingTest {
 		Assert.assertEquals("Expected empty list", 0, list.size());
 	}
 
+	/**
+	 * 
+	 * @throws Exception .
+	 */
 	@Test
 	public void testLocationAwareParsing() throws Exception {
 		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH
@@ -359,6 +411,10 @@ public class ServiceParsingTest {
 
 	}
 	
+	/**
+	 * 
+	 * @throws Exception .
+	 */
 	@Test
 	public void testExternalScalingRule() throws Exception {
 		final File dir = new File(TEST_PARSING_RESOURCE_PATH2 
@@ -370,6 +426,11 @@ public class ServiceParsingTest {
 		Assert.assertTrue(service.getScalingRules().size() > 0);
 
 	}
+	
+	/**
+	 * 
+	 * @throws Exception .
+	 */
 	@Test
 	public void testExternalScalingRules() throws Exception {
 		final File dir = new File(TEST_PARSING_RESOURCE_PATH2 

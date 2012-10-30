@@ -105,9 +105,8 @@ public final class MicrosoftAzureModelUtils {
 		}
 		String first = xml.substring(0, i - 1);
 		String second = xml.substring(i, xml.length());
-		String result = first + " xmlns=" + '"' + nameSpace + '"' + ">"
+		return first + " xmlns=" + '"' + nameSpace + '"' + ">"
 				+ second;
-		return result;
 
 	}
 

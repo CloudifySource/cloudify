@@ -80,7 +80,8 @@ public class InstallService extends AdminAwareCommand {
 			+ "recipe folder. If not specified, uses the default file name")
 	private final String serviceFileName = null;
 
-	@Option(required = false, name = "-cloudConfiguration", description = "File of directory containing configuration information to be used by the cloud driver "
+	@Option(required = false, name = "-cloudConfiguration", description = 
+			"File of directory containing configuration information to be used by the cloud driver "
 			+ "for this application")
 	private File cloudConfiguration;
 	
@@ -91,7 +92,8 @@ public class InstallService extends AdminAwareCommand {
 	private static final String TIMEOUT_ERROR_MESSAGE = "Service installation timed out."
 			+ " Configure the timeout using the -timeout flag.";
 
-	@Option(required = false, name = "-overrides", description = "File containing proeprties to be used to overrides current service's proeprties.")
+	@Option(required = false, name = "-overrides", description = 
+			"File containing proeprties to be used to overrides current service's proeprties.")
 	private File overrides;
 
 	/**

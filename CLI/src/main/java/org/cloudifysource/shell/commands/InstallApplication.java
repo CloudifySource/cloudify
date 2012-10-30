@@ -92,6 +92,7 @@ public class InstallApplication extends AdminAwareCommand {
 	/**
 	 * {@inheritDoc}
 	 */
+	@SuppressWarnings("boxing")
 	@Override
 	protected Object doExecute()
 			throws Exception {
@@ -142,7 +143,10 @@ public class InstallApplication extends AdminAwareCommand {
 
 		// If temp file was created, Delete it.
 		if (!applicationFile.isFile()) {
-			zipFile.delete();
+			boolean delete = zipFile.delete();
+			if (!delete) {
+				logger.info("Failed to delete application file: " + zipFile.getAbsolutePath());
+			}
 		}
 
 		if (serviceOrder.charAt(0) != '[' && serviceOrder.charAt(serviceOrder.length() - 1) != ']') {
@@ -206,9 +210,13 @@ public class InstallApplication extends AdminAwareCommand {
 		// create a temp file in a temp directory
 		final File tempDir = File.createTempFile("__Cloudify_Cloud_configuration", ".tmp");
 		FileUtils.forceDelete(tempDir);
-		tempDir.mkdirs();
-
+		boolean mkdirs = tempDir.mkdirs();
+		if (!mkdirs) {
+			logger.info("Field to create temporary directory " + tempDir.getAbsolutePath());
+		}
 		final File tempFile = new File(tempDir, CloudifyConstants.SERVICE_CLOUD_CONFIGURATION_FILE_NAME);
+		logger.info("Created temporary file " + tempFile.getAbsolutePath()
+				+ " in temporary directory" + tempDir.getAbsolutePath());
 
 		// mark files for deletion on JVM exit
 		tempFile.deleteOnExit();
@@ -237,8 +245,9 @@ public class InstallApplication extends AdminAwareCommand {
 	 * @param application Application object to analyze
 	 */
 	private void printApplicationInfo(final Application application) {
-		logger.info("Application [" + applicationName + "] with " + application.getServices().size() + " services");
-		for (final Service service : application.getServices()) {
+		List<Service> services = application.getServices();
+		logger.info("Application [" + applicationName + "] with " + services.size() + " services");
+		for (final Service service : services) {
 			if (service.getDependsOn().isEmpty()) {
 				logger.info("Service [" + service.getName() + "] " + service.getNumInstances() + " planned instances");
 			} else { // Service has dependencies

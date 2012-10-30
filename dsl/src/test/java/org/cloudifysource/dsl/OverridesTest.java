@@ -103,6 +103,12 @@ public class OverridesTest {
 					.put("name", "overridesTestApplication");
 	}
 
+	/**
+	 * 
+	 * @throws IllegalAccessException .
+	 * @throws InvocationTargetException .
+	 * @throws NoSuchMethodException .
+	 */
 	@Test
 	public void testServiceExistingOverridesFile()
 			throws IllegalAccessException, InvocationTargetException,
@@ -115,6 +121,12 @@ public class OverridesTest {
 		}
 	}
 
+	/**
+	 * 
+	 * @throws IllegalAccessException .
+	 * @throws InvocationTargetException .
+	 * @throws NoSuchMethodException .
+	 */
 	@Test
 	public void testServiceExternalOverridesFile()
 			throws IllegalAccessException, InvocationTargetException,
@@ -128,6 +140,12 @@ public class OverridesTest {
 		}
 	}
 
+	/**
+	 * 
+	 * @throws IllegalAccessException .
+	 * @throws InvocationTargetException .
+	 * @throws NoSuchMethodException .
+	 */
 	@Test
 	public void testServiceWithApplicationPropertiesAndOverridesFiles() 
 			throws IllegalAccessException, InvocationTargetException, 
@@ -140,6 +158,13 @@ public class OverridesTest {
 		}
 	}
 	
+	/**
+	 * 
+	 * @throws IllegalAccessException .
+	 * @throws InvocationTargetException .
+	 * @throws NoSuchMethodException .
+	 * @throws DSLException .
+	 */
 	@Test
 	public void testServiceIllegalOverridesFileFormat()
 			throws IllegalAccessException, InvocationTargetException,
@@ -151,10 +176,17 @@ public class OverridesTest {
 			fail("Expected DSLException for service "
 					+ EXTERNAL_OVERRIDES_SERVICE_PATH);
 		} catch (final IllegalArgumentException e) { 
-			
+			Assert.assertTrue(e.getMessage().contains("Cannot override property"));
 		}
 	}
 
+	/**
+	 * 
+	 * @throws IllegalAccessException .
+	 * @throws InvocationTargetException .
+	 * @throws NoSuchMethodException .
+	 * @throws DSLException .
+	 */
 	@Test
 	public void testServiceIllegalOverridesProperties()
 			throws IllegalAccessException, InvocationTargetException,
@@ -166,10 +198,16 @@ public class OverridesTest {
 			fail("Expected DSLException for service "
 					+ EXTERNAL_OVERRIDES_SERVICE_PATH);
 		} catch (final IllegalArgumentException e) {
-
+			Assert.assertTrue(e.getMessage().contains("Cannot override property"));
 		}
 	}
 
+	/**
+	 * 
+	 * @throws IllegalAccessException .
+	 * @throws InvocationTargetException .
+	 * @throws NoSuchMethodException .
+	 */
 	@Test
 	public void testApplicationExistingOverridesFile()
 			throws IllegalAccessException, InvocationTargetException,
@@ -182,6 +220,12 @@ public class OverridesTest {
 		}
 	}
 
+	/**
+	 * 
+	 * @throws IllegalAccessException .
+	 * @throws InvocationTargetException .
+	 * @throws NoSuchMethodException .
+	 */
 	@Test
 	public void testApplicationExternalOverridesFile()
 			throws IllegalAccessException, InvocationTargetException,
@@ -197,6 +241,12 @@ public class OverridesTest {
 		}
 	}
 
+	/**
+	 * 
+	 * @throws IllegalAccessException .
+	 * @throws InvocationTargetException .
+	 * @throws NoSuchMethodException .
+	 */
 	@Test
 	public void testApplicationWithoutOverridesFile()
 			throws IllegalAccessException, InvocationTargetException,
@@ -211,6 +261,13 @@ public class OverridesTest {
 		}
 	}
 
+	/**
+	 * 
+	 * @throws IllegalAccessException .
+	 * @throws InvocationTargetException .
+	 * @throws NoSuchMethodException .
+	 * @throws DSLException .
+	 */
 	@Test
 	public void testApplicationIllegalOverridesFileFormat()
 			throws IllegalAccessException, InvocationTargetException,
@@ -222,9 +279,17 @@ public class OverridesTest {
 			fail("Expected DSLException for application "
 					+ EXTERNAL_OVERRIDES_APPLICATION_PATH);
 		} catch (final IllegalArgumentException e) {
+			Assert.assertTrue(e.getMessage().contains("Cannot override property"));
 		}
 	}
 
+	/**
+	 * 
+	 * @throws IllegalAccessException .
+	 * @throws InvocationTargetException .
+	 * @throws NoSuchMethodException .
+	 * @throws DSLException .
+	 */
 	@Test
 	public void testApplicationIllegalOverridesProperties()
 			throws IllegalAccessException, InvocationTargetException,
@@ -236,11 +301,11 @@ public class OverridesTest {
 			fail("Expected DSLException for application "
 					+ EXTERNAL_OVERRIDES_APPLICATION_PATH);
 		} catch (final IllegalArgumentException e) {
-
+			Assert.assertTrue(e.getMessage().contains("Cannot override property"));
 		}
 	}
 
-	private Object testDSLOverrides(final String servicePath,
+	private static Object testDSLOverrides(final String servicePath,
 			final String overridesFilePath, final Class<?> clazz,
 			final Map<String, Object> expectedFields) throws
 			IllegalAccessException, InvocationTargetException,
@@ -271,7 +336,7 @@ public class OverridesTest {
 
 	}
 
-	private void assertOverrides(final Object object, final DSLReader reader,
+	private static void assertOverrides(final Object object, final DSLReader reader,
 			final Map<String, Object> expectedFields , final File workDirectory)
 			throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		final Set<Entry<String, Object>> entrySet = expectedFields.entrySet();

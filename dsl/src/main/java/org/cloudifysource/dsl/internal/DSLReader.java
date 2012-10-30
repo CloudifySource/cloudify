@@ -480,7 +480,7 @@ public class DSLReader {
 			dslName = baseFileName.substring(0, indexOfLastComma);
 		}
 		dslFileNamePrefix = dslName;
-		final int indexOfHyphen = dslName.indexOf("-");
+		final int indexOfHyphen = dslName.indexOf('-');
 		if (indexOfHyphen >= 0) {
 			dslName = dslName.substring(0, indexOfHyphen);
 		}

@@ -129,13 +129,14 @@ public final class ExecutableDSLEntryFactory {
 		final Set<Entry<Object, Object>> entries = originalMap.entrySet();
 
 		for (final Entry<Object, Object> entry : entries) {
-			if (!(entry.getKey() instanceof String)) {
+			Object key = entry.getKey();
+			if (!(key instanceof String)) {
 				throw new IllegalArgumentException("Entry " + entryName
-						+ " has a sub entry key which is not a string. Subentry was: " + entry.getKey());
+						+ " has a sub entry key which is not a string. Subentry was: " + key);
 			}
 			// RECURSIVE CALL!
-			final ExecutableDSLEntry executableEntry = createEntry(entry.getValue(), entry.getKey(), workDirectory);
-			result.put((String) entry.getKey(), executableEntry);
+			final ExecutableDSLEntry executableEntry = createEntry(entry.getValue(), key, workDirectory);
+			result.put((String) key, executableEntry);
 
 		}
 	}

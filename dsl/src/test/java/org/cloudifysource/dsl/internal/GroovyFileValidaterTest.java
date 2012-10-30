@@ -25,7 +25,7 @@ public class GroovyFileValidaterTest {
 
 		GroovyFileCompilationResult result =
 				validator.validateFile(new File("src/test/resources/groovyFileValidation/empty.groovy"));
-		Assert.assertEquals(true, result.isSuccess());
+		Assert.assertEquals(Boolean.TRUE, result.isSuccess());
 	}
 
 	@Test
@@ -34,7 +34,7 @@ public class GroovyFileValidaterTest {
 
 		GroovyFileCompilationResult result =
 				validator.validateFile(new File("src/test/resources/groovyFileValidation/simple.groovy"));
-		Assert.assertEquals(true, result.isSuccess());
+		Assert.assertEquals(Boolean.TRUE, result.isSuccess());
 
 	}
 
@@ -44,7 +44,7 @@ public class GroovyFileValidaterTest {
 
 		GroovyFileCompilationResult result =
 				validator.validateFile(new File("src/test/resources/groovyFileValidation/badImport.groovy"));
-		Assert.assertEquals(false, result.isSuccess());
+		Assert.assertEquals(Boolean.FALSE, result.isSuccess());
 
 	}
 

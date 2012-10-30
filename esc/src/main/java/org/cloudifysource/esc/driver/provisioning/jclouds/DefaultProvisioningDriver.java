@@ -188,7 +188,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 					.getFileTransfer();
 
 			if (this.cloud.getProvider().getProvider().equals("aws-ec2")
-					&& fileTransfer.equals(FileTransferModes.CIFS)) {
+					&& fileTransfer == FileTransferModes.CIFS) {
 				// Special password handling for windows on EC2
 				if (machineDetails.getRemotePassword() == null) {
 					// The template did not specify a password, so we must be

@@ -281,7 +281,7 @@ public final class Utils {
 			final String keyFile, final List<String> fileSystemObjects, final FileTransferModes fileTransferMode)
 			throws IOException {
 
-		if (!fileTransferMode.equals(FileTransferModes.SCP)) {
+		if (!(fileTransferMode == FileTransferModes.SCP)) {
 			throw new IOException("File deletion is currently not supported for this file transfer protocol ("
 					+ fileTransferMode + ")");
 		}
@@ -363,7 +363,7 @@ public final class Utils {
 			objectsExist = false;
 		}
 
-		if (!fileTransferMode.equals(FileTransferModes.SCP)) {
+		if (!(fileTransferMode == FileTransferModes.SCP)) {
 			// TODO Support get with CIFS as well
 			throw new IOException("File resolving is currently not supported for this file transfer protocol ("
 					+ fileTransferMode + ")");

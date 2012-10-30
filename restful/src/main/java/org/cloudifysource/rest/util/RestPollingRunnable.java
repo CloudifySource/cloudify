@@ -544,7 +544,7 @@ public class RestPollingRunnable implements Runnable {
 				.getProcessingUnit(absolutePuName);
 
 		if (processingUnit != null) {
-			if (processingUnit.getType().equals(ProcessingUnitType.UNIVERSAL)) {
+			if (processingUnit.getType() == ProcessingUnitType.UNIVERSAL) {
 				return getNumberOfUSMServicesWithState(absolutePuName,
 						USMState.RUNNING);
 			}
@@ -609,9 +609,10 @@ public class RestPollingRunnable implements Runnable {
 			return false;
 		}
 
+		@SuppressWarnings("boxing")
 		final int instanceState = (Integer) monitors
 				.get(CloudifyConstants.USM_MONITORS_STATE_ID);
-		if (CloudifyConstants.USMState.values()[instanceState].equals(state)) {
+		if (CloudifyConstants.USMState.values()[instanceState] == CloudifyConstants.USMState.RUNNING) {
 			return true;
 		}
 		return false;

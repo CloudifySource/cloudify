@@ -157,7 +157,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	 * 
 	 * @param minimumCpuCoresPerMachine .
 	 */
-	public void setMinimumNumberOfCpuCoresPerMachine(final double minimumCpuCoresPerMachine) {
+	public final void setMinimumNumberOfCpuCoresPerMachine(final double minimumCpuCoresPerMachine) {
 		properties.putDouble(
 				NUMBER_OF_CPU_CORES_PER_MACHINE_KEY, minimumCpuCoresPerMachine);
 	}
@@ -171,7 +171,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	 * 
 	 * @param cloudTemplateName .
 	 */
-	public void setCloudTemplateName(final String cloudTemplateName) {
+	public final void setCloudTemplateName(final String cloudTemplateName) {
 		properties.put(
 				CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME, cloudTemplateName);
 	}
@@ -185,7 +185,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	 * 
 	 * @param cloudConfigurationDirectory .
 	 */
-	public void setCloudConfigurationDirectory(final String cloudConfigurationDirectory) {
+	public final void setCloudConfigurationDirectory(final String cloudConfigurationDirectory) {
 		properties.put(
 				CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION_DIRECTORY, cloudConfigurationDirectory);
 	}
@@ -254,7 +254,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	 * 
 	 * @param reservedInMB .
 	 */
-	public void setReservedMemoryCapacityPerMachineInMB(final long reservedInMB) {
+	public final void setReservedMemoryCapacityPerMachineInMB(final long reservedInMB) {
 		this.properties.putLong(
 				RESERVED_MEMORY_CAPACITY_PER_MACHINE_MEGABYTES_KEY, reservedInMB);
 	}

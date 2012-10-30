@@ -35,9 +35,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author uri
  */
 public class AdminFactoryBean implements FactoryBean, InitializingBean, DisposableBean {
-    AdminFactory adminFactory = new AdminFactory();
-    Admin admin;
-    SecurityPropagation securityPropagation;
+    private AdminFactory adminFactory = new AdminFactory();
+    private Admin admin;
+    private SecurityPropagation securityPropagation;
 
     private static final Logger logger = Logger.getLogger(AdminFactoryBean.class.getName());
     
@@ -63,55 +63,77 @@ public class AdminFactoryBean implements FactoryBean, InitializingBean, Disposab
 
     @Override
 	public void afterPropertiesSet() throws Exception {
-        if (SecurityPropagation.CLUSTER.equals(securityPropagation)) {
-            final org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) SecurityContextHolder
+        if (securityPropagation == SecurityPropagation.CLUSTER) {
+            final org.springframework.security.core.userdetails.UserDetails userDetails = 
+            		(org.springframework.security.core.userdetails.UserDetails) SecurityContextHolder
                     .getContext().getAuthentication().getPrincipal();
-            adminFactory.userDetails(userDetails.getUsername(),userDetails.getPassword());
+            adminFactory.userDetails(userDetails.getUsername(), userDetails.getPassword());
         }
         admin = adminFactory.createAdmin();
         if (logger.isLoggable(Level.INFO)) {
 	        LookupLocator[] locators = admin.getLocators();
 	        String[] locatorStrings = new String[locators.length];
-	        for (int i = 0 ; i < locators.length ; i++) {
-	        	locatorStrings[i]= locators[i].getHost()+":"+locators[i].getPort();
+	        for (int i = 0; i < locators.length; i++) {
+	        	locatorStrings[i] = locators[i].getHost() + ":" + locators[i].getPort();
 	        }
-	        logger.info("Admin using lookup locators="+Arrays.toString(locatorStrings)+ " groups="+ Arrays.toString(admin.getGroups()));
+	        logger.info("Admin using lookup locators=" + Arrays.toString(locatorStrings)
+	        		+ " groups=" + Arrays.toString(admin.getGroups()));
         }
     }
 
-    public void setLocators(String... locators) {
+    /**
+     * 
+     * @param locators .
+     */
+    public void setLocators(final String... locators) {
         for (String locator : locators) {
             adminFactory.addLocator(locator);
         }
         if (logger.isLoggable(Level.INFO)) {
-        	logger.info("Configured lookup locators="+Arrays.toString(locators));
+        	logger.info("Configured lookup locators=" + Arrays.toString(locators));
         }
     }
 
-    public void setGroups(String... groups) {
+    /**
+     * 
+     * @param groups .
+     */
+    public void setGroups(final String... groups) {
         for (String group : groups) {
             adminFactory.addGroup(group);
         }
         if (logger.isLoggable(Level.INFO)) {
-        	logger.info("Configured lookup groups="+Arrays.toString(groups));
+        	logger.info("Configured lookup groups=" + Arrays.toString(groups));
         }
     }
 
-    public void setDiscoverUnmanagedSpace(boolean discoverUnmanagedSpace) {
+    /**
+     * 
+     * @param discoverUnmanagedSpace .
+     */
+    public void setDiscoverUnmanagedSpace(final boolean discoverUnmanagedSpace) {
         if (discoverUnmanagedSpace) {
             adminFactory.discoverUnmanagedSpaces();
         }
     }
 
-    public void setUserDetails(UserDetails userDetails) {
+    /**
+     * 
+     * @param userDetails .
+     */
+    public void setUserDetails(final UserDetails userDetails) {
         adminFactory.userDetails(userDetails);
     }
 
-    public void setUseGsLogging(boolean useGsLogging) {
+    /**
+     * 
+     * @param useGsLogging .
+     */
+    public void setUseGsLogging(final boolean useGsLogging) {
         adminFactory.useGsLogging(useGsLogging);
     }
 
-    public void setSecurityPropagation(SecurityPropagation securityPropagation) {
+    public void setSecurityPropagation(final SecurityPropagation securityPropagation) {
         this.securityPropagation = securityPropagation;
     }
 }
