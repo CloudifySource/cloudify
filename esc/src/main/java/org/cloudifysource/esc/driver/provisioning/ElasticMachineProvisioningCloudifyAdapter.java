@@ -51,7 +51,6 @@ import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.util.Utils;
 import org.openspaces.admin.Admin;
-import org.openspaces.admin.AdminException;
 import org.openspaces.admin.AdminFactory;
 import org.openspaces.admin.bean.BeanConfigurationException;
 import org.openspaces.admin.gsa.GSAReservationId;
@@ -66,7 +65,9 @@ import org.openspaces.core.bean.Bean;
 import org.openspaces.grid.gsm.capacity.CapacityRequirements;
 import org.openspaces.grid.gsm.capacity.CpuCapacityRequirement;
 import org.openspaces.grid.gsm.capacity.MemoryCapacityRequirement;
+import org.openspaces.grid.gsm.machines.isolation.DedicatedMachineIsolation;
 import org.openspaces.grid.gsm.machines.isolation.ElasticProcessingUnitMachineIsolation;
+import org.openspaces.grid.gsm.machines.isolation.SharedMachineIsolation;
 import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioning;
 import org.openspaces.grid.gsm.machines.plugins.events.GridServiceAgentStartRequestedEvent;
 import org.openspaces.grid.gsm.machines.plugins.events.GridServiceAgentStartedEvent;
@@ -109,6 +110,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private static Admin globalAdminInstance = null;
 	private static final Object GLOBAL_ADMIN_MUTEX = new Object();
+
+	private static final long DEFAULT_AGENT_DISCOVEREY_INTERVAL = 1 * 1000;
 
 	private static Admin getGlobalAdminInstance(final Admin esmAdminInstance) {
 		synchronized (GLOBAL_ADMIN_MUTEX) {
@@ -501,9 +504,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	@Override
 	public boolean stopMachine(final GridServiceAgent agent, final long duration, final TimeUnit unit)
-			throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
+			throws ElasticMachineProvisioningException, 
+			ElasticGridServiceAgentProvisioningException,
+			InterruptedException, TimeoutException {
 
 		final String machineIp = agent.getMachine().getHostAddress();
+		Exception failedToShutdownAgentException = null;
+		final long endTime = System.currentTimeMillis() + unit.toMillis(duration);
 		
 		GridServiceAgentStopRequestedEvent agentStopEvent = new GridServiceAgentStopRequestedEvent();
 		agentStopEvent.setHostAddress(machineIp);
@@ -520,7 +527,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			agentStoppedEvent.setAgentUid(agent.getUid());
 			agentEventListener.elasticGridServiceAgentProvisioningProgressChanged(agentStoppedEvent);
 		} catch (final Exception e) {
-			logger.log(Level.WARNING, "Failed to shutdown agent on host: " + machineIp
+			failedToShutdownAgentException = e;
+			logger.log(Level.FINE, "Failed to shutdown agent on host: " + machineIp
 					+ ". Continuing with shutdown of machine.", e);
 		}
 
@@ -531,23 +539,41 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			machineEventListener.elasticMachineProvisioningProgressChanged(machineStopEvent);
 			
 			logger.fine("Cloudify Adapter is shutting down machine with ip: " + machineIp);
-			final boolean shutdownResult = this.cloudifyProvisioning.stopMachine(machineIp, duration, unit);
-			logger.fine("Shutdown result of machine: " + machineIp + " was: " + shutdownResult);
+			final boolean shutdownSuccesfull = this.cloudifyProvisioning.stopMachine(machineIp, duration, unit);
+			logger.fine("Shutdown result of machine: " + machineIp + " was: " + shutdownSuccesfull);
 			
-			if (shutdownResult) {
+			if (shutdownSuccesfull) {
 				MachineStoppedEvent machineStoppedEvent = new MachineStoppedEvent();
 				machineStoppedEvent.setHostAddress(machineIp);
 				machineEventListener.elasticMachineProvisioningProgressChanged(machineStoppedEvent);
+				
+				
+					// machine was shutdown, but an error happened while shutting down agent.
+					// lets wait for the agent to not be discovered until we reach the timeout.
+					
+					while (agent.isDiscovered()) {
+						Thread.sleep(DEFAULT_AGENT_DISCOVEREY_INTERVAL);
+						if (System.currentTimeMillis() > endTime && agent.isDiscovered()) {
+							if (failedToShutdownAgentException != null) {
+								throw new ElasticGridServiceAgentProvisioningException(
+										"Machine is stopped but agent [" + agent.getUid() + "] is still discovered."
+										+ "Failed to shutdown agent:" + failedToShutdownAgentException.getMessage(), 
+										failedToShutdownAgentException);								
+							}
+							throw new ElasticGridServiceAgentProvisioningException(
+									"Machine is stopped but agent[" + agent.getUid() 
+									+ "] is still discovered.");								
+
+						}
+					}
+				
 			}
 
-			return shutdownResult;
+			return shutdownSuccesfull;
 
 		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Attempt to shutdown machine with IP: " + machineIp
 					+ " for agent with UID: " + agent.getUid() + " has failed with error: " + e.getMessage(), e);
-		} catch (final AdminException e) {
-			throw new ElasticMachineProvisioningException("Failed to shutdown agent "
-					+ agent.getMachine().getHostAddress(), e);
 		}
 	}
 

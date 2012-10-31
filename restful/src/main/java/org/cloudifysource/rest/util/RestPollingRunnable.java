@@ -389,6 +389,7 @@ public class RestPollingRunnable implements Runnable {
 				+ absolutePuName);
 		final Zone zone = admin.getZones().getByName(absolutePuName);
 		if (zone == null) {
+			logger.log(Level.FINE, "Zone " + absolutePuName + " does not exist. not polling for logs");
 			return;
 		}
 		// TODO: this is not very efficient. Maybe possible to move the
