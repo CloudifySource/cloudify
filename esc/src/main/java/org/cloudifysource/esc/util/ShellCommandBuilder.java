@@ -20,7 +20,8 @@ import java.util.regex.Pattern;
 import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
 
 /*******
- * A simple wrapper around a StringBuilder. Used to generate the command line required to run the remote Cloudify agent.
+ * A simple wrapper around a StringBuilder. Used to generate the command line
+ * required to run the remote Cloudify agent.
  * 
  * @author dank, barakme
  * @since 1.0
@@ -60,7 +61,8 @@ public class ShellCommandBuilder {
 	/********
 	 * Constructor.
 	 * 
-	 * @param mode the execution mode.
+	 * @param mode
+	 *            the execution mode.
 	 */
 	public ShellCommandBuilder(final RemoteExecutionModes mode) {
 		this.mode = mode;
@@ -72,7 +74,8 @@ public class ShellCommandBuilder {
 			this.separator = POWERSHELL_COMMAND_SEPARATOR;
 			break;
 		default:
-			throw new UnsupportedOperationException("Unsupported execution mode: " + mode);
+			throw new UnsupportedOperationException(
+					"Unsupported execution mode: " + mode);
 		}
 
 	}
@@ -87,7 +90,8 @@ public class ShellCommandBuilder {
 	/*******
 	 * Adds a command to the command line.
 	 * 
-	 * @param str the command to add.
+	 * @param str
+	 *            the command to add.
 	 * @return this.
 	 */
 	public ShellCommandBuilder call(final String str) {
@@ -102,12 +106,14 @@ public class ShellCommandBuilder {
 	}
 
 	/****************
-	 * Given a path of the type /C$/PATH - indicating an absolute cifs path, returns /PATH. If the string does not
-	 * match, returns the original unmodified string.
+	 * Given a path of the type /C$/PATH - indicating an absolute cifs path,
+	 * returns /PATH. If the string does not match, returns the original
+	 * unmodified string.
 	 * 
-	 * @param str the input path.
-	 * @return the input path, adjusted to remove the cifs drive letter, if it exists, or the original path if the drive
-	 *         letter is not present.
+	 * @param str
+	 *            the input path.
+	 * @return the input path, adjusted to remove the cifs drive letter, if it
+	 *         exists, or the original path if the drive letter is not present.
 	 */
 	public static String normalizeCifsPath(final String str) {
 		final String expression = CIFS_ABSOLUTE_PATH_WITH_DRIVE_REGEX;
@@ -115,9 +121,13 @@ public class ShellCommandBuilder {
 			pattern = Pattern.compile(expression);
 		}
 
+		if (str == null) {
+			return null;
+		}
 		if (pattern.matcher(str).matches()) {
 			final char drive = str.charAt(1);
-			return drive + ":\\" + str.substring("/c$/".length()).replace('/', '\\');
+			return drive + ":\\"
+					+ str.substring("/c$/".length()).replace('/', '\\');
 		}
 		return str;
 	}
@@ -132,15 +142,21 @@ public class ShellCommandBuilder {
 		return this;
 	}
 
+	private static final java.util.logging.Logger logger = java.util.logging.Logger
+			.getLogger(ShellCommandBuilder.class.getName());
+
 	/*********
 	 * Adds an environment variable to the command line.
 	 * 
-	 * @param name variable name.
-	 * @param value variable value.
+	 * @param name
+	 *            variable name.
+	 * @param value
+	 *            variable value.
 	 * @return this.
 	 */
 	public ShellCommandBuilder exportVar(final String name, final String value) {
 
+		logger.fine("exporting var: " + name + " with value " + value);
 		String actualValue = value;
 		if (value == null) {
 			actualValue = "";
@@ -151,11 +167,11 @@ public class ShellCommandBuilder {
 			sb.append("export ").append(name).append("=").append(actualValue);
 			break;
 		case WINRM:
-			String normalizedValue = normalizeCifsPath(value);
-			if (value.startsWith("\"") && value.endsWith("\"")) {
-				normalizedValue = value.replace("\"", "'");
+			String normalizedValue = normalizeCifsPath(actualValue);
+			if (normalizedValue.startsWith("\"") && normalizedValue.endsWith("\"")) {
+				normalizedValue = normalizedValue.replace("\"", "'");
 			} else {
-				if (!(value.startsWith("\"") && value.endsWith("\""))) {
+				if (!(normalizedValue.startsWith("\"") && normalizedValue.endsWith("\""))) {
 					normalizedValue = "'" + normalizedValue + "'";
 				}
 			}
@@ -175,7 +191,8 @@ public class ShellCommandBuilder {
 	/******
 	 * Marks a file as executable.
 	 * 
-	 * @param path the file path.
+	 * @param path
+	 *            the file path.
 	 * @return this.
 	 */
 	public ShellCommandBuilder chmodExecutable(final String path) {
