@@ -49,7 +49,7 @@ import org.openspaces.core.cluster.ClusterInfo;
 import org.openspaces.ui.UserInterface;
 
 /*******
- * This class is a work in progress. DO NOT USE IT!
+ * Generic Cloudify DSL Reader.
  * 
  * @author barakme
  * 

@@ -155,7 +155,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		GridServiceAgent[] agents = this.originalESMAdmin.getGridServiceAgents().getAgents();
 		for (GridServiceAgent agent : agents) {
 			String template = agent.getVirtualMachine().getDetails()
-					.getEnvironmentVariables().get(CloudifyConstants.CLOUDIFY_CLOUD_TEMPLATE_NAME);
+					.getEnvironmentVariables().get(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME);
 			if (template != null) { // management machines don't have this variable attached
 				if (template.equals(this.cloudTemplateName)) {
 					result.add(agent);
@@ -326,9 +326,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			// check that the agent is really started with the expected env variable of the template
 			// we inject this variable earlier on to the bootstrap-management.sh script
 			if (gsa.getVirtualMachine().getDetails().getEnvironmentVariables().
-					get(CloudifyConstants.CLOUDIFY_CLOUD_TEMPLATE_NAME) == null) {
+					get(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME) == null) {
 				throw new ElasticGridServiceAgentProvisioningException("an agent was started. but the property " 
-					+ CloudifyConstants.CLOUDIFY_CLOUD_TEMPLATE_NAME + " was missing from its environment variables.");
+					+ CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME + " was missing from its environment variables.");
 			}
 			
 			return gsa;
