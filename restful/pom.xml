@@ -315,7 +315,7 @@
 		<dependency>
 			<groupId>org.cloudifysource</groupId>
 			<artifactId>rest-doclet</artifactId>
-			<version>0.1.0</version>
+			<version>0.2.0</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -368,14 +368,12 @@
 							<docletArtifact>
 								<groupId>org.cloudifysource</groupId>
 								<artifactId>rest-doclet</artifactId>
-								<version>0.1.0</version>
+								<version>0.2.0</version>
 							</docletArtifact>
 							<useStandardDocletOptions>false</useStandardDocletOptions>
 							<reportOutputDirectory>${basedir}/target/site</reportOutputDirectory>
-							<destDir>restdoclet</destDir>
-							<!-- additionalJOption>-version ${project.version}</additionalJOption -->
-							<!--additionalJOption>-velocityTemplateFilePath <path to template 
-								file> -docletDestdir <path to html file></additionalJOption -->
+							<destDir>restdoclet</destDir>				
+							<!--additionalJOption>-restVersion ${project.version} -docletCss ${basedir}/target/rest/resources/restdoclet/restdoclet.css</additionalJOption-->
 						</configuration>
 					</execution>
 				</executions>
