@@ -31,14 +31,14 @@ public class CommandUtils {
 	}
 
     public static Object getMapObject(String key, Object mapObject) {
-        Map<?, ?> map = (Map<?, ?>)mapObject;
-        if (map.containsKey(key)){
+        Map<?, ?> map = (Map<?, ?>) mapObject;
+        if (map.containsKey(key)) {
             return map.get(key);
         }
         //Map might hold keys that are not of type String.
         //We solve this issue by iterating over the list of map keys and comparing their toString. 
         for (Map.Entry<?, ?> entry : map.entrySet()) {
-            if (entry.getKey().toString().equals(key)){
+            if (entry.getKey().toString().equals(key)) {
                 return entry.getValue();
             }
         }

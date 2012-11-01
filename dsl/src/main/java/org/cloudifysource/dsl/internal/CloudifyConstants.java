@@ -139,16 +139,27 @@ public final class CloudifyConstants {
 	 * Key names for environment variables available to agent in a cloudify
 	 * environment
 	 */
-	public static final String CLOUDIFY_AGENT_ENV_PRIVATE_IP = "GIGASPACES_AGENT_ENV_PRIVATE_IP";
-	public static final String CLOUDIFY_AGENT_ENV_PUBLIC_IP = "GIGASPACES_AGENT_ENV_PUBLIC_IP";
-	public static final String CLOUDIFY_AGENT_ENV_PRIVILEGED = "GIGASPACES_AGENT_ENV_PRIVILEGED";
-	public static final String CLOUDIFY_AGENT_ENV_INIT_COMMAND = "GIGASPACES_AGENT_ENV_INIT_COMMAND";
-	public static final String CLOUDIFY_CLOUD_IMAGE_ID = "GIGASPACES_CLOUD_IMAGE_ID";
-	public static final String CLOUDIFY_CLOUD_HARDWARE_ID = "GIGASPACES_CLOUD_HARDWARE_ID";
-	public static final String CLOUDIFY_CLOUD_TEMPLATE_NAME = "GIGASPACES_CLOUD_TEMPLATE_NAME";
-	public static final String CLOUDIFY_AGENT_ENV_JAVA_URL = "GIGASPACES_AGENT_ENV_JAVA_URL";
-	public static final String CLOUDIFY_ORIGINAL_JAVA_HOME = "GIGASPACES_ORIGINAL_JAVA_HOME";
+	public static final String GIGASPACES_AGENT_ENV_PRIVATE_IP = "GIGASPACES_AGENT_ENV_PRIVATE_IP";
+	public static final String GIGASPACES_AGENT_ENV_PUBLIC_IP = "GIGASPACES_AGENT_ENV_PUBLIC_IP";
+	public static final String GIGASPACES_AGENT_ENV_PRIVILEGED = "GIGASPACES_AGENT_ENV_PRIVILEGED";
+	public static final String GIGASPACES_AGENT_ENV_INIT_COMMAND = "GIGASPACES_AGENT_ENV_INIT_COMMAND";
+	public static final String GIGASPACES_CLOUD_IMAGE_ID = "GIGASPACES_CLOUD_IMAGE_ID";
+	public static final String GIGASPACES_CLOUD_HARDWARE_ID = "GIGASPACES_CLOUD_HARDWARE_ID";
+	public static final String GIGASPACES_CLOUD_TEMPLATE_NAME = "GIGASPACES_CLOUD_TEMPLATE_NAME";
+	public static final String GIGASPACES_AGENT_ENV_JAVA_URL = "GIGASPACES_AGENT_ENV_JAVA_URL";
+	public static final String GIGASPACES_ORIGINAL_JAVA_HOME = "GIGASPACES_ORIGINAL_JAVA_HOME";
+	
+	/***********************************
+	 * Duplicate of Key names for environment variables available to agent in a cloudify
+	 * environment using the old names, to maintain backwards compatibility
+	 */	
 
+	public static final String CLOUDIFY_CLOUD_IMAGE_ID = "CLOUDIFY_CLOUD_IMAGE_ID";
+	public static final String CLOUDIFY_CLOUD_HARDWARE_ID = "CLOUDIFY_CLOUD_HARDWARE_ID";
+	public static final String CLOUDIFY_AGENT_ENV_PRIVATE_IP = "CLOUDIFY_AGENT_ENV_PRIVATE_IP";
+	public static final String CLOUDIFY_AGENT_ENV_PUBLIC_IP = "CLOUDIFY_AGENT_ENV_PUBLIC_IP";
+
+	
 	/***************
 	 * Misc.
 	 */
@@ -230,5 +241,13 @@ public final class CloudifyConstants {
 	 */
 	public static final String REST_API_VERSION_HEADER = "cloudify-api-version";
 
+	
+	/*******************
+	 * HTTP status codes
+	 */
+	public static final int HTTP_STATUS_CODE_OK = 200;
+	public static final int HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
+	public static final int HTTP_STATUS_NOT_FOUND = 404;
+	
 	// CHECKSTYLE:ON
 }

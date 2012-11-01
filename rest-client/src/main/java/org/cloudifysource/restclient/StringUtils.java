@@ -64,7 +64,7 @@ public final class StringUtils {
         return sb.toString();
     }
 
-    public static Integer safeParseInt(String str) {
+	public static Integer safeParseInt(String str) {
         try {
             return Integer.valueOf(str);
         } catch (NumberFormatException e) {

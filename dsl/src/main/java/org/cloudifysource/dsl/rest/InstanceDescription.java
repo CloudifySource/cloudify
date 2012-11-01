@@ -44,6 +44,7 @@ public class InstanceDescription {
 	private String instanceStatus;
 	private int instanceId;
 	private String hostName;
+	private String hostAddress;
 	
 	public String getInstanceName() {
 		return instanceName;
@@ -75,6 +76,14 @@ public class InstanceDescription {
 
 	public void setHostName(String hostName) {
 		this.hostName = hostName;
+	}
+
+	public String getHostAddress() {
+		return hostAddress;
+	}
+
+	public void setHostAddress(String hostAddress) {
+		this.hostAddress = hostAddress;
 	}
 
 }

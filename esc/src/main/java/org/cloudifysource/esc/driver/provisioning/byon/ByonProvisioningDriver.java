@@ -563,10 +563,11 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			md.setRemoteUsername(template.getUsername());
 			md.setRemotePassword(template.getPassword());
 		} else {
-			logger.severe("Cloud node loading failed, missing credentials for server: " + node.toString());
-			publishEvent("prov_node_loading_failed", node.toString());
+			String nodeStr = node.toString();
+			logger.severe("Cloud node loading failed, missing credentials for server: " + nodeStr);
+			publishEvent("prov_node_loading_failed", nodeStr);
 			throw new CloudProvisioningException("Cloud node loading failed, missing credentials for server: "
-					+ node.toString());
+					+ nodeStr);
 		}
 
 		return md;

@@ -30,6 +30,8 @@ import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
+import org.cloudifysource.dsl.internal.DSLReader;
+import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.rest.controllers.ServiceController;
@@ -43,24 +45,22 @@ public class ApplicationInstallerRunnable implements Runnable {
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(ApplicationInstallerRunnable.class.getName());
 
-	private final ServiceController controller;
-	private final DSLApplicationCompilatioResult result;
-	private final String applicationName;
-
-	private final List<Service> services;
-
+	private ServiceController controller;
+	private DSLApplicationCompilatioResult result;
+	private String applicationName;
+	private File overridesFile;
+	private List<Service> services;
 	private final Cloud cloud;
-
 	private final boolean selfHealing;
 
-	public ApplicationInstallerRunnable(final ServiceController controller,
-			final DSLApplicationCompilatioResult result,
-			final String applicationName, final List<Service> services,
-			final Cloud cloud, final boolean selfHealing) {
+	public ApplicationInstallerRunnable(ServiceController controller,
+			DSLApplicationCompilatioResult result, String applicationName,
+			File overridesFile, List<Service> services, Cloud cloud, final boolean selfHealing) {
 		super();
 		this.controller = controller;
 		this.result = result;
 		this.applicationName = applicationName;
+		this.overridesFile = overridesFile;
 		this.services = services;
 		this.cloud = cloud;
 		this.selfHealing = selfHealing;
@@ -112,7 +112,6 @@ public class ApplicationInstallerRunnable implements Runnable {
 			final File serviceCloudConfiguration = new File(serviceDirectory,
 					CloudifyConstants.SERVICE_CLOUD_CONFIGURATION_FILE_NAME);
 			byte[] serviceCloudConfigurationContents = null;
-
 			if (serviceCloudConfiguration.exists()) {
 				serviceCloudConfigurationContents = FileUtils
 						.readFileToByteArray(serviceCloudConfiguration);
@@ -121,10 +120,24 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 			boolean found = false;
 			try {
-				// Pack the folder and name it absolutePuName
-
-				final File packedFile = Packager.pack(serviceDirectory,
-						absolutePUName, new File[0]);
+				// copy application properties and overrides files to the service directory. 
+				File applicationOverridesFile = overridesFile;
+				if (applicationOverridesFile == null) {
+					applicationOverridesFile = 
+							DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_OVERRIDES_FILE_NAME, appDir);
+				}
+				if (applicationOverridesFile != null) {
+					FileUtils.copyFile(applicationOverridesFile, 
+							new File(serviceDirectory, DSLUtils.APPLICATION_OVERRIDES_FILE_NAME));
+				}
+				File applicationPropertiesFile = 
+						DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_PROPERTIES_FILE_NAME, appDir);
+				if (applicationPropertiesFile != null) {
+					FileUtils.copyFile(applicationPropertiesFile, 
+							new File(serviceDirectory, DSLUtils.APPLICATION_PROPERTIES_FILE_NAME));
+				}
+				// Pack the folder and name it absolutePuName	
+				File packedFile = Packager.pack(service, serviceDirectory, absolutePUName, null);
 				result.getApplicationFile().delete();
 				packedFile.deleteOnExit();
 				// Deployment will be done using the service's absolute PU name.
@@ -194,6 +207,10 @@ public class ApplicationInstallerRunnable implements Runnable {
 		}
 	}
 
+	/**
+	 * 
+	 * @return true if all services have Lifecycle events.
+	 */
 	public boolean isAsyncInstallPossibleForApplication() {
 
 		// check if all services are USM

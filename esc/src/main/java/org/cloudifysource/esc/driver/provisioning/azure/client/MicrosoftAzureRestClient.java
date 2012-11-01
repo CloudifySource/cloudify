@@ -189,8 +189,7 @@ public class MicrosoftAzureRestClient {
 		ClientConfig config = new DefaultClientConfig();
 		config.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES,
 				new HTTPSProperties(null, context));
-		Client client = Client.create(config);
-		return client;
+		return Client.create(config);
 	}
 
 	/**
@@ -702,8 +701,7 @@ public class MicrosoftAzureRestClient {
 		ClientResponse response = doGet("/services/disks");
 		checkForError(response);
 		String responseBody = response.getEntity(String.class);
-		Disks disks = (Disks) MicrosoftAzureModelUtils.unmarshall(responseBody);
-		return disks;
+		return (Disks) MicrosoftAzureModelUtils.unmarshall(responseBody);
 	}
 
 	/**
@@ -811,9 +809,8 @@ public class MicrosoftAzureRestClient {
 		ClientResponse response = doGet("/services/hostedservices");
 		String responseBody = response.getEntity(String.class);
 		checkForError(response);
-		HostedServices hostedServices = (HostedServices) MicrosoftAzureModelUtils
+		return (HostedServices) MicrosoftAzureModelUtils
 				.unmarshall(responseBody);
-		return hostedServices;
 	}
 
 	/**
@@ -828,9 +825,8 @@ public class MicrosoftAzureRestClient {
 		checkForError(response);
 		String responseBody = response.getEntity(String.class);
 		checkForError(response);
-		AffinityGroups affinityGroups = (AffinityGroups) MicrosoftAzureModelUtils
+		return (AffinityGroups) MicrosoftAzureModelUtils
 				.unmarshall(responseBody);
-		return affinityGroups;
 	}
 
 	/**
@@ -843,9 +839,8 @@ public class MicrosoftAzureRestClient {
 			throws MicrosoftAzureException, TimeoutException {
 		ClientResponse response = doGet("/services/storageservices");
 		String responseBody = response.getEntity(String.class);
-		StorageServices storageServices = (StorageServices) MicrosoftAzureModelUtils
+		return (StorageServices) MicrosoftAzureModelUtils
 				.unmarshall(responseBody);
-		return storageServices;
 	}
 
 	/**
@@ -893,9 +888,8 @@ public class MicrosoftAzureRestClient {
 		ClientResponse response = doGet(builder.toString());
 		checkForError(response);
 		String responseBody = response.getEntity(String.class);
-		HostedService hostedService = (HostedService) MicrosoftAzureModelUtils
+		return (HostedService) MicrosoftAzureModelUtils
 				.unmarshall(responseBody);
-		return hostedService;
 	}
 
 	/**
@@ -923,9 +917,8 @@ public class MicrosoftAzureRestClient {
 		}
 
 		String responseBody = response.getEntity(String.class);
-		Deployment deployment = (Deployment) MicrosoftAzureModelUtils
+		return (Deployment) MicrosoftAzureModelUtils
 				.unmarshall(responseBody);
-		return deployment;
 	}
 
 	/**
@@ -1248,9 +1241,8 @@ public class MicrosoftAzureRestClient {
 		// .header(X_MS_VERSION_HEADER_NAME, X_MS_VERSION_HEADER_VALUE)
 		// .get(ClientResponse.class);
 
-		Operation operation = (Operation) MicrosoftAzureModelUtils
+		return (Operation) MicrosoftAzureModelUtils
 				.unmarshall(response.getEntity(String.class));
-		return operation;
 	}
 
 	private String getPublicIpFromDeployment(final Deployment deployment) {

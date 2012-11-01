@@ -136,8 +136,11 @@ public class LifecycleEventsContainer {
      */
     private String getParsedLifecyceEventMessageFromMap(final Map<String, Object> map) {
         // TODO:Check nulls
-        String cleanEventText = (map.get(EventLogConstants.getEventTextKey()))
-                .toString().split(" - ")[1];
+    	
+        String eventText = (map.get(EventLogConstants.getEventTextKey()))
+                .toString();
+        int delimiterIndex = eventText.indexOf('-');
+        String cleanEventText = eventText.substring(delimiterIndex);
         String outputMessage = '['
                 + map.get(EventLogConstants.getMachineHostNameKey()).toString()
                 + '/' + map.get(EventLogConstants.getMachineHostAddressKey())

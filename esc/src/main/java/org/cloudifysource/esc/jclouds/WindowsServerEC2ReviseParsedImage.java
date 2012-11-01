@@ -51,7 +51,7 @@ public class WindowsServerEC2ReviseParsedImage extends AWSEC2ReviseParsedImage {
 	@Override
 	public void reviseParsedImage(final org.jclouds.ec2.domain.Image from, final ImageBuilder builder,
 			final OsFamily family, final OperatingSystem.Builder osBuilder) {
-		if (family.equals(OsFamily.UNRECOGNIZED)) {
+		if (family == OsFamily.UNRECOGNIZED) {
 			if (from.getName() == null) {
 				return;
 			}

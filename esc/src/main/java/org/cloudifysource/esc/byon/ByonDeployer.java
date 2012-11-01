@@ -589,7 +589,7 @@ public class ByonDeployer {
 		boolean result = false;
 
 		if (hostRange.contains("-")) {
-			final String ipRangeStart = hostRange.substring(0, hostRange.indexOf("-"));
+			final String ipRangeStart = hostRange.substring(0, hostRange.indexOf('-'));
 			if (IPUtils.validateIPAddress(ipRangeStart)) {
 				result = true;
 			}
@@ -679,14 +679,14 @@ public class ByonDeployer {
 		final String ipRange = nodeMap.get(CLOUD_NODE_HOST_RANGE).trim();
 
 		// syntax validation (IPs are validated later, through IPUtils)
-		final int ipDashIndex = ipRange.indexOf("-");
+		final int ipDashIndex = ipRange.indexOf('-');
 		if (ipDashIndex < 0) {
 			throw new CloudProvisioningException(EMPTY_IP_RANGE_ERR_MESSAGE);
 		}
 
 		// run through the range of IPs
-		final String ipRangeStart = ipRange.substring(0, ipRange.indexOf("-"));
-		final String ipRangeEnd = ipRange.substring(ipRange.indexOf("-") + 1);
+		final String ipRangeStart = ipRange.substring(0, ipRange.indexOf('-'));
+		final String ipRangeEnd = ipRange.substring(ipRange.indexOf('-') + 1);
 
 		if (IPUtils.ip2Long(ipRangeStart) < IPUtils.ip2Long(ipRangeEnd)) {
 			if (isIdTemplate(nodeId)) {

@@ -20,7 +20,6 @@ import groovy.lang.Script;
 
 import java.beans.PropertyDescriptor;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -59,7 +58,6 @@ import org.cloudifysource.dsl.cloud.CloudUser;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntryFactory;
 import org.cloudifysource.dsl.entry.ExecutableEntriesMap;
-import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.scalingrules.HighThresholdDetails;
 import org.cloudifysource.dsl.scalingrules.LowThresholdDetails;
 import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
@@ -135,7 +133,7 @@ public abstract class BaseDslScript extends Script {
 		return false;
 	}
 
-	private boolean isProperyExistsInBean(final Object bean, final String propertyName) {
+	private static boolean isProperyExistsInBean(final Object bean, final String propertyName) {
 		if (bean == null) {
 			throw new NullPointerException("Got a null reference to a bean while checking if a bean has the property: "
 					+ propertyName);
@@ -165,36 +163,22 @@ public abstract class BaseDslScript extends Script {
 		if (this.usedProperties.contains(name)) {
 			if (!isDuplicatePropertyAllowed(value)) {
 				throw new IllegalArgumentException("Property duplication was found: Property "
-						+ name + " is defined more than once.");
+						+ name + " is define" + "d more than once.");
 			}
 		}
 
 		this.usedProperties.add(name);
-
+		Object convertedValue = null;
 		try {
-			PropertyDescriptor descriptor = PropertyUtils.getPropertyDescriptor(object, name);
-			Class<?> propertyType = descriptor.getPropertyType();
-			if (propertyType.equals(ExecutableDSLEntry.class)) {
-				final File workDirectory = getDSLFile().getParentFile();
-
-				final ExecutableDSLEntry executableEntry =
-						ExecutableDSLEntryFactory.createEntry(value, name, workDirectory);
-				BeanUtils.setProperty(object, name, executableEntry);
-			} else if (propertyType.equals(ExecutableEntriesMap.class)) {
-				final File workDirectory = getDSLFile().getParentFile();
-				final ExecutableEntriesMap entriesMap =
-						ExecutableDSLEntryFactory.createEntriesMap(value, name, workDirectory);
-				BeanUtils.setProperty(object, name, entriesMap);
-
-			} else {
-
-				if (logger.isLoggable(Level.FINEST)) {
-					logger.finest("BeanUtils.setProperty(object=" + object + ",name=" + name + ",value=" + value
-							+ ",value.getClass()=" + value.getClass());
-				}
-				// Then set it
-				BeanUtils.setProperty(object, name, value);
+			convertedValue = convertValueToExecutableDSLEntryIfNeeded(getDSLFile().getParentFile(), 
+					object, name, value);
+			if (logger.isLoggable(Level.FINEST)) {
+				logger.finest("BeanUtils.setProperty(object=" + object 
+						+ ",name=" + name + ",value=" + convertedValue
+						+ ",value.getClass()=" + convertedValue.getClass());
 			}
+			// Then set it
+			BeanUtils.setProperty(object, name, convertedValue);
 		} catch (final DSLValidationException e) {
 			throw new DSLValidationRuntimeException(e);
 		} catch (final Exception e) {
@@ -204,6 +188,37 @@ public abstract class BaseDslScript extends Script {
 
 		checkForApplicationServiceBlockNameParameter(name, value);
 
+	}
+
+	/**
+	 * Convert the value to an ExecutableDSLEntry object if object's property type is 
+	 * ExecutableDSLEntry or ExecutableEntriesMap. 
+	 * Returns value otherwise.
+	 * @param workDirectory workDirectory  
+	 * @param object object
+	 * @param name property name
+	 * @param value property value
+	 * @return The converted object
+	 * @throws IllegalAccessException IllegalAccessException
+	 * @throws InvocationTargetException InvocationTargetException
+	 * @throws NoSuchMethodException NoSuchMethodException
+	 * @throws DSLValidationException DSLValidationException
+	 */
+	public static Object convertValueToExecutableDSLEntryIfNeeded(final File workDirectory, 
+			final Object object, final String name, final Object value) 
+					throws IllegalAccessException, InvocationTargetException,
+					NoSuchMethodException, DSLValidationException {
+
+		PropertyDescriptor descriptor = PropertyUtils.getPropertyDescriptor(object, name);
+		Class<?> propertyType = descriptor.getPropertyType();
+		if (propertyType.equals(ExecutableDSLEntry.class)) {
+			return ExecutableDSLEntryFactory.createEntry(value, name, workDirectory);
+		} else if (propertyType.equals(ExecutableEntriesMap.class)) {
+			return ExecutableDSLEntryFactory.createEntriesMap(value, name, workDirectory);
+
+		} else {
+			return value;
+		}
 	}
 
 	private File getDSLFile() {
@@ -237,7 +252,7 @@ public abstract class BaseDslScript extends Script {
 					this.rootObject = retval;
 				}
 				swapActiveObject(closure, retval);
-				if(isValidateObjects()) {
+				if (isValidateObjects()) {
 					try {
 						validateObject(retval);
 					} catch (final DSLValidationException e) {
@@ -337,6 +352,7 @@ public abstract class BaseDslScript extends Script {
 			if (method.getAnnotation(DSLValidation.class) != null) {
 				final boolean accessible = method.isAccessible();
 				try {
+					@SuppressWarnings("unchecked")
 					final Map<Object, Object> currentVars = this.getBinding().getVariables();
 					DSLValidationContext validationContext = new DSLValidationContext();
 					validationContext.setFilePath((String) currentVars.get(DSLReader.DSL_FILE_PATH_PROPERTY_NAME));
@@ -365,9 +381,9 @@ public abstract class BaseDslScript extends Script {
 		}
 	}
 
-	private boolean handleSpecialProperty(final String name, Object arg)
+	private boolean handleSpecialProperty(final String name, final Object arg)
 			throws DSLException {
-
+		Object localArg = arg;
 		if (name.equals(EXTEND_PROPERTY_NAME)) {
 			if (propertyCounter > 1) {
 				throw new DSLException(EXTEND_PROPERTY_NAME + " must be first inside the service block");
@@ -377,15 +393,15 @@ public abstract class BaseDslScript extends Script {
 				if (arr.length != 1) {
 					throw new DSLException(EXTEND_PROPERTY_NAME + " property must be a single string");
 				}
-				arg = ((Object[]) arg)[0];
+				localArg = ((Object[]) arg)[0];
 			}
-			if (!(arg instanceof String)) {
+			if (!(localArg instanceof String)) {
 				throw new DSLException(EXTEND_PROPERTY_NAME + " property must be a string");
 			}
 			if (!(this.activeObject instanceof Service)) {
 				throw new DSLException(EXTEND_PROPERTY_NAME + " property can only be used on a service");
 			}
-			final String extendServicePath = (String) arg;
+			final String extendServicePath = (String) localArg;
 			try {
 				File extendedServiceAbsPath = new File(extendServicePath);
 				if (!extendedServiceAbsPath.isAbsolute()) {
@@ -452,6 +468,10 @@ public abstract class BaseDslScript extends Script {
 		return service;
 	}
 
+	/**
+	 * 
+	 *
+	 */
 	public static class DSLObjectInitializerData {
 
 		private final Class<?> clazz;
@@ -583,11 +603,12 @@ public abstract class BaseDslScript extends Script {
 			// internal node
 			if (data.isAllowInternalNode()) {
 				// check that node is nested under allowed element
-				if (data.getParentElement() != null && !data.getParentElement().isEmpty()) {
-					final DSLObjectInitializerData parentType = getDSLInitializers().get(data.getParentElement());
+				String parentElement = data.getParentElement();
+				if (parentElement != null && !parentElement.isEmpty()) {
+					final DSLObjectInitializerData parentType = getDSLInitializers().get(parentElement);
 					if (parentType == null) {
 						throw new IllegalStateException("The DSL type " + name + " has a declared parent type of "
-								+ data.getParentElement() + " which is not a known type. This should not happen.");
+								+ parentElement + " which is not a known type. This should not happen.");
 					}
 					if (!parentType.getClazz().isAssignableFrom(this.activeObject.getClass())) {
 						throw new DSLException("The type: " + name + " may only be nested under elements of type "
@@ -632,8 +653,8 @@ public abstract class BaseDslScript extends Script {
 	// Only one of stateless/stateful/lifecycle may be set
 	private boolean isDuplicateProcessingUnit(final String name) {
 
-		final Set<String> processingUnitTypes = getProcessingUnitTypes();
-		if (processingUnitTypes.contains(name)) {
+		final Set<String> types = getProcessingUnitTypes();
+		if (types.contains(name)) {
 			if (StringUtils.isEmpty(this.processingUnitType)) {
 				this.processingUnitType = name;
 			} else {
@@ -711,6 +732,7 @@ public abstract class BaseDslScript extends Script {
 
 	}
 
+	@SuppressWarnings("unchecked")
 	private Service loadApplicationService(final String serviceName) {
 		// First find the service dir
 
@@ -729,19 +751,20 @@ public abstract class BaseDslScript extends Script {
 		// Load the service
 		DSLServiceCompilationResult result;
 		try {
-			result = ServiceReader.getServiceFromDirectory(serviceDir, ((Application) this.rootObject).getName());
-		} catch (final FileNotFoundException e) {
-			throw new IllegalArgumentException("Failed to load service: " + serviceName
-					+ " while loading application: " + e.getMessage(),
-					e);
-		} catch (final PackagingException e) {
-			throw new IllegalArgumentException("Failed to load service: " + serviceName
-					+ " while loading application: " + e.getMessage(),
-					e);
+			Object applicationProperties = getBinding().getVariables().get(DSLUtils.DSL_PROPERTIES);
+			Map<String, Object> applicationPropertiesMap = null;
+			if (applicationProperties != null) {
+				if (applicationProperties instanceof Map) {
+					applicationPropertiesMap = (Map<String, Object>) applicationProperties;
+				} else {
+					throw new DSLException("applicationProperties must be a map.");
+				}
+			}
+			result = ServiceReader.getApplicationServiceFromDirectory(serviceDir, applicationPropertiesMap);
+
 		} catch (final DSLException e) {
 			throw new IllegalArgumentException("Failed to load service: " + serviceName
-					+ " while loading application: " + e.getMessage(),
-					e);
+					+ " while loading application: " + e.getMessage(), e);
 		}
 		final Service service = result.getService();
 

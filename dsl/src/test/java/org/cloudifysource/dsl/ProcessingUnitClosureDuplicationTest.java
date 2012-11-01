@@ -45,7 +45,7 @@ public class ProcessingUnitClosureDuplicationTest {
 			replaceTextInFile(serviceFile, processingUnitTypes[0] , processingUnitTypes[i]);
 			verifyServiceFileIsNotParsable(serviceFile);
 			for (int j = 1; j < this.processingUnitTypes.length; j++) {
-				replaceFirstOccurrenceInFile(serviceFile, processingUnitTypes[j-1], processingUnitTypes[j]);
+				replaceFirstOccurrenceInFile(serviceFile, processingUnitTypes[j - 1], processingUnitTypes[j]);
 				verifyServiceFileIsNotParsable(serviceFile);
 			}
 		}
@@ -54,7 +54,7 @@ public class ProcessingUnitClosureDuplicationTest {
 		replaceTextInFile(serviceFile, processingUnitTypes[4], processingUnitTypes[0]);
 	}
 
-	private void verifyServiceFileIsNotParsable(File serviceFile) {
+	private void verifyServiceFileIsNotParsable(final File serviceFile) {
 		try {
 			ServiceReader.readService(serviceFile);
 			Assert.assertFalse("Service file was parsed successfully when was suppose to fail. File content was: "
@@ -62,8 +62,11 @@ public class ProcessingUnitClosureDuplicationTest {
 		} catch (PackagingException e) {
 			Throwable cause = e.getCause().getCause();
 			Assert.assertTrue("Exception was not caused by DSLException", cause instanceof DSLException);
-			Assert.assertTrue("the proper exception was not thrown. expecting parsing to fail due to multiple processingUnit closures in serviceFile"
-									, cause.getMessage().contains("There may only be one type of processing unit defined. Found more than one"));
+			Assert.assertTrue(
+					"the proper exception was not thrown. expecting parsing to fail" 
+							+ " due to multiple processingUnit closures in serviceFile"
+					, cause.getMessage()
+					.contains("There may only be one type of processing unit defined. Found more than one"));
 		} catch (DSLException e) {
 			Assert.assertFalse("Failed on packaging. Exception was " + ExceptionUtils.getStackTrace(e), true);
 		} catch (IOException e) {
@@ -71,14 +74,16 @@ public class ProcessingUnitClosureDuplicationTest {
 		}
 	}
 
-	private void replaceTextInFile(File file, String target, String replacement) throws IOException {
+	private void replaceTextInFile(final File file, final String target, final String replacement) 
+			throws IOException {
 		String originalFileContents = FileUtils.readFileToString(file);
 		String modified = originalFileContents;
 		modified = modified.replace(target,  replacement);
 		FileUtils.write(file, modified);
 	}
 	
-	private void replaceFirstOccurrenceInFile(File file, String target, String replacement) throws IOException {
+	private void replaceFirstOccurrenceInFile(final File file, final String target, final String replacement) 
+			throws IOException {
 		String originalFileContents = FileUtils.readFileToString(file);
 		String modified = originalFileContents;
 		modified = modified.replaceFirst(target,  replacement);

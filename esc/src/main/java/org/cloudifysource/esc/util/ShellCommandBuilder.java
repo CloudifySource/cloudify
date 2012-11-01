@@ -95,7 +95,7 @@ public class ShellCommandBuilder {
 	 * @return this.
 	 */
 	public ShellCommandBuilder call(final String str) {
-		if (this.mode.equals(RemoteExecutionModes.SSH)) {
+		if (this.mode == RemoteExecutionModes.SSH) {
 			sb.append(str);
 		} else {
 			final String normalizedPathCommand = normalizeCifsPath(str);

@@ -357,15 +357,13 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	private void modifyLinuxCommandLine(final List<String> commandLineParams, final File puWorkDir) {
 		String executeScriptName = commandLineParams.get(0);
 		final File executeFile = new File(puWorkDir, executeScriptName);
-		if (executeFile != null) {
-			final File parent = executeFile.getParentFile();
-			if (parent != null && parent.equals(puWorkDir)) {
-				if (executeScriptName.endsWith(".sh") && !executeScriptName.startsWith(LINUX_EXECUTE_PREFIX)) {
-					commandLineParams.remove(0);
-					executeScriptName = LINUX_EXECUTE_PREFIX + executeScriptName;
-					commandLineParams.add(0,
-							executeScriptName);
-				}
+		final File parent = executeFile.getParentFile();
+		if (parent != null && parent.equals(puWorkDir)) {
+			if (executeScriptName.endsWith(".sh") && !executeScriptName.startsWith(LINUX_EXECUTE_PREFIX)) {
+				commandLineParams.remove(0);
+				executeScriptName = LINUX_EXECUTE_PREFIX + executeScriptName;
+				commandLineParams.add(0,
+						executeScriptName);
 			}
 		}
 

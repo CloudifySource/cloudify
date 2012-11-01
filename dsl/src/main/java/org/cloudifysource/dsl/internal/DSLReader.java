@@ -37,8 +37,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.Service;
-import org.cloudifysource.dsl.context.ServiceContext;
 import org.cloudifysource.dsl.internal.context.ServiceContextImpl;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.codehaus.groovy.control.CompilationFailedException;
@@ -72,16 +72,22 @@ public class DSLReader {
 	private File dslFile;
 	private File workDir;
 
+	private String dslName; 
+	private String dslFileNamePrefix;
 	private String dslFileNameSuffix;
-
+	
 	private File propertiesFile;
+	private File overridesFile;
 
 	private boolean createServiceContext = true;
 
 	private final Map<String, Object> bindingProperties = new HashMap<String, Object>();
+	private Map<String, Object> overrideProperties = new HashMap<String, Object>();
+	private Map<String, Object> overrideFields = new HashMap<String, Object>();
+	private Map<String, Object> applicationProperties;
 
 	private String dslContents;
-	
+
 	private boolean validateObjects = true;
 
 	/*******
@@ -97,15 +103,15 @@ public class DSLReader {
 	/************
 	 * Default file name suffix for application files.
 	 */
-	public static final String APPLICATION_DSL_FILE_NAME_SUFFIX = "-application.groovy";
+	public static final String APPLICATION_DSL_FILE_NAME_SUFFIX = DSLUtils.APPLICATION_FILE_NAME_SUFFIX + ".groovy";
 	/**************
 	 * Default file name suffix for cloud files.
 	 */
 	public static final String CLOUD_DSL_FILE_NAME_SUFFIX = "-cloud.groovy";
 
 	private static final String[] STAR_IMPORTS = new String[] {
-			org.cloudifysource.dsl.Service.class.getPackage().getName(), UserInterface.class.getPackage().getName(),
-			org.cloudifysource.dsl.internal.context.ServiceImpl.class.getPackage().getName() };
+		org.cloudifysource.dsl.Service.class.getPackage().getName(), UserInterface.class.getPackage().getName(),
+		org.cloudifysource.dsl.internal.context.ServiceImpl.class.getPackage().getName() };
 
 	public static final String DSL_FILE_PATH_PROPERTY_NAME = "dslFilePath";
 	public static final String DSL_VALIDATE_OBJECTS_PROPERTY_NAME = "validateObjectsFlag";
@@ -113,6 +119,9 @@ public class DSLReader {
 	private void initDslFile()
 			throws FileNotFoundException {
 		if (dslFile != null) {
+			if (workDir == null) {
+				workDir = dslFile.getParentFile();
+			}
 			return;
 		}
 
@@ -136,7 +145,10 @@ public class DSLReader {
 			throw new IllegalArgumentException(workDir.getAbsolutePath() + " must be a directory");
 		}
 
-		this.dslFile = findDefaultDSLFile(dslFileNameSuffix, workDir);
+		dslFile = findDefaultDSLFile(dslFileNameSuffix, workDir);
+		if (workDir == null) {
+			workDir = dslFile.getParentFile();
+		}
 
 	}
 
@@ -145,7 +157,7 @@ public class DSLReader {
 	 * 
 	 * @param fileNameSuffix .
 	 * @param dir .
-	 * @return .
+	 * @return the file.
 	 */
 	public static File findDefaultDSLFile(final String fileNameSuffix, final File dir) {
 
@@ -170,13 +182,63 @@ public class DSLReader {
 		return files[0];
 	}
 
+	/**
+	 * 
+	 * @param fileNameSuffix .
+	 * @param dir .
+	 * @return The found file or null.
+	 */
+	public static File findDefaultDSLFileIfExists(
+			final String fileNameSuffix, final File dir) {
+		File found = null;
+		try {
+			found = findDefaultDSLFile(fileNameSuffix, dir);
+		} catch (IllegalArgumentException e) {
+			if (e.getMessage().contains("Found multiple configuration files")) {
+				throw e;
+			}
+		}
+		return found;
+	}
+	
 	private void init()
 			throws IOException {
 		initDslFile();
+		setDslName();
 		initPropertiesFile();
-
+		initOverridesFile();
 	}
 
+	private void initOverridesFile() throws IOException {
+		overridesFile = getFileIfExist(overridesFile, dslFileNamePrefix + DSLUtils.OVERRIDES_FILE_SUFFIX);		
+	}
+
+	private static void createDSLOverrides(final File file, final Map<String, Object> overridesMap) 
+			throws IOException {
+		if (file == null) {
+			return;
+		}
+		try {
+			ConfigObject parse = new ConfigSlurper().parse(file.toURI().toURL());
+			parse.flatten(overridesMap);
+		} catch (final Exception e) {
+			throw new IOException("Failed to read overrides file: " + file, e);
+		} 
+	}
+	private Map<String, Object> createApplicationProperties() throws IOException {
+		File externalPropertiesFile = getFileIfExist(null, DSLUtils.APPLICATION_PROPERTIES_FILE_NAME);
+		Map<String, Object> externalProperties = new HashMap<String, Object>();
+		createDSLOverrides(externalPropertiesFile, externalProperties);
+		File externalOverridesFile = getFileIfExist(null, DSLUtils.APPLICATION_OVERRIDES_FILE_NAME);
+		Map<String, Object> externalOverrides = new HashMap<String, Object>();
+		createDSLOverrides(externalOverridesFile, externalOverrides);
+		if (externalOverrides != null) {
+			for (Entry<String, Object> entry : externalOverrides.entrySet()) {
+				externalProperties.put(entry.getKey(), entry.getValue());
+			}
+		}
+		return externalProperties;
+	}
 	/*********
 	 * Executes the current DSL reader, returning the required Object type.
 	 * 
@@ -212,10 +274,14 @@ public class DSLReader {
 		LinkedHashMap<Object, Object> properties = null;
 		try {
 			properties = createDSLProperties();
+			createDSLOverrides(overridesFile, overrideProperties);
+			overrideProperties(properties);
+			addApplicationProperties(properties);
 		} catch (final Exception e) {
 			// catching exception here, as groovy config slurper may throw just
 			// about anything
-			throw new IllegalArgumentException("Failed to load properties file " + this.propertiesFile, e);
+			throw new IllegalArgumentException("Failed to load properties file " + this.propertiesFile.getName() 
+					+ ": " + e.getMessage() , e);
 		}
 
 		if (this.variables != null) {
@@ -245,6 +311,9 @@ public class DSLReader {
 		if (result == null) {
 			throw new DSLException("The DSL evaluated to a null - check your syntax and try again");
 		}
+
+//		overrideFields(result);
+
 		if (this.createServiceContext) {
 			if (!(result instanceof Service)) {
 				throw new IllegalArgumentException(
@@ -267,6 +336,39 @@ public class DSLReader {
 
 		return result;
 
+	}
+	/**
+	 * 
+	 * @param properties the properties to add to
+	 * @throws IOException 
+	 */
+	private void addApplicationProperties(final Map<Object, Object> properties) throws IOException {
+		if (applicationProperties == null) {
+			applicationProperties = createApplicationProperties();
+		} 
+		for (Entry<String, Object>  entry : applicationProperties.entrySet()) {
+			properties.put(entry.getKey(), entry.getValue());
+		}
+	}
+
+	/**
+	 * 
+	 * @param properties the properties to override
+	 */
+	private void overrideProperties(final LinkedHashMap<Object, Object> properties) {
+		if (overridesFile == null) {
+			return;
+		}
+		for (Entry<String, Object>  entry : overrideProperties.entrySet()) {
+			String key = entry.getKey();
+			Object propertyValue = entry.getValue();
+			if (properties.containsKey(key)) {
+				properties.put(key, propertyValue);
+			} else {
+				throw new IllegalArgumentException("Cannot override property[" 
+						+ key + "]. It doesn't exist in the properties file.");			
+			}
+		}		
 	}
 
 	private Object evaluateGroovyScript(final GroovyShell gs)
@@ -330,17 +432,7 @@ public class DSLReader {
 		}
 		// look for default properties file
 		// using format <dsl file name>.properties
-		final String baseFileName = dslFile.getName();
-
-		final int indexOfLastComma = baseFileName.lastIndexOf('.');
-		String fileNamePrefix;
-		if (indexOfLastComma < 0) {
-			fileNamePrefix = baseFileName;
-		} else {
-			fileNamePrefix = baseFileName.substring(0, indexOfLastComma);
-		}
-
-		final String defaultPropertiesFileName = fileNamePrefix + ".properties";
+		final String defaultPropertiesFileName = dslFileNamePrefix + DSLUtils.PROPERTIES_FILE_SUFFIX;
 
 		final File defaultPropertiesFile = new File(workDir, defaultPropertiesFileName);
 
@@ -349,6 +441,49 @@ public class DSLReader {
 			this.propertiesFile = defaultPropertiesFile;
 		}
 
+	}
+
+	private File getFileIfExist(final File file, final String defaultFileName)
+			throws IOException {
+		if (file != null) {			
+			if (!file.exists()) {
+				throw new FileNotFoundException("Could not find overrides file: " 
+						+ file.getAbsolutePath());
+			}
+			if (!file.isFile()) {
+				throw new FileNotFoundException(this.overridesFile.getName() + " is not a file!");
+			}
+			return file;
+		} 
+		if (this.dslFile == null) {
+			return null;
+		}
+		// look for default properties file
+		// using format <dsl file name>.suffix
+		final File defaultOverridesFile = new File(workDir, defaultFileName);
+		if (defaultOverridesFile.exists()) {
+			return defaultOverridesFile;
+		}
+
+		return null;
+	}
+
+	private void setDslName() {
+		if (dslFile == null) {
+			return;
+		}
+		final String baseFileName = dslFile.getName();
+		final int indexOfLastComma = baseFileName.lastIndexOf('.');
+		if (indexOfLastComma < 0) {
+			dslName = baseFileName;
+		} else {
+			dslName = baseFileName.substring(0, indexOfLastComma);
+		}
+		dslFileNamePrefix = dslName;
+		final int indexOfHyphen = dslName.indexOf('-');
+		if (indexOfHyphen >= 0) {
+			dslName = dslName.substring(0, indexOfHyphen);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -361,7 +496,6 @@ public class DSLReader {
 
 		try {
 			final ConfigObject config = new ConfigSlurper().parse(propertiesFile.toURI().toURL());
-
 			return config;
 		} catch (final Exception e) {
 			throw new IOException("Failed to read properties file: " + propertiesFile, e);
@@ -387,13 +521,13 @@ public class DSLReader {
 
 		final CompilerConfiguration cc = createCompilerConfiguration(baseClassName, serviceJarFiles);
 
-		final Binding binding = createGroovyBinding(properties, context, dslFile);
+		final Binding binding = createGroovyBinding(properties);
 
 		final GroovyShell gs = new GroovyShell(ServiceReader.class.getClassLoader(), binding, cc);
 		return gs;
 	}
 
-	private CompilerConfiguration createCompilerConfiguration(final String baseClassName,
+	private static CompilerConfiguration createCompilerConfiguration(final String baseClassName,
 			final List<String> extraJarFileNames) {
 		final CompilerConfiguration cc = new CompilerConfiguration();
 		final ImportCustomizer ic = new ImportCustomizer();
@@ -412,8 +546,7 @@ public class DSLReader {
 		return cc;
 	}
 
-	private Binding createGroovyBinding(final LinkedHashMap<Object, Object> properties, final ServiceContext context,
-			final File dslFile) {
+	private Binding createGroovyBinding(final LinkedHashMap<Object, Object> properties) {
 		final Binding binding = new Binding();
 
 		final Set<Entry<String, Object>> bindingPropertiesEntries = this.bindingProperties.entrySet();
@@ -426,6 +559,11 @@ public class DSLReader {
 			for (final Entry<Object, Object> entry : entries) {
 				binding.setVariable((String) entry.getKey(), entry.getValue());
 			}
+			// add variable that contains all the properties 
+			// 		to distinguish between properties and other binding variables.
+			// This will be used in loading application's service process 
+			// 		to transfer application properties to the service using the application's binding.
+			binding.setVariable(DSLUtils.DSL_PROPERTIES, properties);
 			if (context != null) {
 				binding.setVariable("context", context);
 			}
@@ -472,6 +610,25 @@ public class DSLReader {
 
 		logger.fine("Extra jar files list: " + result);
 		return result;
+	}
+
+	/**
+	 * Checks if the overrides name fits the naming convention of recipe files.
+	 * If fits, returns the given overridesFile, else copies the file and change its name accordingly. 
+	 * @param overridesFile The file to copy
+	 * @param dslName The DSL name
+	 * @return the overrides file or a copy of it with the write name (*-application.overrides).
+	 * @throws IOException if an IO error occurs during copying.
+	 */
+	public static File copyOverridesFile(final File overridesFile, final String dslName) throws IOException {
+		String overridesFileName = dslName + DSLUtils.APPLICATION_FILE_NAME_SUFFIX + DSLUtils.OVERRIDES_FILE_SUFFIX;
+		if (overridesFileName.equals(overridesFile.getName())) {
+			return overridesFile;	
+		}
+		File copiedOverridesFile = new File(overridesFileName);
+		FileUtils.copyFile(overridesFile, copiedOverridesFile);
+		copiedOverridesFile.deleteOnExit();
+		return copiedOverridesFile;
 	}
 
 	// //////////////
@@ -566,6 +723,14 @@ public class DSLReader {
 		this.dslFileNameSuffix = dslFileNameSuffix;
 	}
 
+	public String getDslName() {
+		return dslName;
+	}
+
+	public void setDslName(final String dslName) {
+		this.dslName = dslName;
+	}
+
 	public boolean isLoadUsmLib() {
 		return loadUsmLib;
 	}
@@ -582,9 +747,37 @@ public class DSLReader {
 	public boolean isValidateObjects() {
 		return validateObjects;
 	}
-	
-	public void setValidateObjects(boolean isValidateObjects) {
+
+	public void setValidateObjects(final boolean isValidateObjects) {
 		this.validateObjects = isValidateObjects;
+	}
+	
+	public File getPropertiesFile() {
+		return this.propertiesFile;
+	}
+
+	public File getOverridesFile() {
+		return this.overridesFile;
+	}
+
+	public void setOverridesFile(final File overridesFile) {
+		this.overridesFile = overridesFile;
+	}
+
+	public Map<String, Object> getOverrides() {
+		return this.overrideProperties;
+	}
+
+	public Map<String, Object> getOverrideFields() {
+		return this.overrideFields;
+	}
+
+	public Map<String, Object> getApplicationProperties() {
+		return applicationProperties;
+	}
+
+	public void setApplicationProperties(final Map<String, Object> applicationProperties) {
+		this.applicationProperties = applicationProperties;
 	}
 
 }

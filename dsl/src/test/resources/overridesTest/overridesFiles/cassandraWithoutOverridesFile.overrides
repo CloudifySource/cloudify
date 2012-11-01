@@ -1,0 +1,3 @@
+serviceName = "overridesTest"
+lifecycle_init = "${serviceName}_install.groovy"
+numInstances = 3

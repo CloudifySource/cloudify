@@ -66,7 +66,7 @@ public class ProcessStopDetector extends AbstractUSMEventListener implements Sto
 		}
 
 		// special handling for the 'recipe about nothing' scenario.
-		if (pids.size() == 0) {
+		if (pids.isEmpty()) {
 			return false;
 		}
 		if (stopOnAllProcessesDead) {

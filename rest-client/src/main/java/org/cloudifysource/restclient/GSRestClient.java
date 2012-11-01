@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -39,6 +40,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
+import org.apache.http.StatusLine;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
@@ -79,9 +81,6 @@ public class GSRestClient {
     private static final String STATUS_KEY = "status";
     private static final String ERROR = "error";
 
-    private static final int NOT_FOUND_404_ERROR_CODE = 404;
-
-    private static final int HTTP_STATUS_OK = 200;
     // org.springframework.http.HttpStatus.OK.value();
 
     private static final Logger logger = Logger.getLogger(GSRestClient.class.getName());
@@ -219,7 +218,7 @@ public class GSRestClient {
         InputStream instream = null;
         try {
             final HttpResponse response = httpClient.execute(httpMethod);
-            if (response.getStatusLine().getStatusCode() != HTTP_STATUS_OK) {
+            if (response.getStatusLine().getStatusCode() != CloudifyConstants.HTTP_STATUS_CODE_OK) {
                 logger.log(Level.FINE, httpMethod.getURI() + MSG_RESPONSE_CODE
                         + response.getStatusLine().getStatusCode());
                 throw new RestException(response.getStatusLine().toString());
@@ -289,7 +288,7 @@ public class GSRestClient {
         try {
             final HttpResponse response = httpClient.execute(httpMethod);
             final int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode != HTTP_STATUS_OK) {
+            if (statusCode != CloudifyConstants.HTTP_STATUS_CODE_OK) {
                 if (logger.isLoggable(Level.FINE)) {
                     logger.log(Level.FINE, httpMethod.getURI() + MSG_RESPONSE_CODE + statusCode);
                 }
@@ -310,7 +309,7 @@ public class GSRestClient {
                         throw e;
                     }
                 } catch (final IOException e) {
-                    if (statusCode == NOT_FOUND_404_ERROR_CODE) {
+                    if (statusCode == CloudifyConstants.HTTP_STATUS_NOT_FOUND) {
                         throw new ErrorStatusException(e, "URL_not_found", httpMethod.getURI());
                     }
                     throw new ErrorStatusException(e, "CLI_unable_to_parse_to_JSON", responseBody);
@@ -376,11 +375,14 @@ public class GSRestClient {
      */
     private Map<String, Object> readHttpAdminMethod(final HttpRequestBase httpMethod) throws RestException {
         InputStream instream = null;
-        try {
+        URI uri = httpMethod.getURI();
+		try {
             final HttpResponse response = httpClient.execute(httpMethod);
-            if (response.getStatusLine().getStatusCode() != HTTP_STATUS_OK) {
-                final String message = httpMethod.getURI() + " response (code "
-                        + response.getStatusLine().getStatusCode() + ") " + response.getStatusLine().toString();
+            StatusLine statusLine = response.getStatusLine();
+			int statusCode = statusLine.getStatusCode();
+			if (statusCode != CloudifyConstants.HTTP_STATUS_CODE_OK) {
+                final String message = uri + " response (code "
+                        + statusCode + ") " + statusLine.toString();
                 if (logger.isLoggable(Level.FINE)) {
                     logger.log(Level.FINE, message);
                 }
@@ -388,22 +390,22 @@ public class GSRestClient {
             }
             final HttpEntity entity = response.getEntity();
             if (entity == null) {
-                final ErrorStatusException e = new ErrorStatusException(REASON_CODE_COMM_ERR, httpMethod.getURI(),
+                final ErrorStatusException e = new ErrorStatusException(REASON_CODE_COMM_ERR, uri,
                         MSG_RESPONSE_ENTITY_NULL);
-                logger.log(Level.FINE, httpMethod.getURI() + MSG_RESPONSE_ENTITY_NULL, e);
+                logger.log(Level.FINE, uri + MSG_RESPONSE_ENTITY_NULL, e);
                 throw e;
             }
             instream = entity.getContent();
             final String responseBody = StringUtils.getStringFromStream(instream);
-            logger.finer(httpMethod.getURI() + MSG_HTTP_GET_RESPONSE + responseBody);
+            logger.finer(uri + MSG_HTTP_GET_RESPONSE + responseBody);
             final Map<String, Object> responseMap = GSRestClient.jsonToMap(responseBody);
             return responseMap;
         } catch (final ClientProtocolException e) {
-            logger.log(Level.FINE, httpMethod.getURI() + MSG_REST_API_ERR, e);
-            throw new ErrorStatusException(e, REASON_CODE_COMM_ERR, httpMethod.getURI(), MSG_REST_API_ERR);
+            logger.log(Level.FINE, uri + MSG_REST_API_ERR, e);
+            throw new ErrorStatusException(e, REASON_CODE_COMM_ERR, uri, MSG_REST_API_ERR);
         } catch (final IOException e) {
-            logger.log(Level.FINE, httpMethod.getURI() + MSG_REST_API_ERR, e);
-            throw new ErrorStatusException(e, REASON_CODE_COMM_ERR, httpMethod.getURI(), MSG_REST_API_ERR);
+            logger.log(Level.FINE, uri + MSG_REST_API_ERR, e);
+            throw new ErrorStatusException(e, REASON_CODE_COMM_ERR, uri, MSG_REST_API_ERR);
         } finally {
             if (instream != null) {
                 try {
@@ -461,8 +463,7 @@ public class GSRestClient {
                 httpdelete.getParams().setParameter(entry.getKey(), entry.getValue());
             }
         }
-        Object executeHttpMethod = executeHttpMethod(httpdelete);
-        return executeHttpMethod;
+        return executeHttpMethod(httpdelete);
     }
 
     /**

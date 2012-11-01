@@ -60,8 +60,9 @@ public class EventLoggingTailer {
 		List<String> outputList = new ArrayList<String>();
 		for (Map<String, String> map : allLines) {
 			Map<String, Object> sortedMap = new TreeMap<String, Object>(map);
-			if (!eventsSet.contains(sortedMap.toString())) {
-				eventsSet.add(sortedMap.toString());
+			String storedMapStr = sortedMap.toString();
+			if (!eventsSet.contains(storedMapStr)) {
+				eventsSet.add(storedMapStr);
 				outputMessage = getMessageFromMap(sortedMap);
 				outputList.add(outputMessage);
 			}
@@ -79,10 +80,9 @@ public class EventLoggingTailer {
 		//TODO: add null check.
 		String cleanEventText = (lifecycleEventMap.get(EventLogConstants.getEventTextKey()))
 				.toString().split(" - ")[1];
-		String outputMessage = '['
+		return '['
 				+ lifecycleEventMap.get(EventLogConstants.getMachineHostNameKey()).toString()
 				+ '/' + lifecycleEventMap.get(EventLogConstants.getMachineHostAddressKey())
 				+ "] " + cleanEventText;
-		return outputMessage;
 	}
 }

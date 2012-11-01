@@ -59,7 +59,7 @@
 	<property name="gigaspaces.related.folder" value="${package.build}/gigaspaces" />
 	<property name="gs-webui.related.folder" value="${package.build}/gs-webui" />
 	<property name="platform.verion.file.name" value="CloudifyVersion.java" />
-	<property name="cloudify.maven.container" value="gigaspaces-maven-repository" />
+	<property name="cloudify.maven.container" value="gigaspaces-maven-repository-eu" />
 	<property name="cloudify.cdn.publish.url" value="http://repository.cloudifysource.org" />
 	<property name="cloudify.put.source" value="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
  	<property name="cloudify.put.target" value="org/cloudifysource/${s3.cloudify.publish.folder}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
@@ -70,7 +70,7 @@
 	<property name="bigdata.gzip.put.source" value="${releases.dir}/build_${gs.build.number}/${xap.bigdata.dir}/1.5/${xap.installation.dir}-b${gs.build.number}.tar.gz" />
 	<property name="bigdata.gzip.put.target" value="com/gigaspaces/xap/${s3.gs.publish.folder}/${xap.installation.dir}-b${gs.build.number}.tar.gz" />
 	<property name="tools.lib.dir" value="${basedir}/tools/lib" />
-	<property name="cloudify.base.container" value="gigaspaces-repository" />
+	<property name="cloudify.base.container" value="gigaspaces-repository-eu" />
 	<property name="cloudify.base.publish.url" value="https://s3.amazonaws.com/${cloudify.base.container}" />
 	<property name="build.properties.file" value="${basedir}/build.properties"/>
 	<property name="cloudify.parent.pom.file" value="${basedir}/pom.xml"/>
@@ -327,8 +327,6 @@
     	 
         <ant target="archive.cloudify.versions"/>
     	
-    	<!-- conditional task (with property: publish.cloudify.build) -->
-    	<ant target="publish.cloudify.to.storage" />
 		<delete dir="${tmp.dir}"/>
  	</target>	
 	
@@ -341,7 +339,7 @@
 	
 	<target name="remove.xap.related.modules">
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/docs" />
-		<delete file="${tmp.dir}/${cloudify.installation.dir}/lib/optional/openspaces/gs-openspaces-src.zip" />
+		<delete file="${tmp.dir}/${cloudify.installation.dir}/lib/optional/openspaces/gs-openspaces-sources.zip" />
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/examples" />
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/tools/benchmark"/>
 		<delete dir="${tmp.dir}/${cloudify.installation.dir}/tools/apache"/>
@@ -438,10 +436,17 @@
 		<ant target="prepare.cloudify.package" />
 		<ant target="prepare.bigdata.package" />
 		<ant target="copy.packages.to.build.repository" />
+		
+		<!-- conditional task (with property: publish.cloudify.build) -->
+    	<ant target="publish.bigdata.to.storage" />
+		
+		<!-- conditional task (with property: publish.cloudify.build) -->
+    	<ant target="publish.cloudify.to.storage" />
+		
 		<ant target="publish.cloudify.jars.to.maven.repository" />
 	</target>
 	
-	<target name="publish.cloudify.jars.to.maven.repository">
+	<target name="publish.cloudify.jars.to.maven.repository"  if="publish.cloudify.build">
 		<echo message="uploading cloudify jar artifacts to S3" />
 				
 		<exec executable="${mvn.executable}">
@@ -497,8 +502,6 @@
 		
 		<ant target="archive.bigdata.version" />
 		
-    	<!-- conditional task (with property: publish.cloudify.build) -->
-    	<ant target="publish.bigdata.to.storage" />
 		<delete dir="${tmp.dir}"/>
 	</target>
 	

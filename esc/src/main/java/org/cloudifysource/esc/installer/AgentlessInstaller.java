@@ -590,12 +590,20 @@ public class AgentlessInstaller {
 						details.getOverridesUrl() != null ? "\""
 								+ details.getOverridesUrl() + "\"" : "")
 				.exportVar(WORKING_HOME_DIRECTORY_ENV, remoteDirectory)
+				.exportVar(CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVATE_IP,
+						details.getPrivateIp())				
+				.exportVar(CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP,
+						details.getPublicIp())
+				.exportVar(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME,
+						details.getTemplateName())
+		
+				// maintain backwards compatibility for pre 2.3.0
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP,
 						details.getPrivateIp())
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP,
-						details.getPublicIp())
-				.exportVar(CloudifyConstants.CLOUDIFY_CLOUD_TEMPLATE_NAME,
-						details.getTemplateName());
+						details.getPrivateIp());
+
+
 
 		if (details.getReservationId() != null) {
 			scb.exportVar(GSA_RESERVATION_ID_ENV, details.getReservationId().toString());

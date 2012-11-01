@@ -69,10 +69,8 @@ public class Invoke extends AdminAwareCommand {
 	protected Object doExecute()
 			throws Exception {
 		// Containing all the success invocation messages.
-		final StringBuilder invocationSuccessStringBuilder = new StringBuilder();
-		// Containing all the failed invocation messages.
-		final StringBuilder invocationFailedStringBuilder = new StringBuilder();
-		invocationSuccessStringBuilder.append("Invocation results: " + System.getProperty("line.separator"));
+		final StringBuilder invocationSuccessStringBuilder = new StringBuilder("Invocation results: ");
+		invocationSuccessStringBuilder.append(System.getProperty("line.separator"));
 
 		String applicationName = this.getCurrentApplicationName();
 		if (applicationName == null) {
@@ -84,6 +82,8 @@ public class Invoke extends AdminAwareCommand {
 			paramsMap = getParamsMap(params);
 		}
 
+		// Containing all the failed invocation messages.
+		final StringBuilder invocationFailedStringBuilder = new StringBuilder();
 		if (instanceId == null) { // Invoking command on all of the service's instances.
 			final Map<String, InvocationResult> result = adminFacade.invokeServiceCommand(applicationName,
 					serviceName, beanName, commandName, paramsMap);
@@ -97,12 +97,12 @@ public class Invoke extends AdminAwareCommand {
 					final String successMessage = getFormattedMessage("invocation_success",
 							invocationResult.getInstanceId(), invocationResult.getInstanceName(),
 							invocationResult.getResult());
-					invocationSuccessStringBuilder.append(successMessage + System.getProperty("line.separator"));
+					invocationSuccessStringBuilder.append(successMessage).append(System.getProperty("line.separator"));
 				} else {
 					final String failedMessage = getFormattedMessage("invocation_failed",
 							invocationResult.getInstanceId(), invocationResult.getInstanceName(),
 							invocationResult.getExceptionMessage());
-					invocationFailedStringBuilder.append(failedMessage + System.getProperty("line.separator"));
+					invocationFailedStringBuilder.append(failedMessage).append(System.getProperty("line.separator"));
 				}
 			}
 		} else { // instanceID specified. invoking command on specific instance.
@@ -113,12 +113,12 @@ public class Invoke extends AdminAwareCommand {
 				final String successMessage = getFormattedMessage("invocation_success",
 						invocationResult.getInstanceId(), invocationResult.getInstanceName(),
 						invocationResult.getResult());
-				invocationSuccessStringBuilder.append(successMessage + System.getProperty("line.separator"));
+				invocationSuccessStringBuilder.append(successMessage).append(System.getProperty("line.separator"));
 			} else {
 				final String failedMessage = getFormattedMessage("invocation_failed",
 						invocationResult.getInstanceId(), invocationResult.getInstanceName(),
 						invocationResult.getExceptionMessage());
-				invocationFailedStringBuilder.append(failedMessage + System.getProperty("line.separator"));
+				invocationFailedStringBuilder.append(failedMessage).append(System.getProperty("line.separator"));
 			}
 		}
 		// print the success messages to the screen.

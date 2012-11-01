@@ -17,6 +17,8 @@ package org.cloudifysource.shell.commands;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -29,7 +31,8 @@ import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.Application;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.internal.DSLReader;
+import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
 import org.cloudifysource.shell.Constants;
@@ -79,12 +82,17 @@ public class InstallApplication extends AdminAwareCommand {
 					+ "for this application")
 	private File cloudConfiguration;
 
+	@Option(required = false, name = "-overrides",
+			description = "File containing proeprties to be used to overrides current application's proeprties.")
+	private File overrides;
+	
 	private static final String TIMEOUT_ERROR_MESSAGE = "Application installation timed out."
 			+ " Configure the timeout using the -timeout flag.";
 
 	/**
 	 * {@inheritDoc}
 	 */
+	@SuppressWarnings("boxing")
 	@Override
 	protected Object doExecute()
 			throws Exception {
@@ -93,7 +101,8 @@ public class InstallApplication extends AdminAwareCommand {
 		}
 
 		logger.info("Validating file " + applicationFile.getName());
-		final Application application = ServiceReader.getApplicationFromFile(applicationFile).getApplication();
+		final DSLReader dslReader = createDslReader();
+		final Application application = dslReader.readDslEntity(Application.class);		
 
 		if (StringUtils.isBlank(applicationName)) {
 			applicationName = application.getName();
@@ -112,13 +121,16 @@ public class InstallApplication extends AdminAwareCommand {
 				throw new CLIStatusException("application_file_format_mismatch", applicationFile.getPath());
 			}
 		} else { // pack an application folder
-			if (cloudConfigurationZipFile == null) {
-				zipFile = Packager.packApplication(application, applicationFile);
-			} else {
-				zipFile =
-						Packager.packApplication(application, applicationFile,
-								new File[] { cloudConfigurationZipFile });
+			List<File> additionalServiceFiles  = new LinkedList<File>();
+			if (cloudConfigurationZipFile != null) {
+				additionalServiceFiles.add(cloudConfigurationZipFile);
+			} 
+			List<File> additionalApplicationFile = new LinkedList<File>();
+			if (overrides != null) {
+				additionalApplicationFile.add(DSLReader.copyOverridesFile(overrides, dslReader.getDslName()));
 			}
+			zipFile = Packager.packApplication(application, applicationFile
+					, additionalApplicationFile, additionalServiceFiles);
 		}
 
 		// toString of string list (i.e. [service1, service2])
@@ -131,17 +143,20 @@ public class InstallApplication extends AdminAwareCommand {
 
 		// If temp file was created, Delete it.
 		if (!applicationFile.isFile()) {
-			zipFile.delete();
+			boolean delete = zipFile.delete();
+			if (!delete) {
+				logger.info("Failed to delete application file: " + zipFile.getAbsolutePath());
+			}
 		}
 
 		if (serviceOrder.charAt(0) != '[' && serviceOrder.charAt(serviceOrder.length() - 1) != ']') {
 			throw new IllegalStateException("Cannot parse service order response: " + serviceOrder);
 		}
 		printApplicationInfo(application);
-		
+
 		session.put(Constants.ACTIVE_APP, applicationName);
 		GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
-		
+
 		final String pollingID = result.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
 		final RestLifecycleEventsLatch lifecycleEventsPollingLatch =
 				this.adminFacade.getLifecycleEventsPollingLatch(pollingID, TIMEOUT_ERROR_MESSAGE);
@@ -163,13 +178,22 @@ public class InstallApplication extends AdminAwareCommand {
 				if (!continueInstallation) {
 					throw new CLIStatusException(e, "application_installation_timed_out_on_client",
 							applicationName);
-				} else {
-					continuous = true;
 				}
+				continuous = true;
 			}
 		}
 
 		return this.getFormattedMessage("application_installed_succesfully", Color.GREEN, applicationName);
+	}
+
+	private DSLReader createDslReader() {
+		final DSLReader dslReader = new DSLReader();
+		File dslFile = DSLReader.findDefaultDSLFile(DSLReader.APPLICATION_DSL_FILE_NAME_SUFFIX, applicationFile);
+		dslReader.setDslFile(dslFile);
+		dslReader.setCreateServiceContext(false);
+		dslReader.addProperty(DSLUtils.APPLICATION_DIR, dslFile.getParentFile().getAbsolutePath());
+		dslReader.setOverridesFile(overrides);
+		return dslReader;
 	}
 
 	private File createCloudConfigurationZipFile()
@@ -186,9 +210,13 @@ public class InstallApplication extends AdminAwareCommand {
 		// create a temp file in a temp directory
 		final File tempDir = File.createTempFile("__Cloudify_Cloud_configuration", ".tmp");
 		FileUtils.forceDelete(tempDir);
-		tempDir.mkdirs();
-
+		boolean mkdirs = tempDir.mkdirs();
+		if (!mkdirs) {
+			logger.info("Field to create temporary directory " + tempDir.getAbsolutePath());
+		}
 		final File tempFile = new File(tempDir, CloudifyConstants.SERVICE_CLOUD_CONFIGURATION_FILE_NAME);
+		logger.info("Created temporary file " + tempFile.getAbsolutePath()
+				+ " in temporary directory" + tempDir.getAbsolutePath());
 
 		// mark files for deletion on JVM exit
 		tempFile.deleteOnExit();
@@ -217,8 +245,9 @@ public class InstallApplication extends AdminAwareCommand {
 	 * @param application Application object to analyze
 	 */
 	private void printApplicationInfo(final Application application) {
-		logger.info("Application [" + applicationName + "] with " + application.getServices().size() + " services");
-		for (final Service service : application.getServices()) {
+		List<Service> services = application.getServices();
+		logger.info("Application [" + applicationName + "] with " + services.size() + " services");
+		for (final Service service : services) {
 			if (service.getDependsOn().isEmpty()) {
 				logger.info("Service [" + service.getName() + "] " + service.getNumInstances() + " planned instances");
 			} else { // Service has dependencies

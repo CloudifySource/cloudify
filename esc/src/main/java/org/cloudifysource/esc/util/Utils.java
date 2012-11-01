@@ -281,7 +281,7 @@ public final class Utils {
 			final String keyFile, final List<String> fileSystemObjects, final FileTransferModes fileTransferMode)
 			throws IOException {
 
-		if (!fileTransferMode.equals(FileTransferModes.SCP)) {
+		if (!(fileTransferMode == FileTransferModes.SCP)) {
 			throw new IOException("File deletion is currently not supported for this file transfer protocol ("
 					+ fileTransferMode + ")");
 		}
@@ -363,7 +363,7 @@ public final class Utils {
 			objectsExist = false;
 		}
 
-		if (!fileTransferMode.equals(FileTransferModes.SCP)) {
+		if (!(fileTransferMode == FileTransferModes.SCP)) {
 			// TODO Support get with CIFS as well
 			throw new IOException("File resolving is currently not supported for this file transfer protocol ("
 					+ fileTransferMode + ")");
@@ -502,23 +502,29 @@ public final class Utils {
 		}
 
 		if (template.getHardwareId() != null) {
+			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.GIGASPACES_CLOUD_HARDWARE_ID,
+					template.getHardwareId());
+			// maintain backwards for pre 2.3.0
 			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.CLOUDIFY_CLOUD_HARDWARE_ID,
 					template.getHardwareId());
 
 		}
 
 		if (template.getImageId() != null) {
-			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.CLOUDIFY_CLOUD_IMAGE_ID,
+			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.GIGASPACES_CLOUD_IMAGE_ID,
 					template.getImageId());
+			// maintain backwards for pre 2.3.0
+			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.CLOUDIFY_CLOUD_IMAGE_ID,
+					template.getImageId());			
 		}
 
 		// Add the template privileged mode flag
-		details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVILEGED,
+		details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVILEGED,
 				Boolean.toString(template.isPrivileged()));
 
 		// Add the template initialization command
 		if (!org.apache.commons.lang.StringUtils.isBlank(template.getInitializationCommand())) {
-			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.CLOUDIFY_AGENT_ENV_INIT_COMMAND,
+			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.GIGASPACES_AGENT_ENV_INIT_COMMAND,
 					template.getInitializationCommand());
 		}
 
@@ -529,7 +535,7 @@ public final class Utils {
 		}
 
 		if (!org.apache.commons.lang.StringUtils.isBlank(template.getJavaUrl())) {
-			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.CLOUDIFY_AGENT_ENV_JAVA_URL,
+			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.GIGASPACES_AGENT_ENV_JAVA_URL,
 					template.getJavaUrl());
 		}
 

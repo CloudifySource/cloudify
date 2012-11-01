@@ -665,8 +665,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 				"Content-Type", "application/json").post(
 				String.class, json);
 
-		String autenticationTokenId = getAutenticationTokenIdFromResponse(resp);
-		return autenticationTokenId;
+		return getAutenticationTokenIdFromResponse(resp);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -676,8 +675,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 			Map<String, Object> readValue = mapper.readValue(new StringReader(resp), Map.class);
 			Map<String, Object> accessMap = (Map<String, Object>) readValue.get("access");
 			Map<String, String> tokenMap = (Map<String, String>) accessMap.get("token");
-			String tokenId = tokenMap.get("id");
-			return tokenId;
+			return tokenMap.get("id");
 		} catch (JsonParseException e) {
 			throw new RuntimeException(e);
 		} catch (JsonMappingException e) {

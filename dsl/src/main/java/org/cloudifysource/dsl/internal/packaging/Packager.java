@@ -20,7 +20,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -69,15 +68,37 @@ public final class Packager {
 	 * 
 	 * @param recipeDirOrFile
 	 *            the recipe directory or recipe file.
+<<<<<<< HEAD
+	 * @param additionalServiceFiles
+	 *            files to add to the service directory.
+=======
+>>>>>>> 88e40d7... CLOUDIFY-1126 Fix checkStyle and bugs found by findBugs.
+	 * @return the packed file.
+	 * @throws DSLException
+	 * @throws IOException .
+	 * @throws PackagingException .
+	 * @throws DSLException .
+	 */
+	public static File pack(final File recipeDirOrFile) throws IOException,
+			PackagingException, DSLException {
+		return pack(recipeDirOrFile, null);
+	}
+
+	/*************
+	 * Pack a service recipe folder into a zip file.
+	 * 
+	 * @param recipeDirOrFile
+	 *            the recipe directory or recipe file.
 	 * @param additionalServiceFiles
 	 *            files to add to the service directory.
 	 * @return the packed file.
+	 * @throws DSLException
 	 * @throws IOException .
 	 * @throws PackagingException .
 	 * @throws DSLException .
 	 */
 	public static File pack(final File recipeDirOrFile,
-			final File[] additionalServiceFiles) throws IOException,
+			final List<File> additionalServiceFiles) throws IOException,
 			PackagingException, DSLException {
 		// Locate recipe file
 		final File recipeFile = recipeDirOrFile.isDirectory() ? DSLReader
@@ -85,57 +106,58 @@ public final class Packager {
 						recipeDirOrFile) : recipeDirOrFile;
 		// Parse recipe into service
 		final Service service = ServiceReader.readService(recipeFile);
-		return Packager.pack(recipeFile, service, additionalServiceFiles);
+		return pack(recipeFile, false, service, additionalServiceFiles);
 	}
 
-	/**
-	 * Pack the file and name it 'destFileName'.
+	/****************
+	 * Packs a service folder.
 	 * 
 	 * @param recipeDirOrFile
-	 *            - Folder or file to pack.
-	 * @param destFileName
-	 *            - The packed file name.
-	 * @return Packed file named as specified.
+	 *            .
+	 * @param service
+	 *            .
+	 * @param additionalServiceFiles
+	 *            files to add to the service directory.
+	 * @return the packed file.
+	 * @throws PackagingException . 
 	 * @throws IOException .
-	 * @throws PackagingException .
 	 * @throws DSLException .
 	 */
-	public static File pack(final File recipeDirOrFile,
-			final String destFileName, final File[] additionalServiceFiles)
-			throws IOException, PackagingException, DSLException {
-		final File packed = pack(recipeDirOrFile, additionalServiceFiles);
-		final File destFile = new File(packed.getParent(), destFileName
-				+ ".zip");
-		if (destFile.exists()) {
-			FileUtils.deleteQuietly(destFile);
+	public static File pack(final File recipeDirOrFile, final Service service,
+			final List<File> additionalServiceFiles) 
+					throws IOException, PackagingException, DSLException {
+		if (service == null) {
+			return pack(recipeDirOrFile, additionalServiceFiles);
 		}
-		if (packed.renameTo(destFile)) {
-			FileUtils.deleteQuietly(packed);
-			return destFile;
-		}
-		logger.info("Failed to rename " + packed.getName() + " to "
-				+ destFile.getName());
-		return packed;
-
+		return pack(recipeDirOrFile, recipeDirOrFile.isDirectory(), service,
+				additionalServiceFiles);
 	}
 
 	// This method is used by SGTest. Do not change visibility.
 	/****************
 	 * Packs a service folder.
 	 * 
-	 * @param recipeFile
+	 * @param recipeDirOrFile
 	 *            .
+	 * @param isDir
+	 *            true if recipeDirOrFile is a Directory.
 	 * @param service
 	 *            .
 	 * @param additionalServiceFiles
-	 *            .
-	 * @return .
+	 *            files to add to the service directory.
+	 * @return the packed file.
 	 * @throws IOException .
 	 * @throws PackagingException .
 	 */
-	public static File pack(final File recipeFile, final Service service,
-			final File[] additionalServiceFiles) throws IOException,
-			PackagingException {
+	public static File pack(final File recipeDirOrFile, final boolean isDir,
+			final Service service, final List<File> additionalServiceFiles)
+			throws IOException, PackagingException {
+		File recipeFile = recipeDirOrFile;
+		if (isDir) {
+			recipeFile = DSLReader.findDefaultDSLFile(
+					DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX, recipeDirOrFile);
+		}
+
 		if (!recipeFile.isFile()) {
 			throw new IllegalArgumentException(recipeFile + " is not a file");
 		}
@@ -153,12 +175,56 @@ public final class Packager {
 		return puZipFile;
 	}
 
+	/**
+	 * Pack the file and name it 'destFileName'.
+	 * 
+	 * @param service .
+<<<<<<< HEAD
+	 * @param recipeDirOrFile Folder or file to pack.
+	 * @param destFileName The packed file name.
+	 * @param additionalServiceFiles files to add to the service directory.
+=======
+	 * @param recipeDirOrFile
+	 *            Folder or file to pack.
+	 * @param destFileName
+	 *            The packed file name.
+	 * @param additionalServiceFiles
+	 *            files to add to the service directory.
+>>>>>>> 88e40d7... CLOUDIFY-1126 Fix checkStyle and bugs found by findBugs.
+	 * @return Packed file named as specified.
+	 * @throws DSLException
+	 *             DSLException.
+	 * @throws IOException
+	 *             IOException.
+	 * @throws PackagingException
+	 *             PackagingException.
+	 */
+	public static File pack(final Service service, final File recipeDirOrFile,
+			final String destFileName, final List<File> additionalServiceFiles)
+			throws IOException, PackagingException, DSLException {
+		final File packed = pack(recipeDirOrFile, service,
+				additionalServiceFiles);
+		final File destFile = new File(packed.getParent(), destFileName
+				+ ".zip");
+		if (destFile.exists()) {
+			FileUtils.deleteQuietly(destFile);
+		}
+		if (packed.renameTo(destFile)) {
+			FileUtils.deleteQuietly(packed);
+			return destFile;
+		}
+		logger.info("Failed to rename " + packed.getName() + " to "
+				+ destFile.getName());
+		return packed;
+
+	}
+
 	private static File createZippedPu(final Service service,
 			final File puFolderToZip, final File recipeFile)
 			throws IOException, PackagingException {
 		logger.finer("trying to zip " + puFolderToZip.getAbsolutePath());
-		final String serviceName = service.getName() != null ? service
-				.getName() : recipeFile.getParentFile().getName();
+		String name = service.getName();
+		final String serviceName = name != null ? name : recipeFile.getParentFile().getName();
 
 		// create a temp dir under the system temp dir
 		final File tmpFile = File.createTempFile("ServicePackage", null);
@@ -197,7 +263,7 @@ public final class Packager {
 	 * @throws PackagingException
 	 */
 	private static File buildPuFolder(final Service service,
-			final File recipeFile, final File[] additionalServiceFiles)
+			final File recipeFile, final List<File> additionalServiceFiles)
 			throws IOException, PackagingException {
 		final File srcFolder = recipeFile.getParentFile();
 		final File destPuFolder = File.createTempFile("gs_usm_", "");
@@ -318,7 +384,8 @@ public final class Packager {
 	 */
 	public static File packApplication(final Application application,
 			final File applicationDir) throws IOException, PackagingException {
-		return packApplication(application, applicationDir, new File[0]);
+		return packApplication(application, applicationDir,
+				new LinkedList<File>());
 	}
 
 	/***************
@@ -332,12 +399,42 @@ public final class Packager {
 	 *            additional files that should be packaged into each service
 	 *            directory.
 	 * @return the packaged zip file.
-	 * @throws IOException .
-	 * @throws PackagingException .
+	 * @throws IOException
+	 *             IOException.
+	 * @throws PackagingException
+	 *             PackagingException.
 	 */
 	public static File packApplication(final Application application,
-			final File applicationDir, final File[] additionalServiceFiles)
+			final File applicationDir, final List<File> additionalServiceFiles)
 			throws IOException, PackagingException {
+		return packApplication(application, applicationDir, null,
+				additionalServiceFiles);
+	}
+
+	/***************
+	 * Packs an application folder into a zip file.
+	 * 
+	 * @param application
+	 *            the application object as read from the application file.
+	 * @param applicationDir
+	 *            the directory where the application was read from.
+	 * @param additionalApplicationFiles
+	 *            additional files that should be packaged into application
+	 *            folder.
+	 * @param additionalServiceFiles
+	 *            additional files that should be packaged into each service
+	 *            directory.
+	 * @return the packaged zip file.
+	 * @throws IOException
+	 *             IOException.
+	 * @throws PackagingException
+	 *             PackagingException.
+	 */
+	public static File packApplication(final Application application,
+			final File applicationDir,
+			final List<File> additionalApplicationFiles,
+			final List<File> additionalServiceFiles) throws IOException,
+			PackagingException {
 
 		boolean hasExtendedServices = false;
 		for (final Service service : application.getServices()) {
@@ -366,7 +463,22 @@ public final class Packager {
 			applicationFolderToPack = destApplicationFolder;
 		}
 
-		if (additionalServiceFiles != null && additionalServiceFiles.length > 0) {
+		if (additionalApplicationFiles != null
+				&& !(additionalApplicationFiles.isEmpty())) {
+			// if a copy directory was already created, use the existing one,
+			// otherwise
+			// create a new one.
+			if (applicationFolderToPack == applicationDir) {
+				applicationFolderToPack = createCopyDirectory(applicationFolderToPack);
+			}
+			for (File fileToCopy : additionalApplicationFiles) {
+				FileUtils.copyFileToDirectory(fileToCopy,
+						applicationFolderToPack);
+			}
+		}
+
+		if ((additionalServiceFiles != null)
+				&& (!additionalServiceFiles.isEmpty())) {
 			// if a copy directory was already created, use the existing one,
 			// otherwise
 			// create a new one.
@@ -389,10 +501,9 @@ public final class Packager {
 				for (final File fileToCopy : additionalServiceFiles) {
 					FileUtils.copyFileToDirectory(fileToCopy, serviceDir);
 				}
-
 			}
-
 		}
+
 		// zip the application folder.
 		final File zipFile = File.createTempFile("application", ".zip");
 		zipFile.deleteOnExit();
@@ -413,7 +524,7 @@ public final class Packager {
 
 	private static void copyExtendedServiceFiles(final Service service,
 			final File recipeFile, final File extFolder)
-			throws FileNotFoundException, PackagingException, IOException {
+			throws IOException {
 		final LinkedList<String> extendedServicesPaths = service
 				.getExtendedServicesPaths();
 
@@ -550,8 +661,7 @@ public final class Packager {
 	}
 
 	private static File locateServiceFile(final File recipeFile,
-			final String extendedServicePath) throws FileNotFoundException,
-			PackagingException {
+			final String extendedServicePath) {
 		File extendedServiceFile = new File(extendedServicePath);
 		if (!extendedServiceFile.isAbsolute()) {
 			extendedServiceFile = new File(recipeFile.getParent() + "/"

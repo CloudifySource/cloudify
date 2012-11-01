@@ -344,6 +344,7 @@ public interface AdminFacade {
 	 * 
 	 * @param applicationName
 	 *            The name of the application to uninstall
+	 * @param timeoutInMinutes .
 	 * @return The uninstall response, as a key-value map
 	 * @throws CLIException
 	 *             Reporting a failure to uninstall the application
@@ -368,14 +369,30 @@ public interface AdminFacade {
 	 * @throws TimeoutException
 	 *             Reporting the timeout was reached
 	 */
-	public void waitForLifecycleEvents(final String pollingID,
+	void waitForLifecycleEvents(final String pollingID,
 			final int timeout, String timeoutMessage) throws CLIException,
 			InterruptedException, TimeoutException;
 
+	/**
+	 * 
+	 * @param applicationName .
+	 * @param serviceName .
+	 * @param count .
+	 * @param locationAware .
+	 * @param timeout .
+	 * @return
+	 * @throws CLIException .
+	 */
 	Map<String, String> setInstances(String applicationName,
 			String serviceName, int count, boolean locationAware, int timeout)
 			throws CLIException;
 
+	/**
+	 * 
+	 * @param pollingID .
+	 * @param timeoutMessage .
+	 * @return
+	 */
 	public RestLifecycleEventsLatch getLifecycleEventsPollingLatch(
 			final String pollingID, String timeoutMessage);
 
@@ -453,13 +470,13 @@ public interface AdminFacade {
 	 *            The applicatio name
 	 * @param attributes
 	 *            the attributes to set in the given scope
-	 * @throws CLIException
+	 * @throws CLIException .
 	 */
 	void updateAttributes(String scope, String applicationName,
 			Map<String, String> attributes) throws CLIException;
 
 	/**
-	 * List attributes for the given scope
+	 * List attributes for the given scope.
 	 * 
 	 * @param scope
 	 *            A String that represents scope. Can be "global", "application"
@@ -472,13 +489,13 @@ public interface AdminFacade {
 	 * @param applicationName
 	 *            The applicatio name
 	 * @return
-	 * @throws CLIException
+	 * @throws CLIException .
 	 */
 	Map<String, String> listAttributes(String scope, String applicationName)
 			throws CLIException;
 
 	/**
-	 * Delete attributes for the given scope
+	 * Delete attributes for the given scope.
 	 * 
 	 * @param scope
 	 *            A String that represents scope. Can be "global", "application"
@@ -492,6 +509,8 @@ public interface AdminFacade {
 	 *            The applicatio name
 	 * @param attributeNames
 	 *            the names of the attributes to delete
+	 * @throws CLIException .
+
 	 */
 	void deleteAttributes(String scope, String applicationName,
 			String... attributeNames) throws CLIException;

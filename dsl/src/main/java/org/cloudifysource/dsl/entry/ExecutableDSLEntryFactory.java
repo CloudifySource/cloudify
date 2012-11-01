@@ -17,6 +17,7 @@
 package org.cloudifysource.dsl.entry;
 
 import groovy.lang.Closure;
+import groovy.lang.GString;
 
 import java.io.File;
 import java.util.List;
@@ -63,8 +64,7 @@ public final class ExecutableDSLEntryFactory {
 	}
 
 	private static void
-			validateStringEntry(final StringExecutableEntry stringExecutableEntry, final File workDirectory)
-					throws DSLValidationException {
+			validateStringEntry(final StringExecutableEntry stringExecutableEntry, final File workDirectory) {
 		final String command = stringExecutableEntry.getCommand();
 		final String[] parts = command.split(" ");
 		final String fileName = parts[0];
@@ -104,20 +104,17 @@ public final class ExecutableDSLEntryFactory {
 			final StringExecutableEntry stringExecutableEntry = new StringExecutableEntry((String) arg);
 			validateStringEntry(stringExecutableEntry, workDirectory);
 			return stringExecutableEntry;
-		}
-		
-		if (arg instanceof List<?>) {
-			@SuppressWarnings("unchecked")
-			List<String> listString = (List<String>)arg;  
-			return new ListExecutableEntry(listString);
-		}
-		
-		if (arg instanceof Map<?, ?>) {
+		} else if (arg instanceof GString) {
+			return new StringExecutableEntry(arg.toString());
+		} else if (arg instanceof List<?>) {
+			return new ListExecutableEntry((List<String>) arg);
+		} else if (arg instanceof Map<?, ?>) {
+
 			// verify types of keys and objects, and create a new map with wrapper entry objects for each value.
 			final MapExecutableEntry result = new MapExecutableEntry();
 			copyElementsToEntriesMap(arg, entryName, result, workDirectory);
 			return result;
-		}
+		} 
 		throw new IllegalArgumentException("The entry: " + entryName
 				+ " is not a valid executable entry: The given value: " + arg + " is of type: "
 				+ arg.getClass().getName() + " which is not a valid type for an executable entry");
@@ -132,13 +129,14 @@ public final class ExecutableDSLEntryFactory {
 		final Set<Entry<Object, Object>> entries = originalMap.entrySet();
 
 		for (final Entry<Object, Object> entry : entries) {
-			if (!(entry.getKey() instanceof String)) {
+			Object key = entry.getKey();
+			if (!(key instanceof String)) {
 				throw new IllegalArgumentException("Entry " + entryName
-						+ " has a sub entry key which is not a string. Subentry was: " + entry.getKey());
+						+ " has a sub entry key which is not a string. Subentry was: " + key);
 			}
 			// RECURSIVE CALL!
-			final ExecutableDSLEntry executableEntry = createEntry(entry.getValue(), entry.getKey(), workDirectory);
-			result.put((String) entry.getKey(), executableEntry);
+			final ExecutableDSLEntry executableEntry = createEntry(entry.getValue(), key, workDirectory);
+			result.put((String) key, executableEntry);
 
 		}
 	}

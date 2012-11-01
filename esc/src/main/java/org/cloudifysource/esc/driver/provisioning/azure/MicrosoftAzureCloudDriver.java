@@ -363,7 +363,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 				exceptionsOnManagementStart.add(e);
 			}
 		}
-		if (exceptionsOnManagementStart.size() == 0) {
+		if (exceptionsOnManagementStart.isEmpty()) {
 			return managementMachinesDetails
 					.toArray(new MachineDetails[numberOfManagementMachines]);
 		} else {
@@ -500,7 +500,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 				exceptionOnStopMachines.add(e);
 			}
 		}
-		if (exceptionOnStopMachines.size() != 0) {
+		if (!(exceptionOnStopMachines.isEmpty())) {
 			if (logger.isLoggable(Level.FINEST)) {
 				logger.finest("here are all the exception caught from all threads");
 				for (Exception e : exceptionOnStopMachines) {

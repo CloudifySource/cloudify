@@ -185,9 +185,8 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 				throttlingTimeout = calcEndTimeInMillis(DEFAULT_TIMEOUT_AFTER_CLOUD_INTERNAL_ERROR,
 						TimeUnit.MILLISECONDS);
 				throw new CloudProvisioningException(STARTING_THROTTLING, e);
-			} else {
-				throw new CloudProvisioningException(e);
 			}
+			throw new CloudProvisioningException(e);
 		}
 		return md;
 	}
@@ -253,24 +252,23 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 		if (firstException == null) {
 			return machines.toArray(new MachineDetails[machines.size()]);
-		} else {
-			// in case of an exception, clear the machines
-			logger.warning("Provisioning of management machines failed, the following node will be shut down: "
-					+ machines);
-			for (final MachineDetails machineDetails : machines) {
-				try {
-					this.terminateServer(machineDetails.getMachineId(), token, endTime);
-				} catch (final Exception e) {
-					logger.log(Level.SEVERE,
-							"While shutting down machine after provisioning of management machines failed, "
-									+ "shutdown of node: " + machineDetails.getMachineId()
-									+ " failed. This machine may be leaking. Error was: " + e.getMessage(), e);
-				}
-			}
-
-			throw new CloudProvisioningException(
-					"Failed to launch management machines: " + firstException.getMessage(), firstException);
 		}
+		// in case of an exception, clear the machines
+		logger.warning("Provisioning of management machines failed, the following node will be shut down: "
+				+ machines);
+		for (final MachineDetails machineDetails : machines) {
+			try {
+				this.terminateServer(machineDetails.getMachineId(), token, endTime);
+			} catch (final Exception e) {
+				logger.log(Level.SEVERE,
+						"While shutting down machine after provisioning of management machines failed, "
+								+ "shutdown of node: " + machineDetails.getMachineId()
+								+ " failed. This machine may be leaking. Error was: " + e.getMessage(), e);
+			}
+		}
+
+		throw new CloudProvisioningException(
+				"Failed to launch management machines: " + firstException.getMessage(), firstException);
 	}
 
 	@Override
@@ -611,12 +609,10 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 		if (value == null) {
 			if (allowNull) {
 				return defaultValue;
-			} else {
-				throw new IllegalArgumentException("Template option '" + key + "' must be set");
 			}
-		} else {
-			return value;
+			throw new IllegalArgumentException("Template option '" + key + "' must be set");
 		}
+		return value;
 
 	}
 
@@ -635,12 +631,10 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 				md.setPrivateAddress(node.getPrivateIp());
 				break;
-			} else {
-				if (currentStatus.contains("error")) {
-					throw new OpenstackException("Server provisioning failed. Node ID: " + node.getId() + ", status: "
-							+ node.getStatus());
-				}
-
+			}
+			if (currentStatus.contains("error")) {
+				throw new OpenstackException("Server provisioning failed. Node ID: " + node.getId() + ", status: "
+						+ node.getStatus());
 			}
 
 			if (System.currentTimeMillis() > endTime) {
@@ -731,9 +725,8 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 			final Matcher m = Pattern.compile("\"ip\": \"([^\"]*)\"").matcher(resp);
 			if (m.find()) {
 				return m.group(1);
-			} else {
-				throw new IllegalStateException("Failed to allocate floating IP - IP not found in response");
 			}
+			throw new IllegalStateException("Failed to allocate floating IP - IP not found in response");
 		} catch (final UniformInterfaceException e) {
 			logRestError(e);
 			throw new IllegalStateException("Failed to allocate floating IP", e);

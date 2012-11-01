@@ -81,7 +81,7 @@ public abstract class BaseServiceScript extends Script {
 	}
 
 	@Override
-	public Object invokeMethod(String name, Object args) {
+	public Object invokeMethod(final String name, final Object args) {
 		Object[] argsArray = (Object[]) args;
 		if (argsArray.length == 1) {
 			DSLEntryResult result = methodMissingImpl(name, argsArray[0]);
@@ -207,7 +207,7 @@ public abstract class BaseServiceScript extends Script {
 		if (name.equals("statefulProcessingUnit")) {
 			return new StatefulProcessingUnit();
 		}
-		if (name.equalsIgnoreCase("mirrorProcessingUnit")){ 
+		if (name.equalsIgnoreCase("mirrorProcessingUnit")) { 
 			return new MirrorProcessingUnit();
 		}
 		if (name.equals("memcached")) {
@@ -223,6 +223,12 @@ public abstract class BaseServiceScript extends Script {
 		return null;
 	}
 
+	/**
+	 * 
+	 * @param closure .
+	 * @param obj .
+	 * @return .
+	 */
 	protected Object swapActiveObject(final Closure<Object> closure,
 			final Object obj) {
 		final Object prevObject = this.activeObject;
@@ -242,7 +248,7 @@ public abstract class BaseServiceScript extends Script {
 	}
 
 	@Override
-	public void println(Object obj) {
+	public void println(final Object obj) {
 		logger.info(obj.toString());
 	}
 
