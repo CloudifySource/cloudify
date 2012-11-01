@@ -16,9 +16,9 @@ public final class ServiceDetailsHelper {
 		final Map<String, Object> map = new HashMap<String, Object>();
 
 		final String privateIp = System
-				.getenv(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP);
+				.getenv(CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVATE_IP);
 		final String publicIp = System
-				.getenv(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP);
+				.getenv(CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP);
 
 		if (privateIp != null) {
 			map.put(CloudifyConstants.USM_DETAILS_PRIVATE_IP, privateIp);
@@ -33,13 +33,13 @@ public final class ServiceDetailsHelper {
 		}
 
 		final String imageId = System
-				.getenv(CloudifyConstants.CLOUDIFY_CLOUD_IMAGE_ID);
+				.getenv(CloudifyConstants.GIGASPACES_CLOUD_IMAGE_ID);
 		if (imageId != null) {
 			map.put(CloudifyConstants.USM_DETAILS_IMAGE_ID, imageId);
 		}
 
 		final String hardwareId = System
-				.getenv(CloudifyConstants.CLOUDIFY_CLOUD_HARDWARE_ID);
+				.getenv(CloudifyConstants.GIGASPACES_CLOUD_HARDWARE_ID);
 		if (hardwareId != null) {
 			map.put(CloudifyConstants.USM_DETAILS_HARDWARE_ID, hardwareId);
 		}
