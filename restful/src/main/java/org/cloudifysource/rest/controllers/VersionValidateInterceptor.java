@@ -18,7 +18,6 @@ package org.cloudifysource.rest.controllers;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -63,8 +62,7 @@ public class VersionValidateInterceptor extends HandlerInterceptorAdapter {
 							+ " header is missing, the request URI is "
 							+ request.getRequestURI());
 		} else if (!version.equals(currentVersion)) {
-			throw new ServletException("Version mismatch between Cloudify REST gateway and Cloudify CLI: CLI version is ["
-					+ version + "] while server version is [" + currentVersion + "]");
+			throw new RestErrorException("version_mismatch", version, currentVersion);
 		}
 		return true;
 	}
