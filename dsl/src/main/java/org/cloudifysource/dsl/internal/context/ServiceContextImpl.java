@@ -277,5 +277,10 @@ public class ServiceContextImpl implements ServiceContext {
 	public boolean isLocalCloud() {
 		return IsLocalCloudUtils.isLocalCloud();
 	}
+	
+	public String getPublicAddress() {
+		return "";
+		
+	}
 
 }
