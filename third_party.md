@@ -1,4 +1,4 @@
-GIGASPACES CLOUDIFY SOFTWARE � OPEN SOURCE AND THIRD PARTY COMPONENTS - Cloudify 2.0
+GIGASPACES CLOUDIFY SOFTWARE  - OPEN SOURCE AND THIRD PARTY COMPONENTS - Cloudify 2.0
 =====================================================================
 
 |Table Header 1|Table Header 2|
@@ -6,8 +6,8 @@ GIGASPACES CLOUDIFY SOFTWARE � OPEN SOURCE AND THIRD PARTY COMPONENTS - Cloudi
 |Content       |Cntent        |
 
 
-#  This is number 1.1
-# This is 1.2
+* This is number 1.1
+* This is 1.2
 
 #. This 1.2
 #. This 2.2
