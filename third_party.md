@@ -6,11 +6,9 @@ GIGASPACES CLOUDIFY SOFTWARE  - OPEN SOURCE AND THIRD PARTY COMPONENTS - Cloudif
 |Content       |Cntent        |
 
 
-* This is number 1.1
-* This is 1.2
+2. This is number 1.1
+5. This is 1.2
 
-#. This 1.2
-#. This 2.2
 
 
 
