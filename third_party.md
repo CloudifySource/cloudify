@@ -1,7 +1,7 @@
 GIGASPACES CLOUDIFY SOFTWARE  - OPEN SOURCE AND THIRD PARTY COMPONENTS - Cloudify 2.0
 =====================================================================
 
-|Artifact|Version|License|URL|
+|Artifact|Version|License
 |--------------|--------------|--------------|
 |ant|1.8.4|[Apache2.0](http://ant.apache.org/)|
 |asm|1.5.3|[BSD like](http://asm.objectweb.org/doc/tutorial.html)|
