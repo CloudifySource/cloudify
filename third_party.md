@@ -1,5 +1,18 @@
-GIGASPACES CLOUDIFY SOFTWARE – OPEN SOURCE AND THIRD PARTY COMPONENTS - Cloudify 2.0
+GIGASPACES CLOUDIFY SOFTWARE ï¿½ OPEN SOURCE AND THIRD PARTY COMPONENTS - Cloudify 2.0
 =====================================================================
+
+|Table Header 1|Table Header 2|
+|--------------|--------------|
+|Content       |Cntent        |
+
+
+#  This is number 1.1
+# This is 1.2
+
+#. This 1.2
+#. This 2.2
+
+
 
 1.	Karaf/2.2.3 (under the Apache License, Version 2.0)
 -------------------------------------------------------
@@ -178,7 +191,7 @@ http://www.apache.org/licenses/LICENSE-2.0.html
 http://jakarta.apache.org/commons/logging/
 http://www.apache.org/licenses/LICENSE-2.0.html
 
-41.	ASM (under “BSD Style” license)
+41.	ASM (under ï¿½BSD Styleï¿½ license)
 -------------------------------------------------------
 http://asm.objectweb.org/doc/tutorial.html
 http://asm.objectweb.org/doc/tutorial.html
@@ -233,7 +246,7 @@ http://www.jgraph.com/license.html
 http://www.programmers-friend.org/JOI/ 
 http://www.programmers-friend.org/cpl-v10.html
 
-52.	Winhoard - The Hoard Memory Allocator –  (under commercial license)
+52.	Winhoard - The Hoard Memory Allocator ï¿½  (under commercial license)
 -------------------------------------------------------
 http://www.cs.umass.edu/~emery/hoard/hoard-documentation.html
 http://www.otc.utexas.edu/Forms/SLAShortForm.doc
@@ -263,7 +276,7 @@ http://www.apache.org/licenses/LICENSE-2.0.html
 http://code.google.com/webtoolkit/
 http://code.google.com/webtoolkit/terms.html
 
-58.	Highcharts – (under OEM license)
+58.	Highcharts ï¿½ (under OEM license)
 -------------------------------------------------------
 http://www.highcharts.com/
 http://www.highcharts.com/license
@@ -311,7 +324,7 @@ http://www.apache.org/licenses/LICENSE-2.0
 http://www.graphdracula.net/
 http://www.opensource.org/licenses/mit-license.php
 
-68.	Raphael – JavaScript Vector Library (under MIT License)
+68.	Raphael ï¿½ JavaScript Vector Library (under MIT License)
 -------------------------------------------------------
 http://raphaeljs.com 
 http://raphaeljs.com/license.html   
