@@ -1,80 +1,80 @@
 GIGASPACES CLOUDIFY SOFTWARE  - OPEN SOURCE AND THIRD PARTY COMPONENTS - Cloudify 2.0
 =====================================================================
 
-ArtifactVersionLicenseURL
+|Artifact|Version|License|URL|
 |--------------|--------------|--------------|--------------|
-ant1.8.4Apache2.0http://ant.apache.org/
-asm1.5.3BSD likehttp://asm.objectweb.org/doc/tutorial.html
-Ccombo2MIT or GPL2.0http://christsam.blogspot.com/2011/05/ccombo-v20.html   
-cglib2.2.0Apache 2.0 + dep
-Code Mirror2.21MIThttp://codemirror.net/
-Commons Logging1.1.1Apache2.0http://jakarta.apache.org/commons/logging/
-commons math2.1Apache2.0http://commons.apache.org/math   
-commons-beanutils1.7.0Apache2.0http://commons.apache.org/
-commons-codec1.3Apache2.0http://commons.apache.org/codec/
-commons-collections3.2.1Apache2.0http://commons.apache.org/collections/
-commons-exec1.1.1Apache2.0http://commons.apache.org/
-Commons-fileupload1.2.2Apache2.0http://commons.apache.org/
-commons-io2.0.1Apache2.0http://commons.apache.org/
-Commons-lang2.4Apache2.0http://commons.apache.org/lang/
-Commons-vfs2Apache2.0http://commons.apache.org/
-cpdetector1.0.8MPL1.1http://cpdetector.sourceforge.net/
-dom4j1.6.1BSD likehttp://dom4j.sourceforge.net/dom4j-1.6.1
-Dracula Graph Library0.0.3alphaMIThttp://www.graphdracula.net/
-FileUpload1.2.2Apache2.0http://commons.apache.org/fileupload/
-Google Web Toolkit 2.4.0Apache2.0http://code.google.com/webtoolkit/
-gQuery (GWTQuery)1.1.0Apache2.0http://gwtquery.com
-groovy1.8.5Apache2.0http://groovy.codehaus.org/
-GWT Ext 2.2.5[Commercial](http://www.sencha.com/store/gwt/license.php)http://www.sencha.com/products/gwt/
-gwtupload0.6.3Apache2.0http://code.google.com/p/gwtupload/
-h2database1.2.132Modified MPL1.1 or EPL1.0http://www.h2database.com/html/license.html
-Highcharts 1.4.4OEM License (Commercial?)http://www.highcharts.com/
-HttpComponents4.1.3Apache2.0http://hc.apache.org/
-HyperSonic SQL (hsqldb)1.8.0BSDhttp://www.hsqldb.org/web/hsqlLicense.html
-Jackson1.3.0Apache2.0/LGPL2.1http://jackson.codehaus.org/
-Jargs1.0.0BSDhttp://jargs.sourceforge.net/ 
-jaxen1.1.1MIT likehttp://jaxen.codehaus.org/
-Jchardet1.0.0MPL1.1http://jchardet.sourceforge.net/
-JChart2D3.1.0LGPL 3.0http://jchart2d.sourceforge.net/index.shtml
-jclouds1.4.0Apache2.0http://www.jclouds.org/
-jetty8.1.2Apache2.0 oe EPL1.0http://www.mortbay.org/jetty/ 
-Jgoodies2.3.1BSDhttp://www.jgoodies.com
-jgrapht0.7.3LGPL 3.0http://www.jgrapht.org
-Jini2.0.1Apache2.0http://www.sun.com/software/jini/
-JMS1.1Sun Public License 1.0http://java.sun.com/products/jms/
-JOI - Java Object Inspector3.5.2CPL1.0http://www.programmers-friend.org/JOI/ 
-jQuery1.6.4/1.7.1/1.4.4MIT or GPL2.0http://jquery.com/
-jsch0.144-1BSD likehttp://www.jcraft.com/jsch/
-karaf2.2.5Apache2.0http://karaf.apache.org/
-log4j1.2Apache2.0http://logging.apache.org/log4j/1.2/
-Mime4J0.6Apache2.0http://james.apache.org/mime4j/
-Raphael – JavaScript Vector Library1.5.2MIThttp://raphaeljs.com 
-rio3.2Apache2.0http://www.rio-project.org/index.html
-SexyCombo2.1.3MIT or GPL2.0http://code.google.com/p/sexy-combo/
-sigar1.6.5Apache2.0http://support.hyperic.com/display/SIGAR/Home
-GWT Simile timeline1.5.1Apache2.0http://code.google.com/p/gwtsimiletimeline/
-Simile timeline2.4.0BSDhttp://www.simile-widgets.org/timeline/
-slf4j1.6.1MIThttp://www.slf4j.org/
-spring aopalliance1.0.0Public domain
-spring aop3.1.1Apache 2.0 + dep
-spring asm3.1.1Apache 2.0 + dep
-spring aspects3.1.1Apache 2.0 + dep
-spring beans3.1.1Apache 2.0 + dep
-spring context support3.1.1Apache 2.0 + dep
-spring context3.1.1Apache 2.0 + dep
-spring core3.1.1Apache 2.0 + dep
-spring expression3.1.1Apache 2.0 + dep
-spring jdbc3.1.1Apache 2.0 + dep
-spring jms3.1.1Apache 2.0 + dep
-spring orm3.1.1Apache 2.0 + dep
-spring oxm3.1.1Apache 2.0 + dep
-spring transaction3.1.1Apache 2.0 + dep
-spring web servlet3.1.1Apache 2.0 + dep
-spring web3.1.1Apache 2.0 + dep
-spring security core3.0.7Apache 2.0 + dep
-spring webmvc3.1.1Apache 2.0 + dep
-trove3.0.0LGPL 2.1http://trove4j.sourceforge.net/
-velocity1.5Apache2.0http://velocity.apache.org/
-windows-azure-java2.0.2.v20110627_1009Apache2.0http://www.windowsazure4j.org/ (/license)
-xerces2.9.0Apache2.0http://xml.apache.org/ 
-spring annotation1.0.0Apache2.0http://www.springframework.org/about
+|ant|1.8.4|Apache2.0|http://ant.apache.org/|
+|asm|1.5.3|BSD like|http://asm.objectweb.org/doc/tutorial.html|
+|Ccombo|2|MIT or GPL2.0|http://christsam.blogspot.com/2011/05/ccombo-v20.html   |
+|cglib|2.2.0|Apache 2.0 + dep||
+|Code Mirror|2.21|MIT|http://codemirror.net/|
+|Commons Logging|1.1.1|Apache2.0|http://jakarta.apache.org/commons/logging/|
+|commons math|2.1|Apache2.0|http://commons.apache.org/math   |
+|commons-beanutils|1.7.0|Apache2.0|http://commons.apache.org/|
+|commons-codec|1.3|Apache2.0|http://commons.apache.org/codec/|
+|commons-collections|3.2.1|Apache2.0|http://commons.apache.org/collections/|
+|commons-exec|1.1.1|Apache2.0|http://commons.apache.org/|
+|Commons-fileupload|1.2.2|Apache2.0|http://commons.apache.org/|
+|commons-io|2.0.1|Apache2.0|http://commons.apache.org/|
+|Commons-lang|2.4|Apache2.0|http://commons.apache.org/lang/|
+|Commons-vfs|2|Apache2.0|http://commons.apache.org/|
+|cpdetector|1.0.8|MPL1.1|http://cpdetector.sourceforge.net/|
+|dom4j|1.6.1|BSD like|http://dom4j.sourceforge.net/dom4j-1.6.1|
+|Dracula Graph Library|0.0.3alpha|MIT|http://www.graphdracula.net/|
+|FileUpload|1.2.2|Apache2.0|http://commons.apache.org/fileupload/|
+|Google Web Toolkit |2.4.0|Apache2.0|http://code.google.com/webtoolkit/|
+|gQuery (GWTQuery)|1.1.0|Apache2.0|http://gwtquery.com|
+|groovy|1.8.5|Apache2.0|http://groovy.codehaus.org/|
+|GWT Ext |2.2.5|[Commercial](http://www.sencha.com/store/gwt/license.php)|http://www.sencha.com/products/gwt/|
+|gwtupload|0.6.3|Apache2.0|http://code.google.com/p/gwtupload/|
+|h2database|1.2.132|Modified MPL1.1 or EPL1.0|http://www.h2database.com/html/license.html|
+|Highcharts |1.4.4|OEM License (Commercial?)|http://www.highcharts.com/|
+|HttpComponents|4.1.3|Apache2.0|http://hc.apache.org/|
+|HyperSonic SQL (hsqldb)|1.8.0|BSD|http://www.hsqldb.org/web/hsqlLicense.html|
+|Jackson|1.3.0|Apache2.0/LGPL2.1|http://jackson.codehaus.org/|
+|Jargs|1.0.0|BSD|http://jargs.sourceforge.net/ |
+|jaxen|1.1.1|MIT like|http://jaxen.codehaus.org/|
+|Jchardet|1.0.0|MPL1.1|http://jchardet.sourceforge.net/|
+|JChart2D|3.1.0|LGPL 3.0|http://jchart2d.sourceforge.net/index.shtml|
+|jclouds|1.4.0|Apache2.0|http://www.jclouds.org/|
+|jetty|8.1.2|Apache2.0 oe EPL1.0|http://www.mortbay.org/jetty/ |
+|Jgoodies|2.3.1|BSD|http://www.jgoodies.com|
+|jgrapht|0.7.3|LGPL 3.0|http://www.jgrapht.org|
+|Jini|2.0.1|Apache2.0|http://www.sun.com/software/jini/|
+|JMS|1.1|Sun Public License 1.0|http://java.sun.com/products/jms/|
+|JOI - Java Object Inspector|3.5.2|CPL1.0|http://www.programmers-friend.org/JOI/ |
+|jQuery|1.6.4/1.7.1/1.4.4|MIT or GPL2.0|http://jquery.com/|
+|jsch|0.144-1|BSD like|http://www.jcraft.com/jsch/|
+|karaf|2.2.5|Apache2.0|http://karaf.apache.org/|
+|log4j|1.2|Apache2.0|http://logging.apache.org/log4j/1.2/|
+|Mime4J|0.6|Apache2.0|http://james.apache.org/mime4j/|
+|Raphael – JavaScript Vector Library|1.5.2|MIT|http://raphaeljs.com |
+|rio|3.2|Apache2.0|http://www.rio-project.org/index.html|
+|SexyCombo|2.1.3|MIT or GPL2.0|http://code.google.com/p/sexy-combo/|
+|sigar|1.6.5|Apache2.0|http://support.hyperic.com/display/SIGAR/Home|
+|GWT Simile timeline|1.5.1|Apache2.0|http://code.google.com/p/gwtsimiletimeline/|
+|Simile timeline|2.4.0|BSD|http://www.simile-widgets.org/timeline/|
+|slf4j|1.6.1|MIT|http://www.slf4j.org/|
+|spring aopalliance|1.0.0|Public domain||
+|spring aop|3.1.1|Apache 2.0 + dep||
+|spring asm|3.1.1|Apache 2.0 + dep||
+|spring aspects|3.1.1|Apache 2.0 + dep||
+|spring beans|3.1.1|Apache 2.0 + dep||
+|spring context support|3.1.1|Apache 2.0 + dep||
+|spring context|3.1.1|Apache 2.0 + dep||
+|spring core|3.1.1|Apache 2.0 + dep||
+|spring expression|3.1.1|Apache 2.0 + dep||
+|spring jdbc|3.1.1|Apache 2.0 + dep||
+|spring jms|3.1.1|Apache 2.0 + dep||
+|spring orm|3.1.1|Apache 2.0 + dep||
+|spring oxm|3.1.1|Apache 2.0 + dep||
+|spring transaction|3.1.1|Apache 2.0 + dep||
+|spring web servlet|3.1.1|Apache 2.0 + dep||
+|spring web|3.1.1|Apache 2.0 + dep||
+|spring security core|3.0.7|Apache 2.0 + dep||
+|spring webmvc|3.1.1|Apache 2.0 + dep||
+|trove|3.0.0|LGPL 2.1|http://trove4j.sourceforge.net/|
+|velocity|1.5|Apache2.0|http://velocity.apache.org/|
+|windows-azure-java|2.0.2.v20110627_1009|Apache2.0|http://www.windowsazure4j.org/ (/license)|
+|xerces|2.9.0|Apache2.0|http://xml.apache.org/ |
+|spring annotation|1.0.0|Apache2.0|http://www.springframework.org/about|
