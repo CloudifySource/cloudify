@@ -152,7 +152,6 @@ if [ "$GIGASPACES_AGENT_ENV_PRIVILEGED" = "true" ]; then
 	fi
 	
 	# now modify sudoers configuration to allow execution without tty
-	echo Checking for Ubuntu
 	grep -i ubuntu /proc/version > /dev/null
 	if [ "$?" -eq "0" ]; then
 			# ubuntu

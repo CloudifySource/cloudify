@@ -162,8 +162,7 @@ if [ "$GIGASPACES_AGENT_ENV_PRIVILEGED" = "true" ]; then
 		sudo -n ls > /dev/null || error_exit_on_level $? "Current user is not a sudoer, or requires a password for sudo" 1
 	fi
 	
-	# now modify sudoers configuration to allow execution without tty
-	echo Checking for Ubuntu
+	# now modify sudoers configuration to allow execution without tty	
 	grep -i ubuntu /proc/version > /dev/null
 	if [ "$?" -eq "0" ]; then
 			# ubuntu
