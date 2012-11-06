@@ -119,7 +119,7 @@ if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -nt ~/giga
 	
 	if [ ! -z "$GIGASPACES_OVERRIDES_LINK" ]; then
 		echo Copying overrides into cloudify distribution
-		tar xfz $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz -d ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify overrides" 2 		
+		tar xfz $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz -C ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify overrides" 2 		
 	fi
 fi
 
