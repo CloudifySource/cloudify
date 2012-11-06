@@ -20,7 +20,7 @@ cloud {
 		// Change this if your compute nodes do not have access to an internet connection, or if you prefer to use a
 		// different HTTP server instead.
 		// 
-		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.2.0-RELEASE/gigaspaces-cloudify-2.2.0-ga-b2500.zip"
+		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.3.0-M1/gigaspaces-cloudify-2.3.0-m1-b3481.zip"
 		
 		machineNamePrefix "cloudify_agent_"
 		
