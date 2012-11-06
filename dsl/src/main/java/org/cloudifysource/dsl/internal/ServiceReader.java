@@ -20,12 +20,16 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.Application;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
 import org.codehaus.groovy.control.CompilationFailedException;
@@ -389,7 +393,7 @@ public final class ServiceReader {
 		reader.setWorkDir(new File(cloudConfigDirectory));
 		reader.setCreateServiceContext(false);
 		return reader.readDslEntity(Cloud.class);
-	}
+	}	
 	
 	/**
 	 * 
@@ -407,4 +411,28 @@ public final class ServiceReader {
 		reader.setOverridesScript(overridesScript);
 		return reader.readDslEntity(Cloud.class);
 	}
+
+	/**
+	 * 
+	 * @param templatesFile a groovy file that contains a map of cloud templates.
+	 * @return a map contains all the templates read from the templatesFileName.
+	 * @throws DSLException .
+	 */
+	public static CloudTemplateHolder[] getCloudTemplatesFromFile(final File templatesFile) 
+			throws DSLException {
+		DSLReader dslReader = new DSLReader();
+		dslReader.setDslFile(templatesFile);
+		dslReader.setCreateServiceContext(false);
+		Map<String, CloudTemplate> cloudTemplateMap = dslReader.readDslEntity(Map.class);
+		
+		List<CloudTemplateHolder> cloudTemplatesList = new ArrayList<CloudTemplateHolder>();
+		for (Entry<String, CloudTemplate> entry : cloudTemplateMap.entrySet()) {
+			CloudTemplateHolder holder = new CloudTemplateHolder();
+			holder.setName(entry.getKey());
+			holder.setCloudTemplate(entry.getValue());
+			cloudTemplatesList.add(holder);
+		}
+		return cloudTemplatesList.toArray(new CloudTemplateHolder[cloudTemplateMap.size()]);
+	}
+	
 }

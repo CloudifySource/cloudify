@@ -384,6 +384,7 @@ public class DSLReader {
 
 			FileReader reader = null;
 			try {
+				
 				reader = new FileReader(dslFile);
 				result = gs.evaluate(reader, "dslEntity");
 			} catch (final IOException e) {

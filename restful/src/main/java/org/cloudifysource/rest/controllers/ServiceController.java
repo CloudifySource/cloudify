@@ -50,10 +50,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -76,6 +74,7 @@ import org.cloudifysource.dsl.StatefulProcessingUnit;
 import org.cloudifysource.dsl.StatelessProcessingUnit;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.internal.CloudTemplateHolder;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
@@ -167,6 +166,7 @@ import com.gigaspaces.log.LastNLogEntryMatcher;
 import com.gigaspaces.log.LogEntries;
 import com.gigaspaces.log.LogEntry;
 import com.gigaspaces.log.LogEntryMatchers;
+import com.j_spaces.core.LeaseContext;
 
 /**
  * @author rafi, barakm, adaml, noak
@@ -656,6 +656,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
+	 * deprecated
 	 * @deprecated
 	 * @param applicationName
 	 * @param srcFile
@@ -2578,7 +2579,10 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            .
 	 * @param selfHealing
 	 *            .
+<<<<<<< HEAD
 	 * @param cloudOverridesFile - A file containing override parameters to be used by the cloud driver.
+=======
+>>>>>>> f194d16... CLOUDIFY-1199 API for adding and removing cloud templates at runtime - first commit.
 	 * @return status - success (error) and response - lifecycle events
 	 *         container id (error description)
 	 * @throws DSLException
@@ -3561,8 +3565,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		logger.info("Service details created: " + result);
 		return res;
 
-	}
-	
+	}	
 	/**
 	 * Handle exceptions that originated from the deployment process.
 	 * @param e
@@ -3584,4 +3587,58 @@ public class ServiceController implements ServiceDetailsProvider {
 			restPollingRunnable.setDeploymentExecutionException(e);
 		}
 	}
+
+	/**
+	 * 
+	 * @param templatesFile .
+	 * @return response.
+	 * @throws RestErrorException .
+	 * @throws IOException .
+	 * @throws DSLException  .
+	 */
+	@RequestMapping(value = "addTemplates", method = RequestMethod.POST)
+	public @ResponseBody
+	Map<String, Object> 
+	addTemplates(@RequestParam(value = "templatesFile", required = true) final MultipartFile templatesFile) 
+			throws IOException, DSLException, RestErrorException {
+		
+		File localTemplatesFile = copyMultipartFileToLocalFile(templatesFile);
+		// construct templates from file
+		CloudTemplateHolder[] cloudTemplates = 
+				ServiceReader.getCloudTemplatesFromFile(localTemplatesFile);
+		// add them to space
+		LeaseContext<CloudTemplateHolder>[] writeResults = gigaSpace.writeMultiple(cloudTemplates);
+		for (LeaseContext<CloudTemplateHolder> leaseContext : writeResults) {
+			if (leaseContext == null) {
+				throw new RestErrorException("Faild to add cloud templates from file " + templatesFile.getName());
+			}
+		}
+		
+
+		return successStatus();
+	}
+	
+	/**
+	 * 
+	 * @param templatesFile .
+	 * @return response.
+	 * @throws DSLException .
+	 * @throws IOException .
+	 */
+	@RequestMapping(value = "removeTemplates", method = RequestMethod.POST)
+	public @ResponseBody
+	Map<String, Object> 
+	removeTemplates(@RequestParam(value = "templatesFile", required = true) final MultipartFile templatesFile) 
+			throws DSLException, IOException {
+
+		File localTemplatesFile = copyMultipartFileToLocalFile(templatesFile);
+		// construct templates from file
+		CloudTemplateHolder[] cloudTemplates = 
+				ServiceReader.getCloudTemplatesFromFile(localTemplatesFile);
+		// add them to space
+		CloudTemplateHolder[][] takeMultiple = gigaSpace.takeMultiple(cloudTemplates);
+
+		return successStatus();
+	}
+
 }
