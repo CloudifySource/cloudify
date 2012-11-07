@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
@@ -34,6 +35,7 @@ import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
+import org.cloudifysource.dsl.utils.RecipePathResolver;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.rest.RestLifecycleEventsLatch;
@@ -100,10 +102,16 @@ public class InstallService extends AdminAwareCommand {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected Object doExecute() throws Exception {
-		if (!recipe.exists()) {
-			throw new CLIStatusException("service_file_doesnt_exist",
-					recipe.getPath());
+
+	protected Object doExecute()
+			throws Exception {
+		
+		RecipePathResolver pathResolver = new RecipePathResolver();
+		if (pathResolver.resolveService(recipe)) {
+			recipe = pathResolver.getResolved();
+		} else {
+			throw new CLIStatusException("service_file_doesnt_exist", 
+					StringUtils.join(pathResolver.getPathsLooked().toArray(), ", "));
 		}
 
 		File packedFile;

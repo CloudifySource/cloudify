@@ -119,7 +119,7 @@ if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -nt ~/giga
 	
 	if [ ! -z "$GIGASPACES_OVERRIDES_LINK" ]; then
 		echo Copying overrides into cloudify distribution
-		tar xfz $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz -d ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify overrides" 2 		
+		tar xfz $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz -C ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify overrides" 2 		
 	fi
 fi
 
@@ -162,8 +162,7 @@ if [ "$GIGASPACES_AGENT_ENV_PRIVILEGED" = "true" ]; then
 		sudo -n ls > /dev/null || error_exit_on_level $? "Current user is not a sudoer, or requires a password for sudo" 1
 	fi
 	
-	# now modify sudoers configuration to allow execution without tty
-	echo Checking for Ubuntu
+	# now modify sudoers configuration to allow execution without tty	
 	grep -i ubuntu /proc/version > /dev/null
 	if [ "$?" -eq "0" ]; then
 			# ubuntu

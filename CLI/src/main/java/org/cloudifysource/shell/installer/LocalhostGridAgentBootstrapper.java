@@ -1258,6 +1258,15 @@ public class LocalhostGridAgentBootstrapper {
 
 		if (isLocalCloud) {
 			environment.put("COMPONENT_JAVA_OPTIONS", localCloudOptions);
+			environment.put(CloudifyConstants.CLOUDIFY_CLOUD_HARDWARE_ID, "localcloud");
+			environment.put(CloudifyConstants.CLOUDIFY_CLOUD_IMAGE_ID, "localcloud");
+			environment.put(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME, "localcloud");
+			if (nicAddress != null) {
+				environment.put(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, nicAddress);
+				environment.put(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, nicAddress);
+			}
+			
+			
 		} else {
 			environment.put("GSA_JAVA_OPTIONS", gsaJavaOptions);
 			environment.put("LUS_JAVA_OPTIONS", lusJavaOptions);

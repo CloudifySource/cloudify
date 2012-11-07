@@ -260,11 +260,11 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	
 
 	public String getOutputReaderLoggerName() {
-		return configuration.getService().getName() + "-Output";
+		return configuration.getService().getName() + "-stdout";
 	}
 
 	public String getErrorReaderLoggerName() {
-		return configuration.getService().getName() + "-Error";
+		return configuration.getService().getName() + "-stderr";
 	}
 
 	/***********

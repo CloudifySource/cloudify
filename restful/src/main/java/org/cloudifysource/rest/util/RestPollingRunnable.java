@@ -480,7 +480,7 @@ public class RestPollingRunnable implements Runnable {
 			if (isUninstall) {
 				this.lifecycleEventsContainer
 					.addInstanceCountEvent("Service \"" + serviceName
-						+ "\" was stopped successfully , waiting for machines to shutdown...");				
+						+ "\" was stopped successfully , releasing cloud resources...");				
 			}
 		}
 	}

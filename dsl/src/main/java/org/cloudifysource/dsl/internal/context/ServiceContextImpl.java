@@ -57,18 +57,23 @@ public class ServiceContextImpl implements ServiceContext {
 	/*************
 	 * Default constructor.
 	 * 
-	 * @param clusterInfo the cluster info.
-	 * @param serviceDirectory the service directory.
+	 * @param clusterInfo
+	 *            the cluster info.
+	 * @param serviceDirectory
+	 *            the service directory.
 	 * 
 	 */
-	public ServiceContextImpl(final ClusterInfo clusterInfo, final String serviceDirectory) {
+	public ServiceContextImpl(final ClusterInfo clusterInfo,
+			final String serviceDirectory) {
 		if (clusterInfo == null) {
-			throw new NullPointerException("Cluster Info provided to service context cannot be null!");
+			throw new NullPointerException(
+					"Cluster Info provided to service context cannot be null!");
 		}
 		this.clusterInfo = clusterInfo;
 		this.serviceDirectory = serviceDirectory;
 		if (clusterInfo.getName() != null) {
-			FullServiceName fullName = ServiceUtils.getFullServiceName(clusterInfo.getName());
+			FullServiceName fullName = ServiceUtils
+					.getFullServiceName(clusterInfo.getName());
 			this.applicationName = fullName.getApplicationName();
 			this.serviceName = fullName.getServiceName();
 		}
@@ -78,11 +83,15 @@ public class ServiceContextImpl implements ServiceContext {
 	/**********
 	 * Late object initialization.
 	 * 
-	 * @param service .
-	 * @param admin .
-	 * @param clusterInfo .
+	 * @param service
+	 *            .
+	 * @param admin
+	 *            .
+	 * @param clusterInfo
+	 *            .
 	 */
-	public void init(final Service service, final Admin admin, final ClusterInfo clusterInfo) {
+	public void init(final Service service, final Admin admin,
+			final ClusterInfo clusterInfo) {
 		this.service = service;
 		this.admin = admin;
 
@@ -91,20 +100,25 @@ public class ServiceContextImpl implements ServiceContext {
 			this.applicationName = CloudifyConstants.DEFAULT_APPLICATION_NAME;
 			this.serviceName = service.getName();
 		} else {
-			logger.fine("Parsing full service name from PU name: " + clusterInfo.getName());
-			final FullServiceName fullServiceName = ServiceUtils.getFullServiceName(clusterInfo.getName());
+			logger.fine("Parsing full service name from PU name: "
+					+ clusterInfo.getName());
+			final FullServiceName fullServiceName = ServiceUtils
+					.getFullServiceName(clusterInfo.getName());
 			logger.fine("Got full service name: " + fullServiceName);
 			this.serviceName = fullServiceName.getServiceName();
 			this.applicationName = fullServiceName.getApplicationName();
 
 		}
 		if (admin != null) {
-			final boolean found = this.admin.getLookupServices().waitFor(1, 30, TimeUnit.SECONDS);
+			final boolean found = this.admin.getLookupServices().waitFor(1, 30,
+					TimeUnit.SECONDS);
 			if (!found) {
 				throw new AdminException(
 						"A service context could not be created as the Admin API could not find a lookup service "
-								+ "in the network, using groups: " + Arrays.toString(admin.getGroups())
-								+ " and locators: " + Arrays.toString(admin.getLocators()));
+								+ "in the network, using groups: "
+								+ Arrays.toString(admin.getGroups())
+								+ " and locators: "
+								+ Arrays.toString(admin.getLocators()));
 			}
 		}
 		this.attributesFacade = new AttributesFacade(this, admin);
@@ -114,7 +128,8 @@ public class ServiceContextImpl implements ServiceContext {
 	/************
 	 * Late initializer, used in the integrated container (i.e. test-recipe)
 	 * 
-	 * @param service .
+	 * @param service
+	 *            .
 	 */
 	public void initInIntegratedContainer(final Service service) {
 		this.service = service;
@@ -134,13 +149,15 @@ public class ServiceContextImpl implements ServiceContext {
 
 	private void checkInitialized() {
 		if (!this.initialized) {
-			throw new IllegalStateException("The Service Context has not been initialized yet. "
-					+ "It can only be used after the Service file has been fully evaluated");
+			throw new IllegalStateException(
+					"The Service Context has not been initialized yet. "
+							+ "It can only be used after the Service file has been fully evaluated");
 		}
 	}
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cloudifysource.dsl.context.IServiceContext#getInstanceId()
 	 */
 	@Override
@@ -152,27 +169,33 @@ public class ServiceContextImpl implements ServiceContext {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.cloudifysource.dsl.context.IServiceContext#waitForService(java.lang.String, int,
-	 * java.util.concurrent.TimeUnit)
+	 * 
+	 * @see
+	 * org.cloudifysource.dsl.context.IServiceContext#waitForService(java.lang
+	 * .String, int, java.util.concurrent.TimeUnit)
 	 */
 	@Override
-	public org.cloudifysource.dsl.context.Service waitForService(final String name, final int timeout,
-			final TimeUnit unit) {
+	public org.cloudifysource.dsl.context.Service waitForService(
+			final String name, final int timeout, final TimeUnit unit) {
 		checkInitialized();
 
 		if (this.admin != null) {
-			final String puName = ServiceUtils.getAbsolutePUName(this.applicationName, name);
-			final ProcessingUnit pu = waitForProcessingUnitFromAdmin(puName, timeout, unit);
+			final String puName = ServiceUtils.getAbsolutePUName(
+					this.applicationName, name);
+			final ProcessingUnit pu = waitForProcessingUnitFromAdmin(puName,
+					timeout, unit);
 			if (pu == null) {
 				return null;
 			} else {
-				return new org.cloudifysource.dsl.internal.context.ServiceImpl(pu);
+				return new org.cloudifysource.dsl.internal.context.ServiceImpl(
+						pu);
 			}
 		}
 
 		// running in integrated container
 		if (name.equals(this.service.getName())) {
-			return new org.cloudifysource.dsl.internal.context.ServiceImpl(name, service.getNumInstances());
+			return new org.cloudifysource.dsl.internal.context.ServiceImpl(
+					name, service.getNumInstances());
 		}
 
 		throw new IllegalArgumentException(
@@ -180,14 +203,17 @@ public class ServiceContextImpl implements ServiceContext {
 
 	}
 
-	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(ServiceContextImpl.class
-			.getName());
+	private static final java.util.logging.Logger logger = java.util.logging.Logger
+			.getLogger(ServiceContextImpl.class.getName());
 
-	private ProcessingUnit waitForProcessingUnitFromAdmin(final String name, final long timeout, final TimeUnit unit) {
+	private ProcessingUnit waitForProcessingUnitFromAdmin(final String name,
+			final long timeout, final TimeUnit unit) {
 
-		final ProcessingUnit pu = admin.getProcessingUnits().waitFor(name, timeout, unit);
+		final ProcessingUnit pu = admin.getProcessingUnits().waitFor(name,
+				timeout, unit);
 		if (pu == null) {
-			logger.warning("Processing unit with name: " + name
+			logger.warning("Processing unit with name: "
+					+ name
 					+ " was not found in the cluster. Are you running in an IntegratedProcessingUnitContainer? "
 					+ "If not, consider extending the timeout.");
 		}
@@ -197,6 +223,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cloudifysource.dsl.context.IServiceContext#getServiceDirectory()
 	 */
 	@Override
@@ -207,8 +234,10 @@ public class ServiceContextImpl implements ServiceContext {
 	}
 
 	/**
-	 * Returns the Admin Object the underlies the Service Context. Note: this is intended as a debugging aid, and should
-	 * not be used by most application. Only power users, familiar with the details of the Admin API, should use it.
+	 * Returns the Admin Object the underlies the Service Context. Note: this is
+	 * intended as a debugging aid, and should not be used by most application.
+	 * Only power users, familiar with the details of the Admin API, should use
+	 * it.
 	 * 
 	 * @return the admin.
 	 */
@@ -230,6 +259,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cloudifysource.dsl.context.IServiceContext#getServiceName()
 	 */
 	@Override
@@ -239,6 +269,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cloudifysource.dsl.context.IServiceContext#getApplicationName()
 	 */
 	@Override
@@ -248,6 +279,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cloudifysource.dsl.context.IServiceContext#getAttributes()
 	 */
 	@Override
@@ -258,7 +290,8 @@ public class ServiceContextImpl implements ServiceContext {
 	@Override
 	public String toString() {
 		if (this.initialized) {
-			return "ServiceContext [dir=" + serviceDirectory + ", clusterInfo=" + clusterInfo + "]";
+			return "ServiceContext [dir=" + serviceDirectory + ", clusterInfo="
+					+ clusterInfo + "]";
 		} else {
 			return "ServiceContext [NOT INITIALIZED]";
 		}
@@ -276,6 +309,53 @@ public class ServiceContextImpl implements ServiceContext {
 	@Override
 	public boolean isLocalCloud() {
 		return IsLocalCloudUtils.isLocalCloud();
+	}
+
+	@Override
+	public String getPublicAddress() {
+		final String envVar = System
+				.getenv(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP);
+		if (envVar != null) {
+			return envVar;
+		}
+
+		return ServiceUtils.getPrimaryInetAddress();
+
+	}
+
+	@Override
+	public String getPrivateAddress() {
+		final String envVar = System
+				.getenv(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP);
+		if (envVar != null) {
+			return envVar;
+		}
+
+		return ServiceUtils.getPrimaryInetAddress();
+	}
+
+	@Override
+	public String getImageID() {
+		final String envVar = System
+				.getenv(CloudifyConstants.CLOUDIFY_CLOUD_IMAGE_ID);
+
+		return envVar;
+	}
+
+	@Override
+	public String getHardwareID() {
+		final String envVar = System
+				.getenv(CloudifyConstants.CLOUDIFY_CLOUD_HARDWARE_ID);
+
+		return envVar;
+	}
+
+	@Override
+	public String getCloudTemplateName() {
+		final String envVar = System
+				.getenv(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME);
+
+		return envVar;
 	}
 
 }

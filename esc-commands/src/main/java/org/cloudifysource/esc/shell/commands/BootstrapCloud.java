@@ -26,18 +26,20 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.utils.RecipePathResolver;
 import org.cloudifysource.esc.driver.provisioning.jclouds.DefaultProvisioningDriver;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.shell.installer.CloudGridAgentBootstrapper;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
-import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.AbstractGSCommand;
+import org.cloudifysource.shell.commands.CLIStatusException;
 import org.cloudifysource.shell.rest.RestAdminFacade;
 
 
@@ -63,9 +65,15 @@ public class BootstrapCloud extends AbstractGSCommand {
 	
 	@Override
 	protected Object doExecute() throws Exception {
-		String pathSeparator = System.getProperty("file.separator");
-		File providerDirectory = new File(ShellUtils.getCliDirectory(), "plugins" + pathSeparator + "esc"
-				+ pathSeparator + cloudProvider);
+		RecipePathResolver pathResolver = new RecipePathResolver();
+		
+		File providerDirectory = null;
+		if (pathResolver.resolveCloud(new File(cloudProvider))) {
+			providerDirectory = pathResolver.getResolved();
+		} else {
+			throw new CLIStatusException("cloud_driver_file_doesnt_exist", 
+					StringUtils.join(pathResolver.getPathsLooked().toArray(), ", "));
+		}
 
 		// load the cloud file
 		File cloudFile = findCloudFile(providerDirectory);

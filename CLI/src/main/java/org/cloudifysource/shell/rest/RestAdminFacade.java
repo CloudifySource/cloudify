@@ -39,6 +39,7 @@ import org.cloudifysource.restclient.InvocationResult;
 import org.cloudifysource.restclient.RestException;
 import org.cloudifysource.restclient.StringUtils;
 import org.cloudifysource.shell.AbstractAdminFacade;
+import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ComponentType;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
