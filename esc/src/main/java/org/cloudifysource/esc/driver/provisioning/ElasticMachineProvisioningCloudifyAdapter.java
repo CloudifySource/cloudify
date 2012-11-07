@@ -634,7 +634,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			// so set the local directory to the value of the remote directory
 			logger.info("Remote Directory is: " + cloudTemplate.getRemoteDirectory());
 			//if running a windows server.
-			if (cloudTemplate.getFileTransfer() == FileTransferModes.CIFS)) {
+			if (cloudTemplate.getFileTransfer() == FileTransferModes.CIFS) {
 				logger.info("Windows machine - modifying local directory location");
 				String remoteDirName = cloudTemplate.getRemoteDirectory();
 				String windowsLocalDirPath = getWindowsLocalDirPath(remoteDirName, cloudTemplate.getLocalDirectory());
