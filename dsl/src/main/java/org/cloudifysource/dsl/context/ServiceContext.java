@@ -90,5 +90,44 @@ public interface ServiceContext {
 	 * @since 2.1
 	 */
 	boolean isLocalCloud();
+	
+	/*********
+	 * Returns the current machine's public address.
+	 * 
+	 * @return the current machine's public address.
+	 */
+	String getPublicAddress();
+	
+	/*********
+	 * Returns the current machine's private address.
+	 * 
+	 * @return the current machine's private address.
+	 */
+	String getPrivateAddress();
+	
+	/*********
+	 * Returns the current machine's Cloud image ID.
+	 * 
+	 * @return the current machine's Cloud image ID.
+	 */
+	String getImageID();
+	
+	/*********
+	 * Returns the current machine's Cloud hardware ID.
+	 * 
+	 * @return the current machine's Cloud hardware ID.
+	 */
+	String getHardwareID();
+	
+	/*********
+	 * Returns the current machine's Cloud template name.
+	 * 
+	 * @return the current machine's Cloud template name.
+	 */
+	String getCloudTemplateName();
+
+	
+	
+	
 
 }
