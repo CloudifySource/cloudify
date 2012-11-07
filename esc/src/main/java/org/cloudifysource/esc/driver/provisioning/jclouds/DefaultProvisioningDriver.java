@@ -273,7 +273,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		while (System.currentTimeMillis() < end) {
 			node = deployer.getServerByID(id);
 
-			switch (node.getState()) {
+			switch (node.getStatus()) {
 			case RUNNING:
 				return node;
 			case PENDING:
@@ -288,7 +288,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			default:
 				throw new CloudProvisioningException(
 						"Failed to allocate server - Cloud reported node in "
-								+ node.getState().toString()
+								+ node.getStatus().toString()
 								+ " state. Node details: " + node);
 			}
 
@@ -515,8 +515,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 							return false;
 						}
 						// only running or pending nodes are interesting
-						if (node.getState() == NodeState.RUNNING
-								|| node.getState() == NodeState.PENDING) {
+						if (node.getStatus() == NodeMetadata.Status.RUNNING
+								|| node.getStatus() == NodeMetadata.Status.PENDING) {
 							return node
 									.getGroup()
 									.toLowerCase()
