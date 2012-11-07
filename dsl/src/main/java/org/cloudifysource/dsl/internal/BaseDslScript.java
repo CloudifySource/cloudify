@@ -413,9 +413,7 @@ public abstract class BaseDslScript extends Script {
 				if (dslFilePath == null) {
 					throw new IllegalStateException("No dsl file path present in binding context");
 				}
-				logger.info("dsl file path is --> " + dslFilePath);
 				final File activeServiceDirectory = new File(dslFilePath).getParentFile();
-				logger.info("current direcotry is --> " + activeServiceDirectory.getAbsolutePath());
 				resolver.setCurrentDirectory(activeServiceDirectory);
 				if (resolver.resolveService(extendedServiceAbsPath)) {
 					extendedServiceAbsPath = resolver.getResolved();					
