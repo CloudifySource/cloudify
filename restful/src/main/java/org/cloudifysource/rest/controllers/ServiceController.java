@@ -2600,7 +2600,11 @@ public class ServiceController implements ServiceDetailsProvider {
 	private void validateTemplate(final Service service)
 			throws RestErrorException {
 		
-		final String templateName = service.getCompute().getTemplate();
+		ComputeDetails compute = service.getCompute();
+		String templateName = null;
+		if (compute != null) {
+			templateName = compute.getTemplate();
+		}
 		
 		if (this.cloud != null) {
 			if (templateName != null) {
