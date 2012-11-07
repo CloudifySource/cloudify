@@ -2076,8 +2076,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				final int totalMemoryInMB = calculateTotalMemoryInMB(
 						serviceName, service,
 						(int) cloudExternalProcessMemoryInMB);
-				final double totalCpuCores = calculateTotalCpuCores(
-						serviceName, service);
+				final double totalCpuCores = calculateTotalCpuCores(service);
 				final ManualCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
 						.createManualCapacityScaleConfig(totalMemoryInMB,
 								totalCpuCores, locationAware, dedicated);
@@ -2139,8 +2138,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		return externalProcessMemoryInMB * numberOfInstances;
 	}
 
-	private static double calculateTotalCpuCores(final String serviceName,
-			final Service service) {
+	private static double calculateTotalCpuCores(final Service service) {
 
 		if (service == null) { // deploying without a service. assuming CPU
 								// requirements is 0
