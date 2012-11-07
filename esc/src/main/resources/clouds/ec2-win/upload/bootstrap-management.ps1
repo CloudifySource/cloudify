@@ -128,10 +128,10 @@ Write-Host Updating environment script
 insert-line $cloudifyDir\bin\setenv.bat "set NIC_ADDR=$ENV:MACHINE_IP_ADDRESS"
 insert-line $cloudifyDir\bin\setenv.bat "set LOOKUPLOCATORS=$ENV:LUS_IP_ADDRESS"
 insert-line $cloudifyDir\bin\setenv.bat "set JAVA_HOME=$javaDir"
-insert-line $cloudifyDir\bin\setenv.bat 'set GIGASPACES_AGENT_ENV_PRIVATE_IP=$ENV:GIGASPACES_AGENT_ENV_PRIVATE_IP'
-insert-line $cloudifyDir\bin\setenv.bat 'set GIGASPACES_AGENT_ENV_PUBLIC_IP=$ENV:GIGASPACES_AGENT_ENV_PUBLIC_IP'
-insert-line $cloudifyDir\bin\setenv.bat 'set GIGASPACES_CLOUD_IMAGE_ID=$ENV:GIGASPACES_CLOUD_IMAGE_ID'
-insert-line $cloudifyDir\bin\setenv.bat 'set GIGASPACES_CLOUD_HARDWARE_ID=$ENV:GIGASPACES_CLOUD_HARDWARE_ID'
+insert-line $cloudifyDir\bin\setenv.bat "set GIGASPACES_AGENT_ENV_PRIVATE_IP=$ENV:GIGASPACES_AGENT_ENV_PRIVATE_IP"
+insert-line $cloudifyDir\bin\setenv.bat "set GIGASPACES_AGENT_ENV_PUBLIC_IP=$ENV:GIGASPACES_AGENT_ENV_PUBLIC_IP"
+insert-line $cloudifyDir\bin\setenv.bat "set GIGASPACES_CLOUD_IMAGE_ID=$ENV:GIGASPACES_CLOUD_IMAGE_ID"
+insert-line $cloudifyDir\bin\setenv.bat "set GIGASPACES_CLOUD_HARDWARE_ID=$ENV:GIGASPACES_CLOUD_HARDWARE_ID"
 
 
 Write-Host "Disabling local firewall"
@@ -146,9 +146,9 @@ if ($ENV:GSA_MODE -eq "agent")
 {
 	Write-Host "Starting agent node"
 	$START_COMMAND="start-agent"
-	if ($ENV:MACHINE_ZONES -ne "")
+	if (Test-Path ENV:\MACHINE_ZONES)
 	{
-		$START_COMMAND_ARGS="$START_COMMAND_ARGS -zone $MACHINE_ZONES"
+		$START_COMMAND_ARGS="$START_COMMAND_ARGS -zone $ENV:MACHINE_ZONES"
 	}
 }
 else {
