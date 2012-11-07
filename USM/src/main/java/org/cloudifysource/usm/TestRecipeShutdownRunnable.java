@@ -47,7 +47,7 @@ class TestRecipeShutdownRunnable implements Runnable {
 	public void run() {
 		logger.info("Test Recipe automatic shutdown has started");
 		final USMState state = usm.getState();
-		if (!state.equals(USMState.RUNNING)) {
+		if (state != USMState.RUNNING) {
 			logger.warning("Test Recipe automatic shutdown has started, but the USM is in state: " + state.toString()
 					+ ". Is the test timeout too short? Process will be shut down forcefully, "
 					+ "and the service stop lifecycle will not be executed.");

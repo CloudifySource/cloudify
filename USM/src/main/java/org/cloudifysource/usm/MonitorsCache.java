@@ -115,7 +115,7 @@ public class MonitorsCache {
 
 		final USMState currentState = usm.getState();
 		// If the underlying service is not running
-		if (!currentState.equals(USMState.RUNNING)) {
+		if (currentState != USMState.RUNNING) {
 			csm.getMonitors().put(CloudifyConstants.USM_MONITORS_STATE_ID, currentState.ordinal());
 			return res;
 		}

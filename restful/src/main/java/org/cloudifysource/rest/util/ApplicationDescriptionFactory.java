@@ -143,7 +143,7 @@ public class ApplicationDescriptionFactory {
 			final ProcessingUnitInstance processingUnitInstance) {
 		String instanceState;
 		ProcessingUnit processingUnit = processingUnitInstance.getProcessingUnit();
-		if (processingUnit.getType().equals(ProcessingUnitType.UNIVERSAL)) {
+		if (processingUnit.getType() == ProcessingUnitType.UNIVERSAL) {
 			instanceState = getInstanceUsmState(processingUnitInstance).toString();
 		} else {
 			instanceState = processingUnit.getStatus().toString();
@@ -172,11 +172,11 @@ public class ApplicationDescriptionFactory {
 		boolean atLeastOneServiceFailed = false;
 		for (ServiceDescription serviceDescription : serviceDescriptionList) {
 			logger.log(Level.FINE, "checking status for service " + serviceDescription.getServiceName());
-			if (serviceDescription.getServiceState().equals(DeploymentState.INSTALLING)
+			if (serviceDescription.getServiceState() == DeploymentState.INSTALLING
 					|| serviceDescriptionList.isEmpty()) {
 				servicesStillInstalling = true;
 			}
-			if (serviceDescription.getServiceState().equals(DeploymentState.FAILED)) {
+			if (serviceDescription.getServiceState() == DeploymentState.FAILED) {
 				atLeastOneServiceFailed = true;
 			}
 			
@@ -194,7 +194,7 @@ public class ApplicationDescriptionFactory {
 			final String absolutePuName) {
 		ProcessingUnit pu = getProcessingUnit(absolutePuName);
 		logger.log(Level.FINE, "Determining service state for service " + absolutePuName);
-		if (pu.getType().equals(ProcessingUnitType.UNIVERSAL)) {
+		if (pu.getType() == ProcessingUnitType.UNIVERSAL) {
 			for (InstanceDescription instanceDescription : serviceInstancesStatus) {
 				String instanceState = instanceDescription.getInstanceStatus();
 				if (instanceState.equals(USMState.ERROR.toString())) {
@@ -207,7 +207,7 @@ public class ApplicationDescriptionFactory {
 			return DeploymentState.STARTED;
 
 		} else { //The service is not a USM service.
-			if (!pu.getStatus().equals(DeploymentStatus.INTACT)) {
+			if (pu.getStatus() != DeploymentStatus.INTACT) {
 				return DeploymentState.INSTALLING;
 			} else {
 				return DeploymentState.STARTED;
@@ -219,8 +219,7 @@ public class ApplicationDescriptionFactory {
         ProcessingUnit processingUnit = getProcessingUnit(absolutePuName);
 
         if (processingUnit != null) {
-            if (processingUnit.getType().equals(
-                    ProcessingUnitType.UNIVERSAL)) {
+            if (processingUnit.getType() == ProcessingUnitType.UNIVERSAL) {
                 return getNumberOfUSMServicesWithRunningState(absolutePuName);
             }
 
@@ -250,7 +249,7 @@ public class ApplicationDescriptionFactory {
 
     private boolean isUsmStateOfPuiRunning(final ProcessingUnitInstance pui) {
         USMState instanceState = getInstanceUsmState(pui);
-        if (instanceState.equals(CloudifyConstants.USMState.RUNNING)) {
+        if (instanceState == CloudifyConstants.USMState.RUNNING) {
             return true;
         }
         return false;

@@ -96,7 +96,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 		
 		String remoteDir = managementTemplateRemoteDirectory;
 		logger.log(Level.FINE, "Original remote directory is: " + remoteDir);
-		if (template.getFileTransfer().equals(FileTransferModes.CIFS)) {
+		if (template.getFileTransfer() == FileTransferModes.CIFS) {
 			logger.log(Level.FINE, "Running on windows, modifying remote directory config. Original was: " + remoteDir);
 			remoteDir = getWindowsRemoteDirPath(managementTemplateRemoteDirectory);
 		}
