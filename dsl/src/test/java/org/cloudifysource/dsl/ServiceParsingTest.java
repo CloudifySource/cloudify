@@ -165,7 +165,8 @@ public class ServiceParsingTest {
 		Assert.assertNotNull(lifecycle.getPreStop());
 		Assert.assertNotNull(lifecycle.getStop());
 		Assert.assertEquals(1, service.getExtendedServicesPaths().size());
-		Assert.assertEquals("test_parsing_base-service.groovy", service
+		Assert.assertEquals(new File(TEST_PARSING_RESOURCE_PATH, "test_parsing_base-service.groovy").getAbsolutePath(), 
+				service
 				.getExtendedServicesPaths().getFirst());
 	}
 
@@ -256,10 +257,11 @@ public class ServiceParsingTest {
 				((StringExecutableEntry) lifecycle.getStart()).getCommand());
 
 		Assert.assertEquals(2, service.getExtendedServicesPaths().size());
-		Assert.assertEquals("test_parsing_extend-service.groovy", service
-				.getExtendedServicesPaths().getFirst());
-		Assert.assertEquals("test_parsing_base-service.groovy", service
-				.getExtendedServicesPaths().getLast());
+		Assert.assertEquals(new File(TEST_PARSING_RESOURCE_PATH, 
+				"test_parsing_extend-service.groovy").getAbsolutePath(), 
+				service.getExtendedServicesPaths().getFirst());
+		Assert.assertEquals(new File(TEST_PARSING_RESOURCE_PATH, "test_parsing_base-service.groovy").getAbsolutePath(), 
+				service.getExtendedServicesPaths().getLast());
 	}
 
 	/**
