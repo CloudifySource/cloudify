@@ -7,32 +7,46 @@
 <project name="copy-jars-to-cloudify" default="Copy Cloudify jars to install dir" basedir=".">
 
 	<!-- ** SET THESE PROPERTIES BEFORE USING THE ANT BUILDS ** -->
-	<property name="giga.base.dir" value="D:/Gigaspaces" />
-	<property name="giga.version" value="gigaspaces-cloudify-2.3.0-m1" />
+	
+	<property name="cloudify.home.dir" value="D:/gigaspaces-cloudify"/>	
 	<property name="cloudify.version" value="2.3.0" />
 	<property name="cloudify.jars.suffix" value="SNAPSHOT"/>
-	<!-- ****************************************************** -->
-
-	<property name="target.dir" value="${giga.base.dir}/${giga.version}" />
 	
-	<property name="ec2.dir" value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/ec2/upload/cloudify-overrides" />
-	<property name="ec2-win.dir" value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/ec2-win/upload/cloudify-overrides" />
-	<property name="byon.dir" value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/byon/upload/cloudify-overrides" />
-	<property name="azure.dir" value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/azure/upload/cloudify-overrides" />
-	<property name="openstack.dir" value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/openstack/upload/cloudify-overrides" />
-	<property name="rsopenstack.dir" value="${giga.base.dir}/${giga.version}/tools/cli/plugins/esc/rsopenstack/upload/cloudify-overrides" />
-
+	<!--  ** Useful if you are working on openspaces and need to test the effects on cloudify -->
+	<property name="openspaces.jar" value="${PATH_TO_OPENSPACES_JAR_FROM_WORKSPACE}"/>
+	
+	<!-- ****************************************************** -->
+	
+	<property name="esc.dir" value="${cloudify.home.dir}/tools/cli/plugins/esc"/>
+	
+	<property name="ec2.dir" value="${esc.dir}/ec2/upload/cloudify-overrides" />
+	<property name="ec2-win.dir" value="${esc.dir}/ec2-win/upload/cloudify-overrides" />
+	<property name="byon.dir" value="${esc.dir}/byon/upload/cloudify-overrides" />
+	<property name="azure.dir" value="${esc.dir}/azure/upload/cloudify-overrides" />
+	<property name="openstack.dir" value="${esc.dir}/openstack/upload/cloudify-overrides" />
+	<property name="rsopenstack.dir" value="${esc.dir}/rsopenstack/upload/cloudify-overrides" />
 
 	<target name="Copy Cloudify jars to install dir" depends="">
-		<echo message="Copying Cloudify jar files to ${target.dir}" />
-		<copy todir="${target.dir}/lib/platform/usm" file="../USM/target/usm.jar" overwrite="true" />
-		<copy todir="${target.dir}/tools/cli" file="../CLI/target/cli.jar" overwrite="true" />
-		<copy todir="${target.dir}/tools/rest" file="../restful/target/rest.war" overwrite="true" />
-		<copy todir="${target.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" overwrite="true" />
-		<copy todir="${target.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" overwrite="true" />
-		<copy todir="${target.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" overwrite="true" />
+		<echo message="Copying Cloudify jar files to ${cloudify.home.dir}" />
+		<copy todir="${cloudify.home.dir}/lib/platform/usm" file="../USM/target/usm.jar" overwrite="true" />
+		<copy todir="${cloudify.home.dir}/tools/cli" file="../CLI/target/cli.jar" overwrite="true" />
+		<copy todir="${cloudify.home.dir}/tools/rest" file="../restful/target/rest.war" overwrite="true" />
+		<copy todir="${cloudify.home.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" overwrite="true" />
+		<copy todir="${cloudify.home.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" overwrite="true" />
+		<copy todir="${cloudify.home.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" overwrite="true" />
+	</target>
+	
+	<target name="Copy Openspaces jar to install dir" depends="">
+		<echo message="Copying Openspaces jar file to ${cloudify.home.dir}" />
+		<copy todir="${cloudify.home.dir}/lib/required" file="${openspaces.jar}" overwrite="true" />
 	</target>
 
+	<target name="Copy Openspaces jar to ec2 upload dir" depends="">
+		<echo message="Copying Openspaces jar file to ${ec2.dir}" />
+		<copy todir="${ec2.dir}/lib/required" file="${openspaces.jar}" overwrite="true" />
+	</target>
+
+	
 	<target name="Copy Cloudify jars to ec2 upload dir" depends="">
 		<echo message="Copying Cloudify jar files to ${ec2.dir}" />
 		<copy todir="${ec2.dir}/lib/platform/usm" file="../USM/target/usm.jar" />
@@ -148,8 +162,8 @@
 		<zip 
 			destfile="${target.dir}/../gigaspaces.zip" 
 			basedir="${target.dir}/.."
-			includes="${giga.version}/**/*"
-			excludes="${giga.version}/tools/cli/plugins/esc/**/*,${giga.version}/tools/cli/plugins/azure/**/*" />
+			includes="${cloudify.version}/**/*"
+			excludes="${cloudify.version}/tools/cli/plugins/esc/**/*,${cloudify.version}/tools/cli/plugins/azure/**/*" />
 		<echo message="Created ${target.dir}/../gigaspaces.zip"/>
 	</target>
 
