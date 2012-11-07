@@ -93,7 +93,7 @@ public class SimpleBlockingJavaProcess implements
 					key = str;
 				}
 			} else {
-				props.put(key, str);
+				props.setProperty(key, str);
 				key = null;
 			}
 		}

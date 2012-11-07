@@ -168,13 +168,13 @@ public class ManagementWebServiceInstaller {
 
 	private Properties getContextProperties() {
 		final Properties props = new Properties();
-		props.put("com.gs.application",
+		props.setProperty("com.gs.application",
 				MANAGEMENT_APPLICATION_NAME);
-		props.put("web.port",
+		props.setProperty("web.port",
 				String.valueOf(port));
-		props.put("web.context",
+		props.setProperty("web.context",
 				"/");
-		props.put("web.context.unique",
+		props.setProperty("web.context.unique",
 				"true");
 		return props;
 	}

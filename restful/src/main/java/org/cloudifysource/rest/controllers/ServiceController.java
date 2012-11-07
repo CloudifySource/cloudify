@@ -1988,10 +1988,10 @@ public class ServiceController implements ServiceDetailsProvider {
 		final int containerMemoryInMB = 128;
 		final int reservedMemoryCapacityPerMachineInMB = 256;
 
-		contextProperties.put(CloudifyConstants.CONTEXT_PROPERTY_ASYNC_INSTALL,
+		contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_ASYNC_INSTALL,
 				"true");
 		if (!selfHealing) {
-			contextProperties.put(
+			contextProperties.setProperty(
 					CloudifyConstants.CONTEXT_PROPERTY_DISABLE_SELF_HEALING,
 					"false");
 		}
@@ -2319,7 +2319,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		if (templateName != null) {
-			propsFile.put(CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE,
+			propsFile.setProperty(CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE,
 					templateName);
 		}
 
