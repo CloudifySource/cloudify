@@ -45,6 +45,8 @@ import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import com.j_spaces.kernel.PlatformVersion;
+
 /**
  * This class implements the {@link AdminFacade}, relying on the abstract
  * implementation of {@link AbstractAdminFacade}. It discovers and manages
@@ -88,7 +90,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 
 		try {
 			client = new GSRestClient(user, password, urlObj,
-					"2.3.0-Cloudify-m1");
+					PlatformVersion.getVersionNumber());
 			// test connection
 			client.get(SERVICE_CONTROLLER_URL + "testrest");
 		} catch (final ErrorStatusException e) {
