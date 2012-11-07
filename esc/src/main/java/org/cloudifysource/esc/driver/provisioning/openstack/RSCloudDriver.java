@@ -67,9 +67,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 
 	private final Client client;
 
-	private String tenant;
 	private String serverNamePrefix;
-	private String endpoint;
 	private WebResource service;
 	private String pathPrefix;
 	private String identityEndpoint;
@@ -126,18 +124,18 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 			this.serverNamePrefix = this.cloud.getProvider().getMachineNamePrefix();
 		}
 
-		this.tenant = (String) this.cloud.getCustom().get(RS_OPENSTACK_TENANT);
+		String tenant = (String) this.cloud.getCustom().get(RS_OPENSTACK_TENANT);
 		if (tenant == null) {
 			throw new IllegalArgumentException("Custom field '" + RS_OPENSTACK_TENANT + "' must be set");
 		}
 
 		this.pathPrefix = "/v1.0/" + tenant + "/";
 
-		this.endpoint = (String) this.cloud.getCustom().get(OPENSTACK_OPENSTACK_ENDPOINT);
-		if (this.endpoint == null) {
+		String endpoint = (String) this.cloud.getCustom().get(OPENSTACK_OPENSTACK_ENDPOINT);
+		if (endpoint == null) {
 			throw new IllegalArgumentException("Custom field '" + OPENSTACK_OPENSTACK_ENDPOINT + "' must be set");
 		}
-		this.service = client.resource(this.endpoint);
+		this.service = client.resource(endpoint);
 
 		this.identityEndpoint = (String) this.cloud.getCustom().get(
 				OPENSTACK_OPENSTACK_IDENTITY_ENDPOINT);
@@ -631,12 +629,10 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 				md.setPrivateAddress(node.getPrivateIp());
 				md.setPublicAddress(node.getPublicIp());
 				break;
-			} else {
-				if (currentStatus.contains("error")) {
-					throw new OpenstackException("Server provisioning failed. Node ID: " + node.getId() + ", status: "
-							+ node.getStatus());
-				}
-
+			} 
+			if (currentStatus.contains("error")) {
+				throw new OpenstackException("Server provisioning failed. Node ID: " + node.getId() + ", status: "
+						+ node.getStatus());
 			}
 
 			if (System.currentTimeMillis() > endTime) {
