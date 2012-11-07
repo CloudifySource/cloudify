@@ -557,7 +557,7 @@ public class RestPollingRunnable implements Runnable {
 				.getProcessingUnit(absolutePuName);
 
 		if (processingUnit != null) {
-			if (processingUnit.getType().equals(ProcessingUnitType.UNIVERSAL)) {
+			if (processingUnit.getType() == ProcessingUnitType.UNIVERSAL) {
 				return getNumberOfUSMServicesWithState(absolutePuName,
 						USMState.ERROR);
 			}
