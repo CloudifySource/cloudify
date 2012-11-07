@@ -31,8 +31,7 @@ import com.j_spaces.kernel.Environment;
  * resolves a given file using the following strategy : <br>
  * 1. if the file is absolute, check for existence. <br>
  * 2. if not, check for the relative path under the current directory. <br>
- * 3. otherwise, check for the relative path under the default location given when initializing this object. <br>
- * @param recipeFileOrFolder .
+ * 3. otherwise, check for the relative path under the default location. <br>
  * @return - true if the lookup strategy found a file, false otherwise.
  * 
  *
@@ -52,15 +51,30 @@ public class RecipePathResolver {
 		this.currentDir = currentDir;
 	}
 	
+	/**
+	 * Resolves a location of a service recipe. default location used is <cloudify-home>/recipes/services.
+	 * @param recipeFileOrFolder .
+	 * @return true if the file was found during the location lookup, false otherwise.
+	 */
 	public boolean resolveService(final File recipeFileOrFolder) {
 		return resolve(recipeFileOrFolder, DEFAULT_SERVICES_PATH);
 		
 	}
 	
+	/**
+	 * Resolves a location of an application recipe. default location used is <cloudify-home>/recipes/apps.
+	 * @param recipeFileOrFolder .
+	 * @return true if the file was found during the location lookup, false otherwise.
+	 */
 	public boolean resolveApplication(final File recipeFileOrFolder) {
 		return resolve(recipeFileOrFolder, DEFAULT_APPS_PATH);
 	}
 	
+	/**
+	 * Resolves a location of a cloud driver configuration files. default location used is <cloudify-home>/recipes/apps.
+	 * @param cloudRecipeFileOrFolder .
+	 * @return true if the file was found during the location lookup, false otherwise.
+	 */
 	public boolean resolveCloud(final File cloudRecipeFileOrFolder) {
 		return resolve(cloudRecipeFileOrFolder, DEFAULT_CLOUDS_PATH);
 	}
