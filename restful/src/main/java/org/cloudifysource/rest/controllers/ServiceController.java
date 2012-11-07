@@ -80,6 +80,7 @@ import org.cloudifysource.dsl.StatelessProcessingUnit;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLServiceCompilationResult;
@@ -175,8 +176,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	private static final int THREAD_POOL_SIZE = 20;
 	private static final String SHARED_ISOLATION_ID = "public";
 	private static final int PU_DISCOVERY_TIMEOUT_SEC = 8;
-	private final Map<UUID, RestPollingRunnable> lifecyclePollingThreadContainer = 
-			new ConcurrentHashMap<UUID, RestPollingRunnable>();
+	private final Map<UUID, RestPollingRunnable> lifecyclePollingThreadContainer = new ConcurrentHashMap<UUID, RestPollingRunnable>();
 	private final ExecutorService serviceUndeployExecutor = Executors
 			.newFixedThreadPool(10);
 	private static final int LIFECYCLE_EVENT_POLLING_INTERVAL_SEC = 4;
@@ -296,7 +296,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * 
 	 * @param processors
 	 *            The list of processors to be used.
-	 * @param fileSizeLimit .
+	 * @param fileSizeLimit
+	 *            .
 	 * @return A map contains byte array of the dump file for each machine.
 	 * @throws IOException
 	 * @throws RestErrorException
@@ -308,11 +309,11 @@ public class ServiceController implements ServiceDetailsProvider {
 			+ ", \"192.168.2.200\":\"&ltbyte array of the dump file&gt;\""
 			+ ", \"192.168.2.300\":\"&ltbyte array of the dump file&gt;\"}")
 	@PossibleResponseStatuses(responseStatuses = {
-	@PossibleResponseStatus(code = HTTP_OK, description = "success"),
-	@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = ResponseConstants.MACHINE_NOT_FOUND),
-	@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = ResponseConstants.DUMP_FILE_TOO_LARGE),
-	@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "Failed to generate dump"),
-	@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "IOException") })
+			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = ResponseConstants.MACHINE_NOT_FOUND),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = ResponseConstants.DUMP_FILE_TOO_LARGE),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "Failed to generate dump"),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "IOException") })
 	@RequestMapping(value = "/dump/machines", method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object> getMachineDumpFile(
@@ -336,14 +337,11 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws IOException .
 	 */
 	@JsonRequestExample(requestBody = "{\"fileSizeLimit\" : 50000000, \"processors\" : \"summary, network, log\"}")
-	@JsonResponseExample(status = "success"
-	, responseBody = "{\"&ltmachine's ip&gt;\":\"&ltbyte array of the dump file&gt;\"}")
+	@JsonResponseExample(status = "success", responseBody = "{\"&ltmachine's ip&gt;\":\"&ltbyte array of the dump file&gt;\"}")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
-			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = 
-			ResponseConstants.MACHINE_NOT_FOUND),
-			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = 
-			ResponseConstants.DUMP_FILE_TOO_LARGE),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = ResponseConstants.MACHINE_NOT_FOUND),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = ResponseConstants.DUMP_FILE_TOO_LARGE),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "Failed to generate dump"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "IOException") })
 	@RequestMapping(value = "/dump/machine/{ip}/", method = RequestMethod.GET)
@@ -379,8 +377,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			while (iterator.hasNext()) {
 				final Machine machine = iterator.next();
 
-				final byte[] dumpBytes = generateMachineDumpData(
-						fileSizeLimit, machine, actualProcessors);
+				final byte[] dumpBytes = generateMachineDumpData(fileSizeLimit,
+						machine, actualProcessors);
 				totalSize += dumpBytes.length;
 				if (totalSize > fileSizeLimit) {
 					throw new RestServiceException(
@@ -400,7 +398,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	/**
 	 * Get the dump of all the processing units.
 	 * 
-	 * @param fileSizeLimit .
+	 * @param fileSizeLimit
+	 *            .
 	 * @return the dump of all the processing units
 	 * @throws IOException .
 	 * @throws RestErrorException
@@ -410,8 +409,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	@JsonRequestExample(requestBody = "{\"fileSizeLimit\" : 50000000}")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
-			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = 
-			ResponseConstants.DUMP_FILE_TOO_LARGE),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = ResponseConstants.DUMP_FILE_TOO_LARGE),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "Failed to generate dump"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "IOException") })
 	@RequestMapping(value = "/dump/processing-units/", method = RequestMethod.GET)
@@ -529,8 +527,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		Cloud cloudConfiguration = null;
 		try {
 			cloudConfiguration = ServiceReader.readCloud(new File(
-					cloudConfigurationHolder
-							.getCloudConfigurationFilePath()));
+					cloudConfigurationHolder.getCloudConfigurationFilePath()));
 		} catch (final DSLException e) {
 			throw new IllegalArgumentException(
 					"Failed to read cloud configuration file: "
@@ -564,6 +561,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	private final ScheduledExecutorService scheduledExecutor = Executors
 			.newScheduledThreadPool(10, new ThreadFactory() {
 				private final AtomicInteger threadNumber = new AtomicInteger(1);
+
 				@Override
 				public Thread newThread(final Runnable r) {
 					final Thread thread = new Thread(r,
@@ -578,6 +576,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	private final ExecutorService executorService = Executors
 			.newFixedThreadPool(THREAD_POOL_SIZE, new ThreadFactory() {
 				private final AtomicInteger threadNumber = new AtomicInteger(1);
+
 				@Override
 				public Thread newThread(final Runnable r) {
 					final Thread thread = new Thread(r,
@@ -603,10 +602,9 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = FAILED_TO_LOCATE_LUS) })
 	@JsonResponseExample(status = "error", responseBody = "{\"error\":\"failed_to_locate_lookup_service\","
-			+ " \"error_args\":[[\"localcloud\"],[\"jini://127.0.0.1:4172/\"]]}"
-			, comments = "response status is success if the restful service located the service grid"
-					+ ", otherwise it is error and the response's body will contain error description"
-					+ ", the groups and locators.")
+			+ " \"error_args\":[[\"localcloud\"],[\"jini://127.0.0.1:4172/\"]]}", comments = "response status is success if the restful service located the service grid"
+			+ ", otherwise it is error and the response's body will contain error description"
+			+ ", the groups and locators.")
 	@RequestMapping(value = "/testrest", method = RequestMethod.GET)
 	public @ResponseBody
 	Object test() throws RestErrorException {
@@ -659,30 +657,31 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Creates and returns a map containing all of the deployed application names.
+	 * Creates and returns a map containing all of the deployed application
+	 * names.
 	 * 
 	 * @return a list of all the deployed applications in the service grid.
-	 * @throws RestErrorException 
+	 * @throws RestErrorException
 	 */
-	@JsonResponseExample(status = "success", 
-			responseBody = "[\"petclinic\", \"travel\"]",
-			comments = "In the example, the deployed applications in the service grid are petclinic and travel")
-	@PossibleResponseStatuses(responseStatuses = {
-			@PossibleResponseStatus(code = HTTP_OK, description = "success") })
+	@JsonResponseExample(status = "success", responseBody = "[\"petclinic\", \"travel\"]", comments = "In the example, the deployed applications in the service grid are petclinic and travel")
+	@PossibleResponseStatuses(responseStatuses = { @PossibleResponseStatus(code = HTTP_OK, description = "success") })
 	@RequestMapping(value = "/applications/description", method = RequestMethod.GET)
 	public @ResponseBody
-	Map<String, Object> getApplicationsDescriptionList() throws RestErrorException {
+	Map<String, Object> getApplicationsDescriptionList()
+			throws RestErrorException {
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to list applications");
 		}
 		final Applications apps = admin.getApplications();
-		ApplicationDescriptionFactory applicationDescriptionFactory = new ApplicationDescriptionFactory(admin);
+		ApplicationDescriptionFactory applicationDescriptionFactory = new ApplicationDescriptionFactory(
+				admin);
 		List<ApplicationDescription> applicationDescriptionList = new ArrayList<ApplicationDescription>();
 		for (final Application app : apps) {
 			String applicationName = app.getName();
-			if (!app.getName().equals(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
-				ApplicationDescription applicationDescription = 
-						applicationDescriptionFactory.getApplicationDescription(applicationName);
+			if (!app.getName().equals(
+					CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
+				ApplicationDescription applicationDescription = applicationDescriptionFactory
+						.getApplicationDescription(applicationName);
 				applicationDescriptionList.add(applicationDescription);
 			}
 		}
@@ -690,34 +689,37 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Creates and returns a map containing all of the deployed service names installed under a specific application
-	 * context.
+	 * Creates and returns a map containing all of the deployed service names
+	 * installed under a specific application context.
 	 * 
-	 * @param applicationName .
-	 * @return a list of the deployed services in the service grid that were deployed as a part of a specific
-	 *         application.
-	 * @throws RestErrorException 
-	 * 			When application is not found.
+	 * @param applicationName
+	 *            .
+	 * @return a list of the deployed services in the service grid that were
+	 *         deployed as a part of a specific application.
+	 * @throws RestErrorException
+	 *             When application is not found.
 	 */
 	@JsonResponseExample(status = "sucess", responseBody = "[\"service1\",\"service2\"]")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
-			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, 
-			description = "failed_to_locate_app") })			
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_app") })
 	@RequestMapping(value = "/applications/{applicationName}/services/description", method = RequestMethod.GET)
 	public @ResponseBody
-	Map<String, Object> getServicesDescriptionList(@PathVariable final String applicationName) 
+	Map<String, Object> getServicesDescriptionList(
+			@PathVariable final String applicationName)
 			throws RestErrorException {
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to list applications");
 		}
-		final Application app = admin.getApplications().waitFor(applicationName, 5, TimeUnit.SECONDS);
+		final Application app = admin.getApplications().waitFor(
+				applicationName, 5, TimeUnit.SECONDS);
 		if (app == null) {
 			throw new RestErrorException(FAILED_TO_LOCATE_APP, applicationName);
 		}
-		ApplicationDescriptionFactory appDescriptionFactory = new ApplicationDescriptionFactory(admin);
-		ApplicationDescription applicationDescription = appDescriptionFactory.
-				getApplicationDescription(applicationName);
+		ApplicationDescriptionFactory appDescriptionFactory = new ApplicationDescriptionFactory(
+				admin);
+		ApplicationDescription applicationDescription = appDescriptionFactory
+				.getApplicationDescription(applicationName);
 		List<ApplicationDescription> applicationDescriptionList = new ArrayList<ApplicationDescription>();
 		applicationDescriptionList.add(applicationDescription);
 		return successStatus(applicationDescriptionList);
@@ -736,13 +738,11 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws RestErrorException
 	 *             When service is not found.
 	 */
-	@JsonResponseExample(status = "success", responseBody = "{\"1\":\"127.0.0.1\"}", 
-			comments = "In the example instance id is 1 and the HOST is 127.0.0.1")
+	@JsonResponseExample(status = "success", responseBody = "{\"1\":\"127.0.0.1\"}", comments = "In the example instance id is 1 and the HOST is 127.0.0.1")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_service") })
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances", 
-	method = RequestMethod.GET)
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances", method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object> getServiceInstanceList(
 			@PathVariable final String applicationName,
@@ -775,10 +775,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * 
 	 * @return a list of all the deployed applications in the service grid.
 	 */
-	@JsonResponseExample(status = "success", responseBody = "[\"petclinic\", \"travel\"]"
-			, comments = "In the example, the deployed applications in the service grid are petclinic and travel")
-	@PossibleResponseStatuses(responseStatuses = {
-			@PossibleResponseStatus(code = HTTP_OK, description = "success") })
+	@JsonResponseExample(status = "success", responseBody = "[\"petclinic\", \"travel\"]", comments = "In the example, the deployed applications in the service grid are petclinic and travel")
+	@PossibleResponseStatuses(responseStatuses = { @PossibleResponseStatus(code = HTTP_OK, description = "success") })
 	@RequestMapping(value = "/applications", method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object> getApplicationsList() {
@@ -800,7 +798,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * Creates and returns a map containing all of the deployed service names
 	 * installed under a specific application context.
 	 * 
-	 * @param applicationName .
+	 * @param applicationName
+	 *            .
 	 * @return a list of the deployed services in the service grid that were
 	 *         deployed as a part of a specific application.
 	 * @throws RestErrorException
@@ -853,19 +852,16 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             is found for the requested service.
 	 */
 	@JsonRequestExample(requestBody = "{\"param1 name\":\"param1\",\"param2 name\":\"param2\"}")
-	@JsonResponseExample(status = "success"
-	, responseBody = "{\"instance #1@127.0.0.1\":{\"Invocation_Instance_Name\":\"instance #1@127.0.0.1\""
+	@JsonResponseExample(status = "success", responseBody = "{\"instance #1@127.0.0.1\":{\"Invocation_Instance_Name\":\"instance #1@127.0.0.1\""
 			+ ",\"Invocation_Instance_ID\":\"1\""
 			+ ",\"Invocation_Result\":\"the invocation result as specified in the service file\""
 			+ ",\"Invocation_Success\":\"true\","
 			+ "\"Invocation_Exception\":null,\"Invocation_Command_Name\":\"custom command name\"}}")
 	@PossibleResponseStatuses(responseStatuses = {
-		@PossibleResponseStatus(code = HTTP_OK, description = "success"),	
-		@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_service"),	
-		@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, 
-		description = "no_processing_unit_instances_found_for_invocation") })
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/beans/{beanName}/invoke"
-	, method = RequestMethod.POST)
+			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_service"),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "no_processing_unit_instances_found_for_invocation") })
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/beans/{beanName}/invoke", method = RequestMethod.POST)
 	public @ResponseBody
 	Map<String, Object> invoke(@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
@@ -1097,20 +1093,18 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            The application name.
 	 * @param serviceName
 	 *            The service name.
-	 * @param timeoutInMinutes .
+	 * @param timeoutInMinutes
+	 *            .
 	 * @return success status if service was undeployed successfully, else
 	 *         returns failure status.
 	 * @throws RestErrorException
 	 *             When failed to locate service.
 	 */
-	@JsonResponseExample(status = "success"
-			, responseBody = "{\"lifecycleEventContainerID\":\"bfae0a89-b5a0-4250-b393-6cedbf63ac76\"}")
+	@JsonResponseExample(status = "success", responseBody = "{\"lifecycleEventContainerID\":\"bfae0a89-b5a0-4250-b393-6cedbf63ac76\"}")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_service") })
-
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeoutInMinutes}/undeploy"
-	, method = RequestMethod.DELETE)
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeoutInMinutes}/undeploy", method = RequestMethod.DELETE)
 	public @ResponseBody
 	Map<String, Object> undeploy(@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
@@ -1189,8 +1183,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             When service processing unit not found or failed to add the
 	 *             instance.
 	 */
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/addinstance"
-			, method = RequestMethod.POST)
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/addinstance", method = RequestMethod.POST)
 	public @ResponseBody
 	Map<String, Object> addInstance(@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
@@ -1235,8 +1228,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_service"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "service_instance_unavailable") })
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances/{instanceId}/remove"
-	, method = RequestMethod.DELETE)
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances/{instanceId}/remove", method = RequestMethod.DELETE)
 	public @ResponseBody
 	Map<String, Object> removeInstance(
 			@PathVariable final String applicationName,
@@ -1382,14 +1374,14 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * 
 	 * @param applicationName
 	 *            The application name.
-	 * @param timeoutInMinutes .
+	 * @param timeoutInMinutes
+	 *            .
 	 * @return Map with return value.
 	 * @throws RestErrorException
 	 *             When application not found or when attempting to remove
 	 *             management services.
 	 */
-	@JsonResponseExample(status = "success"
-			, responseBody = "{\"lifecycleEventContainerID\":\"bfae0a89-b5a0-4250-b393-6cedbf63ac76\"}")
+	@JsonResponseExample(status = "success", responseBody = "{\"lifecycleEventContainerID\":\"bfae0a89-b5a0-4250-b393-6cedbf63ac76\"}")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_app") })
@@ -1542,8 +1534,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			return Arrays.asList(pus);
 		}
 
-		final TopologicalOrderIterator<ProcessingUnit, DefaultEdge> iterator = 
-				new TopologicalOrderIterator<ProcessingUnit, DefaultEdge>(graph);
+		final TopologicalOrderIterator<ProcessingUnit, DefaultEdge> iterator = new TopologicalOrderIterator<ProcessingUnit, DefaultEdge>(
+				graph);
 
 		final List<ProcessingUnit> orderedList = new ArrayList<ProcessingUnit>();
 		while (iterator.hasNext()) {
@@ -1582,12 +1574,11 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             application file
 	 * @throws DSLException
 	 *             Reporting failure to parse the application file
+	 * @throws RestErrorException .
 	 */
-	@JsonRequestExample(requestBody = 
-			"{\"applicationName\" : \"petclinic\" , \"srcFile\" : \"packaged application file\" "
+	@JsonRequestExample(requestBody = "{\"applicationName\" : \"petclinic\" , \"srcFile\" : \"packaged application file\" "
 			+ ", \"recipeOverridesFile\" : \"recipe overrides file\"}")
-	@JsonResponseExample(status = "success"
-	, responseBody = "{\"srviceOrder\":\"[mongod,mongoConfig,apacheLB,mongos,tomcat]\""
+	@JsonResponseExample(status = "success", responseBody = "{\"srviceOrder\":\"[mongod,mongoConfig,apacheLB,mongos,tomcat]\""
 			+ ",\"lifecycleEventContainerID\":\"07db2a16-62f8-4669-ac41-ed9afe3a3b02\"}", comments = "")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
@@ -1601,7 +1592,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
 			@RequestParam(value = "recipeOverridesFile", required = false) final MultipartFile recipeOverridesFile,
 			@RequestParam(value = "selfHealing", required = false) final Boolean selfHealing)
-			throws IOException, DSLException {
+			throws IOException, DSLException, RestErrorException {
 		boolean actualSelfHealing = true;
 		if (selfHealing != null && !selfHealing) {
 			actualSelfHealing = false;
@@ -1609,7 +1600,8 @@ public class ServiceController implements ServiceDetailsProvider {
 		final File applicationFile = copyMultipartFileToLocalFile(srcFile);
 		final File applicationOverridesFile = copyMultipartFileToLocalFile(recipeOverridesFile);
 		final Object returnObject = doDeployApplication(applicationName,
-				applicationFile, applicationOverridesFile, timeout, actualSelfHealing);
+				applicationFile, applicationOverridesFile, timeout,
+				actualSelfHealing);
 		applicationFile.delete();
 		return returnObject;
 	}
@@ -1672,13 +1664,13 @@ public class ServiceController implements ServiceDetailsProvider {
 			throw new IllegalArgumentException(
 					"The dependency graph of application: "
 							+ application.getName()
-							+ " contains one or more cycles. " 
+							+ " contains one or more cycles. "
 							+ "The services that form a cycle are part of the following group: "
 							+ cycleString);
 		}
 
-		final TopologicalOrderIterator<Service, DefaultEdge> iterator = 
-				new TopologicalOrderIterator<Service, DefaultEdge>(graph);
+		final TopologicalOrderIterator<Service, DefaultEdge> iterator = new TopologicalOrderIterator<Service, DefaultEdge>(
+				graph);
 
 		final List<Service> orderedList = new ArrayList<Service>();
 		while (iterator.hasNext()) {
@@ -1803,19 +1795,17 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            event entry cursor
 	 * @return a map containing the events and the task state.
 	 * @throws RestErrorException
-	 * 				When polling task has expired or if the task ended unexpectedly.
+	 *             When polling task has expired or if the task ended
+	 *             unexpectedly.
 	 */
-	@JsonResponseExample(status = "success"
-			, responseBody = "{\"isDone\":false,\"lifecycleLogs\":[\"[service1] Deployed 1 planned 1\","
+	@JsonResponseExample(status = "success", responseBody = "{\"isDone\":false,\"lifecycleLogs\":[\"[service1] Deployed 1 planned 1\","
 			+ "\"Service &#92&#34service1&#92&#34 successfully installed (1 Instances)\"],"
 			+ "\"PollingTaskExpirationTimeMillis\":\"575218\",\"curserPos\":12}")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
-			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, 
-			description = "Lifecycle events container with UUID ... does not exist or expired"),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "Lifecycle events container with UUID ... does not exist or expired"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "execution exception message") })
-	@RequestMapping(value = "/lifecycleEventContainerID/{lifecycleEventContainerID}/cursor/{cursor}"
-	, method = RequestMethod.GET)
+	@RequestMapping(value = "/lifecycleEventContainerID/{lifecycleEventContainerID}/cursor/{cursor}", method = RequestMethod.GET)
 	public @ResponseBody
 	Object getLifecycleEvents(
 			@PathVariable final String lifecycleEventContainerID,
@@ -1881,10 +1871,13 @@ public class ServiceController implements ServiceDetailsProvider {
 	private Object doDeployApplication(final String applicationName,
 			final File applicationFile, final File applicationOverridesFile,
 			final int timeout, final boolean selfHealing) throws IOException,
-			DSLException {
+			DSLException, RestErrorException {
 		final DSLApplicationCompilatioResult result = ServiceReader
 				.getApplicationFromFile(applicationFile,
 						applicationOverridesFile);
+
+		validateTemplate(result.getApplication());
+
 		final List<Service> services = createServiceDependencyOrder(result
 				.getApplication());
 
@@ -2295,6 +2288,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            case a problem occurred in its life-cycle, otherwise, if the
 	 *            recipe fails to execute, no attempt to recover will made.
 	 * @return lifecycleEventContainerID.
+	 * @throws RestErrorException .
 	 * @throws TimeoutException .
 	 * @throws PackagingException .
 	 * @throws IOException .
@@ -2309,7 +2303,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final TimeUnit timeUnit,
 			final byte[] serviceCloudConfigurationContents,
 			final boolean selfHealing) throws TimeoutException, IOException,
-			DSLException {
+			DSLException, RestErrorException {
 
 		String templateName;
 		if (originalTemplateName == null) {
@@ -2344,6 +2338,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			// "ext"));
 
 		}
+
+		validateTemplate(service);
 
 		String[] agentZones;
 		if (isLocalCloud()) {
@@ -2440,15 +2436,14 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param srcFile
 	 *            .
 	 * @param propsFile
-	 *            .
-<<<<<<< HEAD
+	 *            . <<<<<<< HEAD
 	 * @param selfHealing
-	 *            .
-=======
->>>>>>> 88e40d7... CLOUDIFY-1126 Fix checkStyle and bugs found by findBugs.
+	 *            . ======= >>>>>>> 88e40d7... CLOUDIFY-1126 Fix checkStyle and
+	 *            bugs found by findBugs.
 	 * @return status - success (error) and response - lifecycle events
 	 *         container id (error description)
 	 * @throws DSLException
+	 * @throws RestErrorException .
 	 * @throws TimeoutException .
 	 * @throws PackagingException .
 	 * @throws IOException .
@@ -2464,10 +2459,9 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "IOException"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "AdminException"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "DSLException") })
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeout}"
-	, method = RequestMethod.POST)
-	public @ResponseBody
-	Object deployElastic(
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeout}", method = RequestMethod.POST)
+	@ResponseBody
+	public Object deployElastic(
 			@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
 			@PathVariable final int timeout,
@@ -2477,7 +2471,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@RequestParam(value = "props", required = true) final MultipartFile propsFile,
 			@RequestParam(value = "selfHealing", required = false, defaultValue = "true") final Boolean selfHealing)
 			throws TimeoutException, PackagingException, IOException,
-			DSLException {
+			DSLException, RestErrorException {
 
 		logger.info("Deploying service with template: " + templateName);
 		String actualTemplateName = templateName;
@@ -2594,6 +2588,35 @@ public class ServiceController implements ServiceDetailsProvider {
 					"Could not find compute template: " + templateName);
 		}
 		return template;
+	}
+
+	private void validateTemplate(
+			final org.cloudifysource.dsl.Application application)
+			throws RestErrorException {
+		final List<Service> services = application.getServices();
+		for (Service service : services) {
+			validateTemplate(service);
+		}
+	}
+
+	private void validateTemplate(final Service service)
+			throws RestErrorException {
+		
+		final String templateName = service.getCompute().getTemplate();
+		
+		if (this.cloud != null) {
+			if (templateName != null) {
+
+				final CloudTemplate template = cloud.getTemplates().get(
+						templateName);
+				if (template == null) {
+					throw new RestErrorException(
+							CloudifyErrorMessages.MISSING_TEMPLATE.getName(),
+							templateName);
+				}
+			}
+		}
+
 	}
 
 	// TODO: consider adding MemoryUnits to DSL
@@ -2744,7 +2767,6 @@ public class ServiceController implements ServiceDetailsProvider {
 			final StatelessProcessingUnit puConfig, final String templateName,
 			final int numberOfInstances, final boolean locationAware)
 			throws IOException, AdminException, TimeoutException, DSLException {
-
 
 		final File jarFile = getJarFileFromDir(
 				new File(puConfig.getBinaries()), extractedServiceFolder,
@@ -2994,11 +3016,16 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * 
-	 * @param applicationName .
-	 * @param serviceName .
-	 * @param timeout .
-	 * @param count .
-	 * @param locationAware .
+	 * @param applicationName
+	 *            .
+	 * @param serviceName
+	 *            .
+	 * @param timeout
+	 *            .
+	 * @param count
+	 *            .
+	 * @param locationAware
+	 *            .
 	 * @return lifecycleEventContainerID .
 	 * @throws DSLException .
 	 * @throws RestErrorException
@@ -3009,12 +3036,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	@JsonResponseExample(status = "success", responseBody = "{\"lifecycleEventContainerID\":\"eventContainerID\"}")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
-			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = 
-			ResponseConstants.FAILED_TO_LOCATE_SERVICE),
-			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = 
-			ResponseConstants.SERVICE_NOT_ELASTIC)  })
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeout}/set-instances"
-	, method = RequestMethod.POST)
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = ResponseConstants.FAILED_TO_LOCATE_SERVICE),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = ResponseConstants.SERVICE_NOT_ELASTIC) })
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeout}/set-instances", method = RequestMethod.POST)
 	public @ResponseBody
 	Map<String, Object> setServiceInstances(
 			@PathVariable final String applicationName,
