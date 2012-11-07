@@ -15,27 +15,29 @@
  *******************************************************************************/
 package org.cloudifysource.shell.commands;
 
-import java.io.File;
-
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 
 /**
- * Removes templates from the cloud's templates list. 
- * The templates are being constructed from the (groovy) templates-file.
+ * Removes template from the cloud's templates list. 
  * 
- * Required arguments: templates-file - Path to the templates file.
+ * Required arguments: 
+ * 			name - The name of the template to remove.
+ *
+ * Command syntax: 
+ * 			remove-template name 
  * 
  * @author yael
+ * 
  * @since 2.3.0
  *
  */
-@Command(scope = "cloudify", name = "remove-templates", 
+@Command(scope = "cloudify", name = "remove-template", 
 description = "Removes templates from the cloud")
-public class RemoveTemplates extends AdminAwareCommand {
+public class RemoveTemplate extends AdminAwareCommand {
 	
-	@Argument(required = true, name = "remove-templates", description = "The templates file path")
-	private File templatesFile;
+	@Argument(required = true, name = "name", description = "The name of the template to remove")
+	private String templateName;
 	
 	@Override
 	protected Object doExecute() throws Exception {

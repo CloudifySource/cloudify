@@ -22,11 +22,16 @@ import org.apache.felix.gogo.commands.Command;
 
 /**
  * Adds templates to be included in the cloud's templates list. 
- * The templates are being constructed from the (groovy) templates-file.
+ * Reads the templates from the (groovy) templates-file.
  * 
- * Required arguments: templates-file - Path to the templates file.
+ * Required arguments: 
+ * 			templates-file - Path to the groovy templates file.
+ * 
+ * Command syntax: 
+ * 			add-templates templatesFile
  * 
  * @author yael
+ * 
  * @since 2.3.0
  *
  */
@@ -34,7 +39,7 @@ import org.apache.felix.gogo.commands.Command;
 description = "Adds templates to the cloud")
 public class AddTemplates extends AdminAwareCommand {
 	
-	@Argument(required = true, name = "add-templates", description = "The templates file path")
+	@Argument(required = true, name = "templatesFile", description = "The templates file")
 	private File templatesFile;
 	
 	@Override

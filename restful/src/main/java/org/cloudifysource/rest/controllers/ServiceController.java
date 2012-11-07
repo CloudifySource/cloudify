@@ -36,6 +36,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -3589,16 +3590,17 @@ public class ServiceController implements ServiceDetailsProvider {
 			restPollingRunnable.setDeploymentExecutionException(e);
 		}
 	}
-
+	
 	/**
-	 * 
-	 * @param templatesFile .
-	 * @return response.
-	 * @throws RestErrorException .
-	 * @throws IOException .
-	 * @throws DSLException  .
+	 * Add templates to the cloud.
+	 * @param templatesFile A Groovy file contains the templates map.
+	 * @return a map containing the added templates and a success status if succeeded, 
+	 * else returns an error status.
+	 * @throws RestErrorException in case of failing to add the template to the space.
+	 * @throws IOException in case of reading error.
+	 * @throws DSLException in case of failing to read a DSL object.
 	 */
-	@RequestMapping(value = "addTemplates", method = RequestMethod.POST)
+	@RequestMapping(value = "templates", method = RequestMethod.PUT)
 	public @ResponseBody
 	Map<String, Object> 
 	addTemplates(@RequestParam(value = "templatesFile", required = true) final MultipartFile templatesFile) 
@@ -3609,37 +3611,74 @@ public class ServiceController implements ServiceDetailsProvider {
 		CloudTemplateHolder[] cloudTemplates = 
 				ServiceReader.getCloudTemplatesFromFile(localTemplatesFile);
 		// add them to space
-		LeaseContext<CloudTemplateHolder>[] writeResults = gigaSpace.writeMultiple(cloudTemplates);
-		for (LeaseContext<CloudTemplateHolder> leaseContext : writeResults) {
-			if (leaseContext == null) {
-				throw new RestErrorException("Faild to add cloud templates from file " + templatesFile.getName());
+		List<String> failedToAddTemplates = new LinkedList<String>();
+		List<String> addedTemplates = new LinkedList<String>();
+		for (CloudTemplateHolder holder : cloudTemplates) {
+			LeaseContext<CloudTemplateHolder> writeResult = gigaSpace.write(holder);
+			String name = holder.getName();
+			if (writeResult == null) {
+				failedToAddTemplates.add(name);
+			} else {
+				addedTemplates.add(name);
 			}
 		}
-		
+		if (!failedToAddTemplates.isEmpty()) {
+			throw new RestErrorException("failed_to_add_templates", 
+					failedToAddTemplates.toString(), templatesFile.getName());
+		}
 
-		return successStatus();
+		return successStatus(addedTemplates);
 	}
 	
 	/**
-	 * 
-	 * @param templatesFile .
-	 * @return response.
-	 * @throws DSLException .
-	 * @throws IOException .
+	 * Get the cloud's templates.
+	 * @return a map containing the cloud's templates and a success status.
 	 */
-	@RequestMapping(value = "removeTemplates", method = RequestMethod.POST)
+	@RequestMapping(value = "templates", method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object> 
-	removeTemplates(@RequestParam(value = "templatesFile", required = true) final MultipartFile templatesFile) 
-			throws DSLException, IOException {
+	getTemplates() {
+		return successStatus(cloud.getTemplates());
+	}
+	
+	/**
+	 * Get template from the cloud.
+	 * @param templateName The name of the template to remove.
+	 * @return a map containing the template and a success status if succeeded, 
+	 * else returns an error status.
+	 * @throws RestErrorException if the template doesn't exist.
+	 */
+	@RequestMapping(value = "templates/{templateName}", method = RequestMethod.DELETE)
+	public @ResponseBody
+	Map<String, Object> 
+	getTemplate(@PathVariable final String templateName) 
+			throws RestErrorException {
 
-		File localTemplatesFile = copyMultipartFileToLocalFile(templatesFile);
-		// construct templates from file
-		CloudTemplateHolder[] cloudTemplates = 
-				ServiceReader.getCloudTemplatesFromFile(localTemplatesFile);
-		// add them to space
-		CloudTemplateHolder[][] takeMultiple = gigaSpace.takeMultiple(cloudTemplates);
+		// get template from cloud
+		CloudTemplate cloudTemplate = cloud.getTemplates().get(templateName);
+		if (cloudTemplate == null) {
+			throw new RestErrorException("failed_to_remove_template", templateName);
+		} 
+		return successStatus(cloudTemplate);
+	}
+	
+	/**
+	 * Remove a template from the cloud.
+	 * @param templateName The name of the template to remove.
+	 * @return success status map if succeeded, else returns an error status.
+	 * @throws RestErrorException if the template doesn't exist.
+	 */
+	@RequestMapping(value = "templates/{templateName}", method = RequestMethod.DELETE)
+	public @ResponseBody
+	Map<String, Object> 
+	removeTemplate(@PathVariable final String templateName) 
+			throws RestErrorException {
 
+		// get template from cloud
+		CloudTemplate cloudTemplate = cloud.getTemplates().remove(templateName);
+		if (cloudTemplate == null) {
+			throw new RestErrorException("failed_to_remove_template", templateName);
+		} 
 		return successStatus();
 	}
 

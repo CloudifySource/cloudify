@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.rest.ApplicationDescription;
 import org.cloudifysource.dsl.rest.ServiceDescription;
@@ -830,4 +831,72 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
 	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public List<String> addTempaltes(final File templatesFile) 
+			throws CLIException {
+		final String url = SERVICE_CONTROLLER_URL + "templates";
+		List<String> response;
+		try {
+			response = (List<String>) client.postFile(url, templatesFile);
+		} catch (RestException e) {
+			throw new CLIException(e);
+		}
+		return response;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Map<String, CloudTemplate> listTemplates() 
+			throws CLIStatusException {
+		final String url = SERVICE_CONTROLLER_URL + "templates";
+		Map<String, CloudTemplate> response;
+		try {
+			response = (Map<String, CloudTemplate>) client.get(url);
+		} catch (ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+		}
+		return response;		
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public CloudTemplate getTemplate(final String templateName) 
+			throws CLIStatusException {
+		final String url = SERVICE_CONTROLLER_URL + "templates/" + templateName;
+		CloudTemplate response;
+		try {
+			response = (CloudTemplate) client.get(url);
+		} catch (ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+		}
+		return response;	
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void removeTemplate(final String templateName) 
+			throws CLIStatusException {
+		final String url = SERVICE_CONTROLLER_URL + "templates/" + templateName;
+		try {
+			client.delete(url);
+		} catch (ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+		}
+	}
+
+
+	
+
+	
+	
 }

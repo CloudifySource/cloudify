@@ -22,9 +22,12 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
+import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.rest.ApplicationDescription;
 import org.cloudifysource.restclient.InvocationResult;
+import org.cloudifysource.restclient.RestException;
 import org.cloudifysource.shell.commands.CLIException;
+import org.cloudifysource.shell.commands.CLIStatusException;
 import org.cloudifysource.shell.rest.RestLifecycleEventsLatch;
 
 /**
@@ -493,7 +496,7 @@ public interface AdminFacade {
 	 *            given application)
 	 * @param applicationName
 	 *            The applicatio name
-	 * @return
+	 * @return .
 	 * @throws CLIException .
 	 */
 	Map<String, String> listAttributes(String scope, String applicationName)
@@ -520,4 +523,47 @@ public interface AdminFacade {
 	void deleteAttributes(String scope, String applicationName,
 			String... attributeNames) throws CLIException;
 
+	/**
+	 * 
+	 * Adds templates to the cloud.
+	 * Reads the templates from the (groovy) templates file.
+	 * 
+	 * @param templatesFile 
+	 * 					The groovy templates file.
+	 * @return A list of template names that were added to the cloud.
+	 * @throws CLIException 
+	 */
+	List<String> addTempaltes(final File templatesFile) 
+			throws CLIException;
+	
+	/**
+	 * Lists all cloud's templates.
+	 * 
+	 * @return The cloud's templates.
+	 * @throws CLIException 
+	 */
+	Map<String, CloudTemplate> listTemplates() 
+			throws CLIException;
+	
+	/**
+	 * Gets a template.
+	 * 
+	 * @param templateName
+	 * 					The name of the template to get.
+	 * @return The template.
+	 * @throws CLIException 
+	 */
+	CloudTemplate getTemplate(final String templateName) 
+			throws CLIException;
+	
+	/**
+	 * Removes a template.
+	 * 
+	 * @param templateName
+	 * 					The name of the template to remove.
+	 * @throws CLIException 
+	 */
+	void removeTemplate(final String templateName) 
+			throws CLIException;
+	
 }
