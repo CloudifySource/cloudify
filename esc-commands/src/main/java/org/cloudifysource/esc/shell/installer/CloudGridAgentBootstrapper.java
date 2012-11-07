@@ -557,7 +557,8 @@ public class CloudGridAgentBootstrapper {
 			final ExactZonesConfig zones = new ExactZonesConfigurer().addZone(
 					MANAGEMENT_GSA_ZONE).create();
 			details[i] = Utils.createInstallationDetails(machineDetails[i],
-					cloud, template, zones, null, null, true, this.cloudFile, reservationId);
+					cloud, template, zones, null, null, true, this.cloudFile, 
+					reservationId, cloud.getConfiguration().getManagementMachineTemplate());
 		}
 
 		return details;
