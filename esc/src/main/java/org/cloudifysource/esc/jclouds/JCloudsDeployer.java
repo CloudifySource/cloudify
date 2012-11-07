@@ -76,8 +76,6 @@ public class JCloudsDeployer {
 	private int minRamMegabytes = DEFAULT_MIN_RAM_MB;
 	private String imageId = DEFAULT_IMAGE_ID_RACKSPACE;
 
-	private Template template;
-
 	private ComputeServiceContext context;
 
 	private String hardwareId;
@@ -304,7 +302,7 @@ public class JCloudsDeployer {
 		final Iterator<? extends NodeMetadata> nodesIterator = nodes.iterator();
 		while (nodesIterator.hasNext()) {
 			final NodeMetadata node = nodesIterator.next();
-			if (node.getState() != NodeState.TERMINATED) {
+			if (node.getStatus() != NodeMetadata.Status.TERMINATED) {
 				runningNodes.add(node);
 			}
 		}
@@ -661,7 +659,7 @@ public class JCloudsDeployer {
 		final long endTime = System.currentTimeMillis() + unit.toMillis(duration);
 		// now wait for the machine to stop
 
-		NodeState state = null;
+		NodeMetadata.Status state = null;
 		while (System.currentTimeMillis() < endTime) {
 			final NodeMetadata node = this.context.getComputeService().getNodeMetadata(
 					serverId);
@@ -670,7 +668,7 @@ public class JCloudsDeployer {
 				return;
 			}
 
-			state = node.getState();
+			state = node.getStatus();
 			logger.info("Machine: " + serverId + " state is: " + state);
 			switch (state) {
 			case TERMINATED:
