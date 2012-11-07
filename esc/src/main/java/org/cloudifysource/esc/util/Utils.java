@@ -433,7 +433,11 @@ public final class Utils {
 	 */
 	public static InstallationDetails createInstallationDetails(final MachineDetails md,
 			final Cloud cloud, final CloudTemplate template, final ExactZonesConfig zones,
-			final String lookupLocatorsString, final Admin admin, final boolean isManagement, final File cloudFile, final GSAReservationId reservationId)
+			final String lookupLocatorsString, final Admin admin, 
+			final boolean isManagement, 
+			final File cloudFile, 
+			final GSAReservationId reservationId,
+			final String templateName)
 			throws FileNotFoundException {
 
 		final InstallationDetails details = new InstallationDetails();
@@ -540,6 +544,7 @@ public final class Utils {
 		}
 
 		details.setReservationId(reservationId);
+		details.setTemplateName(templateName);
 		
 		logger.fine("Created InstallationDetails: " + details);
 		return details;

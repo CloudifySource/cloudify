@@ -195,8 +195,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		final InstallationDetails details =
 				Utils.createInstallationDetails(md, cloud, template, zones, lookupLocatorsString,
 						this.originalESMAdmin, false,
-						null, reservationId);
-		details.setTemplateName(cloudTemplateName);
+						null, reservationId, cloudTemplateName);
 
 		logger.info("Created new Installation Details: " + details);
 		return details;
