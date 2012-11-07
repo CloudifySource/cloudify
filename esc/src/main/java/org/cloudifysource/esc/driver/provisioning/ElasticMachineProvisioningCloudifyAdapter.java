@@ -618,7 +618,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		}
 		
 		try {
-			this.cloud = ServiceReader.readCloudFromDirectory(cloudConfigDirectory);
+			
+			String cloudOverridesPerService = config.getCloudOverridesPerService();
+			this.cloud = ServiceReader.readCloudFromDirectory(cloudConfigDirectory, 
+						cloudOverridesPerService);
 			this.cloudTemplateName = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME);
 
 			if (this.cloudTemplateName == null) {

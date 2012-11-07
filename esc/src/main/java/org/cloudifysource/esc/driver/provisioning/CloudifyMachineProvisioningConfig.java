@@ -15,6 +15,8 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +24,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
+import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
@@ -160,6 +163,19 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	public final void setMinimumNumberOfCpuCoresPerMachine(final double minimumCpuCoresPerMachine) {
 		properties.putDouble(
 				NUMBER_OF_CPU_CORES_PER_MACHINE_KEY, minimumCpuCoresPerMachine);
+	}
+	
+	/**
+	 * 
+	 * @param cloudOverrides .
+	 * @throws IOException 
+	 */
+	public final void setCloudOverridesPerService(final File cloudOverrides) throws IOException {
+		properties.put(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_OVERRIDES_PER_SERVICE, FileUtils.readFileToString(cloudOverrides));
+	}
+	
+	public String getCloudOverridesPerService() {
+		return properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_OVERRIDES_PER_SERVICE, "");
 	}
 
 	public String getCloudTemplateName() {

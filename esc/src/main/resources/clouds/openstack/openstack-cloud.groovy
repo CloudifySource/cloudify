@@ -38,8 +38,8 @@ cloud {
 		
 	}
 	user {
-		user "ENTER_USER"
-		apiKey "ENTER_API_KEY"
+		user user
+		apiKey apiKey
 		
 	}
 	templates ([
@@ -50,11 +50,11 @@ cloud {
 					hardwareId "102"
 					remoteDirectory "/root/gs-files"
 					localDirectory "upload"
-					keyFile "ENTER_KEY_FILE"
+					keyFile keyFile
 					
 					options ([
 						"openstack.securityGroup" : "test",
-						"openstack.keyPair" : "ENTER_KEY_PAIR_NAME"
+						"openstack.keyPair" : keyPair
 					])
 					
 					// enable sudo.
@@ -67,7 +67,7 @@ cloud {
 	custom ([
 		"openstack.endpoint" : "https://az-2.region-a.geo-1.compute.hpcloudsvc.com/",
 		"openstack.identity.endpoint": "https://region-a.geo-1.identity.hpcloudsvc.com:35357/",
-		"openstack.tenant" : "ENTER_TENANT",
+		"openstack.tenant" : tenant,
 		"openstack.wireLog": "false"
 
 	])

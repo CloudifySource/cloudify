@@ -34,9 +34,7 @@ cloud {
 		// cloudify version matching that of the client from the cloudify CDN.
 		// Change this if your compute nodes do not have access to an internet connection, or if you prefer to use a
 		// different HTTP server instead.
-		// IMPORTANT: the default linux bootstrap script appends '.tar.gz' to the url whereas the default windows script appends '.zip'.
-		// Therefore, if setting a custom URL, make sure to leave out the suffix.
-		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.3.0-M1/gigaspaces-cloudify-2.3.0-m1-b3481"
+		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.3.0-M1/gigaspaces-cloudify-2.3.0-m1-b3481.zip"
 
 		// Mandatory. The prefix for new machines started for servies.
 		machineNamePrefix "cloudify_agent_"
@@ -66,11 +64,11 @@ cloud {
 	user {
 		// Optional. Identity used to access cloud.
 		// When used with the default driver, maps to the identity used to create the ComputeServiceContext.
-		user user
+		user myUser
 
 		// Optional. Key used to access cloud.
 		// When used with the default driver, maps to the credential used to create the ComputeServiceContext.
-		apiKey apiKey
+		apiKey myApiKey
 
 
 
@@ -84,20 +82,20 @@ cloud {
 				// Mandatory. Template Name.
 				SMALL_LINUX : template{
 					// Mandatory. Image ID.
-					imageId linuxImageId
+					imageId myImageId
 					// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
 					remoteDirectory "/home/ec2-user/gs-files"
 					// Mandatory. Amount of RAM available to machine.
 					machineMemoryMB 1600
 					// Mandatory. Hardware ID.
-					hardwareId hardwareId
+					hardwareId "m1.small"
 					// Optional. Location ID.
-					locationId locationId
+					locationId "us-east-1"
 					// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
 					localDirectory "upload"
 					// Optional. Name of key file to use for authenticating to the remot machine. Remove this line if key files
 					// are not used.
-					keyFile keyFile
+					keyFile myKeyFile
 
 					username "ec2-user"
 					// Additional template options.
@@ -105,7 +103,7 @@ cloud {
 					// method names invoked on the TemplateOptions object with the value as the parameter.
 					options ([
 								"securityGroups" : ["default"]as String[],
-								"keyPair" : keyPair
+								"keyPair" : myKeyPair
 							])
 
 					// Optional. Overrides to default cloud driver behavior.
@@ -118,83 +116,7 @@ cloud {
 
 
 
-				},
-				SMALL_UBUNTU : template{
-					// Mandatory. Image ID.
-					imageId ubuntuImageId
-
-					// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-					remoteDirectory "/home/ubuntu/gs-files"
-					// Mandatory. Amount of RAM available to machine.
-					machineMemoryMB 1600
-					// Mandatory. Hardware ID.
-					hardwareId hardwareId
-					// Optional. Location ID.
-					locationId locationId
-					// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
-					localDirectory "upload"
-					// Optional. Name of key file to use for authenticating to the remot machine. Remove this line if key files
-					// are not used.
-					keyFile keyFile
-
-					username "ubuntu"
-					// Additional template options.
-					// When used with the default driver, the option names are considered
-					// method names invoked on the TemplateOptions object with the value as the parameter.
-					options ([
-								"securityGroups" : ["default"]as String[],
-								"keyPair" : keyPair
-							])
-
-					// Optional. Overrides to default cloud driver behavior.
-					// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
-					overrides (["jclouds.ec2.ami-query":"",
-								"jclouds.ec2.cc-ami-query":""])
-
-					// enable sudo.
-					privileged true
-
-
-
-				},
-
-				MEDIUM_UBUNTU : template{
-					// Mandatory. Image ID.
-					imageId ubuntuImageId
-
-					// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-					remoteDirectory "/home/ubuntu/gs-files"
-					// Mandatory. Amount of RAM available to machine.
-					machineMemoryMB 3500
-					// Mandatory. Hardware ID.
-					hardwareId hardwareId
-					// Optional. Location ID.
-					locationId locationId
-					// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
-					localDirectory "upload"
-					// Optional. Name of key file to use for authenticating to the remot machine. Remove this line if key files
-					// are not used.
-					keyFile keyFile
-
-					username "ubuntu"
-					// Additional template options.
-					// When used with the default driver, the option names are considered
-					// method names invoked on the TemplateOptions object with the value as the parameter.
-					options ([
-								"securityGroups" : ["default"]as String[],
-								"keyPair" : keyPair
-							])
-
-					// Optional. Overrides to default cloud driver behavior.
-					// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
-					overrides (["jclouds.ec2.ami-query":"",
-								"jclouds.ec2.cc-ami-query":""])
-
-					// enable sudo.
-					privileged true
 				}
-
-
 			])
 
 
@@ -203,3 +125,4 @@ cloud {
 	 */
 	custom ([:])
 }
+

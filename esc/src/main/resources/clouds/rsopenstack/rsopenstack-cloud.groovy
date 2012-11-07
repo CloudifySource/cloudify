@@ -26,8 +26,8 @@ cloud {
 		
 	}
 	user {
-		user "USER_NAME"
-		apiKey "API_KEY"
+		user user
+		apiKey apiKey
 	}
 	templates ([
 				SMALL_LINUX : template{
@@ -47,7 +47,7 @@ cloud {
 		"openstack.endpoint" : "https://servers.api.rackspacecloud.com",
 		"openstack.identity.endpoint": "https://auth.api.rackspacecloud.com/",
 		//The tenant id is referred to as 'cloud account number' in Rackspace
-		"openstack.tenant" : "ENTER_TENANT",
+		"openstack.tenant" : tenant,
 		"openstack.wireLog": "false"
 
 	])

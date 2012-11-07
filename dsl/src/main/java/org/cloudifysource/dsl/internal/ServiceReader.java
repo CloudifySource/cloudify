@@ -390,4 +390,21 @@ public final class ServiceReader {
 		reader.setCreateServiceContext(false);
 		return reader.readDslEntity(Cloud.class);
 	}
+	
+	/**
+	 * 
+	 * @param cloudConfigDirectory .
+	 * @param overridesScript - a String containing the overrides properties. (not a file path)
+	 * @return The cloud.
+	 * @throws DSLException .
+	 */
+	public static Cloud readCloudFromDirectory(final String cloudConfigDirectory, final String overridesScript)
+			throws DSLException {
+		final DSLReader reader = new DSLReader();
+		reader.setDslFileNameSuffix(DSLReader.CLOUD_DSL_FILE_NAME_SUFFIX);
+		reader.setWorkDir(new File(cloudConfigDirectory));
+		reader.setCreateServiceContext(false);
+		reader.setOverridesScript(overridesScript);
+		return reader.readDslEntity(Cloud.class);
+	}
 }

@@ -76,8 +76,8 @@ cloud {
 				// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
 				remoteDirectory "/tmp/gs-files"
 				// Optional. template-generic credentials. Can be overridden by specific credentials on each node, in the nodesList section.
-				username "ENTER_USER"
-				password "ENTER_PASSWORD"
+				username username
+				password password
 				
 				// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
 				localDirectory "upload"

@@ -53,10 +53,18 @@ public class ApplicationInstallerRunnable implements Runnable {
 	private List<Service> services;
 	private final Cloud cloud;
 	private final boolean selfHealing;
+	private File cloudOverrides;
 
-	public ApplicationInstallerRunnable(ServiceController controller,
-			DSLApplicationCompilatioResult result, String applicationName, File overridesFile, String authGroups,
-			List<Service> services, Cloud cloud, final boolean selfHealing) {
+	public ApplicationInstallerRunnable(
+			final ServiceController controller,
+			final DSLApplicationCompilatioResult result, 
+			final String applicationName,
+			final File overridesFile, 
+			final String authGroups, 
+			final List<Service> services, 
+			final Cloud cloud, 
+			final boolean selfHealing, 
+			final File cloudOverrides) {
 		super();
 		this.controller = controller;
 		this.result = result;
@@ -66,6 +74,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 		this.cloud = cloud;
 		this.selfHealing = selfHealing;
 		this.authGroups = authGroups;
+		this.cloudOverrides = cloudOverrides;
 	}
 
 	@Override
@@ -79,7 +88,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 		final boolean asyncInstallPossible = isAsyncInstallPossibleForApplication();
 		logger.info("async install setting: " + asyncInstallPossible);
 		try {
-			installServices(appDir, applicationName, authGroups, asyncInstallPossible, cloud);
+			installServices(appDir, applicationName, authGroups, asyncInstallPossible, cloud, cloudOverrides);
 			FileUtils.deleteDirectory(appDir);
 		} catch (final IOException e) {
 			e.printStackTrace();
@@ -87,8 +96,14 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 	}
 
-	private void installServices(File appDir, String applicationName, final String authGroups, final boolean async,
-			final Cloud cloud) throws IOException {
+	private void installServices(
+			final File appDir,
+			final String applicationName, 
+			final String authGroups,
+			final boolean async, 
+			final Cloud cloud, 
+			final File cloudOverrides)
+			throws IOException {
 		// TODO: refactor the last part of this method
 		logger.info("Installing service for application: " + applicationName
 				+ ". Async install: " + async + ". Number of services: "
@@ -145,10 +160,20 @@ public class ApplicationInstallerRunnable implements Runnable {
 						+ packedFile + ". Properties: " + contextProperties);
 				final String templateName = service.getCompute() == null ? null
 						: service.getCompute().getTemplate();
-				controller.deployElasticProcessingUnit(absolutePUName,
-						applicationName, authGroups, serviceName/*zone*/, packedFile,
-						contextProperties, templateName, true, 0,
-						TimeUnit.SECONDS, serviceCloudConfigurationContents, selfHealing);
+				controller.deployElasticProcessingUnit(
+						absolutePUName,
+						applicationName, 
+						authGroups,
+						serviceName, 
+						packedFile,
+						contextProperties, 
+						templateName,
+						true, 
+						0,
+						TimeUnit.SECONDS, 
+						serviceCloudConfigurationContents, 
+						selfHealing, 
+						cloudOverrides);
 				try {
 					FileUtils.deleteDirectory(packedFile.getParentFile());
 				} catch (final IOException ioe) {

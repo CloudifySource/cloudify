@@ -3,6 +3,7 @@ package org.cloudifysource.dsl;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,10 +13,13 @@ import java.util.Set;
 import junit.framework.Assert;
 
 import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.io.FileUtils;
+import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
+import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.Test;
 
 /**
@@ -31,13 +35,26 @@ public class OverridesTest {
 			"src/test/resources/overridesTest/services/cassandraWithoutOverridesFile/cassandra";
 	private static final String SERVICE_EXTERNAL_OVERRIDES_FILE_PATH = 
 			"src/test/resources/overridesTest/overridesFiles/cassandraWithoutOverridesFile.overrides";
+	private static final String SERVICE_ILLEGAL_OVERRIDES_FILE_FORMAT_PATH = 
+			"src/test/resources/overridesTest/overridesFiles/cassandraIllegalOverridesFileFormat.overrides";
+	private static final String SERVICE_ILLEGAL_OVERRIDES_PROPERTIES_FILE_PATH = 
+			"src/test/resources/overridesTest/overridesFiles/cassandraIllegalOverridesProperties.overrides";
 
+	private static final String EC2_CLOUD_WITH_FILE_PATH = "testResources/cloud/ec2-overrides-with-file";
+	private static final String EC2_CLOUD_WITH_FILE_OVERRIDES_PATH = "testResources/cloud/ec2-overrides-with-file/ec2-cloud.overrides";
+	
+	private static final String EC2_CLOUD_WITH_SCRIPT_PATH = "testResources/cloud/ec2-overrides-with-script";
+	
 	private static final String APPLICATION_PATH = 
 			"src/test/resources/overridesTest/apps/overridesTestApplication";
 	private static final String EXTERNAL_OVERRIDES_APPLICATION_PATH = 
 			"src/test/resources/overridesTest/apps/overridesTestApplicationWithoutOverridesFile";
 	private static final String APPLICATION_EXTERNAL_OVERRIDES_FILE_PATH = 
 			"src/test/resources/overridesTest/overridesFiles/overridesTestApplicationWithoutOverridesFile.overrides";
+	private static final String APPLICATION_ILLEGAL_OVERRIDES_FILE_FORMAT_PATH = 
+			"src/test/resources/overridesTest/overridesFiles/applicationIllegalOverridesFileFormat.overrides";
+	private static final String APPLICATION_ILLEGAL_OVERRIDES_PROPERTIES_PATH = 
+			"src/test/resources/overridesTest/overridesFiles/applicationIllegalOverridesProperties.overrides";
 
 	private static final String APPLICATION_SERVICE_PATH = 
 			"src/test/resources/overridesTest/services/service1";
@@ -50,11 +67,20 @@ public class OverridesTest {
 			new HashMap<String, Object>();
 	private static final Map<String, Object> APPLICATION_WITHOUT_OVERRIDES_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS = 
 			new HashMap<String, Object>();
+	
+	private static final Map<String, Object> EC2_CLOUD_OVERRIDES_PROPERTIES_MATCHING_FIELDS = 
+			new HashMap<String, Object>();
  
 	private static final Integer NUM_INSTANCES = new Integer(5);
 	private static final Integer OVERRIDEN_NUM_INSTANCES = new Integer(3);
 
 	static {
+		
+			// cloud with overrides file
+			EC2_CLOUD_OVERRIDES_PROPERTIES_MATCHING_FIELDS.put("myUser", "\"OverridesTestUser\"");
+			EC2_CLOUD_OVERRIDES_PROPERTIES_MATCHING_FIELDS.put("myApiKey", "\"OverridesTestApiKey\"");
+			EC2_CLOUD_OVERRIDES_PROPERTIES_MATCHING_FIELDS.put("myKeyPair", "\"OverridesTestApiKey\"");
+			
 			// service with overrides file.
 			SERVICE_OVERRIDEN_PROEPRTIES_MATCHING_FIELDS.put("name",
 					"overridesTest");
@@ -149,6 +175,50 @@ public class OverridesTest {
 			fail("Failed to read application " + APPLICATION_SERVICE_PATH + e);
 		}
 	}
+	
+	/**
+	 * 
+	 * @throws IllegalAccessException .
+	 * @throws InvocationTargetException .
+	 * @throws NoSuchMethodException .
+	 * @throws DSLException .
+	 */
+	@Test
+	public void testServiceIllegalOverridesFileFormat()
+			throws IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException, DSLException {
+		try {
+			testDSLOverrides(EXTERNAL_OVERRIDES_SERVICE_PATH,
+					SERVICE_ILLEGAL_OVERRIDES_FILE_FORMAT_PATH, Service.class,
+					null);
+			fail("Expected DSLException for service "
+					+ EXTERNAL_OVERRIDES_SERVICE_PATH);
+		} catch (final IllegalArgumentException e) { 
+			Assert.assertTrue(e.getMessage().contains("Cannot override property"));
+		}
+	}
+
+	/**
+	 * 
+	 * @throws IllegalAccessException .
+	 * @throws InvocationTargetException .
+	 * @throws NoSuchMethodException .
+	 * @throws DSLException .
+	 */
+	@Test
+	public void testServiceIllegalOverridesProperties()
+			throws IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException, DSLException {
+		try {
+			testDSLOverrides(EXTERNAL_OVERRIDES_SERVICE_PATH,
+					SERVICE_ILLEGAL_OVERRIDES_PROPERTIES_FILE_PATH,
+					Service.class, null);
+			fail("Expected DSLException for service "
+					+ EXTERNAL_OVERRIDES_SERVICE_PATH);
+		} catch (final IllegalArgumentException e) {
+			Assert.assertTrue(e.getMessage().contains("Cannot override property"));
+		}
+	}
 
 	/**
 	 * 
@@ -209,6 +279,83 @@ public class OverridesTest {
 		}
 	}
 
+	/**
+	 * 
+	 * @throws IllegalAccessException .
+	 * @throws InvocationTargetException .
+	 * @throws NoSuchMethodException .
+	 * @throws DSLException .
+	 */
+	@Test
+	public void testApplicationIllegalOverridesFileFormat()
+			throws IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException, DSLException {
+		try {
+			testDSLOverrides(EXTERNAL_OVERRIDES_APPLICATION_PATH,
+					APPLICATION_ILLEGAL_OVERRIDES_FILE_FORMAT_PATH,
+					Application.class, null);
+			fail("Expected DSLException for application "
+					+ EXTERNAL_OVERRIDES_APPLICATION_PATH);
+		} catch (final IllegalArgumentException e) {
+			Assert.assertTrue(e.getMessage().contains("Cannot override property"));
+		}
+	}
+
+	/**
+	 * 
+	 * @throws IllegalAccessException .
+	 * @throws InvocationTargetException .
+	 * @throws NoSuchMethodException .
+	 * @throws DSLException .
+	 */
+	@Test
+	public void testApplicationIllegalOverridesProperties()
+			throws IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException, DSLException {
+		try {
+			testDSLOverrides(EXTERNAL_OVERRIDES_APPLICATION_PATH,
+					APPLICATION_ILLEGAL_OVERRIDES_PROPERTIES_PATH,
+					Application.class, null);
+			fail("Expected DSLException for application "
+					+ EXTERNAL_OVERRIDES_APPLICATION_PATH);
+		} catch (final IllegalArgumentException e) {
+			Assert.assertTrue(e.getMessage().contains("Cannot override property"));
+		}
+	}
+	
+	@Test
+	public void testCloudWithOverridesFile() throws IllegalAccessException, 
+		InvocationTargetException, NoSuchMethodException, DSLException {
+		
+		Cloud cloud = ServiceReader.readCloudFromDirectory(EC2_CLOUD_WITH_FILE_PATH);		
+		// overriden props
+		Assert.assertEquals("OverridesTestUser", cloud.getUser().getUser());
+		Assert.assertEquals("OverridesTestApiKey", cloud.getUser().getApiKey());
+		Assert.assertEquals("OverridesTestKeyPair", (String) cloud.getTemplates().
+				get("SMALL_LINUX").getOptions().get("keyPair"));
+		Assert.assertEquals("OverridesTestImageId", cloud.getTemplates().get("SMALL_LINUX").getImageId());
+		
+		// not overrides, taken from .properties file
+		Assert.assertEquals("TestKeyFile.pem", cloud.getTemplates().get("SMALL_LINUX").getKeyFile());
+	}
+	
+	@Test
+	public void testCloudWithOverridesScript() throws DSLException, IOException {
+		
+		Cloud cloud = ServiceReader.readCloudFromDirectory(EC2_CLOUD_WITH_SCRIPT_PATH, 
+				FileUtils.readFileToString(new File(EC2_CLOUD_WITH_FILE_OVERRIDES_PATH)));		
+		// overriden props
+		Assert.assertEquals("OverridesTestUser", cloud.getUser().getUser());
+		Assert.assertEquals("OverridesTestApiKey", cloud.getUser().getApiKey());
+		Assert.assertEquals("OverridesTestKeyPair", (String) cloud.getTemplates().
+				get("SMALL_LINUX").getOptions().get("keyPair"));
+		Assert.assertEquals("OverridesTestImageId", cloud.getTemplates().get("SMALL_LINUX").getImageId());
+		
+		// not overrides, taken from .properties file
+		Assert.assertEquals("TestKeyFile.pem", cloud.getTemplates().get("SMALL_LINUX").getKeyFile());
+		
+	}
+
 	private static Object testDSLOverrides(final String servicePath,
 			final String overridesFilePath, final Class<?> clazz,
 			final Map<String, Object> expectedFields) throws
@@ -216,7 +363,9 @@ public class OverridesTest {
 			NoSuchMethodException, DSLException {
 		final File workDir = new File(servicePath);
 
-		final boolean isApplication = !clazz.equals(Service.class);
+		final boolean isApplication = clazz.equals(Application.class);
+		final boolean isService = clazz.equals(Service.class);
+		final boolean isCloud = clazz.equals(Cloud.class);
 
 		File overridesFile = null;
 		if (overridesFilePath != null) {
@@ -230,8 +379,13 @@ public class OverridesTest {
 			reader.addProperty(DSLUtils.APPLICATION_DIR,
 					workDir.getAbsolutePath());
 			reader.setCreateServiceContext(false);
-		} else { // service
+		} else if (isService) {
 			reader.setDslFileNameSuffix(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX);
+		} else if (isCloud) {
+			reader.setDslFileNameSuffix(DSLReader.CLOUD_DSL_FILE_NAME_SUFFIX);
+			reader.setCreateServiceContext(false);
+		} else {
+			throw new DSLException("Class " + clazz.getName() + " does not exist in the DSL Domain");
 		}
 		reader.setOverridesFile(overridesFile);
 		final Object object = reader.readDslEntity(clazz);
@@ -253,5 +407,4 @@ public class OverridesTest {
 			Assert.assertEquals(entry.getValue(), fieldValue);
 		}
 	}
-
 }

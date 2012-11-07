@@ -74,8 +74,10 @@ public interface AdminFacade {
 	 *             file over REST
 	 */
 	Map<String, String> installApplication(File applicationFile,
-			String applicationName, String authGroups, int timeout, 
-			final boolean selfHealing) throws CLIException;
+			String applicationName, String authGroups, int timeout,
+			final boolean selfHealing, 
+			final File cloudOverrides)
+			throws CLIException;
 
 	/**
 	 * Installs and starts a service on a given application.
@@ -102,7 +104,8 @@ public interface AdminFacade {
 	 */
 	String installElastic(File file, String applicationName,
 			String serviceName, String zone, Properties props,
-			final String templateName, int timeout, final boolean selfHealing)
+			final String templateName, int timeout, final boolean selfHealing,
+			final File cloudOverrides)
 			throws CLIException;
 
 	/**

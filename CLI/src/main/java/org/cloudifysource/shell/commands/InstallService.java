@@ -30,6 +30,7 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
@@ -101,7 +102,14 @@ public class InstallService extends AdminAwareCommand {
 	@Option(required = false, name = "-overrides", description = 
 			"File containing properties to be used to overrides the current service's properties.")
 	private File overrides;
+	
+	@Option(required = false, name = "-cloud-overrides",
+			description = "File containing properties to be used to override the current cloud " +
+					"configuration for this service.")
+	private File cloudOverrides;
 
+	private static final long TEN_K = 10 * FileUtils.ONE_KB;
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -109,6 +117,12 @@ public class InstallService extends AdminAwareCommand {
 
 	protected Object doExecute()
 			throws Exception {
+		
+		if (cloudOverrides != null) {
+			if (cloudOverrides.length() >= TEN_K) {
+				throw new CLIStatusException(CloudifyErrorMessages.CLOUD_OVERRIDES_TO_LONG.getName());
+			}
+		}
 		
 		RecipePathResolver pathResolver = new RecipePathResolver();
 		if (pathResolver.resolveService(recipe)) {
@@ -219,9 +233,9 @@ public class InstallService extends AdminAwareCommand {
 		}
 
 		final String lifecycleEventContainerPollingID = adminFacade
-				.installElastic(packedFile, currentApplicationName,
+				.installElastic(packedFile , currentApplicationName,
 						serviceName, zone, props, templateName,
-						getTimeoutInMinutes(), !disableSelfHealing);
+						getTimeoutInMinutes(), !disableSelfHealing, cloudOverrides);
 
 		final RestLifecycleEventsLatch lifecycleEventsPollingLatch = this.adminFacade
 				.getLifecycleEventsPollingLatch(
