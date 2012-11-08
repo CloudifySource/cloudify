@@ -65,6 +65,10 @@ public class InstallApplication extends AdminAwareCommand {
 	@Argument(required = true, name = "application-file", description = "The application recipe file path, folder "
 			+ "or archive")
 	private File applicationFile;
+	
+	@Option(required = false, name = "-authGroups", description = "The groups authorized to access this application "
+			+ "(multiple values can be comma-separated)")
+	private String authGroups;
 
 	@Option(required = false, name = "-name", description = "The name of the application")
 	private String applicationName = null;
@@ -114,7 +118,7 @@ public class InstallApplication extends AdminAwareCommand {
 			applicationName = application.getName();
 		}
 
-		if (adminFacade.getApplicationsList().contains(applicationName)) {
+		if (adminFacade.getApplicationsMap().containsValue(applicationName)) {
 			throw new CLIStatusException("application_already_deployed", application.getName());
 		}
 
@@ -143,7 +147,7 @@ public class InstallApplication extends AdminAwareCommand {
 		logger.info("Uploading application " + applicationName);
 
 		final Map<String, String> result =
-				adminFacade.installApplication(zipFile, applicationName, getTimeoutInMinutes(), !disableSelfHealing);
+				adminFacade.installApplication(zipFile, applicationName, authGroups, getTimeoutInMinutes(), !disableSelfHealing);
 
 		final String serviceOrder = result.get(CloudifyConstants.SERVICE_ORDER);
 

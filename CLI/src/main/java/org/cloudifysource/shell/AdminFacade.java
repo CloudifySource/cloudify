@@ -61,6 +61,8 @@ public interface AdminFacade {
 	 *            A zip file containing the relevant application files
 	 * @param applicationName
 	 *            The name of the application
+	 * @param authGroups
+	 *            A csv string with groups authorized to use this application
 	 * @param timeout .
 	 * @param selfHealing
 	 *            True is recipe self healing should be enabled, false
@@ -72,8 +74,8 @@ public interface AdminFacade {
 	 *             file over REST
 	 */
 	Map<String, String> installApplication(File applicationFile,
-			String applicationName, int timeout, final boolean selfHealing)
-			throws CLIException;
+			String applicationName, String authGroups, int timeout, 
+			final boolean selfHealing) throws CLIException;
 
 	/**
 	 * Installs and starts a service on a given application.
@@ -131,6 +133,15 @@ public interface AdminFacade {
 	 *             Reporting a failure to the connect to the server
 	 */
 	void connect(String user, String password, String url) throws CLIException;
+    
+    /**
+     * Reconnects to the server, using the given credentials.
+     *
+     * @param username The user name, used to create the connection
+     * @param password The user name, used to create the connection
+     * @throws CLIException Reporting a failure to the connect to the server
+     */
+    void reconnect(String username, String password) throws CLIException;
 
 	/**
 	 * Disconnects from the server.
@@ -140,29 +151,13 @@ public interface AdminFacade {
 	 */
 	void disconnect() throws CLIException;
 
-	
-	/**
-	 * Gets a list of the installed applications' names.
-	 * 
-	 * @return A list of the installed applications' names
-	 * @throws CLIException
-	 *             Reporting a failure to retrieve the list of installed
-	 *             applications from the Rest server
-	 */
-	List<String> getApplicationsList() throws CLIException;
-	
-	/**
-	 * Gets the list of services deployed in the context of the given
-	 * application.
-	 * 
-	 * @param applicationName
-	 *            The name of the application to query for the service list.
-	 * @return A list of service deployed in the context of the given
-	 *         application
-	 * @throws CLIException
-	 *             Reporting a failure to get the services list.
-	 */
-	
+    /**
+     * Gets a map of the installed applications' names and their authorization groups.
+     *
+     * @return A map of the installed applications' names and their authorization groups
+     * @throws CLIException Reporting a failure to retrieve the list of installed applications from the Rest server
+     */
+    Map<String, String> getApplicationsMap() throws CLIException;
 	List<String> getServicesList(String applicationName) throws CLIException;
 	
 	/**
@@ -224,6 +219,16 @@ public interface AdminFacade {
 	 */
 	void removeInstance(String applicationName, String serviceName,
 			int instanceId) throws CLIException;
+    /**
+     * Adds a processing unit instance for the specified service, on the specified application.
+     *
+     * @param applicationName The name of the relevant application
+     * @param serviceName     The name of the service
+     * @param authGroups      A csv string with groups authorized to use this application
+     * @param timeout         The time (number of seconds) this procedure is limited to, before throwing an exception
+     * @throws CLIException Reporting a failure to add a processing unit instance of this service
+     */
+    void addInstance(String applicationName, String serviceName, String authGroups, int timeout) throws CLIException;
 
 	/************
 	 * .

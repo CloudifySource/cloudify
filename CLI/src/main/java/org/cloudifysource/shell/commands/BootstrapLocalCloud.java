@@ -35,13 +35,16 @@ import org.fusesource.jansi.Ansi.Color;
  *        Starts Cloudify Agent without any zone, and the Cloudify management processes on local machine. These
  *        processes are isolated from Cloudify processes running on other machines.
  * 
- *        Optional arguments: lookup-groups - A unique name that is used to group together Cloudify components (default:
- *        localcloud). nic-address - The IP address of the local host network card. Specify when local machine has more
- *        than one network adapter, and a specific network card should be used for network communication. timeout - The
- *        number of minutes to wait until the operation is completed (default: 5).
+ *        Optional arguments:
+ *        lookup-groups - A unique name that is used to group together Cloudify components (default: localcloud).
+ *        nic-address - The IP address of the local host network card. Specify when local machine has more
+ *        than one network adapter, and a specific network card should be used for network communication.
+ *        user - The username for a secure connection to the rest server
+ *        pwd - The password for a secure connection to the rest server
+ *        timeout - The number of minutes to wait until the operation is completed (default: 5).
  * 
- *        Command syntax: bootstrap-localcloud [-lookup-groups lookup-groups] [-nic-address nic-address] [-timeout
- *        timeout]
+ *        Command syntax: bootstrap-localcloud [-lookup-groups lookup-groups] [-nic-address nic-address] 
+ *        [-user username] [-password password] [-timeout timeout]
  */
 @Command(scope = "cloudify", name = "bootstrap-localcloud", description = "Starts Cloudify Agent without any zone,"
 		+ " and the Cloudify management processes on local machine. These processes are isolated from Cloudify "
@@ -57,6 +60,13 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 			+ LocalhostGridAgentBootstrapper.LOCALCLOUD_LOOKUPGROUP
 			+ "'. Override in order to start multiple local clouds on the local machine.")
 	private String lookupGroups;
+	
+    @Option(required = false, description = "The username for a secure connection to the rest server", name = "-user")
+    private String username;
+
+    @Option(required = false, description = "The password for a secure connection to the rest server", name = "-pwd",
+            aliases = {"-password" })
+    private String password;
 
 	@Option(required = false, name = "-nic-address", description = "The ip address of the local host network card. "
 			+ "Specify when local machine has more than one network adapter, and a specific network card should be "
@@ -97,7 +107,7 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 		installer.addListener(new CLILocalhostBootstrapperListener());
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 
-		installer.startLocalCloudOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);
+		installer.startLocalCloudOnLocalhostAndWait(username, password, timeoutInMinutes, TimeUnit.MINUTES);
 
 		return messages.getString("local_cloud_started");
 	}

@@ -39,9 +39,10 @@ public class ListApplications extends AbstractListCommand {
 	 */
 	@Override
 	protected Object doExecute() throws Exception {
-		List<ApplicationDescription> applicationsList = adminFacade.getApplicationsDescriptionList();
+		return adminFacade.getApplicationsMap();
+		/*List<ApplicationDescription> applicationsList = adminFacade.getApplicationsDescriptionList();
 		String appsDescription = getApplicationDescriptionFromListAsString(applicationsList);
-		return appsDescription;
+		return appsDescription;*/
 	}
 
 	private String getApplicationDescriptionFromListAsString(

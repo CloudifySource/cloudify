@@ -99,6 +99,20 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			throw new CLIException(e);
 		}
 	}
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void reconnect(final String username, final String password) throws CLIException {
+    	try {
+			client.setCredentials(username, password);
+            // test connection
+            client.get(SERVICE_CONTROLLER_URL + "testrest");
+        } catch (final ErrorStatusException e) {
+            throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+        }
+    }
 
 	private URL getUrlWithDefaultPort(final URL urlObj)
 			throws MalformedURLException {
@@ -164,6 +178,19 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
 	}
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Map<String, String> getApplicationsMap() throws CLIException {
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, String> applications = (Map<String, String>) client.get("/service/applications");
+            return applications;
+        } catch (final ErrorStatusException e) {
+            throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+        }
+    }
 
 	/**
 	 * {@inheritDoc}
@@ -267,25 +294,25 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void addInstance(final String applicationName,
-			final String serviceName, final int timeout) throws CLIException {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void addInstance(final String applicationName, final String serviceName, final String authGroups, 
+    		final int timeout) throws CLIException {
 
-		final String url = SERVICE_CONTROLLER_URL + "applications/na/services/"
-				+ serviceName + "/addinstance";
-		final Map<String, String> params = new HashMap<String, String>();
-		try {
-			params.put("timeout", Integer.toString(timeout));
-			client.post(url, params);
-		} catch (final ErrorStatusException e) {
-			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-		} catch (final RestException e) {
-			throw new CLIException(e);
-		}
-	}
+        final String url = SERVICE_CONTROLLER_URL + "applications/na/services/" + serviceName + "/addinstance";
+        final Map<String, String> params = new HashMap<String, String>();
+        try {
+            params.put("timeout", Integer.toString(timeout));
+            params.put("authGroups", authGroups);
+            client.post(url, params);
+        } catch (final ErrorStatusException e) {
+            throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+        } catch (final RestException e) {
+            throw new CLIException(e);
+        }
+    }
 
 	/**
 	 * {@inheritDoc}
@@ -623,6 +650,12 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			final String applicationName, final int timeout,
 			final boolean selfHealing) throws CLIException {
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public Map<String, String> installApplication(final File applicationFile, final String applicationName, String authGroups, int timeout) throws CLIException {
 		final String url = SERVICE_CONTROLLER_URL + "applications/"
 				+ applicationName + "/timeout/" + timeout + "?selfHealing="
 				+ Boolean.toString(selfHealing);
@@ -637,6 +670,25 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			throw new CLIException(e);
 		}
 	}
+
+    	Map<String, String> response;
+        final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/timeout/" + timeout;
+        try {
+            if (org.apache.commons.lang.StringUtils.isBlank(authGroups)) {
+            	response = (Map<String, String>) client.postFile(url, applicationFile);
+            } else {
+            	Map<String, String> paramsMap = new HashMap<String, String>();
+            	paramsMap.put("authGroups", authGroups);
+            	response = (Map<String, String>) client.postFile(url, applicationFile, paramsMap);
+            }
+        } catch (final ErrorStatusException e) {
+            throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+        } catch (final RestException e) {
+            throw new CLIException(e);
+        }
+        
+        return response;
+    }
 
 	@Override
 	public Map<String, String> setInstances(final String applicationName,

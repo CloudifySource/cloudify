@@ -24,6 +24,7 @@ import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -307,15 +308,16 @@ public class LocalhostGridAgentBootstrapper {
 	 * Starts management processes (LUS, GSM, ESM) on a local cloud, and waits until the requested service installations
 	 * complete (space, webui, REST), or until the timeout is reached.
 	 * 
+	 * @param username The username for a secure connection to the server
+	 * @param password The password for a secure connection to the server
 	 * @param timeout number of {@link TimeUnit}s to wait
 	 * @param timeunit the {@link TimeUnit} to use, to calculate the timeout
 	 * @throws CLIException Reporting a failure to start the processes and services
 	 * @throws InterruptedException Reporting the thread was interrupted while waiting
 	 * @throws TimeoutException Reporting the timeout was reached
 	 */
-	public void startLocalCloudOnLocalhostAndWait(final int timeout, final TimeUnit timeunit)
-			throws CLIException,
-			InterruptedException, TimeoutException {
+	public void startLocalCloudOnLocalhostAndWait(final String username, final String password, final int timeout,
+			final TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
 
 		setGridServiceAgentZone(LOCALCLOUD_GSA_ZONES);
 
@@ -324,9 +326,9 @@ public class LocalhostGridAgentBootstrapper {
 		setDefaultLocalcloudLookup();
 
 		if (isWindows()) {
-			startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_WIN_MANAGEMENT_ARGUMENTS, timeout, timeunit, true);
+			startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_WIN_MANAGEMENT_ARGUMENTS, username, password, timeout, timeunit, true);
 		} else {
-			startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_LINUX_MANAGEMENT_ARGUMENTS, timeout, timeunit, true);
+			startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_LINUX_MANAGEMENT_ARGUMENTS, username, password, timeout, timeunit, true);
 		}
 	}
 
@@ -361,21 +363,24 @@ public class LocalhostGridAgentBootstrapper {
 	 * Starts management processes (LUS, GSM, ESM) and waits until the requested service installations complete (space,
 	 * webui, REST), or until the timeout is reached. The cloud is not a local cloud.
 	 * 
+	 * @param username The username for a secure connection to the server
+	 * @param password The password for a secure connection to the server
 	 * @param timeout number of {@link TimeUnit}s to wait
 	 * @param timeunit the {@link TimeUnit} to use, to calculate the timeout
 	 * @throws CLIException Reporting a failure to start the processes and services
 	 * @throws InterruptedException Reporting the thread was interrupted while waiting
 	 * @throws TimeoutException Reporting the timeout was reached
 	 */
-	public void startManagementOnLocalhostAndWait(final int timeout, final TimeUnit timeunit)
-			throws CLIException,
+	public void startManagementOnLocalhostAndWait(final String username, final String password, final int timeout,
+			final TimeUnit timeunit) throws CLIException,
 			InterruptedException, TimeoutException {
 
 		setGridServiceAgentZone(MANAGEMENT_ZONE);
 
 		setDefaultNicAddress();
 
-		startManagementOnLocalhostAndWaitInternal(CLOUD_MANAGEMENT_ARGUMENTS, timeout, timeunit, false);
+		startManagementOnLocalhostAndWaitInternal(CLOUD_MANAGEMENT_ARGUMENTS, username, password, timeout, timeunit,
+				false);
 	}
 
 	/**
@@ -441,7 +446,7 @@ public class LocalhostGridAgentBootstrapper {
 			throws InterruptedException,
 			TimeoutException, CLIException {
 
-		List<String> applicationsList = null;
+		Collection<String> applicationsList = null;
 		boolean applicationsExist = false;
 		try {
 			if (!adminFacade.isConnected()) {
@@ -449,7 +454,7 @@ public class LocalhostGridAgentBootstrapper {
 						+ "Client is not connected to the rest server.");
 			}
 
-			applicationsList = adminFacade.getApplicationsList();
+			applicationsList = adminFacade.getApplicationsMap().values();
 			// If there existed other applications besides the management.
 			applicationsExist = applicationsList.size() > 1;
 		} catch (final CLIException e) {
@@ -520,7 +525,7 @@ public class LocalhostGridAgentBootstrapper {
 			@Override
 			public boolean isDone()
 					throws CLIException, InterruptedException {
-				final List<String> applications = adminFacade.getApplicationsList();
+				final Collection<String> applications = adminFacade.getApplicationsMap().values();
 
 				boolean done = true;
 				for (final String applicationName : applications) {
@@ -756,6 +761,8 @@ public class LocalhostGridAgentBootstrapper {
 	 * webui, REST), or until the timeout is reached.
 	 * 
 	 * @param gsAgentArgs GS agent start-up switches
+	 * @param username The username for a secure connection to the server
+	 * @param password The password for a secure connection to the server
 	 * @param timeout number of {@link TimeUnit}s to wait
 	 * @param timeunit the {@link TimeUnit} to use, to calculate the timeout
 	 * @param isLocalCloud Is this a local cloud (true - yes, false - no)
@@ -764,9 +771,9 @@ public class LocalhostGridAgentBootstrapper {
 	 * @throws TimeoutException Reporting the timeout was reached
 	 */
 	private void startManagementOnLocalhostAndWaitInternal(final String[] gsAgentArgs,
-			final int timeout, final TimeUnit timeunit, final boolean isLocalCloud)
-			throws CLIException, InterruptedException,
-			TimeoutException {
+			final String username, final String password, final int timeout, final TimeUnit timeunit,
+			final boolean isLocalCloud) throws CLIException, InterruptedException, TimeoutException {
+		
 		setIsLocalCloud(isLocalCloud);
 		
 		final long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
@@ -867,6 +874,8 @@ public class LocalhostGridAgentBootstrapper {
 
 					restInstaller.setMemory(REST_MEMORY_IN_MB, MemoryUnit.MEGABYTES);
 					restInstaller.setPort(REST_PORT);
+					restInstaller.setUsername(username);
+					restInstaller.setPassword(password);
 					restInstaller.setWarFile(new File(REST_FILE));
 					restInstaller.setServiceName(REST_NAME);
 					restInstaller.setManagementZone(MANAGEMENT_ZONE);

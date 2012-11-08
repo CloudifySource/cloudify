@@ -60,6 +60,8 @@ import com.j_spaces.kernel.Environment;
 public class ManagementWebServiceInstaller extends AbstractManagementServiceInstaller {
 
 	private int port;
+	private String username;
+	private String password;
 	private File warFile;
 	private boolean waitForConnection;
 	private List<LocalhostBootstrapperListener> eventsListenersList = new ArrayList<LocalhostBootstrapperListener>();
@@ -73,6 +75,14 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	 */
 	public void setPort(final int port) {
 		this.port = port;
+	}
+	
+	public void setUsername(final String username) {
+		this.username = username;
+	}
+	
+	public void setPassword(final String password) {
+		this.password = password;
 	}
 
 	/**
@@ -178,7 +188,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 		final URL url = waitForProcessingUnitInstance(agent, timeout, timeunit);
 		final long remainingTime = timeunit.toMillis(timeout) - (System.currentTimeMillis() - startTime);
 		if (waitForConnection) {
-			waitForConnection(adminFacade, url, remainingTime, TimeUnit.MILLISECONDS);
+			waitForConnection(adminFacade, username, password, url, remainingTime, TimeUnit.MILLISECONDS);
 		}
 	}
 
@@ -255,6 +265,10 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	 * 
 	 * @param adminFacade
 	 *            The admin facade used to connect and disconnect from the REST server
+	 * @param username
+	 *            The username for a secure connection to the rest server
+	 * @param password
+	 *            The password for a secure connection to the rest server
 	 * @param url
 	 *            The URL of the service
 	 * @param timeout
@@ -268,8 +282,9 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	 * @throws CLIException
 	 *             Reporting different errors while creating the connection to the service
 	 */
-	private void waitForConnection(final AdminFacade adminFacade, final URL url, final long timeout,
-			final TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException {
+	private void waitForConnection(final AdminFacade adminFacade, final String username, final String password,
+			final URL url, final long timeout, final TimeUnit timeunit) throws InterruptedException, TimeoutException,
+			CLIException {
 		adminFacade.disconnect();
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
 			/**
@@ -279,7 +294,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 			public boolean isDone() throws CLIException, InterruptedException {
 
 				try {
-					adminFacade.connect(null, null, url.toString());
+					adminFacade.connect(username, password, url.toString());
 					return true;
 				} catch (final CLIException e) {
 					if (verbose) {

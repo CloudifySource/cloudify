@@ -67,6 +67,10 @@ public class InstallService extends AdminAwareCommand {
 
 	@Argument(required = true, name = "recipe", description = "The service recipe folder or archive")
 	private File recipe;
+	
+	@Option(required = false, name = "-authGroups", description = "The groups authorized to access this application "
+			+ "(multiple values can be comma-separated)")
+	private String authGroups;
 
 	@Option(required = false, name = "-zone", description = "The machines zone in which to install the service")
 	private String zone;
@@ -184,9 +188,14 @@ public class InstallService extends AdminAwareCommand {
 		if (service != null) {
 			props = createServiceContextProperties(service);
 			if (serviceFileName != null) {
+<<<<<<< HEAD
 				props.setProperty(
 						CloudifyConstants.CONTEXT_PROPERTY_SERVICE_FILE_NAME,
 						serviceFileName);
+=======
+				props.setProperty(CloudifyConstants.CONTEXT_PROPERTY_SERVICE_FILE_NAME, serviceFileName);
+				props.setProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups);
+>>>>>>> CLOUDIFY-1124 REST Security roles Added new cli commands and modified existing commands to support REST user/password and authorization groups.
 			}
 			if (serviceName == null || serviceName.isEmpty()) {
 				serviceName = service.getName();

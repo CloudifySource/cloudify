@@ -68,7 +68,7 @@ public class List extends AdminAwareCommand {
 		case SERVICE:
 			return adminFacade.getServicesList(getCurrentApplicationName());
 		case APPLICATION:
-			return adminFacade.getApplicationsList();
+			return adminFacade.getApplicationsMap();
 		default:
 			logger.warning("Unhandled component type");
 			return null;

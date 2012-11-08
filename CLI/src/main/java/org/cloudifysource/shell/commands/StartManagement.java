@@ -35,20 +35,26 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
  * 
  *        Starts Cloudify Agent with management zone, and the Cloudify management processes on local machine.
  * 
- *        Optional arguments: lookup-groups - A unique name that is used to group together Cloudify components. Override
- *        in order to group together cloudify managements/agents on a network that supports multicast. nic-address - The
- *        IP address of the local host network card. Specify when local machine has more than one network adapter, and a
- *        specific network card should be used for network communication. timeout - The number of minutes to wait until
- *        the operation is completed (default: 5 minutes) lookup-locators - A list of IP addresses used to identify all
- *        management machines. Override when using a network without multicast support (Default: null). auto-shutdown -
- *        determines if undeploying or scaling-in the last service instance on the machine also triggers agent shutdown
- *        (default: false). no-web-services - if set, no attempt to deploy the rest admin and web-ui will be made.
- *        no-management-space - if set, no attempt to deploy the management space will be made. cloud-file - if set,
- *        designates the location of the cloud configuration file.
+ *        Optional arguments:
+ *        lookup-groups - A unique name that is used to group together Cloudify components. Override
+ *        in order to group together cloudify managements/agents on a network that supports multicast.
+ *        nic-address - The IP address of the local host network card. Specify when local machine has more than one 
+ *        network adapter, and a specific network card should be used for network communication.
+ *        user - The username for a secure connection to the rest server
+ *        pwd - The password for a secure connection to the rest server
+ *        timeout - The number of minutes to wait until
+ *        the operation is completed (default: 5 minutes)
+ *        lookup-locators - A list of IP addresses used to identify all management machines. Override when using a
+ *        network without multicast support (Default: null).
+ *        auto-shutdown - determines if undeploying or scaling-in the last service instance on the machine also 
+ *        triggers agent shutdown (default: false).
+ *        no-web-services - if set, no attempt to deploy the rest admin and web-ui will be made.
+ *        no-management-space - if set, no attempt to deploy the management space will be made.
+ *        cloud-file - if set, designates the location of the cloud configuration file.
  * 
- *        Command syntax: start-management [-lookup-groups lookup-groups] [-nicAddress nicAddress] [-timeout timeout]
- *        [-lookup-locators lookup-locators] [-auto-shutdown auto-shutdown] [-no-web-services no-web-services]
- *        [-no-management-space no-management-space] [-cloud-file cloud-file]
+ *        Command syntax: start-management [-lookup-groups lookup-groups] [-nicAddress nicAddress] [-user username]
+ *        [-password password] [-timeout timeout] [-lookup-locators lookup-locators] [-auto-shutdown auto-shutdown]
+ *        [-no-web-services no-web-services] [-no-management-space no-management-space] [-cloud-file cloud-file]
  */
 @Command(
 		scope = "cloudify",
@@ -76,6 +82,13 @@ public class StartManagement extends AbstractGSCommand {
 			+ "Specify when local machine has more than one network adapter, and a specific network card should be"
 			+ " used for network communication.")
 	private String nicAddress;
+	
+    @Option(required = false, description = "The username for a secure connection to the rest server", name = "-user")
+    private String username;
+
+    @Option(required = false, description = "The password for a secure connection to the rest server", name = "-pwd",
+            aliases = {"-password" })
+    private String password;
 
 	@Option(required = false, name = "-no-web-services",
 			description = "if set, no attempt to deploy the rest admin and" + " web-ui will be made")
@@ -126,8 +139,7 @@ public class StartManagement extends AbstractGSCommand {
 		installer.setWaitForWebui(true);
 		installer.setCloudFilePath(cloudFileName);
 
-		installer.startManagementOnLocalhostAndWait(getTimeoutInMinutes(),
-				TimeUnit.MINUTES);
+		installer.startManagementOnLocalhostAndWait(username, password, getTimeoutInMinutes(), TimeUnit.MINUTES);
 		return "Management started successfully. Use the shutdown-management command to shutdown"
 				+ " management processes running on local machine.";
 	}
