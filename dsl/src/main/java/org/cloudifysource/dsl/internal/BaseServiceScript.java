@@ -53,8 +53,8 @@ public abstract class BaseServiceScript extends Script {
 	private Service service;
 
 	private static class DSLEntryResult {
-		private Object response;
-		private boolean success = false;
+		private final Object response;
+		private final boolean success;
 
 		public DSLEntryResult(boolean success, Object response) {
 			super();
