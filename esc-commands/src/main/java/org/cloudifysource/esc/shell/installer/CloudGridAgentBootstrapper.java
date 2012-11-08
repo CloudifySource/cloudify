@@ -22,6 +22,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -147,6 +148,10 @@ public class CloudGridAgentBootstrapper {
 	 * Bootstraps and waits until the management machines are running, or until
 	 * the timeout is reached.
 	 * 
+	 * @param username
+	 * 				The username for a secure connection to the server
+	 * @param password
+	 * 				The password for a secure connection to the server
 	 * @param timeout
 	 *            The number of {@link TimeUnit}s to wait before timing out
 	 * @param timeoutUnit
@@ -160,7 +165,7 @@ public class CloudGridAgentBootstrapper {
 	 * @throws InterruptedException
 	 *             Indicates a thread was interrupted while waiting
 	 */
-	public void boostrapCloudAndWait(final long timeout,
+	public void boostrapCloudAndWait(final String username, final String password, final long timeout,
 			final TimeUnit timeoutUnit) throws InstallerException,
 			CLIException, InterruptedException {
 
@@ -228,10 +233,8 @@ public class CloudGridAgentBootstrapper {
 						WEBUI_PORT, null, null, null).toURL();
 
 				// We are relying on start-management command to be run on the
-				// new machine, so everything should be up if the rest admin is
-				// up
-				waitForConnection(restAdminUrl, Utils.millisUntil(end),
-						TimeUnit.MILLISECONDS);
+				// new machine, so everything should be up if the rest admin is up
+				waitForConnection(username, password, restAdminUrl, Utils.millisUntil(end), TimeUnit.MILLISECONDS);
 
 				logger.info("Rest service is available at: " + restAdminUrl
 						+ '.');
@@ -388,7 +391,7 @@ public class CloudGridAgentBootstrapper {
 
 	private void uninstallApplications(final long end) throws CLIException,
 			InterruptedException, TimeoutException {
-		final List<String> applicationsList = adminFacade.getApplicationsList();
+		final Collection<String> applicationsList = adminFacade.getApplicationsMap().values();
 		if (applicationsList.size() > 0) {
 			logger.info("Uninstalling the currently deployed applications");
 			for (final String application : applicationsList) {
@@ -604,8 +607,8 @@ public class CloudGridAgentBootstrapper {
 					@Override
 					public boolean isDone() throws CLIException,
 							InterruptedException {
-						final List<String> applications = adminFacade
-								.getApplicationsList();
+						final Collection<String> applications = adminFacade
+								.getApplicationsMap().values();
 
 						boolean done = true;
 
@@ -625,9 +628,29 @@ public class CloudGridAgentBootstrapper {
 				});
 	}
 
-	private void waitForConnection(final URL restAdminUrl, final long timeout,
-			final TimeUnit timeunit) throws InterruptedException,
-			TimeoutException, CLIException {
+	/**
+	 * Waits for a connection to be established with the service. If the timeout is reached before a
+	 * connection could be established, a {@link TimeoutException} is thrown.
+	 * 
+	 * @param username
+	 *            The username for a secure connection to the rest server
+	 * @param password
+	 *            The password for a secure connection to the rest server
+	 * @param url
+	 *            The URL of the service
+	 * @param timeout
+	 *            number of {@link TimeUnit}s to wait
+	 * @param timeunit
+	 *            The {@link TimeUnit} to use
+	 * @throws InterruptedException
+	 *             Reporting the thread is interrupted while waiting
+	 * @throws TimeoutException
+	 *             Reporting the time out was reached
+	 * @throws CLIException
+	 * 			   Reporting different errors while creating the connection to the service
+	 */
+	private void waitForConnection(final String username, final String password, final URL restAdminUrl,
+			final long timeout, final TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException {
 
 		adminFacade.disconnect();
 
@@ -639,7 +662,7 @@ public class CloudGridAgentBootstrapper {
 							InterruptedException {
 
 						try {
-							adminFacade.connect(null, null,
+							adminFacade.connect(username, password,
 									restAdminUrl.toString());
 							return true;
 						} catch (final CLIException e) {

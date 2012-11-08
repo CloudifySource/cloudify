@@ -27,10 +27,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.utils.RecipePathResolver;
 import org.cloudifysource.esc.driver.provisioning.jclouds.DefaultProvisioningDriver;
@@ -50,9 +52,21 @@ import org.cloudifysource.shell.rest.RestAdminFacade;
 public class BootstrapCloud extends AbstractGSCommand {
 
 	private static final int DEFAULT_TIMEOUT_MINUTES = 60;
+	private static final String PATH_SEPARATOR = System.getProperty("file.separator");
+	private static final String CLOUDIFY_HOME = System.getProperty("JSHOMEDIR");
 
 	@Argument(required = true, name = "provider", description = "the cloud provider to use")
 	String cloudProvider;
+	
+    @Option(required = false, description = "The username when connecting to a secure admin server", name = "-user")
+    private String username;
+
+    @Option(required = false, description = "The password when connecting to a secure admin server", name = "-pwd",
+            aliases = {"-password" })
+    private String password;
+    
+    @Option(required = false, description = "Path to a custom spring security configuration file", name = "-security")
+    private String securityFilePath;
 
 	@Option(required = false, name = "-timeout",
 			description = "The number of minutes to wait until the operation is done.")
@@ -75,6 +89,13 @@ public class BootstrapCloud extends AbstractGSCommand {
 					StringUtils.join(pathResolver.getPathsLooked().toArray(), ", "));
 		}
 
+		File providerDirectory = new File(ShellUtils.getCliDirectory(), "plugins" + PATH_SEPARATOR + "esc"
+				+ PATH_SEPARATOR + cloudProvider);
+		
+		//copy custom security config file to the overrides folder
+		
+		copySecurityFile(providerDirectory.getAbsolutePath());
+		
 		// load the cloud file
 		File cloudFile = findCloudFile(providerDirectory);
 		Cloud cloud = ServiceReader.readCloud(cloudFile);
@@ -103,7 +124,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 		logger.info(getFormattedMessage("bootstrapping_cloud", cloudProvider));
 		try {
 			// TODO: Create the event listeners here and pass them to the installer.
-			installer.boostrapCloudAndWait(timeoutInMinutes, TimeUnit.MINUTES);
+			installer.boostrapCloudAndWait(username, password, timeoutInMinutes, TimeUnit.MINUTES);
 			return getFormattedMessage("cloud_started_successfully", cloudProvider);
 		} finally {
 			installer.close();
@@ -168,5 +189,20 @@ public class BootstrapCloud extends AbstractGSCommand {
 		cmd.verbose = true;
 		cmd.adminFacade = new RestAdminFacade();
 		cmd.execute(null);
+	}
+	
+	private void copySecurityFile(final String providerDirectory) throws Exception {
+		if (securityFilePath == null) {
+			securityFilePath = CLOUDIFY_HOME + "/config/security/spring-security.xml";
+		}
+		
+		File securitySourceFile = new File(securityFilePath);
+		if (!securitySourceFile.isFile()) {
+			throw new Exception("Security configuration file not found: " + securityFilePath);
+		}
+		File securityTargetFile = new File(providerDirectory, "upload" + PATH_SEPARATOR
+				+ "cloudify-overrides" + PATH_SEPARATOR + "config" + PATH_SEPARATOR + "security" + PATH_SEPARATOR
+				+ "spring-security.xml");
+		FileUtils.copyFile(securitySourceFile, securityTargetFile);	
 	}
 }

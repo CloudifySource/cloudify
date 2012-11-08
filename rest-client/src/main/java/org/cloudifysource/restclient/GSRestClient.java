@@ -21,12 +21,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -52,9 +54,11 @@ import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
@@ -130,13 +134,22 @@ public class GSRestClient {
 				request.addHeader(CloudifyConstants.REST_API_VERSION_HEADER, version);
 			}
 		});
-        
-        // TODO use userdetails instead of user/pass
+
+        setCredentials(username, password);
+    }
+    
+    /**
+     * Sets username and password for the HTTP client
+     * 
+     * @param username Username for the HTTP client.
+     * @param password Password for the HTTP client.
+     */
+    public void setCredentials(final String username, final String password) {
+    	// TODO use userdetails instead of user/pass
         if (StringUtils.notEmpty(username) && StringUtils.notEmpty(password)) {
             httpClient.getCredentialsProvider().setCredentials(new AuthScope(AuthScope.ANY),
                     new UsernamePasswordCredentials(username, password));
         }
-
     }
 
     /**
@@ -510,7 +523,7 @@ public class GSRestClient {
      * @throws RestException Reporting failure to post the file.
      */
     public final Object postFile(final String relativeUrl, final File file) throws RestException {
-        return postFile(relativeUrl, file, null);
+    	return postFile(relativeUrl, file, new HashMap<String, String>() /*no params*/);
     }
 
     /**
@@ -548,6 +561,36 @@ public class GSRestClient {
 
         final HttpPost httppost = new HttpPost(getFullUrl(relativeUrl));
         httppost.setEntity(reqEntity);
+        
+        return executeHttpMethod(httppost);
+    }
+    
+    /**
+     * This methods executes HTTP post over REST on the given (relative) URL with the given file and
+     * properties (also sent as a separate file).
+     *
+     * @param relativeUrl The URL to post to.
+     * @param file        The file to send (example: <SOME PATH>/tomcat.zip).
+     * @param param       An additional string parameter passed on this post.
+     * @return The response object from the REST server
+     * @throws RestException Reporting failure to post the file or the parameter.
+     */
+    public final Object postFile(final String relativeUrl, final File file, final Map<String, String> params)
+            throws RestException {
+
+        final MultipartEntity entity = new MultipartEntity();
+
+        entity.addPart("file", new FileBody(file));
+        try {
+        	for (Map.Entry<String, String> param : params.entrySet()) {
+        		entity.addPart(param.getKey(), new StringBody(param.getValue(), Charset.forName("UTF-8")));        		
+        	}
+        } catch (final IOException e) {
+            throw new RestException(e);
+        }
+
+        final HttpPost httppost = new HttpPost(getFullUrl(relativeUrl));
+        httppost.setEntity(entity);
         
         return executeHttpMethod(httppost);
     }
