@@ -124,6 +124,8 @@ if(Test-Path $workDirectory\cloudify-overrides) {
 }
 
 # UPDATE SETENV SCRIPT...
+# Note: the agent is executed from the task scheduler, so it does not inherit the environment from the
+# current session
 Write-Host Updating environment script
 insert-line $cloudifyDir\bin\setenv.bat "set NIC_ADDR=$ENV:MACHINE_IP_ADDRESS"
 insert-line $cloudifyDir\bin\setenv.bat "set LOOKUPLOCATORS=$ENV:LUS_IP_ADDRESS"
@@ -132,7 +134,14 @@ insert-line $cloudifyDir\bin\setenv.bat "set GIGASPACES_AGENT_ENV_PRIVATE_IP=$EN
 insert-line $cloudifyDir\bin\setenv.bat "set GIGASPACES_AGENT_ENV_PUBLIC_IP=$ENV:GIGASPACES_AGENT_ENV_PUBLIC_IP"
 insert-line $cloudifyDir\bin\setenv.bat "set GIGASPACES_CLOUD_IMAGE_ID=$ENV:GIGASPACES_CLOUD_IMAGE_ID"
 insert-line $cloudifyDir\bin\setenv.bat "set GIGASPACES_CLOUD_HARDWARE_ID=$ENV:GIGASPACES_CLOUD_HARDWARE_ID"
+insert-line $cloudifyDir\bin\setenv.bat "set GIGASPACES_AGENT_ENV_PRIVILEGED=$ENV:GIGASPACES_AGENT_ENV_PRIVILEGED"
+insert-line $cloudifyDir\bin\setenv.bat "set GIGASPACES_CLOUD_TEMPLATE_NAME=$ENV:GIGASPACES_CLOUD_TEMPLATE_NAME"
 
+insert-line $cloudifyDir\bin\setenv.bat "set CLOUDIFY_AGENT_ENV_PRIVATE_IP=$ENV:CLOUDIFY_AGENT_ENV_PRIVATE_IP"
+insert-line $cloudifyDir\bin\setenv.bat "set CLOUDIFY_AGENT_ENV_PUBLIC_IP=$ENV:CLOUDIFY_AGENT_ENV_PUBLIC_IP"
+insert-line $cloudifyDir\bin\setenv.bat "set CLOUDIFY_CLOUD_IMAGE_ID=$ENV:CLOUDIFY_CLOUD_IMAGE_ID"
+insert-line $cloudifyDir\bin\setenv.bat "set CLOUDIFY_CLOUD_HARDWARE_ID=$ENV:CLOUDIFY_CLOUD_HARDWARE_ID"
+insert-line $cloudifyDir\bin\setenv.bat "set GSA_RESERVATION_ID=$ENV:GSA_RESERVATION_ID"
 
 Write-Host "Disabling local firewall"
 $firewallCommand = "netsh advfirewall set allprofiles state off"
