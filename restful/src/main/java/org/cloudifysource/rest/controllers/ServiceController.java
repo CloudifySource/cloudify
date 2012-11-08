@@ -21,10 +21,9 @@ import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_GSM;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_SERVICE;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_SERVICE_AFTER_DEPLOYMENT;
-import static org.cloudifysource.rest.ResponseConstants.SERVICE_INSTANCE_UNAVAILABLE;
-import static org.cloudifysource.rest.ResponseConstants.HTTP_OK;
 import static org.cloudifysource.rest.ResponseConstants.HTTP_INTERNAL_SERVER_ERROR;
-
+import static org.cloudifysource.rest.ResponseConstants.HTTP_OK;
+import static org.cloudifysource.rest.ResponseConstants.SERVICE_INSTANCE_UNAVAILABLE;
 import static org.cloudifysource.rest.util.RestUtils.successStatus;
 
 import java.io.ByteArrayInputStream;
@@ -36,6 +35,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -53,10 +54,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -146,6 +145,13 @@ import org.openspaces.pu.service.ServiceDetailsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PostFilter;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -171,6 +177,9 @@ import com.gigaspaces.log.LogEntryMatchers;
 @RequestMapping("/service")
 public class ServiceController implements ServiceDetailsProvider {
 	private static final String LOCALCLOUD_ZONE = "localcloud";
+	private static final String PERMISSION_TO_DEPLOY = "Deploy";
+	private static final String PERMISSION_TO_VIEW = "View";
+	private static final String AUTH_GROUPS_DELIMITER = ",";
 	private static final int MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED = 1000;
 	private static final int DEFAULT_TIME_EXTENTION_POLLING_TASK = 5;
 	private static final int THREAD_POOL_SIZE = 20;
@@ -620,6 +629,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @deprecated
 	 * @param applicationName
 	 * @param srcFile
+	 * @param authGroups
 	 * @return the name of the pu
 	 * @throws IOException
 	 * @throws RestErrorException
@@ -628,9 +638,11 @@ public class ServiceController implements ServiceDetailsProvider {
 	@Deprecated
 	@RequestMapping(value = "/cloudcontroller/deploy", method = RequestMethod.POST)
 	public @ResponseBody
+	@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
 	Map<String, Object> deploy(
 			@RequestParam(value = "applicationName", defaultValue = "default") final String applicationName,
-			@RequestParam(value = "file") final MultipartFile srcFile)
+			@RequestParam(value = "file") final MultipartFile srcFile,
+			@RequestParam(value = "authGroups", required = false) String authGroups)
 			throws IOException, RestErrorException {
 		logger.finer("Deploying a service");
 		final File tmpfile = File.createTempFile("gs___", null);
@@ -643,10 +655,10 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (gsm == null) {
 			throw new RestErrorException(FAILED_TO_LOCATE_GSM);
 		}
-		final ProcessingUnit pu = gsm.deploy(new ProcessingUnitDeployment(dest)
-				.setContextProperty(
-						CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME,
-						applicationName));
+		final ProcessingUnit pu =
+				gsm.deploy(new ProcessingUnitDeployment(dest).setContextProperty(
+						CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName)
+						.setContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups));
 		dest.delete();
 
 		if (pu == null) {
@@ -666,6 +678,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	@JsonResponseExample(status = "success", responseBody = "[\"petclinic\", \"travel\"]", comments = "In the example, the deployed applications in the service grid are petclinic and travel")
 	@PossibleResponseStatuses(responseStatuses = { @PossibleResponseStatus(code = HTTP_OK, description = "success") })
 	@RequestMapping(value = "/applications/description", method = RequestMethod.GET)
+	@PostFilter("hasPermission(filterObject, 'view')")
 	public @ResponseBody
 	Map<String, Object> getApplicationsDescriptionList()
 			throws RestErrorException {
@@ -676,16 +689,34 @@ public class ServiceController implements ServiceDetailsProvider {
 		ApplicationDescriptionFactory applicationDescriptionFactory = new ApplicationDescriptionFactory(
 				admin);
 		List<ApplicationDescription> applicationDescriptionList = new ArrayList<ApplicationDescription>();
+		//TODO - the implementation should be in the admin object: admin.getApplications(authGroups);
+		final Map<String, String> appNamesAndAuthGroups = new HashMap<String, String>(apps.getSize());
 		for (final Application app : apps) {
 			String applicationName = app.getName();
 			if (!app.getName().equals(
 					CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
-				ApplicationDescription applicationDescription = applicationDescriptionFactory
-						.getApplicationDescription(applicationName);
-				applicationDescriptionList.add(applicationDescription);
+
+			String appAuthGroups = "";
+			//getting the application's authGroups from one of it services, assuming they all have the same authGroups.
+			ProcessingUnit pu = app.getProcessingUnits().iterator().next();
+			if (pu != null) {
+				appAuthGroups = pu.getBeanLevelProperties().getContextProperties().getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+			} else {
+				// no PU -> no authGroupsp -> no app
+				//TODO - handle (warning?)
 			}
+			
+			ApplicationDescription applicationDescription = applicationDescriptionFactory
+					.getApplicationDescription(applicationName);
+			appNamesAndAuthGroups.put(applicationDescription, appAuthGroups);
+			
+			/*if (!app.getName().equals(CloudifyConstants.MANAGEMENT_APPLICATION_NAME) &&
+					hasPermissionToView(splitAndTrim(appAuthGroups, AUTH_GROUPS_DELIMITER))) {
+				appNamesAndAuthGroups.add(app.getName());
+			}*/
 		}
-		return successStatus(applicationDescriptionList);
+
+		return successStatus(appNamesAndAuthGroups);
 	}
 
 	/**
@@ -705,6 +736,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_app") })
 	@RequestMapping(value = "/applications/{applicationName}/services/description", method = RequestMethod.GET)
 	public @ResponseBody
+	@PostFilter("hasPermission(filterObject, 'view')")
 	Map<String, Object> getServicesDescriptionList(
 			@PathVariable final String applicationName)
 			throws RestErrorException {
@@ -1106,6 +1138,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_service") })
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeoutInMinutes}/undeploy", method = RequestMethod.DELETE)
 	public @ResponseBody
+
+@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
 	Map<String, Object> undeploy(@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
 			@PathVariable final int timeoutInMinutes) throws RestErrorException {
@@ -1185,6 +1219,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	 */
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/addinstance", method = RequestMethod.POST)
 	public @ResponseBody
+
+	@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
 	Map<String, Object> addInstance(@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
 			@RequestBody final Map<String, String> params)
@@ -1192,9 +1228,14 @@ public class ServiceController implements ServiceDetailsProvider {
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(
 				applicationName, serviceName);
 		final int timeout = Integer.parseInt(params.get("timeout"));
-		final ProcessingUnit processingUnit = admin.getProcessingUnits()
-				.waitFor(absolutePuName, PU_DISCOVERY_TIMEOUT_SEC,
-						TimeUnit.SECONDS);
+		//TODO how to set that as a context property on the new instance?
+		String authGroups = params.get("authGroups");
+		if (StringUtils.isBlank(authGroups)) {
+			authGroups = Arrays.toString(getUserAuthGroups().toArray(new String[0]));
+		}
+		
+		final ProcessingUnit processingUnit =
+				admin.getProcessingUnits().waitFor(absolutePuName, PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
 		if (processingUnit == null) {
 			return unavailableServiceError(absolutePuName);
 		}
@@ -1387,6 +1428,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_app") })
 	@RequestMapping(value = "applications/{applicationName}/timeout/{timeoutInMinutes}", method = RequestMethod.DELETE)
 	public @ResponseBody
+	@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
 	Map<String, Object> uninstallApplication(
 			@PathVariable final String applicationName,
 			@PathVariable final int timeoutInMinutes) throws RestErrorException {
@@ -1568,6 +1610,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            if true, there will be an attempt to restart the recipe in
 	 *            case a problem occurred in its life-cycle, otherwise, if the
 	 *            recipe fails to execute, no attempt to recover will made.
+	 * @param authGroups The the group for which this deployment will be available.
 	 * @return Map with return value.
 	 * @throws IOException
 	 *             Reporting failure to create a file while opening the packaged
@@ -1586,10 +1629,12 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "IOException") })
 	@RequestMapping(value = "applications/{applicationName}/timeout/{timeout}", method = RequestMethod.POST)
 	public @ResponseBody
+	@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
 	Object deployApplication(
 			@PathVariable final String applicationName,
 			@PathVariable final int timeout,
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
+			@RequestParam(value = "authGroups", required = true) final String authGroups,
 			@RequestParam(value = "recipeOverridesFile", required = false) final MultipartFile recipeOverridesFile,
 			@RequestParam(value = "selfHealing", required = false) final Boolean selfHealing)
 			throws IOException, DSLException, RestErrorException {
@@ -1598,9 +1643,13 @@ public class ServiceController implements ServiceDetailsProvider {
 			actualSelfHealing = false;
 		}
 		final File applicationFile = copyMultipartFileToLocalFile(srcFile);
+		if (StringUtils.isBlank(authGroups)) {
+			authGroups = Arrays.toString(getUserAuthGroups().toArray(new String[0]));
+		}
+
 		final File applicationOverridesFile = copyMultipartFileToLocalFile(recipeOverridesFile);
 		final Object returnObject = doDeployApplication(applicationName,
-				applicationFile, applicationOverridesFile, timeout,
+				applicationFile, applicationOverridesFile, authGroups, timeout,
 				actualSelfHealing);
 		applicationFile.delete();
 		return returnObject;
@@ -1870,8 +1919,8 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	private Object doDeployApplication(final String applicationName,
 			final File applicationFile, final File applicationOverridesFile,
-			final int timeout, final boolean selfHealing) throws IOException,
-			DSLException, RestErrorException {
+			final String authGroups, final int timeout, final boolean selfHealing) 
+			throws IOException, DSLException, RestErrorException {
 		final DSLApplicationCompilatioResult result = ServiceReader
 				.getApplicationFromFile(applicationFile,
 						applicationOverridesFile);
@@ -1896,7 +1945,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		final ApplicationInstallerRunnable installer = new ApplicationInstallerRunnable(
-				this, result, applicationName, applicationOverridesFile,
+				this, result, applicationName, applicationOverridesFile, authGroups,
 				services, this.cloud, selfHealing);
 
 		if (installer.isAsyncInstallPossibleForApplication()) {
@@ -1955,7 +2004,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	private void doDeploy(final String applicationName,
-			final String serviceName, final String templateName,
+			final String serviceName, final String authGroups, final String templateName,
 			final String[] agentZones, final File serviceFile,
 			final Properties contextProperties, final Service service,
 			final byte[] serviceCloudConfigurationContents,
@@ -1987,7 +2036,23 @@ public class ServiceController implements ServiceDetailsProvider {
 			contextProperties.setProperty(
 					CloudifyConstants.CONTEXT_PROPERTY_DISABLE_SELF_HEALING,
 					"false");
-		}
+
+		final ElasticStatelessProcessingUnitDeployment deployment =
+				new ElasticStatelessProcessingUnitDeployment(serviceFile)
+						.memoryCapacityPerContainer(externalProcessMemoryInMB, MemoryUnit.MEGABYTES)
+						.addCommandLineArgument("-Xmx" + containerMemoryInMB + "m")
+						.addCommandLineArgument("-Xms" + containerMemoryInMB + "m")
+						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName)
+						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
+						.name(serviceName);
+		
+        if (isLocalCloud()) {
+            setPublicMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
+        } else {
+		// All PUs on this role share the same machine. 
+		// Machines are identified by zone.
+            setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
+        }
 
 		final ElasticStatelessProcessingUnitDeployment deployment = new ElasticStatelessProcessingUnitDeployment(
 				serviceFile)
@@ -2265,6 +2330,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            .
 	 * @param applicationName
 	 *            .
+	 * @param authGroups
+	 *             
 	 * @param zone
 	 *            .
 	 * @param srcFile
@@ -2294,7 +2361,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws DSLException .
 	 */
 	public String deployElasticProcessingUnit(final String serviceName,
-			final String applicationName, final String zone,
+			final String applicationName, final String authGroups, final String zone,
 			final File srcFile, final Properties propsFile,
 			final String originalTemplateName,
 			final boolean isApplicationInstall, final int timeout,
@@ -2348,28 +2415,28 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		if (service == null) {
-			doDeploy(applicationName, serviceName, templateName, agentZones,
+			doDeploy(applicationName, serviceName, authGroups, templateName, agentZones,
 					srcFile, propsFile, selfHealing);
 		} else if (service.getLifecycle() != null) {
-			doDeploy(applicationName, serviceName, templateName, agentZones,
+			doDeploy(applicationName, serviceName, authGroups, templateName, agentZones,
 					srcFile, propsFile, service,
 					serviceCloudConfigurationContents, selfHealing);
 		} else if (service.getDataGrid() != null) {
-			deployDataGrid(applicationName, serviceName, agentZones, srcFile,
+			deployDataGrid(applicationName, serviceName, authGroups, agentZones, srcFile,
 					propsFile, service.getDataGrid(), templateName,
 					service.isLocationAware());
 		} else if (service.getStatelessProcessingUnit() != null) {
-			deployStatelessProcessingUnitAndWait(applicationName, serviceName,
+			deployStatelessProcessingUnitAndWait(applicationName, serviceName, authGroups,
 					agentZones, new File(projectDir, "ext"), propsFile,
 					service.getStatelessProcessingUnit(), templateName,
 					service.getNumInstances(), service.isLocationAware());
 		} else if (service.getMirrorProcessingUnit() != null) {
-			deployStatelessProcessingUnitAndWait(applicationName, serviceName,
+			deployStatelessProcessingUnitAndWait(applicationName, serviceName, authGroups,
 					agentZones, new File(projectDir, "ext"), propsFile,
 					service.getMirrorProcessingUnit(), templateName,
 					service.getNumInstances(), service.isLocationAware());
 		} else if (service.getStatefulProcessingUnit() != null) {
-			deployStatefulProcessingUnit(applicationName, serviceName,
+			deployStatefulProcessingUnit(applicationName, serviceName, authGroups,
 					agentZones, new File(projectDir, "ext"), propsFile,
 					service.getStatefulProcessingUnit(), templateName,
 					service.isLocationAware());
@@ -2410,11 +2477,11 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	private void doDeploy(final String applicationName,
-			final String serviceName, final String templateName,
+			final String serviceName, final String authGroups, final String templateName,
 			final String[] agentZones, final File srcFile,
 			final Properties propsFile, final boolean selfHealing)
 			throws TimeoutException, DSLException {
-		doDeploy(applicationName, serviceName, templateName, agentZones,
+		doDeploy(applicationName, serviceName, authGroups, templateName, agentZones,
 				srcFile, propsFile, null, null, selfHealing);
 	}
 
@@ -2427,7 +2494,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param serviceName
 	 *            .
 	 * @param timeout
-	 *            .
+	 * @param authGroups
 	 * @param templateName
 	 *            .
 	 * @param zone
@@ -2451,6 +2518,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	@JsonRequestExample(requestBody = "{\"zone\":5,\"template\":\"SMALL_LINUX\","
 			+ "\"file\":\"packaged service file\",\"props\":\"packaged properties file\"}")
 	@JsonResponseExample(status = "success", responseBody = "\"b41febb7-f48e-48d4-b14a-a6000d402d93\"")
+	@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "TimeoutException"),
@@ -2474,7 +2542,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		logger.info("Deploying service with template: " + templateName);
 		String actualTemplateName = templateName;
-
+		
 		if (cloud != null) {
 			if (templateName == null || templateName.length() == 0) {
 				if (cloud.getTemplates().isEmpty()) {
@@ -2502,6 +2570,12 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (destFile.exists()) {
 			FileUtils.deleteQuietly(destFile);
 		}
+		
+		//TODO get the passed auth groups
+		String authGroups = Arrays.toString(getUserAuthGroups().toArray(new String[0]));
+		/*if (StringUtils.isBlank(authGroups)) {
+			authGroups = Arrays.toString(getUserAuthGroups().toArray(new String[0]));
+		}*/
 
 		String lifecycleEventsContainerID = "";
 		if (dest.renameTo(destFile)) {
@@ -2519,8 +2593,9 @@ public class ServiceController implements ServiceDetailsProvider {
 						.readFileToByteArray(cloudConfigurationFile);
 			}
 
+			// TODO : get the passed auth groups
 			lifecycleEventsContainerID = deployElasticProcessingUnit(
-					absolutePuName, applicationName, zone, destFile, props,
+					absolutePuName, applicationName, authGroups, zone, destFile, props,
 					actualTemplateName, false, timeout, TimeUnit.MINUTES,
 					cloudConfigurationContents, selfHealing);
 			destFile.deleteOnExit();
@@ -2528,7 +2603,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			logger.warning("Deployment file could not be renamed to the absolute pu name."
 					+ " Deploaying using the name " + dest.getName());
 			lifecycleEventsContainerID = deployElasticProcessingUnit(
-					absolutePuName, applicationName, zone, dest, props,
+					absolutePuName, applicationName, authGroups, zone, dest, props,
 					actualTemplateName, false, timeout, TimeUnit.MINUTES, null,
 					selfHealing);
 			dest.deleteOnExit();
@@ -2635,7 +2710,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	// TODO: consider adding MemoryUnits to DSL
 	// TODO: add memory unit to names
-	private void deployDataGrid(final String applicationName,
+	private void deployDataGrid(final String applicationName, final String authGroups,
 			final String serviceName, final String[] agentZones,
 			final File srcFile, final Properties contextProperties,
 			final DataGrid dataGridConfig, final String templateName,
@@ -2658,6 +2733,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				.addContextProperty(
 						CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME,
 						applicationName)
+				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
 				.highlyAvailable(dataGridConfig.getSla().getHighlyAvailable())
 				// allow single machine for local development purposes
 				.singleMachineDeployment();
@@ -2775,7 +2851,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	private void deployStatelessProcessingUnitAndWait(
-			final String applicationName, final String serviceName,
+			final String applicationName, final String serviceName, final String authGroups,
 			final String[] agentZones, final File extractedServiceFolder,
 			final Properties contextProperties,
 			final StatelessProcessingUnit puConfig, final String templateName,
@@ -2796,7 +2872,9 @@ public class ServiceController implements ServiceDetailsProvider {
 						MemoryUnit.MEGABYTES)
 				.addContextProperty(
 						CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME,
-						applicationName).name(serviceName);
+						applicationName)
+				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
+				.name(serviceName);
 		// TODO:read from cloud DSL
 
 		setContextProperties(deployment, contextProperties);
@@ -2860,7 +2938,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	// TODO:Clean this class it has a lot of code duplications
 	private void deployStatefulProcessingUnit(final String applicationName,
-			final String serviceName, final String[] agentZones,
+			final String serviceName, final String authGroups, final String[] agentZones,
 			final File extractedServiceFolder,
 			final Properties contextProperties,
 			final StatefulProcessingUnit puConfig, final String templateName,
@@ -2885,6 +2963,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				.addContextProperty(
 						CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME,
 						applicationName)
+				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
 				.highlyAvailable(puConfig.getSla().getHighlyAvailable())
 				.singleMachineDeployment();
 
@@ -3054,12 +3133,14 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = ResponseConstants.SERVICE_NOT_ELASTIC) })
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeout}/set-instances", method = RequestMethod.POST)
 	public @ResponseBody
+	@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
 	Map<String, Object> setServiceInstances(
 			@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
 			@PathVariable final int timeout,
 			@RequestParam(value = "count", required = true) final int count,
-			@RequestParam(value = "location-aware", required = true) final boolean locationAware)
+			@RequestParam(value = "location-aware", required = true) final boolean locationAware,
+			@RequestParam(value = "authGroups", required = false) String authGroups)
 			throws DSLException, RestErrorException {
 
 		final Map<String, Object> returnMap = new HashMap<String, Object>();
@@ -3085,6 +3166,11 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		logger.info("Scaling " + puName + " to " + count + " instances");
+		
+		//TODO how to set that as a context property on the new instance?
+		if (StringUtils.isBlank(authGroups)) {
+			authGroups = Arrays.toString(getUserAuthGroups().toArray(new String[0]));
+		}
 
 		UUID eventContainerID;
 		if (cloud == null) {
@@ -3375,4 +3461,96 @@ public class ServiceController implements ServiceDetailsProvider {
 		return res;
 
 	}
+	
+    /*private void verifyPermissions(String authGroups, String permission) throws AccessDeniedException, 
+    	AuthorizationServiceException {
+		
+    	if (StringUtils.isBlank(permission)) {
+    		throw new AuthorizationServiceException("Failed to verify permissions, missing permission name");
+    	}
+    	
+    	if (StringUtils.isBlank(authGroups)) {
+    		throw new AuthorizationServiceException("Failed to verify permissions, missing target object");
+    	}
+    	
+    	if (permission.equalsIgnoreCase(PERMISSION_TO_VIEW)) {
+    		if (!hasPermissionToView(splitAndTrim(authGroups, AUTH_GROUPS_DELIMITER))) {
+    			String msg = "Insufficient permissions. User "
+						+ SecurityContextHolder.getContext().getAuthentication().getName() + " is only permitted to "
+						+ "view groups: " + Arrays.toString(getUserAuthGroups().toArray(new String[0]));
+				logger.log(Level.INFO, msg);
+				throw new AccessDeniedException(msg);
+    		}
+    	} else if (permission.equalsIgnoreCase(PERMISSION_TO_DEPLOY)) {
+    		if (!hasPermissionToDeploy(splitAndTrim(authGroups, AUTH_GROUPS_DELIMITER))) {
+    			String msg = "Insufficient permissions. User "
+						+ SecurityContextHolder.getContext().getAuthentication().getName() + " is only permitted to "
+						+ "deploy for groups: " + Arrays.toString(getUserAuthGroups().toArray(new String[0]));
+				logger.log(Level.INFO, msg);
+				throw new AccessDeniedException(msg);
+    		}
+    	}
+    	
+    }*/
+    
+    /*private boolean hasPermissionToView(Collection<String> requestedAuthGroups) {
+    	return hasAnyAuthGroup(requestedAuthGroups);
+    }
+    
+    private boolean hasPermissionToDeploy(Collection<String> requestedAuthGroups) {
+    	return hasAllAuthGroups(requestedAuthGroups);
+    }*/
+    
+    /*private boolean hasAllAuthGroups(Collection<String> requestedAuthGroups) throws AccessDeniedException {
+    	boolean isPermitted = false;
+    	
+    	Collection<String> userAuthGroups = getUserAuthGroups();
+		if (userAuthGroups.containsAll(requestedAuthGroups)) {
+			isPermitted = true;
+		}
+		
+		return isPermitted;
+    }*/
+    
+    /*private boolean hasAnyAuthGroup(Collection<String> requestedAuthGroups) throws AccessDeniedException {
+    	boolean isPermitted = false;
+    	
+    	Collection<String> userAuthGroups = getUserAuthGroups();
+    	for (String requestedAuthGroup : requestedAuthGroups) {
+    		for (String userAuthGroup : userAuthGroups) {
+    			if (requestedAuthGroup.equalsIgnoreCase(userAuthGroup)) {
+    				isPermitted = true;
+    				break;
+    			}
+    		}
+    	}
+    	
+		return isPermitted;
+    }*/
+    
+    private Collection<String> getUserAuthGroups() throws AccessDeniedException {
+    	Set<String> userAuthGroups = new HashSet<String>();
+    	
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	if (authentication instanceof AnonymousAuthenticationToken) {
+			throw new AccessDeniedException("Anonymous user is not supported");
+    	}
+		
+		for (GrantedAuthority authority : authentication.getAuthorities()) {
+			userAuthGroups.add(authority.getAuthority());
+		}
+		
+		return userAuthGroups;
+    }
+    
+    Collection<String> splitAndTrim(String csvString, String delimiter) {
+    	Collection<String> values = new HashSet<String>();
+		StringTokenizer tokenizer = new StringTokenizer(csvString, delimiter);
+		while (tokenizer.hasMoreTokens()) {
+			values.add(tokenizer.nextToken().trim());
+		}
+		
+		return values;
+    }
+
 }

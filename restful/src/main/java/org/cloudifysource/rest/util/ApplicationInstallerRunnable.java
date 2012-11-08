@@ -49,12 +49,13 @@ public class ApplicationInstallerRunnable implements Runnable {
 	private DSLApplicationCompilatioResult result;
 	private String applicationName;
 	private File overridesFile;
+	private String authGroups;
 	private List<Service> services;
 	private final Cloud cloud;
 	private final boolean selfHealing;
 
 	public ApplicationInstallerRunnable(ServiceController controller,
-			DSLApplicationCompilatioResult result, String applicationName,
+			DSLApplicationCompilatioResult result, String applicationName, String authGroups,
 			File overridesFile, List<Service> services, Cloud cloud, final boolean selfHealing) {
 		super();
 		this.controller = controller;
@@ -64,6 +65,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 		this.services = services;
 		this.cloud = cloud;
 		this.selfHealing = selfHealing;
+		this.authGroups = authGroups;
 	}
 
 	@Override
@@ -77,8 +79,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 		final boolean asyncInstallPossible = isAsyncInstallPossibleForApplication();
 		logger.info("async install setting: " + asyncInstallPossible);
 		try {
-			installServices(appDir, applicationName, asyncInstallPossible,
-					cloud);
+			installServices(appDir, applicationName, authGroups, asyncInstallPossible, cloud);
 			FileUtils.deleteDirectory(appDir);
 		} catch (final IOException e) {
 			e.printStackTrace();
@@ -86,9 +87,8 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 	}
 
-	private void installServices(final File appDir,
-			final String applicationName, final boolean async, final Cloud cloud)
-			throws IOException {
+	private void installServices(File appDir, String applicationName, final String authGroups, final boolean async,
+			final Cloud cloud) throws IOException {
 		// TODO: refactor the last part of this method
 		logger.info("Installing service for application: " + applicationName
 				+ ". Async install: " + async + ". Number of services: "
@@ -146,7 +146,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 				final String templateName = service.getCompute() == null ? null
 						: service.getCompute().getTemplate();
 				controller.deployElasticProcessingUnit(absolutePUName,
-						applicationName, serviceName, packedFile,
+						applicationName, authGroups, serviceName/*zone*/, packedFile,
 						contextProperties, templateName, true, 0,
 						TimeUnit.SECONDS, serviceCloudConfigurationContents, selfHealing);
 				try {
