@@ -55,3 +55,7 @@ org.cloudifysource.shell.commands.RemoveAttributes
 org.cloudifysource.shell.commands.ValidateApplication
 org.cloudifysource.shell.commands.ValidateService
 org.cloudifysource.shell.commands.Login
+org.cloudifysource.shell.commands.AddTemplates
+org.cloudifysource.shell.commands.GetTemplate
+org.cloudifysource.shell.commands.ListTemplates
+org.cloudifysource.shell.commands.RemoveTemplate

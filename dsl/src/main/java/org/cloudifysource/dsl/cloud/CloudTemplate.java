@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.DSLValidation;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
@@ -419,4 +420,48 @@ public class CloudTemplate {
 
 	private static final java.util.logging.Logger logger =
 			java.util.logging.Logger.getLogger(CloudTemplate.class.getName());
+
+	/**
+	 * 
+	 * @return .
+	 */
+	public String getFormatedString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getFormatedLine("imageId", imageId));
+		sb.append(getFormatedLine("hardwareId", hardwareId));
+		sb.append(getFormatedLine("locationId", locationId));
+		sb.append(getFormatedLine("localDirectory" , localDirectory));
+		sb.append(getFormatedLine("keyFile", keyFile));
+		sb.append(getFormatedLine("numberOfCores", numberOfCores));
+		sb.append(getFormatedLine("options", options));
+		sb.append(getFormatedLine("overrides", overrides));
+		sb.append(getFormatedLine("custom", custom));
+		sb.append(getFormatedLine("fileTransfer", fileTransfer));
+		sb.append(getFormatedLine("remoteExecution", remoteExecution));
+		sb.append(getFormatedLine("username", username));
+		sb.append(getFormatedLine("password", password));
+		sb.append(getFormatedLine("remoteDirectory", remoteDirectory));
+		sb.append(getFormatedLine("privileged", privileged));
+		sb.append(getFormatedLine("initializationCommand", initializationCommand));
+		sb.append(getFormatedLine("javaUrl", javaUrl));
+		sb.append(getFormatedLine("absoluteUploadDir", absoluteUploadDir));
+		sb.append(getFormatedLine("env ", env));
+		sb.append(getFormatedLine("machineMemoryMB", machineMemoryMB));
+		
+		return sb.toString();
+	}
+	
+	private static String getFormatedLine(final String objName, final Object obj) {
+		if (obj == null) {
+			return "";
+		}
+		if (obj instanceof Map) {
+			Map<?, ?> map = (Map<?, ?>) obj;
+			if (map.isEmpty()) {
+				return "";
+			}
+		}
+		return objName + " = " + obj.toString() + CloudifyConstants.NEW_LINE;
+				
+	}
 }

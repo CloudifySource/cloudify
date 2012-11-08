@@ -55,6 +55,7 @@ public final class Packager {
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(Packager.class.getName());
 
+
 	private Packager() {
 
 	}
@@ -269,13 +270,13 @@ public final class Packager {
 		logger.finer("created pu structure under " + destPuFolder);
 
 		FileUtils.copyDirectory(srcFolder, extFolder);
-
 		// Copy additional files to service directory
 		if (additionalServiceFiles != null) {
 			for (final File file : additionalServiceFiles) {
 				FileUtils.copyFileToDirectory(file, extFolder);
 			}
 		}
+
 
 		logger.finer("copied files from " + srcFolder.getAbsolutePath()
 				+ " to " + extFolder.getAbsolutePath());
@@ -491,12 +492,28 @@ public final class Packager {
 		}
 
 		// zip the application folder.
-		final File zipFile = File.createTempFile("application", ".zip");
-		zipFile.deleteOnExit();
-		ZipUtils.zip(applicationFolderToPack, zipFile);
-		return zipFile;
+		return createZipFile("application", applicationFolderToPack);
 	}
 
+	/**
+	 * 
+	 * @param zipFileName 
+	 * 					The name of the zip file.
+	 * @param packedDir
+	 * 					The directory to pack.
+	 * @return The packaged zip file.
+	 * @throws IOException .
+	 */
+	public static File createZipFile(final String zipFileName, final File packedDir) 
+			throws IOException {
+		final File zipFile = File.createTempFile(zipFileName, ".zip");
+		zipFile.deleteOnExit();
+		ZipUtils.zip(packedDir, zipFile);
+		logger.finer("zipped folder successfully to "
+				+ zipFile.getAbsolutePath());
+		return zipFile;
+	}
+	
 	private static File createCopyDirectory(final File applicationDir)
 			throws IOException {
 		final File destApplicationFolder = File.createTempFile(
@@ -662,5 +679,6 @@ public final class Packager {
 
 		return extendedServiceFile;
 	}
+
 
 }

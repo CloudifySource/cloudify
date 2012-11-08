@@ -15,6 +15,7 @@
  *******************************************************************************/
 package org.cloudifysource.shell.commands;
 
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.rest.ApplicationDescription;
 import org.cloudifysource.dsl.rest.ServiceDescription;
 import org.cloudifysource.dsl.utils.ServiceUtils;
@@ -27,8 +28,6 @@ import org.cloudifysource.shell.ShellUtils;
  */
 public abstract class AbstractListCommand extends AdminAwareCommand {
 
-	protected static final String NEW_LINE = System.getProperty("line.separator");
-	private static final String TAB_CHAR = "\t";
 
 	/**
 	 * returns a string representation of the ApplicationDescription object
@@ -44,8 +43,8 @@ public abstract class AbstractListCommand extends AdminAwareCommand {
 		String serviceDescriptionAsString;
 		for (ServiceDescription serviceDescription : applicationDescription.getServicesDescription()) {
 			serviceDescriptionAsString = getServiceDescriptionAsString(serviceDescription);
-			sb.append(NEW_LINE);
-			sb.append(TAB_CHAR + serviceDescriptionAsString);
+			sb.append(CloudifyConstants.NEW_LINE);
+			sb.append(CloudifyConstants.TAB_CHAR + serviceDescriptionAsString);
 		}
 		return sb.toString();
 	}

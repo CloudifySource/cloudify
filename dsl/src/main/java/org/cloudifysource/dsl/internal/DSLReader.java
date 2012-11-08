@@ -75,7 +75,7 @@ public class DSLReader {
 	private String dslName; 
 	private String dslFileNamePrefix;
 	private String dslFileNameSuffix;
-	
+
 	private File propertiesFile;
 	private File overridesFile;
 
@@ -155,14 +155,42 @@ public class DSLReader {
 	}
 
 	/***********
-	 * .
+	 * Search the directory for a file with the specified suffix.
+	 * Assuming there is exactly one file with that suffix in the directory.
 	 * 
-	 * @param fileNameSuffix .
-	 * @param dir .
+	 * @param fileNameSuffix The suffix.
+	 * @param dir The directory.
 	 * @return the file.
 	 */
 	public static File findDefaultDSLFile(final String fileNameSuffix, final File dir) {
 
+		File[] files = findDefaultDSLFiles(fileNameSuffix, dir);
+
+		if (files.length > 1) {
+			throw new IllegalArgumentException("Found multiple configuration files: " + Arrays.toString(files) + ". "
+					+ "Only one may be supplied in the folder.");
+		}
+		if (files.length == 0) {
+			throw new IllegalArgumentException("Cannot find configuration file in " + dir.getAbsolutePath() + "/*"
+					+ fileNameSuffix);
+		}
+		
+		return files[0];
+	}
+
+	/***********
+	 * Search the directory for files with the specified suffix.
+	 * 
+	 * @param fileNameSuffix The suffix.
+	 * @param dir The directory to search at.
+	 * @return The found files. Return null if no file with the specified suffix was found.
+	 */
+	public static File[] findDefaultDSLFiles(final String fileNameSuffix, final File dir) {
+
+		if (!dir.isDirectory()) {
+			throw new IllegalArgumentException(dir.getAbsolutePath() + " is not a directory.");
+		}
+		
 		final File[] files = dir.listFiles(new FilenameFilter() {
 
 			@Override
@@ -171,19 +199,9 @@ public class DSLReader {
 			}
 		});
 
-		if (files.length > 1) {
-			throw new IllegalArgumentException("Found multiple configuration files: " + Arrays.toString(files) + ". "
-					+ "Only one may be supplied in the folder.");
-		}
-
-		if (files.length == 0) {
-			throw new IllegalArgumentException("Cannot find configuration file in " + dir.getAbsolutePath() + "/*"
-					+ fileNameSuffix);
-		}
-
-		return files[0];
+		return files;
 	}
-
+	
 	/**
 	 * 
 	 * @param fileNameSuffix .
@@ -202,7 +220,7 @@ public class DSLReader {
 		}
 		return found;
 	}
-	
+
 	private void init()
 			throws IOException {
 		initDslFile();
@@ -322,7 +340,7 @@ public class DSLReader {
 			throw new DSLException("The DSL evaluated to a null - check your syntax and try again");
 		}
 
-//		overrideFields(result);
+		//		overrideFields(result);
 
 		if (this.createServiceContext) {
 			if (!(result instanceof Service)) {
@@ -384,7 +402,7 @@ public class DSLReader {
 
 			FileReader reader = null;
 			try {
-				
+
 				reader = new FileReader(dslFile);
 				result = gs.evaluate(reader, "dslEntity");
 			} catch (final IOException e) {
@@ -516,7 +534,9 @@ public class DSLReader {
 		if (this.getWorkDir() != null) {
 			classpathDir = this.getWorkDir().getAbsolutePath();
 		} else if (this.getDslFile() != null) {
-			classpathDir = this.getDslFile().getParentFile().getAbsolutePath();
+			if (this.getDslFile().getParentFile() != null) {
+				classpathDir = this.getDslFile().getParentFile().getAbsolutePath();
+			}
 		}
 
 		if (classpathDir != null) {
@@ -759,7 +779,7 @@ public class DSLReader {
 	public void setValidateObjects(final boolean isValidateObjects) {
 		this.validateObjects = isValidateObjects;
 	}
-	
+
 	public File getPropertiesFile() {
 		return this.propertiesFile;
 	}

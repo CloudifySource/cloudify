@@ -20,7 +20,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -152,7 +152,7 @@ public final class ServiceReader {
 		return ServiceReader.getServiceFromFile(dslFile, workDir, null, null,
 				null, true);
 	}
-	
+
 	/**
 	 * Reads a service object from a groovy DSL file placed in the given directory.
 	 * The file name must be of the format *-service.groovy, and
@@ -194,7 +194,7 @@ public final class ServiceReader {
 	public static DSLServiceCompilationResult getServiceFromFile(final File dslFile, final File workDir,
 			final Admin admin, final ClusterInfo clusterInfo, final String propertiesFileName,
 			final boolean isRunningInGSC)
-			throws DSLException {
+					throws DSLException {
 
 		final DSLReader dslReader = new DSLReader();
 		dslReader.setAdmin(admin);
@@ -227,7 +227,7 @@ public final class ServiceReader {
 		}
 
 	}
-	
+
 	/**
 	 * 
 	 * @param dslFileOrDir .
@@ -246,7 +246,7 @@ public final class ServiceReader {
 		}
 
 	}
-	
+
 	/**
 	 * 
 	 * @param inputFile The application file.
@@ -276,7 +276,7 @@ public final class ServiceReader {
 		if (inputFile.isFile()) {
 			if (inputFile.getName().endsWith(".zip") || inputFile.getName().endsWith(".jar")) {
 				// Unzip application zip file to temp folder
-				final File tempFolder = ServiceReader.unzipApplicationFile(inputFile);
+				final File tempFolder = ServiceReader.unzipApplicationFile(inputFile, "application");
 				actualApplicationDslFile =
 						DSLReader.findDefaultDSLFile(DSLReader.APPLICATION_DSL_FILE_NAME_SUFFIX, tempFolder);
 			}
@@ -293,19 +293,19 @@ public final class ServiceReader {
 		dslReader.setCreateServiceContext(false);
 		dslReader.addProperty(DSLUtils.APPLICATION_DIR, workDir.getAbsolutePath());
 		dslReader.setOverridesFile(overridesFile);
-		
+
 		final Application application = dslReader.readDslEntity(Application.class);
-		
-		
+
+
 		return new DSLApplicationCompilatioResult(application, actualApplicationDslFile.getParentFile(),
 				actualApplicationDslFile);
 
 	}
-	
-	private static File unzipApplicationFile(final File inputFile)
+
+	private static File unzipApplicationFile(final File inputFile, final String directorySuffix)
 			throws IOException {
 
-		final File baseDir = ServiceReader.createTempDir();
+		final File baseDir = ServiceReader.createTempDir(directorySuffix);
 
 		ZipUtils.unzip(inputFile, baseDir);
 		return baseDir;
@@ -336,9 +336,9 @@ public final class ServiceReader {
 	 * @return A temporary directory.
 	 * @throws IOException .
 	 */
-	protected static File createTempDir()
+	protected static File createTempDir(String suffix)
 			throws IOException {
-		final File tempFile = File.createTempFile("GS_tmp_dir", ".application");
+		final File tempFile = File.createTempFile("GS_tmp_dir", "." + suffix);
 		final String path = tempFile.getAbsolutePath();
 		tempFile.delete();
 		tempFile.mkdirs();
@@ -416,23 +416,37 @@ public final class ServiceReader {
 	 * 
 	 * @param templatesFile a groovy file that contains a map of cloud templates.
 	 * @return a map contains all the templates read from the templatesFileName.
+	 * @throws IOException .
 	 * @throws DSLException .
 	 */
-	public static CloudTemplateHolder[] getCloudTemplatesFromFile(final File templatesFile) 
-			throws DSLException {
+	public static List<CloudTemplateHolder> getCloudTemplatesFromFile(final File templatesFile) 
+			throws DSLException, IOException {
+		File actualTemplatesDslFile = templatesFile;
+
+		if (templatesFile.isFile()) {
+			if (templatesFile.getName().endsWith(".zip") || templatesFile.getName().endsWith(".jar")) {
+				// Unzip templates zip file to temp folder
+				final File tempFolder = ServiceReader.unzipApplicationFile(templatesFile, "templates");
+				actualTemplatesDslFile =
+						DSLReader.findDefaultDSLFile(DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX, tempFolder);
+			}
+		} else {
+			actualTemplatesDslFile =
+					DSLReader.findDefaultDSLFile(DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX, templatesFile);
+		}
+
 		DSLReader dslReader = new DSLReader();
-		dslReader.setDslFile(templatesFile);
+		dslReader.setDslFile(actualTemplatesDslFile);
 		dslReader.setCreateServiceContext(false);
 		Map<String, CloudTemplate> cloudTemplateMap = dslReader.readDslEntity(Map.class);
-		
-		List<CloudTemplateHolder> cloudTemplatesList = new ArrayList<CloudTemplateHolder>();
+
+		List<CloudTemplateHolder> cloudTemplatesList = new LinkedList<CloudTemplateHolder>();
 		for (Entry<String, CloudTemplate> entry : cloudTemplateMap.entrySet()) {
 			CloudTemplateHolder holder = new CloudTemplateHolder();
 			holder.setName(entry.getKey());
 			holder.setCloudTemplate(entry.getValue());
 			cloudTemplatesList.add(holder);
 		}
-		return cloudTemplatesList.toArray(new CloudTemplateHolder[cloudTemplateMap.size()]);
+		return cloudTemplatesList;
 	}
-	
 }

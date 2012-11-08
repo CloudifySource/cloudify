@@ -31,6 +31,7 @@ import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -377,6 +378,7 @@ public class GSRestClient {
                 try {
                     instream.close();
                 } catch (final IOException e) {
+                	e.printStackTrace();
                 }
             }
         }
@@ -546,7 +548,22 @@ public class GSRestClient {
         return postFile(relativeUrl, file, props, cloudOverrides, new HashMap<String, String>());
     }
     
-    /**
+    public final Object postFiles(final String relativeUrl, Map<String, File> files) 
+    		throws RestException {
+        final MultipartEntity reqEntity = new MultipartEntity();
+
+        for (Entry<String, File> entry : files.entrySet()) {
+        	final FileBody bin = new FileBody(entry.getValue());
+        	reqEntity.addPart(entry.getKey(), bin);			
+		}
+        
+        final HttpPost httppost = new HttpPost(getFullUrl(relativeUrl));
+        httppost.setEntity(reqEntity);
+        
+        return executeHttpMethod(httppost);
+    }
+
+/**
      * This methods executes HTTP post over REST on the given (relative) URL with the given file and
      * properties (also sent as a separate file).
      *

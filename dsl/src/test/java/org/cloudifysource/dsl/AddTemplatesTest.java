@@ -4,7 +4,6 @@ import java.io.File;
 
 import junit.framework.Assert;
 
-import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.Test;
 
@@ -21,14 +20,14 @@ public class AddTemplatesTest {
 		try {
 			File templatesFile = new File(TEMPLATES_FILE_PATH);
 			ServiceReader.getCloudTemplatesFromFile(templatesFile);
-		} catch (DSLException e) {
+		} catch (Exception e) {
 			Assert.fail("failed to read templates from file " + TEMPLATES_FILE_PATH 
 					+ " error message is " + e.getMessage());
 		}
 		try {
 			File templateFile = new File(TEMPLATE_FILE_PATH);
 			ServiceReader.getCloudTemplatesFromFile(templateFile);
-		} catch (DSLException e) {
+		} catch (Exception e) {
 			Assert.fail("failed to read template from file " + TEMPLATE_FILE_PATH 
 					+ " error message is " + e.getMessage());
 		}

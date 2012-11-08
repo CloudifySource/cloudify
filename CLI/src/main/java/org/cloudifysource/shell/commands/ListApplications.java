@@ -18,6 +18,7 @@ package org.cloudifysource.shell.commands;
 import java.util.List;
 
 import org.apache.felix.gogo.commands.Command;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.rest.ApplicationDescription;
 
 /**
@@ -46,11 +47,11 @@ public class ListApplications extends AbstractListCommand {
 	}
 
 	private String getApplicationDescriptionFromListAsString(
-			List<ApplicationDescription> applicationsList) {
+			final List<ApplicationDescription> applicationsList) {
 		StringBuilder sb = new StringBuilder();
 		for (ApplicationDescription applicationDescription : applicationsList) {
 			sb.append(getApplicationDescriptionAsString(applicationDescription));
-			sb.append(NEW_LINE);
+			sb.append(CloudifyConstants.NEW_LINE);
 		}
 		return sb.toString();
 	}

@@ -270,5 +270,16 @@ public final class CloudifyConstants {
 	public static final String SPRING_PROFILE_SECURE = "secure";
 	public static final String SPRING_PROFILE_NON_SECURE = "nonsecure";
 	
+	/*******************
+	 * 
+	 */
+	public static final String NEW_LINE = System.getProperty("line.separator");
+	public static final String TAB_CHAR = "\t";
+	
+	/**
+	 * RequestParam parameters names.
+	 */
+	public static final String REQUEST_PARAM_TEMPLATES_DIR_NAME = "templatesFolder"; 
 	// CHECKSTYLE:ON
 }
+

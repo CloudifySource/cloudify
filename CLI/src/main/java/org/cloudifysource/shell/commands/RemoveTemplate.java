@@ -17,6 +17,7 @@ package org.cloudifysource.shell.commands;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
+import org.fusesource.jansi.Ansi.Color;
 
 /**
  * Removes template from the cloud's templates list. 
@@ -41,8 +42,8 @@ public class RemoveTemplate extends AdminAwareCommand {
 	
 	@Override
 	protected Object doExecute() throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
+		adminFacade.removeTemplate(templateName);
+		return getFormattedMessage("template_removed_successfully", Color.GREEN, templateName);
+		}
 
 }

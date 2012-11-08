@@ -25,9 +25,7 @@ import java.util.concurrent.TimeoutException;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.rest.ApplicationDescription;
 import org.cloudifysource.restclient.InvocationResult;
-import org.cloudifysource.restclient.RestException;
 import org.cloudifysource.shell.commands.CLIException;
-import org.cloudifysource.shell.commands.CLIStatusException;
 import org.cloudifysource.shell.rest.RestLifecycleEventsLatch;
 
 /**

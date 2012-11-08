@@ -82,7 +82,9 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
 import org.cloudifysource.dsl.internal.DSLException;
+import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLServiceCompilationResult;
+import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
@@ -3593,38 +3595,50 @@ public class ServiceController implements ServiceDetailsProvider {
 	
 	/**
 	 * Add templates to the cloud.
-	 * @param templatesFile A Groovy file contains the templates map.
+	 * @param templatesFolder A Groovy file contains the templates map.
 	 * @return a map containing the added templates and a success status if succeeded, 
 	 * else returns an error status.
 	 * @throws RestErrorException in case of failing to add the template to the space.
 	 * @throws IOException in case of reading error.
 	 * @throws DSLException in case of failing to read a DSL object.
 	 */
-	@RequestMapping(value = "templates", method = RequestMethod.PUT)
+	@RequestMapping(value = "templates", method = RequestMethod.POST)
 	public @ResponseBody
 	Map<String, Object> 
-	addTemplates(@RequestParam(value = "templatesFile", required = true) final MultipartFile templatesFile) 
+	addTemplates(
+			@RequestParam(value = CloudifyConstants.REQUEST_PARAM_TEMPLATES_DIR_NAME, required = true) 
+			final MultipartFile templatesFolder) 
 			throws IOException, DSLException, RestErrorException {
 		
-		File localTemplatesFile = copyMultipartFileToLocalFile(templatesFile);
-		// construct templates from file
-		CloudTemplateHolder[] cloudTemplates = 
-				ServiceReader.getCloudTemplatesFromFile(localTemplatesFile);
+		File localTemplatesFile = copyMultipartFileToLocalFile(templatesFolder);
+		File[] templatesFiles = DSLReader.findDefaultDSLFiles(
+				DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX, localTemplatesFile);
+		Map<File, List<CloudTemplateHolder> > cloudTemplates = new HashMap<File, List<CloudTemplateHolder>>();
+		for (File templatesFile : templatesFiles) {
+			// construct templates from file and add them to the map
+			cloudTemplates.put(templatesFile, ServiceReader.getCloudTemplatesFromFile(templatesFile));
+		}
+
 		// add them to space
-		List<String> failedToAddTemplates = new LinkedList<String>();
+		Map<String, List<String> > failedToAddTemplates = new HashMap<String, List<String>>();
 		List<String> addedTemplates = new LinkedList<String>();
-		for (CloudTemplateHolder holder : cloudTemplates) {
+		for (Entry<File, List<CloudTemplateHolder>> entry : cloudTemplates.entrySet()) {
+			List<CloudTemplateHolder> holders = entry.getValue();
+			List<String> failedToAddTemplatesNames = new LinkedList<String>();
+			for (CloudTemplateHolder holder : holders) {
 			LeaseContext<CloudTemplateHolder> writeResult = gigaSpace.write(holder);
 			String name = holder.getName();
 			if (writeResult == null) {
-				failedToAddTemplates.add(name);
+				failedToAddTemplatesNames.add(name);
 			} else {
 				addedTemplates.add(name);
 			}
+			}
+			failedToAddTemplates.put(entry.getKey().getName(), failedToAddTemplatesNames);
 		}
 		if (!failedToAddTemplates.isEmpty()) {
 			throw new RestErrorException("failed_to_add_templates", 
-					failedToAddTemplates.toString(), templatesFile.getName());
+					failedToAddTemplates.toString(), templatesFolder.getName());
 		}
 
 		return successStatus(addedTemplates);
@@ -3648,7 +3662,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * else returns an error status.
 	 * @throws RestErrorException if the template doesn't exist.
 	 */
-	@RequestMapping(value = "templates/{templateName}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "templates/{templateName}", method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object> 
 	getTemplate(@PathVariable final String templateName) 
@@ -3657,7 +3671,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		// get template from cloud
 		CloudTemplate cloudTemplate = cloud.getTemplates().get(templateName);
 		if (cloudTemplate == null) {
-			throw new RestErrorException("failed_to_remove_template", templateName);
+			throw new RestErrorException("failed_to_get_template", templateName);
 		} 
 		return successStatus(cloudTemplate);
 	}

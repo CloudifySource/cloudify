@@ -1,6 +1,8 @@
 package org.cloudifysource.shell.commands;
 
+import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
+import org.cloudifysource.dsl.cloud.CloudTemplate;
 
 /**
  * Gets a cloud's template.
@@ -19,10 +21,14 @@ import org.apache.felix.gogo.commands.Command;
 @Command(scope = "cloudify", name = "get-template", description = "Gets a cloud's template")
 public class GetTemplate extends AdminAwareCommand {
 
+	@Argument(required = true, name = "name", description = "The name of the template to remove")
+	private String templateName;
+	
 	@Override
 	protected Object doExecute() throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		
+		CloudTemplate template = adminFacade.getTemplate(templateName);
+		return template.getFormatedString();
 	}
 
 }
