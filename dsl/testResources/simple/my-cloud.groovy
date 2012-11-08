@@ -32,6 +32,11 @@ cloud2 {
 					machineMemoryMB "1600"
 					hardwareId "m1.small"
 					remoteDirectory "/home/ec2-user/gs-files"
+					
+					env ([
+						"KEY1": "VALUE1",
+						"KEY2":"VALUE2"
+						])
 				}
 			])
 }

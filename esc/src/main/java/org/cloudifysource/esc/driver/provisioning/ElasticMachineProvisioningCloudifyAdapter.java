@@ -330,7 +330,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			if (gsa.getVirtualMachine().getDetails().getEnvironmentVariables().
 					get(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME) == null) {
 				throw new ElasticGridServiceAgentProvisioningException("an agent was started. but the property " 
-					+ CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME + " was missing from its environment variables.");
+					+ CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME 
+					+ " was missing from its environment variables.");
 			}
 			
 			return gsa;

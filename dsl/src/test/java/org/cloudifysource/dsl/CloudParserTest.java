@@ -38,6 +38,12 @@ public class CloudParserTest {
 		assertNotNull(cloud.getUser());
 		assertNotNull(cloud.getTemplates().size() > 0);
 		assertNotNull(cloud.getTemplates().get("SMALL_LINUX"));
+		assertNotNull(cloud.getTemplates().get("SMALL_LINUX").getEnv());
+		assertEquals(cloud.getTemplates().get("SMALL_LINUX").getEnv().size(), 2);
+		assertEquals(cloud.getTemplates().get("SMALL_LINUX").getEnv().get("KEY1"), "VALUE1");
+		assertEquals(cloud.getTemplates().get("SMALL_LINUX").getEnv().get("KEY2"), "VALUE2");
+		
+		
 	}
 
 

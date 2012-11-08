@@ -30,6 +30,7 @@
 			<groupId>org.cloudifysource</groupId>
 			<artifactId>esc</artifactId>
 			<version>${cloudifyVersion}</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.gigaspaces</groupId>

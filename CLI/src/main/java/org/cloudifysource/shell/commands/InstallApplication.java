@@ -84,7 +84,7 @@ public class InstallApplication extends AdminAwareCommand {
 	private File cloudConfiguration;
 
 	@Option(required = false, name = "-overrides",
-			description = "File containing proeprties to be used to overrides current application's proeprties.")
+			description = "File containing properties to be used to override the current propeties of the application and its services")
 	private File overrides;
 	
 	private static final String TIMEOUT_ERROR_MESSAGE = "Application installation timed out."

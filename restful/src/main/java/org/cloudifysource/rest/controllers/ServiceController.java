@@ -2336,8 +2336,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			// "ext"));
 
 		}
-		
-		validateTemplate(service);
+
+		validateTemplate(templateName);
 
 
 		String[] agentZones;
@@ -2598,6 +2598,17 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 	}
 
+	private void validateTemplate(final String templateName)
+			throws RestErrorException {
+		
+		final CloudTemplate template = cloud.getTemplates().get(
+				templateName);
+		if (template == null) {
+			throw new RestErrorException(
+					CloudifyErrorMessages.MISSING_TEMPLATE.getName(),
+					templateName);
+		}
+	}
 	private void validateTemplate(final Service service)
 			throws RestErrorException {
 		
@@ -2612,14 +2623,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		
 		if (this.cloud != null) {
 			if (templateName != null) {
-
-				final CloudTemplate template = cloud.getTemplates().get(
-						templateName);
-				if (template == null) {
-					throw new RestErrorException(
-							CloudifyErrorMessages.MISSING_TEMPLATE.getName(),
-							templateName);
-				}
+				validateTemplate(templateName);
 			}
 		}
 

@@ -95,7 +95,7 @@ public class InstallService extends AdminAwareCommand {
 			+ " Configure the timeout using the -timeout flag.";
 
 	@Option(required = false, name = "-overrides", description = 
-			"File containing proeprties to be used to overrides current service's proeprties.")
+			"File containing properties to be used to overrides the current service's properties.")
 	private File overrides;
 
 	/**
