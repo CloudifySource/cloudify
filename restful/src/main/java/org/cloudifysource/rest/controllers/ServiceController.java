@@ -2336,8 +2336,9 @@ public class ServiceController implements ServiceDetailsProvider {
 			// "ext"));
 
 		}
-
+		
 		validateTemplate(service);
+
 
 		String[] agentZones;
 		if (isLocalCloud()) {
@@ -2600,6 +2601,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	private void validateTemplate(final Service service)
 			throws RestErrorException {
 		
+		if (service == null) {
+			return;
+		}
 		ComputeDetails compute = service.getCompute();
 		String templateName = null;
 		if (compute != null) {
