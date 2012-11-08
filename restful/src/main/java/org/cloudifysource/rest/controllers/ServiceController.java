@@ -2601,6 +2601,10 @@ public class ServiceController implements ServiceDetailsProvider {
 	private void validateTemplate(final String templateName)
 			throws RestErrorException {
 		
+		if (cloud == null) {
+			// no template validation for local cloud
+			return;
+		}
 		final CloudTemplate template = cloud.getTemplates().get(
 				templateName);
 		if (template == null) {
