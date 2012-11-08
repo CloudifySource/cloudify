@@ -82,9 +82,7 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
 import org.cloudifysource.dsl.internal.DSLException;
-import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLServiceCompilationResult;
-import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
@@ -249,7 +247,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 			this.managementTemplate = this.cloud.getTemplates().get(
 					this.cloud.getConfiguration()
-							.getManagementMachineTemplate());
+					.getManagementMachineTemplate());
 		} else {
 			logger.info("Service Controller is running in local cloud mode");
 		}
@@ -317,7 +315,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param fileSizeLimit
 	 *            .
 	 * @return A map contains byte array of the dump file for each machine.
-	 * @throws IOException
+	 * @throws IOException .
 	 * @throws RestErrorException
 	 *             Machine not found, machine dump generation failed, dump file
 	 *             is too large.
@@ -328,8 +326,10 @@ public class ServiceController implements ServiceDetailsProvider {
 			+ ", \"192.168.2.300\":\"&ltbyte array of the dump file&gt;\"}")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
-			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = ResponseConstants.MACHINE_NOT_FOUND),
-			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = ResponseConstants.DUMP_FILE_TOO_LARGE),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = 
+			ResponseConstants.MACHINE_NOT_FOUND),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = 
+			ResponseConstants.DUMP_FILE_TOO_LARGE),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "Failed to generate dump"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "IOException") })
 	@RequestMapping(value = "/dump/machines", method = RequestMethod.GET)
@@ -338,7 +338,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	public Map<String, Object> getMachineDumpFile(
 			@RequestParam(defaultValue = DEFAULT_DUMP_PROCESSORS) final String processors,
 			@RequestParam(defaultValue = "" + DEFAULT_DUMP_FILE_SIZE_LIMIT) final long fileSizeLimit)
-			throws IOException, RestErrorException {
+					throws IOException, RestErrorException {
 		return getMachineDumpFile(null, processors, fileSizeLimit);
 	}
 
@@ -354,13 +354,18 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @return A byte array of the dump file in case ip is not null and a map
 	 *         contains byte array of the dump file for each machine otherwise.
 	 * @throws IOException .
+	 * @throws RestErrorException .
+	 * 
 	 */
 	@JsonRequestExample(requestBody = "{\"fileSizeLimit\" : 50000000, \"processors\" : \"summary, network, log\"}")
-	@JsonResponseExample(status = "success", responseBody = "{\"&ltmachine's ip&gt;\":\"&ltbyte array of the dump file&gt;\"}")
+	@JsonResponseExample(status = "success", responseBody = 
+	"{\"&ltmachine's ip&gt;\":\"&ltbyte array of the dump file&gt;\"}")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
-			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = ResponseConstants.MACHINE_NOT_FOUND),
-			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = ResponseConstants.DUMP_FILE_TOO_LARGE),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = 
+			ResponseConstants.MACHINE_NOT_FOUND),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = 
+			ResponseConstants.DUMP_FILE_TOO_LARGE),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "Failed to generate dump"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "IOException") })
 	@RequestMapping(value = "/dump/machine/{ip}/", method = RequestMethod.GET)
@@ -369,7 +374,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final String ip,
 			@RequestParam(defaultValue = DEFAULT_DUMP_PROCESSORS) final String processors,
 			@RequestParam(defaultValue = "" + DEFAULT_DUMP_FILE_SIZE_LIMIT) final long fileSizeLimit)
-			throws IOException, RestErrorException {
+					throws IOException, RestErrorException {
 		// check for non-default processors
 		final String[] actualProcessors = getProcessorsFromRequest(processors);
 
@@ -428,14 +433,15 @@ public class ServiceController implements ServiceDetailsProvider {
 	@JsonRequestExample(requestBody = "{\"fileSizeLimit\" : 50000000}")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
-			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = ResponseConstants.DUMP_FILE_TOO_LARGE),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = 
+			ResponseConstants.DUMP_FILE_TOO_LARGE),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "Failed to generate dump"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "IOException") })
 	@RequestMapping(value = "/dump/processing-units/", method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object> getPUDumpFile(@RequestParam(defaultValue = ""
 			+ DEFAULT_DUMP_FILE_SIZE_LIMIT) final long fileSizeLimit)
-			throws IOException, RestErrorException {
+					throws IOException, RestErrorException {
 
 		// if ((name == null) || (name.isEmpty())) {
 		// throw new IllegalArgumentException("PU Name is missing");
@@ -473,7 +479,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	private byte[] generateMachineDumpData(final long fileSizeLimit,
 			final Machine machine, final String[] actualProcessors)
-			throws IOException, RestServiceException {
+					throws IOException, RestServiceException {
 		// generator the dump
 		final DumpResult dump = machine.generateDump("Rest_API", null,
 				actualProcessors);
@@ -621,7 +627,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = FAILED_TO_LOCATE_LUS) })
 	@JsonResponseExample(status = "error", responseBody = "{\"error\":\"failed_to_locate_lookup_service\","
-			+ " \"error_args\":[[\"localcloud\"],[\"jini://127.0.0.1:4172/\"]]}", comments = "response status is success if the restful service located the service grid"
+			+ " \"error_args\":[[\"localcloud\"],[\"jini://127.0.0.1:4172/\"]]}", 
+			comments = "response status is success if the restful service located the service grid"
 			+ ", otherwise it is error and the response's body will contain error description"
 			+ ", the groups and locators.")
 	@RequestMapping(value = "/testrest", method = RequestMethod.GET)
@@ -646,7 +653,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "Login failed") })
 	@JsonResponseExample(status = "error", responseBody = "{\"error\":\"Login failed\","
-			+ " \"error_args\":[[\"localcloud\"],[\"jini://127.0.0.1:4172/\"]]}", comments = "response status is success if the user authentication was successful"
+			+ " \"error_args\":[[\"localcloud\"],[\"jini://127.0.0.1:4172/\"]]}", 
+			comments = "response status is success if the user authentication was successful"
 			+ ", otherwise it is error and the response's body will contain the error description.")
 	@RequestMapping(value = "/testlogin", method = RequestMethod.GET)
 	public @ResponseBody
@@ -872,7 +880,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	@ResponseBody
 	public Map<String, Object> getServicesList(
 			@PathVariable final String applicationName)
-			throws RestErrorException {
+					throws RestErrorException {
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to list applications");
 		}
@@ -911,7 +919,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             is found for the requested service.
 	 */
 	@JsonRequestExample(requestBody = "{\"param1 name\":\"param1\",\"param2 name\":\"param2\"}")
-	@JsonResponseExample(status = "success", responseBody = "{\"instance #1@127.0.0.1\":{\"Invocation_Instance_Name\":\"instance #1@127.0.0.1\""
+	@JsonResponseExample(status = "success", responseBody = 
+	"{\"instance #1@127.0.0.1\":{\"Invocation_Instance_Name\":\"instance #1@127.0.0.1\""
 			+ ",\"Invocation_Instance_ID\":\"1\""
 			+ ",\"Invocation_Result\":\"the invocation result as specified in the service file\""
 			+ ",\"Invocation_Success\":\"true\","
@@ -919,8 +928,10 @@ public class ServiceController implements ServiceDetailsProvider {
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_service"),
-			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "no_processing_unit_instances_found_for_invocation") })
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/beans/{beanName}/invoke", method = RequestMethod.POST)
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, 
+			description = "no_processing_unit_instances_found_for_invocation") })
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/beans/{beanName}/invoke", 
+	method = RequestMethod.POST)
 	@PreAuthorize("isFullyAuthenticated()")
 	@PostFilter("hasPermission(filterObject, 'view')")
 	public @ResponseBody
@@ -928,7 +939,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final String serviceName,
 			@PathVariable final String beanName,
 			@RequestBody final Map<String, Object> params)
-			throws RestErrorException {
+					throws RestErrorException {
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(
 				applicationName, serviceName);
 		if (logger.isLoggable(Level.FINER)) {
@@ -972,8 +983,7 @@ public class ServiceController implements ServiceDetailsProvider {
 						+ ":"
 						+ instance.getInstanceId()
 						+ " on host "
-						+ instance.getVirtualMachine().getMachine()
-								.getHostName());
+						+ instance.getVirtualMachine().getMachine().getHostName());
 				invocationResult.put(serviceInstanceName,
 						"pu_instance_invocation_failure");
 			}
@@ -1003,8 +1013,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (result instanceof Map<?, ?>) {
 			final Map<String, String> modifiedMap = new HashMap<String, String>();
 			@SuppressWarnings("unchecked")
-			final Set<Entry<String, Object>> entries = ((Map<String, Object>) result)
-					.entrySet();
+			final Set<Entry<String, Object>> entries = ((Map<String, Object>) result).entrySet();
 			for (final Entry<String, Object> subEntry : entries) {
 
 				modifiedMap.put(subEntry.getKey(),
@@ -1063,7 +1072,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final int instanceId,
 			@PathVariable final String beanName,
 			@RequestBody final Map<String, Object> params)
-			throws RestErrorException {
+					throws RestErrorException {
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(
 				applicationName, serviceName);
 		if (logger.isLoggable(Level.FINER)) {
@@ -1161,11 +1170,14 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws RestErrorException
 	 *             When failed to locate service.
 	 */
-	@JsonResponseExample(status = "success", responseBody = "{\"lifecycleEventContainerID\":\"bfae0a89-b5a0-4250-b393-6cedbf63ac76\"}")
+	@JsonResponseExample(status = "success", responseBody = 
+			"{\"lifecycleEventContainerID\":\"bfae0a89-b5a0-4250-b393-6cedbf63ac76\"}")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_service") })
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeoutInMinutes}/undeploy", method = RequestMethod.DELETE)
+	@RequestMapping(value = 
+	"applications/{applicationName}/services/{serviceName}/timeout/{timeoutInMinutes}/undeploy", 
+	method = RequestMethod.DELETE)
 	public @ResponseBody
 
 @PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
@@ -1213,8 +1225,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		restPollingRunnable.addService(serviceName, 0);
 		restPollingRunnable.setIsServiceInstall(false);
 		restPollingRunnable.setAdmin(admin);
-		restPollingRunnable
-				.setLifecycleEventsContainer(lifecycleEventsContainer);
+		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
 		restPollingRunnable.setIsUninstall(true);
 		restPollingRunnable.setUndeployTask(undeployTask);
 		restPollingRunnable.setEndTime(timeoutInMinutes, TimeUnit.MINUTES);
@@ -1253,7 +1264,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	Map<String, Object> addInstance(@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
 			@RequestBody final Map<String, String> params)
-			throws RestErrorException {
+					throws RestErrorException {
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(
 				applicationName, serviceName);
 		final int timeout = Integer.parseInt(params.get("timeout"));
@@ -1298,7 +1309,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_service"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "service_instance_unavailable") })
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances/{instanceId}/remove", method = RequestMethod.DELETE)
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances/{instanceId}/remove", 
+	method = RequestMethod.DELETE)
 	public @ResponseBody
 	Map<String, Object> removeInstance(
 			@PathVariable final String applicationName,
@@ -1348,7 +1360,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			throw new TimeoutException("Timed out waiting for Service "
 					+ serviceName + " deployment.");
 		}
-		} catch(ProcessingUnitAlreadyDeployedException e) {
+		} catch (ProcessingUnitAlreadyDeployedException e) {
 			throw new RestErrorException(CloudifyErrorMessages.SERVICE_ALREADY_INSTALLED.getName(), serviceName);
 		}
 	}
@@ -1375,7 +1387,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
 	public void resolveDocumentNotFoundException(
 			final HttpServletResponse response, final Exception e)
-			throws IOException {
+					throws IOException {
 
 		if (response.isCommitted()) {
 			logger.log(
@@ -1425,7 +1437,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final Map<String, Object> errorDescriptionMap = e
 					.getErrorDescription();
 			final String errorMap = new ObjectMapper()
-					.writeValueAsString(errorDescriptionMap);
+			.writeValueAsString(errorDescriptionMap);
 			logger.log(Level.INFO,
 					"caught exception. Sending response message "
 							+ (String) errorDescriptionMap.get("error"), e);
@@ -1462,7 +1474,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             When application not found or when attempting to remove
 	 *             management services.
 	 */
-	@JsonResponseExample(status = "success", responseBody = "{\"lifecycleEventContainerID\":\"bfae0a89-b5a0-4250-b393-6cedbf63ac76\"}")
+	@JsonResponseExample(status = "success", responseBody = 
+			"{\"lifecycleEventContainerID\":\"bfae0a89-b5a0-4250-b393-6cedbf63ac76\"}")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_app") })
@@ -1616,8 +1629,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			return Arrays.asList(pus);
 		}
 
-		final TopologicalOrderIterator<ProcessingUnit, DefaultEdge> iterator = new TopologicalOrderIterator<ProcessingUnit, DefaultEdge>(
-				graph);
+		final TopologicalOrderIterator<ProcessingUnit, DefaultEdge> iterator = 
+				new TopologicalOrderIterator<ProcessingUnit, DefaultEdge>(graph);
 
 		final List<ProcessingUnit> orderedList = new ArrayList<ProcessingUnit>();
 		while (iterator.hasNext()) {
@@ -1773,8 +1786,8 @@ public class ServiceController implements ServiceDetailsProvider {
 							+ cycleString);
 		}
 
-		final TopologicalOrderIterator<Service, DefaultEdge> iterator = new TopologicalOrderIterator<Service, DefaultEdge>(
-				graph);
+		final TopologicalOrderIterator<Service, DefaultEdge> iterator = 
+				new TopologicalOrderIterator<Service, DefaultEdge>(graph);
 
 		final List<Service> orderedList = new ArrayList<Service>();
 		while (iterator.hasNext()) {
@@ -1804,8 +1817,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 		restPollingRunnable.setIsServiceInstall(false);
 		restPollingRunnable.setAdmin(admin);
-		restPollingRunnable
-				.setLifecycleEventsContainer(lifecycleEventsContainer);
+		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
 		restPollingRunnable.setIsUninstall(true);
 		restPollingRunnable.setUndeployTask(undeployTask);
 		restPollingRunnable.setEndTime(timeoutInMinutes, TimeUnit.MINUTES);
@@ -1840,8 +1852,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		restPollingRunnable.addService(serviceName, plannedNumberOfInstances);
 		restPollingRunnable.setAdmin(admin);
 		restPollingRunnable.setIsServiceInstall(isServiceInstall);
-		restPollingRunnable
-				.setLifecycleEventsContainer(lifecycleEventsContainer);
+		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
 		restPollingRunnable.setEndTime(timeout, TimeUnit.MINUTES);
 		restPollingRunnable.setIsSetInstances(true);
 		this.lifecyclePollingThreadContainer.put(lifecycleEventsContainerID,
@@ -1872,8 +1883,7 @@ public class ServiceController implements ServiceDetailsProvider {
 					service.getNumInstances());
 		}
 		restPollingRunnable.setIsServiceInstall(false);
-		restPollingRunnable
-				.setLifecycleEventsContainer(lifecycleEventsContainer);
+		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
 		restPollingRunnable.setAdmin(admin);
 		restPollingRunnable.setEndTime(timeout, TimeUnit.MINUTES);
 		this.lifecyclePollingThreadContainer.put(lifecycleEventsContainerUUID,
@@ -2123,7 +2133,6 @@ public class ServiceController implements ServiceDetailsProvider {
 						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName)
 						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
 						.name(serviceName);
-		
 		if (cloud == null) { // Azure or local-cloud
 			if (!isLocalCloud()) {
 				// Azure: Eager scale (1 container per machine per PU)
@@ -2173,10 +2182,10 @@ public class ServiceController implements ServiceDetailsProvider {
 			if (serviceCloudConfigurationContents != null) {
 				config.setServiceCloudConfiguration(serviceCloudConfigurationContents);
 			}
-
+			
 			final String locators = extractLocators(admin);
 			config.setLocator(locators);
-
+			
 			// management machine should be isolated from other services. no
 			// matter of the deployment mode.
 			config.setDedicatedManagementMachines(true);
@@ -2229,7 +2238,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 */
 	public static int calculateTotalMemoryInMB(final String serviceName,
 			final Service service, final int externalProcessMemoryInMB)
-			throws DSLException {
+					throws DSLException {
 
 		if (externalProcessMemoryInMB <= 0) {
 			throw new IllegalArgumentException(
@@ -2254,20 +2263,20 @@ public class ServiceController implements ServiceDetailsProvider {
 	private static double calculateTotalCpuCores(final Service service) {
 
 		if (service == null) { // deploying without a service. assuming CPU
-								// requirements is 0
+			// requirements is 0
 			return 0;
 		}
 		final double instanceCpuCores = service.getIsolationSLA().getGlobal() != null ? service
 				.getIsolationSLA().getGlobal().getInstanceCpuCores()
 				: 0;
-		if (instanceCpuCores < 0) {
-			throw new IllegalArgumentException(
-					"instanceCpuCores must be positive");
-		}
+				if (instanceCpuCores < 0) {
+					throw new IllegalArgumentException(
+							"instanceCpuCores must be positive");
+				}
 
-		final int numberOfInstances = service.getNumInstances();
+				final int numberOfInstances = service.getNumInstances();
 
-		return numberOfInstances * instanceCpuCores;
+				return numberOfInstances * instanceCpuCores;
 	}
 
 	private static String extractLocators(final Admin admin) {
@@ -2326,7 +2335,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		final boolean isOnlyOneAgent = agents.length == 1;
 		final GridServiceAgent agent = agents[0];
 		final AtLeastOneZoneConfig requiredContainerZone = new AtLeastOneZoneConfigurer()
-				.addZone(LOCALCLOUD_ZONE).create();
+		.addZone(LOCALCLOUD_ZONE).create();
 
 		final boolean isLocalCloudZone = agent.getExactZones().isStasfies(
 				requiredContainerZone);
@@ -2537,7 +2546,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				lifecycleEventContainerID = startPollingForLifecycleEvents(
 						ServiceUtils.getApplicationServiceName(serviceName,
 								applicationName), applicationName, 1, true,
-						timeout, timeUnit).toString();
+								timeout, timeUnit).toString();
 			} else {
 				lifecycleEventContainerID = startPollingForLifecycleEvents(
 						service.getName(), applicationName,
@@ -2584,10 +2593,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            .
 	 * @param selfHealing
 	 *            .
-<<<<<<< HEAD
 	 * @param cloudOverridesFile - A file containing override parameters to be used by the cloud driver.
-=======
->>>>>>> f194d16... CLOUDIFY-1199 API for adding and removing cloud templates at runtime - first commit.
 	 * @return status - success (error) and response - lifecycle events
 	 *         container id (error description)
 	 * @throws DSLException
@@ -2716,7 +2722,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	private File getJarFileFromDir(File serviceFileOrDir,
 			final File serviceDirectory, final String jarName)
-			throws IOException {
+					throws IOException {
 		if (!serviceFileOrDir.isAbsolute()) {
 			serviceFileOrDir = new File(serviceDirectory,
 					serviceFileOrDir.getPath());
@@ -3176,7 +3182,6 @@ public class ServiceController implements ServiceDetailsProvider {
 	private void validateMemoryCapacityPerContainer(final Sla sla,
 			final Cloud cloud, final CloudTemplate template)
 			throws DSLException {
-
 		if (cloud == null) {
 			// No cloud, must specify memory capacity per container explicitly
 			if (sla.getMemoryCapacityPerContainer() == null) {
@@ -3345,7 +3350,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final String serviceName,
 			@PathVariable final int instanceId,
 			@RequestParam(value = "numLines", required = true) final int numLines)
-			throws RestErrorException {
+					throws RestErrorException {
 
 		final GridServiceContainer container = getContainerAccordingToInstanceId(
 				applicationName, serviceName, instanceId);
@@ -3393,7 +3398,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final String serviceName,
 			@PathVariable final String hostAddress,
 			@RequestParam(value = "numLines", required = true) final int numLines)
-			throws RestErrorException {
+					throws RestErrorException {
 
 		final GridServiceContainer container = getContainerAccordingToHostAddress(
 				applicationName, serviceName, hostAddress);
@@ -3419,7 +3424,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param numLines
 	 *            The number of lines to tail.
 	 * @return The last n lines of log from each service instance.
-	 * @throws RestErrorException
+	 * @throws RestErrorException .
 	 */
 	@JsonRequestExample(requestBody = "{\"numLines\":10}")
 	@JsonResponseExample(status = "success", responseBody = "\"instance log tail\"")
@@ -3433,7 +3438,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
 			@RequestParam(value = "numLines", required = true) final int numLines)
-			throws RestErrorException {
+					throws RestErrorException {
 
 		final StringBuilder stringBuilder = new StringBuilder();
 		final ProcessingUnit processingUnit = getProcessingUnit(
@@ -3592,7 +3597,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			restPollingRunnable.setDeploymentExecutionException(e);
 		}
 	}
-	
+
 	/**
 	 * Add templates to the cloud.
 	 * @param templatesFolder A Groovy file contains the templates map.
@@ -3608,33 +3613,21 @@ public class ServiceController implements ServiceDetailsProvider {
 	addTemplates(
 			@RequestParam(value = CloudifyConstants.REQUEST_PARAM_TEMPLATES_DIR_NAME, required = true) 
 			final MultipartFile templatesFolder) 
-			throws IOException, DSLException, RestErrorException {
-		
-		File localTemplatesFile = copyMultipartFileToLocalFile(templatesFolder);
-		File[] templatesFiles = DSLReader.findDefaultDSLFiles(
-				DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX, localTemplatesFile);
-		Map<File, List<CloudTemplateHolder> > cloudTemplates = new HashMap<File, List<CloudTemplateHolder>>();
-		for (File templatesFile : templatesFiles) {
-			// construct templates from file and add them to the map
-			cloudTemplates.put(templatesFile, ServiceReader.getCloudTemplatesFromFile(templatesFile));
-		}
-
+					throws IOException, DSLException, RestErrorException {
+		File localTemplatesFolder = copyMultipartFileToLocalFile(templatesFolder);
+		// get the templates
+		List<CloudTemplateHolder> cloudTemplates = ServiceReader.getCloudTemplatesFromFile(localTemplatesFolder);
 		// add them to space
-		Map<String, List<String> > failedToAddTemplates = new HashMap<String, List<String>>();
+		List<String> failedToAddTemplates = new LinkedList<String>();
 		List<String> addedTemplates = new LinkedList<String>();
-		for (Entry<File, List<CloudTemplateHolder>> entry : cloudTemplates.entrySet()) {
-			List<CloudTemplateHolder> holders = entry.getValue();
-			List<String> failedToAddTemplatesNames = new LinkedList<String>();
-			for (CloudTemplateHolder holder : holders) {
+		for (CloudTemplateHolder holder : cloudTemplates) {
 			LeaseContext<CloudTemplateHolder> writeResult = gigaSpace.write(holder);
 			String name = holder.getName();
 			if (writeResult == null) {
-				failedToAddTemplatesNames.add(name);
+				failedToAddTemplates.add(name);
 			} else {
 				addedTemplates.add(name);
 			}
-			}
-			failedToAddTemplates.put(entry.getKey().getName(), failedToAddTemplatesNames);
 		}
 		if (!failedToAddTemplates.isEmpty()) {
 			throw new RestErrorException("failed_to_add_templates", 
@@ -3643,7 +3636,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		return successStatus(addedTemplates);
 	}
-	
+
 	/**
 	 * Get the cloud's templates.
 	 * @return a map containing the cloud's templates and a success status.
@@ -3654,7 +3647,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	getTemplates() {
 		return successStatus(cloud.getTemplates());
 	}
-	
+
 	/**
 	 * Get template from the cloud.
 	 * @param templateName The name of the template to remove.
@@ -3675,7 +3668,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		} 
 		return successStatus(cloudTemplate);
 	}
-	
+
 	/**
 	 * Remove a template from the cloud.
 	 * @param templateName The name of the template to remove.

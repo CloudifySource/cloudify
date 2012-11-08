@@ -414,39 +414,42 @@ public final class ServiceReader {
 
 	/**
 	 * 
-	 * @param templatesFile a groovy file that contains a map of cloud templates.
-	 * @return a map contains all the templates read from the templatesFileName.
+	 * @param templatesFileOrDir 
+	 * 						The templates file or directory.
+	 * @return The templates read from the templates files.
 	 * @throws IOException .
 	 * @throws DSLException .
 	 */
-	public static List<CloudTemplateHolder> getCloudTemplatesFromFile(final File templatesFile) 
+	public static List<CloudTemplateHolder> getCloudTemplatesFromFile(final File templatesFileOrDir) 
 			throws DSLException, IOException {
-		File actualTemplatesDslFile = templatesFile;
+		File[] actualTemplatesDslFiles = {templatesFileOrDir};
 
-		if (templatesFile.isFile()) {
-			if (templatesFile.getName().endsWith(".zip") || templatesFile.getName().endsWith(".jar")) {
+		if (templatesFileOrDir.isFile()) {
+			if (templatesFileOrDir.getName().endsWith(".zip") || templatesFileOrDir.getName().endsWith(".jar")) {
 				// Unzip templates zip file to temp folder
-				final File tempFolder = ServiceReader.unzipApplicationFile(templatesFile, "templates");
-				actualTemplatesDslFile =
-						DSLReader.findDefaultDSLFile(DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX, tempFolder);
+				final File tempFolder = ServiceReader.unzipApplicationFile(templatesFileOrDir, "templates");
+				actualTemplatesDslFiles =
+						DSLReader.findDefaultDSLFiles(DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX, tempFolder);
 			}
 		} else {
-			actualTemplatesDslFile =
-					DSLReader.findDefaultDSLFile(DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX, templatesFile);
+			actualTemplatesDslFiles =
+					DSLReader.findDefaultDSLFiles(DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX, templatesFileOrDir);
 		}
-
-		DSLReader dslReader = new DSLReader();
-		dslReader.setDslFile(actualTemplatesDslFile);
-		dslReader.setCreateServiceContext(false);
-		Map<String, CloudTemplate> cloudTemplateMap = dslReader.readDslEntity(Map.class);
 
 		List<CloudTemplateHolder> cloudTemplatesList = new LinkedList<CloudTemplateHolder>();
-		for (Entry<String, CloudTemplate> entry : cloudTemplateMap.entrySet()) {
-			CloudTemplateHolder holder = new CloudTemplateHolder();
-			holder.setName(entry.getKey());
-			holder.setCloudTemplate(entry.getValue());
-			cloudTemplatesList.add(holder);
+		for (File actualTemplatesDslFile : actualTemplatesDslFiles) {			
+			DSLReader dslReader = new DSLReader();
+			dslReader.setDslFile(actualTemplatesDslFile);
+			dslReader.setCreateServiceContext(false);
+			Map<String, CloudTemplate> cloudTemplateMap = dslReader.readDslEntity(Map.class);
+			for (Entry<String, CloudTemplate> entry : cloudTemplateMap.entrySet()) {
+				CloudTemplateHolder holder = new CloudTemplateHolder();
+				holder.setName(entry.getKey());
+				holder.setCloudTemplate(entry.getValue());
+				cloudTemplatesList.add(holder);
+			}
 		}
+
 		return cloudTemplatesList;
 	}
 }

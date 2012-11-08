@@ -99,7 +99,7 @@ public class AddTemplates extends AdminAwareCommand {
 			.append(CloudifyConstants.TAB_CHAR)
 			.append(templateName);
 		}
-		return null;
+		return sb;
 	}
 
 }
