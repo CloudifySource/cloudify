@@ -28,6 +28,7 @@ import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
+import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.rest.RestAdminFacade;
 import org.fusesource.jansi.Ansi.Color;
 
@@ -119,7 +120,6 @@ public class UninstallApplication extends AdminAwareCommand {
 	 */
 	private boolean askUninstallConfirmationQuestion()
 			throws IOException {
-		return true;
-//		return ShellUtils.promptUser(session, "application_uninstall_confirmation", applicationName);
+		return ShellUtils.promptUser(session, "application_uninstall_confirmation", applicationName);
 	}
 }
