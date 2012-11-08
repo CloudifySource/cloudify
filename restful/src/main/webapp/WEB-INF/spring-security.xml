@@ -1,40 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans:beans xmlns="http://www.springframework.org/schema/security"
-	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:p="http://www.springframework.org/schema/p"
-	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+<beans:beans
+	xmlns="http://www.springframework.org/schema/security"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:sec="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/security
+	http://www.springframework.org/schema/security/spring-security-3.0.xsd
+	http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	
+	<!--ldap-server ldif="file:///${JSHOMEDIR}/config/security/initldapdata.ldif" root="dc=maxcrc,dc=com" url="ldap://localhost:389/dc=maxcrc,dc=com"/-->
+	
+	<ldap-server url="ldap://localhost:389/dc=maxcrc,dc=com"/>
+	
+	<!--ldap-authentication-provider user-search-filter="(uid={0})" user-search-base="ou=people" group-search-base="ou=groups" group-search-filter="member={0}"/-->
+	
+	<authentication-manager alias="authenticationManager">
+        <ldap-authentication-provider user-search-filter="uid={0}" user-search-base="ou=people" group-search-base="ou=groups" group-search-filter="member={0}"/>
+    </authentication-manager>
 
-	<!-- <http>
-		intercept-url pattern="/**" access="ROLE_USER" requires-channel="https"/
-		<intercept-url pattern="/admin" access="ROLE_VIEWER"/>
-		<intercept-url pattern="/service" access="ROLE_VIEWER"/>
-		<intercept-url pattern="/attributes" access="ROLE_VIEWER"/>
-		<intercept-url pattern="/**" access="ROLE_VIEWER"/
-		<http-basic />
-	</http>
-
-	<authentication-manager>
+	<!--authentication-manager alias="authenticationManager">
 		<authentication-provider>
 			<user-service>
-				<user name="a" password="a"
-					authorities="ROLE_CLOUD_ADMIN,ROLE_APP_MANAGER,ROLE_VIEWER" />
-				<user name="b" password="b" authorities="ROLE_CLOUD_ADMIN" />
-				<user name="c" password="c" authorities="ROLE_APP_MANAGER" />
-				<user name="d" password="d" authorities="ROLE_VIEWER" />
+				<user name="test1" password="test1" authorities="ROLE_CLOUD_ADMIN"/>
+				<user name="test2" password="test2" authorities="ROLE_APP_MANAGER"/>
+				<user name="test3" password="test3" authorities="ROLE_VIEWER"/>
 			</user-service>
 		</authentication-provider>
-	</authentication-manager>
-
-	<global-method-security pre-post-annotations="enabled"/> -->
-		<!-- access-decision-manager-ref="myAccessDecisionManagerBean">
-		<expression-handler ref="expressionHandler" />
-	</global-method-security-->
-
-	<!-- <beans:bean id="expressionHandler"
-		class="org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler">
-		<beans:property name="permissionEvaluator" ref="myPermissionEvaluator" />
-	</beans:bean> -->
-
+	</authentication-manager-->
+	
+	<http entry-point-ref="basicAuthEntryPoint" auto-config="false" create-session="never" use-expressions="true">
+		<intercept-url pattern="/admin/**" access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS', 'ROLE_VIEWERS')"/>
+		<intercept-url pattern="/service/testrest" access="permitAll"/>
+		<intercept-url pattern="/service/**" access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS', 'ROLE_VIEWERS')"/>
+		<intercept-url pattern="/attributes/**" access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')"/>
+		<intercept-url pattern="/**" access="isFullyAuthenticated()"/>
+		<custom-filter ref="basicAuthenticationFilter" after="BASIC_AUTH_FILTER" />
+		<logout/>	
+	</http>
+	
+	<beans:bean id="basicAuthEntryPoint" class="org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint">
+		<beans:property name="realmName" value="REST Realm" />
+	</beans:bean>
+	
+	<beans:bean id="basicAuthenticationFilter" class="org.springframework.security.web.authentication.www.BasicAuthenticationFilter">
+		<beans:property name="authenticationManager" ref="authenticationManager"/>
+		<beans:property name="authenticationEntryPoint" ref="basicAuthEntryPoint" />
+	</beans:bean>
 
 </beans:beans>

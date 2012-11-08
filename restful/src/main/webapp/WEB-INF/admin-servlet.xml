@@ -6,18 +6,30 @@
 	xmlns:os-core="http://www.openspaces.org/schema/core"
     xmlns:os-events="http://www.openspaces.org/schema/events"
     xmlns:os-remoting="http://www.openspaces.org/schema/remoting"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-				http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
-		        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
-				http://www.springframework.org/schema/oxm http://www.springframework.org/schema/oxm/spring-oxm-3.0.xsd
+    xmlns:sec="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+				http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
+		        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd
+				http://www.springframework.org/schema/oxm http://www.springframework.org/schema/oxm/spring-oxm-3.1.xsd
 				http://www.openspaces.org/schema/core http://www.openspaces.org/schema/8.0/core/openspaces-core.xsd
        			http://www.openspaces.org/schema/events http://www.openspaces.org/schema/8.0/events/openspaces-events.xsd
+       			http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd
        			http://www.openspaces.org/schema/remoting http://www.openspaces.org/schema/8.0/remoting/openspaces-remoting.xsd">
 
 	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="location" value="/WEB-INF/config.properties"/>
         <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_FALLBACK"/>
 	</bean>
+	
+	<bean id="permissionEvaluator" class="org.cloudifysource.rest.security.CustomPermissionEvaluator"/>
+
+	<bean id="expressionHandler" class="org.cloudifysource.rest.security.ExtendedMethodSecurityExpressionHandler">
+		<property name="permissionEvaluator" ref="permissionEvaluator"/>
+	</bean>
+	
+	<sec:global-method-security pre-post-annotations="enabled" proxy-target-class="true">
+		<sec:expression-handler ref="expressionHandler"/>
+	</sec:global-method-security>
 	
 	<!-- <bean id="securityPropagation" class="org.cloudifysource.rest.security.SecurityPropagation"
 		factory-method="valueOf">
@@ -26,7 +38,7 @@
 		</constructor-arg>
 	</bean> -->
 
-	<mvc:annotation-driven />
+	<mvc:annotation-driven/>
 	<mvc:resources mapping="/resources/**" location="/resources/" />
 
 	<context:component-scan base-package="org.cloudifysource.rest" />
