@@ -41,13 +41,15 @@ public class ListApplications extends AbstractListCommand {
 	 */
 @Override
 	protected Object doExecute() throws Exception {
-		Map<ApplicationDescription, String> origMap = adminFacade.getApplicationsDescriptionAndAuthGroups();
+		return adminFacade.getApplicationsNamesAndAuthGroups();
+		//problem deserializing ApplicationDescription
+		/*Map<ApplicationDescription, String> origMap = adminFacade.getApplicationsDescriptionAndAuthGroups();
 		Map<String, String> displayMap = new HashMap<String, String>(origMap.size());
 		for (ApplicationDescription applicationDescription : origMap.keySet()) {
 			String appDescStr = getApplicationDescriptionAsString(applicationDescription);
 			String authGroups = origMap.get(applicationDescription);
 			displayMap.put(appDescStr, authGroups);
 		}
-		return displayMap;
+		return displayMap;*/
 	}
 }

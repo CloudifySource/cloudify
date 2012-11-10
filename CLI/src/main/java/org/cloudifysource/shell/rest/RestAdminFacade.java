@@ -43,6 +43,7 @@ import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ComponentType;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
+import org.codehaus.jackson.JsonGenerator.Feature;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.j_spaces.kernel.PlatformVersion;
@@ -164,18 +165,23 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	@Override
 	@SuppressWarnings("unchecked")
 	public Map<ApplicationDescription, String> getApplicationsDescriptionAndAuthGroups() throws CLIException {
-		try {
-			return (Map<ApplicationDescription, String>) client.get("/service/applications/description");
-			/*ObjectMapper map = new ObjectMapper();
-			List<ApplicationDescription> applicationDescriptionList = new ArrayList<ApplicationDescription>();
-			for (Object object : applications) {
-				ApplicationDescription applicationDescription = map.convertValue(object, ApplicationDescription.class);
-				applicationDescriptionList.add(applicationDescription);
-			}
-			return applicationDescriptionList;*/
-		} catch (final ErrorStatusException e) {
+		//try {
+			Map<ApplicationDescription, String> applicationDescriptionMap = new HashMap<ApplicationDescription, String>();
+			//TODO problem deserializing - fix
+			/*Map<Object, String> returnedMap = (Map<Object, String>)client.get("/service/applications/description");
+			ObjectMapper map = new ObjectMapper();
+			map.configure(org.codehaus.jackson.map.DeserializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+			map.configure(org.codehaus.jackson.map.SerializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+			map.configure(Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+			map.configure(org.codehaus.jackson.JsonParser.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+			for (Map.Entry<Object, String> entry : returnedMap.entrySet()) {
+				ApplicationDescription applicationDescription = map.convertValue(entry.getKey(), ApplicationDescription.class);
+				applicationDescriptionMap.put(applicationDescription, entry.getValue());
+			}*/
+			return applicationDescriptionMap;
+		/*} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-		}
+		}*/
 	}
     /**
      * {@inheritDoc}
