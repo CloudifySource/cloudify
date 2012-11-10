@@ -55,8 +55,8 @@ public class ApplicationInstallerRunnable implements Runnable {
 	private final boolean selfHealing;
 
 	public ApplicationInstallerRunnable(ServiceController controller,
-			DSLApplicationCompilatioResult result, String applicationName, String authGroups,
-			File overridesFile, List<Service> services, Cloud cloud, final boolean selfHealing) {
+			DSLApplicationCompilatioResult result, String applicationName, File overridesFile, String authGroups,
+			List<Service> services, Cloud cloud, final boolean selfHealing) {
 		super();
 		this.controller = controller;
 		this.result = result;

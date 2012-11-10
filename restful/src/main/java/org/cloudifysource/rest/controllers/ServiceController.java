@@ -54,8 +54,10 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -177,9 +179,6 @@ import com.gigaspaces.log.LogEntryMatchers;
 @RequestMapping("/service")
 public class ServiceController implements ServiceDetailsProvider {
 	private static final String LOCALCLOUD_ZONE = "localcloud";
-	private static final String PERMISSION_TO_DEPLOY = "Deploy";
-	private static final String PERMISSION_TO_VIEW = "View";
-	private static final String AUTH_GROUPS_DELIMITER = ",";
 	private static final int MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED = 1000;
 	private static final int DEFAULT_TIME_EXTENTION_POLLING_TASK = 5;
 	private static final int THREAD_POOL_SIZE = 20;
@@ -680,43 +679,34 @@ public class ServiceController implements ServiceDetailsProvider {
 	@RequestMapping(value = "/applications/description", method = RequestMethod.GET)
 	@PostFilter("hasPermission(filterObject, 'view')")
 	public @ResponseBody
-	Map<String, Object> getApplicationsDescriptionList()
-			throws RestErrorException {
+	Map<String, Object> getApplicationsDescriptionAndAuthGroups() throws RestErrorException {
 		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("received request to list applications");
+			logger.finer("received request to list application descriptions");
 		}
-		final Applications apps = admin.getApplications();
-		ApplicationDescriptionFactory applicationDescriptionFactory = new ApplicationDescriptionFactory(
-				admin);
-		List<ApplicationDescription> applicationDescriptionList = new ArrayList<ApplicationDescription>();
+		
 		//TODO - the implementation should be in the admin object: admin.getApplications(authGroups);
-		final Map<String, String> appNamesAndAuthGroups = new HashMap<String, String>(apps.getSize());
+		final Applications apps = admin.getApplications();
+		ApplicationDescriptionFactory applicationDescriptionFactory = new ApplicationDescriptionFactory(admin);
+		Map<ApplicationDescription, String> appDescGroupsMap = new HashMap<ApplicationDescription, String>(apps.getSize());
 		for (final Application app : apps) {
-			String applicationName = app.getName();
-			if (!app.getName().equals(
-					CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
-
-			String appAuthGroups = "";
-			//getting the application's authGroups from one of it services, assuming they all have the same authGroups.
-			ProcessingUnit pu = app.getProcessingUnits().iterator().next();
-			if (pu != null) {
-				appAuthGroups = pu.getBeanLevelProperties().getContextProperties().getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
-			} else {
-				// no PU -> no authGroupsp -> no app
-				//TODO - handle (warning?)
+			if (!app.getName().equals(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
+				String appAuthGroups = "";
+				//getting the application's authGroups from one of it services, assuming they all have the same authGroups.
+				ProcessingUnit pu = app.getProcessingUnits().iterator().next();
+				if (pu != null) {
+					appAuthGroups = pu.getBeanLevelProperties().getContextProperties().getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+				} else {
+					// no PU -> no authGroupsp -> no app
+					//TODO - handle (warning?)
+				}
+				
+				ApplicationDescription applicationDescription = applicationDescriptionFactory
+						.getApplicationDescription(app.getName());
+				appDescGroupsMap.put(applicationDescription, appAuthGroups);
 			}
-			
-			ApplicationDescription applicationDescription = applicationDescriptionFactory
-					.getApplicationDescription(applicationName);
-			appNamesAndAuthGroups.put(applicationDescription, appAuthGroups);
-			
-			/*if (!app.getName().equals(CloudifyConstants.MANAGEMENT_APPLICATION_NAME) &&
-					hasPermissionToView(splitAndTrim(appAuthGroups, AUTH_GROUPS_DELIMITER))) {
-				appNamesAndAuthGroups.add(app.getName());
-			}*/
 		}
-
-		return successStatus(appNamesAndAuthGroups);
+		
+		return successStatus(appDescGroupsMap);
 	}
 
 	/**
@@ -732,8 +722,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	 */
 	@JsonResponseExample(status = "sucess", responseBody = "[\"service1\",\"service2\"]")
 	@PossibleResponseStatuses(responseStatuses = {
-			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
-			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_app") })
+	@PossibleResponseStatus(code = HTTP_OK, description = "success"),
+	@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_app") })
 	@RequestMapping(value = "/applications/{applicationName}/services/description", method = RequestMethod.GET)
 	public @ResponseBody
 	@PostFilter("hasPermission(filterObject, 'view')")
@@ -811,19 +801,32 @@ public class ServiceController implements ServiceDetailsProvider {
 	@PossibleResponseStatuses(responseStatuses = { @PossibleResponseStatus(code = HTTP_OK, description = "success") })
 	@RequestMapping(value = "/applications", method = RequestMethod.GET)
 	public @ResponseBody
-	Map<String, Object> getApplicationsList() {
+	Map<String, Object> getApplicationsNamesAndAuthGroups() {
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to list applications");
 		}
+		
+		//TODO - the implementation should be in the admin object: admin.getApplications(authGroups);
 		final Applications apps = admin.getApplications();
-		final List<String> appNames = new ArrayList<String>(apps.getSize());
+		final Map<String, String> appNamesAndAuthGroups = new HashMap<String, String>(apps.getSize());
 		for (final Application app : apps) {
-			if (!app.getName().equals(
-					CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
-				appNames.add(app.getName());
+			if (!app.getName().equals(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
+
+				String appAuthGroups = "";
+				//getting the application's authGroups from one of it services, assuming they all have the same authGroups.
+				ProcessingUnit pu = app.getProcessingUnits().iterator().next();
+				if (pu != null) {
+					appAuthGroups = pu.getBeanLevelProperties().getContextProperties().getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+				} else {
+					// no PU -> no authGroups -> no app
+					//TODO - handle (warning?)
+				}
+				
+				appNamesAndAuthGroups.put(app.getName(), appAuthGroups);
 			}
 		}
-		return successStatus(appNames);
+		
+		return successStatus(appNamesAndAuthGroups);
 	}
 
 	/**
@@ -1634,7 +1637,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final String applicationName,
 			@PathVariable final int timeout,
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
-			@RequestParam(value = "authGroups", required = true) final String authGroups,
+			@RequestParam(value = "authGroups", required = true) String authGroups,
 			@RequestParam(value = "recipeOverridesFile", required = false) final MultipartFile recipeOverridesFile,
 			@RequestParam(value = "selfHealing", required = false) final Boolean selfHealing)
 			throws IOException, DSLException, RestErrorException {
@@ -2036,6 +2039,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			contextProperties.setProperty(
 					CloudifyConstants.CONTEXT_PROPERTY_DISABLE_SELF_HEALING,
 					"false");
+		}
 
 		final ElasticStatelessProcessingUnitDeployment deployment =
 				new ElasticStatelessProcessingUnitDeployment(serviceFile)
@@ -2046,24 +2050,14 @@ public class ServiceController implements ServiceDetailsProvider {
 						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
 						.name(serviceName);
 		
-        if (isLocalCloud()) {
-            setPublicMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
-        } else {
+		if (isLocalCloud()) {
+			setPublicMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
+		} else {
 		// All PUs on this role share the same machine. 
 		// Machines are identified by zone.
-            setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
-        }
-
-		final ElasticStatelessProcessingUnitDeployment deployment = new ElasticStatelessProcessingUnitDeployment(
-				serviceFile)
-				.memoryCapacityPerContainer(externalProcessMemoryInMB,
-						MemoryUnit.MEGABYTES)
-				.addCommandLineArgument("-Xmx" + containerMemoryInMB + "m")
-				.addCommandLineArgument("-Xms" + containerMemoryInMB + "m")
-				.addContextProperty(
-						CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME,
-						applicationName).name(serviceName);
-
+			setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
+		}
+		
 		if (cloud == null) { // Azure or local-cloud
 			if (!isLocalCloud()) {
 				// Azure: Eager scale (1 container per machine per PU)
@@ -2076,12 +2070,10 @@ public class ServiceController implements ServiceDetailsProvider {
 				setPublicMachineProvisioning(deployment, agentZones,
 						reservedMemoryCapacityPerMachineInMB);
 				if (service == null || service.getScalingRules() == null) {
-
 					final int totalMemoryInMB = calculateTotalMemoryInMB(
 							serviceName, service, externalProcessMemoryInMB);
 					final ManualCapacityScaleConfig scaleConfig = new ManualCapacityScaleConfigurer()
-							.memoryCapacity(totalMemoryInMB,
-									MemoryUnit.MEGABYTES).create();
+							.memoryCapacity(totalMemoryInMB, MemoryUnit.MEGABYTES).create();
 					deployment.scale(scaleConfig);
 				} else {
 					final AutomaticCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
@@ -2091,77 +2083,66 @@ public class ServiceController implements ServiceDetailsProvider {
 				}
 			}
 		} else {
-
-			final CloudTemplate template = getComputeTemplate(cloud,
-					templateName);
-
-			final long cloudExternalProcessMemoryInMB = service
-					.getIsolationSLA().getGlobal() != null ? service
-					.getIsolationSLA().getGlobal().getInstanceMemoryMB()
-					: calculateExternalProcessMemory(cloud, template);
-
-			logger.info("Creating cloud machine provisioning config. Template remote directory is: "
-					+ template.getRemoteDirectory());
-			final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
-					cloud, template, templateName,
-					this.managementTemplate.getRemoteDirectory());
-
-			if (serviceCloudConfigurationContents != null) {
-
-				config.setServiceCloudConfiguration(serviceCloudConfigurationContents);
-			}
-
-			final String locators = extractLocators(admin);
-			config.setLocator(locators);
-
-			// management machine should be isolated from other services. no
-			// matter of the deployment mode.
-			config.setDedicatedManagementMachines(true);
-			if (!dedicated) {
-				logger.info("public mode is on. will use public machine provisioning for "
-						+ serviceName + " deployment.");
-				// service instances can be deployed across all agents
-				setPublicMachineProvisioning(deployment, config);
-			} else {
-				// service deployment will have a dedicated agent per instance
-				setDedicatedMachineProvisioning(deployment, config);
-			}
-
-			deployment.memoryCapacityPerContainer(
-					(int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
-
-			if (service == null || service.getScalingRules() == null) {
-				final int totalMemoryInMB = calculateTotalMemoryInMB(
-						serviceName, service,
-						(int) cloudExternalProcessMemoryInMB);
-				final double totalCpuCores = calculateTotalCpuCores(service);
-				final ManualCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
-						.createManualCapacityScaleConfig(totalMemoryInMB,
-								totalCpuCores, locationAware, dedicated);
-				if (dedicated) {
-					scaleConfig.setAtMostOneContainerPerMachine(true);
+			final CloudTemplate template = getComputeTemplate(cloud, templateName);
+			final long cloudExternalProcessMemoryInMB = service.getIsolationSLA().getGlobal() != null ?
+					service.getIsolationSLA().getGlobal().getInstanceMemoryMB() : calculateExternalProcessMemory(cloud, template);
+			
+				logger.info("Creating cloud machine provisioning config. Template remote directory is: "
+							+ template.getRemoteDirectory());
+				final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
+						cloud, template, templateName, this.managementTemplate.getRemoteDirectory());
+					
+				if (serviceCloudConfigurationContents != null) {
+					config.setServiceCloudConfiguration(serviceCloudConfigurationContents);
 				}
-				deployment.scale(scaleConfig);
-			} else {
-				final AutomaticCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
-						.createAutomaticCapacityScaleConfig(serviceName,
-								service, (int) cloudExternalProcessMemoryInMB,
-								locationAware);
-				if (dedicated) {
-					scaleConfig.setAtMostOneContainerPerMachine(true);
+
+				final String locators = extractLocators(admin);
+				config.setLocator(locators);
+		
+				// management machine should be isolated from other services. no
+				// matter of the deployment mode.
+				config.setDedicatedManagementMachines(true);
+				if (!dedicated) {
+					logger.info("public mode is on. will use public machine provisioning for "
+							+ serviceName + " deployment.");
+					// service instances can be deployed across all agents
+					setPublicMachineProvisioning(deployment, config);
+				} else {
+					// service deployment will have a dedicated agent per instance
+					setDedicatedMachineProvisioning(deployment, config);
 				}
-				deployment.scale(scaleConfig);
-			}
+	
+				deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
+				if (service == null || service.getScalingRules() == null) {
+					final int totalMemoryInMB = calculateTotalMemoryInMB(
+							serviceName, service, (int) cloudExternalProcessMemoryInMB);
+					final double totalCpuCores = calculateTotalCpuCores(service);
+					final ManualCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
+							.createManualCapacityScaleConfig(totalMemoryInMB,
+									totalCpuCores, locationAware, dedicated);
+						
+					if (dedicated) {
+						scaleConfig.setAtMostOneContainerPerMachine(true);
+					}
+					deployment.scale(scaleConfig);
+				} else {
+					final AutomaticCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
+							.createAutomaticCapacityScaleConfig(serviceName,
+										service, (int) cloudExternalProcessMemoryInMB, locationAware);
+					if (dedicated) {
+						scaleConfig.setAtMostOneContainerPerMachine(true);
+					}
+					deployment.scale(scaleConfig);
+				}
 		}
 
 		// add context properties
 		setContextProperties(deployment, contextProperties);
-
 		verifyEsmExistsInCluster();
 		deployAndWait(serviceName, deployment);
-
 	}
-
+	
+	
 	/**
 	 * @param serviceName
 	 *            - the absolute name of the service
@@ -3461,72 +3442,6 @@ public class ServiceController implements ServiceDetailsProvider {
 		return res;
 
 	}
-	
-    /*private void verifyPermissions(String authGroups, String permission) throws AccessDeniedException, 
-    	AuthorizationServiceException {
-		
-    	if (StringUtils.isBlank(permission)) {
-    		throw new AuthorizationServiceException("Failed to verify permissions, missing permission name");
-    	}
-    	
-    	if (StringUtils.isBlank(authGroups)) {
-    		throw new AuthorizationServiceException("Failed to verify permissions, missing target object");
-    	}
-    	
-    	if (permission.equalsIgnoreCase(PERMISSION_TO_VIEW)) {
-    		if (!hasPermissionToView(splitAndTrim(authGroups, AUTH_GROUPS_DELIMITER))) {
-    			String msg = "Insufficient permissions. User "
-						+ SecurityContextHolder.getContext().getAuthentication().getName() + " is only permitted to "
-						+ "view groups: " + Arrays.toString(getUserAuthGroups().toArray(new String[0]));
-				logger.log(Level.INFO, msg);
-				throw new AccessDeniedException(msg);
-    		}
-    	} else if (permission.equalsIgnoreCase(PERMISSION_TO_DEPLOY)) {
-    		if (!hasPermissionToDeploy(splitAndTrim(authGroups, AUTH_GROUPS_DELIMITER))) {
-    			String msg = "Insufficient permissions. User "
-						+ SecurityContextHolder.getContext().getAuthentication().getName() + " is only permitted to "
-						+ "deploy for groups: " + Arrays.toString(getUserAuthGroups().toArray(new String[0]));
-				logger.log(Level.INFO, msg);
-				throw new AccessDeniedException(msg);
-    		}
-    	}
-    	
-    }*/
-    
-    /*private boolean hasPermissionToView(Collection<String> requestedAuthGroups) {
-    	return hasAnyAuthGroup(requestedAuthGroups);
-    }
-    
-    private boolean hasPermissionToDeploy(Collection<String> requestedAuthGroups) {
-    	return hasAllAuthGroups(requestedAuthGroups);
-    }*/
-    
-    /*private boolean hasAllAuthGroups(Collection<String> requestedAuthGroups) throws AccessDeniedException {
-    	boolean isPermitted = false;
-    	
-    	Collection<String> userAuthGroups = getUserAuthGroups();
-		if (userAuthGroups.containsAll(requestedAuthGroups)) {
-			isPermitted = true;
-		}
-		
-		return isPermitted;
-    }*/
-    
-    /*private boolean hasAnyAuthGroup(Collection<String> requestedAuthGroups) throws AccessDeniedException {
-    	boolean isPermitted = false;
-    	
-    	Collection<String> userAuthGroups = getUserAuthGroups();
-    	for (String requestedAuthGroup : requestedAuthGroups) {
-    		for (String userAuthGroup : userAuthGroups) {
-    			if (requestedAuthGroup.equalsIgnoreCase(userAuthGroup)) {
-    				isPermitted = true;
-    				break;
-    			}
-    		}
-    	}
-    	
-		return isPermitted;
-    }*/
     
     private Collection<String> getUserAuthGroups() throws AccessDeniedException {
     	Set<String> userAuthGroups = new HashSet<String>();
