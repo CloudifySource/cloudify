@@ -62,7 +62,7 @@ public interface AdminFacade {
 	 * @param applicationName
 	 *            The name of the application
 	 * @param authGroups
-	 *            A csv string with groups authorized to use this application
+	 *            A CSV string with names of groups authorized to use this application
 	 * @param timeout .
 	 * @param selfHealing
 	 *            True is recipe self healing should be enabled, false
@@ -157,7 +157,8 @@ public interface AdminFacade {
      * @return A map of the installed applications' names and their authorization groups
      * @throws CLIException Reporting a failure to retrieve the list of installed applications from the Rest server
      */
-    Map<String, String> getApplicationsMap() throws CLIException;
+    Map<String, String> getApplicationsNamesAndAuthGroups() throws CLIException;
+    
 	List<String> getServicesList(String applicationName) throws CLIException;
 	
 	/**
@@ -166,11 +167,11 @@ public interface AdminFacade {
 	 * and their instances.
 	 * 
 	 * @param applicationName The application name
-	 * @return application description POJO
+	 * @return Map of application description POJO and its matching authorization group
 	 * @throws CLIException
 	 * 			Reporting a failure to get the applications list.
 	 */
-	List<ApplicationDescription> getApplicationsDescriptionList() throws CLIException;
+	Map<ApplicationDescription, String> getApplicationsDescriptionAndAuthGroups() throws CLIException;
 	
 	/**
 	 * returns a POJO containing all of an application's services and their description.
@@ -184,7 +185,7 @@ public interface AdminFacade {
 	 * 				Reporting a failure to get the services list.
 	 */
 	ApplicationDescription getServicesDescriptionList(String applicationName) throws CLIException;
-
+	
 	/**
 	 * Adds a processing unit instance for the specified service, on the
 	 * specified application.
@@ -193,6 +194,8 @@ public interface AdminFacade {
 	 *            The name of the relevant application
 	 * @param serviceName
 	 *            The name of the service
+	 * @param authGroups
+	 * 			  A CSV string of groups authorized to use this application
 	 * @param timeout
 	 *            The time (number of seconds) this procedure is limited to,
 	 *            before throwing an exception
@@ -200,8 +203,8 @@ public interface AdminFacade {
 	 *             Reporting a failure to add a processing unit instance of this
 	 *             service
 	 */
-	void addInstance(String applicationName, String serviceName, int timeout)
-			throws CLIException;
+    void addInstance(String applicationName, String serviceName, String authGroups, int timeout) throws CLIException;
+    
 
 	/**
 	 * Remove (undeploy) a specific instance of a given service, on a given
@@ -219,16 +222,7 @@ public interface AdminFacade {
 	 */
 	void removeInstance(String applicationName, String serviceName,
 			int instanceId) throws CLIException;
-    /**
-     * Adds a processing unit instance for the specified service, on the specified application.
-     *
-     * @param applicationName The name of the relevant application
-     * @param serviceName     The name of the service
-     * @param authGroups      A csv string with groups authorized to use this application
-     * @param timeout         The time (number of seconds) this procedure is limited to, before throwing an exception
-     * @throws CLIException Reporting a failure to add a processing unit instance of this service
-     */
-    void addInstance(String applicationName, String serviceName, String authGroups, int timeout) throws CLIException;
+
 
 	/************
 	 * .

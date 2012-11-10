@@ -454,7 +454,7 @@ public class LocalhostGridAgentBootstrapper {
 						+ "Client is not connected to the rest server.");
 			}
 
-			applicationsList = adminFacade.getApplicationsMap().values();
+			applicationsList = adminFacade.getApplicationsNamesAndAuthGroups().values();
 			// If there existed other applications besides the management.
 			applicationsExist = applicationsList.size() > 1;
 		} catch (final CLIException e) {
@@ -525,7 +525,7 @@ public class LocalhostGridAgentBootstrapper {
 			@Override
 			public boolean isDone()
 					throws CLIException, InterruptedException {
-				final Collection<String> applications = adminFacade.getApplicationsMap().values();
+				final Collection<String> applications = adminFacade.getApplicationsNamesAndAuthGroups().values();
 
 				boolean done = true;
 				for (final String applicationName : applications) {

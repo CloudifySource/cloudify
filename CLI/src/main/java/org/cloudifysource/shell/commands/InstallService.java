@@ -188,14 +188,8 @@ public class InstallService extends AdminAwareCommand {
 		if (service != null) {
 			props = createServiceContextProperties(service);
 			if (serviceFileName != null) {
-<<<<<<< HEAD
-				props.setProperty(
-						CloudifyConstants.CONTEXT_PROPERTY_SERVICE_FILE_NAME,
-						serviceFileName);
-=======
 				props.setProperty(CloudifyConstants.CONTEXT_PROPERTY_SERVICE_FILE_NAME, serviceFileName);
 				props.setProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups);
->>>>>>> CLOUDIFY-1124 REST Security roles Added new cli commands and modified existing commands to support REST user/password and authorization groups.
 			}
 			if (serviceName == null || serviceName.isEmpty()) {
 				serviceName = service.getName();

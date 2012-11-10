@@ -162,18 +162,17 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<ApplicationDescription> getApplicationsDescriptionList() throws CLIException {
+	@SuppressWarnings("unchecked")
+	public Map<ApplicationDescription, String> getApplicationsDescriptionAndAuthGroups() throws CLIException {
 		try {
-			@SuppressWarnings("unchecked")
-			final List<Object> applications = (List<Object>) client
-					.get("/service/applications/description");
-			ObjectMapper map = new ObjectMapper();
+			return (Map<ApplicationDescription, String>) client.get("/service/applications/description");
+			/*ObjectMapper map = new ObjectMapper();
 			List<ApplicationDescription> applicationDescriptionList = new ArrayList<ApplicationDescription>();
 			for (Object object : applications) {
 				ApplicationDescription applicationDescription = map.convertValue(object, ApplicationDescription.class);
 				applicationDescriptionList.add(applicationDescription);
 			}
-			return applicationDescriptionList;
+			return applicationDescriptionList;*/
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
@@ -182,11 +181,10 @@ public class RestAdminFacade extends AbstractAdminFacade {
      * {@inheritDoc}
      */
     @Override
-    public Map<String, String> getApplicationsMap() throws CLIException {
+    @SuppressWarnings("unchecked")
+    public Map<String, String> getApplicationsNamesAndAuthGroups() throws CLIException {
         try {
-            @SuppressWarnings("unchecked")
-            Map<String, String> applications = (Map<String, String>) client.get("/service/applications");
-            return applications;
+            return (Map<String, String>) client.get("/service/applications");
         } catch (final ErrorStatusException e) {
             throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
         }
@@ -212,21 +210,6 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			throw new CLIStatusException(ese, ese.getReasonCode(),
 					ese.getArgs());
 		} 
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public List<String> getApplicationsList() throws CLIException {
-		try {
-			@SuppressWarnings("unchecked")
-			final List<String> applications = (List<String>) client
-					.get("/service/applications");
-			return applications;
-		} catch (final ErrorStatusException e) {
-			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-		}
 	}
 
 	/**
@@ -646,34 +629,16 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 * {@inheritDoc}
 	 */
 	@Override
+	@SuppressWarnings("unchecked")
 	public Map<String, String> installApplication(final File applicationFile,
-			final String applicationName, final int timeout,
+			final String applicationName, final String authGroups, final int timeout,
 			final boolean selfHealing) throws CLIException {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    public Map<String, String> installApplication(final File applicationFile, final String applicationName, String authGroups, int timeout) throws CLIException {
-		final String url = SERVICE_CONTROLLER_URL + "applications/"
-				+ applicationName + "/timeout/" + timeout + "?selfHealing="
-				+ Boolean.toString(selfHealing);
-		try {
-			@SuppressWarnings("unchecked")
-			final Map<String, String> response = (Map<String, String>) client
-					.postFile(url, applicationFile);
-			return response;
-		} catch (final ErrorStatusException e) {
-			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-		} catch (final RestException e) {
-			throw new CLIException(e);
-		}
-	}
-
     	Map<String, String> response;
-        final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/timeout/" + timeout;
-        try {
+		String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/timeout/" + timeout
+			+ "?selfHealing=" + Boolean.toString(selfHealing);
+				
+    	try {
             if (org.apache.commons.lang.StringUtils.isBlank(authGroups)) {
             	response = (Map<String, String>) client.postFile(url, applicationFile);
             } else {
@@ -688,6 +653,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
         }
         
         return response;
+        
     }
 
 	@Override

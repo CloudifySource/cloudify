@@ -48,7 +48,7 @@ public class UseApplication extends AdminAwareCommand {
 	@Override
 	protected Object doExecute() throws Exception {
 		boolean useApplicaiton = true;
-		Collection<String> applicationsList = adminFacade.getApplicationsMap().values();
+		Collection<String> applicationsList = adminFacade.getApplicationsNamesAndAuthGroups().values();
 		if (!applicationsList.contains(applicationName)) {
 			useApplicaiton = ShellUtils.promptUser(session, "application_does_not_exist", applicationName);
 		}
