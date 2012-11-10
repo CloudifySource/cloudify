@@ -88,9 +88,6 @@ public class BootstrapCloud extends AbstractGSCommand {
 			throw new CLIStatusException("cloud_driver_file_doesnt_exist", 
 					StringUtils.join(pathResolver.getPathsLooked().toArray(), ", "));
 		}
-
-		File providerDirectory = new File(ShellUtils.getCliDirectory(), "plugins" + PATH_SEPARATOR + "esc"
-				+ PATH_SEPARATOR + cloudProvider);
 		
 		//copy custom security config file to the overrides folder
 		
