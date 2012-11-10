@@ -118,7 +118,7 @@ public class ExtendedMethodSecurityExpressionHandler extends
 
 		if (filterTarget instanceof Map<?, ?>) {
 			Map<String, Object> restReturnObj = (Map<String, Object>) filterTarget;
-			Map<String, String> retainMap = new HashMap<String, String>();
+			Map<Object, String> retainMap = new HashMap<Object, String>();
 
 			if (restReturnObj.get(RestUtils.STATUS_KEY).equals(
 					RestUtils.SUCCESS)) {
