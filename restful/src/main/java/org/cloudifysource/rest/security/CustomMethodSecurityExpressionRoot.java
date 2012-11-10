@@ -16,16 +16,11 @@
 package org.cloudifysource.rest.security;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 
 /**
@@ -50,12 +45,15 @@ class CustomMethodSecurityExpressionRoot extends SecurityExpressionRoot {
 
     public boolean hasPermission(Object target, Object permission) {
     	if (target == null) {
-    		Set<String> userAuthGroups = new HashSet<String>();
+    		StringBuffer authGroups = new StringBuffer();
     		for (GrantedAuthority authority : authentication.getAuthorities()) {
-    			userAuthGroups.add(authority.getAuthority());
+    			if (authGroups.length() > 0) {
+    				authGroups.append(", ");
+    			}
+    			authGroups.append(authority.getAuthority());
     		}
-    		
-    		target = userAuthGroups;
+
+    		target = authGroups.toString();
     	}
         return permissionEvaluator.hasPermission(authentication, target, permission);
     }

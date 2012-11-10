@@ -1637,7 +1637,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final String applicationName,
 			@PathVariable final int timeout,
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
-			@RequestParam(value = "authGroups", required = true) String authGroups,
+			@RequestParam(value = "authGroups", required = false) String authGroups,
 			@RequestParam(value = "recipeOverridesFile", required = false) final MultipartFile recipeOverridesFile,
 			@RequestParam(value = "selfHealing", required = false) final Boolean selfHealing)
 			throws IOException, DSLException, RestErrorException {
