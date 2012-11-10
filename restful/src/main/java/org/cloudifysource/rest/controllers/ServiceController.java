@@ -140,6 +140,9 @@ import org.openspaces.admin.zone.config.AtLeastOneZoneConfigurer;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.context.GigaSpaceContext;
 import org.openspaces.core.util.MemoryUnit;
+import org.openspaces.events.adapter.SpaceDataEvent;
+import org.openspaces.events.notify.SimpleNotifyContainerConfigurer;
+import org.openspaces.events.notify.SimpleNotifyEventListenerContainer;
 import org.openspaces.pu.service.CustomServiceDetails;
 import org.openspaces.pu.service.ServiceDetails;
 import org.openspaces.pu.service.ServiceDetailsProvider;
@@ -154,6 +157,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -164,12 +168,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.gigaspaces.events.NotifyActionType;
 import com.gigaspaces.internal.dump.pu.ProcessingUnitsDumpProcessor;
 import com.gigaspaces.log.LastNLogEntryMatcher;
 import com.gigaspaces.log.LogEntries;
 import com.gigaspaces.log.LogEntry;
 import com.gigaspaces.log.LogEntryMatchers;
 import com.j_spaces.core.LeaseContext;
+import com.j_spaces.core.client.EntryArrivedRemoteEvent;
 
 /**
  * @author rafi, barakm, adaml, noak
@@ -212,7 +218,9 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	private Cloud cloud = null;
 	private CloudTemplate managementTemplate;
-
+	private SimpleNotifyEventListenerContainer listenerContainer;
+	private Map<String, CloudTemplate> localCloudTemplates = new HashMap<String, CloudTemplate>();
+	
 	private static final Logger logger = Logger
 			.getLogger(ServiceController.class.getName());
 	private static final long DEFAULT_DUMP_FILE_SIZE_LIMIT = 5 * 1024 * 1024;
@@ -269,8 +277,35 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		startLifecycleLogsCleanupTask();
+		startListeningToSpace();
+		
 	}
 
+	private void startListeningToSpace() {
+		listenerContainer = 
+				new SimpleNotifyContainerConfigurer(gigaSpace)
+		.template(new CloudTemplateHolder())
+		.notifyWrite(true)
+		.notifyUpdate(true)
+		.notifyTake(true)
+		.fifo(true)
+		.eventListenerAnnotation(new Object() {
+
+			@SpaceDataEvent
+			public void onNotification(final CloudTemplateHolder data, final GigaSpace space, 
+					final TransactionStatus txStatus, 
+                    final EntryArrivedRemoteEvent entryArrivedRemoteEvent) {		
+				NotifyActionType notifyActionType = entryArrivedRemoteEvent.getNotifyActionType();
+				if (notifyActionType.isWrite() || notifyActionType.isUpdate()) {
+					addTemplateToCloud(data.getName(), data.getCloudTemplate());
+				} else if (notifyActionType.isTake()) {
+					removeTemplateFromCloud(data.getName());
+				}
+			}
+		}).notifyContainer();
+		listenerContainer.start();
+	}
+	
 	private void startLifecycleLogsCleanupTask() {
 		this.lifecycleEventsCleaner.scheduleWithFixedDelay(new Runnable() {
 
@@ -302,6 +337,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 */
 	@PreDestroy
 	public void destroy() {
+		this.listenerContainer.destroy();
 		this.executorService.shutdownNow();
 		this.scheduledExecutor.shutdownNow();
 		this.lifecycleEventsCleaner.shutdownNow();
@@ -3645,7 +3681,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	public @ResponseBody
 	Map<String, Object> 
 	getTemplates() {
-		return successStatus(cloud.getTemplates());
+		return successStatus(getCloudTemplates());
 	}
 
 	/**
@@ -3662,7 +3698,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			throws RestErrorException {
 
 		// get template from cloud
-		CloudTemplate cloudTemplate = cloud.getTemplates().get(templateName);
+		CloudTemplate cloudTemplate = getCloudTemplates().get(templateName);
 		if (cloudTemplate == null) {
 			throw new RestErrorException("failed_to_get_template", templateName);
 		} 
@@ -3682,11 +3718,34 @@ public class ServiceController implements ServiceDetailsProvider {
 			throws RestErrorException {
 
 		// get template from cloud
-		CloudTemplate cloudTemplate = cloud.getTemplates().remove(templateName);
-		if (cloudTemplate == null) {
+		CloudTemplateHolder cloudTemplateHolder = new CloudTemplateHolder();
+		cloudTemplateHolder.setName(templateName);
+		CloudTemplateHolder take = gigaSpace.take(cloudTemplateHolder);
+		if (take == null) {
 			throw new RestErrorException("failed_to_remove_template", templateName);
 		} 
 		return successStatus();
 	}
 
+	private Map<String, CloudTemplate> getCloudTemplates() {
+		if (cloud != null) {
+			return cloud.getTemplates();
+		}
+		return localCloudTemplates;
+	}
+	
+	private void addTemplateToCloud(final String templateName, final CloudTemplate cloudTemplate) {
+		if (cloud != null) {
+			cloud.getTemplates().put(templateName, cloudTemplate);
+		} else {
+			localCloudTemplates.put(templateName, cloudTemplate);
+		}
+	}
+	private void removeTemplateFromCloud(final String templateName) {
+		if (cloud != null) {
+			cloud.getTemplates().remove(templateName);
+		} else {
+			localCloudTemplates.remove(templateName);
+		}
+	}
 }

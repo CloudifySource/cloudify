@@ -422,6 +422,10 @@ public class CloudTemplate implements Serializable {
 	public String getAbsoluteUploadDir() {
 		return absoluteUploadDir;
 	}
+	
+	public void setAbsoluteUploadDir(final String absoluteUploadDir) {
+		this.absoluteUploadDir = absoluteUploadDir;
+	}
 
 	private static final java.util.logging.Logger logger =
 			java.util.logging.Logger.getLogger(CloudTemplate.class.getName());
@@ -430,8 +434,10 @@ public class CloudTemplate implements Serializable {
 	 * 
 	 * @return .
 	 */
-	public String getFormatedString() {
+	public String toFormatedString() {
 		StringBuilder sb = new StringBuilder();
+		sb.append("{");
+		sb.append(CloudifyConstants.NEW_LINE);
 		sb.append(getFormatedLine("imageId", imageId));
 		sb.append(getFormatedLine("hardwareId", hardwareId));
 		sb.append(getFormatedLine("locationId", locationId));
@@ -452,8 +458,8 @@ public class CloudTemplate implements Serializable {
 		sb.append(getFormatedLine("absoluteUploadDir", absoluteUploadDir));
 		sb.append(getFormatedLine("env ", env));
 		sb.append(getFormatedLine("machineMemoryMB", machineMemoryMB));
-		
-		return sb.toString();
+		String str = sb.substring(0, sb.lastIndexOf(","));
+		return str + CloudifyConstants.NEW_LINE + "}";
 	}
 	
 	private static String getFormatedLine(final String objName, final Object obj) {
@@ -466,7 +472,7 @@ public class CloudTemplate implements Serializable {
 				return "";
 			}
 		}
-		return objName + " = " + obj.toString() + CloudifyConstants.NEW_LINE;
+		return CloudifyConstants.TAB_CHAR + objName + " = " + obj.toString() + "," + CloudifyConstants.NEW_LINE;
 				
 	}
 }

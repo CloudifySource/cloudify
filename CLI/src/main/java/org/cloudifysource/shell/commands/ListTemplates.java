@@ -31,17 +31,30 @@ public class ListTemplates extends AdminAwareCommand {
 
 	private String getTemplatesListAsString(
 			final Map<String, CloudTemplate> templatesList) {
-		StringBuilder sb = new StringBuilder();
-		for (Entry<String, CloudTemplate> entry : templatesList.entrySet()) {
-			sb.append(ShellUtils.getBoldMessage(entry.getKey()));
-			sb.append(CloudifyConstants.NEW_LINE + CloudifyConstants.TAB_CHAR);
-			String cloudTemplateStr = entry.getValue().getFormatedString();
-			cloudTemplateStr = cloudTemplateStr.replaceAll(CloudifyConstants.NEW_LINE, 
-					CloudifyConstants.NEW_LINE + CloudifyConstants.TAB_CHAR);
-			sb.append(cloudTemplateStr);
-			sb.append(CloudifyConstants.NEW_LINE);
+		if (templatesList == null || templatesList.isEmpty()) {
+			return "";
 		}
-		return sb.toString();
+		StringBuilder sb = new StringBuilder("{");
+		sb.append(CloudifyConstants.NEW_LINE);
+		for (Entry<String, CloudTemplate> entry : templatesList.entrySet()) {
+			String cloudTemplateStr = entry.getValue().toFormatedString();
+			cloudTemplateStr = cloudTemplateStr.replaceAll(CloudifyConstants.NEW_LINE, 
+					CloudifyConstants.NEW_LINE 
+					+ CloudifyConstants.TAB_CHAR
+					+ CloudifyConstants.TAB_CHAR);
+			
+			sb.append(CloudifyConstants.TAB_CHAR)
+			.append(ShellUtils.getBoldMessage(entry.getKey() + ":"))
+			.append(CloudifyConstants.NEW_LINE)
+			.append(CloudifyConstants.TAB_CHAR)
+			.append(CloudifyConstants.TAB_CHAR)
+			.append(cloudTemplateStr)
+			.append(",")
+			.append(CloudifyConstants.NEW_LINE);
+		}
+		String result = sb.toString();
+		result = result.substring(0, result.lastIndexOf(","));
+		return result + CloudifyConstants.NEW_LINE + "}";
 	}
 
 }

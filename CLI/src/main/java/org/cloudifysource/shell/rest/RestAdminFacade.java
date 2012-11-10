@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -857,9 +858,14 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	public Map<String, CloudTemplate> listTemplates() 
 			throws CLIStatusException {
 		final String url = SERVICE_CONTROLLER_URL + "templates";
-		Map<String, CloudTemplate> response;
+		Map<String, CloudTemplate> response = new HashMap<String, CloudTemplate>();
 		try {
-			response = (Map<String, CloudTemplate>) client.get(url);
+			Map<String, Object> responseMap = (Map<String, Object>) client.get(url);
+			for (Entry<String, Object> entry : responseMap.entrySet()) {
+				ObjectMapper mapper = new ObjectMapper();
+				CloudTemplate convertValue = mapper.convertValue(entry.getValue(), CloudTemplate.class);
+				response.put(entry.getKey(), convertValue);
+			}
 		} catch (ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
@@ -875,7 +881,10 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		final String url = SERVICE_CONTROLLER_URL + "templates/" + templateName;
 		CloudTemplate response;
 		try {
-			response = (CloudTemplate) client.get(url);
+			Object result = client.get(url);
+			ObjectMapper mapper = new ObjectMapper();
+			response = mapper.convertValue(result, CloudTemplate.class);
+			
 		} catch (ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}

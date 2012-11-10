@@ -59,10 +59,11 @@ public class AddTemplates extends AdminAwareCommand {
 		// add templates to cloud
 		logger.info("Adding " + cloudTemplatesFromFolder.size() + " templates to cloud.");
 		File zipFile = Packager.createZipFile("templates", templatesFolder);
+		
 		List<String> addedTempaltes = adminFacade.addTempaltes(zipFile);
 
-		return getFormattedMessage("templates_added_successfully", Color.GREEN, 
-				getFormatedAddedTemplateNamesList(addedTempaltes));
+		return getFormattedMessage("templates_added_successfully", Color.GREEN) 
+				+ getFormatedAddedTemplateNamesList(addedTempaltes);
 	}
 
 	private List<CloudTemplateHolder> validateTemplatesFolder() throws CLIStatusException {

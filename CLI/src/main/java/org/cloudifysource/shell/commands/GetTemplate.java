@@ -3,6 +3,7 @@ package org.cloudifysource.shell.commands;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 
 /**
  * Gets a cloud's template.
@@ -28,7 +29,9 @@ public class GetTemplate extends AdminAwareCommand {
 	protected Object doExecute() throws Exception {
 		
 		CloudTemplate template = adminFacade.getTemplate(templateName);
-		return template.getFormatedString();
+		return templateName + ":" 
+				+ CloudifyConstants.NEW_LINE 
+				+ template.toFormatedString();
 	}
 
 }
