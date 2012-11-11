@@ -355,13 +355,13 @@ public class CloudGridAgentBootstrapper {
 				throw new CLIException(
 						"Please connect to the cloud before tearing down");
 			}
-			uninstallApplications(end);
+			uninstallApplications(end, (int) timeoutUnit.toMinutes(timeout));
 
 		} else {
 
 			if (adminFacade.isConnected()) {
 				try {
-					uninstallApplications(end);
+					uninstallApplications(end, (int) timeoutUnit.toMinutes(timeout));
 				} catch (final InterruptedException e) {
 					throw e;
 				} catch (final TimeoutException e) {
@@ -389,14 +389,14 @@ public class CloudGridAgentBootstrapper {
 
 	}
 
-	private void uninstallApplications(final long end) throws CLIException,
+	private void uninstallApplications(final long end, int timeoutInMinutes) throws CLIException,
 			InterruptedException, TimeoutException {
 		final Collection<String> applicationsList = adminFacade.getApplicationsNamesAndAuthGroups().values();
 		if (applicationsList.size() > 0) {
 			logger.info("Uninstalling the currently deployed applications");
 			for (final String application : applicationsList) {
 				if (!application.equals(MANAGEMENT_APPLICATION)) {
-					adminFacade.uninstallApplication(application, (int) end);
+					adminFacade.uninstallApplication(application, timeoutInMinutes);
 				}
 			}
 		}
