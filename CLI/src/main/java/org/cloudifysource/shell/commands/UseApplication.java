@@ -16,7 +16,6 @@
 package org.cloudifysource.shell.commands;
 
 import java.util.Collection;
-import java.util.List;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;

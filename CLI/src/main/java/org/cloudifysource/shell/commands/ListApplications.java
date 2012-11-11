@@ -15,12 +15,7 @@
  ******************************************************************************/
 package org.cloudifysource.shell.commands;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.felix.gogo.commands.Command;
-import org.cloudifysource.dsl.rest.ApplicationDescription;
 
 /**
  * @author noak, adaml
