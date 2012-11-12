@@ -8,7 +8,7 @@
 
 	<!-- ** SET THESE PROPERTIES BEFORE USING THE ANT BUILDS ** -->
 	
-	<property name="cloudify.home.dir" value="D:/gigaspaces-cloudify"/>	
+	<property name="cloudify.home.dir" value="D:/Gigaspaces/gigaspaces-cloudify-2.3.0-m1/"/>	
 	<property name="cloudify.version" value="2.3.0" />
 	<property name="cloudify.jars.suffix" value="SNAPSHOT"/>
 	

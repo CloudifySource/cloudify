@@ -17,12 +17,14 @@
 package org.cloudifysource.usm;
 
 import groovy.lang.Closure;
+import groovy.lang.GString;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -35,9 +37,10 @@ import org.openspaces.pu.service.ServiceDetails;
 import org.openspaces.pu.service.ServiceMonitors;
 
 /*****************
- * A synchronized wrapper to the monitors functionality. The last monitors results are cached for a set time. Note: this
- * class also contains the code to create the service details. The code for services and details is very similar, even
- * though service details is called exactly once.
+ * A synchronized wrapper to the monitors functionality. The last monitors
+ * results are cached for a set time. Note: this class also contains the code to
+ * create the service details. The code for services and details is very
+ * similar, even though service details is called exactly once.
  * 
  * 
  * @author barakme
@@ -46,19 +49,20 @@ import org.openspaces.pu.service.ServiceMonitors;
  */
 public class MonitorsCache {
 
-	private USMLifecycleBean lifecycleBean;
+	private final USMLifecycleBean lifecycleBean;
 
 	private ServiceMonitors[] lastResult;
-	private UniversalServiceManagerBean usm;
+	private final UniversalServiceManagerBean usm;
 
-	private long cacheExpirationTimeout;
+	private final long cacheExpirationTimeout;
 	private long cacheExpirationTime = 0;
 
-	private String serviceSubType = "USM";
-	private String serviceDescription = "USM";
-	private String serviceLongDescription = "USM";
+	private final String serviceSubType = "USM";
+	private final String serviceDescription = "USM";
+	private final String serviceLongDescription = "USM";
 
-	public MonitorsCache(final UniversalServiceManagerBean usm, final USMLifecycleBean lifecycleBean,
+	public MonitorsCache(final UniversalServiceManagerBean usm,
+			final USMLifecycleBean lifecycleBean,
 			final long cacheExpirationTimeout) {
 		this.usm = usm;
 		this.cacheExpirationTimeout = cacheExpirationTimeout;
@@ -66,8 +70,9 @@ public class MonitorsCache {
 	}
 
 	/***********
-	 * Returns the monitors from the cache if the cache expiration time has not been exceeded, or reads the new monitor
-	 * values and caches them, returning the result.
+	 * Returns the monitors from the cache if the cache expiration time has not
+	 * been exceeded, or reads the new monitor values and caches them, returning
+	 * the result.
 	 * 
 	 * @return the monitors.
 	 */
@@ -78,16 +83,17 @@ public class MonitorsCache {
 			logger.fine("Reloading monitors at: " + now);
 			this.lastResult = createMonitors();
 			this.cacheExpirationTime = now + cacheExpirationTimeout;
-		} 
+		}
 
 		return this.lastResult;
 
 	}
 
-	private static final java.util.logging.Logger logger =
-			java.util.logging.Logger.getLogger(MonitorsCache.class.getName());
+	private static final java.util.logging.Logger logger = java.util.logging.Logger
+			.getLogger(MonitorsCache.class.getName());
 
-	private void removeNonSerializableObjectsFromMap(final Map<?, ?> map, final String mapName) {
+	private void removeNonSerializableObjectsFromMap(final Map<?, ?> map,
+			final String mapName) {
 
 		if (map == null || map.keySet().isEmpty()) {
 			return;
@@ -99,9 +105,14 @@ public class MonitorsCache {
 			// a closure can not be serialized
 			// TODO - write a unit test for this.
 			if (entry.getValue() != null) {
-				if (!(entry.getValue() instanceof java.io.Serializable) || entry.getValue() instanceof Closure<?>) {
-					logger.info("Entry " + entry.getKey() + " with value: " + entry.getValue().toString()
-							+ "  is not serializable and was not inserted to the " + mapName + " map");
+				if (!(entry.getValue() instanceof java.io.Serializable)
+						|| entry.getValue() instanceof Closure<?>) {
+					logger.info("Entry "
+							+ entry.getKey()
+							+ " with value: "
+							+ entry.getValue().toString()
+							+ "  is not serializable and was not inserted to the "
+							+ mapName + " map");
 					entries.remove();
 				}
 			}
@@ -109,14 +120,16 @@ public class MonitorsCache {
 	}
 
 	private ServiceMonitors[] createMonitors() {
-		final CustomServiceMonitors csm = new CustomServiceMonitors(CloudifyConstants.USM_MONITORS_SERVICE_ID);
+		final CustomServiceMonitors csm = new CustomServiceMonitors(
+				CloudifyConstants.USM_MONITORS_SERVICE_ID);
 
 		final ServiceMonitors[] res = new ServiceMonitors[] { csm };
 
 		final USMState currentState = usm.getState();
 		// If the underlying service is not running
 		if (currentState != USMState.RUNNING) {
-			csm.getMonitors().put(CloudifyConstants.USM_MONITORS_STATE_ID, currentState.ordinal());
+			csm.getMonitors().put(CloudifyConstants.USM_MONITORS_STATE_ID,
+					currentState.ordinal());
 			return res;
 		}
 
@@ -127,13 +140,14 @@ public class MonitorsCache {
 		for (final Monitor monitor : lifecycleBean.getMonitors()) {
 			try {
 				logger.fine("Executing monitor: " + monitor);
-				final Map<String, Number> monitorValues =
-						monitor.getMonitorValues(usm, lifecycleBean.getConfiguration());
+				final Map<String, Number> monitorValues = monitor
+						.getMonitorValues(usm, lifecycleBean.getConfiguration());
 				removeNonSerializableObjectsFromMap(monitorValues, "monitors");
 				// add monitor values to Monitors map
 				map.putAll(monitorValues);
 			} catch (final Exception e) {
-				logger.log(Level.SEVERE, "Failed to execute a USM service monitor", e);
+				logger.log(Level.SEVERE,
+						"Failed to execute a USM service monitor", e);
 			}
 		}
 
@@ -146,16 +160,20 @@ public class MonitorsCache {
 	}
 
 	private void putDefaultMonitorsInMap(final Map<String, Object> map) {
-		map.put(CloudifyConstants.USM_MONITORS_CHILD_PROCESS_ID, usm.getChildProcessID());
-		List<Long> serviceProcessIDs = usm.getServiceProcessesList();
+		map.put(CloudifyConstants.USM_MONITORS_CHILD_PROCESS_ID,
+				usm.getChildProcessID());
+		final List<Long> serviceProcessIDs = usm.getServiceProcessesList();
 		if (serviceProcessIDs.size() > 0) {
 			if (serviceProcessIDs.size() == 1) {
-				map.put(CloudifyConstants.USM_MONITORS_ACTUAL_PROCESS_ID, serviceProcessIDs.get(0));
+				map.put(CloudifyConstants.USM_MONITORS_ACTUAL_PROCESS_ID,
+						serviceProcessIDs.get(0));
 			} else {
-				map.put(CloudifyConstants.USM_MONITORS_ACTUAL_PROCESS_ID, serviceProcessIDs);
+				map.put(CloudifyConstants.USM_MONITORS_ACTUAL_PROCESS_ID,
+						serviceProcessIDs);
 			}
 		}
-		map.put(CloudifyConstants.USM_MONITORS_STATE_ID, usm.getState().ordinal());
+		map.put(CloudifyConstants.USM_MONITORS_STATE_ID, usm.getState()
+				.ordinal());
 	}
 
 	/**************
@@ -166,9 +184,10 @@ public class MonitorsCache {
 	public ServiceDetails[] getServicesDetails() {
 		logger.fine("Executing getServiceDetails()");
 		@SuppressWarnings("deprecation")
-		final CustomServiceDetails csd =
-				new CustomServiceDetails(CloudifyConstants.USM_DETAILS_SERVICE_ID, CustomServiceDetails.SERVICE_TYPE,
-						this.serviceSubType, this.serviceDescription, this.serviceLongDescription);
+		final CustomServiceDetails csd = new CustomServiceDetails(
+				CloudifyConstants.USM_DETAILS_SERVICE_ID,
+				CustomServiceDetails.SERVICE_TYPE, this.serviceSubType,
+				this.serviceDescription, this.serviceLongDescription);
 
 		final ServiceDetails[] res = new ServiceDetails[] { csd };
 
@@ -178,8 +197,8 @@ public class MonitorsCache {
 
 			try {
 				logger.fine("Executing details: " + details);
-				final Map<String, Object> detailsValues =
-						details.getDetails(usm, lifecycleBean.getConfiguration());
+				final Map<String, Object> detailsValues = details.getDetails(
+						usm, lifecycleBean.getConfiguration());
 				removeNonSerializableObjectsFromMap(detailsValues, "details");
 				result.putAll(detailsValues);
 			} catch (final Exception e) {
@@ -188,11 +207,29 @@ public class MonitorsCache {
 
 		}
 
+		// convert GStrings
+		handleGStringDetails(result);
+
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("Details are: " + Arrays.toString(res));
 		}
 		return res;
 
+	}
+
+	/**********
+	 * If a details is a GString, return its toString() instead.
+	 * 
+	 * @param result
+	 */
+	private void handleGStringDetails(final Map<String, Object> result) {
+		final Set<Entry<String, Object>> entries = result.entrySet();
+		for (final Entry<String, Object> entry : entries) {
+			if ((entry.getValue() != null)
+					&& (entry.getValue() instanceof GString)) {
+				entry.setValue(entry.getValue().toString());
+			}
+		}
 	}
 
 }

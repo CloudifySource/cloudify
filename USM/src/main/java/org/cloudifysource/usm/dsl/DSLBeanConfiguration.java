@@ -295,7 +295,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 								}
 							} else {
 								returnMap.put(entry.getKey(),
-										entry.getValue().toString());
+										entry.getValue());
 							}
 						}
 					} else if (details instanceof Closure) {

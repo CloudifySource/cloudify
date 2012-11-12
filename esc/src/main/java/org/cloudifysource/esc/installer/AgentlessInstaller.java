@@ -48,6 +48,7 @@ import org.apache.commons.vfs2.provider.sftp.SftpFileSystemConfigBuilder;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.ExitStatusException;
 import org.apache.tools.ant.taskdefs.optional.testing.BuildTimeoutException;
+import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.util.ShellCommandBuilder;
 import org.cloudifysource.esc.util.Utils;
@@ -69,8 +70,6 @@ public class AgentlessInstaller {
 	private static final int TIMEOUT_BETWEEN_MACHINE_ACCESS_ATTEMPTS_MILLIS = 5000;
 
 	private static final String POWERSHELL_CLIENT_SCRIPT = "bootstrap-client.ps1";
-
-	private static final int POWERSHELL_PORT = 5985;
 
 	private static final int CIFS_PORT = 445;
 
@@ -601,7 +600,7 @@ public class AgentlessInstaller {
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP,
 						details.getPrivateIp())
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP,
-						details.getPrivateIp());
+						details.getPublicIp());
 
 
 
@@ -737,7 +736,7 @@ public class AgentlessInstaller {
 		}
 
 		logger.fine("Checking WinRM Connection");
-		checkConnection(targetHost, POWERSHELL_PORT, millisUntil, milliseconds);
+		checkConnection(targetHost, RemoteExecutionModes.WINRM.getPort(), millisUntil, milliseconds);
 
 		logger.fine("Executing remote command");
 		try {

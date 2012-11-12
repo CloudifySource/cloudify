@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.ExitStatusException;
 import org.apache.tools.ant.taskdefs.optional.testing.BuildTimeoutException;
+import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
@@ -47,7 +48,7 @@ public class WinrmExecutor implements RemoteExecutor {
 	private static final String SEPARATOR = POWERSHELL_COMMAND_SEPARATOR;
 	private static final String CIFS_ABSOLUTE_PATH_WITH_DRIVE_REGEX = "/[a-zA-Z][$]/.*";
 	private static final String POWERSHELL_CLIENT_SCRIPT = "bootstrap-client.ps1";
-	private static final int POWERSHELL_PORT = 5985;
+
 
 	private final StringBuilder sb = new StringBuilder();
 	private boolean runInBackground = false;
@@ -217,7 +218,7 @@ public class WinrmExecutor implements RemoteExecutor {
 		}
 
 		logger.fine("Checking WinRM Connection");
-		AgentlessInstaller.checkConnection(targetHost, POWERSHELL_PORT, millisUntil, milliseconds);
+		AgentlessInstaller.checkConnection(targetHost, RemoteExecutionModes.WINRM.getPort(), millisUntil, milliseconds);
 
 		logger.fine("Executing remote command");
 		try {

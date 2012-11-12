@@ -69,7 +69,7 @@ public class ParseByonCloudNodesTest {
 					System.out.println("Failed to create cloud deployer, invalid configuration, nodesList is null");
 					throw new CloudProvisioningException("Failed to create BYON cloud deployer, invalid configuration");
 				}
-				deployer.addNodesList(templateName, nodesList);
+				deployer.addNodesList(templateName, templatesMap.get(templateName), nodesList);
 			}
 			
 			Set<CustomNode> allNodes = deployer.getAllNodesByTemplateName("SMALL_LINUX");

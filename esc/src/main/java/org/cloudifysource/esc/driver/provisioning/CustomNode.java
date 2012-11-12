@@ -117,4 +117,10 @@ public interface CustomNode {
 	 * 
 	 */
 	String getGroup();
+
+	/*********************
+	 * Sets the login port for this node.
+	 * @param loginPort the login port.
+	 */
+	void setLoginPort(final int loginPort);
 }

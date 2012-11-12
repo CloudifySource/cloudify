@@ -98,7 +98,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 							throw new CloudProvisioningException(
 									"Failed to create BYON cloud deployer, invalid configuration");
 						}
-						deployer.addNodesList(templateName, nodesList);
+						deployer.addNodesList(templateName, templatesMap.get(templateName), nodesList);
 					}
 
 					return deployer;
@@ -570,6 +570,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 					+ nodeStr);
 		}
 
+		md.setRemoteExecutionMode(template.getRemoteExecution());
+		md.setFileTransferMode(template.getFileTransfer());
 		return md;
 	}
 
