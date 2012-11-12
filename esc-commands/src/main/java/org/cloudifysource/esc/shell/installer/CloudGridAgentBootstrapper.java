@@ -18,6 +18,7 @@ package org.cloudifysource.esc.shell.installer;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -94,6 +95,8 @@ public class CloudGridAgentBootstrapper {
 	private Cloud cloud;
 
 	private File cloudFile;
+
+	private boolean noWebServices;
 
 	public void setProviderDirectory(final File providerDirecotry) {
 		this.providerDirecotry = providerDirecotry;
@@ -217,29 +220,10 @@ public class CloudGridAgentBootstrapper {
 
 			startManagememntProcesses(servers, end);
 
-			// Wait for rest to become available
-			// When the rest gateway is up and running, the cloud is ready to go
-			for (final MachineDetails server : servers) {
-				String ipAddress = null;
-				if (cloud.getConfiguration().isBootstrapManagementOnPublicIp()) {
-					ipAddress = server.getPublicAddress();
-				} else {
-					ipAddress = server.getPrivateAddress();
-				}
-
-				final URL restAdminUrl = new URI("http", null, ipAddress,
-						REST_GATEWAY_PORT, null, null, null).toURL();
-				final URL webUIUrl = new URI("http", null, ipAddress,
-						WEBUI_PORT, null, null, null).toURL();
-
-				// We are relying on start-management command to be run on the
-				// new machine, so everything should be up if the rest admin is up
-				waitForConnection(username, password, restAdminUrl, Utils.millisUntil(end), TimeUnit.MILLISECONDS);
-
-				logger.info("Rest service is available at: " + restAdminUrl
-						+ '.');
-				logger.info("Webui service is available at: " + webUIUrl + '.');
+			if (!isNoWebServices()){
+				waitForManagementWebServices(username, password, end, servers);
 			}
+			
 		} catch (final IOException e) {
 			stopManagementMachines();
 			throw new CLIException("Cloudify bootstrap on provider "
@@ -263,6 +247,35 @@ public class CloudGridAgentBootstrapper {
 		} catch (final InterruptedException e) {
 			stopManagementMachines();
 			throw e;
+		}
+	}
+
+	private void waitForManagementWebServices(final String username, final String password,
+			final long end, MachineDetails[] servers)
+			throws MalformedURLException, URISyntaxException,
+			InterruptedException, TimeoutException, CLIException {
+		// Wait for rest to become available
+		// When the rest gateway is up and running, the cloud is ready to go
+		for (final MachineDetails server : servers) {
+			String ipAddress = null;
+			if (cloud.getConfiguration().isBootstrapManagementOnPublicIp()) {
+				ipAddress = server.getPublicAddress();
+			} else {
+				ipAddress = server.getPrivateAddress();
+			}
+
+			final URL restAdminUrl = new URI("http", null, ipAddress,
+					REST_GATEWAY_PORT, null, null, null).toURL();
+			final URL webUIUrl = new URI("http", null, ipAddress,
+					WEBUI_PORT, null, null, null).toURL();
+
+			// We are relying on start-management command to be run on the
+			// new machine, so everything should be up if the rest admin is up
+			waitForConnection(username, password, restAdminUrl, Utils.millisUntil(end), TimeUnit.MILLISECONDS);
+
+			logger.info("Rest service is available at: " + restAdminUrl
+					+ '.');
+			logger.info("Webui service is available at: " + webUIUrl + '.');
 		}
 	}
 
@@ -431,8 +444,10 @@ public class CloudGridAgentBootstrapper {
 
 		final InstallationDetails[] installations = createInstallationDetails(
 				numOfManagementMachines, machines, template);
-		// only one machine should try and deploy the WebUI and Rest Admin
-		for (int i = 1; i < installations.length; i++) {
+		// only one machine should try and deploy the WebUI and Rest Admin unless 
+		// noWebServices is true
+		int i= isNoWebServices() ? 0 :1;
+		for (; i < installations.length; i++) {
 			installations[i].setNoWebServices(true);
 		}
 
@@ -697,4 +712,11 @@ public class CloudGridAgentBootstrapper {
 		this.cloudFile = cloudFile;
 	}
 
+	public boolean isNoWebServices() {
+		return noWebServices;
+	}
+
+	public void setNoWebServices(boolean noWebServices) {
+		this.noWebServices = noWebServices;
+	}
 }
