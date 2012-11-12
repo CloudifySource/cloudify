@@ -72,18 +72,35 @@ public class ApplicationDescriptionFactory {
 	 */
 	public ApplicationDescription getApplicationDescription(final String applicationName) 
 			throws RestErrorException {
-		final Application app = admin.getApplications().waitFor(applicationName, 5, TimeUnit.SECONDS);
-		if (app == null) {
+		
+		Application application = admin.getApplications().waitFor(applicationName, 5, TimeUnit.SECONDS);
+		if (application == null) {
 			throw new RestErrorException(FAILED_TO_LOCATE_APP, applicationName);
 		}
+		return getApplicationDescription(application);
+	}
+	
+	/**
+	 * returns an application description POJO.
+	 * 
+	 * @param applicationName the application name.
+	 * @return 
+	 * 		the application description.
+	 * @throws RestErrorException 
+	 * 		if application is not found.
+	 */
+	public ApplicationDescription getApplicationDescription(final Application application) 
+			throws RestErrorException {
 		
+		String applicationName = application.getName();
 		List<ServiceDescription> serviceDescriptionList = getServicesDescription(
-				applicationName, app);
-		logger.log(Level.FINE, "Creating application description for application " + app.getName());
+				applicationName, application);
+		logger.log(Level.FINE, "Creating application description for application " + applicationName);
 		DeploymentState applicationState = getApplicationState(serviceDescriptionList);
 		
 		ApplicationDescription applicationDescription = new ApplicationDescription();
 		applicationDescription.setApplicationName(applicationName);
+		applicationDescription.setAuthGroups(getApplicationAuthorizationGroups(application));
 		applicationDescription.setServicesDescription(serviceDescriptionList);
 		applicationDescription.setApplicationState(applicationState);
 		
@@ -295,4 +312,17 @@ public class ApplicationDescriptionFactory {
 		}
 		return plannedNumberOfInstances;
 	}
+	
+	private String getApplicationAuthorizationGroups(Application application) {
+		String appAuthGroups = "";
+		// getting the application's authGroups from its first service,
+		// assuming they all have the same authorization groups.
+		ProcessingUnit pu = application.getProcessingUnits().iterator().next();
+		if (pu != null) {
+			appAuthGroups = pu.getBeanLevelProperties().getContextProperties().getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+		}
+		
+		return appAuthGroups;
+	}
+	
 }

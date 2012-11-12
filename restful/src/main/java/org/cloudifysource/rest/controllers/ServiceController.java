@@ -668,8 +668,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Creates and returns a map containing all of the deployed application
-	 * names.
+	 * Creates and returns a list containing all of the deployed application details.
 	 * 
 	 * @return a list of all the deployed applications in the service grid.
 	 * @throws RestErrorException
@@ -679,34 +678,24 @@ public class ServiceController implements ServiceDetailsProvider {
 	@RequestMapping(value = "/applications/description", method = RequestMethod.GET)
 	@PostFilter("hasPermission(filterObject, 'view')")
 	public @ResponseBody
-	Map<String, Object> getApplicationsDescriptionAndAuthGroups() throws RestErrorException {
+	Map<String, Object> getApplicationDescriptionsList() throws RestErrorException {
+
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to list application descriptions");
 		}
-		
-		//TODO - the implementation should be in the admin object: admin.getApplications(authGroups);
+
 		final Applications apps = admin.getApplications();
+		List<ApplicationDescription> appDescriptions = new ArrayList<ApplicationDescription>();
 		ApplicationDescriptionFactory applicationDescriptionFactory = new ApplicationDescriptionFactory(admin);
-		Map<ApplicationDescription, String> appDescGroupsMap = new HashMap<ApplicationDescription, String>(apps.getSize());
 		for (final Application app : apps) {
 			if (!app.getName().equals(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
-				String appAuthGroups = "";
-				//getting the application's authGroups from one of it services, assuming they all have the same authGroups.
-				ProcessingUnit pu = app.getProcessingUnits().iterator().next();
-				if (pu != null) {
-					appAuthGroups = pu.getBeanLevelProperties().getContextProperties().getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
-				} else {
-					// no PU -> no authGroupsp -> no app
-					//TODO - handle (warning?)
-				}
-				
 				ApplicationDescription applicationDescription = applicationDescriptionFactory
-						.getApplicationDescription(app.getName());
-				appDescGroupsMap.put(applicationDescription, appAuthGroups);
+						.getApplicationDescription(app);
+				appDescriptions.add(applicationDescription);
 			}
 		}
 		
-		return successStatus(appDescGroupsMap);
+		return successStatus(appDescriptions);
 	}
 
 	/**
@@ -801,32 +790,20 @@ public class ServiceController implements ServiceDetailsProvider {
 	@PossibleResponseStatuses(responseStatuses = { @PossibleResponseStatus(code = HTTP_OK, description = "success") })
 	@RequestMapping(value = "/applications", method = RequestMethod.GET)
 	public @ResponseBody
-	Map<String, Object> getApplicationsNamesAndAuthGroups() {
+	Map<String, Object> getApplicationNamesList() {
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to list applications");
 		}
 		
-		//TODO - the implementation should be in the admin object: admin.getApplications(authGroups);
 		final Applications apps = admin.getApplications();
-		final Map<String, String> appNamesAndAuthGroups = new HashMap<String, String>(apps.getSize());
+		final List<String> appNames = new ArrayList<String>(apps.getSize());
 		for (final Application app : apps) {
 			if (!app.getName().equals(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
-
-				String appAuthGroups = "";
-				//getting the application's authGroups from one of it services, assuming they all have the same authGroups.
-				ProcessingUnit pu = app.getProcessingUnits().iterator().next();
-				if (pu != null) {
-					appAuthGroups = pu.getBeanLevelProperties().getContextProperties().getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
-				} else {
-					// no PU -> no authGroups -> no app
-					//TODO - handle (warning?)
-				}
-				
-				appNamesAndAuthGroups.put(app.getName(), appAuthGroups);
+				appNames.add(app.getName());
 			}
 		}
 		
-		return successStatus(appNamesAndAuthGroups);
+		return successStatus(appNames);
 	}
 
 	/**
@@ -1231,7 +1208,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(
 				applicationName, serviceName);
 		final int timeout = Integer.parseInt(params.get("timeout"));
-		//TODO how to set that as a context property on the new instance?
+		//TODO how to set that as a context property on the new instance? is it needed?
 		String authGroups = params.get("authGroups");
 		if (StringUtils.isBlank(authGroups)) {
 			authGroups = Arrays.toString(getUserAuthGroups().toArray(new String[0]));

@@ -15,11 +15,14 @@
  *******************************************************************************/
 package org.cloudifysource.rest.security;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.aopalliance.intercept.MethodInvocation;
+import org.cloudifysource.dsl.rest.ApplicationDescription;
 import org.cloudifysource.rest.util.RestUtils;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
@@ -117,36 +120,41 @@ public class ExtendedMethodSecurityExpressionHandler extends
 		}
 
 		if (filterTarget instanceof Map<?, ?>) {
-			Map<String, Object> restReturnObj = (Map<String, Object>) filterTarget;
-			Map<Object, String> retainMap = new HashMap<Object, String>();
+			Map<String, Object> returnValue = (Map<String, Object>) filterTarget;
 
-			if (restReturnObj.get(RestUtils.STATUS_KEY).equals(
-					RestUtils.SUCCESS)) {
-				Object appsMapObject = restReturnObj
-						.get(RestUtils.RESPONSE_KEY);
-				if (appsMapObject != null && appsMapObject instanceof Map) {
-					Map<String, String> appsMap = (Map<String, String>) appsMapObject;
-
-					if (logger.isDebugEnabled()) {
-						logger.debug("Filtering map with " + appsMap.size()
-								+ " elements");
-					}
-
-					for (Map.Entry<String, String> appEntry : appsMap
-							.entrySet()) {
-						String filterObject = appEntry.getValue();
+			if (returnValue.get(RestUtils.STATUS_KEY).equals(RestUtils.SUCCESS)) {
+				Object responseObject = returnValue.get(RestUtils.RESPONSE_KEY);
+				if (responseObject != null && responseObject instanceof Map) {
+					Map<String, String> objectsMap = (Map<String, String>) responseObject;
+					Map<Object, String> retainMap = new HashMap<Object, String>();
+					
+					for (Map.Entry<String, String> entry : objectsMap.entrySet()) {
+						String filterObject = entry.getValue();
 						rootObject.setFilterObject(filterObject);
-
-						if (ExpressionUtils.evaluateAsBoolean(filterExpression,
-								ctx)) {
-							retainMap.put(appEntry.getKey(),
-									appEntry.getValue());
+						if (ExpressionUtils.evaluateAsBoolean(filterExpression, ctx)) {
+							retainMap.put(entry.getKey(), entry.getValue());
 						}
 					}
-
+					returnValue = RestUtils.successStatus(retainMap);
+					
+				} else if (responseObject != null && responseObject instanceof List) {
+					List<Object> objectsList = (List<Object>) responseObject;
+					List<Object> retainList = new ArrayList<Object>();
+					
+					for (Object object : objectsList) {
+						if (object instanceof ApplicationDescription) {
+							rootObject.setFilterObject(((ApplicationDescription)object).getAuthGroups());
+							if (ExpressionUtils.evaluateAsBoolean(filterExpression, ctx)) {
+								retainList.add(object);
+							}
+						}
+						
+					}
+					returnValue = RestUtils.successStatus(retainList);
 				}
-				return RestUtils.successStatus(retainMap);
 			}
+			
+			return returnValue;
 		}
 
 		throw new IllegalArgumentException(
