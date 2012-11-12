@@ -33,6 +33,7 @@ public class ApplicationDescription {
 	
 	private List<ServiceDescription> servicesDescription = new ArrayList<ServiceDescription>();
 	private String applicationName;
+	private String authGroups;
 	private DeploymentState applicationState;
 
 	public List<ServiceDescription> getServicesDescription() {
@@ -50,6 +51,14 @@ public class ApplicationDescription {
 	public void setApplicationName(String applicationName) {
 		this.applicationName = applicationName;
 	}
+	
+	public String getAuthGroups() {
+		return authGroups;
+	}
+	
+	public void setAuthGroups(String authGroups) {
+		this.authGroups = authGroups;
+	}	
 
 	public void setApplicationState(DeploymentState applicationState) {
 		this.applicationState = applicationState;
