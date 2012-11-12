@@ -25,9 +25,22 @@ public enum RemoteExecutionModes {
 	/******
 	 * Secure shell - typically used with Linux OS.
 	 */
-	SSH,
+	SSH(22),
 	/*******
 	 * Windows Remote management.
 	 */
-	WINRM
+	WINRM(5985);
+	
+	RemoteExecutionModes(final int port) {
+		this.port = port;
+	}
+	
+	private final int port;
+	
+	public int getPort() {
+		return port;
+	}
+
+	
+	
 }

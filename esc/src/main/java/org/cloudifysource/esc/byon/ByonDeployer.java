@@ -27,6 +27,8 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.CustomNode;
 import org.cloudifysource.esc.driver.provisioning.byon.CustomNodeImpl;
@@ -37,9 +39,10 @@ import org.cloudifysource.esc.util.Utils;
  * @author noak
  * @since 2.0.1
  * 
- *        Implements a cloud-simulator, using private machines as a pool of nodes on which the application is
- *        deployed. The list of available nodes and matching credentials are configured through the cloud
- *        Groovy file.
+ *        Implements a cloud-simulator, using private machines as a pool of
+ *        nodes on which the application is deployed. The list of available
+ *        nodes and matching credentials are configured through the cloud Groovy
+ *        file.
  */
 public class ByonDeployer {
 
@@ -58,12 +61,11 @@ public class ByonDeployer {
 	private static final String EMPTY_HOSTS_ERR_MESSAGE = "Failed to start cloud node, empty ID configuration";
 	private static final String EMPTY_IP_RANGE_ERR_MESSAGE = "Failed to start cloud node, invalid IP range "
 			+ "configuration: missing \"-\"";
-	
+
 	protected static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(ByonDeployer.class.getName());
 
-	private final Map<String, Map<String, List<CustomNode>>> nodesListsByTemplates = 
-			new Hashtable<String, Map<String, List<CustomNode>>>();
+	private final Map<String, Map<String, List<CustomNode>>> nodesListsByTemplates = new Hashtable<String, Map<String, List<CustomNode>>>();
 
 	/**
 	 * Constructor.
@@ -76,102 +78,135 @@ public class ByonDeployer {
 	 * 
 	 * @param templateName
 	 *            The name of the template this nodes-list belongs to
+	 * @param template
+	 * 				The cloud template for this node list.           
 	 * @param nodesList
 	 *            A list of maps, each map representing a cloud node
 	 * @throws Exception
 	 *             Indicates the node parsing failed
 	 */
-	public synchronized void addNodesList(final String templateName, final List<Map<String, String>> nodesList)
-			throws Exception {
-		
+	public synchronized void addNodesList(final String templateName,
+			final CloudTemplate template,
+			final List<Map<String, String>> nodesList) throws Exception {
+
 		final List<CustomNode> resolvedNodes = new ArrayList<CustomNode>();
 		final List<CustomNode> unresolvedNodes = new ArrayList<CustomNode>();
-		
-		//parse the given nodes list 
+
+		// parse the given nodes list
 		List<CustomNode> parsedNodes = parseCloudNodes(nodesList);
 		parsedNodes = removeDuplicates(parsedNodes);
-		
-		//the infrastructure is based on machine IPs, they need to be unique.
-		//we set the resolved IP address on each node for an easy machine comparison from this point on
+
+		// the infrastructure is based on machine IPs, they need to be unique.
+		// we set the resolved IP address on each node for an easy machine
+		// comparison from this point on
 		for (CustomNode node : parsedNodes) {
 			try {
 				node.setResolvedIP(IPUtils.resolveHostName(node.getPrivateIP()));
-				Utils.validateConnection(node.getResolvedIP(), node.getLoginPort());
+				if (template.getRemoteExecution() == RemoteExecutionModes.WINRM) {
+					node.setLoginPort(RemoteExecutionModes.WINRM.getPort());
+				}
+				Utils.validateConnection(node.getResolvedIP(),
+						node.getLoginPort());
 				resolvedNodes.add(node);
 			} catch (final Exception ex) {
-				//this node is not reachable - add it to the invalid nodes pool
+				// this node is not reachable - add it to the invalid nodes pool
 				unresolvedNodes.add(node);
 			}
 		}
-		
-		//avoid duplicate machines in different templates (compare by IP)
-		final Set<String> duplicateNodes = getDuplicateIPs(getAllNodes(), parsedNodes);
+
+		// avoid duplicate machines in different templates (compare by IP)
+		final Set<String> duplicateNodes = getDuplicateIPs(getAllNodes(),
+				parsedNodes);
 		if (duplicateNodes.size() > 0) {
-			throw new CloudProvisioningException("Failed to add nodes for template \"" + templateName + "\","
-					+ " some IP addresses were already defined by a different template: "
-					+ Arrays.toString(duplicateNodes.toArray()));
+			throw new CloudProvisioningException(
+					"Failed to add nodes for template \""
+							+ templateName
+							+ "\","
+							+ " some IP addresses were already defined by a different template: "
+							+ Arrays.toString(duplicateNodes.toArray()));
 		}
 
 		setInitialPoolsForTemplate(templateName, resolvedNodes, unresolvedNodes);
 	}
-	
+
 	/**
-	 * Creates a server (AKA a machine or a node) with the assigned logical name. The server is taken from the
-	 * list of free nodes, unless this list is exhausted. If all there are no free nodes available, the
-	 * invalid nodes are checked for SSH connection, and if a connection can be established - the node is
-	 * used.
+	 * Creates a server (AKA a machine or a node) with the assigned logical
+	 * name. The server is taken from the list of free nodes, unless this list
+	 * is exhausted. If all there are no free nodes available, the invalid nodes
+	 * are checked for SSH connection, and if a connection can be established -
+	 * the node is used.
 	 * 
 	 * @param templateName
 	 *            The name of the nodes-list' template this server belongs to
 	 * @param serverName
-	 *            A logical name used to uniquely identify this node (does not have to match the host name)
+	 *            A logical name used to uniquely identify this node (does not
+	 *            have to match the host name)
 	 * @return A node available for use
 	 * @throws CloudProvisioningException
-	 *             Indicated a new machine could not be allocated, either because the name is empty or because
-	 *             the nodes pool is exhausted
+	 *             Indicated a new machine could not be allocated, either
+	 *             because the name is empty or because the nodes pool is
+	 *             exhausted
 	 */
-	public synchronized CustomNode createServer(final String templateName, final String serverName)
-			throws CloudProvisioningException {
+	public synchronized CustomNode createServer(final String templateName,
+			final String serverName) throws CloudProvisioningException {
 
 		if (org.apache.commons.lang.StringUtils.isBlank(serverName)) {
-			throw new CloudProvisioningException("Failed to create new cloud node, server name is missing");
+			throw new CloudProvisioningException(
+					"Failed to create new cloud node, server name is missing");
 		}
 
-		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
+		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates
+				.get(templateName);
 		if (templateLists == null || templateLists.isEmpty()) {
-			throw new CloudProvisioningException("Failed to create new cloud node. \"" + templateName
-					+ "\" is not a known template.");
+			throw new CloudProvisioningException(
+					"Failed to create new cloud node. \"" + templateName
+							+ "\" is not a known template.");
 		}
-		final List<CustomNode> freeNodesPool = templateLists.get(NODES_LIST_FREE);
-		final List<CustomNode> allocatedNodesPool = templateLists.get(NODES_LIST_ALLOCATED);
-		final List<CustomNode> invalidNodesPool = templateLists.get(NODES_LIST_INVALID);
+		final List<CustomNode> freeNodesPool = templateLists
+				.get(NODES_LIST_FREE);
+		final List<CustomNode> allocatedNodesPool = templateLists
+				.get(NODES_LIST_ALLOCATED);
+		final List<CustomNode> invalidNodesPool = templateLists
+				.get(NODES_LIST_INVALID);
 
 		if (freeNodesPool.isEmpty() && invalidNodesPool.isEmpty()) {
-			throw new CloudProvisioningException("Failed to create a new cloud node for template \"" + templateName
-					+ "\", all available nodes are currently used");
+			throw new CloudProvisioningException(
+					"Failed to create a new cloud node for template \""
+							+ templateName
+							+ "\", all available nodes are currently used");
 		}
 
 		CustomNode node = null;
 		if (freeNodesPool.size() > 0) {
 			node = freeNodesPool.iterator().next();
-			//if this node is indeed not allocated, test the connectivity to it.
-			//if we can't connect to it - move it to the invalid pool, otherwise - allocate it.
+			// if this node is indeed not allocated, test the connectivity to
+			// it.
+			// if we can't connect to it - move it to the invalid pool,
+			// otherwise - allocate it.
 			if (!allocatedNodesPool.contains(node)) {
 				try {
-					//verify this node is still resolvable and reachable
-					String resolvedIP = IPUtils.resolveHostName(node.getPrivateIP());
+					// verify this node is still resolvable and reachable
+					String resolvedIP = IPUtils.resolveHostName(node
+							.getPrivateIP());
 					node.setResolvedIP(resolvedIP);
-					Utils.validateConnection(node.getResolvedIP(), node.getLoginPort());
+					Utils.validateConnection(node.getResolvedIP(),
+							node.getLoginPort());
 					allocatedNodesPool.add(node);
 					freeNodesPool.remove(node);
 				} catch (final Exception e) {
-					// catch any exception - to prevent a machine leak. Add the machine to the invalids pool
-					logger.log(Level.INFO, "Failed to create server on " + node.getPrivateIP()
-							+ ", connection failed on port " + node.getLoginPort(), e);
+					// catch any exception - to prevent a machine leak. Add the
+					// machine to the invalids pool
+					logger.log(
+							Level.INFO,
+							"Failed to create server on " + node.getPrivateIP()
+									+ ", connection failed on port "
+									+ node.getLoginPort(), e);
 					try {
 						invalidateServer(templateName, node);
 					} catch (final CloudProvisioningException ie) {
-						logger.log(Level.INFO, "Failed to mark machine " + node.getPrivateIP() + " as Invalid.", ie);
+						logger.log(Level.INFO,
+								"Failed to mark machine " + node.getPrivateIP()
+										+ " as Invalid.", ie);
 					}
 					throw new CloudProvisioningException(e);
 				}
@@ -179,13 +214,16 @@ public class ByonDeployer {
 		} else {
 			if (invalidNodesPool.size() > 0) {
 				CustomNode currentNode = null;
-				final Iterator<CustomNode> nodesIterator = invalidNodesPool.iterator();
+				final Iterator<CustomNode> nodesIterator = invalidNodesPool
+						.iterator();
 				while (nodesIterator.hasNext()) {
 					currentNode = nodesIterator.next();
 					try {
-						String resolvedIP = IPUtils.resolveHostName(currentNode.getPrivateIP());
+						String resolvedIP = IPUtils.resolveHostName(currentNode
+								.getPrivateIP());
 						currentNode.setResolvedIP(resolvedIP);
-						Utils.validateConnection(currentNode.getPrivateIP(), currentNode.getLoginPort());
+						Utils.validateConnection(currentNode.getPrivateIP(),
+								currentNode.getLoginPort());
 						if (!allocatedNodesPool.contains(currentNode)) {
 							allocatedNodesPool.add(currentNode);
 						}
@@ -200,8 +238,10 @@ public class ByonDeployer {
 		}
 
 		if (node == null) {
-			throw new CloudProvisioningException("Failed to create a new cloud node for template \"" + templateName
-					+ "\", all available nodes are currently used");
+			throw new CloudProvisioningException(
+					"Failed to create a new cloud node for template \""
+							+ templateName
+							+ "\", all available nodes are currently used");
 		}
 
 		((CustomNodeImpl) node).setNodeName(serverName);
@@ -210,8 +250,8 @@ public class ByonDeployer {
 	}
 
 	/**
-	 * Sets the servers with the specified IPs as allocated, so they would not be re-allocated on future
-	 * calls.
+	 * Sets the servers with the specified IPs as allocated, so they would not
+	 * be re-allocated on future calls.
 	 * 
 	 * @param templateName
 	 *            The name of the nodes-list' template the IPs belongs to
@@ -219,21 +259,27 @@ public class ByonDeployer {
 	 *            A set of IP addresses (decimal dotted format)
 	 * 
 	 * @throws CloudProvisioningException
-	 *             Indicates the IPs could not be marked as allocated with the specified template
+	 *             Indicates the IPs could not be marked as allocated with the
+	 *             specified template
 	 */
-	public synchronized void setAllocated(final String templateName, final Set<String> ipAddresses)
-			throws CloudProvisioningException {
-		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
+	public synchronized void setAllocated(final String templateName,
+			final Set<String> ipAddresses) throws CloudProvisioningException {
+		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates
+				.get(templateName);
 		if (templateLists == null || templateLists.isEmpty()) {
-			throw new CloudProvisioningException("Failed to set allocated servers. \"" + templateName
-					+ "\" is not a known template.");
+			throw new CloudProvisioningException(
+					"Failed to set allocated servers. \"" + templateName
+							+ "\" is not a known template.");
 		}
-		final List<CustomNode> freeNodesPool = templateLists.get(NODES_LIST_FREE);
-		final List<CustomNode> allocatedNodesPool = templateLists.get(NODES_LIST_ALLOCATED);
+		final List<CustomNode> freeNodesPool = templateLists
+				.get(NODES_LIST_FREE);
+		final List<CustomNode> allocatedNodesPool = templateLists
+				.get(NODES_LIST_ALLOCATED);
 
 		for (final String ipAddress : ipAddresses) {
 			for (final CustomNode node : freeNodesPool) {
-				if (StringUtils.isNotBlank(node.getResolvedIP()) && node.getResolvedIP().equalsIgnoreCase(ipAddress)) {
+				if (StringUtils.isNotBlank(node.getResolvedIP())
+						&& node.getResolvedIP().equalsIgnoreCase(ipAddress)) {
 					freeNodesPool.remove(node);
 					if (!allocatedNodesPool.contains(node)) {
 						allocatedNodesPool.add(node);
@@ -245,28 +291,34 @@ public class ByonDeployer {
 	}
 
 	/**
-	 * Shuts down a given node, (moves the node back to the free nodes list, to be used again).
+	 * Shuts down a given node, (moves the node back to the free nodes list, to
+	 * be used again).
 	 * 
 	 * @param templateName
 	 *            The name of the nodes-list' template this server belongs to
 	 * @param serverName
 	 *            A server to shutdown
 	 * @throws CloudProvisioningException
-	 *             Indicates the server could not be shutdown with the specified template
+	 *             Indicates the server could not be shutdown with the specified
+	 *             template
 	 */
-	public synchronized void shutdownServer(final String templateName, final CustomNode serverName)
-			throws CloudProvisioningException {
+	public synchronized void shutdownServer(final String templateName,
+			final CustomNode serverName) throws CloudProvisioningException {
 		if (serverName == null) {
 			return;
 		}
 
-		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
+		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates
+				.get(templateName);
 		if (templateLists == null || templateLists.isEmpty()) {
-			throw new CloudProvisioningException("Failed to shutdown server \"" + serverName + "\". \"" + templateName
+			throw new CloudProvisioningException("Failed to shutdown server \""
+					+ serverName + "\". \"" + templateName
 					+ "\" is not a known template.");
 		}
-		final List<CustomNode> freeNodesPool = templateLists.get(NODES_LIST_FREE);
-		final List<CustomNode> allocatedNodesPool = templateLists.get(NODES_LIST_ALLOCATED);
+		final List<CustomNode> freeNodesPool = templateLists
+				.get(NODES_LIST_FREE);
+		final List<CustomNode> allocatedNodesPool = templateLists
+				.get(NODES_LIST_ALLOCATED);
 
 		((CustomNodeImpl) serverName).setGroup(null);
 		allocatedNodesPool.remove(serverName);
@@ -283,9 +335,11 @@ public class ByonDeployer {
 	 * @param serverId
 	 *            The ID of the server to shutdown
 	 * @throws CloudProvisioningException
-	 *             Indicates the server could not be shutdown with the specified template
+	 *             Indicates the server could not be shutdown with the specified
+	 *             template
 	 */
-	public void shutdownServerById(final String templateName, final String serverId) throws CloudProvisioningException {
+	public void shutdownServerById(final String templateName,
+			final String serverId) throws CloudProvisioningException {
 		shutdownServer(templateName, getServerByID(templateName, serverId));
 	}
 
@@ -297,9 +351,11 @@ public class ByonDeployer {
 	 * @param serverIp
 	 *            The IP of the server to shutdown (dotted decimal format)
 	 * @throws CloudProvisioningException
-	 *             Indicates the server could not be shutdown with the specified template
+	 *             Indicates the server could not be shutdown with the specified
+	 *             template
 	 */
-	public void shutdownServerByIp(final String templateName, final String serverIp) throws CloudProvisioningException {
+	public void shutdownServerByIp(final String templateName,
+			final String serverIp) throws CloudProvisioningException {
 		shutdownServer(templateName, getServerByIP(templateName, serverIp));
 	}
 
@@ -312,10 +368,11 @@ public class ByonDeployer {
 	 *            The name of the server to retrieve
 	 * @return A node matching the given name, if found
 	 * @throws CloudProvisioningException
-	 *             Indicates the server could not be obtained with the specified template
+	 *             Indicates the server could not be obtained with the specified
+	 *             template
 	 */
-	public CustomNode getServerByName(final String templateName, final String serverName)
-			throws CloudProvisioningException {
+	public CustomNode getServerByName(final String templateName,
+			final String serverName) throws CloudProvisioningException {
 		CustomNode selectedNode = null;
 
 		for (final CustomNode node : getAllNodesByTemplateName(templateName)) {
@@ -337,9 +394,11 @@ public class ByonDeployer {
 	 *            The id of the server to retrieve
 	 * @return A node matching the given id, if found
 	 * @throws CloudProvisioningException
-	 *             Indicates the server could not be obtained with the specified template
+	 *             Indicates the server could not be obtained with the specified
+	 *             template
 	 */
-	public CustomNode getServerByID(final String templateName, final String id) throws CloudProvisioningException {
+	public CustomNode getServerByID(final String templateName, final String id)
+			throws CloudProvisioningException {
 		CustomNode selectedNode = null;
 
 		for (final CustomNode node : getAllNodesByTemplateName(templateName)) {
@@ -361,22 +420,23 @@ public class ByonDeployer {
 	 *            The IP address of the server to retrieve
 	 * @return A node with the given IP, if found
 	 * @throws CloudProvisioningException
-	 *             Indicates the server could not be obtained with the specified template
+	 *             Indicates the server could not be obtained with the specified
+	 *             template
 	 */
-	public CustomNode getServerByIP(final String templateName, final String ipAddress)
-			throws CloudProvisioningException {
+	public CustomNode getServerByIP(final String templateName,
+			final String ipAddress) throws CloudProvisioningException {
 		CustomNode selectedNode = null;
 
 		for (final CustomNode node : getAllNodesByTemplateName(templateName)) {
-			if ((StringUtils.isNotBlank(node.getResolvedIP())
-					&& node.getResolvedIP().equalsIgnoreCase(ipAddress)) ||
-					(StringUtils.isNotBlank(node.getPrivateIP())
-							&& node.getPrivateIP().equalsIgnoreCase(ipAddress))) {
+			if ((StringUtils.isNotBlank(node.getResolvedIP()) && node
+					.getResolvedIP().equalsIgnoreCase(ipAddress))
+					|| (StringUtils.isNotBlank(node.getPrivateIP()) && node
+							.getPrivateIP().equalsIgnoreCase(ipAddress))) {
 				selectedNode = node;
 				break;
 			}
 		}
-		
+
 		return selectedNode;
 	}
 
@@ -387,19 +447,26 @@ public class ByonDeployer {
 	 *            The name of the nodes-list' template to use
 	 * @return A collection of all the managed nodes of the specified template
 	 * @throws CloudProvisioningException
-	 *             Indicates the servers list could not be obtained for the given template name
+	 *             Indicates the servers list could not be obtained for the
+	 *             given template name
 	 */
-	public Set<CustomNode> getAllNodesByTemplateName(final String templateName) throws CloudProvisioningException {
+	public Set<CustomNode> getAllNodesByTemplateName(final String templateName)
+			throws CloudProvisioningException {
 		final Set<CustomNode> allNodes = new HashSet<CustomNode>();
 
-		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
+		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates
+				.get(templateName);
 		if (templateLists == null || templateLists.isEmpty()) {
-			throw new CloudProvisioningException("Failed to get servers list. \"" + templateName
-					+ "\" is not a known template.");
+			throw new CloudProvisioningException(
+					"Failed to get servers list. \"" + templateName
+							+ "\" is not a known template.");
 		}
-		final List<CustomNode> freeNodesPool = templateLists.get(NODES_LIST_FREE);
-		final List<CustomNode> allocatedNodesPool = templateLists.get(NODES_LIST_ALLOCATED);
-		final List<CustomNode> invalidNodesPool = templateLists.get(NODES_LIST_INVALID);
+		final List<CustomNode> freeNodesPool = templateLists
+				.get(NODES_LIST_FREE);
+		final List<CustomNode> allocatedNodesPool = templateLists
+				.get(NODES_LIST_ALLOCATED);
+		final List<CustomNode> invalidNodesPool = templateLists
+				.get(NODES_LIST_INVALID);
 
 		allNodes.addAll(freeNodesPool);
 		allNodes.addAll(allocatedNodesPool);
@@ -415,15 +482,19 @@ public class ByonDeployer {
 	 *            The name of the nodes-list' template to use
 	 * @return A collection of all the free nodes of the specified template
 	 * @throws CloudProvisioningException
-	 *             Indicates the servers list could not be obtained for the given template name
+	 *             Indicates the servers list could not be obtained for the
+	 *             given template name
 	 */
-	public Set<CustomNode> getFreeNodesByTemplateName(final String templateName) throws CloudProvisioningException {
+	public Set<CustomNode> getFreeNodesByTemplateName(final String templateName)
+			throws CloudProvisioningException {
 		final Set<CustomNode> allNodes = new HashSet<CustomNode>();
 
-		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
+		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates
+				.get(templateName);
 		if (templateLists == null || templateLists.isEmpty()) {
-			throw new CloudProvisioningException("Failed to get servers list. \"" + templateName
-					+ "\" is not a known template.");
+			throw new CloudProvisioningException(
+					"Failed to get servers list. \"" + templateName
+							+ "\" is not a known template.");
 		}
 
 		allNodes.addAll(templateLists.get(NODES_LIST_FREE));
@@ -436,18 +507,22 @@ public class ByonDeployer {
 	 * 
 	 * @param templateName
 	 *            The name of the nodes-list' template to use
-	 * @return A collection of all the allocated (active, in use) nodes of the specified template
+	 * @return A collection of all the allocated (active, in use) nodes of the
+	 *         specified template
 	 * @throws CloudProvisioningException
-	 *             Indicates the servers list could not be obtained for the given template name
+	 *             Indicates the servers list could not be obtained for the
+	 *             given template name
 	 */
-	public Set<CustomNode> getAllocatedNodesByTemplateName(final String templateName)
-			throws CloudProvisioningException {
+	public Set<CustomNode> getAllocatedNodesByTemplateName(
+			final String templateName) throws CloudProvisioningException {
 		final Set<CustomNode> allNodes = new HashSet<CustomNode>();
 
-		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
+		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates
+				.get(templateName);
 		if (templateLists == null || templateLists.isEmpty()) {
-			throw new CloudProvisioningException("Failed to get servers list. \"" + templateName
-					+ "\" is not a known template.");
+			throw new CloudProvisioningException(
+					"Failed to get servers list. \"" + templateName
+							+ "\" is not a known template.");
 		}
 
 		allNodes.addAll(templateLists.get(NODES_LIST_ALLOCATED));
@@ -462,15 +537,19 @@ public class ByonDeployer {
 	 *            The name of the nodes-list' template to use
 	 * @return A collection of all the invalid nodes of the specified template
 	 * @throws CloudProvisioningException
-	 *             Indicates the servers list could not be obtained for the given template name
+	 *             Indicates the servers list could not be obtained for the
+	 *             given template name
 	 */
-	public Set<CustomNode> getInvalidNodesByTemplateName(final String templateName) throws CloudProvisioningException {
+	public Set<CustomNode> getInvalidNodesByTemplateName(
+			final String templateName) throws CloudProvisioningException {
 		final Set<CustomNode> allNodes = new HashSet<CustomNode>();
 
-		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
+		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates
+				.get(templateName);
 		if (templateLists == null || templateLists.isEmpty()) {
-			throw new CloudProvisioningException("Failed to get servers list. \"" + templateName
-					+ "\" is not a known template.");
+			throw new CloudProvisioningException(
+					"Failed to get servers list. \"" + templateName
+							+ "\" is not a known template.");
 		}
 
 		allNodes.addAll(templateLists.get(NODES_LIST_INVALID));
@@ -479,29 +558,37 @@ public class ByonDeployer {
 	}
 
 	/**
-	 * * Invalidates the given node (i.e. moves it from the free pool to the invalidated pool), so it will not
-	 * be allocated unless all the free nodes are in use.
+	 * * Invalidates the given node (i.e. moves it from the free pool to the
+	 * invalidated pool), so it will not be allocated unless all the free nodes
+	 * are in use.
 	 * 
 	 * @param templateName
 	 *            The template this server belongs to
 	 * @param serverName
 	 *            The name of the server to invalidate
 	 * @throws CloudProvisioningException
-	 *             Indicates the server could not be marked as Invalid for the specified template
+	 *             Indicates the server could not be marked as Invalid for the
+	 *             specified template
 	 */
-	public synchronized void invalidateServer(final String templateName, final CustomNode serverName)
-			throws CloudProvisioningException {
-		// attempting to remove the invalid node from the active lists so it will not be used anymore, just to
+	public synchronized void invalidateServer(final String templateName,
+			final CustomNode serverName) throws CloudProvisioningException {
+		// attempting to remove the invalid node from the active lists so it
+		// will not be used anymore, just to
 		// be sure.
-		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
+		final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates
+				.get(templateName);
 		if (templateLists == null || templateLists.isEmpty()) {
-		//todo illegal argument exception
-			throw new CloudProvisioningException("Failed to invalidate server. \"" + templateName
-					+ "\" is not a known template.");
+			// todo illegal argument exception
+			throw new CloudProvisioningException(
+					"Failed to invalidate server. \"" + templateName
+							+ "\" is not a known template.");
 		}
-		final List<CustomNode> freeNodesPool = templateLists.get(NODES_LIST_FREE);
-		final List<CustomNode> allocatedNodesPool = templateLists.get(NODES_LIST_ALLOCATED);
-		final List<CustomNode> invalidNodesPool = templateLists.get(NODES_LIST_INVALID);
+		final List<CustomNode> freeNodesPool = templateLists
+				.get(NODES_LIST_FREE);
+		final List<CustomNode> allocatedNodesPool = templateLists
+				.get(NODES_LIST_ALLOCATED);
+		final List<CustomNode> invalidNodesPool = templateLists
+				.get(NODES_LIST_INVALID);
 
 		freeNodesPool.remove(serverName);
 		allocatedNodesPool.remove(serverName);
@@ -521,14 +608,19 @@ public class ByonDeployer {
 		final List<CustomNode> allNodes = new ArrayList<CustomNode>();
 
 		for (final String templateName : nodesListsByTemplates.keySet()) {
-			final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates.get(templateName);
+			final Map<String, List<CustomNode>> templateLists = nodesListsByTemplates
+					.get(templateName);
 			if (templateLists == null || templateLists.isEmpty()) {
-				throw new CloudProvisioningException("Failed to get servers list. \"" + templateName
-						+ "\" is not a known template.");
+				throw new CloudProvisioningException(
+						"Failed to get servers list. \"" + templateName
+								+ "\" is not a known template.");
 			}
-			final List<CustomNode> freeNodesPool = templateLists.get(NODES_LIST_FREE);
-			final List<CustomNode> allocatedNodesPool = templateLists.get(NODES_LIST_ALLOCATED);
-			final List<CustomNode> invalidNodesPool = templateLists.get(NODES_LIST_INVALID);
+			final List<CustomNode> freeNodesPool = templateLists
+					.get(NODES_LIST_FREE);
+			final List<CustomNode> allocatedNodesPool = templateLists
+					.get(NODES_LIST_ALLOCATED);
+			final List<CustomNode> invalidNodesPool = templateLists
+					.get(NODES_LIST_INVALID);
 
 			allNodes.addAll(freeNodesPool);
 			allNodes.addAll(allocatedNodesPool);
@@ -538,21 +630,22 @@ public class ByonDeployer {
 		return allNodes;
 	}
 
-	private List<CustomNode> parseCloudNodes(final List<Map<String, String>> nodesMapList)
+	private List<CustomNode> parseCloudNodes(
+			final List<Map<String, String>> nodesMapList)
 			throws CloudProvisioningException {
 
 		final List<CustomNode> cloudNodes = new ArrayList<CustomNode>();
 
 		for (final Map<String, String> nodeMap : nodesMapList) {
-			
+
 			String nodeId = nodeMap.get(CLOUD_NODE_ID);
 			String hostList = nodeMap.get(CLOUD_NODE_HOST_LIST);
 			String hostRange = nodeMap.get(CLOUD_NODE_HOST_RANGE);
-			
+
 			if (StringUtils.isBlank(nodeId)) {
 				throw new CloudProvisioningException(EMPTY_HOSTS_ERR_MESSAGE);
 			}
-			
+
 			if (StringUtils.isNotBlank(hostList)) {
 				if (isIPList(hostList.trim())) {
 					cloudNodes.addAll(parseNodeList(nodeMap));
@@ -565,7 +658,8 @@ public class ByonDeployer {
 				} else if (isIPCIDR(hostRange.trim())) {
 					cloudNodes.addAll(parseNodeCIDR(nodeMap));
 				} else {
-					throw new CloudProvisioningException(INVALID_HOSTS_ERR_MESSAGE + ": " + hostList);
+					throw new CloudProvisioningException(
+							INVALID_HOSTS_ERR_MESSAGE + ": " + hostList);
 				}
 			} else {
 				throw new CloudProvisioningException(INVALID_HOSTS_ERR_MESSAGE);
@@ -585,11 +679,13 @@ public class ByonDeployer {
 		return result;
 	}
 
-	private boolean isIPRange(final String hostRange) throws CloudProvisioningException {
+	private boolean isIPRange(final String hostRange)
+			throws CloudProvisioningException {
 		boolean result = false;
 
 		if (hostRange.contains("-")) {
-			final String ipRangeStart = hostRange.substring(0, hostRange.indexOf('-'));
+			final String ipRangeStart = hostRange.substring(0,
+					hostRange.indexOf('-'));
 			if (IPUtils.validateIPAddress(ipRangeStart)) {
 				result = true;
 			}
@@ -609,7 +705,8 @@ public class ByonDeployer {
 	}
 
 	/**
-	 * Checks if the specified id is a single-valued id or a template for multiple id-s.
+	 * Checks if the specified id is a single-valued id or a template for
+	 * multiple id-s.
 	 * 
 	 * @param nodeId
 	 *            The id to examine
@@ -629,32 +726,34 @@ public class ByonDeployer {
 	 * Parses a single byon cloud node.
 	 * 
 	 * @param nodeMap
-	 *            The map of attributes related to this node (ID, IP or host name)
+	 *            The map of attributes related to this node (ID, IP or host
+	 *            name)
 	 * @return A {@link CustomNode} object
 	 */
 	private CustomNode parseOneNode(final Map<String, String> nodeMap) {
-		
-		//It was decided not to validate the connection to the host at this stage. commected out.
-		
-		/*String host = nodeMap.get(CLOUD_NODE_HOST_LIST);
-		// validate the IP
-		if (!IPUtils.validateIPAddress(host)) {
-			// maybe this is a host name
-			try {
-				host = IPUtils.resolveHostName(host);
-			} catch (final Exception e) {
-				throw new CloudProvisioningException("Invalid host name or address: " + host);
-			}
 
-			if (!IPUtils.validateIPAddress(host)) {
-				throw new CloudProvisioningException("Invalid host name or address: " + host);
-			}
-		}*/
+		// It was decided not to validate the connection to the host at this
+		// stage. commected out.
+
+		/*
+		 * String host = nodeMap.get(CLOUD_NODE_HOST_LIST); // validate the IP
+		 * if (!IPUtils.validateIPAddress(host)) { // maybe this is a host name
+		 * try { host = IPUtils.resolveHostName(host); } catch (final Exception
+		 * e) { throw new
+		 * CloudProvisioningException("Invalid host name or address: " + host);
+		 * }
+		 * 
+		 * if (!IPUtils.validateIPAddress(host)) { throw new
+		 * CloudProvisioningException("Invalid host name or address: " + host);
+		 * } }
+		 */
 
 		// create a new node
-		return new CustomNodeImpl(PROVIDER_ID, nodeMap.get(CLOUD_NODE_ID).trim(), 
-				nodeMap.get(CLOUD_NODE_HOST_LIST).trim(), nodeMap.get(CLOUD_NODE_USERNAME),
-				nodeMap.get(CLOUD_NODE_CREDENTIAL), nodeMap.get(CLOUD_NODE_ID).trim());
+		return new CustomNodeImpl(PROVIDER_ID, nodeMap.get(CLOUD_NODE_ID)
+				.trim(), nodeMap.get(CLOUD_NODE_HOST_LIST).trim(),
+				nodeMap.get(CLOUD_NODE_USERNAME),
+				nodeMap.get(CLOUD_NODE_CREDENTIAL), nodeMap.get(CLOUD_NODE_ID)
+						.trim());
 	}
 
 	/**
@@ -666,7 +765,8 @@ public class ByonDeployer {
 	 * @throws CloudProvisioningException
 	 *             Indicated an invalid IP address is used
 	 */
-	private List<CustomNode> parseNodeRange(final Map<String, String> nodeMap) throws CloudProvisioningException {
+	private List<CustomNode> parseNodeRange(final Map<String, String> nodeMap)
+			throws CloudProvisioningException {
 
 		final List<CustomNode> cloudNodes = new ArrayList<CustomNode>();
 
@@ -702,7 +802,8 @@ public class ByonDeployer {
 			// validate the IP
 			ip = ip.trim();
 			if (!IPUtils.validateIPAddress(ip)) {
-				throw new CloudProvisioningException("Invalid IP address: " + ip);
+				throw new CloudProvisioningException("Invalid IP address: "
+						+ ip);
 			}
 
 			// set the id
@@ -715,9 +816,10 @@ public class ByonDeployer {
 				currnentId = nodeId;
 			}
 
-				// create a new node
-				cloudNodes.add(new CustomNodeImpl(PROVIDER_ID, currnentId, ip, nodeMap.get(CLOUD_NODE_USERNAME),
-						nodeMap.get(CLOUD_NODE_CREDENTIAL), currnentId));
+			// create a new node
+			cloudNodes.add(new CustomNodeImpl(PROVIDER_ID, currnentId, ip,
+					nodeMap.get(CLOUD_NODE_USERNAME), nodeMap
+							.get(CLOUD_NODE_CREDENTIAL), currnentId));
 
 			index++;
 			ip = IPUtils.getNextIP(ip);
@@ -735,11 +837,14 @@ public class ByonDeployer {
 	 * @throws CloudProvisioningException
 	 *             Indicated an invalid IP address is used
 	 */
-	private List<CustomNode> parseNodeCIDR(final Map<String, String> nodeMap) throws CloudProvisioningException {
+	private List<CustomNode> parseNodeCIDR(final Map<String, String> nodeMap)
+			throws CloudProvisioningException {
 		try {
-			nodeMap.put(CLOUD_NODE_HOST_RANGE, IPUtils.ipCIDR2Range(nodeMap.get(CLOUD_NODE_HOST_RANGE).trim()));
+			nodeMap.put(CLOUD_NODE_HOST_RANGE, IPUtils.ipCIDR2Range(nodeMap
+					.get(CLOUD_NODE_HOST_RANGE).trim()));
 		} catch (final Exception e) {
-			throw new CloudProvisioningException("Failed to start cloud machine.", e);
+			throw new CloudProvisioningException(
+					"Failed to start cloud machine.", e);
 		}
 
 		return parseNodeRange(nodeMap);
@@ -749,7 +854,8 @@ public class ByonDeployer {
 	 * Parses a list of nodes (comma-separated IPs or host names).
 	 * 
 	 * @param nodeMap
-	 *            The map of attributes related to this node (ID, IPs or hosts list)
+	 *            The map of attributes related to this node (ID, IPs or hosts
+	 *            list)
 	 * @return A list of {@link CustomNode} objects
 	 * @throws CloudProvisioningException
 	 *             Indicates an IP is invalid or unreachable
@@ -780,18 +886,17 @@ public class ByonDeployer {
 			// validate the IP
 			ip = ip.trim();
 
-			/*if (!IPUtils.validateIPAddress(ip)) {
-				// maybe this is a host name
-				try {
-					ip = IPUtils.resolveHostName(ip);
-				} catch (final Exception e) {
-					throw new CloudProvisioningException("Invalid or unreachable IP address: " + ip);
-				}
-
-				if (!IPUtils.validateIPAddress(ip)) {
-					throw new CloudProvisioningException("Invalid or unreachable IP address: " + ip);
-				}
-			}*/
+			/*
+			 * if (!IPUtils.validateIPAddress(ip)) { // maybe this is a host
+			 * name try { ip = IPUtils.resolveHostName(ip); } catch (final
+			 * Exception e) { throw new
+			 * CloudProvisioningException("Invalid or unreachable IP address: "
+			 * + ip); }
+			 * 
+			 * if (!IPUtils.validateIPAddress(ip)) { throw new
+			 * CloudProvisioningException("Invalid or unreachable IP address: "
+			 * + ip); } }
+			 */
 
 			// set the id
 			if (useIdAsTemplate) {
@@ -804,8 +909,9 @@ public class ByonDeployer {
 			}
 
 			// create a new node
-			cloudNodes.add(new CustomNodeImpl(PROVIDER_ID, currnentId, ip, nodeMap.get(CLOUD_NODE_USERNAME), nodeMap
-					.get(CLOUD_NODE_CREDENTIAL), currnentId));
+			cloudNodes.add(new CustomNodeImpl(PROVIDER_ID, currnentId, ip,
+					nodeMap.get(CLOUD_NODE_USERNAME), nodeMap
+							.get(CLOUD_NODE_CREDENTIAL), currnentId));
 
 			index++;
 		}
@@ -814,24 +920,33 @@ public class ByonDeployer {
 	}
 
 	/**
-	 * Sets the initial nodes pools (free nodes, allocated, invalid and terminated) for each template.
-	 * The initial allocated-nodes pool is always empty.
-	 * The terminated nodes pool is currently not supported and remains empty all along. 
-	 * @param templateName The name of the template
-	 * @param resolvedNodes The resolved nodes (will be set as free nodes ready for use)
-	 * @param unresolvedNodes The unresolved nodes (will be set as invalid as they aren't reachable now)
+	 * Sets the initial nodes pools (free nodes, allocated, invalid and
+	 * terminated) for each template. The initial allocated-nodes pool is always
+	 * empty. The terminated nodes pool is currently not supported and remains
+	 * empty all along.
+	 * 
+	 * @param templateName
+	 *            The name of the template
+	 * @param resolvedNodes
+	 *            The resolved nodes (will be set as free nodes ready for use)
+	 * @param unresolvedNodes
+	 *            The unresolved nodes (will be set as invalid as they aren't
+	 *            reachable now)
 	 */
-	private void setInitialPoolsForTemplate(final String templateName, final List<CustomNode> resolvedNodes,
+	private void setInitialPoolsForTemplate(final String templateName,
+			final List<CustomNode> resolvedNodes,
 			final List<CustomNode> unresolvedNodes) {
-			//	todo use  hashmap instead
-			// use pojo instead of a complex map
+		// todo use hashmap instead
+		// use pojo instead of a complex map
 		final Map<String, List<CustomNode>> templateLists = new Hashtable<String, List<CustomNode>>();
 		final List<CustomNode> freeNodesPool = new ArrayList<CustomNode>();
 		final List<CustomNode> invalidNodesPool = new ArrayList<CustomNode>();
-		
-		freeNodesPool.addAll(aggregateWithoutDuplicates(freeNodesPool, resolvedNodes));
-		invalidNodesPool.addAll(aggregateWithoutDuplicates(invalidNodesPool, unresolvedNodes));
-		
+
+		freeNodesPool.addAll(aggregateWithoutDuplicates(freeNodesPool,
+				resolvedNodes));
+		invalidNodesPool.addAll(aggregateWithoutDuplicates(invalidNodesPool,
+				unresolvedNodes));
+
 		templateLists.put(NODES_LIST_FREE, freeNodesPool);
 		templateLists.put(NODES_LIST_ALLOCATED, new ArrayList<CustomNode>());
 		templateLists.put(NODES_LIST_INVALID, invalidNodesPool);
@@ -839,8 +954,9 @@ public class ByonDeployer {
 
 		nodesListsByTemplates.put(templateName, templateLists);
 	}
-	
-	private static List<CustomNode> removeDuplicates(final List<CustomNode> customNodesList) {
+
+	private static List<CustomNode> removeDuplicates(
+			final List<CustomNode> customNodesList) {
 		final List<CustomNode> totalList = new ArrayList<CustomNode>();
 		for (final CustomNode node : customNodesList) {
 			if (!totalList.contains(node)) {
@@ -850,12 +966,14 @@ public class ByonDeployer {
 		return totalList;
 	}
 
-	private static Set<String> getDuplicateIPs(final List<CustomNode> oldNodes, final List<CustomNode> newNodes) {
+	private static Set<String> getDuplicateIPs(final List<CustomNode> oldNodes,
+			final List<CustomNode> newNodes) {
 		final Set<String> existingIPs = new HashSet<String>();
 
 		for (final CustomNode newNode : newNodes) {
 			for (final CustomNode oldNode : oldNodes) {
-				if (oldNode.getResolvedIP().equalsIgnoreCase(newNode.getResolvedIP())) {
+				if (oldNode.getResolvedIP().equalsIgnoreCase(
+						newNode.getResolvedIP())) {
 					existingIPs.add(oldNode.getResolvedIP());
 					break;
 				}
@@ -865,8 +983,8 @@ public class ByonDeployer {
 		return existingIPs;
 	}
 
-	private static List<CustomNode> aggregateWithoutDuplicates(final List<CustomNode> basicList,
-			final List<CustomNode> newItems) {
+	private static List<CustomNode> aggregateWithoutDuplicates(
+			final List<CustomNode> basicList, final List<CustomNode> newItems) {
 		final List<CustomNode> totalList = new ArrayList<CustomNode>(basicList);
 		for (final CustomNode node : newItems) {
 			if (!totalList.contains(node)) {

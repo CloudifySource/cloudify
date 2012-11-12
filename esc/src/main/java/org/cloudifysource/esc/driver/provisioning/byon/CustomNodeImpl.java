@@ -34,6 +34,8 @@ public class CustomNodeImpl implements CustomNode {
 	private String providerId, id, ipAddress, resolvedIpAddress, nodeName, group;
 	// credential can be a password or a private key
 	private String username, credential;
+	
+	private int loginPort = DEFAULT_LOGIN_PORT;
 
 	/**
 	 * Constructor.
@@ -182,9 +184,14 @@ public class CustomNodeImpl implements CustomNode {
 	 */
 	@Override
 	public int getLoginPort() {
-		return DEFAULT_LOGIN_PORT;
+		return this.loginPort;
 	}
 
+	@Override
+	public void setLoginPort(final int loginPort) {
+		this.loginPort = loginPort;
+	}
+	
 	@Override
 	public String toString() {
 		return "[id=" + getId() + ", providerId=" + getProviderId() + ", group=" + getGroup() + ", nodeName="
