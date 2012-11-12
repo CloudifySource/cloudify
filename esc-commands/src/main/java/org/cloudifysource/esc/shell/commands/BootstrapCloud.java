@@ -43,6 +43,8 @@ import org.cloudifysource.shell.commands.AbstractGSCommand;
 import org.cloudifysource.shell.commands.CLIStatusException;
 import org.cloudifysource.shell.rest.RestAdminFacade;
 
+import com.j_spaces.kernel.Environment;
+
 
 @Command(
 		scope = "cloudify",
@@ -52,7 +54,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 
 	private static final int DEFAULT_TIMEOUT_MINUTES = 60;
 	private static final String PATH_SEPARATOR = System.getProperty("file.separator");
-	private static final String CLOUDIFY_HOME = System.getProperty("JSHOMEDIR");
+	private static final String CLOUDIFY_HOME = Environment.getHomeDirectory();  //JSHOMEDIR is not set yet
 
 	@Argument(required = true, name = "provider", description = "the cloud provider to use")
 	String cloudProvider;
