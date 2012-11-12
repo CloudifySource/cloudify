@@ -229,7 +229,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		initEvents();
 
 		reset(existingProcessFound);
-
 	}
 
 	private void initMonitorsCache() {

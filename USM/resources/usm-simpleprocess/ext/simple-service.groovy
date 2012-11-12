@@ -2,9 +2,8 @@ import framework.utils.usm.StringWrapper
 
 service {
 	name "kitchensink-service"
-	icon "icon.png"
-	
-	url "http://" + InetAddress.localHost.hostName + ":7777"
+
+		url "http://" + InetAddress.localHost.hostName + ":7777"
 
 	lifecycle{
 		// DO NOT CHANGE THE PRINTOUTS - SGTEST LOOKS FOR THEM!
@@ -33,7 +32,7 @@ service {
 			sleep 15000 // sleep so that the test can pick up the event printouts from the log
 		}
 
-		details(["stam":{"HA HA HAAAAAAAAAAAAAAAAAAA"},
+		details(["stam":{"HA HA H${var1}AAAAAAAAAAAAAAAAAAA"},
 			"SomeKey":{"22222222222222222222222222"}])
 		monitors (["NumberTwo":{return 2},
 			"NumberOne":{return "1"}])
