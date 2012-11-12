@@ -27,7 +27,8 @@
 		<property name="permissionEvaluator" ref="permissionEvaluator"/>
 	</bean>
 	
-	<sec:global-method-security pre-post-annotations="enabled" proxy-target-class="true">
+	<-- to turn on method security: set pre-post-annotations to 'enabled' -->
+	<sec:global-method-security pre-post-annotations="disabled" proxy-target-class="true">
 		<sec:expression-handler ref="expressionHandler"/>
 	</sec:global-method-security>
 	
