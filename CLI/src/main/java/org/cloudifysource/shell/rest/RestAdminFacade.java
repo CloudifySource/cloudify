@@ -43,7 +43,6 @@ import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ComponentType;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
-import org.codehaus.jackson.JsonGenerator.Feature;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.j_spaces.kernel.PlatformVersion;
@@ -164,33 +163,32 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public Map<ApplicationDescription, String> getApplicationsDescriptionAndAuthGroups() throws CLIException {
-		//try {
-			Map<ApplicationDescription, String> applicationDescriptionMap = new HashMap<ApplicationDescription, String>();
-			//TODO problem deserializing - fix
-			/*Map<Object, String> returnedMap = (Map<Object, String>)client.get("/service/applications/description");
+	public List<ApplicationDescription> getApplicationDescriptionsList() throws CLIException {
+		
+		List<ApplicationDescription> applicationDescriptionList = new ArrayList<ApplicationDescription>();
+		
+		try {
+			List<Object> objectsList = (List<Object>)client.get("/service/applications/description");
 			ObjectMapper map = new ObjectMapper();
-			map.configure(org.codehaus.jackson.map.DeserializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-			map.configure(org.codehaus.jackson.map.SerializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-			map.configure(Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-			map.configure(org.codehaus.jackson.JsonParser.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-			for (Map.Entry<Object, String> entry : returnedMap.entrySet()) {
-				ApplicationDescription applicationDescription = map.convertValue(entry.getKey(), ApplicationDescription.class);
-				applicationDescriptionMap.put(applicationDescription, entry.getValue());
-			}*/
-			return applicationDescriptionMap;
-		/*} catch (final ErrorStatusException e) {
-			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-		}*/
+			for (Object object : objectsList) {
+				ApplicationDescription applicationDescription = map.convertValue(object, ApplicationDescription.class);
+				applicationDescriptionList.add(applicationDescription);
+			}
+		} catch (final ErrorStatusException e) {
+            throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+        }
+		
+		return applicationDescriptionList;
 	}
+	
     /**
      * {@inheritDoc}
      */
     @Override
     @SuppressWarnings("unchecked")
-    public Map<String, String> getApplicationsNamesAndAuthGroups() throws CLIException {
+    public List<String> getApplicationNamesList() throws CLIException {
         try {
-            return (Map<String, String>) client.get("/service/applications");
+            return (List<String>) client.get("/service/applications");
         } catch (final ErrorStatusException e) {
             throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
         }

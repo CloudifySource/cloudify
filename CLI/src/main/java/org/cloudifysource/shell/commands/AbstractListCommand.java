@@ -39,7 +39,8 @@ public abstract class AbstractListCommand extends AdminAwareCommand {
 			final ApplicationDescription applicationDescription) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(ShellUtils.getBoldMessage(applicationDescription.getApplicationName())
-				+ "  " + applicationDescription.getApplicationState());
+				+ "  " + applicationDescription.getApplicationState()
+				+ TAB_CHAR + "Authorization Groups: " + applicationDescription.getAuthGroups());
 		String serviceDescriptionAsString;
 		for (ServiceDescription serviceDescription : applicationDescription.getServicesDescription()) {
 			serviceDescriptionAsString = getServiceDescriptionAsString(serviceDescription);

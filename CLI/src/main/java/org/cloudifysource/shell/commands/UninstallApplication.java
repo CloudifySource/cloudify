@@ -67,7 +67,7 @@ public class UninstallApplication extends AdminAwareCommand {
 	@CompleterValues(index = 0)
 	public Collection<String> getCompleterValues() {
 		try {
-			return getRestAdminFacade().getApplicationsNamesAndAuthGroups().values();
+			return getRestAdminFacade().getApplicationNamesList();
 		} catch (final CLIException e) {
 			return new ArrayList<String>();
 		}

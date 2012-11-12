@@ -16,7 +16,6 @@
 package org.cloudifysource.shell.commands;
 
 import java.util.Collection;
-import java.util.List;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
@@ -48,7 +47,7 @@ public class UseApplication extends AdminAwareCommand {
 	@Override
 	protected Object doExecute() throws Exception {
 		boolean useApplicaiton = true;
-		Collection<String> applicationsList = adminFacade.getApplicationsNamesAndAuthGroups().values();
+		Collection<String> applicationsList = adminFacade.getApplicationNamesList();
 		if (!applicationsList.contains(applicationName)) {
 			useApplicaiton = ShellUtils.promptUser(session, "application_does_not_exist", applicationName);
 		}

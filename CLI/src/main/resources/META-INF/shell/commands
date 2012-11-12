@@ -54,3 +54,4 @@ org.cloudifysource.shell.commands.ListAttributes
 org.cloudifysource.shell.commands.RemoveAttributes
 org.cloudifysource.shell.commands.ValidateApplication
 org.cloudifysource.shell.commands.ValidateService
+org.cloudifysource.shell.commands.Login

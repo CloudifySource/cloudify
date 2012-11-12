@@ -15,9 +15,7 @@
  ******************************************************************************/
 package org.cloudifysource.shell.commands;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.felix.gogo.commands.Command;
 import org.cloudifysource.dsl.rest.ApplicationDescription;
@@ -36,20 +34,24 @@ public class ListApplications extends AbstractListCommand {
 
 	/**
 	 * Gets a list of all deployed applications' names.
-	 * @return Object A map of applications' descriptions and authorization groups
+	 * @return Object A list of Strings, representing the applications' names
 	 * @throws Exception Reporting a failure to get the applications' names from the REST server
 	 */
-@Override
+	@Override
 	protected Object doExecute() throws Exception {
-		return adminFacade.getApplicationsNamesAndAuthGroups();
-		//problem deserializing ApplicationDescription
-		/*Map<ApplicationDescription, String> origMap = adminFacade.getApplicationsDescriptionAndAuthGroups();
-		Map<String, String> displayMap = new HashMap<String, String>(origMap.size());
-		for (ApplicationDescription applicationDescription : origMap.keySet()) {
-			String appDescStr = getApplicationDescriptionAsString(applicationDescription);
-			String authGroups = origMap.get(applicationDescription);
-			displayMap.put(appDescStr, authGroups);
+		//return adminFacade.getApplicationsMap();
+		List<ApplicationDescription> applicationsList = adminFacade.getApplicationDescriptionsList();
+		String appsDescription = getApplicationDescriptionFromListAsString(applicationsList);
+		return appsDescription;
+	}
+
+	private String getApplicationDescriptionFromListAsString(
+			List<ApplicationDescription> applicationsList) {
+		StringBuilder sb = new StringBuilder();
+		for (ApplicationDescription applicationDescription : applicationsList) {
+			sb.append(getApplicationDescriptionAsString(applicationDescription));
+			sb.append(NEW_LINE);
 		}
-		return displayMap;*/
+		return sb.toString();
 	}
 }

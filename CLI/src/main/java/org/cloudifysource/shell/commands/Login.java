@@ -12,15 +12,15 @@ import org.fusesource.jansi.Ansi.Color;
  * 
  *        Command syntax: login username password
  */
-@Command(scope = "cloudify", name = "reconnect", description = "reconnects to the admin REST server")
+@Command(scope = "cloudify", name = "login", description = "reconnects to the admin REST server")
 public class Login extends AdminAwareCommand {
 
 	@Argument(required = true, name = "username", description = "The username for a secure connection to the rest "
-			+ "server")
+			+ "server", index=0)
 	private String username;
 	
 	@Argument(required = true, name = "password", description = "The password for a secure connection to the rest "
-			+ " server")
+			+ " server", index=1)
 	private String password;
 	
 	/**

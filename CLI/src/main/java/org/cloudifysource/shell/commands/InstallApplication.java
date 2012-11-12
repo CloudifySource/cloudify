@@ -118,7 +118,7 @@ public class InstallApplication extends AdminAwareCommand {
 			applicationName = application.getName();
 		}
 
-		if (adminFacade.getApplicationsNamesAndAuthGroups().containsValue(applicationName)) {
+		if (adminFacade.getApplicationNamesList().contains(applicationName)) {
 			throw new CLIStatusException("application_already_deployed", application.getName());
 		}
 

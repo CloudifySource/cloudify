@@ -151,14 +151,6 @@ public interface AdminFacade {
 	 */
 	void disconnect() throws CLIException;
 
-    /**
-     * Gets a map of the installed applications' names and their authorization groups.
-     *
-     * @return A map of the installed applications' names and their authorization groups
-     * @throws CLIException Reporting a failure to retrieve the list of installed applications from the Rest server
-     */
-    Map<String, String> getApplicationsNamesAndAuthGroups() throws CLIException;
-    
 	List<String> getServicesList(String applicationName) throws CLIException;
 	
 	/**
@@ -166,12 +158,21 @@ public interface AdminFacade {
 	 * The description includes deployment information regarding all of an application's services.
 	 * and their instances.
 	 * 
-	 * @param applicationName The application name
-	 * @return Map of application description POJO and its matching authorization group
+	 * @return List of application description POJOs
 	 * @throws CLIException
 	 * 			Reporting a failure to get the applications list.
 	 */
-	Map<ApplicationDescription, String> getApplicationsDescriptionAndAuthGroups() throws CLIException;
+	List<ApplicationDescription> getApplicationDescriptionsList() throws CLIException;
+	
+	/**
+	 * returns a list of application names
+	 * 
+	 * @param applicationName The application name
+	 * @return List of application names
+	 * @throws CLIException
+	 * 			Reporting a failure to get the applications list.
+	 */
+	List<String> getApplicationNamesList() throws CLIException;
 	
 	/**
 	 * returns a POJO containing all of an application's services and their description.
