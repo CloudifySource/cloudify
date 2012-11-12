@@ -391,12 +391,17 @@ public class CloudGridAgentBootstrapper {
 
 	private void uninstallApplications(final long end) throws CLIException,
 			InterruptedException, TimeoutException {
-		final Collection<String> applicationsList = adminFacade.getApplicationNamesList();
+		final Collection<String> applicationsList = adminFacade.getApplicationsNamesAndAuthGroups().values();
+		
+		final long startTime = System.currentTimeMillis();
+		final long millisToEnd = end - startTime;
+		final int minutesToEnd = (int) TimeUnit.MILLISECONDS.toMinutes(millisToEnd);
+
 		if (applicationsList.size() > 0) {
 			logger.info("Uninstalling the currently deployed applications");
 			for (final String application : applicationsList) {
 				if (!application.equals(MANAGEMENT_APPLICATION)) {
-					adminFacade.uninstallApplication(application, (int) end);
+					adminFacade.uninstallApplication(application, minutesToEnd);
 				}
 			}
 		}

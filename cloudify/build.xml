@@ -254,6 +254,10 @@
 	        <copy todir="@{installation.dir}/tools/rest/" overwrite="true">
 	            <fileset dir="${restful.local.copy}/target/" includes="rest.war" excludes=".svn"/>
 	        </copy>
+    		
+	        <copy todir="@{installation.dir}/config/security/" overwrite="true">
+	            <fileset dir="${restful.local.copy}/src/main/webapp/WEB-INF" includes="spring-security.xml"/>
+	        </copy>
 	
 	        <echo message="Copy CLOUDIFY esc-command component"/>
 	        <copy todir="@{installation.dir}/tools/cli/plugins/esc" overwrite="true">
