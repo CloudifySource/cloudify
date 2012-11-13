@@ -18,6 +18,7 @@ package org.cloudifysource.esc.shell.installer;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -36,6 +37,7 @@ import java.util.logging.Logger;
 
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
@@ -95,6 +97,8 @@ public class CloudGridAgentBootstrapper {
 
 	private File cloudFile;
 
+	private boolean noWebServices;
+
 	public void setProviderDirectory(final File providerDirecotry) {
 		this.providerDirecotry = providerDirecotry;
 	}
@@ -149,9 +153,9 @@ public class CloudGridAgentBootstrapper {
 	 * the timeout is reached.
 	 * 
 	 * @param username
-	 * 				The username for a secure connection to the server
+	 *            The username for a secure connection to the server
 	 * @param password
-	 * 				The password for a secure connection to the server
+	 *            The password for a secure connection to the server
 	 * @param timeout
 	 *            The number of {@link TimeUnit}s to wait before timing out
 	 * @param timeoutUnit
@@ -165,7 +169,8 @@ public class CloudGridAgentBootstrapper {
 	 * @throws InterruptedException
 	 *             Indicates a thread was interrupted while waiting
 	 */
-	public void boostrapCloudAndWait(final String username, final String password, final long timeout,
+	public void boostrapCloudAndWait(final String username,
+			final String password, final long timeout,
 			final TimeUnit timeoutUnit) throws InstallerException,
 			CLIException, InterruptedException {
 
@@ -217,29 +222,10 @@ public class CloudGridAgentBootstrapper {
 
 			startManagememntProcesses(servers, end);
 
-			// Wait for rest to become available
-			// When the rest gateway is up and running, the cloud is ready to go
-			for (final MachineDetails server : servers) {
-				String ipAddress = null;
-				if (cloud.getConfiguration().isBootstrapManagementOnPublicIp()) {
-					ipAddress = server.getPublicAddress();
-				} else {
-					ipAddress = server.getPrivateAddress();
-				}
-
-				final URL restAdminUrl = new URI("http", null, ipAddress,
-						REST_GATEWAY_PORT, null, null, null).toURL();
-				final URL webUIUrl = new URI("http", null, ipAddress,
-						WEBUI_PORT, null, null, null).toURL();
-
-				// We are relying on start-management command to be run on the
-				// new machine, so everything should be up if the rest admin is up
-				waitForConnection(username, password, restAdminUrl, Utils.millisUntil(end), TimeUnit.MILLISECONDS);
-
-				logger.info("Rest service is available at: " + restAdminUrl
-						+ '.');
-				logger.info("Webui service is available at: " + webUIUrl + '.');
+			if (!isNoWebServices()){
+				waitForManagementWebServices(username, password, end, servers);
 			}
+			
 		} catch (final IOException e) {
 			stopManagementMachines();
 			throw new CLIException("Cloudify bootstrap on provider "
@@ -263,6 +249,35 @@ public class CloudGridAgentBootstrapper {
 		} catch (final InterruptedException e) {
 			stopManagementMachines();
 			throw e;
+		}
+	}
+
+	private void waitForManagementWebServices(final String username, final String password,
+			final long end, MachineDetails[] servers)
+			throws MalformedURLException, URISyntaxException,
+			InterruptedException, TimeoutException, CLIException {
+		// Wait for rest to become available
+		// When the rest gateway is up and running, the cloud is ready to go
+		for (final MachineDetails server : servers) {
+			String ipAddress = null;
+			if (cloud.getConfiguration().isBootstrapManagementOnPublicIp()) {
+				ipAddress = server.getPublicAddress();
+			} else {
+				ipAddress = server.getPrivateAddress();
+			}
+
+			final URL restAdminUrl = new URI("http", null, ipAddress,
+					REST_GATEWAY_PORT, null, null, null).toURL();
+			final URL webUIUrl = new URI("http", null, ipAddress,
+					WEBUI_PORT, null, null, null).toURL();
+
+			// We are relying on start-management command to be run on the
+			// new machine, so everything should be up if the rest admin is up
+			waitForConnection(username, password, restAdminUrl, Utils.millisUntil(end), TimeUnit.MILLISECONDS);
+
+			logger.info("Rest service is available at: " + restAdminUrl
+					+ '.');
+			logger.info("Webui service is available at: " + webUIUrl + '.');
 		}
 	}
 
@@ -391,11 +406,13 @@ public class CloudGridAgentBootstrapper {
 
 	private void uninstallApplications(final long end) throws CLIException,
 			InterruptedException, TimeoutException {
-		final Collection<String> applicationsList = adminFacade.getApplicationNamesList();
-		
+		final Collection<String> applicationsList = adminFacade
+				.getApplicationNamesList();
+
 		final long startTime = System.currentTimeMillis();
 		final long millisToEnd = end - startTime;
-		final int minutesToEnd = (int) TimeUnit.MILLISECONDS.toMinutes(millisToEnd);
+		final int minutesToEnd = (int) TimeUnit.MILLISECONDS
+				.toMinutes(millisToEnd);
 
 		if (applicationsList.size() > 0) {
 			logger.info("Uninstalling the currently deployed applications");
@@ -431,8 +448,10 @@ public class CloudGridAgentBootstrapper {
 
 		final InstallationDetails[] installations = createInstallationDetails(
 				numOfManagementMachines, machines, template);
-		// only one machine should try and deploy the WebUI and Rest Admin
-		for (int i = 1; i < installations.length; i++) {
+		// only one machine should try and deploy the WebUI and Rest Admin unless 
+		// noWebServices is true
+		int i= isNoWebServices() ? 0 :1;
+		for (; i < installations.length; i++) {
 			installations[i].setNoWebServices(true);
 		}
 
@@ -538,11 +557,24 @@ public class CloudGridAgentBootstrapper {
 
 	private String createLocatorsString(
 			final InstallationDetails[] installations) {
+
+		// This is a workaround to allow cloudify nodes to use a non-default discovery port.
+		// At the moment, the cloudify cloud driver configuration does not support setting
+		// the unicast discovery port, so we use this property, along with the required 
+		// environment variables. 
+		// This should be replaced when cloudify adds support for network port configuration.
+		final Integer port = (Integer) cloud.getCustom().get(
+				CloudifyConstants.CUSTOM_CLOUD_PROPERTY_UNICAST_DISCOVERY_PORT);
 		final StringBuilder lookupSb = new StringBuilder();
 		for (final InstallationDetails detail : installations) {
 			final String ip = cloud.getConfiguration().isConnectToPrivateIp() ? detail
 					.getPrivateIp() : detail.getPublicIp();
-			lookupSb.append(ip).append(',');
+
+			if (port == null) {
+				lookupSb.append(ip).append(',');
+			} else {
+				lookupSb.append(ip).append(":").append(port).append(',');
+			}
 		}
 
 		lookupSb.setLength(lookupSb.length() - 1);
@@ -558,15 +590,16 @@ public class CloudGridAgentBootstrapper {
 			final MachineDetails[] machineDetails, final CloudTemplate template)
 			throws FileNotFoundException {
 		final InstallationDetails[] details = new InstallationDetails[numOfManagementMachines];
-		
+
 		final GSAReservationId reservationId = null;
-		
+
 		for (int i = 0; i < details.length; i++) {
 			final ExactZonesConfig zones = new ExactZonesConfigurer().addZone(
 					MANAGEMENT_GSA_ZONE).create();
 			details[i] = Utils.createInstallationDetails(machineDetails[i],
-					cloud, template, zones, null, null, true, this.cloudFile, 
-					reservationId, cloud.getConfiguration().getManagementMachineTemplate());
+					cloud, template, zones, null, null, true, this.cloudFile,
+					reservationId, cloud.getConfiguration()
+							.getManagementMachineTemplate());
 		}
 
 		return details;
@@ -612,7 +645,8 @@ public class CloudGridAgentBootstrapper {
 					@Override
 					public boolean isDone() throws CLIException,
 							InterruptedException {
-						final Collection<String> applications = adminFacade.getApplicationNamesList();
+						final Collection<String> applications = adminFacade
+								.getApplicationNamesList();
 
 						boolean done = true;
 
@@ -633,8 +667,9 @@ public class CloudGridAgentBootstrapper {
 	}
 
 	/**
-	 * Waits for a connection to be established with the service. If the timeout is reached before a
-	 * connection could be established, a {@link TimeoutException} is thrown.
+	 * Waits for a connection to be established with the service. If the timeout
+	 * is reached before a connection could be established, a
+	 * {@link TimeoutException} is thrown.
 	 * 
 	 * @param username
 	 *            The username for a secure connection to the rest server
@@ -651,10 +686,13 @@ public class CloudGridAgentBootstrapper {
 	 * @throws TimeoutException
 	 *             Reporting the time out was reached
 	 * @throws CLIException
-	 * 			   Reporting different errors while creating the connection to the service
+	 *             Reporting different errors while creating the connection to
+	 *             the service
 	 */
-	private void waitForConnection(final String username, final String password, final URL restAdminUrl,
-			final long timeout, final TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException {
+	private void waitForConnection(final String username,
+			final String password, final URL restAdminUrl, final long timeout,
+			final TimeUnit timeunit) throws InterruptedException,
+			TimeoutException, CLIException {
 
 		adminFacade.disconnect();
 
@@ -697,4 +735,11 @@ public class CloudGridAgentBootstrapper {
 		this.cloudFile = cloudFile;
 	}
 
+	public boolean isNoWebServices() {
+		return noWebServices;
+	}
+
+	public void setNoWebServices(boolean noWebServices) {
+		this.noWebServices = noWebServices;
+	}
 }

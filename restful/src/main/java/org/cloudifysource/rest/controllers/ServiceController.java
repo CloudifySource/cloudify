@@ -2060,7 +2060,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				} else {
 					final AutomaticCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
 							.createAutomaticCapacityScaleConfig(serviceName,
-									service, externalProcessMemoryInMB, false);
+									service, externalProcessMemoryInMB, false, false);
 					deployment.scale(scaleConfig);
 				}
 			}
@@ -2102,18 +2102,11 @@ public class ServiceController implements ServiceDetailsProvider {
 					final ManualCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
 							.createManualCapacityScaleConfig(totalMemoryInMB,
 									totalCpuCores, locationAware, dedicated);
-						
-					if (dedicated) {
-						scaleConfig.setAtMostOneContainerPerMachine(true);
-					}
 					deployment.scale(scaleConfig);
 				} else {
 					final AutomaticCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
 							.createAutomaticCapacityScaleConfig(serviceName,
-										service, (int) cloudExternalProcessMemoryInMB, locationAware);
-					if (dedicated) {
-						scaleConfig.setAtMostOneContainerPerMachine(true);
-					}
+										service, (int) cloudExternalProcessMemoryInMB, locationAware, dedicated);
 					deployment.scale(scaleConfig);
 				}
 		}
@@ -2753,7 +2746,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			deployment.scale(ElasticScaleConfigFactory
 					.createManualCapacityScaleConfig(
 							(int) cloudExternalProcessMemoryInMB, 0,
-							locationAware, false));
+							locationAware, true));
 		}
 
 		deployAndWait(serviceName, deployment);
@@ -2886,7 +2879,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 			deployment.scale(ElasticScaleConfigFactory
 					.createManualCapacityScaleConfig(containerMemoryInMB
-							* numberOfInstances, 0, locationAware, false));
+							* numberOfInstances, 0, locationAware, true));
 		}
 		deployAndWait(serviceName, deployment);
 		jarFile.delete();
@@ -2971,7 +2964,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 			deployment.scale(ElasticScaleConfigFactory
 					.createManualCapacityScaleConfig(puConfig.getSla()
-							.getMemoryCapacity(), 0, locationAware, false));
+							.getMemoryCapacity(), 0, locationAware, true));
 
 		}
 
@@ -3167,7 +3160,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			// CPU = 0 , memoery is calculated as usual. shared = false
 			pu.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(
 					(int) (cloudExternalProcessMemoryInMB * count), 0,
-					locationAware, false));
+					locationAware, true));
 		}
 
 		logger.log(Level.INFO, "Starting to poll for lifecycle events.");
