@@ -72,7 +72,10 @@ public class BootstrapCloud extends AbstractGSCommand {
 	@Option(required = false, name = "-timeout",
 			description = "The number of minutes to wait until the operation is done.")
 	int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
-
+	
+	@Option(required = false, name = "-no-web-services",
+			description = "if set, no attempt to deploy the rest admin and" + " web-ui will be made")
+	private boolean noWebServices;
 	
 	private static final String[] NON_VERBOSE_LOGGERS = { DefaultProvisioningDriver.class.getName(), AgentlessInstaller.class.getName() };
 	private Map<String, Level> loggerStates = new HashMap<String, Level>();
@@ -110,6 +113,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 		installer.setVerbose(verbose);
 		installer.setCloud(cloud);
 		installer.setCloudFile(cloudFile);
+		installer.setNoWebServices(noWebServices);
 
 		// Bootstrap!
 
