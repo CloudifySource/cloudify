@@ -59,6 +59,9 @@ public final class ElasticScaleConfigFactory {
 				.memoryCapacity(totalMemoryInMB, MemoryUnit.MEGABYTES)
 				.numberOfCpuCores(totalCpuCores).create();
 		config.setGridServiceAgentZonesAware(locationAware);
+		if (dedicated) {
+			config.setAtMostOneContainerPerMachine(true);
+		}
 		return config;
 	}
 
@@ -86,7 +89,7 @@ public final class ElasticScaleConfigFactory {
 	public static AutomaticCapacityScaleConfig createAutomaticCapacityScaleConfig(
 			final String serviceName, final Service service,
 			final int externalProcessMemoryInMB, 
-			final boolean locationAware)
+			final boolean locationAware, final boolean dedicated)
 			throws DSLException {
 
 		if (externalProcessMemoryInMB <= 0) {
@@ -190,6 +193,9 @@ public final class ElasticScaleConfigFactory {
 
 		if (locationAware) {
 			scaleConfigurer.enableGridServiceAgentZonesAware();
+		}
+		if (dedicated) {
+			scaleConfigurer.atMostOneContainerPerMachine();
 		}
 
 		final Map<String, ServiceStatisticsDetails> 
