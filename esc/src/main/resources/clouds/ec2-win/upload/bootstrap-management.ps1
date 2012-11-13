@@ -96,7 +96,13 @@ $javaDir = "$parentDirectory\java"
 $Env:EXT_JAVA_OPTIONS="-Dcom.gs.multicast.enabled=false"
 
 # Download Java
-download "http://repository.cloudifysource.org/com/oracle/java/1.6.0_25/jdk1.6.0_25_x64.zip" $javaZip
+# Download Java
+if(Test-Path Env:\GIGASPACES_AGENT_ENV_JAVA_URL) {
+	download $Env:GIGASPACES_AGENT_ENV_JAVA_URL $javaZip
+} else {
+	download "http://repository.cloudifysource.org/com/oracle/java/1.6.0_25/jdk1.6.0_25_x64.zip" $javaZip
+}
+
 # Unzip Java
 unzip $javaZip $javaDir
 # move one folder up, to standardize across versions
