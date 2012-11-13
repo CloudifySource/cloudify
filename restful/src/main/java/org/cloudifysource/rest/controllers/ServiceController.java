@@ -35,7 +35,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -44,7 +43,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -94,6 +92,7 @@ import org.cloudifysource.dsl.rest.ApplicationDescription;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.esc.driver.provisioning.CloudifyMachineProvisioningConfig;
 import org.cloudifysource.rest.ResponseConstants;
+import org.cloudifysource.rest.security.CustomPermissionEvaluator;
 import org.cloudifysource.rest.util.ApplicationDescriptionFactory;
 import org.cloudifysource.rest.util.ApplicationInstallerRunnable;
 import org.cloudifysource.rest.util.LifecycleEventsContainer;
@@ -147,13 +146,8 @@ import org.openspaces.pu.service.ServiceDetailsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -189,9 +183,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	
 	private static final String LOCALCLOUD_ZONE = "localcloud";
 	private static final String SHARED_ISOLATION_ID = "public";
-	private static final String IS_SPRING_SECURED = System.getProperty("springSecured");
 	
-	private final Map<UUID, RestPollingRunnable> lifecyclePollingThreadContainer = new ConcurrentHashMap<UUID, RestPollingRunnable>();
+	private final Map<UUID, RestPollingRunnable> lifecyclePollingThreadContainer = 
+			new ConcurrentHashMap<UUID, RestPollingRunnable>();
 	private final ExecutorService serviceUndeployExecutor = Executors
 			.newFixedThreadPool(10);
 
@@ -203,6 +197,8 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	@Autowired(required = true)
 	private Admin admin;
+	@Autowired(required = false)
+	private CustomPermissionEvaluator permissionEvaluator;
 	@GigaSpaceContext(name = "gigaSpace")
 	private GigaSpace gigaSpace;
 
@@ -677,7 +673,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @return a list of all the deployed applications in the service grid.
 	 * @throws RestErrorException
 	 */
-	@JsonResponseExample(status = "success", responseBody = "[\"petclinic\", \"travel\"]", comments = "In the example, the deployed applications in the service grid are petclinic and travel")
+	@JsonResponseExample(status = "success", responseBody = "[\"petclinic\", \"travel\"]", 
+			comments = "In the example, the deployed applications in the service grid are petclinic and travel")
 	@PossibleResponseStatuses(responseStatuses = { @PossibleResponseStatus(code = HTTP_OK, description = "success") })
 	@RequestMapping(value = "/applications/description", method = RequestMethod.GET)
 	@PostFilter("hasPermission(filterObject, 'view')")
@@ -1201,9 +1198,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             When service processing unit not found or failed to add the
 	 *             instance.
 	 */
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/addinstance", method = RequestMethod.POST)
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/addinstance", 
+			method = RequestMethod.POST)
 	public @ResponseBody
-
 	@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
 	Map<String, Object> addInstance(@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
@@ -1215,7 +1212,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		//TODO how to set that as a context property on the new instance? is it needed?
 		String authGroups = params.get("authGroups");
 		if (StringUtils.isBlank(authGroups)) {
-			authGroups = Arrays.toString(getUserAuthGroups().toArray(new String[0]));
+			authGroups = permissionEvaluator.getUserAuthGroupsString();
 		}
 		
 		final ProcessingUnit processingUnit =
@@ -1628,7 +1625,11 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 		final File applicationFile = copyMultipartFileToLocalFile(srcFile);
 		if (StringUtils.isBlank(authGroups)) {
-			authGroups = Arrays.toString(getUserAuthGroups().toArray(new String[0]));
+			if (permissionEvaluator != null) {
+				authGroups = permissionEvaluator.getUserAuthGroupsString();	
+			} else {
+				authGroups = "";
+			}			
 		}
 
 		final File applicationOverridesFile = copyMultipartFileToLocalFile(recipeOverridesFile);
@@ -2534,7 +2535,12 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 		
 		//TODO get the passed auth groups
-		String authGroups = Arrays.toString(getUserAuthGroups().toArray(new String[0]));
+		String authGroups;
+		if (permissionEvaluator != null) {
+			authGroups = permissionEvaluator.getUserAuthGroupsString();	
+		} else {
+			authGroups = "";
+		}
 		/*if (StringUtils.isBlank(authGroups)) {
 			authGroups = Arrays.toString(getUserAuthGroups().toArray(new String[0]));
 		}*/
@@ -3131,7 +3137,11 @@ public class ServiceController implements ServiceDetailsProvider {
 		
 		//TODO how to set that as a context property on the new instance?
 		if (StringUtils.isBlank(authGroups)) {
-			authGroups = Arrays.toString(getUserAuthGroups().toArray(new String[0]));
+			if (permissionEvaluator != null) {
+				authGroups = permissionEvaluator.getUserAuthGroupsString();	
+			} else {
+				authGroups = "";
+			}
 		}
 
 		UUID eventContainerID;
@@ -3424,32 +3434,5 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	}
     
-    private Collection<String> getUserAuthGroups() throws AccessDeniedException {
-    	Set<String> userAuthGroups = new HashSet<String>();
-    	
-    	if (StringUtils.isNotBlank(IS_SPRING_SECURED) && IS_SPRING_SECURED.equalsIgnoreCase("true")) {
-    	
-	    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-	    	if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
-				throw new AccessDeniedException("Anonymous user is not supported");
-	    	}
-			
-			for (GrantedAuthority authority : authentication.getAuthorities()) {
-				userAuthGroups.add(authority.getAuthority());
-			}
-    	}
-		
-		return userAuthGroups;
-    }
-    
-    Collection<String> splitAndTrim(String csvString, String delimiter) {
-    	Collection<String> values = new HashSet<String>();
-		StringTokenizer tokenizer = new StringTokenizer(csvString, delimiter);
-		while (tokenizer.hasMoreTokens()) {
-			values.add(tokenizer.nextToken().trim());
-		}
-		
-		return values;
-    }
 
 }

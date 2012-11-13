@@ -22,6 +22,12 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 
+/**
+ * A permission evaluator that always denies access. Used as a default if no other evaluator is found. 
+ *
+ * @author noak
+ * @since 2.3.0
+ */
 public class CustomDenyAllPermissionEvaluator implements PermissionEvaluator {
 
     private final Log logger = LogFactory.getLog(getClass());

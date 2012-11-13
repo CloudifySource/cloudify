@@ -250,5 +250,11 @@ public final class CloudifyConstants {
 	public static final int HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
 	public static final int HTTP_STATUS_NOT_FOUND = 404;
 	
+	
+	/*******************
+	 * Spring security mode environment variable
+	 */
+	public static final String SPRING_BEANS_PROFILE_ENV_VAR = "spring.profiles.active";
+	
 	// CHECKSTYLE:ON
 }

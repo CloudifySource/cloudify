@@ -23,14 +23,15 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
 public class BooleanDelegatingFilterProxy extends DelegatingFilterProxy{
 	
 	@Override
-	public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain)
+	public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain filterChain)
 				throws ServletException, IOException {
-		final String springSecured = System.getProperty("springSecured");
+		final String springSecured = System.getenv(CloudifyConstants.SPRING_BEANS_PROFILE_ENV_VAR);
 
 	    if (StringUtils.isNotBlank(springSecured) && springSecured.equalsIgnoreCase("true")) {
 	    	// Call the delegate

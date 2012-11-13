@@ -10,22 +10,6 @@
 	http://www.springframework.org/schema/beans
 	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 	
-	<authentication-manager alias="authenticationManager">
-		<authentication-provider>
-			<user-service>
-				<user name="Amanda" password="Amanda" authorities="ROLE_CLOUDADMINS"/>
-				<user name="Dana" password="Dana" authorities="ROLE_APP_MANAGER"/>
-				<user name="john" password="john" authorities="ROLE_VIEWERS"/>
-			</user-service>
-		</authentication-provider>
-	</authentication-manager>
-	
-	<!-- to connect to a LDAP user-store replace the above authentication-manager with this one, and enter your ldap settings -->
-	<!--ldap-server url="ldap://yourLdapIP:389/dc=yourdomain,dc=com"/>
-	<authentication-manager alias="authenticationManager">
-        <ldap-authentication-provider user-search-filter="uid={0}" user-search-base="ou=people" group-search-base="ou=groups" group-search-filter="member={0}"/>
-    </authentication-manager-->
-		
 	<http auto-config='true' use-expressions="true">
 		<intercept-url pattern="/**" access="permitAll" />
 		<http-basic />
@@ -51,5 +35,23 @@
 		<beans:property name="authenticationManager" ref="authenticationManager"/>
 		<beans:property name="authenticationEntryPoint" ref="basicAuthEntryPoint" />
 	</beans:bean>
+	
+	<authentication-manager alias="authenticationManager">
+		<authentication-provider>
+			<user-service>
+				<user name="Amanda" password="Amanda" authorities="ROLE_CLOUDADMINS"/>
+				<user name="Dana" password="Dana" authorities="ROLE_APP_MANAGER"/>
+				<user name="john" password="john" authorities="ROLE_VIEWERS"/>
+			</user-service>
+		</authentication-provider>
+	</authentication-manager>
+	
+	<!-- to connect to a LDAP user-store replace the above authentication-manager with this one, and enter your ldap settings -->
+	<!--ldap-server url="ldap://yourLdapIP:389/dc=yourdomain,dc=com"/>
+	<authentication-manager alias="authenticationManager">
+        <ldap-authentication-provider user-search-filter="uid={0}" user-search-base="ou=people" group-search-base="ou=groups" group-search-filter="member={0}"/>
+    </authentication-manager-->
+	
+	<!--bean id="tdrUserDetailsContextMapper" class="com.bla.bla.UserDetailsContextMapperImpl"/-->
 
 </beans:beans>

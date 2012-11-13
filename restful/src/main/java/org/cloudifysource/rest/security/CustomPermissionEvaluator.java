@@ -20,11 +20,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.esc.util.Utils;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.security.access.PermissionEvaluator;
@@ -33,7 +34,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-
+/**
+ * A custom PermissionEvaluator which... 
+ *
+ * @author noak
+ * @since 3.2.0
+ */
 public class CustomPermissionEvaluator implements PermissionEvaluator {
 	
 	private static final String PERMISSION_TO_DEPLOY = "deploy";
@@ -42,17 +48,20 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 	private static final String ROLE_CLOUDADMIN = "ROLE_CLOUDADMINS";
 	private static final String ROLE_APPMANAGER = "ROLE_APPMANAGERS";
 	private static final String ROLE_VIEWER = "ROLE_VIEWERS";
+	private static final String IS_SPRING_SECURED = System.getenv(CloudifyConstants.SPRING_BEANS_PROFILE_ENV_VAR);
 	
 	private Logger logger = java.util.logging.Logger.getLogger(CustomPermissionEvaluator.class.getName());
 
 	/**
-	 * hasPermission
-	 * @param authentication
-	 * @param targetDomainObject
-	 * @param permission
+	 * Checks if the current user should be granted the requested permission on the target object.
+	 * @param authentication The authentication object of the current user
+	 * @param targetDomainObject The target object the user is attempting to access
+	 * @param permission The permission requested on the target object (e.g. view, deploy)
+	 * @return boolean value - true if permission is granted, false otherwise.
 	 */
 	@Override
-    public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
+    public boolean hasPermission(final Authentication authentication, final Object targetDomainObject, 
+    		final Object permission) {
 		
 		boolean permissionGranted = false;
 		String permissionName, authGroupsString;
@@ -67,13 +76,13 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     				+ permission.getClass().getName());			
 		}
 		
-		permissionName = (String)permission;
+		permissionName = (String) permission;
     	if (StringUtils.isBlank(permissionName)) {
     		throw new AuthorizationServiceException("Failed to verify permissions, missing permission name");
     	}
     	
-    	if (!permissionName.equalsIgnoreCase(PERMISSION_TO_VIEW) && 
-    			!permissionName.equalsIgnoreCase(PERMISSION_TO_DEPLOY)) {
+    	if (!permissionName.equalsIgnoreCase(PERMISSION_TO_VIEW) 
+    			&& !permissionName.equalsIgnoreCase(PERMISSION_TO_DEPLOY)) {
     		throw new AuthorizationServiceException("Unsupported permission name: " + permissionName
     				+ ". valid permission names are: " + PERMISSION_TO_VIEW + ", " + PERMISSION_TO_DEPLOY);
     	}
@@ -84,11 +93,12 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 		}
     	
     	if (targetDomainObject == null) {
-    		targetDomainObject = "";
+    		authGroupsString = "";
+    	} else {
+    		authGroupsString = ((String) targetDomainObject).trim();	
     	}
-    	authGroupsString = ((String)targetDomainObject).trim();
-
-    	requestedAuthGroups = splitAndTrim(authGroupsString, AUTH_GROUPS_DELIMITER);
+    	
+    	requestedAuthGroups = Utils.splitAndTrimString(authGroupsString, AUTH_GROUPS_DELIMITER);
     	userAuthGroups = getUserAuthGroups();
     	
     	//check roles
@@ -96,17 +106,17 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     	boolean relevantRoleFound = false;
     	if (permissionName.equalsIgnoreCase(PERMISSION_TO_VIEW)) {
     		for (String userAuthGroup : userAuthGroups) {
-    			if (ROLE_CLOUDADMIN.equalsIgnoreCase(userAuthGroup) ||
-    					ROLE_APPMANAGER.equalsIgnoreCase(userAuthGroup) ||
-    					ROLE_VIEWER.equalsIgnoreCase(userAuthGroup)) {
+    			if (ROLE_CLOUDADMIN.equalsIgnoreCase(userAuthGroup) 
+    					|| ROLE_APPMANAGER.equalsIgnoreCase(userAuthGroup) 
+    					|| ROLE_VIEWER.equalsIgnoreCase(userAuthGroup)) {
     				relevantRoleFound = true;
     				break;
     			}
     		}
     	} else if (permissionName.equalsIgnoreCase(PERMISSION_TO_DEPLOY)) {
     		for (String userAuthGroup : userAuthGroups) {
-    			if (ROLE_CLOUDADMIN.equalsIgnoreCase(userAuthGroup) ||
-    					ROLE_APPMANAGER.equalsIgnoreCase(userAuthGroup)) {
+    			if (ROLE_CLOUDADMIN.equalsIgnoreCase(userAuthGroup) 
+    					|| ROLE_APPMANAGER.equalsIgnoreCase(userAuthGroup)) {
     				relevantRoleFound = true;
     				break;
     			}
@@ -144,16 +154,31 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 
 	/**
 	 * Another hasPermission signature. We will not implement this.
+	 * @param authentication
 	 */
-	@Override
-	public boolean hasPermission(Authentication authentication,
-			Serializable targetId, String targetType, Object permission) {
-		logger.warning("Evaluating expression using hasPermission signature #2");
+	/**
+	 * Checks if the current user should be granted the requested permission on the target object.
+	 * This signature is currently not implemented.
+	 * @param authentication The authentication object of the current user
+	 * @param targetId The A unique identifier of the target object the user is attempting to access
+	 * @param targetType The type of the target object the user is attempting to access
+	 * @param permission The permission requested on the target object (e.g. view, deploy)
+	 * @return boolean value - true if permission is granted, false otherwise.
+	 */
+	public boolean hasPermission(final Authentication authentication, final Serializable targetId, 
+			final String targetType, final Object permission) {
+		logger.warning("Evaluating expression using hasPermission unimplemented signature");
 
 		return false;
 	}
 	
-	public boolean hasPermissionToView(Collection<String> requestedAuthGroups) {
+	/**
+	 * Checks if the current user is allowed to view the an object that has the specified authorization groups.
+	 * If the user has *any* of the target object's authorization groups - permission to view it is granted.
+	 * @param requestedAuthGroups The authorization groups of the target object
+	 * @return boolean value - true if permission is granted, false otherwise.
+	 */
+	private boolean hasPermissionToView(final Collection<String> requestedAuthGroups) {
 		
 		if (requestedAuthGroups.size() == 0) {
 			return true;
@@ -162,7 +187,13 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     	return hasAnyAuthGroup(requestedAuthGroups);
     }
     
-	public boolean hasPermissionToDeploy(Collection<String> requestedAuthGroups) {
+	/**
+	 * Checks if the current user is allowed to view the an object that has the specified authorization groups.
+	 * If the user has *all* the authorization groups of the object - permission to view it is granted.
+	 * @param requestedAuthGroups The authorization groups of the target object
+	 * @return boolean value - true if permission is granted, false otherwise.
+	 */
+	private boolean hasPermissionToDeploy(final Collection<String> requestedAuthGroups) {
 		if (requestedAuthGroups.size() == 0) {
 			return true;
 		}
@@ -170,7 +201,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     	return hasAllAuthGroups(requestedAuthGroups);
     }
     
-    private boolean hasAllAuthGroups(Collection<String> requestedAuthGroups) {
+    private boolean hasAllAuthGroups(final Collection<String> requestedAuthGroups) {
     	boolean isPermitted = false;
     	
     	Collection<String> userAuthGroups = getUserAuthGroups();
@@ -181,7 +212,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 		return isPermitted;
     }
     
-    private boolean hasAnyAuthGroup(Collection<String> requestedAuthGroups) {
+    private boolean hasAnyAuthGroup(final Collection<String> requestedAuthGroups) {
     	boolean isPermitted = false;
     	
     	Collection<String> userAuthGroups = getUserAuthGroups();
@@ -197,29 +228,36 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 		return isPermitted;
     }
     
-    public Collection<String> getUserAuthGroups() throws AccessDeniedException {
+    /**
+     * Returns the names of the authorities the user is granted.
+     * @return A Collection of authorities the user is granted.
+     */
+    private Collection<String> getUserAuthGroups() {
     	Set<String> userAuthGroups = new HashSet<String>();
     	
-    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    	if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
-			throw new AccessDeniedException("Anonymous user is not supported");
+    	if (StringUtils.isNotBlank(IS_SPRING_SECURED) && IS_SPRING_SECURED.equalsIgnoreCase("true")) {
+    		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        	if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+    			throw new AccessDeniedException("Anonymous user is not supported");
+        	}
+    		
+    		for (GrantedAuthority authority : authentication.getAuthorities()) {
+    			userAuthGroups.add(authority.getAuthority());
+    		}
     	}
-		
-		for (GrantedAuthority authority : authentication.getAuthorities()) {
-			userAuthGroups.add(authority.getAuthority());
-		}
+    	
+    	
 		
 		return userAuthGroups;
     }
     
-    private Collection<String> splitAndTrim(String csvString, String delimiter) {
-    	Collection<String> values = new HashSet<String>();
-		StringTokenizer tokenizer = new StringTokenizer(csvString, delimiter);
-		while (tokenizer.hasMoreTokens()) {
-			values.add(tokenizer.nextToken().trim());
-		}
-		
-		return values;
+    /**
+     * Returns the names of the authorities the user is granted.
+     * @return A String array of authorities names
+     */
+    public String getUserAuthGroupsString() {
+    	Collection<String> userAuthGroups = getUserAuthGroups();		
+		return Arrays.toString(userAuthGroups.toArray(new String[0]));
     }
 
 }

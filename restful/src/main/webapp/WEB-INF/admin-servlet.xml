@@ -3,10 +3,9 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:oxm="http://www.springframework.org/schema/oxm" xmlns:mvc="http://www.springframework.org/schema/mvc"
-	xmlns:os-core="http://www.openspaces.org/schema/core"
-    xmlns:os-events="http://www.openspaces.org/schema/events"
-    xmlns:os-remoting="http://www.openspaces.org/schema/remoting"
-    xmlns:sec="http://www.springframework.org/schema/security"
+	xmlns:os-core="http://www.openspaces.org/schema/core" xmlns:os-events="http://www.openspaces.org/schema/events"
+	xmlns:os-remoting="http://www.openspaces.org/schema/remoting"
+	xmlns:sec="http://www.springframework.org/schema/security"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
 				http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
 		        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd
@@ -16,75 +15,81 @@
        			http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd
        			http://www.openspaces.org/schema/remoting http://www.openspaces.org/schema/8.0/remoting/openspaces-remoting.xsd">
 
-	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-		<property name="location" value="/WEB-INF/config.properties"/>
-        <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_FALLBACK"/>
-	</bean>
+	<beans profile="secure, nonsecure">
+		<bean id="propertyConfigurer"
+			class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+			<property name="location" value="/WEB-INF/config.properties" />
+			<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_FALLBACK" />
+		</bean>
+
+		<mvc:annotation-driven />
+		<mvc:resources mapping="/resources/**" location="/resources/" />
+
+		<context:component-scan base-package="org.cloudifysource.rest" />
+
+		<mvc:interceptors>
+			<bean
+				class="org.cloudifysource.rest.controllers.VersionValidateInterceptor" />
+		</mvc:interceptors>
+
+		<bean
+			class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+			<property name="prefix" value="/WEB-INF/views/" />
+			<property name="suffix" value=".jsp" />
+		</bean>
+
+		<mvc:view-controller path="/" view-name="index" />
+
+		<bean class="org.springframework.web.servlet.view.BeanNameViewResolver" />
+
+		<bean id="admin" class="org.cloudifysource.rest.util.AdminFactoryBean">
+			<property name="groups" value="${restful.lookupGroups}" />
+			<property name="locators" value="${restful.lookupLocators}" />
+		</bean>
+
+		<!-- Enables the usage of @GigaSpaceContext annotation based injection. -->
+		<os-core:giga-space-context />
+
+		<!-- A bean representing a space (an IJSpace implementation). Note, we 
+			perform a lookup on the space since we are working against a remote space. -->
+		<os-core:space id="space"
+			url="jini://*/*/${restful.managementSpaceName}" />
+
+		<!-- OpenSpaces simplified space API built on top of IJSpace/JavaSpace. -->
+		<os-core:giga-space id="gigaSpace" space="space" />
+
+		<bean id="adminView"
+			class="org.springframework.web.servlet.view.json.MappingJacksonJsonView" />
+
+		<bean id="multipartResolver"
+			class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+			<property name="maxUploadSize" value="100000000" />
+		</bean>
+		
+		<bean id="expressionHandler"
+			class="org.cloudifysource.rest.security.ExtendedMethodSecurityExpressionHandler">
+			<property name="permissionEvaluator" ref="permissionEvaluator" />
+		</bean>
+	</beans>
+
+	<beans profile="secure">
+		<sec:global-method-security
+			pre-post-annotations="enabled" proxy-target-class="true">
+			<sec:expression-handler ref="expressionHandler" />
+		</sec:global-method-security>
+		
+		<bean id="permissionEvaluator"
+			class="org.cloudifysource.rest.security.CustomPermissionEvaluator" />
+	</beans>
 	
-	<bean id="permissionEvaluator" class="org.cloudifysource.rest.security.CustomPermissionEvaluator"/>
-
-	<bean id="expressionHandler" class="org.cloudifysource.rest.security.ExtendedMethodSecurityExpressionHandler">
-		<property name="permissionEvaluator" ref="permissionEvaluator"/>
-	</bean>
-	
-	<!-- to turn on method security: set pre-post-annotations to 'enabled' -->
-	<sec:global-method-security pre-post-annotations="disabled" proxy-target-class="true">
-		<sec:expression-handler ref="expressionHandler"/>
-	</sec:global-method-security>
-	
-	<!-- <bean id="securityPropagation" class="org.cloudifysource.rest.security.SecurityPropagation"
-		factory-method="valueOf">
-		<constructor-arg>
-			<value>${security.propagation}</value>
-		</constructor-arg>
-	</bean> -->
-
-	<mvc:annotation-driven/>
-	<mvc:resources mapping="/resources/**" location="/resources/" />
-
-	<context:component-scan base-package="org.cloudifysource.rest" />
-
-	<mvc:interceptors>
-        <bean class="org.cloudifysource.rest.controllers.VersionValidateInterceptor" />
-	</mvc:interceptors>
-
-	<bean
-		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-		<property name="prefix" value="/WEB-INF/views/" />
-		<property name="suffix" value=".jsp" />
-	</bean>
-
-	<mvc:view-controller path="/" view-name="index" />
-
-	<bean class="org.springframework.web.servlet.view.BeanNameViewResolver" />
-
-	<bean id="admin" class="org.cloudifysource.rest.util.AdminFactoryBean">
-        <property name="groups" value="${restful.lookupGroups}"/>
-        <property name="locators" value="${restful.lookupLocators}"/>
-	</bean>
-	
-	<!--
-    Enables the usage of @GigaSpaceContext annotation based injection.
-	-->
-	<os-core:giga-space-context/>
-	
-	<!--
-	    A bean representing a space (an IJSpace implementation).
-	    Note, we perform a lookup on the space since we are working against a remote space.
-	-->
-	<os-core:space id="space" url="jini://*/*/${restful.managementSpaceName}" />
-	
-	<!--
-	    OpenSpaces simplified space API built on top of IJSpace/JavaSpace.
-	-->
-	<os-core:giga-space id="gigaSpace" space="space"/>
-
-	<bean id="adminView"
-		class="org.springframework.web.servlet.view.json.MappingJacksonJsonView" />
-
-	<bean id="multipartResolver"
-		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
-		<property name="maxUploadSize" value="100000000" />
-	</bean>
+	<beans profile="nonsecure">
+		<sec:global-method-security
+			pre-post-annotations="disabled" proxy-target-class="true">
+			<sec:expression-handler ref="expressionHandler" />
+		</sec:global-method-security>
+		
+		<bean id="permissionEvaluator"
+			class="org.cloudifysource.rest.security.CustomApproveAllPermissionEvaluator" />
+	</beans>
 
 </beans>
