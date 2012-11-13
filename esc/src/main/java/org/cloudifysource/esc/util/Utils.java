@@ -25,8 +25,11 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -119,6 +122,22 @@ public final class Utils {
 		}
 		return intValue;
 	}
+	
+	/**
+	 * Splits the given string by the given delimiter, and trimming the resulted tokens. 
+	 * @param stringOfTokens The string to split 
+	 * @param delimiter The delimiter to split by
+	 * @return A Collection of trimmed String tokens
+	 */
+	public static Collection<String> splitAndTrimString(String stringOfTokens, String delimiter) {
+    	Collection<String> values = new HashSet<String>();
+		StringTokenizer tokenizer = new StringTokenizer(stringOfTokens, delimiter);
+		while (tokenizer.hasMoreTokens()) {
+			values.add(tokenizer.nextToken().trim());
+		}
+		
+		return values;
+    }
 
 	/**
 	 * Validates a connection can be made to the given address and port, within the given time limit.

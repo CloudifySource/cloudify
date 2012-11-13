@@ -573,6 +573,7 @@ public class AgentlessInstaller {
 				details.getRemoteExecutionMode())
 				.exportVar(LUS_IP_ADDRESS_ENV, details.getLocator())
 				.exportVar(GSA_MODE_ENV, details.isLus() ? "lus" : "agent")
+				.exportVar(CloudifyConstants.SPRING_BEANS_PROFILE_ENV_VAR, "nonsecure")
 				.exportVar(NO_WEB_SERVICES_ENV,
 						details.isNoWebServices() ? "true" : "false")
 				.exportVar(
