@@ -362,12 +362,8 @@ public class DSLReader {
 		for (Entry<String, Object>  entry : overrideProperties.entrySet()) {
 			String key = entry.getKey();
 			Object propertyValue = entry.getValue();
-			if (properties.containsKey(key)) {
-				properties.put(key, propertyValue);
-			} else {
-				throw new IllegalArgumentException("Cannot override property[" 
-						+ key + "]. It doesn't exist in the properties file.");			
-			}
+			// overrides existing property or add a new one.
+			properties.put(key, propertyValue);
 		}		
 	}
 

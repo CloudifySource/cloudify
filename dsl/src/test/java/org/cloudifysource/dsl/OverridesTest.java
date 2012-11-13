@@ -31,10 +31,6 @@ public class OverridesTest {
 			"src/test/resources/overridesTest/services/cassandraWithoutOverridesFile/cassandra";
 	private static final String SERVICE_EXTERNAL_OVERRIDES_FILE_PATH = 
 			"src/test/resources/overridesTest/overridesFiles/cassandraWithoutOverridesFile.overrides";
-	private static final String SERVICE_ILLEGAL_OVERRIDES_FILE_FORMAT_PATH = 
-			"src/test/resources/overridesTest/overridesFiles/cassandraIllegalOverridesFileFormat.overrides";
-	private static final String SERVICE_ILLEGAL_OVERRIDES_PROPERTIES_FILE_PATH = 
-			"src/test/resources/overridesTest/overridesFiles/cassandraIllegalOverridesProperties.overrides";
 
 	private static final String APPLICATION_PATH = 
 			"src/test/resources/overridesTest/apps/overridesTestApplication";
@@ -42,10 +38,6 @@ public class OverridesTest {
 			"src/test/resources/overridesTest/apps/overridesTestApplicationWithoutOverridesFile";
 	private static final String APPLICATION_EXTERNAL_OVERRIDES_FILE_PATH = 
 			"src/test/resources/overridesTest/overridesFiles/overridesTestApplicationWithoutOverridesFile.overrides";
-	private static final String APPLICATION_ILLEGAL_OVERRIDES_FILE_FORMAT_PATH = 
-			"src/test/resources/overridesTest/overridesFiles/applicationIllegalOverridesFileFormat.overrides";
-	private static final String APPLICATION_ILLEGAL_OVERRIDES_PROPERTIES_PATH = 
-			"src/test/resources/overridesTest/overridesFiles/applicationIllegalOverridesProperties.overrides";
 
 	private static final String APPLICATION_SERVICE_PATH = 
 			"src/test/resources/overridesTest/services/service1";
@@ -157,50 +149,6 @@ public class OverridesTest {
 			fail("Failed to read application " + APPLICATION_SERVICE_PATH + e);
 		}
 	}
-	
-	/**
-	 * 
-	 * @throws IllegalAccessException .
-	 * @throws InvocationTargetException .
-	 * @throws NoSuchMethodException .
-	 * @throws DSLException .
-	 */
-	@Test
-	public void testServiceIllegalOverridesFileFormat()
-			throws IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException, DSLException {
-		try {
-			testDSLOverrides(EXTERNAL_OVERRIDES_SERVICE_PATH,
-					SERVICE_ILLEGAL_OVERRIDES_FILE_FORMAT_PATH, Service.class,
-					null);
-			fail("Expected DSLException for service "
-					+ EXTERNAL_OVERRIDES_SERVICE_PATH);
-		} catch (final IllegalArgumentException e) { 
-			Assert.assertTrue(e.getMessage().contains("Cannot override property"));
-		}
-	}
-
-	/**
-	 * 
-	 * @throws IllegalAccessException .
-	 * @throws InvocationTargetException .
-	 * @throws NoSuchMethodException .
-	 * @throws DSLException .
-	 */
-	@Test
-	public void testServiceIllegalOverridesProperties()
-			throws IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException, DSLException {
-		try {
-			testDSLOverrides(EXTERNAL_OVERRIDES_SERVICE_PATH,
-					SERVICE_ILLEGAL_OVERRIDES_PROPERTIES_FILE_PATH,
-					Service.class, null);
-			fail("Expected DSLException for service "
-					+ EXTERNAL_OVERRIDES_SERVICE_PATH);
-		} catch (final IllegalArgumentException e) {
-			Assert.assertTrue(e.getMessage().contains("Cannot override property"));
-		}
-	}
 
 	/**
 	 * 
@@ -258,50 +206,6 @@ public class OverridesTest {
 		} catch (final DSLException e) {
 			fail("Failed to read application "
 					+ EXTERNAL_OVERRIDES_APPLICATION_PATH + e);
-		}
-	}
-
-	/**
-	 * 
-	 * @throws IllegalAccessException .
-	 * @throws InvocationTargetException .
-	 * @throws NoSuchMethodException .
-	 * @throws DSLException .
-	 */
-	@Test
-	public void testApplicationIllegalOverridesFileFormat()
-			throws IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException, DSLException {
-		try {
-			testDSLOverrides(EXTERNAL_OVERRIDES_APPLICATION_PATH,
-					APPLICATION_ILLEGAL_OVERRIDES_FILE_FORMAT_PATH,
-					Application.class, null);
-			fail("Expected DSLException for application "
-					+ EXTERNAL_OVERRIDES_APPLICATION_PATH);
-		} catch (final IllegalArgumentException e) {
-			Assert.assertTrue(e.getMessage().contains("Cannot override property"));
-		}
-	}
-
-	/**
-	 * 
-	 * @throws IllegalAccessException .
-	 * @throws InvocationTargetException .
-	 * @throws NoSuchMethodException .
-	 * @throws DSLException .
-	 */
-	@Test
-	public void testApplicationIllegalOverridesProperties()
-			throws IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException, DSLException {
-		try {
-			testDSLOverrides(EXTERNAL_OVERRIDES_APPLICATION_PATH,
-					APPLICATION_ILLEGAL_OVERRIDES_PROPERTIES_PATH,
-					Application.class, null);
-			fail("Expected DSLException for application "
-					+ EXTERNAL_OVERRIDES_APPLICATION_PATH);
-		} catch (final IllegalArgumentException e) {
-			Assert.assertTrue(e.getMessage().contains("Cannot override property"));
 		}
 	}
 
