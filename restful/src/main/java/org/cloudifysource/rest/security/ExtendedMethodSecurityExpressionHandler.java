@@ -78,27 +78,33 @@ public class ExtendedMethodSecurityExpressionHandler extends
 		return ctx;
 	}
 	
+	@Override
 	public ExpressionParser getExpressionParser() {
         return expressionParser;
     }
 
-    public void setParameterNameDiscoverer(ParameterNameDiscoverer parameterNameDiscoverer) {
+    @Override
+	public void setParameterNameDiscoverer(ParameterNameDiscoverer parameterNameDiscoverer) {
         this.parameterNameDiscoverer = parameterNameDiscoverer;
     }
 
-    public void setPermissionEvaluator(PermissionEvaluator permissionEvaluator) {
+    @Override
+	public void setPermissionEvaluator(PermissionEvaluator permissionEvaluator) {
         this.permissionEvaluator = permissionEvaluator;
     }
 
-    public void setTrustResolver(AuthenticationTrustResolver trustResolver) {
+    @Override
+	public void setTrustResolver(AuthenticationTrustResolver trustResolver) {
         this.trustResolver = trustResolver;
     }
 
-    public void setReturnObject(Object returnObject, EvaluationContext ctx) {
+    @Override
+	public void setReturnObject(Object returnObject, EvaluationContext ctx) {
         ((CustomMethodSecurityExpressionRoot)ctx.getRootObject().getValue()).setReturnObject(returnObject);
     }
 
-    public void setRoleHierarchy(RoleHierarchy roleHierarchy) {
+    @Override
+	public void setRoleHierarchy(RoleHierarchy roleHierarchy) {
         this.roleHierarchy = roleHierarchy;
     }
 
