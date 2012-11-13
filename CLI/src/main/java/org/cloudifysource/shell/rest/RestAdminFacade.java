@@ -845,8 +845,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			Map<String, File> fileToPost = new HashMap<String, File>();
 			fileToPost.put(CloudifyConstants.REQUEST_PARAM_TEMPLATES_DIR_NAME, templatesFile);
 			response = (List<String>) client.postFiles(url, fileToPost);
-		} catch (RestException e) {
-			throw new CLIException(e);
+		} catch (ErrorStatusException e) {
+			throw new CLIStatusException(e.getReasonCode(), e.getArgs());
 		}
 		return response;
 	}

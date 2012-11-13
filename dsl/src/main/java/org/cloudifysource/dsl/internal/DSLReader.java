@@ -183,7 +183,7 @@ public class DSLReader {
 	 * 
 	 * @param fileNameSuffix The suffix.
 	 * @param dir The directory to search at.
-	 * @return The found files. Return null if no file with the specified suffix was found.
+	 * @return The found files. Returns null if no file with the specified suffix was found.
 	 */
 	public static File[] findDefaultDSLFiles(final String fileNameSuffix, final File dir) {
 
@@ -199,6 +199,10 @@ public class DSLReader {
 			}
 		});
 
+		if (files.length == 0) {
+			return null;
+		}
+		
 		return files;
 	}
 	

@@ -50,7 +50,7 @@ public final class DSLUtils {
 	/**
 	 * The expected file name suffix for templates file e.g. <code>*templates.groovy</code>.
 	 */
-	public static final String TEMPLATES_DSL_FILE_NAME_SUFFIX = "templates.groovy";
+	public static final String TEMPLATES_DSL_FILE_NAME_SUFFIX = "-template.groovy";
 
 	/**
 	 * The expected file name of an application properties file after it has been copied to a service directory.
@@ -61,6 +61,12 @@ public final class DSLUtils {
 	 * The expected file name of an application overrides file after it has been copied to a service directory.
 	 */
 	public static final String APPLICATION_OVERRIDES_FILE_NAME = "application.overrides";
+	
+	/**
+	 * The max number of templates allowed in one templates file.
+	 */
+	public static final int MAX_TEMPLATES_PER_FILE = 1;
+
 	
 	private DSLUtils() {
 		// private constructor to prevent initialization

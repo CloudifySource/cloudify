@@ -40,8 +40,6 @@ public final class RestUtils {
     /**
      * 
      */
-
-    
     public static final String RESPONSE_KEY = "response";
     
     private static final String ERROR_ARGS = "error_args";

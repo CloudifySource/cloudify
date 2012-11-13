@@ -16,13 +16,13 @@
 package org.cloudifysource.shell.commands;
 
 import java.io.File;
-import java.util.LinkedList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
-import org.cloudifysource.dsl.internal.CloudTemplateHolder;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.ServiceReader;
@@ -34,10 +34,13 @@ import org.fusesource.jansi.Ansi.Color;
  * Reads the templates from the (groovy) templates-file.
  * 
  * Required arguments: 
- * 			templates-folder - Path to the folder contains the groovy templates file.
+ * 			templates-file-or-folder - Path to a single groovy file (one template to add)
+ * 										or to a folder (zipped or not) contains one or more groovy files
+ * 										each groovy file has the form of "*-template.groovy" 
+ * 										and declare one template to add. 
  * 
  * Command syntax: 
- * 			add-templates templatesFolder
+ * 			add-templates templates-file-or-folder
  * 
  * @author yael
  * 
@@ -47,54 +50,70 @@ import org.fusesource.jansi.Ansi.Color;
 @Command(scope = "cloudify", name = "add-templates", description = "Adds templates to the cloud")
 public class AddTemplates extends AdminAwareCommand {
 
-	@Argument(required = true, name = "templates-folder", description = "The templates folder")
-	private File templatesFolder;
+	@Argument(required = true, name = "templates-file-or-folder", 
+			description = "A template file or a tampltes folder that can contains several template files.")
+	private File templatesFileOrDir;
 
 	@Override
 	protected Object doExecute() throws Exception {
 
-		// validate templates folder and read the templates. 
-		List<CloudTemplateHolder> cloudTemplatesFromFolder = validateTemplatesFolder();
+		// validate templates folder. 
+		String templatesFolderName = templatesFileOrDir.getName();
+		logger.info("Validating tempaltes folder and files at: " + templatesFolderName);
+		if (!templatesFileOrDir.exists()) {
+			throw new CLIStatusException("templates_file_not_found", templatesFileOrDir.getAbsolutePath());
+		}
+		int numTemplatesInFolder = 0;
+		File zipFile = templatesFileOrDir;
 
-		// add templates to cloud
-		logger.info("Adding " + cloudTemplatesFromFolder.size() + " templates to cloud.");
-		File zipFile = Packager.createZipFile("templates", templatesFolder);
-		
+		if (templatesFileOrDir.isFile()) {
+			if (templatesFolderName.endsWith(".zip") || templatesFolderName.endsWith(".jar")) {
+				try {
+					numTemplatesInFolder = ServiceReader.readCloudTemplatesFromZip(templatesFileOrDir).size();
+				} catch (DSLException e) {
+					throw new CLIStatusException("read_dsl_file_failed", templatesFileOrDir, e.getMessage());
+				}
+			} else { 
+				// templatesFileOrDir is a groovy file
+				if (!templatesFolderName.endsWith(DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX)) {
+					throw new CLIStatusException("illegal_template_file_name", templatesFolderName);
+				}
+				File parentFile = templatesFileOrDir.getParentFile();
+				File[] actualTemplatesDslFiles =
+						DSLReader.findDefaultDSLFiles(DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX, parentFile);
+				if (actualTemplatesDslFiles.length > 1) {
+					throw new CLIStatusException("too_many_template_files", Arrays.toString(actualTemplatesDslFiles));
+				}
+				try {
+					numTemplatesInFolder = ServiceReader.readCloudTemplatesFromFile(templatesFileOrDir).size();
+				} catch (DSLException e) {
+					throw new CLIStatusException("read_dsl_file_failed", templatesFileOrDir, e.getMessage());
+				}
+				zipFile = Packager.createZipFile("templates", parentFile);
+			}
+		} else {
+			// templatesFileOrDir is a directory
+			try {
+				numTemplatesInFolder = ServiceReader.readCloudTemplatesFromDirectory(templatesFileOrDir).size();
+			} catch (DSLException e) {
+				throw new CLIStatusException("read_dsl_file_failed", templatesFileOrDir, e.getMessage());
+			}
+			zipFile = Packager.createZipFile("templates", templatesFileOrDir);
+		}
+
+		// add the templates to the cloud
+		logger.info("Adding " + numTemplatesInFolder + " templates to cloud.");
 		List<String> addedTempaltes = adminFacade.addTempaltes(zipFile);
 
 		return getFormattedMessage("templates_added_successfully", Color.GREEN) 
 				+ getFormatedAddedTemplateNamesList(addedTempaltes);
 	}
-
-	private List<CloudTemplateHolder> validateTemplatesFolder() throws CLIStatusException {
-		logger.info("Validating tempaltes folder: " + templatesFolder.getName());
-		if (!templatesFolder.exists()) {
-			throw new CLIStatusException("templates_file_not_found", templatesFolder.getAbsolutePath());
-		}
-		if (!templatesFolder.isDirectory()) {
-			throw new CLIStatusException("templates_file_not_a_file", templatesFolder.getAbsolutePath());
-		}	
-		File[] tempaltesFiles = DSLReader.findDefaultDSLFiles(DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX, templatesFolder);
-		if (tempaltesFiles == null || tempaltesFiles.length == 0) {
-			throw new CLIStatusException("templates_file_not_found", templatesFolder.getAbsolutePath());
-		}
-		List<CloudTemplateHolder> cloudTemplatesFromFolder = new LinkedList<CloudTemplateHolder>();
-		for (File tempaltesFile : tempaltesFiles) {
-			List<CloudTemplateHolder> cloudTemplatesFromFile = null;
-			try {
-				cloudTemplatesFromFile = ServiceReader.getCloudTemplatesFromFile(tempaltesFile);
-			} catch (Exception e) {
-				throw new CLIStatusException("read_dsl_file_failed", tempaltesFile.getAbsolutePath(), e.getMessage());
-			}
-			cloudTemplatesFromFolder.addAll(cloudTemplatesFromFile);
-		}
-		return cloudTemplatesFromFolder;
-	}
-
+	
 	private static Object getFormatedAddedTemplateNamesList(final List<String> tempaltes) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(CloudifyConstants.NEW_LINE)
-		.append("Tamplates added:");
+		.append("Added " + tempaltes.size() + " tempaltes:");
+		
 		for (String templateName : tempaltes) {
 			sb.append(CloudifyConstants.NEW_LINE)
 			.append(CloudifyConstants.TAB_CHAR)

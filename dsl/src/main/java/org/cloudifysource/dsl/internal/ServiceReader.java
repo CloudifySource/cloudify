@@ -20,6 +20,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -276,7 +278,7 @@ public final class ServiceReader {
 		if (inputFile.isFile()) {
 			if (inputFile.getName().endsWith(".zip") || inputFile.getName().endsWith(".jar")) {
 				// Unzip application zip file to temp folder
-				final File tempFolder = ServiceReader.unzipApplicationFile(inputFile, "application");
+				final File tempFolder = ServiceReader.unzipFile(inputFile, "application");
 				actualApplicationDslFile =
 						DSLReader.findDefaultDSLFile(DSLReader.APPLICATION_DSL_FILE_NAME_SUFFIX, tempFolder);
 			}
@@ -302,7 +304,14 @@ public final class ServiceReader {
 
 	}
 
-	private static File unzipApplicationFile(final File inputFile, final String directorySuffix)
+	/**
+	 * 
+	 * @param inputFile to unzip.
+	 * @param directorySuffix the suffix of the target directory.
+	 * @return The unzipped file.
+	 * @throws IOException .
+	 */
+	public static File unzipFile(final File inputFile, final String directorySuffix)
 			throws IOException {
 
 		final File baseDir = ServiceReader.createTempDir(directorySuffix);
@@ -414,42 +423,89 @@ public final class ServiceReader {
 
 	/**
 	 * 
-	 * @param templatesFileOrDir 
-	 * 						The templates file or directory.
-	 * @return The templates read from the templates files.
+	 * @param templatesZip
+	 * 					The templates zipped directory.
+	 * @return The templates read from the templates folder un-zipped from templatesZip.
 	 * @throws IOException .
-	 * @throws DSLException .
+	 * @throws DSLException If failed to read the DSL template files.
 	 */
-	public static List<CloudTemplateHolder> getCloudTemplatesFromFile(final File templatesFileOrDir) 
-			throws DSLException, IOException {
-		File[] actualTemplatesDslFiles = {templatesFileOrDir};
+	public static List<CloudTemplateHolder> readCloudTemplatesFromZip(final File templatesZip) 
+			throws IOException, DSLException {
+		File templateDirectory = ServiceReader.unzipFile(templatesZip, "templates");
+		return readCloudTemplatesFromDirectory(templateDirectory);
+	}
 
-		if (templatesFileOrDir.isFile()) {
-			if (templatesFileOrDir.getName().endsWith(".zip") || templatesFileOrDir.getName().endsWith(".jar")) {
-				// Unzip templates zip file to temp folder
-				final File tempFolder = ServiceReader.unzipApplicationFile(templatesFileOrDir, "templates");
-				actualTemplatesDslFiles =
-						DSLReader.findDefaultDSLFiles(DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX, tempFolder);
+	/**
+	 * 
+	 * @param templatesDir 
+	 * 						The templates directory.
+	 * @return The templates read from the templates files found in templatesDir.
+	 * @throws DSLException If failed to read the DSL template files.
+	 */
+	public static List<CloudTemplateHolder> readCloudTemplatesFromDirectory(final File templatesDir) 
+			throws DSLException {
+		if (!templatesDir.isDirectory()) {
+			throw new DSLException(templatesDir + " is not a directory.");	
+		}
+		File[] templateFiles =
+				DSLReader.findDefaultDSLFiles(DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX, templatesDir);
+		if (templateFiles == null || templateFiles.length == 0) {
+			throw new DSLException("The directory " + templatesDir + " contains no template files.");	
+		}
+		Map<String, CloudTemplateHolder> cloudTemplatesMap = new HashMap<String, CloudTemplateHolder>();
+		// for each file - reads the templates from it and creates a suitable CloudTemplateHolder object.
+		for (File templateFile : templateFiles) {
+			List<CloudTemplateHolder> cloudTemplatesFromFile = readCloudTemplatesFromFile(templateFile);
+			for (CloudTemplateHolder cloudTemplateHolder : cloudTemplatesFromFile) {
+				String name = cloudTemplateHolder.getName();
+				if (cloudTemplatesMap.containsKey(name)) {
+					throw new DSLException("Template with name [" + name 
+							+ "] already exist in folder [" + templatesDir + "]"); 
+				}
+				cloudTemplatesMap.put(name, cloudTemplateHolder);
+				
 			}
-		} else {
-			actualTemplatesDslFiles =
-					DSLReader.findDefaultDSLFiles(DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX, templatesFileOrDir);
 		}
 
-		List<CloudTemplateHolder> cloudTemplatesList = new LinkedList<CloudTemplateHolder>();
-		for (File actualTemplatesDslFile : actualTemplatesDslFiles) {			
-			DSLReader dslReader = new DSLReader();
-			dslReader.setDslFile(actualTemplatesDslFile);
-			dslReader.setCreateServiceContext(false);
-			Map<String, CloudTemplate> cloudTemplateMap = dslReader.readDslEntity(Map.class);
-			for (Entry<String, CloudTemplate> entry : cloudTemplateMap.entrySet()) {
-				CloudTemplateHolder holder = new CloudTemplateHolder();
-				holder.setName(entry.getKey());
-				holder.setCloudTemplate(entry.getValue());
-				cloudTemplatesList.add(holder);
-			}
-		}
+		return new LinkedList<CloudTemplateHolder>(cloudTemplatesMap.values());
+	}
+	
+	/**
+	 * 
+	 * @param templateFile
+	 * 					The template file.
+	 * @return The holder of the CloudTemplate read from the file.
+	 * @throws DSLException If failed to read the DSL template files..
+	 */
+	public static List<CloudTemplateHolder> readCloudTemplatesFromFile(final File templateFile) 
+			throws DSLException {
+		
+		DSLReader dslReader = new DSLReader();
+		dslReader.setDslFile(templateFile);
+		dslReader.setCreateServiceContext(false);
+		// do not validate object in case the RelativeUploadDir is  
+		// under the cloud configuration folder uploaded to the cloud.
+		dslReader.setValidateObjects(false);
 
-		return cloudTemplatesList;
+		Map<String, CloudTemplate> cloudTemplateMap = dslReader.readDslEntity(Map.class);
+		if (cloudTemplateMap.isEmpty()) {
+			throw new DSLException("The file " + templateFile + " evaluates to an empty map.");	
+		}
+		int size = cloudTemplateMap.size();
+		if (size > DSLUtils.MAX_TEMPLATES_PER_FILE) {
+			throw new DSLException("Too many templates in one groovy file: " 
+					+ templateFile + " declares " + size 
+					+ " templates, only " + DSLUtils.MAX_TEMPLATES_PER_FILE + " allowed.");
+		}
+		List<CloudTemplateHolder> cloudTemplateHolders = new ArrayList<CloudTemplateHolder>(cloudTemplateMap.size());
+		for (Entry<String, CloudTemplate> entry : cloudTemplateMap.entrySet()) {
+			CloudTemplateHolder holder = new CloudTemplateHolder();
+			holder.setName(entry.getKey());
+			holder.setCloudTemplate(entry.getValue());
+			cloudTemplateHolders.add(holder);
+		}
+		
+		return cloudTemplateHolders;
+	
 	}
 }

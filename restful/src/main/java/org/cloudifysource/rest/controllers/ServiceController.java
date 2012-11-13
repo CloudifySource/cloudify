@@ -24,11 +24,13 @@ import static org.cloudifysource.rest.ResponseConstants.HTTP_OK;
 import static org.cloudifysource.rest.ResponseConstants.SERVICE_INSTANCE_UNAVAILABLE;
 import static org.cloudifysource.rest.util.RestUtils.successStatus;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -68,6 +70,13 @@ import net.jini.core.discovery.LookupLocator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.cloudifysource.dsl.ComputeDetails;
 import org.cloudifysource.dsl.DataGrid;
 import org.cloudifysource.dsl.IsolationSLAFactory;
@@ -103,6 +112,8 @@ import org.cloudifysource.restDoclet.annotations.JsonResponseExample;
 import org.cloudifysource.restDoclet.annotations.PossibleResponseStatus;
 import org.cloudifysource.restDoclet.annotations.PossibleResponseStatuses;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.type.JavaType;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.CycleDetector;
 import org.jgrapht.graph.DefaultDirectedGraph;
@@ -143,6 +154,7 @@ import org.openspaces.core.util.MemoryUnit;
 import org.openspaces.events.adapter.SpaceDataEvent;
 import org.openspaces.events.notify.SimpleNotifyContainerConfigurer;
 import org.openspaces.events.notify.SimpleNotifyEventListenerContainer;
+import org.openspaces.pu.container.jee.JeeServiceDetails;
 import org.openspaces.pu.service.CustomServiceDetails;
 import org.openspaces.pu.service.ServiceDetails;
 import org.openspaces.pu.service.ServiceDetailsProvider;
@@ -174,7 +186,6 @@ import com.gigaspaces.log.LastNLogEntryMatcher;
 import com.gigaspaces.log.LogEntries;
 import com.gigaspaces.log.LogEntry;
 import com.gigaspaces.log.LogEntryMatchers;
-import com.j_spaces.core.LeaseContext;
 import com.j_spaces.core.client.EntryArrivedRemoteEvent;
 
 /**
@@ -220,7 +231,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	private CloudTemplate managementTemplate;
 	private SimpleNotifyEventListenerContainer listenerContainer;
 	private Map<String, CloudTemplate> localCloudTemplates = new HashMap<String, CloudTemplate>();
-	
+
 	private static final Logger logger = Logger
 			.getLogger(ServiceController.class.getName());
 	private static final long DEFAULT_DUMP_FILE_SIZE_LIMIT = 5 * 1024 * 1024;
@@ -278,7 +289,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		startLifecycleLogsCleanupTask();
 		startListeningToSpace();
-		
+
 	}
 
 	private void startListeningToSpace() {
@@ -294,7 +305,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@SpaceDataEvent
 			public void onNotification(final CloudTemplateHolder data, final GigaSpace space, 
 					final TransactionStatus txStatus, 
-                    final EntryArrivedRemoteEvent entryArrivedRemoteEvent) {		
+					final EntryArrivedRemoteEvent entryArrivedRemoteEvent) {		
 				NotifyActionType notifyActionType = entryArrivedRemoteEvent.getNotifyActionType();
 				if (notifyActionType.isWrite() || notifyActionType.isUpdate()) {
 					addTemplateToCloud(data.getName(), data.getCloudTemplate());
@@ -305,7 +316,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		}).notifyContainer();
 		listenerContainer.start();
 	}
-	
+
 	private void startLifecycleLogsCleanupTask() {
 		this.lifecycleEventsCleaner.scheduleWithFixedDelay(new Runnable() {
 
@@ -3636,7 +3647,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Add templates to the cloud.
-	 * @param templatesFolder A Groovy file contains the templates map.
+	 * @param templatesFolder The templates zip file.
 	 * @return a map containing the added templates and a success status if succeeded, 
 	 * else returns an error status.
 	 * @throws RestErrorException in case of failing to add the template to the space.
@@ -3650,27 +3661,74 @@ public class ServiceController implements ServiceDetailsProvider {
 			@RequestParam(value = CloudifyConstants.REQUEST_PARAM_TEMPLATES_DIR_NAME, required = true) 
 			final MultipartFile templatesFolder) 
 					throws IOException, DSLException, RestErrorException {
-		File localTemplatesFolder = copyMultipartFileToLocalFile(templatesFolder);
-		// get the templates
-		List<CloudTemplateHolder> cloudTemplates = ServiceReader.getCloudTemplatesFromFile(localTemplatesFolder);
-		// add them to space
-		List<String> failedToAddTemplates = new LinkedList<String>();
-		List<String> addedTemplates = new LinkedList<String>();
-		for (CloudTemplateHolder holder : cloudTemplates) {
-			LeaseContext<CloudTemplateHolder> writeResult = gigaSpace.write(holder);
-			String name = holder.getName();
-			if (writeResult == null) {
-				failedToAddTemplates.add(name);
-			} else {
-				addedTemplates.add(name);
-			}
-		}
-		if (!failedToAddTemplates.isEmpty()) {
-			throw new RestErrorException("failed_to_add_templates", 
-					failedToAddTemplates.toString(), templatesFolder.getName());
-		}
 
-		return successStatus(addedTemplates);
+		ProcessingUnit processingUnit = admin.getProcessingUnits().waitFor("rest", 5, TimeUnit.SECONDS);
+		ProcessingUnitInstance[] instances = processingUnit.getInstances();
+		
+		File localTemplatesFolder = copyMultipartFileToLocalFile(templatesFolder);
+		List<CloudTemplateHolder> cloudTemplates = ServiceReader.readCloudTemplatesFromZip(localTemplatesFolder);
+		List<String> expectedAddedTemplatesList = new ArrayList<String>(cloudTemplates.size());
+		for (CloudTemplateHolder cloudTemplateHolder : cloudTemplates) {
+			expectedAddedTemplatesList.add(cloudTemplateHolder.getName());
+		}
+		int expectedTemplatesSize = expectedAddedTemplatesList.size();		
+		
+		logger.log(Level.INFO, "addTemplates - sending templates folder to " + instances.length + " rest instances.");
+		for (ProcessingUnitInstance processingUnitInstance : instances) {
+			JeeServiceDetails jeeDetails = processingUnitInstance.getJeeDetails();
+			String host = jeeDetails.getHost();
+			Integer port = jeeDetails.getPort();
+			int statusCode;
+			String responseBody;
+			try {
+				logger.log(Level.INFO, "addTemplates - sending templates to rest instance " + host + ":" + port);
+				DefaultHttpClient httpClient = new DefaultHttpClient();
+				final MultipartEntity reqEntity = new MultipartEntity();
+				final FileBody bin = new FileBody(localTemplatesFolder);
+				reqEntity.addPart(CloudifyConstants.REQUEST_PARAM_TEMPLATES_DIR_NAME, bin);	
+				String uri = "http://" + host + ":" + "8080/rest" + "/service/templates/internal";
+				HttpPost postMethod = new HttpPost(uri);
+				postMethod.setEntity(reqEntity);
+				HttpResponse httpResponse = httpClient.execute(postMethod);
+				statusCode = httpResponse.getStatusLine().getStatusCode();
+				responseBody = getResponseBody(httpResponse, postMethod);
+			} catch (Exception e) {
+				logger.log(Level.INFO, "Failed to send the request to " + host + ":" + port);
+				throw new RestErrorException("failed_to_send_templates_to_rest"
+						, templatesFolder.getName(), e.getCause().getMessage());
+			}
+			final ObjectMapper mapper = new ObjectMapper();
+			Object response = ((Map<String, Object>) mapper.readValue(responseBody, TypeFactory.type(Map.class)))
+					.get(RestUtils.RESPONSE_KEY);
+			if (statusCode != HTTP_OK) {
+				logger.log(Level.INFO, "Response error code " + statusCode + ", response: " + response);
+				throw new RestErrorException("failed_to_send_templates_to_rest"
+						, templatesFolder.getName(), response != null ? response.toString() : null);
+			}			
+			final JavaType javaType = TypeFactory.type(Map.class);
+			List<String> responseList = (List<String>) response;
+			if (responseList == null) {
+				throw new RestErrorException("not_all_templates_was_added"
+						, templatesFolder.getName(), host, String.valueOf(expectedTemplatesSize), null);
+			}
+			int addedTemplatesSize = responseList.size();
+			if (addedTemplatesSize != expectedTemplatesSize) {
+				logger.log(Level.INFO, "Expected " + expectedTemplatesSize + " added templates" 
+						+ " but got " + addedTemplatesSize + ".");
+				throw new RestErrorException("not_all_templates_was_added"
+						, templatesFolder.getName(), host, String.valueOf(expectedTemplatesSize), 
+						String.valueOf(addedTemplatesSize));
+			}
+			if (!expectedAddedTemplatesList.equals(responseList)) {
+				logger.log(Level.INFO, "Expected added templates list: " + expectedAddedTemplatesList 
+						+ ", actual list: " + responseList + ".");
+				throw new RestErrorException("not_all_templates_was_added"
+						, templatesFolder.getName(), host, expectedAddedTemplatesList.toString(), 
+						responseList.toString());
+			}
+			logger.log(Level.INFO, "Added " + addedTemplatesSize + " templates to REST host address " + host);
+		}
+		return successStatus(expectedAddedTemplatesList);
 	}
 
 	/**
@@ -3733,7 +3791,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 		return localCloudTemplates;
 	}
-	
+
 	private void addTemplateToCloud(final String templateName, final CloudTemplate cloudTemplate) {
 		if (cloud != null) {
 			cloud.getTemplates().put(templateName, cloudTemplate);
@@ -3748,4 +3806,92 @@ public class ServiceController implements ServiceDetailsProvider {
 			localCloudTemplates.remove(templateName);
 		}
 	}
+	
+	/**
+	 * Add templates to the cloud.
+	 * @param templatesFolder The templates zip file.
+	 * @return a map containing the added templates and a success status if succeeded, 
+	 * else returns an error status.
+	 * @throws RestErrorException in case of failing to add the template to the space.
+	 * @throws IOException in case of reading error.
+	 * @throws DSLException in case of failing to read a DSL object.
+	 */
+	@RequestMapping(value = "templates/internal", method = RequestMethod.POST)
+	public @ResponseBody
+	Map<String, Object> 
+	addTemplatesInternal(@RequestParam(value = CloudifyConstants.REQUEST_PARAM_TEMPLATES_DIR_NAME, required = true) 
+	final MultipartFile templatesFolder) throws IOException, DSLException, RestErrorException {
+
+		String hostAddress = InetAddress.getLocalHost().getHostAddress();
+		logger.log(Level.INFO, "addTemplatesInternal - adding templates to rest host: " + hostAddress);
+		File localTemplatesFolder = copyMultipartFileToLocalFile(templatesFolder);
+		// unzip files to cloud configuration folder
+
+		// get the templates
+		List<CloudTemplateHolder> cloudTemplatesHolders = 
+				ServiceReader.readCloudTemplatesFromZip(localTemplatesFolder);
+		// add them to cloud
+		List<String> alreadyExistTemplates = new LinkedList<String>();
+		List<String> addedTemplates = new LinkedList<String>();
+		for (CloudTemplateHolder holder : cloudTemplatesHolders) {
+			String name = holder.getName();
+			Map<String, CloudTemplate> cloudTemplates;
+			if (cloud == null) {
+				cloudTemplates = localCloudTemplates;
+			} else {
+				cloudTemplates = cloud.getTemplates();
+			}
+			if (cloudTemplates.containsKey(name)) {
+				alreadyExistTemplates.add(name);
+			} else {
+				cloudTemplates.put(name, holder.getCloudTemplate());
+				addedTemplates.add(name);
+			}
+		}
+		if (!alreadyExistTemplates.isEmpty()) {
+			throw new RestErrorException("failed_to_add_templates", 
+					alreadyExistTemplates.toString(), templatesFolder.getName(), "templates already exist.");
+		}
+		return successStatus(addedTemplates);
+
+	}
+
+	private static String getResponseBody(final HttpResponse response, final HttpRequestBase httpMethod)
+			throws IOException, RestErrorException {
+
+		InputStream instream = null;
+		try {
+			final HttpEntity entity = response.getEntity();
+			if (entity == null) {
+				final RestErrorException e = 
+						new RestErrorException("comm_error", 
+								httpMethod.getURI().toString(), " response entity is null");
+				logger.log(Level.FINE, "Response entity is null", e);
+				throw e;
+			}
+			instream = entity.getContent();
+			return getStringFromStream(instream);
+		} finally {
+			if (instream != null) {
+				try {
+					instream.close();
+				} catch (final IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	private static String getStringFromStream(final InputStream is)
+			throws IOException {
+		BufferedReader bufferedReader = new BufferedReader(
+				new InputStreamReader(is));
+		StringBuilder sb = new StringBuilder();
+		String line = null;
+		while ((line = bufferedReader.readLine()) != null) {
+			sb.append(line);
+		}
+		return sb.toString();
+	}
+
 }

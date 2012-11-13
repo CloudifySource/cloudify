@@ -549,7 +549,7 @@ public class GSRestClient {
     }
     
     public final Object postFiles(final String relativeUrl, Map<String, File> files) 
-    		throws RestException {
+    		throws ErrorStatusException {
         final MultipartEntity reqEntity = new MultipartEntity();
 
         for (Entry<String, File> entry : files.entrySet()) {
