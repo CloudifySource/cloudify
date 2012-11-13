@@ -186,6 +186,9 @@ public final class CloudifyConstants {
 	public static final String CUSTOM_PROPERTY_STOP_DETECTION_ON_ALL_PROCESSES = "org.cloudifysource.stop-detection-on-all-processes";
 	public static final String CUSTOM_PROPERTY_MONITORS_CACHE_EXPIRATION_TIMEOUT = "org.cloudifysource.monitors-cache-timeout";
 	public static final String CUSTOM_PROPERTY_PIDS_SIZE_LIMIT = "org.cloudifysource.pids-size-limit";
+	
+	
+	public static final String CUSTOM_CLOUD_PROPERTY_UNICAST_DISCOVERY_PORT = "org.cloudifysource.unicast-discovery-port";
 
 	/*******************
 	 * event lifecycle polling parameters.
