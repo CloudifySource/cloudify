@@ -178,18 +178,22 @@ import com.gigaspaces.log.LogEntryMatchers;
 @Controller
 @RequestMapping("/service")
 public class ServiceController implements ServiceDetailsProvider {
-	private static final String LOCALCLOUD_ZONE = "localcloud";
+	
 	private static final int MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED = 1000;
 	private static final int DEFAULT_TIME_EXTENTION_POLLING_TASK = 5;
 	private static final int THREAD_POOL_SIZE = 20;
-	private static final String SHARED_ISOLATION_ID = "public";
 	private static final int PU_DISCOVERY_TIMEOUT_SEC = 8;
-	private final Map<UUID, RestPollingRunnable> lifecyclePollingThreadContainer = new ConcurrentHashMap<UUID, RestPollingRunnable>();
-	private final ExecutorService serviceUndeployExecutor = Executors
-			.newFixedThreadPool(10);
 	private static final int LIFECYCLE_EVENT_POLLING_INTERVAL_SEC = 4;
 	private static final long LIFECYCLE_EVENT_CLEANUP_INTERVAL_SEC = 60;
 	private static final long MINIMAL_POLLING_TASK_EXPIRATION = 5 * 60 * 1000;
+	
+	private static final String LOCALCLOUD_ZONE = "localcloud";
+	private static final String SHARED_ISOLATION_ID = "public";
+	private static final String IS_SPRING_SECURED = System.getProperty("springSecured");
+	
+	private final Map<UUID, RestPollingRunnable> lifecyclePollingThreadContainer = new ConcurrentHashMap<UUID, RestPollingRunnable>();
+	private final ExecutorService serviceUndeployExecutor = Executors
+			.newFixedThreadPool(10);
 
 	/**
 	 * A set containing all of the executed lifecycle events. used to avoid
@@ -3423,14 +3427,17 @@ public class ServiceController implements ServiceDetailsProvider {
     private Collection<String> getUserAuthGroups() throws AccessDeniedException {
     	Set<String> userAuthGroups = new HashSet<String>();
     	
-    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    	if (authentication instanceof AnonymousAuthenticationToken) {
-			throw new AccessDeniedException("Anonymous user is not supported");
+    	if (StringUtils.isNotBlank(IS_SPRING_SECURED) && IS_SPRING_SECURED.equalsIgnoreCase("true")) {
+    	
+	    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+	    	if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+				throw new AccessDeniedException("Anonymous user is not supported");
+	    	}
+			
+			for (GrantedAuthority authority : authentication.getAuthorities()) {
+				userAuthGroups.add(authority.getAuthority());
+			}
     	}
-		
-		for (GrantedAuthority authority : authentication.getAuthorities()) {
-			userAuthGroups.add(authority.getAuthority());
-		}
 		
 		return userAuthGroups;
     }

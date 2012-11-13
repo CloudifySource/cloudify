@@ -58,7 +58,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 		String permissionName, authGroupsString;
 		Collection<String> requestedAuthGroups, userAuthGroups;
 		
-    	if (authentication instanceof AnonymousAuthenticationToken) {
+    	if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
 			throw new AccessDeniedException("Anonymous user is not supported");
     	}
 		
@@ -92,6 +92,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     	userAuthGroups = getUserAuthGroups();
     	
     	//check roles
+    	//TODO : This should be configurable
     	boolean relevantRoleFound = false;
     	if (permissionName.equalsIgnoreCase(PERMISSION_TO_VIEW)) {
     		for (String userAuthGroup : userAuthGroups) {
@@ -200,7 +201,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     	Set<String> userAuthGroups = new HashSet<String>();
     	
     	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    	if (authentication instanceof AnonymousAuthenticationToken) {
+    	if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
 			throw new AccessDeniedException("Anonymous user is not supported");
     	}
 		
