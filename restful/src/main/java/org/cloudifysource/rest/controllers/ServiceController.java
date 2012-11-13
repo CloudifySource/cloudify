@@ -3150,7 +3150,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			// CPU = 0 , memoery is calculated as usual. shared = false
 			pu.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(
 					(int) (cloudExternalProcessMemoryInMB * count), 0,
-					locationAware, false));
+					locationAware, true));
 		}
 
 		logger.log(Level.INFO, "Starting to poll for lifecycle events.");
