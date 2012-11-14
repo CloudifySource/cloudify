@@ -65,11 +65,11 @@ cloud {
 	user {
 		// Optional. Identity used to access cloud. 
 		// When used with the default driver, maps to the identity used to create the ComputeServiceContext.
-		user "ENTER_USER"
+		user user
 		
 		// Optional. Key used to access cloud.
 		// When used with the default driver, maps to the credential used to create the ComputeServiceContext.
-		apiKey "ENTER_KEY"
+		apiKey apiKey
 		
 		
 		
@@ -82,13 +82,13 @@ cloud {
 	templates ([
 				MEDIUM_WIN : template{
 					// Mandatory. Image ID.
-					imageId "us-east-1/ami-6cb90605"
+					imageId imageId
 					// Mandatory. Amount of RAM available to machine.
 					machineMemoryMB 1600
 					// Mandatory. Hardware ID.
-					hardwareId "m1.large"
+					hardwareId hardwareId
 					// Optional. Location ID.
-					locationId "us-east-1c"
+					locationId locationId
 
 					// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
 					remoteDirectory "/C\$/Users/Administrator/gs-files"
@@ -102,7 +102,7 @@ cloud {
 					localDirectory "upload"
 					// Optional. Name of key file to use for authenticating to the remot machine. Remove this line if key files
 					// are not used.
-					keyFile "ENTER_KEY_FILE"
+					keyFile keyFile
 				
 					
 					// Additional template options.
@@ -110,7 +110,7 @@ cloud {
 					// method names invoked on the TemplateOptions object with the value as the parameter.
 					options ([
 								"securityGroups" : ["default"]as String[],
-								"keyPair" : "ENTER_KEY_PAIR_NAME"
+								"keyPair" : keyPair
 							])
 
 					// Optional. Overrides to default cloud driver behavior.

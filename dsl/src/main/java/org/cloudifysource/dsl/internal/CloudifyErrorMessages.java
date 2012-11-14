@@ -10,7 +10,12 @@ public enum CloudifyErrorMessages {
 	/******
 	 * If service recipe refers to missing template.
 	 */
-	MISSING_TEMPLATE("missing_template", 1);
+	MISSING_TEMPLATE("missing_template", 1),
+	
+	/**
+	 * Is the cloud overrides given is to long. the file size limit is 10K.
+	 */
+	CLOUD_OVERRIDES_TO_LONG("cloud_overrides_file_to_long", 0);
 	
 	private final int numberOfParameters;
 	private final String name;

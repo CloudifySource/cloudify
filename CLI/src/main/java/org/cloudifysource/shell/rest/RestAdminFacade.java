@@ -328,14 +328,15 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			final String applicationName, final String serviceName,
 			final String zone, final Properties contextProperties,
 			final String templateName, final int timeout,
-			final boolean selfHealing) throws CLIException {
+			final boolean selfHealing,
+			final File cloudOverrides) throws CLIException {
 
 		final String url = SERVICE_CONTROLLER_URL + "applications/"
 				+ applicationName + "/services/" + serviceName + "/timeout/"
 				+ timeout + "?zone=" + zone + "&template=" + templateName
 				+ "&selfHealing=" + Boolean.toString(selfHealing);
 		try {
-			return (String) client.postFile(url, packedFile, contextProperties);
+			return (String) client.postFile(url, packedFile, contextProperties, cloudOverrides);
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		} catch (final RestException e) {
@@ -636,7 +637,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	@SuppressWarnings("unchecked")
 	public Map<String, String> installApplication(final File applicationFile,
 			final String applicationName, final String authGroups, final int timeout,
-			final boolean selfHealing) throws CLIException {
+			final boolean selfHealing,
+			final File cloudOverrides) throws CLIException {
 
     	Map<String, String> response;
 		String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/timeout/" + timeout
@@ -648,7 +650,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
             } else {
             	Map<String, String> paramsMap = new HashMap<String, String>();
             	paramsMap.put("authGroups", authGroups);
-            	response = (Map<String, String>) client.postFile(url, applicationFile, paramsMap);
+            	response = (Map<String, String>) client.postFile(url, applicationFile, cloudOverrides, paramsMap);
             }
         } catch (final ErrorStatusException e) {
             throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());

@@ -19,7 +19,7 @@ public class DSLValidateObjectsTest {
 private final String CLOUD_PATH = "../esc/src/main/resources/clouds/rsopenstack/rsopenstack-cloud.groovy";
 private final String SERVICE_PATH = "testResources/simple/simple-service.groovy";
 
-	@Test
+	//@Test
 	public void testCloud() throws IOException {
 		File cloudFile = new File(CLOUD_PATH);
 		

@@ -31,6 +31,7 @@ import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.Application;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.packaging.Packager;
@@ -88,12 +89,20 @@ public class InstallApplication extends AdminAwareCommand {
 	private File cloudConfiguration;
 
 	@Option(required = false, name = "-overrides",
-			description = "File containing properties to be used to override the current propeties of the application and its services")
+			description = "File containing properties to be used to override the current " 
+					+ "propeties of the application and its services")
 	private File overrides;
+	
+	@Option(required = false, name = "-cloud-overrides",
+			description = "File containing properties to be used to override the current cloud " +
+					"configuration for this application and its services.")
+	private File cloudOverrides;
 	
 	private static final String TIMEOUT_ERROR_MESSAGE = "Application installation timed out."
 			+ " Configure the timeout using the -timeout flag.";
 
+	private static final long TEN_K = 10 * FileUtils.ONE_KB;
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -101,6 +110,12 @@ public class InstallApplication extends AdminAwareCommand {
 	@Override
 	protected Object doExecute()
 			throws Exception {
+		
+		if (cloudOverrides != null) {
+			if (cloudOverrides.length() >= TEN_K) {
+				throw new CLIStatusException(CloudifyErrorMessages.CLOUD_OVERRIDES_TO_LONG.getName());
+			}
+		}
 		
 		RecipePathResolver pathResolver = new RecipePathResolver();
 		if (pathResolver.resolveApplication(applicationFile)) {
@@ -147,7 +162,8 @@ public class InstallApplication extends AdminAwareCommand {
 		logger.info("Uploading application " + applicationName);
 
 		final Map<String, String> result =
-				adminFacade.installApplication(zipFile, applicationName, authGroups, getTimeoutInMinutes(), !disableSelfHealing);
+				adminFacade.installApplication(zipFile, applicationName, authGroups, getTimeoutInMinutes(), !disableSelfHealing, 
+						cloudOverrides);
 
 		final String serviceOrder = result.get(CloudifyConstants.SERVICE_ORDER);
 

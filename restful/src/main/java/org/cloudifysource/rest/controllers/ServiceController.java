@@ -188,7 +188,9 @@ public class ServiceController implements ServiceDetailsProvider {
 			new ConcurrentHashMap<UUID, RestPollingRunnable>();
 	private final ExecutorService serviceUndeployExecutor = Executors
 			.newFixedThreadPool(10);
-
+	
+	private static final long TEN_K = 10 * FileUtils.ONE_KB;
+	
 	/**
 	 * A set containing all of the executed lifecycle events. used to avoid
 	 * duplicate prints.
@@ -1617,6 +1619,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
 			@RequestParam(value = "authGroups", required = false) String authGroups,
 			@RequestParam(value = "recipeOverridesFile", required = false) final MultipartFile recipeOverridesFile,
+			@RequestParam(value = "cloudOverridesFile", required = false) final MultipartFile cloudOverrides,
 			@RequestParam(value = "selfHealing", required = false) final Boolean selfHealing)
 			throws IOException, DSLException, RestErrorException {
 		boolean actualSelfHealing = true;
@@ -1633,9 +1636,15 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		final File applicationOverridesFile = copyMultipartFileToLocalFile(recipeOverridesFile);
-		final Object returnObject = doDeployApplication(applicationName,
-				applicationFile, applicationOverridesFile, authGroups, timeout,
-				actualSelfHealing);
+		final File cloudOverridesFile = copyMultipartFileToLocalFile(cloudOverrides);
+		final Object returnObject = doDeployApplication(
+				applicationName,
+				applicationFile, 
+				applicationOverridesFile, 
+				authGroups,
+				timeout,
+				actualSelfHealing, 
+				cloudOverridesFile);
 		applicationFile.delete();
 		return returnObject;
 	}
@@ -1902,10 +1911,15 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 	}
 
-	private Object doDeployApplication(final String applicationName,
-			final File applicationFile, final File applicationOverridesFile,
-			final String authGroups, final int timeout, final boolean selfHealing) 
-			throws IOException, DSLException, RestErrorException {
+	private Object doDeployApplication(
+			final String applicationName,
+			final File applicationFile, 
+			final File applicationOverridesFile,
+			final String authGroups,
+			final int timeout, 
+			final boolean selfHealing,
+			final File cloudOverrides) throws IOException,
+			DSLException, RestErrorException {
 		final DSLApplicationCompilatioResult result = ServiceReader
 				.getApplicationFromFile(applicationFile,
 						applicationOverridesFile);
@@ -1930,8 +1944,15 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		final ApplicationInstallerRunnable installer = new ApplicationInstallerRunnable(
-				this, result, applicationName, applicationOverridesFile, authGroups,
-				services, this.cloud, selfHealing);
+				this, 
+				result, 
+				applicationName, 
+				applicationOverridesFile,
+				authGroups,
+				services, 
+				this.cloud, 
+				selfHealing,
+				cloudOverrides);
 
 		if (installer.isAsyncInstallPossibleForApplication()) {
 			installer.run();
@@ -1988,12 +2009,18 @@ public class ServiceController implements ServiceDetailsProvider {
 		return tempFile.getParent();
 	}
 
-	private void doDeploy(final String applicationName,
-			final String serviceName, final String authGroups, final String templateName,
-			final String[] agentZones, final File serviceFile,
-			final Properties contextProperties, final Service service,
+	private void doDeploy(
+			final String applicationName,
+			final String serviceName,
+			final String authGroups,
+			final String templateName,
+			final String[] agentZones, 
+			final File serviceFile,
+			final Properties contextProperties, 
+			final Service service,
 			final byte[] serviceCloudConfigurationContents,
-			final boolean selfHealing) throws TimeoutException, DSLException {
+			final boolean selfHealing,
+			final File cloudOverrides) throws TimeoutException, DSLException, IOException {
 
 		boolean locationAware = false;
 		boolean dedicated = true;
@@ -2032,14 +2059,6 @@ public class ServiceController implements ServiceDetailsProvider {
 						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
 						.name(serviceName);
 		
-		if (isLocalCloud()) {
-			setPublicMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
-		} else {
-		// All PUs on this role share the same machine. 
-		// Machines are identified by zone.
-			setSharedMachineProvisioning(deployment, agentZones, reservedMemoryCapacityPerMachineInMB);
-		}
-		
 		if (cloud == null) { // Azure or local-cloud
 			if (!isLocalCloud()) {
 				// Azure: Eager scale (1 container per machine per PU)
@@ -2068,47 +2087,61 @@ public class ServiceController implements ServiceDetailsProvider {
 			final CloudTemplate template = getComputeTemplate(cloud, templateName);
 			final long cloudExternalProcessMemoryInMB = service.getIsolationSLA().getGlobal() != null ?
 					service.getIsolationSLA().getGlobal().getInstanceMemoryMB() : calculateExternalProcessMemory(cloud, template);
-			
-				logger.info("Creating cloud machine provisioning config. Template remote directory is: "
-							+ template.getRemoteDirectory());
-				final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
-						cloud, template, templateName, this.managementTemplate.getRemoteDirectory());
-					
-				if (serviceCloudConfigurationContents != null) {
-					config.setServiceCloudConfiguration(serviceCloudConfigurationContents);
-				}
 
-				final String locators = extractLocators(admin);
-				config.setLocator(locators);
-		
-				// management machine should be isolated from other services. no
-				// matter of the deployment mode.
-				config.setDedicatedManagementMachines(true);
-				if (!dedicated) {
-					logger.info("public mode is on. will use public machine provisioning for "
-							+ serviceName + " deployment.");
-					// service instances can be deployed across all agents
-					setPublicMachineProvisioning(deployment, config);
-				} else {
-					// service deployment will have a dedicated agent per instance
-					setDedicatedMachineProvisioning(deployment, config);
+			logger.info("Creating cloud machine provisioning config. Template remote directory is: "
+					+ template.getRemoteDirectory());
+			final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
+					cloud, template, templateName, this.managementTemplate.getRemoteDirectory());
+			if (cloudOverrides != null) {
+				if (logger.isLoggable(Level.FINE)) {
+					logger.fine("Recieved request for installation of " 
+								+ serviceName + " with cloud overrides parameters [ " 
+							+ FileUtils.readFileToString(cloudOverrides) + "]");
 				}
-	
-				deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
-				if (service == null || service.getScalingRules() == null) {
-					final int totalMemoryInMB = calculateTotalMemoryInMB(
-							serviceName, service, (int) cloudExternalProcessMemoryInMB);
-					final double totalCpuCores = calculateTotalCpuCores(service);
-					final ManualCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
-							.createManualCapacityScaleConfig(totalMemoryInMB,
-									totalCpuCores, locationAware, dedicated);
-					deployment.scale(scaleConfig);
-				} else {
-					final AutomaticCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
-							.createAutomaticCapacityScaleConfig(serviceName,
-										service, (int) cloudExternalProcessMemoryInMB, locationAware, dedicated);
-					deployment.scale(scaleConfig);
+				config.setCloudOverridesPerService(cloudOverrides);
+			} else {
+				if (logger.isLoggable(Level.FINE)) {
+					logger.fine("No cloud overrides parameters were requested for the installation of " 
+							+ serviceName);
 				}
+			}
+			if (serviceCloudConfigurationContents != null) {
+				config.setServiceCloudConfiguration(serviceCloudConfigurationContents);
+			}
+
+			final String locators = extractLocators(admin);
+			config.setLocator(locators);
+
+			// management machine should be isolated from other services. no
+			// matter of the deployment mode.
+			config.setDedicatedManagementMachines(true);
+			if (!dedicated) {
+				logger.info("public mode is on. will use public machine provisioning for "
+						+ serviceName + " deployment.");
+				// service instances can be deployed across all agents
+				setPublicMachineProvisioning(deployment, config);
+			} else {
+				// service deployment will have a dedicated agent per instance
+				setDedicatedMachineProvisioning(deployment, config);
+			}
+
+			deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
+			if (service == null || service.getScalingRules() == null) {
+				final int totalMemoryInMB = calculateTotalMemoryInMB(
+						serviceName, service,
+						(int) cloudExternalProcessMemoryInMB);
+				final double totalCpuCores = calculateTotalCpuCores(service);
+				final ManualCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
+						.createManualCapacityScaleConfig(totalMemoryInMB,
+								totalCpuCores, locationAware, dedicated);
+				deployment.scale(scaleConfig);
+			} else {
+				final AutomaticCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
+						.createAutomaticCapacityScaleConfig(serviceName,
+								service, (int) cloudExternalProcessMemoryInMB,
+								locationAware, dedicated);
+				deployment.scale(scaleConfig);
+			}
 		}
 
 		// add context properties
@@ -2116,6 +2149,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		verifyEsmExistsInCluster();
 		deployAndWait(serviceName, deployment);
 	}
+
 	
 	
 	/**
@@ -2308,24 +2342,35 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            if true, there will be an attempt to restart the recipe in
 	 *            case a problem occurred in its life-cycle, otherwise, if the
 	 *            recipe fails to execute, no attempt to recover will made.
+	 * @param cloudOverrides - A file containing cloud override properties to be used by the cloud driver.
 	 * @return lifecycleEventContainerID.
 	 * @throws RestErrorException .
 	 * @throws TimeoutException .
-	 * @throws PackagingException .
 	 * @throws IOException .
-	 * @throws AdminException .
 	 * @throws DSLException .
 	 */
-	public String deployElasticProcessingUnit(final String serviceName,
-			final String applicationName, final String authGroups, final String zone,
-			final File srcFile, final Properties propsFile,
+	public String deployElasticProcessingUnit(
+			final String serviceName,
+			final String applicationName, 
+			final String authGroups,
+			final String zone,
+			final File srcFile, 
+			final Properties propsFile,
 			final String originalTemplateName,
-			final boolean isApplicationInstall, final int timeout,
+			final boolean isApplicationInstall, 
+			final int timeout,
 			final TimeUnit timeUnit,
 			final byte[] serviceCloudConfigurationContents,
-			final boolean selfHealing) throws TimeoutException, IOException,
+			final boolean selfHealing,
+			final File cloudOverrides) throws TimeoutException, IOException,
 			DSLException, RestErrorException {
 
+		if (cloudOverrides != null) {
+			if (cloudOverrides.length() >= TEN_K) {
+				throw new RestErrorException(CloudifyErrorMessages.CLOUD_OVERRIDES_TO_LONG.getName());
+			}
+		}
+		
 		String templateName;
 		if (originalTemplateName == null) {
 			templateName = this.defaultTemplateName;
@@ -2340,8 +2385,8 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		Service service = null;
 		File projectDir = null;
-		// Cloud cloud = null;
 		if (srcFile.getName().endsWith(".zip")) {
+			
 			projectDir = ServiceReader.extractProjectFile(srcFile);
 			final File workingProjectDir = new File(projectDir, "ext");
 			final String serviceFileName = propsFile
@@ -2355,9 +2400,6 @@ public class ServiceController implements ServiceDetailsProvider {
 						.getServiceFromDirectory(workingProjectDir);
 			}
 			service = result.getService();
-			// cloud = ServiceReader.getCloudFromDirectory(new File(projectDir,
-			// "ext"));
-
 		}
 
 		validateTemplate(templateName);
@@ -2372,30 +2414,30 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		if (service == null) {
 			doDeploy(applicationName, serviceName, authGroups, templateName, agentZones,
-					srcFile, propsFile, selfHealing);
+					srcFile, propsFile, selfHealing, cloudOverrides);
 		} else if (service.getLifecycle() != null) {
 			doDeploy(applicationName, serviceName, authGroups, templateName, agentZones,
 					srcFile, propsFile, service,
-					serviceCloudConfigurationContents, selfHealing);
+					serviceCloudConfigurationContents, selfHealing, cloudOverrides);
 		} else if (service.getDataGrid() != null) {
 			deployDataGrid(applicationName, serviceName, authGroups, agentZones, srcFile,
 					propsFile, service.getDataGrid(), templateName,
-					service.isLocationAware());
+					service.isLocationAware(), cloudOverrides);
 		} else if (service.getStatelessProcessingUnit() != null) {
 			deployStatelessProcessingUnitAndWait(applicationName, serviceName, authGroups,
 					agentZones, new File(projectDir, "ext"), propsFile,
 					service.getStatelessProcessingUnit(), templateName,
-					service.getNumInstances(), service.isLocationAware());
+					service.getNumInstances(), service.isLocationAware(), cloudOverrides);
 		} else if (service.getMirrorProcessingUnit() != null) {
 			deployStatelessProcessingUnitAndWait(applicationName, serviceName, authGroups,
 					agentZones, new File(projectDir, "ext"), propsFile,
 					service.getMirrorProcessingUnit(), templateName,
-					service.getNumInstances(), service.isLocationAware());
+					service.getNumInstances(), service.isLocationAware(), cloudOverrides);
 		} else if (service.getStatefulProcessingUnit() != null) {
 			deployStatefulProcessingUnit(applicationName, serviceName, authGroups,
 					agentZones, new File(projectDir, "ext"), propsFile,
 					service.getStatefulProcessingUnit(), templateName,
-					service.isLocationAware());
+					service.isLocationAware(), cloudOverrides);
 		} else {
 			throw new IllegalStateException("Unsupported service type");
 		}
@@ -2435,10 +2477,11 @@ public class ServiceController implements ServiceDetailsProvider {
 	private void doDeploy(final String applicationName,
 			final String serviceName, final String authGroups, final String templateName,
 			final String[] agentZones, final File srcFile,
-			final Properties propsFile, final boolean selfHealing)
-			throws TimeoutException, DSLException {
+			final Properties propsFile, final boolean selfHealing,
+			final File cloudOverrides)
+			throws TimeoutException, DSLException, IOException {
 		doDeploy(applicationName, serviceName, authGroups, templateName, agentZones,
-				srcFile, propsFile, null, null, selfHealing);
+				srcFile, propsFile, null, null, selfHealing, cloudOverrides);
 	}
 
 	// TODO: add getters for service processing units in the service class that
@@ -2458,14 +2501,20 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param srcFile
 	 *            .
 	 * @param propsFile
-	 *            . <<<<<<< HEAD
+	 * 
 	 * @param selfHealing
-	 *            . ======= >>>>>>> 88e40d7... CLOUDIFY-1126 Fix checkStyle and
-	 *            bugs found by findBugs.
 	 * @return status - success (error) and response - lifecycle events
 	 *         container id (error description)
 	 * @throws DSLException
 	 * @throws RestErrorException .
+	 *            .
+	 * @param selfHealing
+	 *            .
+	 * @param cloudOverridesFile - A file containing override parameters to be used by the cloud driver.
+	 * @return status - success (error) and response - lifecycle events
+	 *         container id (error description)
+	 * @throws DSLException
+	 * @throws RestErrorException 
 	 * @throws TimeoutException .
 	 * @throws PackagingException .
 	 * @throws IOException .
@@ -2492,6 +2541,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@RequestParam(value = "zone", required = true) final String zone,
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
 			@RequestParam(value = "props", required = true) final MultipartFile propsFile,
+			@RequestParam(value = "cloudOverridesFile", required = false) final MultipartFile cloudOverridesFile,
 			@RequestParam(value = "selfHealing", required = false, defaultValue = "true") final Boolean selfHealing)
 			throws TimeoutException, PackagingException, IOException,
 			DSLException, RestErrorException {
@@ -2521,7 +2571,8 @@ public class ServiceController implements ServiceDetailsProvider {
 		final InputStream is = new ByteArrayInputStream(propsBytes);
 		props.load(is);
 		final File dest = copyMultipartFileToLocalFile(srcFile);
-		final File destFile = new File(dest.getParent(), absolutePuName + "."
+		final File cloudOverrides = copyMultipartFileToLocalFile(cloudOverridesFile);
+		final File destFile = new File(dest.getParent(), absolutePuName + "." 
 				+ FilenameUtils.getExtension(dest.getName()));
 		if (destFile.exists()) {
 			FileUtils.deleteQuietly(destFile);
@@ -2558,15 +2609,26 @@ public class ServiceController implements ServiceDetailsProvider {
 			lifecycleEventsContainerID = deployElasticProcessingUnit(
 					absolutePuName, applicationName, authGroups, zone, destFile, props,
 					actualTemplateName, false, timeout, TimeUnit.MINUTES,
-					cloudConfigurationContents, selfHealing);
+					cloudConfigurationContents, selfHealing,
+					cloudOverrides);
 			destFile.deleteOnExit();
 		} else {
 			logger.warning("Deployment file could not be renamed to the absolute pu name."
 					+ " Deploaying using the name " + dest.getName());
 			lifecycleEventsContainerID = deployElasticProcessingUnit(
-					absolutePuName, applicationName, authGroups, zone, dest, props,
-					actualTemplateName, false, timeout, TimeUnit.MINUTES, null,
-					selfHealing);
+					absolutePuName, 
+					applicationName, 
+					authGroups, 
+					zone, 
+					dest, 
+					props,
+					actualTemplateName, 
+					false, 
+					timeout, 
+					TimeUnit.MINUTES, 
+					null,
+					selfHealing, 
+					cloudOverrides);
 			dest.deleteOnExit();
 		}
 
@@ -2675,8 +2737,9 @@ public class ServiceController implements ServiceDetailsProvider {
 			final String serviceName, final String[] agentZones,
 			final File srcFile, final Properties contextProperties,
 			final DataGrid dataGridConfig, final String templateName,
-			final boolean locationAware) throws AdminException,
-			TimeoutException, DSLException {
+			final boolean locationAware,
+			final File cloudOverrides) throws AdminException,
+			TimeoutException, DSLException, IOException {
 
 		final int containerMemoryInMB = dataGridConfig.getSla()
 				.getMemoryCapacityPerContainer();
@@ -2732,8 +2795,9 @@ public class ServiceController implements ServiceDetailsProvider {
 			final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
 					cloud, template, templateName,
 					this.managementTemplate.getRemoteDirectory());
-			// CloudMachineProvisioningConfig config =
-			// CloudDSLToCloudMachineProvisioningConfig.convert(cloud);
+			if (cloudOverrides != null) {
+				config.setCloudOverridesPerService(cloudOverrides);
+			}
 
 			final String locators = extractLocators(admin);
 			config.setLocator(locators);
@@ -2816,7 +2880,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			final String[] agentZones, final File extractedServiceFolder,
 			final Properties contextProperties,
 			final StatelessProcessingUnit puConfig, final String templateName,
-			final int numberOfInstances, final boolean locationAware)
+			final int numberOfInstances, final boolean locationAware,
+			final File cloudOverride)
 			throws IOException, AdminException, TimeoutException, DSLException {
 
 		final File jarFile = getJarFileFromDir(
@@ -2867,8 +2932,9 @@ public class ServiceController implements ServiceDetailsProvider {
 			final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
 					cloud, template, templateName,
 					this.managementTemplate.getRemoteDirectory());
-			// CloudMachineProvisioningConfig config =
-			// CloudDSLToCloudMachineProvisioningConfig.convert(cloud);
+			if (cloudOverride != null) {
+				config.setCloudOverridesPerService(cloudOverride);
+			}
 
 			final String locators = extractLocators(admin);
 			config.setLocator(locators);
@@ -2903,7 +2969,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			final File extractedServiceFolder,
 			final Properties contextProperties,
 			final StatefulProcessingUnit puConfig, final String templateName,
-			final boolean locationAware) throws IOException, AdminException,
+			final boolean locationAware,
+			final File cloudOverrides) throws IOException, AdminException,
 			TimeoutException, DSLException {
 
 		final File jarFile = getJarFileFromDir(
@@ -2956,6 +3023,9 @@ public class ServiceController implements ServiceDetailsProvider {
 			final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
 					cloud, template, templateName,
 					this.managementTemplate.getRemoteDirectory());
+			if (cloudOverrides != null) {
+				config.setCloudOverridesPerService(cloudOverrides);
+			}
 
 			final String locators = extractLocators(admin);
 			config.setLocator(locators);
@@ -3426,6 +3496,4 @@ public class ServiceController implements ServiceDetailsProvider {
 		return res;
 
 	}
-    
-
 }

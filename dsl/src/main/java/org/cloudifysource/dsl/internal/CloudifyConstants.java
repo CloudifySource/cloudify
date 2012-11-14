@@ -127,6 +127,7 @@ public final class CloudifyConstants {
 	 */
 	public static final String ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME = "__CLOUDIFY__CLOUD_TEMPLATE_NAME";
 	public static final String ELASTIC_PROPERTIES_CLOUD_CONFIGURATION_DIRECTORY = "__CLOUDIFY__CLOUD_CONFIGURATION_DIRECTORY";
+	public static final String ELASTIC_PROPERTIES_CLOUD_OVERRIDES_PER_SERVICE = "cloud-overrides-per-service";
 
 	/********************
 	 * Key names for lifecycle event results.

@@ -49,7 +49,7 @@ cloud {
 	user {
 		
 		// Azure subscription id
-		user "ENTER_SUBSCRIPTION_ID"
+		user subscriptionId
 			
 	}
 
@@ -61,10 +61,10 @@ cloud {
 					hardwareId "Small"
 					localDirectory "upload"
 					
-					username "ENTER_USER_NAME"
-					password "ENTER_PASSWORD"
+					username username
+					password password
 					
-					remoteDirectory "/home/ENTER_USER_NAME/gs-files"
+					remoteDirectory "/home/${username}/gs-files"
 					
 					custom ([
 					
@@ -81,11 +81,11 @@ cloud {
 						 * Put this file under the path specified in 'localDirectory' *
 						***************************************************************/
 						
-						"azure.pfx.file": "ENTER_PFX_FILE",
+						"azure.pfx.file": pfxFile,
 						
 						// Password that was used to create the certificate
 						
-						"azure.pfx.password" : "ENTER_PFX_PASSWORD"
+						"azure.pfx.password" : pfxPassword
 					])
 				}
 			])

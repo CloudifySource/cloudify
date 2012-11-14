@@ -10,7 +10,6 @@ import junit.framework.Assert;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.cloudifysource.dsl.internal.ServiceReader;
-import org.junit.Test;
 
 /**
  * 
@@ -27,7 +26,7 @@ public class CompilationCloudFilesTest {
 	private static final String OPENSTACK = CLOUDS_PATH + "openstack/openstack-cloud.groovy";
 	private static final String RSOPENSTACK = CLOUDS_PATH + "rsopenstack/rsopenstack-cloud.groovy";
 
-	@Test 
+	//@Test 
 	public void testAzure() throws IOException, DSLException {
 		try{
 			testCloudFileCompilation(AZURE);
@@ -38,7 +37,7 @@ public class CompilationCloudFilesTest {
 		}
 	}
 	
-	@Test 
+	//@Test 
 	public void testByon() {
 		try{
 			testCloudFileCompilation(BYON);
@@ -47,7 +46,7 @@ public class CompilationCloudFilesTest {
 		}
 	}
 	
-	@Test 
+	//@Test 
 	public void testEc2() {
 		try{
 			testCloudFileCompilation(EC2);
@@ -59,7 +58,7 @@ public class CompilationCloudFilesTest {
 		}
 	}
 	
-	@Test 
+	//@Test 
 	public void testEc2win() {
 		try{
 			testCloudFileCompilation(EC2_WIN);
@@ -72,7 +71,7 @@ public class CompilationCloudFilesTest {
 		}
 	}
 	
-	@Test 
+	//@Test 
 	public void testOpenstack() {
 		try{
 			testCloudFileCompilation(OPENSTACK);
@@ -85,7 +84,7 @@ public class CompilationCloudFilesTest {
 		}
 	}
 	
-	@Test 
+	//@Test 
 	public void testRsopenstack() throws IOException, DSLException {
 		try{
 			testCloudFileCompilation(RSOPENSTACK);

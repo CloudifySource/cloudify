@@ -89,6 +89,8 @@ public class DSLReader {
 	private String dslContents;
 
 	private boolean validateObjects = true;
+	
+	private String overridesScript = null;
 
 	/*******
 	 * Variables injected into the context of a groovy compilation (binding) Used with the service extension mechanism
@@ -213,25 +215,33 @@ public class DSLReader {
 		overridesFile = getFileIfExist(overridesFile, dslFileNamePrefix + DSLUtils.OVERRIDES_FILE_SUFFIX);		
 	}
 
-	private static void createDSLOverrides(final File file, final Map<String, Object> overridesMap) 
+	private static void createDSLOverrides(final File file, final String script, 
+			final Map<String, Object> overridesMap) 
 			throws IOException {
-		if (file == null) {
+		if (file == null && script == null) {
 			return;
 		}
-		try {
-			ConfigObject parse = new ConfigSlurper().parse(file.toURI().toURL());
-			parse.flatten(overridesMap);
-		} catch (final Exception e) {
-			throw new IOException("Failed to read overrides file: " + file, e);
-		} 
+		if (file != null) {
+			try {
+				final ConfigObject parse = new ConfigSlurper().parse(file.toURI().toURL());
+				parse.flatten(overridesMap);
+			} catch (final Exception e) {
+				throw new IOException("Failed to read overrides file: " + file, e);
+			} 			
+		}
+		if (script != null) {
+			final ConfigObject parse = new ConfigSlurper().parse(script);
+			parse.flatten(overridesMap);			
+		}
 	}
+		
 	private Map<String, Object> createApplicationProperties() throws IOException {
 		File externalPropertiesFile = getFileIfExist(null, DSLUtils.APPLICATION_PROPERTIES_FILE_NAME);
 		Map<String, Object> externalProperties = new HashMap<String, Object>();
-		createDSLOverrides(externalPropertiesFile, externalProperties);
+		createDSLOverrides(externalPropertiesFile, null, externalProperties);
 		File externalOverridesFile = getFileIfExist(null, DSLUtils.APPLICATION_OVERRIDES_FILE_NAME);
 		Map<String, Object> externalOverrides = new HashMap<String, Object>();
-		createDSLOverrides(externalOverridesFile, externalOverrides);
+		createDSLOverrides(externalOverridesFile, null, externalOverrides);
 		if (externalOverrides != null) {
 			for (Entry<String, Object> entry : externalOverrides.entrySet()) {
 				externalProperties.put(entry.getKey(), entry.getValue());
@@ -274,7 +284,7 @@ public class DSLReader {
 		LinkedHashMap<Object, Object> properties = null;
 		try {
 			properties = createDSLProperties();
-			createDSLOverrides(overridesFile, overrideProperties);
+			createDSLOverrides(overridesFile, overridesScript, overrideProperties);
 			overrideProperties(properties);
 			addApplicationProperties(properties);
 		} catch (final Exception e) {
@@ -356,9 +366,6 @@ public class DSLReader {
 	 * @param properties the properties to override
 	 */
 	private void overrideProperties(final LinkedHashMap<Object, Object> properties) {
-		if (overridesFile == null) {
-			return;
-		}
 		for (Entry<String, Object>  entry : overrideProperties.entrySet()) {
 			String key = entry.getKey();
 			Object propertyValue = entry.getValue();
@@ -717,6 +724,10 @@ public class DSLReader {
 
 	public void setDslFileNameSuffix(final String dslFileNameSuffix) {
 		this.dslFileNameSuffix = dslFileNameSuffix;
+	}
+	
+	public void setOverridesScript(final String script) {
+		this.overridesScript = script;
 	}
 
 	public String getDslName() {

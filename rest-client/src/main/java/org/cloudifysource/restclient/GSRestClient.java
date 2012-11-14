@@ -522,9 +522,9 @@ public class GSRestClient {
      * @throws RestException Reporting failure to post the file.
      */
     public final Object postFile(final String relativeUrl, final File file) throws RestException {
-    	return postFile(relativeUrl, file, new HashMap<String, String>() /*no params*/);
+        return postFile(relativeUrl, file, null, new HashMap<String, String>());
     }
-
+    
     /**
      * This methods executes HTTP post over REST on the given (relative) URL with the given file and
      * properties (also sent as a separate file).
@@ -532,10 +532,12 @@ public class GSRestClient {
      * @param relativeUrl The URL to post to.
      * @param file        The file to send (example: <SOME PATH>/tomcat.zip).
      * @param params      The properties of this POST action (example: com.gs.service.type=WEB_SERVER)
+     * @param cloudOverrides - A file containing override properties to be used by the cloud driver upon installation.
      * @return The response object from the REST server
      * @throws RestException Reporting failure to post the file.
      */
-    public final Object postFile(final String relativeUrl, final File file, final Properties params)
+    public final Object postFile(final String relativeUrl, final File file, final Properties params,
+    		final File cloudOverrides)
             throws RestException {
 
         // It should be possible to dump the properties into a String entity,
@@ -551,7 +553,12 @@ public class GSRestClient {
         }
 
         final MultipartEntity reqEntity = new MultipartEntity();
-
+        
+        FileBody cloudOverridesBody = null;
+        if (cloudOverrides != null) {
+        	cloudOverridesBody = new FileBody(cloudOverrides);
+        	reqEntity.addPart("cloudOverridesFile", cloudOverridesBody);        	
+        }
         final FileBody bin = new FileBody(file);
         final FileBody propsFile = new FileBody(tempFile);
 
@@ -572,12 +579,33 @@ public class GSRestClient {
      * @param file        The file to send (example: <SOME PATH>/tomcat.zip).
      * @param param       An additional string parameter passed on this post.
      * @return The response object from the REST server
+     * @throws RestException Reporting failure to post the file.
+     */
+    public final Object postFile(final String relativeUrl, final File file, final Properties params)
+            throws RestException {
+    	return postFile(relativeUrl, file, params, null);
+    }
+    
+    /**
+     * This methods executes HTTP post over REST on the given (relative) URL with the given file and
+     * properties (also sent as a separate file).
+     *
+     * @param relativeUrl The URL to post to.
+     * @param file        The file to send (example: <SOME PATH>/tomcat.zip).
+     * @param param       An additional string parameter passed on this post.
+     * @return The response object from the REST server
      * @throws RestException Reporting failure to post the file or the parameter.
      */
-    public final Object postFile(final String relativeUrl, final File file, final Map<String, String> params)
+    public final Object postFile(final String relativeUrl, final File file, final File cloudOverrides, final Map<String, String> params)
             throws RestException {
 
         final MultipartEntity entity = new MultipartEntity();
+        
+        FileBody cloudOverridesBody = null;
+        if (cloudOverrides != null) {
+        	cloudOverridesBody = new FileBody(cloudOverrides);
+        	entity.addPart("cloudOverridesFile", cloudOverridesBody);        	
+        }
 
         entity.addPart("file", new FileBody(file));
         try {
