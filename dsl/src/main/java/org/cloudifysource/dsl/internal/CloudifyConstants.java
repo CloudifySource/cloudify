@@ -258,7 +258,7 @@ public final class CloudifyConstants {
 	/*******************
 	 * Spring security mode environment variable
 	 */
-	public static final String SPRING_BEANS_PROFILE_ENV_VAR = "SPRING_PROFILES_DEFAULT";
+	public static final String SPRING_ACTIVE_PROFILE_ENV_VAR = "SPRING_PROFILES_ACTIVE";
 	public static final String SPRING_BEANS_PROFILE_DEFAULT = "nonsecure";
 	
 	// CHECKSTYLE:ON

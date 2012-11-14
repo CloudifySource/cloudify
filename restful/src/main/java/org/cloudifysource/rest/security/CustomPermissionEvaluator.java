@@ -48,7 +48,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 	private static final String ROLE_CLOUDADMIN = "ROLE_CLOUDADMINS";
 	private static final String ROLE_APPMANAGER = "ROLE_APPMANAGERS";
 	private static final String ROLE_VIEWER = "ROLE_VIEWERS";
-	private static final String IS_SPRING_SECURED = System.getenv(CloudifyConstants.SPRING_BEANS_PROFILE_ENV_VAR);
+	private static final String IS_SPRING_SECURED = System.getenv(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR);
 	
 	private Logger logger = java.util.logging.Logger.getLogger(CustomPermissionEvaluator.class.getName());
 

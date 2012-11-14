@@ -31,7 +31,7 @@ public class BooleanDelegatingFilterProxy extends DelegatingFilterProxy{
 	@Override
 	public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain filterChain)
 				throws ServletException, IOException {
-		final String springSecured = System.getenv(CloudifyConstants.SPRING_BEANS_PROFILE_ENV_VAR);
+		final String springSecured = System.getenv(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR);
 
 	    if (StringUtils.isNotBlank(springSecured) && springSecured.equalsIgnoreCase("true")) {
 	    	// Call the delegate
