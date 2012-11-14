@@ -632,7 +632,7 @@ public class AgentlessInstaller {
 		final ShellCommandBuilder scb = new ShellCommandBuilder(details.getRemoteExecutionMode())
 				.exportVar(LUS_IP_ADDRESS_ENV, details.getLocator())
 				.exportVar(GSA_MODE_ENV, details.isLus() ? "lus" : "agent")
-				.exportVar(CloudifyConstants.SPRING_BEANS_PROFILE_ENV_VAR, "nonsecure")
+				.exportVar(CloudifyConstants.SPRING_BEANS_PROFILE_ENV_VAR, CloudifyConstants.SPRING_BEANS_PROFILE_DEFAULT)
 				.exportVar(NO_WEB_SERVICES_ENV,
 						details.isNoWebServices() ? "true" : "false")
 				.exportVar(
