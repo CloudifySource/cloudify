@@ -203,7 +203,6 @@ public class InstallService extends AdminAwareCommand {
 			props = createServiceContextProperties(service);
 			if (serviceFileName != null) {
 				props.setProperty(CloudifyConstants.CONTEXT_PROPERTY_SERVICE_FILE_NAME, serviceFileName);
-				props.setProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups);
 			}
 			if (serviceName == null || serviceName.isEmpty()) {
 				serviceName = service.getName();
