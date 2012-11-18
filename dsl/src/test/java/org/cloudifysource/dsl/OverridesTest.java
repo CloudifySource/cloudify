@@ -52,7 +52,8 @@ public class OverridesTest {
 
 	private static final String EC2_CLOUD_WITH_FILE_PATH = "testResources/cloud/ec2-overrides-with-file";
 	
-	private static final String EC2_CLOUD_WITH_FILE_OVERRIDES_PATH = "testResources/cloud/ec2-overrides-with-file/ec2-cloud.overrides";
+	private static final String EC2_CLOUD_WITH_FILE_OVERRIDES_PATH = 
+			"testResources/cloud/ec2-overrides-with-file/ec2-cloud.overrides";
 	
 	private static final String EC2_CLOUD_WITH_SCRIPT_PATH = "testResources/cloud/ec2-overrides-with-script";	
 

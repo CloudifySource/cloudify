@@ -32,6 +32,7 @@ import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLReader;
+import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
@@ -153,9 +154,6 @@ public class InstallService extends AdminAwareCommand {
 				if (cloudConfigurationZipFile != null) {
 					additionFiles.add(cloudConfigurationZipFile);
 				}
-				if (overrides != null) {
-					additionFiles.add(overrides);
-				}
 				File recipeFile = recipe;
 				if (serviceFileName != null) {
 					final File fullPathToRecipe = new File(
@@ -181,7 +179,7 @@ public class InstallService extends AdminAwareCommand {
 
 				if (overrides != null) {
 					additionFiles.add(DSLReader.copyOverridesFile(overrides,
-							dslReader.getDslName()));
+							dslReader.getDslName() + DSLUtils.SERVICE_FILE_NAME_SUFFIX));
 				}
 				packedFile = Packager.pack(recipeFile, false, service,
 						additionFiles);

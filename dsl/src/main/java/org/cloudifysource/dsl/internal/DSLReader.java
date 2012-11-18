@@ -624,7 +624,7 @@ public class DSLReader {
 	 * @throws IOException if an IO error occurs during copying.
 	 */
 	public static File copyOverridesFile(final File overridesFile, final String dslName) throws IOException {
-		String overridesFileName = dslName + DSLUtils.APPLICATION_FILE_NAME_SUFFIX + DSLUtils.OVERRIDES_FILE_SUFFIX;
+		String overridesFileName = dslName + DSLUtils.OVERRIDES_FILE_SUFFIX;
 		if (overridesFileName.equals(overridesFile.getName())) {
 			return overridesFile;	
 		}

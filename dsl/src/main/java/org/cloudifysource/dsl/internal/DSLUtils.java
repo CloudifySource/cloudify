@@ -46,6 +46,12 @@ public final class DSLUtils {
 	 * The expected file name suffix for application files e.g. <code>*-application.groovy</code>.
 	 */
 	public static final String APPLICATION_FILE_NAME_SUFFIX = "-application";
+	
+	/**
+	 * The expected file name suffix for service files e.g. <code>*-service.groovy</code>.
+	 */
+	public static final String SERVICE_FILE_NAME_SUFFIX = "-service";
+	
 
 	/**
 	 * The expected file name of an application properties file after it has been copied to a service directory.
