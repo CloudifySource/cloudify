@@ -98,25 +98,10 @@ public class DSLReader {
 	 */
 	private Map<Object, Object> variables;
 
-	/*********
-	 * Default file name suffix for service files.
-	 */
-	public static final String SERVICE_DSL_FILE_NAME_SUFFIX = "-service.groovy";
-	/************
-	 * Default file name suffix for application files.
-	 */
-	public static final String APPLICATION_DSL_FILE_NAME_SUFFIX = DSLUtils.APPLICATION_FILE_NAME_SUFFIX + ".groovy";
-	/**************
-	 * Default file name suffix for cloud files.
-	 */
-	public static final String CLOUD_DSL_FILE_NAME_SUFFIX = "-cloud.groovy";
-
 	private static final String[] STAR_IMPORTS = new String[] {
 		org.cloudifysource.dsl.Service.class.getPackage().getName(), UserInterface.class.getPackage().getName(),
 		org.cloudifysource.dsl.internal.context.ServiceImpl.class.getPackage().getName() };
 
-	public static final String DSL_FILE_PATH_PROPERTY_NAME = "dslFilePath";
-	public static final String DSL_VALIDATE_OBJECTS_PROPERTY_NAME = "validateObjectsFlag";
 
 	private void initDslFile()
 			throws FileNotFoundException {
@@ -179,31 +164,46 @@ public class DSLReader {
 	}
 
 	/***********
-	 * Search the directory for files with the specified suffix.
+	 * Search the directory for files other than exceptionalFileName with the specified suffix.
 	 * 
 	 * @param fileNameSuffix The suffix.
-	 * @param dir The directory to search at.
+	 * @param directory The directory to search at.
+	 * @param exceptionalFileName The exceptional file name.
 	 * @return The found files. Returns null if no file with the specified suffix was found.
 	 */
-	public static File[] findDefaultDSLFiles(final String fileNameSuffix, final File dir) {
+	public static File[] findDefaultDSLFilesWithException(final String fileNameSuffix, final File directory, 
+			final String exceptionalFileName) {
 
-		if (!dir.isDirectory()) {
-			throw new IllegalArgumentException(dir.getAbsolutePath() + " is not a directory.");
+		if (!directory.isDirectory()) {
+			throw new IllegalArgumentException(directory.getAbsolutePath() + " is not a directory.");
 		}
 		
-		final File[] files = dir.listFiles(new FilenameFilter() {
+		final File[] files = directory.listFiles(new FilenameFilter() {
 
 			@Override
 			public boolean accept(final File dir, final String name) {
-				return name.endsWith(fileNameSuffix);
+				if (exceptionalFileName != null) {
+					return name.endsWith(fileNameSuffix);
+				}
+				return name.endsWith(fileNameSuffix) && !(name.equals(exceptionalFileName));
 			}
 		});
-
 		if (files.length == 0) {
 			return null;
 		}
 		
 		return files;
+	}
+	
+	/***********
+	 * Search the directory for files with the specified suffix.
+	 * 
+	 * @param fileNameSuffix The suffix.
+	 * @param directory The directory to search at.
+	 * @return The found files. Returns null if no file with the specified suffix was found.
+	 */
+	public static File[] findDefaultDSLFiles(final String fileNameSuffix, final File directory) {
+		return findDefaultDSLFilesWithException(fileNameSuffix, directory, null);
 	}
 	
 	/**
@@ -597,8 +597,8 @@ public class DSLReader {
 			}
 		}
 
-		binding.setVariable(DSL_VALIDATE_OBJECTS_PROPERTY_NAME, validateObjects);
-		binding.setVariable(DSL_FILE_PATH_PROPERTY_NAME, dslFile == null ? null : dslFile.getPath());
+		binding.setVariable(DSLUtils.DSL_VALIDATE_OBJECTS_PROPERTY_NAME, validateObjects);
+		binding.setVariable(DSLUtils.DSL_FILE_PATH_PROPERTY_NAME, dslFile == null ? null : dslFile.getPath());
 		return binding;
 	}
 

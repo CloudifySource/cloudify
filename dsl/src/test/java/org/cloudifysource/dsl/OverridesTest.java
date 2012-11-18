@@ -285,14 +285,14 @@ public class OverridesTest {
 		reader.setWorkDir(workDir);
 		reader.setRunningInGSC(true);
 		if (isApplication) {
-			reader.setDslFileNameSuffix(DSLReader.APPLICATION_DSL_FILE_NAME_SUFFIX);
+			reader.setDslFileNameSuffix(DSLUtils.APPLICATION_DSL_FILE_NAME_SUFFIX);
 			reader.addProperty(DSLUtils.APPLICATION_DIR,
 					workDir.getAbsolutePath());
 			reader.setCreateServiceContext(false);
 		} else if (isService) {
-			reader.setDslFileNameSuffix(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX);
+			reader.setDslFileNameSuffix(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
 		} else if (isCloud) {
-			reader.setDslFileNameSuffix(DSLReader.CLOUD_DSL_FILE_NAME_SUFFIX);
+			reader.setDslFileNameSuffix(DSLUtils.CLOUD_DSL_FILE_NAME_SUFFIX);
 			reader.setCreateServiceContext(false);
 		} else {
 			throw new DSLException("Class " + clazz.getName() + " does not exist in the DSL Domain");

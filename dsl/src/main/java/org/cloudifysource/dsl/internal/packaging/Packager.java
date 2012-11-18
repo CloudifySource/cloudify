@@ -38,6 +38,7 @@ import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.BaseDslScript;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
+import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.ServiceReader;
 
 import com.gigaspaces.internal.utils.StringUtils;
@@ -94,7 +95,7 @@ public final class Packager {
 			PackagingException, DSLException {
 		// Locate recipe file
 		final File recipeFile = recipeDirOrFile.isDirectory() ? DSLReader
-				.findDefaultDSLFile(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX,
+				.findDefaultDSLFile(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX,
 						recipeDirOrFile) : recipeDirOrFile;
 		// Parse recipe into service
 		final Service service = ServiceReader.readService(recipeFile);
@@ -147,7 +148,7 @@ public final class Packager {
 		File recipeFile = recipeDirOrFile;
 		if (isDir) {
 			recipeFile = DSLReader.findDefaultDSLFile(
-					DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX, recipeDirOrFile);
+					DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX, recipeDirOrFile);
 		}
 
 		if (!recipeFile.isFile()) {
@@ -171,7 +172,6 @@ public final class Packager {
 	 * Pack the file and name it 'destFileName'.
 	 * 
 	 * @param service .
-
 	 * @param recipeDirOrFile
 	 *            Folder or file to pack.
 	 * @param destFileName
@@ -441,7 +441,7 @@ public final class Packager {
 				final File extFolder = new File(destApplicationFolder + "/"
 						+ service.getName());
 				final File recipeFile = DSLReader.findDefaultDSLFile(
-						DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX, new File(
+						DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX, new File(
 								applicationDir + "/" + service.getName()));
 				copyExtendedServiceFiles(service, recipeFile, extFolder);
 			}
@@ -673,7 +673,7 @@ public final class Packager {
 		}
 		if (extendedServiceFile.isDirectory()) {
 			extendedServiceFile = DSLReader
-					.findDefaultDSLFile(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX,
+					.findDefaultDSLFile(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX,
 							extendedServiceFile);
 		}
 

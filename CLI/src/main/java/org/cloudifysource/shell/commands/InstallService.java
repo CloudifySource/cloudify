@@ -167,10 +167,10 @@ public class InstallService extends AdminAwareCommand {
 					}
 					// locate recipe file
 					recipeFile = fullPathToRecipe.isDirectory() 
-							? DSLReader.findDefaultDSLFile(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX, fullPathToRecipe) 
+							? DSLReader.findDefaultDSLFile(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX, fullPathToRecipe) 
 							: fullPathToRecipe;
 				} else {
-					recipeFile = DSLReader.findDefaultDSLFile(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX, recipe);
+					recipeFile = DSLReader.findDefaultDSLFile(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX, recipe);
 				}
 				final DSLReader dslReader = createDslReader(recipeFile);
 				service = dslReader.readDslEntity(Service.class);
@@ -319,7 +319,7 @@ public class InstallService extends AdminAwareCommand {
 		dslReader.setWorkDir(recipeFile.getParentFile());
 		dslReader.setRunningInGSC(true);
 		dslReader.setOverridesFile(overrides);
-		dslReader.setDslFileNameSuffix(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX);
+		dslReader.setDslFileNameSuffix(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
 		return dslReader;
 	}
 

@@ -18,7 +18,19 @@ package org.cloudifysource.rest.util;
 import static org.cloudifysource.rest.util.CollectionUtils.mapEntry;
 import static org.cloudifysource.rest.util.CollectionUtils.newHashMap;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.Map;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.cloudifysource.rest.controllers.RestErrorException;
 
 /**
  * @author uri
@@ -43,6 +55,11 @@ public final class RestUtils {
     public static final String RESPONSE_KEY = "response";
     
     private static final String ERROR_ARGS = "error_args";
+    
+	/**
+	 * 
+	 */
+    public static final int TIMEOUT_IN_SECOND = 5;
     
     private RestUtils() {
     	
@@ -99,5 +116,56 @@ public final class RestUtils {
         return newHashMap(mapEntry(STATUS_KEY, (Object) ERROR), mapEntry(ERROR, (Object) errorDesc), 
         		mapEntry(ERROR_ARGS, (Object) args));
     }
+    
+	public static String getResponseBody(final HttpResponse response, final HttpRequestBase httpMethod)
+			throws IOException, RestErrorException {
+
+		InputStream instream = null;
+		try {
+			final HttpEntity entity = response.getEntity();
+			if (entity == null) {
+				final RestErrorException e = 
+						new RestErrorException("comm_error", 
+								httpMethod.getURI().toString(), " response entity is null");
+				throw e;
+			}
+			instream = entity.getContent();
+			return getStringFromStream(instream);
+		} finally {
+			if (instream != null) {
+				try {
+					instream.close();
+				} catch (final IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	public static String getStringFromStream(final InputStream is)
+			throws IOException {
+		BufferedReader bufferedReader = new BufferedReader(
+				new InputStreamReader(is));
+		StringBuilder sb = new StringBuilder();
+		String line = null;
+		while ((line = bufferedReader.readLine()) != null) {
+			sb.append(line);
+		}
+		return sb.toString();
+	}
+
+	public static boolean isLocalHost(final InetAddress address) {
+		 // If the address is local or loop back return true
+	    if (address.isAnyLocalAddress() || address.isLoopbackAddress()) {
+			return true;
+		}
+
+	    // If the address is defined on any interface return true, otherwise return false.
+	    try {
+	        return NetworkInterface.getByInetAddress(address) != null;
+	    } catch (SocketException e) {
+	        return false;
+	    }
+	}
 
 }

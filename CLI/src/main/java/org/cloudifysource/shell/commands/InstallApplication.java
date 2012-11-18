@@ -216,7 +216,7 @@ public class InstallApplication extends AdminAwareCommand {
 
 	private DSLReader createDslReader() {
 		final DSLReader dslReader = new DSLReader();
-		File dslFile = DSLReader.findDefaultDSLFile(DSLReader.APPLICATION_DSL_FILE_NAME_SUFFIX, applicationFile);
+		File dslFile = DSLReader.findDefaultDSLFile(DSLUtils.APPLICATION_DSL_FILE_NAME_SUFFIX, applicationFile);
 		dslReader.setDslFile(dslFile);
 		dslReader.setCreateServiceContext(false);
 		dslReader.addProperty(DSLUtils.APPLICATION_DIR, dslFile.getParentFile().getAbsolutePath());

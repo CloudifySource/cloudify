@@ -26,12 +26,25 @@ public final class DSLUtils {
 	 * the directory where the application file itself can be found.
 	 */
 	public static final String APPLICATION_DIR = "workDirectory";
-	
 	/**
-	 * The context property name of the DSL object properties as parsed at {@link DSLReader}.
+	 * The binding variable name of the DSL object properties.
 	 */
 	public static final String DSL_PROPERTIES = "dsl_properties";
-
+	/**
+	 * The binding variable name of the DSL file path -
+	 * the path where the DSL file itself can be found.
+	 */
+	public static final String DSL_FILE_PATH_PROPERTY_NAME = "dslFilePath";
+	/**
+	 * The binding variable name of the validateObject flag -
+	 * indicates if need to validate the DSL file.
+	 */
+	public static final String DSL_VALIDATE_OBJECTS_PROPERTY_NAME = "validateObjectsFlag";
+	
+	/************
+	 * Default file name suffix for application files.
+	 */
+	public static final String APPLICATION_DSL_FILE_NAME_SUFFIX = DSLUtils.APPLICATION_FILE_NAME_SUFFIX + ".groovy";
 	/**
 	 * The expected file suffix for properties file.
 	 */
@@ -42,10 +55,18 @@ public final class DSLUtils {
 	 */
 	public static final String OVERRIDES_FILE_SUFFIX = ".overrides";
 
+	/**************
+	 * Default file name suffix for cloud files.
+	 */
+	public static final String CLOUD_DSL_FILE_NAME_SUFFIX = "-cloud.groovy";
 	/**
 	 * The expected file name suffix for application files e.g. <code>*-application.groovy</code>.
 	 */
 	public static final String APPLICATION_FILE_NAME_SUFFIX = "-application";
+	/*********
+	 * Default file name suffix for service files.
+	 */
+	public static final String SERVICE_DSL_FILE_NAME_SUFFIX = "-service.groovy";
 
 	/**
 	 * The expected file name suffix for templates file e.g. <code>*templates.groovy</code>.

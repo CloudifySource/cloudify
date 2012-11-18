@@ -173,7 +173,7 @@ public final class ServiceReader {
 		final DSLReader dslReader = new DSLReader();
 		dslReader.setRunningInGSC(true);
 		dslReader.setWorkDir(workDir);
-		dslReader.setDslFileNameSuffix(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX);
+		dslReader.setDslFileNameSuffix(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
 		dslReader.setOverridesFile(null);
 		dslReader.setApplicationProperties(applicationProperties);
 
@@ -205,7 +205,7 @@ public final class ServiceReader {
 		dslReader.setRunningInGSC(isRunningInGSC);
 		dslReader.setDslFile(dslFile);
 		dslReader.setWorkDir(workDir);
-		dslReader.setDslFileNameSuffix(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX);
+		dslReader.setDslFileNameSuffix(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
 
 		final Service service = dslReader.readDslEntity(Service.class);
 
@@ -280,11 +280,11 @@ public final class ServiceReader {
 				// Unzip application zip file to temp folder
 				final File tempFolder = ServiceReader.unzipFile(inputFile, "application");
 				actualApplicationDslFile =
-						DSLReader.findDefaultDSLFile(DSLReader.APPLICATION_DSL_FILE_NAME_SUFFIX, tempFolder);
+						DSLReader.findDefaultDSLFile(DSLUtils.APPLICATION_DSL_FILE_NAME_SUFFIX, tempFolder);
 			}
 		} else {
 			actualApplicationDslFile =
-					DSLReader.findDefaultDSLFile(DSLReader.APPLICATION_DSL_FILE_NAME_SUFFIX, inputFile);
+					DSLReader.findDefaultDSLFile(DSLUtils.APPLICATION_DSL_FILE_NAME_SUFFIX, inputFile);
 		}
 
 
@@ -398,7 +398,7 @@ public final class ServiceReader {
 	public static Cloud readCloudFromDirectory(final String cloudConfigDirectory)
 			throws DSLException {
 		final DSLReader reader = new DSLReader();
-		reader.setDslFileNameSuffix(DSLReader.CLOUD_DSL_FILE_NAME_SUFFIX);
+		reader.setDslFileNameSuffix(DSLUtils.CLOUD_DSL_FILE_NAME_SUFFIX);
 		reader.setWorkDir(new File(cloudConfigDirectory));
 		reader.setCreateServiceContext(false);
 		return reader.readDslEntity(Cloud.class);
@@ -431,10 +431,44 @@ public final class ServiceReader {
 	 */
 	public static List<CloudTemplateHolder> readCloudTemplatesFromZip(final File templatesZip) 
 			throws IOException, DSLException {
-		File templateDirectory = ServiceReader.unzipFile(templatesZip, "templates");
+		File templateDirectory = ServiceReader.unzipCloudTemplatesFolder(templatesZip);
 		return readCloudTemplatesFromDirectory(templateDirectory);
 	}
-
+	/**
+	 * 
+	 * @param templatesZip
+	 * 					The templates zipped directory.
+	 * @return The template names read from the templates folder un-zipped from templatesZip.
+	 * @throws IOException .
+	 * @throws DSLException If failed to read the DSL template files.
+	 */
+	public static List<String> getCloudTemplatesNamesFromZip(final File templatesZip) 
+			throws IOException, DSLException {
+		File templateDirectory = ServiceReader.unzipCloudTemplatesFolder(templatesZip);
+		List<CloudTemplateHolder> readCloudTemplates = readCloudTemplatesFromDirectory(templateDirectory);
+		List<String> templateNames = new ArrayList<String>(readCloudTemplates.size());
+		for (CloudTemplateHolder cloudTemplateHolder : readCloudTemplates) {
+			templateNames.add(cloudTemplateHolder.getName());
+		}
+		return templateNames;
+	}
+	
+	/**
+	 * Unzip the templates folder and validate it is a directory.
+	 * @param zipFile The file to unzip.
+	 * @return The unzipped file.
+	 * @throws IOException If failed to unzip the zipFile.
+	 */
+	public static File unzipCloudTemplatesFolder(final File zipFile) 
+			throws IOException {
+		File unzipFile = unzipFile(zipFile, "tempaltes");
+		if (unzipFile.isFile()) {
+				throw new IllegalArgumentException("templates folder is not a folder: " 
+						+ unzipFile.getAbsolutePath());
+		}
+		return unzipFile;
+	}
+	
 	/**
 	 * 
 	 * @param templatesDir 
@@ -502,6 +536,7 @@ public final class ServiceReader {
 			CloudTemplateHolder holder = new CloudTemplateHolder();
 			holder.setName(entry.getKey());
 			holder.setCloudTemplate(entry.getValue());
+			holder.setTemplateFileName(templateFile.getName());
 			cloudTemplateHolders.add(holder);
 		}
 		

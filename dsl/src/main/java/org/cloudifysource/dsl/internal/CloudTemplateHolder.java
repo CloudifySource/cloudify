@@ -1,7 +1,5 @@
 package org.cloudifysource.dsl.internal;
 
-import java.io.Serializable;
-
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 
 import com.gigaspaces.annotation.pojo.SpaceClass;
@@ -13,13 +11,10 @@ import com.gigaspaces.annotation.pojo.SpaceId;
  *
  */
 @SpaceClass
-public class CloudTemplateHolder implements Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+public class CloudTemplateHolder {
 	private String name;
 	private CloudTemplate cloudTemplate;
+	private String templateFileName;
 	
 	public CloudTemplateHolder() {
 		
@@ -37,6 +32,14 @@ public class CloudTemplateHolder implements Serializable {
 	}
 	public void setCloudTemplate(final CloudTemplate cloudTemplate) {
 		this.cloudTemplate = cloudTemplate;
+	}
+
+	public String getTemplateFileName() {
+		return templateFileName;
+	}
+
+	public void setTemplateFileName(String templateFileName) {
+		this.templateFileName = templateFileName;
 	}
 	
 }

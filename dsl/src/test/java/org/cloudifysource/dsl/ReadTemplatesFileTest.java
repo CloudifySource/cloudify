@@ -9,6 +9,7 @@ import junit.framework.Assert;
 import org.cloudifysource.dsl.internal.CloudTemplateHolder;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.Test;
+import org.openspaces.core.util.FileUtils;
 
 public class ReadTemplatesFileTest {
 	
@@ -26,7 +27,9 @@ public class ReadTemplatesFileTest {
 	
 	
 	@Test
-	public void readTemplateFilesFromFolderTest() {
+	public void readTemplateFilesFromFolderTest() {	
+		File file = FileUtils.createTempFolder("yael");
+		
 		readTempaltesTest(TEMPLATES_FILE_PATH);
 	}
 	

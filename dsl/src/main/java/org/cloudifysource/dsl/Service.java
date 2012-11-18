@@ -26,7 +26,7 @@ import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.entry.ExecutableEntriesMap;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
-import org.cloudifysource.dsl.internal.DSLReader;
+import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.cloudifysource.dsl.internal.ServiceTierType;
@@ -494,7 +494,7 @@ public class Service {
 	@DSLValidation
 	void validateIcon(final DSLValidationContext validationContext) throws DSLValidationException {
 		boolean isServiceFile = false;
-		String serviceSuffix = DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX.trim();
+		String serviceSuffix = DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX.trim();
 		String filePath = validationContext.getFilePath().trim();
 
 		// execute this validation only if an icon was set and this is a Service's groovy file (not an Application's) 

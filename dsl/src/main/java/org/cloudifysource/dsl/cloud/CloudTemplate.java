@@ -16,7 +16,6 @@
 package org.cloudifysource.dsl.cloud;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,12 +36,8 @@ import org.cloudifysource.dsl.internal.DSLValidationException;
  */
 @CloudifyDSLEntity(name = "template", clazz = CloudTemplate.class, allowInternalNode = true, allowRootNode = true,
 		parent = "cloud")
-public class CloudTemplate implements Serializable {
+public class CloudTemplate {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
 	private String imageId;
 	private int machineMemoryMB;
 	private String hardwareId;

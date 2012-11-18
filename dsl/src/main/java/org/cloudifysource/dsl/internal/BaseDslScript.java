@@ -223,11 +223,11 @@ public abstract class BaseDslScript extends Script {
 	}
 
 	private File getDSLFile() {
-		return new File((String) this.getBinding().getVariable(DSLReader.DSL_FILE_PATH_PROPERTY_NAME));
+		return new File((String) this.getBinding().getVariable(DSLUtils.DSL_FILE_PATH_PROPERTY_NAME));
 	}
 
 	private boolean isValidateObjects() {
-		return ((Boolean) this.getBinding().getVariable(DSLReader.DSL_VALIDATE_OBJECTS_PROPERTY_NAME));
+		return ((Boolean) this.getBinding().getVariable(DSLUtils.DSL_VALIDATE_OBJECTS_PROPERTY_NAME));
 	}
 
 	@Override
@@ -356,7 +356,7 @@ public abstract class BaseDslScript extends Script {
 					@SuppressWarnings("unchecked")
 					final Map<Object, Object> currentVars = this.getBinding().getVariables();
 					DSLValidationContext validationContext = new DSLValidationContext();
-					validationContext.setFilePath((String) currentVars.get(DSLReader.DSL_FILE_PATH_PROPERTY_NAME));
+					validationContext.setFilePath((String) currentVars.get(DSLUtils.DSL_FILE_PATH_PROPERTY_NAME));
 					method.setAccessible(true);
 					method.invoke(obj, validationContext);
 
@@ -460,7 +460,7 @@ public abstract class BaseDslScript extends Script {
 		} else {
 			dslReader.setDslFile(serviceFileToExtend);
 		}
-		dslReader.setDslFileNameSuffix(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX);
+		dslReader.setDslFileNameSuffix(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
 		// dslReader.setLoadUsmLib(true)
 		dslReader.setPropertiesFileName(null);
 

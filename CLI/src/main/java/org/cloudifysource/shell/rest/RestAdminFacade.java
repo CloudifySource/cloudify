@@ -29,6 +29,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
 
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -861,6 +862,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		Map<String, CloudTemplate> response = new HashMap<String, CloudTemplate>();
 		try {
 			Map<String, Object> responseMap = (Map<String, Object>) client.get(url);
+			logger.log(Level.INFO, "CLI listTempaltes got templates: " + responseMap);
 			for (Entry<String, Object> entry : responseMap.entrySet()) {
 				ObjectMapper mapper = new ObjectMapper();
 				CloudTemplate convertValue = mapper.convertValue(entry.getValue(), CloudTemplate.class);
@@ -882,6 +884,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		CloudTemplate response;
 		try {
 			Object result = client.get(url);
+			logger.log(Level.INFO, "CLI getTemplate got template: " + result.toString());
+
 			ObjectMapper mapper = new ObjectMapper();
 			response = mapper.convertValue(result, CloudTemplate.class);
 			

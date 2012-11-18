@@ -23,6 +23,7 @@ import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
+import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.usm.dsl.ServiceConfiguration;
 import org.openspaces.core.cluster.ClusterInfo;
 import org.openspaces.core.cluster.ClusterInfoAware;
@@ -90,7 +91,7 @@ public class USMConfigurationFactoryBean implements FactoryBean<ServiceConfigura
 		dslReader.setRunningInGSC(isRunningInGSC);
 		dslReader.setDslFile(dslFile);
 		dslReader.setWorkDir(this.puExtDir);
-		dslReader.setDslFileNameSuffix(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX);
+		dslReader.setDslFileNameSuffix(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
 		
 		// When loading a service in the USM, expect the jar files to 
 		// be available in the pu lib dir, and ignore the contents of usmlib
