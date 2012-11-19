@@ -179,18 +179,12 @@ public final class Packager {
 	 * Pack the file and name it 'destFileName'.
 	 * 
 	 * @param service .
-<<<<<<< HEAD
-	 * @param recipeDirOrFile Folder or file to pack.
-	 * @param destFileName The packed file name.
-	 * @param additionalServiceFiles files to add to the service directory.
-=======
 	 * @param recipeDirOrFile
 	 *            Folder or file to pack.
 	 * @param destFileName
 	 *            The packed file name.
 	 * @param additionalServiceFiles
 	 *            files to add to the service directory.
->>>>>>> 88e40d7... CLOUDIFY-1126 Fix checkStyle and bugs found by findBugs.
 	 * @return Packed file named as specified.
 	 * @throws DSLException
 	 *             DSLException.
