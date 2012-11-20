@@ -407,7 +407,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 	 * Stop detection implementation that checks if the start command exited abnormally. This detector flags a service
 	 * as stopped if the start command has exited with a non-zero exit code.
 	 * 
-	 * @return
+	 * @return {@link StopDetector} implementation
 	 */
 	@Bean
 	public USMEvent getStartProcessStopDetection() {
