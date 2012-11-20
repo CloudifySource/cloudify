@@ -608,14 +608,15 @@ public class GSRestClient {
         }
 
         entity.addPart("file", new FileBody(file));
-        try {
-        	for (Map.Entry<String, String> param : params.entrySet()) {
-        		entity.addPart(param.getKey(), new StringBody(param.getValue(), Charset.forName("UTF-8")));        		
+        if (params != null) {
+        	try {
+        		for (Map.Entry<String, String> param : params.entrySet()) {
+        			entity.addPart(param.getKey(), new StringBody(param.getValue(), Charset.forName("UTF-8")));        		
+        		}
+        	} catch (final IOException e) {
+        		throw new RestException(e);
         	}
-        } catch (final IOException e) {
-            throw new RestException(e);
         }
-
         final HttpPost httppost = new HttpPost(getFullUrl(relativeUrl));
         httppost.setEntity(entity);
         

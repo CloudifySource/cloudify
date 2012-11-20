@@ -161,7 +161,7 @@ public class InstallApplication extends AdminAwareCommand {
 
 		// toString of string list (i.e. [service1, service2])
 		logger.info("Uploading application " + applicationName);
-
+		
 		final Map<String, String> result =
 				adminFacade.installApplication(zipFile, applicationName, 
 						authGroups, getTimeoutInMinutes(), !disableSelfHealing, 
