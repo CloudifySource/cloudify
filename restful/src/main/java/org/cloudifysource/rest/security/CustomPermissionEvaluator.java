@@ -165,6 +165,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 	 * @param permission The permission requested on the target object (e.g. view, deploy)
 	 * @return boolean value - true if permission is granted, false otherwise.
 	 */
+	@Override
 	public boolean hasPermission(final Authentication authentication, final Serializable targetId, 
 			final String targetType, final Object permission) {
 		logger.warning("Evaluating expression using hasPermission unimplemented signature");
