@@ -268,14 +268,14 @@ public final class Packager {
 
 		logger.finer("created pu structure under " + destPuFolder);
 
+		FileUtils.copyDirectory(srcFolder, extFolder);
+
 		// Copy additional files to service directory
 		if (additionalServiceFiles != null) {
 			for (final File file : additionalServiceFiles) {
 				FileUtils.copyFileToDirectory(file, extFolder);
 			}
 		}
-
-		FileUtils.copyDirectory(srcFolder, extFolder);
 
 		logger.finer("copied files from " + srcFolder.getAbsolutePath()
 				+ " to " + extFolder.getAbsolutePath());

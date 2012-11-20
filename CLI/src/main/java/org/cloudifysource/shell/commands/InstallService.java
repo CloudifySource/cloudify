@@ -34,6 +34,7 @@ import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.internal.packaging.FileAppender;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
@@ -162,27 +163,46 @@ public class InstallService extends AdminAwareCommand {
 								"service_file_doesnt_exist",
 								fullPathToRecipe.getPath());
 					}
-					// Locate recipe file
-					recipeFile = fullPathToRecipe.isDirectory() ? DSLReader
-							.findDefaultDSLFile(
-									DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX,
-									fullPathToRecipe) : fullPathToRecipe;
+					// locate recipe file
+					recipeFile = fullPathToRecipe.isDirectory() 
+							? DSLReader.findDefaultDSLFile(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX, fullPathToRecipe) 
+							: fullPathToRecipe;
 				} else {
-					if (recipe.isDirectory()) {
-						recipeFile = DSLReader.findDefaultDSLFile(
-								DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX, recipe);
-					} // else recipeFile = recipe
+					recipeFile = DSLReader.findDefaultDSLFile(DSLReader.SERVICE_DSL_FILE_NAME_SUFFIX, recipe);
 				}
 				final DSLReader dslReader = createDslReader(recipeFile);
 				service = dslReader.readDslEntity(Service.class);
 
+				// lookup service properties file
+				File servicePropertiesFile = DSLReader.
+						findDefaultDSLFileIfExists(DSLUtils.PROPERTIES_FILE_SUFFIX, recipe);
+				if (servicePropertiesFile == null) {
+					// if it does not exist, create one with the default standard.
+					servicePropertiesFile = new File(recipe, serviceName + "-service" 
+							+ DSLUtils.PROPERTIES_FILE_SUFFIX);
+				}
+
+				/* 
+				 * name the merged properties file as the original properties file.
+				 * this will allow all properties to be available by anyone who parses the default
+				 * properties file. (like Lifecycle scripts) 
+				 */ 
+				File finalPropsFile = new File(servicePropertiesFile.getName());
+				
+				// this will actually create an empty props file.
+				FileAppender appender = new FileAppender(finalPropsFile);
+				
 				if (overrides != null) {
-					additionFiles.add(DSLReader.copyOverridesFile(overrides,
-							dslReader.getDslName() + DSLUtils.SERVICE_FILE_NAME_SUFFIX));
+					// merge the service properties file with the overrides file.
+					appender.append("Service Properties File", servicePropertiesFile);
+					appender.append("Overrides Properties File", overrides);
+					appender.flush();
+					additionFiles.add(finalPropsFile);
 				}
 				packedFile = Packager.pack(recipeFile, false, service,
 						additionFiles);
 				packedFile.deleteOnExit();
+				finalPropsFile.delete();
 			} else {
 				// serviceFile is a zip file
 				packedFile = recipe;

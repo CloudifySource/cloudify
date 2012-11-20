@@ -32,6 +32,7 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
+import org.cloudifysource.dsl.internal.packaging.FileAppender;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.rest.controllers.ServiceController;
@@ -152,23 +153,60 @@ public class ApplicationInstallerRunnable implements Runnable {
 			}
 
 			boolean found = false;
+			
 			try {
-				// copy application properties and overrides files to the service directory. 
+				
+				// lookup application properties file
+				File applicationPropertiesFile = DSLReader.
+						findDefaultDSLFileIfExists(DSLUtils.APPLICATION_PROPERTIES_FILE_NAME, appDir);
+
+				// lookup service properties file
+				File servicePropertiesFile = DSLReader.
+						findDefaultDSLFileIfExists(DSLUtils.PROPERTIES_FILE_SUFFIX, serviceDirectory);
+				if (servicePropertiesFile == null) {
+					// if it does not exist, create one with the default standard.
+					servicePropertiesFile = new File(serviceDirectory, serviceName + "-service" 
+							+ DSLUtils.PROPERTIES_FILE_SUFFIX);
+				}
+				
+				// lookup overrides file
 				File applicationOverridesFile = overridesFile;
 				if (applicationOverridesFile == null) {
-					applicationOverridesFile = 
-							DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_OVERRIDES_FILE_NAME, appDir);
+					applicationOverridesFile = DSLReader.
+							findDefaultDSLFileIfExists(DSLUtils.APPLICATION_OVERRIDES_FILE_NAME, appDir);
+				}		
+
+				/* 
+				 * name the merged properties file as the original properties file.
+				 * this will allow all properties to be available by anyone who parses the default
+				 * properties file. (like Lifecycle scripts) 
+				 */ 
+				File finalPropsFile = new File(servicePropertiesFile.getName());
+				
+				// this will actually create an empty props file.
+				FileAppender appender = new FileAppender(finalPropsFile);
+
+				if (applicationPropertiesFile != null && applicationPropertiesFile.exists()) {
+					// first add the application properties file. least important overrides.
+					appender.append("Application Properties File", applicationPropertiesFile);
 				}
-				if (applicationOverridesFile != null) {
-					FileUtils.copyFile(applicationOverridesFile, 
-							new File(serviceDirectory, DSLUtils.APPLICATION_OVERRIDES_FILE_NAME));
+				
+				// no need for a null check, see above.
+				if (servicePropertiesFile.exists()) {
+					// add the service properties file, second level overrides.
+					appender.append("Service Properties File", servicePropertiesFile);
+					servicePropertiesFile.delete();
 				}
-				File applicationPropertiesFile = 
-						DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_PROPERTIES_FILE_NAME, appDir);
-				if (applicationPropertiesFile != null) {
-					FileUtils.copyFile(applicationPropertiesFile, 
-							new File(serviceDirectory, DSLUtils.APPLICATION_PROPERTIES_FILE_NAME));
+				
+				if (applicationOverridesFile != null && applicationOverridesFile.exists()) {
+					// add the overrides file given in the command or via REST, most important overrides.
+					appender.append("Overrides properties file", applicationOverridesFile);
 				}
+				
+				appender.flush();
+				FileUtils.copyFileToDirectory(finalPropsFile, serviceDirectory);
+				finalPropsFile.delete();
+				
 				// Pack the folder and name it absolutePuName	
 				File packedFile = Packager.pack(service, serviceDirectory, absolutePUName, null);
 				result.getApplicationFile().delete();
