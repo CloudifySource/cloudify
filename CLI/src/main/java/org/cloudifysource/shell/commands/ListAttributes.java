@@ -28,7 +28,8 @@ import java.util.Map;
  * 
  *        Command syntax: list-attributes
  */
-@Command(scope = "cloudify", name = "list-attributes", description = "Lists attributes in the cloudify controller attribute store")
+@Command(scope = "cloudify", name = "list-attributes",
+		description = "Lists attributes in the cloudify controller attribute store")
 public class ListAttributes extends AbstractAttributesCommand {
 
     @Override

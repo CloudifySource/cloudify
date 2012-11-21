@@ -73,8 +73,9 @@ public final class GigaShellMain extends Main implements Action {
 	 * @param args The commands to be executed, either in a file or as a list.
 	 * @throws Exception Reporting a failure to start the shell or execute the commands
 	 */
-	public static void main(String[] args)
+	public static void main(final String[] args)
 			throws Exception {
+		String[] actualArgs = args;
 		initializeLogConfiguration();
 
 		initializeProxyConfiguration();
@@ -111,7 +112,7 @@ public final class GigaShellMain extends Main implements Action {
 
 				sis = new SequenceInputStream(is, exitInputStream);
 				System.setIn(sis);
-				args = new String[0];
+				actualArgs = new String[0];
 
 			}
 
@@ -119,7 +120,7 @@ public final class GigaShellMain extends Main implements Action {
 			instance.setApplication("cloudify");
 			Ansi.ansi();
 			
-			instance.run(args);
+			instance.run(actualArgs);
 		} finally {
 			if (is != null) {
 				is.close();

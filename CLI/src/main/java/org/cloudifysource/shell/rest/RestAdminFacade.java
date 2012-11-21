@@ -99,20 +99,20 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			throw new CLIException(e);
 		}
 	}
-    
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void reconnect(final String username, final String password) throws CLIException {
-    	try {
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void reconnect(final String username, final String password) throws CLIException {
+		try {
 			client.setCredentials(username, password);
-            // test connection
-            client.get(SERVICE_CONTROLLER_URL + "testrest");
-        } catch (final ErrorStatusException e) {
-            throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-        }
-    }
+			// test connection
+			client.get(SERVICE_CONTROLLER_URL + "testrest");
+		} catch (final ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+		}
+	}
 
 	private URL getUrlWithDefaultPort(final URL urlObj)
 			throws MalformedURLException {
@@ -164,35 +164,35 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	@Override
 	@SuppressWarnings("unchecked")
 	public List<ApplicationDescription> getApplicationDescriptionsList() throws CLIException {
-		
+
 		List<ApplicationDescription> applicationDescriptionList = new ArrayList<ApplicationDescription>();
-		
+
 		try {
-			List<Object> objectsList = (List<Object>)client.get("/service/applications/description");
+			List<Object> objectsList = (List<Object>) client.get("/service/applications/description");
 			ObjectMapper map = new ObjectMapper();
 			for (Object object : objectsList) {
 				ApplicationDescription applicationDescription = map.convertValue(object, ApplicationDescription.class);
 				applicationDescriptionList.add(applicationDescription);
 			}
 		} catch (final ErrorStatusException e) {
-            throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-        }
-		
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+		}
+
 		return applicationDescriptionList;
 	}
-	
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    public List<String> getApplicationNamesList() throws CLIException {
-        try {
-            return (List<String>) client.get("/service/applications");
-        } catch (final ErrorStatusException e) {
-            throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-        }
-    }
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<String> getApplicationNamesList() throws CLIException {
+		try {
+			return (List<String>) client.get("/service/applications");
+		} catch (final ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+		}
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -202,18 +202,19 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			throws CLIException {
 		try {
 			@SuppressWarnings("unchecked")
-			final List<Object> applicationDescriptionList =  (List<Object>) client
+			final List<Object> applicationDescriptionList = (List<Object>) client
 					.get("/service/applications/" + applicationName
 							+ "/services/description");
 			ObjectMapper map = new ObjectMapper();
 			Object descriptionObject = applicationDescriptionList.get(0);
-			ApplicationDescription applicationDescription = map.convertValue(descriptionObject, ApplicationDescription.class);
+			ApplicationDescription applicationDescription =
+					map.convertValue(descriptionObject, ApplicationDescription.class);
 			return applicationDescription;
-			//http://stackoverflow.com/questions/5219073/json-deserialization-problem
+			// http://stackoverflow.com/questions/5219073/json-deserialization-problem
 		} catch (final ErrorStatusException ese) {
 			throw new CLIStatusException(ese, ese.getReasonCode(),
 					ese.getArgs());
-		} 
+		}
 	}
 
 	/**
@@ -281,25 +282,25 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		}
 	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void addInstance(final String applicationName, final String serviceName, final String authGroups, 
-    		final int timeout) throws CLIException {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void addInstance(final String applicationName, final String serviceName, final String authGroups,
+			final int timeout) throws CLIException {
 
-        final String url = SERVICE_CONTROLLER_URL + "applications/na/services/" + serviceName + "/addinstance";
-        final Map<String, String> params = new HashMap<String, String>();
-        try {
-            params.put("timeout", Integer.toString(timeout));
-            params.put("authGroups", authGroups);
-            client.post(url, params);
-        } catch (final ErrorStatusException e) {
-            throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-        } catch (final RestException e) {
-            throw new CLIException(e);
-        }
-    }
+		final String url = SERVICE_CONTROLLER_URL + "applications/na/services/" + serviceName + "/addinstance";
+		final Map<String, String> params = new HashMap<String, String>();
+		try {
+			params.put("timeout", Integer.toString(timeout));
+			params.put("authGroups", authGroups);
+			client.post(url, params);
+		} catch (final ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+		} catch (final RestException e) {
+			throw new CLIException(e);
+		}
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -640,27 +641,27 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			final boolean selfHealing,
 			final File cloudOverrides) throws CLIException {
 
-    	Map<String, String> response;
+		Map<String, String> response;
 		String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/timeout/" + timeout
-			+ "?selfHealing=" + Boolean.toString(selfHealing);
-				
-    	try {
-            if (org.apache.commons.lang.StringUtils.isBlank(authGroups)) {
-            	response = (Map<String, String>) client.postFile(url, applicationFile, cloudOverrides, null);
-            } else {
-            	Map<String, String> paramsMap = new HashMap<String, String>();
-            	paramsMap.put("authGroups", authGroups);
-            	response = (Map<String, String>) client.postFile(url, applicationFile, cloudOverrides, paramsMap);
-            }
-        } catch (final ErrorStatusException e) {
-            throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-        } catch (final RestException e) {
-            throw new CLIException(e);
-        }
-        
-        return response;
-        
-    }
+				+ "?selfHealing=" + Boolean.toString(selfHealing);
+
+		try {
+			if (org.apache.commons.lang.StringUtils.isBlank(authGroups)) {
+				response = (Map<String, String>) client.postFile(url, applicationFile, cloudOverrides, null);
+			} else {
+				Map<String, String> paramsMap = new HashMap<String, String>();
+				paramsMap.put("authGroups", authGroups);
+				response = (Map<String, String>) client.postFile(url, applicationFile, cloudOverrides, paramsMap);
+			}
+		} catch (final ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+		} catch (final RestException e) {
+			throw new CLIException(e);
+		}
+
+		return response;
+
+	}
 
 	@Override
 	public Map<String, String> setInstances(final String applicationName,
@@ -751,7 +752,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		}
 		final String instanceIdentifier = serviceScope[2];
 		if ("all-instances".equalsIgnoreCase(instanceIdentifier)) {
-			return "/attributes/instances";
+			return "/attributes/instances/" + applicationName + "/" + serviceName;
 		}
 		final Integer instanceId = StringUtils.safeParseInt(instanceIdentifier);
 		if (instanceIdentifier == null) {
@@ -805,7 +806,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
 	}
-	
+
 	@Override
 	public String getTailByServiceName(final String serviceName,
 			final String applicationName, final int numLines)
