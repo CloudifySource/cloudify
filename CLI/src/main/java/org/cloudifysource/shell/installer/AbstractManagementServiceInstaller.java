@@ -40,8 +40,8 @@ import org.openspaces.core.util.MemoryUnit;
  *        every management service installer use: {@link Admin}, a definition of memory quota, a service
  *        name and a zone name (might be identical to the service name).
  * 
- *        Installers extending this skeleton must implement install() and waitForInstallation(AdminFacade, GridServiceAgent,
- *        long, TimeUnit)
+ *        Installers extending this skeleton must implement install() and 
+ *        waitForInstallation(AdminFacade, GridServiceAgent, long, TimeUnit)
  */
 public abstract class AbstractManagementServiceInstaller {
 
@@ -52,13 +52,13 @@ public abstract class AbstractManagementServiceInstaller {
 	protected String serviceName;
 	protected String agentZone;
 	protected long progressInSeconds;
-	List<String> dependencies = new ArrayList<String>();
+	protected List<String> dependencies = new ArrayList<String>();
 	
 	/**
 	 * The name of the management application.
 	 */
 	public static final String MANAGEMENT_APPLICATION_NAME = "management";
-	private static final String TIMEOUT_ERROR_MESSAGE = "operation timed out waiting for the rest service to start";
+	private static final String TIMEOUT_ERROR_MESSAGE = "operation timed out waiting for management service to start";
 	protected static final int RESERVED_MEMORY_IN_MB = 256;
 
 	/**
