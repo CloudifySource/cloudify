@@ -651,12 +651,14 @@ public class RestPollingRunnable implements Runnable {
 						this.applicationName));
 		// The string replacement is done since the service name that is
 		// received from the USM logs derived from actual PU name.
+		final String serviceName = returnMap.get(EventLogConstants.getServiceNameKey()) + "-";
+		final String originalText = logEntry.getText();
+		final String modifiedText = originalText.replaceFirst(
+				absolutePuName + "-",
+				serviceName);
 		returnMap.put(
 				EventLogConstants.getEventTextKey(),
-				logEntry.getText().replaceFirst(
-						absolutePuName + "-",
-						returnMap.get(EventLogConstants.getServiceNameKey())
-								+ "-"));
+				modifiedText);
 
 		return returnMap;
 	}

@@ -36,6 +36,9 @@ service {
 			"SomeKey":{"22222222222222222222222222"}])
 		monitors (["NumberTwo":{return 2},
 			"NumberOne":{return "1"}])
+		startDetection {
+			"HELLO!"
+		}
 
 	}
 

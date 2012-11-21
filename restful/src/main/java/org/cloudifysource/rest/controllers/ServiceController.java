@@ -122,6 +122,7 @@ import org.openspaces.admin.internal.pu.DefaultProcessingUnitInstance;
 import org.openspaces.admin.internal.pu.InternalProcessingUnitInstance;
 import org.openspaces.admin.machine.Machine;
 import org.openspaces.admin.pu.ProcessingUnit;
+import org.openspaces.admin.pu.ProcessingUnitAlreadyDeployedException;
 import org.openspaces.admin.pu.ProcessingUnitDeployment;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
 import org.openspaces.admin.pu.ProcessingUnits;
@@ -1294,12 +1295,16 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	private void deployAndWait(final String serviceName,
 			final ElasticStatelessProcessingUnitDeployment deployment)
-			throws TimeoutException {
+			throws TimeoutException, RestErrorException {
+		try {
 		final ProcessingUnit pu = getGridServiceManager().deploy(deployment,
 				60, TimeUnit.SECONDS);
 		if (pu == null) {
 			throw new TimeoutException("Timed out waiting for Service "
 					+ serviceName + " deployment.");
+		}
+		} catch(ProcessingUnitAlreadyDeployedException e) {
+			throw new RestErrorException(CloudifyErrorMessages.SERVICE_ALREADY_INSTALLED.getName(), serviceName);
 		}
 	}
 
@@ -2020,7 +2025,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final Service service,
 			final byte[] serviceCloudConfigurationContents,
 			final boolean selfHealing,
-			final File cloudOverrides) throws TimeoutException, DSLException, IOException {
+			final File cloudOverrides) throws TimeoutException, DSLException, IOException, RestErrorException {
 
 		boolean locationAware = false;
 		boolean dedicated = true;
@@ -2479,7 +2484,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final String[] agentZones, final File srcFile,
 			final Properties propsFile, final boolean selfHealing,
 			final File cloudOverrides)
-			throws TimeoutException, DSLException, IOException {
+			throws TimeoutException, DSLException, IOException, RestErrorException {
 		doDeploy(applicationName, serviceName, authGroups, templateName, agentZones,
 				srcFile, propsFile, null, null, selfHealing, cloudOverrides);
 	}
@@ -2882,7 +2887,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final StatelessProcessingUnit puConfig, final String templateName,
 			final int numberOfInstances, final boolean locationAware,
 			final File cloudOverride)
-			throws IOException, AdminException, TimeoutException, DSLException {
+			throws IOException, AdminException, TimeoutException, DSLException, RestErrorException {
 
 		final File jarFile = getJarFileFromDir(
 				new File(puConfig.getBinaries()), extractedServiceFolder,
