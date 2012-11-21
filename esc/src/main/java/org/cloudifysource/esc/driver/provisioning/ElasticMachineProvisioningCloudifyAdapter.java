@@ -262,6 +262,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				locationId = template.getLocationId();
 			}
 
+			// This is the call to the actual cloud driver implementation!
 			machineDetails = provisionMachine(locationId, duration, unit);
 
 		} catch (final Exception e) {

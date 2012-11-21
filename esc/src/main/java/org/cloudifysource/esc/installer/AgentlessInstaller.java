@@ -79,9 +79,7 @@ public class AgentlessInstaller {
 	private static final String LINUX_STARTUP_SCRIPT_NAME = "bootstrap-management.sh";
 	private static final String POWERSHELL_STARTUP_SCRIPT_NAME = "bootstrap-management.bat";
 
-	private static final String CLOUDIFY_LINK_ENV = "GIGASPACES_LINK";
-	private static final String CLOUDIFY_OVERRIDES_LINK_ENV = "GIGASPACES_OVERRIDES_LINK";
-
+	
 	private static final String MACHINE_ZONES_ENV = "MACHINE_ZONES";
 
 	private static final String MACHINE_IP_ADDRESS_ENV = "MACHINE_IP_ADDRESS";
@@ -622,7 +620,7 @@ public class AgentlessInstaller {
 		if (remoteDirectory.endsWith("/")) {
 			remoteDirectory = remoteDirectory.substring(0, remoteDirectory.length() - 1);
 		}
-		if (details.isLus()) { // TODO - fix - use local dir of template
+		if (details.isLus()) { 
 			// add the relative path to the cloud file location
 			remoteDirectory = remoteDirectory + "/" + details.getRelativeLocalDir();
 		}
@@ -632,7 +630,8 @@ public class AgentlessInstaller {
 		final ShellCommandBuilder scb = new ShellCommandBuilder(details.getRemoteExecutionMode())
 				.exportVar(LUS_IP_ADDRESS_ENV, details.getLocator())
 				.exportVar(GSA_MODE_ENV, details.isLus() ? "lus" : "agent")
-				.exportVar(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR, CloudifyConstants.SPRING_BEANS_PROFILE_DEFAULT)
+				.exportVar(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR, 
+						CloudifyConstants.SPRING_BEANS_PROFILE_DEFAULT)
 				.exportVar(NO_WEB_SERVICES_ENV,
 						details.isNoWebServices() ? "true" : "false")
 				.exportVar(
@@ -640,14 +639,16 @@ public class AgentlessInstaller {
 						details.isBindToPrivateIp() ? details.getPrivateIp()
 								: details.getPublicIp())
 				.exportVar(MACHINE_ZONES_ENV, details.getZones())
-				.exportVar(CLOUDIFY_LINK_ENV,
+				.exportVar(CloudifyConstants.CLOUDIFY_LINK_ENV,
 						details.getCloudifyUrl() != null ? "\"" + details.getCloudifyUrl() + "\"" : "")
-				.exportVar(CLOUDIFY_OVERRIDES_LINK_ENV,
+				.exportVar(CloudifyConstants.CLOUDIFY_OVERRIDES_LINK_ENV,
 						details.getOverridesUrl() != null ? "\"" + details.getOverridesUrl() + "\"" : "")
 				.exportVar(WORKING_HOME_DIRECTORY_ENV, remoteDirectory)
 				.exportVar(CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVATE_IP, details.getPrivateIp())
 				.exportVar(CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP, details.getPublicIp())
 				.exportVar(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME, details.getTemplateName())
+				.exportVar(CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID, details.getMachineId())
+				.exportVar(CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_ID, details.getMachineId())
 
 				// maintain backwards compatibility for pre 2.3.0
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, details.getPrivateIp())

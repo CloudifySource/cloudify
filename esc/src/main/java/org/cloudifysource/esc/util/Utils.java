@@ -565,6 +565,7 @@ public final class Utils {
 		details.setReservationId(reservationId);
 		details.setTemplateName(templateName);
 		
+		details.setMachineId(md.getMachineId());
 		logger.fine("Created InstallationDetails: " + details);
 		return details;
 

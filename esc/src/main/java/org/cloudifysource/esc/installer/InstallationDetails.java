@@ -63,7 +63,8 @@ public class InstallationDetails implements Cloneable {
 	// true if this machine should act as the LUS and ESM
 	private boolean isLus;
 
-	// (only relevant in case isLus == true) if true no web-services will be deployed on the target machine
+	// (only relevant in case isLus == true) if true no web-services will be
+	// deployed on the target machine
 	private boolean noWebServices;
 
 	// directory on local machine where installation files are
@@ -81,7 +82,8 @@ public class InstallationDetails implements Cloneable {
 	// files that should be copied only to lus machines
 	private String[] managementOnlyFiles;
 
-	// wherther we are in the same network as the machine we are about to install
+	// wherther we are in the same network as the machine we are about to
+	// install
 	private boolean connectedToPrivateIp;
 
 	// whether the NIC_ADDR of the machine should be the private or public IP
@@ -102,14 +104,14 @@ public class InstallationDetails implements Cloneable {
 	// defines the com.gs.agent.reservationid system property for the GSA
 	// see InternalGridServiceAgent#getReservationId()
 	private GSAReservationId reservationId;
-	
+
 	private String templateName;
-	
+
 	public String getTemplateName() {
 		return templateName;
 	}
 
-	public void setTemplateName(String templateName) {
+	public void setTemplateName(final String templateName) {
 		this.templateName = templateName;
 	}
 
@@ -172,14 +174,11 @@ public class InstallationDetails implements Cloneable {
 
 	@Override
 	public String toString() {
-		return "InstallationDetails [privateIP=" + privateIp + ", publicIP=" + publicIp
-				+ ", locator=" + locator + ", connectToPrivateIP=" + connectedToPrivateIp
-				+ ", cloudifyUrl=" + cloudifyUrl
-				+ ", bindToPrivateIP=" + bindToPrivateIp
-				+ ", username=" + username
-				+ ", password=***" + ", keyFile=" + keyFile + ", localDir=" + localDir + ", remoteDir=" + remoteDir
-				+ ", isLus=" + isLus + ", zones=" + zones + ", extraRemoteEnvironmentVariables = "
-				+ extraRemoteEnvironmentVariables + "]";
+		return "InstallationDetails [privateIP=" + privateIp + ", publicIP=" + publicIp + ", locator=" + locator
+				+ ", connectToPrivateIP=" + connectedToPrivateIp + ", cloudifyUrl=" + cloudifyUrl
+				+ ", bindToPrivateIP=" + bindToPrivateIp + ", username=" + username + ", password=***" + ", keyFile="
+				+ keyFile + ", localDir=" + localDir + ", remoteDir=" + remoteDir + ", isLus=" + isLus + ", zones="
+				+ zones + ", extraRemoteEnvironmentVariables = " + extraRemoteEnvironmentVariables + "]";
 	}
 
 	public String getKeyFile() {
@@ -326,7 +325,7 @@ public class InstallationDetails implements Cloneable {
 		return reservationId;
 	}
 
-	public void setReservationId(GSAReservationId reservationId) {
+	public void setReservationId(final GSAReservationId reservationId) {
 		this.reservationId = reservationId;
 	}
 

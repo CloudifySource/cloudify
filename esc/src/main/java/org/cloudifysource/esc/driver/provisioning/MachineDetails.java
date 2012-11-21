@@ -33,10 +33,10 @@ import com.gigaspaces.internal.io.IOUtils;
  * 
  */
 public class MachineDetails implements Externalizable {
-	
+
 	private String privateAddress;
 	private String publicAddress;
-	
+
 	private boolean cloudifyInstalled = false;
 	private String installationDirectory = null;
 	private boolean agentRunning = false;
@@ -52,14 +52,14 @@ public class MachineDetails implements Externalizable {
 	private RemoteExecutionModes remoteExecutionMode = RemoteExecutionModes.SSH;
 
 	private String remoteDirectory;
-	
+
 	private String locationId;
-	
+
 	public String getLocationId() {
 		return locationId;
 	}
 
-	public void setLocationId(String locationId) {
+	public void setLocationId(final String locationId) {
 		this.locationId = locationId;
 	}
 
@@ -111,12 +111,11 @@ public class MachineDetails implements Externalizable {
 		this.installationDirectory = installationDirectory;
 	}
 
-
 	@Override
 	public String toString() {
 		return "MachineDetails [machineId=" + machineId + ", privateAddress=" + privateAddress + ", publicAddress="
-				+ publicAddress + ", gigaspacesInstalled=" + cloudifyInstalled
-				+ ", agentRunning=" + agentRunning + ", installationDirectory=" + installationDirectory + ", locationId=" + locationId + "]";
+				+ publicAddress + ", gigaspacesInstalled=" + cloudifyInstalled + ", agentRunning=" + agentRunning
+				+ ", installationDirectory=" + installationDirectory + ", locationId=" + locationId + "]";
 	}
 
 	public String getRemoteUsername() {
@@ -160,17 +159,16 @@ public class MachineDetails implements Externalizable {
 	}
 
 	@Override
-	public void readExternal(ObjectInput in) throws IOException,
-			ClassNotFoundException {
-		
+	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
+
 		privateAddress = IOUtils.readString(in);
 		publicAddress = IOUtils.readString(in);
 		cloudifyInstalled = in.readBoolean();
 		installationDirectory = IOUtils.readString(in);
 		agentRunning = in.readBoolean();
-		//Do not pass username/password over the network! (PII)
-		//remoteUsername = IOUtils.readString(in);
-		//remotePassword = IOUtils.readString(in);
+		// Do not pass username/password over the network! (PII)
+		// remoteUsername = IOUtils.readString(in);
+		// remotePassword = IOUtils.readString(in);
 		machineId = IOUtils.readString(in);
 		fileTransferMode = FileTransferModes.valueOf(IOUtils.readString(in));
 		remoteExecutionMode = RemoteExecutionModes.valueOf(IOUtils.readString(in));
@@ -179,16 +177,16 @@ public class MachineDetails implements Externalizable {
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
+	public void writeExternal(final ObjectOutput out) throws IOException {
 
 		IOUtils.writeString(out, privateAddress);
 		IOUtils.writeString(out, publicAddress);
 		out.writeBoolean(cloudifyInstalled);
 		IOUtils.writeString(out, installationDirectory);
 		out.writeBoolean(agentRunning);
-		//Do not pass username/password over the network! (PII)
-		//IOUtils.writeString(out, remoteUsername);
-		//IOUtils.writeString(out, remotePassword);
+		// Do not pass username/password over the network! (PII)
+		// IOUtils.writeString(out, remoteUsername);
+		// IOUtils.writeString(out, remotePassword);
 		IOUtils.writeString(out, machineId);
 		IOUtils.writeString(out, fileTransferMode.name());
 		IOUtils.writeString(out, remoteExecutionMode.name());
