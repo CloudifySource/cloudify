@@ -101,7 +101,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	@Override
-	public MachineDetails startMachine(String locationId, final long timeout,
+	public MachineDetails startMachine(final String locationId, final long timeout,
 			final TimeUnit unit) throws TimeoutException,
 			CloudProvisioningException {
 
@@ -119,23 +119,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			final MachineDetails md = createServer(end, groupName, locationId);
 			return md;
 		} catch (final Exception e) {
-
-			// Special handling for cloudstack on ALU - for unknown reason, the
-			// context throws rejected exception.
-			// Looks like the thread pool is exhausted, though not clear why.
-			// Does not repro outside their cloud.
-			// if (e instanceof RejectedExecutionException
-			// &&
-			// this.cloud.getProvider().getProvider().equalsIgnoreCase("cloudstack"))
-			// {
-			// logger.warning("Detected Jclouds execution problem. Reseting Jclouds context");
-			// try {
-			// this.deployer.reset(currentContext);
-			// } catch (final Exception e2) {
-			// logger.log(Level.WARNING, "Failed to reset jclouds context", e2);
-			// }
-			// }
-
 			throw new CloudProvisioningException(
 					"Failed to start cloud machine", e);
 		}
@@ -354,6 +337,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		if (existingManagementServers.length > 0) {
 			logger.info("Found existing servers matching the name: "
 					+ managementMachinePrefix);
+			for (MachineDetails machineDetails : existingManagementServers) {
+				final String existingManagementServerDescription = createManagementServerDescription(machineDetails);
+				logger.info(existingManagementServerDescription);
+			}
 			return existingManagementServers;
 		}
 
@@ -365,6 +352,20 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 				endTime, numberOfManagementMachines);
 		publishEvent(EVENT_MGMT_VMS_STARTED);
 		return createdMachines;
+	}
+
+	private String createManagementServerDescription(final MachineDetails machineDetails) {
+		final StringBuilder sb = new StringBuilder();
+		sb.append("Machine ID: " + machineDetails.getMachineId());
+		if (machineDetails.getPublicAddress() != null) {
+			sb.append(", ").append(machineDetails.getPublicAddress());
+		}
+
+		if (machineDetails.getPrivateAddress() != null) {
+			sb.append(",").append(machineDetails.getPrivateAddress());
+		}
+
+		return sb.toString();
 	}
 
 	private MachineDetails[] doStartManagementMachines(final long endTime,
@@ -590,7 +591,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 		// this will ensure that the availability zone is added to GSA that
 		// starts on this machine.
-		String locationId = node.getLocation().getId();
+		final String locationId = node.getLocation().getId();
 		md.setLocationId(locationId);
 
 		return md;
@@ -625,8 +626,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 		// Check if node returned a username - some clouds support this
 		// (Rackspace, for instance)
-		if ((node.getCredentials() != null)
-				&& (node.getCredentials().getOptionalPassword() != null)) {
+		if (node.getCredentials() != null
+				&& node.getCredentials().getOptionalPassword() != null) {
 			if (node.getCredentials().getOptionalPassword().isPresent()) {
 				return node.getCredentials().getPassword();
 			}
