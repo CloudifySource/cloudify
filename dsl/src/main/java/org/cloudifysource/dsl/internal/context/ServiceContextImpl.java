@@ -358,4 +358,12 @@ public class ServiceContextImpl implements ServiceContext {
 		return envVar;
 	}
 
+	@Override
+	public String getMachineID() {
+		final String envVar = System
+				.getenv(CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID);
+
+		return envVar;
+	}
+
 }

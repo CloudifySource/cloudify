@@ -125,9 +125,13 @@ public interface ServiceContext {
 	 * @return the current machine's Cloud template name.
 	 */
 	String getCloudTemplateName();
+	
+	/*********
+	 * Returns the current machine's ID.
+	 * 
+	 * @return the current machine's ID.
+	 */
+	String getMachineID();
 
-	
-	
-	
 
 }
