@@ -524,9 +524,9 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 					final Object retcode = result.getResult();
 					if (retcode instanceof Boolean) {
 						return (Boolean) retcode;
+					} else {
+						throw new USMException("The start detector return code was not a boolean! Result was: " + retcode);
 					}
-					// process ended successfully
-					return true;
 				}
 				// process exited with abnormal status code
 				logger.log(Level.WARNING, "Liveness Detector failed to execut. Exception was: "
