@@ -38,6 +38,11 @@ import org.cloudifysource.rest.controllers.ServiceController;
 
 import com.j_spaces.kernel.Environment;
 
+/**********
+ * A Runnable implementation that executes the deployment logic of an application.
+ * @author adaml, barakme
+ * @since 2.0 
+ */
 public class ApplicationInstallerRunnable implements Runnable {
 
 	private static final int SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES = 60;
@@ -55,6 +60,19 @@ public class ApplicationInstallerRunnable implements Runnable {
 	private final boolean selfHealing;
 	private File cloudOverrides;
 
+	/**************
+	 * Constructor.
+	 * @param controller installation requests are delegated to this controller.
+	 * @param result the application compilation result.
+	 * @param applicationName the application name.
+	 * @param overridesFile Application overrides file.
+	 * @param authGroups Security authorization groups for this application.
+	 * @param services the list of services.
+	 * @param cloud the cloud configuration object.
+	 * @param selfHealing true if self healing is enabled for all services in this application, 
+	 *   false if it is disabled for them.
+	 * @param cloudOverrides cloud configuration overrides for all services in this application.
+	 */
 	public ApplicationInstallerRunnable(
 			final ServiceController controller,
 			final DSLApplicationCompilatioResult result, 
