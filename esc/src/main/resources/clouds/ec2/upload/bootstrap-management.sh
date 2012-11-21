@@ -129,8 +129,6 @@ sed -i "1i export GIGASPACES_CLOUD_HARDWARE_ID=$GIGASPACES_CLOUD_HARDWARE_ID" se
 sed -i "1i export PATH=$JAVA_HOME/bin:$PATH" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "1i export JAVA_HOME=$JAVA_HOME" setenv.sh || error_exit $? "Failed updating setenv.sh"
 
-cd ~/gigaspaces/tools/cli || error_exit $? "Failed changing directory to cli directory"
-
 # START AGENT ALONE OR WITH MANAGEMENT
 if [ -f nohup.out ]; then
   rm nohup.out
@@ -177,8 +175,11 @@ fi
 # Execute per-template command
 if [ ! -z "$GIGASPACES_AGENT_ENV_INIT_COMMAND" ]; then
 	echo Executing initialization command
+	cd $WORKING_HOME_DIRECTORY
 	$GIGASPACES_AGENT_ENV_INIT_COMMAND
 fi
+
+cd ~/gigaspaces/tools/cli || error_exit $? "Failed changing directory to cli directory"
 
 START_COMMAND_ARGS="-timeout 30 --verbose -auto-shutdown"
 if [ "$GSA_MODE" = "agent" ]; then

@@ -200,7 +200,8 @@ fi
 # Execute per-template command
 if [ ! -z "$GIGASPACES_AGENT_ENV_INIT_COMMAND" ]; then
 	echo Executing initialization command
-	$GIGASPACES_AGENT_ENV_INIT_COMMAND
+	cd $WORKING_HOME_DIRECTORY
+	$SHELL -c $GIGASPACES_AGENT_ENV_INIT_COMMAND
 fi
 
 cd $CLOUDIFY_DIR/tools/cli || error_exit $? "Failed changing directory to cli directory"
