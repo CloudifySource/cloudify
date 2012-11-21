@@ -173,6 +173,6 @@
 		</plugins>
 	</build>
 	<properties>
-		<jcloudsVersion>1.5.2</jcloudsVersion>
+		<jcloudsVersion>1.5.3</jcloudsVersion>
 	</properties>
 </project>
