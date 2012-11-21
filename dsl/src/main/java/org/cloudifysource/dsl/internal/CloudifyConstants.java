@@ -106,6 +106,7 @@ public final class CloudifyConstants {
 	public static final String USM_DETAILS_IMAGE_ID = "Cloud Image ID";
 	public static final String USM_DETAILS_HARDWARE_ID = "Cloud Hardware ID";
 	public static final String USM_DETAILS_INSTANCE_ID = "Instance ID";
+	public static final String USM_DETAILS_MACHINE_ID = "Machine ID";
 
 	/****************
 	 * Key names for USM Exposed Monitors and Details
@@ -150,6 +151,7 @@ public final class CloudifyConstants {
 	public static final String GIGASPACES_CLOUD_TEMPLATE_NAME = "GIGASPACES_CLOUD_TEMPLATE_NAME";
 	public static final String GIGASPACES_AGENT_ENV_JAVA_URL = "GIGASPACES_AGENT_ENV_JAVA_URL";
 	public static final String GIGASPACES_ORIGINAL_JAVA_HOME = "GIGASPACES_ORIGINAL_JAVA_HOME";
+	public static final String GIGASPACES_CLOUD_MACHINE_ID = "GIGASPACES_CLOUD_MACHINE_ID";
 	
 	/***********************************
 	 * Duplicate of Key names for environment variables available to agent in a cloudify
@@ -160,6 +162,10 @@ public final class CloudifyConstants {
 	public static final String CLOUDIFY_CLOUD_HARDWARE_ID = "CLOUDIFY_CLOUD_HARDWARE_ID";
 	public static final String CLOUDIFY_AGENT_ENV_PRIVATE_IP = "CLOUDIFY_AGENT_ENV_PRIVATE_IP";
 	public static final String CLOUDIFY_AGENT_ENV_PUBLIC_IP = "CLOUDIFY_AGENT_ENV_PUBLIC_IP";
+	public static final String CLOUDIFY_CLOUD_MACHINE_ID = "CLOUDIFY_CLOUD_MACHINE_ID";
+
+	public static final String CLOUDIFY_LINK_ENV = "GIGASPACES_LINK";
+	public static final String CLOUDIFY_OVERRIDES_LINK_ENV = "GIGASPACES_OVERRIDES_LINK";
 
 	
 	/***************

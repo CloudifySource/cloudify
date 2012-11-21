@@ -28,7 +28,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
@@ -42,7 +41,6 @@ import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.ServiceReader;
 
 import com.gigaspaces.internal.utils.StringUtils;
-import com.j_spaces.kernel.Environment;
 
 /************
  * Implementation of the packaging logic required to create a zip file
@@ -57,8 +55,6 @@ public final class Packager {
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(Packager.class.getName());
 
-	private static final String USM_JAR_PATH_PROP = "usmJarPath";
-
 	private Packager() {
 
 	}
@@ -68,11 +64,6 @@ public final class Packager {
 	 * 
 	 * @param recipeDirOrFile
 	 *            the recipe directory or recipe file.
-<<<<<<< HEAD
-	 * @param additionalServiceFiles
-	 *            files to add to the service directory.
-=======
->>>>>>> 88e40d7... CLOUDIFY-1126 Fix checkStyle and bugs found by findBugs.
 	 * @return the packed file.
 	 * @throws DSLException
 	 * @throws IOException .
@@ -179,6 +170,7 @@ public final class Packager {
 	 * Pack the file and name it 'destFileName'.
 	 * 
 	 * @param service .
+
 	 * @param recipeDirOrFile
 	 *            Folder or file to pack.
 	 * @param destFileName
@@ -602,7 +594,8 @@ public final class Packager {
 					line = line
 							.substring(
 									0,
-									line.indexOf(BaseDslScript.EXTEND_PROPERTY_NAME) + 6);
+									line.indexOf(BaseDslScript.EXTEND_PROPERTY_NAME) 
+									+ BaseDslScript.EXTEND_PROPERTY_NAME.length());
 					line += " \"" + localExtendedServiceFile.getName() + "\"";
 				}
 				bufferedWriter.write(line + StringUtils.NEW_LINE);
@@ -668,27 +661,6 @@ public final class Packager {
 		}
 
 		return extendedServiceFile;
-	}
-
-	/**
-	 * @return
-	 */
-	private static File getUsmLibDir(final Service service) {
-		final Map<String, String> customProperties = service
-				.getCustomProperties();
-		File usmLibDir = null;
-		if (customProperties != null) {
-			final String usmJarPathProp = customProperties
-					.get(USM_JAR_PATH_PROP);
-			if (usmJarPathProp != null) {
-				usmLibDir = new File(usmJarPathProp);
-			}
-		}
-		if (usmLibDir == null) {
-			usmLibDir = new File(Environment.getHomeDirectory()
-					+ "/lib/platform/usm");
-		}
-		return usmLibDir;
 	}
 
 }

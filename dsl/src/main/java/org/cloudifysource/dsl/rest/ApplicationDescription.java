@@ -21,16 +21,16 @@ import java.util.List;
 import org.cloudifysource.dsl.internal.CloudifyConstants.DeploymentState;
 
 /**
- * Application description POJO.
- * This class contains deployment information regarding the application and all its
- *  service and more specifically information regarding each of it's service instances.
+ * Application description POJO. This class contains deployment information
+ * regarding the application and all its service and more specifically
+ * information regarding each of it's service instances.
  * 
  * @author adaml
  * @since 2.3.0
- *
+ * 
  */
 public class ApplicationDescription {
-	
+
 	private List<ServiceDescription> servicesDescription = new ArrayList<ServiceDescription>();
 	private String applicationName;
 	private String authGroups;
@@ -40,7 +40,7 @@ public class ApplicationDescription {
 		return servicesDescription;
 	}
 
-	public void setServicesDescription(List<ServiceDescription> servicesDescription) {
+	public void setServicesDescription(final List<ServiceDescription> servicesDescription) {
 		this.servicesDescription = servicesDescription;
 	}
 
@@ -48,26 +48,25 @@ public class ApplicationDescription {
 		return applicationName;
 	}
 
-	public void setApplicationName(String applicationName) {
+	public void setApplicationName(final String applicationName) {
 		this.applicationName = applicationName;
 	}
-	
+
 	public String getAuthGroups() {
 		return authGroups;
 	}
-	
-	public void setAuthGroups(String authGroups) {
-		this.authGroups = authGroups;
-	}	
 
-	public void setApplicationState(DeploymentState applicationState) {
-		this.applicationState = applicationState;
-		
+	public void setAuthGroups(final String authGroups) {
+		this.authGroups = authGroups;
 	}
-	
+
+	public void setApplicationState(final DeploymentState applicationState) {
+		this.applicationState = applicationState;
+
+	}
+
 	public DeploymentState getApplicationState() {
 		return this.applicationState;
 	}
-	
-	
+
 }
