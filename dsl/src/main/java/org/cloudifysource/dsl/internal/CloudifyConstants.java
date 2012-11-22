@@ -259,13 +259,16 @@ public final class CloudifyConstants {
 	public static final int HTTP_STATUS_CODE_OK = 200;
 	public static final int HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
 	public static final int HTTP_STATUS_NOT_FOUND = 404;
+	public static final int HTTP_STATUS_ACCESS_DENIED = 403;
+	public static final int HTTP_STATUS_BAD_CREDENTIALS = 401;
 	
 	
 	/*******************
 	 * Spring security mode environment variable
 	 */
 	public static final String SPRING_ACTIVE_PROFILE_ENV_VAR = "SPRING_PROFILES_ACTIVE";
-	public static final String SPRING_BEANS_PROFILE_DEFAULT = "nonsecure";
+	public static final String SPRING_PROFILE_SECURE = "secure";
+	public static final String SPRING_PROFILE_NON_SECURE = "nonsecure";
 	
 	// CHECKSTYLE:ON
 }

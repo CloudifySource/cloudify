@@ -94,6 +94,8 @@ public interface AdminFacade {
 	 *            Deployment context properties
 	 * @param templateName
 	 *            The name of the cloud template to use
+	 * @param authGroups
+	 *            Authorization groups for the service
 	 * @param timeout .
 	 * @param selfHealing
 	 *            True is recipe self healing should be enabled, false
@@ -104,8 +106,8 @@ public interface AdminFacade {
 	 */
 	String installElastic(File file, String applicationName,
 			String serviceName, String zone, Properties props,
-			final String templateName, int timeout, final boolean selfHealing,
-			final File cloudOverrides)
+			final String templateName, final String authGroups, int timeout,
+			final boolean selfHealing, final File cloudOverrides)
 			throws CLIException;
 
 	/**

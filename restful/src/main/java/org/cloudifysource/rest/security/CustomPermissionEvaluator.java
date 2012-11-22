@@ -25,7 +25,6 @@ import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.esc.util.Utils;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.security.access.PermissionEvaluator;
@@ -63,6 +62,12 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     public boolean hasPermission(final Authentication authentication, final Object targetDomainObject, 
     		final Object permission) {
 		
+		if (StringUtils.isBlank(IS_SPRING_SECURED) 
+				|| !IS_SPRING_SECURED.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE)) {
+			//security is off
+			return true;
+		}
+		
 		boolean permissionGranted = false;
 		String permissionName, authGroupsString;
 		Collection<String> requestedAuthGroups, userAuthGroups;
@@ -98,7 +103,8 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     		authGroupsString = ((String) targetDomainObject).trim();	
     	}
     	
-    	requestedAuthGroups = Utils.splitAndTrimString(authGroupsString, AUTH_GROUPS_DELIMITER);
+    	requestedAuthGroups = org.cloudifysource.esc.util.StringUtils.splitAndTrimString(authGroupsString, 
+    			AUTH_GROUPS_DELIMITER);
     	userAuthGroups = getUserAuthGroups();
     	
     	//check roles
@@ -130,7 +136,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 					permissionGranted = true;
 					logger.log(Level.INFO, "View permission granted for user " + authentication.getName());
 				} else {
-					logger.log(Level.INFO, "Insufficient permissions. User " + authentication.getName() + " is only "
+					logger.log(Level.WARNING, "Insufficient permissions. User " + authentication.getName() + " is only "
 							+ "permitted to view groups: " + Arrays.toString(userAuthGroups.toArray(new String[0])));
 				}
 			} else if (permissionName.equalsIgnoreCase(PERMISSION_TO_DEPLOY)) {
@@ -138,13 +144,14 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 					permissionGranted = true;
 					logger.log(Level.INFO, "Deploy permission granted for user " + authentication.getName());
 				} else {
-					logger.log(Level.INFO, "Insufficient permissions. User " + authentication.getName() + " is only "
+					// TODO change to warning
+					logger.log(Level.WARNING, "Insufficient permissions. User " + authentication.getName() + " is only "
 							+ "permitted to deploy for groups: " 
 							+ Arrays.toString(userAuthGroups.toArray(new String[0])));
 				}
 			}
 		} else {
-			logger.log(Level.INFO, "User " + authentication.getName() + "is missing the required roles, access is "
+			logger.log(Level.WARNING, "User " + authentication.getName() + " is missing the required roles, access is "
 					+ "denied.");
 		}
     	
@@ -218,12 +225,16 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     	
     	Collection<String> userAuthGroups = getUserAuthGroups();
     	for (String requestedAuthGroup : requestedAuthGroups) {
-    		for (String userAuthGroup : userAuthGroups) {
+    		if (userAuthGroups.contains(requestedAuthGroup)) {
+    			isPermitted = true;
+    			break;
+    		}
+    		/*for (String userAuthGroup : userAuthGroups) {
     			if (requestedAuthGroup.equalsIgnoreCase(userAuthGroup)) {
     				isPermitted = true;
     				break;
     			}
-    		}
+    		}*/
     	}
     	
 		return isPermitted;
@@ -236,18 +247,14 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     private Collection<String> getUserAuthGroups() {
     	Set<String> userAuthGroups = new HashSet<String>();
     	
-    	if (StringUtils.isNotBlank(IS_SPRING_SECURED) && IS_SPRING_SECURED.equalsIgnoreCase("true")) {
-    		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        	if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
-    			throw new AccessDeniedException("Anonymous user is not supported");
-        	}
-    		
-    		for (GrantedAuthority authority : authentication.getAuthorities()) {
-    			userAuthGroups.add(authority.getAuthority());
-    		}
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+			throw new AccessDeniedException("Anonymous user is not supported");
     	}
-    	
-    	
+		
+		for (GrantedAuthority authority : authentication.getAuthorities()) {
+			userAuthGroups.add(authority.getAuthority());
+		}
 		
 		return userAuthGroups;
     }

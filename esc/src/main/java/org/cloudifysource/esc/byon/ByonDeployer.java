@@ -33,7 +33,6 @@ import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.CustomNode;
 import org.cloudifysource.esc.driver.provisioning.byon.CustomNodeImpl;
 import org.cloudifysource.esc.util.IPUtils;
-import org.cloudifysource.esc.util.Utils;
 
 /**
  * @author noak
@@ -105,7 +104,7 @@ public class ByonDeployer {
 				if (template.getRemoteExecution() == RemoteExecutionModes.WINRM) {
 					node.setLoginPort(RemoteExecutionModes.WINRM.getPort());
 				}
-				Utils.validateConnection(node.getResolvedIP(),
+				IPUtils.validateConnection(node.getResolvedIP(),
 						node.getLoginPort());
 				resolvedNodes.add(node);
 			} catch (final Exception ex) {
@@ -189,7 +188,7 @@ public class ByonDeployer {
 					String resolvedIP = IPUtils.resolveHostName(node
 							.getPrivateIP());
 					node.setResolvedIP(resolvedIP);
-					Utils.validateConnection(node.getResolvedIP(),
+					IPUtils.validateConnection(node.getResolvedIP(),
 							node.getLoginPort());
 					allocatedNodesPool.add(node);
 					freeNodesPool.remove(node);
@@ -222,7 +221,7 @@ public class ByonDeployer {
 						String resolvedIP = IPUtils.resolveHostName(currentNode
 								.getPrivateIP());
 						currentNode.setResolvedIP(resolvedIP);
-						Utils.validateConnection(currentNode.getPrivateIP(),
+						IPUtils.validateConnection(currentNode.getPrivateIP(),
 								currentNode.getLoginPort());
 						if (!allocatedNodesPool.contains(currentNode)) {
 							allocatedNodesPool.add(currentNode);

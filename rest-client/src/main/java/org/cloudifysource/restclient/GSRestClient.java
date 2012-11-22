@@ -66,6 +66,7 @@ import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
@@ -323,7 +324,14 @@ public class GSRestClient {
                 } catch (final IOException e) {
                     if (statusCode == CloudifyConstants.HTTP_STATUS_NOT_FOUND) {
                         throw new ErrorStatusException(e, "URL_not_found", httpMethod.getURI());
+                    } else if (statusCode == CloudifyConstants.HTTP_STATUS_ACCESS_DENIED) {
+                        throw new ErrorStatusException(e, CloudifyErrorMessages.NO_PERMISSION_ACCESS_DENIED.getName(),
+                        		httpMethod.getURI());
+                    } else if (statusCode == CloudifyConstants.HTTP_STATUS_BAD_CREDENTIALS) {
+                        throw new ErrorStatusException(e, CloudifyErrorMessages.BAD_CREDENTIALS.getName(),
+                        		httpMethod.getURI());
                     }
+                    
                     throw new ErrorStatusException(e, "CLI_unable_to_parse_to_JSON", responseBody);
                 }
             }
@@ -493,7 +501,7 @@ public class GSRestClient {
      * This methods executes HTTP post over REST on the given (relative) URL with the given parameters map.
      *
      * @param relativeUrl The URL to post to.
-     * @param params      parameters as Map<String, String>.
+     * @param params parameters as a map of names and values.
      * @return The response object from the REST server
      * @throws RestException Reporting failure to post the file.
      */
@@ -522,7 +530,20 @@ public class GSRestClient {
      * @throws RestException Reporting failure to post the file.
      */
     public final Object postFile(final String relativeUrl, final File file) throws RestException {
-        return postFile(relativeUrl, file, null, new HashMap<String, String>());
+        return postFile(relativeUrl, file, null/*props*/, null/*cloudOverrides*/, new HashMap<String, String>());
+    }
+    
+    /**
+     * This methods executes HTTP post over REST on the given (relative) URL with the given file.
+     *
+     * @param relativeUrl The URL to post to.
+     * @param file        The file to send (example: <SOME PATH>/tomcat.zip).
+     * @return The response object from the REST server
+     * @throws RestException Reporting failure to post the file.
+     */
+    public final Object postFile(final String relativeUrl, final File file, final Properties props, 
+    		final File cloudOverrides) throws RestException {
+        return postFile(relativeUrl, file, props, cloudOverrides, new HashMap<String, String>());
     }
     
     /**
@@ -531,13 +552,14 @@ public class GSRestClient {
      *
      * @param relativeUrl The URL to post to.
      * @param file        The file to send (example: <SOME PATH>/tomcat.zip).
-     * @param params      The properties of this POST action (example: com.gs.service.type=WEB_SERVER)
-     * @param cloudOverrides - A file containing override properties to be used by the cloud driver upon installation.
+     * @param props      The properties of this POST action (example: com.gs.service.type=WEB_SERVER)
+     * @param cloudOverrides A file containing override properties to be used by the cloud driver upon installation.
+     * @param parameters as a map of names and values.
      * @return The response object from the REST server
      * @throws RestException Reporting failure to post the file.
      */
-    public final Object postFile(final String relativeUrl, final File file, final Properties params,
-    		final File cloudOverrides)
+    public final Object postFile(final String relativeUrl, final File file, final Properties props,
+    		final File cloudOverrides, final Map<String, String> params)
             throws RestException {
 
         // It should be possible to dump the properties into a String entity,
@@ -547,7 +569,7 @@ public class GSRestClient {
         // dump map into file
         File tempFile;
         try {
-            tempFile = writeMapToFile(params);
+            tempFile = writeMapToFile(props);
         } catch (final IOException e) {
             throw new RestException(e);
         }
@@ -577,13 +599,14 @@ public class GSRestClient {
      *
      * @param relativeUrl The URL to post to.
      * @param file        The file to send (example: <SOME PATH>/tomcat.zip).
-     * @param param       An additional string parameter passed on this post.
+     * @param props       An additional string parameter passed on this post.
+     * @param params      parameters as a map of names and values.
      * @return The response object from the REST server
      * @throws RestException Reporting failure to post the file.
      */
-    public final Object postFile(final String relativeUrl, final File file, final Properties params)
-            throws RestException {
-    	return postFile(relativeUrl, file, params, null);
+    public final Object postFile(final String relativeUrl, final File file, final Properties props,
+    		final Map<String, String> params) throws RestException {
+    	return postFile(relativeUrl, file, props, null/*cloud overrides*/, params);
     }
     
     /**
@@ -592,7 +615,8 @@ public class GSRestClient {
      *
      * @param relativeUrl The URL to post to.
      * @param file        The file to send (example: <SOME PATH>/tomcat.zip).
-     * @param param       An additional string parameter passed on this post.
+     * @param cloudOverrides A file containing override properties to be used by the cloud driver upon installation.
+     * @param param parameters as a map of names and values.
      * @return The response object from the REST server
      * @throws RestException Reporting failure to post the file or the parameter.
      */

@@ -107,12 +107,12 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	public void reconnect(final String username, final String password) throws CLIException {
 		try {
 			client.setCredentials(username, password);
-			// test connection
-			client.get(SERVICE_CONTROLLER_URL + "testrest");
-		} catch (final ErrorStatusException e) {
-			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-		}
-	}
+            // test connection
+            client.get(SERVICE_CONTROLLER_URL + "testlogin");
+        } catch (final ErrorStatusException e) {
+            throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+        }
+    }
 
 	private URL getUrlWithDefaultPort(final URL urlObj)
 			throws MalformedURLException {
@@ -328,21 +328,30 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	public String installElastic(final File packedFile,
 			final String applicationName, final String serviceName,
 			final String zone, final Properties contextProperties,
-			final String templateName, final int timeout,
-			final boolean selfHealing,
+			final String templateName, final String authGroups,
+			final int timeout, final boolean selfHealing,
 			final File cloudOverrides) throws CLIException {
 
+		String response;
 		final String url = SERVICE_CONTROLLER_URL + "applications/"
 				+ applicationName + "/services/" + serviceName + "/timeout/"
 				+ timeout + "?zone=" + zone + "&template=" + templateName
 				+ "&selfHealing=" + Boolean.toString(selfHealing);
 		try {
-			return (String) client.postFile(url, packedFile, contextProperties, cloudOverrides);
+			if (org.apache.commons.lang.StringUtils.isBlank(authGroups)) {
+            	response = (String) client.postFile(url, packedFile, contextProperties, cloudOverrides);
+            } else {
+            	Map<String, String> paramsMap = new HashMap<String, String>();
+            	paramsMap.put("authGroups", authGroups);
+            	response = (String) client.postFile(url, packedFile, contextProperties, cloudOverrides, paramsMap);
+            }
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		} catch (final RestException e) {
 			throw new CLIException(e);
 		}
+		
+		return response;
 	}
 
 	/**

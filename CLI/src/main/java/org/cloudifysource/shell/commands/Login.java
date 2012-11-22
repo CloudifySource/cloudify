@@ -29,6 +29,6 @@ public class Login extends AdminAwareCommand {
 	@Override
 	protected Object doExecute() throws Exception {
 		adminFacade.reconnect(username, password);
-		return getFormattedMessage("reconnected_successfully", Color.GREEN);
+		return getFormattedMessage("logged_in_successfully", Color.GREEN);
 	}
 }

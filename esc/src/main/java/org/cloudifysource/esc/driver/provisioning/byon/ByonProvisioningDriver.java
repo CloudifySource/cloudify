@@ -42,6 +42,8 @@ import org.cloudifysource.esc.driver.provisioning.CustomNode;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
+import org.cloudifysource.esc.util.FileUtils;
+import org.cloudifysource.esc.util.IPUtils;
 import org.cloudifysource.esc.util.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
@@ -416,7 +418,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		String managementIP = null;
 		for (final CustomNode server : allNodes) {
 			try {
-				Utils.validateConnection(server.getPrivateIP(), CloudifyConstants.DEFAULT_REST_PORT);
+				IPUtils.validateConnection(server.getPrivateIP(), CloudifyConstants.DEFAULT_REST_PORT);
 				managementIP = server.getPrivateIP();
 				break;
 			} catch (final Exception ex) {
@@ -494,7 +496,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		MachineDetails machineDetails = null;
 		try {
 			machineDetails = createMachineDetailsFromNode(cloudNode);
-			Utils.deleteFileSystemObjects(machineDetails.getPrivateAddress(), machineDetails.getRemoteUsername(),
+			FileUtils.deleteFileSystemObjects(machineDetails.getPrivateAddress(), machineDetails.getRemoteUsername(),
 					machineDetails.getRemotePassword(), null/* key file */, cloudifyItems,
 					machineDetails.getFileTransferMode());
 		} catch (final Exception e) {

@@ -231,7 +231,7 @@ public class InstallService extends AdminAwareCommand {
 		try {
 			final String lifecycleEventContainerPollingID = adminFacade
 					.installElastic(packedFile, currentApplicationName,
-							serviceName, zone, props, templateName,
+							serviceName, zone, props, templateName, authGroups,
 							getTimeoutInMinutes(), !disableSelfHealing, cloudOverrides);
 
 			pollForLifecycleEvents(lifecycleEventContainerPollingID);
