@@ -358,11 +358,11 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		final StringBuilder sb = new StringBuilder();
 		sb.append("Machine ID: " + machineDetails.getMachineId());
 		if (machineDetails.getPublicAddress() != null) {
-			sb.append(", ").append(machineDetails.getPublicAddress());
+			sb.append(", Public IP: ").append(machineDetails.getPublicAddress());
 		}
 
 		if (machineDetails.getPrivateAddress() != null) {
-			sb.append(",").append(machineDetails.getPrivateAddress());
+			sb.append(", Private IP: ").append(machineDetails.getPrivateAddress());
 		}
 
 		return sb.toString();
