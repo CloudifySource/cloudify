@@ -16,6 +16,7 @@
        			http://www.openspaces.org/schema/remoting http://www.openspaces.org/schema/8.0/remoting/openspaces-remoting.xsd">
 
 	<beans profile="secure, nonsecure">
+	<!-- beans-->
 		<bean id="propertyConfigurer"
 			class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 			<property name="location" value="/WEB-INF/config.properties" />
@@ -66,30 +67,36 @@
 			<property name="maxUploadSize" value="100000000" />
 		</bean>
 		
-		<bean id="expressionHandler"
-			class="org.cloudifysource.rest.security.ExtendedMethodSecurityExpressionHandler">
-			<property name="permissionEvaluator" ref="permissionEvaluator" />
-		</bean>
 	</beans>
 
 	<beans profile="secure">
-		<sec:global-method-security
-			pre-post-annotations="enabled" proxy-target-class="true">
-			<sec:expression-handler ref="expressionHandler" />
-		</sec:global-method-security>
+	<!-- beans-->
+	
+		<bean id="permissionEvaluator" class="org.cloudifysource.rest.security.CustomPermissionEvaluator" />
 		
-		<bean id="permissionEvaluator"
-			class="org.cloudifysource.rest.security.CustomPermissionEvaluator" />
+		<bean id="expressionHandler" class="org.cloudifysource.rest.security.ExtendedMethodSecurityExpressionHandler">
+			<property name="permissionEvaluator" ref="permissionEvaluator" />
+		</bean>
+		
+		<sec:global-method-security pre-post-annotations="enabled" proxy-target-class="true">
+			<sec:expression-handler ref="expressionHandler" />
+		</sec:global-method-security>		
+		
 	</beans>
 	
+	<!-- beans-->
 	<beans profile="nonsecure">
-		<sec:global-method-security
-			pre-post-annotations="disabled" proxy-target-class="true">
-			<sec:expression-handler ref="expressionHandler" />
-		</sec:global-method-security>
+	
+		<bean id="permissionEvaluator" class="org.cloudifysource.rest.security.CustomApproveAllPermissionEvaluator" />
 		
-		<bean id="permissionEvaluator"
-			class="org.cloudifysource.rest.security.CustomApproveAllPermissionEvaluator" />
+		<bean id="expressionHandler" class="org.cloudifysource.rest.security.ExtendedMethodSecurityExpressionHandler">
+			<property name="permissionEvaluator" ref="permissionEvaluator" />
+		</bean>
+	
+		<sec:global-method-security pre-post-annotations="disabled" proxy-target-class="true">
+			<sec:expression-handler ref="expressionHandler" />
+		</sec:global-method-security>		
+		
 	</beans>
 
 </beans>

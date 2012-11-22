@@ -1,57 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans:beans
-	xmlns="http://www.springframework.org/schema/security"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xmlns:sec="http://www.springframework.org/schema/security"
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sec="http://www.springframework.org/schema/security"
 	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
 	http://www.springframework.org/schema/security
-	http://www.springframework.org/schema/security/spring-security-3.0.xsd
-	http://www.springframework.org/schema/beans
-	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
-	
-	<http auto-config='true' use-expressions="true">
-		<intercept-url pattern="/**" access="permitAll" />
-		<http-basic />
-		<anonymous />
-	</http>
-	
-	<!-- to limit HTTP access to the application replace the above http section with this one: -->
-	<!--http entry-point-ref="basicAuthEntryPoint" auto-config="false" create-session="never" use-expressions="true">
-		<intercept-url pattern="/admin/**" access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')"/>
-		<intercept-url pattern="/service/testrest" access="permitAll"/>
-		<intercept-url pattern="/service/**" access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS', 'ROLE_VIEWERS')"/>
-		<intercept-url pattern="/attributes/**" access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')"/>
-		<intercept-url pattern="/**" access="isFullyAuthenticated()"/>
-		<custom-filter ref="basicAuthenticationFilter" after="BASIC_AUTH_FILTER" />
-		<logout/>
-	</http-->
-	
-	<beans:bean id="basicAuthEntryPoint" class="org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint">
-		<beans:property name="realmName" value="REST Realm" />
-	</beans:bean>
-	
-	<beans:bean id="basicAuthenticationFilter" class="org.springframework.security.web.authentication.www.BasicAuthenticationFilter">
-		<beans:property name="authenticationManager" ref="authenticationManager"/>
-		<beans:property name="authenticationEntryPoint" ref="basicAuthEntryPoint" />
-	</beans:bean>
-	
-	<authentication-manager alias="authenticationManager">
-		<authentication-provider>
-			<user-service>
-				<user name="Amanda" password="Amanda" authorities="ROLE_CLOUDADMINS"/>
-				<user name="Dana" password="Dana" authorities="ROLE_APP_MANAGER"/>
-				<user name="john" password="john" authorities="ROLE_VIEWERS"/>
-			</user-service>
-		</authentication-provider>
-	</authentication-manager>
-	
-	<!-- to connect to a LDAP user-store replace the above authentication-manager with this one, and enter your ldap settings -->
-	<!--ldap-server url="ldap://yourLdapIP:389/dc=yourdomain,dc=com"/>
-	<authentication-manager alias="authenticationManager">
-        <ldap-authentication-provider user-search-filter="uid={0}" user-search-base="ou=people" group-search-base="ou=groups" group-search-filter="member={0}"/>
-    </authentication-manager-->
-	
-	<!--bean id="tdrUserDetailsContextMapper" class="com.bla.bla.UserDetailsContextMapperImpl"/-->
+	http://www.springframework.org/schema/security/spring-security-3.0.xsd">
 
-</beans:beans>
+	<beans profile="nonsecure">
+		<sec:http auto-config='true' use-expressions="true"> <sec:intercept-url 
+			pattern="/**" access="permitAll" /> <sec:http-basic /> <sec:anonymous /> 
+		</sec:http>
+	</beans>
+
+	<beans profile="secure">
+		<!-- to limit HTTP access to the application replace the above http section 
+			with this one: -->
+		<sec:http entry-point-ref="basicAuthEntryPoint" auto-config="false"
+			create-session="never" use-expressions="true">
+			<sec:anonymous enabled="false" />
+			<sec:intercept-url pattern="/admin/**"
+				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')" />
+			<sec:intercept-url pattern="/service/testrest"
+				access="permitAll" />
+			<sec:intercept-url pattern="/service/testlogin"
+				access="isFullyAuthenticated()" />
+			<sec:intercept-url pattern="/service/**"
+				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS', 'ROLE_VIEWERS')" />
+			<sec:intercept-url pattern="/attributes/**"
+				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')" />
+			<sec:intercept-url pattern="/**" access="isFullyAuthenticated()" />
+			<sec:custom-filter ref="basicAuthenticationFilter"
+				after="BASIC_AUTH_FILTER" />
+			<sec:logout />
+		</sec:http>
+		
+		<bean id="basicAuthEntryPoint"
+			class="org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint">
+			<property name="realmName" value="REST Realm" />
+		</bean>
+
+		<bean id="basicAuthenticationFilter"
+			class="org.springframework.security.web.authentication.www.BasicAuthenticationFilter">
+			<property name="authenticationManager" ref="authenticationManager" />
+			<property name="authenticationEntryPoint" ref="basicAuthEntryPoint" />
+		</bean>
+		
+		<sec:authentication-manager alias="authenticationManager">
+			<sec:authentication-provider>
+				<sec:user-service>
+					<sec:user name="Amanda" password="Amanda" authorities="ROLE_CLOUDADMINS" />
+					<sec:user name="Dana" password="Dana" authorities="ROLE_APP_MANAGERS" />
+					<sec:user name="John" password="John" authorities="ROLE_VIEWERS" />
+					<sec:user name="Jane" password="Jane" authorities="" />
+				</sec:user-service>
+			</sec:authentication-provider>
+		</sec:authentication-manager>
+
+		<!-- to connect to a LDAP user-store replace the above authentication-manager 
+			with this one, and enter your ldap settings -->
+		<!--ldap-server url="ldap://yourLdapIP:389/dc=yourdomain,dc=com"/> <authentication-manager 
+			alias="authenticationManager"> <ldap-authentication-provider user-search-filter="uid={0}" 
+			user-search-base="ou=people" group-search-base="ou=groups" group-search-filter="member={0}"/> 
+			</authentication-manager -->
+
+		<!--bean id="tdrUserDetailsContextMapper" class="com.bla.bla.UserDetailsContextMapperImpl"/ -->
+		
+	</beans>
+
+</beans>
