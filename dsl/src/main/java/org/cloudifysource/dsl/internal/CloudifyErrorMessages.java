@@ -21,10 +21,7 @@ public enum CloudifyErrorMessages {
 	/*******
 	 * Attempted to install service with name of already installed service.
 	 */
-	SERVICE_ALREADY_INSTALLED("service_already_installed", 1)
-	
-	
-	;
+	SERVICE_ALREADY_INSTALLED("service_already_installed", 1),
 	
 	/**
 	 * Access to the resource is denied, permission not granted.
