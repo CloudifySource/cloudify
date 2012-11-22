@@ -32,7 +32,11 @@ import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
+import org.cloudifysource.dsl.internal.DSLReader;
+import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.internal.packaging.FileAppender;
 import org.cloudifysource.dsl.utils.RecipePathResolver;
 import org.cloudifysource.esc.driver.provisioning.jclouds.DefaultProvisioningDriver;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
@@ -69,6 +73,9 @@ public class BootstrapCloud extends AbstractGSCommand {
     @Option(required = false, description = "Path to a custom spring security configuration file", name = "-security")
     private String securityFilePath;
 
+    @Option(required = false, description = "Path to a file containing override properties", name = "-cloudOverrides")
+    private File cloudOverrides;    
+    
 	@Option(required = false, name = "-timeout",
 			description = "The number of minutes to wait until the operation is done.")
 	int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
@@ -82,9 +89,17 @@ public class BootstrapCloud extends AbstractGSCommand {
 		AgentlessInstaller.class.getName() };
 	private Map<String, Level> loggerStates = new HashMap<String, Level>();
 
+	private static final long TEN_K = 10 * FileUtils.ONE_KB;
 	
 	@Override
 	protected Object doExecute() throws Exception {
+		
+		if (cloudOverrides != null) {
+			if (cloudOverrides.length() >= TEN_K) {
+				throw new CLIStatusException(CloudifyErrorMessages.CLOUD_OVERRIDES_TO_LONG.getName());
+			}
+		}
+		
 		RecipePathResolver pathResolver = new RecipePathResolver();
 		
 		File providerDirectory = null;
@@ -103,7 +118,38 @@ public class BootstrapCloud extends AbstractGSCommand {
 		
 		// load the cloud file
 		File cloudFile = findCloudFile(providerDirectory);
-		Cloud cloud = ServiceReader.readCloud(cloudFile);
+		
+		// load properties file
+		File cloudPropertiesFile = DSLReader.findDefaultDSLFile(DSLUtils.PROPERTIES_FILE_SUFFIX, providerDirectory);
+		if (cloudPropertiesFile == null) {
+			// if there is no property file, create an empty one
+			cloudPropertiesFile = new File(providerDirectory.getAbsolutePath(), 
+					cloudProvider + "-cloud" + DSLUtils.PROPERTIES_FILE_SUFFIX);
+		}
+		File backupCloudPropertiesFile = new File(cloudPropertiesFile.getParentFile(), 
+				cloudPropertiesFile.getName() + ".backup");
+		
+		// check for overrides file
+		Cloud cloud = null;
+		if (cloudOverrides == null) {
+			cloud = ServiceReader.readCloud(cloudFile);
+		} else {
+			
+			// read cloud with overrides properties so they reflect during bootstrap.
+			cloud = ServiceReader.
+					readCloudFromDirectory(providerDirectory.getAbsolutePath(), 
+							FileUtils.readFileToString(cloudOverrides));
+			
+			// create a backup of the existing properties file
+			if (cloudPropertiesFile.exists()) {
+				FileUtils.copyFile(cloudPropertiesFile, backupCloudPropertiesFile);
+			}
+			
+			// append the overrides file to the existing properties file
+			FileAppender appender = new FileAppender(cloudPropertiesFile);
+			appender.append("Overrides File Properties", cloudOverrides);
+			appender.flush();
+		}
 
 		// start the installer
 		CloudGridAgentBootstrapper installer = new CloudGridAgentBootstrapper();
@@ -133,6 +179,17 @@ public class BootstrapCloud extends AbstractGSCommand {
 			installer.boostrapCloudAndWait(username, password, isSecurityOn, timeoutInMinutes, TimeUnit.MINUTES);
 			return getFormattedMessage("cloud_started_successfully", cloudProvider);
 		} finally {
+			// if an overrides file was passed, then the properties file is dirty. delete it.
+			if (cloudOverrides != null) {
+				cloudPropertiesFile.delete();
+			}
+			if (backupCloudPropertiesFile.exists()) {
+				// restore original properties file if it existed in the first place (backup file exists).
+				FileUtils.copyFile(backupCloudPropertiesFile, cloudPropertiesFile);
+				// delete temp backup file
+				backupCloudPropertiesFile.delete();
+				
+			}
 			installer.close();
 			restoreLoggingLevel();
 		}
