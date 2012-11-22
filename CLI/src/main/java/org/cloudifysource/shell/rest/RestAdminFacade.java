@@ -862,7 +862,6 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		Map<String, CloudTemplate> response = new HashMap<String, CloudTemplate>();
 		try {
 			Map<String, Object> responseMap = (Map<String, Object>) client.get(url);
-			logger.log(Level.INFO, "CLI listTempaltes got templates: " + responseMap);
 			for (Entry<String, Object> entry : responseMap.entrySet()) {
 				ObjectMapper mapper = new ObjectMapper();
 				CloudTemplate convertValue = mapper.convertValue(entry.getValue(), CloudTemplate.class);

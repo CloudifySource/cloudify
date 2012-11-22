@@ -15,6 +15,9 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.internal;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.openspaces.admin.internal.pu.InternalProcessingUnit;
 
 
@@ -40,7 +43,7 @@ public final class DSLUtils {
 	 * indicates if need to validate the DSL file.
 	 */
 	public static final String DSL_VALIDATE_OBJECTS_PROPERTY_NAME = "validateObjectsFlag";
-	
+
 	/************
 	 * Default file name suffix for application files.
 	 */
@@ -49,7 +52,7 @@ public final class DSLUtils {
 	 * The expected file suffix for properties file.
 	 */
 	public static final String PROPERTIES_FILE_SUFFIX = ".properties";
-	
+
 	/**
 	 * The expected file suffix for overrides file.
 	 */
@@ -82,13 +85,13 @@ public final class DSLUtils {
 	 * The expected file name of an application overrides file after it has been copied to a service directory.
 	 */
 	public static final String APPLICATION_OVERRIDES_FILE_NAME = "application.overrides";
-	
+
 	/**
 	 * The max number of templates allowed in one templates file.
 	 */
 	public static final int MAX_TEMPLATES_PER_FILE = 1;
 
-	
+
 	private DSLUtils() {
 		// private constructor to prevent initialization
 	}
@@ -140,6 +143,35 @@ public final class DSLUtils {
 		final String value = processingUnit.getBeanLevelProperties().getContextProperties().getProperty(
 				contextPropertyKey);
 		return value;
+	}
+
+	/**
+	 * Change the name of the file to templateName-tempalte.groovy.
+	 * @param file the template's file.
+	 * @param templateName the template's name.
+	 * @return returns the new name if the renaming needed and succeeded.
+	 * @throws IOException if failed to rename the file.
+	 */
+	public static String renameCloudTemplateFileNameIfNeeded(final File file, final String templateName) 
+			throws IOException {
+		String fileName = file.getName();
+		if (fileName.endsWith(TEMPLATES_DSL_FILE_NAME_SUFFIX)) {
+			String newName = templateName + TEMPLATES_DSL_FILE_NAME_SUFFIX;
+			if (!fileName.equals(newName)) {
+				File parent = file.getParentFile();
+				File newNameFile = new File(parent, newName);
+				if (newNameFile.exists()) {
+					throw new IOException("Failed to rename file " + file.getAbsolutePath() + " to " + newName
+							+ "- a file with that name is already exist in " + parent.getAbsolutePath());
+				}
+				boolean renamed = file.renameTo(newNameFile);
+				if (!renamed) {
+					throw new IOException("Failed to rename file " + file.getAbsolutePath());
+				}
+				return newName;
+			}
+		}
+		return null;
 	}
 
 }

@@ -37,7 +37,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
-import org.cloudifysource.dsl.internal.CloudTemplateHolder;
+import org.cloudifysource.dsl.internal.CloudTemplatesReader;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
@@ -613,25 +613,25 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		logger = java.util.logging.Logger
 				.getLogger(ElasticMachineProvisioningCloudifyAdapter.class.getName());
 
-		final String cloudConfigDirectory =
+		final String cloudConfigDirectoryPath =
 				properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION_DIRECTORY);
-		if (cloudConfigDirectory == null) {
+		if (cloudConfigDirectoryPath == null) {
 			logger.severe("Missing cloud configuration property. Properties are: " + this.properties);
 			throw new IllegalArgumentException("Cloud configuration directory was not set!");
 		}
 
-		try {
-			
+		try {			
 			String cloudOverridesPerService = config.getCloudOverridesPerService();
-			this.cloud = ServiceReader.readCloudFromDirectory(cloudConfigDirectory, 
+			this.cloud = ServiceReader.readCloudFromDirectory(cloudConfigDirectoryPath, 
 						cloudOverridesPerService);
+			File cloudConfigDirectory = new File(cloudConfigDirectoryPath);
 			this.cloudTemplateName = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME);
 
 			if (this.cloudTemplateName == null) {
 				throw new BeanConfigurationException("Cloud template was not set!");
 			}
-
-			updateCloudTempaltesFromConfig();
+			// add additional templates from cloudConfigDirectory.
+			addTemplatesToCloud(cloudConfigDirectory);
 			final CloudTemplate cloudTemplate = this.cloud.getTemplates().get(this.cloudTemplateName);
 			if (cloudTemplate == null) {
 				throw new BeanConfigurationException("The provided cloud template name: " + this.cloudTemplateName
@@ -685,26 +685,25 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			logger.info("Locators string used for new instances will be: " + this.lookupLocatorsString);
 
 		} catch (final DSLException e) {
-			logger.severe("Could not parse the provided cloud configuration from : " + cloudConfigDirectory + ": "
+			logger.severe("Could not parse the provided cloud configuration from : " + cloudConfigDirectoryPath + ": "
 					+ e.getMessage());
 			throw new BeanConfigurationException("Could not parse the prvided cloud configuration: "
-					+ cloudConfigDirectory
+					+ cloudConfigDirectoryPath
 					+ ": " + e.getMessage(), e);
 		}
 
 	}
 
-	private void updateCloudTempaltesFromConfig() throws DSLException {
-
-		String cloudConfigurationDirectoryPath = config.getCloudConfigurationDirectory();
-		logger.info("Updating additional cloud templates from files at " + cloudConfigurationDirectoryPath);
-		File cloudConfigurationDirectory = new File (cloudConfigurationDirectoryPath);
-		List<CloudTemplateHolder> cloudTemplateHolders = 
-				ServiceReader.readCloudTemplatesFromDirectory(cloudConfigurationDirectory);
-		for (CloudTemplateHolder holder : cloudTemplateHolders) {
-			cloud.getTemplates().put(holder.getName(), holder.getCloudTemplate());				
+	private void addTemplatesToCloud(File cloudConfigDirectory) {
+		File additionalTemplatesFolder = new File(cloudConfigDirectory, 
+				CloudifyConstants.ADDITIONAL_TEMPLATES_FOLDER_NAME);
+		if (!additionalTemplatesFolder.exists()) {
+			return;
 		}
-		logger.info("Updated additional cloud templates: " + cloudTemplateHolders);
+		File[] listFiles = additionalTemplatesFolder.listFiles();
+		for (File templatesFolder : listFiles) {
+			CloudTemplatesReader.addAdditionalTemplates(cloud, templatesFolder);
+		}		
 	}
 
 	private String getWindowsLocalDirPath(final String remoteDirectoryPath, final String localDirName) {

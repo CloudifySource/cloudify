@@ -7,75 +7,73 @@ import java.util.List;
 import junit.framework.Assert;
 
 import org.cloudifysource.dsl.internal.CloudTemplateHolder;
-import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.internal.CloudTemplatesReader;
+import org.cloudifysource.dsl.internal.DSLException;
+import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.junit.Test;
-import org.openspaces.core.util.FileUtils;
 
 public class ReadTemplatesFileTest {
 	
 	private static final String TEMPLATES_FILE_PATH = 
-			"src/test/resources/ExternalDSLFiles/tamplteFiles";
+			"src/test/resources/externalDSLFiles/templateFiles";
 	private static final String NO_UPLOAD_TEMPLATES_FILE_PATH = 
-			"src/test/resources/ExternalDSLFiles/tamplteFilesWithoutUpload";
+			"src/test/resources/externalDSLFiles/templateFilesWithoutUpload";
 	
 	private static final String ILLEGAL_TEMPLATES_FILE_PATH = 
-			"src/test/resources/ExternalDSLFiles/illegalMultipleTemplateFile";
-	private static final String ILLEGAL_DUPLICATE_TEMPLATES_FILES_PATH = 
-			"src/test/resources/ExternalDSLFiles/illegalDuplicateTemplateFiles";
-	private static final String ILLEGAL_TEMPLATE_FILE_NAME_PATH = 
-			"src/test/resources/ExternalDSLFiles/illegalTemplateFileName";
+			"src/test/resources/externalDSLFiles/illegalMultipleTemplatesInOneFile";
+	private static final String ILLEGAL_DUPLICATE_TEMPLATES_FILE_PATH = 
+			"src/test/resources/externalDSLFiles/illegalDuplicateTemplates";
 	
 	
 	@Test
 	public void readTemplateFilesFromFolderTest() {	
-		File file = FileUtils.createTempFolder("yael");
-		
 		readTempaltesTest(TEMPLATES_FILE_PATH);
 	}
 	
 	@Test
-	public void readTemplateFilesFromFolderWithoutUploadTest() {
-		readTempaltesTest(NO_UPLOAD_TEMPLATES_FILE_PATH);
+	public void readTemplateFilesFromFolderWithoutUploadTest() {		
+		try {
+			File templatesFile = new File(NO_UPLOAD_TEMPLATES_FILE_PATH);
+			CloudTemplatesReader.readCloudTemplatesFromDirectory(templatesFile);
+			Assert.fail("Templates folder missing an upload folder yield no exception.");
+		} catch (DSLValidationException e) {
+			Assert.assertTrue(e.getMessage().startsWith("Could not find upload directory"));
+		} catch (DSLException e) {
+			// TODO Auto-generated catch block
+			Assert.fail("Got DSLException instead of DSLValidationException " 
+					+ "(The case is templates folder missing an upload folder)");
+		}
 	}
 	
 	@Test
 	public void illegalMultipleTemplatesInFileTest() {
 		try {
 			File templatesFile = new File(ILLEGAL_TEMPLATES_FILE_PATH);
-			ServiceReader.readCloudTemplatesFromDirectory(templatesFile);
-			Assert.fail("Multiple templates in one file should throw an exception.");
-		} catch (Exception e) {
-			// Exception was thrown as expected.
+			CloudTemplatesReader.readCloudTemplatesFromDirectory(templatesFile);
+			Assert.fail("Multiple templates in one file yielded no exception.");
+		} catch (DSLException e) {
+			Assert.assertTrue(e.getMessage().
+					startsWith("Too many templates in one groovy file"));
 		}
 	}
 	
 	@Test
 	public void illegalDuplicateTemplatesFilesTest() {
 		try {
-			File templatesFile = new File(ILLEGAL_DUPLICATE_TEMPLATES_FILES_PATH);
-			ServiceReader.readCloudTemplatesFromDirectory(templatesFile);
-			Assert.fail("Multiple templates in one file should throw an exception.");
-		} catch (Exception e) {
-			// Exception was thrown as expected.
+			File templatesFile = new File(ILLEGAL_DUPLICATE_TEMPLATES_FILE_PATH);
+			CloudTemplatesReader.readCloudTemplatesFromDirectory(templatesFile);
+			Assert.fail("Duplicate templates yielded no exception.");
+		} catch (DSLException e) {
+			Assert.assertTrue(e.getMessage().startsWith("Template with name [TOMCAT] already exist in folder"));
 		}
 	}
 	
-	@Test
-	public void illegalTemplatesFileNameTest() {
-		try {
-			File templatesFile = new File(ILLEGAL_TEMPLATE_FILE_NAME_PATH);
-			ServiceReader.readCloudTemplatesFromDirectory(templatesFile);
-			Assert.fail("Multiple templates in one file should throw an exception.");
-		} catch (Exception e) {
-			// Exception was thrown as expected.
-		}
-	}
 	private static void readTempaltesTest(final String folderName) {
 		try {
 			File templatesFile = new File(folderName);
 			
 			List<CloudTemplateHolder> cloudTemplatesFromFile = 
-					ServiceReader.readCloudTemplatesFromDirectory(templatesFile);
+					CloudTemplatesReader.readCloudTemplatesFromDirectory(templatesFile);
 			Assert.assertEquals(2, cloudTemplatesFromFile.size());
 			List<String> names = new LinkedList<String>();
 			for (CloudTemplateHolder cloudTemplateHolder : cloudTemplatesFromFile) {

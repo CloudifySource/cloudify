@@ -21,11 +21,11 @@ import java.util.List;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
+import org.cloudifysource.dsl.internal.CloudTemplatesReader;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
-import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.fusesource.jansi.Ansi.Color;
 
@@ -59,9 +59,10 @@ public class AddTemplates extends AdminAwareCommand {
 
 		// validate templates folder. 
 		String templatesFolderName = templatesFileOrDir.getName();
-		logger.info("Validating tempaltes folder and files at: " + templatesFolderName);
+		String templatesPath = templatesFileOrDir.getAbsolutePath();
+		logger.info("Validating tempaltes folder and files at: " + templatesPath);
 		if (!templatesFileOrDir.exists()) {
-			throw new CLIStatusException("templates_file_not_found", templatesFileOrDir.getAbsolutePath());
+			throw new CLIStatusException("templates_file_not_found", templatesPath);
 		}
 		int numTemplatesInFolder = 0;
 		File zipFile = templatesFileOrDir;
@@ -69,9 +70,9 @@ public class AddTemplates extends AdminAwareCommand {
 		if (templatesFileOrDir.isFile()) {
 			if (templatesFolderName.endsWith(".zip") || templatesFolderName.endsWith(".jar")) {
 				try {
-					numTemplatesInFolder = ServiceReader.readCloudTemplatesFromZip(templatesFileOrDir).size();
+					numTemplatesInFolder = CloudTemplatesReader.readCloudTemplatesFromZip(templatesFileOrDir).size();
 				} catch (DSLException e) {
-					throw new CLIStatusException("read_dsl_file_failed", templatesFileOrDir, e.getMessage());
+					throw new CLIStatusException("read_dsl_file_failed", templatesPath, e.getMessage());
 				}
 			} else { 
 				// templatesFileOrDir is a groovy file
@@ -85,23 +86,27 @@ public class AddTemplates extends AdminAwareCommand {
 					throw new CLIStatusException("too_many_template_files", Arrays.toString(actualTemplatesDslFiles));
 				}
 				try {
-					numTemplatesInFolder = ServiceReader.readCloudTemplatesFromFile(templatesFileOrDir).size();
+					numTemplatesInFolder = CloudTemplatesReader.readCloudTemplatesFromFile(templatesFileOrDir).size();
 				} catch (DSLException e) {
-					throw new CLIStatusException("read_dsl_file_failed", templatesFileOrDir, e.getMessage());
+					throw new CLIStatusException("read_dsl_file_failed", templatesPath, e.getMessage());
 				}
 				zipFile = Packager.createZipFile("templates", parentFile);
 			}
 		} else {
 			// templatesFileOrDir is a directory
 			try {
-				numTemplatesInFolder = ServiceReader.readCloudTemplatesFromDirectory(templatesFileOrDir).size();
+				numTemplatesInFolder = CloudTemplatesReader.readCloudTemplatesFromDirectory(templatesFileOrDir).size();
 			} catch (DSLException e) {
-				throw new CLIStatusException("read_dsl_file_failed", templatesFileOrDir, e.getMessage());
+				throw new CLIStatusException("read_dsl_file_failed", templatesPath, 
+						e.getMessage());
 			}
 			zipFile = Packager.createZipFile("templates", templatesFileOrDir);
 		}
 
 		// add the templates to the cloud
+		if (numTemplatesInFolder == 0) {
+			throw new CLIStatusException("no_template_files", templatesPath);
+		}
 		logger.info("Adding " + numTemplatesInFolder + " templates to cloud.");
 		List<String> addedTempaltes = adminFacade.addTempaltes(zipFile);
 
