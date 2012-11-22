@@ -68,16 +68,17 @@ public class RestLifecycleEventsLatch {
 	 * Waits for lifecycle events. This method will poll the rest for installation lifecycle events 
 	 * and print the new events to the CLI console.
 	 * 
-	 * @param timeout
-	 * @param timeUnit
-	 * @throws InterruptedException
-	 * @throws TimeoutException
-	 * @throws CLIException
+	 * @param timeout units to wait.
+	 * @param timeUnit unit type.
+	 * @throws InterruptedException .
+	 * @throws TimeoutException .
+	 * @throws CLIException .
 	 */
 	public void waitForLifecycleEvents(final int timeout, final TimeUnit timeUnit) 
 			throws InterruptedException, TimeoutException, CLIException {
 		createConditionLatch(timeout, TimeUnit.MINUTES).waitFor(new Predicate() {
 
+			@SuppressWarnings("unchecked")
 			@Override
 			public boolean isDone() throws CLIException, InterruptedException {
 				url = "/service/lifecycleEventContainerID/" + pollingID
