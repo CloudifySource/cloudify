@@ -15,13 +15,17 @@
  ******************************************************************************/
 package org.cloudifysource.esc.util;
 
+import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.concurrent.TimeUnit;
 
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 
 /**
- * A utility class for IP manipulation.
+ * A utility class for IP manipulation and validation.
  * 
  * @author noak
  * @since 2.1.0
@@ -31,6 +35,9 @@ public final class IPUtils {
 	// hidden constructor
 	private IPUtils() { }
 
+	// timeout in seconds, waiting for a socket to connect
+	private static final int DEFAULT_CONNECTION_TIMEOUT = 10;
+	
 	private static final int IP_BYTE_RANGE = 256;
 	private static final int IP_PARTS = 4;
 
@@ -227,6 +234,48 @@ public final class IPUtils {
 			}
 		}
 		return valid;
+	}
+	
+
+	/**
+	 * Validates a connection can be made to the given address and port, within the given time limit.
+	 * 
+	 * @param ipAddress The IP address to connect to
+	 * @param port The port number to use
+	 * @throws IOException Reports a failure to connect or resolve the given address.
+	 */
+	public static void validateConnection(final String ipAddress, final int port)
+			throws IOException {
+		validateConnection(ipAddress, port, DEFAULT_CONNECTION_TIMEOUT);
+	}
+
+	/**
+	 * Validates a connection can be made to the given address and port, within the given time limit.
+	 * 
+	 * @param ipAddress The IP address to connect to
+	 * @param port The port number to use
+	 * @param timeout The time to wait before timing out, in seconds
+	 * @throws IOException Reports a failure to connect or resolve the given address.
+	 */
+	public static void validateConnection(final String ipAddress, final int port, final int timeout)
+			throws IOException {
+
+		final Socket socket = new Socket();
+
+		try {
+			final InetSocketAddress endPoint = new InetSocketAddress(ipAddress, port);
+			if (endPoint.isUnresolved()) {
+				throw new UnknownHostException(ipAddress);
+			}
+
+			socket.connect(endPoint, CalcUtils.safeLongToInt(TimeUnit.SECONDS.toMillis(timeout), true));
+		} finally {
+			try {
+				socket.close();
+			} catch (final IOException ioe) {
+				// ignore
+			}
+		}
 	}
 	
 	/**
