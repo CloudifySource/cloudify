@@ -69,7 +69,7 @@ public class InstallService extends AdminAwareCommand {
 
 	@Argument(required = true, name = "recipe", description = "The service recipe folder or archive")
 	private File recipe;
-	
+
 	@Option(required = false, name = "-authGroups", description = "The groups authorized to access this application "
 			+ "(multiple values can be comma-separated)")
 	private String authGroups;
@@ -88,11 +88,11 @@ public class InstallService extends AdminAwareCommand {
 			+ "recipe folder. If not specified, uses the default file name")
 	private final String serviceFileName = null;
 
-	@Option(required = false, name = "-cloudConfiguration", description = 
+	@Option(required = false, name = "-cloudConfiguration", description =
 			"File of directory containing configuration information to be used by the cloud driver "
-			+ "for this application")
+					+ "for this application")
 	private File cloudConfiguration;
-	
+
 	@Option(required = false, name = "-disableSelfHealing",
 			description = "Disables service self healing")
 	private boolean disableSelfHealing = false;
@@ -100,36 +100,35 @@ public class InstallService extends AdminAwareCommand {
 	private static final String TIMEOUT_ERROR_MESSAGE = "Service installation timed out."
 			+ " Configure the timeout using the -timeout flag.";
 
-	@Option(required = false, name = "-overrides", description = 
+	@Option(required = false, name = "-overrides", description =
 			"File containing properties to be used to overrides the current service's properties.")
 	private File overrides;
-	
+
 	@Option(required = false, name = "-cloud-overrides",
-			description = "File containing properties to be used to override the current cloud " +
-					"configuration for this service.")
+			description = "File containing properties to be used to override the current cloud "
+					+ "configuration for this service.")
 	private File cloudOverrides;
 
 	private static final long TEN_K = 10 * FileUtils.ONE_KB;
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-
 	protected Object doExecute()
 			throws Exception {
-		
+
 		if (cloudOverrides != null) {
 			if (cloudOverrides.length() >= TEN_K) {
 				throw new CLIStatusException(CloudifyErrorMessages.CLOUD_OVERRIDES_TO_LONG.getName());
 			}
 		}
-		
+
 		RecipePathResolver pathResolver = new RecipePathResolver();
 		if (pathResolver.resolveService(recipe)) {
 			recipe = pathResolver.getResolved();
 		} else {
-			throw new CLIStatusException("service_file_doesnt_exist", 
+			throw new CLIStatusException("service_file_doesnt_exist",
 					StringUtils.join(pathResolver.getPathsLooked().toArray(), ", "));
 		}
 
@@ -229,11 +228,29 @@ public class InstallService extends AdminAwareCommand {
 			}
 		}
 
-		final String lifecycleEventContainerPollingID = adminFacade
-				.installElastic(packedFile , currentApplicationName,
-						serviceName, zone, props, templateName,
-						getTimeoutInMinutes(), !disableSelfHealing, cloudOverrides);
+		try {
+			final String lifecycleEventContainerPollingID = adminFacade
+					.installElastic(packedFile, currentApplicationName,
+							serviceName, zone, props, templateName,
+							getTimeoutInMinutes(), !disableSelfHealing, cloudOverrides);
 
+			pollForLifecycleEvents(lifecycleEventContainerPollingID);
+
+		} finally {
+			// if a zip file was created, delete it at the end of use.
+			if (recipe.isDirectory()) {
+				FileUtils.deleteQuietly(packedFile.getParentFile());
+			}
+		}
+
+		// TODO - server may have failed! We should check the service state and
+		// decide accordingly
+		// which message to display.
+		return getFormattedMessage("service_install_ended", Color.GREEN, serviceName);
+	}
+
+	private void pollForLifecycleEvents(final String lifecycleEventContainerPollingID) throws InterruptedException,
+			CLIException, TimeoutException, IOException, CLIStatusException {
 		final RestLifecycleEventsLatch lifecycleEventsPollingLatch = this.adminFacade
 				.getLifecycleEventsPollingLatch(
 						lifecycleEventContainerPollingID, TIMEOUT_ERROR_MESSAGE);
@@ -263,15 +280,6 @@ public class InstallService extends AdminAwareCommand {
 				}
 			}
 		}
-
-		// if a zip file was created, delete it at the end of use.
-		if (recipe.isDirectory()) {
-			FileUtils.deleteQuietly(packedFile.getParentFile());
-		}
-
-		// TODO - server may have failed! We should check the service state and decide accordingly
-		// which message to display.
-		return getFormattedMessage("service_install_ended", Color.GREEN, serviceName);
 	}
 
 	private DSLReader createDslReader(final File recipeFile) {
