@@ -43,8 +43,8 @@ import org.cloudifysource.shell.ConditionLatch.Predicate;
 public class RestLifecycleEventsLatch {
 
 	private static final Logger logger = Logger.getLogger(RestLifecycleEventsLatch.class.getName());
-	private final static long MIN_POLLING_INTERVAL = 2000;
-	private final static String DEFAULT_TIMEOUT_MESSAGE = "installation timed out";
+	private static final long MIN_POLLING_INTERVAL = 2000;
+	private static final String DEFAULT_TIMEOUT_MESSAGE = "installation timed out";
 
 	private long pollingInterval = MIN_POLLING_INTERVAL;
 	private String timeoutMessage = DEFAULT_TIMEOUT_MESSAGE;
@@ -118,10 +118,10 @@ public class RestLifecycleEventsLatch {
 	/**
 	 * Continue an already started polling task. Used for when polling was interrupted on the client side.
 	 * 
-	 * @param timeout
-	 * @param timeUnit
-	 * @throws InterruptedException
-	 * @throws TimeoutException
+	 * @param timeout .
+	 * @param timeUnit .
+	 * @throws InterruptedException .
+	 * @throws TimeoutException .
 	 * @throws CLIException if the polling task has expired on the remote server side
 	 */
 	public void continueWaitForLifecycleEvents(final int timeout, final TimeUnit timeUnit) 
