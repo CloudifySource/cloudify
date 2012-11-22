@@ -17,10 +17,8 @@ package org.cloudifysource.rest.controllers;
 
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_INVOKE_INSTANCE;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_APP;
-import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_GSM;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_SERVICE;
-import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_SERVICE_AFTER_DEPLOYMENT;
 import static org.cloudifysource.rest.ResponseConstants.HTTP_INTERNAL_SERVER_ERROR;
 import static org.cloudifysource.rest.ResponseConstants.HTTP_OK;
 import static org.cloudifysource.rest.ResponseConstants.SERVICE_INSTANCE_UNAVAILABLE;
@@ -123,7 +121,6 @@ import org.openspaces.admin.internal.pu.InternalProcessingUnitInstance;
 import org.openspaces.admin.machine.Machine;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitAlreadyDeployedException;
-import org.openspaces.admin.pu.ProcessingUnitDeployment;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
 import org.openspaces.admin.pu.ProcessingUnits;
 import org.openspaces.admin.pu.elastic.ElasticMachineProvisioningConfig;
@@ -637,7 +634,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws RestErrorException
 	 *             GSM not found, service not found after deployment.
 	 */
-	@Deprecated
+	/*@Deprecated
 	@RequestMapping(value = "/cloudcontroller/deploy", method = RequestMethod.POST)
 	public @ResponseBody
 	@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
@@ -668,7 +665,7 @@ public class ServiceController implements ServiceDetailsProvider {
 					FAILED_TO_LOCATE_SERVICE_AFTER_DEPLOYMENT, applicationName);
 		}
 		return successStatus(pu.getName());
-	}
+	}*/
 
 	/**
 	 * Creates and returns a list containing all of the deployed application details.
@@ -718,9 +715,10 @@ public class ServiceController implements ServiceDetailsProvider {
 	@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 	@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_app") })
 	@RequestMapping(value = "/applications/{applicationName}/services/description", method = RequestMethod.GET)
-	public @ResponseBody
+	@PreAuthorize("isFullyAuthenticated()")
 	@PostFilter("hasPermission(filterObject, 'view')")
-	Map<String, Object> getServicesDescriptionList(
+	@ResponseBody
+	public Map<String, Object> getServicesDescriptionList(
 			@PathVariable final String applicationName)
 			throws RestErrorException {
 		if (logger.isLoggable(Level.FINER)) {
@@ -753,13 +751,17 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws RestErrorException
 	 *             When service is not found.
 	 */
-	@JsonResponseExample(status = "success", responseBody = "{\"1\":\"127.0.0.1\"}", comments = "In the example instance id is 1 and the HOST is 127.0.0.1")
+	@JsonResponseExample(status = "success", responseBody = "{\"1\":\"127.0.0.1\"}", comments = "In the example"
+			+ " instance id is 1 and the HOST is 127.0.0.1")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_service") })
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances", method = RequestMethod.GET)
-	public @ResponseBody
-	Map<String, Object> getServiceInstanceList(
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances", method = 
+		RequestMethod.GET)
+	@PreAuthorize("isFullyAuthenticated()")
+	@PostFilter("hasPermission(filterObject, 'view')")
+	@ResponseBody
+	public Map<String, Object> getServiceInstanceList(
 			@PathVariable final String applicationName,
 			@PathVariable final String serviceName) throws RestErrorException {
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(
@@ -790,11 +792,12 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * 
 	 * @return a list of all the deployed applications in the service grid.
 	 */
-	@JsonResponseExample(status = "success", responseBody = "[\"petclinic\", \"travel\"]", comments = "In the example, the deployed applications in the service grid are petclinic and travel")
+	@JsonResponseExample(status = "success", responseBody = "[\"petclinic\", \"travel\"]", comments = 
+			"In the example, the deployed applications in the service grid are petclinic and travel")
 	@PossibleResponseStatuses(responseStatuses = { @PossibleResponseStatus(code = HTTP_OK, description = "success") })
 	@RequestMapping(value = "/applications", method = RequestMethod.GET)
-	public @ResponseBody
-	Map<String, Object> getApplicationNamesList() {
+	@ResponseBody
+	public Map<String, Object> getApplicationNamesList() {
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to list applications");
 		}
@@ -826,8 +829,10 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_app") })
 	@RequestMapping(value = "/applications/{applicationName}/services", method = RequestMethod.GET)
-	public @ResponseBody
-	Map<String, Object> getServicesList(
+	@PreAuthorize("isFullyAuthenticated()")
+	@PostFilter("hasPermission(filterObject, 'view')")
+	@ResponseBody
+	public Map<String, Object> getServicesList(
 			@PathVariable final String applicationName)
 			throws RestErrorException {
 		if (logger.isLoggable(Level.FINER)) {
@@ -878,6 +883,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_service"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "no_processing_unit_instances_found_for_invocation") })
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/beans/{beanName}/invoke", method = RequestMethod.POST)
+	@PreAuthorize("isFullyAuthenticated()")
+	@PostFilter("hasPermission(filterObject, 'view')")
 	public @ResponseBody
 	Map<String, Object> invoke(@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
@@ -1607,22 +1614,24 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             Reporting failure to parse the application file
 	 * @throws RestErrorException .
 	 */
-	@JsonRequestExample(requestBody = "{\"applicationName\" : \"petclinic\" , \"srcFile\" : \"packaged application file\" "
+	@JsonRequestExample(requestBody = "{\"applicationName\" : \"petclinic\" , \"srcFile\" :"
+			+ " \"packaged application file\" "
 			+ ", \"recipeOverridesFile\" : \"recipe overrides file\"}")
-	@JsonResponseExample(status = "success", responseBody = "{\"srviceOrder\":\"[mongod,mongoConfig,apacheLB,mongos,tomcat]\""
+	@JsonResponseExample(status = "success", responseBody = "{\"srviceOrder\":\"[mongod,mongoConfig,"
+			+ "apacheLB,mongos,tomcat]\""
 			+ ",\"lifecycleEventContainerID\":\"07db2a16-62f8-4669-ac41-ed9afe3a3b02\"}", comments = "")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "DSLException"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "IOException") })
 	@RequestMapping(value = "applications/{applicationName}/timeout/{timeout}", method = RequestMethod.POST)
-	public @ResponseBody
 	@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
-	Object deployApplication(
+	@ResponseBody
+	public Object deployApplication(
 			@PathVariable final String applicationName,
 			@PathVariable final int timeout,
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
-			@RequestParam(value = "authGroups", required = false) String authGroups,
+			@RequestParam(value = "authGroups", required = false) final String authGroups,
 			@RequestParam(value = "recipeOverridesFile", required = false) final MultipartFile recipeOverridesFile,
 			@RequestParam(value = "cloudOverridesFile", required = false) final MultipartFile cloudOverrides,
 			@RequestParam(value = "selfHealing", required = false) final Boolean selfHealing)
@@ -1632,11 +1641,12 @@ public class ServiceController implements ServiceDetailsProvider {
 			actualSelfHealing = false;
 		}
 		final File applicationFile = copyMultipartFileToLocalFile(srcFile);
+		String effectiveAuthGroups = authGroups;
 		if (StringUtils.isBlank(authGroups)) {
 			if (permissionEvaluator != null) {
-				authGroups = permissionEvaluator.getUserAuthGroupsString();	
+				effectiveAuthGroups = permissionEvaluator.getUserAuthGroupsString();	
 			} else {
-				authGroups = "";
+				effectiveAuthGroups = "";
 			}			
 		}
 
@@ -1646,7 +1656,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				applicationName,
 				applicationFile, 
 				applicationOverridesFile, 
-				authGroups,
+				effectiveAuthGroups,
 				timeout,
 				actualSelfHealing, 
 				cloudOverridesFile);
@@ -2326,7 +2336,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param applicationName
 	 *            .
 	 * @param authGroups
-	 *             
+	 *             The the group for which this deployment will be available.
 	 * @param zone
 	 *            .
 	 * @param srcFile
