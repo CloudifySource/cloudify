@@ -49,6 +49,7 @@ import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.shell.listener.CliAgentlessInstallerListener;
 import org.cloudifysource.esc.shell.listener.CliProvisioningDriverListener;
+import org.cloudifysource.esc.util.CalcUtils;
 import org.cloudifysource.esc.util.Utils;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
@@ -156,6 +157,8 @@ public class CloudGridAgentBootstrapper {
 	 *            The username for a secure connection to the server
 	 * @param password
 	 *            The password for a secure connection to the server
+	 * @param isSecurityOn
+	 *            Indicates whether security should be activated
 	 * @param timeout
 	 *            The number of {@link TimeUnit}s to wait before timing out
 	 * @param timeoutUnit
@@ -170,7 +173,7 @@ public class CloudGridAgentBootstrapper {
 	 *             Indicates a thread was interrupted while waiting
 	 */
 	public void boostrapCloudAndWait(final String username,
-			final String password, final long timeout,
+			final String password, final boolean isSecurityOn, final long timeout,
 			final TimeUnit timeoutUnit) throws InstallerException,
 			CLIException, InterruptedException {
 
@@ -220,7 +223,7 @@ public class CloudGridAgentBootstrapper {
 								+ "Please shut them down before continuing");
 			}
 
-			startManagememntProcesses(servers, end);
+			startManagememntProcesses(servers, isSecurityOn, end);
 
 			if (!isNoWebServices()){
 				waitForManagementWebServices(username, password, end, servers);
@@ -273,7 +276,7 @@ public class CloudGridAgentBootstrapper {
 
 			// We are relying on start-management command to be run on the
 			// new machine, so everything should be up if the rest admin is up
-			waitForConnection(username, password, restAdminUrl, Utils.millisUntil(end), TimeUnit.MILLISECONDS);
+			waitForConnection(username, password, restAdminUrl, CalcUtils.millisUntil(end), TimeUnit.MILLISECONDS);
 
 			logger.info("Rest service is available at: " + restAdminUrl
 					+ '.');
@@ -353,7 +356,7 @@ public class CloudGridAgentBootstrapper {
 
 		ShellUtils.checkNotNull("providerDirectory", providerDirecotry);
 
-		destroyManagementServers(Utils.millisUntil(end), TimeUnit.MILLISECONDS);
+		destroyManagementServers(CalcUtils.millisUntil(end), TimeUnit.MILLISECONDS);
 
 	}
 
@@ -423,12 +426,12 @@ public class CloudGridAgentBootstrapper {
 			}
 		}
 
-		waitForUninstallApplications(Utils.millisUntil(end),
+		waitForUninstallApplications(CalcUtils.millisUntil(end),
 				TimeUnit.MILLISECONDS);
 	}
 
 	private MachineDetails[] startManagememntProcesses(
-			final MachineDetails[] machines, final long endTime)
+			final MachineDetails[] machines, final boolean isSecurityOn, final long endTime)
 			throws InterruptedException, TimeoutException, InstallerException,
 			IOException {
 
@@ -447,7 +450,7 @@ public class CloudGridAgentBootstrapper {
 		final int numOfManagementMachines = machines.length;
 
 		final InstallationDetails[] installations = createInstallationDetails(
-				numOfManagementMachines, machines, template);
+				numOfManagementMachines, machines, template, isSecurityOn);
 		// only one machine should try and deploy the WebUI and Rest Admin unless 
 		// noWebServices is true
 		int i= isNoWebServices() ? 0 :1;
@@ -493,7 +496,7 @@ public class CloudGridAgentBootstrapper {
 							public Exception call() {
 								try {
 									installer.installOnMachineWithIP(detail,
-											Utils.millisUntil(endTime),
+											CalcUtils.millisUntil(endTime),
 											TimeUnit.MILLISECONDS);
 								} catch (final TimeoutException e) {
 									logger.log(
@@ -529,7 +532,7 @@ public class CloudGridAgentBootstrapper {
 
 			for (final Future<Exception> future : futures) {
 				try {
-					final Exception e = future.get(Utils.millisUntil(endTime),
+					final Exception e = future.get(CalcUtils.millisUntil(endTime),
 							TimeUnit.MILLISECONDS);
 					if (e != null) {
 						if (e instanceof TimeoutException) {
@@ -587,7 +590,7 @@ public class CloudGridAgentBootstrapper {
 	// here and in the esc project, for starting new agent machines.
 	private InstallationDetails[] createInstallationDetails(
 			final int numOfManagementMachines,
-			final MachineDetails[] machineDetails, final CloudTemplate template)
+			final MachineDetails[] machineDetails, final CloudTemplate template, final boolean isSecurityOn)
 			throws FileNotFoundException {
 		final InstallationDetails[] details = new InstallationDetails[numOfManagementMachines];
 
@@ -598,8 +601,7 @@ public class CloudGridAgentBootstrapper {
 					MANAGEMENT_GSA_ZONE).create();
 			details[i] = Utils.createInstallationDetails(machineDetails[i],
 					cloud, template, zones, null, null, true, this.cloudFile,
-					reservationId, cloud.getConfiguration()
-							.getManagementMachineTemplate());
+					reservationId, cloud.getConfiguration().getManagementMachineTemplate(), isSecurityOn);
 		}
 
 		return details;

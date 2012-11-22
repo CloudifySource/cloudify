@@ -55,6 +55,9 @@ public class InstallationDetails implements Cloneable {
 
 	private String cloudifyUrl;
 	private String overridesUrl;
+	
+	//security mode
+	private boolean isSecurityOn = false;
 
 	// An instance of the Gigaspaces Admin API. If passed,
 	// will be used to check when an agent joins the cluster.
@@ -327,6 +330,14 @@ public class InstallationDetails implements Cloneable {
 
 	public void setReservationId(final GSAReservationId reservationId) {
 		this.reservationId = reservationId;
+	}
+	
+	public boolean isSecurityOn() {
+		return isSecurityOn;
+	}
+
+	public void setSecurityOn(final boolean isSecurityOn) {
+		this.isSecurityOn = isSecurityOn;
 	}
 
 }

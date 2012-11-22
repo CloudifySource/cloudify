@@ -50,6 +50,7 @@ import org.apache.tools.ant.ExitStatusException;
 import org.apache.tools.ant.taskdefs.optional.testing.BuildTimeoutException;
 import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.esc.util.CalcUtils;
 import org.cloudifysource.esc.util.ShellCommandBuilder;
 import org.cloudifysource.esc.util.Utils;
 
@@ -596,7 +597,7 @@ public class AgentlessInstaller {
 		}
 
 		publishEvent("attempting_to_access_vm", targetHost);
-		checkConnection(targetHost, port, Utils.millisUntil(end), TimeUnit.MILLISECONDS);
+		checkConnection(targetHost, port, CalcUtils.millisUntil(end), TimeUnit.MILLISECONDS);
 
 		// upload bootstrap files
 		publishEvent("uploading_files_to_node", targetHost);
@@ -630,8 +631,8 @@ public class AgentlessInstaller {
 		final ShellCommandBuilder scb = new ShellCommandBuilder(details.getRemoteExecutionMode())
 				.exportVar(LUS_IP_ADDRESS_ENV, details.getLocator())
 				.exportVar(GSA_MODE_ENV, details.isLus() ? "lus" : "agent")
-				.exportVar(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR, 
-						CloudifyConstants.SPRING_BEANS_PROFILE_DEFAULT)
+				.exportVar(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR,	details.isSecurityOn()
+						? CloudifyConstants.SPRING_PROFILE_SECURE : CloudifyConstants.SPRING_PROFILE_NON_SECURE)
 				.exportVar(NO_WEB_SERVICES_ENV,
 						details.isNoWebServices() ? "true" : "false")
 				.exportVar(
@@ -688,12 +689,12 @@ public class AgentlessInstaller {
 		switch (details.getRemoteExecutionMode()) {
 		case SSH:
 			sshCommand(targetHost, command, details.getUsername(), details.getPassword(), details.getKeyFile(),
-					Utils.millisUntil(end), TimeUnit.MILLISECONDS);
+					CalcUtils.millisUntil(end), TimeUnit.MILLISECONDS);
 
 			break;
 		case WINRM:
 			powershellCommand(targetHost, command, details.getUsername(), details.getPassword(), details.getKeyFile(),
-					Utils.millisUntil(end), TimeUnit.MILLISECONDS, details.getLocalDir());
+					CalcUtils.millisUntil(end), TimeUnit.MILLISECONDS, details.getLocalDir());
 			break;
 		default:
 			throw new UnsupportedOperationException();
@@ -725,7 +726,7 @@ public class AgentlessInstaller {
 			if (!details.isLus() && details.getManagementOnlyFiles() != null) {
 				excludedFiles.addAll(Arrays.asList(details.getManagementOnlyFiles()));
 			}
-			copyFiles(details, targetHost, excludedFiles, Utils.millisUntil(end), TimeUnit.MILLISECONDS);
+			copyFiles(details, targetHost, excludedFiles, CalcUtils.millisUntil(end), TimeUnit.MILLISECONDS);
 		} catch (final FileSystemException e) {
 			throw new InstallerException("Uploading files to remote server failed.", e);
 		} catch (final IOException e) {

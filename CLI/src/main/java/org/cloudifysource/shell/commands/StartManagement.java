@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.cloud.Cloud;
@@ -89,6 +90,9 @@ public class StartManagement extends AbstractGSCommand {
     @Option(required = false, description = "The password for a secure connection to the rest server", name = "-pwd",
             aliases = {"-password" })
     private String password;
+    
+    @Option(required = false, description = "Path to a custom spring security configuration file", name = "-security")
+    private String securityFilePath;
 
 	@Option(required = false, name = "-no-web-services",
 			description = "if set, no attempt to deploy the rest admin and" + " web-ui will be made")
@@ -109,6 +113,8 @@ public class StartManagement extends AbstractGSCommand {
 	@Option(required = false, name = "-cloud-file", description = "if set, designated the location of the cloud"
 			+ " configuration file")
 	private String cloudFileName;
+	
+	private boolean isSecurityOn = false;
 
 	/**
 	 * {@inheritDoc}
@@ -122,7 +128,7 @@ public class StartManagement extends AbstractGSCommand {
 			throw new CLIException("-timeout cannot be negative");
 		}
 
-		
+		setSecurityMode();
 
 		final LocalhostGridAgentBootstrapper installer = new LocalhostGridAgentBootstrapper();
 		installer.setVerbose(verbose);
@@ -139,7 +145,7 @@ public class StartManagement extends AbstractGSCommand {
 		installer.setWaitForWebui(true);
 		installer.setCloudFilePath(cloudFileName);
 
-		installer.startManagementOnLocalhostAndWait(username, password, getTimeoutInMinutes(), TimeUnit.MINUTES);
+		installer.startManagementOnLocalhostAndWait(isSecurityOn, username, password, getTimeoutInMinutes(), TimeUnit.MINUTES);
 		return "Management started successfully. Use the shutdown-management command to shutdown"
 				+ " management processes running on local machine.";
 	}
@@ -173,6 +179,23 @@ public class StartManagement extends AbstractGSCommand {
 
 	public void setAutoShutdown(final boolean autoShutdown) {
 		this.autoShutdown = autoShutdown;
+	}
+	
+	private void setSecurityMode() {
+		if (StringUtils.isNotBlank(username) && StringUtils.isBlank(password)) {
+			throw new IllegalArgumentException("Password is missing or empty");
+		}
+		
+		if (StringUtils.isBlank(username) && StringUtils.isNotBlank(password)) {
+			throw new IllegalArgumentException("Username is missing or empty");
+		}
+		
+		if ((StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) ||
+				StringUtils.isNotBlank(securityFilePath)) {
+			
+			//activate security
+			isSecurityOn = true;
+		}
 	}
 
 }

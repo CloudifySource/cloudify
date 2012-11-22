@@ -19,6 +19,8 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.shell.AdminFacade;
@@ -27,6 +29,8 @@ import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.installer.CLILocalhostBootstrapperListener;
 import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 import org.fusesource.jansi.Ansi.Color;
+
+import com.j_spaces.kernel.Environment;
 
 /**
  * @author rafi, barakm
@@ -52,8 +56,9 @@ import org.fusesource.jansi.Ansi.Color;
 public class BootstrapLocalCloud extends AbstractGSCommand {
 
 	private static final int DEFAULT_PROGRESS_INTERVAL = 2;
-
 	private static final int DEFAULT_TIMEOUT = 5;
+	private static final String PATH_SEPARATOR = System.getProperty("file.separator");
+	private static final String CLOUDIFY_HOME = Environment.getHomeDirectory();  //JSHOMEDIR is not set yet	
 
 	@Option(required = false, name = "-lookup-groups", description = "A unique name that is used to group together"
 			+ " Cloudify components. The default localcloud lookup group is '"
@@ -67,6 +72,9 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
     @Option(required = false, description = "The password for a secure connection to the rest server", name = "-pwd",
             aliases = {"-password" })
     private String password;
+    
+    @Option(required = false, description = "Path to a custom spring security configuration file", name = "-security")
+    private String securityFilePath;
 
 	@Option(required = false, name = "-nic-address", description = "The ip address of the local host network card. "
 			+ "Specify when local machine has more than one network adapter, and a specific network card should be "
@@ -76,6 +84,8 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is "
 			+ "done.")
 	private int timeoutInMinutes = DEFAULT_TIMEOUT;
+	
+	private boolean isSecurityOn = false;
 
 		
 	/**
@@ -98,6 +108,12 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 			return getFormattedMessage("incorrect_java_home", Color.RED, javaHome);
 		}
 
+		setSecurityMode();
+		if (isSecurityOn) {
+			//copy the security configuration file to the overrides folder
+			copySecurityFile();
+		}
+		
 		final LocalhostGridAgentBootstrapper installer = new LocalhostGridAgentBootstrapper();
 		installer.setVerbose(verbose);
 		installer.setLookupGroups(lookupGroups);
@@ -106,8 +122,7 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 		installer.setWaitForWebui(true);
 		installer.addListener(new CLILocalhostBootstrapperListener());
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
-
-		installer.startLocalCloudOnLocalhostAndWait(username, password, timeoutInMinutes, TimeUnit.MINUTES);
+		installer.startLocalCloudOnLocalhostAndWait(isSecurityOn, username, password, timeoutInMinutes, TimeUnit.MINUTES);
 
 		return messages.getString("local_cloud_started");
 	}
@@ -156,7 +171,38 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 		this.timeoutInMinutes = timeoutInMinutes;
 	}
 
-
+	private void setSecurityMode() {
+		if (StringUtils.isNotBlank(username) && StringUtils.isBlank(password)) {
+			throw new IllegalArgumentException("Password is missing or empty");
+		}
+		
+		if (StringUtils.isBlank(username) && StringUtils.isNotBlank(password)) {
+			throw new IllegalArgumentException("Username is missing or empty");
+		}
+		
+		if ((StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) ||
+				StringUtils.isNotBlank(securityFilePath)) {
+			
+			//activate security
+			isSecurityOn = true;
+		}
+	}
 	
+	private void copySecurityFile() throws Exception {
+		String defaultSecurityFilePath = CLOUDIFY_HOME + PATH_SEPARATOR + "config" + PATH_SEPARATOR + "security" + PATH_SEPARATOR + "spring-security.xml";
+		if (StringUtils.isBlank(securityFilePath)) {
+			//TODO : should we use the default security location and assume it was edited by the user?
+			securityFilePath = defaultSecurityFilePath;
+		}
+		
+		File securitySourceFile = new File(securityFilePath);
+		if (!securitySourceFile.isFile()) {
+			throw new Exception("Security configuration file not found: " + securityFilePath);
+		}
+		
+		if (!securityFilePath.equalsIgnoreCase(defaultSecurityFilePath)) {
+			FileUtils.copyFile(securitySourceFile, new File(defaultSecurityFilePath));
+		}
+	}
 
 }

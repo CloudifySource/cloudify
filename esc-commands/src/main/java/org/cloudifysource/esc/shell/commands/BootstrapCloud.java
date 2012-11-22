@@ -41,7 +41,6 @@ import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.commands.AbstractGSCommand;
 import org.cloudifysource.shell.commands.CLIStatusException;
-import org.cloudifysource.shell.rest.RestAdminFacade;
 
 import com.j_spaces.kernel.Environment;
 
@@ -49,7 +48,8 @@ import com.j_spaces.kernel.Environment;
 @Command(
 		scope = "cloudify",
 		name = "bootstrap-cloud",
-		description = "Starts Cloudify Agent without any zone, and the Cloudify management processes on the provided cloud.")
+		description = "Starts Cloudify Agent without any zone, and the Cloudify management processes on the provided " +
+				"cloud.")
 public class BootstrapCloud extends AbstractGSCommand {
 
 	private static final int DEFAULT_TIMEOUT_MINUTES = 60;
@@ -77,7 +77,9 @@ public class BootstrapCloud extends AbstractGSCommand {
 			description = "if set, no attempt to deploy the rest admin and" + " web-ui will be made")
 	private boolean noWebServices;
 	
-	private static final String[] NON_VERBOSE_LOGGERS = { DefaultProvisioningDriver.class.getName(), AgentlessInstaller.class.getName() };
+	private boolean isSecurityOn = false;
+	private static final String[] NON_VERBOSE_LOGGERS = { DefaultProvisioningDriver.class.getName(), 
+		AgentlessInstaller.class.getName() };
 	private Map<String, Level> loggerStates = new HashMap<String, Level>();
 
 	
@@ -93,9 +95,11 @@ public class BootstrapCloud extends AbstractGSCommand {
 					StringUtils.join(pathResolver.getPathsLooked().toArray(), ", "));
 		}
 		
-		//copy custom security config file to the overrides folder
-		
-		copySecurityFile(providerDirectory.getAbsolutePath());
+		setSecurityMode();
+		if (isSecurityOn) {
+			//copy the security configuration file to the overrides folder
+			copySecurityFile(providerDirectory.getAbsolutePath());
+		}
 		
 		// load the cloud file
 		File cloudFile = findCloudFile(providerDirectory);
@@ -126,7 +130,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 		logger.info(getFormattedMessage("bootstrapping_cloud", cloudProvider));
 		try {
 			// TODO: Create the event listeners here and pass them to the installer.
-			installer.boostrapCloudAndWait(username, password, timeoutInMinutes, TimeUnit.MINUTES);
+			installer.boostrapCloudAndWait(username, password, isSecurityOn, timeoutInMinutes, TimeUnit.MINUTES);
 			return getFormattedMessage("cloud_started_successfully", cloudProvider);
 		} finally {
 			installer.close();
@@ -160,7 +164,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 
 	}
 
-	private File findCloudFile(File providerDirectory) throws FileNotFoundException {
+	private File findCloudFile(final File providerDirectory) throws FileNotFoundException {
 		if (!providerDirectory.exists() || !providerDirectory.isDirectory()) {
 			throw new FileNotFoundException("Could not find cloud provider directory: " + providerDirectory);
 		}
@@ -168,7 +172,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 		File[] cloudFiles = providerDirectory.listFiles(new FilenameFilter() {
 
 			@Override
-			public boolean accept(File dir, String name) {
+			public boolean accept(final File dir, final String name) {
 				return name.endsWith("-cloud.groovy");
 			}
 
@@ -185,16 +189,34 @@ public class BootstrapCloud extends AbstractGSCommand {
 		return cloudFiles[0];
 	}
 
-	public static void main(String[] args) throws Exception {
+	/*public static void main(String[] args) throws Exception {
 		BootstrapCloud cmd = new BootstrapCloud();
 		cmd.cloudProvider = "ec2";
 		cmd.verbose = true;
 		cmd.adminFacade = new RestAdminFacade();
 		cmd.execute(null);
+	}*/
+	
+	private void setSecurityMode() {
+		if (StringUtils.isNotBlank(username) && StringUtils.isBlank(password)) {
+			throw new IllegalArgumentException("Password is missing or empty");
+		}
+		
+		if (StringUtils.isBlank(username) && StringUtils.isNotBlank(password)) {
+			throw new IllegalArgumentException("Username is missing or empty");
+		}
+		
+		if ((StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) ||
+				StringUtils.isNotBlank(securityFilePath)) {
+			
+			//activate security
+			isSecurityOn = true;
+		}
 	}
 	
 	private void copySecurityFile(final String providerDirectory) throws Exception {
-		if (securityFilePath == null) {
+		if (StringUtils.isBlank(securityFilePath)) {
+			//TODO : should we use the default security location and assume it was edited by the user?
 			securityFilePath = CLOUDIFY_HOME + "/config/security/spring-security.xml";
 		}
 		
@@ -202,9 +224,12 @@ public class BootstrapCloud extends AbstractGSCommand {
 		if (!securitySourceFile.isFile()) {
 			throw new Exception("Security configuration file not found: " + securityFilePath);
 		}
+		
+		//copy to the override folder, to be copied to all management servers as well
 		File securityTargetFile = new File(providerDirectory, "upload" + PATH_SEPARATOR
 				+ "cloudify-overrides" + PATH_SEPARATOR + "config" + PATH_SEPARATOR + "security" + PATH_SEPARATOR
 				+ "spring-security.xml");
-		FileUtils.copyFile(securitySourceFile, securityTargetFile);	
+		FileUtils.copyFile(securitySourceFile, securityTargetFile);
 	}
+	
 }

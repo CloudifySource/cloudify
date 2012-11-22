@@ -49,6 +49,7 @@ import org.cloudifysource.esc.driver.provisioning.events.MachineStartedCloudifyE
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
+import org.cloudifysource.esc.util.CalcUtils;
 import org.cloudifysource.esc.util.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
@@ -173,7 +174,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	private InstallationDetails createInstallationDetails(final Cloud cloud, final MachineDetails md, 
-			final GSAReservationId reservationId)
+			final GSAReservationId reservationId, final boolean isSecurityOn)
 			throws FileNotFoundException {
 		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplateName);
 
@@ -195,7 +196,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		final InstallationDetails details =
 				Utils.createInstallationDetails(md, cloud, template, zones, lookupLocatorsString,
 						this.originalESMAdmin, false,
-						null, reservationId, cloudTemplateName);
+						null, reservationId, cloudTemplateName, isSecurityOn);
 
 		logger.info("Created new Installation Details: " + details);
 		return details;
@@ -213,12 +214,12 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	@Override
 	public GridServiceAgent startMachine(final ExactZonesConfig zones, final GSAReservationId reservationId, 
-			final long duration, 
-			final TimeUnit unit)
+			final long duration, final TimeUnit unit)
 			throws ElasticMachineProvisioningException, 
 				ElasticGridServiceAgentProvisioningException, InterruptedException, TimeoutException {
 
 		logger.info("Cloudify Adapter is starting a new machine with zones " + zones.getZones());
+		
 		// calculate timeout
 		final long end = System.currentTimeMillis() + unit.toMillis(duration);
 
@@ -414,7 +415,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		InstallationDetails installationDetails;
 		try {
-			installationDetails = createInstallationDetails(cloud, machineDetails, reservationId);
+			//since only agents are started by this method, server-security is set to false
+			installationDetails = createInstallationDetails(cloud, machineDetails, reservationId, false);
 		} catch (final FileNotFoundException e) {
 			throw new ElasticGridServiceAgentProvisioningException("Failed to create installation details for agent: "
 					+ e.getMessage(), e);
@@ -466,7 +468,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private GridServiceAgent waitForGsa(final String machineIp, final long end)
 			throws InterruptedException, TimeoutException {
 
-		while (Utils.millisUntil(end) > 0) {
+		while (CalcUtils.millisUntil(end) > 0) {
 			final GridServiceAgent gsa = getGSAByIpOrHost(machineIp);
 			if (gsa != null) {
 				return gsa;
