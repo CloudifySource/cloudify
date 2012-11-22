@@ -19,7 +19,14 @@ public class FileAppender {
 	private FileWriter writer;
 	
 	public FileAppender(final File newFile) throws IOException {
-		writer = new FileWriter(newFile);
+		if (newFile.exists()) {
+			String fileContents = FileUtils.readFileToString(newFile);
+			writer = new FileWriter(newFile);
+			writer.append(fileContents);
+			writer.append(LINE_SEPARATOR);
+		} else {
+			writer = new FileWriter(newFile);
+		}
 		
 	}
 	

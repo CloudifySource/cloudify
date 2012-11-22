@@ -73,7 +73,7 @@ public class BootstrapCloud extends AbstractGSCommand {
     @Option(required = false, description = "Path to a custom spring security configuration file", name = "-security")
     private String securityFilePath;
 
-    @Option(required = false, description = "Path to a file containing override properties", name = "-cloudOverrides")
+    @Option(required = false, description = "Path to a file containing override properties", name = "-cloud-overrides")
     private File cloudOverrides;    
     
 	@Option(required = false, name = "-timeout",
