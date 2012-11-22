@@ -6,18 +6,33 @@
 	http://www.springframework.org/schema/security
 	http://www.springframework.org/schema/security/spring-security-3.0.xsd">
 
+	<sec:authentication-manager alias="authenticationManager">
+		<sec:authentication-provider>
+			<sec:user-service>
+				<sec:user name="Amanda" password="Amanda" authorities="ROLE_CLOUDADMINS" />
+				<sec:user name="Dana" password="Dana" authorities="ROLE_CLOUDADMINS, ROLE_APP_MANAGERS" />
+				<sec:user name="Dan" password="Dan" authorities="ROLE_APP_MANAGERS" />
+				<sec:user name="Don" password="Don" authorities="ROLE_APP_MANAGERS, ROLE_VIEWERS" />
+				<sec:user name="John" password="John" authorities="ROLE_VIEWERS" />
+				<sec:user name="Jane" password="Jane" authorities="" />
+			</sec:user-service>
+		</sec:authentication-provider>
+	</sec:authentication-manager>
+		
 	<beans profile="nonsecure">
-		<sec:http auto-config='true' use-expressions="true"> <sec:intercept-url 
-			pattern="/**" access="permitAll" /> <sec:http-basic /> <sec:anonymous /> 
+		<sec:http auto-config='true' use-expressions="true">
+			<sec:intercept-url pattern="/**" access="permitAll" />
+			<sec:http-basic />
+			<sec:anonymous /> 
 		</sec:http>
-	</beans>
+	</beans>	
 
 	<beans profile="secure">
 		<!-- to limit HTTP access to the application replace the above http section 
 			with this one: -->
 		<sec:http entry-point-ref="basicAuthEntryPoint" auto-config="false"
 			create-session="never" use-expressions="true">
-			<sec:anonymous enabled="false" />
+			<!--sec:anonymous enabled="false" /-->
 			<sec:intercept-url pattern="/admin/**"
 				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')" />
 			<sec:intercept-url pattern="/service/testrest"
@@ -45,17 +60,6 @@
 			<property name="authenticationEntryPoint" ref="basicAuthEntryPoint" />
 		</bean>
 		
-		<sec:authentication-manager alias="authenticationManager">
-			<sec:authentication-provider>
-				<sec:user-service>
-					<sec:user name="Amanda" password="Amanda" authorities="ROLE_CLOUDADMINS" />
-					<sec:user name="Dana" password="Dana" authorities="ROLE_APP_MANAGERS" />
-					<sec:user name="John" password="John" authorities="ROLE_VIEWERS" />
-					<sec:user name="Jane" password="Jane" authorities="" />
-				</sec:user-service>
-			</sec:authentication-provider>
-		</sec:authentication-manager>
-
 		<!-- to connect to a LDAP user-store replace the above authentication-manager 
 			with this one, and enter your ldap settings -->
 		<!--ldap-server url="ldap://yourLdapIP:389/dc=yourdomain,dc=com"/> <authentication-manager 
