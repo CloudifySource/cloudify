@@ -111,6 +111,8 @@ public class InstallService extends AdminAwareCommand {
 	private File cloudOverrides;
 
 	private static final long TEN_K = 10 * FileUtils.ONE_KB;
+	
+	private static final String TEMP_FOLDER = System.getProperty("java.io.tmpdir");
 
 	/**
 	 * {@inheritDoc}
@@ -187,7 +189,16 @@ public class InstallService extends AdminAwareCommand {
 				 * this will allow all properties to be available by anyone who parses the default
 				 * properties file. (like Lifecycle scripts) 
 				 */ 
-				File finalPropsFile = new File(servicePropertiesFile.getName());
+				
+				File tempFile = File.createTempFile("__cloudify", "");
+				String tempFileName = tempFile.getName();
+				tempFile.delete();
+				// create the file in a unique folder under the temp directory
+				File uniqueFolder = new File(TEMP_FOLDER + File.separator + tempFileName);
+				uniqueFolder.mkdir();
+				File finalPropsFile = new File(uniqueFolder, 
+						servicePropertiesFile.getName());
+				finalPropsFile.deleteOnExit();
 				
 				// this will actually create an empty props file.
 				FileAppender appender = new FileAppender(finalPropsFile);

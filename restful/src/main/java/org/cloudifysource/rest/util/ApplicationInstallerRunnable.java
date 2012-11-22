@@ -47,6 +47,8 @@ import com.j_spaces.kernel.Environment;
 public class ApplicationInstallerRunnable implements Runnable {
 
 	private static final int SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES = 60;
+	
+	private static final String TEMP_FOLDER = System.getProperty("java.io.tmpdir");
 
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(ApplicationInstallerRunnable.class.getName());
@@ -181,7 +183,17 @@ public class ApplicationInstallerRunnable implements Runnable {
 				 * this will allow all properties to be available by anyone who parses the default
 				 * properties file. (like Lifecycle scripts) 
 				 */ 
-				File finalPropsFile = new File(servicePropertiesFile.getName());
+				
+				File tempFile = File.createTempFile("__cloudify", ".props");
+				tempFile.deleteOnExit();
+				String tempFileName = tempFile.getName();
+				tempFile.delete();
+				// create the file in a unique folder under the temp directory
+				File uniqueFolder = new File(TEMP_FOLDER + File.separator + tempFileName);
+				uniqueFolder.mkdir();
+				File finalPropsFile = new File(uniqueFolder, 
+						servicePropertiesFile.getName());
+				finalPropsFile.deleteOnExit();
 				
 				// this will actually create an empty props file.
 				FileAppender appender = new FileAppender(finalPropsFile);
