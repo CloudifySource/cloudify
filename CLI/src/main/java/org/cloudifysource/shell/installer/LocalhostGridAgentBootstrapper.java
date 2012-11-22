@@ -861,8 +861,8 @@ public class LocalhostGridAgentBootstrapper {
 	 * @throws TimeoutException
 	 *             Reporting the timeout was reached
 	 */
-	private void startManagementOnLocalhostAndWaitInternal(final String[] gsAgentArgs, final String username,
-			final boolean isSecurityOn, final String password, final int timeout, final TimeUnit timeunit, 
+	private void startManagementOnLocalhostAndWaitInternal(final String[] gsAgentArgs, final boolean isSecurityOn, 
+			final String username, final String password, final int timeout, final TimeUnit timeunit, 
 			final boolean isLocalCloud)
 			throws CLIException, InterruptedException, TimeoutException {
 
