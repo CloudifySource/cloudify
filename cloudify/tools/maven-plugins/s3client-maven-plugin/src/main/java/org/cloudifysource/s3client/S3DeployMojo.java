@@ -88,9 +88,7 @@ public class S3DeployMojo extends AbstractMojo {
 	MavenProject project;
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
-
-	    
-		BlobStoreContext context = null;
+	    BlobStoreContext context = null;
 
 		try {
 			Set<Module> wiring = new HashSet<Module>();
@@ -99,9 +97,8 @@ public class S3DeployMojo extends AbstractMojo {
 
 			BlobStore store = context.getBlobStore();
 
-			String s = "/";
-			String path = project.getGroupId().replace(".", s) + s + project.getArtifactId();
-			File source = new File(getLocalRepo() + s + path);
+			String path = project.getGroupId().replace(".", "/") + "/" + project.getArtifactId() + "/" + project.getVersion();
+			File source = new File(getLocalRepo() + "/" + path);
 			
 			uploadFile(source, path, store, client);
 
@@ -142,8 +139,10 @@ public class S3DeployMojo extends AbstractMojo {
 	}
 	
 	public String getLocalRepo(){
-		String s = System.getProperty("file.separator");
-		return System.getProperty("user.home") + s + ".m2" + s + "repository";
+	    String localRepoProp = System.getProperty("maven.repo.local");
+        if(localRepoProp != null)
+	        return localRepoProp;
+        return System.getProperty("user.home") + "/.m2/repository";
 	}
 
 }
