@@ -529,13 +529,14 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 					
 					// If closure, make sure return value is boolean.
 					if(detector instanceof ClosureExecutableEntry) {
-						throw new USMException("A start detector closure return a result that is not boolean! Result was: " + retcode);	
+						logger.warning("A start detector closure return a result that is not boolean! Result was: " + retcode);
+						return false;
 					}
 					
 					return true;
 				}
 				// process exited with abnormal status code
-				logger.log(Level.WARNING, "Liveness Detector failed to execut. Exception was: "
+				logger.log(Level.WARNING, "Liveness Detector failed to execute. Exception was: "
 						+ result.getException(), result.getException());
 				return false;
 			}
