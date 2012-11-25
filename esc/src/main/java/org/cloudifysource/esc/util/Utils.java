@@ -56,16 +56,22 @@ public final class Utils {
 	}
 
 	/**
-	 * Gets a "full" admin object. The function waits until all GridServiceManagers are found before returning the
-	 * object.
+	 * Gets a "full" admin object. The function waits until all
+	 * GridServiceManagers are found before returning the object.
 	 * 
-	 * @param managementIP The IP of the management machine to connect to (through the default LUS port)
-	 * @param expectedGsmCount The number of GridServiceManager objects that are expected to be found. Only when this
-	 *        number is reached, the admin object is considered loaded and can be returned
+	 * @param managementIP
+	 *            The IP of the management machine to connect to (through the
+	 *            default LUS port)
+	 * @param expectedGsmCount
+	 *            The number of GridServiceManager objects that are expected to
+	 *            be found. Only when this number is reached, the admin object
+	 *            is considered loaded and can be returned
 	 * @return An updated admin object
-	 * @throws TimeoutException Indicates the timeout (default is 90 seconds) was reached before the admin object was
-	 *         fully loaded
-	 * @throws InterruptedException Indicated the thread was interrupted while waiting
+	 * @throws TimeoutException
+	 *             Indicates the timeout (default is 90 seconds) was reached
+	 *             before the admin object was fully loaded
+	 * @throws InterruptedException
+	 *             Indicated the thread was interrupted while waiting
 	 */
 	public static Admin getAdminObject(final String managementIP, final int expectedGsmCount)
 			throws TimeoutException,
@@ -88,16 +94,27 @@ public final class Utils {
 	}
 
 	/**
-	 * Executes a SSH command. An Ant BuildException is thrown in case of an error.
+	 * Executes a SSH command. An Ant BuildException is thrown in case of an
+	 * error.
 	 * 
-	 * @param host The host to run the command on
-	 * @param command The command to execute
-	 * @param username The name of the user executing the command
-	 * @param password The password for the executing user, if used
-	 * @param keyFile The key file, if used
-	 * @param timeout The number of time-units to wait before throwing a TimeoutException
-	 * @param unit The units (e.g. seconds)
-	 * @throws TimeoutException Indicates the timeout was reached before the command completed
+	 * @param host
+	 *            The host to run the command on
+	 * @param command
+	 *            The command to execute
+	 * @param username
+	 *            The name of the user executing the command
+	 * @param password
+	 *            The password for the executing user, if used
+	 * @param keyFile
+	 *            The key file, if used
+	 * @param timeout
+	 *            The number of time-units to wait before throwing a
+	 *            TimeoutException
+	 * @param unit
+	 *            The units (e.g. seconds)
+	 * @throws TimeoutException
+	 *             Indicates the timeout was reached before the command
+	 *             completed
 	 */
 	public static void executeSSHCommand(final String host, final String command, final String username,
 			final String password, final String keyFile, final long timeout, final TimeUnit unit)
@@ -128,30 +145,42 @@ public final class Utils {
 		loggerOutputStream.close();
 	}
 
-
 	/*************************
-	 * Creates an Agentless Installer's InstallationDetails input object from a machine details object returned from a
-	 * provisioning implementation.
+	 * Creates an Agentless Installer's InstallationDetails input object from a
+	 * machine details object returned from a provisioning implementation.
 	 * 
-	 * @param md the machine details.
-	 * @param cloud The cloud configuration.
-	 * @param template the cloud template used for this machine.
-	 * @param zones the zones that the new machine should start in.
-	 * @param lookupLocatorsString the lookup locators string to pass to the new machine.
-	 * @param admin an admin object, may be null.
-	 * @param isManagement true if this machine will be installed as a cloudify controller, false otherwise.
-	 * @param cloudFile the cloud file, required only when isManagement == true.
-	 * @param reservationId A unique identifier of the new agent to be created
-	 * @param templateName The template of the machines to be created
-	 * @param isSecurityOn Indicates whether security should be activated
+	 * @param md
+	 *            the machine details.
+	 * @param cloud
+	 *            The cloud configuration.
+	 * @param template
+	 *            the cloud template used for this machine.
+	 * @param zones
+	 *            the zones that the new machine should start in.
+	 * @param lookupLocatorsString
+	 *            the lookup locators string to pass to the new machine.
+	 * @param admin
+	 *            an admin object, may be null.
+	 * @param isManagement
+	 *            true if this machine will be installed as a cloudify
+	 *            controller, false otherwise.
+	 * @param cloudFile
+	 *            the cloud file, required only when isManagement == true.
+	 * @param reservationId
+	 *            A unique identifier of the new agent to be created
+	 * @param templateName
+	 *            The template of the machines to be created
+	 * @param isSecurityOn
+	 *            Indicates whether security should be activated
 	 * @return the installation details.
-	 * @throws FileNotFoundException if a key file is specified and is not found.
+	 * @throws FileNotFoundException
+	 *             if a key file is specified and is not found.
 	 */
 	public static InstallationDetails createInstallationDetails(final MachineDetails md,
 			final Cloud cloud, final CloudTemplate template, final ExactZonesConfig zones,
-			final String lookupLocatorsString, final Admin admin, 
-			final boolean isManagement, 
-			final File cloudFile, 
+			final String lookupLocatorsString, final Admin admin,
+			final boolean isManagement,
+			final File cloudFile,
 			final GSAReservationId reservationId,
 			final String templateName,
 			final boolean isSecurityOn)
@@ -200,7 +229,8 @@ public final class Utils {
 			details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		}
 
-		// Add all template custom data fields starting with 'installer.' to the installation details
+		// Add all template custom data fields starting with 'installer.' to the
+		// installation details
 		final Set<Entry<String, Object>> customEntries = template.getCustom().entrySet();
 		for (final Entry<String, Object> entry : customEntries) {
 			if (entry.getKey().startsWith("installer.")) {
@@ -236,7 +266,7 @@ public final class Utils {
 					template.getImageId());
 			// maintain backwards for pre 2.3.0
 			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.CLOUDIFY_CLOUD_IMAGE_ID,
-					template.getImageId());			
+					template.getImageId());
 		}
 
 		// Add the template privileged mode flag
@@ -245,8 +275,12 @@ public final class Utils {
 
 		// Add the template initialization command
 		if (!org.apache.commons.lang.StringUtils.isBlank(template.getInitializationCommand())) {
+			// the initialization command may include command separators (like ';') so quote it
+			final String command = template.getInitializationCommand();
+			final String quotedCommand = "\"" + command + "\"";
+
 			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.GIGASPACES_AGENT_ENV_INIT_COMMAND,
-					template.getInitializationCommand());
+					quotedCommand);
 		}
 
 		// Add the template custom environment
@@ -263,7 +297,7 @@ public final class Utils {
 		details.setReservationId(reservationId);
 		details.setTemplateName(templateName);
 		details.setSecurityOn(isSecurityOn);
-		
+
 		details.setMachineId(md.getMachineId());
 		logger.fine("Created InstallationDetails: " + details);
 		return details;
