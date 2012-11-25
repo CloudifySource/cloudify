@@ -76,6 +76,7 @@ import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.cloudifysource.dsl.ComputeDetails;
 import org.cloudifysource.dsl.DataGrid;
+import org.cloudifysource.dsl.IsolationSLA;
 import org.cloudifysource.dsl.IsolationSLAFactory;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.Sla;
@@ -100,6 +101,7 @@ import org.cloudifysource.dsl.internal.tools.ServiceDetailsHelper;
 import org.cloudifysource.dsl.rest.ApplicationDescription;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.esc.driver.provisioning.CloudifyMachineProvisioningConfig;
+import org.cloudifysource.esc.util.IsolationUtils;
 import org.cloudifysource.rest.ResponseConstants;
 import org.cloudifysource.rest.security.CustomPermissionEvaluator;
 import org.cloudifysource.rest.util.ApplicationDescriptionFactory;
@@ -2130,18 +2132,21 @@ public class ServiceController implements ServiceDetailsProvider {
 			final byte[] serviceCloudConfigurationContents,
 			final boolean selfHealing,
 			final File cloudOverrides) throws TimeoutException, DSLException, IOException, RestErrorException {
-
+		
 		boolean locationAware = false;
 		boolean dedicated = true;
 		if (service != null) {
+			
 			locationAware = service.isLocationAware();
-			if (service.getIsolationSLA() == null) {
+
+			IsolationSLA isolationSLA = service.getIsolationSLA();
+			if (isolationSLA == null) {
 				// no deployment was specified
 				// fall back to dedicated
 				service.setIsolationSLA(IsolationSLAFactory
 						.newDedicatedIsolationSLA());
 			} else {
-				if (service.getIsolationSLA().getGlobal() != null) {
+				if (isolationSLA.getGlobal() != null) {
 					dedicated = false;
 				}
 			}
@@ -2224,10 +2229,24 @@ public class ServiceController implements ServiceDetailsProvider {
 			// matter of the deployment mode.
 			config.setDedicatedManagementMachines(true);
 			if (!dedicated) {
-				logger.info("public mode is on. will use public machine provisioning for "
-						+ serviceName + " deployment.");
-				// service instances can be deployed across all agents
-				setPublicMachineProvisioning(deployment, config);
+				
+				// check what mode of isolation we should use
+				if (IsolationUtils.isGlobal(service)) {
+					logger.info("public mode is on. will use public machine provisioning for "
+							+ serviceName + " deployment.");
+					// service instances can be deployed across all agents
+					setPublicMachineProvisioning(deployment, config);
+				} else if (IsolationUtils.isAppShared(service)) {
+					logger.info("app shared mode is on. will use shared machine provisioning for "
+							+ serviceName + " deployment. isolation id = " + applicationName);
+					// service instances can be deployed across all agents with the correct isolation id
+					setSharedMachineProvisioning(deployment, config, applicationName);
+				} else if (IsolationUtils.isTenantShared(service)) {
+					logger.info("tenant shared mode is on. will use shared machine provisioning for "
+							+ serviceName + " deployment. isolation id = " + authGroups);
+					// service instances can be deployed across all agents with the correct isolation id
+					setSharedMachineProvisioning(deployment, config, authGroups);
+				}
 			} else {
 				// service deployment will have a dedicated agent per instance
 				setDedicatedMachineProvisioning(deployment, config);
@@ -2961,6 +2980,13 @@ public class ServiceController implements ServiceDetailsProvider {
 			deployment.sharedMachineProvisioning(SHARED_ISOLATION_ID,
 					machineProvisioning);
 		}
+	}
+	
+	private void setSharedMachineProvisioning(
+			final ElasticDeploymentTopology deployment,
+			final CloudifyMachineProvisioningConfig config,
+			final String isolationId) {
+		deployment.sharedMachineProvisioning(isolationId, config);
 	}
 
 	private void setPublicMachineProvisioning(
