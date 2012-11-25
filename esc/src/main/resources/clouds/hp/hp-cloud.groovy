@@ -7,7 +7,7 @@
 
 cloud {
 	// Mandatory. The name of the cloud, as it will appear in the Cloudify UI.
-	name = "ec2"
+	name = "HP"
 
 	/********
 	 * General configuration information about the cloud driver implementation.
