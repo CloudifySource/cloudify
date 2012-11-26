@@ -152,15 +152,8 @@ public class DSLReader {
 	 * Search the directory for a file with the specified suffix.
 	 * Assuming there is exactly one file with that suffix in the directory.
 	 * 
-<<<<<<< HEAD
 	 * @param fileNameSuffix The suffix.
 	 * @param dir The directory.
-=======
-	 * @param fileNameSuffix
-	 *            .
-	 * @param dir
-	 *            .
->>>>>>> cee0858c3b7e4d8a2ded75b8b08834e06a5ff112
 	 * @return the file.
 	 */
 	public static File findDefaultDSLFile(final String fileNameSuffix, final File dir) {
