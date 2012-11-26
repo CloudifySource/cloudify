@@ -20,14 +20,14 @@ public class ReadTemplatesFileTest {
 	private final CloudTemplatesReader reader = new  CloudTemplatesReader();
 	
 	private static final String TEMPLATES_FILE_PATH = 
-			"src/test/resources/externalDSLFiles/templateFiles";
+			"src/test/resources/ExternalDSLFiles/templateFiles";
 	private static final String NO_UPLOAD_TEMPLATES_FILE_PATH = 
-			"src/test/resources/externalDSLFiles/templateFilesWithoutUpload";
+			"src/test/resources/ExternalDSLFiles/templateFilesWithoutUpload";
 	
 	private static final String ILLEGAL_TEMPLATES_FILE_PATH = 
-			"src/test/resources/externalDSLFiles/illegalMultipleTemplatesInOneFile";
+			"src/test/resources/ExternalDSLFiles/illegalMultipleTemplatesInOneFile";
 	private static final String ILLEGAL_DUPLICATE_TEMPLATES_FILE_PATH = 
-			"src/test/resources/externalDSLFiles/illegalDuplicateTemplates";
+			"src/test/resources/ExternalDSLFiles/illegalDuplicateTemplates";
 	
 	
 	private static Object[] convertArgsToJaon(final Object[] args) {
