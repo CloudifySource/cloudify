@@ -162,38 +162,6 @@ public class DSLReader {
 		
 		return files[0];
 	}
-
-	/***********
-	 * Search the directory for files other than exceptionalFileName with the specified suffix.
-	 * 
-	 * @param fileNameSuffix The suffix.
-	 * @param directory The directory to search at.
-	 * @param exceptionalFileName The exceptional file name.
-	 * @return The found files. Returns null if no file with the specified suffix was found.
-	 */
-	public static File[] findDefaultDSLFilesWithException(final String fileNameSuffix, final File directory, 
-			final String exceptionalFileName) {
-
-		if (!directory.isDirectory()) {
-			throw new IllegalArgumentException(directory.getAbsolutePath() + " is not a directory.");
-		}
-		
-		final File[] files = directory.listFiles(new FilenameFilter() {
-
-			@Override
-			public boolean accept(final File dir, final String name) {
-				if (exceptionalFileName != null) {
-					return name.endsWith(fileNameSuffix);
-				}
-				return name.endsWith(fileNameSuffix) && !(name.equals(exceptionalFileName));
-			}
-		});
-		if (files.length == 0) {
-			return null;
-		}
-		
-		return files;
-	}
 	
 	/***********
 	 * Search the directory for files with the specified suffix.
@@ -203,7 +171,22 @@ public class DSLReader {
 	 * @return The found files. Returns null if no file with the specified suffix was found.
 	 */
 	public static File[] findDefaultDSLFiles(final String fileNameSuffix, final File directory) {
-		return findDefaultDSLFilesWithException(fileNameSuffix, directory, null);
+		if (!directory.isDirectory()) {
+			throw new IllegalArgumentException(directory.getAbsolutePath() + " is not a directory.");
+		}
+		
+		final File[] files = directory.listFiles(new FilenameFilter() {
+
+			@Override
+			public boolean accept(final File dir, final String name) {
+				return name.endsWith(fileNameSuffix);
+			}
+		});
+		if (files.length == 0) {
+			return null;
+		}
+		
+		return files;
 	}
 	
 	/**

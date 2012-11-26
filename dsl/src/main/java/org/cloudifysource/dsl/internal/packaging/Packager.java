@@ -509,8 +509,7 @@ public final class Packager {
 		final File zipFile = File.createTempFile(zipFileName, ".zip");
 		zipFile.deleteOnExit();
 		ZipUtils.zip(packedDir, zipFile);
-		logger.finer("zipped folder successfully to "
-				+ zipFile.getAbsolutePath());
+		logger.finer("zipped folder successfully to " + zipFile.getAbsolutePath());
 		return zipFile;
 	}
 	

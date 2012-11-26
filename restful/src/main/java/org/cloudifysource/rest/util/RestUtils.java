@@ -126,7 +126,11 @@ public final class RestUtils {
 		return newHashMap(mapEntry(STATUS_KEY, (Object) ERROR), mapEntry(ERROR, (Object) errorDesc), 
 				mapEntry(ERROR_ARGS, (Object) args));
 	}
-
+	public static Map<String, Object> errorStatus(final String errorDesc, final Object... args) {
+		return newHashMap(mapEntry(STATUS_KEY, (Object) ERROR), mapEntry(ERROR, (Object) errorDesc), 
+				mapEntry(ERROR_ARGS, (Object) args));
+	}
+	
 	public static String getResponseBody(final HttpResponse response, final HttpRequestBase httpMethod)
 			throws IOException, RestErrorException {
 
@@ -203,14 +207,14 @@ public final class RestUtils {
 						final List<String> reasonsArgs = (List<String>) errorMap.get(ERROR_ARGS);
 						logger.log(Level.INFO, "failed to execute rest request to " + httpMethod.getURI() 
 								+ ", error: " + reason + ", error args: " + reasonsArgs);
-						throw new RestErrorException(reason, reasonsArgs.toArray(new String[]{}));
+						throw new RestErrorException(reason);
 					}
 				} catch (final IOException e) {
-					throw new RestErrorException("failed_to_send_rest_request", 
-							httpMethod.getURI().toString(), e.getMessage()); 
+					throw new RestErrorException("Failed to send http request to " + httpMethod.getURI().toString() 
+							+ ", error: e.getMessage()."); 
 				}
-				throw new RestErrorException("failed_to_send_rest_request", 
-						httpMethod.getURI().toString(), "statusCode is not OK, it is " + statusCode); 
+				throw new RestErrorException("Failed to send http request to " + httpMethod.getURI().toString() 
+						+ ", statusCode is is " + statusCode); 
 			}
 
 			logger.log(Level.INFO, "executed rest request to " + httpMethod.getURI()); 
@@ -222,21 +226,21 @@ public final class RestUtils {
 			} catch (final IOException e) {
 				logger.log(Level.INFO, "failed to read response from " + httpMethod.getURI() 
 						+ ", error: " + e);
-				throw new RestErrorException("failed_to_read_rest_response", 
-						httpMethod.getURI().toString(), "IOException- " + e.getMessage());
+				throw new RestErrorException("Failed to read response from " 
+						+  httpMethod.getURI().toString() + ", got an IOException- " + e.getMessage());
 			}
 			return responseJsonKey != null ? responseMap.get(RESPONSE_KEY) : responseMap;
 
 		} catch (final ClientProtocolException e) {
 			logger.log(Level.INFO, "failed to execute rest request to " + httpMethod.getURI() 
 					+ ", error: " + e);
-			throw new RestErrorException("failed_to_send_rest_request", 
-					httpMethod.getURI().toString(), "ClientProtocolException: " + e.getMessage());
+			throw new RestErrorException("Failed to send http request to " 
+					+ httpMethod.getURI().toString() + ", got ClientProtocolException- " + e.getMessage());
 		} catch (IOException e1) {
 			logger.log(Level.INFO, "failed to execute rest request to " + httpMethod.getURI() 
 					+ ", error: " + e1);
-			throw new RestErrorException("failed_to_send_rest_request", 
-					httpMethod.getURI().toString(), "IOException: " + e1.getMessage());
+			throw new RestErrorException("Failed to send http request to " 
+					+ httpMethod.getURI().toString() + ", got IOException- " + e1.getMessage());
 		} finally {
 			httpMethod.abort();
 		}

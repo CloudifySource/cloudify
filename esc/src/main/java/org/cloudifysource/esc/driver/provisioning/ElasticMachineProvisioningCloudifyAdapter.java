@@ -624,14 +624,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			String cloudOverridesPerService = config.getCloudOverridesPerService();
 			this.cloud = ServiceReader.readCloudFromDirectory(cloudConfigDirectoryPath, 
 						cloudOverridesPerService);
-			File cloudConfigDirectory = new File(cloudConfigDirectoryPath);
 			this.cloudTemplateName = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME);
 
 			if (this.cloudTemplateName == null) {
 				throw new BeanConfigurationException("Cloud template was not set!");
 			}
 			// add additional templates from cloudConfigDirectory.
-			addTemplatesToCloud(cloudConfigDirectory);
+			addTemplatesToCloud(new File(cloudConfigDirectoryPath));
 			final CloudTemplate cloudTemplate = this.cloud.getTemplates().get(this.cloudTemplateName);
 			if (cloudTemplate == null) {
 				throw new BeanConfigurationException("The provided cloud template name: " + this.cloudTemplateName
@@ -701,9 +700,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			return;
 		}
 		File[] listFiles = additionalTemplatesFolder.listFiles();
-		for (File templatesFolder : listFiles) {
-			CloudTemplatesReader.addAdditionalTemplates(cloud, templatesFolder);
-		}		
+		CloudTemplatesReader reader = new CloudTemplatesReader();
+		reader.addAdditionalTemplates(cloud, listFiles);	
 	}
 
 	private String getWindowsLocalDirPath(final String remoteDirectoryPath, final String localDirName) {

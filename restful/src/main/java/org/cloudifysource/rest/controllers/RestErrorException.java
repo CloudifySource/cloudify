@@ -35,4 +35,9 @@ public class RestErrorException extends Exception{
 		return this.errorDescription;
 	}
 	
+	public RestErrorException(String errorDesc, Object... args) {
+		this.errorDescription = RestUtils.errorStatus(errorDesc, args);
+	}
+	
 }
+

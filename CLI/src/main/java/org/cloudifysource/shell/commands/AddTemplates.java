@@ -18,6 +18,8 @@ package org.cloudifysource.shell.commands;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
@@ -60,17 +62,18 @@ public class AddTemplates extends AdminAwareCommand {
 		// validate templates folder. 
 		String templatesFolderName = templatesFileOrDir.getName();
 		String templatesPath = templatesFileOrDir.getAbsolutePath();
-		logger.info("Validating tempaltes folder and files at: " + templatesPath);
+		logger.info("Validating tempaltes folder and files: " + templatesPath);
 		if (!templatesFileOrDir.exists()) {
 			throw new CLIStatusException("templates_file_not_found", templatesPath);
 		}
 		int numTemplatesInFolder = 0;
 		File zipFile = templatesFileOrDir;
+		CloudTemplatesReader reader = new CloudTemplatesReader();
 
 		if (templatesFileOrDir.isFile()) {
 			if (templatesFolderName.endsWith(".zip") || templatesFolderName.endsWith(".jar")) {
 				try {
-					numTemplatesInFolder = CloudTemplatesReader.readCloudTemplatesFromZip(templatesFileOrDir).size();
+					numTemplatesInFolder = reader.readCloudTemplatesFromZip(templatesFileOrDir).size();
 				} catch (DSLException e) {
 					throw new CLIStatusException("read_dsl_file_failed", templatesPath, e.getMessage());
 				}
@@ -80,45 +83,119 @@ public class AddTemplates extends AdminAwareCommand {
 					throw new CLIStatusException("illegal_template_file_name", templatesFolderName);
 				}
 				File parentFile = templatesFileOrDir.getParentFile();
-				File[] actualTemplatesDslFiles =
+				File[] actualTemplatesDslFiles = 
 						DSLReader.findDefaultDSLFiles(DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX, parentFile);
 				if (actualTemplatesDslFiles.length > 1) {
 					throw new CLIStatusException("too_many_template_files", Arrays.toString(actualTemplatesDslFiles));
-				}
+				} 
 				try {
-					numTemplatesInFolder = CloudTemplatesReader.readCloudTemplatesFromFile(templatesFileOrDir).size();
+					numTemplatesInFolder = reader.readCloudTemplatesFromFile(templatesFileOrDir).size();
 				} catch (DSLException e) {
 					throw new CLIStatusException("read_dsl_file_failed", templatesPath, e.getMessage());
+				}
+				if (numTemplatesInFolder == 0) { 
+					throw new CLIStatusException("no_template_files", templatesPath);
 				}
 				zipFile = Packager.createZipFile("templates", parentFile);
 			}
 		} else {
 			// templatesFileOrDir is a directory
 			try {
-				numTemplatesInFolder = CloudTemplatesReader.readCloudTemplatesFromDirectory(templatesFileOrDir).size();
+				numTemplatesInFolder = reader.readCloudTemplatesFromDirectory(templatesFileOrDir).size();
+				if (numTemplatesInFolder == 0) {
+					throw new CLIStatusException("no_template_files", templatesPath);
+				}
 			} catch (DSLException e) {
-				throw new CLIStatusException("read_dsl_file_failed", templatesPath, 
-						e.getMessage());
+				throw new CLIStatusException("read_dsl_file_failed", templatesPath, e.getMessage());
 			}
 			zipFile = Packager.createZipFile("templates", templatesFileOrDir);
 		}
-
 		// add the templates to the cloud
-		if (numTemplatesInFolder == 0) {
-			throw new CLIStatusException("no_template_files", templatesPath);
-		}
 		logger.info("Adding " + numTemplatesInFolder + " templates to cloud.");
-		List<String> addedTempaltes = adminFacade.addTempaltes(zipFile);
-
+		List<String> addedTempaltes;
+		try {
+			addedTempaltes = adminFacade.addTempaltes(zipFile);
+		} catch (CLIStatusException e) {
+			String reasonCode = e.getReasonCode();
+			if (reasonCode.equals("failed_to_add_templates")) {
+				throw new CLIStatusException(reasonCode, convertArgsToIndentJaon(e.getArgs()));
+			} else if (reasonCode.equals("failed_to_add_all_templates")) {
+				throw new CLIStatusException(reasonCode, getIndentMap((Map<String, Object>) e.getArgs()[0]));
+			}
+			throw e;
+		}
 		return getFormattedMessage("templates_added_successfully", Color.GREEN) 
 				+ getFormatedAddedTemplateNamesList(addedTempaltes);
+	}
+
+	private static Object[] convertArgsToIndentJaon(final Object[] args) {
+		String[] newArgs = new String[args.length];
+		if (newArgs.length < 2) {
+			return args;
+		}
+		Map<String, Map<String, String>> failedToAddTemplates = (Map<String, Map<String, String>>) args[0];
+		StringBuilder failedToAddTemplatesStr = new StringBuilder();
+		if (failedToAddTemplates.isEmpty()) {
+			failedToAddTemplatesStr.append("{ }");
+		} else {
+			failedToAddTemplatesStr.append(CloudifyConstants.NEW_LINE)
+			.append("{")
+			.append(CloudifyConstants.NEW_LINE);
+			for (Entry<String, Map<String, String>> entry : failedToAddTemplates.entrySet()) {
+				Map<String, String> failedToAddTemplatesErrDesc = entry.getValue();
+				failedToAddTemplatesStr.append(CloudifyConstants.TAB_CHAR)
+				.append(entry.getKey())
+				.append(":")
+				.append(CloudifyConstants.NEW_LINE)
+				.append(CloudifyConstants.TAB_CHAR)
+				.append("{")
+				.append(CloudifyConstants.NEW_LINE);
+				for (Entry<String, String> tempalteErrDesc : failedToAddTemplatesErrDesc.entrySet()) {
+					failedToAddTemplatesStr.append(CloudifyConstants.TAB_CHAR)
+					.append(CloudifyConstants.TAB_CHAR)
+					.append(tempalteErrDesc.getKey())
+					.append(" - ")
+					.append(tempalteErrDesc.getValue())
+					.append(CloudifyConstants.NEW_LINE);
+				}
+				failedToAddTemplatesStr.append(CloudifyConstants.TAB_CHAR)
+				.append("}")
+				.append(CloudifyConstants.NEW_LINE);
+			}
+			failedToAddTemplatesStr.append("}");
+		}
+		newArgs[0] = failedToAddTemplatesStr.toString();
+		
+		newArgs[1] = getIndentMap((Map<String, Object>) args[1]);
+
+		return newArgs;
+	}
+
+	private static String getIndentMap(final Map<String, Object> map) {
+		StringBuilder successfullyAddedTemplatesStr = new StringBuilder();
+		if (map.isEmpty()) {
+			successfullyAddedTemplatesStr.append("{ }");
+		} else {
+			successfullyAddedTemplatesStr.append(CloudifyConstants.NEW_LINE)
+			.append("{")
+			.append(CloudifyConstants.NEW_LINE);
+			for (Entry<String, Object> entry : map.entrySet()) {
+				successfullyAddedTemplatesStr.append(CloudifyConstants.TAB_CHAR)
+				.append(entry.getKey())
+				.append(": ")
+				.append(entry.getValue())
+				.append(CloudifyConstants.NEW_LINE);
+			}
+			successfullyAddedTemplatesStr.append("}");
+		}
+		return successfullyAddedTemplatesStr.toString();
 	}
 	
 	private static Object getFormatedAddedTemplateNamesList(final List<String> tempaltes) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(CloudifyConstants.NEW_LINE)
 		.append("Added " + tempaltes.size() + " tempaltes:");
-		
+
 		for (String templateName : tempaltes) {
 			sb.append(CloudifyConstants.NEW_LINE)
 			.append(CloudifyConstants.TAB_CHAR)

@@ -29,7 +29,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
 
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -844,7 +843,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		List<String> response;
 		try {
 			Map<String, File> fileToPost = new HashMap<String, File>();
-			fileToPost.put(CloudifyConstants.REQUEST_PARAM_TEMPLATES_DIR_NAME, templatesFile);
+			fileToPost.put(CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, templatesFile);
 			response = (List<String>) client.postFiles(url, fileToPost);
 		} catch (ErrorStatusException e) {
 			throw new CLIStatusException(e.getReasonCode(), e.getArgs());
@@ -883,7 +882,6 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		CloudTemplate response;
 		try {
 			Object result = client.get(url);
-			logger.log(Level.INFO, "CLI getTemplate got template: " + result.toString());
 
 			ObjectMapper mapper = new ObjectMapper();
 			response = mapper.convertValue(result, CloudTemplate.class);

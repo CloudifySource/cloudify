@@ -279,12 +279,12 @@ public final class CloudifyConstants {
 	/**
 	 * RequestParam parameters names.
 	 */
-	public static final String REQUEST_PARAM_TEMPLATES_DIR_NAME = "templatesFolder"; 
+	public static final String TEMPLATES_DIR_PARAM_NAME = "templatesFolder"; 
 	
 	/**
 	 * Additional templates folder name.
 	 */
-	public static final String ADDITIONAL_TEMPLATES_FOLDER_NAME = "additionalTempaltes";
+	public static final String ADDITIONAL_TEMPLATES_FOLDER_NAME = "additionalTemplates";
 
 	// CHECKSTYLE:ON
 }

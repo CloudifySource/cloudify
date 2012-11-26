@@ -339,7 +339,7 @@ public final class ServiceReader {
 	 * @return A temporary directory.
 	 * @throws IOException .
 	 */
-	protected static File createTempDir(String suffix)
+	protected static File createTempDir(final String suffix)
 			throws IOException {
 		final File tempFile = File.createTempFile("GS_tmp_dir", "." + suffix);
 		final String path = tempFile.getAbsolutePath();
@@ -381,6 +381,22 @@ public final class ServiceReader {
 		final String dslContents = FileUtils.readFileToString(dslFile);
 
 		return readCloud(dslContents, dslFile);
+	}
+	
+	/**
+	 * 
+	 * @param cloudConfigDirectory .
+	 * @return The cloud.
+	 * @throws DSLException .
+	 */
+	public static Cloud readCloudFromDirectory(final File cloudConfigDirectory)
+			throws DSLException {
+		final DSLReader reader = new DSLReader();
+		reader.setDslFileNameSuffix(DSLUtils.CLOUD_DSL_FILE_NAME_SUFFIX);
+		reader.setWorkDir(cloudConfigDirectory);
+		reader.setCreateServiceContext(false);
+
+		return reader.readDslEntity(Cloud.class);
 	}
 
 	/**

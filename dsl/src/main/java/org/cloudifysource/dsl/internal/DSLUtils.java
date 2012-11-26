@@ -160,10 +160,6 @@ public final class DSLUtils {
 			if (!fileName.equals(newName)) {
 				File parent = file.getParentFile();
 				File newNameFile = new File(parent, newName);
-				if (newNameFile.exists()) {
-					throw new IOException("Failed to rename file " + file.getAbsolutePath() + " to " + newName
-							+ "- a file with that name is already exist in " + parent.getAbsolutePath());
-				}
 				boolean renamed = file.renameTo(newNameFile);
 				if (!renamed) {
 					throw new IOException("Failed to rename file " + file.getAbsolutePath());
