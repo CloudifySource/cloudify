@@ -107,6 +107,8 @@ public class RestPollingRunnable implements Runnable {
 
 	private FutureTask<Boolean> undeployTask;
 
+	private Exception deploymentExecutionException;
+
 	private static final Logger logger = Logger
 			.getLogger(RestPollingRunnable.class.getName());
 
@@ -284,11 +286,14 @@ public class RestPollingRunnable implements Runnable {
 			if (System.currentTimeMillis() > this.endTime) {
 				throw new TimeoutException("Timed out");
 			}
+			
+			if (this.deploymentExecutionException != null) {
+				throw new Exception(deploymentExecutionException);
+			}
 
 			pollForLogs();
 
 		} catch (final Throwable e) {
-			terminateTaskGracefully();
 			if (!(e instanceof RestServiceException)) {
 				logger.log(
 						Level.INFO,
@@ -298,6 +303,7 @@ public class RestPollingRunnable implements Runnable {
 			} else {
 				logger.log(Level.INFO, "Polling task ended successfully.");
 			}
+			terminateTaskGracefully();
 			// this exception should not be caught. it is meant to make the
 			// scheduler stop
 			// the thread execution.
@@ -357,7 +363,7 @@ public class RestPollingRunnable implements Runnable {
 					logger.info("undeployAndWait for processing unit " + absolutePuName + " has finished");
 					this.serviceNames.remove(serviceName);
 					this.lifecycleEventsContainer
-						.addInstanceCountEvent("Service \"" + serviceName
+						.addNonLifecycleEvents("Service \"" + serviceName
 							+ "\" uninstalled successfully");
 				}
 			} catch (final Exception e) {
@@ -367,7 +373,7 @@ public class RestPollingRunnable implements Runnable {
 					final String message = "undeploy task has ended unsuccessfully. "
 							+ "Some machines may not have been terminated!";
 					logger.log(Level.WARNING, message, e);
-					lifecycleEventsContainer.addInstanceCountEvent(message);
+					lifecycleEventsContainer.addNonLifecycleEvents(message);
 					throw new ExecutionException(message, e);
 				}
 			}
@@ -447,7 +453,7 @@ public class RestPollingRunnable implements Runnable {
 		if (numberOfServiceInstances == 0) {
 			if (!isUninstall) {
 				this.lifecycleEventsContainer
-						.addInstanceCountEvent("Deploying " + serviceName
+						.addNonLifecycleEvents("Deploying " + serviceName
 								+ " with " + plannedNumberOfInstances
 								+ " planned instances.");
 			}
@@ -458,14 +464,14 @@ public class RestPollingRunnable implements Runnable {
 			if (numberOfFailedInstances > 0) {
 				event += " failed " + numberOfFailedInstances;
 			}
-			this.lifecycleEventsContainer.addInstanceCountEvent(event);
+			this.lifecycleEventsContainer.addNonLifecycleEvents(event);
 		}
 
 		if (plannedNumberOfInstances == numberOfServiceInstances) {
 			if (!isServiceInstall) {
 				if (!isUninstall && !isSetInstances) {
 					this.lifecycleEventsContainer
-							.addInstanceCountEvent("Service \"" + serviceName
+							.addNonLifecycleEvents("Service \"" + serviceName
 									+ "\" successfully installed ("
 									+ numberOfServiceInstances + " Instances)");
 				}
@@ -479,7 +485,7 @@ public class RestPollingRunnable implements Runnable {
 			// now waiting for machine to shutdown
 			if (isUninstall) {
 				this.lifecycleEventsContainer
-					.addInstanceCountEvent("Service \"" + serviceName
+					.addNonLifecycleEvents("Service \"" + serviceName
 						+ "\" was stopped successfully , releasing cloud resources...");				
 			}
 		}
@@ -666,5 +672,15 @@ public class RestPollingRunnable implements Runnable {
 	public void setUndeployTask(final FutureTask<Boolean> undeployTask) {
 		this.undeployTask = undeployTask;
 
+	}
+
+	/**
+	 * Sets a deployment exception for a specific deployment process.
+	 * @param deploymentExecutionException
+	 * 		the deployment exception.
+	 */
+	public void setDeploymentExecutionException(
+			final Exception deploymentExecutionException) {
+		this.deploymentExecutionException = deploymentExecutionException;
 	}
 }

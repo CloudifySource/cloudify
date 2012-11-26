@@ -86,8 +86,7 @@ public class RestLifecycleEventsLatch {
 				try {
 					lifecycleEventLogs = (Map<String, Object>) client.get(url);
 				} catch (final ErrorStatusException e) {
-					throw new CLIException("Event polling task failed on remote server." 
-							+ "For more information regarding the installation, please refer to full logs", e);
+					throw new CLIException("Deployment failed. Reason: " + e.getMessage(), e);
 				}
 
 				List<String> events = (List<String>) lifecycleEventLogs.get(CloudifyConstants.LIFECYCLE_LOGS);

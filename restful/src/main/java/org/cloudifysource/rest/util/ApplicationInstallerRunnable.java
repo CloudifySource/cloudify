@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -62,6 +63,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 	private final Cloud cloud;
 	private final boolean selfHealing;
 	private File cloudOverrides;
+	private UUID pollingTaskId;
 
 	/**************
 	 * Constructor.
@@ -285,6 +287,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 								+ ". Application installation will halt. "
 								+ "Some services may already have started, and should be shutdown manually. Error was: "
 								+ e.getMessage(), e);
+				this.controller.handleDeploymentException(e, this.pollingTaskId);
 				return;
 			}
 
@@ -314,6 +317,16 @@ public class ApplicationInstallerRunnable implements Runnable {
 		}
 
 		return true;
+	}
+	
+	/**
+	 * Sets the polling id for this deployment task.
+	 * 
+	 * @param taskPollingId
+	 * 		polling task id
+	 */
+	public void setTaskPollingId(final UUID taskPollingId) {
+		this.pollingTaskId = taskPollingId;
 	}
 
 	private Properties createServiceContextProperties(final Service service,

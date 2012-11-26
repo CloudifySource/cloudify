@@ -1822,7 +1822,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final boolean isServiceInstall, final int timeout,
 			final TimeUnit minutes) {
 		RestPollingRunnable restPollingRunnable;
-		logger.info("starting POLL on service : " + serviceName + " app: "
+		logger.info("starting poll on service : " + serviceName + " app: "
 				+ applicationName);
 
 		final LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
@@ -1910,14 +1910,14 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final int cursor) throws RestErrorException {
 		final Map<String, Object> resultsMap = new HashMap<String, Object>();
 
-		if (!lifecyclePollingThreadContainer.containsKey(UUID
+		if (!this.lifecyclePollingThreadContainer.containsKey(UUID
 				.fromString(lifecycleEventContainerID))) {
 			throw new RestErrorException(
 					"Lifecycle events container with UUID: "
 							+ lifecycleEventContainerID
 							+ " does not exist or expired.");
 		}
-		final RestPollingRunnable restPollingRunnable = lifecyclePollingThreadContainer
+		final RestPollingRunnable restPollingRunnable = this.lifecyclePollingThreadContainer
 				.get(UUID.fromString(lifecycleEventContainerID));
 
 		final LifecycleEventsContainer container = restPollingRunnable
@@ -2009,16 +2009,20 @@ public class ServiceController implements ServiceDetailsProvider {
 				selfHealing,
 				cloudOverrides);
 
+		logger.log(Level.INFO,
+				"Starting to poll for installation lifecycle events.");
+		final UUID lifecycleEventContainerID = startPollingForLifecycleEvents(
+				result.getApplication(), timeout, TimeUnit.MINUTES);
+		
+		installer.setTaskPollingId(lifecycleEventContainerID);
+		
 		if (installer.isAsyncInstallPossibleForApplication()) {
 			installer.run();
 		} else {
 			this.executorService.execute(installer);
 		}
 
-		logger.log(Level.INFO,
-				"Starting to poll for installation lifecycle events.");
-		final UUID lifecycleEventContainerID = startPollingForLifecycleEvents(
-				result.getApplication(), timeout, TimeUnit.MINUTES);
+		installer.setTaskPollingId(lifecycleEventContainerID);
 
 		final String[] serviceOrder = new String[services.size()];
 		for (int i = 0; i < serviceOrder.length; i++) {
@@ -3557,5 +3561,27 @@ public class ServiceController implements ServiceDetailsProvider {
 		logger.info("Service details created: " + result);
 		return res;
 
+	}
+	
+	/**
+	 * Handle exceptions that originated from the deployment process.
+	 * @param e
+	 * 		The exception thrown
+	 * @param pollingTaskId
+	 * 		The polling task Id
+	 */
+	public void handleDeploymentException(final Exception e, final UUID pollingTaskId) {
+		if (pollingTaskId == null) {
+			logger.log(Level.INFO, "No polling task was set for the deployment task. " 
+					+ "Aborting deployment exception handling.");
+			return;
+		}
+		if (!this.lifecyclePollingThreadContainer.containsKey(pollingTaskId)) {
+			logger.log(Level.FINE, "Polling task with UUID " + pollingTaskId.toString()
+					+ " is no longer active.");  
+		} else {
+			RestPollingRunnable restPollingRunnable = lifecyclePollingThreadContainer.get(pollingTaskId);
+			restPollingRunnable.setDeploymentExecutionException(e);
+		}
 	}
 }

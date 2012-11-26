@@ -119,7 +119,7 @@ public class LifecycleEventsContainer {
 	 * @param event
 	 *            event to add
 	 */
-	public final void addInstanceCountEvent(final String event) {
+	public final void addNonLifecycleEvents(final String event) {
 		synchronized (this.lock) {
 			if (this.serviceInstanceCountEventsSet.contains(event)) {
 				if (logger.isLoggable(Level.FINEST)) {
