@@ -382,7 +382,6 @@ public final class ServiceReader {
 
 		return readCloud(dslContents, dslFile);
 	}
-	
 	/**
 	 * 
 	 * @param cloudConfigDirectory .
@@ -395,7 +394,6 @@ public final class ServiceReader {
 		reader.setDslFileNameSuffix(DSLUtils.CLOUD_DSL_FILE_NAME_SUFFIX);
 		reader.setWorkDir(cloudConfigDirectory);
 		reader.setCreateServiceContext(false);
-
 		return reader.readDslEntity(Cloud.class);
 	}
 

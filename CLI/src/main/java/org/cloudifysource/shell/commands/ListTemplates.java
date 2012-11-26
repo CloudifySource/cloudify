@@ -26,7 +26,9 @@ public class ListTemplates extends AdminAwareCommand {
 	@Override
 	protected Object doExecute() throws Exception {
 		Map<String, CloudTemplate> templatesList = adminFacade.listTemplates();
-		return getTemplatesListAsString(templatesList);
+		String formattedList = getTemplatesListAsString(templatesList);
+	    
+		return formattedList;
 	}
 
 	private String getTemplatesListAsString(

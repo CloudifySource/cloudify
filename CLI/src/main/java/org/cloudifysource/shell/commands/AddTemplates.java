@@ -120,7 +120,9 @@ public class AddTemplates extends AdminAwareCommand {
 			if (reasonCode.equals("failed_to_add_templates")) {
 				throw new CLIStatusException(reasonCode, convertArgsToIndentJaon(e.getArgs()));
 			} else if (reasonCode.equals("failed_to_add_all_templates")) {
-				throw new CLIStatusException(reasonCode, getIndentMap((Map<String, Object>) e.getArgs()[0]));
+				if (e.getArgs().length > 0) {
+					throw new CLIStatusException(reasonCode, getIndentMap((Map<String, Object>) e.getArgs()[0]));
+				}
 			}
 			throw e;
 		}
