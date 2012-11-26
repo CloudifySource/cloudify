@@ -72,10 +72,10 @@ public class DSLReader {
 	private File dslFile;
 	private File workDir;
 
-	private String dslName; 
+	private String dslName;
 	private String dslFileNamePrefix;
 	private String dslFileNameSuffix;
-	
+
 	private File propertiesFile;
 	private File overridesFile;
 
@@ -89,12 +89,13 @@ public class DSLReader {
 	private String dslContents;
 
 	private boolean validateObjects = true;
-	
+
 	private String overridesScript = null;
 
 	/*******
-	 * Variables injected into the context of a groovy compilation (binding) Used with the service extension mechanism
-	 * to pass defined properties, and the context, to the compilation of the parent service.
+	 * Variables injected into the context of a groovy compilation (binding)
+	 * Used with the service extension mechanism to pass defined properties, and
+	 * the context, to the compilation of the parent service.
 	 */
 	private Map<Object, Object> variables;
 
@@ -112,10 +113,16 @@ public class DSLReader {
 	public static final String CLOUD_DSL_FILE_NAME_SUFFIX = "-cloud.groovy";
 
 	private static final String[] STAR_IMPORTS = new String[] {
-		org.cloudifysource.dsl.Service.class.getPackage().getName(), UserInterface.class.getPackage().getName(),
-		org.cloudifysource.dsl.internal.context.ServiceImpl.class.getPackage().getName() };
+			org.cloudifysource.dsl.Service.class.getPackage().getName(), UserInterface.class.getPackage().getName(),
+			org.cloudifysource.dsl.internal.context.ServiceImpl.class.getPackage().getName() };
 
+	/******
+	 * Property name of injected dsl file path.
+	 */
 	public static final String DSL_FILE_PATH_PROPERTY_NAME = "dslFilePath";
+	/*******
+	 * Property name of injected validation activation flag.
+	 */
 	public static final String DSL_VALIDATE_OBJECTS_PROPERTY_NAME = "validateObjectsFlag";
 
 	private void initDslFile()
@@ -157,8 +164,10 @@ public class DSLReader {
 	/***********
 	 * .
 	 * 
-	 * @param fileNameSuffix .
-	 * @param dir .
+	 * @param fileNameSuffix
+	 *            .
+	 * @param dir
+	 *            .
 	 * @return the file.
 	 */
 	public static File findDefaultDSLFile(final String fileNameSuffix, final File dir) {
@@ -186,8 +195,10 @@ public class DSLReader {
 
 	/**
 	 * 
-	 * @param fileNameSuffix .
-	 * @param dir .
+	 * @param fileNameSuffix
+	 *            .
+	 * @param dir
+	 *            .
 	 * @return The found file or null.
 	 */
 	public static File findDefaultDSLFileIfExists(
@@ -202,7 +213,7 @@ public class DSLReader {
 		}
 		return found;
 	}
-	
+
 	private void init()
 			throws IOException {
 		initDslFile();
@@ -212,11 +223,11 @@ public class DSLReader {
 	}
 
 	private void initOverridesFile() throws IOException {
-		overridesFile = getFileIfExist(overridesFile, dslFileNamePrefix + DSLUtils.OVERRIDES_FILE_SUFFIX);		
+		overridesFile = getFileIfExist(overridesFile, dslFileNamePrefix + DSLUtils.OVERRIDES_FILE_SUFFIX);
 	}
 
-	private static void createDSLOverrides(final File file, final String script, 
-			final Map<String, Object> overridesMap) 
+	private static void createDSLOverrides(final File file, final String script,
+			final Map<String, Object> overridesMap)
 			throws IOException {
 		if (file == null && script == null) {
 			return;
@@ -227,14 +238,14 @@ public class DSLReader {
 				parse.flatten(overridesMap);
 			} catch (final Exception e) {
 				throw new IOException("Failed to read overrides file: " + file, e);
-			} 			
+			}
 		}
 		if (script != null) {
 			final ConfigObject parse = new ConfigSlurper().parse(script);
-			parse.flatten(overridesMap);			
+			parse.flatten(overridesMap);
 		}
 	}
-		
+
 	private Map<String, Object> createApplicationProperties() throws IOException {
 		File externalPropertiesFile = getFileIfExist(null, DSLUtils.APPLICATION_PROPERTIES_FILE_NAME);
 		Map<String, Object> externalProperties = new HashMap<String, Object>();
@@ -249,13 +260,17 @@ public class DSLReader {
 		}
 		return externalProperties;
 	}
+
 	/*********
 	 * Executes the current DSL reader, returning the required Object type.
 	 * 
-	 * @param clazz the expected class type returned from the DSL file.
-	 * @param <T> The Class type returned from this type of DSL file.
+	 * @param clazz
+	 *            the expected class type returned from the DSL file.
+	 * @param <T>
+	 *            The Class type returned from this type of DSL file.
 	 * @return the domain POJO.
-	 * @throws DSLException in case there was a problem processing the DSL file.
+	 * @throws DSLException
+	 *             in case there was a problem processing the DSL file.
 	 */
 	public <T> T readDslEntity(final Class<T> clazz)
 			throws DSLException {
@@ -290,8 +305,13 @@ public class DSLReader {
 		} catch (final Exception e) {
 			// catching exception here, as groovy config slurper may throw just
 			// about anything
-			throw new IllegalArgumentException("Failed to load properties file " + this.propertiesFile.getName() 
-					+ ": " + e.getMessage() , e);
+			String msg = null;
+			if (propertiesFile != null) {
+				msg = "Failed to load properties file " + this.propertiesFile.getName() + ": " + e.getMessage();
+			} else {
+				msg = "Failed to load properties file: " + e.getMessage();
+			}
+			throw new IllegalArgumentException(msg, e);
 		}
 
 		if (this.variables != null) {
@@ -322,7 +342,7 @@ public class DSLReader {
 			throw new DSLException("The DSL evaluated to a null - check your syntax and try again");
 		}
 
-//		overrideFields(result);
+		// overrideFields(result);
 
 		if (this.createServiceContext) {
 			if (!(result instanceof Service)) {
@@ -347,31 +367,34 @@ public class DSLReader {
 		return result;
 
 	}
+
 	/**
 	 * 
-	 * @param properties the properties to add to
-	 * @throws IOException 
+	 * @param properties
+	 *            the properties to add to
+	 * @throws IOException
 	 */
 	private void addApplicationProperties(final Map<Object, Object> properties) throws IOException {
 		if (applicationProperties == null) {
 			applicationProperties = createApplicationProperties();
-		} 
-		for (Entry<String, Object>  entry : applicationProperties.entrySet()) {
+		}
+		for (Entry<String, Object> entry : applicationProperties.entrySet()) {
 			properties.put(entry.getKey(), entry.getValue());
 		}
 	}
 
 	/**
 	 * 
-	 * @param properties the properties to override
+	 * @param properties
+	 *            the properties to override
 	 */
 	private void overrideProperties(final LinkedHashMap<Object, Object> properties) {
-		for (Entry<String, Object>  entry : overrideProperties.entrySet()) {
+		for (Entry<String, Object> entry : overrideProperties.entrySet()) {
 			String key = entry.getKey();
 			Object propertyValue = entry.getValue();
 			// overrides existing property or add a new one.
 			properties.put(key, propertyValue);
-		}		
+		}
 	}
 
 	private Object evaluateGroovyScript(final GroovyShell gs)
@@ -448,16 +471,16 @@ public class DSLReader {
 
 	private File getFileIfExist(final File file, final String defaultFileName)
 			throws IOException {
-		if (file != null) {			
+		if (file != null) {
 			if (!file.exists()) {
-				throw new FileNotFoundException("Could not find overrides file: " 
+				throw new FileNotFoundException("Could not find overrides file: "
 						+ file.getAbsolutePath());
 			}
 			if (!file.isFile()) {
 				throw new FileNotFoundException(this.overridesFile.getName() + " is not a file!");
 			}
 			return file;
-		} 
+		}
 		if (this.dslFile == null) {
 			return null;
 		}
@@ -562,10 +585,11 @@ public class DSLReader {
 			for (final Entry<Object, Object> entry : entries) {
 				binding.setVariable((String) entry.getKey(), entry.getValue());
 			}
-			// add variable that contains all the properties 
-			// 		to distinguish between properties and other binding variables.
-			// This will be used in loading application's service process 
-			// 		to transfer application properties to the service using the application's binding.
+			// add variable that contains all the properties
+			// to distinguish between properties and other binding variables.
+			// This will be used in loading application's service process
+			// to transfer application properties to the service using the
+			// application's binding.
 			binding.setVariable(DSLUtils.DSL_PROPERTIES, properties);
 			if (context != null) {
 				binding.setVariable("context", context);
@@ -617,16 +641,22 @@ public class DSLReader {
 
 	/**
 	 * Checks if the overrides name fits the naming convention of recipe files.
-	 * If fits, returns the given overridesFile, else copies the file and change its name accordingly. 
-	 * @param overridesFile The file to copy
-	 * @param dslName The DSL name
-	 * @return the overrides file or a copy of it with the write name (*-application.overrides).
-	 * @throws IOException if an IO error occurs during copying.
+	 * If fits, returns the given overridesFile, else copies the file and change
+	 * its name accordingly.
+	 * 
+	 * @param overridesFile
+	 *            The file to copy
+	 * @param dslName
+	 *            The DSL name
+	 * @return the overrides file or a copy of it with the write name
+	 *         (*-application.overrides).
+	 * @throws IOException
+	 *             if an IO error occurs during copying.
 	 */
 	public static File copyOverridesFile(final File overridesFile, final String dslName) throws IOException {
 		String overridesFileName = dslName + DSLUtils.OVERRIDES_FILE_SUFFIX;
 		if (overridesFileName.equals(overridesFile.getName())) {
-			return overridesFile;	
+			return overridesFile;
 		}
 		File copiedOverridesFile = new File(overridesFileName);
 		FileUtils.copyFile(overridesFile, copiedOverridesFile);
@@ -705,8 +735,10 @@ public class DSLReader {
 	/**********
 	 * .
 	 * 
-	 * @param key .
-	 * @param value .
+	 * @param key
+	 *            .
+	 * @param value
+	 *            .
 	 */
 	public void addProperty(final String key, final Object value) {
 		bindingProperties.put(key, value);
@@ -725,7 +757,7 @@ public class DSLReader {
 	public void setDslFileNameSuffix(final String dslFileNameSuffix) {
 		this.dslFileNameSuffix = dslFileNameSuffix;
 	}
-	
+
 	public void setOverridesScript(final String script) {
 		this.overridesScript = script;
 	}
@@ -758,7 +790,7 @@ public class DSLReader {
 	public void setValidateObjects(final boolean isValidateObjects) {
 		this.validateObjects = isValidateObjects;
 	}
-	
+
 	public File getPropertiesFile() {
 		return this.propertiesFile;
 	}
