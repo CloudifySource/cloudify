@@ -30,6 +30,7 @@ import org.cloudifysource.dsl.Plugin;
 import org.cloudifysource.dsl.PluginDescriptor;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.context.ServiceContext;
+import org.cloudifysource.dsl.entry.ClosureExecutableEntry;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntryFactory;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -524,12 +525,18 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 					final Object retcode = result.getResult();
 					if (retcode instanceof Boolean) {
 						return (Boolean) retcode;
-					} else {
-						throw new USMException("The start detector return code was not a boolean! Result was: " + retcode);
 					}
+					
+					// If closure, make sure return value is boolean.
+					if(detector instanceof ClosureExecutableEntry) {
+						logger.warning("A start detector closure return a result that is not boolean! Result was: " + retcode);
+						return false;
+					}
+					
+					return true;
 				}
 				// process exited with abnormal status code
-				logger.log(Level.WARNING, "Liveness Detector failed to execut. Exception was: "
+				logger.log(Level.WARNING, "Liveness Detector failed to execute. Exception was: "
 						+ result.getException(), result.getException());
 				return false;
 			}

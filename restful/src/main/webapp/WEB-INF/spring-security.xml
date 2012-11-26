@@ -10,7 +10,7 @@
 		<sec:authentication-provider>
 			<sec:user-service>
 				<sec:user name="Amanda" password="Amanda" authorities="ROLE_CLOUDADMINS" />
-				<sec:user name="Dana" password="Dana" authorities="ROLE_CLOUDADMINS, ROLE_APP_MANAGERS" />
+				<sec:user name="Dana" password="Dana" authorities="ROLE_CLOUDADMINS, ROLE_APPMANAGERS" />
 				<sec:user name="Dan" password="Dan" authorities="ROLE_APP_MANAGERS" />
 				<sec:user name="Don" password="Don" authorities="ROLE_APP_MANAGERS, ROLE_VIEWERS" />
 				<sec:user name="John" password="John" authorities="ROLE_VIEWERS" />
