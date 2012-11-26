@@ -167,13 +167,13 @@ public class DSLReader {
 
 		File[] files = findDefaultDSLFiles(fileNameSuffix, dir);
 
+		if (files == null || files.length == 0) {
+			throw new IllegalArgumentException("Cannot find configuration file in " + dir.getAbsolutePath() + "/*"
+					+ fileNameSuffix);
+		}
 		if (files.length > 1) {
 			throw new IllegalArgumentException("Found multiple configuration files: " + Arrays.toString(files) + ". "
 					+ "Only one may be supplied in the folder.");
-		}
-		if (files.length == 0) {
-			throw new IllegalArgumentException("Cannot find configuration file in " + dir.getAbsolutePath() + "/*"
-					+ fileNameSuffix);
 		}
 		
 		return files[0];
