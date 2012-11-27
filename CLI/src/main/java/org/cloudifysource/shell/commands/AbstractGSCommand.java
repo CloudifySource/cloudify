@@ -35,17 +35,16 @@ import java.util.logging.Logger;
  * @author rafi, barakm
  * @since 2.0.0
  *        <p/>
- *        Abstract implementation of the {@link org.apache.felix.gogo.commands.Action} interface. This abstraction can
- *        be extended by Cloudify aware commands to get support for: - Formatted messages from the message bundle -
- *        Logging (with verbose mode - true/false) - AdminFacade such as the RestAdminFacade, when required by the
- *        command (AKA admin-aware commands).
+ *        Abstract implementation of the
+ *        {@link org.apache.felix.gogo.commands.Action} interface. This
+ *        abstraction can be extended by Cloudify aware commands to get support
+ *        for: - Formatted messages from the message bundle - Logging (with
+ *        verbose mode - true/false) - AdminFacade such as the RestAdminFacade,
+ *        when required by the command (AKA admin-aware commands).
  */
 public abstract class AbstractGSCommand implements Action {
 
 	protected static final Logger logger = Logger.getLogger(AbstractGSCommand.class.getName());
-	// Used for CompleterValues methods that don't have access to the
-	// sessions admin facade
-	private AdminFacade restAdminFacade;
 
 	@Option(required = false, name = "--verbose", description = "show detailed execution result including exception"
 			+ " stack trace")
@@ -56,12 +55,15 @@ public abstract class AbstractGSCommand implements Action {
 	protected AdminFacade adminFacade;
 
 	/**
-	 * Initializes the messages bundle, and takes the admin facade objects from the session when command is admin-aware.
-	 * Calls doExecute (must be implemented separately in the extending classes).
+	 * Initializes the messages bundle, and takes the admin facade objects from
+	 * the session when command is admin-aware. Calls doExecute (must be
+	 * implemented separately in the extending classes).
 	 * 
-	 * @param session The command session to be used.
+	 * @param session
+	 *            The command session to be used.
 	 * @return Object The object returned from the call to doExecute
-	 * @throws Exception Reporting a failure to execute this command
+	 * @throws Exception
+	 *             Reporting a failure to execute this command
 	 */
 	@Override
 	public Object execute(final CommandSession session)
@@ -81,8 +83,13 @@ public abstract class AbstractGSCommand implements Action {
 
 		} catch (final CLIStatusException cse) {
 			if (verbose) {
-				logger.log(
-						Level.WARNING, getFormattedMessageFromErrorStatusException(cse), cse);
+				if (cse.getVerboseData() == null) {
+					logger.log(
+							Level.WARNING, getFormattedMessageFromErrorStatusException(cse), cse);
+				} else {
+					logger.log(
+							Level.WARNING, getFormattedMessageFromErrorStatusException(cse, cse.getVerboseData()));
+				}
 			} else {
 				logger.log(
 						Level.WARNING, getFormattedMessageFromErrorStatusException(cse));
@@ -123,14 +130,20 @@ public abstract class AbstractGSCommand implements Action {
 				"op_failed", Color.RED, "");
 	}
 
+	private String getFormattedMessageFromErrorStatusException(final CLIStatusException e) {
+		return getFormattedMessageFromErrorStatusException(e, null);
+	}
+
 	/**
-	 * Gets a formatted message from the given CLIStatusException, using the exception's reason code as the message name
-	 * and the exception's args field, if not null.
+	 * Gets a formatted message from the given CLIStatusException, using the
+	 * exception's reason code as the message name and the exception's args
+	 * field, if not null.
 	 * 
-	 * @param e The CLIStatusException to base on
+	 * @param e
+	 *            The CLIStatusException to base on
 	 * @return The formatted message
 	 */
-	private String getFormattedMessageFromErrorStatusException(final CLIStatusException e) {
+	private String getFormattedMessageFromErrorStatusException(final CLIStatusException e, final String verboseData) {
 		String message = getFormattedMessage(
 				e.getReasonCode(), (Object[]) null);
 		if (message == null) {
@@ -140,8 +153,13 @@ public abstract class AbstractGSCommand implements Action {
 		if (e.getArgs() == null || e.getArgs().length == 0) {
 			return message;
 		} else {
-			return MessageFormat.format(
-					message, e.getArgs());
+			if (verboseData == null) {
+				return MessageFormat.format(
+						message, e.getArgs());
+			} else {
+				return MessageFormat.format(
+						message, e.getArgs()) + ": " + verboseData;
+			}
 		}
 	}
 
@@ -153,12 +171,15 @@ public abstract class AbstractGSCommand implements Action {
 	// }
 
 	/**
-	 * If not using the CLI in interactive mode - the method adds the given throwable to the session and throws a
-	 * CloseShellException.
+	 * If not using the CLI in interactive mode - the method adds the given
+	 * throwable to the session and throws a CloseShellException.
 	 * 
-	 * @param session current command session
-	 * @param t The throwable to add to the session
-	 * @throws CloseShellException Indicates the console to close.
+	 * @param session
+	 *            current command session
+	 * @param t
+	 *            The throwable to add to the session
+	 * @throws CloseShellException
+	 *             Indicates the console to close.
 	 */
 	private static void raiseCloseShellExceptionIfNonInteractive(final CommandSession session, final Throwable t)
 			throws CloseShellException {
@@ -183,10 +204,12 @@ public abstract class AbstractGSCommand implements Action {
 	}
 
 	/**
-	 * Gets a message from the message bundle, without argument. If the message cannot be retrieved the message name is
-	 * returned and the failure is logged.
+	 * Gets a message from the message bundle, without argument. If the message
+	 * cannot be retrieved the message name is returned and the failure is
+	 * logged.
 	 * 
-	 * @param msgName the message name used to retrieve from the message bundle
+	 * @param msgName
+	 *            the message name used to retrieve from the message bundle
 	 * @return formatted message as a String
 	 */
 	protected final String getFormattedMessage(final String msgName) {
@@ -195,12 +218,17 @@ public abstract class AbstractGSCommand implements Action {
 	}
 
 	/**
-	 * Gets a message from the message bundle, embedded with the given arguments if supplied. If the message cannot be
-	 * retrieved the message name is returned and the failure is logged.
+	 * Gets a message from the message bundle, embedded with the given arguments
+	 * if supplied. If the message cannot be retrieved the message name is
+	 * returned and the failure is logged.
 	 * 
-	 * @param msgName the message name used to retrieve from the message bundle
-	 * @param color The color to be used when displaying the message in the console
-	 * @param arguments arguments to embed in the message text
+	 * @param msgName
+	 *            the message name used to retrieve from the message bundle
+	 * @param color
+	 *            The color to be used when displaying the message in the
+	 *            console
+	 * @param arguments
+	 *            arguments to embed in the message text
 	 * @return formatted message as a String
 	 */
 	protected final String getFormattedMessage(final String msgName, final Color color, final Object... arguments) {
@@ -211,11 +239,14 @@ public abstract class AbstractGSCommand implements Action {
 	}
 
 	/**
-	 * Gets a message from the message bundle, embedded with the given arguments if supplied. If the message cannot be
-	 * retrieved the message name is returned and the failure is logged.
+	 * Gets a message from the message bundle, embedded with the given arguments
+	 * if supplied. If the message cannot be retrieved the message name is
+	 * returned and the failure is logged.
 	 * 
-	 * @param msgName the message name used to retrieve from the message bundle
-	 * @param arguments arguments to embed in the message text
+	 * @param msgName
+	 *            the message name used to retrieve from the message bundle
+	 * @param arguments
+	 *            arguments to embed in the message text
 	 * @return formatted message as a String
 	 */
 	protected final String getFormattedMessage(final String msgName, final Object... arguments) {
@@ -226,19 +257,23 @@ public abstract class AbstractGSCommand implements Action {
 	 * The main method to be implemented by all extending classes.
 	 * 
 	 * @return Object Return value from the executed command
-	 * @throws Exception Reporting a failure to execute this command
+	 * @throws Exception
+	 *             Reporting a failure to execute this command
 	 */
 	protected abstract Object doExecute()
 			throws Exception;
 
 	/**
-	 * Creates Properties object for the given service, with value for: com.gs.application.depends com.gs.service.type
-	 * com.gs.service.icon com.gs.service.network.protocolDescription
+	 * Creates Properties object for the given service, with value for:
+	 * com.gs.application.depends com.gs.service.type com.gs.service.icon
+	 * com.gs.service.network.protocolDescription
 	 * <p/>
 	 * in case the above properties are not null.
 	 * 
-	 * @param serviceNamesString Service name
-	 * @param service Service object to use for the properties creation
+	 * @param serviceNamesString
+	 *            Service name
+	 * @param service
+	 *            Service object to use for the properties creation
 	 * @return Properties object
 	 */
 	protected final Properties createServiceContextProperties(final String serviceNamesString, final Service service) {

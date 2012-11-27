@@ -45,6 +45,8 @@ import org.codehaus.jackson.type.JavaType;
  * @author uri
  */
 public final class RestUtils {
+	private static final String VERBOSE = "verbose";
+
 	private static final Logger logger = Logger.getLogger(RestUtils.class.getName());
 
 	/**
@@ -77,6 +79,7 @@ public final class RestUtils {
 
 	/**
 	 * Creates a map to be converted to a Json map in the response's body.
+	 * 
 	 * @return A map contains "status"="success".
 	 */
 	@SuppressWarnings("unchecked")
@@ -86,7 +89,8 @@ public final class RestUtils {
 
 	/**
 	 * 
-	 * @param response .
+	 * @param response
+	 *            .
 	 * @return A map contains "status"="success", "response"=response.
 	 */
 	@SuppressWarnings("unchecked")
@@ -96,8 +100,10 @@ public final class RestUtils {
 
 	/**
 	 * 
-	 * @param responseKey .
-	 * @param response .
+	 * @param responseKey
+	 *            .
+	 * @param response
+	 *            .
 	 * @return A map contains "status"="success", responseKey=response.
 	 */
 	@SuppressWarnings("unchecked")
@@ -107,7 +113,8 @@ public final class RestUtils {
 
 	/**
 	 * 
-	 * @param errorDesc .
+	 * @param errorDesc
+	 *            .
 	 * @return A map contains "status"="error", "error"=errorDesc.
 	 */
 	@SuppressWarnings("unchecked")
@@ -117,20 +124,38 @@ public final class RestUtils {
 
 	/**
 	 * 
-	 * @param errorDesc .
-	 * @param args .
-	 * @return A map contains "status"="error", "error"=errorDesc, "error_args"=args.
+	 * @param errorDesc
+	 *            .
+	 * @param args
+	 *            .
+	 * @return A map contains "status"="error", "error"=errorDesc,
+	 *         "error_args"=args.
 	 */
 	@SuppressWarnings("unchecked")
 	public static Map<String, Object> errorStatus(final String errorDesc, final String... args) {
-		return newHashMap(mapEntry(STATUS_KEY, (Object) ERROR), mapEntry(ERROR, (Object) errorDesc), 
+		return newHashMap(mapEntry(STATUS_KEY, (Object) ERROR), mapEntry(ERROR, (Object) errorDesc),
 				mapEntry(ERROR_ARGS, (Object) args));
 	}
+
+	/************
+	 * Creates a Rest error map with verbose data.
+	 * @param errorDesc the error name.
+	 * @param verboseData the verbose data.
+	 * @param args the error description parameters.
+	 * @return the rest error map.
+	 */
+	@SuppressWarnings("unchecked")
+	public static Map<String, Object> verboseErrorStatus(final String errorDesc, final String verboseData,
+			final String... args) {
+		return newHashMap(mapEntry(STATUS_KEY, (Object) ERROR), mapEntry(ERROR, (Object) errorDesc),
+				mapEntry(ERROR_ARGS, (Object) args), mapEntry(VERBOSE, (Object) verboseData));
+	}
+
 	public static Map<String, Object> errorStatus(final String errorDesc, final Object... args) {
-		return newHashMap(mapEntry(STATUS_KEY, (Object) ERROR), mapEntry(ERROR, (Object) errorDesc), 
+		return newHashMap(mapEntry(STATUS_KEY, (Object) ERROR), mapEntry(ERROR, (Object) errorDesc),
 				mapEntry(ERROR_ARGS, (Object) args));
 	}
-	
+
 	public static String getResponseBody(final HttpResponse response, final HttpRequestBase httpMethod)
 			throws IOException, RestErrorException {
 
@@ -138,8 +163,8 @@ public final class RestUtils {
 		try {
 			final HttpEntity entity = response.getEntity();
 			if (entity == null) {
-				final RestErrorException e = 
-						new RestErrorException("comm_error", 
+				final RestErrorException e =
+						new RestErrorException("comm_error",
 								httpMethod.getURI().toString(), " response entity is null");
 				throw e;
 			}
@@ -174,7 +199,8 @@ public final class RestUtils {
 			return true;
 		}
 
-		// If the address is defined on any interface return true, otherwise return false.
+		// If the address is defined on any interface return true, otherwise
+		// return false.
 		try {
 			return NetworkInterface.getByInetAddress(address) != null;
 		} catch (SocketException e) {
@@ -182,22 +208,22 @@ public final class RestUtils {
 		}
 	}
 
-	public static Object executeHttpMethod(final HttpRequestBase httpMethod, 
-			final String responseJsonKey, final DefaultHttpClient httpClient) 
-					throws RestErrorException {
-		logger.log(Level.INFO, "executeHttpMethod: executing http method: " + httpMethod.getMethod() 
+	public static Object executeHttpMethod(final HttpRequestBase httpMethod,
+			final String responseJsonKey, final DefaultHttpClient httpClient)
+			throws RestErrorException {
+		logger.log(Level.INFO, "executeHttpMethod: executing http method: " + httpMethod.getMethod()
 				+ " to URI: " + httpMethod.getURI());
-		
+
 		String responseBody;
 		try {
 			final HttpResponse response = httpClient.execute(httpMethod);
-			logger.log(Level.INFO, "executeHttpMethod: got response from " + httpMethod.getURI() 
-					+ ". Response: " +  response);
+			logger.log(Level.INFO, "executeHttpMethod: got response from " + httpMethod.getURI()
+					+ ". Response: " + response);
 			final int statusCode = response.getStatusLine().getStatusCode();
 			if (statusCode != CloudifyConstants.HTTP_STATUS_CODE_OK) {
 				responseBody = getResponseBody(response, httpMethod);
-				logger.log(Level.INFO, "executeHttpMethod: got response with status " + statusCode 
-						+ ". responseBody: " +  responseBody);
+				logger.log(Level.INFO, "executeHttpMethod: got response with status " + statusCode
+						+ ". responseBody: " + responseBody);
 				try {
 					final Map<String, Object> errorMap = jsonToMap(responseBody);
 					final String status = (String) errorMap.get(STATUS_KEY);
@@ -205,41 +231,41 @@ public final class RestUtils {
 						final String reason = (String) errorMap.get(ERROR);
 						@SuppressWarnings("unchecked")
 						final List<String> reasonsArgs = (List<String>) errorMap.get(ERROR_ARGS);
-						logger.log(Level.INFO, "failed to execute rest request to " + httpMethod.getURI() 
+						logger.log(Level.INFO, "failed to execute rest request to " + httpMethod.getURI()
 								+ ", error: " + reason + ", error args: " + reasonsArgs);
 						throw new RestErrorException(reason);
 					}
 				} catch (final IOException e) {
-					throw new RestErrorException("Failed to send http request to " + httpMethod.getURI().toString() 
-							+ ", error: e.getMessage()."); 
+					throw new RestErrorException("Failed to send http request to " + httpMethod.getURI().toString()
+							+ ", error: e.getMessage().");
 				}
-				throw new RestErrorException("Failed to send http request to " + httpMethod.getURI().toString() 
-						+ ", statusCode is is " + statusCode); 
+				throw new RestErrorException("Failed to send http request to " + httpMethod.getURI().toString()
+						+ ", statusCode is is " + statusCode);
 			}
 
-			logger.log(Level.INFO, "executed rest request to " + httpMethod.getURI()); 
+			logger.log(Level.INFO, "executed rest request to " + httpMethod.getURI());
 			Map<String, Object> responseMap;
 			try {
 				responseBody = getResponseBody(response, httpMethod);
-				logger.log(Level.INFO, "response body " + responseBody); 
+				logger.log(Level.INFO, "response body " + responseBody);
 				responseMap = jsonToMap(responseBody);
 			} catch (final IOException e) {
-				logger.log(Level.INFO, "failed to read response from " + httpMethod.getURI() 
+				logger.log(Level.INFO, "failed to read response from " + httpMethod.getURI()
 						+ ", error: " + e);
-				throw new RestErrorException("Failed to read response from " 
-						+  httpMethod.getURI().toString() + ", got an IOException- " + e.getMessage());
+				throw new RestErrorException("Failed to read response from "
+						+ httpMethod.getURI().toString() + ", got an IOException- " + e.getMessage());
 			}
 			return responseJsonKey != null ? responseMap.get(RESPONSE_KEY) : responseMap;
 
 		} catch (final ClientProtocolException e) {
-			logger.log(Level.INFO, "failed to execute rest request to " + httpMethod.getURI() 
+			logger.log(Level.INFO, "failed to execute rest request to " + httpMethod.getURI()
 					+ ", error: " + e);
-			throw new RestErrorException("Failed to send http request to " 
+			throw new RestErrorException("Failed to send http request to "
 					+ httpMethod.getURI().toString() + ", got ClientProtocolException- " + e.getMessage());
 		} catch (IOException e1) {
-			logger.log(Level.INFO, "failed to execute rest request to " + httpMethod.getURI() 
+			logger.log(Level.INFO, "failed to execute rest request to " + httpMethod.getURI()
 					+ ", error: " + e1);
-			throw new RestErrorException("Failed to send http request to " 
+			throw new RestErrorException("Failed to send http request to "
 					+ httpMethod.getURI().toString() + ", got IOException- " + e1.getMessage());
 		} finally {
 			httpMethod.abort();

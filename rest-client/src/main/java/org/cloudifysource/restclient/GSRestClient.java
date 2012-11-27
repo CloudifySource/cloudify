@@ -91,6 +91,7 @@ public class GSRestClient {
     private static final Logger logger = Logger.getLogger(GSRestClient.class.getName());
 
     private static final String ERROR_ARGS = "error_args";
+    private static final String VERBOSE = "verbose";
     private static final ObjectMapper PROJECT_MAPPER = new ObjectMapper();
     private static final String RESPONSE_KEY = "response";
     private static final String ADMIN_REFLECTION_URL = "/admin/";
@@ -319,6 +320,9 @@ public class GSRestClient {
                         final List<Object> reasonsArgs = (List<Object>) errorMap.get(ERROR_ARGS);
                         final ErrorStatusException e = new ErrorStatusException(reason,
                                 reasonsArgs != null ? reasonsArgs.toArray() : null);
+                        if(errorMap.containsKey(VERBOSE)) {
+                        	e.setVerboseData((String) errorMap.get(VERBOSE));
+                        }
                         logger.log(Level.FINE, reason, e);
                         throw e;
                     }

@@ -41,7 +41,6 @@ import org.cloudifysource.restclient.InvocationResult;
 import org.cloudifysource.restclient.RestException;
 import org.cloudifysource.restclient.StringUtils;
 import org.cloudifysource.shell.AbstractAdminFacade;
-import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ComponentType;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
@@ -96,7 +95,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			// test connection
 			client.get(SERVICE_CONTROLLER_URL + "testrest");
 		} catch (final ErrorStatusException e) {
-			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+			throw new CLIStatusException(e);
 		} catch (final RestException e) {
 			throw new CLIException(e);
 		}
@@ -836,6 +835,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	/**
 	 * {@inheritDoc}
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<String> addTempaltes(final File templatesFile) 
 			throws CLIException {
@@ -854,6 +854,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	/**
 	 * {@inheritDoc}
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public Map<String, CloudTemplate> listTemplates() 
 			throws CLIStatusException {
