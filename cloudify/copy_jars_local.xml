@@ -7,8 +7,9 @@
 <project name="copy-jars-to-cloudify" default="Copy Cloudify jars to install dir" basedir=".">
 
 	<!-- ** SET THESE PROPERTIES BEFORE USING THE ANT BUILDS ** -->
+	<property environment="env" />
 	
-	<property name="cloudify.home.dir" value="D:/Gigaspaces/gigaspaces-cloudify-2.3.0-m2/"/>	
+	<property name="cloudify.home.dir" value="${env.CLOUDIFY_HOME}/"/>	
 	<property name="cloudify.version" value="2.3.0" />
 	<property name="cloudify.jars.suffix" value="SNAPSHOT"/>
 	

@@ -54,6 +54,7 @@ import com.sun.jersey.api.client.filter.LoggingFilter;
  * 
  * @author barakme
  * @since 2.1
+ * @deprecated
  * 
  */
 public class OpenstackCloudDriver extends CloudDriverSupport implements ProvisioningDriver {
@@ -364,8 +365,8 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 			throw new OpenstackException("Failed to send request to server. Response was: " + response
 					+ ", Error was: " + e.getMessage(), e);
 		} catch (UniformInterfaceException e) {
-			throw new OpenstackException("Failed on get for server with node id " + nodeId + ". Response was: " + response
-					+ ", Error was: " + e.getMessage(), e);
+			throw new OpenstackException("Failed on get for server with node id " + nodeId 
+					+ ". Response was: " + response + ", Error was: " + e.getMessage(), e);
 		}
 
 		return node;

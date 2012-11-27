@@ -1748,7 +1748,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				timeout,
 				actualSelfHealing, 
 				cloudOverridesFile);
-		applicationOverridesFile.delete();
+		FileUtils.deleteQuietly(applicationOverridesFile);		
 		applicationFile.delete();
 		return returnObject;
 	}
