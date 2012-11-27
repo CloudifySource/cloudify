@@ -19,10 +19,14 @@ package org.cloudifysource.dsl.internal;
  * Enum for cloudify error messages, including keys to message bundle.
  * @author barakme
  * 
- * @since 2.3.1
+ * @since 2.3.0
  */
 public enum CloudifyErrorMessages {
 
+	/********
+	 * Indicates an unexpected error occured in the server.
+	 */
+	GENERAL_SERVER_ERROR("general_server_error", 1),
 	/******
 	 * If service recipe refers to missing template.
 	 */

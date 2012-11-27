@@ -18,10 +18,9 @@ package org.cloudifysource.restclient;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * This exception extends {@link org.cloudifysource.restclient.RestException}
- * to include a detailed error status.
- * The reasonCode and args array can be used to created formatted messages
- * from the message bundle.
+ * This exception extends {@link org.cloudifysource.restclient.RestException} to
+ * include a detailed error status. The reasonCode and args array can be used to
+ * created formatted messages from the message bundle.
  * 
  * @author uri
  */
@@ -47,6 +46,8 @@ public class ErrorStatusException extends RestException {
 	 * an array of possible arguments to complete the reason code.
 	 */
 	private final Object[] args;
+
+	private String verboseData;
 
 	/**
 	 * @param cause
@@ -94,12 +95,22 @@ public class ErrorStatusException extends RestException {
 	public final Object[] getArgs() {
 		return args;
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public String toString() {
-		return "ErrorStatusException, reason code: " + reasonCode + ", message arguments: " + StringUtils.join(args, ", ");
+		return "ErrorStatusException, reason code: " + reasonCode + ", message arguments: "
+				+ StringUtils.join(args, ", ") + ", Verbose: " + this.verboseData;
 	}
+
+	public String getVerboseData() {
+		return verboseData;
+	}
+
+	public void setVerboseData(final String verboseData) {
+		this.verboseData = verboseData;
+	}
+
 }

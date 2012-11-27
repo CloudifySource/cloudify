@@ -47,14 +47,18 @@ import org.fusesource.jansi.Ansi.Color;
  * @author rafi, barakm, adaml
  * @since 2.0.0
  * 
- *        Installs an application, including it's contained services ordered according to their dependencies.
+ *        Installs an application, including it's contained services ordered
+ *        according to their dependencies.
  * 
- *        Required arguments: application-file - The application recipe file path, folder or archive (zip/jar)
+ *        Required arguments: application-file - The application recipe file
+ *        path, folder or archive (zip/jar)
  * 
- *        Optional arguments: name - The name of the application timeout - The number of minutes to wait until the
- *        operation is completed (default: 10 minutes)
+ *        Optional arguments: name - The name of the application timeout - The
+ *        number of minutes to wait until the operation is completed (default:
+ *        10 minutes)
  * 
- *        Command syntax: install-application [-name name] [-timeout timeout] application-file
+ *        Command syntax: install-application [-name name] [-timeout timeout]
+ *        application-file
  */
 @Command(scope = "cloudify", name = "install-application", description = "Installs an application. If you specify"
 		+ " a folder path it will be packed and deployed. If you sepcify an application archive, the shell will deploy"
@@ -66,7 +70,7 @@ public class InstallApplication extends AdminAwareCommand {
 	@Argument(required = true, name = "application-file", description = "The application recipe file path, folder "
 			+ "or archive")
 	private File applicationFile;
-	
+
 	@Option(required = false, name = "-authGroups", description = "The groups authorized to access this application "
 			+ "(multiple values can be comma-separated)")
 	private String authGroups;
@@ -82,27 +86,26 @@ public class InstallApplication extends AdminAwareCommand {
 			description = "Disables service self healing")
 	private boolean disableSelfHealing = false;
 
-	
 	@Option(required = false, name = "-cloudConfiguration",
 			description = "File or directory containing configuration information to be used by the cloud driver "
 					+ "for this application")
 	private File cloudConfiguration;
 
 	@Option(required = false, name = "-overrides",
-			description = "File containing properties to be used to override the current " 
+			description = "File containing properties to be used to override the current "
 					+ "propeties of the application and its services")
 	private File overrides;
-	
+
 	@Option(required = false, name = "-cloud-overrides",
-			description = "File containing properties to be used to override the current cloud " +
-					"configuration for this application and its services.")
+			description = "File containing properties to be used to override the current cloud "
+					+ "configuration for this application and its services.")
 	private File cloudOverrides;
-	
+
 	private static final String TIMEOUT_ERROR_MESSAGE = "Application installation timed out."
 			+ " Configure the timeout using the -timeout flag.";
 
 	private static final long TEN_K = 10 * FileUtils.ONE_KB;
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -110,24 +113,24 @@ public class InstallApplication extends AdminAwareCommand {
 	@Override
 	protected Object doExecute()
 			throws Exception {
-		
+
 		if (cloudOverrides != null) {
 			if (cloudOverrides.length() >= TEN_K) {
 				throw new CLIStatusException(CloudifyErrorMessages.CLOUD_OVERRIDES_TO_LONG.getName());
 			}
 		}
-		
+
 		RecipePathResolver pathResolver = new RecipePathResolver();
 		if (pathResolver.resolveApplication(applicationFile)) {
 			applicationFile = pathResolver.getResolved();
 		} else {
-			throw new CLIStatusException("application_not_found", 
+			throw new CLIStatusException("application_not_found",
 					StringUtils.join(pathResolver.getPathsLooked().toArray(), ", "));
 		}
 
 		logger.info("Validating file " + applicationFile.getName());
 		final DSLReader dslReader = createDslReader();
-		final Application application = dslReader.readDslEntity(Application.class);		
+		final Application application = dslReader.readDslEntity(Application.class);
 
 		if (StringUtils.isBlank(applicationName)) {
 			applicationName = application.getName();
@@ -146,13 +149,13 @@ public class InstallApplication extends AdminAwareCommand {
 				throw new CLIStatusException("application_file_format_mismatch", applicationFile.getPath());
 			}
 		} else { // pack an application folder
-			List<File> additionalServiceFiles  = new LinkedList<File>();
+			List<File> additionalServiceFiles = new LinkedList<File>();
 			if (cloudConfigurationZipFile != null) {
 				additionalServiceFiles.add(cloudConfigurationZipFile);
-			} 
+			}
 			List<File> additionalApplicationFile = new LinkedList<File>();
 			if (overrides != null) {
-				additionalApplicationFile.add(DSLReader.copyOverridesFile(overrides, 
+				additionalApplicationFile.add(DSLReader.copyOverridesFile(overrides,
 						dslReader.getDslName() + DSLUtils.APPLICATION_FILE_NAME_SUFFIX));
 			}
 			zipFile = Packager.packApplication(application, applicationFile
@@ -161,10 +164,10 @@ public class InstallApplication extends AdminAwareCommand {
 
 		// toString of string list (i.e. [service1, service2])
 		logger.info("Uploading application " + applicationName);
-		
+
 		final Map<String, String> result =
-				adminFacade.installApplication(zipFile, applicationName, 
-						authGroups, getTimeoutInMinutes(), !disableSelfHealing, 
+				adminFacade.installApplication(zipFile, applicationName,
+						authGroups, getTimeoutInMinutes(), !disableSelfHealing,
 						cloudOverrides);
 
 		final String serviceOrder = result.get(CloudifyConstants.SERVICE_ORDER);
@@ -268,9 +271,11 @@ public class InstallApplication extends AdminAwareCommand {
 	}
 
 	/**
-	 * Prints Application data - the application name and it's services name, dependencies and number of instances.
+	 * Prints Application data - the application name and it's services name,
+	 * dependencies and number of instances.
 	 * 
-	 * @param application Application object to analyze
+	 * @param application
+	 *            Application object to analyze
 	 */
 	private void printApplicationInfo(final Application application) {
 		List<Service> services = application.getServices();

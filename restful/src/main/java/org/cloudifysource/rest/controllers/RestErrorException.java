@@ -23,6 +23,7 @@ public class RestErrorException extends Exception{
 
 	private Map<String, Object> errorDescription;
 
+	private String verboseData;
 	public RestErrorException(final String errorDesc) {
 		this.errorDescription = RestUtils.errorStatus(errorDesc);
 	}
@@ -37,6 +38,14 @@ public class RestErrorException extends Exception{
 	
 	public RestErrorException(String errorDesc, Object... args) {
 		this.errorDescription = RestUtils.errorStatus(errorDesc, args);
+	}
+
+	public String getVerboseData() {
+		return verboseData;
+	}
+
+	public void setVerboseData(String verboseData) {
+		this.verboseData = verboseData;
 	}
 	
 }

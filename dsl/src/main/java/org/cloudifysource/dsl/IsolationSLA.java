@@ -17,6 +17,8 @@
 package org.cloudifysource.dsl;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
@@ -39,7 +41,25 @@ public class IsolationSLA implements Serializable {
 			
 	private GlobalIsolationSLADescriptor global;
 	private DedicatedIsolationSLADescriptor dedicated;
+	private AppSharedIsolationSLADescriptor appShared;
+	private TenantSharedIsolationSLADescriptor tenantShared;
 	
+	public AppSharedIsolationSLADescriptor getAppShared() {
+		return appShared;
+	}
+
+	public void setAppShared(final AppSharedIsolationSLADescriptor appShared) {
+		this.appShared = appShared;
+	}
+
+	public TenantSharedIsolationSLADescriptor getTenantShared() {
+		return tenantShared;
+	}
+
+	public void setTenantShared(final TenantSharedIsolationSLADescriptor tenantShared) {
+		this.tenantShared = tenantShared;
+	}
+
 	public GlobalIsolationSLADescriptor getGlobal() {
 		return global;
 	}
@@ -60,9 +80,23 @@ public class IsolationSLA implements Serializable {
 	void validateDefaultValues(final DSLValidationContext validationContext)
 			throws DSLValidationException {
 		
-		if (global != null && dedicated != null) {
-			throw new DSLValidationException("cannot define both global and dedicated deployment types. " 
-						+ "please choose one or the other");
+		List<Object> notNulls = new ArrayList<Object>();
+		
+		if (global != null) {
+			notNulls.add(global);
+		}
+		if (dedicated != null) {
+			notNulls.add(global);
+		}
+		if (appShared != null) {
+			notNulls.add(global);
+		}
+		if (tenantShared != null) {
+			notNulls.add(global);
+		}
+		
+		if (notNulls.size() > 1) {
+			throw new DSLValidationException("cannot define two types of isolation sla's. please choose one");
 		}
 	}
 }

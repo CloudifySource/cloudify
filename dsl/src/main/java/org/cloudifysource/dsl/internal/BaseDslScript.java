@@ -34,6 +34,7 @@ import java.util.logging.Level;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.dsl.AppSharedIsolationSLADescriptor;
 import org.cloudifysource.dsl.Application;
 import org.cloudifysource.dsl.ComputeDetails;
 import org.cloudifysource.dsl.DSLValidation;
@@ -50,6 +51,7 @@ import org.cloudifysource.dsl.ServiceNetwork;
 import org.cloudifysource.dsl.Sla;
 import org.cloudifysource.dsl.StatefulProcessingUnit;
 import org.cloudifysource.dsl.StatelessProcessingUnit;
+import org.cloudifysource.dsl.TenantSharedIsolationSLADescriptor;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudConfiguration;
 import org.cloudifysource.dsl.cloud.CloudProvider;
@@ -577,6 +579,8 @@ public abstract class BaseDslScript extends Script {
 			
 			addObjectInitializerForClass(dslObjectInitializersByName, IsolationSLA.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, GlobalIsolationSLADescriptor.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, TenantSharedIsolationSLADescriptor.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, AppSharedIsolationSLADescriptor.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, DedicatedIsolationSLADescriptor.class);
 		}
 		return dslObjectInitializersByName;
