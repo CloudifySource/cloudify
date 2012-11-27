@@ -1,75 +1,132 @@
+/***************
+ * Cloud configuration file for the Amazon ec2 cloud. Uses the default jclouds-based cloud driver.
+ * See org.cloudifysource.dsl.cloud.Cloud for more details.
+ * @author barakme
+ *
+ */
 
 cloud {
 	// Mandatory. The name of the cloud, as it will appear in the Cloudify UI.
-	name = "Openstack"
+	name = "HP"
+
+	/********
+	 * General configuration information about the cloud driver implementation.
+	 */
 	configuration {
-		// Mandatory - openstack Diablo cloud driver.
-		className "org.cloudifysource.esc.driver.provisioning.openstack.OpenstackCloudDriver"
+		// Optional. The cloud implementation class. Defaults to the build in jclouds-based provisioning driver.
+		className "org.cloudifysource.esc.driver.provisioning.jclouds.DefaultProvisioningDriver"
 		// Optional. The template name for the management machines. Defaults to the first template in the templates section below.
 		managementMachineTemplate "SMALL_LINUX"
 		// Optional. Indicates whether internal cluster communications should use the machine private IP. Defaults to true.
 		connectToPrivateIp true
 	}
 
+	/*************
+	 * Provider specific information.
+	 */
 	provider {
-		// optional 
-		provider "openstack"
-			
+		// Mandatory. The name of the provider.
+		// When using the default cloud driver, maps to the Compute Service Context provider name.
+		provider "hpcloud-compute"
+
+
 		// Optional. The HTTP/S URL where cloudify can be downloaded from by newly started machines. Defaults to downloading the
 		// cloudify version matching that of the client from the cloudify CDN.
 		// Change this if your compute nodes do not have access to an internet connection, or if you prefer to use a
 		// different HTTP server instead.
 		// IMPORTANT: the default linux bootstrap script appends '.tar.gz' to the url whereas the default windows script appends '.zip'.
 		// Therefore, if setting a custom URL, make sure to leave out the suffix.
-		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.3.0-M2/gigaspaces-cloudify-2.3.0-m2-b3482.zip"
-		
-		machineNamePrefix "cloudify_agent_"
-		
-		
+		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.3.0-M1/gigaspaces-cloudify-2.3.0-m1-b3481"
+
+		// Mandatory. The prefix for new machines started for servies.
+		machineNamePrefix "cloudify-agent-"
+		// Optional. Defaults to true. Specifies whether cloudify should try to deploy services on the management machine.
+		// Do not change this unless you know EXACTLY what you are doing.
+
+
+		//
 		managementOnlyFiles ([])
-		
-		managementGroup "cloudify_manager"
-		numberOfManagementMachines 1
-		
-		reservedMemoryCapacityPerMachineInMB 1024
-		
+
+		// Optional. Logging level for the intenal cloud provider logger. Defaults to INFO.
 		sshLoggingLevel "WARNING"
-		
-		
+
+		// Mandatory. Name of the new machine/s started as cloudify management machines. Names are case-insensitive.
+		managementGroup "cloudify-manager"
+		// Mandatory. Number of management machines to start on bootstrap-cloud. In production, should be 2. Can be 1 for dev.
+		numberOfManagementMachines 1
+
+
+		reservedMemoryCapacityPerMachineInMB 1024
+
 	}
+
+	/*************
+	 * Cloud authentication information
+	 */
 	user {
-		user user
+		// Optional. Identity used to access cloud.
+		// When used with the default driver, maps to the identity used to create the ComputeServiceContext.
+		user "${tenant}:${user}"
+
+		// Optional. Key used to access cloud.
+		// When used with the default driver, maps to the credential used to create the ComputeServiceContext.
 		apiKey apiKey
-		
+
+
+
 	}
+
+
+	/***********
+	 * Cloud machine templates available with this cloud.
+	 */
 	templates ([
+				// Mandatory. Template Name.
 				SMALL_LINUX : template{
-					username "root"
-					imageId "221"
+					// Mandatory. Image ID.
+					imageId linuxImageId
+					// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+					remoteDirectory "/home/root/gs-files"
+					// Mandatory. Amount of RAM available to machine.
 					machineMemoryMB 1600
-					hardwareId "102"
-					remoteDirectory "/root/gs-files"
+					// Mandatory. Hardware ID.
+					hardwareId hardwareId
+					// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
 					localDirectory "upload"
+					// Optional. Name of key file to use for authenticating to the remot machine. Remove this line if key files
+					// are not used.
 					keyFile keyFile
-					
+
+					username "root"
+					// Additional template options.
+					// When used with the default driver, the option names are considered
+					// method names invoked on the TemplateOptions object with the value as the parameter.
 					options ([
-						"openstack.securityGroup" : "test",
-						"openstack.keyPair" : keyPair
+								"securityGroupNames" : [securityGroup]as String[],
+								"keyPairName" : keyPair,
+								"generateKeyPair": false
+							])
+
+					// Optional. Overrides to default cloud driver behavior.
+					// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
+					overrides ([
+						"jclouds.endpoint": openstackUrl
 					])
-					
+
 					// enable sudo.
 					privileged true
 
-					
+					// optional. A native command line to be executed before the cloudify agent is started.
+					// initializationCommand "echo Cloudify agent is about to start"
+
 				}
+
+
 			])
-			
-	custom ([
-		"openstack.endpoint" : "https://az-2.region-a.geo-1.compute.hpcloudsvc.com/",
-		"openstack.identity.endpoint": "https://region-a.geo-1.identity.hpcloudsvc.com:35357/",
-		"openstack.tenant" : tenant,
-		"openstack.wireLog": "false"
 
-	])
+
+	/*****************
+	 * Optional. Custom properties used to extend existing drivers or create new ones.
+	 */
+	custom ([:])
 }
-
