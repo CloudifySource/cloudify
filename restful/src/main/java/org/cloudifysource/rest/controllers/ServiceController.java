@@ -3741,7 +3741,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	@RequestMapping(value = "templates", method = RequestMethod.POST)
 	public @ResponseBody
 	Map<String, Object> addTemplates(
-			@RequestParam(value = CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, required = true) final MultipartFile templatesFolder)
+			@RequestParam
+			(value = CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, required = true) final MultipartFile templatesFolder)
 			throws IOException, DSLException, RestErrorException {
 		if (cloud == null) {
 			throw new RestErrorException("local_cloud_not_support_tempaltes_operations", "add-templates");
@@ -3818,7 +3819,11 @@ public class ServiceController implements ServiceDetailsProvider {
 						+ ". Error: " + e, e);
 				Map<String, String> expectedMap = new HashMap<String, String>();
 				for (String expectedTempalte : expectedTemplates) {
-					expectedMap.put(expectedTempalte, e.getMessage());
+					String errorMessage = e.getMessage();
+					if (errorMessage == null) {
+						errorMessage = e.toString();
+					}
+					expectedMap.put(expectedTempalte, errorMessage);
 				}
 				failedToAddTemplatesByHost.put(host, expectedMap);
 				continue;
@@ -3994,11 +3999,15 @@ public class ServiceController implements ServiceDetailsProvider {
 		} catch (IOException e) {
 			// failed to copy files - remove all added templates from cloud and
 			// throw an exception.
-			logger.log(Level.WARNING, "addTemplatesToCloud - Failed to copy templates files, error: "
-					+ e.getMessage(), e);
+			String errorMessage = e.getMessage();
+			if (errorMessage == null) {
+				errorMessage = e.toString();
+			}
+			logger.log(Level.WARNING, "addTemplatesToCloud - Failed to copy templates files, error: " 
+					+ errorMessage, e);
 			for (String tempalteName : addedTempaltes) {
 				cloud.getTemplates().remove(tempalteName);
-				failedToAddTemplates.put(tempalteName, e.getMessage());
+				failedToAddTemplates.put(tempalteName, errorMessage);
 			}
 			throw new RestErrorException("failed_to_add_all_templates", failedToAddTemplates);
 		}
