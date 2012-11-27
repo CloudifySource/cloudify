@@ -8,35 +8,44 @@
 
 	<!-- ** SET THESE PROPERTIES BEFORE USING THE ANT BUILDS ** -->
 	<property environment="env" />
-	
-	<property name="cloudify.home.dir" value="${env.CLOUDIFY_HOME}/"/>	
+
+	<property name="cloudify.home.dir" value="${env.CLOUDIFY_HOME}/" />
 	<property name="cloudify.version" value="2.3.0" />
-	<property name="cloudify.jars.suffix" value="SNAPSHOT"/>
-	
+	<property name="cloudify.jars.suffix" value="SNAPSHOT" />
+
 	<!--  ** Useful if you are working on openspaces and need to test the effects on cloudify -->
-	<property name="openspaces.jar" value="${PATH_TO_OPENSPACES_JAR_FROM_WORKSPACE}"/>
-	
+	<property name="openspaces.jar" value="${PATH_TO_OPENSPACES_JAR_FROM_WORKSPACE}" />
+
 	<!-- ****************************************************** -->
-	
-	<property name="esc.dir" value="${cloudify.home.dir}/tools/cli/plugins/esc"/>
-	
+
+	<property name="esc.dir" value="${cloudify.home.dir}/tools/cli/plugins/esc" />
+
 	<property name="ec2.dir" value="${esc.dir}/ec2/upload/cloudify-overrides" />
 	<property name="ec2-win.dir" value="${esc.dir}/ec2-win/upload/cloudify-overrides" />
 	<property name="byon.dir" value="${esc.dir}/byon/upload/cloudify-overrides" />
 	<property name="azure.dir" value="${esc.dir}/azure/upload/cloudify-overrides" />
-	<property name="openstack.dir" value="${esc.dir}/openstack/upload/cloudify-overrides" />
+	<property name="hp.dir" value="${esc.dir}/hp/upload/cloudify-overrides" />
 	<property name="rsopenstack.dir" value="${esc.dir}/rsopenstack/upload/cloudify-overrides" />
+
+	<macrodef name="copy_binaries">
+		<attribute name="target.dir" default="NOT SET" />
+		<sequential>
+			<echo>Copying to  @{target.dir}</echo>
+			<copy overwrite="yes" todir="@{target.dir}/lib/platform/usm" file="../USM/target/usm.jar" />
+			<copy overwrite="yes" todir="@{target.dir}/tools/cli" file="../CLI/target/cli.jar" />
+			<copy overwrite="yes" todir="@{target.dir}/tools/rest" file="../restful/target/rest.war" />
+			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" />
+			<copy overwrite="yes" todir="@{target.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" />
+			<copy overwrite="yes" todir="@{target.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
+		</sequential>
+	</macrodef>
+
 
 	<target name="Copy Cloudify jars to install dir" depends="">
 		<echo message="Copying Cloudify jar files to ${cloudify.home.dir}" />
-		<copy todir="${cloudify.home.dir}/lib/platform/usm" file="../USM/target/usm.jar" overwrite="true" />
-		<copy todir="${cloudify.home.dir}/tools/cli" file="../CLI/target/cli.jar" overwrite="true" />
-		<copy todir="${cloudify.home.dir}/tools/rest" file="../restful/target/rest.war" overwrite="true" />
-		<copy todir="${cloudify.home.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" overwrite="true" />
-		<copy todir="${cloudify.home.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" overwrite="true" />
-		<copy todir="${cloudify.home.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" overwrite="true" />
+		<copy_binaries target.dir="${cloudify.home.dir}" />
 	</target>
-	
+
 	<target name="Copy Openspaces jar to install dir" depends="">
 		<echo message="Copying Openspaces jar file to ${cloudify.home.dir}" />
 		<copy todir="${cloudify.home.dir}/lib/required" file="${openspaces.jar}" overwrite="true" />
@@ -47,7 +56,7 @@
 		<copy todir="${ec2.dir}/lib/required" file="${openspaces.jar}" overwrite="true" />
 	</target>
 
-	
+
 	<target name="Copy Cloudify jars to ec2 upload dir" depends="">
 		<echo message="Copying Cloudify jar files to ${ec2.dir}" />
 		<copy todir="${ec2.dir}/lib/platform/usm" file="../USM/target/usm.jar" />
@@ -68,7 +77,7 @@
 		<copy todir="${ec2-win.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" />
 		<copy todir="${ec2-win.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
 	</target>
-	
+
 
 	<target name="Copy Cloudify jars to azure upload dir" depends="">
 		<echo message="Copying Cloudify jar files to ${azure.dir}" />
@@ -90,14 +99,8 @@
 		<copy todir="${byon.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
 	</target>
 
-	<target name="Copy Cloudify jars to openstack upload dir" depends="">
-		<echo message="Copying Cloudify jar files to ${openstack.dir}" />
-		<copy todir="${openstack.dir}/lib/platform/usm" file="../USM/target/usm.jar" />
-		<copy todir="${openstack.dir}/tools/cli" file="../CLI/target/cli.jar" />
-		<copy todir="${openstack.dir}/tools/rest" file="../restful/target/rest.war" />
-		<copy todir="${openstack.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" />
-		<copy todir="${openstack.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" />
-		<copy todir="${openstack.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
+	<target name="Copy Cloudify jars to HP upload dir" depends="">
+		<copy_binaries target.dir="${hp.dir}" />
 	</target>
 
 	<target name="Copy Cloudify jars to rsopenstack upload dir" depends="">
@@ -109,22 +112,23 @@
 		<copy todir="${rsopenstack.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" />
 		<copy todir="${rsopenstack.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
 	</target>
-	
+
 
 	<target name="Copy esc jars to install dir" depends="">
 		<echo message="deleting old esc jars from ${target.dir}/lib/platform/esm" />
-		 <delete>
-		    <fileset dir="${target.dir}/lib/platform/esm" includes="**/*.jar"/>
+		<delete>
+			<fileset dir="${target.dir}/lib/platform/esm" includes="**/*.jar" />
 		</delete>
 		<echo message="Copying new esc jars to ${target.dir}/lib/platform/esm" />
-		<copy todir="${target.dir}/lib/platform/esm" >  
-			<fileset dir="../esc/target/esc/lib" includes="**"/>  
-		</copy>	
+		<copy todir="${target.dir}/lib/platform/esm">
+			<fileset dir="../esc/target/esc/lib" includes="**" />
+		</copy>
 	</target>
-	
+
 	<target name="Copy esm jars to ec2 upload dir">
 		<copy todir="${ec2.dir}/lib/platform">
-			<fileset dir="${target.dir}/lib/platform/esm"></fileset>
+			<fileset dir="${target.dir}/lib/platform/esm">
+			</fileset>
 		</copy>
 	</target>
 
@@ -132,7 +136,7 @@
 	<target name="Delete ec2 overrides dir">
 		<delete dir="${ec2.dir}" />
 	</target>
-	
+
 	<target name="Delete ec2-win overrides dir">
 		<delete dir="${ec2.dir}" />
 	</target>
@@ -144,7 +148,7 @@
 	<target name="Delete byon overrides dir">
 		<delete dir="${ec2.dir}" />
 	</target>
-	
+
 	<target name="Delete openstack overrides dir">
 		<delete dir="${ec2.dir}" />
 	</target>
@@ -160,20 +164,13 @@
 			<fileset dir="${target.dir}/logs" includes="**/*" />
 		</delete>
 		<echo message="Creating new zip file" />
-		<zip 
-			destfile="${target.dir}/../gigaspaces.zip" 
-			basedir="${target.dir}/.."
-			includes="${cloudify.version}/**/*"
-			excludes="${cloudify.version}/tools/cli/plugins/esc/**/*,${cloudify.version}/tools/cli/plugins/azure/**/*" />
-		<echo message="Created ${target.dir}/../gigaspaces.zip"/>
+		<zip destfile="${target.dir}/../gigaspaces.zip" basedir="${target.dir}/.." includes="${cloudify.version}/**/*" excludes="${cloudify.version}/tools/cli/plugins/esc/**/*,${cloudify.version}/tools/cli/plugins/azure/**/*" />
+		<echo message="Created ${target.dir}/../gigaspaces.zip" />
 	</target>
 
 	<target name="Create overrides zip" depends="">
 		<delete file="${target.dir}/../gigaspaces-overrides.zip" />
-		<zip 
-			destfile="${target.dir}/../gigaspaces-overrides.zip" 
-			basedir="${target.dir}"
-			includes="indicator.txt,lib/platform/esm/esc-${cloudify.version}.jar,tools/cli/cli.jar,tools/rest/rest.war">
+		<zip destfile="${target.dir}/../gigaspaces-overrides.zip" basedir="${target.dir}" includes="indicator.txt,lib/platform/esm/esc-${cloudify.version}.jar,tools/cli/cli.jar,tools/rest/rest.war">
 		</zip>
 	</target>
 

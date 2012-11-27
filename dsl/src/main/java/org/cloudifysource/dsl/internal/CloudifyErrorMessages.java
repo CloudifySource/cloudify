@@ -51,7 +51,12 @@ public enum CloudifyErrorMessages {
 	/**
 	 * Access to the resource is denied, permission not granted.
 	 */
-	BAD_CREDENTIALS("bad_credentials", 0);
+	BAD_CREDENTIALS("bad_credentials", 0),
+	
+	/**
+	 * 
+	 */
+	MISSING_NODES_LIST("prov_missing_nodesList_configuration", 1);
 	
 	
 	private final int numberOfParameters;
