@@ -154,8 +154,10 @@ public class CloudTemplatesReader {
 	 * Add cloud templates from the template files in the folder.
 	 * @param cloud .
 	 * @param templatesFolders .
+	 * @return the added templates.
 	 */
-	public void addAdditionalTemplates(final Cloud cloud, final File[] templatesFolders) {
+	public List<CloudTemplate> addAdditionalTemplates(final Cloud cloud, final File[] templatesFolders) {
+		List<CloudTemplate> addedTemplates = new LinkedList<CloudTemplate>();
 		List<CloudTemplateHolder> additionalTemplates = null;
 		// scan all templates folders and add the templates from each folder to the cloud.
 		for (File folder : templatesFolders) {
@@ -172,6 +174,7 @@ public class CloudTemplatesReader {
 				// not supposed to happen
 				if (cloudTemplates.containsKey(tempalteName)) {
 					logger.log(Level.WARNING, "addAdditionalTemplates - " + "template already exist: " + tempalteName);
+					continue;
 				}
 				// set the local absolute path to the upload directory
 				CloudTemplate cloudTemplate = holder.getCloudTemplate();
@@ -179,7 +182,9 @@ public class CloudTemplatesReader {
 				cloudTemplate.setAbsoluteUploadDir(uploadAbsolutePath);
 				// add template to cloud
 				cloudTemplates.put(tempalteName, cloudTemplate);
+				addedTemplates.add(cloudTemplate);
 			}
 		}
+		return addedTemplates;
 	}
 }

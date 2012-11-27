@@ -694,14 +694,17 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	private void addTemplatesToCloud(File cloudConfigDirectory) {
+		logger.info("addTemplatesToCloud - adding templates from directory " + cloudConfigDirectory.getAbsolutePath());
 		File additionalTemplatesFolder = new File(cloudConfigDirectory, 
 				CloudifyConstants.ADDITIONAL_TEMPLATES_FOLDER_NAME);
 		if (!additionalTemplatesFolder.exists()) {
+			logger.info("addTemplatesToCloud - no additional templates to add from directory " + cloudConfigDirectory.getAbsolutePath());
 			return;
 		}
 		File[] listFiles = additionalTemplatesFolder.listFiles();
 		CloudTemplatesReader reader = new CloudTemplatesReader();
-		reader.addAdditionalTemplates(cloud, listFiles);	
+		List<CloudTemplate> addedTemplates = reader.addAdditionalTemplates(cloud, listFiles);	
+		logger.info("addTemplatesToCloud - Added " + addedTemplates.size() + " templates to the cloud: " + addedTemplates);
 	}
 
 	private String getWindowsLocalDirPath(final String remoteDirectoryPath, final String localDirName) {
