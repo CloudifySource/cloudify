@@ -35,6 +35,7 @@ import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.esc.byon.ByonDeployer;
 import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
@@ -96,9 +97,9 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 							nodesList = (List<Map<String, String>>) customSettings.get(CLOUD_NODES_LIST);
 						}
 						if (nodesList == null) {
-							publishEvent("prov_invalid_configuration");
+							publishEvent(CloudifyErrorMessages.MISSING_NODES_LIST.getName(), templateName);
 							throw new CloudProvisioningException(
-									"Failed to create BYON cloud deployer, invalid configuration");
+									"Failed to create BYON cloud deployer, invalid configuration for tempalte " + templateName + " - missing nodes list.");
 						}
 						deployer.addNodesList(templateName, templatesMap.get(templateName), nodesList);
 					}
