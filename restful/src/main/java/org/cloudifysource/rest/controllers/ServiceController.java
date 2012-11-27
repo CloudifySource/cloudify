@@ -76,8 +76,6 @@ import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.cloudifysource.dsl.ComputeDetails;
 import org.cloudifysource.dsl.DataGrid;
-import org.cloudifysource.dsl.IsolationSLA;
-import org.cloudifysource.dsl.IsolationSLAFactory;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.Sla;
 import org.cloudifysource.dsl.StatefulProcessingUnit;
@@ -2136,20 +2134,8 @@ public class ServiceController implements ServiceDetailsProvider {
 		boolean locationAware = false;
 		boolean dedicated = true;
 		if (service != null) {
-			
 			locationAware = service.isLocationAware();
-
-			IsolationSLA isolationSLA = service.getIsolationSLA();
-			if (isolationSLA == null) {
-				// no deployment was specified
-				// fall back to dedicated
-				service.setIsolationSLA(IsolationSLAFactory
-						.newDedicatedIsolationSLA());
-			} else {
-				if (isolationSLA.getGlobal() != null) {
-					dedicated = false;
-				}
-			}
+			dedicated = IsolationUtils.isDedicated(service);
 		}
 
 		final int externalProcessMemoryInMB = 512;
@@ -2198,9 +2184,15 @@ public class ServiceController implements ServiceDetailsProvider {
 			}
 		} else {
 			final CloudTemplate template = getComputeTemplate(cloud, templateName);
-			final long cloudExternalProcessMemoryInMB = service.getIsolationSLA().getGlobal() != null ?
-					service.getIsolationSLA().getGlobal().getInstanceMemoryMB() : calculateExternalProcessMemory(cloud, template);
-
+			
+			long cloudExternalProcessMemoryInMB = 0;
+			
+			if (dedicated) {
+				cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
+			} else {
+				cloudExternalProcessMemoryInMB = IsolationUtils.getInstanceMemoryMB(service);
+			}
+		
 			logger.info("Creating cloud machine provisioning config. Template remote directory is: "
 					+ template.getRemoteDirectory());
 			final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
@@ -2242,6 +2234,9 @@ public class ServiceController implements ServiceDetailsProvider {
 					// service instances can be deployed across all agents with the correct isolation id
 					setSharedMachineProvisioning(deployment, config, applicationName);
 				} else if (IsolationUtils.isTenantShared(service)) {
+					if (authGroups == null) {
+						throw new IllegalStateException("authGroups cannot be null when using tenant shared isolation");
+					}
 					logger.info("tenant shared mode is on. will use shared machine provisioning for "
 							+ serviceName + " deployment. isolation id = " + authGroups);
 					// service instances can be deployed across all agents with the correct isolation id
@@ -2315,21 +2310,19 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	private static double calculateTotalCpuCores(final Service service) {
 
-		if (service == null) { // deploying without a service. assuming CPU
-			// requirements is 0
+		if (service == null) { // deploying without a service. assuming CPU requirements is 0
 			return 0;
 		}
-		final double instanceCpuCores = service.getIsolationSLA().getGlobal() != null ? service
-				.getIsolationSLA().getGlobal().getInstanceCpuCores()
-				: 0;
-				if (instanceCpuCores < 0) {
-					throw new IllegalArgumentException(
-							"instanceCpuCores must be positive");
-				}
+		double instanceCpuCores = IsolationUtils.getInstanceCpuCores(service);
+		
+		if (instanceCpuCores < 0) {
+			throw new IllegalArgumentException(
+					"instanceCpuCores must be positive");
+		}
 
-				final int numberOfInstances = service.getNumInstances();
+		final int numberOfInstances = service.getNumInstances();
 
-				return numberOfInstances * instanceCpuCores;
+		return numberOfInstances * instanceCpuCores;
 	}
 
 	private static String extractLocators(final Admin admin) {
