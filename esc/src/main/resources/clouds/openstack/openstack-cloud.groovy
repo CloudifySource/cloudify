@@ -7,7 +7,7 @@
 
 cloud {
 	// Mandatory. The name of the cloud, as it will appear in the Cloudify UI.
-	name = "HP"
+	name = "openstack"
 
 	/********
 	 * General configuration information about the cloud driver implementation.
@@ -27,7 +27,7 @@ cloud {
 	provider {
 		// Mandatory. The name of the provider.
 		// When using the default cloud driver, maps to the Compute Service Context provider name.
-		provider "hpcloud-compute"
+		provider "openstack-nova"
 
 
 		// Optional. The HTTP/S URL where cloudify can be downloaded from by newly started machines. Defaults to downloading the
