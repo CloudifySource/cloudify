@@ -42,6 +42,7 @@ import org.cloudifysource.restclient.RestException;
 import org.cloudifysource.restclient.StringUtils;
 import org.cloudifysource.shell.AbstractAdminFacade;
 import org.cloudifysource.shell.ComponentType;
+import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -69,31 +70,18 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void doConnect(final String user, final String password,
-			final String url) throws CLIException {
-		String formattedURL = url;
-		if (!formattedURL.endsWith("/")) {
-			formattedURL = formattedURL + '/';
-		}
-		if (!formattedURL.startsWith("http://")) {
-			formattedURL = "http://" + formattedURL;
-		}
-
+	public void doConnect(final String user, final String password, final String url, final boolean isSecureConnection)
+			throws CLIException {
+		
 		URL urlObj;
-		try {
-			urlObj = new URL(formattedURL);
-			if (urlObj.getPort() == -1) {
-				urlObj = getUrlWithDefaultPort(urlObj);
-			}
-		} catch (final MalformedURLException e) {
-			throw new CLIStatusException("could_not_parse_url", url, e);
-		}
 
 		try {
-			client = new GSRestClient(user, password, urlObj,
-					PlatformVersion.getVersionNumber());
+			urlObj = new URL(ShellUtils.getFormattedRestUrl(url, isSecureConnection));
+			client = new GSRestClient(user, password, urlObj, PlatformVersion.getVersionNumber());
 			// test connection
 			client.get(SERVICE_CONTROLLER_URL + "testrest");
+		} catch (final MalformedURLException e) {
+				throw new CLIStatusException("could_not_parse_url", url, e);
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e);
 		} catch (final RestException e) {
@@ -115,15 +103,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
         }
     }
 
-	private URL getUrlWithDefaultPort(final URL urlObj)
-			throws MalformedURLException {
-		final StringBuilder url = new StringBuilder(urlObj.toString());
-		final int portIndex = url.indexOf("/", "http://".length());
-		url.insert(portIndex,
-				':' + Integer.toString(CloudifyConstants.DEFAULT_REST_PORT));
-		return new URL(url.toString());
-	}
-
+	
 	/**
 	 * {@inheritDoc}
 	 */

@@ -212,6 +212,7 @@ public final class CloudifyConstants {
 	 * default ports (LUS and REST)
 	 */
 	public static final int DEFAULT_REST_PORT = 8100;
+	public static final int SECURE_REST_PORT = 8443;
 	public static final int DEFAULT_LUS_PORT = net.jini.discovery.Constants
 			.getDiscoveryPort();
 	public static final int DEFAULT_LOCALCLOUD_LUS_PORT = DEFAULT_LUS_PORT + 2;
@@ -264,11 +265,13 @@ public final class CloudifyConstants {
 	
 	
 	/*******************
-	 * Spring security mode environment variable
+	 * Spring security environment variable
 	 */
+	public static final String KEYSTORE_PASSWORD_ENV_VAR = "KEYSTORE_KEY";
 	public static final String SPRING_ACTIVE_PROFILE_ENV_VAR = "SPRING_PROFILES_ACTIVE";
-	public static final String SPRING_PROFILE_SECURE = "secure";
 	public static final String SPRING_PROFILE_NON_SECURE = "nonsecure";
+	public static final String SPRING_PROFILE_SECURE = "secure";
+	public static final String SPRING_PROFILE_SSL = "ssl";
 	
 	/*******************
 	 * 

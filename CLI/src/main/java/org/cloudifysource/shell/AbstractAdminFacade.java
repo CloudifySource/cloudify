@@ -48,9 +48,10 @@ public abstract class AbstractAdminFacade implements AdminFacade {
      * {@inheritDoc}
      */
     @Override
-    public void connect(final String user, final String password, final String url) throws CLIException {
+    public void connect(final String user, final String password, final String url, final boolean isSecureConnection)
+    		throws CLIException {
         if (!isConnected()) {
-            doConnect(user, password, url);
+            doConnect(user, password, url, isSecureConnection);
             this.connected = true;
         } else {
             throw new CLIStatusException("already_connected");
@@ -63,9 +64,11 @@ public abstract class AbstractAdminFacade implements AdminFacade {
      * @param user     The user name, used to create the connection
      * @param password The user name, used to create the connection
      * @param url      The URL to connect to
+     * @param isSecureConnection  Is this a secure connection (SSL)
      * @throws CLIException Reporting a failure to the connect to the server
      */
-    protected abstract void doConnect(String user, String password, String url) throws CLIException;
+    protected abstract void doConnect(String user, String password, String url, boolean isSecureConnection)
+    		throws CLIException;
 
     /**
      * {@inheritDoc}

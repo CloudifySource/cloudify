@@ -170,8 +170,10 @@ public final class Utils {
 	 *            A unique identifier of the new agent to be created
 	 * @param templateName
 	 *            The template of the machines to be created
-	 * @param isSecurityOn
-	 *            Indicates whether security should be activated
+	 * @param securityProfile
+	 *            set security profile (nonsecure/secure/ssl)
+	 * @param keystorePassword
+	 *            The password to the keystore set on the rest server
 	 * @return the installation details.
 	 * @throws FileNotFoundException
 	 *             if a key file is specified and is not found.
@@ -183,7 +185,8 @@ public final class Utils {
 			final File cloudFile,
 			final GSAReservationId reservationId,
 			final String templateName,
-			final boolean isSecurityOn)
+			final String securityProfile,
+			final String keystorePassword)
 			throws FileNotFoundException {
 
 		final InstallationDetails details = new InstallationDetails();
@@ -225,6 +228,8 @@ public final class Utils {
 		details.setLus(isManagement);
 		if (isManagement) {
 			details.setConnectedToPrivateIp(!cloud.getConfiguration().isBootstrapManagementOnPublicIp());
+			details.setSecurityProfile(securityProfile);
+			details.setKeystorePassword(keystorePassword);
 		} else {
 			details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		}
@@ -296,11 +301,10 @@ public final class Utils {
 
 		details.setReservationId(reservationId);
 		details.setTemplateName(templateName);
-		details.setSecurityOn(isSecurityOn);
 
 		details.setMachineId(md.getMachineId());
 		logger.fine("Created InstallationDetails: " + details);
 		return details;
-
 	}
+	
 }

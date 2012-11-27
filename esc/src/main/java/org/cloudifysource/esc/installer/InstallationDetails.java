@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsa.GSAReservationId;
 
@@ -56,8 +57,11 @@ public class InstallationDetails implements Cloneable {
 	private String cloudifyUrl;
 	private String overridesUrl;
 	
-	//security mode
-	private boolean isSecurityOn = false;
+	//security profile
+	private String securityProfile = CloudifyConstants.SPRING_PROFILE_NON_SECURE;
+	
+	//keystore password
+	private String keystorePassword;
 
 	// An instance of the Gigaspaces Admin API. If passed,
 	// will be used to check when an agent joins the cluster.
@@ -332,12 +336,20 @@ public class InstallationDetails implements Cloneable {
 		this.reservationId = reservationId;
 	}
 	
-	public boolean isSecurityOn() {
-		return isSecurityOn;
+	public String getSecurityProfile() {
+		return securityProfile;
 	}
 
-	public void setSecurityOn(final boolean isSecurityOn) {
-		this.isSecurityOn = isSecurityOn;
+	public void setSecurityProfile(final String securityProfile) {
+		this.securityProfile = securityProfile;
+	}
+
+	public String getKeystorePassword() {
+		return keystorePassword;
+	}
+
+	public void setKeystorePassword(final String keystorePassword) {
+		this.keystorePassword = keystorePassword;
 	}
 
 }

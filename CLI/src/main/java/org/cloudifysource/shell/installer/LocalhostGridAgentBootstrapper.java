@@ -327,12 +327,14 @@ public class LocalhostGridAgentBootstrapper {
 	 * until the requested service installations complete (space, webui, REST),
 	 * or until the timeout is reached.
 	 * 
-	 * @param isSecurityOn
-	 *            Should spring security be active on this server
+	 * @param securityProfile
+	 *            set security profile (nonsecure/secure/ssl)
 	 * @param username
 	 *            The username for a secure connection to the server
 	 * @param password
 	 *            The password for a secure connection to the server
+	 * @param keystorePassword
+	 *            The password to the keystore to set on the rest server
 	 * @param timeout
 	 *            number of {@link TimeUnit}s to wait
 	 * @param timeunit
@@ -344,7 +346,8 @@ public class LocalhostGridAgentBootstrapper {
 	 * @throws TimeoutException
 	 *             Reporting the timeout was reached
 	 */
-	public void startLocalCloudOnLocalhostAndWait(final boolean isSecurityOn, final String username, final String password, final int timeout,
+	public void startLocalCloudOnLocalhostAndWait(final String securityProfile, final String username, 
+			final String password, final String keystorePassword, final int timeout,
 			final TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
 
 		setGridServiceAgentZone(LOCALCLOUD_GSA_ZONES);
@@ -354,11 +357,11 @@ public class LocalhostGridAgentBootstrapper {
 		setDefaultLocalcloudLookup();
 
 		if (isWindows()) {
-			startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_WIN_MANAGEMENT_ARGUMENTS, isSecurityOn, username, password,
-			 timeout, timeunit, true);
+			startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_WIN_MANAGEMENT_ARGUMENTS, securityProfile, username, 
+					password, keystorePassword, timeout, timeunit, true);
 		} else {
-			startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_LINUX_MANAGEMENT_ARGUMENTS, isSecurityOn, username,
-			 password, timeout, timeunit, true);
+			startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_LINUX_MANAGEMENT_ARGUMENTS, securityProfile, username,
+			 password, keystorePassword, timeout, timeunit, true);
 		}
 	}
 
@@ -393,12 +396,14 @@ public class LocalhostGridAgentBootstrapper {
 	 * service installations complete (space, webui, REST), or until the timeout
 	 * is reached. The cloud is not a local cloud.
 	 * 
-	 * @param isSecurityOn
-	 *            Should spring security be active on this server
+	 * @param securityProfile
+	 *            set security profile (nonsecure/secure/ssl)
 	 * @param username
 	 *            The username for a secure connection to the server
 	 * @param password
 	 *            The password for a secure connection to the server
+	 * @param keystorePassword
+	 *            The password to the keystore set on the rest server
 	 * @param timeout
 	 *            number of {@link TimeUnit}s to wait
 	 * @param timeunit
@@ -410,15 +415,16 @@ public class LocalhostGridAgentBootstrapper {
 	 * @throws TimeoutException
 	 *             Reporting the timeout was reached
 	 */
-	public void startManagementOnLocalhostAndWait(final boolean isSecurityOn, final String username, final String password, final int timeout,
-			final TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
+	public void startManagementOnLocalhostAndWait(final String securityProfile, final String username,
+			final String password, final String keystorePassword, final int timeout, final TimeUnit timeunit) 
+					throws CLIException, InterruptedException, TimeoutException {
 
 		setGridServiceAgentZone(MANAGEMENT_ZONE);
 
 		setDefaultNicAddress();
 
-		startManagementOnLocalhostAndWaitInternal(CLOUD_MANAGEMENT_ARGUMENTS, isSecurityOn, username, password, timeout, timeunit,
-				false);
+		startManagementOnLocalhostAndWaitInternal(CLOUD_MANAGEMENT_ARGUMENTS, securityProfile, username, password, 
+				keystorePassword, timeout, timeunit, false);
 	}
 
 	/**
@@ -793,7 +799,7 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	private void runGsAgentOnLocalHost(final String name, final String[] gsAgentArguments, 
-			final boolean springSecurityOn) throws CLIException, InterruptedException {
+			final String securityProfile, final String keystorePassword) throws CLIException, InterruptedException {
 
 		final List<String> args = new ArrayList<String>();
 		args.addAll(Arrays.asList(gsAgentArguments));
@@ -827,7 +833,7 @@ public class LocalhostGridAgentBootstrapper {
 		}
 
 		publishEvent(ShellUtils.getMessageBundle().getString("starting_cloudify_management"));
-		runCommand(command, args.toArray(new String[args.size()]), springSecurityOn);
+		runCommand(command, args.toArray(new String[args.size()]), securityProfile, keystorePassword);
 
 	}
 
@@ -842,12 +848,14 @@ public class LocalhostGridAgentBootstrapper {
 	 * 
 	 * @param gsAgentArgs
 	 *            GS agent start-up switches
-	 * @param isSecurityOn
-	 *            is spring security on
+	 * @param securityProfile
+	 *            set security profile (nonsecure/secure/ssl)
 	 * @param username
 	 *            The username for a secure connection to the server
 	 * @param password
 	 *            The password for a secure connection to the server
+	 * @param keystorePassword
+	 *            The password to the keystore set on the rest server
 	 * @param timeout
 	 *            number of {@link TimeUnit}s to wait
 	 * @param timeunit
@@ -861,9 +869,9 @@ public class LocalhostGridAgentBootstrapper {
 	 * @throws TimeoutException
 	 *             Reporting the timeout was reached
 	 */
-	private void startManagementOnLocalhostAndWaitInternal(final String[] gsAgentArgs, final boolean isSecurityOn, 
-			final String username, final String password, final int timeout, final TimeUnit timeunit, 
-			final boolean isLocalCloud)
+	private void startManagementOnLocalhostAndWaitInternal(final String[] gsAgentArgs, final String securityProfile, 
+			final String username, final String password, final String keystorePassword, final int timeout, 
+			final TimeUnit timeunit, final boolean isLocalCloud)
 			throws CLIException, InterruptedException, TimeoutException {
 
 		setIsLocalCloud(isLocalCloud);
@@ -890,7 +898,8 @@ public class LocalhostGridAgentBootstrapper {
 					// no existing agent running on local machine
 				}
 
-				runGsAgentOnLocalHost("agent and management processes", gsAgentArgs, isSecurityOn);
+				runGsAgentOnLocalHost("agent and management processes", gsAgentArgs, securityProfile, 
+						keystorePassword);
 				agent = waitForNewAgent(admin, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
 						TimeUnit.MILLISECONDS);
 			} finally {
@@ -935,12 +944,12 @@ public class LocalhostGridAgentBootstrapper {
 				}
 
 				if (!noWebServices) {
-					installWebServices(username, password, isLocalCloud, agent, waitForManagementServices);
-
+					installWebServices(username, password, isLocalCloud, 
+							ShellUtils.isSecureConnection(securityProfile), agent, waitForManagementServices);
 				}
 
 				for (final AbstractManagementServiceInstaller managementServiceInstaller : waitForManagementServices) {
-					managementServiceInstaller.waitForInstallation(adminFacade, agent,
+					managementServiceInstaller.waitForInstallation(adminFacade, agent, 
 							ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
 					if (managementServiceInstaller instanceof ManagementSpaceServiceInstaller) {
 						logger.fine("Writing cloud configuration to space.");
@@ -973,7 +982,8 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	private void installWebServices(final String username, final String password, final boolean isLocalCloud,
-			final GridServiceAgent agent, final List<AbstractManagementServiceInstaller> waitForManagementServices)
+			final boolean isSecureConnection, final GridServiceAgent agent, 
+			final List<AbstractManagementServiceInstaller> waitForManagementServices)
 			throws CLIException {
 		final ManagementWebServiceInstaller webuiInstaller = new ManagementWebServiceInstaller();
 		webuiInstaller.setAdmin(agent.getAdmin());
@@ -986,6 +996,8 @@ public class LocalhostGridAgentBootstrapper {
 		webuiInstaller.setManagementZone(MANAGEMENT_ZONE);
 		webuiInstaller.addListeners(this.eventsListenersList);
 		webuiInstaller.setIsLocalCloud(isLocalCloud);
+		webuiInstaller.setIsSecureConnection(isSecureConnection);
+		
 		try {
 			webuiInstaller.installWebService();
 		} catch (final ProcessingUnitAlreadyDeployedException e) {
@@ -1003,7 +1015,6 @@ public class LocalhostGridAgentBootstrapper {
 		restInstaller.setAdmin(agent.getAdmin());
 		restInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
 		restInstaller.setVerbose(verbose);
-
 		restInstaller.setMemory(REST_MEMORY_IN_MB, MemoryUnit.MEGABYTES);
 		restInstaller.setPort(REST_PORT);
 		restInstaller.setUsername(username);
@@ -1015,6 +1026,8 @@ public class LocalhostGridAgentBootstrapper {
 		restInstaller.setWaitForConnection();
 		restInstaller.addListeners(this.eventsListenersList);
 		restInstaller.setIsLocalCloud(isLocalCloud);
+		restInstaller.setIsSecureConnection(isSecureConnection);
+		
 		try {
 			restInstaller.installWebService();
 		} catch (final ProcessingUnitAlreadyDeployedException e) {
@@ -1077,8 +1090,10 @@ public class LocalhostGridAgentBootstrapper {
 	 * Starts an agent on the local host. If an agent is already running, a
 	 * CLIException is thrown.
 	 * 
-	 * @param isSecurityOn
-	 *            Should spring security be active on this server
+	 * @param securityProfile
+	 *            set security profile (nonsecure/secure/ssl)
+	 * @param keystorePassword
+	 *            the password to the keystore set on the rest server
 	 * @param timeout
 	 *            number of {@link TimeUnit}s to wait
 	 * @param timeunit
@@ -1090,9 +1105,8 @@ public class LocalhostGridAgentBootstrapper {
 	 * @throws TimeoutException
 	 *             Reporting the timeout was reached
 	 */
-	public void startAgentOnLocalhostAndWait(final boolean isSecurityOn, final long timeout, final TimeUnit timeunit)
-			throws CLIException,
-			InterruptedException, TimeoutException {
+	public void startAgentOnLocalhostAndWait(final String securityProfile, final String keystorePassword,
+			final long timeout, final TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
 
 		setIsLocalCloud(false);
 
@@ -1110,7 +1124,7 @@ public class LocalhostGridAgentBootstrapper {
 			} catch (final TimeoutException e) {
 				// no existing agent running on local machine
 			}
-			runGsAgentOnLocalHost("agent", AGENT_ARGUMENTS, isSecurityOn);
+			runGsAgentOnLocalHost("agent", AGENT_ARGUMENTS, securityProfile, keystorePassword);
 
 			// wait for agent to start
 			waitForNewAgent(admin, timeout, timeunit);
@@ -1312,8 +1326,8 @@ public class LocalhostGridAgentBootstrapper {
 		return System.getProperty("os.name").toLowerCase().contains("win");
 	}
 
-	private void runCommand(final String[] command, final String[] args, final boolean springSecurityOn)
-			throws CLIException, InterruptedException {
+	private void runCommand(final String[] command, final String[] args, final String securityProfile,
+			final String keystorePassword) throws CLIException, InterruptedException {
 
 		final File directory = new File(Environment.getHomeDirectory(), "/bin").getAbsoluteFile();
 
@@ -1331,12 +1345,7 @@ public class LocalhostGridAgentBootstrapper {
 		String localCloudOptions = "-Xmx" + LOCALCLOUD_MEMORY_IN_MB + "m" + " -D" + LUS_PORT_CONTEXT_PROPERTY + "="
 				+ lusPort + " -D" + GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "=" + GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL
 				+ " " + GSM_PENDING_REQUESTS_DELAY + " -D" + ZONES_PROPERTY + "=" + gsaZones;
-		/*if (springSecurityOn) {
-			localCloudOptions += " -D" + "spring.profiles.active" + "=" 
-			+ SecurityProfiles ;
-		} else {
-			localCloudOptions += " -D" + "spring.profiles.active" + "=" + "nonsecure";
-		}*/
+
 		String gsaJavaOptions = "-Xmx" + GSA_MEMORY_IN_MB + "m";
 		if (gsaZones != null) {
 			gsaJavaOptions += " -D" + ZONES_PROPERTY + "=" + gsaZones;
@@ -1372,11 +1381,9 @@ public class LocalhostGridAgentBootstrapper {
 			environment.put("NIC_ADDR", nicAddress);
 		}
 		environment.put("RMI_OPTIONS", "");
-		
-		if (springSecurityOn) {
-			environment.put(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR, CloudifyConstants.SPRING_PROFILE_SECURE);
-		} else {
-			environment.put(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR, CloudifyConstants.SPRING_PROFILE_NON_SECURE);
+		environment.put(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR, securityProfile);
+		if (ShellUtils.isSecureConnection(securityProfile)) {
+			environment.put(CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR, keystorePassword);			
 		}
 
 		if (isLocalCloud) {

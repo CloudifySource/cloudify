@@ -35,6 +35,7 @@ import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.FileAppender;
 import org.cloudifysource.dsl.utils.RecipePathResolver;
@@ -52,26 +53,39 @@ import com.j_spaces.kernel.Environment;
 @Command(
 		scope = "cloudify",
 		name = "bootstrap-cloud",
-		description = "Starts Cloudify Agent without any zone, and the Cloudify management processes on the provided " +
-				"cloud.")
+		description = "Starts Cloudify Agent without any zone, and the Cloudify management processes on the provided " 
+				+ "cloud.")
 public class BootstrapCloud extends AbstractGSCommand {
 
 	private static final int DEFAULT_TIMEOUT_MINUTES = 60;
 	private static final String PATH_SEPARATOR = System.getProperty("file.separator");
 	private static final String CLOUDIFY_HOME = Environment.getHomeDirectory();  //JSHOMEDIR is not set yet
+	private static final String OVERRIDES_FOLDER = "upload" + PATH_SEPARATOR + "cloudify-overrides" + PATH_SEPARATOR
+			+ "config" + PATH_SEPARATOR + "security";
 
-	@Argument(required = true, name = "provider", description = "the cloud provider to use")
+	@Argument(required = false, name = "provider", description = "the cloud provider to use")
 	String cloudProvider;
 	
-    @Option(required = false, description = "The username when connecting to a secure admin server", name = "-user")
+    @Option(required = false, description = "Server security mode (true/false)", name = "-secured")
+    private String secured;
+    
+    @Option(required = false, description = "Path to a custom spring security configuration file",
+    		name = "-securityFile", aliases = {"-securityfile" })
+    private String securityFilePath;
+    
+    @Option(required = false, description = "The username when connecting to a secure admin server", name = "-user",
+    		aliases = {"-username" })
     private String username;
-
+	
     @Option(required = false, description = "The password when connecting to a secure admin server", name = "-pwd",
             aliases = {"-password" })
     private String password;
     
-    @Option(required = false, description = "Path to a custom spring security configuration file", name = "-security")
-    private String securityFilePath;
+	@Option(required = false, description = "The path to the keystore used for SSL connections", name = "-keystore")
+    private String keystore;
+	
+	@Option(required = false, description = "The password to the keystore", name = "-keystorePassword")
+    private String keystorePassword;
 
     @Option(required = false, description = "Path to a file containing override properties", name = "-cloud-overrides")
     private File cloudOverrides;    
@@ -84,7 +98,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 			description = "if set, no attempt to deploy the rest admin and" + " web-ui will be made")
 	private boolean noWebServices;
 	
-	private boolean isSecurityOn = false;
+	private String securityProfile = CloudifyConstants.SPRING_PROFILE_NON_SECURE;
 	private static final String[] NON_VERBOSE_LOGGERS = { DefaultProvisioningDriver.class.getName(), 
 		AgentlessInstaller.class.getName() };
 	private Map<String, Level> loggerStates = new HashMap<String, Level>();
@@ -111,9 +125,9 @@ public class BootstrapCloud extends AbstractGSCommand {
 		}
 		
 		setSecurityMode();
-		if (isSecurityOn) {
-			//copy the security configuration file to the overrides folder
-			copySecurityFile(providerDirectory.getAbsolutePath());
+		if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE)
+				|| securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SSL)) {
+			copySecurityFiles(providerDirectory.getAbsolutePath());
 		}
 		
 		// load the cloud file
@@ -176,7 +190,8 @@ public class BootstrapCloud extends AbstractGSCommand {
 		logger.info(getFormattedMessage("bootstrapping_cloud", cloudProvider));
 		try {
 			// TODO: Create the event listeners here and pass them to the installer.
-			installer.boostrapCloudAndWait(username, password, isSecurityOn, timeoutInMinutes, TimeUnit.MINUTES);
+			installer.boostrapCloudAndWait(securityProfile, username, password, keystorePassword, timeoutInMinutes, 
+					TimeUnit.MINUTES);
 			return getFormattedMessage("cloud_started_successfully", cloudProvider);
 		} finally {
 			// if an overrides file was passed, then the properties file is dirty. delete it.
@@ -246,15 +261,55 @@ public class BootstrapCloud extends AbstractGSCommand {
 		return cloudFiles[0];
 	}
 
-	/*public static void main(String[] args) throws Exception {
-		BootstrapCloud cmd = new BootstrapCloud();
-		cmd.cloudProvider = "ec2";
-		cmd.verbose = true;
-		cmd.adminFacade = new RestAdminFacade();
-		cmd.execute(null);
-	}*/
 	
 	private void setSecurityMode() {
+		if (StringUtils.isNotBlank(secured)) {
+			if (secured.equalsIgnoreCase("true")
+					||  secured.equalsIgnoreCase("yes")) {
+				//enable security
+				if (StringUtils.isNotBlank(keystore) && StringUtils.isNotBlank(keystorePassword)) {
+					logger.info(getFormattedMessage(CloudifyErrorMessages.SETTING_SERVER_SECURITY_PROFILE.getName(),
+							CloudifyConstants.SPRING_PROFILE_SSL));
+					securityProfile = CloudifyConstants.SPRING_PROFILE_SSL;
+				} else {
+					logger.info(getFormattedMessage(CloudifyErrorMessages.SETTING_SERVER_SECURITY_PROFILE.getName(),
+							CloudifyConstants.SPRING_PROFILE_SECURE));
+					securityProfile = CloudifyConstants.SPRING_PROFILE_SECURE;
+				}
+			} else if (secured.equalsIgnoreCase("false")
+					||  secured.equalsIgnoreCase("no")) {
+				//disable security
+				logger.info(getFormattedMessage(CloudifyErrorMessages.SETTING_SERVER_SECURITY_PROFILE.getName(),
+						CloudifyConstants.SPRING_PROFILE_NON_SECURE));
+				securityProfile = CloudifyConstants.SPRING_PROFILE_NON_SECURE;
+			} else {
+				throw new IllegalArgumentException("'-secured' can accept only true/false.");
+			}
+		}
+		
+		if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_NON_SECURE)) {
+			if (StringUtils.isNotBlank(username)) {
+				throw new IllegalArgumentException("'-user' is only valid when '-secured' is set to true");
+			}
+			
+			if (StringUtils.isNotBlank(password)) {
+				throw new IllegalArgumentException("'-password' is only valid when '-secured' is set to true");
+			}
+			
+			if (StringUtils.isNotBlank(securityFilePath)) {
+				throw new IllegalArgumentException("'-securityfile' is only valid when '-secured' is set to true");
+			}
+			
+			if (StringUtils.isNotBlank(keystore)) {
+				throw new IllegalArgumentException("'-keystore' is only valid when '-secured' is set to true");
+			}
+			
+			if (StringUtils.isNotBlank(keystorePassword)) {
+				throw new IllegalArgumentException("'-keystorePassword' is only valid when '-secured' is set to true");
+			}
+		}
+			
+		
 		if (StringUtils.isNotBlank(username) && StringUtils.isBlank(password)) {
 			throw new IllegalArgumentException("Password is missing or empty");
 		}
@@ -263,30 +318,48 @@ public class BootstrapCloud extends AbstractGSCommand {
 			throw new IllegalArgumentException("Username is missing or empty");
 		}
 		
-		if ((StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) ||
-				StringUtils.isNotBlank(securityFilePath)) {
-			
-			//activate security
-			isSecurityOn = true;
+		if (StringUtils.isNotBlank(keystore) && StringUtils.isBlank(keystorePassword)) {
+			throw new IllegalArgumentException("keystorePassword is missing or empty");
 		}
+		
+		if (StringUtils.isBlank(keystore) && StringUtils.isNotBlank(keystorePassword)) {
+			throw new IllegalArgumentException("keystore is missing or empty");
+		}
+
 	}
 	
-	private void copySecurityFile(final String providerDirectory) throws Exception {
-		if (StringUtils.isBlank(securityFilePath)) {
+	
+	private void copySecurityFiles(final String providerDirectory) throws Exception {
+		
+		//handle the configuration file
+		if (StringUtils.isNotBlank(securityFilePath)) {
+			File securitySourceFile = new File(securityFilePath);
+			if (!securitySourceFile.isFile()) {
+				throw new Exception("Security configuration file not found: " + securityFilePath);
+			}
+			
+			//copy to the overrides folder, to be copied to all management servers as well
+			File securityTargetFile = new File(providerDirectory,  OVERRIDES_FOLDER + PATH_SEPARATOR
+					+ "spring-security.xml");
+			FileUtils.copyFile(securitySourceFile, securityTargetFile);
+		} else {
 			//TODO : should we use the default security location and assume it was edited by the user?
-			securityFilePath = CLOUDIFY_HOME + "/config/security/spring-security.xml";
+			//securityFilePath = CLOUDIFY_HOME + "/config/security/spring-security.xml";
+			throw new IllegalArgumentException("-securityfile is missing or empty");
 		}
 		
-		File securitySourceFile = new File(securityFilePath);
-		if (!securitySourceFile.isFile()) {
-			throw new Exception("Security configuration file not found: " + securityFilePath);
+		//handle the keystore file
+		if (StringUtils.isNotBlank(keystore)) {
+			File keystoreSourceFile = new File(keystore);
+			if (!keystoreSourceFile.isFile()) {
+				throw new Exception("Keystore file not found: " + keystore);
+			}
+			
+			//copy to the override folder, to be copied to all management servers as well
+			File keystoreTargetFile = new File(providerDirectory,  OVERRIDES_FOLDER + PATH_SEPARATOR + "keystore");
+			FileUtils.copyFile(keystoreSourceFile, keystoreTargetFile);
 		}
 		
-		//copy to the override folder, to be copied to all management servers as well
-		File securityTargetFile = new File(providerDirectory, "upload" + PATH_SEPARATOR
-				+ "cloudify-overrides" + PATH_SEPARATOR + "config" + PATH_SEPARATOR + "security" + PATH_SEPARATOR
-				+ "spring-security.xml");
-		FileUtils.copyFile(securitySourceFile, securityTargetFile);
 	}
 	
 }

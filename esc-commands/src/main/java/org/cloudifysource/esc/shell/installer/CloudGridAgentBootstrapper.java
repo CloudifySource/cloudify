@@ -74,8 +74,6 @@ public class CloudGridAgentBootstrapper {
 
 	private static final int WEBUI_PORT = 8099;
 
-	private static final int REST_GATEWAY_PORT = 8100;
-
 	private static final String OPERATION_TIMED_OUT = "The operation timed out. "
 			+ "Try to increase the timeout using the -timeout flag";
 
@@ -152,13 +150,14 @@ public class CloudGridAgentBootstrapper {
 	/**
 	 * Bootstraps and waits until the management machines are running, or until
 	 * the timeout is reached.
-	 * 
+	 * @param securityProfile
+	 *            set security profile (nonsecure/secure/ssl)
 	 * @param username
 	 *            The username for a secure connection to the server
 	 * @param password
 	 *            The password for a secure connection to the server
-	 * @param isSecurityOn
-	 *            Indicates whether security should be activated
+	 * @param keystorePassword
+	 *            The password to the keystore to set on the rest server
 	 * @param timeout
 	 *            The number of {@link TimeUnit}s to wait before timing out
 	 * @param timeoutUnit
@@ -172,10 +171,9 @@ public class CloudGridAgentBootstrapper {
 	 * @throws InterruptedException
 	 *             Indicates a thread was interrupted while waiting
 	 */
-	public void boostrapCloudAndWait(final String username,
-			final String password, final boolean isSecurityOn, final long timeout,
-			final TimeUnit timeoutUnit) throws InstallerException,
-			CLIException, InterruptedException {
+	public void boostrapCloudAndWait(final String securityProfile, final String username, 
+			final String password, final String keystorePassword, final long timeout, final TimeUnit timeoutUnit)
+					throws InstallerException, CLIException, InterruptedException {
 
 		final long end = System.currentTimeMillis()
 				+ timeoutUnit.toMillis(timeout);
@@ -223,10 +221,11 @@ public class CloudGridAgentBootstrapper {
 								+ "Please shut them down before continuing");
 			}
 
-			startManagememntProcesses(servers, isSecurityOn, end);
+			startManagememntProcesses(servers, securityProfile, keystorePassword, end);
 
 			if (!isNoWebServices()){
-				waitForManagementWebServices(username, password, end, servers);
+				waitForManagementWebServices(ShellUtils.isSecureConnection(securityProfile), username, password,
+						end, servers);
 			}
 			
 		} catch (final IOException e) {
@@ -255,8 +254,8 @@ public class CloudGridAgentBootstrapper {
 		}
 	}
 
-	private void waitForManagementWebServices(final String username, final String password,
-			final long end, MachineDetails[] servers)
+	private void waitForManagementWebServices(final boolean isSecureConnection, final String username, 
+			final String password, final long end, final MachineDetails[] servers)
 			throws MalformedURLException, URISyntaxException,
 			InterruptedException, TimeoutException, CLIException {
 		// Wait for rest to become available
@@ -269,17 +268,17 @@ public class CloudGridAgentBootstrapper {
 				ipAddress = server.getPrivateAddress();
 			}
 
-			final URL restAdminUrl = new URI("http", null, ipAddress,
-					REST_GATEWAY_PORT, null, null, null).toURL();
-			final URL webUIUrl = new URI("http", null, ipAddress,
-					WEBUI_PORT, null, null, null).toURL();
+			final URL restAdminUrl = new URI(ShellUtils.getRestProtocol(isSecureConnection), null, ipAddress,
+					ShellUtils.getRestPort(isSecureConnection), null, null, null).toURL();
+			final URL webUIUrl = new URI(ShellUtils.getRestProtocol(isSecureConnection), null, ipAddress, WEBUI_PORT,
+					null, null, null).toURL();
 
 			// We are relying on start-management command to be run on the
 			// new machine, so everything should be up if the rest admin is up
-			waitForConnection(username, password, restAdminUrl, CalcUtils.millisUntil(end), TimeUnit.MILLISECONDS);
+			waitForConnection(username, password, restAdminUrl, isSecureConnection, CalcUtils.millisUntil(end), 
+					TimeUnit.MILLISECONDS);
 
-			logger.info("Rest service is available at: " + restAdminUrl
-					+ '.');
+			logger.info("Rest service is available at: " + restAdminUrl + '.');
 			logger.info("Webui service is available at: " + webUIUrl + '.');
 		}
 	}
@@ -430,10 +429,9 @@ public class CloudGridAgentBootstrapper {
 				TimeUnit.MILLISECONDS);
 	}
 
-	private MachineDetails[] startManagememntProcesses(
-			final MachineDetails[] machines, final boolean isSecurityOn, final long endTime)
-			throws InterruptedException, TimeoutException, InstallerException,
-			IOException {
+	private MachineDetails[] startManagememntProcesses(final MachineDetails[] machines, final String securityProfile,
+			final String keystorePassword, final long endTime) throws InterruptedException, TimeoutException,
+			InstallerException, IOException {
 
 		final AgentlessInstaller installer = new AgentlessInstaller();
 		installer.addListener(new CliAgentlessInstallerListener(this.verbose));
@@ -449,8 +447,8 @@ public class CloudGridAgentBootstrapper {
 
 		final int numOfManagementMachines = machines.length;
 
-		final InstallationDetails[] installations = createInstallationDetails(
-				numOfManagementMachines, machines, template, isSecurityOn);
+		final InstallationDetails[] installations = createInstallationDetails(numOfManagementMachines, machines,
+				template, securityProfile, keystorePassword);
 		// only one machine should try and deploy the WebUI and Rest Admin unless 
 		// noWebServices is true
 		int i= isNoWebServices() ? 0 :1;
@@ -585,13 +583,11 @@ public class CloudGridAgentBootstrapper {
 		return lookupSb.toString();
 	}
 
-	// TODO: This code should be places in a Util package somewhere. It is used
-	// both
-	// here and in the esc project, for starting new agent machines.
-	private InstallationDetails[] createInstallationDetails(
-			final int numOfManagementMachines,
-			final MachineDetails[] machineDetails, final CloudTemplate template, final boolean isSecurityOn)
-			throws FileNotFoundException {
+	// TODO: This code should be placed in a Util package somewhere. It is used
+	// both here and in the esc project, for starting new agent machines.
+	private InstallationDetails[] createInstallationDetails(final int numOfManagementMachines, 
+			final MachineDetails[] machineDetails, final CloudTemplate template, final String securityProfile,
+			final String keystorePassword) throws FileNotFoundException {
 		final InstallationDetails[] details = new InstallationDetails[numOfManagementMachines];
 
 		final GSAReservationId reservationId = null;
@@ -599,9 +595,9 @@ public class CloudGridAgentBootstrapper {
 		for (int i = 0; i < details.length; i++) {
 			final ExactZonesConfig zones = new ExactZonesConfigurer().addZone(
 					MANAGEMENT_GSA_ZONE).create();
-			details[i] = Utils.createInstallationDetails(machineDetails[i],
-					cloud, template, zones, null, null, true, this.cloudFile,
-					reservationId, cloud.getConfiguration().getManagementMachineTemplate(), isSecurityOn);
+			details[i] = Utils.createInstallationDetails(machineDetails[i], cloud, template, zones, null, null, true,
+					this.cloudFile, reservationId, cloud.getConfiguration().getManagementMachineTemplate(),
+					securityProfile, keystorePassword);
 		}
 
 		return details;
@@ -679,6 +675,8 @@ public class CloudGridAgentBootstrapper {
 	 *            The password for a secure connection to the rest server
 	 * @param url
 	 *            The URL of the service
+	 * @param isSecureConnection
+	 *            Is this a secure connection (SSL)
 	 * @param timeout
 	 *            number of {@link TimeUnit}s to wait
 	 * @param timeunit
@@ -691,10 +689,9 @@ public class CloudGridAgentBootstrapper {
 	 *             Reporting different errors while creating the connection to
 	 *             the service
 	 */
-	private void waitForConnection(final String username,
-			final String password, final URL restAdminUrl, final long timeout,
-			final TimeUnit timeunit) throws InterruptedException,
-			TimeoutException, CLIException {
+	private void waitForConnection(final String username, final String password, final URL restAdminUrl, 
+			final boolean isSecureConnection, final long timeout, final TimeUnit timeunit)
+					throws InterruptedException, TimeoutException, CLIException {
 
 		adminFacade.disconnect();
 
@@ -706,8 +703,7 @@ public class CloudGridAgentBootstrapper {
 							InterruptedException {
 
 						try {
-							adminFacade.connect(username, password,
-									restAdminUrl.toString());
+							adminFacade.connect(username, password, restAdminUrl.toString(), isSecureConnection);
 							return true;
 						} catch (final CLIException e) {
 							if (verbose) {

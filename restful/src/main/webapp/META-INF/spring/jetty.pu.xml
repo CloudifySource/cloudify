@@ -1,103 +1,151 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="propertiesConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-        <property name="properties">
-            <props>
-                <prop key="web.context">/${clusterInfo.name}</prop>
-                <prop key="web.port">8100</prop>
-                <prop key="web.sslPort">8443</prop>
-                <prop key="web.context.classLoader.parentFirst">false</prop>
-                <prop key="web.context.copyWebDir">false</prop>
-                <prop key="web.threadPool.minThreads">10</prop>
-                <prop key="web.threadPool.maxThreads">200</prop>
-                <prop key="web.selector.maxIdleTime">300000</prop>
-                <prop key="web.selector.acceptors">2</prop>
-                <prop key="web.selector.lowResourcesConnections">20000</prop>
-                <prop key="web.selector.lowResourcesMaxIdleTime">5000</prop>
-                <prop key="web.selector.forwarded">true</prop>
-                <prop key="web.statsOn">false</prop>
-            </props>
-        </property>
-    </bean>
+	<bean id="propertiesConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="properties">
+			<props>
+				<prop key="web.context">/${clusterInfo.name}</prop>
+				<prop key="web.port">8100</prop>
+				<prop key="web.sslPort">8443</prop>
+				<prop key="web.context.classLoader.parentFirst">false</prop>
+				<prop key="web.context.copyWebDir">false</prop>
+				<prop key="web.threadPool.minThreads">10</prop>
+				<prop key="web.threadPool.maxThreads">200</prop>
+				<prop key="web.selector.maxIdleTime">300000</prop>
+				<prop key="web.selector.acceptors">2</prop>
+				<prop key="web.selector.lowResourcesConnections">20000</prop>
+				<prop key="web.selector.lowResourcesMaxIdleTime">5000</prop>
+				<prop key="web.selector.forwarded">true</prop>
+				<prop key="web.statsOn">false</prop>
+			</props>
+		</property>
+	</bean>
 
-    <bean id="port" class="org.openspaces.pu.container.jee.PortGenerator">
-        <property name="basePort" value="${web.port}" />
-        <property name="portOffset" value="0" />
-    </bean>
+	<bean id="port" class="org.openspaces.pu.container.jee.PortGenerator">
+		<property name="basePort" value="${web.port}" />
+		<property name="portOffset" value="0" />
+	</bean>
 
-    <bean id="confidentialPort" class="org.openspaces.pu.container.jee.PortGenerator">
-        <property name="basePort" value="${web.sslPort}" />
-        <property name="portOffset" value="0" />
-    </bean>
+	<bean id="confidentialPort" class="org.openspaces.pu.container.jee.PortGenerator">
+		<property name="basePort" value="${web.sslPort}" />
+		<property name="portOffset" value="0" />
+	</bean>
 
-    <bean id="webAppContext" class="org.eclipse.jetty.webapp.WebAppContext">
-        <property name="contextPath" value="${web.context}" />
-        <property name="war" value="${jee.deployPath}" />
-        <property name="tempDirectory" value="${jee.deployPath}/WEB-INF/work" />
-        <property name="copyWebDir" value="${web.context.copyWebDir}" />
-        <property name="parentLoaderPriority" value="${web.context.classLoader.parentFirst}" />
-        <property name="configurationClasses">
-            <list>
-                <value>org.eclipse.jetty.webapp.WebInfConfiguration</value>
-                <value>org.eclipse.jetty.webapp.WebXmlConfiguration</value>
-                <value>org.eclipse.jetty.webapp.MetaInfConfiguration</value>
-                <value>org.eclipse.jetty.webapp.FragmentConfiguration</value>
-                <value>org.eclipse.jetty.plus.webapp.EnvConfiguration</value>
-                <value>org.eclipse.jetty.plus.webapp.PlusConfiguration</value>
-                <value>org.eclipse.jetty.webapp.JettyWebXmlConfiguration</value>
-                <value>org.eclipse.jetty.webapp.TagLibConfiguration</value>
-            </list>
-        </property>
-    </bean>
+	<bean id="webAppContext" class="org.eclipse.jetty.webapp.WebAppContext">
+		<property name="contextPath" value="${web.context}" />
+		<property name="war" value="${jee.deployPath}" />
+		<property name="tempDirectory" value="${jee.deployPath}/WEB-INF/work" />
+		<property name="copyWebDir" value="${web.context.copyWebDir}" />
+		<property name="parentLoaderPriority" value="${web.context.classLoader.parentFirst}" />
+		<property name="configurationClasses">
+			<list>
+				<value>org.eclipse.jetty.webapp.WebInfConfiguration</value>
+				<value>org.eclipse.jetty.webapp.WebXmlConfiguration</value>
+				<value>org.eclipse.jetty.webapp.MetaInfConfiguration</value>
+				<value>org.eclipse.jetty.webapp.FragmentConfiguration</value>
+				<value>org.eclipse.jetty.plus.webapp.EnvConfiguration</value>
+				<value>org.eclipse.jetty.plus.webapp.PlusConfiguration</value>
+				<value>org.eclipse.jetty.webapp.JettyWebXmlConfiguration</value>
+				<value>org.eclipse.jetty.webapp.TagLibConfiguration</value>
+			</list>
+		</property>
+	</bean>
 
-    <bean id="jettyHolder" class="org.openspaces.pu.container.jee.jetty.holder.PlainJettyHolder">
-        <constructor-arg ref="jetty" />
-    </bean>
+	<bean id="jettyHolder"
+		class="org.openspaces.pu.container.jee.jetty.holder.PlainJettyHolder">
+		<constructor-arg ref="jetty" />
+	</bean>
 
-    <bean id="jetty" class="org.eclipse.jetty.server.Server">
+	<bean id="retryPortCount" class="java.lang.Integer">
+		<constructor-arg value="1" />
+	</bean>
 
-        <property name="threadPool">
-            <bean class="org.openspaces.pu.container.jee.jetty.holder.SharedThreadPool">
-                <constructor-arg>
-                    <bean class="org.eclipse.jetty.util.thread.QueuedThreadPool">
-                        <property name="minThreads" value="${web.threadPool.minThreads}"/>
-                        <property name="maxThreads" value="${web.threadPool.maxThreads}"/>
-                    </bean>
-                </constructor-arg>
-            </bean>
-        </property>
-        
-        <property name="connectors">
-            <list>
-                <bean class="org.eclipse.jetty.server.nio.SelectChannelConnector">
-                    <property name="port" ref="port"/>
-                    <property name="maxIdleTime" value="${web.selector.maxIdleTime}"/>
-                    <property name="acceptors" value="${web.selector.acceptors}"/>
-                    <property name="statsOn" value="${web.statsOn}"/>
-                    <property name="confidentialPort" ref="confidentialPort"/>
-                    <property name="lowResourcesConnections" value="${web.selector.lowResourcesConnections}"/>
-                    <property name="lowResourcesMaxIdleTime" value="${web.selector.lowResourcesMaxIdleTime}"/>
-                    <property name="forwarded" value="${web.selector.forwarded}" />
-                </bean>
-            </list>
-        </property>
-        <property name="handler">
-            <bean class="org.eclipse.jetty.server.handler.HandlerCollection">
-                <property name="handlers">
-                    <list>
-                        <bean class="org.eclipse.jetty.server.handler.ContextHandlerCollection"/>
-                        <bean class="org.eclipse.jetty.server.handler.DefaultHandler"/>
-                    </list>
-                </property>
-            </bean>
-        </property>
-    </bean>
-    
-    <bean id="retryPortCount" class="java.lang.Integer">
-      <constructor-arg value="1" />
-    </bean>
-    
+	<beans profile="ssl">
+		<bean id="jetty" class="org.eclipse.jetty.server.Server">
+
+			<property name="threadPool">
+				<bean
+					class="org.openspaces.pu.container.jee.jetty.holder.SharedThreadPool">
+					<constructor-arg>
+						<bean class="org.eclipse.jetty.util.thread.QueuedThreadPool">
+							<property name="minThreads" value="${web.threadPool.minThreads}" />
+							<property name="maxThreads" value="${web.threadPool.maxThreads}" />
+						</bean>
+					</constructor-arg>
+				</bean>
+			</property>
+
+			<property name="connectors">
+				<list>
+					<bean class="org.eclipse.jetty.server.ssl.SslSelectChannelConnector">
+						<property name="port" value="8443" />
+						<property name="acceptors" value="2" />
+						<property name="maxIdleTime" value="300000" />
+						<property name="keystore" value="${JSHOMEDIR}/config/security/keystore" />
+						<property name="password" value="${KEYSTORE_KEY}" />
+						<property name="keyPassword" value="${KEYSTORE_KEY}" />
+						<property name="truststore" value="${JSHOMEDIR}/config/security/keystore" />
+						<property name="trustPassword" value="${KEYSTORE_KEY}" />
+					</bean>
+				</list>
+			</property>
+			<property name="handler">
+				<bean class="org.eclipse.jetty.server.handler.HandlerCollection">
+					<property name="handlers">
+						<list>
+							<bean class="org.eclipse.jetty.server.handler.ContextHandlerCollection" />
+							<bean class="org.eclipse.jetty.server.handler.DefaultHandler" />
+						</list>
+					</property>
+				</bean>
+			</property>
+		</bean>
+	</beans>
+
+	<beans profile="nonsecure,secure,default">
+		<bean id="jetty" class="org.eclipse.jetty.server.Server">
+
+			<property name="threadPool">
+				<bean
+					class="org.openspaces.pu.container.jee.jetty.holder.SharedThreadPool">
+					<constructor-arg>
+						<bean class="org.eclipse.jetty.util.thread.QueuedThreadPool">
+							<property name="minThreads" value="${web.threadPool.minThreads}" />
+							<property name="maxThreads" value="${web.threadPool.maxThreads}" />
+						</bean>
+					</constructor-arg>
+				</bean>
+			</property>
+
+			<property name="connectors">
+				<list>
+					<bean class="org.eclipse.jetty.server.nio.SelectChannelConnector">
+						<property name="port" ref="port" />
+						<property name="maxIdleTime" value="${web.selector.maxIdleTime}" />
+						<property name="acceptors" value="${web.selector.acceptors}" />
+						<property name="statsOn" value="${web.statsOn}" />
+						<property name="confidentialPort" ref="confidentialPort" />
+						<property name="lowResourcesConnections" value="${web.selector.lowResourcesConnections}" />
+						<property name="lowResourcesMaxIdleTime" value="${web.selector.lowResourcesMaxIdleTime}" />
+						<property name="forwarded" value="${web.selector.forwarded}" />
+					</bean>
+				</list>
+			</property>
+			<property name="handler">
+				<bean class="org.eclipse.jetty.server.handler.HandlerCollection">
+					<property name="handlers">
+						<list>
+							<bean class="org.eclipse.jetty.server.handler.ContextHandlerCollection" />
+							<bean class="org.eclipse.jetty.server.handler.DefaultHandler" />
+						</list>
+					</property>
+				</bean>
+			</property>
+		</bean>
+	</beans>
+
+
 </beans>

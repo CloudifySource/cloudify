@@ -312,6 +312,16 @@ public class GSRestClient {
                     logger.log(Level.FINE, httpMethod.getURI() + " response body " + responseBody);
                 }
                 try {
+                	if (statusCode == CloudifyConstants.HTTP_STATUS_NOT_FOUND) {
+                        throw new ErrorStatusException("URL_not_found", httpMethod.getURI());
+                    } else if (statusCode == CloudifyConstants.HTTP_STATUS_ACCESS_DENIED) {
+                        throw new ErrorStatusException(CloudifyErrorMessages.NO_PERMISSION_ACCESS_DENIED.getName(),
+                        		httpMethod.getURI());
+                    } else if (statusCode == CloudifyConstants.HTTP_STATUS_BAD_CREDENTIALS) {
+                        throw new ErrorStatusException(CloudifyErrorMessages.BAD_CREDENTIALS.getName(),
+                        		httpMethod.getURI());
+                    }
+                 
                 	final Map<String, Object> errorMap = GSRestClient.jsonToMap(responseBody);
                     final String status = (String) errorMap.get(STATUS_KEY);
                     if (ERROR.equals(status)) {
@@ -327,16 +337,6 @@ public class GSRestClient {
                         throw e;
                     }
                 } catch (final IOException e) {
-                    if (statusCode == CloudifyConstants.HTTP_STATUS_NOT_FOUND) {
-                        throw new ErrorStatusException(e, "URL_not_found", httpMethod.getURI());
-                    } else if (statusCode == CloudifyConstants.HTTP_STATUS_ACCESS_DENIED) {
-                        throw new ErrorStatusException(e, CloudifyErrorMessages.NO_PERMISSION_ACCESS_DENIED.getName(),
-                        		httpMethod.getURI());
-                    } else if (statusCode == CloudifyConstants.HTTP_STATUS_BAD_CREDENTIALS) {
-                        throw new ErrorStatusException(e, CloudifyErrorMessages.BAD_CREDENTIALS.getName(),
-                        		httpMethod.getURI());
-                    }
-                    
                     throw new ErrorStatusException(e, "CLI_unable_to_parse_to_JSON", responseBody);
                 }
             }
@@ -607,6 +607,16 @@ public class GSRestClient {
 
         reqEntity.addPart("file", bin);
         reqEntity.addPart("props", propsFile);
+        
+        if (params != null) {
+        	try {
+        		for (Map.Entry<String, String> param : params.entrySet()) {
+        			reqEntity.addPart(param.getKey(), new StringBody(param.getValue(), Charset.forName("UTF-8")));        		
+        		}
+        	} catch (final IOException e) {
+        		throw new RestException(e);
+        	}
+        }
 
         final HttpPost httppost = new HttpPost(getFullUrl(relativeUrl));
         httppost.setEntity(reqEntity);
@@ -641,8 +651,8 @@ public class GSRestClient {
      * @return The response object from the REST server
      * @throws RestException Reporting failure to post the file or the parameter.
      */
-    public final Object postFile(final String relativeUrl, final File file, final File cloudOverrides, final Map<String, String> params)
-            throws RestException {
+    public final Object postFile(final String relativeUrl, final File file, final File cloudOverrides, 
+    		final Map<String, String> params) throws RestException {
 
         final MultipartEntity entity = new MultipartEntity();
         
@@ -711,6 +721,7 @@ public class GSRestClient {
     public final DefaultHttpClient getSSLHttpClient() throws RestException {
         try {
             final KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            //TODO : support self-signed certs if configured by user upon "connect"
             trustStore.load(null, null);
 
             final SSLSocketFactory sf = new RestSSLSocketFactory(trustStore);

@@ -66,6 +66,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	private boolean waitForConnection;
 	private List<LocalhostBootstrapperListener> eventsListenersList = new ArrayList<LocalhostBootstrapperListener>();
 	private boolean isLocalcloud;
+	private boolean isSecureConnection; //Indicates whether the connection to this web server is secure (SSL)
 
 	/**
 	 * Sets the service's port.
@@ -251,7 +252,8 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 			}
 		});
 
-		final URL url = getWebProcessingUnitURL(agent, getProcessingUnit());
+		// TODO [noak]: verify this always the correct port (SSL-wise) ?
+		final URL url = getWebProcessingUnitURL(agent, getProcessingUnit(), isSecureConnection);
 		final String serviceNameCapital = StringUtils.capitalize(serviceName);
 		String returnMessage = ShellUtils.getMessageBundle().getString("web_service_available_at");
 		logger.fine(returnMessage);
@@ -283,7 +285,8 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	 *             Reporting different errors while creating the connection to the service
 	 */
 	private void waitForConnection(final AdminFacade adminFacade, final String username, final String password,
-			final URL url, final long timeout, final TimeUnit timeunit) throws InterruptedException, TimeoutException,
+			final URL url, final long timeout, final TimeUnit timeunit)
+					throws InterruptedException, TimeoutException,
 			CLIException {
 		adminFacade.disconnect();
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
@@ -294,7 +297,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 			public boolean isDone() throws CLIException, InterruptedException {
 
 				try {
-					adminFacade.connect(username, password, url.toString());
+					adminFacade.connect(username, password, url.toString(), isSecureConnection);
 					return true;
 				} catch (final CLIException e) {
 					if (verbose) {
@@ -403,7 +406,8 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	 *            The processing unit to find an instance of, for construction of the requested URL
 	 * @return URL to a specific processing unit instance
 	 */
-	public static URL getWebProcessingUnitURL(final GridServiceAgent agent, final ProcessingUnit pu) {
+	public static URL getWebProcessingUnitURL(final GridServiceAgent agent, final ProcessingUnit pu, 
+			final boolean isSecureConnection) {
 		ProcessingUnitInstance pui = null;
 
 		for (final ProcessingUnitInstance instance : pu.getInstances()) {
@@ -425,7 +429,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 		final String host = details.getAttributes().get("host").toString();
 		final String port = details.getAttributes().get("port").toString();
 		final String ctx = details.getAttributes().get("context-path").toString();
-		final String url = "http://" + host + ":" + port + ctx;
+		final String url = ShellUtils.getRestProtocol(isSecureConnection) + "://" + host + ":" + port + ctx;
 		try {
 			return new URL(url);
 		} catch (final MalformedURLException e) {
@@ -468,6 +472,10 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 
 	public void setIsLocalCloud(boolean isLocalCloud) {
 		this.isLocalcloud = isLocalCloud;
+	}
+	
+	public void setIsSecureConnection(boolean isSecureConnection) {
+		this.isSecureConnection = isSecureConnection;
 	}
 
 }

@@ -22,7 +22,6 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
-import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
@@ -31,9 +30,9 @@ public class BooleanDelegatingFilterProxy extends DelegatingFilterProxy{
 	@Override
 	public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain filterChain)
 				throws ServletException, IOException {
-		final String springSecured = System.getenv(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR);
+		final String springSecurityProfile = System.getenv(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR);
 
-	    if (StringUtils.isNotBlank(springSecured) && springSecured.equalsIgnoreCase("true")) {
+	    if (CloudifyConstants.SPRING_PROFILE_SSL.equalsIgnoreCase(springSecurityProfile)) {
 	    	// Call the delegate
 		      super.doFilter(request, response, filterChain);
 	    } else {

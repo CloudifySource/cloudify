@@ -46,9 +46,13 @@ public class Connect extends AbstractGSCommand {
     @Option(required = false, description = "The password when connecting to a secure admin server", name = "-pwd",
             aliases = {"-password" })
     private String password;
+    
+    @Option(required = false, description = "True if this is a secured connection (SSL)", name = "-secured")
+    private boolean secured;
 
     @Argument(required = true, name = "URL", description = "the URL of the REST admin server to connect to")
     private String url = "";
+    
 
     /**
      * {@inheritDoc}
@@ -56,7 +60,7 @@ public class Connect extends AbstractGSCommand {
     @Override
     protected Object doExecute() throws Exception {
         final AdminFacade adminFacade = (AdminFacade) session.get(Constants.ADMIN_FACADE);
-        adminFacade.connect(user, password, url);
+        adminFacade.connect(user, password, url, secured);
         return getFormattedMessage("connected_successfully", Color.GREEN);
     }
 

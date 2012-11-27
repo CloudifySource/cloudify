@@ -23,12 +23,15 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.CloudifyLicenseVerifier;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
+
+import com.j_spaces.kernel.Environment;
 
 /**
  * @author rafi, barakm
@@ -67,8 +70,11 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 public class StartManagement extends AbstractGSCommand {
 
 	private static final int DEFAULT_PROGRESS_INTERVAL_SECONDS = 10;
-
 	private static final int DEFAULT_TIMEOUNT_MINUTES = 5;
+	
+	private static final String PATH_SEPARATOR = System.getProperty("file.separator");
+	private static final String CLOUDIFY_HOME = Environment.getHomeDirectory();
+	private static final String DEFAULT_SECURITY_FOLDER = CLOUDIFY_HOME + PATH_SEPARATOR + "config" + PATH_SEPARATOR + "security";
 
 	@Option(required = false, name = "-lookup-groups", description = "A unique name that is used to group together "
 			+ "different Cloudify machines. Default is based on the product version. Override in order to group "
@@ -90,9 +96,6 @@ public class StartManagement extends AbstractGSCommand {
     @Option(required = false, description = "The password for a secure connection to the rest server", name = "-pwd",
             aliases = {"-password" })
     private String password;
-    
-    @Option(required = false, description = "Path to a custom spring security configuration file", name = "-security")
-    private String securityFilePath;
 
 	@Option(required = false, name = "-no-web-services",
 			description = "if set, no attempt to deploy the rest admin and" + " web-ui will be made")
@@ -114,7 +117,8 @@ public class StartManagement extends AbstractGSCommand {
 			+ " configuration file")
 	private String cloudFileName;
 	
-	private boolean isSecurityOn = false;
+	private static String securityProfile = System.getenv(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR);
+	private static final String keystorePassword = System.getenv(CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR);
 
 	/**
 	 * {@inheritDoc}
@@ -140,12 +144,12 @@ public class StartManagement extends AbstractGSCommand {
 		installer.setNoWebServices(noWebServices);
 		installer.setNoManagementSpace(noManagementSpace);
 		installer.setNotHighlyAvailableManagementSpace(isNotHAManagementSpace());
-		
 		installer.setAutoShutdown(autoShutdown);
 		installer.setWaitForWebui(true);
 		installer.setCloudFilePath(cloudFileName);
 
-		installer.startManagementOnLocalhostAndWait(isSecurityOn, username, password, getTimeoutInMinutes(), TimeUnit.MINUTES);
+		installer.startManagementOnLocalhostAndWait(securityProfile, username, password, keystorePassword, 
+				getTimeoutInMinutes(), TimeUnit.MINUTES);
 		return "Management started successfully. Use the shutdown-management command to shutdown"
 				+ " management processes running on local machine.";
 	}
@@ -182,6 +186,9 @@ public class StartManagement extends AbstractGSCommand {
 	}
 	
 	private void setSecurityMode() {
+		String defaultSecurityFilePath = DEFAULT_SECURITY_FOLDER + PATH_SEPARATOR + "spring-security.xml";
+		String defaultKeystoreFilePath = DEFAULT_SECURITY_FOLDER + PATH_SEPARATOR + "keystore";
+		
 		if (StringUtils.isNotBlank(username) && StringUtils.isBlank(password)) {
 			throw new IllegalArgumentException("Password is missing or empty");
 		}
@@ -190,11 +197,30 @@ public class StartManagement extends AbstractGSCommand {
 			throw new IllegalArgumentException("Username is missing or empty");
 		}
 		
-		if ((StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) ||
-				StringUtils.isNotBlank(securityFilePath)) {
-			
-			//activate security
-			isSecurityOn = true;
+		//no need to copy security config file / keystore file since we're on the mgmt server.
+		if (StringUtils.isBlank(securityProfile)) {
+			// TODO [noak] : log this, warning?
+			securityProfile = CloudifyConstants.SPRING_PROFILE_NON_SECURE;
+		}
+
+		// The security files are expected to be in <cloudify home>\config\security
+		if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE)
+				|| securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SSL)) {
+			//verify we have the security config file at place
+			File securityConfigFile = new File(defaultSecurityFilePath);
+			if (!securityConfigFile.isFile()) {
+				throw new IllegalArgumentException("Security configuration file not found on management server at the "
+						+ "expected location: " + defaultSecurityFilePath);
+			}
+		}
+		
+		if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SSL)) {
+			//verify we have the keystore file at place
+			File keystoreFile = new File(defaultKeystoreFilePath);
+			if (!keystoreFile.isFile()) {
+				throw new IllegalArgumentException("Keystore file not found on management server at the expected "
+						+ "location: " + defaultKeystoreFilePath);
+			}
 		}
 	}
 

@@ -97,7 +97,8 @@ public class StartAgent extends AbstractGSCommand {
 		installer.setGridServiceAgentZone(zone);
 		installer.setAutoShutdown(autoShutdown);
 
-		installer.startAgentOnLocalhostAndWait(false /*isSecurityOn*/, timeoutInMinutes, TimeUnit.MINUTES);
+		installer.startAgentOnLocalhostAndWait("" /*securityProfile*/, "" /*keystorePassword*/, timeoutInMinutes,
+				TimeUnit.MINUTES);
 		return "Agent started succesfully. Use the shutdown-agent command to shutdown agent running on local machine.";
 	}
 }

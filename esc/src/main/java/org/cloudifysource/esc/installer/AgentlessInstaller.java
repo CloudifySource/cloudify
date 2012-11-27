@@ -631,8 +631,7 @@ public class AgentlessInstaller {
 		final ShellCommandBuilder scb = new ShellCommandBuilder(details.getRemoteExecutionMode())
 				.exportVar(LUS_IP_ADDRESS_ENV, details.getLocator())
 				.exportVar(GSA_MODE_ENV, details.isLus() ? "lus" : "agent")
-				.exportVar(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR,	details.isSecurityOn()
-						? CloudifyConstants.SPRING_PROFILE_SECURE : CloudifyConstants.SPRING_PROFILE_NON_SECURE)
+				.exportVar(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR,	details.getSecurityProfile())
 				.exportVar(NO_WEB_SERVICES_ENV,
 						details.isNoWebServices() ? "true" : "false")
 				.exportVar(
@@ -672,6 +671,9 @@ public class AgentlessInstaller {
 		}
 		if (details.getPassword() != null) {
 			scb.exportVar("PASSWORD", details.getPassword());
+		}
+		if (StringUtils.isNotBlank(details.getKeystorePassword())) {
+			scb.exportVar(CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR, details.getKeystorePassword());
 		}
 
 		final Set<Entry<String, String>> entries = details.getExtraRemoteEnvironmentVariables().entrySet();

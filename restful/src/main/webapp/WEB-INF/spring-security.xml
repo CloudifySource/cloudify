@@ -9,17 +9,18 @@
 	<sec:authentication-manager alias="authenticationManager">
 		<sec:authentication-provider>
 			<sec:user-service>
+				<sec:user name="Superuser" password="Superuser" authorities="ROLE_CLOUDADMINS, ROLE_APPMANAGERS, ROLE_VIEWERS" />
 				<sec:user name="Amanda" password="Amanda" authorities="ROLE_CLOUDADMINS" />
 				<sec:user name="Dana" password="Dana" authorities="ROLE_CLOUDADMINS, ROLE_APPMANAGERS" />
-				<sec:user name="Dan" password="Dan" authorities="ROLE_APP_MANAGERS" />
-				<sec:user name="Don" password="Don" authorities="ROLE_APP_MANAGERS, ROLE_VIEWERS" />
+				<sec:user name="Dan" password="Dan" authorities="ROLE_APPMANAGERS" />
+				<sec:user name="Don" password="Don" authorities="ROLE_APPMANAGERS, ROLE_VIEWERS" />
 				<sec:user name="John" password="John" authorities="ROLE_VIEWERS" />
 				<sec:user name="Jane" password="Jane" authorities="" />
 			</sec:user-service>
 		</sec:authentication-provider>
 	</sec:authentication-manager>
 		
-	<beans profile="nonsecure">
+	<beans profile="nonsecure,default">
 		<sec:http auto-config='true' use-expressions="true">
 			<sec:intercept-url pattern="/**" access="permitAll" />
 			<sec:http-basic />
@@ -28,22 +29,68 @@
 	</beans>	
 
 	<beans profile="secure">
+	<!--beans-->
 		<!-- to limit HTTP access to the application replace the above http section 
-			with this one: -->
+			with this one or use the "nonsecure" spring profile: -->
 		<sec:http entry-point-ref="basicAuthEntryPoint" auto-config="false"
 			create-session="never" use-expressions="true">
 			<!--sec:anonymous enabled="false" /-->
-			<sec:intercept-url pattern="/admin/**"
+			<sec:intercept-url pattern="/admin/**" requires-channel="http"
 				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')" />
-			<sec:intercept-url pattern="/service/testrest"
+			<sec:intercept-url pattern="/service/testrest" requires-channel="http"
 				access="permitAll" />
-			<sec:intercept-url pattern="/service/testlogin"
+			<sec:intercept-url pattern="/service/testlogin" requires-channel="http"
 				access="isFullyAuthenticated()" />
-			<sec:intercept-url pattern="/service/**"
+			<sec:intercept-url pattern="/service/**" requires-channel="http"
 				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS', 'ROLE_VIEWERS')" />
-			<sec:intercept-url pattern="/attributes/**"
+			<sec:intercept-url pattern="/attributes/**" requires-channel="http"
 				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')" />
-			<sec:intercept-url pattern="/**" access="isFullyAuthenticated()" />
+			<sec:intercept-url pattern="/**" requires-channel="http" access="isFullyAuthenticated()" />
+			<sec:custom-filter ref="basicAuthenticationFilter"
+				after="BASIC_AUTH_FILTER" />
+			<sec:logout />
+		</sec:http>
+		
+		<bean id="basicAuthEntryPoint"
+			class="org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint">
+			<property name="realmName" value="REST Realm" />
+		</bean>
+
+		<bean id="basicAuthenticationFilter"
+			class="org.springframework.security.web.authentication.www.BasicAuthenticationFilter">
+			<property name="authenticationManager" ref="authenticationManager" />
+			<property name="authenticationEntryPoint" ref="basicAuthEntryPoint" />
+		</bean>
+		
+		<!-- to connect to a LDAP user-store replace the above authentication-manager 
+			with this one, and enter your ldap settings -->
+		<!--ldap-server url="ldap://yourLdapIP:389/dc=yourdomain,dc=com"/> <authentication-manager 
+			alias="authenticationManager"> <ldap-authentication-provider user-search-filter="uid={0}" 
+			user-search-base="ou=people" group-search-base="ou=groups" group-search-filter="member={0}"/> 
+			</authentication-manager -->
+
+		<!--bean id="tdrUserDetailsContextMapper" class="com.bla.bla.UserDetailsContextMapperImpl"/ -->
+		
+	</beans>
+	
+	<beans profile="ssl">
+	<!--beans-->
+		<!-- to limit HTTP access to the application replace the above http section 
+			with this one or use the "nonsecure" spring profile: -->
+		<sec:http entry-point-ref="basicAuthEntryPoint" auto-config="false"
+			create-session="never" use-expressions="true">
+			<!--sec:anonymous enabled="false" /-->
+			<sec:intercept-url pattern="/admin/**" requires-channel="https"
+				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')" />
+			<sec:intercept-url pattern="/service/testrest" requires-channel="https"
+				access="permitAll" />
+			<sec:intercept-url pattern="/service/testlogin" requires-channel="https"
+				access="isFullyAuthenticated()" />
+			<sec:intercept-url pattern="/service/**" requires-channel="https"
+				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS', 'ROLE_VIEWERS')" />
+			<sec:intercept-url pattern="/attributes/**" requires-channel="https"
+				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')" />
+			<sec:intercept-url pattern="/**" requires-channel="https" access="isFullyAuthenticated()" />
 			<sec:custom-filter ref="basicAuthenticationFilter"
 				after="BASIC_AUTH_FILTER" />
 			<sec:logout />

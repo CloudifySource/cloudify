@@ -15,9 +15,32 @@
  *******************************************************************************/
 package org.cloudifysource.shell;
 
-import com.j_spaces.kernel.Environment;
-import com.j_spaces.kernel.PlatformVersion;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.apache.felix.service.command.CommandSession;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
 import org.fusesource.jansi.Ansi;
@@ -27,13 +50,8 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.*;
-import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.j_spaces.kernel.Environment;
+import com.j_spaces.kernel.PlatformVersion;
 
 /**
  * @author rafi, barakm
@@ -440,4 +458,100 @@ public final class ShellUtils {
 			}
 		}
 	}
+	
+	/**
+	 * Checks if the passed security profile uses a secure connection (SSL).
+	 * @param springSecurityProfile The name of the security profile
+	 * @return true - if the profile indicates SSL is used, false otherwise.
+	 */
+	public static boolean isSecureConnection(final String springSecurityProfile) {
+		return CloudifyConstants.SPRING_PROFILE_SSL.equalsIgnoreCase(springSecurityProfile);
+	}
+	
+	/**
+	 * Returns the name of the protocol used for communication with the rest server.
+	 * If the security is secure (SSL) returns "https", otherwise returns "http".
+	 * @param springSecurityProfile The name of the security profile
+	 * @return "https" if this is a secure connection, "http" otherwise.
+	 */
+	public static String getRestProtocol(final String springSecurityProfile) {
+		return getRestProtocol(isSecureConnection(springSecurityProfile));
+	}
+	
+	/**
+	 * Returns the name of the protocol used for communication with the rest server.
+	 * If the security is secure (SSL) returns "https", otherwise returns "http".
+	 * @param isSecureConnection Indicates whether SSL is used or not.
+	 * @return "https" if this is a secure connection, "http" otherwise.
+	 */
+	public static String getRestProtocol(final boolean isSecureConnection) {
+		if (isSecureConnection) {
+			return "https";
+		} else {
+			return "http";
+		}
+	}
+	
+	/**
+	 * Returns the port used for communication with the rest server.
+	 * If the security is secure (SSL) returns "8443", otherwise returns "8100".
+	 * @param isSecureConnection Indicates whether SSL is used or not.
+	 * @return 8443 if this is a secure connection, 8100 otherwise.
+	 */
+	public static int getRestPort(final String springSecurityProfile) {
+		return getRestPort(isSecureConnection(springSecurityProfile));
+	}
+	
+	/**
+	 * Returns the port used for communication with the rest server.
+	 * If the security is secure (SSL) returns "8443", otherwise returns "8100".
+	 * @param isSecureConnection Indicates whether SSL is used or not.
+	 * @return 8443 if this is a secure connection, 8100 otherwise.
+	 */
+	public static int getRestPort(final boolean isSecureConnection) {
+		if (isSecureConnection) {
+			return CloudifyConstants.SECURE_REST_PORT;
+		} else {
+			return CloudifyConstants.DEFAULT_REST_PORT;
+		}
+	}
+	
+	/**
+	 * Returns the port used for communication with the rest server.
+	 * If the security is secure (SSL) returns "8443", otherwise returns "8100".
+	 * @param isSecureConnection Indicates whether SSL is used or not.
+	 * @return "8443" if this is a secure connection, "8100" otherwise.
+	 */
+	public static String getRestPortAsString(final boolean isSecureConnection) {
+		return Integer.toString(getRestPort(isSecureConnection));
+	}
+	
+	public static String getFormattedRestUrl(String url, String springSecurityProfile) throws MalformedURLException {
+		return getFormattedRestUrl(url, isSecureConnection(springSecurityProfile));		
+	}
+	
+	public static String getFormattedRestUrl(String url, boolean isSecureConnection) throws MalformedURLException {
+		String formattedURL = url;
+		if (!formattedURL.endsWith("/")) {
+			formattedURL = formattedURL + '/';
+		}
+		
+		String protocolPrefix = ShellUtils.getRestProtocol(isSecureConnection) + "://";
+		if (!formattedURL.startsWith("http://") && !formattedURL.startsWith("https://")) {
+			formattedURL = protocolPrefix + formattedURL;
+		}
+
+		URL urlObj;
+		urlObj = new URL(formattedURL);
+		if (urlObj.getPort() == -1) {
+			final StringBuilder urlSB = new StringBuilder(formattedURL);
+			final int portIndex = formattedURL.indexOf("/", protocolPrefix.length());
+			urlSB.insert(portIndex, ':' + ShellUtils.getRestPortAsString(isSecureConnection));
+			formattedURL = urlSB.toString();
+			urlObj = new URL(formattedURL);
+		}
+		
+		return formattedURL;
+	}
+	
 }

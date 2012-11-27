@@ -190,6 +190,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	private static final int MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED = 1000;
 	private static final int DEFAULT_TIME_EXTENTION_POLLING_TASK = 5;
+	private static final int TIMEOUT_WAITING_FOR_GSM_SEC = 10;
 	private static final int THREAD_POOL_SIZE = 20;
 	private static final int PU_DISCOVERY_TIMEOUT_SEC = 8;
 	private static final int LIFECYCLE_EVENT_POLLING_INTERVAL_SEC = 4;
@@ -347,7 +348,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "Failed to generate dump"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "IOException") })
 	@RequestMapping(value = "/dump/machines", method = RequestMethod.GET)
-	@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'admin')")
+	@PreAuthorize("isFullyAuthenticated() and hasRole('ROLE_CLOUDADMINS')")
 	@ResponseBody
 	public Map<String, Object> getMachineDumpFile(
 			@RequestParam(defaultValue = DEFAULT_DUMP_PROCESSORS) final String processors,
@@ -383,8 +384,9 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "Failed to generate dump"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "IOException") })
 	@RequestMapping(value = "/dump/machine/{ip}/", method = RequestMethod.GET)
-	public @ResponseBody
-	Map<String, Object> getMachineDumpFile(
+	@PreAuthorize("isFullyAuthenticated() and hasRole('ROLE_CLOUDADMINS')")
+	@ResponseBody
+	public Map<String, Object> getMachineDumpFile(
 			@PathVariable final String ip,
 			@RequestParam(defaultValue = DEFAULT_DUMP_PROCESSORS) final String processors,
 			@RequestParam(defaultValue = "" + DEFAULT_DUMP_FILE_SIZE_LIMIT) final long fileSizeLimit)
@@ -452,8 +454,9 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "Failed to generate dump"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "IOException") })
 	@RequestMapping(value = "/dump/processing-units/", method = RequestMethod.GET)
-	public @ResponseBody
-	Map<String, Object> getPUDumpFile(@RequestParam(defaultValue = ""
+	@PreAuthorize("isFullyAuthenticated() and hasRole('ROLE_CLOUDADMINS')")
+	@ResponseBody
+	public Map<String, Object> getPUDumpFile(@RequestParam(defaultValue = ""
 			+ DEFAULT_DUMP_FILE_SIZE_LIMIT) final long fileSizeLimit)
 			throws IOException, RestErrorException {
 
@@ -692,8 +695,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			comments = "response status is success if the user authentication was successful"
 					+ ", otherwise it is error and the response's body will contain the error description.")
 	@RequestMapping(value = "/testlogin", method = RequestMethod.GET)
-	public @ResponseBody
-	Object testLogin() throws RestErrorException {
+	@ResponseBody
+	public Object testLogin() throws RestErrorException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
 			throw new RestErrorException("Login failed.");
@@ -754,15 +757,15 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * details.
 	 * 
 	 * @return a list of all the deployed applications in the service grid.
-	 * @throws RestErrorException
+	 * @throws RestErrorException .
 	 */
 	@JsonResponseExample(status = "success", responseBody = "[\"petclinic\", \"travel\"]",
 			comments = "In the example, the deployed applications in the service grid are petclinic and travel")
 	@PossibleResponseStatuses(responseStatuses = { @PossibleResponseStatus(code = HTTP_OK, description = "success") })
 	@RequestMapping(value = "/applications/description", method = RequestMethod.GET)
 	@PostFilter("hasPermission(filterObject, 'view')")
-	public @ResponseBody
-	Map<String, Object> getApplicationDescriptionsList() throws RestErrorException {
+	@ResponseBody
+	public Map<String, Object> getApplicationDescriptionsList() throws RestErrorException {
 
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to list application descriptions");
@@ -971,9 +974,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/beans/{beanName}/invoke",
 			method = RequestMethod.POST)
 	@PreAuthorize("isFullyAuthenticated()")
-	@PostFilter("hasPermission(filterObject, 'view')")
-	public @ResponseBody
-	Map<String, Object> invoke(@PathVariable final String applicationName,
+	@ResponseBody
+	public Map<String, Object> invoke(@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
 			@PathVariable final String beanName,
 			@RequestBody final Map<String, Object> params)
@@ -993,7 +995,13 @@ public class ServiceController implements ServiceDetailsProvider {
 			logger.severe("Could not find service " + absolutePuName);
 			return unavailableServiceError(absolutePuName);
 		}
-
+		
+		if (permissionEvaluator != null) {
+			String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
+					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+			permissionEvaluator.verifyPermission(puAuthGroups, "deploy");
+		}
+		
 		// result, mapping service instances to results
 		final Map<String, Object> invocationResult = new HashMap<String, Object>();
 		final ProcessingUnitInstance[] instances = pu.getInstances();
@@ -1103,8 +1111,9 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_invoke_instance") })
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances"
 			+ "/{instanceId}/beans/{beanName}/invoke", method = RequestMethod.POST)
-	public @ResponseBody
-	Map<String, Object> invokeInstance(
+	@PreAuthorize("isFullyAuthenticated()")
+	@ResponseBody
+	public Map<String, Object> invokeInstance(
 			@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
 			@PathVariable final int instanceId,
@@ -1122,15 +1131,22 @@ public class ServiceController implements ServiceDetailsProvider {
 		// Get PU
 		final ProcessingUnit pu = admin.getProcessingUnits().waitFor(
 				absolutePuName, PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
+		
 		if (pu == null) {
 			logger.severe("Could not find service " + absolutePuName);
 			return unavailableServiceError(absolutePuName);
+		}
+		
+		if (permissionEvaluator != null) {
+			String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
+					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+			permissionEvaluator.verifyPermission(puAuthGroups, "deploy");
 		}
 
 		// Get PUI
 		final InternalProcessingUnitInstance pui = findInstanceById(pu,
 				instanceId);
-
+		
 		if (pui == null) {
 			logger.severe("Could not find service instance " + instanceId
 					+ " for service " + absolutePuName);
@@ -1217,7 +1233,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			"applications/{applicationName}/services/{serviceName}/timeout/{timeoutInMinutes}/undeploy",
 			method = RequestMethod.DELETE)
 	public @ResponseBody
-	@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
+	@PreAuthorize("isFullyAuthenticated()")
 	Map<String, Object> undeploy(@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
 			@PathVariable final int timeoutInMinutes) throws RestErrorException {
@@ -1228,6 +1244,12 @@ public class ServiceController implements ServiceDetailsProvider {
 						TimeUnit.SECONDS);
 		if (processingUnit == null) {
 			return unavailableServiceError(absolutePuName);
+		}
+		
+		if (permissionEvaluator != null) {
+			String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties().
+					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+			permissionEvaluator.verifyPermission(puAuthGroups, "deploy");
 		}
 
 		final FutureTask<Boolean> undeployTask = new FutureTask<Boolean>(
@@ -1296,9 +1318,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	 */
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/addinstance",
 			method = RequestMethod.POST)
-	public @ResponseBody
-	@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
-	Map<String, Object> addInstance(@PathVariable final String applicationName,
+	@PreAuthorize("isFullyAuthenticated()")
+	@ResponseBody
+	public Map<String, Object> addInstance(@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
 			@RequestBody final Map<String, String> params)
 			throws RestErrorException {
@@ -1317,6 +1339,13 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (processingUnit == null) {
 			return unavailableServiceError(absolutePuName);
 		}
+		
+		if (permissionEvaluator != null) {
+			String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties().
+					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+			permissionEvaluator.verifyPermission(puAuthGroups, "deploy");
+		}
+		
 		final int before = processingUnit.getNumberOfInstances();
 		processingUnit.incrementInstance();
 		final boolean result = processingUnit.waitFor(before + 1, timeout,
@@ -1349,8 +1378,9 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "service_instance_unavailable") })
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances/{instanceId}/remove",
 			method = RequestMethod.DELETE)
-	public @ResponseBody
-	Map<String, Object> removeInstance(
+	@PreAuthorize("isFullyAuthenticated()")
+	@ResponseBody
+	public Map<String, Object> removeInstance(
 			@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
 			@PathVariable final int instanceId) throws RestErrorException {
@@ -1363,6 +1393,13 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (processingUnit == null) {
 			return unavailableServiceError(absolutePuName);
 		}
+		
+		if (permissionEvaluator != null) {
+			String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties().
+					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+			permissionEvaluator.verifyPermission(puAuthGroups, "deploy");
+		}
+		
 		for (final ProcessingUnitInstance instance : processingUnit
 				.getInstances()) {
 			if (instance.getInstanceId() == instanceId) {
@@ -1434,13 +1471,9 @@ public class ServiceController implements ServiceDetailsProvider {
 					e);
 		} else {
 			final String message;
-			if (e instanceof AccessDeniedException) {
+			if (e instanceof AccessDeniedException || e instanceof BadCredentialsException) {
 				message = "{\"status\":\"error\", \"error\":\""
 						+ CloudifyErrorMessages.NO_PERMISSION_ACCESS_DENIED.getName() + "\"}";
-			} else if (e instanceof BadCredentialsException) {
-				message = "{\"status\":\"error\", \"error\":\""
-						+ CloudifyErrorMessages.BAD_CREDENTIALS.getName() + "\"}";
-			} else {
 				// Some sort of unhandled application exception.
 				logger.log(Level.WARNING, "An unexpected error was thrown: " + e.getMessage(), e);
 
@@ -1525,12 +1558,13 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_app") })
 	@RequestMapping(value = "applications/{applicationName}/timeout/{timeoutInMinutes}", method = RequestMethod.DELETE)
-	public @ResponseBody
-	@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
-	Map<String, Object> uninstallApplication(
+	@PreAuthorize("isFullyAuthenticated()")
+	@ResponseBody
+	public Map<String, Object> uninstallApplication(
 			@PathVariable final String applicationName,
 			@PathVariable final int timeoutInMinutes) throws RestErrorException {
 
+		final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		// Check that Application exists
 		final Application app = this.admin.getApplications().waitFor(
 				applicationName, 10, TimeUnit.SECONDS);
@@ -1546,6 +1580,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			throw new RestErrorException(
 					ResponseConstants.CANNOT_UNINSTALL_MANAGEMENT_APP);
 		}
+		
 		final ProcessingUnit[] pus = app.getProcessingUnits()
 				.getProcessingUnits();
 
@@ -1557,16 +1592,23 @@ public class ServiceController implements ServiceDetailsProvider {
 		logger.log(Level.INFO,
 				"Starting to poll for uninstall lifecycle events.");
 		if (uninstallOrder.size() > 0) {
+			
 			undeployTask = new FutureTask<Boolean>(new Runnable() {
 				private final long startTime = System.currentTimeMillis();
 
 				@Override
 				public void run() {
 					for (final ProcessingUnit processingUnit : uninstallOrder) {
+						if (permissionEvaluator != null) {
+							String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties(). 
+									getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+							permissionEvaluator.verifyPermission(authentication, puAuthGroups, "deploy");
+						}
+						
 						final long undeployTimeout = TimeUnit.MINUTES.toMillis(timeoutInMinutes)
 								- (System.currentTimeMillis() - startTime);
 						try {
-							if (processingUnit.waitForManaged(10,
+							if (processingUnit.waitForManaged(TIMEOUT_WAITING_FOR_GSM_SEC,
 									TimeUnit.SECONDS) == null) {
 								logger.log(Level.WARNING,
 										"Failed to locate GSM that is managing Processing Unit "
@@ -1705,6 +1747,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param recipeOverridesFile
 	 *            The application overrides file - to overrides the application
 	 *            properties.
+	 * @param cloudOverrides File of overriding cloud properties
 	 * @param selfHealing
 	 *            if true, there will be an attempt to restart the recipe in
 	 *            case a problem occurred in its life-cycle, otherwise, if the
@@ -1961,16 +2004,19 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             When polling task has expired or if the task ended
 	 *             unexpectedly.
 	 */
-	@JsonResponseExample(status = "success", responseBody = "{\"isDone\":false,\"lifecycleLogs\":[\"[service1] Deployed 1 planned 1\","
+	@JsonResponseExample(status = "success", responseBody = 
+				"{\"isDone\":false,\"lifecycleLogs\":[\"[service1] Deployed 1 planned 1\","
 			+ "\"Service &#92&#34service1&#92&#34 successfully installed (1 Instances)\"],"
 			+ "\"PollingTaskExpirationTimeMillis\":\"575218\",\"curserPos\":12}")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
-			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "Lifecycle events container with UUID ... does not exist or expired"),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, 
+				description = "Lifecycle events container with UUID ... does not exist or expired"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "execution exception message") })
-	@RequestMapping(value = "/lifecycleEventContainerID/{lifecycleEventContainerID}/cursor/{cursor}", method = RequestMethod.GET)
-	public @ResponseBody
-	Object getLifecycleEvents(
+	@RequestMapping(value = "/lifecycleEventContainerID/{lifecycleEventContainerID}/cursor/{cursor}", 
+		method = RequestMethod.GET)
+	@ResponseBody
+	public Object getLifecycleEvents(
 			@PathVariable final String lifecycleEventContainerID,
 			@PathVariable final int cursor) throws RestErrorException {
 		final Map<String, Object> resultsMap = new HashMap<String, Object>();
@@ -2674,7 +2720,6 @@ public class ServiceController implements ServiceDetailsProvider {
 	@JsonRequestExample(requestBody = "{\"zone\":5,\"template\":\"SMALL_LINUX\","
 			+ "\"file\":\"packaged service file\",\"props\":\"packaged properties file\"}")
 	@JsonResponseExample(status = "success", responseBody = "\"b41febb7-f48e-48d4-b14a-a6000d402d93\"")
-	@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "TimeoutException"),
@@ -2682,7 +2727,9 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "IOException"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "AdminException"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "DSLException") })
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeout}", method = RequestMethod.POST)
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeout}",
+		method = RequestMethod.POST)
+	@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
 	@ResponseBody
 	public Object deployElastic(
 			@PathVariable final String applicationName,
@@ -3316,18 +3363,20 @@ public class ServiceController implements ServiceDetailsProvider {
 	@JsonResponseExample(status = "success", responseBody = "{\"lifecycleEventContainerID\":\"eventContainerID\"}")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
-			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = ResponseConstants.FAILED_TO_LOCATE_SERVICE),
-			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = ResponseConstants.SERVICE_NOT_ELASTIC) })
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeout}/set-instances", method = RequestMethod.POST)
-	public @ResponseBody
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR,
+				description = ResponseConstants.FAILED_TO_LOCATE_SERVICE),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR,
+				description = ResponseConstants.SERVICE_NOT_ELASTIC) })
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeout}/set-instances",
+		method = RequestMethod.POST)
 	@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
-	Map<String, Object> setServiceInstances(
+	@ResponseBody
+	public Map<String, Object> setServiceInstances(
 			@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
 			@PathVariable final int timeout,
 			@RequestParam(value = "count", required = true) final int count,
-			@RequestParam(value = "location-aware", required = true) final boolean locationAware,
-			@RequestParam(value = "authGroups", required = false) String authGroups)
+			@RequestParam(value = "location-aware", required = true) final boolean locationAware)
 			throws DSLException, RestErrorException {
 
 		final Map<String, Object> returnMap = new HashMap<String, Object>();
@@ -3338,6 +3387,12 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (pu == null) {
 			throw new RestErrorException(
 					ResponseConstants.FAILED_TO_LOCATE_SERVICE, serviceName);
+		}
+		
+		if (permissionEvaluator != null) {
+			String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
+					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+			permissionEvaluator.verifyPermission(puAuthGroups, "deploy");
 		}
 
 		final Properties contextProperties = pu.getBeanLevelProperties()
@@ -3353,16 +3408,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		logger.info("Scaling " + puName + " to " + count + " instances");
-
-		// TODO how to set that as a context property on the new instance?
-		if (StringUtils.isBlank(authGroups)) {
-			if (permissionEvaluator != null) {
-				authGroups = permissionEvaluator.getUserAuthGroupsString();
-			} else {
-				authGroups = "";
-			}
-		}
-
+		
 		UUID eventContainerID;
 		if (cloud == null) {
 			if (isLocalCloud()) {
@@ -3411,7 +3457,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param numLines
 	 *            The number of lines to tail.
 	 * @return The last n lines of log of the requested service.
-	 * @throws RestErrorException
+	 * @throws RestErrorException .
 	 */
 	@JsonRequestExample(requestBody = "{\"numLines\":10}")
 	@JsonResponseExample(status = "success", responseBody = "\"log tail from container\"")
@@ -3459,7 +3505,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param numLines
 	 *            The number of lines to tail.
 	 * @return The last n lines of log of the requested service.
-	 * @throws RestErrorException
+	 * @throws RestErrorException .
 	 */
 	@JsonRequestExample(requestBody = "{\"numLines\" : 10}")
 	@JsonResponseExample(status = "success", responseBody = "\"numLines lines of log tail\"")

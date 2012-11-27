@@ -175,8 +175,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	private InstallationDetails createInstallationDetails(final Cloud cloud, final MachineDetails md, 
-			final GSAReservationId reservationId, final boolean isSecurityOn)
-			throws FileNotFoundException {
+			final GSAReservationId reservationId) throws FileNotFoundException {
 		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplateName);
 
 		// Start with the default zone that are also used for discovering agents
@@ -197,7 +196,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		final InstallationDetails details =
 				Utils.createInstallationDetails(md, cloud, template, zones, lookupLocatorsString,
 						this.originalESMAdmin, false,
-						null, reservationId, cloudTemplateName, isSecurityOn);
+						null, reservationId, cloudTemplateName, ""/*securityProfile*/, ""/*keystorePassword*/);
 
 		logger.info("Created new Installation Details: " + details);
 		return details;
@@ -417,7 +416,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		InstallationDetails installationDetails;
 		try {
 			//since only agents are started by this method, server-security is set to false
-			installationDetails = createInstallationDetails(cloud, machineDetails, reservationId, false);
+			installationDetails = createInstallationDetails(cloud, machineDetails, reservationId);
 		} catch (final FileNotFoundException e) {
 			throw new ElasticGridServiceAgentProvisioningException("Failed to create installation details for agent: "
 					+ e.getMessage(), e);

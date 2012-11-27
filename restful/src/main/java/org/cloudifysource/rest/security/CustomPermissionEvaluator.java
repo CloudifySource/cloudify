@@ -41,13 +41,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 public class CustomPermissionEvaluator implements PermissionEvaluator {
 	
+	// TODO [noak] : use authority groups and not roles
+	
 	private static final String PERMISSION_TO_DEPLOY = "deploy";
 	private static final String PERMISSION_TO_VIEW = "view";
 	private static final String AUTH_GROUPS_DELIMITER = ",";
 	private static final String ROLE_CLOUDADMIN = "ROLE_CLOUDADMINS";
 	private static final String ROLE_APPMANAGER = "ROLE_APPMANAGERS";
 	private static final String ROLE_VIEWER = "ROLE_VIEWERS";
-	private static final String IS_SPRING_SECURED = System.getenv(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR);
+	private static final String SPRING_SECURITY_PROFILE = 
+			System.getenv(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR);
 	
 	private Logger logger = java.util.logging.Logger.getLogger(CustomPermissionEvaluator.class.getName());
 
@@ -62,8 +65,8 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     public boolean hasPermission(final Authentication authentication, final Object targetDomainObject, 
     		final Object permission) {
 		
-		if (StringUtils.isBlank(IS_SPRING_SECURED) 
-				|| !IS_SPRING_SECURED.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE)) {
+		if (StringUtils.isBlank(SPRING_SECURITY_PROFILE) 
+				|| SPRING_SECURITY_PROFILE.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_NON_SECURE)) {
 			//security is off
 			return true;
 		}
@@ -158,11 +161,8 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 		
      	return permissionGranted;
     }
+	
 
-	/**
-	 * Another hasPermission signature. We will not implement this.
-	 * @param authentication
-	 */
 	/**
 	 * Checks if the current user should be granted the requested permission on the target object.
 	 * This signature is currently not implemented.
@@ -177,8 +177,52 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 			final String targetType, final Object permission) {
 		logger.warning("Evaluating expression using hasPermission unimplemented signature");
 
-		return false;
+		if (SecuredObjectTypes.AUTHORIZATION_GROUP.toString().equalsIgnoreCase(targetType)) {
+			return hasPermission(authentication, targetId, permission);
+		} else {
+			throw new IllegalArgumentException("This object type cannot be secured: " + targetType);
+		}
 	}
+	
+	/**
+	 * Verifies the current user has the requested permission on the target object.
+	 * @param targetDomainObject The target object the user is attempting to access
+	 * @param permission The permission requested on the target object (e.g. view, deploy)
+	 */
+	public void verifyPermission(final Object targetDomainObject, final Object permission) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		verifyPermission(authentication, targetDomainObject, permission);
+	}
+	
+	/**
+	 * Verifies the current user has the requested permission on the target object.
+	 * @param targetDomainObject The target object the user is attempting to access
+	 * @param permission The permission requested on the target object (e.g. view, deploy)
+	 * @param authentication The object representing the current user
+	 */
+	public void verifyPermission(final Authentication authentication, final Object targetDomainObject,
+			final Object permission) {
+		if (!hasPermission(authentication, targetDomainObject, permission)) {
+			throw new AccessDeniedException("User " + authentication.getName() + " is not permitted to "
+					+ "access the target objects");
+		}
+	}
+	
+	
+	/**
+	 * Verifies the current user has the requested permission on the target object.
+	 * @param targetId The A unique identifier of the target object the user is attempting to access
+	 * @param targetType The type of the target object the user is attempting to access
+	 * @param permission The permission requested on the target object (e.g. view, deploy)
+	 */
+	/*public void verifyPermission(final Serializable targetId, final String targetType, final Object permission) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (!hasPermission(authentication, targetId, targetType, permission)) {
+			throw new AccessDeniedException("User " + authentication.getName() + " is not permitted to " 
+					+ "access the target objects");
+		}
+	}*/
+	
 	
 	/**
 	 * Checks if the current user is allowed to view the an object that has the specified authorization groups.
@@ -194,19 +238,23 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 		
     	return hasAnyAuthGroup(requestedAuthGroups);
     }
+	
     
 	/**
 	 * Checks if the current user is allowed to view the an object that has the specified authorization groups.
-	 * If the user has *all* the authorization groups of the object - permission to view it is granted.
+	 * If the user has *any* the authorization groups of the object - permission to view it is granted.
 	 * @param requestedAuthGroups The authorization groups of the target object
 	 * @return boolean value - true if permission is granted, false otherwise.
 	 */
 	private boolean hasPermissionToDeploy(final Collection<String> requestedAuthGroups) {
+		
 		if (requestedAuthGroups.size() == 0) {
 			return true;
 		}
 		
-    	return hasAllAuthGroups(requestedAuthGroups);
+		//if the current user has at any of the requested auth groups - deploy is permitted.
+		return hasAnyAuthGroup(requestedAuthGroups);
+    	//return hasAllAuthGroups(requestedAuthGroups);
     }
     
     private boolean hasAllAuthGroups(final Collection<String> requestedAuthGroups) {

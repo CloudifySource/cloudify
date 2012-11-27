@@ -23,7 +23,7 @@ import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 
 /**
- * A permission evaluator that always allows access. Used for a non-secured configuration in 
+ * A permission evaluator that always allows access. Used for a non-secure configuration in 
  * combination with the "nonsecure" beans profile.
  * 
  * @author noak

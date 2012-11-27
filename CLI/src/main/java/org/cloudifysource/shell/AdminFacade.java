@@ -135,10 +135,12 @@ public interface AdminFacade {
 	 *            The user name, used to create the connection
 	 * @param url
 	 *            The URL to connect to
+	 * @param isSecureConnection
+	 *            is this connection secure (SSL) or not
 	 * @throws CLIException
 	 *             Reporting a failure to the connect to the server
 	 */
-	void connect(String user, String password, String url) throws CLIException;
+	void connect(String user, String password, String url, boolean isSecureConnection) throws CLIException;
     
     /**
      * Reconnects to the server, using the given credentials.
