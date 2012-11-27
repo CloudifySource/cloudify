@@ -56,7 +56,7 @@ public enum CloudifyErrorMessages {
 	/**
 	 * 
 	 */
-	MISSING_NODES_LIST("prov_missing_nodesList_configuration", 1);
+	MISSING_NODES_LIST("prov_missing_nodesList_configuration", 1),
 
 	/**
 	 * Setting server security profile (nonsecure/secure/ssl)
