@@ -15,6 +15,7 @@
  *******************************************************************************/
 package org.cloudifysource.shell.rest;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -26,9 +27,9 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.restclient.ErrorStatusException;
 import org.cloudifysource.restclient.GSRestClient;
 import org.cloudifysource.shell.ConditionLatch;
+import org.cloudifysource.shell.ConditionLatch.Predicate;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.installer.CLIEventsDisplayer;
-import org.cloudifysource.shell.ConditionLatch.Predicate;
 /**
  * The RestLifecycleEventsLatch will poll the rest for installation lifecycle events 
  * and print the new events to the CLI console. 
@@ -86,6 +87,10 @@ public class RestLifecycleEventsLatch {
 				try {
 					lifecycleEventLogs = (Map<String, Object>) client.get(url);
 				} catch (final ErrorStatusException e) {
+					if (e.getCause() instanceof IOException) {
+						displayer.printEvent("Communication Error accessing "+ url + ". Reason: " + e.getMessage()); 
+						return false;
+					} 
 					throw new CLIException("Deployment failed. Reason: " + e.getMessage(), e);
 				}
 
