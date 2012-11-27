@@ -1470,21 +1470,23 @@ public class ServiceController implements ServiceDetailsProvider {
 					"Caught exception, but response already commited. Not sending error message based on exception",
 					e);
 		} else {
-			final String message;
+			String message;
 			if (e instanceof AccessDeniedException || e instanceof BadCredentialsException) {
-				message = "{\"status\":\"error\", \"error\":\""
+				message = "{\"status\":\"error\", \"error\":\""	
 						+ CloudifyErrorMessages.NO_PERMISSION_ACCESS_DENIED.getName() + "\"}";
-				// Some sort of unhandled application exception.
-				logger.log(Level.WARNING, "An unexpected error was thrown: " + e.getMessage(), e);
-
-				Map<String, Object> restErrorMap =
-						RestUtils.verboseErrorStatus(CloudifyErrorMessages.GENERAL_SERVER_ERROR.getName(),
-								ExceptionUtils.getStackTrace(e), e.getMessage());
-				message = new ObjectMapper().writeValueAsString(restErrorMap);
-
+			} else {
+				message = "{\"status\":\"error\", \"error\":\"" + e.getMessage() + "\"}";
 			}
+			
+			// Some sort of unhandled application exception.
+			logger.log(Level.WARNING, "An unexpected error was thrown: " + e.getMessage(), e);
+
+			Map<String, Object> restErrorMap =
+					RestUtils.verboseErrorStatus(CloudifyErrorMessages.GENERAL_SERVER_ERROR.getName(),
+							ExceptionUtils.getStackTrace(e), e.getMessage());
+			message = new ObjectMapper().writeValueAsString(restErrorMap);
+			
 			final ServletOutputStream outputStream = response.getOutputStream();
-			logger.log(Level.SEVERE, "caught exception. Sending response message " + message, e);
 			final byte[] messageBytes = message.getBytes();
 			outputStream.write(messageBytes);
 		}
