@@ -312,8 +312,13 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
      * @return A String array of authorities names
      */
     public String getUserAuthGroupsString() {
-    	Collection<String> userAuthGroups = getUserAuthGroups();		
-		return Arrays.toString(userAuthGroups.toArray(new String[0]));
+    	Collection<String> userAuthGroups = getUserAuthGroups();
+    	StringBuilder builder = new StringBuilder();
+    	for (String authGroup : userAuthGroups) {
+    	    builder.append(authGroup);
+    	    builder.append(',');
+    	}
+		return builder.substring(0, builder.toString().length() - 1);
     }
 
 }
