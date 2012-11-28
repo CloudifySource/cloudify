@@ -34,7 +34,7 @@ public class CLIStatusException extends CLIException {
 	private final String verboseData;
 
 	public CLIStatusException(final ErrorStatusException restException) {
-		super("reasonCode: " + restException.getReasonCode());
+		super("reasonCode: " + restException.getReasonCode(), restException);
 		this.args = restException.getArgs();
 		this.reasonCode = restException.getReasonCode();
 		this.verboseData = restException.getVerboseData();
