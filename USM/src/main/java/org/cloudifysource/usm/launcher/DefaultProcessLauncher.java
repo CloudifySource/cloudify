@@ -536,34 +536,27 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			List<String> otherCommandLine = null;
 
 			if (map.entrySet().size() > 1) {
-				otherCommandLine = lookUpCommandLineForOS(map,
-						"Linux");
+				otherCommandLine = lookUpCommandLineForOS(map, "Linux");
 			}
 
 			if (otherCommandLine == null) {
 				otherCommandLine = getCommandLineFromValue(map.values().iterator().next());
 			}
 
-			final List<String> alternativeCommandLine = createWindowsCommandLineFromLinux(otherCommandLine,
+			return createWindowsCommandLineFromLinux(otherCommandLine,
 					workDir);
-			return alternativeCommandLine;
-		} else {
-			List<String> otherCommandLine = null;
-
-			if (map.entrySet().size() > 1) {
-				otherCommandLine = lookUpCommandLineForOS(map,
-						"Windows");
-			}
-
-			if (otherCommandLine == null) {
-				otherCommandLine = getCommandLineFromValue(map.values().iterator().next());
-			}
-
-			final List<String> alternativeCommandLine = createLinuxCommandLineFromWindows(otherCommandLine,
-					workDir);
-			return alternativeCommandLine;
-
 		}
+		List<String> otherCommandLine = null;
+
+		if (map.entrySet().size() > 1) {
+			otherCommandLine = lookUpCommandLineForOS(map, "Windows");
+		}
+
+		if (otherCommandLine == null) {
+			otherCommandLine = getCommandLineFromValue(map.values().iterator().next());
+		}
+
+		return createLinuxCommandLineFromWindows(otherCommandLine, workDir);
 	}
 
 	@Override
@@ -605,7 +598,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	private Process launchAsyncFromClosure(final Object arg)
 			throws USMException {
 		final Callable<?> closure = (Callable<?>) arg;
-		Object retval = null;
+		Object retval;
 		try {
 			retval = closure.call();
 		} catch (final Exception e) {
@@ -644,8 +637,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 					logger.fine("Closure Parameters: " + paramsList.toString());
 				}
 
-				final Object result = closure.call(paramsList.toArray());
-				return result;
+				return closure.call(paramsList.toArray());
 			} catch (final Exception e) {
 				logger.log(Level.SEVERE,
 						"A closure entry failed to execute: " + e.getMessage(),
@@ -744,8 +736,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	private void modifyCommandLine(final List<String> commandLineParams, final File workingDir, final File outputFile,
 			final File errorFile)
 			throws USMException {
-		modifyOSCommandLine(commandLineParams,
-				workingDir);
+		modifyOSCommandLine(commandLineParams, workingDir);
 
 		if (commandLineParams.get(0).endsWith(".groovy")) {
 			modifyGroovyCommandLine(commandLineParams,
@@ -786,15 +777,10 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		// // add the terminating quotes
 		// commandLineParams.add("\"");
 		// }
-
 	}
 
 	private List<String> createRedirectionParametersForOS(final File outputFile, final File errorFile) {
-		return Arrays.asList(">>",
-				outputFile.getAbsolutePath(),
-				"2>>",
-				errorFile.getAbsolutePath());
-
+		return Arrays.asList(">>", outputFile.getAbsolutePath(), "2>>", errorFile.getAbsolutePath());
 	}
 
 	private Process launch(final List<String> commandLineParams, final File workingDir, final int retries,
@@ -810,10 +796,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 					"If redirectError option is chosen, neither output file or error file can be set");
 		}
 
-		modifyCommandLine(commandLineParams,
-				workingDir,
-				outputFile,
-				errorFile);
+		modifyCommandLine(commandLineParams, workingDir, outputFile, errorFile);
 		final String modifiedCommandLine = StringUtils.collectionToDelimitedString(commandLineParams,
 				" ");
 
@@ -828,8 +811,6 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			pb.redirectErrorStream(redirectErrorStream);
 			final Map<String, String> env = createEnvironment();
 			pb.environment().putAll(env);
-
-			Process proc;
 
 			try {
 				logger.fine("Parsed command line: " + commandLineParams);
@@ -846,8 +827,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 					appendMessageToFile(fileInitialMessage,
 							errorFile);
 				}
-				proc = pb.start();
-				return proc;
+				return pb.start();
 			} catch (final IOException e) {
 				ex = new USMException("Failed to start process with command line: " + modifiedCommandLine, e);
 				logger.log(Level.SEVERE,
@@ -924,7 +904,6 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 					"" + clusterInfo.getRunningNumber());
 			map.put(CloudifyConstants.USM_ENV_SERVICE_FILE_NAME,
 					"" + this.configutaion.getServiceFile().getName());
-
 		}
 
 		if (groovyEnvironmentClassPath != null && !groovyEnvironmentClassPath.isEmpty()) {
@@ -936,9 +915,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		if (logger.isLoggable(Level.FINE)) {
 			logger.fine("Adding Environment to child process: " + map);
 		}
-
 		return map;
-
 	}
 
 	private String getGroupsProperty() {
@@ -951,10 +928,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			groupsProperty = "gigaspaces-" + PlatformVersion.getVersionNumber();
 		}
 
-		groupsProperty = groupsProperty.replace("\"",
-				"");
-
-		return groupsProperty;
+		return groupsProperty.replace("\"", "");
 	}
 
 	private String getLocatorsProperty() {
@@ -972,34 +946,20 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	@Override
 	public Object launchProcess(final ExecutableDSLEntry arg, final File workingDir, final Map<String, Object> params)
 			throws USMException {
-		return launchProcess(arg,
-				workingDir,
-				0,
-				true,
-				params);
-
+		return launchProcess(arg, workingDir, 0, true, params);
 	}
 
 	@Override
 	public Object launchProcess(final ExecutableDSLEntry arg, final File workingDir)
 			throws USMException {
-		return launchProcess(arg,
-				workingDir,
-				new HashMap<String, Object>());
-
+		return launchProcess(arg, workingDir, new HashMap<String, Object>());
 	}
 
 	@Override
 	public Process launchProcessAsync(final ExecutableDSLEntry arg, final File workingDir, final File outputFile,
 			final File errorFile)
 			throws USMException {
-		return launchAsync(arg,
-				workingDir,
-				0,
-				false,
-				outputFile,
-				errorFile,
-				null);
+		return launchAsync(arg, workingDir, 0, false, outputFile, errorFile, null);
 	}
 
 	@Override
