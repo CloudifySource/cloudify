@@ -3,6 +3,7 @@ package org.cloudifysource.dsl.internal;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -144,6 +145,8 @@ public class CloudTemplatesReader {
 			holder.setName(entry.getKey());
 			holder.setCloudTemplate(entry.getValue());
 			holder.setTemplateFileName(templateFile.getName());
+			holder.setPropertiesFileName(dslReader.getPropertiesFileName());
+			holder.setOverridesFileName(dslReader.getOverridesFile().getName());
 			cloudTemplateHolders.add(holder);
 		}
 
@@ -161,6 +164,8 @@ public class CloudTemplatesReader {
 		List<CloudTemplateHolder> additionalTemplates = null;
 		// scan all templates folders and add the templates from each folder to the cloud.
 		for (File folder : templatesFolders) {
+			logger.info("addAdditionalTemplates - Adding templates to cloud from folder: " + folder.getAbsolutePath());
+			logger.info("addAdditionalTemplates - Folder's files: " + Arrays.toString(folder.listFiles()));
 			try {
 				additionalTemplates = readCloudTemplatesFromDirectory(folder);
 			} catch (DSLException e) {

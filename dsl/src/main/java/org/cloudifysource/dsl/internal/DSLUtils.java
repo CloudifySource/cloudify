@@ -72,9 +72,17 @@ public final class DSLUtils {
 	public static final String SERVICE_DSL_FILE_NAME_SUFFIX = "-service.groovy";
 
 	/**
-	 * The expected file name suffix for templates file e.g. <code>*templates.groovy</code>.
+	 * The expected file name suffix for templates file e.g. <code>*-templates.groovy</code>.
 	 */
 	public static final String TEMPLATES_DSL_FILE_NAME_SUFFIX = "-template.groovy";
+	/**
+	 * The expected file name suffix for templates properties file e.g. <code>*-templates.properties</code>.
+	 */
+	public static final String TEMPLATES_PROPERTIES_FILE_NAME_SUFFIX = "-template.properties";
+	/**
+	 * The expected file name suffix for templates overrides file e.g. <code>*-templates.overrides</code>.
+	 */
+	public static final String TEMPLATES_OVERRIDES_FILE_NAME_SUFFIX = "-template.overrides";
 
 	/**
 	 * The expected file name of an application properties file after it has been copied to a service directory.
@@ -146,17 +154,19 @@ public final class DSLUtils {
 	}
 
 	/**
-	 * Change the name of the file to templateName-tempalte.groovy.
+	 * Change the name of the file's prefix to template's name.
 	 * @param file the template's file.
 	 * @param templateName the template's name.
+	 * @param suffix the file suffix (-template.groovy/-template.properties/-tempalte.overrides)
 	 * @return returns the new name if the renaming needed and succeeded.
 	 * @throws IOException if failed to rename the file.
 	 */
-	public static String renameCloudTemplateFileNameIfNeeded(final File file, final String templateName) 
+	public static String renameCloudTemplateFileNameIfNeeded(final File file, final String templateName, 
+			final String suffix) 
 			throws IOException {
 		String fileName = file.getName();
-		if (fileName.endsWith(TEMPLATES_DSL_FILE_NAME_SUFFIX)) {
-			String newName = templateName + TEMPLATES_DSL_FILE_NAME_SUFFIX;
+		if (fileName.endsWith(suffix)) {
+			String newName = templateName + suffix;
 			if (!fileName.equals(newName)) {
 				File parent = file.getParentFile();
 				File newNameFile = new File(parent, newName);

@@ -15,6 +15,8 @@ public class CloudTemplateHolder {
 	private String name;
 	private CloudTemplate cloudTemplate;
 	private String templateFileName;
+	private String propertiesFileName;
+	private String overridesFileName;
 	
 	public CloudTemplateHolder() {
 		
@@ -38,8 +40,24 @@ public class CloudTemplateHolder {
 		return templateFileName;
 	}
 
-	public void setTemplateFileName(String templateFileName) {
+	public void setTemplateFileName(final String templateFileName) {
 		this.templateFileName = templateFileName;
+	}
+
+	public String getPropertiesFileName() {
+		return propertiesFileName;
+	}
+
+	public void setPropertiesFileName(final String propertiesFileName) {
+		this.propertiesFileName = propertiesFileName;
+	}
+
+	public String getOverridesFileName() {
+		return overridesFileName;
+	}
+
+	public void setOverridesFileName(final String overridesFileName) {
+		this.overridesFileName = overridesFileName;
 	}
 	
 }

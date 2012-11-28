@@ -701,6 +701,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			return;
 		}
 		File[] listFiles = additionalTemplatesFolder.listFiles();
+		logger.info("addTemplatesToCloud - found files: " + Arrays.toString(listFiles));
 		CloudTemplatesReader reader = new CloudTemplatesReader();
 		List<CloudTemplate> addedTemplates = reader.addAdditionalTemplates(cloud, listFiles);	
 		logger.info("addTemplatesToCloud - Added " + addedTemplates.size() + " templates to the cloud: " + addedTemplates);
