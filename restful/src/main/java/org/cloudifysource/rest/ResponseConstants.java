@@ -36,6 +36,7 @@ public interface ResponseConstants {
     String NO_PROCESSING_UNIT_INSTANCES_FOUND_FOR_INVOCATION = "no_processing_unit_instances_found_for_invocation";
 	String MACHINE_NOT_FOUND = "machine_not_found";
 	String DUMP_FILE_TOO_LARGE = "dump_file_too_large";
+	String FAILED_TO_LOGIN = "failed_to_login";
 	
 	int HTTP_OK = 200;
 	int HTTP_INTERNAL_SERVER_ERROR = 500;

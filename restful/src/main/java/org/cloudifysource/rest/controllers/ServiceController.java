@@ -22,6 +22,7 @@ import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_SERVICE
 import static org.cloudifysource.rest.ResponseConstants.HTTP_INTERNAL_SERVER_ERROR;
 import static org.cloudifysource.rest.ResponseConstants.HTTP_OK;
 import static org.cloudifysource.rest.ResponseConstants.SERVICE_INSTANCE_UNAVAILABLE;
+import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOGIN;
 import static org.cloudifysource.rest.util.RestUtils.successStatus;
 
 import java.io.ByteArrayInputStream;
@@ -699,7 +700,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	public Object testLogin() throws RestErrorException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
-			throw new RestErrorException("Login failed.");
+			throw new RestErrorException(FAILED_TO_LOGIN);
 		}
 
 		logger.finer("User " + authentication.getName() + " logged in.");
