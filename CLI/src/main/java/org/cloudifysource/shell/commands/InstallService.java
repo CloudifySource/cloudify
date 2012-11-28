@@ -176,13 +176,8 @@ public class InstallService extends AdminAwareCommand {
 				service = dslReader.readDslEntity(Service.class);
 
 				// lookup service properties file
-				File servicePropertiesFile = DSLReader.
-						findDefaultDSLFileIfExists(DSLUtils.PROPERTIES_FILE_SUFFIX, recipe);
-				if (servicePropertiesFile == null) {
-					// if it does not exist, create one with the default standard.
-					servicePropertiesFile = new File(recipe, serviceName + "-service" 
+				File servicePropertiesFile = new File(recipe, service.getName() + "-service" 
 							+ DSLUtils.PROPERTIES_FILE_SUFFIX);
-				}
 
 				/* 
 				 * name the merged properties file as the original properties file.

@@ -163,23 +163,19 @@ public class ApplicationInstallerRunnable implements Runnable {
 				// lookup application properties file
 				File applicationPropertiesFile = DSLReader.
 						findDefaultDSLFileIfExists(DSLUtils.APPLICATION_PROPERTIES_FILE_NAME, appDir);
-
+				
 				// lookup service properties file
-				File servicePropertiesFile = DSLReader.
-						findDefaultDSLFileIfExists(DSLUtils.PROPERTIES_FILE_SUFFIX, serviceDirectory);
-				if (servicePropertiesFile == null) {
-					// if it does not exist, create one with the default standard.
-					servicePropertiesFile = new File(serviceDirectory, serviceName + "-service" 
-							+ DSLUtils.PROPERTIES_FILE_SUFFIX);
+				File servicePropertiesFile = new File(serviceDirectory, serviceName + "-service" 
+							+ DSLUtils.PROPERTIES_FILE_SUFFIX);		
+
+				// lookup overrides file
+				File actualOverridesFile = overridesFile;
+					if (actualOverridesFile == null) {
+						// when using the CLI, the application overrides file is inside the directory
+						actualOverridesFile = DSLReader.
+									findDefaultDSLFileIfExists(DSLUtils.APPLICATION_OVERRIDES_FILE_NAME, appDir);
 				}
 				
-				// lookup overrides file
-				File applicationOverridesFile = overridesFile;
-				if (applicationOverridesFile == null) {
-					applicationOverridesFile = DSLReader.
-							findDefaultDSLFileIfExists(DSLUtils.APPLICATION_OVERRIDES_FILE_NAME, appDir);
-				}		
-
 				/* 
 				 * name the merged properties file as the original properties file.
 				 * this will allow all properties to be available by anyone who parses the default
@@ -212,9 +208,9 @@ public class ApplicationInstallerRunnable implements Runnable {
 					servicePropertiesFile.delete();
 				}
 				
-				if (applicationOverridesFile != null && applicationOverridesFile.exists()) {
+				if (actualOverridesFile != null && actualOverridesFile.exists()) {
 					// add the overrides file given in the command or via REST, most important overrides.
-					appender.append("Overrides properties file", applicationOverridesFile);
+					appender.append("Overrides properties file", actualOverridesFile);
 				}
 				
 				appender.flush();
