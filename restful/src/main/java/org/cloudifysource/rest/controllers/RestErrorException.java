@@ -19,16 +19,35 @@ import java.util.Map;
 
 import org.cloudifysource.rest.util.RestUtils;
 
-public class RestErrorException extends Exception{
+/**
+ *
+ */
+public class RestErrorException extends Exception {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private Map<String, Object> errorDescription;
 
 	private String verboseData;
+	
 	public RestErrorException(final String errorDesc) {
+		super(errorDesc);
 		this.errorDescription = RestUtils.errorStatus(errorDesc);
+	}	
+	public RestErrorException(final String errorDesc, final String... args) {
+		super(errorDesc);
+		this.errorDescription = RestUtils.errorStatus(errorDesc, args);
+	}
+	public RestErrorException(final String errorDesc, final Object... args) {
+		super(errorDesc);
+		this.errorDescription = RestUtils.errorStatus(errorDesc, args);
 	}
 	
-	public RestErrorException(final String errorDesc, final String... args) {
+	public RestErrorException(final String errorDesc, final String message, final Object... args) {
+		super(message);
 		this.errorDescription = RestUtils.errorStatus(errorDesc, args);
 	}
 	
@@ -36,15 +55,12 @@ public class RestErrorException extends Exception{
 		return this.errorDescription;
 	}
 	
-	public RestErrorException(String errorDesc, Object... args) {
-		this.errorDescription = RestUtils.errorStatus(errorDesc, args);
-	}
 
 	public String getVerboseData() {
 		return verboseData;
 	}
 
-	public void setVerboseData(String verboseData) {
+	public void setVerboseData(final String verboseData) {
 		this.verboseData = verboseData;
 	}
 	

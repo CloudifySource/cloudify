@@ -3819,11 +3819,7 @@ public class ServiceController implements ServiceDetailsProvider {
 						+ ". Error: " + e, e);
 				Map<String, String> expectedMap = new HashMap<String, String>();
 				for (String expectedTempalte : expectedTemplates) {
-					String errorMessage = e.getMessage();
-					if (errorMessage == null) {
-						errorMessage = e.toString();
-					}
-					expectedMap.put(expectedTempalte, errorMessage);
+					expectedMap.put(expectedTempalte, e.getMessage());
 				}
 				failedToAddTemplatesByHost.put(host, expectedMap);
 				continue;
@@ -3987,7 +3983,6 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (addedTempaltes.isEmpty()) {
 			logger.log(Level.WARNING, "addTemplatesToCloud - Failed to add templates files from "
 					+ templatesFolder.getAbsolutePath());
-			throw new RestErrorException("failed_to_add_all_templates", failedToAddTemplates);
 		}
 
 		// copy files from template folder to cloudTemplateFolder
@@ -3997,19 +3992,13 @@ public class ServiceController implements ServiceDetailsProvider {
 			File localTemplatesDir = copyTemplateFilesToCloudConfigDir(templatesFolder);
 			updateCloudTempaltesUploadPath(addedTempaltes, localTemplatesDir);
 		} catch (IOException e) {
-			// failed to copy files - remove all added templates from cloud and
-			// throw an exception.
-			String errorMessage = e.getMessage();
-			if (errorMessage == null) {
-				errorMessage = e.toString();
-			}
+			// failed to copy files - remove all added templates from cloud and them to the failed map.
 			logger.log(Level.WARNING, "addTemplatesToCloud - Failed to copy templates files, error: " 
-					+ errorMessage, e);
+					+ e.getMessage(), e);
 			for (String tempalteName : addedTempaltes) {
 				cloud.getTemplates().remove(tempalteName);
-				failedToAddTemplates.put(tempalteName, errorMessage);
+				failedToAddTemplates.put(tempalteName, e.getMessage());
 			}
-			throw new RestErrorException("failed_to_add_all_templates", failedToAddTemplates);
 		}
 
 		// return the added templates and the failed to add templates lists.
@@ -4152,7 +4141,8 @@ public class ServiceController implements ServiceDetailsProvider {
 		CloudTemplatesReader reader = new CloudTemplatesReader();
 		cloudTemplatesHolders = reader.readCloudTemplatesFromDirectory(templatesFolder);
 		if (cloudTemplatesHolders.isEmpty()) {
-			throw new RestErrorException("no_template_files", templatesFolder.getAbsolutePath());
+			throw new RestErrorException("no_template_files", "tempaltes folder missing tempaltes files." , 
+					templatesFolder.getAbsolutePath());
 		}
 		return cloudTemplatesHolders;
 	}
