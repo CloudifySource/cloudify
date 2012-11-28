@@ -291,8 +291,7 @@ public class ApplicationDescriptionFactory {
             return null;
         }
         
-        USMState usmState = USMState.values()[(Integer) monitors.get(CloudifyConstants.USM_MONITORS_STATE_ID)];
-		return usmState;
+        return USMState.values()[(Integer) monitors.get(CloudifyConstants.USM_MONITORS_STATE_ID)];
 	}
 	
 	//returns a service's planned number of instances.

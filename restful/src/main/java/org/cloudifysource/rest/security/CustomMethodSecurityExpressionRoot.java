@@ -45,7 +45,7 @@ class CustomMethodSecurityExpressionRoot extends SecurityExpressionRoot {
 
     public boolean hasPermission(Object target, Object permission) {
     	if (target == null) {
-    		StringBuffer authGroups = new StringBuffer();
+    		StringBuilder authGroups = new StringBuilder();
     		for (GrantedAuthority authority : authentication.getAuthorities()) {
     			if (authGroups.length() > 0) {
     				authGroups.append(", ");

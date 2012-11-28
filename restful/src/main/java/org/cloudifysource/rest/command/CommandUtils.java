@@ -31,7 +31,7 @@ public class CommandUtils {
 	}
 
     public static Object getMapObject(String key, Object mapObject) {
-        Map<?, ?> map = (Map<?, ?>) mapObject;
+        Map<String, Object> map = (Map<String, Object>) mapObject;
         if (map.containsKey(key)) {
             return map.get(key);
         }

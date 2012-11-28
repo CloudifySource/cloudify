@@ -232,7 +232,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 	 */
 	private boolean hasPermissionToView(final Collection<String> requestedAuthGroups) {
 		
-		if (requestedAuthGroups.size() == 0) {
+		if (requestedAuthGroups.isEmpty()) {
 			return true;
 		}
 		
@@ -248,7 +248,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 	 */
 	private boolean hasPermissionToDeploy(final Collection<String> requestedAuthGroups) {
 		
-		if (requestedAuthGroups.size() == 0) {
+		if (requestedAuthGroups.isEmpty()) {
 			return true;
 		}
 		

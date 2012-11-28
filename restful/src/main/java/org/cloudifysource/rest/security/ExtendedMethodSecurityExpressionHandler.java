@@ -109,7 +109,6 @@ public class ExtendedMethodSecurityExpressionHandler extends
     }
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public Object filter(Object filterTarget, Expression filterExpression,
 			EvaluationContext ctx) {
 		CustomMethodSecurityExpressionRoot rootObject = (CustomMethodSecurityExpressionRoot) ctx
@@ -125,12 +124,14 @@ public class ExtendedMethodSecurityExpressionHandler extends
 			return super.filter(filterTarget, filterExpression, ctx);
 		}
 
-		if (filterTarget instanceof Map<?, ?>) {
+		if (filterTarget instanceof Map) {
+			@SuppressWarnings("unchecked")
 			Map<String, Object> returnValue = (Map<String, Object>) filterTarget;
 
-			if (returnValue.get(RestUtils.STATUS_KEY).equals(RestUtils.SUCCESS)) {
+			if (RestUtils.SUCCESS.equals(returnValue.get(RestUtils.STATUS_KEY))) {
 				Object responseObject = returnValue.get(RestUtils.RESPONSE_KEY);
-				if (responseObject != null && responseObject instanceof Map) {
+				if (responseObject instanceof Map) {
+					@SuppressWarnings("unchecked")
 					Map<String, String> objectsMap = (Map<String, String>) responseObject;
 					Map<Object, String> retainMap = new HashMap<Object, String>();
 					
@@ -143,7 +144,8 @@ public class ExtendedMethodSecurityExpressionHandler extends
 					}
 					returnValue = RestUtils.successStatus(retainMap);
 					
-				} else if (responseObject != null && responseObject instanceof List) {
+				} else if (responseObject instanceof List) {
+					@SuppressWarnings("unchecked")
 					List<Object> objectsList = (List<Object>) responseObject;
 					List<Object> retainList = new ArrayList<Object>();
 					
