@@ -39,7 +39,7 @@ cloud {
 		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.3.0-M2/gigaspaces-cloudify-2.3.0-m2-b3482.zip"
 
 		// Mandatory. The prefix for new machines started for servies.
-		machineNamePrefix "cloudify_agent_"
+		machineNamePrefix "cloudify-agent-"
 		// Optional. Defaults to true. Specifies whether cloudify should try to deploy services on the management machine.
 		// Do not change this unless you know EXACTLY what you are doing.
 
@@ -51,7 +51,7 @@ cloud {
 		sshLoggingLevel "WARNING"
 
 		// Mandatory. Name of the new machine/s started as cloudify management machines. Names are case-insensitive.
-		managementGroup "cloudify_manager"
+		managementGroup "cloudify-manager"
 		// Mandatory. Number of management machines to start on bootstrap-cloud. In production, should be 2. Can be 1 for dev.
 		numberOfManagementMachines 1
 
