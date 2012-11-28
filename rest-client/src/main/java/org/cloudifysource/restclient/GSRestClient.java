@@ -345,34 +345,32 @@ public class GSRestClient {
 				if (logger.isLoggable(Level.FINE)) {
 					logger.log(Level.FINE, httpMethod.getURI() + " response body " + responseBody);
 				}
-				try {
-					if (statusCode == CloudifyConstants.HTTP_STATUS_NOT_FOUND) {
-						throw new ErrorStatusException("URL_not_found", httpMethod.getURI());
-					} else if (statusCode == CloudifyConstants.HTTP_STATUS_ACCESS_DENIED) {
-						throw new ErrorStatusException(CloudifyErrorMessages.NO_PERMISSION_ACCESS_DENIED.getName(),
-								httpMethod.getURI());
-					} else if (statusCode == CloudifyConstants.HTTP_STATUS_BAD_CREDENTIALS) {
-						throw new ErrorStatusException(CloudifyErrorMessages.BAD_CREDENTIALS.getName(),
-								httpMethod.getURI());
-					}
 
-					final Map<String, Object> errorMap = GSRestClient.jsonToMap(responseBody);
-					final String status = (String) errorMap.get(STATUS_KEY);
-					if (ERROR.equals(status)) {
-						final String reason = (String) errorMap.get(ERROR);
-						@SuppressWarnings("unchecked")
-						final List<Object> reasonsArgs = (List<Object>) errorMap.get(ERROR_ARGS);
-						final ErrorStatusException e = new ErrorStatusException(reason,
-								reasonsArgs != null ? reasonsArgs.toArray() : null);
-						if (errorMap.containsKey(VERBOSE)) {
-							e.setVerboseData((String) errorMap.get(VERBOSE));
-						}
-						logger.log(Level.FINE, reason, e);
-						throw e;
-					}
-				} catch (final IOException e) {
-					throw new ErrorStatusException(e, CloudifyErrorMessages.JSON_PARSE_ERROR.getName(), responseBody);
+				if (statusCode == CloudifyConstants.HTTP_STATUS_NOT_FOUND) {
+					throw new ErrorStatusException("URL_not_found", httpMethod.getURI());
+				} else if (statusCode == CloudifyConstants.HTTP_STATUS_ACCESS_DENIED) {
+					throw new ErrorStatusException(CloudifyErrorMessages.NO_PERMISSION_ACCESS_DENIED.getName(),
+							httpMethod.getURI());
+				} else if (statusCode == CloudifyConstants.HTTP_STATUS_BAD_CREDENTIALS) {
+					throw new ErrorStatusException(CloudifyErrorMessages.BAD_CREDENTIALS.getName(),
+							httpMethod.getURI());
 				}
+
+				final Map<String, Object> errorMap = GSRestClient.jsonToMap(responseBody);
+				final String status = (String) errorMap.get(STATUS_KEY);
+				if (ERROR.equals(status)) {
+					final String reason = (String) errorMap.get(ERROR);
+					@SuppressWarnings("unchecked")
+					final List<Object> reasonsArgs = (List<Object>) errorMap.get(ERROR_ARGS);
+					final ErrorStatusException e = new ErrorStatusException(reason,
+							reasonsArgs != null ? reasonsArgs.toArray() : null);
+					if (errorMap.containsKey(VERBOSE)) {
+						e.setVerboseData((String) errorMap.get(VERBOSE));
+					}
+					logger.log(Level.FINE, reason, e);
+					throw e;
+				}
+
 			}
 
 			responseBody = getResponseBody(response, httpMethod);
@@ -855,7 +853,7 @@ public class GSRestClient {
 	 *             Reporting failure to read or map the String
 	 * @throws ErrorStatusException
 	 */
-	public static Map<String, Object> jsonToMap(final String response) throws IOException, ErrorStatusException {
+	public static Map<String, Object> jsonToMap(final String response) throws ErrorStatusException {
 		try {
 			final JavaType javaType = TypeFactory.type(Map.class);
 			return PROJECT_MAPPER.readValue(response, javaType);

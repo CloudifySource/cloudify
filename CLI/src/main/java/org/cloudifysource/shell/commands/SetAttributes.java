@@ -17,9 +17,9 @@ package org.cloudifysource.shell.commands;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
+import org.cloudifysource.restclient.ErrorStatusException;
 import org.cloudifysource.restclient.GSRestClient;
 
-import java.io.IOException;
 import java.util.Map;
 
 
@@ -54,8 +54,8 @@ public class SetAttributes extends AbstractAttributesCommand {
 			throws CLIException {
 		try {
 			return GSRestClient.jsonToMap(attributes);
-		} catch (IOException e) {
-			throw new CLIStatusException("illegal_attribute_format", attributes);
+		} catch (ErrorStatusException e) {
+			throw new CLIStatusException(e.getReasonCode(), e.getArgs());
 		}
 	}
 
