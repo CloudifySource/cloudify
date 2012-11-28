@@ -144,9 +144,12 @@ public class CloudTemplatesReader {
 			CloudTemplateHolder holder = new CloudTemplateHolder();
 			holder.setName(entry.getKey());
 			holder.setCloudTemplate(entry.getValue());
-			holder.setTemplateFileName(templateFile.getName());
+			holder.setTemplateFileName(templateFile.getName());			
 			holder.setPropertiesFileName(dslReader.getPropertiesFileName());
-			holder.setOverridesFileName(dslReader.getOverridesFile().getName());
+			File overridesFile = dslReader.getOverridesFile();
+			if (overridesFile != null) {
+				holder.setOverridesFileName(overridesFile.getName());
+			}
 			cloudTemplateHolders.add(holder);
 		}
 
