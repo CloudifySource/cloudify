@@ -262,7 +262,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 			this.managementTemplate = this.cloud.getTemplates().get(
 					this.cloud.getConfiguration()
-							.getManagementMachineTemplate());
+					.getManagementMachineTemplate());
 		} else {
 			logger.info("Service Controller is running in local cloud mode");
 		}
@@ -342,9 +342,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description =
-					ResponseConstants.MACHINE_NOT_FOUND),
+			ResponseConstants.MACHINE_NOT_FOUND),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description =
-					ResponseConstants.DUMP_FILE_TOO_LARGE),
+			ResponseConstants.DUMP_FILE_TOO_LARGE),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "Failed to generate dump"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "IOException") })
 	@RequestMapping(value = "/dump/machines", method = RequestMethod.GET)
@@ -353,7 +353,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	public Map<String, Object> getMachineDumpFile(
 			@RequestParam(defaultValue = DEFAULT_DUMP_PROCESSORS) final String processors,
 			@RequestParam(defaultValue = "" + DEFAULT_DUMP_FILE_SIZE_LIMIT) final long fileSizeLimit)
-			throws IOException, RestErrorException {
+					throws IOException, RestErrorException {
 		return getMachineDumpFile(null, processors, fileSizeLimit);
 	}
 
@@ -378,9 +378,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description =
-					ResponseConstants.MACHINE_NOT_FOUND),
+			ResponseConstants.MACHINE_NOT_FOUND),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description =
-					ResponseConstants.DUMP_FILE_TOO_LARGE),
+			ResponseConstants.DUMP_FILE_TOO_LARGE),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "Failed to generate dump"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "IOException") })
 	@RequestMapping(value = "/dump/machine/{ip}/", method = RequestMethod.GET)
@@ -390,7 +390,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final String ip,
 			@RequestParam(defaultValue = DEFAULT_DUMP_PROCESSORS) final String processors,
 			@RequestParam(defaultValue = "" + DEFAULT_DUMP_FILE_SIZE_LIMIT) final long fileSizeLimit)
-			throws IOException, RestErrorException {
+					throws IOException, RestErrorException {
 		// check for non-default processors
 		final String[] actualProcessors = getProcessorsFromRequest(processors);
 
@@ -450,7 +450,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description =
-					ResponseConstants.DUMP_FILE_TOO_LARGE),
+			ResponseConstants.DUMP_FILE_TOO_LARGE),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "Failed to generate dump"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "IOException") })
 	@RequestMapping(value = "/dump/processing-units/", method = RequestMethod.GET)
@@ -458,7 +458,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	@ResponseBody
 	public Map<String, Object> getPUDumpFile(@RequestParam(defaultValue = ""
 			+ DEFAULT_DUMP_FILE_SIZE_LIMIT) final long fileSizeLimit)
-			throws IOException, RestErrorException {
+					throws IOException, RestErrorException {
 
 		// if ((name == null) || (name.isEmpty())) {
 		// throw new IllegalArgumentException("PU Name is missing");
@@ -496,7 +496,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	private byte[] generateMachineDumpData(final long fileSizeLimit,
 			final Machine machine, final String[] actualProcessors)
-			throws IOException, RestServiceException {
+					throws IOException, RestServiceException {
 		// generator the dump
 		final DumpResult dump = machine.generateDump("Rest_API", null,
 				actualProcessors);
@@ -671,7 +671,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	@RequestMapping(value = "/testrest", method = RequestMethod.GET)
 	@ResponseBody
 	public Object test() throws RestErrorException {
-	
+
 		if (admin.getLookupServices().getSize() > 0) {
 			return successStatus();
 		}
@@ -806,7 +806,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	@ResponseBody
 	public Map<String, Object> getServicesDescriptionList(
 			@PathVariable final String applicationName)
-			throws RestErrorException {
+					throws RestErrorException {
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to list applications");
 		}
@@ -843,7 +843,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_service") })
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances", method =
-			RequestMethod.GET)
+	RequestMethod.GET)
 	@PreAuthorize("isFullyAuthenticated()")
 	@PostFilter("hasPermission(filterObject, 'view')")
 	@ResponseBody
@@ -921,7 +921,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	@ResponseBody
 	public Map<String, Object> getServicesList(
 			@PathVariable final String applicationName)
-			throws RestErrorException {
+					throws RestErrorException {
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to list applications");
 		}
@@ -961,25 +961,25 @@ public class ServiceController implements ServiceDetailsProvider {
 	 */
 	@JsonRequestExample(requestBody = "{\"param1 name\":\"param1\",\"param2 name\":\"param2\"}")
 	@JsonResponseExample(status = "success", responseBody =
-			"{\"instance #1@127.0.0.1\":{\"Invocation_Instance_Name\":\"instance #1@127.0.0.1\""
-					+ ",\"Invocation_Instance_ID\":\"1\""
-					+ ",\"Invocation_Result\":\"the invocation result as specified in the service file\""
-					+ ",\"Invocation_Success\":\"true\","
-					+ "\"Invocation_Exception\":null,\"Invocation_Command_Name\":\"custom command name\"}}")
+	"{\"instance #1@127.0.0.1\":{\"Invocation_Instance_Name\":\"instance #1@127.0.0.1\""
+			+ ",\"Invocation_Instance_ID\":\"1\""
+			+ ",\"Invocation_Result\":\"the invocation result as specified in the service file\""
+			+ ",\"Invocation_Success\":\"true\","
+			+ "\"Invocation_Exception\":null,\"Invocation_Command_Name\":\"custom command name\"}}")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_service"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR,
-					description = "no_processing_unit_instances_found_for_invocation") })
+			description = "no_processing_unit_instances_found_for_invocation") })
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/beans/{beanName}/invoke",
-			method = RequestMethod.POST)
+	method = RequestMethod.POST)
 	@PreAuthorize("isFullyAuthenticated()")
 	@ResponseBody
 	public Map<String, Object> invoke(@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
 			@PathVariable final String beanName,
 			@RequestBody final Map<String, Object> params)
-			throws RestErrorException {
+					throws RestErrorException {
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(
 				applicationName, serviceName);
 		if (logger.isLoggable(Level.FINER)) {
@@ -995,13 +995,13 @@ public class ServiceController implements ServiceDetailsProvider {
 			logger.severe("Could not find service " + absolutePuName);
 			return unavailableServiceError(absolutePuName);
 		}
-		
+
 		if (permissionEvaluator != null) {
 			String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
 					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
 			permissionEvaluator.verifyPermission(puAuthGroups, "deploy");
 		}
-		
+
 		// result, mapping service instances to results
 		final Map<String, Object> invocationResult = new HashMap<String, Object>();
 		final ProcessingUnitInstance[] instances = pu.getInstances();
@@ -1119,7 +1119,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final int instanceId,
 			@PathVariable final String beanName,
 			@RequestBody final Map<String, Object> params)
-			throws RestErrorException {
+					throws RestErrorException {
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(
 				applicationName, serviceName);
 		if (logger.isLoggable(Level.FINER)) {
@@ -1131,12 +1131,12 @@ public class ServiceController implements ServiceDetailsProvider {
 		// Get PU
 		final ProcessingUnit pu = admin.getProcessingUnits().waitFor(
 				absolutePuName, PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
-		
+
 		if (pu == null) {
 			logger.severe("Could not find service " + absolutePuName);
 			return unavailableServiceError(absolutePuName);
 		}
-		
+
 		if (permissionEvaluator != null) {
 			String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
 					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
@@ -1146,7 +1146,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		// Get PUI
 		final InternalProcessingUnitInstance pui = findInstanceById(pu,
 				instanceId);
-		
+
 		if (pui == null) {
 			logger.severe("Could not find service instance " + instanceId
 					+ " for service " + absolutePuName);
@@ -1230,8 +1230,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_service") })
 	@RequestMapping(value =
-			"applications/{applicationName}/services/{serviceName}/timeout/{timeoutInMinutes}/undeploy",
-			method = RequestMethod.DELETE)
+	"applications/{applicationName}/services/{serviceName}/timeout/{timeoutInMinutes}/undeploy",
+	method = RequestMethod.DELETE)
 	public @ResponseBody
 	@PreAuthorize("isFullyAuthenticated()")
 	Map<String, Object> undeploy(@PathVariable final String applicationName,
@@ -1245,7 +1245,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (processingUnit == null) {
 			return unavailableServiceError(absolutePuName);
 		}
-		
+
 		if (permissionEvaluator != null) {
 			String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties().
 					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
@@ -1323,7 +1323,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	public Map<String, Object> addInstance(@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
 			@RequestBody final Map<String, String> params)
-			throws RestErrorException {
+					throws RestErrorException {
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(
 				applicationName, serviceName);
 		final int timeout = Integer.parseInt(params.get("timeout"));
@@ -1339,13 +1339,13 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (processingUnit == null) {
 			return unavailableServiceError(absolutePuName);
 		}
-		
+
 		if (permissionEvaluator != null) {
 			String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties().
 					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
 			permissionEvaluator.verifyPermission(puAuthGroups, "deploy");
 		}
-		
+
 		final int before = processingUnit.getNumberOfInstances();
 		processingUnit.incrementInstance();
 		final boolean result = processingUnit.waitFor(before + 1, timeout,
@@ -1377,7 +1377,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_service"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "service_instance_unavailable") })
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances/{instanceId}/remove",
-			method = RequestMethod.DELETE)
+	method = RequestMethod.DELETE)
 	@PreAuthorize("isFullyAuthenticated()")
 	@ResponseBody
 	public Map<String, Object> removeInstance(
@@ -1393,13 +1393,13 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (processingUnit == null) {
 			return unavailableServiceError(absolutePuName);
 		}
-		
+
 		if (permissionEvaluator != null) {
 			String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties().
 					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
 			permissionEvaluator.verifyPermission(puAuthGroups, "deploy");
 		}
-		
+
 		for (final ProcessingUnitInstance instance : processingUnit
 				.getInstances()) {
 			if (instance.getInstanceId() == instanceId) {
@@ -1427,7 +1427,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	private void deployAndWait(final String serviceName,
 			final ElasticStatelessProcessingUnitDeployment deployment)
-			throws TimeoutException, RestErrorException {
+					throws TimeoutException, RestErrorException {
 		try {
 			final ProcessingUnit pu = getGridServiceManager().deploy(deployment,
 					60, TimeUnit.SECONDS);
@@ -1462,7 +1462,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
 	public void resolveDocumentNotFoundException(
 			final HttpServletResponse response, final Exception e)
-			throws IOException {
+					throws IOException {
 
 		if (response.isCommitted()) {
 			logger.log(
@@ -1477,7 +1477,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			} else {
 				message = "{\"status\":\"error\", \"error\":\"" + e.getMessage() + "\"}";
 			}
-			
+
 			// Some sort of unhandled application exception.
 			logger.log(Level.WARNING, "An unexpected error was thrown: " + e.getMessage(), e);
 
@@ -1485,7 +1485,7 @@ public class ServiceController implements ServiceDetailsProvider {
 					RestUtils.verboseErrorStatus(CloudifyErrorMessages.GENERAL_SERVER_ERROR.getName(),
 							ExceptionUtils.getStackTrace(e), e.getMessage());
 			message = new ObjectMapper().writeValueAsString(restErrorMap);
-			
+
 			final ServletOutputStream outputStream = response.getOutputStream();
 			final byte[] messageBytes = message.getBytes();
 			outputStream.write(messageBytes);
@@ -1517,7 +1517,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final Map<String, Object> errorDescriptionMap = e
 					.getErrorDescription();
 			final String errorMap = new ObjectMapper()
-					.writeValueAsString(errorDescriptionMap);
+			.writeValueAsString(errorDescriptionMap);
 			logger.log(Level.INFO,
 					"caught exception. Sending response message "
 							+ (String) errorDescriptionMap.get("error"), e);
@@ -1582,7 +1582,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			throw new RestErrorException(
 					ResponseConstants.CANNOT_UNINSTALL_MANAGEMENT_APP);
 		}
-		
+
 		final ProcessingUnit[] pus = app.getProcessingUnits()
 				.getProcessingUnits();
 
@@ -1594,7 +1594,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		logger.log(Level.INFO,
 				"Starting to poll for uninstall lifecycle events.");
 		if (uninstallOrder.size() > 0) {
-			
+
 			undeployTask = new FutureTask<Boolean>(new Runnable() {
 				private final long startTime = System.currentTimeMillis();
 
@@ -1606,7 +1606,7 @@ public class ServiceController implements ServiceDetailsProvider {
 									getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
 							permissionEvaluator.verifyPermission(authentication, puAuthGroups, "deploy");
 						}
-						
+
 						final long undeployTimeout = TimeUnit.MINUTES.toMillis(timeoutInMinutes)
 								- (System.currentTimeMillis() - startTime);
 						try {
@@ -1786,7 +1786,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@RequestParam(value = "recipeOverridesFile", required = false) final MultipartFile recipeOverridesFile,
 			@RequestParam(value = "cloudOverridesFile", required = false) final MultipartFile cloudOverrides,
 			@RequestParam(value = "selfHealing", required = false) final Boolean selfHealing)
-			throws IOException, DSLException, RestErrorException {
+					throws IOException, DSLException, RestErrorException {
 		boolean actualSelfHealing = true;
 		if (selfHealing != null && !selfHealing) {
 			actualSelfHealing = false;
@@ -2007,16 +2007,16 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             unexpectedly.
 	 */
 	@JsonResponseExample(status = "success", responseBody = 
-				"{\"isDone\":false,\"lifecycleLogs\":[\"[service1] Deployed 1 planned 1\","
-			+ "\"Service &#92&#34service1&#92&#34 successfully installed (1 Instances)\"],"
-			+ "\"PollingTaskExpirationTimeMillis\":\"575218\",\"curserPos\":12}")
+			"{\"isDone\":false,\"lifecycleLogs\":[\"[service1] Deployed 1 planned 1\","
+					+ "\"Service &#92&#34service1&#92&#34 successfully installed (1 Instances)\"],"
+					+ "\"PollingTaskExpirationTimeMillis\":\"575218\",\"curserPos\":12}")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, 
-				description = "Lifecycle events container with UUID ... does not exist or expired"),
+			description = "Lifecycle events container with UUID ... does not exist or expired"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "execution exception message") })
 	@RequestMapping(value = "/lifecycleEventContainerID/{lifecycleEventContainerID}/cursor/{cursor}", 
-		method = RequestMethod.GET)
+	method = RequestMethod.GET)
 	@ResponseBody
 	public Object getLifecycleEvents(
 			@PathVariable final String lifecycleEventContainerID,
@@ -2193,7 +2193,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final byte[] serviceCloudConfigurationContents,
 			final boolean selfHealing,
 			final File cloudOverrides) throws TimeoutException, DSLException, IOException, RestErrorException {
-		
+
 		boolean locationAware = false;
 		boolean dedicated = true;
 		if (service != null) {
@@ -2215,12 +2215,12 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		final ElasticStatelessProcessingUnitDeployment deployment =
 				new ElasticStatelessProcessingUnitDeployment(serviceFile)
-						.memoryCapacityPerContainer(externalProcessMemoryInMB, MemoryUnit.MEGABYTES)
-						.addCommandLineArgument("-Xmx" + containerMemoryInMB + "m")
-						.addCommandLineArgument("-Xms" + containerMemoryInMB + "m")
-						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName)
-						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
-						.name(serviceName);
+		.memoryCapacityPerContainer(externalProcessMemoryInMB, MemoryUnit.MEGABYTES)
+		.addCommandLineArgument("-Xmx" + containerMemoryInMB + "m")
+		.addCommandLineArgument("-Xms" + containerMemoryInMB + "m")
+		.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName)
+		.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
+		.name(serviceName);
 		if (cloud == null) { // Azure or local-cloud
 			if (!isLocalCloud()) {
 				// Azure: Eager scale (1 container per machine per PU)
@@ -2236,7 +2236,7 @@ public class ServiceController implements ServiceDetailsProvider {
 					final int totalMemoryInMB = calculateTotalMemoryInMB(
 							serviceName, service, externalProcessMemoryInMB);
 					final ManualCapacityScaleConfig scaleConfig = new ManualCapacityScaleConfigurer()
-							.memoryCapacity(totalMemoryInMB, MemoryUnit.MEGABYTES).create();
+					.memoryCapacity(totalMemoryInMB, MemoryUnit.MEGABYTES).create();
 					deployment.scale(scaleConfig);
 				} else {
 					final AutomaticCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
@@ -2248,15 +2248,15 @@ public class ServiceController implements ServiceDetailsProvider {
 		} else {
 			final CloudTemplate template = getComputeTemplate(cloud, templateName);
 
-			
+
 			long cloudExternalProcessMemoryInMB = 0;
-			
+
 			if (dedicated) {
 				cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
 			} else {
 				cloudExternalProcessMemoryInMB = IsolationUtils.getInstanceMemoryMB(service);
 			}
-		
+
 
 			logger.info("Creating cloud machine provisioning config. Template remote directory is: "
 					+ template.getRemoteDirectory());
@@ -2286,7 +2286,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			// matter of the deployment mode.
 			config.setDedicatedManagementMachines(true);
 			if (!dedicated) {
-				
+
 				// check what mode of isolation we should use
 				if (IsolationUtils.isGlobal(service)) {
 					logger.info("public mode is on. will use public machine provisioning for "
@@ -2349,7 +2349,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 */
 	public static int calculateTotalMemoryInMB(final String serviceName,
 			final Service service, final int externalProcessMemoryInMB)
-			throws DSLException {
+					throws DSLException {
 
 		if (externalProcessMemoryInMB <= 0) {
 			throw new IllegalArgumentException(
@@ -2378,7 +2378,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		double instanceCpuCores = IsolationUtils.getInstanceCpuCores(service);
-		
+
 		if (instanceCpuCores < 0) {
 			throw new IllegalArgumentException(
 					"instanceCpuCores must be positive");
@@ -2445,7 +2445,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		final boolean isOnlyOneAgent = agents.length == 1;
 		final GridServiceAgent agent = agents[0];
 		final AtLeastOneZoneConfig requiredContainerZone = new AtLeastOneZoneConfigurer()
-				.addZone(LOCALCLOUD_ZONE).create();
+		.addZone(LOCALCLOUD_ZONE).create();
 
 		final boolean isLocalCloudZone = agent.getExactZones().isStasfies(
 				requiredContainerZone);
@@ -2659,7 +2659,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				lifecycleEventContainerID = startPollingForLifecycleEvents(
 						ServiceUtils.getApplicationServiceName(serviceName,
 								applicationName), applicationName, 1, true,
-						timeout, timeUnit).toString();
+								timeout, timeUnit).toString();
 			} else {
 				lifecycleEventContainerID = startPollingForLifecycleEvents(
 						service.getName(), applicationName,
@@ -2675,7 +2675,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final String[] agentZones, final File srcFile,
 			final Properties propsFile, final boolean selfHealing,
 			final File cloudOverrides)
-			throws TimeoutException, DSLException, IOException, RestErrorException {
+					throws TimeoutException, DSLException, IOException, RestErrorException {
 		doDeploy(applicationName, serviceName, authGroups, templateName, agentZones,
 				srcFile, propsFile, null, null, selfHealing, cloudOverrides);
 	}
@@ -2730,7 +2730,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "AdminException"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "DSLException") })
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeout}",
-		method = RequestMethod.POST)
+	method = RequestMethod.POST)
 	@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
 	@ResponseBody
 	public Object deployElastic(
@@ -2744,8 +2744,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			@RequestParam(value = "authGroups", required = false) final String authGroups,
 			@RequestParam(value = "cloudOverridesFile", required = false) final MultipartFile cloudOverridesFile,
 			@RequestParam(value = "selfHealing", required = false, defaultValue = "true") final Boolean selfHealing)
-			throws TimeoutException, PackagingException, IOException,
-			DSLException, RestErrorException {
+					throws TimeoutException, PackagingException, IOException,
+					DSLException, RestErrorException {
 
 		logger.info("Deploying service with template: " + templateName);
 		String actualTemplateName = templateName;
@@ -2797,7 +2797,7 @@ public class ServiceController implements ServiceDetailsProvider {
 							destFile,
 							"ext/"
 									+ CloudifyConstants.SERVICE_CLOUD_CONFIGURATION_FILE_NAME,
-							CloudifyConstants.SERVICE_CLOUD_CONFIGURATION_FILE_NAME);
+									CloudifyConstants.SERVICE_CLOUD_CONFIGURATION_FILE_NAME);
 			byte[] cloudConfigurationContents = null;
 			if (cloudConfigurationFile != null) {
 				cloudConfigurationContents = FileUtils
@@ -2839,7 +2839,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	private File getJarFileFromDir(File serviceFileOrDir,
 			final File serviceDirectory, final String jarName)
-			throws IOException {
+					throws IOException {
 		if (!serviceFileOrDir.isAbsolute()) {
 			serviceFileOrDir = new File(serviceDirectory,
 					serviceFileOrDir.getPath());
@@ -2887,7 +2887,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	private void validateTemplate(
 			final org.cloudifysource.dsl.Application application)
-			throws RestErrorException {
+					throws RestErrorException {
 		final List<Service> services = application.getServices();
 		for (Service service : services) {
 			validateTemplate(service);
@@ -2950,16 +2950,16 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		final ElasticSpaceDeployment deployment = new ElasticSpaceDeployment(
 				serviceName)
-				.memoryCapacityPerContainer(containerMemoryInMB,
-						MemoryUnit.MEGABYTES)
+		.memoryCapacityPerContainer(containerMemoryInMB,
+				MemoryUnit.MEGABYTES)
 				.maxMemoryCapacity(maxMemoryInMB, MemoryUnit.MEGABYTES)
 				.addContextProperty(
 						CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME,
 						applicationName)
-				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
-				.highlyAvailable(dataGridConfig.getSla().getHighlyAvailable())
-				// allow single machine for local development purposes
-				.singleMachineDeployment();
+						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
+						.highlyAvailable(dataGridConfig.getSla().getHighlyAvailable())
+						// allow single machine for local development purposes
+						.singleMachineDeployment();
 
 		setContextProperties(deployment, contextProperties);
 
@@ -2968,9 +2968,9 @@ public class ServiceController implements ServiceDetailsProvider {
 				setPublicMachineProvisioning(deployment, agentZones,
 						reservedMemoryCapacityPerMachineInMB);
 				deployment.scale(new ManualCapacityScaleConfigurer()
-						.memoryCapacity(
-								dataGridConfig.getSla().getMemoryCapacity(),
-								MemoryUnit.MEGABYTES).create());
+				.memoryCapacity(
+						dataGridConfig.getSla().getMemoryCapacity(),
+						MemoryUnit.MEGABYTES).create());
 
 			} else {
 				setSharedMachineProvisioning(deployment, agentZones,
@@ -3034,9 +3034,9 @@ public class ServiceController implements ServiceDetailsProvider {
 		// All PUs on this role share the same machine. Machines
 		// are identified by zone.
 		final DiscoveredMachineProvisioningConfig machineProvisioning = new DiscoveredMachineProvisioningConfigurer()
-				.reservedMemoryCapacityPerMachine(
-						reservedMemoryCapacityPerMachineInMB,
-						MemoryUnit.MEGABYTES).create();
+		.reservedMemoryCapacityPerMachine(
+				reservedMemoryCapacityPerMachineInMB,
+				MemoryUnit.MEGABYTES).create();
 		machineProvisioning.setGridServiceAgentZones(agentZones);
 
 		if (isLocalCloud()) {
@@ -3046,7 +3046,7 @@ public class ServiceController implements ServiceDetailsProvider {
 					machineProvisioning);
 		}
 	}
-	
+
 	private void setSharedMachineProvisioning(
 			final ElasticDeploymentTopology deployment,
 			final CloudifyMachineProvisioningConfig config,
@@ -3061,9 +3061,9 @@ public class ServiceController implements ServiceDetailsProvider {
 		// All PUs on this role share the same machine. Machines
 		// are identified by zone.
 		final DiscoveredMachineProvisioningConfig machineProvisioning = new DiscoveredMachineProvisioningConfigurer()
-				.reservedMemoryCapacityPerMachine(
-						reservedMemoryCapacityPerMachineInMB,
-						MemoryUnit.MEGABYTES).create();
+		.reservedMemoryCapacityPerMachine(
+				reservedMemoryCapacityPerMachineInMB,
+				MemoryUnit.MEGABYTES).create();
 		machineProvisioning.setGridServiceAgentZones(agentZones);
 
 		deployment.publicMachineProvisioning(machineProvisioning);
@@ -3088,7 +3088,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final StatelessProcessingUnit puConfig, final String templateName,
 			final int numberOfInstances, final boolean locationAware,
 			final File cloudOverride)
-			throws IOException, AdminException, TimeoutException, DSLException, RestErrorException {
+					throws IOException, AdminException, TimeoutException, DSLException, RestErrorException {
 
 		final File jarFile = getJarFileFromDir(
 				new File(puConfig.getBinaries()), extractedServiceFolder,
@@ -3100,13 +3100,13 @@ public class ServiceController implements ServiceDetailsProvider {
 		final int reservedMemoryCapacityPerMachineInMB = 256;
 		final ElasticStatelessProcessingUnitDeployment deployment = new ElasticStatelessProcessingUnitDeployment(
 				jarFile)
-				.memoryCapacityPerContainer(containerMemoryInMB,
-						MemoryUnit.MEGABYTES)
+		.memoryCapacityPerContainer(containerMemoryInMB,
+				MemoryUnit.MEGABYTES)
 				.addContextProperty(
 						CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME,
 						applicationName)
-				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
-				.name(serviceName);
+						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
+						.name(serviceName);
 		// TODO:read from cloud DSL
 
 		setContextProperties(deployment, contextProperties);
@@ -3118,9 +3118,9 @@ public class ServiceController implements ServiceDetailsProvider {
 				setPublicMachineProvisioning(deployment, agentZones,
 						reservedMemoryCapacityPerMachineInMB);
 				deployment.scale(new ManualCapacityScaleConfigurer()
-						.memoryCapacity(
-								containerMemoryInMB * numberOfInstances,
-								MemoryUnit.MEGABYTES).create());
+				.memoryCapacity(
+						containerMemoryInMB * numberOfInstances,
+						MemoryUnit.MEGABYTES).create());
 			} else {
 				setSharedMachineProvisioning(deployment, agentZones,
 						reservedMemoryCapacityPerMachineInMB);
@@ -3190,16 +3190,16 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		final ElasticStatefulProcessingUnitDeployment deployment = new ElasticStatefulProcessingUnitDeployment(
 				jarFile)
-				.name(serviceName)
-				.memoryCapacityPerContainer(containerMemoryInMB,
-						MemoryUnit.MEGABYTES)
+		.name(serviceName)
+		.memoryCapacityPerContainer(containerMemoryInMB,
+				MemoryUnit.MEGABYTES)
 				.maxMemoryCapacity(maxMemoryCapacityInMB + "m")
 				.addContextProperty(
 						CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME,
 						applicationName)
-				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
-				.highlyAvailable(puConfig.getSla().getHighlyAvailable())
-				.singleMachineDeployment();
+						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
+						.highlyAvailable(puConfig.getSla().getHighlyAvailable())
+						.singleMachineDeployment();
 
 		setContextProperties(deployment, contextProperties);
 
@@ -3209,8 +3209,8 @@ public class ServiceController implements ServiceDetailsProvider {
 				setPublicMachineProvisioning(deployment, agentZones,
 						reservedMemoryCapacityPerMachineInMB);
 				deployment.scale(new ManualCapacityScaleConfigurer()
-						.memoryCapacity(puConfig.getSla().getMemoryCapacity(),
-								MemoryUnit.MEGABYTES).create());
+				.memoryCapacity(puConfig.getSla().getMemoryCapacity(),
+						MemoryUnit.MEGABYTES).create());
 			} else {
 				setSharedMachineProvisioning(deployment, agentZones,
 						reservedMemoryCapacityPerMachineInMB);
@@ -3251,7 +3251,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	private void validateAndPrepareStatefulSla(final String serviceName,
 			final Sla sla, final Cloud cloud, final CloudTemplate template)
-			throws DSLException {
+					throws DSLException {
 
 		validateMemoryCapacityPerContainer(sla, cloud, template);
 
@@ -3288,7 +3288,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	private void validateAndPrepareStatelessSla(final Sla sla,
 			final Cloud cloud, final CloudTemplate template)
-			throws DSLException {
+					throws DSLException {
 
 		validateMemoryCapacityPerContainer(sla, cloud, template);
 
@@ -3306,7 +3306,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	private void validateMemoryCapacityPerContainer(final Sla sla,
 			final Cloud cloud, final CloudTemplate template)
-			throws DSLException {
+					throws DSLException {
 		if (cloud == null) {
 			// No cloud, must specify memory capacity per container explicitly
 			if (sla.getMemoryCapacityPerContainer() == null) {
@@ -3334,7 +3334,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	private void deployAndWait(final String serviceName,
 			final ElasticStatefulProcessingUnitDeployment deployment)
-			throws TimeoutException, AdminException {
+					throws TimeoutException, AdminException {
 		final ProcessingUnit pu = getGridServiceManager().deploy(deployment,
 				60, TimeUnit.SECONDS);
 		if (pu == null) {
@@ -3366,11 +3366,11 @@ public class ServiceController implements ServiceDetailsProvider {
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR,
-				description = ResponseConstants.FAILED_TO_LOCATE_SERVICE),
+			description = ResponseConstants.FAILED_TO_LOCATE_SERVICE),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR,
-				description = ResponseConstants.SERVICE_NOT_ELASTIC) })
+			description = ResponseConstants.SERVICE_NOT_ELASTIC) })
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/timeout/{timeout}/set-instances",
-		method = RequestMethod.POST)
+	method = RequestMethod.POST)
 	@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
 	@ResponseBody
 	public Map<String, Object> setServiceInstances(
@@ -3379,7 +3379,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final int timeout,
 			@RequestParam(value = "count", required = true) final int count,
 			@RequestParam(value = "location-aware", required = true) final boolean locationAware)
-			throws DSLException, RestErrorException {
+					throws DSLException, RestErrorException {
 
 		final Map<String, Object> returnMap = new HashMap<String, Object>();
 		final String puName = ServiceUtils.getAbsolutePUName(applicationName,
@@ -3390,7 +3390,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			throw new RestErrorException(
 					ResponseConstants.FAILED_TO_LOCATE_SERVICE, serviceName);
 		}
-		
+
 		if (permissionEvaluator != null) {
 			String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
 					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
@@ -3410,7 +3410,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		logger.info("Scaling " + puName + " to " + count + " instances");
-		
+
 		UUID eventContainerID;
 		if (cloud == null) {
 			if (isLocalCloud()) {
@@ -3474,7 +3474,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final String serviceName,
 			@PathVariable final int instanceId,
 			@RequestParam(value = "numLines", required = true) final int numLines)
-			throws RestErrorException {
+					throws RestErrorException {
 
 		final GridServiceContainer container = getContainerAccordingToInstanceId(
 				applicationName, serviceName, instanceId);
@@ -3522,7 +3522,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final String serviceName,
 			@PathVariable final String hostAddress,
 			@RequestParam(value = "numLines", required = true) final int numLines)
-			throws RestErrorException {
+					throws RestErrorException {
 
 		final GridServiceContainer container = getContainerAccordingToHostAddress(
 				applicationName, serviceName, hostAddress);
@@ -3562,7 +3562,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
 			@RequestParam(value = "numLines", required = true) final int numLines)
-			throws RestErrorException {
+					throws RestErrorException {
 
 		final StringBuilder stringBuilder = new StringBuilder();
 		final ProcessingUnit processingUnit = getProcessingUnit(
@@ -3743,7 +3743,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	Map<String, Object> addTemplates(
 			@RequestParam
 			(value = CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, required = true) final MultipartFile templatesFolder)
-			throws IOException, DSLException, RestErrorException {
+					throws IOException, DSLException, RestErrorException {
 		if (cloud == null) {
 			throw new RestErrorException("local_cloud_not_support_tempaltes_operations", "add-templates");
 		}
@@ -3858,7 +3858,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 */
 	private void executeDeleteRestRequest(final ProcessingUnitInstance puInstance,
 			final String hostAddress, final String url)
-			throws RestErrorException {
+					throws RestErrorException {
 		String uri = "http://" + hostAddress + ":" + puInstance.getJeeDetails().getPort() + url;
 		HttpDelete deleteMethod = new HttpDelete(uri);
 		logger.log(Level.INFO, "executeRestRequest - sending rest request to uri " + uri);
@@ -3890,7 +3890,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 */
 	private Map<String, Object> executePostRestRequest(final File templatesFolder,
 			final ProcessingUnitInstance puInstance, final String url)
-			throws RestErrorException, IOException {
+					throws RestErrorException, IOException {
 		// create an HTTP request
 		String hostAddress = puInstance.getMachine().getHostAddress();
 		String host = puInstance.getMachine().getHostName() + "/" + hostAddress;
@@ -3935,8 +3935,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	@RequestMapping(value = "templates/internal", method = RequestMethod.POST)
 	public @ResponseBody
 	Map<String, Object>
-			addTemplatesInternal(
-					@RequestParam(value = CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, required = true) final MultipartFile templatesFolder)
+	addTemplatesInternal(
+			@RequestParam(value = CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, required = true) final MultipartFile templatesFolder)
 					throws IOException, DSLException, RestErrorException {
 		CloudTemplatesReader reader = new CloudTemplatesReader();
 		File localTemplatesFolder = reader.unzipCloudTemplatesFolder(copyMultipartFileToLocalFile(templatesFolder));
@@ -3975,7 +3975,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		logger.log(Level.INFO, "addTemplatesToCloud - Successfully read " + cloudTemplatesHolders.size()
 				+ " templates from folder - " + templatesFolder);
 
-		// add the templates to the cloud's templates list.
+		// adds the templates to the cloud's templates list, deletes the failed to added templates from the folder.
 		Map<String, String> failedToAddTemplates = new HashMap<String, String>();
 		List<String> addedTempaltes = new LinkedList<String>();
 		addTemplatesToCloudList(templatesFolder, cloudTemplatesHolders, addedTempaltes, failedToAddTemplates);
@@ -3983,21 +3983,21 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (addedTempaltes.isEmpty()) {
 			logger.log(Level.WARNING, "addTemplatesToCloud - Failed to add templates files from "
 					+ templatesFolder.getAbsolutePath());
-		}
-
-		// copy files from template folder to cloudTemplateFolder
-		logger.log(Level.INFO, "addTemplatesToCloud - Coping templates files from " + templatesFolder.getAbsolutePath()
-				+ " to " + cloudConfigurationDir.getAbsolutePath());
-		try {
-			File localTemplatesDir = copyTemplateFilesToCloudConfigDir(templatesFolder);
-			updateCloudTempaltesUploadPath(addedTempaltes, localTemplatesDir);
-		} catch (IOException e) {
-			// failed to copy files - remove all added templates from cloud and them to the failed map.
-			logger.log(Level.WARNING, "addTemplatesToCloud - Failed to copy templates files, error: " 
-					+ e.getMessage(), e);
-			for (String tempalteName : addedTempaltes) {
-				cloud.getTemplates().remove(tempalteName);
-				failedToAddTemplates.put(tempalteName, e.getMessage());
+		} else {
+			// at least one template was added, copy files from template folder to cloudTemplateFolder
+			logger.log(Level.INFO, "addTemplatesToCloud - Coping templates files from " 
+					+ templatesFolder.getAbsolutePath() + " to " + cloudConfigurationDir.getAbsolutePath());
+			try {
+				File localTemplatesDir = copyTemplateFilesToCloudConfigDir(templatesFolder);
+				updateCloudTempaltesUploadPath(addedTempaltes, localTemplatesDir);
+			} catch (IOException e) {
+				// failed to copy files - remove all added templates from cloud and them to the failed map.
+				logger.log(Level.WARNING, "addTemplatesToCloud - Failed to copy templates files, error: " 
+						+ e.getMessage(), e);
+				for (String tempalteName : addedTempaltes) {
+					cloud.getTemplates().remove(tempalteName);
+					failedToAddTemplates.put(tempalteName, e.getMessage());
+				}
 			}
 		}
 
@@ -4213,7 +4213,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	@RequestMapping(value = "templates", method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object>
-			listTemplates() throws RestErrorException {
+	listTemplates() throws RestErrorException {
 		if (cloud == null) {
 			throw new RestErrorException("local_cloud_not_support_tempaltes_operations", "list-templates");
 		}
@@ -4233,8 +4233,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	@RequestMapping(value = "templates/{templateName}", method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object>
-			getTemplate(@PathVariable final String templateName)
-					throws RestErrorException {
+	getTemplate(@PathVariable final String templateName)
+			throws RestErrorException {
 
 		if (cloud == null) {
 			throw new RestErrorException("local_cloud_not_support_tempaltes_operations", "get-template");
@@ -4264,8 +4264,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	@RequestMapping(value = "templates/{templateName}", method = RequestMethod.DELETE)
 	public @ResponseBody
 	Map<String, Object>
-			removeTemplate(@PathVariable final String templateName)
-					throws RestErrorException {
+	removeTemplate(@PathVariable final String templateName)
+			throws RestErrorException {
 
 		if (cloud == null) {
 			throw new RestErrorException("local_cloud_not_support_tempaltes_operations", "remove-template");
@@ -4347,8 +4347,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	@RequestMapping(value = "templates/{templateName}/internal", method = RequestMethod.DELETE)
 	public @ResponseBody
 	Map<String, Object>
-			removeTemplateInternal(@PathVariable final String templateName)
-					throws RestErrorException {
+	removeTemplateInternal(@PathVariable final String templateName)
+			throws RestErrorException {
 		logger.log(Level.INFO, "removeTemplateInternal - removing template [" + templateName + "].");
 		try {
 			removeTemplateFromCloud(templateName);
@@ -4404,12 +4404,12 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 		// delete the file from the directory.
 		String templatesPath = templateFile.getAbsolutePath();
-		logger.log(Level.INFO, "removeTemplateFromCloud- removing template file " + templatesPath);
+		logger.log(Level.INFO, "deleteTemplateFile- removing template file " + templatesPath);
 		boolean deleted = false;
 		try {
 			deleted = templateFile.delete();
 		} catch (SecurityException e) {
-			logger.log(Level.WARNING, "removeTemplateFromCloud- Failed to deleted template file " + templatesPath
+			logger.log(Level.WARNING, "deleteTemplateFile- Failed to deleted template file " + templatesPath
 					+ ", Error: " + e.getMessage(), e);
 			throw new RestErrorException("failed_to_remove_template_file", templatesPath, e.getMessage());
 		}
@@ -4422,6 +4422,8 @@ public class ServiceController implements ServiceDetailsProvider {
 		File[] templatesFiles = DSLReader.findDefaultDSLFiles(DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX, tempalteFolder);
 		if (templatesFiles == null || templatesFiles.length == 0) {
 			try {
+				logger.log(Level.INFO, "deleteTemplateFile- tempaltes folder is empty, deleting the folder [" 
+						+ templatesPath + "].");
 				FileUtils.deleteDirectory(tempalteFolder);
 			} catch (IOException e) {
 				logger.log(Level.WARNING, "deleteTemplateFile- Failed to delete templates folder" + tempalteFolder, e);
