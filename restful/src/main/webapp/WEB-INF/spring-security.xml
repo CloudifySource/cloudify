@@ -6,20 +6,6 @@
 	http://www.springframework.org/schema/security
 	http://www.springframework.org/schema/security/spring-security-3.0.xsd">
 
-	<sec:authentication-manager alias="authenticationManager">
-		<sec:authentication-provider>
-			<sec:user-service>
-				<sec:user name="Superuser" password="Superuser" authorities="ROLE_CLOUDADMINS, ROLE_APPMANAGERS, ROLE_VIEWERS" />
-				<sec:user name="Amanda" password="Amanda" authorities="ROLE_CLOUDADMINS" />
-				<sec:user name="Dana" password="Dana" authorities="ROLE_CLOUDADMINS, ROLE_APPMANAGERS" />
-				<sec:user name="Dan" password="Dan" authorities="ROLE_APPMANAGERS" />
-				<sec:user name="Don" password="Don" authorities="ROLE_APPMANAGERS, ROLE_VIEWERS" />
-				<sec:user name="John" password="John" authorities="ROLE_VIEWERS" />
-				<sec:user name="Jane" password="Jane" authorities="" />
-			</sec:user-service>
-		</sec:authentication-provider>
-	</sec:authentication-manager>
-		
 	<beans profile="nonsecure,default">
 		<sec:http auto-config='true' use-expressions="true">
 			<sec:intercept-url pattern="/**" access="permitAll" />
@@ -71,6 +57,83 @@
 
 		<!--bean id="tdrUserDetailsContextMapper" class="com.bla.bla.UserDetailsContextMapperImpl"/ -->
 		
+		<!--sec:authentication-manager alias="authenticationManager">
+			<sec:authentication-provider>
+				<sec:user-service>
+					<sec:user name="Superuser" password="Superuser" authorities="ROLE_CLOUDADMINS, ROLE_APPMANAGERS, ROLE_VIEWERS" />
+					<sec:user name="Amanda" password="Amanda" authorities="ROLE_CLOUDADMINS" />
+					<sec:user name="Dana" password="Dana" authorities="ROLE_CLOUDADMINS, ROLE_APPMANAGERS" />
+					<sec:user name="Dan" password="Dan" authorities="ROLE_APPMANAGERS" />
+					<sec:user name="Don" password="Don" authorities="ROLE_APPMANAGERS, ROLE_VIEWERS" />
+					<sec:user name="John" password="John" authorities="ROLE_VIEWERS" />
+					<sec:user name="Jane" password="Jane" authorities="" />
+				</sec:user-service>
+			</sec:authentication-provider>
+		</sec:authentication-manager-->
+	
+		<!-- to connect to a LDAP user-store replace the above authentication-manager 
+		with this one, and enter your ldap settings -->
+		<!--sec:ldap-server url="ldap://localhost:389/dc=maxcrc,dc=com"/>
+		<sec:authentication-manager alias="authenticationManager">
+			<sec:ldap-authentication-provider user-search-filter="uid={0}" user-search-base="ou=people" group-search-base="ou=groups" group-search-filter="member={0}"/> 
+		</sec:authentication-manager-->
+	
+		<sec:authentication-manager alias="authenticationManager">
+			<sec:authentication-provider ref="ldapAuthProvider"/>
+		</sec:authentication-manager>
+		
+		<bean id="contextSource" class="org.springframework.security.ldap.DefaultSpringSecurityContextSource">
+			<constructor-arg value="ldap://localhost:389/dc=maxcrc,dc=com"/>
+			<property name="userDn" value="cn=manager,dc=maxcrc,dc=com"/>
+			<property name="password" value="secret"/>
+		</bean>
+	 
+		<bean id="CustomLdapUserDetailsMapper" class="org.cloudifysource.rest.security.CustomLdapUserDetailsMapper" >
+			<property name="roleAttributes">
+				<list>
+					<value>description</value>
+				</list>
+			</property>
+		</bean>
+		
+		<bean id="userSearch" class="org.springframework.security.ldap.search.FilterBasedLdapUserSearch">
+			<constructor-arg index="0" value=""/>
+			<constructor-arg index="1" value="(uid={0})"/>
+			<constructor-arg index="2" ref="contextSource" />
+		</bean>
+		
+		<bean id="ldapAuthProvider" class="org.cloudifysource.rest.security.CustomLdapAuthenticationProvider">
+			<constructor-arg>
+				<bean class="org.springframework.security.ldap.authentication.BindAuthenticator">
+					<constructor-arg ref="contextSource"/>
+					<property name="userSearch" ref="userSearch">
+					</property>
+				</bean>
+			</constructor-arg>
+			<constructor-arg>
+				<bean class="org.cloudifysource.rest.security.CustomLdapAuthoritiesPopulator">
+				<constructor-arg name="roleAttributes">
+					<list>
+						<value>description</value>
+					</list>
+				</constructor-arg>
+					<!--constructor-arg ref="contextSource"/>
+					<constructor-arg value="ou=groups"/>
+					<property name="searchSubtree">
+						<value type="java.lang.Boolean">true</value>
+					</property-->
+					<!--property name="groupRoleAttribute" value="ou"/-->
+				</bean>
+			</constructor-arg>
+			<constructor-arg>
+				<bean class="org.cloudifysource.rest.security.CustomLdapAuthGroupsPopulator">
+					<constructor-arg ref="contextSource"/>
+					<constructor-arg value="ou=groups"/>
+				</bean>
+			</constructor-arg>
+			<property name="UserDetailsContextMapper" ref="CustomLdapUserDetailsMapper"/>
+		</bean>
+			
 	</beans>
 	
 	<beans profile="ssl">
@@ -107,13 +170,6 @@
 			<property name="authenticationEntryPoint" ref="basicAuthEntryPoint" />
 		</bean>
 		
-		<!-- to connect to a LDAP user-store replace the above authentication-manager 
-			with this one, and enter your ldap settings -->
-		<!--ldap-server url="ldap://yourLdapIP:389/dc=yourdomain,dc=com"/> <authentication-manager 
-			alias="authenticationManager"> <ldap-authentication-provider user-search-filter="uid={0}" 
-			user-search-base="ou=people" group-search-base="ou=groups" group-search-filter="member={0}"/> 
-			</authentication-manager -->
-
 		<!--bean id="tdrUserDetailsContextMapper" class="com.bla.bla.UserDetailsContextMapperImpl"/ -->
 		
 	</beans>
