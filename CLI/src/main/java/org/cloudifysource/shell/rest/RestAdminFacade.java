@@ -70,13 +70,13 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void doConnect(final String user, final String password, final String url, final boolean isSecureConnection)
+	public void doConnect(final String user, final String password, final String url, final boolean sslUsed)
 			throws CLIException {
 		
 		URL urlObj;
 
 		try {
-			urlObj = new URL(ShellUtils.getFormattedRestUrl(url, isSecureConnection));
+			urlObj = new URL(ShellUtils.getFormattedRestUrl(url, sslUsed));
 			client = new GSRestClient(user, password, urlObj, PlatformVersion.getVersionNumber());
 			// test connection
 			client.get(SERVICE_CONTROLLER_URL + "testrest");

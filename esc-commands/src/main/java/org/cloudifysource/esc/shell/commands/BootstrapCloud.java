@@ -66,8 +66,8 @@ public class BootstrapCloud extends AbstractGSCommand {
 	@Argument(required = false, name = "provider", description = "the cloud provider to use")
 	String cloudProvider;
 	
-    @Option(required = false, description = "Server security mode (true/false)", name = "-secured")
-    private String secured;
+    @Option(required = false, description = "Server security mode (on/off)", name = "-secured")
+    private boolean secured;
     
     @Option(required = false, description = "Path to a custom spring security configuration file",
     		name = "-securityFile", aliases = {"-securityfile" })
@@ -263,49 +263,44 @@ public class BootstrapCloud extends AbstractGSCommand {
 
 	
 	private void setSecurityMode() {
-		if (StringUtils.isNotBlank(secured)) {
-			if (secured.equalsIgnoreCase("true")
-					||  secured.equalsIgnoreCase("yes")) {
-				//enable security
-				if (StringUtils.isNotBlank(keystore) && StringUtils.isNotBlank(keystorePassword)) {
-					logger.info(getFormattedMessage(CloudifyErrorMessages.SETTING_SERVER_SECURITY_PROFILE.getName(),
-							CloudifyConstants.SPRING_PROFILE_SSL));
-					securityProfile = CloudifyConstants.SPRING_PROFILE_SSL;
-				} else {
-					logger.info(getFormattedMessage(CloudifyErrorMessages.SETTING_SERVER_SECURITY_PROFILE.getName(),
-							CloudifyConstants.SPRING_PROFILE_SECURE));
-					securityProfile = CloudifyConstants.SPRING_PROFILE_SECURE;
-				}
-			} else if (secured.equalsIgnoreCase("false")
-					||  secured.equalsIgnoreCase("no")) {
-				//disable security
+		
+		if (secured) {
+			//enable security
+			if (StringUtils.isNotBlank(keystore) && StringUtils.isNotBlank(keystorePassword)) {
 				logger.info(getFormattedMessage(CloudifyErrorMessages.SETTING_SERVER_SECURITY_PROFILE.getName(),
-						CloudifyConstants.SPRING_PROFILE_NON_SECURE));
-				securityProfile = CloudifyConstants.SPRING_PROFILE_NON_SECURE;
+						CloudifyConstants.SPRING_PROFILE_SSL));
+				securityProfile = CloudifyConstants.SPRING_PROFILE_SSL;
 			} else {
-				throw new IllegalArgumentException("'-secured' can accept only true/false.");
+				logger.info(getFormattedMessage(CloudifyErrorMessages.SETTING_SERVER_SECURITY_PROFILE.getName(),
+						CloudifyConstants.SPRING_PROFILE_SECURE));
+				securityProfile = CloudifyConstants.SPRING_PROFILE_SECURE;
 			}
+		} else {
+			//disable security
+			logger.info(getFormattedMessage(CloudifyErrorMessages.SETTING_SERVER_SECURITY_PROFILE.getName(),
+					CloudifyConstants.SPRING_PROFILE_NON_SECURE));
+			securityProfile = CloudifyConstants.SPRING_PROFILE_NON_SECURE;
 		}
 		
 		if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_NON_SECURE)) {
 			if (StringUtils.isNotBlank(username)) {
-				throw new IllegalArgumentException("'-user' is only valid when '-secured' is set to true");
+				throw new IllegalArgumentException("'-user' is only valid when '-secured' is set");
 			}
 			
 			if (StringUtils.isNotBlank(password)) {
-				throw new IllegalArgumentException("'-password' is only valid when '-secured' is set to true");
+				throw new IllegalArgumentException("'-password' is only valid when '-secured' is set");
 			}
 			
 			if (StringUtils.isNotBlank(securityFilePath)) {
-				throw new IllegalArgumentException("'-securityfile' is only valid when '-secured' is set to true");
+				throw new IllegalArgumentException("'-securityfile' is only valid when '-secured' is set");
 			}
 			
 			if (StringUtils.isNotBlank(keystore)) {
-				throw new IllegalArgumentException("'-keystore' is only valid when '-secured' is set to true");
+				throw new IllegalArgumentException("'-keystore' is only valid when '-secured' is set");
 			}
 			
 			if (StringUtils.isNotBlank(keystorePassword)) {
-				throw new IllegalArgumentException("'-keystorePassword' is only valid when '-secured' is set to true");
+				throw new IllegalArgumentException("'-keystorePassword' is only valid when '-secured' is set");
 			}
 		}
 			

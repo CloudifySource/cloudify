@@ -48,10 +48,10 @@ public abstract class AbstractAdminFacade implements AdminFacade {
      * {@inheritDoc}
      */
     @Override
-    public void connect(final String user, final String password, final String url, final boolean isSecureConnection)
+    public void connect(final String user, final String password, final String url, final boolean sslUsed)
     		throws CLIException {
         if (!isConnected()) {
-            doConnect(user, password, url, isSecureConnection);
+            doConnect(user, password, url, sslUsed);
             this.connected = true;
         } else {
             throw new CLIStatusException("already_connected");
