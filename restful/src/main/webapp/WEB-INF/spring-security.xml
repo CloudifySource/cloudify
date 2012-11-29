@@ -15,12 +15,10 @@
 	</beans>	
 
 	<beans profile="secure">
-	<!--beans-->
 		<!-- to limit HTTP access to the application replace the above http section 
 			with this one or use the "nonsecure" spring profile: -->
 		<sec:http entry-point-ref="basicAuthEntryPoint" auto-config="false"
 			create-session="never" use-expressions="true">
-			<!--sec:anonymous enabled="false" /-->
 			<sec:intercept-url pattern="/admin/**" requires-channel="http"
 				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')" />
 			<sec:intercept-url pattern="/service/testrest" requires-channel="http"
@@ -48,16 +46,7 @@
 			<property name="authenticationEntryPoint" ref="basicAuthEntryPoint" />
 		</bean>
 		
-		<!-- to connect to a LDAP user-store replace the above authentication-manager 
-			with this one, and enter your ldap settings -->
-		<!--ldap-server url="ldap://yourLdapIP:389/dc=yourdomain,dc=com"/> <authentication-manager 
-			alias="authenticationManager"> <ldap-authentication-provider user-search-filter="uid={0}" 
-			user-search-base="ou=people" group-search-base="ou=groups" group-search-filter="member={0}"/> 
-			</authentication-manager -->
-
-		<!--bean id="tdrUserDetailsContextMapper" class="com.bla.bla.UserDetailsContextMapperImpl"/ -->
-		
-		<!--sec:authentication-manager alias="authenticationManager">
+		<sec:authentication-manager alias="authenticationManager">
 			<sec:authentication-provider>
 				<sec:user-service>
 					<sec:user name="Superuser" password="Superuser" authorities="ROLE_CLOUDADMINS, ROLE_APPMANAGERS, ROLE_VIEWERS" />
@@ -69,16 +58,19 @@
 					<sec:user name="Jane" password="Jane" authorities="" />
 				</sec:user-service>
 			</sec:authentication-provider>
-		</sec:authentication-manager-->
+		</sec:authentication-manager>
 	
 		<!-- to connect to a LDAP user-store replace the above authentication-manager 
 		with this one, and enter your ldap settings -->
+		
+		<!--this is the naive configuration for ldap, setting roles based on group membership, so roles names are "ROLE_<GROUP NAME>". -->
 		<!--sec:ldap-server url="ldap://localhost:389/dc=maxcrc,dc=com"/>
 		<sec:authentication-manager alias="authenticationManager">
 			<sec:ldap-authentication-provider user-search-filter="uid={0}" user-search-base="ou=people" group-search-base="ou=groups" group-search-filter="member={0}"/> 
 		</sec:authentication-manager-->
 	
-		<sec:authentication-manager alias="authenticationManager">
+		<!--this is the advanced configuration for ldap, setting roles based on attributes values, and authorization groups based on group membership. -->
+		<!--sec:authentication-manager alias="authenticationManager">
 			<sec:authentication-provider ref="ldapAuthProvider"/>
 		</sec:authentication-manager>
 		
@@ -117,12 +109,6 @@
 						<value>description</value>
 					</list>
 				</constructor-arg>
-					<!--constructor-arg ref="contextSource"/>
-					<constructor-arg value="ou=groups"/>
-					<property name="searchSubtree">
-						<value type="java.lang.Boolean">true</value>
-					</property-->
-					<!--property name="groupRoleAttribute" value="ou"/-->
 				</bean>
 			</constructor-arg>
 			<constructor-arg>
@@ -132,17 +118,15 @@
 				</bean>
 			</constructor-arg>
 			<property name="UserDetailsContextMapper" ref="CustomLdapUserDetailsMapper"/>
-		</bean>
+		</bean-->
 			
 	</beans>
 	
 	<beans profile="ssl">
-	<!--beans-->
 		<!-- to limit HTTP access to the application replace the above http section 
 			with this one or use the "nonsecure" spring profile: -->
 		<sec:http entry-point-ref="basicAuthEntryPoint" auto-config="false"
 			create-session="never" use-expressions="true">
-			<!--sec:anonymous enabled="false" /-->
 			<sec:intercept-url pattern="/admin/**" requires-channel="https"
 				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')" />
 			<sec:intercept-url pattern="/service/testrest" requires-channel="https"
@@ -169,8 +153,6 @@
 			<property name="authenticationManager" ref="authenticationManager" />
 			<property name="authenticationEntryPoint" ref="basicAuthEntryPoint" />
 		</bean>
-		
-		<!--bean id="tdrUserDetailsContextMapper" class="com.bla.bla.UserDetailsContextMapperImpl"/ -->
 		
 	</beans>
 
