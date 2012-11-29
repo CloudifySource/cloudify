@@ -79,6 +79,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.cloudifysource.dsl.ComputeDetails;
 import org.cloudifysource.dsl.DataGrid;
 import org.cloudifysource.dsl.Service;
+import org.cloudifysource.dsl.ServiceProcessingUnit;
 import org.cloudifysource.dsl.Sla;
 import org.cloudifysource.dsl.StatefulProcessingUnit;
 import org.cloudifysource.dsl.StatelessProcessingUnit;
@@ -2201,7 +2202,6 @@ public class ServiceController implements ServiceDetailsProvider {
 			locationAware = service.isLocationAware();
 			dedicated = IsolationUtils.isDedicated(service);
 		}
-
 		final int externalProcessMemoryInMB = 512;
 		final int containerMemoryInMB = 128;
 		final int reservedMemoryCapacityPerMachineInMB = 256;
@@ -2963,6 +2963,7 @@ public class ServiceController implements ServiceDetailsProvider {
 						.singleMachineDeployment();
 
 		setContextProperties(deployment, contextProperties);
+		setContextProperties(deployment, dataGridConfig);
 
 		if (cloud == null) {
 			if (isLocalCloud()) {
@@ -3111,7 +3112,8 @@ public class ServiceController implements ServiceDetailsProvider {
 		// TODO:read from cloud DSL
 
 		setContextProperties(deployment, contextProperties);
-
+		setContextProperties(deployment, puConfig);
+		
 		if (cloud == null) {
 			verifyEsmExistsInCluster();
 
@@ -3203,7 +3205,8 @@ public class ServiceController implements ServiceDetailsProvider {
 						.singleMachineDeployment();
 
 		setContextProperties(deployment, contextProperties);
-
+		setContextProperties(deployment, puConfig);
+		
 		if (cloud == null) {
 			verifyEsmExistsInCluster();
 			if (isLocalCloud()) {
@@ -3248,6 +3251,18 @@ public class ServiceController implements ServiceDetailsProvider {
 		deployAndWait(serviceName, deployment);
 		jarFile.delete();
 
+	}
+
+	private void setContextProperties(
+			ElasticDeploymentTopology deployment,
+			ServiceProcessingUnit puConfig) {
+
+		Map<String, String> contextProperties = puConfig.getContextProperties();
+		if (contextProperties != null) {
+			for (Entry<String, String> pair: contextProperties.entrySet()) {
+				deployment.addContextProperty(pair.getKey(), pair.getValue());
+			}
+		}
 	}
 
 	private void validateAndPrepareStatefulSla(final String serviceName,
