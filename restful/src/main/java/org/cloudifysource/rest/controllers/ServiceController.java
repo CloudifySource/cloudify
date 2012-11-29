@@ -4094,35 +4094,39 @@ public class ServiceController implements ServiceDetailsProvider {
 	private void renameTemplateFileIfNeeded(final File templatesFolder, final CloudTemplateHolder holder) 
 			throws IOException {
 		String templateName = holder.getName();
-		
+
 		String templateFileName = holder.getTemplateFileName();
 		File templateFile = new File(templatesFolder, templateFileName);
 		String propertiesFileName = holder.getPropertiesFileName();
-		File propertiesFile = new File(templatesFolder, templateFileName);
 		String overridesFileName = holder.getOverridesFileName();
-		File overridesFile = new File(templatesFolder, templateFileName);		
-		
+
 		try {
 			String newName = DSLUtils.renameCloudTemplateFileNameIfNeeded(templateFile, templateName, 
 					DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX);
 			if (newName != null) {
-				logger.log(Level.INFO, "addTemplatesToCloud - Renamed template file name from "
+				logger.log(Level.INFO, "renameTemplateFileIfNeeded - Renamed template file name from "
 						+ templateFileName + " to " + newName + ".");
 			}
-			newName = DSLUtils.renameCloudTemplateFileNameIfNeeded(propertiesFile, templateName, 
-					DSLUtils.TEMPLATES_PROPERTIES_FILE_NAME_SUFFIX);
-			if (newName != null) {
-				logger.log(Level.INFO, "addTemplatesToCloud - Renamed template's properties file name from "
-						+ propertiesFileName + " to " + newName + ".");
+			if (propertiesFileName != null) {
+				File propertiesFile = new File(templatesFolder, propertiesFileName);
+				newName = DSLUtils.renameCloudTemplateFileNameIfNeeded(propertiesFile, templateName, 
+						DSLUtils.TEMPLATES_PROPERTIES_FILE_NAME_SUFFIX);
+				if (newName != null) {
+					logger.log(Level.INFO, "renameTemplateFileIfNeeded - Renamed template's properties file name from "
+							+ propertiesFileName + " to " + newName + ".");
+				}
 			}
-			newName = DSLUtils.renameCloudTemplateFileNameIfNeeded(overridesFile, templateName, 
-					DSLUtils.TEMPLATES_OVERRIDES_FILE_NAME_SUFFIX);
-			if (newName != null) {
-				logger.log(Level.INFO, "addTemplatesToCloud - Renamed template's overrides file name from "
-						+ overridesFileName + " to " + newName + ".");
+			if (overridesFileName != null) {
+				File overridesFile = new File(templatesFolder, overridesFileName);		
+				newName = DSLUtils.renameCloudTemplateFileNameIfNeeded(overridesFile, templateName, 
+						DSLUtils.TEMPLATES_OVERRIDES_FILE_NAME_SUFFIX);
+				if (newName != null) {
+					logger.log(Level.INFO, "renameTemplateFileIfNeeded - Renamed template's overrides file name from "
+							+ overridesFileName + " to " + newName + ".");
+				}
 			}
 		} catch (IOException e) {
-			logger.log(Level.WARNING, "addTemplatesToCloud - Failed to rename template file name ["
+			logger.log(Level.WARNING, "renameTemplateFileIfNeeded - Failed to rename template file name ["
 					+ templateFile.getName() + "] to "
 					+ templateName + DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX
 					+ ". The file will be deleted. Error:" + e);
