@@ -32,10 +32,9 @@ import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
-import org.cloudifysource.dsl.internal.DSLReader;
-import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
+import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.FileAppender;
 import org.cloudifysource.dsl.utils.RecipePathResolver;
@@ -134,12 +133,8 @@ public class BootstrapCloud extends AbstractGSCommand {
 		File cloudFile = findCloudFile(providerDirectory);
 		
 		// load properties file
-		File cloudPropertiesFile = DSLReader.findDefaultDSLFile(DSLUtils.PROPERTIES_FILE_SUFFIX, providerDirectory);
-		if (cloudPropertiesFile == null) {
-			// if there is no property file, create an empty one
-			cloudPropertiesFile = new File(providerDirectory.getAbsolutePath(), 
+		File cloudPropertiesFile = new File(providerDirectory.getAbsolutePath(), 
 					cloudProvider + "-cloud" + DSLUtils.PROPERTIES_FILE_SUFFIX);
-		}
 		File backupCloudPropertiesFile = new File(cloudPropertiesFile.getParentFile(), 
 				cloudPropertiesFile.getName() + ".backup");
 		
