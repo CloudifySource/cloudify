@@ -628,6 +628,12 @@ public class AgentlessInstaller {
 
 		final String scriptPath = remoteDirectory + "/" + scriptFileName;
 
+		String authGroups = null;
+		if (details.getAuthGroups() != null) {
+			//authgroups should be a strongly typed object convertible into a String
+			authGroups = details.getAuthGroups().toString();
+		}
+		
 		final ShellCommandBuilder scb = new ShellCommandBuilder(details.getRemoteExecutionMode())
 				.exportVar(LUS_IP_ADDRESS_ENV, details.getLocator())
 				.exportVar(GSA_MODE_ENV, details.isLus() ? "lus" : "agent")
@@ -644,6 +650,7 @@ public class AgentlessInstaller {
 				.exportVar(CloudifyConstants.CLOUDIFY_OVERRIDES_LINK_ENV,
 						details.getOverridesUrl() != null ? "\"" + details.getOverridesUrl() + "\"" : "")
 				.exportVar(WORKING_HOME_DIRECTORY_ENV, remoteDirectory)
+				.exportVar(CloudifyConstants.GIGASPACES_AUTH_GROUPS, authGroups)
 				.exportVar(CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVATE_IP, details.getPrivateIp())
 				.exportVar(CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP, details.getPublicIp())
 				.exportVar(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME, details.getTemplateName())

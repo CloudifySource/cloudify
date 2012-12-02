@@ -79,6 +79,9 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 
 	private static final String LOCATOR_KEY = "locator";
 	private static final String SERVICE_CLOUD_CONFIGURATION_KEY = "SERVICE_CLOUD_CONFIGURATION_KEY";
+	
+	private static final String AUTH_GROUPS_DEFAULT = null;
+	private static final String AUTH_GROUPS_KEY = "auth-groups";
 
 	private StringProperties properties = new StringProperties(new HashMap<String, String>());
 
@@ -106,7 +109,6 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 		logger.log(Level.INFO, "Setting cloud configuration directory to: " + remoteDir);
 		setCloudConfigurationDirectory(remoteDir);
 		setCloudTemplateName(cloudTemplateName);
-
 	}
 	
 	private String getWindowsRemoteDirPath(String remoteDirectory) {
@@ -356,5 +358,14 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 		final byte[] decodedFile = jcifs.util.Base64.decode(encodedFile);
 		return decodedFile;
 
+	}
+	
+
+	public void setAuthGroups(String authGroups) {
+		properties.putStringWrapperObject(AUTH_GROUPS_KEY, authGroups);
+	}
+
+	public String getAuthGroups() {
+		return (String) properties.getStringWrapperObject(AUTH_GROUPS_KEY, AUTH_GROUPS_DEFAULT);
 	}
 }

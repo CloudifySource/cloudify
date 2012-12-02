@@ -113,6 +113,8 @@ public class InstallationDetails implements Cloneable {
 	private GSAReservationId reservationId;
 
 	private String templateName;
+	
+	private String authGroups;
 
 	public String getTemplateName() {
 		return templateName;
@@ -185,7 +187,7 @@ public class InstallationDetails implements Cloneable {
 				+ ", connectToPrivateIP=" + connectedToPrivateIp + ", cloudifyUrl=" + cloudifyUrl
 				+ ", bindToPrivateIP=" + bindToPrivateIp + ", username=" + username + ", password=***" + ", keyFile="
 				+ keyFile + ", localDir=" + localDir + ", remoteDir=" + remoteDir + ", isLus=" + isLus + ", zones="
-				+ zones + ", extraRemoteEnvironmentVariables = " + extraRemoteEnvironmentVariables + "]";
+				+ zones + ", extraRemoteEnvironmentVariables = " + extraRemoteEnvironmentVariables + ", authGroups=***]";
 	}
 
 	public String getKeyFile() {
@@ -352,4 +354,11 @@ public class InstallationDetails implements Cloneable {
 		this.keystorePassword = keystorePassword;
 	}
 
+	public void setAuthGroups(String authGroups) {
+		this.authGroups = authGroups;
+	}
+	
+	public String getAuthGroups() {
+		return this.authGroups;
+	}
 }

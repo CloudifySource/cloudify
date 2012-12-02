@@ -174,6 +174,8 @@ public final class Utils {
 	 *            set security profile (nonsecure/secure/ssl)
 	 * @param keystorePassword
 	 *            The password to the keystore set on the rest server
+	 * @param authGroups
+	 * 			  The authentication groups attached to the GSA as an environment variable {@link CloudifyConstants#GIGASPACES_AUTH_GROUP}
 	 * @return the installation details.
 	 * @throws FileNotFoundException
 	 *             if a key file is specified and is not found.
@@ -186,7 +188,8 @@ public final class Utils {
 			final GSAReservationId reservationId,
 			final String templateName,
 			final String securityProfile,
-			final String keystorePassword)
+			final String keystorePassword, 
+			final String authGroups)
 			throws FileNotFoundException {
 
 		final InstallationDetails details = new InstallationDetails();
@@ -303,6 +306,10 @@ public final class Utils {
 		details.setTemplateName(templateName);
 
 		details.setMachineId(md.getMachineId());
+		
+		if (authGroups != null) {
+			details.setAuthGroups(authGroups);
+		}
 		logger.fine("Created InstallationDetails: " + details);
 		return details;
 	}

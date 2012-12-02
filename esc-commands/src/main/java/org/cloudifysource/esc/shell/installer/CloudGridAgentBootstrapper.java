@@ -591,13 +591,14 @@ public class CloudGridAgentBootstrapper {
 		final InstallationDetails[] details = new InstallationDetails[numOfManagementMachines];
 
 		final GSAReservationId reservationId = null;
-
+		final String managementAuthGroups = null;
+		
 		for (int i = 0; i < details.length; i++) {
 			final ExactZonesConfig zones = new ExactZonesConfigurer().addZone(
 					MANAGEMENT_GSA_ZONE).create();
 			details[i] = Utils.createInstallationDetails(machineDetails[i], cloud, template, zones, null, null, true,
 					this.cloudFile, reservationId, cloud.getConfiguration().getManagementMachineTemplate(),
-					securityProfile, keystorePassword);
+					securityProfile, keystorePassword, managementAuthGroups );
 		}
 
 		return details;
