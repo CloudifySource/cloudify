@@ -17,7 +17,9 @@ package org.cloudifysource.esc.driver.provisioning.byon;
 
 import java.rmi.RemoteException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -66,7 +68,7 @@ import com.gigaspaces.grid.gsa.GSA;
  * 
  */
 public class ByonProvisioningDriver extends BaseProvisioningDriver implements ProvisioningDriver,
-		ProvisioningDriverClassContextAware {
+ProvisioningDriverClassContextAware {
 
 	private static final int THREAD_WAITING_IDLE_TIME_IN_SECS = 10;
 	private static final int AGENT_SHUTDOWN_TIMEOUT_IN_MINUTES = 2;
@@ -78,6 +80,23 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	private List<String> cloudifyItems;
 	private ByonDeployer deployer;
 
+	private void addTempaltesToDeployer(ByonDeployer deployer, Map<String, CloudTemplate> templatesMap) throws Exception {
+		logger.info("addTempaltesToDeployer - adding the following tempaltes to the deployer: " + templatesMap.keySet());
+		List<Map<String, String>> nodesList = null;
+		for (final String templateName : templatesMap.keySet()) {
+			final Map<String, Object> customSettings = cloud.getTemplates().get(templateName).getCustom();
+			if (customSettings != null) {
+				nodesList = (List<Map<String, String>>) customSettings.get(CLOUD_NODES_LIST);
+			}
+			if (nodesList == null) {
+				publishEvent(CloudifyErrorMessages.MISSING_NODES_LIST.getName(), templateName);
+				throw new CloudProvisioningException("Failed to create BYON cloud deployer, invalid configuration for tempalte " 
+						+ templateName + " - missing nodes list.");
+			}
+			deployer.addNodesList(templateName, templatesMap.get(templateName), nodesList);
+		}
+	}
+
 	@Override
 	protected void initDeployer(final Cloud cloud) {
 		try {
@@ -88,32 +107,52 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 				public Object call()
 						throws Exception {
 					logger.info("Creating BYON context deployer for cloud: " + cloud.getName());
-					final ByonDeployer deployer = new ByonDeployer();
-					List<Map<String, String>> nodesList = null;
-					final Map<String, CloudTemplate> templatesMap = cloud.getTemplates();
-					for (final String templateName : templatesMap.keySet()) {
-						final Map<String, Object> customSettings = cloud.getTemplates().get(templateName).getCustom();
-						if (customSettings != null) {
-							nodesList = (List<Map<String, String>>) customSettings.get(CLOUD_NODES_LIST);
-						}
-						if (nodesList == null) {
-							publishEvent(CloudifyErrorMessages.MISSING_NODES_LIST.getName(), templateName);
-							throw new CloudProvisioningException(
-									"Failed to create BYON cloud deployer, invalid configuration for tempalte " + templateName + " - missing nodes list.");
-						}
-						deployer.addNodesList(templateName, templatesMap.get(templateName), nodesList);
-					}
-
-					return deployer;
+					final ByonDeployer newDeployer = new ByonDeployer();
+					addTempaltesToDeployer(newDeployer, cloud.getTemplates());
+					return newDeployer;
 				}
 			});
+
 		} catch (final Exception e) {
 			publishEvent("connection_to_cloud_api_failed", cloud.getProvider().getProvider());
 			throw new IllegalStateException("Failed to create cloud deployer", e);
-		}
-
+		} 
+		try {		
+			updateDeployerTemplates(cloud);
+		}catch (Exception e) {
+			logger.log(Level.WARNING, "initDeployer - fialed to add tempaltes to deployer", e);
+			throw new IllegalStateException("Failed to update templates", e);
+		} 
 		setCustomSettings(cloud);
 	}
+
+	public void updateDeployerTemplates(Cloud cloud) throws Exception {
+		Map<String, CloudTemplate> cloudTemplatesMap = cloud.getTemplates();
+		List<String> cloudTemplateNames = new LinkedList<String>(cloudTemplatesMap.keySet());
+		List<String> deployerTemplateNames = deployer.getTemplatesList();
+
+		List<String> missingTempaltes =  new LinkedList<String>(cloudTemplateNames);
+		missingTempaltes.removeAll(deployerTemplateNames);
+
+		List<String> redundantTempaltes =  new LinkedList<String>(deployerTemplateNames);
+		redundantTempaltes.removeAll(cloudTemplateNames);
+
+		if (!missingTempaltes.isEmpty()) {
+			logger.info("initDeployer - found missing templates: " + missingTempaltes);
+			Map<String, CloudTemplate> templatesMap = new HashMap<String, CloudTemplate>();
+			for (String templateName : missingTempaltes) {
+				CloudTemplate cloudTemplate = cloudTemplatesMap.get(templateName);
+				templatesMap.put(templateName, cloudTemplate);
+			}
+			addTempaltesToDeployer(deployer, templatesMap);
+		}
+
+		if (!redundantTempaltes.isEmpty()) {
+			logger.info("initDeployer - found redundant templates: " + redundantTempaltes);
+			deployer.removeTemplates(redundantTempaltes);
+		}		
+	} 		
+
 
 	@SuppressWarnings("unchecked")
 	private void setCustomSettings(final Cloud cloud) {
@@ -526,7 +565,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 	private void handleProvisioningFailure(final int numberOfManagementMachines, final int numberOfErrors,
 			final Exception firstCreationException, final MachineDetails[] createdManagementMachines)
-			throws CloudProvisioningException {
+					throws CloudProvisioningException {
 		logger.severe("Of the required " + numberOfManagementMachines + " management machines, " + numberOfErrors
 				+ " failed to start.");
 		if (numberOfManagementMachines > numberOfErrors) {
