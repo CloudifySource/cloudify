@@ -20,13 +20,11 @@ import java.util.Map;
 import org.cloudifysource.rest.util.RestUtils;
 
 /**
- *
+ * This exception will be thrown on known errors in the rest.
+ * an appropriate error message will be constructed from the error description. 
  */
 public class RestErrorException extends Exception {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	private Map<String, Object> errorDescription;
@@ -36,15 +34,10 @@ public class RestErrorException extends Exception {
 	public RestErrorException(final String errorDesc) {
 		super(errorDesc);
 		this.errorDescription = RestUtils.errorStatus(errorDesc);
-	}	
+	}
 
 	public RestErrorException(final String errorDesc, final Object... args) {
 		super(errorDesc);
-		this.errorDescription = RestUtils.errorStatus(errorDesc, args);
-	}
-	
-	public RestErrorException(final String errorDesc, final String message, final Object... args) {
-		super(message);
 		this.errorDescription = RestUtils.errorStatus(errorDesc, args);
 	}
 	
