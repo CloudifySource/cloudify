@@ -846,7 +846,6 @@ public class ServiceController implements ServiceDetailsProvider {
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances", method =
 	RequestMethod.GET)
 	@PreAuthorize("isFullyAuthenticated()")
-	@PostFilter("hasPermission(filterObject, 'view')")
 	@ResponseBody
 	public Map<String, Object> getServiceInstanceList(
 			@PathVariable final String applicationName,
@@ -860,6 +859,11 @@ public class ServiceController implements ServiceDetailsProvider {
 		// todo: application awareness
 		final ProcessingUnit pu = admin.getProcessingUnits().waitFor(
 				absolutePuName, PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
+		if (permissionEvaluator != null) {
+			String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
+					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+			permissionEvaluator.verifyPermission(puAuthGroups, "view");
+		}
 		if (pu == null) {
 			logger.severe("Could not find service " + absolutePuName);
 			return unavailableServiceError(absolutePuName);
@@ -870,6 +874,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			instanceMap.put(instance.getInstanceId(), instance
 					.getVirtualMachine().getMachine().getHostName());
 		}
+
 		return successStatus(instanceMap);
 	}
 
@@ -1163,7 +1168,10 @@ public class ServiceController implements ServiceDetailsProvider {
 			final Object invocationResult = future.get();
 			final Object finalResult = postProcessInvocationResult(
 					invocationResult, instanceName);
-			return successStatus(finalResult);
+			Map<String, Object> resultsMap = new HashMap<String, Object>();
+			resultsMap.put(finalResult.toString(), pu.getBeanLevelProperties().getContextProperties().
+					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS));
+			return successStatus(resultsMap);
 		} catch (final Exception e) {
 			logger.severe("Error invoking pu instance " + absolutePuName + ":"
 					+ instanceId + " on host "
