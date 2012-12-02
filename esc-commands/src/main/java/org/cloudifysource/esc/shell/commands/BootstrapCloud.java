@@ -124,8 +124,8 @@ public class BootstrapCloud extends AbstractGSCommand {
 		}
 		
 		setSecurityMode();
-		if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE)
-				|| securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SSL)) {
+		if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE_NO_SSL)
+				|| securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE)) {
 			copySecurityFiles(providerDirectory.getAbsolutePath());
 		}
 		
@@ -263,12 +263,12 @@ public class BootstrapCloud extends AbstractGSCommand {
 			//enable security
 			if (StringUtils.isNotBlank(keystore) && StringUtils.isNotBlank(keystorePassword)) {
 				logger.info(getFormattedMessage(CloudifyErrorMessages.SETTING_SERVER_SECURITY_PROFILE.getName(),
-						CloudifyConstants.SPRING_PROFILE_SSL));
-				securityProfile = CloudifyConstants.SPRING_PROFILE_SSL;
-			} else {
-				logger.info(getFormattedMessage(CloudifyErrorMessages.SETTING_SERVER_SECURITY_PROFILE.getName(),
 						CloudifyConstants.SPRING_PROFILE_SECURE));
 				securityProfile = CloudifyConstants.SPRING_PROFILE_SECURE;
+			} else {
+				logger.info(getFormattedMessage(CloudifyErrorMessages.SETTING_SERVER_SECURITY_PROFILE.getName(),
+						CloudifyConstants.SPRING_PROFILE_SECURE_NO_SSL));
+				securityProfile = CloudifyConstants.SPRING_PROFILE_SECURE_NO_SSL;
 			}
 		} else {
 			//disable security

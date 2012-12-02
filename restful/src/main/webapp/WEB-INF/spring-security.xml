@@ -29,9 +29,8 @@
 		
 	</beans>
 		
-	<beans profile="secure">
-		<!-- to limit HTTP access to the application replace the above http section 
-			with this one or use the "nonsecure" spring profile: -->
+	<beans profile="secure_no_ssl">
+		<!-- to limit HTTP access to the application -->
 		<sec:http entry-point-ref="basicAuthEntryPoint" auto-config="false"
 			create-session="never" use-expressions="true">
 			<sec:intercept-url pattern="/admin/**" requires-channel="http"
@@ -124,9 +123,8 @@
 			
 	</beans>
 	
-	<beans profile="ssl">
-		<!-- to limit HTTP access to the application replace the above http section 
-			with this one or use the "nonsecure" spring profile: -->
+	<beans profile="secure">
+		<!-- to limit HTTP access to the application -->
 		<sec:http entry-point-ref="basicAuthEntryPoint" auto-config="false"
 			create-session="never" use-expressions="true">
 			<sec:intercept-url pattern="/admin/**" requires-channel="https"

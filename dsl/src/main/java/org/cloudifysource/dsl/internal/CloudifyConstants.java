@@ -270,8 +270,8 @@ public final class CloudifyConstants {
 	public static final String KEYSTORE_PASSWORD_ENV_VAR = "KEYSTORE_KEY";
 	public static final String SPRING_ACTIVE_PROFILE_ENV_VAR = "SPRING_PROFILES_ACTIVE";
 	public static final String SPRING_PROFILE_NON_SECURE = "nonsecure";
+	public static final String SPRING_PROFILE_SECURE_NO_SSL = "secure_no_ssl";
 	public static final String SPRING_PROFILE_SECURE = "secure";
-	public static final String SPRING_PROFILE_SSL = "ssl";
 	
 	/*******************
 	 * 

@@ -204,8 +204,8 @@ public class StartManagement extends AbstractGSCommand {
 		}
 
 		// The security files are expected to be in <cloudify home>\config\security
-		if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE)
-				|| securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SSL)) {
+		if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE_NO_SSL)
+				|| securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE)) {
 			//verify we have the security config file at place
 			File securityConfigFile = new File(defaultSecurityFilePath);
 			if (!securityConfigFile.isFile()) {
@@ -214,7 +214,7 @@ public class StartManagement extends AbstractGSCommand {
 			}
 		}
 		
-		if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SSL)) {
+		if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE)) {
 			//verify we have the keystore file at place
 			File keystoreFile = new File(defaultKeystoreFilePath);
 			if (!keystoreFile.isFile()) {

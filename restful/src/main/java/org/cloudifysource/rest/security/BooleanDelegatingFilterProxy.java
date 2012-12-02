@@ -32,7 +32,7 @@ public class BooleanDelegatingFilterProxy extends DelegatingFilterProxy{
 				throws ServletException, IOException {
 		final String springSecurityProfile = System.getenv(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR);
 
-	    if (CloudifyConstants.SPRING_PROFILE_SSL.equalsIgnoreCase(springSecurityProfile)) {
+	    if (CloudifyConstants.SPRING_PROFILE_SECURE.equalsIgnoreCase(springSecurityProfile)) {
 	    	// Call the delegate
 		      super.doFilter(request, response, filterChain);
 	    } else {

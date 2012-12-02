@@ -15,7 +15,7 @@
        			http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd
        			http://www.openspaces.org/schema/remoting http://www.openspaces.org/schema/8.0/remoting/openspaces-remoting.xsd">
 
-	<beans profile="secure,nonsecure,ssl,default">
+	<beans profile="nonsecure,secure_no_ssl,secure,default">
 		<bean id="propertyConfigurer"
 			class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 			<property name="location" value="/WEB-INF/config.properties" />
@@ -68,7 +68,7 @@
 		
 	</beans>
 
-	<beans profile="secure,ssl">
+	<beans profile="secure_no_ssl,secure">
 		<bean id="permissionEvaluator" class="org.cloudifysource.rest.security.CustomPermissionEvaluator" />
 		<bean id="expressionHandler" class="org.cloudifysource.rest.security.ExtendedMethodSecurityExpressionHandler">
 			<property name="permissionEvaluator" ref="permissionEvaluator" />
