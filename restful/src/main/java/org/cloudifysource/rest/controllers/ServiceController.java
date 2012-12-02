@@ -1964,7 +1964,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	// TODO: Start executer service
 	private UUID startPollingForLifecycleEvents(
-			final org.cloudifysource.dsl.Application application,
+			final org.cloudifysource.dsl.Application application, final String applicationName,
 			final int timeout, final TimeUnit timeUnit) {
 
 		final LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
@@ -1972,7 +1972,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		lifecycleEventsContainer.setEventsSet(this.eventsSet);
 
 		final RestPollingRunnable restPollingRunnable = new RestPollingRunnable(
-				application.getName(), timeout, timeUnit);
+				applicationName, timeout, timeUnit);
 		for (final Service service : application.getServices()) {
 			restPollingRunnable.addService(service.getName(),
 					service.getNumInstances());
@@ -2126,7 +2126,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		logger.log(Level.INFO,
 				"Starting to poll for installation lifecycle events.");
 		final UUID lifecycleEventContainerID = startPollingForLifecycleEvents(
-				result.getApplication(), timeout, TimeUnit.MINUTES);
+				result.getApplication(), applicationName, timeout, TimeUnit.MINUTES);
 
 		installer.setTaskPollingId(lifecycleEventContainerID);
 
