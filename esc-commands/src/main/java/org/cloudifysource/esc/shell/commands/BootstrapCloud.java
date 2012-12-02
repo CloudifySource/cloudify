@@ -133,8 +133,8 @@ public class BootstrapCloud extends AbstractGSCommand {
 		File cloudFile = findCloudFile(providerDirectory);
 		
 		// load properties file
-		File cloudPropertiesFile = new File(providerDirectory.getAbsolutePath(), 
-					cloudProvider + "-cloud" + DSLUtils.PROPERTIES_FILE_SUFFIX);
+		File cloudPropertiesFile = new File(providerDirectory, cloudFile.getName().split("\\.")[0] + DSLUtils.PROPERTIES_FILE_SUFFIX);
+
 		File backupCloudPropertiesFile = new File(cloudPropertiesFile.getParentFile(), 
 				cloudPropertiesFile.getName() + ".backup");
 		
