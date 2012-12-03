@@ -1483,9 +1483,6 @@ public class ServiceController implements ServiceDetailsProvider {
 						+ CloudifyErrorMessages.NO_PERMISSION_ACCESS_DENIED.getName() + "\"}";
 				logger.log(Level.INFO, e.getMessage(), e);
 			} else {
-				//TODO [noak] : merge caused a problem here
-				message = "{\"status\":\"error\", \"error\":\"" + e.getMessage() + "\"}";
-			
 				// Some sort of unhandled application exception.
 				logger.log(Level.WARNING, "An unexpected error was thrown: " + e.getMessage(), e);
 	
