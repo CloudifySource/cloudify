@@ -104,7 +104,8 @@ cloud {
 					options ([
 								"securityGroupNames" : [securityGroup]as String[],
 								"keyPairName" : keyPair,
-								"generateKeyPair": false
+								"generateKeyPair": false,
+								"autoAssignFloatingIp": false
 							])
 
 					// Optional. Overrides to default cloud driver behavior.
