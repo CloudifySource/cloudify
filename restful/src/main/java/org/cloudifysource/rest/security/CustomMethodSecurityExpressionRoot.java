@@ -20,66 +20,67 @@ import java.io.Serializable;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-
 
 /**
- * Extended expression root object which contains extra method-specific functionality.
- *
+ * Extended expression root object which contains extra method-specific
+ * functionality.
+ * 
  * @author Noak
  * @since 2.3.1
  */
 class CustomMethodSecurityExpressionRoot extends SecurityExpressionRoot {
-    private PermissionEvaluator permissionEvaluator;
-    private Object filterObject;
-    private Object returnObject;
-    public final String read = "read";
-    public final String write = "write";
-    public final String create = "create";
-    public final String delete = "delete";
-    public final String admin = "administration";
+	private PermissionEvaluator permissionEvaluator;
+	private Object filterObject;
+	private Object returnObject;
+	public final String read = "read";
+	public final String write = "write";
+	public final String create = "create";
+	public final String delete = "delete";
+	public final String admin = "administration";
 
-    CustomMethodSecurityExpressionRoot(Authentication a) {
-        super(a);
-    }
+	CustomMethodSecurityExpressionRoot(Authentication a) {
+		super(a);
+	}
 
-    public boolean hasPermission(Object target, Object permission) {
-    	if (target == null) {
-    		StringBuilder authGroups = new StringBuilder();
-    		for (GrantedAuthority authority : authentication.getAuthorities()) {
-    			if (authGroups.length() > 0) {
-    				authGroups.append(", ");
-    			}
-    			authGroups.append(authority.getAuthority());
-    		}
+	public boolean hasPermission(Object target, Object permission) {
+		if (target == null) {
+			StringBuilder authGroups = new StringBuilder();
+			if (authentication instanceof CustomAuthenticationToken) {
+				for (String authGroup : ((CustomAuthenticationToken) authentication).getAuthGroups()) {
+					if (authGroups.length() > 0) {
+						authGroups.append(", ");
+					}
+					authGroups.append(authGroup);
+				}
+			}
 
-    		target = authGroups.toString();
-    	}
-        return permissionEvaluator.hasPermission(authentication, target, permission);
-    }
+			target = authGroups.toString();
+		}
+		return permissionEvaluator.hasPermission(authentication, target, permission);
+	}
 
-    public boolean hasPermission(Object targetId, String targetType, Object permission) {
-        return permissionEvaluator.hasPermission(authentication, (Serializable)targetId, targetType, permission);
-    }
+	public boolean hasPermission(Object targetId, String targetType, Object permission) {
+		return permissionEvaluator.hasPermission(authentication, (Serializable) targetId, targetType, permission);
+	}
 
-    public void setFilterObject(Object filterObject) {
-        this.filterObject = filterObject;
-    }
+	public void setFilterObject(Object filterObject) {
+		this.filterObject = filterObject;
+	}
 
-    public Object getFilterObject() {
-        return filterObject;
-    }
+	public Object getFilterObject() {
+		return filterObject;
+	}
 
-    public void setReturnObject(Object returnObject) {
-        this.returnObject = returnObject;
-    }
+	public void setReturnObject(Object returnObject) {
+		this.returnObject = returnObject;
+	}
 
-    public Object getReturnObject() {
-        return returnObject;
-    }
+	public Object getReturnObject() {
+		return returnObject;
+	}
 
-    public void setPermissionEvaluator(PermissionEvaluator permissionEvaluator) {
-        this.permissionEvaluator = permissionEvaluator;
-    }
+	public void setPermissionEvaluator(PermissionEvaluator permissionEvaluator) {
+		this.permissionEvaluator = permissionEvaluator;
+	}
 
 }
