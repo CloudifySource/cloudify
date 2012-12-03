@@ -143,18 +143,18 @@ public class ExtendedLdapUserDetailsImpl implements LdapUserDetails, PasswordPol
     /**
      * Variation of essence pattern. Used to create mutable intermediate object
      */
-    public static class Essence {
+    public static class ExtendedEssence {
         protected ExtendedLdapUserDetailsImpl instance = createTarget();
         private List<GrantedAuthority> mutableAuthorities = new ArrayList<GrantedAuthority>();
         private List<String> mutableAuthGroups = new ArrayList<String>();
 
-        public Essence() { }
+        public ExtendedEssence() { }
 
-        public Essence(DirContextOperations ctx) {
+        public ExtendedEssence(DirContextOperations ctx) {
             setDn(ctx.getDn());
         }
 
-        public Essence(ExtendedLdapUserDetailsImpl copyMe) {
+        public ExtendedEssence(ExtendedLdapUserDetailsImpl copyMe) {
             setDn(copyMe.getDn());
             setUsername(copyMe.getUsername());
             setPassword(copyMe.getPassword());
@@ -208,7 +208,7 @@ public class ExtendedLdapUserDetailsImpl implements LdapUserDetails, PasswordPol
             return false;
         }
 
-        public LdapUserDetails createUserDetails() {
+        public ExtendedLdapUserDetailsImpl createUserDetails() {
             Assert.notNull(instance, "Essence can only be used to create a single instance");
             Assert.notNull(instance.username, "username must not be null");
             Assert.notNull(instance.getDn(), "Distinguished name must not be null");
@@ -216,7 +216,7 @@ public class ExtendedLdapUserDetailsImpl implements LdapUserDetails, PasswordPol
             instance.authorities = Collections.unmodifiableList(mutableAuthorities);
             instance.authGroups = Collections.unmodifiableList(mutableAuthGroups);
 
-            LdapUserDetails newInstance = instance;
+            ExtendedLdapUserDetailsImpl newInstance = instance;
 
             instance = null;
 

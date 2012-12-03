@@ -55,7 +55,7 @@ public class CustomLdapAuthenticationProvider implements AuthenticationProvider 
         this.setAuthGroupsPopulator(authGroupsPopulator);
     }
 
-    private void setAuthenticator(LdapAuthenticator authenticator) {
+    private void setAuthenticator(final LdapAuthenticator authenticator) {
         Assert.notNull(authenticator, "An LdapAuthenticator must be supplied");
         this.authenticator = authenticator;
     }
@@ -64,7 +64,7 @@ public class CustomLdapAuthenticationProvider implements AuthenticationProvider 
         return authenticator;
     }
 
-    private void setAuthoritiesPopulator(LdapAuthoritiesPopulator authoritiesPopulator) {
+    private void setAuthoritiesPopulator(final LdapAuthoritiesPopulator authoritiesPopulator) {
         Assert.notNull(authoritiesPopulator, "An LdapAuthoritiesPopulator must be supplied");
         this.authoritiesPopulator = authoritiesPopulator;
     }
@@ -73,7 +73,7 @@ public class CustomLdapAuthenticationProvider implements AuthenticationProvider 
         return authoritiesPopulator;
     }
     
-    private void setAuthGroupsPopulator(LdapAuthGroupsPopulator authGroupsPopulator) {
+    private void setAuthGroupsPopulator(final LdapAuthGroupsPopulator authGroupsPopulator) {
         Assert.notNull(authGroupsPopulator, "An LdapAuthGroupsPopulator must be supplied");
         this.authGroupsPopulator = authGroupsPopulator;
     }
@@ -90,19 +90,20 @@ public class CustomLdapAuthenticationProvider implements AuthenticationProvider 
      * @param userDetailsContextMapper the strategy instance. If not set, defaults to a simple
      * <tt>LdapUserDetailsMapper</tt>.
      */
-    public void setUserDetailsContextMapper(CustomLdapUserDetailsMapper userDetailsContextMapper) {
+    public void setUserDetailsContextMapper(final CustomLdapUserDetailsMapper userDetailsContextMapper) {
         Assert.notNull(userDetailsContextMapper, "UserDetailsContextMapper must not be null");
         this.userDetailsContextMapper = userDetailsContextMapper;
     }
 
     /**
      * Provides access to the injected <tt>UserDetailsContextMapper</tt> strategy for use by subclasses.
+     * @return CustomLdapUserDetailsMapper.
      */
     protected CustomLdapUserDetailsMapper getUserDetailsContextMapper() {
         return userDetailsContextMapper;
     }
 
-    public void setHideUserNotFoundExceptions(boolean hideUserNotFoundExceptions) {
+    public void setHideUserNotFoundExceptions(final boolean hideUserNotFoundExceptions) {
         this.hideUserNotFoundExceptions = hideUserNotFoundExceptions;
     }
 
@@ -154,11 +155,13 @@ public class CustomLdapAuthenticationProvider implements AuthenticationProvider 
 
             Collection<GrantedAuthority> extraAuthorities = loadUserAuthorities(userData, username, password);
             
-            Collection<String> loadUserAuthGroups = loadUserAuthGroups(userData, username, password);
+            Collection<String> userAuthGroups = loadUserAuthGroups(userData, username, password);
 
-            UserDetails user = userDetailsContextMapper.mapUserFromContext(userData, username, extraAuthorities, loadUserAuthGroups);
+            ExtendedLdapUserDetailsImpl extendedUserDetails = 
+            		userDetailsContextMapper.mapUserFromContext(userData, username, extraAuthorities, userAuthGroups);
 
-            return createSuccessfulAuthentication(userToken, user);
+            return createSuccessfulAuthentication(userToken, extendedUserDetails);
+            
         } catch (PasswordPolicyException ppe) {
             // The only reason a ppolicy exception can occur during a bind is that the account is locked.
             throw new LockedException(messages.getMessage(ppe.getStatus().getErrorCode(),
@@ -175,12 +178,27 @@ public class CustomLdapAuthenticationProvider implements AuthenticationProvider 
         }
     }
 
+    /**
+     * loads the user's roles (authorities).
+     * @param user .
+     * @param username .
+     * @param password .
+     * @return Collections of {@link GrantedAuthority} objects
+     */
     protected Collection<GrantedAuthority> loadUserAuthorities(final DirContextOperations user, final String username, 
     		final String password) {
         return getAuthoritiesPopulator().getGrantedAuthorities(user, username);
     }
     
-    protected Collection<String> loadUserAuthGroups(DirContextOperations user, String username, String password) {
+    /**
+     * loads the user's authorization groups.
+     * @param user .
+     * @param username .
+     * @param password .
+     * @return Collection of authorization groups names.
+     */
+    protected Collection<String> loadUserAuthGroups(final DirContextOperations user, final String username, 
+    		final String password) {
         return getAuthGroupsPopulator().getAuthGroups(user, username);
     }
 
@@ -191,18 +209,31 @@ public class CustomLdapAuthenticationProvider implements AuthenticationProvider 
      * @param user the <tt>UserDetails</tt> instance returned by the configured <tt>UserDetailsContextMapper</tt>.
      * @return the Authentication object for the fully authenticated user.
      */
-    protected Authentication createSuccessfulAuthentication(UsernamePasswordAuthenticationToken authentication,
-            UserDetails user) {
+    protected Authentication createSuccessfulAuthentication(final UsernamePasswordAuthenticationToken authentication,
+            final ExtendedLdapUserDetailsImpl user) {
         Object password = useAuthenticationRequestCredentials ? authentication.getCredentials() : user.getPassword();
 
-        UsernamePasswordAuthenticationToken result = new UsernamePasswordAuthenticationToken(user, password, user.getAuthorities());
-        result.setDetails(authentication.getDetails());
+        /*UsernamePasswordAuthenticationToken result = 
+        		new UsernamePasswordAuthenticationToken(user, password, user.getAuthorities());
+        result.setDetails(authentication.getDetails());*/
+        
+        CustomAuthenticationToken customAuthToken = new CustomAuthenticationToken(user, password, 
+        		user.getAuthorities(), user.getAuthGroups());
+        customAuthToken.setDetails(authentication.getDetails());
 
-        return result;
+        return customAuthToken;
     }
 
-    public boolean supports(Class<? extends Object> authentication) {
-        return (UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication));
+    /**
+     * Checks if the authentication object passed is supported.
+     * @param authentication The authentication object to check.
+     * @return true - supported, false - otherwise.
+     */
+    public boolean supports(final Class<? extends Object> authentication) {
+        if (UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication)) {
+        	return true;
+        }
+        return false;
     }
 
 }

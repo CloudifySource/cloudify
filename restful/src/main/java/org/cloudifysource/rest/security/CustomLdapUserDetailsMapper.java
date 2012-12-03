@@ -36,13 +36,13 @@ public class CustomLdapUserDetailsMapper {
      * @param authGroups A collection of authentication groups
      * @return UserDetails
      */
-    public UserDetails mapUserFromContext(final DirContextOperations ctx, final String username, 
+    public ExtendedLdapUserDetailsImpl mapUserFromContext(final DirContextOperations ctx, final String username, 
     		final Collection<GrantedAuthority> authorities, final Collection<String> authGroups) {
         String dn = ctx.getNameInNamespace();
 
         logger.debug("Mapping user details from context with DN: " + dn);
 
-        ExtendedLdapUserDetailsImpl.Essence essence = new ExtendedLdapUserDetailsImpl.Essence();
+        ExtendedLdapUserDetailsImpl.ExtendedEssence essence = new ExtendedLdapUserDetailsImpl.ExtendedEssence();
         essence.setDn(dn);
 
         Object passwordValue = ctx.getObjectAttribute(passwordAttributeName);

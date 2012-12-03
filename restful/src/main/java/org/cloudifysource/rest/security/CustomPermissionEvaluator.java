@@ -34,7 +34,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
- * A custom PermissionEvaluator which... 
+ * A custom PermissionEvaluator which performs permission decisions based on roles assignments and 
+ * authorization groups membership.
  *
  * @author noak
  * @since 3.2.0
@@ -71,12 +72,23 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 			return true;
 		}
 		
+		if (logger.isLoggable(Level.FINEST)) {
+			logger.finest("Starting \"hasPermission\" for user: " + authentication.getName());
+			logger.finest("with roles: " + getUserRolesString(authentication));
+			logger.finest("and with authGroups: " + getUserAuthGroupsString(authentication));
+			logger.finest("requested permission: " + permission.toString());
+			logger.finest("on target authGroups: " + targetDomainObject.toString());
+		}		
+		
 		boolean permissionGranted = false;
-		String permissionName, authGroupsString;
-		Collection<String> requestedAuthGroups, userAuthGroups;
+		String permissionName, targetAuthGroups;
 		
     	if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
 			throw new AccessDeniedException("Anonymous user is not supported");
+    	}
+    	
+    	if (!(authentication instanceof CustomAuthenticationToken)) {
+    		throw new AccessDeniedException("Authentication object type not supported");
     	}
 		
 		if (permission != null && !(permission instanceof String)) {
@@ -101,63 +113,15 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 		}
     	
     	if (targetDomainObject == null) {
-    		authGroupsString = "";
+    		targetAuthGroups = "";
     	} else {
-    		authGroupsString = ((String) targetDomainObject).trim();	
+    		targetAuthGroups = ((String) targetDomainObject).trim();	
     	}
     	
-    	requestedAuthGroups = org.cloudifysource.esc.util.StringUtils.splitAndTrimString(authGroupsString, 
-    			AUTH_GROUPS_DELIMITER);
-    	userAuthGroups = getUserAuthGroups();
-    	
-    	//check roles
-    	//TODO : This should be configurable
-    	boolean relevantRoleFound = false;
-    	if (permissionName.equalsIgnoreCase(PERMISSION_TO_VIEW)) {
-    		for (String userAuthGroup : userAuthGroups) {
-    			if (ROLE_CLOUDADMIN.equalsIgnoreCase(userAuthGroup) 
-    					|| ROLE_APPMANAGER.equalsIgnoreCase(userAuthGroup) 
-    					|| ROLE_VIEWER.equalsIgnoreCase(userAuthGroup)) {
-    				relevantRoleFound = true;
-    				break;
-    			}
-    		}
-    	} else if (permissionName.equalsIgnoreCase(PERMISSION_TO_DEPLOY)) {
-    		for (String userAuthGroup : userAuthGroups) {
-    			if (ROLE_CLOUDADMIN.equalsIgnoreCase(userAuthGroup) 
-    					|| ROLE_APPMANAGER.equalsIgnoreCase(userAuthGroup)) {
-    				relevantRoleFound = true;
-    				break;
-    			}
-    		}
-    	}
-    	
-    	//check auth-group permissions
-		if (relevantRoleFound) {
-			if (permissionName.equalsIgnoreCase(PERMISSION_TO_VIEW)) {
-				if (hasPermissionToView(requestedAuthGroups)) {
-					permissionGranted = true;
-					logger.log(Level.INFO, "View permission granted for user " + authentication.getName());
-				} else {
-					logger.log(Level.WARNING, "Insufficient permissions. User " + authentication.getName() + " is only "
-							+ "permitted to view groups: " + Arrays.toString(userAuthGroups.toArray(new String[0])));
-				}
-			} else if (permissionName.equalsIgnoreCase(PERMISSION_TO_DEPLOY)) {
-				if (hasPermissionToDeploy(requestedAuthGroups)) {
-					permissionGranted = true;
-					logger.log(Level.INFO, "Deploy permission granted for user " + authentication.getName());
-				} else {
-					// TODO change to warning
-					logger.log(Level.WARNING, "Insufficient permissions. User " + authentication.getName() + " is only "
-							+ "permitted to deploy for groups: " 
-							+ Arrays.toString(userAuthGroups.toArray(new String[0])));
-				}
-			}
-		} else {
-			logger.log(Level.WARNING, "User " + authentication.getName() + " is missing the required roles, access is "
-					+ "denied.");
+		if (hasRequiredRoles(authentication, permissionName) 
+				&& hasAuthGroupAccess((CustomAuthenticationToken) authentication, targetAuthGroups, permissionName)) {
+			permissionGranted = true;
 		}
-    	
 		
      	return permissionGranted;
     }
@@ -206,6 +170,85 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 			throw new AccessDeniedException("User " + authentication.getName() + " is not permitted to "
 					+ "access the target objects");
 		}
+	}
+	
+	
+	/**
+	 * Checks if the logged in user is allowed to access the target object, according to its roles.
+	 * @param authentication The authentication object of the logged in user.
+	 * @param permissionName permission requested (view, deploy, etc.)
+	 * @return true - access allowed, false - access denied.
+	 */
+	private boolean hasRequiredRoles(final Authentication authentication, final String permissionName) {
+		
+		boolean relevantRoleFound = false;
+		
+		Collection<String> userRoles = getUserRoles(authentication);
+		
+		//TODO [noak] : This logic should be configurable
+		
+    	if (permissionName.equalsIgnoreCase(PERMISSION_TO_VIEW)) {
+    		for (String role : userRoles) {
+    			if (ROLE_CLOUDADMIN.equalsIgnoreCase(role) 
+    					|| ROLE_APPMANAGER.equalsIgnoreCase(role) 
+    					|| ROLE_VIEWER.equalsIgnoreCase(role)) {
+    				relevantRoleFound = true;
+    				break;
+    			}
+    		}
+    	} else if (permissionName.equalsIgnoreCase(PERMISSION_TO_DEPLOY)) {
+    		for (String role : userRoles) {
+    			if (ROLE_CLOUDADMIN.equalsIgnoreCase(role) 
+    					|| ROLE_APPMANAGER.equalsIgnoreCase(role)) {
+    				relevantRoleFound = true;
+    				break;
+    			}
+    		}
+    	}
+    	
+    	if (!relevantRoleFound) {
+    		logger.log(Level.WARNING, "User " + authentication.getName() + " is missing the required roles, access is "
+					+ "denied.");
+    	}
+    	
+    	return relevantRoleFound;
+	}
+	
+	/**
+	 * Checks if the logged in user is allowed to access the target object, according to its authorization groups.
+	 * @param authentication CustomAuthenticationToken of the logged in user
+	 * @param targetAuthGroupsStr Comma delimited string of the target object's authorization groups.
+	 * @param permissionName permission requested (view, deploy, etc.)
+	 * @return true - access allowed, false - access denied.
+	 */
+	private boolean hasAuthGroupAccess(final CustomAuthenticationToken authentication, 
+			final String targetAuthGroupsStr, final String permissionName) {
+		
+		boolean permissionGranted = false;
+		
+    	Collection<String> userAuthGroups = ((CustomAuthenticationToken) authentication).getAuthGroups();
+    	Collection<String> targetAuthGroups = 
+    			org.cloudifysource.esc.util.StringUtils.splitAndTrimString(targetAuthGroupsStr, AUTH_GROUPS_DELIMITER);
+		
+		if (permissionName.equalsIgnoreCase(PERMISSION_TO_VIEW)) {
+			if (hasPermissionToView(targetAuthGroups)) {
+				permissionGranted = true;
+				logger.log(Level.INFO, "View permission granted for user " + authentication.getName());
+			} else {
+				logger.log(Level.WARNING, "Insufficient permissions. User " + authentication.getName() + " is only "
+						+ "permitted to view groups: " + Arrays.toString(userAuthGroups.toArray(new String[0])));
+			}
+		} else if (permissionName.equalsIgnoreCase(PERMISSION_TO_DEPLOY)) {
+			if (hasPermissionToDeploy(targetAuthGroups)) {
+				permissionGranted = true;
+				logger.log(Level.INFO, "Deploy permission granted for user " + authentication.getName());
+			} else {
+				logger.log(Level.WARNING, "Insufficient permissions. User " + authentication.getName() + " is only "
+						+ "permitted to deploy for groups: " + Arrays.toString(userAuthGroups.toArray(new String[0])));
+			}
+		}
+		
+		return permissionGranted;
 	}
 	
 	
@@ -273,43 +316,116 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     	
     	Collection<String> userAuthGroups = getUserAuthGroups();
     	for (String requestedAuthGroup : requestedAuthGroups) {
-    		if (userAuthGroups.contains(requestedAuthGroup)) {
+    		/*if (userAuthGroups.contains(requestedAuthGroup)) {
     			isPermitted = true;
     			break;
-    		}
-    		/*for (String userAuthGroup : userAuthGroups) {
+    		}*/
+    		for (String userAuthGroup : userAuthGroups) {
     			if (requestedAuthGroup.equalsIgnoreCase(userAuthGroup)) {
     				isPermitted = true;
     				break;
     			}
-    		}*/
+    		}
     	}
     	
 		return isPermitted;
     }
     
     /**
-     * Returns the names of the authorities the user is granted.
-     * @return A Collection of authorities the user is granted.
+     * Returns the names of the roles (authorities) the user is granted.
+     * @param authentication The authentication object of the current user
+     * @return A Collection of roles (authorities) the user is granted.
      */
-    private Collection<String> getUserAuthGroups() {
-    	Set<String> userAuthGroups = new HashSet<String>();
+    private Collection<String> getUserRoles(final Authentication authentication) {
+    	Set<String> userRoles = new HashSet<String>();
+		
+		for (GrantedAuthority authority : authentication.getAuthorities()) {
+			userRoles.add(authority.getAuthority());
+		}
+		
+		return userRoles;
+    }
+    
+    /**
+     * Returns the names of the roles (authorities) the user is granted.
+     * @return A Collection of roles (authorities) the user is granted.
+     */
+    private Collection<String> getUserRoles() {
+    	Set<String> userRoles = new HashSet<String>();
     	
     	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	
     	if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
 			throw new AccessDeniedException("Anonymous user is not supported");
     	}
 		
+    	if (!(authentication instanceof CustomAuthenticationToken)) {
+    		throw new AccessDeniedException("Authentication object type not supported");
+    	}
+		
 		for (GrantedAuthority authority : authentication.getAuthorities()) {
-			userAuthGroups.add(authority.getAuthority());
+			userRoles.add(authority.getAuthority());
 		}
 		
-		return userAuthGroups;
+		return userRoles;
     }
     
     /**
-     * Returns the names of the authorities the user is granted.
-     * @return A String array of authorities names
+     * Returns the names of the roles (authorities) the user is granted.
+     * @return A String array of roles (authorities) names
+     */
+    public String getUserRolesString() {
+    	Collection<String> userRoles = getUserRoles();
+    	StringBuilder builder = new StringBuilder();
+    	for (String role : userRoles) {
+    	    builder.append(role);
+    	    builder.append(',');
+    	}
+		return builder.substring(0, builder.toString().length() - 1);
+    }
+    
+    /**
+     * Returns the names of the roles (authorities) the user is granted.
+     * @param authentication The authentication object of the current user
+     * @return A String array of roles (authorities) names
+     */
+    public String getUserRolesString(final Authentication authentication) {
+    	
+    	if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+			throw new AccessDeniedException("Anonymous user is not supported");
+    	}
+		
+    	if (!(authentication instanceof CustomAuthenticationToken)) {
+    		throw new AccessDeniedException("Authentication object type not supported");
+    	}
+    		
+    	Collection<String> userRoles = getUserRoles(authentication);
+    	StringBuilder builder = new StringBuilder();
+    	for (String role : userRoles) {
+    	    builder.append(role);
+    	    builder.append(',');
+    	}
+		return builder.substring(0, builder.toString().length() - 1);
+    }
+    
+    /**
+     * Returns the names of the authorization groups the user belongs to.
+     *  @param authentication The authentication object of the current user
+     * @return A String array of authorization groups names
+     */
+    public String getUserAuthGroupsString(final Authentication authentication) {
+    	Collection<String> userAuthGroups = getUserAuthGroups(authentication);
+    	StringBuilder builder = new StringBuilder();
+    	for (String authGroup : userAuthGroups) {
+    	    builder.append(authGroup);
+    	    builder.append(',');
+    	}
+		return builder.substring(0, builder.toString().length() - 1);
+    }
+    
+    /**
+     * Returns the names of the authorization groups the user belongs to.
+     * @return A String array of authorization groups names
      */
     public String getUserAuthGroupsString() {
     	Collection<String> userAuthGroups = getUserAuthGroups();
@@ -319,6 +435,41 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     	    builder.append(',');
     	}
 		return builder.substring(0, builder.toString().length() - 1);
+    }
+    
+    /**
+     * Returns the names of the authorization groups the user belongs to.
+     * @return A Collection of authorization groups the user belongs to.
+     */
+    private Collection<String> getUserAuthGroups() {
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+			throw new AccessDeniedException("Anonymous user is not supported");
+    	}
+		
+    	if (!(authentication instanceof CustomAuthenticationToken)) {
+    		throw new AccessDeniedException("Authentication object type not supported");
+    	}
+		
+		return ((CustomAuthenticationToken) authentication).getAuthGroups();
+    }
+    
+    /**
+     * Returns the names of the authorization groups the user belongs to.
+     * @param authentication The authentication object of the current user
+     * @return A Collection of authorization groups names
+     */
+    private Collection<String> getUserAuthGroups(final Authentication authentication) {
+
+    	if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+			throw new AccessDeniedException("Anonymous user is not supported");
+    	}
+		
+    	if (!(authentication instanceof CustomAuthenticationToken)) {
+    		throw new AccessDeniedException("Authentication object type not supported");
+    	}
+		
+		return ((CustomAuthenticationToken) authentication).getAuthGroups();
     }
 
 }

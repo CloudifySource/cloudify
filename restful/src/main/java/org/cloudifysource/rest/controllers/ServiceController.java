@@ -1483,17 +1483,19 @@ public class ServiceController implements ServiceDetailsProvider {
 			if (e instanceof AccessDeniedException || e instanceof BadCredentialsException) {
 				message = "{\"status\":\"error\", \"error\":\""	
 						+ CloudifyErrorMessages.NO_PERMISSION_ACCESS_DENIED.getName() + "\"}";
+				logger.log(Level.INFO, e.getMessage(), e);
 			} else {
+				//TODO [noak] : merge caused a problem here
 				message = "{\"status\":\"error\", \"error\":\"" + e.getMessage() + "\"}";
+			
+				// Some sort of unhandled application exception.
+				logger.log(Level.WARNING, "An unexpected error was thrown: " + e.getMessage(), e);
+	
+				Map<String, Object> restErrorMap =
+						RestUtils.verboseErrorStatus(CloudifyErrorMessages.GENERAL_SERVER_ERROR.getName(),
+								ExceptionUtils.getStackTrace(e), e.getMessage());
+				message = new ObjectMapper().writeValueAsString(restErrorMap);
 			}
-
-			// Some sort of unhandled application exception.
-			logger.log(Level.WARNING, "An unexpected error was thrown: " + e.getMessage(), e);
-
-			Map<String, Object> restErrorMap =
-					RestUtils.verboseErrorStatus(CloudifyErrorMessages.GENERAL_SERVER_ERROR.getName(),
-							ExceptionUtils.getStackTrace(e), e.getMessage());
-			message = new ObjectMapper().writeValueAsString(restErrorMap);
 
 			final ServletOutputStream outputStream = response.getOutputStream();
 			final byte[] messageBytes = message.getBytes();
