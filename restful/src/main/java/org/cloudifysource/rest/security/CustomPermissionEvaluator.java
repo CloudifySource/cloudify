@@ -239,7 +239,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 						+ "permitted to view groups: " + Arrays.toString(userAuthGroups.toArray(new String[0])));
 			}
 		} else if (permissionName.equalsIgnoreCase(PERMISSION_TO_DEPLOY)) {
-			if (hasPermissionToDeploy(targetAuthGroups)) {
+			if (hasPermissionToDeploy(authentication, targetAuthGroups)) {
 				permissionGranted = true;
 				logger.log(Level.INFO, "Deploy permission granted for user " + authentication.getName());
 			} else {
@@ -286,17 +286,19 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 	/**
 	 * Checks if the current user is allowed to view the an object that has the specified authorization groups.
 	 * If the user has *any* the authorization groups of the object - permission to view it is granted.
+	 * @param authentication The authentication object of the user who requests permission
 	 * @param requestedAuthGroups The authorization groups of the target object
 	 * @return boolean value - true if permission is granted, false otherwise.
 	 */
-	private boolean hasPermissionToDeploy(final Collection<String> requestedAuthGroups) {
+	private boolean hasPermissionToDeploy(final Authentication authentication, 
+			final Collection<String> requestedAuthGroups) {
 		
 		if (requestedAuthGroups.isEmpty()) {
 			return true;
 		}
 		
 		//if the current user has at any of the requested auth groups - deploy is permitted.
-		return hasAnyAuthGroup(requestedAuthGroups);
+		return hasAnyAuthGroup(authentication, requestedAuthGroups);
     	//return hasAllAuthGroups(requestedAuthGroups);
     }
     
@@ -315,6 +317,28 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     	boolean isPermitted = false;
     	
     	Collection<String> userAuthGroups = getUserAuthGroups();
+    	for (String requestedAuthGroup : requestedAuthGroups) {
+    		/*if (userAuthGroups.contains(requestedAuthGroup)) {
+    			isPermitted = true;
+    			break;
+    		}*/
+    		for (String userAuthGroup : userAuthGroups) {
+    			if (requestedAuthGroup.equalsIgnoreCase(userAuthGroup)) {
+    				isPermitted = true;
+    				break;
+    			}
+    		}
+    	}
+    	
+		return isPermitted;
+    }
+    
+    private boolean hasAnyAuthGroup(final Authentication authentication, 
+    		final Collection<String> requestedAuthGroups) {
+    	
+    	boolean isPermitted = false;
+    	
+    	Collection<String> userAuthGroups = getUserAuthGroups(authentication);
     	for (String requestedAuthGroup : requestedAuthGroups) {
     		/*if (userAuthGroups.contains(requestedAuthGroup)) {
     			isPermitted = true;
