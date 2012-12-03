@@ -1168,10 +1168,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			final Object invocationResult = future.get();
 			final Object finalResult = postProcessInvocationResult(
 					invocationResult, instanceName);
-			Map<String, Object> resultsMap = new HashMap<String, Object>();
-			resultsMap.put(finalResult.toString(), pu.getBeanLevelProperties().getContextProperties().
-					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS));
-			return successStatus(resultsMap);
+			
+			return successStatus(finalResult);
 		} catch (final Exception e) {
 			logger.severe("Error invoking pu instance " + absolutePuName + ":"
 					+ instanceId + " on host "
