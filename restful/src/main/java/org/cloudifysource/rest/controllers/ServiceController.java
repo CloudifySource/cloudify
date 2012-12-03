@@ -894,16 +894,23 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to list applications");
 		}
-
+		
 		final Applications apps = admin.getApplications();
-		final List<String> appNames = new ArrayList<String>(apps.getSize());
+		Map<String, Object> resultsMap = new HashMap<String, Object>();
 		for (final Application app : apps) {
 			if (!app.getName().equals(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
-				appNames.add(app.getName());
+				for (ProcessingUnit pu : app.getProcessingUnits().getProcessingUnits()) {
+					if (pu != null) {
+						String authGroups = pu.getBeanLevelProperties().getContextProperties().
+								getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+						resultsMap.put(app.getName(), authGroups);
+						break;
+					}
+				}
 			}
 		}
 
-		return successStatus(appNames);
+		return successStatus(resultsMap);
 	}
 
 	/**

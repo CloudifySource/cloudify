@@ -169,7 +169,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	@SuppressWarnings("unchecked")
 	public List<String> getApplicationNamesList() throws CLIException {
 		try {
-			return (List<String>) client.get("/service/applications");
+			Map<String, String> resultsMap = (Map<String, String>) client.get("/service/applications");
+			return new ArrayList<String>(resultsMap.keySet());
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
