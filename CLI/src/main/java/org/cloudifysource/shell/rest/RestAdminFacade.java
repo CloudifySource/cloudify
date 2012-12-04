@@ -41,6 +41,7 @@ import org.cloudifysource.restclient.InvocationResult;
 import org.cloudifysource.restclient.RestException;
 import org.cloudifysource.restclient.StringUtils;
 import org.cloudifysource.shell.AbstractAdminFacade;
+import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ComponentType;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.CLIException;
@@ -80,6 +81,9 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			client = new GSRestClient(user, password, urlObj, PlatformVersion.getVersionNumber());
 			// test connection
 			client.get(SERVICE_CONTROLLER_URL + "testrest");
+			if (user != null || password != null) {
+				reconnect(user, password);
+			}
 		} catch (final MalformedURLException e) {
 				throw new CLIStatusException("could_not_parse_url", url, e);
 		} catch (final ErrorStatusException e) {
