@@ -32,23 +32,26 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
  * @since 2.0.0
  * 
  *        Tears down the Local Cloud installed on the local machine.
- *
- *        Optional arguments:
- *         lookup-groups - A unique name that is used to group together Cloudify components.
- *         Override in order to teardown a specific local cloud running on the local machine.
- *         nic-address - The IP address of the local host network card. Specify when local machine has more
- *         than one network adapter, and a specific network card should be used for network communication.
- *         timeout - The number of minutes to wait until the operation is completed (default: 5 minutes)
- *  
- *        Command syntax: teardown-localcloud [-lookup-groups lookup-groups] [-nicAddress nicAddress]
- *        					[-timeout timeout]
+ * 
+ *        Optional arguments: lookup-groups - A unique name that is used to
+ *        group together Cloudify components. Override in order to teardown a
+ *        specific local cloud running on the local machine. nic-address - The
+ *        IP address of the local host network card. Specify when local machine
+ *        has more than one network adapter, and a specific network card should
+ *        be used for network communication. timeout - The number of minutes to
+ *        wait until the operation is completed (default: 5 minutes)
+ * 
+ *        Command syntax: teardown-localcloud [-lookup-groups lookup-groups]
+ *        [-nicAddress nicAddress] [-timeout timeout]
  */
 @Command(scope = "cloudify", name = "teardown-localcloud", description = "Tears down the Local Cloud installed"
 		+ " on the local machine.")
 public class TeardownLocalCloud extends AbstractGSCommand {
-	
+
+	private static final int DEDAULT_TIMEOUT_MINUTES = 5;
+
 	private static final int DEFAULT_PROGRESS_INTERVAL = 2;
-	
+
 	@Option(required = false, name = "-lookup-groups", description = "A unique name that is used to group together"
 			+ " Cloudify components. The default localcloud lookup group is '"
 			+ LocalhostGridAgentBootstrapper.LOCALCLOUD_LOOKUPGROUP
@@ -62,28 +65,33 @@ public class TeardownLocalCloud extends AbstractGSCommand {
 
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is"
 			+ " done.")
-	private int timeoutInMinutes = 5;
-	
+	private int timeoutInMinutes = DEDAULT_TIMEOUT_MINUTES;
+
 	@Option(required = false, name = "-force",
 			description = "Should management machine be shutdown if other applications are installed")
-	boolean force = false;
+	private boolean force = false;
 
 	/**
-	 * Shuts down the local cloud, and waits until shutdown is complete or until the timeout is reached.
+	 * Shuts down the local cloud, and waits until shutdown is complete or until
+	 * the timeout is reached.
+	 * 
+	 * @return command return message.
+	 * @throws Exception
+	 *             if command failed.
 	 */
 	@Override
 	protected Object doExecute() throws Exception {
 
-		if (!confirmTeardown()){
+		if (!confirmTeardown()) {
 			return getFormattedMessage("teardown_aborted");
 		}
-		
+
 		final LocalhostGridAgentBootstrapper installer = new LocalhostGridAgentBootstrapper();
 		installer.setVerbose(verbose);
 		installer.setLookupGroups(lookupGroups);
 		installer.setNicAddress(nicAddress);
 		installer.setProgressInSeconds(DEFAULT_PROGRESS_INTERVAL);
-		installer.setForce(force);
+		installer.setForce(isForce());
 		installer.addListener(new CLILocalhostBootstrapperListener());
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 
@@ -92,8 +100,16 @@ public class TeardownLocalCloud extends AbstractGSCommand {
 		GigaShellMain.getInstance().setCurrentApplicationName("default");
 		return getFormattedMessage("teardown_localcloud_terminated_successfully");
 	}
-	
+
 	private boolean confirmTeardown() throws IOException {
-        return ShellUtils.promptUser(session, "teardown_localcloud_confirmation_question");
+		return ShellUtils.promptUser(session, "teardown_localcloud_confirmation_question");
+	}
+
+	public boolean isForce() {
+		return force;
+	}
+
+	public void setForce(final boolean force) {
+		this.force = force;
 	}
 }
