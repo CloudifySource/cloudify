@@ -9,7 +9,7 @@
 			<props>
 				<prop key="web.context">/${clusterInfo.name}</prop>
 				<prop key="web.port">8100</prop>
-				<prop key="web.sslPort">8443</prop>
+				<prop key="web.sslPort">8100</prop>
 				<prop key="web.context.classLoader.parentFirst">false</prop>
 				<prop key="web.context.copyWebDir">false</prop>
 				<prop key="web.threadPool.minThreads">10</prop>
@@ -81,7 +81,7 @@
 			<property name="connectors">
 				<list>
 					<bean class="org.eclipse.jetty.server.ssl.SslSelectChannelConnector">
-						<property name="port" value="8443" />
+						<property name="port" value="8100" />
 						<property name="acceptors" value="2" />
 						<property name="maxIdleTime" value="300000" />
 						<property name="keystore" value="${JSHOMEDIR}/config/security/keystore" />

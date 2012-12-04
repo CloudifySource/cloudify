@@ -212,7 +212,7 @@ public final class CloudifyConstants {
 	 * default ports (LUS and REST)
 	 */
 	public static final int DEFAULT_REST_PORT = 8100;
-	public static final int SECURE_REST_PORT = 8443;
+	public static final int SECURE_REST_PORT = 8100;
 	public static final int DEFAULT_LUS_PORT = net.jini.discovery.Constants
 			.getDiscoveryPort();
 	public static final int DEFAULT_LOCALCLOUD_LUS_PORT = DEFAULT_LUS_PORT + 2;

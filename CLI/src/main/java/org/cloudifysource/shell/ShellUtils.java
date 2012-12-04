@@ -494,9 +494,8 @@ public final class ShellUtils {
 	
 	/**
 	 * Returns the port used for communication with the rest server.
-	 * If the security is secure (SSL) returns "8443", otherwise returns "8100".
 	 * @param isSecureConnection Indicates whether SSL is used or not.
-	 * @return 8443 if this is a secure connection, 8100 otherwise.
+	 * @return the correct port used by the rest service.
 	 */
 	public static int getRestPort(final String springSecurityProfile) {
 		return getRestPort(isSecureConnection(springSecurityProfile));
@@ -504,9 +503,8 @@ public final class ShellUtils {
 	
 	/**
 	 * Returns the port used for communication with the rest server.
-	 * If the security is secure (SSL) returns "8443", otherwise returns "8100".
 	 * @param isSecureConnection Indicates whether SSL is used or not.
-	 * @return 8443 if this is a secure connection, 8100 otherwise.
+	 * @return the correct port used by the rest service.
 	 */
 	public static int getRestPort(final boolean isSecureConnection) {
 		if (isSecureConnection) {
@@ -518,9 +516,8 @@ public final class ShellUtils {
 	
 	/**
 	 * Returns the port used for communication with the rest server.
-	 * If the security is secure (SSL) returns "8443", otherwise returns "8100".
 	 * @param isSecureConnection Indicates whether SSL is used or not.
-	 * @return "8443" if this is a secure connection, "8100" otherwise.
+	 * @return the correct port used by the rest service.
 	 */
 	public static String getRestPortAsString(final boolean isSecureConnection) {
 		return Integer.toString(getRestPort(isSecureConnection));
