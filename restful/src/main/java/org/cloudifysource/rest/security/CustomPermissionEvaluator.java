@@ -16,6 +16,7 @@
 package org.cloudifysource.rest.security;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -29,6 +30,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -87,8 +89,10 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 			throw new AccessDeniedException("Anonymous user is not supported");
     	}
     	
-    	if (!(authentication instanceof CustomAuthenticationToken)) {
-    		throw new AccessDeniedException("Authentication object type not supported");
+    	if (!(authentication instanceof CustomAuthenticationToken)
+    			&& !(authentication instanceof UsernamePasswordAuthenticationToken)) {
+    		throw new AccessDeniedException("Authentication object type not supported. "
+    				+ "Verify your Spring configuration is valid.");
     	}
 		
 		if (permission != null && !(permission instanceof String)) {
@@ -119,7 +123,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     	}
     	
 		if (hasRequiredRoles(authentication, permissionName) 
-				&& hasAuthGroupAccess((CustomAuthenticationToken) authentication, targetAuthGroups, permissionName)) {
+				&& hasAuthGroupAccess(authentication, targetAuthGroups, permissionName)) {
 			permissionGranted = true;
 		}
 		
@@ -216,16 +220,20 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 	
 	/**
 	 * Checks if the logged in user is allowed to access the target object, according to its authorization groups.
-	 * @param authentication CustomAuthenticationToken of the logged in user
+	 * @param authentication authentication object of the logged in user
 	 * @param targetAuthGroupsStr Comma delimited string of the target object's authorization groups.
 	 * @param permissionName permission requested (view, deploy, etc.)
 	 * @return true - access allowed, false - access denied.
 	 */
-	private boolean hasAuthGroupAccess(final CustomAuthenticationToken authentication, 
+	private boolean hasAuthGroupAccess(final Authentication authentication, 
 			final String targetAuthGroupsStr, final String permissionName) {
 		
 		boolean permissionGranted = false;
-		
+    	
+    	if (authentication instanceof UsernamePasswordAuthenticationToken) {
+    		return true;  //auth groups don't exist in this configuration, so don't deny access.
+    	}
+    	
     	Collection<String> userAuthGroups = ((CustomAuthenticationToken) authentication).getAuthGroups();
     	Collection<String> targetAuthGroups = 
     			org.cloudifysource.esc.util.StringUtils.splitAndTrimString(targetAuthGroupsStr, AUTH_GROUPS_DELIMITER);
@@ -363,6 +371,16 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     private Collection<String> getUserRoles(final Authentication authentication) {
     	Set<String> userRoles = new HashSet<String>();
 		
+    	if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+			throw new AccessDeniedException("Anonymous user is not supported");
+    	}
+		
+    	if (!(authentication instanceof CustomAuthenticationToken)
+    			&& !(authentication instanceof UsernamePasswordAuthenticationToken)) {
+    		throw new AccessDeniedException("Authentication object type not supported. "
+    				+ "Verify your Spring configuration is valid.");
+    	}
+		
 		for (GrantedAuthority authority : authentication.getAuthorities()) {
 			userRoles.add(authority.getAuthority());
 		}
@@ -375,23 +393,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
      * @return A Collection of roles (authorities) the user is granted.
      */
     private Collection<String> getUserRoles() {
-    	Set<String> userRoles = new HashSet<String>();
-    	
-    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    	
-    	if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
-			throw new AccessDeniedException("Anonymous user is not supported");
-    	}
-		
-    	if (!(authentication instanceof CustomAuthenticationToken)) {
-    		throw new AccessDeniedException("Authentication object type not supported");
-    	}
-		
-		for (GrantedAuthority authority : authentication.getAuthorities()) {
-			userRoles.add(authority.getAuthority());
-		}
-		
-		return userRoles;
+    	return getUserRoles(SecurityContextHolder.getContext().getAuthentication());
     }
     
     /**
@@ -400,12 +402,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
      */
     public String getUserRolesString() {
     	Collection<String> userRoles = getUserRoles();
-    	StringBuilder builder = new StringBuilder();
-    	for (String role : userRoles) {
-    	    builder.append(role);
-    	    builder.append(',');
-    	}
-		return builder.substring(0, builder.toString().length() - 1);
+    	return collectionToDelimitedString(userRoles, ",");
     }
     
     /**
@@ -415,21 +412,8 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
      */
     public String getUserRolesString(final Authentication authentication) {
     	
-    	if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
-			throw new AccessDeniedException("Anonymous user is not supported");
-    	}
-		
-    	if (!(authentication instanceof CustomAuthenticationToken)) {
-    		throw new AccessDeniedException("Authentication object type not supported");
-    	}
-    		
     	Collection<String> userRoles = getUserRoles(authentication);
-    	StringBuilder builder = new StringBuilder();
-    	for (String role : userRoles) {
-    	    builder.append(role);
-    	    builder.append(',');
-    	}
-		return builder.substring(0, builder.toString().length() - 1);
+    	return collectionToDelimitedString(userRoles, ",");
     }
     
     /**
@@ -439,12 +423,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
      */
     public String getUserAuthGroupsString(final Authentication authentication) {
     	Collection<String> userAuthGroups = getUserAuthGroups(authentication);
-    	StringBuilder builder = new StringBuilder();
-    	for (String authGroup : userAuthGroups) {
-    	    builder.append(authGroup);
-    	    builder.append(',');
-    	}
-		return builder.substring(0, builder.toString().length() - 1);
+    	return collectionToDelimitedString(userAuthGroups, ",");
     }
     
     /**
@@ -453,12 +432,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
      */
     public String getUserAuthGroupsString() {
     	Collection<String> userAuthGroups = getUserAuthGroups();
-    	StringBuilder builder = new StringBuilder();
-    	for (String authGroup : userAuthGroups) {
-    	    builder.append(authGroup);
-    	    builder.append(',');
-    	}
-		return builder.substring(0, builder.toString().length() - 1);
+    	return collectionToDelimitedString(userAuthGroups, ",");
     }
     
     /**
@@ -466,16 +440,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
      * @return A Collection of authorization groups the user belongs to.
      */
     private Collection<String> getUserAuthGroups() {
-    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    	if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
-			throw new AccessDeniedException("Anonymous user is not supported");
-    	}
-		
-    	if (!(authentication instanceof CustomAuthenticationToken)) {
-    		throw new AccessDeniedException("Authentication object type not supported");
-    	}
-		
-		return ((CustomAuthenticationToken) authentication).getAuthGroups();
+    	return getUserAuthGroups(SecurityContextHolder.getContext().getAuthentication());
     }
     
     /**
@@ -489,11 +454,37 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 			throw new AccessDeniedException("Anonymous user is not supported");
     	}
 		
-    	if (!(authentication instanceof CustomAuthenticationToken)) {
-    		throw new AccessDeniedException("Authentication object type not supported");
+    	if (!(authentication instanceof CustomAuthenticationToken)
+    			&& !(authentication instanceof UsernamePasswordAuthenticationToken)) {
+    		throw new AccessDeniedException("Authentication object type not supported. "
+    				+ "Verify your Spring configuration is valid.");
+    	}
+    	
+    	Collection<String> userAuthGroups = new ArrayList<String>();
+    	
+    	if (authentication instanceof CustomAuthenticationToken) {
+    		userAuthGroups = ((CustomAuthenticationToken) authentication).getAuthGroups();
     	}
 		
-		return ((CustomAuthenticationToken) authentication).getAuthGroups();
+		return userAuthGroups;
+    }
+    
+    
+    private static String collectionToDelimitedString(final Collection<String> collection, final String delimiter) {
+    	String delimitedString;
+    	StringBuilder builder = new StringBuilder();
+    	
+    	for (String item : collection) {
+    	    builder.append(item);
+    	    builder.append(delimiter);
+    	}
+
+    	delimitedString = builder.toString();
+    	if (delimitedString.endsWith(delimiter)) {
+    		delimitedString = delimitedString.substring(0, delimitedString.length() - delimiter.length());
+    	}
+    	
+    	return delimitedString;
     }
 
 }
