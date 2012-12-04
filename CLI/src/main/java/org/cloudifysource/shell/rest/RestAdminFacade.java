@@ -191,6 +191,9 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			final List<Object> applicationDescriptionList = (List<Object>) client
 					.get("/service/applications/" + applicationName
 							+ "/services/description");
+			if (applicationDescriptionList == null || applicationDescriptionList.isEmpty()) {
+				return null;
+			}
 			ObjectMapper map = new ObjectMapper();
 			Object descriptionObject = applicationDescriptionList.get(0);
 			ApplicationDescription applicationDescription =
