@@ -63,28 +63,25 @@ public class BootstrapCloud extends AbstractGSCommand {
 	private static final String OVERRIDES_FOLDER = "upload" + PATH_SEPARATOR + "cloudify-overrides" + PATH_SEPARATOR
 			+ "config" + PATH_SEPARATOR + "security";
 
-	@Argument(required = true, name = "provider", description = "the cloud provider to use")
+	@Argument(required = true, name = "provider", description = "The cloud provider to use")
 	String cloudProvider;
 	
     @Option(required = false, description = "Server security mode (on/off)", name = "-secured")
     private boolean secured;
     
-    @Option(required = false, description = "Path to a custom spring security configuration file",
-    		name = "-securityFile", aliases = {"-securityfile" })
+    @Option(required = false, description = "Path to a custom spring security configuration file", name = "-security-file")
     private String securityFilePath;
     
-    @Option(required = false, description = "The username when connecting to a secure admin server", name = "-user",
-    		aliases = {"-username" })
+    @Option(required = false, description = "The username when connecting to a secure admin server", name = "-user")
     private String username;
 	
-    @Option(required = false, description = "The password when connecting to a secure admin server", name = "-pwd",
-            aliases = {"-password" })
+    @Option(required = false, description = "The password when connecting to a secure admin server", name = "-password")
     private String password;
     
 	@Option(required = false, description = "The path to the keystore used for SSL connections", name = "-keystore")
     private String keystore;
 	
-	@Option(required = false, description = "The password to the keystore", name = "-keystorePassword")
+	@Option(required = false, description = "The password to the keystore", name = "-keystore-password")
     private String keystorePassword;
 
     @Option(required = false, description = "Path to a file containing override properties", name = "-cloud-overrides")
@@ -95,7 +92,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 	int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
 	
 	@Option(required = false, name = "-no-web-services",
-			description = "if set, no attempt to deploy the rest admin and" + " web-ui will be made")
+			description = "if set, no attempt to deploy the rest admin and web-ui will be made")
 	private boolean noWebServices;
 	
 	private String securityProfile = CloudifyConstants.SPRING_PROFILE_NON_SECURE;
@@ -296,7 +293,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 			}
 			
 			if (StringUtils.isNotBlank(keystorePassword)) {
-				throw new IllegalArgumentException("'-keystorePassword' is only valid when '-secured' is set");
+				throw new IllegalArgumentException("'-keystore-password' is only valid when '-secured' is set");
 			}
 		}
 			
@@ -310,11 +307,15 @@ public class BootstrapCloud extends AbstractGSCommand {
 		}
 		
 		if (StringUtils.isNotBlank(keystore) && StringUtils.isBlank(keystorePassword)) {
-			throw new IllegalArgumentException("keystorePassword is missing or empty");
+			throw new IllegalArgumentException("Keystore password is missing or empty");
 		}
 		
 		if (StringUtils.isBlank(keystore) && StringUtils.isNotBlank(keystorePassword)) {
-			throw new IllegalArgumentException("keystore is missing or empty");
+			throw new IllegalArgumentException("Keystore is missing or empty");
+		}
+
+		if(StringUtils.isNotBlank(keystore)) {
+			new KeystoreFileVerifier().verifyKeystoreFile(new File(keystore), keystorePassword);
 		}
 		
 		if(StringUtils.isNotBlank(keystore)) {
@@ -340,7 +341,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 		} else {
 			//TODO : should we use the default security location and assume it was edited by the user?
 			//securityFilePath = CLOUDIFY_HOME + "/config/security/spring-security.xml";
-			throw new IllegalArgumentException("-securityfile is missing or empty");
+			throw new IllegalArgumentException("-security-file is missing or empty");
 		}
 		
 		//handle the keystore file
