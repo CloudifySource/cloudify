@@ -19,9 +19,11 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -65,11 +67,8 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 	private static final int DEFAULT_PROGRESS_INTERVAL = 2;
 	private static final int DEFAULT_TIMEOUT = 5;
 	private static final String PATH_SEPARATOR = System.getProperty("file.separator");
-	private static final String CLOUDIFY_HOME = Environment.getHomeDirectory(); // JSHOMEDIR
-																				// is
-																				// not
-																				// set
-																				// yet
+	// JSHOMEDIR is not set yet
+	private static final String CLOUDIFY_HOME = Environment.getHomeDirectory(); 
 	private static final String DEFAULT_SECURITY_FOLDER =
 			CLOUDIFY_HOME + PATH_SEPARATOR + "config" + PATH_SEPARATOR + "security";
 	private static final String DEFAULT_KEYSTORE_FILE_PATH =
@@ -113,7 +112,10 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 	@Option(required = false, description = "The number of minutes to wait until the operation is done.", 
 			name = "-timeout")
 	private int timeoutInMinutes = DEFAULT_TIMEOUT;
-
+	
+	@Argument(required = false, name = "name", description = "the cloud name")
+	private String cloudName;
+	
 	private String securityProfile = CloudifyConstants.SPRING_PROFILE_NON_SECURE;
 
 	// flags to indicate if bootstrap operation created a backup file that
@@ -161,7 +163,12 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 
 			return messages.getString("local_cloud_started");
 		} finally {
-			revertSecurityFiles();
+			try {
+				revertSecurityFiles();
+			} catch (final Exception e) {
+				logger.log(Level.SEVERE,
+						"Failed to revery security files before finishing bootstrap-localcloud command", e);
+			}
 
 		}
 	}

@@ -18,6 +18,7 @@ package org.cloudifysource.shell.commands;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.karaf.shell.console.HelpAction;
 
+
 /**
  * @author rafi, barakm
  * @since 2.0.0
@@ -28,5 +29,8 @@ import org.apache.karaf.shell.console.HelpAction;
  */
 @Command(name = "help", description = "lists all available commands", scope = "cloudify")
 public class Help extends HelpAction {
+//	public Help() {
+//		System.out.println("help");
+//	}
 
 }

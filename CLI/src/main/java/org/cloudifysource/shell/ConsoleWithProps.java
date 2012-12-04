@@ -31,9 +31,10 @@ import org.cloudifysource.shell.rest.RestAdminFacade;
  * @author uri
  * @since 2.0.0
  *        <p/>
- *        Extends the karaf framework Console Object. This class adds some branding and functionality on top of the base
- *        class, e.g., adds a default adminFacade to the session, overrides the get prompt method, set a default
- *        application and more.
+ *        Extends the karaf framework Console Object. This class adds some
+ *        branding and functionality on top of the base class, e.g., adds a
+ *        default adminFacade to the session, overrides the get prompt method,
+ *        set a default application and more.
  */
 public class ConsoleWithProps extends Console {
 
@@ -45,6 +46,7 @@ public class ConsoleWithProps extends Console {
 	ConsoleWithProps(final CommandProcessor commandProcessor, final InputStream input, final PrintStream output,
 			final PrintStream err, final Terminal terminal, final CloseCallback callback, final boolean isInteractive)
 			throws Exception {
+		// super(commandProcessor, input, output, err, terminal, null, callback);
 		super(commandProcessor, input, output, err, terminal, callback);
 
 		consoleActions = isInteractive ? new ConsoleWithPropsInteractive() : new ConsoleWithPropsNonInteractive();
@@ -84,7 +86,8 @@ public class ConsoleWithProps extends Console {
 	/**
 	 * Sets the application name.
 	 * 
-	 * @param currentAppName The application name to set
+	 * @param currentAppName
+	 *            The application name to set
 	 */
 	public void setCurrentApplicationName(final String currentAppName) {
 		this.currentAppName = currentAppName;
@@ -115,4 +118,24 @@ public class ConsoleWithProps extends Console {
 		loadProps(props, consoleActions.getBrandingPropertiesResourcePath());
 		return props;
 	}
+
+//	protected static void loadProps(Properties props, String resource) {
+//		InputStream is = null;
+//		try {
+//			is = Branding.class.getClassLoader().getResourceAsStream(resource);
+//			if (is != null) {
+//				props.load(is);
+//			}
+//		} catch (IOException e) {
+//			// ignore
+//		} finally {
+//			if (is != null) {
+//				try {
+//					is.close();
+//				} catch (IOException e) {
+//					// Ignore
+//				}
+//			}
+//		}
+//	}
 }
