@@ -2748,8 +2748,6 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param propsFile
 	 * 
 	 * @param selfHealing
-	 * @return status - success (error) and response - lifecycle events
-	 *         container id (error description)
 	 * @throws DSLException
 	 * @throws RestErrorException . .
 	 * @param selfHealing
@@ -3791,6 +3789,17 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws DSLException
 	 *             in case of failing to read a DSL object.
 	 */
+	@JsonRequestExample(requestBody = "{\"templatesFolder\" : \"templates folder\"}")
+	@JsonResponseExample(status = "success", responseBody = "[\"template1\", \"template2\", \"template3\"]", 
+	comments = "In case of failure a RestErrorException will be thrown and its args will contain two maps: " 
+			+ "a map of hosts and foreach host its failed to add templates with their error reasons " 
+			+ "(which is a map of template name and error description) " 
+			+ "and a map of hosts and for each host its list of successfuly added templates.")
+	@PossibleResponseStatuses(responseStatuses = {
+			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, 
+			description = "Failed to add all the templates to all the REST instances.") })
+	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
 	@RequestMapping(value = "templates", method = RequestMethod.POST)
 	public @ResponseBody
 	Map<String, Object> addTemplates(
@@ -3800,7 +3809,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (cloud == null) {
 			throw new RestErrorException("local_cloud_not_support_tempaltes_operations", "add-templates");
 		}
-		logger.log(Level.INFO, "addTemplates - starting add templates.");
+		logger.log(Level.INFO, "[addTemplates] - starting add templates.");
 		File loaclTemplatesZipFile = null;
 		File unzippedTemplatesFolder = null;
 		try {
@@ -3817,14 +3826,14 @@ public class ServiceController implements ServiceDetailsProvider {
 
 			// If some templates failed to be added, throw an exception
 			if (!failedToAddTemplatesByHost.isEmpty()) {
-				logger.log(Level.WARNING, "addTemplates - Failed to add the following tempaltes (by host): "
+				logger.log(Level.WARNING, "[addTemplates] - Failed to add the following tempaltes (by host): "
 						+ failedToAddTemplatesByHost
 						+ ".\nSuccessfully added templates (by host): " + addedTemplatesByHost);
 				throw new RestErrorException("failed_to_add_templates",
 						failedToAddTemplatesByHost, addedTemplatesByHost);
 			}
 
-			logger.log(Level.INFO, "addTemplates - Successfully added templates: " + addedTemplatesByHost.toString());
+			logger.log(Level.INFO, "[addTemplates] - Successfully added templates: " + addedTemplatesByHost.toString());
 			return successStatus(expectedTemplates);
 
 		} finally {
@@ -3854,7 +3863,8 @@ public class ServiceController implements ServiceDetailsProvider {
 		// get the instances
 		ProcessingUnitInstance[] instances = admin.getProcessingUnits().
 				waitFor("rest", RestUtils.TIMEOUT_IN_SECOND, TimeUnit.SECONDS).getInstances();
-		logger.log(Level.INFO, "addTemplates - sending templates folder to " + instances.length + " instances.");
+		logger.log(Level.INFO, "[sendAddTempaltesToRestInstances] - sending templates folder to " 
+				+ instances.length + " instances.");
 
 		// send the templates folder to each rest instance (except the local
 		// one)
@@ -3863,13 +3873,11 @@ public class ServiceController implements ServiceDetailsProvider {
 			String host = puInstance.getMachine().getHostName() + "/" + hostAddress;
 			Map<String, Object> response;
 			try {
-				logger.log(Level.INFO, "addTemplates - sending add templates request to " + host
-						+ ", post file: " + templatesFolder.getName());
 				// send the post request
 				response = executePostRestRequest(templatesFolder, puInstance, "/service/templates/internal");
 			} catch (Exception e) {
-				logger.log(Level.WARNING, "addTemplates - failed to execute http request to " + host
-						+ ". Error: " + e, e);
+				logger.log(Level.WARNING, "[sendAddTempaltesToRestInstances] - failed to execute http request to " 
+						+ host + ". Error: " + e, e);
 				Map<String, String> expectedMap = new HashMap<String, String>();
 				for (String expectedTempalte : expectedTemplates) {
 					expectedMap.put(expectedTempalte, e.getMessage());
@@ -3878,20 +3886,22 @@ public class ServiceController implements ServiceDetailsProvider {
 				continue;
 			}
 			// update maps
+			@SuppressWarnings("unchecked")
 			Map<String, String> failedMap = (Map<String, String>) response.get(FAILED_TO_ADD_TEMPLATES_KEY);
 			if (!failedMap.isEmpty()) {
 				failedToAddTemplatesByHost.put(host, failedMap);
 			}
+			@SuppressWarnings("unchecked")
 			List<String> addedTemplates = (List<String>) response.get(SUCCESSFULLY_ADDED_TEMPLATES_KEY);
 			if (!addedTemplates.isEmpty()) {
 				addedTemplatesByHost.put(host, addedTemplates);
 			}
 			// validate response list and
 			if (!expectedTemplates.equals(addedTemplates)) {
-				logger.log(Level.WARNING, "addTemplates - failed to add templates to " + host + ", expected list: "
-						+ expectedTemplates.toString() + ", actual list: " + addedTemplates.toString());
+				logger.log(Level.WARNING, "[sendAddTempaltesToRestInstances] - failed to add templates to " + host 
+						+ ", expected: " + expectedTemplates.toString() + ", actual: " + addedTemplates.toString());
 			}
-			logger.log(Level.INFO, "addTemplates - successfully added " + addedTemplates.size()
+			logger.log(Level.INFO, "[sendAddTempaltesToRestInstances] - successfully added " + addedTemplates.size()
 					+ " templates to " + host + ": " + addedTemplates);
 		}
 	}
@@ -3909,18 +3919,13 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             If failed to execute the request or the response is not
 	 *             successful.
 	 */
-	private void executeDeleteRestRequest(final ProcessingUnitInstance puInstance,
-			final String hostAddress, final String url)
-					throws RestErrorException {
+	private void executeDeleteRestRequest(final ProcessingUnitInstance puInstance, 
+			final String hostAddress, final String url) throws RestErrorException {
 		String uri = "http://" + hostAddress + ":" + puInstance.getJeeDetails().getPort() + url;
 		HttpDelete deleteMethod = new HttpDelete(uri);
-		logger.log(Level.INFO, "executeRestRequest - sending rest request to uri " + uri);
 		// execute the request and extract the list from the response
 		DefaultHttpClient httpClient = new DefaultHttpClient();
-		RestUtils.executeHttpMethod(deleteMethod, RestUtils.RESPONSE_KEY, httpClient);
-
-		logger.log(Level.INFO, "executeRestRequest - successfully sent delete request to " + uri);
-
+		RestUtils.executeHttpMethod(deleteMethod, httpClient);
 	}
 
 	/**
@@ -3948,7 +3953,6 @@ public class ServiceController implements ServiceDetailsProvider {
 		String hostAddress = puInstance.getMachine().getHostAddress();
 		String host = puInstance.getMachine().getHostName() + "/" + hostAddress;
 		String uri = "http://" + hostAddress + ":" + puInstance.getJeeDetails().getPort() + url;
-		logger.log(Level.INFO, "executeRestRequest - sending rest request to uri " + uri);
 		HttpPost postMethod = new HttpPost(uri);
 		final MultipartEntity reqEntity = new MultipartEntity();
 		reqEntity.addPart(CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, new FileBody(templatesFolder));
@@ -3959,13 +3963,12 @@ public class ServiceController implements ServiceDetailsProvider {
 		Map<String, Object> responseMap;
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 		try {
-			response = RestUtils.executeHttpMethod(postMethod, RestUtils.RESPONSE_KEY, httpClient);
+			response = RestUtils.executeHttpMethod(postMethod, httpClient);
 			responseMap = (Map<String, Object>) response;
 		} catch (ClassCastException e) {
 			throw new RestErrorException("The response from host address " + host
 					+ " is not a map as expected. " + "response: " + response.toString() + ".");
 		}
-		logger.log(Level.INFO, "executeRestRequest - successfully sent post request to " + host);
 		return responseMap;
 	}
 
@@ -3985,16 +3988,18 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws DSLException
 	 *             in case of failing to read a DSL object.
 	 */
+	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
 	@RequestMapping(value = "templates/internal", method = RequestMethod.POST)
 	public @ResponseBody
 	Map<String, Object>
 	addTemplatesInternal(
-			@RequestParam(value = CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, required = true) final MultipartFile templatesFolder)
+			@RequestParam
+			(value = CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, required = true) final MultipartFile templatesFolder)
 					throws IOException, DSLException, RestErrorException {
 		CloudTemplatesReader reader = new CloudTemplatesReader();
 		File localTemplatesFolder = reader.unzipCloudTemplatesFolder(copyMultipartFileToLocalFile(templatesFolder));
 		try {
-			logger.log(Level.INFO, "addTemplatesInternal - adding templates from templates folder: "
+			logger.log(Level.INFO, "[addTemplatesInternal] - adding templates from templates folder: "
 					+ localTemplatesFolder.getAbsolutePath());
 			// add templates to the cloud and return the added templates.
 			return successStatus(addTemplatesToCloud(localTemplatesFolder));
@@ -4021,11 +4026,11 @@ public class ServiceController implements ServiceDetailsProvider {
 	private Map<String, Object> addTemplatesToCloud(final File templatesFolder)
 			throws RestErrorException, DSLException {
 
-		logger.log(Level.INFO, "addTemplatesToCloud - Adding templates to cloud.");
+		logger.log(Level.FINE, "[addTemplatesToCloud] - Adding templates to cloud.");
 
 		// read cloud templates from templates folder
 		List<CloudTemplateHolder> cloudTemplatesHolders = readCloudTemplates(templatesFolder);
-		logger.log(Level.INFO, "addTemplatesToCloud - Successfully read " + cloudTemplatesHolders.size()
+		logger.log(Level.FINE, "[addTemplatesToCloud] - Successfully read " + cloudTemplatesHolders.size()
 				+ " templates from folder - " + templatesFolder);
 
 		// adds the templates to the cloud's templates list, deletes the failed to added templates from the folder.
@@ -4034,18 +4039,18 @@ public class ServiceController implements ServiceDetailsProvider {
 		addTemplatesToCloudList(templatesFolder, cloudTemplatesHolders, addedTempaltes, failedToAddTemplates);
 		// if no templates were added, throw an exception
 		if (addedTempaltes.isEmpty()) {
-			logger.log(Level.WARNING, "addTemplatesToCloud - Failed to add templates files from "
+			logger.log(Level.WARNING, "[addTemplatesToCloud] - Failed to add templates files from "
 					+ templatesFolder.getAbsolutePath());
 		} else {
 			// at least one template was added, copy files from template folder to cloudTemplateFolder
-			logger.log(Level.INFO, "addTemplatesToCloud - Coping templates files from " 
+			logger.log(Level.FINE, "[addTemplatesToCloud] - Coping templates files from " 
 					+ templatesFolder.getAbsolutePath() + " to " + cloudConfigurationDir.getAbsolutePath());
 			try {
 				File localTemplatesDir = copyTemplateFilesToCloudConfigDir(templatesFolder);
 				updateCloudTempaltesUploadPath(addedTempaltes, localTemplatesDir);
 			} catch (IOException e) {
 				// failed to copy files - remove all added templates from cloud and them to the failed map.
-				logger.log(Level.WARNING, "addTemplatesToCloud - Failed to copy templates files, error: " 
+				logger.log(Level.WARNING, "[addTemplatesToCloud] - Failed to copy templates files, error: " 
 						+ e.getMessage(), e);
 				for (String tempalteName : addedTempaltes) {
 					cloud.getTemplates().remove(tempalteName);
@@ -4059,10 +4064,9 @@ public class ServiceController implements ServiceDetailsProvider {
 		resultMap.put(FAILED_TO_ADD_TEMPLATES_KEY, failedToAddTemplates);
 		resultMap.put(SUCCESSFULLY_ADDED_TEMPLATES_KEY, addedTempaltes);
 		if (!failedToAddTemplates.isEmpty()) {
-			logger.log(Level.INFO, "addTemplatesToCloud - Failed to add the following templates: "
+			logger.log(Level.INFO, "[addTemplatesToCloud] - Failed to add the following templates: "
 					+ failedToAddTemplates.toString());
 		}
-		logger.log(Level.INFO, "addTemplatesToCloud - Successfully added templates: " + addedTempaltes.toString());
 		return resultMap;
 	}
 
@@ -4105,7 +4109,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			String originalTemplateFileName = holder.getTemplateFileName();
 			// check if template already exist
 			if (cloud.getTemplates().containsKey(templateName)) {
-				logger.log(Level.WARNING, "addTemplatesToCloudList - Template already exists: " + templateName);
+				logger.log(Level.WARNING, "[addTemplatesToCloudList] - Template already exists: " + templateName);
 				failedToAddTemplates.put(templateName, "template already exists");
 				new File(templatesFolder, originalTemplateFileName).delete();
 				continue;
@@ -4115,7 +4119,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			try {
 				renameTemplateFileIfNeeded(templatesFolder, holder);
 			} catch (IOException e) {
-				logger.log(Level.WARNING, "addTemplatesToCloudList - Failed to rename template's file, template: "
+				logger.log(Level.WARNING, "[addTemplatesToCloudList] - Failed to rename template's file, template: "
 						+ templateName + ", error: " + e.getMessage(), e);
 				failedToAddTemplates.put(templateName, "failed to rename template's file. error: " + e.getMessage());
 				new File(templatesFolder, originalTemplateFileName).delete();
@@ -4324,8 +4328,8 @@ public class ServiceController implements ServiceDetailsProvider {
 		CloudTemplate cloudTemplate = cloud.getTemplates().get(templateName);
 
 		if (cloudTemplate == null) {
-			logger.log(Level.INFO, "getTemplate - tempalte [" + templateName + "] not found. cloud tempaltes list: "
-					+ cloud.getTemplates());
+			logger.log(Level.WARNING, "[getTemplate] - tempalte [" + templateName 
+					+ "] not found. cloud tempaltes list: " + cloud.getTemplates());
 			throw new RestErrorException("tamplate_not_exist", templateName);
 		}
 		return successStatus(cloudTemplate);
@@ -4341,6 +4345,14 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             If cloud is a local cloud or one of the REST instances failed
 	 *             to remove the template.
 	 */
+	@JsonResponseExample(status = "success", 
+	comments = "In case of failure a RestErrorException will be thrown " 
+			+ "and its args will contain the list of all the host that failed to remove the template.")
+	@PossibleResponseStatuses(responseStatuses = {
+			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, 
+			description = "Failed to remove the template from all the REST instances.") })
+	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
 	@RequestMapping(value = "templates/{templateName}", method = RequestMethod.DELETE)
 	public @ResponseBody
 	Map<String, Object>
@@ -4350,7 +4362,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (cloud == null) {
 			throw new RestErrorException("local_cloud_not_support_tempaltes_operations", "remove-template");
 		}
-		logger.log(Level.INFO, "removeTemplate - removing template " + templateName);
+		logger.log(Level.INFO, "[removeTemplate] - removing template " + templateName);
 
 		// remove template from REST instances (including local MNG).
 		List<String> successfullyRemoved = new LinkedList<String>();
@@ -4359,13 +4371,13 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		// check if some REST instances failed to remove the template
 		if (!failedToRemoveHosts.isEmpty()) {
-			logger.log(Level.WARNING, "removeTemplate - failed to remove template [" + templateName + "] from: "
+			logger.log(Level.WARNING, "[removeTemplate] - failed to remove template [" + templateName + "] from: "
 					+ failedToRemoveHosts + ". Succeeded to remove the template from: " + successfullyRemoved);
 			throw new RestErrorException("failed_to_remove_template", templateName, failedToRemoveHosts.toString());
 		}
 
 		// return success
-		logger.log(Level.INFO, "removeTemplate - Succeeded to remove template [" + templateName
+		logger.log(Level.INFO, "[removeTemplate] - Succeeded to remove template [" + templateName 
 				+ "] from: " + successfullyRemoved);
 		return successStatus();
 
@@ -4392,23 +4404,22 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		// send the template's name to remove to each rest instance (except the
 		// local one)
-		logger.log(Level.INFO, "removeTemplate - sending remove request to "
+		logger.log(Level.INFO, "[removeTemplateFromRestInstances] - sending remove request to "
 				+ instances.length + " REST instances. Template's name is " + templateName);
 		for (ProcessingUnitInstance puInstance : instances) {
 			String hostAddress = puInstance.getMachine().getHostAddress();
 			String host = puInstance.getMachine().getHostName() + "/" + hostAddress;
 			// execute the http request
-			logger.log(Level.INFO, "removeTemplate - Executing delete http request to " + host);
 			try {
 				executeDeleteRestRequest(puInstance, hostAddress, "/service/templates/" + templateName + "/internal");
 			} catch (RestErrorException e) {
 				failedToRemoveHosts.add(host);
-				logger.log(Level.WARNING, "removeTemplate - Failed to execute http request to " + host + ". Error: "
-						+ e.getMessage(), e);
+				logger.log(Level.WARNING, "[removeTemplateFromRestInstances] - Failed to execute http request to " 
+						+ host + ". Error: " + e.getMessage(), e);
 				continue;
 			}
 			successfullyRemoved.add(host);
-			logger.log(Level.INFO, "removeTemplate - Successfully removed template ["
+			logger.log(Level.INFO, "[removeTemplateFromRestInstances] - Successfully removed template ["
 					+ templateName + "] from " + host);
 		}
 	}
@@ -4424,20 +4435,20 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws RestErrorException
 	 *             If failed to remove template.
 	 */
+	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
 	@RequestMapping(value = "templates/{templateName}/internal", method = RequestMethod.DELETE)
 	public @ResponseBody
 	Map<String, Object>
 	removeTemplateInternal(@PathVariable final String templateName)
 			throws RestErrorException {
-		logger.log(Level.INFO, "removeTemplateInternal - removing template [" + templateName + "].");
+		logger.log(Level.INFO, "[removeTemplateInternal] - removing template [" + templateName + "].");
 		try {
 			removeTemplateFromCloud(templateName);
 		} catch (RestErrorException e) {
-			logger.log(Level.WARNING, "removeTemplateInternal - failed to remove template [" + templateName + "]."
+			logger.log(Level.WARNING, "[removeTemplateInternal] - failed to remove template [" + templateName + "]."
 					+ " Error: " + e.getMessage(), e);
 			throw e;
 		}
-		logger.log(Level.INFO, "removeTemplateFromCloud- Successfully removed template [" + templateName + "].");
 		return successStatus();
 
 	}
@@ -4453,18 +4464,17 @@ public class ServiceController implements ServiceDetailsProvider {
 	private void removeTemplateFromCloud(final String templateName)
 			throws RestErrorException {
 
+		logger.log(Level.INFO, "[removeTemplateFromCloud] - removing template [" + templateName + "] from cloud.");
+
 		// delete template's file from the cloud configuration directory.
 		deleteTemplateFile(templateName);
 
 		// remove template from cloud
-		logger.log(Level.INFO, "removeTemplateFromCloud- removing template [" + templateName + "] from cloud.");
 		Map<String, CloudTemplate> cloudTemplates = cloud.getTemplates();
 		if (!cloudTemplates.containsKey(templateName)) {
 			throw new RestErrorException("tamplate_not_exist", templateName);
 		}
 		cloudTemplates.remove(templateName);
-		logger.log(Level.INFO, "removeTemplateFromCloud- Successfully removed template [" + templateName + "].");
-
 	}
 
 	/**
@@ -4484,12 +4494,12 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 		// delete the file from the directory.
 		String templatesPath = templateFile.getAbsolutePath();
-		logger.log(Level.INFO, "deleteTemplateFile- removing template file " + templatesPath);
+		logger.log(Level.FINE, "[deleteTemplateFile] - removing template file " + templatesPath);
 		boolean deleted = false;
 		try {
 			deleted = templateFile.delete();
 		} catch (SecurityException e) {
-			logger.log(Level.WARNING, "deleteTemplateFile- Failed to deleted template file " + templatesPath
+			logger.log(Level.WARNING, "[deleteTemplateFile] - Failed to deleted template file " + templatesPath
 					+ ", Error: " + e.getMessage(), e);
 			throw new RestErrorException("failed_to_remove_template_file", templatesPath, e.getMessage());
 		}
@@ -4497,16 +4507,17 @@ public class ServiceController implements ServiceDetailsProvider {
 			throw new RestErrorException("failed_to_remove_template_file", templatesPath,
 					"template file was not deleted.");
 		}
-		logger.log(Level.INFO, "deleteTemplateFile- Successfully deleted template file [" + templatesPath + "].");
+		logger.log(Level.FINE, "[deleteTemplateFile] - Successfully deleted template file [" + templatesPath + "].");
 		File tempalteFolder = templateFile.getParentFile();
 		File[] templatesFiles = DSLReader.findDefaultDSLFiles(DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX, tempalteFolder);
 		if (templatesFiles == null || templatesFiles.length == 0) {
 			try {
-				logger.log(Level.INFO, "deleteTemplateFile- tempaltes folder is empty, deleting the folder [" 
+				logger.log(Level.FINE, "[deleteTemplateFile] - tempaltes folder is empty, deleting the folder [" 
 						+ templatesPath + "].");
 				FileUtils.deleteDirectory(tempalteFolder);
 			} catch (IOException e) {
-				logger.log(Level.WARNING, "deleteTemplateFile- Failed to delete templates folder" + tempalteFolder, e);
+				logger.log(Level.WARNING, "[deleteTemplateFile] - Failed to delete templates folder" 
+						+ tempalteFolder, e);
 			}
 		}
 		File templatesFolder = getTempaltesFolder();
@@ -4530,7 +4541,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		File templatesFolder = getTempaltesFolder();
 		File[] templatesFolders = templatesFolder.listFiles();
 		for (final File templateFolder : templatesFolders) {
-			logger.log(Level.INFO, "Searching for template file " + templateFileName + " in "
+			logger.log(Level.FINE, "Searching for template file " + templateFileName + " in "
 					+ templateFolder.getAbsolutePath());
 			File[] listFiles = templateFolder.listFiles(new FilenameFilter() {
 				@Override
