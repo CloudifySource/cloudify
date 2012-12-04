@@ -62,7 +62,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 	private static final String OVERRIDES_FOLDER = "upload" + PATH_SEPARATOR + "cloudify-overrides" + PATH_SEPARATOR
 			+ "config" + PATH_SEPARATOR + "security";
 
-	@Argument(required = false, name = "provider", description = "the cloud provider to use")
+	@Argument(required = true, name = "provider", description = "the cloud provider to use")
 	String cloudProvider;
 	
     @Option(required = false, description = "Server security mode (on/off)", name = "-secured")
