@@ -376,9 +376,6 @@ public class GSRestClient {
 			responseBody = getResponseBody(response, httpMethod);
 			final Map<String, Object> responseMap = GSRestClient.jsonToMap(responseBody);
 			return responseJsonKey != null ? responseMap.get(RESPONSE_KEY) : responseMap;
-		} catch (final ClientProtocolException e) {
-			logger.log(Level.FINE, httpMethod.getURI() + MSG_REST_API_ERR, e);
-			throw new ErrorStatusException(e, REASON_CODE_COMM_ERR, httpMethod.getURI(), MSG_REST_API_ERR);
 		} catch (final IOException e) {
 			logger.log(Level.FINE, httpMethod.getURI() + MSG_REST_API_ERR, e);
 			throw new ErrorStatusException(e, REASON_CODE_COMM_ERR, httpMethod.getURI(), e.getMessage());
