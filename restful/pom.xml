@@ -457,6 +457,10 @@
 							<directory>${project.build.directory}/rest</directory>
 							<targetPath>resources</targetPath>
 						</resource>
+						<resource>
+							<directory>${project.build.directory}/site</directory>
+							<targetPath>resources</targetPath>
+						</resource>
 					</webResources>
 				</configuration>
 			</plugin>
