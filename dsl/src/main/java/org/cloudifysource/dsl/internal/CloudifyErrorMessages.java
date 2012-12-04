@@ -24,6 +24,10 @@ package org.cloudifysource.dsl.internal;
 public enum CloudifyErrorMessages {
 
 	/*********
+	 * Indicates keystore file could not be validated.
+	 */
+	INVALID_KEYSTORE_FILE("invalid_keystore_file", 1),
+	/*********
 	 * Server response Json parse error.
 	 */
 	JSON_PARSE_ERROR("CLI_unable_to_parse_to_JSON", 1),
@@ -63,7 +67,7 @@ public enum CloudifyErrorMessages {
 	MISSING_NODES_LIST("prov_missing_nodesList_configuration", 1),
 
 	/**
-	 * Setting server security profile (nonsecure/secure/ssl)
+	 * Setting server security profile (nonsecure/secure/ssl).
 	 */
 	SETTING_SERVER_SECURITY_PROFILE("set_security_profile", 1);
 	
