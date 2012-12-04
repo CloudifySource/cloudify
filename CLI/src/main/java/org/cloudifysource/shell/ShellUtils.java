@@ -545,7 +545,7 @@ public final class ShellUtils {
 		urlObj = new URL(formattedURL);
 		if (urlObj.getPort() == -1) {
 			final StringBuilder urlSB = new StringBuilder(formattedURL);
-			final int portIndex = formattedURL.indexOf("/", protocolPrefix.length());
+			final int portIndex = formattedURL.indexOf("/", protocolPrefix.length() + 1);
 			urlSB.insert(portIndex, ':' + ShellUtils.getRestPortAsString(isSecureConnection));
 			formattedURL = urlSB.toString();
 			urlObj = new URL(formattedURL);
