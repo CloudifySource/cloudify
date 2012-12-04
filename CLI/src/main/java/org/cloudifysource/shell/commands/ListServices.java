@@ -45,6 +45,9 @@ public class ListServices extends AbstractListCommand {
 		try {
 			String applicationName = getCurrentApplicationName();
 			applicationDescription = adminFacade.getServicesDescriptionList(applicationName);
+			if (applicationDescription == null) {
+				return "";
+			}
 		} catch (final CLIStatusException e) {
 			// if this message indicates the *default* app is not found - don't throw exception, return an
 			// empty list
