@@ -89,8 +89,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 			throw new AccessDeniedException("Anonymous user is not supported");
     	}
     	
-    	if (!(authentication instanceof CustomAuthenticationToken)
-    			&& !(authentication instanceof UsernamePasswordAuthenticationToken)) {
+    	if (!(authentication instanceof UsernamePasswordAuthenticationToken)) {
     		throw new AccessDeniedException("Authentication object type not supported. "
     				+ "Verify your Spring configuration is valid.");
     	}
@@ -230,7 +229,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 		
 		boolean permissionGranted = false;
     	
-    	if (authentication instanceof UsernamePasswordAuthenticationToken) {
+    	if (!(authentication instanceof CustomAuthenticationToken)) {
     		return true;  //auth groups don't exist in this configuration, so don't deny access.
     	}
     	
@@ -375,8 +374,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 			throw new AccessDeniedException("Anonymous user is not supported");
     	}
 		
-    	if (!(authentication instanceof CustomAuthenticationToken)
-    			&& !(authentication instanceof UsernamePasswordAuthenticationToken)) {
+    	if (!(authentication instanceof UsernamePasswordAuthenticationToken)) {
     		throw new AccessDeniedException("Authentication object type not supported. "
     				+ "Verify your Spring configuration is valid.");
     	}
@@ -454,10 +452,8 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 			throw new AccessDeniedException("Anonymous user is not supported");
     	}
 		
-    	if (!(authentication instanceof CustomAuthenticationToken)
-    			&& !(authentication instanceof UsernamePasswordAuthenticationToken)) {
-    		throw new AccessDeniedException("Authentication object type not supported. "
-    				+ "Verify your Spring configuration is valid.");
+    	if (!(authentication instanceof CustomAuthenticationToken)) {
+    		return new ArrayList<String>();  //auth groups don't exist in this configuration, so don't throw exception.
     	}
     	
     	Collection<String> userAuthGroups = new ArrayList<String>();

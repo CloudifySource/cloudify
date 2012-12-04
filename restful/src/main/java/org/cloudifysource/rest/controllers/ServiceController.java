@@ -1598,6 +1598,15 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		final ProcessingUnit[] pus = app.getProcessingUnits()
 				.getProcessingUnits();
+		
+		if (pus.length > 0) {
+			if (permissionEvaluator != null) {
+				//all the application PUs are supposed to have the same auth-groups setting 
+				String puAuthGroups = pus[0].getBeanLevelProperties().getContextProperties().
+						getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+				permissionEvaluator.verifyPermission(puAuthGroups, "deploy");
+			}
+		}
 
 		final StringBuilder sb = new StringBuilder();
 		final List<ProcessingUnit> uninstallOrder = createUninstallOrder(pus,
@@ -2055,6 +2064,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		} else {
 			final Throwable t = restPollingRunnable.getExecutionException();
 			if (t != null) {
+				//TODO [noak] : The real cause might be the cause of the cause here, e.g. Access Denied. Use it.
 				logger.log(Level.INFO,
 						"Lifecycle events polling ended unexpectedly.", t);
 				throw new RestErrorException(t.getMessage());
