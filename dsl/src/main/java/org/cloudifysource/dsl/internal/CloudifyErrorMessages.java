@@ -62,15 +62,19 @@ public enum CloudifyErrorMessages {
 	BAD_CREDENTIALS("bad_credentials", 0),
 	
 	/**
-	 * 
+	 * Byon template's configuration is missing nodes list.
 	 */
 	MISSING_NODES_LIST("prov_missing_nodesList_configuration", 1),
 
 	/**
 	 * Setting server security profile (nonsecure/secure/ssl).
 	 */
-	SETTING_SERVER_SECURITY_PROFILE("set_security_profile", 1);
+	SETTING_SERVER_SECURITY_PROFILE("set_security_profile", 1),
 	
+	/**
+	 * communication error.
+	 */
+	COMMUNICATION_ERROR("comm_error", 2);
 	
 	private final int numberOfParameters;
 	private final String name;

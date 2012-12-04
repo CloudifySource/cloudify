@@ -81,7 +81,7 @@ public class GSRestClient {
 	/**
 	 * constants.
 	 */
-	public static final String REASON_CODE_COMM_ERR = "comm_error";
+	public static final String REASON_CODE_COMM_ERR = CloudifyErrorMessages.COMMUNICATION_ERROR.getName();
 
 	private static final String STATUS_KEY = "status";
 	private static final String ERROR = "error";
@@ -381,7 +381,7 @@ public class GSRestClient {
 			throw new ErrorStatusException(e, REASON_CODE_COMM_ERR, httpMethod.getURI(), MSG_REST_API_ERR);
 		} catch (final IOException e) {
 			logger.log(Level.FINE, httpMethod.getURI() + MSG_REST_API_ERR, e);
-			throw new ErrorStatusException(e, REASON_CODE_COMM_ERR, httpMethod.getURI(), MSG_REST_API_ERR);
+			throw new ErrorStatusException(e, REASON_CODE_COMM_ERR, httpMethod.getURI(), e.getMessage());
 		} finally {
 			httpMethod.abort();
 		}
