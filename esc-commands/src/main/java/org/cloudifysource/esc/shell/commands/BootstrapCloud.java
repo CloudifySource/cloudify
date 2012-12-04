@@ -43,6 +43,7 @@ import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.shell.installer.CloudGridAgentBootstrapper;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
+import org.cloudifysource.shell.KeystoreFileVerifier;
 import org.cloudifysource.shell.commands.AbstractGSCommand;
 import org.cloudifysource.shell.commands.CLIStatusException;
 
@@ -257,7 +258,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 	}
 
 	
-	private void setSecurityMode() {
+	private void setSecurityMode() throws CLIStatusException {
 		
 		if (secured) {
 			//enable security
@@ -314,6 +315,10 @@ public class BootstrapCloud extends AbstractGSCommand {
 		
 		if (StringUtils.isBlank(keystore) && StringUtils.isNotBlank(keystorePassword)) {
 			throw new IllegalArgumentException("keystore is missing or empty");
+		}
+		
+		if(StringUtils.isNotBlank(keystore)) {
+			new KeystoreFileVerifier().verifyKeystoreFile(new File(keystore), keystorePassword);
 		}
 
 	}
