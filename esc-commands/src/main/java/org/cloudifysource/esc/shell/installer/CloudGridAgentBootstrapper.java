@@ -270,7 +270,7 @@ public class CloudGridAgentBootstrapper {
 
 			final URL restAdminUrl = new URI(ShellUtils.getRestProtocol(isSecureConnection), null, ipAddress,
 					ShellUtils.getRestPort(isSecureConnection), null, null, null).toURL();
-			final URL webUIUrl = new URI(ShellUtils.getRestProtocol(isSecureConnection), null, ipAddress, WEBUI_PORT,
+			final URL webUIUrl = new URI(ShellUtils.getRestProtocol(false), null, ipAddress, WEBUI_PORT,
 					null, null, null).toURL();
 
 			// We are relying on start-management command to be run on the
