@@ -93,8 +93,7 @@ public class StartManagement extends AbstractGSCommand {
     @Option(required = false, description = "The username for a secure connection to the rest server", name = "-user")
     private String username;
 
-    @Option(required = false, description = "The password for a secure connection to the rest server", name = "-pwd",
-            aliases = {"-password" })
+    @Option(required = false, description = "The password for a secure connection to the rest server", name = "-password")
     private String password;
 
 	@Option(required = false, name = "-no-web-services",

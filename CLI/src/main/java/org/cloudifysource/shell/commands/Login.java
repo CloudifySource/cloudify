@@ -15,7 +15,7 @@ import org.fusesource.jansi.Ansi.Color;
 @Command(scope = "cloudify", name = "login", description = "reconnects to the admin REST server")
 public class Login extends AdminAwareCommand {
 
-	@Argument(required = true, name = "username", description = "The username for a secure connection to the rest "
+	@Argument(required = true, name = "user", description = "The username for a secure connection to the rest "
 			+ "server", index=0)
 	private String username;
 	

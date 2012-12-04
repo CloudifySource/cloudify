@@ -35,7 +35,7 @@ import org.fusesource.jansi.Ansi.Color;
  *        user - The username for a secure connection to the rest server
  *        pwd - The password for a secure connection to the rest server
  *        <p/>
- *        Command syntax: connect [-user username] [-pwd password] URL
+ *        Command syntax: connect [-user username] [-password password] URL
  */
 @Command(scope = "cloudify", name = "connect", description = "connects to the target admin REST server")
 public class Connect extends AbstractGSCommand {
@@ -43,8 +43,7 @@ public class Connect extends AbstractGSCommand {
     @Option(required = false, description = "The username when connecting to a secure admin server", name = "-user")
     private String user;
 
-    @Option(required = false, description = "The password when connecting to a secure admin server", name = "-pwd",
-            aliases = {"-password" })
+    @Option(required = false, description = "The password when connecting to a secure admin server", name = "-password")
     private String password;
     
     @Option(required = false, description = "True if this is a secured connection (SSL)", name = "-ssl")
