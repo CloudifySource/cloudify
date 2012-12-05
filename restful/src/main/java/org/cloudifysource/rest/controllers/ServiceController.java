@@ -19,10 +19,10 @@ import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_INVOKE_INSTANC
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_APP;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_SERVICE;
+import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOGIN;
 import static org.cloudifysource.rest.ResponseConstants.HTTP_INTERNAL_SERVER_ERROR;
 import static org.cloudifysource.rest.ResponseConstants.HTTP_OK;
 import static org.cloudifysource.rest.ResponseConstants.SERVICE_INSTANCE_UNAVAILABLE;
-import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOGIN;
 import static org.cloudifysource.rest.util.RestUtils.successStatus;
 
 import java.io.ByteArrayInputStream;
@@ -103,6 +103,7 @@ import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.esc.driver.provisioning.CloudifyMachineProvisioningConfig;
 import org.cloudifysource.esc.util.IsolationUtils;
 import org.cloudifysource.rest.ResponseConstants;
+import org.cloudifysource.rest.security.CloudifyAuthorizationDetails;
 import org.cloudifysource.rest.security.CustomPermissionEvaluator;
 import org.cloudifysource.rest.util.ApplicationDescriptionFactory;
 import org.cloudifysource.rest.util.ApplicationInstallerRunnable;
@@ -764,6 +765,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			comments = "In the example, the deployed applications in the service grid are petclinic and travel")
 	@PossibleResponseStatuses(responseStatuses = { @PossibleResponseStatus(code = HTTP_OK, description = "success") })
 	@RequestMapping(value = "/applications/description", method = RequestMethod.GET)
+	@PreAuthorize("isFullyAuthenticated()")
 	@PostFilter("hasPermission(filterObject, 'view')")
 	@ResponseBody
 	public Map<String, Object> getApplicationDescriptionsList() throws RestErrorException {
@@ -859,15 +861,20 @@ public class ServiceController implements ServiceDetailsProvider {
 		// todo: application awareness
 		final ProcessingUnit pu = admin.getProcessingUnits().waitFor(
 				absolutePuName, PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
-		if (permissionEvaluator != null) {
-			String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
-					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
-			permissionEvaluator.verifyPermission(puAuthGroups, "view");
-		}
+		
 		if (pu == null) {
 			logger.severe("Could not find service " + absolutePuName);
 			return unavailableServiceError(absolutePuName);
 		}
+		
+		if (permissionEvaluator != null) {
+			String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
+					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "view");
+		}
+		
 		final Map<Integer, String> instanceMap = new HashMap<Integer, String>();
 		final ProcessingUnitInstance[] instances = pu.getInstances();
 		for (final ProcessingUnitInstance instance : instances) {
@@ -888,6 +895,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			"In the example, the deployed applications in the service grid are petclinic and travel")
 	@PossibleResponseStatuses(responseStatuses = { @PossibleResponseStatus(code = HTTP_OK, description = "success") })
 	@RequestMapping(value = "/applications", method = RequestMethod.GET)
+	@PreAuthorize("isFullyAuthenticated()")
 	@PostFilter("hasPermission(filterObject, 'view')")
 	@ResponseBody
 	public Map<String, Object> getApplicationNamesList() {
@@ -1012,7 +1020,9 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (permissionEvaluator != null) {
 			String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
 					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
-			permissionEvaluator.verifyPermission(puAuthGroups, "deploy");
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 		}
 
 		// result, mapping service instances to results
@@ -1153,7 +1163,9 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (permissionEvaluator != null) {
 			String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
 					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
-			permissionEvaluator.verifyPermission(puAuthGroups, "deploy");
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 		}
 
 		// Get PUI
@@ -1263,7 +1275,9 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (permissionEvaluator != null) {
 			String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties().
 					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
-			permissionEvaluator.verifyPermission(puAuthGroups, "deploy");
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 		}
 
 		final FutureTask<Boolean> undeployTask = new FutureTask<Boolean>(
@@ -1357,7 +1371,9 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (permissionEvaluator != null) {
 			String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties().
 					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
-			permissionEvaluator.verifyPermission(puAuthGroups, "deploy");
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 		}
 
 		final int before = processingUnit.getNumberOfInstances();
@@ -1411,7 +1427,9 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (permissionEvaluator != null) {
 			String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties().
 					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
-			permissionEvaluator.verifyPermission(puAuthGroups, "deploy");
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 		}
 
 		for (final ProcessingUnitInstance instance : processingUnit
@@ -1580,6 +1598,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final int timeoutInMinutes) throws RestErrorException {
 
 		final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		final CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+		
 		// Check that Application exists
 		final Application app = this.admin.getApplications().waitFor(
 				applicationName, 10, TimeUnit.SECONDS);
@@ -1604,7 +1624,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				//all the application PUs are supposed to have the same auth-groups setting 
 				String puAuthGroups = pus[0].getBeanLevelProperties().getContextProperties().
 						getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
-				permissionEvaluator.verifyPermission(puAuthGroups, "deploy");
+				permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 			}
 		}
 
@@ -1626,7 +1646,7 @@ public class ServiceController implements ServiceDetailsProvider {
 						if (permissionEvaluator != null) {
 							String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties(). 
 									getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
-							permissionEvaluator.verifyPermission(authentication, puAuthGroups, "deploy");
+							permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 						}
 
 						final long undeployTimeout = TimeUnit.MINUTES.toMillis(timeoutInMinutes)
@@ -3417,7 +3437,9 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (permissionEvaluator != null) {
 			String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
 					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
-			permissionEvaluator.verifyPermission(puAuthGroups, "deploy");
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 		}
 
 		final Properties contextProperties = pu.getBeanLevelProperties()

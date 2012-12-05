@@ -16,7 +16,6 @@
 package org.cloudifysource.rest.security;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -68,6 +67,19 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     public boolean hasPermission(final Authentication authentication, final Object targetDomainObject, 
     		final Object permission) {
 		
+		return hasPermission(new CloudifyAuthorizationDetails(authentication), targetDomainObject, permission);
+	}
+	
+	/**
+	 * Checks if the current user should be granted the requested permission on the target object.
+	 * @param authDetails The CloudifyAuthorizationDetails object of the current user
+	 * @param targetDomainObject The target object the user is attempting to access
+	 * @param permission The permission requested on the target object (e.g. view, deploy)
+	 * @return boolean value - true if permission is granted, false otherwise.
+	 */
+    public boolean hasPermission(final CloudifyAuthorizationDetails authDetails, final Object targetDomainObject, 
+    		final Object permission) {
+		
 		if (StringUtils.isBlank(SPRING_SECURITY_PROFILE) 
 				|| SPRING_SECURITY_PROFILE.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_NON_SECURE)) {
 			//security is off
@@ -75,9 +87,9 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 		}
 		
 		if (logger.isLoggable(Level.FINEST)) {
-			logger.finest("Starting \"hasPermission\" for user: " + authentication.getName());
-			logger.finest("with roles: " + getUserRolesString(authentication));
-			logger.finest("and with authGroups: " + getUserAuthGroupsString(authentication));
+			logger.finest("Starting \"hasPermission\" for user: " + authDetails.getUsername());
+			logger.finest("with roles: " + collectionToDelimitedString(authDetails.getRoles(), ","));
+			logger.finest("and with authGroups: " + collectionToDelimitedString(authDetails.getAuthGroups(), ","));
 			logger.finest("requested permission: " + permission.toString());
 			logger.finest("on target authGroups: " + targetDomainObject.toString());
 		}		
@@ -85,14 +97,15 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 		boolean permissionGranted = false;
 		String permissionName, targetAuthGroups;
 		
-    	if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+		//tested already in the ctor of CloudifyAuthorizationDetails
+    	/*if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
 			throw new AccessDeniedException("Anonymous user is not supported");
     	}
     	
     	if (!(authentication instanceof UsernamePasswordAuthenticationToken)) {
     		throw new AccessDeniedException("Authentication object type not supported. "
     				+ "Verify your Spring configuration is valid.");
-    	}
+    	}*/
 		
 		if (permission != null && !(permission instanceof String)) {
     		throw new AuthorizationServiceException("Failed to verify permissions, invalid permission object type: "
@@ -121,8 +134,8 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     		targetAuthGroups = ((String) targetDomainObject).trim();	
     	}
     	
-		if (hasRequiredRoles(authentication, permissionName) 
-				&& hasAuthGroupAccess(authentication, targetAuthGroups, permissionName)) {
+		if (hasRequiredRoles(authDetails, permissionName) 
+				&& hasAuthGroupAccess(authDetails, targetAuthGroups, permissionName)) {
 			permissionGranted = true;
 		}
 		
@@ -156,10 +169,10 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 	 * @param targetDomainObject The target object the user is attempting to access
 	 * @param permission The permission requested on the target object (e.g. view, deploy)
 	 */
-	public void verifyPermission(final Object targetDomainObject, final Object permission) {
+	/*public void verifyPermission(final Object targetDomainObject, final Object permission) {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		verifyPermission(authentication, targetDomainObject, permission);
-	}
+	}*/
 	
 	/**
 	 * Verifies the current user has the requested permission on the target object.
@@ -167,10 +180,21 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 	 * @param permission The permission requested on the target object (e.g. view, deploy)
 	 * @param authentication The object representing the current user
 	 */
-	public void verifyPermission(final Authentication authentication, final Object targetDomainObject,
+	/*public void verifyPermission(final Authentication authentication, final Object targetDomainObject,
 			final Object permission) {
-		if (!hasPermission(authentication, targetDomainObject, permission)) {
-			throw new AccessDeniedException("User " + authentication.getName() + " is not permitted to "
+		verifyPermission(new CloudifyAuthorizationDetails(authentication), targetDomainObject, permission);
+	}*/
+	
+	/**
+	 * Verifies the current user has the requested permission on the target object.
+	 * @param authDetails The CloudifyAuthorizationDetails object representing the current user authorization details
+	 * @param targetDomainObject The target object the user is attempting to access
+	 * @param permission The permission requested on the target object (e.g. view, deploy)
+	 */
+	public void verifyPermission(final CloudifyAuthorizationDetails authDetails, final Object targetDomainObject,
+			final Object permission) {
+		if (!hasPermission(authDetails, targetDomainObject, permission)) {
+			throw new AccessDeniedException("User " + authDetails.getUsername() + " is not permitted to "
 					+ "access the target objects");
 		}
 	}
@@ -178,15 +202,15 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 	
 	/**
 	 * Checks if the logged in user is allowed to access the target object, according to its roles.
-	 * @param authentication The authentication object of the logged in user.
+	 * @param authDetails The CloudifyAuthorizationDetails object of the logged in user.
 	 * @param permissionName permission requested (view, deploy, etc.)
 	 * @return true - access allowed, false - access denied.
 	 */
-	private boolean hasRequiredRoles(final Authentication authentication, final String permissionName) {
+	private boolean hasRequiredRoles(final CloudifyAuthorizationDetails authDetails, final String permissionName) {
 		
 		boolean relevantRoleFound = false;
 		
-		Collection<String> userRoles = getUserRoles(authentication);
+		Collection<String> userRoles = authDetails.getRoles();
 		
 		//TODO [noak] : This logic should be configurable
 		
@@ -210,7 +234,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     	}
     	
     	if (!relevantRoleFound) {
-    		logger.log(Level.WARNING, "User " + authentication.getName() + " is missing the required roles, access is "
+    		logger.log(Level.WARNING, "User " + authDetails.getUsername() + " is missing the required roles, access is "
 					+ "denied.");
     	}
     	
@@ -219,38 +243,41 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 	
 	/**
 	 * Checks if the logged in user is allowed to access the target object, according to its authorization groups.
-	 * @param authentication authentication object of the logged in user
+	 * @param authDetails CloudifyAuthorizationDetails object of the logged in user
 	 * @param targetAuthGroupsStr Comma delimited string of the target object's authorization groups.
 	 * @param permissionName permission requested (view, deploy, etc.)
 	 * @return true - access allowed, false - access denied.
 	 */
-	private boolean hasAuthGroupAccess(final Authentication authentication, 
+	private boolean hasAuthGroupAccess(final CloudifyAuthorizationDetails authDetails, 
 			final String targetAuthGroupsStr, final String permissionName) {
 		
 		boolean permissionGranted = false;
+		Collection<String> userAuthGroups = authDetails.getAuthGroups();
     	
-    	if (!(authentication instanceof CustomAuthenticationToken)) {
-    		return true;  //auth groups don't exist in this configuration, so don't deny access.
-    	}
+    	/*if (authentication instanceof CustomAuthenticationToken) {
+    		userAuthGroups = ((CustomAuthenticationToken) authentication).getAuthGroups();
+    	} else {
+    		//auth groups don't exist in this configuration, so use roles as authGroups.
+    		userAuthGroups = getUserRoles();
+    	}*/
     	
-    	Collection<String> userAuthGroups = ((CustomAuthenticationToken) authentication).getAuthGroups();
     	Collection<String> targetAuthGroups = 
     			org.cloudifysource.esc.util.StringUtils.splitAndTrimString(targetAuthGroupsStr, AUTH_GROUPS_DELIMITER);
 		
 		if (permissionName.equalsIgnoreCase(PERMISSION_TO_VIEW)) {
 			if (hasPermissionToView(targetAuthGroups)) {
 				permissionGranted = true;
-				logger.log(Level.INFO, "View permission granted for user " + authentication.getName());
+				logger.log(Level.INFO, "View permission granted for user " + authDetails.getUsername());
 			} else {
-				logger.log(Level.WARNING, "Insufficient permissions. User " + authentication.getName() + " is only "
+				logger.log(Level.WARNING, "Insufficient permissions. User " + authDetails.getUsername() + " is only "
 						+ "permitted to view groups: " + Arrays.toString(userAuthGroups.toArray(new String[0])));
 			}
 		} else if (permissionName.equalsIgnoreCase(PERMISSION_TO_DEPLOY)) {
-			if (hasPermissionToDeploy(authentication, targetAuthGroups)) {
+			if (hasPermissionToDeploy(authDetails, targetAuthGroups)) {
 				permissionGranted = true;
-				logger.log(Level.INFO, "Deploy permission granted for user " + authentication.getName());
+				logger.log(Level.INFO, "Deploy permission granted for user " + authDetails.getUsername());
 			} else {
-				logger.log(Level.WARNING, "Insufficient permissions. User " + authentication.getName() + " is only "
+				logger.log(Level.WARNING, "Insufficient permissions. User " + authDetails.getUsername() + " is only "
 						+ "permitted to deploy for groups: " + Arrays.toString(userAuthGroups.toArray(new String[0])));
 			}
 		}
@@ -293,11 +320,11 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 	/**
 	 * Checks if the current user is allowed to view the an object that has the specified authorization groups.
 	 * If the user has *any* the authorization groups of the object - permission to view it is granted.
-	 * @param authentication The authentication object of the user who requests permission
+	 * @param authDetails The CloudifyAuthorizationDetails object of the user who requests permission
 	 * @param requestedAuthGroups The authorization groups of the target object
 	 * @return boolean value - true if permission is granted, false otherwise.
 	 */
-	private boolean hasPermissionToDeploy(final Authentication authentication, 
+	private boolean hasPermissionToDeploy(final CloudifyAuthorizationDetails authDetails, 
 			final Collection<String> requestedAuthGroups) {
 		
 		if (requestedAuthGroups.isEmpty()) {
@@ -305,7 +332,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 		}
 		
 		//if the current user has at any of the requested auth groups - deploy is permitted.
-		return hasAnyAuthGroup(authentication, requestedAuthGroups);
+		return hasAnyAuthGroup(authDetails, requestedAuthGroups);
     	//return hasAllAuthGroups(requestedAuthGroups);
     }
     
@@ -340,12 +367,12 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 		return isPermitted;
     }
     
-    private boolean hasAnyAuthGroup(final Authentication authentication, 
+    private boolean hasAnyAuthGroup(final CloudifyAuthorizationDetails authDetails, 
     		final Collection<String> requestedAuthGroups) {
     	
     	boolean isPermitted = false;
     	
-    	Collection<String> userAuthGroups = getUserAuthGroups(authentication);
+    	Collection<String> userAuthGroups = authDetails.getAuthGroups();
     	for (String requestedAuthGroup : requestedAuthGroups) {
     		/*if (userAuthGroups.contains(requestedAuthGroup)) {
     			isPermitted = true;
@@ -448,19 +475,19 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
      */
     private Collection<String> getUserAuthGroups(final Authentication authentication) {
 
+    	Collection<String> userAuthGroups;
+    	
     	if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
 			throw new AccessDeniedException("Anonymous user is not supported");
     	}
 		
-    	if (!(authentication instanceof CustomAuthenticationToken)) {
-    		return new ArrayList<String>();  //auth groups don't exist in this configuration, so don't throw exception.
-    	}
-    	
-    	Collection<String> userAuthGroups = new ArrayList<String>();
-    	
     	if (authentication instanceof CustomAuthenticationToken) {
     		userAuthGroups = ((CustomAuthenticationToken) authentication).getAuthGroups();
+    	} else {
+    		//auth groups don't exist in this configuration, so use roles as authGroups.
+    		userAuthGroups = getUserRoles();    		
     	}
+
 		
 		return userAuthGroups;
     }

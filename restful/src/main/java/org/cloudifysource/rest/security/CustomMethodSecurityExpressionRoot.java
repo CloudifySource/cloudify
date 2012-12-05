@@ -20,6 +20,7 @@ import java.io.Serializable;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 
 /**
  * Extended expression root object which contains extra method-specific
@@ -51,6 +52,13 @@ class CustomMethodSecurityExpressionRoot extends SecurityExpressionRoot {
 						authGroups.append(", ");
 					}
 					authGroups.append(authGroup);
+				}
+			} else {
+				for (GrantedAuthority authority : (authentication).getAuthorities()) {
+					if (authGroups.length() > 0) {
+						authGroups.append(", ");
+					}
+					authGroups.append(authority.getAuthority());
 				}
 			}
 
