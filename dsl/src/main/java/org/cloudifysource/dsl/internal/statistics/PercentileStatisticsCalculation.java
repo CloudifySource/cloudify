@@ -35,6 +35,10 @@ public class PercentileStatisticsCalculation implements StatisticsCalculation {
 		return percentile;
 	}
 	
+	/**
+	 * Creates a configuration that chooses the percentile metric value of the specified sliding time window within each service instance.
+	 * For example, if percentile is 50, it chooses the median metric value of the specified time window.  
+	 */
 	@Override
 	public TimeWindowStatisticsConfig createTimeWindowStatistics(long timeWindow, TimeUnit timeUnit) {
 		return 
@@ -44,6 +48,10 @@ public class PercentileStatisticsCalculation implements StatisticsCalculation {
 			.create();
 	}
 
+	/**
+	 * Creates a configuration that chooses the percentile metric value of all service instances.
+	 * For example, if percentile is 50, it chooses the median metric value of all service instances.  
+	 */
 	@Override
 	public InstancesStatisticsConfig createInstancesStatistics() {
 		return 

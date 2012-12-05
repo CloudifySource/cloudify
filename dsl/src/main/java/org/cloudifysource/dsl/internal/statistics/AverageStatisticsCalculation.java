@@ -23,8 +23,12 @@ import org.openspaces.admin.pu.statistics.AverageTimeWindowStatisticsConfigurer;
 import org.openspaces.admin.pu.statistics.InstancesStatisticsConfig;
 import org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig;
 
+
 public class AverageStatisticsCalculation implements StatisticsCalculation {
 
+	/**
+	 * Creates a configuration that calculates the average metric value of the specified sliding time window within each service instance. 
+	 */
 	@Override
 	public TimeWindowStatisticsConfig createTimeWindowStatistics(long timeWindow,
 			TimeUnit timeUnit) {
@@ -34,6 +38,9 @@ public class AverageStatisticsCalculation implements StatisticsCalculation {
 			.create();
 	}
 
+	/**
+	 * Creates a configuration that calculates the average metric value across all service instances.
+	 */
 	@Override
 	public InstancesStatisticsConfig createInstancesStatistics() {
 		return new AverageInstancesStatisticsConfig();
