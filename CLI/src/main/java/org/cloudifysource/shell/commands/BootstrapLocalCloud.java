@@ -316,7 +316,7 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 
 			final File defaultSecurityFile = new File(DEFAULT_SECURITY_FILE_PATH);
 
-			if (!securitySourceFile.equals(defaultSecurityFile)) {
+			if (!securitySourceFile.getCanonicalFile().equals(defaultSecurityFile.getCanonicalFile())) {
 				this.securityFileBackedup = true;
 				backupSecurityFile();
 				FileUtils.copyFile(securitySourceFile, defaultSecurityFile);
