@@ -1598,7 +1598,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final int timeoutInMinutes) throws RestErrorException {
 
 		final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		final CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+		
 		
 		// Check that Application exists
 		final Application app = this.admin.getApplications().waitFor(
@@ -1621,6 +1621,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		
 		if (pus.length > 0) {
 			if (permissionEvaluator != null) {
+				final CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
 				//all the application PUs are supposed to have the same auth-groups setting 
 				String puAuthGroups = pus[0].getBeanLevelProperties().getContextProperties().
 						getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
@@ -1644,6 +1645,8 @@ public class ServiceController implements ServiceDetailsProvider {
 				public void run() {
 					for (final ProcessingUnit processingUnit : uninstallOrder) {
 						if (permissionEvaluator != null) {
+							final CloudifyAuthorizationDetails authDetails = 
+									new CloudifyAuthorizationDetails(authentication);
 							String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties(). 
 									getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
 							permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
