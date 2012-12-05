@@ -25,6 +25,10 @@ import org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig;
 
 public class MaximumStatisticsCalculation implements StatisticsCalculation {
 
+	/**
+	 * Creates a configuration that chooses the maximum metric 
+	 * from the specified sliding time window within each service instance.
+	 */
 	@Override
 	public TimeWindowStatisticsConfig createTimeWindowStatistics(long timeWindow, TimeUnit timeUnit) {
 		return 
@@ -33,6 +37,9 @@ public class MaximumStatisticsCalculation implements StatisticsCalculation {
 			.create();
 	}
 
+	/**
+	 * Creates a configuration that chooses the maximum metric value across service instances.
+	 */
 	@Override
 	public InstancesStatisticsConfig createInstancesStatistics() {
 		return new MaximumInstancesStatisticsConfig();
