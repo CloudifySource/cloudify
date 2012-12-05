@@ -164,8 +164,12 @@ public class ApplicationInstallerRunnable implements Runnable {
 				File applicationPropertiesFile = DSLReader.
 						findDefaultDSLFileIfExists(DSLUtils.APPLICATION_PROPERTIES_FILE_NAME, appDir);
 				
+				File serviceFile = DSLReader.
+						findDefaultDSLFile(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX, serviceDirectory);
+				final String serviceNameByServiceFile = serviceFile.getName().split("-")[0];
+				
 				// lookup service properties file
-				File servicePropertiesFile = new File(serviceDirectory, serviceName + "-service" 
+				File servicePropertiesFile = new File(serviceDirectory, serviceNameByServiceFile + "-service" 
 							+ DSLUtils.PROPERTIES_FILE_SUFFIX);		
 
 				// lookup overrides file
