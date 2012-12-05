@@ -100,7 +100,7 @@ public class AdminAPIController {
 	 * @throws Exception
 	 *             Indicates the request failed
 	 */
-	@PreAuthorize("isFullyAuthenticated() and hasRole('ROLE_CLOUDADMINS')")
+	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')")
 	@RequestMapping(value = "/**", method = RequestMethod.GET)
 	public @ResponseBody
 	Map<String, Object> get(final HttpServletRequest httpServletRequest)
