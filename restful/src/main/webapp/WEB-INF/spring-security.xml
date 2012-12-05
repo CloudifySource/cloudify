@@ -34,7 +34,7 @@
 		<sec:http entry-point-ref="basicAuthEntryPoint" auto-config="false"
 			create-session="never" use-expressions="true">
 			<sec:intercept-url pattern="/admin/**" requires-channel="http"
-				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')" />
+				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')" />
 			<sec:intercept-url pattern="/service/testrest" requires-channel="http"
 				access="permitAll" />
 			<sec:intercept-url pattern="/service/testlogin" requires-channel="http"
@@ -128,7 +128,7 @@
 		<sec:http entry-point-ref="basicAuthEntryPoint" auto-config="false"
 			create-session="never" use-expressions="true">
 			<sec:intercept-url pattern="/admin/**" requires-channel="https"
-				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')" />
+				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')" />
 			<sec:intercept-url pattern="/service/testrest" requires-channel="https"
 				access="permitAll" />
 			<sec:intercept-url pattern="/service/testlogin" requires-channel="https"

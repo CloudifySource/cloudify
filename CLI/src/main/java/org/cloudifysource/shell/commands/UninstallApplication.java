@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
@@ -29,7 +28,6 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
 import org.cloudifysource.shell.ShellUtils;
-import org.cloudifysource.shell.rest.RestAdminFacade;
 import org.fusesource.jansi.Ansi.Color;
 
 /**
@@ -90,14 +88,6 @@ public class UninstallApplication extends AdminAwareCommand {
 		
 		if (CloudifyConstants.MANAGEMENT_APPLICATION_NAME.equalsIgnoreCase(applicationName)) {
 			throw new CLIStatusException("cannot_uninstall_management_application");
-		}
-
-		if (verbose) {
-			// we need to look at all containers since the application already undeployed and we cannot get only
-			// the application containers
-			final Set<String> containerIdsOfApplication = ((RestAdminFacade) adminFacade)
-					.getGridServiceContainerUidsForApplication(applicationName);
-			logger.info("Containers running PUs of application " + applicationName + ":" + containerIdsOfApplication);
 		}
 
 		Map<String, String> uninstallApplicationResponse = this.adminFacade
