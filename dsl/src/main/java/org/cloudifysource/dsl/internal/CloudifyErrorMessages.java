@@ -39,7 +39,6 @@ public enum CloudifyErrorMessages {
 	 * If service recipe refers to missing template.
 	 */
 	MISSING_TEMPLATE("missing_template", 1),	
-	
 	/**
 	 * If the cloud overrides given is to long. the file size limit is 10K.
 	 */
@@ -74,7 +73,13 @@ public enum CloudifyErrorMessages {
 	/**
 	 * communication error.
 	 */
-	COMMUNICATION_ERROR("comm_error", 2);
+	COMMUNICATION_ERROR("comm_error", 2),
+	
+	/******
+	 * If service recipe refers to missing template.
+	 */
+	TEMPLATE_IN_USE("failed_to_remove_template_in_use", 2);
+
 	
 	private final int numberOfParameters;
 	private final String name;

@@ -902,7 +902,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to list applications");
 		}
-		
+
 		final Applications apps = admin.getApplications();
 		Map<String, Object> resultsMap = new HashMap<String, Object>();
 		for (final Application app : apps) {
@@ -1187,7 +1187,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final Object invocationResult = future.get();
 			final Object finalResult = postProcessInvocationResult(
 					invocationResult, instanceName);
-			
+
 			return successStatus(finalResult);
 		} catch (final Exception e) {
 			logger.severe("Error invoking pu instance " + absolutePuName + ":"
@@ -1510,7 +1510,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			} else {
 				// Some sort of unhandled application exception.
 				logger.log(Level.WARNING, "An unexpected error was thrown: " + e.getMessage(), e);
-	
+
 				Map<String, Object> restErrorMap =
 						RestUtils.verboseErrorStatus(CloudifyErrorMessages.GENERAL_SERVER_ERROR.getName(),
 								ExceptionUtils.getStackTrace(e), e.getMessage());
@@ -4364,6 +4364,15 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 		logger.log(Level.INFO, "[removeTemplate] - removing template " + templateName);
 
+		// check if the template is being used by at least one service, so it cannot be removed.
+		final List<String> templateServices = getTemplateServices(templateName);
+		if (!templateServices.isEmpty()) {
+			logger.log(Level.WARNING, "[removeTemplate] - failed to remove template [" + templateName 
+					+ "]. The template is being used by " + templateServices.size() + " services: " + templateServices);
+			throw new RestErrorException(CloudifyErrorMessages.TEMPLATE_IN_USE.getName(), 
+					templateName, templateServices);
+		}
+
 		// remove template from REST instances (including local MNG).
 		List<String> successfullyRemoved = new LinkedList<String>();
 		List<String> failedToRemoveHosts = new LinkedList<String>();
@@ -4441,7 +4450,16 @@ public class ServiceController implements ServiceDetailsProvider {
 	Map<String, Object>
 	removeTemplateInternal(@PathVariable final String templateName)
 			throws RestErrorException {
-		logger.log(Level.INFO, "[removeTemplateInternal] - removing template [" + templateName + "].");
+		logger.log(Level.INFO, "removeTemplateInternal - removing template [" + templateName + "].");
+		// check if the template is being used by at least one service, so it cannot be removed.
+		final List<String> templateServices = getTemplateServices(templateName);
+		if (!templateServices.isEmpty()) {
+			logger.log(Level.WARNING, "[removeTemplate] - failed to remove template [" + templateName 
+					+ "]. The template is being used by the following services: " + templateServices);
+			throw new RestErrorException(CloudifyErrorMessages.TEMPLATE_IN_USE.getName(), 
+					templateName, templateServices);
+		}
+		// try to remove the template
 		try {
 			removeTemplateFromCloud(templateName);
 		} catch (RestErrorException e) {
@@ -4449,6 +4467,7 @@ public class ServiceController implements ServiceDetailsProvider {
 					+ " Error: " + e.getMessage(), e);
 			throw e;
 		}
+		logger.log(Level.INFO, "removeTemplateInternal- Successfully removed template [" + templateName + "].");
 		return successStatus();
 
 	}
@@ -4519,6 +4538,9 @@ public class ServiceController implements ServiceDetailsProvider {
 				logger.log(Level.WARNING, "[deleteTemplateFile] - Failed to delete templates folder" 
 						+ tempalteFolder, e);
 			}
+		} else {
+			// delete properties and overrides files if exist.
+			CloudTemplatesReader.removeTemplateFiles(tempalteFolder, templateName);
 		}
 		File templatesFolder = getTempaltesFolder();
 		if (templatesFolder.list().length == 0) {
@@ -4562,5 +4584,23 @@ public class ServiceController implements ServiceDetailsProvider {
 			return listFiles[0];
 		}
 		return null;
+	}
+
+	private List<String> getTemplateServices(final String templateName) {
+		List<String> services = new LinkedList<String>();
+		ProcessingUnits processingUnits = admin.getProcessingUnits();
+		for (ProcessingUnit processingUnit : processingUnits) {
+			ProcessingUnitInstance[] instances = processingUnit.getInstances();
+			for (ProcessingUnitInstance processingUnitInstance : instances) {
+				Map<String, String> environmentVariables = processingUnitInstance.getMachine().getGridServiceAgent()
+						.getVirtualMachine().getDetails().getEnvironmentVariables();
+				final String serviceTemplateName = 
+						environmentVariables.get(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME);
+				if (serviceTemplateName.equals(templateName)) {
+					services.add(processingUnitInstance.getName());
+				}
+			}
+		}
+		return services;
 	}
 }

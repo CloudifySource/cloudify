@@ -195,4 +195,22 @@ public class CloudTemplatesReader {
 		}
 		return addedTemplates;
 	}
+
+	/**
+	 * Removes template file with a given suffix from tempalteFolder.
+	 * @param tempalteFolder .
+	 * @param templateName .
+	 */
+	public static void removeTemplateFiles(final File tempalteFolder, final String templateName) {
+		String proeprtiesFileName = templateName + DSLUtils.TEMPLATES_PROPERTIES_FILE_NAME_SUFFIX;
+		File propertiesFile = new File(tempalteFolder, proeprtiesFileName);
+		if (propertiesFile.exists()) {
+			propertiesFile.delete();
+		}
+		String overridesFileName = templateName + DSLUtils.TEMPLATES_OVERRIDES_FILE_NAME_SUFFIX;
+		File overridesFile = new File(tempalteFolder, overridesFileName);
+		if (overridesFile.exists()) {
+			overridesFile.delete();
+		}
+	}
 }
