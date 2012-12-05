@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
@@ -27,7 +26,6 @@ import org.apache.felix.gogo.commands.CompleterValues;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.shell.ShellUtils;
-import org.cloudifysource.shell.rest.RestAdminFacade;
 import org.fusesource.jansi.Ansi.Color;
 
 /**
@@ -80,12 +78,6 @@ public class UninstallService extends AdminAwareCommand {
 
 		if (!askUninstallConfirmationQuestion()) {
 			return getFormattedMessage("uninstall_aborted");
-		}
-
-		final Set<String> containerIdsOfService = ((RestAdminFacade) adminFacade)
-				.getGridServiceContainerUidsForService(getCurrentApplicationName(), serviceName);
-		if (verbose) {
-			logger.info("Found containers: " + containerIdsOfService);
 		}
 
 		Map<String, String> undeployServiceResponse = adminFacade.undeploy(getCurrentApplicationName(),
