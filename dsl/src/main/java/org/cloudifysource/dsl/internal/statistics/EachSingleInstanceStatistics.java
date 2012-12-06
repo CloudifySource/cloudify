@@ -12,6 +12,9 @@ import org.openspaces.admin.pu.statistics.InstancesStatisticsConfig;
 
 public class EachSingleInstanceStatistics implements InstancesStatisticsCalculation {
 
+	/**
+	 * Creates a configuration that returns each instance statistics as it is
+	 */
 	@Override
 	public InstancesStatisticsConfig createInstancesStatistics() {
 		return new EachSingleInstanceStatisticsConfig();
