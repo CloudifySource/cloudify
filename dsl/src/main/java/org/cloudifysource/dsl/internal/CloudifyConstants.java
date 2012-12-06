@@ -178,6 +178,7 @@ public final class CloudifyConstants {
 	public static final String USM_LIB_DIR = "usmlib";
 	public static final String SERVICE_EXTERNAL_FOLDER = "/ext/";
 	public static final String SERVICE_CLOUD_CONFIGURATION_FILE_NAME = "__Cloud_Configuration.zip";
+	public static final String TEMP_FOLDER = System.getProperty("java.io.tmpdir");
 
 	/***************
 	 * Reason codes for rest exceptions
