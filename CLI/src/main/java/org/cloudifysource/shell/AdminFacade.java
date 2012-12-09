@@ -565,5 +565,11 @@ public interface AdminFacade {
 	 */
 	void removeTemplate(final String templateName) 
 			throws CLIException;
+
+	/**
+	 * Returns true if has permissions, else throw exception
+	 */
+	void hasInstallPermissions() 
+			throws CLIException;
 	
 }

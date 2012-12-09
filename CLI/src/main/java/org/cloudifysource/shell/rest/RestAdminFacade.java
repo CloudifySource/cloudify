@@ -577,7 +577,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			} catch (final ErrorStatusException e) {
 				throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 			} catch (final RestException e) {
-				throw new CLIStatusException("cant_find_service_for_app",
+				throw new CLIStatusException(e, "cant_find_service_for_app",
 						serviceName, applicationName);
 			}
 		}
@@ -895,9 +895,13 @@ public class RestAdminFacade extends AbstractAdminFacade {
 		}
 	}
 
-
-	
-
-	
-	
+	@Override
+	public void hasInstallPermissions() throws CLIStatusException{
+		final String url = SERVICE_CONTROLLER_URL + "application/install/permissions";
+		try {
+				client.get(url);
+		} catch (ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+		}
+	}
 }

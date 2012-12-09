@@ -4603,4 +4603,18 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 		return services;
 	}
+	
+	/**
+	 * Returns a valid response if the user is fully authorized and has permissions
+	 * for installing an application.
+	 * 
+	 * @return 
+	 * 			a valid response if the user is fully authorized and has permissions
+	 * 			for installing an application.
+	 */
+	@RequestMapping(value = "application/install/permissions", method = RequestMethod.GET)
+	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')")
+	@ResponseBody public Map<String, Object> hasInstallPermissions() {
+		return successStatus();
+	}
 }
