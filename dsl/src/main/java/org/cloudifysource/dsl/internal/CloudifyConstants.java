@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -152,6 +152,7 @@ public final class CloudifyConstants {
 	public static final String GIGASPACES_AGENT_ENV_JAVA_URL = "GIGASPACES_AGENT_ENV_JAVA_URL";
 	public static final String GIGASPACES_ORIGINAL_JAVA_HOME = "GIGASPACES_ORIGINAL_JAVA_HOME";
 	public static final String GIGASPACES_CLOUD_MACHINE_ID = "GIGASPACES_CLOUD_MACHINE_ID";
+	public static final String GIGASPACES_AUTH_GROUPS = "GIGASPACES_AUTH_GROUPS";
 	
 	/***********************************
 	 * Duplicate of Key names for environment variables available to agent in a cloudify
