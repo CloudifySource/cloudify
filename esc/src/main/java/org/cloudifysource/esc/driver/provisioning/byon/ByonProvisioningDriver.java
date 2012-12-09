@@ -131,12 +131,14 @@ ProvisioningDriverClassContextAware {
 		List<String> cloudTemplateNames = new LinkedList<String>(cloudTemplatesMap.keySet());
 		List<String> deployerTemplateNames = deployer.getTemplatesList();
 
-		List<String> missingTempaltes =  new LinkedList<String>(cloudTemplateNames);
-		missingTempaltes.removeAll(deployerTemplateNames);
-
 		List<String> redundantTempaltes =  new LinkedList<String>(deployerTemplateNames);
 		redundantTempaltes.removeAll(cloudTemplateNames);
-
+		if (!redundantTempaltes.isEmpty()) {
+			logger.info("initDeployer - found redundant templates: " + redundantTempaltes);
+			deployer.removeTemplates(redundantTempaltes);
+		}
+		List<String> missingTempaltes =  new LinkedList<String>(cloudTemplateNames);
+		missingTempaltes.removeAll(deployerTemplateNames);
 		if (!missingTempaltes.isEmpty()) {
 			logger.info("initDeployer - found missing templates: " + missingTempaltes);
 			Map<String, CloudTemplate> templatesMap = new HashMap<String, CloudTemplate>();
@@ -145,11 +147,6 @@ ProvisioningDriverClassContextAware {
 				templatesMap.put(templateName, cloudTemplate);
 			}
 			addTempaltesToDeployer(deployer, templatesMap);
-		}
-
-		if (!redundantTempaltes.isEmpty()) {
-			logger.info("initDeployer - found redundant templates: " + redundantTempaltes);
-			deployer.removeTemplates(redundantTempaltes);
 		}		
 	} 		
 
