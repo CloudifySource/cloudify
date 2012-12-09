@@ -2308,6 +2308,7 @@ public class ServiceController implements ServiceDetailsProvider {
 					+ template.getRemoteDirectory());
 			final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
 					cloud, template, templateName, this.managementTemplate.getRemoteDirectory());
+			config.setAuthGroups(authGroups);
 			if (cloudOverrides != null) {
 				if (logger.isLoggable(Level.FINE)) {
 					logger.fine("Recieved request for installation of "
@@ -3040,6 +3041,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
 					cloud, template, templateName,
 					this.managementTemplate.getRemoteDirectory());
+			config.setAuthGroups(authGroups);
+			
 			if (cloudOverrides != null) {
 				config.setCloudOverridesPerService(cloudOverrides);
 			}
@@ -3184,6 +3187,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
 					cloud, template, templateName,
 					this.managementTemplate.getRemoteDirectory());
+			config.setAuthGroups(authGroups);
 			if (cloudOverride != null) {
 				config.setCloudOverridesPerService(cloudOverride);
 			}
@@ -3275,6 +3279,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
 					cloud, template, templateName,
 					this.managementTemplate.getRemoteDirectory());
+			config.setAuthGroups(authGroups);
 			if (cloudOverrides != null) {
 				config.setCloudOverridesPerService(cloudOverrides);
 			}
