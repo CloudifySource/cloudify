@@ -94,7 +94,7 @@ public class CloudTemplatesReader {
 			throw new DSLException(templatesDir + " is not a directory.");	
 		}
 		File[] templateFiles =
-				DSLReader.findDefaultDSLFiles(DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX, templatesDir);
+				DSLReader.findDefaultDSLFiles(DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX, templatesDir);
 		if (templateFiles == null || templateFiles.length == 0) {
 			return new LinkedList<CloudTemplateHolder>();
 		}

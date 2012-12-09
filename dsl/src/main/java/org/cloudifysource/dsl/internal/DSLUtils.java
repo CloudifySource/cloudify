@@ -72,9 +72,13 @@ public final class DSLUtils {
 	public static final String SERVICE_DSL_FILE_NAME_SUFFIX = "-service.groovy";
 
 	/**
+	 * Default file name suffix for template files.
+	 */
+	public static final String TEMPLATE_FILE_NAME_SUFFIX = "-template";
+	/**
 	 * The expected file name suffix for templates file e.g. <code>*-templates.groovy</code>.
 	 */
-	public static final String TEMPLATES_DSL_FILE_NAME_SUFFIX = "-template.groovy";
+	public static final String TEMPLATE_DSL_FILE_NAME_SUFFIX = "-template.groovy";
 	/**
 	 * The expected file name suffix for templates properties file e.g. <code>*-templates.properties</code>.
 	 */

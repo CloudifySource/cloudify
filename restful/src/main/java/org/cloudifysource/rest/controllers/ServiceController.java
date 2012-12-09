@@ -4158,9 +4158,9 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		try {
 			String newName = DSLUtils.renameCloudTemplateFileNameIfNeeded(templateFile, templateName, 
-					DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX);
+					DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX);
 			if (newName != null) {
-				logger.log(Level.INFO, "renameTemplateFileIfNeeded - Renamed template file name from "
+				logger.log(Level.INFO, "[renameTemplateFileIfNeeded] - Renamed template file name from "
 						+ templateFileName + " to " + newName + ".");
 			}
 			if (propertiesFileName != null) {
@@ -4168,8 +4168,8 @@ public class ServiceController implements ServiceDetailsProvider {
 				newName = DSLUtils.renameCloudTemplateFileNameIfNeeded(propertiesFile, templateName, 
 						DSLUtils.TEMPLATES_PROPERTIES_FILE_NAME_SUFFIX);
 				if (newName != null) {
-					logger.log(Level.INFO, "renameTemplateFileIfNeeded - Renamed template's properties file name from "
-							+ propertiesFileName + " to " + newName + ".");
+					logger.log(Level.INFO, "[renameTemplateFileIfNeeded] - Renamed template's properties file name from"
+							+ " " + propertiesFileName + " to " + newName + ".");
 				}
 			}
 			if (overridesFileName != null) {
@@ -4177,14 +4177,14 @@ public class ServiceController implements ServiceDetailsProvider {
 				newName = DSLUtils.renameCloudTemplateFileNameIfNeeded(overridesFile, templateName, 
 						DSLUtils.TEMPLATES_OVERRIDES_FILE_NAME_SUFFIX);
 				if (newName != null) {
-					logger.log(Level.INFO, "renameTemplateFileIfNeeded - Renamed template's overrides file name from "
+					logger.log(Level.INFO, "[renameTemplateFileIfNeeded] - Renamed template's overrides file name from "
 							+ overridesFileName + " to " + newName + ".");
 				}
 			}
 		} catch (IOException e) {
-			logger.log(Level.WARNING, "renameTemplateFileIfNeeded - Failed to rename template file name ["
+			logger.log(Level.WARNING, "[renameTemplateFileIfNeeded] - Failed to rename template file name ["
 					+ templateFile.getName() + "] to "
-					+ templateName + DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX
+					+ templateName + DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX
 					+ ". The file will be deleted. Error:" + e);
 			// delete the groovy file to ensure the template file wont be
 			// copied.
@@ -4528,7 +4528,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 		logger.log(Level.FINE, "[deleteTemplateFile] - Successfully deleted template file [" + templatesPath + "].");
 		File tempalteFolder = templateFile.getParentFile();
-		File[] templatesFiles = DSLReader.findDefaultDSLFiles(DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX, tempalteFolder);
+		File[] templatesFiles = DSLReader.findDefaultDSLFiles(DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX, tempalteFolder);
 		if (templatesFiles == null || templatesFiles.length == 0) {
 			try {
 				logger.log(Level.FINE, "[deleteTemplateFile] - tempaltes folder is empty, deleting the folder [" 
@@ -4558,7 +4558,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @return the found file or null.
 	 */
 	private File getTemplateFile(final String templateName) {
-		final String templateFileName = templateName + DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX;
+		final String templateFileName = templateName + DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX;
 
 		File templatesFolder = getTempaltesFolder();
 		File[] templatesFolders = templatesFolder.listFiles();
@@ -4590,16 +4590,11 @@ public class ServiceController implements ServiceDetailsProvider {
 		List<String> services = new LinkedList<String>();
 		ProcessingUnits processingUnits = admin.getProcessingUnits();
 		for (ProcessingUnit processingUnit : processingUnits) {
-			ProcessingUnitInstance[] instances = processingUnit.getInstances();
-			for (ProcessingUnitInstance processingUnitInstance : instances) {
-				Map<String, String> environmentVariables = processingUnitInstance.getMachine().getGridServiceAgent()
-						.getVirtualMachine().getDetails().getEnvironmentVariables();
-				final String serviceTemplateName = 
-						environmentVariables.get(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME);
-				if (serviceTemplateName.equals(templateName)) {
-					services.add(processingUnitInstance.getName());
+			Properties puProps = processingUnit.getBeanLevelProperties().getContextProperties();
+			final String puTempalteName = puProps.getProperty(CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE);
+				if (puTempalteName != null && puTempalteName.equals(templateName)) {
+					services.add(processingUnit.getName());
 				}
-			}
 		}
 		return services;
 	}

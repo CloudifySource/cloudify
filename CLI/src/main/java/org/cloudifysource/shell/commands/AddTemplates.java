@@ -79,12 +79,12 @@ public class AddTemplates extends AdminAwareCommand {
 				}
 			} else { 
 				// templatesFileOrDir is a groovy file
-				if (!templatesFolderName.endsWith(DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX)) {
+				if (!templatesFolderName.endsWith(DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX)) {
 					throw new CLIStatusException("illegal_template_file_name", templatesFolderName);
 				}
 				File parentFile = templatesFileOrDir.getParentFile();
 				File[] actualTemplatesDslFiles = 
-						DSLReader.findDefaultDSLFiles(DSLUtils.TEMPLATES_DSL_FILE_NAME_SUFFIX, parentFile);
+						DSLReader.findDefaultDSLFiles(DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX, parentFile);
 				if (actualTemplatesDslFiles.length > 1) {
 					throw new CLIStatusException("too_many_template_files", Arrays.toString(actualTemplatesDslFiles));
 				} 
