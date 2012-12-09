@@ -167,7 +167,7 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 				revertSecurityFiles();
 			} catch (final Exception e) {
 				logger.log(Level.SEVERE,
-						"Failed to revery security files before finishing bootstrap-localcloud command", e);
+						"Failed to revert security files before finishing bootstrap-localcloud command", e);
 			}
 
 		}

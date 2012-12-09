@@ -5,10 +5,10 @@
 						http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd"
 	version="2.5">
 
-	<context-param>
+	<!-- context-param>
 		<param-name>spring.profiles.default</param-name>
 		<param-value>nonsecure</param-value>
-	</context-param>
+	</context-param-->
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
 		<param-value>

@@ -18,6 +18,7 @@ package org.cloudifysource.esc.shell.commands;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -47,8 +48,6 @@ import org.cloudifysource.shell.KeystoreFileVerifier;
 import org.cloudifysource.shell.commands.AbstractGSCommand;
 import org.cloudifysource.shell.commands.CLIStatusException;
 
-import com.j_spaces.kernel.Environment;
-
 
 @Command(
 		scope = "cloudify",
@@ -59,9 +58,15 @@ public class BootstrapCloud extends AbstractGSCommand {
 
 	private static final int DEFAULT_TIMEOUT_MINUTES = 60;
 	private static final String PATH_SEPARATOR = System.getProperty("file.separator");
-	private static final String CLOUDIFY_HOME = Environment.getHomeDirectory();  //JSHOMEDIR is not set yet
-	private static final String OVERRIDES_FOLDER = "upload" + PATH_SEPARATOR + "cloudify-overrides" + PATH_SEPARATOR
-			+ "config" + PATH_SEPARATOR + "security";
+	private static final String DEFAULT_SECURITY_FOLDER = "upload" + PATH_SEPARATOR + "cloudify-overrides"
+			+ PATH_SEPARATOR + "config" + PATH_SEPARATOR + "security";
+	private static final String DEFAULT_SECURITY_FILE_PATH =
+			DEFAULT_SECURITY_FOLDER + PATH_SEPARATOR + "spring-security.xml";
+	private static final String BACKUP_SECURITY_FILE_PATH = DEFAULT_SECURITY_FILE_PATH + ".backup";
+	private static final String DEFAULT_KEYSTORE_FILE_PATH =
+			DEFAULT_SECURITY_FOLDER + PATH_SEPARATOR + "keystore";
+	private static final String BACKUP_KEYSTORE_FILE_PATH =
+			DEFAULT_KEYSTORE_FILE_PATH + ".backup";
 
 	@Argument(required = true, name = "provider", description = "The cloud provider to use")
 	String cloudProvider;
@@ -69,7 +74,8 @@ public class BootstrapCloud extends AbstractGSCommand {
     @Option(required = false, description = "Server security mode (on/off)", name = "-secured")
     private boolean secured;
     
-    @Option(required = false, description = "Path to a custom spring security configuration file", name = "-security-file")
+    @Option(required = false, description = "Path to a custom spring security configuration file", 
+    		name = "-security-file")
     private String securityFilePath;
     
     @Option(required = false, description = "The username when connecting to a secure admin server", name = "-user")
@@ -96,6 +102,11 @@ public class BootstrapCloud extends AbstractGSCommand {
 	private boolean noWebServices;
 	
 	private String securityProfile = CloudifyConstants.SPRING_PROFILE_NON_SECURE;
+	// flags to indicate if bootstrap operation created a backup file that
+	// should be reverted
+	private boolean securityFileCopied = false;
+	private boolean keystoreFileCopied = false;
+	
 	private static final String[] NON_VERBOSE_LOGGERS = { DefaultProvisioningDriver.class.getName(), 
 		AgentlessInstaller.class.getName() };
 	private Map<String, Level> loggerStates = new HashMap<String, Level>();
@@ -198,6 +209,14 @@ public class BootstrapCloud extends AbstractGSCommand {
 				backupCloudPropertiesFile.delete();
 				
 			}
+			
+			try {
+				revertSecurityFiles(providerDirectory.getAbsolutePath());
+			} catch (final Exception e) {
+				logger.log(Level.SEVERE,
+					"Failed to revert security files before finishing bootstrap-cloud command", e);
+			}			
+			
 			installer.close();
 			restoreLoggingLevel();
 		}
@@ -314,14 +333,47 @@ public class BootstrapCloud extends AbstractGSCommand {
 			throw new IllegalArgumentException("Keystore is missing or empty");
 		}
 
-		if(StringUtils.isNotBlank(keystore)) {
+		if (StringUtils.isNotBlank(keystore)) {
 			new KeystoreFileVerifier().verifyKeystoreFile(new File(keystore), keystorePassword);
 		}
 		
-		if(StringUtils.isNotBlank(keystore)) {
+		if (StringUtils.isNotBlank(keystore)) {
 			new KeystoreFileVerifier().verifyKeystoreFile(new File(keystore), keystorePassword);
 		}
 
+	}
+	
+	private void revertSecurityFiles(final String providerDirectory) throws Exception {
+		//handle security config file
+		File securityConfigFile = new File(providerDirectory + PATH_SEPARATOR + DEFAULT_SECURITY_FILE_PATH);
+		File backupSecurityConfigFile = new File(providerDirectory + PATH_SEPARATOR + BACKUP_SECURITY_FILE_PATH);
+		if (backupSecurityConfigFile.exists()) {
+			// restore original security file if it existed in the first place (backup file exists).
+			FileUtils.copyFile(backupSecurityConfigFile, securityConfigFile);
+			deleteFile(backupSecurityConfigFile);
+		} else if (this.securityFileCopied) {
+			deleteFile(securityConfigFile);
+		}
+		
+		//handle keystore file
+		File keystoreFile = new File(providerDirectory + PATH_SEPARATOR + DEFAULT_KEYSTORE_FILE_PATH);
+		File backupKeystoreFile = new File(providerDirectory + PATH_SEPARATOR + BACKUP_KEYSTORE_FILE_PATH);
+		if (backupKeystoreFile.exists()) {
+			// restore original keystore if it existed in the first place (backup file exists).
+			FileUtils.copyFile(backupKeystoreFile, keystoreFile);
+			deleteFile(backupKeystoreFile);
+		} else if (this.keystoreFileCopied) {
+			deleteFile(keystoreFile);
+		}
+	}
+
+
+	private void deleteFile(final File file) throws IOException {
+		try {
+			file.delete();
+		} catch (Exception e) {
+			logger.log(Level.WARNING, "Failed to delete file: " + file.getCanonicalPath(), e);
+		}
 	}
 	
 	
@@ -335,9 +387,18 @@ public class BootstrapCloud extends AbstractGSCommand {
 			}
 			
 			//copy to the overrides folder, to be copied to all management servers as well
-			File securityTargetFile = new File(providerDirectory,  OVERRIDES_FOLDER + PATH_SEPARATOR
-					+ "spring-security.xml");
-			FileUtils.copyFile(securitySourceFile, securityTargetFile);
+			File defaultSecurityFile = new File(providerDirectory + PATH_SEPARATOR + DEFAULT_SECURITY_FILE_PATH);
+			File backupSecurityFile = new File(providerDirectory + PATH_SEPARATOR + BACKUP_SECURITY_FILE_PATH);
+			if (!(securitySourceFile.getCanonicalFile().equals(defaultSecurityFile.getCanonicalFile()))) {
+				if (defaultSecurityFile.exists()) {
+					// create a backup of the existing security configuration file
+					FileUtils.copyFile(defaultSecurityFile, backupSecurityFile);
+				}
+				
+				//overrides if exists
+				this.securityFileCopied = true;
+				FileUtils.copyFile(securitySourceFile, defaultSecurityFile);
+			}
 		} else {
 			//TODO : should we use the default security location and assume it was edited by the user?
 			//securityFilePath = CLOUDIFY_HOME + "/config/security/spring-security.xml";
@@ -352,10 +413,18 @@ public class BootstrapCloud extends AbstractGSCommand {
 			}
 			
 			//copy to the override folder, to be copied to all management servers as well
-			File keystoreTargetFile = new File(providerDirectory,  OVERRIDES_FOLDER + PATH_SEPARATOR + "keystore");
-			FileUtils.copyFile(keystoreSourceFile, keystoreTargetFile);
+			final File defaultKeystoreFile = new File(providerDirectory + PATH_SEPARATOR + DEFAULT_KEYSTORE_FILE_PATH);
+			if (!(keystoreSourceFile.getCanonicalFile().equals(defaultKeystoreFile.getCanonicalFile()))) {
+				if (defaultKeystoreFile.exists()) {
+					// create a backup of the existing keystore file
+					FileUtils.copyFile(keystoreSourceFile, defaultKeystoreFile);
+				}
+
+				//overrides if exists
+				this.keystoreFileCopied = true;
+				FileUtils.copyFile(keystoreSourceFile, defaultKeystoreFile);
+			}
 		}
-		
 	}
 	
 }
