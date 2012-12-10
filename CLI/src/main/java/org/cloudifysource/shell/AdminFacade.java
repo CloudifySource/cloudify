@@ -569,7 +569,7 @@ public interface AdminFacade {
 	/**
 	 * Returns true if has permissions, else throw exception
 	 */
-	void hasInstallPermissions() 
+	void hasInstallPermissions(String applicationName) 
 			throws CLIException;
 	
 }

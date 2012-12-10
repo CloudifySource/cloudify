@@ -4603,13 +4603,21 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * Returns a valid response if the user is fully authorized and has permissions
 	 * for installing an application.
 	 * 
+	 * @param applicationName 
+	 * 		the application name.
 	 * @return 
 	 * 			a valid response if the user is fully authorized and has permissions
 	 * 			for installing an application.
+	 * @throws RestErrorException 
+	 * 			in-case the application name is already taken by a different group.
 	 */
-	@RequestMapping(value = "application/install/permissions", method = RequestMethod.GET)
+	@RequestMapping(value = "application/{applicationName}/install/permissions", method = RequestMethod.GET)
 	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')")
-	@ResponseBody public Map<String, Object> hasInstallPermissions() {
+	@ResponseBody public Map<String, Object> hasInstallPermissions(
+			@PathVariable final String applicationName) throws RestErrorException {
+		if (admin.getApplications().getNames().containsKey(applicationName)) {
+			throw new RestErrorException(ResponseConstants.APPLICATION_NAME_IS_ALREADY_IN_USE, applicationName);
+		}
 		return successStatus();
 	}
 }

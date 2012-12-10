@@ -37,6 +37,8 @@ public interface ResponseConstants {
 	String MACHINE_NOT_FOUND = "machine_not_found";
 	String DUMP_FILE_TOO_LARGE = "dump_file_too_large";
 	String FAILED_TO_LOGIN = "failed_to_login";
+	String APPLICATION_NAME_IS_ALREADY_IN_USE = "application_name_is_already_in_use";
+	
 	
 	int HTTP_OK = 200;
 	int HTTP_INTERNAL_SERVER_ERROR = 500;

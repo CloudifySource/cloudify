@@ -51,7 +51,7 @@ public class UseApplication extends AdminAwareCommand {
 		if (!applicationsList.contains(applicationName)) {
 			useApplicaiton = ShellUtils.promptUser(session, "application_does_not_exist", applicationName);
 			//Check if user is allowed to create a new app context. 
-			adminFacade.hasInstallPermissions();
+			adminFacade.hasInstallPermissions(applicationName);
 		}
 		if (useApplicaiton) {
 			session.put(Constants.ACTIVE_APP, applicationName);

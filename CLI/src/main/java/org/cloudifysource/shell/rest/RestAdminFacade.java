@@ -896,8 +896,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	}
 
 	@Override
-	public void hasInstallPermissions() throws CLIStatusException{
-		final String url = SERVICE_CONTROLLER_URL + "application/install/permissions";
+	public void hasInstallPermissions(String applicationName) throws CLIStatusException{
+		final String url = SERVICE_CONTROLLER_URL + "application/" + applicationName + "/install/permissions";
 		try {
 				client.get(url);
 		} catch (ErrorStatusException e) {
