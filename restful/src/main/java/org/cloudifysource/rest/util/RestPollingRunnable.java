@@ -38,6 +38,7 @@ import org.cloudifysource.dsl.internal.EventLogConstants;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.rest.controllers.RestServiceException;
 import org.openspaces.admin.Admin;
+import org.openspaces.admin.AdminException;
 import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.internal.pu.DefaultProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnit;
@@ -410,15 +411,22 @@ public class RestPollingRunnable implements Runnable {
 					"Polling GSC with uid: " + container.getUid());
 
 			final Date pollingStartTime = getGSCSamplingStartTime(container);
-			final LogEntries logEntries = container.logEntries(matcher);
+			LogEntries logEntries = null;
+			try {
+				logEntries = container.logEntries(matcher);
+			} catch (AdminException e) {
+				logger.log(Level.INFO, "an internal admin exception was thrown. Reason: " + e.getMessage(), e);
+			}
+			if (logEntries != null) {
 			// Get lifecycle events.
-			for (final LogEntry logEntry : logEntries) {
-				if (logEntry.isLog()) {
-					if (pollingStartTime.before(new Date(logEntry
-							.getTimestamp()))) {
-						final Map<String, String> serviceEventsMap = getEventDetailes(
-								logEntry, container, absolutePuName);
-						servicesLifecycleEventDetailes.add(serviceEventsMap);
+				for (final LogEntry logEntry : logEntries) {
+					if (logEntry.isLog()) {
+						if (pollingStartTime.before(new Date(logEntry
+								.getTimestamp()))) {
+							final Map<String, String> serviceEventsMap = getEventDetailes(
+									logEntry, container, absolutePuName);
+							servicesLifecycleEventDetailes.add(serviceEventsMap);
+						}
 					}
 				}
 			}
