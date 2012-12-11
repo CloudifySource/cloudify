@@ -2977,8 +2977,8 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	// TODO: consider adding MemoryUnits to DSL
 	// TODO: add memory unit to names
-	private void deployDataGrid(final String applicationName, final String authGroups,
-			final String serviceName, final String[] agentZones,
+	private void deployDataGrid(final String applicationName, final String serviceName,
+			final String authGroups, final String[] agentZones,
 			final File srcFile, final Properties contextProperties,
 			final DataGrid dataGridConfig, final String templateName,
 			final boolean locationAware,
