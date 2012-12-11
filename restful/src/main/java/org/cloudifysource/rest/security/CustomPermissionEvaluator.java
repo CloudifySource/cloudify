@@ -257,8 +257,9 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 	private boolean hasPermissionToView(final CloudifyAuthorizationDetails authDetails, 
 			final Collection<String> requestedAuthGroups) {
 		
+		//if authGroups were not defined for this object - only cloud admins can see it
 		if (requestedAuthGroups.isEmpty()) {
-			return true;
+			return (isCloudAdmin(authDetails.getRoles()));
 		}
 		
     	return hasAnyAuthGroup(authDetails, requestedAuthGroups);
@@ -275,8 +276,9 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 	private boolean hasPermissionToDeploy(final CloudifyAuthorizationDetails authDetails, 
 			final Collection<String> requestedAuthGroups) {
 		
+		//if authGroups were not defined for this object - only cloud admins can see it
 		if (requestedAuthGroups.isEmpty()) {
-			return true;
+			return (isCloudAdmin(authDetails.getRoles()));
 		}
 		
 		//if the current user has at any of the requested auth groups - deploy is permitted.
@@ -436,6 +438,18 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     	}
     	
     	return delimitedString;
+    }
+    
+    private boolean isCloudAdmin(final Collection<String> roles) {
+    	boolean hasAdminRole = false;
+    	for (String role : roles) {
+    		if (ROLE_CLOUDADMIN.equalsIgnoreCase(role)) {
+    			hasAdminRole = true;
+    			break;
+    		}
+    	}
+    	
+    	return hasAdminRole;
     }
 
 }
