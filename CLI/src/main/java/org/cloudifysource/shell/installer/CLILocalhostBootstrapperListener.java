@@ -43,8 +43,7 @@ public class CLILocalhostBootstrapperListener implements LocalhostBootstrapperLi
 			Matcher matcher = pattern.matcher(event);
 			if (matcher.find()){
 				if (event.contains("Webui")){
-					String webUiUrl = matcher.group();
-					localcloudInfoEvents.add("\t\tCLOUDIFY MANAGEMENT\t" + webUiUrl.replace("https://", "http://"));
+					localcloudInfoEvents.add("\t\tCLOUDIFY MANAGEMENT\t" + matcher.group());
 				}
 				else if (event.contains("Rest")){
 					localcloudInfoEvents.add("\t\tCLOUDIFY GATEWAY\t" + matcher.group());
