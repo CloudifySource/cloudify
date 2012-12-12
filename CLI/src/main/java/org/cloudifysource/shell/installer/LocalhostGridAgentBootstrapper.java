@@ -778,7 +778,7 @@ public class LocalhostGridAgentBootstrapper {
 					publishEvent(shuttingDownAgentMessage);
 
 					final String shuttingDownManagmentMessage = ShellUtils.getMessageBundle().getString(
-							"shutting_down_cloudify_managment");
+                            "shutting_down_cloudify_management");
 					publishEvent(shuttingDownManagmentMessage);
 
 					messagePublished = true;

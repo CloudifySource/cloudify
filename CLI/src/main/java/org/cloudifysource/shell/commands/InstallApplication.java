@@ -214,7 +214,7 @@ public class InstallApplication extends AdminAwareCommand {
 			}
 		}
 
-		return this.getFormattedMessage("application_installed_succesfully", Color.GREEN, applicationName);
+		return this.getFormattedMessage("application_installed_successfully", Color.GREEN, applicationName);
 	}
 
 	private DSLReader createDslReader() {

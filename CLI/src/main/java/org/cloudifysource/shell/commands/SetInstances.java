@@ -60,7 +60,7 @@ public class SetInstances extends AdminAwareCommand {
 
 		final int initialNumberOfInstances = adminFacade.getInstanceList(applicationName, serviceName).size();
 		if (initialNumberOfInstances == count) {
-			return getFormattedMessage("num_instanes_already_met", count);
+			return getFormattedMessage("num_instances_already_met", count);
 		}
 
 		Map<String, String> response = adminFacade.setInstances(applicationName, serviceName, count, isLocationAware(), timeout);

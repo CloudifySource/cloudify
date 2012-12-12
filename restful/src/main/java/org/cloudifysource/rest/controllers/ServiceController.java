@@ -3826,7 +3826,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			(value = CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, required = true) final MultipartFile templatesFolder)
 					throws IOException, DSLException, RestErrorException {
 		if (cloud == null) {
-			throw new RestErrorException("local_cloud_not_support_tempaltes_operations", "add-templates");
+			throw new RestErrorException("local_cloud_not_support_templates_operations", "add-templates");
 		}
 		logger.log(Level.INFO, "[addTemplates] - starting add templates.");
 		File loaclTemplatesZipFile = null;
@@ -3976,17 +3976,14 @@ public class ServiceController implements ServiceDetailsProvider {
 		postMethod.setEntity(reqEntity);
 
 		// execute the request and extract the list from the response
-		Object response = null;
-		Map<String, Object> responseMap;
-		DefaultHttpClient httpClient = new DefaultHttpClient();
+        DefaultHttpClient httpClient = new DefaultHttpClient();
+		Object response = RestUtils.executeHttpMethod(postMethod, httpClient);
 		try {
-			response = RestUtils.executeHttpMethod(postMethod, httpClient);
-			responseMap = (Map<String, Object>) response;
+			return (Map<String, Object>) response;
 		} catch (ClassCastException e) {
 			throw new RestErrorException("The response from host address " + host
-					+ " is not a map as expected. " + "response: " + response.toString() + ".");
+					+ " is not a map as expected. " + "response: " + response.toString() + '.');
 		}
-		return responseMap;
 	}
 
 	/**
@@ -4310,7 +4307,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	Map<String, Object>
 	listTemplates() throws RestErrorException {
 		if (cloud == null) {
-			throw new RestErrorException("local_cloud_not_support_tempaltes_operations", "list-templates");
+			throw new RestErrorException("local_cloud_not_support_templates_operations", "list-templates");
 		}
 		return successStatus(cloud.getTemplates());
 	}
@@ -4332,7 +4329,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			throws RestErrorException {
 
 		if (cloud == null) {
-			throw new RestErrorException("local_cloud_not_support_tempaltes_operations", "get-template");
+			throw new RestErrorException("local_cloud_not_support_templates_operations", "get-template");
 		}
 
 		// get template from cloud
@@ -4341,7 +4338,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (cloudTemplate == null) {
 			logger.log(Level.WARNING, "[getTemplate] - tempalte [" + templateName 
 					+ "] not found. cloud tempaltes list: " + cloud.getTemplates());
-			throw new RestErrorException("tamplate_not_exist", templateName);
+			throw new RestErrorException("template_not_exist", templateName);
 		}
 		return successStatus(cloudTemplate);
 	}
@@ -4371,7 +4368,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			throws RestErrorException {
 
 		if (cloud == null) {
-			throw new RestErrorException("local_cloud_not_support_tempaltes_operations", "remove-template");
+			throw new RestErrorException("local_cloud_not_support_templates_operations", "remove-template");
 		}
 		logger.log(Level.INFO, "[removeTemplate] - removing template " + templateName);
 
@@ -4502,13 +4499,13 @@ public class ServiceController implements ServiceDetailsProvider {
 		// remove template from cloud
 		Map<String, CloudTemplate> cloudTemplates = cloud.getTemplates();
 		if (!cloudTemplates.containsKey(templateName)) {
-			throw new RestErrorException("tamplate_not_exist", templateName);
+			throw new RestErrorException("template_not_exist", templateName);
 		}
 		cloudTemplates.remove(templateName);
 	}
 
 	/**
-	 * Deletes the tempalte's file. Deletes the templates folder if no other
+	 * Deletes the template's file. Deletes the templates folder if no other
 	 * templates files exist in the folder. Deletes the
 	 * {@link CloudifyConstants#ADDITIONAL_TEMPLATES_FOLDER_NAME} folder if
 	 * empty.
