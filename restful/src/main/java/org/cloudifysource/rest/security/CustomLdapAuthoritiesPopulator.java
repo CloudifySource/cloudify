@@ -29,16 +29,14 @@ public class CustomLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator 
     /**
      * Attributes of the User's LDAP Object that contain role name information.
      */
-   private String[] roleAttributes = null;
+   private String[] roleAttributes;
 
     //~ Constructors ===================================================================================================
 
     /**
      * Constructor.
      *
-     * @param contextSource supplies the contexts used to search for user roles.
-     * @param groupSearchBase          if this is an empty string the search will be performed from the root DN of the
-     *                                 context factory.
+     * @param roleAttributes The role attributes.
      */
     public CustomLdapAuthoritiesPopulator(final String[] roleAttributes) {
     	this.roleAttributes = roleAttributes;
@@ -68,15 +66,17 @@ public class CustomLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator 
             		 +  Arrays.toString(roleAttributes));
          }
          
-         for (int i = 0; i < roleAttributes.length; i++) {
-             String[] rolesFromAttribute = user.getStringAttributes(roleAttributes[i]);
+         for (String roleAttribute : roleAttributes){
+             String[] rolesFromAttribute = user.getStringAttributes(roleAttribute);
              if (rolesFromAttribute == null) {
-                 logger.debug("Couldn't read role attribute '" + roleAttributes[i] + "' for user " + userDn);
+                 if (logger.isDebugEnabled()) {
+                    logger.debug("Couldn't read role attribute '" + roleAttribute + "' for user " + userDn);
+                 }
                  continue;
              }
 
-             for (int j = 0; j < rolesFromAttribute.length; j++) {
-                 GrantedAuthority authority = new GrantedAuthorityImpl(rolesFromAttribute[j]);
+             for (String roleFromAttribute : rolesFromAttribute) {
+                 GrantedAuthority authority = new GrantedAuthorityImpl(roleFromAttribute);
                  authorities.add(authority);
              }
          }
