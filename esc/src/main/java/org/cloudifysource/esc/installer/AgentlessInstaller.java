@@ -168,7 +168,6 @@ public class AgentlessInstaller {
 	 * @param unit
 	 *            time unit to wait.
 	 * @throws InstallerException .
-	 * @throws InstallerException .
 	 * @throws TimeoutException .
 	 * @throws InterruptedException .
 	 */

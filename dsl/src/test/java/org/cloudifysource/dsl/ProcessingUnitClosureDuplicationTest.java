@@ -40,15 +40,15 @@ public class ProcessingUnitClosureDuplicationTest {
 		if (!serviceFile.exists()){
 			throw new FileNotFoundException("File was not found: " + serviceFile.getAbsolutePath());
 		}
-		for (int i = 0; i < this.processingUnitTypes.length; i++) {
-			//replace all
-			replaceTextInFile(serviceFile, processingUnitTypes[0] , processingUnitTypes[i]);
-			verifyServiceFileIsNotParsable(serviceFile);
-			for (int j = 1; j < this.processingUnitTypes.length; j++) {
-				replaceFirstOccurrenceInFile(serviceFile, processingUnitTypes[j - 1], processingUnitTypes[j]);
-				verifyServiceFileIsNotParsable(serviceFile);
-			}
-		}
+        for (String processingUnitType : this.processingUnitTypes) {
+            //replace all
+            replaceTextInFile(serviceFile, processingUnitTypes[0], processingUnitType);
+            verifyServiceFileIsNotParsable(serviceFile);
+            for (int j = 1; j < this.processingUnitTypes.length; j++) {
+                replaceFirstOccurrenceInFile(serviceFile, processingUnitTypes[j - 1], processingUnitTypes[j]);
+                verifyServiceFileIsNotParsable(serviceFile);
+            }
+        }
 		
 		//restore file to initial state
 		replaceTextInFile(serviceFile, processingUnitTypes[4], processingUnitTypes[0]);

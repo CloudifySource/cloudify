@@ -334,7 +334,7 @@ public final class ShellUtils {
 	public static boolean isWindows() {
 		final String os = System.getProperty(
 				"os.name").toLowerCase();
-		return os.indexOf("win") >= 0;
+		return os.contains("win");
 	}
 
 	/**

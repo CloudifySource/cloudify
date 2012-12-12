@@ -99,9 +99,9 @@ public final class GigaShellMain extends Main implements Action {
 					is = new FileInputStream(filename);
 				} else {
 					String commandString = "";
-					for (int i = 0; i < args.length; i++) {
-						commandString = commandString.concat(args[i] + " ");
-					}
+                    for (String arg : args) {
+                        commandString = commandString.concat(arg + " ");
+                    }
 					if (!commandString.endsWith(";")) {
 						commandString = commandString.concat(";");
 					}
