@@ -432,16 +432,14 @@ public class AttributesContollerTests {
 
 		final Map<String, HandlerMapping> map = applicationContext
 				.getBeansOfType(HandlerMapping.class);
-		final Iterator<HandlerMapping> itt = map.values().iterator();
 
-		while (itt.hasNext()) {
-			final HandlerMapping mapping = itt.next();
-			chain = mapping.getHandler(request);
+        for (HandlerMapping mapping : map.values()) {
+            chain = mapping.getHandler(request);
 
-			if (chain != null) {
-				break;
-			}
-		}
+            if (chain != null) {
+                break;
+            }
+        }
 
 		if (chain == null) {
 			throw new InvalidParameterException(

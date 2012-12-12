@@ -333,7 +333,6 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	 * @param endTime
 	 * @param numberOfManagementMachines
 	 * @param executorService
-	 * @param results
 	 * @return
 	 * @throws CloudProvisioningException
 	 * @throws TimeoutException

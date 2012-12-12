@@ -91,8 +91,8 @@ public final class MicrosoftAzureModelUtils {
 	}
 
 	/**
-	 * @param doc
-	 * @param string
+	 * @param xml
+	 * @param nameSpace
 	 */
 	private static String addNameSpaceToRootElement(final String xml, final String nameSpace) {
 		int count = 0;

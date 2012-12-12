@@ -646,7 +646,7 @@ public class GSRestClient {
 	 * @param cloudOverrides
 	 *            A file containing override properties to be used by the cloud
 	 *            driver upon installation.
-	 * @param parameters
+	 * @param params
 	 *            as a map of names and values.
 	 * @return The response object from the REST server
 	 * @throws RestException
@@ -729,7 +729,7 @@ public class GSRestClient {
 	 * @param cloudOverrides
 	 *            A file containing override properties to be used by the cloud
 	 *            driver upon installation.
-	 * @param param
+	 * @param params
 	 *            parameters as a map of names and values.
 	 * @return The response object from the REST server
 	 * @throws RestException
@@ -846,8 +846,6 @@ public class GSRestClient {
 	 * @param response
 	 *            a json-format String to convert to a map
 	 * @return a Map<String, Object> based on the given String
-	 * @throws IOException
-	 *             Reporting failure to read or map the String
 	 * @throws ErrorStatusException
 	 */
 	public static Map<String, Object> jsonToMap(final String response) throws ErrorStatusException {

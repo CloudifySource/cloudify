@@ -11,7 +11,6 @@ import org.junit.Test;
 /**
  * The class <code>GroovyFileValidaterTest</code> contains tests for the class <code>{@link GroovyFileValidater}</code>.
  * 
- * @generatedBy CodePro at 8/6/12 11:07 PM
  * @author barakme
  * @version $Revision: 1.0 $
  */
@@ -52,8 +51,6 @@ public class GroovyFileValidaterTest {
 	 * Perform pre-test initialization.
 	 * 
 	 * @throws Exception if the initialization fails for some reason
-	 * 
-	 * @generatedBy CodePro at 8/6/12 11:07 PM
 	 */
 	@Before
 	public void setUp()
@@ -65,8 +62,6 @@ public class GroovyFileValidaterTest {
 	 * Perform post-test clean-up.
 	 * 
 	 * @throws Exception if the clean-up fails for some reason
-	 * 
-	 * @generatedBy CodePro at 8/6/12 11:07 PM
 	 */
 	@After
 	public void tearDown()
