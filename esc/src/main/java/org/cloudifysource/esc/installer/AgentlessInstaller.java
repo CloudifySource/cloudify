@@ -629,7 +629,7 @@ public class AgentlessInstaller {
 		String authGroups = null;
 		if (details.getAuthGroups() != null) {
 			//authgroups should be a strongly typed object convertible into a String
-			authGroups = details.getAuthGroups().toString();
+			authGroups = details.getAuthGroups();
 		}
 		
 		final ShellCommandBuilder scb = new ShellCommandBuilder(details.getRemoteExecutionMode())
