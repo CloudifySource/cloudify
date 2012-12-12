@@ -63,7 +63,7 @@ import org.fusesource.jansi.Ansi.Color;
  *        timeout] service-file
  */
 @Command(scope = "cloudify", name = "install-service", description = "Installs a service. If you specify a folder"
-		+ " path it will be packed and deployed. If you sepcify a service archive, the shell will deploy that file.")
+		+ " path it will be packed and deployed. If you specify a service archive, the shell will deploy that file.")
 public class InstallService extends AdminAwareCommand {
 
 	private static final int DEFAULT_TIMEOUT_MINUTES = 5;
@@ -276,7 +276,7 @@ public class InstallService extends AdminAwareCommand {
 	}
 
 	private void pollForLifecycleEvents(final String lifecycleEventContainerPollingID) throws InterruptedException,
-			CLIException, TimeoutException, IOException, CLIStatusException {
+			CLIException, TimeoutException, IOException{
 		final RestLifecycleEventsLatch lifecycleEventsPollingLatch = this.adminFacade
 				.getLifecycleEventsPollingLatch(
 						lifecycleEventContainerPollingID, TIMEOUT_ERROR_MESSAGE);

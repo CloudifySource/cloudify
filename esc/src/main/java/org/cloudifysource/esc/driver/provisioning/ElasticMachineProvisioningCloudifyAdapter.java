@@ -113,7 +113,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private static Admin globalAdminInstance = null;
 	private static final Object GLOBAL_ADMIN_MUTEX = new Object();
 
-	private static final long DEFAULT_AGENT_DISCOVEREY_INTERVAL = 1 * 1000;
+	private static final long DEFAULT_AGENT_DISCOVERY_INTERVAL = 1000L;
 
 	private static Admin getGlobalAdminInstance(final Admin esmAdminInstance) {
 		synchronized (GLOBAL_ADMIN_MUTEX) {
@@ -554,7 +554,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					// lets wait for the agent to not be discovered until we reach the timeout.
 					
 					while (agent.isDiscovered()) {
-						Thread.sleep(DEFAULT_AGENT_DISCOVEREY_INTERVAL);
+						Thread.sleep(DEFAULT_AGENT_DISCOVERY_INTERVAL);
 						if (System.currentTimeMillis() > endTime && agent.isDiscovered()) {
 							if (failedToShutdownAgentException != null) {
 								throw new ElasticGridServiceAgentProvisioningException(

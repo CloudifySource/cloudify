@@ -16,8 +16,8 @@ import org.junit.Test;
  */
 public class DSLValidateObjectsTest {
 
-private final String CLOUD_PATH = "../esc/src/main/resources/clouds/rsopenstack/rsopenstack-cloud.groovy";
-private final String SERVICE_PATH = "testResources/simple/simple-service.groovy";
+private final static String CLOUD_PATH = "../esc/src/main/resources/clouds/rsopenstack/rsopenstack-cloud.groovy";
+private final static String SERVICE_PATH = "testResources/simple/simple-service.groovy";
 
 	//@Test
 	public void testCloud() throws IOException {

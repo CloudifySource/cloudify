@@ -171,7 +171,6 @@ public class AgentlessInstaller {
 	 * @throws InstallerException .
 	 * @throws TimeoutException .
 	 * @throws InterruptedException .
-	 * @throws ElasticMachineProvisioningException
 	 */
 	public static void checkConnection(final String ip, final int port, final long timeout, final TimeUnit unit)
 			throws TimeoutException, InterruptedException, InstallerException {
@@ -253,8 +252,8 @@ public class AgentlessInstaller {
 
 		final FileSystemOptions opts = new FileSystemOptions();
 
-		FileSystemManager createdManager = null;
-		String target = null;
+		FileSystemManager createdManager;
+		String target;
 		switch (details.getFileTransferMode()) {
 		case SCP:
 			createdManager = createRemoteSSHFileSystem(details.getKeyFile(), opts, details);
@@ -471,8 +470,8 @@ public class AgentlessInstaller {
 
 		final FileSystemOptions opts = new FileSystemOptions();
 
-		FileSystemManager createdManager = null;
-		String target = null;
+		FileSystemManager createdManager;
+		String target;
 		switch (details.getFileTransferMode()) {
 		case SCP:
 			try {

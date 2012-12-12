@@ -66,7 +66,7 @@ public class AddTemplates extends AdminAwareCommand {
 		if (!templatesFileOrDir.exists()) {
 			throw new CLIStatusException("templates_file_not_found", templatesPath);
 		}
-		int numTemplatesInFolder = 0;
+		int numTemplatesInFolder;
 		File zipFile = templatesFileOrDir;
 		CloudTemplatesReader reader = new CloudTemplatesReader();
 
