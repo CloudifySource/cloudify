@@ -877,7 +877,7 @@ public class MicrosoftAzureRestClient {
 			final boolean embedDeployments) throws MicrosoftAzureException,
 			TimeoutException {
 		StringBuilder builder = new StringBuilder();
-		builder.append("/services/hostedservices/" + hostedServiceName);
+		builder.append("/services/hostedservices/").append(hostedServiceName);
 		if (embedDeployments) {
 			builder.append("?embed-detail=true");
 		}

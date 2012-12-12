@@ -24,7 +24,7 @@ public class StringHandler extends StreamHandler {
 	
 	@Override
 	public void publish(LogRecord record) {
-		sb.append(record.getMessage() + System.getProperty("line.separator"));
+		sb.append(record.getMessage()).append(System.getProperty("line.separator"));
 		flush();
 	}
 	

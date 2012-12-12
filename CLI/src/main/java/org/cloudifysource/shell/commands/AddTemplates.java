@@ -194,9 +194,8 @@ public class AddTemplates extends AdminAwareCommand {
 	}
 	
 	private static Object getFormatedAddedTemplateNamesList(final List<String> tempaltes) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(CloudifyConstants.NEW_LINE)
-		.append("Added " + tempaltes.size() + " tempaltes:");
+		StringBuilder sb = new StringBuilder(CloudifyConstants.NEW_LINE)
+            .append("Added ").append(tempaltes.size()).append(" tempaltes:");
 
 		for (String templateName : tempaltes) {
 			sb.append(CloudifyConstants.NEW_LINE)

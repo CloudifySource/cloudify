@@ -87,7 +87,7 @@ public class SshExecutor implements RemoteExecutor {
 
 	@Override
 	public RemoteExecutor chmodExecutable(final String path) {
-		sb.append("chmod +x " + path);
+		sb.append("chmod +x ").append(path);
 		separate();
 		return this;
 	}

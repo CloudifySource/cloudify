@@ -55,10 +55,10 @@ public class MachineStartRequestedCloudifyEvent extends MachineStartRequestedEve
     public String getDecisionDescription() {
         StringBuilder desc = new StringBuilder(super.getDecisionDescription());
         if (templateName != null ) { 
-        	desc.append(" using template " + templateName);
+        	desc.append(" using template ").append(templateName);
         }
         if (locationId != null) {
-        	desc.append(" in location " + locationId);
+        	desc.append(" in location ").append(locationId);
         }
         return desc.toString();
     }

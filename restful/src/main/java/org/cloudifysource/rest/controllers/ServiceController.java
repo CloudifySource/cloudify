@@ -2463,7 +2463,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		final StringBuilder locators = new StringBuilder();
 
 		for (final LookupLocator locator : locatorsArray) {
-			locators.append(locator.getHost() + ":" + locator.getPort() + ",");
+			locators.append(locator.getHost()).append(':').append(locator.getPort()).append(',');
 		}
 
 		if (locators.length() > 0) {
@@ -3646,12 +3646,10 @@ public class ServiceController implements ServiceDetailsProvider {
 			return unavailableServiceError(absolutePuName);
 		}
 
-		String instanceLogTail;
 		for (final ProcessingUnitInstance processingUnitInstance : processingUnit) {
-			stringBuilder.append("service instance id #"
-					+ processingUnitInstance.getInstanceId()
-					+ System.getProperty("line.separator"));
-			instanceLogTail = getLogTailFromContainer(
+			stringBuilder.append("service instance id #").append(processingUnitInstance.getInstanceId())
+                    .append(System.getProperty("line.separator"));
+            String instanceLogTail = getLogTailFromContainer(
 					processingUnitInstance.getGridServiceContainer(), numLines);
 			stringBuilder.append(instanceLogTail);
 		}
@@ -3955,9 +3953,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param templatesFolder
 	 *            .
 	 * @param puInstance
-	 *            .
-	 * @param hostAddress
-	 *            .
+	 *            ..
 	 * @param url
 	 *            .
 	 * @return the response.
@@ -4160,10 +4156,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * 
 	 * @param templatesFolder
 	 *            the folder that contains the template's file.
-	 * @param originalTemplateFileName
-	 *            the original file name.
-	 * @param templateName
-	 *            the template's name.
+     * @param  holder
+     *            holds the relevant template
 	 * @throws IOException
 	 *             If failed to rename.
 	 */
@@ -4279,10 +4273,6 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * 
 	 * @param templatesDirToCopy
 	 *            the directory contains all the files to copy.
-	 * @param templatesDirParent
-	 *            the {@link CloudifyConstants#ADDITIONAL_TEMPLATES_FOLDER_NAME}
-	 *            directory that will be the parent directory of the new
-	 *            template folder.
 	 * @throws IOException
 	 *             If failed to copy files.
 	 */
