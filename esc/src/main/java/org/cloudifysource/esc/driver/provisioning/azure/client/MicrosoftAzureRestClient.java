@@ -208,8 +208,7 @@ public class MicrosoftAzureRestClient {
 			final long endTime) throws MicrosoftAzureException,
 			TimeoutException, InterruptedException {
 
-		logger.fine("[" + Thread.currentThread().getName() + "] - "
-				+ "creating cloud cervice");
+		logger.fine(getThreadIdentity() + "Creating cloud cervice");
 
 		CreateHostedService createHostedService = requestBodyBuilder
 				.buildCreateCloudService(affinityGroup);
@@ -224,10 +223,9 @@ public class MicrosoftAzureRestClient {
 			String requestId = extractRequestId(response);
 			waitForRequestToFinish(requestId, endTime);
 			serviceName = createHostedService.getServiceName();
-			logger.fine("[" + Thread.currentThread().getName()
-					+ "] - cloud cervice created : " + serviceName);
+			logger.fine(getThreadIdentity() + "Cloud cervice created : " + serviceName);
 		} catch (final Exception e) {
-			logger.warning("failed to create cloud service : " + e.getMessage());
+			logger.warning("Failed to create cloud service : " + e.getMessage());
 			if (e instanceof MicrosoftAzureException) {
 				throw new MicrosoftAzureException(e);
 			}
@@ -270,7 +268,7 @@ public class MicrosoftAzureRestClient {
 			return;
 		}
 
-		logger.fine("creating a storage account : " + storageAccountName);
+		logger.fine("Creating a storage account : " + storageAccountName);
 
 		String xmlRequest = MicrosoftAzureModelUtils.marshall(
 				createStorageServiceInput, false);
@@ -279,7 +277,7 @@ public class MicrosoftAzureRestClient {
 		String requestId = extractRequestId(response);
 		waitForRequestToFinish(requestId, endTime);
 
-		logger.fine("created a storage account : " + storageAccountName);
+		logger.fine("Created a storage account : " + storageAccountName);
 
 	}
 
@@ -318,7 +316,7 @@ public class MicrosoftAzureRestClient {
 			}
 		}
 
-		logger.fine("creating virtual network site : " + networkSiteName);
+		logger.fine("Creating virtual network site : " + networkSiteName);
 
 		VirtualNetworkSite newSite = new VirtualNetworkSite();
 		AddressSpace address = new AddressSpace();
@@ -330,7 +328,7 @@ public class MicrosoftAzureRestClient {
 		virtualNetworkSites.getVirtualNetworkSites().add(newSite);
 
 		setNetworkConfiguration(endTime, virtualNetworkSites);
-		logger.fine("created virtual network site : " + networkSiteName);
+		logger.fine("Created virtual network site : " + networkSiteName);
 	}
 
 	/**
@@ -361,14 +359,14 @@ public class MicrosoftAzureRestClient {
 			return;
 		}
 
-		logger.fine("creating affinity group : " + affinityGroup);
+		logger.fine("Creating affinity group : " + affinityGroup);
 
 		String xmlRequest = MicrosoftAzureModelUtils.marshall(
 				createAffinityGroup, false);
 		ClientResponse response = doPost("/affinitygroups", xmlRequest);
 		String requestId = extractRequestId(response);
 		waitForRequestToFinish(requestId, endTime);
-		logger.fine("created affinity group : " + affinityGroup);
+		logger.fine("Created affinity group : " + affinityGroup);
 	}
 
 	/**
@@ -393,12 +391,11 @@ public class MicrosoftAzureRestClient {
 				- ESTIMATED_TIME_TO_START_VM;
 		if (lockTimeout < 0) {
 			throw new MicrosoftAzureException(
-					"aborted request to provision virtual machine. "
-							+ "the timeout is less then the estimated time to provision the machine");
+					"Aborted request to provision virtual machine. "
+							+ "The timeout is less then the estimated time to provision the machine");
 		}
 
-		logger.fine("[" + Thread.currentThread().getName()
-				+ "] - waiting for pending request lock...");
+		logger.fine(getThreadIdentity() + "Waiting for pending request lock for lock " + pendingRequest.hashCode());
 		boolean lockAcquired = pendingRequest.tryLock(lockTimeout,
 				TimeUnit.MILLISECONDS);
 
@@ -407,11 +404,8 @@ public class MicrosoftAzureRestClient {
 
 		if (lockAcquired) {
 
-			logger.fine("[" + Thread.currentThread().getName()
-					+ "] - lock acquired");
-			logger.fine("["
-					+ Thread.currentThread().getName()
-					+ "] - executing a request to provision a new virtual machine");
+			logger.fine(getThreadIdentity() + "Lock acquired : " + pendingRequest.hashCode());
+			logger.fine(getThreadIdentity() + "Executing a request to provision a new virtual machine");
 
 			try {
 
@@ -426,21 +420,19 @@ public class MicrosoftAzureRestClient {
 				String xmlRequest = MicrosoftAzureModelUtils.marshall(
 						deployment, false);
 
-				logger.fine("[" + Thread.currentThread().getName() + "] - "
-						+ "launching virtual machine : "
+				logger.fine(getThreadIdentity() + "Launching virtual machine : "
 						+ deplyomentDesc.getRoleName());
 
 				ClientResponse response = doPost("/services/hostedservices/"
 						+ serviceName + "/deployments", xmlRequest);
 				String requestId = extractRequestId(response);
 				waitForRequestToFinish(requestId, endTime);
+				logger.fine(getThreadIdentity() + "About to release lock " + pendingRequest.hashCode());
 				pendingRequest.unlock();
-				logger.fine("[" + Thread.currentThread().getName()
-						+ "] - lock unlcoked");
 			} catch (final Exception e) {
+				logger.fine(getThreadIdentity() + "A failure occured : about to release lock " 
+							+ pendingRequest.hashCode());
 				pendingRequest.unlock();
-				logger.fine("[" + Thread.currentThread().getName()
-						+ "] - a failure occured : unlocking lock");
 				if (e instanceof MicrosoftAzureException) {
 					throw new MicrosoftAzureException(e);
 				}
@@ -453,7 +445,7 @@ public class MicrosoftAzureRestClient {
 			}
 		} else {
 			throw new TimeoutException(
-					"failed to acquire lock for deleteDeployment request after + "
+					"Failed to acquire lock for deleteDeployment request after + "
 							+ lockTimeout + " milliseconds");
 		}
 
@@ -665,12 +657,12 @@ public class MicrosoftAzureRestClient {
 					endTime);
 			
 			if (diskName != null) {
-				logger.fine("deleting os disk : " + diskName
+				logger.fine("Deleting os disk : " + diskName
 						+ " that belonged to the virtual machine " + roleName);
 				deleteOSDisk(diskName, endTime);
 			}
 			
-			logger.fine("deleteing cloud service : " + cloudServiceName
+			logger.fine("Deleteing cloud service : " + cloudServiceName
 					+ " that was dedicated for virtual machine " + roleName);
 
 			deleteCloudService(cloudServiceName, endTime);
@@ -745,23 +737,18 @@ public class MicrosoftAzureRestClient {
 		long currentTimeInMillis = System.currentTimeMillis();
 		long lockTimeout = endTime - currentTimeInMillis;
 
-		logger.fine("[" + Thread.currentThread().getName()
-				+ "] - waiting for pending request lock...");
+		logger.fine(getThreadIdentity() + "Waiting for pending request lock...");
 		boolean lockAcquired = pendingRequest.tryLock(lockTimeout,
 				TimeUnit.MILLISECONDS);
 
 		if (lockAcquired) {
 
-			logger.fine("[" + Thread.currentThread().getName()
-					+ "] - lock acquired");
-			logger.fine("["
-					+ Thread.currentThread().getName()
-					+ "] - executing a request to delete virtual machine");
+			logger.fine(getThreadIdentity() + "Lock acquired : " + pendingRequest.hashCode());
+			logger.fine(getThreadIdentity() + "Executing a request to delete virtual machine");
 
 			try {
 
-				logger.fine("[" + Thread.currentThread().getName()
-						+ "] - deleting deployment of virtual machine from : "
+				logger.fine(getThreadIdentity() + "Deleting deployment of virtual machine from : "
 						+ deploymentName);
 
 				ClientResponse response = doDelete("/services/hostedservices/"
@@ -769,16 +756,12 @@ public class MicrosoftAzureRestClient {
 				String requestId = extractRequestId(response);
 				waitForRequestToFinish(requestId, endTime);
 				pendingRequest.unlock();
-				logger.fine("[" + Thread.currentThread().getName()
-						+ "] - lock unlcoked");
+				logger.fine(getThreadIdentity() + "Lock unlcoked");
 			} catch (final Exception e) {
-				logger.warning("["
-						+ Thread.currentThread().getName()
-						+ "] failed deleting deployment of virtual machine from : "
+				logger.warning(getThreadIdentity() + "Failed deleting deployment of virtual machine from : "
 						+ deploymentName);
+				logger.fine(getThreadIdentity() + "About to release lock " + pendingRequest.hashCode());
 				pendingRequest.unlock();
-				logger.fine("[" + Thread.currentThread().getName()
-						+ "] - lock unlcoked");
 				if (e instanceof MicrosoftAzureException) {
 					throw new MicrosoftAzureException(e);
 				}
@@ -792,7 +775,7 @@ public class MicrosoftAzureRestClient {
 			return true;
 		} else {
 			throw new TimeoutException(
-					"failed to acquire lock for deleteDeployment request after + "
+					"Failed to acquire lock for deleteDeployment request after + "
 							+ lockTimeout + " milliseconds");
 		}
 
@@ -912,7 +895,7 @@ public class MicrosoftAzureRestClient {
 					+ "/deploymentslots/" + deploymentSlot);
 			checkForError(response);
 		} catch (TimeoutException e) {
-			logger.warning("Timed out while waiting for deployment details. this may cause a leaking node");
+			logger.warning("Timed out while waiting for deployment details. This may cause a leaking node");
 			throw e;
 		}
 
@@ -980,11 +963,11 @@ public class MicrosoftAzureRestClient {
 			String ip = isPrivateIp ? privateIp : publicIp;
 			if (machineIp.equals(ip)) {
 				deployment.setHostedServiceName(cloudServiceName);
-				logger.info("found a role with ip : " + machineIp);
+				logger.info("Found a role with ip : " + machineIp);
 				return deployment;
 			}
 		}
-		logger.info("could not find any roles with ip :" + machineIp);
+		logger.info("Could not find any roles with ip :" + machineIp);
 		return null;
 
 	}
@@ -1062,7 +1045,7 @@ public class MicrosoftAzureRestClient {
 			} catch (ClientHandlerException e) {
 				logger.warning("Caught an exception while executing GET with url "
 						+ url + ". Message :" + e.getMessage());
-				logger.warning("retrying request");
+				logger.warning("Retrying request");
 				continue;
 			}
 		}
@@ -1235,12 +1218,6 @@ public class MicrosoftAzureRestClient {
 			throws MicrosoftAzureException, TimeoutException {
 
 		ClientResponse response = doGet("/operations/" + requestId);
-
-		// ClientResponse response = resource
-		// .path("/" + subscriptionId + "/operations/" + requestId)
-		// .header(X_MS_VERSION_HEADER_NAME, X_MS_VERSION_HEADER_VALUE)
-		// .get(ClientResponse.class);
-
 		return (Operation) MicrosoftAzureModelUtils
 				.unmarshall(response.getEntity(String.class));
 	}
@@ -1263,5 +1240,11 @@ public class MicrosoftAzureRestClient {
 	private String getPrivateIpFromDeployment(final Deployment deployment) {
 		return deployment.getRoleInstanceList().getRoleInstances().get(0)
 				.getIpAddress();
+	}
+	
+	private String getThreadIdentity() {
+		String threadName = Thread.currentThread().getName();
+		long threadId = Thread.currentThread().getId();
+		return "[" + threadName + "]" + "[" + threadId + "] - ";
 	}
 }
