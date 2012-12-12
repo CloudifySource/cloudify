@@ -19,20 +19,56 @@
 			</sec:user-service>
 		</sec:authentication-provider>
 	</sec:authentication-manager>
-
-	<beans profile="secure">
-		
-		<bean id="basicAuthEntryPoint"
-			class="org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint">
-			<property name="realmName" value="REST Realm" />
-		</bean>
-
-		<bean id="basicAuthenticationFilter"
-			class="org.springframework.security.web.authentication.www.BasicAuthenticationFilter">
-			<property name="authenticationManager" ref="authenticationManager" />
-			<property name="authenticationEntryPoint" ref="basicAuthEntryPoint" />
-		</bean>
-		
-	</beans>
+	
+	<!-- LDAP connectivity configuration
+	<sec:authentication-manager alias="authenticationManager">
+		<sec:authentication-provider ref="ldapAuthProvider"/>
+	</sec:authentication-manager>
+	
+	<bean id="contextSource" class="org.springframework.security.ldap.DefaultSpringSecurityContextSource">
+		<constructor-arg value="ldap://localhost:389/dc=maxcrc,dc=com"/>
+		<property name="userDn" value="cn=manager,dc=maxcrc,dc=com"/>
+		<property name="password" value="secret"/>
+	</bean>
+ 
+	<bean id="CustomLdapUserDetailsMapper" class="org.cloudifysource.rest.security.CustomLdapUserDetailsMapper" >
+		<property name="roleAttributes">
+			<list>
+				<value>description</value>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="userSearch" class="org.springframework.security.ldap.search.FilterBasedLdapUserSearch">
+		<constructor-arg index="0" value=""/>
+		<constructor-arg index="1" value="(uid={0})"/>
+		<constructor-arg index="2" ref="contextSource" />
+	</bean>
+	
+	<bean id="ldapAuthProvider" class="org.cloudifysource.rest.security.CustomLdapAuthenticationProvider">
+		<constructor-arg>
+			<bean class="org.springframework.security.ldap.authentication.BindAuthenticator">
+				<constructor-arg ref="contextSource"/>
+				<property name="userSearch" ref="userSearch">
+				</property>
+			</bean>
+		</constructor-arg>
+		<constructor-arg>
+			<bean class="org.cloudifysource.rest.security.CustomLdapAuthoritiesPopulator">
+			<constructor-arg name="roleAttributes">
+				<list>
+					<value>description</value>
+				</list>
+			</constructor-arg>
+			</bean>
+		</constructor-arg>
+		<constructor-arg>
+			<bean class="org.cloudifysource.rest.security.CustomLdapAuthGroupsPopulator">
+				<constructor-arg ref="contextSource"/>
+				<constructor-arg value="ou=groups"/>
+			</bean>
+		</constructor-arg>
+		<property name="UserDetailsContextMapper" ref="CustomLdapUserDetailsMapper"/>
+	</bean-->
 
 </beans>
