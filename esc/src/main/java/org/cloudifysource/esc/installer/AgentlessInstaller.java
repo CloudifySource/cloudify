@@ -211,28 +211,17 @@ public class AgentlessInstaller {
 	/****
 	 * Copies files from local dir to remote dir.
 	 * 
-	 * @param host
-	 *            host name or ip address of remote machine.
-	 * @param username
-	 *            ssh username of remote machine.
-	 * @param password
-	 *            ssh password of remote machine.
-	 * @param srcDir
-	 *            local directory.
-	 * @param toDir
-	 *            remote directory.
-	 * @param keyFile
-	 *            The key file of the remote machine, if used. private key file.
-	 * @param excludedFile
+	 *
+	 * @param details
+	 *            user details of remote machine.
+     * @param host
+     *            host name or ip address of remote machine.
+	 * @param excludedFiles
 	 *            Files that should not be copied.
-	 * @param cloudFile
-	 *            The cloud file.
 	 * @param timeout
 	 *            Time before timeout is thrown.
 	 * @param unit
 	 *            Time unit, relevant to timeout parameter.
-	 * @param fileTransferMode
-	 *            Remote file system type.
 	 * @throws IOException
 	 *             in case of an error during file transfer.
 	 * @throws TimeoutException
