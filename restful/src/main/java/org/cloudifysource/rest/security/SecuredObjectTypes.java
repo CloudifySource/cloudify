@@ -16,5 +16,5 @@ public enum SecuredObjectTypes {
 	/**
 	 * Machines.
 	 */
-	MACHINE;
+	MACHINE
 }

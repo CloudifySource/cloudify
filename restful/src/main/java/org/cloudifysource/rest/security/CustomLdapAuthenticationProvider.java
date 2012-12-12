@@ -226,11 +226,8 @@ public class CustomLdapAuthenticationProvider implements AuthenticationProvider 
      * @param authentication The authentication object to check.
      * @return true - supported, false - otherwise.
      */
-    public boolean supports(final Class<? extends Object> authentication) {
-        if (UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication)) {
-        	return true;
-        }
-        return false;
+    public boolean supports(final Class<?> authentication) {
+        return (UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication));
     }
 
 }

@@ -488,14 +488,10 @@ public class MicrosoftAzureRestClient {
 	 * @param vmStatus
 	 */
 	private boolean checkVirtualMachineStatusForError(final String vmStatus) {
-		if (vmStatus.equals("FailedStartingRole")
+		return (vmStatus.equals("FailedStartingRole")
 				|| vmStatus.equals("FailedStartingVM")
 				|| vmStatus.equals("UnresponsiveRole")
-				|| vmStatus.equals("CyclingRole")) {
-			return true;
-		}
-		return false;
-
+				|| vmStatus.equals("CyclingRole"));
 	}
 
 	/**
@@ -1063,7 +1059,6 @@ public class MicrosoftAzureRestClient {
 				logger.warning("Caught an exception while executing GET with url "
 						+ url + ". Message :" + e.getMessage());
 				logger.warning("retrying request");
-				continue;
 			}
 		}
 		if (response == null) {
@@ -1087,19 +1082,13 @@ public class MicrosoftAzureRestClient {
 	private boolean affinityExists(final String affinityGroupName)
 			throws MicrosoftAzureException, TimeoutException {
 		AffinityGroups affinityGroups = listAffinityGroups();
-		if (affinityGroups.contains(affinityGroupName)) {
-			return true;
-		}
-		return false;
+		return (affinityGroups.contains(affinityGroupName));
 	}
 
 	private boolean storageExists(final String storageAccouhtName)
 			throws MicrosoftAzureException, TimeoutException {
 		StorageServices storageServices = listStorageServices();
-		if (storageServices.contains(storageAccouhtName)) {
-			return true;
-		}
-		return false;
+		return (storageServices.contains(storageAccouhtName));
 	}
 
 	private void checkForError(final ClientResponse response)

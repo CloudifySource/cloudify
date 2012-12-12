@@ -329,11 +329,7 @@ public final class USMUtils {
 			throws USMException {
 
 		final ProcState procState = USMUtils.getProcState(pid);
-		if (procState == null || procState.getState() == ProcState.STOP || procState.getState() == ProcState.ZOMBIE) {
-			return false;
-		}
-
-		return true;
+		return (procState != null && procState.getState() != ProcState.STOP || procState.getState() != ProcState.ZOMBIE);
 	}
 
 	private static ProcState getProcState(final long pid)

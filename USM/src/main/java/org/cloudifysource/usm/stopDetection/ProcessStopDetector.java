@@ -124,11 +124,7 @@ public class ProcessStopDetector extends AbstractUSMEventListener implements Sto
 			throws USMException {
 
 		final ProcState procState = getProcState(pid);
-		if (procState == null || procState.getState() == ProcState.STOP || procState.getState() == ProcState.ZOMBIE) {
-			return false;
-		}
-
-		return true;
+		return (procState != null && procState.getState() != ProcState.STOP && procState.getState() != ProcState.ZOMBIE);
 	}
 
 	private boolean checkForOneProcessDead(final List<Long> pids)

@@ -83,7 +83,7 @@ public class ApplicationDescriptionFactory {
 	/**
 	 * returns an application description POJO.
 	 * 
-	 * @param applicationName the application name.
+	 * @param application the application name.
 	 * @return 
 	 * 		the application description.
 	 * @throws RestErrorException 
@@ -266,10 +266,7 @@ public class ApplicationDescriptionFactory {
 
     private boolean isUsmStateOfPuiRunning(final ProcessingUnitInstance pui) {
         USMState instanceState = getInstanceUsmState(pui);
-        if (instanceState == CloudifyConstants.USMState.RUNNING) {
-            return true;
-        }
-        return false;
+        return (instanceState == CloudifyConstants.USMState.RUNNING);
     }
 
     //returns the USM state of a 
