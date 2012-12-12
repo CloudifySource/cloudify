@@ -1570,9 +1570,8 @@ public class ServiceController implements ServiceDetailsProvider {
 					.getErrorDescription();
 			final String errorMap = new ObjectMapper()
 			.writeValueAsString(errorDescriptionMap);
-			logger.log(Level.INFO,
-					"caught exception. Sending response message "
-							+ (String) errorDescriptionMap.get("error"), e);
+			logger.log(Level.INFO, "caught exception. Sending response message "
+						+ errorDescriptionMap.get("error"), e);
 			final byte[] messageBytes = errorMap.getBytes();
 			final ServletOutputStream outputStream = response.getOutputStream();
 			outputStream.write(messageBytes);

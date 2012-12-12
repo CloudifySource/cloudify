@@ -237,7 +237,7 @@ public class ByonDeployer {
 							+ "\", all available nodes are currently used");
 		}
 
-		((CustomNodeImpl) node).setNodeName(serverName);
+		node.setNodeName(serverName);
 
 		return node;
 	}

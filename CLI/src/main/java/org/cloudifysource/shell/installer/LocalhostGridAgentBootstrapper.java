@@ -552,8 +552,8 @@ public class LocalhostGridAgentBootstrapper {
 					if (uninstallApplicationResponse.containsKey(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID)) {
 						final String pollingID = uninstallApplicationResponse
 								.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
-						((RestAdminFacade) this.adminFacade).waitForLifecycleEvents(pollingID, (int) timeout,
-								UninstallApplication.TIMEOUT_ERROR_MESSAGE);
+						this.adminFacade.waitForLifecycleEvents(pollingID, (int) timeout,
+                                UninstallApplication.TIMEOUT_ERROR_MESSAGE);
 					} else {
 						publishEvent("Failed to retrieve lifecycle logs from rest. " + "Check logs for more details.");
 					}

@@ -163,7 +163,7 @@ public final class IOUtils {
 	 *            the connection timeout.
 	 * @param readTimeout
 	 *            the read timeout.
-	 * @return the HTTP return code. If an error occured while sending the request, for instance if a connection could
+	 * @return the HTTP return code. If an error occurred while sending the request, for instance if a connection could
 	 *         not be made, returns 500
 	 */
 	public static int getHttpReturnCode(final String url, final int connectTimeout, final int readTimeout) {

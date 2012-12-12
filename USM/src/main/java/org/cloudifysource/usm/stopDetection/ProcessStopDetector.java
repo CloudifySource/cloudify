@@ -45,7 +45,7 @@ public class ProcessStopDetector extends AbstractUSMEventListener implements Sto
 	public void init(final UniversalServiceManagerBean usm) {
 		super.init(usm);
 		final String setting =
-				((ServiceConfiguration) usm.getUsmLifecycleBean().getConfiguration()).getService().getCustomProperties()
+				usm.getUsmLifecycleBean().getConfiguration().getService().getCustomProperties()
 						.get(CloudifyConstants.CUSTOM_PROPERTY_STOP_DETECTION_ON_ALL_PROCESSES);
 		if (setting != null) {
 			this.stopOnAllProcessesDead = Boolean.parseBoolean(setting);
