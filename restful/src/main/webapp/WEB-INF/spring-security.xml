@@ -20,34 +20,7 @@
 		</sec:authentication-provider>
 	</sec:authentication-manager>
 
-	<beans profile="nonsecure,default">
-		<sec:http auto-config='true' use-expressions="true">
-			<sec:intercept-url pattern="/**" access="permitAll" />
-			<sec:http-basic />
-			<sec:anonymous /> 
-		</sec:http>
-		
-	</beans>
-		
 	<beans profile="secure">
-		<!-- to limit HTTP access to the application -->
-		<sec:http entry-point-ref="basicAuthEntryPoint" auto-config="false"
-			create-session="never" use-expressions="true">
-			<sec:intercept-url pattern="/admin/**" requires-channel="https"
-				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')" />
-			<sec:intercept-url pattern="/service/testrest" requires-channel="https"
-				access="permitAll" />
-			<sec:intercept-url pattern="/service/testlogin" requires-channel="https"
-				access="isFullyAuthenticated()" />
-			<sec:intercept-url pattern="/service/**" requires-channel="https"
-				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS', 'ROLE_VIEWERS')" />
-			<sec:intercept-url pattern="/attributes/**" requires-channel="https"
-				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')" />
-			<sec:intercept-url pattern="/**" requires-channel="https" access="isFullyAuthenticated()" />
-			<sec:custom-filter ref="basicAuthenticationFilter"
-				after="BASIC_AUTH_FILTER" />
-			<sec:logout />
-		</sec:http>
 		
 		<bean id="basicAuthEntryPoint"
 			class="org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint">

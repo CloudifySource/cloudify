@@ -12,7 +12,8 @@
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
 		<param-value>
-			/WEB-INF/admin-servlet.xml
+			/WEB-INF/admin-servlet.xml, 
+			/WEB-INF/http-intercepts.xml,
 			file:///${JSHOMEDIR}/config/security/spring-security.xml
 		</param-value>
 	</context-param>
