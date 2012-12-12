@@ -1,9 +1,8 @@
 package org.cloudifysource.rest.security;
 
 import java.util.Collection;
+import java.util.logging.Logger;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.ldap.NamingException;
@@ -19,7 +18,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.SpringSecurityMessageSource;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.ppolicy.PasswordPolicyException;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
@@ -28,7 +26,7 @@ import org.springframework.util.StringUtils;
 
 public class CustomLdapAuthenticationProvider implements AuthenticationProvider {
 
-    private static final Log logger = LogFactory.getLog(LdapAuthenticationProvider.class);
+    private Logger logger = java.util.logging.Logger.getLogger(CustomLdapAuthenticationProvider.class.getName());
 
     protected MessageSourceAccessor messages = SpringSecurityMessageSource.getAccessor();
 
@@ -139,9 +137,7 @@ public class CustomLdapAuthenticationProvider implements AuthenticationProvider 
         String username = userToken.getName();
         String password = (String) authentication.getCredentials();
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("Processing authentication request for user: " + username);
-        }
+        logger.fine("Processing authentication request for user: " + username);
 
         if (!StringUtils.hasLength(username)) {
             throw new BadCredentialsException(messages.getMessage("LdapAuthenticationProvider.emptyUsername",
@@ -213,10 +209,6 @@ public class CustomLdapAuthenticationProvider implements AuthenticationProvider 
             final ExtendedLdapUserDetailsImpl user) {
         Object password = useAuthenticationRequestCredentials ? authentication.getCredentials() : user.getPassword();
 
-        /*UsernamePasswordAuthenticationToken result = 
-        		new UsernamePasswordAuthenticationToken(user, password, user.getAuthorities());
-        result.setDetails(authentication.getDetails());*/
-        
         CustomAuthenticationToken customAuthToken = new CustomAuthenticationToken(user, password, 
         		user.getAuthorities(), user.getAuthGroups());
         customAuthToken.setDetails(authentication.getDetails());
