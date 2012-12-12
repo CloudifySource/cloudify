@@ -16,9 +16,8 @@
 package org.cloudifysource.rest.security;
 
 import java.io.Serializable;
+import java.util.logging.Logger;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 
@@ -31,14 +30,14 @@ import org.springframework.security.core.Authentication;
  */
 public class CustomApproveAllPermissionEvaluator implements PermissionEvaluator {
 
-	private final Log logger = LogFactory.getLog(getClass());
+	private Logger logger = java.util.logging.Logger.getLogger(CustomApproveAllPermissionEvaluator.class.getName());
 
 	/**
 	 * @return true always
 	 */
 	@Override
 	public boolean hasPermission(final Authentication authentication, final Object target, final Object permission) {
-		logger.warn("Grant user " + authentication.getName() + " permission '" + permission + "' on object " + target);
+		logger.fine("Grant user " + authentication.getName() + " permission '" + permission + "' on object " + target);
 		return true;
 	}
 
@@ -48,7 +47,7 @@ public class CustomApproveAllPermissionEvaluator implements PermissionEvaluator 
 	@Override
 	public boolean hasPermission(final Authentication authentication, final Serializable targetId, final String targetType,
 			Object permission) {
-		logger.warn("Grant user " + authentication.getName() + " permission '" + permission + "' on object with Id '"
+		logger.fine("Grant user " + authentication.getName() + " permission '" + permission + "' on object with Id '"
 				+ targetId);
 		return true;
 	}

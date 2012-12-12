@@ -20,6 +20,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.aopalliance.intercept.MethodInvocation;
 import org.cloudifysource.dsl.rest.ApplicationDescription;
@@ -57,6 +59,8 @@ public class ExtendedMethodSecurityExpressionHandler extends
 	private ExpressionParser expressionParser = new SpelExpressionParser();
 	private RoleHierarchy roleHierarchy;
 
+	private Logger logger = java.util.logging.Logger.getLogger(ExtendedMethodSecurityExpressionHandler.class.getName());
+	
 	/**
 	 * Uses a {@link CustomMethodSecurityEvaluationContext} as the
 	 * <tt>EvaluationContext</tt> implementation and configures it with a
@@ -114,8 +118,8 @@ public class ExtendedMethodSecurityExpressionHandler extends
 		CustomMethodSecurityExpressionRoot rootObject = (CustomMethodSecurityExpressionRoot) ctx
 				.getRootObject().getValue();
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("Filtering with expression: "
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Filtering with expression: "
 					+ filterExpression.getExpressionString());
 		}
 

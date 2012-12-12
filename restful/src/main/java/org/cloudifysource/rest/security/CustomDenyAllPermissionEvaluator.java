@@ -16,9 +16,8 @@
 package org.cloudifysource.rest.security;
 
 import java.io.Serializable;
+import java.util.logging.Logger;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 
@@ -30,14 +29,14 @@ import org.springframework.security.core.Authentication;
  */
 public class CustomDenyAllPermissionEvaluator implements PermissionEvaluator {
 
-    private final Log logger = LogFactory.getLog(getClass());
+	private Logger logger = java.util.logging.Logger.getLogger(CustomDenyAllPermissionEvaluator.class.getName());
 
     /**
      * @return false always
      */
     @Override
 	public boolean hasPermission(Authentication authentication, Object target, Object permission) {
-        logger.warn("Denying user " + authentication.getName() + " permission '" + permission + "' on object " + target);
+        logger.fine("Denying user " + authentication.getName() + " permission '" + permission + "' on object " + target);
         return false;
     }
 
@@ -47,7 +46,7 @@ public class CustomDenyAllPermissionEvaluator implements PermissionEvaluator {
     @Override
 	public boolean hasPermission(Authentication authentication, Serializable targetId, String targetType,
                     Object permission) {
-        logger.warn("Denying user " + authentication.getName() + " permission '" + permission + "' on object with Id '"
+        logger.fine("Denying user " + authentication.getName() + " permission '" + permission + "' on object with Id '"
                         + targetId);
         return false;
     }

@@ -1,9 +1,8 @@
 package org.cloudifysource.rest.security;
 
 import java.util.Collection;
+import java.util.logging.Logger;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.core.GrantedAuthority;
@@ -11,7 +10,6 @@ import org.springframework.security.core.authority.GrantedAuthorityImpl;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.ldap.ppolicy.PasswordPolicyControl;
 import org.springframework.security.ldap.ppolicy.PasswordPolicyResponseControl;
-import org.springframework.security.ldap.userdetails.LdapUserDetailsMapper;
 import org.springframework.util.Assert;
 
 /**
@@ -23,7 +21,7 @@ import org.springframework.util.Assert;
 public class CustomLdapUserDetailsMapper {
 	//~ Instance fields ================================================================================================
 
-    private final Log logger = LogFactory.getLog(LdapUserDetailsMapper.class);
+    private Logger logger = java.util.logging.Logger.getLogger(CustomLdapUserDetailsMapper.class.getName());
     private String passwordAttributeName = "userPassword";
     private String[] roleAttributes = null;
     private boolean convertToUpperCase = true;
@@ -40,7 +38,8 @@ public class CustomLdapUserDetailsMapper {
     		final Collection<GrantedAuthority> authorities, final Collection<String> authGroups) {
         String dn = ctx.getNameInNamespace();
 
-        logger.debug("Mapping user details from context with DN: " + dn);
+        logger.finest("CustomLdapUserDetailsMapper: mapUserFromContext");
+        logger.fine("Mapping user details from context with DN: " + dn);
 
         ExtendedLdapUserDetailsImpl.ExtendedEssence essence = new ExtendedLdapUserDetailsImpl.ExtendedEssence();
         essence.setDn(dn);
@@ -58,7 +57,7 @@ public class CustomLdapUserDetailsMapper {
             String[] rolesForAttribute = ctx.getStringAttributes(roleAttributes[i]);
 
             if (rolesForAttribute == null) {
-                logger.debug("Couldn't read role attribute '" + roleAttributes[i] + "' for user " + dn);
+                logger.fine("Couldn't read role attribute '" + roleAttributes[i] + "' for user " + dn);
                 continue;
             }
 

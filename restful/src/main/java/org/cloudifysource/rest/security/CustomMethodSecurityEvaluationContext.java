@@ -16,6 +16,7 @@
 package org.cloudifysource.rest.security;
 
 import java.lang.reflect.Method;
+import java.util.logging.Logger;
 
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
@@ -27,7 +28,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.security.core.Authentication;
 
 public class CustomMethodSecurityEvaluationContext extends StandardEvaluationContext {
-	private static Log logger = LogFactory.getLog(CustomMethodSecurityEvaluationContext.class);
+	 private Logger logger = java.util.logging.Logger.getLogger(CustomMethodSecurityEvaluationContext.class.getName());
 
     private ParameterNameDiscoverer parameterNameDiscoverer;
     private boolean argumentsAdded;
@@ -79,7 +80,7 @@ public class CustomMethodSecurityEvaluationContext extends StandardEvaluationCon
         String[] paramNames = parameterNameDiscoverer.getParameterNames(method);
 
         if (paramNames == null) {
-            logger.warn("Unable to resolve method parameter names for method: " + method
+            logger.warning("Unable to resolve method parameter names for method: " + method
                     + ". Debug symbol information is required if you are using parameter names in expressions.");
             return;
         }

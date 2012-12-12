@@ -29,7 +29,7 @@ public class CustomAuthenticationToken extends UsernamePasswordAuthenticationTok
 	public CustomAuthenticationToken(final Object principal, final Object credentials, 
 			final Collection<? extends GrantedAuthority> authorities, final Collection <String> authGroups) {
 		super(principal, credentials, authorities);
-		
+		logger.finest("CustomAuthenticationToken : constructor");
 		//set authGroups
 		if (authGroups == null) {
             this.authGroups = new ArrayList<String>();

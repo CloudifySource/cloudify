@@ -48,6 +48,7 @@ public class CustomLdapAuthenticationProvider implements AuthenticationProvider 
     public CustomLdapAuthenticationProvider(final LdapAuthenticator authenticator,
     		final LdapAuthoritiesPopulator authoritiesPopulator,
     		final LdapAuthGroupsPopulator authGroupsPopulator) {
+    	logger.finest("CustomLdapAuthenticationProvider : constructor");
         this.setAuthenticator(authenticator);
         this.setAuthoritiesPopulator(authoritiesPopulator);
         this.setAuthGroupsPopulator(authGroupsPopulator);
@@ -131,6 +132,8 @@ public class CustomLdapAuthenticationProvider implements AuthenticationProvider 
         Assert.isInstanceOf(UsernamePasswordAuthenticationToken.class, authentication,
             messages.getMessage("AbstractUserDetailsAuthenticationProvider.onlySupports",
                 "Only UsernamePasswordAuthenticationToken is supported"));
+        
+        logger.finest("CustomLdapAuthenticationProvider: authenticate");
 
         final UsernamePasswordAuthenticationToken userToken = (UsernamePasswordAuthenticationToken) authentication;
 
@@ -207,6 +210,8 @@ public class CustomLdapAuthenticationProvider implements AuthenticationProvider 
      */
     protected Authentication createSuccessfulAuthentication(final UsernamePasswordAuthenticationToken authentication,
             final ExtendedLdapUserDetailsImpl user) {
+    	
+    	logger.finest("CustomLdapAuthenticationProvider : createSuccessfulAuthentication");
         Object password = useAuthenticationRequestCredentials ? authentication.getCredentials() : user.getPassword();
 
         CustomAuthenticationToken customAuthToken = new CustomAuthenticationToken(user, password, 

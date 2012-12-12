@@ -43,8 +43,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 public class CustomPermissionEvaluator implements PermissionEvaluator {
 	
-	// TODO [noak] : use authority groups and not roles
-	
+	private static final String LOCALCLOUD = "localcloud";
 	private static final String PERMISSION_TO_DEPLOY = "deploy";
 	private static final String PERMISSION_TO_VIEW = "view";
 	private static final String AUTH_GROUPS_DELIMITER = ",";
@@ -86,12 +85,20 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 			return true;
 		}
 		
-		if (logger.isLoggable(Level.FINEST)) {
-			logger.finest("Starting \"hasPermission\" for user: " + authDetails.getUsername());
-			logger.finest("with roles: " + collectionToDelimitedString(authDetails.getRoles(), ","));
-			logger.finest("and with authGroups: " + collectionToDelimitedString(authDetails.getAuthGroups(), ","));
-			logger.finest("requested permission: " + permission.toString());
-			logger.finest("on target authGroups: " + targetDomainObject.toString());
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Starting \"hasPermission\" for user: " + authDetails.getUsername());
+			if (authDetails.getRoles() == null) {
+				logger.fine("with roles: null,");
+			} else {
+				logger.fine("with roles: " + collectionToDelimitedString(authDetails.getRoles(), ","));
+			}
+			if (authDetails.getAuthGroups() == null) {
+				logger.fine("and with authGroups: null");
+			} else {
+				logger.fine("and with authGroups: " + collectionToDelimitedString(authDetails.getAuthGroups(), ","));
+			}
+			logger.fine("requested permission: " + permission.toString());
+			logger.fine("on target authGroups: " + targetDomainObject.toString());
 		}		
 		
 		boolean permissionGranted = false;
@@ -221,11 +228,22 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 			final String targetAuthGroupsStr, final String permissionName) {
 		
 		boolean permissionGranted = false;
-		Collection<String> userAuthGroups = authDetails.getAuthGroups();
-    	
+
+    	//if the target object has no auth-groups:
+		//if running on localcloud return true (it's probably a machine)
+		//otherwise - only cloud admins can view it.
+		if (StringUtils.isBlank(targetAuthGroupsStr)) {
+			if (isLocalCloud()) {
+				return true;
+			} else {
+				return (isCloudAdmin(authDetails.getRoles()));
+			}
+		}
+		
     	Collection<String> targetAuthGroups = 
     			org.cloudifysource.esc.util.StringUtils.splitAndTrimString(targetAuthGroupsStr, AUTH_GROUPS_DELIMITER);
-		
+    	
+    	Collection<String> userAuthGroups = authDetails.getAuthGroups();
 		if (permissionName.equalsIgnoreCase(PERMISSION_TO_VIEW)) {
 			if (hasPermissionToView(authDetails, targetAuthGroups)) {
 				permissionGranted = true;
@@ -256,11 +274,6 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 	 */
 	private boolean hasPermissionToView(final CloudifyAuthorizationDetails authDetails, 
 			final Collection<String> requestedAuthGroups) {
-		
-		//if authGroups were not defined for this object - only cloud admins can see it
-		if (requestedAuthGroups.isEmpty()) {
-			return (isCloudAdmin(authDetails.getRoles()));
-		}
 		
     	return hasAnyAuthGroup(authDetails, requestedAuthGroups);
     }
@@ -450,6 +463,11 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     	}
     	
     	return hasAdminRole;
+    }
+    
+    private boolean isLocalCloud() {
+    	String isLocalCloudStr = System.getenv(CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID);
+    	return LOCALCLOUD.equalsIgnoreCase(isLocalCloudStr);
     }
 
 }
