@@ -150,6 +150,13 @@ public interface AdminFacade {
      * @throws CLIException Reporting a failure to the connect to the server
      */
     void reconnect(String username, String password) throws CLIException;
+    
+    /**
+     * Verifies the logged in user is a CloudAdmin.
+     *
+     * @throws CLIException Reporting a failure to the connect to the server
+     */
+    void verifyCloudAdmin() throws CLIException;
 
 	/**
 	 * Disconnects from the server.

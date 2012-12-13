@@ -85,6 +85,12 @@ public class TeardownLocalCloud extends AbstractGSCommand {
 		if (!confirmTeardown()) {
 			return getFormattedMessage("teardown_aborted");
 		}
+		
+		if (this.adminFacade != null) {
+			adminFacade.verifyCloudAdmin();
+		} else {
+			((AdminFacade) session.get(Constants.ADMIN_FACADE)).verifyCloudAdmin();
+		}
 
 		final LocalhostGridAgentBootstrapper installer = new LocalhostGridAgentBootstrapper();
 		installer.setVerbose(verbose);

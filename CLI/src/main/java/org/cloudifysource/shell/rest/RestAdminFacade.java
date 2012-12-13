@@ -106,6 +106,18 @@ public class RestAdminFacade extends AbstractAdminFacade {
             throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
         }
     }
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void verifyCloudAdmin() throws CLIException {
+		try {
+            client.get(SERVICE_CONTROLLER_URL + "verifyCloudAdmin");
+        } catch (final ErrorStatusException e) {
+            throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+        }
+	}
 
 	
 	/**

@@ -69,9 +69,15 @@ public class TeardownCloud extends AbstractGSCommand {
 	@Override
 	protected Object doExecute() throws Exception {
 
-        if (!confirmTeardown()) {
+		if (!confirmTeardown()) {
             return getFormattedMessage("teardown_aborted");
         }
+		
+		if (this.adminFacade != null) {
+			adminFacade.verifyCloudAdmin();
+		} else {
+			((AdminFacade) session.get(Constants.ADMIN_FACADE)).verifyCloudAdmin();
+		}
 
 		CloudGridAgentBootstrapper installer = new CloudGridAgentBootstrapper();
 

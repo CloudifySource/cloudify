@@ -685,9 +685,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	/**
 	 * Tests whether the authentication was successful.
 	 * 
-	 * @return - Map<String, Object> object containing the test results.
+	 * @return - Map<String, Object> object containing the login results.
 	 * @throws RestErrorException
-	 *             When lookup service not found.
+	 *             When login fails.
 	 */
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
@@ -705,6 +705,27 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		logger.finer("User " + authentication.getName() + " logged in.");
+		return successStatus();
+	}
+	
+	/**
+	 * Verifies the authenticated user has role ROLE_CLOUDADMIINS.
+	 * 
+	 * @return - Map<String, Object> object containing the test results.
+	 * @throws RestErrorException
+	 *             When the calling user does not have role ROLE_CLOUDADMIINS.
+	 */
+	@PossibleResponseStatuses(responseStatuses = {
+			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
+			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "User is not a CloudAdmin") })
+	@JsonResponseExample(status = "error", responseBody = "{\"error\":\"User is not a CloudAdmin\","
+			+ " \"error_args\":[[\"localcloud\"],[\"jini://127.0.0.1:4172/\"]]}",
+			comments = "response status is success if the user user has role ROLE_CLOUDADMIINS"
+					+ ", otherwise it is error and the response's body will contain the error description.")
+	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
+	@RequestMapping(value = "/verifyCloudAdmin", method = RequestMethod.GET)
+	@ResponseBody
+	public Object verifyCloudAdmin() throws RestErrorException {
 		return successStatus();
 	}
 

@@ -37,6 +37,7 @@ public interface ResponseConstants {
 	String MACHINE_NOT_FOUND = "machine_not_found";
 	String DUMP_FILE_TOO_LARGE = "dump_file_too_large";
 	String FAILED_TO_LOGIN = "failed_to_login";
+	String USER_IS_NOT_CLOUDADMIN = "user_is_not_cloudadmin";
 	String APPLICATION_NAME_IS_ALREADY_IN_USE = "application_name_is_already_in_use";
 	
 	
