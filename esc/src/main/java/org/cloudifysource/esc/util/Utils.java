@@ -175,7 +175,7 @@ public final class Utils {
 	 * @param keystorePassword
 	 *            The password to the keystore set on the rest server
 	 * @param authGroups
-	 * 			  The authentication groups attached to the GSA as an environment variable {@link CloudifyConstants#GIGASPACES_AUTH_GROUP}
+	 * 			  The authentication groups attached to the GSA as an environment variable {@link CloudifyConstants#GIGASPACES_AUTH_GROUPS}
 	 * @return the installation details.
 	 * @throws FileNotFoundException
 	 *             if a key file is specified and is not found.

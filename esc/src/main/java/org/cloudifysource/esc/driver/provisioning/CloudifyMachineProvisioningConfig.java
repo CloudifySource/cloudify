@@ -85,13 +85,12 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 
 	private StringProperties properties = new StringProperties(new HashMap<String, String>());
 
-	/****************
-	 * Constructor.
+	/**
 	 * 
 	 * @param cloud .
 	 * @param template .
-	 * @param cloudFileContents .
 	 * @param cloudTemplateName .
+	 * @param managementTemplateRemoteDirectory .
 	 */
 	public CloudifyMachineProvisioningConfig(final Cloud cloud, final CloudTemplate template,
 			final String cloudTemplateName, final String managementTemplateRemoteDirectory) {

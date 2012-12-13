@@ -27,12 +27,12 @@ import com.j_spaces.kernel.Environment;
  * @author elip
  * 
  * 
- * 	
+ * <br><br>	
  * resolves a given file using the following strategy : <br>
- * 1. if the file is absolute, check for existence. <br>
- * 2. if not, check for the relative path under the current directory. <br>
- * 3. otherwise, check for the relative path under the default location. <br>
- * @return - true if the lookup strategy found a file, false otherwise.
+ * <h1>	1. if the file is absolute, check for existence.</h1> <br>
+ * <h1>	2. if not, check for the relative path under the current directory.</h1> <br>
+ * <h1>	3. otherwise, check for the relative path under the default location.</h1> <br>
+ * 
  * 
  *
  */

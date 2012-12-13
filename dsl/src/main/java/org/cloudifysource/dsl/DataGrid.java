@@ -24,7 +24,7 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
  * 
  * In order to deploy mirror based services, use this processing unit type.
  * 
- * @see ElasticSpaceDeployment
+ * @see org.openspaces.admin.space.ElasticSpaceDeployment
  * 
  * @author adaml
  * 

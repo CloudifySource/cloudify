@@ -25,7 +25,7 @@ import org.cloudifysource.dsl.internal.statistics.ThroughputAutoScalingStatistic
 /**
  * 
  * A helper DSL factory method for defining statistics calculations.
- * @see org.cloudifysource.dsl.internal.DSLReader#createCompilerConfiguration() for the "Statistics" static import
+ * @see {@link org.cloudifysource.dsl.internal.DSLReader#createCompilerConfiguration} for the "Statistics" static import
  * 
  * @author itaif
  * @since 2.1

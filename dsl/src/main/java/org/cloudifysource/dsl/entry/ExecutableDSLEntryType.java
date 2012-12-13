@@ -20,7 +20,7 @@ package org.cloudifysource.dsl.entry;
  * Types of executable DSL entry types.
  * 
  * @author barakme
- * @see 2.2.0
+ * @since 2.2.0
  * 
  */
 public enum ExecutableDSLEntryType {

@@ -46,10 +46,8 @@ public class ServiceNetwork implements Serializable {
 
 	}
 
-	/*********
-	 * Port number opened by this service.
-	 * 
-	 * @return
+	/**
+	 * @return the port number opened by this service.
 	 */
 	public int getPort() {
 		return port;

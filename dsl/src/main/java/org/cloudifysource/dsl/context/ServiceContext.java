@@ -86,7 +86,6 @@ public interface ServiceContext {
 
 	/**
 	 * @return true if running on localcloud, false otherwise
-	 * @author itaif
 	 * @since 2.1
 	 */
 	boolean isLocalCloud();
