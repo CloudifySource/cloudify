@@ -19,9 +19,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -161,7 +160,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 			try {
 				// this will actually create an empty props file.
 				FileAppender appender = new FileAppender("finalPropsFile.properties");
-				Map<File, String> filesToAppend = new HashMap<File, String>();
+				LinkedHashMap<File, String> filesToAppend = new LinkedHashMap<File, String>();
 				
 				// first add the application properties file. least important overrides.
 				// lookup application properties file

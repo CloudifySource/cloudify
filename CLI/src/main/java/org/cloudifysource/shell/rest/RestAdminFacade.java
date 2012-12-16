@@ -652,31 +652,31 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	@SuppressWarnings("unchecked")
 	public Map<String, String> installApplication(final File applicationFile,
 			final String applicationName, final String authGroups, final int timeout,
-			final boolean selfHealing,
+			final boolean selfHealing, final File applicationOverrides,
 			final File cloudOverrides) throws CLIException {
 
-		Map<String, String> response;
 		String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/timeout/" + timeout
 				+ "?selfHealing=" + Boolean.toString(selfHealing);
 
+		Map<String, File> filesToPost = new HashMap<String, File>();
+		filesToPost.put("file", applicationFile);
+		filesToPost.put(CloudifyConstants.CLOUD_OVERRIDES_FILE_PARAM, cloudOverrides);
+		filesToPost.put(CloudifyConstants.APPLICATION_OVERRIDES_FILE_PARAM, applicationOverrides);
+	
 		try {
 			if (org.apache.commons.lang.StringUtils.isBlank(authGroups)) {
-				response = (Map<String, String>) client.postFile(url, applicationFile, null/* props */ 
-						, null/* params */, cloudOverrides);
-			} else {
-				Map<String, String> paramsMap = new HashMap<String, String>();
-				paramsMap.put("authGroups", authGroups);
-				response = (Map<String, String>) client.postFile(url, applicationFile, null/* props */
-						, paramsMap, cloudOverrides);
+				return (Map<String, String>) client.postFiles(url, null/* props */ 
+						, null/* params */, filesToPost);
 			}
+			Map<String, String> paramsMap = new HashMap<String, String>();
+			paramsMap.put("authGroups", authGroups);
+			return (Map<String, String>) client.postFiles(url, null/* props */
+					, paramsMap, filesToPost);
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		} catch (final RestException e) {
 			throw new CLIException(e);
 		}
-
-		return response;
-
 	}
 
 	@Override

@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -2661,19 +2662,24 @@ public class ServiceController implements ServiceDetailsProvider {
 
 			projectDir = ServiceReader.extractProjectFile(srcFile);
 			final File workingProjectDir = new File(projectDir, "ext");
+
+			if (overridesFile != null) {
+				// merge properties and overrides into one properties file.
+				final String propertiesFileName = DSLUtils.getPropertiesFileName(workingProjectDir, 
+						DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
+				final File propertiesFile = new File(workingProjectDir, propertiesFileName);
+				FileAppender appender = new FileAppender("serviceFinalPropertiesFile.properties");
+				LinkedHashMap<File, String> filesToAppend = new LinkedHashMap<File, String>();
+				filesToAppend.put(propertiesFile, "service proeprties file");
+				filesToAppend.put(overridesFile, "service overrides file");
+				appender.appendAll(propertiesFile, filesToAppend);			
+				editSrcFile = Packager.createZipFile("temp", projectDir);
+				//FileUtils.deleteQuietly(srcFile);
+				//editSrcFile.renameTo(srcFile);
+			}
+			
 			final String serviceFileName = propsFile
 					.getProperty(CloudifyConstants.CONTEXT_PROPERTY_SERVICE_FILE_NAME);
-
-			// merge properties and overrides into one properties file.
-			final String propertiesFileName = DSLUtils.getPropertiesFileName(workingProjectDir, 
-					DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
-			final File propertiesFile = new File(workingProjectDir, propertiesFileName);
-			FileAppender appender = new FileAppender("serviceFinalPropertiesFile.properties");
-			Map<File, String> filesToAppend = new HashMap<File, String>();
-			filesToAppend.put(propertiesFile, "service proeprties file");
-			filesToAppend.put(overridesFile, "service overrides file");
-			appender.appendAll(propertiesFile, filesToAppend);			
-			
 			DSLServiceCompilationResult result;
 			if (serviceFileName != null) {
 				result = ServiceReader.getServiceFromFile(new File(
@@ -2683,10 +2689,6 @@ public class ServiceController implements ServiceDetailsProvider {
 						.getServiceFromDirectory(workingProjectDir);
 			}
 			service = result.getService();
-			
-			editSrcFile = Packager.createZipFile("temp", projectDir);
-			//FileUtils.deleteQuietly(srcFile);
-			//editSrcFile.renameTo(srcFile);
 		}
 
 		validateTemplate(templateName);

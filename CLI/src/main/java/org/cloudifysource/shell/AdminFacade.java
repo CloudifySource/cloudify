@@ -68,6 +68,7 @@ public interface AdminFacade {
 	 * @param selfHealing
 	 *            True is recipe self healing should be enabled, false
 	 *            otherwise.
+	 * @param cloudOverrides 
 	 * @return A String-formatted list of the application's services' names, in
 	 *         the required installation order
 	 * @throws CLIException
@@ -77,7 +78,7 @@ public interface AdminFacade {
 	Map<String, String> installApplication(File applicationFile,
 			String applicationName, String authGroups, int timeout,
 			final boolean selfHealing, 
-			final File cloudOverrides)
+			final File applicationOverrides, File cloudOverrides)
 			throws CLIException;
 
 	/**

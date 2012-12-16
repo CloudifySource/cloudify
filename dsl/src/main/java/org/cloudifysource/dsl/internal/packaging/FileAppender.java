@@ -20,7 +20,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
-import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
@@ -81,7 +81,7 @@ public class FileAppender {
 	 * @param filesToAppend A map of files to append and comments.
 	 * @throws IOException .
 	 */
-	public void appendAll(final File dest, final Map<File, String> filesToAppend) 
+	public void appendAll(final File dest, final LinkedHashMap<File, String> filesToAppend) 
 			throws IOException {
 		for (Entry<File, String> fileEntry : filesToAppend.entrySet()) {
 			final File file = fileEntry.getKey();
