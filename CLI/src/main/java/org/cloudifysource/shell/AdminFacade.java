@@ -108,7 +108,7 @@ public interface AdminFacade {
 	String installElastic(File file, String applicationName,
 			String serviceName, String zone, Properties props,
 			final String templateName, final String authGroups, int timeout,
-			final boolean selfHealing, final File cloudOverrides)
+			final boolean selfHealing, final File cloudOverrides, final File serviceOverrides)
 			throws CLIException;
 
 	/**

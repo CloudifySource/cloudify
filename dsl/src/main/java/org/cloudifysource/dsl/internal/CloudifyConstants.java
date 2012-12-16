@@ -282,10 +282,12 @@ public final class CloudifyConstants {
 	public static final String TAB_CHAR = "\t";
 	
 	/**
-	 * RequestParam parameters names.
+	 * REST API parameters names.
 	 */
 	public static final String TEMPLATES_DIR_PARAM_NAME = "templatesFolder"; 
-	
+	public static final String SERVICE_OVERRIDES_FILE_PARAM = "serviceOverridesFile"; 
+	public static final String APPLICATION_OVERRIDES_FILE_PARAM = "recipeOverridesFile"; 
+
 	/**
 	 * Additional templates folder name.
 	 */

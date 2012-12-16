@@ -331,7 +331,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			final String zone, final Properties contextProperties,
 			final String templateName, final String authGroups,
 			final int timeout, final boolean selfHealing,
-			final File cloudOverrides) throws CLIException {
+			final File cloudOverrides, final File serviceOverrides) throws CLIException {
 
 		String response;
 		final String url = SERVICE_CONTROLLER_URL + "applications/"
@@ -339,12 +339,16 @@ public class RestAdminFacade extends AbstractAdminFacade {
 				+ timeout + "?zone=" + zone + "&template=" + templateName
 				+ "&selfHealing=" + Boolean.toString(selfHealing);
 		try {
+			Map<String, File> additionalFiles = new HashMap<String, File>();
+			additionalFiles.put("file", packedFile);
+			additionalFiles.put("cloudOverridesFile", cloudOverrides);
+			additionalFiles.put(CloudifyConstants.SERVICE_OVERRIDES_FILE_PARAM, serviceOverrides);
 			if (org.apache.commons.lang.StringUtils.isBlank(authGroups)) {
-            	response = (String) client.postFile(url, packedFile, contextProperties, cloudOverrides);
+            	response = (String) client.postFiles(url, contextProperties, null/*params*/, additionalFiles);
             } else {
             	Map<String, String> paramsMap = new HashMap<String, String>();
             	paramsMap.put("authGroups", authGroups);
-            	response = (String) client.postFile(url, packedFile, contextProperties, cloudOverrides, paramsMap);
+            	response = (String) client.postFiles(url, contextProperties, paramsMap, additionalFiles);
             }
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
@@ -657,11 +661,13 @@ public class RestAdminFacade extends AbstractAdminFacade {
 
 		try {
 			if (org.apache.commons.lang.StringUtils.isBlank(authGroups)) {
-				response = (Map<String, String>) client.postFile(url, applicationFile, cloudOverrides, null);
+				response = (Map<String, String>) client.postFile(url, applicationFile, null/* props */ 
+						, null/* params */, cloudOverrides);
 			} else {
 				Map<String, String> paramsMap = new HashMap<String, String>();
 				paramsMap.put("authGroups", authGroups);
-				response = (Map<String, String>) client.postFile(url, applicationFile, cloudOverrides, paramsMap);
+				response = (Map<String, String>) client.postFile(url, applicationFile, null/* props */
+						, paramsMap, cloudOverrides);
 			}
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
@@ -845,8 +851,8 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			Map<String, File> fileToPost = new HashMap<String, File>();
 			fileToPost.put(CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, templatesFile);
 			response = (List<String>) client.postFiles(url, fileToPost);
-		} catch (ErrorStatusException e) {
-			throw new CLIStatusException(e.getReasonCode(), e.getArgs());
+		} catch (RestException e) {
+			throw new CLIException(e);
 		}
 		return response;
 	}

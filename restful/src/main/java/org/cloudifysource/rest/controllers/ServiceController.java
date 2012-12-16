@@ -96,6 +96,8 @@ import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder;
 import org.cloudifysource.dsl.internal.packaging.FileAppender;
+import org.cloudifysource.dsl.internal.packaging.Packager;
+import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
 import org.cloudifysource.dsl.internal.tools.ServiceDetailsHelper;
 import org.cloudifysource.dsl.rest.ApplicationDescription;
@@ -1848,7 +1850,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final int timeout,
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
 			@RequestParam(value = "authGroups", required = false) final String authGroups,
-			@RequestParam(value = "recipeOverridesFile", required = false) final MultipartFile recipeOverridesFile,
+			@RequestParam(value = CloudifyConstants.APPLICATION_OVERRIDES_FILE_PARAM, required = false) 
+			final MultipartFile recipeOverridesFile,
 			@RequestParam(value = "cloudOverridesFile", required = false) final MultipartFile cloudOverrides,
 			@RequestParam(value = "selfHealing", required = false) final Boolean selfHealing)
 					throws IOException, DSLException, RestErrorException {
@@ -2601,6 +2604,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            	A file containing cloud override properties to be used by
 	 *            the cloud driver.
 	 * @return lifecycleEventContainerID.
+	 * @throws PackagingException 
 	 * @throws RestErrorException .
 	 * @throws TimeoutException .
 	 * @throws IOException .
@@ -2621,7 +2625,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final boolean selfHealing,
 			final File overridesFile,
 			final File cloudOverrides) throws TimeoutException, IOException,
-			DSLException, RestErrorException {
+			DSLException, RestErrorException, PackagingException {
 
 		if (cloudOverrides != null) {
 			if (cloudOverrides.length() >= TEN_K) {
@@ -2652,6 +2656,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		Service service = null;
 		File projectDir = null;
+		File editSrcFile = srcFile;
 		if (srcFile.getName().endsWith(".zip")) {
 
 			projectDir = ServiceReader.extractProjectFile(srcFile);
@@ -2660,24 +2665,14 @@ public class ServiceController implements ServiceDetailsProvider {
 					.getProperty(CloudifyConstants.CONTEXT_PROPERTY_SERVICE_FILE_NAME);
 
 			// merge properties and overrides into one properties file.
-			File serviceFile = DSLReader.findDefaultDSLFile(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX, workingProjectDir);
-			final String propertiesFileName = serviceFile.getName().split(".")[0] + DSLUtils.PROPERTIES_FILE_SUFFIX; 
+			final String propertiesFileName = DSLUtils.getPropertiesFileName(workingProjectDir, 
+					DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
 			final File propertiesFile = new File(workingProjectDir, propertiesFileName);
-			if (propertiesFile.exists() || overridesFile != null) {
-				File finalPropsFile = File.createTempFile("finalPropsFile", ".properties");
-				FileAppender appender = new FileAppender(finalPropsFile);
-				if (propertiesFile.exists()) {
-					appender.append("service proeprties file", propertiesFile);
-				}
-				if (overridesFile != null) {
-					appender.append("service overrides file", overridesFile);
-				}
-				appender.flush();
-				FileUtils.copyFile(finalPropsFile, propertiesFile);
-
-				finalPropsFile.delete();
-			}
-			
+			FileAppender appender = new FileAppender("serviceFinalPropertiesFile.properties");
+			Map<File, String> filesToAppend = new HashMap<File, String>();
+			filesToAppend.put(propertiesFile, "service proeprties file");
+			filesToAppend.put(overridesFile, "service overrides file");
+			appender.appendAll(propertiesFile, filesToAppend);			
 			
 			DSLServiceCompilationResult result;
 			if (serviceFileName != null) {
@@ -2688,6 +2683,10 @@ public class ServiceController implements ServiceDetailsProvider {
 						.getServiceFromDirectory(workingProjectDir);
 			}
 			service = result.getService();
+			
+			editSrcFile = Packager.createZipFile("temp", projectDir);
+			//FileUtils.deleteQuietly(srcFile);
+			//editSrcFile.renameTo(srcFile);
 		}
 
 		validateTemplate(templateName);
@@ -2701,13 +2700,13 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		if (service == null) {
 			doDeploy(applicationName, serviceName, effectiveAuthGroups, templateName, agentZones,
-					srcFile, propsFile, selfHealing, cloudOverrides);
+					editSrcFile, propsFile, selfHealing, cloudOverrides);
 		} else if (service.getLifecycle() != null) {
 			doDeploy(applicationName, serviceName, effectiveAuthGroups, templateName, agentZones,
-					srcFile, propsFile, service,
+					editSrcFile, propsFile, service,
 					serviceCloudConfigurationContents, selfHealing, cloudOverrides);
 		} else if (service.getDataGrid() != null) {
-			deployDataGrid(applicationName, serviceName, effectiveAuthGroups, agentZones, srcFile,
+			deployDataGrid(applicationName, serviceName, effectiveAuthGroups, agentZones, editSrcFile,
 					propsFile, service.getDataGrid(), templateName,
 					service.isLocationAware(), cloudOverrides);
 		} else if (service.getStatelessProcessingUnit() != null) {
@@ -2790,6 +2789,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            	A file containing override parameters to be used by the cloud driver.
 	 * @param selfHealing .
 	 * @return status - success (error) and response - lifecycle events container id (error description)
+	 * @throws PackagingException 
 	 * @throws DSLException .
 	 * @throws RestErrorException .
 	 * @throws TimeoutException .
@@ -2818,11 +2818,12 @@ public class ServiceController implements ServiceDetailsProvider {
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
 			@RequestParam(value = "props", required = true) final MultipartFile propsFile,
 			@RequestParam(value = "authGroups", required = false) final String authGroups,
-			@RequestParam(value = "serviceOverridesFile", required = false) final MultipartFile serviceOverridesFile,
+			@RequestParam(value = CloudifyConstants.SERVICE_OVERRIDES_FILE_PARAM, required = false) 
+			final MultipartFile serviceOverridesFile,
 			@RequestParam(value = "cloudOverridesFile", required = false) final MultipartFile cloudOverridesFile, 
 			@RequestParam(value = "selfHealing", required = false, defaultValue = "true") final Boolean selfHealing)
 					throws TimeoutException, IOException,
-					DSLException, RestErrorException {
+					DSLException, RestErrorException, PackagingException {
 
 		logger.info("Deploying service with template: " + templateName);
 		String actualTemplateName = templateName;

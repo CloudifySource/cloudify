@@ -76,7 +76,7 @@ public final class Packager {
 			PackagingException, DSLException {
 		return pack(recipeDirOrFile, null);
 	}
-
+	
 	/*************
 	 * Pack a service recipe folder into a zip file.
 	 * 
@@ -506,7 +506,11 @@ public final class Packager {
 	 */
 	public static File createZipFile(final String zipFileName, final File packedDir) 
 			throws IOException {
-		final File zipFile = File.createTempFile(zipFileName, ".zip");
+		String shortName = zipFileName;
+		if (zipFileName.endsWith(".zip")) {
+			shortName = zipFileName.split("//.zip")[0];
+		}
+		final File zipFile = File.createTempFile(shortName, ".zip");
 		zipFile.deleteOnExit();
 		ZipUtils.zip(packedDir, zipFile);
 		logger.finer("zipped folder successfully to " + zipFile.getAbsolutePath());

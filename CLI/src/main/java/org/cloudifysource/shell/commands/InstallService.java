@@ -34,7 +34,6 @@ import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.ServiceReader;
-import org.cloudifysource.dsl.internal.packaging.FileAppender;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
@@ -172,43 +171,9 @@ public class InstallService extends AdminAwareCommand {
 				} else {
 					recipeFile = DSLReader.findDefaultDSLFile(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX, recipe);
 				}
-				final DSLReader dslReader = createDslReader(recipeFile);
-				service = dslReader.readDslEntity(Service.class);
-
-				// lookup service properties file
-				File servicePropertiesFile = new File(recipe, service.getName() + "-service" 
-							+ DSLUtils.PROPERTIES_FILE_SUFFIX);
-
-				/* 
-				 * name the merged properties file as the original properties file.
-				 * this will allow all properties to be available by anyone who parses the default
-				 * properties file. (like Lifecycle scripts) 
-				 */ 
-				
-				File tempFile = File.createTempFile("__cloudify", "");
-				String tempFileName = tempFile.getName();
-				tempFile.delete();
-				// create the file in a unique folder under the temp directory
-				File uniqueFolder = new File(TEMP_FOLDER + File.separator + tempFileName);
-				uniqueFolder.mkdir();
-				File finalPropsFile = new File(uniqueFolder, 
-						servicePropertiesFile.getName());
-				finalPropsFile.deleteOnExit();
-				
-				// this will actually create an empty props file.
-				FileAppender appender = new FileAppender(finalPropsFile);
-				
-				if (overrides != null) {
-					// merge the service properties file with the overrides file.
-					appender.append("Service Properties File", servicePropertiesFile);
-					appender.append("Overrides Properties File", overrides);
-					appender.flush();
-					additionFiles.add(finalPropsFile);
-				}
-				packedFile = Packager.pack(recipeFile, false, service,
-						additionFiles);
+				service = ServiceReader.readService(recipeFile, recipe, null, null, null, false, overrides);
+				packedFile = Packager.pack(recipeFile, false, service, additionFiles);
 				packedFile.deleteOnExit();
-				finalPropsFile.delete();
 			} else {
 				// serviceFile is a zip file
 				packedFile = recipe;
@@ -258,7 +223,7 @@ public class InstallService extends AdminAwareCommand {
 			final String lifecycleEventContainerPollingID = adminFacade
 					.installElastic(packedFile, currentApplicationName,
 							serviceName, zone, props, templateName, authGroups,
-							getTimeoutInMinutes(), !disableSelfHealing, cloudOverrides);
+							getTimeoutInMinutes(), !disableSelfHealing, cloudOverrides, overrides);
 
 			pollForLifecycleEvents(lifecycleEventContainerPollingID);
 
@@ -306,16 +271,6 @@ public class InstallService extends AdminAwareCommand {
 				}
 			}
 		}
-	}
-
-	private DSLReader createDslReader(final File recipeFile) {
-		final DSLReader dslReader = new DSLReader();
-		dslReader.setDslFile(recipeFile);
-		dslReader.setWorkDir(recipeFile.getParentFile());
-		dslReader.setRunningInGSC(true);
-		dslReader.setOverridesFile(overrides);
-		dslReader.setDslFileNameSuffix(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
-		return dslReader;
 	}
 
 	private boolean promptWouldYouLikeToContinueQuestion() throws IOException {

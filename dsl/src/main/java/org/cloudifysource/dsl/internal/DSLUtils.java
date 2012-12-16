@@ -158,6 +158,28 @@ public final class DSLUtils {
 	}
 
 	/**
+	 * If dsl file name is tomcat-service.groovy than the properties file name expected to be 
+	 * tomcat-service.properties.
+	 * @param dslDirectory .
+	 * @param fileNameSuffix .
+	 * @return The expected properties file name.
+	 */
+	public static String getPropertiesFileName(final File dslDirectory, final String fileNameSuffix) {
+		File dslFile = DSLReader.
+				findDefaultDSLFile(fileNameSuffix, dslDirectory);
+		if (dslFile == null) {
+			throw new IllegalArgumentException("DslUtils.getPropertiesFileName - a file with the given suffix [" 
+					+ fileNameSuffix + "] doesn't exist in " + dslDirectory + ".");
+		}
+		final String[] split = dslFile.getName().split("\\.");
+		if (split.length == 0) {
+			throw new IllegalArgumentException("DslUtils.getPropertiesFileName - file name [" 
+					+ dslFile.getName() + "] doesn't contain '.'");
+		}
+		return split[0] + PROPERTIES_FILE_SUFFIX;
+	}
+	
+	/**
 	 * Change the name of the file's prefix to template's name.
 	 * @param file the template's file.
 	 * @param templateName the template's name.

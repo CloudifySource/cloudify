@@ -19,7 +19,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -157,52 +159,36 @@ public class ApplicationInstallerRunnable implements Runnable {
 			boolean found = false;
 			
 			try {
+				// this will actually create an empty props file.
+				FileAppender appender = new FileAppender("finalPropsFile.properties");
+				Map<File, String> filesToAppend = new HashMap<File, String>();
 				
+				// first add the application properties file. least important overrides.
 				// lookup application properties file
-				File applicationPropertiesFile = DSLReader.
-						findDefaultDSLFileIfExists(DSLUtils.APPLICATION_PROPERTIES_FILE_NAME, appDir);
-				
-				File serviceFile = DSLReader.
-						findDefaultDSLFile(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX, serviceDirectory);
-				
-				final String serviceNameByServiceFile = serviceFile.getName().split("-")[0];
-
+				File applicationPropertiesFile = 
+						DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_PROPERTIES_FILE_NAME, appDir);
+				filesToAppend.put(applicationPropertiesFile, "Application Properties File");
+				// add the service properties file, second level overrides.
+				// lookup service properties file
+				String propertiesFileName = DSLUtils.getPropertiesFileName(serviceDirectory, 
+						DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
+				File servicePropertiesFile = new File(serviceDirectory, propertiesFileName);
+				filesToAppend.put(servicePropertiesFile, "Service Properties File");
+				// lookup overrides file
+				File actualOverridesFile = overridesFile;
+				if (actualOverridesFile == null) {
+						// when using the CLI, the application overrides file is inside the directory
+						actualOverridesFile = 
+								DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_OVERRIDES_FILE_NAME, appDir);
+				}
+				// add the overrides file given in the command or via REST, most important overrides.
+				filesToAppend.put(actualOverridesFile, "Overrides Properties File");
 				/* 
 				 * name the merged properties file as the original properties file.
 				 * this will allow all properties to be available by anyone who parses the default
 				 * properties file. (like Lifecycle scripts) 
 				 */
-				File finalPropsFile = File.createTempFile("finalPropsFile", ".properties");
-				// this will actually create an empty props file.
-				FileAppender appender = new FileAppender(finalPropsFile);
-				if (applicationPropertiesFile != null && applicationPropertiesFile.exists()) {
-					// first add the application properties file. least important overrides.
-					appender.append("Application Properties File", applicationPropertiesFile);
-				}
-				// lookup service properties file
-				String propertiesFileName = serviceNameByServiceFile + "-service" + DSLUtils.PROPERTIES_FILE_SUFFIX;
-				File servicePropertiesFile = new File(serviceDirectory, propertiesFileName);
-				// no need for a null check, see above.
-				if (servicePropertiesFile.exists()) {
-					// add the service properties file, second level overrides.
-					appender.append("Service Properties File", servicePropertiesFile);
-					servicePropertiesFile.delete();
-				}
-				// lookup overrides file
-				File actualOverridesFile = overridesFile;
-				if (actualOverridesFile == null) {
-						// when using the CLI, the application overrides file is inside the directory
-						actualOverridesFile = DSLReader.
-									findDefaultDSLFileIfExists(DSLUtils.APPLICATION_OVERRIDES_FILE_NAME, appDir);
-				}
-				if (actualOverridesFile != null && actualOverridesFile.exists()) {
-					// add the overrides file given in the command or via REST, most important overrides.
-					appender.append("Overrides properties file", actualOverridesFile);
-				}
-				
-				appender.flush();
-				FileUtils.copyFile(finalPropsFile, new File(serviceDirectory, propertiesFileName));
-				finalPropsFile.delete();
+				appender.appendAll(servicePropertiesFile, filesToAppend);
 				
 				// Pack the folder and name it absolutePuName	
 				File packedFile = Packager.pack(service, serviceDirectory, absolutePUName, null);
