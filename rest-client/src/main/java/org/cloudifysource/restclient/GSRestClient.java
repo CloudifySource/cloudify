@@ -597,7 +597,7 @@ public class GSRestClient {
 	 *             Reporting failure to post the file.
 	 */
 	public final Object postFile(final String relativeUrl, final File file) throws RestException {
-		return postFile(relativeUrl, file, null/* props */, null/* cloudOverrides */, new HashMap<String, String>());
+		return postFile(relativeUrl, file, null/* props */, null/* params */);
 	}
 
 	/**
@@ -613,23 +613,16 @@ public class GSRestClient {
 	 *             Reporting failure to post the file.
 	 */
 	public final Object postFile(final String relativeUrl, final File file, final Properties props,
-			final File cloudOverrides) throws RestException {
-		return postFile(relativeUrl, file, props, cloudOverrides, new HashMap<String, String>());
+			final Map<String, String> params, final File cloudOverrides) throws RestException {
+		Map<String, File> filesToPost = new HashMap<String, File>();
+		filesToPost.put("file", file);
+		filesToPost.put("cloudOverridesFile", cloudOverrides);
+		return postFiles(relativeUrl, props, params, filesToPost);
 	}
-
+	
 	public final Object postFiles(final String relativeUrl, Map<String, File> files)
-			throws ErrorStatusException {
-		final MultipartEntity reqEntity = new MultipartEntity();
-
-		for (Entry<String, File> entry : files.entrySet()) {
-			final FileBody bin = new FileBody(entry.getValue());
-			reqEntity.addPart(entry.getKey(), bin);
-		}
-
-		final HttpPost httppost = new HttpPost(getFullUrl(relativeUrl));
-		httppost.setEntity(reqEntity);
-
-		return executeHttpMethod(httppost);
+			throws RestException {
+		return postFiles(relativeUrl, null/*props*/,null/*params*/, files);
 	}
 
 	/**
@@ -652,14 +645,15 @@ public class GSRestClient {
 	 * @throws RestException
 	 *             Reporting failure to post the file.
 	 */
-	public final Object postFile(final String relativeUrl, final File file, final Properties props,
-			final File cloudOverrides, final Map<String, String> params)
+	public final Object postFiles(final String relativeUrl, final Properties props,
+			final Map<String, String> params, Map<String, File> additionalFiles)
 			throws RestException {
-
+		final MultipartEntity reqEntity = new MultipartEntity();
+		
 		// It should be possible to dump the properties into a String entity,
 		// but I can't get it to work. So using a temp file instead.
 		// Idiotic, but works.
-
+		
 		// dump map into file
 		File tempFile;
 		try {
@@ -667,20 +661,9 @@ public class GSRestClient {
 		} catch (final IOException e) {
 			throw new RestException(e);
 		}
-
-		final MultipartEntity reqEntity = new MultipartEntity();
-
-		FileBody cloudOverridesBody = null;
-		if (cloudOverrides != null) {
-			cloudOverridesBody = new FileBody(cloudOverrides);
-			reqEntity.addPart("cloudOverridesFile", cloudOverridesBody);
-		}
-		final FileBody bin = new FileBody(file);
 		final FileBody propsFile = new FileBody(tempFile);
-
-		reqEntity.addPart("file", bin);
 		reqEntity.addPart("props", propsFile);
-
+		
 		if (params != null) {
 			try {
 				for (Map.Entry<String, String> param : params.entrySet()) {
@@ -691,6 +674,15 @@ public class GSRestClient {
 			}
 		}
 
+		// add the rest of the files
+		for (Entry<String, File> entry : additionalFiles.entrySet()) {
+			final File file = entry.getValue();
+			if (file != null) {
+				final FileBody bin = new FileBody(file);
+				reqEntity.addPart(entry.getKey(), bin);
+			}
+		}
+		
 		final HttpPost httppost = new HttpPost(getFullUrl(relativeUrl));
 		httppost.setEntity(reqEntity);
 
@@ -715,51 +707,9 @@ public class GSRestClient {
 	 */
 	public final Object postFile(final String relativeUrl, final File file, final Properties props,
 			final Map<String, String> params) throws RestException {
-		return postFile(relativeUrl, file, props, null/* cloud overrides */, params);
-	}
-
-	/**
-	 * This methods executes HTTP post over REST on the given (relative) URL
-	 * with the given file and properties (also sent as a separate file).
-	 * 
-	 * @param relativeUrl
-	 *            The URL to post to.
-	 * @param file
-	 *            The file to send (example: <SOME PATH>/tomcat.zip).
-	 * @param cloudOverrides
-	 *            A file containing override properties to be used by the cloud
-	 *            driver upon installation.
-	 * @param params
-	 *            parameters as a map of names and values.
-	 * @return The response object from the REST server
-	 * @throws RestException
-	 *             Reporting failure to post the file or the parameter.
-	 */
-	public final Object postFile(final String relativeUrl, final File file, final File cloudOverrides,
-			final Map<String, String> params) throws RestException {
-
-		final MultipartEntity entity = new MultipartEntity();
-
-		FileBody cloudOverridesBody = null;
-		if (cloudOverrides != null) {
-			cloudOverridesBody = new FileBody(cloudOverrides);
-			entity.addPart("cloudOverridesFile", cloudOverridesBody);
-		}
-
-		entity.addPart("file", new FileBody(file));
-		if (params != null) {
-			try {
-				for (Map.Entry<String, String> param : params.entrySet()) {
-					entity.addPart(param.getKey(), new StringBody(param.getValue(), Charset.forName("UTF-8")));
-				}
-			} catch (final IOException e) {
-				throw new RestException(e);
-			}
-		}
-		final HttpPost httppost = new HttpPost(getFullUrl(relativeUrl));
-		httppost.setEntity(entity);
-
-		return executeHttpMethod(httppost);
+		Map<String, File> additionalFiles = new HashMap<String, File>();
+		additionalFiles.put("file", file);
+		return postFiles(relativeUrl, props, params, additionalFiles);
 	}
 
 	/**

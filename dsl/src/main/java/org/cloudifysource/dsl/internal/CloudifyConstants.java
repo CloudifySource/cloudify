@@ -178,6 +178,7 @@ public final class CloudifyConstants {
 	public static final String USM_LIB_DIR = "usmlib";
 	public static final String SERVICE_EXTERNAL_FOLDER = "/ext/";
 	public static final String SERVICE_CLOUD_CONFIGURATION_FILE_NAME = "__Cloud_Configuration.zip";
+	public static final String TEMP_FOLDER = System.getProperty("java.io.tmpdir");
 
 	/***************
 	 * Reason codes for rest exceptions
@@ -281,10 +282,13 @@ public final class CloudifyConstants {
 	public static final String TAB_CHAR = "\t";
 	
 	/**
-	 * RequestParam parameters names.
+	 * REST API parameters names.
 	 */
 	public static final String TEMPLATES_DIR_PARAM_NAME = "templatesFolder"; 
-	
+	public static final String SERVICE_OVERRIDES_FILE_PARAM = "serviceOverridesFile"; 
+	public static final String APPLICATION_OVERRIDES_FILE_PARAM = "recipeOverridesFile"; 
+	public static final String CLOUD_OVERRIDES_FILE_PARAM = "cloudOverridesFile"; 
+
 	/**
 	 * Additional templates folder name.
 	 */

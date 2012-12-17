@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
@@ -49,8 +50,6 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 	private static final int SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES = 60;
 	
-	private static final String TEMP_FOLDER = System.getProperty("java.io.tmpdir");
-
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(ApplicationInstallerRunnable.class.getName());
 
@@ -159,67 +158,36 @@ public class ApplicationInstallerRunnable implements Runnable {
 			boolean found = false;
 			
 			try {
+				// this will actually create an empty props file.
+				FileAppender appender = new FileAppender("finalPropsFile.properties");
+				LinkedHashMap<File, String> filesToAppend = new LinkedHashMap<File, String>();
 				
+				// first add the application properties file. least important overrides.
 				// lookup application properties file
-				File applicationPropertiesFile = DSLReader.
-						findDefaultDSLFileIfExists(DSLUtils.APPLICATION_PROPERTIES_FILE_NAME, appDir);
-				
-				File serviceFile = DSLReader.
-						findDefaultDSLFile(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX, serviceDirectory);
-				final String serviceNameByServiceFile = serviceFile.getName().split("-")[0];
-				
+				File applicationPropertiesFile = 
+						DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_PROPERTIES_FILE_NAME, appDir);
+				filesToAppend.put(applicationPropertiesFile, "Application Properties File");
+				// add the service properties file, second level overrides.
 				// lookup service properties file
-				File servicePropertiesFile = new File(serviceDirectory, serviceNameByServiceFile + "-service" 
-							+ DSLUtils.PROPERTIES_FILE_SUFFIX);		
-
+				String propertiesFileName = DSLUtils.getPropertiesFileName(serviceDirectory, 
+						DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
+				File servicePropertiesFile = new File(serviceDirectory, propertiesFileName);
+				filesToAppend.put(servicePropertiesFile, "Service Properties File");
 				// lookup overrides file
 				File actualOverridesFile = overridesFile;
-					if (actualOverridesFile == null) {
+				if (actualOverridesFile == null) {
 						// when using the CLI, the application overrides file is inside the directory
-						actualOverridesFile = DSLReader.
-									findDefaultDSLFileIfExists(DSLUtils.APPLICATION_OVERRIDES_FILE_NAME, appDir);
+						actualOverridesFile = 
+								DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_OVERRIDES_FILE_NAME, appDir);
 				}
-				
+				// add the overrides file given in the command or via REST, most important overrides.
+				filesToAppend.put(actualOverridesFile, "Overrides Properties File");
 				/* 
 				 * name the merged properties file as the original properties file.
 				 * this will allow all properties to be available by anyone who parses the default
 				 * properties file. (like Lifecycle scripts) 
-				 */ 
-				
-				File tempFile = File.createTempFile("__cloudify", ".props");
-				tempFile.deleteOnExit();
-				String tempFileName = tempFile.getName();
-				tempFile.delete();
-				// create the file in a unique folder under the temp directory
-				File uniqueFolder = new File(TEMP_FOLDER + File.separator + tempFileName);
-				uniqueFolder.mkdir();
-				File finalPropsFile = new File(uniqueFolder, 
-						servicePropertiesFile.getName());
-				finalPropsFile.deleteOnExit();
-				
-				// this will actually create an empty props file.
-				FileAppender appender = new FileAppender(finalPropsFile);
-
-				if (applicationPropertiesFile != null && applicationPropertiesFile.exists()) {
-					// first add the application properties file. least important overrides.
-					appender.append("Application Properties File", applicationPropertiesFile);
-				}
-				
-				// no need for a null check, see above.
-				if (servicePropertiesFile.exists()) {
-					// add the service properties file, second level overrides.
-					appender.append("Service Properties File", servicePropertiesFile);
-					servicePropertiesFile.delete();
-				}
-				
-				if (actualOverridesFile != null && actualOverridesFile.exists()) {
-					// add the overrides file given in the command or via REST, most important overrides.
-					appender.append("Overrides properties file", actualOverridesFile);
-				}
-				
-				appender.flush();
-				FileUtils.copyFileToDirectory(finalPropsFile, serviceDirectory);
-				finalPropsFile.delete();
+				 */
+				appender.appendAll(servicePropertiesFile, filesToAppend);
 				
 				// Pack the folder and name it absolutePuName	
 				File packedFile = Packager.pack(service, serviceDirectory, absolutePUName, null);
@@ -243,6 +211,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 						TimeUnit.SECONDS, 
 						serviceCloudConfigurationContents, 
 						selfHealing, 
+						null /* service overrides file */,
 						cloudOverrides);
 				try {
 					FileUtils.deleteDirectory(packedFile.getParentFile());

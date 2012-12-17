@@ -153,13 +153,7 @@ public class InstallApplication extends AdminAwareCommand {
 			if (cloudConfigurationZipFile != null) {
 				additionalServiceFiles.add(cloudConfigurationZipFile);
 			}
-			List<File> additionalApplicationFile = new LinkedList<File>();
-			if (overrides != null) {
-				additionalApplicationFile.add(DSLReader.copyOverridesFile(overrides,
-						dslReader.getDslName() + DSLUtils.APPLICATION_FILE_NAME_SUFFIX));
-			}
-			zipFile = Packager.packApplication(application, applicationFile
-					, additionalApplicationFile, additionalServiceFiles);
+			zipFile = Packager.packApplication(application, applicationFile, additionalServiceFiles);
 		}
 
 		// toString of string list (i.e. [service1, service2])
@@ -168,7 +162,7 @@ public class InstallApplication extends AdminAwareCommand {
 		final Map<String, String> result =
 				adminFacade.installApplication(zipFile, applicationName,
 						authGroups, getTimeoutInMinutes(), !disableSelfHealing,
-						cloudOverrides);
+						overrides, cloudOverrides);
 
 		final String serviceOrder = result.get(CloudifyConstants.SERVICE_ORDER);
 
