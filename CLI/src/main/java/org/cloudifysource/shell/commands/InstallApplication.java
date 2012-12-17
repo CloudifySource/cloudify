@@ -153,13 +153,7 @@ public class InstallApplication extends AdminAwareCommand {
 			if (cloudConfigurationZipFile != null) {
 				additionalServiceFiles.add(cloudConfigurationZipFile);
 			}
-			List<File> additionalApplicationFile = new LinkedList<File>();
-//			if (overrides != null) {
-//				additionalApplicationFile.add(DSLReader.copyOverridesFile(overrides,
-//						dslReader.getDslName() + DSLUtils.APPLICATION_FILE_NAME_SUFFIX));
-//			}
-			zipFile = Packager.packApplication(application, applicationFile
-					, additionalApplicationFile, additionalServiceFiles);
+			zipFile = Packager.packApplication(application, applicationFile, additionalServiceFiles);
 		}
 
 		// toString of string list (i.e. [service1, service2])

@@ -371,8 +371,7 @@ public final class Packager {
 	 */
 	public static File packApplication(final Application application,
 			final File applicationDir) throws IOException, PackagingException {
-		return packApplication(application, applicationDir,
-				new LinkedList<File>());
+		return packApplication(application, applicationDir, null);
 	}
 
 	/***************
@@ -391,35 +390,7 @@ public final class Packager {
 	 * @throws PackagingException
 	 *             PackagingException.
 	 */
-	public static File packApplication(final Application application,
-			final File applicationDir, final List<File> additionalServiceFiles)
-			throws IOException, PackagingException {
-		return packApplication(application, applicationDir, null,
-				additionalServiceFiles);
-	}
-
-	/***************
-	 * Packs an application folder into a zip file.
-	 * 
-	 * @param application
-	 *            the application object as read from the application file.
-	 * @param applicationDir
-	 *            the directory where the application was read from.
-	 * @param additionalApplicationFiles
-	 *            additional files that should be packaged into application
-	 *            folder.
-	 * @param additionalServiceFiles
-	 *            additional files that should be packaged into each service
-	 *            directory.
-	 * @return the packaged zip file.
-	 * @throws IOException
-	 *             IOException.
-	 * @throws PackagingException
-	 *             PackagingException.
-	 */
-	public static File packApplication(final Application application,
-			final File applicationDir,
-			final List<File> additionalApplicationFiles,
+	public static File packApplication(final Application application, final File applicationDir,
 			final List<File> additionalServiceFiles) throws IOException,
 			PackagingException {
 
@@ -448,20 +419,6 @@ public final class Packager {
 			// Pack the prepared folder instead of the original application
 			// folder.
 			applicationFolderToPack = destApplicationFolder;
-		}
-
-		if (additionalApplicationFiles != null
-				&& !(additionalApplicationFiles.isEmpty())) {
-			// if a copy directory was already created, use the existing one,
-			// otherwise
-			// create a new one.
-			if (applicationFolderToPack == applicationDir) {
-				applicationFolderToPack = createCopyDirectory(applicationFolderToPack);
-			}
-			for (File fileToCopy : additionalApplicationFiles) {
-				FileUtils.copyFileToDirectory(fileToCopy,
-						applicationFolderToPack);
-			}
 		}
 
 		if ((additionalServiceFiles != null)
