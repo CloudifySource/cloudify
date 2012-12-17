@@ -15,7 +15,13 @@
  ******************************************************************************/
 package org.cloudifysource.rest;
 
+import java.io.IOException;
+import java.security.InvalidParameterException;
+import java.util.HashMap;
+import java.util.Map;
+
 import junit.framework.Assert;
+
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.rest.controllers.AttributesController;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -34,12 +40,6 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
-
-import java.io.IOException;
-import java.security.InvalidParameterException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 /**
  * This class tests different calls (get/post) to the attributes controller web

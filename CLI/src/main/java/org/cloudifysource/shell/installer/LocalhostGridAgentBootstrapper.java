@@ -47,7 +47,6 @@ import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
 import org.cloudifysource.shell.commands.UninstallApplication;
-import org.cloudifysource.shell.rest.RestAdminFacade;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.AdminFactory;

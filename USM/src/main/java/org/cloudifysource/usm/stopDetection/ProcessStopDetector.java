@@ -21,7 +21,6 @@ import java.util.logging.Level;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.UniversalServiceManagerBean;
-import org.cloudifysource.usm.dsl.ServiceConfiguration;
 import org.cloudifysource.usm.events.AbstractUSMEventListener;
 import org.hyperic.sigar.ProcState;
 import org.hyperic.sigar.Sigar;
