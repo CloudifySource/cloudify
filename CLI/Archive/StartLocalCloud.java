@@ -260,7 +260,7 @@ public class StartLocalCloud extends AbstractGSCommand {
 
 	private void deployWebUI(Admin admin) throws Exception {
 		final String webUIFileName = "tools" + File.separator + "gs-webui"
-				+ File.separator + "gs-webui.war";
+				+ File.separator + "gs-webui-9.5.0-SNAPSHOT.war";
 
 		File webUIFile = getGSFile(webUIFileName);
 

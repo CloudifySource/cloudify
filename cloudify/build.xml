@@ -45,7 +45,7 @@
 	<property name="cloudify" value="cloudify" />
 	<property name="gs.runtime.jar" value="gs-runtime.jar" />
 	<property name="gs.boot.jar" value="gs-boot.jar" />
-	<property name="gs.webui.war" value="gs-webui.war" />
+	<property name="gs.webui.war" value="gs-webui-9.5.0-SNAPSHOT.war" />
 	<property name="usm.local.copy" value="${basedir}/../USM" />
 	<property name="esc.local.copy" value="${basedir}/../esc" />
 	<property name="recipes.local.copy" value="${basedir}/../../cloudify-recipes" />
