@@ -46,7 +46,7 @@ public final class EnvironmentUtils {
 				+ File.separator + "tools" + File.separator + "gs-webui");
 		Set<File> filterSet = FileFilterUtils.filterSet(new WildcardFileFilter("gs-webui*.war"), webuiDir.listFiles());
 		if (filterSet.size() > 1) {
-			throw new IllegalStateException("Cannot have two war file under gs-webui folder");
+			throw new IllegalStateException("Cannot have two war files under gs-webui folder");
 		} else {
 			return filterSet.iterator().next().getAbsolutePath();
 		}
@@ -62,7 +62,7 @@ public final class EnvironmentUtils {
 				+ File.separator + "tools" + File.separator + "rest");
 		Set<File> filterSet = FileFilterUtils.filterSet(new WildcardFileFilter("rest*.war"), webuiDir.listFiles());
 		if (filterSet.size() > 1) {
-			throw new IllegalStateException("Cannot have two war file under rest folder");
+			throw new IllegalStateException("Cannot have two war files under rest folder");
 		} else {
 			return filterSet.iterator().next().getAbsolutePath();
 		}
