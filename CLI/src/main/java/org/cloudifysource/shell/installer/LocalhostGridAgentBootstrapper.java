@@ -43,6 +43,7 @@ import org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
+import org.cloudifysource.shell.EnvironmentUtils;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
@@ -112,7 +113,7 @@ public class LocalhostGridAgentBootstrapper {
 	private static final String REST_NAME = "rest";
 	private static final int WEBUI_MEMORY_IN_MB = 512;
 	private static final int WEBUI_PORT = 8099;
-	private static final String WEBUI_FILE = "tools" + File.separator + "gs-webui" + File.separator + "gs-webui.war";
+	private static final String WEBUI_FILE = EnvironmentUtils.findWebuiWar();
 	private static final String WEBUI_NAME = "webui";
 	private static final String MANAGEMENT_SPACE_NAME = CloudifyConstants.MANAGEMENT_SPACE_NAME;
 
