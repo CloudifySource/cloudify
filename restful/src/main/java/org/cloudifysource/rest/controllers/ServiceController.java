@@ -15,6 +15,10 @@
  *******************************************************************************/
 package org.cloudifysource.rest.controllers;
 
+import static org.cloudifysource.dsl.internal.CloudifyConstants.TEMPLATES_DIR_PARAM_NAME;
+import static org.cloudifysource.dsl.internal.CloudifyConstants.SERVICE_OVERRIDES_FILE_PARAM;
+import static org.cloudifysource.dsl.internal.CloudifyConstants.CLOUD_OVERRIDES_FILE_PARAM;
+import static org.cloudifysource.dsl.internal.CloudifyConstants.APPLICATION_OVERRIDES_FILE_PARAM;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_INVOKE_INSTANCE;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_APP;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
@@ -113,6 +117,7 @@ import org.cloudifysource.rest.util.ApplicationInstallerRunnable;
 import org.cloudifysource.rest.util.LifecycleEventsContainer;
 import org.cloudifysource.rest.util.RestPollingRunnable;
 import org.cloudifysource.rest.util.RestUtils;
+import org.cloudifysource.restDoclet.annotations.InternalMethod;
 import org.cloudifysource.restDoclet.annotations.JsonRequestExample;
 import org.cloudifysource.restDoclet.annotations.JsonResponseExample;
 import org.cloudifysource.restDoclet.annotations.PossibleResponseStatus;
@@ -1851,9 +1856,9 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final int timeout,
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
 			@RequestParam(value = "authGroups", required = false) final String authGroups,
-			@RequestParam(value = CloudifyConstants.APPLICATION_OVERRIDES_FILE_PARAM, required = false) 
+			@RequestParam(value = APPLICATION_OVERRIDES_FILE_PARAM, required = false) 
 			final MultipartFile recipeOverridesFile,
-			@RequestParam(value = "cloudOverridesFile", required = false) final MultipartFile cloudOverrides,
+			@RequestParam(value = CLOUD_OVERRIDES_FILE_PARAM, required = false) final MultipartFile cloudOverrides,
 			@RequestParam(value = "selfHealing", required = false) final Boolean selfHealing)
 					throws IOException, DSLException, RestErrorException {
 		boolean actualSelfHealing = true;
@@ -2820,9 +2825,9 @@ public class ServiceController implements ServiceDetailsProvider {
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
 			@RequestParam(value = "props", required = true) final MultipartFile propsFile,
 			@RequestParam(value = "authGroups", required = false) final String authGroups,
-			@RequestParam(value = CloudifyConstants.SERVICE_OVERRIDES_FILE_PARAM, required = false) 
+			@RequestParam(value = SERVICE_OVERRIDES_FILE_PARAM, required = false) 
 			final MultipartFile serviceOverridesFile,
-			@RequestParam(value = "cloudOverridesFile", required = false) final MultipartFile cloudOverridesFile, 
+			@RequestParam(value = CLOUD_OVERRIDES_FILE_PARAM, required = false) final MultipartFile cloudOverridesFile, 
 			@RequestParam(value = "selfHealing", required = false, defaultValue = "true") final Boolean selfHealing)
 					throws TimeoutException, IOException,
 					DSLException, RestErrorException, PackagingException {
@@ -3850,7 +3855,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	public @ResponseBody
 	Map<String, Object> addTemplates(
 			@RequestParam
-			(value = CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, required = true) final MultipartFile templatesFolder)
+			(value = TEMPLATES_DIR_PARAM_NAME, required = true) final MultipartFile templatesFolder)
 					throws IOException, DSLException, RestErrorException {
 		if (cloud == null) {
 			throw new RestErrorException("local_cloud_not_support_templates_operations", "add-templates");
@@ -4029,6 +4034,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws DSLException
 	 *             in case of failing to read a DSL object.
 	 */
+	@InternalMethod
 	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
 	@RequestMapping(value = "templates/internal", method = RequestMethod.POST)
 	public @ResponseBody
@@ -4343,7 +4349,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * Get template from the cloud.
 	 * 
 	 * @param templateName
-	 *            The name of the template to remove.
+	 *            The name of the template to get.
 	 * @return a map containing the template and a success status if succeeded,
 	 *         else returns an error status.
 	 * @throws RestErrorException
@@ -4479,6 +4485,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws RestErrorException
 	 *             If failed to remove template.
 	 */
+	@InternalMethod
 	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
 	@RequestMapping(value = "templates/{templateName}/internal", method = RequestMethod.DELETE)
 	public @ResponseBody
