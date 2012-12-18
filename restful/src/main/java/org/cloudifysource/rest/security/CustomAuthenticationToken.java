@@ -21,7 +21,7 @@ public class CustomAuthenticationToken extends UsernamePasswordAuthenticationTok
 	 */
 	private static final long serialVersionUID = -6592305155032221704L;
 	private Collection<String> authGroups;
-	private Logger logger = java.util.logging.Logger.getLogger(CustomAuthenticationToken.class.getName());
+	private static final Logger logger = java.util.logging.Logger.getLogger(CustomAuthenticationToken.class.getName());
 	
 	/**
 	 * Ctor.

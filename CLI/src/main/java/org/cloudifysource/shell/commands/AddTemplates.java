@@ -66,7 +66,7 @@ public class AddTemplates extends AdminAwareCommand {
 		if (!templatesFileOrDir.exists()) {
 			throw new CLIStatusException("templates_file_not_found", templatesPath);
 		}
-		int numTemplatesInFolder = 0;
+		int numTemplatesInFolder;
 		File zipFile = templatesFileOrDir;
 		CloudTemplatesReader reader = new CloudTemplatesReader();
 
@@ -194,9 +194,8 @@ public class AddTemplates extends AdminAwareCommand {
 	}
 	
 	private static Object getFormatedAddedTemplateNamesList(final List<String> tempaltes) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(CloudifyConstants.NEW_LINE)
-		.append("Added " + tempaltes.size() + " tempaltes:");
+		StringBuilder sb = new StringBuilder(CloudifyConstants.NEW_LINE)
+            .append("Added ").append(tempaltes.size()).append(" tempaltes:");
 
 		for (String templateName : tempaltes) {
 			sb.append(CloudifyConstants.NEW_LINE)

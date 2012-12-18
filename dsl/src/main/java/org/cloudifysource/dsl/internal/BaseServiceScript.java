@@ -117,8 +117,7 @@ public abstract class BaseServiceScript extends Script {
 									.getClass()))) {
 
 						try {
-							method.invoke(this.activeObject,
-									new Object[] { obj });
+							method.invoke(this.activeObject, obj);
 						} catch (final Exception e) {
 							logger.log(Level.SEVERE, "Failed to set " + name, e);
 							throw new IllegalArgumentException("Failed to set "

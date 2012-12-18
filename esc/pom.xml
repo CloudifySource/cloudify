@@ -30,11 +30,16 @@
 			<version>${gsVersion}</version>
 			<type>jar</type>
 			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.ant</groupId>
-			<artifactId>ant</artifactId>
-			<version>1.8.3</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>ant</artifactId>
+					<groupId>ant</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>ant</artifactId>
+					<groupId>org.apache.ant</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.ant</groupId>

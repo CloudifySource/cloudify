@@ -25,15 +25,8 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
@@ -432,10 +425,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	private List<String> convertCommandLineStringToParts(final String commandLine) {
 		final List<String> list = new LinkedList<String>();
 		final String[] parts = commandLine.split(" ");
-		for (final String part : parts) {
-			list.add(part);
-
-		}
+        Collections.addAll(list, parts);
 		return list;
 	}
 

@@ -80,7 +80,7 @@ public class CloudGridAgentBootstrapper {
 	private static final Logger logger = Logger
 			.getLogger(CloudGridAgentBootstrapper.class.getName());
 
-	private File providerDirecotry;
+	private File providerDirectory;
 
 	private AdminFacade adminFacade;
 
@@ -98,8 +98,8 @@ public class CloudGridAgentBootstrapper {
 
 	private boolean noWebServices;
 
-	public void setProviderDirectory(final File providerDirecotry) {
-		this.providerDirecotry = providerDirecotry;
+	public void setProviderDirectory(final File providerDirectory) {
+		this.providerDirectory = providerDirectory;
 	}
 
 	public void setAdminFacade(final AdminFacade adminFacade) {
@@ -187,7 +187,7 @@ public class CloudGridAgentBootstrapper {
 					.startManagementMachines(timeout, timeoutUnit);
 		} catch (final CloudProvisioningException e) {
 			throw new InstallerException(
-					"Failed to start managememnt servers. Reason: "
+					"Failed to start management servers. Reason: "
 							+ e.getMessage(), e);
 		} catch (final TimeoutException e) {
 			throw new CLIException("Cloudify bootstrap on provider "
@@ -353,7 +353,7 @@ public class CloudGridAgentBootstrapper {
 
 		createProvisioningDriver();
 
-		ShellUtils.checkNotNull("providerDirectory", providerDirecotry);
+		ShellUtils.checkNotNull("providerDirectory", providerDirectory);
 
 		destroyManagementServers(CalcUtils.millisUntil(end), TimeUnit.MILLISECONDS);
 
@@ -382,9 +382,9 @@ public class CloudGridAgentBootstrapper {
 				} catch (final InterruptedException e) {
 					throw e;
 				} catch (final TimeoutException e) {
-					logger.fine("Failed to uninstall applications. Shut down of managememnt machines will continue");
+					logger.fine("Failed to uninstall applications. Shut down of management machines will continue");
 				} catch (final CLIException e) {
-					logger.fine("Failed to uninstall applications. Shut down of managememnt machines will continue");
+					logger.fine("Failed to uninstall applications. Shut down of management machines will continue");
 				}
 			} else {
 				logger.info("Teardown performed without connection to the cloud, only management machines will be "
@@ -674,7 +674,7 @@ public class CloudGridAgentBootstrapper {
 	 *            The username for a secure connection to the rest server
 	 * @param password
 	 *            The password for a secure connection to the rest server
-	 * @param url
+	 * @param restAdminUrl
 	 *            The URL of the service
 	 * @param isSecureConnection
 	 *            Is this a secure connection (SSL)

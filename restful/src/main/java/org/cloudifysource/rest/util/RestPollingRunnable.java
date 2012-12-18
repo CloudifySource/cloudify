@@ -120,12 +120,10 @@ public class RestPollingRunnable implements Runnable {
 	 * 
 	 * Use this constructor if polling a single service installation.
 	 * 
-	 * @param serviceName
-	 *            the service name to deploy
+	 * @param applicationName
+	 *            the application name to deploy
 	 * @param timeout
 	 *            timeout polling timeout.
-	 * @param plannedNumberOfInstances
-	 *            the planned number of instances.
 	 * @param timeunit
 	 *            polling timeout timeunit.
 	 */
@@ -542,7 +540,7 @@ public class RestPollingRunnable implements Runnable {
 	 * Gets the service instance count for every type of service (USM/Other). if
 	 * the service pu is not running yet, returns 0.
 	 * 
-	 * @param absolutePuName
+	 * @param serviceName
 	 *            The absolute service name.
 	 * @return the service's number of running instances.
 	 */
@@ -621,10 +619,7 @@ public class RestPollingRunnable implements Runnable {
 		@SuppressWarnings("boxing")
 		final int instanceState = (Integer) monitors
 				.get(CloudifyConstants.USM_MONITORS_STATE_ID);
-		if (CloudifyConstants.USMState.values()[instanceState] == state) {
-			return true;
-		}
-		return false;
+		return (CloudifyConstants.USMState.values()[instanceState] == state);
 	}
 
 	/**

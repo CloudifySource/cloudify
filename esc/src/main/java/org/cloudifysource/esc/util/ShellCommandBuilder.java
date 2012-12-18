@@ -198,7 +198,7 @@ public class ShellCommandBuilder {
 	public ShellCommandBuilder chmodExecutable(final String path) {
 		switch (this.mode) {
 		case SSH:
-			sb.append("chmod +x " + path);
+			sb.append("chmod +x ").append(path);
 			separate();
 			break;
 

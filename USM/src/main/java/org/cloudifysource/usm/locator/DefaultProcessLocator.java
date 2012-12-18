@@ -208,7 +208,7 @@ public class DefaultProcessLocator extends AbstractUSMEventListener implements P
 			try {
 				final String procName = this.sigar.getProcExe(pid).getName();
 				for (final String shellName : SHELL_PROCESS_NAMES) {
-					if (procName.indexOf(shellName) >= 0) {
+					if (procName.contains(shellName)) {
 						logger.warning("A monitored process(" + pid + " - " + procName + ") may be a console process. "
 								+ "This is usually a configuration problem. "
 								+ "USM Statistics will be collected for this process, "

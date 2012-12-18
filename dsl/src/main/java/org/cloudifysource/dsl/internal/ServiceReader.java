@@ -128,7 +128,7 @@ public final class ServiceReader {
 	 */
 	public static DSLServiceCompilationResult getServiceFromDirectory(final File dir)
 			throws DSLException {
-		return ServiceReader.getServiceFromFile(null, dir, null, null, null, true);
+		return ServiceReader.getServiceFromFile(null, dir, null, null, null, true, null /* overrides file */);
 	}
 
 	/**
@@ -146,7 +146,7 @@ public final class ServiceReader {
 	public static DSLServiceCompilationResult getServiceFromFile(
 			final File dslFile, final File workDir) throws DSLException {
 		return ServiceReader.getServiceFromFile(dslFile, workDir, null, null,
-				null, true);
+				null, true, null /* overrides file */);
 	}
 
 	/**
@@ -184,12 +184,13 @@ public final class ServiceReader {
 	 * @param clusterInfo .
 	 * @param propertiesFileName .
 	 * @param isRunningInGSC .
-	 * @return The service.
+	 * @param overridesFile .
+	 * @return DSLServiceCompilationResult.
 	 * @throws DSLException .
 	 */
 	public static DSLServiceCompilationResult getServiceFromFile(final File dslFile, final File workDir,
 			final Admin admin, final ClusterInfo clusterInfo, final String propertiesFileName,
-			final boolean isRunningInGSC)
+			final boolean isRunningInGSC, final File overridesFile)
 					throws DSLException {
 
 		final DSLReader dslReader = new DSLReader();
@@ -200,7 +201,8 @@ public final class ServiceReader {
 		dslReader.setDslFile(dslFile);
 		dslReader.setWorkDir(workDir);
 		dslReader.setDslFileNameSuffix(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
-
+		dslReader.setOverridesFile(overridesFile);
+		
 		final Service service = dslReader.readDslEntity(Service.class);
 
 		return new DSLServiceCompilationResult(service, dslReader.getContext(), dslFile);
@@ -236,13 +238,32 @@ public final class ServiceReader {
 		if (dslFileOrDir.isFile()) {
 			return getServiceFromFile(dslFileOrDir);
 		} else if (dslFileOrDir.isDirectory()) {
-			return ServiceReader.getServiceFromFile(null, dslFileOrDir, null, null, null, true).getService();
+			return getServiceFromFile(null, dslFileOrDir, null, null, null, true, null).getService();
 		} else {
 			throw new IllegalArgumentException(dslFileOrDir + " is neither a file nor a directory");
 		}
 
 	}
 
+	/**
+	 * 
+	 * @param dslFile .
+	 * @param workDir .
+	 * @param admin .
+	 * @param clusterInfo .
+	 * @param propertiesFileName .
+	 * @param isRunningInGSC .
+	 * @param overridesFile .
+	 * @return the read service.
+	 * @throws DSLException .
+	 */
+	public static Service readService(final File dslFile, final File workDir,
+			final Admin admin, final ClusterInfo clusterInfo, final String propertiesFileName,
+			final boolean isRunningInGSC, final File overridesFile) throws DSLException {
+		return getServiceFromFile(dslFile, workDir, admin, clusterInfo, propertiesFileName
+				, isRunningInGSC, overridesFile).getService();
+	}
+	
 	/**
 	 * 
 	 * @param inputFile The application file.

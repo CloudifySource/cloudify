@@ -1,3 +1,5 @@
+*.iml
+
 #/cloudify/CLI/target
 /CLI/nodes.properties
 /CLI/temp.xml

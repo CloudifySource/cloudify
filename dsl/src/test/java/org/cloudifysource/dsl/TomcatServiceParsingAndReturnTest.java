@@ -30,7 +30,6 @@ public class TomcatServiceParsingAndReturnTest {
 
 	@Test
 	public void sample() throws Exception {
-		return;
 	}
 
 	@Test

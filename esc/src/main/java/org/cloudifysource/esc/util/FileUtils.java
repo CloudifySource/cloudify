@@ -46,12 +46,7 @@ public class FileUtils {
 			final boolean allMustExist)
 			throws IOException {
 
-		boolean objectsExist;
-		if (allMustExist) {
-			objectsExist = true;
-		} else {
-			objectsExist = false;
-		}
+		boolean objectsExist = allMustExist;
 
 		if (!(fileTransferMode == FileTransferModes.SCP)) {
 			// TODO Support get with CIFS as well

@@ -21,7 +21,6 @@ import java.util.logging.Level;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.UniversalServiceManagerBean;
-import org.cloudifysource.usm.dsl.ServiceConfiguration;
 import org.cloudifysource.usm.events.AbstractUSMEventListener;
 import org.hyperic.sigar.ProcState;
 import org.hyperic.sigar.Sigar;
@@ -45,7 +44,7 @@ public class ProcessStopDetector extends AbstractUSMEventListener implements Sto
 	public void init(final UniversalServiceManagerBean usm) {
 		super.init(usm);
 		final String setting =
-				((ServiceConfiguration) usm.getUsmLifecycleBean().getConfiguration()).getService().getCustomProperties()
+				usm.getUsmLifecycleBean().getConfiguration().getService().getCustomProperties()
 						.get(CloudifyConstants.CUSTOM_PROPERTY_STOP_DETECTION_ON_ALL_PROCESSES);
 		if (setting != null) {
 			this.stopOnAllProcessesDead = Boolean.parseBoolean(setting);
@@ -124,11 +123,7 @@ public class ProcessStopDetector extends AbstractUSMEventListener implements Sto
 			throws USMException {
 
 		final ProcState procState = getProcState(pid);
-		if (procState == null || procState.getState() == ProcState.STOP || procState.getState() == ProcState.ZOMBIE) {
-			return false;
-		}
-
-		return true;
+		return (procState != null && procState.getState() != ProcState.STOP && procState.getState() != ProcState.ZOMBIE);
 	}
 
 	private boolean checkForOneProcessDead(final List<Long> pids)

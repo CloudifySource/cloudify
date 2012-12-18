@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -178,7 +177,7 @@ public class ByonDeployer {
 		}
 
 		CustomNode node = null;
-		if (freeNodesPool.size() > 0) {
+		if (!freeNodesPool.isEmpty()) {
 			node = freeNodesPool.iterator().next();
 			// if this node is indeed not allocated, test the connectivity to
 			// it.
@@ -213,29 +212,21 @@ public class ByonDeployer {
 				}
 			}
 		} else {
-			if (invalidNodesPool.size() > 0) {
-				CustomNode currentNode = null;
-				final Iterator<CustomNode> nodesIterator = invalidNodesPool
-						.iterator();
-				while (nodesIterator.hasNext()) {
-					currentNode = nodesIterator.next();
-					try {
-						String resolvedIP = IPUtils.resolveHostName(currentNode
-								.getPrivateIP());
-						currentNode.setResolvedIP(resolvedIP);
-						IPUtils.validateConnection(currentNode.getPrivateIP(),
-								currentNode.getLoginPort());
-						if (!allocatedNodesPool.contains(currentNode)) {
-							allocatedNodesPool.add(currentNode);
-						}
-						invalidNodesPool.remove(currentNode);
-						node = currentNode;
-						break;
-					} catch (final Exception ex) {
-						// ignore and continue
-					}
-				}
-			}
+            for (CustomNode currentNode : invalidNodesPool) {
+                try {
+                    String resolvedIP = IPUtils.resolveHostName(currentNode.getPrivateIP());
+                    currentNode.setResolvedIP(resolvedIP);
+                    IPUtils.validateConnection(currentNode.getPrivateIP(), currentNode.getLoginPort());
+                    if (!allocatedNodesPool.contains(currentNode)) {
+                        allocatedNodesPool.add(currentNode);
+                    }
+                    invalidNodesPool.remove(currentNode);
+                    node = currentNode;
+                    break;
+                } catch (final Exception ex) {
+                        // ignore and continue
+                }
+            }
 		}
 
 		if (node == null) {
@@ -245,7 +236,7 @@ public class ByonDeployer {
 							+ "\", all available nodes are currently used");
 		}
 
-		((CustomNodeImpl) node).setNodeName(serverName);
+		node.setNodeName(serverName);
 
 		return node;
 	}
@@ -858,8 +849,6 @@ public class ByonDeployer {
 	 *            The map of attributes related to this node (ID, IPs or hosts
 	 *            list)
 	 * @return A list of {@link CustomNode} objects
-	 * @throws CloudProvisioningException
-	 *             Indicates an IP is invalid or unreachable
 	 */
 	private List<CustomNode> parseNodeList(final Map<String, String> nodeMap) {
 

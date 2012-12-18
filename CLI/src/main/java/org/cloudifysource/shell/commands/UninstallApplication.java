@@ -98,7 +98,7 @@ public class UninstallApplication extends AdminAwareCommand {
 
 		session.put(Constants.ACTIVE_APP, "default");
 		GigaShellMain.getInstance().setCurrentApplicationName("default");
-		return getFormattedMessage("application_uninstalled_succesfully", Color.GREEN, this.applicationName);
+		return getFormattedMessage("application_uninstalled_successfully", Color.GREEN, this.applicationName);
 	}
 
 	// returns true if the answer to the question was 'Yes'.

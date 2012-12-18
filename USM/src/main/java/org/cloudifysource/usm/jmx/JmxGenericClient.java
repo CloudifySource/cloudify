@@ -20,7 +20,6 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -44,8 +43,7 @@ import javax.management.remote.JMXServiceURL;
  */
 public class JmxGenericClient {
 
-	// CHECKSTYLE:OFF
-	private static java.util.logging.Logger logger =
+	private static final java.util.logging.Logger logger =
 			java.util.logging.Logger.getLogger(JmxGenericClient.class.getName());
 
 	private static final int DEFAULT_JMX_PORT = 8080;
@@ -188,20 +186,16 @@ public class JmxGenericClient {
 			// This is the remote call!
 			// Object val = mbsc.getAttribute(beanName, attributeNames[0]);
 			final AttributeList vals = mbsc.getAttributes(beanName, attributeNames);
-
-			@SuppressWarnings("rawtypes")
-			final Iterator it = vals.iterator();
-
-			while (it.hasNext()) {
-				final Attribute att = (Attribute) it.next();
-				if (att.getValue() instanceof Exception) {
-					logger.log(Level.WARNING, "Failed to read JMX attribute: " + att.getName() + " in bean: "
-							+ t.getObjectName(), att.getValue());
-				} else {
-					final JmxAttribute result = t.setValueAndReturnAttribute(att.getName(), att.getValue());
-					resultList.add(result);
-				}
-			}
+            for (Object val : vals) {
+                final Attribute att = (Attribute) val;
+                if (att.getValue() instanceof Exception) {
+                    logger.log(Level.WARNING, "Failed to read JMX attribute: " + att.getName() + " in bean: "
+                            + t.getObjectName(), att.getValue());
+                } else {
+                    final JmxAttribute result = t.setValueAndReturnAttribute(att.getName(), att.getValue());
+                    resultList.add(result);
+                }
+            }
 
 		} catch (final Exception e) {
 			if (logger.isLoggable(Level.WARNING)) {
@@ -213,12 +207,13 @@ public class JmxGenericClient {
 		}
 	}
 
+    /**
+     * Create a jmx client
+     * @return    a jmx client
+     */
 	private JMXServiceURL createJMXServiceURL() {
-		// create a jmx client
-		JMXServiceURL jmxUrl;
-
 		try {
-			jmxUrl = new JMXServiceURL(String.format(JMX_URL_FORMAT, host, port));
+			return new JMXServiceURL(String.format(JMX_URL_FORMAT, host, port));
 		} catch (final MalformedURLException e) {
 			// none recoverable
 			final String msg = "Failed to create JMXServiceURL for " + host + "," + port + ". Error: " + e;
@@ -226,7 +221,6 @@ public class JmxGenericClient {
 			throw new IllegalArgumentException("Failed to initialize JMX Service URL: "
 					+ String.format(JMX_URL_FORMAT, host, port), e);
 		}
-		return jmxUrl;
 	}
 
 	private Map<String, Object> createEnvironment() {
@@ -280,6 +274,4 @@ public class JmxGenericClient {
 	public void setPassword(final String password) {
 		this.password = password;
 	}
-
-	// CHECKSTYLE:ON
 }

@@ -22,5 +22,5 @@ package org.cloudifysource.shell;
 public enum AdminType {
 
 	REST,
-	ADMIN;
+	ADMIN
 }

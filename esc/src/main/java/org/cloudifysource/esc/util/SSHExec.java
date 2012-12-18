@@ -372,7 +372,7 @@ public class SSHExec extends SSHBase {
         } catch (BuildException e) {
             throw e;
         } catch (JSchException e) {
-            if (e.getMessage().indexOf("session is down") >= 0) {
+            if (e.getMessage().contains("session is down")) {
                 if (getFailonerror()) {
                     throw new BuildTimeoutException(TIMEOUT_MESSAGE, e);
                 } else {

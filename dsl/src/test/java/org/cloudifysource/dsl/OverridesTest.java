@@ -69,8 +69,8 @@ public class OverridesTest {
 	private static final Map<String, Object> EC2_CLOUD_OVERRIDES_PROPERTIES_MATCHING_FIELDS = 
 			new HashMap<String, Object>();
  
-	private static final Integer NUM_INSTANCES = new Integer(5);
-	private static final Integer OVERRIDEN_NUM_INSTANCES = new Integer(3);
+	private static final Integer NUM_INSTANCES = 5;
+	private static final Integer OVERRIDEN_NUM_INSTANCES = 3;
 
 	static {
 		

@@ -258,11 +258,10 @@ public class WinrmExecutor implements RemoteExecutor {
 		if (powerShellInstalled != null) {
 			if (powerShellInstalled.booleanValue()) {
 				return;
-			} else {
-				throw new InstallerException(
-						"powershell.exe is not on installed, or is not available on the system path. "
-								+ "Powershell is required on both client and server for Cloudify to work on Windows. ");
 			}
+			throw new InstallerException(
+					"powershell.exe is not on installed, or is not available on the system path. "
+					+ "Powershell is required on both client and server for Cloudify to work on Windows. ");
 		}
 
 		logger.fine("Checking if powershell is installed using: " + Arrays.toString(POWERSHELL_INSTALLED_COMMAND));

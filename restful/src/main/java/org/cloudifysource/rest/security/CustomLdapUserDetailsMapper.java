@@ -61,8 +61,8 @@ public class CustomLdapUserDetailsMapper {
                 continue;
             }
 
-            for (int j = 0; j < rolesForAttribute.length; j++) {
-                GrantedAuthority authority = createAuthority(rolesForAttribute[j]);
+            for (String roleForAttribute : rolesForAttribute) {
+                GrantedAuthority authority = createAuthority(roleForAttribute);
 
                 if (authority != null) {
                     essence.addAuthority(authority);

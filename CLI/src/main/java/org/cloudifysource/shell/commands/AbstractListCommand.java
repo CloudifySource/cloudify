@@ -36,15 +36,14 @@ public abstract class AbstractListCommand extends AdminAwareCommand {
 	 */
 	public String getApplicationDescriptionAsString(
 			final ApplicationDescription applicationDescription) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(ShellUtils.getBoldMessage(applicationDescription.getApplicationName())
-				+ "  " + applicationDescription.getApplicationState()
-				+ CloudifyConstants.TAB_CHAR + "Authorization Groups: " + applicationDescription.getAuthGroups());
+		StringBuilder sb = new StringBuilder(ShellUtils.getBoldMessage(applicationDescription.getApplicationName()))
+                .append("  ").append(applicationDescription.getApplicationState())
+                .append(CloudifyConstants.TAB_CHAR).append("Authorization Groups: ").append(applicationDescription.getAuthGroups());
 		String serviceDescriptionAsString;
 		for (ServiceDescription serviceDescription : applicationDescription.getServicesDescription()) {
 			serviceDescriptionAsString = getServiceDescriptionAsString(serviceDescription);
 			sb.append(CloudifyConstants.NEW_LINE);
-			sb.append(CloudifyConstants.TAB_CHAR + serviceDescriptionAsString);
+			sb.append(CloudifyConstants.TAB_CHAR).append(serviceDescriptionAsString);
 		}
 		return sb.toString();
 	}
@@ -54,9 +53,9 @@ public abstract class AbstractListCommand extends AdminAwareCommand {
 		StringBuilder sb = new StringBuilder();
 		String absolutePUName = ServiceUtils.getAbsolutePUName(serviceDescription.getApplicationName(), 
 				serviceDescription.getServiceName());
-		sb.append(ShellUtils.getBoldMessage(absolutePUName)
-				+ "  " + serviceDescription.getServiceState());
-		sb.append(" (" + serviceDescription.getInstanceCount() + "/" + serviceDescription.getPlannedInstances() + ")" );
+		sb.append(ShellUtils.getBoldMessage(absolutePUName))
+				.append("  ").append(serviceDescription.getServiceState())
+		        .append(" (").append(serviceDescription.getInstanceCount()).append('/').append(serviceDescription.getPlannedInstances()).append(')');
 		
 		return sb.toString();
 		

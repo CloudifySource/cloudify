@@ -19,15 +19,7 @@ public final class IsolationUtils {
 	 * @return .
 	 */
 	public static boolean isDedicated(final Service service) {
-		
-		if (service.getIsolationSLA() == null) {
-			return true;
-		}
-		
-		if (service.getIsolationSLA().getDedicated() != null) {
-			return true;
-		}
-		return false;
+		return (service.getIsolationSLA() == null || service.getIsolationSLA().getDedicated() != null);
 	}
 	
 	/**
@@ -36,11 +28,7 @@ public final class IsolationUtils {
 	 * @return .
 	 */
 	public static boolean isAppShared(final Service service) {
-		
-		if (service.getIsolationSLA() != null && service.getIsolationSLA().getAppShared() != null) {
-			return true;
-		}
-		return false;
+		return (service.getIsolationSLA() != null && service.getIsolationSLA().getAppShared() != null);
 	}
 
 	/**
@@ -49,11 +37,7 @@ public final class IsolationUtils {
 	 * @return .
 	 */
 	public static boolean isTenantShared(final Service service) {
-		
-		if (service.getIsolationSLA() != null && service.getIsolationSLA().getTenantShared() != null) {
-			return true;
-		}
-		return false;
+		return (service.getIsolationSLA() != null && service.getIsolationSLA().getTenantShared() != null);
 	}
 	
 	/**
@@ -62,11 +46,7 @@ public final class IsolationUtils {
 	 * @return .
 	 */
 	public static boolean isGlobal(final Service service) {
-		
-		if (service.getIsolationSLA() != null && service.getIsolationSLA().getGlobal() != null) {
-			return true;
-		}
-		return false;
+		return (service.getIsolationSLA() != null && service.getIsolationSLA().getGlobal() != null) ;
 	}
 	
 	/**

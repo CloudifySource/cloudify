@@ -321,7 +321,7 @@ public class TestRecipe extends AbstractGSCommand {
 					} else {
 						for (final String filter : FILTERS) {
 
-							if (line.indexOf(filter) >= 0) {
+							if (line.contains(filter)) {
 								System.out.println(line);
 							}
 

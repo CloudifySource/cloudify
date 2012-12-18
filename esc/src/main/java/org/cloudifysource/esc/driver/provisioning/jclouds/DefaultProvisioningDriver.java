@@ -356,7 +356,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 	private String createManagementServerDescription(final MachineDetails machineDetails) {
 		final StringBuilder sb = new StringBuilder();
-		sb.append("Machine ID: " + machineDetails.getMachineId());
+		sb.append("Machine ID: ").append(machineDetails.getMachineId());
 		if (machineDetails.getPublicAddress() != null) {
 			sb.append(", Public IP: ").append(machineDetails.getPublicAddress());
 		}

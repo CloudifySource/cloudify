@@ -38,8 +38,7 @@ public class SmbFileProvider
     extends AbstractOriginatingFileProvider
     implements FileProvider
 {
-    protected final static Collection<Capability> capabilities = Collections.unmodifiableCollection(Arrays.asList(new Capability[]
-    {
+    protected final static Collection<Capability> capabilities = Collections.unmodifiableCollection(Arrays.asList(
         Capability.CREATE,
         Capability.DELETE,
         Capability.RENAME,
@@ -52,7 +51,7 @@ public class SmbFileProvider
         Capability.APPEND_CONTENT,
         Capability.RANDOM_ACCESS_READ,
         Capability.RANDOM_ACCESS_WRITE
-    }));
+    ));
 
     public final static UserAuthenticationData.Type[] AUTHENTICATOR_TYPES = new UserAuthenticationData.Type[]
         {

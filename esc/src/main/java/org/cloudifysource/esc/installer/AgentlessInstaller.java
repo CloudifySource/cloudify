@@ -168,10 +168,8 @@ public class AgentlessInstaller {
 	 * @param unit
 	 *            time unit to wait.
 	 * @throws InstallerException .
-	 * @throws InstallerException .
 	 * @throws TimeoutException .
 	 * @throws InterruptedException .
-	 * @throws ElasticMachineProvisioningException
 	 */
 	public static void checkConnection(final String ip, final int port, final long timeout, final TimeUnit unit)
 			throws TimeoutException, InterruptedException, InstallerException {
@@ -213,28 +211,17 @@ public class AgentlessInstaller {
 	/****
 	 * Copies files from local dir to remote dir.
 	 * 
-	 * @param host
-	 *            host name or ip address of remote machine.
-	 * @param username
-	 *            ssh username of remote machine.
-	 * @param password
-	 *            ssh password of remote machine.
-	 * @param srcDir
-	 *            local directory.
-	 * @param toDir
-	 *            remote directory.
-	 * @param keyFile
-	 *            The key file of the remote machine, if used. private key file.
-	 * @param excludedFile
+	 *
+	 * @param details
+	 *            user details of remote machine.
+     * @param host
+     *            host name or ip address of remote machine.
+	 * @param excludedFiles
 	 *            Files that should not be copied.
-	 * @param cloudFile
-	 *            The cloud file.
 	 * @param timeout
 	 *            Time before timeout is thrown.
 	 * @param unit
 	 *            Time unit, relevant to timeout parameter.
-	 * @param fileTransferMode
-	 *            Remote file system type.
 	 * @throws IOException
 	 *             in case of an error during file transfer.
 	 * @throws TimeoutException
@@ -253,8 +240,8 @@ public class AgentlessInstaller {
 
 		final FileSystemOptions opts = new FileSystemOptions();
 
-		FileSystemManager createdManager = null;
-		String target = null;
+		FileSystemManager createdManager;
+		String target;
 		switch (details.getFileTransferMode()) {
 		case SCP:
 			createdManager = createRemoteSSHFileSystem(details.getKeyFile(), opts, details);
@@ -471,8 +458,8 @@ public class AgentlessInstaller {
 
 		final FileSystemOptions opts = new FileSystemOptions();
 
-		FileSystemManager createdManager = null;
-		String target = null;
+		FileSystemManager createdManager;
+		String target;
 		switch (details.getFileTransferMode()) {
 		case SCP:
 			try {
@@ -631,7 +618,7 @@ public class AgentlessInstaller {
 		String authGroups = null;
 		if (details.getAuthGroups() != null) {
 			//authgroups should be a strongly typed object convertible into a String
-			authGroups = details.getAuthGroups().toString();
+			authGroups = details.getAuthGroups();
 		}
 		
 		final ShellCommandBuilder scb = new ShellCommandBuilder(details.getRemoteExecutionMode())
@@ -817,11 +804,10 @@ public class AgentlessInstaller {
 		if (powerShellInstalled != null) {
 			if (powerShellInstalled.booleanValue()) {
 				return;
-			} else {
-				throw new InstallerException(
-						"powershell.exe is not on installed, or is not available on the system path. "
-								+ "Powershell is required on both client and server for Cloudify to work on Windows. ");
 			}
+			throw new InstallerException(
+					"powershell.exe is not on installed, or is not available on the system path. "
+					+ "Powershell is required on both client and server for Cloudify to work on Windows. ");
 		}
 
 		logger.fine("Checking if powershell is installed using: " + Arrays.toString(POWERSHELL_INSTALLED_COMMAND));

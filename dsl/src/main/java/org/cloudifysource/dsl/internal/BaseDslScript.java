@@ -129,11 +129,7 @@ public abstract class BaseDslScript extends Script {
 
 	private boolean isDuplicatePropertyAllowed(final Object value) {
 		// Application allows duplicate service values.
-		if (this.activeObject instanceof Application && value instanceof Service) {
-			return true;
-		}
-
-		return false;
+		return (this.activeObject instanceof Application && value instanceof Service);
 	}
 
 	private static boolean isProperyExistsInBean(final Object bean, final String propertyName) {
@@ -704,9 +700,6 @@ public abstract class BaseDslScript extends Script {
 
 		activeObject = prevObject;
 		this.usedProperties = prevSet;
-
-		return;
-
 	}
 
 	// //////////////////////////////////////////////////////////////////////////////////
