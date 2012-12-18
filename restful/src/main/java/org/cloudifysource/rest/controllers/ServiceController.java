@@ -15,6 +15,7 @@
  *******************************************************************************/
 package org.cloudifysource.rest.controllers;
 
+import static org.cloudifysource.dsl.internal.CloudifyConstants.TEMPLATES_DIR_PARAM_NAME;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_INVOKE_INSTANCE;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_APP;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
@@ -108,6 +109,7 @@ import org.cloudifysource.rest.util.ApplicationInstallerRunnable;
 import org.cloudifysource.rest.util.LifecycleEventsContainer;
 import org.cloudifysource.rest.util.RestPollingRunnable;
 import org.cloudifysource.rest.util.RestUtils;
+import org.cloudifysource.restDoclet.annotations.InternalMethod;
 import org.cloudifysource.restDoclet.annotations.JsonRequestExample;
 import org.cloudifysource.restDoclet.annotations.JsonResponseExample;
 import org.cloudifysource.restDoclet.annotations.PossibleResponseStatus;
@@ -3830,7 +3832,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	public @ResponseBody
 	Map<String, Object> addTemplates(
 			@RequestParam
-			(value = CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, required = true) final MultipartFile templatesFolder)
+			(value = TEMPLATES_DIR_PARAM_NAME, required = true) final MultipartFile templatesFolder)
 					throws IOException, DSLException, RestErrorException {
 		if (cloud == null) {
 			throw new RestErrorException("local_cloud_not_support_tempaltes_operations", "add-templates");
@@ -4017,7 +4019,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws DSLException
 	 *             in case of failing to read a DSL object.
 	 */
-
+	@InternalMethod
 	//@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
 	@RequestMapping(value = "templates/internal", method = RequestMethod.POST)
 	public @ResponseBody
@@ -4339,7 +4341,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * Get template from the cloud.
 	 * 
 	 * @param templateName
-	 *            The name of the template to remove.
+	 *            The name of the template to get.
 	 * @return a map containing the template and a success status if succeeded,
 	 *         else returns an error status.
 	 * @throws RestErrorException
@@ -4481,6 +4483,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws RestErrorException
 	 *             If failed to remove template.
 	 */
+	@InternalMethod
 	//@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
 	@RequestMapping(value = "templates/internal/{templateName}", method = RequestMethod.DELETE)
 	public @ResponseBody
