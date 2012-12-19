@@ -40,6 +40,7 @@ import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.AbstractGSCommand;
+import org.cloudifysource.shell.commands.CLIException;
 /**
  * Tears down the remote Cloud.
  * 
@@ -73,12 +74,18 @@ public class TeardownCloud extends AbstractGSCommand {
             return getFormattedMessage("teardown_aborted");
         }
 		
-		if (this.adminFacade != null) {
+		if (this.adminFacade == null) {
+			adminFacade = (AdminFacade) session.get(Constants.ADMIN_FACADE);
+		}
+		
+		if (adminFacade.isConnected()) {
 			adminFacade.verifyCloudAdmin();
 		} else {
-			((AdminFacade) session.get(Constants.ADMIN_FACADE)).verifyCloudAdmin();
+			if (!force) {
+				throw new CLIException("Please connect to the cloud before tearing down");
+			}
 		}
-
+		
 		CloudGridAgentBootstrapper installer = new CloudGridAgentBootstrapper();
 
 		// TODO use DSL
