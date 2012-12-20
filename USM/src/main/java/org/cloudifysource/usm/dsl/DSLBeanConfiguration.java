@@ -112,7 +112,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 	}
 
 	@Bean
-	public USMComponent getDslLauncher() {
+	public ProcessLauncher getDslLauncher() {
 		if (!active) {
 			return null;
 		}
@@ -134,8 +134,8 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 	}
 
 	@Bean
-	public USMComponent getDslKiller() {
-		return createBeanIfNotExistsType(new DefaultProcessKiller(),
+	public ProcessKiller getDslKiller() {
+		return (ProcessKiller) createBeanIfNotExistsType(new DefaultProcessKiller(),
 				ProcessKiller.class);
 	}
 
