@@ -386,8 +386,12 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 		final List<Node> nodes = new ArrayList<Node>(ids.size());
 
 		for (final String id : ids) {
-			nodes.add(getNode(
-					id, token));
+			try {
+			Node node = getNode(id, token);
+			nodes.add(node);
+			} catch (OpenstackException e) {
+				//Do nothing.
+			}
 		}
 
 		return nodes;
