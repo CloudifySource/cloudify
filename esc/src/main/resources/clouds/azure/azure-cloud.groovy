@@ -56,7 +56,7 @@ cloud {
 	templates ([
 				SMALL_LINUX : template{
 				
-					imageId "OpenLogic__OpenLogic-CentOS-62-20120531-en-us-30GB.vhd"
+					imageId "5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS63DEC20121220"
 					machineMemoryMB 1600
 					hardwareId "Small"
 					localDirectory "upload"
