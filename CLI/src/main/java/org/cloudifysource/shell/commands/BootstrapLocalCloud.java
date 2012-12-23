@@ -28,6 +28,7 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
+import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.CloudifyLicenseVerifier;
 import org.cloudifysource.shell.Constants;
@@ -191,8 +192,11 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 				if (!pathname.isFile()) {
 					return false;
 				}
-
-				return pathname.getName().startsWith("javac");
+				if (ServiceUtils.isWindows()) {
+					return pathname.getName().equals("javac.exe");
+				} else {
+					return pathname.getName().equals("javac");
+				}
 			}
 		});
 
