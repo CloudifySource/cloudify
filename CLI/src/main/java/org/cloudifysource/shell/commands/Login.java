@@ -2,6 +2,9 @@ package org.cloudifysource.shell.commands;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.shell.Constants;
+import org.cloudifysource.shell.GigaShellMain;
 import org.fusesource.jansi.Ansi.Color;
 
 /**
@@ -29,6 +32,8 @@ public class Login extends AdminAwareCommand {
 	@Override
 	protected Object doExecute() throws Exception {
 		adminFacade.reconnect(username, password);
+		session.put(Constants.ACTIVE_APP, CloudifyConstants.DEFAULT_APPLICATION_NAME);
+		GigaShellMain.getInstance().setCurrentApplicationName(CloudifyConstants.DEFAULT_APPLICATION_NAME);
 		return getFormattedMessage("logged_in_successfully", Color.GREEN);
 	}
 }
