@@ -27,7 +27,7 @@ import com.gigaspaces.internal.io.IOUtils;
 
 /*******
  * Described a Machine started by a cloud driver.
- * 
+ * MachineDetails implements @{link Externalizable} since it is embedded in {@link MachineStartedCloudifyEvent}
  * @author barakme
  * @since 2.0.0
  * 
