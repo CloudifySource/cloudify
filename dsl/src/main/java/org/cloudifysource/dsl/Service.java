@@ -33,6 +33,8 @@ import org.cloudifysource.dsl.internal.ServiceTierType;
 import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
 import org.cloudifysource.dsl.statistics.PerInstanceStatisticsDetails;
 import org.cloudifysource.dsl.statistics.ServiceStatisticsDetails;
+import org.openspaces.ui.MetricGroup;
+import org.openspaces.ui.Unit;
 import org.openspaces.ui.UserInterface;
 
 /****************************
@@ -183,7 +185,7 @@ public class Service {
 	public UserInterface getUserInterface() {
 		return userInterface;
 	}
-
+	
 	public void setUserInterface(final UserInterface userInterface) {
 		this.userInterface = userInterface;
 	}
@@ -554,6 +556,38 @@ public class Service {
 						+ " property must be a long value", e);
 			}
 		}
+	}
+	
+	@DSLValidation
+	void validateUserInterfaceObjectIsWellDefined(final DSLValidationContext validationContext)
+			throws DSLValidationException {
+			if (this.userInterface != null) {
+				//Validate metric list
+				List<MetricGroup> metricGroups = this.userInterface.getMetricGroups();
+				for (MetricGroup metricGroup : metricGroups) {
+					for (Object metric : metricGroup.getMetrics()) {
+						if (metric instanceof List<?>) {
+							if (!(((List) metric).get(0) instanceof String)) {
+								throw new DSLValidationException("the defined metric " + metric.toString() + " is invalid." +
+										" metric name should be of type 'String'");
+							}
+							if (!(((List) metric).get(1) instanceof Unit)) {
+								throw new DSLValidationException("the defined metric " + metric.toString() + " is invalid." +
+										" metric axisYUnit should be of type org.openspaces.ui.Unit");
+							}
+							if (!(((List) metric).size() == 2)) {
+								throw new DSLValidationException("the defined metric " + metric.toString() + " is invalid." +
+										" metric should be defined as String or as a list [String, Unit]");
+							}
+						} else {
+							if (!(metric instanceof String)) {
+								throw new DSLValidationException("the defined metric " + metric.toString() + " is invalid." +
+										" metric name should be of type 'String'");
+							}
+						}
+					}
+				}
+			}
 	}
 
 	@DSLValidation

@@ -18,34 +18,50 @@ package org.cloudifysource.dsl;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import junit.framework.Assert;
 
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.junit.Test;
+import org.openspaces.ui.Unit;
+import org.openspaces.ui.UserInterface;
 
 /**
  * Test Service DSL Validations.
- * @author noak
+ * @author noak, adaml
  *
  */
 public class ServiceValidationTest {
 
 	private static final String SERVICE_WITHOUT_ICON_PATH = "testResources/simple/simple-service.groovy";
-	private static final String SERVICE_WITH_ICON_PATH = "testResources/applications/simple/service1/service1-service.groovy";
-	private static final String APPLICATION_MISSING_SERVICE_ICON_PATH = "testResources/applications/ApplicationValidationTest/appMissingServiceIconTest";
+	
+	private static final String SERVICE_WITH_ICON_PATH = 
+			"testResources/applications/simple/service1/service1-service.groovy";
+	
+	private static final String APPLICATION_MISSING_SERVICE_ICON_PATH = 
+			"testResources/applications/ApplicationValidationTest/appMissingServiceIconTest";
 
 	private static final String ICON_FILE = "icon.png";
-	
+
 	private static final String SERVICE_WITHOUT_NAME_GROOVY 
 	= "testResources/applications/ServiceValidationTest/serviceWithoutNameTest";
+	
 	private static final String SERVICE_WITH_EMPTY_NAME_GROOVY 
 	= "testResources/applications/ServiceValidationTest/serviceWithEmptyNameTest";
-	
+
+	private static final String SERVICE_WITH_VALID_USER_INTERFACE = 
+			"src/test/resources/ExternalDSLFiles/userInterfaceConversionTestFiles/" 
+			+ "service_with_metrics_and_widgets.groovy";
+
+	private static final String SERVICE_WITH_INVALID_USER_INTERFACE = 
+			"src/test/resources/groovyFileValidation/badUserInterface.groovy";
 	/**
 	 * Triple-test for the instances number (invalid configuration, default configuration and a valid configuration).
 	 */
@@ -61,7 +77,7 @@ public class ServiceValidationTest {
 		} catch (DSLValidationException e) {
 			//OK - the invalid number of instances caused the exception
 		}
-		
+
 		//no num instances defined. using default values:
 		try {
 			Service service = new Service();
@@ -70,7 +86,7 @@ public class ServiceValidationTest {
 		} catch (DSLValidationException e) {
 			fail("Validation of service failed");
 		}
-		
+
 		//test legal state:
 		try {
 			Service service = new Service();
@@ -82,7 +98,7 @@ public class ServiceValidationTest {
 			fail("Validation of service failed");
 		}
 	}
-	
+
 	/**
 	 * Double-test for the service type.
 	 */
@@ -97,7 +113,7 @@ public class ServiceValidationTest {
 		} catch (DSLValidationException e) {
 			//OK - the invalid service type caused the exception
 		}
-		
+
 		//valid service type
 		try {
 			Service service = new Service();
@@ -107,7 +123,7 @@ public class ServiceValidationTest {
 			fail("Validation of service failed");
 		}
 	}
-	
+
 	/*******
 	 * Tests the validation of an illegal service's name 
 	 * (service without a name or with an empty name).
@@ -122,7 +138,7 @@ public class ServiceValidationTest {
 		} catch (DSLValidationException e) {
 			//OK - the invalid service name caused the exception
 		}
-		
+
 		try {
 			service.setName(StringUtils.EMPTY);
 			service.validateNameExists(new DSLValidationContext());
@@ -131,7 +147,7 @@ public class ServiceValidationTest {
 			//OK - the invalid service name caused the exception
 		}
 	}
-	
+
 	/*******
 	 * Tests the validation of a service without a name using DSL parsing of a groovy file.
 	 * <p>Should throw <code>DSLValidationException</code>.
@@ -165,7 +181,7 @@ public class ServiceValidationTest {
 					+ e.getClass() + " was thrown.");
 		}
 	}
-	
+
 	@Test
 	public void testApplicationMissingServiceIcon() {
 		final File applicationFile = new File(APPLICATION_MISSING_SERVICE_ICON_PATH);
@@ -179,7 +195,7 @@ public class ServiceValidationTest {
 					+ e.getClass() + " was thrown.");
 		}
 	}
-	
+
 	@Test
 	public void testServiceWithoutIconGroovy() {
 		try {
@@ -192,18 +208,18 @@ public class ServiceValidationTest {
 					+ e.getClass() + " was thrown.");
 		}
 	}
-	
+
 	/**
 	 * Double-test for the service icon.
 	 */
-	
+
 	@Test
 	public void testMissingServiceIcon() {
-		
+
 		Service service = new Service();
 		service.setIcon(ICON_FILE);
 		DSLValidationContext validationContext = new DSLValidationContext();
-		
+
 		//missing icon file:
 		try {
 			validationContext.setFilePath(SERVICE_WITHOUT_ICON_PATH);
@@ -212,15 +228,89 @@ public class ServiceValidationTest {
 		} catch (DSLValidationException e) {
 			//OK - the invalid icon path caused the exception
 		}
-		
+
 		//valid icon file:
 		try {
 			validationContext.setFilePath(SERVICE_WITH_ICON_PATH);
 			service.validateIcon(validationContext);
 		} catch (DSLValidationException e) {
-			fail("Validation of service failed on a valid icon path: " + SERVICE_WITH_ICON_PATH + ": " + e.getMessage());
+			fail("Validation of service failed on a valid icon path: " 
+					+ SERVICE_WITH_ICON_PATH + ": " + e.getMessage());
 		}
 	}
-	
+
+	@Test
+	public void testBadUserInterfaceDef() 
+			throws PackagingException, DSLException {
+
+		Service service = ServiceReader.readService(new File(SERVICE_WITH_VALID_USER_INTERFACE));
+		DSLValidationContext validationContext = new DSLValidationContext();
+		validationContext.setFilePath(SERVICE_WITH_VALID_USER_INTERFACE);
+		try {
+			service.validateUserInterfaceObjectIsWellDefined(validationContext);
+		} catch (DSLValidationException e) {
+			fail("Validation of a valid User Interface object failed");
+		}
+		validationContext.setFilePath(SERVICE_WITH_INVALID_USER_INTERFACE);
+		UserInterface userInterface = service.getUserInterface();
+		
+		//we change the UserInterface object a few times and run a validation test on it.
+
+		//invalid because expecting string not object
+		List<Object> firstInvalidMetricList = new ArrayList<Object>();
+		firstInvalidMetricList.add(new Object());
+		userInterface.getMetricGroups().get(0).setMetrics(firstInvalidMetricList);
+		try {
+			service.validateUserInterfaceObjectIsWellDefined(validationContext);
+			fail("Validation of User Interface object is expected to fail");
+		} catch (DSLValidationException e) {
+			//expected
+		}
+
+		//invalid because expecting Unit not String 
+		List<Object> secondInvalidMetricList = new ArrayList<Object>();
+		List<Object> invalidMetricListForm = new ArrayList<Object>();
+		invalidMetricListForm.add("metricName");
+		invalidMetricListForm.add("nonUnit instance type object");
+		secondInvalidMetricList.add(invalidMetricListForm);
+		userInterface.getMetricGroups().get(0).setMetrics(secondInvalidMetricList);
+		try {
+			service.validateUserInterfaceObjectIsWellDefined(validationContext);
+			fail("Validation of User Interface object is expected to fail");
+		} catch (DSLValidationException e) {
+			//expected
+		}
+
+		//invalid because expecting string not object
+		List<Object> thirdInvalidMetricList = new ArrayList<Object>();
+		invalidMetricListForm = new ArrayList<Object>();
+		invalidMetricListForm.add(new Object());
+		invalidMetricListForm.add(Unit.PERCENTAGE);
+		thirdInvalidMetricList.add(invalidMetricListForm);
+		userInterface.getMetricGroups().get(0).setMetrics(thirdInvalidMetricList);
+		try {
+			service.validateUserInterfaceObjectIsWellDefined(validationContext);
+			fail("Validation of User Interface object is expected to fail");
+		} catch (DSLValidationException e) {
+			//expected
+		}
+
+		//invalid because expecting metric to be either string or a list 
+		//of size 2
+		List<Object> fourthInvalidMetricList = new ArrayList<Object>();
+		invalidMetricListForm = new ArrayList<Object>();
+		invalidMetricListForm.add("metricName");
+		invalidMetricListForm.add(Unit.PERCENTAGE);
+		invalidMetricListForm.add("some unrelatedString");
+		fourthInvalidMetricList.add(invalidMetricListForm);
+		userInterface.getMetricGroups().get(0).setMetrics(fourthInvalidMetricList);
+		try {
+			service.validateUserInterfaceObjectIsWellDefined(validationContext);
+			fail("Validation of User Interface object is expected to fail");
+		} catch (DSLValidationException e) {
+			//expected
+		}
+	}
+
 }
 

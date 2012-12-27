@@ -35,6 +35,7 @@ import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntryFactory;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLValidationException;
+import org.cloudifysource.dsl.utils.UserInterfaceConverter;
 import org.cloudifysource.usm.TCPPortEventListener;
 import org.cloudifysource.usm.USMComponent;
 import org.cloudifysource.usm.USMException;
@@ -176,7 +177,10 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 		}
 
 		final UserInterface ui = this.service.getUserInterface();
-		return new UIDetails(ui);
+		
+		UserInterfaceConverter converter = new UserInterfaceConverter();
+		UserInterface convertUserInterface = converter.convertUserInterface(ui);
+		return new UIDetails(convertUserInterface);
 
 	}
 
