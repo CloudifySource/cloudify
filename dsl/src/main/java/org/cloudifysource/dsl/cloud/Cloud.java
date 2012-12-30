@@ -17,10 +17,12 @@ package org.cloudifysource.dsl.cloud;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.DSLValidation;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
@@ -132,6 +134,43 @@ public class Cloud {
 			if (tenantId.equalsIgnoreCase("ENTER_TENANT")) {
 				throw new DSLValidationException("The tenant id property must be set");
 			}
+		}
+	}
+	
+	/**
+	 * Validations for dynamic-byon cloud only.
+	 * Validates that each template contains startMachine and stopMachine closures in its custom closure.
+	 * Validates that the management machine's template contains the 
+	 * 									startManagementMachines closure in its custom closure.
+	 * @param validationContext .
+	 * @throws DSLValidationException .
+	 */
+	@DSLValidation
+	public void validateDynamicNodesClosures(final DSLValidationContext validationContext) 
+			throws DSLValidationException {
+		if (CloudifyConstants.DYNAMIC_BYON_NAME.equals(name)) {
+			String managementMachineTemplateName = configuration.getManagementMachineTemplate();
+			CloudTemplate managementMachineTemplate = templates.get(managementMachineTemplateName);
+			Map<String, Object> mngTempalteCustom = managementMachineTemplate.getCustom();
+			validateClosureExists(mngTempalteCustom, CloudifyConstants.DYNAMIC_BYON_START_MNG_MACHINES_KEY, 
+					managementMachineTemplateName);			
+			validateClosureExists(mngTempalteCustom, CloudifyConstants.DYNAMIC_BYON_STOP_MNG_MACHINES_KEY, 
+					managementMachineTemplateName);
+			for (Entry<String, CloudTemplate> templateEntry : templates.entrySet()) {
+				final String templateName = templateEntry.getKey();
+				Map<String, Object> tempalteCustom = templateEntry.getValue().getCustom();
+				validateClosureExists(tempalteCustom, CloudifyConstants.DYNAMIC_BYON_START_MACHINE_KEY, templateName);
+				validateClosureExists(tempalteCustom, CloudifyConstants.DYNAMIC_BYON_STOP_MACHINE_KEY, templateName);
+			}
+		}
+	}
+	
+	private void validateClosureExists(final Map<String, Object> customMap, final String key, 
+			final String tempalteName) throws DSLValidationException {
+		Object closure = customMap.get(key);
+		if (closure == null) {
+			throw new DSLValidationException("The " + key + " closure is missing in tempalte " 
+					+ tempalteName + ".");
 		}
 	}
 

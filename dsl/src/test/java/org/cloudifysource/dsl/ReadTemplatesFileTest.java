@@ -3,14 +3,11 @@ package org.cloudifysource.dsl;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import junit.framework.Assert;
 
 import org.cloudifysource.dsl.internal.CloudTemplateHolder;
 import org.cloudifysource.dsl.internal.CloudTemplatesReader;
-import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.junit.Test;
@@ -28,50 +25,6 @@ public class ReadTemplatesFileTest {
 			"src/test/resources/ExternalDSLFiles/illegalMultipleTemplatesInOneFile";
 	private static final String ILLEGAL_DUPLICATE_TEMPLATES_FILE_PATH = 
 			"src/test/resources/ExternalDSLFiles/illegalDuplicateTemplates";
-	
-	
-	private static Object[] convertArgsToJaon(final Object[] args) {
-		String[] newArgs = new String[args.length];
-		if (newArgs.length < 2) {
-			return args;
-		}
-		Map<String, Map<String, String>> failedToAddTemplates = (Map<String, Map<String, String>>) args[0];
-		StringBuilder failedToAddTemplatesStr = new StringBuilder("\n{\n");
-		for (Entry<String, Map<String, String>> entry : failedToAddTemplates.entrySet()) {
-			Map<String, String> failedToAddTemplatesErrDesc = entry.getValue();
-			failedToAddTemplatesStr.append(CloudifyConstants.TAB_CHAR)
-			.append(entry.getKey())
-			.append(":\n")
-			.append(CloudifyConstants.TAB_CHAR)
-			.append("{\n");
-			for (Entry<String, String> tempalteErrDesc : failedToAddTemplatesErrDesc.entrySet()) {
-				failedToAddTemplatesStr.append(CloudifyConstants.TAB_CHAR)
-				.append(CloudifyConstants.TAB_CHAR)
-				.append(tempalteErrDesc.getKey())
-				.append(" - ")
-				.append(tempalteErrDesc.getValue())
-				.append("\n");
-			}
-			failedToAddTemplatesStr.append(CloudifyConstants.TAB_CHAR)
-			.append("}\n");
-		}
-		failedToAddTemplatesStr.append("}");
-		newArgs[0] = failedToAddTemplatesStr.toString();
-
-		Map<String, List<String>> successfullyAddedTemplates = (Map<String, List<String>>) args[1];
-		StringBuilder successfullyAddedTemplatesStr = new StringBuilder("\n{\n");
-		for (Entry<String, List<String>> entry : successfullyAddedTemplates.entrySet()) {
-			successfullyAddedTemplatesStr.append(CloudifyConstants.TAB_CHAR)
-			.append(entry.getKey())
-			.append(": ")
-			.append(entry.getValue())
-			.append("\n");
-		}
-		successfullyAddedTemplatesStr.append("}");
-		newArgs[1] = successfullyAddedTemplatesStr.toString();
-		
-		return newArgs;
-	}
 	
 	@Test
 	public void readTemplateFilesFromFolderTest() {	
@@ -114,7 +67,7 @@ public class ReadTemplatesFileTest {
 		} catch (DSLException e) {
 			Assert.assertTrue(e.getMessage().startsWith("Template with name [TOMCAT] already exist in folder"));
 		}
-	}
+	}	
 	
 	private void readTempaltesTest(final String folderName) {
 		try {

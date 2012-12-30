@@ -25,10 +25,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -205,7 +201,8 @@ ProvisioningDriverClassContextAware {
 		return createServer(newServerName, endTime, template);
 	}
 
-	private MachineDetails createServer(final String serverName, final long endTime, final CloudTemplate template)
+	@Override
+	protected MachineDetails createServer(final String serverName, final long endTime, final CloudTemplate template)
 			throws CloudProvisioningException, TimeoutException {
 
 		final CustomNode node;
@@ -312,72 +309,6 @@ ProvisioningDriverClassContextAware {
 		final MachineDetails[] createdMachines = doStartManagementMachines(endTime, numberOfManagementMachines);
 		publishEvent(EVENT_MGMT_VMS_STARTED);
 		return createdMachines;
-	}
-
-	private MachineDetails[] doStartManagementMachines(final long endTime, final int numberOfManagementMachines)
-			throws TimeoutException, CloudProvisioningException {
-		final ExecutorService executors = Executors.newFixedThreadPool(numberOfManagementMachines);
-
-		@SuppressWarnings("unchecked")
-		final Future<MachineDetails>[] futures = (Future<MachineDetails>[]) new Future<?>[numberOfManagementMachines];
-
-		final CloudTemplate managementTemplate =
-				this.cloud.getTemplates().get(this.cloud.getConfiguration().getManagementMachineTemplate());
-		try {
-			// Call startMachine asynchronously once for each management
-			// machine
-			for (int i = 0; i < numberOfManagementMachines; i++) {
-				final int index = i + 1;
-				futures[i] = executors.submit(new Callable<MachineDetails>() {
-
-					@Override
-					public MachineDetails call()
-							throws Exception {
-						return createServer(serverNamePrefix + index, endTime, managementTemplate);
-					}
-				});
-
-			}
-
-			// Wait for each of the async calls to terminate.
-			int numberOfErrors = 0;
-			Exception firstCreationException = null;
-			final MachineDetails[] createdManagementMachines = new MachineDetails[numberOfManagementMachines];
-			for (int i = 0; i < createdManagementMachines.length; i++) {
-				try {
-					createdManagementMachines[i] = futures[i].get(endTime - System.currentTimeMillis(),
-							TimeUnit.MILLISECONDS);
-				} catch (final InterruptedException e) {
-					++numberOfErrors;
-					publishEvent("failed_to_create_management_vm", e.getMessage());
-					logger.log(Level.SEVERE, "Failed to start a management machine", e);
-					if (firstCreationException == null) {
-						firstCreationException = e;
-					}
-
-				} catch (final ExecutionException e) {
-					++numberOfErrors;
-					publishEvent("failed_to_create_management_vm", e.getMessage());
-					logger.log(Level.SEVERE, "Failed to start a management machine", e);
-					if (firstCreationException == null) {
-						firstCreationException = e;
-					}
-				}
-			}
-
-			// In case of a partial error, shutdown all servers that did start
-			// up
-			if (numberOfErrors > 0) {
-				handleProvisioningFailure(numberOfManagementMachines, numberOfErrors, firstCreationException,
-						createdManagementMachines);
-			}
-
-			return createdManagementMachines;
-		} finally {
-			if (executors != null) {
-				executors.shutdownNow();
-			}
-		}
 	}
 
 	/**
@@ -560,7 +491,7 @@ ProvisioningDriverClassContextAware {
 		return agentUp;
 	}
 
-	private void handleProvisioningFailure(final int numberOfManagementMachines, final int numberOfErrors,
+	protected void handleProvisioningFailure(final int numberOfManagementMachines, final int numberOfErrors,
 			final Exception firstCreationException, final MachineDetails[] createdManagementMachines)
 					throws CloudProvisioningException {
 		logger.severe("Of the required " + numberOfManagementMachines + " management machines, " + numberOfErrors

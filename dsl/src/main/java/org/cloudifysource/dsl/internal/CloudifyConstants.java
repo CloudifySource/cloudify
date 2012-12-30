@@ -294,6 +294,16 @@ public final class CloudifyConstants {
 	 */
 	public static final String ADDITIONAL_TEMPLATES_FOLDER_NAME = "additionalTemplates";
 
+	/*******************
+	 * 
+	 */
+	public static String DYNAMIC_BYON_NAME = "dynamic-byon";
+	public static String DYNAMIC_BYON_START_MACHINE_KEY = "startMachine";
+	public static String DYNAMIC_BYON_STOP_MACHINE_KEY = "stopMachine";
+	public static String DYNAMIC_BYON_START_MNG_MACHINES_KEY = "startManagementMachines";
+	public static String DYNAMIC_BYON_STOP_MNG_MACHINES_KEY = "stopManagementMachines";
+
+	
 	// CHECKSTYLE:ON
 }
 

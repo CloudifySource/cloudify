@@ -21,11 +21,6 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -124,11 +119,13 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		}
 	}
 
-	private MachineDetails createServer(final long end, final String groupName)
-			throws CloudProvisioningException {
-		return createServer(end, groupName, null);
+	@Override
+	protected MachineDetails createServer(String serverName, long endTime,
+			CloudTemplate template) throws CloudProvisioningException,
+			TimeoutException {
+		return createServer(endTime, serverName, null);
 	}
-
+	
 	private MachineDetails createServer(final long end, final String groupName,
 			final String locationIdOverride) throws CloudProvisioningException {
 
@@ -368,79 +365,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		return sb.toString();
 	}
 
-	private MachineDetails[] doStartManagementMachines(final long endTime,
-			final int numberOfManagementMachines) throws TimeoutException,
-			CloudProvisioningException {
-
-		final ExecutorService executors = Executors
-				.newFixedThreadPool(numberOfManagementMachines);
-
-		@SuppressWarnings("unchecked")
-		final Future<MachineDetails>[] futures = (Future<MachineDetails>[]) new Future<?>[numberOfManagementMachines];
-
-		try {
-			// Call startMachine asynchronously once for each management
-			// machine
-			for (int i = 0; i < numberOfManagementMachines; i++) {
-				final int index = i + 1;
-				futures[i] = executors.submit(new Callable<MachineDetails>() {
-
-					@Override
-					public MachineDetails call() throws Exception {
-						return createServer(endTime, serverNamePrefix + index);
-					}
-				});
-
-			}
-
-			// Wait for each of the async calls to terminate.
-			int numberOfErrors = 0;
-			Exception firstCreationException = null;
-			final MachineDetails[] createdManagementMachines = new MachineDetails[numberOfManagementMachines];
-			for (int i = 0; i < createdManagementMachines.length; i++) {
-				try {
-					createdManagementMachines[i] = futures[i]
-							.get(endTime - System.currentTimeMillis(),
-									TimeUnit.MILLISECONDS);
-				} catch (final InterruptedException e) {
-					++numberOfErrors;
-					publishEvent("failed_to_create_management_vm",
-							e.getMessage());
-					logger.log(Level.FINE,
-							"Failed to start a management machine", e);
-					if (firstCreationException == null) {
-						firstCreationException = e;
-					}
-
-				} catch (final ExecutionException e) {
-					++numberOfErrors;
-					publishEvent("failed_to_create_management_vm",
-							e.getMessage());
-					logger.log(Level.FINE,
-							"Failed to start a management machine", e);
-					if (firstCreationException == null) {
-						firstCreationException = e;
-					}
-
-				}
-			}
-
-			// In case of a partial error, shutdown all servers that did start
-			// up
-			if (numberOfErrors > 0) {
-				handleProvisioningFailure(numberOfManagementMachines,
-						numberOfErrors, firstCreationException,
-						createdManagementMachines);
-			}
-
-			return createdManagementMachines;
-		} finally {
-			if (executors != null) {
-				executors.shutdownNow();
-			}
-		}
-	}
-
 	@Override
 	public boolean stopMachine(final String serverIp, final long duration,
 			final TimeUnit unit) throws CloudProvisioningException,
@@ -541,7 +465,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		return result;
 	}
 
-	private void handleProvisioningFailure(
+	protected void handleProvisioningFailure(
 			final int numberOfManagementMachines, final int numberOfErrors,
 			final Exception firstCreationException,
 			final MachineDetails[] createdManagementMachines)
