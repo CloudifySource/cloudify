@@ -35,7 +35,7 @@ cloud {
 		// different HTTP server instead.
 		// IMPORTANT: the default linux bootstrap script appends '.tar.gz' to the url whereas the default windows script appends '.zip'.
 		// Therefore, if setting a custom URL, make sure to leave out the suffix.
-		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.3.0-RELEASE/gigaspaces-cloudify-2.3.0-ga-b3500.zip"
+		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.5.0-M3/gigaspaces-cloudify-2.5.0-m3-b3984.zip"
 
 		// Mandatory. The prefix for new machines started for servies.
 		machineNamePrefix "cloudifyagent"
