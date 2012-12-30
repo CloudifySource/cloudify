@@ -57,6 +57,7 @@ public class CloudProvider {
 	private String managementGroup;
 	private int numberOfManagementMachines;
 	private int reservedMemoryCapacityPerMachineInMB;
+	private int reservedMemoryCapacityPerManagementMachineInMB;
 
 	public String getProvider() {
 		return provider;
@@ -142,6 +143,15 @@ public class CloudProvider {
 
 	public void setReservedMemoryCapacityPerMachineInMB(final int reservedMemoryCapacityPerMachineInMB) {
 		this.reservedMemoryCapacityPerMachineInMB = reservedMemoryCapacityPerMachineInMB;
+	}
+
+	public int getReservedMemoryCapacityPerManagementMachineInMB() {
+		return reservedMemoryCapacityPerManagementMachineInMB;
+	}
+
+	public void setReservedMemoryCapacityPerManagementMachineInMB(
+			int reservedMemoryCapacityPerManagementMachineInMB) {
+		this.reservedMemoryCapacityPerManagementMachineInMB = reservedMemoryCapacityPerManagementMachineInMB;
 	}
 
 	@Override

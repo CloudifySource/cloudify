@@ -2358,14 +2358,16 @@ public class ServiceController implements ServiceDetailsProvider {
 			final String locators = extractLocators(admin);
 			config.setLocator(locators);
 
-			// management machine should be isolated from other services. no
-			// matter of the deployment mode.
-			config.setDedicatedManagementMachines(true);
+			if (IsolationUtils.isUseManagement(service)) {
+				config.setDedicatedManagementMachines(false);
+			} else {
+				config.setDedicatedManagementMachines(true);
+			}
 			if (!dedicated) {
 
 				// check what mode of isolation we should use
 				if (IsolationUtils.isGlobal(service)) {
-					logger.info("public mode is on. will use public machine provisioning for "
+					logger.info("global mode is on. will use public machine provisioning for "
 							+ serviceName + " deployment.");
 					// service instances can be deployed across all agents
 					setPublicMachineProvisioning(deployment, config);

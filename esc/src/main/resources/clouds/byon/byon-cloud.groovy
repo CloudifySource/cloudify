@@ -56,6 +56,7 @@ cloud {
 		numberOfManagementMachines 1
 		
 		reservedMemoryCapacityPerMachineInMB 1024
+		reservedMemoryCapacityPerManagementMachineInMB 1280
 	}
 	
 	/*************

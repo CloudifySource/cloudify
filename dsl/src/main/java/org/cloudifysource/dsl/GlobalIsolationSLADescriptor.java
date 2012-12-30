@@ -33,6 +33,15 @@ public class GlobalIsolationSLADescriptor {
 
 	private int instanceMemoryMB = DEFAULT_SERVICE_INSTNACE_MEMORY; // default to 128MB
 	private int instanceCpuCores = 0; // default to 0, no CPU requirements
+	private boolean useManagement = false; // don't install on management machines by default
+	
+	public boolean isUseManagement() {
+		return useManagement;
+	}
+
+	public void setUseManagement(final boolean useManagement) {
+		this.useManagement = useManagement;
+	}
 
 	public int getInstanceCpuCores() {
 		return instanceCpuCores;

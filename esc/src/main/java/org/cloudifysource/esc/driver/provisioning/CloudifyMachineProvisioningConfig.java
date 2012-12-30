@@ -65,7 +65,12 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 
 	private static final String RESERVED_MEMORY_CAPACITY_PER_MACHINE_MEGABYTES_KEY =
 			"reserved-memory-capacity-per-machine-megabytes";
+
+	private static final String RESERVED_MEMORY_CAPACITY_PER_MANAGEMENT_MACHINE_MEGABYTES_KEY =
+			"reserved-memory-capacity-per-management-machine-megabytes";
+
 	private static final long RESERVED_MEMORY_CAPACITY_PER_MACHINE_MEGABYTES_DEFAULT = 256;
+	private static final long RESERVED_MEMORY_CAPACITY_PER_MANAGEMENT_MACHINE_MEGABYTES_DEFAULT = 512;
 
 	private static final String RESERVED_CPU_PER_MACHINE_KEY = "reserved-cpu-cores-per-machine";
 	private static final double RESERVED_CPU_PER_MACHINE_DEFAULT = 0.0;
@@ -91,6 +96,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	 * @param template .
 	 * @param cloudTemplateName .
 	 * @param managementTemplateRemoteDirectory .
+	 * @param management - true if the deployment
 	 */
 	public CloudifyMachineProvisioningConfig(final Cloud cloud, final CloudTemplate template,
 			final String cloudTemplateName, final String managementTemplateRemoteDirectory) {
@@ -98,6 +104,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 		setMinimumNumberOfCpuCoresPerMachine(template.getNumberOfCores());
 
 		setReservedMemoryCapacityPerMachineInMB(cloud.getProvider().getReservedMemoryCapacityPerMachineInMB());
+		setReservedMemoryCapacityPerManagementMachineInMB(cloud.getProvider().getReservedMemoryCapacityPerManagementMachineInMB());
 		
 		String remoteDir = managementTemplateRemoteDirectory;
 		logger.log(Level.FINE, "Original remote directory is: " + remoteDir);
@@ -109,7 +116,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 		setCloudConfigurationDirectory(remoteDir);
 		setCloudTemplateName(cloudTemplateName);
 	}
-	
+
 	private String getWindowsRemoteDirPath(String remoteDirectory) {
 		String homeDirectoryName = remoteDirectory;
 		homeDirectoryName = homeDirectoryName.replace(REMOTE_ADMIN_SHARE_CHAR, "");
@@ -209,16 +216,15 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 
 	@Override
 	public CapacityRequirements getReservedCapacityPerMachine() {
-		final List<CapacityRequirement> requirements = new ArrayList<CapacityRequirement>();
-		requirements.add(new MemoryCapacityRequirement(getReservedMemoryCapacityPerMachineInMB()));
-		requirements.add(new CpuCapacityRequirement(getReservedCpuCapacityPerMachine()));
-		final Map<String, Long> reservedDriveCapacity = getReservedDriveCapacityPerMachineInMB();
-		for (final Entry<String, Long> entry : reservedDriveCapacity.entrySet()) {
-			final String drive = entry.getKey();
-			requirements.add(new DriveCapacityRequirement(drive, entry.getValue()));
-		}
+		final List<CapacityRequirement> requirements = createRequirements(false);
 		return new CapacityRequirements(requirements.toArray(new CapacityRequirement[requirements.size()]));
 
+	}
+
+	@Override
+	public CapacityRequirements getReservedCapacityPerManagementMachine() {
+		final List<CapacityRequirement> requirements = createRequirements(true);
+		return new CapacityRequirements(requirements.toArray(new CapacityRequirement[requirements.size()]));
 	}
 
 	/**********
@@ -266,6 +272,13 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 				RESERVED_MEMORY_CAPACITY_PER_MACHINE_MEGABYTES_DEFAULT);
 	}
 
+	private Long getReservedMemoryCapacityPerManagementMachineInMB() {
+		return this.properties.getLong(
+				RESERVED_MEMORY_CAPACITY_PER_MANAGEMENT_MACHINE_MEGABYTES_KEY,
+				RESERVED_MEMORY_CAPACITY_PER_MANAGEMENT_MACHINE_MEGABYTES_DEFAULT);
+	}
+
+
 	/*************
 	 * Setter.
 	 * 
@@ -274,6 +287,17 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	public final void setReservedMemoryCapacityPerMachineInMB(final long reservedInMB) {
 		this.properties.putLong(
 				RESERVED_MEMORY_CAPACITY_PER_MACHINE_MEGABYTES_KEY, reservedInMB);
+	}
+
+	/*************
+	 * Setter.
+	 *
+	 * @param reservedInMB .
+	 */
+	public final void setReservedMemoryCapacityPerManagementMachineInMB(
+			final int reservedInMB) {
+		this.properties.putLong(
+				RESERVED_MEMORY_CAPACITY_PER_MANAGEMENT_MACHINE_MEGABYTES_KEY, reservedInMB);
 	}
 
 	@Override
@@ -366,5 +390,21 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 
 	public String getAuthGroups() {
 		return (String) properties.getStringWrapperObject(AUTH_GROUPS_KEY, AUTH_GROUPS_DEFAULT);
+	}
+
+	private List<CapacityRequirement> createRequirements(final boolean management) {
+		final List<CapacityRequirement> requirements = new ArrayList<CapacityRequirement>();
+		if (management) {
+			requirements.add(new MemoryCapacityRequirement(getReservedMemoryCapacityPerManagementMachineInMB()));
+		} else {
+			requirements.add(new MemoryCapacityRequirement(getReservedMemoryCapacityPerMachineInMB()));
+		}
+		requirements.add(new CpuCapacityRequirement(getReservedCpuCapacityPerMachine()));
+		final Map<String, Long> reservedDriveCapacity = getReservedDriveCapacityPerMachineInMB();
+		for (final Entry<String, Long> entry : reservedDriveCapacity.entrySet()) {
+			final String drive = entry.getKey();
+			requirements.add(new DriveCapacityRequirement(drive, entry.getValue()));
+		}
+		return requirements;
 	}
 }
