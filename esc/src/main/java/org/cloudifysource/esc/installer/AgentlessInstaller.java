@@ -91,11 +91,13 @@ public class AgentlessInstaller {
 
 	private static final String LUS_IP_ADDRESS_ENV = "LUS_IP_ADDRESS";
 
-	private static final String WORKING_HOME_DIRECTORY_ENV = "WORKING_HOME_DIRECTORY";
-
 	private static final String GSA_RESERVATION_ID_ENV = "GSA_RESERVATION_ID";
 
 	private static final String CLOUD_FILE = "CLOUD_FILE";
+	
+	private static final String WORKING_HOME_DIRECTORY_ENV = "WORKING_HOME_DIRECTORY";
+	
+	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 
 	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(AgentlessInstaller.class
 			.getName());
@@ -666,7 +668,11 @@ public class AgentlessInstaller {
 		if (details.getPassword() != null) {
 			scb.exportVar("PASSWORD", details.getPassword());
 		}
+		scb.exportVar(CloudifyConstants.SPRING_SECURITY_CONFIG_FILE_ENV_VAR, details.getRemoteDir() 
+				+ "/" + CloudifyConstants.SECURITY_FILE_NAME);
 		if (StringUtils.isNotBlank(details.getKeystorePassword())) {
+			scb.exportVar(CloudifyConstants.KEYSTORE_FILE_ENV_VAR, details.getRemoteDir() 
+					+ "/" + CloudifyConstants.KEYSTORE_FILE_NAME);
 			scb.exportVar(CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR, details.getKeystorePassword());
 		}
 

@@ -84,10 +84,10 @@
 						<property name="port" value="8100" />
 						<property name="acceptors" value="2" />
 						<property name="maxIdleTime" value="300000" />
-						<property name="keystore" value="${JSHOMEDIR}/config/security/keystore" />
+						<property name="keystore" value="${KEYSTORE_FILE}" />
 						<property name="password" value="${KEYSTORE_KEY}" />
 						<property name="keyPassword" value="${KEYSTORE_KEY}" />
-						<property name="truststore" value="${JSHOMEDIR}/config/security/keystore" />
+						<property name="truststore" value="${KEYSTORE_FILE}" />
 						<property name="trustPassword" value="${KEYSTORE_KEY}" />
 					</bean>
 				</list>

@@ -180,6 +180,7 @@ public final class CloudifyConstants {
 	public static final String SERVICE_CLOUD_CONFIGURATION_FILE_NAME = "__Cloud_Configuration.zip";
 	public static final String TEMP_FOLDER = System.getProperty("java.io.tmpdir");
 
+	
 	/***************
 	 * Reason codes for rest exceptions
 	 */
@@ -269,6 +270,10 @@ public final class CloudifyConstants {
 	/*******************
 	 * Spring security environment variable
 	 */
+	public static final String SECURITY_FILE_NAME = "spring-security.xml";
+	public static final String KEYSTORE_FILE_NAME = "keystore";
+	public static final String SPRING_SECURITY_CONFIG_FILE_ENV_VAR = "SPRING_SECURITY_CONFIG_FILE";
+	public static final String KEYSTORE_FILE_ENV_VAR = "KEYSTORE_FILE";
 	public static final String KEYSTORE_PASSWORD_ENV_VAR = "KEYSTORE_KEY";
 	public static final String SPRING_ACTIVE_PROFILE_ENV_VAR = "SPRING_PROFILES_ACTIVE";
 	public static final String SPRING_PROFILE_NON_SECURE = "nonsecure";

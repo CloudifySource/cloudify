@@ -31,8 +31,6 @@ import org.cloudifysource.shell.CloudifyLicenseVerifier;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 
-import com.j_spaces.kernel.Environment;
-
 /**
  * @author rafi, barakm
  * @since 2.0.0
@@ -71,11 +69,11 @@ public class StartManagement extends AbstractGSCommand {
 
 	private static final int DEFAULT_PROGRESS_INTERVAL_SECONDS = 10;
 	private static final int DEFAULT_TIMEOUNT_MINUTES = 5;
+	private static final String SPRING_SECURITY_CONFIG_FILE = 
+			System.getenv(CloudifyConstants.SPRING_SECURITY_CONFIG_FILE_ENV_VAR);
+	private static final String KEYSTORE_FILE = 
+			System.getenv(CloudifyConstants.KEYSTORE_FILE_ENV_VAR);
 	
-	private static final String PATH_SEPARATOR = System.getProperty("file.separator");
-	private static final String CLOUDIFY_HOME = Environment.getHomeDirectory();
-	private static final String DEFAULT_SECURITY_FOLDER = CLOUDIFY_HOME + PATH_SEPARATOR + "config" + PATH_SEPARATOR + "security";
-
 	@Option(required = false, name = "-lookup-groups", description = "A unique name that is used to group together "
 			+ "different Cloudify machines. Default is based on the product version. Override in order to group "
 			+ "together cloudify managements/agents on a network that supports multicast.")
@@ -117,7 +115,10 @@ public class StartManagement extends AbstractGSCommand {
 	private String cloudFileName;
 	
 	private static String securityProfile = System.getenv(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR);
+	private static final String securityFilePath = System.getenv(CloudifyConstants.SPRING_SECURITY_CONFIG_FILE_ENV_VAR);
+	private static final String keystoreFilePath = System.getenv(CloudifyConstants.KEYSTORE_FILE_ENV_VAR);
 	private static final String keystorePassword = System.getenv(CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR);
+	
 
 	/**
 	 * {@inheritDoc}
@@ -147,8 +148,8 @@ public class StartManagement extends AbstractGSCommand {
 		installer.setWaitForWebui(true);
 		installer.setCloudFilePath(cloudFileName);
 
-		installer.startManagementOnLocalhostAndWait(securityProfile, username, password, keystorePassword, 
-				getTimeoutInMinutes(), TimeUnit.MINUTES);
+		installer.startManagementOnLocalhostAndWait(securityProfile, securityFilePath, username, password,
+				keystoreFilePath, keystorePassword, getTimeoutInMinutes(), TimeUnit.MINUTES);
 		return "Management started successfully. Use the shutdown-management command to shutdown"
 				+ " management processes running on local machine.";
 	}
@@ -184,9 +185,7 @@ public class StartManagement extends AbstractGSCommand {
 		this.autoShutdown = autoShutdown;
 	}
 	
-	private void setSecurityMode() {
-		String defaultSecurityFilePath = DEFAULT_SECURITY_FOLDER + PATH_SEPARATOR + "spring-security.xml";
-		String defaultKeystoreFilePath = DEFAULT_SECURITY_FOLDER + PATH_SEPARATOR + "keystore";
+	private void setSecurityMode() throws IOException {
 		
 		if (StringUtils.isNotBlank(username) && StringUtils.isBlank(password)) {
 			throw new IllegalArgumentException("Password is missing or empty");
@@ -206,19 +205,19 @@ public class StartManagement extends AbstractGSCommand {
 		if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE_NO_SSL)
 				|| securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE)) {
 			//verify we have the security config file at place
-			File securityConfigFile = new File(defaultSecurityFilePath);
+			File securityConfigFile = new File(SPRING_SECURITY_CONFIG_FILE);
 			if (!securityConfigFile.isFile()) {
 				throw new IllegalArgumentException("Security configuration file not found on management server at the "
-						+ "expected location: " + defaultSecurityFilePath);
+						+ "expected location: " + securityConfigFile.getCanonicalPath());
 			}
 		}
 		
 		if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE)) {
 			//verify we have the keystore file at place
-			File keystoreFile = new File(defaultKeystoreFilePath);
+			File keystoreFile = new File(KEYSTORE_FILE);
 			if (!keystoreFile.isFile()) {
 				throw new IllegalArgumentException("Keystore file not found on management server at the expected "
-						+ "location: " + defaultKeystoreFilePath);
+						+ "location: " + keystoreFile.getCanonicalPath());
 			}
 		}
 	}

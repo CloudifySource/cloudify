@@ -329,10 +329,14 @@ public class LocalhostGridAgentBootstrapper {
 	 * 
 	 * @param securityProfile
 	 *            set security profile (nonsecure/secure/ssl)
+	 * @param securityFilePath
+	 *            path to the security configuration file
 	 * @param username
 	 *            The username for a secure connection to the server
 	 * @param password
 	 *            The password for a secure connection to the server
+	 * @param keystoreFilePath
+	 *            path to the keystore file
 	 * @param keystorePassword
 	 *            The password to the keystore to set on the rest server
 	 * @param timeout
@@ -346,9 +350,9 @@ public class LocalhostGridAgentBootstrapper {
 	 * @throws TimeoutException
 	 *             Reporting the timeout was reached
 	 */
-	public void startLocalCloudOnLocalhostAndWait(final String securityProfile, final String username, 
-			final String password, final String keystorePassword, final int timeout,
-			final TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
+	public void startLocalCloudOnLocalhostAndWait(final String securityProfile, final String securityFilePath, 
+			final String username, final String password, final String keystoreFilePath, final String keystorePassword,
+			final int timeout, final TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
 
 		setGridServiceAgentZone(LOCALCLOUD_GSA_ZONES);
 
@@ -357,11 +361,11 @@ public class LocalhostGridAgentBootstrapper {
 		setDefaultLocalcloudLookup();
 
 		if (isWindows()) {
-			startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_WIN_MANAGEMENT_ARGUMENTS, securityProfile, username, 
-					password, keystorePassword, timeout, timeunit, true);
+			startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_WIN_MANAGEMENT_ARGUMENTS, securityProfile, 
+					securityFilePath, username, password, keystoreFilePath, keystorePassword, timeout, timeunit, true);
 		} else {
-			startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_LINUX_MANAGEMENT_ARGUMENTS, securityProfile, username,
-			 password, keystorePassword, timeout, timeunit, true);
+			startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_LINUX_MANAGEMENT_ARGUMENTS, securityProfile, 
+					securityFilePath, username, password, keystoreFilePath, keystorePassword, timeout, timeunit, true);
 		}
 	}
 
@@ -398,10 +402,14 @@ public class LocalhostGridAgentBootstrapper {
 	 * 
 	 * @param securityProfile
 	 *            set security profile (nonsecure/secure/ssl)
+	 * @param securityFilePath
+	 *            path to the security configuration file
 	 * @param username
 	 *            The username for a secure connection to the server
 	 * @param password
 	 *            The password for a secure connection to the server
+	 * @param keystoreFilePath
+	 *            path to the keystore file
 	 * @param keystorePassword
 	 *            The password to the keystore set on the rest server
 	 * @param timeout
@@ -415,16 +423,16 @@ public class LocalhostGridAgentBootstrapper {
 	 * @throws TimeoutException
 	 *             Reporting the timeout was reached
 	 */
-	public void startManagementOnLocalhostAndWait(final String securityProfile, final String username,
-			final String password, final String keystorePassword, final int timeout, final TimeUnit timeunit) 
-					throws CLIException, InterruptedException, TimeoutException {
+	public void startManagementOnLocalhostAndWait(final String securityProfile, final String securityFilePath,
+			final String username, final String password, final String keystoreFilePath, final String keystorePassword,
+			final int timeout, final TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
 
 		setGridServiceAgentZone(MANAGEMENT_ZONE);
 
 		setDefaultNicAddress();
 
-		startManagementOnLocalhostAndWaitInternal(CLOUD_MANAGEMENT_ARGUMENTS, securityProfile, username, password, 
-				keystorePassword, timeout, timeunit, false);
+		startManagementOnLocalhostAndWaitInternal(CLOUD_MANAGEMENT_ARGUMENTS, securityProfile, securityFilePath,
+				username, password, keystoreFilePath, keystorePassword, timeout, timeunit, false);
 	}
 
 	/**
@@ -799,7 +807,8 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	private void runGsAgentOnLocalHost(final String name, final String[] gsAgentArguments, 
-			final String securityProfile, final String keystorePassword) throws CLIException, InterruptedException {
+			final String securityProfile, final String securityFilePath, final String keystoreFilePath, 
+			final String keystorePassword) throws CLIException, InterruptedException {
 
 		final List<String> args = new ArrayList<String>();
 		args.addAll(Arrays.asList(gsAgentArguments));
@@ -833,7 +842,8 @@ public class LocalhostGridAgentBootstrapper {
 		}
 
 		publishEvent(ShellUtils.getMessageBundle().getString("starting_cloudify_management"));
-		runCommand(command, args.toArray(new String[args.size()]), securityProfile, keystorePassword);
+		runCommand(command, args.toArray(new String[args.size()]), securityProfile, securityFilePath, keystoreFilePath,
+				keystorePassword);
 
 	}
 
@@ -850,10 +860,14 @@ public class LocalhostGridAgentBootstrapper {
 	 *            GS agent start-up switches
 	 * @param securityProfile
 	 *            set security profile (nonsecure/secure/ssl)
+	 * @param securityFilePath
+	 *            path to the security configuration file
 	 * @param username
 	 *            The username for a secure connection to the server
 	 * @param password
 	 *            The password for a secure connection to the server
+	 * @param keystoreFilePath
+	 *            path to the keystore file
 	 * @param keystorePassword
 	 *            The password to the keystore set on the rest server
 	 * @param timeout
@@ -870,8 +884,8 @@ public class LocalhostGridAgentBootstrapper {
 	 *             Reporting the timeout was reached
 	 */
 	private void startManagementOnLocalhostAndWaitInternal(final String[] gsAgentArgs, final String securityProfile, 
-			final String username, final String password, final String keystorePassword, final int timeout, 
-			final TimeUnit timeunit, final boolean isLocalCloud)
+			final String securityFilePath, final String username, final String password, final String keystoreFilePath,
+			final String keystorePassword, final int timeout, final TimeUnit timeunit, final boolean isLocalCloud)
 			throws CLIException, InterruptedException, TimeoutException {
 
 		setIsLocalCloud(isLocalCloud);
@@ -898,8 +912,8 @@ public class LocalhostGridAgentBootstrapper {
 					// no existing agent running on local machine
 				}
 
-				runGsAgentOnLocalHost("agent and management processes", gsAgentArgs, securityProfile, 
-						keystorePassword);
+				runGsAgentOnLocalHost("agent and management processes", gsAgentArgs, securityProfile, securityFilePath,
+						keystoreFilePath, keystorePassword);
 				agent = waitForNewAgent(admin, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
 						TimeUnit.MILLISECONDS);
 			} finally {
@@ -1124,7 +1138,8 @@ public class LocalhostGridAgentBootstrapper {
 			} catch (final TimeoutException e) {
 				// no existing agent running on local machine
 			}
-			runGsAgentOnLocalHost("agent", AGENT_ARGUMENTS, securityProfile, keystorePassword);
+			runGsAgentOnLocalHost("agent", AGENT_ARGUMENTS, securityProfile, "" /*securityFilePath*/,
+					"" /*keystoreFilePath*/, keystorePassword);
 
 			// wait for agent to start
 			waitForNewAgent(admin, timeout, timeunit);
@@ -1327,7 +1342,8 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	private void runCommand(final String[] command, final String[] args, final String securityProfile,
-			final String keystorePassword) throws CLIException, InterruptedException {
+			final String securityFilePath, final String keystoreFilePath, final String keystorePassword) 
+					throws CLIException, InterruptedException {
 
 		final File directory = new File(Environment.getHomeDirectory(), "/bin").getAbsoluteFile();
 
@@ -1381,10 +1397,16 @@ public class LocalhostGridAgentBootstrapper {
 			environment.put("NIC_ADDR", nicAddress);
 		}
 		environment.put("RMI_OPTIONS", "");
+		logger.fine("Setting env var " + CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR + " to: " + securityProfile);
 		environment.put(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR, securityProfile);
 		if (ShellUtils.isSecureConnection(securityProfile)) {
-			environment.put(CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR, keystorePassword);			
+			logger.fine("Setting env var " + CloudifyConstants.KEYSTORE_FILE_ENV_VAR + " to: " + keystoreFilePath);
+			environment.put(CloudifyConstants.KEYSTORE_FILE_ENV_VAR, keystoreFilePath);
+			logger.fine("Setting env var " + CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR + " to: " + keystorePassword);
+			environment.put(CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR, keystorePassword);	
 		}
+		logger.fine("Setting env var " + CloudifyConstants.SPRING_SECURITY_CONFIG_FILE_ENV_VAR + " to: " + securityFilePath);
+		environment.put(CloudifyConstants.SPRING_SECURITY_CONFIG_FILE_ENV_VAR, securityFilePath);
 
 		if (isLocalCloud) {
 			environment.put("COMPONENT_JAVA_OPTIONS", localCloudOptions);

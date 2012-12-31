@@ -14,7 +14,7 @@
 		<param-value>
 			/WEB-INF/admin-servlet.xml, 
 			/WEB-INF/http-intercepts.xml,
-			file:///${JSHOMEDIR}/config/security/spring-security.xml
+			file:///${SPRING_SECURITY_CONFIG_FILE}
 		</param-value>
 	</context-param>
 

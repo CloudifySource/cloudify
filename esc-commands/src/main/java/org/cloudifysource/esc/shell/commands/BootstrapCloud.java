@@ -58,15 +58,16 @@ public class BootstrapCloud extends AbstractGSCommand {
 
 	private static final int DEFAULT_TIMEOUT_MINUTES = 60;
 	private static final String PATH_SEPARATOR = System.getProperty("file.separator");
-	private static final String DEFAULT_SECURITY_FOLDER = "upload" + PATH_SEPARATOR + "cloudify-overrides"
-			+ PATH_SEPARATOR + "config" + PATH_SEPARATOR + "security";
-	private static final String DEFAULT_SECURITY_FILE_PATH =
-			DEFAULT_SECURITY_FOLDER + PATH_SEPARATOR + "spring-security.xml";
-	private static final String BACKUP_SECURITY_FILE_PATH = DEFAULT_SECURITY_FILE_PATH + ".backup";
-	private static final String DEFAULT_KEYSTORE_FILE_PATH =
-			DEFAULT_SECURITY_FOLDER + PATH_SEPARATOR + "keystore";
-	private static final String BACKUP_KEYSTORE_FILE_PATH =
-			DEFAULT_KEYSTORE_FILE_PATH + ".backup";
+	private static final String BACKUP_SECURITY_FILE_NAME = CloudifyConstants.SECURITY_FILE_NAME + ".backup";
+	private static final String BACKUP_KEYSTORE_FILE_NAME = CloudifyConstants.KEYSTORE_FILE_NAME + ".backup";
+	//private static final String DEFAULT_SECURITY_FOLDER = "upload" + PATH_SEPARATOR + "cloudify-overrides"
+	//		+ PATH_SEPARATOR + "config" + PATH_SEPARATOR + "security";
+	//private static final String DEFAULT_SECURITY_FILE_PATH =
+	//		DEFAULT_SECURITY_FOLDER + PATH_SEPARATOR + DEFAULT_SECURITY_FILE_NAME;
+	//private static final String DEFAULT_KEYSTORE_FILE_PATH =
+	//		DEFAULT_SECURITY_FOLDER + PATH_SEPARATOR + "keystore";
+	//private static final String BACKUP_KEYSTORE_FILE_PATH =
+	//		DEFAULT_KEYSTORE_FILE_PATH + ".backup";
 
 	@Argument(required = true, name = "provider", description = "The cloud provider to use")
 	String cloudProvider;
@@ -142,7 +143,8 @@ public class BootstrapCloud extends AbstractGSCommand {
 		File cloudFile = findCloudFile(providerDirectory);
 		
 		// load properties file
-		File cloudPropertiesFile = new File(providerDirectory, cloudFile.getName().split("\\.")[0] + DSLUtils.PROPERTIES_FILE_SUFFIX);
+		File cloudPropertiesFile = new File(providerDirectory, cloudFile.getName().split("\\.")[0] 
+				+ DSLUtils.PROPERTIES_FILE_SUFFIX);
 
 		File backupCloudPropertiesFile = new File(cloudPropertiesFile.getParentFile(), 
 				cloudPropertiesFile.getName() + ".backup");
@@ -345,8 +347,8 @@ public class BootstrapCloud extends AbstractGSCommand {
 	
 	private void revertSecurityFiles(final String providerDirectory) throws Exception {
 		//handle security config file
-		File securityConfigFile = new File(providerDirectory + PATH_SEPARATOR + DEFAULT_SECURITY_FILE_PATH);
-		File backupSecurityConfigFile = new File(providerDirectory + PATH_SEPARATOR + BACKUP_SECURITY_FILE_PATH);
+		File securityConfigFile = new File(providerDirectory + PATH_SEPARATOR + CloudifyConstants.SECURITY_FILE_NAME);
+		File backupSecurityConfigFile = new File(providerDirectory + PATH_SEPARATOR + BACKUP_SECURITY_FILE_NAME);
 		if (backupSecurityConfigFile.exists()) {
 			// restore original security file if it existed in the first place (backup file exists).
 			FileUtils.copyFile(backupSecurityConfigFile, securityConfigFile);
@@ -356,8 +358,8 @@ public class BootstrapCloud extends AbstractGSCommand {
 		}
 		
 		//handle keystore file
-		File keystoreFile = new File(providerDirectory + PATH_SEPARATOR + DEFAULT_KEYSTORE_FILE_PATH);
-		File backupKeystoreFile = new File(providerDirectory + PATH_SEPARATOR + BACKUP_KEYSTORE_FILE_PATH);
+		File keystoreFile = new File(providerDirectory + PATH_SEPARATOR + CloudifyConstants.KEYSTORE_FILE_NAME);
+		File backupKeystoreFile = new File(providerDirectory + PATH_SEPARATOR + BACKUP_KEYSTORE_FILE_NAME);
 		if (backupKeystoreFile.exists()) {
 			// restore original keystore if it existed in the first place (backup file exists).
 			FileUtils.copyFile(backupKeystoreFile, keystoreFile);
@@ -386,9 +388,13 @@ public class BootstrapCloud extends AbstractGSCommand {
 				throw new Exception("Security configuration file not found: " + securityFilePath);
 			}
 			
-			//copy to the overrides folder, to be copied to all management servers as well
-			File defaultSecurityFile = new File(providerDirectory + PATH_SEPARATOR + DEFAULT_SECURITY_FILE_PATH);
-			File backupSecurityFile = new File(providerDirectory + PATH_SEPARATOR + BACKUP_SECURITY_FILE_PATH);
+			//copy to the cloud provider's folder, to be copied to all management servers remote directory
+			//File defaultSecurityFile = new File(providerDirectory + PATH_SEPARATOR + DEFAULT_SECURITY_FILE_PATH);
+			//File backupSecurityFile = new File(providerDirectory + PATH_SEPARATOR + BACKUP_SECURITY_FILE_PATH);
+			File defaultSecurityFile = new File(providerDirectory + PATH_SEPARATOR 
+					+ CloudifyConstants.SECURITY_FILE_NAME);
+			File backupSecurityFile = new File(providerDirectory + PATH_SEPARATOR + BACKUP_SECURITY_FILE_NAME);
+
 			if (!(securitySourceFile.getCanonicalFile().equals(defaultSecurityFile.getCanonicalFile()))) {
 				if (defaultSecurityFile.exists()) {
 					// create a backup of the existing security configuration file
@@ -413,7 +419,8 @@ public class BootstrapCloud extends AbstractGSCommand {
 			}
 			
 			//copy to the override folder, to be copied to all management servers as well
-			final File defaultKeystoreFile = new File(providerDirectory + PATH_SEPARATOR + DEFAULT_KEYSTORE_FILE_PATH);
+			final File defaultKeystoreFile = new File(providerDirectory + PATH_SEPARATOR 
+					+ CloudifyConstants.KEYSTORE_FILE_NAME);
 			if (!(keystoreSourceFile.getCanonicalFile().equals(defaultKeystoreFile.getCanonicalFile()))) {
 				if (defaultKeystoreFile.exists()) {
 					// create a backup of the existing keystore file

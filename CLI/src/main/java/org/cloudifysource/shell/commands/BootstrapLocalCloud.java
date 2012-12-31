@@ -100,7 +100,7 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 	private String password;
 
 	@Option(required = false, description = "The path to the keystore used for SSL connections", name = "-keystore")
-	private String keystore;
+	private String keystoreFilePath;
 
 	@Option(required = false, description = "The password to the keystore", name = "-keystore-password")
 	private String keystorePassword;
@@ -117,12 +117,12 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 	@Argument(required = false, name = "name", description = "the cloud name")
 	private String cloudName;
 	
-	private String securityProfile = CloudifyConstants.SPRING_PROFILE_NON_SECURE;
-
 	// flags to indicate if bootstrap operation created a backup file that
 	// should be reverted
 	private boolean securityFileBackedup = false;
 	private boolean keystoreFileBackedup = false;
+	
+	private String securityProfile = CloudifyConstants.SPRING_PROFILE_NON_SECURE;
 
 	/**
 	 * {@inheritDoc}
@@ -146,10 +146,6 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 			}
 
 			setSecurityMode();
-			if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE_NO_SSL)
-					|| securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE)) {
-				copySecurityFiles();
-			}
 
 			final LocalhostGridAgentBootstrapper installer = new LocalhostGridAgentBootstrapper();
 			installer.setVerbose(verbose);
@@ -159,8 +155,8 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 			installer.setWaitForWebui(true);
 			installer.addListener(new CLILocalhostBootstrapperListener());
 			installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
-			installer.startLocalCloudOnLocalhostAndWait(securityProfile, username, password, keystorePassword,
-					timeoutInMinutes, TimeUnit.MINUTES);
+			installer.startLocalCloudOnLocalhostAndWait(securityProfile, securityFilePath, username, password,
+					keystoreFilePath, keystorePassword, timeoutInMinutes, TimeUnit.MINUTES);
 
 			return messages.getString("local_cloud_started");
 		} finally {
@@ -220,11 +216,11 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 		this.timeoutInMinutes = timeoutInMinutes;
 	}
 
-	private void setSecurityMode() throws CLIStatusException {
+	private void setSecurityMode() throws CLIStatusException, IOException {
 
 		if (secured) {
 			// enable security
-			if (StringUtils.isNotBlank(keystore) && StringUtils.isNotBlank(keystorePassword)) {
+			if (StringUtils.isNotBlank(keystoreFilePath) && StringUtils.isNotBlank(keystorePassword)) {
 				logger.info(getFormattedMessage(CloudifyErrorMessages.SETTING_SERVER_SECURITY_PROFILE.getName(),
 						CloudifyConstants.SPRING_PROFILE_SECURE));
 				securityProfile = CloudifyConstants.SPRING_PROFILE_SECURE;
@@ -253,34 +249,38 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 				throw new IllegalArgumentException("'-securityfile' is only valid when '-secured' is set");
 			}
 
-			if (StringUtils.isNotBlank(keystore)) {
+			if (StringUtils.isNotBlank(keystoreFilePath)) {
 				throw new IllegalArgumentException("'-keystore' is only valid when '-secured' is set");
 			}
 
 			if (StringUtils.isNotBlank(keystorePassword)) {
 				throw new IllegalArgumentException("'-keystore-password' is only valid when '-secured' is set");
 			}
-		}
+					
+		} else {
+			if (StringUtils.isNotBlank(username) && StringUtils.isBlank(password)) {
+				throw new IllegalArgumentException("Password is missing or empty");
+			}
 
-		if (StringUtils.isNotBlank(username) && StringUtils.isBlank(password)) {
-			throw new IllegalArgumentException("Password is missing or empty");
-		}
+			if (StringUtils.isBlank(username) && StringUtils.isNotBlank(password)) {
+				throw new IllegalArgumentException("Username is missing or empty");
+			}
 
-		if (StringUtils.isBlank(username) && StringUtils.isNotBlank(password)) {
-			throw new IllegalArgumentException("Username is missing or empty");
-		}
+			if (StringUtils.isNotBlank(keystoreFilePath) && StringUtils.isBlank(keystorePassword)) {
+				throw new IllegalArgumentException("Keystore password is missing or empty");
+			}
 
-		if (StringUtils.isNotBlank(keystore) && StringUtils.isBlank(keystorePassword)) {
-			throw new IllegalArgumentException("Keystore password is missing or empty");
-		}
+			if (StringUtils.isBlank(keystoreFilePath) && StringUtils.isNotBlank(keystorePassword)) {
+				throw new IllegalArgumentException("Keystore is missing or empty");
+			}
 
-		if (StringUtils.isBlank(keystore) && StringUtils.isNotBlank(keystorePassword)) {
-			throw new IllegalArgumentException("Keystore is missing or empty");
+			if (StringUtils.isNotBlank(keystoreFilePath)) {
+				validateKeystoreFile(keystorePassword, new File(keystoreFilePath));
+			}
 		}
-
-		if (StringUtils.isNotBlank(keystore)) {
-			validateKeystoreFile(keystorePassword, new File(keystore));
-		}
+		
+		validateSecurityVars();
+		
 	}
 
 	private void revertSecurityFiles() throws Exception {
@@ -309,48 +309,50 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 		}
 	}
 
-	private void copySecurityFiles() throws Exception {
+	private void validateSecurityVars() throws IOException {
 
 		// handle the configuration file
-		if (StringUtils.isNotBlank(securityFilePath)) {
-			final File securitySourceFile = new File(securityFilePath);
-			if (!securitySourceFile.isFile()) {
-				throw new Exception("Security configuration file not found: " + securityFilePath);
-			}
-
-			final File defaultSecurityFile = new File(DEFAULT_SECURITY_FILE_PATH);
-
-			if (!securitySourceFile.getCanonicalFile().equals(defaultSecurityFile.getCanonicalFile())) {
-				this.securityFileBackedup = true;
-				backupSecurityFile();
-				FileUtils.copyFile(securitySourceFile, defaultSecurityFile);
-			}
+		if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_NON_SECURE)) {
+			securityFilePath = new File(DEFAULT_SECURITY_FILE_PATH).getCanonicalPath();
 		} else {
-			// TODO : should we use the default security location and assume it
-			// was edited by the user?
-			// securityFilePath = CLOUDIFY_HOME +
-			// "/config/security/spring-security.xml";
-			throw new IllegalArgumentException("-securityfile is missing or empty");
-		}
+			if (StringUtils.isNotBlank(securityFilePath)) {
+				final File securityFile = new File(securityFilePath);
+				if (!securityFile.isFile()) {
+					throw new IOException("Security configuration file not found: " + securityFilePath);
+				}
 
-		// handle the keystore file
-		if (StringUtils.isNotBlank(keystore)) {
-			final File keystoreSourceFile = new File(keystore);
-			if (!keystoreSourceFile.isFile()) {
-				throw new Exception("Keystore file not found: " + keystore);
+				securityFilePath = securityFile.getCanonicalPath();
+				/*final File defaultSecurityFile = new File(DEFAULT_SECURITY_FILE_PATH);
+				if (!securitySourceFile.getCanonicalFile().equals(defaultSecurityFile.getCanonicalFile())) {
+					this.securityFileBackedup = true;
+					backupSecurityFile();
+					FileUtils.copyFile(securitySourceFile, defaultSecurityFile);
+				}*/
+			} else {
+				throw new IllegalArgumentException("-security-file is missing or empty");
 			}
 
-			final File defaultKeystoreFile = new File(DEFAULT_KEYSTORE_FILE_PATH);
-			if (!keystoreSourceFile.equals(defaultKeystoreFile)) {
-				this.keystoreFileBackedup = true;
-				backupKeystoreFile();
-				FileUtils.copyFile(keystoreSourceFile, new File(DEFAULT_KEYSTORE_FILE_PATH));
+			// handle the keystore file
+			if (StringUtils.isNotBlank(keystoreFilePath)) {
+				final File keystoreFile = new File(keystoreFilePath);
+				if (!keystoreFile.isFile()) {
+					throw new IOException("Keystore file not found: " + keystoreFilePath);
+				}
+
+				keystoreFilePath = keystoreFile.getCanonicalPath();
+				/*final File defaultKeystoreFile = new File(DEFAULT_KEYSTORE_FILE_PATH);
+				if (!keystoreSourceFile.equals(defaultKeystoreFile)) {
+					this.keystoreFileBackedup = true;
+					backupKeystoreFile();
+					FileUtils.copyFile(keystoreSourceFile, new File(DEFAULT_KEYSTORE_FILE_PATH));
+				}*/
+			} else {
+				throw new IllegalArgumentException("-keystore is missing or empty: ");
 			}
 		}
-
 	}
 
-	private void backupSecurityFile() throws IOException {
+	/*private void backupSecurityFile() throws IOException {
 		final File defaultSecurityFile = new File(DEFAULT_SECURITY_FILE_PATH);
 		final File backupSecurityFile = new File(BACKUP_SECURITY_FILE_PATH);
 
@@ -378,7 +380,7 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 
 		// current security file exists and backup file does not exist.
 		FileUtils.copyFile(defaultFile, backupFile);
-	}
+	}*/
 
 	private void validateKeystoreFile(final String password, final File keystoreFile) throws CLIStatusException {
 		new KeystoreFileVerifier().verifyKeystoreFile(keystoreFile, password);
