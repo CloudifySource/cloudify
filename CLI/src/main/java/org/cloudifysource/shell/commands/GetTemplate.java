@@ -8,10 +8,10 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 /**
  * Gets a cloud's template.
  * 
- * Required arguments: 
+ * Required arguments:
  * 			name - The name of the template to get.
  * 
- * Command syntax: 
+ * Command syntax:
  * 			get-template name.
  * 
  * @author yael
@@ -19,19 +19,19 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
  * @since 2.3.0
  *
  */
-@Command(scope = "cloudify", name = "get-template", description = "Gets a cloud's template")
+@Command(scope = "cloudify", name = "get-template", description = "Displayes the cloud template details")
 public class GetTemplate extends AdminAwareCommand {
 
-	@Argument(required = true, name = "name", description = "The name of the template to remove")
+	@Argument(required = true, name = "name", description = "The name of the template")
 	private String templateName;
-	
+
 	@Override
 	protected Object doExecute() throws Exception {
-		
+
 		CloudTemplate template = adminFacade.getTemplate(templateName);
-		return templateName + ":" 
-				+ CloudifyConstants.NEW_LINE 
-				+ template.toFormatedString();
+		return templateName + ":"
+		+ CloudifyConstants.NEW_LINE
+		+ template.toFormatedString();
 	}
 
 }
