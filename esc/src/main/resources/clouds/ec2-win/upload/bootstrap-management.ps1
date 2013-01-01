@@ -223,14 +223,14 @@ Write-Host "Cloudify Task is available"
 $endTime = (get-date).addMinutes(10)
 
 while($true) {
-	schtasks /query | select-string cloudify-task |%{
+	$tasks = schtasks.exe /query
+	$tasks | select-string cloudify-task |%{
 		if ($_.tostring().contains("Running")) {
 			Write-Host "Cloudify startup is still executing"
 		} else  {
 			break
 		}
 	}
-
 	if((get-date) -gt $endTime) {
 		Write-Host "Timeout while waiting for cloudify task to finish"
 		exit(100)
