@@ -48,7 +48,7 @@ import org.openspaces.ui.UserInterface;
 @CloudifyDSLEntity(name = "service", clazz = Service.class, allowInternalNode = true, allowRootNode = true,
 parent = "application")
 public class Service {
-	
+
 	private static final int DEFAULT_MAX_JAR_SIZE = 150 * 1024 * 1024; // 150 MB
 	private static final long DEFAULT_SAMPLING_PERIOD_SECONDS = 60;
 
@@ -57,7 +57,7 @@ public class Service {
 	 */
 	private String name;
 	private String icon;
-	
+
 	private IsolationSLA isolationSLA;
 
 	private ServiceLifecycle lifecycle;
@@ -102,7 +102,7 @@ public class Service {
 	private LinkedList<String> extendedServicesPaths = new LinkedList<String>();
 
 	private boolean elastic = false;
-		
+
 	private String url = null;
 
 	private List<ScalingRuleDetails> scalingRules;
@@ -124,7 +124,7 @@ public class Service {
 	public void setIsolationSLA(final IsolationSLA isolationSLA) {
 		this.isolationSLA = isolationSLA;
 	}
-	
+
 	public long getSamplingPeriodInSeconds() {
 		return samplingPeriodInSeconds;
 	}
@@ -144,7 +144,7 @@ public class Service {
 	public void setElastic(final boolean elastic) {
 		this.elastic = elastic;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
@@ -177,7 +177,7 @@ public class Service {
 	public ServiceNetwork getNetwork() {
 		return this.network;
 	}
-	
+
 	public void setNetwork(final ServiceNetwork network) {
 		this.network = network;
 	}
@@ -499,7 +499,7 @@ public class Service {
 		String serviceSuffix = DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX.trim();
 		String filePath = validationContext.getFilePath().trim();
 
-		// execute this validation only if an icon was set and this is a Service's groovy file (not an Application's) 
+		// execute this validation only if an icon was set and this is a Service's groovy file (not an Application's)
 		if (filePath.endsWith(serviceSuffix)) {
 			isServiceFile = true;
 		}
@@ -538,7 +538,7 @@ public class Service {
 
 	}
 
-	private boolean isAbsolutePath(String extendedPath) {
+	private boolean isAbsolutePath(final String extendedPath) {
 		return new File(extendedPath).isAbsolute();
 	}
 
@@ -594,7 +594,7 @@ public class Service {
 	void validateNameExists(final DSLValidationContext validationContext)
 			throws DSLValidationException {
 		if (StringUtils.isBlank(name)) {
-			throw new DSLValidationException("Service.validateNameExists: The service's name " 
+			throw new DSLValidationException("Service.validateNameExists: The service's name "
 					+ (name == null ? "is missing" : "is empty"));
 		}
 	}
