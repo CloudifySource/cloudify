@@ -1,6 +1,8 @@
 package org.cloudifysource.dsl;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.cloudifysource.dsl.internal.DSLValidationContext;
+import org.cloudifysource.dsl.internal.DSLValidationException;
 
 /**
  * This class defines a service deployment which is shared across all machines 
@@ -13,6 +15,21 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 	allowRootNode = false, parent = "isolationSLA")
 public class AppSharedIsolationSLADescriptor extends SharedIsolationSLADescriptor {
 
+	@DSLValidation
+	void validateDefaultValues(final DSLValidationContext validationContext)
+			throws DSLValidationException {
+
+		super.validateDefaultValues(validationContext);
+		
+		if (getIsolationId() == null) {
+			throw new DSLValidationException("isolationId cannot be null");
+		}
+		if (isUseManagement()) {
+			throw new DSLValidationException("isUseManagement can only be true for isolationSLA of type 'global'");
+		}
+		
+	}
+	
 	@Override
 	public String toString() {
 		return "AppSharedIsolationSLADescriptor [isolationId=" + getIsolationId() + ", instanceMemoryMB="

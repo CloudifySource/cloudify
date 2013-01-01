@@ -45,5 +45,4 @@ public class IsolationSLAParsingTest {
 		Assert.assertTrue(service.getIsolationSLA() != null);
 		Assert.assertTrue(service.getIsolationSLA().getTenantShared() != null);
 	}
-
 }
