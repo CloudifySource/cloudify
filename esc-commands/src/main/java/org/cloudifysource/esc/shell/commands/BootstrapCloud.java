@@ -58,7 +58,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 
 	private static final int DEFAULT_TIMEOUT_MINUTES = 60;
 	private static final String PATH_SEPARATOR = System.getProperty("file.separator");
-	private static final String BACKUP_SECURITY_FILE_NAME = CloudifyConstants.SECURITY_FILE_NAME + ".backup";
+	private static final String BACKUP_FILE_NAME_SUFFIX = ".backup";
 	private static final String BACKUP_KEYSTORE_FILE_NAME = CloudifyConstants.KEYSTORE_FILE_NAME + ".backup";
 	//private static final String DEFAULT_SECURITY_FOLDER = "upload" + PATH_SEPARATOR + "cloudify-overrides"
 	//		+ PATH_SEPARATOR + "config" + PATH_SEPARATOR + "security";
@@ -108,11 +108,17 @@ public class BootstrapCloud extends AbstractGSCommand {
 	private boolean securityFileCopied = false;
 	private boolean keystoreFileCopied = false;
 	
+	private static final String CLOUDIFY_HOME = System.getenv("JSHOMEDIR");
+	private static final String DEFAULT_SECURITY_FILE_PATH = CLOUDIFY_HOME + "/config/security/spring-security.xml";
 	private static final String[] NON_VERBOSE_LOGGERS = { DefaultProvisioningDriver.class.getName(), 
 		AgentlessInstaller.class.getName() };
+	
 	private Map<String, Level> loggerStates = new HashMap<String, Level>();
 
 	private static final long TEN_K = 10 * FileUtils.ONE_KB;
+	
+	File defaultSecurityTargetFile;
+	File defaultKeystoreTargetFile;
 	
 	@Override
 	protected Object doExecute() throws Exception {
@@ -133,11 +139,15 @@ public class BootstrapCloud extends AbstractGSCommand {
 					StringUtils.join(pathResolver.getPathsLooked().toArray(), ", "));
 		}
 		
+		defaultSecurityTargetFile = new File(providerDirectory + PATH_SEPARATOR 
+				+ CloudifyConstants.SECURITY_FILE_NAME);
+		
+		defaultKeystoreTargetFile = new File(providerDirectory + PATH_SEPARATOR 
+				+ CloudifyConstants.KEYSTORE_FILE_NAME);
+		
 		setSecurityMode();
-		if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE_NO_SSL)
-				|| securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE)) {
-			copySecurityFiles(providerDirectory.getAbsolutePath());
-		}
+		copySecurityFiles(providerDirectory.getAbsolutePath());
+
 		
 		// load the cloud file
 		File cloudFile = findCloudFile(providerDirectory);
@@ -347,26 +357,10 @@ public class BootstrapCloud extends AbstractGSCommand {
 	
 	private void revertSecurityFiles(final String providerDirectory) throws Exception {
 		//handle security config file
-		File securityConfigFile = new File(providerDirectory + PATH_SEPARATOR + CloudifyConstants.SECURITY_FILE_NAME);
-		File backupSecurityConfigFile = new File(providerDirectory + PATH_SEPARATOR + BACKUP_SECURITY_FILE_NAME);
-		if (backupSecurityConfigFile.exists()) {
-			// restore original security file if it existed in the first place (backup file exists).
-			FileUtils.copyFile(backupSecurityConfigFile, securityConfigFile);
-			deleteFile(backupSecurityConfigFile);
-		} else if (this.securityFileCopied) {
-			deleteFile(securityConfigFile);
-		}
+		restoreBackup(defaultSecurityTargetFile, securityFileCopied);
 		
 		//handle keystore file
-		File keystoreFile = new File(providerDirectory + PATH_SEPARATOR + CloudifyConstants.KEYSTORE_FILE_NAME);
-		File backupKeystoreFile = new File(providerDirectory + PATH_SEPARATOR + BACKUP_KEYSTORE_FILE_NAME);
-		if (backupKeystoreFile.exists()) {
-			// restore original keystore if it existed in the first place (backup file exists).
-			FileUtils.copyFile(backupKeystoreFile, keystoreFile);
-			deleteFile(backupKeystoreFile);
-		} else if (this.keystoreFileCopied) {
-			deleteFile(keystoreFile);
-		}
+		restoreBackup(defaultKeystoreTargetFile, keystoreFileCopied);
 	}
 
 
@@ -381,56 +375,68 @@ public class BootstrapCloud extends AbstractGSCommand {
 	
 	private void copySecurityFiles(final String providerDirectory) throws Exception {
 		
-		//handle the configuration file
-		if (StringUtils.isNotBlank(securityFilePath)) {
-			File securitySourceFile = new File(securityFilePath);
-			if (!securitySourceFile.isFile()) {
-				throw new Exception("Security configuration file not found: " + securityFilePath);
-			}
-			
-			//copy to the cloud provider's folder, to be copied to all management servers remote directory
-			//File defaultSecurityFile = new File(providerDirectory + PATH_SEPARATOR + DEFAULT_SECURITY_FILE_PATH);
-			//File backupSecurityFile = new File(providerDirectory + PATH_SEPARATOR + BACKUP_SECURITY_FILE_PATH);
-			File defaultSecurityFile = new File(providerDirectory + PATH_SEPARATOR 
-					+ CloudifyConstants.SECURITY_FILE_NAME);
-			File backupSecurityFile = new File(providerDirectory + PATH_SEPARATOR + BACKUP_SECURITY_FILE_NAME);
-
-			if (!(securitySourceFile.getCanonicalFile().equals(defaultSecurityFile.getCanonicalFile()))) {
-				if (defaultSecurityFile.exists()) {
-					// create a backup of the existing security configuration file
-					FileUtils.copyFile(defaultSecurityFile, backupSecurityFile);
+		File defaultSecuritySourceFile = new File(DEFAULT_SECURITY_FILE_PATH);
+		
+		if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_NON_SECURE)) {
+			//copy the default security file (defines no security) to the upload folder
+			copyFileAndBackup(defaultSecuritySourceFile, defaultSecurityTargetFile);
+			this.securityFileCopied = true;
+		} else {
+			//handle the configuration file
+			if (StringUtils.isNotBlank(securityFilePath)) {
+				File securitySourceFile = new File(securityFilePath);
+				if (!securitySourceFile.isFile()) {
+					throw new Exception("Security configuration file not found: " + securityFilePath);
 				}
 				
-				//overrides if exists
-				this.securityFileCopied = true;
-				FileUtils.copyFile(securitySourceFile, defaultSecurityFile);
-			}
-		} else {
-			//TODO : should we use the default security location and assume it was edited by the user?
-			//securityFilePath = CLOUDIFY_HOME + "/config/security/spring-security.xml";
-			throw new IllegalArgumentException("-security-file is missing or empty");
-		}
-		
-		//handle the keystore file
-		if (StringUtils.isNotBlank(keystore)) {
-			File keystoreSourceFile = new File(keystore);
-			if (!keystoreSourceFile.isFile()) {
-				throw new Exception("Keystore file not found: " + keystore);
+				//copy to the cloud provider's folder, to be copied to all management servers remote directory
+				if (!(securitySourceFile.getCanonicalFile().equals(defaultSecurityTargetFile.getCanonicalFile()))) {
+					copyFileAndBackup(securitySourceFile, defaultSecurityTargetFile);
+					securityFileCopied = true;
+				}
+			} else {
+				//TODO : should we use the default security location and assume it was edited by the user?
+				//securityFilePath = CLOUDIFY_HOME + "/config/security/spring-security.xml";
+				throw new IllegalArgumentException("-security-file is missing or empty");
 			}
 			
-			//copy to the override folder, to be copied to all management servers as well
-			final File defaultKeystoreFile = new File(providerDirectory + PATH_SEPARATOR 
-					+ CloudifyConstants.KEYSTORE_FILE_NAME);
-			if (!(keystoreSourceFile.getCanonicalFile().equals(defaultKeystoreFile.getCanonicalFile()))) {
-				if (defaultKeystoreFile.exists()) {
-					// create a backup of the existing keystore file
-					FileUtils.copyFile(keystoreSourceFile, defaultKeystoreFile);
+			//handle the keystore file
+			if (StringUtils.isNotBlank(keystore)) {
+				File keystoreSourceFile = new File(keystore);
+				if (!keystoreSourceFile.isFile()) {
+					throw new Exception("Keystore file not found: " + keystore);
 				}
-
-				//overrides if exists
-				this.keystoreFileCopied = true;
-				FileUtils.copyFile(keystoreSourceFile, defaultKeystoreFile);
+				
+				//copy to the override folder, to be copied to all management servers as well
+				final File defaultKeystoreTargetFile = new File(providerDirectory + PATH_SEPARATOR 
+						+ CloudifyConstants.KEYSTORE_FILE_NAME);
+				if (!(keystoreSourceFile.getCanonicalFile().equals(defaultKeystoreTargetFile.getCanonicalFile()))) {
+					copyFileAndBackup(keystoreSourceFile, defaultKeystoreTargetFile);
+					keystoreFileCopied = true;
+				}
 			}
+		}
+	}
+	
+	private void copyFileAndBackup(final File sourceFile, final File targetFile) throws IOException {
+		if (targetFile.exists()) {
+			// create a backup of the existing file
+			File backupFile = new File(targetFile.getCanonicalPath() + BACKUP_FILE_NAME_SUFFIX);
+			FileUtils.copyFile(targetFile, backupFile);
+		}
+		
+		//copy the file, override if exists
+		FileUtils.copyFile(sourceFile, targetFile);
+	}
+	
+	private void restoreBackup(final File configFile, final boolean deleteOnExit) throws IOException {
+		File backupFile = new File(configFile.getCanonicalPath() + BACKUP_FILE_NAME_SUFFIX);
+		if (backupFile.exists()) {
+			// restore original security file if it existed in the first place (backup file exists).
+			FileUtils.copyFile(backupFile, configFile);
+			deleteFile(backupFile);
+		} else if (deleteOnExit) {
+			deleteFile(configFile);
 		}
 	}
 	
