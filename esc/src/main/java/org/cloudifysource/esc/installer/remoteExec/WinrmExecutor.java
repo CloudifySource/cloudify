@@ -16,39 +16,33 @@
 
 package org.cloudifysource.esc.installer.remoteExec;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
 import java.util.regex.Pattern;
 
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.ExitStatusException;
-import org.apache.tools.ant.taskdefs.optional.testing.BuildTimeoutException;
-import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
-import org.cloudifysource.esc.util.Utils;
+import org.cloudifysource.esc.installer.remoteExec.PowershellClient.PowerShellOutputListener;
 
+/********
+ * Remote Executor implementation for Windows Remote Management, using the
+ * powershell command.
+ * 
+ * @author barakme
+ * @since 2.5.0
+ * 
+ */
 public class WinrmExecutor implements RemoteExecutor {
 
 	private static final java.util.logging.Logger logger =
-			java.util.logging.Logger.getLogger(SshExecutor.class.getName());
+			java.util.logging.Logger.getLogger(WinrmExecutor.class.getName());
 
 	private static final String[] POWERSHELL_INSTALLED_COMMAND = new String[] { "powershell.exe", "-inputformat",
-			"none", "-?" };
+		"none", "-?" };
 	private static final String POWERSHELL_COMMAND_SEPARATOR = ";"; // System.getProperty("line.separator");
 	private static final String SEPARATOR = POWERSHELL_COMMAND_SEPARATOR;
 	private static final String CIFS_ABSOLUTE_PATH_WITH_DRIVE_REGEX = "/[a-zA-Z][$]/.*";
 	private static final String POWERSHELL_CLIENT_SCRIPT = "bootstrap-client.ps1";
-
 
 	private final StringBuilder sb = new StringBuilder();
 	private boolean runInBackground = false;
@@ -56,7 +50,8 @@ public class WinrmExecutor implements RemoteExecutor {
 
 	private static Pattern pattern;
 
-	// indicates if powershell is installed on this host. If null, installation test was not performed.
+	// indicates if powershell is installed on this host. If null, installation
+	// test was not performed.
 	private static volatile Boolean powerShellInstalled = null;
 
 	@Override
@@ -65,12 +60,14 @@ public class WinrmExecutor implements RemoteExecutor {
 	}
 
 	/****************
-	 * Given a path of the type /C$/PATH - indicating an absolute cifs path, returns /PATH. If the string does not
-	 * match, returns the original unmodified string.
+	 * Given a path of the type /C$/PATH - indicating an absolute cifs path,
+	 * returns /PATH. If the string does not match, returns the original
+	 * unmodified string.
 	 * 
-	 * @param str the input path.
-	 * @return the input path, adjusted to remove the cifs drive letter, if it exists, or the original path if the drive
-	 *         letter is not present.
+	 * @param str
+	 *            the input path.
+	 * @return the input path, adjusted to remove the cifs drive letter, if it
+	 *         exists, or the original path if the drive letter is not present.
 	 */
 	public static String normalizeCifsPath(final String str) {
 		final String expression = CIFS_ABSOLUTE_PATH_WITH_DRIVE_REGEX;
@@ -88,7 +85,8 @@ public class WinrmExecutor implements RemoteExecutor {
 	/*******
 	 * Adds a command to the command line.
 	 * 
-	 * @param str the command to add.
+	 * @param str
+	 *            the command to add.
 	 * @return this.
 	 */
 	@Override
@@ -106,15 +104,17 @@ public class WinrmExecutor implements RemoteExecutor {
 	 */
 	@Override
 	public RemoteExecutor separate() {
-		sb.append(this.SEPARATOR);
+		sb.append(WinrmExecutor.SEPARATOR);
 		return this;
 	}
 
 	/*********
 	 * Adds an environment variable to the command line.
 	 * 
-	 * @param name variable name.
-	 * @param value variable value.
+	 * @param name
+	 *            variable name.
+	 * @param value
+	 *            variable value.
 	 * @return this.
 	 */
 	@Override
@@ -168,170 +168,31 @@ public class WinrmExecutor implements RemoteExecutor {
 	}
 
 	@Override
-	public void execute(final InstallationDetails details, final String command,
+	public void execute(final InstallationDetails details, final String scriptPath,
 			final long endTimeMillis)
-			throws InstallerException, TimeoutException {
+					throws InstallerException, TimeoutException {
 
-		String host = null;
-		if (details.isConnectedToPrivateIp()) {
-			host = details.getPrivateIp();
-		} else {
-			host = details.getPublicIp();
-		}
+		final String fullCommand = normalizeCifsPath(scriptPath);
 
-		try {
-			Utils.executeSSHCommand(host, command, details.getUsername(), details.getPassword(), details.getKeyFile(),
-					endTimeMillis - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
-		} catch (final BuildException e) {
-			// There really should be a better way to check that this is a
-			// timeout
-			logger.log(Level.FINE, "The remote boostrap command failed with error: " + e.getMessage()
-					+ ". The command that failed to execute is : " + command, e);
+		final PowershellClient client = new PowershellClient();
+		client.addOutputListener(new PowerShellOutputListener() {
 
-			if (e instanceof BuildTimeoutException) {
-				final TimeoutException ex =
-						new TimeoutException("Remote bootstrap command failed to execute: " + e.getMessage());
-				ex.initCause(e);
-				throw ex;
-			} else if (e instanceof ExitStatusException) {
-				final ExitStatusException ex = (ExitStatusException) e;
-				final int ec = ex.getStatus();
-				throw new InstallerException("Remote bootstrap command failed with exit code: " + ec, e);
-			} else {
-				throw new InstallerException("Remote bootstrap command failed to execute.", e);
-			}
-		}
-
-	}
-
-	private void powershellCommand(final String targetHost, final String command, final String username,
-			final String password, final String keyFile, final long millisUntil, final TimeUnit milliseconds,
-			final String localDir)
-			throws InstallerException, InterruptedException, TimeoutException {
-		logger.fine("Executing: " + command + " on: " + targetHost);
-
-		logger.fine("Checking if powershell is installed");
-		try {
-			checkPowershellInstalled();
-		} catch (final IOException e) {
-			throw new InstallerException("Error while trying to find powershell.exe", e);
-		}
-
-		logger.fine("Checking WinRM Connection");
-		AgentlessInstaller.checkConnection(targetHost, RemoteExecutionModes.WINRM.getPort(), millisUntil, milliseconds);
-
-		logger.fine("Executing remote command");
-		try {
-			invokeRemotePowershellCommand(targetHost, command, username, password, localDir);
-		} catch (final FileNotFoundException e) {
-			throw new InstallerException("Failed to invoke remote powershell command", e);
-		}
-
-	}
-
-	private String invokeRemotePowershellCommand(final String targetHost, final String command, final String username,
-			final String password, final String localDir)
-			throws InstallerException, InterruptedException, FileNotFoundException {
-
-		final List<String> fullCommand = getPowershellCommandLine(targetHost, username, password, command, localDir);
-
-		final ProcessBuilder pb = new ProcessBuilder(fullCommand);
-		pb.redirectErrorStream(true);
-
-		try {
-			final Process p = pb.start();
-
-			final String output = readProcessOutput(p);
-			final int exitCode = p.waitFor();
-			if (exitCode != 0) {
-				throw new InstallerException("Remote installation failed with exit code: " + exitCode
-						+ ". Execution output: " + output);
-			}
-			return output;
-		} catch (final IOException e) {
-			throw new InstallerException("Failed to invoke remote installation: " + e.getMessage(), e);
-		}
-	}
-
-	private void checkPowershellInstalled()
-			throws IOException, InterruptedException, InstallerException {
-		if (powerShellInstalled != null) {
-			if (powerShellInstalled.booleanValue()) {
-				return;
-			}
-			throw new InstallerException(
-					"powershell.exe is not on installed, or is not available on the system path. "
-					+ "Powershell is required on both client and server for Cloudify to work on Windows. ");
-		}
-
-		logger.fine("Checking if powershell is installed using: " + Arrays.toString(POWERSHELL_INSTALLED_COMMAND));
-		final ProcessBuilder pb = new ProcessBuilder(Arrays.asList(POWERSHELL_INSTALLED_COMMAND));
-		pb.redirectErrorStream(true);
-
-		final Process p = pb.start();
-
-		final String output = readProcessOutput(p);
-
-		logger.fine("Finished reading output");
-		final int retval = p.waitFor();
-		logger.fine("Powershell installed command exit value: " + retval);
-		if (retval != 0) {
-			throw new InstallerException("powershell.exe is not on installed, or is not available on the system path. "
-					+ "Powershell is required on both client and server for Cloudify to work on Windows. "
-					+ "Execution result: " + output);
-		}
-
-		powerShellInstalled = Boolean.TRUE;
-	}
-
-	private String readProcessOutput(final Process p)
-			throws IOException {
-		final StringBuilder sb = new StringBuilder();
-		final BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-		try {
-			final String newline = System.getProperty("line.separator");
-			while (true) {
-				final String line = reader.readLine();
-				if (line == null) {
-					break;
-				}
-				installer.publishEvent("powershell_output_line", line);
-				logger.fine(line);
-				sb.append(line).append(newline);
-			}
-
-		} finally {
-			try {
-				reader.close();
-			} catch (final IOException e) {
-				logger.log(Level.SEVERE, "Error while closingprocess input stream: " + e.getMessage(), e);
+			@Override
+			public void onPowerShellOutput(final String line) {
+				logger.info(line);
 
 			}
+		});
 
+		try {
+			client.invokeRemotePowershellCommand(null, fullCommand, details.getUsername(), details.getPassword(),
+					details.getLocalDir());
+		} catch (final PowershellClientException e) {
+			throw new InstallerException("Failed to execute powershell remote command", e);
+		} catch (InterruptedException e) {
+			throw new InstallerException("Failed to execute powershell remote command", e);
 		}
-		return sb.toString();
-	}
 
-	private List<String> getPowershellCommandLine(final String target, final String username, final String password,
-			final String command, final String localDir)
-			throws FileNotFoundException {
-
-		final File clientScriptFile = new File(localDir, POWERSHELL_CLIENT_SCRIPT);
-		if (!clientScriptFile.exists()) {
-			throw new FileNotFoundException(
-					"Could not find expected powershell client script in local directory. Was expecting file: "
-							+ clientScriptFile.getAbsolutePath());
-		}
-		final String[] commandLineParts =
-		{ "powershell.exe", "-inputformat", "none", "-File", clientScriptFile.getAbsolutePath(), "-target",
-				target, "-password", quoteString(password), "-username", quoteString(username), "-command",
-				quoteString(command) };
-
-		return Arrays.asList(commandLineParts);
-	}
-
-	private String quoteString(final String input) {
-		return "\"" + input + "\"";
 	}
 
 }
