@@ -66,6 +66,7 @@ import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
 import org.cloudifysource.dsl.statistics.PerInstanceStatisticsDetails;
 import org.cloudifysource.dsl.statistics.ServiceStatisticsDetails;
 import org.cloudifysource.dsl.utils.RecipePathResolver;
+import org.openspaces.core.bean.Bean;
 import org.openspaces.ui.BalanceGauge;
 import org.openspaces.ui.BarLineChart;
 import org.openspaces.ui.MetricGroup;
@@ -98,8 +99,8 @@ public abstract class BaseDslScript extends Script {
 	private Set<String> usedProperties = new HashSet<String>();
 
 	/********
-	 * syntactic sigar for an empty list that process locator implementations can use to specify an empty process IDs
-	 * list.
+	 * syntactic sigar for an empty list that process locator implementations
+	 * can use to specify an empty process IDs list.
 	 */
 	public static final List<Long> NO_PROCESS_LOCATORS = new LinkedList<Long>();
 
@@ -169,14 +170,18 @@ public abstract class BaseDslScript extends Script {
 		this.usedProperties.add(name);
 		Object convertedValue = null;
 		try {
-			convertedValue = convertValueToExecutableDSLEntryIfNeeded(getDSLFile().getParentFile(), 
+			convertedValue = convertValueToExecutableDSLEntryIfNeeded(getDSLFile().getParentFile(),
 					object, name, value);
 			if (logger.isLoggable(Level.FINEST)) {
-				logger.finest("BeanUtils.setProperty(object=" + object 
+				logger.finest("BeanUtils.setProperty(object=" + object
 						+ ",name=" + name + ",value=" + convertedValue
 						+ ",value.getClass()=" + convertedValue.getClass());
 			}
 			// Then set it
+			if (!PropertyUtils.isWriteable(object, name)) {
+				throw new IllegalArgumentException("Field " + name + " in object of type: "
+						+ Bean.class.getName() + " is not writable");
+			}
 			BeanUtils.setProperty(object, name, convertedValue);
 		} catch (final DSLValidationException e) {
 			throw new DSLValidationRuntimeException(e);
@@ -190,21 +195,30 @@ public abstract class BaseDslScript extends Script {
 	}
 
 	/**
-	 * Convert the value to an ExecutableDSLEntry object if object's property type is 
-	 * ExecutableDSLEntry or ExecutableEntriesMap. 
-	 * Returns value otherwise.
-	 * @param workDirectory workDirectory  
-	 * @param object object
-	 * @param name property name
-	 * @param value property value
+	 * Convert the value to an ExecutableDSLEntry object if object's property
+	 * type is ExecutableDSLEntry or ExecutableEntriesMap. Returns value
+	 * otherwise.
+	 * 
+	 * @param workDirectory
+	 *            workDirectory
+	 * @param object
+	 *            object
+	 * @param name
+	 *            property name
+	 * @param value
+	 *            property value
 	 * @return The converted object
-	 * @throws IllegalAccessException IllegalAccessException
-	 * @throws InvocationTargetException InvocationTargetException
-	 * @throws NoSuchMethodException NoSuchMethodException
-	 * @throws DSLValidationException DSLValidationException
+	 * @throws IllegalAccessException
+	 *             IllegalAccessException
+	 * @throws InvocationTargetException
+	 *             InvocationTargetException
+	 * @throws NoSuchMethodException
+	 *             NoSuchMethodException
+	 * @throws DSLValidationException
+	 *             DSLValidationException
 	 */
-	public static Object convertValueToExecutableDSLEntryIfNeeded(final File workDirectory, 
-			final Object object, final String name, final Object value) 
+	public static Object convertValueToExecutableDSLEntryIfNeeded(final File workDirectory,
+			final Object object, final String name, final Object value)
 					throws IllegalAccessException, InvocationTargetException,
 					NoSuchMethodException, DSLValidationException {
 
@@ -289,7 +303,8 @@ public abstract class BaseDslScript extends Script {
 	/*************
 	 * Loads an object from an external file.
 	 * 
-	 * @param fileName the filename, relative to the current file.
+	 * @param fileName
+	 *            the filename, relative to the current file.
 	 * @return the object.
 	 */
 	public Object load(final String fileName) {
@@ -402,9 +417,9 @@ public abstract class BaseDslScript extends Script {
 			}
 			final String extendServicePath = (String) localArg;
 			try {
-				
+
 				File extendedServiceAbsPath = new File(extendServicePath);
-				
+
 				RecipePathResolver resolver = new RecipePathResolver();
 				// Extract the current service directory
 				final String dslFilePath = (String) getProperty(ServiceReader.DSL_FILE_PATH_PROPERTY_NAME);
@@ -414,9 +429,9 @@ public abstract class BaseDslScript extends Script {
 				final File activeServiceDirectory = new File(dslFilePath).getParentFile();
 				resolver.setCurrentDirectory(activeServiceDirectory);
 				if (resolver.resolveService(extendedServiceAbsPath)) {
-					extendedServiceAbsPath = resolver.getResolved();					
+					extendedServiceAbsPath = resolver.getResolved();
 				} else {
-					throw new DSLException("could not find extended service in paths " 
+					throw new DSLException("could not find extended service in paths "
 							+ StringUtils.join(resolver.getPathsLooked().toArray(), ", "));
 				}
 
@@ -572,7 +587,7 @@ public abstract class BaseDslScript extends Script {
 			addObjectInitializerForClass(dslObjectInitializersByName, LowThresholdDetails.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, ServiceStatisticsDetails.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, PerInstanceStatisticsDetails.class);
-			
+
 			addObjectInitializerForClass(dslObjectInitializersByName, IsolationSLA.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, GlobalIsolationSLADescriptor.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, TenantSharedIsolationSLADescriptor.class);
