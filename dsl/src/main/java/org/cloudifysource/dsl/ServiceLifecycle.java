@@ -36,14 +36,16 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
  * 
  */
 @CloudifyDSLEntity(name = "lifecycle", clazz = ServiceLifecycle.class, allowInternalNode = true, allowRootNode = true,
-		parent = "service")
+parent = "service")
 public class ServiceLifecycle implements Serializable {
+
+	private static final int DEFAULT_START_DETECTION_INTERVAL_SECONDS = 5;
 
 	private static final int DEFAULT_START_DETECTION_SECONDS = 90;
 
 	/**
-     * 
-     */
+	 * 
+	 */
 	private static final long serialVersionUID = 1L;
 
 	private ExecutableDSLEntry init;
@@ -73,9 +75,8 @@ public class ServiceLifecycle implements Serializable {
 
 	private ExecutableDSLEntry stopDetection;
 
-	// TODO - this should be a string, something like "15s" or "15000mil"
 	private int startDetectionTimeoutSecs = DEFAULT_START_DETECTION_SECONDS;
-	private int startDetectionIntervalSecs = 1;
+	private int startDetectionIntervalSecs = DEFAULT_START_DETECTION_INTERVAL_SECONDS;
 
 	public int getStartDetectionTimeoutSecs() {
 		return startDetectionTimeoutSecs;
