@@ -26,34 +26,34 @@ import org.cloudifysource.dsl.internal.DSLValidationException;
  *
  */
 @CloudifyDSLEntity(name = "global", clazz = GlobalIsolationSLADescriptor.class, allowInternalNode = true,
-		allowRootNode = false, parent = "isolationSLA")
+allowRootNode = false, parent = "isolationSLA")
 public class GlobalIsolationSLADescriptor {
-	
+
 	private static final int DEFAULT_SERVICE_INSTNACE_MEMORY = 128;
-	
+
 	private int instanceMemoryMB = DEFAULT_SERVICE_INSTNACE_MEMORY; // default to 128MB
 	private int instanceCpuCores = 0; // default to 0, no CPU requirements
-	
+
 	public int getInstanceCpuCores() {
 		return instanceCpuCores;
 	}
-	
+
 	public void setInstanceCpuCores(final int instanceCpuCores) {
 		this.instanceCpuCores = instanceCpuCores;
 	}
-	
+
 	public int getInstanceMemoryMB() {
 		return instanceMemoryMB;
 	}
-	
-	public void setInstanceMemoryInMB(final int instanceMemoryMB) {
+
+	public void setInstanceMemoryMB(final int instanceMemoryMB) {
 		this.instanceMemoryMB = instanceMemoryMB;
 	}
-	
+
 	@DSLValidation
 	void validateDefaultValues(final DSLValidationContext validationContext)
 			throws DSLValidationException {
-		
+
 		if (instanceMemoryMB < 0) {
 			throw new DSLValidationException("instanceMemoryInMB cannot be negative");
 		}
