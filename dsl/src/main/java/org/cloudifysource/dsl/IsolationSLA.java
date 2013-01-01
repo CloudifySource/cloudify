@@ -99,4 +99,11 @@ public class IsolationSLA implements Serializable {
 			throw new DSLValidationException("cannot define two types of isolation sla's. please choose one");
 		}
 	}
+
+	@Override
+	public String toString() {
+		return "IsolationSLA [global=" + global + ", dedicated=" + dedicated
+				+ ", appShared=" + appShared + ", tenantShared=" + tenantShared
+				+ "]";
+	}
 }

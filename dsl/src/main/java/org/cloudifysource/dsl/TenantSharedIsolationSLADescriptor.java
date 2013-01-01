@@ -12,5 +12,12 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 @CloudifyDSLEntity(name = "tenantShared", clazz = TenantSharedIsolationSLADescriptor.class, allowInternalNode = true,
 	allowRootNode = false, parent = "isolationSLA")
 public class TenantSharedIsolationSLADescriptor extends SharedIsolationSLADescriptor{
+	
+	@Override
+	public String toString() {
+		return "TenantSharedIsolationSLADescriptor [isolationId=" + getIsolationId() + ", instanceMemoryMB="
+				+ getInstanceMemoryMB() + ", instanceCpuCores=" + getInstanceCpuCores()
+				+ ", useManagement=" + isUseManagement() + "]";
+	}
 
 }

@@ -47,6 +47,9 @@ public class SharedIsolationSLADescriptor extends GlobalIsolationSLADescriptor {
 		if (isolationId == null) {
 			throw new DSLValidationException("isolationId cannot be null");
 		}
+		if (isUseManagement()) {
+			throw new DSLValidationException("isUseManagement can only be true for isolationSLA of type 'global'");
+		}
 		
 	}
 

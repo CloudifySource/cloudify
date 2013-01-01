@@ -70,4 +70,11 @@ public class GlobalIsolationSLADescriptor {
 			throw new DSLValidationException("instanceCpuCores cannot be negative");
 		}
 	}
+	
+	@Override
+	public String toString() {
+		return "GlobalIsolationSLADescriptor [instanceMemoryMB="
+				+ instanceMemoryMB + ", instanceCpuCores=" + instanceCpuCores
+				+ ", useManagement=" + useManagement + "]";
+	}
 }

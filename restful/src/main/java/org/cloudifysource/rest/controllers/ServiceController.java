@@ -2363,12 +2363,16 @@ public class ServiceController implements ServiceDetailsProvider {
 			} else {
 				config.setDedicatedManagementMachines(true);
 			}
-			if (!dedicated) {
+			if (dedicated) {
+				// service deployment will have a dedicated agent per instance
+				setDedicatedMachineProvisioning(deployment, config);
+			} else {
 
 				// check what mode of isolation we should use
 				if (IsolationUtils.isGlobal(service)) {
 					logger.info("global mode is on. will use public machine provisioning for "
 							+ serviceName + " deployment.");
+					logger.info("isolationSLA = " + service.getIsolationSLA());
 					// service instances can be deployed across all agents
 					setPublicMachineProvisioning(deployment, config);
 				} else if (IsolationUtils.isAppShared(service)) {
@@ -2385,9 +2389,6 @@ public class ServiceController implements ServiceDetailsProvider {
 					// service instances can be deployed across all agents with the correct isolation id
 					setSharedMachineProvisioning(deployment, config, authGroups);
 				}
-			} else {
-				// service deployment will have a dedicated agent per instance
-				setDedicatedMachineProvisioning(deployment, config);
 			}
 
 			deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);

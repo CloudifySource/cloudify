@@ -26,5 +26,10 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 @CloudifyDSLEntity(name = "dedicated", clazz = DedicatedIsolationSLADescriptor.class, allowInternalNode = true,
 	allowRootNode = false, parent = "isolationSLA")
 public class DedicatedIsolationSLADescriptor {
+
+	@Override
+	public String toString() {
+		return "DedicatedIsolationSLADescriptor []";
+	}
 	
 }

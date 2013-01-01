@@ -14,7 +14,7 @@
 	<property name="cloudify.jars.suffix" value="SNAPSHOT" />
 
 	<!--  ** Useful if you are working on openspaces and need to test the effects on cloudify -->
-	<property name="openspaces.jar" value="${PATH_TO_OPENSPACES_JAR_FROM_WORKSPACE}" />
+	<property name="openspaces.jar" value="../../openspaces/target/gs-openspaces.jar" />
 
 	<!-- ****************************************************** -->
 
@@ -56,6 +56,10 @@
 		<copy todir="${ec2.dir}/lib/required" file="${openspaces.jar}" overwrite="true" />
 	</target>
 
+	<target name="Copy Openspaces jar to byon upload dir" depends="">
+		<echo message="Copying Openspaces jar file to ${byon.dir}" />
+		<copy todir="${ec2.dir}/lib/required" file="${openspaces.jar}" overwrite="true" />
+	</target>
 
 	<target name="Copy Cloudify jars to ec2 upload dir" depends="">
 		<echo message="Copying Cloudify jar files to ${ec2.dir}" />
