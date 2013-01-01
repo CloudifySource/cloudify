@@ -66,7 +66,6 @@ import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
 import org.cloudifysource.dsl.statistics.PerInstanceStatisticsDetails;
 import org.cloudifysource.dsl.statistics.ServiceStatisticsDetails;
 import org.cloudifysource.dsl.utils.RecipePathResolver;
-import org.openspaces.core.bean.Bean;
 import org.openspaces.ui.BalanceGauge;
 import org.openspaces.ui.BarLineChart;
 import org.openspaces.ui.MetricGroup;
@@ -180,7 +179,7 @@ public abstract class BaseDslScript extends Script {
 			// Then set it
 			if (!PropertyUtils.isWriteable(object, name)) {
 				throw new IllegalArgumentException("Field " + name + " in object of type: "
-						+ Bean.class.getName() + " is not writable");
+						+ object.getClass().getName() + " is not writable");
 			}
 			BeanUtils.setProperty(object, name, convertedValue);
 		} catch (final DSLValidationException e) {
