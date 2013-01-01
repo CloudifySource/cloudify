@@ -218,7 +218,6 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	public CapacityRequirements getReservedCapacityPerMachine() {
 		final List<CapacityRequirement> requirements = createRequirements(false);
 		CapacityRequirements capacityRequirements = new CapacityRequirements(requirements.toArray(new CapacityRequirement[requirements.size()]));
-		logger.info("Recieved request to specify reservedCapacityPerMachine, returning " + capacityRequirements);
 		return capacityRequirements;
 	}
 
@@ -226,7 +225,6 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	public CapacityRequirements getReservedCapacityPerManagementMachine() {
 		final List<CapacityRequirement> requirements = createRequirements(true);
 		CapacityRequirements capacityRequirements = new CapacityRequirements(requirements.toArray(new CapacityRequirement[requirements.size()]));
-		logger.info("Recieved request to specify reservedCapacityPerManagementMachine, returning " + capacityRequirements);
 		return capacityRequirements;
 	}
 
