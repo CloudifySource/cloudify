@@ -15,16 +15,53 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.internal;
 
+/*********
+ * Service types, used in the type field of the Service DSL Object.
+ * 
+ * @author barakme
+ * @since 2.2.0
+ */
 public enum ServiceTierType {
 
+	/******
+	 * .
+	 */
 	UNDEFINED,
+	/******
+	 * .
+	 */
 	LOAD_BALANCER,
+	/******
+	 * .
+	 */
 	WEB_SERVER,
+	/******
+	 * .
+	 */
 	SECURITY_SERVER,
+	/******
+	 * .
+	 */
 	APP_SERVER,
+	/******
+	 * .
+	 */
 	ESB_SERVER,
+	/******
+	 * .
+	 */
 	MESSAGE_BUS,
+	/******
+	 * .
+	 */
 	DATABASE,
-	NOSQL_DB
+	/******
+	 * .
+	 */
+	NOSQL_DB,
+	/******
+	 * .
+	 */
+	CACHE
 
 }
