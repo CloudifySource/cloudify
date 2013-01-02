@@ -35,6 +35,10 @@
 #   CLOUD_FILE - File name of the cloud file, which should be placed in the WORKING_HOME_DIRECTORY
 #   USERNAME - Username of the account.
 #   PASSWORD - Password of the account.
+#	SPRING_PROFILES_ACTIVE - The active Spring profile (secure/nonsecure)
+#	SPRING_SECURITY_CONFIG_FILE - The path to the Spring configuration file (spring-securit.xml)
+#	KEYSTORE_FILE - The path to the keystore file, if SSL should be used (.keystore)
+#	KEYSTORE_KEY - The password of the above keystore file
 #	GIGASPACES_CLOUD_IMAGE_ID - If set, indicates the image ID for this machine.
 #	GIGASPACES_CLOUD_HARDWARE_ID - If set, indicates the hardware ID for this machine.
 #
@@ -148,6 +152,12 @@ insert-line $cloudifyDir\bin\setenv.bat "set CLOUDIFY_AGENT_ENV_PUBLIC_IP=$ENV:C
 insert-line $cloudifyDir\bin\setenv.bat "set CLOUDIFY_CLOUD_IMAGE_ID=$ENV:CLOUDIFY_CLOUD_IMAGE_ID"
 insert-line $cloudifyDir\bin\setenv.bat "set CLOUDIFY_CLOUD_HARDWARE_ID=$ENV:CLOUDIFY_CLOUD_HARDWARE_ID"
 insert-line $cloudifyDir\bin\setenv.bat "set GSA_RESERVATION_ID=$ENV:GSA_RESERVATION_ID"
+
+insert-line $cloudifyDir\bin\setenv.bat "set SPRING_PROFILES_ACTIVE=$ENV:SPRING_PROFILES_ACTIVE"
+insert-line $cloudifyDir\bin\setenv.bat "set SPRING_SECURITY_CONFIG_FILE=$ENV:SPRING_SECURITY_CONFIG_FILE"
+insert-line $cloudifyDir\bin\setenv.bat "set KEYSTORE_FILE=$ENV:KEYSTORE_FILE"
+insert-line $cloudifyDir\bin\setenv.bat "set KEYSTORE_KEY=$ENV:KEYSTORE_KEY"
+
 
 Write-Host "Disabling local firewall"
 $firewallCommand = "netsh advfirewall set allprofiles state off"
