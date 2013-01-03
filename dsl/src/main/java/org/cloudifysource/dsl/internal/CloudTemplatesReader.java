@@ -69,7 +69,7 @@ public class CloudTemplatesReader {
 	 */
 	public File unzipCloudTemplatesFolder(final File zipFile) 
 			throws IOException {
-		final File unzipFile = ServiceReader.createTempDir("tempaltes");
+		final File unzipFile = ServiceReader.createTempDir("templates");
 		unzipFile.deleteOnExit();
 		ZipUtils.unzip(zipFile, unzipFile);
 		if (unzipFile.isFile()) {
@@ -172,16 +172,16 @@ public class CloudTemplatesReader {
 			try {
 				additionalTemplates = readCloudTemplatesFromDirectory(folder);
 			} catch (DSLException e) {
-				logger.log(Level.WARNING, "addAdditionalTemplates - " + "Failed to read tempaltes from directory: " 
+				logger.log(Level.WARNING, "addAdditionalTemplates - " + "Failed to read templates from directory: " 
 						+ folder.getAbsolutePath() + "Error: " + e.getMessage());
 			}
 			// scan holders and add all templates to cloud.
 			for (CloudTemplateHolder holder : additionalTemplates) {	
-				String tempalteName = holder.getName();
+				String templateName = holder.getName();
 				Map<String, CloudTemplate> cloudTemplates = cloud.getTemplates();
 				// not supposed to happen
-				if (cloudTemplates.containsKey(tempalteName)) {
-					logger.log(Level.WARNING, "addAdditionalTemplates - " + "template already exist: " + tempalteName);
+				if (cloudTemplates.containsKey(templateName)) {
+					logger.log(Level.WARNING, "addAdditionalTemplates - " + "template already exist: " + templateName);
 					continue;
 				}
 				// set the local absolute path to the upload directory
@@ -189,7 +189,7 @@ public class CloudTemplatesReader {
 				String uploadAbsolutePath = new File(folder, cloudTemplate.getLocalDirectory()).getAbsolutePath();
 				cloudTemplate.setAbsoluteUploadDir(uploadAbsolutePath);
 				// add template to cloud
-				cloudTemplates.put(tempalteName, cloudTemplate);
+				cloudTemplates.put(templateName, cloudTemplate);
 				addedTemplates.add(cloudTemplate);
 			}
 		}
@@ -197,18 +197,18 @@ public class CloudTemplatesReader {
 	}
 
 	/**
-	 * Removes template file with a given suffix from tempalteFolder.
-	 * @param tempalteFolder .
+	 * Removes template file with a given suffix from templateFolder.
+	 * @param templateFolder .
 	 * @param templateName .
 	 */
-	public static void removeTemplateFiles(final File tempalteFolder, final String templateName) {
+	public static void removeTemplateFiles(final File templateFolder, final String templateName) {
 		String proeprtiesFileName = templateName + DSLUtils.TEMPLATES_PROPERTIES_FILE_NAME_SUFFIX;
-		File propertiesFile = new File(tempalteFolder, proeprtiesFileName);
+		File propertiesFile = new File(templateFolder, proeprtiesFileName);
 		if (propertiesFile.exists()) {
 			propertiesFile.delete();
 		}
 		String overridesFileName = templateName + DSLUtils.TEMPLATES_OVERRIDES_FILE_NAME_SUFFIX;
-		File overridesFile = new File(tempalteFolder, overridesFileName);
+		File overridesFile = new File(templateFolder, overridesFileName);
 		if (overridesFile.exists()) {
 			overridesFile.delete();
 		}

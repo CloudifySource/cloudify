@@ -151,26 +151,26 @@ public class Cloud {
 		if (CloudifyConstants.DYNAMIC_BYON_NAME.equals(name)) {
 			String managementMachineTemplateName = configuration.getManagementMachineTemplate();
 			CloudTemplate managementMachineTemplate = templates.get(managementMachineTemplateName);
-			Map<String, Object> mngTempalteCustom = managementMachineTemplate.getCustom();
-			validateClosureExists(mngTempalteCustom, CloudifyConstants.DYNAMIC_BYON_START_MNG_MACHINES_KEY, 
+			Map<String, Object> mngTemplateCustom = managementMachineTemplate.getCustom();
+			validateClosureExists(mngTemplateCustom, CloudifyConstants.DYNAMIC_BYON_START_MNG_MACHINES_KEY, 
 					managementMachineTemplateName);			
-			validateClosureExists(mngTempalteCustom, CloudifyConstants.DYNAMIC_BYON_STOP_MNG_MACHINES_KEY, 
+			validateClosureExists(mngTemplateCustom, CloudifyConstants.DYNAMIC_BYON_STOP_MNG_MACHINES_KEY, 
 					managementMachineTemplateName);
 			for (Entry<String, CloudTemplate> templateEntry : templates.entrySet()) {
 				final String templateName = templateEntry.getKey();
-				Map<String, Object> tempalteCustom = templateEntry.getValue().getCustom();
-				validateClosureExists(tempalteCustom, CloudifyConstants.DYNAMIC_BYON_START_MACHINE_KEY, templateName);
-				validateClosureExists(tempalteCustom, CloudifyConstants.DYNAMIC_BYON_STOP_MACHINE_KEY, templateName);
+				Map<String, Object> templateCustom = templateEntry.getValue().getCustom();
+				validateClosureExists(templateCustom, CloudifyConstants.DYNAMIC_BYON_START_MACHINE_KEY, templateName);
+				validateClosureExists(templateCustom, CloudifyConstants.DYNAMIC_BYON_STOP_MACHINE_KEY, templateName);
 			}
 		}
 	}
 	
 	private void validateClosureExists(final Map<String, Object> customMap, final String key, 
-			final String tempalteName) throws DSLValidationException {
+			final String templateName) throws DSLValidationException {
 		Object closure = customMap.get(key);
 		if (closure == null) {
-			throw new DSLValidationException("The " + key + " closure is missing in tempalte " 
-					+ tempalteName + ".");
+			throw new DSLValidationException("The " + key + " closure is missing in template " 
+					+ templateName + ".");
 		}
 	}
 

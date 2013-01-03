@@ -77,8 +77,8 @@ ProvisioningDriverClassContextAware {
 	private ByonDeployer deployer;
 	private Integer restPort;
 
-	private void addTempaltesToDeployer(ByonDeployer deployer, Map<String, CloudTemplate> templatesMap) throws Exception {
-		logger.info("addTempaltesToDeployer - adding the following tempaltes to the deployer: " + templatesMap.keySet());
+	private void addTemplatesToDeployer(ByonDeployer deployer, Map<String, CloudTemplate> templatesMap) throws Exception {
+		logger.info("addTemplatesToDeployer - adding the following templates to the deployer: " + templatesMap.keySet());
 		List<Map<String, String>> nodesList = null;
 		for (final String templateName : templatesMap.keySet()) {
 			final Map<String, Object> customSettings = cloud.getTemplates().get(templateName).getCustom();
@@ -87,7 +87,7 @@ ProvisioningDriverClassContextAware {
 			}
 			if (nodesList == null) {
 				publishEvent(CloudifyErrorMessages.MISSING_NODES_LIST.getName(), templateName);
-				throw new CloudProvisioningException("Failed to create BYON cloud deployer, invalid configuration for tempalte " 
+				throw new CloudProvisioningException("Failed to create BYON cloud deployer, invalid configuration for template " 
 						+ templateName + " - missing nodes list.");
 			}
 			deployer.addNodesList(templateName, templatesMap.get(templateName), nodesList);
@@ -105,7 +105,7 @@ ProvisioningDriverClassContextAware {
 						throws Exception {
 					logger.info("Creating BYON context deployer for cloud: " + cloud.getName());
 					final ByonDeployer newDeployer = new ByonDeployer();
-					addTempaltesToDeployer(newDeployer, cloud.getTemplates());
+					addTemplatesToDeployer(newDeployer, cloud.getTemplates());
 					return newDeployer;
 				}
 			});
@@ -115,8 +115,8 @@ ProvisioningDriverClassContextAware {
 		} 
 		try {		
 			updateDeployerTemplates(cloud);
-		}catch (Exception e) {
-			logger.log(Level.WARNING, "initDeployer - fialed to add tempaltes to deployer", e);
+		} catch (Exception e) {
+			logger.log(Level.WARNING, "initDeployer - fialed to add templates to deployer", e);
 			throw new IllegalStateException("Failed to update templates", e);
 		} 
 		setCustomSettings(cloud);
@@ -127,22 +127,22 @@ ProvisioningDriverClassContextAware {
 		List<String> cloudTemplateNames = new LinkedList<String>(cloudTemplatesMap.keySet());
 		List<String> deployerTemplateNames = deployer.getTemplatesList();
 
-		List<String> redundantTempaltes =  new LinkedList<String>(deployerTemplateNames);
-		redundantTempaltes.removeAll(cloudTemplateNames);
-		if (!redundantTempaltes.isEmpty()) {
-			logger.info("initDeployer - found redundant templates: " + redundantTempaltes);
-			deployer.removeTemplates(redundantTempaltes);
+		List<String> redundantTemplates =  new LinkedList<String>(deployerTemplateNames);
+		redundantTemplates.removeAll(cloudTemplateNames);
+		if (!redundantTemplates.isEmpty()) {
+			logger.info("initDeployer - found redundant templates: " + redundantTemplates);
+			deployer.removeTemplates(redundantTemplates);
 		}
-		List<String> missingTempaltes =  new LinkedList<String>(cloudTemplateNames);
-		missingTempaltes.removeAll(deployerTemplateNames);
-		if (!missingTempaltes.isEmpty()) {
-			logger.info("initDeployer - found missing templates: " + missingTempaltes);
+		List<String> missingTemplates =  new LinkedList<String>(cloudTemplateNames);
+		missingTemplates.removeAll(deployerTemplateNames);
+		if (!missingTemplates.isEmpty()) {
+			logger.info("initDeployer - found missing templates: " + missingTemplates);
 			Map<String, CloudTemplate> templatesMap = new HashMap<String, CloudTemplate>();
-			for (String templateName : missingTempaltes) {
+			for (String templateName : missingTemplates) {
 				CloudTemplate cloudTemplate = cloudTemplatesMap.get(templateName);
 				templatesMap.put(templateName, cloudTemplate);
 			}
-			addTempaltesToDeployer(deployer, templatesMap);
+			addTemplatesToDeployer(deployer, templatesMap);
 		}		
 	} 		
 
