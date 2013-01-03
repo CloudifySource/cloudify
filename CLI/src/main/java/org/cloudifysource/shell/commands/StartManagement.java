@@ -131,6 +131,19 @@ public class StartManagement extends AbstractGSCommand {
 		if (getTimeoutInMinutes() < 0) {
 			throw new CLIException("-timeout cannot be negative");
 		}
+		
+		if (securityFilePath == null) {
+			throw new IllegalStateException("secuirtyFilePath cannot be null");
+		}
+		if (securityProfile == null) {
+			throw new IllegalStateException("securityProfile cannot be null");
+		}
+		if (keystoreFilePath == null) {
+			throw new IllegalStateException("keystoreFilePath cannot be null");
+		}
+		if (keystorePassword == null) {
+			throw new IllegalStateException("keystorePassword cannot be null");
+		}
 
 		setSecurityMode();
 
