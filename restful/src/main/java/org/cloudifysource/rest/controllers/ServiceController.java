@@ -2168,6 +2168,7 @@ public class ServiceController implements ServiceDetailsProvider {
 						applicationOverridesFile);
 
 		validateTemplate(result.getApplication());
+		IsolationUtils.validateInstanceMemory(result.getApplication(), cloud);
 
 		final List<Service> services = createServiceDependencyOrder(result
 				.getApplication());
@@ -2375,6 +2376,9 @@ public class ServiceController implements ServiceDetailsProvider {
 					logger.info("isolationSLA = " + service.getIsolationSLA());
 					// service instances can be deployed across all agents
 					setPublicMachineProvisioning(deployment, config);
+					
+					
+					
 				} else if (IsolationUtils.isAppShared(service)) {
 					logger.info("app shared mode is on. will use shared machine provisioning for "
 							+ serviceName + " deployment. isolation id = " + applicationName);
@@ -2700,6 +2704,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		validateTemplate(templateName);
+		IsolationUtils.validateInstanceMemory(service, cloud);
 
 		String[] agentZones;
 		if (isLocalCloud()) {
@@ -2835,6 +2840,8 @@ public class ServiceController implements ServiceDetailsProvider {
 					throws TimeoutException, IOException,
 					DSLException, RestErrorException, PackagingException {
 
+		
+		
 		logger.info("Deploying service with template: " + templateName);
 		String actualTemplateName = templateName;
 

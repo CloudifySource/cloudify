@@ -16,7 +16,13 @@
 
 package org.cloudifysource.esc.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.dsl.Application;
 import org.cloudifysource.dsl.Service;
+import org.cloudifysource.dsl.cloud.Cloud;
 
 /**
  * Utility class for service deployment methods.
@@ -122,5 +128,63 @@ public final class IsolationUtils {
 		}
 		return false; // dedicated cannot use management machine
 
+	}
+	
+	/**
+	 * Make sure the cloud template used to install the service has enough memory to accommodate
+	 * at least one instance. 
+	 * @param service
+	 * @param cloud
+	 */
+	public static void validateInstanceMemory(final Service service, final Cloud cloud) {
+		
+		if (service == null) {
+			return;
+		}
+		if (isDedicated(service)) {
+			return;
+		}
+		String serviceTemplate = null;
+		if (service.getCompute() != null) {
+			serviceTemplate = service.getCompute().getTemplate();
+		}
+		if (serviceTemplate == null) {
+			serviceTemplate = cloud.getTemplates().entrySet().iterator().next().getKey();
+		}
+		int machineTemplateMemory = cloud.getTemplates().get(serviceTemplate).getMachineMemoryMB();
+		int reservedMachineMemory;
+		if (serviceTemplate.equals(cloud.getConfiguration().getManagementMachineTemplate())) {
+			reservedMachineMemory = cloud.getProvider().getReservedMemoryCapacityPerManagementMachineInMB();
+		} else {
+			reservedMachineMemory = cloud.getProvider().getReservedMemoryCapacityPerMachineInMB();
+		}
+		long instanceMemoryMB = getInstanceMemoryMB(service);
+		if (instanceMemoryMB > (machineTemplateMemory - reservedMachineMemory)) {
+			throw new IllegalStateException("Cannot install service " + service.getName() + " : Insufficient Memory -->" 
+					+ "The declared machine memory for template " + serviceTemplate + " is " + machineTemplateMemory
+					+ ". The reserved memory on the machine is " + reservedMachineMemory
+					+ ". The specified instance memory requirement is " + instanceMemoryMB + ";");
+		}
+	}
+	
+	/**
+	 * Make sure the cloud template used to install each service belonging to the application has enough memory to accommodate
+	 * at least one instance. 
+	 * @param service
+	 * @param cloud
+	 */
+	public static void validateInstanceMemory(final Application application, final Cloud cloud) {
+		List<String> errorMessages = new ArrayList<String>();
+		for (Service service : application.getServices()) {
+			try {
+				validateInstanceMemory(service, cloud);
+			} catch (IllegalStateException e) {
+				errorMessages.add(e.getMessage());
+			}
+		}
+		if (!errorMessages.isEmpty()) {
+			throw new IllegalStateException("Cannot install application " + application.getName() + "-->"
+					+ StringUtils.join(errorMessages, ","));
+		}
 	}
 }
