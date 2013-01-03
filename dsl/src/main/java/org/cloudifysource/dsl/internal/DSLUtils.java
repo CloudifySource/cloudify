@@ -161,7 +161,7 @@ public final class DSLUtils {
 	 * Change the name of the file's prefix to template's name.
 	 * @param file the template's file.
 	 * @param templateName the template's name.
-	 * @param suffix the file suffix (-template.groovy/-template.properties/-tempalte.overrides)
+	 * @param suffix the file suffix (-template.groovy/-template.properties/-template.overrides)
 	 * @return returns the new name if the renaming needed and succeeded.
 	 * @throws IOException if failed to rename the file.
 	 */

@@ -996,17 +996,17 @@ public class ByonDeployer {
 	}
 
 	public List<String> getTemplatesList() {
-		List<String> tempaltesList = new LinkedList<String>();
-		tempaltesList.addAll(nodesListsByTemplates.keySet());
-		return tempaltesList;
+		List<String> templatesList = new LinkedList<String>();
+		templatesList.addAll(nodesListsByTemplates.keySet());
+		return templatesList;
 	}
 
-	public void removeTemplates(List<String> redundantTempaltes) throws CloudProvisioningException {
-		for (String templateName : redundantTempaltes) {
+	public void removeTemplates(List<String> redundantTemplates) throws CloudProvisioningException {
+		for (String templateName : redundantTemplates) {
 			Map<String, List<CustomNode>> nodesMap = nodesListsByTemplates.get(templateName);
 			List<CustomNode> allocatedNodesList = nodesMap.get(NODES_LIST_ALLOCATED);
 			if(allocatedNodesList != null && !allocatedNodesList.isEmpty()) {
-				String errMsg = "Failed to remove tempalte [" + templateName 
+				String errMsg = "Failed to remove template [" + templateName 
 						+ "] from deployer, some nodes are still allocated: " + allocatedNodesList;
 				logger.log(Level.WARNING, errMsg);
 				throw new CloudProvisioningException(errMsg);

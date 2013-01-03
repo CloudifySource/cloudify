@@ -62,7 +62,7 @@ public class AddTemplates extends AdminAwareCommand {
 		// validate templates folder. 
 		String templatesFolderName = templatesFileOrDir.getName();
 		String templatesPath = templatesFileOrDir.getAbsolutePath();
-		logger.info("Validating tempaltes folder and files: " + templatesPath);
+		logger.info("Validating template folder and files: " + templatesPath);
 		if (!templatesFileOrDir.exists()) {
 			throw new CLIStatusException("templates_file_not_found", templatesPath);
 		}
@@ -112,9 +112,9 @@ public class AddTemplates extends AdminAwareCommand {
 		}
 		// add the templates to the cloud
 		logger.info("Adding " + numTemplatesInFolder + " templates to cloud.");
-		List<String> addedTempaltes;
+		List<String> addedTemplates;
 		try {
-			addedTempaltes = adminFacade.addTempaltes(zipFile);
+			addedTemplates = adminFacade.addTemplates(zipFile);
 		} catch (CLIStatusException e) {
 			String reasonCode = e.getReasonCode();
 			if (reasonCode.equals("failed_to_add_templates")) {
@@ -127,7 +127,7 @@ public class AddTemplates extends AdminAwareCommand {
 			throw e;
 		}
 		return getFormattedMessage("templates_added_successfully", Color.GREEN) 
-				+ getFormatedAddedTemplateNamesList(addedTempaltes);
+				+ getFormatedAddedTemplateNamesList(addedTemplates);
 	}
 
 	private static Object[] convertArgsToIndentJaon(final Object[] args) {
@@ -152,12 +152,12 @@ public class AddTemplates extends AdminAwareCommand {
 				.append(CloudifyConstants.TAB_CHAR)
 				.append("{")
 				.append(CloudifyConstants.NEW_LINE);
-				for (Entry<String, String> tempalteErrDesc : failedToAddTemplatesErrDesc.entrySet()) {
+				for (Entry<String, String> templateErrDesc : failedToAddTemplatesErrDesc.entrySet()) {
 					failedToAddTemplatesStr.append(CloudifyConstants.TAB_CHAR)
 					.append(CloudifyConstants.TAB_CHAR)
-					.append(tempalteErrDesc.getKey())
+					.append(templateErrDesc.getKey())
 					.append(" - ")
-					.append(tempalteErrDesc.getValue())
+					.append(templateErrDesc.getValue())
 					.append(CloudifyConstants.NEW_LINE);
 				}
 				failedToAddTemplatesStr.append(CloudifyConstants.TAB_CHAR)
@@ -193,12 +193,11 @@ public class AddTemplates extends AdminAwareCommand {
 		return successfullyAddedTemplatesStr.toString();
 	}
 	
-	private static Object getFormatedAddedTemplateNamesList(final List<String> tempaltes) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(CloudifyConstants.NEW_LINE)
-		.append("Added " + tempaltes.size() + " tempaltes:");
+	private static Object getFormatedAddedTemplateNamesList(final List<String> templates) {
+		StringBuilder sb = new StringBuilder(CloudifyConstants.NEW_LINE)
+            .append("Added ").append(templates.size()).append(" templates:");
 
-		for (String templateName : tempaltes) {
+		for (String templateName : templates) {
 			sb.append(CloudifyConstants.NEW_LINE)
 			.append(CloudifyConstants.TAB_CHAR)
 			.append(templateName);
