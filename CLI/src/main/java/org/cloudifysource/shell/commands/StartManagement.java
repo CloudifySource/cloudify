@@ -138,11 +138,13 @@ public class StartManagement extends AbstractGSCommand {
 		if (securityProfile == null) {
 			throw new IllegalStateException("securityProfile cannot be null");
 		}
-		if (keystoreFilePath == null) {
-			throw new IllegalStateException("keystoreFilePath cannot be null");
-		}
-		if (keystorePassword == null) {
-			throw new IllegalStateException("keystorePassword cannot be null");
+		if (!CloudifyConstants.SPRING_PROFILE_NON_SECURE.equals(securityProfile)) {
+			if (keystoreFilePath == null) {
+				throw new IllegalStateException("keystoreFilePath cannot be null when using security");				
+			}
+			if (keystorePassword == null) {
+				throw new IllegalStateException("keystorePassword cannot be null when using security");
+			}
 		}
 
 		setSecurityMode();
