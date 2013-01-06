@@ -15,10 +15,10 @@
  *******************************************************************************/
 package org.cloudifysource.rest.controllers;
 
-import static org.cloudifysource.dsl.internal.CloudifyConstants.TEMPLATES_DIR_PARAM_NAME;
-import static org.cloudifysource.dsl.internal.CloudifyConstants.SERVICE_OVERRIDES_FILE_PARAM;
-import static org.cloudifysource.dsl.internal.CloudifyConstants.CLOUD_OVERRIDES_FILE_PARAM;
 import static org.cloudifysource.dsl.internal.CloudifyConstants.APPLICATION_OVERRIDES_FILE_PARAM;
+import static org.cloudifysource.dsl.internal.CloudifyConstants.CLOUD_OVERRIDES_FILE_PARAM;
+import static org.cloudifysource.dsl.internal.CloudifyConstants.SERVICE_OVERRIDES_FILE_PARAM;
+import static org.cloudifysource.dsl.internal.CloudifyConstants.TEMPLATES_DIR_PARAM_NAME;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_INVOKE_INSTANCE;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_APP;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
@@ -2336,6 +2336,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 			logger.info("Creating cloud machine provisioning config. Template remote directory is: "
 					+ template.getRemoteDirectory());
+						
 			final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
 					cloud, template, templateName, this.managementTemplate.getRemoteDirectory());
 			config.setAuthGroups(authGroups);
@@ -2703,6 +2704,30 @@ public class ServiceController implements ServiceDetailsProvider {
 			service = result.getService();
 		}
 
+		if (service != null) {
+			// now that we have the Service object, amend the template name
+			if (IsolationUtils.isGlobal(service) 
+					&& IsolationUtils.isUseManagement(service)) {
+				final String managementMachineTemplateName = cloud.getConfiguration().getManagementMachineTemplate();
+				ComputeDetails compute = service.getCompute();
+				if (compute != null) {
+					if (compute.getTemplate() != null && !compute.getTemplate().isEmpty()) {
+						if (!compute.getTemplate().equals(managementMachineTemplateName)) {
+							// this is just a clarification log.
+							// the service wont be installed on a management machine(even if there is enough memory)
+							// because the management machine template does not match the desired template
+							logger.warning("Installation of service " + service.getName() + " on a management machine "  
+									+ "will not be attempted since the specified template(" + compute.getTemplate() + ")"
+									+ " is different than the management machine template(" + managementMachineTemplateName + ")");
+						}
+					}
+				} else {
+					// normal default is to the first template. but when specified useManagement
+					// do a silent default to the management machine template.
+					templateName = managementMachineTemplateName;
+				}
+			}
+		}
 		validateTemplate(templateName);
 		IsolationUtils.validateInstanceMemory(service, cloud);
 
