@@ -152,12 +152,7 @@ public final class IsolationUtils {
 			serviceTemplate = cloud.getTemplates().entrySet().iterator().next().getKey();
 		}
 		int machineTemplateMemory = cloud.getTemplates().get(serviceTemplate).getMachineMemoryMB();
-		int reservedMachineMemory;
-		if (serviceTemplate.equals(cloud.getConfiguration().getManagementMachineTemplate())) {
-			reservedMachineMemory = cloud.getProvider().getReservedMemoryCapacityPerManagementMachineInMB();
-		} else {
-			reservedMachineMemory = cloud.getProvider().getReservedMemoryCapacityPerMachineInMB();
-		}
+		int reservedMachineMemory = cloud.getProvider().getReservedMemoryCapacityPerMachineInMB();
 		long instanceMemoryMB = getInstanceMemoryMB(service);
 		if (instanceMemoryMB > (machineTemplateMemory - reservedMachineMemory)) {
 			throw new IllegalStateException("Cannot install service " + service.getName() + " : Insufficient Memory -->" 
