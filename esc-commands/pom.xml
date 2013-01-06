@@ -26,6 +26,14 @@
 					<artifactId>jline</artifactId>
 					<groupId>jline</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>ant</artifactId>
+					<groupId>org.apache.ant</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>ant</artifactId>
+					<groupId>ant</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
