@@ -25,14 +25,4 @@ package org.cloudifysource.dsl;
  *
  */
 public class SharedIsolationSLADescriptor extends GlobalIsolationSLADescriptor {
-
-	private String isolationId;
-	
-	public String getIsolationId() {
-		return isolationId;
-	}
-
-	public void setIsolationId(final String isolationId) {
-		this.isolationId = isolationId;
-	}
 }

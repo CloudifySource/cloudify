@@ -21,9 +21,6 @@ public class AppSharedIsolationSLADescriptor extends SharedIsolationSLADescripto
 
 		super.validateDefaultValues(validationContext);
 		
-		if (getIsolationId() == null) {
-			throw new DSLValidationException("isolationId cannot be null");
-		}
 		if (isUseManagement()) {
 			throw new DSLValidationException("isUseManagement can only be true for isolationSLA of type 'global'");
 		}
@@ -32,9 +29,8 @@ public class AppSharedIsolationSLADescriptor extends SharedIsolationSLADescripto
 	
 	@Override
 	public String toString() {
-		return "AppSharedIsolationSLADescriptor [isolationId=" + getIsolationId() + ", instanceMemoryMB="
+		return "AppSharedIsolationSLADescriptor [instanceMemoryMB="
 				+ getInstanceMemoryMB() + ", instanceCpuCores=" + getInstanceCpuCores()
 				+ ", useManagement=" + isUseManagement() + "]";
 	}
-	
 }
