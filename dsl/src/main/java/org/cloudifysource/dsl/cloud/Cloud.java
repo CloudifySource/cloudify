@@ -28,7 +28,7 @@ import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 
 /***********
- * Cloud doman object. Includes all of the details required for the cloud driver to use a cloud provider.
+ * Cloud domain object. Includes all of the details required for the cloud driver to use a cloud provider.
  * 
  * @author barakme
  * 

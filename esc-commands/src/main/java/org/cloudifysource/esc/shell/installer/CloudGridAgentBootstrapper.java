@@ -72,8 +72,6 @@ public class CloudGridAgentBootstrapper {
 	private static final String MANAGEMENT_APPLICATION = ManagementWebServiceInstaller.MANAGEMENT_APPLICATION_NAME;
 	private static final String MANAGEMENT_GSA_ZONE = "management";
 
-	private static final int WEBUI_PORT = 8099;
-
 	private static final String OPERATION_TIMED_OUT = "The operation timed out. "
 			+ "Try to increase the timeout using the -timeout flag";
 
@@ -224,8 +222,12 @@ public class CloudGridAgentBootstrapper {
 			startManagememntProcesses(servers, securityProfile, keystorePassword, end);
 
 			if (!isNoWebServices()){
-				waitForManagementWebServices(ShellUtils.isSecureConnection(securityProfile), username, password,
-						end, servers);
+				Integer restPort = getRestPort(cloud.getConfiguration().getComponents().getRest().getPort(),
+						ShellUtils.isSecureConnection(securityProfile));
+				Integer webuiPort = getWebuiPort(cloud.getConfiguration().getComponents().getWebui().getPort(), 
+						ShellUtils.isSecureConnection(securityProfile));
+				waitForManagementWebServices(ShellUtils.isSecureConnection(securityProfile), username, password, 
+						restPort, webuiPort, end, servers);
 			}
 			
 		} catch (final IOException e) {
@@ -255,7 +257,8 @@ public class CloudGridAgentBootstrapper {
 	}
 
 	private void waitForManagementWebServices(final boolean isSecureConnection, final String username, 
-			final String password, final long end, final MachineDetails[] servers)
+			final String password, final Integer restPort, final Integer webuiPort,
+			final long end, final MachineDetails[] servers)
 			throws MalformedURLException, URISyntaxException,
 			InterruptedException, TimeoutException, CLIException {
 		// Wait for rest to become available
@@ -269,8 +272,8 @@ public class CloudGridAgentBootstrapper {
 			}
 
 			final URL restAdminUrl = new URI(ShellUtils.getRestProtocol(isSecureConnection), null, ipAddress,
-					ShellUtils.getRestPort(isSecureConnection), null, null, null).toURL();
-			final URL webUIUrl = new URI(ShellUtils.getRestProtocol(isSecureConnection), null, ipAddress, WEBUI_PORT,
+					restPort, null, null, null).toURL();
+			final URL webUIUrl = new URI(ShellUtils.getRestProtocol(isSecureConnection), null, ipAddress, webuiPort,
 					null, null, null).toURL();
 
 			// We are relying on start-management command to be run on the
@@ -280,6 +283,30 @@ public class CloudGridAgentBootstrapper {
 
 			logger.info("Rest service is available at: " + restAdminUrl + '.');
 			logger.info("Webui service is available at: " + webUIUrl + '.');
+		}
+	}
+	
+	// if rest port was configured we return the config value
+	private Integer getRestPort(final Integer configuredRestPort, final boolean isSecureConnection) {
+		if (configuredRestPort != null) {
+			return configuredRestPort;
+		}
+		if (isSecureConnection){
+			return CloudifyConstants.SECURE_REST_PORT;
+		} else {
+			return CloudifyConstants.DEFAULT_REST_PORT;
+		}
+	}
+	
+	//if webui port was configured we return the config value
+	private Integer getWebuiPort(final Integer configuredWebuiPort, final boolean isSecureConnection) {
+		if (configuredWebuiPort != null) {
+			return configuredWebuiPort;
+		}
+		if (isSecureConnection){
+			return CloudifyConstants.SECURE_WEBUI_PORT;
+		} else {
+			return CloudifyConstants.DEFAULT_WEBUI_PORT;
 		}
 	}
 

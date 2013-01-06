@@ -498,7 +498,7 @@ public final class ShellUtils {
 	 * @return the correct port used by the rest service.
 	 */
 	public static int getRestPort(final String springSecurityProfile) {
-		return getRestPort(isSecureConnection(springSecurityProfile));
+		return getDefaultRestPort(isSecureConnection(springSecurityProfile));
 	}
 	
 	/**
@@ -506,7 +506,7 @@ public final class ShellUtils {
 	 * @param isSecureConnection Indicates whether SSL is used or not.
 	 * @return the correct port used by the rest service.
 	 */
-	public static int getRestPort(final boolean isSecureConnection) {
+	public static int getDefaultRestPort(final boolean isSecureConnection) {
 		if (isSecureConnection) {
 			return CloudifyConstants.SECURE_REST_PORT;
 		} else {
@@ -519,8 +519,8 @@ public final class ShellUtils {
 	 * @param isSecureConnection Indicates whether SSL is used or not.
 	 * @return the correct port used by the rest service.
 	 */
-	public static String getRestPortAsString(final boolean isSecureConnection) {
-		return Integer.toString(getRestPort(isSecureConnection));
+	public static String getDefaultRestPortAsString(final boolean isSecureConnection) {
+		return Integer.toString(getDefaultRestPort(isSecureConnection));
 	}
 	
 	public static String getFormattedRestUrl(String url, String springSecurityProfile) throws MalformedURLException {
@@ -543,7 +543,7 @@ public final class ShellUtils {
 		if (urlObj.getPort() == -1) {
 			final StringBuilder urlSB = new StringBuilder(formattedURL);
 			final int portIndex = formattedURL.indexOf("/", protocolPrefix.length() + 1);
-			urlSB.insert(portIndex, ':' + ShellUtils.getRestPortAsString(isSecureConnection));
+			urlSB.insert(portIndex, ':' + ShellUtils.getDefaultRestPortAsString(isSecureConnection));
 			formattedURL = urlSB.toString();
 			urlObj = new URL(formattedURL);
 		}

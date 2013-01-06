@@ -95,7 +95,6 @@ public class LocalhostGridAgentBootstrapper {
 
 	private static final String MANAGEMENT_APPLICATION = ManagementWebServiceInstaller.MANAGEMENT_APPLICATION_NAME;
 	private static final String GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE = "gsm.excludeGscOnFailedInstance.disabled";
-	private static final String LUS_PORT_CONTEXT_PROPERTY = "com.sun.jini.reggie.initialUnicastDiscoveryPort";
 	private static final String ZONES_PROPERTY = "com.gs.zones";
 	private static final String AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT = "-Dcom.gs.agent.auto-shutdown-enabled=true";
 	private static final int WAIT_AFTER_ADMIN_CLOSED_MILLIS = 10 * 1000;
@@ -107,12 +106,10 @@ public class LocalhostGridAgentBootstrapper {
 	private static final int ESM_MEMORY_IN_MB = 128;
 	private static final int REST_MEMORY_IN_MB = 128; // we don't have wars that
 														// big
+	private static final int WEBUI_MEMORY_IN_MB = 512;
 	private static final int MANAGEMENT_SPACE_MEMORY_IN_MB = 64;
-	private static final int REST_PORT = 8100;
 	private static final String REST_FILE = "tools" + File.separator + "rest" + File.separator + "rest.war";
 	private static final String REST_NAME = "rest";
-	private static final int WEBUI_MEMORY_IN_MB = 512;
-	private static final int WEBUI_PORT = 8099;
 	private static final String WEBUI_FILE = EnvironmentUtils.findWebuiWar();
 	private static final String WEBUI_NAME = "webui";
 	private static final String MANAGEMENT_SPACE_NAME = CloudifyConstants.MANAGEMENT_SPACE_NAME;
@@ -1003,8 +1000,8 @@ public class LocalhostGridAgentBootstrapper {
 		webuiInstaller.setAdmin(agent.getAdmin());
 		webuiInstaller.setVerbose(verbose);
 		webuiInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
-		webuiInstaller.setMemory(WEBUI_MEMORY_IN_MB, MemoryUnit.MEGABYTES);
-		webuiInstaller.setPort(WEBUI_PORT);
+		webuiInstaller.setMemory(getWebServiceMemory(CloudifyConstants.WEBUI_MAX_MEMORY_ENVIRONMENT_VAR), MemoryUnit.MEGABYTES);
+		webuiInstaller.setPort(getWebservicePort(CloudifyConstants.WEBUI_PORT_ENV_VAR, isSecureConnection));
 		webuiInstaller.setWarFile(new File(WEBUI_FILE));
 		webuiInstaller.setServiceName(WEBUI_NAME);
 		webuiInstaller.setManagementZone(MANAGEMENT_ZONE);
@@ -1029,8 +1026,8 @@ public class LocalhostGridAgentBootstrapper {
 		restInstaller.setAdmin(agent.getAdmin());
 		restInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
 		restInstaller.setVerbose(verbose);
-		restInstaller.setMemory(REST_MEMORY_IN_MB, MemoryUnit.MEGABYTES);
-		restInstaller.setPort(REST_PORT);
+		restInstaller.setMemory(getWebServiceMemory(CloudifyConstants.REST_MAX_MEMORY_ENVIRONMENT_VAR), MemoryUnit.MEGABYTES);
+		restInstaller.setPort(getWebservicePort(CloudifyConstants.REST_PORT_ENV_VAR, isSecureConnection));
 		restInstaller.setUsername(username);
 		restInstaller.setPassword(password);
 		restInstaller.setWarFile(new File(REST_FILE));
@@ -1051,6 +1048,40 @@ public class LocalhostGridAgentBootstrapper {
 			}
 		}
 		waitForManagementServices.add(restInstaller);
+	}
+
+	private long getWebServiceMemory(String memoryEnvironmentVar) {
+		String memoryString = System.getenv().get(memoryEnvironmentVar);
+		if (memoryString != null) {
+			return Integer.parseInt(memoryString.substring(0, memoryString.length() - 1));
+		} else {
+			if (memoryEnvironmentVar.equals(CloudifyConstants.REST_MAX_MEMORY_ENVIRONMENT_VAR)) {
+				return REST_MEMORY_IN_MB;
+			}
+		}
+		return WEBUI_MEMORY_IN_MB;
+		
+	}
+
+	private int getWebservicePort(String portEnvVriable, boolean isSecureConnection) {
+		String port = System.getenv().get(portEnvVriable);
+		if (org.apache.commons.lang.StringUtils.isNotBlank(port)) {
+			return Integer.parseInt(port);
+		} 
+		if (portEnvVriable.equals(CloudifyConstants.WEBUI_PORT_ENV_VAR)) {
+			if (isSecureConnection){
+				return CloudifyConstants.SECURE_WEBUI_PORT;
+			} else {
+				return CloudifyConstants.DEFAULT_WEBUI_PORT;
+			}
+		} else {
+			if (isSecureConnection){
+				return CloudifyConstants.SECURE_REST_PORT;
+			} else {
+				return CloudifyConstants.DEFAULT_REST_PORT;
+			}
+		}
+		
 	}
 
 	private void startLocalCloudManagementServicesContainer(final GridServiceAgent agent) {
@@ -1358,7 +1389,7 @@ public class LocalhostGridAgentBootstrapper {
 		final File filename = createScript(commandString);
 		final ProcessBuilder pb = new ProcessBuilder().command(filename.getAbsolutePath()).directory(directory);
 
-		String localCloudOptions = "-Xmx" + LOCALCLOUD_MEMORY_IN_MB + "m" + " -D" + LUS_PORT_CONTEXT_PROPERTY + "="
+		String localCloudOptions = "-Xmx" + LOCALCLOUD_MEMORY_IN_MB + "m" + " -D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY + "="
 				+ lusPort + " -D" + GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "=" + GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL
 				+ " " + GSM_PENDING_REQUESTS_DELAY + " -D" + ZONES_PROPERTY + "=" + gsaZones;
 
@@ -1369,9 +1400,9 @@ public class LocalhostGridAgentBootstrapper {
 		if (autoShutdown) {
 			gsaJavaOptions += " " + AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT;
 		}
-		String lusJavaOptions = "-Xmx" + LUS_MEMORY_IN_MB + "m" + " -D" + LUS_PORT_CONTEXT_PROPERTY + "=" + lusPort
+		String lusJavaOptions = "-Xmx" + LUS_MEMORY_IN_MB + "m" + " -D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY + "=" + lusPort
 				+ " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;
-		String gsmJavaOptions = "-Xmx" + GSM_MEMORY_IN_MB + "m" + " -D" + LUS_PORT_CONTEXT_PROPERTY + "=" + lusPort
+		String gsmJavaOptions = "-Xmx" + GSM_MEMORY_IN_MB + "m" + " -D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY + "=" + lusPort
 				+ " -D" + GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "=" + GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL + " -D"
 				+ ZONES_PROPERTY + "=" + MANAGEMENT_ZONE + " " + GSM_PENDING_REQUESTS_DELAY;
 		String esmJavaOptions = "-Xmx" + ESM_MEMORY_IN_MB + "m" + " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;
@@ -1392,6 +1423,13 @@ public class LocalhostGridAgentBootstrapper {
 			gscJavaOptions += " " + disableMulticast;
 			localCloudOptions += " " + disableMulticast;
 		}
+		// in case environment vars were defined,
+		// They will override the existing component java options.  
+		gsaJavaOptions += " " + environment.get("GSA_JAVA_OPTIONS");
+		lusJavaOptions += " " + environment.get("LUS_JAVA_OPTIONS");
+		gsmJavaOptions += " " + environment.get("GSM_JAVA_OPTIONS");
+		esmJavaOptions += " " + environment.get("ESM_JAVA_OPTIONS");
+		gscJavaOptions += " " + environment.get("GSC_JAVA_OPTIONS");
 
 		if (nicAddress != null) {
 			environment.put("NIC_ADDR", nicAddress);

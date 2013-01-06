@@ -196,8 +196,6 @@ public final class CloudifyConstants {
 	public static final String CUSTOM_PROPERTY_STOP_DETECTION_ON_ALL_PROCESSES = "org.cloudifysource.stop-detection-on-all-processes";
 	public static final String CUSTOM_PROPERTY_MONITORS_CACHE_EXPIRATION_TIMEOUT = "org.cloudifysource.monitors-cache-timeout";
 	public static final String CUSTOM_PROPERTY_PIDS_SIZE_LIMIT = "org.cloudifysource.pids-size-limit";
-	
-	
 	public static final String CUSTOM_CLOUD_PROPERTY_UNICAST_DISCOVERY_PORT = "org.cloudifysource.unicast-discovery-port";
 
 	/*******************
@@ -215,7 +213,11 @@ public final class CloudifyConstants {
 	 * default ports (LUS and REST)
 	 */
 	public static final int DEFAULT_REST_PORT = 8100;
+	public static final int DEFAULT_WEBUI_PORT = 8099;
+	
 	public static final int SECURE_REST_PORT = 8100;
+	public static final int SECURE_WEBUI_PORT = 8099;
+	
 	public static final int DEFAULT_LUS_PORT = net.jini.discovery.Constants
 			.getDiscoveryPort();
 	public static final int DEFAULT_LOCALCLOUD_LUS_PORT = DEFAULT_LUS_PORT + 2;
@@ -287,7 +289,7 @@ public final class CloudifyConstants {
 	public static final String TAB_CHAR = "\t";
 	
 	/**
-	 * REST API parameters names.
+	 * REST API parameter names.
 	 */
 	public static final String TEMPLATES_DIR_PARAM_NAME = "templatesFolder"; 
 	public static final String SERVICE_OVERRIDES_FILE_PARAM = "serviceOverridesFile"; 
@@ -308,6 +310,21 @@ public final class CloudifyConstants {
 	public static String DYNAMIC_BYON_START_MNG_MACHINES_KEY = "startManagementMachines";
 	public static String DYNAMIC_BYON_STOP_MNG_MACHINES_KEY = "stopManagementMachines";
 
+	 /********************
+	 * Service grid components system props and environment variables 
+	 */
+	public static final String LUS_PORT_CONTEXT_PROPERTY = "com.sun.jini.reggie.initialUnicastDiscoveryPort";
+	public static final String GSM_HTTP_PORT_CONTEXT_PROPERTY = "com.gigaspaces.start.httpPort";
+	public static final String GSC_PORT_RANGE_CONTEXT_PROPERTY = "com.gs.transport_protocol.lrmi.bind-port";
+	public static final String AGENT_PORT_CONTEXT_PROPERTY = "com.gigaspaces.system.registryPort";
+	
+	 /********************
+	 * management service environment variable constants
+	 */
+	public static final String REST_PORT_ENV_VAR = "REST_PORT_ENV_VAR";
+	public static final String WEBUI_PORT_ENV_VAR = "WEBUI_PORT_ENV_VAR";
+	public static final String WEBUI_MAX_MEMORY_ENVIRONMENT_VAR = "WEBUI_MAX_MEMORY_ENVIRONMENT_VAR";
+	public static final String REST_MAX_MEMORY_ENVIRONMENT_VAR = "REST_MAX_MEMORY_ENVIRONMENT_VAR";
 	
 	// CHECKSTYLE:ON
 }

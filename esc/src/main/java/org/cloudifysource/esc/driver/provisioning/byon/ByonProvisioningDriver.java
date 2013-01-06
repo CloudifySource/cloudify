@@ -75,6 +75,7 @@ ProvisioningDriverClassContextAware {
 	private boolean cleanGsFilesOnShutdown = false;
 	private List<String> cloudifyItems;
 	private ByonDeployer deployer;
+	private Integer restPort;
 
 	private void addTempaltesToDeployer(ByonDeployer deployer, Map<String, CloudTemplate> templatesMap) throws Exception {
 		logger.info("addTempaltesToDeployer - adding the following tempaltes to the deployer: " + templatesMap.keySet());
@@ -108,7 +109,6 @@ ProvisioningDriverClassContextAware {
 					return newDeployer;
 				}
 			});
-
 		} catch (final Exception e) {
 			publishEvent("connection_to_cloud_api_failed", cloud.getProvider().getProvider());
 			throw new IllegalStateException("Failed to create cloud deployer", e);
@@ -149,6 +149,7 @@ ProvisioningDriverClassContextAware {
 
 	@SuppressWarnings("unchecked")
 	private void setCustomSettings(final Cloud cloud) {
+		initRestPort(cloud.getConfiguration().getComponents().getRest().getPort());
 		// set custom settings
 		final Map<String, Object> customSettings = cloud.getCustom();
 		if (customSettings != null) {
@@ -168,6 +169,14 @@ ProvisioningDriverClassContextAware {
 					}
 				}
 			}
+		}
+	}
+
+	private void initRestPort(Integer port) {
+		if (port != null) {
+			this.restPort = port;
+		} else {
+			this.restPort = CloudifyConstants.DEFAULT_REST_PORT;
 		}
 	}
 
@@ -386,7 +395,7 @@ ProvisioningDriverClassContextAware {
 		String managementIP = null;
 		for (final CustomNode server : allNodes) {
 			try {
-				IPUtils.validateConnection(server.getPrivateIP(), CloudifyConstants.DEFAULT_REST_PORT);
+				IPUtils.validateConnection(server.getPrivateIP(), this.restPort);
 				managementIP = server.getPrivateIP();
 				break;
 			} catch (final Exception ex) {

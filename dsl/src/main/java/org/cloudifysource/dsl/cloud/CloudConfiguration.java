@@ -20,7 +20,7 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 /***********
  * Domain POJO for the cloud configuration.
  * 
- * @author barakme
+ * @author barakme, adaml
  * @since 2.0.0
  *
  */
@@ -35,6 +35,7 @@ public class CloudConfiguration {
 	private String managementMachineTemplate;
 	private boolean bootstrapManagementOnPublicIp = true;
 	private boolean connectToPrivateIp = true;
+	private GridComponents components = new GridComponents();
 
 	public String getNicAddress() {
 		return nicAddress;
@@ -92,7 +93,6 @@ public class CloudConfiguration {
 		this.connectToPrivateIp = connectToPrivateIp;
 	}
 	
-
 	@Override
 	public String toString() {
 		return "CloudConfiguration [className=" + className + ", nicAddress=" + nicAddress + ", lookupGroups="
@@ -100,6 +100,14 @@ public class CloudConfiguration {
 				+ managementMachineTemplate + ", bootstrapManagementOnPublicIp=" + bootstrapManagementOnPublicIp
 				+ ", connectToPrivateIp=" + connectToPrivateIp 
 				+ ", remotePassword=***]";
+	}
+
+	public GridComponents getComponents() {
+		return components;
+	}
+
+	public void setComponents(final GridComponents components) {
+		this.components = components;
 	}
 
 }

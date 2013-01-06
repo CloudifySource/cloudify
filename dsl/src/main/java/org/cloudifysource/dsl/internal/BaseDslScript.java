@@ -52,11 +52,19 @@ import org.cloudifysource.dsl.Sla;
 import org.cloudifysource.dsl.StatefulProcessingUnit;
 import org.cloudifysource.dsl.StatelessProcessingUnit;
 import org.cloudifysource.dsl.TenantSharedIsolationSLADescriptor;
+import org.cloudifysource.dsl.cloud.AgentComponent;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudConfiguration;
 import org.cloudifysource.dsl.cloud.CloudProvider;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.cloud.CloudUser;
+import org.cloudifysource.dsl.cloud.DeployerComponent;
+import org.cloudifysource.dsl.cloud.DiscoveryComponent;
+import org.cloudifysource.dsl.cloud.GridComponents;
+import org.cloudifysource.dsl.cloud.OrchestratorComponent;
+import org.cloudifysource.dsl.cloud.RestComponent;
+import org.cloudifysource.dsl.cloud.UsmComponent;
+import org.cloudifysource.dsl.cloud.WebuiComponent;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntryFactory;
 import org.cloudifysource.dsl.entry.ExecutableEntriesMap;
@@ -592,6 +600,16 @@ public abstract class BaseDslScript extends Script {
 			addObjectInitializerForClass(dslObjectInitializersByName, TenantSharedIsolationSLADescriptor.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, AppSharedIsolationSLADescriptor.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, DedicatedIsolationSLADescriptor.class);
+			
+			addObjectInitializerForClass(dslObjectInitializersByName, GridComponents.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, OrchestratorComponent.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, DiscoveryComponent.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, DeployerComponent.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, WebuiComponent.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, UsmComponent.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, RestComponent.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, AgentComponent.class);
+			
 		}
 		return dslObjectInitializersByName;
 

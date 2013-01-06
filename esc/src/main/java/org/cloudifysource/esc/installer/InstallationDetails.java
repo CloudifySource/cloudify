@@ -111,10 +111,28 @@ public class InstallationDetails implements Cloneable {
 	// defines the com.gs.agent.reservationid system property for the GSA
 	// see InternalGridServiceAgent#getReservationId()
 	private GSAReservationId reservationId;
-
+	
 	private String templateName;
 	
 	private String authGroups;
+
+	
+	// Relevant only for management machines
+	/* *********************************************** */
+	
+	// The management components system properties 
+	// as java command line arguments
+	private String esmCommandlineArgs;
+	private String lusCommandlineArgs;
+	private String gsmCommandlineArgs;
+	private String gsaCommandlineArgs;
+	private String gscCommandlineArgs;
+
+	// management web service properties
+	private String restMaxMemory;
+	private String webuiMaxMemory;
+	private Integer restPort;
+	private Integer webuiPort;
 
 	public String getTemplateName() {
 		return templateName;
@@ -360,5 +378,77 @@ public class InstallationDetails implements Cloneable {
 	
 	public String getAuthGroups() {
 		return this.authGroups;
+	}
+
+	public String getEsmCommandlineArgs() {
+		return esmCommandlineArgs;
+	}
+
+	public void setEsmCommandlineArgs(final String esmCommandlineArgs) {
+		this.esmCommandlineArgs = esmCommandlineArgs;
+	}
+
+	public String getLusCommandlineArgs() {
+		return lusCommandlineArgs;
+	}
+
+	public void setLusCommandlineArgs(final String lusCommandlineArgs) {
+		this.lusCommandlineArgs = lusCommandlineArgs;
+	}
+
+	public String getGsmCommandlineArgs() {
+		return gsmCommandlineArgs;
+	}
+
+	public void setGsmCommandlineArgs(final String gsmCommandlineArgs) {
+		this.gsmCommandlineArgs = gsmCommandlineArgs;
+	}
+
+	public String getGsaCommandlineArgs() {
+		return gsaCommandlineArgs;
+	}
+
+	public void setGsaCommandlineArgs(final String gsaCommandlineArgs) {
+		this.gsaCommandlineArgs = gsaCommandlineArgs;
+	}
+
+	public String getGscCommandlineArgs() {
+		return gscCommandlineArgs;
+	}
+
+	public void setGscCommandlineArgs(final String gscCommandlineArgs) {
+		this.gscCommandlineArgs = gscCommandlineArgs;
+	}
+
+	public Integer getRestPort() {
+		return restPort;
+	}
+
+	public void setRestPort(final Integer restPort) {
+		this.restPort = restPort;
+	}
+
+	public Integer getWebuiPort() {
+		return webuiPort;
+	}
+
+	public void setWebuiPort(final Integer webuiPort) {
+		this.webuiPort = webuiPort;
+	}
+
+	public String getRestMaxMemory() {
+		return restMaxMemory;
+	}
+
+	public void setRestMaxMemory(final String restMaxMemory) {
+		this.restMaxMemory = restMaxMemory;
+	}
+
+	public String getWebuiMaxMemory() {
+		return webuiMaxMemory;
+	}
+
+	public void setWebuiMaxMemory(final String webuiMaxMemory) {
+		this.webuiMaxMemory = webuiMaxMemory;
 	}
 }

@@ -61,7 +61,7 @@ import org.cloudifysource.esc.util.Utils;
  * 
  * File transfer is handled using Apache commons vfs.
  * 
- * @author barakme
+ * @author barakme, adaml
  * 
  */
 public class AgentlessInstaller {
@@ -649,7 +649,7 @@ public class AgentlessInstaller {
 				// maintain backwards compatibility for pre 2.3.0
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, details.getPrivateIp())
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, details.getPublicIp());
-
+			
 		if (details.getReservationId() != null) {
 			scb.exportVar(GSA_RESERVATION_ID_ENV, details.getReservationId().toString());
 		}
@@ -660,8 +660,23 @@ public class AgentlessInstaller {
 				remotePath += "/";
 			}
 			scb.exportVar(CLOUD_FILE, remotePath + details.getCloudFile().getName());
+			
+			logger.log(Level.FINE, "Setting ESM/GSM/LUS/GSA/GSC java options");
+			
+			scb.exportVar("ESM_JAVA_OPTIONS", details.getEsmCommandlineArgs());
+			scb.exportVar("LUS_JAVA_OPTIONS", details.getLusCommandlineArgs());
+			scb.exportVar("GSM_JAVA_OPTIONS", details.getGsmCommandlineArgs());
+			scb.exportVar("GSA_JAVA_OPTIONS", details.getGsaCommandlineArgs());
+			scb.exportVar("GSC_JAVA_OPTIONS", details.getGscCommandlineArgs());
+			
+			
+			scb.exportVar(CloudifyConstants.REST_PORT_ENV_VAR, details.getRestPort().toString());
+			scb.exportVar(CloudifyConstants.REST_MAX_MEMORY_ENVIRONMENT_VAR, details.getRestMaxMemory());
+			
+			scb.exportVar(CloudifyConstants.WEBUI_PORT_ENV_VAR, details.getWebuiPort().toString());
+			scb.exportVar(CloudifyConstants.WEBUI_MAX_MEMORY_ENVIRONMENT_VAR, details.getWebuiMaxMemory());
 		}
-
+		
 		if (details.getUsername() != null) {
 			scb.exportVar("USERNAME", details.getUsername());
 		}
@@ -686,7 +701,7 @@ public class AgentlessInstaller {
 		final String command = scb.toString();
 
 		logger.fine("Calling startup script on target: " + targetHost + " with LOCATOR=" + details.getLocator()
-				+ "\nThis may take a few minutes");
+				+ "\nThis may take a few minutes. command is: " + command);
 
 		switch (details.getRemoteExecutionMode()) {
 		case SSH:

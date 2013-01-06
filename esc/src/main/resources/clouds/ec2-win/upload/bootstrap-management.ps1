@@ -147,8 +147,8 @@ insert-line $cloudifyDir\bin\setenv.bat "set GIGASPACES_CLOUD_HARDWARE_ID=$ENV:G
 insert-line $cloudifyDir\bin\setenv.bat "set GIGASPACES_AGENT_ENV_PRIVILEGED=$ENV:GIGASPACES_AGENT_ENV_PRIVILEGED"
 insert-line $cloudifyDir\bin\setenv.bat "set GIGASPACES_CLOUD_TEMPLATE_NAME=$ENV:GIGASPACES_CLOUD_TEMPLATE_NAME"
 
-insert-line $cloudifyDir\bin\setenv.bat "set CLOUDIFY_AGENT_ENV_PRIVATE_IP=$ENV:CLOUDIFY_AGENT_ENV_PRIVATE_IP"
 insert-line $cloudifyDir\bin\setenv.bat "set CLOUDIFY_AGENT_ENV_PUBLIC_IP=$ENV:CLOUDIFY_AGENT_ENV_PUBLIC_IP"
+insert-line $cloudifyDir\bin\setenv.bat "set CLOUDIFY_AGENT_ENV_PRIVATE_IP=$ENV:CLOUDIFY_AGENT_ENV_PRIVATE_IP"
 insert-line $cloudifyDir\bin\setenv.bat "set CLOUDIFY_CLOUD_IMAGE_ID=$ENV:CLOUDIFY_CLOUD_IMAGE_ID"
 insert-line $cloudifyDir\bin\setenv.bat "set CLOUDIFY_CLOUD_HARDWARE_ID=$ENV:CLOUDIFY_CLOUD_HARDWARE_ID"
 insert-line $cloudifyDir\bin\setenv.bat "set GSA_RESERVATION_ID=$ENV:GSA_RESERVATION_ID"
@@ -157,6 +157,17 @@ insert-line $cloudifyDir\bin\setenv.bat "set SPRING_PROFILES_ACTIVE=$ENV:SPRING_
 insert-line $cloudifyDir\bin\setenv.bat "set SPRING_SECURITY_CONFIG_FILE=$ENV:SPRING_SECURITY_CONFIG_FILE"
 insert-line $cloudifyDir\bin\setenv.bat "set KEYSTORE_FILE=$ENV:KEYSTORE_FILE"
 insert-line $cloudifyDir\bin\setenv.bat "set KEYSTORE_KEY=$ENV:KEYSTORE_KEY"
+
+insert-line $cloudifyDir\bin\setenv.bat "set GSA_JAVA_OPTIONS=$ENV:GSA_JAVA_OPTIONS"
+insert-line $cloudifyDir\bin\setenv.bat "set LUS_JAVA_OPTIONS=$ENV:LUS_JAVA_OPTIONS"
+insert-line $cloudifyDir\bin\setenv.bat "set GSM_JAVA_OPTIONS=$ENV:GSM_JAVA_OPTIONS"
+insert-line $cloudifyDir\bin\setenv.bat "set ESM_JAVA_OPTIONS=$ENV:ESM_JAVA_OPTIONS"
+insert-line $cloudifyDir\bin\setenv.bat "set GSC_JAVA_OPTIONS=$ENV:GSC_JAVA_OPTIONS"
+
+insert-line $cloudifyDir\bin\setenv.bat "set REST_PORT_ENV_VAR=$ENV:REST_PORT_ENV_VAR"
+insert-line $cloudifyDir\bin\setenv.bat "set WEBUI_PORT_ENV_VAR=$ENV:WEBUI_PORT_ENV_VAR"
+insert-line $cloudifyDir\bin\setenv.bat "set WEBUI_MAX_MEMORY_ENVIRONMENT_VAR=$ENV:WEBUI_MAX_MEMORY_ENVIRONMENT_VAR"
+insert-line $cloudifyDir\bin\setenv.bat "set REST_MAX_MEMORY_ENVIRONMENT_VAR=$ENV:REST_MAX_MEMORY_ENVIRONMENT_VAR"
 
 
 Write-Host "Disabling local firewall"
