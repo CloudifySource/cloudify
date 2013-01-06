@@ -216,14 +216,14 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 
 	@Override
 	public CapacityRequirements getReservedCapacityPerMachine() {
-		final List<CapacityRequirement> requirements = createRequirements(false);
+		final List<CapacityRequirement> requirements = createReservedCapacityPerMachine(false);
 		CapacityRequirements capacityRequirements = new CapacityRequirements(requirements.toArray(new CapacityRequirement[requirements.size()]));
 		return capacityRequirements;
 	}
 
 	@Override
 	public CapacityRequirements getReservedCapacityPerManagementMachine() {
-		final List<CapacityRequirement> requirements = createRequirements(true);
+		final List<CapacityRequirement> requirements = createReservedCapacityPerMachine(true);
 		CapacityRequirements capacityRequirements = new CapacityRequirements(requirements.toArray(new CapacityRequirement[requirements.size()]));
 		return capacityRequirements;
 	}
@@ -393,7 +393,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 		return (String) properties.getStringWrapperObject(AUTH_GROUPS_KEY, AUTH_GROUPS_DEFAULT);
 	}
 
-	private List<CapacityRequirement> createRequirements(final boolean management) {
+	private List<CapacityRequirement> createReservedCapacityPerMachine(final boolean management) {
 		final List<CapacityRequirement> requirements = new ArrayList<CapacityRequirement>();
 		if (management) {
 			requirements.add(new MemoryCapacityRequirement(getReservedMemoryCapacityPerManagementMachineInMB()));
