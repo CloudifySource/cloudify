@@ -1052,7 +1052,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	private long getWebServiceMemory(String memoryEnvironmentVar) {
 		String memoryString = System.getenv().get(memoryEnvironmentVar);
-		if (memoryString != null) {
+		if (org.apache.commons.lang.StringUtils.isNotBlank(memoryString)) {
 			return Integer.parseInt(memoryString.substring(0, memoryString.length() - 1));
 		} else {
 			if (memoryEnvironmentVar.equals(CloudifyConstants.REST_MAX_MEMORY_ENVIRONMENT_VAR)) {
