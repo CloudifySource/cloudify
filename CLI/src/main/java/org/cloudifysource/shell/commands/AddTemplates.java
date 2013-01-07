@@ -25,6 +25,7 @@ import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.cloudifysource.dsl.internal.CloudTemplatesReader;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
@@ -117,7 +118,8 @@ public class AddTemplates extends AdminAwareCommand {
 			addedTemplates = adminFacade.addTemplates(zipFile);
 		} catch (CLIStatusException e) {
 			String reasonCode = e.getReasonCode();
-			if (reasonCode.equals("failed_to_add_templates")) {
+			if (reasonCode.equals(CloudifyErrorMessages.FAILED_TO_ADD_TEMPLATES.getName()) || 
+					reasonCode.equals(CloudifyErrorMessages.PARTLY_FAILED_TO_ADD_TEMPLATES.getName())) {
 				throw new CLIStatusException(reasonCode, convertArgsToIndentJason(e.getArgs()));
 			} else if (reasonCode.equals("failed_to_add_all_templates")) {
 				if (e.getArgs().length > 0) {
