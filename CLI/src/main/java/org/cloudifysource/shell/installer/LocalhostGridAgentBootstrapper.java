@@ -1425,12 +1425,12 @@ public class LocalhostGridAgentBootstrapper {
 		}
 		// in case environment vars were defined,
 		// They will override the existing component java options.  
-		gsaJavaOptions += " " + environment.get("GSA_JAVA_OPTIONS");
-		lusJavaOptions += " " + environment.get("LUS_JAVA_OPTIONS");
-		gsmJavaOptions += " " + environment.get("GSM_JAVA_OPTIONS");
-		esmJavaOptions += " " + environment.get("ESM_JAVA_OPTIONS");
-		gscJavaOptions += " " + environment.get("GSC_JAVA_OPTIONS");
-
+		gsaJavaOptions += " " + environment.get("GSA_JAVA_OPTIONS") == null ? "" : environment.get("GSA_JAVA_OPTIONS");
+		lusJavaOptions += " " + environment.get("LUS_JAVA_OPTIONS") == null ? "" : environment.get("LUS_JAVA_OPTIONS");
+		gsmJavaOptions += " " + environment.get("GSM_JAVA_OPTIONS") == null ? "" : environment.get("GSM_JAVA_OPTIONS");
+		esmJavaOptions += " " + environment.get("ESM_JAVA_OPTIONS") == null ? "" : environment.get("ESM_JAVA_OPTIONS");
+		gscJavaOptions += " " + environment.get("GSC_JAVA_OPTIONS") == null ? "" : environment.get("GSC_JAVA_OPTIONS");
+		
 		if (nicAddress != null) {
 			environment.put("NIC_ADDR", nicAddress);
 		}
