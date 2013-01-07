@@ -20,6 +20,12 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.cloudifysource</groupId>
+			<artifactId>rest-client</artifactId>
+			<version>${cloudifyVersion}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
 			<groupId>com.gigaspaces</groupId>
 			<artifactId>gs-openspaces</artifactId>
 			<version>${gsVersion}</version>
