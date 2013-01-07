@@ -669,12 +669,18 @@ public class AgentlessInstaller {
 			scb.exportVar("GSA_JAVA_OPTIONS", details.getGsaCommandlineArgs());
 			scb.exportVar("GSC_JAVA_OPTIONS", details.getGscCommandlineArgs());
 			
-			
-			scb.exportVar(CloudifyConstants.REST_PORT_ENV_VAR, details.getRestPort().toString());
-			scb.exportVar(CloudifyConstants.REST_MAX_MEMORY_ENVIRONMENT_VAR, details.getRestMaxMemory());
-			
-			scb.exportVar(CloudifyConstants.WEBUI_PORT_ENV_VAR, details.getWebuiPort().toString());
-			scb.exportVar(CloudifyConstants.WEBUI_MAX_MEMORY_ENVIRONMENT_VAR, details.getWebuiMaxMemory());
+			if (details.getRestPort() != null) {
+				scb.exportVar(CloudifyConstants.REST_PORT_ENV_VAR, details.getRestPort().toString());
+			}
+			if (details.getRestMaxMemory() != null) {
+				scb.exportVar(CloudifyConstants.REST_MAX_MEMORY_ENVIRONMENT_VAR, details.getRestMaxMemory());
+			}
+			if (details.getWebuiPort() != null) {
+				scb.exportVar(CloudifyConstants.WEBUI_PORT_ENV_VAR, details.getWebuiPort().toString());
+			}
+			if (details.getWebuiMaxMemory() != null) {
+				scb.exportVar(CloudifyConstants.WEBUI_MAX_MEMORY_ENVIRONMENT_VAR, details.getWebuiMaxMemory());
+			}
 		}
 		
 		if (details.getUsername() != null) {
