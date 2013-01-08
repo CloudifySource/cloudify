@@ -88,7 +88,9 @@ public enum CloudifyErrorMessages {
 	/******
 	 * If partly failed to add templates (some added successfully)
 	 */
-	PARTLY_FAILED_TO_ADD_TEMPLATES("partly_failed_to_add_templates", 2);
+	PARTLY_FAILED_TO_ADD_TEMPLATES("partly_failed_to_add_templates", 2),
+	
+	INSUFFICIENT_MEMORY_FOR_INSTNACE("insufficient_memory_for_instance", 1);
 
 	
 	private final int numberOfParameters;
