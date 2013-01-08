@@ -44,6 +44,7 @@ public class ServiceParsingTest {
 
 	private static final String TEST_PARSING_RESOURCE_PATH = "testResources/testparsing/";
 	private static final String TEST_PARSING_RESOURCE_PATH2 = "src/test/resources/ExternalDSLFiles/";
+	private static final String TEST_PARSING_RESOURCE_PATH3 = "src/test/resources/groovyFileValidation/";
 
 	/**
 	 * 
@@ -76,7 +77,7 @@ public class ServiceParsingTest {
 	public void testDuplicateLifecycleEventParsing() throws DSLException {
 		final File testParsingBaseDslFile = new File(
 				TEST_PARSING_RESOURCE_PATH
-						+ "test_parsing_on_duplicate_property_in_inner_class-service.groovy");
+				+ "test_parsing_on_duplicate_property_in_inner_class-service.groovy");
 		final File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
 		try {
 			ServiceReader.getServiceFromFile(testParsingBaseDslFile,
@@ -95,7 +96,7 @@ public class ServiceParsingTest {
 	public void testDuplicateServicePropertyParsing() throws DSLException {
 		final File testParsingBaseDslFile = new File(
 				TEST_PARSING_RESOURCE_PATH
-						+ "test_parsing_on_duplicate_property_in_service_class-service.groovy");
+				+ "test_parsing_on_duplicate_property_in_service_class-service.groovy");
 		final File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
 		try {
 			ServiceReader.getServiceFromFile(testParsingBaseDslFile,
@@ -148,7 +149,7 @@ public class ServiceParsingTest {
 
 		final File testParsingExtendDslFile = new File(
 				TEST_PARSING_RESOURCE_PATH
-						+ "test_parsing_extend-service.groovy");
+				+ "test_parsing_extend-service.groovy");
 		final File testParsingExtendWorkDir = new File(
 				TEST_PARSING_RESOURCE_PATH);
 		final Service service = ServiceReader.getServiceFromFile(
@@ -165,7 +166,7 @@ public class ServiceParsingTest {
 		Assert.assertNotNull(lifecycle.getPreStop());
 		Assert.assertNotNull(lifecycle.getStop());
 		Assert.assertEquals(1, service.getExtendedServicesPaths().size());
-		Assert.assertEquals(new File(TEST_PARSING_RESOURCE_PATH, "test_parsing_base-service.groovy").getAbsolutePath(), 
+		Assert.assertEquals(new File(TEST_PARSING_RESOURCE_PATH, "test_parsing_base-service.groovy").getAbsolutePath(),
 				service
 				.getExtendedServicesPaths().getFirst());
 	}
@@ -177,7 +178,7 @@ public class ServiceParsingTest {
 	public void testBasicExtendIllegalPropertyLocation() {
 		final File testParsingExtendDslFile = new File(
 				TEST_PARSING_RESOURCE_PATH
-						+ "test_parsing_extend_illegal-service.groovy");
+				+ "test_parsing_extend_illegal-service.groovy");
 		final File testParsingExtendWorkDir = new File(
 				TEST_PARSING_RESOURCE_PATH);
 		try {
@@ -196,7 +197,7 @@ public class ServiceParsingTest {
 	public void testBasicExtendIllegalNestedPropertyLocation() {
 		final File testParsingExtendDslFile = new File(
 				TEST_PARSING_RESOURCE_PATH
-						+ "test_parsing_extend_illegal_nested-service.groovy");
+				+ "test_parsing_extend_illegal_nested-service.groovy");
 		final File testParsingExtendWorkDir = new File(
 				TEST_PARSING_RESOURCE_PATH);
 		try {
@@ -228,7 +229,7 @@ public class ServiceParsingTest {
 
 		final File testParsingExtendDslFile = new File(
 				TEST_PARSING_RESOURCE_PATH
-						+ "test_parsing_extend_two_level-service.groovy");
+				+ "test_parsing_extend_two_level-service.groovy");
 		final File testParsingExtendWorkDir = new File(
 				TEST_PARSING_RESOURCE_PATH);
 		final Service service = ServiceReader.getServiceFromFile(
@@ -257,10 +258,10 @@ public class ServiceParsingTest {
 				((StringExecutableEntry) lifecycle.getStart()).getCommand());
 
 		Assert.assertEquals(2, service.getExtendedServicesPaths().size());
-		Assert.assertEquals(new File(TEST_PARSING_RESOURCE_PATH, 
-				"test_parsing_extend-service.groovy").getAbsolutePath(), 
+		Assert.assertEquals(new File(TEST_PARSING_RESOURCE_PATH,
+				"test_parsing_extend-service.groovy").getAbsolutePath(),
 				service.getExtendedServicesPaths().getFirst());
-		Assert.assertEquals(new File(TEST_PARSING_RESOURCE_PATH, "test_parsing_base-service.groovy").getAbsolutePath(), 
+		Assert.assertEquals(new File(TEST_PARSING_RESOURCE_PATH, "test_parsing_base-service.groovy").getAbsolutePath(),
 				service.getExtendedServicesPaths().getLast());
 	}
 
@@ -271,7 +272,7 @@ public class ServiceParsingTest {
 	 */
 	@Test
 	public void testAutoScalingParsing() throws DSLException,
-			UnknownHostException {
+	UnknownHostException {
 		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH
 				+ "test_parsing_autoscaling-service.groovy");
 		final File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
@@ -340,7 +341,7 @@ public class ServiceParsingTest {
 				.getServiceStatistics()).getTimeStatistics()
 				.createTimeWindowStatistics(1, TimeUnit.MINUTES),
 				serviceStatistics.get(0).getTimeStatistics()
-						.createTimeWindowStatistics(1, TimeUnit.MINUTES));
+				.createTimeWindowStatistics(1, TimeUnit.MINUTES));
 		Assert.assertEquals(((ServiceStatisticsDetails) scalingRules.get(1)
 				.getServiceStatistics()).getMovingTimeRangeInSeconds(),
 				serviceStatistics.get(0).getMovingTimeRangeInSeconds());
@@ -357,7 +358,7 @@ public class ServiceParsingTest {
 	public void testPropertyInCustomCommand() throws DSLException {
 		final File testParsingExtendDslFile = new File(
 				TEST_PARSING_RESOURCE_PATH
-						+ "test_property_in_custom_command-service.groovy");
+				+ "test_property_in_custom_command-service.groovy");
 		final File testParsingExtendWorkDir = new File(
 				TEST_PARSING_RESOURCE_PATH);
 		final Service service = ServiceReader.getServiceFromFile(
@@ -412,37 +413,48 @@ public class ServiceParsingTest {
 				service.isLocationAware());
 
 	}
-	
+
 	/**
 	 * 
 	 * @throws Exception .
 	 */
 	@Test
 	public void testExternalScalingRule() throws Exception {
-		final File dir = new File(TEST_PARSING_RESOURCE_PATH2 
+		final File dir = new File(TEST_PARSING_RESOURCE_PATH2
 				+ "loadScalingRule");
-		
+
 		final Service service = ServiceReader.getServiceFromDirectory(dir).getService();
-				
 
 		Assert.assertTrue(service.getScalingRules().size() > 0);
 
 	}
-	
+
 	/**
 	 * 
 	 * @throws Exception .
 	 */
 	@Test
 	public void testExternalScalingRules() throws Exception {
-		final File dir = new File(TEST_PARSING_RESOURCE_PATH2 
+		final File dir = new File(TEST_PARSING_RESOURCE_PATH2
 				+ "loadScalingRules");
-		
+
 		final Service service = ServiceReader.getServiceFromDirectory(dir).getService();
-				
 
 		Assert.assertTrue(service.getScalingRules().size() > 0);
 
 	}
 
+	@Test
+	public void testServiceWithGrab() throws Exception {
+		final File serviceFile = new File(TEST_PARSING_RESOURCE_PATH3
+				+ "serviceWithGrab-service.groovy");
+		final File serviceDir = serviceFile.getParentFile();
+
+		final Service service = ServiceReader.getServiceFromFile(serviceFile);
+
+		Assert.assertNotNull(service);
+		Assert.assertNotNull(service.getLifecycle());
+		// check that the @grab annotation worked.
+		Assert.assertEquals("Tomcat", service.getName());
+	}
 }

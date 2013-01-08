@@ -56,7 +56,6 @@ public final class Packager {
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(Packager.class.getName());
 
-
 	private Packager() {
 
 	}
@@ -73,10 +72,10 @@ public final class Packager {
 	 * @throws DSLException .
 	 */
 	public static File pack(final File recipeDirOrFile) throws IOException,
-			PackagingException, DSLException {
+	PackagingException, DSLException {
 		return pack(recipeDirOrFile, null);
 	}
-	
+
 	/*************
 	 * Pack a service recipe folder into a zip file.
 	 * 
@@ -97,9 +96,9 @@ public final class Packager {
 		final File recipeFile = recipeDirOrFile.isDirectory() ? DSLReader
 				.findDefaultDSLFile(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX,
 						recipeDirOrFile) : recipeDirOrFile;
-		// Parse recipe into service
-		final Service service = ServiceReader.readService(recipeFile);
-		return pack(recipeFile, false, service, additionalServiceFiles);
+				// Parse recipe into service
+				final Service service = ServiceReader.readService(recipeFile);
+				return pack(recipeFile, false, service, additionalServiceFiles);
 	}
 
 	/****************
@@ -112,12 +111,12 @@ public final class Packager {
 	 * @param additionalServiceFiles
 	 *            files to add to the service directory.
 	 * @return the packed file.
-	 * @throws PackagingException . 
+	 * @throws PackagingException .
 	 * @throws IOException .
 	 * @throws DSLException .
 	 */
 	public static File pack(final File recipeDirOrFile, final Service service,
-			final List<File> additionalServiceFiles) 
+			final List<File> additionalServiceFiles)
 					throws IOException, PackagingException, DSLException {
 		if (service == null) {
 			return pack(recipeDirOrFile, additionalServiceFiles);
@@ -144,7 +143,7 @@ public final class Packager {
 	 */
 	public static File pack(final File recipeDirOrFile, final boolean isDir,
 			final Service service, final List<File> additionalServiceFiles)
-			throws IOException, PackagingException {
+					throws IOException, PackagingException {
 		File recipeFile = recipeDirOrFile;
 		if (isDir) {
 			recipeFile = DSLReader.findDefaultDSLFile(
@@ -171,7 +170,8 @@ public final class Packager {
 	/**
 	 * Pack the file and name it 'destFileName'.
 	 * 
-	 * @param service .
+	 * @param service
+	 *            .
 	 * @param recipeDirOrFile
 	 *            Folder or file to pack.
 	 * @param destFileName
@@ -188,7 +188,7 @@ public final class Packager {
 	 */
 	public static File pack(final Service service, final File recipeDirOrFile,
 			final String destFileName, final List<File> additionalServiceFiles)
-			throws IOException, PackagingException, DSLException {
+					throws IOException, PackagingException, DSLException {
 		final File packed = pack(recipeDirOrFile, service,
 				additionalServiceFiles);
 		final File destFile = new File(packed.getParent(), destFileName
@@ -208,7 +208,7 @@ public final class Packager {
 
 	private static File createZippedPu(final Service service,
 			final File puFolderToZip, final File recipeFile)
-			throws IOException, PackagingException {
+					throws IOException, PackagingException {
 		logger.finer("trying to zip " + puFolderToZip.getAbsolutePath());
 		String name = service.getName();
 		final String serviceName = name != null ? name : recipeFile.getParentFile().getName();
@@ -225,7 +225,7 @@ public final class Packager {
 		zipFile.deleteOnExit();
 
 		ServiceReader
-				.validateFolderSize(puFolderToZip, service.getMaxJarSize());
+		.validateFolderSize(puFolderToZip, service.getMaxJarSize());
 		ZipUtils.zip(puFolderToZip, zipFile);
 		logger.finer("zipped folder successfully to "
 				+ zipFile.getAbsolutePath());
@@ -251,7 +251,7 @@ public final class Packager {
 	 */
 	private static File buildPuFolder(final Service service,
 			final File recipeFile, final List<File> additionalServiceFiles)
-			throws IOException, PackagingException {
+					throws IOException, PackagingException {
 		final File srcFolder = recipeFile.getParentFile();
 		final File destPuFolder = File.createTempFile("gs_usm_", "");
 		FileUtils.forceDelete(destPuFolder);
@@ -276,7 +276,6 @@ public final class Packager {
 				FileUtils.copyFileToDirectory(file, extFolder);
 			}
 		}
-
 
 		logger.finer("copied files from " + srcFolder.getAbsolutePath()
 				+ " to " + extFolder.getAbsolutePath());
@@ -329,11 +328,13 @@ public final class Packager {
 		final File manifestFile = new File(manifestFolder, "MANIFEST.MF");
 
 		final Manifest manifest = new Manifest();
-		
+
 		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION,
 				"1.0");
 		manifest.getMainAttributes().putValue("Class-Path",
-				"lib/platform/cloudify/dsl.jar lib/platform/usm/usm.jar");
+				"lib/platform/cloudify/dsl.jar lib/platform/usm/usm.jar "
+				// added support for @grab annotation in groovy file - requires ivy and groovy in same classloader
+				+ "tools/groovy/embeddable/groovy-all-1.8.6.jar tools/groovy/lib/ivy-2.2.0.jar ");
 
 		OutputStream out = null;
 
@@ -454,14 +455,14 @@ public final class Packager {
 
 	/**
 	 * 
-	 * @param zipFileName 
-	 * 					The name of the zip file.
+	 * @param zipFileName
+	 *            The name of the zip file.
 	 * @param packedDir
-	 * 					The directory to pack.
+	 *            The directory to pack.
 	 * @return The packaged zip file.
 	 * @throws IOException .
 	 */
-	public static File createZipFile(final String zipFileName, final File packedDir) 
+	public static File createZipFile(final String zipFileName, final File packedDir)
 			throws IOException {
 		String shortName = zipFileName;
 		if (zipFileName.endsWith(".zip")) {
@@ -473,7 +474,7 @@ public final class Packager {
 		logger.finer("zipped folder successfully to " + zipFile.getAbsolutePath());
 		return zipFile;
 	}
-	
+
 	private static File createCopyDirectory(final File applicationDir)
 			throws IOException {
 		final File destApplicationFolder = File.createTempFile(
@@ -487,7 +488,7 @@ public final class Packager {
 
 	private static void copyExtendedServiceFiles(final Service service,
 			final File recipeFile, final File extFolder)
-			throws IOException {
+					throws IOException {
 		final LinkedList<String> extendedServicesPaths = service
 				.getExtendedServicesPaths();
 
@@ -554,7 +555,7 @@ public final class Packager {
 
 	private static void updateExtendingScriptFileWithNewExtendedScriptLocation(
 			final File extendingScriptFile, final File localExtendedServiceFile)
-			throws IOException {
+					throws IOException {
 		BufferedReader bufferedReader = null;
 		BufferedWriter bufferedWriter = null;
 		final File extendingScriptFileTmp = new File(extendingScriptFile
@@ -571,7 +572,7 @@ public final class Packager {
 					line = line
 							.substring(
 									0,
-									line.indexOf(BaseDslScript.EXTEND_PROPERTY_NAME) 
+									line.indexOf(BaseDslScript.EXTEND_PROPERTY_NAME)
 									+ BaseDslScript.EXTEND_PROPERTY_NAME.length());
 					line += " \"" + localExtendedServiceFile.getName() + "\"";
 				}
@@ -596,7 +597,7 @@ public final class Packager {
 
 	private static File copyExtendedServiceFileAndRename(
 			final File extendedServiceFile, final File extFolder)
-			throws IOException {
+					throws IOException {
 		final File existingServiceFile = new File(extFolder + "/"
 				+ extendedServiceFile.getName());
 		// We need to locate the next available index as it may be there was
@@ -639,6 +640,5 @@ public final class Packager {
 
 		return extendedServiceFile;
 	}
-
 
 }

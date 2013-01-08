@@ -460,8 +460,7 @@
 				<configuration>
 					<archive>
 						<manifestEntries>
-							<Class-Path>lib/platform/cloudify/dsl.jar</Class-Path>
-
+							<Class-Path>lib/platform/cloudify/dsl.jar tools/groovy/embeddable/groovy-all-1.8.6.jar tools/groovy/lib/ivy-2.2.0.jar</Class-Path>							
 						</manifestEntries>
 					</archive>
 					<webResources>

@@ -79,6 +79,12 @@
 			<version>${gsVersion}</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.ivy</groupId>
+			<artifactId>ivy</artifactId>
+			<version>2.2.0</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
