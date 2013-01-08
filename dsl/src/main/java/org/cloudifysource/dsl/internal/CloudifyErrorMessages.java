@@ -90,7 +90,10 @@ public enum CloudifyErrorMessages {
 	 */
 	PARTLY_FAILED_TO_ADD_TEMPLATES("partly_failed_to_add_templates", 2),
 	
-	INSUFFICIENT_MEMORY_FOR_INSTNACE("insufficient_memory_for_instance", 1);
+	/**
+	 * if a user specified instance memory that was to big in respect to machine memory specified in the template
+	 */
+	INSUFFICIENT_MEMORY("insufficient_memory", 1);
 
 	
 	private final int numberOfParameters;

@@ -13,7 +13,7 @@ import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
 import org.cloudifysource.dsl.statistics.AbstractStatisticsDetails;
 import org.cloudifysource.dsl.statistics.ServiceStatisticsDetails;
-import org.cloudifysource.esc.util.IsolationUtils;
+import org.cloudifysource.rest.util.IsolationUtils;
 import org.openspaces.admin.pu.elastic.config.AutomaticCapacityScaleConfig;
 import org.openspaces.admin.pu.elastic.config.AutomaticCapacityScaleConfigurer;
 import org.openspaces.admin.pu.elastic.config.AutomaticCapacityScaleRuleConfig;

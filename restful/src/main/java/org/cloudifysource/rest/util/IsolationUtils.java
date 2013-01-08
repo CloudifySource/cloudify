@@ -14,7 +14,7 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.cloudifysource.esc.util;
+package org.cloudifysource.rest.util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +23,8 @@ import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.Application;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
+import org.cloudifysource.rest.controllers.RestErrorException;
 
 /**
  * Utility class for service deployment methods.
@@ -135,8 +137,9 @@ public final class IsolationUtils {
 	 * at least one instance. 
 	 * @param service
 	 * @param cloud
+	 * @throws RestErrorException 
 	 */
-	public static void validateInstanceMemory(final Service service, final Cloud cloud) {
+	public static void validateInstanceMemory(final Service service, final Cloud cloud) throws RestErrorException {
 		
 		if (service == null) {
 			return;
@@ -155,10 +158,10 @@ public final class IsolationUtils {
 		int reservedMachineMemory = cloud.getProvider().getReservedMemoryCapacityPerMachineInMB();
 		long instanceMemoryMB = getInstanceMemoryMB(service);
 		if (instanceMemoryMB > (machineTemplateMemory - reservedMachineMemory)) {
-			throw new IllegalStateException("Cannot install service " + service.getName() + " : Insufficient Memory -->" 
-					+ "The declared machine memory for template " + serviceTemplate + " is " + machineTemplateMemory
-					+ ". The reserved memory on the machine is " + reservedMachineMemory
-					+ ". The specified instance memory requirement is " + instanceMemoryMB + ";");
+			
+			throw new RestErrorException(CloudifyErrorMessages.INSUFFICIENT_MEMORY.getName()
+					,"Cannot install service " + service.getName() + ". The requested meomry was " + instanceMemoryMB 
+						+ ", while the machine memory is " + machineTemplateMemory + " and the reserved is " + reservedMachineMemory);
 		}
 	}
 	
@@ -167,19 +170,20 @@ public final class IsolationUtils {
 	 * at least one instance. 
 	 * @param service
 	 * @param cloud
+	 * @throws RestErrorException 
 	 */
-	public static void validateInstanceMemory(final Application application, final Cloud cloud) {
+	public static void validateInstanceMemory(final Application application, final Cloud cloud) throws RestErrorException {
 		List<String> errorMessages = new ArrayList<String>();
 		for (Service service : application.getServices()) {
 			try {
 				validateInstanceMemory(service, cloud);
-			} catch (IllegalStateException e) {
+			} catch (RestErrorException e) {
 				errorMessages.add(e.getMessage());
 			}
 		}
 		if (!errorMessages.isEmpty()) {
-			throw new IllegalStateException("Cannot install application " + application.getName() + "-->"
-					+ StringUtils.join(errorMessages, ","));
+			throw new RestErrorException(CloudifyErrorMessages.INSUFFICIENT_MEMORY.getName(),
+					StringUtils.join(errorMessages, ","));
 		}
 	}
 }
