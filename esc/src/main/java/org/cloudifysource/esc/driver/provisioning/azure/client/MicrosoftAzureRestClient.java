@@ -652,8 +652,11 @@ public class MicrosoftAzureRestClient {
 				}
 			}
 
-			deleteDeployment(cloudServiceName, deploymentName,
+			// there maybe zombi OS disks.
+			if (cloudServiceExists(cloudServiceName)) {
+				deleteDeployment(cloudServiceName, deploymentName,
 					endTime);
+			}
 			
 			if (diskName != null) {
 				logger.fine("Deleting os disk : " + diskName
@@ -1066,6 +1069,11 @@ public class MicrosoftAzureRestClient {
 		return response;
 	}
 
+	private boolean cloudServiceExists(final String cloudServiceName) throws MicrosoftAzureException, TimeoutException {
+		HostedServices cloudServices = listHostedServices();
+		return (cloudServices.contains(cloudServiceName));
+	}
+	
 	private boolean affinityExists(final String affinityGroupName)
 			throws MicrosoftAzureException, TimeoutException {
 		AffinityGroups affinityGroups = listAffinityGroups();

@@ -37,6 +37,20 @@ public class HostedServices implements Iterable<HostedService> {
 		return hostedServices.iterator();
 	}
 
+	/**
+	 * 
+	 * @param storageServiceName .
+	 * @return .
+	 */
+	public boolean contains(final String cloudServiceName) {
+		
+		for (HostedService service : hostedServices) {
+			if (service.getServiceName().equals(cloudServiceName)) {
+				return true;
+			}
+		}
+		return false;
+	}
 	
 	
 }
