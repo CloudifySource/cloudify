@@ -93,8 +93,12 @@ public enum CloudifyErrorMessages {
 	/**
 	 * if a user specified instance memory that was to big in respect to machine memory specified in the template
 	 */
-	INSUFFICIENT_MEMORY("insufficient_memory", 4);
-
+	INSUFFICIENT_MEMORY("insufficient_memory", 4),
+	
+	/**
+	 * Indicates a failure happened while provisioning machines by the cloud driver
+	 */
+	CLOUD_API_ERROR("cloud_api_error", 1);
 	
 	private final int numberOfParameters;
 	private final String name;
