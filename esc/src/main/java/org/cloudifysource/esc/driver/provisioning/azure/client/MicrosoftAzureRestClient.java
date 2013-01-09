@@ -263,7 +263,7 @@ public class MicrosoftAzureRestClient {
 				.buildCreateStorageAccount(affinityGroup, storageAccountName);
 
 		if (storageExists(storageAccountName)) {
-			logger.fine("Found an existing storage account : "
+			logger.info("Using an already existing storage account : "
 					+ storageAccountName);
 			return;
 		}
@@ -307,7 +307,7 @@ public class MicrosoftAzureRestClient {
 		VirtualNetworkSites virtualNetworkSites = listVirtualNetworkSites();
 		if (virtualNetworkSites != null
 				&& virtualNetworkSites.contains(networkSiteName)) {
-			logger.fine("Found an existing virtual netowrk site : "
+			logger.info("Using an already existing virtual netowrk site : "
 					+ networkSiteName);
 			return;
 		} else {
@@ -316,7 +316,7 @@ public class MicrosoftAzureRestClient {
 			}
 		}
 
-		logger.fine("Creating virtual network site : " + networkSiteName);
+		logger.info("Creating virtual network site : " + networkSiteName);
 
 		VirtualNetworkSite newSite = new VirtualNetworkSite();
 		AddressSpace address = new AddressSpace();
@@ -355,11 +355,11 @@ public class MicrosoftAzureRestClient {
 				.buildCreateAffinity(affinityGroup, location);
 
 		if (affinityExists(affinityGroup)) {
-			logger.fine("Found an existing affinity group : " + affinityGroup);
+			logger.info("Using an already existing affinity group : " + affinityGroup);
 			return;
 		}
 
-		logger.fine("Creating affinity group : " + affinityGroup);
+		logger.info("Creating affinity group : " + affinityGroup);
 
 		String xmlRequest = MicrosoftAzureModelUtils.marshall(
 				createAffinityGroup, false);
@@ -434,7 +434,7 @@ public class MicrosoftAzureRestClient {
 							+ pendingRequest.hashCode());
 				pendingRequest.unlock();
 				if (e instanceof MicrosoftAzureException) {
-					throw new MicrosoftAzureException(e);
+					throw (MicrosoftAzureException)e;
 				}
 				if (e instanceof TimeoutException) {
 					throw new TimeoutException(e.getMessage());
@@ -602,7 +602,7 @@ public class MicrosoftAzureRestClient {
 	 * @throws TimeoutException .
 	 * @throws InterruptedException .
 	 */
-	public void deleteVirtualMachineByDeploymentIfExists(
+	public void deleteVirtualMachineByDeploymentNameIfExists(
 			final String cloudServiceName, final String deploymentName,
 			final long endTime) throws MicrosoftAzureException,
 			TimeoutException, InterruptedException {

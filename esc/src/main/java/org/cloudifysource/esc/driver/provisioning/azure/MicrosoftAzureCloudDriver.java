@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -236,7 +237,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			desc.setStorageAccountName(storageAccountName);
 			desc.setUserName(userName);
 
-			logger.info("Creating a virtual machine with details : " + desc);
+			logger.info("Launching a new virtual machine");
 
 			roleAddressDetails = azureClient.createVirtualMachineDeployment(
 					desc, endTime);
@@ -258,14 +259,14 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 
 			return machineDetails;
 		} catch (final Exception e) {
-			logger.severe("Failed creating virtual machine properly : " + e.getMessage());
+			logger.fine("Failed creating virtual machine properly : " + e.getMessage());
 
 			// this means a cloud service was created and a request for A VM was
 			// made.
 			if (desc.getHostedServiceName() != null) {
 				try {
 					// this will also delete the cloud service that was created.
-					azureClient.deleteVirtualMachineByDeploymentIfExists(
+					azureClient.deleteVirtualMachineByDeploymentNameIfExists(
 							desc.getHostedServiceName(),
 							desc.getDeploymentName(), endTime + DEFAULT_SHUTDOWN_DURATION);
 				} catch (final Exception e1) {
@@ -350,14 +351,19 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		}
 
 		// block until tasks have stopped execution
-		List<Exception> exceptionsOnManagementStart = new ArrayList<Exception>();
+		List<Throwable> exceptionsOnManagementStart = new ArrayList<Throwable>();
 
 		List<MachineDetails> managementMachinesDetails = new ArrayList<MachineDetails>();
 		for (Future<MachineDetails> future : results) {
 			try {
 				managementMachinesDetails.add(future.get());
 			} catch (final Exception e) {
-				exceptionsOnManagementStart.add(e);
+				if (e instanceof InterruptedException) {
+					exceptionsOnManagementStart.add(e);
+				} else {
+					ExecutionException executionException = (ExecutionException)e;
+					exceptionsOnManagementStart.add(ExceptionUtils.getRootCause(executionException));
+				}
 			}
 		}
 		if (exceptionsOnManagementStart.isEmpty()) {
@@ -365,14 +371,15 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 					.toArray(new MachineDetails[numberOfManagementMachines]);
 		} else {
 			if (logger.isLoggable(Level.FINEST)) {
-				logger.finest("here are all the exception caught from all threads");
-				for (Exception e : exceptionsOnManagementStart) {
-					logger.finest(ExceptionUtils.getFullStackTrace(e));
+				logger.finest("Here are all the exception caught from all threads");
+				for (Throwable t : exceptionsOnManagementStart) {
+					logger.finest(ExceptionUtils.getFullStackTrace(t));
 				}
 			}
+			
 			stopManagementMachines();
 			throw new CloudProvisioningException(
-					"Failed starting management machines",
+					exceptionsOnManagementStart.get(0).getMessage(),
 					exceptionsOnManagementStart.get(0));
 
 		}
