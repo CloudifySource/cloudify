@@ -517,6 +517,7 @@ public class MicrosoftAzureRestClient {
 	public boolean deleteStorageAccount(final String storageAccountName,
 			final long endTime) throws MicrosoftAzureException,
 			TimeoutException, InterruptedException {
+		logger.info("Deleleting storage account : " + storageAccountName);
 		ClientResponse response = doDelete("/services/storageservices/"
 				+ storageAccountName);
 		String requestId = extractRequestId(response);
@@ -539,6 +540,7 @@ public class MicrosoftAzureRestClient {
 	public boolean deleteAffinityGroup(final String affinityGroupName,
 			final long endTime) throws MicrosoftAzureException,
 			TimeoutException, InterruptedException {
+		logger.info("Deleting affinity group : " + affinityGroupName);
 		ClientResponse response = doDelete("/affinitygroups/"
 				+ affinityGroupName);
 		String requestId = extractRequestId(response);
@@ -1000,6 +1002,7 @@ public class MicrosoftAzureRestClient {
 			}
 		}
 		virtualNetworkSites.getVirtualNetworkSites().remove(index);
+		logger.info("Deleteing virtual network site : " + virtualNetworkSite);
 		setNetworkConfiguration(endTime, virtualNetworkSites);
 		return true;
 

@@ -427,10 +427,10 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			try {
 				deletedNetwork = azureClient.deleteVirtualNetworkSite(
 						networkName, endTime);
-				logger.fine("deleted virtual network site : " + networkName);
+				logger.fine("Deleted virtual network site : " + networkName);
 			} catch (final Exception e) {
 				first = e;
-				logger.warning("failed deleting virtual network site : "
+				logger.warning("Failed deleting virtual network site : "
 						+ networkName);
 				logger.warning(ExceptionUtils.getFullStackTrace(e));
 			}
@@ -438,7 +438,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 				deletedStorage = azureClient.deleteStorageAccount(
 						storageAccountName, endTime);
 			} catch (final Exception e) {
-				logger.warning("failed deleting storage account : "
+				logger.warning("Failed deleting storage account : "
 						+ storageAccountName);
 				logger.warning(ExceptionUtils.getFullStackTrace(e));
 			}
@@ -451,7 +451,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 					logger.warning(ExceptionUtils.getFullStackTrace(e));
 				}
 			} else {
-				logger.warning("not deleting affinity group since "
+				logger.warning("Not deleting affinity group since "
 						+ "failed deleting virtual network site and storage account.");
 			}
 			if (first != null) {
