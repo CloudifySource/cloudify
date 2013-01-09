@@ -16,10 +16,6 @@
 
 package org.cloudifysource.rest.util;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.Application;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.cloud.Cloud;
@@ -157,11 +153,9 @@ public final class IsolationUtils {
 		int machineTemplateMemory = cloud.getTemplates().get(serviceTemplate).getMachineMemoryMB();
 		int reservedMachineMemory = cloud.getProvider().getReservedMemoryCapacityPerMachineInMB();
 		long instanceMemoryMB = getInstanceMemoryMB(service);
-		if (instanceMemoryMB > (machineTemplateMemory - reservedMachineMemory)) {
-			
-			throw new RestErrorException(CloudifyErrorMessages.INSUFFICIENT_MEMORY.getName()
-					,"Cannot install service " + service.getName() + ". The requested meomry was " + instanceMemoryMB 
-						+ ", while the machine memory is " + machineTemplateMemory + " and the reserved is " + reservedMachineMemory);
+		if (instanceMemoryMB > (machineTemplateMemory - reservedMachineMemory)) {	
+			throw new RestErrorException(CloudifyErrorMessages.INSUFFICIENT_MEMORY.getName(),
+					service.getName(), instanceMemoryMB, machineTemplateMemory, reservedMachineMemory);
 		}
 	}
 	
@@ -173,17 +167,8 @@ public final class IsolationUtils {
 	 * @throws RestErrorException 
 	 */
 	public static void validateInstanceMemory(final Application application, final Cloud cloud) throws RestErrorException {
-		List<String> errorMessages = new ArrayList<String>();
 		for (Service service : application.getServices()) {
-			try {
-				validateInstanceMemory(service, cloud);
-			} catch (RestErrorException e) {
-				errorMessages.add(e.getMessage());
-			}
-		}
-		if (!errorMessages.isEmpty()) {
-			throw new RestErrorException(CloudifyErrorMessages.INSUFFICIENT_MEMORY.getName(),
-					StringUtils.join(errorMessages, ","));
+			validateInstanceMemory(service, cloud);
 		}
 	}
 }

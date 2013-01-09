@@ -93,7 +93,7 @@ public enum CloudifyErrorMessages {
 	/**
 	 * if a user specified instance memory that was to big in respect to machine memory specified in the template
 	 */
-	INSUFFICIENT_MEMORY("insufficient_memory", 1);
+	INSUFFICIENT_MEMORY("insufficient_memory", 4);
 
 	
 	private final int numberOfParameters;
