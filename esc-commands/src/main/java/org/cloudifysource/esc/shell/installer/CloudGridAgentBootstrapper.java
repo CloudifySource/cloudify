@@ -38,6 +38,7 @@ import java.util.logging.Logger;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
@@ -55,6 +56,7 @@ import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.CLIException;
+import org.cloudifysource.shell.commands.CLIStatusException;
 import org.openspaces.admin.gsa.GSAReservationId;
 import org.openspaces.admin.zone.config.ExactZonesConfig;
 import org.openspaces.admin.zone.config.ExactZonesConfigurer;
@@ -184,9 +186,8 @@ public class CloudGridAgentBootstrapper {
 			servers = provisioning
 					.startManagementMachines(timeout, timeoutUnit);
 		} catch (final CloudProvisioningException e) {
-			throw new InstallerException(
-					"Failed to start management servers. Reason: "
-							+ e.getMessage(), e);
+			CLIStatusException cliStatusException = new CLIStatusException(e, CloudifyErrorMessages.CLOUD_API_ERROR.getName(), e.getMessage());
+			throw cliStatusException;
 		} catch (final TimeoutException e) {
 			throw new CLIException("Cloudify bootstrap on provider "
 					+ this.cloud.getProvider().getProvider() + " timed-out. "
