@@ -612,6 +612,9 @@ public class MicrosoftAzureRestClient {
 			deleteVirtualMachineByDeploymentName(cloudServiceName,
 					deploymentName, endTime);
 		}
+		// we have a zombie cloud service, delete it.
+		deleteCloudService(cloudServiceName, endTime);
+		
 	}
 
 	/**
