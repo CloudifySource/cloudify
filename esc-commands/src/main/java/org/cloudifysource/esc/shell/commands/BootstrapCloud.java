@@ -48,6 +48,8 @@ import org.cloudifysource.shell.KeystoreFileVerifier;
 import org.cloudifysource.shell.commands.AbstractGSCommand;
 import org.cloudifysource.shell.commands.CLIStatusException;
 
+import com.j_spaces.kernel.Environment;
+
 
 @Command(
 		scope = "cloudify",
@@ -108,7 +110,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 	private boolean securityFileCopied = false;
 	private boolean keystoreFileCopied = false;
 	
-	private static final String CLOUDIFY_HOME = System.getenv("JSHOMEDIR");
+	private static final String CLOUDIFY_HOME = Environment.getHomeDirectory();
 	private static final String DEFAULT_SECURITY_FILE_PATH = CLOUDIFY_HOME + "/config/security/spring-security.xml";
 	private static final String[] NON_VERBOSE_LOGGERS = { DefaultProvisioningDriver.class.getName(), 
 		AgentlessInstaller.class.getName() };
