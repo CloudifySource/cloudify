@@ -27,6 +27,7 @@ import javax.xml.xpath.XPathFactory;
 
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.driver.provisioning.CloudDriverSupport;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
@@ -85,7 +86,10 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 		dbf.setNamespaceAware(false);
 
 		final ClientConfig config = new DefaultClientConfig();
-		this.client = Client.create(config);
+		Client httpClient = Client.create(config);
+		httpClient.setConnectTimeout(CloudifyConstants.DEFAULT_HTTP_CONNECTION_TIMEOUT);
+		httpClient.setReadTimeout(CloudifyConstants.DEFAULT_HTTP_READ_TIMEOUT);
+		this.client = httpClient;
 
 	}
 

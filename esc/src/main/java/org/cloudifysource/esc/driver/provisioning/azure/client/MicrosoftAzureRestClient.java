@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 import javax.net.ssl.SSLContext;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.driver.provisioning.azure.model.AddressSpace;
 import org.cloudifysource.esc.driver.provisioning.azure.model.AffinityGroups;
 import org.cloudifysource.esc.driver.provisioning.azure.model.AttachedTo;
@@ -189,7 +190,10 @@ public class MicrosoftAzureRestClient {
 		ClientConfig config = new DefaultClientConfig();
 		config.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES,
 				new HTTPSProperties(null, context));
-		return Client.create(config);
+		Client httpClient = Client.create(config);
+		httpClient.setConnectTimeout(CloudifyConstants.DEFAULT_HTTP_CONNECTION_TIMEOUT);
+		httpClient.setReadTimeout(CloudifyConstants.DEFAULT_HTTP_READ_TIMEOUT);
+		return httpClient;
 	}
 
 	/**

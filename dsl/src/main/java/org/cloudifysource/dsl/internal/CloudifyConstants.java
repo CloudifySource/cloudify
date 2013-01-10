@@ -326,6 +326,12 @@ public final class CloudifyConstants {
 	public static final String WEBUI_MAX_MEMORY_ENVIRONMENT_VAR = "WEBUI_MAX_MEMORY_ENVIRONMENT_VAR";
 	public static final String REST_MAX_MEMORY_ENVIRONMENT_VAR = "REST_MAX_MEMORY_ENVIRONMENT_VAR";
 	
+	/**
+	 * Http timeouts
+	 */
+	public static final int DEFAULT_HTTP_CONNECTION_TIMEOUT = 60 * 1000; // one minute
+	public static final int DEFAULT_HTTP_READ_TIMEOUT = 60 * 1000 * 2; // two minutes per request
+	
 	// CHECKSTYLE:ON
 }
 
