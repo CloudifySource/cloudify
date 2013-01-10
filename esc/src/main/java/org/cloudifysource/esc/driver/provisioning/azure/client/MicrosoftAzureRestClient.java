@@ -268,7 +268,7 @@ public class MicrosoftAzureRestClient {
 			return;
 		}
 
-		logger.fine("Creating a storage account : " + storageAccountName);
+		logger.info("Creating a storage account : " + storageAccountName);
 
 		String xmlRequest = MicrosoftAzureModelUtils.marshall(
 				createStorageServiceInput, false);
