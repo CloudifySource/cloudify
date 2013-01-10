@@ -106,7 +106,7 @@ public class LocalhostGridAgentBootstrapper {
 	private static final int ESM_MEMORY_IN_MB = 128;
 	private static final int REST_MEMORY_IN_MB = 128; // we don't have wars that
 														// big
-	private static final int WEBUI_MEMORY_IN_MB = 512;
+	private static final int WEBUI_MEMORY_IN_MB = 256;
 	private static final int MANAGEMENT_SPACE_MEMORY_IN_MB = 64;
 	private static final String REST_FILE = "tools" + File.separator + "rest" + File.separator + "rest.war";
 	private static final String REST_NAME = "rest";
