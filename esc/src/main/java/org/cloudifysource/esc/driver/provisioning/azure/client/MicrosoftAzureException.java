@@ -31,7 +31,7 @@ public class MicrosoftAzureException extends Exception {
 	private static final long serialVersionUID = 1L;
 	
 	public MicrosoftAzureException(final String status, final String message) {
-		super(message);
+		super(status + " : " + message);
 		this.status = status;
 	}
 	

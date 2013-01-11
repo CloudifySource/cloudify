@@ -1102,7 +1102,8 @@ public class MicrosoftAzureRestClient {
 			Error error = (Error) MicrosoftAzureModelUtils.unmarshall(response
 					.getEntity(String.class));
 			String errorMessage = error.getMessage();
-			throw new MicrosoftAzureException(String.valueOf(status),
+			String errorCode = error.getCode();
+			throw new MicrosoftAzureException(errorCode,
 					errorMessage);
 		}
 	}
@@ -1206,8 +1207,8 @@ public class MicrosoftAzureRestClient {
 				}
 				if (status.equals(FAILED)) {
 					String errorMessage = operation.getError().getMessage();
-					String errorStatus = operation.getStatus();
-					throw new MicrosoftAzureException(errorStatus, errorMessage);
+					String errorCode = operation.getError().getCode();
+					throw new MicrosoftAzureException(errorCode, errorMessage);
 				}
 			} else {
 				Thread.sleep(DEFAULT_POLLING_INTERVAL);
