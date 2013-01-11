@@ -526,6 +526,7 @@ public class MicrosoftAzureRestClient {
 				+ storageAccountName);
 		String requestId = extractRequestId(response);
 		waitForRequestToFinish(requestId, endTime);
+		logger.info("Deleleted storage account : " + storageAccountName);
 		return true;
 
 	}
@@ -1010,6 +1011,7 @@ public class MicrosoftAzureRestClient {
 		virtualNetworkSites.getVirtualNetworkSites().remove(index);
 		logger.info("Deleteing virtual network site : " + virtualNetworkSite);
 		setNetworkConfiguration(endTime, virtualNetworkSites);
+		logger.info("Deleted virtual network site : " + virtualNetworkSite);
 		return true;
 
 	}

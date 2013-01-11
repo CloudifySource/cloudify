@@ -362,7 +362,12 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 					exceptionsOnManagementStart.add(e);
 				} else {
 					ExecutionException executionException = (ExecutionException)e;
-					exceptionsOnManagementStart.add(ExceptionUtils.getRootCause(executionException));
+					Throwable rootCause = ExceptionUtils.getRootCause(executionException);
+					// print exception messages to the cli as they happen.
+					// otherwise they are only shown in a log file.
+					// this serves as a better user experience (users may not be aware of the file).
+					logger.warning(rootCause.getMessage());
+					exceptionsOnManagementStart.add(rootCause);
 				}
 			}
 		}
@@ -377,7 +382,15 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 				}
 			}
 			
-			stopManagementMachines();
+			try {
+				logger.warning("Failed to start management machines. cleaning up any services that might have already been started.");
+				stopManagementMachines();
+			} catch (CloudProvisioningException e) {
+				// catch any exceptions here.
+				// otherwise they will end up as the exception thrown to the CLI./
+				// thats not what we want in this case since we want the exception that failed the bootstrap command.
+				logger.warning("Failed to cleanup cloud services. Please shut them down manually or use the teardown-cloud command.");
+			}
 			throw new CloudProvisioningException(
 					exceptionsOnManagementStart.get(0).getMessage(),
 					exceptionsOnManagementStart.get(0));
@@ -412,11 +425,18 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			CloudProvisioningException {
 
 		long endTime = System.currentTimeMillis() + DEFAULT_SHUTDOWN_DURATION;
-
+		boolean success = false;
+		
 		ExecutorService service = Executors.newCachedThreadPool();
 		try {
 			stopManagementMachines(endTime, service);
+			success = true;
 		} finally {
+			if (!success) {
+				if (cleanup) {
+					logger.warning("Failed to shutdown management machine. no cleanup attempt will be made.");
+				}
+			}
 			service.shutdown();
 		}
 
@@ -427,32 +447,34 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			try {
 				deletedNetwork = azureClient.deleteVirtualNetworkSite(
 						networkName, endTime);
-				logger.fine("Deleted virtual network site : " + networkName);
 			} catch (final Exception e) {
 				first = e;
-				logger.warning("Failed deleting virtual network site : "
-						+ networkName);
-				logger.warning(ExceptionUtils.getFullStackTrace(e));
+				logger.warning("Failed deleting virtual network site " + networkName + " : " + e.getMessage());
+				logger.fine(ExceptionUtils.getFullStackTrace(e));
 			}
 			try {
 				deletedStorage = azureClient.deleteStorageAccount(
 						storageAccountName, endTime);
 			} catch (final Exception e) {
-				logger.warning("Failed deleting storage account : "
-						+ storageAccountName);
+				if (first == null) {
+					first = e;
+				}
+				logger.warning("Failed deleting storage account " +  storageAccountName + " : " + e.getMessage());
 				logger.warning(ExceptionUtils.getFullStackTrace(e));
 			}
 			if (deletedNetwork && deletedStorage) {
 				try {
 					azureClient.deleteAffinityGroup(affinityGroup, endTime);
 				} catch (final Exception e) {
-					logger.warning("failed deleting affinity group : "
-							+ affinityGroup);
-					logger.warning(ExceptionUtils.getFullStackTrace(e));
+					if (first == null) {
+						first = e;
+					}
+					logger.warning("Failed deleting affinity group " +  affinityGroup + " : " + e.getMessage());
+					logger.fine(ExceptionUtils.getFullStackTrace(e));
 				}
 			} else {
-				logger.warning("Not deleting affinity group since "
-						+ "failed deleting virtual network site and storage account.");
+				logger.info("Not deleting affinity group since " +
+						"either storage account or network site were not deleted.");
 			}
 			if (first != null) {
 				throw new CloudProvisioningException(first);
@@ -496,23 +518,32 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		}
 
 		// block until all tasks stop execution
-		List<Exception> exceptionOnStopMachines = new ArrayList<Exception>();
+		List<Throwable> exceptionOnStopMachines = new ArrayList<Throwable>();
 		for (Future<?> future : futures) {
 			try {
 				future.get();
 			} catch (final Exception e) {
-				exceptionOnStopMachines.add(e);
+				if (e instanceof InterruptedException) {
+					exceptionOnStopMachines.add(e);
+				} else {
+					ExecutionException executionException = (ExecutionException)e;
+					Throwable rootCause = ExceptionUtils.getRootCause(executionException);
+					// print exception messages to the cli as they happen.
+					// otherwise they are only shown in a log file.
+					// this serves as a better user experience (users may not be aware of the file).
+					logger.warning(rootCause.getMessage());
+					exceptionOnStopMachines.add(rootCause);
+				}
 			}
 		}
 		if (!(exceptionOnStopMachines.isEmpty())) {
 			if (logger.isLoggable(Level.FINEST)) {
-				logger.finest("here are all the exception caught from all threads");
-				for (Exception e : exceptionOnStopMachines) {
+				for (Throwable e : exceptionOnStopMachines) {
 					logger.finest(ExceptionUtils.getFullStackTrace(e));
 				}
 			}
 			throw new CloudProvisioningException(
-					"Failed terminating management machines",
+					exceptionOnStopMachines.get(0).getMessage(),
 					exceptionOnStopMachines.get(0));
 		}
 
