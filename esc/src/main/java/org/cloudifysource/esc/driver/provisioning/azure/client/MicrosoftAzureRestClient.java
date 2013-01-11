@@ -591,6 +591,7 @@ public class MicrosoftAzureRestClient {
 			InterruptedException {
 
 		Deployment deployment = getDeploymentByIp(machineIp, isPrivateIp);
+		logger.fine("Deployment name for VM with ip " + machineIp + " is " + deployment.getName());
 		deleteVirtualMachineByDeploymentName(deployment.getHostedServiceName(),
 				deployment.getName(), endTime);
 
@@ -660,6 +661,7 @@ public class MicrosoftAzureRestClient {
 
 			// there maybe zombi OS disks.
 			if (cloudServiceExists(cloudServiceName)) {
+				logger.fine("Deleting deployment " + deploymentName + " from cloud service " + cloudServiceName);
 				deleteDeployment(cloudServiceName, deploymentName,
 					endTime);
 			}
