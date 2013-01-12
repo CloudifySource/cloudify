@@ -73,7 +73,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	private String affinityGroup;
 	private String storageAccountName;
 
-	private static final long DEFAULT_SHUTDOWN_DURATION = 15 * 60 * 1000; // 15
+	private static final long DEFAULT_SHUTDOWN_DURATION = 15 * 60 * 1000; // 15 minutes
 	// minutes
 
 	// Arguments per template
@@ -93,6 +93,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 
 	private static final Logger logger = Logger
 			.getLogger(MicrosoftAzureCloudDriver.class.getName());
+	private static final long CLEANUP_TIMEOUT = 60 * 1000 * 5; // five minutes
 
 	private static MicrosoftAzureRestClient azureClient;
 
@@ -300,18 +301,53 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 
 		try {
 			azureClient.createAffinityGroup(affinityGroup, location, endTime);
-
-			azureClient.createVirtualNetworkSite(addressSpace, affinityGroup,
-					networkName, endTime);
-
-			azureClient.createStorageAccount(affinityGroup, storageAccountName,
-					endTime);
-
-		} catch (final MicrosoftAzureException e) {
-			throw new CloudProvisioningException(e);
-		} catch (InterruptedException e) {
+		} catch (final Exception e) {
+			// this is the first service. nothing to revert.
 			throw new CloudProvisioningException(e);
 		}
+
+		long cleanupDeadline = System.currentTimeMillis() + CLEANUP_TIMEOUT;
+		try {
+			azureClient.createVirtualNetworkSite(addressSpace, affinityGroup,
+					networkName, endTime);
+		} catch (final Exception e) {
+			// delete the affinity group created
+			logger.info("Failed creating virtual network site " + networkName + " : " + e.getMessage());
+			try {
+				azureClient.deleteAffinityGroup(affinityGroup, cleanupDeadline);
+			} catch (final Exception e1) {
+				// log this exception but throw the original one.
+				logger.warning("Failed deleting affinity group " +  affinityGroup + " : " + e.getMessage());
+				logger.fine(ExceptionUtils.getFullStackTrace(e));
+				throw new CloudProvisioningException(e);
+			}
+		}
+
+		try {
+			azureClient.createStorageAccount(affinityGroup, storageAccountName,
+					endTime);
+		} catch (final Exception e) {
+			// delete the network site and affinity group
+			logger.info("Failed creating storage account " + storageAccountName + " : " + e.getMessage());
+			try {
+				azureClient.deleteVirtualNetworkSite(networkName, cleanupDeadline);
+			} catch (final Exception e2) {
+				// log this exception but throw the original one.
+				logger.warning("Failed deleting virtual network " +  networkName + " : " + e.getMessage());
+				logger.fine(ExceptionUtils.getFullStackTrace(e));
+				throw new CloudProvisioningException(e);
+			}
+			try {
+				azureClient.deleteAffinityGroup(affinityGroup, cleanupDeadline); 
+			} catch (final Exception e3) {
+				// log this exception but throw the original one.
+				logger.warning("Failed deleting affinity group " +  affinityGroup + " : " + e.getMessage());
+				logger.fine(ExceptionUtils.getFullStackTrace(e));
+				throw new CloudProvisioningException(e);
+			}
+			
+		}
+		
 
 		int numberOfManagementMachines = this.cloud.getProvider()
 				.getNumberOfManagementMachines();
