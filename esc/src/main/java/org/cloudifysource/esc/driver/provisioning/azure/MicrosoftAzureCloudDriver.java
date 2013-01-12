@@ -311,41 +311,42 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			azureClient.createVirtualNetworkSite(addressSpace, affinityGroup,
 					networkName, endTime);
 		} catch (final Exception e) {
-			// delete the affinity group created
 			logger.info("Failed creating virtual network site " + networkName + " : " + e.getMessage());
-			try {
-				azureClient.deleteAffinityGroup(affinityGroup, cleanupDeadline);
-			} catch (final Exception e1) {
-				// log this exception but throw the original one.
-				logger.warning("Failed deleting affinity group " +  affinityGroup + " : " + e.getMessage());
-				logger.fine(ExceptionUtils.getFullStackTrace(e));
-				throw new CloudProvisioningException(e);
+			if (!(e instanceof TimeoutException)) {
+				try {
+					// delete the affinity group created
+					azureClient.deleteAffinityGroup(affinityGroup, cleanupDeadline);
+				} catch (final Exception e1) {
+					logger.warning("Failed deleting affinity group " +  affinityGroup + " : " + e1.getMessage());
+					logger.fine(ExceptionUtils.getFullStackTrace(e1));
+				}
 			}
+			throw new CloudProvisioningException(e);
 		}
 
 		try {
 			azureClient.createStorageAccount(affinityGroup, storageAccountName,
 					endTime);
 		} catch (final Exception e) {
-			// delete the network site and affinity group
 			logger.info("Failed creating storage account " + storageAccountName + " : " + e.getMessage());
-			try {
-				azureClient.deleteVirtualNetworkSite(networkName, cleanupDeadline);
-			} catch (final Exception e2) {
-				// log this exception but throw the original one.
-				logger.warning("Failed deleting virtual network " +  networkName + " : " + e.getMessage());
-				logger.fine(ExceptionUtils.getFullStackTrace(e));
-				throw new CloudProvisioningException(e);
+			if (!(e instanceof TimeoutException)) {
+				try {
+					// delete the network site and affinity group
+					azureClient.deleteVirtualNetworkSite(networkName, cleanupDeadline);
+				} catch (final Exception e2) {
+					// log this exception but throw the original one.
+					logger.warning("Failed deleting virtual network " +  networkName + " : " + e2.getMessage());
+					logger.fine(ExceptionUtils.getFullStackTrace(e2));
+					throw new CloudProvisioningException(e);
+				}
+				try {
+					azureClient.deleteAffinityGroup(affinityGroup, cleanupDeadline); 
+				} catch (final Exception e3) {
+					logger.warning("Failed deleting affinity group " +  affinityGroup + " : " + e3.getMessage());
+					logger.fine(ExceptionUtils.getFullStackTrace(e3));
+					throw new CloudProvisioningException(e);
+				}
 			}
-			try {
-				azureClient.deleteAffinityGroup(affinityGroup, cleanupDeadline); 
-			} catch (final Exception e3) {
-				// log this exception but throw the original one.
-				logger.warning("Failed deleting affinity group " +  affinityGroup + " : " + e.getMessage());
-				logger.fine(ExceptionUtils.getFullStackTrace(e));
-				throw new CloudProvisioningException(e);
-			}
-			
 		}
 		
 
