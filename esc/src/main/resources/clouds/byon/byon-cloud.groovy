@@ -73,7 +73,7 @@ cloud {
 				// Mandatory. Template Name.
 				SMALL_LINUX : template{
 				// Mandatory. Amount of RAM available to machine.
-				machineMemoryMB 6000
+				machineMemoryMB 5850
 				// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
 				remoteDirectory "/tmp/gs-files"
 				// Optional. template-generic credentials. Can be overridden by specific credentials on each node, in the nodesList section.
