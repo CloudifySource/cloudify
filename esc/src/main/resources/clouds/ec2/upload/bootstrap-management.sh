@@ -147,12 +147,6 @@ sed -i "1i export LOOKUPLOCATORS=$LUS_IP_ADDRESS" setenv.sh || error_exit $? "Fa
 sed -i "1i export PATH=$JAVA_HOME/bin:$PATH" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "1i export JAVA_HOME=$JAVA_HOME" setenv.sh || error_exit $? "Failed updating setenv.sh"
 
-# security config properties
-
-sed -i "1i export SPRING_PROFILES_ACTIVE=$SPRING_PROFILES_ACTIVE" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export SPRING_SECURITY_CONFIG_FILE=$SPRING_SECURITY_CONFIG_FILE" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export KEYSTORE_FILE=$KEYSTORE_FILE" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export KEYSTORE_KEY=$KEYSTORE_KEY" setenv.sh || error_exit $? "Failed updating setenv.sh"
 
 # START AGENT ALONE OR WITH MANAGEMENT
 if [ -f nohup.out ]; then

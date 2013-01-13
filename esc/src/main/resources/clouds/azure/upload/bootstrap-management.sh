@@ -43,6 +43,25 @@ function error_exit_on_level {
 	fi
 }
 
+echo Checking script path
+SCRIPT=`readlink -f $0`
+SCRIPTPATH=`dirname $SCRIPT`
+echo script path is $SCRIPTPATH
+
+
+if [ -f ${SCRIPTPATH}/cloudify_env.sh ]; then
+	ENV_FILE_PATH=${SCRIPTPATH}/cloudify_env.sh
+else
+	if [ -f ${SCRIPTPATH}/../cloudify_env.sh ]; then
+		ENV_FILE_PATH=${SCRIPTPATH}/../cloudify_env.sh
+	else
+		echo Cloudify environment file not found! Bootstrapping cannot proceed!
+		exit 105
+	fi
+
+fi
+
+source ${ENV_FILE_PATH}
 
 JAVA_32_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-i586.bin"
 JAVA_64_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-x64.bin"
@@ -132,19 +151,11 @@ fi
 echo Updating environment script
 cd ~/gigaspaces/bin || error_exit $? "Failed changing directory to bin directory"
 
+sed -i "1i source  ${ENV_FILE_PATH}" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "1i export NIC_ADDR=$MACHINE_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "1i export LOOKUPLOCATORS=$LUS_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export GIGASPACES_CLOUD_IMAGE_ID=$GIGASPACES_CLOUD_IMAGE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export GIGASPACES_CLOUD_HARDWARE_ID=$GIGASPACES_CLOUD_HARDWARE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "1i export PATH=$JAVA_HOME/bin:$PATH" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "1i export JAVA_HOME=$JAVA_HOME" setenv.sh || error_exit $? "Failed updating setenv.sh"
-
-# security config properties
-
-sed -i "1i export SPRING_PROFILES_ACTIVE=$SPRING_PROFILES_ACTIVE" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export SPRING_SECURITY_CONFIG_FILE=$SPRING_SECURITY_CONFIG_FILE" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export KEYSTORE_FILE=$KEYSTORE_FILE" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export KEYSTORE_KEY=$KEYSTORE_KEY" setenv.sh || error_exit $? "Failed updating setenv.sh"
 
 # Privileged mode handling
 if [ "$GIGASPACES_AGENT_ENV_PRIVILEGED" = "true" ]; then
