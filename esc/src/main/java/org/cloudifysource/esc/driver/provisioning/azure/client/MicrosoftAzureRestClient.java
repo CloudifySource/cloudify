@@ -647,51 +647,37 @@ public class MicrosoftAzureRestClient {
 			final String cloudServiceName, final String deploymentName,
 			final long endTime) throws TimeoutException,
 			MicrosoftAzureException, InterruptedException {
-		
+
 		String diskName = null;
 		String roleName = null;
 
-		try {
 
-			Disks disks = listOSDisks();
-			for (Disk disk : disks) {
-				AttachedTo attachedTo = disk.getAttachedTo();
-				if (attachedTo != null) {
-					if (cloudServiceName.equals(attachedTo
-							.getHostedServiceName())) {
-						diskName = disk.getName();
-						roleName = attachedTo.getRoleName();
-						break;
-					}
+		Disks disks = listOSDisks();
+		for (Disk disk : disks) {
+			AttachedTo attachedTo = disk.getAttachedTo();
+			if (attachedTo != null) {
+				if (cloudServiceName.equals(attachedTo
+						.getHostedServiceName())) {
+					diskName = disk.getName();
+					roleName = attachedTo.getRoleName();
+					break;
 				}
 			}
+		}
 
-			// there maybe zombi OS disks.
-			if (cloudServiceExists(cloudServiceName)) {
-				logger.fine("Deleting deployment " + deploymentName + " from cloud service " + cloudServiceName);
-				deleteDeployment(cloudServiceName, deploymentName,
+		// there maybe zombi OS disks.
+		if (cloudServiceExists(cloudServiceName)) {
+			logger.info("Deleting Virtual Machine " + deploymentName);
+			deleteDeployment(cloudServiceName, deploymentName,
 					endTime);
-				logger.fine("Deleteing cloud service : " + cloudServiceName
-						+ " that was dedicated for virtual machine " + roleName);				
-				deleteCloudService(cloudServiceName, endTime);
-			}
-			
-			if (diskName != null) {
-				logger.fine("Deleting OS Disk : " + diskName
-						+ " that belonged to the virtual machine " + roleName);
-				deleteOSDisk(diskName, endTime);
-			}
-			
+			logger.fine("Deleteing cloud service : " + cloudServiceName
+					+ " that was dedicated for virtual machine " + roleName);				
+			deleteCloudService(cloudServiceName, endTime);
+		}
 
-		} catch (final MicrosoftAzureException e) { 
-			logger.severe(ExceptionUtils.getFullStackTrace(e));
-			throw e;
-		} catch (final TimeoutException e) {
-			logger.severe(ExceptionUtils.getFullStackTrace(e));
-			throw e;
-		} catch (final InterruptedException e) {
-			logger.severe(ExceptionUtils.getFullStackTrace(e));
-			throw e;
+		if (diskName != null) {
+			logger.info("Deleting OS Disk : " + diskName);
+			deleteOSDisk(diskName, endTime);
 		}
 	}	
 
