@@ -140,34 +140,21 @@ Write-Host Updating environment script
 insert-line $cloudifyDir\bin\setenv.bat "set NIC_ADDR=$ENV:MACHINE_IP_ADDRESS"
 insert-line $cloudifyDir\bin\setenv.bat "set LOOKUPLOCATORS=$ENV:LUS_IP_ADDRESS"
 insert-line $cloudifyDir\bin\setenv.bat "set JAVA_HOME=$javaDir"
-insert-line $cloudifyDir\bin\setenv.bat "set GIGASPACES_AGENT_ENV_PRIVATE_IP=$ENV:GIGASPACES_AGENT_ENV_PRIVATE_IP"
-insert-line $cloudifyDir\bin\setenv.bat "set GIGASPACES_AGENT_ENV_PUBLIC_IP=$ENV:GIGASPACES_AGENT_ENV_PUBLIC_IP"
-insert-line $cloudifyDir\bin\setenv.bat "set GIGASPACES_CLOUD_IMAGE_ID=$ENV:GIGASPACES_CLOUD_IMAGE_ID"
-insert-line $cloudifyDir\bin\setenv.bat "set GIGASPACES_CLOUD_HARDWARE_ID=$ENV:GIGASPACES_CLOUD_HARDWARE_ID"
-insert-line $cloudifyDir\bin\setenv.bat "set GIGASPACES_AGENT_ENV_PRIVILEGED=$ENV:GIGASPACES_AGENT_ENV_PRIVILEGED"
-insert-line $cloudifyDir\bin\setenv.bat "set GIGASPACES_CLOUD_TEMPLATE_NAME=$ENV:GIGASPACES_CLOUD_TEMPLATE_NAME"
 
-insert-line $cloudifyDir\bin\setenv.bat "set CLOUDIFY_AGENT_ENV_PUBLIC_IP=$ENV:CLOUDIFY_AGENT_ENV_PUBLIC_IP"
-insert-line $cloudifyDir\bin\setenv.bat "set CLOUDIFY_AGENT_ENV_PRIVATE_IP=$ENV:CLOUDIFY_AGENT_ENV_PRIVATE_IP"
-insert-line $cloudifyDir\bin\setenv.bat "set CLOUDIFY_CLOUD_IMAGE_ID=$ENV:CLOUDIFY_CLOUD_IMAGE_ID"
-insert-line $cloudifyDir\bin\setenv.bat "set CLOUDIFY_CLOUD_HARDWARE_ID=$ENV:CLOUDIFY_CLOUD_HARDWARE_ID"
-insert-line $cloudifyDir\bin\setenv.bat "set GSA_RESERVATION_ID=$ENV:GSA_RESERVATION_ID"
+$scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
+if(Test-Path $scriptPath\cloudify_env.bat) {
+insert-line $cloudifyDir\bin\setenv.bat "call $scriptPath\cloudify_env.bat"
+} else {
+	if(Test-Path $scriptPath\..\cloudify_env.bat) {
+		insert-line $cloudifyDir\bin\setenv.bat "call $scriptPath\..\cloudify_env.bat"
+	} else {
+		Write-Host Could not find Environment file! Bootstrapping cannot continue
+			exit(105)
+	}
 
-insert-line $cloudifyDir\bin\setenv.bat "set SPRING_PROFILES_ACTIVE=$ENV:SPRING_PROFILES_ACTIVE"
-insert-line $cloudifyDir\bin\setenv.bat "set SPRING_SECURITY_CONFIG_FILE=$ENV:SPRING_SECURITY_CONFIG_FILE"
-insert-line $cloudifyDir\bin\setenv.bat "set KEYSTORE_FILE=$ENV:KEYSTORE_FILE"
-insert-line $cloudifyDir\bin\setenv.bat "set KEYSTORE_KEY=$ENV:KEYSTORE_KEY"
 
-insert-line $cloudifyDir\bin\setenv.bat "set GSA_JAVA_OPTIONS=$ENV:GSA_JAVA_OPTIONS"
-insert-line $cloudifyDir\bin\setenv.bat "set LUS_JAVA_OPTIONS=$ENV:LUS_JAVA_OPTIONS"
-insert-line $cloudifyDir\bin\setenv.bat "set GSM_JAVA_OPTIONS=$ENV:GSM_JAVA_OPTIONS"
-insert-line $cloudifyDir\bin\setenv.bat "set ESM_JAVA_OPTIONS=$ENV:ESM_JAVA_OPTIONS"
-insert-line $cloudifyDir\bin\setenv.bat "set GSC_JAVA_OPTIONS=$ENV:GSC_JAVA_OPTIONS"
+}
 
-insert-line $cloudifyDir\bin\setenv.bat "set REST_PORT_ENV_VAR=$ENV:REST_PORT_ENV_VAR"
-insert-line $cloudifyDir\bin\setenv.bat "set WEBUI_PORT_ENV_VAR=$ENV:WEBUI_PORT_ENV_VAR"
-insert-line $cloudifyDir\bin\setenv.bat "set WEBUI_MAX_MEMORY_ENVIRONMENT_VAR=$ENV:WEBUI_MAX_MEMORY_ENVIRONMENT_VAR"
-insert-line $cloudifyDir\bin\setenv.bat "set REST_MAX_MEMORY_ENVIRONMENT_VAR=$ENV:REST_MAX_MEMORY_ENVIRONMENT_VAR"
 
 
 Write-Host "Disabling local firewall"
@@ -213,6 +200,8 @@ Write-Host "Cloudify Command is $cloudifyCommand"
 # here we create the batch file that the task runs
 Set-Content -Encoding ASCII -Force -Value $cloudifyCommand run.bat
 
+Write-Host deleting cloudify task 
+schtasks.exe /delete /TN cloudify-task /f 2>&1 | out-null
 Write-Host scheduling cloudify task 
 schtasks.exe /create /TN cloudify-task /SC ONSTART /TR $ENV:WORKING_HOME_DIRECTORY\run.bat /RU "$ENV:USERNAME" /RP "$ENV:PASSWORD"
 Write-Host running cloudify task

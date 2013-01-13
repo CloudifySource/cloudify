@@ -30,5 +30,17 @@ rem output of this command is piped to null to prevent error messages generated 
 rem the remote powershell session. Powershell considers any writes to syserr as an error indication.
 powershell Set-ExecutionPolicy Unrestricted > NUL 2> NUL
 
-rem calling the powershell script that will actually perform the bootstrap
-powershell %~dp0\bootstrap-management.ps1 
+echo Loading Cloudify environment file
+if exist %~dp0\cloudify_env.bat (
+    call %~dp0\cloudify_env.bat
+) else (
+	if exist %~dp0\..\cloudify_env.bat (
+		call %~dp0\..\cloudify_env.bat
+	) else (
+		echo Misssing Cloudify environment file! Cannot proceed with bootstrapping!
+		exit /B 105
+	)
+)
+
+powershell %WORKING_HOME_DIRECTORY%\bootstrap-management.ps1 
+
