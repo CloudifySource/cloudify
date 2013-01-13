@@ -98,7 +98,7 @@ public enum CloudifyErrorMessages {
 	/******
 	 * The service name contains invalid chars
 	 */
-	SERVICE_NAME_INVALID_CHARS("service_name_invalid_chars", 1);
+	SERVICE_NAME_INVALID_CHARS("service_name_invalid_chars", 1),
 
 	
 	/**
