@@ -494,7 +494,7 @@ public final class ShellUtils {
 	
 	/**
 	 * Returns the port used for communication with the rest server.
-	 * @param isSecureConnection Indicates whether SSL is used or not.
+	 * @param springSecurityProfile The name of the security profile
 	 * @return the correct port used by the rest service.
 	 */
 	public static int getRestPort(final String springSecurityProfile) {
