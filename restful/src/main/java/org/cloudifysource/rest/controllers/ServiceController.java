@@ -4316,7 +4316,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             If cloud is a local cloud.
 	 */
 	@RequestMapping(value = "templates", method = RequestMethod.GET)
-	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
+	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')")
 	public @ResponseBody
 	Map<String, Object>
 	listTemplates() throws RestErrorException {
@@ -4337,7 +4337,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             if the cloud is a local cloud or the template doesn't exist.
 	 */
 	@RequestMapping(value = "templates/{templateName}", method = RequestMethod.GET)
-	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
+	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')")
 	public @ResponseBody
 	Map<String, Object>
 	getTemplate(@PathVariable final String templateName)
