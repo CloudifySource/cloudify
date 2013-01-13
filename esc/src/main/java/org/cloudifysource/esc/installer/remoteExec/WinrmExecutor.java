@@ -40,26 +40,14 @@ public class WinrmExecutor implements RemoteExecutor {
 	private static final java.util.logging.Logger logger =
 			java.util.logging.Logger.getLogger(WinrmExecutor.class.getName());
 
-	private static final String[] POWERSHELL_INSTALLED_COMMAND = new String[] { "powershell.exe", "-inputformat",
-		"none", "-?" };
-	private static final String POWERSHELL_COMMAND_SEPARATOR = ";"; // System.getProperty("line.separator");
-	private static final String SEPARATOR = POWERSHELL_COMMAND_SEPARATOR;
 	private static final String CIFS_ABSOLUTE_PATH_WITH_DRIVE_REGEX = "/[a-zA-Z][$]/.*";
-	private static final String POWERSHELL_CLIENT_SCRIPT = "bootstrap-client.ps1";
 
-	private final StringBuilder sb = new StringBuilder();
-	private boolean runInBackground = false;
-	private AgentlessInstaller installer;
 
-	private static Pattern pattern;
+	private static Pattern pattern = Pattern.compile(CIFS_ABSOLUTE_PATH_WITH_DRIVE_REGEX);
 
-	// indicates if powershell is installed on this host. If null, installation
-	// test was not performed.
-	private static volatile Boolean powerShellInstalled = null;
 
 	@Override
 	public void initialize(final AgentlessInstaller installer, final InstallationDetails details) {
-		this.installer = installer;
 	}
 
 	/****************
@@ -73,10 +61,6 @@ public class WinrmExecutor implements RemoteExecutor {
 	 *         exists, or the original path if the drive letter is not present.
 	 */
 	public static String normalizeCifsPath(final String str) {
-		final String expression = CIFS_ABSOLUTE_PATH_WITH_DRIVE_REGEX;
-		if (pattern == null) {
-			pattern = Pattern.compile(expression);
-		}
 
 		if (pattern.matcher(str).matches()) {
 			final char drive = str.charAt(1);
@@ -85,90 +69,6 @@ public class WinrmExecutor implements RemoteExecutor {
 		return str;
 	}
 
-	/*******
-	 * Adds a command to the command line.
-	 *
-	 * @param str
-	 *            the command to add.
-	 * @return this.
-	 */
-	@Override
-	public RemoteExecutor call(final String str) {
-		final String normalizedPathCommand = normalizeCifsPath(str);
-		sb.append(normalizedPathCommand);
-
-		return this;
-	}
-
-	/********
-	 * Adds a separator.
-	 *
-	 * @return this.
-	 */
-	@Override
-	public RemoteExecutor separate() {
-		sb.append(WinrmExecutor.SEPARATOR);
-		return this;
-	}
-
-	/*********
-	 * Adds an environment variable to the command line.
-	 *
-	 * @param name
-	 *            variable name.
-	 * @param value
-	 *            variable value.
-	 * @return this.
-	 */
-	@Override
-	public RemoteExecutor exportVar(final String name, final String value) {
-
-		String actualValue = value;
-		if (value == null) {
-			actualValue = "";
-		}
-
-		String normalizedValue = normalizeCifsPath(actualValue);
-		if (actualValue.startsWith("\"") && actualValue.endsWith("\"")) {
-			normalizedValue = actualValue.replace("\"", "'");
-		} else {
-			if (!(actualValue.startsWith("\"") && actualValue.endsWith("\""))) {
-				normalizedValue = "'" + normalizedValue + "'";
-			}
-		}
-
-		sb.append("$ENV:").append(name).append("=").append(normalizedValue);
-
-		separate();
-		return this;
-	}
-
-	@Override
-	public RemoteExecutor chmodExecutable(final String path) {
-		return this;
-	}
-
-	/*****
-	 * Marks a command line to be executed in the background.
-	 *
-	 * @return this.
-	 */
-	@Override
-	public RemoteExecutor runInBackground() {
-		this.runInBackground = true;
-
-		return this;
-	}
-
-	@Override
-	public String toString() {
-		return sb.toString();
-	}
-
-	@Override
-	public boolean isRunInBackground() {
-		return runInBackground;
-	}
 
 	@Override
 	public void execute(final String targetHost, final InstallationDetails details, final String scriptPath,

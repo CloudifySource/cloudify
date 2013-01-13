@@ -22,23 +22,45 @@ import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 
+/*******
+ * An interface for remote command execution used to launch a cloudify agent on
+ * a remote machine.
+ *
+ * @author barakme
+ * @since 2.5.0
+ *
+ */
 public interface RemoteExecutor {
 
-	public void execute(String targetHost, final InstallationDetails details, final String command, final long endTimeMillis)
+	/**********
+	 * Executes a command on the remote host.
+	 *
+	 * @param targetHost
+	 *            the target host where the command will be executed.
+	 * @param details
+	 *            the details of the installation request, including details of
+	 *            the remote host.
+	 * @param command
+	 *            the command to execute.
+	 * @param endTimeMillis
+	 *            end time by which the command must finish.
+	 * @throws InstallerException
+	 *             if the command failed or could not be executed.
+	 * @throws TimeoutException
+	 *             if the timeout expired.
+	 * @throws InterruptedException
+	 *             in the request was interrupted while waiting on the network.
+	 */
+	void execute(String targetHost, final InstallationDetails details, final String command,
+			final long endTimeMillis)
 			throws InstallerException, TimeoutException, InterruptedException;
 
-	public boolean isRunInBackground();
 
-	public RemoteExecutor runInBackground();
-
-	public RemoteExecutor chmodExecutable(final String path);
-
-	public RemoteExecutor exportVar(final String name, final String value);
-
-	public RemoteExecutor separate();
-
-	public RemoteExecutor call(final String str);
-
-	public void initialize(final AgentlessInstaller installer, final InstallationDetails details);
+	/**********
+	 * Initializes the remote executor. This method is called once, before the execute request is issued.
+	 * @param installer The agentless installer that invoked this remote executor.
+	 * @param details the details of the installation request.
+	 */
+	void initialize(final AgentlessInstaller installer, final InstallationDetails details);
 
 }

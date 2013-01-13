@@ -29,101 +29,16 @@ import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.util.Utils;
 
 /*********
- * Executor implementation for SSH remote calls.
- * Uses Ant ssh task.
+ * Executor implementation for SSH remote calls. Uses Ant ssh task.
  *
  * @author barakme
  * @since 2.5.0
  */
 public class SshExecutor implements RemoteExecutor {
 
-	private static final String SSH_COMMAND_SEPARATOR = ";";
-
-	private final String separator = SSH_COMMAND_SEPARATOR;
-	private final StringBuilder sb = new StringBuilder();
-
-	private boolean runInBackground = false;
 
 	private static final java.util.logging.Logger logger =
 			java.util.logging.Logger.getLogger(SshExecutor.class.getName());
-
-	/*******
-	 * Adds a command to the command line.
-	 *
-	 * @param str
-	 *            the command to add.
-	 * @return this.
-	 */
-	@Override
-	public RemoteExecutor call(final String str) {
-		sb.append(str);
-
-		return this;
-	}
-
-	/********
-	 * Adds a separator.
-	 *
-	 * @return this.
-	 */
-	@Override
-	public RemoteExecutor separate() {
-		sb.append(this.separator);
-		return this;
-	}
-
-	/*********
-	 * Adds an environment variable to the command line.
-	 *
-	 * @param name
-	 *            variable name.
-	 * @param value
-	 *            variable value.
-	 * @return this.
-	 */
-	@Override
-	public RemoteExecutor exportVar(final String name, final String value) {
-
-		String actualValue = value;
-		if (value == null) {
-			actualValue = "";
-		}
-
-		sb.append("export ").append(name).append("=").append(actualValue);
-
-		separate();
-		return this;
-	}
-
-	@Override
-	public RemoteExecutor chmodExecutable(final String path) {
-		sb.append("chmod +x ").append(path);
-		separate();
-		return this;
-	}
-
-	/*****
-	 * Marks a command line to be executed in the background.
-	 *
-	 * @return this.
-	 */
-	@Override
-	public RemoteExecutor runInBackground() {
-		sb.append(" &");
-		this.runInBackground = true;
-
-		return this;
-	}
-
-	@Override
-	public String toString() {
-		return sb.toString();
-	}
-
-	@Override
-	public boolean isRunInBackground() {
-		return runInBackground;
-	}
 
 	@Override
 	public void execute(final String targetHost, final InstallationDetails details, final String scriptPath,

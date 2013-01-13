@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.esc.installer;
 
@@ -42,9 +39,8 @@ import org.cloudifysource.esc.util.CalcUtils;
 import org.cloudifysource.esc.util.Utils;
 
 /************
- * The agentless installer class is responsible for installing Cloudify on a
- * remote machine, using only SSH. It will upload all relevant files and start
- * the Cloudify agent.
+ * The agentless installer class is responsible for installing Cloudify on a remote machine, using only SSH. It will
+ * upload all relevant files and start the Cloudify agent.
  *
  * File transfer is handled using Apache commons vfs.
  *
@@ -224,7 +220,9 @@ public class AgentlessInstaller {
 			throw new InstallerException("Failed to create environment file", e);
 		} finally {
 			// delete the temp directory and temp env file.
-			FileUtils.deleteQuietly(environmentFile.getParentFile());
+			if (environmentFile != null) {
+				FileUtils.deleteQuietly(environmentFile.getParentFile());
+			}
 		}
 
 		// launch the cloudify agent
@@ -411,8 +409,7 @@ public class AgentlessInstaller {
 	}
 
 	/*********
-	 * This method is public so that implementation classes for file copy and
-	 * remote execution can publish events.
+	 * This method is public so that implementation classes for file copy and remote execution can publish events.
 	 *
 	 * @param eventName
 	 *            .
