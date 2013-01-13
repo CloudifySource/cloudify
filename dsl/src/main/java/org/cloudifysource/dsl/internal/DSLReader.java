@@ -39,6 +39,9 @@ import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.Service;
+import org.cloudifysource.dsl.cloud.FileTransferModes;
+import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
+import org.cloudifysource.dsl.cloud.ScriptLanguages;
 import org.cloudifysource.dsl.internal.context.ServiceContextImpl;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.codehaus.groovy.control.CompilationFailedException;
@@ -50,9 +53,9 @@ import org.openspaces.ui.UserInterface;
 
 /*******
  * Generic Cloudify DSL Reader.
- * 
+ *
  * @author barakme
- * 
+ *
  */
 
 public class DSLReader {
@@ -82,8 +85,8 @@ public class DSLReader {
 	private boolean createServiceContext = true;
 
 	private final Map<String, Object> bindingProperties = new HashMap<String, Object>();
-	private Map<String, Object> overrideProperties = new HashMap<String, Object>();
-	private Map<String, Object> overrideFields = new HashMap<String, Object>();
+	private final Map<String, Object> overrideProperties = new HashMap<String, Object>();
+	private final Map<String, Object> overrideFields = new HashMap<String, Object>();
 	private Map<String, Object> applicationProperties;
 
 	private String dslContents;
@@ -101,7 +104,17 @@ public class DSLReader {
 
 	private static final String[] STAR_IMPORTS = new String[] {
 			org.cloudifysource.dsl.Service.class.getPackage().getName(), UserInterface.class.getPackage().getName(),
-			org.cloudifysource.dsl.internal.context.ServiceImpl.class.getPackage().getName() };
+			org.cloudifysource.dsl.internal.context.ServiceImpl.class.getPackage().getName(),
+			FileTransferModes.class.getName(),
+			RemoteExecutionModes.class.getName(),
+			ScriptLanguages.class.getName()};
+
+	private static final String[] CLASS_IMPORTS = new String[] {
+		org.cloudifysource.dsl.utils.ServiceUtils.class.getName(),
+		FileTransferModes.class.getName(),
+		RemoteExecutionModes.class.getName(),
+		ScriptLanguages.class.getName()
+	};
 
 	/******
 	 * Property name of injected dsl file path.
@@ -151,7 +164,7 @@ public class DSLReader {
 	/***********
 	 * Search the directory for a file with the specified suffix.
 	 * Assuming there is exactly one file with that suffix in the directory.
-	 * 
+	 *
 	 * @param fileNameSuffix The suffix.
 	 * @param dir The directory.
 	 * @return the file.
@@ -168,13 +181,13 @@ public class DSLReader {
 			throw new IllegalArgumentException("Found multiple configuration files: " + Arrays.toString(files) + ". "
 					+ "Only one may be supplied in the folder.");
 		}
-		
+
 		return files[0];
 	}
-	
+
 	/***********
 	 * Search the directory for files with the specified suffix.
-	 * 
+	 *
 	 * @param fileNameSuffix The suffix.
 	 * @param directory The directory to search at.
 	 * @return The found files. Returns null if no file with the specified suffix was found.
@@ -183,7 +196,7 @@ public class DSLReader {
 		if (!directory.isDirectory()) {
 			throw new IllegalArgumentException(directory.getAbsolutePath() + " is not a directory.");
 		}
-		
+
 		final File[] files = directory.listFiles(new FilenameFilter() {
 
 			@Override
@@ -194,12 +207,12 @@ public class DSLReader {
 		if (files.length == 0) {
 			return null;
 		}
-		
+
 		return files;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param fileNameSuffix
 	 *            .
 	 * @param dir
@@ -268,7 +281,7 @@ public class DSLReader {
 
 	/*********
 	 * Executes the current DSL reader, returning the required Object type.
-	 * 
+	 *
 	 * @param clazz
 	 *            the expected class type returned from the DSL file.
 	 * @param <T>
@@ -372,7 +385,7 @@ public class DSLReader {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param properties
 	 *            the properties to add to
 	 * @throws IOException
@@ -387,7 +400,7 @@ public class DSLReader {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param properties
 	 *            the properties to override
 	 */
@@ -566,7 +579,7 @@ public class DSLReader {
 
 		ic.addStarImports(STAR_IMPORTS);
 
-		ic.addImports(org.cloudifysource.dsl.utils.ServiceUtils.class.getName());
+		ic.addImports(CLASS_IMPORTS);
 
 		ic.addStaticImport("Statistics", org.cloudifysource.dsl.statistics.AbstractStatisticsDetails.class.getName(),
 				"STATISTICS_FACTORY");
@@ -649,7 +662,7 @@ public class DSLReader {
 	 * Checks if the overrides name fits the naming convention of recipe files.
 	 * If fits, returns the given overridesFile, else copies the file and change
 	 * its name accordingly.
-	 * 
+	 *
 	 * @param overridesFile
 	 *            The file to copy
 	 * @param dslName
@@ -740,7 +753,7 @@ public class DSLReader {
 
 	/**********
 	 * .
-	 * 
+	 *
 	 * @param key
 	 *            .
 	 * @param value
