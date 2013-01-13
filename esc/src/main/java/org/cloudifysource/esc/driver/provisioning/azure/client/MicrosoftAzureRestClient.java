@@ -671,18 +671,17 @@ public class MicrosoftAzureRestClient {
 				logger.fine("Deleting deployment " + deploymentName + " from cloud service " + cloudServiceName);
 				deleteDeployment(cloudServiceName, deploymentName,
 					endTime);
+				logger.fine("Deleteing cloud service : " + cloudServiceName
+						+ " that was dedicated for virtual machine " + roleName);				
+				deleteCloudService(cloudServiceName, endTime);
 			}
 			
 			if (diskName != null) {
-				logger.fine("Deleting os disk : " + diskName
+				logger.fine("Deleting OS Disk : " + diskName
 						+ " that belonged to the virtual machine " + roleName);
 				deleteOSDisk(diskName, endTime);
 			}
 			
-			logger.fine("Deleteing cloud service : " + cloudServiceName
-					+ " that was dedicated for virtual machine " + roleName);
-
-			deleteCloudService(cloudServiceName, endTime);
 
 		} catch (final MicrosoftAzureException e) { 
 			logger.severe(ExceptionUtils.getFullStackTrace(e));

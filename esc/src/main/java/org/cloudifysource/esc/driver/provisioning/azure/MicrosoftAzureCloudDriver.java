@@ -461,6 +461,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		}
 
 		if (cleanup) {
+			logger.info("Cleaning up management services");
 			cleanup();
 		}
 	}
@@ -607,6 +608,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			throws CloudProvisioningException, TimeoutException {
 
 		try {
+			logger.info("Shutting down management machine : " + deploymentName);
 			azureClient.deleteVirtualMachineByDeploymentName(hostedServiceName,
 					deploymentName, endTime);
 			return true;
