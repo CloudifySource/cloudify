@@ -172,7 +172,7 @@ ProvisioningDriverClassContextAware {
 		}
 	}
 
-	private void initRestPort(Integer port) {
+	private void initRestPort(final Integer port) {
 		if (port != null) {
 			this.restPort = port;
 		} else {

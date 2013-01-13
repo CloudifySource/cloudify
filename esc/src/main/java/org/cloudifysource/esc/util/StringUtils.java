@@ -60,7 +60,7 @@ public class StringUtils {
 	 * @param delimiter The delimiter to split by
 	 * @return A Collection of trimmed String tokens
 	 */
-	public static Collection<String> splitAndTrimString(String stringOfTokens, String delimiter) {
+	public static Collection<String> splitAndTrimString(final String stringOfTokens, final String delimiter) {
     	Collection<String> values = new HashSet<String>();
 		StringTokenizer tokenizer = new StringTokenizer(stringOfTokens, delimiter);
 		while (tokenizer.hasMoreTokens()) {
@@ -69,5 +69,6 @@ public class StringUtils {
 		
 		return values;
     }
+	
 
 }
