@@ -71,8 +71,9 @@ public class StartManagement extends AbstractGSCommand {
 	private static final int DEFAULT_TIMEOUNT_MINUTES = 5;
 	private static final String SPRING_SECURITY_CONFIG_FILE = 
 			System.getenv(CloudifyConstants.SPRING_SECURITY_CONFIG_FILE_ENV_VAR);
-	private static final String KEYSTORE_FILE = 
-			System.getenv(CloudifyConstants.KEYSTORE_FILE_ENV_VAR);
+	private static final String KEYSTORE_FILE = System.getenv(CloudifyConstants.KEYSTORE_FILE_ENV_VAR);
+	private static final String KEYSTORE_PASSWORD = System.getenv(CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR);
+	private static String securityProfile = System.getenv(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR);
 	
 	@Option(required = false, name = "-lookup-groups", description = "A unique name that is used to group together "
 			+ "different Cloudify machines. Default is based on the product version. Override in order to group "
@@ -113,11 +114,7 @@ public class StartManagement extends AbstractGSCommand {
 	@Option(required = false, name = "-cloud-file", description = "if set, designated the location of the cloud"
 			+ " configuration file")
 	private String cloudFileName;
-	
-	private static String securityProfile = System.getenv(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR);
-	private static final String securityFilePath = System.getenv(CloudifyConstants.SPRING_SECURITY_CONFIG_FILE_ENV_VAR);
-	private static final String keystoreFilePath = System.getenv(CloudifyConstants.KEYSTORE_FILE_ENV_VAR);
-	private static final String keystorePassword = System.getenv(CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR);
+
 	
 
 	/**
@@ -132,18 +129,22 @@ public class StartManagement extends AbstractGSCommand {
 			throw new CLIException("-timeout cannot be negative");
 		}
 		
-		if (securityFilePath == null) {
-			throw new IllegalStateException("secuirtyFilePath cannot be null");
+		if (SPRING_SECURITY_CONFIG_FILE == null) {
+			throw new IllegalStateException("Environment variable " 
+					+ CloudifyConstants.SPRING_SECURITY_CONFIG_FILE_ENV_VAR + " cannot be null");
 		}
 		if (securityProfile == null) {
-			throw new IllegalStateException("securityProfile cannot be null");
+			throw new IllegalStateException("Environment variable " + CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR
+					+ " cannot be null");
 		}
-		if (!CloudifyConstants.SPRING_PROFILE_NON_SECURE.equals(securityProfile)) {
-			if (keystoreFilePath == null) {
-				throw new IllegalStateException("keystoreFilePath cannot be null when using security");				
+		if (CloudifyConstants.SPRING_PROFILE_SECURE.equals(securityProfile)) {
+			if (KEYSTORE_FILE == null) {
+				throw new IllegalStateException("Environment variable " + CloudifyConstants.KEYSTORE_FILE_ENV_VAR 
+						+ " cannot be null");				
 			}
-			if (keystorePassword == null) {
-				throw new IllegalStateException("keystorePassword cannot be null when using security");
+			if (KEYSTORE_PASSWORD == null) {
+				throw new IllegalStateException("Environment variable " + CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR 
+						+ " cannot be null");
 			}
 		}
 
@@ -163,8 +164,8 @@ public class StartManagement extends AbstractGSCommand {
 		installer.setWaitForWebui(true);
 		installer.setCloudFilePath(cloudFileName);
 
-		installer.startManagementOnLocalhostAndWait(securityProfile, securityFilePath, username, password,
-				keystoreFilePath, keystorePassword, getTimeoutInMinutes(), TimeUnit.MINUTES);
+		installer.startManagementOnLocalhostAndWait(securityProfile, SPRING_SECURITY_CONFIG_FILE, username, password,
+				KEYSTORE_FILE, KEYSTORE_PASSWORD, getTimeoutInMinutes(), TimeUnit.MINUTES);
 		return "Management started successfully. Use the shutdown-management command to shutdown"
 				+ " management processes running on local machine.";
 	}
