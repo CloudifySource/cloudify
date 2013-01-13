@@ -60,16 +60,6 @@ public class BootstrapCloud extends AbstractGSCommand {
 
 	private static final int DEFAULT_TIMEOUT_MINUTES = 60;
 	private static final String PATH_SEPARATOR = System.getProperty("file.separator");
-	private static final String BACKUP_FILE_NAME_SUFFIX = ".backup";
-	private static final String BACKUP_KEYSTORE_FILE_NAME = CloudifyConstants.KEYSTORE_FILE_NAME + ".backup";
-	//private static final String DEFAULT_SECURITY_FOLDER = "upload" + PATH_SEPARATOR + "cloudify-overrides"
-	//		+ PATH_SEPARATOR + "config" + PATH_SEPARATOR + "security";
-	//private static final String DEFAULT_SECURITY_FILE_PATH =
-	//		DEFAULT_SECURITY_FOLDER + PATH_SEPARATOR + DEFAULT_SECURITY_FILE_NAME;
-	//private static final String DEFAULT_KEYSTORE_FILE_PATH =
-	//		DEFAULT_SECURITY_FOLDER + PATH_SEPARATOR + "keystore";
-	//private static final String BACKUP_KEYSTORE_FILE_PATH =
-	//		DEFAULT_KEYSTORE_FILE_PATH + ".backup";
 
 	@Argument(required = true, name = "provider", description = "The cloud provider to use")
 	String cloudProvider;
@@ -107,8 +97,6 @@ public class BootstrapCloud extends AbstractGSCommand {
 	private String securityProfile = CloudifyConstants.SPRING_PROFILE_NON_SECURE;
 	// flags to indicate if bootstrap operation created a backup file that
 	// should be reverted
-	private boolean securityFileCopied = false;
-	private boolean keystoreFileCopied = false;
 	
 	private static final String CLOUDIFY_HOME = Environment.getHomeDirectory();
 	private static final String DEFAULT_SECURITY_FILE_PATH = CLOUDIFY_HOME + "/config/security/spring-security.xml";
@@ -141,6 +129,11 @@ public class BootstrapCloud extends AbstractGSCommand {
 					StringUtils.join(pathResolver.getPathsLooked().toArray(), ", "));
 		}
 		
+		File tempFolder = createTempFolder();
+		logger.info("Copying provider directory to temporary folder --> " + tempFolder.getAbsolutePath());
+		FileUtils.copyDirectoryToDirectory(providerDirectory, tempFolder);
+		providerDirectory = new File(tempFolder, providerDirectory.getName());
+		
 		defaultSecurityTargetFile = new File(providerDirectory + PATH_SEPARATOR 
 				+ CloudifyConstants.SECURITY_FILE_NAME);
 		
@@ -157,9 +150,6 @@ public class BootstrapCloud extends AbstractGSCommand {
 		// load properties file
 		File cloudPropertiesFile = new File(providerDirectory, cloudFile.getName().split("\\.")[0] 
 				+ DSLUtils.PROPERTIES_FILE_SUFFIX);
-
-		File backupCloudPropertiesFile = new File(cloudPropertiesFile.getParentFile(), 
-				cloudPropertiesFile.getName() + ".backup");
 		
 		// check for overrides file
 		Cloud cloud = null;
@@ -171,11 +161,6 @@ public class BootstrapCloud extends AbstractGSCommand {
 			cloud = ServiceReader.
 					readCloudFromDirectory(providerDirectory.getAbsolutePath(), 
 							FileUtils.readFileToString(cloudOverrides));
-			
-			// create a backup of the existing properties file
-			if (cloudPropertiesFile.exists()) {
-				FileUtils.copyFile(cloudPropertiesFile, backupCloudPropertiesFile);
-			}
 			
 			// append the overrides file to the existing properties file
 			FileAppender appender = new FileAppender(cloudPropertiesFile);
@@ -216,25 +201,20 @@ public class BootstrapCloud extends AbstractGSCommand {
 			if (cloudOverrides != null) {
 				cloudPropertiesFile.delete();
 			}
-			if (backupCloudPropertiesFile.exists()) {
-				// restore original properties file if it existed in the first place (backup file exists).
-				FileUtils.copyFile(backupCloudPropertiesFile, cloudPropertiesFile);
-				// delete temp backup file
-				backupCloudPropertiesFile.delete();
-				
-			}
-			
-			try {
-				revertSecurityFiles(providerDirectory.getAbsolutePath());
-			} catch (final Exception e) {
-				logger.log(Level.SEVERE,
-					"Failed to revert security files before finishing bootstrap-cloud command", e);
-			}			
-			
+			logger.info("Deleting temp folder --> " + tempFolder.getAbsolutePath());
+			FileUtils.deleteDirectory(tempFolder);			
 			installer.close();
 			restoreLoggingLevel();
 		}
 
+	}
+
+
+	protected File createTempFolder() throws IOException {
+		File tempFile = File.createTempFile("cloud-", "");
+		tempFile.delete();
+		tempFile.mkdir();
+		return tempFile;
 	}
 
 
@@ -354,26 +334,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 		if (StringUtils.isNotBlank(keystore)) {
 			new KeystoreFileVerifier().verifyKeystoreFile(new File(keystore), keystorePassword);
 		}
-
 	}
-	
-	private void revertSecurityFiles(final String providerDirectory) throws Exception {
-		//handle security config file
-		restoreBackup(defaultSecurityTargetFile, securityFileCopied);
-		
-		//handle keystore file
-		restoreBackup(defaultKeystoreTargetFile, keystoreFileCopied);
-	}
-
-
-	private void deleteFile(final File file) throws IOException {
-		try {
-			file.delete();
-		} catch (Exception e) {
-			logger.log(Level.WARNING, "Failed to delete file: " + file.getCanonicalPath(), e);
-		}
-	}
-	
 	
 	private void copySecurityFiles(final String providerDirectory) throws Exception {
 		
@@ -381,8 +342,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 		
 		if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_NON_SECURE)) {
 			//copy the default security file (defines no security) to the upload folder
-			copyFileAndBackup(defaultSecuritySourceFile, defaultSecurityTargetFile);
-			this.securityFileCopied = true;
+			FileUtils.copyFile(defaultSecuritySourceFile, defaultSecurityTargetFile);
 		} else {
 			//handle the configuration file
 			if (StringUtils.isNotBlank(securityFilePath)) {
@@ -393,8 +353,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 				
 				//copy to the cloud provider's folder, to be copied to all management servers remote directory
 				if (!(securitySourceFile.getCanonicalFile().equals(defaultSecurityTargetFile.getCanonicalFile()))) {
-					copyFileAndBackup(securitySourceFile, defaultSecurityTargetFile);
-					securityFileCopied = true;
+					FileUtils.copyFile(securitySourceFile, defaultSecurityTargetFile);
 				}
 			} else {
 				//TODO : should we use the default security location and assume it was edited by the user?
@@ -413,33 +372,9 @@ public class BootstrapCloud extends AbstractGSCommand {
 				final File defaultKeystoreTargetFile = new File(providerDirectory + PATH_SEPARATOR 
 						+ CloudifyConstants.KEYSTORE_FILE_NAME);
 				if (!(keystoreSourceFile.getCanonicalFile().equals(defaultKeystoreTargetFile.getCanonicalFile()))) {
-					copyFileAndBackup(keystoreSourceFile, defaultKeystoreTargetFile);
-					keystoreFileCopied = true;
+					FileUtils.copyFile(keystoreSourceFile, defaultKeystoreTargetFile);
 				}
 			}
 		}
 	}
-	
-	private void copyFileAndBackup(final File sourceFile, final File targetFile) throws IOException {
-		if (targetFile.exists()) {
-			// create a backup of the existing file
-			File backupFile = new File(targetFile.getCanonicalPath() + BACKUP_FILE_NAME_SUFFIX);
-			FileUtils.copyFile(targetFile, backupFile);
-		}
-		
-		//copy the file, override if exists
-		FileUtils.copyFile(sourceFile, targetFile);
-	}
-	
-	private void restoreBackup(final File configFile, final boolean deleteOnExit) throws IOException {
-		File backupFile = new File(configFile.getCanonicalPath() + BACKUP_FILE_NAME_SUFFIX);
-		if (backupFile.exists()) {
-			// restore original security file if it existed in the first place (backup file exists).
-			FileUtils.copyFile(backupFile, configFile);
-			deleteFile(backupFile);
-		} else if (deleteOnExit) {
-			deleteFile(configFile);
-		}
-	}
-	
 }
