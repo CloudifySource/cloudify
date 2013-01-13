@@ -590,13 +590,21 @@ public class Service {
 			}
 	}
 
+	
+	/**
+	 * Validates that the name property exists and is not empty or invalid.
+	 * @param validationContext
+	 * @throws DSLValidationException
+	 */
 	@DSLValidation
-	void validateNameExists(final DSLValidationContext validationContext)
+	void validateName(final DSLValidationContext validationContext) 
 			throws DSLValidationException {
 		if (StringUtils.isBlank(name)) {
-			throw new DSLValidationException("Service.validateNameExists: The service's name "
+			throw new DSLValidationException("Service.validateName: The service's name " 
 					+ (name == null ? "is missing" : "is empty"));
 		}
+		
+		DSLUtils.validateRecipeName(name);
 	}
 
 	public ExecutableEntriesMap getCustomCommands() {

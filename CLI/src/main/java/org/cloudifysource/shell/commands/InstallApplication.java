@@ -76,7 +76,7 @@ public class InstallApplication extends AdminAwareCommand {
 	private String authGroups;
 
 	@Option(required = false, name = "-name", description = "The name of the application")
-	private String applicationName = null;
+	private String applicationName;
 
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation"
 			+ " is done.")
@@ -134,6 +134,11 @@ public class InstallApplication extends AdminAwareCommand {
 
 		if (StringUtils.isBlank(applicationName)) {
 			applicationName = application.getName();
+		}
+		
+		if (!org.cloudifysource.restclient.StringUtils.isValidRecipeName(applicationName)) {
+			throw new CLIStatusException(CloudifyErrorMessages.APPLICATION_NAME_INVALID_CHARS.getName(),
+					applicationName);
 		}
 
 		if (adminFacade.getApplicationNamesList().contains(applicationName)) {

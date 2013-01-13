@@ -205,5 +205,18 @@ public final class DSLUtils {
 		}
 		return null;
 	}
+	
+	/**
+	 * Checks if the given name contains chars that are invalid for Application or Service name.
+	 * @param name the Application or Service name to validate
+	 * @return true if valid, false otherwise
+	 */
+	public static void validateRecipeName(final String name) throws DSLValidationException {
+		char [] invalidChars = new char[] {'{','}','[',']','(',')'};
+		if (org.apache.commons.lang.StringUtils.containsAny(name, invalidChars)) {
+			throw new DSLValidationException("The name \"" + name + "\" contains one or more invalid characters: "
+					+ "'(',')','[',']','{','}'");
+		}
+	}
 
 }

@@ -55,6 +55,9 @@ public class ServiceValidationTest {
 	
 	private static final String SERVICE_WITH_EMPTY_NAME_GROOVY 
 	= "testResources/applications/ServiceValidationTest/serviceWithEmptyNameTest";
+	
+	private static final String SERVICE_WITH_INVALID_NAME_GROOVY 
+	= "testResources/applications/ServiceValidationTest/serviceWithInvalidNameTest";
 
 	private static final String SERVICE_WITH_VALID_USER_INTERFACE = 
 			"src/test/resources/ExternalDSLFiles/userInterfaceConversionTestFiles/" 
@@ -62,6 +65,9 @@ public class ServiceValidationTest {
 
 	private static final String SERVICE_WITH_INVALID_USER_INTERFACE = 
 			"src/test/resources/groovyFileValidation/badUserInterface.groovy";
+	
+	private static final String INVALID_SERVICE_NAME = "my[1]service";
+	
 	/**
 	 * Triple-test for the instances number (invalid configuration, default configuration and a valid configuration).
 	 */
@@ -133,7 +139,7 @@ public class ServiceValidationTest {
 	public void testIllegalServiceName() {
 		Service service = new Service();
 		try {
-			service.validateNameExists(new DSLValidationContext());
+			service.validateName(new DSLValidationContext());
 			fail("A service without a name was successfully validated");
 		} catch (DSLValidationException e) {
 			//OK - the invalid service name caused the exception
@@ -141,8 +147,16 @@ public class ServiceValidationTest {
 
 		try {
 			service.setName(StringUtils.EMPTY);
-			service.validateNameExists(new DSLValidationContext());
+			service.validateName(new DSLValidationContext());
 			fail("A service with an empty name was successfully validated");
+		} catch (DSLValidationException e) {
+			//OK - the invalid service name caused the exception
+		}
+		
+		try {
+			service.setName(INVALID_SERVICE_NAME);
+			service.validateName(new DSLValidationContext());
+			fail("A service with an invalid name was successfully validated");
 		} catch (DSLValidationException e) {
 			//OK - the invalid service name caused the exception
 		}
@@ -179,6 +193,23 @@ public class ServiceValidationTest {
 		} catch (Exception e) {
 			Assert.fail("Service name is empty, DSLValidationException expected, instead " 
 					+ e.getClass() + " was thrown.");
+		}
+	}
+	
+	/*******
+	 * Tests the validation of a service with an invalid name using DSL parsing of a groovy file.
+	 * <p>Should throw <code>DSLValidationException</code>
+	 */
+	@Test
+	public void testServiceWithInvalidNameGroovy() {
+		try {
+			ServiceReader.readService(new File(SERVICE_WITH_INVALID_NAME_GROOVY));
+			Assert.fail("Service name is invalid: " + INVALID_SERVICE_NAME + ". DSLValidationException expected.");
+		} catch (DSLValidationException e) {
+			//OK - the invalid service name caused the exception
+		} catch (Exception e) {
+			Assert.fail("Service name is invalid: " + INVALID_SERVICE_NAME + ". DSLValidationException expected, "
+					+ "but " + e.getClass() + " was thrown instead.");
 		}
 	}
 

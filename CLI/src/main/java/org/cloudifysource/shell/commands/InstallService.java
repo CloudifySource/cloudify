@@ -195,6 +195,10 @@ public class InstallService extends AdminAwareCommand {
 			if (serviceName == null || serviceName.isEmpty()) {
 				serviceName = service.getName();
 			}
+			
+			if (!org.cloudifysource.restclient.StringUtils.isValidRecipeName(serviceName)) {
+				throw new CLIStatusException(CloudifyErrorMessages.SERVICE_NAME_INVALID_CHARS.getName(), serviceName);
+			}
 		} else {
 			if (serviceName == null || serviceName.isEmpty()) {
 				serviceName = recipe.getName();

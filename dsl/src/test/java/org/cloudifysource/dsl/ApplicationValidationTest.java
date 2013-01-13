@@ -37,6 +37,9 @@ public class ApplicationValidationTest {
 	= "testResources/applications/ApplicationValidationTest/appWithoutNameTest";
 	private static final String APPLICATION_WITH_EMPTY_NAME_GROOVY 
 	= "testResources/applications/ApplicationValidationTest/appWithEmptyNameTest";
+	private static final String APPLICATION_WITH_INVALID_NAME_GROOVY 
+	= "testResources/applications/ApplicationValidationTest/appWithInvalidNameTest";
+	private static final String INVALID_APP_NAME = "my[1]app";
 
 	/*******
 	 * Tests the validation of an illegal application's name (application
@@ -50,7 +53,7 @@ public class ApplicationValidationTest {
 
 		// application without a name
 		try {
-			app.validateNameExists(new DSLValidationContext());
+			app.validateName(new DSLValidationContext());
 			Assert.fail("An application without a name was successfully validated.");
 		} catch (final DSLValidationException e) {
 			// OK - the invalid application name caused the exception
@@ -59,8 +62,17 @@ public class ApplicationValidationTest {
 		// application with an empty name
 		app.setName(StringUtils.EMPTY);
 		try {
-			app.validateNameExists(new DSLValidationContext());
+			app.validateName(new DSLValidationContext());
 			Assert.fail("An application with an empty name was successfully validated.");
+		} catch (final DSLValidationException e) {
+			// OK - the invalid application name caused the exception
+		}
+		
+		// application with an invalid name
+		app.setName(INVALID_APP_NAME);
+		try {
+			app.validateName(new DSLValidationContext());
+			Assert.fail("An application with an invalid name was successfully validated: " + INVALID_APP_NAME);
 		} catch (final DSLValidationException e) {
 			// OK - the invalid application name caused the exception
 		}
@@ -107,6 +119,26 @@ public class ApplicationValidationTest {
 		} catch (final Exception e) {
 			Assert.fail("Application name is missing, IllegalArgumentException expected, instead "
 					+ e.getClass() + " was thrown.");
+			e.printStackTrace();
+		}
+	}
+	
+	/*******
+	 * Tests the validation of an application with an invalid name using DSL parsing of a groovy file.
+	 * <p>
+	 * Should throw <code>DSLValidationException</code>.
+	 */
+	@Test
+	public void testInvalidNameGroovyFileValidation() {
+		final File applicationFile = new File(APPLICATION_WITH_INVALID_NAME_GROOVY);
+		try {
+			ServiceReader.getApplicationFromFile(applicationFile).getApplication();
+			Assert.fail("Application name is invalid: " + INVALID_APP_NAME + ". IllegalArgumentException expected.");
+		} catch (final IllegalArgumentException e) {
+			// OK - the invalid application name caused the exception
+		} catch (final Exception e) {
+			Assert.fail("Application name is invalid: " + INVALID_APP_NAME +". IllegalArgumentException expected, " +
+					"but " + e.getClass() + " was thrown instead.");
 			e.printStackTrace();
 		}
 	}
