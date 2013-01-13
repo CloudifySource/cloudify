@@ -37,7 +37,7 @@ if exist %~dp0\cloudify_env.bat (
 	if exist %~dp0\..\cloudify_env.bat (
 		call %~dp0\..\cloudify_env.bat
 	) else (
-		echo Misssing Cloudify environment file! Cannot proceed with bootstrapping!
+		echo Missing Cloudify environment file! Cannot proceed with bootstrapping!
 		exit /B 105
 	)
 )
