@@ -24,13 +24,16 @@ import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.installer.remoteExec.PowershellClient.PowerShellOutputListener;
 
+
+
+
 /********
  * Remote Executor implementation for Windows Remote Management, using the
  * powershell command.
- * 
+ *
  * @author barakme
  * @since 2.5.0
- * 
+ *
  */
 public class WinrmExecutor implements RemoteExecutor {
 
@@ -63,7 +66,7 @@ public class WinrmExecutor implements RemoteExecutor {
 	 * Given a path of the type /C$/PATH - indicating an absolute cifs path,
 	 * returns /PATH. If the string does not match, returns the original
 	 * unmodified string.
-	 * 
+	 *
 	 * @param str
 	 *            the input path.
 	 * @return the input path, adjusted to remove the cifs drive letter, if it
@@ -84,7 +87,7 @@ public class WinrmExecutor implements RemoteExecutor {
 
 	/*******
 	 * Adds a command to the command line.
-	 * 
+	 *
 	 * @param str
 	 *            the command to add.
 	 * @return this.
@@ -99,7 +102,7 @@ public class WinrmExecutor implements RemoteExecutor {
 
 	/********
 	 * Adds a separator.
-	 * 
+	 *
 	 * @return this.
 	 */
 	@Override
@@ -110,7 +113,7 @@ public class WinrmExecutor implements RemoteExecutor {
 
 	/*********
 	 * Adds an environment variable to the command line.
-	 * 
+	 *
 	 * @param name
 	 *            variable name.
 	 * @param value
@@ -147,7 +150,7 @@ public class WinrmExecutor implements RemoteExecutor {
 
 	/*****
 	 * Marks a command line to be executed in the background.
-	 * 
+	 *
 	 * @return this.
 	 */
 	@Override
@@ -168,9 +171,9 @@ public class WinrmExecutor implements RemoteExecutor {
 	}
 
 	@Override
-	public void execute(final InstallationDetails details, final String scriptPath,
+	public void execute(final String targetHost, final InstallationDetails details, final String scriptPath,
 			final long endTimeMillis)
-					throws InstallerException, TimeoutException {
+					throws InstallerException, TimeoutException, InterruptedException {
 
 		final String fullCommand = normalizeCifsPath(scriptPath);
 
@@ -183,13 +186,10 @@ public class WinrmExecutor implements RemoteExecutor {
 
 			}
 		});
-
 		try {
-			client.invokeRemotePowershellCommand(null, fullCommand, details.getUsername(), details.getPassword(),
+			client.invokeRemotePowershellCommand(targetHost, fullCommand, details.getUsername(), details.getPassword(),
 					details.getLocalDir());
 		} catch (final PowershellClientException e) {
-			throw new InstallerException("Failed to execute powershell remote command", e);
-		} catch (InterruptedException e) {
 			throw new InstallerException("Failed to execute powershell remote command", e);
 		}
 

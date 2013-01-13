@@ -30,9 +30,10 @@ import org.cloudifysource.dsl.internal.DSLValidationException;
  * @author barakme
  * @since 2.0.0
  * 
- *        A cloud template is a group of settings that define a given configuration, available for a specific cloud. It
- *        can include physical machine properties (e.g. memory), operating system type, location, available cloud nodes
- *        and other settings.
+ *        A cloud template is a group of settings that define a given
+ *        configuration, available for a specific cloud. It can include physical
+ *        machine properties (e.g. memory), operating system type, location,
+ *        available cloud nodes and other settings.
  */
 @CloudifyDSLEntity(name = "template", clazz = CloudTemplate.class, allowInternalNode = true, allowRootNode = true,
 		parent = "cloud")
@@ -51,8 +52,9 @@ public class CloudTemplate {
 	private Map<String, Object> overrides = new HashMap<String, Object>();
 	private Map<String, Object> custom = new HashMap<String, Object>();
 
-	private FileTransferModes fileTransfer = FileTransferModes.SCP;
+	private FileTransferModes fileTransfer = FileTransferModes.SFTP;
 	private RemoteExecutionModes remoteExecution = RemoteExecutionModes.SSH;
+	private ScriptLanguages scriptLanguage = ScriptLanguages.LINUX_SHELL;
 
 	private String username;
 	private String password;
@@ -79,7 +81,8 @@ public class CloudTemplate {
 	/**
 	 * Sets the image ID.
 	 * 
-	 * @param imageId The ID of the image to use
+	 * @param imageId
+	 *            The ID of the image to use
 	 */
 	public void setImageId(final String imageId) {
 		this.imageId = imageId;
@@ -97,7 +100,8 @@ public class CloudTemplate {
 	/**
 	 * Sets the machine memory size in MB.
 	 * 
-	 * @param machineMemoryMB The machine memory size
+	 * @param machineMemoryMB
+	 *            The machine memory size
 	 */
 	public void setMachineMemoryMB(final int machineMemoryMB) {
 		this.machineMemoryMB = machineMemoryMB;
@@ -115,7 +119,8 @@ public class CloudTemplate {
 	/**
 	 * Sets the hardware ID.
 	 * 
-	 * @param hardwareId the ID of the hardware profile
+	 * @param hardwareId
+	 *            the ID of the hardware profile
 	 */
 	public void setHardwareId(final String hardwareId) {
 		this.hardwareId = hardwareId;
@@ -133,7 +138,8 @@ public class CloudTemplate {
 	/**
 	 * Sets the location ID.
 	 * 
-	 * @param locationId The ID of this location
+	 * @param locationId
+	 *            The ID of this location
 	 */
 	public void setLocationId(final String locationId) {
 		this.locationId = locationId;
@@ -151,7 +157,8 @@ public class CloudTemplate {
 	/**
 	 * Sets the number of cores on this machine.
 	 * 
-	 * @param numberOfCores The machine's cores' number
+	 * @param numberOfCores
+	 *            The machine's cores' number
 	 */
 	public void setNumberOfCores(final int numberOfCores) {
 		this.numberOfCores = numberOfCores;
@@ -169,7 +176,8 @@ public class CloudTemplate {
 	/**
 	 * Sets optional settings.
 	 * 
-	 * @param options A map of optional settings
+	 * @param options
+	 *            A map of optional settings
 	 */
 	public void setOptions(final Map<String, Object> options) {
 		this.options = options;
@@ -187,7 +195,8 @@ public class CloudTemplate {
 	/**
 	 * Sets overriding settings. This is optional.
 	 * 
-	 * @param overrides A map of overriding settings
+	 * @param overrides
+	 *            A map of overriding settings
 	 */
 	public void setOverrides(final Map<String, Object> overrides) {
 		this.overrides = overrides;
@@ -205,7 +214,8 @@ public class CloudTemplate {
 	/**
 	 * Sets custom settings.
 	 * 
-	 * @param custom A map of custom settings
+	 * @param custom
+	 *            A map of custom settings
 	 */
 	public void setCustom(final Map<String, Object> custom) {
 		this.custom = custom;
@@ -275,8 +285,10 @@ public class CloudTemplate {
 	}
 
 	/************
-	 * True if services running in this template should have privileged access. This usually means that the service will
-	 * run with higher Operating System permissions - root/sudoer on Linux, Administrator on Windows. Default is false.
+	 * True if services running in this template should have privileged access.
+	 * This usually means that the service will run with higher Operating System
+	 * permissions - root/sudoer on Linux, Administrator on Windows. Default is
+	 * false.
 	 * 
 	 * @return true if services on this template will run in privileged mode.
 	 */
@@ -289,8 +301,9 @@ public class CloudTemplate {
 	}
 
 	/**************
-	 * A command line that will be executed before the bootstrapping process of a machine from this template ends
-	 * (before the Cloudify agent starts, after JDK and Cloudify are installed).
+	 * A command line that will be executed before the bootstrapping process of
+	 * a machine from this template ends (before the Cloudify agent starts,
+	 * after JDK and Cloudify are installed).
 	 * 
 	 * @return the initialization command line.
 	 */
@@ -361,7 +374,8 @@ public class CloudTemplate {
 		}
 
 		// this.localDirectory = uploadDir.getAbsolutePath();
-		// logger.info("SETTING LOCAL DIRECTORY TO ABSOLUTE PATH: " + this.localDirectory);
+		// logger.info("SETTING LOCAL DIRECTORY TO ABSOLUTE PATH: " +
+		// this.localDirectory);
 
 	}
 
@@ -396,11 +410,14 @@ public class CloudTemplate {
 	}
 
 	/************
-	 * This is a unique situation: we need two pieces of information - the absolute location of the local directory, and
-	 * the relative location of the local directory. So this validation fills in this field - note that the absolute
-	 * field does not have a setter - groovy files can't directly set this value.
+	 * This is a unique situation: we need two pieces of information - the
+	 * absolute location of the local directory, and the relative location of
+	 * the local directory. So this validation fills in this field - note that
+	 * the absolute field does not have a setter - groovy files can't directly
+	 * set this value.
 	 * 
-	 * @param context .
+	 * @param context
+	 *            .
 	 * @throws DSLValidationException .
 	 */
 	@DSLValidation
@@ -417,7 +434,7 @@ public class CloudTemplate {
 	public String getAbsoluteUploadDir() {
 		return absoluteUploadDir;
 	}
-	
+
 	public void setAbsoluteUploadDir(final String absoluteUploadDir) {
 		this.absoluteUploadDir = absoluteUploadDir;
 	}
@@ -430,13 +447,13 @@ public class CloudTemplate {
 	 * @return .
 	 */
 	public String toFormatedString() {
-		StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = new StringBuilder();
 		sb.append("{");
 		sb.append(CloudifyConstants.NEW_LINE);
 		sb.append(getFormatedLine("imageId", imageId));
 		sb.append(getFormatedLine("hardwareId", hardwareId));
 		sb.append(getFormatedLine("locationId", locationId));
-		sb.append(getFormatedLine("localDirectory" , localDirectory));
+		sb.append(getFormatedLine("localDirectory", localDirectory));
 		sb.append(getFormatedLine("keyFile", keyFile));
 		sb.append(getFormatedLine("numberOfCores", numberOfCores));
 		sb.append(getFormatedLine("options", options));
@@ -453,21 +470,29 @@ public class CloudTemplate {
 		sb.append(getFormatedLine("absoluteUploadDir", absoluteUploadDir));
 		sb.append(getFormatedLine("env ", env));
 		sb.append(getFormatedLine("machineMemoryMB", machineMemoryMB));
-		String str = sb.substring(0, sb.lastIndexOf(","));
+		final String str = sb.substring(0, sb.lastIndexOf(","));
 		return str + CloudifyConstants.NEW_LINE + "}";
 	}
-	
+
 	private static String getFormatedLine(final String objName, final Object obj) {
 		if (obj == null) {
 			return "";
 		}
 		if (obj instanceof Map) {
-			Map<?, ?> map = (Map<?, ?>) obj;
+			final Map<?, ?> map = (Map<?, ?>) obj;
 			if (map.isEmpty()) {
 				return "";
 			}
 		}
 		return CloudifyConstants.TAB_CHAR + objName + " = " + obj.toString() + "," + CloudifyConstants.NEW_LINE;
-				
+
+	}
+
+	public ScriptLanguages getScriptLanguage() {
+		return scriptLanguage;
+	}
+
+	public void setScriptLanguage(ScriptLanguages scriptLanguage) {
+		this.scriptLanguage = scriptLanguage;
 	}
 }

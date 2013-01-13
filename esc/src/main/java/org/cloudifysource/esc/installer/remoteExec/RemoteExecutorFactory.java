@@ -37,7 +37,7 @@ public final class RemoteExecutorFactory {
 	 * @param mode the remote exec mode.
 	 * @return the implementing class.
 	 */
-	public RemoteExecutor createRemoteExecutorProvider(final RemoteExecutionModes mode) {
+	public static RemoteExecutor createRemoteExecutorProvider(final RemoteExecutionModes mode) {
 		switch (mode) {
 		case SSH:
 			return new SshExecutor();

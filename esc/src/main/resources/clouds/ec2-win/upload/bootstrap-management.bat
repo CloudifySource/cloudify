@@ -30,4 +30,5 @@ rem output of this command is piped to null to prevent error messages generated 
 rem the remote powershell session. Powershell considers any writes to syserr as an error indication.
 powershell Set-ExecutionPolicy Unrestricted > NUL 2> NUL
 
-powershell %WORKING_HOME_DIRECTORY%\bootstrap-management.ps1 
+rem calling the powershell script that will actually perform the bootstrap
+powershell %~dp0\bootstrap-management.ps1 

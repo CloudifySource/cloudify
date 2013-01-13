@@ -22,6 +22,8 @@ import java.io.ObjectOutput;
 
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
+import org.cloudifysource.dsl.cloud.ScriptLanguages;
+import org.cloudifysource.esc.driver.provisioning.events.MachineStartedCloudifyEvent;
 
 import com.gigaspaces.internal.io.IOUtils;
 
@@ -30,7 +32,7 @@ import com.gigaspaces.internal.io.IOUtils;
  * MachineDetails implements @{link Externalizable} since it is embedded in {@link MachineStartedCloudifyEvent}
  * @author barakme
  * @since 2.0.0
- * 
+ *
  */
 public class MachineDetails implements Externalizable {
 
@@ -48,13 +50,15 @@ public class MachineDetails implements Externalizable {
 
 	private String machineId;
 
-	private FileTransferModes fileTransferMode = FileTransferModes.SCP;
+	private FileTransferModes fileTransferMode = FileTransferModes.SFTP;
 	private RemoteExecutionModes remoteExecutionMode = RemoteExecutionModes.SSH;
+	private ScriptLanguages scriptLangeuage = ScriptLanguages.LINUX_SHELL;
 
 	private String remoteDirectory;
 
 	private String locationId;
 
+	private boolean cleanRemoteDirectoryOnStart = false;
 	public String getLocationId() {
 		return locationId;
 	}
@@ -172,6 +176,7 @@ public class MachineDetails implements Externalizable {
 		machineId = IOUtils.readString(in);
 		fileTransferMode = FileTransferModes.valueOf(IOUtils.readString(in));
 		remoteExecutionMode = RemoteExecutionModes.valueOf(IOUtils.readString(in));
+		this.scriptLangeuage = ScriptLanguages.valueOf(IOUtils.readString(in));
 		remoteDirectory = IOUtils.readString(in);
 		locationId = IOUtils.readString(in);
 	}
@@ -190,8 +195,25 @@ public class MachineDetails implements Externalizable {
 		IOUtils.writeString(out, machineId);
 		IOUtils.writeString(out, fileTransferMode.name());
 		IOUtils.writeString(out, remoteExecutionMode.name());
+		IOUtils.writeString(out, scriptLangeuage.name());
 		IOUtils.writeString(out, remoteDirectory);
 		IOUtils.writeString(out, locationId);
+	}
+
+	public ScriptLanguages getScriptLangeuage() {
+		return scriptLangeuage;
+	}
+
+	public void setScriptLangeuage(final ScriptLanguages scriptLangeuage) {
+		this.scriptLangeuage = scriptLangeuage;
+	}
+
+	public boolean isCleanRemoteDirectoryOnStart() {
+		return cleanRemoteDirectoryOnStart;
+	}
+
+	public void setCleanRemoteDirectoryOnStart(final boolean cleanRemoteDirectoryOnStart) {
+		this.cleanRemoteDirectoryOnStart = cleanRemoteDirectoryOnStart;
 	}
 
 }

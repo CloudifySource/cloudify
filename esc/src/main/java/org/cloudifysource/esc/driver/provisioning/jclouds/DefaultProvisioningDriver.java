@@ -492,9 +492,11 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	private MachineDetails createMachineDetailsFromNode(final NodeMetadata node) {
-		final MachineDetails md = new MachineDetails();
+		final CloudTemplate template = this.cloud.getTemplates().get(
+				this.cloudTemplateName);
 
-		md.setAgentRunning(false);
+		final MachineDetails md = createMachineDetailsForTemplate(template);
+
 		md.setCloudifyInstalled(false);
 		md.setInstallationDirectory(null);
 		md.setMachineId(node.getId());
@@ -505,8 +507,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			md.setPublicAddress(node.getPublicAddresses().iterator().next());
 		}
 
-		final CloudTemplate template = this.cloud.getTemplates().get(
-				this.cloudTemplateName);
 		final String username = createMachineUsername(node, template);
 		final String password = createMachinePassword(node, template);
 

@@ -16,9 +16,13 @@
 
 package org.cloudifysource.esc.installer.filetransfer;
 
+import java.io.File;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.commons.vfs2.AllFileSelector;
+import org.apache.commons.vfs2.FileDepthSelector;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelectInfo;
 import org.apache.commons.vfs2.FileSelector;
@@ -29,6 +33,13 @@ import org.apache.commons.vfs2.FileType;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 
+/*********
+ * A base class for commons-vfs based file transfer.
+ * 
+ * @author barakme
+ * @since 2.5.0
+ * 
+ */
 public abstract class VfsFileTransfer implements FileTransfer {
 
 	protected static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(SftpFileTransfer.class
@@ -42,6 +53,16 @@ public abstract class VfsFileTransfer implements FileTransfer {
 	protected String targetURI;
 	protected FileSystemOptions opts;
 
+	protected boolean deleteRemoteDirectoryContents = false;
+
+	/******
+	 * Checks if the specified end time has reached.
+	 * 
+	 * @param endTimeMillis
+	 *            the end time.
+	 * @throws TimeoutException
+	 *             if the target time has passed.
+	 */
 	protected void checkTimeout(final long endTimeMillis)
 			throws TimeoutException {
 		if (System.currentTimeMillis() > endTimeMillis) {
@@ -49,6 +70,9 @@ public abstract class VfsFileTransfer implements FileTransfer {
 		}
 	}
 
+	/****
+	 * Closes the local and remote file system.
+	 */
 	public void shutdown() {
 		fileSystemManager.closeFileSystem(remoteDir.getFileSystem());
 		fileSystemManager.closeFileSystem(localDir.getFileSystem());
@@ -56,14 +80,34 @@ public abstract class VfsFileTransfer implements FileTransfer {
 	}
 
 	@Override
-	public void copyFiles(final InstallationDetails details, final String sourceFile, final String targetFile,
-			final Set<String> excludedFiles, final long endTimeMillis)
-			throws TimeoutException, InstallerException {
+	public void copyFiles(final InstallationDetails details,
+			final Set<String> excludedFiles, final List<File> additionalFiles, final long endTimeMillis)
+					throws TimeoutException, InstallerException {
 
 		logger.fine("Copying files to: " + host + " from local dir: " + localDir.getName().getPath() + " excluding "
 				+ excludedFiles.toString());
 
 		try {
+
+			if (remoteDir.exists()) {
+				FileType type = remoteDir.getType();
+				if (!type.equals(FileType.FOLDER)) {
+					throw new InstallerException("The remote location: " + remoteDir.getName().getFriendlyURI()
+							+ " exists but is not a directory");
+				}
+
+				if (deleteRemoteDirectoryContents) {
+					logger.info("Deleting contents of remote directory: " + remoteDir.getName().getFriendlyURI());
+					remoteDir.delete(new FileDepthSelector(1, Integer.MAX_VALUE));
+				}
+				FileObject[] children = remoteDir.getChildren();
+				if (children.length > 0) {
+
+					throw new InstallerException("The remote directory: " + remoteDir.getName().getFriendlyURI()
+							+ " is not empty");
+				}
+			}
+
 			remoteDir.copyFrom(localDir, new FileSelector() {
 
 				@Override
@@ -103,26 +147,13 @@ public abstract class VfsFileTransfer implements FileTransfer {
 				}
 			});
 
-			// if (cloudFile != null) {
-			// // copy cloud file too
-			// final FileObject cloudFileParentObject = mng.resolveFile(cloudFile.getParentFile().getAbsolutePath());
-			// final FileObject cloudFileObject = mng.resolveFile(cloudFile.getAbsolutePath());
-			// remoteDir.copyFrom(cloudFileParentObject, new FileSelector() {
-			//
-			// @Override
-			// public boolean traverseDescendents(final FileSelectInfo fileInfo)
-			// throws Exception {
-			// return true;
-			// }
-			//
-			// @Override
-			// public boolean includeFile(final FileSelectInfo fileInfo)
-			// throws Exception {
-			// return fileInfo.getFile().equals(cloudFileObject);
-			//
-			// }
-			// });
-			// }
+			for (final File file : additionalFiles) {
+				logger.fine("copying file: " + file.getAbsolutePath() + " to remote directory");
+				final FileObject fileObject =
+						fileSystemManager.resolveFile("file:" + file.getAbsolutePath());
+				final FileObject remoteFile = remoteDir.resolveFile(file.getName());
+				remoteFile.copyFrom(fileObject, new AllFileSelector());
+			}
 
 			logger.fine("Copying files to: " + host + " completed.");
 		} catch (final FileSystemException e) {
@@ -136,6 +167,7 @@ public abstract class VfsFileTransfer implements FileTransfer {
 	@Override
 	public void initialize(final InstallationDetails details, final long endTimeMillis)
 			throws TimeoutException, InstallerException {
+		this.deleteRemoteDirectoryContents = details.isDeleteRemoteDirectoryContents();
 		if (details.isConnectedToPrivateIp()) {
 			host = details.getPrivateIp();
 		} else {
@@ -151,8 +183,23 @@ public abstract class VfsFileTransfer implements FileTransfer {
 		final FileSystemManager mng = fileSystemManager;
 
 		mng.setLogger(org.apache.commons.logging.LogFactory.getLog(logger.getName()));
+
+		// when bootstrapping a management machine, pass all of the cloud
+		// configuration, including all template
+		// for an agent machine, just pass the upload dir fot the specific
+		// template.
+		String localDirPath = details.getLocalDir();
+		if (details.isLus()) {
+			if (details.getCloudFile() == null) {
+				throw new IllegalArgumentException("While bootstrapping a management machine, cloud file is null");
+			}
+
+			localDirPath = details.getCloudFile().getParentFile().getAbsolutePath();
+
+		}
+
 		try {
-			localDir = mng.resolveFile("file:" + details.getLocalDir());
+			localDir = mng.resolveFile("file:" + localDirPath);
 			remoteDir = mng.resolveFile(targetURI, opts);
 
 		} catch (final FileSystemException e) {
@@ -161,9 +208,27 @@ public abstract class VfsFileTransfer implements FileTransfer {
 
 	}
 
+	/*********
+	 * Initialize the VFS manager with the required settings.
+	 * 
+	 * @param details
+	 *            the installation details.
+	 * @param endTimeMillis
+	 *            max end time for this operation.
+	 * @throws InstallerException
+	 *             if the operation failed.
+	 */
 	protected abstract void initVFSManager(final InstallationDetails details, final long endTimeMillis)
 			throws InstallerException;
 
+	/******
+	 * Creates the required URI so it will be available for use later.
+	 * 
+	 * @param details
+	 *            the installation details.
+	 * @throws InstallerException
+	 *             if there was a problem.
+	 */
 	protected abstract void createTargetURI(InstallationDetails details)
 			throws InstallerException;
 

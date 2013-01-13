@@ -48,6 +48,7 @@ import org.cloudifysource.esc.driver.provisioning.jclouds.ManagementWebServiceIn
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
+import org.cloudifysource.esc.installer.NewAgentlessInstaller;
 import org.cloudifysource.esc.shell.listener.CliAgentlessInstallerListener;
 import org.cloudifysource.esc.shell.listener.CliProvisioningDriverListener;
 import org.cloudifysource.esc.util.CalcUtils;
@@ -171,7 +172,7 @@ public class CloudGridAgentBootstrapper {
 	 * @throws InterruptedException
 	 *             Indicates a thread was interrupted while waiting
 	 */
-	public void boostrapCloudAndWait(final String securityProfile, final String username, 
+	public void bootstrapCloudAndWait(final String securityProfile, final String username, 
 			final String password, final String keystorePassword, final long timeout, final TimeUnit timeoutUnit)
 					throws InstallerException, CLIException, InterruptedException {
 
@@ -461,7 +462,7 @@ public class CloudGridAgentBootstrapper {
 			final String keystorePassword, final long endTime) throws InterruptedException, TimeoutException,
 			InstallerException, IOException {
 
-		final AgentlessInstaller installer = new AgentlessInstaller();
+		final NewAgentlessInstaller installer = new NewAgentlessInstaller();
 		installer.addListener(new CliAgentlessInstallerListener(this.verbose));
 
 		// Update the logging level of jsch used by the AgentlessInstaller
@@ -499,7 +500,7 @@ public class CloudGridAgentBootstrapper {
 	}
 
 	private void installOnMachines(final long endTime,
-			final AgentlessInstaller installer,
+			final NewAgentlessInstaller installer,
 			final int numOfManagementMachines,
 			final InstallationDetails[] installations)
 			throws InterruptedException, TimeoutException, InstallerException {

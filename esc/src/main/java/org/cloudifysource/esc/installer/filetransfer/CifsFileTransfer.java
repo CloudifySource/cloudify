@@ -24,6 +24,12 @@ import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 
+/*********
+ * A windows CIFS file transfer implementation.
+ * @author barakme
+ * @since 2.5.0
+ *
+ */
 public class CifsFileTransfer extends VfsFileTransfer {
 
 	private static final int CIFS_PORT = 445;
@@ -49,7 +55,7 @@ public class CifsFileTransfer extends VfsFileTransfer {
 			targetURI =
 					new java.net.URI("smb", details.getUsername() + ":" + details.getPassword(), host, CIFS_PORT,
 							details.getRemoteDir(), null, null)
-							.toASCIIString();
+			.toASCIIString();
 		} catch (final URISyntaxException e) {
 			throw new InstallerException("Failed to initialize file transfer: " + e.getMessage(), e);
 		}

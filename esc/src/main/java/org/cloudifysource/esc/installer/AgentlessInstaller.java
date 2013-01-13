@@ -15,15 +15,11 @@
  *******************************************************************************/
 package org.cloudifysource.esc.installer;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -35,52 +31,39 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSelectInfo;
-import org.apache.commons.vfs2.FileSelector;
-import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.FileSystemManager;
-import org.apache.commons.vfs2.FileSystemOptions;
-import org.apache.commons.vfs2.FileType;
-import org.apache.commons.vfs2.VFS;
-import org.apache.commons.vfs2.provider.sftp.SftpFileSystemConfigBuilder;
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.ExitStatusException;
-import org.apache.tools.ant.taskdefs.optional.testing.BuildTimeoutException;
-import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.esc.installer.filetransfer.FileTransfer;
+import org.cloudifysource.esc.installer.filetransfer.FileTransferFactory;
+import org.cloudifysource.esc.installer.remoteExec.RemoteExecutor;
+import org.cloudifysource.esc.installer.remoteExec.RemoteExecutorFactory;
 import org.cloudifysource.esc.util.CalcUtils;
-import org.cloudifysource.esc.util.ShellCommandBuilder;
 import org.cloudifysource.esc.util.Utils;
 
 /************
  * The agentless installer class is responsible for installing Cloudify on a
  * remote machine, using only SSH. It will upload all relevant files and start
  * the Cloudify agent.
- * 
+ *
  * File transfer is handled using Apache commons vfs.
- * 
- * @author barakme, adaml
- * 
+ *
+ * @author barakme
+ *
  */
 public class AgentlessInstaller {
 
-	private static final int MACHINE_ACCESS_NUMBER_OF_RETRIES = 3;
-
-	private static final int TIMEOUT_BETWEEN_MACHINE_ACCESS_ATTEMPTS_MILLIS = 5000;
-
-	private static final String POWERSHELL_CLIENT_SCRIPT = "bootstrap-client.ps1";
-
-	private static final int CIFS_PORT = 445;
+	@Override
+	public String toString() {
+		return "NewAgentlessInstaller [eventsListenersList=" + eventsListenersList + "]";
+	}
 
 	private static final int DEFAULT_ROUTE_RESOLUTION_TIMEOUT = 2 * 60 * 1000; // 2
-																				// minutes
+	// minutes
 
 	private static final String LINUX_STARTUP_SCRIPT_NAME = "bootstrap-management.sh";
 	private static final String POWERSHELL_STARTUP_SCRIPT_NAME = "bootstrap-management.bat";
 
-	
 	private static final String MACHINE_ZONES_ENV = "MACHINE_ZONES";
 
 	private static final String MACHINE_IP_ADDRESS_ENV = "MACHINE_IP_ADDRESS";
@@ -91,13 +74,11 @@ public class AgentlessInstaller {
 
 	private static final String LUS_IP_ADDRESS_ENV = "LUS_IP_ADDRESS";
 
+	private static final String WORKING_HOME_DIRECTORY_ENV = "WORKING_HOME_DIRECTORY";
+
 	private static final String GSA_RESERVATION_ID_ENV = "GSA_RESERVATION_ID";
 
 	private static final String CLOUD_FILE = "CLOUD_FILE";
-	
-	private static final String WORKING_HOME_DIRECTORY_ENV = "WORKING_HOME_DIRECTORY";
-	
-	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 
 	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(AgentlessInstaller.class
 			.getName());
@@ -109,20 +90,8 @@ public class AgentlessInstaller {
 
 	private static final int CONNECTION_TEST_SLEEP_BEFORE_RETRY_MILLIS = 5 * 1000;
 
-	private static final int SSH_PORT = 22;
-
-	// TODO check if this is the proper timeout
-	// timeout of uploading a file over SFTP
-	private static final int SFTP_DISCONNECT_DETECTION_TIMEOUT_MILLIS = 10 * 1000;
-
 	private final List<AgentlessInstallerListener> eventsListenersList = new LinkedList<AgentlessInstallerListener>();
 
-	private static final String[] POWERSHELL_INSTALLED_COMMAND = new String[] { "powershell.exe", "-inputformat",
-			"none", "-?" };
-
-	// indicates if powershell is installed on this host. If null, installation
-	// test was not performed.
-	private static volatile Boolean powerShellInstalled = null;
 	/******
 	 * Name of the logger used for piping out ssh output.
 	 */
@@ -160,7 +129,7 @@ public class AgentlessInstaller {
 
 	/*******
 	 * Checks if a TCP connection to a remote machine and port is possible.
-	 * 
+	 *
 	 * @param ip
 	 *            remote machine ip.
 	 * @param port
@@ -210,344 +179,9 @@ public class AgentlessInstaller {
 
 	}
 
-	/****
-	 * Copies files from local dir to remote dir.
-	 * 
-	 *
-	 * @param details
-	 *            user details of remote machine.
-     * @param host
-     *            host name or ip address of remote machine.
-	 * @param excludedFiles
-	 *            Files that should not be copied.
-	 * @param timeout
-	 *            Time before timeout is thrown.
-	 * @param unit
-	 *            Time unit, relevant to timeout parameter.
-	 * @throws IOException
-	 *             in case of an error during file transfer.
-	 * @throws TimeoutException
-	 * @throws URISyntaxException
-	 * @throws InstallerException
-	 * @throws InterruptedException
-	 */
-	private void copyFiles(final InstallationDetails details, final String host, final Set<String> excludedFiles,
-			final long timeout, final TimeUnit unit) throws IOException, TimeoutException, URISyntaxException,
-			InterruptedException, InstallerException {
-
-		if (timeout < 0) {
-			throw new TimeoutException("Uploading files to host " + host + " timed out");
-		}
-		final long end = System.currentTimeMillis() + unit.toMillis(timeout);
-
-		final FileSystemOptions opts = new FileSystemOptions();
-
-		FileSystemManager createdManager;
-		String target;
-		switch (details.getFileTransferMode()) {
-		case SCP:
-			createdManager = createRemoteSSHFileSystem(details.getKeyFile(), opts, details);
-
-			final String userDetails;
-			if (details.getPassword() != null && details.getPassword().length() > 0) {
-				userDetails = details.getUsername() + ":" + details.getPassword();
-			} else {
-				userDetails = details.getUsername();
-			}
-			target = new java.net.URI("sftp", userDetails, host, SSH_PORT, details.getRemoteDir(), null, null)
-					.toASCIIString();
-			break;
-		case CIFS:
-			checkConnection(host, CIFS_PORT, timeout, unit);
-			createdManager = VFS.getManager();
-
-			target = new java.net.URI("smb", details.getUsername() + ":" + details.getPassword(), host, CIFS_PORT,
-					details.getRemoteDir(), null, null).toASCIIString();
-
-			break;
-		default:
-			throw new UnsupportedOperationException("Unsupported Remote File System: "
-					+ details.getFileTransferMode().toString());
-		}
-
-		// when bootstrapping a management machine, pass all of the cloud
-		// configuration, including all template
-		// for an agent machine, just pass the upload dir fot the specific
-		// template.
-		String localDirPath = details.getLocalDir();
-		if (details.isLus()) {
-			if (details.getCloudFile() == null) {
-				throw new IllegalArgumentException("While bootstrapping a management machine, cloud file is null");
-			}
-
-			localDirPath = details.getCloudFile().getParentFile().getAbsolutePath();
-
-		}
-
-		logger.fine("Setting local directory for file upload to: " + localDirPath);
-		final FileSystemManager mng = createdManager;
-
-		mng.setLogger(org.apache.commons.logging.LogFactory.getLog(logger.getName()));
-		final FileObject localDir = mng.resolveFile("file:" + localDirPath);
-
-		final FileObject remoteDir = resolveTargetDirectory(opts, target, mng);
-
-		logger.fine("Copying files to: " + target + " from local dir: " + localDir.getName().getPath() + " excluding "
-				+ excludedFiles.toString());
-
-		try {
-			remoteDir.copyFrom(localDir, new FileSelector() {
-
-				@Override
-				public boolean includeFile(final FileSelectInfo fileInfo) throws Exception {
-					if (excludedFiles.contains(fileInfo.getFile().getName().getBaseName())) {
-						logger.fine(fileInfo.getFile().getName().getBaseName() + " excluded");
-						return false;
-
-					}
-					// The key file shouldn't be copied to any machine aside
-					// from the management machine.
-					if (details.getKeyFile() != null) {
-						if (fileInfo.getFile().getType() == FileType.FILE) {
-							final String fileName = new File(fileInfo.getFile().getURL().toString()).getName();
-							final String keyFileName = new File(details.getKeyFile()).getName();
-							if (StringUtils.equals(keyFileName, fileName)) {
-								if (!details.isLus()) {
-									return false;
-								}
-							}
-						}
-					}
-
-					final FileObject remoteFile = mng.resolveFile(remoteDir,
-							localDir.getName().getRelativeName(fileInfo.getFile().getName()));
-
-					if (!remoteFile.exists()) {
-						logger.fine(fileInfo.getFile().getName().getBaseName() + " missing on server");
-						return true;
-					}
-
-					if (fileInfo.getFile().getType() == FileType.FILE) {
-						final long remoteSize = remoteFile.getContent().getSize();
-						final long localSize = fileInfo.getFile().getContent().getSize();
-						final boolean res = localSize != remoteSize;
-						if (res) {
-							logger.fine(fileInfo.getFile().getName().getBaseName() + " different on server");
-						}
-						return res;
-					}
-					return false;
-
-				}
-
-				@Override
-				public boolean traverseDescendents(final FileSelectInfo fileInfo) throws Exception {
-					return true;
-				}
-			});
-
-			if (details.getCloudFile() != null) {
-				// copy cloud file too TODO - remote this
-				final FileObject cloudFileParentObject = mng.resolveFile(details.getCloudFile().getParentFile()
-						.getAbsolutePath());
-				final FileObject cloudFileObject = mng.resolveFile(details.getCloudFile().getAbsolutePath());
-				remoteDir.copyFrom(cloudFileParentObject, new FileSelector() {
-
-					@Override
-					public boolean traverseDescendents(final FileSelectInfo fileInfo) throws Exception {
-						return true;
-					}
-
-					@Override
-					public boolean includeFile(final FileSelectInfo fileInfo) throws Exception {
-						return fileInfo.getFile().equals(cloudFileObject);
-
-					}
-				});
-			}
-
-			logger.fine("Copying files to: " + target + " completed.");
-		} finally {
-			mng.closeFileSystem(remoteDir.getFileSystem());
-			mng.closeFileSystem(localDir.getFileSystem());
-		}
-
-		if (end < System.currentTimeMillis()) {
-			throw new TimeoutException("Uploading files to host " + host + " timed out");
-		}
-	}
-
-	private FileObject resolveTargetDirectory(final FileSystemOptions opts, final String target,
-			final FileSystemManager mng) throws FileSystemException {
-		FileSystemException lastException = null;
-		// TODO - move these constants to an external configuration file
-		for (int i = 0; i < MACHINE_ACCESS_NUMBER_OF_RETRIES; ++i) {
-			try {
-				final FileObject targetDirectory = mng.resolveFile(target, opts);
-				logger.fine("Remote directory resolved successfully.");
-				return targetDirectory;
-			} catch (final FileSystemException fse) {
-				logger.fine("Attempt number: " + (i + 1) + " to reslve remote directory failed."
-						+ " This may be a temporary issue while remote machine is starting up.");
-				try {
-					Thread.sleep(TIMEOUT_BETWEEN_MACHINE_ACCESS_ATTEMPTS_MILLIS);
-				} catch (final InterruptedException e) {
-					// ignore
-				}
-				lastException = fse;
-			}
-		}
-		throw lastException;
-	}
-
-	private FileSystemManager createRemoteSSHFileSystem(final String keyFile, final FileSystemOptions opts,
-			final InstallationDetails details) throws FileSystemException, FileNotFoundException {
-		SftpFileSystemConfigBuilder.getInstance().setStrictHostKeyChecking(opts, "no");
-
-		final Object preferredAuthenticationMethods = details.getCustomData().get(
-				CloudifyConstants.INSTALLER_CUSTOM_DATA_SFTP_PREFERRED_AUTHENTICATION_METHODS_KEY);
-
-		if (preferredAuthenticationMethods != null && String.class.isInstance(preferredAuthenticationMethods)) {
-			SftpFileSystemConfigBuilder.getInstance().setPreferredAuthentications(opts,
-					(String) preferredAuthenticationMethods);
-		}
-
-		SftpFileSystemConfigBuilder.getInstance().setUserDirIsRoot(opts, false);
-
-		if (keyFile != null && keyFile.length() > 0) {
-			final File temp = new File(keyFile);
-			if (!temp.exists()) {
-				throw new FileNotFoundException("Could not find key file: " + temp + ". KeyFile " + keyFile
-						+ " that was passed in the installation Details does not exist");
-			}
-			SftpFileSystemConfigBuilder.getInstance().setIdentities(opts, new File[] { temp });
-		}
-
-		SftpFileSystemConfigBuilder.getInstance().setTimeout(opts, SFTP_DISCONNECT_DETECTION_TIMEOUT_MILLIS);
-		return VFS.getManager();
-	}
-
-	/**********
-	 * Cleans up a remote machine. Cleanup over CIFS currently does not work.
-	 * 
-	 * @param details
-	 *            the details of the remote machine.
-	 * @param timeout
-	 *            the timeout value.
-	 * @param unit
-	 *            the timeout unit.
-	 * @throws InstallerException
-	 *             In case of an error in the cleanup.
-	 * @throws TimeoutException
-	 *             If the specified timeout is exceeded.
-	 * @throws InterruptedException
-	 *             If the current thread is interrupted.
-	 */
-	public void uninstallMachine(final InstallationDetails details, final long timeout, final TimeUnit unit)
-			throws InstallerException, TimeoutException, InterruptedException {
-
-		deleteRemoteFiles(details, timeout, unit);
-
-	}
-
-	private void deleteRemoteFiles(final InstallationDetails details, final long timeout, final TimeUnit unit)
-			throws TimeoutException, InstallerException, InterruptedException {
-		final String host = details.isConnectedToPrivateIp() ? details.getPrivateIp() : details.getPublicIp();
-		if (timeout < 0) {
-			throw new TimeoutException("Uploading files to host " + host + " timed out");
-		}
-		final long end = System.currentTimeMillis() + unit.toMillis(timeout);
-
-		final FileSystemOptions opts = new FileSystemOptions();
-
-		FileSystemManager createdManager;
-		String target;
-		switch (details.getFileTransferMode()) {
-		case SCP:
-			try {
-				createdManager = createRemoteSSHFileSystem(details.getKeyFile(), opts, details);
-			} catch (final FileSystemException e) {
-				throw new InstallerException("Failed to load remote file system: " + e.getMessage(), e);
-			} catch (final FileNotFoundException e) {
-				throw new InstallerException("Failed to load remote file system: " + e.getMessage(), e);
-			}
-
-			final String userDetails;
-			if (details.getPassword() != null && details.getPassword().length() > 0) {
-				userDetails = details.getUsername() + ":" + details.getPassword();
-			} else {
-				userDetails = details.getUsername();
-			}
-			try {
-				target = new java.net.URI("sftp", userDetails, host, SSH_PORT, details.getRemoteDir(), null, null)
-						.toASCIIString();
-			} catch (final URISyntaxException e) {
-				throw new InstallerException("Failed to create URI for remote file system", e);
-			}
-			break;
-		case CIFS:
-			checkConnection(host, CIFS_PORT, timeout, unit);
-			try {
-				createdManager = VFS.getManager();
-			} catch (final FileSystemException e) {
-				throw new InstallerException("Failed to load remote file system: " + e.getMessage(), e);
-			}
-
-			try {
-				target = new java.net.URI("smb", details.getUsername() + ":" + details.getPassword(), host, CIFS_PORT,
-						details.getRemoteDir(), null, null).toASCIIString();
-			} catch (final URISyntaxException e) {
-				throw new InstallerException("Failed to create URI for remote file system", e);
-			}
-
-			break;
-		default:
-			throw new UnsupportedOperationException("Unsupported Remote File System: "
-					+ details.getFileTransferMode().toString());
-		}
-
-		// delete all files under remote location
-		final FileSystemManager mng = createdManager;
-
-		mng.setLogger(org.apache.commons.logging.LogFactory.getLog(logger.getName()));
-
-		FileObject remoteDir;
-		try {
-			remoteDir = resolveTargetDirectory(opts, target, mng);
-		} catch (final FileSystemException e) {
-			throw new InstallerException("Failed to load remote location (" + target + "): " + e.getMessage(), e);
-		}
-
-		logger.fine("deleting remote dir: " + remoteDir.getName().getPath());
-
-		try {
-			remoteDir.delete(new FileSelector() {
-
-				@Override
-				public boolean traverseDescendents(final FileSelectInfo fileInfo) throws Exception {
-					return true;
-				}
-
-				@Override
-				public boolean includeFile(final FileSelectInfo fileInfo) throws Exception {
-					return true;
-				}
-			});
-		} catch (final FileSystemException e) {
-
-			throw new InstallerException("Failed to delete remote directory files: " + e.getMessage(), e);
-		} finally {
-			mng.closeFileSystem(remoteDir.getFileSystem());
-		}
-
-		if (end < System.currentTimeMillis()) {
-			throw new TimeoutException("Uploading files to host " + host + " timed out");
-		}
-	}
-
 	/******
 	 * Performs installation on a remote machine with a known IP.
-	 * 
+	 *
 	 * @param details
 	 *            the installation details.
 	 * @param timeout
@@ -570,27 +204,28 @@ public class AgentlessInstaller {
 
 		logger.fine("Executing agentless installer with the following details:\n" + details.toString());
 
+		// this is the right way to get the target, but the naming is off.
 		final String targetHost = details.isConnectedToPrivateIp() ? details.getPrivateIp() : details.getPublicIp();
 
-		int port = 0;
-		switch (details.getFileTransferMode()) {
-		case CIFS:
-			port = CIFS_PORT;
-			break;
-		case SCP:
-			port = SSH_PORT;
-			break;
-		default:
-			throw new UnsupportedOperationException("File Transfer Mode: " + details.getFileTransferMode()
-					+ " not supported");
-		}
+		final int port = details.getFileTransferMode().getDefaultPort();
 
 		publishEvent("attempting_to_access_vm", targetHost);
 		checkConnection(targetHost, port, CalcUtils.millisUntil(end), TimeUnit.MILLISECONDS);
 
-		// upload bootstrap files
-		publishEvent("uploading_files_to_node", targetHost);
-		uploadFilesToServer(details, end, targetHost);
+		File environmentFile = null;
+		// create the environment file
+		try {
+			environmentFile = createEnvironmentFile(details);
+			// upload bootstrap files
+			publishEvent("uploading_files_to_node", targetHost);
+			uploadFilesToServer(details, environmentFile, end, targetHost);
+
+		} catch (final IOException e) {
+			throw new InstallerException("Failed to create environment file", e);
+		} finally {
+			// delete the temp directory and temp env file.
+			FileUtils.deleteQuietly(environmentFile.getParentFile());
+		}
 
 		// launch the cloudify agent
 		publishEvent("launching_agent_on_node", targetHost);
@@ -598,6 +233,114 @@ public class AgentlessInstaller {
 
 		publishEvent("install_completed_on_node", targetHost);
 
+	}
+
+	private File createEnvironmentFile(final InstallationDetails details) throws IOException {
+
+		String remoteDirectory = details.getRemoteDir();
+		if (remoteDirectory.endsWith("/")) {
+			remoteDirectory = remoteDirectory.substring(0, remoteDirectory.length() - 1);
+		}
+		if (details.isLus()) {
+			// add the relative path to the cloud file location
+			remoteDirectory = remoteDirectory + "/" + details.getRelativeLocalDir();
+		}
+
+		String authGroups = null;
+		if (details.getAuthGroups() != null) {
+			// authgroups should be a strongly typed object convertible into a
+			// String
+			authGroups = details.getAuthGroups();
+		}
+
+		final EnvironmentFileBuilder builder = new EnvironmentFileBuilder(details.getScriptLanguage())
+				.exportVar(LUS_IP_ADDRESS_ENV, details.getLocator())
+				.exportVar(GSA_MODE_ENV, details.isLus() ? "lus" : "agent")
+				.exportVar(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR, details.getSecurityProfile())
+				.exportVar(NO_WEB_SERVICES_ENV,
+						details.isNoWebServices() ? "true" : "false")
+				.exportVar(
+						MACHINE_IP_ADDRESS_ENV,
+						details.isBindToPrivateIp() ? details.getPrivateIp()
+								: details.getPublicIp())
+				.exportVar(MACHINE_ZONES_ENV, details.getZones())
+				.exportVarWithQuotes(CloudifyConstants.CLOUDIFY_LINK_ENV,
+						details.getCloudifyUrl())
+				.exportVarWithQuotes(CloudifyConstants.CLOUDIFY_OVERRIDES_LINK_ENV,
+						details.getOverridesUrl())
+				.exportVar(WORKING_HOME_DIRECTORY_ENV, remoteDirectory)
+				.exportVar(CloudifyConstants.GIGASPACES_AUTH_GROUPS, authGroups)
+				.exportVar(CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVATE_IP, details.getPrivateIp())
+				.exportVar(CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP, details.getPublicIp())
+				.exportVar(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME, details.getTemplateName())
+				.exportVar(CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID, details.getMachineId())
+				.exportVar(CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_ID, details.getMachineId())
+
+				// maintain backwards compatibility for pre 2.3.0
+				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, details.getPrivateIp())
+				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, details.getPublicIp());
+
+		if (details.getReservationId() != null) {
+			builder.exportVar(GSA_RESERVATION_ID_ENV, details.getReservationId().toString());
+		}
+
+		if (details.isLus()) {
+			String remotePath = details.getRemoteDir();
+			if (!remotePath.endsWith("/")) {
+				remotePath += "/";
+			}
+			builder.exportVar(CLOUD_FILE, remotePath + details.getCloudFile().getName());
+
+			logger.log(Level.FINE, "Setting ESM/GSM/LUS/GSA/GSC java options");
+
+			builder.exportVar("ESM_JAVA_OPTIONS", details.getEsmCommandlineArgs());
+			builder.exportVar("LUS_JAVA_OPTIONS", details.getLusCommandlineArgs());
+			builder.exportVar("GSM_JAVA_OPTIONS", details.getGsmCommandlineArgs());
+			builder.exportVar("GSA_JAVA_OPTIONS", details.getGsaCommandlineArgs());
+			builder.exportVar("GSC_JAVA_OPTIONS", details.getGscCommandlineArgs());
+
+			if (details.getRestPort() != null) {
+				builder.exportVar(CloudifyConstants.REST_PORT_ENV_VAR, details.getRestPort().toString());
+			}
+			if (details.getRestMaxMemory() != null) {
+				builder.exportVar(CloudifyConstants.REST_MAX_MEMORY_ENVIRONMENT_VAR, details.getRestMaxMemory());
+			}
+			if (details.getWebuiPort() != null) {
+				builder.exportVar(CloudifyConstants.WEBUI_PORT_ENV_VAR, details.getWebuiPort().toString());
+			}
+			if (details.getWebuiMaxMemory() != null) {
+				builder.exportVar(CloudifyConstants.WEBUI_MAX_MEMORY_ENVIRONMENT_VAR, details.getWebuiMaxMemory());
+			}
+		}
+
+		if (details.getUsername() != null) {
+			builder.exportVar("USERNAME", details.getUsername());
+		}
+		if (details.getPassword() != null) {
+			builder.exportVar("PASSWORD", details.getPassword());
+		}
+
+		builder.exportVar(CloudifyConstants.SPRING_SECURITY_CONFIG_FILE_ENV_VAR, details.getRemoteDir()
+				+ "/" + CloudifyConstants.SECURITY_FILE_NAME);
+		if (StringUtils.isNotBlank(details.getKeystorePassword())) {
+			builder.exportVar(CloudifyConstants.KEYSTORE_FILE_ENV_VAR, details.getRemoteDir()
+					+ "/" + CloudifyConstants.KEYSTORE_FILE_NAME);
+			builder.exportVar(CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR, details.getKeystorePassword());
+		}
+
+		final Set<Entry<String, String>> entries = details.getExtraRemoteEnvironmentVariables().entrySet();
+		for (final Entry<String, String> entry : entries) {
+			builder.exportVar(entry.getKey(), entry.getValue());
+		}
+
+		final String fileContents = builder.toString();
+
+		final File tempFolder = Utils.createTempFolder();
+		final File tempFile = new File(tempFolder, builder.getEnvironmentFileName());
+		tempFile.deleteOnExit();
+		FileUtils.writeStringToFile(tempFile, fileContents);
+
+		return tempFile;
 	}
 
 	private void remoteExecuteAgentOnServer(final InstallationDetails details, final long end, final String targetHost)
@@ -610,118 +353,19 @@ public class AgentlessInstaller {
 		if (remoteDirectory.endsWith("/")) {
 			remoteDirectory = remoteDirectory.substring(0, remoteDirectory.length() - 1);
 		}
-		if (details.isLus()) { 
+		if (details.isLus()) {
 			// add the relative path to the cloud file location
 			remoteDirectory = remoteDirectory + "/" + details.getRelativeLocalDir();
 		}
-
 		final String scriptPath = remoteDirectory + "/" + scriptFileName;
 
-		String authGroups = null;
-		if (details.getAuthGroups() != null) {
-			//authgroups should be a strongly typed object convertible into a String
-			authGroups = details.getAuthGroups();
-		}
-		
-		final ShellCommandBuilder scb = new ShellCommandBuilder(details.getRemoteExecutionMode())
-				.exportVar(LUS_IP_ADDRESS_ENV, details.getLocator())
-				.exportVar(GSA_MODE_ENV, details.isLus() ? "lus" : "agent")
-				.exportVar(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR,	details.getSecurityProfile())
-				.exportVar(NO_WEB_SERVICES_ENV,
-						details.isNoWebServices() ? "true" : "false")
-				.exportVar(
-						MACHINE_IP_ADDRESS_ENV,
-						details.isBindToPrivateIp() ? details.getPrivateIp()
-								: details.getPublicIp())
-				.exportVar(MACHINE_ZONES_ENV, details.getZones())
-				.exportVar(CloudifyConstants.CLOUDIFY_LINK_ENV,
-						details.getCloudifyUrl() != null ? "\"" + details.getCloudifyUrl() + "\"" : "")
-				.exportVar(CloudifyConstants.CLOUDIFY_OVERRIDES_LINK_ENV,
-						details.getOverridesUrl() != null ? "\"" + details.getOverridesUrl() + "\"" : "")
-				.exportVar(WORKING_HOME_DIRECTORY_ENV, remoteDirectory)
-				.exportVar(CloudifyConstants.GIGASPACES_AUTH_GROUPS, authGroups)
-				.exportVar(CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVATE_IP, details.getPrivateIp())
-				.exportVar(CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP, details.getPublicIp())
-				.exportVar(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME, details.getTemplateName())
-				.exportVar(CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID, details.getMachineId())
-				.exportVar(CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_ID, details.getMachineId())
+		final RemoteExecutor remoteExecutor =
+				RemoteExecutorFactory.createRemoteExecutorProvider(details.getRemoteExecutionMode());
+		remoteExecutor.initialize(this, details);
+		remoteExecutor.execute(targetHost, details, scriptPath, end);
 
-				// maintain backwards compatibility for pre 2.3.0
-				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, details.getPrivateIp())
-				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, details.getPublicIp());
-			
-		if (details.getReservationId() != null) {
-			scb.exportVar(GSA_RESERVATION_ID_ENV, details.getReservationId().toString());
-		}
+		return;
 
-		if (details.isLus()) {
-			String remotePath = details.getRemoteDir();
-			if (!remotePath.endsWith("/")) {
-				remotePath += "/";
-			}
-			scb.exportVar(CLOUD_FILE, remotePath + details.getCloudFile().getName());
-			
-			logger.log(Level.FINE, "Setting ESM/GSM/LUS/GSA/GSC java options");
-			
-			scb.exportVar("ESM_JAVA_OPTIONS", details.getEsmCommandlineArgs());
-			scb.exportVar("LUS_JAVA_OPTIONS", details.getLusCommandlineArgs());
-			scb.exportVar("GSM_JAVA_OPTIONS", details.getGsmCommandlineArgs());
-			scb.exportVar("GSA_JAVA_OPTIONS", details.getGsaCommandlineArgs());
-			scb.exportVar("GSC_JAVA_OPTIONS", details.getGscCommandlineArgs());
-			
-			if (details.getRestPort() != null) {
-				scb.exportVar(CloudifyConstants.REST_PORT_ENV_VAR, details.getRestPort().toString());
-			}
-			if (details.getRestMaxMemory() != null) {
-				scb.exportVar(CloudifyConstants.REST_MAX_MEMORY_ENVIRONMENT_VAR, details.getRestMaxMemory());
-			}
-			if (details.getWebuiPort() != null) {
-				scb.exportVar(CloudifyConstants.WEBUI_PORT_ENV_VAR, details.getWebuiPort().toString());
-			}
-			if (details.getWebuiMaxMemory() != null) {
-				scb.exportVar(CloudifyConstants.WEBUI_MAX_MEMORY_ENVIRONMENT_VAR, details.getWebuiMaxMemory());
-			}
-		}
-		
-		if (details.getUsername() != null) {
-			scb.exportVar("USERNAME", details.getUsername());
-		}
-		if (details.getPassword() != null) {
-			scb.exportVar("PASSWORD", details.getPassword());
-		}
-		scb.exportVar(CloudifyConstants.SPRING_SECURITY_CONFIG_FILE_ENV_VAR, details.getRemoteDir() 
-				+ "/" + CloudifyConstants.SECURITY_FILE_NAME);
-		if (StringUtils.isNotBlank(details.getKeystorePassword())) {
-			scb.exportVar(CloudifyConstants.KEYSTORE_FILE_ENV_VAR, details.getRemoteDir() 
-					+ "/" + CloudifyConstants.KEYSTORE_FILE_NAME);
-			scb.exportVar(CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR, details.getKeystorePassword());
-		}
-
-		final Set<Entry<String, String>> entries = details.getExtraRemoteEnvironmentVariables().entrySet();
-		for (final Entry<String, String> entry : entries) {
-			scb.exportVar(entry.getKey(), entry.getValue());
-		}
-
-		scb.chmodExecutable(scriptPath).call(scriptPath);
-
-		final String command = scb.toString();
-
-		logger.fine("Calling startup script on target: " + targetHost + " with LOCATOR=" + details.getLocator()
-				+ "\nThis may take a few minutes. command is: " + command);
-
-		switch (details.getRemoteExecutionMode()) {
-		case SSH:
-			sshCommand(targetHost, command, details.getUsername(), details.getPassword(), details.getKeyFile(),
-					CalcUtils.millisUntil(end), TimeUnit.MILLISECONDS);
-
-			break;
-		case WINRM:
-			powershellCommand(targetHost, command, details.getUsername(), details.getPassword(), details.getKeyFile(),
-					CalcUtils.millisUntil(end), TimeUnit.MILLISECONDS, details.getLocalDir());
-			break;
-		default:
-			throw new UnsupportedOperationException();
-		}
 	}
 
 	private String getScriptFileName(final InstallationDetails details) {
@@ -729,8 +373,7 @@ public class AgentlessInstaller {
 
 		switch (details.getRemoteExecutionMode()) {
 		case WINRM:
-			scriptFileName = POWERSHELL_STARTUP_SCRIPT_NAME + "";
-			// scriptFileName = "bootstrap-management.ps1";
+			scriptFileName = POWERSHELL_STARTUP_SCRIPT_NAME;
 			break;
 		case SSH:
 			scriptFileName = LINUX_STARTUP_SCRIPT_NAME;
@@ -742,178 +385,24 @@ public class AgentlessInstaller {
 		return scriptFileName;
 	}
 
-	private void uploadFilesToServer(final InstallationDetails details, final long end, final String targetHost)
+	private void uploadFilesToServer(final InstallationDetails details, final File environmentFile, final long end,
+			final String targetHost)
 			throws TimeoutException, InstallerException, InterruptedException {
-		try {
-			final Set<String> excludedFiles = new HashSet<String>();
-			if (!details.isLus() && details.getManagementOnlyFiles() != null) {
-				excludedFiles.addAll(Arrays.asList(details.getManagementOnlyFiles()));
-			}
-			copyFiles(details, targetHost, excludedFiles, CalcUtils.millisUntil(end), TimeUnit.MILLISECONDS);
-		} catch (final FileSystemException e) {
-			throw new InstallerException("Uploading files to remote server failed.", e);
-		} catch (final IOException e) {
-			throw new InstallerException("Uploading files to remote server failed.", e);
-		} catch (final URISyntaxException e) {
-			throw new InstallerException("Uploading files to remote server failed.", e);
-		}
-	}
 
-	private List<String> getPowershellCommandLine(final String target, final String username, final String password,
-			final String command, final String localDir) throws FileNotFoundException {
-
-		final File clientScriptFile = new File(localDir, POWERSHELL_CLIENT_SCRIPT);
-		if (!clientScriptFile.exists()) {
-			throw new FileNotFoundException(
-					"Could not find expected powershell client script in local directory. Was expecting file: "
-							+ clientScriptFile.getAbsolutePath());
-		}
-		final String[] commandLineParts = { "powershell.exe", "-inputformat", "none", "-File",
-				clientScriptFile.getAbsolutePath(), "-target", target, "-password", quoteString(password), "-username",
-				quoteString(username), "-command", quoteString(command) };
-
-		return Arrays.asList(commandLineParts);
-	}
-
-	private String quoteString(final String input) {
-		return "\"" + input + "\"";
-	}
-
-	private void powershellCommand(final String targetHost, final String command, final String username,
-			final String password, final String keyFile, final long millisUntil, final TimeUnit milliseconds,
-			final String localDir) throws InstallerException, InterruptedException, TimeoutException {
-		logger.fine("Executing: " + command + " on: " + targetHost);
-
-		logger.fine("Checking if powershell is installed");
-		try {
-			checkPowershellInstalled();
-		} catch (final IOException e) {
-			throw new InstallerException("Error while trying to find powershell.exe", e);
+		final Set<String> excludedFiles = new HashSet<String>();
+		if (!details.isLus() && details.getManagementOnlyFiles() != null) {
+			excludedFiles.addAll(Arrays.asList(details.getManagementOnlyFiles()));
 		}
 
-		logger.fine("Checking WinRM Connection");
-		checkConnection(targetHost, RemoteExecutionModes.WINRM.getPort(), millisUntil, milliseconds);
-
-		logger.fine("Executing remote command");
-		try {
-			invokeRemotePowershellCommand(targetHost, command, username, password, localDir);
-		} catch (final FileNotFoundException e) {
-			throw new InstallerException("Failed to invoke remote powershell command", e);
-		}
-
-	}
-
-	private String invokeRemotePowershellCommand(final String targetHost, final String command, final String username,
-			final String password, final String localDir) throws InstallerException, InterruptedException,
-			FileNotFoundException {
-
-		final List<String> fullCommand = getPowershellCommandLine(targetHost, username, password, command, localDir);
-
-		final ProcessBuilder pb = new ProcessBuilder(fullCommand);
-		pb.redirectErrorStream(true);
-
-		try {
-			final Process p = pb.start();
-
-			final String output = readProcessOutput(p);
-			final int exitCode = p.waitFor();
-			if (exitCode != 0) {
-				throw new InstallerException("Remote installation failed with exit code: " + exitCode
-						+ ". Execution output: " + output);
-			}
-			return output;
-		} catch (final IOException e) {
-			throw new InstallerException("Failed to invoke remote installation: " + e.getMessage(), e);
-		}
-	}
-
-	private void checkPowershellInstalled() throws IOException, InterruptedException, InstallerException {
-		if (powerShellInstalled != null) {
-			if (powerShellInstalled.booleanValue()) {
-				return;
-			}
-			throw new InstallerException(
-					"powershell.exe is not on installed, or is not available on the system path. "
-					+ "Powershell is required on both client and server for Cloudify to work on Windows. ");
-		}
-
-		logger.fine("Checking if powershell is installed using: " + Arrays.toString(POWERSHELL_INSTALLED_COMMAND));
-		final ProcessBuilder pb = new ProcessBuilder(Arrays.asList(POWERSHELL_INSTALLED_COMMAND));
-		pb.redirectErrorStream(true);
-
-		final Process p = pb.start();
-
-		final String output = readProcessOutput(p);
-
-		logger.fine("Finished reading output");
-		final int retval = p.waitFor();
-		logger.fine("Powershell installed command exit value: " + retval);
-		if (retval != 0) {
-			throw new InstallerException("powershell.exe is not on installed, or is not available on the system path. "
-					+ "Powershell is required on both client and server for Cloudify to work on Windows. "
-					+ "Execution result: " + output);
-		}
-
-		powerShellInstalled = Boolean.TRUE;
-	}
-
-	private String readProcessOutput(final Process p) throws IOException {
-		final StringBuilder sb = new StringBuilder();
-		final BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-		try {
-			final String newline = System.getProperty("line.separator");
-			while (true) {
-				final String line = reader.readLine();
-				if (line == null) {
-					break;
-				}
-				this.publishEvent("powershell_output_line", line);
-				logger.fine(line);
-				sb.append(line).append(newline);
-			}
-
-		} finally {
-			try {
-				reader.close();
-			} catch (final IOException e) {
-				logger.log(Level.SEVERE, "Error while closing process input stream: " + e.getMessage(), e);
-
-			}
-
-		}
-		return sb.toString();
-	}
-
-	private void sshCommand(final String host, final String command, final String username, final String password,
-			final String keyFile, final long timeout, final TimeUnit unit) throws InstallerException, TimeoutException {
-
-		try {
-			Utils.executeSSHCommand(host, command, username, password, keyFile, timeout, unit);
-		} catch (final BuildException e) {
-			// There really should be a better way to check that this is a
-			// timeout
-			logger.log(Level.FINE, "The remote boostrap command failed with error: " + e.getMessage()
-					+ ". The command that failed to execute is : " + command, e);
-
-			if (e instanceof BuildTimeoutException) {
-				final TimeoutException ex = new TimeoutException("Remote bootstrap command failed to execute: "
-						+ e.getMessage());
-				ex.initCause(e);
-				throw ex;
-			} else if (e instanceof ExitStatusException) {
-				final ExitStatusException ex = (ExitStatusException) e;
-				final int ec = ex.getStatus();
-				throw new InstallerException("Remote bootstrap command failed with exit code: " + ec, e);
-			} else {
-				throw new InstallerException("Remote bootstrap command failed to execute.", e);
-			}
-		}
+		final FileTransfer fileTransfer = FileTransferFactory.getFileTrasnferProvider(details.getFileTransferMode());
+		fileTransfer.initialize(details, end);
+		fileTransfer.copyFiles(details, excludedFiles, Arrays.asList(environmentFile), end);
 
 	}
 
 	/**********
 	 * Registers an event listener for installation events.
-	 * 
+	 *
 	 * @param listener
 	 *            the listener.
 	 */
@@ -924,7 +413,7 @@ public class AgentlessInstaller {
 	/*********
 	 * This method is public so that implementation classes for file copy and
 	 * remote execution can publish events.
-	 * 
+	 *
 	 * @param eventName
 	 *            .
 	 * @param args

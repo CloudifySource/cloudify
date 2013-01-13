@@ -24,8 +24,8 @@ import org.cloudifysource.esc.installer.InstallerException;
 
 public interface RemoteExecutor {
 
-	public void execute(final InstallationDetails details, final String command, final long endTimeMillis)
-			throws InstallerException, TimeoutException;
+	public void execute(String targetHost, final InstallationDetails details, final String command, final long endTimeMillis)
+			throws InstallerException, TimeoutException, InterruptedException;
 
 	public boolean isRunInBackground();
 

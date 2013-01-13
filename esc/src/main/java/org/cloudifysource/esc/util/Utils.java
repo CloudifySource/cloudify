@@ -17,6 +17,7 @@ package org.cloudifysource.esc.util;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -42,12 +43,13 @@ import org.openspaces.admin.AdminFactory;
 import org.openspaces.admin.gsa.GSAReservationId;
 import org.openspaces.admin.gsm.GridServiceManagers;
 import org.openspaces.admin.zone.config.ExactZonesConfig;
+import org.openspaces.core.util.FileUtils;
 
 import com.gigaspaces.internal.utils.StringUtils;
 
 /**
  * Utilities class.
- * 
+ *
  * @author noak
  * @since 2.0.0
  */
@@ -64,7 +66,7 @@ public final class Utils {
 	/**
 	 * Gets a "full" admin object. The function waits until all
 	 * GridServiceManagers are found before returning the object.
-	 * 
+	 *
 	 * @param managementIP
 	 *            The IP of the management machine to connect to (through the
 	 *            default LUS port)
@@ -102,7 +104,7 @@ public final class Utils {
 	/**
 	 * Executes a SSH command. An Ant BuildException is thrown in case of an
 	 * error.
-	 * 
+	 *
 	 * @param host
 	 *            The host to run the command on
 	 * @param command
@@ -124,7 +126,7 @@ public final class Utils {
 	 */
 	public static void executeSSHCommand(final String host, final String command, final String username,
 			final String password, final String keyFile, final long timeout, final TimeUnit unit)
-			throws TimeoutException {
+					throws TimeoutException {
 
 		final LoggerOutputStream loggerOutputStream = new LoggerOutputStream(
 				Logger.getLogger(AgentlessInstaller.SSH_OUTPUT_LOGGER_NAME));
@@ -154,7 +156,7 @@ public final class Utils {
 	/*************************
 	 * Creates an Agentless Installer's InstallationDetails input object from a
 	 * machine details object returned from a provisioning implementation.
-	 * 
+	 *
 	 * @param md
 	 *            the machine details.
 	 * @param cloud
@@ -181,7 +183,9 @@ public final class Utils {
 	 * @param keystorePassword
 	 *            The password to the keystore set on the rest server
 	 * @param authGroups
-	 * 			  The authentication groups attached to the GSA as an environment variable {@link CloudifyConstants#GIGASPACES_AUTH_GROUPS}
+	 *            The authentication groups attached to the GSA as an
+	 *            environment variable
+	 *            {@link CloudifyConstants#GIGASPACES_AUTH_GROUPS}
 	 * @return the installation details.
 	 * @throws FileNotFoundException
 	 *             if a key file is specified and is not found.
@@ -194,16 +198,16 @@ public final class Utils {
 			final GSAReservationId reservationId,
 			final String templateName,
 			final String securityProfile,
-			final String keystorePassword, 
+			final String keystorePassword,
 			final String authGroups)
-			throws FileNotFoundException {
+					throws FileNotFoundException {
 
 		final InstallationDetails details = new InstallationDetails();
 
 		details.setBindToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		details.setLocalDir(template.getAbsoluteUploadDir());
 		details.setRelativeLocalDir(template.getLocalDirectory());
-		
+
 		final String remoteDir = template.getRemoteDirectory();
 		details.setRemoteDir(remoteDir);
 
@@ -232,6 +236,7 @@ public final class Utils {
 		details.setPassword(md.getRemotePassword());
 		details.setRemoteExecutionMode(md.getRemoteExecutionMode());
 		details.setFileTransferMode(md.getFileTransferMode());
+		details.setScriptLanguage(md.getScriptLangeuage());
 
 		details.setCloudFile(cloudFile);
 		details.setLus(isManagement);
@@ -239,7 +244,7 @@ public final class Utils {
 			details.setConnectedToPrivateIp(!cloud.getConfiguration().isBootstrapManagementOnPublicIp());
 			details.setSecurityProfile(securityProfile);
 			details.setKeystorePassword(keystorePassword);
-			
+
 			//setting management grid components command-line arguments
 			GridComponents componentsConfig = cloud.getConfiguration().getComponents();
 			details.setEsmCommandlineArgs(Utils.getGridComponentCommandlineArgs(componentsConfig.getOrchestrator()));
@@ -247,17 +252,17 @@ public final class Utils {
 			details.setLusCommandlineArgs(Utils.getGridComponentCommandlineArgs(componentsConfig.getDiscovery()));
 			details.setGsaCommandlineArgs(Utils.getGridComponentCommandlineArgs(componentsConfig.getAgent()));
 			details.setGscCommandlineArgs(Utils.getGridComponentCommandlineArgs(componentsConfig.getUsm()));
-			
+
 			//setting web service ports and memory allocation
 			details.setRestPort(componentsConfig.getRest().getPort());
 			details.setWebuiPort(componentsConfig.getWebui().getPort());
 			details.setRestMaxMemory(componentsConfig.getRest().getMaxMemory());
 			details.setWebuiMaxMemory(componentsConfig.getWebui().getMaxMemory());
-			
+
 		} else {
 			details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		}
-		
+
 		// Add all template custom data fields starting with 'installer.' to the
 		// installation details
 		final Set<Entry<String, Object>> customEntries = template.getCustom().entrySet();
@@ -304,7 +309,8 @@ public final class Utils {
 
 		// Add the template initialization command
 		if (!org.apache.commons.lang.StringUtils.isBlank(template.getInitializationCommand())) {
-			// the initialization command may include command separators (like ';') so quote it
+			// the initialization command may include command separators (like
+			// ';') so quote it
 			final String command = template.getInitializationCommand();
 			final String quotedCommand = "\"" + command + "\"";
 
@@ -314,7 +320,7 @@ public final class Utils {
 
 		// Add the template custom environment
 		final Set<Entry<String, String>> entries = template.getEnv().entrySet();
-		for (Entry<String, String> entry : entries) {
+		for (final Entry<String, String> entry : entries) {
 			details.getExtraRemoteEnvironmentVariables().put(entry.getKey(), entry.getValue());
 		}
 
@@ -327,10 +333,12 @@ public final class Utils {
 		details.setTemplateName(templateName);
 
 		details.setMachineId(md.getMachineId());
-		
+
 		if (authGroups != null) {
 			details.setAuthGroups(authGroups);
 		}
+
+		details.setDeleteRemoteDirectoryContents(md.isCleanRemoteDirectoryOnStart());
 		logger.fine("Created InstallationDetails: " + details);
 		return details;
 	}
@@ -340,25 +348,25 @@ public final class Utils {
 		Integer port = component.getPort();
 		String maxMemory = component.getMaxMemory();
 		String minMemory = component.getMinMemory();
-		
+
 		StringBuilder sb = new StringBuilder();
 		sb.append('"');
 		if (maxMemory != null) {
 			sb.append(" -Xmx" + maxMemory);
 		}
-		
+
 		if (minMemory != null) {
 			sb.append(" -Xms" + minMemory);
 		}
-		
+
 		if (component instanceof DeployerComponent) {
 			Integer websterPort = ((DeployerComponent) component).getWebsterPort();
 			if (websterPort != null) {
 				sb.append(" -D" + CloudifyConstants.GSM_HTTP_PORT_CONTEXT_PROPERTY + "="
-					+ websterPort);
+						+ websterPort);
 			}
 		}
-		
+
 		if (component instanceof UsmComponent) {
 			String portRange = ((UsmComponent) component).getPortRange();
 			if (org.apache.commons.lang.StringUtils.isNotBlank(portRange)) {
@@ -366,27 +374,48 @@ public final class Utils {
 						+ portRange);
 			}
 		}
-		
+
 		if (component instanceof DiscoveryComponent) {
 			if (port != null) {
-				sb.append(" -D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY + "=" 
+				sb.append(" -D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY + "="
 						+ port);
 			} else {
-				sb.append(" -D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY + "=" 
+				sb.append(" -D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY + "="
 						+ CloudifyConstants.DEFAULT_LUS_PORT);
 			}
 		}
-		
+
 		if (component instanceof AgentComponent) {
 			if (port != null) {
-				sb.append(" -D" + CloudifyConstants.AGENT_PORT_CONTEXT_PROPERTY + "=" 
+				sb.append(" -D" + CloudifyConstants.AGENT_PORT_CONTEXT_PROPERTY + "="
 						+ port);
 			}
 		}
-		
+
 		sb.append('"');
 		return sb.toString();
-		
+
 	}
-	
+
+	/***********
+	 * Created a temporary folder.
+	 *
+	 * @return the folder.
+	 */
+	public static File createTempFolder() {
+		File tempFile;
+		try {
+			tempFile = File.createTempFile("cloudify", "tmp");
+		} catch (final IOException e) {
+			throw new IllegalStateException("Failed to create temp file", e);
+		}
+		FileUtils.deleteFileOrDirectory(tempFile);
+
+		final boolean created = tempFile.mkdirs();
+		if (!created) {
+			throw new IllegalStateException("Failed to create temp file " + tempFile);
+		}
+		return tempFile;
+	}
+
 }

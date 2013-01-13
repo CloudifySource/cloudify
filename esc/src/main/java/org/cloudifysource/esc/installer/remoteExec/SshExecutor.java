@@ -28,6 +28,13 @@ import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.util.Utils;
 
+/*********
+ * Executor implementation for SSH remote calls.
+ * Uses Ant ssh task.
+ *
+ * @author barakme
+ * @since 2.5.0
+ */
 public class SshExecutor implements RemoteExecutor {
 
 	private static final String SSH_COMMAND_SEPARATOR = ";";
@@ -42,8 +49,9 @@ public class SshExecutor implements RemoteExecutor {
 
 	/*******
 	 * Adds a command to the command line.
-	 * 
-	 * @param str the command to add.
+	 *
+	 * @param str
+	 *            the command to add.
 	 * @return this.
 	 */
 	@Override
@@ -55,7 +63,7 @@ public class SshExecutor implements RemoteExecutor {
 
 	/********
 	 * Adds a separator.
-	 * 
+	 *
 	 * @return this.
 	 */
 	@Override
@@ -66,9 +74,11 @@ public class SshExecutor implements RemoteExecutor {
 
 	/*********
 	 * Adds an environment variable to the command line.
-	 * 
-	 * @param name variable name.
-	 * @param value variable value.
+	 *
+	 * @param name
+	 *            variable name.
+	 * @param value
+	 *            variable value.
 	 * @return this.
 	 */
 	@Override
@@ -94,7 +104,7 @@ public class SshExecutor implements RemoteExecutor {
 
 	/*****
 	 * Marks a command line to be executed in the background.
-	 * 
+	 *
 	 * @return this.
 	 */
 	@Override
@@ -116,25 +126,22 @@ public class SshExecutor implements RemoteExecutor {
 	}
 
 	@Override
-	public void execute(final InstallationDetails details, final String command,
+	public void execute(final String targetHost, final InstallationDetails details, final String scriptPath,
 			final long endTimeMillis)
-			throws InstallerException, TimeoutException {
+			throws InstallerException, TimeoutException, InterruptedException {
 
-		String host = null;
-		if (details.isConnectedToPrivateIp()) {
-			host = details.getPrivateIp();
-		} else {
-			host = details.getPublicIp();
-		}
+		final String fullCommand = "chmod +x " + scriptPath + ";" + scriptPath;
 
+		// TODO - replace Ant based ssh command implementation with sshj
 		try {
-			Utils.executeSSHCommand(host, command, details.getUsername(), details.getPassword(), details.getKeyFile(),
+			Utils.executeSSHCommand(targetHost, fullCommand, details.getUsername(), details.getPassword(),
+					details.getKeyFile(),
 					endTimeMillis - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 		} catch (final BuildException e) {
 			// There really should be a better way to check that this is a
 			// timeout
 			logger.log(Level.FINE, "The remote boostrap command failed with error: " + e.getMessage()
-					+ ". The command that failed to execute is : " + command, e);
+					+ ". The command that failed to execute is : " + fullCommand, e);
 
 			if (e instanceof BuildTimeoutException) {
 				final TimeoutException ex =
@@ -152,7 +159,6 @@ public class SshExecutor implements RemoteExecutor {
 
 	}
 
-	
 	@Override
 	public void initialize(final AgentlessInstaller installer, final InstallationDetails details) {
 	}

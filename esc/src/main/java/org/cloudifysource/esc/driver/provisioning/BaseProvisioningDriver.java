@@ -40,8 +40,6 @@ import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClas
 import org.jclouds.util.CredentialUtils;
 import org.openspaces.admin.Admin;
 
-import com.j_spaces.kernel.Environment;
-
 /**
  * @author noak
  * @since 2.0.1
@@ -78,9 +76,11 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	protected final Map<String, Long> stoppingMachines = new ConcurrentHashMap<String, Long>();
 
 	/**
-	 * Initializing the cloud deployer according to the given cloud configuration.
+	 * Initializing the cloud deployer according to the given cloud
+	 * configuration.
 	 * 
-	 * @param cloud Cloud object to use
+	 * @param cloud
+	 *            Cloud object to use
 	 */
 	protected abstract void initDeployer(final Cloud cloud);
 
@@ -106,7 +106,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	}
 
 	@Override
-	public void setConfig(final Cloud cloud, final String cloudTemplateName, 
+	public void setConfig(final Cloud cloud, final String cloudTemplateName,
 			final boolean management, final String serviceName) {
 
 		this.cloud = cloud;
@@ -154,21 +154,26 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	}
 
 	/**
-	 * Handles credentials for accessing the server - in this order: 1. pem file (set as a key file on the user block in
-	 * the groovy file) 2. machine's remote password (set previously by the cloud driver)
+	 * Handles credentials for accessing the server - in this order: 1. pem file
+	 * (set as a key file on the user block in the groovy file) 2. machine's
+	 * remote password (set previously by the cloud driver)
 	 * 
-	 * @param machineDetails The MachineDetails object that represents this server
-	 * @param template the cloud template.
-	 * @throws CloudProvisioningException Indicates missing credentials or IOException (when a key file is used)
+	 * @param machineDetails
+	 *            The MachineDetails object that represents this server
+	 * @param template
+	 *            the cloud template.
+	 * @throws CloudProvisioningException
+	 *             Indicates missing credentials or IOException (when a key file
+	 *             is used)
 	 */
 	protected void handleServerCredentials(final MachineDetails machineDetails, final CloudTemplate template)
 			throws CloudProvisioningException {
 
 		File keyFile = null;
 		// using a key (pem) file
-		String keyFileStr = template.getKeyFile();
+		final String keyFileStr = template.getKeyFile();
 		if (StringUtils.isNotBlank(keyFileStr)) {
-			//fixConfigRelativePaths(cloud, template);
+			// fixConfigRelativePaths(cloud, template);
 			keyFile = new File(keyFileStr);
 			if (!keyFile.isAbsolute()) {
 				keyFile = new File(template.getAbsoluteUploadDir(), keyFileStr);
@@ -179,7 +184,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 			}
 		} else {
 			// using a password
-			String remotePassword = machineDetails.getRemotePassword();
+			final String remotePassword = machineDetails.getRemotePassword();
 			if (StringUtils.isNotBlank(remotePassword)) {
 				// is this actually a pem file?
 				if (CredentialUtils.isPrivateKeyCredential(remotePassword)) {
@@ -188,8 +193,10 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 						keyFile = File.createTempFile("gs-esm-key", ".pem");
 						keyFile.deleteOnExit();
 						FileUtils.write(keyFile, remotePassword);
-						// TODO : stop settings the machine's private key as the entire cloud's key. This would cause
-						// a problem if the cloud (i.e. Rackspace) returns a different key for each machine.
+						// TODO : stop settings the machine's private key as the
+						// entire cloud's key. This would cause
+						// a problem if the cloud (i.e. Rackspace) returns a
+						// different key for each machine.
 						template.setKeyFile(keyFile.getAbsolutePath());
 					} catch (final IOException e) {
 						throw new CloudProvisioningException("Failed to create a temporary "
@@ -200,7 +207,8 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 					logger.fine("Cloud has provided a password for remote connections to new machines");
 				}
 			} else {
-				// if we got here - there is no key file or password on the cloud or node.
+				// if we got here - there is no key file or password on the
+				// cloud or node.
 				logger.severe("No Password or key file specified in the cloud configuration file - connection to"
 						+ " the new machine is not possible.");
 				throw new CloudProvisioningException(
@@ -212,10 +220,13 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	}
 
 	/**
-	 * Publish a provisioning event occurred for the listeners registered on this class.
+	 * Publish a provisioning event occurred for the listeners registered on
+	 * this class.
 	 * 
-	 * @param eventName The name of the event (must be in the message bundle)
-	 * @param args Arguments that complement the event message
+	 * @param eventName
+	 *            The name of the event (must be in the message bundle)
+	 * @param args
+	 *            Arguments that complement the event message
 	 */
 	protected void publishEvent(final String eventName, final Object... args) {
 		for (final ProvisioningDriverListener listener : this.eventsListenersList) {
@@ -223,19 +234,29 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		}
 	}
 
-	/**
-	 * Sets the localDirectory setting of the given cloud object to an absolute path, based on the home directory.
+	/*********
+	 * Created a machine details with basic settings from the given cloud
+	 * template.
 	 * 
-	 * @param cloud The cloud object to configure
-	 * @param template the cloud template
+	 * @param template
+	 *            the cloud template.
+	 * @return the newly created machine details.
 	 */
-	protected void fixConfigRelativePaths(final Cloud cloud, final CloudTemplate template) {
-		String configLocalDir = template.getLocalDirectory(); // TODO - this code is not needed sinc
-		if (configLocalDir != null && !new File(configLocalDir).isAbsolute()) {
-			String envHomeDir = Environment.getHomeDirectory();
-			logger.fine("Assuming " + configLocalDir + " is in " + envHomeDir);
-			template.setLocalDirectory(new File(envHomeDir, configLocalDir).getAbsolutePath());
-		}
+	protected MachineDetails createMachineDetailsForTemplate(final CloudTemplate template) {
+
+		final MachineDetails md = new MachineDetails();
+		md.setAgentRunning(false);
+		md.setCloudifyInstalled(false);
+		md.setInstallationDirectory(null);
+
+		md.setRemoteUsername(template.getUsername());
+		md.setRemotePassword(template.getPassword());
+
+		md.setRemoteExecutionMode(template.getRemoteExecution());
+		md.setFileTransferMode(template.getFileTransfer());
+		md.setScriptLangeuage(template.getScriptLanguage());
+		return md;
+
 	}
 	
 	protected MachineDetails[] doStartManagementMachines(final long endTime, final int numberOfManagementMachines)

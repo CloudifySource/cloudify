@@ -26,11 +26,26 @@ package org.cloudifysource.dsl.cloud;
 public enum FileTransferModes {
 
 	/*****
-	 * Secure Copy. Typically used for linux.
+	 * Secure FTP. Typically used for linux.
 	 */
-	SCP,
+	SFTP(22),
+	
+	/*******
+	 * Secure copy. Used for linux when SFTP is not enabled.
+	 */
+	SCP(22),
 	/*******
 	 * Windows file sharing.
 	 */
-	CIFS
+	CIFS(445);
+	
+	private final int defaultPort;
+	
+	private FileTransferModes(final int defaultPort) {
+		this.defaultPort = defaultPort;
+	}
+
+	public int getDefaultPort() {
+		return defaultPort;
+	}
 }

@@ -27,6 +27,12 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 
+/*******
+ * An sftp based file transfer implementation.
+ * @author barakme
+ * @since 2.5.0
+ *
+ */
 public class SftpFileTransfer extends VfsFileTransfer implements FileTransfer {
 
 	@Override
@@ -87,7 +93,7 @@ public class SftpFileTransfer extends VfsFileTransfer implements FileTransfer {
 		try {
 			targetURI =
 					new java.net.URI("sftp", userDetails, host, SSH_PORT, details.getRemoteDir(), null, null)
-							.toASCIIString();
+			.toASCIIString();
 		} catch (final URISyntaxException e) {
 			throw new InstallerException("Failed to set up file transfer: " + e.getMessage(), e);
 

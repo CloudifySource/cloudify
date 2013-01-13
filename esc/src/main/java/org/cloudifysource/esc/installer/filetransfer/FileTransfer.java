@@ -16,19 +16,57 @@
 
 package org.cloudifysource.esc.installer.filetransfer;
 
+import java.io.File;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 
+/******
+ * Interface for file transfer implementation.
+ * 
+ * @author barakme
+ * @since 2.5.0
+ * 
+ */
 public interface FileTransfer {
 
-	void copyFiles(InstallationDetails details, String sourceFile, String targetFile, Set<String> excludedFiles,
+	/************
+	 * Copies the required files from the local directory.
+	 * 
+	 * @param details
+	 *            the installation details.
+	 * @param excludedFiles
+	 *            files to be excluded from the copy operation.
+	 * @param additionalFiles
+	 *            additional files to be copied that are not in the local
+	 *            directory.
+	 * @param endTimeMillis
+	 *            timeout time for this operation.
+	 * @throws TimeoutException
+	 *             if the timeout target time is exceeded.
+	 * @throws InstallerException
+	 *             if there was a problem.
+	 */
+	void copyFiles(InstallationDetails details, Set<String> excludedFiles, List<File> additionalFiles,
 			long endTimeMillis)
-			throws TimeoutException, InstallerException;
+					throws TimeoutException, InstallerException;
 
-	public void initialize(final InstallationDetails details, final long endTimeMillis)
+	/**********
+	 * Initializes the file transfer implementation.
+	 * 
+	 * @param details
+	 *            the installation details.
+	 * @param endTimeMillis
+	 *            the target end time.
+	 * @throws TimeoutException
+	 *             if the timeout was exceeded.
+	 * @throws InstallerException
+	 *             if there was a problem.
+	 */
+	void initialize(final InstallationDetails details, final long endTimeMillis)
 			throws TimeoutException, InstallerException;
 
 }

@@ -35,7 +35,7 @@ import com.j_spaces.kernel.PlatformVersion;
 public class CloudProvider {
 
 	private String provider;
-	
+
 	private String cloudifyUrl = getCloudifyUrlAccordingToPlatformVersion();
 
 	// location of zip file where additional cloudify files are places.
@@ -65,7 +65,7 @@ public class CloudProvider {
 
 	public void setProvider(final String provider) {
 		this.provider = provider;
-	}	
+	}
 
 	public String getCloudifyUrl() {
 		return this.cloudifyUrl;
@@ -113,7 +113,7 @@ public class CloudProvider {
 	public List<String> getZones() {
 		return zones;
 	}
-	
+
 	@Deprecated
 	public void setZones(final List<String> zones) {
 		this.zones = zones;
@@ -137,6 +137,18 @@ public class CloudProvider {
 		this.numberOfManagementMachines = numberOfManagementMachines;
 	}
 
+	/**********
+	 * The reservedMemoryCapacityPerMachineInMB is the estimated amount of RAM
+	 * used by the operating system and the agent running on the machine. 
+	 * It is not relevant when you install one instance per machine (which is the
+	 * default Global mode). 
+	 * It is relevant when you enable multiple instances
+	 * on the same machine. In that case the plan needs to take the amount of
+	 * estimated memory used by each instance plus the reserved memory estimate
+	 * and compares it to the memory of the machine.
+	 * 
+	 * @return .
+	 */
 	public int getReservedMemoryCapacityPerMachineInMB() {
 		return reservedMemoryCapacityPerMachineInMB;
 	}
@@ -156,7 +168,7 @@ public class CloudProvider {
 
 	@Override
 	public String toString() {
-		return "CloudProvider [provider=" + provider 
+		return "CloudProvider [provider=" + provider
 				+ ", cloudifyUrl=" + cloudifyUrl
 				+ ", machineNamePrefix=" + machineNamePrefix
 				+ ", dedicatedManagementMachines=" + dedicatedManagementMachines + ", managementOnlyFiles="
@@ -172,28 +184,28 @@ public class CloudProvider {
 	public void setCloudifyOverridesUrl(final String cloudifyOverridesUrl) {
 		this.cloudifyOverridesUrl = cloudifyOverridesUrl;
 	}
-	
+
 	private String getCloudifyUrlAccordingToPlatformVersion() {
-		
-		String cloudifyUrlPattern; 
+
+		String cloudifyUrlPattern;
 		String productUri;
 		String editionUrlVariable;
-		
+
 		if (PlatformVersion.getEdition().equalsIgnoreCase(PlatformVersion.EDITION_CLOUDIFY)) {
 			productUri = "org/cloudifysource";
 			editionUrlVariable = "cloudify";
-			cloudifyUrlPattern = "http://repository.cloudifysource.org/" 
-				+ "%s/" + OutputVersion.computeCloudifyVersion() + "/gigaspaces-%s-" 
-				+ PlatformVersion.getVersion() + "-" + PlatformVersion.getMilestone() 
-				+ "-b" + PlatformVersion.getBuildNumber();
+			cloudifyUrlPattern = "http://repository.cloudifysource.org/"
+					+ "%s/" + OutputVersion.computeCloudifyVersion() + "/gigaspaces-%s-"
+					+ PlatformVersion.getVersion() + "-" + PlatformVersion.getMilestone()
+					+ "-b" + PlatformVersion.getBuildNumber();
 			return String.format(cloudifyUrlPattern, productUri, editionUrlVariable);
 		} else {
 			productUri = "com/gigaspaces/xap";
 			editionUrlVariable = "xap-premium";
-			cloudifyUrlPattern = "http://repository.cloudifysource.org/" 
-				+ "%s/" + OutputVersion.computeXapVersion() + "/gigaspaces-%s-" 
-				+ PlatformVersion.getVersion() + "-" + PlatformVersion.getMilestone() 
-				+ "-b" + PlatformVersion.getBuildNumber();
+			cloudifyUrlPattern = "http://repository.cloudifysource.org/"
+					+ "%s/" + OutputVersion.computeXapVersion() + "/gigaspaces-%s-"
+					+ PlatformVersion.getVersion() + "-" + PlatformVersion.getMilestone()
+					+ "-b" + PlatformVersion.getBuildNumber();
 			return String.format(cloudifyUrlPattern, productUri, editionUrlVariable);
 		}
 	}

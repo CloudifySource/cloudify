@@ -41,8 +41,10 @@ public final class FileTransferFactory {
 		switch (mode) {
 		case CIFS:
 			return new CifsFileTransfer();
-		case SCP:
+		case SFTP:
 			return new SftpFileTransfer();
+		case SCP:
+			// TODO: finish this
 		default:
 			throw new UnsupportedOperationException("Unsupported file transfer mode: " + mode);
 		}

@@ -55,30 +55,39 @@ import org.openspaces.admin.internal.support.NetworkExceptionHelper;
 import com.gigaspaces.grid.gsa.GSA;
 
 /**************
- * A bring-your-own-node (BYON) CloudifyProvisioning implementation. Parses a groovy file as a source of available
- * machines to operate as cloud nodes, assuming the nodes are Linux machines with SSH installed. If GigaSpaces is not
- * already installed on a node, this class will install GigaSpaces and run the agent.
+ * A bring-your-own-node (BYON) CloudifyProvisioning implementation. Parses a
+ * groovy file as a source of available machines to operate as cloud nodes,
+ * assuming the nodes are Linux machines with SSH installed. If GigaSpaces is
+ * not already installed on a node, this class will install GigaSpaces and run
+ * the agent.
  * 
  * @author noak
  * @since 2.0.1
  * 
  */
 public class ByonProvisioningDriver extends BaseProvisioningDriver implements ProvisioningDriver,
-ProvisioningDriverClassContextAware {
+		ProvisioningDriverClassContextAware {
 
 	private static final int THREAD_WAITING_IDLE_TIME_IN_SECS = 10;
 	private static final int AGENT_SHUTDOWN_TIMEOUT_IN_MINUTES = 2;
 	private static final String CLOUD_NODES_LIST = "nodesList";
 	private static final String CLEAN_GS_FILES_ON_SHUTDOWN = "cleanGsFilesOnShutdown";
 	private static final String CLOUDIFY_ITEMS_TO_CLEAN = "itemsToClean";
+	private static final String CUSTOM_PROPERTY_CLEAN_REMOTE_DIR_ON_START = "clearRemoteDirectoryOnStart";
 
 	private boolean cleanGsFilesOnShutdown = false;
 	private List<String> cloudifyItems;
 	private ByonDeployer deployer;
 	private Integer restPort;
 
-	private void addTemplatesToDeployer(ByonDeployer deployer, Map<String, CloudTemplate> templatesMap) throws Exception {
-		logger.info("addTemplatesToDeployer - adding the following templates to the deployer: " + templatesMap.keySet());
+	private boolean cleanRemoteDirectoryOnStart = false;
+
+	@SuppressWarnings("unchecked")
+	private void addTemplatesToDeployer(final ByonDeployer deployer, final Map<String, CloudTemplate> templatesMap)
+			throws Exception {
+		logger.info("addTempaltesToDeployer - adding the following tempaltes to the deployer: "
+				+ templatesMap.keySet());
+
 		List<Map<String, String>> nodesList = null;
 		for (final String templateName : templatesMap.keySet()) {
 			final Map<String, Object> customSettings = cloud.getTemplates().get(templateName).getCustom();
@@ -87,8 +96,9 @@ ProvisioningDriverClassContextAware {
 			}
 			if (nodesList == null) {
 				publishEvent(CloudifyErrorMessages.MISSING_NODES_LIST.getName(), templateName);
-				throw new CloudProvisioningException("Failed to create BYON cloud deployer, invalid configuration for template " 
-						+ templateName + " - missing nodes list.");
+				throw new CloudProvisioningException(
+						"Failed to create BYON cloud deployer, invalid configuration for tempalte "
+								+ templateName + " - missing nodes list.");
 			}
 			deployer.addNodesList(templateName, templatesMap.get(templateName), nodesList);
 		}
@@ -99,7 +109,6 @@ ProvisioningDriverClassContextAware {
 		try {
 			deployer = (ByonDeployer) context.getOrCreate("UNIQUE_BYON_DEPLOYER_ID", new Callable<Object>() {
 
-				@SuppressWarnings("unchecked")
 				@Override
 				public Object call()
 						throws Exception {
@@ -112,40 +121,46 @@ ProvisioningDriverClassContextAware {
 		} catch (final Exception e) {
 			publishEvent("connection_to_cloud_api_failed", cloud.getProvider().getProvider());
 			throw new IllegalStateException("Failed to create cloud deployer", e);
-		} 
-		try {		
+		}
+		try {
 			updateDeployerTemplates(cloud);
-		} catch (Exception e) {
-			logger.log(Level.WARNING, "initDeployer - fialed to add templates to deployer", e);
+		} catch (final Exception e) {
+			logger.log(Level.WARNING, "initDeployer - fialed to add tempaltes to deployer", e);
 			throw new IllegalStateException("Failed to update templates", e);
-		} 
+		}
 		setCustomSettings(cloud);
 	}
 
-	public void updateDeployerTemplates(Cloud cloud) throws Exception {
-		Map<String, CloudTemplate> cloudTemplatesMap = cloud.getTemplates();
-		List<String> cloudTemplateNames = new LinkedList<String>(cloudTemplatesMap.keySet());
-		List<String> deployerTemplateNames = deployer.getTemplatesList();
+	/**********
+	 * .
+	 * 
+	 * @param cloud
+	 *            .
+	 * @throws Exception .
+	 */
+	public void updateDeployerTemplates(final Cloud cloud) throws Exception {
+		final Map<String, CloudTemplate> cloudTemplatesMap = cloud.getTemplates();
+		final List<String> cloudTemplateNames = new LinkedList<String>(cloudTemplatesMap.keySet());
+		final List<String> deployerTemplateNames = deployer.getTemplatesList();
 
-		List<String> redundantTemplates =  new LinkedList<String>(deployerTemplateNames);
+		final List<String> redundantTemplates = new LinkedList<String>(deployerTemplateNames);
 		redundantTemplates.removeAll(cloudTemplateNames);
 		if (!redundantTemplates.isEmpty()) {
 			logger.info("initDeployer - found redundant templates: " + redundantTemplates);
 			deployer.removeTemplates(redundantTemplates);
 		}
-		List<String> missingTemplates =  new LinkedList<String>(cloudTemplateNames);
+		final List<String> missingTemplates = new LinkedList<String>(cloudTemplateNames);
 		missingTemplates.removeAll(deployerTemplateNames);
 		if (!missingTemplates.isEmpty()) {
 			logger.info("initDeployer - found missing templates: " + missingTemplates);
-			Map<String, CloudTemplate> templatesMap = new HashMap<String, CloudTemplate>();
-			for (String templateName : missingTemplates) {
-				CloudTemplate cloudTemplate = cloudTemplatesMap.get(templateName);
+			final Map<String, CloudTemplate> templatesMap = new HashMap<String, CloudTemplate>();
+			for (final String templateName : missingTemplates) {
+				final CloudTemplate cloudTemplate = cloudTemplatesMap.get(templateName);
 				templatesMap.put(templateName, cloudTemplate);
 			}
 			addTemplatesToDeployer(deployer, templatesMap);
-		}		
-	} 		
-
+		}
+	}
 
 	@SuppressWarnings("unchecked")
 	private void setCustomSettings(final Cloud cloud) {
@@ -167,6 +182,19 @@ ProvisioningDriverClassContextAware {
 							}
 						}
 					}
+				}
+			}
+
+			if (customSettings.containsKey(CUSTOM_PROPERTY_CLEAN_REMOTE_DIR_ON_START)) {
+				final Object cleanRemoteDirValue = customSettings.get(CUSTOM_PROPERTY_CLEAN_REMOTE_DIR_ON_START);
+				if (cleanRemoteDirValue instanceof Boolean) {
+					this.cleanRemoteDirectoryOnStart = (Boolean) cleanRemoteDirValue;
+				} else if (cleanRemoteDirValue instanceof String) {
+					this.cleanRemoteDirectoryOnStart = Boolean.parseBoolean((String) cleanRemoteDirValue);
+				} else {
+					throw new IllegalArgumentException("Unexpected value for BYON property: "
+							+ CUSTOM_PROPERTY_CLEAN_REMOTE_DIR_ON_START + ". Was expecting a boolean or String, got: "
+							+ cleanRemoteDirValue.getClass().getName());
 				}
 			}
 		}
@@ -244,11 +272,13 @@ ProvisioningDriverClassContextAware {
 	}
 
 	/*********
-	 * Looks for a free server name by appending a counter to the pre-calculated server name prefix. If the max counter
-	 * value is reached, code will loop back to 0, so that previously used server names will be reused.
+	 * Looks for a free server name by appending a counter to the pre-calculated
+	 * server name prefix. If the max counter value is reached, code will loop
+	 * back to 0, so that previously used server names will be reused.
 	 * 
 	 * @return the server name.
-	 * @throws CloudProvisioningException Indicated a free server name was not found.
+	 * @throws CloudProvisioningException
+	 *             Indicated a free server name was not found.
 	 */
 	private String createNewServerName()
 			throws CloudProvisioningException {
@@ -368,7 +398,8 @@ ProvisioningDriverClassContextAware {
 			/*
 			 * if (managementServers == null || managementServers.isEmpty()) {
 			 * publishEvent("prov_management_server_not_found"); throw new
-			 * CloudProvisioningException("Could not find any management machines for this cloud"); }
+			 * CloudProvisioningException
+			 * ("Could not find any management machines for this cloud"); }
 			 */
 		} catch (final Exception e) {
 			publishEvent("prov_management_lookup_failed");
@@ -399,14 +430,17 @@ ProvisioningDriverClassContextAware {
 				managementIP = server.getPrivateIP();
 				break;
 			} catch (final Exception ex) {
-				// the connection to the REST failed because this is not a management server, continue.
+				// the connection to the REST failed because this is not a
+				// management server, continue.
 			}
 		}
 
-		// If a management server was found - connect it and get all management machines
+		// If a management server was found - connect it and get all management
+		// machines
 		if (StringUtils.isNotBlank(managementIP)) {
-			// TODO don't fly if timeout reached because expectedGsmCount wasn't reached
-			Admin admin = Utils.getAdminObject(managementIP, expectedGsmCount);
+			// TODO don't fly if timeout reached because expectedGsmCount wasn't
+			// reached
+			final Admin admin = Utils.getAdminObject(managementIP, expectedGsmCount);
 			try {
 				final GridServiceManagers gsms = admin.getGridServiceManagers();
 				for (final GridServiceManager gsm : gsms) {
@@ -436,7 +470,7 @@ ProvisioningDriverClassContextAware {
 		final Map<String, GridServiceAgent> agentsMap = admin.getGridServiceAgents().getHostAddress();
 		// GridServiceAgent agent = agentsMap.get(ipAddress);
 		GSA agent = null;
-		for (Entry<String, GridServiceAgent> agentEntry : agentsMap.entrySet()) {
+		for (final Entry<String, GridServiceAgent> agentEntry : agentsMap.entrySet()) {
 			if (agentEntry.getKey().equalsIgnoreCase(ipAddress)) {
 				agent = ((InternalGridServiceAgent) agentEntry.getValue()).getGSA();
 			}
@@ -500,9 +534,10 @@ ProvisioningDriverClassContextAware {
 		return agentUp;
 	}
 
+	@Override
 	protected void handleProvisioningFailure(final int numberOfManagementMachines, final int numberOfErrors,
 			final Exception firstCreationException, final MachineDetails[] createdManagementMachines)
-					throws CloudProvisioningException {
+			throws CloudProvisioningException {
 		logger.severe("Of the required " + numberOfManagementMachines + " management machines, " + numberOfErrors
 				+ " failed to start.");
 		if (numberOfManagementMachines > numberOfErrors) {
@@ -524,16 +559,17 @@ ProvisioningDriverClassContextAware {
 
 	private MachineDetails createMachineDetailsFromNode(final CustomNode node)
 			throws CloudProvisioningException {
-		final MachineDetails md = new MachineDetails();
-		md.setAgentRunning(false);
-		md.setCloudifyInstalled(false);
-		md.setInstallationDirectory(null);
+		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplateName);
+
+		final MachineDetails md = createMachineDetailsForTemplate(template);
+
 		md.setMachineId(node.getId());
 		md.setPrivateAddress(node.getPrivateIP());
 		md.setPublicAddress(node.getPublicIP());
+		md.setCleanRemoteDirectoryOnStart(this.cleanRemoteDirectoryOnStart);
+		// if the node has user/pwd - use it. Otherwise - take the use/password
+		// from the template's settings.
 
-		// if the node has user/pwd - use it. Otherwise - take the use/password from the template's settings.
-		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplateName);
 		if (!StringUtils.isBlank(node.getUsername()) && !StringUtils.isBlank(node.getCredential())) {
 			md.setRemoteUsername(node.getUsername());
 			md.setRemotePassword(node.getCredential());
@@ -542,15 +578,13 @@ ProvisioningDriverClassContextAware {
 			md.setRemoteUsername(template.getUsername());
 			md.setRemotePassword(template.getPassword());
 		} else {
-			String nodeStr = node.toString();
+			final String nodeStr = node.toString();
 			logger.severe("Cloud node loading failed, missing credentials for server: " + nodeStr);
 			publishEvent("prov_node_loading_failed", nodeStr);
 			throw new CloudProvisioningException("Cloud node loading failed, missing credentials for server: "
 					+ nodeStr);
 		}
 
-		md.setRemoteExecutionMode(template.getRemoteExecution());
-		md.setFileTransferMode(template.getFileTransfer());
 		return md;
 	}
 
@@ -575,8 +609,10 @@ ProvisioningDriverClassContextAware {
 	@Override
 	public void close() {
 		/*
-		 * try { if (admin != null) { admin.close(); } } catch (final Exception ex) {
-		 * logger.info("ByonProvisioningDriver.close() failed to close agent"); }
+		 * try { if (admin != null) { admin.close(); } } catch (final Exception
+		 * ex) {
+		 * logger.info("ByonProvisioningDriver.close() failed to close agent");
+		 * }
 		 */
 
 		if (deployer != null) {

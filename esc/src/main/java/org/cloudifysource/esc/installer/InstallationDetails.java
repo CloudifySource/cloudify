@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
+import org.cloudifysource.dsl.cloud.ScriptLanguages;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsa.GSAReservationId;
@@ -56,11 +57,11 @@ public class InstallationDetails implements Cloneable {
 
 	private String cloudifyUrl;
 	private String overridesUrl;
-	
-	//security profile
+
+	// security profile
 	private String securityProfile = CloudifyConstants.SPRING_PROFILE_NON_SECURE;
-	
-	//keystore password
+
+	// keystore password
 	private String keystorePassword;
 
 	// An instance of the Gigaspaces Admin API. If passed,
@@ -101,8 +102,9 @@ public class InstallationDetails implements Cloneable {
 
 	private File cloudFile;
 
-	private FileTransferModes fileTransferMode = FileTransferModes.SCP;
+	private FileTransferModes fileTransferMode = FileTransferModes.SFTP;
 	private RemoteExecutionModes remoteExecutionMode = RemoteExecutionModes.SSH;
+	private ScriptLanguages scriptLanguage = ScriptLanguages.LINUX_SHELL;
 
 	private final Map<String, Object> customData = new HashMap<String, Object>();
 
@@ -111,16 +113,15 @@ public class InstallationDetails implements Cloneable {
 	// defines the com.gs.agent.reservationid system property for the GSA
 	// see InternalGridServiceAgent#getReservationId()
 	private GSAReservationId reservationId;
-	
+
 	private String templateName;
-	
+
 	private String authGroups;
 
-	
 	// Relevant only for management machines
 	/* *********************************************** */
-	
-	// The management components system properties 
+
+	// The management components system properties
 	// as java command line arguments
 	private String esmCommandlineArgs;
 	private String lusCommandlineArgs;
@@ -133,6 +134,8 @@ public class InstallationDetails implements Cloneable {
 	private String webuiMaxMemory;
 	private Integer restPort;
 	private Integer webuiPort;
+
+	private boolean deleteRemoteDirectoryContents = false;
 
 	public String getTemplateName() {
 		return templateName;
@@ -205,7 +208,8 @@ public class InstallationDetails implements Cloneable {
 				+ ", connectToPrivateIP=" + connectedToPrivateIp + ", cloudifyUrl=" + cloudifyUrl
 				+ ", bindToPrivateIP=" + bindToPrivateIp + ", username=" + username + ", password=***" + ", keyFile="
 				+ keyFile + ", localDir=" + localDir + ", remoteDir=" + remoteDir + ", isLus=" + isLus + ", zones="
-				+ zones + ", extraRemoteEnvironmentVariables = " + extraRemoteEnvironmentVariables + ", authGroups=***]";
+				+ zones + ", extraRemoteEnvironmentVariables = " + extraRemoteEnvironmentVariables
+				+ ", authGroups=***]";
 	}
 
 	public String getKeyFile() {
@@ -355,7 +359,7 @@ public class InstallationDetails implements Cloneable {
 	public void setReservationId(final GSAReservationId reservationId) {
 		this.reservationId = reservationId;
 	}
-	
+
 	public String getSecurityProfile() {
 		return securityProfile;
 	}
@@ -372,10 +376,10 @@ public class InstallationDetails implements Cloneable {
 		this.keystorePassword = keystorePassword;
 	}
 
-	public void setAuthGroups(String authGroups) {
+	public void setAuthGroups(final String authGroups) {
 		this.authGroups = authGroups;
 	}
-	
+
 	public String getAuthGroups() {
 		return this.authGroups;
 	}
@@ -450,5 +454,21 @@ public class InstallationDetails implements Cloneable {
 
 	public void setWebuiMaxMemory(final String webuiMaxMemory) {
 		this.webuiMaxMemory = webuiMaxMemory;
+	}
+
+	public ScriptLanguages getScriptLanguage() {
+		return scriptLanguage;
+	}
+
+	public void setScriptLanguage(final ScriptLanguages scriptLanguagee) {
+		this.scriptLanguage = scriptLanguagee;
+	}
+
+	public boolean isDeleteRemoteDirectoryContents() {
+		return deleteRemoteDirectoryContents;
+	}
+
+	public void setDeleteRemoteDirectoryContents(final boolean deleteRemoteDirectoryContents) {
+		this.deleteRemoteDirectoryContents = deleteRemoteDirectoryContents;
 	}
 }
