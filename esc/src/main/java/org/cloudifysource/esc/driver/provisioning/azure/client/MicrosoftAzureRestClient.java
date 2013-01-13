@@ -440,7 +440,6 @@ public class MicrosoftAzureRestClient {
 			} catch (final Exception e) {
 				logger.fine(getThreadIdentity() + "A failure occured : about to release lock " 
 							+ pendingRequest.hashCode());
-				logger.warning("Failed to create a Virtual Machine : " + e.getMessage());
 				if (serviceName != null) {
 					try {
 						// delete the dedicated cloud service that was created for the virtual machine.
@@ -541,12 +540,12 @@ public class MicrosoftAzureRestClient {
 			return true;
 		}
 		
-		logger.info("Deleleting storage account : " + storageAccountName);
+		logger.info("Deleting storage account : " + storageAccountName);
 		ClientResponse response = doDelete("/services/storageservices/"
 				+ storageAccountName);
 		String requestId = extractRequestId(response);
 		waitForRequestToFinish(requestId, endTime);
-		logger.info("Deleleted storage account : " + storageAccountName);
+		logger.fine("Deleted storage account : " + storageAccountName);
 		return true;
 
 	}
@@ -576,6 +575,7 @@ public class MicrosoftAzureRestClient {
 				+ affinityGroupName);
 		String requestId = extractRequestId(response);
 		waitForRequestToFinish(requestId, endTime);
+		logger.fine("Deleted affinity group : " + affinityGroupName);
 		return true;
 	}
 
@@ -997,7 +997,8 @@ public class MicrosoftAzureRestClient {
 	}
 
 	/**
-	 * 
+	 * This method deletes the virtual network specified. or does 
+	 * nothing if the virtual network does not exist.
 	 * @param virtualNetworkSite
 	 *            - virtual network site name to delete .
 	 * @param endTime
@@ -1011,6 +1012,9 @@ public class MicrosoftAzureRestClient {
 			final long endTime) throws MicrosoftAzureException,
 			TimeoutException, InterruptedException {
 
+		if (!virtualNetworkExists(virtualNetworkSite)) {
+			return true;
+		}
 		VirtualNetworkSites virtualNetworkSites = listVirtualNetworkSites();
 		int index = 0;
 		for (int i = 0; i < virtualNetworkSites.getVirtualNetworkSites().size(); i++) {
@@ -1022,9 +1026,9 @@ public class MicrosoftAzureRestClient {
 			}
 		}
 		virtualNetworkSites.getVirtualNetworkSites().remove(index);
-		logger.info("Deleteing virtual network site : " + virtualNetworkSite);
+		logger.info("Deleting virtual network site : " + virtualNetworkSite);
 		setNetworkConfiguration(endTime, virtualNetworkSites);
-		logger.info("Deleted virtual network site : " + virtualNetworkSite);
+		logger.fine("Deleted virtual network site : " + virtualNetworkSite);
 		return true;
 
 	}
@@ -1114,6 +1118,12 @@ public class MicrosoftAzureRestClient {
 			throws MicrosoftAzureException, TimeoutException {
 		Disks disks = listOSDisks();
 		return (disks.contains(osDiskName));
+	}
+	
+	private boolean virtualNetworkExists(final String virtualNetworkName) 
+			throws MicrosoftAzureException, TimeoutException {
+		VirtualNetworkSites sites = listVirtualNetworkSites();
+		return (sites.contains(virtualNetworkName));
 	}
 
 	private void checkForError(final ClientResponse response)

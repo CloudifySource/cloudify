@@ -14,6 +14,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.esc.driver.provisioning.CloudDriverSupport;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
@@ -28,7 +29,6 @@ import org.cloudifysource.esc.driver.provisioning.azure.model.Disk;
 import org.cloudifysource.esc.driver.provisioning.azure.model.Disks;
 import org.cloudifysource.esc.driver.provisioning.azure.model.InputEndpoint;
 import org.cloudifysource.esc.driver.provisioning.azure.model.InputEndpoints;
-import org.codehaus.plexus.util.ExceptionUtils;
 
 /***************************************************************************************
  * A custom Cloud Driver implementation for provisioning machines on Azure.
@@ -254,13 +254,8 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 					.getRemoteDirectory());
 			machineDetails.setRemotePassword(password);
 			machineDetails.setRemoteUsername(userName);
-
-			logger.info("Virtual machine started and is ready for use : "
-					+ machineDetails);
-
 			return machineDetails;
 		} catch (final Exception e) {
-			logger.info("Failed creating virtual machine properly : " + e.getMessage());
 			throw new CloudProvisioningException(e);
 		}
 
@@ -272,57 +267,26 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			CloudProvisioningException {
 
 		long endTime = System.currentTimeMillis() + unit.toMillis(duration);
-
 		try {
 			azureClient.createAffinityGroup(affinityGroup, location, endTime);
-		} catch (final Exception e) {
-			// this is the first service. nothing to revert.
-			throw new CloudProvisioningException(e);
-		}
-
-		long cleanupDeadline = System.currentTimeMillis() + CLEANUP_TIMEOUT;
-		try {
 			azureClient.createVirtualNetworkSite(addressSpace, affinityGroup,
 					networkName, endTime);
+			azureClient.createStorageAccount(affinityGroup, storageAccountName,
+					endTime);
 		} catch (final Exception e) {
-			logger.info("Failed creating virtual network site " + networkName + " : " + e.getMessage());
-			if (!(e instanceof TimeoutException)) {
+			logger.warning("Failed creating management services : " + e.getMessage());
+			if (cleanup) {
 				try {
-					// delete the affinity group created
-					azureClient.deleteAffinityGroup(affinityGroup, cleanupDeadline);
-				} catch (final Exception e1) {
-					logger.warning("Failed deleting affinity group " +  affinityGroup + " : " + e1.getMessage());
+					logger.info("Cleaning up any services that may have already been started.");
+					cleanup();
+				} catch (final CloudProvisioningException e1) {
+					// we catch this because we want to throw the original exception. not the one that happened on cleanup.
+					logger.warning("Failed to cleanup some management services. Please shut them down manually or use the teardown-cloud command.");
 					logger.fine(ExceptionUtils.getFullStackTrace(e1));
 				}
 			}
 			throw new CloudProvisioningException(e);
 		}
-
-		try {
-			azureClient.createStorageAccount(affinityGroup, storageAccountName,
-					endTime);
-		} catch (final Exception e) {
-			logger.info("Failed creating storage account " + storageAccountName + " : " + e.getMessage());
-			if (!(e instanceof TimeoutException)) {
-				try {
-					// delete the network site and affinity group
-					azureClient.deleteVirtualNetworkSite(networkName, cleanupDeadline);
-				} catch (final Exception e2) {
-					// log this exception but throw the original one.
-					logger.warning("Failed deleting virtual network " +  networkName + " : " + e2.getMessage());
-					logger.fine(ExceptionUtils.getFullStackTrace(e2));
-					throw new CloudProvisioningException(e);
-				}
-				try {
-					azureClient.deleteAffinityGroup(affinityGroup, cleanupDeadline); 
-				} catch (final Exception e3) {
-					logger.warning("Failed deleting affinity group " +  affinityGroup + " : " + e3.getMessage());
-					logger.fine(ExceptionUtils.getFullStackTrace(e3));
-					throw new CloudProvisioningException(e);
-				}
-			}
-		}
-		
 
 		int numberOfManagementMachines = this.cloud.getProvider()
 				.getNumberOfManagementMachines();
@@ -337,6 +301,50 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			executorService.shutdown();
 		}
 
+	}
+	
+	private void cleanup() throws CloudProvisioningException {
+		
+		final long endTime = System.currentTimeMillis() + CLEANUP_TIMEOUT;
+		
+		boolean deletedNetwork = false;
+		boolean deletedStorage = false;
+		Exception first = null;
+		
+		try {
+			deletedNetwork = azureClient.deleteVirtualNetworkSite(networkName, endTime);
+		} catch (final Exception e) {
+			first = e;
+			logger.warning("Failed deleting virtual network site : " + e.getMessage());
+			logger.fine(ExceptionUtils.getFullStackTrace(e));
+		}
+		
+		try {
+			deletedStorage = azureClient.deleteStorageAccount(storageAccountName, endTime);
+		} catch (final Exception e) {
+			if (first == null) {
+				first = e;
+			}
+			logger.warning("Failed deleting storage account : " + e.getMessage());
+			logger.fine(ExceptionUtils.getFullStackTrace(e));
+		}
+		
+		if (deletedNetwork && deletedStorage) {
+			try {
+				deletedStorage = azureClient.deleteAffinityGroup(affinityGroup, endTime);
+			} catch (final Exception e) {
+				if (first == null) {
+					first = e;
+				}
+				logger.warning("Failed deleting affinity group : " + e.getMessage());
+				logger.fine(ExceptionUtils.getFullStackTrace(e));
+			}
+		} else {
+			logger.info("Not trying to delete affinity group since either virtual network " + networkName + " , or storage account " + storageAccountName + " depend on it.");
+		}	
+		if (first != null) {
+			throw new CloudProvisioningException(first);
+		}
 	}
 
 	/**
@@ -400,7 +408,8 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 				// catch any exceptions here.
 				// otherwise they will end up as the exception thrown to the CLI./
 				// thats not what we want in this case since we want the exception that failed the bootstrap command.
-				logger.warning("Failed to cleanup cloud services. Please shut them down manually or use the teardown-cloud command.");
+				logger.warning("Failed to cleanup some management services. Please shut them down manually or use the teardown-cloud command.");
+				logger.fine(ExceptionUtils.getFullStackTrace(e));
 			}
 			throw new CloudProvisioningException(
 					exceptionsOnManagementStart.get(0).getMessage(),
@@ -445,51 +454,14 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		} finally {
 			if (!success) {
 				if (cleanup) {
-					logger.warning("Failed to shutdown management machine. no cleanup attempt will be made.");
+					logger.warning("Failed to shutdown management machines. no cleanup attempt will be made.");
 				}
 			}
 			service.shutdown();
 		}
 
-		boolean deletedNetwork = false;
-		boolean deletedStorage = false;
-		Exception first = null;
 		if (cleanup) {
-			try {
-				deletedNetwork = azureClient.deleteVirtualNetworkSite(
-						networkName, endTime);
-			} catch (final Exception e) {
-				first = e;
-				logger.warning("Failed deleting virtual network site " + networkName + " : " + e.getMessage());
-				logger.fine(ExceptionUtils.getFullStackTrace(e));
-			}
-			try {
-				deletedStorage = azureClient.deleteStorageAccount(
-						storageAccountName, endTime);
-			} catch (final Exception e) {
-				if (first == null) {
-					first = e;
-				}
-				logger.warning("Failed deleting storage account " +  storageAccountName + " : " + e.getMessage());
-				logger.warning(ExceptionUtils.getFullStackTrace(e));
-			}
-			if (deletedNetwork && deletedStorage) {
-				try {
-					azureClient.deleteAffinityGroup(affinityGroup, endTime);
-				} catch (final Exception e) {
-					if (first == null) {
-						first = e;
-					}
-					logger.warning("Failed deleting affinity group " +  affinityGroup + " : " + e.getMessage());
-					logger.fine(ExceptionUtils.getFullStackTrace(e));
-				}
-			} else {
-				logger.info("Not deleting affinity group since " +
-						"either storage account or network site were not deleted.");
-			}
-			if (first != null) {
-				throw new CloudProvisioningException(first);
-			}
+			cleanup();
 		}
 	}
 
