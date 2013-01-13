@@ -48,7 +48,6 @@ import org.cloudifysource.esc.driver.provisioning.jclouds.ManagementWebServiceIn
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
-import org.cloudifysource.esc.installer.NewAgentlessInstaller;
 import org.cloudifysource.esc.shell.listener.CliAgentlessInstallerListener;
 import org.cloudifysource.esc.shell.listener.CliProvisioningDriverListener;
 import org.cloudifysource.esc.util.CalcUtils;
@@ -65,10 +64,10 @@ import org.openspaces.admin.zone.config.ExactZonesConfigurer;
 /**
  * This class handles the bootstrapping of machines, activation of management
  * processes and cloud tear-down.
- * 
+ *
  * @author barakm, adaml
  * @since 2.0.0
- * 
+ *
  */
 public class CloudGridAgentBootstrapper {
 
@@ -172,7 +171,7 @@ public class CloudGridAgentBootstrapper {
 	 * @throws InterruptedException
 	 *             Indicates a thread was interrupted while waiting
 	 */
-	public void bootstrapCloudAndWait(final String securityProfile, final String username, 
+	public void bootstrapCloudAndWait(final String securityProfile, final String username,
 			final String password, final String keystorePassword, final long timeout, final TimeUnit timeoutUnit)
 					throws InstallerException, CLIException, InterruptedException {
 
@@ -226,12 +225,12 @@ public class CloudGridAgentBootstrapper {
 			if (!isNoWebServices()){
 				Integer restPort = getRestPort(cloud.getConfiguration().getComponents().getRest().getPort(),
 						ShellUtils.isSecureConnection(securityProfile));
-				Integer webuiPort = getWebuiPort(cloud.getConfiguration().getComponents().getWebui().getPort(), 
+				Integer webuiPort = getWebuiPort(cloud.getConfiguration().getComponents().getWebui().getPort(),
 						ShellUtils.isSecureConnection(securityProfile));
-				waitForManagementWebServices(ShellUtils.isSecureConnection(securityProfile), username, password, 
+				waitForManagementWebServices(ShellUtils.isSecureConnection(securityProfile), username, password,
 						restPort, webuiPort, end, servers);
 			}
-			
+
 		} catch (final IOException e) {
 			stopManagementMachines();
 			throw new CLIException("Cloudify bootstrap on provider "
@@ -258,7 +257,7 @@ public class CloudGridAgentBootstrapper {
 		}
 	}
 
-	private void waitForManagementWebServices(final boolean isSecureConnection, final String username, 
+	private void waitForManagementWebServices(final boolean isSecureConnection, final String username,
 			final String password, final Integer restPort, final Integer webuiPort,
 			final long end, final MachineDetails[] servers)
 			throws MalformedURLException, URISyntaxException,
@@ -280,14 +279,14 @@ public class CloudGridAgentBootstrapper {
 
 			// We are relying on start-management command to be run on the
 			// new machine, so everything should be up if the rest admin is up
-			waitForConnection(username, password, restAdminUrl, isSecureConnection, CalcUtils.millisUntil(end), 
+			waitForConnection(username, password, restAdminUrl, isSecureConnection, CalcUtils.millisUntil(end),
 					TimeUnit.MILLISECONDS);
 
 			logger.info("Rest service is available at: " + restAdminUrl + '.');
 			logger.info("Webui service is available at: " + webUIUrl + '.');
 		}
 	}
-	
+
 	// if rest port was configured we return the config value
 	private Integer getRestPort(final Integer configuredRestPort, final boolean isSecureConnection) {
 		if (configuredRestPort != null) {
@@ -299,7 +298,7 @@ public class CloudGridAgentBootstrapper {
 			return CloudifyConstants.DEFAULT_REST_PORT;
 		}
 	}
-	
+
 	//if webui port was configured we return the config value
 	private Integer getWebuiPort(final Integer configuredWebuiPort, final boolean isSecureConnection) {
 		if (configuredWebuiPort != null) {
@@ -328,7 +327,7 @@ public class CloudGridAgentBootstrapper {
 
 	/**
 	 * loads the provisioning driver class and sets it up.
-	 * 
+	 *
 	 * @throws CLIException
 	 *             Indicates the configured could not be found and instantiated
 	 */
@@ -359,7 +358,7 @@ public class CloudGridAgentBootstrapper {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param timeout
 	 *            The number of {@link TimeUnit}s to wait before timing out
 	 * @param timeoutUnit
@@ -462,7 +461,7 @@ public class CloudGridAgentBootstrapper {
 			final String keystorePassword, final long endTime) throws InterruptedException, TimeoutException,
 			InstallerException, IOException {
 
-		final NewAgentlessInstaller installer = new NewAgentlessInstaller();
+		final AgentlessInstaller installer = new AgentlessInstaller();
 		installer.addListener(new CliAgentlessInstallerListener(this.verbose));
 
 		// Update the logging level of jsch used by the AgentlessInstaller
@@ -478,7 +477,7 @@ public class CloudGridAgentBootstrapper {
 
 		final InstallationDetails[] installations = createInstallationDetails(numOfManagementMachines, machines,
 				template, securityProfile, keystorePassword);
-		// only one machine should try and deploy the WebUI and Rest Admin unless 
+		// only one machine should try and deploy the WebUI and Rest Admin unless
 		// noWebServices is true
 		int i= isNoWebServices() ? 0 :1;
 		for (; i < installations.length; i++) {
@@ -500,7 +499,7 @@ public class CloudGridAgentBootstrapper {
 	}
 
 	private void installOnMachines(final long endTime,
-			final NewAgentlessInstaller installer,
+			final AgentlessInstaller installer,
 			final int numOfManagementMachines,
 			final InstallationDetails[] installations)
 			throws InterruptedException, TimeoutException, InstallerException {
@@ -590,8 +589,8 @@ public class CloudGridAgentBootstrapper {
 
 		// This is a workaround to allow cloudify nodes to use a non-default discovery port.
 		// At the moment, the cloudify cloud driver configuration does not support setting
-		// the unicast discovery port, so we use this property, along with the required 
-		// environment variables. 
+		// the unicast discovery port, so we use this property, along with the required
+		// environment variables.
 		// This should be replaced when cloudify adds support for network port configuration.
 		final Integer port = (Integer) cloud.getCustom().get(
 				CloudifyConstants.CUSTOM_CLOUD_PROPERTY_UNICAST_DISCOVERY_PORT);
@@ -614,14 +613,14 @@ public class CloudGridAgentBootstrapper {
 
 	// TODO: This code should be placed in a Util package somewhere. It is used
 	// both here and in the esc project, for starting new agent machines.
-	private InstallationDetails[] createInstallationDetails(final int numOfManagementMachines, 
+	private InstallationDetails[] createInstallationDetails(final int numOfManagementMachines,
 			final MachineDetails[] machineDetails, final CloudTemplate template, final String securityProfile,
 			final String keystorePassword) throws FileNotFoundException {
 		final InstallationDetails[] details = new InstallationDetails[numOfManagementMachines];
 
 		final GSAReservationId reservationId = null;
 		final String managementAuthGroups = null;
-		
+
 		for (int i = 0; i < details.length; i++) {
 			final ExactZonesConfig zones = new ExactZonesConfigurer().addZone(
 					MANAGEMENT_GSA_ZONE).create();
@@ -698,7 +697,7 @@ public class CloudGridAgentBootstrapper {
 	 * Waits for a connection to be established with the service. If the timeout
 	 * is reached before a connection could be established, a
 	 * {@link TimeoutException} is thrown.
-	 * 
+	 *
 	 * @param username
 	 *            The username for a secure connection to the rest server
 	 * @param password
@@ -719,7 +718,7 @@ public class CloudGridAgentBootstrapper {
 	 *             Reporting different errors while creating the connection to
 	 *             the service
 	 */
-	private void waitForConnection(final String username, final String password, final URL restAdminUrl, 
+	private void waitForConnection(final String username, final String password, final URL restAdminUrl,
 			final boolean isSecureConnection, final long timeout, final TimeUnit timeunit)
 					throws InterruptedException, TimeoutException, CLIException {
 
