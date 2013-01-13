@@ -260,33 +260,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 
 			return machineDetails;
 		} catch (final Exception e) {
-			logger.fine("Failed creating virtual machine properly : " + e.getMessage());
-
-			// this means a cloud service was created and a request for A VM was
-			// made.
-			if (desc.getHostedServiceName() != null) {
-				try {
-					// this will also delete the cloud service that was created.
-					azureClient.deleteVirtualMachineByDeploymentNameIfExists(
-							desc.getHostedServiceName(),
-							desc.getDeploymentName(), endTime + DEFAULT_SHUTDOWN_DURATION);
-				} catch (final Exception e1) {
-					if (e1 instanceof TimeoutException) {
-						throw new TimeoutException(e1.getMessage());
-					} else {
-						throw new CloudProvisioningException(e1);
-					}
-				}
-				// this means that a failure happened while trying to create the
-				// cloud service. no request for VM was made, so no need to try
-				// and delete it.
-			} else {
-				logger.fine("Not attempting to shutdown virtual machine "
-						+ desc.getRoleName()
-						+ " since a failure happened while trying to create a cloud service for this vm.");
-
-			}
-
+			logger.info("Failed creating virtual machine properly : " + e.getMessage());
 			throw new CloudProvisioningException(e);
 		}
 

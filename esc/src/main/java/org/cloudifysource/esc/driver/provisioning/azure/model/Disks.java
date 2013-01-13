@@ -37,6 +37,18 @@ public class Disks implements Iterable<Disk> {
 		return disks.iterator();
 	}
 	
-	
-
+	/**
+	 * 
+	 * @param storageServiceName .
+	 * @return .
+	 */
+	public boolean contains(final String diskName) {
+		
+		for (Disk disk: disks) {
+			if (disk.getName().equals(diskName)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

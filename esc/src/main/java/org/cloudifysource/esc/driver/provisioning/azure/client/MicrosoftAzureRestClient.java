@@ -36,7 +36,6 @@ import org.cloudifysource.esc.driver.provisioning.azure.model.CreateAffinityGrou
 import org.cloudifysource.esc.driver.provisioning.azure.model.CreateHostedService;
 import org.cloudifysource.esc.driver.provisioning.azure.model.CreateStorageServiceInput;
 import org.cloudifysource.esc.driver.provisioning.azure.model.Deployment;
-import org.cloudifysource.esc.driver.provisioning.azure.model.Deployments;
 import org.cloudifysource.esc.driver.provisioning.azure.model.Disk;
 import org.cloudifysource.esc.driver.provisioning.azure.model.Disks;
 import org.cloudifysource.esc.driver.provisioning.azure.model.Error;
@@ -231,13 +230,13 @@ public class MicrosoftAzureRestClient {
 		} catch (final Exception e) {
 			logger.warning("Failed to create cloud service : " + e.getMessage());
 			if (e instanceof MicrosoftAzureException) {
-				throw new MicrosoftAzureException(e);
+				throw (MicrosoftAzureException)e;
 			}
 			if (e instanceof TimeoutException) {
-				throw new TimeoutException(e.getMessage());
+				throw (TimeoutException)e;
 			}
 			if (e instanceof InterruptedException) {
-				throw new InterruptedException(e.getMessage());
+				throw (InterruptedException)e;
 			}
 		}
 		return serviceName;
@@ -374,6 +373,11 @@ public class MicrosoftAzureRestClient {
 	}
 
 	/**
+	 * This method creates a virtual machine and a corresponding cloud service.
+	 * the cloud service will use the affinity group specified by deploymentDesc.getAffinityGroup();
+	 * If another request was made this method will wait until the pending request is finished.
+	 * 
+	 * If a failure happened after the cloud service was created, this method will delete it and throw.
 	 * 
 	 * @param deplyomentDesc
 	 *            .
@@ -436,15 +440,25 @@ public class MicrosoftAzureRestClient {
 			} catch (final Exception e) {
 				logger.fine(getThreadIdentity() + "A failure occured : about to release lock " 
 							+ pendingRequest.hashCode());
+				logger.warning("Failed to create a Virtual Machine : " + e.getMessage());
+				if (serviceName != null) {
+					try {
+						// delete the dedicated cloud service that was created for the virtual machine.
+						deleteCloudService(serviceName, endTime);
+					} catch (final Exception e1) {
+						logger.warning("Failed deleting cloud service " + serviceName + " : " + e1.getMessage());
+						logger.finest(ExceptionUtils.getFullStackTrace(e1));
+					}
+				}
 				pendingRequest.unlock();
 				if (e instanceof MicrosoftAzureException) {
 					throw (MicrosoftAzureException)e;
 				}
 				if (e instanceof TimeoutException) {
-					throw new TimeoutException(e.getMessage());
+					throw (TimeoutException)e;
 				}
 				if (e instanceof InterruptedException) {
-					throw new InterruptedException(e.getMessage());
+					throw (InterruptedException)e;
 				}
 			}
 		} else {
@@ -507,7 +521,8 @@ public class MicrosoftAzureRestClient {
 	}
 
 	/**
-	 * 
+	 * This method deletes the storage account with the specified name. or does
+	 * nothing if the storage account does not exist.
 	 * @param storageAccountName
 	 *            .
 	 * @param endTime
@@ -521,6 +536,11 @@ public class MicrosoftAzureRestClient {
 	public boolean deleteStorageAccount(final String storageAccountName,
 			final long endTime) throws MicrosoftAzureException,
 			TimeoutException, InterruptedException {
+		
+		if (!storageExists(storageAccountName)) {
+			return true;
+		}
+		
 		logger.info("Deleleting storage account : " + storageAccountName);
 		ClientResponse response = doDelete("/services/storageservices/"
 				+ storageAccountName);
@@ -532,7 +552,8 @@ public class MicrosoftAzureRestClient {
 	}
 
 	/**
-	 * 
+	 * This method deletes the affinity group with the specified name. or does
+	 * nothing if the affinity group does not exist.
 	 * @param affinityGroupName
 	 *            .
 	 * @param endTime
@@ -545,6 +566,11 @@ public class MicrosoftAzureRestClient {
 	public boolean deleteAffinityGroup(final String affinityGroupName,
 			final long endTime) throws MicrosoftAzureException,
 			TimeoutException, InterruptedException {
+		
+		if (!affinityExists(affinityGroupName)) {
+			return true;
+		}
+		
 		logger.info("Deleting affinity group : " + affinityGroupName);
 		ClientResponse response = doDelete("/affinitygroups/"
 				+ affinityGroupName);
@@ -554,7 +580,8 @@ public class MicrosoftAzureRestClient {
 	}
 
 	/**
-	 * 
+	 * This method deletes the cloud service with the specified name. or does
+	 * nothing if the cloud service does not exist.
 	 * @param cloudServiceName
 	 *            .
 	 * @param endTime
@@ -567,6 +594,11 @@ public class MicrosoftAzureRestClient {
 	public boolean deleteCloudService(final String cloudServiceName,
 			final long endTime) throws MicrosoftAzureException,
 			TimeoutException, InterruptedException {
+		
+		if (!cloudServiceExists(cloudServiceName)) {
+			return true;
+		}
+		
 		ClientResponse response = doDelete("/services/hostedservices/"
 				+ cloudServiceName);
 		String requestId = extractRequestId(response);
@@ -599,34 +631,8 @@ public class MicrosoftAzureRestClient {
 	}
 
 	/**
-	 * 
-	 * @param cloudServiceName
-	 *            .
-	 * @param deploymentName
-	 *            .
-	 * @param endTime
-	 *            .
-	 * @throws MicrosoftAzureException .
-	 * @throws TimeoutException .
-	 * @throws InterruptedException .
-	 */
-	public void deleteVirtualMachineByDeploymentNameIfExists(
-			final String cloudServiceName, final String deploymentName,
-			final long endTime) throws MicrosoftAzureException,
-			TimeoutException, InterruptedException {
-		HostedService service = getHostedService(cloudServiceName, true);
-		Deployments deployments = service.getDeployments();
-		if (deployments.contains(deploymentName)) {
-			deleteVirtualMachineByDeploymentName(cloudServiceName,
-					deploymentName, endTime);
-		}
-		// we have a zombie cloud service, delete it.
-		deleteCloudService(cloudServiceName, endTime);
-		
-	}
-
-	/**
-	 * 
+	 * This method deletes the virtual machine under the deployment specifed by deploymentName.
+	 * it also deletes the associated disk and cloud service.
 	 * @param cloudServiceName
 	 *            .
 	 * @param deploymentName
@@ -708,7 +714,8 @@ public class MicrosoftAzureRestClient {
 	}
 
 	/**
-	 * 
+	 * This method deletes an OS disk with the specified name. or does
+	 * nothing if the disk does not exist.
 	 * @param diskName
 	 *            .
 	 * @param endTime
@@ -721,6 +728,11 @@ public class MicrosoftAzureRestClient {
 	public boolean deleteOSDisk(final String diskName, final long endTime)
 			throws MicrosoftAzureException, TimeoutException,
 			InterruptedException {
+		
+		if (!osDiskExists(diskName)) {
+			return true;
+		}
+		
 		ClientResponse response = doDelete("/services/disks/" + diskName);
 		String requestId = extractRequestId(response);
 		waitForRequestToFinish(requestId, endTime);
@@ -728,7 +740,8 @@ public class MicrosoftAzureRestClient {
 	}
 
 	/**
-	 * 
+	 * This method deletes just the virtual machine from the specified cloud service.
+	 * associated OS Disk and cloud service are not removed.
 	 * @param hostedServiceName
 	 *            .
 	 * @param deploymentName
@@ -777,10 +790,10 @@ public class MicrosoftAzureRestClient {
 					throw new MicrosoftAzureException(e);
 				}
 				if (e instanceof TimeoutException) {
-					throw new TimeoutException(e.getMessage());
+					throw (TimeoutException)e;
 				}
 				if (e instanceof InterruptedException) {
-					throw new InterruptedException(e.getMessage());
+					throw (InterruptedException)e;
 				}
 			}
 			return true;
@@ -1095,6 +1108,12 @@ public class MicrosoftAzureRestClient {
 			throws MicrosoftAzureException, TimeoutException {
 		StorageServices storageServices = listStorageServices();
 		return (storageServices.contains(storageAccouhtName));
+	}
+	
+	private boolean osDiskExists(final String osDiskName) 
+			throws MicrosoftAzureException, TimeoutException {
+		Disks disks = listOSDisks();
+		return (disks.contains(osDiskName));
 	}
 
 	private void checkForError(final ClientResponse response)
