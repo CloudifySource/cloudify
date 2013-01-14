@@ -200,8 +200,11 @@ Write-Host "Cloudify Command is $cloudifyCommand"
 # here we create the batch file that the task runs
 Set-Content -Encoding ASCII -Force -Value $cloudifyCommand run.bat
 
-Write-Host deleting cloudify task 
-schtasks.exe /delete /TN cloudify-task /f 2>&1 | out-null
+
+# We can't delete scheduled tasks like this because if the task does not exist, an error is written to syserr
+# and this causes powershell to exit
+# Write-Host deleting cloudify task 
+# schtasks.exe /delete /TN cloudify-task /f 2>&1 | out-null
 Write-Host scheduling cloudify task 
 schtasks.exe /create /TN cloudify-task /SC ONSTART /TR $ENV:WORKING_HOME_DIRECTORY\run.bat /RU "$ENV:USERNAME" /RP "$ENV:PASSWORD"
 Write-Host running cloudify task
