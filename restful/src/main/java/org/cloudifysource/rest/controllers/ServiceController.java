@@ -218,9 +218,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	private static final long TEN_K = 10 * FileUtils.ONE_KB;
 	private static final String FAILED_TO_ADD_TEMPLATES_KEY = "failed to add templates";
 	private static final String SUCCESSFULLY_ADDED_TEMPLATES_KEY = "successfully added templates";
-	private static final String SECURITY_PROFILE = System.getenv(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR);
-	private static final boolean IS_SECURE_CONNECTION = 
-			CloudifyConstants.SPRING_PROFILE_SECURE.equalsIgnoreCase(SECURITY_PROFILE);
+
 
 	/**
 	 * A set containing all of the executed lifecycle events. used to avoid
@@ -4732,9 +4730,9 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 	}
 	
-	private static GSRestClient createRestClient(final String host, final String port, final String username, 
+	private GSRestClient createRestClient(final String host, final String port, final String username, 
 			final String password) throws RestException, MalformedURLException {
-		String protocol = getRestProtocol(IS_SECURE_CONNECTION);
+		String protocol = getRestProtocol(permissionEvaluator != null);
 		String baseUrl = protocol + "://" + host + ":" + port;
 		String versionName = PlatformVersion.getVersion() + "-Cloudify-" + PlatformVersion.getMilestone();
 		return new GSRestClient(new UsernamePasswordCredentials(username, password), new URL(baseUrl), versionName);
