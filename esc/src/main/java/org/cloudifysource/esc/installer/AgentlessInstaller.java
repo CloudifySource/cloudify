@@ -53,22 +53,23 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.util.CalcUtils;
 import org.cloudifysource.esc.util.ShellCommandBuilder;
 import org.cloudifysource.esc.util.Utils;
+import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticMachineProvisioningException;
 
 /************
  * The agentless installer class is responsible for installing Cloudify on a
  * remote machine, using only SSH. It will upload all relevant files and start
  * the Cloudify agent.
- * 
+ *
  * File transfer is handled using Apache commons vfs.
- * 
+ *
  * @author barakme
- * 
+ *
  */
 public class AgentlessInstaller {
 
-	private static final int MACHINE_ACCESS_NUMBER_OF_RETRIES = 3;
+	private static final int MACHINE_ACCESS_NUMBER_OF_RETRIES = 10; //3;
 
-	private static final int TIMEOUT_BETWEEN_MACHINE_ACCESS_ATTEMPTS_MILLIS = 5000;
+	private static final int TIMEOUT_BETWEEN_MACHINE_ACCESS_ATTEMPTS_MILLIS = 10000; //5000;
 
 	private static final String POWERSHELL_CLIENT_SCRIPT = "bootstrap-client.ps1";
 
@@ -80,7 +81,7 @@ public class AgentlessInstaller {
 	private static final String LINUX_STARTUP_SCRIPT_NAME = "bootstrap-management.sh";
 	private static final String POWERSHELL_STARTUP_SCRIPT_NAME = "bootstrap-management.bat";
 
-	
+
 	private static final String MACHINE_ZONES_ENV = "MACHINE_ZONES";
 
 	private static final String MACHINE_IP_ADDRESS_ENV = "MACHINE_IP_ADDRESS";
@@ -111,7 +112,7 @@ public class AgentlessInstaller {
 
 	// TODO check if this is the proper timeout
 	// timeout of uploading a file over SFTP
-	private static final int SFTP_DISCONNECT_DETECTION_TIMEOUT_MILLIS = 10 * 1000;
+	private static final int SFTP_DISCONNECT_DETECTION_TIMEOUT_MILLIS = 60 * 1000; //10 * 1000;
 
 	private final List<AgentlessInstallerListener> eventsListenersList = new LinkedList<AgentlessInstallerListener>();
 
@@ -158,7 +159,7 @@ public class AgentlessInstaller {
 
 	/*******
 	 * Checks if a TCP connection to a remote machine and port is possible.
-	 * 
+	 *
 	 * @param ip
 	 *            remote machine ip.
 	 * @param port
@@ -212,7 +213,7 @@ public class AgentlessInstaller {
 
 	/****
 	 * Copies files from local dir to remote dir.
-	 * 
+	 *
 	 * @param host
 	 *            host name or ip address of remote machine.
 	 * @param username
@@ -440,7 +441,7 @@ public class AgentlessInstaller {
 
 	/**********
 	 * Cleans up a remote machine. Cleanup over CIFS currently does not work.
-	 * 
+	 *
 	 * @param details
 	 *            the details of the remote machine.
 	 * @param timeout
@@ -558,7 +559,7 @@ public class AgentlessInstaller {
 
 	/******
 	 * Performs installation on a remote machine with a known IP.
-	 * 
+	 *
 	 * @param details
 	 *            the installation details.
 	 * @param timeout
@@ -621,7 +622,7 @@ public class AgentlessInstaller {
 		if (remoteDirectory.endsWith("/")) {
 			remoteDirectory = remoteDirectory.substring(0, remoteDirectory.length() - 1);
 		}
-		if (details.isLus()) { 
+		if (details.isLus()) {
 			// add the relative path to the cloud file location
 			remoteDirectory = remoteDirectory + "/" + details.getRelativeLocalDir();
 		}
@@ -633,7 +634,7 @@ public class AgentlessInstaller {
 			//authgroups should be a strongly typed object convertible into a String
 			authGroups = details.getAuthGroups().toString();
 		}
-		
+
 		final ShellCommandBuilder scb = new ShellCommandBuilder(details.getRemoteExecutionMode())
 				.exportVar(LUS_IP_ADDRESS_ENV, details.getLocator())
 				.exportVar(GSA_MODE_ENV, details.isLus() ? "lus" : "agent")
@@ -900,7 +901,7 @@ public class AgentlessInstaller {
 
 	/**********
 	 * Registers an event listener for installation events.
-	 * 
+	 *
 	 * @param listener
 	 *            the listener.
 	 */
@@ -911,7 +912,7 @@ public class AgentlessInstaller {
 	/*********
 	 * This method is public so that implementation classes for file copy and
 	 * remote execution can publish events.
-	 * 
+	 *
 	 * @param eventName
 	 *            .
 	 * @param args
