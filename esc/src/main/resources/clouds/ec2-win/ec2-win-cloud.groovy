@@ -97,7 +97,8 @@ cloud {
 					fileTransfer org.cloudifysource.dsl.cloud.FileTransferModes.CIFS
 					// Remote execution mode. Options, defaults to SSH.
 					remoteExecution org.cloudifysource.dsl.cloud.RemoteExecutionModes.WINRM
-					
+					// Script language for remote execution. Defaults to Linux Shell.
+					scriptLanguage org.cloudifysource.dsl.cloud.ScriptLanguages.WINDOWS_BATCH
 					// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
 					localDirectory "upload"
 					// Optional. Name of key file to use for authenticating to the remot machine. Remove this line if key files
