@@ -36,6 +36,7 @@ import org.cloudifysource.esc.driver.provisioning.azure.model.CreateAffinityGrou
 import org.cloudifysource.esc.driver.provisioning.azure.model.CreateHostedService;
 import org.cloudifysource.esc.driver.provisioning.azure.model.CreateStorageServiceInput;
 import org.cloudifysource.esc.driver.provisioning.azure.model.Deployment;
+import org.cloudifysource.esc.driver.provisioning.azure.model.Deployments;
 import org.cloudifysource.esc.driver.provisioning.azure.model.Disk;
 import org.cloudifysource.esc.driver.provisioning.azure.model.Disks;
 import org.cloudifysource.esc.driver.provisioning.azure.model.Error;
@@ -962,18 +963,22 @@ public class MicrosoftAzureRestClient {
 		HostedServices cloudServices = listHostedServices();
 		for (HostedService hostedService : cloudServices) {
 			String cloudServiceName = hostedService.getServiceName();
-			deployment = getHostedService(cloudServiceName, true)
-					.getDeployments().getDeployments().get(0);
-			String deploymentName = deployment.getName();
-			deployment = getDeploymentByDeploymentName(cloudServiceName,
-					deploymentName);
-			String publicIp = getPublicIpFromDeployment(deployment);
-			String privateIp = getPrivateIpFromDeployment(deployment);
-			String ip = isPrivateIp ? privateIp : publicIp;
-			if (machineIp.equals(ip)) {
-				deployment.setHostedServiceName(cloudServiceName);
-				logger.info("Found a role with ip : " + machineIp);
-				return deployment;
+			Deployments deployments = getHostedService(cloudServiceName, true)
+					.getDeployments();
+			// skip empty cloud services
+			if (!deployments.getDeployments().isEmpty()) {
+				deployment = deployments.getDeployments().get(0);
+				String deploymentName = deployment.getName();
+				deployment = getDeploymentByDeploymentName(cloudServiceName,
+						deploymentName);
+				String publicIp = getPublicIpFromDeployment(deployment);
+				String privateIp = getPrivateIpFromDeployment(deployment);
+				String ip = isPrivateIp ? privateIp : publicIp;
+				if (machineIp.equals(ip)) {
+					deployment.setHostedServiceName(cloudServiceName);
+					logger.info("Found a role with ip : " + machineIp);
+					return deployment;
+				}
 			}
 		}
 		logger.info("Could not find any roles with ip :" + machineIp);
