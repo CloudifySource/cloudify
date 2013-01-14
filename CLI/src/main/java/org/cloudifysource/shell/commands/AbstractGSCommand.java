@@ -144,8 +144,7 @@ public abstract class AbstractGSCommand implements Action {
 	 * @return The formatted message
 	 */
 	private String getFormattedMessageFromErrorStatusException(final CLIStatusException e, final String verboseData) {
-		String message = getFormattedMessage(
-				e.getReasonCode(), (Object[]) null);
+		String message = getFormattedMessage(e.getReasonCode(), e.getArgs());
 		if (message == null) {
 			message = e.getReasonCode();
 		}
@@ -154,14 +153,13 @@ public abstract class AbstractGSCommand implements Action {
 			return message;
 		} else {
 			if (verboseData == null) {
-				return MessageFormat.format(
-						message, e.getArgs());
+				return MessageFormat.format(message, e.getArgs());
 			} else {
-				return MessageFormat.format(
-						message, e.getArgs()) + ": " + verboseData;
+				return MessageFormat.format(message, e.getArgs()) + ": " + verboseData;
 			}
 		}
 	}
+
 
 	// private String
 	// getFormattedMessageFromErrorStatusException(ErrorStatusException e,
