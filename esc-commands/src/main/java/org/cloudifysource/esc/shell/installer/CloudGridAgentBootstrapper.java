@@ -24,7 +24,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -443,18 +445,24 @@ public class CloudGridAgentBootstrapper {
 		final long millisToEnd = end - startTime;
 		final int minutesToEnd = (int) TimeUnit.MILLISECONDS
 				.toMinutes(millisToEnd);
+		
+		Map<String, String> lifeCycleEventContainersIdsByApplicationName = new HashMap<String, String>();
 
 		if (applicationsList.size() > 0) {
 			logger.info("Uninstalling the currently deployed applications");
 			for (final String application : applicationsList) {
 				if (!application.equals(MANAGEMENT_APPLICATION)) {
-					adminFacade.uninstallApplication(application, minutesToEnd);
+					Map<String, String> uninstallApplicationResponse = adminFacade.uninstallApplication(application, minutesToEnd);
+					lifeCycleEventContainersIdsByApplicationName.put(uninstallApplicationResponse.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID), application);
 				}
 			}
 		}
 
-		waitForUninstallApplications(CalcUtils.millisUntil(end),
-				TimeUnit.MILLISECONDS);
+		// now we need to wait for all the application to be uninstalled
+		for (Map.Entry<String, String> entry : lifeCycleEventContainersIdsByApplicationName.entrySet()) {
+			logger.info("Waiting for application " + entry.getValue());
+			adminFacade.waitForLifecycleEvents(entry.getKey(), minutesToEnd, CloudifyConstants.TIMEOUT_ERROR_MESSAGE);
+		}		
 	}
 
 	private MachineDetails[] startManagememntProcesses(final MachineDetails[] machines, final String securityProfile,
@@ -630,67 +638,6 @@ public class CloudGridAgentBootstrapper {
 		}
 
 		return details;
-		// final InstallationDetails template =
-		// createInstallationDetails(cloud);
-		//
-		// for (int i = 0; i < details.length; i++) {
-		// final MachineDetails machine = machineDetails[i];
-		// final InstallationDetails installationDetails = template.clone();
-		// installationDetails.setUsername(machine.getRemoteUsername());
-		// installationDetails.setPassword(machine.getRemotePassword());
-		// installationDetails.setPrivateIp(machine.getPrivateAddress());
-		// installationDetails.setPublicIp(machine.getPublicAddress());
-		// // Bootstrapping is usually done from a different network
-		// installationDetails.setConnectedToPrivateIp(!cloud.getConfiguration().isBootstrapManagementOnPublicIp());
-		// installationDetails.setBindToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
-		// installationDetails.setCloudFile(this.cloudFile);
-		// installationDetails.setRemoteExecutionMode(machine.getRemoteExecutionMode());
-		// installationDetails.setFileTransferMode(machine.getFileTransferMode());
-		// details[i] = installationDetails;
-		// }
-		// return details;
-	}
-
-	// private void fixConfigRelativePaths(final Cloud config, final
-	// CloudTemplate template) {
-	// if (template.getLocalDirectory() != null
-	// && !new File(template.getLocalDirectory()).isAbsolute()) {
-	// logger.fine("Assuming " + template.getLocalDirectory() + " is in "
-	// + Environment.getHomeDirectory());
-	// template.setLocalDirectory(
-	// new File(Environment.getHomeDirectory(), template.getLocalDirectory())
-	// .getAbsolutePath());
-	// }
-	// }
-
-	private void waitForUninstallApplications(final long timeout,
-			final TimeUnit timeunit) throws InterruptedException,
-			TimeoutException, CLIException {
-		createConditionLatch(timeout, timeunit).waitFor(
-				new ConditionLatch.Predicate() {
-
-					@Override
-					public boolean isDone() throws CLIException,
-							InterruptedException {
-						final Collection<String> applications = adminFacade
-								.getApplicationNamesList();
-
-						boolean done = true;
-
-						for (final String application : applications) {
-							if (!MANAGEMENT_APPLICATION.equals(application)) {
-								done = false;
-								break;
-							}
-						}
-
-						if (!done) {
-							logger.info("Waiting for all applications to uninstall");
-						}
-
-						return done;
-					}
-				});
 	}
 
 	/**
