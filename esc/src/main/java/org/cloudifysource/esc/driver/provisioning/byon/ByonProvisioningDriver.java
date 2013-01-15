@@ -360,28 +360,19 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		boolean stopResult = false;
 
 		logger.info("Stop Machine - machineIp: " + serverIp);
-		final Long previousRequest = stoppingMachines.get(serverIp);
-		if (previousRequest != null
-				&& System.currentTimeMillis() - previousRequest < MULTIPLE_SHUTDOWN_REQUEST_IGNORE_TIMEOUT) {
-			logger.fine("Machine " + serverIp + " is already stopping. Ignoring this shutdown request");
-			stopResult = false;
+		logger.info("Scale IN -- " + serverIp + " --");
+		logger.info("Looking up cloud server with IP: " + serverIp);
+		final CustomNode cloudNode = deployer.getServerByIP(cloudTemplateName, serverIp);
+		if (cloudNode != null) {
+			logger.info("Found server: " + cloudNode.getId()
+					+ ". Shutting it down and waiting for shutdown to complete");
+			shutdownServerGracefully(cloudNode, false);
+			logger.info("Server: " + cloudNode.getId() + " shutdown has finished.");
+			stopResult = true;
 		} else {
-			// TODO - add a task that cleans up this map
-			stoppingMachines.put(serverIp, System.currentTimeMillis());
-			logger.info("Scale IN -- " + serverIp + " --");
-			logger.info("Looking up cloud server with IP: " + serverIp);
-			final CustomNode cloudNode = deployer.getServerByIP(cloudTemplateName, serverIp);
-			if (cloudNode != null) {
-				logger.info("Found server: " + cloudNode.getId()
-						+ ". Shutting it down and waiting for shutdown to complete");
-				shutdownServerGracefully(cloudNode, false);
-				logger.info("Server: " + cloudNode.getId() + " shutdown has finished.");
-				stopResult = true;
-			} else {
-				logger.log(Level.SEVERE, "Recieved scale in request for machine with ip " + serverIp
-						+ " but this IP could not be found in the Cloud server list");
-				stopResult = false;
-			}
+			logger.log(Level.SEVERE, "Recieved scale in request for machine with ip " + serverIp
+					+ " but this IP could not be found in the Cloud server list");
+			stopResult = false;
 		}
 
 		return stopResult;
