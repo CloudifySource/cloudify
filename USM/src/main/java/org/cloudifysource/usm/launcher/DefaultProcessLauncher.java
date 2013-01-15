@@ -32,6 +32,7 @@ import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.entry.ClosureExecutableEntry;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntryType;
@@ -47,7 +48,6 @@ import org.hyperic.sigar.Sigar;
 import org.openspaces.core.cluster.ClusterInfo;
 import org.openspaces.core.cluster.ClusterInfoAware;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.StringUtils;
 
 import com.gigaspaces.internal.sigar.SigarHolder;
 import com.j_spaces.kernel.Environment;
@@ -284,6 +284,23 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			modifyWindowsCommandLine(groovyCommandParams,
 					workingDir);
 		}
+		
+		//pass env vars as system props for the jvm, as required by XAP
+		if (StringUtils.isNotBlank(System.getenv("RMI_OPTIONS"))) {
+			groovyCommandParams.add(System.getenv("RMI_OPTIONS"));
+		}
+		
+		if (StringUtils.isNotBlank(System.getenv("LOOKUP_GROUPS_PROP"))) {
+			groovyCommandParams.add(System.getenv("LOOKUP_GROUPS_PROP"));
+		}
+		
+		if (StringUtils.isNotBlank(System.getenv("LOOKUP_LOCATORS_PROP"))) {
+			groovyCommandParams.add(System.getenv("LOOKUP_LOCATORS_PROP"));
+		}
+		
+		if (StringUtils.isNotBlank(System.getenv("GS_LOGGING_CONFIG_FILE_PROP"))) {
+			groovyCommandParams.add(System.getenv("GS_LOGGING_CONFIG_FILE_PROP"));
+		}
 
 		String classPathEnv = System.getenv("CLASSPATH");
 		if (classPathEnv == null) {
@@ -300,6 +317,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		// groovyCommandParams.add("-cp");
 		// groovyCommandParams.add(sb.toString());
 		// }
+		
 
 		this.groovyCommandLinePrefixParams = groovyCommandParams;
 	}
@@ -787,7 +805,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		}
 
 		modifyCommandLine(commandLineParams, workingDir, outputFile, errorFile);
-		final String modifiedCommandLine = StringUtils.collectionToDelimitedString(commandLineParams,
+		final String modifiedCommandLine = org.springframework.util.StringUtils.collectionToDelimitedString(commandLineParams,
 				" ");
 
 		this.commandLine = commandLineParams; // last command line to be
