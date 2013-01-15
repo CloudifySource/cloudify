@@ -332,6 +332,12 @@ public final class CloudifyConstants {
 	public static final int DEFAULT_HTTP_CONNECTION_TIMEOUT = 60 * 1000; // one minute
 	public static final int DEFAULT_HTTP_READ_TIMEOUT = 60 * 1000 * 2; // two minutes per request
 	
+	/**
+	 * CLI Printouts
+	 */
+	public static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out. "
+			+ "Try to increase the timeout using the -timeout flag";
+
 	// CHECKSTYLE:ON
 }
 

@@ -47,7 +47,6 @@ import org.cloudifysource.shell.EnvironmentUtils;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
-import org.cloudifysource.shell.commands.UninstallApplication;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.AdminFactory;
@@ -558,7 +557,7 @@ public class LocalhostGridAgentBootstrapper {
 						final String pollingID = uninstallApplicationResponse
 								.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
 						this.adminFacade.waitForLifecycleEvents(pollingID, (int) timeout,
-                                UninstallApplication.TIMEOUT_ERROR_MESSAGE);
+                                CloudifyConstants.TIMEOUT_ERROR_MESSAGE);
 					} else {
 						publishEvent("Failed to retrieve lifecycle logs from rest. " + "Check logs for more details.");
 					}

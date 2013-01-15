@@ -48,12 +48,6 @@ public class UninstallApplication extends AdminAwareCommand {
 
 	private static final int DEFAULT_TIMEOUT_MINUTES = 5;
 
-	/****
-	 * this is public as used elsewhere.
-	 */
-	public static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out. "
-			+ "Try to increase the timeout using the -timeout flag";
-
 	@Argument(index = 0, required = true, name = "The name of the application")
 	private String applicationName;
 
@@ -94,7 +88,7 @@ public class UninstallApplication extends AdminAwareCommand {
 				.uninstallApplication(this.applicationName, timeoutInMinutes);
 
 		String pollingID = uninstallApplicationResponse.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID);
-		this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes, TIMEOUT_ERROR_MESSAGE);
+		this.adminFacade.waitForLifecycleEvents(pollingID, timeoutInMinutes, CloudifyConstants.TIMEOUT_ERROR_MESSAGE);
 
 		session.put(Constants.ACTIVE_APP, "default");
 		GigaShellMain.getInstance().setCurrentApplicationName("default");
