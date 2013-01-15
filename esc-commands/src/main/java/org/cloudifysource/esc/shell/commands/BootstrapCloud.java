@@ -130,7 +130,6 @@ public class BootstrapCloud extends AbstractGSCommand {
 		}
 		
 		File tempFolder = createTempFolder();
-		logger.info("Copying provider directory to temporary folder --> " + tempFolder.getAbsolutePath());
 		FileUtils.copyDirectoryToDirectory(providerDirectory, tempFolder);
 		providerDirectory = new File(tempFolder, providerDirectory.getName());
 		
@@ -201,7 +200,6 @@ public class BootstrapCloud extends AbstractGSCommand {
 			if (cloudOverrides != null) {
 				cloudPropertiesFile.delete();
 			}
-			logger.info("Deleting temp folder --> " + tempFolder.getAbsolutePath());
 			FileUtils.deleteDirectory(tempFolder);			
 			installer.close();
 			restoreLoggingLevel();
