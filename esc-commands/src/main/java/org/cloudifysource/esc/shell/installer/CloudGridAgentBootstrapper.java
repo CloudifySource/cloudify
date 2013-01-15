@@ -460,7 +460,7 @@ public class CloudGridAgentBootstrapper {
 
 		// now we need to wait for all the application to be uninstalled
 		for (Map.Entry<String, String> entry : lifeCycleEventContainersIdsByApplicationName.entrySet()) {
-			logger.info("Waiting for application " + entry.getValue());
+			logger.info("Waiting for application " + entry.getValue() + " to uninstall.");
 			adminFacade.waitForLifecycleEvents(entry.getKey(), minutesToEnd, CloudifyConstants.TIMEOUT_ERROR_MESSAGE);
 		}		
 	}
