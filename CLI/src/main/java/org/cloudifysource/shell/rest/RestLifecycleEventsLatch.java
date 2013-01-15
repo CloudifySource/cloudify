@@ -91,7 +91,7 @@ public class RestLifecycleEventsLatch {
 						displayer.printEvent("Communication Error accessing "+ url); 
 						return false;
 					} 
-					throw new CLIException("Deployment failed. Reason: " + e.getMessage(), e);
+					throw new CLIException("Operation failed. Reason: " + e.getMessage(), e);
 				}
 
 				List<String> events = (List<String>) lifecycleEventLogs.get(CloudifyConstants.LIFECYCLE_LOGS);
