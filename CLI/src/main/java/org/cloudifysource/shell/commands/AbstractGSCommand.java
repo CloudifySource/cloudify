@@ -147,7 +147,12 @@ public abstract class AbstractGSCommand implements Action {
 		if (message == null) {
 			message = e.getReasonCode();
 		}
-		return message;
+		
+		if (verboseData != null) {
+			return message + " : " + verboseData;
+		} else {
+			return message;
+		}
 	}
 
 
