@@ -53,7 +53,7 @@ import org.fusesource.jansi.Ansi.Color;
 public class AddTemplates extends AdminAwareCommand {
 
 	@Argument(required = true, name = "templates-file-or-folder", 
-			description = "A template file or a tampltes folder that can contains several template files.")
+			description = "A template file or a templates folder that can contain several template files.")
 	private File templatesFileOrDir;
 
 	@Override
