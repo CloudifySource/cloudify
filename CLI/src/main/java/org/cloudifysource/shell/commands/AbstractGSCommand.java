@@ -15,6 +15,11 @@
  *******************************************************************************/
 package org.cloudifysource.shell.commands;
 
+import java.util.Properties;
+import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.apache.felix.gogo.commands.Action;
 import org.apache.felix.gogo.commands.Option;
 import org.apache.felix.service.command.CommandSession;
@@ -24,12 +29,6 @@ import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.ShellUtils;
 import org.fusesource.jansi.Ansi.Color;
-
-import java.text.MessageFormat;
-import java.util.Properties;
-import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author rafi, barakm
@@ -148,16 +147,7 @@ public abstract class AbstractGSCommand implements Action {
 		if (message == null) {
 			message = e.getReasonCode();
 		}
-
-		if (e.getArgs() == null || e.getArgs().length == 0) {
-			return message;
-		} else {
-			if (verboseData == null) {
-				return MessageFormat.format(message, e.getArgs());
-			} else {
-				return MessageFormat.format(message, e.getArgs()) + ": " + verboseData;
-			}
-		}
+		return message;
 	}
 
 
