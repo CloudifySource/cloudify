@@ -236,7 +236,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			desc.setStorageAccountName(storageAccountName);
 			desc.setUserName(userName);
 
-			logger.info("creating a virtual machine with details : " + desc);
+			logger.info("Creating a virtual machine with details : " + desc);
 
 			roleAddressDetails = azureClient.createVirtualMachineDeployment(
 					desc, endTime);
@@ -253,12 +253,12 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			machineDetails.setRemotePassword(password);
 			machineDetails.setRemoteUsername(userName);
 
-			logger.info("virtual machine started and is ready for use : "
+			logger.info("Virtual machine started and is ready for use : "
 					+ machineDetails);
 
 			return machineDetails;
-		} catch (final MicrosoftAzureException e) {
-			logger.severe("failed creating virtual machine properly : " + e.getMessage());
+		} catch (final Exception e) {
+			logger.severe("Failed creating virtual machine properly : " + e.getMessage());
 
 			// this means a cloud service was created and a request for A VM was
 			// made.
@@ -267,7 +267,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 					// this will also delete the cloud service that was created.
 					azureClient.deleteVirtualMachineByDeploymentIfExists(
 							desc.getHostedServiceName(),
-							desc.getDeploymentName(), endTime);
+							desc.getDeploymentName(), endTime + DEFAULT_SHUTDOWN_DURATION);
 				} catch (final Exception e1) {
 					if (e1 instanceof TimeoutException) {
 						throw new TimeoutException(e1.getMessage());
@@ -279,14 +279,12 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 				// cloud service. no request for VM was made, so no need to try
 				// and delete it.
 			} else {
-				logger.fine("not attempting to shutdown virtual machine "
+				logger.fine("Not attempting to shutdown virtual machine "
 						+ desc.getRoleName()
 						+ " since a failure happened while trying to create a cloud service for this vm.");
 
 			}
 
-			throw new CloudProvisioningException(e);
-		} catch (InterruptedException e) {
 			throw new CloudProvisioningException(e);
 		}
 
