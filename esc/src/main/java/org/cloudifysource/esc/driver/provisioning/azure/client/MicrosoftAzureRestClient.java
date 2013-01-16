@@ -600,6 +600,7 @@ public class MicrosoftAzureRestClient {
 			return true;
 		}
 		
+		logger.fine("Deleting cloud service : " + cloudServiceName);
 		ClientResponse response = doDelete("/services/hostedservices/"
 				+ cloudServiceName);
 		String requestId = extractRequestId(response);
@@ -677,10 +678,43 @@ public class MicrosoftAzureRestClient {
 		}
 
 		if (diskName != null) {
+			logger.fine("Waiting for OS Disk " + diskName + " to detach from role " + roleName);
+			waitForDiskToDetach(diskName, roleName, endTime);
 			logger.info("Deleting OS Disk : " + diskName);
 			deleteOSDisk(diskName, endTime);
 		}
 	}	
+
+	private void waitForDiskToDetach(final String diskName, final String roleName, long endTime) 
+			throws TimeoutException, MicrosoftAzureException, InterruptedException {
+		
+		while (true) {
+			Disks disks = listOSDisks();
+			Disk osDisk = null;
+			for (Disk disk : disks) {
+				if (disk.getName().equals(diskName)) {
+					osDisk = disk;
+					break;
+				}
+			}
+			if (osDisk != null) {
+				if (osDisk.getAttachedTo() == null) {
+					return;
+				} else {
+					logger.fine("Disk " + diskName + " is still attached to role " + osDisk.getAttachedTo().getRoleName());
+					Thread.sleep(DEFAULT_POLLING_INTERVAL);
+				}
+			} else {
+				throw new MicrosoftAzureException("Disk " + diskName + " does not exist");
+			}
+
+			if (System.currentTimeMillis() > endTime) {
+				throw new TimeoutException(
+						"Timed out waiting for disk " + diskName + " to detach from role " + roleName);
+			}
+		}
+		
+	}
 
 	/**
 	 * this method return all disks that are currently being used by this
