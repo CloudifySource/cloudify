@@ -837,7 +837,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<String> addTempaltes(final File templatesFile) 
+	public List<String> addTemplates(final File templatesFile) 
 			throws CLIException {
 		final String url = SERVICE_CONTROLLER_URL + "templates";
 		List<String> response;
