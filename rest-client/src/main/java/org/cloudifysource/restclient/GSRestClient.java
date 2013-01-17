@@ -668,8 +668,11 @@ public class GSRestClient {
 		final MultipartEntity reqEntity = new MultipartEntity();
 
 		for (Entry<String, File> entry : files.entrySet()) {
-			final FileBody bin = new FileBody(entry.getValue());
-			reqEntity.addPart(entry.getKey(), bin);
+			File file = entry.getValue();
+			if (file != null) {
+				final FileBody bin = new FileBody(file);
+				reqEntity.addPart(entry.getKey(), bin);
+			}
 		}
 
 		final HttpPost httppost = new HttpPost(getFullUrl(relativeUrl));
