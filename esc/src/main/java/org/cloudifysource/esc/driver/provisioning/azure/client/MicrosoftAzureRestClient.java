@@ -460,6 +460,7 @@ public class MicrosoftAzureRestClient {
 				if (e instanceof InterruptedException) {
 					throw (InterruptedException)e;
 				}
+				throw new MicrosoftAzureException(e);
 			}
 		} else {
 			throw new TimeoutException(
@@ -626,7 +627,10 @@ public class MicrosoftAzureRestClient {
 			InterruptedException {
 
 		Deployment deployment = getDeploymentByIp(machineIp, isPrivateIp);
-		logger.fine("Deployment name for VM with ip " + machineIp + " is " + deployment.getName());
+		if (deployment == null) {
+			throw new MicrosoftAzureException("Could not find a Virtual Machine with IP " + machineIp);
+		}
+		logger.fine("Deployment name for Virtual Machine with IP " + machineIp + " is " + deployment.getName());
 		deleteVirtualMachineByDeploymentName(deployment.getHostedServiceName(),
 				deployment.getName(), endTime);
 
@@ -652,38 +656,40 @@ public class MicrosoftAzureRestClient {
 
 		String diskName = null;
 		String roleName = null;
+		Disk disk = getDiskByAttachedCloudService(cloudServiceName);
+		if (disk != null) {
+			diskName = disk.getName();
+			roleName = disk.getAttachedTo().getRoleName();
+		} else {
+			throw new IllegalStateException("Disk cannot be null for an existing deployment " + deploymentName 
+					+ " in cloud service " + cloudServiceName);
+		}
 
+		logger.info("Deleting Virtual Machine " + deploymentName);
+		deleteDeployment(cloudServiceName, deploymentName,
+				endTime);
+		logger.fine("Deleteing cloud service : " + cloudServiceName
+				+ " that was dedicated for virtual machine " + roleName);				
+		deleteCloudService(cloudServiceName, endTime);
 
+		logger.fine("Waiting for OS Disk " + diskName + " to detach from role " + roleName);
+		waitForDiskToDetach(diskName, roleName, endTime);
+		logger.info("Deleting OS Disk : " + diskName);
+		deleteOSDisk(diskName, endTime);
+	}
+	
+	private Disk getDiskByAttachedCloudService(final String cloudServiceName) 
+			throws MicrosoftAzureException, TimeoutException {
+		
 		Disks disks = listOSDisks();
 		for (Disk disk : disks) {
 			AttachedTo attachedTo = disk.getAttachedTo();
-			if (attachedTo != null) {
-				if (cloudServiceName.equals(attachedTo
-						.getHostedServiceName())) {
-					diskName = disk.getName();
-					roleName = attachedTo.getRoleName();
-					break;
-				}
+			if ((attachedTo != null) && (attachedTo.getHostedServiceName().equals(cloudServiceName))) {
+				return disk;
 			}
 		}
-
-		// there maybe zombi OS disks.
-		if (cloudServiceExists(cloudServiceName)) {
-			logger.info("Deleting Virtual Machine " + deploymentName);
-			deleteDeployment(cloudServiceName, deploymentName,
-					endTime);
-			logger.fine("Deleteing cloud service : " + cloudServiceName
-					+ " that was dedicated for virtual machine " + roleName);				
-			deleteCloudService(cloudServiceName, endTime);
-		}
-
-		if (diskName != null) {
-			logger.fine("Waiting for OS Disk " + diskName + " to detach from role " + roleName);
-			waitForDiskToDetach(diskName, roleName, endTime);
-			logger.info("Deleting OS Disk : " + diskName);
-			deleteOSDisk(diskName, endTime);
-		}
-	}	
+		return null;
+	}
 
 	private void waitForDiskToDetach(final String diskName, final String roleName, long endTime) 
 			throws TimeoutException, MicrosoftAzureException, InterruptedException {
@@ -1010,7 +1016,6 @@ public class MicrosoftAzureRestClient {
 				String ip = isPrivateIp ? privateIp : publicIp;
 				if (machineIp.equals(ip)) {
 					deployment.setHostedServiceName(cloudServiceName);
-					logger.info("Found a role with ip : " + machineIp);
 					return deployment;
 				}
 			}
