@@ -540,7 +540,7 @@ public interface AdminFacade {
 	 * @return A list of template names that were added to the cloud.
 	 * @throws CLIException 
 	 */
-	List<String> addTempaltes(final File templatesFile) 
+	List<String> addTemplates(final File templatesFile) 
 			throws CLIException;
 	
 	/**

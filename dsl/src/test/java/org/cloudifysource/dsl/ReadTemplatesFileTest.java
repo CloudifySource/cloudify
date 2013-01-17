@@ -75,7 +75,7 @@ public class ReadTemplatesFileTest {
 	
 	@Test
 	public void readTemplateFilesFromFolderTest() {	
-		readTempaltesTest(TEMPLATES_FILE_PATH);
+		readTemplatesTest(TEMPLATES_FILE_PATH);
 	}
 	
 	@Test
@@ -116,7 +116,7 @@ public class ReadTemplatesFileTest {
 		}
 	}
 	
-	private void readTempaltesTest(final String folderName) {
+	private void readTemplatesTest(final String folderName) {
 		try {
 			File templatesFile = new File(folderName);
 			
