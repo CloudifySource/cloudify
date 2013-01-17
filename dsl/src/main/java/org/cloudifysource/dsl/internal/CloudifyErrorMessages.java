@@ -78,7 +78,17 @@ public enum CloudifyErrorMessages {
 	/******
 	 * If service recipe refers to missing template.
 	 */
-	TEMPLATE_IN_USE("failed_to_remove_template_in_use", 2);
+	TEMPLATE_IN_USE("failed_to_remove_template_in_use", 2),
+	
+	/******
+	 * If failed to add templates
+	 */
+	FAILED_TO_ADD_TEMPLATES("failed_to_add_templates", 1),
+	
+	/******
+	 * If partly failed to add templates (some added successfully)
+	 */
+	PARTLY_FAILED_TO_ADD_TEMPLATES("partly_failed_to_add_templates", 2);
 
 	
 	private final int numberOfParameters;
