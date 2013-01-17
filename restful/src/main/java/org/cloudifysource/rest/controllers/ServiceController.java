@@ -32,6 +32,8 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,11 +73,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.cloudifysource.dsl.ComputeDetails;
 import org.cloudifysource.dsl.DataGrid;
 import org.cloudifysource.dsl.Service;
@@ -114,6 +112,8 @@ import org.cloudifysource.restDoclet.annotations.JsonRequestExample;
 import org.cloudifysource.restDoclet.annotations.JsonResponseExample;
 import org.cloudifysource.restDoclet.annotations.PossibleResponseStatus;
 import org.cloudifysource.restDoclet.annotations.PossibleResponseStatuses;
+import org.cloudifysource.restclient.GSRestClient;
+import org.cloudifysource.restclient.RestException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.CycleDetector;
@@ -181,6 +181,7 @@ import com.gigaspaces.log.LastNLogEntryMatcher;
 import com.gigaspaces.log.LogEntries;
 import com.gigaspaces.log.LogEntry;
 import com.gigaspaces.log.LogEntryMatchers;
+import com.j_spaces.kernel.PlatformVersion;
 
 /**
  * @author rafi, barakm, adaml, noak
@@ -209,6 +210,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	private static final long TEN_K = 10 * FileUtils.ONE_KB;
 	private static final String FAILED_TO_ADD_TEMPLATES_KEY = "failed to add templates";
 	private static final String SUCCESSFULLY_ADDED_TEMPLATES_KEY = "successfully added templates";
+	private static final String SECURITY_PROFILE = System.getenv(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR);
+	private static final boolean IS_SECURE_CONNECTION = 
+			CloudifyConstants.SPRING_PROFILE_SECURE.equalsIgnoreCase(SECURITY_PROFILE);
 
 	/**
 	 * A set containing all of the executed lifecycle events. used to avoid
@@ -234,6 +238,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	private static final long DEFAULT_DUMP_FILE_SIZE_LIMIT = 5 * 1024 * 1024;
 
 	private static final String DEFAULT_DUMP_PROCESSORS = "summary, network, thread, log";
+	
 	// private static final String[] DEFAULT_DUMP_PROCESSORS = new String[] {
 	// "summary", "network", "thread", "log", "processingUnits;"
 	// };
@@ -3847,11 +3852,19 @@ public class ServiceController implements ServiceDetailsProvider {
 
 			// If some templates failed to be added, throw an exception
 			if (!failedToAddTemplatesByHost.isEmpty()) {
-				logger.log(Level.WARNING, "[addTemplates] - Failed to add the following templates (by host): "
-						+ failedToAddTemplatesByHost
-						+ ".\nSuccessfully added templates (by host): " + addedTemplatesByHost);
-				throw new RestErrorException("failed_to_add_templates",
-						failedToAddTemplatesByHost, addedTemplatesByHost);
+				if (addedTemplatesByHost.isEmpty()) {
+					logger.log(Level.WARNING, "[addTemplates] - Failed to add the following templates (by host): "
+							+ failedToAddTemplatesByHost);
+					throw new RestErrorException(CloudifyErrorMessages.FAILED_TO_ADD_TEMPLATES.getName(),
+							failedToAddTemplatesByHost);
+					
+				} else {
+					logger.log(Level.WARNING, "[addTemplates] - Failed to add the following templates (by host): "
+							+ failedToAddTemplatesByHost + ".\nSuccessfully added templates (by host): " 
+							+ addedTemplatesByHost);
+					throw new RestErrorException(CloudifyErrorMessages.PARTLY_FAILED_TO_ADD_TEMPLATES.getName(),
+							failedToAddTemplatesByHost, addedTemplatesByHost);
+				}
 			}
 
 			logger.log(Level.INFO, "[addTemplates] - Successfully added templates: " + addedTemplatesByHost.toString());
@@ -3941,12 +3954,12 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             successful.
 	 */
 	private void executeDeleteRestRequest(final ProcessingUnitInstance puInstance, 
-			final String hostAddress, final String url) throws RestErrorException {
-		String uri = "http://" + hostAddress + ":" + puInstance.getJeeDetails().getPort() + url;
-		HttpDelete deleteMethod = new HttpDelete(uri);
-		// execute the request and extract the list from the response
-		DefaultHttpClient httpClient = new DefaultHttpClient();
-		RestUtils.executeHttpMethod(deleteMethod, httpClient);
+			final String hostAddress, final String relativeUrl) 
+					throws RestErrorException, RestException, MalformedURLException {
+				
+		String port = Integer.toString(puInstance.getJeeDetails().getPort());
+		GSRestClient restClient = createRestClient(hostAddress, port, ""/*username*/, ""/*password*/);
+		restClient.delete(relativeUrl);
 	}
 
 	/**
@@ -3968,29 +3981,24 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             If failed to post the folder.
 	 */
 	private Map<String, Object> executePostRestRequest(final File templatesFolder,
-			final ProcessingUnitInstance puInstance, final String url)
-					throws RestErrorException, IOException {
-		// create an HTTP request
+			final ProcessingUnitInstance puInstance, final String relativeUrl)
+					throws RestErrorException, RestException, IOException {
+		
+		Object response = null;
+		
 		String hostAddress = puInstance.getMachine().getHostAddress();
 		String host = puInstance.getMachine().getHostName() + "/" + hostAddress;
-		String uri = "http://" + hostAddress + ":" + puInstance.getJeeDetails().getPort() + url;
-		HttpPost postMethod = new HttpPost(uri);
-		final MultipartEntity reqEntity = new MultipartEntity();
-		reqEntity.addPart(CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, new FileBody(templatesFolder));
-		postMethod.setEntity(reqEntity);
-
-		// execute the request and extract the list from the response
-		Object response = null;
-		Map<String, Object> responseMap;
-		DefaultHttpClient httpClient = new DefaultHttpClient();
-		try {
-			response = RestUtils.executeHttpMethod(postMethod, httpClient);
-			responseMap = (Map<String, Object>) response;
-		} catch (ClassCastException e) {
+		String port = Integer.toString(puInstance.getJeeDetails().getPort());
+		GSRestClient restClient = createRestClient(hostAddress, port, ""/*username*/, ""/*password*/);
+		Map<String, File> fileMap = new HashMap<String, File>();
+		fileMap.put(CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, templatesFolder);
+		response = restClient.postFiles(relativeUrl, fileMap);
+		if (!(response instanceof Map)) {
 			throw new RestErrorException("The response from host address " + host
-					+ " is not a map as expected. " + "response: " + response.toString() + ".");
+					+ " is not a map as expected. " + "response: " + response.toString() + '.');				
 		}
-		return responseMap;
+		
+		return (Map<String, Object>) response;
 	}
 
 	/**
@@ -4009,7 +4017,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws DSLException
 	 *             in case of failing to read a DSL object.
 	 */
-	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
+
+	//@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
 	@RequestMapping(value = "templates/internal", method = RequestMethod.POST)
 	public @ResponseBody
 	Map<String, Object>
@@ -4403,16 +4412,21 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		// check if some REST instances failed to remove the template
 		if (!failedToRemoveHosts.isEmpty()) {
-			logger.log(Level.WARNING, "[removeTemplate] - failed to remove template [" + templateName + "] from: "
-					+ failedToRemoveHosts + ". Succeeded to remove the template from: " + successfullyRemoved);
+			String message = "[removeTemplate] - failed to remove template [" + templateName + "] from: "
+					+ failedToRemoveHosts;
+			if (!successfullyRemoved.isEmpty()) {
+				message += ". Succeeded to remove the template from: " + successfullyRemoved;
+			}
+			
+			logger.log(Level.WARNING, message);
 			throw new RestErrorException("failed_to_remove_template", templateName, failedToRemoveHosts.toString());
 		}
 
 		// return success
-		logger.log(Level.INFO, "[removeTemplate] - Succeeded to remove template [" + templateName 
-				+ "] from: " + successfullyRemoved);
+		logger.log(Level.INFO, "[removeTemplate] - Succeeded to remove template [" + templateName + "] from: " 
+				+ successfullyRemoved);
+		
 		return successStatus();
-
 	}
 
 	/**
@@ -4443,8 +4457,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			String host = puInstance.getMachine().getHostName() + "/" + hostAddress;
 			// execute the http request
 			try {
-				executeDeleteRestRequest(puInstance, hostAddress, "/service/templates/" + templateName + "/internal");
-			} catch (RestErrorException e) {
+				executeDeleteRestRequest(puInstance, hostAddress, "/service/templates/internal/" + templateName);
+			} catch (Exception e) {
 				failedToRemoveHosts.add(host);
 				logger.log(Level.WARNING, "[removeTemplateFromRestInstances] - Failed to execute http request to " 
 						+ host + ". Error: " + e.getMessage(), e);
@@ -4467,8 +4481,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws RestErrorException
 	 *             If failed to remove template.
 	 */
-	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
-	@RequestMapping(value = "templates/{templateName}/internal", method = RequestMethod.DELETE)
+	//@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
+	@RequestMapping(value = "templates/internal/{templateName}", method = RequestMethod.DELETE)
 	public @ResponseBody
 	Map<String, Object>
 	removeTemplateInternal(@PathVariable final String templateName)
@@ -4642,5 +4656,27 @@ public class ServiceController implements ServiceDetailsProvider {
 			throw new RestErrorException(ResponseConstants.APPLICATION_NAME_IS_ALREADY_IN_USE, applicationName);
 		}
 		return successStatus();
+	}
+	
+	/**
+	 * Returns the name of the protocol used for communication with the rest server.
+	 * If the security is secure (SSL) returns "https", otherwise returns "http".
+	 * @param isSecureConnection Indicates whether SSL is used or not.
+	 * @return "https" if this is a secure connection, "http" otherwise.
+	 */
+	private static String getRestProtocol(final boolean isSecureConnection) {
+		if (isSecureConnection) {
+			return "https";
+		} else {
+			return "http";
+		}
+	}
+	
+	private static GSRestClient createRestClient(final String host, final String port, final String username, 
+			final String password) throws RestException, MalformedURLException {
+		String protocol = getRestProtocol(IS_SECURE_CONNECTION);
+		String baseUrl = protocol + "://" + host + ":" + port;
+		String versionName = PlatformVersion.getVersion() + "-Cloudify-" + PlatformVersion.getMilestone();
+		return new GSRestClient(new UsernamePasswordCredentials(username, password), new URL(baseUrl), versionName);
 	}
 }

@@ -45,6 +45,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.StatusLine;
 import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpDelete;
@@ -145,6 +146,42 @@ public class GSRestClient {
 
 		setCredentials(username, password);
 	}
+	
+	
+	/**
+	 * Ctor.
+	 * 
+	 * @param credentials
+	 *            credentials for the HTTP client.
+	 * @param url
+	 *            URL to the rest service.
+	 * @param version
+	 *            cloudify api version of the client
+	 * @throws RestException
+	 *             Reporting failure to create a SSL HTTP client.
+	 */
+	public GSRestClient(Credentials credentials, final URL url, final String version)
+			throws RestException {
+
+		this.url = url;
+		this.urlStr = createUrlStr();
+
+		if (isSSL()) {
+			httpClient = getSSLHttpClient();
+		} else {
+			httpClient = new DefaultHttpClient();
+		}
+		httpClient.addRequestInterceptor(new HttpRequestInterceptor() {
+
+			@Override
+			public void process(HttpRequest request, HttpContext context)
+					throws HttpException, IOException {
+				request.addHeader(CloudifyConstants.REST_API_VERSION_HEADER, version);
+			}
+		});
+
+		setCredentials(credentials);
+	}
 
 	/**
 	 * Sets username and password for the HTTP client
@@ -160,6 +197,15 @@ public class GSRestClient {
 			httpClient.getCredentialsProvider().setCredentials(new AuthScope(AuthScope.ANY),
 					new UsernamePasswordCredentials(username, password));
 		}
+	}
+	
+	/**
+	 * Sets the credentials for the HTTP client
+	 * @param credentials
+	 *            The credentials for the HTTP client
+	 */
+	public void setCredentials(final Credentials credentials) {
+		httpClient.getCredentialsProvider().setCredentials(new AuthScope(AuthScope.ANY), credentials);
 	}
 
 	/**
@@ -622,8 +668,11 @@ public class GSRestClient {
 		final MultipartEntity reqEntity = new MultipartEntity();
 
 		for (Entry<String, File> entry : files.entrySet()) {
-			final FileBody bin = new FileBody(entry.getValue());
-			reqEntity.addPart(entry.getKey(), bin);
+			File file = entry.getValue();
+			if (file != null) {
+				final FileBody bin = new FileBody(file);
+				reqEntity.addPart(entry.getKey(), bin);
+			}
 		}
 
 		final HttpPost httppost = new HttpPost(getFullUrl(relativeUrl));
