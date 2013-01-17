@@ -27,10 +27,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -287,26 +289,19 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 		final ArrayList<String> groovyCommandParams = new ArrayList<String>();
 		groovyCommandParams.add(groovyPath);
+		
+		//pass values as system props to the jvm, as required by XAP
+		List<String> envVarsList = new ArrayList<String>();
+		envVarsList.add("LOOKUP_LOCATORS_PROP");
+		envVarsList.add("LOOKUP_GROUPS_PROP");
+		envVarsList.add("RMI_OPTIONS");
+		envVarsList.add("GS_LOGGING_CONFIG_FILE_PROP");
+		
+		groovyCommandParams.addAll(convertEnvVarsToSysPropsList(envVarsList));
+		
+		
 		if (ServiceUtils.isWindows()) {
-			modifyWindowsCommandLine(groovyCommandParams,
-					workingDir);
-		}
-		
-		//pass env vars as system props for the jvm, as required by XAP
-		if (StringUtils.isNotBlank(System.getenv("RMI_OPTIONS"))) {
-			groovyCommandParams.add(System.getenv("RMI_OPTIONS"));
-		}
-		
-		if (StringUtils.isNotBlank(System.getenv("LOOKUP_GROUPS_PROP"))) {
-			groovyCommandParams.add(System.getenv("LOOKUP_GROUPS_PROP"));
-		}
-		
-		if (StringUtils.isNotBlank(System.getenv("LOOKUP_LOCATORS_PROP"))) {
-			groovyCommandParams.add(System.getenv("LOOKUP_LOCATORS_PROP"));
-		}
-		
-		if (StringUtils.isNotBlank(System.getenv("GS_LOGGING_CONFIG_FILE_PROP"))) {
-			groovyCommandParams.add(System.getenv("GS_LOGGING_CONFIG_FILE_PROP"));
+			modifyWindowsCommandLine(groovyCommandParams, workingDir);
 		}
 
 		String classPathEnv = System.getenv("CLASSPATH");
@@ -325,7 +320,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		// groovyCommandParams.add(sb.toString());
 		// }
 		
-
+		logger.info("Setting groovyCommandParams to: " + groovyCommandParams);
 		this.groovyCommandLinePrefixParams = groovyCommandParams;
 	}
 
@@ -414,6 +409,14 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 				commandLineParams.add(i,
 						WINDOWS_BATCH_FILE_PREFIX_PARAMS[i]);
 			}
+		}
+		
+		//remove quotes
+		ListIterator<String> commandIterator = commandLineParams.listIterator();
+		while (commandIterator.hasNext()) {
+			String param = commandIterator.next();
+			commandIterator.remove();
+			commandIterator.add(StringUtils.replace(param, "\"", ""));
 		}
 
 	}
@@ -831,7 +834,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			pb.environment().putAll(env);
 
 			try {
-				logger.fine("Parsed command line: " + commandLineParams);
+				logger.fine("Parsed command line: " + commandLineParams.toString());
 
 				final String fileInitialMessage =
 						"Starting service process in working directory:'" + workingDir + "' "
@@ -983,6 +986,31 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	@Override
 	public void setClusterInfo(final ClusterInfo clusterInfo) {
 		this.clusterInfo = clusterInfo;
+	}
+	
+	
+	/**
+	 * Converts the specified environment variables to system properties.
+	 * Each environment variable is expected to have this value pattern: -DsystemPropertyName=systemPropertyValue
+	 * or this: -DsystemPropertyName=systemPropertyValue -DAnotherSystemPropertyName=anotherSystemPropertyValue
+	 * @param envVarsList
+	 * @return
+	 */
+	private static List<String> convertEnvVarsToSysPropsList(final List<String> envVarsList) {
+		List<String> sysPropsList = new ArrayList<String>();
+		String envVarValue;
+	
+		for (String envVarName : envVarsList) {
+			envVarValue = System.getenv(envVarName);
+			String [] sysProps = envVarValue.split("-D");
+			for (String sysProp : sysProps) {
+				if (StringUtils.isNotBlank(sysProp)) {
+					sysPropsList.add("-D" + sysProp.trim());
+				}
+			}
+		}
+		
+		return sysPropsList;
 	}
 
 }
