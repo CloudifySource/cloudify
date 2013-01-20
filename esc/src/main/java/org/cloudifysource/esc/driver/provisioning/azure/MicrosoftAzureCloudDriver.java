@@ -498,6 +498,15 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 							endTime);
 					futures.add(service.submit(task));
 				}
+			} else {
+				if (disk.getName().contains(serverNamePrefix)) {
+					try {
+						logger.info("Detected a zombie OS Disk with name " + disk.getName() + ", Deleting it.");
+						azureClient.deleteOSDisk(disk.getName(), endTime);
+					} catch (final Exception e) {
+						throw new CloudProvisioningException(e);
+					}
+				}
 			}
 		}
 

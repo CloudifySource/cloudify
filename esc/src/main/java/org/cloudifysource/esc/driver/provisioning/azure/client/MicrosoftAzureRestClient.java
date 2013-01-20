@@ -598,6 +598,7 @@ public class MicrosoftAzureRestClient {
 			TimeoutException, InterruptedException {
 		
 		if (!cloudServiceExists(cloudServiceName)) {
+			logger.info("Cloud service " + cloudServiceName + " does not exist.");
 			return true;
 		}
 		
@@ -664,10 +665,11 @@ public class MicrosoftAzureRestClient {
 			throw new IllegalStateException("Disk cannot be null for an existing deployment " + deploymentName 
 					+ " in cloud service " + cloudServiceName);
 		}
-
-		logger.info("Deleting Virtual Machine " + deploymentName);
+		
+		logger.info("Deleting Virtual Machine " + roleName);
 		deleteDeployment(cloudServiceName, deploymentName,
 				endTime);
+		
 		logger.fine("Deleteing cloud service : " + cloudServiceName
 				+ " that was dedicated for virtual machine " + roleName);				
 		deleteCloudService(cloudServiceName, endTime);
@@ -756,6 +758,7 @@ public class MicrosoftAzureRestClient {
 			InterruptedException {
 		
 		if (!osDiskExists(diskName)) {
+			logger.info("OS Disk " + diskName + " does not exist");
 			return true;
 		}
 		
@@ -784,6 +787,11 @@ public class MicrosoftAzureRestClient {
 			throws MicrosoftAzureException, TimeoutException,
 			InterruptedException {
 
+		if (!deploymentExists(hostedServiceName, deploymentName)) {
+			logger.info("Deployment " + deploymentName + " does not exist");
+			return true;
+		}
+		
 		long currentTimeInMillis = System.currentTimeMillis();
 		long lockTimeout = endTime - currentTimeInMillis;
 
@@ -808,12 +816,10 @@ public class MicrosoftAzureRestClient {
 				pendingRequest.unlock();
 				logger.fine(getThreadIdentity() + "Lock unlcoked");
 			} catch (final Exception e) {
-				logger.warning(getThreadIdentity() + "Failed deleting deployment of virtual machine from : "
-						+ deploymentName);
 				logger.fine(getThreadIdentity() + "About to release lock " + pendingRequest.hashCode());
 				pendingRequest.unlock();
 				if (e instanceof MicrosoftAzureException) {
-					throw new MicrosoftAzureException(e);
+					throw (MicrosoftAzureException)e;
 				}
 				if (e instanceof TimeoutException) {
 					throw (TimeoutException)e;
@@ -1135,6 +1141,18 @@ public class MicrosoftAzureRestClient {
 			throws MicrosoftAzureException, TimeoutException {
 		AffinityGroups affinityGroups = listAffinityGroups();
 		return (affinityGroups.contains(affinityGroupName));
+	}
+	
+	private boolean deploymentExists(final String cloudServiceName, final String deploymentName) 
+			throws MicrosoftAzureException, TimeoutException {
+		
+		HostedService service = getHostedService(cloudServiceName, true);
+		if ((service.getDeployments() != null) && (service.getDeployments().contains(deploymentName))) {
+			return true;
+		} else {
+			return false;
+		}
+		
 	}
 
 	private boolean storageExists(final String storageAccouhtName)
