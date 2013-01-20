@@ -2379,10 +2379,7 @@ public class ServiceController implements ServiceDetailsProvider {
 							+ serviceName + " deployment.");
 					logger.info("isolationSLA = " + service.getIsolationSLA());
 					// service instances can be deployed across all agents
-					setPublicMachineProvisioning(deployment, config);
-					
-					
-					
+					setPublicMachineProvisioning(deployment, config);			
 				} else if (IsolationUtils.isAppShared(service)) {
 					logger.info("app shared mode is on. will use shared machine provisioning for "
 							+ serviceName + " deployment. isolation id = " + applicationName);
@@ -3202,6 +3199,9 @@ public class ServiceController implements ServiceDetailsProvider {
 		.reservedMemoryCapacityPerMachine(
 				reservedMemoryCapacityPerMachineInMB,
 				MemoryUnit.MEGABYTES).create();
+		
+		// localcloud is also the management machine
+		machineProvisioning.setReservedMemoryCapacityPerManagementMachineInMB(reservedMemoryCapacityPerMachineInMB);
 		machineProvisioning.setGridServiceAgentZones(agentZones);
 
 		deployment.publicMachineProvisioning(machineProvisioning);
