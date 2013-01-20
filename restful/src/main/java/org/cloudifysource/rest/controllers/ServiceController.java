@@ -3202,6 +3202,9 @@ public class ServiceController implements ServiceDetailsProvider {
 		.reservedMemoryCapacityPerMachine(
 				reservedMemoryCapacityPerMachineInMB,
 				MemoryUnit.MEGABYTES).create();
+		
+		// localcloud is also the management machine
+		machineProvisioning.setReservedMemoryCapacityPerManagementMachineInMB(reservedMemoryCapacityPerMachineInMB);
 		machineProvisioning.setGridServiceAgentZones(agentZones);
 
 		deployment.publicMachineProvisioning(machineProvisioning);
