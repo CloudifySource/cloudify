@@ -23,7 +23,7 @@ Requirements
 Build Instructions
 ------------------
 1. make sure that you have git, ant and maven installed.
-2. In git, run the following commands:
+2. In command line, run the following commands:
 ```
 git clone https://github.com/CloudifySource/cloudify.git
 cd cloudify
