@@ -37,7 +37,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * 
+ *
  *
  */
 public class ServiceParsingTest {
@@ -45,9 +45,10 @@ public class ServiceParsingTest {
 	private static final String TEST_PARSING_RESOURCE_PATH = "testResources/testparsing/";
 	private static final String TEST_PARSING_RESOURCE_PATH2 = "src/test/resources/ExternalDSLFiles/";
 	private static final String TEST_PARSING_RESOURCE_PATH3 = "src/test/resources/groovyFileValidation/";
+	private static final String TEST_PARSING_AMP_MERGE_RESOURCE_PATH3 = "src/test/resources/inheritance/";
 
 	/**
-	 * 
+	 *
 	 * @throws DSLException .
 	 * @throws UnknownHostException .
 	 */
@@ -70,7 +71,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 * 
+	 *
 	 * @throws DSLException .
 	 */
 	@Test
@@ -89,7 +90,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 * 
+	 *
 	 * @throws DSLException .
 	 */
 	@Test
@@ -108,7 +109,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 * 
+	 *
 	 * @throws DSLException .
 	 */
 	@Test
@@ -130,7 +131,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 * 
+	 *
 	 * @throws DSLException .
 	 */
 	@Test
@@ -172,7 +173,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@Test
 	public void testBasicExtendIllegalPropertyLocation() {
@@ -191,7 +192,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@Test
 	public void testBasicExtendIllegalNestedPropertyLocation() {
@@ -210,7 +211,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 * 
+	 *
 	 * @throws DSLException .
 	 */
 	@Test
@@ -266,7 +267,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 * 
+	 *
 	 * @throws DSLException .
 	 * @throws UnknownHostException .
 	 */
@@ -351,7 +352,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 * 
+	 *
 	 * @throws DSLException .
 	 */
 	@Test
@@ -374,7 +375,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 * 
+	 *
 	 * @throws Exception .
 	 */
 	@Test
@@ -397,7 +398,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 * 
+	 *
 	 * @throws Exception .
 	 */
 	@Test
@@ -415,7 +416,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 * 
+	 *
 	 * @throws Exception .
 	 */
 	@Test
@@ -430,7 +431,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 * 
+	 *
 	 * @throws Exception .
 	 */
 	@Test
@@ -457,4 +458,32 @@ public class ServiceParsingTest {
 		// check that the @grab annotation worked.
 		Assert.assertEquals("Tomcat", service.getName());
 	}
+
+	@Test
+	public void testServiceWithMapMerge() throws Exception {
+		final File serviceFile = new File(TEST_PARSING_AMP_MERGE_RESOURCE_PATH3
+				+ "/mapMerge/b/b-service.groovy");
+		final Service service = ServiceReader.getServiceFromFile(serviceFile);
+
+		Assert.assertNotNull(service);
+		Assert.assertNotNull(service.getLifecycle());
+		Assert.assertNotNull(service.getCustomCommands());
+		Assert.assertEquals(2, service.getCustomCommands().size());
+	}
+
+	@Test
+	public void testServiceWithMapOverride() throws Exception {
+		final File serviceFile = new File(TEST_PARSING_AMP_MERGE_RESOURCE_PATH3
+				+ "/mapOverride/b/b-service.groovy");
+		final Service service = ServiceReader.getServiceFromFile(serviceFile);
+
+		Assert.assertNotNull(service);
+		Assert.assertNotNull(service.getLifecycle());
+		Assert.assertNotNull(service.getCustomCommands());
+		Assert.assertEquals(1, service.getCustomCommands().size());
+		Assert.assertTrue(service.getCustomCommands().containsKey("cmdA"));
+		Assert.assertTrue(service.getCustomCommands().get("cmdA") == null);
+
+	}
+
 }

@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.dsl.internal;
 
@@ -82,10 +79,10 @@ import org.openspaces.ui.WidgetGroup;
 
 /*************
  * Base class for DSL files.
- * 
+ *
  * @author barakme
  * @since 1.0
- * 
+ *
  */
 public abstract class BaseDslScript extends Script {
 
@@ -106,8 +103,8 @@ public abstract class BaseDslScript extends Script {
 	private Set<String> usedProperties = new HashSet<String>();
 
 	/********
-	 * syntactic sigar for an empty list that process locator implementations
-	 * can use to specify an empty process IDs list.
+	 * syntactic sigar for an empty list that process locator implementations can use to specify an empty process IDs
+	 * list.
 	 */
 	public static final List<Long> NO_PROCESS_LOCATORS = new LinkedList<Long>();
 
@@ -137,7 +134,7 @@ public abstract class BaseDslScript extends Script {
 
 	private boolean isDuplicatePropertyAllowed(final Object value) {
 		// Application allows duplicate service values.
-		return (this.activeObject instanceof Application && value instanceof Service);
+		return this.activeObject instanceof Application && value instanceof Service;
 	}
 
 	private static boolean isProperyExistsInBean(final Object bean, final String propertyName) {
@@ -155,6 +152,7 @@ public abstract class BaseDslScript extends Script {
 
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void applyPropertyToObject(final Object object, final String name, final Object value) {
 
 		if (!isProperyExistsInBean(object, name)) {
@@ -184,16 +182,35 @@ public abstract class BaseDslScript extends Script {
 						+ ",name=" + name + ",value=" + convertedValue
 						+ ",value.getClass()=" + convertedValue.getClass());
 			}
-			// Then set it
+
+			// Check if writable
 			if (!PropertyUtils.isWriteable(object, name)) {
 				throw new IllegalArgumentException("Field " + name + " in object of type: "
 						+ object.getClass().getName() + " is not writable");
 			}
-			BeanUtils.setProperty(object, name, convertedValue);
+
+			// If value is a map, merge with existing map
+			final Object currentValue = PropertyUtils.getProperty(object, name);
+			if (currentValue != null
+					&& currentValue instanceof Map<?, ?>
+					&& value != null
+					&& value instanceof Map<?, ?>) {
+
+				final Map<Object, Object> currentMap = (Map<Object, Object>) currentValue;
+				currentMap.putAll((Map<Object, Object>) value);
+
+			} else if (PropertyUtils.getPropertyType(object, name).isEnum() && value instanceof String) {
+				final Class enumClass = PropertyUtils.getPropertyType(object, name);
+				final Enum enumValue = Enum.valueOf(enumClass, (String) value);
+				BeanUtils.setProperty(object, name, enumValue);
+			} else {
+				// Then set it
+				BeanUtils.setProperty(object, name, convertedValue);
+			}
 		} catch (final DSLValidationException e) {
 			throw new DSLValidationRuntimeException(e);
 		} catch (final Exception e) {
-			throw new IllegalArgumentException("Failed   to set property " + name + " of Object " + object
+			throw new IllegalArgumentException("Failed to set property " + name + " of Object " + object
 					+ " to value: " + value, e);
 		}
 
@@ -201,11 +218,21 @@ public abstract class BaseDslScript extends Script {
 
 	}
 
+	public static void main(final String[] args) throws Exception {
+
+		final CloudTemplate template = new CloudTemplate();
+
+		final Class enumClass = PropertyUtils.getPropertyType(template, "fileTransfer");
+		System.out.println(enumClass.isEnum());
+		final Enum val = Enum.valueOf(enumClass, "SCP");
+		System.out.println(val);
+
+	}
+
 	/**
-	 * Convert the value to an ExecutableDSLEntry object if object's property
-	 * type is ExecutableDSLEntry or ExecutableEntriesMap. Returns value
-	 * otherwise.
-	 * 
+	 * Convert the value to an ExecutableDSLEntry object if object's property type is ExecutableDSLEntry or
+	 * ExecutableEntriesMap. Returns value otherwise.
+	 *
 	 * @param workDirectory
 	 *            workDirectory
 	 * @param object
@@ -226,11 +253,11 @@ public abstract class BaseDslScript extends Script {
 	 */
 	public static Object convertValueToExecutableDSLEntryIfNeeded(final File workDirectory,
 			final Object object, final String name, final Object value)
-					throws IllegalAccessException, InvocationTargetException,
-					NoSuchMethodException, DSLValidationException {
+			throws IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException, DSLValidationException {
 
-		PropertyDescriptor descriptor = PropertyUtils.getPropertyDescriptor(object, name);
-		Class<?> propertyType = descriptor.getPropertyType();
+		final PropertyDescriptor descriptor = PropertyUtils.getPropertyDescriptor(object, name);
+		final Class<?> propertyType = descriptor.getPropertyType();
 		if (propertyType.equals(ExecutableDSLEntry.class)) {
 			return ExecutableDSLEntryFactory.createEntry(value, name, workDirectory);
 		} else if (propertyType.equals(ExecutableEntriesMap.class)) {
@@ -246,7 +273,7 @@ public abstract class BaseDslScript extends Script {
 	}
 
 	private boolean isValidateObjects() {
-		return ((Boolean) this.getBinding().getVariable(DSLUtils.DSL_VALIDATE_OBJECTS_PROPERTY_NAME));
+		return (Boolean) this.getBinding().getVariable(DSLUtils.DSL_VALIDATE_OBJECTS_PROPERTY_NAME);
 	}
 
 	@Override
@@ -309,7 +336,7 @@ public abstract class BaseDslScript extends Script {
 
 	/*************
 	 * Loads an object from an external file.
-	 * 
+	 *
 	 * @param fileName
 	 *            the filename, relative to the current file.
 	 * @return the object.
@@ -335,7 +362,7 @@ public abstract class BaseDslScript extends Script {
 		try {
 			result = readExternalDSLFile(externalFile);
 			if (result instanceof Closure<?>) {
-				Closure<?> closure = (Closure<?>) result;
+				final Closure<?> closure = (Closure<?>) result;
 				closure.setDelegate(this);
 				closure.setResolveStrategy(Closure.DELEGATE_ONLY);
 			}
@@ -375,7 +402,7 @@ public abstract class BaseDslScript extends Script {
 				try {
 					@SuppressWarnings("unchecked")
 					final Map<Object, Object> currentVars = this.getBinding().getVariables();
-					DSLValidationContext validationContext = new DSLValidationContext();
+					final DSLValidationContext validationContext = new DSLValidationContext();
 					validationContext.setFilePath((String) currentVars.get(DSLUtils.DSL_FILE_PATH_PROPERTY_NAME));
 					method.setAccessible(true);
 					method.invoke(obj, validationContext);
@@ -427,7 +454,7 @@ public abstract class BaseDslScript extends Script {
 
 				File extendedServiceAbsPath = new File(extendServicePath);
 
-				RecipePathResolver resolver = new RecipePathResolver();
+				final RecipePathResolver resolver = new RecipePathResolver();
 				// Extract the current service directory
 				final String dslFilePath = (String) getProperty(ServiceReader.DSL_FILE_PATH_PROPERTY_NAME);
 				if (dslFilePath == null) {
@@ -490,7 +517,7 @@ public abstract class BaseDslScript extends Script {
 	}
 
 	/**
-	 * 
+	 *
 	 *
 	 */
 	public static class DSLObjectInitializerData {
@@ -548,7 +575,7 @@ public abstract class BaseDslScript extends Script {
 
 	/***********
 	 * Returns the DSL Meta-data required to translate DSL elements into POJOs.
-	 * 
+	 *
 	 * @return DSL meta-data.
 	 */
 	public static synchronized Map<String, DSLObjectInitializerData> getDSLInitializers() {
@@ -600,7 +627,7 @@ public abstract class BaseDslScript extends Script {
 			addObjectInitializerForClass(dslObjectInitializersByName, TenantSharedIsolationSLADescriptor.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, AppSharedIsolationSLADescriptor.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, DedicatedIsolationSLADescriptor.class);
-			
+
 			addObjectInitializerForClass(dslObjectInitializersByName, GridComponents.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, OrchestratorComponent.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, DiscoveryComponent.class);
@@ -609,7 +636,7 @@ public abstract class BaseDslScript extends Script {
 			addObjectInitializerForClass(dslObjectInitializersByName, UsmComponent.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, RestComponent.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, AgentComponent.class);
-			
+
 		}
 		return dslObjectInitializersByName;
 
@@ -636,7 +663,7 @@ public abstract class BaseDslScript extends Script {
 			// internal node
 			if (data.isAllowInternalNode()) {
 				// check that node is nested under allowed element
-				String parentElement = data.getParentElement();
+				final String parentElement = data.getParentElement();
 				if (parentElement != null && !parentElement.isEmpty()) {
 					final DSLObjectInitializerData parentType = getDSLInitializers().get(parentElement);
 					if (parentType == null) {
@@ -781,7 +808,7 @@ public abstract class BaseDslScript extends Script {
 		// Load the service
 		DSLServiceCompilationResult result;
 		try {
-			Object applicationProperties = getBinding().getVariables().get(DSLUtils.DSL_PROPERTIES);
+			final Object applicationProperties = getBinding().getVariables().get(DSLUtils.DSL_PROPERTIES);
 			Map<String, Object> applicationPropertiesMap = null;
 			if (applicationProperties != null) {
 				if (applicationProperties instanceof Map) {

@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 
 package org.cloudifysource.dsl.entry;
@@ -27,17 +24,16 @@ import java.util.Set;
 
 import org.cloudifysource.dsl.internal.DSLValidationException;
 
-
 /***********
  * Factory class for creating an executable DSL entry from a DSL value.
- * 
+ *
  * @author barakme
  * @since 2.2.0
- * 
+ *
  */
 public final class ExecutableDSLEntryFactory {
 
-	//private static GroovyFileValidater groovyValidater = new GroovyFileValidater();
+	// private static GroovyFileValidater groovyValidater = new GroovyFileValidater();
 
 	private ExecutableDSLEntryFactory() {
 		// private constructor to prevent instantiation
@@ -46,12 +42,16 @@ public final class ExecutableDSLEntryFactory {
 	/************
 	 * Creates a map of executable entries, keyed by the name of the entry. Useful for custom commands, though it may
 	 * come in handy elsewhere.
-	 * 
-	 * @param arg the input value.
-	 * @param entryName the entry name.
-	 * @param workDirectory the work directory for this entry.
+	 *
+	 * @param arg
+	 *            the input value.
+	 * @param entryName
+	 *            the entry name.
+	 * @param workDirectory
+	 *            the work directory for this entry.
 	 * @return the executable entries map.
-	 * @throws DSLValidationException if an entry is invalid.
+	 * @throws DSLValidationException
+	 *             if an entry is invalid.
 	 */
 	public static ExecutableEntriesMap createEntriesMap(final Object arg, final Object entryName,
 			final File workDirectory)
@@ -87,19 +87,29 @@ public final class ExecutableDSLEntryFactory {
 
 	/****************
 	 * Created an executable entry from a DSL value. The argument must be from one of the supported types.
-	 * 
-	 * @param arg the dsl value.
-	 * @param entryName the dsl entry name.
-	 * @param workDirectory The directory where the DSL is being processed.
+	 *
+	 * @param arg
+	 *            the dsl value.
+	 * @param entryName
+	 *            the dsl entry name.
+	 * @param workDirectory
+	 *            The directory where the DSL is being processed.
 	 * @return the executable entry wrapper for the given arg.
-	 * @throws DSLValidationException if the entry is invalid.
+	 * @throws DSLValidationException
+	 *             if the entry is invalid.
 	 */
 	public static ExecutableDSLEntry createEntry(final Object arg, final Object entryName, final File workDirectory)
 			throws DSLValidationException {
+
+		if (arg == null) {
+			// this might be useful in service extension, where the child service wants to remove a command added by the
+			// parent service
+			return null;
+		}
 		if (arg instanceof Closure<?>) {
 			return new ClosureExecutableEntry((Closure<?>) arg);
 		}
-		
+
 		if (arg instanceof String) {
 			final StringExecutableEntry stringExecutableEntry = new StringExecutableEntry((String) arg);
 			validateStringEntry(stringExecutableEntry, workDirectory);
@@ -114,7 +124,7 @@ public final class ExecutableDSLEntryFactory {
 			final MapExecutableEntry result = new MapExecutableEntry();
 			copyElementsToEntriesMap(arg, entryName, result, workDirectory);
 			return result;
-		} 
+		}
 		throw new IllegalArgumentException("The entry: " + entryName
 				+ " is not a valid executable entry: The given value: " + arg + " is of type: "
 				+ arg.getClass().getName() + " which is not a valid type for an executable entry");
