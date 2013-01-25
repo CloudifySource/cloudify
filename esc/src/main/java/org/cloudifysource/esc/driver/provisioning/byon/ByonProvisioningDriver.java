@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.byon;
 
@@ -19,6 +16,7 @@ import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -55,15 +53,13 @@ import org.openspaces.admin.internal.support.NetworkExceptionHelper;
 import com.gigaspaces.grid.gsa.GSA;
 
 /**************
- * A bring-your-own-node (BYON) CloudifyProvisioning implementation. Parses a
- * groovy file as a source of available machines to operate as cloud nodes,
- * assuming the nodes are Linux machines with SSH installed. If GigaSpaces is
- * not already installed on a node, this class will install GigaSpaces and run
- * the agent.
- * 
+ * A bring-your-own-node (BYON) CloudifyProvisioning implementation. Parses a groovy file as a source of available
+ * machines to operate as cloud nodes, assuming the nodes are Linux machines with SSH installed. If GigaSpaces is not
+ * already installed on a node, this class will install GigaSpaces and run the agent.
+ *
  * @author noak
  * @since 2.0.1
- * 
+ *
  */
 public class ByonProvisioningDriver extends BaseProvisioningDriver implements ProvisioningDriver,
 		ProvisioningDriverClassContextAware {
@@ -92,7 +88,11 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		for (final String templateName : templatesMap.keySet()) {
 			final Map<String, Object> customSettings = cloud.getTemplates().get(templateName).getCustom();
 			if (customSettings != null) {
-				nodesList = (List<Map<String, String>>) customSettings.get(CLOUD_NODES_LIST);
+				final List<Map<Object, Object>> originalNodesList =
+						(List<Map<Object, Object>>) customSettings.get(CLOUD_NODES_LIST);
+
+				nodesList = convertToStringMap(originalNodesList);
+
 			}
 			if (nodesList == null) {
 				publishEvent(CloudifyErrorMessages.MISSING_NODES_LIST.getName(), templateName);
@@ -102,6 +102,30 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			}
 			deployer.addNodesList(templateName, templatesMap.get(templateName), nodesList);
 		}
+	}
+
+	/*******
+	 * It is easy to accidentally create GStrings instead of String in a groovy file. This will auto correct the problem
+	 * for byon node definitions by calling the toString() methods for map keys and values.
+	 *
+	 * @param originalNodesList
+	 *            .
+	 * @return the
+	 */
+	private List<Map<String, String>> convertToStringMap(final List<Map<Object, Object>> originalNodesList) {
+		List<Map<String, String>> nodesList;
+		nodesList = new LinkedList<Map<String, String>>();
+
+		for (Map<Object, Object> originalMap : originalNodesList) {
+			Map<String, String> newMap = new LinkedHashMap<String, String>();
+			Set<Entry<Object, Object>> entries = originalMap.entrySet();
+			for (Entry<Object, Object> entry : entries) {
+				newMap.put(entry.getKey().toString(), entry.getValue().toString());
+			}
+			nodesList.add(newMap);
+
+		}
+		return nodesList;
 	}
 
 	@Override
@@ -133,7 +157,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 	/**********
 	 * .
-	 * 
+	 *
 	 * @param cloud
 	 *            .
 	 * @throws Exception .
@@ -272,10 +296,9 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	}
 
 	/*********
-	 * Looks for a free server name by appending a counter to the pre-calculated
-	 * server name prefix. If the max counter value is reached, code will loop
-	 * back to 0, so that previously used server names will be reused.
-	 * 
+	 * Looks for a free server name by appending a counter to the pre-calculated server name prefix. If the max counter
+	 * value is reached, code will loop back to 0, so that previously used server names will be reused.
+	 *
 	 * @return the server name.
 	 * @throws CloudProvisioningException
 	 *             Indicated a free server name was not found.
@@ -388,8 +411,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			managementServers = getExistingManagementServers(cloud.getProvider().getNumberOfManagementMachines());
 			/*
 			 * if (managementServers == null || managementServers.isEmpty()) {
-			 * publishEvent("prov_management_server_not_found"); throw new
-			 * CloudProvisioningException
+			 * publishEvent("prov_management_server_not_found"); throw new CloudProvisioningException
 			 * ("Could not find any management machines for this cloud"); }
 			 */
 		} catch (final Exception e) {
@@ -600,10 +622,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	@Override
 	public void close() {
 		/*
-		 * try { if (admin != null) { admin.close(); } } catch (final Exception
-		 * ex) {
-		 * logger.info("ByonProvisioningDriver.close() failed to close agent");
-		 * }
+		 * try { if (admin != null) { admin.close(); } } catch (final Exception ex) {
+		 * logger.info("ByonProvisioningDriver.close() failed to close agent"); }
 		 */
 
 		if (deployer != null) {
@@ -611,4 +631,11 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		}
 	}
 
+	public Cloud getCloud() {
+		return this.cloud;
+	}
+
+	public ByonDeployer getDeployer() {
+		return this.deployer;
+	}
 }
