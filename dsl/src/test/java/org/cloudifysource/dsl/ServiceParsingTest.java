@@ -16,6 +16,7 @@
 package org.cloudifysource.dsl;
 
 import groovy.lang.Closure;
+import groovyx.net.http.RESTClient;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -483,6 +484,15 @@ public class ServiceParsingTest {
 		Assert.assertEquals(1, service.getCustomCommands().size());
 		Assert.assertTrue(service.getCustomCommands().containsKey("cmdA"));
 		Assert.assertTrue(service.getCustomCommands().get("cmdA") == null);
+
+	}
+
+	@Test
+	public void testRestClientExists() {
+		// this is just a validation that the groovy rest client project is in the
+		// code - there are no direct references to it in the Cloudify project
+		// but we want it to be available to service recipes by default.
+		new RESTClient();
 
 	}
 

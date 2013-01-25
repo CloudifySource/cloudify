@@ -85,6 +85,12 @@
 			<version>2.2.0</version>
 			<scope>provided</scope>
 		</dependency>
+		<!-- We want the rest client to be available by default to all recipes -->
+		<dependency>
+			<groupId>org.codehaus.groovy.modules.http-builder</groupId>
+			<artifactId>http-builder</artifactId>
+			<version>0.6</version>
+		</dependency>
 	</dependencies>
 
 	<build>
