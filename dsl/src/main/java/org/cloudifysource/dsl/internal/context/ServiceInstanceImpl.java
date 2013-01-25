@@ -35,9 +35,9 @@ import org.openspaces.pu.service.ServiceMonitors;
 
 /******************
  * Represents a single instance of a service.
- * 
+ *
  * @author barakme
- * 
+ *
  */
 public class ServiceInstanceImpl implements ServiceInstance {
 
@@ -53,10 +53,22 @@ public class ServiceInstanceImpl implements ServiceInstance {
 	 * @see org.cloudifysource.dsl.internal.context.ServiceInstance#getInstanceID()
 	 */
 	@Override
+	@Deprecated
 	public int getInstanceID() {
 		if (pui == null) {
 			return 1;
-		} 
+		}
+		return pui.getInstanceId();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.cloudifysource.dsl.internal.context.ServiceInstance#getInstanceId()
+	 */
+	@Override
+	public int getInstanceId() {
+		if (pui == null) {
+			return 1;
+		}
 		return pui.getInstanceId();
 	}
 
@@ -97,7 +109,7 @@ public class ServiceInstanceImpl implements ServiceInstance {
 
 	@Override
 	public String toString() {
-		return "ServiceInstance [getInstanceID()=" + getInstanceID() + ", getHostAddress()=" + getHostAddress()
+		return "ServiceInstance [getInstanceID()=" + getInstanceId() + ", getHostAddress()=" + getHostAddress()
 				+ ", getHostName()=" + getHostName() + "]";
 	}
 
@@ -145,7 +157,7 @@ public class ServiceInstanceImpl implements ServiceInstance {
 
 	/***********
 	 * Invokes a custom command on this instance, returning immediately.
-	 * 
+	 *
 	 * @param commandName
 	 *            the command name.
 	 * @param params
@@ -155,7 +167,7 @@ public class ServiceInstanceImpl implements ServiceInstance {
 	Future<Object> invokeAsync(final String commandName, final Object[] params) {
 
 		logger.log(Level.FINE, "Invoking command: {0} on instance {1}",
-				new Object[] { commandName, this.getInstanceID() });
+				new Object[] { commandName, this.getInstanceId() });
 		final Map<String, Object> paramsMap = new HashMap<String, Object>();
 		paramsMap.put(CloudifyConstants.INVOCATION_PARAMETER_COMMAND_NAME, commandName);
 

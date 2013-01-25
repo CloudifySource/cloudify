@@ -32,7 +32,7 @@ service {
 //			println "Service Actual Instances: " + context.service.numberOfActualInstances
 //			if(context.service.numberOfActualInstances > 0) {
 //				context.service.instances.each {
-//					println "Service Instance ID: " + it.instanceID
+//					println "Service Instance ID: " + it.instanceId
 //					println "Service Instance Host Address: " + it.hostAddress
 //					println "Service Instance Host Name: " + it.hostName
 //				}
