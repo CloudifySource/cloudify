@@ -16,53 +16,69 @@
        			http://www.openspaces.org/schema/remoting http://www.openspaces.org/schema/8.0/remoting/openspaces-remoting.xsd">
 
 	<beans profile="nonsecure,secure_no_ssl,secure,default">
+
 		<bean id="propertyConfigurer"
 			class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 			<property name="location" value="/WEB-INF/config.properties" />
 			<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_FALLBACK" />
 		</bean>
+		
+		<!-- Enables the usage of @GigaSpaceContext annotation based injection. -->
+		<os-core:giga-space-context />
 
-		<mvc:annotation-driven />
-		<mvc:resources mapping="/resources/**" location="/resources/" />
+		<!-- A bean representing a space (an IJSpace implementation). Note, we 
+			perform a lookup on the space since we are working against a remote space. -->
+		<os-core:space id="space" url="jini://*/*/${restful.managementSpaceName}" />
+
+		<!-- OpenSpaces simplified space API built on top of IJSpace/JavaSpace. -->
+		<os-core:giga-space id="gigaSpace" space="space" />
 
 		<context:component-scan base-package="org.cloudifysource.rest" />
 
-		<mvc:interceptors>
-			<bean
-				class="org.cloudifysource.rest.controllers.VersionValidateInterceptor" />
-		</mvc:interceptors>
+		<mvc:annotation-driven />
 
-		<bean
-			class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<mvc:resources mapping="/resources/**" location="/resources/" />
+		
+		<bean class="org.springframework.web.servlet.view.BeanNameViewResolver">
+			<property name="order" value="0"/>
+		</bean>
+
+		<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+			<property name="order" value="1"/>
 			<property name="prefix" value="/WEB-INF/views/" />
 			<property name="suffix" value=".jsp" />
 		</bean>
+		
+		<mvc:view-controller path="/" view-name="index"/>
 
-		<mvc:view-controller path="/" view-name="index" />
-
-		<bean class="org.springframework.web.servlet.view.BeanNameViewResolver" />
+		<mvc:interceptors>
+			
+			<!-- Version Validation using path variable. Currently for DeploymentsController Only --> 
+			<mvc:interceptor>
+				<mvc:mapping path="/**/deployments/**"/>
+				<bean class="org.cloudifysource.rest.interceptors.ApiVersionValidationAndRestResponseBuilderInterceptor"></bean>
+			</mvc:interceptor>
+			 
+			<!-- Version Validation using request header. For all other Controllers -->
+ 			<mvc:interceptor>
+				<mvc:mapping path="/service/**"/>
+				<mvc:mapping path="/admin/**"/>
+				<mvc:mapping path="/attributes/**"/>
+				<bean class="org.cloudifysource.rest.controllers.VersionValidateInterceptor" />
+			</mvc:interceptor>
+			
+		</mvc:interceptors>
+		
+		<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+			<property name="basename" value="MessagesBundle"/>
+		</bean>
 
 		<bean id="admin" class="org.cloudifysource.rest.util.AdminFactoryBean">
 			<property name="groups" value="${restful.lookupGroups}" />
 			<property name="locators" value="${restful.lookupLocators}" />
 		</bean>
 
-		<!-- Enables the usage of @GigaSpaceContext annotation based injection. -->
-		<os-core:giga-space-context />
-
-		<!-- A bean representing a space (an IJSpace implementation). Note, we 
-			perform a lookup on the space since we are working against a remote space. -->
-		<os-core:space id="space"
-			url="jini://*/*/${restful.managementSpaceName}" />
-
-		<!-- OpenSpaces simplified space API built on top of IJSpace/JavaSpace. -->
-		<os-core:giga-space id="gigaSpace" space="space" />
-
-		<bean id="adminView"
-			class="org.springframework.web.servlet.view.json.MappingJacksonJsonView" />
-
-		<bean id="multipartResolver"
-			class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
 			<property name="maxUploadSize" value="100000000" />
 		</bean>
 		

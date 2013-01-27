@@ -5,38 +5,37 @@
 						http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd"
 	version="2.5">
 
-	<!-- context-param>
-		<param-name>spring.profiles.default</param-name>
-		<param-value>nonsecure</param-value>
-	</context-param-->
+	<!-- Spring will load these locations into the Dispatcher, so that the beans are recognized -->
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
-		<param-value>
-			/WEB-INF/admin-servlet.xml, 
-			/WEB-INF/http-intercepts.xml,
-			file:///${SPRING_SECURITY_CONFIG_FILE}
+		<param-value>/WEB-INF/http-intercepts.xml, file:///${SPRING_SECURITY_CONFIG_FILE}
 		</param-value>
 	</context-param>
 
+
+	<!-- Spring MVC entry point -->
+	<servlet>
+		<servlet-name>springmvc</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	
+	<!-- Map every request to Spring Dispatcher. which in turn will delegate to our controllers -->
+	<servlet-mapping>
+		<servlet-name>springmvc</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+
+	<!-- Spring Security entry point -->
 	<filter>
 		<filter-name>springSecurityFilterChain</filter-name>
 		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
-		<!-- filter-class>org.cloudifysource.rest.security.BooleanDelegatingFilterProxy</filter-class -->
 	</filter>
 	<filter-mapping>
 		<filter-name>springSecurityFilterChain</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 
-	<servlet>
-		<servlet-name>admin</servlet-name>
-		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
-		<load-on-startup>1</load-on-startup>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>admin</servlet-name>
-		<url-pattern>/</url-pattern>
-	</servlet-mapping>
 	<listener>
 		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
 	</listener>
