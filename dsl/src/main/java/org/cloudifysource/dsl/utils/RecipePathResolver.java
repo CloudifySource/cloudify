@@ -40,7 +40,7 @@ public class RecipePathResolver {
 	
 	private static final String DEFAULT_SERVICES_PATH = "/recipes/services";
 	private static final String DEFAULT_APPS_PATH = "/recipes/apps";
-	private static final String DEFAULT_CLOUDS_PATH = "/tools/cli/plugins/esc";
+	private static final String DEFAULT_CLOUDS_PATH = "/clouds";
 	
 	private File currentDir = new File(".");
 	
