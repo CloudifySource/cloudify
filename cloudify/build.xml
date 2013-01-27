@@ -263,8 +263,9 @@
 	        <copy todir="@{installation.dir}/tools/cli/plugins/esc" overwrite="true">
 	            <fileset dir="${esc-commands.local.copy}/target" includes="esc-commands.jar" excludes=".svn"/>
 	        </copy>
-	        
-	        <copy todir="@{installation.dir}/tools/cli/plugins/esc" overwrite="true">
+
+            <mkdir dir="@{installation.dir}/clouds/"/>
+	        <copy todir="@{installation.dir}/clouds/" overwrite="true">
 	          <fileset dir="${esc.local.copy}/src/main/resources/clouds" includes="**/*" excludes=".svn"/>
 	        </copy>
 		</sequential>
@@ -591,13 +592,13 @@
     		match="cloudifyUrl &quot;(.*)&quot;" 
     		replace="cloudifyUrl &quot;${bigdata.url}&quot;" >
     		<fileset 
-    			dir="${tmp.dir}/${xap.installation.dir}/tools/cli/plugins/esc" 
+    			dir="${tmp.dir}/${xap.installation.dir}/clouds/"
     			includes="**/*-cloud.groovy" />
     	</replaceregexp>
    </target>
 	
 	<target name="update.cloudify.service.configuration.url" if="release.build">
-        <echo message="Updating ServiceConfiguration in directory: ${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/esc ..."/>
+        <echo message="Updating ServiceConfiguration in directory: ${tmp.dir}/${cloudify.installation.dir}/clouds/ ..."/>
 		
 		<property name="cloudify.url" value="${cloudify.cdn.publish.url}/${cloudify.put.target}" />
 
@@ -622,7 +623,7 @@
     		match="cloudifyUrl &quot;(.*)&quot;" 
     		replace="cloudifyUrl &quot;${cloudify.url}&quot;" >
     		<fileset 
-    			dir="${tmp.dir}/${cloudify.installation.dir}/tools/cli/plugins/esc" 
+    			dir="${tmp.dir}/${cloudify.installation.dir}/clouds/"
     			includes="**/*-cloud.groovy" />
     		<fileset 
     			dir="${esc.local.copy}/src/main/resources/clouds" 
