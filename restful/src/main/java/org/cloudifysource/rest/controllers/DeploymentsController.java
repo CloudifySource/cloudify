@@ -89,11 +89,11 @@ public class DeploymentsController {
 		ServiceDetails serviceDetails = null;
 		Application application = admin.getApplications().waitFor(appName, DEFAULT_ADMIN_WAITING_TIMEOUT, TimeUnit.SECONDS);
 		if (application == null) {
-			throw new RestErrorException(CloudifyErrorMessages.APPLICATION_WAIT_TIMEOUT.getName(), appName, DEFAULT_ADMIN_WAITING_TIMEOUT, TimeUnit.SECONDS);
+			throw new RestErrorException(CloudifyMessageKeys.APPLICATION_WAIT_TIMEOUT.getName(), appName, DEFAULT_ADMIN_WAITING_TIMEOUT, TimeUnit.SECONDS);
 		}
 		ProcessingUnit processingUnit = application.getProcessingUnits().waitFor(ServiceUtils.getAbsolutePUName(appName, serviceName), DEFAULT_ADMIN_WAITING_TIMEOUT, TimeUnit.SECONDS);
 		if (processingUnit == null) {
-			throw new RestErrorException(CloudifyErrorMessages.SERVICE_WAIT_TIMEOUT.getName(), serviceName, DEFAULT_ADMIN_WAITING_TIMEOUT, TimeUnit.SECONDS);
+			throw new RestErrorException(CloudifyMessageKeys.SERVICE_WAIT_TIMEOUT.getName(), serviceName, DEFAULT_ADMIN_WAITING_TIMEOUT, TimeUnit.SECONDS);
 		}
 		
 		serviceDetails = new ServiceDetails(serviceName);

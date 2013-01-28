@@ -6,7 +6,6 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.rest.controllers.RestErrorException;
@@ -43,7 +42,7 @@ public class ApiVersionValidationAndRestResponseBuilderInterceptor extends Handl
 		
 		String requestVersion = extractVersionFromRequest(request);
 		if (!CURRENT_API_VERSION.equalsIgnoreCase(requestVersion)) {
-			throw new RestErrorException(CloudifyErrorMessages.API_VERSION_MISMATCH.getName(), requestVersion, CURRENT_API_VERSION);
+			throw new RestErrorException(CloudifyMessageKeys.API_VERSION_MISMATCH.getName(), requestVersion, CURRENT_API_VERSION);
 		}
 		
 		return true;
