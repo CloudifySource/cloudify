@@ -42,21 +42,23 @@ public class ApiVersionValidationAndRestResponseBuilderInterceptor extends Handl
 		
 		String requestVersion = extractVersionFromRequest(request);
 		if (!CURRENT_API_VERSION.equalsIgnoreCase(requestVersion)) {
-			throw new RestErrorException(CloudifyMessageKeys.API_VERSION_MISMATCH.getName(), requestVersion, CURRENT_API_VERSION);
+			throw new RestErrorException(CloudifyMessageKeys.API_VERSION_MISMATCH.getName(), 
+					requestVersion, CURRENT_API_VERSION);
 		}
 		
 		return true;
 	}
 	
-	private String extractVersionFromRequest(HttpServletRequest request) {
-		String requestURIWithoutContextPath = request.getRequestURI().substring(request.getContextPath().length()).substring(1);
+	private String extractVersionFromRequest(final HttpServletRequest request) {
+		String requestURIWithoutContextPath = 
+				request.getRequestURI().substring(request.getContextPath().length()).substring(1);
 		return requestURIWithoutContextPath.split("/")[0];
 	}
 
 	@Override
-	public void postHandle(HttpServletRequest request,
-			HttpServletResponse response, Object handler,
-			ModelAndView modelAndView) throws Exception {
+	public void postHandle(final HttpServletRequest request,
+			final HttpServletResponse response, final Object handler,
+			final ModelAndView modelAndView) throws Exception {
 		
 		Object model = filterModel(modelAndView.getModel());
 		modelAndView.clear();
@@ -69,7 +71,8 @@ public class ApiVersionValidationAndRestResponseBuilderInterceptor extends Handl
 			Response<Object> responseBodyObj = new Response<Object>();
 			responseBodyObj.setResponse(model);
 			responseBodyObj.setStatus("Success");
-			responseBodyObj.setMessage(messageSource.getMessage(CloudifyMessageKeys.OPERATION_SUCCESSFULL.getName(), new Object[] {}, Locale.getDefault()));
+			responseBodyObj.setMessage(messageSource.getMessage(CloudifyMessageKeys.OPERATION_SUCCESSFULL.getName(), 
+					new Object[] {}, Locale.getDefault()));
 			responseBodyObj.setMessageId(CloudifyMessageKeys.OPERATION_SUCCESSFULL.getName());
 			String responseBodyStr = new ObjectMapper().writeValueAsString(responseBodyObj);
 			response.getOutputStream().write(responseBodyStr.getBytes());
@@ -80,7 +83,7 @@ public class ApiVersionValidationAndRestResponseBuilderInterceptor extends Handl
 	// returns the actual model returned by the contorller.
 	// this implementation assumes the model consists of just one object and a BindingResult.
 	// TODO eli - check how to make a more robust filter.
-	private Object filterModel(Map<String, Object> model) {
+	private Object filterModel(final Map<String, Object> model) {
 		for (Map.Entry<String, Object> entry : model.entrySet()) {
 			Object value = entry.getValue();
 			if (!(value instanceof BindingResult)) {
