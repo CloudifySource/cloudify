@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.esc.installer;
 
@@ -31,9 +28,9 @@ import com.gigaspaces.internal.utils.ReflectionUtils;
 
 /************
  * Details for an installation request.
- * 
+ *
  * @author barakme
- * 
+ *
  */
 public class InstallationDetails implements Cloneable {
 
@@ -68,8 +65,8 @@ public class InstallationDetails implements Cloneable {
 	// will be used to check when an agent joins the cluster.
 	private Admin admin;
 
-	// true if this machine should act as the LUS and ESM
-	private boolean isLus;
+	// true if this machine should act as a Cloudify Manager
+	private boolean isManagement;
 
 	// (only relevant in case isLus == true) if true no web-services will be
 	// deployed on the target machine
@@ -169,11 +166,17 @@ public class InstallationDetails implements Cloneable {
 		return username;
 	}
 
-	// TODO - change to isManagement
-	public boolean isLus() {
-		return isLus;
+	public boolean isManagement() {
+		return isManagement;
 	}
 
+	/*****
+	 * An instance of the Admin API, used only by instances of the cloud driver running in the cloudify manager. For
+	 * cloud driver instances running in the Cloudify CLI (for bootstrapping/teardown) this value is null.
+	 *
+	 * @param admin
+	 *            the admin instance.
+	 */
 	public void setAdmin(final Admin admin) {
 		this.admin = admin;
 	}
@@ -186,8 +189,8 @@ public class InstallationDetails implements Cloneable {
 		this.locator = locator;
 	}
 
-	public void setLus(final boolean isLus) {
-		this.isLus = isLus;
+	public void setManagement(final boolean isManagement) {
+		this.isManagement = isManagement;
 	}
 
 	public void setPassword(final String password) {
@@ -207,7 +210,8 @@ public class InstallationDetails implements Cloneable {
 		return "InstallationDetails [privateIP=" + privateIp + ", publicIP=" + publicIp + ", locator=" + locator
 				+ ", connectToPrivateIP=" + connectedToPrivateIp + ", cloudifyUrl=" + cloudifyUrl
 				+ ", bindToPrivateIP=" + bindToPrivateIp + ", username=" + username + ", password=***" + ", keyFile="
-				+ keyFile + ", localDir=" + localDir + ", remoteDir=" + remoteDir + ", isLus=" + isLus + ", zones="
+				+ keyFile + ", localDir=" + localDir + ", remoteDir=" + remoteDir + ", isLus=" + isManagement
+				+ ", zones="
 				+ zones + ", extraRemoteEnvironmentVariables = " + extraRemoteEnvironmentVariables
 				+ ", authGroups=***]";
 	}
@@ -248,8 +252,22 @@ public class InstallationDetails implements Cloneable {
 		return this.managementOnlyFiles;
 	}
 
+	/********
+	 * Set the list of files that should only be copied to management machines, not agent ones. '\' characters are
+	 * replaced with '/' to make string comparisons easier.
+	 *
+	 * @param managementOnlyFiles
+	 *            the list of files.
+	 */
 	public void setManagementOnlyFiles(final List<String> managementOnlyFiles) {
-		this.managementOnlyFiles = managementOnlyFiles.toArray(new String[managementOnlyFiles.size()]);
+
+		// copy list into array - make sure to use '/' as separator char for string comparisons later on.
+		this.managementOnlyFiles = new String[managementOnlyFiles.size()];
+		int i = 0;
+		for (String string : managementOnlyFiles) {
+			this.managementOnlyFiles[i] = string.replace("\\", "/");
+		}
+
 	}
 
 	public void setCloudifyUrl(final String cloudifyUrl) {
@@ -312,6 +330,13 @@ public class InstallationDetails implements Cloneable {
 		return bindToPrivateIp;
 	}
 
+	/*****
+	 * Indicates if the cloudify processes running on the new machine should bind to the private ip or to the public
+	 * one. Default to true (bind to private IP).
+	 *
+	 * @param bindToPrivateIp
+	 *            .
+	 */
 	public void setBindToPrivateIp(final boolean bindToPrivateIp) {
 		this.bindToPrivateIp = bindToPrivateIp;
 	}

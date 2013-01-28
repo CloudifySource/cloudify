@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.dsl.internal;
 
@@ -20,13 +17,16 @@ import java.io.IOException;
 
 import org.openspaces.admin.internal.pu.InternalProcessingUnit;
 
-
+/*********
+ * Various utility functions used during DSL processing.
+ * @author barakme
+ *
+ */
 public final class DSLUtils {
 
-
 	/**
-	 * The context property set in application DSL files to indicate 
-	 * the directory where the application file itself can be found.
+	 * The context property set in application DSL files to indicate the directory where the application file itself can
+	 * be found.
 	 */
 	public static final String APPLICATION_DIR = "workDirectory";
 	/**
@@ -34,13 +34,11 @@ public final class DSLUtils {
 	 */
 	public static final String DSL_PROPERTIES = "dsl_properties";
 	/**
-	 * The binding variable name of the DSL file path -
-	 * the path where the DSL file itself can be found.
+	 * The binding variable name of the DSL file path - the path where the DSL file itself can be found.
 	 */
 	public static final String DSL_FILE_PATH_PROPERTY_NAME = "dslFilePath";
 	/**
-	 * The binding variable name of the validateObject flag -
-	 * indicates if need to validate the DSL file.
+	 * The binding variable name of the validateObject flag - indicates if need to validate the DSL file.
 	 */
 	public static final String DSL_VALIDATE_OBJECTS_PROPERTY_NAME = "validateObjectsFlag";
 
@@ -103,14 +101,14 @@ public final class DSLUtils {
 	 */
 	public static final int MAX_TEMPLATES_PER_FILE = 1;
 
-
 	private DSLUtils() {
 		// private constructor to prevent initialization
 	}
 
 	/**
-	 * 
-	 * @param processingUnit processingUnit
+	 *
+	 * @param processingUnit
+	 *            processingUnit
 	 * @return the dependencies
 	 */
 	public static String getDependencies(final InternalProcessingUnit processingUnit) {
@@ -123,8 +121,9 @@ public final class DSLUtils {
 	}
 
 	/**
-	 * 
-	 * @param processingUnit processingUnit
+	 *
+	 * @param processingUnit
+	 *            processingUnit
 	 * @return The tier type
 	 */
 	public static ServiceTierType getTierType(final InternalProcessingUnit processingUnit) {
@@ -137,8 +136,9 @@ public final class DSLUtils {
 	}
 
 	/**
-	 * 
-	 * @param processingUnit processingUnit
+	 *
+	 * @param processingUnit
+	 *            processingUnit
 	 * @return The icon url
 	 */
 	public static String getIconUrl(final InternalProcessingUnit processingUnit) {
@@ -158,37 +158,44 @@ public final class DSLUtils {
 	}
 
 	/**
-	 * If dsl file name is tomcat-service.groovy than the properties file name expected to be 
-	 * tomcat-service.properties.
-	 * @param dslDirectory .
-	 * @param fileNameSuffix .
+	 * If dsl file name is tomcat-service.groovy than the properties file name expected to be tomcat-service.properties.
+	 *
+	 * @param dslDirectory
+	 *            .
+	 * @param fileNameSuffix
+	 *            .
 	 * @return The expected properties file name.
 	 */
 	public static String getPropertiesFileName(final File dslDirectory, final String fileNameSuffix) {
 		File dslFile = DSLReader.
 				findDefaultDSLFile(fileNameSuffix, dslDirectory);
 		if (dslFile == null) {
-			throw new IllegalArgumentException("DslUtils.getPropertiesFileName - a file with the given suffix [" 
+			throw new IllegalArgumentException("DslUtils.getPropertiesFileName - a file with the given suffix ["
 					+ fileNameSuffix + "] doesn't exist in " + dslDirectory + ".");
 		}
 		final String[] split = dslFile.getName().split("\\.");
 		if (split.length == 0) {
-			throw new IllegalArgumentException("DslUtils.getPropertiesFileName - file name [" 
+			throw new IllegalArgumentException("DslUtils.getPropertiesFileName - file name ["
 					+ dslFile.getName() + "] doesn't contain '.'");
 		}
 		return split[0] + PROPERTIES_FILE_SUFFIX;
 	}
-	
+
 	/**
 	 * Change the name of the file's prefix to template's name.
-	 * @param file the template's file.
-	 * @param templateName the template's name.
-	 * @param suffix the file suffix (-template.groovy/-template.properties/-template.overrides)
+	 *
+	 * @param file
+	 *            the template's file.
+	 * @param templateName
+	 *            the template's name.
+	 * @param suffix
+	 *            the file suffix (-template.groovy/-template.properties/-template.overrides)
 	 * @return returns the new name if the renaming needed and succeeded.
-	 * @throws IOException if failed to rename the file.
+	 * @throws IOException
+	 *             if failed to rename the file.
 	 */
-	public static String renameCloudTemplateFileNameIfNeeded(final File file, final String templateName, 
-			final String suffix) 
+	public static String renameCloudTemplateFileNameIfNeeded(final File file, final String templateName,
+			final String suffix)
 			throws IOException {
 		String fileName = file.getName();
 		if (fileName.endsWith(suffix)) {
@@ -205,14 +212,17 @@ public final class DSLUtils {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Checks if the given name contains chars that are invalid for Application or Service name.
-	 * @param name the Application or Service name to validate
-	 * @return true if valid, false otherwise
+	 *
+	 * @param name
+	 *            the Application or Service name to validate.
+	 * @throws DSLValidationException
+	 *             if the name if not valid.
 	 */
 	public static void validateRecipeName(final String name) throws DSLValidationException {
-		char [] invalidChars = new char[] {'{','}','[',']','(',')'};
+		char[] invalidChars = new char[] { '{', '}', '[', ']', '(', ')' };
 		if (org.apache.commons.lang.StringUtils.containsAny(name, invalidChars)) {
 			throw new DSLValidationException("The name \"" + name + "\" contains one or more invalid characters: "
 					+ "'(',')','[',']','{','}'");

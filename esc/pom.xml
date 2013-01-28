@@ -12,7 +12,8 @@
 		<relativePath>../cloudify</relativePath>
 	</parent>
 	<repositories>
-		<!-- Apache snapshots repo is required for commons-vfs-sandbox, which contains the smb provider -->
+		<!-- Apache snapshots repo is required for commons-vfs-sandbox, which contains 
+			the smb provider -->
 		<repository>
 			<id>apache-snapshots</id>
 			<name>Apache SNAPSHOT Repository</name>
@@ -130,7 +131,22 @@
 		</dependency>
 
 
+		<dependency>
+			<groupId>net.schmizz</groupId>
+			<artifactId>sshj</artifactId>
+			<version>0.8.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.sshd</groupId>
+			<artifactId>sshd-core</artifactId>
+			<version>0.8.0</version>
+			<scope>test</scope>
+		</dependency>
+
+
 	</dependencies>
+
 
 	<build>
 		<finalName>esc</finalName>

@@ -44,7 +44,7 @@ public final class FileTransferFactory {
 		case SFTP:
 			return new SftpFileTransfer();
 		case SCP:
-			// TODO: finish this
+			return new ScpFileTransfer();
 		default:
 			throw new UnsupportedOperationException("Unsupported file transfer mode: " + mode);
 		}

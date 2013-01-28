@@ -63,27 +63,28 @@ public final class ExecutableDSLEntryFactory {
 
 	}
 
-	private static void
-			validateStringEntry(final StringExecutableEntry stringExecutableEntry, final File workDirectory) {
-		final String command = stringExecutableEntry.getCommand();
-		final String[] parts = command.split(" ");
-		final String fileName = parts[0];
-		if (fileName.endsWith(".groovy")) {
-			File file = new File(fileName);
-			if (!file.isAbsolute()) {
-				file = new File(workDirectory, fileName);
-			}
+	// TODO - re-enable this to activate groovy file validations
 
-			// TODO - re-enable this to activate groovy file validations
-			// if (file.exists() && file.isFile()) {
-			// GroovyFileCompilationResult result = groovyValidater.validateFile(file);
-			// if (!result.isSuccess()) {
-			// throw new DSLValidationException(result.getErrorMessage(), result.getCause());
-			// }
-			// }
-		}
-
-	}
+//	private static void
+//			validateStringEntry(final StringExecutableEntry stringExecutableEntry, final File workDirectory) {
+//		final String command = stringExecutableEntry.getCommand();
+//		final String[] parts = command.split(" ");
+//		final String fileName = parts[0];
+//		if (fileName.endsWith(".groovy")) {
+//			File file = new File(fileName);
+//			if (!file.isAbsolute()) {
+//				file = new File(workDirectory, fileName);
+//			}
+//
+//			// if (file.exists() && file.isFile()) {
+//			// GroovyFileCompilationResult result = groovyValidater.validateFile(file);
+//			// if (!result.isSuccess()) {
+//			// throw new DSLValidationException(result.getErrorMessage(), result.getCause());
+//			// }
+//			// }
+//		}
+//
+//	}
 
 	/****************
 	 * Created an executable entry from a DSL value. The argument must be from one of the supported types.
@@ -98,6 +99,7 @@ public final class ExecutableDSLEntryFactory {
 	 * @throws DSLValidationException
 	 *             if the entry is invalid.
 	 */
+	@SuppressWarnings("unchecked")
 	public static ExecutableDSLEntry createEntry(final Object arg, final Object entryName, final File workDirectory)
 			throws DSLValidationException {
 
@@ -112,7 +114,7 @@ public final class ExecutableDSLEntryFactory {
 
 		if (arg instanceof String) {
 			final StringExecutableEntry stringExecutableEntry = new StringExecutableEntry((String) arg);
-			validateStringEntry(stringExecutableEntry, workDirectory);
+			//validateStringEntry(stringExecutableEntry, workDirectory);
 			return stringExecutableEntry;
 		} else if (arg instanceof GString) {
 			return new StringExecutableEntry(arg.toString());

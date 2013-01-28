@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.dsl;
 
@@ -40,13 +37,13 @@ import org.openspaces.ui.UserInterface;
 /****************************
  * The POJO for a service running in Cloudify. All of the details required to run a specific service are available here.
  * This is the main configuration object used by the USM to install, run, monitor and stop a process.
- * 
+ *
  * @author barakme
  * @since 1.0.0
- * 
+ *
  */
 @CloudifyDSLEntity(name = "service", clazz = Service.class, allowInternalNode = true, allowRootNode = true,
-parent = "application")
+		parent = "application")
 public class Service {
 
 	private static final int DEFAULT_MAX_JAR_SIZE = 150 * 1024 * 1024; // 150 MB
@@ -83,7 +80,7 @@ public class Service {
 
 	private ExecutableEntriesMap customCommands = new ExecutableEntriesMap();
 
-	private String type =  ServiceTierType.UNDEFINED.toString();
+	private String type = ServiceTierType.UNDEFINED.toString();
 
 	private StatelessProcessingUnit statelessProcessingUnit;
 
@@ -130,8 +127,9 @@ public class Service {
 	}
 
 	/**
-	 * @param samplingPeriodInSeconds The time (in seconds) between two consecutive metric samples. This figure should
-	 *        be set when using scale rules
+	 * @param samplingPeriodInSeconds
+	 *            The time (in seconds) between two consecutive metric samples. This figure should be set when using
+	 *            scale rules
 	 */
 	public void setSamplingPeriodInSeconds(final long samplingPeriodInSeconds) {
 		this.samplingPeriodInSeconds = samplingPeriodInSeconds;
@@ -185,7 +183,7 @@ public class Service {
 	public UserInterface getUserInterface() {
 		return userInterface;
 	}
-	
+
 	public void setUserInterface(final UserInterface userInterface) {
 		this.userInterface = userInterface;
 	}
@@ -248,8 +246,9 @@ public class Service {
 
 	/******
 	 * .
-	 * 
-	 * @param statelessProcessingUnit .
+	 *
+	 * @param statelessProcessingUnit
+	 *            .
 	 */
 	public void setStatelessProcessingUnit(final StatelessProcessingUnit statelessProcessingUnit) {
 		if (this.statelessProcessingUnit != null) {
@@ -260,8 +259,9 @@ public class Service {
 
 	/*************
 	 * .
-	 * 
-	 * @param mirrorProcessingUnit .
+	 *
+	 * @param mirrorProcessingUnit
+	 *            .
 	 */
 	public void setMirrorProcessingUnit(final MirrorProcessingUnit mirrorProcessingUnit) {
 		if (this.mirrorProcessingUnit != null) {
@@ -272,8 +272,9 @@ public class Service {
 
 	/*******
 	 * .
-	 * 
-	 * @param statefulProcessingUnit .
+	 *
+	 * @param statefulProcessingUnit
+	 *            .
 	 */
 	public void setStatefulProcessingUnit(final StatefulProcessingUnit statefulProcessingUnit) {
 		if (this.statefulProcessingUnit != null) {
@@ -284,8 +285,9 @@ public class Service {
 
 	/**************
 	 * .
-	 * 
-	 * @param dataGrid .
+	 *
+	 * @param dataGrid
+	 *            .
 	 */
 	public void setDataGrid(final DataGrid dataGrid) {
 		if (this.datagrid != null) {
@@ -296,8 +298,9 @@ public class Service {
 
 	/**********
 	 * .
-	 * 
-	 * @param memcached .
+	 *
+	 * @param memcached
+	 *            .
 	 */
 	public void setMemcached(final Memcached memcached) {
 		if (this.memcachedProcessingUnit != null) {
@@ -404,10 +407,10 @@ public class Service {
 	}
 
 	/**
-	 * 
-	 * @param scaleOutCooldownInSeconds - The time (in seconds) that scaling rules are disabled after scale out
-	 *        (instances added)
-	 * 
+	 *
+	 * @param scaleOutCooldownInSeconds
+	 *            - The time (in seconds) that scaling rules are disabled after scale out (instances added)
+	 *
 	 * @see #setScaleOutCooldownInSeconds(long)
 	 * @see #setScaleCooldownInSeconds(long)
 	 */
@@ -420,9 +423,9 @@ public class Service {
 	}
 
 	/**
-	 * 
-	 * @param scaleInCooldownInSeconds - The time (in seconds) that scaling rules are disabled after scale in (instances
-	 *        removed)
+	 *
+	 * @param scaleInCooldownInSeconds
+	 *            - The time (in seconds) that scaling rules are disabled after scale in (instances removed)
 	 * @see #setScaleCooldownInSeconds(long)
 	 * @see #setScaleOutCooldownInSeconds(long)
 	 */
@@ -431,13 +434,14 @@ public class Service {
 	}
 
 	/**
-	 * 
-	 * @param scaleCooldownInSeconds - The time (in seconds) that scaling rules are disabled after scale in (instances
-	 *        removed) or scale out (instances added)
-	 * 
-	 *        This has the same effect as calling {@link #setScaleInCooldownInSeconds(long)} and
-	 *        {@link #setScaleOutCooldownInSeconds(long)} separately.
-	 * 
+	 *
+	 * @param scaleCooldownInSeconds
+	 *            - The time (in seconds) that scaling rules are disabled after scale in (instances removed) or scale
+	 *            out (instances added)
+	 *
+	 *            This has the same effect as calling {@link #setScaleInCooldownInSeconds(long)} and
+	 *            {@link #setScaleOutCooldownInSeconds(long)} separately.
+	 *
 	 * @see #setScaleInCooldownInSeconds(long)
 	 * @see #setScaleOutCooldownInSeconds(long)
 	 */
@@ -447,7 +451,7 @@ public class Service {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return the time in seconds that scaling rules are disabled after scale in or scale out. In case the scale in and
 	 *         scale out values are different it returns the bigger value.
 	 */
@@ -490,8 +494,11 @@ public class Service {
 
 	/**
 	 * Validate the icon property (if set) points to an existing file.
-	 * @param validationContext The DSLValidationContext object
-	 * @throws DSLValidationException Indicates the icon could not be found
+	 *
+	 * @param validationContext
+	 *            The DSLValidationContext object
+	 * @throws DSLValidationException
+	 *             Indicates the icon could not be found
 	 */
 	@DSLValidation
 	void validateIcon(final DSLValidationContext validationContext) throws DSLValidationException {
@@ -557,53 +564,58 @@ public class Service {
 			}
 		}
 	}
-	
+
+	@SuppressWarnings("rawtypes")
 	@DSLValidation
 	void validateUserInterfaceObjectIsWellDefined(final DSLValidationContext validationContext)
 			throws DSLValidationException {
-			if (this.userInterface != null) {
-				//Validate metric list
-				List<MetricGroup> metricGroups = this.userInterface.getMetricGroups();
-				for (MetricGroup metricGroup : metricGroups) {
-					for (Object metric : metricGroup.getMetrics()) {
-						if (metric instanceof List<?>) {
-							if (!(((List) metric).get(0) instanceof String)) {
-								throw new DSLValidationException("the defined metric " + metric.toString() + " is invalid." +
-										" metric name should be of type 'String'");
-							}
-							if (!(((List) metric).get(1) instanceof Unit)) {
-								throw new DSLValidationException("the defined metric " + metric.toString() + " is invalid." +
-										" metric axisYUnit should be of type org.openspaces.ui.Unit");
-							}
-							if (!(((List) metric).size() == 2)) {
-								throw new DSLValidationException("the defined metric " + metric.toString() + " is invalid." +
-										" metric should be defined as String or as a list [String, Unit]");
-							}
-						} else {
-							if (!(metric instanceof String)) {
-								throw new DSLValidationException("the defined metric " + metric.toString() + " is invalid." +
-										" metric name should be of type 'String'");
-							}
+		if (this.userInterface != null) {
+			// Validate metric list
+			List<MetricGroup> metricGroups = this.userInterface.getMetricGroups();
+			for (MetricGroup metricGroup : metricGroups) {
+				for (Object metric : metricGroup.getMetrics()) {
+					if (metric instanceof List<?>) {
+						if (!(((List) metric).get(0) instanceof String)) {
+							throw new DSLValidationException("the defined metric " + metric.toString() + " is invalid."
+									+
+									" metric name should be of type 'String'");
+						}
+						if (!(((List) metric).get(1) instanceof Unit)) {
+							throw new DSLValidationException("the defined metric " + metric.toString() + " is invalid."
+									+
+									" metric axisYUnit should be of type org.openspaces.ui.Unit");
+						}
+						if (!(((List) metric).size() == 2)) {
+							throw new DSLValidationException("the defined metric " + metric.toString() + " is invalid."
+									+
+									" metric should be defined as String or as a list [String, Unit]");
+						}
+					} else {
+						if (!(metric instanceof String)) {
+							throw new DSLValidationException("the defined metric " + metric.toString() + " is invalid."
+									+
+									" metric name should be of type 'String'");
 						}
 					}
 				}
 			}
+		}
 	}
 
-	
 	/**
 	 * Validates that the name property exists and is not empty or invalid.
+	 *
 	 * @param validationContext
 	 * @throws DSLValidationException
 	 */
 	@DSLValidation
-	void validateName(final DSLValidationContext validationContext) 
+	void validateName(final DSLValidationContext validationContext)
 			throws DSLValidationException {
 		if (StringUtils.isBlank(name)) {
-			throw new DSLValidationException("Service.validateName: The service's name " 
+			throw new DSLValidationException("Service.validateName: The service's name "
 					+ (name == null ? "is missing" : "is empty"));
 		}
-		
+
 		DSLUtils.validateRecipeName(name);
 	}
 

@@ -239,7 +239,7 @@ public final class Utils {
 		details.setScriptLanguage(md.getScriptLangeuage());
 
 		details.setCloudFile(cloudFile);
-		details.setLus(isManagement);
+		details.setManagement(isManagement);
 		if (isManagement) {
 			details.setConnectedToPrivateIp(!cloud.getConfiguration().isBootstrapManagementOnPublicIp());
 			details.setSecurityProfile(securityProfile);

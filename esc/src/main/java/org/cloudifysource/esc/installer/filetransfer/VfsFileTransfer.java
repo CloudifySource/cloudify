@@ -189,7 +189,7 @@ public abstract class VfsFileTransfer implements FileTransfer {
 		// for an agent machine, just pass the upload dir fot the specific
 		// template.
 		String localDirPath = details.getLocalDir();
-		if (details.isLus()) {
+		if (details.isManagement()) {
 			if (details.getCloudFile() == null) {
 				throw new IllegalArgumentException("While bootstrapping a management machine, cloud file is null");
 			}

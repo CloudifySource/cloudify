@@ -47,7 +47,7 @@ public class InstallerTest {
 		details.setFileTransferMode(FileTransferModes.CIFS);
 		details.setLocalDir(System.getenv("CLOUDIFY_HOME") + "/tools/cli/plugins/esc/byon-local/upload-win");
 		details.setLocator(null);
-		details.setLus(true);
+		details.setManagement(true);
 		details.setMachineId("TEST_NODE");
 		details.setRelativeLocalDir("upload-win");
 
@@ -91,7 +91,7 @@ public class InstallerTest {
 		details.setFileTransferMode(FileTransferModes.SFTP);
 		details.setLocalDir(System.getenv("CLOUDIFY_HOME") + "/tools/cli/plugins/esc/ec2/upload");
 		details.setLocator(null);
-		details.setLus(true);
+		details.setManagement(true);
 		details.setMachineId("TEST_NODE");
 		details.setRelativeLocalDir("upload");
 

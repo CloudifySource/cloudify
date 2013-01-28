@@ -30,8 +30,8 @@ import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.core.cluster.ClusterInfo;
 
 /**
- * 
- * 
+ *
+ *
  * @author barakme
  * @since 1.0
  */
@@ -39,7 +39,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 	private org.cloudifysource.dsl.Service service;
 	private Admin admin;
-	private String serviceDirectory;
+	private final String serviceDirectory;
 	private ClusterInfo clusterInfo;
 	private boolean initialized = false;
 
@@ -55,13 +55,13 @@ public class ServiceContextImpl implements ServiceContext {
 	private volatile long externalProcessId;
 
 	/*************
-	 * Default constructor.
-	 * 
+	 * Constructor.
+	 *
 	 * @param clusterInfo
 	 *            the cluster info.
 	 * @param serviceDirectory
 	 *            the service directory.
-	 * 
+	 *
 	 */
 	public ServiceContextImpl(final ClusterInfo clusterInfo,
 			final String serviceDirectory) {
@@ -82,7 +82,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 	/**********
 	 * Late object initialization.
-	 * 
+	 *
 	 * @param service
 	 *            .
 	 * @param admin
@@ -127,7 +127,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 	/************
 	 * Late initializer, used in the integrated container (i.e. test-recipe)
-	 * 
+	 *
 	 * @param service
 	 *            .
 	 */
@@ -157,7 +157,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.cloudifysource.dsl.context.IServiceContext#getInstanceId()
 	 */
 	@Override
@@ -169,7 +169,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.cloudifysource.dsl.context.IServiceContext#waitForService(java.lang
 	 * .String, int, java.util.concurrent.TimeUnit)
@@ -223,12 +223,11 @@ public class ServiceContextImpl implements ServiceContext {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.cloudifysource.dsl.context.IServiceContext#getServiceDirectory()
 	 */
 	@Override
 	public String getServiceDirectory() {
-		// checkInitialized();
 
 		return serviceDirectory;
 	}
@@ -238,7 +237,7 @@ public class ServiceContextImpl implements ServiceContext {
 	 * intended as a debugging aid, and should not be used by most application.
 	 * Only power users, familiar with the details of the Admin API, should use
 	 * it.
-	 * 
+	 *
 	 * @return the admin.
 	 */
 	public Admin getAdmin() {
@@ -246,7 +245,7 @@ public class ServiceContextImpl implements ServiceContext {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param service
 	 */
 	void setService(final Service service) {
@@ -259,7 +258,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.cloudifysource.dsl.context.IServiceContext#getServiceName()
 	 */
 	@Override
@@ -269,7 +268,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.cloudifysource.dsl.context.IServiceContext#getApplicationName()
 	 */
 	@Override
@@ -279,7 +278,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.cloudifysource.dsl.context.IServiceContext#getAttributes()
 	 */
 	@Override

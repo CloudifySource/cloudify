@@ -239,7 +239,7 @@ public class AgentlessInstaller {
 		if (remoteDirectory.endsWith("/")) {
 			remoteDirectory = remoteDirectory.substring(0, remoteDirectory.length() - 1);
 		}
-		if (details.isLus()) {
+		if (details.isManagement()) {
 			// add the relative path to the cloud file location
 			remoteDirectory = remoteDirectory + "/" + details.getRelativeLocalDir();
 		}
@@ -253,7 +253,7 @@ public class AgentlessInstaller {
 
 		final EnvironmentFileBuilder builder = new EnvironmentFileBuilder(details.getScriptLanguage())
 				.exportVar(LUS_IP_ADDRESS_ENV, details.getLocator())
-				.exportVar(GSA_MODE_ENV, details.isLus() ? "lus" : "agent")
+				.exportVar(GSA_MODE_ENV, details.isManagement() ? "lus" : "agent")
 				.exportVar(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR, details.getSecurityProfile())
 				.exportVar(NO_WEB_SERVICES_ENV,
 						details.isNoWebServices() ? "true" : "false")
@@ -282,7 +282,7 @@ public class AgentlessInstaller {
 			builder.exportVar(GSA_RESERVATION_ID_ENV, details.getReservationId().toString());
 		}
 
-		if (details.isLus()) {
+		if (details.isManagement()) {
 			String remotePath = details.getRemoteDir();
 			if (!remotePath.endsWith("/")) {
 				remotePath += "/";
@@ -351,7 +351,7 @@ public class AgentlessInstaller {
 		if (remoteDirectory.endsWith("/")) {
 			remoteDirectory = remoteDirectory.substring(0, remoteDirectory.length() - 1);
 		}
-		if (details.isLus()) {
+		if (details.isManagement()) {
 			// add the relative path to the cloud file location
 			remoteDirectory = remoteDirectory + "/" + details.getRelativeLocalDir();
 		}
@@ -388,7 +388,7 @@ public class AgentlessInstaller {
 			throws TimeoutException, InstallerException, InterruptedException {
 
 		final Set<String> excludedFiles = new HashSet<String>();
-		if (!details.isLus() && details.getManagementOnlyFiles() != null) {
+		if (!details.isManagement() && details.getManagementOnlyFiles() != null) {
 			excludedFiles.addAll(Arrays.asList(details.getManagementOnlyFiles()));
 		}
 

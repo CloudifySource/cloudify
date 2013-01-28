@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.dsl.internal;
 
@@ -96,9 +93,8 @@ public class DSLReader {
 	private String overridesScript = null;
 
 	/*******
-	 * Variables injected into the context of a groovy compilation (binding)
-	 * Used with the service extension mechanism to pass defined properties, and
-	 * the context, to the compilation of the parent service.
+	 * Variables injected into the context of a groovy compilation (binding) Used with the service extension mechanism
+	 * to pass defined properties, and the context, to the compilation of the parent service.
 	 */
 	private Map<Object, Object> variables;
 
@@ -107,13 +103,13 @@ public class DSLReader {
 			org.cloudifysource.dsl.internal.context.ServiceImpl.class.getPackage().getName(),
 			FileTransferModes.class.getName(),
 			RemoteExecutionModes.class.getName(),
-			ScriptLanguages.class.getName()};
+			ScriptLanguages.class.getName() };
 
 	private static final String[] CLASS_IMPORTS = new String[] {
-		org.cloudifysource.dsl.utils.ServiceUtils.class.getName(),
-		FileTransferModes.class.getName(),
-		RemoteExecutionModes.class.getName(),
-		ScriptLanguages.class.getName()
+			org.cloudifysource.dsl.utils.ServiceUtils.class.getName(),
+			FileTransferModes.class.getName(),
+			RemoteExecutionModes.class.getName(),
+			ScriptLanguages.class.getName()
 	};
 
 	/******
@@ -162,11 +158,13 @@ public class DSLReader {
 	}
 
 	/***********
-	 * Search the directory for a file with the specified suffix.
-	 * Assuming there is exactly one file with that suffix in the directory.
+	 * Search the directory for a file with the specified suffix. Assuming there is exactly one file with that suffix in
+	 * the directory.
 	 *
-	 * @param fileNameSuffix The suffix.
-	 * @param dir The directory.
+	 * @param fileNameSuffix
+	 *            The suffix.
+	 * @param dir
+	 *            The directory.
 	 * @return the file.
 	 */
 	public static File findDefaultDSLFile(final String fileNameSuffix, final File dir) {
@@ -188,8 +186,10 @@ public class DSLReader {
 	/***********
 	 * Search the directory for files with the specified suffix.
 	 *
-	 * @param fileNameSuffix The suffix.
-	 * @param directory The directory to search at.
+	 * @param fileNameSuffix
+	 *            The suffix.
+	 * @param directory
+	 *            The directory to search at.
 	 * @return The found files. Returns null if no file with the specified suffix was found.
 	 */
 	public static File[] findDefaultDSLFiles(final String fileNameSuffix, final File directory) {
@@ -342,11 +342,18 @@ public class DSLReader {
 
 		// create an uninitialized service context
 		if (this.createServiceContext) {
+			String canonicalPath = null;
+			try {
+				canonicalPath = workDir.getCanonicalPath();
+			} catch (IOException e) {
+				throw new DSLException("Failed to get canonical path of work directory: " + workDir + ". Error was: "
+						+ e.getMessage(), e);
+			}
 			if (this.context == null) {
 				if (isRunningInGSC) {
-					this.context = new ServiceContextImpl(clusterInfoToUseInGsc, workDir.getAbsolutePath());
+					this.context = new ServiceContextImpl(clusterInfoToUseInGsc, canonicalPath);
 				} else {
-					this.context = new ServiceContextImpl(new ClusterInfo(null, 1, 0, 1, 0), workDir.getAbsolutePath());
+					this.context = new ServiceContextImpl(new ClusterInfo(null, 1, 0, 1, 0), canonicalPath);
 				}
 			}
 
@@ -659,16 +666,14 @@ public class DSLReader {
 	}
 
 	/**
-	 * Checks if the overrides name fits the naming convention of recipe files.
-	 * If fits, returns the given overridesFile, else copies the file and change
-	 * its name accordingly.
+	 * Checks if the overrides name fits the naming convention of recipe files. If fits, returns the given
+	 * overridesFile, else copies the file and change its name accordingly.
 	 *
 	 * @param overridesFile
 	 *            The file to copy
 	 * @param dslName
 	 *            The DSL name
-	 * @return the overrides file or a copy of it with the write name
-	 *         (*-application.overrides).
+	 * @return the overrides file or a copy of it with the write name (*-application.overrides).
 	 * @throws IOException
 	 *             if an IO error occurs during copying.
 	 */

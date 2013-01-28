@@ -16,11 +16,11 @@
 package org.cloudifysource.dsl.internal;
 
 public class EventLogConstants {
-	private final static String timeStamp = "timeStamp";
-	private final static String machineHostName = "machineHostName";
-	private final static String machineHostAddress = "machineHostAddress";
-	private final static String serviceName = "serviceName";
-	private final static String eventText = "eventText";
+	private static final String timeStamp = "timeStamp";
+	private static final String machineHostName = "machineHostName";
+	private static final String machineHostAddress = "machineHostAddress";
+	private static final String serviceName = "serviceName";
+	private static final String eventText = "eventText";
 //	private static String ee = USMLifecycleBean
 
 	public static String getTimeStampKey() {
@@ -30,11 +30,11 @@ public class EventLogConstants {
 	public static String getMachineHostNameKey() {
 		return machineHostName;
 	}
-	
+
 	public static String getMachineHostAddressKey() {
 		return machineHostAddress;
 	}
-	
+
 	public static String getServiceNameKey() {
 		return serviceName;
 	}

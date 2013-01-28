@@ -15,7 +15,9 @@ package org.cloudifysource.dsl;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
+import java.util.Set;
 
+import org.apache.commons.beanutils.BeanMap;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.Assert;
@@ -35,6 +37,39 @@ public class CloudParserTest {
 		assertNotNull(cloud.getTemplates().size() == 1);
 		assertNotNull(cloud.getTemplates().get("SMALL_LINUX"));
 		Assert.assertEquals(FileTransferModes.CIFS, cloud.getTemplates().get("SMALL_LINUX").getFileTransfer());
+
+	}
+
+	public static void main(String[] args) throws Exception {
+		final org.cloudifysource.dsl.cloud.Cloud cloud = ServiceReader.readCloud(new File(SIMPLE_CLOUD_PATH));
+
+		System.out.println(cloud.getCustom().get("GStringKey").getClass().getName());
+
+		BeanMap bm = new BeanMap(cloud.getCustom());
+		Set keys = bm.keySet();
+		for (Object object : keys) {
+			System.out.println(object);
+		}
+
+//		ObjectGraphIterator iter = new ObjectGraphIterator(cloud, new Transformer() {
+//
+//			@Override
+//			public Object transform(Object input) {
+//				if (input instanceof GString) {
+//					return input.toString();
+//				} else {
+//					return input;
+//				}
+//
+//			}
+//		});
+//
+//		while (iter.hasNext()) {
+//			final Object obj = iter.next();
+//			if (obj != null) {
+//				System.out.println("Class: " + obj.getClass().getName() + ". Value: " + obj);
+//			}
+//		}
 
 	}
 

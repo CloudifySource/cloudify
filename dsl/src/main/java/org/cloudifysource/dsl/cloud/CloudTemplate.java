@@ -29,7 +29,7 @@ import org.cloudifysource.dsl.internal.DSLValidationException;
 /**
  * @author barakme
  * @since 2.0.0
- * 
+ *
  *        A cloud template is a group of settings that define a given
  *        configuration, available for a specific cloud. It can include physical
  *        machine properties (e.g. memory), operating system type, location,
@@ -71,7 +71,7 @@ public class CloudTemplate {
 
 	/**
 	 * Gets the image ID.
-	 * 
+	 *
 	 * @return The image ID
 	 */
 	public String getImageId() {
@@ -80,7 +80,7 @@ public class CloudTemplate {
 
 	/**
 	 * Sets the image ID.
-	 * 
+	 *
 	 * @param imageId
 	 *            The ID of the image to use
 	 */
@@ -90,7 +90,7 @@ public class CloudTemplate {
 
 	/**
 	 * Gets the machine memory size in MB.
-	 * 
+	 *
 	 * @return The machine memory size
 	 */
 	public int getMachineMemoryMB() {
@@ -99,7 +99,7 @@ public class CloudTemplate {
 
 	/**
 	 * Sets the machine memory size in MB.
-	 * 
+	 *
 	 * @param machineMemoryMB
 	 *            The machine memory size
 	 */
@@ -109,7 +109,7 @@ public class CloudTemplate {
 
 	/**
 	 * Gets the hardware ID.
-	 * 
+	 *
 	 * @return The ID of the hardware profile
 	 */
 	public String getHardwareId() {
@@ -118,7 +118,7 @@ public class CloudTemplate {
 
 	/**
 	 * Sets the hardware ID.
-	 * 
+	 *
 	 * @param hardwareId
 	 *            the ID of the hardware profile
 	 */
@@ -128,7 +128,7 @@ public class CloudTemplate {
 
 	/**
 	 * Gets the location ID.
-	 * 
+	 *
 	 * @return The location ID
 	 */
 	public String getLocationId() {
@@ -137,7 +137,7 @@ public class CloudTemplate {
 
 	/**
 	 * Sets the location ID.
-	 * 
+	 *
 	 * @param locationId
 	 *            The ID of this location
 	 */
@@ -147,7 +147,7 @@ public class CloudTemplate {
 
 	/**
 	 * Gets the machine's cores' number.
-	 * 
+	 *
 	 * @return The machine's cores' number
 	 */
 	public int getNumberOfCores() {
@@ -156,7 +156,7 @@ public class CloudTemplate {
 
 	/**
 	 * Sets the number of cores on this machine.
-	 * 
+	 *
 	 * @param numberOfCores
 	 *            The machine's cores' number
 	 */
@@ -166,7 +166,7 @@ public class CloudTemplate {
 
 	/**
 	 * Gets the configured options.
-	 * 
+	 *
 	 * @return A map of configured options
 	 */
 	public Map<String, Object> getOptions() {
@@ -175,7 +175,7 @@ public class CloudTemplate {
 
 	/**
 	 * Sets optional settings.
-	 * 
+	 *
 	 * @param options
 	 *            A map of optional settings
 	 */
@@ -185,7 +185,7 @@ public class CloudTemplate {
 
 	/**
 	 * Gets the configured overrides.
-	 * 
+	 *
 	 * @return A list of configured overrides
 	 */
 	public Map<String, Object> getOverrides() {
@@ -194,7 +194,7 @@ public class CloudTemplate {
 
 	/**
 	 * Sets overriding settings. This is optional.
-	 * 
+	 *
 	 * @param overrides
 	 *            A map of overriding settings
 	 */
@@ -204,7 +204,7 @@ public class CloudTemplate {
 
 	/**
 	 * Gets the custom settings.
-	 * 
+	 *
 	 * @return A map of custom settings
 	 */
 	public Map<String, Object> getCustom() {
@@ -213,7 +213,7 @@ public class CloudTemplate {
 
 	/**
 	 * Sets custom settings.
-	 * 
+	 *
 	 * @param custom
 	 *            A map of custom settings
 	 */
@@ -289,7 +289,7 @@ public class CloudTemplate {
 	 * This usually means that the service will run with higher Operating System
 	 * permissions - root/sudoer on Linux, Administrator on Windows. Default is
 	 * false.
-	 * 
+	 *
 	 * @return true if services on this template will run in privileged mode.
 	 */
 	public boolean isPrivileged() {
@@ -304,7 +304,7 @@ public class CloudTemplate {
 	 * A command line that will be executed before the bootstrapping process of
 	 * a machine from this template ends (before the Cloudify agent starts,
 	 * after JDK and Cloudify are installed).
-	 * 
+	 *
 	 * @return the initialization command line.
 	 */
 	public String getInitializationCommand() {
@@ -317,7 +317,7 @@ public class CloudTemplate {
 
 	/*************
 	 * Environment variables set for a specific template.
-	 * 
+	 *
 	 * @return the environment variables.
 	 */
 	public Map<String, String> getEnv() {
@@ -330,7 +330,7 @@ public class CloudTemplate {
 
 	/**************
 	 * The url where the JDK used by Cloudify should be downloaded from.
-	 * 
+	 *
 	 * @return the JDK url.
 	 */
 	public String getJavaUrl() {
@@ -415,7 +415,7 @@ public class CloudTemplate {
 	 * the local directory. So this validation fills in this field - note that
 	 * the absolute field does not have a setter - groovy files can't directly
 	 * set this value.
-	 * 
+	 *
 	 * @param context
 	 *            .
 	 * @throws DSLValidationException .
@@ -443,7 +443,7 @@ public class CloudTemplate {
 			java.util.logging.Logger.getLogger(CloudTemplate.class.getName());
 
 	/**
-	 * 
+	 *
 	 * @return .
 	 */
 	public String toFormatedString() {
@@ -492,7 +492,7 @@ public class CloudTemplate {
 		return scriptLanguage;
 	}
 
-	public void setScriptLanguage(ScriptLanguages scriptLanguage) {
+	public void setScriptLanguage(final ScriptLanguages scriptLanguage) {
 		this.scriptLanguage = scriptLanguage;
 	}
 }

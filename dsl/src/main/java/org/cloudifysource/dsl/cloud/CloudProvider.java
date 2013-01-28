@@ -18,6 +18,7 @@ package org.cloudifysource.dsl.cloud;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
+
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.openspaces.maven.support.OutputVersion;
 
@@ -25,10 +26,10 @@ import com.j_spaces.kernel.PlatformVersion;
 
 /**********************
  * A POJO for the provider specific configuration of a cloud driver.
- * 
+ *
  * @author barakme
  * @since 2.0.0
- * 
+ *
  */
 @CloudifyDSLEntity(name = "provider", clazz = CloudProvider.class, allowInternalNode = true, allowRootNode = false,
 		parent = "cloud")
@@ -139,14 +140,14 @@ public class CloudProvider {
 
 	/**********
 	 * The reservedMemoryCapacityPerMachineInMB is the estimated amount of RAM
-	 * used by the operating system and the agent running on the machine. 
+	 * used by the operating system and the agent running on the machine.
 	 * It is not relevant when you install one instance per machine (which is the
-	 * default Global mode). 
+	 * default Global mode).
 	 * It is relevant when you enable multiple instances
 	 * on the same machine. In that case the plan needs to take the amount of
 	 * estimated memory used by each instance plus the reserved memory estimate
 	 * and compares it to the memory of the machine.
-	 * 
+	 *
 	 * @return .
 	 */
 	public int getReservedMemoryCapacityPerMachineInMB() {
@@ -162,7 +163,7 @@ public class CloudProvider {
 	}
 
 	public void setReservedMemoryCapacityPerManagementMachineInMB(
-			int reservedMemoryCapacityPerManagementMachineInMB) {
+			final int reservedMemoryCapacityPerManagementMachineInMB) {
 		this.reservedMemoryCapacityPerManagementMachineInMB = reservedMemoryCapacityPerManagementMachineInMB;
 	}
 
