@@ -50,8 +50,8 @@ import org.cloudifysource.esc.installer.InstallerException;
  */
 public class ScpFileTransfer implements FileTransfer {
 
-	private static final String CREATE_REMOTE_DIRECTORY_WITH_DELETE = "if [ -d {0} ]; then rm -rf {0}; fi; mkdir {0}";
-	private static final String CREATE_REMOTE_DIRECTORY = "if [ ! -d {0} ]; then mkdir {0}; fi";
+	private static final String CREATE_REMOTE_DIRECTORY_WITH_DELETE = "if [ -d {0} ]; then rm -rf {0}; fi; mkdir -p {0}";
+	private static final String CREATE_REMOTE_DIRECTORY = "if [ ! -d {0} ]; then mkdir -p {0}; fi";
 
 	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(ScpFileTransfer.class
 			.getName());
