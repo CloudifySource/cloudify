@@ -12,10 +12,7 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.cloud;
 
-import org.cloudifysource.dsl.DSLValidation;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
-import org.cloudifysource.dsl.internal.DSLValidationContext;
-import org.cloudifysource.dsl.internal.DSLValidationException;
 
 /***********
  * Domain POJO for the cloud configuration.
