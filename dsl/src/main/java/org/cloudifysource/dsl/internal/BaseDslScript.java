@@ -193,11 +193,11 @@ public abstract class BaseDslScript extends Script {
 			final Object currentValue = PropertyUtils.getProperty(object, name);
 			if (currentValue != null
 					&& currentValue instanceof Map<?, ?>
-					&& value != null
-					&& value instanceof Map<?, ?>) {
+					&& convertedValue != null
+					&& convertedValue instanceof Map<?, ?>) {
 
 				final Map<Object, Object> currentMap = (Map<Object, Object>) currentValue;
-				currentMap.putAll((Map<Object, Object>) value);
+				currentMap.putAll((Map<Object, Object>) convertedValue);
 
 			} else if (PropertyUtils.getPropertyType(object, name).isEnum() && value instanceof String) {
 				final Class enumClass = PropertyUtils.getPropertyType(object, name);
