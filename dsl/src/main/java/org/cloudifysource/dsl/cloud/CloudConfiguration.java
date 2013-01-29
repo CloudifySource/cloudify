@@ -123,14 +123,5 @@ public class CloudConfiguration {
 	public void setComponents(final GridComponents components) {
 		this.components = components;
 	}
-	
-	@DSLValidation
-	void validateClassName(final DSLValidationContext validationContext)
-			throws DSLValidationException {
-
-		if (!className.matches("(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*\\.)+\\p{javaJavaIdentifi‌​erStart}\\p{javaJavaIdentifierPart}*")) {
-			throw new DSLValidationException("Invalid cloud configuration class name \"" + className + "\"");
-		}
-	}
 
 }
