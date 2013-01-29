@@ -219,7 +219,7 @@ public class CloudProvider {
 	void validateProviderName(final DSLValidationContext validationContext)
 			throws DSLValidationException {
 
-		if (!provider.matches("[Ec][Cc]2|[Rr]ackspace|[Aa]zure|[Bb]yon|[Hh][Pp]|[Oo]penstack")) {
+		if (!provider.matches("aws-ec2|[Rr]ackspace|[Aa]zure|[Bb]yon|[Dd]ynamic-[Bb]yon|[Hh][Pp]|[Oo]penstack")) {
 			throw new DSLValidationException("Provider \"" + provider + "\" is not supported");
 		}
 	}
@@ -255,7 +255,7 @@ public class CloudProvider {
 
 		if (!sshLoggingLevel.matches("INFO|FINE|WARNING|DEBUG")) {
 			throw new DSLValidationException("sshLoggingLevel \"" + sshLoggingLevel + "\" is invalid, "
-					+ "supported values are: INFO, FINE, WARNING, DEBUG");
+					+ "supported values are: INFO, FINE, FINER, FINEST, WARNING, DEBUG");
 		}
 	}
 

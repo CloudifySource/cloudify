@@ -3,9 +3,11 @@ package org.cloudifysource.dsl.cloud;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import org.apache.commons.validator.routines.UrlValidator;
+import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,6 +22,13 @@ import com.j_spaces.kernel.PlatformVersion;
  * @version $Revision: 1.0 $
  */
 public class CloudProviderTest {
+	
+	
+	private  static final String WRONG_PROVIDER_PATH = "testResources/testparsing/wrong-provider.groovy";
+	private  static final String INVALID_URL_PATH = "testResources/testparsing/invalid-url.groovy";
+	private  static final String INVALID_NUM_MGMT_MACHINES_PATH = 
+			"testResources/testparsing/invalid-num-mgmt-machines.groovy";
+	private  static final String INVALID_SSH_LOG_LEVEL_PATH = "testResources/testparsing/invalid-ssh-log-level.groovy";
 
 	/**
 	 * Run the String getCloudifyUrl() method test.
@@ -90,6 +99,56 @@ public class CloudProviderTest {
 		String[] schema = {"http"};
 		UrlValidator urlValidator = new UrlValidator(schema);
 		assertTrue("Cloudify URL validation on url " + result + " failed", urlValidator.isValid(result));
+	}
+
+
+	@Test
+	public void testProviderNameValidation() throws Exception {
+		try {
+			ServiceReader.readCloud(new File(WRONG_PROVIDER_PATH));
+			// if we got to the next line - the validation exception wasn't thrown.
+			assertTrue("The provider name is invalid yet no error was thrown", false);
+		} catch (final Throwable e) {
+			assertTrue("The provider name is invalid yet no relevant error was thrown. Error was: " + e.getMessage(),
+					e.getMessage().contains("Provider")
+							&& e.getMessage().contains("is not supported"));
+		}
+	}
+	
+	@Test
+	public void testCloudifyUrlValidation() throws Exception {
+		try {
+			ServiceReader.readCloud(new File(INVALID_URL_PATH));
+			// if we got to the next line - the validation exception wasn't thrown.
+			assertTrue("The Cloudify url is invalid yet no error was thrown", false);
+		} catch (final Throwable e) {
+			assertTrue("The Cloudify url is invalid yet no relevant error was thrown. Error was: " + e.getMessage(),
+					e.getMessage().contains("Invalid cloudify url"));
+		}
+	}
+	
+	@Test
+	public void testNumberOfManagementMachinesValidation() throws Exception {
+		try {
+			ServiceReader.readCloud(new File(INVALID_NUM_MGMT_MACHINES_PATH));
+			// if we got to the next line - the validation exception wasn't thrown.
+			assertTrue("The number of management machines is invalid yet no error was thrown", false);
+		} catch (final Throwable e) {
+			assertTrue("The number of management machines is invalid yet no relevant error was thrown. Error was: " 
+					+ e.getMessage(), e.getMessage().contains("Invalid numberOfManagementMachines"));
+		}
+	}
+	
+	@Test
+	public void testSshLoggingLevelValidation() throws Exception {
+		try {
+			ServiceReader.readCloud(new File(INVALID_SSH_LOG_LEVEL_PATH));
+			// if we got to the next line - the validation exception wasn't thrown.
+			assertTrue("The ssh logging level is invalid yet no error was thrown", false);
+		} catch (final Throwable e) {
+			assertTrue("The ssh logging level is invalid yet no relevant error was thrown. Error was: "
+					+ e.getMessage(), e.getMessage().contains("INFO, FINE, FINER, FINEST, WARNING, DEBUG"));
+		}
 	}
 
 	/**
