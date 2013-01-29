@@ -115,7 +115,7 @@ public class CloudProviderTest {
 		}
 	}
 	
-	@Test
+	/*@Test
 	public void testCloudifyUrlValidation() throws Exception {
 		try {
 			ServiceReader.readCloud(new File(INVALID_URL_PATH));
@@ -125,7 +125,7 @@ public class CloudProviderTest {
 			assertTrue("The Cloudify url is invalid yet no relevant error was thrown. Error was: " + e.getMessage(),
 					e.getMessage().contains("Invalid cloudify url"));
 		}
-	}
+	}*/
 	
 	@Test
 	public void testNumberOfManagementMachinesValidation() throws Exception {
