@@ -15,11 +15,15 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.cloud;
 
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.cloudifysource.dsl.DSLValidation;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.cloudifysource.dsl.internal.DSLValidationContext;
+import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.openspaces.maven.support.OutputVersion;
 
 import com.j_spaces.kernel.PlatformVersion;
@@ -210,4 +214,50 @@ public class CloudProvider {
 			return String.format(cloudifyUrlPattern, productUri, editionUrlVariable);
 		}
 	}
+	
+	@DSLValidation
+	void validateProviderName(final DSLValidationContext validationContext)
+			throws DSLValidationException {
+
+		if (!provider.matches("[Ec][Cc]2|[Rr]ackspace|[Aa]zure|[Bb]yon|[Hh][Pp]|[Oo]penstack")) {
+			throw new DSLValidationException("Provider \"" + provider + "\" is not supported");
+		}
+	}
+	
+	@DSLValidation
+	void validateCloudifyUrl(final DSLValidationContext validationContext)
+			throws DSLValidationException {
+
+		try {
+		    new java.net.URI(cloudifyUrl);
+		} catch(URISyntaxException e) {
+		    // url badly formed
+			throw new DSLValidationException("Invalid cloudify url: \"" + cloudifyUrl + "\"");
+		}
+		
+		//TODO request "head" to see if the url is accessible. If not - warning.
+	}
+	
+	@DSLValidation
+	void validateNumberOfManagementMachines(final DSLValidationContext validationContext)
+			throws DSLValidationException {
+
+		if (numberOfManagementMachines != 1 && numberOfManagementMachines != 2) {
+			throw new DSLValidationException("Invalid numberOfManagementMachines: \"" + numberOfManagementMachines 
+					+ "\". Valid values are 1 or 2");
+		}
+		
+		//TODO request "head" to see if the url is accessible. If not - warning.
+	}
+	
+	@DSLValidation
+	void validateSshLoggingLevel(final DSLValidationContext validationContext)
+			throws DSLValidationException {
+
+		if (!sshLoggingLevel.matches("INFO|FINE|WARNING|DEBUG")) {
+			throw new DSLValidationException("sshLoggingLevel \"" + sshLoggingLevel + "\" is invalid, "
+					+ "supported values are: INFO, FINE, WARNING, DEBUG");
+		}
+	}
+
 }

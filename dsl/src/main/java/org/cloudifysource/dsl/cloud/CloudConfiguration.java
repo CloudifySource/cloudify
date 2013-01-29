@@ -12,7 +12,10 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.cloud;
 
+import org.cloudifysource.dsl.DSLValidation;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.cloudifysource.dsl.internal.DSLValidationContext;
+import org.cloudifysource.dsl.internal.DSLValidationException;
 
 /***********
  * Domain POJO for the cloud configuration.
@@ -119,6 +122,15 @@ public class CloudConfiguration {
 
 	public void setComponents(final GridComponents components) {
 		this.components = components;
+	}
+	
+	@DSLValidation
+	void validateClassName(final DSLValidationContext validationContext)
+			throws DSLValidationException {
+
+		if (!className.matches("(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*\\.)+\\p{javaJavaIdentifi‌​erStart}\\p{javaJavaIdentifierPart}*")) {
+			throw new DSLValidationException("Invalid cloud configuration class name \"" + className + "\"");
+		}
 	}
 
 }
