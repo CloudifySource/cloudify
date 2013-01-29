@@ -59,6 +59,7 @@ import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.server.shell.ProcessShellFactory;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.esc.installer.filetransfer.ScpFileTransfer;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class FileTransferTest {
@@ -132,6 +133,7 @@ public class FileTransferTest {
 		sshd.setCipherFactories(avail);
 	}
 
+	@Ignore
 	@Test
 	public void testScpFileTransfer() throws IOException, TimeoutException, InstallerException {
 		ScpFileTransfer transfer = new ScpFileTransfer();
