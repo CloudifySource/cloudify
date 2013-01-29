@@ -33,6 +33,9 @@ public class CustomApproveAllPermissionEvaluator implements PermissionEvaluator 
 	private Logger logger = java.util.logging.Logger.getLogger(CustomApproveAllPermissionEvaluator.class.getName());
 
 	/**
+	 * @param authentication The authentication object of the current user
+	 * @param target The target object the user is attempting to access
+	 * @param permission The permission requested on the target object (e.g. view, deploy)
 	 * @return true always
 	 */
 	@Override
@@ -42,11 +45,15 @@ public class CustomApproveAllPermissionEvaluator implements PermissionEvaluator 
 	}
 
 	/**
+	 * @param authentication The authentication object of the current user
+	 * @param targetId The A unique identifier of the target object the user is attempting to access
+	 * @param targetType The type of the target object the user is attempting to access
+	 * @param permission The permission requested on the target object (e.g. view, deploy)
 	 * @return true always
 	 */
 	@Override
-	public boolean hasPermission(final Authentication authentication, final Serializable targetId, final String targetType,
-			Object permission) {
+	public boolean hasPermission(final Authentication authentication, final Serializable targetId, 
+			final String targetType, final Object permission) {
 		logger.fine("Grant user " + authentication.getName() + " permission '" + permission + "' on object with Id '"
 				+ targetId);
 		return true;

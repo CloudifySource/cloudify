@@ -1,3 +1,18 @@
+/*******************************************************************************
+ * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 package org.cloudifysource.rest.security;
 
 import java.util.Collection;
@@ -17,6 +32,8 @@ import org.springframework.util.Assert;
  * The context mapper used by the LDAP authentication provider to create an LDAP user object with both groups and roles.
  *
  * @author Noak
+ * @since 2.3.0
+ * 
  */
 public class CustomLdapUserDetailsMapper {
 	//~ Instance fields ================================================================================================
@@ -112,14 +129,17 @@ public class CustomLdapUserDetailsMapper {
      * @param passwordValue the value of the password attribute
      * @return a String representation of the password.
      */
-    protected String mapPassword(Object passwordValue) {
+    protected String mapPassword(final Object passwordValue) {
 
-        if (!(passwordValue instanceof String)) {
-            // Assume it's binary
-            passwordValue = new String((byte[]) passwordValue);
+    	String passwordString;
+        if (passwordValue instanceof String) {
+        	passwordString = (String) passwordValue;
+        } else {
+        	// Assume it's binary
+        	passwordString = new String((byte[]) passwordValue);
         }
 
-        return (String) passwordValue;
+        return passwordString;
 
     }
 
@@ -135,12 +155,15 @@ public class CustomLdapUserDetailsMapper {
      * @return the authority to be added to the list of authorities for the user, or null
      * if this attribute should be ignored.
      */
-    protected GrantedAuthority createAuthority(Object role) {
+    protected GrantedAuthority createAuthority(final Object role) {
+    	String roleString;
+    	
         if (role instanceof String) {
+        	roleString = (String) role;
             if (convertToUpperCase) {
-                role = ((String) role).toUpperCase();
+            	roleString = roleString.toUpperCase();
             }
-            return new GrantedAuthorityImpl(role.toString());
+            return new GrantedAuthorityImpl(roleString);
         }
         return null;
     }

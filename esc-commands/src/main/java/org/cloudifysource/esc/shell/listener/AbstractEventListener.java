@@ -27,7 +27,13 @@ public class AbstractEventListener {
 	private final ResourceBundle messages = ShellUtils.getMessageBundle();
 	private static final Logger logger = Logger.getLogger(AbstractEventListener.class.getName());
 	
-	protected String getFormattedMessage(String msgName, Object... arguments) {
+	/**
+	 * Formats a message based on the given message name and arguments.
+	 * @param msgName The name of the message
+	 * @param arguments The arguments to embed in the message
+	 * @return a formatted message with embedded arguments
+	 */
+	protected String getFormattedMessage(final String msgName, final Object... arguments) {
 		if (messages == null) {
 			logger.warning("Messages resource bundle was not initialized! Message: "
 					+ msgName + " could not be displayed.");

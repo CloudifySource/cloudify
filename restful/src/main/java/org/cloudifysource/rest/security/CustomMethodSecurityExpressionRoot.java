@@ -33,18 +33,15 @@ class CustomMethodSecurityExpressionRoot extends SecurityExpressionRoot {
 	private PermissionEvaluator permissionEvaluator;
 	private Object filterObject;
 	private Object returnObject;
-	public final String read = "read";
-	public final String write = "write";
-	public final String create = "create";
-	public final String delete = "delete";
-	public final String admin = "administration";
 
-	CustomMethodSecurityExpressionRoot(Authentication a) {
+
+	CustomMethodSecurityExpressionRoot(final Authentication a) {
 		super(a);
 	}
 
-	public boolean hasPermission(Object target, Object permission) {
-		if (target == null) {
+	public boolean hasPermission(final Object target, final Object permission) {
+		Object effectiveTarget = target;
+		if (effectiveTarget == null) {
 			StringBuilder authGroups = new StringBuilder();
 			if (authentication instanceof CustomAuthenticationToken) {
 				for (String authGroup : ((CustomAuthenticationToken) authentication).getAuthGroups()) {
@@ -62,16 +59,16 @@ class CustomMethodSecurityExpressionRoot extends SecurityExpressionRoot {
 				}
 			}
 
-			target = authGroups.toString();
+			effectiveTarget = authGroups.toString();
 		}
-		return permissionEvaluator.hasPermission(authentication, target, permission);
+		return permissionEvaluator.hasPermission(authentication, effectiveTarget, permission);
 	}
 
-	public boolean hasPermission(Object targetId, String targetType, Object permission) {
+	public boolean hasPermission(final Object targetId, final String targetType, final Object permission) {
 		return permissionEvaluator.hasPermission(authentication, (Serializable) targetId, targetType, permission);
 	}
 
-	public void setFilterObject(Object filterObject) {
+	public void setFilterObject(final Object filterObject) {
 		this.filterObject = filterObject;
 	}
 
@@ -79,7 +76,7 @@ class CustomMethodSecurityExpressionRoot extends SecurityExpressionRoot {
 		return filterObject;
 	}
 
-	public void setReturnObject(Object returnObject) {
+	public void setReturnObject(final Object returnObject) {
 		this.returnObject = returnObject;
 	}
 
@@ -87,7 +84,7 @@ class CustomMethodSecurityExpressionRoot extends SecurityExpressionRoot {
 		return returnObject;
 	}
 
-	public void setPermissionEvaluator(PermissionEvaluator permissionEvaluator) {
+	public void setPermissionEvaluator(final PermissionEvaluator permissionEvaluator) {
 		this.permissionEvaluator = permissionEvaluator;
 	}
 

@@ -250,7 +250,8 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 				logger.log(Level.INFO, "View permission granted for user " + authDetails.getUsername());
 			} else {
 				logger.log(Level.WARNING, "Insufficient permissions. User " + authDetails.getUsername() + " is only "
-						+ "permitted to view groups: " + Arrays.toString(userAuthGroups.toArray(new String[userAuthGroups.size()])));
+						+ "permitted to view groups: " 
+						+ Arrays.toString(userAuthGroups.toArray(new String[userAuthGroups.size()])));
 			}
 		} else if (permissionName.equalsIgnoreCase(PERMISSION_TO_DEPLOY)) {
 			if (hasPermissionToDeploy(authDetails, targetAuthGroups)) {
@@ -258,7 +259,8 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 				logger.log(Level.INFO, "Deploy permission granted for user " + authDetails.getUsername());
 			} else {
 				logger.log(Level.WARNING, "Insufficient permissions. User " + authDetails.getUsername() + " is only "
-						+ "permitted to deploy for groups: " + Arrays.toString(userAuthGroups.toArray(new String[userAuthGroups.size()])));
+						+ "permitted to deploy for groups: " 
+						+ Arrays.toString(userAuthGroups.toArray(new String[userAuthGroups.size()])));
 			}
 		}
 		

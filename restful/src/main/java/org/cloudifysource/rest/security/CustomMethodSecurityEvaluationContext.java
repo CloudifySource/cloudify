@@ -25,6 +25,12 @@ import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.security.core.Authentication;
 
+/**
+ * 
+ * @author noak
+ * @since 2.3.0
+ *
+ */
 public class CustomMethodSecurityEvaluationContext extends StandardEvaluationContext {
 	 private Logger logger = java.util.logging.Logger.getLogger(CustomMethodSecurityEvaluationContext.class.getName());
 
@@ -37,18 +43,18 @@ public class CustomMethodSecurityEvaluationContext extends StandardEvaluationCon
      * for each instance. Use the constructor which takes the resolver, as an argument thus
      * allowing for caching.
      */
-    public CustomMethodSecurityEvaluationContext(Authentication user, MethodInvocation mi) {
+    public CustomMethodSecurityEvaluationContext(final Authentication user, final MethodInvocation mi) {
         this(user, mi, new LocalVariableTableParameterNameDiscoverer());
     }
 
-    public CustomMethodSecurityEvaluationContext(Authentication user, MethodInvocation mi,
-                    ParameterNameDiscoverer parameterNameDiscoverer) {
+    public CustomMethodSecurityEvaluationContext(final Authentication user, final MethodInvocation mi,
+                    final ParameterNameDiscoverer parameterNameDiscoverer) {
         this.mi = mi;
         this.parameterNameDiscoverer = parameterNameDiscoverer;
     }
 
     @Override
-    public Object lookupVariable(String name) {
+    public Object lookupVariable(final String name) {
         Object variable = super.lookupVariable(name);
         if (variable != null) {
             return variable;
@@ -62,7 +68,7 @@ public class CustomMethodSecurityEvaluationContext extends StandardEvaluationCon
         return super.lookupVariable(name);
     }
 
-    public void setParameterNameDiscoverer(ParameterNameDiscoverer parameterNameDiscoverer) {
+    public void setParameterNameDiscoverer(final ParameterNameDiscoverer parameterNameDiscoverer) {
         this.parameterNameDiscoverer = parameterNameDiscoverer;
     }
 
@@ -83,7 +89,7 @@ public class CustomMethodSecurityEvaluationContext extends StandardEvaluationCon
             return;
         }
 
-        for(int i=0; i < args.length; i++) {
+        for (int i = 0; i < args.length; i++) {
             super.setVariable(paramNames[i], args[i]);
         }
     }

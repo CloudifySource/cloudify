@@ -185,10 +185,10 @@ public class CloudGridAgentBootstrapper {
 		// Start the cloud machines!!!
 		MachineDetails[] servers;
 		try {
-			servers = provisioning
-					.startManagementMachines(timeout, timeoutUnit);
+			servers = provisioning.startManagementMachines(timeout, timeoutUnit);
 		} catch (final CloudProvisioningException e) {
-			CLIStatusException cliStatusException = new CLIStatusException(e, CloudifyErrorMessages.CLOUD_API_ERROR.getName(), e.getMessage());
+			CLIStatusException cliStatusException = new CLIStatusException(e, 
+					CloudifyErrorMessages.CLOUD_API_ERROR.getName(), e.getMessage());
 			throw cliStatusException;
 		} catch (final TimeoutException e) {
 			throw new CLIException("Cloudify bootstrap on provider "
@@ -224,7 +224,7 @@ public class CloudGridAgentBootstrapper {
 
 			startManagememntProcesses(servers, securityProfile, keystorePassword, end);
 
-			if (!isNoWebServices()){
+			if (!isNoWebServices()) {
 				Integer restPort = getRestPort(cloud.getConfiguration().getComponents().getRest().getPort(),
 						ShellUtils.isSecureConnection(securityProfile));
 				Integer webuiPort = getWebuiPort(cloud.getConfiguration().getComponents().getWebui().getPort(),
@@ -294,7 +294,7 @@ public class CloudGridAgentBootstrapper {
 		if (configuredRestPort != null) {
 			return configuredRestPort;
 		}
-		if (isSecureConnection){
+		if (isSecureConnection) {
 			return CloudifyConstants.SECURE_REST_PORT;
 		} else {
 			return CloudifyConstants.DEFAULT_REST_PORT;
@@ -306,7 +306,7 @@ public class CloudGridAgentBootstrapper {
 		if (configuredWebuiPort != null) {
 			return configuredWebuiPort;
 		}
-		if (isSecureConnection){
+		if (isSecureConnection) {
 			return CloudifyConstants.SECURE_WEBUI_PORT;
 		} else {
 			return CloudifyConstants.DEFAULT_WEBUI_PORT;
@@ -452,8 +452,11 @@ public class CloudGridAgentBootstrapper {
 			logger.info("Uninstalling the currently deployed applications");
 			for (final String application : applicationsList) {
 				if (!application.equals(MANAGEMENT_APPLICATION)) {
-					Map<String, String> uninstallApplicationResponse = adminFacade.uninstallApplication(application, minutesToEnd);
-					lifeCycleEventContainersIdsByApplicationName.put(uninstallApplicationResponse.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID), application);
+					Map<String, String> uninstallApplicationResponse = adminFacade.uninstallApplication(application,
+							minutesToEnd);
+					lifeCycleEventContainersIdsByApplicationName.put(
+							uninstallApplicationResponse.get(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID),
+							application);
 				}
 			}
 		}
@@ -487,7 +490,7 @@ public class CloudGridAgentBootstrapper {
 				template, securityProfile, keystorePassword);
 		// only one machine should try and deploy the WebUI and Rest Admin unless
 		// noWebServices is true
-		int i= isNoWebServices() ? 0 :1;
+		int i = isNoWebServices() ? 0 : 1;
 		for (; i < installations.length; i++) {
 			installations[i].setNoWebServices(true);
 		}
@@ -514,8 +517,7 @@ public class CloudGridAgentBootstrapper {
 		final ExecutorService executors = Executors
 				.newFixedThreadPool(numOfManagementMachines);
 
-		final BootstrapLogsFilters bootstrapLogs = new BootstrapLogsFilters(
-				verbose);
+		final BootstrapLogsFilters bootstrapLogs = new BootstrapLogsFilters(verbose);
 		try {
 
 			bootstrapLogs.applyLogFilters();

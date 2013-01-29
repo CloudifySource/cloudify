@@ -25,7 +25,13 @@ import javax.servlet.ServletResponse;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
-public class BooleanDelegatingFilterProxy extends DelegatingFilterProxy{
+/**
+ * A filter delegating requests when the Spring security profile is "secure". 
+ * @author noak
+ * @since 2.3.0
+ *
+ */
+public class BooleanDelegatingFilterProxy extends DelegatingFilterProxy {
 	
 	@Override
 	public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain filterChain)

@@ -31,21 +31,29 @@ public class CustomDenyAllPermissionEvaluator implements PermissionEvaluator {
 
 	private Logger logger = java.util.logging.Logger.getLogger(CustomDenyAllPermissionEvaluator.class.getName());
 
-    /**
-     * @return false always
-     */
+	/**
+	 * @param authentication The authentication object of the current user
+	 * @param target The target object the user is attempting to access
+	 * @param permission The permission requested on the target object (e.g. view, deploy)
+	 * @return false always
+	 */
     @Override
-	public boolean hasPermission(Authentication authentication, Object target, Object permission) {
-        logger.fine("Denying user " + authentication.getName() + " permission '" + permission + "' on object " + target);
+	public boolean hasPermission(final Authentication authentication, final Object target, final Object permission) {
+        logger.fine("Denying user " + authentication.getName() + " permission '" + permission + "' on object " 
+        		+ target);
         return false;
     }
 
-    /**
-     * @return false always
-     */
+	/**
+	 * @param authentication The authentication object of the current user
+	 * @param targetId The A unique identifier of the target object the user is attempting to access
+	 * @param targetType The type of the target object the user is attempting to access
+	 * @param permission The permission requested on the target object (e.g. view, deploy)
+	 * @return false always
+	 */
     @Override
-	public boolean hasPermission(Authentication authentication, Serializable targetId, String targetType,
-                    Object permission) {
+	public boolean hasPermission(final Authentication authentication, final Serializable targetId, 
+			final String targetType, final Object permission) {
         logger.fine("Denying user " + authentication.getName() + " permission '" + permission + "' on object with Id '"
                         + targetId);
         return false;

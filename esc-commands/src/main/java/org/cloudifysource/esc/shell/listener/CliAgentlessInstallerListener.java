@@ -36,7 +36,7 @@ public class CliAgentlessInstallerListener extends AbstractEventListener impleme
 	}
 
 	@Override
-	public void onInstallerEvent(String eventName, Object... args) {
+	public void onInstallerEvent(final String eventName, final Object... args) {
 		String formattedMessage = getFormattedMessage(eventName, args);
 		if (formattedMessage.startsWith(VERBOSE_MARKER)) {
 			// Message is marked to be printed only in Verbose mode

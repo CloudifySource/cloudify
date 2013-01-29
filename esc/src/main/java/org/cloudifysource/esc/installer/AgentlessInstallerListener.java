@@ -25,8 +25,9 @@ package org.cloudifysource.esc.installer;
 public interface AgentlessInstallerListener {
 
 	/*****
-	 * Callback method invoked for each event fired y the installer. IMPORTANT: Do not run long tasks on the thread that
-	 * called this method, as this will block the installation process.
+	 * Callback method invoked for each event fired by the installer.
+	 * IMPORTANT: Do not run long tasks on the thread that called this method,
+	 * as this will block the installation process.
 	 * 
 	 * @param eventName
 	 *            A string identifier for the event.

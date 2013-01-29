@@ -42,7 +42,7 @@ import org.springframework.security.authentication.AuthenticationTrustResolverIm
 import org.springframework.security.core.Authentication;
 
 /**
- * 
+ * An extended MethodSecurityExpressionHandler.
  * @author noak
  * @since 2.3.1
  *
@@ -52,8 +52,6 @@ public class ExtendedMethodSecurityExpressionHandler extends
 		MethodSecurityExpressionHandler {
 
 	private ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
-	// private PermissionEvaluator permissionEvaluator = new
-	// DenyAllPermissionEvaluator();
 	private PermissionEvaluator permissionEvaluator = new CustomDenyAllPermissionEvaluator();
 	private AuthenticationTrustResolver trustResolver = new AuthenticationTrustResolverImpl();
 	private ExpressionParser expressionParser = new SpelExpressionParser();
@@ -66,10 +64,12 @@ public class ExtendedMethodSecurityExpressionHandler extends
 	 * <tt>EvaluationContext</tt> implementation and configures it with a
 	 * {@link CustomMethodSecurityExpressionRoot} instance as the expression
 	 * root object.
+	 * @param auth  The {@link Authentication} object of the current user
+	 * @param mi The attempted method invocation
+	 * @return EvaluationContext, containing the permission evaluator to be used
 	 */
 	@Override
-	public EvaluationContext createEvaluationContext(Authentication auth,
-			MethodInvocation mi) {
+	public EvaluationContext createEvaluationContext(final Authentication auth, final MethodInvocation mi) {
 		CustomMethodSecurityEvaluationContext ctx = new CustomMethodSecurityEvaluationContext(
 				auth, mi, parameterNameDiscoverer);
 		CustomMethodSecurityExpressionRoot root = new CustomMethodSecurityExpressionRoot(
@@ -88,33 +88,33 @@ public class ExtendedMethodSecurityExpressionHandler extends
     }
 
     @Override
-	public void setParameterNameDiscoverer(ParameterNameDiscoverer parameterNameDiscoverer) {
+	public void setParameterNameDiscoverer(final ParameterNameDiscoverer parameterNameDiscoverer) {
         this.parameterNameDiscoverer = parameterNameDiscoverer;
     }
 
     @Override
-	public void setPermissionEvaluator(PermissionEvaluator permissionEvaluator) {
+	public void setPermissionEvaluator(final PermissionEvaluator permissionEvaluator) {
         this.permissionEvaluator = permissionEvaluator;
     }
 
     @Override
-	public void setTrustResolver(AuthenticationTrustResolver trustResolver) {
+	public void setTrustResolver(final AuthenticationTrustResolver trustResolver) {
         this.trustResolver = trustResolver;
     }
 
     @Override
-	public void setReturnObject(Object returnObject, EvaluationContext ctx) {
-        ((CustomMethodSecurityExpressionRoot)ctx.getRootObject().getValue()).setReturnObject(returnObject);
+	public void setReturnObject(final Object returnObject, final EvaluationContext ctx) {
+        ((CustomMethodSecurityExpressionRoot) ctx.getRootObject().getValue()).setReturnObject(returnObject);
     }
 
     @Override
-	public void setRoleHierarchy(RoleHierarchy roleHierarchy) {
+	public void setRoleHierarchy(final RoleHierarchy roleHierarchy) {
         this.roleHierarchy = roleHierarchy;
     }
 
 	@Override
-	public Object filter(Object filterTarget, Expression filterExpression,
-			EvaluationContext ctx) {
+	public Object filter(final Object filterTarget, final Expression filterExpression,
+			final EvaluationContext ctx) {
 		CustomMethodSecurityExpressionRoot rootObject = (CustomMethodSecurityExpressionRoot) ctx
 				.getRootObject().getValue();
 
@@ -123,8 +123,8 @@ public class ExtendedMethodSecurityExpressionHandler extends
 					+ filterExpression.getExpressionString());
 		}
 
-		if (filterTarget instanceof Collection ||
-				filterTarget.getClass().isArray()) {
+		if (filterTarget instanceof Collection 
+				|| filterTarget.getClass().isArray()) {
 			return super.filter(filterTarget, filterExpression, ctx);
 		}
 
@@ -155,7 +155,7 @@ public class ExtendedMethodSecurityExpressionHandler extends
 					
 					for (Object object : objectsList) {
 						if (object instanceof ApplicationDescription) {
-							rootObject.setFilterObject(((ApplicationDescription)object).getAuthGroups());
+							rootObject.setFilterObject(((ApplicationDescription) object).getAuthGroups());
 							if (ExpressionUtils.evaluateAsBoolean(filterExpression, ctx)) {
 								retainList.add(object);
 							}

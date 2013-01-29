@@ -28,29 +28,36 @@ import org.cloudifysource.esc.installer.AgentlessInstaller;
  */
 public class BootstrapLogsFilters {
 
-	final Filter sshOutputFilter;
-	private final static Logger sshOutputLogger = Logger.getLogger(AgentlessInstaller.SSH_OUTPUT_LOGGER_NAME);
+	private final Filter sshOutputFilter;
+	private static final Logger SSH_OUTPUT_LOGGER = Logger.getLogger(AgentlessInstaller.SSH_OUTPUT_LOGGER_NAME);
 	
 	private final boolean verbose;
 	
-	public BootstrapLogsFilters(boolean verbose) {
+	public BootstrapLogsFilters(final boolean verbose) {
 	    this.verbose = verbose;
-	    sshOutputFilter = sshOutputLogger.getFilter();
+	    sshOutputFilter = SSH_OUTPUT_LOGGER.getFilter();
 	}
 	
 	// TODO filter unnecessary output from ssh
+	
+	/**
+	 * Sets a filter that logs only on verbose mode.
+	 */
 	public void applyLogFilters() {
 		Filter newFilter = new Filter() {
 			@Override
-			public boolean isLoggable(LogRecord record) {
+			public boolean isLoggable(final LogRecord record) {
 			    return verbose;
 			}
 		};
 		
-		sshOutputLogger.setFilter(newFilter);
+		SSH_OUTPUT_LOGGER.setFilter(newFilter);
 	}
 	
+	/**
+	 * Sets the default filter again.
+	 */
 	public void restoreLogFilters() {
-	    sshOutputLogger.setFilter(sshOutputFilter);
+		SSH_OUTPUT_LOGGER.setFilter(sshOutputFilter);
 	}
 }

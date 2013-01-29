@@ -1297,9 +1297,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final int timeoutInMinutes) throws RestErrorException {
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(
 				applicationName, serviceName);
-		final ProcessingUnit processingUnit = admin.getProcessingUnits()
-				.waitFor(absolutePuName, PU_DISCOVERY_TIMEOUT_SEC,
-						TimeUnit.SECONDS);
+		final ProcessingUnit processingUnit = admin.getProcessingUnits().waitFor(absolutePuName, 
+				PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
 		if (processingUnit == null) {
 			return unavailableServiceError(absolutePuName);
 		}

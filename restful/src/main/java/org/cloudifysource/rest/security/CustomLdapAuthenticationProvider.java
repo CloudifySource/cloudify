@@ -1,3 +1,18 @@
+/*******************************************************************************
+ * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 package org.cloudifysource.rest.security;
 
 import java.util.Collection;
@@ -16,7 +31,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.SpringSecurityMessageSource;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.ppolicy.PasswordPolicyException;
@@ -24,6 +38,12 @@ import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+/**
+ * This is a custom LdapAuthenticationProvider that supports authorization groups on top of authorities (roles).
+ * @author noak
+ * @since 2.3.0
+ *
+ */
 public class CustomLdapAuthenticationProvider implements AuthenticationProvider {
 
     private Logger logger = java.util.logging.Logger.getLogger(CustomLdapAuthenticationProvider.class.getName());
@@ -112,7 +132,7 @@ public class CustomLdapAuthenticationProvider implements AuthenticationProvider 
      * created by the configured <tt>UserDetailsContextMapper</tt>.
      * Often it will not be possible to read the password from the directory, so defaults to true.
      *
-     * @param useAuthenticationRequestCredentials
+     * @param useAuthenticationRequestCredentials true/false, as describes above
      */
     public void setUseAuthenticationRequestCredentials(final boolean useAuthenticationRequestCredentials) {
         this.useAuthenticationRequestCredentials = useAuthenticationRequestCredentials;
