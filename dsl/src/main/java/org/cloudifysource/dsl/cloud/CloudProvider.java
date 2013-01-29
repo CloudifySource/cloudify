@@ -15,11 +15,11 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.cloud;
 
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.apache.commons.validator.routines.UrlValidator;
 import org.cloudifysource.dsl.DSLValidation;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
@@ -227,15 +227,14 @@ public class CloudProvider {
 	@DSLValidation
 	void validateCloudifyUrl(final DSLValidationContext validationContext)
 			throws DSLValidationException {
-
-		try {
-		    new java.net.URI(cloudifyUrl);
-		} catch(URISyntaxException e) {
-		    // url badly formed
+		
+		String[] schema = {"http"};
+		UrlValidator urlValidator = new UrlValidator(schema);
+		if (!urlValidator.isValid(cloudifyUrl)) {
 			throw new DSLValidationException("Invalid cloudify url: \"" + cloudifyUrl + "\"");
 		}
 		
-		//TODO request "head" to see if the url is accessible. If not - warning.
+		//TODO request "head" to see if the url is accessible. If not - warning.		
 	}
 	
 	@DSLValidation
