@@ -1,9 +1,9 @@
 package org.cloudifysource.rest.controllers;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
@@ -116,15 +116,15 @@ public class DeploymentsController {
 
 		ServiceDetails serviceDetails = new ServiceDetails();
 		serviceDetails.setName(serviceName);
-		Map<String, org.openspaces.pu.service.ServiceDetails> instancesDetails = 
-				new HashMap<String, org.openspaces.pu.service.ServiceDetails>();
-
+		serviceDetails.setApplicationName(appName);
+		serviceDetails.setNumberOfInstances(processingUnit.getInstances().length);
+		
+		List<String> instanceNaems = new ArrayList<String>();
 		for (ProcessingUnitInstance instance : processingUnit.getInstances()) {
-			instancesDetails.put(instance.getProcessingUnitInstanceName(),
-					instance.getServiceDetailsByServiceId("USM"));
+			instanceNaems.add(instance.getProcessingUnitInstanceName());
 		}
-		serviceDetails.setInstancesDetails(instancesDetails);
-
+		serviceDetails.setInstanceNames(instanceNaems);
+		
 		return serviceDetails;
 	}
 
