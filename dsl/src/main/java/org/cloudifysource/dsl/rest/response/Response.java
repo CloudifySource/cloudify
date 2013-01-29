@@ -1,7 +1,7 @@
 package org.cloudifysource.dsl.rest.response;
 
 /**
- * 
+ * A POJO representing a generic response from the REST Gateway.
  * @author elip
  *
  * @param <T>
@@ -18,7 +18,7 @@ public class Response<T> {
 		return status;
 	}
 	
-	public void setStatus(String status) {
+	public void setStatus(final String status) {
 		this.status = status;
 	}
 	
@@ -26,7 +26,7 @@ public class Response<T> {
 		return message;
 	}
 	
-	public void setMessage(String message) {
+	public void setMessage(final String message) {
 		this.message = message;
 	}
 	
@@ -34,7 +34,7 @@ public class Response<T> {
 		return messageId;
 	}
 	
-	public void setMessageId(String messageId) {
+	public void setMessageId(final String messageId) {
 		this.messageId = messageId;
 	}
 	
@@ -42,7 +42,7 @@ public class Response<T> {
 		return verbose;
 	}
 	
-	public void setVerbose(String verbose) {
+	public void setVerbose(final String verbose) {
 		this.verbose = verbose;
 	}
 	
@@ -50,7 +50,7 @@ public class Response<T> {
 		return response;
 	}
 	
-	public void setResponse(T response) {
+	public void setResponse(final T response) {
 		this.response = response;
 	}
 }

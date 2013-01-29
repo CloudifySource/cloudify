@@ -24,7 +24,6 @@ import org.cloudifysource.dsl.rest.response.DeleteServiceInstanceAttributeRespon
 import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.dsl.rest.response.ServiceDetails;
 import org.cloudifysource.dsl.utils.ServiceUtils;
-import org.cloudifysource.rest.interceptors.ApiVersionValidationAndRestResponseBuilderInterceptor;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.application.Application;
@@ -87,11 +86,11 @@ public class DeploymentsController {
 	private ObjectMapper objectMapper = new ObjectMapper();
 	
 	/**
-	 * 
-	 * @param appName
-	 * @param serviceName
-	 * @return
-	 * @throws RestErrorException
+	 * This method provides metadata about a service belonging to a specific application.
+	 * @param appName - the application name the service belongs to.
+	 * @param serviceName - the service name.
+	 * @return - A {@link ServiceDetails} instance containing various metadata about the service. 
+	 * @throws RestErrorException - In case an error happened while trying to retrieve the service.
 	 */
 	@RequestMapping(value = "/{appName}/service/{serviceName}/metadata", method = RequestMethod.GET)
 	public ServiceDetails getServiceDetails(@PathVariable final String appName,
@@ -129,9 +128,11 @@ public class DeploymentsController {
 	}
 
 	/**
-	 * 
-	 * @param appName
-	 * @param attributesRequest
+	 * This method sets the given attributes to the application scope.
+	 * Note that this action is Update or write. so the given attribute may not pre-exist.
+	 * @param appName - the application name.
+	 * @param attributesRequest - An instance of {@link SetApplicationAttributesRequest} 
+	 * (as JSON) that holds the requested attributes. 
 	 */
 	@RequestMapping(value = "/{appName}/attributes", method = RequestMethod.POST)
 	public void setApplicationAttributes(@PathVariable final String appName,
@@ -153,14 +154,17 @@ public class DeploymentsController {
 	}
 
 	/**
-	 * 
-	 * @param appName
-	 * @param serviceName
-	 * @param instanceId
-	 * @param attributeName
-	 * @return
+	 * This method deletes a curtain attribute from the service instance scope.
+	 * @param appName - the application name.
+	 * @param serviceName - the service name.
+	 * @param instanceId - the instance id.
+	 * @param attributeName - the required attribute to delete.
+	 * @return - A {@link Response} instance containing metada data about the request, as well as the actual response.
+	 * 			 this response can be accessed by {@code Response#getResponse()} 
+	 * and it holds the deleted attribute name and its last value in the attributes store. 
 	 */
-	@RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/attributes/{attributeName}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/"
+			+ "attributes/{attributeName}", method = RequestMethod.DELETE)
 	public Response<DeleteServiceInstanceAttributeResponse> deleteServiceInstanceAttribute(
 			@PathVariable final String appName,
 			@PathVariable final String serviceName,
@@ -212,10 +216,10 @@ public class DeploymentsController {
 	}
 
 	/**
-	 * 
-	 * @param response
-	 * @param e
-	 * @throws IOException
+	 * Handles expected exception from the controller, and wrappes it nicely with a {@link Response} object.
+	 * @param response - the servlet response.
+	 * @param e - the thrown exception.
+	 * @throws IOException .
 	 */
 	@ExceptionHandler(RestErrorException.class)
 	@ResponseStatus(value = HttpStatus.BAD_REQUEST)
@@ -240,10 +244,10 @@ public class DeploymentsController {
 	}
 
 	/**
-	 * 
-	 * @param response
-	 * @param t
-	 * @throws IOException
+	 * Handles unexpected exceptions from the controller, and wrappes it nicely with a {@link Response} object.
+	 * @param response - the servlet response.
+	 * @param t - the thrown exception.
+	 * @throws IOException .
 	 */
 	@ExceptionHandler(Throwable.class)
 	@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)

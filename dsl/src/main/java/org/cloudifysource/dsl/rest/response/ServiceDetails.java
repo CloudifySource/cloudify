@@ -2,6 +2,11 @@ package org.cloudifysource.dsl.rest.response;
 
 import java.util.List;
 
+/**
+ * A POJO representing Metadata about a Service.
+ * @author elip
+ *
+ */
 public class ServiceDetails {
 
 	private String name;
@@ -16,7 +21,7 @@ public class ServiceDetails {
 		return applicationName;
 	}
 
-	public void setApplicationName(String applicationName) {
+	public void setApplicationName(final String applicationName) {
 		this.applicationName = applicationName;
 	}
 
@@ -24,7 +29,7 @@ public class ServiceDetails {
 		return numberOfInstances;
 	}
 
-	public void setNumberOfInstances(int numberOfInstances) {
+	public void setNumberOfInstances(final int numberOfInstances) {
 		this.numberOfInstances = numberOfInstances;
 	}
 
@@ -32,7 +37,7 @@ public class ServiceDetails {
 		return instanceNames;
 	}
 
-	public void setInstanceNames(List<String> instanceNames) {
+	public void setInstanceNames(final List<String> instanceNames) {
 		this.instanceNames = instanceNames;
 	}
 
