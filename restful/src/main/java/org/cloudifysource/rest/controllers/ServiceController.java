@@ -2284,6 +2284,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				}
 			}
 		} else {
+			final ComputeTemplate template = getComputeTemplate(cloud, templateName);
 			deployment
 					.addCommandLineArgument("-Xmx" + cloud.getConfiguration().getComponents().getUsm().getMaxMemory())
 					.addCommandLineArgument("-Xms" + cloud.getConfiguration().getComponents().getUsm().getMinMemory())
