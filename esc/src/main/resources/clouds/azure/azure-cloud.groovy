@@ -52,43 +52,43 @@ cloud {
 		user subscriptionId
 			
 	}
-
-	templates ([
-				SMALL_LINUX : template{
+	
+	cloudCompute {
+		
+		templates ([
+			SMALL_LINUX : template{
+			
+				imageId "5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS63DEC20121220"
+				machineMemoryMB 1600
+				hardwareId "Small"
+				localDirectory "upload"
 				
 					imageId "5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS63JAN20130122"
 					machineMemoryMB 1600
 					hardwareId "Small"
 					localDirectory "upload"
 					
-					username username
-					password password
+					"azure.availability.set" : "ENTER_AVAILABILITY_SET",
 					
-					remoteDirectory "/home/${username}/gs-files"
+					// Choose whether do deploy this instance in Staging or Production environment. defaults to Staging
 					
-					custom ([
+					"azure.deployment.slot": "ENTER_DEPLOYMENT_SLOT",
 					
-						// Optional. each availability set represents a different fault domain.
-						
-						"azure.availability.set" : "ENTER_AVAILABILITY_SET",
-						
-						// Choose whether do deploy this instance in Staging or Production environment. defaults to Staging
-						
-						"azure.deployment.slot": "ENTER_DEPLOYMENT_SLOT",
-						
-						/**************************************************************
-						 * Mandatory only for templates used for management machines. *
-						 * Put this file under the path specified in 'localDirectory' *
-						***************************************************************/
-						
-						"azure.pfx.file": pfxFile,
-						
-						// Password that was used to create the certificate
-						
-						"azure.pfx.password" : pfxPassword
-					])
-				}
-			])
+					/**************************************************************
+					 * Mandatory only for templates used for management machines. *
+					 * Put this file under the path specified in 'localDirectory' *
+					***************************************************************/
+					
+					"azure.pfx.file": pfxFile,
+					
+					// Password that was used to create the certificate
+					
+					"azure.pfx.password" : pfxPassword
+				])
+			}
+		])
+	}
+
 			
 	custom ([
 			

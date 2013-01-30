@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.dsl.cloud;
+package org.cloudifysource.dsl.cloud.compute;
 
 import java.io.File;
 import java.util.HashMap;
@@ -18,6 +18,9 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.DSLValidation;
+import org.cloudifysource.dsl.cloud.FileTransferModes;
+import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
+import org.cloudifysource.dsl.cloud.ScriptLanguages;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
@@ -32,7 +35,7 @@ import org.cloudifysource.dsl.internal.DSLValidationException;
  *        and other settings.
  */
 @CloudifyDSLEntity(name = "template", clazz = ComputeTemplate.class, allowInternalNode = true, allowRootNode = true,
-		parent = "cloud")
+		parent = "cloudCompute")
 public class ComputeTemplate {
 
 	private String imageId;
@@ -336,8 +339,13 @@ public class ComputeTemplate {
 		this.javaUrl = javaUrl;
 	}
 
+	/**
+	 * 
+	 * @param context - validation context.
+	 * @throws DSLValidationException - in case validation failed.
+	 */
 	@DSLValidation
-	void validateDefaultValues(final DSLValidationContext context)
+	public void validateDefaultValues(final DSLValidationContext context)
 			throws DSLValidationException {
 		if (this.getRemoteDirectory() == null || this.getRemoteDirectory().trim().isEmpty()) {
 			throw new DSLValidationException("Remote directory for template is missing");

@@ -32,7 +32,7 @@ import java.util.logging.Level;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.ComputeTemplate;
+import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.jclouds.util.CredentialUtils;
@@ -262,7 +262,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		final Future<MachineDetails>[] futures = (Future<MachineDetails>[]) new Future<?>[numberOfManagementMachines];
 
 		final ComputeTemplate managementTemplate =
-				this.cloud.getTemplates().get(this.cloud.getConfiguration().getManagementMachineTemplate());
+				this.cloud.getCloudCompute().getTemplates().get(this.cloud.getConfiguration().getManagementMachineTemplate());
 		try {
 			// Call startMachine asynchronously once for each management
 			// machine

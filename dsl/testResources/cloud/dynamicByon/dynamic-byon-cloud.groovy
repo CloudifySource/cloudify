@@ -65,49 +65,53 @@ cloud {
 		
 	}
 	
-	/***********
-	 * Cloud machine templates available with this cloud. 
-	 */
-	templates ([
-				// Mandatory. Template Name.
-				SMALL_LINUX : template{
-				// Mandatory. Amount of RAM available to machine.
-				machineMemoryMB 1600
-				// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-				remoteDirectory "/tmp/gs-files"
-				// Optional. template-generic credentials. Can be overridden by specific credentials on each node, in the nodesList section.
-				username username
-				password password
-				
-				// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
-				localDirectory "upload"
-				
-				// Mandatory for DYNAMIC-BYON.
-				custom ([
-					// Mandatory for DYNAMIC-BYON. startManagementMachines closure returns a list of started machines used as management machines.
-					"startManagementMachines" : {
-													return Arrays.asList(managementMachines.split(","))
-												},
-					// Mandatory for DYNAMIC-BYON. startMachine closure returns the ip of a started machine.
-					"startMachine" : 			{
-													return startMachineIP
-												},
-					// Mandatory for DYNAMIC-BYON. stopMachine closure stops the machine with the given ip.
-					"stopMachine" : 			{ ip ->
-													System.setProperty("stopMachine", ip)
-												},
-					// Mandatory for DYNAMIC-BYON. stopManagementMachines closure stops all management machines.
-					"stopManagementMachines" :	{
-													System.setProperty("stopManagementMachines", managementMachines)
-												}
-				])
+	cloudCompute {
+		
+		/***********
+		 * Cloud machine templates available with this cloud.
+		 */
+		templates ([
+					// Mandatory. Template Name.
+					SMALL_LINUX : template{
+					// Mandatory. Amount of RAM available to machine.
+					machineMemoryMB 1600
+					// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+					remoteDirectory "/tmp/gs-files"
+					// Optional. template-generic credentials. Can be overridden by specific credentials on each node, in the nodesList section.
+					username username
+					password password
 					
-				
-				// enable sudo.
-				privileged true
-				
-				}
-	])
+					// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+					localDirectory "upload"
+					
+					// Mandatory for DYNAMIC-BYON.
+					custom ([
+						// Mandatory for DYNAMIC-BYON. startManagementMachines closure returns a list of started machines used as management machines.
+						"startManagementMachines" : {
+														return Arrays.asList(managementMachines.split(","))
+													},
+						// Mandatory for DYNAMIC-BYON. startMachine closure returns the ip of a started machine.
+						"startMachine" : 			{
+														return startMachineIP
+													},
+						// Mandatory for DYNAMIC-BYON. stopMachine closure stops the machine with the given ip.
+						"stopMachine" : 			{ ip ->
+														System.setProperty("stopMachine", ip)
+													},
+						// Mandatory for DYNAMIC-BYON. stopManagementMachines closure stops all management machines.
+						"stopManagementMachines" :	{
+														System.setProperty("stopManagementMachines", managementMachines)
+													}
+					])
+						
+					
+					// enable sudo.
+					privileged true
+					
+					}
+		])
+	
+	}
 	
 	/*****************
 	 * Optional. Custom properties used to extend existing drivers or create new ones. 

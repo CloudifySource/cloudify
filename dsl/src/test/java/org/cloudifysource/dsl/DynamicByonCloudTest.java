@@ -17,7 +17,7 @@ import junit.framework.Assert;
 
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudConfiguration;
-import org.cloudifysource.dsl.cloud.ComputeTemplate;
+import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
@@ -47,7 +47,7 @@ public class DynamicByonCloudTest {
 		
 		assertNotNull(cloud);
 		assertNotNull(cloud.getProvider());
-		final Map<String, ComputeTemplate> templates = cloud.getTemplates();
+		final Map<String, ComputeTemplate> templates = cloud.getCloudCompute().getTemplates();
 		assertNotNull(templates);
 		assertNotNull(cloud.getUser());
 		final CloudConfiguration configuration = cloud.getConfiguration();

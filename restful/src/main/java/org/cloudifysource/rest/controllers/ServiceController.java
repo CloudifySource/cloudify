@@ -83,9 +83,9 @@ import org.cloudifysource.dsl.Sla;
 import org.cloudifysource.dsl.StatefulProcessingUnit;
 import org.cloudifysource.dsl.StatelessProcessingUnit;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.ComputeTemplate;
-import org.cloudifysource.dsl.internal.CloudTemplateHolder;
-import org.cloudifysource.dsl.internal.CloudTemplatesReader;
+import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.dsl.internal.ComputeTemplateHolder;
+import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
@@ -263,17 +263,17 @@ public class ServiceController implements ServiceDetailsProvider {
 		this.cloud = readCloud();
 		if (cloud != null) {
 			initCloudTemplates();
-			if (this.cloud.getTemplates().isEmpty()) {
+			if (this.cloud.getCloudCompute().getTemplates().isEmpty()) {
 				throw new IllegalArgumentException(
 						"No templates defined in cloud configuration!");
 			}
-			this.defaultTemplateName = this.cloud.getTemplates().keySet()
+			this.defaultTemplateName = this.cloud.getCloudCompute().getTemplates().keySet()
 					.iterator().next();
 			logger.info("Setting default template name to: "
 					+ defaultTemplateName
 					+ ". This template will be used for services that do not specify an explicit template");
 
-			this.managementTemplate = this.cloud.getTemplates().get(
+			this.managementTemplate = this.cloud.getCloudCompute().getTemplates().get(
 					this.cloud.getConfiguration()
 							.getManagementMachineTemplate());
 		} else {
@@ -609,7 +609,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			return;
 		}
 		File[] listFiles = additionalTemplatesFolder.listFiles();
-		CloudTemplatesReader reader = new CloudTemplatesReader();
+		ComputeTemplatesReader reader = new ComputeTemplatesReader();
 		List<ComputeTemplate> addedTemplates = reader.addAdditionalTemplates(cloud, listFiles);
 		logger.info("initCloudTemplates - Added the following templates: " + addedTemplates);
 		lastTemplateFileNum.addAndGet(listFiles.length);
@@ -2835,11 +2835,11 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		if (cloud != null) {
 			if (templateName == null || templateName.length() == 0) {
-				if (cloud.getTemplates().isEmpty()) {
+				if (cloud.getCloudCompute().getTemplates().isEmpty()) {
 					throw new IllegalStateException(
 							"Cloud configuration has no compute template defined!");
 				}
-				actualTemplateName = cloud.getTemplates().keySet().iterator()
+				actualTemplateName = cloud.getCloudCompute().getTemplates().keySet().iterator()
 						.next();
 				logger.warning("Compute Template name missing from service deployment request."
 						+ " Defaulting to first template: "
@@ -2965,14 +2965,14 @@ public class ServiceController implements ServiceDetailsProvider {
 	private ComputeTemplate getComputeTemplate(final Cloud cloud,
 			final String templateName) {
 		if (templateName == null) {
-			final Entry<String, ComputeTemplate> entry = cloud.getTemplates()
+			final Entry<String, ComputeTemplate> entry = cloud.getCloudCompute().getTemplates()
 					.entrySet().iterator().next();
 
 			logger.warning("Service does not specify template name! Defaulting to template: "
 					+ entry.getKey());
 			return entry.getValue();
 		}
-		final ComputeTemplate template = cloud.getTemplates().get(templateName);
+		final ComputeTemplate template = cloud.getCloudCompute().getTemplates().get(templateName);
 		if (template == null) {
 			throw new IllegalArgumentException(
 					"Could not find compute template: " + templateName);
@@ -2996,7 +2996,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			// no template validation for local cloud
 			return;
 		}
-		final ComputeTemplate template = cloud.getTemplates().get(
+		final ComputeTemplate template = cloud.getCloudCompute().getTemplates().get(
 				templateName);
 		if (template == null) {
 			throw new RestErrorException(
@@ -3860,7 +3860,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		File unzippedTemplatesFolder = null;
 		try {
 			loaclTemplatesZipFile = copyMultipartFileToLocalFile(templatesFolder);
-			unzippedTemplatesFolder = new CloudTemplatesReader().unzipCloudTemplatesFolder(loaclTemplatesZipFile);
+			unzippedTemplatesFolder = new ComputeTemplatesReader().unzipCloudTemplatesFolder(loaclTemplatesZipFile);
 			final List<String> expectedTemplates = readCloudTemplatesNames(unzippedTemplatesFolder);
 
 			final Map<String, Map<String, String>> failedToAddTemplatesByHost =
@@ -4041,9 +4041,8 @@ public class ServiceController implements ServiceDetailsProvider {
 					@RequestParam
 					(value = CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, required = true) final MultipartFile templatesFolder)
 					throws IOException, DSLException, RestErrorException {
-		final CloudTemplatesReader reader = new CloudTemplatesReader();
-		final File localTemplatesFolder =
-				reader.unzipCloudTemplatesFolder(copyMultipartFileToLocalFile(templatesFolder));
+		ComputeTemplatesReader reader = new ComputeTemplatesReader();
+		File localTemplatesFolder = reader.unzipCloudTemplatesFolder(copyMultipartFileToLocalFile(templatesFolder));
 		try {
 			logger.log(Level.INFO, "[addTemplatesInternal] - adding templates from templates folder: "
 					+ localTemplatesFolder.getAbsolutePath());
@@ -4072,7 +4071,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		logger.log(Level.FINE, "[addTemplatesToCloud] - Adding templates to cloud.");
 
 		// read cloud templates from templates folder
-		final List<CloudTemplateHolder> cloudTemplatesHolders = readCloudTemplates(templatesFolder);
+		List<ComputeTemplateHolder> cloudTemplatesHolders = readCloudTemplates(templatesFolder);
 		logger.log(Level.FINE, "[addTemplatesToCloud] - Successfully read " + cloudTemplatesHolders.size()
 				+ " templates from folder - " + templatesFolder);
 
@@ -4096,7 +4095,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				logger.log(Level.WARNING, "[addTemplatesToCloud] - Failed to copy templates files, error: "
 						+ e.getMessage(), e);
 				for (final String templateName : addedTemplates) {
-					cloud.getTemplates().remove(templateName);
+					cloud.getCloudCompute().getTemplates().remove(templateName);
 					failedToAddTemplates.put(templateName, e.getMessage());
 				}
 			}
@@ -4123,7 +4122,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 */
 	private void updateCloudTemplatesUploadPath(final List<String> addedTemplates, final File localTemplatesDir) {
 		for (String templateName : addedTemplates) {
-			ComputeTemplate cloudTemplate = cloud.getTemplates().get(templateName);
+			ComputeTemplate cloudTemplate = cloud.getCloudCompute().getTemplates().get(templateName);
 			String localUploadPath = new File(localTemplatesDir, cloudTemplate.getLocalDirectory()).getAbsolutePath();
 			cloudTemplate.setAbsoluteUploadDir(localUploadPath);
 		}
@@ -4143,13 +4142,13 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param failedToAddTemplates
 	 *            a list for this method to update with all the failed to add templates.
 	 */
-	private void addTemplatesToCloudList(final File templatesFolder, final List<CloudTemplateHolder> cloudTemplates,
+	private void addTemplatesToCloudList(final File templatesFolder, final List<ComputeTemplateHolder> cloudTemplates,
 			final List<String> addedTemplates, final Map<String, String> failedToAddTemplates) {
-		for (final CloudTemplateHolder holder : cloudTemplates) {
-			final String templateName = holder.getName();
-			final String originalTemplateFileName = holder.getTemplateFileName();
+		for (ComputeTemplateHolder holder : cloudTemplates) {
+			String templateName = holder.getName();
+			String originalTemplateFileName = holder.getTemplateFileName();
 			// check if template already exist
-			if (cloud.getTemplates().containsKey(templateName)) {
+			if (cloud.getCloudCompute().getTemplates().containsKey(templateName)) {
 				logger.log(Level.WARNING, "[addTemplatesToCloudList] - Template already exists: " + templateName);
 				failedToAddTemplates.put(templateName, "template already exists");
 				new File(templatesFolder, originalTemplateFileName).delete();
@@ -4168,7 +4167,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			}
 			// add template to cloud templates list
 			ComputeTemplate cloudTemplate = holder.getCloudTemplate();
-			cloud.getTemplates().put(templateName, cloudTemplate);
+			cloud.getCloudCompute().getTemplates().put(templateName, cloudTemplate);
 			addedTemplates.add(templateName);
 		}
 	}
@@ -4185,7 +4184,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             If failed to rename.
 	 */
 
-	private void renameTemplateFileIfNeeded(final File templatesFolder, final CloudTemplateHolder holder)
+	private void renameTemplateFileIfNeeded(final File templatesFolder, final ComputeTemplateHolder holder) 
 			throws IOException {
 		final String templateName = holder.getName();
 
@@ -4258,10 +4257,10 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws DSLException
 	 *             If failed to read templates.
 	 */
-	private List<CloudTemplateHolder> readCloudTemplates(final File templatesFolder)
+	private List<ComputeTemplateHolder> readCloudTemplates(final File templatesFolder)
 			throws RestErrorException, DSLException {
-		List<CloudTemplateHolder> cloudTemplatesHolders;
-		final CloudTemplatesReader reader = new CloudTemplatesReader();
+		List<ComputeTemplateHolder> cloudTemplatesHolders;
+		ComputeTemplatesReader reader = new ComputeTemplatesReader();
 		cloudTemplatesHolders = reader.readCloudTemplatesFromDirectory(templatesFolder);
 		if (cloudTemplatesHolders.isEmpty()) {
 			throw new RestErrorException("no_template_files", "templates folder missing templates files.",
@@ -4283,9 +4282,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	 */
 	private List<String> readCloudTemplatesNames(final File templatesFolder)
 			throws RestErrorException, DSLException {
-		final List<CloudTemplateHolder> cloudTemplatesHolders = readCloudTemplates(templatesFolder);
-		final List<String> cloudTemplateNames = new LinkedList<String>();
-		for (final CloudTemplateHolder cloudTemplateHolder : cloudTemplatesHolders) {
+		List<ComputeTemplateHolder> cloudTemplatesHolders = readCloudTemplates(templatesFolder);
+		List<String> cloudTemplateNames = new LinkedList<String>();
+		for (ComputeTemplateHolder cloudTemplateHolder : cloudTemplatesHolders) {
 			cloudTemplateNames.add(cloudTemplateHolder.getName());
 		}
 		return cloudTemplateNames;
@@ -4336,7 +4335,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (cloud == null) {
 			throw new RestErrorException("local_cloud_not_support_templates_operations", "list-templates");
 		}
-		return successStatus(cloud.getTemplates());
+		return successStatus(cloud.getCloudCompute().getTemplates());
 	}
 
 	/**
@@ -4360,11 +4359,11 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		// get template from cloud
-		ComputeTemplate cloudTemplate = cloud.getTemplates().get(templateName);
+		ComputeTemplate cloudTemplate = cloud.getCloudCompute().getTemplates().get(templateName);
 
 		if (cloudTemplate == null) {
 			logger.log(Level.WARNING, "[getTemplate] - template [" + templateName
-					+ "] not found. cloud templates list: " + cloud.getTemplates());
+					+ "] not found. cloud templates list: " + cloud.getCloudCompute().getTemplates());
 			throw new RestErrorException("template_not_exist", templateName);
 		}
 		return successStatus(cloudTemplate);
@@ -4526,7 +4525,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		deleteTemplateFile(templateName);
 
 		// remove template from cloud
-		Map<String, ComputeTemplate> cloudTemplates = cloud.getTemplates();
+		Map<String, ComputeTemplate> cloudTemplates = cloud.getCloudCompute().getTemplates();
 		if (!cloudTemplates.containsKey(templateName)) {
 			throw new RestErrorException("template_not_exist", templateName);
 		}
@@ -4576,7 +4575,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			}
 		} else {
 			// delete properties and overrides files if exist.
-			CloudTemplatesReader.removeTemplateFiles(templateFolder, templateName);
+			ComputeTemplatesReader.removeTemplateFiles(templateFolder, templateName);
 		}
 		final File templatesFolder = getTemplatesFolder();
 		if (templatesFolder.list().length == 0) {

@@ -24,9 +24,9 @@ import java.util.logging.Level;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.ComputeTemplate;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
+import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.CustomServiceDataAware;
@@ -128,7 +128,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	private MachineDetails createServer(final long end, final String groupName,
 			final String locationIdOverride) throws CloudProvisioningException {
 
-		final ComputeTemplate cloudTemplate = this.cloud.getTemplates().get(
+		final ComputeTemplate cloudTemplate = this.cloud.getCloudCompute().getTemplates().get(
 				this.cloudTemplateName);
 		String locationId;
 		if (locationIdOverride == null) {
@@ -496,7 +496,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	private MachineDetails createMachineDetailsFromNode(final NodeMetadata node) {
-		final ComputeTemplate template = this.cloud.getTemplates().get(
+		final ComputeTemplate template = this.cloud.getCloudCompute().getTemplates().get(
 				this.cloudTemplateName);
 
 		final MachineDetails md = createMachineDetailsForTemplate(template);
@@ -573,7 +573,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			throws IOException {
 		logger.fine("Creating JClouds context deployer with user: "
 				+ cloud.getUser().getUser());
-		final ComputeTemplate cloudTemplate = cloud.getTemplates().get(
+		final ComputeTemplate cloudTemplate = cloud.getCloudCompute().getTemplates().get(
 				cloudTemplateName);
 
 		logger.fine("Cloud Template: " + cloudTemplateName + ". Details: "

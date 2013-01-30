@@ -57,28 +57,31 @@ cloud {
 
 	}
 
-	/***********
-	 * Cloud machine templates available with this cloud. 
-	 */
-	templates ([
-		SMALL_LINUX : template{
-			// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-			remoteDirectory "/tmp/gs-files"
-			// Optional. template-generic credentials. Can be overridden by specific credentials on each node, in the nodesList section.
-			username "tgrid"
-			password "tgrid"
-			// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
-			localDirectory "upload"
-			custom ([
-				"nodesList" : ([
-					([
-						"id" : "byon-pc-lab{0}",
-						"host-list" : "${IP}"
+	cloudCompute {
+		/***********
+		 * Cloud machine templates available with this cloud.
+		 */
+		templates ([
+			SMALL_LINUX : template{
+				// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+				remoteDirectory "/tmp/gs-files"
+				// Optional. template-generic credentials. Can be overridden by specific credentials on each node, in the nodesList section.
+				username "tgrid"
+				password "tgrid"
+				// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+				localDirectory "upload"
+				custom ([
+					"nodesList" : ([
+						([
+							"id" : "byon-pc-lab{0}",
+							"host-list" : "${IP}"
+						])
 					])
 				])
-			])
-		}
-	])
+			}
+		])
+	
+	}
 
 	/*****************
 	 * Optional. Custom properties used to extend existing drivers or create new ones. 

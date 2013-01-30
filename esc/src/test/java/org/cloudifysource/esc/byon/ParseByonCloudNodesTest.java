@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.ComputeTemplate;
+import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
@@ -55,7 +55,7 @@ public class ParseByonCloudNodesTest {
 
 		ByonProvisioningDriver driver = new ByonProvisioningDriver();
 		driver.setProvisioningDriverClassContext(new DefaultProvisioningDriverClassContext());
-		driver.setConfig(cloud, cloud.getTemplates().keySet().iterator().next(), true, "test");
+		driver.setConfig(cloud, cloud.getCloudCompute().getTemplates().keySet().iterator().next(), true, "test");
 
 		Cloud modifiedCloud = driver.getCloud();
 
@@ -64,7 +64,8 @@ public class ParseByonCloudNodesTest {
 
 		ByonDeployer deployer = driver.getDeployer();
 
-		Set<CustomNode> nodes = deployer.getAllNodesByTemplateName(cloud.getTemplates().keySet().iterator().next());
+		Set<CustomNode> nodes = deployer.getAllNodesByTemplateName(cloud.getCloudCompute().
+				getTemplates().keySet().iterator().next());
 		Assert.assertNotNull(nodes);
 		Assert.assertEquals(1, nodes.size());
 		CustomNode node = nodes.iterator().next();
@@ -76,8 +77,8 @@ public class ParseByonCloudNodesTest {
 
 	private void validateCloud(final Cloud cloud) {
 		Assert.assertNotNull(cloud);
-		Assert.assertTrue(cloud.getTemplates().size() == 1);
-		ComputeTemplate template = cloud.getTemplates().values().iterator().next();
+		Assert.assertTrue(cloud.getCloudCompute().getTemplates().size() == 1);
+		ComputeTemplate template = cloud.getCloudCompute().getTemplates().values().iterator().next();
 		Assert.assertNotNull(template.getCustom());
 
 		List<Object> list = (List<Object>) template.getCustom().get("nodesList");
@@ -105,9 +106,9 @@ public class ParseByonCloudNodesTest {
 			System.out.println("Creating BYON deployer");
 			final ByonDeployer deployer = new ByonDeployer();
 			List<Map<String, String>> nodesList = null;
-			final Map<String, ComputeTemplate> templatesMap = cloud.getTemplates();
+			final Map<String, ComputeTemplate> templatesMap = cloud.getCloudCompute().getTemplates();
 			for (final String templateName : templatesMap.keySet()) {
-				final Map<String, Object> customSettings = cloud.getTemplates().get(templateName).getCustom();
+				final Map<String, Object> customSettings = cloud.getCloudCompute().getTemplates().get(templateName).getCustom();
 				Assert.assertNotNull("Custom settings not found for template " + templateName, customSettings);
 				if (customSettings != null) {
 					nodesList = (List<Map<String, String>>) customSettings.get(CLOUD_NODES_LIST);

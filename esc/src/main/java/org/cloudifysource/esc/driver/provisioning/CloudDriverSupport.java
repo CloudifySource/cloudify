@@ -26,7 +26,7 @@ import net.jini.core.discovery.LookupLocator;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.ComputeTemplate;
+import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
 
@@ -100,15 +100,15 @@ public abstract class CloudDriverSupport implements ProvisioningDriver {
 		this.management = management;
 		this.templateName = templateName;
 		
-		if (this.cloud.getTemplates().isEmpty()) {
+		if (this.cloud.getCloudCompute().getTemplates().isEmpty()) {
 			throw new IllegalArgumentException("No templates defined for this cloud");
 		}
 
 		// TODO - add automatic validation rules to the DSL Pojos!
 		if (StringUtils.isBlank(this.templateName)) {
-			this.template = this.cloud.getTemplates().values().iterator().next();
+			this.template = this.cloud.getCloudCompute().getTemplates().values().iterator().next();
 		} else {
-			this.template = this.cloud.getTemplates().get(this.templateName);
+			this.template = this.cloud.getCloudCompute().getTemplates().get(this.templateName);
 		}
 
 		if (this.template == null) {

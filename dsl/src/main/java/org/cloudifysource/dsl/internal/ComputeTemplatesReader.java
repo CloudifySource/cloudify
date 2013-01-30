@@ -13,7 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.ComputeTemplate;
+import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
 
 /**
@@ -21,11 +21,11 @@ import org.cloudifysource.dsl.internal.packaging.ZipUtils;
  * @author yael
  *
  */
-public class CloudTemplatesReader {
+public class ComputeTemplatesReader {
 
-	private static Logger logger = Logger.getLogger(CloudTemplatesReader.class.getName());
+	private static Logger logger = Logger.getLogger(ComputeTemplatesReader.class.getName());
 
-	public CloudTemplatesReader() {
+	public ComputeTemplatesReader() {
 
 	}
 
@@ -37,7 +37,7 @@ public class CloudTemplatesReader {
 	 * @throws IOException .
 	 * @throws DSLException If failed to read the DSL template files.
 	 */
-	public List<CloudTemplateHolder> readCloudTemplatesFromZip(final File templatesZip)
+	public List<ComputeTemplateHolder> readCloudTemplatesFromZip(final File templatesZip)
 			throws IOException, DSLException {
 		File templateDirectory = unzipCloudTemplatesFolder(templatesZip);
 		return readCloudTemplatesFromDirectory(templateDirectory);
@@ -53,9 +53,9 @@ public class CloudTemplatesReader {
 	public List<String> getCloudTemplatesNamesFromZip(final File templatesZip)
 			throws IOException, DSLException {
 		File templateDirectory = unzipCloudTemplatesFolder(templatesZip);
-		List<CloudTemplateHolder> readCloudTemplates = readCloudTemplatesFromDirectory(templateDirectory);
+		List<ComputeTemplateHolder> readCloudTemplates = readCloudTemplatesFromDirectory(templateDirectory);
 		List<String> templateNames = new ArrayList<String>(readCloudTemplates.size());
-		for (CloudTemplateHolder cloudTemplateHolder : readCloudTemplates) {
+		for (ComputeTemplateHolder cloudTemplateHolder : readCloudTemplates) {
 			templateNames.add(cloudTemplateHolder.getName());
 		}
 		return templateNames;
@@ -85,7 +85,7 @@ public class CloudTemplatesReader {
 	 * @return The templates read from the templates files found in templatesDir.
 	 * @throws DSLException If failed to read the DSL template files.
 	 */
-	public List<CloudTemplateHolder> readCloudTemplatesFromDirectory(final File templatesDir)
+	public List<ComputeTemplateHolder> readCloudTemplatesFromDirectory(final File templatesDir)
 			throws DSLException {
 		if (!templatesDir.exists()) {
 			throw new DSLException(templatesDir + " does not exist.");
@@ -96,13 +96,13 @@ public class CloudTemplatesReader {
 		File[] templateFiles =
 				DSLReader.findDefaultDSLFiles(DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX, templatesDir);
 		if (templateFiles == null || templateFiles.length == 0) {
-			return new LinkedList<CloudTemplateHolder>();
+			return new LinkedList<ComputeTemplateHolder>();
 		}
-		Map<String, CloudTemplateHolder> cloudTemplatesMap = new HashMap<String, CloudTemplateHolder>();
+		Map<String, ComputeTemplateHolder> cloudTemplatesMap = new HashMap<String, ComputeTemplateHolder>();
 		// for each file - reads the templates from it and creates a suitable CloudTemplateHolder object.
 		for (File templateFile : templateFiles) {
-			List<CloudTemplateHolder> cloudTemplatesFromFile = readCloudTemplatesFromFile(templateFile);
-			for (CloudTemplateHolder cloudTemplateHolder : cloudTemplatesFromFile) {
+			List<ComputeTemplateHolder> cloudTemplatesFromFile = readCloudTemplatesFromFile(templateFile);
+			for (ComputeTemplateHolder cloudTemplateHolder : cloudTemplatesFromFile) {
 				String name = cloudTemplateHolder.getName();
 				if (cloudTemplatesMap.containsKey(name)) {
 					throw new DSLException("Template with name [" + name
@@ -113,7 +113,7 @@ public class CloudTemplatesReader {
 			}
 		}
 
-		return new LinkedList<CloudTemplateHolder>(cloudTemplatesMap.values());
+		return new LinkedList<ComputeTemplateHolder>(cloudTemplatesMap.values());
 	}
 
 	/**
@@ -123,7 +123,7 @@ public class CloudTemplatesReader {
 	 * @return The holder of the CloudTemplate read from the file.
 	 * @throws DSLException If failed to read the DSL template files..
 	 */
-	public List<CloudTemplateHolder> readCloudTemplatesFromFile(final File templateFile)
+	public List<ComputeTemplateHolder> readCloudTemplatesFromFile(final File templateFile)
 			throws DSLException {
 
 		DSLReader dslReader = new DSLReader();
@@ -140,9 +140,9 @@ public class CloudTemplatesReader {
 			throw new DSLException("Too many templates in one groovy file: " + templateFile + " declares " + size
 					+ " templates, only " + DSLUtils.MAX_TEMPLATES_PER_FILE + " allowed.");
 		}
-		List<CloudTemplateHolder> cloudTemplateHolders = new ArrayList<CloudTemplateHolder>(cloudTemplateMap.size());
+		List<ComputeTemplateHolder> cloudTemplateHolders = new ArrayList<ComputeTemplateHolder>(cloudTemplateMap.size());
 		for (Entry<String, ComputeTemplate> entry : cloudTemplateMap.entrySet()) {
-			CloudTemplateHolder holder = new CloudTemplateHolder();
+			ComputeTemplateHolder holder = new ComputeTemplateHolder();
 			holder.setName(entry.getKey());
 			holder.setCloudTemplate(entry.getValue());
 			holder.setTemplateFileName(templateFile.getName());
@@ -165,7 +165,7 @@ public class CloudTemplatesReader {
 	 */
 	public List<ComputeTemplate> addAdditionalTemplates(final Cloud cloud, final File[] templatesFolders) {
 		List<ComputeTemplate> addedTemplates = new LinkedList<ComputeTemplate>();
-		List<CloudTemplateHolder> additionalTemplates = null;
+		List<ComputeTemplateHolder> additionalTemplates = null;
 		// scan all templates folders and add the templates from each folder to the cloud.
 		for (File folder : templatesFolders) {
 			logger.info("addAdditionalTemplates - Adding templates to cloud from folder: " + folder.getAbsolutePath());
@@ -177,9 +177,9 @@ public class CloudTemplatesReader {
 						+ folder.getAbsolutePath() + "Error: " + e.getMessage());
 			}
 			// scan holders and add all templates to cloud.
-			for (CloudTemplateHolder holder : additionalTemplates) {
+			for (ComputeTemplateHolder holder : additionalTemplates) {
 				String templateName = holder.getName();
-				Map<String, ComputeTemplate> cloudTemplates = cloud.getTemplates();
+				Map<String, ComputeTemplate> cloudTemplates = cloud.getCloudCompute().getTemplates();
 				// not supposed to happen
 				if (cloudTemplates.containsKey(templateName)) {
 					logger.log(Level.WARNING, "addAdditionalTemplates - " + "template already exist: " + templateName);

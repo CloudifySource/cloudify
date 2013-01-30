@@ -25,7 +25,8 @@ import org.junit.Test;
 
 public class CloudParserTest {
 
-	private final static String SIMPLE_CLOUD_PATH = "src/test/resources/enums/my-cloud.groovy";
+	private static final String SIMPLE_CLOUD_PATH = "src/test/resources/enums/my-cloud.groovy";
+	private static final String SIMPLE_BAD_CLOUD_PATH = "src/test/resources/enums/my-bad-cloud.groovy";
 	private final static String INSTALLER_CLOUD_PATH = "src/test/resources/clouds/installer/some-cloud.groovy";
 
 	@Test
@@ -33,12 +34,25 @@ public class CloudParserTest {
 		final org.cloudifysource.dsl.cloud.Cloud cloud = ServiceReader.readCloud(new File(SIMPLE_CLOUD_PATH));
 		assertNotNull(cloud);
 		assertNotNull(cloud.getProvider());
-		assertNotNull(cloud.getTemplates());
+		assertNotNull(cloud.getCloudCompute().getTemplates());
 		assertNotNull(cloud.getUser());
-		assertNotNull(cloud.getTemplates().size() == 1);
-		assertNotNull(cloud.getTemplates().get("SMALL_LINUX"));
-		assertEquals(FileTransferModes.CIFS, cloud.getTemplates().get("SMALL_LINUX").getFileTransfer());
+		assertNotNull(cloud.getCloudCompute().getTemplates().size() == 1);
+		assertNotNull(cloud.getCloudCompute().getTemplates().get("SMALL_LINUX"));
+		Assert.assertEquals(FileTransferModes.CIFS, cloud.getCloudCompute()
+				.getTemplates().get("SMALL_LINUX").getFileTransfer());
 
+	}
+	
+	@Test
+	public void testCloudParserWithTemplatesUnderCloudSection() throws Exception {
+		try {
+			ServiceReader.readCloud(new File(SIMPLE_BAD_CLOUD_PATH));
+			Assert.fail("Cloud parsing should not be succesfull " 
+					+ "since the templates are located under the cloud section");
+		} catch (IllegalArgumentException e) {
+			// this should throw this exception since 
+			// we moved the templates to a compute section
+		}
 	}
 
 
