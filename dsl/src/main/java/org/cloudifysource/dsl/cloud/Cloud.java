@@ -91,10 +91,6 @@ public class Cloud {
 		this.user = user;
 	}
 
-	public Map<String, ComputeTemplate> getTemplates() {
-		return templates;
-	}
-
 	public void setTemplates(final Map<String, ComputeTemplate> templates) {
 		this.templates = templates;
 	}
