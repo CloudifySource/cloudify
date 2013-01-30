@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeoutException;
 
-import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.ComputeTemplate;
 import org.cloudifysource.dsl.rest.ApplicationDescription;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.cloudifysource.restclient.InvocationResult;
@@ -523,7 +523,7 @@ public interface AdminFacade {
 	 * @return The cloud's templates.
 	 * @throws CLIException .
 	 */
-	Map<String, CloudTemplate> listTemplates()
+	Map<String, ComputeTemplate> listTemplates() 
 			throws CLIException;
 
 	/**
@@ -534,7 +534,7 @@ public interface AdminFacade {
 	 * @return The template.
 	 * @throws CLIException .
 	 */
-	CloudTemplate getTemplate(final String templateName)
+	ComputeTemplate getTemplate(final String templateName) 
 			throws CLIException;
 
 	/**

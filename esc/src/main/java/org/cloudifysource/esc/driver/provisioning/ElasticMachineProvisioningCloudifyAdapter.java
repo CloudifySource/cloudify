@@ -32,7 +32,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.ComputeTemplate;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.internal.CloudTemplatesReader;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -170,7 +170,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private InstallationDetails createInstallationDetails(final Cloud cloud, final MachineDetails md,
 			final GSAReservationId reservationId) throws FileNotFoundException {
-		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplateName);
+		final ComputeTemplate template = this.cloud.getTemplates().get(this.cloudTemplateName);
 
 		// Start with the default zone that are also used for discovering agents
 		// By default cloudify puts the service-name as the zone.
@@ -255,6 +255,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		try {
 			final CloudTemplate template = cloud.getTemplates().get(this.cloudTemplateName);
 			if (locationId == null) {
+				final ComputeTemplate template = cloud.getTemplates().get(this.cloudTemplateName);
 				locationId = template.getLocationId();
 			}
 
@@ -496,7 +497,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	@Override
 	public CapacityRequirements getCapacityOfSingleMachine() {
-		final CloudTemplate template = cloud.getTemplates().get(this.cloudTemplateName);
+		final ComputeTemplate template = cloud.getTemplates().get(this.cloudTemplateName);
 		final CapacityRequirements capacityRequirements =
 				new CapacityRequirements(new MemoryCapacityRequirement((long) template.getMachineMemoryMB()),
 						new CpuCapacityRequirement(template.getNumberOfCores()));
@@ -629,7 +630,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			}
 			// add additional templates from cloudConfigDirectory.
 			addTemplatesToCloud(new File(cloudConfigDirectoryPath));
-			final CloudTemplate cloudTemplate = this.cloud.getTemplates().get(this.cloudTemplateName);
+			final ComputeTemplate cloudTemplate = this.cloud.getTemplates().get(this.cloudTemplateName);
 			if (cloudTemplate == null) {
 				throw new BeanConfigurationException("The provided cloud template name: " + this.cloudTemplateName
 						+ " was not found in the cloud configuration");
@@ -703,10 +704,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		}
 		final File[] listFiles = additionalTemplatesFolder.listFiles();
 		logger.info("addTemplatesToCloud - found files: " + Arrays.toString(listFiles));
-		final CloudTemplatesReader reader = new CloudTemplatesReader();
-		final List<CloudTemplate> addedTemplates = reader.addAdditionalTemplates(cloud, listFiles);
-		logger.info("addTemplatesToCloud - Added " + addedTemplates.size() + " templates to the cloud: "
-				+ addedTemplates);
+		CloudTemplatesReader reader = new CloudTemplatesReader();
+		List<ComputeTemplate> addedTemplates = reader.addAdditionalTemplates(cloud, listFiles);
+		logger.info("addTemplatesToCloud - Added " + addedTemplates.size() + " templates to the cloud: " + addedTemplates);
 	}
 
 	private String getWindowsLocalDirPath(final String remoteDirectoryPath, final String localDirName) {

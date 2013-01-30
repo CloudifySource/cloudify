@@ -26,7 +26,7 @@ import net.jini.core.discovery.LookupLocator;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.ComputeTemplate;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
 
@@ -45,7 +45,7 @@ public abstract class CloudDriverSupport implements ProvisioningDriver {
 	protected Cloud cloud;
 	protected boolean management;
 	protected String templateName;
-	protected CloudTemplate template;
+	protected ComputeTemplate template;
 
 	// maps ip to time when last shut down request for that machine was sent
 	private final Map<String, Long> stoppingMachines = new ConcurrentHashMap<String, Long>();

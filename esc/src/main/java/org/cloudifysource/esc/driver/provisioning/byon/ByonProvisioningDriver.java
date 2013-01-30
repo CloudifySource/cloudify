@@ -29,7 +29,7 @@ import java.util.logging.Level;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
@@ -82,7 +82,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	private boolean cleanRemoteDirectoryOnStart = false;
 
 	@SuppressWarnings("unchecked")
-	private void addTemplatesToDeployer(final ByonDeployer deployer, final Map<String, CloudTemplate> templatesMap)
+	private void addTemplatesToDeployer(final ByonDeployer deployer, final Map<String, ComputeTemplate> templatesMap)
 			throws Exception {
 		logger.info("addTempaltesToDeployer - adding the following tempaltes to the deployer: "
 				+ templatesMap.keySet());
@@ -166,7 +166,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	 * @throws Exception .
 	 */
 	public void updateDeployerTemplates(final Cloud cloud) throws Exception {
-		final Map<String, CloudTemplate> cloudTemplatesMap = cloud.getTemplates();
+		final Map<String, ComputeTemplate> cloudTemplatesMap = cloud.getTemplates();
 		final List<String> cloudTemplateNames = new LinkedList<String>(cloudTemplatesMap.keySet());
 		final List<String> deployerTemplateNames = deployer.getTemplatesList();
 
@@ -180,9 +180,9 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		missingTemplates.removeAll(deployerTemplateNames);
 		if (!missingTemplates.isEmpty()) {
 			logger.info("initDeployer - found missing templates: " + missingTemplates);
-			final Map<String, CloudTemplate> templatesMap = new HashMap<String, CloudTemplate>();
+			final Map<String, ComputeTemplate> templatesMap = new HashMap<String, ComputeTemplate>();
 			for (final String templateName : missingTemplates) {
-				final CloudTemplate cloudTemplate = cloudTemplatesMap.get(templateName);
+				final ComputeTemplate cloudTemplate = cloudTemplatesMap.get(templateName);
 				templatesMap.put(templateName, cloudTemplate);
 			}
 			addTemplatesToDeployer(deployer, templatesMap);
@@ -260,13 +260,13 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		}
 		final String newServerName = createNewServerName();
 		logger.info("Attempting to start a new cloud machine");
-		final CloudTemplate template = this.cloud.getTemplates().get(cloudTemplateName);
+		final ComputeTemplate template = this.cloud.getTemplates().get(cloudTemplateName);
 
 		return createServer(newServerName, endTime, template);
 	}
 
 	@Override
-	protected MachineDetails createServer(final String serverName, final long endTime, final CloudTemplate template)
+	protected MachineDetails createServer(final String serverName, final long endTime, final ComputeTemplate template)
 			throws CloudProvisioningException, TimeoutException {
 
 		final CustomNode node;
@@ -595,7 +595,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 	private MachineDetails createMachineDetailsFromNode(final CustomNode node)
 			throws CloudProvisioningException {
-		final CloudTemplate template = this.cloud.getTemplates().get(this.cloudTemplateName);
+		final ComputeTemplate template = this.cloud.getTemplates().get(this.cloudTemplateName);
 
 		final MachineDetails md = createMachineDetailsForTemplate(template);
 

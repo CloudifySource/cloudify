@@ -1,6 +1,6 @@
 package org.cloudifysource.dsl.internal;
 
-import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.ComputeTemplate;
 
 import com.gigaspaces.annotation.pojo.SpaceClass;
 import com.gigaspaces.annotation.pojo.SpaceId;
@@ -13,7 +13,7 @@ import com.gigaspaces.annotation.pojo.SpaceId;
 @SpaceClass
 public class CloudTemplateHolder {
 	private String name;
-	private CloudTemplate cloudTemplate;
+	private ComputeTemplate cloudTemplate;
 	private String templateFileName;
 	private String propertiesFileName;
 	private String overridesFileName;
@@ -29,10 +29,10 @@ public class CloudTemplateHolder {
 	public void setName(final String name) {
 		this.name = name;
 	}
-	public CloudTemplate getCloudTemplate() {
+	public ComputeTemplate getCloudTemplate() {
 		return cloudTemplate;
 	}
-	public void setCloudTemplate(final CloudTemplate cloudTemplate) {
+	public void setCloudTemplate(final ComputeTemplate cloudTemplate) {
 		this.cloudTemplate = cloudTemplate;
 	}
 

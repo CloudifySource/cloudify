@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * The class <code>CloudTemplateTest</code> contains tests for the class <code>{@link CloudTemplate}</code>.
+ * The class <code>CloudTemplateTest</code> contains tests for the class <code>{@link ComputeTemplate}</code>.
  * 
  * @generatedBy CodePro at 5/12/12 1:01 AM
  * @author barakme
@@ -26,7 +26,7 @@ public class CloudTemplateTest {
 	@Test(expected = org.cloudifysource.dsl.internal.DSLValidationException.class)
 	public void testValidateDefaultValues_1()
 			throws Exception {
-		final CloudTemplate fixture = new CloudTemplate();
+		final ComputeTemplate fixture = new ComputeTemplate();
 		fixture.setRemoteExecution(RemoteExecutionModes.SSH);
 		fixture.setImageId("");
 		fixture.setOptions(new HashMap());
@@ -57,7 +57,7 @@ public class CloudTemplateTest {
 	@Test(expected = org.cloudifysource.dsl.internal.DSLValidationException.class)
 	public void testValidateDefaultValues_2()
 			throws Exception {
-		final CloudTemplate fixture = new CloudTemplate();
+		final ComputeTemplate fixture = new ComputeTemplate();
 		fixture.setRemoteExecution(RemoteExecutionModes.SSH);
 		fixture.setImageId("");
 		fixture.setOptions(new HashMap());
@@ -88,7 +88,7 @@ public class CloudTemplateTest {
 	@Test(expected = org.cloudifysource.dsl.internal.DSLValidationException.class)
 	public void testValidateDefaultValues_3()
 			throws Exception {
-		final CloudTemplate fixture = new CloudTemplate();
+		final ComputeTemplate fixture = new ComputeTemplate();
 		fixture.setRemoteExecution(RemoteExecutionModes.SSH);
 		fixture.setImageId("");
 		fixture.setOptions(new HashMap());

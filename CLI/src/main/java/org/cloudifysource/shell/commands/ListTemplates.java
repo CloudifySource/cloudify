@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.felix.gogo.commands.Command;
-import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.shell.ShellUtils;
 
@@ -25,20 +25,20 @@ public class ListTemplates extends AdminAwareCommand {
 
 	@Override
 	protected Object doExecute() throws Exception {
-		Map<String, CloudTemplate> templatesList = adminFacade.listTemplates();
+		Map<String, ComputeTemplate> templatesList = adminFacade.listTemplates();
 		String formattedList = getTemplatesListAsString(templatesList);
 	    
 		return formattedList;
 	}
 
 	private String getTemplatesListAsString(
-			final Map<String, CloudTemplate> templatesList) {
+			final Map<String, ComputeTemplate> templatesList) {
 		if (templatesList == null || templatesList.isEmpty()) {
 			return "";
 		}
 		StringBuilder sb = new StringBuilder("{");
 		sb.append(CloudifyConstants.NEW_LINE);
-		for (Entry<String, CloudTemplate> entry : templatesList.entrySet()) {
+		for (Entry<String, ComputeTemplate> entry : templatesList.entrySet()) {
 			String cloudTemplateStr = entry.getValue().toFormatedString();
 			cloudTemplateStr = cloudTemplateStr.replaceAll(CloudifyConstants.NEW_LINE, 
 					CloudifyConstants.NEW_LINE 

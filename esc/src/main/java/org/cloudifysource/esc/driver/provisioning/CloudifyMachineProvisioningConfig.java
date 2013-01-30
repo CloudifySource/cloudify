@@ -26,7 +26,7 @@ import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.ComputeTemplate;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.openspaces.admin.pu.elastic.ElasticMachineProvisioningConfig;
@@ -98,7 +98,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	 * @param managementTemplateRemoteDirectory .
 	 * @param management - true if the deployment
 	 */
-	public CloudifyMachineProvisioningConfig(final Cloud cloud, final CloudTemplate template,
+	public CloudifyMachineProvisioningConfig(final Cloud cloud, final ComputeTemplate template,
 			final String cloudTemplateName, final String managementTemplateRemoteDirectory) {
 
 		setMinimumNumberOfCpuCoresPerMachine(template.getNumberOfCores());

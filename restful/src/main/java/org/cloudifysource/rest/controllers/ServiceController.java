@@ -83,7 +83,7 @@ import org.cloudifysource.dsl.Sla;
 import org.cloudifysource.dsl.StatefulProcessingUnit;
 import org.cloudifysource.dsl.StatelessProcessingUnit;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudTemplateHolder;
 import org.cloudifysource.dsl.internal.CloudTemplatesReader;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -235,7 +235,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	private Cloud cloud = null;
 	private CloudConfigurationHolder cloudConfigurationHolder;
 	private File cloudConfigurationDir;
-	private CloudTemplate managementTemplate;
+	private ComputeTemplate managementTemplate;
 	private final AtomicInteger lastTemplateFileNum = new AtomicInteger(0);
 
 	private static final Logger logger = Logger
@@ -608,9 +608,9 @@ public class ServiceController implements ServiceDetailsProvider {
 					+ additionalTemplatesFolder.getAbsolutePath());
 			return;
 		}
-		final File[] listFiles = additionalTemplatesFolder.listFiles();
-		final CloudTemplatesReader reader = new CloudTemplatesReader();
-		final List<CloudTemplate> addedTemplates = reader.addAdditionalTemplates(cloud, listFiles);
+		File[] listFiles = additionalTemplatesFolder.listFiles();
+		CloudTemplatesReader reader = new CloudTemplatesReader();
+		List<ComputeTemplate> addedTemplates = reader.addAdditionalTemplates(cloud, listFiles);
 		logger.info("initCloudTemplates - Added the following templates: " + addedTemplates);
 		lastTemplateFileNum.addAndGet(listFiles.length);
 
@@ -2284,13 +2284,12 @@ public class ServiceController implements ServiceDetailsProvider {
 				}
 			}
 		} else {
+			final ComputeTemplate template = getComputeTemplate(cloud, templateName);
 			deployment
 					.addCommandLineArgument("-Xmx" + cloud.getConfiguration().getComponents().getUsm().getMaxMemory())
 					.addCommandLineArgument("-Xms" + cloud.getConfiguration().getComponents().getUsm().getMinMemory())
 					.addCommandLineArgument("-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "="
 							+ cloud.getConfiguration().getComponents().getUsm().getPortRange());
-
-			final CloudTemplate template = getComputeTemplate(cloud, templateName);
 
 			long cloudExternalProcessMemoryInMB = 0;
 
@@ -2453,7 +2452,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	private long calculateExternalProcessMemory(final Cloud cloud,
-			final CloudTemplate template) throws DSLException {
+			final ComputeTemplate template) throws DSLException {
 		// TODO remove hardcoded number
 		logger.info("Calculating external proc mem for template: " + template);
 		final int machineMemoryMB = template.getMachineMemoryMB();
@@ -2963,17 +2962,17 @@ public class ServiceController implements ServiceDetailsProvider {
 				+ " was not found in the service folder");
 	}
 
-	private CloudTemplate getComputeTemplate(final Cloud cloud,
+	private ComputeTemplate getComputeTemplate(final Cloud cloud,
 			final String templateName) {
 		if (templateName == null) {
-			final Entry<String, CloudTemplate> entry = cloud.getTemplates()
+			final Entry<String, ComputeTemplate> entry = cloud.getTemplates()
 					.entrySet().iterator().next();
 
 			logger.warning("Service does not specify template name! Defaulting to template: "
 					+ entry.getKey());
 			return entry.getValue();
 		}
-		final CloudTemplate template = cloud.getTemplates().get(templateName);
+		final ComputeTemplate template = cloud.getTemplates().get(templateName);
 		if (template == null) {
 			throw new IllegalArgumentException(
 					"Could not find compute template: " + templateName);
@@ -2997,7 +2996,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			// no template validation for local cloud
 			return;
 		}
-		final CloudTemplate template = cloud.getTemplates().get(
+		final ComputeTemplate template = cloud.getTemplates().get(
 				templateName);
 		if (template == null) {
 			throw new RestErrorException(
@@ -3078,7 +3077,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		} else {
 
-			final CloudTemplate template = getComputeTemplate(cloud,
+			final ComputeTemplate template = getComputeTemplate(cloud,
 					templateName);
 
 			validateAndPrepareStatefulSla(serviceName, dataGridConfig.getSla(),
@@ -3230,7 +3229,7 @@ public class ServiceController implements ServiceDetailsProvider {
 						.createEagerScaleConfig());
 			}
 		} else {
-			final CloudTemplate template = getComputeTemplate(cloud,
+			final ComputeTemplate template = getComputeTemplate(cloud,
 					templateName);
 			validateAndPrepareStatelessSla(puConfig.getSla(), cloud, template);
 			final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(
@@ -3322,7 +3321,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			}
 		} else {
 
-			final CloudTemplate template = getComputeTemplate(cloud,
+			final ComputeTemplate template = getComputeTemplate(cloud,
 					templateName);
 
 			validateAndPrepareStatefulSla(serviceName, puConfig.getSla(),
@@ -3353,7 +3352,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	private void validateAndPrepareStatefulSla(final String serviceName,
-			final Sla sla, final Cloud cloud, final CloudTemplate template)
+			final Sla sla, final Cloud cloud, final ComputeTemplate template)
 			throws DSLException {
 
 		validateMemoryCapacityPerContainer(sla, cloud, template);
@@ -3390,7 +3389,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	private void validateAndPrepareStatelessSla(final Sla sla,
-			final Cloud cloud, final CloudTemplate template)
+			final Cloud cloud, final ComputeTemplate template)
 			throws DSLException {
 
 		validateMemoryCapacityPerContainer(sla, cloud, template);
@@ -3408,7 +3407,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	private void validateMemoryCapacityPerContainer(final Sla sla,
-			final Cloud cloud, final CloudTemplate template)
+			final Cloud cloud, final ComputeTemplate template)
 			throws DSLException {
 		if (cloud == null) {
 			// No cloud, must specify memory capacity per container explicitly
@@ -3532,10 +3531,6 @@ public class ServiceController implements ServiceDetailsProvider {
 			final GridServiceContainerConfig gscConfig = new GridServiceContainerConfig(properties);
 			final long cloudExternalProcessMemoryInMB = gscConfig.getMaximumMemoryCapacityInMB();
 
-			// final CloudTemplate template = getComputeTemplate(cloud,
-			// templateName);
-			// final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(
-			// cloud, template);
 			// TODO - set-instances is not supported when the "shared" flag is
 			// (CLOUDIFY-1158)
 			// currently we fall back to the previous impl
@@ -4127,10 +4122,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            the directory where the upload directory expected to be found.
 	 */
 	private void updateCloudTemplatesUploadPath(final List<String> addedTemplates, final File localTemplatesDir) {
-		for (final String templateName : addedTemplates) {
-			final CloudTemplate cloudTemplate = cloud.getTemplates().get(templateName);
-			final String localUploadPath =
-					new File(localTemplatesDir, cloudTemplate.getLocalDirectory()).getAbsolutePath();
+		for (String templateName : addedTemplates) {
+			ComputeTemplate cloudTemplate = cloud.getTemplates().get(templateName);
+			String localUploadPath = new File(localTemplatesDir, cloudTemplate.getLocalDirectory()).getAbsolutePath();
 			cloudTemplate.setAbsoluteUploadDir(localUploadPath);
 		}
 
@@ -4173,7 +4167,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				continue;
 			}
 			// add template to cloud templates list
-			final CloudTemplate cloudTemplate = holder.getCloudTemplate();
+			ComputeTemplate cloudTemplate = holder.getCloudTemplate();
 			cloud.getTemplates().put(templateName, cloudTemplate);
 			addedTemplates.add(templateName);
 		}
@@ -4366,7 +4360,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		// get template from cloud
-		final CloudTemplate cloudTemplate = cloud.getTemplates().get(templateName);
+		ComputeTemplate cloudTemplate = cloud.getTemplates().get(templateName);
 
 		if (cloudTemplate == null) {
 			logger.log(Level.WARNING, "[getTemplate] - template [" + templateName
@@ -4532,7 +4526,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		deleteTemplateFile(templateName);
 
 		// remove template from cloud
-		final Map<String, CloudTemplate> cloudTemplates = cloud.getTemplates();
+		Map<String, ComputeTemplate> cloudTemplates = cloud.getTemplates();
 		if (!cloudTemplates.containsKey(templateName)) {
 			throw new RestErrorException("template_not_exist", templateName);
 		}

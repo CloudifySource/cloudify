@@ -2,7 +2,7 @@ package org.cloudifysource.shell.commands;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
-import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 
 /**
@@ -28,7 +28,7 @@ public class GetTemplate extends AdminAwareCommand {
 	@Override
 	protected Object doExecute() throws Exception {
 
-		CloudTemplate template = adminFacade.getTemplate(templateName);
+		ComputeTemplate template = adminFacade.getTemplate(templateName);
 		return templateName + ":"
 		+ CloudifyConstants.NEW_LINE
 		+ template.toFormatedString();

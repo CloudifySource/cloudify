@@ -13,7 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.ComputeTemplate;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
 
 /**
@@ -131,7 +131,7 @@ public class CloudTemplatesReader {
 		dslReader.setCreateServiceContext(false);
 
 		@SuppressWarnings("unchecked")
-		Map<String, CloudTemplate> cloudTemplateMap = dslReader.readDslEntity(Map.class);
+		Map<String, ComputeTemplate> cloudTemplateMap = dslReader.readDslEntity(Map.class);
 		if (cloudTemplateMap.isEmpty()) {
 			throw new DSLException("The file " + templateFile + " evaluates to an empty map.");
 		}
@@ -141,7 +141,7 @@ public class CloudTemplatesReader {
 					+ " templates, only " + DSLUtils.MAX_TEMPLATES_PER_FILE + " allowed.");
 		}
 		List<CloudTemplateHolder> cloudTemplateHolders = new ArrayList<CloudTemplateHolder>(cloudTemplateMap.size());
-		for (Entry<String, CloudTemplate> entry : cloudTemplateMap.entrySet()) {
+		for (Entry<String, ComputeTemplate> entry : cloudTemplateMap.entrySet()) {
 			CloudTemplateHolder holder = new CloudTemplateHolder();
 			holder.setName(entry.getKey());
 			holder.setCloudTemplate(entry.getValue());
@@ -163,8 +163,8 @@ public class CloudTemplatesReader {
 	 * @param templatesFolders .
 	 * @return the added templates.
 	 */
-	public List<CloudTemplate> addAdditionalTemplates(final Cloud cloud, final File[] templatesFolders) {
-		List<CloudTemplate> addedTemplates = new LinkedList<CloudTemplate>();
+	public List<ComputeTemplate> addAdditionalTemplates(final Cloud cloud, final File[] templatesFolders) {
+		List<ComputeTemplate> addedTemplates = new LinkedList<ComputeTemplate>();
 		List<CloudTemplateHolder> additionalTemplates = null;
 		// scan all templates folders and add the templates from each folder to the cloud.
 		for (File folder : templatesFolders) {
@@ -179,14 +179,14 @@ public class CloudTemplatesReader {
 			// scan holders and add all templates to cloud.
 			for (CloudTemplateHolder holder : additionalTemplates) {
 				String templateName = holder.getName();
-				Map<String, CloudTemplate> cloudTemplates = cloud.getTemplates();
+				Map<String, ComputeTemplate> cloudTemplates = cloud.getTemplates();
 				// not supposed to happen
 				if (cloudTemplates.containsKey(templateName)) {
 					logger.log(Level.WARNING, "addAdditionalTemplates - " + "template already exist: " + templateName);
 					continue;
 				}
 				// set the local absolute path to the upload directory
-				CloudTemplate cloudTemplate = holder.getCloudTemplate();
+				ComputeTemplate cloudTemplate = holder.getCloudTemplate();
 				String uploadAbsolutePath = new File(folder, cloudTemplate.getLocalDirectory()).getAbsolutePath();
 				cloudTemplate.setAbsoluteUploadDir(uploadAbsolutePath);
 				// add template to cloud

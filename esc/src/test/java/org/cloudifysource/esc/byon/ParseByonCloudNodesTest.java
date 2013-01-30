@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.ComputeTemplate;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
@@ -77,7 +77,7 @@ public class ParseByonCloudNodesTest {
 	private void validateCloud(final Cloud cloud) {
 		Assert.assertNotNull(cloud);
 		Assert.assertTrue(cloud.getTemplates().size() == 1);
-		CloudTemplate template = cloud.getTemplates().values().iterator().next();
+		ComputeTemplate template = cloud.getTemplates().values().iterator().next();
 		Assert.assertNotNull(template.getCustom());
 
 		List<Object> list = (List<Object>) template.getCustom().get("nodesList");
@@ -105,7 +105,7 @@ public class ParseByonCloudNodesTest {
 			System.out.println("Creating BYON deployer");
 			final ByonDeployer deployer = new ByonDeployer();
 			List<Map<String, String>> nodesList = null;
-			final Map<String, CloudTemplate> templatesMap = cloud.getTemplates();
+			final Map<String, ComputeTemplate> templatesMap = cloud.getTemplates();
 			for (final String templateName : templatesMap.keySet()) {
 				final Map<String, Object> customSettings = cloud.getTemplates().get(templateName).getCustom();
 				Assert.assertNotNull("Custom settings not found for template " + templateName, customSettings);

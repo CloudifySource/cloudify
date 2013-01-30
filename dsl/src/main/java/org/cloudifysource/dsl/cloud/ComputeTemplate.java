@@ -31,9 +31,9 @@ import org.cloudifysource.dsl.internal.DSLValidationException;
  *        can include physical machine properties (e.g. memory), operating system type, location, available cloud nodes
  *        and other settings.
  */
-@CloudifyDSLEntity(name = "template", clazz = CloudTemplate.class, allowInternalNode = true, allowRootNode = true,
+@CloudifyDSLEntity(name = "template", clazz = ComputeTemplate.class, allowInternalNode = true, allowRootNode = true,
 		parent = "cloud")
-public class CloudTemplate {
+public class ComputeTemplate {
 
 	private String imageId;
 	private int machineMemoryMB;
@@ -433,7 +433,7 @@ public class CloudTemplate {
 	}
 
 	private static final java.util.logging.Logger logger =
-			java.util.logging.Logger.getLogger(CloudTemplate.class.getName());
+			java.util.logging.Logger.getLogger(ComputeTemplate.class.getName());
 
 	/**
 	 *

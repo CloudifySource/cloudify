@@ -29,7 +29,7 @@ import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 import net.schmizz.sshj.userauth.method.AuthNone;
 
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.ComputeTemplate;
 import org.cloudifysource.dsl.cloud.CloudTemplateInstallerConfiguration;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.cloud.GridComponents;
@@ -189,7 +189,7 @@ public final class Utils {
 	 *             if a key file is specified and is not found.
 	 */
 	public static InstallationDetails createInstallationDetails(final MachineDetails md,
-			final Cloud cloud, final CloudTemplate template, final ExactZonesConfig zones,
+			final Cloud cloud, final ComputeTemplate template, final ExactZonesConfig zones,
 			final String lookupLocatorsString, final Admin admin,
 			final boolean isManagement,
 			final File cloudFile,
