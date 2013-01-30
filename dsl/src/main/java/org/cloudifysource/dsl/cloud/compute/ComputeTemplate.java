@@ -18,7 +18,6 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.DSLValidation;
-import org.cloudifysource.dsl.cloud.CloudTemplateInstallerConfiguration;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
 import org.cloudifysource.dsl.cloud.ScriptLanguages;
@@ -35,8 +34,8 @@ import org.cloudifysource.dsl.internal.DSLValidationException;
  *        can include physical machine properties (e.g. memory), operating system type, location, available cloud nodes
  *        and other settings.
  */
-@CloudifyDSLEntity(name = "computeTemplate", clazz = ComputeTemplate.class, 
-	allowInternalNode = true, allowRootNode = true, parent = "cloudCompute")
+@CloudifyDSLEntity(name = "template", clazz = ComputeTemplate.class, allowInternalNode = true, allowRootNode = true,
+		parent = "cloudCompute")
 public class ComputeTemplate {
 
 	private String imageId;
