@@ -263,6 +263,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		try {
 			final ComputeTemplate template = cloud.getCloudCompute().getTemplates().get(this.cloudTemplateName);
 			if (locationId == null) {
+				final ComputeTemplate template = cloud.getTemplates().get(this.cloudTemplateName);
 				locationId = template.getLocationId();
 			}
 
