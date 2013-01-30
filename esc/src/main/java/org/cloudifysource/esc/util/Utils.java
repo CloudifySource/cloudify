@@ -36,6 +36,14 @@ import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.cloud.GridComponents;
 import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+=======
+import org.cloudifysource.dsl.cloud.DeployerComponent;
+import org.cloudifysource.dsl.cloud.DiscoveryComponent;
+import org.cloudifysource.dsl.cloud.GridComponent;
+import org.cloudifysource.dsl.cloud.GridComponents;
+import org.cloudifysource.dsl.cloud.UsmComponent;
+import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+>>>>>>> CLOUDIFY-1477 move templates section of cloud to a cloudCompute section under the cloud
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
