@@ -468,11 +468,28 @@ public class MicrosoftAzureRestClient {
 							+ lockTimeout + " milliseconds");
 		}
 
-		Deployment deploymentResponse = waitForDeploymentStatus("Running",
-				serviceName, deployment.getDeploymentSlot(), endTime);
+		Deployment deploymentResponse = null;
+		try {
+			deploymentResponse = waitForDeploymentStatus("Running",
+					serviceName, deployment.getDeploymentSlot(), endTime);
 
-		deploymentResponse = waitForRoleInstanceStatus("ReadyRole",
-				serviceName, deployment.getDeploymentSlot(), endTime);
+			deploymentResponse = waitForRoleInstanceStatus("ReadyRole",
+					serviceName, deployment.getDeploymentSlot(), endTime);
+		} catch (final Exception e) {
+			logger.fine("Error while waiting for VM status : " +  e.getMessage());
+			// the VM was created but with a bad status
+			deleteVirtualMachineByDeploymentName(serviceName, deployment.getName(), endTime);
+			if (e instanceof MicrosoftAzureException) {
+				throw (MicrosoftAzureException) e;
+			}
+			if (e instanceof TimeoutException) {
+				throw (TimeoutException) e;
+			}
+			if (e instanceof InterruptedException) {
+				throw (InterruptedException) e;
+			}
+			throw new MicrosoftAzureException(e);
+		}
 
 		RoleDetails roleAddressDetails = new RoleDetails();
 		roleAddressDetails.setId(deploymentResponse.getPrivateId());
@@ -1222,33 +1239,25 @@ public class MicrosoftAzureRestClient {
 					hostedServiceName, deploymentSlot);
 			String roleName = deployment.getRoleList().getRoles().get(0)
 					.getRoleName();
-			String deploymentName = deployment.getName();
 			String status = deployment.getRoleInstanceList().getRoleInstances()
 					.get(0).getInstanceStatus();
 			boolean error = checkVirtualMachineStatusForError(status);
 			if (error) {
-				logger.warning("Virtual Machine " + roleName
+				// bad status of VM.
+				throw new MicrosoftAzureException("Virtual Machine " + roleName
 						+ " was provisioned but found in status " + status);
-				logger.warning("This role is unhealthy, deleting it");
-				try {
-					deleteDeployment(hostedServiceName, deploymentName, endTime);
-				} catch (MicrosoftAzureException e) {
-					logger.warning("Failed deleting role unhealthy role "
-							+ roleName);
-					throw e;
-				}
 			}
 			if (status.equals(state)) {
 				return deployment;
 			} else {
 				Thread.sleep(DEFAULT_POLLING_INTERVAL);
 			}
-
 			if (System.currentTimeMillis() > endTime) {
 				throw new TimeoutException(
 						"Timed out waiting for operation to finish. last state was : "
 								+ status);
-			}
+			} 
+
 		}
 
 	}
