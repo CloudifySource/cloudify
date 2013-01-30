@@ -281,7 +281,13 @@ public final class CloudifyConstants {
 	public static final String SPRING_PROFILE_NON_SECURE = "nonsecure";
 	public static final String SPRING_PROFILE_SECURE_NO_SSL = "secure_no_ssl";
 	public static final String SPRING_PROFILE_SECURE = "secure";
-	
+
+    /*******************
+     * Management persistency configuration
+     */
+    public static final String SPRING_PROFILE_NON_PERSISTENT = "default";
+    public static final String SPRING_PROFILE_PERSISTENT = "persistent";
+
 	/*******************
 	 * 
 	 */

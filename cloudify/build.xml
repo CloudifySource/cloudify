@@ -53,6 +53,7 @@
 	<property name="cli.local.copy" value="${basedir}/../CLI" />
 	<property name="restful.local.copy" value="${basedir}/../restful" />
 	<property name="esc-commands.local.copy" value="${basedir}/../esc-commands" />
+    <property name="management-space.local.copy" value="${basedir}/../management-space" />
 	<property name="releases.dir" value="${basedir}/releases" />
 	<property name="build.prefix" value="build_" />
 	<property name="package.build" value="${basedir}/package_build" />
@@ -249,7 +250,13 @@
 	    	<copy todir="@{installation.dir}/bin" overwrite="true">
 	            <fileset dir="${gigaspaces.related.folder}/bin" includes="cloudify.*" excludes=".svn"/>
 	        </copy>
-	
+
+            <echo message="Copy management-space component"/>
+            <mkdir dir="@{installation.dir}/tools/management-space/" />
+            <copy todir="@{installation.dir}/tools/management-space/" overwrite="true">
+                <fileset dir="${management-space.local.copy}/target/" includes="management-space.jar" excludes=".svn"/>
+            </copy>
+
 	        <echo message="Copy CLOUDIFY Rest component"/>
 	        <copy todir="@{installation.dir}/tools/rest/" overwrite="true">
 	            <fileset dir="${restful.local.copy}/target/" includes="rest.war" excludes=".svn"/>
@@ -507,6 +514,15 @@
 			<arg value="-Dput.target=org/cloudifysource/cloudify/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.container=${cloudify.maven.container}"/>
 		</exec>
+
+        <exec executable="${mvn.executable}">
+            <arg value="s3client:put" />
+            <arg value="-Dput.user=${put.user}" />
+            <arg value="-Dput.key=${put.key}" />
+            <arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/management-space/${s3.cloudify.publish.folder}" />
+            <arg value="-Dput.target=org/cloudifysource/management-space/${s3.cloudify.publish.folder}" />
+            <arg value="-Dput.container=${cloudify.maven.container}"/>
+        </exec>
 	</target>
 	
 	<target name="prepare.bigdata.package">

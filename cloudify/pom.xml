@@ -61,6 +61,7 @@
 		<module>../restful</module>
 		<module>../dsl</module>
 		<module>../rest-client</module>
+		<module>../management-space</module>
 	</modules>
 
 	<build>

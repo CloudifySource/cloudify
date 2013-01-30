@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:os-core="http://www.openspaces.org/schema/core"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.openspaces.org/schema/core http://www.openspaces.org/schema/core/openspaces-core.xsd">
+
+    <beans profile="default,persistent">
+        <bean id="propertiesConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
+    </beans>
+
+    <beans profile="persistent">
+
+        <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+              destroy-method="close">
+            <property name="driverClassName" value="org.h2.Driver" />
+            <property name="url" value="jdbc:h2:${space.storage.path}" />
+            <property name="username" value="" />
+            <property name="password" value="" />
+        </bean>
+
+        <bean id="sessionFactory"
+              class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+            <property name="dataSource" ref="dataSource" />
+            <property name="mappingResources">
+                <list>
+                    <value>ManagementSpaceMapping.hbm.xml</value>
+                </list>
+            </property>
+            <property name="hibernateProperties">
+                <props>
+                    <prop key="hibernate.dialect">org.hibernate.dialect.H2Dialect</prop>
+                    <prop key="hibernate.cache.provider_class">org.hibernate.cache.NoCacheProvider</prop>
+                    <prop key="hibernate.cache.use_second_level_cache">false</prop>
+                    <prop key="hibernate.cache.use_query_cache">false</prop>
+                    <prop key="hibernate.hbm2ddl.auto">update</prop>
+                </props>
+            </property>
+        </bean>
+
+        <bean id="hibernateSpaceDataSource" class="org.openspaces.persistency.hibernate.DefaultHibernateSpaceDataSourceFactoryBean">
+            <property name="sessionFactory" ref="sessionFactory"/>
+        </bean>
+
+        <bean id="hibernateSpaceSynchronizationEndpoint" class="org.openspaces.persistency.hibernate.DefaultHibernateSpaceSynchronizationEndpointFactoryBean">
+            <property name="sessionFactory" ref="sessionFactory"/>
+        </bean>
+
+        <os-core:space id="space" url="/./${space.name}" schema="persistent"
+                       space-data-source="hibernateSpaceDataSource"
+                       space-sync-endpoint="hibernateSpaceSynchronizationEndpoint" >
+            <os-core:properties>
+                <props>
+                    <prop key="space-config.engine.cache_policy">1</prop>
+                    <prop key="cluster-config.cache-loader.external-data-source">true</prop>
+                    <prop key="cluster-config.cache-loader.central-data-source">false</prop>
+                </props>
+            </os-core:properties>
+        </os-core:space>
+
+    </beans>
+
+    <beans profile="default">
+        <os-core:space id="space" url="/./${space.name}" />
+    </beans>
+
+</beans>
