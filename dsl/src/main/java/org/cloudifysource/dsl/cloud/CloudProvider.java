@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.DSLValidation;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
@@ -220,8 +221,8 @@ public class CloudProvider {
 	void validateProviderName(final DSLValidationContext validationContext)
 			throws DSLValidationException {
 
-		if (!provider.matches("aws-ec2|[Rr]ackspace|[Aa]zure|[Bb]yon|[Dd]ynamic-[Bb]yon|[Hh][Pp]|[Oo]penstack")) {
-			throw new DSLValidationException("Provider \"" + provider + "\" is not supported");
+		if (StringUtils.isBlank(provider)) {
+			throw new DSLValidationException("Provider \"" + provider + "\" cannot be empty");
 		}
 	}
 	
