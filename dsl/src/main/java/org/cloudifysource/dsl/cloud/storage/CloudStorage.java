@@ -13,6 +13,16 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 @CloudifyDSLEntity(name = "cloudStorage", clazz = CloudStorage.class, allowInternalNode = true, allowRootNode = true,
 	parent = "cloud")
 public class CloudStorage {
+	
+	private String className;
+	
+	public String getClassName() {
+		return className;
+	}
+
+	public void setClassName(final String className) {
+		this.className = className;
+	}
 
 	private Map<String, StorageTemplate> templates = new HashMap<String, StorageTemplate>();
 

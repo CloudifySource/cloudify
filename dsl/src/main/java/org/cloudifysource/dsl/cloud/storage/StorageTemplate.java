@@ -12,6 +12,16 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 public class StorageTemplate {
 	
 	private int size;
+	private String namePrefix;
+	private String location;
+
+	public String getNamePrefix() {
+		return namePrefix;
+	}
+
+	public void setNamePrefix(final String namePrefix) {
+		this.namePrefix = namePrefix;
+	}
 
 	public int getSize() {
 		return size;
