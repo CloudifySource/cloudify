@@ -42,5 +42,6 @@ if exist %~dp0\cloudify_env.bat (
 	)
 )
 
+echo calling bootstrap script: %WORKING_HOME_DIRECTORY%\bootstrap-management.ps1 
 powershell %WORKING_HOME_DIRECTORY%\bootstrap-management.ps1 
 
