@@ -391,8 +391,16 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 
 		for (final String id : ids) {
 			try {
-			Node node = getNode(id, token);
-			nodes.add(node);
+				Node node = getNode(id, token);
+				nodes.add(node);
+			} catch (UniformInterfaceException e) {
+				if (e.getResponse().getStatus() == HTTP_NOT_FOUND) {
+					// list servers may return servers that are shutting down.
+					// ignore those who are deleted at this point
+				} else {
+					throw e;
+				}
+				
 			} catch (OpenstackException e) {
 				//Do nothing.
 			}
