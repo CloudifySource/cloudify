@@ -8,7 +8,7 @@ cloud {
 	}
 
 	provider {
-		provider "aws-ec3"
+		provider ""
 		
 		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.0.1/gigaspaces-cloudify-2.0.1-m1-b1190-13.zip" 
 		machineNamePrefix "NOA_test.cli.cloudify.cloud.MissingPemEc2Testsgtest_cloudify_agent1"

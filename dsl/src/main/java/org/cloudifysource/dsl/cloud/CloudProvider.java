@@ -222,7 +222,7 @@ public class CloudProvider {
 			throws DSLValidationException {
 
 		if (StringUtils.isBlank(provider)) {
-			throw new DSLValidationException("Provider \"" + provider + "\" cannot be empty");
+			throw new DSLValidationException("Provider cannot be empty");
 		}
 	}
 	

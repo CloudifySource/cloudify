@@ -110,8 +110,7 @@ public class CloudProviderTest {
 			assertTrue("The provider name is invalid yet no error was thrown", false);
 		} catch (final Throwable e) {
 			assertTrue("The provider name is invalid yet no relevant error was thrown. Error was: " + e.getMessage(),
-					e.getMessage().contains("Provider")
-							&& e.getMessage().contains("is not supported"));
+					e.getMessage().contains("Provider cannot be empty"));
 		}
 	}
 	
