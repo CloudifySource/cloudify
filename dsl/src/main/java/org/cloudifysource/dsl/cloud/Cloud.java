@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.DSLValidation;
 import org.cloudifysource.dsl.cloud.compute.CloudCompute;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.dsl.cloud.storage.CloudStorage;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
@@ -45,6 +46,15 @@ public class Cloud {
 	private Map<String, ComputeTemplate> templates = new HashMap<String, ComputeTemplate>();
 	private Map<String, Object> custom = new HashMap<String, Object>();
 	private CloudCompute cloudCompute = new CloudCompute();
+	private CloudStorage cloudStorage = new CloudStorage();
+
+	public CloudStorage getCloudStorage() {
+		return cloudStorage;
+	}
+
+	public void setCloudStorage(final CloudStorage cloudStorage) {
+		this.cloudStorage = cloudStorage;
+	}
 
 	public CloudCompute getCloudCompute() {
 		return cloudCompute;
@@ -79,6 +89,10 @@ public class Cloud {
 
 	public void setUser(final CloudUser user) {
 		this.user = user;
+	}
+
+	public Map<String, ComputeTemplate> getTemplates() {
+		return templates;
 	}
 
 	public void setTemplates(final Map<String, ComputeTemplate> templates) {

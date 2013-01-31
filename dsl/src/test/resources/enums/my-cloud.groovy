@@ -69,6 +69,16 @@ cloud {
 
 
 	}
+	
+	cloudStorage {
+		
+				templates ([
+				
+					SMALL_BLOCK : storageTemplate{
+						size 5
+					}	
+				])
+	}
 
 	cloudCompute {
 		

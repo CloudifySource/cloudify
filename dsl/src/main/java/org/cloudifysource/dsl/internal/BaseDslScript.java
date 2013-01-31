@@ -64,6 +64,8 @@ import org.cloudifysource.dsl.cloud.UsmComponent;
 import org.cloudifysource.dsl.cloud.WebuiComponent;
 import org.cloudifysource.dsl.cloud.compute.CloudCompute;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.dsl.cloud.storage.CloudStorage;
+import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntryFactory;
 import org.cloudifysource.dsl.entry.ExecutableEntriesMap;
@@ -592,6 +594,8 @@ public abstract class BaseDslScript extends Script {
 			addObjectInitializerForClass(dslObjectInitializersByName, CloudCompute.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, CloudConfiguration.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, ComputeDetails.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, CloudStorage.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, StorageTemplate.class);
 
 			addObjectInitializerForClass(dslObjectInitializersByName, ComputeDetails.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, Sla.class);
