@@ -67,7 +67,6 @@
 			<version>${groovyVersion}</version>
 			<scope>provided</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
@@ -90,6 +89,12 @@
 			<groupId>org.codehaus.groovy.modules.http-builder</groupId>
 			<artifactId>http-builder</artifactId>
 			<version>0.6</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>groovy</artifactId>
+					<groupId>org.codehaus.groovy</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 
