@@ -15,6 +15,14 @@ public class StorageTemplate {
 	private String namePrefix;
 	private String location;
 
+	public String getLocation() {
+		return location;
+	}
+
+	public void setLocation(final String location) {
+		this.location = location;
+	}
+
 	public String getNamePrefix() {
 		return namePrefix;
 	}
