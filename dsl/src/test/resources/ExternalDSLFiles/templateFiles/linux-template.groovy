@@ -1,5 +1,5 @@
 [
-	SMALL_LINUX : template 	{
+	SMALL_LINUX : computeTemplate{
 				
 								imageId "OpenLogic__OpenLogic-CentOS-62-20120531-en-us-30GB.vhd"
 								machineMemoryMB 1600

@@ -62,7 +62,7 @@ cloud {
 		 * Cloud machine templates available with this cloud.
 		 */
 		templates ([
-					SMALL_LINUX : template{
+					SMALL_LINUX : computeTemplate{
 						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
 						remoteDirectory "/tmp/gs-files"
 						// Optional. template-generic credentials. Can be overridden by specific credentials on each node, in the nodesList section.

@@ -71,7 +71,7 @@ cloud {
 		 */
 		templates ([
 					// Mandatory. Template Name.
-					MEDIUM_LINUX : template{
+					MEDIUM_LINUX : computeTemplate{
 					// Mandatory. Amount of RAM available to machine.
 					machineMemoryMB 3200
 					// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
@@ -105,7 +105,7 @@ cloud {
 					privileged true
 					
 					},
-					SMALL_LINUX : template{
+					SMALL_LINUX : computeTemplate{
 					// Mandatory. Amount of RAM available to machine.
 					machineMemoryMB 1600
 					// Mandatory. Files from the local directory will be copied to this directory on the remote machine.

@@ -81,7 +81,7 @@ cloud {
 		 * Cloud machine templates available with this cloud.
 		 */
 		templates ([
-					MEDIUM_WIN : template{
+					MEDIUM_WIN : computeTemplate{
 						// Mandatory. Image ID.
 						imageId imageId
 						// Mandatory. Amount of RAM available to machine.

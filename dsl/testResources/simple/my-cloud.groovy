@@ -26,7 +26,7 @@ cloud2 {
 		keyPair "cloud-demo"
 	}
 	templates ([
-				SMALL_LINUX : template{
+				SMALL_LINUX : computeTemplate{
 					keyFile "cloud-demo.pem"
 					imageId "us-east-1/ami-76f0061f"
 					machineMemoryMB "1600"

@@ -33,7 +33,7 @@ cloud {
 	cloudCompute {
 
 		templates ([
-			SMALL_LINUX : template{
+			SMALL_LINUX : computeTemplate{
 				username = "root"
 				imageId "118"
 				machineMemoryMB 1600

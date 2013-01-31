@@ -77,7 +77,7 @@ cloud {
 		 */
 		templates ([
 					// Mandatory. Template Name.
-					SMALL_LINUX : template{
+					SMALL_LINUX : computeTemplate{
 						fileTransfer "CIFS"
 						// Mandatory. Image ID.
 						imageId "XXXXX"

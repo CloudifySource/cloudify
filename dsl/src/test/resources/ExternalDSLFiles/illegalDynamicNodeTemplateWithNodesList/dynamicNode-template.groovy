@@ -1,5 +1,5 @@
 [
-	SMALL_LINUX : template{
+	SMALL_LINUX : computeTemplate{
 							machineMemoryMB 1600
 							remoteDirectory "/tmp/gs-files"
 							username "username"

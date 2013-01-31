@@ -1,5 +1,10 @@
 *.iml
 
+/dsl/.checkstyle
+/USM/.gitignore
+/esc-commands/.gitignore
+/esc-commands/transaction.log
+
 #/cloudify/CLI/target
 /CLI/nodes.properties
 /CLI/temp.xml

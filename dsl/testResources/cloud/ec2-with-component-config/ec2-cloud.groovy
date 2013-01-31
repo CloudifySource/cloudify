@@ -133,7 +133,7 @@ cloud {
 		 */
 		templates ([
 					// Mandatory. Template Name.
-					SMALL_LINUX : template{
+					SMALL_LINUX : computeTemplate{
 						// Mandatory. Image ID.
 						imageId ""
 						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
@@ -170,7 +170,7 @@ cloud {
 	
 	
 					},
-					SMALL_UBUNTU : template{
+					SMALL_UBUNTU : computeTemplate{
 						// Mandatory. Image ID.
 						imageId ""
 	
@@ -209,7 +209,7 @@ cloud {
 	
 					},
 	
-					MEDIUM_UBUNTU : template{
+					MEDIUM_UBUNTU : computeTemplate{
 						// Mandatory. Image ID.
 						imageId ""
 	

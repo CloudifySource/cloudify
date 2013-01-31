@@ -32,7 +32,7 @@ cloud {
 	
 	cloudCompute {
 		templates ([
-			SMALL_LINUX : template{
+			SMALL_LINUX : computeTemplate{
 				localDirectory "upload"
 				keyFile "cloud-demo1.pem"
 				imageId "us-east-1/ami-76f0061f"
