@@ -3,17 +3,14 @@ package org.cloudifysource.esc.installer;
 /*******************************************************************************
  * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 
 import java.util.regex.Pattern;
@@ -21,9 +18,8 @@ import java.util.regex.Pattern;
 import org.cloudifysource.dsl.cloud.ScriptLanguages;
 
 /*******
- * A simple wrapper around a StringBuilder. Used to generate the contents of the
- * cloudify environment file that is injected into the remote cloudify
- * installation
+ * A simple wrapper around a StringBuilder. Used to generate the contents of the cloudify environment file that is
+ * injected into the remote cloudify installation
  *
  * @author dank, barakme
  * @since 2.5.0
@@ -66,14 +62,13 @@ public class EnvironmentFileBuilder {
 	}
 
 	/****************
-	 * Given a path of the type /C$/PATH - indicating an absolute cifs path,
-	 * returns /PATH. If the string does not match, returns the original
-	 * unmodified string.
+	 * Given a path of the type /C$/PATH - indicating an absolute cifs path, returns /PATH. If the string does not
+	 * match, returns the original unmodified string.
 	 *
 	 * @param str
 	 *            the input path.
-	 * @return the input path, adjusted to remove the cifs drive letter, if it
-	 *         exists, or the original path if the drive letter is not present.
+	 * @return the input path, adjusted to remove the cifs drive letter, if it exists, or the original path if the drive
+	 *         letter is not present.
 	 */
 	public static String normalizeCifsPath(final String str) {
 		final String expression = CIFS_ABSOLUTE_PATH_WITH_DRIVE_REGEX;
@@ -119,10 +114,24 @@ public class EnvironmentFileBuilder {
 			if (actualValue.startsWith("\"") && actualValue.endsWith("\"")) {
 				actualValue = actualValue.substring(1, actualValue.length() - 1);
 			}
-			final String normalizedValue = normalizeCifsPath(actualValue);
 
-			// sb.append("$ENV:").append(name).append("=").append(normalizedValue);
-			sb.append("SET ").append(name).append("=").append(normalizedValue);
+			// If the value of a variable includes an ampersand, it will cause the command to
+			// be interpreted as two different commands. To avoid this, escape the ampersand with a caret
+			// and wrap the entire command with double quotes. Yes, that is how batch files do it.
+			String normalizedValue = normalizeCifsPath(actualValue);
+			boolean includesAmpersand = false;
+			if (normalizedValue.contains("&")) {
+				normalizedValue = normalizedValue.replace("&", "^&");
+				includesAmpersand = true;
+			}
+
+			if (includesAmpersand) {
+				sb.append("SET \"").append(name).append("=").append(normalizedValue).append("\"");
+
+			} else {
+				// sb.append("$ENV:").append(name).append("=").append(normalizedValue);
+				sb.append("SET ").append(name).append("=").append(normalizedValue);
+			}
 			break;
 
 		default:
@@ -139,8 +148,7 @@ public class EnvironmentFileBuilder {
 	}
 
 	/*******
-	 * Returns the file name for the environment file for the current script
-	 * language.
+	 * Returns the file name for the environment file for the current script language.
 	 *
 	 * @return the environment file name.
 	 */

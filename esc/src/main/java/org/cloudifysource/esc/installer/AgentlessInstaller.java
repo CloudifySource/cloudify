@@ -338,8 +338,8 @@ public class AgentlessInstaller {
 		tempFile.deleteOnExit();
 		FileUtils.writeStringToFile(tempFile, fileContents);
 
-		if(logger.isLoggable(Level.FINE)) {
-			logger.fine("Created encironment file with contents: " + fileContents);
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Created environment file with contents: " + fileContents);
 		}
 		return tempFile;
 	}
