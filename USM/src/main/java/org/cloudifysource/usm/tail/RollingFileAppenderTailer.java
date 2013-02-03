@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.usm.tail;
 
@@ -30,29 +27,37 @@ import java.util.regex.Pattern;
  * file and by that preventing the RFA from rolling the file, this tailer will sample all files periodically without
  * opening the files and when finding that a file has been modified, only then open the file, "grab" the newly added
  * lines and close the file when done.
- * 
+ *
  * @author adaml
- * 
+ *
  */
 public class RollingFileAppenderTailer implements Runnable {
 
 	/*********
 	 * Handler interface which allows a client to delegate the handling of new lines found by the tailer to a custom
 	 * class.
-	 * 
+	 *
 	 * @author barakme
-	 * 
+	 *
 	 */
-	public static interface LineHandler {
+	public interface LineHandler {
 
 		/****************
-		 * Called when a new line is found
-		 * 
+		 * Called when a new line is found.
+		 *
+		 * @param fileName
+		 *            .
 		 * @param line
+		 *            .
 		 */
-		public void handleLine(final String fileName, final String line);
+		void handleLine(final String fileName, final String line);
 	}
 
+	/******
+	 * Logger implementation of the line handler interface.
+	 * @author barakme
+	 *
+	 */
 	private static class DefaultLineHandler implements LineHandler {
 
 		@Override
@@ -79,9 +84,11 @@ public class RollingFileAppenderTailer implements Runnable {
 	/**
 	 * Create a new RollingFileAppenderTailer given the file-name regex and the directory where the log files will be
 	 * located.
-	 * 
-	 * @param dir - the path to the directory of the log files to be tailed.
-	 * @param regex - regular expression for file names to be tailed.
+	 *
+	 * @param dir
+	 *            - the path to the directory of the log files to be tailed.
+	 * @param regex
+	 *            - regular expression for file names to be tailed.
 	 */
 	public RollingFileAppenderTailer(final String dir, final String regex) {
 		this.logsDirectory = dir;
@@ -90,10 +97,13 @@ public class RollingFileAppenderTailer implements Runnable {
 
 	/****************
 	 * Creates a new Tailer with a callback that handles each new line.
-	 * 
-	 * @param dir - the path to the directory of the log files to be tailed.
-	 * @param regex - regular expression for file names to be tailed.
-	 * @param handler - the callback that handles new lines.
+	 *
+	 * @param dir
+	 *            - the path to the directory of the log files to be tailed.
+	 * @param regex
+	 *            - regular expression for file names to be tailed.
+	 * @param handler
+	 *            - the callback that handles new lines.
 	 */
 	public RollingFileAppenderTailer(final String dir, final String regex, final LineHandler handler) {
 		this.logsDirectory = dir;
@@ -104,10 +114,13 @@ public class RollingFileAppenderTailer implements Runnable {
 	/**
 	 * Create a new RollingFileAppenderTailer given the file-name regex, the directory where the log files will be saved
 	 * and the time period between sampling the files.
-	 * 
-	 * @param dir - the path to the directory of the log files to be tailed.
-	 * @param regex - regular expression for file names to be tailed.
-	 * @param samplingDelay - the time delay between sampling of files.
+	 *
+	 * @param dir
+	 *            - the path to the directory of the log files to be tailed.
+	 * @param regex
+	 *            - regular expression for file names to be tailed.
+	 * @param samplingDelay
+	 *            - the time delay between sampling of files.
 	 */
 	public RollingFileAppenderTailer(final String dir, final String regex, final long samplingDelay) {
 		this.logsDirectory = dir;
@@ -116,9 +129,11 @@ public class RollingFileAppenderTailer implements Runnable {
 
 	/**
 	 * Start a new tailer on a predetermined folder.
-	 * 
-	 * @param directory - logs directory to be tailed.
-	 * @param regex - expected log file name format.
+	 *
+	 * @param directory
+	 *            - logs directory to be tailed.
+	 * @param regex
+	 *            - expected log file name format.
 	 */
 	public static void start(final String directory, final String regex) {
 		ScheduledExecutorService executor;
@@ -130,10 +145,12 @@ public class RollingFileAppenderTailer implements Runnable {
 
 	/**
 	 * Start a new tailer on a predetermined folder.
-	 * 
-	 * @param directory - logs directory to be tailed.
-	 * @param regex - expected log file name format.
-	 * @param samplingDelay
+	 *
+	 * @param directory
+	 *            - logs directory to be tailed.
+	 * @param regex
+	 *            - expected log file name format.
+	 * @param samplingDelay .
 	 */
 	public static void start(final String directory, final String regex, final long samplingDelay) {
 		ScheduledExecutorService executor;
@@ -156,7 +173,7 @@ public class RollingFileAppenderTailer implements Runnable {
 			for (final String key : logFileMap.keySet()) {
 				if (logFileMap.get(key).wasModified()) {
 					final String lines = logFileMap.get(key).readLines();
-					final String seporatedLines[] = lineSplitPattern.split(lines);
+					final String[] seporatedLines = lineSplitPattern.split(lines);
 					for (final String line : seporatedLines) {
 						handler.handleLine(key, line);
 						// logger.info(line);
@@ -173,7 +190,7 @@ public class RollingFileAppenderTailer implements Runnable {
 	/**
 	 * Scans the folder for new files added to the logs folder. If a new file that is not contained in the map is found,
 	 * it is added to the map. If a file no longer exists, it will be taken out of the map.
-	 * 
+	 *
 	 * @param logFileList
 	 */
 	private void getLogFilesMap(final Map<String, RollingFileReader> logFileMap) {

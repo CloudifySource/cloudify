@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.usm;
 
@@ -81,12 +78,12 @@ import com.gigaspaces.internal.sigar.SigarHolder;
 import com.j_spaces.kernel.Environment;
 
 /**********
- * The main component of the USM project - this is the bean that runs the
- * lifecycle of a service, monitors it and interacts with the service grid.
- * 
+ * The main component of the USM project - this is the bean that runs the lifecycle of a service, monitors it and
+ * interacts with the service grid.
+ *
  * @author barakme
  * @since 2.0.0
- * 
+ *
  */
 @Component
 public class UniversalServiceManagerBean implements ApplicationContextAware,
@@ -207,9 +204,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	}
 
 	/********
-	 * The USM Bean entry point. This is where processing of a service instance
-	 * starts.
-	 * 
+	 * The USM Bean entry point. This is where processing of a service instance starts.
+	 *
 	 * @throws USMException
 	 *             if initialization failed.
 	 * @throws TimeoutException .
@@ -217,6 +213,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	@PostConstruct
 	public void init() throws USMException, TimeoutException {
 
+		initServiceName();
 		initMonitorsCache();
 
 		initUniqueFileName();
@@ -229,6 +226,22 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		initEvents();
 
 		reset(existingProcessFound);
+	}
+
+	/******
+	 * The service name is defined by the clusterInfo, which is set from the recipe parameters during deployment.
+	 * However, when running in test mode inside the integrated processing unit container, the PU name is not set. This
+	 * 'workaround' makes it look like the ClusterInfo is set correctly.
+	 */
+	private void initServiceName() {
+		if (!this.runningInGSC) {
+			if (this.clusterInfo == null) {
+				throw new IllegalStateException("ClusterInfo field is null while running in test mode!");
+			}
+			this.clusterInfo.setName(ServiceUtils.getAbsolutePUName(CloudifyConstants.DEFAULT_APPLICATION_NAME,
+					this.usmLifecycleBean.getConfiguration().getService().getName()));
+		}
+
 	}
 
 	private void initMonitorsCache() {
@@ -320,8 +333,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	}
 
 	/**********
-	 * Bean shutdown method, responsible for shutting down the external service
-	 * and releasing all resource.
+	 * Bean shutdown method, responsible for shutting down the external service and releasing all resource.
 	 */
 	@PreDestroy
 	public void shutdown() {
@@ -633,11 +645,10 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	}
 
 	/**********
-	 * Checks if a PID file exists from a previous execution of this service and
-	 * instance on this host.
-	 * 
+	 * Checks if a PID file exists from a previous execution of this service and instance on this host.
+	 *
 	 * @return true if a valid pid file matching a running process was found.
-	 * 
+	 *
 	 * @throws IOException
 	 *             if the PID file could not be read.
 	 * @throws USMException
@@ -741,9 +752,9 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 	/************
 	 * Mode of process executed by the USM.
-	 * 
+	 *
 	 * @author barakme
-	 * 
+	 *
 	 */
 	private enum USMProcessMode {
 		NO_PROCESS, FOREGROUND, BACKGROUND
@@ -752,6 +763,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	}
 
 	private USMProcessMode processMode = USMProcessMode.FOREGROUND;
+	private ClusterInfo clusterInfo;
 
 	private void launch() throws USMException, TimeoutException {
 
@@ -913,11 +925,10 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	}
 
 	/*******
-	 * Starts async tasks responsible for: - reading the output and error files
-	 * generated by the external process. - waits for process to die, if in the
-	 * foreground - runs stop detection
-	 * 
-	 * 
+	 * Starts async tasks responsible for: - reading the output and error files generated by the external process. -
+	 * waits for process to die, if in the foreground - runs stop detection
+	 *
+	 *
 	 **/
 	private void startAsyncTasks() {
 
@@ -1077,8 +1088,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 	// crappy method name
 	/*********
-	 * Called to notify USM that the service has stopped. This may be due to a
-	 * USM shutdown, a USM command, or an unexpected service failure.
+	 * Called to notify USM that the service has stopped. This may be due to a USM shutdown, a USM command, or an
+	 * unexpected service failure.
 	 */
 	public void onProcessDeath() {
 		logger.info("Detected death of underlying process");
@@ -1150,6 +1161,9 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 		this.instanceId = clusterInfo.getInstanceId();
 		this.clusterName = clusterInfo.getName();
+
+		// only used in IntegratedProcessingUnitContainer during testing.
+		this.clusterInfo = clusterInfo;
 
 	}
 
@@ -1266,11 +1280,10 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	private String[] dependencies;
 
 	/******************
-	 * Self healing allows a service instance to attempt a retry in case of a
-	 * failure. If self healing is disabled, the service instance will not shut
-	 * down if an error is encountered. The service lifecycle will stop at the
-	 * current stage and will not proceed. Service monitors will not execute.
-	 * 
+	 * Self healing allows a service instance to attempt a retry in case of a failure. If self healing is disabled, the
+	 * service instance will not shut down if an error is encountered. The service lifecycle will stop at the current
+	 * stage and will not proceed. Service monitors will not execute.
+	 *
 	 * Defaults to true.
 	 */
 	private boolean selfHealing = true;
@@ -1310,13 +1323,15 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		this.dependencies = parseDependenciesString(dependenciesString);
 		logger.info("Dependencies for this service: "
 				+ Arrays.toString(this.dependencies));
-		
-		final String selfHealingProperty = beanLevelProperties.getContextProperties().getProperty(CloudifyConstants.CONTEXT_PROPERTY_DISABLE_SELF_HEALING);
-		if(selfHealingProperty != null){
+
+		final String selfHealingProperty =
+				beanLevelProperties.getContextProperties().getProperty(
+						CloudifyConstants.CONTEXT_PROPERTY_DISABLE_SELF_HEALING);
+		if (selfHealingProperty != null) {
 			logger.info("Disable self healing context property is set to: " + selfHealingProperty);
 			this.selfHealing = Boolean.parseBoolean(selfHealingProperty);
 		} else {
-			this.selfHealing =true;
+			this.selfHealing = true;
 		}
 
 	}
@@ -1356,7 +1371,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	public USMProcessMode getProcessMode() {
 		return processMode;
 	}
-	
+
 	public int getInstanceId() {
 		return this.instanceId;
 	}

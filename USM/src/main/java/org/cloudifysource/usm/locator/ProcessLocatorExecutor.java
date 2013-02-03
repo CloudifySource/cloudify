@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 
 package org.cloudifysource.usm.locator;
@@ -28,10 +25,10 @@ import org.cloudifysource.usm.launcher.ProcessLauncher;
 
 /*************
  * A process locator implementation that delegates execution to a DSL entry, either a closure or an external script.
- * 
+ *
  * @author barakme
  * @since 2.1.1
- * 
+ *
  */
 public class ProcessLocatorExecutor implements ProcessLocator {
 
@@ -41,10 +38,13 @@ public class ProcessLocatorExecutor implements ProcessLocator {
 
 	/**************
 	 * Constructor.
-	 * 
-	 * @param locator .
-	 * @param launcher .
-	 * @param puExtDir .
+	 *
+	 * @param locator
+	 *            .
+	 * @param launcher
+	 *            .
+	 * @param puExtDir
+	 *            .
 	 */
 	public ProcessLocatorExecutor(final ExecutableDSLEntry locator, final ProcessLauncher launcher,
 			final File puExtDir) {
@@ -66,7 +66,7 @@ public class ProcessLocatorExecutor implements ProcessLocator {
 					if (listItem instanceof Long) {
 						targetList.add((Long) listItem);
 					} else if (listItem instanceof Integer) {
-						targetList.add( Long.valueOf((Integer) listItem));
+						targetList.add(Long.valueOf((Integer) listItem));
 					} else if (listItem instanceof String) {
 						try {
 							final Long temp = Long.valueOf((String) listItem);
