@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.jclouds;
 
@@ -43,10 +40,9 @@ import org.jclouds.domain.LoginCredentials;
 import com.google.common.base.Predicate;
 
 /**************
- * A jclouds-based CloudifyProvisioning implementation. Uses the JClouds Compute
- * Context API to provision an image with linux installed and ssh available. If
- * GigaSpaces is not already installed on the new machine, this class will
- * install gigaspaces and run the agent.
+ * A jclouds-based CloudifyProvisioning implementation. Uses the JClouds Compute Context API to provision an image with
+ * linux installed and ssh available. If GigaSpaces is not already installed on the new machine, this class will install
+ * gigaspaces and run the agent.
  * 
  * @author barakme, noak
  * @since 2.0.0
@@ -120,12 +116,12 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	@Override
-	protected MachineDetails createServer(String serverName, long endTime,
-			CloudTemplate template) throws CloudProvisioningException,
+	protected MachineDetails createServer(final String serverName, final long endTime,
+			final CloudTemplate template) throws CloudProvisioningException,
 			TimeoutException {
 		return createServer(endTime, serverName, null);
 	}
-	
+
 	private MachineDetails createServer(final long end, final String groupName,
 			final String locationIdOverride) throws CloudProvisioningException {
 
@@ -276,9 +272,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	/*********
-	 * Looks for a free server name by appending a counter to the pre-calculated
-	 * server name prefix. If the max counter value is reached, code will loop
-	 * back to 0, so that previously used server names will be reused.
+	 * Looks for a free server name by appending a counter to the pre-calculated server name prefix. If the max counter
+	 * value is reached, code will loop back to 0, so that previously used server names will be reused.
 	 * 
 	 * @return the server name.
 	 * @throws CloudProvisioningException
@@ -334,7 +329,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		if (existingManagementServers.length > 0) {
 			logger.info("Found existing servers matching the name: "
 					+ managementMachinePrefix);
-			for (MachineDetails machineDetails : existingManagementServers) {
+			for (final MachineDetails machineDetails : existingManagementServers) {
 				final String existingManagementServerDescription = createManagementServerDescription(machineDetails);
 				logger.info(existingManagementServerDescription);
 			}
@@ -465,6 +460,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		return result;
 	}
 
+	@Override
 	protected void handleProvisioningFailure(
 			final int numberOfManagementMachines, final int numberOfErrors,
 			final Exception firstCreationException,

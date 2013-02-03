@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.dsl.cloud.CloudTemplateInstallerConfiguration;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.installer.filetransfer.FileTransfer;
 import org.cloudifysource.esc.installer.filetransfer.FileTransferFactory;
@@ -54,9 +55,6 @@ public class AgentlessInstaller {
 		return "NewAgentlessInstaller [eventsListenersList=" + eventsListenersList + "]";
 	}
 
-	private static final int DEFAULT_ROUTE_RESOLUTION_TIMEOUT = 2 * 60 * 1000; // 2
-	// minutes
-
 	private static final String LINUX_STARTUP_SCRIPT_NAME = "bootstrap-management.sh";
 	private static final String POWERSHELL_STARTUP_SCRIPT_NAME = "bootstrap-management.bat";
 
@@ -79,13 +77,6 @@ public class AgentlessInstaller {
 	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(AgentlessInstaller.class
 			.getName());
 
-	// tries opening a socket to port 22, and waits for the specified connection
-	// timeout
-	// between retry attempts it sleeps the specified diration
-	private static final int CONNECTION_TEST_SOCKET_CONNECT_TIMEOUT_MILLIS = 10000;
-
-	private static final int CONNECTION_TEST_SLEEP_BEFORE_RETRY_MILLIS = 5 * 1000;
-
 	private final List<AgentlessInstallerListener> eventsListenersList = new LinkedList<AgentlessInstallerListener>();
 
 	/******
@@ -106,7 +97,8 @@ public class AgentlessInstaller {
 		com.jcraft.jsch.JSch.setLogger(new JschJdkLogger(sshLogger));
 	}
 
-	private static InetAddress waitForRoute(final String ip, final long endTime) throws InstallerException,
+	private static InetAddress waitForRoute(final CloudTemplateInstallerConfiguration installerConfiguration,
+			final String ip, final long endTime) throws InstallerException,
 			InterruptedException {
 		Exception lastException = null;
 		while (System.currentTimeMillis() < endTime) {
@@ -116,7 +108,7 @@ public class AgentlessInstaller {
 			} catch (final IOException e) {
 				lastException = e;
 			}
-			Thread.sleep(CONNECTION_TEST_SLEEP_BEFORE_RETRY_MILLIS);
+			Thread.sleep(installerConfiguration.getConnectionTestIntervalMillis());
 
 		}
 
@@ -130,6 +122,8 @@ public class AgentlessInstaller {
 	 *            remote machine ip.
 	 * @param port
 	 *            remote machine port.
+	 * @param installerConfiguration
+	 *            .
 	 * @param timeout
 	 *            duration to wait for successful connection.
 	 * @param unit
@@ -138,25 +132,28 @@ public class AgentlessInstaller {
 	 * @throws TimeoutException .
 	 * @throws InterruptedException .
 	 */
-	public static void checkConnection(final String ip, final int port, final long timeout, final TimeUnit unit)
+	public static void checkConnection(final String ip, final int port,
+			final CloudTemplateInstallerConfiguration installerConfiguration,
+			final long timeout, final TimeUnit unit)
 			throws TimeoutException, InterruptedException, InstallerException {
 
 		final long end = System.currentTimeMillis() + unit.toMillis(timeout);
 
-		final InetAddress inetAddress = waitForRoute(ip,
-				Math.min(end, System.currentTimeMillis() + DEFAULT_ROUTE_RESOLUTION_TIMEOUT));
+		final InetAddress inetAddress = waitForRoute(installerConfiguration, ip,
+				Math.min(end, System.currentTimeMillis()
+						+ installerConfiguration.getConnectionTestRouteResolutionTimeoutMillis()));
 		final InetSocketAddress socketAddress = new InetSocketAddress(inetAddress, port);
 
 		logger.fine("Checking connection to: " + socketAddress);
-		while (System.currentTimeMillis() + CONNECTION_TEST_SLEEP_BEFORE_RETRY_MILLIS < end) {
+		while (System.currentTimeMillis() + installerConfiguration.getConnectionTestIntervalMillis() < end) {
 
 			// need to sleep since sock.connect may return immediately, and
 			// server may take time to start
-			Thread.sleep(CONNECTION_TEST_SLEEP_BEFORE_RETRY_MILLIS);
+			Thread.sleep(installerConfiguration.getConnectionTestIntervalMillis());
 
 			final Socket sock = new Socket();
 			try {
-				sock.connect(socketAddress, CONNECTION_TEST_SOCKET_CONNECT_TIMEOUT_MILLIS);
+				sock.connect(socketAddress, installerConfiguration.getConnectionTestConnectTimeoutMillis());
 				return;
 			} catch (final IOException e) {
 				logger.log(Level.FINE, "Checking connection to: " + socketAddress, e);
@@ -203,10 +200,11 @@ public class AgentlessInstaller {
 		// this is the right way to get the target, but the naming is off.
 		final String targetHost = details.isConnectedToPrivateIp() ? details.getPrivateIp() : details.getPublicIp();
 
-		final int port = details.getFileTransferMode().getDefaultPort();
+		final int port = Utils.getFileTransferPort(details.getInstallerConfiguration(), details.getFileTransferMode());
 
 		publishEvent("attempting_to_access_vm", targetHost);
-		checkConnection(targetHost, port, CalcUtils.millisUntil(end), TimeUnit.MILLISECONDS);
+		checkConnection(targetHost, port, details.getInstallerConfiguration(), CalcUtils.millisUntil(end),
+				TimeUnit.MILLISECONDS);
 
 		File environmentFile = null;
 		// create the environment file
@@ -293,7 +291,7 @@ public class AgentlessInstaller {
 			builder.exportVar("ESM_JAVA_OPTIONS", details.getEsmCommandlineArgs());
 			builder.exportVar("LUS_JAVA_OPTIONS", details.getLusCommandlineArgs());
 			builder.exportVar("GSM_JAVA_OPTIONS", details.getGsmCommandlineArgs());
-			
+
 			logger.log(Level.FINE, "Setting gsc lrmi port-range and custom rest/webui ports.");
 			builder.exportVar(CloudifyConstants.GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR, details.getGscLrmiPortRange());
 			builder.exportVar(CloudifyConstants.REST_PORT_ENV_VAR, details.getRestPort().toString());
@@ -332,7 +330,7 @@ public class AgentlessInstaller {
 		FileUtils.writeStringToFile(tempFile, fileContents);
 
 		if (logger.isLoggable(Level.FINE)) {
-			logger.fine("Created environment file with contents: " + fileContents);
+			logger.fine("Created environment file with the following contents: " + fileContents);
 		}
 		return tempFile;
 	}
@@ -390,6 +388,7 @@ public class AgentlessInstaller {
 
 		final FileTransfer fileTransfer = FileTransferFactory.getFileTrasnferProvider(details.getFileTransferMode());
 		fileTransfer.initialize(details, end);
+
 		fileTransfer.copyFiles(details, excludedFiles, Arrays.asList(environmentFile), end);
 
 	}

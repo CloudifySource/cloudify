@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 
 package org.cloudifysource.esc.installer.filetransfer;
@@ -23,12 +20,15 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.provider.sftp.SftpFileSystemConfigBuilder;
+import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
+import org.cloudifysource.esc.util.Utils;
 
 /*******
  * An sftp based file transfer implementation.
+ *
  * @author barakme
  * @since 2.5.0
  *
@@ -55,7 +55,7 @@ public class SftpFileTransfer extends VfsFileTransfer implements FileTransfer {
 					SftpFileSystemConfigBuilder.getInstance().setPreferredAuthentications(opts,
 							(String) preferredAuthenticationMethods);
 				} else {
-					throw new IllegalArgumentException("Was expecting a string value for custom data field '"
+					throw new IllegalArgumentException("Was expecti`ng a string value for custom data field '"
 							+ CloudifyConstants.INSTALLER_CUSTOM_DATA_SFTP_PREFERRED_AUTHENTICATION_METHODS_KEY
 							+ "', got a; " + preferredAuthenticationMethods.getClass().getName());
 				}
@@ -72,7 +72,8 @@ public class SftpFileTransfer extends VfsFileTransfer implements FileTransfer {
 				SftpFileSystemConfigBuilder.getInstance().setIdentities(opts, new File[] { temp });
 			}
 
-			SftpFileSystemConfigBuilder.getInstance().setTimeout(opts, SFTP_DISCONNECT_DETECTION_TIMEOUT_MILLIS);
+			SftpFileSystemConfigBuilder.getInstance().setTimeout(opts,
+					installerConfiguration.getFileTransferConnectionTimeoutMillis());
 			this.fileSystemManager = VFS.getManager();
 		} catch (final FileSystemException e) {
 			throw new InstallerException("Failed to set up file transfer: " + e.getMessage(), e);
@@ -91,9 +92,11 @@ public class SftpFileTransfer extends VfsFileTransfer implements FileTransfer {
 		}
 
 		try {
+			final int port = Utils.getFileTransferPort(this.installerConfiguration, FileTransferModes.SFTP);
 			targetURI =
-					new java.net.URI("sftp", userDetails, host, SSH_PORT, details.getRemoteDir(), null, null)
-			.toASCIIString();
+					new java.net.URI("sftp", userDetails, host, port,
+							details.getRemoteDir(), null, null)
+							.toASCIIString();
 		} catch (final URISyntaxException e) {
 			throw new InstallerException("Failed to set up file transfer: " + e.getMessage(), e);
 

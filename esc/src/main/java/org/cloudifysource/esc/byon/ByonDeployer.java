@@ -37,7 +37,7 @@ import org.cloudifysource.esc.util.IPUtils;
 /**
  * @author noak
  * @since 2.0.1
- * 
+ *
  *        Implements a cloud-simulator, using private machines as a pool of
  *        nodes on which the application is deployed. The list of available
  *        nodes and matching credentials are configured through the cloud Groovy
@@ -74,11 +74,11 @@ public class ByonDeployer {
 
 	/**
 	 * Adds a list of nodes related to a specific template.
-	 * 
+	 *
 	 * @param templateName
 	 *            The name of the template this nodes-list belongs to
 	 * @param template
-	 * 				The cloud template for this node list.           
+	 * 				The cloud template for this node list.
 	 * @param nodesList
 	 *            A list of maps, each map representing a cloud node
 	 * @throws Exception
@@ -89,7 +89,7 @@ public class ByonDeployer {
 			final List<Map<String, String>> nodesList) throws Exception {
 		final List<CustomNode> resolvedNodes = new ArrayList<CustomNode>();
 		final List<CustomNode> unresolvedNodes = new ArrayList<CustomNode>();
-		logger.info("addNodesList: adding node list of " + templateName 
+		logger.info("addNodesList: adding node list of " + templateName
 				+ " to ByonDeployer, node list: " + nodesList);
 
 		// parse the given nodes list
@@ -103,7 +103,7 @@ public class ByonDeployer {
 			try {
 				node.setResolvedIP(IPUtils.resolveHostName(node.getPrivateIP()));
 				if (template.getRemoteExecution() == RemoteExecutionModes.WINRM) {
-					node.setLoginPort(RemoteExecutionModes.WINRM.getPort());
+					node.setLoginPort(RemoteExecutionModes.WINRM.getDefaultPort());
 				}
 				IPUtils.validateConnection(node.getResolvedIP(),
 						node.getLoginPort());
@@ -125,7 +125,7 @@ public class ByonDeployer {
 							+ " some IP addresses were already defined by a different template: "
 							+ Arrays.toString(duplicateNodes.toArray()));
 		}
-		
+
 		setInitialPoolsForTemplate(templateName, resolvedNodes, unresolvedNodes);
 	}
 
@@ -135,7 +135,7 @@ public class ByonDeployer {
 	 * is exhausted. If all there are no free nodes available, the invalid nodes
 	 * are checked for SSH connection, and if a connection can be established -
 	 * the node is used.
-	 * 
+	 *
 	 * @param templateName
 	 *            The name of the nodes-list' template this server belongs to
 	 * @param serverName
@@ -244,12 +244,12 @@ public class ByonDeployer {
 	/**
 	 * Sets the servers with the specified IPs as allocated, so they would not
 	 * be re-allocated on future calls.
-	 * 
+	 *
 	 * @param templateName
 	 *            The name of the nodes-list' template the IPs belongs to
 	 * @param ipAddresses
 	 *            A set of IP addresses (decimal dotted format)
-	 * 
+	 *
 	 * @throws CloudProvisioningException
 	 *             Indicates the IPs could not be marked as allocated with the
 	 *             specified template
@@ -285,7 +285,7 @@ public class ByonDeployer {
 	/**
 	 * Shuts down a given node, (moves the node back to the free nodes list, to
 	 * be used again).
-	 * 
+	 *
 	 * @param templateName
 	 *            The name of the nodes-list' template this server belongs to
 	 * @param serverName
@@ -321,7 +321,7 @@ public class ByonDeployer {
 
 	/**
 	 * Shuts down the server with the given ID.
-	 * 
+	 *
 	 * @param templateName
 	 *            The name of the nodes-list' template this server belongs to
 	 * @param serverId
@@ -337,7 +337,7 @@ public class ByonDeployer {
 
 	/**
 	 * Shuts down the server with the given IP address.
-	 * 
+	 *
 	 * @param templateName
 	 *            The name of the nodes-list' template this server belongs to
 	 * @param serverIp
@@ -353,7 +353,7 @@ public class ByonDeployer {
 
 	/**
 	 * Retrieves the server with the given name (not a host name).
-	 * 
+	 *
 	 * @param templateName
 	 *            The name of the nodes-list' template this server belongs to
 	 * @param serverName
@@ -379,7 +379,7 @@ public class ByonDeployer {
 
 	/**
 	 * Retrieves the server with the given Id (not a host name).
-	 * 
+	 *
 	 * @param templateName
 	 *            The name of the nodes-list' template this server belongs to
 	 * @param id
@@ -405,7 +405,7 @@ public class ByonDeployer {
 
 	/**
 	 * Retrieves the server with the given IP (not a host name).
-	 * 
+	 *
 	 * @param templateName
 	 *            The name of the nodes-list' template this IP belongs to
 	 * @param ipAddress
@@ -434,7 +434,7 @@ public class ByonDeployer {
 
 	/**
 	 * Retrieves all nodes (i.e. in all states - free, allocated and invalid).
-	 * 
+	 *
 	 * @param templateName
 	 *            The name of the nodes-list' template to use
 	 * @return A collection of all the managed nodes of the specified template
@@ -469,7 +469,7 @@ public class ByonDeployer {
 
 	/**
 	 * Retrieves all free nodes.
-	 * 
+	 *
 	 * @param templateName
 	 *            The name of the nodes-list' template to use
 	 * @return A collection of all the free nodes of the specified template
@@ -496,7 +496,7 @@ public class ByonDeployer {
 
 	/**
 	 * Retrieves all allocated nodes.
-	 * 
+	 *
 	 * @param templateName
 	 *            The name of the nodes-list' template to use
 	 * @return A collection of all the allocated (active, in use) nodes of the
@@ -524,7 +524,7 @@ public class ByonDeployer {
 
 	/**
 	 * Retrieves all invalid nodes.
-	 * 
+	 *
 	 * @param templateName
 	 *            The name of the nodes-list' template to use
 	 * @return A collection of all the invalid nodes of the specified template
@@ -553,7 +553,7 @@ public class ByonDeployer {
 	 * * Invalidates the given node (i.e. moves it from the free pool to the
 	 * invalidated pool), so it will not be allocated unless all the free nodes
 	 * are in use.
-	 * 
+	 *
 	 * @param templateName
 	 *            The template this server belongs to
 	 * @param serverName
@@ -699,7 +699,7 @@ public class ByonDeployer {
 	/**
 	 * Checks if the specified id is a single-valued id or a template for
 	 * multiple id-s.
-	 * 
+	 *
 	 * @param nodeId
 	 *            The id to examine
 	 * @return true if this id is a template, false if it's a single-values id.
@@ -716,7 +716,7 @@ public class ByonDeployer {
 
 	/**
 	 * Parses a single byon cloud node.
-	 * 
+	 *
 	 * @param nodeMap
 	 *            The map of attributes related to this node (ID, IP or host
 	 *            name)
@@ -734,7 +734,7 @@ public class ByonDeployer {
 		 * e) { throw new
 		 * CloudProvisioningException("Invalid host name or address: " + host);
 		 * }
-		 * 
+		 *
 		 * if (!IPUtils.validateIPAddress(host)) { throw new
 		 * CloudProvisioningException("Invalid host name or address: " + host);
 		 * } }
@@ -750,7 +750,7 @@ public class ByonDeployer {
 
 	/**
 	 * Parses a range of nodes (e.g. 192.168.9.1-192.168.9.8)
-	 * 
+	 *
 	 * @param nodeMap
 	 *            The map of attributes related to this node (ID, IP range)
 	 * @return A list of {@link CustomNode} objects
@@ -822,7 +822,7 @@ public class ByonDeployer {
 
 	/**
 	 * Parses a range of nodes formatted as a CIDR (e.g. 192.168.9.60/31)
-	 * 
+	 *
 	 * @param nodeMap
 	 *            The map of attributes related to this node (ID, IPs as CIDR)
 	 * @return A list of {@link CustomNode} objects
@@ -844,7 +844,7 @@ public class ByonDeployer {
 
 	/**
 	 * Parses a list of nodes (comma-separated IPs or host names).
-	 * 
+	 *
 	 * @param nodeMap
 	 *            The map of attributes related to this node (ID, IPs or hosts
 	 *            list)
@@ -882,7 +882,7 @@ public class ByonDeployer {
 			 * Exception e) { throw new
 			 * CloudProvisioningException("Invalid or unreachable IP address: "
 			 * + ip); }
-			 * 
+			 *
 			 * if (!IPUtils.validateIPAddress(ip)) { throw new
 			 * CloudProvisioningException("Invalid or unreachable IP address: "
 			 * + ip); } }
@@ -914,7 +914,7 @@ public class ByonDeployer {
 	 * terminated) for each template. The initial allocated-nodes pool is always
 	 * empty. The terminated nodes pool is currently not supported and remains
 	 * empty all along.
-	 * 
+	 *
 	 * @param templateName
 	 *            The name of the template
 	 * @param resolvedNodes
@@ -995,7 +995,7 @@ public class ByonDeployer {
 			Map<String, List<CustomNode>> nodesMap = nodesListsByTemplates.get(templateName);
 			List<CustomNode> allocatedNodesList = nodesMap.get(NODES_LIST_ALLOCATED);
 			if(allocatedNodesList != null && !allocatedNodesList.isEmpty()) {
-				String errMsg = "Failed to remove template [" + templateName 
+				String errMsg = "Failed to remove template [" + templateName
 						+ "] from deployer, some nodes are still allocated: " + allocatedNodesList;
 				logger.log(Level.WARNING, errMsg);
 				throw new CloudProvisioningException(errMsg);

@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.dsl.cloud;
 
@@ -30,10 +27,9 @@ import org.cloudifysource.dsl.internal.DSLValidationException;
  * @author barakme
  * @since 2.0.0
  *
- *        A cloud template is a group of settings that define a given
- *        configuration, available for a specific cloud. It can include physical
- *        machine properties (e.g. memory), operating system type, location,
- *        available cloud nodes and other settings.
+ *        A cloud template is a group of settings that define a given configuration, available for a specific cloud. It
+ *        can include physical machine properties (e.g. memory), operating system type, location, available cloud nodes
+ *        and other settings.
  */
 @CloudifyDSLEntity(name = "template", clazz = CloudTemplate.class, allowInternalNode = true, allowRootNode = true,
 		parent = "cloud")
@@ -68,6 +64,8 @@ public class CloudTemplate {
 	private String absoluteUploadDir;
 
 	private Map<String, String> env = new HashMap<String, String>();
+
+	private CloudTemplateInstallerConfiguration installer = new CloudTemplateInstallerConfiguration();
 
 	/**
 	 * Gets the image ID.
@@ -285,10 +283,8 @@ public class CloudTemplate {
 	}
 
 	/************
-	 * True if services running in this template should have privileged access.
-	 * This usually means that the service will run with higher Operating System
-	 * permissions - root/sudoer on Linux, Administrator on Windows. Default is
-	 * false.
+	 * True if services running in this template should have privileged access. This usually means that the service will
+	 * run with higher Operating System permissions - root/sudoer on Linux, Administrator on Windows. Default is false.
 	 *
 	 * @return true if services on this template will run in privileged mode.
 	 */
@@ -301,9 +297,8 @@ public class CloudTemplate {
 	}
 
 	/**************
-	 * A command line that will be executed before the bootstrapping process of
-	 * a machine from this template ends (before the Cloudify agent starts,
-	 * after JDK and Cloudify are installed).
+	 * A command line that will be executed before the bootstrapping process of a machine from this template ends
+	 * (before the Cloudify agent starts, after JDK and Cloudify are installed).
 	 *
 	 * @return the initialization command line.
 	 */
@@ -410,11 +405,9 @@ public class CloudTemplate {
 	}
 
 	/************
-	 * This is a unique situation: we need two pieces of information - the
-	 * absolute location of the local directory, and the relative location of
-	 * the local directory. So this validation fills in this field - note that
-	 * the absolute field does not have a setter - groovy files can't directly
-	 * set this value.
+	 * This is a unique situation: we need two pieces of information - the absolute location of the local directory, and
+	 * the relative location of the local directory. So this validation fills in this field - note that the absolute
+	 * field does not have a setter - groovy files can't directly set this value.
 	 *
 	 * @param context
 	 *            .
@@ -494,5 +487,18 @@ public class CloudTemplate {
 
 	public void setScriptLanguage(final ScriptLanguages scriptLanguage) {
 		this.scriptLanguage = scriptLanguage;
+	}
+
+	/*********
+	 * Configuration settings for the installation process of this template.
+	 *
+	 * @return installer configuration settings.
+	 */
+	public CloudTemplateInstallerConfiguration getInstaller() {
+		return installer;
+	}
+
+	public void setInstaller(final CloudTemplateInstallerConfiguration installer) {
+		this.installer = installer;
 	}
 }

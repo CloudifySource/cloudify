@@ -12,20 +12,21 @@
  *******************************************************************************/
 package org.cloudifysource.dsl;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
-import java.util.Set;
 
-import org.apache.commons.beanutils.BeanMap;
+import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.CloudTemplateInstallerConfiguration;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.internal.ServiceReader;
-import org.junit.Assert;
 import org.junit.Test;
 
 public class CloudParserTest {
 
 	private final static String SIMPLE_CLOUD_PATH = "src/test/resources/enums/my-cloud.groovy";
+	private final static String INSTALLER_CLOUD_PATH = "src/test/resources/clouds/installer/some-cloud.groovy";
 
 	@Test
 	public void testCloudParser() throws Exception {
@@ -36,41 +37,31 @@ public class CloudParserTest {
 		assertNotNull(cloud.getUser());
 		assertNotNull(cloud.getTemplates().size() == 1);
 		assertNotNull(cloud.getTemplates().get("SMALL_LINUX"));
-		Assert.assertEquals(FileTransferModes.CIFS, cloud.getTemplates().get("SMALL_LINUX").getFileTransfer());
+		assertEquals(FileTransferModes.CIFS, cloud.getTemplates().get("SMALL_LINUX").getFileTransfer());
 
 	}
 
-	public static void main(String[] args) throws Exception {
-		final org.cloudifysource.dsl.cloud.Cloud cloud = ServiceReader.readCloud(new File(SIMPLE_CLOUD_PATH));
 
-		System.out.println(cloud.getCustom().get("GStringKey").getClass().getName());
+	@Test
+	public void testCloudParserWithInstaller() throws Exception {
+		final org.cloudifysource.dsl.cloud.Cloud cloud = ServiceReader.readCloud(new File(INSTALLER_CLOUD_PATH));
+		assertNotNull(cloud);
+		assertNotNull(cloud.getTemplates());
+		assertNotNull(cloud.getTemplates().size() == 1);
+		assertNotNull(cloud.getTemplates().get("SMALL_LINUX"));
 
-		BeanMap bm = new BeanMap(cloud.getCustom());
-		Set keys = bm.keySet();
-		for (Object object : keys) {
-			System.out.println(object);
-		}
+		CloudTemplate template = cloud.getTemplates().values().iterator().next();
+		assertNotNull(template);
+		assertNotNull(template.getInstaller());
 
-//		ObjectGraphIterator iter = new ObjectGraphIterator(cloud, new Transformer() {
-//
-//			@Override
-//			public Object transform(Object input) {
-//				if (input instanceof GString) {
-//					return input.toString();
-//				} else {
-//					return input;
-//				}
-//
-//			}
-//		});
-//
-//		while (iter.hasNext()) {
-//			final Object obj = iter.next();
-//			if (obj != null) {
-//				System.out.println("Class: " + obj.getClass().getName() + ". Value: " + obj);
-//			}
-//		}
+		CloudTemplateInstallerConfiguration installer = template.getInstaller();
+		assertEquals(5000, installer.getConnectionTestConnectTimeoutMillis());
+		assertEquals(5000, installer.getConnectionTestIntervalMillis());
+		assertEquals(5, installer.getFileTransferRetries());
+
 
 	}
+
+
 
 }
