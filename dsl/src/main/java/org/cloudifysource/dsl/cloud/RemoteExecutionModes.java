@@ -30,17 +30,17 @@ public enum RemoteExecutionModes {
 	 * Windows Remote management.
 	 */
 	WINRM(5985);
-	
+
 	RemoteExecutionModes(final int port) {
 		this.port = port;
 	}
-	
+
 	private final int port;
-	
-	public int getPort() {
+
+	public int getDefaultPort() {
 		return port;
 	}
 
-	
-	
+
+
 }

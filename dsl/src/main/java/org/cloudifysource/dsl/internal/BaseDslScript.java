@@ -54,6 +54,7 @@ import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudConfiguration;
 import org.cloudifysource.dsl.cloud.CloudProvider;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.CloudTemplateInstallerConfiguration;
 import org.cloudifysource.dsl.cloud.CloudUser;
 import org.cloudifysource.dsl.cloud.DeployerComponent;
 import org.cloudifysource.dsl.cloud.DiscoveryComponent;
@@ -215,17 +216,6 @@ public abstract class BaseDslScript extends Script {
 		}
 
 		checkForApplicationServiceBlockNameParameter(name, value);
-
-	}
-
-	public static void main(final String[] args) throws Exception {
-
-		final CloudTemplate template = new CloudTemplate();
-
-		final Class enumClass = PropertyUtils.getPropertyType(template, "fileTransfer");
-		System.out.println(enumClass.isEnum());
-		final Enum val = Enum.valueOf(enumClass, "SCP");
-		System.out.println(val);
 
 	}
 
@@ -636,6 +626,8 @@ public abstract class BaseDslScript extends Script {
 			addObjectInitializerForClass(dslObjectInitializersByName, UsmComponent.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, RestComponent.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, AgentComponent.class);
+
+			addObjectInitializerForClass(dslObjectInitializersByName, CloudTemplateInstallerConfiguration.class);
 
 		}
 		return dslObjectInitializersByName;

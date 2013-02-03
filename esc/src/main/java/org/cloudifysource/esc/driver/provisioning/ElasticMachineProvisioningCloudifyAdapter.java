@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
@@ -67,9 +64,7 @@ import org.openspaces.core.bean.Bean;
 import org.openspaces.grid.gsm.capacity.CapacityRequirements;
 import org.openspaces.grid.gsm.capacity.CpuCapacityRequirement;
 import org.openspaces.grid.gsm.capacity.MemoryCapacityRequirement;
-import org.openspaces.grid.gsm.machines.isolation.DedicatedMachineIsolation;
 import org.openspaces.grid.gsm.machines.isolation.ElasticProcessingUnitMachineIsolation;
-import org.openspaces.grid.gsm.machines.isolation.SharedMachineIsolation;
 import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioning;
 import org.openspaces.grid.gsm.machines.plugins.events.GridServiceAgentStartRequestedEvent;
 import org.openspaces.grid.gsm.machines.plugins.events.GridServiceAgentStartedEvent;
@@ -80,14 +75,13 @@ import org.openspaces.grid.gsm.machines.plugins.events.MachineStoppedEvent;
 import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticGridServiceAgentProvisioningException;
 import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticMachineProvisioningException;
 
-
 /****************************
  * An ESM machine provisioning implementation used by the Cloudify cloud driver. All calls to start/stop a machine are
  * delegated to the CloudifyProvisioning implementation. If the started machine does not have an agent running, this
  * class will install gigaspaces and start the agent using the Agent-less Installer process.
- *
+ * 
  * @author barakme
- *
+ * 
  */
 public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachineProvisioning, Bean {
 
@@ -156,10 +150,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	public GridServiceAgent[] getDiscoveredMachines(final long duration, final TimeUnit unit)
 			throws InterruptedException, TimeoutException {
 
-		List<GridServiceAgent> result = new ArrayList<GridServiceAgent>();
-		GridServiceAgent[] agents = this.originalESMAdmin.getGridServiceAgents().getAgents();
-		for (GridServiceAgent agent : agents) {
-			String template = agent.getVirtualMachine().getDetails()
+		final List<GridServiceAgent> result = new ArrayList<GridServiceAgent>();
+		final GridServiceAgent[] agents = this.originalESMAdmin.getGridServiceAgents().getAgents();
+		for (final GridServiceAgent agent : agents) {
+			final String template = agent.getVirtualMachine().getDetails()
 					.getEnvironmentVariables().get(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME);
 			if (template != null) { // management machines don't have this variable attached
 				if (template.equals(this.cloudTemplateName)) {
@@ -184,8 +178,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		// and this adapter can look for the CLOUD_ZONE_PREFIX and start a machine with the same location.
 		// TODO Fix GS-9484 and then remove the service name from the machine zone and remove the CLOUD_ZONE_PREFIX.
 
-		ExactZonesConfigurer configurer = new ExactZonesConfigurer()
-		.addZones(config.getGridServiceAgentZones().getZones());
+		final ExactZonesConfigurer configurer = new ExactZonesConfigurer()
+				.addZones(config.getGridServiceAgentZones().getZones());
 
 		if (!StringUtils.isBlank(md.getLocationId())) {
 			configurer.addZone(CLOUD_ZONE_PREFIX + md.getLocationId());
@@ -196,7 +190,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		final InstallationDetails details =
 				Utils.createInstallationDetails(md, cloud, template, zones, lookupLocatorsString,
 						this.originalESMAdmin, false,
-						null, reservationId, cloudTemplateName, ""/*securityProfile*/, ""/*keystorePassword*/, config.getAuthGroups());
+						null, reservationId, cloudTemplateName, ""/* securityProfile */, ""/* keystorePassword */,
+						config.getAuthGroups());
 
 		logger.info("Created new Installation Details: " + details);
 		return details;
@@ -207,8 +202,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	public GridServiceAgent startMachine(final long duration, final TimeUnit unit)
 			throws ElasticMachineProvisioningException,
 			ElasticGridServiceAgentProvisioningException, InterruptedException, TimeoutException {
-		GSAReservationId reservationId = null;
-		ExactZonesConfig zones = new ExactZonesConfig();
+		final GSAReservationId reservationId = null;
+		final ExactZonesConfig zones = new ExactZonesConfig();
 		return startMachine(zones, reservationId, duration, unit);
 	}
 
@@ -216,7 +211,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	public GridServiceAgent startMachine(final ExactZonesConfig zones, final GSAReservationId reservationId,
 			final long duration, final TimeUnit unit)
 			throws ElasticMachineProvisioningException,
-				ElasticGridServiceAgentProvisioningException, InterruptedException, TimeoutException {
+			ElasticGridServiceAgentProvisioningException, InterruptedException, TimeoutException {
 
 		logger.info("Cloudify Adapter is starting a new machine with zones " + zones.getZones());
 
@@ -228,7 +223,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		MachineDetails machineDetails;
 		cloudifyProvisioning.setAdmin(getGlobalAdminInstance(originalESMAdmin));
 
-		ZonesConfig defaultZones = config.getGridServiceAgentZones();
+		final ZonesConfig defaultZones = config.getGridServiceAgentZones();
 		logger.fine("default zones = " + defaultZones.getZones());
 		if (!defaultZones.isSatisfiedBy(zones)) {
 			throw new IllegalArgumentException("The specified zones " + zones
@@ -238,7 +233,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		String locationId = null;
 
 		logger.fine("searching for cloud specific zone");
-		for (String zone : zones.getZones()) {
+		for (final String zone : zones.getZones()) {
 			logger.fine("current zone = " + zone);
 			if (zone.startsWith(CLOUD_ZONE_PREFIX)) {
 				logger.fine("found a zone with " + CLOUD_ZONE_PREFIX + " prefix : " + zone);
@@ -252,19 +247,24 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			}
 		}
 
-		MachineStartRequestedCloudifyEvent machineStartEvent = new MachineStartRequestedCloudifyEvent();
+		final MachineStartRequestedCloudifyEvent machineStartEvent = new MachineStartRequestedCloudifyEvent();
 		machineStartEvent.setTemplateName(cloudTemplateName);
 		machineStartEvent.setLocationId(locationId);
 		machineEventListener.elasticMachineProvisioningProgressChanged(machineStartEvent);
 
 		try {
+			final CloudTemplate template = cloud.getTemplates().get(this.cloudTemplateName);
 			if (locationId == null) {
-				final CloudTemplate template = cloud.getTemplates().get(this.cloudTemplateName);
 				locationId = template.getLocationId();
 			}
 
 			// This is the call to the actual cloud driver implementation!
 			machineDetails = provisionMachine(locationId, duration, unit);
+
+			// Auto populate installer configuration with values set in template if they were not previously set.
+			if (machineDetails != null && machineDetails.getInstallerConfigutation() == null) {
+				machineDetails.setInstallerConfigutation(template.getInstaller());
+			}
 
 		} catch (final Exception e) {
 			throw new ElasticMachineProvisioningException("Failed to provisiong machine: " + e.getMessage(), e);
@@ -284,12 +284,12 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					+ machineDetails + " .");
 		}
 
-		MachineStartedCloudifyEvent machineStartedEvent = new MachineStartedCloudifyEvent();
+		final MachineStartedCloudifyEvent machineStartedEvent = new MachineStartedCloudifyEvent();
 		machineStartedEvent.setMachineDetails(machineDetails);
 		machineStartedEvent.setHostAddress(machineIp);
 		machineEventListener.elasticMachineProvisioningProgressChanged(machineStartedEvent);
 
-		GridServiceAgentStartRequestedEvent agentStartEvent = new GridServiceAgentStartRequestedEvent();
+		final GridServiceAgentStartRequestedEvent agentStartEvent = new GridServiceAgentStartRequestedEvent();
 		agentStartEvent.setHostAddress(machineIp);
 		agentEventListener.elasticGridServiceAgentProvisioningProgressChanged(agentStartEvent);
 
@@ -323,7 +323,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				throw new TimeoutException("New machine was provisioned and Cloudify was installed, "
 						+ "but a GSA was not discovered on the new machine: " + machineDetails);
 			}
-			//TODO: Derive cloudify specific event and include more event details as specified in CLOUDIFY-10651
+			// TODO: Derive cloudify specific event and include more event details as specified in CLOUDIFY-10651
 			agentEventListener.elasticGridServiceAgentProvisioningProgressChanged(
 					new GridServiceAgentStartedEvent(machineIp, gsa.getUid()));
 
@@ -332,8 +332,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			if (gsa.getVirtualMachine().getDetails().getEnvironmentVariables().
 					get(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME) == null) {
 				throw new ElasticGridServiceAgentProvisioningException("an agent was started. but the property "
-					+ CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME
-					+ " was missing from its environment variables.");
+						+ CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME
+						+ " was missing from its environment variables.");
 			}
 
 			return gsa;
@@ -409,13 +409,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private void installAndStartAgent(final MachineDetails machineDetails,
 			final GSAReservationId reservationId, final long end)
-					throws TimeoutException, InterruptedException,
-					ElasticMachineProvisioningException, ElasticGridServiceAgentProvisioningException {
+			throws TimeoutException, InterruptedException,
+			ElasticMachineProvisioningException, ElasticGridServiceAgentProvisioningException {
 		final AgentlessInstaller installer = new AgentlessInstaller();
 
 		InstallationDetails installationDetails;
 		try {
-			//since only agents are started by this method, server-security is set to false
+			// since only agents are started by this method, server-security is set to false
 			installationDetails = createInstallationDetails(cloud, machineDetails, reservationId);
 		} catch (final FileNotFoundException e) {
 			throw new ElasticGridServiceAgentProvisioningException("Failed to create installation details for agent: "
@@ -514,7 +514,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		final String machineIp = agent.getMachine().getHostAddress();
 		Exception failedToShutdownAgentException = null;
 		final long endTime = System.currentTimeMillis() + unit.toMillis(duration);
-		GridServiceAgentStopRequestedEvent agentStopEvent = new GridServiceAgentStopRequestedEvent();
+		final GridServiceAgentStopRequestedEvent agentStopEvent = new GridServiceAgentStopRequestedEvent();
 		agentStopEvent.setHostAddress(machineIp);
 		agentStopEvent.setAgentUid(agent.getUid());
 		agentEventListener.elasticGridServiceAgentProvisioningProgressChanged(agentStopEvent);
@@ -524,7 +524,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			agent.shutdown();
 			logger.fine("Agent on host: " + machineIp + " successfully shut down");
 
-			GridServiceAgentStoppedEvent agentStoppedEvent = new GridServiceAgentStoppedEvent();
+			final GridServiceAgentStoppedEvent agentStoppedEvent = new GridServiceAgentStoppedEvent();
 			agentStoppedEvent.setHostAddress(machineIp);
 			agentStoppedEvent.setAgentUid(agent.getUid());
 			agentEventListener.elasticGridServiceAgentProvisioningProgressChanged(agentStoppedEvent);
@@ -536,7 +536,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		try {
 
-			MachineStopRequestedEvent machineStopEvent = new MachineStopRequestedEvent();
+			final MachineStopRequestedEvent machineStopEvent = new MachineStopRequestedEvent();
 			machineStopEvent.setHostAddress(machineIp);
 			machineEventListener.elasticMachineProvisioningProgressChanged(machineStopEvent);
 
@@ -545,29 +545,28 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			logger.fine("Shutdown result of machine: " + machineIp + " was: " + shutdownSuccesfull);
 
 			if (shutdownSuccesfull) {
-				MachineStoppedEvent machineStoppedEvent = new MachineStoppedEvent();
+				final MachineStoppedEvent machineStoppedEvent = new MachineStoppedEvent();
 				machineStoppedEvent.setHostAddress(machineIp);
 				machineEventListener.elasticMachineProvisioningProgressChanged(machineStoppedEvent);
 
+				// machine was shutdown, but an error happened while shutting down agent.
+				// lets wait for the agent to not be discovered until we reach the timeout.
 
-					// machine was shutdown, but an error happened while shutting down agent.
-					// lets wait for the agent to not be discovered until we reach the timeout.
-
-					while (agent.isDiscovered()) {
-						Thread.sleep(DEFAULT_AGENT_DISCOVERY_INTERVAL);
-						if (System.currentTimeMillis() > endTime && agent.isDiscovered()) {
-							if (failedToShutdownAgentException != null) {
-								throw new ElasticGridServiceAgentProvisioningException(
-										"Machine is stopped but agent [" + agent.getUid() + "] is still discovered."
-										+ "Failed to shutdown agent:" + failedToShutdownAgentException.getMessage(),
-										failedToShutdownAgentException);
-							}
+				while (agent.isDiscovered()) {
+					Thread.sleep(DEFAULT_AGENT_DISCOVERY_INTERVAL);
+					if (System.currentTimeMillis() > endTime && agent.isDiscovered()) {
+						if (failedToShutdownAgentException != null) {
 							throw new ElasticGridServiceAgentProvisioningException(
-									"Machine is stopped but agent[" + agent.getUid()
-									+ "] is still discovered.");
-
+									"Machine is stopped but agent [" + agent.getUid() + "] is still discovered."
+											+ "Failed to shutdown agent:" + failedToShutdownAgentException.getMessage(),
+									failedToShutdownAgentException);
 						}
+						throw new ElasticGridServiceAgentProvisioningException(
+								"Machine is stopped but agent[" + agent.getUid()
+										+ "] is still discovered.");
+
 					}
+				}
 
 			}
 
@@ -620,9 +619,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		}
 
 		try {
-			String cloudOverridesPerService = config.getCloudOverridesPerService();
+			final String cloudOverridesPerService = config.getCloudOverridesPerService();
 			this.cloud = ServiceReader.readCloudFromDirectory(cloudConfigDirectoryPath,
-						cloudOverridesPerService);
+					cloudOverridesPerService);
 			this.cloudTemplateName = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME);
 
 			if (this.cloudTemplateName == null) {
@@ -639,11 +638,12 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			// This code runs on the ESM in the remote machine,
 			// so set the local directory to the value of the remote directory
 			logger.info("Remote Directory is: " + cloudTemplate.getRemoteDirectory());
-			//if running a windows server.
+			// if running a windows server.
 			if (cloudTemplate.getFileTransfer() == FileTransferModes.CIFS) {
 				logger.info("Windows machine - modifying local directory location");
-				String remoteDirName = cloudTemplate.getRemoteDirectory();
-				String windowsLocalDirPath = getWindowsLocalDirPath(remoteDirName, cloudTemplate.getLocalDirectory());
+				final String remoteDirName = cloudTemplate.getRemoteDirectory();
+				final String windowsLocalDirPath =
+						getWindowsLocalDirPath(remoteDirName, cloudTemplate.getLocalDirectory());
 				logger.info("Modified local dir name is: " + windowsLocalDirPath);
 
 				cloudTemplate.setLocalDirectory(windowsLocalDirPath);
@@ -692,24 +692,26 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	}
 
-	private void addTemplatesToCloud(File cloudConfigDirectory) {
+	private void addTemplatesToCloud(final File cloudConfigDirectory) {
 		logger.info("addTemplatesToCloud - adding templates from directory " + cloudConfigDirectory.getAbsolutePath());
-		File additionalTemplatesFolder = new File(cloudConfigDirectory,
+		final File additionalTemplatesFolder = new File(cloudConfigDirectory,
 				CloudifyConstants.ADDITIONAL_TEMPLATES_FOLDER_NAME);
 		if (!additionalTemplatesFolder.exists()) {
-			logger.info("addTemplatesToCloud - no additional templates to add from directory " + cloudConfigDirectory.getAbsolutePath());
+			logger.info("addTemplatesToCloud - no additional templates to add from directory "
+					+ cloudConfigDirectory.getAbsolutePath());
 			return;
 		}
-		File[] listFiles = additionalTemplatesFolder.listFiles();
+		final File[] listFiles = additionalTemplatesFolder.listFiles();
 		logger.info("addTemplatesToCloud - found files: " + Arrays.toString(listFiles));
-		CloudTemplatesReader reader = new CloudTemplatesReader();
-		List<CloudTemplate> addedTemplates = reader.addAdditionalTemplates(cloud, listFiles);
-		logger.info("addTemplatesToCloud - Added " + addedTemplates.size() + " templates to the cloud: " + addedTemplates);
+		final CloudTemplatesReader reader = new CloudTemplatesReader();
+		final List<CloudTemplate> addedTemplates = reader.addAdditionalTemplates(cloud, listFiles);
+		logger.info("addTemplatesToCloud - Added " + addedTemplates.size() + " templates to the cloud: "
+				+ addedTemplates);
 	}
 
 	private String getWindowsLocalDirPath(final String remoteDirectoryPath, final String localDirName) {
-		String homeDirectoryName = getWindowsRemoteDirPath(remoteDirectoryPath);
-		File localDirectory = new File(homeDirectoryName, localDirName);
+		final String homeDirectoryName = getWindowsRemoteDirPath(remoteDirectoryPath);
+		final File localDirectory = new File(homeDirectoryName, localDirName);
 		return localDirectory.getAbsolutePath();
 	}
 
@@ -803,11 +805,12 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	/**
-	 * @param isolation - describes the relation between different service instances on the same machine
-	 * 				Assuming each service has a dedicated machine
-	 * {@link DedicatedMachineIsolation}, the machine isolation name is the service name.
-	 * This would change when instances from different services would be installed
-	 * on the same machine using {@link SharedMachineIsolation}.
+	 * @param isolation
+	 *            - describes the relation between different service instances on the same machine Assuming each service
+	 *            has a dedicated machine {@link org.openspaces.grid.gsm.machines.isolation.DedicatedMachineIsolation;},
+	 *            the machine isolation name is the service name. This would change when instances from different
+	 *            services would be installed on the same machine using
+	 *            {@link org.openspaces.grid.gsm.machines.isolation.SharedMachineIsolation}.
 	 */
 	@Override
 	public void setElasticProcessingUnitMachineIsolation(final ElasticProcessingUnitMachineIsolation isolation) {
@@ -817,13 +820,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	@Override
 	public void setElasticMachineProvisioningProgressChangedEventListener(
-			ElasticMachineProvisioningProgressChangedEventListener machineEventListener) {
+			final ElasticMachineProvisioningProgressChangedEventListener machineEventListener) {
 		this.machineEventListener = machineEventListener;
 	}
 
 	@Override
 	public void setElasticGridServiceAgentProvisioningProgressEventListener(
-			ElasticGridServiceAgentProvisioningProgressChangedEventListener agentEventListener) {
+			final ElasticGridServiceAgentProvisioningProgressChangedEventListener agentEventListener) {
 		this.agentEventListener = agentEventListener;
 	}
 }

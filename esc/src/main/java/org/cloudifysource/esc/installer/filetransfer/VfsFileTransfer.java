@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 
 package org.cloudifysource.esc.installer.filetransfer;
@@ -30,22 +27,22 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.FileType;
+import org.cloudifysource.dsl.cloud.CloudTemplateInstallerConfiguration;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 
 /*********
  * A base class for commons-vfs based file transfer.
- * 
+ *
  * @author barakme
  * @since 2.5.0
- * 
+ *
  */
 public abstract class VfsFileTransfer implements FileTransfer {
 
 	protected static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(SftpFileTransfer.class
 			.getName());
-	protected static final int SFTP_DISCONNECT_DETECTION_TIMEOUT_MILLIS = 10 * 1000;
-	protected static final int SSH_PORT = 22;
+
 	protected FileSystemManager fileSystemManager;
 	protected FileObject localDir;
 	protected FileObject remoteDir;
@@ -55,9 +52,11 @@ public abstract class VfsFileTransfer implements FileTransfer {
 
 	protected boolean deleteRemoteDirectoryContents = false;
 
+	protected CloudTemplateInstallerConfiguration installerConfiguration;
+
 	/******
 	 * Checks if the specified end time has reached.
-	 * 
+	 *
 	 * @param endTimeMillis
 	 *            the end time.
 	 * @throws TimeoutException
@@ -82,7 +81,7 @@ public abstract class VfsFileTransfer implements FileTransfer {
 	@Override
 	public void copyFiles(final InstallationDetails details,
 			final Set<String> excludedFiles, final List<File> additionalFiles, final long endTimeMillis)
-					throws TimeoutException, InstallerException {
+			throws TimeoutException, InstallerException {
 
 		logger.fine("Copying files to: " + host + " from local dir: " + localDir.getName().getPath() + " excluding "
 				+ excludedFiles.toString());
@@ -167,6 +166,7 @@ public abstract class VfsFileTransfer implements FileTransfer {
 	@Override
 	public void initialize(final InstallationDetails details, final long endTimeMillis)
 			throws TimeoutException, InstallerException {
+		this.installerConfiguration = details.getInstallerConfiguration();
 		this.deleteRemoteDirectoryContents = details.isDeleteRemoteDirectoryContents();
 		if (details.isConnectedToPrivateIp()) {
 			host = details.getPrivateIp();
@@ -200,7 +200,7 @@ public abstract class VfsFileTransfer implements FileTransfer {
 
 		try {
 			localDir = mng.resolveFile("file:" + localDirPath);
-			remoteDir = mng.resolveFile(targetURI, opts);
+			remoteDir = resolveTargetDirectory(opts, targetURI, mng);
 
 		} catch (final FileSystemException e) {
 			throw new InstallerException("Failed to set up file transfer: " + e.getMessage(), e);
@@ -208,9 +208,33 @@ public abstract class VfsFileTransfer implements FileTransfer {
 
 	}
 
+
+	private FileObject resolveTargetDirectory(final FileSystemOptions opts, final String target,
+			final FileSystemManager mng) throws FileSystemException {
+		FileSystemException lastException = null;
+
+		for (int i = 0; i < installerConfiguration.getFileTransferRetries(); ++i) {
+			try {
+				final FileObject targetDirectory = mng.resolveFile(target, opts);
+				logger.fine("Remote directory resolved successfully.");
+				return targetDirectory;
+			} catch (final FileSystemException fse) {
+				logger.fine("Attempt number: " + (i + 1) + " to reslve remote directory failed."
+						+ " This may be a temporary issue while remote machine is starting up.");
+				try {
+					Thread.sleep(installerConfiguration.getFileTransferConnectionRetryIntervalMillis());
+				} catch (final InterruptedException e) {
+					// ignore
+				}
+				lastException = fse;
+			}
+		}
+		throw lastException;
+	}
+
 	/*********
 	 * Initialize the VFS manager with the required settings.
-	 * 
+	 *
 	 * @param details
 	 *            the installation details.
 	 * @param endTimeMillis
@@ -223,7 +247,7 @@ public abstract class VfsFileTransfer implements FileTransfer {
 
 	/******
 	 * Creates the required URI so it will be available for use later.
-	 * 
+	 *
 	 * @param details
 	 *            the installation details.
 	 * @throws InstallerException

@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.cloudifysource.dsl.cloud.CloudTemplateInstallerConfiguration;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
 import org.cloudifysource.dsl.cloud.ScriptLanguages;
@@ -115,6 +116,7 @@ public class InstallationDetails implements Cloneable {
 
 	private String authGroups;
 
+	private CloudTemplateInstallerConfiguration installerConfiguration = null;
 	// Relevant only for management machines
 	/* *********************************************** */
 
@@ -495,5 +497,13 @@ public class InstallationDetails implements Cloneable {
 
 	public void setDeleteRemoteDirectoryContents(final boolean deleteRemoteDirectoryContents) {
 		this.deleteRemoteDirectoryContents = deleteRemoteDirectoryContents;
+	}
+
+	public CloudTemplateInstallerConfiguration getInstallerConfiguration() {
+		return installerConfiguration;
+	}
+
+	public void setInstallerConfiguration(CloudTemplateInstallerConfiguration installerConfiguration) {
+		this.installerConfiguration = installerConfiguration;
 	}
 }
