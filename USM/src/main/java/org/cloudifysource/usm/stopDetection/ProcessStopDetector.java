@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.usm.stopDetection;
 
@@ -29,9 +26,9 @@ import org.hyperic.sigar.SigarException;
 /***************
  * A stop detection implementation that checks if the monitored processes are still alive by checking their state using
  * the SIGAR library, using their PIDs.
- * 
+ *
  * @author barakme
- * 
+ *
  */
 public class ProcessStopDetector extends AbstractUSMEventListener implements StopDetector {
 
@@ -114,16 +111,19 @@ public class ProcessStopDetector extends AbstractUSMEventListener implements Sto
 	// We solve this by creating a new sigar instance every predetermined time interval.
 	/*********
 	 * Checks, using Sigar, is a given process is alive.
-	 * 
-	 * @param pid the process pid.
+	 *
+	 * @param pid
+	 *            the process pid.
 	 * @return true if the process is alive (i.e. not stopped or zombie).
-	 * @throws USMException in case of an error.
+	 * @throws USMException
+	 *             in case of an error.
 	 */
 	public boolean isProcessAlive(final long pid)
 			throws USMException {
 
 		final ProcState procState = getProcState(pid);
-		return (procState != null && procState.getState() != ProcState.STOP && procState.getState() != ProcState.ZOMBIE);
+		return (procState != null && procState.getState() != ProcState.STOP
+				&& procState.getState() != ProcState.ZOMBIE);
 	}
 
 	private boolean checkForOneProcessDead(final List<Long> pids)

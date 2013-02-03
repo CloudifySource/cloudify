@@ -36,10 +36,10 @@ import javax.management.remote.JMXServiceURL;
 
 /**
  * Generic fetcher for external-process JMX data.
- * 
+ *
  * @author giladh
  * @since 8.0.1
- * 
+ *
  */
 public class JmxGenericClient {
 
@@ -70,6 +70,11 @@ public class JmxGenericClient {
 
 	}
 
+	/********
+	 *
+	 * @author barakme
+	 *
+	 */
 	private static class JmxBeanAttributes {
 
 		private String objectName = "";

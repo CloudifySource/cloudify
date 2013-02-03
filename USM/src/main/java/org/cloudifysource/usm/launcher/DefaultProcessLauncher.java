@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.usm.launcher;
 
@@ -65,9 +62,9 @@ import com.j_spaces.kernel.PlatformVersion;
 /*************
  * The default process launcher implementation, used by the USM to launch external processes. Includes OS specific code
  * to modify a command line according to standard command line conventions.
- * 
+ *
  * @author barakme
- * 
+ *
  */
 public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware {
 
@@ -121,9 +118,9 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 	/**********
 	 * An interface for a Filename filter implementation that looks for alternative executables.
-	 * 
+	 *
 	 * @author barakme
-	 * 
+	 *
 	 */
 	private interface AlternativeExecutableFileNameFilter extends FilenameFilter {
 
@@ -243,10 +240,10 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		// <GS_HOME>/lib/platform/usm
 		addJarsFromDirectoryToList(new File(gsHome, "lib/platform/usm"),
 				list);
-		
+
 		addJarsFromDirectoryToList(new File(gsHome, "lib/platform/cloudify"),
 				list);
-		
+
 		addJarsFromDirectoryToList(new File(gsHome, "lib/platform/sigar"),
 				list);
 
@@ -278,28 +275,27 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 		final List<File> jars = getJarFilesForGroovyClasspath(homeDir,
 				workingDir);
-		
+
 		if (jars != null) {
-		
+
 			for (final File jar : jars) {
 				sb.append(jar.getAbsolutePath()).append(File.pathSeparator);
 			}
-		
+
 		}
 
 		final ArrayList<String> groovyCommandParams = new ArrayList<String>();
 		groovyCommandParams.add(groovyPath);
-		
-		//pass values as system props to the jvm, as required by XAP
-		List<String> envVarsList = new ArrayList<String>();
+
+		// pass values as system props to the jvm, as required by XAP
+		final List<String> envVarsList = new ArrayList<String>();
 		envVarsList.add("LOOKUP_LOCATORS_PROP");
 		envVarsList.add("LOOKUP_GROUPS_PROP");
 		envVarsList.add("RMI_OPTIONS");
 		envVarsList.add("GS_LOGGING_CONFIG_FILE_PROP");
-		
+
 		groovyCommandParams.addAll(convertEnvVarsToSysPropsList(envVarsList));
-		
-		
+
 		if (ServiceUtils.isWindows()) {
 			modifyWindowsCommandLine(groovyCommandParams, workingDir);
 		}
@@ -319,7 +315,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		// groovyCommandParams.add("-cp");
 		// groovyCommandParams.add(sb.toString());
 		// }
-		
+
 		logger.info("Setting groovyCommandParams to: " + groovyCommandParams);
 		this.groovyCommandLinePrefixParams = groovyCommandParams;
 	}
@@ -410,11 +406,11 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 						WINDOWS_BATCH_FILE_PREFIX_PARAMS[i]);
 			}
 		}
-		
-		//remove quotes
-		ListIterator<String> commandIterator = commandLineParams.listIterator();
+
+		// remove quotes
+		final ListIterator<String> commandIterator = commandLineParams.listIterator();
 		while (commandIterator.hasNext()) {
-			String param = commandIterator.next();
+			final String param = commandIterator.next();
 			commandIterator.remove();
 			commandIterator.add(StringUtils.replace(param, "\"", ""));
 		}
@@ -453,7 +449,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	private List<String> convertCommandLineStringToParts(final String commandLine) {
 		final List<String> list = new LinkedList<String>();
 		final String[] parts = commandLine.split(" ");
-        Collections.addAll(list, parts);
+		Collections.addAll(list, parts);
 		return list;
 	}
 
@@ -815,8 +811,9 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		}
 
 		modifyCommandLine(commandLineParams, workingDir, outputFile, errorFile);
-		final String modifiedCommandLine = org.springframework.util.StringUtils.collectionToDelimitedString(commandLineParams,
-				" ");
+		final String modifiedCommandLine =
+				org.springframework.util.StringUtils.collectionToDelimitedString(commandLineParams,
+						" ");
 
 		this.commandLine = commandLineParams; // last command line to be
 												// executed
@@ -898,11 +895,8 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 			} else {
 				logger.warning("PU Name in ClusterInfo is null. "
-						+ "If running in the IntegratedProcessingUnitContainer, this is normal. "
-						+ "Using 'USM' instead");
-				// TODO - the process launcher does have access to the service object, so can't know the service name.
-				// This could possibly be changed. This is useful for the test-recipe command, which will know the
-				// real service name.
+						+ "This should never happen as of 2.5.0");
+
 				map.put(CloudifyConstants.USM_ENV_CLUSTER_NAME,
 						ServiceUtils.getAbsolutePUName(CloudifyConstants.DEFAULT_APPLICATION_NAME,
 								"USM"));
@@ -984,29 +978,31 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	public void setClusterInfo(final ClusterInfo clusterInfo) {
 		this.clusterInfo = clusterInfo;
 	}
-	
-	
+
 	/**
-	 * Converts the specified environment variables to system properties.
-	 * Each environment variable is expected to have this value pattern: -DsystemPropertyName=systemPropertyValue
-	 * or this: -DsystemPropertyName=systemPropertyValue -DAnotherSystemPropertyName=anotherSystemPropertyValue
+	 * Converts the specified environment variables to system properties. Each environment variable is expected to have
+	 * this value pattern: -DsystemPropertyName=systemPropertyValue or this: -DsystemPropertyName=systemPropertyValue
+	 * -DAnotherSystemPropertyName=anotherSystemPropertyValue
+	 *
 	 * @param envVarsList
 	 * @return
 	 */
 	private static List<String> convertEnvVarsToSysPropsList(final List<String> envVarsList) {
-		List<String> sysPropsList = new ArrayList<String>();
+		final List<String> sysPropsList = new ArrayList<String>();
 		String envVarValue;
-	
-		for (String envVarName : envVarsList) {
+
+		for (final String envVarName : envVarsList) {
 			envVarValue = System.getenv(envVarName);
-			String [] sysProps = envVarValue.split("-D");
-			for (String sysProp : sysProps) {
-				if (StringUtils.isNotBlank(sysProp)) {
-					sysPropsList.add("-D" + sysProp.trim());
+			if (envVarValue != null) {
+				final String[] sysProps = envVarValue.split("-D");
+				for (final String sysProp : sysProps) {
+					if (StringUtils.isNotBlank(sysProp)) {
+						sysPropsList.add("-D" + sysProp.trim());
+					}
 				}
 			}
 		}
-		
+
 		return sysPropsList;
 	}
 

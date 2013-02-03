@@ -16,7 +16,7 @@ service {
 		postInstall{ println "postInstall fired " + var1 }
 		preStart{ println "preStart fired " + var2 }
 		start ([ "Linux": "run.sh -dieOnParentDeath false -port 7777" ,
-					"Win.*": "run.bat -dieOnParentDeath false -port 7777" ])
+					"Win.*": "run.bat -dieOnParentDeath true -port 7777" ])
 
 		postStart "post_start.groovy"
 
@@ -37,7 +37,8 @@ service {
 		monitors (["NumberTwo":{return 2},
 			"NumberOne":{return "1"}])
 		startDetection {
-			"HELLO!"
+			Thread.sleep(5000)
+			return true;
 		}
 
 	}

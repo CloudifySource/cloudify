@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 
 /******************
  * A utility class to handle exception thrown from groovy closures and parsers.
- * 
+ *
  * @author adaml
  *
  */
@@ -29,16 +29,16 @@ public final class GroovyExceptionHandler {
 	private GroovyExceptionHandler() {
 		// private constructor to prevent initialization.
 	}
-	private static final String RUNTIME_EXCEPTION_CAUGHT_REGEX = "(Caught:.*\\.groovy:[1-9]{1,}\\))";
+
 	private static final String COMPILATION_EXCEPTION_CAUGHT_REGEX =
 			"(([a-zA-Z]*:\\\\|/).+\\.groovy:\\s[1-9]+.*column\\s[1-9]+)";
 	private static Pattern compilationPattern = null;
 
 	/**
-	 * 
+	 *
 	 * Extracts the groovy exception string from a given string. Currently supports groovy Runtime and Compilation
 	 * exceptions.
-	 * 
+	 *
 	 * @param input
 	 *            The string containing the groovy exception.
 	 * @return Groovy exception string. empty string if not found.
@@ -54,7 +54,7 @@ public final class GroovyExceptionHandler {
 
 	/**
 	 * returns the groovy compilation exception from a given string.
-	 * 
+	 *
 	 * @param input
 	 * @return The compilation exception string, empty string if not found.
 	 */

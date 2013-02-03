@@ -17,6 +17,7 @@
 package org.cloudifysource.usm.locator;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -41,14 +42,14 @@ import com.gigaspaces.internal.sigar.SigarHolder;
  * under the current process, comparing the processes running before the start command was called, and after start
  * detection passed successfully. Then it select the 'leaf' nodes of this tree. This gives us the 'interesting'
  * processes, assuming the service process runs in the foreground.
- * 
+ *
  * This implementation is a heuristic, and works best when executing a single process in the foreground, typical for
  * multi-threaded processes like java application servers. It is generally a good idea for a process to explicitly
  * define its process locator, so that this locator is not used.
- * 
- * 
+ *
+ *
  * @author barakme
- * 
+ *
  */
 public class DefaultProcessLocator extends AbstractUSMEventListener implements ProcessLocator, PreStartListener {
 
@@ -91,7 +92,7 @@ public class DefaultProcessLocator extends AbstractUSMEventListener implements P
 
 	/**********
 	 * Creates a process tree of the given Process IDs. Each entry in the map maps a PID to the set of its child PIDs.
-	 * 
+	 *
 	 * @param pids
 	 * @return
 	 */
@@ -148,7 +149,7 @@ public class DefaultProcessLocator extends AbstractUSMEventListener implements P
 	/**********
 	 * Recursive function that scans the given process tree, rooted at the given parent PID, and add all leaf pids to
 	 * the result list.
-	 * 
+	 *
 	 * @param parentProcessID the root of the tree.
 	 * @param procTree the full process tree.
 	 * @param leafPids the result leaf pids list.
@@ -207,15 +208,15 @@ public class DefaultProcessLocator extends AbstractUSMEventListener implements P
 		for (final Long pid : pids) {
 			try {
 				final String procName = this.sigar.getProcExe(pid).getName();
+				final String[] procArgs = this.sigar.getProcArgs(pid);
+				logger.info("Located process (" + pid + "): " + procName + " " + Arrays.toString(procArgs));
 				for (final String shellName : SHELL_PROCESS_NAMES) {
 					if (procName.contains(shellName)) {
 						logger.warning("A monitored process(" + pid + " - " + procName + ") may be a console process. "
 								+ "This is usually a configuration problem. "
 								+ "USM Statistics will be collected for this process, "
 								+ "and not for the child process it probably has. Are you missing a Start Detector?");
-						return;
 					}
-
 				}
 			} catch (final SigarException e) {
 				logger.log(Level.SEVERE,
