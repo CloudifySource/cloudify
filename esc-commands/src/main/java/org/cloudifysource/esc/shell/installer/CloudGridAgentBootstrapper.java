@@ -184,7 +184,18 @@ public class CloudGridAgentBootstrapper {
 		createProvisioningDriver();
 
 		// Start the cloud machines!!!
-		final MachineDetails[] servers = getOrCreateManagementServers(timeout, timeoutUnit);
+		MachineDetails[] servers;
+		try {
+			servers = provisioning.startManagementMachines(timeout, timeoutUnit);
+		} catch (final CloudProvisioningException e) {
+			final CLIStatusException cliStatusException =
+					new CLIStatusException(e, CloudifyErrorMessages.CLOUD_API_ERROR.getName(), e.getMessage());
+			throw cliStatusException;
+		} catch (final TimeoutException e) {
+			throw new CLIException("Cloudify bootstrap on provider "
+					+ this.cloud.getProvider().getProvider() + " timed-out. "
+					+ "Please try to run again using the –timeout option.", e);
+		}
 
 		// from this point on - close machines if an exception is thrown (to
 		// avoid leaks).
