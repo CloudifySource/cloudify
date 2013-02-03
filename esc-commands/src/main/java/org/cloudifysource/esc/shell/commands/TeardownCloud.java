@@ -46,16 +46,18 @@ import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
 /**
  * Tears down the remote Cloud.
- * 
+ *
  * Optional arguments:
  * 		timeout - The number of minutes to wait until the operation is completed (default: 60 minutes)
  * 		force - states whether the management machine be shutdown if other applications are installed
- * 
+ *
  * @author barakme, adaml
  *
  */
 @Command(scope = "cloudify", name = "teardown-cloud", description = "Terminates management machines.")
 public class TeardownCloud extends AbstractGSCommand {
+
+	private static final int DEFAULT_TIMEOUT_MINUTES = 60;
 
 	private static final int POLLING_INTERVAT_SEC = 10;
 
@@ -63,12 +65,12 @@ public class TeardownCloud extends AbstractGSCommand {
 	private String cloudProvider;
 
 	@Option(required = false, name = "-timeout",
-			description = "The number of minutes to wait until the operation is done. By default waits 5 minutes.")
-	private int timeoutInMinutes = 60;
+			description = "The number of minutes to wait until the operation is done. ")
+	private final int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
 
 	@Option(required = false, name = "-force",
 			description = "Should management machine be shutdown if other applications are installed")
-	private boolean force = false;
+	private final boolean force = false;
 
 	@Override
 	protected Object doExecute() throws Exception {
@@ -76,11 +78,11 @@ public class TeardownCloud extends AbstractGSCommand {
 		if (!confirmTeardown()) {
             return getFormattedMessage("teardown_aborted");
         }
-		
+
 		if (this.adminFacade == null) {
 			adminFacade = (AdminFacade) session.get(Constants.ADMIN_FACADE);
 		}
-		
+
 		if (adminFacade.isConnected()) {
 			adminFacade.verifyCloudAdmin();
 		} else {
@@ -88,18 +90,18 @@ public class TeardownCloud extends AbstractGSCommand {
 				throw new CLIException("Please connect to the cloud before tearing down");
 			}
 		}
-		
+
 		CloudGridAgentBootstrapper installer = new CloudGridAgentBootstrapper();
 
 		RecipePathResolver pathResolver = new RecipePathResolver();
-		
+
 		File providerDirectory = null;
 		if (pathResolver.resolveCloud(new File(cloudProvider))) {
 			providerDirectory = pathResolver.getResolved();
 		} else {
-			throw new CLIStatusException("cloud_driver_file_doesnt_exist", 
+			throw new CLIStatusException("cloud_driver_file_doesnt_exist",
 					StringUtils.join(pathResolver.getPathsLooked().toArray(), ", "));
-		}		
+		}
 
 		// load the cloud file
 		File cloudFile = findCloudFile(providerDirectory);
@@ -142,7 +144,7 @@ public class TeardownCloud extends AbstractGSCommand {
 
 	private static final String[] NON_VERBOSE_LOGGERS = { DefaultProvisioningDriver.
 		class.getName(), AgentlessInstaller.class.getName() };
-	private Map<String, Level> loggerStates = new HashMap<String, Level>();
+	private final Map<String, Level> loggerStates = new HashMap<String, Level>();
 
 	private void limitLoggingLevel() {
 
@@ -163,11 +165,11 @@ public class TeardownCloud extends AbstractGSCommand {
 			for (Entry<String, Level> entry : entries) {
 				Logger provisioningLogger = Logger.getLogger(entry.getKey());
 				provisioningLogger.setLevel(entry.getValue());
-			}			
+			}
 		}
 
 	}
-	
+
 	private File findCloudFile(final File providerDirectory) throws FileNotFoundException {
 		if (!providerDirectory.exists() || !providerDirectory.isDirectory()) {
 			throw new FileNotFoundException("Could not find cloud provider directory: " + providerDirectory);
