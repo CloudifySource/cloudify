@@ -140,6 +140,7 @@ Write-Host Updating environment script
 insert-line $cloudifyDir\bin\setenv.bat "set NIC_ADDR=$ENV:MACHINE_IP_ADDRESS"
 insert-line $cloudifyDir\bin\setenv.bat "set LOOKUPLOCATORS=$ENV:LUS_IP_ADDRESS"
 insert-line $cloudifyDir\bin\setenv.bat "set JAVA_HOME=$javaDir"
+insert-line $cloudifyDir\bin\setenv.bat "set PATH=$javaDir\bin;$ENV:PATH"
 
 $scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
 if(Test-Path $scriptPath\cloudify_env.bat) {
