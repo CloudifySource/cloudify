@@ -15,15 +15,11 @@
  *******************************************************************************/
 package org.cloudifysource.s3client;
 
-import java.io.File;
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
-
-import org.apache.maven.project.MavenProject;
+import com.google.inject.Module;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.project.MavenProject;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.blobstore.BlobStoreContextFactory;
@@ -31,7 +27,10 @@ import org.jclouds.s3.S3Client;
 import org.jclouds.s3.domain.AccessControlList;
 import org.jclouds.s3.domain.CannedAccessPolicy;
 
-import com.google.inject.Module;
+import java.io.File;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * Deploy to S3 storage
@@ -144,5 +143,4 @@ public class S3DeployMojo extends AbstractMojo {
 	        return localRepoProp;
         return System.getProperty("user.home") + "/.m2/repository";
 	}
-
 }
