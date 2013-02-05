@@ -78,12 +78,14 @@ public class CloudComponentConfigTest {
 				orchestrator.getMaxMemory().equals("4096m"));
 	}
 	private void validateDiscoveryValues(final DiscoveryComponent discovery) {
-		Assert.assertTrue("unexpected orchestrator port property " + discovery.getPort(), 
-				discovery.getPort() == 4174);
+		Assert.assertTrue("unexpected orchestrator discovery port property " + discovery.getDiscoveryPort(), 
+				discovery.getDiscoveryPort() == 4174);
 		Assert.assertTrue("unexpected orchestrator min memory property " + discovery.getMinMemory(),
 				discovery.getMinMemory().equals("64m"));
 		Assert.assertTrue("unexpected orchestrator max memory property " + discovery.getMaxMemory(),
 				discovery.getMaxMemory().equals("2048m"));
+		Assert.assertTrue("unexpected orchestrator lrmi port property " + discovery.getPort(), 
+				discovery.getPort() == 2222);
 	}
 	
 	private void validateDeployerValues(final DeployerComponent deployer) {

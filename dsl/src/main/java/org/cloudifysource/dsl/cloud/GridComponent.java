@@ -1,5 +1,6 @@
 package org.cloudifysource.dsl.cloud;
 
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.DSLValidation;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
@@ -11,18 +12,8 @@ import org.cloudifysource.dsl.internal.DSLValidationException;
 * @since 2.5.0
  */
 public abstract class GridComponent {
-	
 	private String minMemory;
 	private String maxMemory;
-	private Integer port;
-
-	public Integer getPort() {
-		return port;
-	}
-
-	public void setPort(final Integer port) {
-		this.port = port;
-	} 
 	
 	public String getMinMemory() {
 		return minMemory;
@@ -40,31 +31,24 @@ public abstract class GridComponent {
 		this.maxMemory = maxMemory;
 	}
 	
-	//TODO [adaml]: add memory format validation.
 	@DSLValidation
 	void validateMemorySyntax(final DSLValidationContext validationContext) 
 			throws DSLValidationException {
-		
-//		validateNumberPrefix();
-//		validateMemorySuffix();
-	}
-	
-//	private void validateIsNumeric(final String maxMemoryPrefix)
-//			throws DSLValidationException {
-//		if (!StringUtils.isNumeric(maxMemoryPrefix) || maxMemoryPrefix.length() == 0) {
-//			throw new DSLValidationException("Component memory alloaction should be defined as such:" 
-//					+ " <NUMBER>m.");
-//		}
-//	}
-
-	@DSLValidation
-	void validatePort(final DSLValidationContext validationContext) throws DSLValidationException {
-		if (this.port != null) {
-			if (this.port <= 0) {
-				throw new DSLValidationException("Port must be set to a positive number." 
-						+ " set " + this.port.toString());
-			}
+		if (this.maxMemory == null 
+			|| this.maxMemory.length() <= 1
+			|| this.maxMemory.endsWith("m")
+			|| !StringUtils.isNumeric(this.maxMemory.substring(0, this.maxMemory.length() - 1))) {
+			
+				throw new DSLValidationException("Illegal memory property: " + this.maxMemory
+						+ " Memory property should be defined as '<NUMBER>m'.");
 		}
+		if (this.minMemory == null 
+			|| this.minMemory.length() <= 1
+			|| this.minMemory.endsWith("m")
+			|| !StringUtils.isNumeric(this.minMemory.substring(0, this.minMemory.length() - 1))) {
+			
+				throw new DSLValidationException("Illegal memory property: " + this.minMemory
+						+ " Memory property should be defined as '<NUMBER>m'.");
+			}
 	}
-	
 }

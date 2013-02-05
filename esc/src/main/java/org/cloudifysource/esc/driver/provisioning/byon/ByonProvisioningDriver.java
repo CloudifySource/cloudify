@@ -453,7 +453,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		if (StringUtils.isNotBlank(managementIP)) {
 			// TODO don't fly if timeout reached because expectedGsmCount wasn't
 			// reached
-			final Admin admin = Utils.getAdminObject(managementIP, expectedGsmCount);
+			Integer discoveryPort = getLusPort();
+			final Admin admin = Utils.getAdminObject(managementIP, expectedGsmCount, discoveryPort);
 			try {
 				final GridServiceManagers gsms = admin.getGridServiceManagers();
 				for (final GridServiceManager gsm : gsms) {
@@ -472,12 +473,21 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		return existingManagementServers;
 	}
 
+	Integer getLusPort() {
+		Integer discoveryPort = cloud.getConfiguration().getComponents().getDiscovery().getDiscoveryPort();
+		if (discoveryPort == null) {
+			discoveryPort = CloudifyConstants.DEFAULT_LUS_PORT;
+		}
+		return discoveryPort;
+	}
+
 	private void stopAgentAndWait(final int expectedGsmCount, final String ipAddress)
 			throws TimeoutException,
 			InterruptedException {
-
+		
 		if (admin == null) {
-			admin = Utils.getAdminObject(ipAddress, expectedGsmCount);
+			Integer discoveryPort = getLusPort();
+			admin = Utils.getAdminObject(ipAddress, expectedGsmCount, discoveryPort);
 		}
 
 		final Map<String, GridServiceAgent> agentsMap = admin.getGridServiceAgents().getHostAddress();

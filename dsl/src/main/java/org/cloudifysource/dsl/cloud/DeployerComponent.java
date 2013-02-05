@@ -16,6 +16,7 @@
 package org.cloudifysource.dsl.cloud;
 
 import org.cloudifysource.dsl.DSLValidation;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
@@ -31,7 +32,23 @@ allowRootNode = false, parent = "components")
 public class DeployerComponent extends GridComponent {
 	
 	private Integer websterPort;
+	private Integer port;
+	
+	public DeployerComponent() {
+		this.setMaxMemory(CloudifyConstants.DEFAULT_GSM_MAX_MEMORY);
+		this.setMinMemory(CloudifyConstants.DEFAULT_GSM_MIN_MEMORY);
+		this.setWebsterPort(CloudifyConstants.DEFAULT_GSM_WEBSTER_PORT);
+		this.setPort(CloudifyConstants.DEFAULT_GSM_LRMI_PORT);
+	}
 
+	public Integer getPort() {
+		return port;
+	}
+
+	public void setPort(final Integer port) {
+		this.port = port;
+	} 
+	
 	public Integer getWebsterPort() {
 		return websterPort;
 	}
@@ -42,11 +59,17 @@ public class DeployerComponent extends GridComponent {
 	
 	@DSLValidation
 	void validatePort(final DSLValidationContext validationContext) throws DSLValidationException {
-		if (this.websterPort != null) {
-			if (this.websterPort <= 0) {
-				throw new DSLValidationException("Deployer http port must be set to a positive number."
-						+ " set " + this.websterPort.toString());
-			}
+		if (this.websterPort == null) {
+			throw new DSLValidationException("webster port can't be null");
+		}
+		if (this.port == null) {
+			throw new DSLValidationException("LRMI port can't be null");
+		}
+		if (this.websterPort <= 1024 || this.websterPort > 65535) {
+			throw new DSLValidationException("webster port must be set to a positive integer between 1024 and 65536");
+		}
+		if (this.port <= 1024  || this.port > 65535) {
+			throw new DSLValidationException("LRMI port must be set to a positive integer between 1024 and 65536");
 		}
 	}
 }

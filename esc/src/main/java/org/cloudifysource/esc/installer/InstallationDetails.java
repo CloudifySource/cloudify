@@ -124,7 +124,7 @@ public class InstallationDetails implements Cloneable {
 	private String lusCommandlineArgs;
 	private String gsmCommandlineArgs;
 	private String gsaCommandlineArgs;
-	private String gscCommandlineArgs;
+	private String gscLrmiPortRange;
 
 	// management web service properties
 	private String restMaxMemory;
@@ -441,12 +441,12 @@ public class InstallationDetails implements Cloneable {
 		this.gsaCommandlineArgs = gsaCommandlineArgs;
 	}
 
-	public String getGscCommandlineArgs() {
-		return gscCommandlineArgs;
+	public String getGscLrmiPortRange() {
+		return gscLrmiPortRange;
 	}
 
-	public void setGscCommandlineArgs(final String gscCommandlineArgs) {
-		this.gscCommandlineArgs = gscCommandlineArgs;
+	public void setGscLrmiPortRange(final String gscLrmiPortRange) {
+		this.gscLrmiPortRange = gscLrmiPortRange;
 	}
 
 	public Integer getRestPort() {

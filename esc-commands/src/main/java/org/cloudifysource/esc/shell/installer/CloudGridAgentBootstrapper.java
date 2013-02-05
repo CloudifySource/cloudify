@@ -597,23 +597,13 @@ public class CloudGridAgentBootstrapper {
 	private String createLocatorsString(
 			final InstallationDetails[] installations) {
 
-		// This is a workaround to allow cloudify nodes to use a non-default discovery port.
-		// At the moment, the cloudify cloud driver configuration does not support setting
-		// the unicast discovery port, so we use this property, along with the required
-		// environment variables.
-		// This should be replaced when cloudify adds support for network port configuration.
-		final Integer port = (Integer) cloud.getCustom().get(
-				CloudifyConstants.CUSTOM_CLOUD_PROPERTY_UNICAST_DISCOVERY_PORT);
+		final Integer port = cloud.getConfiguration().getComponents().getDiscovery().getDiscoveryPort();
 		final StringBuilder lookupSb = new StringBuilder();
 		for (final InstallationDetails detail : installations) {
 			final String ip = cloud.getConfiguration().isConnectToPrivateIp() ? detail
 					.getPrivateIp() : detail.getPublicIp();
-
-			if (port == null) {
-				lookupSb.append(ip).append(',');
-			} else {
-				lookupSb.append(ip).append(":").append(port).append(',');
-			}
+					
+					lookupSb.append(ip).append(":").append(port).append(',');
 		}
 
 		lookupSb.setLength(lookupSb.length() - 1);

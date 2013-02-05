@@ -67,6 +67,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	private List<LocalhostBootstrapperListener> eventsListenersList = new ArrayList<LocalhostBootstrapperListener>();
 	private boolean isLocalcloud;
 	private boolean isSecureConnection; //Indicates whether the connection to this web server is secure (SSL)
+	private String lrmiCommandLineArgument = "";
 
 	/**
 	 * Sets the service's port.
@@ -132,7 +133,8 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 								.reservedMemoryCapacityPerMachine(RESERVED_MEMORY_IN_MB, MemoryUnit.MEGABYTES)
 								.create())
 				// Eager scale (1 container per machine per PU)
-				.scale(new EagerScaleConfigurer().atMostOneContainerPerMachine().create());
+				.scale(new EagerScaleConfigurer().atMostOneContainerPerMachine().create())
+				.addCommandLineArgument(this.lrmiCommandLineArgument);
 
 		for (final Entry<Object, Object> prop : getContextProperties().entrySet()) {
 			deployment.addContextProperty(prop.getKey().toString(), prop.getValue().toString());
@@ -142,6 +144,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 			deployment.addDependencies(new ProcessingUnitDeploymentDependenciesConfigurer()
 					.dependsOnMinimumNumberOfDeployedInstancesPerPartition(requiredPUName, 1).create());
 		}
+		// The gsc java options define the lrmi port range and memory size if not defined.
 
 		getGridServiceManager().deploy(deployment);
 	}
@@ -476,6 +479,10 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	
 	public void setIsSecureConnection(boolean isSecureConnection) {
 		this.isSecureConnection = isSecureConnection;
+	}
+	
+	public void setLrmiCommandLineArgument(final String lrmiCommandLineArgument) {
+		this.lrmiCommandLineArgument  = lrmiCommandLineArgument;
 	}
 
 }

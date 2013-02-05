@@ -15,7 +15,11 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.cloud;
 
+import org.cloudifysource.dsl.DSLValidation;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.cloudifysource.dsl.internal.DSLValidationContext;
+import org.cloudifysource.dsl.internal.DSLValidationException;
 
 /******
  * Webui configuration POJO.
@@ -27,5 +31,28 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 @CloudifyDSLEntity(name = "webui", clazz = WebuiComponent.class, allowInternalNode = true,
 allowRootNode = false, parent = "components")
 public class WebuiComponent extends GridComponent {
+	private Integer port;
 
+	public WebuiComponent() {
+		this.setMaxMemory(CloudifyConstants.DEFAULT_WEBUI_MAX_MEMORY);
+		this.setMinMemory(CloudifyConstants.DEFAULT_WEBUI_MIN_MEMORY);
+		this.setPort(CloudifyConstants.DEFAULT_WEBUI_PORT);
+	}
+	public Integer getPort() {
+		return port;
+	}
+
+	public void setPort(final Integer port) {
+		this.port = port;
+	}
+	
+	@DSLValidation
+	void validatePort(final DSLValidationContext validationContext) throws DSLValidationException {
+		if (this.port == null) {
+			throw new DSLValidationException("LRMI port can't be null");
+		}
+		if (this.port <= 1024 || this.port > 65535) {
+			throw new DSLValidationException("LRMI port must be set to a positive integer between 1024 and 65535");
+		}
+	}
 }

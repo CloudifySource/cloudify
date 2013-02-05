@@ -209,19 +209,6 @@ public final class CloudifyConstants {
 	public static final String SERVICE_ORDER = "srviceOrder";
 	public static final String SERVER_POLLING_TASK_EXPIRATION_MILLI = "PollingTaskExpirationTimeMillis";
 
-	/*******************
-	 * default ports (LUS and REST)
-	 */
-	public static final int DEFAULT_REST_PORT = 8100;
-	public static final int DEFAULT_WEBUI_PORT = 8099;
-	
-	public static final int SECURE_REST_PORT = 8100;
-	public static final int SECURE_WEBUI_PORT = 8099;
-	
-	public static final int DEFAULT_LUS_PORT = net.jini.discovery.Constants
-			.getDiscoveryPort();
-	public static final int DEFAULT_LOCALCLOUD_LUS_PORT = DEFAULT_LUS_PORT + 2;
-
 	/************************
 	 * Keys used by Agentless Installer to modify default installer behavior.
 	 */
@@ -315,7 +302,7 @@ public final class CloudifyConstants {
 	 */
 	public static final String LUS_PORT_CONTEXT_PROPERTY = "com.sun.jini.reggie.initialUnicastDiscoveryPort";
 	public static final String GSM_HTTP_PORT_CONTEXT_PROPERTY = "com.gigaspaces.start.httpPort";
-	public static final String GSC_PORT_RANGE_CONTEXT_PROPERTY = "com.gs.transport_protocol.lrmi.bind-port";
+	public static final String LRMI_BIND_PORT_CONTEXT_PROPERTY = "com.gs.transport_protocol.lrmi.bind-port";
 	public static final String AGENT_PORT_CONTEXT_PROPERTY = "com.gigaspaces.system.registryPort";
 	
 	 /********************
@@ -325,6 +312,50 @@ public final class CloudifyConstants {
 	public static final String WEBUI_PORT_ENV_VAR = "WEBUI_PORT_ENV_VAR";
 	public static final String WEBUI_MAX_MEMORY_ENVIRONMENT_VAR = "WEBUI_MAX_MEMORY_ENVIRONMENT_VAR";
 	public static final String REST_MAX_MEMORY_ENVIRONMENT_VAR = "REST_MAX_MEMORY_ENVIRONMENT_VAR";
+	public static final String GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR = "GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR";
+	
+	/*********************
+	 * service grid components configuration.
+	 */
+	public static final String DEFAULT_AGENT_MAX_MEMORY = "128m";
+	public static final String DEFAULT_AGENT_MIN_MEMORY = "128m";
+	public static final int DEFAULT_AGENT_LRMI_PORT = 7002;
+	
+	public static final String DEFAULT_GSM_MAX_MEMORY = "128m";
+	public static final String DEFAULT_GSM_MIN_MEMORY = "128m";
+	public static final int DEFAULT_GSM_LRMI_PORT = 7000;
+	public static final int DEFAULT_GSM_WEBSTER_PORT = 6666;
+	
+	public static final String DEFAULT_LUS_MAX_MEMORY = "128m";
+	public static final String DEFAULT_LUS_MIN_MEMORY = "128m";
+	public static final int DEFAULT_LUS_LRMI_PORT = 7001;
+	public static final int DEFAULT_LUS_PORT = net.jini.discovery.Constants
+			.getDiscoveryPort();
+	
+	public static final String DEFAULT_ESM_MAX_MEMORY = "128m";
+	public static final String DEFAULT_ESM_MIN_MEMORY = "128m";
+	public static final int DEFAULT_ESM_LRMI_PORT = 7003;
+	
+	public static final String DEFAULT_GSC_MAX_MEMORY = "128m";
+	public static final String DEFAULT_GSC_MIN_MEMORY = "128m";
+	public static final String DEFAULT_GSC_LRMI_PORT_RANGE = "7000-7110";
+	
+	public static final String DEFAULT_REST_MAX_MEMORY = "128m";
+	public static final String DEFAULT_REST_MIN_MEMORY = "128m";
+	public static final int DEFAULT_REST_PORT = 8100;
+	public static final int SECURE_REST_PORT = 8100;
+	
+	public static final String DEFAULT_WEBUI_MAX_MEMORY = "256m";
+	public static final String DEFAULT_WEBUI_MIN_MEMORY = "128m";
+	public static final int DEFAULT_WEBUI_PORT = 8099;
+	public static final int SECURE_WEBUI_PORT = 8099;
+	
+	public static final int MANAGEMENT_SPACE_MEMORY_IN_MB = 64;
+	
+	public static final int DEFAULT_LOCALCLOUD_LUS_PORT = DEFAULT_LUS_PORT + 2;
+	//localcloud memory configuration properties.
+	public static final int DEFAULT_LOCALCLOUD_REST_WEBUI_SPACE_MEMORY_IN_MB = 256;
+	public static final int DEFAULT_LOCALCLOUD_GSA_GSM_ESM_LUS_MEMORY_IN_MB = 128;
 	
 	/**
 	 * Http timeouts
