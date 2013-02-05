@@ -289,27 +289,20 @@ public class AgentlessInstaller {
 			}
 			builder.exportVar(CLOUD_FILE, remotePath + details.getCloudFile().getName());
 
-			logger.log(Level.FINE, "Setting ESM/GSM/LUS/GSA/GSC java options");
-
+			logger.log(Level.FINE, "Setting ESM/GSM/LUS java options.");
 			builder.exportVar("ESM_JAVA_OPTIONS", details.getEsmCommandlineArgs());
 			builder.exportVar("LUS_JAVA_OPTIONS", details.getLusCommandlineArgs());
 			builder.exportVar("GSM_JAVA_OPTIONS", details.getGsmCommandlineArgs());
-			builder.exportVar("GSA_JAVA_OPTIONS", details.getGsaCommandlineArgs());
-			builder.exportVar("GSC_JAVA_OPTIONS", details.getGscCommandlineArgs());
-
-			if (details.getRestPort() != null) {
-				builder.exportVar(CloudifyConstants.REST_PORT_ENV_VAR, details.getRestPort().toString());
-			}
-			if (details.getRestMaxMemory() != null) {
-				builder.exportVar(CloudifyConstants.REST_MAX_MEMORY_ENVIRONMENT_VAR, details.getRestMaxMemory());
-			}
-			if (details.getWebuiPort() != null) {
-				builder.exportVar(CloudifyConstants.WEBUI_PORT_ENV_VAR, details.getWebuiPort().toString());
-			}
-			if (details.getWebuiMaxMemory() != null) {
-				builder.exportVar(CloudifyConstants.WEBUI_MAX_MEMORY_ENVIRONMENT_VAR, details.getWebuiMaxMemory());
-			}
+			
+			logger.log(Level.FINE, "Setting gsc lrmi port-range and custom rest/webui ports.");
+			builder.exportVar(CloudifyConstants.GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR, details.getGscLrmiPortRange());
+			builder.exportVar(CloudifyConstants.REST_PORT_ENV_VAR, details.getRestPort().toString());
+			builder.exportVar(CloudifyConstants.REST_MAX_MEMORY_ENVIRONMENT_VAR, details.getRestMaxMemory());
+			builder.exportVar(CloudifyConstants.WEBUI_PORT_ENV_VAR, details.getWebuiPort().toString());
+			builder.exportVar(CloudifyConstants.WEBUI_MAX_MEMORY_ENVIRONMENT_VAR, details.getWebuiMaxMemory());
 		}
+		logger.log(Level.FINE, "Setting GSA java options.");
+		builder.exportVar("GSA_JAVA_OPTIONS", details.getGsaCommandlineArgs());
 
 		if (details.getUsername() != null) {
 			builder.exportVar("USERNAME", details.getUsername());

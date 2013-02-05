@@ -26,14 +26,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
-import org.cloudifysource.dsl.cloud.AgentComponent;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
-import org.cloudifysource.dsl.cloud.DeployerComponent;
-import org.cloudifysource.dsl.cloud.DiscoveryComponent;
-import org.cloudifysource.dsl.cloud.GridComponent;
 import org.cloudifysource.dsl.cloud.GridComponents;
-import org.cloudifysource.dsl.cloud.UsmComponent;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
@@ -74,6 +69,8 @@ public final class Utils {
 	 *            The number of GridServiceManager objects that are expected to
 	 *            be found. Only when this number is reached, the admin object
 	 *            is considered loaded and can be returned
+	 * @param lusPort
+	 * 				The lookup service port.
 	 * @return An updated admin object
 	 * @throws TimeoutException
 	 *             Indicates the timeout (default is 90 seconds) was reached
@@ -81,11 +78,11 @@ public final class Utils {
 	 * @throws InterruptedException
 	 *             Indicated the thread was interrupted while waiting
 	 */
-	public static Admin getAdminObject(final String managementIP, final int expectedGsmCount)
+	public static Admin getAdminObject(final String managementIP, final int expectedGsmCount, final Integer lusPort)
 			throws TimeoutException,
 			InterruptedException {
 		final AdminFactory adminFactory = new AdminFactory();
-		adminFactory.addLocator(managementIP + ":" + CloudifyConstants.DEFAULT_LUS_PORT);
+		adminFactory.addLocator(managementIP + ":" + lusPort);
 		final Admin admin = adminFactory.createAdmin();
 		GridServiceManagers gsms = admin.getGridServiceManagers();
 		final long end = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(ADMIN_API_TIMEOUT);
@@ -240,19 +237,23 @@ public final class Utils {
 
 		details.setCloudFile(cloudFile);
 		details.setManagement(isManagement);
+		GridComponents componentsConfig = cloud.getConfiguration().getComponents();
 		if (isManagement) {
 			details.setConnectedToPrivateIp(!cloud.getConfiguration().isBootstrapManagementOnPublicIp());
 			details.setSecurityProfile(securityProfile);
 			details.setKeystorePassword(keystorePassword);
 
 			//setting management grid components command-line arguments
-			GridComponents componentsConfig = cloud.getConfiguration().getComponents();
-			details.setEsmCommandlineArgs(Utils.getGridComponentCommandlineArgs(componentsConfig.getOrchestrator()));
-			details.setGsmCommandlineArgs(Utils.getGridComponentCommandlineArgs(componentsConfig.getDeployer()));
-			details.setLusCommandlineArgs(Utils.getGridComponentCommandlineArgs(componentsConfig.getDiscovery()));
-			details.setGsaCommandlineArgs(Utils.getGridComponentCommandlineArgs(componentsConfig.getAgent()));
-			details.setGscCommandlineArgs(Utils.getGridComponentCommandlineArgs(componentsConfig.getUsm()));
-
+			String esmCommandlineArgs = ConfigUtils.getEsmCommandlineArgs(componentsConfig.getOrchestrator());
+			String lusCommandlineArgs = ConfigUtils.getLusCommandlineArgs(componentsConfig.getDiscovery());
+			String gsmCommandlineArgs = ConfigUtils.getGsmCommandlineArgs(componentsConfig.getDeployer(),
+					componentsConfig.getDiscovery());
+			details.setEsmCommandlineArgs('"' + esmCommandlineArgs + '"');
+			details.setLusCommandlineArgs('"' + lusCommandlineArgs + '"');
+			details.setGsmCommandlineArgs('"' + gsmCommandlineArgs + '"');
+			
+			//setting management services LRMI port range. 
+			details.setGscLrmiPortRange(componentsConfig.getUsm().getPortRange());
 			//setting web service ports and memory allocation
 			details.setRestPort(componentsConfig.getRest().getPort());
 			details.setWebuiPort(componentsConfig.getWebui().getPort());
@@ -262,6 +263,7 @@ public final class Utils {
 		} else {
 			details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		}
+		details.setGsaCommandlineArgs('"' + ConfigUtils.getAgentCommandlineArgs(componentsConfig.getAgent()) + '"');
 
 		// Add all template custom data fields starting with 'installer.' to the
 		// installation details
@@ -342,60 +344,8 @@ public final class Utils {
 		logger.fine("Created InstallationDetails: " + details);
 		return details;
 	}
+	
 
-	//These are the java options/system props used for actual cloud not for local cloud
-	private static String getGridComponentCommandlineArgs(final GridComponent component) {
-		Integer port = component.getPort();
-		String maxMemory = component.getMaxMemory();
-		String minMemory = component.getMinMemory();
-
-		StringBuilder sb = new StringBuilder();
-		sb.append('"');
-		if (maxMemory != null) {
-			sb.append(" -Xmx" + maxMemory);
-		}
-
-		if (minMemory != null) {
-			sb.append(" -Xms" + minMemory);
-		}
-
-		if (component instanceof DeployerComponent) {
-			Integer websterPort = ((DeployerComponent) component).getWebsterPort();
-			if (websterPort != null) {
-				sb.append(" -D" + CloudifyConstants.GSM_HTTP_PORT_CONTEXT_PROPERTY + "="
-						+ websterPort);
-			}
-		}
-
-		if (component instanceof UsmComponent) {
-			String portRange = ((UsmComponent) component).getPortRange();
-			if (org.apache.commons.lang.StringUtils.isNotBlank(portRange)) {
-				sb.append(" -D" + CloudifyConstants.GSC_PORT_RANGE_CONTEXT_PROPERTY + "="
-						+ portRange);
-			}
-		}
-
-		if (component instanceof DiscoveryComponent) {
-			if (port != null) {
-				sb.append(" -D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY + "="
-						+ port);
-			} else {
-				sb.append(" -D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY + "="
-						+ CloudifyConstants.DEFAULT_LUS_PORT);
-			}
-		}
-
-		if (component instanceof AgentComponent) {
-			if (port != null) {
-				sb.append(" -D" + CloudifyConstants.AGENT_PORT_CONTEXT_PROPERTY + "="
-						+ port);
-			}
-		}
-
-		sb.append('"');
-		return sb.toString();
-
-	}
 
 	/***********
 	 * Created a temporary folder.

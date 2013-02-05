@@ -2324,6 +2324,11 @@ public class ServiceController implements ServiceDetailsProvider {
 				}
 			}
 		} else {
+			deployment.addCommandLineArgument("-Xmx" + cloud.getConfiguration().getComponents().getUsm().getMaxMemory())
+			.addCommandLineArgument("-Xms" + cloud.getConfiguration().getComponents().getUsm().getMinMemory())
+			.addCommandLineArgument("-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "=" 
+									+ cloud.getConfiguration().getComponents().getUsm().getPortRange());
+			
 			final CloudTemplate template = getComputeTemplate(cloud, templateName);
 
 

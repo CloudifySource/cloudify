@@ -53,6 +53,8 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 
 	private boolean isLocalcloud;
 
+	private String lrmiCommandLineArgument = "";
+
 	/**
 	 * Sets the management space availability behavior. A highly-available space is a space that must always
 	 * have a backup instance, running on a separate machine.
@@ -99,7 +101,8 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 								.reservedMemoryCapacityPerMachine(RESERVED_MEMORY_IN_MB, MemoryUnit.MEGABYTES)
 								.create())
 				// Eager scale (1 container per machine per PU)
-				.scale(new EagerScaleConfigurer().atMostOneContainerPerMachine().create());
+				.scale(new EagerScaleConfigurer().atMostOneContainerPerMachine().create())
+				.addCommandLineArgument(this.lrmiCommandLineArgument);
 
 		for (final Entry<Object, Object> prop : getContextProperties().entrySet()) {
 			deployment.addContextProperty(prop.getKey().toString(), prop.getValue().toString());
@@ -109,6 +112,7 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 			deployment.addDependencies(new ProcessingUnitDeploymentDependenciesConfigurer()
 					.dependsOnMinimumNumberOfDeployedInstancesPerPartition(requiredPUName, 1).create());
 		}
+		// The gsc java options define the lrmi port range and memory size if not defined.
 
 		getGridServiceManager().deploy(deployment);
 
@@ -217,14 +221,17 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 	}
 	
 	private void publishEvent(final String event) {
-		for (final LocalhostBootstrapperListener listner : this.eventsListenersList) {
-			listner.onLocalhostBootstrapEvent(event);
+		for (final LocalhostBootstrapperListener listener : this.eventsListenersList) {
+			listener.onLocalhostBootstrapEvent(event);
 		}
 	}
 
 	public void setIsLocalCloud(boolean isLocalCloud) {
 		this.isLocalcloud = isLocalCloud;
-		
+	}
+
+	public void setLrmiCommandLineArgument(final String lrmiCommandLineArgument) {
+		this.lrmiCommandLineArgument  = lrmiCommandLineArgument;
 	}
 	
 }

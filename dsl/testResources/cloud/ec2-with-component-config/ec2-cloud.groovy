@@ -42,8 +42,9 @@ cloud {
 				maxMemory "16m"
 			}
 			discovery {
+				discoveryPort 4174
 				//RMI port
-				port 4174
+				port 2222
 				minMemory "64m"
 				maxMemory "2048m"
 			}
