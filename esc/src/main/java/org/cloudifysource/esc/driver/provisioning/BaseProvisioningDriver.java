@@ -19,9 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -56,8 +54,8 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	protected static final String EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API = "connection_to_cloud_api_succeeded";
 	protected static final String EVENT_ATTEMPT_START_MGMT_VMS = "attempting_to_create_management_vms";
 	protected static final String EVENT_MGMT_VMS_STARTED = "management_started_successfully";
-	protected static final String AGENT_MACHINE_PREFIX = "cloudify_agent_";
-	protected static final String MANAGMENT_MACHINE_PREFIX = "cloudify_managememnt_";
+	protected static final String AGENT_MACHINE_PREFIX = "cloudify-agent-";
+	protected static final String MANAGMENT_MACHINE_PREFIX = "cloudify-managememnt-";
 
 	protected boolean management;
 	protected static AtomicInteger counter = new AtomicInteger();
@@ -73,12 +71,11 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 
 	protected final List<ProvisioningDriverListener> eventsListenersList = new LinkedList<ProvisioningDriverListener>();
 
-	protected final Map<String, Long> stoppingMachines = new ConcurrentHashMap<String, Long>();
 
 	/**
 	 * Initializing the cloud deployer according to the given cloud
 	 * configuration.
-	 * 
+	 *
 	 * @param cloud
 	 *            Cloud object to use
 	 */
@@ -157,7 +154,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	 * Handles credentials for accessing the server - in this order: 1. pem file
 	 * (set as a key file on the user block in the groovy file) 2. machine's
 	 * remote password (set previously by the cloud driver)
-	 * 
+	 *
 	 * @param machineDetails
 	 *            The MachineDetails object that represents this server
 	 * @param template
@@ -193,11 +190,9 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 						keyFile = File.createTempFile("gs-esm-key", ".pem");
 						keyFile.deleteOnExit();
 						FileUtils.write(keyFile, remotePassword);
-						// TODO : stop settings the machine's private key as the
-						// entire cloud's key. This would cause
-						// a problem if the cloud (i.e. Rackspace) returns a
-						// different key for each machine.
-						template.setKeyFile(keyFile.getAbsolutePath());
+
+						// template.setKeyFile(keyFile.getAbsolutePath());
+						machineDetails.setKeyFile(keyFile);
 					} catch (final IOException e) {
 						throw new CloudProvisioningException("Failed to create a temporary "
 								+ "file for cloud server's key file", e);
@@ -222,7 +217,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	/**
 	 * Publish a provisioning event occurred for the listeners registered on
 	 * this class.
-	 * 
+	 *
 	 * @param eventName
 	 *            The name of the event (must be in the message bundle)
 	 * @param args
@@ -237,7 +232,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	/*********
 	 * Created a machine details with basic settings from the given cloud
 	 * template.
-	 * 
+	 *
 	 * @param template
 	 *            the cloud template.
 	 * @return the newly created machine details.
@@ -258,7 +253,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		return md;
 
 	}
-	
+
 	protected MachineDetails[] doStartManagementMachines(final long endTime, final int numberOfManagementMachines)
 			throws TimeoutException, CloudProvisioningException {
 		final ExecutorService executors = Executors.newFixedThreadPool(numberOfManagementMachines);
@@ -329,6 +324,6 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 			CloudTemplate template) throws CloudProvisioningException, TimeoutException;
 
 	protected abstract void handleProvisioningFailure(int numberOfManagementMachines,
-			int numberOfErrors, Exception firstCreationException, MachineDetails[] createdManagementMachines) 
+			int numberOfErrors, Exception firstCreationException, MachineDetails[] createdManagementMachines)
 					throws CloudProvisioningException;
 }

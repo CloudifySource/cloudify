@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -13,6 +13,7 @@
 package org.cloudifysource.esc.driver.provisioning;
 
 import java.io.Externalizable;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -27,10 +28,10 @@ import com.gigaspaces.internal.io.IOUtils;
 /*******
  * Described a Machine started by a cloud driver. MachineDetails implements @{link Externalizable} since it is embedded
  * in {@link org.cloudifysource.esc.driver.provisioning.events.MachineStartedCloudifyEvent}
- *
+ * 
  * @author barakme
  * @since 2.0.0
- *
+ * 
  */
 public class MachineDetails implements Externalizable {
 
@@ -59,6 +60,10 @@ public class MachineDetails implements Externalizable {
 	private boolean cleanRemoteDirectoryOnStart = false;
 
 	private CloudTemplateInstallerConfiguration installerConfigutation = new CloudTemplateInstallerConfiguration();
+
+	// it's rare, but clouds may return a key file as the password for a create server request.
+	// In addition, a cloud driver may choose to generate a unique key file for each machine.
+	private File keyFile;
 
 	public String getLocationId() {
 		return locationId;
@@ -223,6 +228,14 @@ public class MachineDetails implements Externalizable {
 
 	public void setInstallerConfigutation(final CloudTemplateInstallerConfiguration installerConfigutation) {
 		this.installerConfigutation = installerConfigutation;
+	}
+
+	public File getKeyFile() {
+		return keyFile;
+	}
+
+	public void setKeyFile(final File keyFile) {
+		this.keyFile = keyFile;
 	}
 
 }
