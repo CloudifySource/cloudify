@@ -55,6 +55,24 @@ public class S3AWSAPIDeployMojo extends AbstractMojo {
 	 */
 	private String key;
 
+    /**
+     * The file to put
+     *
+     * @parameter
+     *  expression="${put.source}"
+     *  type="java.io.File"
+     *  default-value=""
+     */
+    private File source;
+
+    /**
+     * The target path of the blob
+     *
+     * @parameter
+     *  expression="${put.target}"
+     *  default-value=""
+     */
+    private String target;
 
 	/**
 	 * The containter to put into
@@ -90,11 +108,8 @@ public class S3AWSAPIDeployMojo extends AbstractMojo {
             getLog().info("Using aws-sdk-java");
             AWSCredentials awsCredentials = new BasicAWSCredentials(user, key);
             AmazonS3 s3 = new AmazonS3Client(awsCredentials);
-
-			String path = project.getGroupId().replace(".", "/") + "/" + project.getArtifactId() + "/" + project.getVersion();
-			File source = new File(getLocalRepo() + "/" + path);
 			
-			uploadFile(s3, source, path);
+			uploadFile(s3, source, target);
 
 		} catch (Exception e) {
 			throw new MojoFailureException("Failed put operation", e);
