@@ -273,6 +273,20 @@ public class CloudGridAgentBootstrapper {
 									+ machineDetails.getMachineId());
 				}
 			}
+
+			if (this.cloud.getConfiguration().isConnectToPrivateIp()) {
+				if (machineDetails.getPrivateAddress() == null) {
+					throw new CLIException(
+							"Missing a private address which is required for server setup in node with ID: "
+									+ machineDetails.getMachineId());
+				}
+			} else {
+				if (machineDetails.getPublicAddress() == null) {
+					throw new CLIException(
+							"Missing a public address which is required for server setup in node with ID: "
+									+ machineDetails.getMachineId());
+				}
+			}
 		}
 
 	}
@@ -619,7 +633,7 @@ public class CloudGridAgentBootstrapper {
 			final String ip = cloud.getConfiguration().isConnectToPrivateIp() ? detail
 					.getPrivateIp() : detail.getPublicIp();
 
-					lookupSb.append(ip).append(":").append(port).append(',');
+			lookupSb.append(ip).append(":").append(port).append(',');
 		}
 
 		lookupSb.setLength(lookupSb.length() - 1);
