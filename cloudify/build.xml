@@ -455,7 +455,7 @@
 		<echo message="uploading cloudify jar artifacts to S3" />
 				
 		<exec executable="${mvn.executable}">
-			<arg value="s3client:put" />
+			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/esc/${s3.cloudify.publish.folder}" />
@@ -464,7 +464,7 @@
 		</exec>
 		
 		<exec executable="${mvn.executable}">
-			<arg value="s3client:put" />
+			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/USM/${s3.cloudify.publish.folder}" />
@@ -473,7 +473,7 @@
 		</exec>
 		
 		<exec executable="${mvn.executable}">
-			<arg value="s3client:put" />
+			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/dsl/${s3.cloudify.publish.folder}" />
@@ -482,7 +482,7 @@
 		</exec>
 		
 		<exec executable="${mvn.executable}">
-			<arg value="s3client:put" />
+			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/CLI/${s3.cloudify.publish.folder}" />
@@ -491,7 +491,7 @@
 		</exec>
 		
 		<exec executable="${mvn.executable}">
-			<arg value="s3client:put" />
+			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/rest-client/${s3.cloudify.publish.folder}" />
@@ -500,7 +500,7 @@
 		</exec>
 		
 		<exec executable="${mvn.executable}">
-			<arg value="s3client:put" />
+			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/cloudify/${s3.cloudify.publish.folder}" />
@@ -534,7 +534,7 @@
 		<echo message="uploading cloudify installation to public storage (S3) at: ${cloudify.put.target}" />
 			
 		<exec executable="${mvn.executable}">
-			<arg value="s3client:put" />
+			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${cloudify.put.source}" />
@@ -543,7 +543,7 @@
 		</exec>
 		
 		<exec executable="${mvn.executable}">
-			<arg value="s3client:put" />
+			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${cloudify.gzip.put.source}" />
@@ -557,7 +557,7 @@
 		<echo message="uploading bigdata installation to public storage (S3) at: ${bigdata.put.target}" />
 			
 		<exec executable="${mvn.executable}">
-			<arg value="s3client:put" />
+			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${bigdata.put.source}" />
@@ -566,7 +566,7 @@
 		</exec>
 		
 		<exec executable="${mvn.executable}">
-			<arg value="s3client:put" />
+			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${bigdata.gzip.put.source}" />
