@@ -109,7 +109,7 @@ public class S3AWSAPIDeployMojo extends AbstractMojo {
             AWSCredentials awsCredentials = new BasicAWSCredentials(user, key);
             AmazonS3 s3 = new AmazonS3Client(awsCredentials);
 			
-			uploadFile(s3, source, target);
+			uploadFile(s3, source, null, target);
 
 		} catch (Exception e) {
 			throw new MojoFailureException("Failed put operation", e);
@@ -121,15 +121,15 @@ public class S3AWSAPIDeployMojo extends AbstractMojo {
 
 	}
 
-	private void uploadFile(AmazonS3 s3, File source, String target) throws MojoFailureException{
+	private void uploadFile(AmazonS3 s3, File source, String fileName, String target) throws MojoFailureException{
 		if (source.isDirectory()){
 			for (File f : source.listFiles()){
-				uploadFile(s3, new File(source.getPath() + "/" + f.getName()), target + "/" + f.getName());
+				uploadFile(s3, new File(source.getPath() + "/" + f.getName()), f.getName(), target + "/" + f.getName());
 			}
 		}
 		else{
 			getLog().info("Processing " + source  + ", upload size is: " + (source).length() + ". Target: " + target);
-            s3.putObject(new PutObjectRequest(target, key, source).withCannedAcl(CannedAccessControlList.PublicRead));
+            s3.putObject(new PutObjectRequest(target, fileName, source).withCannedAcl(CannedAccessControlList.PublicRead));
 			getLog().info("Upload of " + source + " was ended successfully");
 
 		}
