@@ -207,7 +207,11 @@ Set-Content -Encoding ASCII -Force -Value $cloudifyCommand run.bat
 # Write-Host deleting cloudify task 
 # schtasks.exe /delete /TN cloudify-task /f 2>&1 | out-null
 Write-Host scheduling cloudify task 
-schtasks.exe /create /TN cloudify-task /SC ONSTART /TR $ENV:WORKING_HOME_DIRECTORY\run.bat /RU "$ENV:USERNAME" /RP "$ENV:PASSWORD"
+
+# The escape sequence from batch files does not work in powershell. 
+# Seriously...
+$ACTUAL_PASSWORD=$ENV:PASSWORD.replace("^&", "&")
+schtasks.exe /create /TN cloudify-task /SC ONSTART /TR $ENV:WORKING_HOME_DIRECTORY\run.bat /RU "$ENV:USERNAME" /RP $ACTUAL_PASSWORD
 Write-Host running cloudify task
 schtasks.exe /run /TN cloudify-task 
 
