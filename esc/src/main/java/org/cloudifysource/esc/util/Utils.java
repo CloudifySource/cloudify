@@ -275,18 +275,24 @@ public final class Utils {
 			}
 		}
 
-		final String keyFileName = template.getKeyFile();
-		if (keyFileName != null && !keyFileName.isEmpty()) {
-			File keyFile = new File(keyFileName);
-			if (!keyFile.isAbsolute()) {
-				keyFile = new File(details.getLocalDir(), keyFileName);
+
+		// Handle key file
+		if (md.getKeyFile() != null) {
+			details.setKeyFile(md.getKeyFile().getAbsolutePath());
+		} else {
+			final String keyFileName = template.getKeyFile();
+			if (!org.apache.commons.lang.StringUtils.isBlank(keyFileName)) {
+				File keyFile = new File(keyFileName);
+				if (!keyFile.isAbsolute()) {
+					keyFile = new File(details.getLocalDir(), keyFileName);
+				}
+				if (!keyFile.isFile()) {
+					throw new FileNotFoundException(
+							"Could not find key file matching specified cloud configuration key file: "
+									+ template.getKeyFile() + ". Tried: " + keyFile + " but file does not exist");
+				}
+				details.setKeyFile(keyFile.getAbsolutePath());
 			}
-			if (!keyFile.isFile()) {
-				throw new FileNotFoundException(
-						"Could not find key file matching specified cloud configuration key file: "
-								+ template.getKeyFile() + ". Tried: " + keyFile + " but file does not exist");
-			}
-			details.setKeyFile(keyFile.getAbsolutePath());
 		}
 
 		if (template.getHardwareId() != null) {
