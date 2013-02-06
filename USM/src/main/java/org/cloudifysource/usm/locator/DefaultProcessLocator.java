@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 
 package org.cloudifysource.usm.locator;
@@ -150,9 +147,12 @@ public class DefaultProcessLocator extends AbstractUSMEventListener implements P
 	 * Recursive function that scans the given process tree, rooted at the given parent PID, and add all leaf pids to
 	 * the result list.
 	 *
-	 * @param parentProcessID the root of the tree.
-	 * @param procTree the full process tree.
-	 * @param leafPids the result leaf pids list.
+	 * @param parentProcessID
+	 *            the root of the tree.
+	 * @param procTree
+	 *            the full process tree.
+	 * @param leafPids
+	 *            the result leaf pids list.
 	 */
 	private void findLeafProcessIDs(final long parentProcessID, final Map<Long, Set<Long>> procTree,
 			final List<Long> leafPids) {
@@ -198,6 +198,7 @@ public class DefaultProcessLocator extends AbstractUSMEventListener implements P
 			}
 
 			this.serviceProcesses = resultList;
+			// also logs process details to logger.
 			checkForConsoleProcess();
 		}
 
@@ -207,8 +208,16 @@ public class DefaultProcessLocator extends AbstractUSMEventListener implements P
 		final List<Long> pids = this.serviceProcesses;
 		for (final Long pid : pids) {
 			try {
-				final String procName = this.sigar.getProcExe(pid).getName();
-				final String[] procArgs = this.sigar.getProcArgs(pid);
+				String procName = this.sigar.getProcExe(pid).getName();
+				String[] procArgs = this.sigar.getProcArgs(pid);
+
+				// sigar could return anything...
+				if (procName == null) {
+					procName = "Unknown";
+				}
+				if (procArgs == null) {
+					procArgs = new String[0];
+				}
 				logger.info("Located process (" + pid + "): " + procName + " " + Arrays.toString(procArgs));
 				for (final String shellName : SHELL_PROCESS_NAMES) {
 					if (procName.contains(shellName)) {
