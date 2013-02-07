@@ -43,6 +43,7 @@ import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
+import org.cloudifysource.esc.driver.provisioning.jclouds.ManagementLocator;
 import org.cloudifysource.esc.driver.provisioning.jclouds.ManagementWebServiceInstaller;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
@@ -95,6 +96,7 @@ public class CloudGridAgentBootstrapper {
 	private File cloudFile;
 
 	private boolean noWebServices;
+	private boolean useExistingManagers;
 
 	public void setProviderDirectory(final File providerDirectory) {
 		this.providerDirectory = providerDirectory;
@@ -178,23 +180,7 @@ public class CloudGridAgentBootstrapper {
 		createProvisioningDriver();
 
 		// Start the cloud machines!!!
-		MachineDetails[] servers;
-		try {
-			servers = provisioning.startManagementMachines(timeout, timeoutUnit);
-		} catch (final CloudProvisioningException e) {
-			final CLIStatusException cliStatusException =
-					new CLIStatusException(e, CloudifyErrorMessages.CLOUD_API_ERROR.getName(), e.getMessage());
-			throw cliStatusException;
-		} catch (final TimeoutException e) {
-			throw new CLIException("Cloudify bootstrap on provider "
-					+ this.cloud.getProvider().getProvider() + " timed-out. "
-					+ "Please try to run again using the –timeout option.", e);
-		}
-
-		if (servers.length == 0) {
-			throw new IllegalArgumentException(
-					"Received zero management servers from provisioning implementation");
-		}
+		final MachineDetails[] servers = getOrCreateManagementServers(timeout, timeoutUnit);
 
 		// from this point on - close machines if an exception is thrown (to
 		// avoid leaks).
@@ -251,6 +237,65 @@ public class CloudGridAgentBootstrapper {
 		} catch (final InterruptedException e) {
 			stopManagementMachines();
 			throw e;
+		}
+	}
+
+	private MachineDetails[] getOrCreateManagementServers(final long timeout, final TimeUnit timeoutUnit)
+			throws CLIException {
+
+		if (this.useExistingManagers) {
+			return locateManagementMachines();
+
+		} else {
+			return createManagementServers(timeout, timeoutUnit);
+		}
+
+	}
+
+	private MachineDetails[] createManagementServers(final long timeout, final TimeUnit timeoutUnit)
+			throws CLIException {
+		MachineDetails[] servers;
+		try {
+			servers = provisioning.startManagementMachines(timeout, timeoutUnit);
+		} catch (final CloudProvisioningException e) {
+			final CLIStatusException cliStatusException =
+					new CLIStatusException(e, CloudifyErrorMessages.CLOUD_API_ERROR.getName(), e.getMessage());
+			throw cliStatusException;
+		} catch (final TimeoutException e) {
+			throw new CLIException("Cloudify bootstrap on provider "
+					+ this.cloud.getProvider().getProvider() + " timed-out. "
+					+ "Please try to run again using the –timeout option.", e);
+		}
+
+		if (servers.length == 0) {
+			throw new IllegalArgumentException(
+					"Received zero management servers from provisioning implementation");
+		}
+		return servers;
+	}
+
+	private MachineDetails[] locateManagementMachines() throws CLIStatusException {
+		if (provisioning instanceof ManagementLocator) {
+			final ManagementLocator locator = (ManagementLocator) provisioning;
+			MachineDetails[] mds;
+			try {
+				mds = locator.getExistingManagementServers();
+			} catch (final CloudProvisioningException e) {
+				throw new CLIStatusException(e, CloudifyErrorMessages.MANAGEMENT_SERVERS_FAILED_TO_READ.getName(),
+						e.getMessage());
+			}
+			if (mds.length == 0) {
+				throw new CLIStatusException(CloudifyErrorMessages.MANAGEMENT_SERVERS_NOT_LOCATED.getName());
+			}
+			if (mds.length != this.cloud.getProvider().getNumberOfManagementMachines()) {
+				throw new CLIStatusException(CloudifyErrorMessages.MANAGEMENT_SERVERS_NUMBER_NOT_MATCH.getName(),
+						cloud.getProvider().getNumberOfManagementMachines(), mds.length);
+			}
+
+			return mds;
+		} else {
+			throw new CLIStatusException(CloudifyErrorMessages.MANAGEMENT_LOCATOR_NOT_SUPPORTED.getName(),
+					this.cloud.getName());
 		}
 	}
 
@@ -733,5 +778,10 @@ public class CloudGridAgentBootstrapper {
 
 	public void setNoWebServices(final boolean noWebServices) {
 		this.noWebServices = noWebServices;
+	}
+
+	public void setUseExisting(final boolean useExistingManagers) {
+		this.useExistingManagers = useExistingManagers;
+
 	}
 }

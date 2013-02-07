@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -49,10 +49,10 @@ import com.j_spaces.kernel.Environment;
 
 /************
  * CLI Command to bootstrap a cloud.
- * 
+ *
  * @author barakme
  * @since 2.0.0
- * 
+ *
  */
 @Command(
 		scope = "cloudify",
@@ -97,6 +97,11 @@ public class BootstrapCloud extends AbstractGSCommand {
 	@Option(required = false, name = "-no-web-services",
 			description = "if set, no attempt to deploy the rest admin and web-ui will be made")
 	private boolean noWebServices;
+
+	@Option(required = false, name = "-use-existing",
+			description = "if set, will attempt to find existing management servers. "
+					+ "Management should already have been shut-down with stop-management.")
+	private boolean useExistingManagers = false;
 
 	private String securityProfile = CloudifyConstants.SPRING_PROFILE_NON_SECURE;
 	// flags to indicate if bootstrap operation created a backup file that
@@ -183,6 +188,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 		installer.setCloud(cloud);
 		installer.setCloudFile(cloudFile);
 		installer.setNoWebServices(noWebServices);
+		installer.setUseExisting(this.useExistingManagers);
 
 		// Bootstrap!
 
@@ -389,5 +395,13 @@ public class BootstrapCloud extends AbstractGSCommand {
 
 	public void setCloudProvider(final String cloudProvider) {
 		this.cloudProvider = cloudProvider;
+	}
+
+	public boolean isUseExistingManagers() {
+		return useExistingManagers;
+	}
+
+	public void setUseExistingManagers(boolean useExistingManagers) {
+		this.useExistingManagers = useExistingManagers;
 	}
 }
