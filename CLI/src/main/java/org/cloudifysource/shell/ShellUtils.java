@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.shell;
 
@@ -21,6 +18,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
@@ -40,15 +38,21 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.felix.service.command.CommandSession;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.restclient.StringUtils;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.Ansi.Color;
 import org.fusesource.jansi.Ansi.Erase;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 
 import com.j_spaces.kernel.Environment;
 import com.j_spaces.kernel.PlatformVersion;
@@ -85,9 +89,11 @@ public final class ShellUtils {
 
 	/**
 	 * returns the message as it appears in the message bundle.
-	 * 
-	 * @param msgName the message key as it is defined in the message bundle.
-	 * @param arguments the message arguments
+	 *
+	 * @param msgName
+	 *            the message key as it is defined in the message bundle.
+	 * @param arguments
+	 *            the message arguments
 	 * @return the formatted message according to the message key.
 	 */
 	public static String getFormattedMessage(final String msgName, final Object... arguments) {
@@ -107,11 +113,14 @@ public final class ShellUtils {
 	}
 
 	/**
-	 * 
-	 * @param session the command session.
-	 * @param messageKey the message key.
+	 *
+	 * @param session
+	 *            the command session.
+	 * @param messageKey
+	 *            the message key.
 	 * @return true if user hits 'y' OR 'yes' else returns false
-	 * @throws IOException indicates a failure while accessing the session's stdout.
+	 * @throws IOException
+	 *             indicates a failure while accessing the session's stdout.
 	 */
 	public static boolean promptUser(final CommandSession session, final String messageKey)
 			throws IOException {
@@ -121,12 +130,16 @@ public final class ShellUtils {
 
 	/**
 	 * prompts the user with the given question.
-	 * 
-	 * @param session the command session.
-	 * @param messageKey the message key.
-	 * @param messageArgs the message arguments.
+	 *
+	 * @param session
+	 *            the command session.
+	 * @param messageKey
+	 *            the message key.
+	 * @param messageArgs
+	 *            the message arguments.
 	 * @return true if user hits 'y' OR 'yes' else returns false
-	 * @throws IOException Indicates a failure while accessing the session's stdout.
+	 * @throws IOException
+	 *             Indicates a failure while accessing the session's stdout.
 	 */
 	public static boolean promptUser(final CommandSession session, final String messageKey,
 			final Object... messageArgs)
@@ -137,7 +150,7 @@ public final class ShellUtils {
 			session.getConsole().print(confirmationQuestion + " ");
 			session.getConsole().flush();
 			char responseChar = '\0';
-			StringBuilder responseBuffer = new StringBuilder();
+			final StringBuilder responseBuffer = new StringBuilder();
 			while (true) {
 				responseChar = (char) session.getKeyboard().read();
 				if (responseChar == '\u007F') { // backspace
@@ -154,7 +167,7 @@ public final class ShellUtils {
 				}
 				session.getConsole().flush();
 			}
-			String responseStr = responseBuffer.toString().trim();
+			final String responseStr = responseBuffer.toString().trim();
 			return "y".equalsIgnoreCase(responseStr) || "yes".equalsIgnoreCase(responseStr);
 		}
 		// Shell is running in nonInteractive mode. we skip the question.
@@ -163,7 +176,7 @@ public final class ShellUtils {
 
 	/**
 	 * Gets the types of the managed components as a collection of lower case Strings.
-	 * 
+	 *
 	 * @return The types of the managed components as a collection of lower case Strings.
 	 */
 	public static Collection<String> getComponentTypesAsLowerCaseStringCollection() {
@@ -177,20 +190,23 @@ public final class ShellUtils {
 
 	/**
 	 * Gets the given message formatted to be displayed in the specified color.
-	 * 
-	 * @param message The text message
-	 * @param color The color the message should be displayed in
+	 *
+	 * @param message
+	 *            The text message
+	 * @param color
+	 *            The color the message should be displayed in
 	 * @return A formatted message text
 	 */
 	public static String getColorMessage(final String message, final Color color) {
-		String formattedMessage = Ansi.ansi().fg(color).a(message).toString();
+		final String formattedMessage = Ansi.ansi().fg(color).a(message).toString();
 		return formattedMessage + FIRST_ESC_CHAR + SECOND_ESC_CHAR + '0' + COMMAND_CHAR;
 	}
 
 	/**
 	 * Gets the given message formatted to be displayed in bold characters.
-	 * 
-	 * @param message The text message
+	 *
+	 * @param message
+	 *            The text message
 	 * @return A formatted message text
 	 */
 	public static String getBoldMessage(final String message) {
@@ -200,8 +216,9 @@ public final class ShellUtils {
 
 	/**
 	 * Converts a comma-delimited string of instance IDs to a set of Integers.
-	 * 
-	 * @param componentInstanceIDs a comma-delimited string of instance IDs
+	 *
+	 * @param componentInstanceIDs
+	 *            a comma-delimited string of instance IDs
 	 * @return instance IDs as a set of Integers
 	 */
 	public static Set<Integer> delimitedStringToSet(final String componentInstanceIDs) {
@@ -215,8 +232,9 @@ public final class ShellUtils {
 
 	/**
 	 * Gets the recipes map from the session.
-	 * 
-	 * @param session The command session to query
+	 *
+	 * @param session
+	 *            The command session to query
 	 * @return The recipes map
 	 */
 	@SuppressWarnings("unchecked")
@@ -226,7 +244,7 @@ public final class ShellUtils {
 
 	/**
 	 * Gets the built-in messages bundle, with the default locale.
-	 * 
+	 *
 	 * @return The messages bundle
 	 */
 	public static ResourceBundle getMessageBundle() {
@@ -241,10 +259,12 @@ public final class ShellUtils {
 
 	/**
 	 * Converts the named component to a {@link ComponentType}.
-	 * 
-	 * @param lowerCaseComponentName The component name, in lower case
+	 *
+	 * @param lowerCaseComponentName
+	 *            The component name, in lower case
 	 * @return The matching {@link ComponentType}
-	 * @throws CLIException Reporting failure to find a matching {@link ComponentType} for the given name
+	 * @throws CLIException
+	 *             Reporting failure to find a matching {@link ComponentType} for the given name
 	 */
 	public static ComponentType componentTypeFromLowerCaseComponentName(final String lowerCaseComponentName)
 			throws CLIException {
@@ -258,11 +278,14 @@ public final class ShellUtils {
 	/**
 	 * Calculates how many milliseconds ahead is the specified target time. If it has passed already, throws a
 	 * {@link TimeoutException} with the given error message.
-	 * 
-	 * @param errorMessage The error message of the {@link TimeoutException}, if thrown
-	 * @param end The target time, formatted in milliseconds
+	 *
+	 * @param errorMessage
+	 *            The error message of the {@link TimeoutException}, if thrown
+	 * @param end
+	 *            The target time, formatted in milliseconds
 	 * @return The number of milliseconds ahead, before the target time is reached
-	 * @throws TimeoutException Indicating the target time is in the past
+	 * @throws TimeoutException
+	 *             Indicating the target time is in the past
 	 */
 	public static long millisUntil(final String errorMessage, final long end)
 			throws TimeoutException {
@@ -275,7 +298,7 @@ public final class ShellUtils {
 
 	/**
 	 * Gets an "expected execution time" formatted message, with the current time in this format: HH:mm.
-	 * 
+	 *
 	 * @return a formatted "expected execution time" message
 	 */
 	public static String getExpectedExecutionTimeMessage() {
@@ -287,7 +310,7 @@ public final class ShellUtils {
 
 	/**
 	 * Gets the CLI directory.
-	 * 
+	 *
 	 * @return the CLI directory
 	 */
 	public static File getCliDirectory() {
@@ -297,9 +320,11 @@ public final class ShellUtils {
 	/**
 	 * Verifies the given value is not null. If it is - throws an IllegalArgumentException with the message: <name>
 	 * cannot be null.
-	 * 
-	 * @param name The name to be used in the exception, if thrown
-	 * @param value The value to verify
+	 *
+	 * @param name
+	 *            The name to be used in the exception, if thrown
+	 * @param value
+	 *            The value to verify
 	 */
 	public static void checkNotNull(final String name, final Object value) {
 		if (value == null) {
@@ -309,10 +334,12 @@ public final class ShellUtils {
 
 	/**
 	 * Reads the properties from the specified file, and loads them into a {@link Properties} object.
-	 * 
-	 * @param propertiesFile The file to read properties from
+	 *
+	 * @param propertiesFile
+	 *            The file to read properties from
 	 * @return A populated properties object
-	 * @throws IOException Thrown if the specified file is not found or accessed appropriately
+	 * @throws IOException
+	 *             Thrown if the specified file is not found or accessed appropriately
 	 */
 	public static Properties loadProperties(final File propertiesFile)
 			throws IOException {
@@ -328,7 +355,7 @@ public final class ShellUtils {
 
 	/**
 	 * Checks if the operating system on this machine is Windows.
-	 * 
+	 *
 	 * @return True - if using Windows, False - otherwise.
 	 */
 	public static boolean isWindows() {
@@ -339,8 +366,9 @@ public final class ShellUtils {
 
 	/**
 	 * returns true if the last version check was done more than two weeks ago.
-	 * 
-	 * @param session the command session.
+	 *
+	 * @param session
+	 *            the command session.
 	 * @return true if a version check is required else returns false.
 	 */
 	public static boolean shouldDoVersionCheck(final CommandSession session) {
@@ -349,15 +377,15 @@ public final class ShellUtils {
 			return false;
 		}
 
-		long lastAskedTS = getLastTimeAskedAboutVersionCheck();
+		final long lastAskedTS = getLastTimeAskedAboutVersionCheck();
 		// check only if checked over a two weeks ago and user agrees
 		try {
-			if (lastAskedTS <= (System.currentTimeMillis() - TWO_WEEKS_IN_MILLIS)) {
-				boolean userConfirms = ShellUtils.promptUser(session, "version_check_confirmation");
+			if (lastAskedTS <= System.currentTimeMillis() - TWO_WEEKS_IN_MILLIS) {
+				final boolean userConfirms = ShellUtils.promptUser(session, "version_check_confirmation");
 				registerVersionCheck();
 				return userConfirms;
 			}
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			logger.log(Level.FINE, "Failed to prompt user", e);
 		}
 		return false;
@@ -365,16 +393,17 @@ public final class ShellUtils {
 
 	/**
 	 * Checks if the latest version is used.
-	 * 
-	 * @param session the command session.
+	 *
+	 * @param session
+	 *            the command session.
 	 */
 	public static void doVersionCheck(final CommandSession session) {
 		String currentBuildStr = PlatformVersion.getBuildNumber();
 		if (currentBuildStr.contains("-")) {
 			currentBuildStr = currentBuildStr.substring(0, currentBuildStr.indexOf("-"));
 		}
-		int currentVersion = Integer.parseInt(currentBuildStr);
-		int latestBuild = getLatestBuildNumber(currentVersion);
+		final int currentVersion = Integer.parseInt(currentBuildStr);
+		final int latestBuild = getLatestBuildNumber(currentVersion);
 		String message;
 		if (latestBuild == -1) {
 			message = ShellUtils.getFormattedMessage("could_not_get_version");
@@ -389,25 +418,46 @@ public final class ShellUtils {
 
 	/**
 	 * returns the latest cloudify version.
-	 * 
-	 * @param currentVersion the current version.
+	 *
+	 * @param currentVersion
+	 *            the current version.
 	 * @return the latest cloudify version.
 	 */
 	public static int getLatestBuildNumber(final int currentVersion) {
+		final HttpClient client = new DefaultHttpClient();
+		HttpParams params = client.getParams();
+	    HttpConnectionParams.setConnectionTimeout(params, VERSION_CHECK_READ_TIMEOUT);
+	    HttpConnectionParams.setSoTimeout(params, VERSION_CHECK_READ_TIMEOUT);
+
+	    final String url = "http://www.gigaspaces.com/downloadgen/latest-cloudify-version?build=" + currentVersion;
+
+		final HttpGet httpMethod = new HttpGet(url);
+
+		String responseBody = null;
 		try {
-			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-			requestFactory.setReadTimeout(VERSION_CHECK_READ_TIMEOUT);
-			RestTemplate template = new RestTemplate(requestFactory);
-			String versionStr = template.getForObject(
-					"http://www.gigaspaces.com/downloadgen/latest-cloudify-version?build=" + currentVersion,
-					String.class);
-			logger.fine("Latest cloudify version is " + versionStr);
-			return Integer.parseInt(versionStr);
-		} catch (RestClientException e) {
-			logger.log(Level.FINE, "Could not get version from server", e);
+			final HttpResponse response = client.execute(httpMethod);
+			final StatusLine statusLine = response.getStatusLine();
+			final int statusCode = statusLine.getStatusCode();
+			if (statusCode != CloudifyConstants.HTTP_STATUS_CODE_OK) {
+				logger.log(Level.FINE, "Could not get version from server - status code: " + statusCode);
+				return -1;
+			}
+			final HttpEntity entity = response.getEntity();
+			if (entity == null) {
+				logger.log(Level.FINE, "Missing response entity in version check");
+				return -1;
+			}
+			final InputStream instream = entity.getContent();
+			responseBody = StringUtils.getStringFromStream(instream);
+
+			logger.fine("Latest cloudify version is " + responseBody);
+			return Integer.parseInt(responseBody);
+
+		} catch (final NumberFormatException e) {
+			logger.fine("Get version response is not a number: " + responseBody);
 			return -1;
-		} catch (NumberFormatException e) {
-			logger.fine("Get version response is not a number");
+		} catch (final IOException e) {
+			logger.fine("Failed to get latest version: " + e.getMessage());
 			return -1;
 		}
 
@@ -415,7 +465,7 @@ public final class ShellUtils {
 
 	/**
 	 * Returns the last time a version check was performed.
-	 * 
+	 *
 	 * @return the last time a version check was performed.
 	 */
 	public static long getLastTimeAskedAboutVersionCheck() {
@@ -425,13 +475,14 @@ public final class ShellUtils {
 			try {
 				dis = new DataInputStream(new FileInputStream(VERSION_CHECK_FILE));
 				lastVersionCheckTS = dis.readLong();
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				logger.log(Level.FINE, "failed to read last checked version timestamp file", e);
 			} finally {
 				if (dis != null) {
 					try {
 						dis.close();
-					} catch (IOException e) {
+					} catch (final IOException e) {
+						// ignore
 					}
 				}
 			}
@@ -447,41 +498,48 @@ public final class ShellUtils {
 		try {
 			dos = new DataOutputStream(new FileOutputStream(VERSION_CHECK_FILE));
 			dos.writeLong(System.currentTimeMillis());
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			logger.log(Level.FINE, "failed to write last checked version timestamp file", e);
 		} finally {
 			if (dos != null) {
 				try {
 					dos.close();
-				} catch (IOException e) {
+				} catch (final IOException e) {
+					// ignore
 				}
 			}
 		}
 	}
-	
+
 	/**
 	 * Checks if the passed security profile uses a secure connection (SSL).
-	 * @param springSecurityProfile The name of the security profile
+	 *
+	 * @param springSecurityProfile
+	 *            The name of the security profile
 	 * @return true - if the profile indicates SSL is used, false otherwise.
 	 */
 	public static boolean isSecureConnection(final String springSecurityProfile) {
 		return CloudifyConstants.SPRING_PROFILE_SECURE.equalsIgnoreCase(springSecurityProfile);
 	}
-	
+
 	/**
-	 * Returns the name of the protocol used for communication with the rest server.
-	 * If the security is secure (SSL) returns "https", otherwise returns "http".
-	 * @param springSecurityProfile The name of the security profile
+	 * Returns the name of the protocol used for communication with the rest server. If the security is secure (SSL)
+	 * returns "https", otherwise returns "http".
+	 *
+	 * @param springSecurityProfile
+	 *            The name of the security profile
 	 * @return "https" if this is a secure connection, "http" otherwise.
 	 */
 	public static String getRestProtocol(final String springSecurityProfile) {
 		return getRestProtocol(isSecureConnection(springSecurityProfile));
 	}
-	
+
 	/**
-	 * Returns the name of the protocol used for communication with the rest server.
-	 * If the security is secure (SSL) returns "https", otherwise returns "http".
-	 * @param isSecureConnection Indicates whether SSL is used or not.
+	 * Returns the name of the protocol used for communication with the rest server. If the security is secure (SSL)
+	 * returns "https", otherwise returns "http".
+	 *
+	 * @param isSecureConnection
+	 *            Indicates whether SSL is used or not.
 	 * @return "https" if this is a secure connection, "http" otherwise.
 	 */
 	public static String getRestProtocol(final boolean isSecureConnection) {
@@ -491,19 +549,23 @@ public final class ShellUtils {
 			return "http";
 		}
 	}
-	
+
 	/**
 	 * Returns the port used for communication with the rest server.
-	 * @param springSecurityProfile The name of the security profile
+	 *
+	 * @param springSecurityProfile
+	 *            The name of the security profile
 	 * @return the correct port used by the rest service.
 	 */
 	public static int getRestPort(final String springSecurityProfile) {
 		return getDefaultRestPort(isSecureConnection(springSecurityProfile));
 	}
-	
+
 	/**
 	 * Returns the port used for communication with the rest server.
-	 * @param isSecureConnection Indicates whether SSL is used or not.
+	 *
+	 * @param isSecureConnection
+	 *            Indicates whether SSL is used or not.
 	 * @return the correct port used by the rest service.
 	 */
 	public static int getDefaultRestPort(final boolean isSecureConnection) {
@@ -513,27 +575,34 @@ public final class ShellUtils {
 			return CloudifyConstants.DEFAULT_REST_PORT;
 		}
 	}
-	
+
 	/**
 	 * Returns the port used for communication with the rest server.
-	 * @param isSecureConnection Indicates whether SSL is used or not.
+	 *
+	 * @param isSecureConnection
+	 *            Indicates whether SSL is used or not.
 	 * @return the correct port used by the rest service.
 	 */
 	public static String getDefaultRestPortAsString(final boolean isSecureConnection) {
 		return Integer.toString(getDefaultRestPort(isSecureConnection));
 	}
-	
-	public static String getFormattedRestUrl(String url, String springSecurityProfile) throws MalformedURLException {
-		return getFormattedRestUrl(url, isSecureConnection(springSecurityProfile));		
-	}
-	
-	public static String getFormattedRestUrl(String url, boolean isSecureConnection) throws MalformedURLException {
+
+
+	/********
+	 * .
+	 * @param url .
+	 * @param isSecureConnection .
+	 * @return .
+	 * @throws MalformedURLException .
+	 */
+	public static String getFormattedRestUrl(final String url, final boolean isSecureConnection)
+			throws MalformedURLException {
 		String formattedURL = url;
 		if (!formattedURL.endsWith("/")) {
 			formattedURL = formattedURL + '/';
 		}
-		
-		String protocolPrefix = ShellUtils.getRestProtocol(isSecureConnection) + "://";
+
+		final String protocolPrefix = ShellUtils.getRestProtocol(isSecureConnection) + "://";
 		if (!formattedURL.startsWith("http://") && !formattedURL.startsWith("https://")) {
 			formattedURL = protocolPrefix + formattedURL;
 		}
@@ -547,8 +616,8 @@ public final class ShellUtils {
 			formattedURL = urlSB.toString();
 			urlObj = new URL(formattedURL);
 		}
-		
+
 		return formattedURL;
 	}
-	
+
 }
