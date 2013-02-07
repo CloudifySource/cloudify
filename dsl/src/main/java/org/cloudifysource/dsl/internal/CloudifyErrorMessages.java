@@ -105,7 +105,27 @@ public enum CloudifyErrorMessages {
 	/**
 	 * Indicates a failure happened while provisioning machines by the cloud driver.
 	 */
-	CLOUD_API_ERROR("cloud_api_error", 1);
+	CLOUD_API_ERROR("cloud_api_error", 1),
+
+	/**
+	 * Indicates a command tried to locate existing management servers but cloud driver does not support this feature.
+	 */
+	MANAGEMENT_LOCATOR_NOT_SUPPORTED("management_locator_not_supported", 1),
+
+	/**
+	 * Indicates a command tried to locate existing management servers but cloud driver does not support this feature.
+	 */
+	MANAGEMENT_SERVERS_NOT_LOCATED("management_servers_not_located", 0),
+
+	/**
+	 * Indicates a failure in accessing Cloud API.
+	 */
+	MANAGEMENT_SERVERS_FAILED_TO_READ("management_servers_failed_to_read", 1),
+
+	/**
+	 * Indicates number of returned servers from management locator does not match expected value.
+	 */
+	MANAGEMENT_SERVERS_NUMBER_NOT_MATCH("management_servers_number_not_match", 2);
 
 	private final int numberOfParameters;
 	private final String name;
