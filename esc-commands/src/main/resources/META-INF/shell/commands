@@ -1,2 +1,3 @@
 org.cloudifysource.esc.shell.commands.BootstrapCloud
 org.cloudifysource.esc.shell.commands.TeardownCloud
+org.cloudifysource.esc.shell.commands.GetCloudManagers
