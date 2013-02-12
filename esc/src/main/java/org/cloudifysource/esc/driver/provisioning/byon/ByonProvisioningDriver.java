@@ -32,11 +32,13 @@ import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
+import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.cloudifysource.esc.byon.ByonDeployer;
 import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.CustomNode;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
+import org.cloudifysource.esc.driver.provisioning.ManagementLocator;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.cloudifysource.esc.util.FileUtils;
@@ -62,8 +64,9 @@ import com.gigaspaces.grid.gsa.GSA;
  *
  */
 public class ByonProvisioningDriver extends BaseProvisioningDriver implements ProvisioningDriver,
-		ProvisioningDriverClassContextAware {
+		ProvisioningDriverClassContextAware, ManagementLocator {
 
+	private static final int MANAGEMENT_LOCATION_TIMEOUT = 10;
 	private static final int THREAD_WAITING_IDLE_TIME_IN_SECS = 10;
 	private static final int AGENT_SHUTDOWN_TIMEOUT_IN_MINUTES = 2;
 	private static final String CLOUD_NODES_LIST = "nodesList";
@@ -116,10 +119,10 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		List<Map<String, String>> nodesList;
 		nodesList = new LinkedList<Map<String, String>>();
 
-		for (Map<Object, Object> originalMap : originalNodesList) {
-			Map<String, String> newMap = new LinkedHashMap<String, String>();
-			Set<Entry<Object, Object>> entries = originalMap.entrySet();
-			for (Entry<Object, Object> entry : entries) {
+		for (final Map<Object, Object> originalMap : originalNodesList) {
+			final Map<String, String> newMap = new LinkedHashMap<String, String>();
+			final Set<Entry<Object, Object>> entries = originalMap.entrySet();
+			for (final Entry<Object, Object> entry : entries) {
 				newMap.put(entry.getKey().toString(), entry.getValue().toString());
 			}
 			nodesList.add(newMap);
@@ -343,6 +346,20 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		logger.info("DefaultCloudProvisioning: startMachine - management == " + management);
 
 		// first check if management already exists
+		final MachineDetails[] mds = findManagementInAdmin();
+		if (mds.length != 0) {
+			return mds;
+		}
+
+		// launch the management machines
+		publishEvent(EVENT_ATTEMPT_START_MGMT_VMS);
+		final int numberOfManagementMachines = this.cloud.getProvider().getNumberOfManagementMachines();
+		final MachineDetails[] createdMachines = doStartManagementMachines(endTime, numberOfManagementMachines);
+		publishEvent(EVENT_MGMT_VMS_STARTED);
+		return createdMachines;
+	}
+
+	private MachineDetails[] findManagementInAdmin() throws CloudProvisioningException, TimeoutException {
 		try {
 			final Set<CustomNode> managementServers = getExistingManagementServers(0);
 			if (managementServers != null && !managementServers.isEmpty()) {
@@ -360,17 +377,11 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 				return managementMachines;
 			}
+			return new MachineDetails[0];
 		} catch (final InterruptedException e) {
 			publishEvent("prov_management_lookup_failed");
 			throw new CloudProvisioningException("Failed to lookup existing manahement servers.", e);
 		}
-
-		// launch the management machines
-		publishEvent(EVENT_ATTEMPT_START_MGMT_VMS);
-		final int numberOfManagementMachines = this.cloud.getProvider().getNumberOfManagementMachines();
-		final MachineDetails[] createdMachines = doStartManagementMachines(endTime, numberOfManagementMachines);
-		publishEvent(EVENT_MGMT_VMS_STARTED);
-		return createdMachines;
 	}
 
 	/**
@@ -453,10 +464,12 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		if (StringUtils.isNotBlank(managementIP)) {
 			// TODO don't fly if timeout reached because expectedGsmCount wasn't
 			// reached
-			Integer discoveryPort = getLusPort();
+			final Integer discoveryPort = getLusPort();
 			final Admin admin = Utils.getAdminObject(managementIP, expectedGsmCount, discoveryPort);
 			try {
 				final GridServiceManagers gsms = admin.getGridServiceManagers();
+				// make sure a GSM is discovered
+				gsms.waitForAtLeastOne(MANAGEMENT_LOCATION_TIMEOUT, TimeUnit.SECONDS);
 				for (final GridServiceManager gsm : gsms) {
 					final CustomNode managementServer = deployer.getServerByIP(cloudTemplateName, gsm.getMachine()
 							.getHostAddress());
@@ -484,9 +497,9 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	private void stopAgentAndWait(final int expectedGsmCount, final String ipAddress)
 			throws TimeoutException,
 			InterruptedException {
-		
+
 		if (admin == null) {
-			Integer discoveryPort = getLusPort();
+			final Integer discoveryPort = getLusPort();
 			admin = Utils.getAdminObject(ipAddress, expectedGsmCount, discoveryPort);
 		}
 
@@ -648,4 +661,42 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	public ByonDeployer getDeployer() {
 		return this.deployer;
 	}
+
+	@Override
+	public MachineDetails[] getExistingManagementServers() throws CloudProvisioningException {
+		try {
+			return findManagementInAdmin();
+		} catch (final TimeoutException e) {
+			throw new CloudProvisioningException(e);
+		}
+	}
+
+	@Override
+	public MachineDetails[] getExistingManagementServers(final ControllerDetails[] controllers)
+			throws CloudProvisioningException, UnsupportedOperationException {
+		final Set<String> ips = new HashSet<String>();
+		for (final ControllerDetails controllerDetails : controllers) {
+			ips.add(controllerDetails.getPrivateIp());
+		}
+
+		final Set<CustomNode> allNodesByTemplateName =
+				this.deployer.getAllNodesByTemplateName(this.cloud.getConfiguration().getManagementMachineTemplate());
+		final Set<CustomNode> managementNodes = new HashSet<CustomNode>();
+
+		for (final CustomNode node : allNodesByTemplateName) {
+			final String ip = node.getPrivateIP();
+			if (ips.contains(ip)) {
+				managementNodes.add(node);
+			}
+		}
+
+		final MachineDetails[] result = new MachineDetails[managementNodes.size()];
+		final int i = 0;
+		for (final CustomNode node : managementNodes) {
+			result[i] = createMachineDetailsFromNode(node);
+		}
+		return result;
+
+	}
+
 }

@@ -11,10 +11,9 @@
  * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 
-package org.cloudifysource.esc.driver.provisioning.jclouds;
+package org.cloudifysource.esc.driver.provisioning;
 
-import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
-import org.cloudifysource.esc.driver.provisioning.MachineDetails;
+import org.cloudifysource.dsl.rest.response.ControllerDetails;
 
 /*********
  * Interface for cloud drivers that support 're-bootstrapping' - shutting down managers, updating them and restarting
@@ -33,5 +32,19 @@ public interface ManagementLocator {
 	 *             if failed to load servers list from cloud.
 	 */
 	MachineDetails[] getExistingManagementServers() throws CloudProvisioningException;
+
+	/**********
+	 * Return existing management servers based on controller information saved previously.
+	 *
+	 * @param controllers
+	 *            the controller information used to locate the machine details.
+	 * @return the existing management servers, or a 0-length array if non exist.
+	 * @throws CloudProvisioningException
+	 *             if failed to load servers list from cloud.
+	 * @throws UnsupportedOperationException
+	 *             if the cloud driver does not support this operation.
+	 */
+	MachineDetails[] getExistingManagementServers(final ControllerDetails[] controllers)
+			throws CloudProvisioningException, UnsupportedOperationException;
 
 }
