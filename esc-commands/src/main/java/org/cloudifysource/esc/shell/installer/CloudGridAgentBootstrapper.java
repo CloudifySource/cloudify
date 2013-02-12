@@ -38,12 +38,13 @@ import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
+import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
+import org.cloudifysource.esc.driver.provisioning.ManagementLocator;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
-import org.cloudifysource.esc.driver.provisioning.jclouds.ManagementLocator;
 import org.cloudifysource.esc.driver.provisioning.jclouds.ManagementWebServiceInstaller;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
@@ -57,6 +58,8 @@ import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.openspaces.admin.gsa.GSAReservationId;
 import org.openspaces.admin.zone.config.ExactZonesConfig;
 import org.openspaces.admin.zone.config.ExactZonesConfigurer;
@@ -97,6 +100,7 @@ public class CloudGridAgentBootstrapper {
 
 	private boolean noWebServices;
 	private boolean useExistingManagers;
+	private File existingManagersFile;
 
 	public void setProviderDirectory(final File providerDirectory) {
 		this.providerDirectory = providerDirectory;
@@ -243,9 +247,10 @@ public class CloudGridAgentBootstrapper {
 	private MachineDetails[] getOrCreateManagementServers(final long timeout, final TimeUnit timeoutUnit)
 			throws CLIException {
 
-		if (this.useExistingManagers) {
+		if (this.existingManagersFile != null) {
+			return locateManagementMachinesFromFile();
+		} else if (this.useExistingManagers) {
 			return locateManagementMachines();
-
 		} else {
 			return createManagementServers(timeout, timeoutUnit);
 		}
@@ -280,6 +285,40 @@ public class CloudGridAgentBootstrapper {
 			MachineDetails[] mds;
 			try {
 				mds = locator.getExistingManagementServers();
+			} catch (final CloudProvisioningException e) {
+				throw new CLIStatusException(e, CloudifyErrorMessages.MANAGEMENT_SERVERS_FAILED_TO_READ.getName(),
+						e.getMessage());
+			}
+			if (mds.length == 0) {
+				throw new CLIStatusException(CloudifyErrorMessages.MANAGEMENT_SERVERS_NOT_LOCATED.getName());
+			}
+			if (mds.length != this.cloud.getProvider().getNumberOfManagementMachines()) {
+				throw new CLIStatusException(CloudifyErrorMessages.MANAGEMENT_SERVERS_NUMBER_NOT_MATCH.getName(),
+						cloud.getProvider().getNumberOfManagementMachines(), mds.length);
+			}
+
+			return mds;
+		} else {
+			throw new CLIStatusException(CloudifyErrorMessages.MANAGEMENT_LOCATOR_NOT_SUPPORTED.getName(),
+					this.cloud.getName());
+		}
+	}
+
+	private MachineDetails[] locateManagementMachinesFromFile() throws CLIStatusException {
+		if (provisioning instanceof ManagementLocator) {
+			ObjectMapper mapper = new ObjectMapper();
+			ControllerDetails[] controllers = null;
+			try {
+				controllers =
+						mapper.readValue(this.existingManagersFile, TypeFactory.arrayType(ControllerDetails.class));
+			} catch (IOException e) {
+				throw new IllegalArgumentException("Failed to read managers file: "
+						+ this.existingManagersFile.getAbsolutePath() + ". Error was: " + e.getMessage(), e);
+			}
+			final ManagementLocator locator = (ManagementLocator) provisioning;
+			MachineDetails[] mds;
+			try {
+				mds = locator.getExistingManagementServers(controllers);
 			} catch (final CloudProvisioningException e) {
 				throw new CLIStatusException(e, CloudifyErrorMessages.MANAGEMENT_SERVERS_FAILED_TO_READ.getName(),
 						e.getMessage());
@@ -782,6 +821,24 @@ public class CloudGridAgentBootstrapper {
 
 	public void setUseExisting(final boolean useExistingManagers) {
 		this.useExistingManagers = useExistingManagers;
+
+	}
+
+	/******
+	 * Returns existing cloud managers.
+	 *
+	 * @return details of existing cloud managers.
+	 * @throws CLIException
+	 *             if failed to read cloudify managers from Cloud API.
+	 */
+	public MachineDetails[] getCloudManagers() throws CLIException {
+		createProvisioningDriver();
+		return locateManagementMachines();
+
+	}
+
+	public void setExistingManagersFile(final File existingManagersFile) {
+		this.existingManagersFile = existingManagersFile;
 
 	}
 }

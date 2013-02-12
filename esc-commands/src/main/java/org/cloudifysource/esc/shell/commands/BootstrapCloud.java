@@ -103,6 +103,12 @@ public class BootstrapCloud extends AbstractGSCommand {
 					+ "Management should already have been shut-down with stop-management.")
 	private boolean useExistingManagers = false;
 
+	@Option(required = false, name = "-use-existing-from-file",
+			description = "if set, will attempt to find existing management servers based on server "
+					+ "details supplied in file. "
+					+ "Management should already have been shut-down with stop-management.")
+	private File existingManagersFile = null;
+
 	private String securityProfile = CloudifyConstants.SPRING_PROFILE_NON_SECURE;
 	// flags to indicate if bootstrap operation created a backup file that
 	// should be reverted
@@ -121,6 +127,13 @@ public class BootstrapCloud extends AbstractGSCommand {
 
 	@Override
 	protected Object doExecute() throws Exception {
+
+		if (this.existingManagersFile != null) {
+			if (!this.existingManagersFile.exists() || !this.existingManagersFile.isFile()) {
+				throw new CLIStatusException(CloudifyErrorMessages.FILE_NOT_EXISTS.getName(),
+						this.existingManagersFile.getAbsolutePath());
+			}
+		}
 
 		if (cloudOverrides != null) {
 			if (cloudOverrides.length() >= TEN_K) {
@@ -189,7 +202,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 		installer.setCloudFile(cloudFile);
 		installer.setNoWebServices(noWebServices);
 		installer.setUseExisting(this.useExistingManagers);
-
+		installer.setExistingManagersFile(this.existingManagersFile);
 		// Bootstrap!
 
 		// Note: The cloud driver may be very verbose. This is EXTEREMELY useful
@@ -403,5 +416,13 @@ public class BootstrapCloud extends AbstractGSCommand {
 
 	public void setUseExistingManagers(boolean useExistingManagers) {
 		this.useExistingManagers = useExistingManagers;
+	}
+
+	public File getExistingManagersFile() {
+		return existingManagersFile;
+	}
+
+	public void setExistingManagersFile(File existingManagersFile) {
+		this.existingManagersFile = existingManagersFile;
 	}
 }
