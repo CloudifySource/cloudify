@@ -88,9 +88,10 @@ else
 	export GIGASPACES_ORIGINAL_JAVA_HOME=$JAVA_HOME
 
 	echo Downloading JDK from $GIGASPACES_AGENT_ENV_JAVA_URL    
-	wget -q -O $WORKING_HOME_DIRECTORY/java.bin $GIGASPACES_AGENT_ENV_JAVA_URL
+	wget -q -O $WORKING_HOME_DIRECTORY/java.bin $GIGASPACES_AGENT_ENV_JAVA_URL || error_exit $? "Failed downloading Java installation from $GIGASPACES_AGENT_ENV_JAVA_URL"
 	chmod +x $WORKING_HOME_DIRECTORY/java.bin
 	echo -e "\n" > $WORKING_HOME_DIRECTORY/input.txt
+	rm -rf ~/java || error_exit $? "Failed removing old java installation directory"
 	mkdir ~/java
 	cd ~/java
 	
