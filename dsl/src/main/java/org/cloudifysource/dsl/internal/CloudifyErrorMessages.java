@@ -113,7 +113,7 @@ public enum CloudifyErrorMessages {
 	MANAGEMENT_LOCATOR_NOT_SUPPORTED("management_locator_not_supported", 1),
 
 	/**
-	 * Indicates a command tried to locate existing management servers but cloud driver does not support this feature.
+	 * Indicates a command tried to locate management servers but none were found.
 	 */
 	MANAGEMENT_SERVERS_NOT_LOCATED("management_servers_not_located", 0),
 
@@ -125,7 +125,36 @@ public enum CloudifyErrorMessages {
 	/**
 	 * Indicates number of returned servers from management locator does not match expected value.
 	 */
-	MANAGEMENT_SERVERS_NUMBER_NOT_MATCH("management_servers_number_not_match", 2);
+	MANAGEMENT_SERVERS_NUMBER_NOT_MATCH("management_servers_number_not_match", 2),
+
+	/**
+	 * Management servers details.
+	 */
+	MANAGEMENT_SERVERS_DETAILS("management_servers_details", 3),
+	/**
+	 * Management servers details.
+	 */
+	MANAGEMENT_SERVERS_SHUTDOWN_NOT_ALLOWED_ON_LOCALCLOUD("shutdown_managers_not_allowed_on_localcloud", 0),
+
+	/**
+	 * REST API not connected.
+	 */
+	REST_NOT_CONNECTED("not_connected", 0),
+
+	MANAGEMENT_SERVERS_WAITING_FOR_SHUTDOWN("shutdown_managers_initiated", 1),
+
+	MANAGEMENT_SERVERS_MANAGER_DOWN("shutdown_managers_manager_down", 1),
+
+	MANAGEMENT_SERVERS_SHUTDOWN_SUCCESS("shutdown_managers_completed", 0),
+
+	MANAGEMENT_SERVERS_SHUTDOWN_FAIL("shutdown_managers_timeout", 0),
+
+	FILE_NOT_EXISTS("file_doesnt_exist", 1),
+
+
+	// CHECKSTYLE:OFF
+	;
+	// CHECKSTYLE:ON
 
 	private final int numberOfParameters;
 	private final String name;
