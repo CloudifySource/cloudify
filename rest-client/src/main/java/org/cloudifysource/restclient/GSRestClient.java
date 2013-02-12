@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  ******************************************************************************/
 package org.cloudifysource.restclient;
 
@@ -19,6 +16,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -28,6 +26,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +35,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHeaders;
@@ -69,6 +69,7 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
+import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
@@ -112,7 +113,7 @@ public class GSRestClient {
 
 	/**
 	 * Ctor.
-	 * 
+	 *
 	 * @param username
 	 *            Username for the HTTP client, optional.
 	 * @param password
@@ -146,11 +147,10 @@ public class GSRestClient {
 
 		setCredentials(username, password);
 	}
-	
-	
+
 	/**
 	 * Ctor.
-	 * 
+	 *
 	 * @param credentials
 	 *            credentials for the HTTP client.
 	 * @param url
@@ -185,7 +185,7 @@ public class GSRestClient {
 
 	/**
 	 * Sets username and password for the HTTP client
-	 * 
+	 *
 	 * @param username
 	 *            Username for the HTTP client.
 	 * @param password
@@ -198,9 +198,10 @@ public class GSRestClient {
 					new UsernamePasswordCredentials(username, password));
 		}
 	}
-	
+
 	/**
 	 * Sets the credentials for the HTTP client
+	 *
 	 * @param credentials
 	 *            The credentials for the HTTP client
 	 */
@@ -209,9 +210,8 @@ public class GSRestClient {
 	}
 
 	/**
-	 * Creates the basic rest service URL. Relative URLs will be appended to
-	 * this URL.
-	 * 
+	 * Creates the basic rest service URL. Relative URLs will be appended to this URL.
+	 *
 	 * @return the basic rest service URL
 	 */
 	private String createUrlStr() {
@@ -224,7 +224,7 @@ public class GSRestClient {
 
 	/**
 	 * Checks if the Rest URL uses SSL (https instead of http).
-	 * 
+	 *
 	 * @return boolean indicating if ssl is used
 	 */
 	private boolean isSSL() {
@@ -232,16 +232,13 @@ public class GSRestClient {
 	}
 
 	/**
-	 * Performs a REST GET operation on the given (relative) URL, using the
-	 * Admin API.
-	 * 
+	 * Performs a REST GET operation on the given (relative) URL, using the Admin API.
+	 *
 	 * @param relativeUrl
-	 *            the Relative URL to the requested object. The rest server IP
-	 *            and port are not required.
+	 *            the Relative URL to the requested object. The rest server IP and port are not required.
 	 *            <p/>
-	 *            example: "processingUnits/Names/default.cassandra" will get
-	 *            the object named "dafault.cassandra" from the list of all
-	 *            processing units.
+	 *            example: "processingUnits/Names/default.cassandra" will get the object named "dafault.cassandra" from
+	 *            the list of all processing units.
 	 * @return An object, the response received from the Admin API.
 	 * @throws RestException
 	 *             Reporting errors of all types (IO, HTTP, rest etc.)
@@ -255,15 +252,12 @@ public class GSRestClient {
 
 	/**
 	 * Performs a REST GET operation on the given (relative) URL.
-	 * 
+	 *
 	 * @param relativeUrl
-	 *            the Relative URL to the requested object. The rest server IP
-	 *            and port are not required.
+	 *            the Relative URL to the requested object. The rest server IP and port are not required.
 	 *            <p/>
-	 *            example:
-	 *            "/service/applications/travel/services/cassandra/ USMEventsLogs/"
-	 *            will get event logs from the cassandra service of the travel
-	 *            application.
+	 *            example: "/service/applications/travel/services/cassandra/ USMEventsLogs/" will get event logs from
+	 *            the cassandra service of the travel application.
 	 * @return An object, the response received from the rest service
 	 * @throws ErrorStatusException
 	 *             Reporting errors of all types (IO, HTTP, rest etc.)
@@ -280,18 +274,14 @@ public class GSRestClient {
 	}
 
 	/**
-	 * Performs a REST GET operation on the given (relative) URL, using the
-	 * Admin API.
-	 * 
+	 * Performs a REST GET operation on the given (relative) URL, using the Admin API.
+	 *
 	 * @param relativeUrl
-	 *            the Relative URL to the requested object. The rest server IP
-	 *            and port are not required.
+	 *            the Relative URL to the requested object. The rest server IP and port are not required.
 	 *            <p/>
-	 *            example:
-	 *            "applications/Names/travel/ProcessingUnits/Names/travel.tomcat
-	 *            /Instances/0/GridServiceContainer/Uid" will get the UID of the
-	 *            first instance of the tomcat service in the "travel"
-	 *            application.
+	 *            example: "applications/Names/travel/ProcessingUnits/Names/travel.tomcat
+	 *            /Instances/0/GridServiceContainer/Uid" will get the UID of the first instance of the tomcat service in
+	 *            the "travel" application.
 	 * @return An object, the response received from the Admin API.
 	 * @throws RestException
 	 *             Reporting errors of all types (IO, HTTP, rest etc.)
@@ -338,15 +328,12 @@ public class GSRestClient {
 	}
 
 	/**
-	 * This method executes the given Http request and analyzes the response.
-	 * Successful responses are expected to be formatted as json strings, and
-	 * are converted to a Map<String, Object> object. In this map these keys can
-	 * be expected: "status" (success/error), "error"(reason code), "error_args"
-	 * and "response".
+	 * This method executes the given Http request and analyzes the response. Successful responses are expected to be
+	 * formatted as json strings, and are converted to a Map<String, Object> object. In this map these keys can be
+	 * expected: "status" (success/error), "error"(reason code), "error_args" and "response".
 	 * <p/>
-	 * Errors of all types (IO, Http, rest etc.) are reported through an
-	 * ErrorStatusException.
-	 * 
+	 * Errors of all types (IO, Http, rest etc.) are reported through an ErrorStatusException.
+	 *
 	 * @param httpMethod
 	 *            The http request to perform.
 	 * @return An object, the response body received from the rest service
@@ -358,20 +345,16 @@ public class GSRestClient {
 	}
 
 	/**
-	 * This method executes the given Http request and analyzes the response.
-	 * Successful responses are expected to be formatted as json strings, and
-	 * are converted to a Map<String, Object> object. In this map these keys can
-	 * be expected: "status" (success/error), "error"(reason code), "error_args"
-	 * and "response".
+	 * This method executes the given Http request and analyzes the response. Successful responses are expected to be
+	 * formatted as json strings, and are converted to a Map<String, Object> object. In this map these keys can be
+	 * expected: "status" (success/error), "error"(reason code), "error_args" and "response".
 	 * <p/>
-	 * Errors of all types (IO, Http, rest etc.) are reported through an
-	 * ErrorStatusException.
-	 * 
+	 * Errors of all types (IO, Http, rest etc.) are reported through an ErrorStatusException.
+	 *
 	 * @param httpMethod
 	 *            The http request to perform.
 	 * @param responseJsonKey
-	 *            specify a key for a response attribute to be returned, null
-	 *            means return the entire response
+	 *            specify a key for a response attribute to be returned, null means return the entire response
 	 * @return An object, the response body received from the rest service
 	 * @throws ErrorStatusException
 	 *             Reporting errors of all types (IO, HTTP, rest etc.)
@@ -432,7 +415,7 @@ public class GSRestClient {
 
 	/**
 	 * Gets the HTTP response's body as a String.
-	 * 
+	 *
 	 * @param response
 	 *            The HttpResponse object to analyze
 	 * @param httpMethod
@@ -469,14 +452,12 @@ public class GSRestClient {
 	}
 
 	/**
-	 * Executes the given HTTP request and analyzes the response. Successful
-	 * responses are expected to be formatted as json strings, and are converted
-	 * to a Map<String, Object> object. The map can use these keys: "status"
+	 * Executes the given HTTP request and analyzes the response. Successful responses are expected to be formatted as
+	 * json strings, and are converted to a Map<String, Object> object. The map can use these keys: "status"
 	 * (success/error), "error"(reason code), "error_args" and "response".
 	 * <p/>
-	 * Errors of all types (IO, HTTP, rest etc.) are reported through an
-	 * ErrorStatusException (RestException).
-	 * 
+	 * Errors of all types (IO, HTTP, rest etc.) are reported through an ErrorStatusException (RestException).
+	 *
 	 * @param httpMethod
 	 *            The HTTP request to perform.
 	 * @return An object, the response body received from the rest service
@@ -529,7 +510,7 @@ public class GSRestClient {
 
 	/**
 	 * Appends the given relative URL to the basic rest-service URL.
-	 * 
+	 *
 	 * @param relativeUrl
 	 *            URL to add to the basic URL
 	 * @return full URL as as String
@@ -544,15 +525,12 @@ public class GSRestClient {
 
 	/**
 	 * Performs a REST DELETE operation on the given (relative) URL.
-	 * 
+	 *
 	 * @param relativeUrl
-	 *            the Relative URL to the object to be deleted. The rest server
-	 *            IP and port are not required.
+	 *            the Relative URL to the object to be deleted. The rest server IP and port are not required.
 	 *            <p/>
-	 *            example:
-	 *            service/applications/default/services/cassandra/undeploy will
-	 *            delete (undeploy) the service named "cassandra" from the list
-	 *            of all services on the default application.
+	 *            example: service/applications/default/services/cassandra/undeploy will delete (undeploy) the service
+	 *            named "cassandra" from the list of all services on the default application.
 	 * @return Return object.
 	 * @throws ErrorStatusException
 	 *             Reporting errors of all types (IO, HTTP, rest etc.)
@@ -561,17 +539,60 @@ public class GSRestClient {
 		return delete(relativeUrl, null);
 	}
 
+	@SuppressWarnings("unchecked")
+	public List<ControllerDetails> getManagers() throws ErrorStatusException {
+		Object retval = get("service/controllers");
+		List<Object> list = (List<Object>) retval;
+		List<ControllerDetails> result = new ArrayList<ControllerDetails>(list.size());
+		for (Object object : list) {
+			Map<String, Object> map = (Map<String, Object>) object;
+			ControllerDetails details = new ControllerDetails();
+			try {
+				BeanUtils.populate(details, map);
+			} catch (IllegalAccessException e) {
+				throw new IllegalStateException("Error while reading response from server: " + e.getMessage(), e);
+			} catch (InvocationTargetException e) {
+				throw new IllegalStateException("Error while reading response from server: " + e.getMessage(), e);
+			}
+			result.add(details);
+
+		}
+
+		return result;
+
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<ControllerDetails> shutdownManagers() throws ErrorStatusException {
+		Object retval = delete("service/controllers", null);
+
+		List<Object> list = (List<Object>) retval;
+		List<ControllerDetails> result = new ArrayList<ControllerDetails>(list.size());
+		for (Object object : list) {
+			Map<String, Object> map = (Map<String, Object>) object;
+			ControllerDetails details = new ControllerDetails();
+			try {
+				BeanUtils.populate(details, map);
+			} catch (IllegalAccessException e) {
+				throw new IllegalStateException("Error while reading response from server: " + e.getMessage(), e);
+			} catch (InvocationTargetException e) {
+				throw new IllegalStateException("Error while reading response from server: " + e.getMessage(), e);
+			}
+			result.add(details);
+
+		}
+
+		return result;
+	}
+
 	/**
 	 * Performs a REST DELETE operation on the given (relative) URL.
-	 * 
+	 *
 	 * @param relativeUrl
-	 *            the Relative URL to the object to be deleted. The rest server
-	 *            IP and port are not required.
+	 *            the Relative URL to the object to be deleted. The rest server IP and port are not required.
 	 *            <p/>
-	 *            example:
-	 *            service/applications/default/services/cassandra/undeploy will
-	 *            delete (undeploy) the service named "cassandra" from the list
-	 *            of all services on the default application.
+	 *            example: service/applications/default/services/cassandra/undeploy will delete (undeploy) the service
+	 *            named "cassandra" from the list of all services on the default application.
 	 * @param params
 	 *            parameters set on the HttpDelete object
 	 * @return Return object.
@@ -589,9 +610,8 @@ public class GSRestClient {
 	}
 
 	/**
-	 * This methods executes HTTP post over REST on the given (relative) URL
-	 * with the given parameters map.
-	 * 
+	 * This methods executes HTTP post over REST on the given (relative) URL with the given parameters map.
+	 *
 	 * @param relativeUrl
 	 *            The URL to post to.
 	 * @return The response object from the REST server
@@ -603,9 +623,8 @@ public class GSRestClient {
 	}
 
 	/**
-	 * This methods executes HTTP post over REST on the given (relative) URL
-	 * with the given parameters map.
-	 * 
+	 * This methods executes HTTP post over REST on the given (relative) URL with the given parameters map.
+	 *
 	 * @param relativeUrl
 	 *            The URL to post to.
 	 * @param params
@@ -631,9 +650,8 @@ public class GSRestClient {
 	}
 
 	/**
-	 * This methods executes HTTP post over REST on the given (relative) URL
-	 * with the given file.
-	 * 
+	 * This methods executes HTTP post over REST on the given (relative) URL with the given file.
+	 *
 	 * @param relativeUrl
 	 *            The URL to post to.
 	 * @param file
@@ -647,9 +665,8 @@ public class GSRestClient {
 	}
 
 	/**
-	 * This methods executes HTTP post over REST on the given (relative) URL
-	 * with the given file.
-	 * 
+	 * This methods executes HTTP post over REST on the given (relative) URL with the given file.
+	 *
 	 * @param relativeUrl
 	 *            The URL to post to.
 	 * @param file
@@ -665,26 +682,24 @@ public class GSRestClient {
 		filesToPost.put("cloudOverridesFile", cloudOverrides);
 		return postFiles(relativeUrl, props, params, filesToPost);
 	}
-	
+
 	public final Object postFiles(final String relativeUrl, Map<String, File> files)
 			throws RestException {
-		return postFiles(relativeUrl, null/*props*/,null/*params*/, files);
+		return postFiles(relativeUrl, null/* props */, null/* params */, files);
 	}
 
 	/**
-	 * This methods executes HTTP post over REST on the given (relative) URL
-	 * with the given file and properties (also sent as a separate file).
-	 * 
+	 * This methods executes HTTP post over REST on the given (relative) URL with the given file and properties (also
+	 * sent as a separate file).
+	 *
 	 * @param relativeUrl
 	 *            The URL to post to.
 	 * @param file
 	 *            The file to send (example: <SOME PATH>/tomcat.zip).
 	 * @param props
-	 *            The properties of this POST action (example:
-	 *            com.gs.service.type=WEB_SERVER)
+	 *            The properties of this POST action (example: com.gs.service.type=WEB_SERVER)
 	 * @param cloudOverrides
-	 *            A file containing override properties to be used by the cloud
-	 *            driver upon installation.
+	 *            A file containing override properties to be used by the cloud driver upon installation.
 	 * @param params
 	 *            as a map of names and values.
 	 * @return The response object from the REST server
@@ -695,11 +710,11 @@ public class GSRestClient {
 			final Map<String, String> params, Map<String, File> additionalFiles)
 			throws RestException {
 		final MultipartEntity reqEntity = new MultipartEntity();
-		
+
 		// It should be possible to dump the properties into a String entity,
 		// but I can't get it to work. So using a temp file instead.
 		// Idiotic, but works.
-		
+
 		// dump map into file
 		File tempFile;
 		try {
@@ -709,7 +724,7 @@ public class GSRestClient {
 		}
 		final FileBody propsFile = new FileBody(tempFile);
 		reqEntity.addPart("props", propsFile);
-		
+
 		if (params != null) {
 			try {
 				for (Map.Entry<String, String> param : params.entrySet()) {
@@ -728,7 +743,7 @@ public class GSRestClient {
 				reqEntity.addPart(entry.getKey(), bin);
 			}
 		}
-		
+
 		final HttpPost httppost = new HttpPost(getFullUrl(relativeUrl));
 		httppost.setEntity(reqEntity);
 
@@ -736,9 +751,9 @@ public class GSRestClient {
 	}
 
 	/**
-	 * This methods executes HTTP post over REST on the given (relative) URL
-	 * with the given file and properties (also sent as a separate file).
-	 * 
+	 * This methods executes HTTP post over REST on the given (relative) URL with the given file and properties (also
+	 * sent as a separate file).
+	 *
 	 * @param relativeUrl
 	 *            The URL to post to.
 	 * @param file
@@ -759,9 +774,9 @@ public class GSRestClient {
 	}
 
 	/**
-	 * Writes the given properties to a temporary text files and returns it. The
-	 * text file will be deleted automatically.
-	 * 
+	 * Writes the given properties to a temporary text files and returns it. The text file will be deleted
+	 * automatically.
+	 *
 	 * @param props
 	 *            Properties to write to a temporary text (.tmp) file
 	 * @return File object - the properties file created.
@@ -796,7 +811,7 @@ public class GSRestClient {
 
 	/**
 	 * Returns a HTTP client configured to use SSL.
-	 * 
+	 *
 	 * @return HTTP client configured to use SSL
 	 * @throws RestException
 	 *             Reporting different failures while creating the HTTP client
@@ -838,7 +853,7 @@ public class GSRestClient {
 
 	/**
 	 * Converts a json String to a Map<String, Object>.
-	 * 
+	 *
 	 * @param response
 	 *            a json-format String to convert to a map
 	 * @return a Map<String, Object> based on the given String
@@ -855,7 +870,7 @@ public class GSRestClient {
 
 	/**
 	 * Converts a Map<String, ?> to a json String.
-	 * 
+	 *
 	 * @param map
 	 *            a map to convert to String
 	 * @return a json-format String based on the given map
@@ -868,7 +883,7 @@ public class GSRestClient {
 
 	/**
 	 * Convert a Map<String, Object> to an InvocationResult object.
-	 * 
+	 *
 	 * @param map
 	 *            a map to convert to an InvocationResult object
 	 * @return an InvocationResult object based on the given map
