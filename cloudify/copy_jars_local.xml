@@ -22,7 +22,7 @@
 
 	<property name="ec2.dir" value="${esc.dir}/ec2/upload/cloudify-overrides" />
 	<property name="ec2-win.dir" value="${esc.dir}/ec2-win/upload/cloudify-overrides" />
-	<property name="byon.dir" value="${esc.dir}/byon/upload/cloudify-overrides" />
+	<property name="byon.dir" value="${cloudify.home.dir}/clouds/byon/upload/cloudify-overrides" />
 	<property name="azure.dir" value="${esc.dir}/azure/upload/cloudify-overrides" />
 	<property name="hp.dir" value="${esc.dir}/hp/upload/cloudify-overrides" />
 	<property name="rsopenstack.dir" value="${esc.dir}/rsopenstack/upload/cloudify-overrides" />
@@ -95,6 +95,11 @@
 
 	<target name="Copy Cloudify jars to byon upload dir" depends="">
 		<echo message="Copying Cloudify jar files to ${byon.dir}" />
+		<copy_binaries target.dir="${byon.dir}" />
+	</target>
+
+<!-- 	<target name="Copy Cloudify jars to byon upload dir" depends="">
+		<echo message="Copying Cloudify jar files to ${byon.dir}" />
 		<copy todir="${byon.dir}/lib/platform/usm" file="../USM/target/usm.jar" />
 		<copy todir="${byon.dir}/tools/cli" file="../CLI/target/cli.jar" />
 		<copy todir="${byon.dir}/tools/rest" file="../restful/target/rest.war" />
@@ -102,7 +107,7 @@
 		<copy todir="${byon.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" />
 		<copy todir="${byon.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
 	</target>
-
+ -->
 	<target name="Copy Cloudify jars to HP upload dir" depends="">
 		<copy_binaries target.dir="${hp.dir}" />
 	</target>
