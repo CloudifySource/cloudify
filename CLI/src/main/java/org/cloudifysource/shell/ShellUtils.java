@@ -23,9 +23,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Locale;
@@ -48,8 +46,6 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.restclient.StringUtils;
-import org.cloudifysource.shell.commands.CLIException;
-import org.cloudifysource.shell.commands.CLIStatusException;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.Ansi.Color;
 import org.fusesource.jansi.Ansi.Erase;
@@ -174,19 +170,6 @@ public final class ShellUtils {
 		return true;
 	}
 
-	/**
-	 * Gets the types of the managed components as a collection of lower case Strings.
-	 *
-	 * @return The types of the managed components as a collection of lower case Strings.
-	 */
-	public static Collection<String> getComponentTypesAsLowerCaseStringCollection() {
-		final ComponentType[] componentTypes = ComponentType.values();
-		final ArrayList<String> componentTypesAsString = new ArrayList<String>(componentTypes.length);
-		for (final ComponentType type : componentTypes) {
-			componentTypesAsString.add(type.toString().toLowerCase());
-		}
-		return componentTypesAsString;
-	}
 
 	/**
 	 * Gets the given message formatted to be displayed in the specified color.
@@ -255,24 +238,6 @@ public final class ShellUtils {
 		}
 		return defaultMessageBundle;
 
-	}
-
-	/**
-	 * Converts the named component to a {@link ComponentType}.
-	 *
-	 * @param lowerCaseComponentName
-	 *            The component name, in lower case
-	 * @return The matching {@link ComponentType}
-	 * @throws CLIException
-	 *             Reporting failure to find a matching {@link ComponentType} for the given name
-	 */
-	public static ComponentType componentTypeFromLowerCaseComponentName(final String lowerCaseComponentName)
-			throws CLIException {
-		try {
-			return ComponentType.valueOf(lowerCaseComponentName.toUpperCase());
-		} catch (final IllegalArgumentException e) {
-			throw new CLIStatusException("unknown_component_type", lowerCaseComponentName, e);
-		}
 	}
 
 	/**

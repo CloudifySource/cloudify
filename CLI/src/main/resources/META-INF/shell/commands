@@ -16,7 +16,6 @@
 ##---------------------------------------------------------------------------
 org.cloudifysource.shell.commands.Exit
 org.cloudifysource.shell.commands.Version
-#org.cloudifysource.shell.commands.List
 org.cloudifysource.shell.commands.Bye
 org.cloudifysource.shell.commands.Quit
 org.cloudifysource.shell.commands.ListInstances
@@ -59,3 +58,4 @@ org.cloudifysource.shell.commands.AddTemplates
 org.cloudifysource.shell.commands.GetTemplate
 org.cloudifysource.shell.commands.ListTemplates
 org.cloudifysource.shell.commands.RemoveTemplate
+org.cloudifysource.shell.commands.ShutdownManagers

@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.shell.rest;
 
@@ -34,6 +31,7 @@ import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.rest.ApplicationDescription;
 import org.cloudifysource.dsl.rest.ServiceDescription;
+import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.restclient.ErrorStatusException;
 import org.cloudifysource.restclient.GSRestClient;
@@ -42,7 +40,6 @@ import org.cloudifysource.restclient.RestException;
 import org.cloudifysource.restclient.StringUtils;
 import org.cloudifysource.shell.AbstractAdminFacade;
 import org.cloudifysource.shell.AdminFacade;
-import org.cloudifysource.shell.ComponentType;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
@@ -51,11 +48,10 @@ import org.codehaus.jackson.map.ObjectMapper;
 import com.j_spaces.kernel.PlatformVersion;
 
 /**
- * This class implements the {@link AdminFacade}, relying on the abstract
- * implementation of {@link AbstractAdminFacade}. It discovers and manages
- * applications, services, containers and other components over REST, using the
+ * This class implements the {@link AdminFacade}, relying on the abstract implementation of {@link AbstractAdminFacade}.
+ * It discovers and manages applications, services, containers and other components over REST, using the
  * {@link GSRestClient}.
- * 
+ *
  * @author rafi, barakm, adaml, noak
  * @since 2.0.0
  */
@@ -66,26 +62,26 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	private static final String CLOUD_CONTROLLER_URL = "/cloudcontroller/";
 
 	private GSRestClient client;
-
+	private URL urlObj;
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public void doConnect(final String user, final String password, final String url, final boolean sslUsed)
 			throws CLIException {
-		
-		URL urlObj;
+
+
 
 		try {
-			urlObj = new URL(ShellUtils.getFormattedRestUrl(url, sslUsed));
-			client = new GSRestClient(user, password, urlObj, PlatformVersion.getVersionNumber());
+			this.urlObj = new URL(ShellUtils.getFormattedRestUrl(url, sslUsed));
+			client = new GSRestClient(user, password, getUrl(), PlatformVersion.getVersionNumber());
 			// test connection
 			client.get(SERVICE_CONTROLLER_URL + "testrest");
 			if (user != null || password != null) {
 				reconnect(user, password);
 			}
 		} catch (final MalformedURLException e) {
-				throw new CLIStatusException("could_not_parse_url", url, e);
+			throw new CLIStatusException("could_not_parse_url", url, e);
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e);
 		} catch (final RestException e) {
@@ -100,26 +96,25 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	public void reconnect(final String username, final String password) throws CLIException {
 		try {
 			client.setCredentials(username, password);
-            // test connection
-            client.get(SERVICE_CONTROLLER_URL + "testlogin");
-        } catch (final ErrorStatusException e) {
-            throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-        }
-    }
-	
+			// test connection
+			client.get(SERVICE_CONTROLLER_URL + "testlogin");
+		} catch (final ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+		}
+	}
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public void verifyCloudAdmin() throws CLIException {
 		try {
-            client.get(SERVICE_CONTROLLER_URL + "verifyCloudAdmin");
-        } catch (final ErrorStatusException e) {
-            throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-        }
+			client.get(SERVICE_CONTROLLER_URL + "verifyCloudAdmin");
+		} catch (final ErrorStatusException e) {
+			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+		}
 	}
 
-	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -149,26 +144,17 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void restart(final ComponentType componentType,
-			final String componentName, final Set<Integer> componentInstanceIDs)
-			throws CLIException {
-		// TODO: Implement
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
 	@SuppressWarnings("unchecked")
 	public List<ApplicationDescription> getApplicationDescriptionsList() throws CLIException {
 
-		List<ApplicationDescription> applicationDescriptionList = new ArrayList<ApplicationDescription>();
+		final List<ApplicationDescription> applicationDescriptionList = new ArrayList<ApplicationDescription>();
 
 		try {
-			List<Object> objectsList = (List<Object>) client.get("/service/applications/description");
-			ObjectMapper map = new ObjectMapper();
-			for (Object object : objectsList) {
-				ApplicationDescription applicationDescription = map.convertValue(object, ApplicationDescription.class);
+			final List<Object> objectsList = (List<Object>) client.get("/service/applications/description");
+			final ObjectMapper map = new ObjectMapper();
+			for (final Object object : objectsList) {
+				final ApplicationDescription applicationDescription =
+						map.convertValue(object, ApplicationDescription.class);
 				applicationDescriptionList.add(applicationDescription);
 			}
 		} catch (final ErrorStatusException e) {
@@ -185,7 +171,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	@SuppressWarnings("unchecked")
 	public List<String> getApplicationNamesList() throws CLIException {
 		try {
-			Map<String, String> resultsMap = (Map<String, String>) client.get("/service/applications");
+			final Map<String, String> resultsMap = (Map<String, String>) client.get("/service/applications");
 			return new ArrayList<String>(resultsMap.keySet());
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
@@ -206,9 +192,9 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			if (applicationDescriptionList == null || applicationDescriptionList.isEmpty()) {
 				return null;
 			}
-			ObjectMapper map = new ObjectMapper();
-			Object descriptionObject = applicationDescriptionList.get(0);
-			ApplicationDescription applicationDescription =
+			final ObjectMapper map = new ObjectMapper();
+			final Object descriptionObject = applicationDescriptionList.get(0);
+			final ApplicationDescription applicationDescription =
 					map.convertValue(descriptionObject, ApplicationDescription.class);
 			return applicationDescription;
 			// http://stackoverflow.com/questions/5219073/json-deserialization-problem
@@ -339,23 +325,23 @@ public class RestAdminFacade extends AbstractAdminFacade {
 				+ timeout + "?zone=" + zone + "&template=" + templateName
 				+ "&selfHealing=" + Boolean.toString(selfHealing);
 		try {
-			Map<String, File> additionalFiles = new HashMap<String, File>();
+			final Map<String, File> additionalFiles = new HashMap<String, File>();
 			additionalFiles.put("file", packedFile);
 			additionalFiles.put("cloudOverridesFile", cloudOverrides);
 			additionalFiles.put(CloudifyConstants.SERVICE_OVERRIDES_FILE_PARAM, serviceOverrides);
 			if (org.apache.commons.lang.StringUtils.isBlank(authGroups)) {
-            	response = (String) client.postFiles(url, contextProperties, null/*params*/, additionalFiles);
-            } else {
-            	Map<String, String> paramsMap = new HashMap<String, String>();
-            	paramsMap.put("authGroups", authGroups);
-            	response = (String) client.postFiles(url, contextProperties, paramsMap, additionalFiles);
-            }
+				response = (String) client.postFiles(url, contextProperties, null/* params */, additionalFiles);
+			} else {
+				final Map<String, String> paramsMap = new HashMap<String, String>();
+				paramsMap.put("authGroups", authGroups);
+				response = (String) client.postFiles(url, contextProperties, paramsMap, additionalFiles);
+			}
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		} catch (final RestException e) {
 			throw new CLIException(e);
 		}
-		
+
 		return response;
 	}
 
@@ -524,21 +510,20 @@ public class RestAdminFacade extends AbstractAdminFacade {
 
 	/**
 	 * Gets all the UIDs of the services of the given application.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The name of the application to query for its services
 	 * @return A set of UIDs of all the services of the given application.
 	 * @throws CLIException
-	 *             Reporting a failure to the application's services or a
-	 *             service's UID
+	 *             Reporting a failure to the application's services or a service's UID
 	 */
 	public Set<String> getGridServiceContainerUidsForApplication(
 			final String applicationName) throws CLIException {
 		final Set<String> containerUids = new HashSet<String>();
 
-		ApplicationDescription servicesList = getServicesDescriptionList(applicationName);
+		final ApplicationDescription servicesList = getServicesDescriptionList(applicationName);
 		for (final ServiceDescription serviceDescription : servicesList.getServicesDescription()) {
-			String serviceName = serviceDescription.getServiceName();
+			final String serviceName = serviceDescription.getServiceName();
 			containerUids.addAll(getGridServiceContainerUidsForService(
 					applicationName, serviceName));
 		}
@@ -546,18 +531,15 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	}
 
 	/**
-	 * Returns all the UIDs of the GSCs that run the given service, in the
-	 * context of the given application.
-	 * 
+	 * Returns all the UIDs of the GSCs that run the given service, in the context of the given application.
+	 *
 	 * @param applicationName
 	 *            The name of the application deployed in the requested GSCs
 	 * @param serviceName
 	 *            The name of the service deployed in the requested GSCs
-	 * @return a set of UIDs of the GSCs that run the given service in the
-	 *         context of the given application
+	 * @return a set of UIDs of the GSCs that run the given service in the context of the given application
 	 * @throws CLIException
-	 *             Reporting a failure to locate the requested GSCs or get the
-	 *             UIDs.
+	 *             Reporting a failure to locate the requested GSCs or get the UIDs.
 	 */
 	public Set<String> getGridServiceContainerUidsForService(
 			final String applicationName, final String serviceName)
@@ -602,11 +584,10 @@ public class RestAdminFacade extends AbstractAdminFacade {
 
 	/**
 	 * Gets the UIDs of all GSCs.
-	 * 
+	 *
 	 * @return a set of UIDs
 	 * @throws CLIException
-	 *             Reporting a failure to locate the requested GSCs or get the
-	 *             UIDs.
+	 *             Reporting a failure to locate the requested GSCs or get the UIDs.
 	 */
 	public Set<String> getGridServiceContainerUids() throws CLIException {
 		Map<String, Object> container;
@@ -655,20 +636,20 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			final boolean selfHealing, final File applicationOverrides,
 			final File cloudOverrides) throws CLIException {
 
-		String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/timeout/" + timeout
+		final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/timeout/" + timeout
 				+ "?selfHealing=" + Boolean.toString(selfHealing);
 
-		Map<String, File> filesToPost = new HashMap<String, File>();
+		final Map<String, File> filesToPost = new HashMap<String, File>();
 		filesToPost.put("file", applicationFile);
 		filesToPost.put(CloudifyConstants.CLOUD_OVERRIDES_FILE_PARAM, cloudOverrides);
 		filesToPost.put(CloudifyConstants.APPLICATION_OVERRIDES_FILE_PARAM, applicationOverrides);
-	
+
 		try {
 			if (org.apache.commons.lang.StringUtils.isBlank(authGroups)) {
-				return (Map<String, String>) client.postFiles(url, null/* props */ 
+				return (Map<String, String>) client.postFiles(url, null/* props */
 						, null/* params */, filesToPost);
 			}
-			Map<String, String> paramsMap = new HashMap<String, String>();
+			final Map<String, String> paramsMap = new HashMap<String, String>();
 			paramsMap.put("authGroups", authGroups);
 			return (Map<String, String>) client.postFiles(url, null/* props */
 					, paramsMap, filesToPost);
@@ -843,17 +824,17 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<String> addTemplates(final File templatesFile) 
+	public List<String> addTemplates(final File templatesFile)
 			throws CLIException {
 		final String url = SERVICE_CONTROLLER_URL + "templates";
 		List<String> response;
 		try {
-			Map<String, File> fileToPost = new HashMap<String, File>();
+			final Map<String, File> fileToPost = new HashMap<String, File>();
 			fileToPost.put(CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, templatesFile);
 			response = (List<String>) client.postFiles(url, fileToPost);
-		} catch (ErrorStatusException es) {
+		} catch (final ErrorStatusException es) {
 			throw new CLIStatusException(es, es.getReasonCode(), es.getArgs());
-		} catch (RestException e) {
+		} catch (final RestException e) {
 			throw new CLIException(e);
 		}
 		return response;
@@ -864,64 +845,90 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Map<String, CloudTemplate> listTemplates() 
+	public Map<String, CloudTemplate> listTemplates()
 			throws CLIStatusException {
 		final String url = SERVICE_CONTROLLER_URL + "templates";
-		Map<String, CloudTemplate> response = new HashMap<String, CloudTemplate>();
+		final Map<String, CloudTemplate> response = new HashMap<String, CloudTemplate>();
 		try {
-			Map<String, Object> responseMap = (Map<String, Object>) client.get(url);
-			for (Entry<String, Object> entry : responseMap.entrySet()) {
-				ObjectMapper mapper = new ObjectMapper();
-				CloudTemplate convertValue = mapper.convertValue(entry.getValue(), CloudTemplate.class);
+			final Map<String, Object> responseMap = (Map<String, Object>) client.get(url);
+			for (final Entry<String, Object> entry : responseMap.entrySet()) {
+				final ObjectMapper mapper = new ObjectMapper();
+				final CloudTemplate convertValue = mapper.convertValue(entry.getValue(), CloudTemplate.class);
 				response.put(entry.getKey(), convertValue);
 			}
-		} catch (ErrorStatusException e) {
+		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
-		return response;		
+		return response;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public CloudTemplate getTemplate(final String templateName) 
+	public CloudTemplate getTemplate(final String templateName)
 			throws CLIStatusException {
 		final String url = SERVICE_CONTROLLER_URL + "templates/" + templateName;
 		CloudTemplate response;
 		try {
-			Object result = client.get(url);
+			final Object result = client.get(url);
 
-			ObjectMapper mapper = new ObjectMapper();
+			final ObjectMapper mapper = new ObjectMapper();
 			response = mapper.convertValue(result, CloudTemplate.class);
-			
-		} catch (ErrorStatusException e) {
+
+		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
-		return response;	
+		return response;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void removeTemplate(final String templateName) 
+	public void removeTemplate(final String templateName)
 			throws CLIStatusException {
 		final String url = SERVICE_CONTROLLER_URL + "templates/" + templateName;
 		try {
 			client.delete(url);
-		} catch (ErrorStatusException e) {
+		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
 	}
 
 	@Override
-	public void hasInstallPermissions(String applicationName) throws CLIStatusException{
+	public void hasInstallPermissions(final String applicationName) throws CLIStatusException {
 		final String url = SERVICE_CONTROLLER_URL + "application/" + applicationName + "/install/permissions";
 		try {
-				client.get(url);
-		} catch (ErrorStatusException e) {
+			client.get(url);
+		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
 	}
+
+	@Override
+	public List<ControllerDetails> shutdownManagers() throws CLIException {
+
+		try {
+			List<ControllerDetails> controllers = this.client.shutdownManagers();
+			return controllers;
+		} catch (ErrorStatusException e) {
+			throw new CLIStatusException(e);
+		}
+
+	}
+
+	public URL getUrl() {
+		return urlObj;
+	}
+
+	@Override
+	public List<ControllerDetails> getManagers() throws CLIException {
+		try {
+			return client.getManagers();
+		} catch (ErrorStatusException e) {
+			throw new CLIStatusException(e);
+		}
+	}
+
 }
