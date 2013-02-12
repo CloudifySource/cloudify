@@ -26,10 +26,12 @@ import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
+import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.CustomServiceDataAware;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
+import org.cloudifysource.esc.driver.provisioning.ManagementLocator;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.cloudifysource.esc.installer.InstallerException;
@@ -592,5 +594,12 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	@Override
 	public void setCustomDataFile(final File customDataFile) {
 		logger.info("Received custom data file: " + customDataFile);
+	}
+
+	@Override
+	public MachineDetails[] getExistingManagementServers(final ControllerDetails[] controllers)
+			throws CloudProvisioningException, UnsupportedOperationException {
+		throw new UnsupportedOperationException(
+				"Locating management servers from file information is not supported in this cloud driver");
 	}
 }
