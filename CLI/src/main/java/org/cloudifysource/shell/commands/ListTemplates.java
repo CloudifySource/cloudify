@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.felix.gogo.commands.Command;
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.dsl.cloud.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.shell.ShellUtils;
 
