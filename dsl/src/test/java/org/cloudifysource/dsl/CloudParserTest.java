@@ -21,6 +21,7 @@ import java.io.IOException;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudTemplateInstallerConfiguration;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
+import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.Assert;
@@ -76,7 +77,7 @@ public class CloudParserTest {
 		assertNotNull(cloud.getCloudCompute().getTemplates().size() == 1);
 		assertNotNull(cloud.getCloudCompute().getTemplates().get("SMALL_LINUX"));
 
-		org.cloudifysource.dsl.cloud.ComputeTemplate template = cloud.getCloudCompute().getTemplates().values().iterator().next();
+		ComputeTemplate template = cloud.getCloudCompute().getTemplates().values().iterator().next();
 		assertNotNull(template);
 		assertNotNull(template.getInstaller());
 
