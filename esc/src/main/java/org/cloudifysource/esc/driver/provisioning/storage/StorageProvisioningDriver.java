@@ -50,9 +50,9 @@ public interface StorageProvisioningDriver {
 	/**
 	 * 
 	 * @param volumeId
-	 * 			the volume id to be attached
+	 * 			the ID of the volume that will attach instance.
 	 * @param ip
-	 * 			the designated machine ip for attaching the volume.
+	 * 			the designated machine instance IP for attaching the volume.
 	 * @param duration
 	 * 			duration until times out.
 	 * @param timeUnit
@@ -68,9 +68,9 @@ public interface StorageProvisioningDriver {
 	/**
 	 * 
 	 * @param volumeId
-	 * 			the volume id to be detached
+	 * 			the ID of the volume that will be detached.
 	 * @param ip
-	 * 			the designated machine ip to detach from.
+	 * 			the designated machine instance IP to detach from.
 	 * @param duration
 	 * 			duration until times out.
 	 * @param timeUnit
@@ -86,7 +86,7 @@ public interface StorageProvisioningDriver {
 	/**
 	 * 
 	 * @param volumeId
-	 * 			the volume id to be deleted.
+	 * 			the ID of the volume that will be detached.
 	 * @param duration
 	 * 			duration until times out.
 	 * @param timeUnit
@@ -102,7 +102,7 @@ public interface StorageProvisioningDriver {
 	/**
 	 * 
 	 * @param ip
-	 * 			the machine ip. 
+	 * 			the machine instance IP. 
 	 * @param duration
 	 * 			duration until times out.
 	 * @param timeUnit
@@ -120,7 +120,7 @@ public interface StorageProvisioningDriver {
 	/**
 	 * 
 	 * @param volumeId
-	 * 			the volume id to get name from.
+	 * 			the ID of the volume that will be detached.
 	 * @return
 	 * 			the volume name according to volumeId.
 	 * @throws StorageProvisioningException

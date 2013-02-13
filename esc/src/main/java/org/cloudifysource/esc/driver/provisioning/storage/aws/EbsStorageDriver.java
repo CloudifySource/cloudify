@@ -107,13 +107,12 @@ public class EbsStorageDriver implements StorageProvisioningDriver {
 			volume = this.ebsClient.createVolumeInAvailabilityZone(availabilityZone, size);
 
 			String volumeId = volume.getId();
-			//This might pass to the attachVolume method for supporting re-attach
 			logger.fine("naming created volume with id " + volumeId);
 			TagApi tagApi = getTagsApi();
 			Map<String, String> tagsMap = createTagsMap();
 			tagApi.applyToResources(tagsMap, Arrays.asList(volumeId));
 			waitForVolumeToReachStatus(Status.AVAILABLE, end, volumeId);
-			logger.fine("Volume created successfully. volume id is " + volumeId);
+			logger.fine("Volume created successfully. volume id is: " + volumeId);
 		} catch (Exception e) {
 			if (volume != null) {
 				handleExceptionAfterVolumeCreated(volume.getId());
