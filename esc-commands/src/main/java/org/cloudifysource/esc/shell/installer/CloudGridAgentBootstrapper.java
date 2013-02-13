@@ -49,6 +49,7 @@ import org.cloudifysource.esc.driver.provisioning.jclouds.ManagementWebServiceIn
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
+import org.cloudifysource.esc.shell.listener.CliAgentlessInstallerListener;
 import org.cloudifysource.esc.shell.listener.CliProvisioningDriverListener;
 import org.cloudifysource.esc.util.CalcUtils;
 import org.cloudifysource.esc.util.Utils;
