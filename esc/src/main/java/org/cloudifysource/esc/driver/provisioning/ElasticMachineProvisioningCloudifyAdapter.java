@@ -425,11 +425,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			StorageProvisioningException {
 		long timeout = end - System.currentTimeMillis();
 		ComputeTemplate computeTemplate = this.cloud.getCloudCompute().getTemplates().get(this.cloudTemplateName);
-		boolean privileged = computeTemplate.isPrivileged();
-		// mounting the volume will not be possible if not running in privileged mode. 
-		if (!privileged) {
-			throw new StorageProvisioningException("Storage mounting requires running in privileged mode.");
-		}
 		VolumeDetails volumeDetails = this.storageProvisioning
 				.createVolume(machineLocation, timeout, TimeUnit.MILLISECONDS);
 		return volumeDetails;
@@ -744,27 +739,27 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			}
 			// add additional templates from cloudConfigDirectory.
 			addTemplatesToCloud(new File(cloudConfigDirectoryPath));
-			final ComputeTemplate cloudTemplate = 
+			final ComputeTemplate computeTemplate = 
 					this.cloud.getCloudCompute().getTemplates().get(this.cloudTemplateName);
-			if (cloudTemplate == null) {
+			if (computeTemplate == null) {
 				throw new BeanConfigurationException("The provided cloud template name: " + this.cloudTemplateName
 						+ " was not found in the cloud configuration");
 			}
 
 			// This code runs on the ESM in the remote machine,
 			// so set the local directory to the value of the remote directory
-			logger.info("Remote Directory is: " + cloudTemplate.getRemoteDirectory());
+			logger.info("Remote Directory is: " + computeTemplate.getRemoteDirectory());
 			// if running a windows server.
-			if (cloudTemplate.getFileTransfer() == FileTransferModes.CIFS) {
+			if (computeTemplate.getFileTransfer() == FileTransferModes.CIFS) {
 				logger.info("Windows machine - modifying local directory location");
-				final String remoteDirName = cloudTemplate.getRemoteDirectory();
+				final String remoteDirName = computeTemplate.getRemoteDirectory();
 				final String windowsLocalDirPath =
-						getWindowsLocalDirPath(remoteDirName, cloudTemplate.getLocalDirectory());
+						getWindowsLocalDirPath(remoteDirName, computeTemplate.getLocalDirectory());
 				logger.info("Modified local dir name is: " + windowsLocalDirPath);
 
-				cloudTemplate.setLocalDirectory(windowsLocalDirPath);
+				computeTemplate.setLocalDirectory(windowsLocalDirPath);
 			} else {
-				cloudTemplate.setLocalDirectory(cloudTemplate.getRemoteDirectory());
+				computeTemplate.setLocalDirectory(computeTemplate.getRemoteDirectory());
 			}
 
 			// load the provisioning class and set it up
@@ -786,6 +781,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				this.cloudifyProvisioning.setConfig(cloud, cloudTemplateName, false, serviceName);
 				this.storageTemplateName = config.getStorageTemplateName();
 				if (isStorageTemplateUsed()) {
+					boolean privileged = computeTemplate.isPrivileged();
+					// mounting the volume will not be possible if not running in privileged mode. 
+					if (!privileged) {
+						logger.warning("Storage template defined but not running in privileged mode.");
+						throw new StorageProvisioningException("Storage mounting requires running in privileged mode."
+								+ " This should be defined in the cloud's compute template.");
+					}
 					logger.info("creating storage provisioning driver.");
 					this.storageProvisioning = 
 							(StorageProvisioningDriver) Class.forName(this.cloud.getConfiguration()
