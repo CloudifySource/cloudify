@@ -26,7 +26,7 @@ import net.jini.core.discovery.LookupLocator;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.dsl.cloud.ComputeTemplate;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
 
