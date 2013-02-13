@@ -47,6 +47,14 @@ function error_exit_on_level {
 	fi
 }
 
+if [ "$STORAGE_VOLUME_ATTACHED" = "true" ]; then
+	echo Formatting storage volume with fs type ${STORAGE_FORMAT_TYPE} and device name ${STORAGE_DEVICE_NAME} 
+	sudo mkfs -t $STORAGE_FORMAT_TYPE $STORAGE_DEVICE_NAME || error_exit $? "Failed formatting storage volume"
+	echo Mounting storage volume on path ${STORAGE_MOUNT_PATH}
+	mkdir -p ~/$STORAGE_MOUNT_PATH
+	sudo mount $STORAGE_DEVICE_NAME ~/$STORAGE_MOUNT_PATH || error_exit $? "Failed mounting storage volume"
+fi
+
 echo Checking script path
 SCRIPT=`readlink -f $0`
 SCRIPTPATH=`dirname $SCRIPT`
@@ -201,14 +209,6 @@ if [ ! -z "$GIGASPACES_AGENT_ENV_INIT_COMMAND" ]; then
 	echo Executing initialization command
 	cd $WORKING_HOME_DIRECTORY
 	$GIGASPACES_AGENT_ENV_INIT_COMMAND
-fi
-
-if [ "$STORAGE_VOLUME_ATTACHED" = "true" ]; then
-	echo Formatting storage volume
-	sudo mkfs -t $STORAGE_FORMAT_TYPE $STORAGE_DEVICE_NAME || error_exit $? "Failed formatting storage volume"
-	echo Mounting storage volume
-	mkdir -p ~/$STORAGE_MOUNT_PATH
-	sudo mount $STORAGE_DEVICE_NAME ~/$STORAGE_MOUNT_PATH || error_exit $? "Failed mounting storage volume"
 fi
 
 cd ~/gigaspaces/tools/cli || error_exit $? "Failed changing directory to cli directory"
