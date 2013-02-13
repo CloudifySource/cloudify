@@ -2291,7 +2291,6 @@ public class ServiceController implements ServiceDetailsProvider {
 			.addCommandLineArgument("-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "=" 
 									+ cloud.getConfiguration().getComponents().getUsm().getPortRange());
 			
-			final ComputeTemplate template = getComputeTemplate(cloud, templateName);
 
 
 			final ComputeTemplate template = getComputeTemplate(cloud, templateName);

@@ -1,6 +1,6 @@
 package org.cloudifysource.dsl.internal;
 
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.dsl.cloud.ComputeTemplate;
 
 import com.gigaspaces.annotation.pojo.SpaceClass;
 import com.gigaspaces.annotation.pojo.SpaceId;
