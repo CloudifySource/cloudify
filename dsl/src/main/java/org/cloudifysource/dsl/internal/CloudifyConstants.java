@@ -206,7 +206,7 @@ public final class CloudifyConstants {
 	public static final String LIFECYCLE_LOGS = "lifecycleLogs";
 	public static final String IS_TASK_DONE = "isDone";
 	public static final String LIFECYCLE_EVENT_CONTAINER_ID = "lifecycleEventContainerID";
-	public static final String SERVICE_ORDER = "srviceOrder";
+	public static final String SERVICE_ORDER = "serviceOrder";
 	public static final String SERVER_POLLING_TASK_EXPIRATION_MILLI = "PollingTaskExpirationTimeMillis";
 
 	/************************

@@ -1807,7 +1807,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	@JsonRequestExample(requestBody = "{\"applicationName\" : \"petclinic\" , \"srcFile\" :"
 			+ " \"packaged application file\" "
 			+ ", \"recipeOverridesFile\" : \"recipe overrides file\"}")
-	@JsonResponseExample(status = "success", responseBody = "{\"srviceOrder\":\"[mongod,mongoConfig,"
+	@JsonResponseExample(status = "success", responseBody = "{\"serviceOrder\":\"[mongod,mongoConfig,"
 			+ "apacheLB,mongos,tomcat]\""
 			+ ",\"lifecycleEventContainerID\":\"07db2a16-62f8-4669-ac41-ed9afe3a3b02\"}", comments = "")
 	@PossibleResponseStatuses(responseStatuses = {
