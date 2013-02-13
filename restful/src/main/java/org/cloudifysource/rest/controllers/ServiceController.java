@@ -334,7 +334,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Get the dump of all the machines.
-	 *
+	 * 
 	 * @param processors
 	 *            The list of processors to be used.
 	 * @param fileSizeLimit
@@ -368,7 +368,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Get the dump of a given machine, by its ip.
-	 *
+	 * 
 	 * @param ip
 	 *            .
 	 * @param processors
@@ -379,7 +379,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *         each machine otherwise.
 	 * @throws IOException .
 	 * @throws RestErrorException .
-	 *
+	 * 
 	 */
 	@JsonRequestExample(requestBody = "{\"fileSizeLimit\" : 50000000, \"processors\" : \"summary, network, log\"}")
 	@JsonResponseExample(status = "success", responseBody =
@@ -446,7 +446,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Get the dump of all the processing units.
-	 *
+	 * 
 	 * @param fileSizeLimit
 	 *            .
 	 * @return the dump of all the processing units
@@ -688,7 +688,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Tests whether the authentication was successful.
-	 *
+	 * 
 	 * @return - Map<String, Object> object containing the login results.
 	 * @throws RestErrorException
 	 *             When login fails.
@@ -714,7 +714,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Verifies the authenticated user has role ROLE_CLOUDADMIINS.
-	 *
+	 * 
 	 * @return - Map<String, Object> object containing the test results.
 	 * @throws RestErrorException
 	 *             When the calling user does not have role ROLE_CLOUDADMIINS.
@@ -735,7 +735,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * deprecated
-	 *
+	 * 
 	 * @deprecated
 	 * @param applicationName
 	 * @param srcFile
@@ -842,9 +842,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 *
+	 * 
 	 * Creates a list of all service instances in the specified application.
-	 *
+	 * 
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -1244,7 +1244,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * undeploys the specified service of the specific application.
-	 *
+	 * 
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -1334,9 +1334,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 *
+	 * 
 	 * Increments the Processing unit instance number of the specified service.
-	 *
+	 * 
 	 * @param applicationName
 	 *            The application name where the service resides.
 	 * @param serviceName
@@ -1391,9 +1391,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 *
+	 * 
 	 * Decrements the Processing unit instance number of the specified service.
-	 *
+	 * 
 	 * @param applicationName
 	 *            The application name where the service resides.
 	 * @param serviceName
@@ -1483,7 +1483,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Exception handler for all of the internal server's exceptions.
-	 *
+	 * 
 	 * @param response
 	 *            The response object to edit, if not committed yet.
 	 * @param e
@@ -1526,7 +1526,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Exception handler for all of known internal server exceptions.
-	 *
+	 * 
 	 * @param response
 	 *            The response object to edit, if not committed yet.
 	 * @param e
@@ -1559,7 +1559,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Converts a Map<String, ?> to a json String.
-	 *
+	 * 
 	 * @param map
 	 *            a map to convert to String
 	 * @return a json-format String based on the given map
@@ -2542,7 +2542,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 *
+	 * 
 	 * @param serviceName
 	 *            .
 	 * @param applicationName
@@ -3446,7 +3446,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 *
+	 * 
 	 * @param applicationName
 	 *            .
 	 * @param serviceName
@@ -3805,7 +3805,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Handle exceptions that originated from the deployment process.
-	 *
+	 * 
 	 * @param e
 	 *            The exception thrown
 	 * @param pollingTaskId
@@ -3828,7 +3828,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Add templates to the cloud.
-	 *
+	 * 
 	 * @param templatesFolder
 	 *            The templates zip file.
 	 * @return a map containing the added templates and a success status if succeeded, else returns an error status.
@@ -3903,7 +3903,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * For each puInstance - send the templates folder.
-	 *
+	 * 
 	 * @param templatesFolder
 	 *            .
 	 * @param expectedTemplates
@@ -3965,7 +3965,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Sends a delete request to puInstance.
-	 *
+	 * 
 	 * @param puInstance
 	 *            .
 	 * @param hostAddress
@@ -3986,7 +3986,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Sends a post request to puInstance, posts the template folder.
-	 *
+	 * 
 	 * @param templatesFolder
 	 *            .
 	 * @param puInstance
@@ -4118,7 +4118,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Updates the upload local path in all added cloud templates.
-	 *
+	 * 
 	 * @param addedTemplates
 	 *            the added templates.
 	 * @param localTemplatesDir
@@ -4252,7 +4252,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Reads the templates from templatesFolder.
-	 *
+	 * 
 	 * @param templatesFolder
 	 *            .
 	 * @return the list of the read cloud templates.
@@ -4275,7 +4275,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Reads the templates from templatesFolder.
-	 *
+	 * 
 	 * @param templatesFolder
 	 *            .
 	 * @return the list of the read cloud templates.
@@ -4326,7 +4326,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Get the cloud's templates.
-	 *
+	 * 
 	 * @return a map containing the cloud's templates and a success status.
 	 * @throws RestErrorException
 	 *             If cloud is a local cloud.
@@ -4344,7 +4344,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Get template from the cloud.
-	 *
+	 * 
 	 * @param templateName
 	 *            The name of the template to get.
 	 * @return a map containing the template and a success status if succeeded, else returns an error status.
@@ -4375,7 +4375,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Removes a template from the cloud.
-	 *
+	 * 
 	 * @param templateName
 	 *            The name of the template to remove.
 	 * @return success status map if succeeded.
@@ -4436,7 +4436,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * For each REST instance- remove the template.
-	 *
+	 * 
 	 * @param templateName
 	 *            the name of the template.
 	 * @param successfullyRemoved
@@ -4514,7 +4514,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Removes the template from the cloud. Deletes the template's file.
-	 *
+	 * 
 	 * @param templateName
 	 *            the template's name.
 	 * @throws RestErrorException
