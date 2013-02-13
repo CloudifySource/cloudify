@@ -71,12 +71,18 @@ cloud {
 	}
 	
 	cloudStorage {
-		
-				templates ([
-				
+
+		templates ([
+
 					SMALL_BLOCK : storageTemplate{
+						deleteOnExit true
 						size 5
-					}	
+						path "/storageVolume"
+						namePrefix "NamePrefix"
+						deviceName "/dev/sdc"
+						fileSystemType "ext4"
+						custom (["key":"value"])
+					}
 				])
 	}
 

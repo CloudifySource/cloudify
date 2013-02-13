@@ -66,6 +66,12 @@ public class CloudParserTest {
 		Assert.assertNotNull(cloud.getCloudStorage().getTemplates());
 		Assert.assertNotNull(cloud.getCloudStorage().getTemplates().get("SMALL_BLOCK"));
 		Assert.assertEquals(5, cloud.getCloudStorage().getTemplates().get("SMALL_BLOCK").getSize());
+		Assert.assertEquals("/storageVolume", cloud.getCloudStorage().getTemplates().get("SMALL_BLOCK").getPath());
+		Assert.assertEquals("NamePrefix", cloud.getCloudStorage().getTemplates().get("SMALL_BLOCK").getNamePrefix());
+		Assert.assertEquals("/dev/sdc", cloud.getCloudStorage().getTemplates().get("SMALL_BLOCK").getDeviceName());
+		Assert.assertEquals("ext4", cloud.getCloudStorage().getTemplates().get("SMALL_BLOCK").getFileSystemType());
+		Assert.assertEquals("value", cloud.getCloudStorage().getTemplates().get("SMALL_BLOCK").getCustom().get("key"));
+		
 	}
 
 
