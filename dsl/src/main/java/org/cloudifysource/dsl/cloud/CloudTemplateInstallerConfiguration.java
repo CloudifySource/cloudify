@@ -23,7 +23,7 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
  *
  */
 @CloudifyDSLEntity(name = "installer", clazz = CloudTemplateInstallerConfiguration.class,
-		allowInternalNode = true, allowRootNode = true, parent = "template")
+		allowInternalNode = true, allowRootNode = true, parent = "computeTemplate")
 public class CloudTemplateInstallerConfiguration {
 
 	private static final int DEFAULT_ROUTE_RESOLUTION_TIMEOUT = 2 * 60 * 1000; // 2 minutes
