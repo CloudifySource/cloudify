@@ -88,6 +88,8 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.ComputeTemplateHolder;
 import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
+import org.cloudifysource.dsl.internal.ComputeTemplateHolder;
+import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
@@ -2284,7 +2286,6 @@ public class ServiceController implements ServiceDetailsProvider {
 				}
 			}
 		} else {
-			final ComputeTemplate template = getComputeTemplate(cloud, templateName);
 			deployment
 					.addCommandLineArgument("-Xmx" + cloud.getConfiguration().getComponents().getUsm().getMaxMemory())
 					.addCommandLineArgument("-Xms" + cloud.getConfiguration().getComponents().getUsm().getMinMemory())

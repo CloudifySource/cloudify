@@ -3,6 +3,7 @@ package org.cloudifysource.dsl.cloud.compute;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.cloudifysource.dsl.cloud.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 
 /**

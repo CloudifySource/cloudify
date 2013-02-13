@@ -2,7 +2,6 @@ package org.cloudifysource.dsl.cloud;
 
 import java.util.HashMap;
 
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.junit.After;
 import org.junit.Before;
