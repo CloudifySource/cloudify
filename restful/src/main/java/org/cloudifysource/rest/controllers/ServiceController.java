@@ -2303,7 +2303,8 @@ public class ServiceController implements ServiceDetailsProvider {
 					+ template.getRemoteDirectory());
 
 			final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
-					cloud, template, templateName, this.managementTemplate.getRemoteDirectory());
+					cloud, template, templateName, this.managementTemplate.getRemoteDirectory(), 
+					service.getStorage().getTemplate());
 			config.setAuthGroups(authGroups);
 			if (cloudOverrides != null) {
 				if (logger.isLoggable(Level.FINE)) {
@@ -3088,7 +3089,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 			final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
 					cloud, template, templateName,
-					this.managementTemplate.getRemoteDirectory());
+					this.managementTemplate.getRemoteDirectory(), null);
 			config.setAuthGroups(authGroups);
 
 			if (cloudOverrides != null) {
@@ -3237,7 +3238,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 			final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
 					cloud, template, templateName,
-					this.managementTemplate.getRemoteDirectory());
+					this.managementTemplate.getRemoteDirectory(), null);
 			config.setAuthGroups(authGroups);
 			if (cloudOverride != null) {
 				config.setCloudOverridesPerService(cloudOverride);
@@ -3329,7 +3330,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 			final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
 					cloud, template, templateName,
-					this.managementTemplate.getRemoteDirectory());
+					this.managementTemplate.getRemoteDirectory(), null);
 			config.setAuthGroups(authGroups);
 			if (cloudOverrides != null) {
 				config.setCloudOverridesPerService(cloudOverrides);

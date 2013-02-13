@@ -95,6 +95,8 @@ public class Service {
 	private Map<String, String> customProperties = new HashMap<String, String>();
 
 	private ComputeDetails compute;
+	
+	private StorageDetails storage;
 
 	private LinkedList<String> extendedServicesPaths = new LinkedList<String>();
 
@@ -633,5 +635,13 @@ public class Service {
 
 	public void setLocationAware(final boolean locationAware) {
 		this.locationAware = locationAware;
+	}
+
+	public StorageDetails getStorage() {
+		return storage;
+	}
+
+	public void setStorage(final StorageDetails storage) {
+		this.storage = storage;
 	}
 }

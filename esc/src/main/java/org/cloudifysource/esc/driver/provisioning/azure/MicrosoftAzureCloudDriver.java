@@ -676,4 +676,9 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		}
 		return inputEndpoints;
 	}
+
+	@Override
+	public Object getComputeContext() {
+		return null;
+	}
 }

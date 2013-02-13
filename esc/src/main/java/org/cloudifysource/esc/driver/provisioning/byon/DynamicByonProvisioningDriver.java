@@ -212,4 +212,9 @@ public class DynamicByonProvisioningDriver extends BaseProvisioningDriver {
 		return machineDetails;
 	}
 
+	@Override
+	public Object getComputeContext() {
+		return null;
+	}
+
 }

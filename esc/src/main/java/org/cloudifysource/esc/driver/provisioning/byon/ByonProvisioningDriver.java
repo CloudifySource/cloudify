@@ -664,6 +664,11 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	}
 
 	@Override
+	public Object getComputeContext() {
+		return null;
+	}
+
+	@Override
 	public MachineDetails[] getExistingManagementServers() throws CloudProvisioningException {
 		try {
 			return findManagementInAdmin();

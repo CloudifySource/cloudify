@@ -72,6 +72,22 @@ cloud {
 		// When used with the default driver, maps to the credential used to create the ComputeServiceContext.
 		apiKey apiKey
 	}
+	
+	cloudStorage {
+		
+				templates ([
+				
+					SMALL_BLOCK : storageTemplate{
+						deleteOnExit true
+						size 5
+						path "/storage"
+						namePrefix "cloudify-storage"
+						deviceName "/dev/sdc"
+						fileSystemType "ext4"
+						custom ([:])
+					}
+				])
+	}
 
 	cloudCompute {
 		

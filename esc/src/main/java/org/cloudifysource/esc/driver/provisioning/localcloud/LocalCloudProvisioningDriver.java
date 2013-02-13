@@ -167,4 +167,9 @@ public class LocalCloudProvisioningDriver implements ProvisioningDriver {
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public Object getComputeContext() {
+		return null;
+	}
 }

@@ -15,20 +15,26 @@ public class VolumeDetails {
 	public String getId() {
 		return id;
 	}
-	public void setId(String id) {
+	public void setId(final String id) {
 		this.id = id;
 	}
 	public int getSize() {
 		return size;
 	}
-	public void setSize(int size) {
+	public void setSize(final int size) {
 		this.size = size;
 	}
 	public String getLocation() {
 		return location;
 	}
-	public void setLocation(String location) {
+	public void setLocation(final String location) {
 		this.location = location;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(final String name) {
+		this.name = name;
 	}
 
 }

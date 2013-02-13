@@ -43,7 +43,6 @@ public class Cloud {
 	private CloudProvider provider;
 	private CloudUser user = new CloudUser();
 	private CloudConfiguration configuration = new CloudConfiguration();
-	private Map<String, ComputeTemplate> templates = new HashMap<String, ComputeTemplate>();
 	private Map<String, Object> custom = new HashMap<String, Object>();
 	private CloudCompute cloudCompute = new CloudCompute();
 	private CloudStorage cloudStorage = new CloudStorage();
@@ -89,14 +88,6 @@ public class Cloud {
 
 	public void setUser(final CloudUser user) {
 		this.user = user;
-	}
-
-	public Map<String, ComputeTemplate> getTemplates() {
-		return templates;
-	}
-
-	public void setTemplates(final Map<String, ComputeTemplate> templates) {
-		this.templates = templates;
 	}
 
 	public CloudConfiguration getConfiguration() {

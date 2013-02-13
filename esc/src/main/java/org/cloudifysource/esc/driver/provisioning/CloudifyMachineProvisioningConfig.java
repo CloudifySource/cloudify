@@ -87,6 +87,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	
 	private static final String AUTH_GROUPS_DEFAULT = null;
 	private static final String AUTH_GROUPS_KEY = "auth-groups";
+	private static final String STORAGE_TEMPLATE_NAME = "storage-template-name";
 
 	private StringProperties properties = new StringProperties(new HashMap<String, String>());
 
@@ -99,8 +100,10 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	 * @param management - true if the deployment
 	 */
 	public CloudifyMachineProvisioningConfig(final Cloud cloud, final ComputeTemplate template,
-			final String cloudTemplateName, final String managementTemplateRemoteDirectory) {
-
+			final String cloudTemplateName, final String managementTemplateRemoteDirectory, 
+			final String storageTemplateName) {
+		
+		setStorageTemplateName(storageTemplateName);
 		setMinimumNumberOfCpuCoresPerMachine(template.getNumberOfCores());
 
 		setReservedMemoryCapacityPerMachineInMB(cloud.getProvider().getReservedMemoryCapacityPerMachineInMB());
@@ -115,6 +118,16 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 		logger.log(Level.INFO, "Setting cloud configuration directory to: " + remoteDir);
 		setCloudConfigurationDirectory(remoteDir);
 		setCloudTemplateName(cloudTemplateName);
+	}
+
+	private void setStorageTemplateName(final String storageTemplateName) {
+		this.properties.put(STORAGE_TEMPLATE_NAME, storageTemplateName);
+		
+	}
+	
+	public String getStorageTemplateName() {
+		return this.properties.get(STORAGE_TEMPLATE_NAME);
+		
 	}
 
 	private String getWindowsRemoteDirPath(String remoteDirectory) {

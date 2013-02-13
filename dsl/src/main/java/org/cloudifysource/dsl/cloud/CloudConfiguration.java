@@ -31,6 +31,7 @@ public class CloudConfiguration {
 	public static final String DEFAULT_CLOUD_DRIVER_CLASS_NAME =
 			"org.cloudifysource.esc.driver.provisioning.jclouds.DefaultProvisioningDriver";
 	private String className = DEFAULT_CLOUD_DRIVER_CLASS_NAME;
+	private String storageClassName;
 	private String nicAddress;
 	private String lookupGroups;
 	private String lookupLocators;
@@ -129,6 +130,14 @@ public class CloudConfiguration {
 
 	public void setComponents(final GridComponents components) {
 		this.components = components;
+	}
+
+	public String getStorageClassName() {
+		return storageClassName;
+	}
+
+	public void setStorageClassName(final String storageClassName) {
+		this.storageClassName = storageClassName;
 	}
 
 }

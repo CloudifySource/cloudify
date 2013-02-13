@@ -6,5 +6,21 @@ package org.cloudifysource.esc.driver.provisioning.storage;
  *
  */
 public class StorageProvisioningException extends Exception {
-
+	
+	public StorageProvisioningException(final String message) {
+		super(message);
+	}
+	
+	public StorageProvisioningException(final Exception e) {
+		super(e);
+	}
+	
+	public StorageProvisioningException(final String message, final Exception e) {
+		super(message, e);
+	}
+	
+	public StorageProvisioningException() {
+		super();
+	}
+	
 }

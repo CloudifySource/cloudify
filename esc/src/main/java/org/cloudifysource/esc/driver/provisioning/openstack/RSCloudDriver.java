@@ -696,4 +696,9 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 			throw new RuntimeException(e);
 		}
 	}
+
+	@Override
+	public Object getComputeContext() {
+		return null;
+	}
 }

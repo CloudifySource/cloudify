@@ -48,6 +48,7 @@ import org.cloudifysource.dsl.ServiceNetwork;
 import org.cloudifysource.dsl.Sla;
 import org.cloudifysource.dsl.StatefulProcessingUnit;
 import org.cloudifysource.dsl.StatelessProcessingUnit;
+import org.cloudifysource.dsl.StorageDetails;
 import org.cloudifysource.dsl.TenantSharedIsolationSLADescriptor;
 import org.cloudifysource.dsl.cloud.AgentComponent;
 import org.cloudifysource.dsl.cloud.Cloud;
@@ -596,6 +597,7 @@ public abstract class BaseDslScript extends Script {
 			addObjectInitializerForClass(dslObjectInitializersByName, ComputeDetails.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, CloudStorage.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, StorageTemplate.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, StorageDetails.class);
 
 			addObjectInitializerForClass(dslObjectInitializersByName, ComputeDetails.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, Sla.class);

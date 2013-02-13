@@ -89,6 +89,14 @@ public class AgentlessInstaller {
 	 */
 	public static final String SSH_LOGGER_NAME = "com.jcraft.jsch";
 
+	private static final String STORAGE_VOLUME_ATTACHED = "STORAGE_VOLUME_ATTACHED";
+
+	private static final String STORAGE_FORMAT_TYPE = "STORAGE_FORMAT_TYPE";
+
+	private static final String STORAGE_DEVICE_NAME = "STORAGE_DEVICE_NAME";
+
+	private static final String STORAGE_MOUNT_PATH = "STORAGE_MOUNT_PATH";
+
 	/***********
 	 * Constructor.
 	 */
@@ -96,7 +104,7 @@ public class AgentlessInstaller {
 		final Logger sshLogger = Logger.getLogger(SSH_LOGGER_NAME);
 		com.jcraft.jsch.JSch.setLogger(new JschJdkLogger(sshLogger));
 	}
-
+	
 	private static InetAddress waitForRoute(final CloudTemplateInstallerConfiguration installerConfiguration,
 			final String ip, final long endTime) throws InstallerException,
 			InterruptedException {
@@ -271,10 +279,16 @@ public class AgentlessInstaller {
 				.exportVar(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME, details.getTemplateName())
 				.exportVar(CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID, details.getMachineId())
 				.exportVar(CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_ID, details.getMachineId())
-
 				// maintain backwards compatibility for pre 2.3.0
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, details.getPrivateIp())
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, details.getPublicIp());
+		
+		builder.exportVar(STORAGE_VOLUME_ATTACHED, Boolean.toString(details.isStorageVolumeAttached()));
+		if (details.isStorageVolumeAttached()) {
+			builder.exportVar(STORAGE_FORMAT_TYPE, details.getStorageFormatType());
+			builder.exportVar(STORAGE_DEVICE_NAME, details.getStorageDeviceName());
+			builder.exportVar(STORAGE_MOUNT_PATH, details.getStorageMountPath());
+		}
 
 		if (details.getReservationId() != null) {
 			builder.exportVar(GSA_RESERVATION_ID_ENV, details.getReservationId().toString());
