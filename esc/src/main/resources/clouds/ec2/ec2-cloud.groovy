@@ -81,7 +81,7 @@ cloud {
 						deleteOnExit true
 						size 5
 						path "/storage"
-						namePrefix "cloudify-storage"
+						namePrefix "cloudify-storage-volume"
 						deviceName "/dev/sdc"
 						fileSystemType "ext4"
 						custom ([:])
