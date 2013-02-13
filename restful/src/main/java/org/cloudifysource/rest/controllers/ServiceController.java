@@ -83,11 +83,11 @@ import org.cloudifysource.dsl.Sla;
 import org.cloudifysource.dsl.StatefulProcessingUnit;
 import org.cloudifysource.dsl.StatelessProcessingUnit;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
-import org.cloudifysource.dsl.internal.ComputeTemplateHolder;
-import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
+import org.cloudifysource.dsl.cloud.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
+import org.cloudifysource.dsl.internal.ComputeTemplateHolder;
+import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
@@ -2289,7 +2289,6 @@ public class ServiceController implements ServiceDetailsProvider {
 			.addCommandLineArgument("-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "=" 
 									+ cloud.getConfiguration().getComponents().getUsm().getPortRange());
 			
-			final ComputeTemplate template = getComputeTemplate(cloud, templateName);
 
 			long cloudExternalProcessMemoryInMB = 0;
 

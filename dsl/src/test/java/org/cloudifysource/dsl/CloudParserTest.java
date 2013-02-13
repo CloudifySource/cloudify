@@ -17,14 +17,13 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Set;
 
-import org.cloudifysource.dsl.cloud.CloudTemplate;
-import org.cloudifysource.dsl.cloud.CloudTemplateInstallerConfiguration;
 import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.dsl.cloud.CloudTemplateInstallerConfiguration;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class CloudParserTest {
@@ -73,11 +72,11 @@ public class CloudParserTest {
 	public void testCloudParserWithInstaller() throws Exception {
 		final org.cloudifysource.dsl.cloud.Cloud cloud = ServiceReader.readCloud(new File(INSTALLER_CLOUD_PATH));
 		assertNotNull(cloud);
-		assertNotNull(cloud.getTemplates());
-		assertNotNull(cloud.getTemplates().size() == 1);
-		assertNotNull(cloud.getTemplates().get("SMALL_LINUX"));
+		assertNotNull(cloud.getCloudCompute().getTemplates());
+		assertNotNull(cloud.getCloudCompute().getTemplates().size() == 1);
+		assertNotNull(cloud.getCloudCompute().getTemplates().get("SMALL_LINUX"));
 
-		CloudTemplate template = cloud.getTemplates().values().iterator().next();
+		org.cloudifysource.dsl.cloud.ComputeTemplate template = cloud.getCloudCompute().getTemplates().values().iterator().next();
 		assertNotNull(template);
 		assertNotNull(template.getInstaller());
 

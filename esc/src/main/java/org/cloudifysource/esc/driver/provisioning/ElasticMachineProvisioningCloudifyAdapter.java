@@ -33,8 +33,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.dsl.cloud.ComputeTemplate;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
@@ -261,9 +261,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		machineEventListener.elasticMachineProvisioningProgressChanged(machineStartEvent);
 
 		try {
-			final CloudTemplate template = cloud.getTemplates().get(this.cloudTemplateName);
+			final ComputeTemplate template = cloud.getCloudCompute().getTemplates().get(this.cloudTemplateName);
 			if (locationId == null) {
-				final ComputeTemplate template = cloud.getCloudCompute().getTemplates().get(this.cloudTemplateName);
 				locationId = template.getLocationId();
 			}
 
