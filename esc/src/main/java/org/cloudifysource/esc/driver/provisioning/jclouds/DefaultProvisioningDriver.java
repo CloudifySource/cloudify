@@ -24,7 +24,6 @@ import java.util.logging.Level;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.ComputeTemplate;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
