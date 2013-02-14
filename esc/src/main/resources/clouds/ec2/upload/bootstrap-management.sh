@@ -47,14 +47,6 @@ function error_exit_on_level {
 	fi
 }
 
-if [ "$STORAGE_VOLUME_ATTACHED" = "true" ]; then
-	echo Formatting storage volume with fs type ${STORAGE_FORMAT_TYPE} and device name ${STORAGE_DEVICE_NAME} 
-	sudo mkfs -t $STORAGE_FORMAT_TYPE $STORAGE_DEVICE_NAME || error_exit $? "Failed formatting storage volume"
-	echo Mounting storage volume on path ${STORAGE_MOUNT_PATH}
-	mkdir -p ~/$STORAGE_MOUNT_PATH
-	sudo mount $STORAGE_DEVICE_NAME ~/$STORAGE_MOUNT_PATH || error_exit $? "Failed mounting storage volume"
-fi
-
 echo Checking script path
 SCRIPT=`readlink -f $0`
 SCRIPTPATH=`dirname $SCRIPT`
@@ -74,6 +66,14 @@ else
 fi
 
 source ${ENV_FILE_PATH}
+
+if [ "$STORAGE_VOLUME_ATTACHED" = "true" ]; then
+	echo Formatting storage volume with fs type ${STORAGE_FORMAT_TYPE} and device name ${STORAGE_DEVICE_NAME} 
+	sudo mkfs -t $STORAGE_FORMAT_TYPE $STORAGE_DEVICE_NAME || error_exit $? "Failed formatting storage volume"
+	echo Mounting storage volume on path ${STORAGE_MOUNT_PATH}
+	mkdir -p ~/$STORAGE_MOUNT_PATH
+	sudo mount $STORAGE_DEVICE_NAME ~/$STORAGE_MOUNT_PATH || error_exit $? "Failed mounting storage volume"
+fi
 
 JAVA_32_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-i586.bin"
 JAVA_64_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-x64.bin"
