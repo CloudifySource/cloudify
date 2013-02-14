@@ -51,7 +51,7 @@ public class CloudParserTest {
 	public void testCloudParserWithTemplatesUnderCloudSection() throws Exception {
 		try {
 			ServiceReader.readCloud(new File(SIMPLE_BAD_CLOUD_PATH));
-			Assert.fail("Cloud parsing should not be succesfull " 
+			Assert.fail("Cloud parsing should not be successful " 
 					+ "since the templates are located under the cloud section");
 		} catch (IllegalArgumentException e) {
 			// this should throw this exception since 
