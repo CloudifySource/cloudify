@@ -29,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
+import org.cloudifysource.esc.driver.provisioning.storage.BaseStorageDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.storage.VolumeDetails;
@@ -66,7 +67,7 @@ import com.google.common.collect.ImmutableList;
  * @author adaml
  * @since 2.5.0
  */
-public class EbsStorageDriver implements StorageProvisioningDriver {
+public class EbsStorageDriver extends BaseStorageDriver implements StorageProvisioningDriver {
 	
 	protected static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(EbsStorageDriver.class.getName());
@@ -272,7 +273,7 @@ public class EbsStorageDriver implements StorageProvisioningDriver {
 			throws StorageProvisioningException {
 		if (computeContext != null && !(computeContext instanceof AWSEC2ComputeServiceContext)) {
 			throw new StorageProvisioningException("jClouds context does not match storage driver. "
-					+ "expecting context of type: AWSEC2ComputeServiceContextImpl");
+					+ "expecting context of type: " + AWSEC2ComputeServiceContext.class.getName());
 		}
 		logger.fine("Setting compute context for storage driver");
 		this.context = (AWSEC2ComputeServiceContext) context;
@@ -316,18 +317,20 @@ public class EbsStorageDriver implements StorageProvisioningDriver {
 	}
 	
 	private void initContext() {
-		if (this.context == null) {
-			String userName = cloud.getUser().getUser();
-			String apiKey = cloud.getUser().getApiKey();
-			String cloudProvider = cloud.getProvider().getProvider();
-			try {
-				logger.fine("Creating JClouds context with user: " + userName);
-				ContextBuilder contextBuilder = ContextBuilder.newBuilder(cloudProvider);
-				contextBuilder.credentials(userName, apiKey);
-				this.context = contextBuilder.buildView(ComputeServiceContext.class);
-			} catch (Exception e) {
-				throw new IllegalStateException("Failed creating cloud native context. Reason: " + e.getMessage(), e);
-			}
+		
+		if (this.context != null) {
+			return;
+		}
+		String userName = cloud.getUser().getUser();
+		String apiKey = cloud.getUser().getApiKey();
+		String cloudProvider = cloud.getProvider().getProvider();
+		try {
+			logger.fine("Creating compute context with user: " + userName);
+			ContextBuilder contextBuilder = ContextBuilder.newBuilder(cloudProvider);
+			contextBuilder.credentials(userName, apiKey);
+			this.context = contextBuilder.buildView(ComputeServiceContext.class);
+		} catch (Exception e) {
+			throw new IllegalStateException("Failed creating cloud native context. Reason: " + e.getMessage(), e);
 		}
 	}
 	
@@ -339,7 +342,8 @@ public class EbsStorageDriver implements StorageProvisioningDriver {
 		return tagsMap;
 	}
 
-	private Set<String> getMachineVolumeIds(final String ip) 
+	@Override
+	public Set<String> getMachineVolumeIds(final String ip) 
 					throws StorageProvisioningException {
 		
 		NodeMetadata nodeMetadata = getNodeMetadata(ip);
@@ -349,7 +353,7 @@ public class EbsStorageDriver implements StorageProvisioningDriver {
 		for (org.jclouds.compute.domain.Volume machineVolume : machineVolumes) {
 			String id = machineVolume.getId();
 			// Some storage devices that start with the machine have no id.
-			// These devices are certainly no ebs volumes 
+			// These devices are certainly not ebs volumes.
 			if (!StringUtils.isEmpty(id)) {
 				machineVolumeIds.add(machineVolume.getId());
 			}

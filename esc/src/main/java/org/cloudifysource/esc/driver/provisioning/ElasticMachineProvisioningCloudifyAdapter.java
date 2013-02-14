@@ -46,6 +46,7 @@ import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClas
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.cloudifysource.esc.driver.provisioning.events.MachineStartRequestedCloudifyEvent;
 import org.cloudifysource.esc.driver.provisioning.events.MachineStartedCloudifyEvent;
+import org.cloudifysource.esc.driver.provisioning.storage.BaseStorageDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.storage.VolumeDetails;
@@ -792,7 +793,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					this.storageProvisioning = 
 							(StorageProvisioningDriver) Class.forName(this.cloud.getConfiguration()
 									.getStorageClassName()).newInstance();
-					this.storageProvisioning.setComputeContext(cloudifyProvisioning.getComputeContext());
+					if (this.storageProvisioning instanceof BaseStorageDriver) {
+						((BaseStorageDriver) this.storageProvisioning)
+												.setComputeContext(cloudifyProvisioning.getComputeContext());
+					}
 					this.storageProvisioning.setConfig(cloud, this.cloudTemplateName, this.storageTemplateName);
 					logger.info("storage provisioning driver created successfully.");
 				}
