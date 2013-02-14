@@ -88,8 +88,6 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.ComputeTemplateHolder;
 import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
-import org.cloudifysource.dsl.internal.ComputeTemplateHolder;
-import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
