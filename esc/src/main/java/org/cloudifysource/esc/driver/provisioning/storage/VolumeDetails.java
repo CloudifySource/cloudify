@@ -75,12 +75,6 @@ public class VolumeDetails {
 	public void setLocation(final String location) {
 		this.location = location;
 	}
-	public String getName() {
-		return name;
-	}
-	public void setName(final String name) {
-		this.name = name;
-	}
 
 	@Override
 	public String toString() {
