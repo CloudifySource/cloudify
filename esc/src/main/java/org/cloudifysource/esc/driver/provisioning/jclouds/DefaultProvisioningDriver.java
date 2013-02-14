@@ -37,6 +37,7 @@ import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.jclouds.JCloudsDeployer;
+import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.domain.ComputeMetadata;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.domain.LoginCredentials;
@@ -598,14 +599,19 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	@Override
-	public Object getComputeContext() {
-		return this.deployer.getContext();
-	}
-
-	@Override
 	public MachineDetails[] getExistingManagementServers(final ControllerDetails[] controllers)
 			throws CloudProvisioningException, UnsupportedOperationException {
 		throw new UnsupportedOperationException(
 				"Locating management servers from file information is not supported in this cloud driver");
+	}
+	
+	@Override
+	public Object getComputeContext() {
+		ComputeServiceContext computeContext = null;
+		if (deployer != null) {
+			computeContext = deployer.getContext();
+		}
+		
+		return computeContext;
 	}
 }
