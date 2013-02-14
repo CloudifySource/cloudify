@@ -45,6 +45,7 @@ public class OpenstackStorageDriver implements StorageProvisioningDriver  {
 	protected static final String EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API = "connection_to_cloud_api_succeeded";
 	protected static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(OpenstackStorageDriver.class.getName());
+	private static final Object OPENSTACK_VOLUME_ZONE = null;
 	
 	//private String zone;
 	private StorageTemplate storageTemplate;
@@ -72,12 +73,9 @@ public class OpenstackStorageDriver implements StorageProvisioningDriver  {
 	}
 	
 	@Override
-	public void setConfig(final Cloud cloud, final String computeTemplateName, final String storageTemplateName,
-			final Object computeContextObj) {
+	public void setConfig(final Cloud cloud, final String computeTemplateName, final String storageTemplateName) {
 
 		logger.fine("Initializing storage provisioning on Openstack. Using template: " + storageTemplateName);
-		
-		setComputeContext(computeContextObj);
 		
 		this.cloud = cloud;
 		publishEvent(EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
@@ -111,7 +109,7 @@ public class OpenstackStorageDriver implements StorageProvisioningDriver  {
 		CreateVolumeOptions options = CreateVolumeOptions.Builder
 				.name(volumeName)
 				.description(VOLUME_DESCRIPTION)
-				.availabilityZone(storageTemplate.getOptions().get(StorageTemplate.OPENSTACK_VOLUME_ZONE).toString());
+				.availabilityZone(storageTemplate.getCustom().get(OPENSTACK_VOLUME_ZONE).toString());
 
 		volume = volumeApi.get().create(1, options);
 		
@@ -147,7 +145,7 @@ public class OpenstackStorageDriver implements StorageProvisioningDriver  {
 				getVolumeAttachmentExtensionForZone(node.getLocation().getParent().getId());
 		if (volumeAttachmentApi.isPresent()) {
 			volumeAttachmentApi.get().attachVolumeToServerAsDevice(volumeId, node.getId(), 
-					storageTemplate.getOptions().get(StorageTemplate.OPTION_ATTACHMENT_DEVICE_PATH).toString());
+					storageTemplate.getDeviceName());
 		} else {
 			// TODO what?
 		}
@@ -320,7 +318,7 @@ public class OpenstackStorageDriver implements StorageProvisioningDriver  {
 			logger.fine("Creating JClouds context deployer for Openstack with user: " + cloud.getUser().getUser());
 			final StorageTemplate storageTemplate = cloud.getCloudStorage().getTemplates().get(storageTemplateName);
 			final Properties props = new Properties();
-			props.putAll(storageTemplate.getOptions());			
+			props.putAll(storageTemplate.getCustom());			
 			deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),
 					cloud.getUser().getApiKey(), props);
 		} catch (final Exception e) {
