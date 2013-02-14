@@ -18,7 +18,7 @@ package org.cloudifysource.esc.driver.provisioning.storage;
 import java.util.Set;
 
 /*****
- * an abstraction for enabling storage driver functionality.
+ * an abstraction for a base storage driver to extend driver functionality.
  * 
  * @author adaml
  *
