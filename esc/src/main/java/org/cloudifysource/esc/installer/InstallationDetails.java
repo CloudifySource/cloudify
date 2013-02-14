@@ -220,9 +220,9 @@ public class InstallationDetails implements Cloneable {
 				+ keyFile + ", localDir=" + localDir + ", remoteDir=" + remoteDir + ", isLus=" + isManagement
 				+ ", zones="
 				+ zones + ", extraRemoteEnvironmentVariables = " + extraRemoteEnvironmentVariables
-				+ ", authGroups=***]" + "storageVolumeAttached=" + storageVolumeAttached
-				+ "storageFormatType=" + storageFormatType + "storageDeviceName=" + storageDeviceName
-				+ "storageMountPath=" + storageMountPath;
+				+ ", authGroups=***]" + ", storageVolumeAttached=" + storageVolumeAttached
+				+ ", storageFormatType=" + storageFormatType + ", storageDeviceName=" + storageDeviceName
+				+ ", storageMountPath=" + storageMountPath;
 	}
 
 	public String getKeyFile() {
