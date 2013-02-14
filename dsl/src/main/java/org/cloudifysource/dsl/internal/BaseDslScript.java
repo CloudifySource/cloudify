@@ -55,7 +55,6 @@ import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudConfiguration;
 import org.cloudifysource.dsl.cloud.CloudProvider;
 import org.cloudifysource.dsl.cloud.CloudTemplateInstallerConfiguration;
-import org.cloudifysource.dsl.cloud.CloudTemplateInstallerConfiguration;
 import org.cloudifysource.dsl.cloud.CloudUser;
 import org.cloudifysource.dsl.cloud.DeployerComponent;
 import org.cloudifysource.dsl.cloud.DiscoveryComponent;

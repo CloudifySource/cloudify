@@ -32,7 +32,6 @@ public class CloudParserTest {
 	private static final String SIMPLE_CLOUD_PATH = "src/test/resources/enums/my-cloud.groovy";
 	private static final String SIMPLE_BAD_CLOUD_PATH = "src/test/resources/enums/my-bad-cloud.groovy";
 	private final static String INSTALLER_CLOUD_PATH = "src/test/resources/clouds/installer/some-cloud.groovy";
-	private final static String INSTALLER_CLOUD_PATH = "src/test/resources/clouds/installer/some-cloud.groovy";
 
 	@Test
 	public void testCloudParser() throws Exception {
