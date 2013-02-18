@@ -495,5 +495,17 @@ public class ServiceParsingTest {
 		new RESTClient();
 
 	}
+	
+	@Test
+	public void testStorageDetailsParsing() throws Exception{
+		final File serviceFile = new File(TEST_PARSING_RESOURCE_PATH3
+				+ "simpleStorage-service.groovy");
+		final Service service = ServiceReader.getServiceFromFile(serviceFile);
+		Assert.assertNotNull(service.getStorage());
+		Assert.assertNotNull(service.getStorage().getTemplate());
+		Assert.assertNotNull(service.getStorage().getTemplate().equals("SMALL_BLOCK"));
+		
+
+	}
 
 }
