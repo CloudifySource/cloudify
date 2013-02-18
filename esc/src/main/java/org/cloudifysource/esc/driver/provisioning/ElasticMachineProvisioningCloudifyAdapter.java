@@ -399,7 +399,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	void handleVolumeAttachException(final VolumeDetails volumeDetails) {
 		try {
-			this.storageProvisioning.deleteVolume(volumeDetails.getId(), 1, TimeUnit.MINUTES);
+			//TODO the first param should be the volume location
+			this.storageProvisioning.deleteVolume("", volumeDetails.getId(), 1, TimeUnit.MINUTES);
 		} catch (Exception e) {
 			logger.log(
 					Level.WARNING,
@@ -681,7 +682,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				boolean deleteOnExit = storageTemplate.isDeleteOnExit();
 				if (deleteOnExit) {
 					logger.info("deleting volume with id " + id);
-					this.storageProvisioning.deleteVolume(id, duration, unit);
+					//TODO the first param should be the storage location
+					this.storageProvisioning.deleteVolume("", id, duration, unit);
 				}
 			}
 		}

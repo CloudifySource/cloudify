@@ -1,18 +1,3 @@
-/*******************************************************************************
- * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.storage;
 
 import java.util.Set;
@@ -100,8 +85,10 @@ public interface StorageProvisioningDriver {
 	
 	/**
 	 * 
+	 * @param location
+	 * 			the location of the volume that will be deleted.
 	 * @param volumeId
-	 * 			the ID of the volume that will be detached.
+	 * 			the ID of the volume that will be deleted.
 	 * @param duration
 	 * 			duration until times out.
 	 * @param timeUnit
@@ -111,7 +98,7 @@ public interface StorageProvisioningDriver {
 	 * @throws StorageProvisioningException
 	 * 			if deletion of volume fails.
 	 */
-	void deleteVolume(final String volumeId, final long duration, final TimeUnit timeUnit) 
+	void deleteVolume(final String location, final String volumeId, final long duration, final TimeUnit timeUnit) 
 						throws TimeoutException, StorageProvisioningException;
 	
 	/**
@@ -144,7 +131,18 @@ public interface StorageProvisioningDriver {
 	 */
 	String getVolumeName(final String volumeId) 
 				throws StorageProvisioningException;
-		
+	
+	/**
+	 * Sets the jClouds compute context if exists.
+	 * 
+	 * @param context
+	 * 			 jClouds compute context
+	 * 
+	 * @throws StorageProvisioningException
+	 * 			In-case context does not match the specified storage driver.
+	 */
+	void setComputeContext(final Object context) throws StorageProvisioningException; 
+	
 	/**
 	 * Close all resources.
 	 */
