@@ -73,6 +73,8 @@ if [ "$STORAGE_VOLUME_ATTACHED" = "true" ]; then
 	echo Mounting storage volume on path ${STORAGE_MOUNT_PATH}
 	mkdir -p ~/$STORAGE_MOUNT_PATH
 	sudo mount $STORAGE_DEVICE_NAME ~/$STORAGE_MOUNT_PATH || error_exit $? "Failed mounting storage volume"
+	USERNAME=`whoami`
+	sudo chown $USERNAME storage/ 
 fi
 
 JAVA_32_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-i586.bin"

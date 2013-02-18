@@ -397,10 +397,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		} 
 	}
 
-	void handleVolumeAttachException(VolumeDetails volumeDetails) {
+	void handleVolumeAttachException(final VolumeDetails volumeDetails) {
 		try {
 			this.storageProvisioning.deleteVolume(volumeDetails.getId(), 1, TimeUnit.MINUTES);
-		}catch (Exception e) {
+		} catch (Exception e) {
 			logger.log(
 					Level.WARNING,
 					"Volume attachment failed. "
@@ -415,8 +415,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	void attachStorageVolumeToMachine(final String machineIp, final VolumeDetails volumeDetails, final long end)
 			throws TimeoutException, StorageProvisioningException {
-		long timeout;
-		timeout = end - System.currentTimeMillis();
+		 long timeout = end - System.currentTimeMillis();
 		String volumeId = volumeDetails.getId();
 		this.storageProvisioning.attachVolume(volumeId, machineIp, timeout, TimeUnit.MILLISECONDS);
 	}
@@ -425,7 +424,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	VolumeDetails startNewStorageVolume(final String machineLocation, final long end) throws TimeoutException,
 			StorageProvisioningException {
 		long timeout = end - System.currentTimeMillis();
-		ComputeTemplate computeTemplate = this.cloud.getCloudCompute().getTemplates().get(this.cloudTemplateName);
 		VolumeDetails volumeDetails = this.storageProvisioning
 				.createVolume(machineLocation, timeout, TimeUnit.MILLISECONDS);
 		return volumeDetails;

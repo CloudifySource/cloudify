@@ -264,7 +264,6 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 			logger.warning("failed getting volume name. Reason: " + e.getMessage());
 			throw new StorageProvisioningException("failed getting volume name. Reason: " + e.getMessage(), e);
 		}
-		
 	}
 	
 	@SuppressWarnings("cast")
