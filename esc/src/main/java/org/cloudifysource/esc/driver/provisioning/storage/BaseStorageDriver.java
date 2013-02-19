@@ -24,7 +24,7 @@ import java.util.Set;
  *
  */
 public abstract class BaseStorageDriver implements StorageProvisioningDriver {
-	
+
 	/**
 	 * sets the jClouds context.
 	 * @param computeContext

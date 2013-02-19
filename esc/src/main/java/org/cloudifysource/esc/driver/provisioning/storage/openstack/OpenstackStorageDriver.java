@@ -68,10 +68,10 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(OpenstackStorageDriver.class.getName());
 	
-	private StorageTemplate storageTemplate;
 	private ComputeServiceContext computeContext;
 	private JCloudsDeployer deployer;
 	private RestContext<NovaApi, NovaAsyncApi> novaContext;
+	private Cloud cloud;
 	
 	protected final List<ProvisioningDriverListener> eventsListenersList = new LinkedList<ProvisioningDriverListener>();
 
@@ -89,19 +89,20 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 	}
 	
 	@Override
-	public void setConfig(final Cloud cloud, final String computeTemplateName, final String storageTemplateName) {
+	public void setConfig(final Cloud cloud, final String computeTemplateName) {
 
-		logger.fine("Initializing storage provisioning on Openstack. Using template: " + storageTemplateName);
+		this.cloud = cloud;
+		logger.fine("Initializing storage provisioning on Openstack");
 		
 		publishEvent(EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
-		initDeployer(cloud, computeTemplateName, storageTemplateName);
+		initDeployer(cloud, computeTemplateName);
 		publishEvent(EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
 		novaContext = this.computeContext.unwrap();
-		storageTemplate = cloud.getCloudStorage().getTemplates().get(storageTemplateName);
 	}
 
 	@Override
-	public VolumeDetails createVolume(final String location, final long duration, final TimeUnit timeUnit) throws 
+	public VolumeDetails createVolume(final String templateName, final String location, 
+			final long duration, final TimeUnit timeUnit) throws 
 		TimeoutException, StorageProvisioningException {
 		
 		final long endTime = System.currentTimeMillis() + timeUnit.toMillis(duration);
@@ -118,11 +119,13 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 			throw new StorageProvisioningException("Failed to create volume, compute context is not initialized.");
 		}
 		
+		StorageTemplate storageTemplate = this.cloud.getCloudStorage().getTemplates().get(templateName);
+		
 		String volumeName = storageTemplate.getNamePrefix() + System.currentTimeMillis();
 		CreateVolumeOptions options = CreateVolumeOptions.Builder
 				.name(volumeName)
 				.description(VOLUME_DESCRIPTION)
-				.availabilityZone(getStorageZone());
+				.availabilityZone(getStorageZone(templateName));
 
 		volume = volumeApi.get().create(storageTemplate.getSize(), options);
 		
@@ -144,7 +147,7 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 	}
 
 	@Override
-	public void attachVolume(final String volumeId, final String machineIp, final long duration, 
+	public void attachVolume(final String volumeId, final String device, final String machineIp, final long duration, 
 			final TimeUnit timeUnit) throws TimeoutException, StorageProvisioningException {
 		
 		NodeMetadata node = deployer.getServerWithIP(machineIp);
@@ -158,7 +161,7 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		
 		if (volumeAttachmentApi.isPresent()) {
 			volumeAttachmentApi.get().attachVolumeToServerAsDevice(volumeId, node.getProviderId(), 
-					storageTemplate.getDeviceName());
+					device);
 		} else {
 			throw new StorageProvisioningException("Failed to attach volume " + volumeId 
 					+ ", Openstack API is not initialized.");
@@ -326,8 +329,7 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		}
 	}
 	
-	private JCloudsDeployer initDeployer(final Cloud cloud, final String computeTemplateName, final String 
-			storageTemplateName) {
+	private JCloudsDeployer initDeployer(final Cloud cloud, final String computeTemplateName) {
 		
 		if (deployer != null) {
 			return deployer;
@@ -335,14 +337,9 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		
 		try {
 			logger.fine("Creating JClouds context deployer for Openstack with user: " + cloud.getUser().getUser());
-			final StorageTemplate storageTemplate = cloud.getCloudStorage().getTemplates().get(storageTemplateName);
 			final ComputeTemplate computeTemplate = cloud.getCloudCompute().getTemplates().get(computeTemplateName);
 			final Properties props = new Properties();
 			props.putAll(computeTemplate.getOverrides());
-			//props.put(OPENSTACK_JCLOUDS_ENDPOINT, getComputeEndpoint(computeTemplate));
-			//props.put(CREDENTIALS_TYPE_PROPERTY, CREDENTIALS_TYPE);
-			props.putAll(storageTemplate.getCustom());
-
 			deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),
 					cloud.getUser().getApiKey(), props);
 		} catch (final Exception e) {
@@ -390,9 +387,9 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 	}
 	
 	
-	private String getStorageZone() throws IllegalArgumentException {
+	private String getStorageZone(final String templateName) throws IllegalArgumentException {
 		String zone;
-		Map<String, Object> customSettings = storageTemplate.getCustom();
+		Map<String, Object> customSettings = cloud.getCloudStorage().getTemplates().get(templateName).getCustom();
 		
 		if (customSettings != null) {
 			Object zoneObj = customSettings.get(OPENSTACK_CUSTOM_VOLUME_ZONE);

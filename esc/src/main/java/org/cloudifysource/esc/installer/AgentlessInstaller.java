@@ -60,8 +60,6 @@ public class AgentlessInstaller {
 
 	private static final String MACHINE_ZONES_ENV = "MACHINE_ZONES";
 
-	private static final String MACHINE_IP_ADDRESS_ENV = "MACHINE_IP_ADDRESS";
-
 	private static final String GSA_MODE_ENV = "GSA_MODE";
 
 	private static final String NO_WEB_SERVICES_ENV = "NO_WEB_SERVICES";
@@ -265,7 +263,7 @@ public class AgentlessInstaller {
 				.exportVar(NO_WEB_SERVICES_ENV,
 						details.isNoWebServices() ? "true" : "false")
 				.exportVar(
-						MACHINE_IP_ADDRESS_ENV,
+						CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_IP_ADDRESS_ENV,
 						details.isBindToPrivateIp() ? details.getPrivateIp()
 								: details.getPublicIp())
 				.exportVar(MACHINE_ZONES_ENV, details.getZones())
@@ -282,6 +280,7 @@ public class AgentlessInstaller {
 				.exportVar(CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_ID, details.getMachineId())
 				// maintain backwards compatibility for pre 2.3.0
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, details.getPrivateIp())
+				.exportVar(CloudifyConstants.CLOUDIFY_CLOUD_LOCATION_ID, details.getLocationId())
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, details.getPublicIp());
 
 		builder.exportVar(STORAGE_VOLUME_ATTACHED, Boolean.toString(details.isStorageVolumeAttached()));

@@ -201,7 +201,8 @@ public final class Utils {
 		details.setBindToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		details.setLocalDir(template.getAbsoluteUploadDir());
 		details.setRelativeLocalDir(template.getLocalDirectory());
-
+		details.setLocationId(md.getLocationId());
+		
 		final String remoteDir = template.getRemoteDirectory();
 		details.setRemoteDir(remoteDir);
 
