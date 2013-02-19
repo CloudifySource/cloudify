@@ -18,6 +18,10 @@
 #	$GIGASPACES_CLOUD_IMAGE_ID - If set, indicates the image ID for this machine.
 #	$GIGASPACES_CLOUD_HARDWARE_ID - If set, indicates the hardware ID for this machine.
 #	$PASSWORD - the machine password
+#	$STORAGE_VOLUME_ATTACHED - if set to 'true', storage volume will be mouted. else all storage params will be null.
+#	$STORAGE_FORMAT_TYPE - if set, indicates the file system type for formatting the volume before mount.
+#	$STORAGE_MOUNT_PATH - if set, points to the path where the storage driver will be mounted.
+#	$STORAGE_DEVICE_NAME - if set, indicated the storage device name.
 #############################################################################
 
 # args:
@@ -62,6 +66,16 @@ else
 fi
 
 source ${ENV_FILE_PATH}
+
+if [ "$STORAGE_VOLUME_ATTACHED" = "true" ]; then
+	echo Formatting storage volume with fs type ${STORAGE_FORMAT_TYPE} and device name ${STORAGE_DEVICE_NAME} 
+	sudo mkfs -t $STORAGE_FORMAT_TYPE $STORAGE_DEVICE_NAME || error_exit $? "Failed formatting storage volume"
+	echo Mounting storage volume on path ${STORAGE_MOUNT_PATH}
+	mkdir -p ~/$STORAGE_MOUNT_PATH
+	sudo mount $STORAGE_DEVICE_NAME ~/$STORAGE_MOUNT_PATH || error_exit $? "Failed mounting storage volume"
+	USERNAME=`whoami`
+	sudo chown $USERNAME storage/ 
+fi
 
 JAVA_32_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-i586.bin"
 JAVA_64_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-x64.bin"
