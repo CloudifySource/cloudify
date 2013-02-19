@@ -58,10 +58,10 @@ public class OpenstackStorageDriver implements StorageProvisioningDriver  {
 	private static final int VOLUME_POLLING_INTERVAL_MILLIS = 10 * 1000; // 10 seconds
 	private static final String VOLUME_DESCRIPTION = "Cloudify generated volume";
 	//private static final String ENDPOINT = "jclouds.endpoint";
-	private static final String OPENSTACK_VOLUME_ZONE = "openstack.storage.volume.zone";
-	private static final String OPENSTACK_JCLOUDS_ENDPOINT = "jclouds.endpoint";
-	private static final String CREDENTIALS_TYPE_PROPERTY = "jclouds.keystone.credential-type";
-	private static final String CREDENTIALS_TYPE = "apiAccessKeyCredentials";
+	private static final String OPENSTACK_CUSTOM_VOLUME_ZONE = "openstack.storage.volume.zone";
+	//private static final String OPENSTACK_JCLOUDS_ENDPOINT = "jclouds.endpoint";
+	//private static final String CREDENTIALS_TYPE_PROPERTY = "jclouds.keystone.credential-type";
+	//private static final String CREDENTIALS_TYPE = "apiAccessKeyCredentials";
 	private static final String EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API = "try_to_connect_to_cloud_api";
 	private static final String EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API = "connection_to_cloud_api_succeeded";
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
@@ -123,7 +123,7 @@ public class OpenstackStorageDriver implements StorageProvisioningDriver  {
 				.description(VOLUME_DESCRIPTION)
 				.availabilityZone(getStorageZone());
 
-		volume = volumeApi.get().create(1, options);
+		volume = volumeApi.get().create(storageTemplate.getSize(), options);
 		
 		try {
 			volumeDetails = waitForVolume(volumeApi, volume.getId(), endTime);
@@ -345,11 +345,11 @@ public class OpenstackStorageDriver implements StorageProvisioningDriver  {
 			final StorageTemplate storageTemplate = cloud.getCloudStorage().getTemplates().get(storageTemplateName);
 			final ComputeTemplate computeTemplate = cloud.getCloudCompute().getTemplates().get(computeTemplateName);
 			final Properties props = new Properties();
+			props.putAll(computeTemplate.getOverrides());
 			//props.put(OPENSTACK_JCLOUDS_ENDPOINT, getComputeEndpoint(computeTemplate));
-			props.put(CREDENTIALS_TYPE_PROPERTY, CREDENTIALS_TYPE);
+			//props.put(CREDENTIALS_TYPE_PROPERTY, CREDENTIALS_TYPE);
 			props.putAll(storageTemplate.getCustom());
-			
-			
+
 			deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),
 					cloud.getUser().getApiKey(), props);
 		} catch (final Exception e) {
@@ -402,26 +402,26 @@ public class OpenstackStorageDriver implements StorageProvisioningDriver  {
 		Map<String, Object> customSettings = storageTemplate.getCustom();
 		
 		if (customSettings != null) {
-			Object zoneObj = customSettings.get(OPENSTACK_VOLUME_ZONE);
+			Object zoneObj = customSettings.get(OPENSTACK_CUSTOM_VOLUME_ZONE);
 			if (zoneObj instanceof String) {
 				zone = (String) zoneObj;
 				if (StringUtils.isBlank(zone)) {
 					throw new IllegalArgumentException("Storate template custom property is missing or empty: " 
-							+ OPENSTACK_VOLUME_ZONE);
+							+ OPENSTACK_CUSTOM_VOLUME_ZONE);
 				}
 			} else {
-				throw new IllegalArgumentException("Storate template custom property \"" + OPENSTACK_VOLUME_ZONE 
+				throw new IllegalArgumentException("Storate template custom property \"" + OPENSTACK_CUSTOM_VOLUME_ZONE
 						+ "\" must be of type String"); 
 			}
 		} else {
 			throw new IllegalArgumentException("Storate template is missing a \"custom\" section with the required "
-					+ "property \"" + OPENSTACK_VOLUME_ZONE  + "\"");
+					+ "property \"" + OPENSTACK_CUSTOM_VOLUME_ZONE  + "\"");
 		}
 		
 		return zone;
 	}
 	
-	private String getComputeEndpoint(final ComputeTemplate computeTemplate) {
+	/*private String getComputeEndpoint(final ComputeTemplate computeTemplate) {
 		String endpoint;
 		Map<String, Object> overrides = computeTemplate.getOverrides();
 		
@@ -443,7 +443,7 @@ public class OpenstackStorageDriver implements StorageProvisioningDriver  {
 		}
 		
 		return endpoint;
-	}
+	}*/
 	
 	private Optional<? extends VolumeApi> getVolumeApi(final String location) {
 		if (novaContext == null) {
