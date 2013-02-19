@@ -30,6 +30,7 @@ import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriverListener;
+import org.cloudifysource.esc.driver.provisioning.storage.BaseStorageDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.storage.VolumeDetails;
@@ -53,7 +54,7 @@ import com.google.common.collect.FluentIterable;
  * @author noak
  * @since 2.5.0
  */
-public class OpenstackStorageDriver implements StorageProvisioningDriver  {
+public class OpenstackStorageDriver extends BaseStorageDriver implements StorageProvisioningDriver  {
 
 	private static final int VOLUME_POLLING_INTERVAL_MILLIS = 10 * 1000; // 10 seconds
 	private static final String VOLUME_DESCRIPTION = "Cloudify generated volume";
@@ -239,16 +240,8 @@ public class OpenstackStorageDriver implements StorageProvisioningDriver  {
 		return volumeDetailsSet;
 	}
 	
-	/**
-	 * 
-	 * @param duration .
-	 * @param timeUnit .
-	 * @return .
-	 * @throws TimeoutException .
-	 * @throws StorageProvisioningException .
-	 */
-	public Set<VolumeDetails> listAllVolumes(final long duration, final TimeUnit timeUnit) throws TimeoutException, 
-		StorageProvisioningException {
+	@Override
+	public Set<VolumeDetails> listAllVolumes() throws StorageProvisioningException {
 	
 		Set<VolumeDetails> volumeDetailsSet = new HashSet<VolumeDetails>();
 		

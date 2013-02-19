@@ -201,6 +201,8 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		final long end = System.currentTimeMillis() + timeUnit.toMillis(duration);
 		deleteVolume(volumeId);
 		try {
+			// according to the documentation, the volume should stay
+			// in 'deleting' status for a few minutes. 
 			waitForVolumeToReachStatus(Status.DELETING, end, volumeId);
 		} catch (StorageProvisioningException e) {
 			// Volume was not found. Do nothing.
@@ -227,22 +229,32 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		
 		Set<VolumeDetails> volumeDetailsSet = new HashSet<VolumeDetails>();
 		Set<String> machineVolumeIds = getMachineVolumeIds(ip);
-		Set<Volume> allVolumes;
-		try {
-			logger.fine("listing all volumes on machine with ip " + ip);
-			allVolumes = this.ebsClient.describeVolumesInRegion((String) null, (String[]) null);
-		} catch (Exception e) {
-			throw new StorageProvisioningException("Failed listing volumes. Reason: " + e.getMessage(), e);
-		}
+		logger.fine("listing all volumes on machine with ip " + ip);
+		Set<VolumeDetails> allVolumes = listAllVolumes();
 		
-		for (Volume volume : allVolumes) {
+		for (VolumeDetails volume : allVolumes) {
 			String volumeId = volume.getId();
 			if (machineVolumeIds.contains(volumeId)) {
-				VolumeDetails volumeDetails = createVolumeDetails(volume);
-				volumeDetailsSet.add(volumeDetails);
+				volumeDetailsSet.add(volume);
 			}
 		}
 		return volumeDetailsSet;
+	}
+
+	@Override
+	public Set<VolumeDetails> listAllVolumes()
+			throws StorageProvisioningException {
+		Set<VolumeDetails> volumeDetails = new HashSet<VolumeDetails>();
+		try {
+			Set<Volume> allVolumes = this.ebsClient.describeVolumesInRegion((String) null, (String[]) null);
+			for (Volume volume : allVolumes) {
+				volumeDetails.add(createVolumeDetails(volume));
+			}
+
+		} catch (Exception e) {
+			throw new StorageProvisioningException("Failed listing volumes. Reason: " + e.getMessage(), e);
+		}
+		return volumeDetails;
 	}
 	
 	@Override
@@ -250,7 +262,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		String volumeNameTag = "";
 		try {
 			TagApi tagApi = getTagsApi();
-			logger.info("filtering tags using volumeId " + volumeId);
+			logger.fine("filtering tags using volumeId " + volumeId + " to find the 'Name' tag");
 			FluentIterable<Tag> filter = tagApi.filter(new TagFilterBuilder().resourceId(volumeId).build());
 			ImmutableList<Tag> immutableList = filter.toImmutableList();
 			for (Tag tag : immutableList) {

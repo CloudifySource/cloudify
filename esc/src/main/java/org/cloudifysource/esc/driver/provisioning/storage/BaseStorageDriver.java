@@ -50,4 +50,15 @@ public abstract class BaseStorageDriver {
 		return null;
 	}
 	
+	/**
+	 * lists all existing volumes. 
+	 * 
+	 * @return 
+	 * 			a set containing all volumes. 
+	 * @throws StorageProvisioningException
+	 * 			if list action failed.
+	 */
+	public abstract Set<VolumeDetails> listAllVolumes()
+			throws StorageProvisioningException; 
+	
 }
