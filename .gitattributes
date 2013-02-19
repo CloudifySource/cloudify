@@ -1,13 +1,4 @@
-# Set default behaviour, in case users don't have the core.autocrlf set. 
-# this should avoid git status from shwoing line ending changes
-* text=auto
-
-
-# Expilicitly specify text file to be stored and normalized using lf line ending
-*.java text eol=lf
-*.groovy text eol=lf
-*.properties text eol=lf
-*.txt eol=lf
+* text eol=lf
 
 # Leave binary files untouched
 *.jar binary
