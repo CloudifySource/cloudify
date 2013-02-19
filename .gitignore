@@ -5,6 +5,14 @@
 /esc-commands/.gitignore
 /esc-commands/transaction.log
 
+/USM/bin/
+/dsl/bin/
+/esc-commands/bin/
+/esc/bin/
+/rest-client/bin/
+/restful/bin/
+/CLI/bin
+
 #/cloudify/CLI/target
 /CLI/nodes.properties
 /CLI/temp.xml

@@ -4701,7 +4701,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	@RequestMapping(value = "/controllers", method = RequestMethod.GET)
-	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS)")
+	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
 	@ResponseBody
 	public Map<String, Object> getManagers() throws RestErrorException {
 		final ProcessingUnitInstance[] instances = getManagementInstances();
@@ -4742,7 +4742,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             if there was a problem. See error codes for more details.
 	 */
 	@RequestMapping(value = "controllers", method = RequestMethod.DELETE)
-	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS)")
+	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
 	@ResponseBody
 	public Map<String, Object> shutdownManagers() throws RestErrorException {
 
