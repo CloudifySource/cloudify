@@ -13,6 +13,7 @@
 /restful/bin/
 /CLI/bin
 
+
 #/cloudify/CLI/target
 /CLI/nodes.properties
 /CLI/temp.xml
@@ -20,6 +21,7 @@
 /CLI/.classpath
 /CLI/.project
 /CLI/target
+
 
 # /USM/
 /USM/target
@@ -33,6 +35,7 @@
 /USM/resources/cassandra
 /USM/resources/tomcat
 /USM/resources/tomcat-local
+
 
 # /USM/resources/usm-cassandra/ext/
 /USM/resources/usm-cassandra/ext/cassandra_storage
@@ -111,6 +114,7 @@
 /dsl/.classpath
 /dsl/.project
 
+
 # /eclipse-plugin
 /eclipse-plugin
 
@@ -119,6 +123,7 @@
 /esc/.settings
 /esc/.classpath
 /esc/.project
+
 
 # /esc-commands/
 /esc-commands/target
@@ -143,11 +148,13 @@
 /rest-client/.project
 /rest-client/target
 
+
 # /restful/
 /restful/target
 /restful/.settings
 /restful/.classpath
 /restful/.project
+
 
 #/cloudify
 /cloudify/target
