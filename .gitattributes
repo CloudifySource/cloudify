@@ -3,3 +3,4 @@
 # Leave binary files untouched
 *.jar binary
 *.exe binary
+*.dll binary
