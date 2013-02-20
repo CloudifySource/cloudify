@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -336,7 +336,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Get the dump of all the machines.
-	 * 
+	 *
 	 * @param processors
 	 *            The list of processors to be used.
 	 * @param fileSizeLimit
@@ -370,7 +370,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Get the dump of a given machine, by its ip.
-	 * 
+	 *
 	 * @param ip
 	 *            .
 	 * @param processors
@@ -381,7 +381,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *         each machine otherwise.
 	 * @throws IOException .
 	 * @throws RestErrorException .
-	 * 
+	 *
 	 */
 	@JsonRequestExample(requestBody = "{\"fileSizeLimit\" : 50000000, \"processors\" : \"summary, network, log\"}")
 	@JsonResponseExample(status = "success", responseBody =
@@ -448,7 +448,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Get the dump of all the processing units.
-	 * 
+	 *
 	 * @param fileSizeLimit
 	 *            .
 	 * @return the dump of all the processing units
@@ -663,7 +663,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * Tests whether the restful service is able to locate the service grid using the admin API.
 	 * <p>
 	 * The admin API searches for a LUS (Lookup Service) according to the lookup groups/locators defined.
-	 * 
+	 *
 	 * @return - Map<String, Object> object containing the test results.
 	 * @throws RestErrorException
 	 *             When lookup service not found.
@@ -690,7 +690,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Tests whether the authentication was successful.
-	 * 
+	 *
 	 * @return - Map<String, Object> object containing the login results.
 	 * @throws RestErrorException
 	 *             When login fails.
@@ -716,7 +716,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Verifies the authenticated user has role ROLE_CLOUDADMIINS.
-	 * 
+	 *
 	 * @return - Map<String, Object> object containing the test results.
 	 * @throws RestErrorException
 	 *             When the calling user does not have role ROLE_CLOUDADMIINS.
@@ -737,7 +737,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * deprecated
-	 * 
+	 *
 	 * @deprecated
 	 * @param applicationName
 	 * @param srcFile
@@ -749,31 +749,31 @@ public class ServiceController implements ServiceDetailsProvider {
 	 */
 	/*
 	 * @Deprecated
-	 * 
+	 *
 	 * @RequestMapping(value = "/cloudcontroller/deploy", method = RequestMethod.POST) public @ResponseBody
-	 * 
+	 *
 	 * @PreAuthorize( "isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')") Map<String, Object> deploy(
-	 * 
+	 *
 	 * @RequestParam(value = "applicationName", defaultValue = "default") final String applicationName,
-	 * 
+	 *
 	 * @RequestParam(value = "file") final MultipartFile srcFile,
-	 * 
+	 *
 	 * @RequestParam(value = "authGroups", required = false) String authGroups) throws IOException, RestErrorException {
 	 * logger.finer("Deploying a service"); final File tmpfile = File.createTempFile("gs___", null); final File dest =
 	 * new File(tmpfile.getParent(), srcFile.getOriginalFilename()); tmpfile.delete(); srcFile.transferTo(dest);
-	 * 
+	 *
 	 * final GridServiceManager gsm = getGsm(); if (gsm == null) { throw new RestErrorException(FAILED_TO_LOCATE_GSM); }
 	 * final ProcessingUnit pu = gsm.deploy(new ProcessingUnitDeployment(dest).setContextProperty(
 	 * CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName)
 	 * .setContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)); dest.delete();
-	 * 
+	 *
 	 * if (pu == null) { throw new RestErrorException( FAILED_TO_LOCATE_SERVICE_AFTER_DEPLOYMENT, applicationName); }
 	 * return successStatus(pu.getName()); }
 	 */
 
 	/**
 	 * Creates and returns a list containing all of the deployed application details.
-	 * 
+	 *
 	 * @return a list of all the deployed applications in the service grid.
 	 * @throws RestErrorException .
 	 */
@@ -807,7 +807,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	/**
 	 * Creates and returns a map containing all of the deployed service names installed under a specific application
 	 * context.
-	 * 
+	 *
 	 * @param applicationName
 	 *            .
 	 * @return a list of the deployed services in the service grid that were deployed as a part of a specific
@@ -844,9 +844,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * 
+	 *
 	 * Creates a list of all service instances in the specified application.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -902,7 +902,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Creates and returns a map containing all of the deployed application names.
-	 * 
+	 *
 	 * @return a list of all the deployed applications in the service grid.
 	 */
 	@JsonResponseExample(status = "success", responseBody = "[\"petclinic\", \"travel\"]", comments =
@@ -938,7 +938,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	/**
 	 * Creates and returns a map containing all of the deployed service names installed under a specific application
 	 * context.
-	 * 
+	 *
 	 * @param applicationName
 	 *            .
 	 * @return a list of the deployed services in the service grid that were deployed as a part of a specific
@@ -975,10 +975,10 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * 
+	 *
 	 * Invokes a custom command on all of the specified service instances. Custom parameters are passed as a map using
 	 * the POST method and contain the command name and parameter values for the specified command.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -1111,10 +1111,10 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * 
+	 *
 	 * Invokes a custom command on a specific service instance. Custom parameters are passed as a map using POST method
 	 * and contain the command name and parameter values for the specified command.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -1246,7 +1246,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * undeploys the specified service of the specific application.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -1336,9 +1336,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * 
+	 *
 	 * Increments the Processing unit instance number of the specified service.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name where the service resides.
 	 * @param serviceName
@@ -1393,9 +1393,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * 
+	 *
 	 * Decrements the Processing unit instance number of the specified service.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name where the service resides.
 	 * @param serviceName
@@ -1485,7 +1485,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Exception handler for all of the internal server's exceptions.
-	 * 
+	 *
 	 * @param response
 	 *            The response object to edit, if not committed yet.
 	 * @param e
@@ -1528,7 +1528,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Exception handler for all of known internal server exceptions.
-	 * 
+	 *
 	 * @param response
 	 *            The response object to edit, if not committed yet.
 	 * @param e
@@ -1561,7 +1561,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Converts a Map<String, ?> to a json String.
-	 * 
+	 *
 	 * @param map
 	 *            a map to convert to String
 	 * @return a json-format String based on the given map
@@ -1575,7 +1575,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	/******************
 	 * Uninstalls an application by uninstalling all of its services. Order of uninstallations is determined by the
 	 * context property 'com.gs.application.services' which should exist in all service PUs.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param timeoutInMinutes
@@ -1781,7 +1781,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * Deploys an application to the service grid. An application is consisted of a group of services that might have
 	 * dependencies between themselves. The application will be deployed according to the dependency order defined in
 	 * the application file and deployed asynchronously if possible.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param timeout
@@ -2034,7 +2034,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	/**
 	 * Returns the lifecycle events according to the lifecycleEventContainerID id that is returned as a response when
 	 * installing/un-installing a service/application and according to the cursor position.
-	 * 
+	 *
 	 * @param lifecycleEventContainerID
 	 *            the unique task ID.
 	 * @param cursor
@@ -2205,7 +2205,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	/**
 	 * Creates a randomly-named file in the system's default temp folder, just to get the path. The file is deleted
 	 * immediately.
-	 * 
+	 *
 	 * @return The path to the system's default temp folder
 	 */
 	private String getTempFolderPath() throws IOException {
@@ -2512,7 +2512,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	/******
 	 * Waits for a single instance of a service to become available. NOTE: currently only uses service name as
 	 * processing unit name.
-	 * 
+	 *
 	 * @param applicationName
 	 *            not used.
 	 * @param serviceName
@@ -2543,7 +2543,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param serviceName
 	 *            .
 	 * @param applicationName
@@ -2772,7 +2772,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	// TODO: add getters for service processing units in the service class that
 	// does the cast automatically.
 	/**
-	 * 
+	 *
 	 * @param applicationName
 	 *            .
 	 * @param serviceName
@@ -3447,7 +3447,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param applicationName
 	 *            .
 	 * @param serviceName
@@ -3536,10 +3536,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			// templateName);
 			// final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(
 			// cloud, template);
-			// TODO - set-instances is not supported when the "shared" flag is
-			// (CLOUDIFY-1158)
-			// currently we fall back to the previous impl
-			// CPU = 0 , memoery is calculated as usual. shared = false
+
 			pu.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(
 					(int) (cloudExternalProcessMemoryInMB * count), 0,
 					locationAware, true));
@@ -3557,7 +3554,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	/**
 	 * Retrieves the tail of a service log. This method used the service name and instance id To retrieve the the
 	 * instance log tail.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -3603,7 +3600,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * Retrieves the tail of a service log. This method uses the service name and the instance host address to retrieve
 	 * the instance log tail. Important: a machine might hold more than one service instance. In such a scenario, only
 	 * one of the service instance logs will be tailed and returned.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -3645,7 +3642,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Retrieves the log tail from all of the specified service's instances. To retrieve the the instance log tail.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -3806,7 +3803,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Handle exceptions that originated from the deployment process.
-	 * 
+	 *
 	 * @param e
 	 *            The exception thrown
 	 * @param pollingTaskId
@@ -3829,7 +3826,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Add templates to the cloud.
-	 * 
+	 *
 	 * @param templatesFolder
 	 *            The templates zip file.
 	 * @return a map containing the added templates and a success status if succeeded, else returns an error status.
@@ -3904,7 +3901,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * For each puInstance - send the templates folder.
-	 * 
+	 *
 	 * @param templatesFolder
 	 *            .
 	 * @param expectedTemplates
@@ -3966,7 +3963,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Sends a delete request to puInstance.
-	 * 
+	 *
 	 * @param puInstance
 	 *            .
 	 * @param hostAddress
@@ -3987,7 +3984,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Sends a post request to puInstance, posts the template folder.
-	 * 
+	 *
 	 * @param templatesFolder
 	 *            .
 	 * @param puInstance
@@ -4026,7 +4023,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	/**
 	 * Internal method. Add template files to the cloud configuration directory and to the cloud object. This method
 	 * supposed to be invoked from addTemplates of a REST instance.
-	 * 
+	 *
 	 * @param templatesFolder
 	 *            The templates zip file.
 	 * @return a map containing the added templates and a success status if succeeded, else returns an error status.
@@ -4061,7 +4058,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Adds templates to cloud's templates. Adds templates' files to cloud configuration directory.
-	 * 
+	 *
 	 * @param templatesFolder
 	 *            .
 	 * @return a map contains the added templates list and the failed to add templates list.
@@ -4120,7 +4117,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Updates the upload local path in all added cloud templates.
-	 * 
+	 *
 	 * @param addedTemplates
 	 *            the added templates.
 	 * @param localTemplatesDir
@@ -4139,7 +4136,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	/**
 	 * Scans the cloudTemplatesHolders list and adds each template that doesn't already exist. Rename template's file if
 	 * needed (if its prefix is not the template's name).
-	 * 
+	 *
 	 * @param templatesFolder
 	 *            the folder contains templates files.
 	 * @param cloudTemplates
@@ -4182,7 +4179,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	/**
 	 * If the original template's file name prefix is not the template's name, rename it. Also, rename the properties
 	 * and overrides files if exist.
-	 * 
+	 *
 	 * @param templatesFolder
 	 *            the folder that contains the template's file.
 	 * @param holder
@@ -4241,7 +4238,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Gets the {@link CloudifyConstants#ADDITIONAL_TEMPLATES_FOLDER_NAME} folder. Creates it if needed.
-	 * 
+	 *
 	 * @return the folder.
 	 */
 	private File getTemplatesFolder() {
@@ -4255,7 +4252,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Reads the templates from templatesFolder.
-	 * 
+	 *
 	 * @param templatesFolder
 	 *            .
 	 * @return the list of the read cloud templates.
@@ -4278,7 +4275,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Reads the templates from templatesFolder.
-	 * 
+	 *
 	 * @param templatesFolder
 	 *            .
 	 * @return the list of the read cloud templates.
@@ -4299,7 +4296,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Copies all the files from templatesFolder to a new directory under cloud configuration directory.
-	 * 
+	 *
 	 * @param templatesDirToCopy
 	 *            the directory contains all the files to copy.
 	 * @throws IOException
@@ -4329,7 +4326,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Get the cloud's templates.
-	 * 
+	 *
 	 * @return a map containing the cloud's templates and a success status.
 	 * @throws RestErrorException
 	 *             If cloud is a local cloud.
@@ -4347,7 +4344,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Get template from the cloud.
-	 * 
+	 *
 	 * @param templateName
 	 *            The name of the template to get.
 	 * @return a map containing the template and a success status if succeeded, else returns an error status.
@@ -4378,7 +4375,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Removes a template from the cloud.
-	 * 
+	 *
 	 * @param templateName
 	 *            The name of the template to remove.
 	 * @return success status map if succeeded.
@@ -4439,7 +4436,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * For each REST instance- remove the template.
-	 * 
+	 *
 	 * @param templateName
 	 *            the name of the template.
 	 * @param successfullyRemoved
@@ -4479,7 +4476,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	/**
 	 * Internal method. Remove template file from the cloud configuration directory and from the cloud's templates map.
 	 * This method supposed to be invoked from removeTemplate of a REST instance.
-	 * 
+	 *
 	 * @param templateName
 	 *            the name of the template to remove.
 	 * @return success map.
@@ -4517,7 +4514,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Removes the template from the cloud. Deletes the template's file.
-	 * 
+	 *
 	 * @param templateName
 	 *            the template's name.
 	 * @throws RestErrorException
@@ -4542,7 +4539,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	/**
 	 * Deletes the template's file. Deletes the templates folder if no other templates files exist in the folder.
 	 * Deletes the {@link CloudifyConstants#ADDITIONAL_TEMPLATES_FOLDER_NAME} folder if empty.
-	 * 
+	 *
 	 * @param templateName
 	 * @throws RestErrorException
 	 */
@@ -4594,7 +4591,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * Gets the template's file. Scans all templates folders in
 	 * {@link CloudifyConstants#ADDITIONAL_TEMPLATES_FOLDER_NAME} directory, searches for a file with file name
 	 * templateName-template.groovy.
-	 * 
+	 *
 	 * @param templateName
 	 *            the name of the template (also the prefix of the wanted file).
 	 * @return the found file or null.
@@ -4643,7 +4640,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Returns a valid response if the user is fully authorized and has permissions for installing an application.
-	 * 
+	 *
 	 * @param applicationName
 	 *            the application name.
 	 * @return a valid response if the user is fully authorized and has permissions for installing an application.
@@ -4737,7 +4734,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/********
 	 * Schedules termination of all agents running the cloudify manager.
-	 * 
+	 *
 	 * @return success indication.
 	 * @throws RestErrorException
 	 *             if there was a problem. See error codes for more details.
@@ -4808,7 +4805,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	/**
 	 * Returns the name of the protocol used for communication with the rest server. If the security is secure (SSL)
 	 * returns "https", otherwise returns "http".
-	 * 
+	 *
 	 * @param isSecureConnection
 	 *            Indicates whether SSL is used or not.
 	 * @return "https" if this is a secure connection, "http" otherwise.
