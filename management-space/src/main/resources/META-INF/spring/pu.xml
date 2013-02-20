@@ -59,7 +59,7 @@
 
     </beans>
 
-    <beans profile="default">
+    <beans profile="transient">
         <os-core:space id="space" url="/./${space.name}" />
     </beans>
 

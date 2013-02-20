@@ -1,7 +1,7 @@
-import com.j_spaces.core.IJSpace;
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
+
 import org.cloudifysource.dsl.context.kvstorage.spaceentries.ApplicationCloudifyAttribute;
 import org.cloudifysource.dsl.context.kvstorage.spaceentries.GlobalCloudifyAttribute;
 import org.cloudifysource.dsl.context.kvstorage.spaceentries.InstanceCloudifyAttribute;
@@ -15,6 +15,8 @@ import org.openspaces.core.GigaSpace;
 import org.openspaces.core.GigaSpaceConfigurer;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import com.j_spaces.core.IJSpace;
 
 /**
  * @author Dan Kilman
@@ -47,8 +49,8 @@ public class ManagementSpacePUTest {
 
     private void testManagementSpaceImpl(boolean persistent) throws IOException {
 
-        String activeProfiles = persistent ? CloudifyConstants.SPRING_PROFILE_PERSISTENT :
-                                             CloudifyConstants.SPRING_PROFILE_NON_PERSISTENT;
+        String activeProfiles = persistent ? CloudifyConstants.PERSISTENCE_PROFILE_PERSISTENT :
+                                             CloudifyConstants.PERSISTENCE_PROFILE_TRANSIENT;
 
         System.setProperty(SPRING_ACTIVE_PROFILES_PROP, activeProfiles);
 
