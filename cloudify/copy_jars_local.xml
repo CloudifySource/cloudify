@@ -18,7 +18,7 @@
 
 	<!-- ****************************************************** -->
 
-	<property name="esc.dir" value="${cloudify.home.dir}/tools/cli/plugins/esc" />
+	<property name="esc.dir" value="${cloudify.home.dir}/clouds" />
 
 	<property name="ec2.dir" value="${esc.dir}/ec2/upload/cloudify-overrides" />
 	<property name="ec2-win.dir" value="${esc.dir}/ec2-win/upload/cloudify-overrides" />
@@ -37,6 +37,7 @@
 			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" />
 			<copy overwrite="yes" todir="@{target.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" />
 			<copy overwrite="yes" todir="@{target.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
+			<copy overwrite="yes" todir="@{target.dir}/tools/management-space" file="../management-space/target/management-space.jar" />
 		</sequential>
 	</macrodef>
 
@@ -63,12 +64,14 @@
 
 	<target name="Copy Cloudify jars to ec2 upload dir" depends="">
 		<echo message="Copying Cloudify jar files to ${ec2.dir}" />
-		<copy todir="${ec2.dir}/lib/platform/usm" file="../USM/target/usm.jar" />
-		<copy todir="${ec2.dir}/tools/cli" file="../CLI/target/cli.jar" />
-		<copy todir="${ec2.dir}/tools/rest" file="../restful/target/rest.war" />
-		<copy todir="${ec2.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" />
-		<copy todir="${ec2.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" />
-		<copy todir="${ec2.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
+		<copy_binaries target.dir="${ec2.dir}" />
+
+<!-- 		<copy todir="${ec2.dir}/lib/platform/usm" file="../USM/target/usm.jar" /> -->
+<!-- 		<copy todir="${ec2.dir}/tools/cli" file="../CLI/target/cli.jar" /> -->
+<!-- 		<copy todir="${ec2.dir}/tools/rest" file="../restful/target/rest.war" /> -->
+<!-- 		<copy todir="${ec2.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" /> -->
+<!-- 		<copy todir="${ec2.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" /> -->
+<!-- 		<copy todir="${ec2.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" /> -->
 	</target>
 
 

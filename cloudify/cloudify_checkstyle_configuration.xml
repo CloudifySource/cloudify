@@ -127,4 +127,18 @@
   <module name="SuppressionFilter">
     <property name="file" value="${workspace_loc}/cloudify/cloudify/cloudify_checkstyle_suppressions.xml"/>
   </module>
+  <module name="RegexpMultiline">
+    <metadata name="net.sf.eclipsecs.core.comment" value="Enforce unix style line endings"/>
+    <property name="severity" value="ignore"/>
+    <property name="format" value="(?!\r\n)"/>
+    <property name="message" value="Only unix stlye line endings are allowed"/>
+    <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+  </module>
+  <module name="RegexpSingleline">
+    <metadata name="net.sf.eclipsecs.core.comment" value="Copyright check"/>
+    <property name="format" value="\QCopyright (c)\E"/>
+    <property name="message" value="Missing copyright notice"/>
+    <property name="minimum" value="1"/>
+    <property name="maximum" value="1"/>
+  </module>
 </module>
