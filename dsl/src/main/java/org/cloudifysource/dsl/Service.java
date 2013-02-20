@@ -96,7 +96,7 @@ public class Service {
 
 	private ComputeDetails compute;
 	
-	private StorageDetails storage;
+	private StorageDetails storage = new StorageDetails();
 
 	private LinkedList<String> extendedServicesPaths = new LinkedList<String>();
 

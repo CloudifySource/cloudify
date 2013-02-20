@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
@@ -103,7 +104,9 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 			final String cloudTemplateName, final String managementTemplateRemoteDirectory, 
 			final String storageTemplateName) {
 		
-		setStorageTemplateName(storageTemplateName);
+		if (!StringUtils.isEmpty(storageTemplateName)) {
+			setStorageTemplateName(storageTemplateName);
+		}
 		setMinimumNumberOfCpuCoresPerMachine(template.getNumberOfCores());
 
 		setReservedMemoryCapacityPerMachineInMB(cloud.getProvider().getReservedMemoryCapacityPerMachineInMB());
