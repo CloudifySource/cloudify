@@ -35,12 +35,12 @@ import org.openspaces.core.util.MemoryUnit;
 /**
  * @author eitany
  * @since 2.0.0
- * 
+ *
  *        This abstract is the skeleton of a management service installer, and includes the basic members that
  *        every management service installer use: {@link Admin}, a definition of memory quota, a service
  *        name and a zone name (might be identical to the service name).
- * 
- *        Installers extending this skeleton must implement install() and 
+ *
+ *        Installers extending this skeleton must implement install() and
  *        waitForInstallation(AdminFacade, GridServiceAgent, long, TimeUnit)
  */
 public abstract class AbstractManagementServiceInstaller {
@@ -53,7 +53,7 @@ public abstract class AbstractManagementServiceInstaller {
 	protected String agentZone;
 	protected long progressInSeconds;
 	protected List<String> dependencies = new ArrayList<String>();
-	
+
 	/**
 	 * The name of the management application.
 	 */
@@ -70,7 +70,7 @@ public abstract class AbstractManagementServiceInstaller {
 
 	/**
 	 * Sets the {@link Admin} object used to access the Admin API.
-	 * 
+	 *
 	 * @param admin
 	 *            an Admin object
 	 */
@@ -80,7 +80,7 @@ public abstract class AbstractManagementServiceInstaller {
 
 	/**
 	 * Sets the verbose mode for extended logging.
-	 * 
+	 *
 	 * @param verbose
 	 *            mode (true - on, false - off)
 	 */
@@ -90,7 +90,7 @@ public abstract class AbstractManagementServiceInstaller {
 
 	/**
 	 * Set the memory in various memory units.
-	 * 
+	 *
 	 * @param memory
 	 *            number of memory units
 	 * @param unit
@@ -102,7 +102,7 @@ public abstract class AbstractManagementServiceInstaller {
 
 	/**
 	 * Sets the name of the service.
-	 * 
+	 *
 	 * @param serviceName
 	 *            The name of the service
 	 */
@@ -112,7 +112,7 @@ public abstract class AbstractManagementServiceInstaller {
 
 	/**
 	 * Sets the zone.
-	 * 
+	 *
 	 * @param zone
 	 *            Zone name
 	 */
@@ -122,7 +122,7 @@ public abstract class AbstractManagementServiceInstaller {
 
 	/**
 	 * Set the progress (polling interval), in various time units.
-	 * 
+	 *
 	 * @param progress
 	 *            Number of {@link TimeUnit}s
 	 * @param timeunit
@@ -134,7 +134,7 @@ public abstract class AbstractManagementServiceInstaller {
 
 	/**
 	 * Installs the management service.
-	 * 
+	 *
 	 * @throws CLIException
 	 *             Reporting a failure to install the management service
 	 * @throws ProcessingUnitAlreadyDeployedException
@@ -144,7 +144,7 @@ public abstract class AbstractManagementServiceInstaller {
 
 	/**
 	 * Waits for the installation of an PU or management space to complete.
-	 * 
+	 *
 	 * @param adminFacade
 	 *            Admin facade to use for deployment
 	 * @param agent
@@ -160,12 +160,12 @@ public abstract class AbstractManagementServiceInstaller {
 	 * @throws CLIException
 	 *             Reporting a failure to check the installation progress
 	 */
-	public abstract void waitForInstallation(AdminFacade adminFacade, GridServiceAgent agent, long timeout, 
+	public abstract void waitForInstallation(AdminFacade adminFacade, GridServiceAgent agent, long timeout,
 			TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException;
 
 	/**
 	 * Gets a Grid Service Manager to deploy the service.
-	 * 
+	 *
 	 * @return GridServiceManager to deploy the service
 	 * @throws CLIException
 	 *             Reporting a failure to find a Grid Service Manager
@@ -180,7 +180,7 @@ public abstract class AbstractManagementServiceInstaller {
 
 	/**
 	 * Create a properties object with the property "com.gs.application=management".
-	 * 
+	 *
 	 * @return populated Properties object
 	 */
 	protected Properties getContextProperties() {
@@ -191,7 +191,7 @@ public abstract class AbstractManagementServiceInstaller {
 
 	/**
 	 * Creates a {@link ConditionLatch} object, intended to wait for procedures to complete.
-	 * 
+	 *
 	 * @param timeout
 	 *            The number of {@link TimeUnit}s to wait
 	 * @param timeunit
