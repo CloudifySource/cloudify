@@ -411,7 +411,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	boolean isStorageTemplateUsed() {
-		return !StringUtils.isEmpty(this.storageTemplateName);
+		return (!StringUtils.isEmpty(this.storageTemplateName) && !this.storageTemplateName.equals("null"));
 	}
 
 	void attachStorageVolumeToMachine(final String machineIp, final VolumeDetails volumeDetails, final long end)
