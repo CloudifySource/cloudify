@@ -136,6 +136,10 @@ public class InstallationDetails implements Cloneable {
 
 	private boolean deleteRemoteDirectoryContents = false;
 
+	// persistent management
+	private boolean persistent = false;
+	private String persistentStoragePath = null;
+
 	public String getTemplateName() {
 		return templateName;
 	}
@@ -265,8 +269,8 @@ public class InstallationDetails implements Cloneable {
 
 		// copy list into array - make sure to use '/' as separator char for string comparisons later on.
 		this.managementOnlyFiles = new String[managementOnlyFiles.size()];
-		int i = 0;
-		for (String string : managementOnlyFiles) {
+		final int i = 0;
+		for (final String string : managementOnlyFiles) {
 			this.managementOnlyFiles[i] = string.replace("\\", "/");
 		}
 
@@ -503,7 +507,23 @@ public class InstallationDetails implements Cloneable {
 		return installerConfiguration;
 	}
 
-	public void setInstallerConfiguration(CloudTemplateInstallerConfiguration installerConfiguration) {
+	public void setInstallerConfiguration(final CloudTemplateInstallerConfiguration installerConfiguration) {
 		this.installerConfiguration = installerConfiguration;
+	}
+
+	public boolean isPersistent() {
+		return persistent;
+	}
+
+	public void setPersistent(final boolean persistent) {
+		this.persistent = persistent;
+	}
+
+	public String getPersistentStoragePath() {
+		return persistentStoragePath;
+	}
+
+	public void setPersistentStoragePath(final String persistentStoragePath) {
+		this.persistentStoragePath = persistentStoragePath;
 	}
 }

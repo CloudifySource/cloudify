@@ -249,10 +249,11 @@ public class AgentlessInstaller {
 			authGroups = details.getAuthGroups();
 		}
 
+		final String springProfiles = createSpringProfilesString(details);
 		final EnvironmentFileBuilder builder = new EnvironmentFileBuilder(details.getScriptLanguage())
 				.exportVar(LUS_IP_ADDRESS_ENV, details.getLocator())
 				.exportVar(GSA_MODE_ENV, details.isManagement() ? "lus" : "agent")
-				.exportVar(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR, details.getSecurityProfile())
+				.exportVar(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR, springProfiles)
 				.exportVar(NO_WEB_SERVICES_ENV,
 						details.isNoWebServices() ? "true" : "false")
 				.exportVar(
@@ -333,6 +334,16 @@ public class AgentlessInstaller {
 			logger.fine("Created environment file with the following contents: " + fileContents);
 		}
 		return tempFile;
+	}
+
+	private String createSpringProfilesString(final InstallationDetails details) {
+		final String securityProfile = details.getSecurityProfile();
+		final String storageProfile =
+				(details.isPersistent() ? CloudifyConstants.PERSISTENCE_PROFILE_PERSISTENT
+						: CloudifyConstants.PERSISTENCE_PROFILE_TRANSIENT);
+
+		return securityProfile + "," + storageProfile;
+
 	}
 
 	private void remoteExecuteAgentOnServer(final InstallationDetails details, final long end, final String targetHost)

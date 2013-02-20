@@ -460,8 +460,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		int i = 0;
 		for (final NodeMetadata node : existingManagementServers) {
 			result[i] = createMachineDetailsFromNode(node);
-			result[i].setAgentRunning(true);
-			result[i].setCloudifyInstalled(true);
+//			result[i].setAgentRunning(true);
+//			result[i].setCloudifyInstalled(true);
 			i++;
 
 		}
