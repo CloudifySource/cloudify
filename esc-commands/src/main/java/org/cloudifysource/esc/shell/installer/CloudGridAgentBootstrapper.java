@@ -430,6 +430,10 @@ public class CloudGridAgentBootstrapper {
 	}
 
 	private void stopManagementMachines() {
+		if (this.useExistingManagers || this.existingManagersFile != null) {
+			// if we did not start the machines, we will not close them.
+			return;
+		}
 		try {
 			provisioning.stopManagementMachines();
 		} catch (final CloudProvisioningException e) {
