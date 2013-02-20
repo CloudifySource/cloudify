@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,9 +19,9 @@ import com.gigaspaces.internal.license.LicenseManagerVerifier;
 
 /*********************
  * A shared location for all constants used by multiple cloudify constants.
- * 
+ *
  * @author barakme
- * 
+ *
  */
 public final class CloudifyConstants {
 
@@ -39,7 +39,7 @@ public final class CloudifyConstants {
 		 */
 		ERROR
 	}
-	
+
 	public static enum DeploymentState {
 		INSTALLING,
 		FAILED,
@@ -64,7 +64,7 @@ public final class CloudifyConstants {
 	public static final String CONTEXT_PROPERTY_ELASTIC = "com.gs.service.elastic";
 	public static final String CONTEXT_PROPERTY_TEMPLATE = "com.gs.service.template";
 	public static final String CONTEXT_PROPERTY_AUTH_GROUPS = "com.gs.deployment.auth.groups";
-	
+
 	/**********
 	 * Key names for invocation request and response parameters.
 	 */
@@ -117,14 +117,14 @@ public final class CloudifyConstants {
 	/*********************
 	 * Key names for USM parameters that can be configured using the service
 	 * custom parameters.
-	 * 
+	 *
 	 */
 	public static final String USM_PARAMETERS_TAILER_INTERVAL = "TailerInterval";
 
 	/*************************************
 	 * Keys for Elastic Provisioning properties used with ESM machine
 	 * provisioning.
-	 * 
+	 *
 	 */
 	public static final String ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME = "__CLOUDIFY__CLOUD_TEMPLATE_NAME";
 	public static final String ELASTIC_PROPERTIES_CLOUD_CONFIGURATION_DIRECTORY = "__CLOUDIFY__CLOUD_CONFIGURATION_DIRECTORY";
@@ -153,11 +153,11 @@ public final class CloudifyConstants {
 	public static final String GIGASPACES_ORIGINAL_JAVA_HOME = "GIGASPACES_ORIGINAL_JAVA_HOME";
 	public static final String GIGASPACES_CLOUD_MACHINE_ID = "GIGASPACES_CLOUD_MACHINE_ID";
 	public static final String GIGASPACES_AUTH_GROUPS = "GIGASPACES_AUTH_GROUPS";
-	
+
 	/***********************************
 	 * Duplicate of Key names for environment variables available to agent in a cloudify
 	 * environment using the old names, to maintain backwards compatibility
-	 */	
+	 */
 
 	public static final String CLOUDIFY_CLOUD_IMAGE_ID = "CLOUDIFY_CLOUD_IMAGE_ID";
 	public static final String CLOUDIFY_CLOUD_HARDWARE_ID = "CLOUDIFY_CLOUD_HARDWARE_ID";
@@ -168,7 +168,7 @@ public final class CloudifyConstants {
 	public static final String CLOUDIFY_LINK_ENV = "GIGASPACES_LINK";
 	public static final String CLOUDIFY_OVERRIDES_LINK_ENV = "GIGASPACES_OVERRIDES_LINK";
 
-	
+
 	/***************
 	 * Misc.
 	 */
@@ -180,7 +180,7 @@ public final class CloudifyConstants {
 	public static final String SERVICE_CLOUD_CONFIGURATION_FILE_NAME = "__Cloud_Configuration.zip";
 	public static final String TEMP_FOLDER = System.getProperty("java.io.tmpdir");
 
-	
+
 	/***************
 	 * Reason codes for rest exceptions
 	 */
@@ -188,7 +188,7 @@ public final class CloudifyConstants {
 
 	/********************
 	 * Custom properties for known cloudify settings.
-	 * 
+	 *
 	 */
 	public static final String CUSTOM_PROPERTY_ENABLE_PID_MONITOR = "org.cloudifysource.enable-pid-monitor";
 	public static final String CUSTOM_PROPERTY_ENABLE_TCP_PORT_MONITOR = "org.cloudifysource.enable-port-monitor";
@@ -200,7 +200,7 @@ public final class CloudifyConstants {
 
 	/*******************
 	 * event lifecycle polling parameters.
-	 * 
+	 *
 	 */
 	public static final String CURSOR_POS = "curserPos";
 	public static final String LIFECYCLE_LOGS = "lifecycleLogs";
@@ -245,7 +245,7 @@ public final class CloudifyConstants {
 	 */
 	public static final String REST_API_VERSION_HEADER = "cloudify-api-version";
 
-	
+
 	/*******************
 	 * HTTP status codes
 	 */
@@ -254,8 +254,8 @@ public final class CloudifyConstants {
 	public static final int HTTP_STATUS_NOT_FOUND = 404;
 	public static final int HTTP_STATUS_ACCESS_DENIED = 403;
 	public static final int HTTP_STATUS_BAD_CREDENTIALS = 401;
-	
-	
+
+
 	/*******************
 	 * Spring security environment variable
 	 */
@@ -269,25 +269,19 @@ public final class CloudifyConstants {
 	public static final String SPRING_PROFILE_SECURE_NO_SSL = "secure_no_ssl";
 	public static final String SPRING_PROFILE_SECURE = "secure";
 
-    /*******************
-     * Management persistency configuration
-     */
-    public static final String SPRING_PROFILE_NON_PERSISTENT = "default";
-    public static final String SPRING_PROFILE_PERSISTENT = "persistent";
-
 	/*******************
-	 * 
+	 *
 	 */
 	public static final String NEW_LINE = System.getProperty("line.separator");
 	public static final String TAB_CHAR = "\t";
-	
+
 	/**
 	 * REST API parameter names.
 	 */
-	public static final String TEMPLATES_DIR_PARAM_NAME = "templatesFolder"; 
-	public static final String SERVICE_OVERRIDES_FILE_PARAM = "serviceOverridesFile"; 
-	public static final String APPLICATION_OVERRIDES_FILE_PARAM = "recipeOverridesFile"; 
-	public static final String CLOUD_OVERRIDES_FILE_PARAM = "cloudOverridesFile"; 
+	public static final String TEMPLATES_DIR_PARAM_NAME = "templatesFolder";
+	public static final String SERVICE_OVERRIDES_FILE_PARAM = "serviceOverridesFile";
+	public static final String APPLICATION_OVERRIDES_FILE_PARAM = "recipeOverridesFile";
+	public static final String CLOUD_OVERRIDES_FILE_PARAM = "cloudOverridesFile";
 
 	/**
 	 * Additional templates folder name.
@@ -295,7 +289,7 @@ public final class CloudifyConstants {
 	public static final String ADDITIONAL_TEMPLATES_FOLDER_NAME = "additionalTemplates";
 
 	/*******************
-	 * 
+	 *
 	 */
 	public static String DYNAMIC_BYON_NAME = "dynamic-byon";
 	public static String DYNAMIC_BYON_START_MACHINE_KEY = "startMachine";
@@ -304,13 +298,13 @@ public final class CloudifyConstants {
 	public static String DYNAMIC_BYON_STOP_MNG_MACHINES_KEY = "stopManagementMachines";
 
 	 /********************
-	 * Service grid components system props and environment variables 
+	 * Service grid components system props and environment variables
 	 */
 	public static final String LUS_PORT_CONTEXT_PROPERTY = "com.sun.jini.reggie.initialUnicastDiscoveryPort";
 	public static final String GSM_HTTP_PORT_CONTEXT_PROPERTY = "com.gigaspaces.start.httpPort";
 	public static final String LRMI_BIND_PORT_CONTEXT_PROPERTY = "com.gs.transport_protocol.lrmi.bind-port";
 	public static final String AGENT_PORT_CONTEXT_PROPERTY = "com.gigaspaces.system.registryPort";
-	
+
 	 /********************
 	 * management service environment variable constants
 	 */
@@ -319,62 +313,69 @@ public final class CloudifyConstants {
 	public static final String WEBUI_MAX_MEMORY_ENVIRONMENT_VAR = "WEBUI_MAX_MEMORY_ENVIRONMENT_VAR";
 	public static final String REST_MAX_MEMORY_ENVIRONMENT_VAR = "REST_MAX_MEMORY_ENVIRONMENT_VAR";
 	public static final String GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR = "GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR";
-	
+
 	/*********************
 	 * service grid components configuration.
 	 */
 	public static final String DEFAULT_AGENT_MAX_MEMORY = "128m";
 	public static final String DEFAULT_AGENT_MIN_MEMORY = "128m";
 	public static final int DEFAULT_AGENT_LRMI_PORT = 7002;
-	
+
 	public static final String DEFAULT_GSM_MAX_MEMORY = "128m";
 	public static final String DEFAULT_GSM_MIN_MEMORY = "128m";
 	public static final int DEFAULT_GSM_LRMI_PORT = 7000;
 	public static final int DEFAULT_GSM_WEBSTER_PORT = 6666;
-	
+
 	public static final String DEFAULT_LUS_MAX_MEMORY = "128m";
 	public static final String DEFAULT_LUS_MIN_MEMORY = "128m";
 	public static final int DEFAULT_LUS_LRMI_PORT = 7001;
 	public static final int DEFAULT_LUS_PORT = net.jini.discovery.Constants
 			.getDiscoveryPort();
-	
+
 	public static final String DEFAULT_ESM_MAX_MEMORY = "128m";
 	public static final String DEFAULT_ESM_MIN_MEMORY = "128m";
 	public static final int DEFAULT_ESM_LRMI_PORT = 7003;
-	
+
 	public static final String DEFAULT_GSC_MAX_MEMORY = "128m";
 	public static final String DEFAULT_GSC_MIN_MEMORY = "128m";
 	public static final String DEFAULT_GSC_LRMI_PORT_RANGE = "7000-7110";
-	
+
 	public static final String DEFAULT_REST_MAX_MEMORY = "128m";
 	public static final String DEFAULT_REST_MIN_MEMORY = "128m";
 	public static final int DEFAULT_REST_PORT = 8100;
 	public static final int SECURE_REST_PORT = 8100;
-	
+
 	public static final String DEFAULT_WEBUI_MAX_MEMORY = "256m";
 	public static final String DEFAULT_WEBUI_MIN_MEMORY = "128m";
 	public static final int DEFAULT_WEBUI_PORT = 8099;
 	public static final int SECURE_WEBUI_PORT = 8099;
-	
+
 	public static final int MANAGEMENT_SPACE_MEMORY_IN_MB = 64;
-	
+
 	public static final int DEFAULT_LOCALCLOUD_LUS_PORT = DEFAULT_LUS_PORT + 2;
 	//localcloud memory configuration properties.
 	public static final int DEFAULT_LOCALCLOUD_REST_WEBUI_SPACE_MEMORY_IN_MB = 256;
 	public static final int DEFAULT_LOCALCLOUD_GSA_GSM_ESM_LUS_MEMORY_IN_MB = 128;
-	
+
 	/**
 	 * Http timeouts
 	 */
 	public static final int DEFAULT_HTTP_CONNECTION_TIMEOUT = 60 * 1000; // one minute
 	public static final int DEFAULT_HTTP_READ_TIMEOUT = 60 * 1000 * 2; // two minutes per request
-	
+
 	/**
 	 * CLI Printouts
 	 */
 	public static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out. "
 			+ "Try to increase the timeout using the -timeout flag";
 
+	/*********
+	 * Persistent management
+	 */
+	public static final String PERSISTENCE_PROFILE_PERSISTENT = "persistent";
+	public static final String PERSISTENCE_PROFILE_TRANSIENT = "transient";
+
 	// CHECKSTYLE:ON
 }
+
 

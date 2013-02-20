@@ -38,6 +38,7 @@ public class CloudConfiguration {
 	private boolean bootstrapManagementOnPublicIp = true;
 	private boolean connectToPrivateIp = true;
 	private GridComponents components = new GridComponents();
+	private String persistentStoragePath = null;
 
 	public String getNicAddress() {
 		return nicAddress;
@@ -119,6 +120,14 @@ public class CloudConfiguration {
 
 	public void setComponents(final GridComponents components) {
 		this.components = components;
+	}
+
+	public String getPersistentStoragePath() {
+		return persistentStoragePath;
+	}
+
+	public void setPersistentStoragePath(final String persistentStoragePath) {
+		this.persistentStoragePath = persistentStoragePath;
 	}
 
 }
