@@ -66,11 +66,21 @@ public class TeardownCloud extends AbstractGSCommand {
 
 	@Option(required = false, name = "-timeout",
 			description = "The number of minutes to wait until the operation is done. ")
-	private final int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
+	private int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
 
 	@Option(required = false, name = "-force",
 			description = "Should management machine be shutdown if other applications are installed")
-	private final boolean force = false;
+	private boolean force = false;
+
+
+	public void setTimeoutInMinutes(final int timeoutInMinutes) {
+		this.timeoutInMinutes = timeoutInMinutes;
+	}
+
+	public void setForce(final boolean force) {
+		this.force = force;
+	}
+	
 
 	@Override
 	protected Object doExecute() throws Exception {
@@ -194,4 +204,9 @@ public class TeardownCloud extends AbstractGSCommand {
 
 		return cloudFiles[0];
 	}
+<<<<<<< HEAD
+=======
+	
+	
+>>>>>>> CLOUDIFY-1519 teardown-cloud -force does not allow to shutdown management machines without connecting to rest.
 }
