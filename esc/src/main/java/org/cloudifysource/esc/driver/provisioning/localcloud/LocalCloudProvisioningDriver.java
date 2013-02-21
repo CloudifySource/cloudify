@@ -21,8 +21,8 @@ import java.util.concurrent.TimeoutException;
 
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
-import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
+import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriverListener;
 import org.openspaces.admin.Admin;
 
@@ -36,27 +36,27 @@ public class LocalCloudProvisioningDriver implements ProvisioningDriver {
 	private int bootstrapTimeoutInMinutes = 5;
 
 
-	
+
 	@Override
 	public void setConfig(Cloud cloud, String cloudTemplate, boolean management, String serviceName) {
 		this.lookupGroups = cloud.getConfiguration().getLookupGroups();
 		this.nicAddress= cloud.getConfiguration().getNicAddress();
-		
+
 		this.verbose = (Boolean) getConfigValue(cloud.getCustom(), "verbose", Boolean.FALSE);
 		this.teardownTimeoutInMinutes = (Integer) getConfigValue(cloud.getCustom(), "teardownTimeoutInMinutes",5);
 		this.bootstrapTimeoutInMinutes = (Integer) getConfigValue(cloud.getCustom(), "bootstrapTimeoutInMinutes",5);
 	}
-	
+
 	private Object getConfigValue(Map<String, Object> config, String key, Object defaultValue) {
 		final Object temp = config.get(key);
 		if(temp == null) {
 			return defaultValue;
-		} else { 
+		} else {
 			return temp;
 		}
 	}
 
-	
+
 //	public void bootstrapCloud(final Cloud2 cloud) throws CloudProvisioningException {
 //
 //		LocalhostGridAgentBootstrapper installer = new LocalhostGridAgentBootstrapper();
@@ -154,17 +154,22 @@ public class LocalCloudProvisioningDriver implements ProvisioningDriver {
 	@Override
 	public void stopManagementMachines() throws TimeoutException, CloudProvisioningException {
 		throw new UnsupportedOperationException("Not available on local cloud");
-		
+
 	}
 
 	@Override
 	public void close() {
-		
+
 	}
 
 	@Override
 	public void addListener(ProvisioningDriverListener pdl) {
 		// TODO Auto-generated method stub
-		
+
+	}
+
+	@Override
+	public Object getComputeContext() {
+		return null;
 	}
 }

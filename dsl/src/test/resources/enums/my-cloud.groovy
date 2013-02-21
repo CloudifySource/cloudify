@@ -69,49 +69,68 @@ cloud {
 
 
 	}
+	
+	cloudStorage {
 
+		templates ([
 
-	/***********
-	 * Cloud machine templates available with this cloud.
-	 */
-	templates ([
-				// Mandatory. Template Name.
-				SMALL_LINUX : template{
-					fileTransfer "CIFS"
-					// Mandatory. Image ID.
-					imageId "XXXXX"
-					// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-					remoteDirectory "/home/ec2-user/gs-files"
-					// Mandatory. Amount of RAM available to machine.
-					machineMemoryMB 1600
-					// Mandatory. Hardware ID.
-					hardwareId "XXXXX"
-					// Optional. Location ID.
-					locationId "XXXXX"
-					// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
-					localDirectory "upload"
+					SMALL_BLOCK : storageTemplate{
+						deleteOnExit true
+						size 5
+						path "/storageVolume"
+						namePrefix "NamePrefix"
+						deviceName "/dev/sdc"
+						fileSystemType "ext4"
+						custom (["key":"value"])
+					}
+				])
+	}
 
-					username "ec2-user"
-					// Additional template options.
-					// When used with the default driver, the option names are considered
-					// method names invoked on the TemplateOptions object with the value as the parameter.
-					options ([
-								"securityGroups" : ["default"]as String[],
-								"keyPair" : "XXXXX"
-							])
-
-					// Optional. Overrides to default cloud driver behavior.
-					// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
-					overrides (["jclouds.ec2.ami-query":"",
-								"jclouds.ec2.cc-ami-query":""])
-
-					// enable sudo.
-					privileged true
-
-				}
-
-			])
-
+	cloudCompute {
+		
+		/***********
+		 * Cloud machine templates available with this cloud.
+		 */
+		templates ([
+					// Mandatory. Template Name.
+					SMALL_LINUX : computeTemplate{
+						fileTransfer "CIFS"
+						// Mandatory. Image ID.
+						imageId "XXXXX"
+						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+						remoteDirectory "/home/ec2-user/gs-files"
+						// Mandatory. Amount of RAM available to machine.
+						machineMemoryMB 1600
+						// Mandatory. Hardware ID.
+						hardwareId "XXXXX"
+						// Optional. Location ID.
+						locationId "XXXXX"
+						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+						localDirectory "upload"
+	
+						username "ec2-user"
+						// Additional template options.
+						// When used with the default driver, the option names are considered
+						// method names invoked on the TemplateOptions object with the value as the parameter.
+						options ([
+									"securityGroups" : ["default"]as String[],
+									"keyPair" : "XXXXX"
+								])
+	
+						// Optional. Overrides to default cloud driver behavior.
+						// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
+						overrides (["jclouds.ec2.ami-query":"",
+									"jclouds.ec2.cc-ami-query":""])
+	
+						// enable sudo.
+						privileged true
+	
+					}
+	
+				])
+	
+		
+	}
 
 	/*****************
 	 * Optional. Custom properties used to extend existing drivers or create new ones.

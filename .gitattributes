@@ -1,0 +1,10 @@
+# Expilicitly specify text file to be stored and normalized using lf line ending
+* text eol=lf
+
+# Leave binary files untouched
+*.jar binary
+*.exe binary
+*.dll binary
+*.png binary
+*.war binary
+*.zip binary

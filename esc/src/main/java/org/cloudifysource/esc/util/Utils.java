@@ -29,11 +29,11 @@ import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 import net.schmizz.sshj.userauth.method.AuthNone;
 
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.cloud.CloudTemplateInstallerConfiguration;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.cloud.GridComponents;
 import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
+import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
@@ -71,13 +71,9 @@ public final class Utils {
 	 * @param managementIP
 	 *            The IP of the management machine to connect to (through the default LUS port)
 	 * @param expectedGsmCount
-	 *            <<<<<<< HEAD The number of GridServiceManager objects that are expected to be found. Only when this
-	 *            number is reached, the admin object is considered loaded and can be returned
-	 * @param lusPort
-	 *            The lookup service port. ======= The number of GridServiceManager objects that are expected to be
+	 *            The number of GridServiceManager objects that are expected to be
 	 *            found. Only when this number is reached, the admin object is considered loaded and can be returned
-	 *            >>>>>>> CLOUDIFY-1476 Added configurable installation parameters as optional 'installer' block in each
-	 *            template.
+	 *
 	 * @return An updated admin object
 	 * @throws TimeoutException
 	 *             Indicates the timeout (default is 90 seconds) was reached before the admin object was fully loaded
@@ -189,7 +185,7 @@ public final class Utils {
 	 *             if a key file is specified and is not found.
 	 */
 	public static InstallationDetails createInstallationDetails(final MachineDetails md,
-			final Cloud cloud, final CloudTemplate template, final ExactZonesConfig zones,
+			final Cloud cloud, final ComputeTemplate template, final ExactZonesConfig zones,
 			final String lookupLocatorsString, final Admin admin,
 			final boolean isManagement,
 			final File cloudFile,
@@ -348,6 +344,12 @@ public final class Utils {
 		}
 
 		details.setDeleteRemoteDirectoryContents(md.isCleanRemoteDirectoryOnStart());
+		//add storage props that will be passed down to the bootstrap-management script.
+		details.setStorageVolumeAttached(md.isStorageVolumeAttached());
+		details.setStorageFormatType(md.getStorageFormatType());
+		details.setStorageDeviceName(md.getStorageDeviceName());
+		details.setStorageMountPath(md.getStorageMountPath());
+
 		details.setInstallerConfiguration(md.getInstallerConfigutation());
 		logger.fine("Created InstallationDetails: " + details);
 		return details;

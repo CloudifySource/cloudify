@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.dsl;
 
@@ -79,7 +76,7 @@ public class ServiceParsingTest {
 	public void testDuplicateLifecycleEventParsing() throws DSLException {
 		final File testParsingBaseDslFile = new File(
 				TEST_PARSING_RESOURCE_PATH
-				+ "test_parsing_on_duplicate_property_in_inner_class-service.groovy");
+						+ "test_parsing_on_duplicate_property_in_inner_class-service.groovy");
 		final File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
 		try {
 			ServiceReader.getServiceFromFile(testParsingBaseDslFile,
@@ -98,7 +95,7 @@ public class ServiceParsingTest {
 	public void testDuplicateServicePropertyParsing() throws DSLException {
 		final File testParsingBaseDslFile = new File(
 				TEST_PARSING_RESOURCE_PATH
-				+ "test_parsing_on_duplicate_property_in_service_class-service.groovy");
+						+ "test_parsing_on_duplicate_property_in_service_class-service.groovy");
 		final File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
 		try {
 			ServiceReader.getServiceFromFile(testParsingBaseDslFile,
@@ -151,7 +148,7 @@ public class ServiceParsingTest {
 
 		final File testParsingExtendDslFile = new File(
 				TEST_PARSING_RESOURCE_PATH
-				+ "test_parsing_extend-service.groovy");
+						+ "test_parsing_extend-service.groovy");
 		final File testParsingExtendWorkDir = new File(
 				TEST_PARSING_RESOURCE_PATH);
 		final Service service = ServiceReader.getServiceFromFile(
@@ -170,7 +167,7 @@ public class ServiceParsingTest {
 		Assert.assertEquals(1, service.getExtendedServicesPaths().size());
 		Assert.assertEquals(new File(TEST_PARSING_RESOURCE_PATH, "test_parsing_base-service.groovy").getAbsolutePath(),
 				service
-				.getExtendedServicesPaths().getFirst());
+						.getExtendedServicesPaths().getFirst());
 	}
 
 	/**
@@ -180,7 +177,7 @@ public class ServiceParsingTest {
 	public void testBasicExtendIllegalPropertyLocation() {
 		final File testParsingExtendDslFile = new File(
 				TEST_PARSING_RESOURCE_PATH
-				+ "test_parsing_extend_illegal-service.groovy");
+						+ "test_parsing_extend_illegal-service.groovy");
 		final File testParsingExtendWorkDir = new File(
 				TEST_PARSING_RESOURCE_PATH);
 		try {
@@ -199,7 +196,7 @@ public class ServiceParsingTest {
 	public void testBasicExtendIllegalNestedPropertyLocation() {
 		final File testParsingExtendDslFile = new File(
 				TEST_PARSING_RESOURCE_PATH
-				+ "test_parsing_extend_illegal_nested-service.groovy");
+						+ "test_parsing_extend_illegal_nested-service.groovy");
 		final File testParsingExtendWorkDir = new File(
 				TEST_PARSING_RESOURCE_PATH);
 		try {
@@ -231,7 +228,7 @@ public class ServiceParsingTest {
 
 		final File testParsingExtendDslFile = new File(
 				TEST_PARSING_RESOURCE_PATH
-				+ "test_parsing_extend_two_level-service.groovy");
+						+ "test_parsing_extend_two_level-service.groovy");
 		final File testParsingExtendWorkDir = new File(
 				TEST_PARSING_RESOURCE_PATH);
 		final Service service = ServiceReader.getServiceFromFile(
@@ -274,7 +271,7 @@ public class ServiceParsingTest {
 	 */
 	@Test
 	public void testAutoScalingParsing() throws DSLException,
-	UnknownHostException {
+			UnknownHostException {
 		final File testParsingBaseDslFile = new File(TEST_PARSING_RESOURCE_PATH
 				+ "test_parsing_autoscaling-service.groovy");
 		final File testParsingBaseWorkDir = new File(TEST_PARSING_RESOURCE_PATH);
@@ -343,7 +340,7 @@ public class ServiceParsingTest {
 				.getServiceStatistics()).getTimeStatistics()
 				.createTimeWindowStatistics(1, TimeUnit.MINUTES),
 				serviceStatistics.get(0).getTimeStatistics()
-				.createTimeWindowStatistics(1, TimeUnit.MINUTES));
+						.createTimeWindowStatistics(1, TimeUnit.MINUTES));
 		Assert.assertEquals(((ServiceStatisticsDetails) scalingRules.get(1)
 				.getServiceStatistics()).getMovingTimeRangeInSeconds(),
 				serviceStatistics.get(0).getMovingTimeRangeInSeconds());
@@ -360,7 +357,7 @@ public class ServiceParsingTest {
 	public void testPropertyInCustomCommand() throws DSLException {
 		final File testParsingExtendDslFile = new File(
 				TEST_PARSING_RESOURCE_PATH
-				+ "test_property_in_custom_command-service.groovy");
+						+ "test_property_in_custom_command-service.groovy");
 		final File testParsingExtendWorkDir = new File(
 				TEST_PARSING_RESOURCE_PATH);
 		final Service service = ServiceReader.getServiceFromFile(
@@ -493,6 +490,17 @@ public class ServiceParsingTest {
 		// code - there are no direct references to it in the Cloudify project
 		// but we want it to be available to service recipes by default.
 		new RESTClient();
+
+	}
+
+	@Test
+	public void testStorageDetailsParsing() throws Exception {
+		final File serviceFile = new File(TEST_PARSING_RESOURCE_PATH3
+				+ "simpleStorage-service.groovy");
+		final Service service = ServiceReader.getServiceFromFile(serviceFile);
+		Assert.assertNotNull(service.getStorage());
+		Assert.assertNotNull(service.getStorage().getTemplate());
+		Assert.assertNotNull(service.getStorage().getTemplate().equals("SMALL_BLOCK"));
 
 	}
 

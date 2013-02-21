@@ -25,9 +25,10 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
+import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.openspaces.admin.pu.elastic.ElasticMachineProvisioningConfig;
 import org.openspaces.admin.zone.config.AnyZonesConfig;
@@ -87,6 +88,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	
 	private static final String AUTH_GROUPS_DEFAULT = null;
 	private static final String AUTH_GROUPS_KEY = "auth-groups";
+	private static final String STORAGE_TEMPLATE_NAME = "storage-template-name";
 
 	private StringProperties properties = new StringProperties(new HashMap<String, String>());
 
@@ -98,9 +100,13 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	 * @param managementTemplateRemoteDirectory .
 	 * @param management - true if the deployment
 	 */
-	public CloudifyMachineProvisioningConfig(final Cloud cloud, final CloudTemplate template,
-			final String cloudTemplateName, final String managementTemplateRemoteDirectory) {
-
+	public CloudifyMachineProvisioningConfig(final Cloud cloud, final ComputeTemplate template,
+			final String cloudTemplateName, final String managementTemplateRemoteDirectory, 
+			final String storageTemplateName) {
+		
+		if (!StringUtils.isEmpty(storageTemplateName)) {
+			setStorageTemplateName(storageTemplateName);
+		}
 		setMinimumNumberOfCpuCoresPerMachine(template.getNumberOfCores());
 
 		setReservedMemoryCapacityPerMachineInMB(cloud.getProvider().getReservedMemoryCapacityPerMachineInMB());
@@ -115,6 +121,16 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 		logger.log(Level.INFO, "Setting cloud configuration directory to: " + remoteDir);
 		setCloudConfigurationDirectory(remoteDir);
 		setCloudTemplateName(cloudTemplateName);
+	}
+
+	private void setStorageTemplateName(final String storageTemplateName) {
+		this.properties.put(STORAGE_TEMPLATE_NAME, storageTemplateName);
+		
+	}
+	
+	public String getStorageTemplateName() {
+		return this.properties.get(STORAGE_TEMPLATE_NAME);
+		
 	}
 
 	private String getWindowsRemoteDirPath(String remoteDirectory) {

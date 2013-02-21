@@ -44,6 +44,12 @@ public interface ProvisioningDriver {
 	 */
 	void setConfig(Cloud cloud, String cloudTemplate, boolean management, String serviceName);
 
+	/**
+	 * Returns the compute context.
+	 * @return Compute context object or null if not set
+	 */
+	Object getComputeContext();
+
 	/**************
 	 * Passes an Admin API object that can be used to query the current cluster state. The Admin API is typically only
 	 * required for advanced use cases, like BYON. Note that this method is only called when the cloud driver is running

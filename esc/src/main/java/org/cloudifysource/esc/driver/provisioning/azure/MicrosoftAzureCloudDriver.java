@@ -32,7 +32,7 @@ import org.cloudifysource.esc.driver.provisioning.azure.model.InputEndpoints;
 
 /***************************************************************************************
  * A custom Cloud Driver implementation for provisioning machines on Azure.
- * 
+ *
  * @author elip
  ***************************************************************************************/
 
@@ -302,15 +302,15 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		}
 
 	}
-	
+
 	private void cleanup() throws CloudProvisioningException {
-		
+
 		final long endTime = System.currentTimeMillis() + CLEANUP_TIMEOUT;
-		
+
 		boolean deletedNetwork = false;
 		boolean deletedStorage = false;
 		Exception first = null;
-		
+
 		try {
 			deletedNetwork = azureClient.deleteVirtualNetworkSite(networkName, endTime);
 		} catch (final Exception e) {
@@ -318,7 +318,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			logger.warning("Failed deleting virtual network site " + networkName + " : " + e.getMessage());
 			logger.fine(ExceptionUtils.getFullStackTrace(e));
 		}
-		
+
 		try {
 			deletedStorage = azureClient.deleteStorageAccount(storageAccountName, endTime);
 		} catch (final Exception e) {
@@ -328,7 +328,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			logger.warning("Failed deleting storage account " + storageAccountName + " : " + e.getMessage());
 			logger.fine(ExceptionUtils.getFullStackTrace(e));
 		}
-		
+
 		if (deletedNetwork && deletedStorage) {
 			try {
 				deletedStorage = azureClient.deleteAffinityGroup(affinityGroup, endTime);
@@ -341,7 +341,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			}
 		} else {
 			logger.info("Not trying to delete affinity group since either virtual network " + networkName + " , or storage account " + storageAccountName + " depend on it.");
-		}	
+		}
 		if (first != null) {
 			throw new CloudProvisioningException(first);
 		}
@@ -400,7 +400,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 					logger.finest(ExceptionUtils.getFullStackTrace(t));
 				}
 			}
-			
+
 			try {
 				logger.warning("Failed to start management machines. cleaning up any services that might have already been started.");
 				stopManagementMachines();
@@ -446,7 +446,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 
 		long endTime = System.currentTimeMillis() + DEFAULT_SHUTDOWN_DURATION;
 		boolean success = false;
-		
+
 		ExecutorService service = Executors.newCachedThreadPool();
 		try {
 			stopManagementMachines(endTime, service);
@@ -477,7 +477,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			CloudProvisioningException {
 
 		List<Future<?>> futures = new ArrayList<Future<?>>();
-				
+
 		Disks disks = null;
 		try {
 			disks = azureClient.listOSDisks();
@@ -488,7 +488,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			AttachedTo attachedTo = disk.getAttachedTo();
 			if (attachedTo != null) { // protect against zombie disks
 				String roleName = attachedTo.getRoleName();
-				if (roleName.startsWith(this.serverNamePrefix)) {					
+				if (roleName.startsWith(this.serverNamePrefix)) {
 					final String diskName = disk.getName();
 					final String deploymentName = attachedTo.getDeploymentName();
 					final String hostedServiceName = attachedTo
@@ -554,13 +554,13 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	}
 
 	/**
-	 * 
+	 *
 	 * @author elip
-	 * 
+	 *
 	 */
 	private class StartMachineCallable implements Callable<MachineDetails> {
 
-		private long endTime;
+		private final long endTime;
 
 		public StartMachineCallable(final long endTime) {
 			this.endTime = endTime;
@@ -568,7 +568,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 
 		/*
 		 * (non-Javadoc)
-		 * 
+		 *
 		 * @see java.util.concurrent.Callable#call()
 		 */
 		@Override
@@ -579,15 +579,15 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	}
 
 	/**
-	 * 
+	 *
 	 * @author elip
-	 * 
+	 *
 	 */
 	private class StopManagementMachineCallable implements Callable<Boolean> {
 
-		private String deploymentName;
-		private String hostedServiceName;
-		private long endTime;
+		private final String deploymentName;
+		private final String hostedServiceName;
+		private final long endTime;
 
 		public StopManagementMachineCallable(final String deploymentName,
 				final String hostedServiceName, final String diskName,
@@ -599,7 +599,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 
 		/*
 		 * (non-Javadoc)
-		 * 
+		 *
 		 * @see java.lang.Runnable#run()
 		 */
 		@Override
@@ -675,5 +675,10 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			inputEndpoints.getInputEndpoints().add(restEndpoint);
 		}
 		return inputEndpoints;
+	}
+
+	@Override
+	public Object getComputeContext() {
+		return null;
 	}
 }

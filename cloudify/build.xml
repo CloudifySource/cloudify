@@ -250,7 +250,6 @@
 	    	<copy todir="@{installation.dir}/bin" overwrite="true">
 	            <fileset dir="${gigaspaces.related.folder}/bin" includes="cloudify.*" excludes=".svn"/>
 	        </copy>
-
             <echo message="Copy management-space component"/>
             <mkdir dir="@{installation.dir}/tools/management-space/" />
             <copy todir="@{installation.dir}/tools/management-space/" overwrite="true">

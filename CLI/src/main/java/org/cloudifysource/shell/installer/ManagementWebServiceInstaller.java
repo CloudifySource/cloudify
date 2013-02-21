@@ -1,14 +1,17 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.shell.installer;
 
@@ -195,16 +198,16 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	}
 
 	/**
-	 * Indicates it is required to wait for a successful connection with the service after the service installation
-	 * completes.
+	 * Indicates it is required to wait for a successful connection with the service after the service
+	 * installation completes.
 	 */
 	public void setWaitForConnection() {
 		waitForConnection = true;
 	}
 
 	/**
-	 * Waits for a PU instance to be available, indicating the service is installed and running. If the timeout is
-	 * reached before a connection could be established, a {@link TimeoutException} is thrown.
+	 * Waits for a PU instance to be available, indicating the service is installed and running. If the
+	 * timeout is reached before a connection could be established, a {@link TimeoutException} is thrown.
 	 *
 	 * @param agent
 	 *            The grid service agent to use
@@ -340,10 +343,10 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 		return props;
 	}
 
-	// TODO:consider delete.
+	//TODO:consider delete.
 	/**
-	 * Waits for the management processes (GSM and ESM) to be available. If the timeout is reached before a connection
-	 * could be established, a {@link TimeoutException} is thrown.
+	 * Waits for the management processes (GSM and ESM) to be available. If the timeout is reached before a
+	 * connection could be established, a {@link TimeoutException} is thrown.
 	 *
 	 * @param timeout
 	 *            number of {@link TimeUnit}s to wait
@@ -443,8 +446,8 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	}
 
 	/**
-	 * Gets the service's war file. If the war file's path is not an absolute path, it is considered relative to the
-	 * home directory.
+	 * Gets the service's war file. If the war file's path is not an absolute path, it is considered relative
+	 * to the home directory.
 	 *
 	 * @param warFile
 	 *            The service's war file object (possibly with a relative path)

@@ -77,68 +77,66 @@ cloud {
 	}
 
 
-	/***********
-	 * Cloud machine templates available with this cloud.
-	 */
-	templates ([
-				// Mandatory. Template Name.
-				SMALL_LINUX : template{
-					// Mandatory. Image ID.
-					imageId ""
-					// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-					remoteDirectory "/home/ec2-user/gs-files"
-					// Mandatory. Amount of RAM available to machine.
-					machineMemoryMB 1600
-					// Mandatory. Hardware ID.
-					hardwareId ""
-					// Optional. Location ID.
-					locationId ""
-					// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
-					localDirectory "upload"
-					// Optional. Name of key file to use for authenticating to the remot machine. Remove this line if key files
-					// are not used.
-					keyFile ""
+	cloudCompute {
+		
+		/***********
+		 * Cloud machine templates available with this cloud.
+		 */
+		templates ([
+					// Mandatory. Template Name.
+					SMALL_LINUX : computeTemplate{
+						fileTransfer "CIFS"
+						// Mandatory. Image ID.
+						imageId "XXXXX"
+						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+						remoteDirectory "/home/ec2-user/gs-files"
+						// Mandatory. Amount of RAM available to machine.
+						machineMemoryMB 1600
+						// Mandatory. Hardware ID.
+						hardwareId "XXXXX"
+						// Optional. Location ID.
+						locationId "XXXXX"
+						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+						localDirectory "upload"
+	
+						username "ec2-user"
+						// Additional template options.
+						// When used with the default driver, the option names are considered
+						// method names invoked on the TemplateOptions object with the value as the parameter.
+						options ([
+									"securityGroups" : ["default"]as String[],
+									"keyPair" : "XXXXX"
+								])
+	
+						// Optional. Overrides to default cloud driver behavior.
+						// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
+						overrides (["jclouds.ec2.ami-query":"",
+									"jclouds.ec2.cc-ami-query":""])
+	
+						// enable sudo.
+						privileged true
+						installer {
 
-					username "ec2-user"
-					// Additional template options.
-					// When used with the default driver, the option names are considered
-					// method names invoked on the TemplateOptions object with the value as the parameter.
-					options ([
-								"securityGroups" : ["default"]as String[],
-								"keyPair" : ""
-							])
+							connectionTestRouteResolutionTimeoutMillis 5000
+							connectionTestIntervalMillis 5000
+							connectionTestConnectTimeoutMillis 5000
 
-					// Optional. Overrides to default cloud driver behavior.
-					// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
-					overrides (["jclouds.ec2.ami-query":"",
-								"jclouds.ec2.cc-ami-query":""])
+							fileTransferConnectionTimeoutMillis 5000
+							fileTransferRetries 5
+							fileTransferPort 5000
+							fileTransferConnectionRetryIntervalMillis 5000
 
-					// enable sudo.
-					privileged true
-					
-					installer {
-						
-						connectionTestRouteResolutionTimeoutMillis 5000
-						connectionTestIntervalMillis 5000
-						connectionTestConnectTimeoutMillis 5000
-					
-						fileTransferConnectionTimeoutMillis 5000
-						fileTransferRetries 5
-						fileTransferPort 5000
-						fileTransferConnectionRetryIntervalMillis 5000
-					
-						remoteExecutionPort 5000
-						remoteExecutionConnectionTimeoutMillies 5000
-					
+							remoteExecutionPort 5000
+							remoteExecutionConnectionTimeoutMillies 5000
+
+						}
+	
 					}
-
-
-
-				}
-
-			])
-
-
+	
+				])
+	
+		
+	}
 	/*****************
 	 * Optional. Custom properties used to extend existing drivers or create new ones.
 	 */

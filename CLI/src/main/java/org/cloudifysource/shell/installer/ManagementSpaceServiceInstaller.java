@@ -1,14 +1,17 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.shell.installer;
 
@@ -23,20 +26,15 @@ import java.util.concurrent.TimeoutException;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.commands.CLIException;
-import org.openspaces.admin.Admin;
-import org.openspaces.admin.AdminFactory;
 import org.openspaces.admin.gsa.GridServiceAgent;
-import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitAlreadyDeployedException;
 import org.openspaces.admin.pu.ProcessingUnitDeployment;
-import org.openspaces.admin.pu.ProcessingUnits;
 import org.openspaces.admin.pu.dependency.ProcessingUnitDeploymentDependenciesConfigurer;
 import org.openspaces.admin.pu.elastic.ElasticStatefulProcessingUnitDeployment;
 import org.openspaces.admin.pu.elastic.config.DiscoveredMachineProvisioningConfigurer;
 import org.openspaces.admin.pu.elastic.config.EagerScaleConfigurer;
 import org.openspaces.admin.space.Space;
 import org.openspaces.admin.space.SpacePartition;
-import org.openspaces.admin.space.Spaces;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.util.MemoryUnit;
 
@@ -154,9 +152,9 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 	}
 
 	/**
-	 * Installs the management space with the configured settings inside the localcloud dedicated management service
-	 * container. If a dependency on another PU is set, the deployment will wait until at least 1 instance of that PU is
-	 * available.
+	 * Installs the management space with the configured settings inside the
+	 * localcloud dedicated management service container. If a dependency on another PU is set,
+	 *  the deployment will wait until at least 1 instance of that PU is available.
 	 *
 	 * @throws ProcessingUnitAlreadyDeployedException
 	 *             Reporting installation failure because the PU is already installed
@@ -237,7 +235,7 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 				}
 
 				logger.fine("Connecting to management space.");
-				if (verbose) {
+				if (verbose){
 					publishEvent("Connecting to management space.");
 				}
 				return false;
@@ -245,7 +243,7 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 		});
 
 		logger.fine("Management space is available.");
-		if (verbose) {
+		if (verbose){
 			logger.fine("Management space is available.");
 		}
 	}
@@ -303,21 +301,4 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 		this.persistentStoragePath = persistentStoragePath;
 	}
 
-	public static void main(String[] args) throws InterruptedException {
-		Admin admin = new AdminFactory().addLocator("localhost:4176").createAdmin();
-		admin.getLookupServices().waitFor(1);
-		Thread.sleep(5000);
-		ProcessingUnits pus = admin.getProcessingUnits();
-		System.out.println("PUs:");
-		for (ProcessingUnit processingUnit : pus) {
-			System.out.println(processingUnit.getName());
-		}
-
-		System.out.println("Spaces:");
-		Spaces spaces = admin.getSpaces();
-		for (Space space : spaces) {
-
-			System.out.println(space.getName());
-		}
-	}
 }

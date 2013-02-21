@@ -35,7 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
@@ -597,7 +597,7 @@ public class CloudGridAgentBootstrapper {
 		Logger.getLogger(AgentlessInstaller.SSH_LOGGER_NAME).setLevel(
 				Level.parse(cloud.getProvider().getSshLoggingLevel()));
 
-		final CloudTemplate template = cloud.getTemplates().get(
+		final ComputeTemplate template = cloud.getCloudCompute().getTemplates().get(
 				cloud.getConfiguration().getManagementMachineTemplate());
 
 		// fixConfigRelativePaths(cloud, template);
@@ -730,7 +730,7 @@ public class CloudGridAgentBootstrapper {
 	}
 
 	private InstallationDetails[] createInstallationDetails(final int numOfManagementMachines,
-			final MachineDetails[] machineDetails, final CloudTemplate template, final String securityProfile,
+			final MachineDetails[] machineDetails, final ComputeTemplate template, final String securityProfile,
 			final String keystorePassword) throws FileNotFoundException {
 		final InstallationDetails[] details = new InstallationDetails[numOfManagementMachines];
 

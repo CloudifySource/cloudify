@@ -148,9 +148,9 @@ public final class IsolationUtils {
 			serviceTemplate = service.getCompute().getTemplate();
 		}
 		if (serviceTemplate == null) {
-			serviceTemplate = cloud.getTemplates().entrySet().iterator().next().getKey();
+			serviceTemplate = cloud.getCloudCompute().getTemplates().entrySet().iterator().next().getKey();
 		}
-		int machineTemplateMemory = cloud.getTemplates().get(serviceTemplate).getMachineMemoryMB();
+		int machineTemplateMemory = cloud.getCloudCompute().getTemplates().get(serviceTemplate).getMachineMemoryMB();
 		int reservedMachineMemory = cloud.getProvider().getReservedMemoryCapacityPerMachineInMB();
 		long instanceMemoryMB = getInstanceMemoryMB(service);
 		if (instanceMemoryMB > (machineTemplateMemory - reservedMachineMemory)) {	

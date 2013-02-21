@@ -24,8 +24,8 @@ import java.util.logging.Level;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
+import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
@@ -36,6 +36,7 @@ import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.jclouds.JCloudsDeployer;
+import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.domain.ComputeMetadata;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.domain.LoginCredentials;
@@ -119,8 +120,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	@Override
-	protected MachineDetails createServer(final String serverName, final long endTime,
-			final CloudTemplate template) throws CloudProvisioningException,
+	protected MachineDetails createServer(String serverName, long endTime,
+			ComputeTemplate template) throws CloudProvisioningException,
 			TimeoutException {
 		return createServer(endTime, serverName, null);
 	}
@@ -128,7 +129,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	private MachineDetails createServer(final long end, final String groupName,
 			final String locationIdOverride) throws CloudProvisioningException {
 
-		final CloudTemplate cloudTemplate = this.cloud.getTemplates().get(
+		final ComputeTemplate cloudTemplate = this.cloud.getCloudCompute().getTemplates().get(
 				this.cloudTemplateName);
 		String locationId;
 		if (locationIdOverride == null) {
@@ -195,7 +196,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 	private void handleEC2WindowsCredentials(final long end,
 			final NodeMetadata node, final MachineDetails machineDetails,
-			final CloudTemplate cloudTemplate) throws FileNotFoundException,
+			final ComputeTemplate cloudTemplate) throws FileNotFoundException,
 			InterruptedException, TimeoutException, CloudProvisioningException {
 		File pemFile = null;
 
@@ -496,7 +497,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	private MachineDetails createMachineDetailsFromNode(final NodeMetadata node) {
-		final CloudTemplate template = this.cloud.getTemplates().get(
+		final ComputeTemplate template = this.cloud.getCloudCompute().getTemplates().get(
 				this.cloudTemplateName);
 
 		final MachineDetails md = createMachineDetailsForTemplate(template);
@@ -526,7 +527,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	private String createMachineUsername(final NodeMetadata node,
-			final CloudTemplate template) {
+			final ComputeTemplate template) {
 
 		// Template configuration takes precedence.
 		if (template.getUsername() != null) {
@@ -545,7 +546,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	private String createMachinePassword(final NodeMetadata node,
-			final CloudTemplate template) {
+			final ComputeTemplate template) {
 
 		// Template configuration takes precedence.
 		if (template.getPassword() != null) {
@@ -573,7 +574,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			throws IOException {
 		logger.fine("Creating JClouds context deployer with user: "
 				+ cloud.getUser().getUser());
-		final CloudTemplate cloudTemplate = cloud.getTemplates().get(
+		final ComputeTemplate cloudTemplate = cloud.getCloudCompute().getTemplates().get(
 				cloudTemplateName);
 
 		logger.fine("Cloud Template: " + cloudTemplateName + ". Details: "
@@ -601,5 +602,15 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			throws CloudProvisioningException, UnsupportedOperationException {
 		throw new UnsupportedOperationException(
 				"Locating management servers from file information is not supported in this cloud driver");
+	}
+
+	@Override
+	public Object getComputeContext() {
+		ComputeServiceContext computeContext = null;
+		if (deployer != null) {
+			computeContext = deployer.getContext();
+		}
+
+		return computeContext;
 	}
 }

@@ -27,8 +27,8 @@ import java.util.logging.Level;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
+import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
@@ -52,7 +52,7 @@ public class DynamicByonProvisioningDriver extends BaseProvisioningDriver {
 	public MachineDetails startMachine(String locationId, long duration, TimeUnit unit)
 			throws TimeoutException, CloudProvisioningException {
 		String currnentId = PROVIDER_ID + "{" + idCounter.getAndIncrement() + "}";
-		final CloudTemplate template = cloud.getTemplates().get(cloudTemplateName);
+		final ComputeTemplate template = cloud.getCloudCompute().getTemplates().get(cloudTemplateName);
 
 		Map<String, Object> custom = template.getCustom();
 		Closure<String> getNodeClosure =  (Closure<String>) custom.get(CloudifyConstants.DYNAMIC_BYON_START_MACHINE_KEY);
@@ -66,8 +66,8 @@ public class DynamicByonProvisioningDriver extends BaseProvisioningDriver {
 			throws TimeoutException, CloudProvisioningException {
 		publishEvent(EVENT_ATTEMPT_START_MGMT_VMS);
 
-		final CloudTemplate managementTemplate =
-				this.cloud.getTemplates().get(this.cloud.getConfiguration().getManagementMachineTemplate());
+		final ComputeTemplate managementTemplate =
+				this.cloud.getCloudCompute().getTemplates().get(this.cloud.getConfiguration().getManagementMachineTemplate());
 		Map<String, Object> custom = managementTemplate.getCustom();
 		@SuppressWarnings("unchecked")
 		Closure<List<String>> getNodesClosure =  (Closure<List<String>>) custom.get(CloudifyConstants.DYNAMIC_BYON_START_MNG_MACHINES_KEY);
@@ -96,7 +96,7 @@ public class DynamicByonProvisioningDriver extends BaseProvisioningDriver {
 			throws InterruptedException, TimeoutException,
 			CloudProvisioningException {
 		logger.info("Stopping machine [" + machineIp + "]");
-		final CloudTemplate template = cloud.getTemplates().get(cloudTemplateName);
+		final ComputeTemplate template = cloud.getCloudCompute().getTemplates().get(cloudTemplateName);
 		final Map<String, Object> custom = template.getCustom();
 		Closure<?> stopClosure =  (Closure<?>) custom.get(CloudifyConstants.DYNAMIC_BYON_STOP_MACHINE_KEY);
 		stopClosure.call(machineIp);
@@ -106,7 +106,8 @@ public class DynamicByonProvisioningDriver extends BaseProvisioningDriver {
 	@Override
 	public void stopManagementMachines()
 			throws TimeoutException, CloudProvisioningException {
-		CloudTemplate template = cloud.getTemplates().get(cloud.getConfiguration().getManagementMachineTemplate());
+		ComputeTemplate template = cloud.getCloudCompute().getTemplates()
+				.get(cloud.getConfiguration().getManagementMachineTemplate());
 		Map<String, Object> custom = template.getCustom();
 		Closure<?> stopClosure =  (Closure<?>) custom.get(CloudifyConstants.DYNAMIC_BYON_STOP_MACHINE_KEY);
 		stopClosure.call();
@@ -127,7 +128,7 @@ public class DynamicByonProvisioningDriver extends BaseProvisioningDriver {
 	}
 
 	@Override
-	protected MachineDetails createServer(String serverName, long endTime, CloudTemplate template)
+	protected MachineDetails createServer(String serverName, long endTime, ComputeTemplate template)
 			throws CloudProvisioningException, TimeoutException {
 
 		String ip;
@@ -146,7 +147,7 @@ public class DynamicByonProvisioningDriver extends BaseProvisioningDriver {
 	}
 
 	private MachineDetails createMachine(String serverName,
-			CloudTemplate template, String ip) throws CloudProvisioningException {
+			ComputeTemplate template, String ip) throws CloudProvisioningException {
 		final CustomNodeImpl customNode = new CustomNodeImpl(PROVIDER_ID, serverName, ip,
 				template.getUsername(), template.getPassword(), serverName);
 
@@ -179,7 +180,7 @@ public class DynamicByonProvisioningDriver extends BaseProvisioningDriver {
 						+ firstCreationException.getMessage(), firstCreationException);
 	}
 
-	private MachineDetails createMachineDetails(CustomNodeImpl customNode, CloudTemplate template) throws CloudProvisioningException {
+	private MachineDetails createMachineDetails(CustomNodeImpl customNode, ComputeTemplate template) throws CloudProvisioningException {
 		MachineDetails machineDetails = new MachineDetails();
 
 		machineDetails.setAgentRunning(false);
@@ -209,6 +210,11 @@ public class DynamicByonProvisioningDriver extends BaseProvisioningDriver {
 		machineDetails.setFileTransferMode(template.getFileTransfer());
 
 		return machineDetails;
+	}
+
+	@Override
+	public Object getComputeContext() {
+		return null;
 	}
 
 }

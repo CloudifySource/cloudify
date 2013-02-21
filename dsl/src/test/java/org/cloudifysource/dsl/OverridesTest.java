@@ -241,12 +241,13 @@ public class OverridesTest {
 		// overriden props
 		Assert.assertEquals("OverridesTestUser", cloud.getUser().getUser());
 		Assert.assertEquals("OverridesTestApiKey", cloud.getUser().getApiKey());
-		Assert.assertEquals("OverridesTestKeyPair", (String) cloud.getTemplates().
+		Assert.assertEquals("OverridesTestKeyPair", (String) cloud.getCloudCompute().getTemplates().
 				get("SMALL_LINUX").getOptions().get("keyPair"));
-		Assert.assertEquals("OverridesTestImageId", cloud.getTemplates().get("SMALL_LINUX").getImageId());
+		Assert.assertEquals("OverridesTestImageId", 
+				cloud.getCloudCompute().getTemplates().get("SMALL_LINUX").getImageId());
 		
 		// not overrides, taken from .properties file
-		Assert.assertEquals("TestKeyFile.pem", cloud.getTemplates().get("SMALL_LINUX").getKeyFile());
+		Assert.assertEquals("TestKeyFile.pem", cloud.getCloudCompute().getTemplates().get("SMALL_LINUX").getKeyFile());
 	}
 	
 	@Test
@@ -257,12 +258,13 @@ public class OverridesTest {
 		// overriden props
 		Assert.assertEquals("OverridesTestUser", cloud.getUser().getUser());
 		Assert.assertEquals("OverridesTestApiKey", cloud.getUser().getApiKey());
-		Assert.assertEquals("OverridesTestKeyPair", (String) cloud.getTemplates().
+		Assert.assertEquals("OverridesTestKeyPair", (String) cloud.getCloudCompute().getTemplates().
 				get("SMALL_LINUX").getOptions().get("keyPair"));
-		Assert.assertEquals("OverridesTestImageId", cloud.getTemplates().get("SMALL_LINUX").getImageId());
+		Assert.assertEquals("OverridesTestImageId", 
+				cloud.getCloudCompute().getTemplates().get("SMALL_LINUX").getImageId());
 		
 		// not overrides, taken from .properties file
-		Assert.assertEquals("TestKeyFile.pem", cloud.getTemplates().get("SMALL_LINUX").getKeyFile());
+		Assert.assertEquals("TestKeyFile.pem", cloud.getCloudCompute().getTemplates().get("SMALL_LINUX").getKeyFile());
 		
 	}
 

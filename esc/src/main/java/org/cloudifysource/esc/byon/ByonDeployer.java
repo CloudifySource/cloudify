@@ -27,8 +27,8 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
+import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.CustomNode;
 import org.cloudifysource.esc.driver.provisioning.byon.CustomNodeImpl;
@@ -85,7 +85,7 @@ public class ByonDeployer {
 	 *             Indicates the node parsing failed
 	 */
 	public synchronized void addNodesList(final String templateName,
-			final CloudTemplate template,
+			final ComputeTemplate template,
 			final List<Map<String, String>> nodesList) throws Exception {
 		final List<CustomNode> resolvedNodes = new ArrayList<CustomNode>();
 		final List<CustomNode> unresolvedNodes = new ArrayList<CustomNode>();

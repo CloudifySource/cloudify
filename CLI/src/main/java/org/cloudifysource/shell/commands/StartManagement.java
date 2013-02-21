@@ -92,8 +92,7 @@ public class StartManagement extends AbstractGSCommand {
     @Option(required = false, description = "The username for a secure connection to the rest server", name = "-user")
     private String username;
 
-    @Option(required = false, description = "The password for a secure connection to the rest server",
-    		name = "-password")
+    @Option(required = false, description = "The password for a secure connection to the rest server", name = "-password")
     private String password;
 
 	@Option(required = false, name = "-no-web-services",
@@ -115,7 +114,6 @@ public class StartManagement extends AbstractGSCommand {
 	@Option(required = false, name = "-cloud-file", description = "if set, designated the location of the cloud"
 			+ " configuration file")
 	private String cloudFileName;
-
 
 
 	/**

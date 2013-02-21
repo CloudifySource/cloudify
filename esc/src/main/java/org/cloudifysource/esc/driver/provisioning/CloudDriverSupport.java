@@ -26,16 +26,16 @@ import net.jini.core.discovery.LookupLocator;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
 
 /**************
  * An abstract class with some commonly used code for custom cloud drivers.
- * 
+ *
  * @author barakme
  * @since 2.1
- * 
+ *
  */
 public abstract class CloudDriverSupport implements ProvisioningDriver {
 
@@ -45,7 +45,7 @@ public abstract class CloudDriverSupport implements ProvisioningDriver {
 	protected Cloud cloud;
 	protected boolean management;
 	protected String templateName;
-	protected CloudTemplate template;
+	protected ComputeTemplate template;
 
 	// maps ip to time when last shut down request for that machine was sent
 	private final Map<String, Long> stoppingMachines = new ConcurrentHashMap<String, Long>();
@@ -68,9 +68,9 @@ public abstract class CloudDriverSupport implements ProvisioningDriver {
 	 * Returns a multithreaded admin instance, which can be used for blocking operations without blocking the shared
 	 * Admin instance provided by the ESM. The method is synchronized to prevent several threads initializing the multi
 	 * threaded admin.
-	 * 
+	 *
 	 * TODO: allow loading multi threaded admin into ESM context.
-	 * 
+	 *
 	 * @return the multi threaded admin instance.
 	 */
 	protected synchronized Admin getMultiThreadedAdmin() {
@@ -95,20 +95,20 @@ public abstract class CloudDriverSupport implements ProvisioningDriver {
 
 	@Override
 	public void setConfig(final Cloud cloud, final String templateName, final boolean management, final String serviceName) {
-		
+
 		this.cloud = cloud;
 		this.management = management;
 		this.templateName = templateName;
-		
-		if (this.cloud.getTemplates().isEmpty()) {
+
+		if (this.cloud.getCloudCompute().getTemplates().isEmpty()) {
 			throw new IllegalArgumentException("No templates defined for this cloud");
 		}
 
 		// TODO - add automatic validation rules to the DSL Pojos!
 		if (StringUtils.isBlank(this.templateName)) {
-			this.template = this.cloud.getTemplates().values().iterator().next();
+			this.template = this.cloud.getCloudCompute().getTemplates().values().iterator().next();
 		} else {
-			this.template = this.cloud.getTemplates().get(this.templateName);
+			this.template = this.cloud.getCloudCompute().getTemplates().get(this.templateName);
 		}
 
 		if (this.template == null) {
@@ -117,7 +117,7 @@ public abstract class CloudDriverSupport implements ProvisioningDriver {
 		}
 	}
 
-	
+
 	/*********
 	 * Checks if a stop request for this machine was already requested recently.
 	 * @param ip ip of the machine.

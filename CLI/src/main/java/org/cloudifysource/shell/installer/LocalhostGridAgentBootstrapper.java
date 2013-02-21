@@ -1,8 +1,9 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
+ * Licensed under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy
+ * of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -173,6 +174,7 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Sets the lookup groups.
 	 *
+	 *
 	 * @param lookupGroups
 	 *            lookup groups
 	 */
@@ -222,7 +224,6 @@ public class LocalhostGridAgentBootstrapper {
 
 	/**
 	 * Sets the admin facade to work with.
-	 *
 	 * @param adminFacade
 	 *            Admin facade object
 	 */
@@ -265,7 +266,7 @@ public class LocalhostGridAgentBootstrapper {
 	 * Sets whether to wait for the web UI installation to complete when starting management components.
 	 *
 	 * @param waitForWebui
-	 *            waitForWebui mode (true - wait, false - return without waiting)
+	 *            waitForWebui mode (true - wait, false - return without waiting).
 	 */
 	public void setWaitForWebui(final boolean waitForWebui) {
 		this.waitForWebUi = waitForWebui;
@@ -276,7 +277,7 @@ public class LocalhostGridAgentBootstrapper {
 	 *
 	 * @param notHighlyAvailableManagementSpace
 	 *            high-availability mode (true - the space will be available without a backup space, false - a backup
-	 *            space is required)
+	 *            space is required).
 	 */
 	public void setNotHighlyAvailableManagementSpace(final boolean notHighlyAvailableManagementSpace) {
 		this.notHighlyAvailableManagementSpace = notHighlyAvailableManagementSpace;
@@ -293,8 +294,9 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	/**
-	 * Enables force teardown. The force flag will terminate the gs agent without forcing uninstall on the currently
-	 * deployed applications.
+	 * Enables force teardown. The force flag will terminate the gs agent without forcing uninstall on the
+	 * currently deployed applications.
+	 *
 	 *
 	 * @param force
 	 *            Boolean flag.
@@ -983,7 +985,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	private String getGscLrmiCommandLineArg() {
 		String lrmiPortRangeCommandLineArgument = "-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "=";
-		final String portRange = System.getenv().get(CloudifyConstants.GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR);
+		String portRange = System.getenv().get(CloudifyConstants.GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR);
 		if (!org.apache.commons.lang.StringUtils.isEmpty(portRange)) {
 			lrmiPortRangeCommandLineArgument += portRange;
 		} else {
@@ -996,9 +998,9 @@ public class LocalhostGridAgentBootstrapper {
 			final boolean isSecureConnection, final GridServiceAgent agent,
 			final List<AbstractManagementServiceInstaller> waitForManagementServices)
 			throws CLIException {
-		final String gscLrmiCommandLineArg = getGscLrmiCommandLineArg();
-		final long webuiMemory = getWebServiceMemory(CloudifyConstants.WEBUI_MAX_MEMORY_ENVIRONMENT_VAR);
-		final int webuiPort = getWebservicePort(CloudifyConstants.WEBUI_PORT_ENV_VAR, isSecureConnection);
+		String gscLrmiCommandLineArg = getGscLrmiCommandLineArg();
+		long webuiMemory = getWebServiceMemory(CloudifyConstants.WEBUI_MAX_MEMORY_ENVIRONMENT_VAR);
+		int webuiPort = getWebservicePort(CloudifyConstants.WEBUI_PORT_ENV_VAR, isSecureConnection);
 
 		final ManagementWebServiceInstaller webuiInstaller = new ManagementWebServiceInstaller();
 		webuiInstaller.setAdmin(agent.getAdmin());
@@ -1074,12 +1076,12 @@ public class LocalhostGridAgentBootstrapper {
 		return memory;
 	}
 
-	private long getMemoryFromMemoryString(final String memoryString) {
+	private long getMemoryFromMemoryString(String memoryString) {
 		return Long.parseLong(memoryString.substring(0, memoryString.length() - 1));
 	}
 
-	private int getWebservicePort(final String portEnvVriable, final boolean isSecureConnection) {
-		final String port = System.getenv().get(portEnvVriable);
+	private int getWebservicePort(String portEnvVriable, boolean isSecureConnection) {
+		String port = System.getenv().get(portEnvVriable);
 		if (org.apache.commons.lang.StringUtils.isNotBlank(port)) {
 			return Integer.parseInt(port);
 		}
@@ -1477,6 +1479,7 @@ public class LocalhostGridAgentBootstrapper {
 		}
 		logger.fine("Setting env var " + CloudifyConstants.SPRING_SECURITY_CONFIG_FILE_ENV_VAR + " to: "
 				+ securityFilePath);
+
 		environment.put(CloudifyConstants.SPRING_SECURITY_CONFIG_FILE_ENV_VAR, securityFilePath);
 
 		if (isLocalCloud) {
@@ -1617,7 +1620,6 @@ public class LocalhostGridAgentBootstrapper {
 
 	public void setCloudFilePath(final String cloudFilePath) {
 		this.cloudFilePath = cloudFilePath;
-
 	}
 
 }

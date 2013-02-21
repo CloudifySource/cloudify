@@ -57,50 +57,53 @@ cloud {
 
 	}
 	
-	/***********
-	 * Cloud machine templates available with this cloud. 
-	 */
-	templates ([
-				SMALL_LINUX : template{
-					// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-					remoteDirectory "/tmp/gs-files"
-					// Optional. template-generic credentials. Can be overridden by specific credentials on each node, in the nodesList section.
-					username "tgrid"
-					password "tgrid"
-					// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
-					localDirectory "upload"
-					custom ([
-						"nodesList" : ([
-										([
-											"id" : "byon-test01",
-											"host-list" : "0.0.0.1",
-											"username" : "tgrid1",
-											"credential" : "tgrid1"
-										]),
-										([
-											"id" : "byon-test02",
-											"host-list" : "0.0.0.2"
-										]),
-										([
-											"id" : "byon-test1{0}",
-											"host-list" : "pc-lab39,pc-lab40,0.0.0.5"
-										]),
-										([
-											"id" : "byon-test2{0}",
-											"host-list" : "0.0.0.6,0.0.0.7,0.0.0.8"
-										]),
-										([
-											"id" : "byon-test3{0}",
-											"host-range" : "0.0.0.9-0.0.0.11"
-										]),
-										([
-											"id" : "byon-test4{0}",
-											"host-range" : "0.0.0.12/31"
-										])
+	cloudCompute {
+		/***********
+		 * Cloud machine templates available with this cloud.
+		 */
+		templates ([
+					SMALL_LINUX : computeTemplate{
+						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+						remoteDirectory "/tmp/gs-files"
+						// Optional. template-generic credentials. Can be overridden by specific credentials on each node, in the nodesList section.
+						username "tgrid"
+						password "tgrid"
+						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+						localDirectory "upload"
+						custom ([
+							"nodesList" : ([
+											([
+												"id" : "byon-test01",
+												"host-list" : "0.0.0.1",
+												"username" : "tgrid1",
+												"credential" : "tgrid1"
+											]),
+											([
+												"id" : "byon-test02",
+												"host-list" : "0.0.0.2"
+											]),
+											([
+												"id" : "byon-test1{0}",
+												"host-list" : "pc-lab39,pc-lab40,0.0.0.5"
+											]),
+											([
+												"id" : "byon-test2{0}",
+												"host-list" : "0.0.0.6,0.0.0.7,0.0.0.8"
+											]),
+											([
+												"id" : "byon-test3{0}",
+												"host-range" : "0.0.0.9-0.0.0.11"
+											]),
+											([
+												"id" : "byon-test4{0}",
+												"host-range" : "0.0.0.12/31"
+											])
+							])
 						])
-					])
-				}
-	])
+					}
+		])
+	
+	}
 	
 	/*****************
 	 * Optional. Custom properties used to extend existing drivers or create new ones. 

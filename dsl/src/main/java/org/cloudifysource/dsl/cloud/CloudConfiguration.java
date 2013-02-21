@@ -31,14 +31,25 @@ public class CloudConfiguration {
 	public static final String DEFAULT_CLOUD_DRIVER_CLASS_NAME =
 			"org.cloudifysource.esc.driver.provisioning.jclouds.DefaultProvisioningDriver";
 	private String className = DEFAULT_CLOUD_DRIVER_CLASS_NAME;
+	private String storageClassName;
 	private String nicAddress;
 	private String lookupGroups;
 	private String lookupLocators;
 	private String managementMachineTemplate;
+	private String managementStorageTemplate;
+
+	public String getManagementStorageTemplate() {
+		return managementStorageTemplate;
+	}
+
+	public void setManagementStorageTemplate(final String managementStorageTemplate) {
+		this.managementStorageTemplate = managementStorageTemplate;
+	}
+
 	private boolean bootstrapManagementOnPublicIp = true;
 	private boolean connectToPrivateIp = true;
 	private GridComponents components = new GridComponents();
-	private String persistentStoragePath = null;
+	private String persistentStoragePath;
 
 	public String getNicAddress() {
 		return nicAddress;
@@ -128,6 +139,13 @@ public class CloudConfiguration {
 
 	public void setPersistentStoragePath(final String persistentStoragePath) {
 		this.persistentStoragePath = persistentStoragePath;
+	}
+	public String getStorageClassName() {
+		return storageClassName;
+	}
+
+	public void setStorageClassName(final String storageClassName) {
+		this.storageClassName = storageClassName;
 	}
 
 }

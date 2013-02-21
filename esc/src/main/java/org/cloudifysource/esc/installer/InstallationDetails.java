@@ -134,11 +134,16 @@ public class InstallationDetails implements Cloneable {
 	private Integer restPort;
 	private Integer webuiPort;
 
-	private boolean deleteRemoteDirectoryContents = false;
-
 	// persistent management
 	private boolean persistent = false;
 	private String persistentStoragePath = null;
+
+	private boolean storageVolumeAttached = false;
+	private String storageFormatType;
+	private String storageDeviceName;
+	private String storageMountPath;
+
+	private boolean deleteRemoteDirectoryContents = false;
 
 	public String getTemplateName() {
 		return templateName;
@@ -219,7 +224,9 @@ public class InstallationDetails implements Cloneable {
 				+ keyFile + ", localDir=" + localDir + ", remoteDir=" + remoteDir + ", isLus=" + isManagement
 				+ ", zones="
 				+ zones + ", extraRemoteEnvironmentVariables = " + extraRemoteEnvironmentVariables
-				+ ", authGroups=***]";
+				+ ", authGroups=***]" + ", storageVolumeAttached=" + storageVolumeAttached
+				+ ", storageFormatType=" + storageFormatType + ", storageDeviceName=" + storageDeviceName
+				+ ", storageMountPath=" + storageMountPath;
 	}
 
 	public String getKeyFile() {
@@ -503,14 +510,6 @@ public class InstallationDetails implements Cloneable {
 		this.deleteRemoteDirectoryContents = deleteRemoteDirectoryContents;
 	}
 
-	public CloudTemplateInstallerConfiguration getInstallerConfiguration() {
-		return installerConfiguration;
-	}
-
-	public void setInstallerConfiguration(final CloudTemplateInstallerConfiguration installerConfiguration) {
-		this.installerConfiguration = installerConfiguration;
-	}
-
 	public boolean isPersistent() {
 		return persistent;
 	}
@@ -525,5 +524,45 @@ public class InstallationDetails implements Cloneable {
 
 	public void setPersistentStoragePath(final String persistentStoragePath) {
 		this.persistentStoragePath = persistentStoragePath;
+	}
+
+	public boolean isStorageVolumeAttached() {
+		return storageVolumeAttached;
+	}
+
+	public void setStorageVolumeAttached(final boolean storageVolumeAttached) {
+		this.storageVolumeAttached = storageVolumeAttached;
+	}
+
+	public String getStorageFormatType() {
+		return storageFormatType;
+	}
+
+	public void setStorageFormatType(final String storageFormatType) {
+		this.storageFormatType = storageFormatType;
+	}
+
+	public String getStorageDeviceName() {
+		return storageDeviceName;
+	}
+
+	public void setStorageDeviceName(final String storageDeviceName) {
+		this.storageDeviceName = storageDeviceName;
+	}
+
+	public String getStorageMountPath() {
+		return storageMountPath;
+	}
+
+	public void setStorageMountPath(final String storageMountPath) {
+		this.storageMountPath = storageMountPath;
+	}
+
+	public CloudTemplateInstallerConfiguration getInstallerConfiguration() {
+		return installerConfiguration;
+	}
+
+	public void setInstallerConfiguration(CloudTemplateInstallerConfiguration installerConfiguration) {
+		this.installerConfiguration = installerConfiguration;
 	}
 }

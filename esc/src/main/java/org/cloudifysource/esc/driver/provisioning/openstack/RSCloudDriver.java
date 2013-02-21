@@ -26,7 +26,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.driver.provisioning.CloudDriverSupport;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
@@ -49,10 +49,10 @@ import com.sun.jersey.api.client.filter.LoggingFilter;
 
 /**************
  * A custom cloud driver for RackStack OpenStack, using keystone authentication.
- * 
+ *
  * @author yoramw
  * @since 2.1
- * 
+ *
  */
 public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDriver {
 
@@ -78,7 +78,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 
 	/************
 	 * Constructor.
-	 * 
+	 *
 	 * @throws ParserConfigurationException
 	 */
 	public RSCloudDriver() {
@@ -168,7 +168,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 		if (agentMachineNamePrefix.contains("_")) {
 			throw new IllegalArgumentException(
 					"The '_' character is not allowed in the attribute "
-							+ "'machineNamePrefix' for the rackspace cloud-driver as it " 
+							+ "'machineNamePrefix' for the rackspace cloud-driver as it "
 							+ "is not supported in the rackspace cloud");
 		}
 	}
@@ -400,7 +400,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 				} else {
 					throw e;
 				}
-				
+
 			} catch (OpenstackException e) {
 				//Do nothing.
 			}
@@ -533,13 +533,13 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 
 	/**
 	 * Creates server. Block until complete. Returns id
-	 * 
+	 *
 	 * @param name the server name
 	 * @param timeout the timeout in seconds
 	 * @param serverTemplate the cloud template to use for this server
 	 * @return the server id
 	 */
-	private MachineDetails newServer(final String token, final long endTime, final CloudTemplate serverTemplate)
+	private MachineDetails newServer(final String token, final long endTime, final ComputeTemplate serverTemplate)
 			throws Exception {
 
 		final MachineDetails md = createServer(
@@ -574,7 +574,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 
 	}
 
-	private MachineDetails createServer(final String token, final CloudTemplate serverTemplate)
+	private MachineDetails createServer(final String token, final ComputeTemplate serverTemplate)
 			throws OpenstackException {
 		final String serverName = this.serverNamePrefix + System.currentTimeMillis();
 		// Start the machine!
@@ -645,7 +645,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 				md.setPrivateAddress(node.getPrivateIp());
 				md.setPublicAddress(node.getPublicIp());
 				break;
-			} 
+			}
 			if (currentStatus.contains("error")) {
 				throw new OpenstackException("Server provisioning failed. Node ID: " + node.getId() + ", status: "
 						+ node.getStatus());
@@ -663,7 +663,7 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 
 	/**********
 	 * Creates an openstack keystone authentication token.
-	 * 
+	 *
 	 * @return the authentication token.
 	 */
 
@@ -695,5 +695,10 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	@Override
+	public Object getComputeContext() {
+		return null;
 	}
 }

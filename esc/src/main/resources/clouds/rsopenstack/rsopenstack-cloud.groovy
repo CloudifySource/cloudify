@@ -29,20 +29,25 @@ cloud {
 		user user
 		apiKey apiKey
 	}
-	templates ([
-				SMALL_LINUX : template{
-					username = "root"
-					imageId "118"
-					machineMemoryMB 1600
-					hardwareId "4"
-					remoteDirectory "/root/gs-files"
-					localDirectory "upload"
-					// enable sudo.
-					privileged true
-				}
-				
-			])
+	
+	cloudCompute {
+
+		templates ([
+			SMALL_LINUX : computeTemplate{
+				username = "root"
+				imageId "118"
+				machineMemoryMB 1600
+				hardwareId "4"
+				remoteDirectory "/root/gs-files"
+				localDirectory "upload"
+				// enable sudo.
+				privileged true
+			}
 			
+		])
+
+	}
+				
 	custom ([
 		"openstack.endpoint" : "https://servers.api.rackspacecloud.com",
 		"openstack.identity.endpoint": "https://auth.api.rackspacecloud.com/",

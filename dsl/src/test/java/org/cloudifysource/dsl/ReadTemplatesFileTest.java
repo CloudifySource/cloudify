@@ -6,15 +6,15 @@ import java.util.List;
 
 import junit.framework.Assert;
 
-import org.cloudifysource.dsl.internal.CloudTemplateHolder;
-import org.cloudifysource.dsl.internal.CloudTemplatesReader;
+import org.cloudifysource.dsl.internal.ComputeTemplateHolder;
+import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.junit.Test;
 
 public class ReadTemplatesFileTest {
 	
-	private final CloudTemplatesReader reader = new  CloudTemplatesReader();
+	private final ComputeTemplatesReader reader = new  ComputeTemplatesReader();
 	
 	private static final String TEMPLATES_FILE_PATH = 
 			"src/test/resources/ExternalDSLFiles/templateFiles";
@@ -73,10 +73,10 @@ public class ReadTemplatesFileTest {
 		try {
 			File templatesFile = new File(folderName);
 			
-			List<CloudTemplateHolder> cloudTemplatesFromFile = reader.readCloudTemplatesFromDirectory(templatesFile);
+			List<ComputeTemplateHolder> cloudTemplatesFromFile = reader.readCloudTemplatesFromDirectory(templatesFile);
 			Assert.assertEquals(2, cloudTemplatesFromFile.size());
 			List<String> names = new LinkedList<String>();
-			for (CloudTemplateHolder cloudTemplateHolder : cloudTemplatesFromFile) {
+			for (ComputeTemplateHolder cloudTemplateHolder : cloudTemplatesFromFile) {
 				names.add(cloudTemplateHolder.getName());
 			}
 			Assert.assertTrue(names.contains("SMALL_LINUX"));

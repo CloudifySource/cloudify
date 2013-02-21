@@ -29,20 +29,24 @@ cloud {
 		apiKey "XXXXXXXXXXXXXXXXXXXXXXX"
 		
 	}
-	templates ([
-				SMALL_LINUX : template{
-					localDirectory "upload"
-					keyFile "cloud-demo1.pem"
-					imageId "us-east-1/ami-76f0061f"
-					machineMemoryMB 1600
-					remoteDirectory "/home/ec2-user/gs-files"
-					hardwareId "m1.small"
-					locationId "us-east-1"
-					options ([
-						"securityGroups" : ["default"] as String[],
-						"keyPair" : "cloud-demo"
-					])
-				}
-			])
+	
+	cloudCompute {
+		templates ([
+			SMALL_LINUX : computeTemplate{
+				localDirectory "upload"
+				keyFile "cloud-demo1.pem"
+				imageId "us-east-1/ami-76f0061f"
+				machineMemoryMB 1600
+				remoteDirectory "/home/ec2-user/gs-files"
+				hardwareId "m1.small"
+				locationId "us-east-1"
+				options ([
+					"securityGroups" : ["default"] as String[],
+					"keyPair" : "cloud-demo"
+				])
+			}
+		])
+
+	}
 }
 
