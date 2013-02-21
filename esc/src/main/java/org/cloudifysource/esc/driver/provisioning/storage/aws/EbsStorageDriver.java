@@ -302,12 +302,11 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		}
 	}
 	
-	private VolumeDetails createVolumeDetails(final Volume volume) 
-			throws StorageProvisioningException {
+	private VolumeDetails createVolumeDetails(final Volume volume) {
 		String availabilityZone = volume.getAvailabilityZone();
 		String id = volume.getId();
 		int size = volume.getSize();
-		String volumeName = getVolumeName(id);
+		String volumeName = getVolumeNameIgnoreException(id);
 		
 		VolumeDetails volumeDetails = new VolumeDetails();
 		volumeDetails.setLocation(availabilityZone);
@@ -315,6 +314,16 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		volumeDetails.setSize(size);
 		volumeDetails.setName(volumeName); 
 		return volumeDetails;
+	}
+
+	String getVolumeNameIgnoreException(String id) {
+		String volumeName = ""; 
+		try {
+			volumeName = getVolumeName(id);
+		} catch (StorageProvisioningException e) {
+			//Native volumes have no name. Do nothing.
+		}
+		return volumeName;
 	}
 	
 	private void initEbsClient() {
