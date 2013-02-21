@@ -15,11 +15,14 @@ cloud {
 	configuration {
 		// Optional. The cloud implementation class. Defaults to the build in jclouds-based provisioning driver.
 		className "org.cloudifysource.esc.driver.provisioning.jclouds.DefaultProvisioningDriver"
+		storageClassName "org.cloudifysource.esc.driver.provisioning.storage.openstack.OpenstackStorageDriver"
 		// Optional. The template name for the management machines. Defaults to the first template in the templates section below.
 		managementMachineTemplate "SMALL_LINUX"
 		// Optional. Indicates whether internal cluster communications should use the machine private IP. Defaults to true.
 		connectToPrivateIp true
 	}
+	
+	
 
 	/*************
 	 * Provider specific information.
@@ -75,6 +78,21 @@ cloud {
 
 
 	}
+	
+	cloudStorage {
+			templates ([
+				SMALL_BLOCK : storageTemplate{
+								deleteOnExit true
+								size 5
+								path "/storage"
+								namePrefix "cloudify-storage-volume"
+								deviceName "/dev/sdc"
+								fileSystemType "ext4"
+								custom ([:])
+				}
+		])
+	}
+
 	
 	cloudCompute {
 		
