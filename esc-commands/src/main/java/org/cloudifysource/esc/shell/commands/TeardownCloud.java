@@ -204,9 +204,4 @@ public class TeardownCloud extends AbstractGSCommand {
 
 		return cloudFiles[0];
 	}
-<<<<<<< HEAD
-=======
-	
-	
->>>>>>> CLOUDIFY-1519 teardown-cloud -force does not allow to shutdown management machines without connecting to rest.
 }
