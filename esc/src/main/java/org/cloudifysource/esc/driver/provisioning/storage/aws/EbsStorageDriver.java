@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
-
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
@@ -48,7 +47,6 @@ import org.jclouds.ec2.features.TagApi;
 import org.jclouds.ec2.options.DetachVolumeOptions;
 import org.jclouds.ec2.services.ElasticBlockStoreClient;
 import org.jclouds.ec2.util.TagFilterBuilder;
-
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 
@@ -74,12 +72,14 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 	private static final int MAX_VOLUME_SIZE = 1024;
 	private static final int MIN_VOLUME_SIZE = 1;
 	private static final String NAME_TAG_KEY = "Name";
+	private static final int WAIT_FOR_STATUS_RETRY_INTERVAL_MILLIS = 3 * 1000; // Three seconds
 	
 	private Cloud cloud;
 	private String region;
 	private ComputeServiceContext context;
 	private ElasticBlockStoreClient ebsClient;
 	private StorageTemplate storageTemplate;
+	private TagApi tagApi;
 
 	@Override
 	public void setConfig(final Cloud cloud, final String computeTemplateName,
@@ -291,9 +291,11 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 	}
 
 	private TagApi getTagsApi() {
-		logger.info("initing tag api region with " + this.region);
-		return EC2Client.class.cast(this.context.unwrap(EC2ApiMetadata.CONTEXT_TOKEN)
-				.getApi()).getTagApiForRegion(this.region).get();
+		if (this.tagApi == null) {
+			this.tagApi = EC2Client.class.cast(this.context.unwrap(EC2ApiMetadata.CONTEXT_TOKEN)
+					.getApi()).getTagApiForRegion(this.region).get();
+		} 
+		return this.tagApi;
 	}
 	
 	@Override
@@ -307,7 +309,13 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		String availabilityZone = volume.getAvailabilityZone();
 		String id = volume.getId();
 		int size = volume.getSize();
-		String volumeName = getVolumeNameIgnoreException(id);
+		String volumeName = ""; 
+		try {
+			volumeName = getVolumeName(id);
+		} catch (StorageProvisioningException e) {
+			// Native volumes do not have a name only id.
+			logger.info("Could not obtain volume name for node with id: " + id + ". Reason: " + e.getMessage());
+		}
 		
 		VolumeDetails volumeDetails = new VolumeDetails();
 		volumeDetails.setLocation(availabilityZone);
@@ -317,16 +325,6 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		return volumeDetails;
 	}
 
-	String getVolumeNameIgnoreException(final String id) {
-		String volumeName = ""; 
-		try {
-			volumeName = getVolumeName(id);
-		} catch (StorageProvisioningException e) {
-			//Native volumes have no name. Do nothing.
-		}
-		return volumeName;
-	}
-	
 	private void initEbsClient() {
 		try {
 			ElasticBlockStoreClient ebsClient = EC2Client.class.cast(this.context.unwrap(EC2ApiMetadata.CONTEXT_TOKEN)
@@ -389,6 +387,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		while (System.currentTimeMillis() < end) {
 			try {
 				volumes = this.ebsClient.describeVolumesInRegion(this.region, volumeId);
+				Thread.sleep(WAIT_FOR_STATUS_RETRY_INTERVAL_MILLIS);
 			} catch (Exception e) {
 				throw new StorageProvisioningException("Failed getting volume description."
 						+ " Reason: " + e.getMessage(), e);
