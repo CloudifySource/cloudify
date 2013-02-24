@@ -83,10 +83,10 @@ cloud {
 			templates ([
 				SMALL_BLOCK : storageTemplate{
 								deleteOnExit true
-								size 5
+								size 1
 								path "/storage"
 								namePrefix "cloudify-storage-volume"
-								deviceName "/dev/sdc"
+								deviceName "/dev/vdc"
 								fileSystemType "ext4"
 								custom ([:])
 				}
