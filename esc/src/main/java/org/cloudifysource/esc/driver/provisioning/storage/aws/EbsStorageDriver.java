@@ -24,10 +24,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
-
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
 import org.cloudifysource.esc.driver.provisioning.storage.BaseStorageDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningDriver;
@@ -49,7 +47,6 @@ import org.jclouds.ec2.features.TagApi;
 import org.jclouds.ec2.options.DetachVolumeOptions;
 import org.jclouds.ec2.services.ElasticBlockStoreClient;
 import org.jclouds.ec2.util.TagFilterBuilder;
-
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 
@@ -75,18 +72,20 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 	private static final int MAX_VOLUME_SIZE = 1024;
 	private static final int MIN_VOLUME_SIZE = 1;
 	private static final String NAME_TAG_KEY = "Name";
+	private static final int WAIT_FOR_STATUS_RETRY_INTERVAL_MILLIS = 3 * 1000; // Three seconds
 	
 	private Cloud cloud;
+	private String region;
 	private ComputeServiceContext context;
 	private ElasticBlockStoreClient ebsClient;
-	private ComputeTemplate computeTemplate;
 	private StorageTemplate storageTemplate;
+	private TagApi tagApi;
 
 	@Override
 	public void setConfig(final Cloud cloud, final String computeTemplateName,
 			final String storageTemplateName) {
 		this.cloud = cloud;
-		this.computeTemplate = cloud.getCloudCompute().getTemplates().get(computeTemplateName);
+		this.region = cloud.getCloudCompute().getTemplates().get(computeTemplateName).getLocationId();
 		this.storageTemplate = cloud.getCloudStorage().getTemplates().get(storageTemplateName);
 		this.initContext();
 		this.initEbsClient();
@@ -104,15 +103,17 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		}
 		Volume volume = null;
 		try {
-			logger.log(Level.FINE, "creating new volume in availability zone " + availabilityZone + " of size " + size);
+			logger.fine("creating new volume in availability zone " + availabilityZone + " of size " + size);
 			volume = this.ebsClient.createVolumeInAvailabilityZone(availabilityZone, size);
 
 			String volumeId = volume.getId();
+			logger.fine("Waiting for volume to become available.");
+			waitForVolumeToReachStatus(Status.AVAILABLE, end, volumeId);
+			
 			logger.fine("naming created volume with id " + volumeId);
 			TagApi tagApi = getTagsApi();
 			Map<String, String> tagsMap = createTagsMap();
 			tagApi.applyToResources(tagsMap, Arrays.asList(volumeId));
-			waitForVolumeToReachStatus(Status.AVAILABLE, end, volumeId);
 			logger.fine("Volume created successfully. volume id is: " + volumeId);
 		} catch (Exception e) {
 			if (volume != null) {
@@ -154,8 +155,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 			logger.log(Level.FINE, "Attaching volume with id " + volumeId 
 					+ " to machine instance with id " + instanceId);
 			String device = storageTemplate.getDeviceName();
-			String region = this.computeTemplate.getLocationId();
-			this.ebsClient.attachVolumeInRegion(region, 
+			this.ebsClient.attachVolumeInRegion(this.region, 
 					volumeId, instanceId, device);
 			
 		} catch (Exception e) {
@@ -177,7 +177,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 				try {
 					logger.fine("Detaching volume with id " + volumeId + " from machine with id " 
 										+ nodeMetadata.getId());
-					this.ebsClient.detachVolumeInRegion(null, volumeId, true, 
+					this.ebsClient.detachVolumeInRegion(this.region, volumeId, true, 
 							DetachVolumeOptions.Builder.fromInstance(nodeMetadata.getProviderId()));
 				} catch (Exception e) {
 					logger.log(Level.WARNING, "Failed detaching node with id " + volumeId
@@ -214,7 +214,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 			throws StorageProvisioningException {
 		try {
 			logger.fine("deleting volume with id " + volumeId);
-			this.ebsClient.deleteVolumeInRegion(null, volumeId);
+			this.ebsClient.deleteVolumeInRegion(this.region, volumeId);
 		} catch (Exception e) {
 			logger.log(Level.WARNING, "Failed deleting volume with ID " + volumeId 
 					+ " Reason: " + e.getMessage(), e);
@@ -246,7 +246,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 			throws StorageProvisioningException {
 		Set<VolumeDetails> volumeDetails = new HashSet<VolumeDetails>();
 		try {
-			Set<Volume> allVolumes = this.ebsClient.describeVolumesInRegion((String) null, (String[]) null);
+			Set<Volume> allVolumes = this.ebsClient.describeVolumesInRegion(this.region, (String[]) null);
 			for (Volume volume : allVolumes) {
 				volumeDetails.add(createVolumeDetails(volume));
 			}
@@ -291,8 +291,11 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 	}
 
 	private TagApi getTagsApi() {
-		return EC2Client.class.cast(this.context.unwrap(EC2ApiMetadata.CONTEXT_TOKEN)
-				.getApi()).getTagApiForRegion(null).get();
+		if (this.tagApi == null) {
+			this.tagApi = EC2Client.class.cast(this.context.unwrap(EC2ApiMetadata.CONTEXT_TOKEN)
+					.getApi()).getTagApiForRegion(this.region).get();
+		} 
+		return this.tagApi;
 	}
 	
 	@Override
@@ -302,12 +305,17 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		}
 	}
 	
-	private VolumeDetails createVolumeDetails(final Volume volume) 
-			throws StorageProvisioningException {
+	private VolumeDetails createVolumeDetails(final Volume volume) {
 		String availabilityZone = volume.getAvailabilityZone();
 		String id = volume.getId();
 		int size = volume.getSize();
-		String volumeName = getVolumeName(id);
+		String volumeName = ""; 
+		try {
+			volumeName = getVolumeName(id);
+		} catch (StorageProvisioningException e) {
+			// Native volumes do not have a name only id.
+			logger.info("Could not obtain volume name for node with id: " + id + ". Reason: " + e.getMessage());
+		}
 		
 		VolumeDetails volumeDetails = new VolumeDetails();
 		volumeDetails.setLocation(availabilityZone);
@@ -316,7 +324,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		volumeDetails.setName(volumeName); 
 		return volumeDetails;
 	}
-	
+
 	private void initEbsClient() {
 		try {
 			ElasticBlockStoreClient ebsClient = EC2Client.class.cast(this.context.unwrap(EC2ApiMetadata.CONTEXT_TOKEN)
@@ -378,7 +386,8 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		Set<Volume> volumes;
 		while (System.currentTimeMillis() < end) {
 			try {
-				volumes = this.ebsClient.describeVolumesInRegion(null, volumeId);
+				volumes = this.ebsClient.describeVolumesInRegion(this.region, volumeId);
+				Thread.sleep(WAIT_FOR_STATUS_RETRY_INTERVAL_MILLIS);
 			} catch (Exception e) {
 				throw new StorageProvisioningException("Failed getting volume description."
 						+ " Reason: " + e.getMessage(), e);

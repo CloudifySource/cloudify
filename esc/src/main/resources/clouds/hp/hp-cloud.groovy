@@ -15,11 +15,14 @@ cloud {
 	configuration {
 		// Optional. The cloud implementation class. Defaults to the build in jclouds-based provisioning driver.
 		className "org.cloudifysource.esc.driver.provisioning.jclouds.DefaultProvisioningDriver"
+		storageClassName "org.cloudifysource.esc.driver.provisioning.storage.openstack.OpenstackStorageDriver"
 		// Optional. The template name for the management machines. Defaults to the first template in the templates section below.
 		managementMachineTemplate "SMALL_LINUX"
 		// Optional. Indicates whether internal cluster communications should use the machine private IP. Defaults to true.
 		connectToPrivateIp true
 	}
+	
+	
 
 	/*************
 	 * Provider specific information.
@@ -36,7 +39,7 @@ cloud {
 		// different HTTP server instead.
 		// IMPORTANT: the default linux bootstrap script appends '.tar.gz' to the url whereas the default windows script appends '.zip'.
 		// Therefore, if setting a custom URL, make sure to leave out the suffix.
-		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.5.0-M6/gigaspaces-cloudify-2.5.0-m6-b3987.zip"
+		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.5.0-M7/gigaspaces-cloudify-2.5.0-m7-b3991.zip"
 
 		// Mandatory. The prefix for new machines started for servies.
 		machineNamePrefix "cloudify-agent-"
@@ -75,6 +78,21 @@ cloud {
 
 
 	}
+	
+	cloudStorage {
+			templates ([
+				SMALL_BLOCK : storageTemplate{
+								deleteOnExit true
+								size 1
+								path "/storage"
+								namePrefix "cloudify-storage-volume"
+								deviceName "/dev/vdc"
+								fileSystemType "ext4"
+								custom ([:])
+				}
+		])
+	}
+
 	
 	cloudCompute {
 		

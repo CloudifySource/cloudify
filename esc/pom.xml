@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>org.cloudifysource</groupId>
 		<artifactId>cloudify</artifactId>
-		<version>2.5.0-SNAPSHOT</version>
+		<version>2.5.0-M7</version>
 		<relativePath>../cloudify</relativePath>
 	</parent>
 	<repositories>
@@ -185,6 +185,6 @@
 		</plugins>
 	</build>
 	<properties>
-		<jcloudsVersion>1.5.7</jcloudsVersion>
+		<jcloudsVersion>1.5.4</jcloudsVersion>
 	</properties>
 </project>

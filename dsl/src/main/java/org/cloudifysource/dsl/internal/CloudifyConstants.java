@@ -338,8 +338,13 @@ public final class CloudifyConstants {
 
 	public static final String DEFAULT_GSC_MAX_MEMORY = "128m";
 	public static final String DEFAULT_GSC_MIN_MEMORY = "128m";
+<<<<<<< HEAD
 	public static final String DEFAULT_GSC_LRMI_PORT_RANGE = "7000-7110";
 
+=======
+	public static final String DEFAULT_GSC_LRMI_PORT_RANGE = "7010-7110";
+	
+>>>>>>> a03bebc3a9a7d8d055faeeef59c3fa4d517bbfda
 	public static final String DEFAULT_REST_MAX_MEMORY = "128m";
 	public static final String DEFAULT_REST_MIN_MEMORY = "128m";
 	public static final int DEFAULT_REST_PORT = 8100;
