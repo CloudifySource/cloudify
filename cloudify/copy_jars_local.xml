@@ -18,7 +18,7 @@
 
 	<!-- ****************************************************** -->
 
-	<property name="esc.dir" value="${cloudify.home.dir}/tools/cli/plugins/esc" />
+	<property name="esc.dir" value="${cloudify.home.dir}/clouds" />
 
 	<property name="ec2.dir" value="${esc.dir}/ec2/upload/cloudify-overrides" />
 	<property name="ec2-win.dir" value="${esc.dir}/ec2-win/upload/cloudify-overrides" />
