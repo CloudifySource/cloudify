@@ -217,7 +217,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 			this.ebsClient.deleteVolumeInRegion(this.region, volumeId);
 		} catch (Exception e) {
 			logger.log(Level.WARNING, "Failed deleting volume with ID " + volumeId 
-					+ " Reason: " + e.getMessage(), e);
+					+ " Reason: " + e.getMessage());
 			throw new StorageProvisioningException("Failed deleting volume with ID " + volumeId 
 					+ " Reason: " + e.getMessage(), e);
 		}

@@ -455,4 +455,11 @@ public final class Utils {
 		return ssh;
 
 	}
+	
+	public static void threadSleep(long time) {
+		try
+		{
+			Thread.sleep(time);
+		} catch (InterruptedException e) {}
+	}
 }
