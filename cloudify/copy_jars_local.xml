@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 
 <!-- helper build file that copies generated cloudify files to the local cloudify install -->
-<!-- TODO - Pick up CLOUDIFY_LATEST variable instead of using hard coded value -->
 <!-- Author: Barak Merimovich -->
 
 <project name="copy-jars-to-cloudify" default="Copy Cloudify jars to install dir" basedir=".">
@@ -26,6 +25,8 @@
 	<property name="azure.dir" value="${esc.dir}/azure/upload/cloudify-overrides" />
 	<property name="hp.dir" value="${esc.dir}/hp/upload/cloudify-overrides" />
 	<property name="rsopenstack.dir" value="${esc.dir}/rsopenstack/upload/cloudify-overrides" />
+	<property name="devstack.dir" value="${esc.dir}/devstack/upload/cloudify-overrides" />
+	
 
 	<macrodef name="copy_binaries">
 		<attribute name="target.dir" default="NOT SET" />
@@ -46,6 +47,11 @@
 		<echo message="Copying Cloudify jar files to ${cloudify.home.dir}" />
 		<copy_binaries target.dir="${cloudify.home.dir}" />
 	</target>
+	
+	<target name="Copy Cloudify jars to devstack dir" depends="">
+			<echo message="Copying Cloudify jar files to ${devstack.dir}" />
+			<copy_binaries target.dir="${devstack.dir}" />
+		</target>
 
 	<target name="Copy Openspaces jar to install dir" depends="">
 		<echo message="Copying Openspaces jar file to ${cloudify.home.dir}" />

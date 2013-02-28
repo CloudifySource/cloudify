@@ -72,14 +72,12 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	private static final String CLOUD_NODES_LIST = "nodesList";
 	private static final String CLEAN_GS_FILES_ON_SHUTDOWN = "cleanGsFilesOnShutdown";
 	private static final String CLOUDIFY_ITEMS_TO_CLEAN = "itemsToClean";
-	private static final String CUSTOM_PROPERTY_CLEAN_REMOTE_DIR_ON_START = "clearRemoteDirectoryOnStart";
 
 	private boolean cleanGsFilesOnShutdown = false;
 	private List<String> cloudifyItems;
 	private ByonDeployer deployer;
 	private Integer restPort;
 
-	private boolean cleanRemoteDirectoryOnStart = false;
 
 	@SuppressWarnings("unchecked")
 	private void addTemplatesToDeployer(final ByonDeployer deployer, final Map<String, ComputeTemplate> templatesMap)
@@ -210,19 +208,6 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 							}
 						}
 					}
-				}
-			}
-
-			if (customSettings.containsKey(CUSTOM_PROPERTY_CLEAN_REMOTE_DIR_ON_START)) {
-				final Object cleanRemoteDirValue = customSettings.get(CUSTOM_PROPERTY_CLEAN_REMOTE_DIR_ON_START);
-				if (cleanRemoteDirValue instanceof Boolean) {
-					this.cleanRemoteDirectoryOnStart = (Boolean) cleanRemoteDirValue;
-				} else if (cleanRemoteDirValue instanceof String) {
-					this.cleanRemoteDirectoryOnStart = Boolean.parseBoolean((String) cleanRemoteDirValue);
-				} else {
-					throw new IllegalArgumentException("Unexpected value for BYON property: "
-							+ CUSTOM_PROPERTY_CLEAN_REMOTE_DIR_ON_START + ". Was expecting a boolean or String, got: "
-							+ cleanRemoteDirValue.getClass().getName());
 				}
 			}
 		}
@@ -603,7 +588,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		md.setMachineId(node.getId());
 		md.setPrivateAddress(node.getPrivateIP());
 		md.setPublicAddress(node.getPublicIP());
-		md.setCleanRemoteDirectoryOnStart(this.cleanRemoteDirectoryOnStart);
+
 		// if the node has user/pwd - use it. Otherwise - take the use/password
 		// from the template's settings.
 

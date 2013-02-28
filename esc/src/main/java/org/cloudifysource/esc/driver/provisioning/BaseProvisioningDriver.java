@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -33,6 +34,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.jclouds.util.CredentialUtils;
@@ -70,6 +72,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 			.getLogger(BaseProvisioningDriver.class.getName());
 
 	protected final List<ProvisioningDriverListener> eventsListenersList = new LinkedList<ProvisioningDriverListener>();
+	protected Boolean cleanRemoteDirectoryOnStart = false;
 
 
 	/**
@@ -131,7 +134,33 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		}
 
 		this.serverNamePrefix = prefix;
+
+		initCleanRemoteOnStart(cloud);
 	}
+
+
+	private void initCleanRemoteOnStart(final Cloud cloud) {
+		// set custom settings
+		final Map<String, Object> customSettings = cloud.getCustom();
+		if (customSettings != null) {
+			// clean GS files on shutdown
+			if (customSettings.containsKey(CloudifyConstants.CUSTOM_PROPERTY_CLEAN_REMOTE_DIR_ON_START)) {
+				final Object cleanRemoteDirValue =
+						customSettings.get(CloudifyConstants.CUSTOM_PROPERTY_CLEAN_REMOTE_DIR_ON_START);
+				if (cleanRemoteDirValue instanceof Boolean) {
+					this.cleanRemoteDirectoryOnStart = (Boolean) cleanRemoteDirValue;
+				} else if (cleanRemoteDirValue instanceof String) {
+					this.cleanRemoteDirectoryOnStart = Boolean.parseBoolean((String) cleanRemoteDirValue);
+				} else {
+					throw new IllegalArgumentException("Unexpected value for BYON property: "
+							+ CloudifyConstants.CUSTOM_PROPERTY_CLEAN_REMOTE_DIR_ON_START
+							+ ". Was expecting a boolean or String, got: "
+							+ cleanRemoteDirValue.getClass().getName());
+				}
+			}
+		}
+	}
+
 
 	private static void logServerDetails(final MachineDetails machineDetails, final File tempFile) {
 		if (logger.isLoggable(Level.FINE)) {
@@ -250,6 +279,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		md.setRemoteExecutionMode(template.getRemoteExecution());
 		md.setFileTransferMode(template.getFileTransfer());
 		md.setScriptLangeuage(template.getScriptLanguage());
+		md.setCleanRemoteDirectoryOnStart(this.cleanRemoteDirectoryOnStart);
 		return md;
 
 	}

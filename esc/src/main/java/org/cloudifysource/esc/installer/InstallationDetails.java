@@ -562,7 +562,7 @@ public class InstallationDetails implements Cloneable {
 		return installerConfiguration;
 	}
 
-	public void setInstallerConfiguration(CloudTemplateInstallerConfiguration installerConfiguration) {
+	public void setInstallerConfiguration(final CloudTemplateInstallerConfiguration installerConfiguration) {
 		this.installerConfiguration = installerConfiguration;
 	}
 }

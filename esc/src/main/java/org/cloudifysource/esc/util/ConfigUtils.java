@@ -1,21 +1,19 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.esc.util;
 
 import org.cloudifysource.dsl.cloud.AgentComponent;
+import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.DeployerComponent;
 import org.cloudifysource.dsl.cloud.DiscoveryComponent;
 import org.cloudifysource.dsl.cloud.OrchestratorComponent;
@@ -26,45 +24,76 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
  *
  * @author adaml
  * @since 2.5.0
- */	
+ */
 public final class ConfigUtils {
-	
-	//this class should not be instantiated.
-	private ConfigUtils() { }
+
+	private static final String GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL = "true";
+	private static final String GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE = "gsm.excludeGscOnFailedInstance.disabled";
+	private static final String ZONES_PROPERTY = "com.gs.zones";
+	private static final String MANAGEMENT_ZONE = "management";
+	private static final String GSM_PENDING_REQUESTS_DELAY = "-Dorg.jini.rio.monitor.pendingRequestDelay=1000";
+	private static final String DISABLE_MULTICAST = "-Dcom.gs.multicast.enabled=false";
+
+	// this class should not be instantiated.
+	private ConfigUtils() {
+	}
+
 	/**
 	 * Constructs and returns the GSM commandline arguments.
-	 * 
+	 *
+	 * @param cloud
+	 *            .
+	 * @param lookupLocatorsString
+	 *            .
+	 *
 	 * @param deployer
-	 * 		Deployer config
+	 *            Deployer config
 	 * @param discovery
-	 * 		Discovery config
-	 * @return
-	 * 		Commandline arguments for the GSM
+	 *            Discovery config
+	 * @return Commandline arguments for the GSM
 	 */
-	public static String getGsmCommandlineArgs(final DeployerComponent deployer, final DiscoveryComponent discovery) {
-		String gsmCommandLineArgs = "";
+	public static String getGsmCommandlineArgs(final Cloud cloud, final String lookupLocatorsString,
+			final DeployerComponent deployer, final DiscoveryComponent discovery) {
+
+		String gsmCommandLineArgs =
+				"-Xmx" + CloudifyConstants.DEFAULT_GSM_MAX_MEMORY + " -D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY
+						+ "=" + CloudifyConstants.DEFAULT_LUS_PORT
+						+ " -D" + GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "=" + GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL
+						+ " -D"
+						+ ZONES_PROPERTY + "=" + MANAGEMENT_ZONE + " " + GSM_PENDING_REQUESTS_DELAY;
+
 		Integer websterPort = deployer.getWebsterPort();
 		if (websterPort != null) {
 			gsmCommandLineArgs += " -D" + CloudifyConstants.GSM_HTTP_PORT_CONTEXT_PROPERTY + "=" + websterPort;
 		}
 
-		// The discovery port arg must also be added to the GSM commandline. 
+		// The discovery port arg must also be added to the GSM commandline.
 		if (discovery.getDiscoveryPort() != null) {
-			gsmCommandLineArgs += " -D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY 
+			gsmCommandLineArgs += " -D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY
 					+ "=" + discovery.getDiscoveryPort();
 		}
 		gsmCommandLineArgs += getComponentMemoryArgs(deployer.getMaxMemory(), deployer.getMinMemory());
 		gsmCommandLineArgs += getComponentRmiArgs(deployer.getPort().toString());
+
+		final String persistentStoragePath = cloud.getConfiguration().getPersistentStoragePath();
+		if (persistentStoragePath != null) {
+			final String gsmStoragePath = persistentStoragePath + "/gsm";
+			gsmCommandLineArgs = gsmCommandLineArgs + " -Dcom.gs.persistency.logDirectory=" + gsmStoragePath;
+		}
+
+		if (lookupLocatorsString != null) {
+			gsmCommandLineArgs += " " + DISABLE_MULTICAST;
+		}
+
 		return gsmCommandLineArgs;
 	}
 
 	/**
 	 * Constructs and returns the LUS commandline arguments.
-	 * 
+	 *
 	 * @param discovery
-	 * 		 Discovery config 
-	 * @return 
-	 * 		Commandline arguments for the LUS
+	 *            Discovery config
+	 * @return Commandline arguments for the LUS
 	 */
 	public static String getLusCommandlineArgs(final DiscoveryComponent discovery) {
 		String lusCommandLineArgs = "";
@@ -80,11 +109,10 @@ public final class ConfigUtils {
 
 	/**
 	 * Constructs and returns the GSA commandline arguments.
-	 * 
+	 *
 	 * @param agent
-	 * 		Agent config 
-	 * @return
-	 * 		Commandline arguments for the GSA
+	 *            Agent config
+	 * @return Commandline arguments for the GSA
 	 */
 	public static String getAgentCommandlineArgs(final AgentComponent agent) {
 		String agentCommandLineArgs = "";
@@ -93,13 +121,13 @@ public final class ConfigUtils {
 		agentCommandLineArgs += getComponentRmiArgs(agentPort.toString());
 		return agentCommandLineArgs;
 	}
-	
+
 	/**
 	 * Constructs and returns the ESM commandline arguments.
+	 *
 	 * @param esm
-	 * 		Esm config 
-	 * @return
-	 * 		Commandline arguments for the ESM
+	 *            Esm config
+	 * @return Commandline arguments for the ESM
 	 */
 	public static String getEsmCommandlineArgs(final OrchestratorComponent esm) {
 		String esmCommandLineArgs = "";

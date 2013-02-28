@@ -1404,6 +1404,7 @@ public class LocalhostGridAgentBootstrapper {
 		final File filename = createScript(commandString);
 		final ProcessBuilder pb = new ProcessBuilder().command(filename.getAbsolutePath()).directory(directory);
 
+
 		String localCloudOptions =
 				"-Xmx" + CloudifyConstants.DEFAULT_LOCALCLOUD_GSA_GSM_ESM_LUS_MEMORY_IN_MB + "m" + " -D"
 						+ CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY + "="
@@ -1428,13 +1429,17 @@ public class LocalhostGridAgentBootstrapper {
 						+ " -D" + GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "=" + GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL
 						+ " -D"
 						+ ZONES_PROPERTY + "=" + MANAGEMENT_ZONE + " " + GSM_PENDING_REQUESTS_DELAY;
+		logger.info("CHECKING FOR GSM PERSISTENCE SETTINGS");
 		if (!this.isLocalCloud) {
+			logger.info("ADDING GSM PERSISTENCE SETTINGS");
 			final String persistentStoragePath = this.cloud.getConfiguration().getPersistentStoragePath();
 			if (persistentStoragePath != null) {
 				final String gsmStoragePath = persistentStoragePath + "/gsm";
-				gsmJavaOptions = gsmJavaOptions + " com.gs.persistency.logDirectory=" + gsmStoragePath;
+				gsmJavaOptions = gsmJavaOptions + " -Dcom.gs.persistency.logDirectory=" + gsmStoragePath;
 			}
 		}
+		logger.info("GSM SETTINGS: " + gsmJavaOptions);
+		System.out.println("GSM SETTINGS: " + gsmJavaOptions);
 
 		String esmJavaOptions =
 				"-Xmx" + CloudifyConstants.DEFAULT_ESM_MAX_MEMORY + " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;
@@ -1500,9 +1505,17 @@ public class LocalhostGridAgentBootstrapper {
 			environment.put("GSA_JAVA_OPTIONS", gsaJavaOptions);
 			environment.put("LUS_JAVA_OPTIONS", lusJavaOptions);
 			environment.put("GSM_JAVA_OPTIONS", gsmJavaOptions);
+			logger.info("SETTING GSM_JAVA_OPTIONS2");
+			environment.put("GSM_JAVA_OPTIONS2", gsmJavaOptions);
 			environment.put("ESM_JAVA_OPTIONS", esmJavaOptions);
 			environment.put("GSC_JAVA_OPTIONS", gscJavaOptions);
 		}
+
+
+		logger.info("Starting agent with command: " + commandString);
+		logger.info("Staring agent with env: " + pb.environment());
+		System.out.println("Starting agent with command: " + commandString);
+		System.out.println("Staring agent with env: " + environment);
 		// start process
 		// there is no need to redirect output, since the process suppresses
 		// output

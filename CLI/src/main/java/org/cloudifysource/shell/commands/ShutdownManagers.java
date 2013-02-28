@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -23,11 +23,13 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
+import org.cloudifysource.shell.GigaShellMain;
 import org.cloudifysource.shell.installer.CLIEventsDisplayer;
 import org.cloudifysource.shell.rest.RestAdminFacade;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -35,7 +37,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 /**
  * @author rafi, barakm
  * @since 2.5.0
- * 
+ *
  *        Shuts down the managers of the current cloud.
  */
 @Command(scope = "cloudify", name = "shutdown-managers", description = "Shuts down the Cloudify manager processes, "
@@ -52,7 +54,7 @@ public class ShutdownManagers extends AbstractGSCommand {
 
 	/**
 	 * Shuts down the local cloud, and waits until shutdown is complete or until the timeout is reached.
-	 * 
+	 *
 	 * @return command return message.
 	 * @throws Exception
 	 *             if command failed.
@@ -136,12 +138,24 @@ public class ShutdownManagers extends AbstractGSCommand {
 				displayer.printNoChange();
 			} else {
 				if (managersStillUp.isEmpty()) {
+					disconnect();
 					return getFormattedMessage(CloudifyErrorMessages.MANAGEMENT_SERVERS_SHUTDOWN_SUCCESS.getName());
 				}
 			}
 		}
 
 		throw new CLIException(getFormattedMessage(CloudifyErrorMessages.MANAGEMENT_SERVERS_SHUTDOWN_FAIL.getName()));
+
+	}
+
+	private void disconnect() {
+		try {
+			adminFacade.disconnect();
+		} catch (CLIException e) {
+			// ignore
+		}
+		session.put(Constants.ACTIVE_APP, CloudifyConstants.DEFAULT_APPLICATION_NAME);
+		GigaShellMain.getInstance().setCurrentApplicationName(CloudifyConstants.DEFAULT_APPLICATION_NAME);
 
 	}
 

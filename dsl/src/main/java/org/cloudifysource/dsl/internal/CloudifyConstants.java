@@ -197,6 +197,7 @@ public final class CloudifyConstants {
 	public static final String CUSTOM_PROPERTY_MONITORS_CACHE_EXPIRATION_TIMEOUT = "org.cloudifysource.monitors-cache-timeout";
 	public static final String CUSTOM_PROPERTY_PIDS_SIZE_LIMIT = "org.cloudifysource.pids-size-limit";
 	public static final String CUSTOM_CLOUD_PROPERTY_UNICAST_DISCOVERY_PORT = "org.cloudifysource.unicast-discovery-port";
+	public static final String CUSTOM_PROPERTY_CLEAN_REMOTE_DIR_ON_START = "org.cloudifysource.clearRemoteDirectoryOnStart";
 
 	/*******************
 	 * event lifecycle polling parameters.
@@ -338,13 +339,8 @@ public final class CloudifyConstants {
 
 	public static final String DEFAULT_GSC_MAX_MEMORY = "128m";
 	public static final String DEFAULT_GSC_MIN_MEMORY = "128m";
-<<<<<<< HEAD
-	public static final String DEFAULT_GSC_LRMI_PORT_RANGE = "7000-7110";
-
-=======
 	public static final String DEFAULT_GSC_LRMI_PORT_RANGE = "7010-7110";
-	
->>>>>>> a03bebc3a9a7d8d055faeeef59c3fa4d517bbfda
+
 	public static final String DEFAULT_REST_MAX_MEMORY = "128m";
 	public static final String DEFAULT_REST_MIN_MEMORY = "128m";
 	public static final int DEFAULT_REST_PORT = 8100;
@@ -379,6 +375,7 @@ public final class CloudifyConstants {
 	 */
 	public static final String PERSISTENCE_PROFILE_PERSISTENT = "persistent";
 	public static final String PERSISTENCE_PROFILE_TRANSIENT = "transient";
+
 
 	// CHECKSTYLE:ON
 }

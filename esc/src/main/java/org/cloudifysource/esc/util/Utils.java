@@ -243,8 +243,8 @@ public final class Utils {
 			// setting management grid components command-line arguments
 			final String esmCommandlineArgs = ConfigUtils.getEsmCommandlineArgs(componentsConfig.getOrchestrator());
 			final String lusCommandlineArgs = ConfigUtils.getLusCommandlineArgs(componentsConfig.getDiscovery());
-			final String gsmCommandlineArgs = ConfigUtils.getGsmCommandlineArgs(componentsConfig.getDeployer(),
-					componentsConfig.getDiscovery());
+			final String gsmCommandlineArgs = ConfigUtils.getGsmCommandlineArgs(cloud, lookupLocatorsString,
+					componentsConfig.getDeployer(), componentsConfig.getDiscovery());
 			details.setEsmCommandlineArgs('"' + esmCommandlineArgs + '"');
 			details.setLusCommandlineArgs('"' + lusCommandlineArgs + '"');
 			details.setGsmCommandlineArgs('"' + gsmCommandlineArgs + '"');
