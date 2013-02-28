@@ -90,10 +90,16 @@
 	
 	<target name="update_platform_version" depends="replace.build.related.settings,replace.cloudify.build.number" unless="gs.internal.systems.not.available">
 		<pathconvert property="all-poms-list" refid="all-poms-fileset" pathsep=" "/>
-       	<!--exec executable="git" dir="${basedir}">
+		<exec executable="git" dir="${basedir}">
+			<arg value="status" />
+		</exec>
+		
+		<echo message="The target branchname is: ${branchname}"/>
+		
+       	<exec executable="git" dir="${basedir}">
 			<arg value="checkout" />
 			<arg value="${branchname}" />			
-		</exec-->
+		</exec>
 		<exec executable="git" dir="${basedir}">
 			<arg line="pull" />
 		</exec>	
