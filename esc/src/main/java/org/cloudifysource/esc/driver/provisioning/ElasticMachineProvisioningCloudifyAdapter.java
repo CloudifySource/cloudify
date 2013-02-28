@@ -671,7 +671,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			
 			// This step is not being done before shutting down the machine since it appears to 
 			// make the the stop machine process significantly longer. The correct way of detaching and 
-			// deleting a volume should be to first unmount the device, and then detach and delete. we don't support it for now.
+			// deleting a volume should be to first unmount the device, and then detach and delete. 
+			//we don't support it for now.
 			if (storageTemplateUsed) {
 				if (attachedVolume != null) {
 					handleVolumeOnStopMachine(attachedVolume, duration, unit);
@@ -731,8 +732,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				+ ". There may still be leaking volumes.", storageException);
 	}
 
-	private VolumeDetails getVolumeWithNamePrefix(String namePrefix,
-			Set<VolumeDetails> attachedVolumes) {
+	private VolumeDetails getVolumeWithNamePrefix(final String namePrefix,
+			final Set<VolumeDetails> attachedVolumes) {
 		
 		VolumeDetails volume = null;
 		for (VolumeDetails volumeDetails : attachedVolumes) {
@@ -742,7 +743,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			try {
 				volumeName = this.storageProvisioning.getVolumeName(id);
 			} catch (StorageProvisioningException e) {
-				logger.log(Level.INFO, "Failed getting name for volume with id " + id + ". Reason " + e.getMessage(), e);
+				logger.log(Level.INFO, "Failed getting name for volume with id " + id 
+						+ ". Reason " + e.getMessage(), e);
 			}
 			if (!StringUtils.isEmpty(volumeName) && volumeName.startsWith(namePrefix)) {
 				volume = volumeDetails;
@@ -899,7 +901,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		logger.info("addTemplatesToCloud - found files: " + Arrays.toString(listFiles));
 		ComputeTemplatesReader reader = new ComputeTemplatesReader();
 		List<ComputeTemplate> addedTemplates = reader.addAdditionalTemplates(cloud, listFiles);
-		logger.info("addTemplatesToCloud - Added " + addedTemplates.size() + " templates to the cloud: " + addedTemplates);
+		logger.info("addTemplatesToCloud - Added " + addedTemplates.size() 
+				+ " templates to the cloud: " + addedTemplates);
 	}
 
 	private String getWindowsLocalDirPath(final String remoteDirectoryPath, final String localDirName) {
