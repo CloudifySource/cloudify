@@ -33,9 +33,9 @@ import org.openspaces.core.cluster.ClusterInfo;
  * service recipe - recipes already have the 'context' variable injected to them automatically. External Groovy scripts
  * that require access to the CLoudify Service context may use this factory to access it. Using this factory inside a
  * service file will not work, as it relies on environment variables that cloudify adds to commands it launches.
- * 
+ *
  * @author barakme
- * 
+ *
  */
 public final class ServiceContextFactory {
 
@@ -53,7 +53,7 @@ public final class ServiceContextFactory {
 
 	/****
 	 * NEVER USE THIS INSIDE THE GSC. Should only be used by external scripts.
-	 * 
+	 *
 	 * @return A newly created service context.
 	 */
 	public static synchronized ServiceContext getServiceContext() {
@@ -93,7 +93,7 @@ public final class ServiceContextFactory {
 		factory.useDaemonThreads(true);
 		admin = factory.createAdmin();
 
-		logger.info("Created new Admin Object with groups: "
+		logger.fine("Created new Admin Object with groups: "
 				+ Arrays.toString(admin.getGroups()) + " and Locators: "
 				+ Arrays.toString(admin.getLocators()));
 
