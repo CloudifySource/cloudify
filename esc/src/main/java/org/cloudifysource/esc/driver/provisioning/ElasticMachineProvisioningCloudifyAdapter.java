@@ -398,7 +398,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			logger.info("StorageProvisioningException occurred, " + e.getMessage());
 			logger.info(ExceptionUtils.getFullStackTrace(e));
 			handleExceptionAfterMachineCreated(machineIp, volumeId, machineDetails, end);
-			//temporary, this will be replaced when a throws is added to the interface on openspaces.
 			throw new ElasticMachineProvisioningException("Storage exception thrown", e);
 		}
 	}
@@ -436,8 +435,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return volumeDetails;
 	}
 
-	private void handleExceptionAfterMachineCreated(final String machineIp, String volumeId, final MachineDetails machineDetails,
-			final long end) {
+	private void handleExceptionAfterMachineCreated(final String machineIp, final String volumeId, 
+			final MachineDetails machineDetails, final long end) {
 		boolean storageTemplateUsed = isStorageTemplateUsed();
 		try {
 			// if an agent is found (not supposed to, we got here after it wasn't found earlier) - shut it down
