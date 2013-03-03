@@ -1494,17 +1494,10 @@ public class LocalhostGridAgentBootstrapper {
 			environment.put("GSA_JAVA_OPTIONS", gsaJavaOptions);
 			environment.put("LUS_JAVA_OPTIONS", lusJavaOptions);
 			environment.put("GSM_JAVA_OPTIONS", gsmJavaOptions);
-			logger.info("SETTING GSM_JAVA_OPTIONS2");
-			environment.put("GSM_JAVA_OPTIONS2", gsmJavaOptions);
 			environment.put("ESM_JAVA_OPTIONS", esmJavaOptions);
 			environment.put("GSC_JAVA_OPTIONS", gscJavaOptions);
 		}
 
-
-		logger.info("Starting agent with command: " + commandString);
-		logger.info("Staring agent with env: " + pb.environment());
-		System.out.println("Starting agent with command: " + commandString);
-		System.out.println("Staring agent with env: " + environment);
 		// start process
 		// there is no need to redirect output, since the process suppresses
 		// output
