@@ -26,19 +26,19 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
 /**
- * A filter delegating requests when the Spring security profile is "secure". 
+ * A filter delegating requests when the Spring security profile is "secure".
  * @author noak
  * @since 2.3.0
  *
  */
 public class BooleanDelegatingFilterProxy extends DelegatingFilterProxy {
-	
+
 	@Override
 	public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain filterChain)
 				throws ServletException, IOException {
 		final String springSecurityProfile = System.getenv(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR);
 
-	    if (CloudifyConstants.SPRING_PROFILE_SECURE.equalsIgnoreCase(springSecurityProfile)) {
+	    if (CloudifyConstants.SPRING_PROFILE_SECURE.contains(springSecurityProfile)) {
 	    	// Call the delegate
 		      super.doFilter(request, response, filterChain);
 	    } else {

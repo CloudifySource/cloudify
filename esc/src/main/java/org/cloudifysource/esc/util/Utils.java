@@ -242,7 +242,8 @@ public final class Utils {
 
 			// setting management grid components command-line arguments
 			final String esmCommandlineArgs = ConfigUtils.getEsmCommandlineArgs(componentsConfig.getOrchestrator());
-			final String lusCommandlineArgs = ConfigUtils.getLusCommandlineArgs(componentsConfig.getDiscovery());
+			final String lusCommandlineArgs =
+					ConfigUtils.getLusCommandlineArgs(componentsConfig.getDiscovery(), lookupLocatorsString);
 			final String gsmCommandlineArgs = ConfigUtils.getGsmCommandlineArgs(cloud, lookupLocatorsString,
 					componentsConfig.getDeployer(), componentsConfig.getDiscovery());
 			details.setEsmCommandlineArgs('"' + esmCommandlineArgs + '"');
@@ -350,6 +351,7 @@ public final class Utils {
 		details.setStorageDeviceName(md.getStorageDeviceName());
 		details.setStorageMountPath(md.getStorageMountPath());
 
+		details.setPersistent(cloud.getConfiguration().getPersistentStoragePath() != null);
 		details.setInstallerConfiguration(md.getInstallerConfigutation());
 		logger.fine("Created InstallationDetails: " + details);
 		return details;

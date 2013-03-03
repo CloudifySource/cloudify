@@ -34,6 +34,9 @@ public final class ConfigUtils {
 	private static final String GSM_PENDING_REQUESTS_DELAY = "-Dorg.jini.rio.monitor.pendingRequestDelay=1000";
 	private static final String DISABLE_MULTICAST = "-Dcom.gs.multicast.enabled=false";
 
+	private static final String AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT = "-Dcom.gs.agent.auto-shutdown-enabled=true";
+
+
 	// this class should not be instantiated.
 	private ConfigUtils() {
 	}
@@ -93,10 +96,20 @@ public final class ConfigUtils {
 	 *
 	 * @param discovery
 	 *            Discovery config
+	 * @param lookupLocatorsString
 	 * @return Commandline arguments for the LUS
 	 */
-	public static String getLusCommandlineArgs(final DiscoveryComponent discovery) {
-		String lusCommandLineArgs = "";
+	public static String getLusCommandlineArgs(final DiscoveryComponent discovery, final String lookupLocatorsString) {
+
+		String lusCommandLineArgs =
+				"-Xmx" + CloudifyConstants.DEFAULT_LUS_MAX_MEMORY + " -D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY
+						+ "=" +  CloudifyConstants.DEFAULT_LUS_PORT
+						+ " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;
+
+		if (lookupLocatorsString != null) {
+			lusCommandLineArgs += " " + DISABLE_MULTICAST;
+		}
+
 		Integer discoveryPort = discovery.getDiscoveryPort();
 		if (discoveryPort != null) {
 			lusCommandLineArgs += " -D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY + "="
@@ -104,6 +117,7 @@ public final class ConfigUtils {
 		}
 		lusCommandLineArgs += getComponentMemoryArgs(discovery.getMaxMemory(), discovery.getMinMemory());
 		lusCommandLineArgs += getComponentRmiArgs(discovery.getPort().toString());
+
 		return lusCommandLineArgs;
 	}
 
@@ -115,7 +129,13 @@ public final class ConfigUtils {
 	 * @return Commandline arguments for the GSA
 	 */
 	public static String getAgentCommandlineArgs(final AgentComponent agent) {
-		String agentCommandLineArgs = "";
+
+		String agentCommandLineArgs = "-Xmx" + CloudifyConstants.DEFAULT_AGENT_MAX_MEMORY;
+		agentCommandLineArgs += " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;
+
+		agentCommandLineArgs += " " + AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT;
+		agentCommandLineArgs += " ";
+
 		Integer agentPort = agent.getPort();
 		agentCommandLineArgs += getComponentMemoryArgs(agent.getMaxMemory(), agent.getMinMemory());
 		agentCommandLineArgs += getComponentRmiArgs(agentPort.toString());

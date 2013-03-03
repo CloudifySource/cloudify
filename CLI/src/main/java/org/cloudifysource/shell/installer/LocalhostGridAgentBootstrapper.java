@@ -1429,17 +1429,6 @@ public class LocalhostGridAgentBootstrapper {
 						+ " -D" + GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "=" + GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL
 						+ " -D"
 						+ ZONES_PROPERTY + "=" + MANAGEMENT_ZONE + " " + GSM_PENDING_REQUESTS_DELAY;
-		logger.info("CHECKING FOR GSM PERSISTENCE SETTINGS");
-		if (!this.isLocalCloud) {
-			logger.info("ADDING GSM PERSISTENCE SETTINGS");
-			final String persistentStoragePath = this.cloud.getConfiguration().getPersistentStoragePath();
-			if (persistentStoragePath != null) {
-				final String gsmStoragePath = persistentStoragePath + "/gsm";
-				gsmJavaOptions = gsmJavaOptions + " -Dcom.gs.persistency.logDirectory=" + gsmStoragePath;
-			}
-		}
-		logger.info("GSM SETTINGS: " + gsmJavaOptions);
-		System.out.println("GSM SETTINGS: " + gsmJavaOptions);
 
 		String esmJavaOptions =
 				"-Xmx" + CloudifyConstants.DEFAULT_ESM_MAX_MEMORY + " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;
