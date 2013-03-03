@@ -306,7 +306,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		final GridServiceAgentStartRequestedEvent agentStartEvent = new GridServiceAgentStartRequestedEvent();
 		agentStartEvent.setHostAddress(machineIp);
 		agentEventListener.elasticGridServiceAgentProvisioningProgressChanged(agentStartEvent);
-
+		String volumeId = null;
 		try {
 			// check for timeout
 			checkForProvisioningTimeout(end, machineDetails);
@@ -315,6 +315,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				String machineLocation = machineDetails.getLocationId();
 
 				VolumeDetails volumeDetails = startNewStorageVolume(machineLocation, end);
+				volumeId = volumeDetails.getId();
 				try {
 					attachStorageVolumeToMachine(machineIp, volumeDetails , end);
 				} catch (Exception e) {
@@ -376,27 +377,27 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		} catch (final ElasticMachineProvisioningException e) {
 			logger.info("ElasticMachineProvisioningException occurred, " + e.getMessage());
 			logger.info(ExceptionUtils.getFullStackTrace(e));
-			handleExceptionAfterMachineCreated(machineIp, machineDetails, end);
+			handleExceptionAfterMachineCreated(machineIp, volumeId, machineDetails, end);
 			throw e;
 		} catch (final ElasticGridServiceAgentProvisioningException e) {
 			logger.info("ElasticGridServiceAgentProvisioningException occurred, " + e.getMessage());
 			logger.info(ExceptionUtils.getFullStackTrace(e));
-			handleExceptionAfterMachineCreated(machineIp, machineDetails, end);
+			handleExceptionAfterMachineCreated(machineIp, volumeId, machineDetails, end);
 			throw e;
 		} catch (final TimeoutException e) {
 			logger.info("TimeoutException occurred, " + e.getMessage());
 			logger.info(ExceptionUtils.getFullStackTrace(e));
-			handleExceptionAfterMachineCreated(machineIp, machineDetails, end);
+			handleExceptionAfterMachineCreated(machineIp, volumeId, machineDetails, end);
 			throw e;
 		} catch (final InterruptedException e) {
 			logger.info("InterruptedException occurred, " + e.getMessage());
 			logger.info(ExceptionUtils.getFullStackTrace(e));
-			handleExceptionAfterMachineCreated(machineIp, machineDetails, end);
+			handleExceptionAfterMachineCreated(machineIp, volumeId, machineDetails, end);
 			throw e;
 		} catch (StorageProvisioningException e) {
 			logger.info("StorageProvisioningException occurred, " + e.getMessage());
 			logger.info(ExceptionUtils.getFullStackTrace(e));
-			handleExceptionAfterMachineCreated(machineIp, machineDetails, end);
+			handleExceptionAfterMachineCreated(machineIp, volumeId, machineDetails, end);
 			//temporary, this will be replaced when a throws is added to the interface on openspaces.
 			throw new ElasticMachineProvisioningException("Storage exception thrown", e);
 		}
@@ -435,9 +436,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return volumeDetails;
 	}
 
-	private void handleExceptionAfterMachineCreated(final String machineIp, final MachineDetails machineDetails,
+	private void handleExceptionAfterMachineCreated(final String machineIp, String volumeId, final MachineDetails machineDetails,
 			final long end) {
-		VolumeDetails attachedVolume = null;
 		boolean storageTemplateUsed = isStorageTemplateUsed();
 		try {
 			// if an agent is found (not supposed to, we got here after it wasn't found earlier) - shut it down
@@ -458,11 +458,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					logger.log(Level.WARNING, "Failed to shutdown agent on host: " + machineIp
 							+ ". Continuing with shutdown of " + "machine.", e);
 				}
-				if (storageTemplateUsed) {
-					logger.log(Level.INFO, "Getting attached volume details from machine with ip " + machineIp);
-					long timeout = end - System.currentTimeMillis();
-					attachedVolume = getAttachedVolumeDetails(machineIp, timeout, TimeUnit.MILLISECONDS);
-				}
 			}
 
 			logger.info("Stopping machine " + machineDetails.getPrivateAddress()
@@ -471,9 +466,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE, TimeUnit.MINUTES);
 
 			if (storageTemplateUsed) {
-				if (machineIpExists && attachedVolume != null) {
+				if (!StringUtils.isEmpty(volumeId)) {
 					long timeout = end - System.currentTimeMillis();
-					handleVolumeOnStopMachine(attachedVolume, timeout, TimeUnit.MILLISECONDS);
+					handleVolumeOnStopMachine(volumeId, timeout, TimeUnit.MILLISECONDS);
 				} else {
 					logger.log(Level.WARNING, "Failed detecting volume. Could not obtain volume details.");
 				}
@@ -675,7 +670,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			//we don't support it for now.
 			if (storageTemplateUsed) {
 				if (attachedVolume != null) {
-					handleVolumeOnStopMachine(attachedVolume, duration, unit);
+					handleVolumeOnStopMachine(attachedVolume.getId(), duration, unit);
 				} else {
 					logger.log(Level.WARNING, "Could not find an attached volume on machine with ip " + machineIp);
 				}
@@ -704,7 +699,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return attachedVolume;
 	}
 
-	private void handleVolumeOnStopMachine(final VolumeDetails attachedVolume, final long duration,
+	private void handleVolumeOnStopMachine(final String volumeId, final long duration, 
 			final TimeUnit unit) throws TimeoutException {
 		StorageTemplate storageTemplate = this.cloud.getCloudStorage().getTemplates().get(this.storageTemplateName);
 		boolean deleteOnExit = storageTemplate.isDeleteOnExit();
@@ -712,23 +707,22 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			return;
 		}
 		String namePrefix = storageTemplate.getNamePrefix();
-		String id = attachedVolume.getId();
 		Exception storageException = null;
 		long end = System.currentTimeMillis() + DELETE_VOLUME_TIMEOUT_MILLIS;
-		logger.info("Deleting volume with name prefix " + namePrefix + " having id " + id);
+		logger.info("Deleting volume with name prefix " + namePrefix + " having id " + volumeId);
 		while (System.currentTimeMillis() < end) {
 			try {
-				this.storageProvisioning.deleteVolume("", id, duration, unit);
-				logger.info("Volume with id " + id + " was deleted sucessfully");
+				this.storageProvisioning.deleteVolume("", volumeId, duration, unit);
+				logger.info("Volume with id " + volumeId + " was deleted sucessfully");
 				return;
 			} catch (StorageProvisioningException e) {
-				logger.log(Level.INFO, "Failed deleting volume with id " + id
+				logger.log(Level.INFO, "Failed deleting volume with id " + volumeId 
 						+ ". Volume could still be in use. Retrying.");
 				storageException = e;
 				Utils.threadSleep(VOLUNE_DELETION_RETRY_BETWEEN_ATTEMPTS_TIMEOUT_MILLIS);
 			}
 		}
-		logger.log(Level.SEVERE, "Failed deleting volume with id " + id
+		logger.log(Level.SEVERE, "Failed deleting volume with id " + volumeId 
 				+ ". There may still be leaking volumes.", storageException);
 	}
 
