@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -91,6 +92,9 @@ import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticMachineProvisi
  */
 public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachineProvisioning, Bean {
 
+	private static final long VOLUNE_DELETION_RETRY_BETWEEN_ATTEMPTS_TIMEOUT_MILLIS = 2 * 1000;
+	private static final long DELETE_VOLUME_TIMEOUT_MILLIS = 20 * 1000;
+
 	private static final String REMOTE_ADMIN_SHARE_CHAR = "$";
 
 	private static final String BACK_SLASH = "\\";
@@ -114,6 +118,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private static final Object GLOBAL_ADMIN_MUTEX = new Object();
 
 	private static final long DEFAULT_AGENT_DISCOVERY_INTERVAL = 1000L;
+
 
 	private static Admin getGlobalAdminInstance(final Admin esmAdminInstance) {
 		synchronized (GLOBAL_ADMIN_MUTEX) {
@@ -432,9 +437,12 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private void handleExceptionAfterMachineCreated(final String machineIp, final MachineDetails machineDetails,
 			final long end) {
+		VolumeDetails attachedVolume = null;
+		boolean storageTemplateUsed = isStorageTemplateUsed();
 		try {
 			// if an agent is found (not supposed to, we got here after it wasn't found earlier) - shut it down
-			if (machineIp != null && !machineIp.trim().isEmpty()) {
+			boolean machineIpExists = machineIp != null && !machineIp.trim().isEmpty();
+			if (machineIpExists) {
 				try {
 					final GridServiceAgent agent = getGSAByIpOrHost(machineIp);
 					if (agent != null) {
@@ -450,20 +458,26 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					logger.log(Level.WARNING, "Failed to shutdown agent on host: " + machineIp
 							+ ". Continuing with shutdown of " + "machine.", e);
 				}
+				if (storageTemplateUsed) {
+					logger.log(Level.INFO, "Getting attached volume details from machine with ip " + machineIp);
+					long timeout = end - System.currentTimeMillis();
+					attachedVolume = getAttachedVolumeDetails(machineIp, timeout, TimeUnit.MILLISECONDS);
+				}
 			}
 
 			logger.info("Stopping machine " + machineDetails.getPrivateAddress()
 					+ ", DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE");
-			try {
-				if (isStorageTemplateUsed()) {
-					handleVolumeOnStopMachine(machineIp, end, TimeUnit.MILLISECONDS);
-				}
-			} catch (StorageProvisioningException e) {
-				logger.log(Level.SEVERE, "Failed detaching volume from machine with ip: "
-								+ machineIp + ". There may still be leaking volumes.", e);
-			}
 			this.cloudifyProvisioning.stopMachine(machineDetails.getPrivateAddress(),
 					DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE, TimeUnit.MINUTES);
+
+			if (storageTemplateUsed) {
+				if (machineIpExists && attachedVolume != null) {
+					long timeout = end - System.currentTimeMillis();
+					handleVolumeOnStopMachine(attachedVolume, timeout, TimeUnit.MILLISECONDS);
+				} else {
+					logger.log(Level.WARNING, "Failed detecting volume. Could not obtain volume details.");
+				}
+			}
 		} catch (final Exception e) {
 			logger.log(
 					Level.WARNING,
@@ -591,14 +605,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		final long endTime = System.currentTimeMillis() + unit.toMillis(duration);
 		final String machineIp = agent.getMachine().getHostAddress();
-		try {
-			if (isStorageTemplateUsed()) {
-				handleVolumeOnStopMachine(machineIp, duration, unit);
-			}
-		} catch (StorageProvisioningException e) {
-			logger.log(Level.SEVERE, "Failed detaching volume from machine with ip: "
-							+ machineIp + ". There may still be leaking volumes.", e);
-		}
 
 		Exception failedToShutdownAgentException = null;
 		final GridServiceAgentStopRequestedEvent agentStopEvent = new GridServiceAgentStopRequestedEvent();
@@ -627,6 +633,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			machineStopEvent.setHostAddress(machineIp);
 			machineEventListener.elasticMachineProvisioningProgressChanged(machineStopEvent);
 
+			boolean storageTemplateUsed = isStorageTemplateUsed();
+			VolumeDetails attachedVolume = null;
+			if (storageTemplateUsed) {
+				logger.log(Level.INFO, "Getting attached volume details from machine with ip " + machineIp);
+				attachedVolume = getAttachedVolumeDetails(machineIp, duration, unit);
+			}
+
 			logger.fine("Cloudify Adapter is shutting down machine with ip: " + machineIp);
 			final boolean shutdownSuccessful = this.cloudifyProvisioning.stopMachine(machineIp, duration, unit);
 			logger.fine("Shutdown result of machine: " + machineIp + " was: " + shutdownSuccessful);
@@ -654,7 +667,18 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 					}
 				}
+			}
 
+			// This step is not being done before shutting down the machine since it appears to
+			// make the the stop machine process significantly longer. The correct way of detaching and
+			// deleting a volume should be to first unmount the device, and then detach and delete.
+			//we don't support it for now.
+			if (storageTemplateUsed) {
+				if (attachedVolume != null) {
+					handleVolumeOnStopMachine(attachedVolume, duration, unit);
+				} else {
+					logger.log(Level.WARNING, "Could not find an attached volume on machine with ip " + machineIp);
+				}
 			}
 
 			return shutdownSuccessful;
@@ -665,28 +689,69 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		}
 	}
 
-	void handleVolumeOnStopMachine(final String machineIp, final long duration,
-			final TimeUnit unit) throws TimeoutException,
-			StorageProvisioningException {
-		logger.info("detaching all volumes attachet to machine with ip: " + machineIp);
-		Set<VolumeDetails> attachedVolumes = this.storageProvisioning.listVolumes(machineIp, duration, unit);
+	private VolumeDetails getAttachedVolumeDetails(final String machineIp, final long duration,
+			final TimeUnit unit)
+					throws TimeoutException {
+		Set<VolumeDetails> volumesList = new HashSet<VolumeDetails>();
+		try {
+			volumesList = this.storageProvisioning.listVolumes(machineIp, duration, unit);
+		} catch (StorageProvisioningException e) {
+			logger.log(Level.WARNING, "Failed listing all volumes attached to machine with ip " + machineIp, e);
+		}
 		StorageTemplate storageTemplate = this.cloud.getCloudStorage().getTemplates().get(this.storageTemplateName);
+		String namePrefix = storageTemplate.getNamePrefix();
+		VolumeDetails attachedVolume = getVolumeWithNamePrefix(namePrefix, volumesList);
+		return attachedVolume;
+	}
+
+	private void handleVolumeOnStopMachine(final VolumeDetails attachedVolume, final long duration,
+			final TimeUnit unit) throws TimeoutException {
+		StorageTemplate storageTemplate = this.cloud.getCloudStorage().getTemplates().get(this.storageTemplateName);
+		boolean deleteOnExit = storageTemplate.isDeleteOnExit();
+		if (!deleteOnExit) {
+			return;
+		}
+		String namePrefix = storageTemplate.getNamePrefix();
+		String id = attachedVolume.getId();
+		Exception storageException = null;
+		long end = System.currentTimeMillis() + DELETE_VOLUME_TIMEOUT_MILLIS;
+		logger.info("Deleting volume with name prefix " + namePrefix + " having id " + id);
+		while (System.currentTimeMillis() < end) {
+			try {
+				this.storageProvisioning.deleteVolume("", id, duration, unit);
+				logger.info("Volume with id " + id + " was deleted sucessfully");
+				return;
+			} catch (StorageProvisioningException e) {
+				logger.log(Level.INFO, "Failed deleting volume with id " + id
+						+ ". Volume could still be in use. Retrying.");
+				storageException = e;
+				Utils.threadSleep(VOLUNE_DELETION_RETRY_BETWEEN_ATTEMPTS_TIMEOUT_MILLIS);
+			}
+		}
+		logger.log(Level.SEVERE, "Failed deleting volume with id " + id
+				+ ". There may still be leaking volumes.", storageException);
+	}
+
+	private VolumeDetails getVolumeWithNamePrefix(final String namePrefix,
+			final Set<VolumeDetails> attachedVolumes) {
+
+		VolumeDetails volume = null;
 		for (VolumeDetails volumeDetails : attachedVolumes) {
 			String id = volumeDetails.getId();
 			logger.info("getting volume name using volume id " + id);
-			String volumeName = this.storageProvisioning.getVolumeName(id);
-			String namePrefix = storageTemplate.getNamePrefix();
+			String volumeName = "";
+			try {
+				volumeName = this.storageProvisioning.getVolumeName(id);
+			} catch (StorageProvisioningException e) {
+				logger.log(Level.INFO, "Failed getting name for volume with id " + id
+						+ ". Reason " + e.getMessage(), e);
+			}
 			if (!StringUtils.isEmpty(volumeName) && volumeName.startsWith(namePrefix)) {
-				logger.info("detaching volume with id " + id + " from machine with ip: " + machineIp);
-				this.storageProvisioning.detachVolume(id, machineIp, duration, unit);
-				boolean deleteOnExit = storageTemplate.isDeleteOnExit();
-				if (deleteOnExit) {
-					logger.info("deleting volume with id " + id);
-					//TODO the first param should be the storage location
-					this.storageProvisioning.deleteVolume("", id, duration, unit);
-				}
+				volume = volumeDetails;
+				break;
 			}
 		}
+		return volume;
 	}
 
 	@Override
@@ -836,7 +901,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		logger.info("addTemplatesToCloud - found files: " + Arrays.toString(listFiles));
 		ComputeTemplatesReader reader = new ComputeTemplatesReader();
 		List<ComputeTemplate> addedTemplates = reader.addAdditionalTemplates(cloud, listFiles);
-		logger.info("addTemplatesToCloud - Added " + addedTemplates.size() + " templates to the cloud: " + addedTemplates);
+		logger.info("addTemplatesToCloud - Added " + addedTemplates.size()
+				+ " templates to the cloud: " + addedTemplates);
 	}
 
 	private String getWindowsLocalDirPath(final String remoteDirectoryPath, final String localDirName) {
