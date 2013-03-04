@@ -71,18 +71,18 @@ cloud {
 	}
 	
 	cloudStorage {
-
-		templates ([
-
+		
+				templates ([
+				
 					SMALL_BLOCK : storageTemplate{
-						deleteOnExit true
-						size 5
-						path "/storageVolume"
-						namePrefix "NamePrefix"
-						deviceName "/dev/sdc"
-						fileSystemType "ext4"
-						custom (["key":"value"])
-					}
+						namePrefix (create/reuse)
+						size 1
+						deleteOnExit true/false
+						path "/dev/vdc/"
+						custom ([
+							"openstack.storage.volume.zone": nova
+						])
+					}	
 				])
 	}
 
