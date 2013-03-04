@@ -314,15 +314,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			if (isStorageTemplateUsed()) {
 				String machineLocation = machineDetails.getLocationId();
 
-				VolumeDetails volumeDetails = startNewStorageVolume(machineLocation, end);
-				volumeId = volumeDetails.getId();
-				try {
-					attachStorageVolumeToMachine(machineIp, volumeDetails , end);
-				} catch (Exception e) {
-					logger.log(Level.WARNING, "Failed attaching volume. Error was " + e.getMessage(), e);
-					handleVolumeAttachException(volumeDetails);
-					throw new StorageProvisioningException(e);
-				}
+				volumeId = startNewStorageVolume(machineLocation, end);
+				attachStorageVolumeToMachine(machineIp, volumeId , end);
+				
 				StorageTemplate storageTemplate = this.cloud.getCloudStorage().getTemplates()
 								.get(this.storageTemplateName);
 				String formatType = storageTemplate.getFileSystemType();
@@ -402,42 +396,27 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		}
 	}
 
-	void handleVolumeAttachException(final VolumeDetails volumeDetails) {
-		try {
-			//TODO the first param should be the volume location
-			this.storageProvisioning.deleteVolume("", volumeDetails.getId(), 1, TimeUnit.MINUTES);
-		} catch (Exception e) {
-			logger.log(
-					Level.WARNING,
-					"Volume attachment failed. "
-							+ "Failed cleaning volume after attachment failure. ( "
-							+ volumeDetails.getId() + "). Error was: " + e.getMessage(), e);
-		}
-	}
-
-	boolean isStorageTemplateUsed() {
+	private boolean isStorageTemplateUsed() {
 		return (!StringUtils.isEmpty(this.storageTemplateName) && !this.storageTemplateName.equals("null"));
 	}
 
-	void attachStorageVolumeToMachine(final String machineIp, final VolumeDetails volumeDetails, final long end)
+	private void attachStorageVolumeToMachine(final String machineIp, final String volumeId, final long end)
 			throws TimeoutException, StorageProvisioningException {
 		 long timeout = end - System.currentTimeMillis();
-		String volumeId = volumeDetails.getId();
 		this.storageProvisioning.attachVolume(volumeId, machineIp, timeout, TimeUnit.MILLISECONDS);
 	}
 
 	// in-case creation fails, the provisioning driver will clean the new volume.
-	VolumeDetails startNewStorageVolume(final String machineLocation, final long end) throws TimeoutException,
+	private String startNewStorageVolume(final String machineLocation, final long end) throws TimeoutException,
 			StorageProvisioningException {
 		long timeout = end - System.currentTimeMillis();
 		VolumeDetails volumeDetails = this.storageProvisioning
 				.createVolume(machineLocation, timeout, TimeUnit.MILLISECONDS);
-		return volumeDetails;
+		return volumeDetails.getId();
 	}
 
 	private void handleExceptionAfterMachineCreated(final String machineIp, final String volumeId, 
 			final MachineDetails machineDetails, final long end) {
-		boolean storageTemplateUsed = isStorageTemplateUsed();
 		try {
 			// if an agent is found (not supposed to, we got here after it wasn't found earlier) - shut it down
 			boolean machineIpExists = machineIp != null && !machineIp.trim().isEmpty();
@@ -464,12 +443,15 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			this.cloudifyProvisioning.stopMachine(machineDetails.getPrivateAddress(),
 					DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE, TimeUnit.MINUTES);
 
+			boolean storageTemplateUsed = isStorageTemplateUsed();
 			if (storageTemplateUsed) {
+				logger.info("deleting created storage volume");
 				if (!StringUtils.isEmpty(volumeId)) {
 					long timeout = end - System.currentTimeMillis();
-					handleVolumeOnStopMachine(volumeId, timeout, TimeUnit.MILLISECONDS);
+					logger.info("Deleting volume with id: " + volumeId);
+					this.storageProvisioning.deleteVolume("", volumeId, timeout, TimeUnit.MILLISECONDS);
 				} else {
-					logger.log(Level.WARNING, "Failed detecting volume. Could not obtain volume details.");
+					logger.log(Level.INFO, "Storage volume was not found");
 				}
 			}
 		} catch (final Exception e) {
