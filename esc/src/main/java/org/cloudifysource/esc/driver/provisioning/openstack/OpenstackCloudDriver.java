@@ -28,7 +28,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.CloudTemplate;
+import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.esc.driver.provisioning.CloudDriverSupport;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
@@ -522,7 +522,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 	 * @param serverTemplate the cloud template to use for this server
 	 * @return the server id
 	 */
-	private MachineDetails newServer(final String token, final long endTime, final CloudTemplate serverTemplate)
+	private MachineDetails newServer(final String token, final long endTime, final ComputeTemplate serverTemplate)
 			throws Exception {
 
 		final String serverId = createServer(token, serverTemplate);
@@ -559,7 +559,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 	}
 
-	private String createServer(final String token, final CloudTemplate serverTemplate)
+	private String createServer(final String token, final ComputeTemplate serverTemplate)
 			throws OpenstackException {
 		final String serverName = this.serverNamePrefix + System.currentTimeMillis();
 		final String securityGroup = getCustomTemplateValue(serverTemplate, OPENSTACK_SECURITYGROUP, null, false);
@@ -605,7 +605,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 		}
 	}
 
-	private String getCustomTemplateValue(final CloudTemplate serverTemplate, final String key,
+	private String getCustomTemplateValue(final ComputeTemplate serverTemplate, final String key,
 			final String defaultValue, final boolean allowNull) {
 		final String value = (String) serverTemplate.getOptions().get(key);
 		if (value == null) {
@@ -818,5 +818,11 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 		}
 
 		return throttling;
+	}
+
+	@Override
+	public Object getComputeContext() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
