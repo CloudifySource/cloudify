@@ -65,7 +65,6 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 	private static final String CREDENTIALS_TYPE = "apiAccessKeyCredentials";
 	private static final String EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API = "try_to_connect_to_cloud_api";
 	private static final String EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API = "connection_to_cloud_api_succeeded";
-	private static final String OPENSTACK_CUSTOM_VOLUME_ZONE = "openstack.storage.volume.zone";
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(OpenstackStorageDriver.class.getName());
 	
@@ -76,10 +75,6 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 	//private String zone;
 
 	private JCloudsDeployer deployer;
-	//private Optional<? extends VolumeApi> volumeApi;
-	//private Optional<? extends VolumeAttachmentApi> volumeAttachmentApi;
-
-
 	private RestContext<NovaApi, NovaAsyncApi> novaContext;
 	private String region;
 	
@@ -103,9 +98,7 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 
 		logger.fine("Initializing storage provisioning on Openstack. Using template: " + storageTemplateName);
 		
-
 		publishEvent(EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
-		initDeployer(cloud, computeTemplateName, storageTemplateName);
 		initDeployer(cloud, computeTemplateName, storageTemplateName);
 		publishEvent(EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
 		novaContext = this.computeContext.unwrap();
@@ -281,14 +274,11 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		
 		FluentIterable<? extends VolumeAttachment> volumesAttachmentsList = 
 				volumeAttachmentApi.get().listAttachmentsOnServer(node.getProviderId());
-		
-				volumeAttachmentApi.get().listAttachmentsOnServer(node.getProviderId());
-		
 		if (volumesAttachmentsList != null) {
 			Volume volume;
 			for (VolumeAttachment attachment : volumesAttachmentsList) {
 				VolumeDetails details = new VolumeDetails();
-				volume = getVolume(location, attachment.getVolumeId());
+				volume = getVolume(attachment.getVolumeId());
 				details.setId(volume.getId());
 				details.setName(volume.getName());
 				details.setSize(volume.getSize());
@@ -301,20 +291,14 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 	}
 	
 	/**
-	 * 
-	 * @param duration .
-	 * @param timeUnit .
 	 * @return .
-	 * @throws TimeoutException .
 	 * @throws StorageProvisioningException .
 	 */
 	@Override
 	public Set<VolumeDetails> listAllVolumes() throws StorageProvisioningException {
 	
 		Set<VolumeDetails> volumeDetailsSet = new HashSet<VolumeDetails>();
-		
 		Optional<? extends VolumeApi> volumeApi = getVolumeApi(region);
-		
 		if (!volumeApi.isPresent()) {
 			throw new StorageProvisioningException("Failed to list all volumes.");
 		}
@@ -389,13 +373,7 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		
 		try {
 			logger.fine("Creating JClouds context deployer for Openstack with user: " + cloud.getUser().getUser());
-			final StorageTemplate storageTemplate = cloud.getCloudStorage().getTemplates().get(storageTemplateName);
-			final ComputeTemplate computeTemplate = cloud.getCloudCompute().getTemplates().get(computeTemplateName);
 			final Properties props = new Properties();
-			props.put(CREDENTIALS_TYPE_PROPERTY, CREDENTIALS_TYPE);
-			props.putAll(storageTemplate.getCustom());
-			
-			
 			props.putAll(computeTemplate.getOverrides());
 			props.putAll(storageTemplate.getCustom());
 
@@ -418,13 +396,12 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 
 	@Override
 	public String getVolumeName(final String volumeId) throws StorageProvisioningException {
-		/*Volume volume = getVolume(volumeId);
+		Volume volume = getVolume(volumeId);
 		if (volume == null) {
 			throw new StorageProvisioningException("Failed to get volume with id: " + volumeId + ", volume not found");
 		}
 		
-		return volume.getName();*/
-		return "";
+		return volume.getName();
 	}
 	
 	/**
@@ -433,7 +410,7 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 	 * @return The Volume matching the given id
 	 * @throws StorageProvisioningException Indicates the storage APIs are not available
 	 */
-	private Volume getVolume(final String location, final String volumeId) throws StorageProvisioningException {
+	private Volume getVolume(final String volumeId) throws StorageProvisioningException {
 		Optional<? extends VolumeApi> volumeApi = getVolumeApi(region);
 		if (!volumeApi.isPresent()) {
 			throw new StorageProvisioningException("Failed to get volume by id " + volumeId + ", Openstack API is not "
