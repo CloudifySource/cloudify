@@ -41,27 +41,22 @@ public class AdminFactoryBean implements FactoryBean, InitializingBean, Disposab
 
     private static final Logger logger = Logger.getLogger(AdminFactoryBean.class.getName());
     
-    @Override
 	public Object getObject() throws Exception {
         return admin;
     }
 
-    @Override
 	public Class<?> getObjectType() {
         return Admin.class;
     }
 
-    @Override
 	public boolean isSingleton() {
         return true;
     }
-
-    @Override
+	
 	public void destroy() throws Exception {
         admin.close();
     }
 
-    @Override
 	public void afterPropertiesSet() throws Exception {
         if (securityPropagation == SecurityPropagation.CLUSTER) {
             final org.springframework.security.core.userdetails.UserDetails userDetails = 

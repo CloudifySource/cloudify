@@ -270,7 +270,6 @@ public class RestPollingRunnable implements Runnable {
 		this.futureTask = future;
 	}
 
-	@Override
 	public void run() {
 
 		try {

@@ -301,7 +301,6 @@ public class ServiceController implements ServiceDetailsProvider {
 	private void startLifecycleLogsCleanupTask() {
 		this.lifecycleEventsCleaner.scheduleWithFixedDelay(new Runnable() {
 
-			@Override
 			public void run() {
 				if (lifecyclePollingThreadContainer != null) {
 					final Iterator<Entry<UUID, RestPollingRunnable>> it = lifecyclePollingThreadContainer
@@ -620,7 +619,6 @@ public class ServiceController implements ServiceDetailsProvider {
 			.newScheduledThreadPool(1, new ThreadFactory() {
 				private final AtomicInteger threadNumber = new AtomicInteger(1);
 
-				@Override
 				public Thread newThread(final Runnable r) {
 					final Thread thread = new Thread(r,
 							"LifecycleEventsPollingExecutor-"
@@ -634,7 +632,6 @@ public class ServiceController implements ServiceDetailsProvider {
 			.newScheduledThreadPool(10, new ThreadFactory() {
 				private final AtomicInteger threadNumber = new AtomicInteger(1);
 
-				@Override
 				public Thread newThread(final Runnable r) {
 					final Thread thread = new Thread(r,
 							"LifecycleEventsPollingExecutor-"
@@ -649,7 +646,6 @@ public class ServiceController implements ServiceDetailsProvider {
 			.newFixedThreadPool(THREAD_POOL_SIZE, new ThreadFactory() {
 				private final AtomicInteger threadNumber = new AtomicInteger(1);
 
-				@Override
 				public Thread newThread(final Runnable r) {
 					final Thread thread = new Thread(r,
 							"ServiceControllerExecutor-"
@@ -1287,7 +1283,6 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		final FutureTask<Boolean> undeployTask = new FutureTask<Boolean>(
 				new Callable<Boolean>() {
-					@Override
 					public Boolean call() throws Exception {
 						return processingUnit.undeployAndWait(timeoutInMinutes,
 								TimeUnit.MINUTES);
@@ -1638,7 +1633,6 @@ public class ServiceController implements ServiceDetailsProvider {
 			undeployTask = new FutureTask<Boolean>(new Runnable() {
 				private final long startTime = System.currentTimeMillis();
 
-				@Override
 				public void run() {
 					for (final ProcessingUnit processingUnit : uninstallOrder) {
 						if (permissionEvaluator != null) {
@@ -3770,7 +3764,6 @@ public class ServiceController implements ServiceDetailsProvider {
 		return null;
 	}
 
-	@Override
 	public ServiceDetails[] getServicesDetails() {
 		logger.info("Creating service details");
 		String bindHost;
@@ -4605,7 +4598,6 @@ public class ServiceController implements ServiceDetailsProvider {
 			logger.log(Level.FINE, "Searching for template file " + templateFileName + " in "
 					+ templateFolder.getAbsolutePath());
 			final File[] listFiles = templateFolder.listFiles(new FilenameFilter() {
-				@Override
 				public boolean accept(final File dir, final String name) {
 					return templateFileName.equals(name);
 				}

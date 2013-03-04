@@ -38,7 +38,6 @@ public class CustomApproveAllPermissionEvaluator implements PermissionEvaluator 
 	 * @param permission The permission requested on the target object (e.g. view, deploy)
 	 * @return true always
 	 */
-	@Override
 	public boolean hasPermission(final Authentication authentication, final Object target, final Object permission) {
 		logger.fine("Grant user " + authentication.getName() + " permission '" + permission + "' on object " + target);
 		return true;
@@ -51,7 +50,6 @@ public class CustomApproveAllPermissionEvaluator implements PermissionEvaluator 
 	 * @param permission The permission requested on the target object (e.g. view, deploy)
 	 * @return true always
 	 */
-	@Override
 	public boolean hasPermission(final Authentication authentication, final Serializable targetId, 
 			final String targetType, final Object permission) {
 		logger.fine("Grant user " + authentication.getName() + " permission '" + permission + "' on object with Id '"

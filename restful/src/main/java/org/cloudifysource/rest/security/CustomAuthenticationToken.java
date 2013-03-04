@@ -63,7 +63,6 @@ public class CustomAuthenticationToken extends UsernamePasswordAuthenticationTok
         this.authGroups = Collections.unmodifiableList(temp);
 	}
 
-	@Override
 	public Collection<String> getAuthGroups() {
 		return authGroups;
 	}
