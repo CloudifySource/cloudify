@@ -54,7 +54,6 @@ import com.google.common.collect.FluentIterable;
  * @author noak
  * @since 2.5.0
  */
-public class OpenstackStorageDriver implements StorageProvisioningDriver  {
 public class OpenstackStorageDriver extends BaseStorageDriver implements StorageProvisioningDriver  {
 
 	private static final int VOLUME_POLLING_INTERVAL_MILLIS = 10 * 1000; // 10 seconds
@@ -66,13 +65,7 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 	private static final String CREDENTIALS_TYPE = "apiAccessKeyCredentials";
 	private static final String EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API = "try_to_connect_to_cloud_api";
 	private static final String EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API = "connection_to_cloud_api_succeeded";
-	private static final java.util.logging.Logger logger = java.util.logging.Logger
 	private static final String OPENSTACK_CUSTOM_VOLUME_ZONE = "openstack.storage.volume.zone";
-	//private static final String OPENSTACK_JCLOUDS_ENDPOINT = "jclouds.endpoint";
-	//private static final String CREDENTIALS_TYPE_PROPERTY = "jclouds.keystone.credential-type";
-	//private static final String CREDENTIALS_TYPE = "apiAccessKeyCredentials";
-	private static final String EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API = "try_to_connect_to_cloud_api";
-	private static final String EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API = "connection_to_cloud_api_succeeded";
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(OpenstackStorageDriver.class.getName());
 	
@@ -126,25 +119,17 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		TimeoutException, StorageProvisioningException {
 		
 		final long endTime = System.currentTimeMillis() + timeUnit.toMillis(duration);
-		final VolumeDetails volumeDetails;
-		final Volume volume;
 		final VolumeDetails volumeDetails = new VolumeDetails();
 		Volume volume;
 		
 		//ignoring the passed location, it's a wrong format, taking the compute location instead
 		Optional<? extends VolumeApi> volumeApi = getVolumeApi(region);
 
-		Optional<? extends VolumeApi> volumeApi = getVolumeApi(location);
-
-
-
 		if (!volumeApi.isPresent()) {
-			throw new StorageProvisioningException("Failed to create volume, Openstack API is not initialized.");
 			throw new StorageProvisioningException("Failed to create volume, Openstack API is not initialized.");
 		}
 		
 		if (computeContext == null) {
-			throw new StorageProvisioningException("Failed to create volume, compute context is not initialized.");
 			throw new StorageProvisioningException("Failed to create volume, compute context is not initialized.");
 		}
 		
@@ -153,13 +138,10 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 				.name(volumeName)
 				.description(VOLUME_DESCRIPTION)
 				.availabilityZone(getStorageZone());
-				.availabilityZone(getStorageZone());
 
-		volume = volumeApi.get().create(1, options);
 		volume = volumeApi.get().create(storageTemplate.getSize(), options);
 		
 		try {
-			volumeDetails = waitForVolume(volumeApi, volume.getId(), endTime);
 			waitForVolumeToReachStatus(Volume.Status.AVAILABLE, volumeApi, volume.getId(), endTime);
 			volume = volumeApi.get().get(volume.getId());
 			volumeDetails.setId(volume.getId());
@@ -175,7 +157,6 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 				deleteVolume(region, volume.getId(), duration, timeUnit);
 			} catch (final Exception e2) {
 				logger.log(Level.WARNING, "Error while deleting volume: " + volume.getId() 
-						+ ". Error was: " + e.getMessage() + ".It may be leaking.", e);
 						+ ". Error was: " + e.getMessage() + ". It may be leaking.", e);
 			}
 			throw new StorageProvisioningException(e);
@@ -196,30 +177,19 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		}
 		
 		Optional<? extends VolumeAttachmentApi> volumeAttachmentApi = 
-				getAttachmentApi(node.getLocation().getParent().getId());
-		
-		if (volumeAttachmentApi.isPresent()) {
-			volumeAttachmentApi.get().attachVolumeToServerAsDevice(volumeId, node.getProviderId(), 
-					storageTemplate.getDeviceName());
-		} else {
-			throw new StorageProvisioningException("Failed to attach volume " + volumeId 
-					+ ", Openstack API is not initialized.");
+				getAttachmentApi(region);
 		Optional<? extends VolumeApi> volumeApi = getVolumeApi(region);
-		Optional<? extends VolumeAttachmentApi> volumeAttachmentApi = 
-				getAttachmentApi(node.getLocation().getParent().getId());
 		
 		if (!volumeApi.isPresent() || !volumeAttachmentApi.isPresent()) {
 			throw new StorageProvisioningException("Failed to attach volume " + volumeId 
 					+ ", Openstack API is not initialized.");
-
-
 		}
 		logger.fine("Attaching volume on Openstack");
 		
 		volumeAttachmentApi.get().attachVolumeToServerAsDevice(volumeId, node.getProviderId(), 
 			storageTemplate.getDeviceName());
 		
-		try {
+		/*try {
 			waitForVolumeToReachStatus(Volume.Status.IN_USE, volumeApi, volumeId, endTime);
 			logger.fine("Volume " + volumeId + " attached successfully to machine : " + machineIp);
 		} catch (final Exception e) {
@@ -232,7 +202,7 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 						+ " after a failed attachment. Error was: " + e.getMessage() + ". It may be leaking.", e);
 			}
 			throw new StorageProvisioningException(e);
-		}
+		}*/
 		
 	}
 
@@ -249,23 +219,14 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		
 		//TODO might be faster without the location at all
 		Optional<? extends VolumeAttachmentApi> volumeAttachmentApi = 
-				getAttachmentApi(node.getLocation().getParent().getId());
+				getAttachmentApi(region);
 		
-		if (volumeAttachmentApi.isPresent()) {
-			volumeAttachmentApi.get().detachVolumeFromServer(volumeId, node.getProviderId());
-		} else {
-			throw new StorageProvisioningException("Failed to detach volume " + volumeId 
-					+ ", Openstack API is not initialized.");
-
 		//TODO might be faster without the location at all
 		Optional<? extends VolumeApi> volumeApi = getVolumeApi(region);
-		Optional<? extends VolumeAttachmentApi> volumeAttachmentApi = getAttachmentApi(region);
 		
 		if (!volumeApi.isPresent() || !volumeAttachmentApi.isPresent()) {
 			throw new StorageProvisioningException("Failed to detach volume " + volumeId 
 					+ ", Openstack API is not initialized.");
-
-
 		}
 		
 		volumeAttachmentApi.get().detachVolumeFromServer(volumeId, node.getProviderId());
@@ -284,15 +245,9 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 	@Override
 	public void deleteVolume(final String location, final String volumeId, final long duration, 
 			final TimeUnit timeUnit) throws TimeoutException, StorageProvisioningException {
-	public void deleteVolume(final String location, final String volumeId, final long duration, 
-			final TimeUnit timeUnit) throws TimeoutException, StorageProvisioningException {
-		
 
 		Optional<? extends VolumeApi> volumeApi = getVolumeApi(region);
 		if (!volumeApi.isPresent()) {
-			throw new StorageProvisioningException("Failed to delete volume " + volumeId + ", Openstack API is not "
-					+ "initialized.");
-		}		
 			throw new StorageProvisioningException("Failed to delete volume " + volumeId + ", Openstack API is not "
 					+ "initialized.");
 		}
@@ -353,19 +308,16 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 	 * @throws TimeoutException .
 	 * @throws StorageProvisioningException .
 	 */
-	public Set<VolumeDetails> listAllVolumes(final long duration, final TimeUnit timeUnit) throws TimeoutException, 
-		StorageProvisioningException {
+	@Override
+	public Set<VolumeDetails> listAllVolumes() throws StorageProvisioningException {
 	
 		Set<VolumeDetails> volumeDetailsSet = new HashSet<VolumeDetails>();
 		
-		/*Optional<? extends VolumeApi> volumeApi = getVolumeApi(location);
+		Optional<? extends VolumeApi> volumeApi = getVolumeApi(region);
 		
 		if (!volumeApi.isPresent()) {
-			//TODO : is this OK? or should we wait?
 			throw new StorageProvisioningException("Failed to list all volumes.");
 		}
-		
-		Set<VolumeDetails> volumeDetailsSet = new HashSet<VolumeDetails>();
 		
 		FluentIterable<? extends Volume> volumesList = volumeApi.get().list();
 		if (volumesList != null) {
@@ -378,21 +330,15 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 				volumeDetailsSet.add(details);
 			}
 		}
-		*/
-		*/
+		
 		return volumeDetailsSet;
 	}
 	
-	private VolumeDetails waitForVolume(final Optional<? extends VolumeApi> volumeApi, final String volumeId, 
-			final long endTime) throws StorageProvisioningException, TimeoutException, InterruptedException {
 	private void waitForVolumeToReachStatus(final Volume.Status targetStatus, 
 			final Optional<? extends VolumeApi> volumeApi, final String volumeId, final long endTime) 
 					throws StorageProvisioningException, TimeoutException, InterruptedException {
 		
-		VolumeDetails volumeDetails = new VolumeDetails();
-		
 		if (!volumeApi.isPresent()) {
-			throw new StorageProvisioningException("Failed to get volume status, Openstack API is not initialized.");
 			throw new StorageProvisioningException("Failed to get volume status, Openstack API is not initialized.");
 		}
 		
@@ -402,29 +348,14 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 			final Volume volume = volumeApi.get().get(volumeId);
 			if (volume != null) {
 				Volume.Status volumeStatus = volume.getStatus();
-				if (volumeStatus == Volume.Status.AVAILABLE) {
-					//volume is available for use
-					volumeDetails.setId(volume.getId());
-					volumeDetails.setName(volume.getName());
-					volumeDetails.setSize(volume.getSize());
-					volumeDetails.setLocation(volume.getZone());
-					logger.fine("Volume provisioned: " + volumeDetails.toString());
 				if (volumeStatus == targetStatus) {
 					//volume is ready
 					break;
 				} else if (volumeStatus == Volume.Status.ERROR) {
-					throw new StorageProvisioningException("Failed to create storage volume on Openstack. "
 					throw new StorageProvisioningException("Storage volume management encountered an error. "
 							+ "Volume id: " + volumeId);
-				} else if (volumeStatus == Volume.Status.DELETING
-					|| volumeStatus == Volume.Status.IN_USE
-					|| volumeStatus == Volume.Status.UNRECOGNIZED) {
-					throw new StorageProvisioningException("Failed to create storage volume on Openstack, "
-							+ "unexpected volume status reported: " + volumeStatus + ". Volume id " + volumeId);
 				}
-
 				if (System.currentTimeMillis() > endTime) {
-					throw new TimeoutException("timeout creating volume. status:" + volume.getStatus());
 					throw new TimeoutException("timeout while waiting for volume to reach status \" " + targetStatus 
 							+ "\". Current status is: " + volume.getStatus());
 				}
@@ -432,8 +363,6 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 
 			Thread.sleep(VOLUME_POLLING_INTERVAL_MILLIS);
 		}
-		
-		return volumeDetails;
 	}
 	
 	/**
@@ -453,8 +382,6 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 	
 	private JCloudsDeployer initDeployer(final Cloud cloud, final String computeTemplateName, final String 
 			storageTemplateName) {
-	private JCloudsDeployer initDeployer(final Cloud cloud, final String computeTemplateName, final String 
-			storageTemplateName) {
 		
 		if (deployer != null) {
 			return deployer;
@@ -465,14 +392,11 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 			final StorageTemplate storageTemplate = cloud.getCloudStorage().getTemplates().get(storageTemplateName);
 			final ComputeTemplate computeTemplate = cloud.getCloudCompute().getTemplates().get(computeTemplateName);
 			final Properties props = new Properties();
-			//props.put(OPENSTACK_JCLOUDS_ENDPOINT, getComputeEndpoint(computeTemplate));
 			props.put(CREDENTIALS_TYPE_PROPERTY, CREDENTIALS_TYPE);
 			props.putAll(storageTemplate.getCustom());
 			
 			
 			props.putAll(computeTemplate.getOverrides());
-			//props.put(OPENSTACK_JCLOUDS_ENDPOINT, getComputeEndpoint(computeTemplate));
-			//props.put(CREDENTIALS_TYPE_PROPERTY, CREDENTIALS_TYPE);
 			props.putAll(storageTemplate.getCustom());
 
 			deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),
@@ -510,11 +434,8 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 	 * @throws StorageProvisioningException Indicates the storage APIs are not available
 	 */
 	private Volume getVolume(final String location, final String volumeId) throws StorageProvisioningException {
-		Optional<? extends VolumeApi> volumeApi = getVolumeApi(location);
 		Optional<? extends VolumeApi> volumeApi = getVolumeApi(region);
 		if (!volumeApi.isPresent()) {
-			throw new StorageProvisioningException("Failed to get volume by id " + volumeId + ", Openstack API is not "
-					+ "initialized.");
 			throw new StorageProvisioningException("Failed to get volume by id " + volumeId + ", Openstack API is not "
 					+ "initialized.");
 		}
@@ -589,94 +510,6 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		return novaContext.getApi().getVolumeAttachmentExtensionForZone(location);
 	}
 
-
-
-
-
-
-
-	
-	
-	private String getStorageZone() throws IllegalArgumentException {
-		String zone;
-		Map<String, Object> customSettings = storageTemplate.getCustom();
-		
-		if (customSettings != null) {
-			Object zoneObj = customSettings.get(OPENSTACK_CUSTOM_VOLUME_ZONE);
-			if (zoneObj instanceof String) {
-				zone = (String) zoneObj;
-				if (StringUtils.isBlank(zone)) {
-					throw new IllegalArgumentException("Storate template custom property is missing or empty: " 
-							+ OPENSTACK_CUSTOM_VOLUME_ZONE);
-				}
-			} else {
-				throw new IllegalArgumentException("Storate template custom property \"" + OPENSTACK_CUSTOM_VOLUME_ZONE
-						+ "\" is missing or not a String"); 
-			}
-		} else {
-			throw new IllegalArgumentException("Storate template is missing a \"custom\" section with the required "
-					+ "property \"" + OPENSTACK_CUSTOM_VOLUME_ZONE  + "\"");
-		}
-		
-		return zone;
-	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	
-	private Optional<? extends VolumeApi> getVolumeApi(final String location) {
-		if (novaContext == null) {
-			throw new IllegalStateException("Nova context is null");
-		}
-		
-		return novaContext.getApi().getVolumeExtensionForZone(location);
-	}
-	
-	private Optional<? extends VolumeAttachmentApi> getAttachmentApi(final String location) {
-		if (novaContext == null) {
-			throw new IllegalStateException("Nova context is null");
-		}
-		
-		return novaContext.getApi().getVolumeAttachmentExtensionForZone(location);
-	}
 	
 	private String getRegionFromHardwareId(final String hardwareId) {
 		String region = "";
