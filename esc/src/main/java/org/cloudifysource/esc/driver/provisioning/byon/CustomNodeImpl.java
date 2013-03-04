@@ -19,7 +19,7 @@ import org.cloudifysource.esc.driver.provisioning.CustomNode;
 
 /**
  * Implementation for a custom cloud node, used for example by the BYON cloud driver.
- * 
+ *
  * @author noak
  * @since 2.0.1
  */
@@ -31,15 +31,21 @@ public class CustomNodeImpl implements CustomNode {
 	public static final int DEFAULT_LOGIN_PORT = 22;
 
 	// TODO : Currently using private IP. Add public IP in phase 2.
-	private String providerId, id, ipAddress, resolvedIpAddress, nodeName, group;
+	private final String providerId, id, ipAddress;
+
+	private String resolvedIpAddress;
+
+	private String nodeName;
+
+	private String group;
 	// credential can be a password or a private key
-	private String username, credential;
-	
+	private final String username, credential;
+
 	private int loginPort = DEFAULT_LOGIN_PORT;
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param providerId
 	 *            The cloud provider (e.g. EC2, BYON)
 	 * @param id
@@ -58,7 +64,7 @@ public class CustomNodeImpl implements CustomNode {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param providerId
 	 *            The cloud provider (e.g. EC2, BYON)
 	 * @param id
@@ -161,8 +167,8 @@ public class CustomNodeImpl implements CustomNode {
 	public String getPrivateIP() {
 		return ipAddress;
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -170,7 +176,7 @@ public class CustomNodeImpl implements CustomNode {
 	public void setResolvedIP(final String resolvedIP) {
 		this.resolvedIpAddress = resolvedIP;
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -191,7 +197,7 @@ public class CustomNodeImpl implements CustomNode {
 	public void setLoginPort(final int loginPort) {
 		this.loginPort = loginPort;
 	}
-	
+
 	@Override
 	public String toString() {
 		return "[id=" + getId() + ", providerId=" + getProviderId() + ", group=" + getGroup() + ", nodeName="
@@ -201,8 +207,11 @@ public class CustomNodeImpl implements CustomNode {
 
 	@Override
 	public int hashCode() {
+		// Ignore these constants - they are only used to calculate a hashcode.
+		//CHECKSTYLE:OFF
 		final int prime = 31;
 		int result = 7;
+		//CHECKSTYLE:ON
 		result = prime * result + getLoginPort();
 		result = prime * result + (getPrivateIP() == null ? 0 : getPrivateIP().hashCode());
 		result = prime * result + (getPublicIP() == null ? 0 : getPublicIP().hashCode());
