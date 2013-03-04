@@ -120,8 +120,9 @@ public class EnvironmentFileBuilder {
 			// and wrap the entire command with double quotes. Yes, that is how batch files do it.
 			String normalizedValue = normalizeCifsPath(actualValue);
 			boolean includesAmpersand = false;
-			if (normalizedValue.contains("&")) {
+			if (normalizedValue.contains("&") || normalizedValue.contains("%")) {
 				normalizedValue = normalizedValue.replace("&", "^&");
+				normalizedValue = normalizedValue.replace("%", "%%");
 				includesAmpersand = true;
 			}
 
