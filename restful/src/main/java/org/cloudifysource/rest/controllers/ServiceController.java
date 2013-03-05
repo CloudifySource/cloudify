@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
  *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.rest.controllers;
 
@@ -87,10 +84,10 @@ import org.cloudifysource.dsl.StatefulProcessingUnit;
 import org.cloudifysource.dsl.StatelessProcessingUnit;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
-import org.cloudifysource.dsl.internal.ComputeTemplateHolder;
-import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
+import org.cloudifysource.dsl.internal.ComputeTemplateHolder;
+import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
@@ -104,6 +101,7 @@ import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
 import org.cloudifysource.dsl.internal.tools.ServiceDetailsHelper;
 import org.cloudifysource.dsl.rest.ApplicationDescription;
+import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.esc.driver.provisioning.CloudifyMachineProvisioningConfig;
 import org.cloudifysource.rest.ResponseConstants;
@@ -139,7 +137,9 @@ import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.internal.admin.InternalAdmin;
 import org.openspaces.admin.internal.pu.DefaultProcessingUnitInstance;
+import org.openspaces.admin.internal.pu.InternalProcessingUnit;
 import org.openspaces.admin.internal.pu.InternalProcessingUnitInstance;
+import org.openspaces.admin.internal.pu.elastic.GridServiceContainerConfig;
 import org.openspaces.admin.machine.Machine;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitAlreadyDeployedException;
@@ -199,6 +199,7 @@ import com.j_spaces.kernel.PlatformVersion;
 @RequestMapping("/service")
 public class ServiceController implements ServiceDetailsProvider {
 
+	private static final int MANAGEMENT_PUI_LOOKUP_TIMEOUT = 10;
 	private static final int MAX_NUMBER_OF_LINES_TO_TAIL_ALLOWED = 1000;
 	private static final int DEFAULT_TIME_EXTENTION_POLLING_TASK = 5;
 	private static final int TIMEOUT_WAITING_FOR_GSM_SEC = 10;
@@ -219,10 +220,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	private static final String FAILED_TO_ADD_TEMPLATES_KEY = "failed to add templates";
 	private static final String SUCCESSFULLY_ADDED_TEMPLATES_KEY = "successfully added templates";
 
-
 	/**
-	 * A set containing all of the executed lifecycle events. used to avoid
-	 * duplicate prints.
+	 * A set containing all of the executed lifecycle events. used to avoid duplicate prints.
 	 */
 	private final Set<String> eventsSet = new HashSet<String>();
 
@@ -237,13 +236,14 @@ public class ServiceController implements ServiceDetailsProvider {
 	private CloudConfigurationHolder cloudConfigurationHolder;
 	private File cloudConfigurationDir;
 	private ComputeTemplate managementTemplate;
-	private AtomicInteger lastTemplateFileNum = new AtomicInteger(0);
+	private final AtomicInteger lastTemplateFileNum = new AtomicInteger(0);
 
 	private static final Logger logger = Logger
 			.getLogger(ServiceController.class.getName());
 	private static final long DEFAULT_DUMP_FILE_SIZE_LIMIT = 5 * 1024 * 1024;
 
 	private static final String DEFAULT_DUMP_PROCESSORS = "summary, network, thread, log";
+	protected static final int MANAGEMENT_AGENT_SHUTDOWN_INTERNAL_SECONDS = 5;
 	
 	// private static final String[] DEFAULT_DUMP_PROCESSORS = new String[] {
 	// "summary", "network", "thread", "log", "processingUnits;"
@@ -254,8 +254,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	private String temporaryFolder;
 
 	/**
-	 * Initializing the cloud configuration. Executed by Spring after the object
-	 * is instantiated and the dependencies injected.
+	 * Initializing the cloud configuration. Executed by Spring after the object is instantiated and the dependencies
+	 * injected.
 	 */
 	@PostConstruct
 	public void init() {
@@ -281,9 +281,8 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		/**
-		 * Sets the folder used for temporary files. The value can be set in the
-		 * configuration file ("config.properties"), otherwise the system's
-		 * default setting will apply.
+		 * Sets the folder used for temporary files. The value can be set in the configuration file
+		 * ("config.properties"), otherwise the system's default setting will apply.
 		 */
 		try {
 			if (StringUtils.isBlank(temporaryFolder)) {
@@ -344,8 +343,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @return A map contains byte array of the dump file for each machine.
 	 * @throws IOException .
 	 * @throws RestErrorException
-	 *             Machine not found, machine dump generation failed, dump file
-	 *             is too large.
+	 *             Machine not found, machine dump generation failed, dump file is too large.
 	 */
 	@JsonRequestExample(requestBody = "{\"fileSizeLimit\" : 50000000, \"processors\" : \"summary, thread, log\"}")
 	@JsonResponseExample(status = "success", responseBody = "{\"192.168.2.100\":\"&ltbyte array of the dump file&gt;\""
@@ -378,8 +376,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            The list of processors to be used.
 	 * @param fileSizeLimit
 	 *            .
-	 * @return A byte array of the dump file in case ip is not null and a map
-	 *         contains byte array of the dump file for each machine otherwise.
+	 * @return A byte array of the dump file in case ip is not null and a map contains byte array of the dump file for
+	 *         each machine otherwise.
 	 * @throws IOException .
 	 * @throws RestErrorException .
 	 * 
@@ -455,8 +453,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @return the dump of all the processing units
 	 * @throws IOException .
 	 * @throws RestErrorException
-	 *             Machine not found, dump file is too large, machine dump
-	 *             generation failed.
+	 *             Machine not found, dump file is too large, machine dump generation failed.
 	 */
 	@JsonRequestExample(requestBody = "{\"fileSizeLimit\" : 50000000}")
 	@PossibleResponseStatuses(responseStatuses = {
@@ -573,7 +570,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		cloudConfigurationHolder = getCloudConfigurationFromManagementSpace();
 		logger.info("Cloud Configuration: " + cloudConfigurationHolder);
-		String cloudConfigurationFilePath = cloudConfigurationHolder.getCloudConfigurationFilePath();
+		final String cloudConfigurationFilePath = cloudConfigurationHolder.getCloudConfigurationFilePath();
 		if (cloudConfigurationFilePath == null) {
 			// must be local cloud or azure
 			return null;
@@ -581,7 +578,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 		Cloud cloudConfiguration = null;
 		try {
-			File cloudConfigurationFile = new File(cloudConfigurationFilePath);
+			final File cloudConfigurationFile = new File(cloudConfigurationFilePath);
 			cloudConfigurationDir = cloudConfigurationFile.getParentFile();
 			cloudConfiguration = ServiceReader.readCloud(cloudConfigurationFile);
 		} catch (final DSLException e) {
@@ -601,7 +598,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	private void initCloudTemplates() {
-		File additionalTemplatesFolder = new File(cloudConfigurationDir,
+		final File additionalTemplatesFolder = new File(cloudConfigurationDir,
 				CloudifyConstants.ADDITIONAL_TEMPLATES_FOLDER_NAME);
 		logger.info("initCloudTemplates - Adding templates from folder: "
 				+ additionalTemplatesFolder.getAbsolutePath());
@@ -659,11 +656,9 @@ public class ServiceController implements ServiceDetailsProvider {
 			});
 
 	/**
-	 * Tests whether the restful service is able to locate the service grid
-	 * using the admin API.
+	 * Tests whether the restful service is able to locate the service grid using the admin API.
 	 * <p>
-	 * The admin API searches for a LUS (Lookup Service) according to the lookup
-	 * groups/locators defined.
+	 * The admin API searches for a LUS (Lookup Service) according to the lookup groups/locators defined.
 	 * 
 	 * @return - Map<String, Object> object containing the test results.
 	 * @throws RestErrorException
@@ -706,7 +701,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	@RequestMapping(value = "/testlogin", method = RequestMethod.GET)
 	@ResponseBody
 	public Object testLogin() throws RestErrorException {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
 			throw new RestErrorException(FAILED_TO_LOGIN);
 		}
@@ -751,41 +746,29 @@ public class ServiceController implements ServiceDetailsProvider {
 	/*
 	 * @Deprecated
 	 * 
-	 * @RequestMapping(value = "/cloudcontroller/deploy", method =
-	 * RequestMethod.POST) public @ResponseBody
+	 * @RequestMapping(value = "/cloudcontroller/deploy", method = RequestMethod.POST) public @ResponseBody
 	 * 
-	 * @PreAuthorize(
-	 * "isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
-	 * Map<String, Object> deploy(
+	 * @PreAuthorize( "isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')") Map<String, Object> deploy(
 	 * 
-	 * @RequestParam(value = "applicationName", defaultValue = "default") final
-	 * String applicationName,
+	 * @RequestParam(value = "applicationName", defaultValue = "default") final String applicationName,
 	 * 
 	 * @RequestParam(value = "file") final MultipartFile srcFile,
 	 * 
-	 * @RequestParam(value = "authGroups", required = false) String authGroups)
-	 * throws IOException, RestErrorException {
-	 * logger.finer("Deploying a service"); final File tmpfile =
-	 * File.createTempFile("gs___", null); final File dest = new
-	 * File(tmpfile.getParent(), srcFile.getOriginalFilename());
-	 * tmpfile.delete(); srcFile.transferTo(dest);
+	 * @RequestParam(value = "authGroups", required = false) String authGroups) throws IOException, RestErrorException {
+	 * logger.finer("Deploying a service"); final File tmpfile = File.createTempFile("gs___", null); final File dest =
+	 * new File(tmpfile.getParent(), srcFile.getOriginalFilename()); tmpfile.delete(); srcFile.transferTo(dest);
 	 * 
-	 * final GridServiceManager gsm = getGsm(); if (gsm == null) { throw new
-	 * RestErrorException(FAILED_TO_LOCATE_GSM); } final ProcessingUnit pu =
-	 * gsm.deploy(new ProcessingUnitDeployment(dest).setContextProperty(
+	 * final GridServiceManager gsm = getGsm(); if (gsm == null) { throw new RestErrorException(FAILED_TO_LOCATE_GSM); }
+	 * final ProcessingUnit pu = gsm.deploy(new ProcessingUnitDeployment(dest).setContextProperty(
 	 * CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, applicationName)
-	 * .setContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS,
-	 * authGroups)); dest.delete();
-	 * 
-	 * if (pu == null) { throw new RestErrorException(
-	 * FAILED_TO_LOCATE_SERVICE_AFTER_DEPLOYMENT, applicationName); } return
-	 * successStatus(pu.getName()); }
+	 * .setContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)); dest.delete();
+
+	 * if (pu == null) { throw new RestErrorException( FAILED_TO_LOCATE_SERVICE_AFTER_DEPLOYMENT, applicationName); }
+	 * return successStatus(pu.getName()); }
 	 */
 
 	/**
-	 * Creates and returns a list containing all of the deployed application
-	 * details.
-	 * 
+	 * Creates and returns a list containing all of the deployed application details.
 	 * @return a list of all the deployed applications in the service grid.
 	 * @throws RestErrorException .
 	 */
@@ -803,11 +786,11 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		final Applications apps = admin.getApplications();
-		List<ApplicationDescription> appDescriptions = new ArrayList<ApplicationDescription>();
-		ApplicationDescriptionFactory applicationDescriptionFactory = new ApplicationDescriptionFactory(admin);
+		final List<ApplicationDescription> appDescriptions = new ArrayList<ApplicationDescription>();
+		final ApplicationDescriptionFactory applicationDescriptionFactory = new ApplicationDescriptionFactory(admin);
 		for (final Application app : apps) {
 			if (!app.getName().equals(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
-				ApplicationDescription applicationDescription = applicationDescriptionFactory
+				final ApplicationDescription applicationDescription = applicationDescriptionFactory
 						.getApplicationDescription(app);
 				appDescriptions.add(applicationDescription);
 			}
@@ -817,13 +800,13 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Creates and returns a map containing all of the deployed service names
-	 * installed under a specific application context.
-	 * 
+	 * Creates and returns a map containing all of the deployed service names installed under a specific application
+	 * context.
+
 	 * @param applicationName
 	 *            .
-	 * @return a list of the deployed services in the service grid that were
-	 *         deployed as a part of a specific application.
+	 * @return a list of the deployed services in the service grid that were deployed as a part of a specific
+	 *         application.
 	 * @throws RestErrorException
 	 *             When application is not found.
 	 */
@@ -846,11 +829,11 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (app == null) {
 			throw new RestErrorException(FAILED_TO_LOCATE_APP, applicationName);
 		}
-		ApplicationDescriptionFactory appDescriptionFactory = new ApplicationDescriptionFactory(
+		final ApplicationDescriptionFactory appDescriptionFactory = new ApplicationDescriptionFactory(
 				admin);
-		ApplicationDescription applicationDescription = appDescriptionFactory
+		final ApplicationDescription applicationDescription = appDescriptionFactory
 				.getApplicationDescription(applicationName);
-		List<ApplicationDescription> applicationDescriptionList = new ArrayList<ApplicationDescription>();
+		final List<ApplicationDescription> applicationDescriptionList = new ArrayList<ApplicationDescription>();
 		applicationDescriptionList.add(applicationDescription);
 		return successStatus(applicationDescriptionList);
 	}
@@ -863,8 +846,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            The application name.
 	 * @param serviceName
 	 *            The service name.
-	 * @return a Map containing all service instances of the specified
-	 *         application
+	 * @return a Map containing all service instances of the specified application
 	 * @throws RestErrorException
 	 *             When service is not found.
 	 */
@@ -896,10 +878,10 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 		
 		if (permissionEvaluator != null) {
-			String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
+			final String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
 					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
-			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-			CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+			final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			final CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
 			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "view");
 		}
 		
@@ -914,9 +896,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Creates and returns a map containing all of the deployed application
-	 * names.
-	 * 
+	 * Creates and returns a map containing all of the deployed application names.
+
 	 * @return a list of all the deployed applications in the service grid.
 	 */
 	@JsonResponseExample(status = "success", responseBody = "[\"petclinic\", \"travel\"]", comments =
@@ -932,12 +913,12 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		final Applications apps = admin.getApplications();
-		Map<String, Object> resultsMap = new HashMap<String, Object>();
+		final Map<String, Object> resultsMap = new HashMap<String, Object>();
 		for (final Application app : apps) {
 			if (!app.getName().equals(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
-				for (ProcessingUnit pu : app.getProcessingUnits().getProcessingUnits()) {
+				for (final ProcessingUnit pu : app.getProcessingUnits().getProcessingUnits()) {
 					if (pu != null) {
-						String authGroups = pu.getBeanLevelProperties().getContextProperties().
+						final String authGroups = pu.getBeanLevelProperties().getContextProperties().
 								getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
 						resultsMap.put(app.getName(), authGroups);
 						break;
@@ -950,13 +931,13 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Creates and returns a map containing all of the deployed service names
-	 * installed under a specific application context.
+	 * Creates and returns a map containing all of the deployed service names installed under a specific application
+	 * context.
 	 * 
 	 * @param applicationName
 	 *            .
-	 * @return a list of the deployed services in the service grid that were
-	 *         deployed as a part of a specific application.
+	 * @return a list of the deployed services in the service grid that were deployed as a part of a specific
+	 *         application.
 	 * @throws RestErrorException
 	 *             When application is not found.
 	 */
@@ -990,9 +971,8 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * 
-	 * Invokes a custom command on all of the specified service instances.
-	 * Custom parameters are passed as a map using the POST method and contain
-	 * the command name and parameter values for the specified command.
+	 * Invokes a custom command on all of the specified service instances. Custom parameters are passed as a map using
+	 * the POST method and contain the command name and parameter values for the specified command.
 	 * 
 	 * @param applicationName
 	 *            The application name.
@@ -1002,11 +982,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            deprecated.
 	 * @param params
 	 *            The command parameters.
-	 * @return a Map containing the result of each invocation on a service
-	 *         instance.
+	 * @return a Map containing the result of each invocation on a service instance.
 	 * @throws RestErrorException
-	 *             When lookup service not found or no processing unit instance
-	 *             is found for the requested service.
+	 *             When lookup service not found or no processing unit instance is found for the requested service.
 	 */
 	@JsonRequestExample(requestBody = "{\"param1 name\":\"param1\",\"param2 name\":\"param2\"}")
 	@JsonResponseExample(status = "success", responseBody =
@@ -1046,10 +1024,10 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		if (permissionEvaluator != null) {
-			String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
+			final String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
 					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
-			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-			CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+			final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			final CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
 			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 		}
 
@@ -1129,9 +1107,8 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * 
-	 * Invokes a custom command on a specific service instance. Custom
-	 * parameters are passed as a map using POST method and contain the command
-	 * name and parameter values for the specified command.
+	 * Invokes a custom command on a specific service instance. Custom parameters are passed as a map using POST method
+	 * and contain the command name and parameter values for the specified command.
 	 * 
 	 * @param applicationName
 	 *            The application name.
@@ -1142,12 +1119,10 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param beanName
 	 *            depreciated
 	 * @param params
-	 *            a Map containing the result of each invocation on a service
-	 *            instance.
+	 *            a Map containing the result of each invocation on a service instance.
 	 * @return a Map containing the invocation result on the specified instance.
 	 * @throws RestErrorException
-	 *             When failed to locate service/service instance or invocation
-	 *             failed.
+	 *             When failed to locate service/service instance or invocation failed.
 	 */
 	@JsonRequestExample(requestBody = "{\"param1 name\":\"param1\",\"param2 name\":\"param2\"}")
 	@JsonResponseExample(status = "success", responseBody = "{\"Invocation_Instance_Name\":\"instance #1@127.0.0.1\""
@@ -1189,10 +1164,10 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		if (permissionEvaluator != null) {
-			String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
+			final String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
 					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
-			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-			CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+			final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			final CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
 			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 		}
 
@@ -1273,8 +1248,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            The service name.
 	 * @param timeoutInMinutes
 	 *            .
-	 * @return success status if service was undeployed successfully, else
-	 *         returns failure status.
+	 * @return success status if service was undeployed successfully, else returns failure status.
 	 * @throws RestErrorException
 	 *             When failed to locate service.
 	 */
@@ -1293,18 +1267,17 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final int timeoutInMinutes) throws RestErrorException {
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(
 				applicationName, serviceName);
-		final ProcessingUnit processingUnit = admin.getProcessingUnits()
-				.waitFor(absolutePuName, PU_DISCOVERY_TIMEOUT_SEC,
-						TimeUnit.SECONDS);
+		final ProcessingUnit processingUnit = admin.getProcessingUnits().waitFor(absolutePuName,
+				PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
 		if (processingUnit == null) {
 			return unavailableServiceError(absolutePuName);
 		}
 
 		if (permissionEvaluator != null) {
-			String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties().
+			final String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties().
 					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
-			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-			CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+			final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			final CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
 			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 		}
 
@@ -1368,8 +1341,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            map that holds a timeout value for this action.
 	 * @return success status map if succeeded, else returns an error status.
 	 * @throws RestErrorException
-	 *             When service processing unit not found or failed to add the
-	 *             instance.
+	 *             When service processing unit not found or failed to add the instance.
 	 */
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/addinstance",
 			method = RequestMethod.POST)
@@ -1396,10 +1368,10 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		if (permissionEvaluator != null) {
-			String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties().
+			final String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties().
 					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
-			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-			CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+			final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			final CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
 			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 		}
 
@@ -1426,8 +1398,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            the service instance ID to remove.
 	 * @return success status map if succeeded, else returns an error status.
 	 * @throws RestErrorException
-	 *             When failed to locate the service or if the service instance
-	 *             is not available.
+	 *             When failed to locate the service or if the service instance is not available.
 	 */
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
@@ -1452,10 +1423,10 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		if (permissionEvaluator != null) {
-			String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties().
+			final String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties().
 					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
-			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-			CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+			final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			final CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
 			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 		}
 
@@ -1494,7 +1465,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				throw new TimeoutException("Timed out waiting for Service "
 						+ serviceName + " deployment.");
 			}
-		} catch (ProcessingUnitAlreadyDeployedException e) {
+		} catch (final ProcessingUnitAlreadyDeployedException e) {
 			throw new RestErrorException(CloudifyErrorMessages.SERVICE_ALREADY_INSTALLED.getName(), serviceName);
 		}
 	}
@@ -1512,8 +1483,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param response
 	 *            The response object to edit, if not committed yet.
 	 * @param e
-	 *            The exception that occurred, from which data is read for
-	 *            logging and for the response error message.
+	 *            The exception that occurred, from which data is read for logging and for the response error message.
 	 * @throws IOException
 	 *             Reporting failure to edit the response object
 	 */
@@ -1538,7 +1508,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				// Some sort of unhandled application exception.
 				logger.log(Level.WARNING, "An unexpected error was thrown: " + e.getMessage(), e);
 
-				Map<String, Object> restErrorMap =
+				final Map<String, Object> restErrorMap =
 						RestUtils.verboseErrorStatus(CloudifyErrorMessages.GENERAL_SERVER_ERROR.getName(),
 								ExceptionUtils.getStackTrace(e), e.getMessage());
 				message = new ObjectMapper().writeValueAsString(restErrorMap);
@@ -1556,8 +1526,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param response
 	 *            The response object to edit, if not committed yet.
 	 * @param e
-	 *            The exception that occurred, from which data is read for
-	 *            logging and for the response error message.
+	 *            The exception that occurred, from which data is read for logging and for the response error message.
 	 * @throws IOException
 	 *             Reporting failure to edit the response object
 	 */
@@ -1598,9 +1567,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/******************
-	 * Uninstalls an application by uninstalling all of its services. Order of
-	 * uninstallations is determined by the context property
-	 * 'com.gs.application.services' which should exist in all service PUs.
+	 * Uninstalls an application by uninstalling all of its services. Order of uninstallations is determined by the
+	 * context property 'com.gs.application.services' which should exist in all service PUs.
 	 * 
 	 * @param applicationName
 	 *            The application name.
@@ -1608,8 +1576,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            .
 	 * @return Map with return value.
 	 * @throws RestErrorException
-	 *             When application not found or when attempting to remove
-	 *             management services.
+	 *             When application not found or when attempting to remove management services.
 	 */
 	@JsonResponseExample(status = "success", responseBody =
 			"{\"lifecycleEventContainerID\":\"bfae0a89-b5a0-4250-b393-6cedbf63ac76\"}")
@@ -1624,7 +1591,6 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final int timeoutInMinutes) throws RestErrorException {
 
 		final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		
 		
 		// Check that Application exists
 		final Application app = this.admin.getApplications().waitFor(
@@ -1649,7 +1615,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			if (permissionEvaluator != null) {
 				final CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
 				//all the application PUs are supposed to have the same auth-groups setting 
-				String puAuthGroups = pus[0].getBeanLevelProperties().getContextProperties().
+				final String puAuthGroups = pus[0].getBeanLevelProperties().getContextProperties().
 						getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
 				permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 			}
@@ -1672,7 +1638,7 @@ public class ServiceController implements ServiceDetailsProvider {
 						if (permissionEvaluator != null) {
 							final CloudifyAuthorizationDetails authDetails = 
 									new CloudifyAuthorizationDetails(authentication);
-							String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties(). 
+							final String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties().
 									getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
 							permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 						}
@@ -1805,10 +1771,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Deploys an application to the service grid. An application is consisted
-	 * of a group of services that might have dependencies between themselves.
-	 * The application will be deployed according to the dependency order
-	 * defined in the application file and deployed asynchronously if possible.
+	 * Deploys an application to the service grid. An application is consisted of a group of services that might have
+	 * dependencies between themselves. The application will be deployed according to the dependency order defined in
+	 * the application file and deployed asynchronously if possible.
 	 * 
 	 * @param applicationName
 	 *            The application name.
@@ -1817,20 +1782,17 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param srcFile
 	 *            The compressed application file.
 	 * @param recipeOverridesFile
-	 *            The application overrides file - to overrides the application
-	 *            properties.
-	 * @param cloudOverrides File of overriding cloud properties
+	 *            The application overrides file - to overrides the application properties.
+	 * @param cloudOverrides
+	 *            File of overriding cloud properties
 	 * @param selfHealing
-	 *            if true, there will be an attempt to restart the recipe in
-	 *            case a problem occurred in its life-cycle, otherwise, if the
-	 *            recipe fails to execute, no attempt to recover will made.
+	 *            if true, there will be an attempt to restart the recipe in case a problem occurred in its life-cycle,
+	 *            otherwise, if the recipe fails to execute, no attempt to recover will made.
 	 * @param authGroups
-	 *            The authorization groups for which this deployment will be
-	 *            available.
+	 *            The authorization groups for which this deployment will be available.
 	 * @return Map with return value.
 	 * @throws IOException
-	 *             Reporting failure to create a file while opening the packaged
-	 *             application file
+	 *             Reporting failure to create a file while opening the packaged application file
 	 * @throws DSLException
 	 *             Reporting failure to parse the application file
 	 * @throws RestErrorException .
@@ -1838,7 +1800,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	@JsonRequestExample(requestBody = "{\"applicationName\" : \"petclinic\" , \"srcFile\" :"
 			+ " \"packaged application file\" "
 			+ ", \"recipeOverridesFile\" : \"recipe overrides file\"}")
-	@JsonResponseExample(status = "success", responseBody = "{\"srviceOrder\":\"[mongod,mongoConfig,"
+	@JsonResponseExample(status = "success", responseBody = "{\"serviceOrder\":\"[mongod,mongoConfig,"
 			+ "apacheLB,mongos,tomcat]\""
 			+ ",\"lifecycleEventContainerID\":\"07db2a16-62f8-4669-ac41-ed9afe3a3b02\"}", comments = "")
 	@PossibleResponseStatuses(responseStatuses = {
@@ -1853,8 +1815,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final int timeout,
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
 			@RequestParam(value = "authGroups", required = false) final String authGroups,
-			@RequestParam(value = APPLICATION_OVERRIDES_FILE_PARAM, required = false) 
-			final MultipartFile recipeOverridesFile,
+			@RequestParam(value = APPLICATION_OVERRIDES_FILE_PARAM, required = false) final MultipartFile recipeOverridesFile,
 			@RequestParam(value = CLOUD_OVERRIDES_FILE_PARAM, required = false) final MultipartFile cloudOverrides,
 			@RequestParam(value = "selfHealing", required = false) final Boolean selfHealing)
 					throws IOException, DSLException, RestErrorException {
@@ -2064,9 +2025,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Returns the lifecycle events according to the lifecycleEventContainerID
-	 * id that is returned as a response when installing/un-installing a
-	 * service/application and according to the cursor position.
+	 * Returns the lifecycle events according to the lifecycleEventContainerID id that is returned as a response when
+	 * installing/un-installing a service/application and according to the cursor position.
 	 * 
 	 * @param lifecycleEventContainerID
 	 *            the unique task ID.
@@ -2074,8 +2034,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            event entry cursor
 	 * @return a map containing the events and the task state.
 	 * @throws RestErrorException
-	 *             When polling task has expired or if the task ended
-	 *             unexpectedly.
+	 *             When polling task has expired or if the task ended unexpectedly.
 	 */
 	@JsonResponseExample(status = "success", responseBody = 
 			"{\"isDone\":false,\"lifecycleLogs\":[\"[service1] Deployed 1 planned 1\","
@@ -2237,16 +2196,15 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Creates a randomly-named file in the system's default temp folder, just
-	 * to get the path. The file is deleted immediately.
+	 * Creates a randomly-named file in the system's default temp folder, just to get the path. The file is deleted
+	 * immediately.
 	 * 
 	 * @return The path to the system's default temp folder
 	 */
 	private String getTempFolderPath() throws IOException {
 		/*
-		 * long tmpNum = new SecureRandom().nextLong(); if (tmpNum ==
-		 * Long.MIN_VALUE) { tmpNum = 0; // corner case } else { tmpNum =
-		 * Math.abs(tmpNum); }
+		 * long tmpNum = new SecureRandom().nextLong(); if (tmpNum == Long.MIN_VALUE) { tmpNum = 0; // corner case }
+		 * else { tmpNum = Math.abs(tmpNum); }
 		 */
 		final File tempFile = File.createTempFile("GS__", null);
 		tempFile.delete();
@@ -2319,8 +2277,13 @@ public class ServiceController implements ServiceDetailsProvider {
 				}
 			}
 		} else {
-			final ComputeTemplate template = getComputeTemplate(cloud, templateName);
 
+			deployment.addCommandLineArgument("-Xmx" + cloud.getConfiguration().getComponents().getUsm().getMaxMemory())
+			.addCommandLineArgument("-Xms" + cloud.getConfiguration().getComponents().getUsm().getMinMemory())
+			.addCommandLineArgument("-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "="
+									+ cloud.getConfiguration().getComponents().getUsm().getPortRange());
+
+			final ComputeTemplate template = getComputeTemplate(cloud, templateName);
 
 			long cloudExternalProcessMemoryInMB = 0;
 
@@ -2329,7 +2292,6 @@ public class ServiceController implements ServiceDetailsProvider {
 			} else {
 				cloudExternalProcessMemoryInMB = IsolationUtils.getInstanceMemoryMB(service);
 			}
-
 
 			logger.info("Creating cloud machine provisioning config. Template remote directory is: "
 					+ template.getRemoteDirectory());
@@ -2375,8 +2337,6 @@ public class ServiceController implements ServiceDetailsProvider {
 					logger.info("isolationSLA = " + service.getIsolationSLA());
 					// service instances can be deployed across all agents
 					setPublicMachineProvisioning(deployment, config);
-					
-					
 					
 				} else if (IsolationUtils.isAppShared(service)) {
 					logger.info("app shared mode is on. will use shared machine provisioning for "
@@ -2426,8 +2386,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            - the service DSL or null if not exists
 	 * @param externalProcessMemoryInMB
 	 *            - MB memory allocated for the GSC plus the external service.
-	 * @return a @{link ManualCapacityScaleConfig} based on the specified
-	 *         service and memory.
+	 * @return a @{link ManualCapacityScaleConfig} based on the specified service and memory.
 	 */
 	public static int calculateTotalMemoryInMB(final String serviceName,
 			final Service service, final int externalProcessMemoryInMB)
@@ -2459,7 +2418,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			return 0;
 		}
 
-		double instanceCpuCores = IsolationUtils.getInstanceCpuCores(service);
+		final double instanceCpuCores = IsolationUtils.getInstanceCpuCores(service);
 
 		if (instanceCpuCores < 0) {
 			throw new IllegalArgumentException(
@@ -2545,21 +2504,18 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/******
-	 * Waits for a single instance of a service to become available. NOTE:
-	 * currently only uses service name as processing unit name.
+	 * Waits for a single instance of a service to become available. NOTE: currently only uses service name as
+	 * processing unit name.
 	 * 
 	 * @param applicationName
 	 *            not used.
 	 * @param serviceName
 	 *            the service name.
 	 * @param timeout
-	 *            the timeout period to wait for the processing unit, and then
-	 *            the PU instance.
+	 *            the timeout period to wait for the processing unit, and then the PU instance.
 	 * @param timeUnit
-	 *            the time unit used to wait for the processing unit, and then
-	 *            the PU instance.
-	 * @return true if instance is found, false if instance is not found in the
-	 *         specified period.
+	 *            the time unit used to wait for the processing unit, and then the PU instance.
+	 * @return true if instance is found, false if instance is not found in the specified period.
 	 */
 	public boolean waitForServiceInstance(final String applicationName,
 			final String serviceName, final long timeout,
@@ -2587,9 +2543,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param applicationName
 	 *            .
 	 * @param authGroups
-	 *            The authorization groups for which this deployment will be
-	 *            available. The the group for which this deployment will be
-	 *            available.
+	 *            The authorization groups for which this deployment will be available. The the group for which this
+	 *            deployment will be available.
 	 * @param zone
 	 *            .
 	 * @param srcFile
@@ -2607,14 +2562,12 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param serviceCloudConfigurationContents
 	 *            .
 	 * @param selfHealing
-	 *            if true, there will be an attempt to restart the recipe in
-	 *            case a problem occurred in its life-cycle, otherwise, if the
-	 *            recipe fails to execute, no attempt to recover will made.
+	 *            if true, there will be an attempt to restart the recipe in case a problem occurred in its life-cycle,
+	 *            otherwise, if the recipe fails to execute, no attempt to recover will made.
 	 * @param overridesFile
 	 * 				A file containing overrides for service's proeprties file.
 	 * @param cloudOverrides
-	 *            	A file containing cloud override properties to be used by
-	 *            the cloud driver.
+	 *            A file containing cloud override properties to be used by the cloud driver.
 	 * @return lifecycleEventContainerID.
 	 * @throws PackagingException 
 	 * @throws RestErrorException .
@@ -2679,8 +2632,8 @@ public class ServiceController implements ServiceDetailsProvider {
 				final String propertiesFileName = DSLUtils.getPropertiesFileName(workingProjectDir, 
 						DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
 				final File propertiesFile = new File(workingProjectDir, propertiesFileName);
-				FileAppender appender = new FileAppender("serviceFinalPropertiesFile.properties");
-				LinkedHashMap<File, String> filesToAppend = new LinkedHashMap<File, String>();
+				final FileAppender appender = new FileAppender("serviceFinalPropertiesFile.properties");
+				final LinkedHashMap<File, String> filesToAppend = new LinkedHashMap<File, String>();
 				filesToAppend.put(propertiesFile, "service proeprties file");
 				filesToAppend.put(overridesFile, "service overrides file");
 				appender.appendAll(propertiesFile, filesToAppend);			
@@ -2707,7 +2660,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			if (IsolationUtils.isGlobal(service) 
 					&& IsolationUtils.isUseManagement(service)) {
 				final String managementMachineTemplateName = cloud.getConfiguration().getManagementMachineTemplate();
-				ComputeDetails compute = service.getCompute();
+				final ComputeDetails compute = service.getCompute();
 				if (compute != null) {
 					if (compute.getTemplate() != null && !compute.getTemplate().isEmpty()) {
 						if (!compute.getTemplate().equals(managementMachineTemplateName)) {
@@ -2715,8 +2668,10 @@ public class ServiceController implements ServiceDetailsProvider {
 							// the service wont be installed on a management machine(even if there is enough memory)
 							// because the management machine template does not match the desired template
 							logger.warning("Installation of service " + service.getName() + " on a management machine "  
-									+ "will not be attempted since the specified template(" + compute.getTemplate() + ")"
-									+ " is different than the management machine template(" + managementMachineTemplateName + ")");
+									+ "will not be attempted since the specified template(" + compute.getTemplate()
+									+ ")"
+									+ " is different than the management machine template("
+									+ managementMachineTemplateName + ")");
 						}
 					}
 				} else {
@@ -2812,20 +2767,28 @@ public class ServiceController implements ServiceDetailsProvider {
 	// does the cast automatically.
 	/**
 	 * 
-	 * @param applicationName .
-	 * @param serviceName .
-	 * @param timeout .
-	 * @param templateName .
-	 * @param zone .
-	 * @param srcFile .
-	 * @param propsFile .
+	 * @param applicationName
+	 *            .
+	 * @param serviceName
+	 *            .
+	 * @param timeout
+	 *            .
+	 * @param templateName
+	 *            .
+	 * @param zone
+	 *            .
+	 * @param srcFile
+	 *            .
+	 * @param propsFile
+	 *            .
 	 * @param authGroups
 	 *            	The authorization groups for which this deployment will be available.
 	 * @param serviceOverridesFile 
 	 * 				A file containing overrides for service's properties file.
 	 * @param cloudOverridesFile
 	 *            	A file containing override parameters to be used by the cloud driver.
-	 * @param selfHealing .
+	 * @param selfHealing
+	 *            .
 	 * @return status - success (error) and response - lifecycle events container id (error description)
 	 * @throws PackagingException 
 	 * @throws DSLException .
@@ -2856,15 +2819,12 @@ public class ServiceController implements ServiceDetailsProvider {
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
 			@RequestParam(value = "props", required = true) final MultipartFile propsFile,
 			@RequestParam(value = "authGroups", required = false) final String authGroups,
-			@RequestParam(value = SERVICE_OVERRIDES_FILE_PARAM, required = false) 
-			final MultipartFile serviceOverridesFile,
+			@RequestParam(value = SERVICE_OVERRIDES_FILE_PARAM, required = false) final MultipartFile serviceOverridesFile,
 			@RequestParam(value = CLOUD_OVERRIDES_FILE_PARAM, required = false) final MultipartFile cloudOverridesFile, 
 			@RequestParam(value = "selfHealing", required = false, defaultValue = "true") final Boolean selfHealing)
 					throws TimeoutException, IOException,
 					DSLException, RestErrorException, PackagingException {
 
-		
-		
 		logger.info("Deploying service with template: " + templateName);
 		String actualTemplateName = templateName;
 
@@ -2907,7 +2867,6 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 		final File localServiceOverridesFile = copyMultipartFileToLocalFile(serviceOverridesFile);
 
-		
 		String lifecycleEventsContainerID = "";
 		if (dest.renameTo(destFile)) {
 			FileUtils.deleteQuietly(dest);
@@ -3020,7 +2979,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final org.cloudifysource.dsl.Application application)
 					throws RestErrorException {
 		final List<Service> services = application.getServices();
-		for (Service service : services) {
+		for (final Service service : services) {
 			validateTemplate(service);
 		}
 	}
@@ -3047,7 +3006,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (service == null) {
 			return;
 		}
-		ComputeDetails compute = service.getCompute();
+		final ComputeDetails compute = service.getCompute();
 		String templateName = null;
 		if (compute != null) {
 			templateName = compute.getTemplate();
@@ -3123,8 +3082,8 @@ public class ServiceController implements ServiceDetailsProvider {
 					cloud, template);
 
 			final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
-					cloud, template, templateName, this.managementTemplate.getRemoteDirectory(), 
-					""/*storage template*/);
+					cloud, template, templateName,
+					this.managementTemplate.getRemoteDirectory(), null);
 			config.setAuthGroups(authGroups);
 			
 			if (cloudOverrides != null) {
@@ -3272,8 +3231,8 @@ public class ServiceController implements ServiceDetailsProvider {
 					cloud, template);
 
 			final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
-					cloud, template, templateName, this.managementTemplate.getRemoteDirectory(), 
-					""/*storqage template name*/);
+					cloud, template, templateName,
+					this.managementTemplate.getRemoteDirectory(), null);
 			config.setAuthGroups(authGroups);
 			if (cloudOverride != null) {
 				config.setCloudOverridesPerService(cloudOverride);
@@ -3364,8 +3323,8 @@ public class ServiceController implements ServiceDetailsProvider {
 					cloud, template);
 
 			final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
-					cloud, template, templateName, this.managementTemplate.getRemoteDirectory(), 
-					""/*storage template*/);
+					cloud, template, templateName,
+					this.managementTemplate.getRemoteDirectory(), null);
 			config.setAuthGroups(authGroups);
 			if (cloudOverrides != null) {
 				config.setCloudOverridesPerService(cloudOverrides);
@@ -3496,8 +3455,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @return lifecycleEventContainerID .
 	 * @throws DSLException .
 	 * @throws RestErrorException
-	 *             When failed to locate service or in the case where the
-	 *             service is not elastic.
+	 *             When failed to locate service or in the case where the service is not elastic.
 	 */
 	@JsonRequestExample(requestBody = "{\"count\":1,\"location-aware\":true}")
 	@JsonResponseExample(status = "success", responseBody = "{\"lifecycleEventContainerID\":\"eventContainerID\"}")
@@ -3530,10 +3488,10 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		if (permissionEvaluator != null) {
-			String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
+			final String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
 					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
-			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-			CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+			final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			final CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
 			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 		}
 
@@ -3564,14 +3522,14 @@ public class ServiceController implements ServiceDetailsProvider {
 			}
 		} else {
 
-			final ComputeTemplate template = getComputeTemplate(cloud,
-					templateName);
-			final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(
-					cloud, template);
-			// TODO - set-instances is not supported when the "shared" flag is
-			// (CLOUDIFY-1158)
-			// currently we fall back to the previous impl
-			// CPU = 0 , memoery is calculated as usual. shared = false
+			final Map<String, String> properties = ((InternalProcessingUnit) pu).getElasticProperties();
+			final GridServiceContainerConfig gscConfig = new GridServiceContainerConfig(properties);
+			final long cloudExternalProcessMemoryInMB = gscConfig.getMaximumMemoryCapacityInMB();
+
+			// final CloudTemplate template = getComputeTemplate(cloud,
+			// templateName);
+			// final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(
+			// cloud, template);
 			pu.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(
 					(int) (cloudExternalProcessMemoryInMB * count), 0,
 					locationAware, true));
@@ -3587,8 +3545,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Retrieves the tail of a service log. This method used the service name
-	 * and instance id To retrieve the the instance log tail.
+	 * Retrieves the tail of a service log. This method used the service name and instance id To retrieve the the
+	 * instance log tail.
 	 * 
 	 * @param applicationName
 	 *            The application name.
@@ -3632,11 +3590,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Retrieves the tail of a service log. This method uses the service name
-	 * and the instance host address to retrieve the instance log tail.
-	 * Important: a machine might hold more than one service instance. In such a
-	 * scenario, only one of the service instance logs will be tailed and
-	 * returned.
+	 * Retrieves the tail of a service log. This method uses the service name and the instance host address to retrieve
+	 * the instance log tail. Important: a machine might hold more than one service instance. In such a scenario, only
+	 * one of the service instance logs will be tailed and returned.
 	 * 
 	 * @param applicationName
 	 *            The application name.
@@ -3678,8 +3634,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Retrieves the log tail from all of the specified service's instances. To
-	 * retrieve the the instance log tail.
+	 * Retrieves the log tail from all of the specified service's instances. To retrieve the the instance log tail.
 	 * 
 	 * @param applicationName
 	 *            The application name.
@@ -3717,7 +3672,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		for (final ProcessingUnitInstance processingUnitInstance : processingUnit) {
 			stringBuilder.append("service instance id #").append(processingUnitInstance.getInstanceId())
                     .append(System.getProperty("line.separator"));
-            String instanceLogTail = getLogTailFromContainer(
+			final String instanceLogTail = getLogTailFromContainer(
 					processingUnitInstance.getGridServiceContainer(), numLines);
 			stringBuilder.append(instanceLogTail);
 		}
@@ -3856,7 +3811,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			logger.log(Level.FINE, "Polling task with UUID " + pollingTaskId.toString()
 					+ " is no longer active.");
 		} else {
-			RestPollingRunnable restPollingRunnable = lifecyclePollingThreadContainer.get(pollingTaskId);
+			final RestPollingRunnable restPollingRunnable = lifecyclePollingThreadContainer.get(pollingTaskId);
 			restPollingRunnable.setDeploymentExecutionException(e);
 		}
 	}
@@ -3866,8 +3821,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * 
 	 * @param templatesFolder
 	 *            The templates zip file.
-	 * @return a map containing the added templates and a success status if
-	 *         succeeded, else returns an error status.
+	 * @return a map containing the added templates and a success status if succeeded, else returns an error status.
 	 * @throws RestErrorException
 	 *             in case of failing to add the template to the space.
 	 * @throws IOException
@@ -3901,10 +3855,11 @@ public class ServiceController implements ServiceDetailsProvider {
 		try {
 			loaclTemplatesZipFile = copyMultipartFileToLocalFile(templatesFolder);
 			unzippedTemplatesFolder = new ComputeTemplatesReader().unzipCloudTemplatesFolder(loaclTemplatesZipFile);
-			List<String> expectedTemplates = readCloudTemplatesNames(unzippedTemplatesFolder);
+			final List<String> expectedTemplates = readCloudTemplatesNames(unzippedTemplatesFolder);
 
-			Map<String, Map<String, String>> failedToAddTemplatesByHost = new HashMap<String, Map<String, String>>();
-			Map<String, List<String>> addedTemplatesByHost = new HashMap<String, List<String>>();
+			final Map<String, Map<String, String>> failedToAddTemplatesByHost =
+					new HashMap<String, Map<String, String>>();
+			final Map<String, List<String>> addedTemplatesByHost = new HashMap<String, List<String>>();
 			// add the templates to the remote PUs, update addedTemplatesByHost
 			// and missingTemplatesByHost.
 			sendAddTemplatesToRestInstances(loaclTemplatesZipFile, expectedTemplates,
@@ -3944,36 +3899,34 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param expectedTemplates
 	 *            The expected templates to add.
 	 * @param addedTemplatesByHost
-	 *            a map updates by this method to specify the failed to add
-	 *            templates for each instance.
+	 *            a map updates by this method to specify the failed to add templates for each instance.
 	 * @param failedToAddTemplatesByHost
-	 *            a map updates by this method to specify the failed to add
-	 *            templates for each instance.
+	 *            a map updates by this method to specify the failed to add templates for each instance.
 	 */
 	private void sendAddTemplatesToRestInstances(final File templatesFolder,
 			final List<String> expectedTemplates, final Map<String, List<String>> addedTemplatesByHost,
 			final Map<String, Map<String, String>> failedToAddTemplatesByHost) {
 
 		// get the instances
-		ProcessingUnitInstance[] instances = admin.getProcessingUnits().
+		final ProcessingUnitInstance[] instances = admin.getProcessingUnits().
 				waitFor("rest", RestUtils.TIMEOUT_IN_SECOND, TimeUnit.SECONDS).getInstances();
 		logger.log(Level.INFO, "[sendAddTemplatesToRestInstances] - sending templates folder to " 
 				+ instances.length + " instances.");
 
 		// send the templates folder to each rest instance (except the local
 		// one)
-		for (ProcessingUnitInstance puInstance : instances) {
-			String hostAddress = puInstance.getMachine().getHostAddress();
-			String host = puInstance.getMachine().getHostName() + "/" + hostAddress;
+		for (final ProcessingUnitInstance puInstance : instances) {
+			final String hostAddress = puInstance.getMachine().getHostAddress();
+			final String host = puInstance.getMachine().getHostName() + "/" + hostAddress;
 			Map<String, Object> response;
 			try {
 				// send the post request
 				response = executePostRestRequest(templatesFolder, puInstance, "/service/templates/internal");
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				logger.log(Level.WARNING, "[sendAddTemplatesToRestInstances] - failed to execute http request to " 
 						+ host + ". Error: " + e, e);
-				Map<String, String> expectedMap = new HashMap<String, String>();
-				for (String expectedTemplate : expectedTemplates) {
+				final Map<String, String> expectedMap = new HashMap<String, String>();
+				for (final String expectedTemplate : expectedTemplates) {
 					expectedMap.put(expectedTemplate, e.getMessage());
 				}
 				failedToAddTemplatesByHost.put(host, expectedMap);
@@ -3981,12 +3934,12 @@ public class ServiceController implements ServiceDetailsProvider {
 			}
 			// update maps
 			@SuppressWarnings("unchecked")
-			Map<String, String> failedMap = (Map<String, String>) response.get(FAILED_TO_ADD_TEMPLATES_KEY);
+			final Map<String, String> failedMap = (Map<String, String>) response.get(FAILED_TO_ADD_TEMPLATES_KEY);
 			if (!failedMap.isEmpty()) {
 				failedToAddTemplatesByHost.put(host, failedMap);
 			}
 			@SuppressWarnings("unchecked")
-			List<String> addedTemplates = (List<String>) response.get(SUCCESSFULLY_ADDED_TEMPLATES_KEY);
+			final List<String> addedTemplates = (List<String>) response.get(SUCCESSFULLY_ADDED_TEMPLATES_KEY);
 			if (!addedTemplates.isEmpty()) {
 				addedTemplatesByHost.put(host, addedTemplates);
 			}
@@ -4010,15 +3963,14 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param url
 	 *            .
 	 * @throws RestErrorException
-	 *             If failed to execute the request or the response is not
-	 *             successful.
+	 *             If failed to execute the request or the response is not successful.
 	 */
 	private void executeDeleteRestRequest(final ProcessingUnitInstance puInstance, 
 			final String hostAddress, final String relativeUrl) 
 					throws RestErrorException, RestException, MalformedURLException {
 				
-		String port = Integer.toString(puInstance.getJeeDetails().getPort());
-		GSRestClient restClient = createRestClient(hostAddress, port, ""/*username*/, ""/*password*/);
+		final String port = Integer.toString(puInstance.getJeeDetails().getPort());
+		final GSRestClient restClient = createRestClient(hostAddress, port, ""/* username */, ""/* password */);
 		restClient.delete(relativeUrl);
 	}
 
@@ -4033,8 +3985,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            .
 	 * @return the response.
 	 * @throws RestErrorException
-	 *             If failed to execute the request, the response is not
-	 *             successful or the response is not a map.
+	 *             If failed to execute the request, the response is not successful or the response is not a map.
 	 * @throws IOException
 	 *             If failed to post the folder.
 	 */
@@ -4044,12 +3995,12 @@ public class ServiceController implements ServiceDetailsProvider {
 		
 		Object response = null;
 		
-		String hostAddress = puInstance.getMachine().getHostAddress();
-		String host = puInstance.getMachine().getHostName() + "/" + hostAddress;
+		final String hostAddress = puInstance.getMachine().getHostAddress();
+		final String host = puInstance.getMachine().getHostName() + "/" + hostAddress;
 
-		String port = Integer.toString(puInstance.getJeeDetails().getPort());
-		GSRestClient restClient = createRestClient(hostAddress, port, ""/*username*/, ""/*password*/);
-		Map<String, File> fileMap = new HashMap<String, File>();
+		final String port = Integer.toString(puInstance.getJeeDetails().getPort());
+		final GSRestClient restClient = createRestClient(hostAddress, port, ""/* username */, ""/* password */);
+		final Map<String, File> fileMap = new HashMap<String, File>();
 		fileMap.put(CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, templatesFolder);
 		response = restClient.postFiles(relativeUrl, null, null, fileMap);
 		if (!(response instanceof Map)) {
@@ -4062,14 +4013,12 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Internal method. Add template files to the cloud configuration directory
-	 * and to the cloud object. This method supposed to be invoked from
-	 * addTemplates of a REST instance.
-	 * 
+	 * Internal method. Add template files to the cloud configuration directory and to the cloud object. This method
+	 * supposed to be invoked from addTemplates of a REST instance.	 *
+
 	 * @param templatesFolder
 	 *            The templates zip file.
-	 * @return a map containing the added templates and a success status if
-	 *         succeeded, else returns an error status.
+	 * @return a map containing the added templates and a success status if succeeded, else returns an error status.
 	 * @throws RestErrorException
 	 *             in case of failing to add the template to the space.
 	 * @throws IOException
@@ -4088,6 +4037,7 @@ public class ServiceController implements ServiceDetailsProvider {
 					throws IOException, DSLException, RestErrorException {
 		ComputeTemplatesReader reader = new ComputeTemplatesReader();
 		File localTemplatesFolder = reader.unzipCloudTemplatesFolder(copyMultipartFileToLocalFile(templatesFolder));
+
 		try {
 			logger.log(Level.INFO, "[addTemplatesInternal] - adding templates from templates folder: "
 					+ localTemplatesFolder.getAbsolutePath());
@@ -4099,17 +4049,14 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Adds templates to cloud's templates. Adds templates' files to cloud
-	 * configuration directory.
+	 * Adds templates to cloud's templates. Adds templates' files to cloud configuration directory.
 	 * 
 	 * @param templatesFolder
 	 *            .
-	 * @return a map contains the added templates list and the failed to add
-	 *         templates list.
+	 * @return a map contains the added templates list and the failed to add templates list.
 	 * @throws RestErrorException
-	 *             If failed to add templates. If failed to copy templates'
-	 *             files to a new directory under the cloud configuration
-	 *             directory.
+	 *             If failed to add templates. If failed to copy templates' files to a new directory under the cloud
+	 *             configuration directory.
 	 * @throws DSLException
 	 *             If failed to read templates files.
 	 */
@@ -4119,13 +4066,14 @@ public class ServiceController implements ServiceDetailsProvider {
 		logger.log(Level.FINE, "[addTemplatesToCloud] - Adding templates to cloud.");
 
 		// read cloud templates from templates folder
-		List<ComputeTemplateHolder> cloudTemplatesHolders = readCloudTemplates(templatesFolder);
+		final List<ComputeTemplateHolder> cloudTemplatesHolders = readCloudTemplates(templatesFolder);
+
 		logger.log(Level.FINE, "[addTemplatesToCloud] - Successfully read " + cloudTemplatesHolders.size()
 				+ " templates from folder - " + templatesFolder);
 
 		// adds the templates to the cloud's templates list, deletes the failed to added templates from the folder.
-		Map<String, String> failedToAddTemplates = new HashMap<String, String>();
-		List<String> addedTemplates = new LinkedList<String>();
+		final Map<String, String> failedToAddTemplates = new HashMap<String, String>();
+		final List<String> addedTemplates = new LinkedList<String>();
 		addTemplatesToCloudList(templatesFolder, cloudTemplatesHolders, addedTemplates, failedToAddTemplates);
 		// if no templates were added, throw an exception
 		if (addedTemplates.isEmpty()) {
@@ -4136,21 +4084,22 @@ public class ServiceController implements ServiceDetailsProvider {
 			logger.log(Level.FINE, "[addTemplatesToCloud] - Coping templates files from " 
 					+ templatesFolder.getAbsolutePath() + " to " + cloudConfigurationDir.getAbsolutePath());
 			try {
-				File localTemplatesDir = copyTemplateFilesToCloudConfigDir(templatesFolder);
+				final File localTemplatesDir = copyTemplateFilesToCloudConfigDir(templatesFolder);
 				updateCloudTemplatesUploadPath(addedTemplates, localTemplatesDir);
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				// failed to copy files - remove all added templates from cloud and them to the failed map.
 				logger.log(Level.WARNING, "[addTemplatesToCloud] - Failed to copy templates files, error: " 
 						+ e.getMessage(), e);
-				for (String templateName : addedTemplates) {
+				for (final String templateName : addedTemplates) {
 					cloud.getCloudCompute().getTemplates().remove(templateName);
 					failedToAddTemplates.put(templateName, e.getMessage());
 				}
+
 			}
 		}
 
 		// return the added templates and the failed to add templates lists.
-		Map<String, Object> resultMap = new HashMap<String, Object>();
+		final Map<String, Object> resultMap = new HashMap<String, Object>();
 		resultMap.put(FAILED_TO_ADD_TEMPLATES_KEY, failedToAddTemplates);
 		resultMap.put(SUCCESSFULLY_ADDED_TEMPLATES_KEY, addedTemplates);
 		if (!failedToAddTemplates.isEmpty()) {
@@ -4178,9 +4127,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Scans the cloudTemplatesHolders list and adds each template that doesn't
-	 * already exist. Rename template's file if needed (if its prefix is not the
-	 * template's name).
+	 * Scans the cloudTemplatesHolders list and adds each template that doesn't already exist. Rename template's file if
+	 * needed (if its prefix is not the template's name).
 	 * 
 	 * @param templatesFolder
 	 *            the folder contains templates files.
@@ -4189,8 +4137,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param addedTemplates
 	 *            a list for this method to update with all the added templates.
 	 * @param failedToAddTemplates
-	 *            a list for this method to update with all the failed to add
-	 *            templates.
+	 *            a list for this method to update with all the failed to add templates.
 	 */
 	private void addTemplatesToCloudList(final File templatesFolder, final List<ComputeTemplateHolder> cloudTemplates,
 			final List<String> addedTemplates, final Map<String, String> failedToAddTemplates) {
@@ -4208,7 +4155,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			// rename the proeprties and overrides files as well.
 			try {
 				renameTemplateFileIfNeeded(templatesFolder, holder);
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				logger.log(Level.WARNING, "[addTemplatesToCloudList] - Failed to rename template's file, template: "
 						+ templateName + ", error: " + e.getMessage(), e);
 				failedToAddTemplates.put(templateName, "failed to rename template's file. error: " + e.getMessage());
@@ -4223,9 +4170,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * If the original template's file name prefix is not the template's name,
-	 * rename it.
-	 * Also, rename the properties and overrides files if exist.
+	 * If the original template's file name prefix is not the template's name, rename it. Also, rename the properties
+	 * and overrides files if exist.
 	 * 
 	 * @param templatesFolder
 	 *            the folder that contains the template's file.
@@ -4237,12 +4183,12 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	private void renameTemplateFileIfNeeded(final File templatesFolder, final ComputeTemplateHolder holder) 
 			throws IOException {
-		String templateName = holder.getName();
+		final String templateName = holder.getName();
 
-		String templateFileName = holder.getTemplateFileName();
-		File templateFile = new File(templatesFolder, templateFileName);
-		String propertiesFileName = holder.getPropertiesFileName();
-		String overridesFileName = holder.getOverridesFileName();
+		final String templateFileName = holder.getTemplateFileName();
+		final File templateFile = new File(templatesFolder, templateFileName);
+		final String propertiesFileName = holder.getPropertiesFileName();
+		final String overridesFileName = holder.getOverridesFileName();
 
 		try {
 			String newName = DSLUtils.renameCloudTemplateFileNameIfNeeded(templateFile, templateName, 
@@ -4252,24 +4198,26 @@ public class ServiceController implements ServiceDetailsProvider {
 						+ templateFileName + " to " + newName + ".");
 			}
 			if (propertiesFileName != null) {
-				File propertiesFile = new File(templatesFolder, propertiesFileName);
+				final File propertiesFile = new File(templatesFolder, propertiesFileName);
 				newName = DSLUtils.renameCloudTemplateFileNameIfNeeded(propertiesFile, templateName, 
 						DSLUtils.TEMPLATES_PROPERTIES_FILE_NAME_SUFFIX);
 				if (newName != null) {
-					logger.log(Level.INFO, "[renameTemplateFileIfNeeded] - Renamed template's properties file name from"
+					logger.log(Level.INFO,
+							"[renameTemplateFileIfNeeded] - Renamed template's properties file name from"
 							+ " " + propertiesFileName + " to " + newName + ".");
 				}
 			}
 			if (overridesFileName != null) {
-				File overridesFile = new File(templatesFolder, overridesFileName);		
+				final File overridesFile = new File(templatesFolder, overridesFileName);
 				newName = DSLUtils.renameCloudTemplateFileNameIfNeeded(overridesFile, templateName, 
 						DSLUtils.TEMPLATES_OVERRIDES_FILE_NAME_SUFFIX);
 				if (newName != null) {
-					logger.log(Level.INFO, "[renameTemplateFileIfNeeded] - Renamed template's overrides file name from "
+					logger.log(Level.INFO,
+							"[renameTemplateFileIfNeeded] - Renamed template's overrides file name from "
 							+ overridesFileName + " to " + newName + ".");
 				}
 			}
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			logger.log(Level.WARNING, "[renameTemplateFileIfNeeded] - Failed to rename template file name ["
 					+ templateFile.getName() + "] to "
 					+ templateName + DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX
@@ -4282,13 +4230,12 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Gets the {@link CloudifyConstants#ADDITIONAL_TEMPLATES_FOLDER_NAME}
-	 * folder. Creates it if needed.
+	 * Gets the {@link CloudifyConstants#ADDITIONAL_TEMPLATES_FOLDER_NAME} folder. Creates it if needed.
 	 * 
 	 * @return the folder.
 	 */
 	private File getTemplatesFolder() {
-		File templatesFolder = new File(cloudConfigurationDir,
+		final File templatesFolder = new File(cloudConfigurationDir,
 				CloudifyConstants.ADDITIONAL_TEMPLATES_FOLDER_NAME);
 		if (!cloudConfigurationDir.exists()) {
 			templatesFolder.mkdir();
@@ -4341,8 +4288,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Copies all the files from templatesFolder to a new directory under cloud
-	 * configuration directory.
+	 * Copies all the files from templatesFolder to a new directory under cloud configuration directory.
 	 * 
 	 * @param templatesDirToCopy
 	 *            the directory contains all the files to copy.
@@ -4351,7 +4297,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 */
 	private File copyTemplateFilesToCloudConfigDir(final File templatesDirToCopy)
 			throws IOException {
-		File templatesDirParent = getTemplatesFolder();
+		final File templatesDirParent = getTemplatesFolder();
 		// create new templates folder - increment folder number until no folder
 		// with that name exist.
 		String folderName = "templates_" + lastTemplateFileNum.incrementAndGet();
@@ -4364,7 +4310,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		try {
 			FileUtils.copyDirectory(templatesDirToCopy, copiedtemplatesFolder);
 			return copiedtemplatesFolder;
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			FileUtils.deleteDirectory(copiedtemplatesFolder);
 			lastTemplateFileNum.decrementAndGet();
 			throw e;
@@ -4394,8 +4340,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * 
 	 * @param templateName
 	 *            The name of the template to get.
-	 * @return a map containing the template and a success status if succeeded,
-	 *         else returns an error status.
+	 * @return a map containing the template and a success status if succeeded, else returns an error status.
 	 * @throws RestErrorException
 	 *             if the cloud is a local cloud or the template doesn't exist.
 	 */
@@ -4428,8 +4373,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            The name of the template to remove.
 	 * @return success status map if succeeded.
 	 * @throws RestErrorException
-	 *             If cloud is a local cloud or one of the REST instances failed
-	 *             to remove the template.
+	 *             If cloud is a local cloud or one of the REST instances failed to remove the template.
 	 */
 	@JsonResponseExample(status = "success", 
 	comments = "In case of failure a RestErrorException will be thrown " 
@@ -4460,8 +4404,8 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 
 		// remove template from REST instances (including local MNG).
-		List<String> successfullyRemoved = new LinkedList<String>();
-		List<String> failedToRemoveHosts = new LinkedList<String>();
+		final List<String> successfullyRemoved = new LinkedList<String>();
+		final List<String> failedToRemoveHosts = new LinkedList<String>();
 		removeTemplateFromRestInstances(templateName, successfullyRemoved, failedToRemoveHosts);
 
 		// check if some REST instances failed to remove the template
@@ -4489,30 +4433,28 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @param templateName
 	 *            the name of the template.
 	 * @param successfullyRemoved
-	 *            a list that this method updates with the host that
-	 *            successfully remove the template.
+	 *            a list that this method updates with the host that successfully remove the template.
 	 * @param failedToRemoveHosts
-	 *            a list that this method updates with the host that failed to
-	 *            remove the template.
+	 *            a list that this method updates with the host that failed to remove the template.
 	 */
 	private void removeTemplateFromRestInstances(final String templateName,
 			final List<String> successfullyRemoved, final List<String> failedToRemoveHosts) {
 		// get rest instances
-		ProcessingUnit processingUnit =
+		final ProcessingUnit processingUnit =
 				admin.getProcessingUnits().waitFor("rest", RestUtils.TIMEOUT_IN_SECOND, TimeUnit.SECONDS);
-		ProcessingUnitInstance[] instances = processingUnit.getInstances();
+		final ProcessingUnitInstance[] instances = processingUnit.getInstances();
 
 		// send the template's name to remove to each rest instance (except the
 		// local one)
 		logger.log(Level.INFO, "[removeTemplateFromRestInstances] - sending remove request to "
 				+ instances.length + " REST instances. Template's name is " + templateName);
-		for (ProcessingUnitInstance puInstance : instances) {
-			String hostAddress = puInstance.getMachine().getHostAddress();
-			String host = puInstance.getMachine().getHostName() + "/" + hostAddress;
+		for (final ProcessingUnitInstance puInstance : instances) {
+			final String hostAddress = puInstance.getMachine().getHostAddress();
+			final String host = puInstance.getMachine().getHostName() + "/" + hostAddress;
 			// execute the http request
 			try {
 				executeDeleteRestRequest(puInstance, hostAddress, "/service/templates/internal/" + templateName);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				failedToRemoveHosts.add(host);
 				logger.log(Level.WARNING, "[removeTemplateFromRestInstances] - Failed to execute http request to " 
 						+ host + ". Error: " + e.getMessage(), e);
@@ -4525,9 +4467,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Internal method. Remove template file from the cloud configuration
-	 * directory and from the cloud's templates map. This method supposed to be
-	 * invoked from removeTemplate of a REST instance.
+	 * Internal method. Remove template file from the cloud configuration directory and from the cloud's templates map.
+	 * This method supposed to be invoked from removeTemplate of a REST instance.
 	 * 
 	 * @param templateName
 	 *            the name of the template to remove.
@@ -4554,7 +4495,7 @@ public class ServiceController implements ServiceDetailsProvider {
 		// try to remove the template
 		try {
 			removeTemplateFromCloud(templateName);
-		} catch (RestErrorException e) {
+		} catch (final RestErrorException e) {
 			logger.log(Level.WARNING, "[removeTemplateInternal] - failed to remove template [" + templateName + "]."
 					+ " Error: " + e.getMessage(), e);
 			throw e;
@@ -4589,27 +4530,25 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Deletes the template's file. Deletes the templates folder if no other
-	 * templates files exist in the folder. Deletes the
-	 * {@link CloudifyConstants#ADDITIONAL_TEMPLATES_FOLDER_NAME} folder if
-	 * empty.
+	 * Deletes the template's file. Deletes the templates folder if no other templates files exist in the folder.
+	 * Deletes the {@link CloudifyConstants#ADDITIONAL_TEMPLATES_FOLDER_NAME} folder if empty.
 	 * 
 	 * @param templateName
 	 * @throws RestErrorException
 	 */
 	private void deleteTemplateFile(final String templateName) throws RestErrorException {
-		File templateFile = getTemplateFile(templateName);
+		final File templateFile = getTemplateFile(templateName);
 		if (templateFile == null) {
 			throw new RestErrorException("failed_to_remove_template_file", templateName,
 					"template file doesn't exist");
 		}
 		// delete the file from the directory.
-		String templatesPath = templateFile.getAbsolutePath();
+		final String templatesPath = templateFile.getAbsolutePath();
 		logger.log(Level.FINE, "[deleteTemplateFile] - removing template file " + templatesPath);
 		boolean deleted = false;
 		try {
 			deleted = templateFile.delete();
-		} catch (SecurityException e) {
+		} catch (final SecurityException e) {
 			logger.log(Level.WARNING, "[deleteTemplateFile] - Failed to deleted template file " + templatesPath
 					+ ", Error: " + e.getMessage(), e);
 			throw new RestErrorException("failed_to_remove_template_file", templatesPath, e.getMessage());
@@ -4619,14 +4558,15 @@ public class ServiceController implements ServiceDetailsProvider {
 					"template file was not deleted.");
 		}
 		logger.log(Level.FINE, "[deleteTemplateFile] - Successfully deleted template file [" + templatesPath + "].");
-		File templateFolder = templateFile.getParentFile();
-		File[] templatesFiles = DSLReader.findDefaultDSLFiles(DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX, templateFolder);
+		final File templateFolder = templateFile.getParentFile();
+		final File[] templatesFiles =
+				DSLReader.findDefaultDSLFiles(DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX, templateFolder);
 		if (templatesFiles == null || templatesFiles.length == 0) {
 			try {
 				logger.log(Level.FINE, "[deleteTemplateFile] - templates folder is empty, deleting the folder [" 
 						+ templatesPath + "].");
 				FileUtils.deleteDirectory(templateFolder);
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				logger.log(Level.WARNING, "[deleteTemplateFile] - Failed to delete templates folder" 
 						+ templateFolder, e);
 			}
@@ -4634,7 +4574,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			// delete properties and overrides files if exist.
 			ComputeTemplatesReader.removeTemplateFiles(templateFolder, templateName);
 		}
-		File templatesFolder = getTemplatesFolder();
+		final File templatesFolder = getTemplatesFolder();
 		if (templatesFolder.list().length == 0) {
 			templateFolder.delete();
 		}
@@ -4642,8 +4582,8 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 * Gets the template's file. Scans all templates folders in
-	 * {@link CloudifyConstants#ADDITIONAL_TEMPLATES_FOLDER_NAME} directory,
-	 * searches for a file with file name templateName-template.groovy.
+	 * {@link CloudifyConstants#ADDITIONAL_TEMPLATES_FOLDER_NAME} directory, searches for a file with file name
+	 * templateName-template.groovy.
 	 * 
 	 * @param templateName
 	 *            the name of the template (also the prefix of the wanted file).
@@ -4652,17 +4592,18 @@ public class ServiceController implements ServiceDetailsProvider {
 	private File getTemplateFile(final String templateName) {
 		final String templateFileName = templateName + DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX;
 
-		File templatesFolder = getTemplatesFolder();
-		File[] templatesFolders = templatesFolder.listFiles();
+		final File templatesFolder = getTemplatesFolder();
+		final File[] templatesFolders = templatesFolder.listFiles();
 		for (final File templateFolder : templatesFolders) {
 			logger.log(Level.FINE, "Searching for template file " + templateFileName + " in "
 					+ templateFolder.getAbsolutePath());
-			File[] listFiles = templateFolder.listFiles(new FilenameFilter() {
+			final File[] listFiles = templateFolder.listFiles(new FilenameFilter() {
+				@Override
 				public boolean accept(final File dir, final String name) {
 					return templateFileName.equals(name);
 				}
 			});
-			int length = listFiles.length;
+			final int length = listFiles.length;
 			if (length == 0) {
 				logger.log(Level.WARNING, "Didn't find template file with name " + templateName + " at "
 						+ templateFolder.getAbsolutePath());
@@ -4678,10 +4619,10 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	private List<String> getTemplateServices(final String templateName) {
-		List<String> services = new LinkedList<String>();
-		ProcessingUnits processingUnits = admin.getProcessingUnits();
-		for (ProcessingUnit processingUnit : processingUnits) {
-			Properties puProps = processingUnit.getBeanLevelProperties().getContextProperties();
+		final List<String> services = new LinkedList<String>();
+		final ProcessingUnits processingUnits = admin.getProcessingUnits();
+		for (final ProcessingUnit processingUnit : processingUnits) {
+			final Properties puProps = processingUnit.getBeanLevelProperties().getContextProperties();
 			final String puTemplateName = puProps.getProperty(CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE);
 				if (puTemplateName != null && puTemplateName.equals(templateName)) {
 					services.add(processingUnit.getName());
@@ -4691,20 +4632,18 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 	
 	/**
-	 * Returns a valid response if the user is fully authorized and has permissions
-	 * for installing an application.
+	 * Returns a valid response if the user is fully authorized and has permissions for installing an application.
 	 * 
 	 * @param applicationName 
 	 * 		the application name.
-	 * @return 
-	 * 			a valid response if the user is fully authorized and has permissions
-	 * 			for installing an application.
+	 * @return a valid response if the user is fully authorized and has permissions for installing an application.
 	 * @throws RestErrorException 
 	 * 			in-case the application name is already taken by a different group.
 	 */
 	@RequestMapping(value = "application/{applicationName}/install/permissions", method = RequestMethod.GET)
 	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')")
-	@ResponseBody public Map<String, Object> hasInstallPermissions(
+	@ResponseBody
+	public Map<String, Object> hasInstallPermissions(
 			@PathVariable final String applicationName) throws RestErrorException {
 		if (admin.getApplications().getNames().containsKey(applicationName)) {
 			throw new RestErrorException(ResponseConstants.APPLICATION_NAME_IS_ALREADY_IN_USE, applicationName);
@@ -4712,10 +4651,156 @@ public class ServiceController implements ServiceDetailsProvider {
 		return successStatus();
 	}
 	
+	private ProcessingUnitInstance[] getManagementInstances() throws RestErrorException {
+		int expectedManagers = 1;
+		if (this.cloud != null) {
+			expectedManagers = this.cloud.getProvider().getNumberOfManagementMachines();
+		}
+
+		if (this.admin == null) {
+			throw new IllegalStateException("Admin is null");
+		}
+
+		final ProcessingUnit pu = admin.getProcessingUnits().getProcessingUnit("rest");
+		if (pu == null) {
+			throw new IllegalStateException("Cannot find rest PU in admin API");
+		}
+
+		pu.waitFor(expectedManagers, MANAGEMENT_PUI_LOOKUP_TIMEOUT, TimeUnit.SECONDS);
+
+		final ProcessingUnitInstance[] instances = pu.getInstances();
+		if (instances.length != expectedManagers) {
+			throw new RestErrorException(CloudifyErrorMessages.MANAGEMENT_SERVERS_NUMBER_NOT_MATCH.getName(),
+					expectedManagers, instances.length);
+		}
+
+		return instances;
+		// final GridServiceAgent[] agents = new GridServiceAgent[expectedManagers];
+		// for (int i = 0; i < instances.length; i++) {
+		// ProcessingUnitInstance instance = instances[i];
+		// GridServiceAgent agent = instance.getGridServiceContainer().getGridServiceAgent();
+		//
+		// if (agent == null) {
+		// throw new IllegalStateException("Failed to find agent for management instance: "
+		// + instance.getProcessingUnitInstanceName());
+		// }
+		//
+		// agents[i] = agent;
+		//
+		// }
+
+	}
+
+	@RequestMapping(value = "/controllers", method = RequestMethod.GET)
+	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
+	@ResponseBody
+	public Map<String, Object> getManagers() throws RestErrorException {
+		final ProcessingUnitInstance[] instances = getManagementInstances();
+		final ControllerDetails[] controllers = createControllerDetails(instances);
+		return successStatus(controllers);
+
+	}
+
+	private ControllerDetails[] createControllerDetails(final ProcessingUnitInstance[] instances) {
+		final ControllerDetails[] controllers = new ControllerDetails[instances.length];
+
+		boolean bootstrapToPublicIp = false;
+		if (this.cloud != null) {
+			bootstrapToPublicIp = this.cloud.getConfiguration().isBootstrapManagementOnPublicIp();
+		}
+
+		for (int i = 0; i < instances.length; i++) {
+			controllers[i] = new ControllerDetails();
+			final ProcessingUnitInstance instance = instances[i];
+			final Map<String, String> env = instance.getVirtualMachine().getDetails().getEnvironmentVariables();
+			final String privateIp = env.get(CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVATE_IP);
+			final String publicIp = env.get(CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP);
+
+			controllers[i].setPrivateIp(privateIp);
+			controllers[i].setPublicIp(publicIp);
+			controllers[i].setInstanceId(instance.getInstanceId());
+
+			controllers[i].setBootstrapToPublicIp(bootstrapToPublicIp);
+		}
+		return controllers;
+	}
+
+	/********
+	 * Schedules termination of all agents running the cloudify manager.
+	 *
+	 * @return success indication.
+	 * @throws RestErrorException
+	 *             if there was a problem. See error codes for more details.
+	 */
+	@RequestMapping(value = "controllers", method = RequestMethod.DELETE)
+	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
+	@ResponseBody
+	public Map<String, Object> shutdownManagers() throws RestErrorException {
+
+		if (this.cloud == null) {
+			throw new RestErrorException(
+					CloudifyErrorMessages.MANAGEMENT_SERVERS_SHUTDOWN_NOT_ALLOWED_ON_LOCALCLOUD.getName());
+		}
+
+		final ProcessingUnitInstance[] instances = getManagementInstances();
+		final ControllerDetails[] controllers = createControllerDetails(instances);
+
+		final GridServiceAgent[] agents = new GridServiceAgent[instances.length];
+		for (int i = 0; i < instances.length; i++) {
+			final ProcessingUnitInstance instance = instances[i];
+			final GridServiceAgent agent = instance.getGridServiceContainer().getGridServiceAgent();
+			if (agent == null) {
+				throw new IllegalStateException("Failed to find agent for management instance: "
+						+ instance.getProcessingUnitInstanceName());
+			}
+			agents[i] = agent;
+		}
+
+		final Map<String, Object> map = successStatus(controllers);
+
+		// IMPORTANT: we are using a new thread and not the thread pool so that in case
+		// of the thread pool being overtaxed, this action will still be executed.
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				logger.info("Shutdown of management agent will commence in: "
+						+ MANAGEMENT_AGENT_SHUTDOWN_INTERNAL_SECONDS + " seconds");
+				try {
+					Thread.sleep(TimeUnit.SECONDS.toMillis(MANAGEMENT_AGENT_SHUTDOWN_INTERNAL_SECONDS));
+				} catch (final InterruptedException e) {
+					// ignore
+				}
+
+				logger.info("Initiating shutdown of management agents");
+				for (final GridServiceAgent agent : agents) {
+					logger.info("Shutting down agent: " + getAgentDescription(agent));
+					try {
+						agent.shutdown();
+					} catch (final Exception e) {
+						logger.log(Level.WARNING, "Attempt to shutdown management agent failed: " + e.getMessage(), e);
+					}
+				}
+
+			}
+
+		}).start();
+
+		return map;
+	}
+
+	private String getAgentDescription(final GridServiceAgent agent) {
+
+		return agent.getUid() + " at " + agent.getMachine().getHostAddress()
+				+ "/" + agent.getMachine().getHostAddress();
+	}
+
 	/**
-	 * Returns the name of the protocol used for communication with the rest server.
-	 * If the security is secure (SSL) returns "https", otherwise returns "http".
-	 * @param isSecureConnection Indicates whether SSL is used or not.
+	 * Returns the name of the protocol used for communication with the rest server. If the security is secure (SSL)
+	 * returns "https", otherwise returns "http".
+	 *
+	 * @param isSecureConnection
+	 *            Indicates whether SSL is used or not.
 	 * @return "https" if this is a secure connection, "http" otherwise.
 	 */
 	private static String getRestProtocol(final boolean isSecureConnection) {
@@ -4728,9 +4813,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	
 	private GSRestClient createRestClient(final String host, final String port, final String username, 
 			final String password) throws RestException, MalformedURLException {
-		String protocol = getRestProtocol(permissionEvaluator != null);
-		String baseUrl = protocol + "://" + host + ":" + port;
-		String versionName = PlatformVersion.getVersion() + "-Cloudify-" + PlatformVersion.getMilestone();
+		final String protocol = getRestProtocol(permissionEvaluator != null);
+		final String baseUrl = protocol + "://" + host + ":" + port;
+		final String versionName = PlatformVersion.getVersion() + "-Cloudify-" + PlatformVersion.getMilestone();
 		return new GSRestClient(new UsernamePasswordCredentials(username, password), new URL(baseUrl), versionName);
 	}
 }
