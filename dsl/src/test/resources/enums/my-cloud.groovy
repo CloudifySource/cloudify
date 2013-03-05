@@ -1,4 +1,3 @@
-
 cloud {
 	// Mandatory. The name of the cloud, as it will appear in the Cloudify UI.
 	name = "ec2"
@@ -75,13 +74,13 @@ cloud {
 				templates ([
 				
 					SMALL_BLOCK : storageTemplate{
-						namePrefix (create/reuse)
+						deleteOnExit true
 						size 1
-						deleteOnExit true/false
-						path "/dev/vdc/"
-						custom ([
-							"openstack.storage.volume.zone": nova
-						])
+						path "/storageVolume"
+						namePrefix "NamePrefix"
+						deviceName "/dev/vdc"
+						fileSystemType "ext4"
+						custom (["key":"value"])
 					}	
 				])
 	}

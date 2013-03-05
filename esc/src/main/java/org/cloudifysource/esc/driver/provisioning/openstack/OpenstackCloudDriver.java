@@ -57,6 +57,7 @@ import com.sun.jersey.api.client.filter.LoggingFilter;
  * @deprecated
  * 
  */
+@Deprecated
 public class OpenstackCloudDriver extends CloudDriverSupport implements ProvisioningDriver {
 
 	private static final int MILLIS_IN_SECOND = 1000;
@@ -824,8 +825,6 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 	@Override
 	public Object getComputeContext() {
-		// TODO Auto-generated method stub
 		return null;
 	}
-
 }
