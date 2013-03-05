@@ -137,6 +137,9 @@ public class LocalhostGridAgentBootstrapper {
 	private static final String[] WINDOWS_ARGUMENTS_POSTFIX = new String[] { ">nul", "2>&1" };
 
 	private static final String[] LINUX_ARGUMENTS_POSTFIX = new String[] { ">/dev/null", "2>&1" };
+	
+	private static final String LOCALCLOUD_REST_MEMORY = "128m";
+	private static final String LOCALCLOUD_WEBUI_MEMORY = "256m";
 
 	private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -984,13 +987,16 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	private String getGscLrmiCommandLineArg() {
-		String lrmiPortRangeCommandLineArgument = "-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "=";
-		String portRange = System.getenv().get(CloudifyConstants.GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR);
-		if (!org.apache.commons.lang.StringUtils.isEmpty(portRange)) {
+		String lrmiPortRangeCommandLineArgument = "";
+		if (!isLocalCloud) {
+			lrmiPortRangeCommandLineArgument = "-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "=";
+			String portRange = System.getenv().get(CloudifyConstants.GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR);
+			if (org.apache.commons.lang.StringUtils.isEmpty(portRange)) {
+				throw new IllegalArgumentException("Could not find gsc lrmi port range variable in environment.");
+			}
 			lrmiPortRangeCommandLineArgument += portRange;
-			return lrmiPortRangeCommandLineArgument;
 		}
-		throw new IllegalArgumentException("Could not find gsc lrmi port range variable in environment.");
+		return lrmiPortRangeCommandLineArgument;
 	}
 
 	private void installWebServices(final String username, final String password, final boolean isLocalCloud,
@@ -1061,20 +1067,47 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	private String getWebServiceMemory(final String memoryEnvironmentVar) {
-		final String memoryString = System.getenv().get(memoryEnvironmentVar);
-		if (org.apache.commons.lang.StringUtils.isNotBlank(memoryString)) {
-			return memoryString;
-		} 
-		throw new IllegalStateException("Could not find web-service memory capacity variable in environment.");
+		String memoryString; 
+		if (isLocalCloud) {
+			if (memoryEnvironmentVar.equals(CloudifyConstants.REST_MAX_MEMORY_ENVIRONMENT_VAR)) {
+				memoryString = LOCALCLOUD_REST_MEMORY;
+			} else {
+				memoryString = LOCALCLOUD_WEBUI_MEMORY;
+			}
+		} else {
+			memoryString = System.getenv().get(memoryEnvironmentVar);
+			if (org.apache.commons.lang.StringUtils.isBlank(memoryString)) {
+				throw new IllegalStateException("Could not find web-service memory capacity variable in environment.");
+			} 
+			
+		}
+		return memoryString;
 	}
 
-	private int getWebservicePort(String portEnvVriable, boolean isSecureConnection) {
-		String port = System.getenv().get(portEnvVriable);
-		if (org.apache.commons.lang.StringUtils.isNotBlank(port)) {
-			return Integer.parseInt(port);
+	private int getWebservicePort(final String portEnvVriable, final boolean isSecureConnection) {
+		int port;
+		if (isLocalCloud) {
+			if (portEnvVriable.equals(CloudifyConstants.WEBUI_PORT_ENV_VAR)) {
+				if (isSecureConnection) {
+					port = CloudifyConstants.SECURE_WEBUI_PORT;
+				} else {
+					port = CloudifyConstants.DEFAULT_WEBUI_PORT;
+				}
+			} else {
+				if (isSecureConnection) {
+					port = CloudifyConstants.SECURE_REST_PORT;
+				} else {
+					port = CloudifyConstants.DEFAULT_REST_PORT;
+				}
+			}
+		} else {
+			String portAsString = System.getenv().get(portEnvVriable);
+			if (org.apache.commons.lang.StringUtils.isBlank(portAsString)) {
+				throw new IllegalStateException("Could not find web-service port variable in environment");
+			}
+			port = Integer.parseInt(portAsString);
 		}
-		throw new IllegalStateException("Could not find web-service port variable in environment");
-
+		return port;
 	}
 
 	private void startLocalCloudManagementServicesContainer(final GridServiceAgent agent) {
