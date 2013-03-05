@@ -284,6 +284,14 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 
 	}
 
+	/*********
+	 * .
+	 * @param endTime .
+	 * @param numberOfManagementMachines .
+	 * @return .
+	 * @throws TimeoutException .
+	 * @throws CloudProvisioningException .
+	 */
 	protected MachineDetails[] doStartManagementMachines(final long endTime, final int numberOfManagementMachines)
 			throws TimeoutException, CloudProvisioningException {
 		final ExecutorService executors = Executors.newFixedThreadPool(numberOfManagementMachines);
@@ -292,7 +300,8 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		final Future<MachineDetails>[] futures = (Future<MachineDetails>[]) new Future<?>[numberOfManagementMachines];
 
 		final ComputeTemplate managementTemplate =
-				this.cloud.getCloudCompute().getTemplates().get(this.cloud.getConfiguration().getManagementMachineTemplate());
+				this.cloud.getCloudCompute().getTemplates().get(
+						this.cloud.getConfiguration().getManagementMachineTemplate());
 		try {
 			// Call startMachine asynchronously once for each management
 			// machine
