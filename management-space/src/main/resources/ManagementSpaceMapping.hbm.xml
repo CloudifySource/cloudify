@@ -11,7 +11,7 @@
             <column name="KEY" length="256" />
         </property>
         <property name="value" type="serializable">
-            <column name="VALUE" />
+            <column name="VALUE" length="4096" />
         </property>
     </class>
 
@@ -23,7 +23,7 @@
             <column name="KEY" length="256" />
         </property>
         <property name="value" type="serializable">
-            <column name="VALUE" />
+            <column name="VALUE" length="4096" />
         </property>
         <property name="applicationName" type="string">
             <column name="APPLICATIONNAME" length="256" />
@@ -38,7 +38,7 @@
             <column name="KEY" length="256" />
         </property>
         <property name="value" type="serializable">
-            <column name="VALUE" />
+            <column name="VALUE" length="4096" />
         </property>
         <property name="applicationName" type="string">
             <column name="APPLICATIONNAME" length="256" />
@@ -56,7 +56,7 @@
             <column name="KEY" length="256" />
         </property>
         <property name="value" type="serializable">
-            <column name="VALUE" />
+            <column name="VALUE" length="4096"/>
         </property>
         <property name="applicationName" type="string">
             <column name="APPLICATIONNAME" length="256" />
