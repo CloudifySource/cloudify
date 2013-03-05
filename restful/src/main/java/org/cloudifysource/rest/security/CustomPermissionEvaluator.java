@@ -53,7 +53,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 	private static final String SPRING_SECURITY_PROFILE = 
 			System.getenv(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR);
 	
-	private Logger logger = java.util.logging.Logger.getLogger(CustomPermissionEvaluator.class.getName());
+	private final Logger logger = java.util.logging.Logger.getLogger(CustomPermissionEvaluator.class.getName());
 
 	/**
 	 * Checks if the current user should be granted the requested permission on the target object.
@@ -79,7 +79,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     		final Object permission) {
 		
 		if (StringUtils.isBlank(SPRING_SECURITY_PROFILE) 
-				|| SPRING_SECURITY_PROFILE.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_NON_SECURE)) {
+				|| SPRING_SECURITY_PROFILE.contains(CloudifyConstants.SPRING_PROFILE_NON_SECURE)) {
 			//security is off
 			return true;
 		}
