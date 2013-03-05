@@ -33,8 +33,8 @@ public class RestComponent  extends GridComponent {
 	private Integer port;
 	
 	public RestComponent() {
-		this.setMaxMemory(CloudifyConstants.DEFAULT_REST_MAX_MEMORY);
-		this.setMinMemory(CloudifyConstants.DEFAULT_REST_MIN_MEMORY);
+		this.setMaxMemory("128m");
+		this.setMinMemory("128m");
 		this.setPort(CloudifyConstants.DEFAULT_REST_PORT);
 	}
 

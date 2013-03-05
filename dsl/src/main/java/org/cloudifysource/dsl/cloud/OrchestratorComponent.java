@@ -16,7 +16,6 @@
 package org.cloudifysource.dsl.cloud;
 
 import org.cloudifysource.dsl.DSLValidation;
-import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
@@ -34,9 +33,9 @@ public class OrchestratorComponent extends GridComponent {
 	private Integer port;
 	
 	public OrchestratorComponent() {
-		this.setMaxMemory(CloudifyConstants.DEFAULT_ESM_MAX_MEMORY);
-		this.setMinMemory(CloudifyConstants.DEFAULT_ESM_MIN_MEMORY);
-		this.setPort(CloudifyConstants.DEFAULT_ESM_LRMI_PORT);
+		this.setMaxMemory("128m");
+		this.setMinMemory("128m");
+		this.setPort(7003);
 	}
 
 	public Integer getPort() {

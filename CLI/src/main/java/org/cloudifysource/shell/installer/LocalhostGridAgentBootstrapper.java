@@ -988,10 +988,9 @@ public class LocalhostGridAgentBootstrapper {
 		String portRange = System.getenv().get(CloudifyConstants.GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR);
 		if (!org.apache.commons.lang.StringUtils.isEmpty(portRange)) {
 			lrmiPortRangeCommandLineArgument += portRange;
-		} else {
-			lrmiPortRangeCommandLineArgument += CloudifyConstants.DEFAULT_GSC_LRMI_PORT_RANGE;
+			return lrmiPortRangeCommandLineArgument;
 		}
-		return lrmiPortRangeCommandLineArgument;
+		throw new IllegalArgumentException("Could not find gsc lrmi port range variable in environment.");
 	}
 
 	private void installWebServices(final String username, final String password, final boolean isLocalCloud,

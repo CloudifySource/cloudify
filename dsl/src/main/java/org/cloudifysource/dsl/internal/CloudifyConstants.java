@@ -319,41 +319,18 @@ public final class CloudifyConstants {
 	/*********************
 	 * service grid components configuration.
 	 */
-	public static final String DEFAULT_AGENT_MAX_MEMORY = "128m";
-	public static final String DEFAULT_AGENT_MIN_MEMORY = "128m";
-	public static final int DEFAULT_AGENT_LRMI_PORT = 7002;
-
-	public static final String DEFAULT_GSM_MAX_MEMORY = "128m";
-	public static final String DEFAULT_GSM_MIN_MEMORY = "128m";
-	public static final int DEFAULT_GSM_LRMI_PORT = 7000;
-	public static final int DEFAULT_GSM_WEBSTER_PORT = 6666;
-
-	public static final String DEFAULT_LUS_MAX_MEMORY = "128m";
-	public static final String DEFAULT_LUS_MIN_MEMORY = "128m";
-	public static final int DEFAULT_LUS_LRMI_PORT = 7001;
 	public static final int DEFAULT_LUS_PORT = net.jini.discovery.Constants
 			.getDiscoveryPort();
-
-	public static final String DEFAULT_ESM_MAX_MEMORY = "128m";
-	public static final String DEFAULT_ESM_MIN_MEMORY = "128m";
-	public static final int DEFAULT_ESM_LRMI_PORT = 7003;
-
-	public static final String DEFAULT_GSC_MAX_MEMORY = "128m";
-	public static final String DEFAULT_GSC_MIN_MEMORY = "128m";
-	public static final String DEFAULT_GSC_LRMI_PORT_RANGE = "7010-7110";
-
-	public static final String DEFAULT_REST_MAX_MEMORY = "128m";
-	public static final String DEFAULT_REST_MIN_MEMORY = "128m";
 	public static final int DEFAULT_REST_PORT = 8100;
 	public static final int SECURE_REST_PORT = 8100;
-
-	public static final String DEFAULT_WEBUI_MAX_MEMORY = "256m";
-	public static final String DEFAULT_WEBUI_MIN_MEMORY = "128m";
 	public static final int DEFAULT_WEBUI_PORT = 8099;
 	public static final int SECURE_WEBUI_PORT = 8099;
 
 	public static final int MANAGEMENT_SPACE_MEMORY_IN_MB = 64;
 
+	/*********************
+	 * localcloud grid component configuration
+	 */
 	public static final int DEFAULT_LOCALCLOUD_LUS_PORT = DEFAULT_LUS_PORT + 2;
 	//localcloud memory configuration properties.
 	public static final int DEFAULT_LOCALCLOUD_REST_WEBUI_SPACE_MEMORY_IN_MB = 256;

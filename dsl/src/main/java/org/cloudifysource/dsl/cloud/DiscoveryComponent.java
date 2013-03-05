@@ -35,10 +35,10 @@ public class DiscoveryComponent extends GridComponent {
 	private Integer port;
 	
 	public DiscoveryComponent() {
-		this.setMaxMemory(CloudifyConstants.DEFAULT_LUS_MAX_MEMORY);
-		this.setMinMemory(CloudifyConstants.DEFAULT_LUS_MIN_MEMORY);
+		this.setMaxMemory("128m");
+		this.setMinMemory("128m");
 		this.setDiscoveryPort(CloudifyConstants.DEFAULT_LUS_PORT);
-		this.setPort(CloudifyConstants.DEFAULT_LUS_LRMI_PORT);
+		this.setPort(7001);
 	}
 
 	public Integer getDiscoveryPort() {

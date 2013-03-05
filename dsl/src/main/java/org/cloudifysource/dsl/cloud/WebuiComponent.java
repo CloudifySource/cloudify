@@ -34,8 +34,8 @@ public class WebuiComponent extends GridComponent {
 	private Integer port;
 
 	public WebuiComponent() {
-		this.setMaxMemory(CloudifyConstants.DEFAULT_WEBUI_MAX_MEMORY);
-		this.setMinMemory(CloudifyConstants.DEFAULT_WEBUI_MIN_MEMORY);
+		this.setMaxMemory("256m");
+		this.setMinMemory("128m");
 		this.setPort(CloudifyConstants.DEFAULT_WEBUI_PORT);
 	}
 	public Integer getPort() {

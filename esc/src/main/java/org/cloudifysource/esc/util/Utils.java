@@ -236,16 +236,17 @@ public final class Utils {
 		details.setCloudFile(cloudFile);
 		details.setManagement(isManagement);
 		final GridComponents componentsConfig = cloud.getConfiguration().getComponents();
+		GridCommandLineBuilder gridCommandBuilder = new GridCommandLineBuilder();
 		if (isManagement) {
 			details.setConnectedToPrivateIp(!cloud.getConfiguration().isBootstrapManagementOnPublicIp());
 			details.setSecurityProfile(securityProfile);
 			details.setKeystorePassword(keystorePassword);
-
+			
 			// setting management grid components command-line arguments
-			final String esmCommandlineArgs = ConfigUtils.getEsmCommandlineArgs(componentsConfig.getOrchestrator());
+			final String esmCommandlineArgs = gridCommandBuilder.getEsmCommandlineArgs(componentsConfig.getOrchestrator());
 			final String lusCommandlineArgs =
-					ConfigUtils.getLusCommandlineArgs(componentsConfig.getDiscovery(), lookupLocatorsString);
-			final String gsmCommandlineArgs = ConfigUtils.getGsmCommandlineArgs(cloud, lookupLocatorsString,
+					gridCommandBuilder.getLusCommandlineArgs(componentsConfig.getDiscovery(), lookupLocatorsString);
+			final String gsmCommandlineArgs = gridCommandBuilder.getGsmCommandlineArgs(cloud, lookupLocatorsString,
 					componentsConfig.getDeployer(), componentsConfig.getDiscovery());
 			details.setEsmCommandlineArgs('"' + esmCommandlineArgs + '"');
 			details.setLusCommandlineArgs('"' + lusCommandlineArgs + '"');
@@ -262,7 +263,7 @@ public final class Utils {
 		} else {
 			details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		}
-		details.setGsaCommandlineArgs('"' + ConfigUtils.getAgentCommandlineArgs(componentsConfig.getAgent()) + '"');
+		details.setGsaCommandlineArgs('"' + gridCommandBuilder.getAgentCommandlineArgs(componentsConfig.getAgent()) + '"');
 
 		// Add all template custom data fields starting with 'installer.' to the
 		// installation details

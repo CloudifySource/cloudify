@@ -16,7 +16,6 @@
 package org.cloudifysource.dsl.cloud;
 
 import org.cloudifysource.dsl.DSLValidation;
-import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
@@ -35,10 +34,10 @@ public class DeployerComponent extends GridComponent {
 	private Integer port;
 	
 	public DeployerComponent() {
-		this.setMaxMemory(CloudifyConstants.DEFAULT_GSM_MAX_MEMORY);
-		this.setMinMemory(CloudifyConstants.DEFAULT_GSM_MIN_MEMORY);
-		this.setWebsterPort(CloudifyConstants.DEFAULT_GSM_WEBSTER_PORT);
-		this.setPort(CloudifyConstants.DEFAULT_GSM_LRMI_PORT);
+		this.setMaxMemory("128m");
+		this.setMinMemory("128m");
+		this.setWebsterPort(6666);
+		this.setPort(7000);
 	}
 
 	public Integer getPort() {

@@ -16,7 +16,6 @@
 package org.cloudifysource.dsl.cloud;
 
 import org.cloudifysource.dsl.DSLValidation;
-import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
@@ -33,9 +32,9 @@ public class AgentComponent extends GridComponent {
 	private Integer port;
 	
 	public AgentComponent() {
-		this.setMaxMemory(CloudifyConstants.DEFAULT_AGENT_MAX_MEMORY);
-		this.setMinMemory(CloudifyConstants.DEFAULT_AGENT_MIN_MEMORY);
-		this.setPort(CloudifyConstants.DEFAULT_AGENT_LRMI_PORT);
+		this.setMaxMemory("128m");
+		this.setMinMemory("128m");
+		this.setPort(7002);
 	}
 
 	public Integer getPort() {

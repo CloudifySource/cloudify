@@ -25,7 +25,7 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
  * @author adaml
  * @since 2.5.0
  */
-public final class ConfigUtils {
+public final class GridCommandLineBuilder {
 
 	private static final String GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL = "true";
 	private static final String GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE = "gsm.excludeGscOnFailedInstance.disabled";
@@ -35,11 +35,6 @@ public final class ConfigUtils {
 	private static final String DISABLE_MULTICAST = "-Dcom.gs.multicast.enabled=false";
 
 	private static final String AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT = "-Dcom.gs.agent.auto-shutdown-enabled=true";
-
-
-	// this class should not be instantiated.
-	private ConfigUtils() {
-	}
 
 	/**
 	 * Constructs and returns the GSM commandline arguments.
@@ -55,11 +50,11 @@ public final class ConfigUtils {
 	 *            Discovery config
 	 * @return Commandline arguments for the GSM
 	 */
-	public static String getGsmCommandlineArgs(final Cloud cloud, final String lookupLocatorsString,
+	public String getGsmCommandlineArgs(final Cloud cloud, final String lookupLocatorsString,
 			final DeployerComponent deployer, final DiscoveryComponent discovery) {
 
 		String gsmCommandLineArgs =
-				"-Xmx" + CloudifyConstants.DEFAULT_GSM_MAX_MEMORY + " -D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY
+				"-D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY
 						+ "=" + CloudifyConstants.DEFAULT_LUS_PORT
 						+ " -D" + GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "=" + GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL
 						+ " -D"
@@ -99,10 +94,10 @@ public final class ConfigUtils {
 	 * @param lookupLocatorsString
 	 * @return Commandline arguments for the LUS
 	 */
-	public static String getLusCommandlineArgs(final DiscoveryComponent discovery, final String lookupLocatorsString) {
+	public String getLusCommandlineArgs(final DiscoveryComponent discovery, final String lookupLocatorsString) {
 
 		String lusCommandLineArgs =
-				"-Xmx" + CloudifyConstants.DEFAULT_LUS_MAX_MEMORY + " -D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY
+				"-D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY
 						+ "=" +  CloudifyConstants.DEFAULT_LUS_PORT
 						+ " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;
 
@@ -128,10 +123,9 @@ public final class ConfigUtils {
 	 *            Agent config
 	 * @return Commandline arguments for the GSA
 	 */
-	public static String getAgentCommandlineArgs(final AgentComponent agent) {
+	public String getAgentCommandlineArgs(final AgentComponent agent) {
 
-		String agentCommandLineArgs = "-Xmx" + CloudifyConstants.DEFAULT_AGENT_MAX_MEMORY;
-		agentCommandLineArgs += " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;
+		 String agentCommandLineArgs = "-D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;
 
 		agentCommandLineArgs += " " + AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT;
 		agentCommandLineArgs += " ";
@@ -149,14 +143,14 @@ public final class ConfigUtils {
 	 *            Esm config
 	 * @return Commandline arguments for the ESM
 	 */
-	public static String getEsmCommandlineArgs(final OrchestratorComponent esm) {
+	public String getEsmCommandlineArgs(final OrchestratorComponent esm) {
 		String esmCommandLineArgs = "";
 		esmCommandLineArgs += getComponentMemoryArgs(esm.getMaxMemory(), esm.getMinMemory());
 		esmCommandLineArgs += getComponentRmiArgs(esm.getPort().toString());
 		return esmCommandLineArgs;
 	}
 
-	private static String getComponentRmiArgs(final String rmiPort) {
+	private String getComponentRmiArgs(final String rmiPort) {
 		String rmiCommandlineArgs = "";
 		if (rmiPort != null) {
 			rmiCommandlineArgs += " -D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "=" + rmiPort;
@@ -164,7 +158,7 @@ public final class ConfigUtils {
 		return rmiCommandlineArgs;
 	}
 
-	private static String getComponentMemoryArgs(final String maxMemory, final String minMemory) {
+	private String getComponentMemoryArgs(final String maxMemory, final String minMemory) {
 		String memoryCommandLineArgs = "";
 		if (maxMemory != null) {
 			memoryCommandLineArgs += " -Xmx" + maxMemory;

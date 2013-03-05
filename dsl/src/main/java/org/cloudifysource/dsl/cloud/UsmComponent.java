@@ -17,7 +17,6 @@ package org.cloudifysource.dsl.cloud;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.DSLValidation;
-import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
@@ -35,9 +34,9 @@ public class UsmComponent extends GridComponent {
 	private String portRange;
 
 	public UsmComponent() {
-		this.setMaxMemory(CloudifyConstants.DEFAULT_GSC_MAX_MEMORY);
-		this.setMinMemory(CloudifyConstants.DEFAULT_GSC_MIN_MEMORY);
-		this.setPortRange(CloudifyConstants.DEFAULT_GSC_LRMI_PORT_RANGE);
+		this.setMaxMemory("128m");
+		this.setMinMemory("128m");
+		this.setPortRange("7010-7110");
 	}
 
 	public String getPortRange() {
