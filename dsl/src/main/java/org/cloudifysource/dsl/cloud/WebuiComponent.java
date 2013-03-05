@@ -48,11 +48,11 @@ public class WebuiComponent extends GridComponent {
 	
 	@DSLValidation
 	void validatePort(final DSLValidationContext validationContext) throws DSLValidationException {
-		if (this.port == null) {
-			throw new DSLValidationException("LRMI port can't be null");
-		}
-		if (this.port <= 1024 || this.port > 65535) {
-			throw new DSLValidationException("LRMI port must be set to a positive integer between 1024 and 65535");
-		}
+		super.validatePort(this.port);
+	}
+	
+	@DSLValidation
+	void validateMemory(final DSLValidationContext validationContext) throws DSLValidationException {
+		super.validateMemorySyntax();
 	}
 }

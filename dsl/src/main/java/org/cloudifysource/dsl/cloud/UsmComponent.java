@@ -48,16 +48,8 @@ public class UsmComponent extends GridComponent {
 		this.portRange = portRange;
 	}
 
-	
 	@DSLValidation
-	void validatePort(final DSLValidationContext validationContext) throws DSLValidationException {
-		if (this.portRange == null) {
-			throw new DSLValidationException("LRMI port range can't be null");
-		}
-	}
-
-	@DSLValidation
-	void validatePortRange(final DSLValidationContext validationContext) throws DSLValidationException {
+	public void validatePortRange(final DSLValidationContext validationContext) throws DSLValidationException {
 		if (StringUtils.isEmpty(this.portRange)) {
 			throw new DSLValidationException("LRMI port can't be null");
 		}
@@ -65,19 +57,30 @@ public class UsmComponent extends GridComponent {
 		if (range.length != 2) {
 			throw new DSLValidationException("LRMI port range should be set as '<START_PORT>-<END_PORT>'");
 		}
-		try {
-			if (parseInt(range[0]) <= 1024 || parseInt(range[1]) <= 1024 
-					|| parseInt(range[0]) > 65535 
-					|| parseInt(range[1]) > 65535) {
-				throw new DSLValidationException("LRMI port range must be set to a range between 1024 and 65535");
-			}
-		} catch (NumberFormatException e) {
-			throw new DSLValidationException("LRMI port range must be set to a range between 1024 and 65535");
+		Integer startPort = parseInt(range[0]);
+		super.validatePort(startPort);
+		Integer endPort = parseInt(range[1]);
+		super.validatePort(endPort);
+		
+		if (startPort > endPort) {
+			throw new DSLValidationException("start port must be greater than end port");
 		}
 	}
+	
+	@DSLValidation
+	public void validateMemory(final DSLValidationContext validationContext) throws DSLValidationException {
+		super.validateMemorySyntax();
+	}
 
-	private int parseInt(final String number) throws NumberFormatException {
+	private int parseInt(final String number) throws DSLValidationException {
+		if (!isNumeric(number)) {
+			throw new DSLValidationException("port range must be a number. found " + number);
+		}
 		return Integer.parseInt(number);
+	}
+	
+	private boolean isNumeric(final String str) {
+	  return str.matches("\\d*");  
 	}
 
 }
