@@ -153,6 +153,7 @@ public final class CloudifyConstants {
 	public static final String GIGASPACES_ORIGINAL_JAVA_HOME = "GIGASPACES_ORIGINAL_JAVA_HOME";
 	public static final String GIGASPACES_CLOUD_MACHINE_ID = "GIGASPACES_CLOUD_MACHINE_ID";
 	public static final String GIGASPACES_AUTH_GROUPS = "GIGASPACES_AUTH_GROUPS";
+	public static final String CLOUDIFY_CLOUD_MACHINE_IP_ADDRESS_ENV = "MACHINE_IP_ADDRESS";
 
 	/***********************************
 	 * Duplicate of Key names for environment variables available to agent in a cloudify
@@ -164,7 +165,7 @@ public final class CloudifyConstants {
 	public static final String CLOUDIFY_AGENT_ENV_PRIVATE_IP = "CLOUDIFY_AGENT_ENV_PRIVATE_IP";
 	public static final String CLOUDIFY_AGENT_ENV_PUBLIC_IP = "CLOUDIFY_AGENT_ENV_PUBLIC_IP";
 	public static final String CLOUDIFY_CLOUD_MACHINE_ID = "CLOUDIFY_CLOUD_MACHINE_ID";
-
+	public static final String CLOUDIFY_CLOUD_LOCATION_ID = "CLOUDIFY_CLOUD_LOCATION_ID";
 	public static final String CLOUDIFY_LINK_ENV = "GIGASPACES_LINK";
 	public static final String CLOUDIFY_OVERRIDES_LINK_ENV = "GIGASPACES_OVERRIDES_LINK";
 

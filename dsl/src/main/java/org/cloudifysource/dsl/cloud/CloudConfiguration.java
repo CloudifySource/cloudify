@@ -38,13 +38,7 @@ public class CloudConfiguration {
 	private String managementMachineTemplate;
 	private String managementStorageTemplate;
 
-	public String getManagementStorageTemplate() {
-		return managementStorageTemplate;
-	}
 
-	public void setManagementStorageTemplate(final String managementStorageTemplate) {
-		this.managementStorageTemplate = managementStorageTemplate;
-	}
 
 	private boolean bootstrapManagementOnPublicIp = true;
 	private boolean connectToPrivateIp = true;
@@ -148,4 +142,11 @@ public class CloudConfiguration {
 		this.storageClassName = storageClassName;
 	}
 
+	public String getManagementStorageTemplate() {
+		return managementStorageTemplate;
+	}
+
+	public void setManagementStorageTemplate(final String managementStorageTemplate) {
+		this.managementStorageTemplate = managementStorageTemplate;
+	}
 }

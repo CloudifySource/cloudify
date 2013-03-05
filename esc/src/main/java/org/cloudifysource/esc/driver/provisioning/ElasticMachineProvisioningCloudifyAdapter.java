@@ -37,6 +37,7 @@ import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
+import org.cloudifysource.dsl.context.blockstorage.StorageFacade;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
 import org.cloudifysource.dsl.internal.DSLException;
@@ -48,6 +49,7 @@ import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClas
 import org.cloudifysource.esc.driver.provisioning.events.MachineStartRequestedCloudifyEvent;
 import org.cloudifysource.esc.driver.provisioning.events.MachineStartedCloudifyEvent;
 import org.cloudifysource.esc.driver.provisioning.storage.BaseStorageDriver;
+import org.cloudifysource.esc.driver.provisioning.storage.RemoteStorageProvisioningDriverAdapter;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.storage.VolumeDetails;
@@ -314,15 +316,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			if (isStorageTemplateUsed()) {
 				String machineLocation = machineDetails.getLocationId();
 
-				VolumeDetails volumeDetails = startNewStorageVolume(machineLocation, end);
-				volumeId = volumeDetails.getId();
-				try {
-					attachStorageVolumeToMachine(machineIp, volumeDetails , end);
-				} catch (Exception e) {
-					logger.log(Level.WARNING, "Failed attaching volume. Error was " + e.getMessage(), e);
-					handleVolumeAttachException(volumeDetails);
-					throw new StorageProvisioningException(e);
-				}
+				volumeId = startNewStorageVolume(machineLocation, end);
+				attachStorageVolumeToMachine(machineIp, volumeId , end);
+				
 				StorageTemplate storageTemplate = this.cloud.getCloudStorage().getTemplates()
 								.get(this.storageTemplateName);
 				String formatType = storageTemplate.getFileSystemType();
@@ -402,42 +398,28 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		}
 	}
 
-	void handleVolumeAttachException(final VolumeDetails volumeDetails) {
-		try {
-			//TODO the first param should be the volume location
-			this.storageProvisioning.deleteVolume("", volumeDetails.getId(), 1, TimeUnit.MINUTES);
-		} catch (Exception e) {
-			logger.log(
-					Level.WARNING,
-					"Volume attachment failed. "
-							+ "Failed cleaning volume after attachment failure. ( "
-							+ volumeDetails.getId() + "). Error was: " + e.getMessage(), e);
-		}
-	}
-
-	boolean isStorageTemplateUsed() {
+	private boolean isStorageTemplateUsed() {
 		return (!StringUtils.isEmpty(this.storageTemplateName) && !this.storageTemplateName.equals("null"));
 	}
 
-	void attachStorageVolumeToMachine(final String machineIp, final VolumeDetails volumeDetails, final long end)
+	private void attachStorageVolumeToMachine(final String machineIp, final String volumeId, final long end)
 			throws TimeoutException, StorageProvisioningException {
 		 long timeout = end - System.currentTimeMillis();
-		String volumeId = volumeDetails.getId();
-		this.storageProvisioning.attachVolume(volumeId, machineIp, timeout, TimeUnit.MILLISECONDS);
+		this.storageProvisioning.attachVolume(volumeId, cloud.getCloudStorage().getTemplates()
+				.get(storageTemplateName).getDeviceName(), machineIp, timeout, TimeUnit.MILLISECONDS);
 	}
 
 	// in-case creation fails, the provisioning driver will clean the new volume.
-	VolumeDetails startNewStorageVolume(final String machineLocation, final long end) throws TimeoutException,
+	private String startNewStorageVolume(final String machineLocation, final long end) throws TimeoutException,
 			StorageProvisioningException {
 		long timeout = end - System.currentTimeMillis();
 		VolumeDetails volumeDetails = this.storageProvisioning
-				.createVolume(machineLocation, timeout, TimeUnit.MILLISECONDS);
-		return volumeDetails;
+				.createVolume(storageTemplateName, machineLocation, timeout, TimeUnit.MILLISECONDS);
+		return volumeDetails.getId();
 	}
 
 	private void handleExceptionAfterMachineCreated(final String machineIp, final String volumeId, 
 			final MachineDetails machineDetails, final long end) {
-		boolean storageTemplateUsed = isStorageTemplateUsed();
 		try {
 			// if an agent is found (not supposed to, we got here after it wasn't found earlier) - shut it down
 			boolean machineIpExists = machineIp != null && !machineIp.trim().isEmpty();
@@ -464,12 +446,15 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			this.cloudifyProvisioning.stopMachine(machineDetails.getPrivateAddress(),
 					DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE, TimeUnit.MINUTES);
 
+			boolean storageTemplateUsed = isStorageTemplateUsed();
 			if (storageTemplateUsed) {
+				logger.info("deleting created storage volume");
 				if (!StringUtils.isEmpty(volumeId)) {
 					long timeout = end - System.currentTimeMillis();
-					handleVolumeOnStopMachine(volumeId, timeout, TimeUnit.MILLISECONDS);
+					logger.info("Deleting volume with id: " + volumeId);
+					this.storageProvisioning.deleteVolume("", volumeId, timeout, TimeUnit.MILLISECONDS);
 				} else {
-					logger.log(Level.WARNING, "Failed detecting volume. Could not obtain volume details.");
+					logger.log(Level.INFO, "Storage volume was not found");
 				}
 			}
 		} catch (final Exception e) {
@@ -772,6 +757,19 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	public Map<String, String> getProperties() {
 		return this.properties;
 	}
+	
+	/**
+	 * exposes the storage API of the cloud to agent machines.
+	 * @see {@link StorageFacade}
+	 * 
+	 * DO NOT refactor this method's name since it is called via reflection by the ESM.
+	 * 
+	 * @author elip
+	 * @return
+	 */
+	public RemoteStorageProvisioningDriverAdapter getStorageImpl() {
+		return new RemoteStorageProvisioningDriverAdapter(storageProvisioning);
+	}
 
 	@Override
 	public void afterPropertiesSet()
@@ -838,24 +836,26 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				// to cloud driver.
 				handleServiceCloudConfiguration();
 				this.cloudifyProvisioning.setConfig(cloud, cloudTemplateName, false, serviceName);
-				this.storageTemplateName = config.getStorageTemplateName();
-				if (isStorageTemplateUsed()) {
+				
+				String storageClassName = this.cloud.getConfiguration().getStorageClassName();
+				if (StringUtils.isNotBlank(storageClassName)) {
+					// instantiate the storage driver if defined.
+					// even if no storage template is used, this is to allow dynamic allocation at runtime.
+					logger.info("creating storage provisioning driver.");
+					this.storageProvisioning = 
+							(StorageProvisioningDriver) Class.forName(storageClassName).newInstance();					
+					this.storageTemplateName = config.getStorageTemplateName();
 					boolean privileged = computeTemplate.isPrivileged();
 					// mounting the volume will not be possible if not running in privileged mode.
-					if (!privileged) {
-						logger.warning("Storage template defined but not running in privileged mode.");
+					if (!privileged && isStorageTemplateUsed()) {
 						throw new StorageProvisioningException("Storage mounting requires running in privileged mode."
 								+ " This should be defined in the cloud's compute template.");
 					}
-					logger.info("creating storage provisioning driver.");
-					this.storageProvisioning =
-							(StorageProvisioningDriver) Class.forName(this.cloud.getConfiguration()
-									.getStorageClassName()).newInstance();
 					if (this.storageProvisioning instanceof BaseStorageDriver) {
 						((BaseStorageDriver) this.storageProvisioning)
-												.setComputeContext(cloudifyProvisioning.getComputeContext());
+						.setComputeContext(cloudifyProvisioning.getComputeContext());
 					}
-					this.storageProvisioning.setConfig(cloud, this.cloudTemplateName, this.storageTemplateName);
+					this.storageProvisioning.setConfig(cloud, this.cloudTemplateName);
 					logger.info("storage provisioning driver created successfully.");
 				}
 			} catch (final ClassNotFoundException e) {

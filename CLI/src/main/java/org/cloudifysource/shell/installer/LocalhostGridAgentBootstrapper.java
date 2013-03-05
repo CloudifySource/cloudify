@@ -999,14 +999,14 @@ public class LocalhostGridAgentBootstrapper {
 			final List<AbstractManagementServiceInstaller> waitForManagementServices)
 			throws CLIException {
 		String gscLrmiCommandLineArg = getGscLrmiCommandLineArg();
-		long webuiMemory = getWebServiceMemory(CloudifyConstants.WEBUI_MAX_MEMORY_ENVIRONMENT_VAR);
+		final String webuiMemory = getWebServiceMemory(CloudifyConstants.WEBUI_MAX_MEMORY_ENVIRONMENT_VAR);
 		int webuiPort = getWebservicePort(CloudifyConstants.WEBUI_PORT_ENV_VAR, isSecureConnection);
 
 		final ManagementWebServiceInstaller webuiInstaller = new ManagementWebServiceInstaller();
 		webuiInstaller.setAdmin(agent.getAdmin());
 		webuiInstaller.setVerbose(verbose);
 		webuiInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
-		webuiInstaller.setMemory(webuiMemory, MemoryUnit.MEGABYTES);
+		webuiInstaller.setMemory(MemoryUnit.toMegaBytes(webuiMemory), MemoryUnit.MEGABYTES);
 		webuiInstaller.setPort(webuiPort);
 		webuiInstaller.setWarFile(new File(WEBUI_FILE));
 		webuiInstaller.setServiceName(WEBUI_NAME);
@@ -1030,13 +1030,13 @@ public class LocalhostGridAgentBootstrapper {
 			webuiInstaller.logServiceLocation();
 		}
 		final int restPort = getWebservicePort(CloudifyConstants.REST_PORT_ENV_VAR, isSecureConnection);
-		final long webServiceMemory = getWebServiceMemory(CloudifyConstants.REST_MAX_MEMORY_ENVIRONMENT_VAR);
+		final String restMemory = getWebServiceMemory(CloudifyConstants.REST_MAX_MEMORY_ENVIRONMENT_VAR);
 
 		final ManagementWebServiceInstaller restInstaller = new ManagementWebServiceInstaller();
 		restInstaller.setAdmin(agent.getAdmin());
 		restInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
 		restInstaller.setVerbose(verbose);
-		restInstaller.setMemory(webServiceMemory, MemoryUnit.MEGABYTES);
+		restInstaller.setMemory(MemoryUnit.toMegaBytes(restMemory), MemoryUnit.MEGABYTES);
 		restInstaller.setPort(restPort);
 		restInstaller.setUsername(username);
 		restInstaller.setPassword(password);
@@ -1061,23 +1061,12 @@ public class LocalhostGridAgentBootstrapper {
 		waitForManagementServices.add(restInstaller);
 	}
 
-	private long getWebServiceMemory(final String memoryEnvironmentVar) {
-		long memory;
+	private String getWebServiceMemory(final String memoryEnvironmentVar) {
 		final String memoryString = System.getenv().get(memoryEnvironmentVar);
 		if (org.apache.commons.lang.StringUtils.isNotBlank(memoryString)) {
-			memory = getMemoryFromMemoryString(memoryString);
-		} else {
-			if (memoryEnvironmentVar.equals(CloudifyConstants.REST_MAX_MEMORY_ENVIRONMENT_VAR)) {
-				memory = getMemoryFromMemoryString(CloudifyConstants.DEFAULT_REST_MAX_MEMORY);
-			} else {
-				memory = getMemoryFromMemoryString(CloudifyConstants.DEFAULT_REST_MIN_MEMORY);
-			}
-		}
-		return memory;
-	}
-
-	private long getMemoryFromMemoryString(String memoryString) {
-		return Long.parseLong(memoryString.substring(0, memoryString.length() - 1));
+			return memoryString;
+		} 
+		throw new IllegalStateException("Could not find web-service memory capacity variable in environment.");
 	}
 
 	private int getWebservicePort(String portEnvVriable, boolean isSecureConnection) {
@@ -1085,19 +1074,7 @@ public class LocalhostGridAgentBootstrapper {
 		if (org.apache.commons.lang.StringUtils.isNotBlank(port)) {
 			return Integer.parseInt(port);
 		}
-		if (portEnvVriable.equals(CloudifyConstants.WEBUI_PORT_ENV_VAR)) {
-			if (isSecureConnection) {
-				return CloudifyConstants.SECURE_WEBUI_PORT;
-			} else {
-				return CloudifyConstants.DEFAULT_WEBUI_PORT;
-			}
-		} else {
-			if (isSecureConnection) {
-				return CloudifyConstants.SECURE_REST_PORT;
-			} else {
-				return CloudifyConstants.DEFAULT_REST_PORT;
-			}
-		}
+		throw new IllegalStateException("Could not find web-service port variable in environment");
 
 	}
 
@@ -1412,27 +1389,10 @@ public class LocalhostGridAgentBootstrapper {
 						+ GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL
 						+ " " + GSM_PENDING_REQUESTS_DELAY + " -D" + ZONES_PROPERTY + "=" + gsaZones;
 
-		String gsaJavaOptions = "-Xmx" + CloudifyConstants.DEFAULT_AGENT_MAX_MEMORY;
-		if (gsaZones != null) {
-			gsaJavaOptions += " -D" + ZONES_PROPERTY + "=" + gsaZones;
-		}
+		String gsaJavaOptions = "";
 		if (autoShutdown) {
 			gsaJavaOptions += " " + AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT;
 		}
-		String lusJavaOptions =
-				"-Xmx" + CloudifyConstants.DEFAULT_LUS_MAX_MEMORY + " -D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY
-						+ "=" + lusPort
-						+ " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;
-		String gsmJavaOptions =
-				"-Xmx" + CloudifyConstants.DEFAULT_GSM_MAX_MEMORY + " -D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY
-						+ "=" + lusPort
-						+ " -D" + GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "=" + GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL
-						+ " -D"
-						+ ZONES_PROPERTY + "=" + MANAGEMENT_ZONE + " " + GSM_PENDING_REQUESTS_DELAY;
-
-		String esmJavaOptions =
-				"-Xmx" + CloudifyConstants.DEFAULT_ESM_MAX_MEMORY + " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;
-		String gscJavaOptions = "";
 
 		final Map<String, String> environment = pb.environment();
 		if (lookupGroups != null) {
@@ -1442,25 +1402,13 @@ public class LocalhostGridAgentBootstrapper {
 		if (lookupLocators != null) {
 			final String disableMulticast = "-Dcom.gs.multicast.enabled=false";
 			environment.put("LOOKUPLOCATORS", lookupLocators);
-			gsaJavaOptions += " " + disableMulticast;
-			lusJavaOptions += " " + disableMulticast;
-			gsmJavaOptions += " " + disableMulticast;
-			esmJavaOptions += " " + disableMulticast;
-			gscJavaOptions += " " + disableMulticast;
 			localCloudOptions += " " + disableMulticast;
 		}
-		// in case environment vars were defined,
-		// They will override the existing component java options.
-		gsaJavaOptions += " " + environment.get("GSA_JAVA_OPTIONS") == null ? "" : environment.get("GSA_JAVA_OPTIONS");
-		lusJavaOptions += " " + environment.get("LUS_JAVA_OPTIONS") == null ? "" : environment.get("LUS_JAVA_OPTIONS");
-		gsmJavaOptions += " " + environment.get("GSM_JAVA_OPTIONS") == null ? "" : environment.get("GSM_JAVA_OPTIONS");
-		esmJavaOptions += " " + environment.get("ESM_JAVA_OPTIONS") == null ? "" : environment.get("ESM_JAVA_OPTIONS");
-		gscJavaOptions += " " + environment.get("GSC_JAVA_OPTIONS") == null ? "" : environment.get("GSC_JAVA_OPTIONS");
+		gsaJavaOptions += environment.get("GSA_JAVA_OPTIONS") == null ? "" : " " + environment.get("GSA_JAVA_OPTIONS");
 
 		if (nicAddress != null) {
 			environment.put("NIC_ADDR", nicAddress);
 		}
-		environment.put("RMI_OPTIONS", "");
 
 		final String springProfiles = createSpringProfilesList(securityProfile);
 		logger.fine("Setting env var " + CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR + " to: " + springProfiles);
@@ -1488,14 +1436,8 @@ public class LocalhostGridAgentBootstrapper {
 				environment.put(CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP, nicAddress);
 			}
 		} else {
-			logger.fine("Setting env vars " + "GSA_JAVA_OPTIONS: gsaJavaOptions" + gsaJavaOptions
-					+ "; LUS_JAVA_OPTIONS: " + lusJavaOptions + "; GSM_JAVA_OPTIONS: " + gsmJavaOptions
-					+ "; ESM_JAVA_OPTIONS: " + esmJavaOptions + "; GSC_JAVA_OPTIONS: " + gscJavaOptions);
+			logger.fine("Setting env vars " + "GSA_JAVA_OPTIONS:" + gsaJavaOptions);
 			environment.put("GSA_JAVA_OPTIONS", gsaJavaOptions);
-			environment.put("LUS_JAVA_OPTIONS", lusJavaOptions);
-			environment.put("GSM_JAVA_OPTIONS", gsmJavaOptions);
-			environment.put("ESM_JAVA_OPTIONS", esmJavaOptions);
-			environment.put("GSC_JAVA_OPTIONS", gscJavaOptions);
 		}
 
 		// start process

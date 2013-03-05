@@ -18,6 +18,7 @@ package org.cloudifysource.dsl.context;
 
 import java.util.concurrent.TimeUnit;
 
+import org.cloudifysource.dsl.context.blockstorage.StorageFacade;
 import org.cloudifysource.dsl.context.kvstorage.AttributesFacade;
 
 /***********
@@ -131,6 +132,30 @@ public interface ServiceContext {
 	 * @return the current machine's ID.
 	 */
 	String getMachineID();
-
-
+		
+	/********
+	 * Return the current machine's location id.
+	 * 
+	 * @return - the actual location of the instance(availability zone in case of aws)
+	 */
+	String getLocationId();
+	
+	/*********
+	 * Access to the storage provisioning driver.
+	 * 
+	 * @return - interface for executing storage API calls.
+	 */
+	StorageFacade getStorage();
+	
+	/********
+	 * 
+	 * @return - true if we are running in privileged mode, false otherwise.
+	 */
+	boolean isPrivileged();
+	
+	/*********
+	 * 
+	 * @return - the address cloudify bind on.
+	 */
+	String getBindedAddress();
 }

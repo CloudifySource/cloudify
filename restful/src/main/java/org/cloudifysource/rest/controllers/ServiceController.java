@@ -2298,7 +2298,7 @@ public class ServiceController implements ServiceDetailsProvider {
 						
 			final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
 					cloud, template, templateName, this.managementTemplate.getRemoteDirectory(), 
-					service.getStorage().getTemplate());
+					service.getStorage() != null ? service.getStorage().getTemplate() : null);
 			config.setAuthGroups(authGroups);
 			if (cloudOverrides != null) {
 				if (logger.isLoggable(Level.FINE)) {

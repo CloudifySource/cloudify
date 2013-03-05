@@ -144,7 +144,17 @@ public class InstallationDetails implements Cloneable {
 	private String storageMountPath;
 
 	private boolean deleteRemoteDirectoryContents = false;
+	
+	private String locationId;
 
+	public String getLocationId() {
+		return locationId;
+	}
+
+	public void setLocationId(final String locationId) {
+		this.locationId = locationId;
+	}
+	
 	public String getTemplateName() {
 		return templateName;
 	}

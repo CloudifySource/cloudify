@@ -58,18 +58,13 @@ public class DeployerComponent extends GridComponent {
 	}
 	
 	@DSLValidation
-	void validatePort(final DSLValidationContext validationContext) throws DSLValidationException {
-		if (this.websterPort == null) {
-			throw new DSLValidationException("webster port can't be null");
-		}
-		if (this.port == null) {
-			throw new DSLValidationException("LRMI port can't be null");
-		}
-		if (this.websterPort <= 1024 || this.websterPort > 65535) {
-			throw new DSLValidationException("webster port must be set to a positive integer between 1024 and 65536");
-		}
-		if (this.port <= 1024  || this.port > 65535) {
-			throw new DSLValidationException("LRMI port must be set to a positive integer between 1024 and 65536");
-		}
+	void validatePorts(final DSLValidationContext validationContext) throws DSLValidationException {
+		super.validatePort(this.port);
+		super.validatePort(this.websterPort);
+	}
+	
+	@DSLValidation
+	void validateMemory(final DSLValidationContext validationContext) throws DSLValidationException {
+		super.validateMemorySyntax();
 	}
 }

@@ -20,12 +20,16 @@ import java.util.concurrent.TimeUnit;
 
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.context.ServiceContext;
+import org.cloudifysource.dsl.context.blockstorage.StorageFacade;
 import org.cloudifysource.dsl.context.kvstorage.AttributesFacade;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.context.blockstorage.StorageFacadeImpl;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils.FullServiceName;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
+import org.openspaces.admin.esm.ElasticServiceManager;
+import org.openspaces.admin.internal.esm.InternalElasticServiceManager;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.core.cluster.ClusterInfo;
 
@@ -38,7 +42,7 @@ import org.openspaces.core.cluster.ClusterInfo;
 public class ServiceContextImpl implements ServiceContext {
 
 	private org.cloudifysource.dsl.Service service;
-	private Admin admin;
+	private Admin admin;	
 	private final String serviceDirectory;
 	private ClusterInfo clusterInfo;
 	private boolean initialized = false;
@@ -47,6 +51,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 	private String applicationName;
 
+	private StorageFacade storageFacade;
 	private AttributesFacade attributesFacade;
 
 	// TODO - this property should not be settable - there should be a separate
@@ -123,6 +128,20 @@ public class ServiceContextImpl implements ServiceContext {
 		}
 		this.attributesFacade = new AttributesFacade(this, admin);
 		initialized = true;
+	}
+
+	private StorageFacade getRemoteStorage() {
+		ElasticServiceManager elasticServiceManager = null;
+		if (admin != null) {
+			elasticServiceManager = admin.getElasticServiceManagers().waitForAtLeastOne();
+			RemoteStorageProvisioningDriver storageApi = 
+					(RemoteStorageProvisioningDriver) ((InternalElasticServiceManager) elasticServiceManager)
+					.getStorageApi(ServiceUtils.getAbsolutePUName(applicationName, serviceName));
+			
+			StorageFacadeImpl storageFacadeImpl = new StorageFacadeImpl(this, storageApi);
+			return storageFacadeImpl;
+		}
+		return null;
 	}
 
 	/************
@@ -361,8 +380,37 @@ public class ServiceContextImpl implements ServiceContext {
 	public String getMachineID() {
 		final String envVar = System
 				.getenv(CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID);
-
+		
 		return envVar;
 	}
+	
+	@Override
+	public String getLocationId() {
+		final String envVar = System
+				.getenv(CloudifyConstants.CLOUDIFY_CLOUD_LOCATION_ID);
+		
+		return envVar;
+	}
+	
+	@Override
+	public StorageFacade getStorage() {
+		if (storageFacade == null) {
+			this.storageFacade = getRemoteStorage();
+		}
+		return storageFacade;
+	}
 
+	@Override
+	public boolean isPrivileged() {
+		final String envVar = System.getenv(CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVILEGED);
+		return Boolean.valueOf(envVar);
+	}
+
+	@Override
+	public String getBindedAddress() {
+		final String envVar = System
+				.getenv(CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_IP_ADDRESS_ENV);
+		
+		return envVar;
+	}
 }

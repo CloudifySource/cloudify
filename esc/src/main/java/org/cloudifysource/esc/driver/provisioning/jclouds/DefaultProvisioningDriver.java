@@ -120,8 +120,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	@Override
-	protected MachineDetails createServer(String serverName, long endTime,
-			ComputeTemplate template) throws CloudProvisioningException,
+	protected MachineDetails createServer(final String serverName, final long endTime,
+			final ComputeTemplate template) throws CloudProvisioningException,
 			TimeoutException {
 		return createServer(endTime, serverName, null);
 	}
@@ -334,13 +334,11 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		// first check if management already exists
 		final MachineDetails[] existingManagementServers = getExistingManagementServers();
 		if (existingManagementServers.length > 0) {
-			logger.info("Found existing servers matching the name: "
-					+ managementMachinePrefix);
-			for (final MachineDetails machineDetails : existingManagementServers) {
-				final String existingManagementServerDescription = createManagementServerDescription(machineDetails);
-				logger.info(existingManagementServerDescription);
-			}
-			return existingManagementServers;
+			final String serverDescriptions =
+					createExistingServersDescription(managementMachinePrefix, existingManagementServers);
+			throw new CloudProvisioningException("Found existing servers matching group "
+					+ managementMachinePrefix + ": " + serverDescriptions);
+
 		}
 
 		// launch the management machines
@@ -351,6 +349,25 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 				endTime, numberOfManagementMachines);
 		publishEvent(EVENT_MGMT_VMS_STARTED);
 		return createdMachines;
+	}
+
+	private String createExistingServersDescription(final String managementMachinePrefix,
+			final MachineDetails[] existingManagementServers) {
+		logger.info("Found existing servers matching the name: "
+				+ managementMachinePrefix);
+		final StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		for (final MachineDetails machineDetails : existingManagementServers) {
+			final String existingManagementServerDescription = createManagementServerDescription(machineDetails);
+			if(first) {
+				first = false;
+			} else {
+				sb.append(", ");
+			}
+			sb.append("[").append(existingManagementServerDescription).append("]");
+		}
+		final String serverDescriptions = sb.toString();
+		return serverDescriptions;
 	}
 
 	private String createManagementServerDescription(final MachineDetails machineDetails) {

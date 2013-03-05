@@ -70,6 +70,8 @@ public class ParseByonCloudNodesTest {
 		Assert.assertEquals(1, nodes.size());
 		CustomNode node = nodes.iterator().next();
 		Assert.assertEquals("pc-lab100", node.getPrivateIP());
+		Assert.assertEquals("byon-pc-lab1", node.getId());
+
 
 
 
