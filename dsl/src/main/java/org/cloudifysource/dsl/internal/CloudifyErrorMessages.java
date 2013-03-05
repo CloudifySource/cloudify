@@ -29,6 +29,11 @@ public enum CloudifyErrorMessages {
 	 * Server response Json parse error.
 	 */
 	JSON_PARSE_ERROR("CLI_unable_to_parse_to_JSON", 1),
+
+	/******
+	 * CLI Input included a json element that could not be parsed.
+	 */
+	CLIENT_JSON_PARSE_ERROR("Client_unable_to_parse_to_JSON", 2),
 	/********
 	 * Indicates an unexpected error occured in the server.
 	 */
