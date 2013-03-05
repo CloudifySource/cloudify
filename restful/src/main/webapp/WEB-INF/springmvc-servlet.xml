@@ -53,9 +53,13 @@
 
 		<mvc:interceptors>
 			
-			<!-- Version Validation using path variable. Currently for DeploymentsController Only --> 
+			<!-- Version Validation using path variable. Currently for Deployments/Infra/Repo/Config/Alert Controller Only --> 
 			<mvc:interceptor>
 				<mvc:mapping path="/**/deployments/**"/>
+				<mvc:mapping path="/**/infra/**"/>
+				<mvc:mapping path="/**/repo/**"/>
+				<mvc:mapping path="/**/alert/**"/>
+				<mvc:mapping path="/**/config/**"/>
 				<bean class="org.cloudifysource.rest.interceptors.ApiVersionValidationAndRestResponseBuilderInterceptor"></bean>
 			</mvc:interceptor>
 			 

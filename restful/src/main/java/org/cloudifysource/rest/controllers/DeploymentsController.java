@@ -1,46 +1,37 @@
 package org.cloudifysource.rest.controllers;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
-import javax.servlet.http.HttpServletResponse;
-
 import net.jini.core.lease.Lease;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.cloudifysource.dsl.context.kvstorage.spaceentries.AbstractCloudifyAttribute;
 import org.cloudifysource.dsl.context.kvstorage.spaceentries.ApplicationCloudifyAttribute;
 import org.cloudifysource.dsl.context.kvstorage.spaceentries.GlobalCloudifyAttribute;
 import org.cloudifysource.dsl.context.kvstorage.spaceentries.InstanceCloudifyAttribute;
 import org.cloudifysource.dsl.context.kvstorage.spaceentries.ServiceCloudifyAttribute;
-import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.rest.request.SetApplicationAttributesRequest;
 import org.cloudifysource.dsl.rest.response.DeleteServiceInstanceAttributeResponse;
 import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.dsl.rest.response.ServiceDetails;
+import org.cloudifysource.dsl.rest.response.ServiceInstanceDetails;
 import org.cloudifysource.dsl.utils.ServiceUtils;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.openspaces.admin.Admin;
 import org.openspaces.admin.application.Application;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.context.GigaSpaceContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.gigaspaces.client.WriteModifiers;
 
@@ -70,27 +61,24 @@ import com.gigaspaces.client.WriteModifiers;
 
 @Controller
 @RequestMapping(value = "/{version}/deployments")
-public class DeploymentsController {
-
-	private static final int DEFAULT_ADMIN_WAITING_TIMEOUT = 10;
-
-	@Autowired(required = true)
-	private MessageSource messageSource;
-
-	@Autowired(required = true)
-	private Admin admin;
+public class DeploymentsController extends BaseRestContoller {
 
 	@GigaSpaceContext(name = "gigaSpace")
 	private GigaSpace gigaSpace;
 
-	private ObjectMapper objectMapper = new ObjectMapper();
-	
 	/**
-	 * This method provides metadata about a service belonging to a specific application.
-	 * @param appName - the application name the service belongs to.
-	 * @param serviceName - the service name.
-	 * @return - A {@link ServiceDetails} instance containing various metadata about the service. 
-	 * @throws RestErrorException - In case an error happened while trying to retrieve the service.
+	 * This method provides metadata about a service belonging to a specific
+	 * application.
+	 * 
+	 * @param appName
+	 *            - the application name the service belongs to.
+	 * @param serviceName
+	 *            - the service name.
+	 * @return - A {@link ServiceDetails} instance containing various metadata
+	 *         about the service.
+	 * @throws RestErrorException
+	 *             - In case an error happened while trying to retrieve the
+	 *             service.
 	 */
 	@RequestMapping(value = "/{appName}/service/{serviceName}/metadata", method = RequestMethod.GET)
 	public ServiceDetails getServiceDetails(@PathVariable final String appName,
@@ -116,23 +104,27 @@ public class DeploymentsController {
 		ServiceDetails serviceDetails = new ServiceDetails();
 		serviceDetails.setName(serviceName);
 		serviceDetails.setApplicationName(appName);
-		serviceDetails.setNumberOfInstances(processingUnit.getInstances().length);
-		
+		serviceDetails
+				.setNumberOfInstances(processingUnit.getInstances().length);
+
 		List<String> instanceNaems = new ArrayList<String>();
 		for (ProcessingUnitInstance instance : processingUnit.getInstances()) {
 			instanceNaems.add(instance.getProcessingUnitInstanceName());
 		}
 		serviceDetails.setInstanceNames(instanceNaems);
-		
+
 		return serviceDetails;
 	}
 
 	/**
-	 * This method sets the given attributes to the application scope.
-	 * Note that this action is Update or write. so the given attribute may not pre-exist.
-	 * @param appName - the application name.
-	 * @param attributesRequest - An instance of {@link SetApplicationAttributesRequest} 
-	 * (as JSON) that holds the requested attributes. 
+	 * This method sets the given attributes to the application scope. Note that
+	 * this action is Update or write. so the given attribute may not pre-exist.
+	 * 
+	 * @param appName
+	 *            - the application name.
+	 * @param attributesRequest
+	 *            - An instance of {@link SetApplicationAttributesRequest} (as
+	 *            JSON) that holds the requested attributes.
 	 */
 	@RequestMapping(value = "/{appName}/attributes", method = RequestMethod.POST)
 	public void setApplicationAttributes(@PathVariable final String appName,
@@ -155,13 +147,20 @@ public class DeploymentsController {
 
 	/**
 	 * This method deletes a curtain attribute from the service instance scope.
-	 * @param appName - the application name.
-	 * @param serviceName - the service name.
-	 * @param instanceId - the instance id.
-	 * @param attributeName - the required attribute to delete.
-	 * @return - A {@link Response} instance containing metada data about the request, as well as the actual response.
-	 * 			 this response can be accessed by {@code Response#getResponse()} 
-	 * and it holds the deleted attribute name and its last value in the attributes store. 
+	 * 
+	 * @param appName
+	 *            - the application name.
+	 * @param serviceName
+	 *            - the service name.
+	 * @param instanceId
+	 *            - the instance id.
+	 * @param attributeName
+	 *            - the required attribute to delete.
+	 * @return - A {@link Response} instance containing metada data about the
+	 *         request, as well as the actual response. this response can be
+	 *         accessed by {@code Response#getResponse()} and it holds the
+	 *         deleted attribute name and its last value in the attributes
+	 *         store.
 	 */
 	@RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/"
 			+ "attributes/{attributeName}", method = RequestMethod.DELETE)
@@ -180,19 +179,19 @@ public class DeploymentsController {
 		final Object value = previousValue != null ? previousValue.getValue()
 				: null;
 
-		DeleteServiceInstanceAttributeResponse deleteServiceInstanceAttributeResponse = 
-				new DeleteServiceInstanceAttributeResponse();
+		DeleteServiceInstanceAttributeResponse
+			deleteServiceInstanceAttributeResponse = new DeleteServiceInstanceAttributeResponse();
 		deleteServiceInstanceAttributeResponse.setAttributeName(attributeName);
 		deleteServiceInstanceAttributeResponse.setAttributeLastValue(value);
 
-		Response<DeleteServiceInstanceAttributeResponse> response = 
-				new Response<DeleteServiceInstanceAttributeResponse>();
+		Response<DeleteServiceInstanceAttributeResponse> 
+			response = new Response<DeleteServiceInstanceAttributeResponse>();
 
 		response.setMessageId(CloudifyMessageKeys.ATTRIBUTE_DELETED_SUCCESSFULLY
 				.getName());
 		response.setMessage(messageSource.getMessage(
 				CloudifyMessageKeys.ATTRIBUTE_DELETED_SUCCESSFULLY.getName(),
-				new Object[] { attributeName }, Locale.getDefault()));
+				new Object[] { attributeName }, Locale.US));
 		response.setResponse(deleteServiceInstanceAttributeResponse);
 		return response;
 	}
@@ -215,54 +214,433 @@ public class DeploymentsController {
 				instanceId, name, value);
 	}
 
-	/**
-	 * Handles expected exception from the controller, and wrappes it nicely with a {@link Response} object.
-	 * @param response - the servlet response.
-	 * @param e - the thrown exception.
-	 * @throws IOException .
+	/******
+	 * get service instance details. provides metadata about an instance with
+	 * given application , service name
+	 * 
+	 * @param appName
+	 *            the application name
+	 * @param serviceName
+	 *            the service name
+	 * @param instanceId
+	 *            the instance id
+	 * @return service instance details
+	 * @throws RestErrorException 
 	 */
-	@ExceptionHandler(RestErrorException.class)
-	@ResponseStatus(value = HttpStatus.BAD_REQUEST)
-	public void handleExpectedErrors(final HttpServletResponse response,
-			final RestErrorException e) throws IOException {
+	@RequestMapping(value =
+			"/{appName}/service/{serviceName}/instances/{instanceId}/metadata", method = RequestMethod.GET)
+	public ServiceInstanceDetails getServiceInstanceDetails(
+			@PathVariable final String appName,
+			@PathVariable final String serviceName,
+			@PathVariable final int instanceId) throws RestErrorException {
 
-		String messageId = (String) e.getErrorDescription().get("error");
-		Object[] messageArgs = (Object[]) e.getErrorDescription().get(
-				"error_args");
-		String formattedMessage = messageSource.getMessage(messageId,
-				messageArgs, Locale.getDefault());
+		// get processingUnit instance
+		ProcessingUnitInstance pui = getServiceInstance(appName, serviceName,
+				instanceId);
 
-		Response<Void> finalResponse = new Response<Void>();
-		finalResponse.setStatus("Failed");
-		finalResponse.setMessage(formattedMessage);
-		finalResponse.setMessageId(messageId);
-		finalResponse.setResponse(null);
-		finalResponse.setVerbose(ExceptionUtils.getFullStackTrace(e));
+		// get USM details
+		org.openspaces.pu.service.ServiceDetails usmDetails = pui
+				.getServiceDetailsByServiceId("USM");
+		// get attributes details
+		Map<String, Object> puiAttributes = usmDetails.getAttributes();
 
-		String responseString = objectMapper.writeValueAsString(finalResponse);
-		response.getOutputStream().write(responseString.getBytes());
+		// get private ,public IP
+		final String privateIp = getServiceInstanceEnvVarible(pui,
+				CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVATE_IP);
+		final String publicIp = getServiceInstanceEnvVarible(pui,
+				CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP);
+
+		// machine details
+		final String hardwareId = getServiceInstanceEnvVarible(pui,
+				CloudifyConstants.GIGASPACES_CLOUD_HARDWARE_ID);
+		final String machineId = getServiceInstanceEnvVarible(pui,
+				CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID);
+		final String imageId = getServiceInstanceEnvVarible(pui,
+				CloudifyConstants.GIGASPACES_CLOUD_IMAGE_ID);
+		final String templateName = getServiceInstanceEnvVarible(pui,
+				CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME);
+
+		// return new instance
+		ServiceInstanceDetails sid = new ServiceInstanceDetails();
+		// set service instance details
+		sid.setApplicationName(appName);
+		sid.setServiceName(serviceName);
+		sid.setServiceInstanceName(pui.getName());
+
+		// set service instance machine details
+		sid.setHardwareId(hardwareId);
+		sid.setImageId(imageId);
+		sid.setInstanceId(instanceId);
+		sid.setMachineId(machineId);
+		sid.setPrivateIp(privateIp);
+		sid.setProcessDetails(puiAttributes);
+		sid.setPublicIp(publicIp);
+		sid.setTemplateName(templateName);
+
+		return sid;
+
+	}
+
+	/******
+	 * Installs an application.
+	 * 
+	 * @param appName
+	 *            the application name.
+	 * @return
+	 */
+	@RequestMapping(value = "/{name}", method = RequestMethod.POST)
+	public void installApplication(@PathVariable final String appName) {
+		throwUnsupported();
+	}
+
+	/******
+	 * Installs an service.
+	 * 
+	 * @param appName
+	 *            the service name.
+	 * @return
+	 */
+	@RequestMapping(value = "/{appName}/services", method = RequestMethod.POST)
+	public void installService(@PathVariable final String appName) {
+		throwUnsupported();
+	}
+
+	/******
+	 * get application status by given name.
+	 * 
+	 * @param appName
+	 *            the application name.
+	 * @return
+	 */
+	@RequestMapping(value = "/{appName}", method = RequestMethod.GET)
+	public void getApplicationStatus(@PathVariable final String appName) {
+		throwUnsupported();
+	}
+
+	/******
+	 * get Service status by given name.
+	 * 
+	 * @param appName
+	 *            the application name
+	 * @param serviceName
+	 *            the service name.
+	 * @return
+	 */
+	@RequestMapping(value = "/{appName}/services/{serviceName}", method = RequestMethod.GET)
+	public void getServiceStatus(@PathVariable final String appName,
+			@PathVariable final String serviceName) {
+		throwUnsupported();
+	}
+
+	/******
+	 * update application by given name.
+	 * 
+	 * @param appName
+	 *            the application name.
+	 * @return
+	 */
+	@RequestMapping(value = "/{appName}", method = RequestMethod.PUT)
+	public void updateApplication(@PathVariable final String appName) {
+		throwUnsupported();
+	}
+
+	/******
+	 * update service by given name.
+	 * 
+	 * @param appName
+	 *            the application name
+	 * @param serviceName
+	 *            the service name
+	 * @return
+	 */
+	@RequestMapping(value = "/{appName}/services/{serviceName}", method = RequestMethod.PUT)
+	public void updateService(@PathVariable final String appName,
+			@PathVariable final String serviceName) {
+		throwUnsupported();
 	}
 
 	/**
-	 * Handles unexpected exceptions from the controller, and wrappes it nicely with a {@link Response} object.
-	 * @param response - the servlet response.
-	 * @param t - the thrown exception.
-	 * @throws IOException .
+	 * uninstall an application by given name.
+	 * 
+	 * @param appName
+	 *            application name
 	 */
-	@ExceptionHandler(Throwable.class)
-	@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
-	public void handleUnExpectedErrors(final HttpServletResponse response,
-			final Throwable t) throws IOException {
-
-		Response<Void> finalResponse = new Response<Void>();
-		finalResponse.setStatus("Failed");
-		finalResponse.setMessage(t.getMessage());
-		finalResponse.setMessageId(CloudifyErrorMessages.GENERAL_SERVER_ERROR
-				.getName());
-		finalResponse.setResponse(null);
-		finalResponse.setVerbose(ExceptionUtils.getFullStackTrace(t));
-
-		String responseString = objectMapper.writeValueAsString(finalResponse);
-		response.getOutputStream().write(responseString.getBytes());
+	@RequestMapping(value = "/{appName}", method = RequestMethod.DELETE)
+	public void uninstallApplication(@PathVariable final String appName) {
+		throwUnsupported();
 	}
+
+	/******
+	 * uninstall a service by given name.
+	 * 
+	 * @param appName
+	 *            the application name
+	 * @param serviceName
+	 *            the service name
+	 * @return
+	 */
+	@RequestMapping(value = "/{appName}/services/{serviceName}", method = RequestMethod.DELETE)
+	public void uninstallService(@PathVariable final String appName,
+			@PathVariable final String serviceName) {
+		throwUnsupported();
+	}
+
+	/**
+	 * update application attributes.
+	 * 
+	 * @param appName
+	 *            the application name
+	 */
+	@RequestMapping(value = "/{appName}/attributes", method = RequestMethod.PUT)
+	public void updateApplicationAttribute(@PathVariable final String appName) {
+		throwUnsupported();
+	}
+
+	/**
+	 * delete application attribute.
+	 * 
+	 * @param appName
+	 *            the application name
+	 */
+	@RequestMapping(value = "/{appName}/attributes", method = RequestMethod.DELETE)
+	public void deleteApplicationAttribute(@PathVariable final String appName) {
+		throwUnsupported();
+	}
+
+	/******
+	 * get service attribute by given name.
+	 * 
+	 * @param appName
+	 *            the application name
+	 * @param serviceName
+	 *            the service name
+	 * @return
+	 */
+	@RequestMapping(value = "/{appName}/service/{serviceName}/attributes", method = RequestMethod.GET)
+	public void getServiceAttribute(@PathVariable final String appName,
+			@PathVariable final String serviceName) {
+		throwUnsupported();
+	}
+
+	/******
+	 * set service attribute by given name.
+	 * 
+	 * @param appName
+	 *            the application name
+	 * @param serviceName
+	 *            the service name
+	 * @return
+	 */
+	@RequestMapping(value = "/{appName}/service/{serviceName}/attributes", method = RequestMethod.POST)
+	public void setServiceAttribute(@PathVariable final String appName,
+			@PathVariable final String serviceName) {
+		throwUnsupported();
+	}
+
+	/******
+	 * update service attribute by given name.
+	 * 
+	 * @param appName
+	 *            the application name
+	 * @param serviceName
+	 *            the service name
+	 * @return
+	 */
+	@RequestMapping(value = "/{appName}/service/{serviceName}/attributes", method = RequestMethod.PUT)
+	public void updateServiceAttribute(@PathVariable final String appName,
+			@PathVariable final String serviceName) {
+		throwUnsupported();
+	}
+
+	/******
+	 * update service attribute by given name.
+	 * 
+	 * @param appName
+	 *            the application name
+	 * @param serviceName
+	 *            the service name
+	 * @return
+	 */
+	@RequestMapping(value = "/{appName}/service/{serviceName}/attributes", method = RequestMethod.DELETE)
+	public void deleteServiceAttribute(@PathVariable final String appName,
+			@PathVariable final String serviceName) {
+		throwUnsupported();
+	}
+
+	/******
+	 * get service instance attribute by given name.
+	 * 
+	 * @param appName
+	 *            the application name
+	 * @param serviceName
+	 *            the service name
+	 * @param instanceId
+	 *            the instance id
+	 * @return
+	 */
+	@RequestMapping(value =
+			"/{appName}/service/{serviceName}/instances/{instanceId}/attributes", method = RequestMethod.GET)
+	public void getServiceInstanceAttribute(@PathVariable final String appName,
+			@PathVariable final String serviceName,
+			@PathVariable final String instanceId) {
+		throwUnsupported();
+	}
+
+	/******
+	 * set service instance attribute by given name , id.
+	 * 
+	 * @param appName
+	 *            the application name
+	 * @param serviceName
+	 *            the service name
+	 * @param instanceId
+	 *            the instance id
+	 * @return
+	 */
+	@RequestMapping(value =
+			"/{appName}/service/{serviceName}/instances/{instanceId}/attributes", method = RequestMethod.POST)
+	public void setServiceInstanceAttribute(@PathVariable final String appName,
+			@PathVariable final String serviceName,
+			@PathVariable final String instanceId) {
+		throwUnsupported();
+	}
+
+	/******
+	 * update service instance attribute by given name , id.
+	 * 
+	 * @param appName
+	 *            the application name
+	 * @param serviceName
+	 *            the service name
+	 * @param instanceId
+	 *            the instance id
+	 * @return
+	 */
+	@RequestMapping(value =
+			"/{appName}/service/{serviceName}/instances/{instanceId}/attributes", method = RequestMethod.PUT)
+	public void updateServiceInstanceAttribute(
+			@PathVariable final String appName,
+			@PathVariable final String serviceName,
+			@PathVariable final String instanceId) {
+		throwUnsupported();
+	}
+
+	/******
+	 * delete service instance attribute by given name, id.
+	 * 
+	 * @param appName
+	 *            the application name
+	 * @param serviceName
+	 *            the service name
+	 * @param instanceId
+	 *            the instance id
+	 * @return
+	 */
+	@RequestMapping(value = 
+			"/{appName}/service/{serviceName}/instances/{instanceId}/attributes", method = RequestMethod.DELETE)
+	public void deleteServiceInstanceAttribute(
+			@PathVariable final String appName,
+			@PathVariable final String serviceName,
+			@PathVariable final String instanceId) {
+		throwUnsupported();
+	}
+
+	/******
+	 * get service metrics by given name.
+	 * 
+	 * @param appName
+	 *            the application name
+	 * @param serviceName
+	 *            the service name
+	 * @return
+	 */
+	@RequestMapping(value = "/{appName}/service/{serviceName}/metrics", method = RequestMethod.GET)
+	public void getServiceMetrics(@PathVariable final String appName,
+			@PathVariable final String serviceName) {
+		throwUnsupported();
+	}
+
+	/******
+	 * get service instance metrics by given name.
+	 * 
+	 * @param appName
+	 *            the application name
+	 * @param serviceName
+	 *            the service name
+	 * @param instanceId
+	 *            the instance name
+	 * @return
+	 */
+	@RequestMapping(value = 
+			"{appName}/service/{serviceName}/instances/{instanceId}/metrics", method = RequestMethod.GET)
+	public void getServiceInstanceMetrics(@PathVariable final String appName,
+			@PathVariable final String serviceName,
+			@PathVariable final String instanceId) {
+		throwUnsupported();
+	}
+
+	/******
+	 * set service details by given name.
+	 * 
+	 * @param appName
+	 *            the application name
+	 * @param serviceName
+	 *            the service name
+	 * @return
+	 */
+	@RequestMapping(value = "/{appName}/service/{serviceName}/metadata", method = RequestMethod.POST)
+	public void setServiceDetails(@PathVariable final String appName,
+			@PathVariable final String serviceName) {
+		throwUnsupported();
+	}
+
+	/******
+	 * update service details by given name.
+	 * 
+	 * @param appName
+	 *            the application name
+	 * @param serviceName
+	 *            the service name
+	 * @return
+	 */
+	@RequestMapping(value = "/{appName}/service/{serviceName}/metadata", method = RequestMethod.PUT)
+	public void updateServiceDetails(@PathVariable final String appName,
+			@PathVariable final String serviceName) {
+		throwUnsupported();
+	}
+
+	/******
+	 * set service instance details by given name.
+	 * 
+	 * @param appName
+	 *            the application name
+	 * @param serviceName
+	 *            the service name
+	 * @param instanceId
+	 *            the instance id
+	 * @return
+	 */
+	@RequestMapping(value = 
+			"/{appName}/service/{serviceName}/instances/{instanceId}/metadata", method = RequestMethod.POST)
+	public void setServiceInstanceDetails(@PathVariable final String appName,
+			@PathVariable final String serviceName,
+			@PathVariable final String instanceId) {
+		throwUnsupported();
+	}
+
+	/******
+	 * get service alert by given name.
+	 * 
+	 * @param appName
+	 *            the application name
+	 * @param serviceName
+	 *            the service name
+	 * @return
+	 */
+	@RequestMapping(value = "/appName}/service/{serviceName}/alerts", method = RequestMethod.GET)
+	public void getServiceAlerts(@PathVariable final String appName,
+			@PathVariable final String serviceName) {
+		throwUnsupported();
+	}
+
 }

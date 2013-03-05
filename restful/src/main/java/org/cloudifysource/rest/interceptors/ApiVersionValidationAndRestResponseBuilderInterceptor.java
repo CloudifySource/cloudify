@@ -72,7 +72,7 @@ public class ApiVersionValidationAndRestResponseBuilderInterceptor extends Handl
 			responseBodyObj.setResponse(model);
 			responseBodyObj.setStatus("Success");
 			responseBodyObj.setMessage(messageSource.getMessage(CloudifyMessageKeys.OPERATION_SUCCESSFULL.getName(), 
-					new Object[] {}, Locale.getDefault()));
+					new Object[] {}, Locale.US));
 			responseBodyObj.setMessageId(CloudifyMessageKeys.OPERATION_SUCCESSFULL.getName());
 			String responseBodyStr = new ObjectMapper().writeValueAsString(responseBodyObj);
 			response.getOutputStream().write(responseBodyStr.getBytes());
