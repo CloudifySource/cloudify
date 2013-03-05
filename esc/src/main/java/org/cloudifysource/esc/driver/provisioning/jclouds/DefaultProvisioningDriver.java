@@ -15,7 +15,12 @@ package org.cloudifysource.esc.driver.provisioning.jclouds;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -23,6 +28,11 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpHead;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
@@ -36,10 +46,28 @@ import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.jclouds.JCloudsDeployer;
+import org.jclouds.apis.ApiMetadata;
+import org.jclouds.cloudstack.CloudStackAsyncClient;
+import org.jclouds.cloudstack.CloudStackClient;
+import org.jclouds.cloudstack.features.SSHKeyPairClient;
+import org.jclouds.cloudstack.features.SecurityGroupClient;
+import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.domain.ComputeMetadata;
+import org.jclouds.compute.domain.Hardware;
 import org.jclouds.compute.domain.NodeMetadata;
+import org.jclouds.domain.Location;
 import org.jclouds.domain.LoginCredentials;
+import org.jclouds.ec2.EC2AsyncClient;
+import org.jclouds.ec2.EC2Client;
+import org.jclouds.ec2.domain.KeyPair;
+import org.jclouds.ec2.services.KeyPairClient;
+import org.jclouds.openstack.nova.domain.SecurityGroup;
+import org.jclouds.openstack.nova.v2_0.NovaApi;
+import org.jclouds.openstack.nova.v2_0.NovaAsyncApi;
+import org.jclouds.providers.ProviderMetadata;
+import org.jclouds.providers.Providers;
+import org.jclouds.rest.RestContext;
 
 import com.google.common.base.Predicate;
 
@@ -55,8 +83,13 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		ProvisioningDriver, ProvisioningDriverClassContextAware,
 		CustomServiceDataAware, ManagementLocator {
 
-	private static final String DEFAULT_EC2_WINDOWS_USERNAME = "Administrator";
 	private static final int CLOUD_NODE_STATE_POLLING_INTERVAL = 2000;
+	private static final String DEFAULT_EC2_WINDOWS_USERNAME = "Administrator";
+	private static final String EC2 = "ec2";
+	private static final String VCLOUD = "vcloud";
+	private static final String OPENSTACK = "openstack";
+	private static final String CLOUDSTACK = "cloudstack";
+	
 	private JCloudsDeployer deployer;
 
 	@Override
@@ -584,7 +617,9 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 	@Override
 	public void close() {
-		deployer.close();
+		if (deployer != null) {
+			deployer.close();	
+		}
 	}
 
 	private JCloudsDeployer createDeployer(final Cloud cloud)
@@ -630,4 +665,408 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 		return computeContext;
 	}
+	
+	@Override
+	protected void validateCloudConfiguration() throws CloudProvisioningException {
+		//1. create jclouds deployer to verify authentication to the cloud
+		// add more cloud-specific validation:
+		//2. Image ID should exist
+		//3. Hardware ID
+		//4. Location ID
+		//5. Key-pair exists (validate key-pair name, and fingerprint check)
+		//6. Security groups exists
+		//7. move the security groups to the Template section (instead of the custom map), now supported by jclouds.
+		//8. do this for management bootstrapping only
+
+		Set<String> imageIds = new HashSet<String>();
+		Set<String> hardwareIds = new HashSet<String>();
+		Set<String> locationIds = new HashSet<String>();
+		Map<String, Set<String>> securityGroupsByRegions = new HashMap<String, Set<String>>();
+		Map<String, Set<String>> keyPairsByRegions = new HashMap<String, Set<String>>();
+		
+		JCloudsDeployer valiationDeployer;
+		ComputeServiceContext computeServiceContext;
+		String apiId;
+		
+		//validate the provider is supported by jclouds
+		try {
+			ProviderMetadata providerMetadata = Providers.withId(cloud.getProvider().getProvider());
+			ApiMetadata apiMetadata = providerMetadata.getApiMetadata();
+			apiId = apiMetadata.getId();
+		} catch (NoSuchElementException e) {
+			throw new CloudProvisioningException("Provider not supported: " + cloud.getProvider().getProvider());
+		}
+		
+		try {
+			valiationDeployer = new JCloudsDeployer(cloud.getProvider().getProvider(), 
+					cloud.getUser().getUser(), cloud.getUser().getApiKey(), new Properties());
+			computeServiceContext = valiationDeployer.getContext();
+		} catch (IOException e) {
+			//does this necessarily indicate the credentials are wrong? need to test.
+			throw new CloudProvisioningException("Authentication to cloud failed");
+		}
+		
+		for (CloudTemplate template : cloud.getTemplates().values()) {
+			String imageId = null;
+			String hardwareProfileId = null;
+			String locationId = null;
+			String region = null;
+			
+			// imageId - mandatory
+			imageId = template.getImageId();
+			if (!StringUtils.isBlank(locationId)) {
+				imageIds.add(imageId);
+			} else {
+				throw new CloudProvisioningException("Invalid image - image id cannot be empty");
+			}
+			
+			// hardwareId - mandatory
+			hardwareProfileId = template.getHardwareId();
+			if (!StringUtils.isBlank(locationId)) {
+				hardwareIds.add(hardwareProfileId);
+			} else {
+				throw new CloudProvisioningException("Invalid hardware profile - hardware id cannot be empty");	
+			}
+			
+			// locationId - mandatory
+			locationId = template.getLocationId();
+			if (!StringUtils.isBlank(locationId)) {
+				locationIds.add(template.getLocationId());
+			} else {
+				throw new CloudProvisioningException("Invalid location - location id cannot be empty");
+			}
+			
+			// security groups - optional (differs per cloud)
+			Object securityGroupsArr = template.getOptions().get("securityGroups");
+			if (securityGroupsArr != null && securityGroupsArr instanceof String[]) {
+				Set<String> securityGroupNames = new HashSet<String>();
+				for (String securityGroupName : (String[]) securityGroupsArr) {
+					securityGroupNames.add(securityGroupName);
+				}
+				
+				Set<String> groupsForRegion = securityGroupsByRegions.get(region);
+				if (groupsForRegion == null) {
+					securityGroupsByRegions.put(region, securityGroupNames);
+				} else {
+					groupsForRegion.addAll(securityGroupNames);
+					securityGroupsByRegions.put(region, groupsForRegion);
+				}
+			}
+
+			
+			// key pair - optional (differs per cloud)
+			String keyPair = (String) template.getOptions().get("keyPair");
+			if (StringUtils.isNotBlank(keyPair)) {
+				Set<String> keyPairsForRegion = keyPairsByRegions.get(region);
+				if (keyPairsForRegion == null) {
+					Set<String> keyPairNames = new HashSet<String>();
+					keyPairNames.add(keyPair);
+					keyPairsByRegions.put(region, keyPairNames);
+				} else {
+					keyPairsForRegion.add(keyPair);
+					keyPairsByRegions.put(region, keyPairsForRegion);
+				}
+			}
+		}
+		
+		
+		validateImageIds(computeServiceContext.getComputeService(), imageIds);
+		validateHardwareIds(computeServiceContext.getComputeService().listHardwareProfiles(), hardwareIds);
+		validateLocationIds(computeServiceContext.getComputeService().listAssignableLocations(), locationIds);
+		validateCloudifyUrl(cloud.getProvider().getCloudifyUrl());
+		if (apiId != null && isKnownAPI(apiId)) {
+			validateSecurityGroups(computeServiceContext, apiId, securityGroupsByRegions);
+			validateKeyPairs(computeServiceContext, apiId, keyPairsByRegions);
+		}
+	}
+	
+	private void validateImageIds(final ComputeService computeService, final Set<String> usedImageIds) 
+			throws CloudProvisioningException {
+		
+		Set<String> missingImageIds = new HashSet<String>();
+		
+		for (String imageId : usedImageIds) {
+			if (computeService.getImage(imageId) == null) {
+				missingImageIds.add(imageId);
+			}
+		}
+		
+		if (!missingImageIds.isEmpty()) {
+			throw new CloudProvisioningException("One or more of the image IDs are invalid: " 
+					+ Arrays.toString(missingImageIds.toArray()));
+		}
+	}
+	
+	private void validateHardwareIds(final Set<? extends Hardware> supportedHardwareProfiles, 
+			final Set<String> usedHardwareIds) throws CloudProvisioningException {
+		
+		Set<String> supportedHardwareIds = new HashSet<String>();
+		for (Hardware hardware : supportedHardwareProfiles) {
+			supportedHardwareIds.add(hardware.getId());	
+		}
+		
+		Set<String> missingHardwareIds = new HashSet<String>(usedHardwareIds);
+		missingHardwareIds.removeAll(supportedHardwareIds);
+		if (!missingHardwareIds.isEmpty()) {
+			throw new CloudProvisioningException("One or more of the hardware IDs are invalid: "
+					+ Arrays.toString(missingHardwareIds.toArray()));
+		}
+	}
+	
+	private void validateLocationIds(final Set<? extends Location> supportedLocations, 
+			final Set<String> usedLocationIds) throws CloudProvisioningException {
+		
+		Set<String> supportedLocationIds = new HashSet<String>();
+		for (Location location : supportedLocations) {
+			supportedLocationIds.add(location.getId());	
+		}
+		
+		Set<String> missingLocationIds = new HashSet<String>(usedLocationIds);
+		missingLocationIds.removeAll(supportedLocationIds);
+		if (!missingLocationIds.isEmpty()) {
+			throw new CloudProvisioningException("One or more of the location IDs are invalid: "
+					+ Arrays.toString(missingLocationIds.toArray()));
+		}
+	}
+
+	
+	private void validateSecurityGroups(final ComputeServiceContext computeServiceContext, final String apiId, 
+			final Map<String, Set<String>> securityGroupsByRegions) throws CloudProvisioningException {
+		
+		if (apiId.equalsIgnoreCase(EC2)) {
+			RestContext<EC2Client, EC2AsyncClient> unwrapped = computeServiceContext.unwrap();
+			validateEc2SecurityGroups(unwrapped.getApi().getSecurityGroupServices(), securityGroupsByRegions);
+
+		} else if (apiId.equalsIgnoreCase(OPENSTACK)) {
+			/*RestContext<NovaApi, NovaAsyncApi> unwrapped = computeServiceContext.unwrap();
+			FluentIterable<? extends SecurityGroup> securityGroups = unwrapped.getApi().getSecurityGroupExtensionForZone("").orNull().list();
+			validateOpenstackSecurityGroups(securityGroups, aggregateAllValues(securityGroupsByRegions));*/
+			
+		} else if (apiId.equalsIgnoreCase(CLOUDSTACK)) {
+			RestContext<CloudStackClient, CloudStackAsyncClient> unwrapped = computeServiceContext.unwrap();
+			validateCloudstackSecurityGroups(unwrapped.getApi().getSecurityGroupClient(), 
+					aggregateAllValues(securityGroupsByRegions));
+			
+		} else if (apiId.equalsIgnoreCase(VCLOUD)) {
+			//security groups not supported			
+		} else {
+			// api validations not supported yet
+		}
+	}
+	
+	private void validateKeyPairs(final ComputeServiceContext computeServiceContext, final String apiId, 
+			final Map<String, Set<String>> securityGroupsByRegions) throws CloudProvisioningException {
+		
+		if (apiId.equalsIgnoreCase(EC2)) {
+			RestContext<EC2Client, EC2AsyncClient> unwrapped = computeServiceContext.unwrap();
+			validateEc2KeyPairs(unwrapped.getApi().getKeyPairServices(), securityGroupsByRegions);
+
+		} else if (apiId.equalsIgnoreCase(OPENSTACK)) {
+			RestContext<NovaApi, NovaAsyncApi> unwrapped = computeServiceContext.unwrap();
+			//unwrapped1.getApi().getKeyPairExtensionForZone(arg0)
+			//validateOpenstackKeyPairs(unwrapped.getApi(), aggregateAllValues(securityGroupsByRegions));
+			
+		} else if (apiId.equalsIgnoreCase(CLOUDSTACK)) {
+			RestContext<CloudStackClient, CloudStackAsyncClient> unwrapped = computeServiceContext.unwrap();
+			validateCloudstackKeyPairs(unwrapped.getApi().getSSHKeyPairClient(), 
+					aggregateAllValues(securityGroupsByRegions));
+			
+		} else if (apiId.equalsIgnoreCase(VCLOUD)) {
+			//security groups not supported			
+		} else {
+			// api validations not supported yet
+		}
+	}
+	
+	private boolean isKnownAPI(final String apiName) {
+		boolean supported = false;
+		
+		if (apiName.equalsIgnoreCase(EC2)
+				|| apiName.equalsIgnoreCase(VCLOUD)
+				|| apiName.equalsIgnoreCase(OPENSTACK)
+				|| apiName.equalsIgnoreCase(CLOUDSTACK)) {
+			supported = true;
+		}
+		
+		return supported;
+	}
+
+	
+	private void validateEc2SecurityGroups(final org.jclouds.ec2.services.SecurityGroupClient ec2SecurityGroupsClient, 
+			final Map<String, Set<String>> securityGroupsByRegions) throws CloudProvisioningException {
+		
+		Set<String> missingSecurityGroups = new HashSet<String>();
+		//org.jclouds.ec2.services.SecurityGroupClient ec2SecurityGroupsClient = client.getSecurityGroupServices();
+		for (Entry<String, Set<String>> mapEntry : securityGroupsByRegions.entrySet()) {
+			String region = mapEntry.getKey();
+			for (String securityGroupName : mapEntry.getValue()) {
+				Set<org.jclouds.ec2.domain.SecurityGroup> foundGroups = 
+						ec2SecurityGroupsClient.describeSecurityGroupsInRegion(region, securityGroupName);
+				if (foundGroups == null || foundGroups.size() == 0 || foundGroups.iterator().next() == null) {
+					missingSecurityGroups.add(securityGroupName);
+				}
+			}
+		}
+		
+		if (missingSecurityGroups.size() == 1) {
+			throw new CloudProvisioningException("Invalid security group name: " 
+					+ missingSecurityGroups.iterator().next());
+		} else if (missingSecurityGroups.size() > 1) {
+			throw new CloudProvisioningException("Invalid security group names: " 
+					+ Arrays.toString(missingSecurityGroups.toArray()));
+		}		
+	}
+	
+	private void validateEc2KeyPairs(final KeyPairClient ec2KeyPairClient, 
+			final Map<String, Set<String>> keyPairsByRegions) throws CloudProvisioningException {
+		
+		Set<String> missingKeyPairs = new HashSet<String>();
+		for (Entry<String, Set<String>> mapEntry : keyPairsByRegions.entrySet()) {
+			String region = mapEntry.getKey();
+			for (String keyPairName : mapEntry.getValue()) {
+				Set<KeyPair> foundKeyPairs = ec2KeyPairClient.describeKeyPairsInRegion(region, keyPairName);
+				if (foundKeyPairs == null || foundKeyPairs.size() == 0 || foundKeyPairs.iterator().next() == null) {
+					missingKeyPairs.add(keyPairName);
+				}
+			}
+		}
+		
+		if (missingKeyPairs.size() == 1) {
+			throw new CloudProvisioningException("Invalid key-pair name: " 
+					+ missingKeyPairs.iterator().next());
+		} else if (missingKeyPairs.size() > 1) {
+			throw new CloudProvisioningException("Invalid key-pair names: " 
+					+ Arrays.toString(missingKeyPairs.toArray()));
+		}		
+	}
+	
+	private void validateOpenstackSecurityGroups(final Set<SecurityGroup> novaSecurityGroups, 
+			final Set<String> securityGroups) throws CloudProvisioningException {
+
+		Set<String> missingSecurityGroups = new HashSet<String>();
+		
+		for (String securityGroupName : securityGroups) {
+			
+			boolean groupFound = false;
+			for (SecurityGroup novaSecurityGroup : novaSecurityGroups) {
+				if (novaSecurityGroup.getName().equals(securityGroupName)) {
+					groupFound = true;
+					break;
+				}
+			}
+			
+			if (!groupFound) {
+				missingSecurityGroups.add(securityGroupName);
+			}
+		}
+		
+		if (missingSecurityGroups.size() == 1) {
+			throw new CloudProvisioningException("Invalid security group name: " 
+					+ missingSecurityGroups.iterator().next());
+		} else if (missingSecurityGroups.size() > 1) {
+			throw new CloudProvisioningException("Invalid security group names: " 
+					+ Arrays.toString(missingSecurityGroups.toArray()));
+		}
+		
+	}
+	
+	private void validateOpenstackKeyPairs(final Set<SecurityGroup> novaSecurityGroups, 
+			final Set<String> securityGroups) throws CloudProvisioningException {
+
+		Set<String> missingKeyPairs = new HashSet<String>();
+		
+		for (String securityGroupName : securityGroups) {
+			
+			boolean groupFound = false;
+			for (SecurityGroup novaSecurityGroup : novaSecurityGroups) {
+				if (novaSecurityGroup.getName().equals(securityGroupName)) {
+					groupFound = true;
+					break;
+				}
+			}
+			
+			if (!groupFound) {
+				missingKeyPairs.add(securityGroupName);
+			}
+		}
+		
+		if (missingKeyPairs.size() == 1) {
+			throw new CloudProvisioningException("Invalid key-pair name: " 
+					+ missingKeyPairs.iterator().next());
+		} else if (missingKeyPairs.size() > 1) {
+			throw new CloudProvisioningException("Invalid key-pair names: " 
+					+ Arrays.toString(missingKeyPairs.toArray()));
+		}
+		
+	}
+	
+	
+	private void validateCloudstackSecurityGroups(final SecurityGroupClient securityGroupClient, 
+			final Set<String> securityGroups) throws CloudProvisioningException {
+		
+		Set<String> missingSecurityGroups = new HashSet<String>();
+		
+		for (String securityGroupName : securityGroups) {
+			if (securityGroupClient.getSecurityGroup(securityGroupName) == null) {
+				missingSecurityGroups.add(securityGroupName);
+			}
+		}
+		
+		if (missingSecurityGroups.size() == 1) {
+			throw new CloudProvisioningException("Invalid security group name: " 
+					+ missingSecurityGroups.iterator().next());
+		} else if (missingSecurityGroups.size() > 1) {
+			throw new CloudProvisioningException("Invalid security group names: " 
+					+ Arrays.toString(missingSecurityGroups.toArray()));
+		}
+	}
+	
+	private void validateCloudstackKeyPairs(final SSHKeyPairClient keyPairClient, 
+			final Set<String> keyPairs) throws CloudProvisioningException {
+		
+		Set<String> missingKeyPairs = new HashSet<String>();
+		
+		for (String keyPairName : keyPairs) {
+			if (keyPairClient.getSSHKeyPair(keyPairName) == null) {
+				missingKeyPairs.add(keyPairName);
+			}
+		}
+		
+		if (missingKeyPairs.size() == 1) {
+			throw new CloudProvisioningException("Invalid key-pair name: " 
+					+ missingKeyPairs.iterator().next());
+		} else if (missingKeyPairs.size() > 1) {
+			throw new CloudProvisioningException("Invalid key-pair names: " 
+					+ Arrays.toString(missingKeyPairs.toArray()));
+		}
+	}
+	
+	private void validateCloudifyUrl(final String cloudifyUrl) throws CloudProvisioningException {
+		DefaultHttpClient httpClient = new DefaultHttpClient();
+		final HttpHead httpMethod = new HttpHead(cloudifyUrl);
+		try {
+			HttpResponse response = httpClient.execute(httpMethod);
+			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+				throw new CloudProvisioningException("Invalid cloudify URL: " + cloudifyUrl);
+			}
+		} catch (ClientProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	
+	private Set<String> aggregateAllValues(final Map<String, Set<String>> securityGroupsByRegions) {
+		
+		Set<String> securityGroupsSet = new HashSet<String>();
+		for (Entry<String, Set<String>> entry: securityGroupsByRegions.entrySet()) {
+			securityGroupsSet.addAll(entry.getValue());
+		}
+		
+		return securityGroupsSet;
+	}
+	
 }

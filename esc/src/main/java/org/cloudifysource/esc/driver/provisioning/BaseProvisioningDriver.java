@@ -54,6 +54,8 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 
 	protected static final String EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API = "try_to_connect_to_cloud_api";
 	protected static final String EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API = "connection_to_cloud_api_succeeded";
+	protected static final String EVENT_ATTEMPT_TO_VALIDATE_CLOUD_CONFIG = "try_to_validate_cloud_configuration";
+	protected static final String EVENT_CLOUD_CONFIG_VALIDATED = "cloud_configuration_validated";
 	protected static final String EVENT_ATTEMPT_START_MGMT_VMS = "attempting_to_create_management_vms";
 	protected static final String EVENT_MGMT_VMS_STARTED = "management_started_successfully";
 	protected static final String AGENT_MACHINE_PREFIX = "cloudify-agent-";
@@ -113,6 +115,11 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		this.cloudTemplateName = cloudTemplateName;
 		this.management = management;
 		this.cloudName = cloud.getName();
+		
+		publishEvent(EVENT_ATTEMPT_TO_VALIDATE_CLOUD_CONFIG, cloud.getProvider().getProvider());
+		validateCloudConfiguration();
+		publishEvent(EVENT_CLOUD_CONFIG_VALIDATED, cloud.getProvider().getProvider());
+		
 		publishEvent(EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
 		initDeployer(cloud);
 		publishEvent(EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
@@ -137,6 +144,12 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 
 		initCleanRemoteOnStart(cloud);
 	}
+	
+	/**
+	 * Cloud-specific validations called after setConfig and before machines are allocated.
+	 * @throws CloudProvisioningException Indicates invalid configuration
+	 */
+	protected void validateCloudConfiguration() throws CloudProvisioningException { }
 
 
 	private void initCleanRemoteOnStart(final Cloud cloud) {
@@ -303,8 +316,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 				this.cloud.getCloudCompute().getTemplates().get(
 						this.cloud.getConfiguration().getManagementMachineTemplate());
 		try {
-			// Call startMachine asynchronously once for each management
-			// machine
+			// Call startMachine asynchronously once for each management machine
 			for (int i = 0; i < numberOfManagementMachines; i++) {
 				final int index = i + 1;
 				futures[i] = executors.submit(new Callable<MachineDetails>() {
@@ -344,8 +356,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 				}
 			}
 
-			// In case of a partial error, shutdown all servers that did start
-			// up
+			// In case of a partial error, shutdown all servers that did start up
 			if (numberOfErrors > 0) {
 				handleProvisioningFailure(numberOfManagementMachines, numberOfErrors, firstCreationException,
 						createdManagementMachines);
