@@ -78,7 +78,7 @@ cloud {
 						size 1
 						path "/storageVolume"
 						namePrefix "NamePrefix"
-						deviceName "/dev/vdc"
+						deviceName "/dev/sdc"
 						fileSystemType "ext4"
 						custom (["key":"value"])
 					}	

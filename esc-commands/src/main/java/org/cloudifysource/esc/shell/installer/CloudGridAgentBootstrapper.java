@@ -475,8 +475,7 @@ public class CloudGridAgentBootstrapper {
 
 		provisioning.addListener(new CliProvisioningDriverListener());
 		final String serviceName = null;
-		provisioning.setConfig(cloud, cloud.getConfiguration()
-				.getManagementMachineTemplate(), true, serviceName);
+		provisioning.setConfig(cloud, cloud.getConfiguration().getManagementMachineTemplate(), true, serviceName);
 	}
 
 	/**

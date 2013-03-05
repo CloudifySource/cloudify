@@ -65,10 +65,12 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 			.getLogger(OpenstackStorageDriver.class.getName());
 	
 	private ComputeTemplate computeTemplate;
+	private ComputeTemplate storageTemplate;
 	private ComputeServiceContext computeContext;
 	private JCloudsDeployer deployer;
 	private RestContext<NovaApi, NovaAsyncApi> novaContext;
 	private String region;
+	private Cloud cloud;
 	
 	protected final List<ProvisioningDriverListener> eventsListenersList = new LinkedList<ProvisioningDriverListener>();
 
@@ -87,16 +89,13 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 	
 	@Override
 	public void setConfig(final Cloud cloud, final String computeTemplateName) {
-
-		this.cloud = cloud;
 		logger.fine("Initializing storage provisioning on Openstack");
-		
+		this.cloud = cloud;
 		publishEvent(EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
 		initDeployer(cloud, computeTemplateName);
 		publishEvent(EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
 		novaContext = this.computeContext.unwrap();
 		computeTemplate = cloud.getCloudCompute().getTemplates().get(computeTemplateName);
-		storageTemplate = cloud.getCloudStorage().getTemplates().get(storageTemplateName);
 		region = getRegionFromHardwareId(computeTemplate.getHardwareId());
 	}
 
@@ -173,8 +172,7 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		}
 		logger.fine("Attaching volume on Openstack");
 		
-		volumeAttachmentApi.get().attachVolumeToServerAsDevice(volumeId, node.getProviderId(), 
-			storageTemplate.getDeviceName());
+		volumeAttachmentApi.get().attachVolumeToServerAsDevice(volumeId, node.getProviderId(), device);
 		
 		try {
 			waitForVolumeToReachStatus(Volume.Status.IN_USE, volumeApi, volumeId, endTime);
