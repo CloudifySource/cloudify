@@ -28,7 +28,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.dsl.cloud.CloudTemplate;
 import org.cloudifysource.esc.driver.provisioning.CloudDriverSupport;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
@@ -50,14 +50,13 @@ import com.sun.jersey.api.client.filter.LoggingFilter;
  * A custom cloud driver for OpenStack, using keystone authentication. In order to be able to define a floating IP for a
  * machine Changes will have to be made in the cloud driver. a floating ip should be allocated and attached to the
  * server in the newServer method, and detach and deleted upon machine shutdown.
- *
- *
+ * 
+ * 
  * @author barakme
  * @since 2.1
  * @deprecated
- *
+ * 
  */
-@Deprecated
 public class OpenstackCloudDriver extends CloudDriverSupport implements ProvisioningDriver {
 
 	private static final int MILLIS_IN_SECOND = 1000;
@@ -94,7 +93,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 	/************
 	 * Constructor.
-	 *
+	 * 
 	 * @throws ParserConfigurationException
 	 */
 	public OpenstackCloudDriver() {
@@ -366,7 +365,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 			throw new OpenstackException("Failed to send request to server. Response was: " + response
 					+ ", Error was: " + e.getMessage(), e);
 		} catch (UniformInterfaceException e) {
-			throw new OpenstackException("Failed on get for server with node id " + nodeId
+			throw new OpenstackException("Failed on get for server with node id " + nodeId 
 					+ ". Response was: " + response + ", Error was: " + e.getMessage(), e);
 		}
 
@@ -378,7 +377,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 			throws OpenstackException {
 		final List<String> ids = listServerIds(token);
 		final List<Node> nodes = new ArrayList<Node>();
-
+	
 		for (final String id : ids) {
 			try {
 			Node node = getNode(id, token);
@@ -516,13 +515,13 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 	/**
 	 * Creates server. Block until complete. Returns id
-	 *
+	 * 
 	 * @param name the server name
 	 * @param timeout the timeout in seconds
 	 * @param serverTemplate the cloud template to use for this server
 	 * @return the server id
 	 */
-	private MachineDetails newServer(final String token, final long endTime, final ComputeTemplate serverTemplate)
+	private MachineDetails newServer(final String token, final long endTime, final CloudTemplate serverTemplate)
 			throws Exception {
 
 		final String serverId = createServer(token, serverTemplate);
@@ -559,7 +558,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 	}
 
-	private String createServer(final String token, final ComputeTemplate serverTemplate)
+	private String createServer(final String token, final CloudTemplate serverTemplate)
 			throws OpenstackException {
 		final String serverName = this.serverNamePrefix + System.currentTimeMillis();
 		final String securityGroup = getCustomTemplateValue(serverTemplate, OPENSTACK_SECURITYGROUP, null, false);
@@ -605,7 +604,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 		}
 	}
 
-	private String getCustomTemplateValue(final ComputeTemplate serverTemplate, final String key,
+	private String getCustomTemplateValue(final CloudTemplate serverTemplate, final String key,
 			final String defaultValue, final boolean allowNull) {
 		final String value = (String) serverTemplate.getOptions().get(key);
 		if (value == null) {
@@ -688,7 +687,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 	/*********************
 	 * Deletes a floating IP.
-	 *
+	 * 
 	 * @param ip .
 	 * @param token .
 	 * @throws SAXException .
@@ -710,7 +709,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 	/**************
 	 * Allocates a floating IP.
-	 *
+	 * 
 	 * @param token .
 	 * @return .
 	 */
@@ -741,7 +740,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 	/**
 	 * Attaches a previously allocated floating ip to a server.
-	 *
+	 * 
 	 * @param serverid .
 	 * @param ip public ip to be assigned .
 	 * @param token .
@@ -761,7 +760,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 	/**********
 	 * Detaches a floating IP from a server.
-	 *
+	 * 
 	 * @param serverId .
 	 * @param ip .
 	 * @param token .
@@ -780,7 +779,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 	/**********
 	 * Creates an openstack keystone authentication token.
-	 *
+	 * 
 	 * @return the authentication token.
 	 */
 
@@ -808,7 +807,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 	/**
 	 * Checks if throttling is now activated, to avoid overloading the cloud.
-	 *
+	 * 
 	 * @return True if throttling is activate, false otherwise
 	 */
 	public boolean isThrottling() {
@@ -818,11 +817,5 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 		}
 
 		return throttling;
-	}
-
-	@Override
-	public Object getComputeContext() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 }
