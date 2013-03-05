@@ -822,4 +822,10 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 		return throttling;
 	}
 
+	@Override
+	public Object getComputeContext() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
