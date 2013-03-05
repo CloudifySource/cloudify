@@ -27,12 +27,12 @@ import org.cloudifysource.shell.Constants;
 /**
  * @author uri, adaml, barakm
  * @since 2.0.0
- * 
+ *
  *        Lists all instances of a certain service.
- * 
+ *
  *        Required arguments:
  *         service-name - The service name
- * 
+ *
  *        Command syntax: list-instances service-name
  */
 
@@ -44,7 +44,7 @@ public class ListInstances extends AdminAwareCommand {
 
 	/**
 	 * Gets a list of all services deployed on the current application.
-	 * 
+	 *
 	 * @return Collection of all services deployed on the current application
 	 * @throws Exception
 	 *             Reporting a failure to retrieve the current application name or its services
@@ -64,7 +64,7 @@ public class ListInstances extends AdminAwareCommand {
 		if (instanceIdToHostMap.isEmpty()) {
 			return MessageFormat.format(messages.getString("no_instances_found"), serviceName);
 		}
-		final StringBuilder builder = new StringBuilder("Instance\t\tHost\n");
+		final StringBuilder builder = new StringBuilder("Instance\t\tHost/Public Ip\n");
 		for (final Map.Entry<String, Object> entry : instanceIdToHostMap.entrySet()) {
 			builder.append("instance #").append(entry.getKey()).append("\t\t").append(entry.getValue()).append('\n');
 		}
