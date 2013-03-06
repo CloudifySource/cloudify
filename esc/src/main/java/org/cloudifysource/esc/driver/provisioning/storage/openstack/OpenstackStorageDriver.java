@@ -91,10 +91,10 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		logger.fine("Initializing storage provisioning on Openstack");
 		this.cloud = cloud;
 		publishEvent(EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
-		initDeployer(cloud, computeTemplateName);
 		publishEvent(EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
 		novaContext = this.computeContext.unwrap();
 		computeTemplate = cloud.getCloudCompute().getTemplates().get(computeTemplateName);
+		initDeployer();
 		region = getRegionFromHardwareId(computeTemplate.getHardwareId());
 	}
 
@@ -356,7 +356,7 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		}
 	}
 	
-	private JCloudsDeployer initDeployer(final Cloud cloud, final String computeTemplateName) {
+	private JCloudsDeployer initDeployer() {
 		
 		if (deployer != null) {
 			return deployer;
