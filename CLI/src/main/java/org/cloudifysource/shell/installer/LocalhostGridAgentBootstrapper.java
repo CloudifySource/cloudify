@@ -1420,6 +1420,13 @@ public class LocalhostGridAgentBootstrapper {
 			environment.put(CloudifyConstants.GIGASPACES_CLOUD_IMAGE_ID, "localcloud");
 			environment.put(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME, "localcloud");
 			environment.put(CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID, "localcloud");
+			final String springProfiles = createSpringProfilesList(securityProfile);
+			environment.put(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR, springProfiles);
+			if (ShellUtils.isSecureConnection(securityProfile)) {
+				environment.put(CloudifyConstants.KEYSTORE_FILE_ENV_VAR, keystoreFilePath);
+				environment.put(CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR, keystorePassword);
+			}
+			environment.put(CloudifyConstants.SPRING_SECURITY_CONFIG_FILE_ENV_VAR, securityFilePath);
 			if (nicAddress != null) {
 				environment.put(CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVATE_IP, nicAddress);
 				environment.put(CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP, nicAddress);

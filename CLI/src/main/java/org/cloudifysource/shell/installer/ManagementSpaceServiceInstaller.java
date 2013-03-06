@@ -237,11 +237,6 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 						gigaspace = space.getGigaSpace();
 						return true;
 					}
-				} else {
-					publishEvent("space by name for " + serviceName + " is null. discovered spaces are : ");
-					for (Space sp : admin.getSpaces()) {
-						publishEvent(sp.getName());
-					}
 				}
 
 				logger.fine("Connecting to management space.");

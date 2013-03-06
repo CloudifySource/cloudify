@@ -33,6 +33,7 @@ import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.CloudifyLicenseVerifier;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.KeystoreFileVerifier;
+import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.installer.CLILocalhostBootstrapperListener;
 import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 import org.fusesource.jansi.Ansi.Color;
@@ -312,7 +313,7 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 	private void validateSecurityVars() throws IOException {
 
 		// handle the configuration file
-		if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_NON_SECURE)) {
+		if (!ShellUtils.isSecureConnection(securityProfile)) {
 			securityFilePath = new File(DEFAULT_SECURITY_FILE_PATH).getCanonicalPath();
 		} else {
 			if (StringUtils.isNotBlank(securityFilePath)) {
