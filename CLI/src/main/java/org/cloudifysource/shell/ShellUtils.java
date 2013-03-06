@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -484,8 +485,8 @@ public final class ShellUtils {
 	 * @return true - if the profile indicates SSL is used, false otherwise.
 	 */
 	public static boolean isSecureConnection(final String springSecurityProfile) {
-		return org.apache.commons.lang.StringUtils.containsIgnoreCase(springSecurityProfile, 
-				CloudifyConstants.SPRING_PROFILE_SECURE);
+		List<String> existingProfiles = Arrays.asList(springSecurityProfile.toLowerCase().split(","));
+		return existingProfiles.contains(CloudifyConstants.SPRING_PROFILE_SECURE.toLowerCase());		
 	}
 
 	/**
