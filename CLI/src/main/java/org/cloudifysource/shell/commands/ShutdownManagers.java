@@ -52,6 +52,9 @@ public class ShutdownManagers extends AbstractGSCommand {
 					+ " Can be used to re-bootstrap a cloud.")
 	private File existingManagersFile;
 
+	@Option(required = false, name = "-timeout", description = "Minutes to wait for shutdown to complete.")
+	private int timeout = 2;
+
 	/**
 	 * Shuts down the local cloud, and waits until shutdown is complete or until the timeout is reached.
 	 *
@@ -113,7 +116,7 @@ public class ShutdownManagers extends AbstractGSCommand {
 
 		final Set<ControllerDetails> managersStillUp = new HashSet<ControllerDetails>();
 		managersStillUp.addAll(managers);
-		final long endTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(1);
+		final long endTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(this.timeout);
 		while (System.currentTimeMillis() < endTime) {
 			Thread.sleep(POLLING_INTERVAL);
 
@@ -165,6 +168,14 @@ public class ShutdownManagers extends AbstractGSCommand {
 
 	public void setExistingManagersFile(final File existingManagersFile) {
 		this.existingManagersFile = existingManagersFile;
+	}
+
+	public int getTimeout() {
+		return timeout;
+	}
+
+	public void setTimeout(final int timeout) {
+		this.timeout = timeout;
 	}
 
 }
