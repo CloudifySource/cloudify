@@ -124,8 +124,13 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 			if (volume != null) {
 				handleExceptionAfterVolumeCreated(volume.getId());
 			}
-			throw new StorageProvisioningException("Failed creating volume of size " + size + " in availability zone. " 
-					+ availabilityZone + "Reason: " + e.getMessage(), e);
+			if (e instanceof TimeoutException) {
+				throw (TimeoutException) e;
+			} else {
+				throw new StorageProvisioningException("Failed creating volume of size " 
+							+ size + " in availability zone. " 
+						+ availabilityZone + "Reason: " + e.getMessage(), e);				
+			}
 		}
 		VolumeDetails volumeDetails = createVolumeDetails(volume);
 		return volumeDetails;

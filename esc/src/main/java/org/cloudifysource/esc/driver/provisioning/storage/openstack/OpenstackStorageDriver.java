@@ -146,7 +146,11 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 				logger.log(Level.WARNING, "Error while deleting volume: " + volume.getId() 
 						+ ". Error was: " + e.getMessage() + ". It may be leaking.", e);
 			}
-			throw new StorageProvisioningException(e);
+			if (e instanceof TimeoutException) {
+				throw (TimeoutException) e;
+			} else {
+				throw new StorageProvisioningException(e);				
+			}
 		}
 		
 		return volumeDetails;
