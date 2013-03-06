@@ -65,7 +65,6 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 			.getLogger(OpenstackStorageDriver.class.getName());
 	
 	private ComputeTemplate computeTemplate;
-	private ComputeTemplate storageTemplate;
 	private ComputeServiceContext computeContext;
 	private JCloudsDeployer deployer;
 	private RestContext<NovaApi, NovaAsyncApi> novaContext;
@@ -367,7 +366,6 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 			logger.fine("Creating JClouds context deployer for Openstack with user: " + cloud.getUser().getUser());
 			final Properties props = new Properties();
 			props.putAll(computeTemplate.getOverrides());
-			props.putAll(storageTemplate.getCustom());
 
 			deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),
 					cloud.getUser().getApiKey(), props);
