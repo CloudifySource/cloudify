@@ -682,9 +682,10 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		}
 
 		final MachineDetails[] result = new MachineDetails[managementNodes.size()];
-		final int i = 0;
+		int i = 0;
 		for (final CustomNode node : managementNodes) {
 			result[i] = createMachineDetailsFromNode(node);
+			++i;
 		}
 		return result;
 
