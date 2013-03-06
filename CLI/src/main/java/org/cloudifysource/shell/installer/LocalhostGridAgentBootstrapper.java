@@ -1403,7 +1403,10 @@ public class LocalhostGridAgentBootstrapper {
 						+ " " + GSM_PENDING_REQUESTS_DELAY + " -D" + ZONES_PROPERTY + "=" + LOCALCLOUD_GSA_ZONES;
 
 		final Map<String, String> environment = pb.environment();
-
+		if (lookupGroups != null) {
+			environment.put("LOOKUPGROUPS", lookupGroups);
+		}
+		
 		if (lookupLocators != null) {
 			final String disableMulticast = "-Dcom.gs.multicast.enabled=false";
 			environment.put("LOOKUPLOCATORS", lookupLocators);

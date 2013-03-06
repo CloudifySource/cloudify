@@ -230,11 +230,17 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 			public boolean isDone() throws CLIException, InterruptedException {
 
 				final Space space = admin.getSpaces().getSpaceByName(serviceName);
+				
 				if (space != null) {
 					final SpacePartition partition = space.getPartition(0);
 					if (partition != null && partition.getPrimary() != null) {
 						gigaspace = space.getGigaSpace();
 						return true;
+					}
+				} else {
+					publishEvent("space by name for " + serviceName + " is null. discovered spaces are : ");
+					for (Space sp : admin.getSpaces()) {
+						publishEvent(sp.getName());
 					}
 				}
 
