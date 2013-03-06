@@ -266,7 +266,6 @@ public class AgentlessInstaller {
 						CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_IP_ADDRESS_ENV,
 						details.isBindToPrivateIp() ? details.getPrivateIp()
 								: details.getPublicIp())
-				.exportVar(MACHINE_ZONES_ENV, details.getZones())
 				.exportVarWithQuotes(CloudifyConstants.CLOUDIFY_LINK_ENV,
 						details.getCloudifyUrl())
 				.exportVarWithQuotes(CloudifyConstants.CLOUDIFY_OVERRIDES_LINK_ENV,

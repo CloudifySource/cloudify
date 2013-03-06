@@ -56,6 +56,7 @@ import com.gigaspaces.internal.utils.StringUtils;
  */
 public final class Utils {
 
+	private static final String MANAGEMENT_ZONE = "management";
 	// timeout in seconds, waiting for the admin API to load.
 	private static final int ADMIN_API_TIMEOUT = 90;
 	// logger
@@ -263,7 +264,8 @@ public final class Utils {
 		} else {
 			details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		}
-		details.setGsaCommandlineArgs('"' + gridCommandBuilder.getAgentCommandlineArgs(componentsConfig.getAgent()) + '"');
+		details.setGsaCommandlineArgs('"' + gridCommandBuilder.getAgentCommandlineArgs(componentsConfig.getAgent(), 
+				details.isManagement() ? MANAGEMENT_ZONE : details.getZones()) + '"');
 
 		// Add all template custom data fields starting with 'installer.' to the
 		// installation details

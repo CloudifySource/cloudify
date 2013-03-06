@@ -124,9 +124,10 @@ public final class GridCommandLineBuilder {
 	 *
 	 * @param agent
 	 *            Agent config
+	 * @param zone - the agent zone
 	 * @return Commandline arguments for the GSA
 	 */
-	public String getAgentCommandlineArgs(final AgentComponent agent) {
+	public String getAgentCommandlineArgs(final AgentComponent agent, final String zone) {
 
 		 String agentCommandLineArgs = "-D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;
 
