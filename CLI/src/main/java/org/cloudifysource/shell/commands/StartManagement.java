@@ -29,6 +29,7 @@ import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.CloudifyLicenseVerifier;
 import org.cloudifysource.shell.Constants;
+import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 
 /**
@@ -218,8 +219,7 @@ public class StartManagement extends AbstractGSCommand {
 		}
 
 		// The security files are expected to be in <cloudify home>\config\security
-		if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE_NO_SSL)
-				|| securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE)) {
+		if (ShellUtils.isSecureConnection(securityProfile)) {
 			//verify we have the security config file at place
 			File securityConfigFile = new File(SPRING_SECURITY_CONFIG_FILE);
 			if (!securityConfigFile.isFile()) {
@@ -228,7 +228,7 @@ public class StartManagement extends AbstractGSCommand {
 			}
 		}
 
-		if (securityProfile.equalsIgnoreCase(CloudifyConstants.SPRING_PROFILE_SECURE)) {
+		if (ShellUtils.isSecureConnection(securityProfile)) {
 			//verify we have the keystore file at place
 			File keystoreFile = new File(KEYSTORE_FILE);
 			if (!keystoreFile.isFile()) {

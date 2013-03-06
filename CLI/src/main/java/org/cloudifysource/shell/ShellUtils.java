@@ -484,7 +484,8 @@ public final class ShellUtils {
 	 * @return true - if the profile indicates SSL is used, false otherwise.
 	 */
 	public static boolean isSecureConnection(final String springSecurityProfile) {
-		return CloudifyConstants.SPRING_PROFILE_SECURE.equalsIgnoreCase(springSecurityProfile);
+		return org.apache.commons.lang.StringUtils.containsIgnoreCase(springSecurityProfile, 
+				CloudifyConstants.SPRING_PROFILE_SECURE);
 	}
 
 	/**
