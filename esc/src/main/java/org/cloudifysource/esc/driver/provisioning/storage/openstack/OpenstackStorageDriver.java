@@ -356,10 +356,10 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		}
 	}
 	
-	private JCloudsDeployer initDeployer() {
+	private void initDeployer() {
 		
 		if (deployer != null) {
-			return deployer;
+			return ;
 		}
 		
 		try {
@@ -373,8 +373,6 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 			publishEvent("connection_to_cloud_api_failed", cloud.getProvider().getProvider());
 			throw new IllegalStateException("Failed to create cloud Deployer", e);
 		}
-		
-		return deployer;
 	}
 
 	@Override
