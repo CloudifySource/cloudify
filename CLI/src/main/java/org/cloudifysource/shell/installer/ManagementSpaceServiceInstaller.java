@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.shell.installer;
 
@@ -133,9 +130,9 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 						.scale(new EagerScaleConfigurer().atMostOneContainerPerMachine().create())
 						.addCommandLineArgument(this.lrmiCommandLineArgument);
 
-		if (this.persistentStoragePath != null) {
-			deployment.addCommandLineArgument("-Dspring.profiles.active=persistent");
-		}
+		// if (this.persistentStoragePath != null) {
+		// deployment.addCommandLineArgument("-Dspring.profiles.active=persistent");
+		// }
 
 		for (final Entry<Object, Object> prop : getContextProperties().entrySet()) {
 			deployment.addContextProperty(prop.getKey().toString(), prop.getValue().toString());
@@ -146,15 +143,22 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 					.dependsOnMinimumNumberOfDeployedInstancesPerPartition(requiredPUName, 1).create());
 		}
 		// The gsc java options define the lrmi port range and memory size if not defined.
+		try {
+			getGridServiceManager().deploy(deployment);
+		} catch (final ProcessingUnitAlreadyDeployedException e) {
+			// this is possible in a re-bootstrap scenario
+			logger.warning("Deployment of management space failed because a Processing unit with the "
+					+ "same name already exists. If this error occured during recovery of management machines, "
+					+ "this error is normal and can be ignored.");
 
-		getGridServiceManager().deploy(deployment);
+		}
 
 	}
 
 	/**
-	 * Installs the management space with the configured settings inside the
-	 * localcloud dedicated management service container. If a dependency on another PU is set,
-	 *  the deployment will wait until at least 1 instance of that PU is available.
+	 * Installs the management space with the configured settings inside the localcloud dedicated management service
+	 * container. If a dependency on another PU is set, the deployment will wait until at least 1 instance of that PU is
+	 * available.
 	 *
 	 * @throws ProcessingUnitAlreadyDeployedException
 	 *             Reporting installation failure because the PU is already installed
@@ -235,7 +239,7 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 				}
 
 				logger.fine("Connecting to management space.");
-				if (verbose){
+				if (verbose) {
 					publishEvent("Connecting to management space.");
 				}
 				return false;
@@ -243,7 +247,7 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 		});
 
 		logger.fine("Management space is available.");
-		if (verbose){
+		if (verbose) {
 			logger.fine("Management space is available.");
 		}
 	}

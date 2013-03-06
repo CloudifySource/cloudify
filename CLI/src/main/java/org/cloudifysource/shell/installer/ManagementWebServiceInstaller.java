@@ -38,6 +38,7 @@ import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.CLIException;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.pu.ProcessingUnit;
+import org.openspaces.admin.pu.ProcessingUnitAlreadyDeployedException;
 import org.openspaces.admin.pu.ProcessingUnitDeployment;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
 import org.openspaces.admin.pu.dependency.ProcessingUnitDeploymentDependenciesConfigurer;
@@ -148,8 +149,14 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 					.dependsOnMinimumNumberOfDeployedInstancesPerPartition(requiredPUName, 1).create());
 		}
 		// The gsc java options define the lrmi port range and memory size if not defined.
-
+		try {
 		getGridServiceManager().deploy(deployment);
+		} catch(final ProcessingUnitAlreadyDeployedException e) {
+			// this is possible in a re-bootstrap scenario
+			logger.warning("Deployment of " + serviceName + " failed because a Processing unit with the "
+					+ "same name already exists. If this error occured during recovery of management machines, "
+					+ "this error is normal and can be ignored.");
+		}
 	}
 
 	/**
