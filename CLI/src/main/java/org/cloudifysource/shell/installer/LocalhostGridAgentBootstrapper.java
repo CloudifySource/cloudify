@@ -1402,40 +1402,13 @@ public class LocalhostGridAgentBootstrapper {
 						+ GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL
 						+ " " + GSM_PENDING_REQUESTS_DELAY + " -D" + ZONES_PROPERTY + "=" + LOCALCLOUD_GSA_ZONES;
 
-		String gsaJavaOptions = "";
-		if (autoShutdown) {
-			gsaJavaOptions += " " + AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT;
-		}
-
 		final Map<String, String> environment = pb.environment();
-		if (lookupGroups != null) {
-			environment.put("LOOKUPGROUPS", lookupGroups);
-		}
 
 		if (lookupLocators != null) {
 			final String disableMulticast = "-Dcom.gs.multicast.enabled=false";
 			environment.put("LOOKUPLOCATORS", lookupLocators);
 			localCloudOptions += " " + disableMulticast;
 		}
-		gsaJavaOptions += environment.get("GSA_JAVA_OPTIONS") == null ? "" : " " + environment.get("GSA_JAVA_OPTIONS");
-
-		if (nicAddress != null) {
-			environment.put("NIC_ADDR", nicAddress);
-		}
-
-		final String springProfiles = createSpringProfilesList(securityProfile);
-		logger.fine("Setting env var " + CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR + " to: " + springProfiles);
-		environment.put(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR, springProfiles);
-		if (ShellUtils.isSecureConnection(securityProfile)) {
-			logger.fine("Setting env var " + CloudifyConstants.KEYSTORE_FILE_ENV_VAR + " to: " + keystoreFilePath);
-			environment.put(CloudifyConstants.KEYSTORE_FILE_ENV_VAR, keystoreFilePath);
-			logger.fine("Setting env var " + CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR + " to: " + keystorePassword);
-			environment.put(CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR, keystorePassword);
-		}
-		logger.fine("Setting env var " + CloudifyConstants.SPRING_SECURITY_CONFIG_FILE_ENV_VAR + " to: "
-				+ securityFilePath);
-
-		environment.put(CloudifyConstants.SPRING_SECURITY_CONFIG_FILE_ENV_VAR, securityFilePath);
 
 		if (isLocalCloud) {
 			logger.fine("Setting env vars COMPONENT_JAVA_OPTIONS: " + localCloudOptions);
@@ -1448,9 +1421,6 @@ public class LocalhostGridAgentBootstrapper {
 				environment.put(CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVATE_IP, nicAddress);
 				environment.put(CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP, nicAddress);
 			}
-		} else {
-			logger.fine("Setting env vars " + "GSA_JAVA_OPTIONS:" + gsaJavaOptions);
-			environment.put("GSA_JAVA_OPTIONS", gsaJavaOptions);
 		}
 
 		// start process
