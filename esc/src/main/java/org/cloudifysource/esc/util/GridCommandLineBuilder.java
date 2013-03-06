@@ -76,7 +76,10 @@ public final class GridCommandLineBuilder {
 		final String persistentStoragePath = cloud.getConfiguration().getPersistentStoragePath();
 		if (persistentStoragePath != null) {
 			final String gsmStoragePath = persistentStoragePath + "/gsm";
-			gsmCommandLineArgs = gsmCommandLineArgs + " -Dcom.gs.persistency.logDirectory=" + gsmStoragePath;
+			final String gsmDeployPath = persistentStoragePath + "/deploy";
+
+			gsmCommandLineArgs = gsmCommandLineArgs + " -Dcom.gs.persistency.logDirectory=" + gsmStoragePath
+					+ " -Dcom.gs.deploy=" + gsmDeployPath;
 		}
 
 		if (lookupLocatorsString != null) {
