@@ -12,6 +12,7 @@
  *******************************************************************************/
 package org.cloudifysource.esc.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.AgentComponent;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.DeployerComponent;
@@ -128,8 +129,12 @@ public final class GridCommandLineBuilder {
 	 * @return Commandline arguments for the GSA
 	 */
 	public String getAgentCommandlineArgs(final AgentComponent agent, final String zone) {
-
-		 String agentCommandLineArgs = "-D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;
+		
+		String agentCommandLineArgs = "";
+		if (StringUtils.isNotBlank(zone)) {
+			agentCommandLineArgs += "-D" + ZONES_PROPERTY + "=" + zone;			
+		}
+		
 
 		agentCommandLineArgs += " " + AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT;
 		agentCommandLineArgs += " ";
