@@ -59,8 +59,15 @@ public class StorageFacadeImpl implements StorageFacade {
 	}
 
 	@Override
-	public String createVolume(final String templateName) throws RemoteStorageOperationException {
+	public String createVolume(final String templateName) throws RemoteStorageOperationException, TimeoutException {
 		return remoteStorageProvisioningDriver.createVolume(templateName, serviceContext.getLocationId());
+	}
+	
+	@Override
+	public String createVolume(final String templateName, final long timeoutInMillis)
+			throws RemoteStorageOperationException, TimeoutException {
+		return remoteStorageProvisioningDriver.
+				createVolume(templateName, serviceContext.getLocationId(), timeoutInMillis);
 	}
 
 	@Override

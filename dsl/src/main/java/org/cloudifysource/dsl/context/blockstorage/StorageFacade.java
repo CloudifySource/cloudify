@@ -39,12 +39,30 @@ public interface StorageFacade {
 	
 	
 	/***************************
+	 * Creates a volume from the given template name. the template must be pre defined in the cloud configuration file
+	 * the bootstrap was performed with.
+	 * will use a default timeout of 1 minute.
 	 * @param templateName - the storage template name to be used when creating the volume.
 	 * @return the volume id.
 	 * @throws RemoteStorageOperationException - thrown in case something went wrong during the remote call.
+	 * @throws TimeoutException - thrown when there was a timeout in creating the volume.
 	 */
 	String createVolume(final String templateName) 
-			throws RemoteStorageOperationException;
+			throws RemoteStorageOperationException, TimeoutException;
+	
+	/***************************
+	 * Creates a volume from the given template name. the template must be pre defined in the cloud configuration file
+	 * the bootstrap was performed with.
+	 * @param templateName - the storage template name to be used when creating the volume.
+	 * @param timeoutInMillis - the timeout for the createVolume API call. 
+	 * 				if the timeout is exceeded but the volume was created
+	 * 				a call to {@link StorageFacade#deleteVolume(String)} will be executed.
+	 * @return the volume id.
+	 * @throws RemoteStorageOperationException - thrown in case something went wrong during the remote call.
+	 * @throws TimeoutException - thrown when there was a timeout in creating the volume.
+	 */
+	String createVolume(final String templateName, final long timeoutInMillis) 
+			throws RemoteStorageOperationException, TimeoutException;
 	
 	/***************************
 	 * detaches the volume from the machine.

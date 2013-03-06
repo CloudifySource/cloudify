@@ -17,6 +17,7 @@
 package org.cloudifysource.esc.driver.provisioning.storage;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.cloudifysource.dsl.context.blockstorage.RemoteStorageOperationException;
 import org.cloudifysource.dsl.internal.context.RemoteStorageProvisioningDriver;
@@ -50,16 +51,23 @@ public class RemoteStorageProvisioningDriverAdapter implements RemoteStorageProv
 
 	@Override
 	public String createVolume(final String templateName, final String locationId) 
-			throws RemoteStorageOperationException {
+			throws RemoteStorageOperationException, TimeoutException {
+		return createVolume(templateName, locationId, DEFAULT_STORAGE_OPERATION_TIMEOUT);
+	}
+	
+	@Override
+	public String createVolume(final String templateName, final String locationId,
+			final long timeoutInMillis) throws RemoteStorageOperationException, TimeoutException {
 		try {
 			VolumeDetails volumeDetails = storageProvisioningDriver
-					.createVolume(templateName, locationId, DEFAULT_STORAGE_OPERATION_TIMEOUT, 
+					.createVolume(templateName, locationId, timeoutInMillis, 
 							TimeUnit.MILLISECONDS);			
 			return volumeDetails.getId();
-		} catch (final Exception e) {
+		} catch (final StorageProvisioningException e) {
 			throw new RemoteStorageOperationException("Failed creating volume in location " 
 						+ locationId + " : " + e.getMessage(), e);			
 		}
+
 	}
 
 	@Override
@@ -84,6 +92,4 @@ public class RemoteStorageProvisioningDriverAdapter implements RemoteStorageProv
 		}
 		
 	}
-	
-	
 }
