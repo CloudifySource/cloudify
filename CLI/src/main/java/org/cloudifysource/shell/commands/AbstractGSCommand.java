@@ -1,22 +1,21 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.shell.commands;
 
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -34,16 +33,16 @@ import org.fusesource.jansi.Ansi.Color;
  * @author rafi, barakm
  * @since 2.0.0
  *        <p/>
- *        Abstract implementation of the
- *        {@link org.apache.felix.gogo.commands.Action} interface. This
- *        abstraction can be extended by Cloudify aware commands to get support
- *        for: - Formatted messages from the message bundle - Logging (with
- *        verbose mode - true/false) - AdminFacade such as the RestAdminFacade,
- *        when required by the command (AKA admin-aware commands).
+ *        Abstract implementation of the {@link org.apache.felix.gogo.commands.Action} interface. This abstraction can
+ *        be extended by Cloudify aware commands to get support for: - Formatted messages from the message bundle -
+ *        Logging (with verbose mode - true/false) - AdminFacade such as the RestAdminFacade, when required by the
+ *        command (AKA admin-aware commands).
  */
 public abstract class AbstractGSCommand implements Action {
 
 	protected static final Logger logger = Logger.getLogger(AbstractGSCommand.class.getName());
+
+	private static ConsoleHandler consoleHandler = null;
 
 	@Option(required = false, name = "--verbose", description = "show detailed execution result including exception"
 			+ " stack trace")
@@ -53,11 +52,26 @@ public abstract class AbstractGSCommand implements Action {
 	protected boolean adminAware = false;
 	protected AdminFacade adminFacade;
 
+	private Level defaultLoggingLevel;
+
+	private static ConsoleHandler getConsoleHandler() {
+		if (consoleHandler == null) {
+			Logger rootLogger = Logger.getLogger("");
+			Handler[] handlers = rootLogger.getHandlers();
+			for (Handler handler : handlers) {
+				if (handler instanceof ConsoleHandler) {
+					consoleHandler = (ConsoleHandler) handler;
+					break;
+				}
+			}
+		}
+		return consoleHandler;
+	}
+
 	/**
-	 * Initializes the messages bundle, and takes the admin facade objects from
-	 * the session when command is admin-aware. Calls doExecute (must be
-	 * implemented separately in the extending classes).
-	 * 
+	 * Initializes the messages bundle, and takes the admin facade objects from the session when command is admin-aware.
+	 * Calls doExecute (must be implemented separately in the extending classes).
+	 *
 	 * @param session
 	 *            The command session to be used.
 	 * @return Object The object returned from the call to doExecute
@@ -67,6 +81,8 @@ public abstract class AbstractGSCommand implements Action {
 	@Override
 	public Object execute(final CommandSession session)
 			throws Exception {
+		setUpLoggingLevel();
+
 		this.session = session;
 		messages = ShellUtils.getMessageBundle();
 		try {
@@ -129,15 +145,30 @@ public abstract class AbstractGSCommand implements Action {
 				"op_failed", Color.RED, "");
 	}
 
+	private void setUpLoggingLevel() {
+		final Handler handler = getConsoleHandler();
+		initDefaultLoggingLevel(handler);
+		if (this.verbose) {
+			handler.setLevel(defaultLoggingLevel);
+		} else {
+			handler.setLevel(Level.WARNING);
+		}
+	}
+
+	private void initDefaultLoggingLevel(final Handler handler) {
+		if (defaultLoggingLevel == null) {
+			defaultLoggingLevel = handler.getLevel();
+		}
+	}
+
 	private String getFormattedMessageFromErrorStatusException(final CLIStatusException e) {
 		return getFormattedMessageFromErrorStatusException(e, null);
 	}
 
 	/**
-	 * Gets a formatted message from the given CLIStatusException, using the
-	 * exception's reason code as the message name and the exception's args
-	 * field, if not null.
-	 * 
+	 * Gets a formatted message from the given CLIStatusException, using the exception's reason code as the message name
+	 * and the exception's args field, if not null.
+	 *
 	 * @param e
 	 *            The CLIStatusException to base on
 	 * @return The formatted message
@@ -147,14 +178,13 @@ public abstract class AbstractGSCommand implements Action {
 		if (message == null) {
 			message = e.getReasonCode();
 		}
-		
+
 		if (verboseData != null) {
 			return message + " : " + verboseData;
 		} else {
 			return message;
 		}
 	}
-
 
 	// private String
 	// getFormattedMessageFromErrorStatusException(ErrorStatusException e,
@@ -164,9 +194,9 @@ public abstract class AbstractGSCommand implements Action {
 	// }
 
 	/**
-	 * If not using the CLI in interactive mode - the method adds the given
-	 * throwable to the session and throws a CloseShellException.
-	 * 
+	 * If not using the CLI in interactive mode - the method adds the given throwable to the session and throws a
+	 * CloseShellException.
+	 *
 	 * @param session
 	 *            current command session
 	 * @param t
@@ -185,7 +215,7 @@ public abstract class AbstractGSCommand implements Action {
 
 	/**
 	 * Gets the name of the current application.
-	 * 
+	 *
 	 * @return Name of the current application, as a String.
 	 */
 	protected final String getCurrentApplicationName() {
@@ -197,10 +227,9 @@ public abstract class AbstractGSCommand implements Action {
 	}
 
 	/**
-	 * Gets a message from the message bundle, without argument. If the message
-	 * cannot be retrieved the message name is returned and the failure is
-	 * logged.
-	 * 
+	 * Gets a message from the message bundle, without argument. If the message cannot be retrieved the message name is
+	 * returned and the failure is logged.
+	 *
 	 * @param msgName
 	 *            the message name used to retrieve from the message bundle
 	 * @return formatted message as a String
@@ -211,15 +240,13 @@ public abstract class AbstractGSCommand implements Action {
 	}
 
 	/**
-	 * Gets a message from the message bundle, embedded with the given arguments
-	 * if supplied. If the message cannot be retrieved the message name is
-	 * returned and the failure is logged.
-	 * 
+	 * Gets a message from the message bundle, embedded with the given arguments if supplied. If the message cannot be
+	 * retrieved the message name is returned and the failure is logged.
+	 *
 	 * @param msgName
 	 *            the message name used to retrieve from the message bundle
 	 * @param color
-	 *            The color to be used when displaying the message in the
-	 *            console
+	 *            The color to be used when displaying the message in the console
 	 * @param arguments
 	 *            arguments to embed in the message text
 	 * @return formatted message as a String
@@ -232,10 +259,9 @@ public abstract class AbstractGSCommand implements Action {
 	}
 
 	/**
-	 * Gets a message from the message bundle, embedded with the given arguments
-	 * if supplied. If the message cannot be retrieved the message name is
-	 * returned and the failure is logged.
-	 * 
+	 * Gets a message from the message bundle, embedded with the given arguments if supplied. If the message cannot be
+	 * retrieved the message name is returned and the failure is logged.
+	 *
 	 * @param msgName
 	 *            the message name used to retrieve from the message bundle
 	 * @param arguments
@@ -248,7 +274,7 @@ public abstract class AbstractGSCommand implements Action {
 
 	/**
 	 * The main method to be implemented by all extending classes.
-	 * 
+	 *
 	 * @return Object Return value from the executed command
 	 * @throws Exception
 	 *             Reporting a failure to execute this command
@@ -257,12 +283,11 @@ public abstract class AbstractGSCommand implements Action {
 			throws Exception;
 
 	/**
-	 * Creates Properties object for the given service, with value for:
-	 * com.gs.application.depends com.gs.service.type com.gs.service.icon
-	 * com.gs.service.network.protocolDescription
+	 * Creates Properties object for the given service, with value for: com.gs.application.depends com.gs.service.type
+	 * com.gs.service.icon com.gs.service.network.protocolDescription
 	 * <p/>
 	 * in case the above properties are not null.
-	 * 
+	 *
 	 * @param serviceNamesString
 	 *            Service name
 	 * @param service
@@ -295,7 +320,7 @@ public abstract class AbstractGSCommand implements Action {
 
 	/**
 	 * Gets the restAdminFacade.
-	 * 
+	 *
 	 * @return The AdminFacade object used by rest commands
 	 */
 	protected AdminFacade getRestAdminFacade() {
