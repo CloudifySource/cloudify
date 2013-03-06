@@ -51,9 +51,6 @@ public class StartAgent extends AbstractGSCommand {
 
 	private static final int DEFAULT_TIMEOUT_MINUTES = 5;
 
-	@Option(required = false, name = "-zone", description = "The grid service agent zone")
-	private String zone;
-
 	@Option(required = false, name = "-lookup-groups", description = "A unique name that is used to group together"
 			+ " different Cloudify machines. Default is based on the product version. Override in order to group"
 			+ " together cloudify managements/agents on a network that supports multicast.")
@@ -94,7 +91,6 @@ public class StartAgent extends AbstractGSCommand {
 		installer.setNicAddress(nicAddress);
 		installer.setProgressInSeconds(DEFAULT_POLLING_INTERVAL);
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
-		installer.setGridServiceAgentZone(zone);
 		installer.setAutoShutdown(autoShutdown);
 
 		installer.startAgentOnLocalhostAndWait("" /*securityProfile*/, "" /*keystorePassword*/, timeoutInMinutes,

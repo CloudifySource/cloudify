@@ -9,7 +9,6 @@
 #   $GSA_MODE - 'agent' if this node should join an already running node. Otherwise, any value.
 #	$NO_WEB_SERVICES - 'true' if web-services (rest, webui) should not be deployed (only if GSA_MODE != 'agent')
 #   $MACHINE_IP_ADDRESS - The IP of this server (Useful if multiple NICs exist)
-#	$MACHINE_ZONES - This is required if this is not a management machine
 # 	$WORKING_HOME_DIRECTORY - This is where the files were copied to (cloudify installation, etc..)
 #	$GIGASPACES_LINK - If this url is found, it will be downloaded to $WORKING_HOME_DIRECTORY/gigaspaces.zip
 #	$GIGASPACES_OVERRIDES_LINK - If this url is found, it will be downloaded and unzipped into the same location as cloudify
@@ -219,10 +218,6 @@ START_COMMAND_ARGS="-timeout 30 --verbose -auto-shutdown"
 if [ "$GSA_MODE" = "agent" ]; then
 	ERRMSG="Failed starting agent"
 	START_COMMAND="start-agent"
-	# Check if there any zones to start the agent with
-	if [ ! -z "$MACHINE_ZONES" ]; then
-		START_COMMAND_ARGS="${START_COMMAND_ARGS} -zone ${MACHINE_ZONES}"
-	fi	
 else
 	ERRMSG="Failed starting management services"
 	START_COMMAND="start-management"

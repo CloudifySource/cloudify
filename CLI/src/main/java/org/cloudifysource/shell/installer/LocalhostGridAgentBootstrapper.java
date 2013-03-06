@@ -147,7 +147,6 @@ public class LocalhostGridAgentBootstrapper {
 	private String lookupGroups;
 	private String lookupLocators;
 	private String nicAddress;
-	private String gsaZones;
 	private int progressInSeconds;
 	private AdminFacade adminFacade;
 	private boolean noWebServices;
@@ -203,16 +202,6 @@ public class LocalhostGridAgentBootstrapper {
 	 */
 	public void setNicAddress(final String nicAddress) {
 		this.nicAddress = nicAddress;
-	}
-
-	/**
-	 * Sets the zone.
-	 *
-	 * @param zone
-	 *            Zone name
-	 */
-	public void setGridServiceAgentZone(final String zone) {
-		this.gsaZones = zone;
 	}
 
 	/**
@@ -339,8 +328,6 @@ public class LocalhostGridAgentBootstrapper {
 			final String username, final String password, final String keystoreFilePath, final String keystorePassword,
 			final int timeout, final TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
 
-		setGridServiceAgentZone(LOCALCLOUD_GSA_ZONES);
-
 		setDefaultNicAddress();
 
 		setDefaultLocalcloudLookup();
@@ -418,8 +405,6 @@ public class LocalhostGridAgentBootstrapper {
 		} catch (final DSLException e) {
 			throw new CLIException("Failed to read cloud file: " + e.getMessage(), e);
 		}
-
-		setGridServiceAgentZone(MANAGEMENT_ZONE);
 
 		setDefaultNicAddress();
 
@@ -871,10 +856,6 @@ public class LocalhostGridAgentBootstrapper {
 		setIsLocalCloud(isLocalCloud);
 
 		final long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
-
-		if (gsaZones == null || gsaZones.isEmpty()) {
-			throw new CLIException("Agent must be started with a zone");
-		}
 
 		final ConnectionLogsFilter connectionLogs = new ConnectionLogsFilter();
 		connectionLogs.supressConnectionErrors();
@@ -1419,7 +1400,7 @@ public class LocalhostGridAgentBootstrapper {
 						+ CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY + "="
 						+ lusPort + " -D" + GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "="
 						+ GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL
-						+ " " + GSM_PENDING_REQUESTS_DELAY + " -D" + ZONES_PROPERTY + "=" + gsaZones;
+						+ " " + GSM_PENDING_REQUESTS_DELAY + " -D" + ZONES_PROPERTY + "=" + LOCALCLOUD_GSA_ZONES;
 
 		String gsaJavaOptions = "";
 		if (autoShutdown) {

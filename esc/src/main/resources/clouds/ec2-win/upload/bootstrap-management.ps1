@@ -28,7 +28,6 @@
 #   GSA_MODE - 'agent' if this node should join an already running node. Otherwise, any value.
 #	NO_WEB_SERVICES - 'true' if web-services (rest, webui) should not be deployed (only if GSA_MODE != 'agent')
 #   MACHINE_IP_ADDRESS - The IP of this server (Useful if multiple NICs exist)
-#	MACHINE_ZONES - This is required if this is not a management machine
 # 	WORKING_HOME_DIRECTORY - This is where the files were copied to (cloudify installation, etc..)
 #	GIGASPACES_LINK - If this url is found, it will be downloaded to $WORKING_HOME_DIRECTORY/gigaspaces.zip
 #	GIGASPACES_OVERRIDES_LINK - If this url is found, it will be downloaded to $WORKING_HOME_DIRECTORY/gigaspaces.zip
@@ -170,10 +169,6 @@ if ($ENV:GSA_MODE -eq "agent")
 {
 	Write-Host "Starting agent node"
 	$START_COMMAND="start-agent"
-	if (Test-Path ENV:\MACHINE_ZONES)
-	{
-		$START_COMMAND_ARGS="$START_COMMAND_ARGS -zone $ENV:MACHINE_ZONES"
-	}
 }
 else {
 	
