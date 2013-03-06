@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
+
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
@@ -36,7 +37,6 @@ import org.jclouds.ContextBuilder;
 import org.jclouds.aws.ec2.compute.AWSEC2ComputeServiceContext;
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.ComputeServiceContext;
-import org.jclouds.compute.domain.ComputeMetadata;
 import org.jclouds.compute.domain.Hardware;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.ec2.EC2ApiMetadata;
@@ -48,6 +48,7 @@ import org.jclouds.ec2.features.TagApi;
 import org.jclouds.ec2.options.DetachVolumeOptions;
 import org.jclouds.ec2.services.ElasticBlockStoreClient;
 import org.jclouds.ec2.util.TagFilterBuilder;
+
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 
@@ -411,23 +412,24 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		throw new TimeoutException("Timed out waiting for storage status to become " + status.toString());
 	}
 	
+	@SuppressWarnings("unchecked")
 	private NodeMetadata getNodeMetadata(final String ip) 
 			throws StorageProvisioningException {
 		NodeMetadata node = null;
-		Set<? extends ComputeMetadata> nodesList;
+		Set<? extends NodeMetadata> nodesList;
 		ComputeService computeService;
 		try {
 			computeService = this.context.getComputeService();
-			nodesList = computeService.listNodes();
+			nodesList = (Set<? extends NodeMetadata>) computeService.listNodes();
 		} catch (Exception e) {
 			logger.warning("Failed listing available nodes. Reason: " + e.getMessage());
 			throw new StorageProvisioningException("Failed listing available nodes. Reason: " + e.getMessage(), e);
 		}
 		logger.log(Level.FINE, "searching for node with matching ip " + ip + " in servers list");
-		for (ComputeMetadata computeNode : nodesList) {
-			NodeMetadata nodeMetadata = computeService.getNodeMetadata(computeNode.getId());
+		for (NodeMetadata nodeMetadata : nodesList) {
 			if (nodeMetadata.getPrivateAddresses().contains(ip) || nodeMetadata.getPublicAddresses().contains(ip)) {
 				node = nodeMetadata;
+				logger.fine("Found volume with matching ip in servers list");
 				break;
 			}
 		}

@@ -404,7 +404,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private void attachStorageVolumeToMachine(final String machineIp, final String volumeId, final long end)
 			throws TimeoutException, StorageProvisioningException {
-		 long timeout = end - System.currentTimeMillis();
+		logger.log(Level.INFO, "Attaching volume with id " + volumeId + " to machine with ip " + machineIp);
+		long timeout = end - System.currentTimeMillis();
 		this.storageProvisioning.attachVolume(volumeId, cloud.getCloudStorage().getTemplates()
 				.get(storageTemplateName).getDeviceName(), machineIp, timeout, TimeUnit.MILLISECONDS);
 	}
