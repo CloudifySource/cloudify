@@ -81,7 +81,7 @@ public abstract class AbstractGSCommand implements Action {
 	@Override
 	public Object execute(final CommandSession session)
 			throws Exception {
-		setUpLoggingLevel();
+		//setUpLoggingLevel(); see CLOUDIFY-1558
 
 		this.session = session;
 		messages = ShellUtils.getMessageBundle();
