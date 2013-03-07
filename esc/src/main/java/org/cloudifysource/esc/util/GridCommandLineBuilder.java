@@ -156,6 +156,7 @@ public final class GridCommandLineBuilder {
 		String esmCommandLineArgs = "";
 		esmCommandLineArgs += getComponentMemoryArgs(esm.getMaxMemory(), esm.getMinMemory());
 		esmCommandLineArgs += getComponentRmiArgs(esm.getPort().toString());
+		esmCommandLineArgs += " -Dcom.gs.esm.discovery_polling_interval_seconds=60 ";
 		return esmCommandLineArgs;
 	}
 
