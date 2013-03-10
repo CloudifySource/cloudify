@@ -1,6 +1,6 @@
 package org.cloudifysource.dsl.cloud.compute;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
@@ -16,7 +16,7 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 	parent = "cloud")
 public class CloudCompute {
 	
-	private Map<String, ComputeTemplate> templates = new HashMap<String, ComputeTemplate>();
+	private Map<String, ComputeTemplate> templates = new LinkedHashMap<String, ComputeTemplate>(); // TODO - remove this and let the dsl reader initialize it.!!
 
 	public Map<String, ComputeTemplate> getTemplates() {
 		return templates;
