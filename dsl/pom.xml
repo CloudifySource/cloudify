@@ -99,6 +99,10 @@
 					<artifactId>groovy</artifactId>
 					<groupId>org.codehaus.groovy</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>xercesImpl</artifactId>
+					<groupId>xerces</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 	</dependencies>
