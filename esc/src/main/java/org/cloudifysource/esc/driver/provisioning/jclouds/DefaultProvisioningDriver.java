@@ -706,7 +706,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			throw new CloudProvisioningException("Authentication to cloud failed");
 		}
 		
-		for (CloudTemplate template : cloud.getTemplates().values()) {
+		for (ComputeTemplate template : cloud.getCloudCompute().getTemplates().values()) {
 			String imageId = null;
 			String hardwareProfileId = null;
 			String locationId = null;
