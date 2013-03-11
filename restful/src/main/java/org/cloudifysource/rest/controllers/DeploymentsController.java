@@ -1,39 +1,52 @@
+/*******************************************************************************
+ * Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ *******************************************************************************/
 package org.cloudifysource.rest.controllers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import net.jini.core.lease.Lease;
-
-import org.cloudifysource.dsl.context.kvstorage.spaceentries.AbstractCloudifyAttribute;
-import org.cloudifysource.dsl.context.kvstorage.spaceentries.ApplicationCloudifyAttribute;
-import org.cloudifysource.dsl.context.kvstorage.spaceentries.GlobalCloudifyAttribute;
-import org.cloudifysource.dsl.context.kvstorage.spaceentries.InstanceCloudifyAttribute;
-import org.cloudifysource.dsl.context.kvstorage.spaceentries.ServiceCloudifyAttribute;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.rest.request.SetApplicationAttributesRequest;
+import org.cloudifysource.dsl.rest.request.SetServiceAttributesRequest;
+import org.cloudifysource.dsl.rest.request.SetServiceInstanceAttributesRequest;
+import org.cloudifysource.dsl.rest.request.UpdateApplicationAttributeRequest;
+import org.cloudifysource.dsl.rest.response.DeleteApplicationAttributeResponse;
+import org.cloudifysource.dsl.rest.response.DeleteServiceAttributeResponse;
 import org.cloudifysource.dsl.rest.response.DeleteServiceInstanceAttributeResponse;
+import org.cloudifysource.dsl.rest.response.GetApplicationAttributesResponse;
+import org.cloudifysource.dsl.rest.response.GetServiceAttributesResponse;
+import org.cloudifysource.dsl.rest.response.GetServiceInstanceAttributesResponse;
 import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.dsl.rest.response.ServiceDetails;
 import org.cloudifysource.dsl.rest.response.ServiceInstanceDetails;
+import org.cloudifysource.dsl.rest.response.ServiceInstanceMetricsData;
+import org.cloudifysource.dsl.rest.response.ServiceInstanceMetricsResponse;
+import org.cloudifysource.dsl.rest.response.ServiceMetricsResponse;
 import org.cloudifysource.dsl.utils.ServiceUtils;
+import org.cloudifysource.rest.interceptors.ApiVersionValidationAndRestResponseBuilderInterceptor;
 import org.openspaces.admin.application.Application;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
-import org.openspaces.core.GigaSpace;
-import org.openspaces.core.context.GigaSpaceContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
-import com.gigaspaces.client.WriteModifiers;
 
 /**
  * This controller is responsible for retrieving information about deployments.
@@ -54,7 +67,7 @@ import com.gigaspaces.client.WriteModifiers;
  * <br>
  * 
  * @see {@link ApiVersionValidationAndRestResponseBuilderInterceptor}
- * @author elip
+ * @author elip , ahmadm
  * @since 2.5.0
  * 
  */
@@ -63,8 +76,8 @@ import com.gigaspaces.client.WriteModifiers;
 @RequestMapping(value = "/{version}/deployments")
 public class DeploymentsController extends BaseRestContoller {
 
-	@GigaSpaceContext(name = "gigaSpace")
-	private GigaSpace gigaSpace;
+	private static final Logger logger = Logger
+			.getLogger(DeploymentsController.class.getName());
 
 	/**
 	 * This method provides metadata about a service belonging to a specific
@@ -125,24 +138,26 @@ public class DeploymentsController extends BaseRestContoller {
 	 * @param attributesRequest
 	 *            - An instance of {@link SetApplicationAttributesRequest} (as
 	 *            JSON) that holds the requested attributes.
+	 * @throws RestErrorException
+	 *             rest error exception
 	 */
 	@RequestMapping(value = "/{appName}/attributes", method = RequestMethod.POST)
 	public void setApplicationAttributes(@PathVariable final String appName,
-			@RequestBody final SetApplicationAttributesRequest attributesRequest) {
+			@RequestBody final SetApplicationAttributesRequest attributesRequest)
+			throws RestErrorException {
 
-		final AbstractCloudifyAttribute[] attributesToWrite = new AbstractCloudifyAttribute[attributesRequest
-				.getAttributes().size()];
-		int i = 0;
-		for (final Entry<String, Object> attrEntry : attributesRequest
-				.getAttributes().entrySet()) {
-			final AbstractCloudifyAttribute newAttr = createCloudifyAttribute(
-					appName, null, null, attrEntry.getKey(), null);
-			gigaSpace.take(newAttr);
-			newAttr.setValue(attrEntry.getValue());
-			attributesToWrite[i++] = newAttr;
+		// valid application
+		getApplication(appName);
+
+		if (attributesRequest == null
+				|| attributesRequest.getAttributes() == null) {
+			throw new RestErrorException(
+					CloudifyMessageKeys.EMPTY_REQUEST_BODY_ERROR.getName());
 		}
-		gigaSpace.writeMultiple(attributesToWrite, Lease.FOREVER,
-				WriteModifiers.UPDATE_OR_WRITE);
+
+		// set attributes
+		setAttributes(appName, null, null, attributesRequest.getAttributes());
+
 	}
 
 	/**
@@ -156,63 +171,43 @@ public class DeploymentsController extends BaseRestContoller {
 	 *            - the instance id.
 	 * @param attributeName
 	 *            - the required attribute to delete.
-	 * @return - A {@link Response} instance containing metada data about the
-	 *         request, as well as the actual response. this response can be
-	 *         accessed by {@code Response#getResponse()} and it holds the
-	 *         deleted attribute name and its last value in the attributes
-	 *         store.
+	 * @return - A {@link DeleteServiceInstanceAttributeResponse} instance  it holds the
+	 *         deleted attribute previous value
+	 * @throws RestErrorException
+	 *             rest error exception when application , service not exist
 	 */
 	@RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/"
 			+ "attributes/{attributeName}", method = RequestMethod.DELETE)
-	public Response<DeleteServiceInstanceAttributeResponse> deleteServiceInstanceAttribute(
+	public DeleteServiceInstanceAttributeResponse deleteServiceInstanceAttribute(
 			@PathVariable final String appName,
 			@PathVariable final String serviceName,
-			@PathVariable final int instanceId,
-			@PathVariable final String attributeName) {
+			@PathVariable final Integer instanceId,
+			@PathVariable final String attributeName) throws RestErrorException {
 
-		final InstanceCloudifyAttribute attribute = new InstanceCloudifyAttribute(
-				appName, serviceName, instanceId, attributeName, null);
+		// valid service
+		getService(appName, serviceName);
 
-		final InstanceCloudifyAttribute previousValue = gigaSpace
-				.take(attribute);
+		// logger - request to delete attributes
+		if (logger.isLoggable(Level.FINER)) {
+			logger.finer("received request to delete attribute "
+					+ attributeName + " of instance Id " + instanceId + " of service "
+					+ ServiceUtils.getAbsolutePUName(appName, serviceName)
+					+ " of application " + appName);
+		}
 
-		final Object value = previousValue != null ? previousValue.getValue()
-				: null;
+		// get delete attribute returned previous value
+		Object previous = deleteAttribute(appName, serviceName, instanceId,
+				attributeName);
 
-		DeleteServiceInstanceAttributeResponse
-			deleteServiceInstanceAttributeResponse = new DeleteServiceInstanceAttributeResponse();
-		deleteServiceInstanceAttributeResponse.setAttributeName(attributeName);
-		deleteServiceInstanceAttributeResponse.setAttributeLastValue(value);
+		// create response object
+		DeleteServiceInstanceAttributeResponse siar = new DeleteServiceInstanceAttributeResponse();
+		// set previous value
+		siar.setPreviousValue(previous);
+		// return response object
+		return siar;
 
-		Response<DeleteServiceInstanceAttributeResponse> 
-			response = new Response<DeleteServiceInstanceAttributeResponse>();
-
-		response.setMessageId(CloudifyMessageKeys.ATTRIBUTE_DELETED_SUCCESSFULLY
-				.getName());
-		response.setMessage(messageSource.getMessage(
-				CloudifyMessageKeys.ATTRIBUTE_DELETED_SUCCESSFULLY.getName(),
-				new Object[] { attributeName }, Locale.US));
-		response.setResponse(deleteServiceInstanceAttributeResponse);
-		return response;
 	}
 
-	private AbstractCloudifyAttribute createCloudifyAttribute(
-			final String applicationName, final String serviceName,
-			final Integer instanceId, final String name, final Object value) {
-		if (applicationName == null) {
-			return new GlobalCloudifyAttribute(name, value);
-		}
-		if (serviceName == null) {
-			return new ApplicationCloudifyAttribute(applicationName, name,
-					value);
-		}
-		if (instanceId == null) {
-			return new ServiceCloudifyAttribute(applicationName, serviceName,
-					name, value);
-		}
-		return new InstanceCloudifyAttribute(applicationName, serviceName,
-				instanceId, name, value);
-	}
 
 	/******
 	 * get service instance details. provides metadata about an instance with
@@ -224,15 +219,15 @@ public class DeploymentsController extends BaseRestContoller {
 	 *            the service name
 	 * @param instanceId
 	 *            the instance id
-	 * @return service instance details
-	 * @throws RestErrorException 
+	 * @return service instance details {@link ServiceInstanceDetails}
+	 * @throws RestErrorException
+	 *             when application , service or service instance not exist
 	 */
-	@RequestMapping(value =
-			"/{appName}/service/{serviceName}/instances/{instanceId}/metadata", method = RequestMethod.GET)
+	@RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/metadata", method = RequestMethod.GET)
 	public ServiceInstanceDetails getServiceInstanceDetails(
 			@PathVariable final String appName,
 			@PathVariable final String serviceName,
-			@PathVariable final int instanceId) throws RestErrorException {
+			@PathVariable final Integer instanceId) throws RestErrorException {
 
 		// get processingUnit instance
 		ProcessingUnitInstance pui = getServiceInstance(appName, serviceName,
@@ -390,10 +385,52 @@ public class DeploymentsController extends BaseRestContoller {
 	 * 
 	 * @param appName
 	 *            the application name
+	 * @param attributeName
+	 *            the attribute name
+	 * @param updateApplicationAttributeRequest
+	 *            update application attribute request
+	 *            {@link updateApplicationAttributeRequest}
 	 */
-	@RequestMapping(value = "/{appName}/attributes", method = RequestMethod.PUT)
-	public void updateApplicationAttribute(@PathVariable final String appName) {
+	@RequestMapping(value = "/{appName}/attributes/{attributeName}", method = RequestMethod.PUT)
+	public void updateApplicationAttribute(
+			@PathVariable final String appName,
+			@PathVariable final String attributeName,
+			@RequestBody final UpdateApplicationAttributeRequest updateApplicationAttributeRequest) {
+
 		throwUnsupported();
+	}
+
+	/**
+	 * get application attributes.
+	 * 
+	 * @param appName
+	 *            the application name
+	 * @return {@link ApplicationAttributesResponse} application attribute
+	 *         response
+	 * @throws RestErrorException
+	 *             when application not exist
+	 */
+	@RequestMapping(value = "/{appName}/attributes", method = RequestMethod.GET)
+	public GetApplicationAttributesResponse getApplicationAttribute(
+			@PathVariable final String appName) throws RestErrorException {
+
+		// valid application if exist
+		getApplication(appName);
+
+		if (logger.isLoggable(Level.FINER)) {
+			logger.finer("received request to get all attributes of application "
+					+ appName);
+		}
+
+		// get attributes
+		Map<String, Object> attributes = getAttributes(appName, null, null);
+
+		// create response object
+		GetApplicationAttributesResponse aar = new GetApplicationAttributesResponse();
+		// set attributes
+		aar.setAttributes(attributes);
+		return aar;
+
 	}
 
 	/**
@@ -401,10 +438,35 @@ public class DeploymentsController extends BaseRestContoller {
 	 * 
 	 * @param appName
 	 *            the application name
+	 * @param attributeName
+	 *            attribute name to delete
+	 * @return {@link DeleteApplicationAttributeResponse}
+	 * @throws RestErrorException
+	 *             rest error exception when application not exist
 	 */
-	@RequestMapping(value = "/{appName}/attributes", method = RequestMethod.DELETE)
-	public void deleteApplicationAttribute(@PathVariable final String appName) {
-		throwUnsupported();
+	@RequestMapping(value = "/{appName}/attributes/{attributeName}", method = RequestMethod.DELETE)
+	public DeleteApplicationAttributeResponse deleteApplicationAttribute(
+			@PathVariable final String appName,
+			@PathVariable final String attributeName)
+			throws RestErrorException {
+
+		// valid application if exist
+		getApplication(appName);
+
+		if (logger.isLoggable(Level.FINER)) {
+			logger.finer("received request to delete attributes "
+					+ attributeName + " of application " + appName);
+		}
+
+		// delete attribute returned previous value 
+		Object previousValue = deleteAttribute(appName, null,
+				null, attributeName);
+
+		DeleteApplicationAttributeResponse daar = new DeleteApplicationAttributeResponse();
+		daar.setPreviousValue(previousValue);
+
+		return daar;
+
 	}
 
 	/******
@@ -414,12 +476,36 @@ public class DeploymentsController extends BaseRestContoller {
 	 *            the application name
 	 * @param serviceName
 	 *            the service name
-	 * @return
+	 * @return {@link ServiceAttributesResponse}
+	 * @throws RestErrorException
+	 *             rest error exception when application , service not exist
 	 */
 	@RequestMapping(value = "/{appName}/service/{serviceName}/attributes", method = RequestMethod.GET)
-	public void getServiceAttribute(@PathVariable final String appName,
-			@PathVariable final String serviceName) {
-		throwUnsupported();
+	public GetServiceAttributesResponse getServiceAttribute(
+			@PathVariable final String appName,
+			@PathVariable final String serviceName) throws RestErrorException {
+
+		// valid exist service
+		getService(appName, serviceName);
+
+		// logger - request to get all attributes
+		if (logger.isLoggable(Level.FINER)) {
+			logger.finer("received request to get all attributes of service "
+					+ ServiceUtils.getAbsolutePUName(appName, serviceName)
+					+ " of application " + appName);
+		}
+
+		// get attributes
+		Map<String, Object> attributes = getAttributes(appName, serviceName,
+				null);
+
+		// create response object
+		GetServiceAttributesResponse sar = new GetServiceAttributesResponse();
+		// set attributes
+		sar.setAttributes(attributes);
+		// return response object
+		return sar;
+
 	}
 
 	/******
@@ -429,12 +515,39 @@ public class DeploymentsController extends BaseRestContoller {
 	 *            the application name
 	 * @param serviceName
 	 *            the service name
+	 * @param request
+	 *            service attributes request
 	 * @return
+	 * @throws RestErrorException
+	 *             rest error exception
 	 */
 	@RequestMapping(value = "/{appName}/service/{serviceName}/attributes", method = RequestMethod.POST)
 	public void setServiceAttribute(@PathVariable final String appName,
-			@PathVariable final String serviceName) {
-		throwUnsupported();
+			@PathVariable final String serviceName,
+			@RequestBody final SetServiceAttributesRequest request)
+			throws RestErrorException {
+
+		// valid service
+		getService(appName, serviceName);
+
+		// validate request object
+		if (request == null || request.getAttributes() == null) {
+			throw new RestErrorException(
+					CloudifyMessageKeys.EMPTY_REQUEST_BODY_ERROR.getName());
+		}
+
+		if (logger.isLoggable(Level.FINER)) {
+			logger.finer("received request to set attributes "
+					+ request.getAttributes().keySet() + " of service "
+					+ ServiceUtils.getAbsolutePUName(appName, serviceName)
+					+ " of application " + appName + " to: "
+					+ request.getAttributes().values());
+
+		}
+
+		// set attributes
+		setAttributes(appName, serviceName, null, request.getAttributes());
+
 	}
 
 	/******
@@ -453,18 +566,48 @@ public class DeploymentsController extends BaseRestContoller {
 	}
 
 	/******
-	 * update service attribute by given name.
+	 * delete service attribute by given name.
 	 * 
 	 * @param appName
 	 *            the application name
 	 * @param serviceName
 	 *            the service name
-	 * @return
+	 * @param attributeName
+	 *            attribute name to delete
+	 * @return {@link DeleteServiceAttributeResponse}
+	 * @throws RestErrorException
+	 *             when attribute name is empty,null  or application name
+	 *             ,service not exist
 	 */
-	@RequestMapping(value = "/{appName}/service/{serviceName}/attributes", method = RequestMethod.DELETE)
-	public void deleteServiceAttribute(@PathVariable final String appName,
-			@PathVariable final String serviceName) {
-		throwUnsupported();
+	@RequestMapping(value = "/{appName}/service/{serviceName}/attributes/{attributeName}", method = RequestMethod.DELETE)
+	public DeleteServiceAttributeResponse deleteServiceAttribute(
+			@PathVariable final String appName,
+			@PathVariable final String serviceName,
+			@PathVariable final String attributeName)
+			throws RestErrorException {
+
+		// valid service
+		getService(appName, serviceName);
+
+		// logger - request to delete attributes
+		if (logger.isLoggable(Level.FINER)) {
+			logger.finer("received request to delete attribute "
+					+ attributeName + " of service "
+					+ ServiceUtils.getAbsolutePUName(appName, serviceName)
+					+ " of application " + appName);
+		}
+
+		// get delete attribute returned previous value 
+		Object previous = deleteAttribute(appName,
+				serviceName, null, attributeName);
+
+		// create response object
+		DeleteServiceAttributeResponse sar = new DeleteServiceAttributeResponse();
+		// set previous value 
+		sar.setPreviousValue(previous);
+		// return response object
+		return sar;
+
 	}
 
 	/******
@@ -476,14 +619,38 @@ public class DeploymentsController extends BaseRestContoller {
 	 *            the service name
 	 * @param instanceId
 	 *            the instance id
-	 * @return
+	 * @return ServiceInstanceAttributesResponse
+	 * @throws RestErrorException
+	 *             rest error exception when application , service not exist
 	 */
-	@RequestMapping(value =
-			"/{appName}/service/{serviceName}/instances/{instanceId}/attributes", method = RequestMethod.GET)
-	public void getServiceInstanceAttribute(@PathVariable final String appName,
+	@RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/attributes", method = RequestMethod.GET)
+	public GetServiceInstanceAttributesResponse getServiceInstanceAttribute(
+			@PathVariable final String appName,
 			@PathVariable final String serviceName,
-			@PathVariable final String instanceId) {
-		throwUnsupported();
+			@PathVariable final Integer instanceId) throws RestErrorException {
+
+		// valid service
+		getService(appName, serviceName);
+
+		// logger - request to get all attributes
+		if (logger.isLoggable(Level.FINER)) {
+			logger.finer("received request to get all attributes of instance number "
+					+ instanceId
+					+ " of service "
+					+ ServiceUtils.getAbsolutePUName(appName, serviceName)
+					+ " of application " + appName);
+		}
+
+		// get attributes
+		Map<String, Object> attributes = getAttributes(appName, serviceName,
+				instanceId);
+		// create response object
+		GetServiceInstanceAttributesResponse siar = new GetServiceInstanceAttributesResponse();
+		// set attributes
+		siar.setAttributes(attributes);
+		// return response object
+		return siar;
+
 	}
 
 	/******
@@ -495,14 +662,40 @@ public class DeploymentsController extends BaseRestContoller {
 	 *            the service name
 	 * @param instanceId
 	 *            the instance id
+	 * @param request
+	 *            service instance attributes request
 	 * @return
+	 * @throws RestErrorException
+	 *             rest error exception when application or service not exist
 	 */
-	@RequestMapping(value =
-			"/{appName}/service/{serviceName}/instances/{instanceId}/attributes", method = RequestMethod.POST)
+	@RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/attributes", method = RequestMethod.POST)
 	public void setServiceInstanceAttribute(@PathVariable final String appName,
 			@PathVariable final String serviceName,
-			@PathVariable final String instanceId) {
-		throwUnsupported();
+			@PathVariable final Integer instanceId,
+			@RequestBody final SetServiceInstanceAttributesRequest request)
+			throws RestErrorException {
+
+		// valid service
+		getService(appName, serviceName);
+
+		// validate request object
+		if (request == null || request.getAttributes() == null) {
+			throw new RestErrorException(
+					CloudifyMessageKeys.EMPTY_REQUEST_BODY_ERROR.getName());
+		}
+
+		if (logger.isLoggable(Level.FINER)) {
+			logger.finer("received request to set attribute "
+					+ request.getAttributes().keySet() + " of instance number "
+					+ instanceId + " of service "
+					+ ServiceUtils.getAbsolutePUName(appName, serviceName)
+					+ " of application " + appName + " to: "
+					+ request.getAttributes().values());
+		}
+
+		// set attributes
+		setAttributes(appName, serviceName, instanceId, request.getAttributes());
+
 	}
 
 	/******
@@ -516,8 +709,7 @@ public class DeploymentsController extends BaseRestContoller {
 	 *            the instance id
 	 * @return
 	 */
-	@RequestMapping(value =
-			"/{appName}/service/{serviceName}/instances/{instanceId}/attributes", method = RequestMethod.PUT)
+	@RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/attributes", method = RequestMethod.PUT)
 	public void updateServiceInstanceAttribute(
 			@PathVariable final String appName,
 			@PathVariable final String serviceName,
@@ -526,42 +718,51 @@ public class DeploymentsController extends BaseRestContoller {
 	}
 
 	/******
-	 * delete service instance attribute by given name, id.
+	 * get service metrics by given service name.
 	 * 
 	 * @param appName
 	 *            the application name
 	 * @param serviceName
 	 *            the service name
-	 * @param instanceId
-	 *            the instance id
-	 * @return
-	 */
-	@RequestMapping(value = 
-			"/{appName}/service/{serviceName}/instances/{instanceId}/attributes", method = RequestMethod.DELETE)
-	public void deleteServiceInstanceAttribute(
-			@PathVariable final String appName,
-			@PathVariable final String serviceName,
-			@PathVariable final String instanceId) {
-		throwUnsupported();
-	}
-
-	/******
-	 * get service metrics by given name.
 	 * 
-	 * @param appName
-	 *            the application name
-	 * @param serviceName
-	 *            the service name
-	 * @return
+	 * 
+	 * @return ServiceMetricsResponse instance
+	 * @throws RestErrorException
+	 *             rest error exception
 	 */
 	@RequestMapping(value = "/{appName}/service/{serviceName}/metrics", method = RequestMethod.GET)
-	public void getServiceMetrics(@PathVariable final String appName,
-			@PathVariable final String serviceName) {
-		throwUnsupported();
+	public ServiceMetricsResponse getServiceMetrics(
+			@PathVariable final String appName,
+			@PathVariable final String serviceName) throws RestErrorException {
+
+		// service instances metrics data
+		List<ServiceInstanceMetricsData> serviceInstanceMetricsDatas = new ArrayList<ServiceInstanceMetricsData>();
+
+		// get service
+		ProcessingUnit service = getService(appName, serviceName);
+
+		// set metrics for every instance
+		for (ProcessingUnitInstance serviceInstance : service.getInstances()) {
+
+			Map<String, Object> metrics = serviceInstance.getStatistics()
+					.getMonitors().get("USM").getMonitors();
+			serviceInstanceMetricsDatas.add(new ServiceInstanceMetricsData(
+					serviceInstance.getInstanceId(), metrics));
+
+		}
+
+		// create response instance
+		ServiceMetricsResponse smr = new ServiceMetricsResponse();
+		smr.setAppName(appName);
+		smr.setServiceInstaceMetricsData(serviceInstanceMetricsDatas);
+		smr.setServiceName(serviceName);
+
+		return smr;
+
 	}
 
 	/******
-	 * get service instance metrics by given name.
+	 * get service instance metrics by given specific instanceId.
 	 * 
 	 * @param appName
 	 *            the application name
@@ -569,14 +770,37 @@ public class DeploymentsController extends BaseRestContoller {
 	 *            the service name
 	 * @param instanceId
 	 *            the instance name
-	 * @return
+	 * @return ServiceInstanceMetricsResponse
+	 *         {@link ServiceInstanceMetricsResponse}
+	 * @throws RestErrorException
+	 *             rest error exception
 	 */
-	@RequestMapping(value = 
-			"{appName}/service/{serviceName}/instances/{instanceId}/metrics", method = RequestMethod.GET)
-	public void getServiceInstanceMetrics(@PathVariable final String appName,
+	@RequestMapping(value = "{appName}/service/{serviceName}/instances/{instanceId}/metrics", method = RequestMethod.GET)
+	public ServiceInstanceMetricsResponse getServiceInstanceMetrics(
+			@PathVariable final String appName,
 			@PathVariable final String serviceName,
-			@PathVariable final String instanceId) {
-		throwUnsupported();
+			@PathVariable final Integer instanceId) throws RestErrorException {
+
+		// get service instance
+		ProcessingUnitInstance serviceInstance = getServiceInstance(appName,
+				serviceName, instanceId);
+
+		// get metrics data
+		Map<String, Object> metrics = serviceInstance.getStatistics()
+				.getMonitors().get("USM").getMonitors();
+
+		ServiceInstanceMetricsData serviceInstanceMetricsData = new ServiceInstanceMetricsData(
+				instanceId, metrics);
+
+		// create response object
+		ServiceInstanceMetricsResponse simr = new ServiceInstanceMetricsResponse();
+
+		// set response data
+		simr.setAppName(appName);
+		simr.setServiceName(serviceName);
+		simr.setServiceInstanceMetricsData(serviceInstanceMetricsData);
+
+		return simr;
 	}
 
 	/******
@@ -620,8 +844,7 @@ public class DeploymentsController extends BaseRestContoller {
 	 *            the instance id
 	 * @return
 	 */
-	@RequestMapping(value = 
-			"/{appName}/service/{serviceName}/instances/{instanceId}/metadata", method = RequestMethod.POST)
+	@RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/metadata", method = RequestMethod.POST)
 	public void setServiceInstanceDetails(@PathVariable final String appName,
 			@PathVariable final String serviceName,
 			@PathVariable final String instanceId) {

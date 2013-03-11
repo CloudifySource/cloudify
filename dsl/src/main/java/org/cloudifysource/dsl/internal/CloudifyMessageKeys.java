@@ -14,7 +14,13 @@ public enum CloudifyMessageKeys {
 	
 	MISSING_SERVICE("missing_service"),
 
-	MISSING_SERVICE_INSTANCE("missing_service_instance");
+	MISSING_SERVICE_INSTANCE("missing_service_instance"),
+	
+	EMPTY_REQUEST_BODY_ERROR("empty_request_body_error"),
+	
+	EMPTY_ATTRIBUTE_NAME("empty_attribute_name"),
+	
+	NOT_EXIST_ATTRIBUTE("not_exist_attribute");
 		
 	private final String name;
 	

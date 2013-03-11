@@ -2,7 +2,7 @@ package org.cloudifysource.dsl.rest.response;
 
 /**
  * A POJO representing a response to deleteServiceInstanceAttribute command via the REST Gateway.
- * It holds the requested attribute name and its last value in the attributes store.
+ * It holds the previous value of deleted attribute 
  * 
  * This POJO will be used when constructing the {@link Response} object by calling {@code Response#setResponse(Object)}
  * @author elip
@@ -10,22 +10,15 @@ package org.cloudifysource.dsl.rest.response;
  */
 public class DeleteServiceInstanceAttributeResponse {
 	
-	private String attributeName;
-	private Object attributeLastValue;
-	
-	public String getAttributeName() {
-		return attributeName;
+	private Object previousValue;
+
+	public Object getPreviousValue() {
+		return previousValue;
+	}
+
+	public void setPreviousValue(Object previousValue) {
+		this.previousValue = previousValue;
 	}
 	
-	public void setAttributeName(final String attributeName) {
-		this.attributeName = attributeName;
-	}
 	
-	public Object getAttributeLastValue() {
-		return attributeLastValue;
-	}
-	
-	public void setAttributeLastValue(final Object attributeLastValue) {
-		this.attributeLastValue = attributeLastValue;
-	}
 }
