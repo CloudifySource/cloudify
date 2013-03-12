@@ -276,6 +276,15 @@ public class CloudGridAgentBootstrapper {
 			throw new IllegalArgumentException(
 					"Received zero management servers from provisioning implementation");
 		}
+
+		final ComputeTemplate template =
+				this.cloud.getCloudCompute().getTemplates()
+						.get(cloud.getConfiguration().getManagementMachineTemplate());
+		for (MachineDetails machineDetails : servers) {
+			if (machineDetails.getInstallerConfiguration() == null) {
+				machineDetails.setInstallerConfigutation(template.getInstaller());
+			}
+		}
 		return servers;
 	}
 

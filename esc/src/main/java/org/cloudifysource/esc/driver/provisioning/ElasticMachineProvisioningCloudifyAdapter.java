@@ -278,7 +278,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			machineDetails = provisionMachine(locationId, duration, unit);
 
 			// Auto populate installer configuration with values set in template if they were not previously set.
-			if (machineDetails != null && machineDetails.getInstallerConfigutation() == null) {
+			if (machineDetails != null && machineDetails.getInstallerConfiguration() == null) {
 				machineDetails.setInstallerConfigutation(template.getInstaller());
 			}
 

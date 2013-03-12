@@ -64,7 +64,8 @@ public class MachineDetails implements Externalizable {
 	private String storageDeviceName;
 	private String storageMountPath;
 
-	private CloudTemplateInstallerConfiguration installerConfigutation = new CloudTemplateInstallerConfiguration();
+	// installer configuration. If null, default values should be used.
+	private CloudTemplateInstallerConfiguration installerConfigutation = null;
 
 	// it's rare, but clouds may return a key file as the password for a create server request.
 	// In addition, a cloud driver may choose to generate a unique key file for each machine.
@@ -259,7 +260,7 @@ public class MachineDetails implements Externalizable {
 		this.storageMountPath = storageMountPath;
 	}
 
-	public CloudTemplateInstallerConfiguration getInstallerConfigutation() {
+	public CloudTemplateInstallerConfiguration getInstallerConfiguration() {
 		return installerConfigutation;
 	}
 
