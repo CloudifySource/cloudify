@@ -683,9 +683,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		// TODO : move the security groups to the Template section (instead of  custom map), 
 		// it is now supported by jclouds.
 
-		Set<String> imageIds = new HashSet<String>();
-		Set<String> hardwareIds = new HashSet<String>();
-		Set<String> locationIds = new HashSet<String>();
 		
 		JCloudsDeployer validationDeployer = null;
 		final ComputeService computeService;
@@ -730,11 +727,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		}
 		
 		try {
+			performBasicValidations(computeService);
 			validateComputeTemplates(validationDeployer);
-			parseComputeTemplates(imageIds, hardwareIds, locationIds);
-			validateImageIds(computeService, imageIds);
-			validateHardwareIds(computeService.listHardwareProfiles(), hardwareIds);
-			validateLocationIds(computeService.listAssignableLocations(), locationIds);
 			validateCloudifyUrl(cloud.getProvider().getCloudifyUrl());
 			if (StringUtils.isNotBlank(apiId) && isKnownAPI(apiId)) {
 				validateSecurityGroups(validationDeployer, apiId);
@@ -744,6 +738,19 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			validationDeployer.close();
 		}
 
+	}
+	
+	private void performBasicValidations(final ComputeService computeService) throws CloudProvisioningException {
+		
+		Set<String> imageIds = new HashSet<String>();
+		Set<String> hardwareIds = new HashSet<String>();
+		Set<String> locationIds = new HashSet<String>();
+		
+		parseComputeTemplates(imageIds, hardwareIds, locationIds);
+		
+		validateImageIds(computeService, imageIds);
+		validateHardwareIds(computeService.listHardwareProfiles(), hardwareIds);
+		validateLocationIds(computeService.listAssignableLocations(), locationIds);
 	}
 
 	
@@ -763,8 +770,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 				// deployer for this specific template with the overriding settings
 				Map<String, Object> templateOverrides = template.getOverrides();
 				if (templateOverrides != null && templateOverrides.size() > 0) {
-					templateOverrides.remove(ENDPOINT_OVERRIDE);
-					if (templateOverrides.size() > 0) {
+					if ((templateOverrides.containsKey(ENDPOINT_OVERRIDE) && templateOverrides.size() > 1)
+							|| (!templateOverrides.containsKey(ENDPOINT_OVERRIDE) && templateOverrides.size() > 0)) {
 						publishEvent(CloudifyErrorMessages.EVENT_VALIDATING_TEMPLATE_OVERRIDES.getName());
 						try {
 							final Properties props = new Properties();
