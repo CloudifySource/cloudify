@@ -35,6 +35,7 @@ import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.jclouds.util.CredentialUtils;
@@ -54,8 +55,6 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 
 	protected static final String EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API = "try_to_connect_to_cloud_api";
 	protected static final String EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API = "connection_to_cloud_api_succeeded";
-	protected static final String EVENT_ATTEMPT_TO_VALIDATE_CLOUD_CONFIG = "try_to_validate_cloud_configuration";
-	protected static final String EVENT_CLOUD_CONFIG_VALIDATED = "cloud_configuration_validated";
 	protected static final String EVENT_ATTEMPT_START_MGMT_VMS = "attempting_to_create_management_vms";
 	protected static final String EVENT_MGMT_VMS_STARTED = "management_started_successfully";
 	protected static final String AGENT_MACHINE_PREFIX = "cloudify-agent-";
@@ -109,16 +108,18 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 
 	@Override
 	public void setConfig(final Cloud cloud, final String cloudTemplateName,
-			final boolean management, final String serviceName) {
+			final boolean management, final String serviceName) throws CloudProvisioningException {
 
 		this.cloud = cloud;
 		this.cloudTemplateName = cloudTemplateName;
 		this.management = management;
 		this.cloudName = cloud.getName();
 		
-		publishEvent(EVENT_ATTEMPT_TO_VALIDATE_CLOUD_CONFIG, cloud.getProvider().getProvider());
-		validateCloudConfiguration();
-		publishEvent(EVENT_CLOUD_CONFIG_VALIDATED, cloud.getProvider().getProvider());
+		if (management) {
+			publishEvent(CloudifyErrorMessages.EVENT_ATTEMPT_TO_VALIDATE_CLOUD_CONFIG.getName());
+			validateCloudConfiguration();
+			publishEvent(CloudifyErrorMessages.EVENT_CLOUD_CONFIG_VALIDATED.getName());
+		}
 		
 		publishEvent(EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
 		initDeployer(cloud);

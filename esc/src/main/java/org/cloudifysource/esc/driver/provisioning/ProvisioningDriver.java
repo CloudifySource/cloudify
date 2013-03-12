@@ -40,9 +40,10 @@ public interface ProvisioningDriver {
 	 * @param serviceName
 	 *            The name of the service that is planned to be installed on this machine. Could be null if this is a
 	 *            management machine hosting more than one service
-	 *
+	 * @throws CloudProvisioningException Indicates invalid cloud configuration
 	 */
-	void setConfig(Cloud cloud, String cloudTemplate, boolean management, String serviceName);
+	void setConfig(Cloud cloud, String cloudTemplate, boolean management, String serviceName) 
+			throws CloudProvisioningException;
 
 	/**
 	 * Returns the compute context.

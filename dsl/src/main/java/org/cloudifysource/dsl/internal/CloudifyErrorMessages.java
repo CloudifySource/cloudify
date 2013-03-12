@@ -155,7 +155,40 @@ public enum CloudifyErrorMessages {
 	MANAGEMENT_SERVERS_SHUTDOWN_FAIL("shutdown_managers_timeout", 0),
 
 	FILE_NOT_EXISTS("file_doesnt_exist", 1),
-
+	
+	/**
+	 * Cloud validations
+	 */
+	EVENT_ATTEMPT_TO_VALIDATE_CLOUD_CONFIG("try_to_validate_cloud_configuration", 0),
+	
+	EVENT_CLOUD_CONFIG_VALIDATED("cloud_configuration_validated", 0),
+	
+	EVENT_VALIDATING_PROVIDER_OR_API_NAME("validating_provider_or_api_name", 1),
+	
+	EVENT_VALIDATING_CLOUD_CREDENTIALS("validating_cloud_credentials", 0),
+	
+	EVENT_VALIDATING_TEMPLATE("validating_template", 1),
+	
+	EVENT_VALIDATING_IMAGE_ID("validating_image_id", 1),
+	
+	EVENT_VALIDATING_IMAGES("validating_images", 0),
+	
+	EVENT_VALIDATING_HARDWARE_ID("validating_hardware_id", 1),
+	
+	EVENT_VALIDATING_HARDWARE_PROFILES("validating_hardware_profiles", 0),
+	
+	EVENT_VALIDATING_LOCATION_ID("validating_location_id", 1),
+	
+	EVENT_VALIDATING_LOCATIONS("validating_locations", 0),
+	
+	EVENT_VALIDATING_SECURITY_GROUPS("validating_security_groups", 0),
+	
+	EVENT_VALIDATING_KEY_PAIRS("validating_key_pairs", 0),
+	
+	EVENT_VALIDATING_CLOUDIFY_URL("validating_cloudify_url", 0),
+	
+	EVENT_VALIDATING_TEMPLATE_OVERRIDES("validating_template_overrides", 0),
+	
 
 	// CHECKSTYLE:OFF
 	;
