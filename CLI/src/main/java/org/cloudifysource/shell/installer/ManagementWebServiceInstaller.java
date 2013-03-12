@@ -37,6 +37,7 @@ import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.CLIException;
 import org.openspaces.admin.gsa.GridServiceAgent;
+import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitAlreadyDeployedException;
 import org.openspaces.admin.pu.ProcessingUnitDeployment;
@@ -251,15 +252,21 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 				boolean isDone = false;
 				if (pu != null) {
 					for (final ProcessingUnitInstance instance : pu) {
-						if (agent.equals(instance.getGridServiceContainer().getGridServiceAgent())) {
-							isDone = true;
-							break;
+						GridServiceContainer gsc = instance.getGridServiceContainer();
+						if (gsc != null) {
+							GridServiceAgent gsa = gsc.getGridServiceAgent();
+							if (gsa != null && (agent.equals(gsa))) {
+								isDone = true;
+								break;
+							}
 						}
 					}
 				}
+				
 				if (!isDone) {
 					publishEvent(null);
 				}
+				
 				return isDone;
 			}
 		});
