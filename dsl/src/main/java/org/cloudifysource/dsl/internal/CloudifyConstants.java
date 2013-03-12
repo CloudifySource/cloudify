@@ -353,7 +353,13 @@ public final class CloudifyConstants {
 	 */
 	public static final String PERSISTENCE_PROFILE_PERSISTENT = "persistent";
 	public static final String PERSISTENCE_PROFILE_TRANSIENT = "transient";
+	public static final String PERSISTENCE_DIRECTORY_DEPLOY_RELATIVE_PATH = "deploy";
+	public static final String PERSISTENCE_DIRECTORY_SPACE_RELATIVE_PATH = "management-space";
+	public static final String PERSISTENCE_DIRECTORY_STATE_RELATIVE_PATH = "gsm";
 
+
+	public static final String SYSTEM_PROPERTY_ESM_DISCOVERY_POLLING_INTERVAL_SECONDS =
+			"com.gs.esm.discovery_polling_interval_seconds";
 
 	// CHECKSTYLE:ON
 }
