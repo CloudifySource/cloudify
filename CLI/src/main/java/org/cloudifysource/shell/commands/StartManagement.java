@@ -105,6 +105,7 @@ public class StartManagement extends AbstractGSCommand {
 			+ " done. By default waits 5 minutes.")
 	private int timeoutInMinutes = DEFAULT_TIMEOUNT_MINUTES;
 
+	// TODO - this field is not used. It should be moved to the GSA_JAVA_OPTIONS command builder.
 	@Option(required = false, name = "-auto-shutdown", description = "Determines if undeploying or scaling-in the last"
 			+ " service instance on the machine also triggers agent shutdown. By default false.")
 	private boolean autoShutdown = false;
@@ -161,7 +162,6 @@ public class StartManagement extends AbstractGSCommand {
 		installer.setNoWebServices(noWebServices);
 		installer.setNoManagementSpace(noManagementSpace);
 		installer.setNotHighlyAvailableManagementSpace(isNotHAManagementSpace());
-		installer.setAutoShutdown(autoShutdown);
 		installer.setWaitForWebui(true);
 		installer.setCloudFilePath(cloudFileName);
 

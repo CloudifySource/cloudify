@@ -750,10 +750,14 @@ public class CloudGridAgentBootstrapper {
 					MANAGEMENT_GSA_ZONE).create();
 			details[i] = Utils.createInstallationDetails(machineDetails[i], cloud, template, zones, null, null, true,
 					this.cloudFile, reservationId, cloud.getConfiguration().getManagementMachineTemplate(),
-					securityProfile, keystorePassword, managementAuthGroups);
+					securityProfile, keystorePassword, managementAuthGroups, isRebootstrapping());
 		}
 
 		return details;
+	}
+
+	private boolean isRebootstrapping() {
+		return this.useExistingManagers || (this.existingManagersFile != null);
 	}
 
 	/**

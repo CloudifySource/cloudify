@@ -207,7 +207,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				Utils.createInstallationDetails(md, cloud, template, zones, lookupLocatorsString,
 						this.originalESMAdmin, false,
 						null, reservationId, cloudTemplateName, ""/* securityProfile */, ""/* keystorePassword */,
-						config.getAuthGroups());
+						config.getAuthGroups(), false);
 
 		logger.info("Created new Installation Details: " + details);
 		return details;
@@ -318,7 +318,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 				volumeId = startNewStorageVolume(machineLocation, end);
 				attachStorageVolumeToMachine(machineIp, volumeId , end);
-				
+
 				StorageTemplate storageTemplate = this.cloud.getCloudStorage().getTemplates()
 								.get(this.storageTemplateName);
 				String formatType = storageTemplate.getFileSystemType();
@@ -419,7 +419,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return volumeDetails.getId();
 	}
 
-	private void handleExceptionAfterMachineCreated(final String machineIp, final String volumeId, 
+	private void handleExceptionAfterMachineCreated(final String machineIp, final String volumeId,
 			final MachineDetails machineDetails, final long end) {
 		try {
 			// if an agent is found (not supposed to, we got here after it wasn't found earlier) - shut it down
@@ -684,7 +684,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return attachedVolume;
 	}
 
-	private void handleVolumeOnStopMachine(final String volumeId, final long duration, 
+	private void handleVolumeOnStopMachine(final String volumeId, final long duration,
 			final TimeUnit unit) throws TimeoutException {
 		StorageTemplate storageTemplate = this.cloud.getCloudStorage().getTemplates().get(this.storageTemplateName);
 		boolean deleteOnExit = storageTemplate.isDeleteOnExit();
@@ -701,13 +701,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				logger.info("Volume with id " + volumeId + " was deleted sucessfully");
 				return;
 			} catch (StorageProvisioningException e) {
-				logger.log(Level.INFO, "Failed deleting volume with id " + volumeId 
+				logger.log(Level.INFO, "Failed deleting volume with id " + volumeId
 						+ ". Volume could still be in use. Retrying.");
 				storageException = e;
 				Utils.threadSleep(VOLUNE_DELETION_RETRY_BETWEEN_ATTEMPTS_TIMEOUT_MILLIS);
 			}
 		}
-		logger.log(Level.SEVERE, "Failed deleting volume with id " + volumeId 
+		logger.log(Level.SEVERE, "Failed deleting volume with id " + volumeId
 				+ ". There may still be leaking volumes.", storageException);
 	}
 
@@ -758,13 +758,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	public Map<String, String> getProperties() {
 		return this.properties;
 	}
-	
+
 	/**
 	 * exposes the storage API of the cloud to agent machines.
 	 * @see {@link StorageFacade}
-	 * 
+	 *
 	 * DO NOT refactor this method's name since it is called via reflection by the ESM.
-	 * 
+	 *
 	 * @author elip
 	 * @return
 	 */
@@ -837,14 +837,14 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				// to cloud driver.
 				handleServiceCloudConfiguration();
 				this.cloudifyProvisioning.setConfig(cloud, cloudTemplateName, false, serviceName);
-				
+
 				String storageClassName = this.cloud.getConfiguration().getStorageClassName();
 				if (StringUtils.isNotBlank(storageClassName)) {
 					// instantiate the storage driver if defined.
 					// even if no storage template is used, this is to allow dynamic allocation at runtime.
 					logger.info("creating storage provisioning driver.");
-					this.storageProvisioning = 
-							(StorageProvisioningDriver) Class.forName(storageClassName).newInstance();					
+					this.storageProvisioning =
+							(StorageProvisioningDriver) Class.forName(storageClassName).newInstance();
 					this.storageTemplateName = config.getStorageTemplateName();
 					boolean privileged = computeTemplate.isPrivileged();
 					// mounting the volume will not be possible if not running in privileged mode.

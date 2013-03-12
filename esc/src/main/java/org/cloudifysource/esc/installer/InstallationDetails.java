@@ -144,8 +144,11 @@ public class InstallationDetails implements Cloneable {
 	private String storageMountPath;
 
 	private boolean deleteRemoteDirectoryContents = false;
-	
+
 	private String locationId;
+
+	// indicates that this installation is a re-bootstrapping
+	private boolean rebootstrapping = false;
 
 	public String getLocationId() {
 		return locationId;
@@ -154,7 +157,7 @@ public class InstallationDetails implements Cloneable {
 	public void setLocationId(final String locationId) {
 		this.locationId = locationId;
 	}
-	
+
 	public String getTemplateName() {
 		return templateName;
 	}
@@ -574,5 +577,13 @@ public class InstallationDetails implements Cloneable {
 
 	public void setInstallerConfiguration(final CloudTemplateInstallerConfiguration installerConfiguration) {
 		this.installerConfiguration = installerConfiguration;
+	}
+
+	public boolean isRebootstrapping() {
+		return rebootstrapping;
+	}
+
+	public void setRebootstrapping(final boolean rebootstrapping) {
+		this.rebootstrapping = rebootstrapping;
 	}
 }

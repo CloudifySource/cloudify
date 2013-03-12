@@ -26,11 +26,11 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 /**
  * @author rafi, barakm
  * @since 2.0.0
- * 
+ *
  *        Starts Cloudify Agent with the specified zone.
- * 
+ *
  *        Required arguments: zone - The agent zone that specifies the name of the service that can run on the machine
- * 
+ *
  *        Optional arguments: lookup-groups - A unique name that is used to group together Cloudify components. Override
  *        in order to group together cloudify managements/agents on a network that supports multicast. nic-address - The
  *        ip address of the local host network card. Specify when local machine has more than one network adapter, and a
@@ -39,7 +39,7 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
  *        management machines. Override when using a network without multicast support (Default: null). auto-shutdown -
  *        etermines if undeploying or scaling-in the last service instance on the machine also triggers agent shutdown
  *        (default: false).
- * 
+ *
  *        Command syntax: start-agent -zone zone [-lookup-groups lookup-groups] [-nicAddress nicAddress] [-timeout
  *        timeout] [-lookup-locators lookup-locators] [-auto-shutdown auto-shutdown]
  */
@@ -54,11 +54,11 @@ public class StartAgent extends AbstractGSCommand {
 	@Option(required = false, name = "-lookup-groups", description = "A unique name that is used to group together"
 			+ " different Cloudify machines. Default is based on the product version. Override in order to group"
 			+ " together cloudify managements/agents on a network that supports multicast.")
-	private String lookupGroups = null;
+	private final String lookupGroups = null;
 
 	@Option(required = false, name = "-lookup-locators", description = "A list of ip addresses used to identify all"
 			+ " management machines. Default is null. Override when using a network without multicast.")
-	private String lookupLocators = null;
+	private final String lookupLocators = null;
 
 	@Option(required = false, name = "-nic-address", description = "The ip address of the local host network card."
 			+ " Specify when local machine has more than one network adapter, and a specific network card should be"
@@ -69,9 +69,11 @@ public class StartAgent extends AbstractGSCommand {
 			+ " done. By default waits 5 minutes.")
 	private int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
 
+	// TODO - this value should be set in the GSA Java options, not here.
+	// DO NOT DELETE - the bootstrap script still passes this. Remove only after this feature has been fixed.
 	@Option(required = false, name = "-auto-shutdown", description = "Determines if undeploying or scaling-in the last"
 			+ " service instance on the machine also triggers agent shutdown. By default false.")
-	private boolean autoShutdown = false;
+	private final boolean autoShutdown = false;
 
 	/**
 	 * {@inheritDoc}
@@ -80,7 +82,7 @@ public class StartAgent extends AbstractGSCommand {
 	protected Object doExecute()
 			throws Exception {
 
-		if (timeoutInMinutes < 0) {
+		if (getTimeoutInMinutes() < 0) {
 			throw new CLIException("-timeout cannot be negative");
 		}
 
@@ -91,10 +93,17 @@ public class StartAgent extends AbstractGSCommand {
 		installer.setNicAddress(nicAddress);
 		installer.setProgressInSeconds(DEFAULT_POLLING_INTERVAL);
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
-		installer.setAutoShutdown(autoShutdown);
 
-		installer.startAgentOnLocalhostAndWait("" /*securityProfile*/, "" /*keystorePassword*/, timeoutInMinutes,
+		installer.startAgentOnLocalhostAndWait("" /*securityProfile*/, "" /*keystorePassword*/, getTimeoutInMinutes(),
 				TimeUnit.MINUTES);
 		return "Agent started succesfully. Use the shutdown-agent command to shutdown agent running on local machine.";
+	}
+
+	public int getTimeoutInMinutes() {
+		return timeoutInMinutes;
+	}
+
+	public void setTimeoutInMinutes(final int timeoutInMinutes) {
+		this.timeoutInMinutes = timeoutInMinutes;
 	}
 }

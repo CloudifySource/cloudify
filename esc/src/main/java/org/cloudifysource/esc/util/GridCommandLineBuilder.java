@@ -95,14 +95,14 @@ public final class GridCommandLineBuilder {
 	 *
 	 * @param discovery
 	 *            Discovery config
-	 * @param lookupLocatorsString
+	 * @param lookupLocatorsString .
 	 * @return Commandline arguments for the LUS
 	 */
 	public String getLusCommandlineArgs(final DiscoveryComponent discovery, final String lookupLocatorsString) {
 
 		String lusCommandLineArgs =
 				"-D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY
-						+ "=" +  CloudifyConstants.DEFAULT_LUS_PORT
+						+ "=" + CloudifyConstants.DEFAULT_LUS_PORT
 						+ " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;
 
 		if (lookupLocatorsString != null) {
@@ -125,16 +125,16 @@ public final class GridCommandLineBuilder {
 	 *
 	 * @param agent
 	 *            Agent config
-	 * @param zone - the agent zone
+	 * @param zone
+	 *            - the agent zone
 	 * @return Commandline arguments for the GSA
 	 */
 	public String getAgentCommandlineArgs(final AgentComponent agent, final String zone) {
-		
+
 		String agentCommandLineArgs = "";
 		if (StringUtils.isNotBlank(zone)) {
-			agentCommandLineArgs += "-D" + ZONES_PROPERTY + "=" + zone;			
+			agentCommandLineArgs += "-D" + ZONES_PROPERTY + "=" + zone;
 		}
-		
 
 		agentCommandLineArgs += " " + AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT;
 		agentCommandLineArgs += " ";
@@ -149,14 +149,22 @@ public final class GridCommandLineBuilder {
 	 * Constructs and returns the ESM commandline arguments.
 	 *
 	 * @param esm
-	 *            Esm config
+	 *            Esm config.
+	 * @param reboostrapping true if this management machine is being re-bootstrapped after a previous bootstrap.
 	 * @return Commandline arguments for the ESM
 	 */
-	public String getEsmCommandlineArgs(final OrchestratorComponent esm) {
+	public String getEsmCommandlineArgs(final OrchestratorComponent esm, final boolean reboostrapping) {
 		String esmCommandLineArgs = "";
 		esmCommandLineArgs += getComponentMemoryArgs(esm.getMaxMemory(), esm.getMinMemory());
 		esmCommandLineArgs += getComponentRmiArgs(esm.getPort().toString());
-		esmCommandLineArgs += " -Dcom.gs.esm.discovery_polling_interval_seconds=60 ";
+
+		if (reboostrapping) {
+			esmCommandLineArgs +=
+					" -D" + CloudifyConstants.SYSTEM_PROPERTY_ESM_DISCOVERY_POLLING_INTERVAL_SECONDS + "=60 ";
+		} else {
+			esmCommandLineArgs +=
+					" -D" + CloudifyConstants.SYSTEM_PROPERTY_ESM_DISCOVERY_POLLING_INTERVAL_SECONDS + "=20 ";
+		}
 		return esmCommandLineArgs;
 	}
 

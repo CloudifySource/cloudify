@@ -74,6 +74,8 @@ public final class Utils {
 	 * @param expectedGsmCount
 	 *            The number of GridServiceManager objects that are expected to be
 	 *            found. Only when this number is reached, the admin object is considered loaded and can be returned
+	 * @param lusPort port the lus is running on.
+	 *
 	 *
 	 * @return An updated admin object
 	 * @throws TimeoutException
@@ -181,6 +183,7 @@ public final class Utils {
 	 * @param authGroups
 	 *            The authentication groups attached to the GSA as an environment variable
 	 *            {@link CloudifyConstants#GIGASPACES_AUTH_GROUPS}
+	 * @param rebootstrapping
 	 * @return the installation details.
 	 * @throws FileNotFoundException
 	 *             if a key file is specified and is not found.
@@ -194,7 +197,7 @@ public final class Utils {
 			final String templateName,
 			final String securityProfile,
 			final String keystorePassword,
-			final String authGroups)
+			final String authGroups, final boolean rebootstrapping)
 			throws FileNotFoundException {
 
 		final InstallationDetails details = new InstallationDetails();
@@ -203,7 +206,7 @@ public final class Utils {
 		details.setLocalDir(template.getAbsoluteUploadDir());
 		details.setRelativeLocalDir(template.getLocalDirectory());
 		details.setLocationId(md.getLocationId());
-		
+
 		final String remoteDir = template.getRemoteDirectory();
 		details.setRemoteDir(remoteDir);
 
@@ -242,9 +245,9 @@ public final class Utils {
 			details.setConnectedToPrivateIp(!cloud.getConfiguration().isBootstrapManagementOnPublicIp());
 			details.setSecurityProfile(securityProfile);
 			details.setKeystorePassword(keystorePassword);
-			
+
 			// setting management grid components command-line arguments
-			final String esmCommandlineArgs = gridCommandBuilder.getEsmCommandlineArgs(componentsConfig.getOrchestrator());
+			final String esmCommandlineArgs = gridCommandBuilder.getEsmCommandlineArgs(componentsConfig.getOrchestrator(), rebootstrapping);
 			final String lusCommandlineArgs =
 					gridCommandBuilder.getLusCommandlineArgs(componentsConfig.getDiscovery(), lookupLocatorsString);
 			final String gsmCommandlineArgs = gridCommandBuilder.getGsmCommandlineArgs(cloud, lookupLocatorsString,
@@ -264,7 +267,7 @@ public final class Utils {
 		} else {
 			details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		}
-		details.setGsaCommandlineArgs('"' + gridCommandBuilder.getAgentCommandlineArgs(componentsConfig.getAgent(), 
+		details.setGsaCommandlineArgs('"' + gridCommandBuilder.getAgentCommandlineArgs(componentsConfig.getAgent(),
 				details.isManagement() ? MANAGEMENT_ZONE : details.getZones()) + '"');
 
 		// Add all template custom data fields starting with 'installer.' to the
@@ -356,7 +359,7 @@ public final class Utils {
 		details.setStorageMountPath(md.getStorageMountPath());
 
 		details.setPersistent(cloud.getConfiguration().getPersistentStoragePath() != null);
-		details.setInstallerConfiguration(md.getInstallerConfigutation());
+		details.setInstallerConfiguration(md.getInstallerConfiguration());
 		logger.fine("Created InstallationDetails: " + details);
 		return details;
 	}
@@ -457,7 +460,7 @@ public final class Utils {
 		return ssh;
 
 	}
-	
+
 	public static void threadSleep(long time) {
 		try
 		{

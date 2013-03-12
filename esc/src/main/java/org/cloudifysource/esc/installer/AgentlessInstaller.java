@@ -58,8 +58,6 @@ public class AgentlessInstaller {
 	private static final String LINUX_STARTUP_SCRIPT_NAME = "bootstrap-management.sh";
 	private static final String POWERSHELL_STARTUP_SCRIPT_NAME = "bootstrap-management.bat";
 
-	private static final String MACHINE_ZONES_ENV = "MACHINE_ZONES";
-
 	private static final String GSA_MODE_ENV = "GSA_MODE";
 
 	private static final String NO_WEB_SERVICES_ENV = "NO_WEB_SERVICES";
@@ -299,7 +297,7 @@ public class AgentlessInstaller {
 				remotePath += "/";
 			}
 			builder.exportVar(CLOUD_FILE, remotePath + details.getCloudFile().getName());
-			
+
 			logger.log(Level.FINE, "Setting ESM/GSM/LUS java options.");
 			builder.exportVar("ESM_JAVA_OPTIONS", details.getEsmCommandlineArgs());
 			builder.exportVar("LUS_JAVA_OPTIONS", details.getLusCommandlineArgs());
