@@ -562,9 +562,9 @@ public class ServiceController implements ServiceDetailsProvider {
 				new CloudConfigurationHolder(), 1000 * 60);
 		if (config == null) {
 
-			logger.warning("Could not find the expected Cloud Configuration Holder in Management space!"
-					+ " Defaulting to local cloud!");
-			return null;
+			final String msg = "Could not find the expected Cloud Configuration Holder in Management space!";
+			logger.severe(msg);
+			throw new IllegalStateException(msg);
 		}
 		return config;
 	}
