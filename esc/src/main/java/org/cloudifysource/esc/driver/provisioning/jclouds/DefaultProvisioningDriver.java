@@ -53,12 +53,9 @@ import org.jclouds.cloudstack.CloudStackAsyncClient;
 import org.jclouds.cloudstack.CloudStackClient;
 import org.jclouds.cloudstack.features.SSHKeyPairClient;
 import org.jclouds.cloudstack.features.SecurityGroupClient;
-import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.domain.ComputeMetadata;
-import org.jclouds.compute.domain.Hardware;
 import org.jclouds.compute.domain.NodeMetadata;
-import org.jclouds.domain.Location;
 import org.jclouds.domain.LoginCredentials;
 import org.jclouds.ec2.EC2AsyncClient;
 import org.jclouds.ec2.EC2Client;
@@ -396,7 +393,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		boolean first = true;
 		for (final MachineDetails machineDetails : existingManagementServers) {
 			final String existingManagementServerDescription = createManagementServerDescription(machineDetails);
-			if(first) {
+			if (first) {
 				first = false;
 			} else {
 				sb.append(", ");
@@ -685,7 +682,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 		
 		JCloudsDeployer validationDeployer = null;
-		final ComputeService computeService;
 		String providerName = cloud.getProvider().getProvider();
 		publishEvent(CloudifyErrorMessages.EVENT_VALIDATING_PROVIDER_OR_API_NAME.getName(), providerName);
 		String apiId;
@@ -720,14 +716,12 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			}
 			validationDeployer = new JCloudsDeployer(providerName, cloud.getUser().getUser(), 
 					cloud.getUser().getApiKey(), properties);
-			computeService = validationDeployer.getContext().getComputeService();
 		} catch (IOException e) {
 			//does this necessarily indicate the credentials are wrong? need to test.
 			throw new CloudProvisioningException("Authentication to cloud failed");
 		}
 		
 		try {
-			performBasicValidations(computeService);
 			validateComputeTemplates(validationDeployer);
 			validateCloudifyUrl(cloud.getProvider().getCloudifyUrl());
 			if (StringUtils.isNotBlank(apiId) && isKnownAPI(apiId)) {
@@ -738,19 +732,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			validationDeployer.close();
 		}
 
-	}
-	
-	private void performBasicValidations(final ComputeService computeService) throws CloudProvisioningException {
-		
-		Set<String> imageIds = new HashSet<String>();
-		Set<String> hardwareIds = new HashSet<String>();
-		Set<String> locationIds = new HashSet<String>();
-		
-		parseComputeTemplates(imageIds, hardwareIds, locationIds);
-		
-		validateImageIds(computeService, imageIds);
-		validateHardwareIds(computeService.listHardwareProfiles(), hardwareIds);
-		validateLocationIds(computeService.listAssignableLocations(), locationIds);
 	}
 
 	
@@ -801,46 +782,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		} catch (Exception e) {
 			throw new CloudProvisioningException("Invalid configuration for template \"" + templateName + "\", " 
 					+ e.getMessage());
-		}
-	}
-	
-	
-	private void parseComputeTemplates(final Set<String> imageIds, final Set<String> hardwareIds, 
-			final Set<String> locationIds) throws CloudProvisioningException {
-		
-		for (Entry<String, ComputeTemplate> entry : cloud.getCloudCompute().getTemplates().entrySet()) {
-			String imageId = null;
-			String hardwareProfileId = null;
-			String locationId = null;
-			
-			
-			String templateName = entry.getKey();
-			publishEvent(CloudifyErrorMessages.EVENT_VALIDATING_TEMPLATE.getName(), templateName);
-			ComputeTemplate template = entry.getValue();
-			
-			// imageId
-			imageId = template.getImageId();
-			if (!StringUtils.isBlank(imageId)) {
-				imageIds.add(imageId);
-			} /*else {
-				throw new CloudProvisioningException("Invalid image - image id cannot be empty");
-			}*/
-			
-			// hardwareId
-			hardwareProfileId = template.getHardwareId();
-			if (!StringUtils.isBlank(hardwareProfileId)) {
-				hardwareIds.add(hardwareProfileId);
-			} /*else {
-				throw new CloudProvisioningException("Invalid hardware profile - hardware id cannot be empty");	
-			}*/
-			
-			// locationId
-			locationId = template.getLocationId();
-			if (!StringUtils.isBlank(locationId)) {
-				locationIds.add(template.getLocationId());
-			} /*else {
-				throw new CloudProvisioningException("Invalid location - location id cannot be empty");
-			}*/
 		}
 	}
 	
@@ -911,72 +852,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		return keyPairsByRegions;
 	}
 	
-	private void validateImageIds(final ComputeService computeService, final Set<String> usedImageIds) 
-			throws CloudProvisioningException {
-		
-		publishEvent(CloudifyErrorMessages.EVENT_VALIDATING_IMAGES.getName());
-		Set<String> missingImageIds = new HashSet<String>();
-		
-		for (String imageId : usedImageIds) {
-			try {
-				computeService.getImage(imageId);
-			} catch (IllegalArgumentException e) {
-				missingImageIds.add(imageId);
-			}
-		}
-		
-		if (!missingImageIds.isEmpty()) {
-			if (missingImageIds.size() == 1) {
-				throw new CloudProvisioningException("Invalid image ID: " + missingImageIds.iterator().next());
-			} else {
-				throw new CloudProvisioningException("Invalid image IDs: "
-					+ Arrays.toString(missingImageIds.toArray()));
-		}
-	}
-	}
-	
-	private void validateHardwareIds(final Set<? extends Hardware> supportedHardwareProfiles, 
-			final Set<String> usedHardwareIds) throws CloudProvisioningException {
-		
-		publishEvent(CloudifyErrorMessages.EVENT_VALIDATING_HARDWARE_PROFILES.getName());
-		Set<String> supportedHardwareIds = new HashSet<String>();
-		for (Hardware hardware : supportedHardwareProfiles) {
-			supportedHardwareIds.add(hardware.getId());	
-		}
-		
-		Set<String> missingHardwareIds = new HashSet<String>(usedHardwareIds);
-		missingHardwareIds.removeAll(supportedHardwareIds);
-		if (!missingHardwareIds.isEmpty()) {
-			if (missingHardwareIds.size() == 1) {
-				throw new CloudProvisioningException("Invalid hardware ID: " + missingHardwareIds.iterator().next());
-			} else {
-				throw new CloudProvisioningException("Invalid hardware IDs: "
-					+ Arrays.toString(missingHardwareIds.toArray()));
-		}
-	}
-	}
-	
-	private void validateLocationIds(final Set<? extends Location> supportedLocations, 
-			final Set<String> usedLocationIds) throws CloudProvisioningException {
-		
-		publishEvent(CloudifyErrorMessages.EVENT_VALIDATING_LOCATIONS.getName());
-		Set<String> supportedLocationIds = new HashSet<String>();
-		for (Location location : supportedLocations) {
-			supportedLocationIds.add(location.getId());	
-		}
-		
-		Set<String> missingLocationIds = new HashSet<String>(usedLocationIds);
-		missingLocationIds.removeAll(supportedLocationIds);
-		if (!missingLocationIds.isEmpty()) {
-			if (missingLocationIds.size() == 1) {
-				throw new CloudProvisioningException("Invalid location ID: " + missingLocationIds.iterator().next());
-			} else {
-				throw new CloudProvisioningException("Invalid location IDs: " 
-					+ Arrays.toString(missingLocationIds.toArray()));
-			}
-		}
-	}
-
 	
 	private void validateSecurityGroups(final JCloudsDeployer validationDeployer, final String apiId) 
 			throws CloudProvisioningException {
