@@ -1,5 +1,7 @@
 *.iml
 
+.idea/*
+cloudify/.idea/*
 /dsl/.checkstyle
 /USM/.gitignore
 /esc-commands/.gitignore
