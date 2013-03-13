@@ -109,7 +109,8 @@ public class DSLReader {
 			org.cloudifysource.dsl.utils.ServiceUtils.class.getName(),
 			FileTransferModes.class.getName(),
 			RemoteExecutionModes.class.getName(),
-			ScriptLanguages.class.getName()
+			ScriptLanguages.class.getName(),
+			"org.cloudifysource.debug.DebugHook"
 	};
 
 	/******
