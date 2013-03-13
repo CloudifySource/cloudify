@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.shell;
 
@@ -50,7 +47,7 @@ import org.fusesource.jansi.Ansi;
 /**
  * @author rafi, barakm, adaml, noak
  * @since 2.0.0
- * 
+ *
  *        Extends the Karaf framework Main object. This class is used to start the shell/console.
  */
 // declared as command so that it can be used in the context of another shell
@@ -62,6 +59,10 @@ public final class GigaShellMain extends Main implements Action {
 	private ConsoleWithProps console;
 	private final boolean isInteractive;
 
+	private static final String[] BLOCKED_LOGGERS = new String[] {
+			"org.cloudifysource.esc.jclouds.JCloudsDeployer"
+	};
+
 	@Argument(name = "args", description = "Cloudify sub command arguments", multiValued = true)
 	private String[] args;
 
@@ -69,9 +70,11 @@ public final class GigaShellMain extends Main implements Action {
 	 * This is the shell's main method. It starts the shell, sets the logging configurations, and the proxy if
 	 * configured. Arguments, if passed, are expected in 1 of these 2 formats: -f <file_name> OR <command 1>;<command
 	 * 2>;<command 3>;.... Passing commands set the interactive mode off.
-	 * 
-	 * @param args The commands to be executed, either in a file or as a list.
-	 * @throws Exception Reporting a failure to start the shell or execute the commands
+	 *
+	 * @param args
+	 *            The commands to be executed, either in a file or as a list.
+	 * @throws Exception
+	 *             Reporting a failure to start the shell or execute the commands
 	 */
 	public static void main(final String[] args)
 			throws Exception {
@@ -99,9 +102,9 @@ public final class GigaShellMain extends Main implements Action {
 					is = new FileInputStream(filename);
 				} else {
 					String commandString = "";
-                    for (String arg : args) {
-                        commandString = commandString.concat(arg + " ");
-                    }
+					for (String arg : args) {
+						commandString = commandString.concat(arg + " ");
+					}
 					if (!commandString.endsWith(";")) {
 						commandString = commandString.concat(";");
 					}
@@ -119,7 +122,7 @@ public final class GigaShellMain extends Main implements Action {
 			instance = new GigaShellMain(isInteractive);
 			instance.setApplication("cloudify");
 			Ansi.ansi();
-			
+
 			instance.run(actualArgs);
 		} finally {
 			if (is != null) {
@@ -147,6 +150,11 @@ public final class GigaShellMain extends Main implements Action {
 				handler.setLevel(Level.INFO);
 				break;
 			}
+		}
+
+		// block info printouts from specific internal components.
+		for (final String loggerName : BLOCKED_LOGGERS) {
+			Logger.getLogger(loggerName).setLevel(Level.WARNING);
 		}
 	}
 
@@ -189,7 +197,7 @@ public final class GigaShellMain extends Main implements Action {
 
 	/**
 	 * Gets the single instance of this class.
-	 * 
+	 *
 	 * @return the single instance of this class
 	 */
 	public static GigaShellMain getInstance() {
@@ -222,8 +230,9 @@ public final class GigaShellMain extends Main implements Action {
 
 	/**
 	 * Sets the current application name.
-	 * 
-	 * @param applicationName The application name
+	 *
+	 * @param applicationName
+	 *            The application name
 	 */
 	public void setCurrentApplicationName(final String applicationName) {
 		console.setCurrentApplicationName(applicationName);
