@@ -58,7 +58,7 @@ public class CloudTemplateInstallerConfiguration {
 	private int fileTransferConnectionRetryIntervalMillis = DEFAULT_CONNECTION_RETRY_INTERVAL_MILLIS;
 
 	private int remoteExecutionPort = DEFAULT_PORT;
-	private int remoteExecutionConnectionTimeoutMillies = DEFAULT_CONNECTION_TIMEOUT;
+	private int remoteExecutionConnectionTimeoutMillis = DEFAULT_CONNECTION_TIMEOUT;
 
 
 	public CloudTemplateInstallerConfiguration() {
@@ -123,8 +123,8 @@ public class CloudTemplateInstallerConfiguration {
 	 *
 	 * @return the timeout for remote execution connections.
 	 */
-	public int getRemoteExecutionConnectionTimeoutMillies() {
-		return remoteExecutionConnectionTimeoutMillies;
+	public int getRemoteExecutionConnectionTimeoutMillis() {
+		return remoteExecutionConnectionTimeoutMillis;
 	}
 
 	/******
@@ -179,8 +179,8 @@ public class CloudTemplateInstallerConfiguration {
 		this.connectionTestConnectTimeoutMillis = connectionTestConnectTimeoutMillis;
 	}
 
-	public void setRemoteExecutionConnectionTimeoutMillies(final int remoteExecutionConnectionTimeoutMillies) {
-		this.remoteExecutionConnectionTimeoutMillies = remoteExecutionConnectionTimeoutMillies;
+	public void setRemoteExecutionConnectionTimeoutMillis(final int remoteExecutionConnectionTimeoutMillies) {
+		this.remoteExecutionConnectionTimeoutMillis = remoteExecutionConnectionTimeoutMillies;
 	}
 
 }
