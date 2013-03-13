@@ -1,9 +1,8 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy
- * of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -93,14 +92,13 @@ public class LocalhostGridAgentBootstrapper {
 	private static final String MANAGEMENT_APPLICATION = ManagementWebServiceInstaller.MANAGEMENT_APPLICATION_NAME;
 	private static final String GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE = "gsm.excludeGscOnFailedInstance.disabled";
 	private static final String ZONES_PROPERTY = "com.gs.zones";
-	private static final String AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT = "-Dcom.gs.agent.auto-shutdown-enabled=true";
 	private static final int WAIT_AFTER_ADMIN_CLOSED_MILLIS = 10 * 1000;
 	private static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out waiting for the agent to start."
 			+ " Configure the timeout using the -timeout flag.";
 	private static final String REST_FILE = "tools" + File.separator + "rest" + File.separator + "rest.war";
-	private static final String REST_NAME = "rest";
+
 	private static final String WEBUI_FILE = EnvironmentUtils.findWebuiWar();
-	private static final String WEBUI_NAME = "webui";
+
 	private static final String MANAGEMENT_SPACE_NAME = CloudifyConstants.MANAGEMENT_SPACE_NAME;
 
 	private static final String LINUX_SCRIPT_PREFIX = "#!/bin/bash\n";
@@ -137,7 +135,7 @@ public class LocalhostGridAgentBootstrapper {
 	private static final String[] WINDOWS_ARGUMENTS_POSTFIX = new String[] { ">nul", "2>&1" };
 
 	private static final String[] LINUX_ARGUMENTS_POSTFIX = new String[] { ">/dev/null", "2>&1" };
-	
+
 	private static final String LOCALCLOUD_REST_MEMORY = "128m";
 	private static final String LOCALCLOUD_WEBUI_MEMORY = "256m";
 
@@ -153,7 +151,6 @@ public class LocalhostGridAgentBootstrapper {
 	private boolean noManagementSpace;
 	private boolean notHighlyAvailableManagementSpace;
 	private int lusPort = CloudifyConstants.DEFAULT_LUS_PORT;
-	private boolean autoShutdown;
 	private boolean waitForWebUi;
 
 	private String cloudFilePath;
@@ -216,6 +213,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	/**
 	 * Sets the admin facade to work with.
+	 *
 	 * @param adminFacade
 	 *            Admin facade object
 	 */
@@ -242,16 +240,6 @@ public class LocalhostGridAgentBootstrapper {
 	 */
 	public void setNoManagementSpace(final boolean noManagementSpace) {
 		this.noManagementSpace = noManagementSpace;
-	}
-
-	/**
-	 * Sets automatic shutdown on the agent.
-	 *
-	 * @param autoShutdown
-	 *            automatic shutdown mode (true - on, false - off)
-	 */
-	public void setAutoShutdown(final boolean autoShutdown) {
-		this.autoShutdown = autoShutdown;
 	}
 
 	/**
@@ -286,8 +274,8 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	/**
-	 * Enables force teardown. The force flag will terminate the gs agent without forcing uninstall on the
-	 * currently deployed applications.
+	 * Enables force teardown. The force flag will terminate the gs agent without forcing uninstall on the currently
+	 * deployed applications.
 	 *
 	 *
 	 * @param force
@@ -408,8 +396,54 @@ public class LocalhostGridAgentBootstrapper {
 
 		setDefaultNicAddress();
 
+		// if re-bootstrapping a persistent manager, replace rest and webui with new version
+		redeployManagement();
+
 		startManagementOnLocalhostAndWaitInternal(CLOUD_MANAGEMENT_ARGUMENTS, securityProfile, securityFilePath,
 				username, password, keystoreFilePath, keystorePassword, timeout, timeunit, false);
+	}
+
+	private void redeployManagement() {
+		// first get the persistence path
+		final String persistencePath = cloud.getConfiguration().getPersistentStoragePath();
+		if (persistencePath == null) {
+			return; // not a persistent cloud
+		}
+
+		// check it is valid
+		final File persistenceDir = new File(persistencePath);
+		if (persistenceDir.exists() && !persistenceDir.isDirectory()) {
+			throw new IllegalStateException("The persistence location: " + persistencePath
+					+ " should either not exist or be a directory");
+		}
+
+		// if it does not exist, must be first bootstrap
+		if (!persistenceDir.exists()) {
+			// must be first bootstrap
+			return;
+		}
+
+		final File deployDir =
+				new File(persistenceDir, CloudifyConstants.PERSISTENCE_DIRECTORY_DEPLOY_RELATIVE_PATH);
+		if (!deployDir.exists()) {
+			// must be first bootstrap
+			return;
+		}
+
+		final File restDir = new File(deployDir, CloudifyConstants.MANAGEMENT_REST_SERVICE_NAME);
+		final File webuiDir = new File(deployDir, CloudifyConstants.MANAGEMENT_WEBUI_SERVICE_NAME);
+
+		if (!restDir.exists() && !webuiDir.exists()) {
+			// maybe someone created the directory struture first? Either way, nothing to redeploy.
+			return;
+		}
+		if (restDir.exists() ^ webuiDir.exists()) { // Hah - XOR!
+			logger.warning("Found only one of the management service deployed: REST: "
+					+ restDir.exists() + ", Web-UI: " + webuiDir.exists() + ". "
+					+ "This is not a normal deployment scenario. Please check for configuration problems. "
+					+ "Only the deployed service will be installed");
+		}
+
 	}
 
 	/**
@@ -995,7 +1029,7 @@ public class LocalhostGridAgentBootstrapper {
 		webuiInstaller.setMemory(MemoryUnit.toMegaBytes(webuiMemory), MemoryUnit.MEGABYTES);
 		webuiInstaller.setPort(webuiPort);
 		webuiInstaller.setWarFile(new File(WEBUI_FILE));
-		webuiInstaller.setServiceName(WEBUI_NAME);
+		webuiInstaller.setServiceName(CloudifyConstants.MANAGEMENT_WEBUI_SERVICE_NAME);
 		webuiInstaller.setManagementZone(MANAGEMENT_ZONE);
 		webuiInstaller.addListeners(this.eventsListenersList);
 		webuiInstaller.setIsLocalCloud(isLocalCloud);
@@ -1006,8 +1040,8 @@ public class LocalhostGridAgentBootstrapper {
 			webuiInstaller.installWebService();
 		} catch (final ProcessingUnitAlreadyDeployedException e) {
 			if (verbose) {
-				logger.fine("Service " + WEBUI_NAME + " already installed");
-				publishEvent("Service " + WEBUI_NAME + " already installed");
+				logger.fine("Service " + CloudifyConstants.MANAGEMENT_WEBUI_SERVICE_NAME + " already installed");
+				publishEvent("Service " + CloudifyConstants.MANAGEMENT_WEBUI_SERVICE_NAME + " already installed");
 			}
 		}
 		if (waitForWebUi) {
@@ -1027,7 +1061,7 @@ public class LocalhostGridAgentBootstrapper {
 		restInstaller.setUsername(username);
 		restInstaller.setPassword(password);
 		restInstaller.setWarFile(new File(REST_FILE));
-		restInstaller.setServiceName(REST_NAME);
+		restInstaller.setServiceName(CloudifyConstants.MANAGEMENT_REST_SERVICE_NAME);
 		restInstaller.setManagementZone(MANAGEMENT_ZONE);
 		restInstaller.dependencies.add(CloudifyConstants.MANAGEMENT_SPACE_NAME);
 		restInstaller.setWaitForConnection();
@@ -1040,15 +1074,15 @@ public class LocalhostGridAgentBootstrapper {
 			restInstaller.installWebService();
 		} catch (final ProcessingUnitAlreadyDeployedException e) {
 			if (verbose) {
-				logger.fine("Service " + REST_NAME + " already installed");
-				publishEvent("Service " + REST_NAME + " already installed");
+				logger.fine("Service " + CloudifyConstants.MANAGEMENT_REST_SERVICE_NAME + " already installed");
+				publishEvent("Service " + CloudifyConstants.MANAGEMENT_REST_SERVICE_NAME + " already installed");
 			}
 		}
 		waitForManagementServices.add(restInstaller);
 	}
 
 	private String getWebServiceMemory(final String memoryEnvironmentVar) {
-		String memoryString; 
+		String memoryString;
 		if (isLocalCloud) {
 			if (memoryEnvironmentVar.equals(CloudifyConstants.REST_MAX_MEMORY_ENVIRONMENT_VAR)) {
 				memoryString = LOCALCLOUD_REST_MEMORY;
@@ -1059,8 +1093,8 @@ public class LocalhostGridAgentBootstrapper {
 			memoryString = System.getenv().get(memoryEnvironmentVar);
 			if (org.apache.commons.lang.StringUtils.isBlank(memoryString)) {
 				throw new IllegalStateException("Could not find web-service memory capacity variable in environment.");
-			} 
-			
+			}
+
 		}
 		return memoryString;
 	}
@@ -1394,19 +1428,20 @@ public class LocalhostGridAgentBootstrapper {
 		final File filename = createScript(commandString);
 		final ProcessBuilder pb = new ProcessBuilder().command(filename.getAbsolutePath()).directory(directory);
 
-
 		String localCloudOptions =
 				"-Xmx" + CloudifyConstants.DEFAULT_LOCALCLOUD_GSA_GSM_ESM_LUS_MEMORY_IN_MB + "m" + " -D"
 						+ CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY + "="
 						+ lusPort + " -D" + GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "="
 						+ GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL
-						+ " " + GSM_PENDING_REQUESTS_DELAY + " -D" + ZONES_PROPERTY + "=" + LOCALCLOUD_GSA_ZONES;
+						+ " " + GSM_PENDING_REQUESTS_DELAY
+						+ " -D" + ZONES_PROPERTY + "=" + LOCALCLOUD_GSA_ZONES
+						+ " -D" + CloudifyConstants.SYSTEM_PROPERTY_ESM_DISCOVERY_POLLING_INTERVAL_SECONDS + "=1";
 
 		final Map<String, String> environment = pb.environment();
 		if (lookupGroups != null) {
 			environment.put("LOOKUPGROUPS", lookupGroups);
 		}
-		
+
 		if (lookupLocators != null) {
 			final String disableMulticast = "-Dcom.gs.multicast.enabled=false";
 			environment.put("LOOKUPLOCATORS", lookupLocators);

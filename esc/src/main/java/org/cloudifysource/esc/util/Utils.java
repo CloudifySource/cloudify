@@ -247,7 +247,8 @@ public final class Utils {
 			details.setKeystorePassword(keystorePassword);
 
 			// setting management grid components command-line arguments
-			final String esmCommandlineArgs = gridCommandBuilder.getEsmCommandlineArgs(componentsConfig.getOrchestrator(), rebootstrapping);
+			final String esmCommandlineArgs =
+					gridCommandBuilder.getEsmCommandlineArgs(componentsConfig.getOrchestrator(), rebootstrapping);
 			final String lusCommandlineArgs =
 					gridCommandBuilder.getLusCommandlineArgs(componentsConfig.getDiscovery(), lookupLocatorsString);
 			final String gsmCommandlineArgs = gridCommandBuilder.getGsmCommandlineArgs(cloud, lookupLocatorsString,

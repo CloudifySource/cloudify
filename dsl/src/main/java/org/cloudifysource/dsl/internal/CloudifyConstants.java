@@ -175,6 +175,8 @@ public final class CloudifyConstants {
 	 */
 	public static final String DEFAULT_APPLICATION_NAME = "default";
 	public static final String MANAGEMENT_SPACE_NAME = LicenseManagerVerifier.MANAGEMENT_SPACE_NAME;
+	public static final String MANAGEMENT_WEBUI_SERVICE_NAME = "webui";
+	public static final String MANAGEMENT_REST_SERVICE_NAME = "rest";
 	public static final String MANAGEMENT_APPLICATION_NAME = "management";
 	public static final String USM_LIB_DIR = "usmlib";
 	public static final String SERVICE_EXTERNAL_FOLDER = "/ext/";
