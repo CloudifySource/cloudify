@@ -169,6 +169,8 @@ public enum CloudifyErrorMessages {
 	
 	EVENT_VALIDATING_TEMPLATE("validating_template", 1),
 	
+	EVENT_TEMPLATE_VALIDATED("template_validated", 1),
+	
 	EVENT_VALIDATING_IMAGE_ID("validating_image_id", 1),
 	
 	EVENT_VALIDATING_IMAGES("validating_images", 0),

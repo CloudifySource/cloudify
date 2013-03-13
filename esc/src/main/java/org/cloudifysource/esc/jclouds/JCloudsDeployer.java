@@ -88,7 +88,7 @@ public class JCloudsDeployer {
 	private final String key;
 
 	private final Properties overrides;
-
+	
 	/*******
 	 * Shuts down the deployer, freeing all resources.
 	 */
@@ -102,6 +102,10 @@ public class JCloudsDeployer {
 
 	public void setHardwareId(final String hardwareId) {
 		this.hardwareId = hardwareId;
+	}
+	
+	public Properties getOverrides() {
+		return overrides;
 	}
 
 	/********

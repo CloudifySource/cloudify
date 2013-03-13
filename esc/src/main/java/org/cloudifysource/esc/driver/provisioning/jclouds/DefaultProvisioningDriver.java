@@ -49,8 +49,6 @@ import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.jclouds.JCloudsDeployer;
 import org.jclouds.apis.ApiMetadata;
 import org.jclouds.apis.Apis;
-import org.jclouds.cloudstack.CloudStackAsyncClient;
-import org.jclouds.cloudstack.CloudStackClient;
 import org.jclouds.cloudstack.features.SSHKeyPairClient;
 import org.jclouds.cloudstack.features.SecurityGroupClient;
 import org.jclouds.compute.ComputeServiceContext;
@@ -714,30 +712,30 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 				// we have to assume all templates share the same endpoint
 				properties.put(ENDPOINT_OVERRIDE, endpoint);
 			}
-			validationDeployer = new JCloudsDeployer(providerName, cloud.getUser().getUser(), 
-					cloud.getUser().getApiKey(), properties);
-		} catch (IOException e) {
-			//does this necessarily indicate the credentials are wrong? need to test.
-			throw new CloudProvisioningException("Authentication to cloud failed");
-		}
-		
-		try {
-			validateComputeTemplates(validationDeployer);
+			try {
+				validationDeployer = new JCloudsDeployer(providerName, cloud.getUser().getUser(), 
+						cloud.getUser().getApiKey(), properties);
+			} catch (IOException e) {
+				closeDeployer(validationDeployer);
+				//does this necessarily indicate the credentials are wrong? need to test.
+				throw new CloudProvisioningException("Authentication to the cloud failed");
+			}
+			
 			validateCloudifyUrl(cloud.getProvider().getCloudifyUrl());
 			if (StringUtils.isNotBlank(apiId) && isKnownAPI(apiId)) {
 				validateSecurityGroups(validationDeployer, apiId);
 				validateKeyPairs(validationDeployer, apiId);
 			}
+			validateComputeTemplates(validationDeployer);
 		} finally {
-			validationDeployer.close();
+			closeDeployer(validationDeployer);
 		}
-
 	}
 
 	
 	private void validateComputeTemplates(final JCloudsDeployer validationDeployer) throws CloudProvisioningException {
 		
-		JCloudsDeployer effectiveDeployer;
+		JCloudsDeployer effectiveDeployer = null;
 		String templateName = "";
 		
 		try {
@@ -749,25 +747,26 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 				
 				// if the template includes overrides *other than the endpoint* - create a new
 				// deployer for this specific template with the overriding settings
+				final Properties templateProps = new Properties();
 				Map<String, Object> templateOverrides = template.getOverrides();
-				if (templateOverrides != null && templateOverrides.size() > 0) {
-					if ((templateOverrides.containsKey(ENDPOINT_OVERRIDE) && templateOverrides.size() > 1)
-							|| (!templateOverrides.containsKey(ENDPOINT_OVERRIDE) && templateOverrides.size() > 0)) {
-						publishEvent(CloudifyErrorMessages.EVENT_VALIDATING_TEMPLATE_OVERRIDES.getName());
-						try {
-							final Properties props = new Properties();
-							props.putAll(template.getOverrides());
-							effectiveDeployer = new JCloudsDeployer(cloud.getProvider().getProvider(), 
-									cloud.getUser().getUser(), cloud.getUser().getApiKey(), props);
-						} catch (IOException e) {
-							//does this necessarily indicate the credentials are wrong? need to test.
-							throw new CloudProvisioningException("Authentication to cloud failed");
-						}
+				templateProps.putAll(templateOverrides);
+				Properties deployerProps = validationDeployer.getOverrides();
+				if (!deployerProps.equals(templateProps)) {
+					publishEvent(CloudifyErrorMessages.EVENT_VALIDATING_TEMPLATE_OVERRIDES.getName());
+					try {
+						logger.info("Creating a new cloud deployer");
+						effectiveDeployer = new JCloudsDeployer(cloud.getProvider().getProvider(), 
+								cloud.getUser().getUser(), cloud.getUser().getApiKey(), templateProps);
+					} catch (IOException e) {
+						closeDeployer(effectiveDeployer);
+						//does this necessarily indicate the credentials are wrong? need to test.
+						throw new CloudProvisioningException("Authentication to the cloud failed");
 					}
 				}
 					
 				effectiveDeployer.setImageId(template.getImageId());
 				effectiveDeployer.setHardwareId(template.getHardwareId());
+				effectiveDeployer.setExtraOptions(template.getOptions());
 				// TODO: check this memory validation
 				// effectiveDeployer.setMinRamMegabytes(template.getMachineMemoryMB());
 				publishEvent(CloudifyErrorMessages.EVENT_VALIDATING_IMAGE_ID.getName(),
@@ -776,31 +775,40 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 						template.getHardwareId() == null ? "" : template.getHardwareId());
 				publishEvent(CloudifyErrorMessages.EVENT_VALIDATING_LOCATION_ID.getName(), 
 						template.getLocationId() == null ? "" : template.getLocationId());
+				
 				// calling JCloudsDeployer.getTemplate effectively tests the above configuration through jclouds
 				effectiveDeployer.getTemplate(template.getLocationId());
+				publishEvent(CloudifyErrorMessages.EVENT_TEMPLATE_VALIDATED.getName(), templateName);
+				closeDeployer(effectiveDeployer);
 			}
 		} catch (Exception e) {
 			throw new CloudProvisioningException("Invalid configuration for template \"" + templateName + "\", " 
 					+ e.getMessage());
+		} finally {
+			closeDeployer(effectiveDeployer);
 		}
 	}
 	
 	
-	private Map<String, Set<String>> getSecurityGroupsByRegions(final String defaultLocationId) {
+	private Map<String, Set<String>> getSecurityGroupsByRegions(final String apiId) throws CloudProvisioningException {
 		
 		Map<String, Set<String>> securityGroupsByRegions = new HashMap<String, Set<String>>();
 		
 		for (ComputeTemplate template : cloud.getCloudCompute().getTemplates().values()) {
 			String locationId = template.getLocationId();
-			if (StringUtils.isBlank(locationId)) {
-				// TODO : use the default location id for that template
-				locationId = defaultLocationId;
+			if (StringUtils.isBlank(locationId) && apiId.equalsIgnoreCase(OPENSTACK_API)) {
+				locationId = getOpenstackLocationByHardwareId(template.getHardwareId());
+			}
+			
+			if (locationId == null) {
+				throw new CloudProvisioningException("locationId is missing");
 			}
 			
 			Object securityGroupsArr = template.getOptions().get("securityGroupNames");
 			if (securityGroupsArr == null) {
 				securityGroupsArr = template.getOptions().get("securityGroups");
 			}
+			
 			if (securityGroupsArr != null && securityGroupsArr instanceof String[]) {
 				Set<String> securityGroupNames = new HashSet<String>();
 				for (String securityGroupName : (String[]) securityGroupsArr) {
@@ -821,15 +829,18 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 	
 	
-	private Map<String, Set<String>> getKeyPairsByRegions(final String defaultLocationId) {
+	private Map<String, Set<String>> getKeyPairsByRegions(final String apiId) throws CloudProvisioningException {
 		
 		Map<String, Set<String>> keyPairsByRegions = new HashMap<String, Set<String>>();
 		
 		for (ComputeTemplate template : cloud.getCloudCompute().getTemplates().values()) {
 			String locationId = template.getLocationId();
-			if (StringUtils.isBlank(locationId)) {
-				// TODO : use the default location id for that template
-				locationId = defaultLocationId;
+			if (StringUtils.isBlank(locationId) && apiId.equalsIgnoreCase(OPENSTACK_API)) {
+				locationId = getOpenstackLocationByHardwareId(template.getHardwareId());
+			}
+			
+			if (locationId == null) {
+				throw new CloudProvisioningException("locationId is missing");
 			}
 
 			String keyPair = (String) template.getOptions().get("keyPairName");
@@ -858,8 +869,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		
 		publishEvent(CloudifyErrorMessages.EVENT_VALIDATING_SECURITY_GROUPS.getName());
 		ComputeServiceContext computeServiceContext = validationDeployer.getContext();
-		Map<String, Set<String>> securityGroupsByRegions = 
-				getSecurityGroupsByRegions(getDefaultLocation(validationDeployer));
+		Map<String, Set<String>> securityGroupsByRegions = getSecurityGroupsByRegions(apiId);
 		
 		if (apiId.equalsIgnoreCase(EC2_API)) {
 			RestContext<EC2Client, EC2AsyncClient> unwrapped = computeServiceContext.unwrap();
@@ -870,9 +880,9 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			validateOpenstackSecurityGroups(unwrapped.getApi(), securityGroupsByRegions);
 			
 		} else if (apiId.equalsIgnoreCase(CLOUDSTACK)) {
-			RestContext<CloudStackClient, CloudStackAsyncClient> unwrapped = computeServiceContext.unwrap();
+			/*RestContext<CloudStackClient, CloudStackAsyncClient> unwrapped = computeServiceContext.unwrap();
 			validateCloudstackSecurityGroups(unwrapped.getApi().getSecurityGroupClient(), 
-					aggregateAllValues(securityGroupsByRegions));
+					aggregateAllValues(securityGroupsByRegions));*/
 			
 		} else if (apiId.equalsIgnoreCase(VCLOUD)) {
 			//security groups not supported			
@@ -887,7 +897,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		
 		publishEvent(CloudifyErrorMessages.EVENT_VALIDATING_KEY_PAIRS.getName());
 		ComputeServiceContext computeServiceContext = validationDeployer.getContext();
-		Map<String, Set<String>> keyPairsByRegions = getKeyPairsByRegions(getDefaultLocation(validationDeployer));
+		Map<String, Set<String>> keyPairsByRegions = getKeyPairsByRegions(apiId);
 		
 		if (apiId.equalsIgnoreCase(EC2_API)) {
 			RestContext<EC2Client, EC2AsyncClient> unwrapped = computeServiceContext.unwrap();
@@ -898,9 +908,9 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			validateOpenstackKeyPairs(unwrapped.getApi(), keyPairsByRegions);
 			
 		} else if (apiId.equalsIgnoreCase(CLOUDSTACK)) {
-			RestContext<CloudStackClient, CloudStackAsyncClient> unwrapped = computeServiceContext.unwrap();
+			/*RestContext<CloudStackClient, CloudStackAsyncClient> unwrapped = computeServiceContext.unwrap();
 			validateCloudstackKeyPairs(unwrapped.getApi().getSSHKeyPairClient(), 
-					aggregateAllValues(keyPairsByRegions));
+					aggregateAllValues(keyPairsByRegions));*/
 			
 		} else if (apiId.equalsIgnoreCase(VCLOUD)) {
 			//security groups not supported			
@@ -1048,6 +1058,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		}
 	}
 	
+	
 	private void validateCloudstackKeyPairs(final SSHKeyPairClient keyPairClient, 
 			final Set<String> keyPairs) throws CloudProvisioningException {
 		
@@ -1067,6 +1078,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 					+ Arrays.toString(missingKeyPairs.toArray()));
 		}
 	}
+	
 	
 	private void validateCloudifyUrl(final String cloudifyUrl) throws CloudProvisioningException {
 
@@ -1104,6 +1116,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		return securityGroupsSet;
 	}
 	
+	
 	private String getEndpoint() {
 		String endpoint = null;
 		
@@ -1115,18 +1128,36 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		
 		return endpoint;
 	}
+
 	
-	private String getDefaultLocation(final JCloudsDeployer validationDeployer) {
-		String defaultLocationId = "";
-		
-		try {
-			defaultLocationId = validationDeployer.getTemplate(null).getLocation().getId();
-		} catch (Exception e) {
-			//default location id is not always supported, it depends on the provider, no need to fail here.
-			logger.fine("Validating security groups, default location id is not found for this provider");
+	private void closeDeployer(final JCloudsDeployer jcloudsDeployer) {
+		if (jcloudsDeployer != null) {
+			logger.info("Attempting to close cloud deployer");
+			jcloudsDeployer.close();
+			logger.info("Cloud deployer closed");
+		}
+	}
+	
+	
+	private String getOpenstackLocationByHardwareId(final String hardwareId) {
+		String region = "";
+		if (hardwareId.indexOf("/") == -1) {
+			logger.info("HardwareId is: " + hardwareId + ". It must be formatted "
+					+ "as region / profile id");
+			throw new IllegalArgumentException("HardwareId is: " + hardwareId + ". It must be formatted "
+					+ "as region / profile id");
 		}
 		
-		return defaultLocationId;
+		region = StringUtils.substringBefore(hardwareId, "/");
+		if (StringUtils.isBlank(region)) {
+			logger.info("HardwareId " + hardwareId + " is missing the region name. It must be formatted "
+					+ "as region / profile id");
+			throw new IllegalArgumentException("HardwareId is: " + hardwareId + ". It must be formatted "
+					+ "as region / profile id");
+		}
+		
+		logger.fine("region: " + region);		
+		return region;
 	}
 	
 }
