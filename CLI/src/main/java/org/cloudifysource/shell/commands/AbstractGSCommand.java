@@ -14,8 +14,6 @@ package org.cloudifysource.shell.commands;
 
 import java.util.Properties;
 import java.util.ResourceBundle;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,8 +40,6 @@ public abstract class AbstractGSCommand implements Action {
 
 	protected static final Logger logger = Logger.getLogger(AbstractGSCommand.class.getName());
 
-	private static ConsoleHandler consoleHandler = null;
-
 	@Option(required = false, name = "--verbose", description = "show detailed execution result including exception"
 			+ " stack trace")
 	protected boolean verbose;
@@ -51,22 +47,6 @@ public abstract class AbstractGSCommand implements Action {
 	protected ResourceBundle messages;
 	protected boolean adminAware = false;
 	protected AdminFacade adminFacade;
-
-	private Level defaultLoggingLevel;
-
-	private static ConsoleHandler getConsoleHandler() {
-		if (consoleHandler == null) {
-			Logger rootLogger = Logger.getLogger("");
-			Handler[] handlers = rootLogger.getHandlers();
-			for (Handler handler : handlers) {
-				if (handler instanceof ConsoleHandler) {
-					consoleHandler = (ConsoleHandler) handler;
-					break;
-				}
-			}
-		}
-		return consoleHandler;
-	}
 
 	/**
 	 * Initializes the messages bundle, and takes the admin facade objects from the session when command is admin-aware.
@@ -81,7 +61,7 @@ public abstract class AbstractGSCommand implements Action {
 	@Override
 	public Object execute(final CommandSession session)
 			throws Exception {
-		//setUpLoggingLevel(); see CLOUDIFY-1558
+		// setUpLoggingLevel(); //see CLOUDIFY-1558
 
 		this.session = session;
 		messages = ShellUtils.getMessageBundle();
@@ -143,22 +123,6 @@ public abstract class AbstractGSCommand implements Action {
 		}
 		return getFormattedMessage(
 				"op_failed", Color.RED, "");
-	}
-
-	private void setUpLoggingLevel() {
-		final Handler handler = getConsoleHandler();
-		initDefaultLoggingLevel(handler);
-		if (this.verbose) {
-			handler.setLevel(defaultLoggingLevel);
-		} else {
-			handler.setLevel(Level.WARNING);
-		}
-	}
-
-	private void initDefaultLoggingLevel(final Handler handler) {
-		if (defaultLoggingLevel == null) {
-			defaultLoggingLevel = handler.getLevel();
-		}
 	}
 
 	private String getFormattedMessageFromErrorStatusException(final CLIStatusException e) {
