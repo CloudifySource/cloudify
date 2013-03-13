@@ -127,7 +127,7 @@ cloud {
 							fileTransferConnectionRetryIntervalMillis 5000
 
 							remoteExecutionPort 5000
-							remoteExecutionConnectionTimeoutMillies 5000
+							remoteExecutionConnectionTimeoutMillis 5000
 
 						}
 	
