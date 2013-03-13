@@ -247,13 +247,24 @@ public class CloudGridAgentBootstrapper {
 	private MachineDetails[] getOrCreateManagementServers(final long timeout, final TimeUnit timeoutUnit)
 			throws CLIException {
 
+        MachineDetails[] servers;
 		if (this.existingManagersFile != null) {
-			return locateManagementMachinesFromFile();
+			servers = locateManagementMachinesFromFile();
 		} else if (this.useExistingManagers) {
-			return locateManagementMachines();
+            servers = locateManagementMachines();
 		} else {
-			return createManagementServers(timeout, timeoutUnit);
+            servers = createManagementServers(timeout, timeoutUnit);
 		}
+
+        final ComputeTemplate template =
+                this.cloud.getCloudCompute().getTemplates()
+                        .get(cloud.getConfiguration().getManagementMachineTemplate());
+        for (MachineDetails machineDetails : servers) {
+            if (machineDetails.getInstallerConfiguration() == null) {
+                machineDetails.setInstallerConfigutation(template.getInstaller());
+            }
+        }
+        return servers;
 
 	}
 
@@ -275,15 +286,6 @@ public class CloudGridAgentBootstrapper {
 		if (servers.length == 0) {
 			throw new IllegalArgumentException(
 					"Received zero management servers from provisioning implementation");
-		}
-
-		final ComputeTemplate template =
-				this.cloud.getCloudCompute().getTemplates()
-						.get(cloud.getConfiguration().getManagementMachineTemplate());
-		for (MachineDetails machineDetails : servers) {
-			if (machineDetails.getInstallerConfiguration() == null) {
-				machineDetails.setInstallerConfigutation(template.getInstaller());
-			}
 		}
 		return servers;
 	}
