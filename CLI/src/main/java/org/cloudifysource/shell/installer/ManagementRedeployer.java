@@ -72,8 +72,8 @@ public class ManagementRedeployer {
 			return;
 		}
 
-		final File restDir = new File(deployDir, CloudifyConstants.MANAGEMENT_REST_SERVICE_NAME);
-		final File webuiDir = new File(deployDir, CloudifyConstants.MANAGEMENT_WEBUI_SERVICE_NAME);
+		final File restDir = findServiceDeployDir(deployDir, CloudifyConstants.MANAGEMENT_REST_SERVICE_NAME);
+		final File webuiDir = findServiceDeployDir(deployDir, CloudifyConstants.MANAGEMENT_WEBUI_SERVICE_NAME);
 
 		if (!restDir.exists() && !webuiDir.exists()) {
 			// maybe someone created the directory structure first? Either way, nothing to redeploy.
@@ -101,6 +101,20 @@ public class ManagementRedeployer {
 		}
 
 	}
+
+    private File findServiceDeployDir(final File deployDir, final String serviceName) {
+
+        File[] files = deployDir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(final File dir, final String name) {
+                return name.contains(serviceName);
+            }
+        });
+        if (files.length != 1) {
+            throw new IllegalStateException("Expected to find 1 directory that contains '" + serviceName + "' in folder '" + deployDir.getAbsolutePath() + "'. but found : " + files.length);
+        }
+        return files[0];
+    }
 
 	private void switchDeploymentContent(final File targetDir, final File sourceFile) throws IOException {
 		FileUtils.deleteDirectory(targetDir);
