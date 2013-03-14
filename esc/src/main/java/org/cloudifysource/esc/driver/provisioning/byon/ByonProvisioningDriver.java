@@ -362,7 +362,9 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 				logger.info("Found existing management servers (" + Arrays.toString(managementMachines) + ")");
 
 				return managementMachines;
-			}
+			} else {
+                logger.warning("Failed locating existing management servers");
+            }
 			return new MachineDetails[0];
 		} catch (final InterruptedException e) {
 			publishEvent("prov_management_lookup_failed");
@@ -655,11 +657,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 	@Override
 	public MachineDetails[] getExistingManagementServers() throws CloudProvisioningException {
-		try {
-			return findManagementInAdmin();
-		} catch (final TimeoutException e) {
-			throw new CloudProvisioningException(e);
-		}
+        throw new UnsupportedOperationException("Cannot retrieve existing management servers after shutting down agents");
 	}
 
 	@Override
