@@ -33,14 +33,14 @@ import org.jclouds.domain.Location;
 import org.jclouds.domain.LoginCredentials;
 import org.jclouds.ec2.EC2Client;
 import org.jclouds.ec2.domain.PasswordData;
-import org.jclouds.encryption.bouncycastle.BouncyCastleCrypto;
+import org.jclouds.encryption.internal.JCECrypto;
 
 /************
  * Handles decryption of encrypted Administrator passwords for Amazon EC2 windows instances.
- * 
+ *
  * @author barakme
  * @since 2.1.0
- * 
+ *
  */
 public class EC2WindowsPasswordHandler {
 
@@ -51,7 +51,7 @@ public class EC2WindowsPasswordHandler {
 
 	/************
 	 * Returns the decrypted password.
-	 * 
+	 *
 	 * @param node
 	 *            the compute node.
 	 * @param context
@@ -92,7 +92,7 @@ public class EC2WindowsPasswordHandler {
 				Thread.sleep(PASSWORD_POLLING_INTERVAL_MILLIS);
 			} else {
 				final String encryptedPassword = passwordData.getPasswordData();
-				
+
 				LoginCredentials credentials;
 				try {
 					credentials = decryptPasswordData(
@@ -116,7 +116,7 @@ public class EC2WindowsPasswordHandler {
 	private LoginCredentials decryptPasswordData(final String encryptedPassword, final String key)
 			throws NoSuchAlgorithmException, CertificateException, IOException {
 
-		final Crypto crypto = new BouncyCastleCrypto();
+		final Crypto crypto = new JCECrypto();
 
 		final WindowsLoginCredentialsFromEncryptedData f = new WindowsLoginCredentialsFromEncryptedData(crypto);
 
