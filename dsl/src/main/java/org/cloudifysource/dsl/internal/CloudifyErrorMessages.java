@@ -183,6 +183,8 @@ public enum CloudifyErrorMessages {
 	
 	EVENT_VALIDATING_LOCATIONS("validating_locations", 0),
 	
+	EVENT_VALIDATING_IMAGE_HARDWARE_LOCATION_COMBINATION("validating_image_hardware_location_combination", 1),
+	
 	EVENT_VALIDATING_SECURITY_GROUPS("validating_security_groups", 0),
 	
 	EVENT_VALIDATING_KEY_PAIRS("validating_key_pairs", 0),
