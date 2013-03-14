@@ -62,7 +62,7 @@ SERVICEDIR=\"${serviceDir}\"
 
 #preserve the env variables
 touch \$HOME/.cloudify_env
-printenv | grep -E \"^(CLOUDIFY|USM|LOOKUP|JSHOMEDIR|JAVA)\" | \
+printenv | grep -v \"^SSH\" | \
     while read var; do echo >>\$HOME/.cloudify_env \"export \$var\"; done
 #and the DEBUG_TARGET
 export DEBUG_TARGET=\"\$@\"
