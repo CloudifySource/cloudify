@@ -403,45 +403,12 @@ public class LocalhostGridAgentBootstrapper {
 				username, password, keystoreFilePath, keystorePassword, timeout, timeunit, false);
 	}
 
-	private void redeployManagement() {
-		// first get the persistence path
-		final String persistencePath = cloud.getConfiguration().getPersistentStoragePath();
-		if (persistencePath == null) {
-			return; // not a persistent cloud
-		}
-
-		// check it is valid
-		final File persistenceDir = new File(persistencePath);
-		if (persistenceDir.exists() && !persistenceDir.isDirectory()) {
-			throw new IllegalStateException("The persistence location: " + persistencePath
-					+ " should either not exist or be a directory");
-		}
-
-		// if it does not exist, must be first bootstrap
-		if (!persistenceDir.exists()) {
-			// must be first bootstrap
-			return;
-		}
-
-		final File deployDir =
-				new File(persistenceDir, CloudifyConstants.PERSISTENCE_DIRECTORY_DEPLOY_RELATIVE_PATH);
-		if (!deployDir.exists()) {
-			// must be first bootstrap
-			return;
-		}
-
-		final File restDir = new File(deployDir, CloudifyConstants.MANAGEMENT_REST_SERVICE_NAME);
-		final File webuiDir = new File(deployDir, CloudifyConstants.MANAGEMENT_WEBUI_SERVICE_NAME);
-
-		if (!restDir.exists() && !webuiDir.exists()) {
-			// maybe someone created the directory struture first? Either way, nothing to redeploy.
-			return;
-		}
-		if (restDir.exists() ^ webuiDir.exists()) { // Hah - XOR!
-			logger.warning("Found only one of the management service deployed: REST: "
-					+ restDir.exists() + ", Web-UI: " + webuiDir.exists() + ". "
-					+ "This is not a normal deployment scenario. Please check for configuration problems. "
-					+ "Only the deployed service will be installed");
+	private void redeployManagement() throws CLIException {
+		ManagementRedeployer redeployer = new ManagementRedeployer();
+		try {
+			redeployer.run(cloud.getConfiguration().getPersistentStoragePath(), Environment.getHomeDirectory());
+		} catch (final IOException e) {
+			throw new CLIException("Failed to redeploy management: " + e.getMessage(), e);
 		}
 
 	}
