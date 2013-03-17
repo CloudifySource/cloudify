@@ -863,7 +863,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				// checks if a service level configuration exists. If so, save the configuration to local file and pass
 				// to cloud driver.
 				handleServiceCloudConfiguration();
-				this.cloudifyProvisioning.setConfig(cloud, cloudTemplateName, false, serviceName);
+				this.cloudifyProvisioning.setConfig(cloud, cloudTemplateName, false, serviceName, 
+						false /*performValidation*/);
 
 				String storageClassName = this.cloud.getConfiguration().getStorageClassName();
 				if (StringUtils.isNotBlank(storageClassName)) {

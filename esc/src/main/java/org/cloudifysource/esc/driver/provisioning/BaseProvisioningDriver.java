@@ -107,15 +107,15 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	}
 
 	@Override
-	public void setConfig(final Cloud cloud, final String cloudTemplateName,
-			final boolean management, final String serviceName) throws CloudProvisioningException {
+	public void setConfig(final Cloud cloud, final String cloudTemplateName, final boolean management, 
+			final String serviceName, final boolean performValidation) throws CloudProvisioningException {
 
 		this.cloud = cloud;
 		this.cloudTemplateName = cloudTemplateName;
 		this.management = management;
 		this.cloudName = cloud.getName();
 		
-		if (management) {
+		if (management && performValidation) {
 			publishEvent(CloudifyErrorMessages.EVENT_ATTEMPT_TO_VALIDATE_CLOUD_CONFIG.getName());
 			validateCloudConfiguration();
 			publishEvent(CloudifyErrorMessages.EVENT_CLOUD_CONFIG_VALIDATED.getName());

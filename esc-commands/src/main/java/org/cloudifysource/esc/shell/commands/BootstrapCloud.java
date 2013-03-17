@@ -108,6 +108,11 @@ public class BootstrapCloud extends AbstractGSCommand {
 					+ "details supplied in file. "
 					+ "Management should already have been shut-down with stop-management.")
 	private File existingManagersFile = null;
+	
+	@Option(required = false, name = "-skip-validation",
+			description = "if set, will attempt to find existing management servers. "
+					+ "Management should already have been shut-down with stop-management.")
+	private boolean skipValidation = false;
 
 	private String securityProfile = CloudifyConstants.SPRING_PROFILE_NON_SECURE;
 	// flags to indicate if bootstrap operation created a backup file that
@@ -215,7 +220,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 		try {
 			// TODO: Create the event listeners here and pass them to the installer.
 			installer.bootstrapCloudAndWait(securityProfile, username, password,
-					keystorePassword, getTimeoutInMinutes(), TimeUnit.MINUTES);
+					keystorePassword, !skipValidation, getTimeoutInMinutes(), TimeUnit.MINUTES);
 			return getFormattedMessage("cloud_started_successfully", getCloudProvider());
 		} finally {
 			// if an overrides file was passed, then the properties file is dirty. delete it.

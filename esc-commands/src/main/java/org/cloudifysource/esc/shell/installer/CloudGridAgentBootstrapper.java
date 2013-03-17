@@ -162,6 +162,8 @@ public class CloudGridAgentBootstrapper {
 	 *            The password for a secure connection to the server
 	 * @param keystorePassword
 	 *            The password to the keystore to set on the rest server
+	 * @param performValidation
+	 *            true to perform configuration validations before bootstrap, false otherwise
 	 * @param timeout
 	 *            The number of {@link TimeUnit}s to wait before timing out
 	 * @param timeoutUnit
@@ -175,13 +177,13 @@ public class CloudGridAgentBootstrapper {
 	 *             Indicates a thread was interrupted while waiting
 	 */
 	public void bootstrapCloudAndWait(final String securityProfile, final String username,
-			final String password, final String keystorePassword, final long timeout, final TimeUnit timeoutUnit)
-			throws InstallerException, CLIException, InterruptedException {
+			final String password, final String keystorePassword, final boolean performValidation, final long timeout,
+			final TimeUnit timeoutUnit) throws InstallerException, CLIException, InterruptedException {
 
 		final long end = System.currentTimeMillis()
 				+ timeoutUnit.toMillis(timeout);
 
-		createProvisioningDriver();
+		createProvisioningDriver(performValidation);
 
 		// Start the cloud machines!!!
 		final MachineDetails[] servers = getOrCreateManagementServers(timeout, timeoutUnit);
@@ -460,11 +462,13 @@ public class CloudGridAgentBootstrapper {
 
 	/**
 	 * loads the provisioning driver class and sets it up.
-	 *
+	 * 
+	 * @param performValidation
+	 *            true to perform cloud configuration validations before bootstrap, false otherwise
 	 * @throws CLIException
 	 *             Indicates the configured could not be found and instantiated
 	 */
-	private void createProvisioningDriver() throws CLIException {
+	private void createProvisioningDriver(final boolean performValidation) throws CLIException {
 		try {
 			provisioning = (ProvisioningDriver) Class.forName(
 					cloud.getConfiguration().getClassName()).newInstance();
@@ -487,7 +491,8 @@ public class CloudGridAgentBootstrapper {
 		provisioning.addListener(new CliProvisioningDriverListener());
 		final String serviceName = null;
 		try {
-			provisioning.setConfig(cloud, cloud.getConfiguration().getManagementMachineTemplate(), true, serviceName);	
+			provisioning.setConfig(cloud, cloud.getConfiguration().getManagementMachineTemplate(), true, serviceName, 
+					performValidation);	
 		} catch (CloudProvisioningException e) {
 			throw new CLIException("Invalid configuration for cloud: " + cloud.getName() + ", " + e.getMessage(), e);
 		}
@@ -507,14 +512,13 @@ public class CloudGridAgentBootstrapper {
 	 * @throws InterruptedException
 	 *             Indicates a thread was interrupted while waiting
 	 */
-	public void teardownCloudAndWait(final long timeout,
-			final TimeUnit timeoutUnit) throws TimeoutException, CLIException,
-			InterruptedException {
+	public void teardownCloudAndWait(final long timeout, final TimeUnit timeoutUnit) throws TimeoutException, 
+		CLIException, InterruptedException {
 
 		final long end = System.currentTimeMillis()
 				+ timeoutUnit.toMillis(timeout);
 
-		createProvisioningDriver();
+		createProvisioningDriver(false /*performValidation*/);
 
 		ShellUtils.checkNotNull("providerDirectory", providerDirectory);
 
@@ -855,7 +859,7 @@ public class CloudGridAgentBootstrapper {
 	 *             if failed to read cloudify managers from Cloud API.
 	 */
 	public MachineDetails[] getCloudManagers() throws CLIException {
-		createProvisioningDriver();
+		createProvisioningDriver(false /*performValidation*/);
 		return locateManagementMachines();
 
 	}

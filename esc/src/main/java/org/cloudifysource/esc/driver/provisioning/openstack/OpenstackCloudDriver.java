@@ -130,8 +130,9 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 
 	@Override
 	public void setConfig(final Cloud cloud, final String templateName,
-			final boolean management, final String serviceName) {
-		super.setConfig(cloud, templateName, management, serviceName);
+			final boolean management, final String serviceName, final boolean performValidations) {
+		
+		super.setConfig(cloud, templateName, management, serviceName, performValidations);
 
 		if (this.management) {
 			this.serverNamePrefix = this.cloud.getProvider().getManagementGroup();

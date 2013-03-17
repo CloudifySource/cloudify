@@ -94,7 +94,8 @@ public abstract class CloudDriverSupport implements ProvisioningDriver {
 	}
 
 	@Override
-	public void setConfig(final Cloud cloud, final String templateName, final boolean management, final String serviceName) {
+	public void setConfig(final Cloud cloud, final String templateName, final boolean management, 
+			final String serviceName, final boolean performValidation) {
 
 		this.cloud = cloud;
 		this.management = management;
@@ -103,6 +104,10 @@ public abstract class CloudDriverSupport implements ProvisioningDriver {
 		if (this.cloud.getCloudCompute().getTemplates().isEmpty()) {
 			throw new IllegalArgumentException("No templates defined for this cloud");
 		}
+		
+		if (management && performValidation) {
+			// TODO implement validations
+		}		
 
 		// TODO - add automatic validation rules to the DSL Pojos!
 		if (StringUtils.isBlank(this.templateName)) {
@@ -120,7 +125,7 @@ public abstract class CloudDriverSupport implements ProvisioningDriver {
 
 	/*********
 	 * Checks if a stop request for this machine was already requested recently.
-	 * @param ip ip of the machine.
+	 * @param ip the IP address of the machine.
 	 * @return true if there was a recent request, false otherwise.
 	 */
 	protected boolean isStopRequestRecent(final String ip) {

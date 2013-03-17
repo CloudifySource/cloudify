@@ -38,9 +38,10 @@ public class LocalCloudProvisioningDriver implements ProvisioningDriver {
 
 
 	@Override
-	public void setConfig(Cloud cloud, String cloudTemplate, boolean management, String serviceName) {
+	public void setConfig(final Cloud cloud, final String cloudTemplate, final boolean management, 
+			final String serviceName, final boolean performValidations) {
 		this.lookupGroups = cloud.getConfiguration().getLookupGroups();
-		this.nicAddress= cloud.getConfiguration().getNicAddress();
+		this.nicAddress = cloud.getConfiguration().getNicAddress();
 
 		this.verbose = (Boolean) getConfigValue(cloud.getCustom(), "verbose", Boolean.FALSE);
 		this.teardownTimeoutInMinutes = (Integer) getConfigValue(cloud.getCustom(), "teardownTimeoutInMinutes",5);
@@ -49,7 +50,7 @@ public class LocalCloudProvisioningDriver implements ProvisioningDriver {
 
 	private Object getConfigValue(Map<String, Object> config, String key, Object defaultValue) {
 		final Object temp = config.get(key);
-		if(temp == null) {
+		if (temp == null) {
 			return defaultValue;
 		} else {
 			return temp;
