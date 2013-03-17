@@ -63,6 +63,7 @@ import org.openspaces.admin.AdminFactory;
 import org.openspaces.admin.bean.BeanConfigurationException;
 import org.openspaces.admin.gsa.GSAReservationId;
 import org.openspaces.admin.gsa.GridServiceAgent;
+import org.openspaces.admin.gsa.GridServiceAgents;
 import org.openspaces.admin.gsa.events.ElasticGridServiceAgentProvisioningProgressChangedEventListener;
 import org.openspaces.admin.machine.events.ElasticMachineProvisioningProgressChangedEventListener;
 import org.openspaces.admin.pu.elastic.ElasticMachineProvisioningConfig;
@@ -277,6 +278,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			// This is the call to the actual cloud driver implementation!
 			machineDetails = provisionMachine(locationId, duration, unit);
 
+            // This is to protect against a bug in the Admin. see CLOUDIFY-1592 (https://cloudifysource.atlassian.net/browse/CLOUDIFY-1592)
+            validateMachineIp(machineDetails);
+
 			// Auto populate installer configuration with values set in template if they were not previously set.
 			if (machineDetails != null && machineDetails.getInstallerConfiguration() == null) {
 				machineDetails.setInstallerConfigutation(template.getInstaller());
@@ -398,7 +402,30 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		}
 	}
 
-	private boolean isStorageTemplateUsed() {
+    private void validateMachineIp(MachineDetails machineDetails) throws CloudProvisioningException {
+
+        String machineIp;
+
+        // fetch a list of agents the admin recognizes.
+        GridServiceAgents gridServiceAgents = originalESMAdmin.getGridServiceAgents();
+        for (GridServiceAgent agent : gridServiceAgents) {
+
+            if (cloud.getConfiguration().isConnectToPrivateIp()) {
+                machineIp = machineDetails.getPrivateAddress();
+            } else {
+                machineIp = machineDetails.getPublicAddress();
+            }
+
+            if (agent.getMachine().getHostAddress().equals(machineIp)) {
+                // we found an existing agent with the ip on the newly provisioned machine.
+                throw new CloudProvisioningException("An existing agent with ip " + machineIp + " was discovered. this machine is invalid.");
+            }
+
+        }
+
+    }
+
+    private boolean isStorageTemplateUsed() {
 		return (!StringUtils.isEmpty(this.storageTemplateName) && !this.storageTemplateName.equals("null"));
 	}
 
