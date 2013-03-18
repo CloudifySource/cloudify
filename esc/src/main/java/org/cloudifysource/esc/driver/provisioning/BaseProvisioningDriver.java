@@ -106,6 +106,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		this.eventsListenersList.add(pdl);
 	}
 
+
 	@Override
 	public void setConfig(final Cloud cloud, final String cloudTemplateName, final boolean management, 
 			final String serviceName, final boolean performValidation) throws CloudProvisioningException {
@@ -272,6 +273,36 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		}
 	}
 
+	
+	/**
+	 * Publish an ongoing provisioning event occurred for the listeners registered on
+	 * this class.
+	 *
+	 * @param eventName
+	 *            The name of the event (must be in the message bundle)
+	 * @param args
+	 *            Arguments that complement the event message
+	 */
+	protected void publishOngoingEvent(final String eventName, final Object... args) {
+		for (final ProvisioningDriverListener listener : this.eventsListenersList) {
+			listener.onProvisioningOngoingEvent(eventName, args);
+		}
+	}
+	
+	/**
+	 * Publish a provisioning event ended and it's status for the listeners registered
+	 * on this class.
+	 *
+	 * @param status
+	 *            The status of the ending event
+	 */
+	protected void publishEventEnd(final String status) {
+		for (final ProvisioningDriverListener listener : this.eventsListenersList) {
+			listener.onProvisioningEventEnd(status);
+		}
+	}
+	
+
 	/*********
 	 * Created a machine details with basic settings from the given cloud
 	 * template.
@@ -377,4 +408,4 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	protected abstract void handleProvisioningFailure(int numberOfManagementMachines,
 			int numberOfErrors, Exception firstCreationException, MachineDetails[] createdManagementMachines)
 					throws CloudProvisioningException;
-}
+	}

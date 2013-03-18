@@ -70,5 +70,24 @@ public class StringUtils {
 		return values;
     }
 	
+	/**
+	 * Converts a given array of String values to a single String of array items separated by a delimiter.
+	 * @param strArray The Array of items to concatenate
+	 * @param delimiter The delimiter to use
+	 * @return A String of array items separated by a delimiter
+	 */
+	public static String arrayToString(final String[] strArray, final String delimiter) {
+		String result = "";
+		if (strArray != null) {
+			for (String item : strArray) {
+				if (result.length() > 0) {
+					result += delimiter;
+				}
+				result += item;
+			}
+		}
+		
+		return result;
+	}
 
 }

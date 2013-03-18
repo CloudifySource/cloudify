@@ -26,7 +26,7 @@ package org.cloudifysource.esc.driver.provisioning;
  * action will stop. A listener MUST NOT perform long running operations - the listener implementation is called on the
  * same thread as the provisioning action and a long running operation may delay time sensitive cloud driver actions.
  * 
- * @author adaml
+ * @author adaml, noak
  * @since 2.0
  * 
  */
@@ -39,5 +39,20 @@ public interface ProvisioningDriverListener {
 	 * @param args Event arguments.
 	 */
 	void onProvisioningEvent(String eventName, Object... args);
+	
+	/**
+	 * Callback method for an ongoing provisioning event.
+	 * 
+	 * @param eventName Event name.
+	 * @param args Event arguments.
+	 */
+	void onProvisioningOngoingEvent(String eventName, Object... args);
+	
+	/**
+	 * Callback method for an ending of a provisioning event.
+	 * 
+	 * @param status The status of the ending event
+	 */
+	void onProvisioningEventEnd(final String status);
 
 }

@@ -18,7 +18,10 @@ package org.cloudifysource.esc.shell.listener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriverListener;
+import org.cloudifysource.shell.installer.CLIEventsDisplayer;
+import org.fusesource.jansi.Ansi.Color;
 
 /**
  * Event listener for events originated in the DefaultProvisioningDriver.
@@ -31,11 +34,35 @@ public class CliProvisioningDriverListener extends AbstractEventListener impleme
 	private static final Logger logger = Logger.getLogger(CliProvisioningDriverListener.class.getName());
 	
 	@Override
-	public void onProvisioningEvent(String eventName, Object... args) {
+	public void onProvisioningEvent(final String eventName, final Object... args) {
 		String formattedMessage = getFormattedMessage(eventName, args);
 		System.out.println(formattedMessage);
 		System.out.flush();
 		logger.log(Level.FINE, formattedMessage);
 	}
-
+	
+	@Override
+	public void onProvisioningOngoingEvent(final String eventName, final Object... args) {
+		String formattedMessage = getFormattedMessage(eventName, args);
+		System.out.print(formattedMessage);
+		System.out.flush();
+		logger.log(Level.FINE, formattedMessage);
+	}
+	
+	@Override
+	public void onProvisioningEventEnd(final String status) {
+		CLIEventsDisplayer displayer = new CLIEventsDisplayer();
+		if (StringUtils.isBlank(status)) {
+			return;
+		}
+		
+		if (StringUtils.containsIgnoreCase(status, "ok")) {
+			displayer.printColoredMessage(status, Color.GREEN);	
+		} else {
+			displayer.printColoredMessage(status, Color.RED);	
+		}
+		System.out.flush();
+		logger.log(Level.FINE, status);
+	}
+	
 }

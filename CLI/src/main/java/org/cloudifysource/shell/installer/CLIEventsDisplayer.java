@@ -74,4 +74,9 @@ public class CLIEventsDisplayer {
 	public void eraseCurrentLine() {
 		System.out.print(Ansi.ansi().cursorLeft(this.progressCounter).eraseLine());
 	}
+	
+	public void printColoredMessage(final String messageText, final Color color) {
+		System.out.println(ShellUtils.getColorMessage(messageText, color));
+	}
+
 }
