@@ -86,6 +86,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	private static final String CLOUDSTACK = "cloudstack";
 	private static final String ENDPOINT_OVERRIDE = "jclouds.endpoint";
 	private static final String VALIDATION_SUCCESS_MESSAGE = " [OK]";
+	private static final String VALIDATION_FAILURE_MESSAGE = " [Error]";
 	
 	private JCloudsDeployer deployer;
 
@@ -686,16 +687,16 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			ProviderMetadata providerMetadata = Providers.withId(providerName);
 			ApiMetadata apiMetadata = providerMetadata.getApiMetadata();
 			apiId = apiMetadata.getId();
-			publishEventEnd(VALIDATION_SUCCESS_MESSAGE);
+			publishEventEnd(true, VALIDATION_SUCCESS_MESSAGE);
 		} catch (NoSuchElementException e) {
 			//there is no jclouds Provider by that name, this could be the name of an API used in a private cloud
 			try {
 				ApiMetadata apiMetadata = Apis.withId(providerName);
 				apiId = apiMetadata.getId();
 				endpointRequired = true;
-				publishEventEnd(VALIDATION_SUCCESS_MESSAGE);
+				publishEventEnd(true, VALIDATION_SUCCESS_MESSAGE);
 			} catch (NoSuchElementException ex) {
-				publishEventEnd(" [Error] Provider not supported: " + providerName);
+				publishEventEnd(false, VALIDATION_FAILURE_MESSAGE);
 				throw new CloudProvisioningException("Provider not supported: " + providerName, ex);
 			}
 		}
@@ -731,10 +732,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 					logger.fine("Creating a new cloud deployer");
 					effectiveDeployer = new JCloudsDeployer(cloud.getProvider().getProvider(), 
 							cloud.getUser().getUser(), cloud.getUser().getApiKey(), templateProps);
-					publishEventEnd(VALIDATION_SUCCESS_MESSAGE);
+					publishEventEnd(true, VALIDATION_SUCCESS_MESSAGE);
 				} catch (IOException e) {
 					closeDeployer(effectiveDeployer);
-					publishEventEnd(" [Error] Authentication to the cloud failed");
+					publishEventEnd(false, VALIDATION_FAILURE_MESSAGE);
 					throw new CloudProvisioningException("Authentication to the cloud failed");
 				}
 					
@@ -751,9 +752,9 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 											template.getLocationId() == null ? "" : template.getLocationId());
 					// calling JCloudsDeployer.getTemplate effectively tests the above configuration through jclouds
 					effectiveDeployer.getTemplate(template.getLocationId());
-					publishEventEnd(VALIDATION_SUCCESS_MESSAGE);
+					publishEventEnd(true, VALIDATION_SUCCESS_MESSAGE);
 				} catch (Exception ex) {
-					publishEventEnd(" [Error] Invalid template configuration");
+					publishEventEnd(false, VALIDATION_FAILURE_MESSAGE);
 					throw new CloudProvisioningException("Invalid template configuration: " + ex.getMessage(), ex);
 				}
 				
@@ -761,8 +762,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 					validateSecurityGroupsForTemplate(template, apiId, effectiveDeployer.getContext());
 					validateKeyPairForTemplate(template, apiId, effectiveDeployer.getContext());
 				}
-				
-				publishEvent(CloudifyErrorMessages.EVENT_TEMPLATE_VALIDATED.getName(), templateName);
+				publishOngoingEvent(CloudifyErrorMessages.EVENT_TEMPLATE_VALIDATED.getName(), templateName);
+				publishEventEnd(true, VALIDATION_SUCCESS_MESSAGE);
 				closeDeployer(effectiveDeployer);
 			}
 		} finally {
@@ -788,49 +789,49 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		}
 		
 		if (securityGroupsObj != null) {
-			if (!(securityGroupsObj instanceof String[])) {
-				throw new CloudProvisioningException("Invalid configuration: Security groups must of type String[]");
-			}
-			
-			String[] securityGroupsArr = (String[]) securityGroupsObj;
-			
-			if (securityGroupsArr.length > 0) {
-				try {
-					
-					if (securityGroupsArr.length == 1) {
-						publishOngoingEvent(CloudifyErrorMessages.EVENT_VALIDATING_SECURITY_GROUP.getName(), 
-								securityGroupsArr[0]);
-					} else {
-						publishOngoingEvent(CloudifyErrorMessages.EVENT_VALIDATING_SECURITY_GROUPS.getName(), 
-								org.cloudifysource.esc.util.StringUtils.arrayToString(securityGroupsArr, ","));
-					}
-
-					
-					if (apiId.equalsIgnoreCase(EC2_API)) {
-						RestContext<EC2Client, EC2AsyncClient> unwrapped = computeServiceContext.unwrap();
-						validateEc2SecurityGroups(unwrapped.getApi(), locationId, (String[]) securityGroupsArr);
-					} else if (apiId.equalsIgnoreCase(OPENSTACK_API)) {
-						RestContext<NovaApi, NovaAsyncApi> unwrapped = computeServiceContext.unwrap();
-						validateOpenstackSecurityGroups(unwrapped.getApi(), locationId, 
-								(String[]) securityGroupsArr);
-					} else if (apiId.equalsIgnoreCase(CLOUDSTACK)) {
-						/*RestContext<CloudStackClient, CloudStackAsyncClient> unwrapped = 
-						 * computeServiceContext.unwrap();
-						validateCloudstackSecurityGroups(unwrapped.getApi().getSecurityGroupClient(), 
-								aggregateAllValues(securityGroupsByRegions));*/
+			if (securityGroupsObj instanceof String[]) {
+				String[] securityGroupsArr = (String[]) securityGroupsObj;
+				
+				if (securityGroupsArr.length > 0) {
+					try {
 						
-					} else if (apiId.equalsIgnoreCase(VCLOUD)) {
-						//security groups not supported			
-					} else {
-						// api validations not supported yet
+						if (securityGroupsArr.length == 1) {
+							publishOngoingEvent(CloudifyErrorMessages.EVENT_VALIDATING_SECURITY_GROUP.getName(), 
+									securityGroupsArr[0]);
+						} else {
+							publishOngoingEvent(CloudifyErrorMessages.EVENT_VALIDATING_SECURITY_GROUPS.getName(), 
+									org.cloudifysource.esc.util.StringUtils.arrayToString(securityGroupsArr, ", "));
+						}
+
+						
+						if (apiId.equalsIgnoreCase(EC2_API)) {
+							RestContext<EC2Client, EC2AsyncClient> unwrapped = computeServiceContext.unwrap();
+							validateEc2SecurityGroups(unwrapped.getApi(), locationId, (String[]) securityGroupsArr);
+						} else if (apiId.equalsIgnoreCase(OPENSTACK_API)) {
+							RestContext<NovaApi, NovaAsyncApi> unwrapped = computeServiceContext.unwrap();
+							validateOpenstackSecurityGroups(unwrapped.getApi(), locationId, 
+									(String[]) securityGroupsArr);
+						} else if (apiId.equalsIgnoreCase(CLOUDSTACK)) {
+							/*RestContext<CloudStackClient, CloudStackAsyncClient> unwrapped = 
+							 * computeServiceContext.unwrap();
+							validateCloudstackSecurityGroups(unwrapped.getApi().getSecurityGroupClient(), 
+									aggregateAllValues(securityGroupsByRegions));*/
+							
+						} else if (apiId.equalsIgnoreCase(VCLOUD)) {
+							//security groups not supported			
+						} else {
+							// api validations not supported yet
+						}
+						
+						publishEventEnd(true, VALIDATION_SUCCESS_MESSAGE);
+					} catch (Exception ex) {
+						publishEventEnd(false, VALIDATION_FAILURE_MESSAGE);
+						throw new CloudProvisioningException("Invalid security groups configuration: " 
+								+ ex.getMessage(), ex);
 					}
-					
-					publishEventEnd(VALIDATION_SUCCESS_MESSAGE);
-				} catch (Exception ex) {
-					publishEventEnd(" [Error] Invalid security groups configuration");
-					throw new CloudProvisioningException("Invalid security groups configuration: " 
-							+ ex.getMessage(), ex);
 				}
+			} else {
+				//TODO : Validation not supported
 			}
 		}		
 	}
@@ -876,9 +877,9 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 					// api validations not supported yet
 				}
 				
-				publishEventEnd(VALIDATION_SUCCESS_MESSAGE);
+				publishEventEnd(true, VALIDATION_SUCCESS_MESSAGE);
 			} catch (Exception ex) {
-				publishEventEnd(" [Error] Invalid key-pair configuration");
+				publishEventEnd(false, VALIDATION_FAILURE_MESSAGE);
 				throw new CloudProvisioningException("Invalid key-pair configuration: " + ex.getMessage(), ex);
 			}
 		}
@@ -983,10 +984,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			publishOngoingEvent(CloudifyErrorMessages.EVENT_VALIDATING_CLOUDIFY_URL.getName(), effectiveUrl);
 			HttpResponse response = httpClient.execute(httpMethod);
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-				publishEventEnd(" [Error] Provider not supported: ");
+				publishEventEnd(false, VALIDATION_FAILURE_MESSAGE);
 				throw new CloudProvisioningException("Invalid cloudify URL: " + effectiveUrl);
 			}
-			publishEventEnd(VALIDATION_SUCCESS_MESSAGE);
+			publishEventEnd(true, VALIDATION_SUCCESS_MESSAGE);
 		} catch (ClientProtocolException e) {
 			System.out.println("Failed to validate Cloudify URL: " + effectiveUrl);
 			logger.info("Failed to validate Cloudify URL: " + effectiveUrl);

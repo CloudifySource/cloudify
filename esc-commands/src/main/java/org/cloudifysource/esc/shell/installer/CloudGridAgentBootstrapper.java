@@ -494,7 +494,7 @@ public class CloudGridAgentBootstrapper {
 			provisioning.setConfig(cloud, cloud.getConfiguration().getManagementMachineTemplate(), true, serviceName, 
 					performValidation);	
 		} catch (CloudProvisioningException e) {
-			throw new CLIException("Invalid configuration for cloud: " + cloud.getName() + ", " + e.getMessage(), e);
+			throw new CLIException(e.getMessage(), e);
 		}
 		
 	}

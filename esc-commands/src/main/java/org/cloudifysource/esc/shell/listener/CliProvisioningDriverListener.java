@@ -26,7 +26,7 @@ import org.fusesource.jansi.Ansi.Color;
 /**
  * Event listener for events originated in the DefaultProvisioningDriver.
  * 
- * @author adaml
+ * @author adaml, noak
  *
  */
 public class CliProvisioningDriverListener extends AbstractEventListener implements ProvisioningDriverListener {
@@ -50,19 +50,17 @@ public class CliProvisioningDriverListener extends AbstractEventListener impleme
 	}
 	
 	@Override
-	public void onProvisioningEventEnd(final String status) {
+	public void onProvisioningEventEnd(final boolean isSuccessful, final String message) {
 		CLIEventsDisplayer displayer = new CLIEventsDisplayer();
-		if (StringUtils.isBlank(status)) {
-			return;
-		}
-		
-		if (StringUtils.containsIgnoreCase(status, "ok")) {
-			displayer.printColoredMessage(status, Color.GREEN);	
-		} else {
-			displayer.printColoredMessage(status, Color.RED);	
-		}
-		System.out.flush();
-		logger.log(Level.FINE, status);
+		if (StringUtils.isNotBlank(message)) {
+			if (isSuccessful) {
+				displayer.printColoredMessage(message, Color.GREEN);	
+			} else {
+				displayer.printColoredMessage(message, Color.RED);	
+			}
+			System.out.flush();
+			logger.log(Level.FINE, message);
+		}	
 	}
 	
 }

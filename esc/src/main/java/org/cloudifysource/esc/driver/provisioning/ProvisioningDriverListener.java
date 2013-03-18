@@ -51,8 +51,9 @@ public interface ProvisioningDriverListener {
 	/**
 	 * Callback method for an ending of a provisioning event.
 	 * 
-	 * @param status The status of the ending event
+	 * @param isSuccessful indicates event success or failure. If true - the text will be colored green, otherwise red
+	 * @param message The message to print
 	 */
-	void onProvisioningEventEnd(final String status);
+	void onProvisioningEventEnd(final boolean isSuccessful, final String message);
 
 }

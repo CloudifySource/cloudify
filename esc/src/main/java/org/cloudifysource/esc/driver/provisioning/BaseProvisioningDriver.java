@@ -293,12 +293,15 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	 * Publish a provisioning event ended and it's status for the listeners registered
 	 * on this class.
 	 *
-	 * @param status
-	 *            The status of the ending event
+	 *            
+	 * @param isSuccessful
+	 * 			Indicates event success or failure. If true - the text will be colored green, otherwise red
+	 * @param message
+	 * 			The message to print
 	 */
-	protected void publishEventEnd(final String status) {
+	protected void publishEventEnd(final boolean isSuccessful, final String message) {
 		for (final ProvisioningDriverListener listener : this.eventsListenersList) {
-			listener.onProvisioningEventEnd(status);
+			listener.onProvisioningEventEnd(isSuccessful, message);
 		}
 	}
 	
