@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -41,11 +40,11 @@ import com.j_spaces.kernel.Environment;
 /**
  * @author rafi, barakm
  * @since 2.0.0
- * 
+ *
  *        Starts Cloudify Agent without any zone, and the Cloudify management
  *        processes on local machine. These processes are isolated from Cloudify
  *        processes running on other machines.
- * 
+ *
  *        Optional arguments: lookup-groups - A unique name that is used to
  *        group together Cloudify components (default: localcloud). nic-address
  *        - The IP address of the local host network card. Specify when local
@@ -54,7 +53,7 @@ import com.j_spaces.kernel.Environment;
  *        secure connection to the rest server pwd - The password for a secure
  *        connection to the rest server timeout - The number of minutes to wait
  *        until the operation is completed (default: 5).
- * 
+ *
  *        Command syntax: bootstrap-localcloud [-lookup-groups lookup-groups]
  *        [-nic-address nic-address] [-user username] [-password password]
  *        [-timeout timeout]
@@ -68,7 +67,7 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 	private static final int DEFAULT_TIMEOUT = 5;
 	private static final String PATH_SEPARATOR = System.getProperty("file.separator");
 	// JSHOMEDIR is not set yet
-	private static final String CLOUDIFY_HOME = Environment.getHomeDirectory(); 
+	private static final String CLOUDIFY_HOME = Environment.getHomeDirectory();
 	private static final String DEFAULT_SECURITY_FOLDER =
 			CLOUDIFY_HOME + PATH_SEPARATOR + "config" + PATH_SEPARATOR + "security";
 	private static final String DEFAULT_SECURITY_FILE_PATH =
@@ -104,13 +103,11 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 			+ "used for network communication.")
 	private String nicAddress = "127.0.0.1";
 
-	@Option(required = false, description = "The number of minutes to wait until the operation is done.", 
+	@Option(required = false, description = "The number of minutes to wait until the operation is done.",
 			name = "-timeout")
 	private int timeoutInMinutes = DEFAULT_TIMEOUT;
-	
-	@Argument(required = false, name = "name", description = "the cloud name")
-	private String cloudName;
-	
+
+
 	private String securityProfile = CloudifyConstants.SPRING_PROFILE_NON_SECURE;
 
 	/**
@@ -235,7 +232,7 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 			if (StringUtils.isNotBlank(keystorePassword)) {
 				throw new IllegalArgumentException("'-keystore-password' is only valid when '-secured' is set");
 			}
-					
+
 		} else {
 			if (StringUtils.isNotBlank(username) && StringUtils.isBlank(password)) {
 				throw new IllegalArgumentException("Password is missing or empty");
@@ -257,9 +254,9 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 				validateKeystoreFile(keystorePassword, new File(keystoreFilePath));
 			}
 		}
-		
+
 		validateSecurityVars();
-		
+
 	}
 
 
@@ -293,7 +290,7 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 			}
 		}
 	}
-	
+
 
 	private void validateKeystoreFile(final String password, final File keystoreFile) throws CLIStatusException {
 		new KeystoreFileVerifier().verifyKeystoreFile(keystoreFile, password);

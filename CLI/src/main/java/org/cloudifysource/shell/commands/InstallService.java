@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.shell.commands;
 
@@ -31,9 +28,12 @@ import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
+import org.cloudifysource.dsl.internal.DSLErrorMessageException;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.internal.debug.DebugModes;
+import org.cloudifysource.dsl.internal.debug.DebugUtils;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
@@ -46,20 +46,16 @@ import org.fusesource.jansi.Ansi.Color;
 /**
  * @author rafi, adaml, barakm
  * @since 2.0.0
- * 
- *        Installs a service by deploying the service files as one packed file
- *        (zip, war or jar). Service files can also be supplied as a folder
- *        containing multiple files.
- * 
- *        Required arguments: service-file - Path to the service's packed file
- *        or folder
- * 
- *        Optional arguments: zone - The machines zone in which to install the
- *        service name - The name of the service timeout - The number of minutes
- *        to wait until the operation is completed (default: 5 minutes)
- * 
- *        Command syntax: install-service [-zone zone] [-name name] [-timeout
- *        timeout] service-file
+ *
+ *        Installs a service by deploying the service files as one packed file (zip, war or jar). Service files can also
+ *        be supplied as a folder containing multiple files.
+ *
+ *        Required arguments: service-file - Path to the service's packed file or folder
+ *
+ *        Optional arguments: zone - The machines zone in which to install the service name - The name of the service
+ *        timeout - The number of minutes to wait until the operation is completed (default: 5 minutes)
+ *
+ *        Command syntax: install-service [-zone zone] [-name name] [-timeout timeout] service-file
  */
 @Command(scope = "cloudify", name = "install-service", description = "Installs a service. If you specify a folder"
 		+ " path it will be packed and deployed. If you specify a service archive, the shell will deploy that file.")
@@ -109,9 +105,19 @@ public class InstallService extends AdminAwareCommand {
 					+ "configuration for this service.")
 	private File cloudOverrides;
 
+	@Option(required = false, name = "-debug-all",
+			description = "Debug all supported lifecycle events")
+	private boolean debugAll;
+
+	@Option(required = false, name = "-debug-events",
+			description = "Debug the specified events")
+	private String debugEvents;
+
+	@Option(required = false, name = "-debug-mode",
+			description = "Debug mode. One of: instead, after or onError")
+	private String debugModeString = DebugModes.INSTEAD.getName();
+
 	private static final long TEN_K = 10 * FileUtils.ONE_KB;
-	
-	private static final String TEMP_FOLDER = System.getProperty("java.io.tmpdir");
 
 	/**
 	 * {@inheritDoc}
@@ -120,13 +126,19 @@ public class InstallService extends AdminAwareCommand {
 	protected Object doExecute()
 			throws Exception {
 
+		try {
+			DebugUtils.validateDebugSettings(debugAll, debugEvents, debugModeString);
+		} catch (final DSLErrorMessageException e) {
+			throw new CLIStatusException(e, e.getErrorMessage().getName(), (Object[]) e.getArgs());
+		}
+
 		if (cloudOverrides != null) {
 			if (cloudOverrides.length() >= TEN_K) {
 				throw new CLIStatusException(CloudifyErrorMessages.CLOUD_OVERRIDES_TO_LONG.getName());
 			}
 		}
 
-		RecipePathResolver pathResolver = new RecipePathResolver();
+		final RecipePathResolver pathResolver = new RecipePathResolver();
 		if (pathResolver.resolveService(recipe)) {
 			recipe = pathResolver.getResolved();
 		} else {
@@ -165,8 +177,8 @@ public class InstallService extends AdminAwareCommand {
 								fullPathToRecipe.getPath());
 					}
 					// locate recipe file
-					recipeFile = fullPathToRecipe.isDirectory() 
-							? DSLReader.findDefaultDSLFile(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX, fullPathToRecipe) 
+					recipeFile = fullPathToRecipe.isDirectory()
+							? DSLReader.findDefaultDSLFile(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX, fullPathToRecipe)
 							: fullPathToRecipe;
 				} else {
 					recipeFile = DSLReader.findDefaultDSLFile(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX, recipe);
@@ -195,7 +207,7 @@ public class InstallService extends AdminAwareCommand {
 			if (serviceName == null || serviceName.isEmpty()) {
 				serviceName = service.getName();
 			}
-			
+
 			if (!org.cloudifysource.restclient.StringUtils.isValidRecipeName(serviceName)) {
 				throw new CLIStatusException(CloudifyErrorMessages.SERVICE_NAME_INVALID_CHARS.getName(), serviceName);
 			}
@@ -245,7 +257,7 @@ public class InstallService extends AdminAwareCommand {
 	}
 
 	private void pollForLifecycleEvents(final String lifecycleEventContainerPollingID) throws InterruptedException,
-			CLIException, TimeoutException, IOException{
+			CLIException, TimeoutException, IOException {
 		final RestLifecycleEventsLatch lifecycleEventsPollingLatch = this.adminFacade
 				.getLifecycleEventsPollingLatch(
 						lifecycleEventContainerPollingID, TIMEOUT_ERROR_MESSAGE);
@@ -287,15 +299,13 @@ public class InstallService extends AdminAwareCommand {
 	// This copy is a bad idea, and should be moved out of here as soon as
 	// possible.
 	/**
-	 * Create Properties object with settings from the service object, if found
-	 * on the given service. The supported settings are:
-	 * com.gs.application.dependsOn com.gs.service.type com.gs.service.icon
+	 * Create Properties object with settings from the service object, if found on the given service. The supported
+	 * settings are: com.gs.application.dependsOn com.gs.service.type com.gs.service.icon
 	 * com.gs.service.network.protocolDescription
-	 * 
+	 *
 	 * @param service
 	 *            The service object the read the settings from
-	 * @return Properties object populated with the above properties, if found
-	 *         on the given service.
+	 * @return Properties object populated with the above properties, if found on the given service.
 	 */
 	private Properties createServiceContextProperties(final Service service) {
 		final Properties contextProperties = new Properties();
@@ -330,6 +340,14 @@ public class InstallService extends AdminAwareCommand {
 		contextProperties.setProperty(
 				CloudifyConstants.CONTEXT_PROPERTY_ELASTIC,
 				Boolean.toString(service.isElastic()));
+
+		if (this.debugAll) {
+			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_ALL, Boolean.TRUE.toString());
+			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_MODE, this.getDebugModeString());
+		} else if (this.debugEvents != null) {
+			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_EVENTS, this.debugEvents);
+			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_MODE, this.getDebugModeString());
+		}
 
 		return contextProperties;
 	}
@@ -390,8 +408,32 @@ public class InstallService extends AdminAwareCommand {
 		return disableSelfHealing;
 	}
 
-	public void setDisableSelfHealing(boolean disableSelfHealing) {
+	public void setDisableSelfHealing(final boolean disableSelfHealing) {
 		this.disableSelfHealing = disableSelfHealing;
+	}
+
+	public boolean isDebugAll() {
+		return debugAll;
+	}
+
+	public void setDebugAll(final boolean debugAll) {
+		this.debugAll = debugAll;
+	}
+
+	public String getDebugEvents() {
+		return debugEvents;
+	}
+
+	public void setDebugEvents(final String debugEvents) {
+		this.debugEvents = debugEvents;
+	}
+
+	public String getDebugModeString() {
+		return debugModeString;
+	}
+
+	public void setDebugModeString(final String debugModeString) {
+		this.debugModeString = debugModeString;
 	}
 
 }

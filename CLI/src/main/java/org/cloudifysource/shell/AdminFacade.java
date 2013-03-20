@@ -73,7 +73,8 @@ public interface AdminFacade {
 	Map<String, String> installApplication(File applicationFile,
 			String applicationName, String authGroups, int timeout,
 			final boolean selfHealing,
-			final File applicationOverrides, File cloudOverrides)
+			final File applicationOverrides, File cloudOverrides,
+			final boolean debugAll, final String debugEvents, final String debugMode)
 			throws CLIException;
 
 	/**

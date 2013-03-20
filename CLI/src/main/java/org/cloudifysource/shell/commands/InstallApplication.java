@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.shell.commands;
 
@@ -32,8 +29,11 @@ import org.cloudifysource.dsl.Application;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
+import org.cloudifysource.dsl.internal.DSLErrorMessageException;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
+import org.cloudifysource.dsl.internal.debug.DebugModes;
+import org.cloudifysource.dsl.internal.debug.DebugUtils;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
 import org.cloudifysource.dsl.utils.RecipePathResolver;
@@ -46,19 +46,15 @@ import org.fusesource.jansi.Ansi.Color;
 /**
  * @author rafi, barakm, adaml
  * @since 2.0.0
- * 
- *        Installs an application, including it's contained services ordered
- *        according to their dependencies.
- * 
- *        Required arguments: application-file - The application recipe file
- *        path, folder or archive (zip/jar)
- * 
- *        Optional arguments: name - The name of the application timeout - The
- *        number of minutes to wait until the operation is completed (default:
- *        10 minutes)
- * 
- *        Command syntax: install-application [-name name] [-timeout timeout]
- *        application-file
+ *
+ *        Installs an application, including it's contained services ordered according to their dependencies.
+ *
+ *        Required arguments: application-file - The application recipe file path, folder or archive (zip/jar)
+ *
+ *        Optional arguments: name - The name of the application timeout - The number of minutes to wait until the
+ *        operation is completed (default: 10 minutes)
+ *
+ *        Command syntax: install-application [-name name] [-timeout timeout] application-file
  */
 @Command(scope = "cloudify", name = "install-application", description = "Installs an application. If you specify"
 		+ " a folder path it will be packed and deployed. If you sepcify an application archive, the shell will deploy"
@@ -84,7 +80,7 @@ public class InstallApplication extends AdminAwareCommand {
 
 	@Option(required = false, name = "-disableSelfHealing",
 			description = "Disables service self healing")
-	private boolean disableSelfHealing = false;
+	private final boolean disableSelfHealing = false;
 
 	@Option(required = false, name = "-cloudConfiguration",
 			description = "File or directory containing configuration information to be used by the cloud driver "
@@ -104,6 +100,18 @@ public class InstallApplication extends AdminAwareCommand {
 	private static final String TIMEOUT_ERROR_MESSAGE = "Application installation timed out."
 			+ " Configure the timeout using the -timeout flag.";
 
+	@Option(required = false, name = "-debug-all",
+			description = "Debug all supported lifecycle events")
+	private boolean debugAll;
+
+	@Option(required = false, name = "-debug-events",
+			description = "Debug the specified events")
+	private String debugEvents;
+
+	@Option(required = false, name = "-debug-mode",
+			description = "Debug mode. One of: instead, after or onError")
+	private final String debugModeString = DebugModes.INSTEAD.getName();
+
 	private static final long TEN_K = 10 * FileUtils.ONE_KB;
 
 	/**
@@ -114,6 +122,11 @@ public class InstallApplication extends AdminAwareCommand {
 	protected Object doExecute()
 			throws Exception {
 
+		try {
+			DebugUtils.validateDebugSettings(debugAll, debugEvents, debugModeString);
+		} catch (final DSLErrorMessageException e) {
+			throw new CLIStatusException(e.getErrorMessage().getName(), (Object[]) e.getArgs());
+		}
 		if (cloudOverrides != null) {
 			if (cloudOverrides.length() >= TEN_K) {
 				throw new CLIStatusException(CloudifyErrorMessages.CLOUD_OVERRIDES_TO_LONG.getName());
@@ -135,7 +148,7 @@ public class InstallApplication extends AdminAwareCommand {
 		if (StringUtils.isBlank(applicationName)) {
 			applicationName = application.getName();
 		}
-		
+
 		if (!org.cloudifysource.restclient.StringUtils.isValidRecipeName(applicationName)) {
 			throw new CLIStatusException(CloudifyErrorMessages.APPLICATION_NAME_INVALID_CHARS.getName(),
 					applicationName);
@@ -167,7 +180,7 @@ public class InstallApplication extends AdminAwareCommand {
 		final Map<String, String> result =
 				adminFacade.installApplication(zipFile, applicationName,
 						authGroups, getTimeoutInMinutes(), !disableSelfHealing,
-						overrides, cloudOverrides);
+						overrides, cloudOverrides, debugAll, debugEvents, debugModeString);
 
 		final String serviceOrder = result.get(CloudifyConstants.SERVICE_ORDER);
 
@@ -270,9 +283,8 @@ public class InstallApplication extends AdminAwareCommand {
 	}
 
 	/**
-	 * Prints Application data - the application name and it's services name,
-	 * dependencies and number of instances.
-	 * 
+	 * Prints Application data - the application name and it's services name, dependencies and number of instances.
+	 *
 	 * @param application
 	 *            Application object to analyze
 	 */

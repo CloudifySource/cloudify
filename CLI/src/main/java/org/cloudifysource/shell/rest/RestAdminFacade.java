@@ -39,7 +39,6 @@ import org.cloudifysource.restclient.InvocationResult;
 import org.cloudifysource.restclient.RestException;
 import org.cloudifysource.restclient.StringUtils;
 import org.cloudifysource.shell.AbstractAdminFacade;
-import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.CLIException;
 import org.cloudifysource.shell.commands.CLIStatusException;
@@ -48,7 +47,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 import com.j_spaces.kernel.PlatformVersion;
 
 /**
- * This class implements the {@link AdminFacade}, relying on the abstract implementation of {@link AbstractAdminFacade}.
+ * This class implements the {@link org.cloudifysource.shell.AdminFacade},
+ * relying on the abstract implementation of {@link AbstractAdminFacade}.
  * It discovers and manages applications, services, containers and other components over REST, using the
  * {@link GSRestClient}.
  *
@@ -63,14 +63,13 @@ public class RestAdminFacade extends AbstractAdminFacade {
 
 	private GSRestClient client;
 	private URL urlObj;
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public void doConnect(final String user, final String password, final String url, final boolean sslUsed)
 			throws CLIException {
-
-
 
 		try {
 			this.urlObj = new URL(ShellUtils.getFormattedRestUrl(url, sslUsed));
@@ -628,16 +627,22 @@ public class RestAdminFacade extends AbstractAdminFacade {
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @param debugAll
+	 * @param debugEvents
+	 * @param debugMode
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public Map<String, String> installApplication(final File applicationFile,
 			final String applicationName, final String authGroups, final int timeout,
 			final boolean selfHealing, final File applicationOverrides,
-			final File cloudOverrides) throws CLIException {
+			final File cloudOverrides,
+			final boolean debugAll, final String debugEvents, final String debugMode) throws CLIException {
 
 		final String url = SERVICE_CONTROLLER_URL + "applications/" + applicationName + "/timeout/" + timeout
-				+ "?selfHealing=" + Boolean.toString(selfHealing);
+				+ "?selfHealing=" + Boolean.toString(selfHealing)
+				+ "&debugAll=" + Boolean.toString(debugAll) + "&debugEvents=" + debugEvents + "&debugMode=" + debugMode;
 
 		final Map<String, File> filesToPost = new HashMap<String, File>();
 		filesToPost.put("file", applicationFile);
@@ -848,12 +853,12 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	public Map<String, ComputeTemplate> listTemplates()
 			throws CLIStatusException {
 		final String url = SERVICE_CONTROLLER_URL + "templates";
-		Map<String, ComputeTemplate> response = new HashMap<String, ComputeTemplate>();
+		final Map<String, ComputeTemplate> response = new HashMap<String, ComputeTemplate>();
 		try {
-			Map<String, Object> responseMap = (Map<String, Object>) client.get(url);
-			for (Entry<String, Object> entry : responseMap.entrySet()) {
-				ObjectMapper mapper = new ObjectMapper();
-				ComputeTemplate convertValue = mapper.convertValue(entry.getValue(), ComputeTemplate.class);
+			final Map<String, Object> responseMap = (Map<String, Object>) client.get(url);
+			for (final Entry<String, Object> entry : responseMap.entrySet()) {
+				final ObjectMapper mapper = new ObjectMapper();
+				final ComputeTemplate convertValue = mapper.convertValue(entry.getValue(), ComputeTemplate.class);
 				response.put(entry.getKey(), convertValue);
 			}
 		} catch (final ErrorStatusException e) {
@@ -910,9 +915,9 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	public List<ControllerDetails> shutdownManagers() throws CLIException {
 
 		try {
-			List<ControllerDetails> controllers = this.client.shutdownManagers();
+			final List<ControllerDetails> controllers = this.client.shutdownManagers();
 			return controllers;
-		} catch (ErrorStatusException e) {
+		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e);
 		}
 
@@ -926,7 +931,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	public List<ControllerDetails> getManagers() throws CLIException {
 		try {
 			return client.getManagers();
-		} catch (ErrorStatusException e) {
+		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e);
 		}
 	}
