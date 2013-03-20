@@ -22,11 +22,11 @@ import org.cloudifysource.dsl.internal.context.ServiceContextImpl;
 
 /************
  * DSL based USM configuration.
- * 
- * 
+ *
+ *
  * @author barakme
  * @since 2.0.0
- * 
+ *
  */
 public class ServiceConfiguration {
 
@@ -34,6 +34,7 @@ public class ServiceConfiguration {
 	private final File puExtDir;
 	private final ServiceContextImpl serviceContext;
 	private final File serviceFile;
+	private final ClassLoader dslClassLoader;
 
 	public File getServiceFile() {
 		return serviceFile;
@@ -45,18 +46,19 @@ public class ServiceConfiguration {
 
 	/************
 	 * Constructor.
-	 * 
+	 *
 	 * @param service the service POJO.
 	 * @param serviceContext the service context.
 	 * @param puExtDir the ext dir for the PI instance.
 	 * @param serviceFile the DSL dile.
 	 */
 	public ServiceConfiguration(final Service service, final ServiceContextImpl serviceContext, final File puExtDir,
-			final File serviceFile) {
+			final File serviceFile, final ClassLoader dslClassLoader) {
 		this.service = service;
 		this.serviceContext = serviceContext;
 		this.puExtDir = puExtDir;
 		this.serviceFile = serviceFile;
+		this.dslClassLoader = dslClassLoader;
 	}
 
 	public Service getService() {
@@ -65,6 +67,10 @@ public class ServiceConfiguration {
 
 	public File getPuExtDir() {
 		return puExtDir;
+	}
+
+	public ClassLoader getDslClassLoader() {
+		return dslClassLoader;
 	}
 
 }

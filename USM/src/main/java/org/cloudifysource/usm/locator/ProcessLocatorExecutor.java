@@ -17,6 +17,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.cloudifysource.dsl.LifecycleEvents;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.dsl.DSLEntryExecutor;
@@ -51,12 +52,13 @@ public class ProcessLocatorExecutor implements ProcessLocator {
 		this.locator = locator;
 		this.launcher = launcher;
 		this.puExtDir = puExtDir;
-	}
+			}
 
 	@Override
 	public List<Long> getProcessIDs()
 			throws USMException {
-		final EventResult result = new DSLEntryExecutor(locator, launcher, puExtDir).run();
+		final EventResult result =
+				new DSLEntryExecutor(locator, launcher, puExtDir, LifecycleEvents.PROCESS_LOCATOR).run();
 		if (result.isSuccess()) {
 			final Object retval = result.getResult();
 			if (retval instanceof List<?>) {

@@ -30,6 +30,7 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
+import org.cloudifysource.dsl.LifecycleEvents;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.usm.details.Details;
@@ -38,7 +39,6 @@ import org.cloudifysource.usm.dsl.ServiceConfiguration;
 import org.cloudifysource.usm.events.EventResult;
 import org.cloudifysource.usm.events.InitListener;
 import org.cloudifysource.usm.events.InstallListener;
-import org.cloudifysource.usm.events.LifecycleEvents;
 import org.cloudifysource.usm.events.PostInstallListener;
 import org.cloudifysource.usm.events.PostStartListener;
 import org.cloudifysource.usm.events.PostStopListener;

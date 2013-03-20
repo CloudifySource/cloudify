@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.usm;
 
@@ -34,12 +31,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
-
 /***************************
- * Configuration factory for the USM component. Returns a configuration bean.
- * Note that this was useful when we had multiple input types for services. Now that we have standardized
- * on groovy for all services, this is kind of redundant.
- * 
+ * Configuration factory for the USM component. Returns a configuration bean. Note that this was useful when we had
+ * multiple input types for services. Now that we have standardized on groovy for all services, this is kind of
+ * redundant.
+ *
  * @author barakme
  * @since 1.0
  *
@@ -62,7 +58,7 @@ public class USMConfigurationFactoryBean implements FactoryBean<ServiceConfigura
 
 	private boolean isRunningInGSC;
 
-	private static final Logger logger = 
+	private static final Logger logger =
 			Logger.getLogger(USMConfigurationFactoryBean.class.getName());
 
 	@Override
@@ -79,11 +75,11 @@ public class USMConfigurationFactoryBean implements FactoryBean<ServiceConfigura
 
 	private ServiceConfiguration handleDsl() throws DSLException {
 		File dslFile = null;
-		
+
 		if (serviceFileName != null) {
 			dslFile = new File(this.puExtDir, this.serviceFileName);
 		}
-		
+
 		DSLReader dslReader = new DSLReader();
 		dslReader.setAdmin(USMUtils.getAdmin());
 		dslReader.setClusterInfo(clusterInfo);
@@ -92,14 +88,15 @@ public class USMConfigurationFactoryBean implements FactoryBean<ServiceConfigura
 		dslReader.setDslFile(dslFile);
 		dslReader.setWorkDir(this.puExtDir);
 		dslReader.setDslFileNameSuffix(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
-		
-		// When loading a service in the USM, expect the jar files to 
+
+		// When loading a service in the USM, expect the jar files to
 		// be available in the pu lib dir, and ignore the contents of usmlib
 		dslReader.setLoadUsmLib(false);
-		
+
 		logger.info("Loading Service configuration from DSL File");
 		Service service = dslReader.readDslEntity(Service.class);
-		return new ServiceConfiguration(service, dslReader.getContext(),  this.puExtDir, dslReader.getDslFile());
+		return new ServiceConfiguration(service, dslReader.getContext(), this.puExtDir, dslReader.getDslFile(),
+				dslReader.getDSLClassLoader());
 	}
 
 	@Override
@@ -141,7 +138,7 @@ public class USMConfigurationFactoryBean implements FactoryBean<ServiceConfigura
 		if (props != null) {
 			this.serviceFileName = props.getProperty(CloudifyConstants.CONTEXT_PROPERTY_SERVICE_FILE_NAME);
 			this.propertiesFileName = props.getProperty(CloudifyConstants.CONTEXT_PROPERTY_PROPERTIES_FILE_NAME);
-			
+
 		}
 	}
 

@@ -26,6 +26,7 @@ import java.util.logging.Level;
 
 import javax.annotation.PostConstruct;
 
+import org.cloudifysource.dsl.LifecycleEvents;
 import org.cloudifysource.dsl.Plugin;
 import org.cloudifysource.dsl.PluginDescriptor;
 import org.cloudifysource.dsl.Service;
@@ -73,10 +74,10 @@ import org.springframework.context.annotation.Configuration;
 
 /*****************
  * The Spring Bean configuration for the USM - Spring components are initialized in this one class.
- * 
+ *
  * @author barakme
  * @since 2.0.0
- * 
+ *
  */
 @Configuration
 public class DSLBeanConfiguration implements ApplicationContextAware {
@@ -177,7 +178,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 		}
 
 		final UserInterface ui = this.service.getUserInterface();
-		
+
 		UserInterfaceConverter converter = new UserInterfaceConverter();
 		UserInterface convertUserInterface = converter.convertUserInterface(ui);
 		return new UIDetails(convertUserInterface);
@@ -291,7 +292,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 							if (entry.getValue() instanceof Closure) {
 								final EventResult value =
 										new DSLEntryExecutor(ExecutableDSLEntryFactory.createEntry(entry.getValue(),
-												"details", puExtDir), launcher, puExtDir).run();
+												"details", puExtDir), launcher, puExtDir, LifecycleEvents.SERVICE_DETAILS).run();
 								if (value.isSuccess()) {
 									returnMap.put(entry.getKey(),
 											value.getResult());
@@ -307,7 +308,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 						final EventResult result =
 								new DSLEntryExecutor(
 										ExecutableDSLEntryFactory.createEntry(details, "details", puExtDir),
-										launcher, puExtDir).run();
+										launcher, puExtDir, LifecycleEvents.SERVICE_DETAILS).run();
 						if (result.isSuccess()) {
 							returnMap.putAll((Map<String, Object>) result.getResult());
 						}
@@ -368,7 +369,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 									new DSLEntryExecutor(
 											ExecutableDSLEntryFactory.createEntry(object, entryObject.getKey(),
 													puExtDir), launcher,
-											puExtDir).run();
+											puExtDir, LifecycleEvents.SERVICE_MONITORS).run();
 						} catch (final DSLValidationException e) {
 							throw new MonitorException("Executable entry in monitor is invalid", e);
 						}
@@ -411,7 +412,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 	/*******
 	 * Stop detection implementation that checks if the start command exited abnormally. This detector flags a service
 	 * as stopped if the start command has exited with a non-zero exit code.
-	 * 
+	 *
 	 * @return {@link StopDetector} implementation
 	 */
 	@Bean
@@ -494,7 +495,7 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			@Override
 			public boolean isServiceStopped()
 					throws USMException {
-				final EventResult result = new DSLEntryExecutor(detector, launcher, puExtDir).run();
+				final EventResult result = new DSLEntryExecutor(detector, launcher, puExtDir, LifecycleEvents.STOP_DETECTION).run();
 				if (result.isSuccess()) {
 					final Object retcode = result.getResult();
 					if (retcode instanceof Boolean) {
@@ -524,19 +525,19 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			public boolean isProcessAlive()
 					throws USMException {
 
-				final EventResult result = new DSLEntryExecutor(detector, launcher, puExtDir).run();
+				final EventResult result = new DSLEntryExecutor(detector, launcher, puExtDir, LifecycleEvents.START_DETECTION).run();
 				if (result.isSuccess()) {
 					final Object retcode = result.getResult();
 					if (retcode instanceof Boolean) {
 						return (Boolean) retcode;
 					}
-					
+
 					// If closure, make sure return value is boolean.
 					if(detector instanceof ClosureExecutableEntry) {
 						logger.warning("A start detector closure return a result that is not boolean! Result was: " + retcode);
 						return false;
 					}
-					
+
 					return true;
 				}
 				// process exited with abnormal status code
@@ -594,7 +595,6 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 		if (stop != null) {
 			// will be executed by the dsl command lifecycle listener.
 			return null;
-
 		} else {
 			return new DefaultStop();
 		}

@@ -38,6 +38,7 @@ import javax.annotation.PreDestroy;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.dsl.LifecycleEvents;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -796,7 +797,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 						this.process = getUsmLifecycleBean().getLauncher()
 								.launchProcessAsync(startCommand,
 										this.puExtDir, getOutputFile(),
-										getErrorFile());
+										getErrorFile(), LifecycleEvents.START);
 					} catch (final USMException e) {
 						getUsmLifecycleBean().logProcessStartFailureEvent(
 								e.getMessage());
@@ -1258,7 +1259,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 			}
 			final EventResult executionResult = new DSLEntryExecutor(
 					customCommand, this.getUsmLifecycleBean().getLauncher(),
-					this.getPuExtDir(), namedArgs).run();
+					this.getPuExtDir(), namedArgs, LifecycleEvents.CUSTOM_COMMAND).run();
 
 			result.put(CloudifyConstants.INVOCATION_RESPONSE_STATUS,
 					executionResult.isSuccess());

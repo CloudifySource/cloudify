@@ -27,11 +27,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
@@ -39,12 +41,14 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.dsl.LifecycleEvents;
 import org.cloudifysource.dsl.entry.ClosureExecutableEntry;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntryType;
 import org.cloudifysource.dsl.entry.ListExecutableEntry;
 import org.cloudifysource.dsl.entry.StringExecutableEntry;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.debug.DebugModes;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils.FullServiceName;
 import org.cloudifysource.usm.USMException;
@@ -53,6 +57,8 @@ import org.cloudifysource.usm.dsl.ServiceConfiguration;
 import org.hyperic.sigar.Sigar;
 import org.openspaces.core.cluster.ClusterInfo;
 import org.openspaces.core.cluster.ClusterInfoAware;
+import org.openspaces.core.properties.BeanLevelProperties;
+import org.openspaces.core.properties.BeanLevelPropertiesAware;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.gigaspaces.internal.sigar.SigarHolder;
@@ -66,7 +72,7 @@ import com.j_spaces.kernel.PlatformVersion;
  * @author barakme
  *
  */
-public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware {
+public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware, BeanLevelPropertiesAware {
 
 	private static final int POST_SYNC_PROCESS_SLEEP_INTERVAL = 200;
 	private static final String LINUX_EXECUTE_PREFIX = "./";
@@ -80,6 +86,12 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 	@Autowired
 	private ServiceConfiguration configutaion;
+	private boolean debugAllEvents;
+	private Set<LifecycleEvents> debugEvents = Collections.emptySet();
+	private DebugModes debugMode = DebugModes.INSTEAD;
+
+	private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger(DefaultProcessLauncher.class
+			.getName());
 
 	private List<String> switchFirstPartOfCommandLine(final List<String> originalCommandLine, final String newPart) {
 
@@ -443,9 +455,6 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 	}
 
-	private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger(DefaultProcessLauncher.class
-			.getName());
-
 	private List<String> convertCommandLineStringToParts(final String commandLine) {
 		final List<String> list = new LinkedList<String>();
 		final String[] parts = commandLine.split(" ");
@@ -575,7 +584,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 	@Override
 	public Process launchProcessAsync(final ExecutableDSLEntry arg, final File workingDir, final int retries,
-			final boolean redirectErrorStream, final List<String> params)
+			final boolean redirectErrorStream, final List<String> params, final LifecycleEvents event)
 			throws USMException {
 		return launchAsync(arg,
 				workingDir,
@@ -583,30 +592,29 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 				redirectErrorStream,
 				null,
 				null,
-				params);
+				params, event);
 	}
 
 	private Process launchAsync(final ExecutableDSLEntry arg, final File workingDir, final int retries,
-			final boolean redirectErrorStream, final File outputFile, final File errorFile, final List<String> params)
+			final boolean redirectErrorStream, final File outputFile, final File errorFile, final List<String> params,
+			final LifecycleEvents event)
 			throws USMException {
 		if (arg.getEntryType() == ExecutableDSLEntryType.CLOSURE) {
 			// in process execution of a closure
 			return launchAsyncFromClosure(((ClosureExecutableEntry) arg).getCommand());
 
 		}
+
 		commandLine = getCommandLineFromArgument(arg,
 				workingDir,
 				params);
-		// final String[] parts = commandLine.split(" ");
-		// final List<String> list = new
-		// LinkedList<String>(Arrays.asList(commandLine));
 
 		return this.launch(commandLine,
 				workingDir,
 				retries,
 				redirectErrorStream,
 				outputFile,
-				errorFile);
+				errorFile, event);
 	}
 
 	private Process launchAsyncFromClosure(final Object arg)
@@ -638,7 +646,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 	@Override
 	public Object launchProcess(final ExecutableDSLEntry arg, final File workingDir, final int retries,
-			final boolean redirectErrorStream, final Map<String, Object> params)
+			final boolean redirectErrorStream, final Map<String, Object> params, final LifecycleEvents event)
 			throws USMException {
 
 		final List<String> paramsList = getParamsListFromMap(params);
@@ -664,7 +672,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 				workingDir,
 				retries,
 				redirectErrorStream,
-				paramsList);
+				paramsList, event);
 		final BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 
 		String line = null;
@@ -798,7 +806,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	}
 
 	private Process launch(final List<String> commandLineParams, final File workingDir, final int retries,
-			final boolean redirectErrorStream, final File outputFile, final File errorFile)
+			final boolean redirectErrorStream, final File outputFile, final File errorFile, final LifecycleEvents event)
 			throws USMException {
 
 		if (outputFile == null && errorFile != null || outputFile != null && errorFile == null) {
@@ -810,18 +818,40 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 					"If redirectError option is chosen, neither output file or error file can be set");
 		}
 
-		modifyCommandLine(commandLineParams, workingDir, outputFile, errorFile);
+
+
+		List<String> modifiedCommandLineParams = null;
+
+		if (isDebugEvent(event)) {
+			// create environment for debugging the event and modify the command line.
+			logger.info("DEBUG BREAKPOINT!");
+			DebugHookInvoker dhi = new DebugHookInvoker();
+
+			final ClassLoader loader = this.configutaion.getDslClassLoader();
+			logger.info("DSL Class Loader is: " + loader);
+
+			modifiedCommandLineParams = dhi.setUpDebugHook(this.configutaion.getServiceContext(),
+					commandLineParams, loader, this.debugMode);
+
+		} else {
+
+			modifiedCommandLineParams = commandLineParams;
+
+		}
+
+
+		modifyCommandLine(modifiedCommandLineParams, workingDir, outputFile, errorFile);
+
 		final String modifiedCommandLine =
-				org.springframework.util.StringUtils.collectionToDelimitedString(commandLineParams,
+				org.springframework.util.StringUtils.collectionToDelimitedString(modifiedCommandLineParams,
 						" ");
 
-		this.commandLine = commandLineParams; // last command line to be
-												// executed
+		this.commandLine = modifiedCommandLineParams;
 
 		int attempt = 1;
 		USMException ex = null;
 		while (attempt <= retries + 1) {
-			final ProcessBuilder pb = new ProcessBuilder(commandLineParams);
+			final ProcessBuilder pb = new ProcessBuilder(modifiedCommandLineParams);
 			pb.directory(workingDir);
 			pb.redirectErrorStream(redirectErrorStream);
 			final Map<String, String> env = createEnvironment();
@@ -832,7 +862,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 				final String fileInitialMessage =
 						"Starting service process in working directory:'" + workingDir + "' "
-								+ "at:'" + new Date() + "' with command:'" + commandLineParams + "'"
+								+ "at:'" + new Date() + "' with command:'" + modifiedCommandLineParams + "'"
 								+ System.getProperty("line.separator");
 				if (outputFile != null) {
 					appendMessageToFile(fileInitialMessage,
@@ -956,22 +986,17 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	}
 
 	@Override
-	public Object launchProcess(final ExecutableDSLEntry arg, final File workingDir, final Map<String, Object> params)
+	public Object launchProcess(final ExecutableDSLEntry arg, final File workingDir, final Map<String, Object> params,
+			final LifecycleEvents event)
 			throws USMException {
-		return launchProcess(arg, workingDir, 0, true, params);
-	}
-
-	@Override
-	public Object launchProcess(final ExecutableDSLEntry arg, final File workingDir)
-			throws USMException {
-		return launchProcess(arg, workingDir, new HashMap<String, Object>());
+		return launchProcess(arg, workingDir, 0, true, params, event);
 	}
 
 	@Override
 	public Process launchProcessAsync(final ExecutableDSLEntry arg, final File workingDir, final File outputFile,
-			final File errorFile)
+			final File errorFile, final LifecycleEvents event)
 			throws USMException {
-		return launchAsync(arg, workingDir, 0, false, outputFile, errorFile, null);
+		return launchAsync(arg, workingDir, 0, false, outputFile, errorFile, null, event);
 	}
 
 	@Override
@@ -1004,6 +1029,59 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		}
 
 		return sysPropsList;
+	}
+
+	@Override
+	public void setBeanLevelProperties(final BeanLevelProperties beanLevelProperties) {
+		Properties contextProperties = beanLevelProperties.getContextProperties();
+		final String debugAllString = contextProperties.getProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_ALL);
+		final String debugEvents = contextProperties.getProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_EVENTS);
+		final String debugModeString = contextProperties.getProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_MODE);
+
+		logger.info("Debug All: " + debugAllString + ", Debug events: " + debugEvents + ", Debug mode: "
+				+ debugModeString);
+		if (debugAllString != null) {
+			this.debugAllEvents = Boolean.parseBoolean(debugAllString);
+		}
+
+		if (debugEvents != null) {
+			String[] parts = debugEvents.split(",");
+			final Set<LifecycleEvents> debugEventsSet = new HashSet<LifecycleEvents>();
+
+			for (String part : parts) {
+				final String trimmedEventName = part.trim();
+				final LifecycleEvents event = LifecycleEvents.getEventByName(trimmedEventName);
+				if (event == null) {
+					logger.warning("Unknown event name passed in debug configuration: " + trimmedEventName);
+				} else {
+					debugEventsSet.add(event);
+				}
+
+			}
+
+			this.debugEvents = debugEventsSet;
+
+		}
+
+		if (debugModeString != null) {
+			this.debugMode = DebugModes.nameOf(debugModeString);
+			if (this.debugMode == null) {
+				throw new IllegalArgumentException("Unknown debug mode: " + debugModeString);
+			}
+		}
+
+		logger.info("Debug event flags -- All: " + this.debugAllEvents + ", Events: " + this.debugEvents + ", Mode: "
+				+ this.debugMode);
+		// logger.info("SETTING DEBUG ALL EVENTS FLAG TO TRUE!");
+		// TODO - delete this
+		// this.debugAllEvents = true;
+
+	}
+
+	private boolean isDebugEvent(final LifecycleEvents event) {
+		return ServiceUtils.isLinuxOrUnix()
+				&& (this.debugAllEvents || this.debugEvents.contains(event))
+				&& !event.equals(LifecycleEvents.START);
 	}
 
 }

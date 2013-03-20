@@ -19,6 +19,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import org.cloudifysource.dsl.LifecycleEvents;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.usm.USMComponent;
 import org.cloudifysource.usm.USMException;
@@ -31,53 +32,44 @@ import org.cloudifysource.usm.USMException;
  * of the process. If the process exit code is a value other then zero, an exception will be thrown, and the output will
  * be included in the exception message. 3. Map<String,String> - A map where the keys are regular expression of
  * Operating System names, and the values are String, which represent the command line to be executed.
- * 
+ *
  * TODO - some the overrides in this interface are no longer used - remove them.
- * 
- * 
+ *
+ *
  * @author barakme.
  * @since 2.0.0
- * 
+ *
  */
 public interface ProcessLauncher extends USMComponent {
 
 	/*************
 	 * Returns the last executed command line, including all its modifications.
-	 * 
+	 *
 	 * @return the last command line.
 	 */
 	String getCommandLine();
 
-	/************
-	 * Launch a process.
-	 * 
-	 * @param arg the process argument.
-	 * @param workingDir the working directory for the process.
-	 * @return the process result.
-	 * @throws USMException if there was a problem launching the process, or the process did not terminate successfully.
-	 */
-	Object launchProcess(final ExecutableDSLEntry arg, final File workingDir)
-			throws USMException;
 
 	/*******************
 	 * Launch a process.
-	 * 
+	 *
 	 * @param arg The process argument.
 	 * @param workingDir the working directory where the process will be executed.
 	 * @param retries number of retries.
 	 * @param redirectErrorStream should the error stream be redirected to the output stream.
 	 * @param params parameters to pass to the process.
+	 * @param event the lifecycle event being executed.
 	 * @return the process result.
 	 * @throws USMException if there was a problem launching the process, or the process did not terminate successfully.
 	 */
 	Object launchProcess(final ExecutableDSLEntry arg, final File workingDir,
 			final int retries, boolean redirectErrorStream,
-			Map<String, Object> params)
+			Map<String, Object> params, final LifecycleEvents event)
 			throws USMException;
 
 	/**********
 	 * Launch a process asynchronously, without waiting for it to terminate.
-	 * 
+	 *
 	 * @param arg the process argument.
 	 * @param workingDir the working directory for the process.
 	 * @param outputFile the file where the process output stream will be redirected.
@@ -86,12 +78,12 @@ public interface ProcessLauncher extends USMComponent {
 	 * @throws USMException if there was a problem launching the process.
 	 */
 	Process launchProcessAsync(final ExecutableDSLEntry arg, final File workingDir, final File outputFile,
-			final File errorFile)
+			final File errorFile, final LifecycleEvents event)
 			throws USMException;
 
 	/***********************
 	 * Launch a process asynchronously, without waiting for it to terminate.
-	 * 
+	 *
 	 * @param arg the process argument.
 	 * @param workingDir the working directory for the process.
 	 * @param retries number of retries.
@@ -102,18 +94,18 @@ public interface ProcessLauncher extends USMComponent {
 	 */
 	Process launchProcessAsync(final ExecutableDSLEntry arg, final File workingDir, final int retries,
 			boolean redirectErrorStream,
-			List<String> params)
+			List<String> params, final LifecycleEvents event)
 			throws USMException;
 
 	/*********************
 	 * Launches a process.
-	 * 
+	 *
 	 * @param arg the process argument.
 	 * @param workingDir the process working directory.
 	 * @param params the process parameters.
 	 * @return the process result.
 	 * @throws USMException if there was a problem launching the process, or the process did not terminate successfully.
 	 */
-	Object launchProcess(ExecutableDSLEntry arg, File workingDir, Map<String, Object> params)
+	Object launchProcess(ExecutableDSLEntry arg, File workingDir, Map<String, Object> params, final LifecycleEvents event)
 			throws USMException;
 }
