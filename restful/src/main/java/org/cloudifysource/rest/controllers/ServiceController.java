@@ -1810,6 +1810,12 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            otherwise, if the recipe fails to execute, no attempt to recover will made.
 	 * @param authGroups
 	 *            The authorization groups for which this deployment will be available.
+	 * @param debugAll
+	 * 				Indicates if all lifecycle events should have a breakpoint.
+	 * @param debugEvents
+	 * 				Indicates which lifecycle events should have a breakpoint.
+	 * @param debugMode
+	 * 				Indicates the debug mode to use. One of 'instead', 'after' or 'onError'.
 	 * @return Map with return value.
 	 * @throws IOException
 	 *             Reporting failure to create a file while opening the packaged application file
@@ -1835,9 +1841,13 @@ public class ServiceController implements ServiceDetailsProvider {
 			@PathVariable final int timeout,
 			@RequestParam(value = "file", required = true) final MultipartFile srcFile,
 			@RequestParam(value = "authGroups", required = false) final String authGroups,
-			@RequestParam(value = APPLICATION_OVERRIDES_FILE_PARAM, required = false) final MultipartFile recipeOverridesFile,
+			@RequestParam(value = APPLICATION_OVERRIDES_FILE_PARAM, required = false)
+				final MultipartFile recipeOverridesFile,
 			@RequestParam(value = CLOUD_OVERRIDES_FILE_PARAM, required = false) final MultipartFile cloudOverrides,
-			@RequestParam(value = "selfHealing", required = false) final Boolean selfHealing)
+			@RequestParam(value = "selfHealing", required = false) final Boolean selfHealing,
+			@RequestParam(value = "debugAll", required = false) final Boolean debugAll,
+			@RequestParam(value = "debugEvents", required = false) final String debugEvents,
+			@RequestParam(value = "debugMode", required = false) final String debugMode)
 			throws IOException, DSLException, RestErrorException {
 		boolean actualSelfHealing = true;
 		if (selfHealing != null && !selfHealing) {
@@ -1856,14 +1866,9 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		final File applicationOverridesFile = copyMultipartFileToLocalFile(recipeOverridesFile);
 		final File cloudOverridesFile = copyMultipartFileToLocalFile(cloudOverrides);
-		final Object returnObject = doDeployApplication(
-				applicationName,
-				applicationFile,
-				applicationOverridesFile,
-				effectiveAuthGroups,
-				timeout,
-				actualSelfHealing,
-				cloudOverridesFile);
+		final Object returnObject = doDeployApplication(applicationName, applicationFile, applicationOverridesFile,
+				effectiveAuthGroups, timeout, actualSelfHealing, cloudOverridesFile,
+				debugAll, debugEvents, debugMode);
 		FileUtils.deleteQuietly(applicationOverridesFile);
 		applicationFile.delete();
 		return returnObject;
@@ -2130,14 +2135,9 @@ public class ServiceController implements ServiceDetailsProvider {
 		}
 	}
 
-	private Object doDeployApplication(
-			final String applicationName,
-			final File applicationFile,
-			final File applicationOverridesFile,
-			final String authGroups,
-			final int timeout,
-			final boolean selfHealing,
-			final File cloudOverrides) throws IOException,
+	private Object doDeployApplication(final String applicationName, final File applicationFile, final File applicationOverridesFile,
+			final String authGroups, final int timeout, final boolean selfHealing, final File cloudOverrides,
+			final boolean debugAll, final String debugEvents, final String debugModeString) throws IOException,
 			DSLException, RestErrorException {
 		final DSLApplicationCompilatioResult result = ServiceReader
 				.getApplicationFromFile(applicationFile,
@@ -2163,16 +2163,10 @@ public class ServiceController implements ServiceDetailsProvider {
 			}
 		}
 
-		final ApplicationInstallerRunnable installer = new ApplicationInstallerRunnable(
-				this,
-				result,
-				applicationName,
-				applicationOverridesFile,
-				authGroups,
-				services,
-				this.cloud,
-				selfHealing,
-				cloudOverrides);
+		final ApplicationInstallerRunnable installer =
+				new ApplicationInstallerRunnable(this, result, applicationName, applicationOverridesFile, authGroups,
+				services, this.cloud, selfHealing,cloudOverrides,
+				debugAll, debugEvents, debugModeString);
 
 		logger.log(Level.INFO,
 				"Starting to poll for installation lifecycle events.");

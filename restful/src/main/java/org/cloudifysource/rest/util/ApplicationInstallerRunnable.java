@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.rest.util;
 
@@ -28,6 +25,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -43,50 +41,71 @@ import com.j_spaces.kernel.Environment;
 
 /**********
  * A Runnable implementation that executes the deployment logic of an application.
+ *
  * @author adaml, barakme
- * @since 2.0 
+ * @since 2.0
  */
 public class ApplicationInstallerRunnable implements Runnable {
 
 	private static final int SERVICE_INSTANCE_STARTUP_TIMEOUT_MINUTES = 60;
-	
+
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(ApplicationInstallerRunnable.class.getName());
 
-	private ServiceController controller;
-	private DSLApplicationCompilatioResult result;
-	private String applicationName;
-	private File overridesFile;
-	private String authGroups;
-	private List<Service> services;
+	private final ServiceController controller;
+	private final DSLApplicationCompilatioResult result;
+	private final String applicationName;
+	private final File overridesFile;
+	private final String authGroups;
+	private final List<Service> services;
 	private final Cloud cloud;
 	private final boolean selfHealing;
-	private File cloudOverrides;
+	private final File cloudOverrides;
 	private UUID pollingTaskId;
+
+	private final boolean debugAll;
+
+	private final String debugModeString;
+
+	private final String debugEvents;
 
 	/**************
 	 * Constructor.
-	 * @param controller installation requests are delegated to this controller.
-	 * @param result the application compilation result.
-	 * @param applicationName the application name.
-	 * @param overridesFile Application overrides file.
-	 * @param authGroups Security authorization groups for this application.
-	 * @param services the list of services.
-	 * @param cloud the cloud configuration object.
-	 * @param selfHealing true if self healing is enabled for all services in this application, 
-	 *   false if it is disabled for them.
-	 * @param cloudOverrides cloud configuration overrides for all services in this application.
+	 *
+	 * @param controller
+	 *            installation requests are delegated to this controller.
+	 * @param result
+	 *            the application compilation result.
+	 * @param applicationName
+	 *            the application name.
+	 * @param overridesFile
+	 *            Application overrides file.
+	 * @param authGroups
+	 *            Security authorization groups for this application.
+	 * @param services
+	 *            the list of services.
+	 * @param cloud
+	 *            the cloud configuration object.
+	 * @param selfHealing
+	 *            true if self healing is enabled for all services in this application, false if it is disabled for
+	 *            them.
+	 * @param cloudOverrides
+	 *            cloud configuration overrides for all services in this application.
+	 * @param debugAll
+	 * @param debugModeString
+	 * @param debugEvents
 	 */
 	public ApplicationInstallerRunnable(
 			final ServiceController controller,
-			final DSLApplicationCompilatioResult result, 
+			final DSLApplicationCompilatioResult result,
 			final String applicationName,
-			final File overridesFile, 
-			final String authGroups, 
-			final List<Service> services, 
-			final Cloud cloud, 
-			final boolean selfHealing, 
-			final File cloudOverrides) {
+			final File overridesFile,
+			final String authGroups,
+			final List<Service> services,
+			final Cloud cloud,
+			final boolean selfHealing,
+			final File cloudOverrides,
+			final boolean debugAll, final String debugEvents, final String debugModeString) {
 		super();
 		this.controller = controller;
 		this.result = result;
@@ -97,8 +116,12 @@ public class ApplicationInstallerRunnable implements Runnable {
 		this.selfHealing = selfHealing;
 		this.authGroups = authGroups;
 		this.cloudOverrides = cloudOverrides;
+		this.debugAll = debugAll;
+		this.debugModeString = debugModeString;
+		this.debugEvents = debugEvents;
 	}
 
+	@Override
 	public void run() {
 
 		final File appDir = result.getApplicationDir();
@@ -119,10 +142,10 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 	private void installServices(
 			final File appDir,
-			final String applicationName, 
+			final String applicationName,
 			final String authGroups,
-			final boolean async, 
-			final Cloud cloud, 
+			final boolean async,
+			final Cloud cloud,
 			final File cloudOverrides)
 			throws IOException {
 		// TODO: refactor the last part of this method
@@ -155,41 +178,40 @@ public class ApplicationInstallerRunnable implements Runnable {
 			}
 
 			boolean found = false;
-			
+
 			try {
 				// this will actually create an empty props file.
-				FileAppender appender = new FileAppender("finalPropsFile.properties");
-				LinkedHashMap<File, String> filesToAppend = new LinkedHashMap<File, String>();
-				
+				final FileAppender appender = new FileAppender("finalPropsFile.properties");
+				final LinkedHashMap<File, String> filesToAppend = new LinkedHashMap<File, String>();
+
 				// first add the application properties file. least important overrides.
 				// lookup application properties file
-				File applicationPropertiesFile = 
+				final File applicationPropertiesFile =
 						DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_PROPERTIES_FILE_NAME, appDir);
 				filesToAppend.put(applicationPropertiesFile, "Application Properties File");
 				// add the service properties file, second level overrides.
 				// lookup service properties file
-				String propertiesFileName = DSLUtils.getPropertiesFileName(serviceDirectory, 
+				final String propertiesFileName = DSLUtils.getPropertiesFileName(serviceDirectory,
 						DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
-				File servicePropertiesFile = new File(serviceDirectory, propertiesFileName);
+				final File servicePropertiesFile = new File(serviceDirectory, propertiesFileName);
 				filesToAppend.put(servicePropertiesFile, "Service Properties File");
 				// lookup overrides file
 				File actualOverridesFile = overridesFile;
 				if (actualOverridesFile == null) {
-						// when using the CLI, the application overrides file is inside the directory
-						actualOverridesFile = 
-								DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_OVERRIDES_FILE_NAME, appDir);
+					// when using the CLI, the application overrides file is inside the directory
+					actualOverridesFile =
+							DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_OVERRIDES_FILE_NAME, appDir);
 				}
 				// add the overrides file given in the command or via REST, most important overrides.
 				filesToAppend.put(actualOverridesFile, "Overrides Properties File");
-				/* 
-				 * name the merged properties file as the original properties file.
-				 * this will allow all properties to be available by anyone who parses the default
-				 * properties file. (like Lifecycle scripts) 
+				/*
+				 * name the merged properties file as the original properties file. this will allow all properties to be
+				 * available by anyone who parses the default properties file. (like Lifecycle scripts)
 				 */
 				appender.appendAll(servicePropertiesFile, filesToAppend);
-				
-				// Pack the folder and name it absolutePuName	
-				File packedFile = Packager.pack(service, serviceDirectory, absolutePUName, null);
+
+				// Pack the folder and name it absolutePuName
+				final File packedFile = Packager.pack(service, serviceDirectory, absolutePUName, null);
 				result.getApplicationFile().delete();
 				packedFile.deleteOnExit();
 				// Deployment will be done using the service's absolute PU name.
@@ -199,17 +221,17 @@ public class ApplicationInstallerRunnable implements Runnable {
 						: service.getCompute().getTemplate();
 				controller.deployElasticProcessingUnit(
 						absolutePUName,
-						applicationName, 
+						applicationName,
 						authGroups,
-						serviceName, 
+						serviceName,
 						packedFile,
-						contextProperties, 
+						contextProperties,
 						templateName,
-						true, 
+						true,
 						0,
-						TimeUnit.SECONDS, 
-						serviceCloudConfigurationContents, 
-						selfHealing, 
+						TimeUnit.SECONDS,
+						serviceCloudConfigurationContents,
+						selfHealing,
 						null /* service overrides file */,
 						cloudOverrides);
 				try {
@@ -272,7 +294,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return true if all services have Lifecycle events.
 	 */
 	public boolean isAsyncInstallPossibleForApplication() {
@@ -286,12 +308,12 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 		return true;
 	}
-	
+
 	/**
 	 * Sets the polling id for this deployment task.
-	 * 
+	 *
 	 * @param taskPollingId
-	 * 		polling task id
+	 *            polling task id
 	 */
 	public void setTaskPollingId(final UUID taskPollingId) {
 		this.pollingTaskId = taskPollingId;
@@ -350,6 +372,15 @@ public class ApplicationInstallerRunnable implements Runnable {
 		contextProperties.setProperty(
 				CloudifyConstants.CONTEXT_PROPERTY_ELASTIC,
 				Boolean.toString(service.isElastic()));
+
+		if (debugAll) {
+			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_ALL, Boolean.TRUE.toString());
+			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_MODE, debugModeString);
+		} else if (StringUtils.isNotBlank(debugEvents)) {
+			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_EVENTS, debugEvents);
+			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_MODE, debugModeString);
+		}
+
 		return contextProperties;
 	}
 
