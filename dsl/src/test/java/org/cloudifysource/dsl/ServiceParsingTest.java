@@ -44,6 +44,30 @@ public class ServiceParsingTest {
 	private static final String TEST_PARSING_RESOURCE_PATH2 = "src/test/resources/ExternalDSLFiles/";
 	private static final String TEST_PARSING_RESOURCE_PATH3 = "src/test/resources/groovyFileValidation/";
 	private static final String TEST_PARSING_AMP_MERGE_RESOURCE_PATH3 = "src/test/resources/inheritance/";
+	private static final String TEST_PARSING_DEBUG= "src/test/resources/debug/printContext";
+
+	/**
+	 *
+	 * @throws DSLException .
+	 * @throws UnknownHostException .
+	 */
+	@Test
+	public void testDebugParsing() throws DSLException, UnknownHostException {
+		final File testDebugPath = new File(TEST_PARSING_DEBUG);
+
+		final Service service = ServiceReader.getServiceFromDirectory(testDebugPath).getService();
+
+//		Assert.assertEquals("test features", service.getName());
+//		Assert.assertEquals("http://"
+//				+ InetAddress.getLocalHost().getHostName() + ":8080",
+//				service.getUrl());
+//		final ServiceLifecycle lifecycle = service.getLifecycle();
+//
+//		Assert.assertNotNull(lifecycle.getStart());
+//		Assert.assertNotNull(lifecycle.getPostStart());
+//		Assert.assertNotNull(lifecycle.getPreStop());
+	//	System.out.println(service);
+	}
 
 	/**
 	 *

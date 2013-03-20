@@ -38,6 +38,10 @@ public final class DSLUtils {
 	 */
 	public static final String DSL_FILE_PATH_PROPERTY_NAME = "dslFilePath";
 	/**
+	 * The binding variable name of debug all flag.
+	 */
+	public static final String DSL_DEBUG_ALL = "dslDebugAll";
+	/**
 	 * The binding variable name of the validateObject flag - indicates if need to validate the DSL file.
 	 */
 	public static final String DSL_VALIDATE_OBJECTS_PROPERTY_NAME = "validateObjectsFlag";

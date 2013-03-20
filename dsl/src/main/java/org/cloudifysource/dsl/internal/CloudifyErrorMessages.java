@@ -155,34 +155,50 @@ public enum CloudifyErrorMessages {
 	MANAGEMENT_SERVERS_SHUTDOWN_FAIL("shutdown_managers_timeout", 0),
 
 	FILE_NOT_EXISTS("file_doesnt_exist", 1),
-	
+
 	/**
 	 * Cloud validations
 	 */
 	EVENT_ATTEMPT_TO_VALIDATE_CLOUD_CONFIG("try_to_validate_cloud_configuration", 0),
-	
+
 	EVENT_CLOUD_CONFIG_VALIDATED("cloud_configuration_validated", 0),
-	
+
 	EVENT_VALIDATING_PROVIDER_OR_API_NAME("validating_provider_or_api_name", 1),
-	
+
 	EVENT_VALIDATING_CLOUDIFY_URL("validating_cloudify_url", 1),
-	
+
 	EVENT_VALIDATING_ALL_TEMPLATES("validating_all_templates", 0),
-	
-	EVENT_VALIDATING_TEMPLATE("validating_template", 1),
-	
+
+
+		EVENT_VALIDATING_TEMPLATE("validating_template", 1),
+
 	EVENT_TEMPLATE_VALIDATED("template_validated", 1),
-	
+
 	EVENT_VALIDATING_CLOUD_CREDENTIALS("validating_cloud_credentials", 0),
-	
+
 	EVENT_VALIDATING_IMAGE_HARDWARE_LOCATION_COMBINATION("validating_image_hardware_location_combination", 1),
-	
+
 	EVENT_VALIDATING_SECURITY_GROUP("validating_security_group", 1),
-	
+
 	EVENT_VALIDATING_SECURITY_GROUPS("validating_security_groups", 1),
-	
+
 	EVENT_VALIDATING_KEY_PAIR("validating_key_pair", 1),
-	
+
+	EVENT_VALIDATING_LOCATION_ID("validating_location_id", 1),
+
+	EVENT_VALIDATING_LOCATIONS("validating_locations", 0),
+
+
+	EVENT_VALIDATING_KEY_PAIRS("validating_key_pairs", 0),
+
+	EVENT_VALIDATING_TEMPLATE_OVERRIDES("validating_template_overrides", 0),
+
+	DEBUG_EVENTS_AND_ALL_SET("debug_events_and_all_set",0),
+	DEBUG_EVENT_UNKNOWN("unknown_debug_event", 1),
+	DEBUG_EVENT_REPEATS("debug_event_repeats", 1),
+	DEBUG_UNKNOWN_MODE("debug_unknown_mode", 2),
+
+
 	// CHECKSTYLE:OFF
 	;
 	// CHECKSTYLE:ON

@@ -64,6 +64,9 @@ public final class CloudifyConstants {
 	public static final String CONTEXT_PROPERTY_ELASTIC = "com.gs.service.elastic";
 	public static final String CONTEXT_PROPERTY_TEMPLATE = "com.gs.service.template";
 	public static final String CONTEXT_PROPERTY_AUTH_GROUPS = "com.gs.deployment.auth.groups";
+	public static final String CONTEXT_PROPERTY_DEBUG_ALL = "com.gs.service.debug.all";
+	public static final String CONTEXT_PROPERTY_DEBUG_EVENTS = "com.gs.service.debug.events";
+	public static final String CONTEXT_PROPERTY_DEBUG_MODE = "com.gs.service.debug.mode";
 
 	/**********
 	 * Key names for invocation request and response parameters.

@@ -13,6 +13,7 @@
 package org.cloudifysource.dsl.internal;
 
 import groovy.lang.Binding;
+import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyShell;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
@@ -27,6 +28,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,9 +43,16 @@ import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
 import org.cloudifysource.dsl.cloud.ScriptLanguages;
 import org.cloudifysource.dsl.internal.context.ServiceContextImpl;
 import org.cloudifysource.dsl.utils.ServiceUtils;
+import org.codehaus.groovy.ast.ASTNode;
+import org.codehaus.groovy.ast.ModuleNode;
+import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.control.CompilationFailedException;
+import org.codehaus.groovy.control.CompilePhase;
 import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
+import org.codehaus.groovy.transform.ASTTransformation;
+import org.codehaus.groovy.transform.GroovyASTTransformation;
 import org.openspaces.admin.Admin;
 import org.openspaces.core.cluster.ClusterInfo;
 import org.openspaces.ui.UserInterface;
@@ -98,6 +107,8 @@ public class DSLReader {
 	 */
 	private Map<Object, Object> variables;
 
+	private GroovyClassLoader dslClassLoader;
+
 	private static final String[] STAR_IMPORTS = new String[] {
 			org.cloudifysource.dsl.Service.class.getPackage().getName(), UserInterface.class.getPackage().getName(),
 			org.cloudifysource.dsl.internal.context.ServiceImpl.class.getPackage().getName(),
@@ -109,8 +120,9 @@ public class DSLReader {
 			org.cloudifysource.dsl.utils.ServiceUtils.class.getName(),
 			FileTransferModes.class.getName(),
 			RemoteExecutionModes.class.getName(),
-			ScriptLanguages.class.getName(),
-			"org.cloudifysource.debug.DebugHook"
+			ScriptLanguages.class.getName()
+//			,
+//			"org.cloudifysource.debug.DebugHook"
 	};
 
 	/******
@@ -388,6 +400,7 @@ public class DSLReader {
 			}
 		}
 
+		this.dslClassLoader = gs.getClassLoader();
 		return result;
 
 	}
@@ -580,6 +593,38 @@ public class DSLReader {
 		return gs;
 	}
 
+	@GroovyASTTransformation(phase=CompilePhase.SEMANTIC_ANALYSIS)
+	private static class DebugHookTransformar implements ASTTransformation {
+
+		private final Set<String> events = new HashSet<String>();
+
+		public DebugHookTransformar() {
+			// all events
+		}
+		public DebugHookTransformar(final String[] debugEvents) {
+			events.addAll(Arrays.asList(debugEvents));
+		}
+
+
+		@Override
+		public void visit(ASTNode[] nodes, SourceUnit source) {
+			ModuleNode ast = source.getAST();
+			BlockStatement block = ast.getStatementBlock();
+			block.getStatements();
+			if(nodes == null) {
+				return;
+			}
+
+			for (ASTNode astNode : nodes) {
+				if(events.contains(astNode.getText())) {
+					System.out.println("here");
+				}
+			}
+
+		}
+
+	}
+
 	private static CompilerConfiguration createCompilerConfiguration(final String baseClassName,
 			final List<String> extraJarFileNames) {
 		final CompilerConfiguration cc = new CompilerConfiguration();
@@ -592,10 +637,12 @@ public class DSLReader {
 		ic.addStaticImport("Statistics", org.cloudifysource.dsl.statistics.AbstractStatisticsDetails.class.getName(),
 				"STATISTICS_FACTORY");
 		cc.addCompilationCustomizers(ic);
+		//cc.addCompilationCustomizers(ic, new ASTTransformationCustomizer(new DebugHookTransformar()));
 
 		cc.setScriptBaseClass(baseClassName);
 
 		cc.setClasspathList(extraJarFileNames);
+
 		return cc;
 	}
 
@@ -751,6 +798,10 @@ public class DSLReader {
 
 	public boolean isCreateServiceContext() {
 		return createServiceContext;
+	}
+
+	public ClassLoader getDSLClassLoader() {
+		return this.dslClassLoader;
 	}
 
 	public void setCreateServiceContext(final boolean createServiceContext) {
