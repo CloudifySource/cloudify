@@ -19,9 +19,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
@@ -73,13 +71,8 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 	private static final String CLOUDIFY_HOME = Environment.getHomeDirectory(); 
 	private static final String DEFAULT_SECURITY_FOLDER =
 			CLOUDIFY_HOME + PATH_SEPARATOR + "config" + PATH_SEPARATOR + "security";
-	private static final String DEFAULT_KEYSTORE_FILE_PATH =
-			DEFAULT_SECURITY_FOLDER + PATH_SEPARATOR + "keystore";
-	private static final String BACKUP_KEYSTORE_FILE_PATH =
-			DEFAULT_KEYSTORE_FILE_PATH + ".backup";
 	private static final String DEFAULT_SECURITY_FILE_PATH =
 			DEFAULT_SECURITY_FOLDER + PATH_SEPARATOR + "spring-security.xml";
-	private static final String BACKUP_SECURITY_FILE_PATH = DEFAULT_SECURITY_FILE_PATH + ".backup";
 
 	@Option(required = false, name = "-lookup-groups", description = "A unique name that is used to group together"
 			+ " Cloudify components. The default localcloud lookup group is '"
@@ -118,11 +111,6 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 	@Argument(required = false, name = "name", description = "the cloud name")
 	private String cloudName;
 	
-	// flags to indicate if bootstrap operation created a backup file that
-	// should be reverted
-	private boolean securityFileBackedup = false;
-	private boolean keystoreFileBackedup = false;
-	
 	private String securityProfile = CloudifyConstants.SPRING_PROFILE_NON_SECURE;
 
 	/**
@@ -132,43 +120,33 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 	protected Object doExecute()
 			throws Exception {
 
-		try {
-			new CloudifyLicenseVerifier().verifyLicense();
+		new CloudifyLicenseVerifier().verifyLicense();
 
-			// first check java home is correctly configured
-			final String javaHome = System.getenv("JAVA_HOME");
-			if (javaHome == null || javaHome.trim().length() == 0) {
-				return messages.getString("missing_java_home");
-			}
-
-			final boolean javaHomeValid = isJavaHomeValid(javaHome);
-			if (!javaHomeValid) {
-				return getFormattedMessage("incorrect_java_home", Color.RED, javaHome);
-			}
-
-			setSecurityMode();
-
-			final LocalhostGridAgentBootstrapper installer = new LocalhostGridAgentBootstrapper();
-			installer.setVerbose(verbose);
-			installer.setLookupGroups(lookupGroups);
-			installer.setNicAddress(nicAddress);
-			installer.setProgressInSeconds(DEFAULT_PROGRESS_INTERVAL);
-			installer.setWaitForWebui(true);
-			installer.addListener(new CLILocalhostBootstrapperListener());
-			installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
-			installer.startLocalCloudOnLocalhostAndWait(securityProfile, securityFilePath, username, password,
-					keystoreFilePath, keystorePassword, timeoutInMinutes, TimeUnit.MINUTES);
-
-			return messages.getString("local_cloud_started");
-		} finally {
-			try {
-				revertSecurityFiles();
-			} catch (final Exception e) {
-				logger.log(Level.SEVERE,
-						"Failed to revert security files before finishing bootstrap-localcloud command", e);
-			}
-
+		// first check java home is correctly configured
+		final String javaHome = System.getenv("JAVA_HOME");
+		if (javaHome == null || javaHome.trim().length() == 0) {
+			return messages.getString("missing_java_home");
 		}
+
+		final boolean javaHomeValid = isJavaHomeValid(javaHome);
+		if (!javaHomeValid) {
+			return getFormattedMessage("incorrect_java_home", Color.RED, javaHome);
+		}
+
+		setSecurityMode();
+
+		final LocalhostGridAgentBootstrapper installer = new LocalhostGridAgentBootstrapper();
+		installer.setVerbose(verbose);
+		installer.setLookupGroups(lookupGroups);
+		installer.setNicAddress(nicAddress);
+		installer.setProgressInSeconds(DEFAULT_PROGRESS_INTERVAL);
+		installer.setWaitForWebui(true);
+		installer.addListener(new CLILocalhostBootstrapperListener());
+		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
+		installer.startLocalCloudOnLocalhostAndWait(securityProfile, securityFilePath, username, password,
+				keystoreFilePath, keystorePassword, timeoutInMinutes, TimeUnit.MINUTES);
+
+		return messages.getString("local_cloud_started");
 	}
 
 	private boolean isJavaHomeValid(final String javaHome) {
@@ -284,31 +262,6 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 		
 	}
 
-	private void revertSecurityFiles() throws Exception {
-
-		if (this.securityFileBackedup) {
-			final File defaultSecurityFile = new File(DEFAULT_SECURITY_FILE_PATH);
-			final File backupSecurityFile = new File(BACKUP_SECURITY_FILE_PATH);
-
-			revertSecurityFile(defaultSecurityFile, backupSecurityFile);
-
-		}
-		if (this.keystoreFileBackedup) {
-			final File defaultKeystoreFile = new File(DEFAULT_KEYSTORE_FILE_PATH);
-			final File backupKeystoreFile = new File(BACKUP_KEYSTORE_FILE_PATH);
-
-			revertSecurityFile(defaultKeystoreFile, backupKeystoreFile);
-		}
-	}
-
-	private void revertSecurityFile(final File defaultFile, final File backupFile) throws IOException {
-		if (backupFile.exists()) {
-			FileUtils.copyFile(backupFile, defaultFile);
-			FileUtils.deleteQuietly(backupFile);
-		} else {
-			FileUtils.deleteQuietly(defaultFile);
-		}
-	}
 
 	private void validateSecurityVars() throws IOException {
 
@@ -323,12 +276,6 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 				}
 
 				securityFilePath = securityFile.getCanonicalPath();
-				/*final File defaultSecurityFile = new File(DEFAULT_SECURITY_FILE_PATH);
-				if (!securitySourceFile.getCanonicalFile().equals(defaultSecurityFile.getCanonicalFile())) {
-					this.securityFileBackedup = true;
-					backupSecurityFile();
-					FileUtils.copyFile(securitySourceFile, defaultSecurityFile);
-				}*/
 			} else {
 				throw new IllegalArgumentException("-security-file is missing or empty");
 			}
@@ -341,47 +288,12 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 				}
 
 				keystoreFilePath = keystoreFile.getCanonicalPath();
-				/*final File defaultKeystoreFile = new File(DEFAULT_KEYSTORE_FILE_PATH);
-				if (!keystoreSourceFile.equals(defaultKeystoreFile)) {
-					this.keystoreFileBackedup = true;
-					backupKeystoreFile();
-					FileUtils.copyFile(keystoreSourceFile, new File(DEFAULT_KEYSTORE_FILE_PATH));
-				}*/
 			} else {
 				throw new IllegalArgumentException("-keystore is missing or empty: ");
 			}
 		}
 	}
-
-	/*private void backupSecurityFile() throws IOException {
-		final File defaultSecurityFile = new File(DEFAULT_SECURITY_FILE_PATH);
-		final File backupSecurityFile = new File(BACKUP_SECURITY_FILE_PATH);
-
-		backupExistingFile(defaultSecurityFile, backupSecurityFile);
-
-	}
-
-	private void backupKeystoreFile() throws IOException {
-		final File defaultKeystoreFile = new File(DEFAULT_KEYSTORE_FILE_PATH);
-		final File backupKeystoreFile = new File(BACKUP_KEYSTORE_FILE_PATH);
-
-		backupExistingFile(defaultKeystoreFile, backupKeystoreFile);
-
-	}
-
-	private void backupExistingFile(final File defaultFile, final File backupFile) throws IOException {
-		if (!defaultFile.exists()) {
-			return;
-		}
-
-		if (backupFile.exists()) {
-			logger.info("Found existing file backup at: " + backupFile
-					+ ". Old backup will be overwritten.");
-		}
-
-		// current security file exists and backup file does not exist.
-		FileUtils.copyFile(defaultFile, backupFile);
-	}*/
+	
 
 	private void validateKeystoreFile(final String password, final File keystoreFile) throws CLIStatusException {
 		new KeystoreFileVerifier().verifyKeystoreFile(keystoreFile, password);
