@@ -720,8 +720,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 				ComputeTemplate template = entry.getValue();
 				String endpoint = getEndpoint(template);
 				if (endpointRequired && StringUtils.isBlank(endpoint)) {
-					throw new CloudProvisioningException("Endpoint is missing. Add a \"jclouds.endpoint\" entry in"
-							+ "the template's overrides section");
+					throw new CloudProvisioningException("Endpoint not defined. Please add a \"jclouds.endpoint\""
+							+ " entry in the template's overrides section");
 				}
 				
 				try {
