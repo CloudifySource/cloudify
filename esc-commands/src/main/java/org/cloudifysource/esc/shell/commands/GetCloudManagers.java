@@ -36,10 +36,10 @@ import org.cloudifysource.shell.commands.AbstractGSCommand;
 import org.cloudifysource.shell.commands.CLIStatusException;
 
 /************
- * CLI Command to bootstrap a cloud.
+ * CLI Command to list cloud managers using the cloud driver.
  *
  * @author barakme
- * @since 2.0.0
+ * @since 2.5.0
  *
  */
 @Command(
