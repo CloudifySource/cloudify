@@ -3064,7 +3064,9 @@ public class ServiceController implements ServiceDetailsProvider {
 				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
 				.highlyAvailable(dataGridConfig.getSla().getHighlyAvailable())
 				// allow single machine for local development purposes
-				.singleMachineDeployment();
+				.singleMachineDeployment()
+				.addCommandLineArgument("-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "="
+							+ cloud.getConfiguration().getComponents().getUsm().getPortRange());
 
 		setContextProperties(deployment, contextProperties);
 
@@ -3216,7 +3218,9 @@ public class ServiceController implements ServiceDetailsProvider {
 						CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME,
 						applicationName)
 				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
-				.name(serviceName);
+				.name(serviceName)
+				.addCommandLineArgument("-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "="
+							+ cloud.getConfiguration().getComponents().getUsm().getPortRange());
 		// TODO:read from cloud DSL
 
 		setContextProperties(deployment, contextProperties);
@@ -3310,7 +3314,9 @@ public class ServiceController implements ServiceDetailsProvider {
 						applicationName)
 				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
 				.highlyAvailable(puConfig.getSla().getHighlyAvailable())
-				.singleMachineDeployment();
+				.singleMachineDeployment()
+				.addCommandLineArgument("-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "="
+							+ cloud.getConfiguration().getComponents().getUsm().getPortRange());
 
 		setContextProperties(deployment, contextProperties);
 
