@@ -65,6 +65,7 @@ import org.openspaces.admin.gsa.GSAReservationId;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.gsa.GridServiceAgents;
 import org.openspaces.admin.gsa.events.ElasticGridServiceAgentProvisioningProgressChangedEventListener;
+import org.openspaces.admin.internal.gsa.InternalGridServiceAgent;
 import org.openspaces.admin.machine.events.ElasticMachineProvisioningProgressChangedEventListener;
 import org.openspaces.admin.pu.elastic.ElasticMachineProvisioningConfig;
 import org.openspaces.admin.zone.config.ExactZonesConfig;
@@ -230,7 +231,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			throws ElasticMachineProvisioningException,
 			ElasticGridServiceAgentProvisioningException, InterruptedException, TimeoutException {
 
-		logger.info("Cloudify Adapter is starting a new machine with zones " + zones.getZones());
+		logger.info("Cloudify Adapter is starting a new machine with zones " + zones.getZones() + " and reservation id " + reservationId);
 
 		// calculate timeout
 		final long end = System.currentTimeMillis() + unit.toMillis(duration);
@@ -287,7 +288,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			}
 
 		} catch (final Exception e) {
-			throw new ElasticMachineProvisioningException("Failed to provisiong machine: " + e.getMessage(), e);
+			throw new ElasticMachineProvisioningException("Failed to provision machine: " + e.getMessage(), e);
 		}
 
 		logger.info("Machine was provisioned by implementation. Machine is: " + machineDetails);
@@ -338,7 +339,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				logger.info("Machine provisioning provided a machine and indicated that an agent is already running");
 			} else {
 				// install gigaspaces and start agent
-				logger.info("Cloudify Adapter is installing Cloudify on new machine");
+				logger.info("Cloudify Adapter is installing Cloudify agent with reservation id " + reservationId + " on " + machineIp);
 				installAndStartAgent(machineDetails, reservationId, end);
 				// check for timeout again - the installation step can also take a
 				// while to complete.
@@ -352,8 +353,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			// be added here.
 
 			// wait for GSA to become available
-			logger.info("Cloudify adapter is waiting for GSA to become available");
+			logger.info("Cloudify adapter is waiting for GSA with reservation id " + reservationId.toString() + " to become available");
 			final GridServiceAgent gsa = waitForGsa(machineIp, end);
+            final GSAReservationId discoveredReservationId = ((InternalGridServiceAgent)gsa).getReservationId();
+            logger.info("Discovered agent with reservation id " + discoveredReservationId);
+            if (!reservationId.equals(discoveredReservationId)) {
+                throw new IllegalStateException("Cloudify Adapter discovered the wrong agent. expected reservation id is " + reservationId + ". but actual was " + discoveredReservationId);
+            }
 			if (gsa == null) {
 				// GSA did not start correctly or on time - shutdown the machine
 				// handleGSANotFound(machineIp);
