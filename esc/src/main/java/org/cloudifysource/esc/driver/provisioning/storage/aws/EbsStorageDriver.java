@@ -393,7 +393,9 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 	
 	private void waitForVolumeToReachStatus(final Status status, final long end , final String volumeId) 
 			throws TimeoutException, StorageProvisioningException {
-		
+
+        logger.fine("Waiting for volume '" + volumeId + "' to reach status " + status);
+
 		Set<Volume> volumes;
 		while (System.currentTimeMillis() < end) {
 			try {
@@ -407,7 +409,9 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 			Status volumeStatus = volume.getStatus();
 			if (volumeStatus.equals(status)) {
 				return;
-			}
+			} else {
+                logger.fine("volume[" + volumeId + "] is in status " + volume.getStatus());
+            }
 		}
 		throw new TimeoutException("Timed out waiting for storage status to become " + status.toString());
 	}
