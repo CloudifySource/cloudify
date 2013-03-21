@@ -404,17 +404,20 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
     private void validateMachineIp(MachineDetails machineDetails) throws CloudProvisioningException {
 
+        logger.fine("Validating " + machineDetails + " after provisioning ");
+
         String machineIp;
 
         // fetch a list of agents the admin recognizes.
+        logger.fine("Listing existing agents");
         GridServiceAgents gridServiceAgents = originalESMAdmin.getGridServiceAgents();
         for (GridServiceAgent agent : gridServiceAgents) {
-
             if (cloud.getConfiguration().isConnectToPrivateIp()) {
                 machineIp = machineDetails.getPrivateAddress();
             } else {
                 machineIp = machineDetails.getPublicAddress();
             }
+            logger.fine("Found agent " + agent.getUid() + " on host " + agent.getMachine().getHostAddress());
 
             if (agent.getMachine().getHostAddress().equals(machineIp)) {
                 // we found an existing agent with the ip on the newly provisioned machine.
