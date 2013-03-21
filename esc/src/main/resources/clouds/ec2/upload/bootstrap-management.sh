@@ -46,6 +46,13 @@ function error_exit_on_level {
 	fi
 }
 
+set -x
+uname -a
+ulimit –a
+free
+ps -eLo pid,cmd,user,thcount
+set +x
+
 echo Checking script path
 SCRIPT=`readlink -f $0`
 SCRIPTPATH=`dirname $SCRIPT`
