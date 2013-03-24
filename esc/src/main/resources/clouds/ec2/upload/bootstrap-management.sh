@@ -48,8 +48,8 @@ function error_exit_on_level {
 
 set -x
 uname -a
-ulimit –a
 free
+ulimit -a
 ps -eLo pid,cmd,user,thcount
 set +x
 
