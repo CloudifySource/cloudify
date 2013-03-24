@@ -756,7 +756,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	}
 
 	private void modifyCommandLine(final List<String> commandLineParams, final File workingDir, final File outputFile,
-			final File errorFile)
+			final File errorFile, final LifecycleEvents event)
 			throws USMException {
 		modifyOSCommandLine(commandLineParams, workingDir);
 
@@ -770,19 +770,24 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 				errorFile);
 
 		if (ServiceUtils.isLinuxOrUnix()) {
-			// run the whole command in a shell session
-			logger.fine("Command before shell modification: " + commandLineParams);
-			final StringBuilder sb = new StringBuilder();
-			for (final String param : commandLineParams) {
-				sb.append(param).append(" ");
-			}
-			commandLineParams.clear();
-			commandLineParams.addAll(Arrays.asList("nohup",
-					"sh",
-					"-c",
-					sb.toString()));
-			logger.fine("Command after shell modification: " + commandLineParams);
+			if (isDebugEvent(event)) {
+				// skipping linux command line modifications for debug event
+				logger.info("Skipping linux command line modifications for debug event");
+			} else {
 
+				// run the whole command in a shell session
+				logger.fine("Command before shell modification: " + commandLineParams);
+				final StringBuilder sb = new StringBuilder();
+				for (final String param : commandLineParams) {
+					sb.append(param).append(" ");
+				}
+				commandLineParams.clear();
+				commandLineParams.addAll(Arrays.asList("nohup",
+						"sh",
+						"-c",
+						sb.toString()));
+				logger.fine("Command after shell modification: " + commandLineParams);
+			}
 		}
 	}
 
@@ -818,12 +823,12 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 					"If redirectError option is chosen, neither output file or error file can be set");
 		}
 
-
-
 		List<String> modifiedCommandLineParams = null;
-
+		modifiedCommandLineParams = commandLineParams;
 		if (isDebugEvent(event)) {
 			// create environment for debugging the event and modify the command line.
+			modifyCommandLine(modifiedCommandLineParams, workingDir, outputFile, errorFile, event);
+
 			logger.info("DEBUG BREAKPOINT!");
 			DebugHookInvoker dhi = new DebugHookInvoker();
 
@@ -831,16 +836,15 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			logger.info("DSL Class Loader is: " + loader);
 
 			modifiedCommandLineParams = dhi.setUpDebugHook(this.configutaion.getServiceContext(),
-					commandLineParams, loader, this.debugMode);
+					modifiedCommandLineParams, loader, this.debugMode);
 
 		} else {
 
-			modifiedCommandLineParams = commandLineParams;
 
+			modifyCommandLine(modifiedCommandLineParams, workingDir, outputFile, errorFile, event);
 		}
 
 
-		modifyCommandLine(modifiedCommandLineParams, workingDir, outputFile, errorFile);
 
 		final String modifiedCommandLine =
 				org.springframework.util.StringUtils.collectionToDelimitedString(modifiedCommandLineParams,
