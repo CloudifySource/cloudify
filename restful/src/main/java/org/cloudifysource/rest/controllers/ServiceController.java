@@ -2840,7 +2840,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			throws TimeoutException, IOException,
 			DSLException, RestErrorException, PackagingException {
 
-		logger.info("Deploying service with template: " + templateName);
+		logger.info("Deploying service " + ServiceUtils.getAbsolutePUName(applicationName, serviceName) + " with template: " + templateName);
 		String actualTemplateName = templateName;
 
 		if (cloud != null) {
