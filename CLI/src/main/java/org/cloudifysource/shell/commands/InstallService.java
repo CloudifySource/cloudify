@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -46,15 +46,15 @@ import org.fusesource.jansi.Ansi.Color;
 /**
  * @author rafi, adaml, barakm
  * @since 2.0.0
- *
+ * 
  *        Installs a service by deploying the service files as one packed file (zip, war or jar). Service files can also
  *        be supplied as a folder containing multiple files.
- *
+ * 
  *        Required arguments: service-file - Path to the service's packed file or folder
- *
+ * 
  *        Optional arguments: zone - The machines zone in which to install the service name - The name of the service
  *        timeout - The number of minutes to wait until the operation is completed (default: 5 minutes)
- *
+ * 
  *        Command syntax: install-service [-zone zone] [-name name] [-timeout timeout] service-file
  */
 @Command(scope = "cloudify", name = "install-service", description = "Installs a service. If you specify a folder"
@@ -62,6 +62,9 @@ import org.fusesource.jansi.Ansi.Color;
 public class InstallService extends AdminAwareCommand {
 
 	private static final int DEFAULT_TIMEOUT_MINUTES = 5;
+	private static final String TIMEOUT_ERROR_MESSAGE = "Service installation timed out."
+			+ " Configure the timeout using the -timeout flag.";
+	private static final long TEN_K = 10 * FileUtils.ONE_KB;
 
 	@Argument(required = true, name = "recipe", description = "The service recipe folder or archive")
 	private File recipe;
@@ -82,7 +85,7 @@ public class InstallService extends AdminAwareCommand {
 
 	@Option(required = false, name = "-service-file-name", description = "Name of the service file in the "
 			+ "recipe folder. If not specified, uses the default file name")
-	private final String serviceFileName = null;
+	private String serviceFileName = null;
 
 	@Option(required = false, name = "-cloudConfiguration", description =
 			"File of directory containing configuration information to be used by the cloud driver "
@@ -92,9 +95,6 @@ public class InstallService extends AdminAwareCommand {
 	@Option(required = false, name = "-disableSelfHealing",
 			description = "Disables service self healing")
 	private boolean disableSelfHealing = false;
-
-	private static final String TIMEOUT_ERROR_MESSAGE = "Service installation timed out."
-			+ " Configure the timeout using the -timeout flag.";
 
 	@Option(required = false, name = "-overrides", description =
 			"File containing properties to be used to overrides the current service's properties.")
@@ -116,8 +116,6 @@ public class InstallService extends AdminAwareCommand {
 	@Option(required = false, name = "-debug-mode",
 			description = "Debug mode. One of: instead, after or onError")
 	private String debugModeString = DebugModes.INSTEAD.getName();
-
-	private static final long TEN_K = 10 * FileUtils.ONE_KB;
 
 	/**
 	 * {@inheritDoc}
@@ -168,9 +166,9 @@ public class InstallService extends AdminAwareCommand {
 					additionFiles.add(cloudConfigurationZipFile);
 				}
 				File recipeFile = recipe;
-				if (serviceFileName != null) {
+				if (getServiceFileName() != null) {
 					final File fullPathToRecipe = new File(
-							recipe.getAbsolutePath() + "/" + serviceFileName);
+							recipe.getAbsolutePath() + "/" + getServiceFileName());
 					if (!fullPathToRecipe.exists()) {
 						throw new CLIStatusException(
 								"service_file_doesnt_exist",
@@ -201,8 +199,8 @@ public class InstallService extends AdminAwareCommand {
 		Properties props = null;
 		if (service != null) {
 			props = createServiceContextProperties(service);
-			if (serviceFileName != null) {
-				props.setProperty(CloudifyConstants.CONTEXT_PROPERTY_SERVICE_FILE_NAME, serviceFileName);
+			if (getServiceFileName() != null) {
+				props.setProperty(CloudifyConstants.CONTEXT_PROPERTY_SERVICE_FILE_NAME, getServiceFileName());
 			}
 			if (serviceName == null || serviceName.isEmpty()) {
 				serviceName = service.getName();
@@ -302,7 +300,7 @@ public class InstallService extends AdminAwareCommand {
 	 * Create Properties object with settings from the service object, if found on the given service. The supported
 	 * settings are: com.gs.application.dependsOn com.gs.service.type com.gs.service.icon
 	 * com.gs.service.network.protocolDescription
-	 *
+	 * 
 	 * @param service
 	 *            The service object the read the settings from
 	 * @return Properties object populated with the above properties, if found on the given service.
@@ -434,6 +432,14 @@ public class InstallService extends AdminAwareCommand {
 
 	public void setDebugModeString(final String debugModeString) {
 		this.debugModeString = debugModeString;
+	}
+
+	public String getServiceFileName() {
+		return serviceFileName;
+	}
+
+	public void setServiceFileName(final String serviceFileName) {
+		this.serviceFileName = serviceFileName;
 	}
 
 }

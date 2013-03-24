@@ -62,6 +62,9 @@ import org.fusesource.jansi.Ansi.Color;
 public class InstallApplication extends AdminAwareCommand {
 
 	private static final int DEFAULT_TIMEOUT_MINUTES = 10;
+	private static final String TIMEOUT_ERROR_MESSAGE = "Application installation timed out."
+			+ " Configure the timeout using the -timeout flag.";
+	private static final long TEN_K = 10 * FileUtils.ONE_KB;
 
 	@Argument(required = true, name = "application-file", description = "The application recipe file path, folder "
 			+ "or archive")
@@ -80,7 +83,7 @@ public class InstallApplication extends AdminAwareCommand {
 
 	@Option(required = false, name = "-disableSelfHealing",
 			description = "Disables service self healing")
-	private final boolean disableSelfHealing = false;
+	private boolean disableSelfHealing = false;
 
 	@Option(required = false, name = "-cloudConfiguration",
 			description = "File or directory containing configuration information to be used by the cloud driver "
@@ -97,8 +100,7 @@ public class InstallApplication extends AdminAwareCommand {
 					+ "configuration for this application and its services.")
 	private File cloudOverrides;
 
-	private static final String TIMEOUT_ERROR_MESSAGE = "Application installation timed out."
-			+ " Configure the timeout using the -timeout flag.";
+
 
 	@Option(required = false, name = "-debug-all",
 			description = "Debug all supported lifecycle events")
@@ -110,9 +112,9 @@ public class InstallApplication extends AdminAwareCommand {
 
 	@Option(required = false, name = "-debug-mode",
 			description = "Debug mode. One of: instead, after or onError")
-	private final String debugModeString = DebugModes.INSTEAD.getName();
+	private String debugModeString = DebugModes.INSTEAD.getName();
 
-	private static final long TEN_K = 10 * FileUtils.ONE_KB;
+
 
 	/**
 	 * {@inheritDoc}
@@ -123,7 +125,7 @@ public class InstallApplication extends AdminAwareCommand {
 			throws Exception {
 
 		try {
-			DebugUtils.validateDebugSettings(debugAll, debugEvents, debugModeString);
+			DebugUtils.validateDebugSettings(debugAll, debugEvents, getDebugModeString());
 		} catch (final DSLErrorMessageException e) {
 			throw new CLIStatusException(e.getErrorMessage().getName(), (Object[]) e.getArgs());
 		}
@@ -133,7 +135,7 @@ public class InstallApplication extends AdminAwareCommand {
 			}
 		}
 
-		RecipePathResolver pathResolver = new RecipePathResolver();
+		final RecipePathResolver pathResolver = new RecipePathResolver();
 		if (pathResolver.resolveApplication(applicationFile)) {
 			applicationFile = pathResolver.getResolved();
 		} else {
@@ -167,7 +169,7 @@ public class InstallApplication extends AdminAwareCommand {
 				throw new CLIStatusException("application_file_format_mismatch", applicationFile.getPath());
 			}
 		} else { // pack an application folder
-			List<File> additionalServiceFiles = new LinkedList<File>();
+			final List<File> additionalServiceFiles = new LinkedList<File>();
 			if (cloudConfigurationZipFile != null) {
 				additionalServiceFiles.add(cloudConfigurationZipFile);
 			}
@@ -179,14 +181,14 @@ public class InstallApplication extends AdminAwareCommand {
 
 		final Map<String, String> result =
 				adminFacade.installApplication(zipFile, applicationName,
-						authGroups, getTimeoutInMinutes(), !disableSelfHealing,
-						overrides, cloudOverrides, debugAll, debugEvents, debugModeString);
+						authGroups, getTimeoutInMinutes(), !isDisableSelfHealing(),
+						overrides, cloudOverrides, debugAll, debugEvents, getDebugModeString());
 
 		final String serviceOrder = result.get(CloudifyConstants.SERVICE_ORDER);
 
 		// If temp file was created, Delete it.
 		if (!applicationFile.isFile()) {
-			boolean delete = zipFile.delete();
+			final boolean delete = zipFile.delete();
 			if (!delete) {
 				logger.info("Failed to delete application file: " + zipFile.getAbsolutePath());
 			}
@@ -231,7 +233,7 @@ public class InstallApplication extends AdminAwareCommand {
 
 	private DSLReader createDslReader() {
 		final DSLReader dslReader = new DSLReader();
-		File dslFile = DSLReader.findDefaultDSLFile(DSLUtils.APPLICATION_DSL_FILE_NAME_SUFFIX, applicationFile);
+		final File dslFile = DSLReader.findDefaultDSLFile(DSLUtils.APPLICATION_DSL_FILE_NAME_SUFFIX, applicationFile);
 		dslReader.setDslFile(dslFile);
 		dslReader.setCreateServiceContext(false);
 		dslReader.addProperty(DSLUtils.APPLICATION_DIR, dslFile.getParentFile().getAbsolutePath());
@@ -253,7 +255,7 @@ public class InstallApplication extends AdminAwareCommand {
 		// create a temp file in a temp directory
 		final File tempDir = File.createTempFile("__Cloudify_Cloud_configuration", ".tmp");
 		FileUtils.forceDelete(tempDir);
-		boolean mkdirs = tempDir.mkdirs();
+		final boolean mkdirs = tempDir.mkdirs();
 		if (!mkdirs) {
 			logger.info("Field to create temporary directory " + tempDir.getAbsolutePath());
 		}
@@ -289,7 +291,7 @@ public class InstallApplication extends AdminAwareCommand {
 	 *            Application object to analyze
 	 */
 	private void printApplicationInfo(final Application application) {
-		List<Service> services = application.getServices();
+		final List<Service> services = application.getServices();
 		logger.info("Application [" + applicationName + "] with " + services.size() + " services");
 		for (final Service service : services) {
 			if (service.getDependsOn().isEmpty()) {
@@ -315,5 +317,21 @@ public class InstallApplication extends AdminAwareCommand {
 
 	public void setTimeoutInMinutes(final int timeoutInMinutes) {
 		this.timeoutInMinutes = timeoutInMinutes;
+	}
+
+	public String getDebugModeString() {
+		return debugModeString;
+	}
+
+	public void setDebugModeString(final String debugModeString) {
+		this.debugModeString = debugModeString;
+	}
+
+	public boolean isDisableSelfHealing() {
+		return disableSelfHealing;
+	}
+
+	public void setDisableSelfHealing(final boolean disableSelfHealing) {
+		this.disableSelfHealing = disableSelfHealing;
 	}
 }
