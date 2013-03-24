@@ -353,11 +353,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			// be added here.
 
 			// wait for GSA to become available
-			logger.info("Cloudify adapter is waiting for GSA with reservation id " + reservationId.toString() + " to become available");
+			logger.info("Cloudify adapter is waiting for GSA with reservation id " + reservationId + " to become available");
 			final GridServiceAgent gsa = waitForGsa(machineIp, end);
             final GSAReservationId discoveredReservationId = ((InternalGridServiceAgent)gsa).getReservationId();
             logger.info("Discovered agent with reservation id " + discoveredReservationId);
-            if (!reservationId.equals(discoveredReservationId)) {
+            if (reservationId != null && !reservationId.equals(discoveredReservationId)) {
                 throw new ElasticMachineProvisioningException("Cloudify Adapter discovered the wrong agent. expected reservation id is " + reservationId + ". but actual was " + discoveredReservationId);
             }
 			if (gsa == null) {
