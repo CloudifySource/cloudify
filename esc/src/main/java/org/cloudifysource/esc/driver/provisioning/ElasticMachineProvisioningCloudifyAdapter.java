@@ -355,17 +355,17 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			// wait for GSA to become available
 			logger.info("Cloudify adapter is waiting for GSA with reservation id " + reservationId + " to become available");
 			final GridServiceAgent gsa = waitForGsa(machineIp, end);
+            if (gsa == null) {
+                // GSA did not start correctly or on time - shutdown the machine
+                // handleGSANotFound(machineIp);
+                throw new TimeoutException("New machine was provisioned and Cloudify was installed, "
+                        + "but a GSA was not discovered on the new machine: " + machineDetails);
+            }
             final GSAReservationId discoveredReservationId = ((InternalGridServiceAgent)gsa).getReservationId();
             logger.info("Discovered agent with reservation id " + discoveredReservationId);
             if (reservationId != null && !reservationId.equals(discoveredReservationId)) {
                 throw new ElasticMachineProvisioningException("Cloudify Adapter discovered the wrong agent. expected reservation id is " + reservationId + ". but actual was " + discoveredReservationId);
             }
-			if (gsa == null) {
-				// GSA did not start correctly or on time - shutdown the machine
-				// handleGSANotFound(machineIp);
-				throw new TimeoutException("New machine was provisioned and Cloudify was installed, "
-						+ "but a GSA was not discovered on the new machine: " + machineDetails);
-			}
 			// TODO: Derive cloudify specific event and include more event details as specified in CLOUDIFY-10651
 			agentEventListener.elasticGridServiceAgentProvisioningProgressChanged(
 					new GridServiceAgentStartedEvent(machineIp, gsa.getUid()));
