@@ -1645,8 +1645,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				applicationName);
 		// TODO: Add timeout.
 		FutureTask<Boolean> undeployTask = null;
-		logger.log(Level.INFO,
-				"Starting to poll for uninstall lifecycle events.");
+		logger.log(Level.INFO, "Starting to poll for" + applicationName + " uninstall lifecycle events.");
 		if (uninstallOrder.size() > 0) {
 
 			undeployTask = new FutureTask<Boolean>(new Runnable() {
