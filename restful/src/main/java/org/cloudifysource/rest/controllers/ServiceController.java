@@ -1845,7 +1845,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				final MultipartFile recipeOverridesFile,
 			@RequestParam(value = CLOUD_OVERRIDES_FILE_PARAM, required = false) final MultipartFile cloudOverrides,
 			@RequestParam(value = "selfHealing", required = false) final Boolean selfHealing,
-			@RequestParam(value = "debugAll", required = false) final Boolean debugAll,
+			@RequestParam(value = "debugAll", required = false, defaultValue = "false") final boolean debugAll,
 			@RequestParam(value = "debugEvents", required = false) final String debugEvents,
 			@RequestParam(value = "debugMode", required = false) final String debugMode)
 			throws IOException, DSLException, RestErrorException {
