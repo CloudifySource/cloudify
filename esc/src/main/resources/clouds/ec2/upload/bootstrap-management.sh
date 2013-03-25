@@ -49,8 +49,10 @@ function error_exit_on_level {
 set -x
 uname -a
 free
+free -m
 ulimit -a
 ps -eLo pid,cmd,user,thcount
+ps -eaf | grep java
 set +x
 
 echo Checking script path
