@@ -2168,7 +2168,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				services, this.cloud, selfHealing,cloudOverrides,
 				debugAll, debugEvents, debugModeString);
 
-		logger.log(Level.INFO, "Starting to poll for installation lifecycle events.");
+		logger.log(Level.INFO, "Starting to poll for " + applicationName + " installation lifecycle events.");
 		final UUID lifecycleEventContainerID = startPollingForLifecycleEvents(
 				result.getApplication(), applicationName, timeout, TimeUnit.MINUTES);
 
