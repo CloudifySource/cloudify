@@ -126,11 +126,10 @@ public class ApplicationInstallerRunnable implements Runnable {
 
 		final File appDir = result.getApplicationDir();
 
-		logger.fine("Installing application " + applicationName
-				+ " with the following services: " + services);
+		logger.fine("Installing application " + applicationName + " with the following services: " + services);
 
 		final boolean asyncInstallPossible = isAsyncInstallPossibleForApplication();
-		logger.info("async install setting: " + asyncInstallPossible);
+		logger.info("Async install setting is " + asyncInstallPossible);
 		try {
 			installServices(appDir, applicationName, authGroups, asyncInstallPossible, cloud, cloudOverrides);
 			FileUtils.deleteDirectory(appDir);
@@ -148,13 +147,9 @@ public class ApplicationInstallerRunnable implements Runnable {
 			final Cloud cloud,
 			final File cloudOverrides)
 			throws IOException {
-		// TODO: refactor the last part of this method
-		logger.info("Installing service for application: " + applicationName
-				+ ". Async install: " + async + ". Number of services: "
-				+ this.services.size());
+		logger.info("Installing services for application: " + applicationName + ". Async install: " + async + ". Number of services: " + this.services.size());
 		for (final Service service : services) {
-			logger.info("Installing service: " + service.getName()
-					+ " for application: " + applicationName);
+			logger.info("Installing service: " + service.getName() + " for application: " + applicationName);
 			service.getCustomProperties().put("usmJarPath",
 					Environment.getHomeDirectory() + "/lib/platform/usm");
 
@@ -244,9 +239,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 				}
 
 				if (!async) {
-					logger.info("Waiting for instance of service: "
-							+ serviceName + " of application: "
-							+ applicationName);
+					logger.info("Waiting for instance of service: " + serviceName + " of application: "	+ applicationName);
 					final boolean instanceFound = controller
 							.waitForServiceInstance(applicationName,
 									serviceName,
