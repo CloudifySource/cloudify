@@ -45,16 +45,6 @@ function error_exit_on_level {
 		error_exit ${1} ${2}
 	fi
 }
-
-set -x
-uname -a
-free
-free -m
-ulimit -a
-ps -eLo pid,cmd,user,thcount
-ps -eaf | grep java
-set +x
-
 echo Checking script path
 SCRIPT=`readlink -f $0`
 SCRIPTPATH=`dirname $SCRIPT`
