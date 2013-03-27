@@ -180,8 +180,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 			String instanceId = nodeMetadata.getProviderId();
 			logger.log(Level.FINE, "Attaching volume with id " + volumeId 
 					+ " to machine instance with id " + instanceId);
-			String region = this.computeTemplate.getLocationId();
-			this.ebsClient.attachVolumeInRegion(region, 
+			this.ebsClient.attachVolumeInRegion(this.region, 
 					volumeId, instanceId, device);
 			
 		} catch (Exception e) {
