@@ -46,6 +46,7 @@ import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.jclouds.JCloudsDeployer;
+import org.cloudifysource.esc.util.JCloudsUtils;
 import org.jclouds.apis.ApiMetadata;
 import org.jclouds.apis.Apis;
 import org.jclouds.compute.ComputeServiceContext;
@@ -889,8 +890,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	private void validateEC2KeyPair(final ComputeServiceContext computeServiceContext, final String locationId,
 			final String keyPairName) throws CloudProvisioningException {
 		RestContext<EC2Client, EC2AsyncClient> unwrapped = computeServiceContext.unwrap();
-		KeyPairClient ec2KeyPairClient = unwrapped.getApi().getKeyPairServices();
-		Set<KeyPair> foundKeyPairs = ec2KeyPairClient.describeKeyPairsInRegion(locationId, keyPairName);
+		EC2Client ec2Client = unwrapped.getApi();
+		KeyPairClient ec2KeyPairClient = ec2Client.getKeyPairServices();
+		String region = JCloudsUtils.getEC2region(ec2Client, locationId);
+		Set<KeyPair> foundKeyPairs = ec2KeyPairClient.describeKeyPairsInRegion(region, keyPairName);
 		if (foundKeyPairs == null || foundKeyPairs.size() == 0 || foundKeyPairs.iterator().next() == null) {
 			throw new CloudProvisioningException("Invalid key-pair name: " + keyPairName);
 		}
@@ -922,9 +925,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	
-	private void validateEc2SecurityGroups(final EC2Client ec2Client, final String region, 
+	private void validateEc2SecurityGroups(final EC2Client ec2Client, final String locationId, 
 			final String[] securityGroupsInRegion) throws CloudProvisioningException {
 		
+		String region = JCloudsUtils.getEC2region(ec2Client, locationId);
 		org.jclouds.ec2.services.SecurityGroupClient ec2SecurityGroupsClient = ec2Client.getSecurityGroupServices();
 		Set<String> missingSecurityGroups = new HashSet<String>();
 
@@ -1041,260 +1045,5 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		logger.fine("region: " + region);		
 		return region;
 	}
-	
-	
-	
-	/*private Map<String, Set<String>> getSecurityGroupsByRegions(final String apiId) 
-	   throws CloudProvisioningException {
-		
-		Map<String, Set<String>> securityGroupsByRegions = new HashMap<String, Set<String>>();
-		
-		for (ComputeTemplate template : cloud.getCloudCompute().getTemplates().values()) {
-			String locationId = template.getLocationId();
-			if (StringUtils.isBlank(locationId) && apiId.equalsIgnoreCase(OPENSTACK_API)) {
-				locationId = getOpenstackLocationByHardwareId(template.getHardwareId());
-			}
-			
-			if (locationId == null) {
-				throw new CloudProvisioningException("locationId is missing");
-			}
-			
-			Object securityGroupsArr = template.getOptions().get("securityGroupNames");
-			if (securityGroupsArr == null) {
-				securityGroupsArr = template.getOptions().get("securityGroups");
-			}
-			
-			if (securityGroupsArr != null && securityGroupsArr instanceof String[]) {
-				Set<String> securityGroupNames = new HashSet<String>();
-				for (String securityGroupName : (String[]) securityGroupsArr) {
-					securityGroupNames.add(securityGroupName);
-				}
-				
-				Set<String> groupsForRegion = securityGroupsByRegions.get(locationId);
-				if (groupsForRegion == null) {
-					securityGroupsByRegions.put(locationId, securityGroupNames);
-				} else {
-					groupsForRegion.addAll(securityGroupNames);
-					securityGroupsByRegions.put(locationId, groupsForRegion);
-				}
-			}
-		}
-		
-		return securityGroupsByRegions;
-	}*/
-	
-	
-	/*private Map<String, Set<String>> getKeyPairsByRegions(final String apiId) throws CloudProvisioningException {
-		
-		Map<String, Set<String>> keyPairsByRegions = new HashMap<String, Set<String>>();
-		
-		for (ComputeTemplate template : cloud.getCloudCompute().getTemplates().values()) {
-			String locationId = template.getLocationId();
-			if (StringUtils.isBlank(locationId) && apiId.equalsIgnoreCase(OPENSTACK_API)) {
-				locationId = getOpenstackLocationByHardwareId(template.getHardwareId());
-			}
-			
-			if (locationId == null) {
-				throw new CloudProvisioningException("locationId is missing");
-			}
 
-			String keyPair = (String) template.getOptions().get("keyPairName");
-			if (keyPair == null) {
-				keyPair = (String) template.getOptions().get("keyPair");
-			}
-			if (StringUtils.isNotBlank(keyPair)) {
-				Set<String> keyPairsForRegion = keyPairsByRegions.get(locationId);
-				if (keyPairsForRegion == null) {
-					Set<String> keyPairNames = new HashSet<String>();
-					keyPairNames.add(keyPair);
-					keyPairsByRegions.put(locationId, keyPairNames);
-				} else {
-					keyPairsForRegion.add(keyPair);
-					keyPairsByRegions.put(locationId, keyPairsForRegion);
-				}
-			}
-		}
-		
-		return keyPairsByRegions;
-	}*/
-	
-	
-	/*private void validateSecurityGroups(final JCloudsDeployer validationDeployer, final String apiId) 
-			throws CloudProvisioningException {
-		
-		publishEvent(CloudifyErrorMessages.EVENT_VALIDATING_SECURITY_GROUPS.getName());
-		ComputeServiceContext computeServiceContext = validationDeployer.getContext();
-		Map<String, Set<String>> securityGroupsByRegions = getSecurityGroupsByRegions(apiId);
-		
-		if (apiId.equalsIgnoreCase(EC2_API)) {
-			RestContext<EC2Client, EC2AsyncClient> unwrapped = computeServiceContext.unwrap();
-			validateEc2SecurityGroups(unwrapped.getApi().getSecurityGroupServices(), securityGroupsByRegions);
-
-		} else if (apiId.equalsIgnoreCase(OPENSTACK_API)) {
-			RestContext<NovaApi, NovaAsyncApi> unwrapped = computeServiceContext.unwrap();
-			validateOpenstackSecurityGroups(unwrapped.getApi(), securityGroupsByRegions);
-			
-		} else if (apiId.equalsIgnoreCase(CLOUDSTACK)) {
-			//RestContext<CloudStackClient, CloudStackAsyncClient> unwrapped = computeServiceContext.unwrap();
-			//validateCloudstackSecurityGroups(unwrapped.getApi().getSecurityGroupClient(), 
-			//		aggregateAllValues(securityGroupsByRegions));
-			
-		} else if (apiId.equalsIgnoreCase(VCLOUD)) {
-			//security groups not supported			
-		} else {
-			// api validations not supported yet
-		}
-	}*/
-	
-	
-	/*private void validateKeyPairs(final JCloudsDeployer validationDeployer, final String apiId)
-			throws CloudProvisioningException {
-		
-		publishEvent(CloudifyErrorMessages.EVENT_VALIDATING_KEY_PAIRS.getName());
-		ComputeServiceContext computeServiceContext = validationDeployer.getContext();
-		Map<String, Set<String>> keyPairsByRegions = getKeyPairsByRegions(apiId);
-		
-		if (apiId.equalsIgnoreCase(EC2_API)) {
-			RestContext<EC2Client, EC2AsyncClient> unwrapped = computeServiceContext.unwrap();
-			validateEc2KeyPairs(unwrapped.getApi().getKeyPairServices(), keyPairsByRegions);
-
-		} else if (apiId.equalsIgnoreCase(OPENSTACK_API)) {
-			RestContext<NovaApi, NovaAsyncApi> unwrapped = computeServiceContext.unwrap();
-			validateOpenstackKeyPairs(unwrapped.getApi(), keyPairsByRegions);
-			
-		} else if (apiId.equalsIgnoreCase(CLOUDSTACK)) {
-			//RestContext<CloudStackClient, CloudStackAsyncClient> unwrapped = computeServiceContext.unwrap();
-			//validateCloudstackKeyPairs(unwrapped.getApi().getSSHKeyPairClient(), 
-			//		aggregateAllValues(keyPairsByRegions));
-			
-		} else if (apiId.equalsIgnoreCase(VCLOUD)) {
-			//security groups not supported			
-		} else {
-			// api validations not supported yet
-		}
-	}*/
-	
-	
-	/*private void validateEc2KeyPairs(final KeyPairClient ec2KeyPairClient, 
-			final Map<String, Set<String>> keyPairsByRegions) throws CloudProvisioningException {
-		
-		Set<String> missingKeyPairs = new HashSet<String>();
-		for (Entry<String, Set<String>> mapEntry : keyPairsByRegions.entrySet()) {
-			String region = mapEntry.getKey();
-			for (String keyPairName : mapEntry.getValue()) {
-				Set<KeyPair> foundKeyPairs = ec2KeyPairClient.describeKeyPairsInRegion(region, keyPairName);
-				if (foundKeyPairs == null || foundKeyPairs.size() == 0 || foundKeyPairs.iterator().next() == null) {
-					missingKeyPairs.add(keyPairName);
-				}
-			}
-		}
-		
-		if (missingKeyPairs.size() == 1) {
-			throw new CloudProvisioningException("Invalid key-pair name: " 
-					+ missingKeyPairs.iterator().next());
-		} else if (missingKeyPairs.size() > 1) {
-			throw new CloudProvisioningException("Invalid key-pair names: " 
-					+ Arrays.toString(missingKeyPairs.toArray()));
-		}		
-	}*/
-	
-	/*private void validateOpenstackSecurityGroups(final NovaApi novaApi, 
-			final Map<String, Set<String>> securityGroupsByRegions) throws CloudProvisioningException {
-
-		Set<String> missingSecurityGroups = new HashSet<String>();
-		
-		for (Entry<String, Set<String>> mapEntry : securityGroupsByRegions.entrySet()) {
-			String region = mapEntry.getKey();
-			SecurityGroupApi securityGroupApi = novaApi.getSecurityGroupExtensionForZone(region).get();
-			
-			for (String securityGroupName : mapEntry.getValue()) {
-				Predicate<org.jclouds.openstack.nova.v2_0.domain.SecurityGroup> securityGroupNamePredicate = 
-					org.jclouds.openstack.nova.v2_0.predicates.SecurityGroupPredicates.nameEquals(securityGroupName);
-				if (!securityGroupApi.list().anyMatch(securityGroupNamePredicate)) {
-					missingSecurityGroups.add(securityGroupName);
-				}
-			}
-		}
-		
-		if (missingSecurityGroups.size() == 1) {
-			throw new CloudProvisioningException("Invalid security group name: " 
-					+ missingSecurityGroups.iterator().next());
-		} else if (missingSecurityGroups.size() > 1) {
-			throw new CloudProvisioningException("Invalid security group names: " 
-					+ Arrays.toString(missingSecurityGroups.toArray()));
-		}
-		
-	}*/
-	
-	
-	/*private void validateOpenstackKeyPairs(final NovaApi novaApi, final Map<String, Set<String>> keyPairsByRegions)
-			throws CloudProvisioningException {
-
-		Set<String> missingKeyPairs = new HashSet<String>();
-		
-		for (Entry<String, Set<String>> mapEntry : keyPairsByRegions.entrySet()) {
-			String region = mapEntry.getKey();
-			KeyPairApi keyPairApi = novaApi.getKeyPairExtensionForZone(region).get();
-			
-			for (String keyPairName : mapEntry.getValue()) {
-				Predicate<org.jclouds.openstack.nova.v2_0.domain.KeyPair> keyPairNamePredicate = 
-						org.jclouds.openstack.nova.v2_0.predicates.KeyPairPredicates.nameEquals(keyPairName);
-				if (!keyPairApi.list().anyMatch(keyPairNamePredicate)) {
-					missingKeyPairs.add(keyPairName);
-				}
-			}
-		}
-		
-		if (missingKeyPairs.size() == 1) {
-			throw new CloudProvisioningException("Invalid key-pair name: " 
-					+ missingKeyPairs.iterator().next());
-		} else if (missingKeyPairs.size() > 1) {
-			throw new CloudProvisioningException("Invalid key-pair names: " 
-					+ Arrays.toString(missingKeyPairs.toArray()));
-		}	
-		
-	}*/
-	
-	
-	/*private void validateCloudstackSecurityGroups(final SecurityGroupClient securityGroupClient, 
-			final Set<String> securityGroups) throws CloudProvisioningException {
-		
-		Set<String> missingSecurityGroups = new HashSet<String>();
-		
-		for (String securityGroupName : securityGroups) {
-			if (securityGroupClient.getSecurityGroup(securityGroupName) == null) {
-				missingSecurityGroups.add(securityGroupName);
-			}
-		}
-		
-		if (missingSecurityGroups.size() == 1) {
-			throw new CloudProvisioningException("Invalid security group name: " 
-					+ missingSecurityGroups.iterator().next());
-		} else if (missingSecurityGroups.size() > 1) {
-			throw new CloudProvisioningException("Invalid security group names: " 
-					+ Arrays.toString(missingSecurityGroups.toArray()));
-		}
-	}*/
-	
-	
-	/*private void validateCloudstackKeyPairs(final SSHKeyPairClient keyPairClient, 
-			final Set<String> keyPairs) throws CloudProvisioningException {
-		
-		Set<String> missingKeyPairs = new HashSet<String>();
-		
-		for (String keyPairName : keyPairs) {
-			if (keyPairClient.getSSHKeyPair(keyPairName) == null) {
-				missingKeyPairs.add(keyPairName);
-			}
-		}
-		
-		if (missingKeyPairs.size() == 1) {
-			throw new CloudProvisioningException("Invalid key-pair name: " 
-					+ missingKeyPairs.iterator().next());
-		} else if (missingKeyPairs.size() > 1) {
-			throw new CloudProvisioningException("Invalid key-pair names: " 
-					+ Arrays.toString(missingKeyPairs.toArray()));
-		}
-	}*/
-	
 }
