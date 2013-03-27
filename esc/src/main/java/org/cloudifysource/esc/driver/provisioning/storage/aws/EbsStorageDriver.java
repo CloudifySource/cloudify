@@ -33,6 +33,7 @@ import org.cloudifysource.esc.driver.provisioning.storage.BaseStorageDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.storage.VolumeDetails;
+import org.cloudifysource.esc.util.JCloudsUtils;
 import org.jclouds.ContextBuilder;
 import org.jclouds.aws.ec2.compute.AWSEC2ComputeServiceContext;
 import org.jclouds.compute.ComputeService;
@@ -40,6 +41,7 @@ import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.domain.Hardware;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.ec2.EC2ApiMetadata;
+import org.jclouds.ec2.EC2AsyncClient;
 import org.jclouds.ec2.EC2Client;
 import org.jclouds.ec2.domain.Tag;
 import org.jclouds.ec2.domain.Volume;
@@ -48,6 +50,7 @@ import org.jclouds.ec2.features.TagApi;
 import org.jclouds.ec2.options.DetachVolumeOptions;
 import org.jclouds.ec2.services.ElasticBlockStoreClient;
 import org.jclouds.ec2.util.TagFilterBuilder;
+import org.jclouds.rest.RestContext;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -87,10 +90,22 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 	@Override
 	public void setConfig(final Cloud cloud, final String computeTemplateName) {
 		this.cloud = cloud;
-		this.region = cloud.getCloudCompute().getTemplates().get(computeTemplateName).getLocationId();
 		this.computeTemplate = cloud.getCloudCompute().getTemplates().get(computeTemplateName);
 		this.initContext();
+		this.initRegion();
 		this.initEbsClient();
+	}
+
+	private void initRegion() {
+		String locationId = this.computeTemplate.getLocationId();
+		RestContext<EC2Client, EC2AsyncClient> unwrapped = this.context.unwrap();
+		try {
+			EC2Client ec2ClientApi = unwrapped.getApi();
+			this.region = JCloudsUtils.getEC2region(ec2ClientApi, locationId);
+		} catch (Exception e) {
+			logger.log(Level.WARNING, "Unable to determine region according to location id: " + locationId);
+			throw new IllegalStateException("Unable to determine region according to location id: " + locationId, e);
+		}
 	}
 
 	@Override
