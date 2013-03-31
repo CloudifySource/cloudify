@@ -53,7 +53,6 @@
 	<property name="cli.local.copy" value="${basedir}/../CLI" />
 	<property name="restful.local.copy" value="${basedir}/../restful" />
 	<property name="esc-commands.local.copy" value="${basedir}/../esc-commands" />
-    <property name="management-space.local.copy" value="${basedir}/../management-space" />
 	<property name="releases.dir" value="${basedir}/releases" />
 	<property name="build.prefix" value="build_" />
 	<property name="package.build" value="${basedir}/package_build" />
@@ -91,12 +90,6 @@
 	
 	<target name="update_platform_version" depends="replace.build.related.settings,replace.cloudify.build.number" unless="gs.internal.systems.not.available">
 		<pathconvert property="all-poms-list" refid="all-poms-fileset" pathsep=" "/>
-		<exec executable="git" dir="${basedir}">
-			<arg value="status" />
-		</exec>
-		
-		<echo message="The target branchname is: ${branchname}"/>
-		
        	<exec executable="git" dir="${basedir}">
 			<arg value="checkout" />
 			<arg value="${branchname}" />			
@@ -256,12 +249,7 @@
 	    	<copy todir="@{installation.dir}/bin" overwrite="true">
 	            <fileset dir="${gigaspaces.related.folder}/bin" includes="cloudify.*" excludes=".svn"/>
 	        </copy>
-            <echo message="Copy management-space component"/>
-            <mkdir dir="@{installation.dir}/tools/management-space/" />
-            <copy todir="@{installation.dir}/tools/management-space/" overwrite="true">
-                <fileset dir="${management-space.local.copy}/target/" includes="management-space.jar" excludes=".svn"/>
-            </copy>
-
+	
 	        <echo message="Copy CLOUDIFY Rest component"/>
 	        <copy todir="@{installation.dir}/tools/rest/" overwrite="true">
 	            <fileset dir="${restful.local.copy}/target/" includes="rest.war" excludes=".svn"/>
@@ -270,6 +258,10 @@
 	        <copy todir="@{installation.dir}/config/security/" overwrite="true">
 	            <fileset dir="${restful.local.copy}/src/main/webapp/WEB-INF" includes="spring-security.xml"/>
 	        </copy>
+
+            <copy todir="@{installation.dir}/config" overwrite="true">
+                <fileset dir="${gs-webui.related.folder}/config" includes="*.xml"/>
+            </copy>
 	
 	        <echo message="Copy CLOUDIFY esc-command component"/>
 	        <copy todir="@{installation.dir}/tools/cli/plugins/esc" overwrite="true">
@@ -467,7 +459,7 @@
 		<echo message="uploading cloudify jar artifacts to S3" />
 				
 		<exec executable="${mvn.executable}">
-			<arg value="s3client:deploy-native" />
+			<arg value="s3client:put" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/esc/${s3.cloudify.publish.folder}" />
@@ -476,7 +468,7 @@
 		</exec>
 		
 		<exec executable="${mvn.executable}">
-			<arg value="s3client:deploy-native" />
+			<arg value="s3client:put" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/USM/${s3.cloudify.publish.folder}" />
@@ -485,7 +477,7 @@
 		</exec>
 		
 		<exec executable="${mvn.executable}">
-			<arg value="s3client:deploy-native" />
+			<arg value="s3client:put" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/dsl/${s3.cloudify.publish.folder}" />
@@ -494,7 +486,7 @@
 		</exec>
 		
 		<exec executable="${mvn.executable}">
-			<arg value="s3client:deploy-native" />
+			<arg value="s3client:put" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/CLI/${s3.cloudify.publish.folder}" />
@@ -503,7 +495,7 @@
 		</exec>
 		
 		<exec executable="${mvn.executable}">
-			<arg value="s3client:deploy-native" />
+			<arg value="s3client:put" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/rest-client/${s3.cloudify.publish.folder}" />
@@ -512,22 +504,13 @@
 		</exec>
 		
 		<exec executable="${mvn.executable}">
-			<arg value="s3client:deploy-native" />
+			<arg value="s3client:put" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/cloudify/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.target=org/cloudifysource/cloudify/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.container=${cloudify.maven.container}"/>
 		</exec>
-
-        <exec executable="${mvn.executable}">
-            <arg value="s3client:put" />
-            <arg value="-Dput.user=${put.user}" />
-            <arg value="-Dput.key=${put.key}" />
-            <arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/management-space/${s3.cloudify.publish.folder}" />
-            <arg value="-Dput.target=org/cloudifysource/management-space/${s3.cloudify.publish.folder}" />
-            <arg value="-Dput.container=${cloudify.maven.container}"/>
-        </exec>
 	</target>
 	
 	<target name="prepare.bigdata.package">
@@ -555,7 +538,7 @@
 		<echo message="uploading cloudify installation to public storage (S3) at: ${cloudify.put.target}" />
 			
 		<exec executable="${mvn.executable}">
-			<arg value="s3client:deploy-native" />
+			<arg value="s3client:put" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${cloudify.put.source}" />
@@ -564,7 +547,7 @@
 		</exec>
 		
 		<exec executable="${mvn.executable}">
-			<arg value="s3client:deploy-native" />
+			<arg value="s3client:put" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${cloudify.gzip.put.source}" />
@@ -578,7 +561,7 @@
 		<echo message="uploading bigdata installation to public storage (S3) at: ${bigdata.put.target}" />
 			
 		<exec executable="${mvn.executable}">
-			<arg value="s3client:deploy-native" />
+			<arg value="s3client:put" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${bigdata.put.source}" />
@@ -587,7 +570,7 @@
 		</exec>
 		
 		<exec executable="${mvn.executable}">
-			<arg value="s3client:deploy-native" />
+			<arg value="s3client:put" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${bigdata.gzip.put.source}" />
