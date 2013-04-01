@@ -270,6 +270,10 @@
 	        <copy todir="@{installation.dir}/config/security/" overwrite="true">
 	            <fileset dir="${restful.local.copy}/src/main/webapp/WEB-INF" includes="spring-security.xml"/>
 	        </copy>
+			
+			<copy todir="@{installation.dir}/config" overwrite="true">
+				<fileset dir="${gs-webui.related.folder}/config" includes="*.xml"/>
+			</copy>
 	
 	        <echo message="Copy CLOUDIFY esc-command component"/>
 	        <copy todir="@{installation.dir}/tools/cli/plugins/esc" overwrite="true">
