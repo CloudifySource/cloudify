@@ -85,6 +85,9 @@ import org.cloudifysource.dsl.StatefulProcessingUnit;
 import org.cloudifysource.dsl.StatelessProcessingUnit;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.dsl.context.kvstorage.spaceentries.ApplicationCloudifyAttribute;
+import org.cloudifysource.dsl.context.kvstorage.spaceentries.InstanceCloudifyAttribute;
+import org.cloudifysource.dsl.context.kvstorage.spaceentries.ServiceCloudifyAttribute;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.ComputeTemplateHolder;
@@ -1304,8 +1307,10 @@ public class ServiceController implements ServiceDetailsProvider {
 				new Callable<Boolean>() {
 					@Override
 					public Boolean call() throws Exception {
-						return processingUnit.undeployAndWait(timeoutInMinutes,
+						boolean result = processingUnit.undeployAndWait(timeoutInMinutes,
 								TimeUnit.MINUTES);
+						deleteServiceAttributes(applicationName, serviceName);
+						return result;
 					}
 
 				});
@@ -1457,6 +1462,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				.getInstances()) {
 			if (instance.getInstanceId() == instanceId) {
 				instance.decrement();
+				deleteServiceInstanceAttributes(applicationName, serviceName, instanceId);
 				return successStatus();
 			}
 		}
@@ -1681,6 +1687,12 @@ public class ServiceController implements ServiceDetailsProvider {
 												+ processingUnit.getName());
 								processingUnit.undeployAndWait(undeployTimeout,
 										TimeUnit.MILLISECONDS);
+								final String serviceName = ServiceUtils.getApplicationServiceName(
+										processingUnit.getName(), applicationName);
+								logger.info("Removing application service scope attributes for service " + serviceName);
+								deleteServiceAttributes(applicationName,
+										serviceName);
+								
 
 							}
 						} catch (final Exception e) {
@@ -1703,6 +1715,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			((InternalAdmin) admin).scheduleAdminOperation(undeployTask);
 
 		}
+		
 		final UUID lifecycleEventContainerID = startPollingForApplicationUninstallLifecycleEvents(
 				applicationName, uninstallOrder, timeoutInMinutes, undeployTask);
 
@@ -1711,10 +1724,34 @@ public class ServiceController implements ServiceDetailsProvider {
 			final Map<String, Object> returnMap = new HashMap<String, Object>();
 			returnMap.put(CloudifyConstants.LIFECYCLE_EVENT_CONTAINER_ID,
 					lifecycleEventContainerID);
+			logger.info("Removing all application scope attributes for application " + applicationName);
+			deleteApplicationScopeAttributes(applicationName);
 			return RestUtils.successStatus(returnMap);
 		}
 		throw new RestErrorException(errors);
 	}
+
+	private void deleteApplicationScopeAttributes(final String applicationName) {
+		final ApplicationCloudifyAttribute applicationAttributeTemplate =
+				new ApplicationCloudifyAttribute(applicationName, null, null);
+		gigaSpace.takeMultiple(applicationAttributeTemplate);
+	}
+	
+	private void deleteServiceAttributes(final String applicationName,
+			final String serviceName) {
+		deleteServiceInstanceAttributes(applicationName, serviceName, null);
+		final ServiceCloudifyAttribute serviceAttributeTemplate =
+				new ServiceCloudifyAttribute(applicationName, serviceName, null, null);
+		gigaSpace.takeMultiple(serviceAttributeTemplate);
+	}
+	
+	private void deleteServiceInstanceAttributes(String applicationName,
+			String serviceName, Integer instanceId) {
+		final InstanceCloudifyAttribute instanceAttributesTemplate =
+				new InstanceCloudifyAttribute(applicationName, serviceName, instanceId, null, null);
+		gigaSpace.takeMultiple(instanceAttributesTemplate);
+	}
+	
 
 	private List<ProcessingUnit> createUninstallOrder(
 			final ProcessingUnit[] pus, final String applicationName) {
