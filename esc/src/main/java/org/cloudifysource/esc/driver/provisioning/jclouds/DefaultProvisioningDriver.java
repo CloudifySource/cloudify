@@ -854,6 +854,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			keyPairObj = (String) template.getOptions().get("keyPair");
 		}
 		
+		
 		if (keyPairObj != null) {
 			if (!(keyPairObj instanceof String)) {
 				throw new CloudProvisioningException("Invalid configuration: keyPair must be of type String");
