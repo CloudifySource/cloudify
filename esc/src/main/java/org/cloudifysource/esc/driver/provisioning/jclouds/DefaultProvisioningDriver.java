@@ -854,36 +854,39 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			keyPairObj = (String) template.getOptions().get("keyPair");
 		}
 		
-		if (!(keyPairObj instanceof String)) {
-			throw new CloudProvisioningException("Invalid configuration: keyPair must of type String");
-		}
-		
-		String keyPairString = (String) keyPairObj;
-		if (StringUtils.isNotBlank(keyPairString)) {
-			try {
-				publishOngoingEvent(CloudifyErrorMessages.EVENT_VALIDATING_KEY_PAIR.getName(), keyPairString);
+		if (keyPairObj != null) {
+			if (!(keyPairObj instanceof String)) {
+				throw new CloudProvisioningException("Invalid configuration: keyPair must be of type String");
+			}
+			
+			String keyPairString = (String) keyPairObj;
+			if (StringUtils.isNotBlank(keyPairString)) {
+				try {
+					publishOngoingEvent(CloudifyErrorMessages.EVENT_VALIDATING_KEY_PAIR.getName(), keyPairString);
 
-				if (apiId.equalsIgnoreCase(EC2_API)) {
-					validateEC2KeyPair(computeServiceContext, locationId, keyPairString);
-				} else if (apiId.equalsIgnoreCase(OPENSTACK_API)) {
-					validateOpenstackKeyPair(computeServiceContext, locationId, keyPairString);
-				} else if (apiId.equalsIgnoreCase(CLOUDSTACK)) {
-					/*RestContext<CloudStackClient, CloudStackAsyncClient> unwrapped = computeServiceContext.unwrap();
-					validateCloudstackKeyPairs(unwrapped.getApi().getSSHKeyPairClient(), 
-							aggregateAllValues(keyPairsByRegions));*/
+					if (apiId.equalsIgnoreCase(EC2_API)) {
+						validateEC2KeyPair(computeServiceContext, locationId, keyPairString);
+					} else if (apiId.equalsIgnoreCase(OPENSTACK_API)) {
+						validateOpenstackKeyPair(computeServiceContext, locationId, keyPairString);
+					} else if (apiId.equalsIgnoreCase(CLOUDSTACK)) {
+						/*RestContext<CloudStackClient, CloudStackAsyncClient> unwrapped =
+						   computeServiceContext.unwrap();
+						validateCloudstackKeyPairs(unwrapped.getApi().getSSHKeyPairClient(), 
+								aggregateAllValues(keyPairsByRegions));*/
+					} else if (apiId.equalsIgnoreCase(VCLOUD)) {
+						//security groups not supported			
+					} else {
+						// api validations not supported yet
+					}
 					
-				} else if (apiId.equalsIgnoreCase(VCLOUD)) {
-					//security groups not supported			
-				} else {
-					// api validations not supported yet
+					publishEventEnd(true, VALIDATION_SUCCESS_MESSAGE);
+				} catch (Exception ex) {
+					publishEventEnd(false, VALIDATION_FAILURE_MESSAGE);
+					throw new CloudProvisioningException("Invalid key-pair configuration: " + ex.getMessage(), ex);
 				}
-				
-				publishEventEnd(true, VALIDATION_SUCCESS_MESSAGE);
-			} catch (Exception ex) {
-				publishEventEnd(false, VALIDATION_FAILURE_MESSAGE);
-				throw new CloudProvisioningException("Invalid key-pair configuration: " + ex.getMessage(), ex);
 			}
 		}
+
 		
 	}
 
