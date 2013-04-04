@@ -1059,4 +1059,15 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			final ElasticGridServiceAgentProvisioningProgressChangedEventListener agentEventListener) {
 		this.agentEventListener = agentEventListener;
 	}
+	
+	/**
+	 * Clears the list of machines provisioned by any provisioning driver.
+	 * This method should be used for testing purposes
+	 * And should not be used concurrently with any other method.
+	 */
+	public static void clearContext() {
+		synchronized (PROVISIONING_DRIVER_CONTEXT_PER_DRIVER_CLASSNAME) {
+			PROVISIONING_DRIVER_CONTEXT_PER_DRIVER_CLASSNAME.clear();
+		}
+	}
 }
