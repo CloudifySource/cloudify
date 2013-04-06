@@ -94,8 +94,8 @@ fi
 	 //These are the debug commands that can run from bash,
 	 //as opposed to those available from the debug groovy class
 	 def bashCommands = [
-			 [name:"run-script", comment:"Run the current script",
-				 command:'$SERVICEDIR/$DEBUG_TARGET'],
+		 	[name:"run-script", comment:"Run the current script",
+				 command:'PATH=$SERVICEDIR:$PATH $DEBUG_TARGET'],
 			 [name:"edit-script", comment:"Edit the current script",
 				 command:'vim $SERVICEDIR/$DEBUG_TARGET'],
 			 [name:"launch-groovysh", comment:"Launch a groovy shell",
