@@ -99,7 +99,7 @@ fi
 			 [name:"edit-script", comment:"Edit the current script",
 				 command:'vim $SERVICEDIR/$DEBUG_TARGET'],
 			 [name:"launch-groovysh", comment:"Launch a groovy shell",
-				 command:"\$JSHOMEDIR/tools/groovy/bin/groovysh -q ${groovyDebugParams}"],
+				 command:"\$JSHOMEDIR/tools/groovy/bin/groovysh -q "],
 			 [name:"finish", comment:"Finish debugging (move on to the next lifecycle event)",
 				 command:'rm $SERVICEDIR/debug_commands ; rm $KEEPALIVE_FILE && exec echo -e "Debug step finished\n"'],
 		 ]
