@@ -145,10 +145,10 @@ public class ServiceImpl implements Service {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.cloudifysource.dsl.context.IService#invoke(java.lang.String, java.lang.Object[])
+	 * @see org.cloudifysource.dsl.context.IService#invoke(java.lang.String, java.lang.Object[], long, java.util.concurrent.TimeUnit)
 	 */
 	@Override
-	public Object[] invoke(final String commandName, final Object[] params)
+	public Object[] invoke(final String commandName, final Object[] params, long timeout, TimeUnit unit)
 			throws Exception {
 		final ServiceInstanceImpl[] instances = this.getInstances();
 
@@ -161,7 +161,7 @@ public class ServiceImpl implements Service {
 		}
 
 		final long start = System.currentTimeMillis();
-		final long end = start + DEFAULT_INVOKE_TIMEOUT;
+		final long end = start + unit.toMillis(timeout);
 
 		Exception firstException = null;
 		final Object[] results = new Object[instances.length];
@@ -183,6 +183,15 @@ public class ServiceImpl implements Service {
 		}
 		return results;
 
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.cloudifysource.dsl.context.IService#invoke(java.lang.String, java.lang.Object[])
+	 */
+	@Override
+	public Object[] invoke(final String commandName, final Object[] params)
+			throws Exception {
+		return invoke(commandName, params, DEFAULT_INVOKE_TIMEOUT, TimeUnit.MILLISECONDS);
 	}
 
 	@Override

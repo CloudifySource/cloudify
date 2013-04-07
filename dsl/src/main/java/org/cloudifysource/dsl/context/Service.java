@@ -76,11 +76,30 @@ public interface Service {
 	 * @param params
 	 *            the command parameters.
 	 * @return The invocation results.
+	 * @throws TimeoutException
+	 * 				if invocation time exceeds one minute.
 	 * @throws Exception
 	 *             if any of the invocations failed. The thrown exception is the exception thrown by the failed
 	 *             invocation.
 	 */
 	Object[] invoke(final String commandName, final Object[] params)
+			throws Exception;
+	
+	/******************
+	 * Invokes a custom command on this service.
+	 * 
+	 * @param commandName
+	 *            the command name.
+	 * @param params
+	 *            the command parameters.
+	 * @return The invocation results.
+	 * @throws TimeoutException
+	 * 			if invocation time exceeds the defined timeout.
+	 * @throws Exception
+	 *             if any of the invocations failed. The thrown exception is the exception thrown by the failed
+	 *             invocation.
+	 */
+	Object[] invoke(final String commandName, final Object[] params, long timeout, TimeUnit unit)
 			throws Exception;
 
 }
