@@ -702,7 +702,15 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			}
 		}
 		
-		validateCloudifyUrl(cloud.getProvider().getCloudifyUrl());
+		String cloudifyUrl = cloud.getProvider().getCloudifyUrl();
+		if (cloudifyUrl.endsWith(".zip") || cloudifyUrl.endsWith(".tar.gz")) {
+			validateCloudifyUrl(cloudifyUrl);
+		} else {
+			//validate both zip and tar.gz
+			validateCloudifyUrl(cloudifyUrl + ".zip");
+			validateCloudifyUrl(cloudifyUrl + ".tar.gz");
+		}
+		
 		validateComputeTemplates(endpointRequired, apiId);
 	}
 
@@ -981,28 +989,23 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	private void validateCloudifyUrl(final String cloudifyUrl) throws CloudProvisioningException {
 
 		DefaultHttpClient httpClient = new DefaultHttpClient();
-		String effectiveUrl = cloudifyUrl;
 		
-		if (!effectiveUrl.endsWith(".zip") && !effectiveUrl.endsWith(".tar.gz")) {
-			effectiveUrl += ".zip";
-		}
-		
-		HttpHead httpMethod = new HttpHead(effectiveUrl);
+		HttpHead httpMethod = new HttpHead(cloudifyUrl);
 		try {
-			publishOngoingEvent(CloudifyErrorMessages.EVENT_VALIDATING_CLOUDIFY_URL.getName(), effectiveUrl);
+			publishOngoingEvent(CloudifyErrorMessages.EVENT_VALIDATING_CLOUDIFY_URL.getName(), cloudifyUrl);
 			HttpResponse response = httpClient.execute(httpMethod);
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
 				publishEventEnd(false, VALIDATION_FAILURE_MESSAGE);
-				throw new CloudProvisioningException("Invalid cloudify URL: " + effectiveUrl);
+				throw new CloudProvisioningException("Invalid cloudify URL: " + cloudifyUrl);
 			}
 			publishEventEnd(true, VALIDATION_SUCCESS_MESSAGE);
 		} catch (ClientProtocolException e) {
-			System.out.println("Failed to validate Cloudify URL: " + effectiveUrl);
-			logger.info("Failed to validate Cloudify URL: " + effectiveUrl);
+			System.out.println("Failed to validate Cloudify URL: " + cloudifyUrl);
+			logger.info("Failed to validate Cloudify URL: " + cloudifyUrl);
 			e.printStackTrace();
 		} catch (IOException e) {
-			System.out.println("Failed to validate Cloudify URL: " + effectiveUrl);
-			logger.info("Failed to validate Cloudify URL: " + effectiveUrl);
+			System.out.println("Failed to validate Cloudify URL: " + cloudifyUrl);
+			logger.info("Failed to validate Cloudify URL: " + cloudifyUrl);
 			e.printStackTrace();
 		}
 	}
