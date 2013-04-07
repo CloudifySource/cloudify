@@ -54,6 +54,7 @@ import com.sun.jersey.api.client.filter.LoggingFilter;
  * @since 2.1
  *
  */
+@Deprecated
 public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDriver {
 
 	private static final int HTTP_NOT_FOUND = 404;
