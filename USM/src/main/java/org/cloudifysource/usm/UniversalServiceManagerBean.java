@@ -12,34 +12,16 @@
  *******************************************************************************/
 package org.cloudifysource.usm;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
+import com.gigaspaces.internal.sigar.SigarHolder;
+import com.j_spaces.kernel.Environment;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.LifecycleEvents;
 import org.cloudifysource.dsl.Service;
+import org.cloudifysource.dsl.cloud.storage.ServiceVolume;
+import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
+import org.cloudifysource.dsl.cloud.storage.VolumeState;
+import org.cloudifysource.dsl.context.blockstorage.StorageFacade;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
@@ -63,11 +45,7 @@ import org.openspaces.core.cluster.MemberAliveIndicator;
 import org.openspaces.core.properties.BeanLevelProperties;
 import org.openspaces.core.properties.BeanLevelPropertiesAware;
 import org.openspaces.pu.container.support.ResourceApplicationContext;
-import org.openspaces.pu.service.InvocableService;
-import org.openspaces.pu.service.ServiceDetails;
-import org.openspaces.pu.service.ServiceDetailsProvider;
-import org.openspaces.pu.service.ServiceMonitors;
-import org.openspaces.pu.service.ServiceMonitorsProvider;
+import org.openspaces.pu.service.*;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -75,8 +53,20 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import com.gigaspaces.internal.sigar.SigarHolder;
-import com.j_spaces.kernel.Environment;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.net.*;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**********
  * The main component of the USM project - this is the bean that runs the lifecycle of a service, monitors it and
@@ -223,13 +213,72 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 		final boolean existingProcessFound = checkForPIDFile();
 
+        // will allocate block storage if the service declared it.
+        allocateStorage();
+
 		// Initialize and sort events
 		initEvents();
 
 		reset(existingProcessFound);
 	}
 
-	/******
+    private void allocateStorage() throws USMException, TimeoutException {
+
+        Service service = getUsmLifecycleBean().getConfiguration().getService();
+        final String storageTemplateName = service.getStorage().getTemplate();
+
+        if (StringUtils.isNotBlank(storageTemplateName)) {
+
+            final ServiceVolume serviceVolume = getServiceVolumeFromSpace(service.getName());
+            final VolumeState volumeState = serviceVolume.getState();
+
+            final StorageFacade storage = getUsmLifecycleBean().getConfiguration().getServiceContext().getStorage();
+            final StorageTemplate storageTemplate = storage.getTemplate(storageTemplateName);
+
+            final VolumeState newVolumeState;
+
+            try {
+                switch (volumeState) {
+
+                    case ABSENT : {
+                        final String id = storage.createVolume(storageTemplateName);
+                        storage.attachVolume(id, storageTemplate.getDeviceName());
+                        storage.format(storageTemplate.getDeviceName(), storageTemplate.getFileSystemType());
+                        storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
+                        break;
+                    }
+                    case CREATED : {
+                        storage.attachVolume(serviceVolume.getId(), storageTemplate.getDeviceName());
+                        storage.format(storageTemplate.getDeviceName(), storageTemplate.getFileSystemType());
+                        storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
+                        break;
+                    }
+                    case ATTACHED : {
+                        storage.format(storageTemplate.getDeviceName(), storageTemplate.getFileSystemType());
+                        storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
+                        break;
+                    }
+                    case FORMATTED : {
+                        storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
+                    }
+                    case MOUNTED : {
+                       break;
+                    }
+                }
+            } catch (final Exception e) {
+                if (e instanceof TimeoutException) {
+                    throw (TimeoutException)e;
+                }
+                throw new USMException(e);
+            }
+        }
+    }
+
+    private ServiceVolume getServiceVolumeFromSpace(final String serviceName) {
+        return null;  //To change body of created methods use File | Settings | File Templates.
+    }
+
+    /******
 	 * The service name is defined by the clusterInfo, which is set from the recipe parameters during deployment.
 	 * However, when running in test mode inside the integrated processing unit container, the PU name is not set. This
 	 * 'workaround' makes it look like the ClusterInfo is set correctly.

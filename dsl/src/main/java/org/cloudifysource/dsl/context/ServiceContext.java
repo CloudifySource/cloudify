@@ -157,5 +157,5 @@ public interface ServiceContext {
 	 * 
 	 * @return - the address cloudify bind on.
 	 */
-	String getBindedAddress();
+	String getBindAddress();
 }

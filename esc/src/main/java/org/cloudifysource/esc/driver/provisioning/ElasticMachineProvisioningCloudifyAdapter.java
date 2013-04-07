@@ -805,7 +805,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	 * @return
 	 */
 	public RemoteStorageProvisioningDriverAdapter getStorageImpl() {
-		return new RemoteStorageProvisioningDriverAdapter(storageProvisioning);
+		return new RemoteStorageProvisioningDriverAdapter(storageProvisioning, cloud);
 	}
 
 	@Override

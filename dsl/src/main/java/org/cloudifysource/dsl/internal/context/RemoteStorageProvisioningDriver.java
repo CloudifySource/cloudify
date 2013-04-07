@@ -17,10 +17,11 @@
 package org.cloudifysource.dsl.internal.context;
 
 
+import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
+import org.cloudifysource.dsl.context.blockstorage.RemoteStorageOperationException;
+
 import java.rmi.Remote;
 import java.util.concurrent.TimeoutException;
-
-import org.cloudifysource.dsl.context.blockstorage.RemoteStorageOperationException;
 
 /**
  * 
@@ -31,14 +32,16 @@ public interface RemoteStorageProvisioningDriver extends Remote {
 	
 	void attachVolume(final String volumeId, String device, final String ip) throws RemoteStorageOperationException;
 	
-	String createVolume(final String templateName, final String locationId) 
+	String createVolume(final String templateName, final String locationId)
 			throws RemoteStorageOperationException, TimeoutException;
 	
-	String createVolume(final String templateName, final String locationId, final long timeoutInMillis) 
+	String createVolume(final String templateName, final String locationId, final long timeoutInMillis)
 			throws RemoteStorageOperationException, TimeoutException;
 	
 	void detachVolume(final String volumeId, String ip) throws RemoteStorageOperationException;
 	
 	void deleteVolume(final String location, final String volumeId) throws RemoteStorageOperationException;
+
+    StorageTemplate getTemplate(final String templateName);
 
 }

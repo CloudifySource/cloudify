@@ -16,6 +16,8 @@
 
 package org.cloudifysource.dsl.context.blockstorage;
 
+import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
+
 import java.util.concurrent.TimeoutException;
 
 
@@ -147,4 +149,10 @@ public interface StorageFacade {
 	void unmount(final String device) 
 			throws LocalStorageOperationException, TimeoutException;
 
+    /**
+     * get the storage template defined in the cloud driver.
+     * @param templateName - the template name.
+     * @return {@link StorageTemplate}.
+     */
+    StorageTemplate getTemplate(final String templateName);
 }

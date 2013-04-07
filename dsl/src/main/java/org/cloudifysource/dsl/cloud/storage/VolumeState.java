@@ -15,37 +15,21 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.cloud.storage;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
-
 /**
- * 
- * @author elip
+ * Created with IntelliJ IDEA.
  *
+ * Enum indicating the state of a service volume.
+ *
+ * User: elip
+ * Date: 4/7/13
+ * Time: 6:39 PM
+ * To change this template use File | Settings | File Templates.
  */
-@CloudifyDSLEntity(name = "cloudStorage", clazz = CloudStorage.class, allowInternalNode = true, allowRootNode = true,
-	parent = "cloud")
-public class CloudStorage {
-	
-	private String className;
-	
-	public String getClassName() {
-		return className;
-	}
+public enum VolumeState {
 
-	public void setClassName(final String className) {
-		this.className = className;
-	}
-
-	private Map<String, StorageTemplate> templates = new HashMap<String, StorageTemplate>();
-
-	public Map<String, StorageTemplate> getTemplates() {
-		return templates;
-	}
-
-	public void setTemplates(final Map<String, StorageTemplate> templates) {
-		this.templates = templates;
-	}
+    ABSENT,
+    CREATED,
+    ATTACHED,
+    FORMATTED,
+    MOUNTED
 }

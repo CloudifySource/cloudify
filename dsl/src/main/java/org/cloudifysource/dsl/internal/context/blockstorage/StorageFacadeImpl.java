@@ -16,14 +16,19 @@
 
 package org.cloudifysource.dsl.internal.context.blockstorage;
 
-import java.util.concurrent.TimeoutException;
-
+import com.gigaspaces.client.ChangeSet;
+import org.cloudifysource.dsl.cloud.storage.ServiceVolume;
+import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
+import org.cloudifysource.dsl.cloud.storage.VolumeState;
 import org.cloudifysource.dsl.context.ServiceContext;
 import org.cloudifysource.dsl.context.blockstorage.LocalStorageOperationException;
 import org.cloudifysource.dsl.context.blockstorage.RemoteStorageOperationException;
 import org.cloudifysource.dsl.context.blockstorage.StorageFacade;
 import org.cloudifysource.dsl.context.utils.VolumeUtils;
 import org.cloudifysource.dsl.internal.context.RemoteStorageProvisioningDriver;
+import org.openspaces.core.GigaSpace;
+
+import java.util.concurrent.TimeoutException;
 
 /**
  * 
@@ -36,19 +41,32 @@ public class StorageFacadeImpl implements StorageFacade {
 	
 	private ServiceContext serviceContext;
 	private RemoteStorageProvisioningDriver remoteStorageProvisioningDriver;
+    private GigaSpace managementSpace;
 	
 	
 	public StorageFacadeImpl(final ServiceContext serviceContext,
 			final RemoteStorageProvisioningDriver storageApi) {
 		this.serviceContext = serviceContext;
 		this.remoteStorageProvisioningDriver = storageApi;
+        this.managementSpace = serviceContext.getAttributes().getManagementSpace();
+        // this object is initialized in a lazy manner.
+        // which means this constructor is called only when we actually use the storage API.
+        // so lets go ahead and write our empty ServiceVolume instance to the management space.
+        // this will allow us to only update this instance in the future, without worrying if it exists or not.
+        writeEmptyServiceVolume();
 	}
 
-	@Override
+    private void writeEmptyServiceVolume() {
+        ServiceVolume serviceVolume = new ServiceVolume(serviceContext.getApplicationName(), serviceContext.getServiceName(), serviceContext.getInstanceId());
+        managementSpace.write(serviceVolume);
+    }
+
+    @Override
 	public void attachVolume(final String volumeId, final String device) 
 					throws RemoteStorageOperationException, LocalStorageOperationException {
 		validateNotWindows();
-		remoteStorageProvisioningDriver.attachVolume(volumeId, device, serviceContext.getBindedAddress());
+		remoteStorageProvisioningDriver.attachVolume(volumeId, device, serviceContext.getBindAddress());
+        changeVolumeState(VolumeState.ATTACHED);
 		try {
 			// ugly as hell. can't really figure out how to wait here properly for the volume to actually be attached.
 			// see CLOUDIFY-1551
@@ -60,21 +78,27 @@ public class StorageFacadeImpl implements StorageFacade {
 
 	@Override
 	public String createVolume(final String templateName) throws RemoteStorageOperationException, TimeoutException {
-		return remoteStorageProvisioningDriver.createVolume(templateName, serviceContext.getLocationId());
+        String volumeId = remoteStorageProvisioningDriver.createVolume(templateName, serviceContext.getLocationId());
+        setVolumeId(volumeId);
+        changeVolumeState(VolumeState.CREATED);
+        return volumeId;
 	}
 	
 	@Override
 	public String createVolume(final String templateName, final long timeoutInMillis)
 			throws RemoteStorageOperationException, TimeoutException {
-		return remoteStorageProvisioningDriver.
-				createVolume(templateName, serviceContext.getLocationId(), timeoutInMillis);
+        String volumeId = remoteStorageProvisioningDriver.
+                createVolume(templateName, serviceContext.getLocationId(), timeoutInMillis);
+        setVolumeId(volumeId);
+        changeVolumeState(VolumeState.CREATED);
+        return volumeId;
 	}
 
 	@Override
 	public void detachVolume(final String volumeId) 
 			throws RemoteStorageOperationException, LocalStorageOperationException {
 		validateNotWindows();
-		remoteStorageProvisioningDriver.detachVolume(volumeId, serviceContext.getBindedAddress());
+		remoteStorageProvisioningDriver.detachVolume(volumeId, serviceContext.getBindAddress());
 	}
 
 	@Override
@@ -92,6 +116,7 @@ public class StorageFacadeImpl implements StorageFacade {
 			throw new IllegalStateException("Cannot mount when not running in privileged mode");
 		}
 		VolumeUtils.mount(device, path, timeoutInMillis);
+        changeVolumeState(VolumeState.MOUNTED);
 		
 	}
 
@@ -103,6 +128,7 @@ public class StorageFacadeImpl implements StorageFacade {
 			throw new IllegalStateException("Cannot mount when not running in privileged mode");
 		}
 		VolumeUtils.mount(device, path);
+        changeVolumeState(VolumeState.MOUNTED);
 	}
 
 	@Override
@@ -125,7 +151,12 @@ public class StorageFacadeImpl implements StorageFacade {
 		VolumeUtils.unmount(device);
 	}
 
-	@Override
+    @Override
+    public StorageTemplate getTemplate(final String templateName) {
+        return remoteStorageProvisioningDriver.getTemplate(templateName);
+    }
+
+    @Override
 	public void format(final String device, final String fileSystem, final long timeoutInMillis)
 			throws LocalStorageOperationException, TimeoutException {
 		validateNotWindows();
@@ -133,6 +164,7 @@ public class StorageFacadeImpl implements StorageFacade {
 			throw new IllegalStateException("Cannot format when not running in privileged mode");
 		}
 		VolumeUtils.format(device, fileSystem, timeoutInMillis);
+        changeVolumeState(VolumeState.FORMATTED);
 		
 	}
 
@@ -144,11 +176,22 @@ public class StorageFacadeImpl implements StorageFacade {
 			throw new IllegalStateException("Cannot format when not running in privileged mode");
 		}
 		VolumeUtils.format(device, fileSystem);
+        changeVolumeState(VolumeState.FORMATTED);
 	}
-	
-	private void validateNotWindows() {
+
+    private void validateNotWindows() {
 		if (System.getProperty("os.name").toLowerCase().contains("windows")) {
 			throw new UnsupportedOperationException("Windows OS is not supported for Storage API");
 		}
 	}
+
+    private void changeVolumeState(final VolumeState volumeState) {
+        ServiceVolume serviceVolume = new ServiceVolume(serviceContext.getApplicationName(), serviceContext.getServiceName(), serviceContext.getInstanceId());
+        managementSpace.change(serviceVolume, new ChangeSet().set("state", volumeState));
+    }
+
+    private void setVolumeId(final String volumeId) {
+        ServiceVolume serviceVolume = new ServiceVolume(serviceContext.getApplicationName(), serviceContext.getServiceName(), serviceContext.getInstanceId());
+        managementSpace.change(serviceVolume, new ChangeSet().set("id", volumeId));
+    }
 }

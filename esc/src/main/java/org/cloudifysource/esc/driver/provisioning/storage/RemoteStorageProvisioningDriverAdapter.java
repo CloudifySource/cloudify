@@ -16,11 +16,16 @@
 
 package org.cloudifysource.esc.driver.provisioning.storage;
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
+import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.dsl.cloud.storage.ServiceVolume;
+import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
+import org.cloudifysource.dsl.cloud.storage.VolumeState;
 import org.cloudifysource.dsl.context.blockstorage.RemoteStorageOperationException;
 import org.cloudifysource.dsl.internal.context.RemoteStorageProvisioningDriver;
+
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 
 /**
  * 
@@ -29,12 +34,18 @@ import org.cloudifysource.dsl.internal.context.RemoteStorageProvisioningDriver;
  */
 public class RemoteStorageProvisioningDriverAdapter implements RemoteStorageProvisioningDriver {
 
+    Logger logger = java.util.logging.Logger
+            .getLogger(RemoteStorageProvisioningDriverAdapter.class.getName());
+
 	private static final long DEFAULT_STORAGE_OPERATION_TIMEOUT = 60 * 1000;
 	
 	private StorageProvisioningDriver storageProvisioningDriver;
+    private Cloud cloud;
 	
-	public RemoteStorageProvisioningDriverAdapter(final StorageProvisioningDriver driver) {
+	public RemoteStorageProvisioningDriverAdapter(final StorageProvisioningDriver driver,
+                                                  final Cloud cloud) {
 		this.storageProvisioningDriver = driver;
+        this.cloud = cloud;
 	}
 
 	@Override
@@ -50,7 +61,7 @@ public class RemoteStorageProvisioningDriverAdapter implements RemoteStorageProv
 	}
 
 	@Override
-	public String createVolume(final String templateName, final String locationId) 
+	public String createVolume(final String templateName, final String locationId)
 			throws RemoteStorageOperationException, TimeoutException {
 		return createVolume(templateName, locationId, DEFAULT_STORAGE_OPERATION_TIMEOUT);
 	}
@@ -61,7 +72,7 @@ public class RemoteStorageProvisioningDriverAdapter implements RemoteStorageProv
 		try {
 			VolumeDetails volumeDetails = storageProvisioningDriver
 					.createVolume(templateName, locationId, timeoutInMillis, 
-							TimeUnit.MILLISECONDS);			
+							TimeUnit.MILLISECONDS);
 			return volumeDetails.getId();
 		} catch (final StorageProvisioningException e) {
 			throw new RemoteStorageOperationException("Failed creating volume in location " 
@@ -70,7 +81,7 @@ public class RemoteStorageProvisioningDriverAdapter implements RemoteStorageProv
 
 	}
 
-	@Override
+    @Override
 	public void detachVolume(final String volumeId, final String ip) throws RemoteStorageOperationException {		
 		try {
 			storageProvisioningDriver
@@ -92,4 +103,9 @@ public class RemoteStorageProvisioningDriverAdapter implements RemoteStorageProv
 		}
 		
 	}
+
+    @Override
+    public StorageTemplate getTemplate(String templateName) {
+        return cloud.getCloudStorage().getTemplates().get(templateName);
+    }
 }

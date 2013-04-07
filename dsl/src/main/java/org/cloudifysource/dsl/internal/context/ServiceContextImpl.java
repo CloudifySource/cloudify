@@ -407,7 +407,7 @@ public class ServiceContextImpl implements ServiceContext {
 	}
 
 	@Override
-	public String getBindedAddress() {
+	public String getBindAddress() {
 		final String envVar = System
 				.getenv(CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_IP_ADDRESS_ENV);
 		

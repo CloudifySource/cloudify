@@ -301,6 +301,10 @@ public final class ServiceUtils {
 		return new FullServiceName(applicationName, serviceName);
 	}
 
+    public static String getFullServiceInstanceName(final String applicationName, final String serviceName, final int serviceId) {
+        return getApplicationServiceName(applicationName, serviceName) + "_" + serviceId;
+    }
+
 	/***********
 	 * Returns true if the current operating system is some variant of Windows.
 	 * 

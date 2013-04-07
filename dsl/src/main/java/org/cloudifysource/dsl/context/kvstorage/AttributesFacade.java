@@ -66,7 +66,7 @@ public class AttributesFacade extends GroovyObjectSupport {
 				new GlobalAttributesAccessor(this);
 	}
 
-	GigaSpace getManagementSpace() {
+	public GigaSpace getManagementSpace() {
 		if (managementSpace != null) {
 			return managementSpace;
 		}
