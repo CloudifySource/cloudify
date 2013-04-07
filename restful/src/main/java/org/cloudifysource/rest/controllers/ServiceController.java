@@ -3219,6 +3219,9 @@ public class ServiceController implements ServiceDetailsProvider {
 						applicationName)
 				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
 				.name(serviceName);
+        
+		setSpringProfilesActive(deployment, puConfig.getSpringProfilesActive());
+        		
         if (cloud != null) {
             deployment.addCommandLineArgument("-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "="
                     + cloud.getConfiguration().getComponents().getUsm().getPortRange());
@@ -3275,6 +3278,14 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	}
 
+	private void setSpringProfilesActive(final ElasticDeploymentTopology deployment, final String profiles) {
+		if (StringUtils.isNotBlank(profiles)) {
+			//note that cloudify uses the SPRING_PROFILES_ACTIVE env variable, but this 
+			//system property overrides it
+			deployment.commandLineArgument("-Dspring.profiles.active="+profiles);
+		}
+	}
+
 	private void verifyEsmExistsInCluster() throws IllegalStateException {
 		final ElasticServiceManager esm = getESM();
 		if (esm == null) {
@@ -3317,6 +3328,9 @@ public class ServiceController implements ServiceDetailsProvider {
 				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
 				.highlyAvailable(puConfig.getSla().getHighlyAvailable())
 				.singleMachineDeployment();
+        
+		setSpringProfilesActive(deployment, puConfig.getSpringProfilesActive());
+                
         if (cloud != null) {
             deployment.addCommandLineArgument("-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "="
                     + cloud.getConfiguration().getComponents().getUsm().getPortRange());

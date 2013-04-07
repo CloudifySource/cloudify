@@ -34,6 +34,7 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 public class StatelessProcessingUnit extends ServiceProcessingUnit {
 
 	private String binaries;
+	private String springProfilesActive;
 
 	/**
 	 * can be a folder, or a jar/war file.
@@ -46,6 +47,14 @@ public class StatelessProcessingUnit extends ServiceProcessingUnit {
 
 	public void setBinaries(final String binaries) {
 		this.binaries = binaries;
+	}
+
+	public String getSpringProfilesActive() {
+		return springProfilesActive;
+	}
+
+	public void setSpringProfilesActive(String springProfiles) {
+		this.springProfilesActive = springProfiles;
 	}
 
 }
