@@ -211,6 +211,7 @@ echo
  
 		 def debughookScriptName = System.properties["user.home"] +"/debug-hook.sh"
 		 new File(debughookScriptName).withWriter() {it.write(debugScriptContents)}
+		 new File(debughookScriptName).setExecutable(true)
 		 return [debughookScriptName] + args
 	 }
  
