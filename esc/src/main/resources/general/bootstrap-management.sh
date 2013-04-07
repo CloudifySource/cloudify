@@ -156,19 +156,19 @@ fi
 echo Updating environment script
 cd $CLOUDIFY_DIR/bin || error_exit $? "Failed changing directory to bin directory"
 
-sed -i "1i export NIC_ADDR=$MACHINE_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export LOOKUPLOCATORS=$LUS_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export GIGASPACES_CLOUD_IMAGE_ID=$GIGASPACES_CLOUD_IMAGE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export GIGASPACES_CLOUD_HARDWARE_ID=$GIGASPACES_CLOUD_HARDWARE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export PATH=$JAVA_HOME/bin:$PATH" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export JAVA_HOME=$JAVA_HOME" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "2i export NIC_ADDR=$MACHINE_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "2i export LOOKUPLOCATORS=$LUS_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "2i export GIGASPACES_CLOUD_IMAGE_ID=$GIGASPACES_CLOUD_IMAGE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "2i export GIGASPACES_CLOUD_HARDWARE_ID=$GIGASPACES_CLOUD_HARDWARE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "2i export PATH=$JAVA_HOME/bin:$PATH" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "2i export JAVA_HOME=$JAVA_HOME" setenv.sh || error_exit $? "Failed updating setenv.sh"
 
 # security config properties
 
-sed -i "1i export SPRING_PROFILES_ACTIVE=$SPRING_PROFILES_ACTIVE" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export SPRING_SECURITY_CONFIG_FILE=$SPRING_SECURITY_CONFIG_FILE" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export KEYSTORE_FILE=$KEYSTORE_FILE" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export KEYSTORE_KEY=$KEYSTORE_KEY" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "2i export SPRING_PROFILES_ACTIVE=$SPRING_PROFILES_ACTIVE" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "2i export SPRING_SECURITY_CONFIG_FILE=$SPRING_SECURITY_CONFIG_FILE" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "2i export KEYSTORE_FILE=$KEYSTORE_FILE" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "2i export KEYSTORE_KEY=$KEYSTORE_KEY" setenv.sh || error_exit $? "Failed updating setenv.sh"
 
 # Privileged mode handling
 if [ "$GIGASPACES_AGENT_ENV_PRIVILEGED" = "true" ]; then

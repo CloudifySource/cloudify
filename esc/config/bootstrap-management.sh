@@ -87,8 +87,8 @@ fi
 echo Updating environment script
 cd ~/gigaspaces/bin || error_exit $? "Failed changing directory to bin directory"
 
-sed -i "1i export NIC_ADDR=$MACHINE_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export LOOKUPLOCATORS=$LUS_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "2i export NIC_ADDR=$MACHINE_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "2i export LOOKUPLOCATORS=$LUS_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
 
 cd ~/gigaspaces/tools/cli || error_exit $? "Failed changing directory to cli directory"
 

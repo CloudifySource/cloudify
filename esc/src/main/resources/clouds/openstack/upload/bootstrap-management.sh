@@ -155,11 +155,11 @@ fi
 echo Updating environment script
 cd ~/gigaspaces/bin || error_exit $? "Failed changing directory to bin directory"
 
-sed -i "1i source  ${ENV_FILE_PATH}" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export NIC_ADDR=$MACHINE_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export LOOKUPLOCATORS=$LUS_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export PATH=$JAVA_HOME/bin:$PATH" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "1i export JAVA_HOME=$JAVA_HOME" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "2i source  ${ENV_FILE_PATH}" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "2i export NIC_ADDR=$MACHINE_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "2i export LOOKUPLOCATORS=$LUS_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "2i export PATH=$JAVA_HOME/bin:$PATH" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "2i export JAVA_HOME=$JAVA_HOME" setenv.sh || error_exit $? "Failed updating setenv.sh"
 
 
 # START AGENT ALONE OR WITH MANAGEMENT
