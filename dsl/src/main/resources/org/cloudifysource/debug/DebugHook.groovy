@@ -193,7 +193,7 @@ echo These are the available debug commands:
 help
 echo -en "\\\\e[0m" #reset
 echo
-echo "When you are done, type 'end-debug' to end the debug session and resume Cloudify's flow"
+echo "When you are done, type 'finish' to end the debug session and resume Cloudify's flow"
 ''')
 
 
