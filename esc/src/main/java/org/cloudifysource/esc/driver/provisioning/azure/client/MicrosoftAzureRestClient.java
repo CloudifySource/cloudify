@@ -687,7 +687,7 @@ public class MicrosoftAzureRestClient {
 		deleteDeployment(cloudServiceName, deploymentName,
 				endTime);
 		
-		logger.fine("Deleteing cloud service : " + cloudServiceName
+		logger.fine("Deleting cloud service : " + cloudServiceName
 				+ " that was dedicated for virtual machine " + roleName);				
 		deleteCloudService(cloudServiceName, endTime);
 

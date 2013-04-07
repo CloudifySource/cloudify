@@ -24,11 +24,7 @@ import org.cloudifysource.esc.driver.provisioning.azure.client.CreatePersistentV
 import org.cloudifysource.esc.driver.provisioning.azure.client.MicrosoftAzureException;
 import org.cloudifysource.esc.driver.provisioning.azure.client.MicrosoftAzureRestClient;
 import org.cloudifysource.esc.driver.provisioning.azure.client.RoleDetails;
-import org.cloudifysource.esc.driver.provisioning.azure.model.AttachedTo;
-import org.cloudifysource.esc.driver.provisioning.azure.model.Disk;
-import org.cloudifysource.esc.driver.provisioning.azure.model.Disks;
-import org.cloudifysource.esc.driver.provisioning.azure.model.InputEndpoint;
-import org.cloudifysource.esc.driver.provisioning.azure.model.InputEndpoints;
+import org.cloudifysource.esc.driver.provisioning.azure.model.*;
 
 /***************************************************************************************
  * A custom Cloud Driver implementation for provisioning machines on Azure.
@@ -332,7 +328,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 
 		if (deletedNetwork && deletedStorage) {
 			try {
-				deletedStorage = azureClient.deleteAffinityGroup(affinityGroup, endTime);
+				azureClient.deleteAffinityGroup(affinityGroup, endTime);
 			} catch (final Exception e) {
 				if (first == null) {
 					first = e;
@@ -461,13 +457,35 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			service.shutdown();
 		}
 
+        scanLeakingNodes();
+
 		if (cleanup) {
-			logger.info("Cleaning up management services");
-			cleanup();
+            logger.info("Cleaning up management services");
+            cleanup();
 		}
 	}
 
-	/**
+    private void scanLeakingNodes() {
+        try {
+            HostedServices hostedServices = azureClient.listHostedServices();
+            if (!hostedServices.getHostedServices().isEmpty()) {
+                logger.warning("Scanning for leaking nodes...");
+                for (HostedService hostedService : hostedServices) {
+                    HostedService serviceWithDeployments = azureClient.getHostedService(hostedService.getServiceName(), true);
+                    Deployment deployment = serviceWithDeployments.getDeployments().getDeployments().get(0);
+                    if (deployment != null) {
+                        logger.info("Found : " + deployment.getRoleList().getRoles().get(0).getRoleName());
+                    }
+                }
+                throw new CloudProvisioningException("There are still running instances, please shut them down and try again.");
+            }
+        } catch (final Exception e) {
+            logger.warning("Failed Retrieving running virtual machines : " + e.getMessage());
+            // nothing to do here...
+        }
+    }
+
+    /**
 	 * @param endTime
 	 * @param service
 	 * @throws TimeoutException
