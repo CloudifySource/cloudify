@@ -34,6 +34,7 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
+import org.cloudifysource.dsl.cloud.ScriptLanguages;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
@@ -702,15 +703,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			}
 		}
 		
-		String cloudifyUrl = cloud.getProvider().getCloudifyUrl();
-		if (cloudifyUrl.endsWith(".zip") || cloudifyUrl.endsWith(".tar.gz")) {
-			validateCloudifyUrl(cloudifyUrl);
-		} else {
-			//validate both zip and tar.gz
-			validateCloudifyUrl(cloudifyUrl + ".zip");
-			validateCloudifyUrl(cloudifyUrl + ".tar.gz");
-		}
-		
+		validateCloudifyUrls(cloud.getProvider().getCloudifyUrl());
 		validateComputeTemplates(endpointRequired, apiId);
 	}
 
@@ -985,8 +978,19 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		}
 	}
 	
+	private void validateCloudifyUrls(final String baseCloudifyUrl) throws CloudProvisioningException {
+		Set<String> scriptLanguages = getScriptLanguages();
+		
+		if (scriptLanguages.contains(ScriptLanguages.LINUX_SHELL.toString())) {
+			validateUrl(baseCloudifyUrl + ".tar.gz");
+		}
+		
+		if (scriptLanguages.contains(ScriptLanguages.WINDOWS_BATCH.toString())) {
+			validateUrl(baseCloudifyUrl + ".zip");
+		}
+	}
 	
-	private void validateCloudifyUrl(final String cloudifyUrl) throws CloudProvisioningException {
+	private void validateUrl(final String cloudifyUrl) throws CloudProvisioningException {
 
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 		
@@ -1051,6 +1055,17 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		
 		logger.fine("region: " + region);		
 		return region;
+	}
+	
+	private Set<String> getScriptLanguages() {
+		Set<String> langs = new HashSet<String>();
+		
+		for (Entry<String, ComputeTemplate> entry : cloud.getCloudCompute().getTemplates().entrySet()) {
+			ComputeTemplate template = entry.getValue();
+			langs.add(template.getScriptLanguage().toString());
+		}
+		
+		return langs;
 	}
 
 }
