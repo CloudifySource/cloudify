@@ -21,6 +21,7 @@ import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.cloud.storage.ServiceVolume;
 import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
 import org.cloudifysource.dsl.cloud.storage.VolumeState;
+import org.cloudifysource.dsl.context.ServiceContext;
 import org.cloudifysource.dsl.context.blockstorage.StorageFacade;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -229,13 +230,11 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
         if (StringUtils.isNotBlank(storageTemplateName)) {
 
-            final ServiceVolume serviceVolume = getServiceVolumeFromSpace(service.getName());
+            final ServiceVolume serviceVolume = getServiceVolumeFromSpace(getUsmLifecycleBean().getConfiguration().getServiceContext());
             final VolumeState volumeState = serviceVolume.getState();
 
             final StorageFacade storage = getUsmLifecycleBean().getConfiguration().getServiceContext().getStorage();
             final StorageTemplate storageTemplate = storage.getTemplate(storageTemplateName);
-
-            final VolumeState newVolumeState;
 
             try {
                 switch (volumeState) {
@@ -274,7 +273,51 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
         }
     }
 
-    private ServiceVolume getServiceVolumeFromSpace(final String serviceName) {
+    private void deAllocateStorage() throws USMException, TimeoutException {
+
+        Service service = getUsmLifecycleBean().getConfiguration().getService();
+        final String storageTemplateName = service.getStorage().getTemplate();
+
+        if (StringUtils.isNotBlank(storageTemplateName)) {
+
+            final ServiceVolume serviceVolume = getServiceVolumeFromSpace(getUsmLifecycleBean().getConfiguration().getServiceContext());
+            final VolumeState volumeState = serviceVolume.getState();
+
+            final StorageFacade storage = getUsmLifecycleBean().getConfiguration().getServiceContext().getStorage();
+            final StorageTemplate storageTemplate = storage.getTemplate(storageTemplateName);
+
+            try {
+                switch (volumeState) {
+
+                    case MOUNTED : {
+                        storage.unmount(storageTemplate.getDeviceName());
+                        storage.detachVolume(serviceVolume.getId());
+                        storage.deleteVolume(serviceVolume.getId());
+                        break;
+                    }
+                    case UNMOUNTED : {
+                        storage.detachVolume(serviceVolume.getId());
+                        storage.deleteVolume(serviceVolume.getId());
+                        break;
+                    }
+                    case DETACHED : {
+                        storage.deleteVolume(serviceVolume.getId());
+                        break;
+                    }
+                    case ABSENT : {
+                        break;
+                    }
+                }
+            } catch (final Exception e) {
+                if (e instanceof TimeoutException) {
+                    throw (TimeoutException)e;
+                }
+                throw new USMException(e);
+            }
+        }
+    }
+
+    private ServiceVolume getServiceVolumeFromSpace(final ServiceContext serviceName) {
         return null;  //To change body of created methods use File | Settings | File Templates.
     }
 

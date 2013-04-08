@@ -31,5 +31,7 @@ public enum VolumeState {
     CREATED,
     ATTACHED,
     FORMATTED,
-    MOUNTED
+    MOUNTED,
+    UNMOUNTED,
+    DETACHED
 }

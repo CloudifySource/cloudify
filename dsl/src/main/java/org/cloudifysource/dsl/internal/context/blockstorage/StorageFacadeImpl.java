@@ -48,7 +48,7 @@ public class StorageFacadeImpl implements StorageFacade {
 			final RemoteStorageProvisioningDriver storageApi) {
 		this.serviceContext = serviceContext;
 		this.remoteStorageProvisioningDriver = storageApi;
-        this.managementSpace = serviceContext.getAttributes().getManagementSpace();
+        this.managementSpace = serviceContext.getAttributes().getManagementSpace(); // TODO elip - maybe use a different proxy to the space?
         // this object is initialized in a lazy manner.
         // which means this constructor is called only when we actually use the storage API.
         // so lets go ahead and write our empty ServiceVolume instance to the management space.
@@ -99,12 +99,14 @@ public class StorageFacadeImpl implements StorageFacade {
 			throws RemoteStorageOperationException, LocalStorageOperationException {
 		validateNotWindows();
 		remoteStorageProvisioningDriver.detachVolume(volumeId, serviceContext.getBindAddress());
+        changeVolumeState(VolumeState.DETACHED);
 	}
 
 	@Override
 	public void deleteVolume(final String volumeId) throws RemoteStorageOperationException {
 		validateNotWindows();
 		remoteStorageProvisioningDriver.deleteVolume(serviceContext.getLocationId(), volumeId);
+        changeVolumeState(VolumeState.ABSENT);
 	}
 	
 
@@ -139,6 +141,7 @@ public class StorageFacadeImpl implements StorageFacade {
 			throw new IllegalStateException("Cannot unmount when not running in privileged mode");
 		}
 		VolumeUtils.unmount(device, timeoutInMillis);
+        changeVolumeState(VolumeState.UNMOUNTED);
 	}
 
 	@Override
@@ -149,6 +152,7 @@ public class StorageFacadeImpl implements StorageFacade {
 			throw new IllegalStateException("Cannot unmount when not running in privileged mode");
 		}
 		VolumeUtils.unmount(device);
+        changeVolumeState(VolumeState.UNMOUNTED);
 	}
 
     @Override
