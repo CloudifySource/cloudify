@@ -22,6 +22,7 @@ import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.context.ServiceContext;
 import org.cloudifysource.dsl.context.blockstorage.StorageFacade;
 import org.cloudifysource.dsl.context.kvstorage.AttributesFacade;
+import org.cloudifysource.dsl.context.kvstorage.AttributesFacadeImpl;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.context.blockstorage.StorageFacadeImpl;
 import org.cloudifysource.dsl.utils.ServiceUtils;
@@ -126,7 +127,7 @@ public class ServiceContextImpl implements ServiceContext {
 								+ Arrays.toString(admin.getLocators()));
 			}
 		}
-		this.attributesFacade = new AttributesFacade(this, admin);
+		this.attributesFacade = new AttributesFacadeImpl(this, admin);
 		initialized = true;
 	}
 
@@ -161,7 +162,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 		this.applicationName = CloudifyConstants.DEFAULT_APPLICATION_NAME;
 
-		this.attributesFacade = new AttributesFacade(this, admin);
+		this.attributesFacade = new AttributesFacadeImpl(this, admin);
 		initialized = true;
 
 	}

@@ -12,6 +12,7 @@
  *******************************************************************************/
 package org.cloudifysource.usm;
 
+import com.gigaspaces.client.ChangeSet;
 import com.gigaspaces.internal.sigar.SigarHolder;
 import com.j_spaces.kernel.Environment;
 import org.apache.commons.io.FileUtils;
@@ -23,6 +24,7 @@ import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
 import org.cloudifysource.dsl.cloud.storage.VolumeState;
 import org.cloudifysource.dsl.context.ServiceContext;
 import org.cloudifysource.dsl.context.blockstorage.StorageFacade;
+import org.cloudifysource.dsl.context.kvstorage.AttributesFacadeImpl;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
@@ -40,6 +42,7 @@ import org.openspaces.admin.Admin;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
 import org.openspaces.admin.pu.events.ProcessingUnitInstanceAddedEventListener;
+import org.openspaces.core.GigaSpace;
 import org.openspaces.core.cluster.ClusterInfo;
 import org.openspaces.core.cluster.ClusterInfoAware;
 import org.openspaces.core.cluster.MemberAliveIndicator;
@@ -147,6 +150,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	// monitors accessor and thread-safe cache.
 	private MonitorsCache monitorsCache;
 
+    private GigaSpace managementSpace;
+
 	// called on USM startup, or if the process died unexpectedly and is being
 	// restarted
 	private void reset(final boolean existingProcessFound) throws USMException,
@@ -214,6 +219,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 		final boolean existingProcessFound = checkForPIDFile();
 
+        initManagementSpace();
         // will allocate block storage if the service declared it.
         allocateStorage();
 
@@ -223,6 +229,10 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		reset(existingProcessFound);
 	}
 
+    private void initManagementSpace() {
+        managementSpace = ((AttributesFacadeImpl)getUsmLifecycleBean().getConfiguration().getServiceContext().getAttributes()).getManagementSpace();
+    }
+
     private void allocateStorage() throws USMException, TimeoutException {
 
         Service service = getUsmLifecycleBean().getConfiguration().getService();
@@ -231,7 +241,13 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
         if (StringUtils.isNotBlank(storageTemplateName)) {
 
             final ServiceVolume serviceVolume = getServiceVolumeFromSpace(getUsmLifecycleBean().getConfiguration().getServiceContext());
-            final VolumeState volumeState = serviceVolume.getState();
+            VolumeState volumeState;
+            if (serviceVolume == null) {
+                // we haven't created it yet, so it is not in the space.
+                volumeState = VolumeState.ABSENT;
+            } else {
+                volumeState = serviceVolume.getState();
+            }
 
             final StorageFacade storage = getUsmLifecycleBean().getConfiguration().getServiceContext().getStorage();
             final StorageTemplate storageTemplate = storage.getTemplate(storageTemplateName);
@@ -241,6 +257,9 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
                     case ABSENT : {
                         final String id = storage.createVolume(storageTemplateName);
+                        // flag this volume as static. this is to identify it when deallocating on shutdown.
+                        ServiceVolume newServiceVolume = managementSpace.readById(ServiceVolume.class, id);
+                        managementSpace.change(newServiceVolume, new ChangeSet().set("dynamic", false));
                         storage.attachVolume(id, storageTemplate.getDeviceName());
                         storage.format(storageTemplate.getDeviceName(), storageTemplate.getFileSystemType());
                         storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
@@ -281,16 +300,19 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
         if (StringUtils.isNotBlank(storageTemplateName)) {
 
             final ServiceVolume serviceVolume = getServiceVolumeFromSpace(getUsmLifecycleBean().getConfiguration().getServiceContext());
+            if (serviceVolume == null) {
+                // the volume was already deallocated by another instance.
+                return;
+            }
             final VolumeState volumeState = serviceVolume.getState();
 
             final StorageFacade storage = getUsmLifecycleBean().getConfiguration().getServiceContext().getStorage();
-            final StorageTemplate storageTemplate = storage.getTemplate(storageTemplateName);
 
             try {
                 switch (volumeState) {
 
                     case MOUNTED : {
-                        storage.unmount(storageTemplate.getDeviceName());
+                        storage.unmount(serviceVolume.getDevice());
                         storage.detachVolume(serviceVolume.getId());
                         storage.deleteVolume(serviceVolume.getId());
                         break;
@@ -304,9 +326,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
                         storage.deleteVolume(serviceVolume.getId());
                         break;
                     }
-                    case ABSENT : {
-                        break;
-                    }
                 }
             } catch (final Exception e) {
                 if (e instanceof TimeoutException) {
@@ -317,8 +336,15 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
         }
     }
 
-    private ServiceVolume getServiceVolumeFromSpace(final ServiceContext serviceName) {
-        return null;  //To change body of created methods use File | Settings | File Templates.
+    private ServiceVolume getServiceVolumeFromSpace(final ServiceContext serviceContext) {
+        ServiceVolume serviceVolume = new ServiceVolume(serviceContext.getApplicationName(), serviceContext.getServiceName());
+        serviceVolume.setDynamic(false);
+        ServiceVolume[] serviceVolumes = managementSpace.readMultiple(serviceVolume);
+        if (serviceVolumes.length != 1) {
+            throw new IllegalStateException("Cannot have two static volumes for the same instance : "
+                    + ServiceUtils.getFullServiceInstanceName(serviceContext.getApplicationName(), serviceContext.getServiceName(), serviceContext.getInstanceId()));
+        }
+        return serviceVolumes[0];
     }
 
     /******
@@ -466,6 +492,13 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 				deleteExtDirContents(); // avoid deleting contents in
 										// Integrated PU
 			}
+
+            try {
+                deAllocateStorage();
+            } catch (final Exception e) {
+                logger.log(Level.SEVERE, "Failed to deallocate storage: "
+                        + e.getMessage(), e);
+            }
 
 			USMUtils.shutdownAdmin();
 		}

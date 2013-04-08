@@ -35,47 +35,40 @@ public class ServiceVolume {
 
     private String applicationName;
     private String serviceName;
-    private int instanceId;
-    private String serviceInstanceName;
     private VolumeState state = VolumeState.ABSENT;
     private String id;
+    private String device;
 
-    public ServiceVolume(final String applicationName,
-                         final String serviceName,
-                         final int instanceId) {
-        this.applicationName = applicationName;
-        this.serviceName = serviceName;
-        this.instanceId = instanceId;
-        this.serviceInstanceName = ServiceUtils.getFullServiceInstanceName(applicationName, serviceName, instanceId);
+    public String getDevice() {
+        return device;
     }
 
-    @SpaceId(autoGenerate = false)
-    public String getServiceInstanceName() {
-        return serviceInstanceName;
+    public void setDevice(String device) {
+        this.device = device;
+    }
+
+    public Boolean getDynamic() {
+        return dynamic;
+    }
+
+    public void setDynamic(Boolean dynamic) {
+        this.dynamic = dynamic;
+    }
+
+    private Boolean dynamic;
+
+    public ServiceVolume(final String applicationName,
+                         final String serviceName) {
+        this.applicationName = applicationName;
+        this.serviceName = serviceName;
     }
 
     public String getApplicationName() {
         return applicationName;
     }
 
-    public void setApplicationName(final String applicationName) {
-        this.applicationName = applicationName;
-    }
-
     public String getServiceName() {
         return serviceName;
-    }
-
-    public void setServiceName(final String serviceName) {
-        this.serviceName = serviceName;
-    }
-
-    public int getInstanceId() {
-        return instanceId;
-    }
-
-    public void setInstanceId(final int instanceId) {
-        this.instanceId = instanceId;
     }
 
     public VolumeState getState() {
@@ -86,6 +79,7 @@ public class ServiceVolume {
         this.state = state;
     }
 
+    @SpaceId(autoGenerate = false)
     public String getId() {
         return id;
     }

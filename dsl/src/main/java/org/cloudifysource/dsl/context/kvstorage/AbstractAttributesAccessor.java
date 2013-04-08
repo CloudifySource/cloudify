@@ -29,10 +29,10 @@ import org.openspaces.core.GigaSpace;
  */
 public abstract class AbstractAttributesAccessor extends GroovyObjectSupport {
 
-	protected final AttributesFacade attributesFacade;
+	protected final AttributesFacadeImpl attributesFacade;
 	protected final String applicationName;
 
-	public AbstractAttributesAccessor(final AttributesFacade attributesFacade, final String applicationName) {
+	public AbstractAttributesAccessor(final AttributesFacadeImpl attributesFacade, final String applicationName) {
 		this.attributesFacade = attributesFacade;
 		this.applicationName = applicationName;
 	}

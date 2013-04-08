@@ -23,7 +23,7 @@ import org.cloudifysource.dsl.context.kvstorage.spaceentries.ApplicationCloudify
  */
 public class ApplicationAttributesAccessor extends AbstractAttributesAccessor {
 
-	public ApplicationAttributesAccessor(final AttributesFacade attributesFacade, final String applicationName) {
+	public ApplicationAttributesAccessor(final AttributesFacadeImpl attributesFacade, final String applicationName) {
 		super(attributesFacade, applicationName);
 	}
 

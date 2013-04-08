@@ -15,120 +15,42 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.context.kvstorage;
 
-import groovy.lang.GroovyObjectSupport;
-import groovy.lang.MissingPropertyException;
-
-import java.util.concurrent.TimeUnit;
-
-import org.cloudifysource.dsl.context.ServiceContext;
-import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.openspaces.admin.Admin;
-import org.openspaces.admin.space.Space;
-import org.openspaces.core.GigaSpace;
-
 /**
- * Facade for putting and getting attributes over cloudify management space.
- * 
- * @author eitany
- * @since 2.0
+ * Created with IntelliJ IDEA.
+ * User: elip
+ * Date: 4/8/13
+ * Time: 2:00 PM
  */
-public class AttributesFacade extends GroovyObjectSupport {
+public interface AttributesFacade {
 
-	private static final long MANAGEMENT_SPACE_FIND_TIMEOUT = 10; // 10 seconds
-	private static final long MANAGEMENT_SPACE_FIND_REPEAT = 3; // 3 repeats
+    /**
+     *
+     * @return
+     */
+    ApplicationAttributesAccessor getThisApplication();
 
-	private final ServiceContext serviceContext;
+    /**
+     *
+     * @return
+     */
+    GlobalAttributesAccessor getGlobal();
 
-	private final ApplicationAttributesAccessor applicationAttributesAccessor;
-	private final ServiceAttributesAccessor serviceAttributesAccessor;
-	private final GlobalAttributesAccessor globalAttributesAccessor;
-	// This needs to be lazy initiated because service instaceId is not available at construction time
-	private InstanceAttributesAccessor instanceAttributesAccessor;
+    /**
+     *
+     * @return
+     */
+    ServiceAttributesAccessor getThisService();
 
-	private volatile GigaSpace managementSpace;
-	private final Object managementSpaceLock = new Object();
-	private final Admin admin;
+    /**
+     *
+     * @return
+     */
+    InstanceAttributesAccessor getThisInstance();
 
-	/***********
-	 * Constructor.
-	 * @param serviceContext .
-	 * @param admin .
-	 */
-	public AttributesFacade(final ServiceContext serviceContext, final Admin admin) {
-		this.serviceContext = serviceContext;
-		this.admin = admin;
-		this.applicationAttributesAccessor =
-				new ApplicationAttributesAccessor(this, serviceContext.getApplicationName());
-		this.serviceAttributesAccessor =
-				new ServiceAttributesAccessor(this, serviceContext.getApplicationName(),
-						serviceContext.getServiceName(), serviceContext);
-		this.globalAttributesAccessor = 
-				new GlobalAttributesAccessor(this);
-	}
-
-	public GigaSpace getManagementSpace() {
-		if (managementSpace != null) {
-			return managementSpace;
-		}
-		synchronized (managementSpaceLock) {
-			if (managementSpace != null) {
-				return managementSpace;
-			}
-
-			Space space = null;
-			for (int i = 0; i < MANAGEMENT_SPACE_FIND_REPEAT; ++i) {
-				space = admin.getSpaces().waitFor(CloudifyConstants.MANAGEMENT_SPACE_NAME,
-						MANAGEMENT_SPACE_FIND_TIMEOUT,
-						TimeUnit.SECONDS);
-				if (space != null) {
-					break;
-				}
-			}
-			if (space == null) {
-				// see GS-8475 - retry one last time - if still null, throw exception
-				space = admin.getSpaces().getSpaceByName(CloudifyConstants.MANAGEMENT_SPACE_NAME);
-				if (space == null) {
-					throw new IllegalStateException("No management space located");
-				}
-			}
-
-			managementSpace = space.getGigaSpace();
-			return managementSpace;
-		}
-	}
-
-	public ApplicationAttributesAccessor getThisApplication() {
-		return applicationAttributesAccessor;
-	}
-
-	public GlobalAttributesAccessor getGlobal() {
-		return this.globalAttributesAccessor;
-	}
-	
-	public ServiceAttributesAccessor getThisService() {
-		return serviceAttributesAccessor;
-	}
-
-	/******
-	 * Accessor.
-	 * @return .
-	 */
-	public InstanceAttributesAccessor getThisInstance() {
-		if (instanceAttributesAccessor == null) {
-			this.instanceAttributesAccessor =
-					new InstanceAttributesAccessor(this, serviceContext.getApplicationName(),
-							serviceContext.getServiceName(), serviceContext.getInstanceId());
-		}
-		return instanceAttributesAccessor;
-	}
-
-	@Override
-	public Object getProperty(final String property) {
-		try {
-			return super.getProperty(property);
-		} catch (final MissingPropertyException e) {
-			return new ServiceAttributesAccessor(this, serviceContext.getApplicationName(), property, serviceContext);
-		}
-	}
-
+    /**
+     *
+     * @param property
+     * @return
+     */
+    Object getProperty(final String property);
 }

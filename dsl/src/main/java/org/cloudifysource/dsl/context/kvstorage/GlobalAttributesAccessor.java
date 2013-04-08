@@ -23,7 +23,7 @@ import org.cloudifysource.dsl.context.kvstorage.spaceentries.GlobalCloudifyAttri
  */
 public class GlobalAttributesAccessor extends AbstractAttributesAccessor {
 
-	public GlobalAttributesAccessor(final AttributesFacade attributesFacade) {
+	public GlobalAttributesAccessor(final AttributesFacadeImpl attributesFacade) {
 		super(attributesFacade, null);
 	}
 

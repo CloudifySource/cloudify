@@ -35,7 +35,7 @@ public class ServiceAttributesAccessor extends AbstractAttributesAccessor {
 	private final String serviceName;
 	private final InstancesFacade instancesFacade;
 
-	public ServiceAttributesAccessor(final AttributesFacade attributesFacade, final String applicationName,
+	public ServiceAttributesAccessor(final AttributesFacadeImpl attributesFacade, final String applicationName,
 			final String serviceName, final ServiceContext serviceContext) {
 		super(attributesFacade, applicationName);
 		this.serviceName = serviceName;
@@ -67,11 +67,11 @@ public class ServiceAttributesAccessor extends AbstractAttributesAccessor {
 
 		private static final int WAIT_FOR_SERVICE_TIMEOUT = 10;
 		private final transient ServiceContext serviceContext;
-		private final transient AttributesFacade attributesFacade;
+		private final transient AttributesFacadeImpl attributesFacade;
 		private final transient String applicationName;
 		private final transient String serviceName;
 
-		public InstancesFacade(final AttributesFacade attributesFacade, final String applicationName,
+		public InstancesFacade(final AttributesFacadeImpl attributesFacade, final String applicationName,
 				final String serviceName, final ServiceContext serviceContext) {
 			this.attributesFacade = attributesFacade;
 			this.applicationName = applicationName;

@@ -27,7 +27,7 @@ public class InstanceAttributesAccessor extends AbstractAttributesAccessor {
 	private final String serviceName;
 	private final int instanceId;
 
-	public InstanceAttributesAccessor(final AttributesFacade attributesFacade,
+	public InstanceAttributesAccessor(final AttributesFacadeImpl attributesFacade,
 			final String applicationName, final String serviceName, final int instanceId) {
 		super(attributesFacade, applicationName);
 		this.serviceName = serviceName;
