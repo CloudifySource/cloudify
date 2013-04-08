@@ -154,7 +154,7 @@ cd \\\$SERVICEDIR
 #load cloudify environment variables saved for this lifecycle event
 source .cloudify_env
 
-export CLASSPATH=`find \\\$JSHOMEDIR/lib/{required,platform/cloudify} -name *.jar | paste -sd:`
+#export CLASSPATH=`find \\\$JSHOMEDIR/lib/{required,platform/cloudify} -name *.jar | paste -sd:`
 
 export PATH=\\\$JSHOMEDIR/tools/groovy/bin:\\\$PATH
 chmod +x \\\$DEBUG_GROOVY
