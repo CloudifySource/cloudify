@@ -354,10 +354,6 @@ public final class Utils {
 
 		details.setDeleteRemoteDirectoryContents(md.isCleanRemoteDirectoryOnStart());
 		//add storage props that will be passed down to the bootstrap-management script.
-		details.setStorageVolumeAttached(md.isStorageVolumeAttached());
-		details.setStorageFormatType(md.getStorageFormatType());
-		details.setStorageDeviceName(md.getStorageDeviceName());
-		details.setStorageMountPath(md.getStorageMountPath());
 
 		details.setPersistent(cloud.getConfiguration().getPersistentStoragePath() != null);
 		details.setInstallerConfiguration(md.getInstallerConfiguration());

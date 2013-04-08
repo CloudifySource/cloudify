@@ -59,11 +59,6 @@ public class MachineDetails implements Externalizable {
 
 	private boolean cleanRemoteDirectoryOnStart = false;
 
-	private boolean storageVolumeAttached = false;
-	private String storageFormatType;
-	private String storageDeviceName;
-	private String storageMountPath;
-
 	// installer configuration. If null, default values should be used.
 	private CloudTemplateInstallerConfiguration installerConfigutation = null;
 
@@ -226,38 +221,6 @@ public class MachineDetails implements Externalizable {
 
 	public void setCleanRemoteDirectoryOnStart(final boolean cleanRemoteDirectoryOnStart) {
 		this.cleanRemoteDirectoryOnStart = cleanRemoteDirectoryOnStart;
-	}
-
-	public boolean isStorageVolumeAttached() {
-		return storageVolumeAttached;
-	}
-
-	public void setStorageVolumeAttached(final boolean storageVolumeAttached) {
-		this.storageVolumeAttached = storageVolumeAttached;
-	}
-
-	public String getStorageFormatType() {
-		return storageFormatType;
-	}
-
-	public void setStorageFormatType(final String storageFormatType) {
-		this.storageFormatType = storageFormatType;
-	}
-
-	public String getStorageDeviceName() {
-		return storageDeviceName;
-	}
-
-	public void setStorageDeviceName(final String storageDeviceName) {
-		this.storageDeviceName = storageDeviceName;
-	}
-
-	public String getStorageMountPath() {
-		return storageMountPath;
-	}
-
-	public void setStorageMountPath(final String storageMountPath) {
-		this.storageMountPath = storageMountPath;
 	}
 
 	public CloudTemplateInstallerConfiguration getInstallerConfiguration() {

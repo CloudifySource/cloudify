@@ -138,11 +138,6 @@ public class InstallationDetails implements Cloneable {
 	private boolean persistent = false;
 	private String persistentStoragePath = null;
 
-	private boolean storageVolumeAttached = false;
-	private String storageFormatType;
-	private String storageDeviceName;
-	private String storageMountPath;
-
 	private boolean deleteRemoteDirectoryContents = false;
 
 	private String locationId;
@@ -236,10 +231,7 @@ public class InstallationDetails implements Cloneable {
 				+ ", bindToPrivateIP=" + bindToPrivateIp + ", username=" + username + ", password=***" + ", keyFile="
 				+ keyFile + ", localDir=" + localDir + ", remoteDir=" + remoteDir + ", isLus=" + isManagement
 				+ ", zones="
-				+ zones + ", extraRemoteEnvironmentVariables = " + extraRemoteEnvironmentVariables
-				+ ", authGroups=***]" + ", storageVolumeAttached=" + storageVolumeAttached
-				+ ", storageFormatType=" + storageFormatType + ", storageDeviceName=" + storageDeviceName
-				+ ", storageMountPath=" + storageMountPath;
+				+ zones + ", extraRemoteEnvironmentVariables = " + extraRemoteEnvironmentVariables;
 	}
 
 	public String getKeyFile() {
@@ -537,38 +529,6 @@ public class InstallationDetails implements Cloneable {
 
 	public void setPersistentStoragePath(final String persistentStoragePath) {
 		this.persistentStoragePath = persistentStoragePath;
-	}
-
-	public boolean isStorageVolumeAttached() {
-		return storageVolumeAttached;
-	}
-
-	public void setStorageVolumeAttached(final boolean storageVolumeAttached) {
-		this.storageVolumeAttached = storageVolumeAttached;
-	}
-
-	public String getStorageFormatType() {
-		return storageFormatType;
-	}
-
-	public void setStorageFormatType(final String storageFormatType) {
-		this.storageFormatType = storageFormatType;
-	}
-
-	public String getStorageDeviceName() {
-		return storageDeviceName;
-	}
-
-	public void setStorageDeviceName(final String storageDeviceName) {
-		this.storageDeviceName = storageDeviceName;
-	}
-
-	public String getStorageMountPath() {
-		return storageMountPath;
-	}
-
-	public void setStorageMountPath(final String storageMountPath) {
-		this.storageMountPath = storageMountPath;
 	}
 
 	public CloudTemplateInstallerConfiguration getInstallerConfiguration() {

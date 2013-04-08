@@ -280,13 +280,6 @@ public class AgentlessInstaller {
 				.exportVar(CloudifyConstants.CLOUDIFY_CLOUD_LOCATION_ID, details.getLocationId())
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, details.getPublicIp());
 
-		builder.exportVar(STORAGE_VOLUME_ATTACHED, Boolean.toString(details.isStorageVolumeAttached()));
-		if (details.isStorageVolumeAttached()) {
-			builder.exportVar(STORAGE_FORMAT_TYPE, details.getStorageFormatType());
-			builder.exportVar(STORAGE_DEVICE_NAME, details.getStorageDeviceName());
-			builder.exportVar(STORAGE_MOUNT_PATH, details.getStorageMountPath());
-		}
-
 		if (details.getReservationId() != null) {
 			builder.exportVar(GSA_RESERVATION_ID_ENV, details.getReservationId().toString());
 		}
