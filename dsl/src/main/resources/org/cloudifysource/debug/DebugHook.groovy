@@ -227,6 +227,8 @@ fi
 				],
 				[name:"launch-groovysh", comment:"Launch a groovy shell",
 						command:"\$JSHOMEDIR/tools/groovy/bin/groovysh -q"],
+				[name:"exit", comment:"Exit this debugging shell session, but leave it running for future connections",
+						command:"exit"],
 				[name:"finish", comment:"Finish debugging (move on to the next lifecycle event)",
 						command:'rm \$SERVICEDIR/debug_commands ; rm \$KEEPALIVE_FILE && exec echo -e "Debug step finished\n"'],
 		]
