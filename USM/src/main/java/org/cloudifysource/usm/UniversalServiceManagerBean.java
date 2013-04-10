@@ -152,54 +152,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
     private GigaSpace managementSpace;
 
-	// called on USM startup, or if the process died unexpectedly and is being
-	// restarted
-	private void reset(final boolean existingProcessFound) throws USMException,
-			TimeoutException {
-		synchronized (this.stateMutex) {
-
-			this.state = USMState.INITIALIZING;
-			logger.info("USM Started. Configuration is: "
-					+ getUsmLifecycleBean().getConfiguration());
-
-			this.executors = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
-			// Auto shutdown if this is a Test-Recipe run
-			checkForRecipeTestEnvironment();
-
-			// check for PID file
-			if (existingProcessFound) {
-				// found an existing process, so no need to launch
-				startAsyncTasks();
-
-				// start file monitoring task too
-				startFileMonitoringTask();
-
-				this.state = USMState.RUNNING;
-
-				return;
-			}
-			try {
-				// Launch the process
-				startProcessLifecycle();
-			} catch (final USMException e) {
-				logger.log(
-						Level.SEVERE,
-						"Process lifecycle failed to start. Shutting down the USM instance",
-						e);
-				try {
-					this.shutdown();
-				} catch (final Exception e2) {
-					logger.log(
-							Level.SEVERE,
-							"While shutting down the USM due to a failure in initialization, "
-									+ "the following exception occured: "
-									+ e.getMessage(), e);
-				}
-				throw e;
-			}
-		}
-	}
-
 	/********
 	 * The USM Bean entry point. This is where processing of a service instance starts.
 	 *
@@ -229,9 +181,124 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		reset(existingProcessFound);
 	}
 
-    private void initManagementSpace() {
-        managementSpace = ((AttributesFacadeImpl)getUsmLifecycleBean().getConfiguration().getServiceContext().getAttributes()).getManagementSpace();
+    /**********
+     * Bean shutdown method, responsible for shutting down the external service and releasing all resource.
+     */
+    @PreDestroy
+    public void shutdown() {
+
+        logger.info("USM is shutting down!");
+
+        synchronized (this.stateMutex) {
+            this.state = USMState.SHUTTING_DOWN;
+
+            if (!FileUtils.deleteQuietly(getPidFile())) {
+                logger.severe("Attempted to delete PID file: "
+                        + getPidFile()
+                        + " but failed. The file may remain and be picked up by a new GSC");
+            }
+
+            stop(StopReason.UNDEPLOY);
+
+            if (executors != null) {
+                executors.shutdown();
+            }
+
+            try {
+                getUsmLifecycleBean().fireShutdown();
+            } catch (final USMException e) {
+                logger.log(Level.SEVERE, "Failed to execute shutdown event: "
+                        + e.getMessage(), e);
+            }
+
+            // after shutdown, no further events are expected to be
+            // executed.
+            // So we delete the service folder contents. This is just in
+            // case the GSC does
+            // not properly clean up the service folder. If an underlying
+            // process is leaking,
+            // this may cause all sorts of problems, though.
+            if (this.runningInGSC) {
+                deleteExtDirContents(); // avoid deleting contents in
+                // Integrated PU
+            }
+
+            try {
+                deAllocateStorage();
+            } catch (final Exception e) {
+                logger.log(Level.SEVERE, "Failed to deallocate storage: "
+                        + e.getMessage(), e);
+            }
+
+            USMUtils.shutdownAdmin();
+        }
+        // Sleep for 10 seconds to allow rest to poll for shutdown lifecycle
+        // events
+        // form the GSC logs before GSC is destroyed.
+        try {
+            Thread.sleep(PRE_SHUTDOWN_TIMEOUT_MILLIS);
+        } catch (final InterruptedException e) {
+            logger.log(
+                    Level.INFO,
+                    "Failed to stall GSC shutdown. Some lifecycle logs may not have been recorded.",
+                    e);
+        }
+        logger.info("USM shut down completed!");
+
     }
+
+    private void initManagementSpace() {
+        managementSpace = ((AttributesFacadeImpl) getUsmLifecycleBean().getConfiguration().getServiceContext().getAttributes()).getManagementSpace();
+    }
+
+    // called on USM startup, or if the process died unexpectedly and is being
+    // restarted
+    private void reset(final boolean existingProcessFound) throws USMException,
+            TimeoutException {
+        synchronized (this.stateMutex) {
+
+            this.state = USMState.INITIALIZING;
+            logger.info("USM Started. Configuration is: "
+                    + getUsmLifecycleBean().getConfiguration());
+
+            this.executors = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
+            // Auto shutdown if this is a Test-Recipe run
+            checkForRecipeTestEnvironment();
+
+            // check for PID file
+            if (existingProcessFound) {
+                // found an existing process, so no need to launch
+                startAsyncTasks();
+
+                // start file monitoring task too
+                startFileMonitoringTask();
+
+                this.state = USMState.RUNNING;
+
+                return;
+            }
+            try {
+                // Launch the process
+                startProcessLifecycle();
+            } catch (final USMException e) {
+                logger.log(
+                        Level.SEVERE,
+                        "Process lifecycle failed to start. Shutting down the USM instance",
+                        e);
+                try {
+                    this.shutdown();
+                } catch (final Exception e2) {
+                    logger.log(
+                            Level.SEVERE,
+                            "While shutting down the USM due to a failure in initialization, "
+                                    + "the following exception occured: "
+                                    + e.getMessage(), e);
+                }
+                throw e;
+            }
+        }
+    }
+
 
     private void allocateStorage() throws USMException, TimeoutException {
 
@@ -240,50 +307,49 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
         if (StringUtils.isNotBlank(storageTemplateName)) {
 
-            final ServiceVolume serviceVolume = getServiceVolumeFromSpace(getUsmLifecycleBean().getConfiguration().getServiceContext());
-            VolumeState volumeState;
-            if (serviceVolume == null) {
-                // we haven't created it yet, so it is not in the space.
-                volumeState = VolumeState.ABSENT;
-            } else {
-                volumeState = serviceVolume.getState();
-            }
-
-            final StorageFacade storage = getUsmLifecycleBean().getConfiguration().getServiceContext().getStorage();
-            final StorageTemplate storageTemplate = storage.getTemplate(storageTemplateName);
-
             try {
-                switch (volumeState) {
 
-                    case ABSENT : {
-                        final String id = storage.createVolume(storageTemplateName);
-                        // flag this volume as static. this is to identify it when deallocating on shutdown.
-                        ServiceVolume newServiceVolume = managementSpace.readById(ServiceVolume.class, id);
-                        managementSpace.change(newServiceVolume, new ChangeSet().set("dynamic", false));
-                        storage.attachVolume(id, storageTemplate.getDeviceName());
-                        storage.format(storageTemplate.getDeviceName(), storageTemplate.getFileSystemType());
-                        storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
-                        break;
-                    }
-                    case CREATED : {
-                        storage.attachVolume(serviceVolume.getId(), storageTemplate.getDeviceName());
-                        storage.format(storageTemplate.getDeviceName(), storageTemplate.getFileSystemType());
-                        storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
-                        break;
-                    }
-                    case ATTACHED : {
-                        storage.format(storageTemplate.getDeviceName(), storageTemplate.getFileSystemType());
-                        storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
-                        break;
-                    }
-                    case FORMATTED : {
-                        storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
-                    }
-                    case MOUNTED : {
-                       break;
+                logger.info("Allocating static storage for service " + getUsmLifecycleBean().getConfiguration().getServiceContext());
+                final StorageFacade storage = getUsmLifecycleBean().getConfiguration().getServiceContext().getStorage();
+                final StorageTemplate storageTemplate = storage.getTemplate(storageTemplateName);
+
+                final ServiceVolume serviceVolume = getServiceVolumeFromSpace(getUsmLifecycleBean().getConfiguration().getServiceContext());
+
+                if (serviceVolume == null) {
+                    logger.fine("service volume is null. this means it hasn't been created yet.");
+                    final String id = storage.createVolume(storageTemplateName);
+                    // flag this volume as static. this is to identify it when deallocating on shutdown.
+                    ServiceVolume newServiceVolume = managementSpace.readById(ServiceVolume.class, id);
+                    logger.fine("Flagging service volume with id " + id + " to be static storage.");
+                    managementSpace.change(newServiceVolume, new ChangeSet().set("dynamic", false));
+                    storage.attachVolume(id, storageTemplate.getDeviceName());
+                    storage.format(storageTemplate.getDeviceName(), storageTemplate.getFileSystemType());
+                    storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
+                } else {
+                    logger.fine("Detected an existing volume for this service upon allocation. found in state : " + serviceVolume.getState());
+                    switch (serviceVolume.getState()) {
+
+                        case CREATED : {
+                            storage.attachVolume(serviceVolume.getId(), storageTemplate.getDeviceName());
+                            storage.format(storageTemplate.getDeviceName(), storageTemplate.getFileSystemType());
+                            storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
+                            break;
+                        }
+                        case ATTACHED : {
+                            storage.format(storageTemplate.getDeviceName(), storageTemplate.getFileSystemType());
+                            storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
+                            break;
+                        }
+                        case FORMATTED : {
+                            storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
+                        }
+                        case MOUNTED : {
+                            break;
+                        }
                     }
                 }
             } catch (final Exception e) {
+                deAllocateStorage();
                 if (e instanceof TimeoutException) {
                     throw (TimeoutException)e;
                 }
@@ -296,35 +362,57 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
         Service service = getUsmLifecycleBean().getConfiguration().getService();
         final String storageTemplateName = service.getStorage().getTemplate();
+        final StorageFacade storage = getUsmLifecycleBean().getConfiguration().getServiceContext().getStorage();
 
         if (StringUtils.isNotBlank(storageTemplateName)) {
 
-            final ServiceVolume serviceVolume = getServiceVolumeFromSpace(getUsmLifecycleBean().getConfiguration().getServiceContext());
-            if (serviceVolume == null) {
-                // the volume was already deallocated by another instance.
-                return;
-            }
-            final VolumeState volumeState = serviceVolume.getState();
-
-            final StorageFacade storage = getUsmLifecycleBean().getConfiguration().getServiceContext().getStorage();
-
             try {
-                switch (volumeState) {
 
-                    case MOUNTED : {
-                        storage.unmount(serviceVolume.getDevice());
-                        storage.detachVolume(serviceVolume.getId());
-                        storage.deleteVolume(serviceVolume.getId());
-                        break;
-                    }
-                    case UNMOUNTED : {
-                        storage.detachVolume(serviceVolume.getId());
-                        storage.deleteVolume(serviceVolume.getId());
-                        break;
-                    }
-                    case DETACHED : {
-                        storage.deleteVolume(serviceVolume.getId());
-                        break;
+                logger.info("De-Allocating static storage for service " + getUsmLifecycleBean().getConfiguration().getServiceContext());
+
+                final ServiceVolume serviceVolume = getServiceVolumeFromSpace(getUsmLifecycleBean().getConfiguration().getServiceContext());
+                if (serviceVolume == null) {
+                    logger.fine("Could not find a volume for this service in the management space. this probably means there was a problem during volume creation");
+                } else {
+                    logger.fine("Detected an existing volume for this service upon de-allocation. found in state : " + serviceVolume.getState());
+                    switch (serviceVolume.getState()) {
+
+                        case MOUNTED : {
+                            storage.unmount(serviceVolume.getDevice());
+                            logger.fine("Sleeping for 10 seconds...");
+                            Thread.sleep(10 * 1000);
+                            storage.detachVolume(serviceVolume.getId());
+                            logger.fine("Sleeping for 10 seconds...");
+                            Thread.sleep(10 * 1000);
+                            storage.deleteVolume(serviceVolume.getId());
+                            logger.fine("Sleeping for 10 seconds...");
+                            Thread.sleep(10 * 1000);
+                            break;
+                        }
+                        case ATTACHED : {
+                            storage.detachVolume(serviceVolume.getId());
+                            logger.fine("Sleeping for 10 seconds...");
+                            Thread.sleep(10 * 1000);
+                            storage.deleteVolume(serviceVolume.getId());
+                            logger.fine("Sleeping for 10 seconds...");
+                            Thread.sleep(10 * 1000);
+                            break;
+                        }
+                        case FORMATTED : {
+                            storage.detachVolume(serviceVolume.getId());
+                            logger.fine("Sleeping for 10 seconds...");
+                            Thread.sleep(10 * 1000);
+                            storage.deleteVolume(serviceVolume.getId());
+                            logger.fine("Sleeping for 10 seconds...");
+                            Thread.sleep(10 * 1000);
+                            break;
+                        }
+                        case CREATED : {
+                            storage.deleteVolume(serviceVolume.getId());
+                            logger.fine("Sleeping for 10 seconds...");
+                            Thread.sleep(10 * 1000);
+                            break;
+                        }
                     }
                 }
             } catch (final Exception e) {
@@ -337,14 +425,13 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
     }
 
     private ServiceVolume getServiceVolumeFromSpace(final ServiceContext serviceContext) {
-        ServiceVolume serviceVolume = new ServiceVolume(serviceContext.getApplicationName(), serviceContext.getServiceName());
+        ServiceVolume serviceVolume = new ServiceVolume();
+        serviceVolume.setApplicationName(serviceContext.getApplicationName());
+        serviceVolume.setServiceName(serviceContext.getServiceName());
+        serviceVolume.setIp(serviceContext.getBindAddress());
         serviceVolume.setDynamic(false);
-        ServiceVolume[] serviceVolumes = managementSpace.readMultiple(serviceVolume);
-        if (serviceVolumes.length != 1) {
-            throw new IllegalStateException("Cannot have two static volumes for the same instance : "
-                    + ServiceUtils.getFullServiceInstanceName(serviceContext.getApplicationName(), serviceContext.getServiceName(), serviceContext.getInstanceId()));
-        }
-        return serviceVolumes[0];
+        logger.info("Retrieving service volume from space for service context " + serviceContext + " . Using template : " + serviceVolume);
+        return managementSpace.read(serviceVolume);
     }
 
     /******
@@ -448,72 +535,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	private void initEvents() {
 
 		getUsmLifecycleBean().initEvents(this);
-
-	}
-
-	/**********
-	 * Bean shutdown method, responsible for shutting down the external service and releasing all resource.
-	 */
-	@PreDestroy
-	public void shutdown() {
-
-		logger.info("USM is shutting down!");
-
-		synchronized (this.stateMutex) {
-			this.state = USMState.SHUTTING_DOWN;
-
-			if (!FileUtils.deleteQuietly(getPidFile())) {
-				logger.severe("Attempted to delete PID file: "
-						+ getPidFile()
-						+ " but failed. The file may remain and be picked up by a new GSC");
-			}
-
-			stop(StopReason.UNDEPLOY);
-
-			if (executors != null) {
-				executors.shutdown();
-			}
-
-			try {
-				getUsmLifecycleBean().fireShutdown();
-			} catch (final USMException e) {
-				logger.log(Level.SEVERE, "Failed to execute shutdown event: "
-						+ e.getMessage(), e);
-			}
-
-			// after shutdown, no further events are expected to be
-			// executed.
-			// So we delete the service folder contents. This is just in
-			// case the GSC does
-			// not properly clean up the service folder. If an underlying
-			// process is leaking,
-			// this may cause all sorts of problems, though.
-			if (this.runningInGSC) {
-				deleteExtDirContents(); // avoid deleting contents in
-										// Integrated PU
-			}
-
-            try {
-                deAllocateStorage();
-            } catch (final Exception e) {
-                logger.log(Level.SEVERE, "Failed to deallocate storage: "
-                        + e.getMessage(), e);
-            }
-
-			USMUtils.shutdownAdmin();
-		}
-		// Sleep for 10 seconds to allow rest to poll for shutdown lifecycle
-		// events
-		// form the GSC logs before GSC is destroyed.
-		try {
-			Thread.sleep(PRE_SHUTDOWN_TIMEOUT_MILLIS);
-		} catch (final InterruptedException e) {
-			logger.log(
-					Level.INFO,
-					"Failed to stall GSC shutdown. Some lifecycle logs may not have been recorded.",
-					e);
-		}
-		logger.info("USM shut down completed!");
 
 	}
 

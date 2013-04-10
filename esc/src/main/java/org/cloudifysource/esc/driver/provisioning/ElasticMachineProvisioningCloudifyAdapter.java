@@ -750,12 +750,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					this.storageProvisioning =
 							(StorageProvisioningDriver) Class.forName(storageClassName).newInstance();
 					this.storageTemplateName = config.getStorageTemplateName();
-					boolean privileged = computeTemplate.isPrivileged();
-					// mounting the volume will not be possible if not running in privileged mode.
-					if (!privileged && isStorageTemplateUsed()) {
-						throw new StorageProvisioningException("Storage mounting requires running in privileged mode."
-								+ " This should be defined in the cloud's compute template.");
-					}
 					if (this.storageProvisioning instanceof BaseStorageDriver) {
 						((BaseStorageDriver) this.storageProvisioning)
 						.setComputeContext(cloudifyProvisioning.getComputeContext());

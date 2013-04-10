@@ -35,9 +35,31 @@ public class ServiceVolume {
 
     private String applicationName;
     private String serviceName;
-    private VolumeState state = VolumeState.ABSENT;
+    private VolumeState state;
     private String id;
     private String device;
+    private Boolean dynamic;
+    private String ip;
+
+    public ServiceVolume() {
+
+    }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    public void setApplicationName(String applicationName) {
+        this.applicationName = applicationName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
 
     public String getDevice() {
         return device;
@@ -53,14 +75,6 @@ public class ServiceVolume {
 
     public void setDynamic(Boolean dynamic) {
         this.dynamic = dynamic;
-    }
-
-    private Boolean dynamic;
-
-    public ServiceVolume(final String applicationName,
-                         final String serviceName) {
-        this.applicationName = applicationName;
-        this.serviceName = serviceName;
     }
 
     public String getApplicationName() {
@@ -86,5 +100,17 @@ public class ServiceVolume {
 
     public void setId(final String id) {
         this.id = id;
+    }
+
+    @Override
+    public String toString() {
+        return "ServiceVolume{" +
+                "applicationName='" + applicationName + '\'' +
+                ", serviceName='" + serviceName + '\'' +
+                ", state=" + state +
+                ", id='" + id + '\'' +
+                ", device='" + device + '\'' +
+                ", dynamic=" + dynamic +
+                '}';
     }
 }

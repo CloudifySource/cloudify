@@ -27,11 +27,8 @@ package org.cloudifysource.dsl.cloud.storage;
  */
 public enum VolumeState {
 
-    ABSENT,
     CREATED,
     ATTACHED,
     FORMATTED,
-    MOUNTED,
-    UNMOUNTED,
-    DETACHED
+    MOUNTED
 }

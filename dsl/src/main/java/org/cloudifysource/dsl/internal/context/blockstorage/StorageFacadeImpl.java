@@ -43,19 +43,24 @@ public class StorageFacadeImpl implements StorageFacade {
 	private ServiceContext serviceContext;
 	private RemoteStorageProvisioningDriver remoteStorageProvisioningDriver;
     private GigaSpace managementSpace;
-	
-	
-	public StorageFacadeImpl(final ServiceContext serviceContext,
+
+    private static final java.util.logging.Logger logger = java.util.logging.Logger
+            .getLogger(StorageFacade.class.getName());
+
+
+    public StorageFacadeImpl(final ServiceContext serviceContext,
 			final RemoteStorageProvisioningDriver storageApi) {
 		this.serviceContext = serviceContext;
 		this.remoteStorageProvisioningDriver = storageApi;
         this.managementSpace = ((AttributesFacadeImpl) serviceContext.getAttributes()).getManagementSpace();
+        logger.fine("Storage Facade initiated successfully");
 	}
 
     @Override
 	public void attachVolume(final String volumeId, final String device) 
 					throws RemoteStorageOperationException, LocalStorageOperationException {
 		validateNotWindows();
+        logger.info("Attaching volume with id " + volumeId + " to device " + device);
 		remoteStorageProvisioningDriver.attachVolume(volumeId, device, serviceContext.getBindAddress());
         changeStateOfVolumeWithId(volumeId, VolumeState.ATTACHED);
         setDeviceForVolumeWithId(volumeId, device);
@@ -70,6 +75,7 @@ public class StorageFacadeImpl implements StorageFacade {
 
     @Override
 	public String createVolume(final String templateName) throws RemoteStorageOperationException, TimeoutException {
+        logger.info("Creating volume for service " + serviceContext.getServiceName() + ". Using template : " + templateName);
         String volumeId = remoteStorageProvisioningDriver.createVolume(templateName, serviceContext.getLocationId());
         writeNewVolume(volumeId);
         return volumeId;
@@ -78,6 +84,7 @@ public class StorageFacadeImpl implements StorageFacade {
     @Override
 	public String createVolume(final String templateName, final long timeoutInMillis)
 			throws RemoteStorageOperationException, TimeoutException {
+        logger.info("Creating volume for service " + serviceContext.getServiceName() + ". Using template : " + templateName);
         String volumeId = remoteStorageProvisioningDriver.
                 createVolume(templateName, serviceContext.getLocationId(), timeoutInMillis);
         writeNewVolume(volumeId);
@@ -88,13 +95,14 @@ public class StorageFacadeImpl implements StorageFacade {
 	public void detachVolume(final String volumeId) 
 			throws RemoteStorageOperationException, LocalStorageOperationException {
 		validateNotWindows();
+        logger.info("Detaching volume with id " + volumeId);
 		remoteStorageProvisioningDriver.detachVolume(volumeId, serviceContext.getBindAddress());
-        changeStateOfVolumeWithId(volumeId, VolumeState.DETACHED);
 	}
 
 	@Override
 	public void deleteVolume(final String volumeId) throws RemoteStorageOperationException {
 		validateNotWindows();
+        logger.info("Deleting volume with id " + volumeId);
 		remoteStorageProvisioningDriver.deleteVolume(serviceContext.getLocationId(), volumeId);
         deleteVolumeWithId(volumeId);
 	}
@@ -106,6 +114,7 @@ public class StorageFacadeImpl implements StorageFacade {
 		if (!serviceContext.isPrivileged()) {
 			throw new IllegalStateException("Cannot mount when not running in privileged mode");
 		}
+        logger.info("Mounting device " + device + " to mount point " + path);
 		VolumeUtils.mount(device, path, timeoutInMillis);
         changeStateOfVolumeWithDevice(device, VolumeState.MOUNTED);
 		
@@ -118,6 +127,7 @@ public class StorageFacadeImpl implements StorageFacade {
 		if (!serviceContext.isPrivileged()) {
 			throw new IllegalStateException("Cannot mount when not running in privileged mode");
 		}
+        logger.info("Mounting device " + device + " to mount point " + path);
 		VolumeUtils.mount(device, path);
         changeStateOfVolumeWithDevice(device, VolumeState.MOUNTED);
 	}
@@ -129,8 +139,8 @@ public class StorageFacadeImpl implements StorageFacade {
 		if (!serviceContext.isPrivileged()) {
 			throw new IllegalStateException("Cannot unmount when not running in privileged mode");
 		}
+        logger.info("Unmounting device " + device);
 		VolumeUtils.unmount(device, timeoutInMillis);
-        changeStateOfVolumeWithDevice(device, VolumeState.UNMOUNTED);
 	}
 
 	@Override
@@ -140,8 +150,8 @@ public class StorageFacadeImpl implements StorageFacade {
 		if (!serviceContext.isPrivileged()) {
 			throw new IllegalStateException("Cannot unmount when not running in privileged mode");
 		}
+        logger.info("Unmounting device " + device);
 		VolumeUtils.unmount(device);
-        changeStateOfVolumeWithDevice(device, VolumeState.UNMOUNTED);
 	}
 
     @Override
@@ -156,6 +166,7 @@ public class StorageFacadeImpl implements StorageFacade {
 		if (!serviceContext.isPrivileged()) {
 			throw new IllegalStateException("Cannot format when not running in privileged mode");
 		}
+        logger.info("Formatting device " + device + " to File System " + fileSystem);
 		VolumeUtils.format(device, fileSystem, timeoutInMillis);
         changeStateOfVolumeWithDevice(device, VolumeState.FORMATTED);
 		
@@ -168,6 +179,7 @@ public class StorageFacadeImpl implements StorageFacade {
 		if (!serviceContext.isPrivileged()) {
 			throw new IllegalStateException("Cannot format when not running in privileged mode");
 		}
+        logger.info("Formatting device " + device + " to File System " + fileSystem);
 		VolumeUtils.format(device, fileSystem);
         changeStateOfVolumeWithDevice(device, VolumeState.FORMATTED);
 	}
@@ -183,28 +195,34 @@ public class StorageFacadeImpl implements StorageFacade {
     }
 
     private void writeNewVolume(final String volumeId) {
-        ServiceVolume serviceVolume = new ServiceVolume(serviceContext.getApplicationName(), serviceContext.getServiceName());
+        ServiceVolume serviceVolume = new ServiceVolume();
+        serviceVolume.setApplicationName(serviceContext.getApplicationName());
+        serviceVolume.setServiceName(serviceContext.getServiceName());
+        serviceVolume.setIp(serviceContext.getBindAddress());
         serviceVolume.setId(volumeId);
         serviceVolume.setState(VolumeState.CREATED);
+        logger.fine("Writing new service volume : " + serviceVolume + " to management space");
         managementSpace.write(serviceVolume);
     }
 
     private void changeStateOfVolumeWithId(final String volumeId, final VolumeState newState) {
-        ServiceVolume serviceVolume = new ServiceVolume(serviceContext.getApplicationName(), serviceContext.getServiceName());
+        ServiceVolume serviceVolume = new ServiceVolume();
         serviceVolume.setId(volumeId);
+        logger.fine("Changing state of volume with id " + volumeId + " to " + newState);
         managementSpace.change(serviceVolume, new ChangeSet().set("state", newState));
     }
 
     private void changeStateOfVolumeWithDevice(final String deviceName, final VolumeState newState) {
-        ServiceVolume serviceVolume = new ServiceVolume(serviceContext.getApplicationName(), serviceContext.getServiceName());
+        ServiceVolume serviceVolume = new ServiceVolume();
         serviceVolume.setDevice(deviceName);
+        logger.fine("Changing state of volume with device " + deviceName + " to " + newState);
         managementSpace.change(serviceVolume, new ChangeSet().set("state", newState));
     }
 
     private void setDeviceForVolumeWithId(final String volumeId, final String device) {
-        ServiceVolume serviceVolume = new ServiceVolume(serviceContext.getApplicationName(), serviceContext.getServiceName());
+        ServiceVolume serviceVolume = new ServiceVolume();
         serviceVolume.setId(volumeId);
+        logger.fine("Changing device of volume with id " + volumeId + " to " + device);
         managementSpace.change(serviceVolume, new ChangeSet().set("device", device));
     }
-
 }
