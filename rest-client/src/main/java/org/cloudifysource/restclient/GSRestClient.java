@@ -132,8 +132,10 @@ public class GSRestClient {
 		this.urlStr = createUrlStr();
 
 		if (isSSL()) {
+			logger.log(Level.INFO, "creating SSL client");
 			httpClient = getSSLHttpClient();
 		} else {
+			logger.log(Level.INFO, "creating default (not SSL) client");
 			httpClient = new DefaultHttpClient();
 		}
 		httpClient.addRequestInterceptor(new HttpRequestInterceptor() {
@@ -167,8 +169,10 @@ public class GSRestClient {
 		this.urlStr = createUrlStr();
 
 		if (isSSL()) {
+			logger.log(Level.INFO, "creating SSL client");
 			httpClient = getSSLHttpClient();
 		} else {
+			logger.log(Level.INFO, "creating default (not SSL) client");
 			httpClient = new DefaultHttpClient();
 		}
 		httpClient.addRequestInterceptor(new HttpRequestInterceptor() {
@@ -200,7 +204,7 @@ public class GSRestClient {
 	}
 
 	/**
-	 * Sets the credentials for the HTTP client
+	 * Sets the credentials for the HTTP client.
 	 *
 	 * @param credentials
 	 *            The credentials for the HTTP client
@@ -266,9 +270,16 @@ public class GSRestClient {
 		return get(relativeUrl, "response");
 	}
 
-	public final Object get(final String relativeUrl, String reponseJsonKey) throws ErrorStatusException {
+	/**
+	 * Calls HttpGet on the given relative url.
+	 * @param relativeUrl .
+	 * @param reponseJsonKey .
+	 * @return The output of the Http Get call
+	 * @throws ErrorStatusException .
+	 */
+	public final Object get(final String relativeUrl, final String reponseJsonKey) throws ErrorStatusException {
 		final String url = getFullUrl(relativeUrl);
-		logger.finer(MSG_PERFORMING_HTTP_GET + url);
+		logger.info(MSG_PERFORMING_HTTP_GET + url);
 		final HttpGet httpMethod = new HttpGet(url);
 		return executeHttpMethod(httpMethod, reponseJsonKey);
 	}
@@ -360,7 +371,7 @@ public class GSRestClient {
 	 *             Reporting errors of all types (IO, HTTP, rest etc.)
 	 */
 
-	private Object executeHttpMethod(final HttpRequestBase httpMethod, String responseJsonKey)
+	private Object executeHttpMethod(final HttpRequestBase httpMethod, final String responseJsonKey)
 			throws ErrorStatusException {
 		String responseBody;
 		try {
@@ -406,7 +417,7 @@ public class GSRestClient {
 			final Map<String, Object> responseMap = GSRestClient.jsonToMap(responseBody);
 			return responseJsonKey != null ? responseMap.get(RESPONSE_KEY) : responseMap;
 		} catch (final IOException e) {
-			logger.log(Level.FINE, httpMethod.getURI() + MSG_REST_API_ERR, e);
+			logger.log(Level.INFO, httpMethod.getURI() + MSG_REST_API_ERR, e);
 			throw new ErrorStatusException(e, REASON_CODE_COMM_ERR, httpMethod.getURI(), e.getMessage());
 		} finally {
 			httpMethod.abort();
