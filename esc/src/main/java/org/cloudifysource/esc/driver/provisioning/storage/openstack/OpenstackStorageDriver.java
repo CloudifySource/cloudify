@@ -140,7 +140,7 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 			logger.log(Level.WARNING, "volume: " + volume.getId() + " failed to start up correctly. Shutting it down."
 					+ " Error was: " + e.getMessage(), e);
 			try {
-				deleteVolume(region, volume.getId(), duration, timeUnit);
+				deleteVolume(volume.getId(), duration, timeUnit);
 			} catch (final Exception e2) {
 				logger.log(Level.WARNING, "Error while deleting volume: " + volume.getId() 
 						+ ". Error was: " + e.getMessage() + ". It may be leaking.", e);
