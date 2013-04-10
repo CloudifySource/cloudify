@@ -89,9 +89,6 @@ public interface StorageProvisioningDriver {
 						throws TimeoutException, StorageProvisioningException;
 	
 	/**
-	 * 
-	 * @param location
-	 * 			the location of the volume that will be deleted.
 	 * @param volumeId
 	 * 			the ID of the volume that will be deleted.
 	 * @param duration
@@ -103,7 +100,7 @@ public interface StorageProvisioningDriver {
 	 * @throws StorageProvisioningException
 	 * 			if deletion of volume fails.
 	 */
-	void deleteVolume(final String location, final String volumeId, final long duration, final TimeUnit timeUnit) 
+	void deleteVolume(final String volumeId, final long duration, final TimeUnit timeUnit)
 						throws TimeoutException, StorageProvisioningException;
 	
 	/**

@@ -221,7 +221,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 	}
 
 	@Override
-	public void deleteVolume(final String location, final String volumeId, final long duration, 
+	public void deleteVolume(final String volumeId, final long duration,
 			final TimeUnit timeUnit) throws TimeoutException, StorageProvisioningException {
 		final long end = System.currentTimeMillis() + timeUnit.toMillis(duration);
 		deleteVolume(volumeId);
