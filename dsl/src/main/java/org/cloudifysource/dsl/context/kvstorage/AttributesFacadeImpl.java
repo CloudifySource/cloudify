@@ -17,14 +17,13 @@ package org.cloudifysource.dsl.context.kvstorage;
 
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingPropertyException;
-
-import java.util.concurrent.TimeUnit;
-
 import org.cloudifysource.dsl.context.ServiceContext;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.space.Space;
 import org.openspaces.core.GigaSpace;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Facade for putting and getting attributes over cloudify management space.

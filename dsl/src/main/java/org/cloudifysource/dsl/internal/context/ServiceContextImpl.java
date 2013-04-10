@@ -15,9 +15,6 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.internal.context;
 
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
-
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.context.ServiceContext;
 import org.cloudifysource.dsl.context.blockstorage.StorageFacade;
@@ -33,6 +30,9 @@ import org.openspaces.admin.esm.ElasticServiceManager;
 import org.openspaces.admin.internal.esm.InternalElasticServiceManager;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.core.cluster.ClusterInfo;
+
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -132,15 +132,15 @@ public class ServiceContextImpl implements ServiceContext {
 	}
 
 	private StorageFacade getRemoteStorage() {
-		ElasticServiceManager elasticServiceManager = null;
+		ElasticServiceManager elasticServiceManager;
 		if (admin != null) {
 			elasticServiceManager = admin.getElasticServiceManagers().waitForAtLeastOne();
 			RemoteStorageProvisioningDriver storageApi = 
 					(RemoteStorageProvisioningDriver) ((InternalElasticServiceManager) elasticServiceManager)
 					.getStorageApi(ServiceUtils.getAbsolutePUName(applicationName, serviceName));
 			
-			StorageFacadeImpl storageFacadeImpl = new StorageFacadeImpl(this, storageApi);
-			return storageFacadeImpl;
+			return new StorageFacadeImpl(this, storageApi);
+
 		}
 		return null;
 	}
@@ -355,42 +355,27 @@ public class ServiceContextImpl implements ServiceContext {
 
 	@Override
 	public String getImageID() {
-		final String envVar = System
-				.getenv(CloudifyConstants.CLOUDIFY_CLOUD_IMAGE_ID);
-
-		return envVar;
+		return System.getenv(CloudifyConstants.CLOUDIFY_CLOUD_IMAGE_ID);
 	}
 
 	@Override
 	public String getHardwareID() {
-		final String envVar = System
-				.getenv(CloudifyConstants.CLOUDIFY_CLOUD_HARDWARE_ID);
-
-		return envVar;
+        return System.getenv(CloudifyConstants.CLOUDIFY_CLOUD_HARDWARE_ID);
 	}
 
 	@Override
 	public String getCloudTemplateName() {
-		final String envVar = System
-				.getenv(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME);
-
-		return envVar;
+		return System.getenv(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME);
 	}
 
 	@Override
 	public String getMachineID() {
-		final String envVar = System
-				.getenv(CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID);
-		
-		return envVar;
+		return System.getenv(CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID);
 	}
 	
 	@Override
 	public String getLocationId() {
-		final String envVar = System
-				.getenv(CloudifyConstants.CLOUDIFY_CLOUD_LOCATION_ID);
-		
-		return envVar;
+		return System.getenv(CloudifyConstants.CLOUDIFY_CLOUD_LOCATION_ID);
 	}
 	
 	@Override
@@ -409,9 +394,6 @@ public class ServiceContextImpl implements ServiceContext {
 
 	@Override
 	public String getBindAddress() {
-		final String envVar = System
-				.getenv(CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_IP_ADDRESS_ENV);
-		
-		return envVar;
+		return System.getenv(CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_IP_ADDRESS_ENV);
 	}
 }
