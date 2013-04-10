@@ -39,6 +39,7 @@ public interface ResponseConstants {
 	String FAILED_TO_LOGIN = "failed_to_login";
 	String USER_IS_NOT_CLOUDADMIN = "user_is_not_cloudadmin";
 	String APPLICATION_NAME_IS_ALREADY_IN_USE = "application_name_is_already_in_use";
+	String NOT_ALL_GSM_INSTANCES_RUNNING = "not_all_gsm_instances_running";
 	
 	
 	int HTTP_OK = 200;

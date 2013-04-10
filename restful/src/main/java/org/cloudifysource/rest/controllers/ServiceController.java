@@ -1298,6 +1298,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
 			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 		}
+		validateGsmState();
 
 		final FutureTask<Boolean> undeployTask = new FutureTask<Boolean>(
 				new Callable<Boolean>() {
@@ -1393,6 +1394,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			final CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
 			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 		}
+		
+		validateGsmState();
 
 		final int before = processingUnit.getNumberOfInstances();
 		processingUnit.incrementInstance();
@@ -1448,6 +1451,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
 			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 		}
+		validateGsmState();
 
 		for (final ProcessingUnitInstance instance : processingUnit
 				.getInstances()) {
@@ -1626,6 +1630,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			throw new RestErrorException(
 					ResponseConstants.CANNOT_UNINSTALL_MANAGEMENT_APP);
 		}
+		validateGsmState();
 
 		final ProcessingUnit[] pus = app.getProcessingUnits()
 				.getProcessingUnits();
@@ -1848,6 +1853,8 @@ public class ServiceController implements ServiceDetailsProvider {
 			@RequestParam(value = "debugEvents", required = false) final String debugEvents,
 			@RequestParam(value = "debugMode", required = false) final String debugMode)
 			throws IOException, DSLException, RestErrorException {
+		
+		validateGsmState();
 		boolean actualSelfHealing = true;
 		if (selfHealing != null && !selfHealing) {
 			actualSelfHealing = false;
@@ -1871,6 +1878,25 @@ public class ServiceController implements ServiceDetailsProvider {
 		FileUtils.deleteQuietly(applicationOverridesFile);
 		applicationFile.delete();
 		return returnObject;
+	}
+
+	//When a manager is down and persistence is used along with HA, install/uninstall/scaling should be disabled.
+	private void validateGsmState() throws RestErrorException {
+		logger.info("Validating Gsm state.");
+		if (this.cloud != null) {
+			String persistentStoragePath = this.cloud.getConfiguration().getPersistentStoragePath();
+			if (persistentStoragePath != null) {
+				int numManagementMachines = this.cloud.getProvider().getNumberOfManagementMachines();
+				final boolean isGsmStateValid = admin.getGridServiceManagers()
+						.waitFor(numManagementMachines, 10, TimeUnit.SECONDS);
+				if (!isGsmStateValid) {
+					int gsmCount = admin.getGridServiceManagers().getManagers().length;
+					logger.warning("Not all gsm instances are intact. Found " + gsmCount);
+					throw new RestErrorException(ResponseConstants.NOT_ALL_GSM_INSTANCES_RUNNING, 
+							numManagementMachines, gsmCount);
+				}
+			}
+		}
 	}
 
 	private List<Service> createServiceDependencyOrder(
@@ -2840,7 +2866,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		logger.info("Deploying service " + ServiceUtils.getAbsolutePUName(applicationName, serviceName) + " with template: " + templateName);
 		String actualTemplateName = templateName;
-
+		validateGsmState();
 		if (cloud != null) {
 			if (templateName == null || templateName.length() == 0) {
 				if (cloud.getCloudCompute().getTemplates().isEmpty()) {
@@ -3525,6 +3551,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			throw new RestErrorException(
 					ResponseConstants.FAILED_TO_LOCATE_SERVICE, serviceName);
 		}
+		validateGsmState();
 
 		if (permissionEvaluator != null) {
 			final String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
