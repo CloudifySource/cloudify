@@ -15,12 +15,10 @@
  *******************************************************************************/
 
 package org.cloudifysource.dsl.context;
-
-import java.util.concurrent.TimeUnit;
-
 import org.cloudifysource.dsl.context.blockstorage.StorageFacade;
 import org.cloudifysource.dsl.context.kvstorage.AttributesFacade;
-import org.cloudifysource.dsl.context.kvstorage.AttributesFacadeImpl;
+
+import java.util.concurrent.TimeUnit;
 
 /***********
  * Context interface, available in the service recipe.

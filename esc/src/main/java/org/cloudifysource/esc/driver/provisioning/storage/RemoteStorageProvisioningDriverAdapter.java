@@ -17,9 +17,7 @@
 package org.cloudifysource.esc.driver.provisioning.storage;
 
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.storage.ServiceVolume;
 import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
-import org.cloudifysource.dsl.cloud.storage.VolumeState;
 import org.cloudifysource.dsl.context.blockstorage.RemoteStorageOperationException;
 import org.cloudifysource.dsl.internal.context.RemoteStorageProvisioningDriver;
 

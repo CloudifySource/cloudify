@@ -21,7 +21,6 @@ import org.cloudifysource.dsl.LifecycleEvents;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.cloud.storage.ServiceVolume;
 import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
-import org.cloudifysource.dsl.cloud.storage.VolumeState;
 import org.cloudifysource.dsl.context.ServiceContext;
 import org.cloudifysource.dsl.context.blockstorage.StorageFacade;
 import org.cloudifysource.dsl.context.kvstorage.AttributesFacadeImpl;
