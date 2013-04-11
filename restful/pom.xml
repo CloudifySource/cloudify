@@ -385,7 +385,7 @@
 		<dependency>
 			<groupId>org.cloudifysource</groupId>
 			<artifactId>rest-doclet</artifactId>
-			<version>0.4.0</version>
+			<version>${docletVersion}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
@@ -454,7 +454,7 @@
 							<docletArtifact>
 								<groupId>org.cloudifysource</groupId>
 								<artifactId>rest-doclet</artifactId>
-								<version>0.3.0</version>
+								<version>${docletVersion}</version>
 							</docletArtifact>
 							<useStandardDocletOptions>false</useStandardDocletOptions>
 							<reportOutputDirectory>${basedir}/target/site</reportOutputDirectory>
@@ -486,4 +486,7 @@
 		</plugins>
 		<finalName>rest</finalName>
 	</build>
+	<properties>
+		<docletVersion>0.4.0</docletVersion>
+	</properties>
 </project>
