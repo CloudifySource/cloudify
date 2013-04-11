@@ -15,7 +15,6 @@
  ******************************************************************************/
 package org.cloudifysource.rest;
 
-import java.io.File;
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.HashMap;
@@ -24,20 +23,19 @@ import java.util.Map;
 import junit.framework.Assert;
 
 import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.internal.DSLException;
-import org.cloudifysource.dsl.internal.ServiceReader;
-import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
-import org.cloudifysource.esc.driver.provisioning.byon.ByonProvisioningDriver;
-import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverClassContext;
+import org.cloudifysource.rest.controllers.AttributesController;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.HandlerMapping;
@@ -51,10 +49,10 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  */
 // Swap the default JUnit4 with the spring specific SpringJUnit4ClassRunner.
 // This will allow spring to inject the application context
-//@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringJUnit4ClassRunner.class)
 // Setup the configuration of the application context and the web mvc layer
-//@ContextConfiguration({ "classpath:META-INF/spring/applicationContext.xml",
-		//"classpath:META-INF/spring/webmvc-config-test.xml" })
+@ContextConfiguration({ "classpath:META-INF/spring/applicationContext.xml",
+		"classpath:META-INF/spring/webmvc-config-test.xml" })
 public class AttributesContollerTest {
 
 	private static final ObjectMapper PROJECT_MAPPER = new ObjectMapper();
@@ -73,35 +71,7 @@ public class AttributesContollerTest {
 	private RequestMappingHandlerAdapter handlerAdapter;
 	private HashMap<String, HashMap<String, HandlerMethod>> singleAttributeUrisMapping;
 	private HashMap<String, HashMap<String, HandlerMethod>> multipleAttributesUrisMapping;
-	
-	@Test
-	public void testByonWithGstring() throws IOException, DSLException, CloudProvisioningException {
-		final File cloudFile = new File("src/test/resources/byon-gstring/testbyon-cloud.groovy");
-		final Cloud cloud = ServiceReader.readCloud(cloudFile);
 
-		//validateCloud(cloud);
-
-		ByonProvisioningDriver driver = new ByonProvisioningDriver();
-		driver.setProvisioningDriverClassContext(new DefaultProvisioningDriverClassContext());
-		driver.setConfig(cloud, cloud.getCloudCompute().getTemplates().keySet().iterator().next(), true, "test", 
-				true /*performValidation*/);
-
-		Cloud modifiedCloud = driver.getCloud();
-
-		// make sure there were no modifications to the cloud object
-		//validateCloud(modifiedCloud);
-
-		/*ByonDeployer deployer = driver.getDeployer();
-
-		Set<CustomNode> nodes = deployer.getAllNodesByTemplateName(cloud.getCloudCompute().
-				getTemplates().keySet().iterator().next());
-		Assert.assertNotNull(nodes);
-		Assert.assertEquals(1, nodes.size());
-		CustomNode node = nodes.iterator().next();
-		Assert.assertEquals("pc-lab100", node.getPrivateIP());
-		Assert.assertEquals("byon-pc-lab1", node.getId());*/
-
-	}
 
 	/**
 	 * Initialize the basic objects that are used widely in the tests.
@@ -109,7 +79,7 @@ public class AttributesContollerTest {
 	 * @throws NoSuchMethodException
 	 *             Indicates the defined {@link HandlerMethod} does not exist
 	 */
-	/*@Before
+	@Before
 	public void init() throws NoSuchMethodException {
 		handlerAdapter = applicationContext
 				.getBean(RequestMappingHandlerAdapter.class);
@@ -246,7 +216,7 @@ public class AttributesContollerTest {
 				multipleInstanceAttributesHandlers);
 
 		// TODO: fix license
-	}*/
+	}
 
 	/**
 	 * Test GET & POST calls for getting or setting a single attribute, in all 4
