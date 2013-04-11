@@ -30,10 +30,10 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 	allowInternalNode = true, allowRootNode = true, parent = "cloudStorage")
 public class StorageTemplate implements Serializable {
 
-	private transient int size;
-	private transient String namePrefix;
-	private transient Map<String, Object> custom = new HashMap<String, Object>();
-	private transient boolean deleteOnExit = false;
+	private int size;
+	private String namePrefix;
+	private Map<String, Object> custom = new HashMap<String, Object>();
+	private boolean deleteOnExit = false;
 	private String path;
 	private String fileSystemType;
 	private String deviceName;

@@ -375,6 +375,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
                 } else {
                     logger.fine("Detected an existing volume for this service upon de-allocation. found in state : " + serviceVolume.getState());
                     final boolean deleteStorage = storage.getTemplate(storageTemplateName).isDeleteOnExit();
+                    logger.fine("Storage will be deleted = " + deleteStorage);
                     switch (serviceVolume.getState()) {
 
                         case MOUNTED : {
