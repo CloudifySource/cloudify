@@ -374,42 +374,35 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
                     logger.fine("Could not find a volume for this service in the management space. this probably means there was a problem during volume creation");
                 } else {
                     logger.fine("Detected an existing volume for this service upon de-allocation. found in state : " + serviceVolume.getState());
+                    final boolean deleteStorage = storage.getTemplate(storageTemplateName).isDeleteOnExit();
                     switch (serviceVolume.getState()) {
 
                         case MOUNTED : {
                             storage.unmount(serviceVolume.getDevice());
-                            logger.fine("Sleeping for 10 seconds...");
-                            Thread.sleep(10 * 1000);
                             storage.detachVolume(serviceVolume.getId());
-                            logger.fine("Sleeping for 10 seconds...");
-                            Thread.sleep(10 * 1000);
-                            storage.deleteVolume(serviceVolume.getId());
-                            logger.fine("Sleeping for 10 seconds...");
-                            Thread.sleep(10 * 1000);
+                            if (deleteStorage) {
+                                storage.deleteVolume(serviceVolume.getId());
+                            }
                             break;
                         }
                         case ATTACHED : {
                             storage.detachVolume(serviceVolume.getId());
-                            logger.fine("Sleeping for 10 seconds...");
-                            Thread.sleep(10 * 1000);
-                            storage.deleteVolume(serviceVolume.getId());
-                            logger.fine("Sleeping for 10 seconds...");
-                            Thread.sleep(10 * 1000);
+                            if (deleteStorage) {
+                                storage.deleteVolume(serviceVolume.getId());
+                            }
                             break;
                         }
                         case FORMATTED : {
                             storage.detachVolume(serviceVolume.getId());
-                            logger.fine("Sleeping for 10 seconds...");
-                            Thread.sleep(10 * 1000);
-                            storage.deleteVolume(serviceVolume.getId());
-                            logger.fine("Sleeping for 10 seconds...");
-                            Thread.sleep(10 * 1000);
+                            if (deleteStorage) {
+                                storage.deleteVolume(serviceVolume.getId());
+                            }
                             break;
                         }
                         case CREATED : {
-                            storage.deleteVolume(serviceVolume.getId());
-                            logger.fine("Sleeping for 10 seconds...");
-                            Thread.sleep(10 * 1000);
+                            if (deleteStorage) {
+                                storage.deleteVolume(serviceVolume.getId());
+                            }
                             break;
                         }
                     }
