@@ -228,7 +228,7 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 	}
 
 	@Override
-	public void deleteVolume(final String volumeId, final long duration,
+	public void deleteVolume(final String location, final String volumeId, final long duration, 
 			final TimeUnit timeUnit) throws TimeoutException, StorageProvisioningException {
 
 		Optional<? extends VolumeApi> volumeApi = getVolumeApi();
