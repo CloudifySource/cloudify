@@ -163,11 +163,11 @@ public class JCloudsDeployer {
 	 * yet when this call returns.
 	 * 
 	 * @param serverName server name.
+	 * @param locationId the id of the location in which to create the server.
 	 * @return the new server meta data.
 	 * @throws InstallerException .
 	 */
-	public NodeMetadata createServer(final String serverName, final String locationId)
-			throws InstallerException {
+	public NodeMetadata createServer(final String serverName, final String locationId) throws InstallerException {
 
 		Set<? extends NodeMetadata> nodes = null;
 		try {
@@ -176,7 +176,9 @@ public class JCloudsDeployer {
 			nodes = createServersWithRetry(
 					serverName, 1, getTemplate(locationId));
 		} catch (final RunNodesException e) {
-			throw new InstallerException("Failed to start Cloud server", e);
+			// if there are nodes in the returned maps - kill them
+			removeLeakingServersAfterCreationException(e);	
+ 			throw new InstallerException("Failed to start Cloud server", e);
 		}
 		if (nodes.isEmpty()) {
 			throw new IllegalStateException("Failed to create server");
@@ -195,11 +197,12 @@ public class JCloudsDeployer {
 	 * 
 	 * @param groupName server group name.
 	 * @param numberOfMachines number of machines.
+	 * @param locationId the id of the location in which to create the server.
 	 * @return the created nodes.
 	 * @throws InstallerException if creation of one or more nodes failed.
 	 */
-	public Set<? extends NodeMetadata> createServers(final String groupName, final int numberOfMachines, final String locationId)
-			throws InstallerException {
+	public Set<? extends NodeMetadata> createServers(final String groupName, final int numberOfMachines, 
+			final String locationId) throws InstallerException {
 
 		Set<? extends NodeMetadata> nodes = null;
 		try {
@@ -208,6 +211,8 @@ public class JCloudsDeployer {
 			nodes = createServersWithRetry(
 					groupName, numberOfMachines, getTemplate(locationId));
 		} catch (final RunNodesException e) {
+			// if there are nodes in the returned maps - kill them
+			removeLeakingServersAfterCreationException(e);
 			throw new InstallerException("Failed to start Cloud server with JClouds", e);
 		}
 		if (nodes.isEmpty()) {
@@ -230,19 +235,24 @@ public class JCloudsDeployer {
 	 * @return the server meta data.
 	 * @throws RunNodesException .
 	 */
-	public NodeMetadata createServer(final String serverName, Template template)
-			throws RunNodesException {
+	public NodeMetadata createServer(final String serverName, final Template template) throws RunNodesException {
 		
-		final Set<? extends NodeMetadata> nodes = createServersWithRetry(
-				serverName, 1, template);
+		try {
+			final Set<? extends NodeMetadata> nodes = createServersWithRetry(
+					serverName, 1, template);
 
-		if (nodes.isEmpty()) {
-			return null;
+			if (nodes.isEmpty()) {
+				return null;
+			}
+			if (nodes.size() != 1) {
+				throw new IllegalStateException();
+			}
+			return nodes.iterator().next();
+		} catch (RunNodesException e) {
+			// if there are nodes in the returned maps - kill them
+			removeLeakingServersAfterCreationException(e);
+			throw e;
 		}
-		if (nodes.size() != 1) {
-			throw new IllegalStateException();
-		}
-		return nodes.iterator().next();
 
 	}
 
@@ -824,6 +834,34 @@ public class JCloudsDeployer {
 		this.context = new ComputeServiceContextFactory().createContext(
 				this.provider, this.account, this.key, wiring, this.overrides);
 
+	}
+	
+	private void removeLeakingServersAfterCreationException(final RunNodesException e) {
+		
+		if (!e.getSuccessfulNodes().isEmpty()) {
+			for (NodeMetadata node : e.getSuccessfulNodes()) {
+				try {
+					logger.warning("JClouds Deployer is shutting down a server that failed to start properfly: " 
+							+ node.getId());
+					shutdownMachine(node.getId());
+				} catch (Throwable t) {
+					logger.warning("Failed to shut down leaking server: " + node.getId());
+				}
+			}
+		}
+		
+		if (!e.getNodeErrors().isEmpty()) {
+			for (NodeMetadata node : e.getNodeErrors().keySet()) {
+				try {
+					logger.warning("JClouds Deployer is shutting down a server that failed to start properfly: " 
+							+ node.getId());
+					shutdownMachine(node.getId());
+				} catch (Throwable t) {
+					logger.warning("Failed to shut down leaking server: " + node.getId());
+				}
+			}
+		}			
+		
 	}
 
 }
