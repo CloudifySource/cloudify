@@ -459,9 +459,6 @@
 		<ant target="copy.packages.to.build.repository" />
 		
 		<!-- conditional task (with property: publish.cloudify.build) -->
-    	<ant target="publish.bigdata.to.storage" />
-		
-		<!-- conditional task (with property: publish.cloudify.build) -->
     	<ant target="publish.cloudify.to.storage" />
 		
 		<ant target="publish.cloudify.jars.to.maven.repository" />
@@ -557,15 +554,6 @@
 	<target name="publish.cloudify.to.storage" if="publish.cloudify.build">
 		
 		<echo message="uploading cloudify installation to public storage (S3) at: ${cloudify.put.target}" />
-			
-		<exec executable="${mvn.executable}">
-			<arg value="s3client:deploy-native" />
-			<arg value="-Dput.user=${put.user}" />
-			<arg value="-Dput.key=${put.key}" />
-			<arg value="-Dput.source=${cloudify.put.source}" />
-			<arg value="-Dput.target=${cloudify.put.target}" />
-			<arg value="-Dput.container=${cloudify.base.container}"/>
-		</exec>
 		
 		<exec executable="${mvn.executable}">
 			<arg value="s3client:deploy-native" />
