@@ -559,6 +559,15 @@
 			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
+			<arg value="-Dput.source=${cloudify.put.source}" />
+			<arg value="-Dput.target=${cloudify.put.target}" />
+			<arg value="-Dput.container=${cloudify.base.container}"/>
+		</exec>
+		
+		<exec executable="${mvn.executable}">
+			<arg value="s3client:deploy-native" />
+			<arg value="-Dput.user=${put.user}" />
+			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${cloudify.gzip.put.source}" />
 			<arg value="-Dput.target=${cloudify.gzip.put.target}" />
 			<arg value="-Dput.container=${cloudify.base.container}"/>
