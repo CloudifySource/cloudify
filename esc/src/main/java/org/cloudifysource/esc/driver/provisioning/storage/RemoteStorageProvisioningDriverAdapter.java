@@ -82,7 +82,7 @@ public class RemoteStorageProvisioningDriverAdapter implements RemoteStorageProv
 	public void detachVolume(final String volumeId, final String ip) throws RemoteStorageOperationException {		
 		try {
 			storageProvisioningDriver
-				.detachVolume(volumeId, ip, DEFAULT_STORAGE_OPERATION_TIMEOUT, TimeUnit.MILLISECONDS);
+				.detachVolume(volumeId, ip, DEFAULT_STORAGE_OPERATION_TIMEOUT * 2, TimeUnit.MILLISECONDS);
 		} catch (final Exception e) {
 			throw new RemoteStorageOperationException("Failed detaching volume with id " 
 						+ volumeId + " to instance with ip " + ip, e);
