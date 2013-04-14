@@ -171,8 +171,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		final boolean existingProcessFound = checkForPIDFile();
 
         initManagementSpace();
-        // will allocate block storage if the service declared it.
-        allocateStorage();
 
 		// Initialize and sort events
 		initEvents();
@@ -371,7 +369,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
                 final ServiceVolume serviceVolume = getServiceVolumeFromSpace(getUsmLifecycleBean().getConfiguration().getServiceContext());
                 if (serviceVolume == null) {
-                    logger.fine("Could not find a volume for this service in the management space. this probably means there was a problem during volume creation");
+                    logger.fine("Could not find a volume for this service in the management space. this probably means there was a problem during volume creation, or it has already been de-allocated");
                 } else {
                     logger.fine("Detected an existing volume for this service upon de-allocation. found in state : " + serviceVolume.getState());
                     final boolean deleteStorage = storage.getTemplate(storageTemplateName).isDeleteOnExit();
@@ -598,7 +596,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 							"Asynchronous install failed with message: "
 									+ e.getMessage()
 									+ ". Instance will shut down", e);
-					shutdownUSMException = e;
+					markUSMAsFailed(e);
 				}
 
 			}
@@ -648,7 +646,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 														+ e.getMessage()
 														+ ". Instance will shut down",
 												e);
-										shutdownUSMException = e;
+										markUSMAsFailed(e);
 									}
 
 								}
@@ -662,6 +660,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 	private void installAndRun() throws USMException, TimeoutException {
 		try {
+            allocateStorage();
 			getUsmLifecycleBean().install();
 			if (this.asyncInstall) {
 				waitForDependencies();
@@ -1429,6 +1428,11 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	private boolean selfHealing = true;
 
 	private void markUSMAsFailed(final Exception ex) {
+        try {
+            deAllocateStorage();
+        } catch (final Exception e) {
+            logger.warning("Failed to de-allocate storage volume : " + e.getMessage());
+        }
 		this.shutdownUSMException = ex;
 	}
 
@@ -1442,7 +1446,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		if (shutdownUSMException == null) {
 			return true;
 		}
-		logger.severe("USM is Alive() exiting with exception due to previous failure. Exception message was: "
+		logger.severe("USM isAlive() exiting with exception due to previous failure. Exception message was: "
 				+ shutdownUSMException.getMessage());
 		throw shutdownUSMException;
 	}
