@@ -287,7 +287,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		String volumeNameTag = "";
 		try {
 			TagApi tagApi = getTagsApi();
-			logger.fine("filtering tags using volumeId " + volumeId + " to find the 'Name' tag");
+			logger.fine("Filtering tags using volumeId " + volumeId + " to find the 'Name' tag");
 			FluentIterable<Tag> filter = tagApi.filter(new TagFilterBuilder().resourceId(volumeId).build());
 			ImmutableList<Tag> immutableList = filter.toImmutableList();
 			for (Tag tag : immutableList) {
@@ -298,8 +298,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 			}
 			return volumeNameTag;
 		} catch (Exception e) {
-			logger.warning("failed getting volume name. Reason: " + e.getMessage());
-			throw new StorageProvisioningException("failed getting volume name. Reason: " + e.getMessage(), e);
+			throw new StorageProvisioningException("Failed getting volume name. Reason: " + e.getMessage(), e);
 		}
 	}
 	

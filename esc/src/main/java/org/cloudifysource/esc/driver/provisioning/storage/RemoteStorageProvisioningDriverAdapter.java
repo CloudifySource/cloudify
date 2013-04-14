@@ -16,7 +16,6 @@
 
 package org.cloudifysource.esc.driver.provisioning.storage;
 
-import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
 import org.cloudifysource.dsl.context.blockstorage.RemoteStorageOperationException;
 import org.cloudifysource.dsl.internal.context.RemoteStorageProvisioningDriver;
@@ -38,12 +37,12 @@ public class RemoteStorageProvisioningDriverAdapter implements RemoteStorageProv
 	private static final long DEFAULT_STORAGE_OPERATION_TIMEOUT = 60 * 1000;
 	
 	private StorageProvisioningDriver storageProvisioningDriver;
-    private Cloud cloud;
+    private StorageTemplate storageTemplate;
 	
 	public RemoteStorageProvisioningDriverAdapter(final StorageProvisioningDriver driver,
-                                                  final Cloud cloud) {
+                                                  final StorageTemplate storageTemplate) {
 		this.storageProvisioningDriver = driver;
-        this.cloud = cloud;
+        this.storageTemplate = storageTemplate;
 	}
 
 	@Override
@@ -104,6 +103,6 @@ public class RemoteStorageProvisioningDriverAdapter implements RemoteStorageProv
 
     @Override
     public StorageTemplate getTemplate(String templateName) {
-        return cloud.getCloudStorage().getTemplates().get(templateName);
+        return storageTemplate;
     }
 }
