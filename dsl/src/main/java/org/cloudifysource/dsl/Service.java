@@ -468,6 +468,26 @@ public class Service {
 		validateServiceType();
 	}
 
+    @DSLValidation
+    void validateMultitenantStorage(final DSLValidationContext validationContext) throws DSLValidationException {
+
+        if ((numInstances > 1) && (isMultitenant()) && getStorage().getTemplate() != null) {
+            throw new DSLValidationException("numInstances must be 1 when used in a Multi-tenant configuration with static storage defined.");
+        }
+    }
+
+    private boolean isMultitenant() {
+        IsolationSLA isolationSla = getIsolationSLA();
+        if (isolationSla != null) {
+            if (isolationSla.getDedicated() != null) {
+                return false;
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 	private void validateServiceType() throws DSLValidationException {
 		boolean typeExists = false;
 		String[] enumAsString = new String[ServiceTierType.values().length];

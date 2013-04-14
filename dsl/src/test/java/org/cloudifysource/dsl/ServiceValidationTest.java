@@ -48,7 +48,10 @@ public class ServiceValidationTest {
 	private static final String APPLICATION_MISSING_SERVICE_ICON_PATH = 
 			"testResources/applications/ApplicationValidationTest/appMissingServiceIconTest";
 
-	private static final String ICON_FILE = "icon.png";
+    private static final String MULTI_TENANT_WITH_STATIC_STORAGE =
+            "testResources/applications/ServiceValidationTest/multitenantWithStaticStorage";
+
+    private static final String ICON_FILE = "icon.png";
 
 	private static final String SERVICE_WITHOUT_NAME_GROOVY 
 	= "testResources/applications/ServiceValidationTest/serviceWithoutNameTest";
@@ -67,7 +70,22 @@ public class ServiceValidationTest {
 			"src/test/resources/groovyFileValidation/badUserInterface.groovy";
 	
 	private static final String INVALID_SERVICE_NAME = "my[1]service";
-	
+
+    @Test
+    public void testStaticStorageMTWithNumInstances() {
+
+        try {
+            ServiceReader.readService(new File(MULTI_TENANT_WITH_STATIC_STORAGE));
+            Assert.fail("Multi-tenant with numInstances > 1 and static storage is illegal, DSLValidationException expected.");
+        } catch (DSLValidationException e) {
+            return;
+            //OK - the invalid service name caused the exception
+        } catch (Exception e) {
+            Assert.fail("Multi-tenant with numInstances > 1 and static storage is defined but no DSLValidationException was thrown : " + e.getMessage());
+        }
+        Assert.fail("Multi-tenant with numInstances > 1 and static storage is defined but no DSLValidationException was thrown.");
+    }
+
 	/**
 	 * Triple-test for the instances number (invalid configuration, default configuration and a valid configuration).
 	 */
