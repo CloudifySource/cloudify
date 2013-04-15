@@ -405,17 +405,32 @@
            - creates  Cloudify
       - - - - - - - - - - - - - - - - - -->
 
+    <target name="prepare.and.copy.packages" depends="update_platform_version">
+        <delete dir="${releases.dir}" />
+        <ant target="prepare.cloudify.package" />
+        <ant target="prepare.bigdata.package" />
+        <ant target="copy.packages.to.build.repository" />
+
+        <!-- conditional task (with property: publish.cloudify.build) -->
+        <ant target="publish.bigdata.to.storage" />
+
+        <!-- conditional task (with property: publish.cloudify.build) -->
+        <ant target="publish.cloudify.to.storage" />
+
+        <ant target="publish.cloudify.jars.to.maven.repository" />
+    </target>
+
     <target name="archive.cloudify.versions">
 		<delete dir="${releases.dir}/build_${cloudify.build.number}"/>
         <mkdir dir="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5"/>
         <zip destfile="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip">
             <zipfileset dir="${tmp.dir}" includes="**/*" filemode="775"/>
         </zip>
-	
+
 		<tar destfile="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.tar.gz" compression="gzip">
 	  		<zipfileset src="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip"/>
 		</tar>
-    	
+
     	<!-- Add Cloudify Javadoc archive to Cloudify/docs folder. If the folder doesn't exist please run: mvn javadoc:javadoc -->
     	<mkdir dir="${releases.dir}/build_${cloudify.build.number}/docs" />
     	<zip file="${releases.dir}/build_${cloudify.build.number}/docs/${cloudify}-javadoc.zip">
@@ -427,7 +442,7 @@
     		<fileset file="${restful.local.copy}/src/main/webapp/resources/restdoclet/restdoclet.css"/>
     	</copy>
     </target>
-	
+
 	<target name="archive.bigdata.version">
 		<loadproperties srcfile="${build.properties.file}"/>
 		<delete dir="${releases.dir}/build_${gs.build.number}"/>
@@ -435,12 +450,12 @@
         <zip destfile="${releases.dir}/build_${gs.build.number}/${xap.bigdata.dir}/1.5/${xap.zip.name}">
             <zipfileset dir="${tmp.dir}" includes="**/*" filemode="775"/>
         </zip>
-		
+
 		<tar destfile="${releases.dir}/build_${gs.build.number}/${xap.bigdata.dir}/1.5/${xap.installation.dir}-b${gs.build.number}.tar.gz" compression="gzip">
 	  		<zipfileset src="${releases.dir}/build_${gs.build.number}/${xap.bigdata.dir}/1.5/${xap.zip.name}"/>
 		</tar>
     </target>
-	
+
 	<target name="copy.packages.to.build.repository" description="copy packages to build repository" unless="gs.internal.systems.not.available">
 	   <loadproperties srcfile="${build.properties.file}"/>
        <copy todir="${build.repository.path}/${cloudify}/${cloudify.version}/${build.prefix}${cloudify.build.number}">
@@ -449,21 +464,9 @@
 	   <copy todir="${build.repository.path}/${gs.version}/${build.prefix}${gs.build.number}">
 			<fileset dir="${releases.dir}/${build.prefix}${gs.build.number}"/>
 	   </copy>
-		
+
    	</target>
-	
-	<target name="prepare.and.copy.packages" depends="update_platform_version">
-		<delete dir="${releases.dir}" />
-		<ant target="prepare.cloudify.package" />
-		<ant target="prepare.bigdata.package" />
-		<ant target="copy.packages.to.build.repository" />
-		
-		<!-- conditional task (with property: publish.cloudify.build) -->
-    	<ant target="publish.cloudify.to.storage" />
-		
-		<ant target="publish.cloudify.jars.to.maven.repository" />
-	</target>
-	
+
 	<target name="publish.cloudify.jars.to.maven.repository"  if="publish.cloudify.build">
 		<echo message="uploading cloudify jar artifacts to S3" />
 				
