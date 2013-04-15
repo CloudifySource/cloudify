@@ -310,7 +310,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
                 logger.info("Allocating static storage for service " + getUsmLifecycleBean().getConfiguration().getServiceContext());
                 final StorageFacade storage = getUsmLifecycleBean().getConfiguration().getServiceContext().getStorage();
                 final StorageTemplate storageTemplate = storage.getTemplate(storageTemplateName);
-                logger.info("Logging storage allocation to event logger");
                 getUsmLifecycleBean().log("Allocating storage with size " + storageTemplate.getSize() + "GB");
                 final ServiceVolume serviceVolume = getServiceVolumeFromSpace(getUsmLifecycleBean().getConfiguration().getServiceContext());
 

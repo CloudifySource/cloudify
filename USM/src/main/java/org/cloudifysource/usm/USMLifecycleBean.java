@@ -203,7 +203,6 @@ public class USMLifecycleBean implements ClusterInfoAware {
 
     public void log(final String message) {
         if (eventLogger.isLoggable(Level.INFO)) {
-            logger.info("isLoggable = true");
             eventLogger.info(eventPrefix + message);
         }
     }
