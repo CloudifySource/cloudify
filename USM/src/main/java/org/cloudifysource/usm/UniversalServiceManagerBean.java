@@ -317,7 +317,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
                     logger.fine("service volume is null. this means it hasn't been created yet.");
                     getUsmLifecycleBean().log("Creating volume");
                     final String id = storage.createVolume(storageTemplateName);
-                    getUsmLifecycleBean().log("Volume create with id " + id);
+                    getUsmLifecycleBean().log("Volume created with id " + id);
                     // flag this volume as static. this is to identify it when deallocating on shutdown.
                     ServiceVolume newServiceVolume = managementSpace.readById(ServiceVolume.class, id);
                     logger.fine("Flagging service volume with id " + id + " to be static storage.");
