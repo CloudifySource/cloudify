@@ -128,26 +128,38 @@ public class ParseByonCloudNodesTest {
 			Set<CustomNode> expectedNodes = new HashSet<CustomNode>();
 			// id, ip, username, credential
 			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test01", "0.0.0.1", "tgrid1", "tgrid1",
-					"byon-test01"));
+					null/*keyFile*/, "byon-test01"));
 			// id, ip
-			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test02", "0.0.0.2", null, null, "byon-test02"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test02", "0.0.0.2", null, null, null/*keyFile*/,
+					"byon-test02"));
 			// idPrefix, ipList
 			// expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test11", "0.0.0.3", null, null, "byon-test11"));
 			// expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test12", "0.0.0.4", null, null, "byon-test12"));
-			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test11", "pc-lab39", null, null, "byon-test11"));
-			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test12", "pc-lab40", null, null, "byon-test12"));
-			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test13", "0.0.0.5", null, null, "byon-test13"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test11", "pc-lab39", null, null, null/*keyFile*/,
+					"byon-test11"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test12", "pc-lab40", null, null, null/*keyFile*/,
+					"byon-test12"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test13", "0.0.0.5", null, null, null/*keyFile*/,
+					"byon-test13"));
 			// id (template), ipList
-			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test21", "0.0.0.6", null, null, "byon-test21"));
-			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test22", "0.0.0.7", null, null, "byon-test22"));
-			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test23", "0.0.0.8", null, null, "byon-test23"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test21", "0.0.0.6", null, null, null/*keyFile*/,
+					"byon-test21"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test22", "0.0.0.7", null, null, null/*keyFile*/,
+					"byon-test22"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test23", "0.0.0.8", null, null, null/*keyFile*/,
+					"byon-test23"));
 			// id, ipRange
-			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test31", "0.0.0.9", null, null, "byon-test31"));
-			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test32", "0.0.0.10", null, null, "byon-test32"));
-			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test33", "0.0.0.11", null, null, "byon-test33"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test31", "0.0.0.9", null, null, null/*keyFile*/,
+					"byon-test31"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test32", "0.0.0.10", null, null, null/*keyFile*/,
+					"byon-test32"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test33", "0.0.0.11", null, null, null/*keyFile*/,
+					"byon-test33"));
 			// id, CIDR
-			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test41", "0.0.0.12", null, null, "byon-test41"));
-			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test42", "0.0.0.13", null, null, "byon-test42"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test41", "0.0.0.12", null, null, null/*keyFile*/,
+					"byon-test41"));
+			expectedNodes.add(new CustomNodeImpl(PROVIDER, "byon-test42", "0.0.0.13", null, null, null/*keyFile*/,
+					"byon-test42"));
 			System.out.println(Arrays.toString(allNodes.toArray()));
 
 			Assert.assertTrue("Wrong output", allNodes.size() == expectedNodes.size()

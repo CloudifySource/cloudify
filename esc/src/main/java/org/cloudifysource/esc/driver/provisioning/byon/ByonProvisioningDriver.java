@@ -12,6 +12,7 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.byon;
 
+import java.io.File;
 import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -289,7 +290,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	 * value is reached, code will loop back to 0, so that previously used server names will be reused.
 	 *
 	 * @return the server name.
-	 * @throws CloudProvisioningException
+	 * @throws org.cloudifysource.esc.driver.provisioning.CloudProvisioningException
 	 *             Indicated a free server name was not found.
 	 */
 	private String createNewServerName()
@@ -532,7 +533,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		try {
 			machineDetails = createMachineDetailsFromNode(cloudNode);
 			FileUtils.deleteFileSystemObjects(machineDetails.getPrivateAddress(), machineDetails.getRemoteUsername(),
-					machineDetails.getRemotePassword(), null/* key file */, cloudifyItems,
+					machineDetails.getRemotePassword(), machineDetails.getKeyFile().getAbsolutePath(), cloudifyItems,
 					machineDetails.getFileTransferMode());
 		} catch (final Exception e) {
 			if (machineDetails != null) {
@@ -591,17 +592,23 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		md.setPrivateAddress(node.getPrivateIP());
 		md.setPublicAddress(node.getPublicIP());
 
-		// if the node has user/pwd - use it. Otherwise - take the use/password
-		// from the template's settings.
-
-		if (!StringUtils.isBlank(node.getUsername()) && !StringUtils.isBlank(node.getCredential())) {
+		// prefer node settings over template setting
+		// prefer key file over password
+		if (StringUtils.isNotBlank(node.getUsername()) && StringUtils.isNotBlank(node.getKeyFile())) {
+			md.setRemoteUsername(node.getUsername());
+			setKeyFile(md, node.getKeyFile(), template.getAbsoluteUploadDir());
+		} else if (StringUtils.isNotBlank(node.getUsername()) && StringUtils.isNotBlank(node.getCredential())) {
 			md.setRemoteUsername(node.getUsername());
 			md.setRemotePassword(node.getCredential());
-		} else if (!StringUtils.isBlank(template.getUsername())
-				&& !StringUtils.isBlank(template.getPassword())) {
+		} else if (StringUtils.isNotBlank(template.getUsername())
+				&& StringUtils.isNotBlank(template.getKeyFile())) {
+			md.setRemoteUsername(template.getUsername());
+			setKeyFile(md, template.getKeyFile(), template.getAbsoluteUploadDir());
+        } else if (StringUtils.isNotBlank(template.getUsername())
+				&& StringUtils.isNotBlank(template.getPassword())) {
 			md.setRemoteUsername(template.getUsername());
 			md.setRemotePassword(template.getPassword());
-		} else {
+        } else {
 			final String nodeStr = node.toString();
 			logger.severe("Cloud node loading failed, missing credentials for server: " + nodeStr);
 			publishEvent("prov_node_loading_failed", nodeStr);
@@ -612,7 +619,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		return md;
 	}
 
-	private void shutdownServerGracefully(final CustomNode cloudNode, final boolean isManagement)
+    private void shutdownServerGracefully(final CustomNode cloudNode, final boolean isManagement)
 			throws CloudProvisioningException {
 		try {
 			if (cleanGsFilesOnShutdown) {
@@ -657,7 +664,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 	@Override
 	public MachineDetails[] getExistingManagementServers() throws CloudProvisioningException {
-        throw new UnsupportedOperationException("Cannot retrieve existing management servers after shutting down agents");
+        throw new UnsupportedOperationException("Cannot retrieve existing management servers after shutting down"
+        		+ " agents");
 	}
 
 	@Override
@@ -687,6 +695,22 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		}
 		return result;
 
+	}
+	
+	private void setKeyFile(final MachineDetails md, final String keyFileName, final String parentFolder) 
+			throws CloudProvisioningException {
+		
+		File keyFile = new File(keyFileName);
+		if (!keyFile.isAbsolute()) {
+			keyFile = new File(parentFolder, keyFileName);
+		}
+		
+		if (!keyFile.isFile()) {
+			throw new CloudProvisioningException("The specified key file could not be found: "
+					+ keyFile.getAbsolutePath());
+		}
+		
+		md.setKeyFile(keyFile);
 	}
 
 }

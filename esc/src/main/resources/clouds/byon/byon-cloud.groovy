@@ -88,6 +88,8 @@ cloud {
 					// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
 					localDirectory "upload"
 					
+					keyFile keyFile
+					
 					// Mandatory for BYON.
 					custom ([
 						// Mandatory for BYON. The nodesList custom property lists the nodes that compose this cloud-like environment.
@@ -104,7 +106,7 @@ cloud {
 					])
 					
 					// enable sudo.
-					privileged true
+					privileged false
 					
 					}
 		])

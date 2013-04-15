@@ -30,16 +30,16 @@ public class CustomNodeImpl implements CustomNode {
 	 */
 	public static final int DEFAULT_LOGIN_PORT = 22;
 
-	// TODO : Currently using private IP. Add public IP in phase 2.
-	private final String providerId, id, ipAddress;
-
+	private String providerId;
+	private String id;
+	// TODO : Support public IP
+	private String ipAddress;
 	private String resolvedIpAddress;
-
 	private String nodeName;
-
 	private String group;
-	// credential can be a password or a private key
-	private final String username, credential;
+	private String username;
+	private String credential;	// password
+	private String keyFile;		// private key file
 
 	private int loginPort = DEFAULT_LOGIN_PORT;
 
@@ -55,11 +55,13 @@ public class CustomNodeImpl implements CustomNode {
 	 * @param username
 	 *            The username required to access the node
 	 * @param credential
-	 *            The password required to access the node
+	 *            The password required to access the node (optional)
+	 * @param keyFile
+	 *            The private key file required to access the node  (optional)
 	 */
 	public CustomNodeImpl(final String providerId, final String id, final String ipAddress, final String username,
-			final String credential) {
-		this(providerId, id, ipAddress, username, credential, ""/* nodeName */);
+			final String credential, final String keyFile) {
+		this(providerId, id, ipAddress, username, credential, keyFile, ""/* nodeName */);
 	}
 
 	/**
@@ -74,17 +76,20 @@ public class CustomNodeImpl implements CustomNode {
 	 * @param username
 	 *            The username required to access the node
 	 * @param credential
-	 *            The password required to access the node
+	 *            The password required to access the node (optional)
+	 * @param keyFile
+	 *            The private key file required to access the node  (optional)
 	 * @param nodeName
 	 *            A unique logical name for the node, optional.
 	 */
 	public CustomNodeImpl(final String providerId, final String id, final String ipAddress, final String username,
-			final String credential, final String nodeName) {
+			final String credential, final String keyFile, final String nodeName) {
 		this.providerId = providerId;
 		this.id = id;
 		this.ipAddress = ipAddress;
 		this.username = username;
 		this.credential = credential;
+		this.keyFile = keyFile;
 		this.nodeName = nodeName;
 	}
 
@@ -150,6 +155,14 @@ public class CustomNodeImpl implements CustomNode {
 	@Override
 	public String getCredential() {
 		return credential;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String getKeyFile() {
+		return keyFile;
 	}
 
 	/**

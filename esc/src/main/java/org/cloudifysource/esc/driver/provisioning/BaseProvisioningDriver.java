@@ -212,8 +212,14 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 
 		File keyFile = null;
 		// using a key (pem) file
-		final String keyFileStr = template.getKeyFile();
-		if (StringUtils.isNotBlank(keyFileStr)) {
+		if (machineDetails.getKeyFile() != null) {
+			keyFile = machineDetails.getKeyFile();
+			if (!keyFile.isFile()) {
+				throw new CloudProvisioningException("The specified key file could not be found: "
+					+ keyFile.getAbsolutePath());
+			}
+		} else if (StringUtils.isNotBlank(template.getKeyFile())) {
+			final String keyFileStr = template.getKeyFile();
 			// fixConfigRelativePaths(cloud, template);
 			keyFile = new File(keyFileStr);
 			if (!keyFile.isAbsolute()) {
@@ -221,7 +227,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 			}
 			if (keyFile != null && !keyFile.exists()) {
 				throw new CloudProvisioningException("The specified key file could not be found: "
-						+ keyFile.getAbsolutePath());
+					+ keyFile.getAbsolutePath());
 			}
 		} else {
 			// using a password

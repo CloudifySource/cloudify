@@ -50,6 +50,7 @@ public class ByonDeployer {
 	private static final String CLOUD_NODE_HOST_RANGE = "host-range";
 	private static final String CLOUD_NODE_USERNAME = "username";
 	private static final String CLOUD_NODE_CREDENTIAL = "credential";
+	private static final String CLOUD_NODE_KEY_FILE = "keyFile";
 
 	private static final String INVALID_HOSTS_ERR_MESSAGE = "Failed to start cloud node, invalid hosts configuration.";
 	private static final String EMPTY_HOSTS_ERR_MESSAGE = "Failed to start cloud node, empty ID configuration";
@@ -716,11 +717,9 @@ public class ByonDeployer {
 			nodeId = MessageFormat.format(nodeId, 1);
 		}
 
-		return new CustomNodeImpl(PROVIDER_ID, nodeId
-				.trim(), nodeMap.get(CLOUD_NODE_HOST_LIST).trim(),
-				nodeMap.get(CLOUD_NODE_USERNAME),
-				nodeMap.get(CLOUD_NODE_CREDENTIAL), nodeId
-						.trim());
+		return new CustomNodeImpl(PROVIDER_ID, nodeId.trim(),
+				nodeMap.get(CLOUD_NODE_HOST_LIST).trim(), nodeMap.get(CLOUD_NODE_USERNAME),
+				nodeMap.get(CLOUD_NODE_CREDENTIAL), nodeMap.get(CLOUD_NODE_KEY_FILE), nodeId.trim());
 	}
 
 	/**
@@ -785,8 +784,8 @@ public class ByonDeployer {
 
 			// create a new node
 			cloudNodes.add(new CustomNodeImpl(PROVIDER_ID, currnentId, ip,
-					nodeMap.get(CLOUD_NODE_USERNAME), nodeMap
-							.get(CLOUD_NODE_CREDENTIAL), currnentId));
+					nodeMap.get(CLOUD_NODE_USERNAME), nodeMap.get(CLOUD_NODE_CREDENTIAL),
+					nodeMap.get(CLOUD_NODE_KEY_FILE), currnentId));
 
 			index++;
 			ip = IPUtils.getNextIP(ip);
@@ -871,8 +870,8 @@ public class ByonDeployer {
 
 			// create a new node
 			cloudNodes.add(new CustomNodeImpl(PROVIDER_ID, currnentId, ip,
-					nodeMap.get(CLOUD_NODE_USERNAME), nodeMap
-							.get(CLOUD_NODE_CREDENTIAL), currnentId));
+					nodeMap.get(CLOUD_NODE_USERNAME), nodeMap.get(CLOUD_NODE_CREDENTIAL),
+					nodeMap.get(CLOUD_NODE_KEY_FILE), currnentId));
 
 			index++;
 		}

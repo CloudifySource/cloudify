@@ -51,11 +51,18 @@ public interface CustomNode {
 	String getUsername();
 
 	/**
-	 * Gets the password/private key required to log in to the node.
+	 * Gets the password required to log in to the node.
 	 * 
-	 * @return The password/private key as a {@link String}
+	 * @return The password as a {@link String}
 	 */
 	String getCredential();
+	
+	/**
+	 * Gets the private key required to log in to the node.
+	 * 
+	 * @return The private key as a {@link String}
+	 */
+	String getKeyFile();
 
 	/**
 	 * Gets the public IP address, the IP address used for external communication.
