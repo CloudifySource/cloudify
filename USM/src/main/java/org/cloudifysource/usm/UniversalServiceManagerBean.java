@@ -369,7 +369,9 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
     private void deAllocateStorageSync() throws USMException, TimeoutException {
 
+        logger.warning("Waiting for de-allocation mutex to be released");
         synchronized (this.deallocationMutext) {
+            logger.fine("Acquired lock on de-allocation mutex[" + deallocationMutext.hashCode() + "]");
             deAllocateStorage();
         }
     }
