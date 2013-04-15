@@ -201,6 +201,12 @@ public class USMLifecycleBean implements ClusterInfoAware {
 		}
 	}
 
+    public void log(final String message) {
+        if (eventLogger.isLoggable(Level.INFO)) {
+            eventLogger.info(eventPrefix + message);
+        }
+    }
+
 	/*******
 	 * Logs the start failed event.
 	 * 

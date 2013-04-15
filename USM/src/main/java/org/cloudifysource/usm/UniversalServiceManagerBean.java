@@ -310,35 +310,46 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
                 logger.info("Allocating static storage for service " + getUsmLifecycleBean().getConfiguration().getServiceContext());
                 final StorageFacade storage = getUsmLifecycleBean().getConfiguration().getServiceContext().getStorage();
                 final StorageTemplate storageTemplate = storage.getTemplate(storageTemplateName);
-
+                getUsmLifecycleBean().log("Allocating storage with size " + storageTemplate.getSize() + "GB");
                 final ServiceVolume serviceVolume = getServiceVolumeFromSpace(getUsmLifecycleBean().getConfiguration().getServiceContext());
 
                 if (serviceVolume == null) {
                     logger.fine("service volume is null. this means it hasn't been created yet.");
+                    getUsmLifecycleBean().log("Creating volume");
                     final String id = storage.createVolume(storageTemplateName);
+                    getUsmLifecycleBean().log("Volume create with id " + id);
                     // flag this volume as static. this is to identify it when deallocating on shutdown.
                     ServiceVolume newServiceVolume = managementSpace.readById(ServiceVolume.class, id);
                     logger.fine("Flagging service volume with id " + id + " to be static storage.");
                     managementSpace.change(newServiceVolume, new ChangeSet().set("dynamic", false));
+                    getUsmLifecycleBean().log("Attaching volume to device " + storageTemplate.getDeviceName());
                     storage.attachVolume(id, storageTemplate.getDeviceName());
+                    getUsmLifecycleBean().log("Formatting volume to filesystem " + storageTemplate.getFileSystemType());
                     storage.format(storageTemplate.getDeviceName(), storageTemplate.getFileSystemType());
+                    getUsmLifecycleBean().log("Mounting volume to " + storageTemplate.getPath());
                     storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
                 } else {
                     logger.fine("Detected an existing volume for this service upon allocation. found in state : " + serviceVolume.getState());
                     switch (serviceVolume.getState()) {
 
                         case CREATED : {
+                            getUsmLifecycleBean().log("Attaching volume to device " + storageTemplate.getDeviceName());
                             storage.attachVolume(serviceVolume.getId(), storageTemplate.getDeviceName());
+                            getUsmLifecycleBean().log("Formatting volume to filesystem " + storageTemplate.getFileSystemType());
                             storage.format(storageTemplate.getDeviceName(), storageTemplate.getFileSystemType());
+                            getUsmLifecycleBean().log("Mounting volume to " + storageTemplate.getPath());
                             storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
                             break;
                         }
                         case ATTACHED : {
+                            getUsmLifecycleBean().log("Attaching volume to device " + storageTemplate.getDeviceName());
                             storage.format(storageTemplate.getDeviceName(), storageTemplate.getFileSystemType());
+                            getUsmLifecycleBean().log("Formatting volume to filesystem " + storageTemplate.getFileSystemType());
                             storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
                             break;
                         }
                         case FORMATTED : {
+                            getUsmLifecycleBean().log("Formatting volume to filesystem " + storageTemplate.getFileSystemType());
                             storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
                         }
                         case MOUNTED : {
@@ -347,6 +358,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
                     }
                 }
             } catch (final Exception e) {
+                getUsmLifecycleBean().log("Storage allocation failed : " + e.getMessage());
                 if (e instanceof TimeoutException) {
                     throw (TimeoutException)e;
                 }
@@ -378,35 +390,45 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
                 if (serviceVolume == null) {
                     logger.fine("Could not find a volume for this service in the management space. this probably means there was a problem during volume creation, or it has already been de-allocated");
                 } else {
+                    getUsmLifecycleBean().log("De-allocating storage");
                     logger.fine("Detected an existing volume for this service upon de-allocation. found in state : " + serviceVolume.getState());
-                    final boolean deleteStorage = storage.getTemplate(storageTemplateName).isDeleteOnExit();
+                    StorageTemplate template = storage.getTemplate(storageTemplateName);
+                    final boolean deleteStorage = template.isDeleteOnExit();
                     logger.fine("Storage will be deleted = " + deleteStorage);
                     switch (serviceVolume.getState()) {
 
                         case MOUNTED : {
+                            getUsmLifecycleBean().log("Unmounting volume from " + template.getPath());
                             storage.unmount(serviceVolume.getDevice());
+                            getUsmLifecycleBean().log("Detaching volume from  " + serviceVolume.getDevice());
                             storage.detachVolume(serviceVolume.getId());
                             if (deleteStorage) {
+                                getUsmLifecycleBean().log("Deleting volume with id " + serviceVolume.getId());
                                 storage.deleteVolume(serviceVolume.getId());
                             }
                             break;
                         }
                         case ATTACHED : {
+                            getUsmLifecycleBean().log("Detaching volume from  " + serviceVolume.getDevice());
                             storage.detachVolume(serviceVolume.getId());
                             if (deleteStorage) {
+                                getUsmLifecycleBean().log("Deleting volume with id " + serviceVolume.getId());
                                 storage.deleteVolume(serviceVolume.getId());
                             }
                             break;
                         }
                         case FORMATTED : {
+                            getUsmLifecycleBean().log("Detaching volume from  " + serviceVolume.getDevice());
                             storage.detachVolume(serviceVolume.getId());
                             if (deleteStorage) {
+                                getUsmLifecycleBean().log("Deleting volume with id " + serviceVolume.getId());
                                 storage.deleteVolume(serviceVolume.getId());
                             }
                             break;
                         }
                         case CREATED : {
                             if (deleteStorage) {
+                                getUsmLifecycleBean().log("Deleting volume with id " + serviceVolume.getId());
                                 storage.deleteVolume(serviceVolume.getId());
                             }
                             break;
