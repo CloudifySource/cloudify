@@ -106,6 +106,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	private File puWorkDir;
 
 	private final Object stateMutex = new Object();
+    private final Object deallocationMutext = new Object();
 	private USMState state = USMState.INITIALIZING;
 
 	public USMState getState() {
@@ -221,7 +222,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
             }
 
             try {
-                deAllocateStorage();
+                deAllocateStorageSync();
             } catch (final Exception e) {
                 logger.log(Level.SEVERE, "Failed to deallocate storage: "
                         + e.getMessage(), e);
@@ -351,6 +352,13 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
                 }
                 throw new USMException(e);
             }
+        }
+    }
+
+    private void deAllocateStorageSync() throws USMException, TimeoutException {
+
+        synchronized (this.deallocationMutext) {
+            deAllocateStorage();
         }
     }
 
@@ -1428,7 +1436,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 	private void markUSMAsFailed(final Exception ex) {
         try {
-            deAllocateStorage();
+            deAllocateStorageSync();
         } catch (final Exception e) {
             logger.warning("Failed to de-allocate storage volume : " + e.getMessage());
         }
