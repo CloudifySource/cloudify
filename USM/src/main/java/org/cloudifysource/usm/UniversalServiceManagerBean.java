@@ -346,7 +346,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
                     }
                 }
             } catch (final Exception e) {
-                deAllocateStorage();
                 if (e instanceof TimeoutException) {
                     throw (TimeoutException)e;
                 }
