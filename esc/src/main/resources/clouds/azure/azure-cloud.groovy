@@ -61,7 +61,7 @@ cloud {
 		templates ([
 			SMALL_LINUX : computeTemplate{
 			
-				imageId "5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS63APR20130412"
+				imageId "5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS-63APR20130415"
 				machineMemoryMB 1600
 				hardwareId "Small"
 				localDirectory "upload"

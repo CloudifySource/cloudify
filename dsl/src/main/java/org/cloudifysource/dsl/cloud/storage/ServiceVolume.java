@@ -18,7 +18,6 @@ package org.cloudifysource.dsl.cloud.storage;
 
 import com.gigaspaces.annotation.pojo.SpaceClass;
 import com.gigaspaces.annotation.pojo.SpaceId;
-import org.cloudifysource.dsl.utils.ServiceUtils;
 
 /**
  * Created with IntelliJ IDEA.
