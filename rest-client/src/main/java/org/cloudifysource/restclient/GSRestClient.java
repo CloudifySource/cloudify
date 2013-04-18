@@ -132,10 +132,8 @@ public class GSRestClient {
 		this.urlStr = createUrlStr();
 
 		if (isSSL()) {
-			logger.log(Level.INFO, "creating SSL client");
 			httpClient = getSSLHttpClient();
 		} else {
-			logger.log(Level.INFO, "creating default (not SSL) client");
 			httpClient = new DefaultHttpClient();
 		}
 		httpClient.addRequestInterceptor(new HttpRequestInterceptor() {
@@ -249,7 +247,6 @@ public class GSRestClient {
 	 */
 	public final Map<String, Object> getAdminData(final String relativeUrl) throws RestException {
 		final String url = getFullUrl("admin/" + relativeUrl);
-		logger.finer(MSG_PERFORMING_HTTP_GET + url);
 		final HttpGet httpMethod = new HttpGet(url);
 		return readHttpAdminMethod(httpMethod);
 	}
