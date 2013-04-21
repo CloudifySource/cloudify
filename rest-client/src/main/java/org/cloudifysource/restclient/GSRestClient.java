@@ -99,7 +99,6 @@ public class GSRestClient {
 	private static final String ADMIN_REFLECTION_URL = "/admin/";
 	private static final String FORWARD_SLASH = "/";
 	private static final String HTTPS = "https";
-	private static final String MSG_PERFORMING_HTTP_GET = "performing http get to url: ";
 	private static final String MSG_RESPONSE_CODE = " response code ";
 	private static final String MSG_RESPONSE_ENTITY_NULL = " response entity is null";
 	private static final String MSG_HTTP_GET_RESPONSE = " http get response: ";
@@ -274,7 +273,6 @@ public class GSRestClient {
 	 */
 	public final Object get(final String relativeUrl, final String reponseJsonKey) throws ErrorStatusException {
 		final String url = getFullUrl(relativeUrl);
-		logger.log(Level.FINER, MSG_PERFORMING_HTTP_GET + url);
 		final HttpGet httpMethod = new HttpGet(url);
 		return executeHttpMethod(httpMethod, reponseJsonKey);
 	}
@@ -294,7 +292,6 @@ public class GSRestClient {
 	 */
 	public final Map<String, Object> getAdmin(final String relativeUrl) throws RestException {
 		final String url = getFullUrl(ADMIN_REFLECTION_URL + relativeUrl);
-		logger.log(Level.FINER, MSG_PERFORMING_HTTP_GET + url);
 		final HttpGet httpMethod = new HttpGet(url);
 		InputStream instream = null;
 		try {
