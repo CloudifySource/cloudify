@@ -276,7 +276,7 @@ public class GSRestClient {
 	 */
 	public final Object get(final String relativeUrl, final String reponseJsonKey) throws ErrorStatusException {
 		final String url = getFullUrl(relativeUrl);
-		logger.info(MSG_PERFORMING_HTTP_GET + url);
+		logger.fine(MSG_PERFORMING_HTTP_GET + url);
 		final HttpGet httpMethod = new HttpGet(url);
 		return executeHttpMethod(httpMethod, reponseJsonKey);
 	}
