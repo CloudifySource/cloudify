@@ -8,7 +8,7 @@
 	<name>cloudify</name>
 
 	<properties>
-		<gsVersion>9.5.0-RELEASE</gsVersion>
+		<gsVersion>9.6.0-M1</gsVersion>
 		<springVersion>3.1.3.RELEASE</springVersion>
 		<junitVersion>4.8.2</junitVersion>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
