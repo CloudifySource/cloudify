@@ -89,7 +89,7 @@
 	
 	<h1>REST Service API</h1>
 		<ul>
-			<li><a href="<%=context%>/resources/restDoclet/restDoclet.html">REST API documentation</a>
+			<li><a href="<%=context%>/resources/restdoclet/restdoclet.html">REST API documentation</a>
 		</ul>
 </body>
 </html>
