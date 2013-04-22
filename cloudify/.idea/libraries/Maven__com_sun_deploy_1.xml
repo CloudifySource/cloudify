@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Maven: com.sun:deploy:1">
+    <CLASSES>
+      <root url="jar://$APPLICATION_HOME_DIR$/jre/jre/lib/deploy.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
