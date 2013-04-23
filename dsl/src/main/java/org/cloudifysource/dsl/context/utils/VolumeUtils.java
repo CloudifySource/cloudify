@@ -122,7 +122,7 @@ public final class VolumeUtils {
 	public static void format(final String device, final String fileSystem, final long timeoutInMillis) 
 			throws LocalStorageOperationException, TimeoutException {
 		checkFileSystemSupported(fileSystem);
-		executeCommandLine("sudo mkfs -f -t " + fileSystem + " " + device, timeoutInMillis);
+		executeCommandLine("sudo mkfs -F -t " + fileSystem + " " + device, timeoutInMillis);
 	}
 
 	/**
