@@ -366,6 +366,14 @@ public final class CloudifyConstants {
 	public static final String SYSTEM_PROPERTY_ESM_DISCOVERY_POLLING_INTERVAL_SECONDS =
 			"com.gs.esm.discovery_polling_interval_seconds";
 
+	/*******
+	 *  Upload file constants.
+	 */
+	public static final String UPLOAD_FILE_PARAM_NAME = "file";
+	public static final String UPLOADS_FOLDER_NAME = "restUploads";
+	public static final int DEFAULT_UPLOAD_TIMEOUT_SECOND = 300;
+	public static final int DEFAULT_UPLOAD_SIZE_LIMIT_BYTES = 100 * 1000 * 1000;
+	
 	// CHECKSTYLE:ON
 }
 

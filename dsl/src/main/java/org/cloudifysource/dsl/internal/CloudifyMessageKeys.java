@@ -20,8 +20,12 @@ public enum CloudifyMessageKeys {
 	
 	EMPTY_ATTRIBUTE_NAME("empty_attribute_name"),
 	
-	NOT_EXIST_ATTRIBUTE("not_exist_attribute");
-		
+	NOT_EXIST_ATTRIBUTE("not_exist_attribute"),
+	
+	FILE_SIZE_LIMIT_EXCEEDED("file_size_limit_exceeded"),
+	
+	UPLOAD_FAILED("failed_to_upload_file");
+	
 	private final String name;
 	
 	CloudifyMessageKeys(final String name) {

@@ -43,8 +43,10 @@
         The most commonly used annotation is @Autowired, which instructs Spring to
         dependency inject an object into your class.
     -->
-    <context:component-scan base-package="org.cloudifysource.rest.controllers" use-default-filters="false">
+    <context:component-scan base-package="org.cloudifysource.rest" use-default-filters="false">
     	<context:include-filter type="regex" expression=".*AttributesController.*"/>
+    	<context:include-filter type="regex" expression=".*UploadRepo.*"/>
+    	<context:include-filter type="regex" expression=".*UploadController.*"/>
     </context:component-scan>
     
     <!-- Resolve views based on bean names (optional) -->
