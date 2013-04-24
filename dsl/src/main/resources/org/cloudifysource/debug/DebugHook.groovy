@@ -101,8 +101,12 @@ debug() {
     if [[ -z \"\\\$SERVICE\" ]]; then
         \\ls -1 ~/.gigaspaces/debug_sessions
     else
-        SERVICEDIR=\"\\\$(cat ~/.gigaspaces/debug_sessions/\\\$SERVICE)\"
-        bash --rcfile \\\$SERVICEDIR/.debugrc
+    	if [[ -r \"~/.gigaspaces/debug_sessions/\\\$SERVICE/.debugrc\" ]]; then
+        	SERVICEDIR=\"\\\$(cat ~/.gigaspaces/debug_sessions/\\\$SERVICE)\"
+        	bash --rcfile \\\$SERVICEDIR/.debugrc
+    	else
+    		echo \"Couldn't find a debug session for service \$SERVICE\"
+    	fi
     fi
 }
 EOS
