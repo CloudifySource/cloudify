@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 
 package org.cloudifysource.esc.installer.remoteExec;
@@ -23,7 +20,9 @@ import java.util.logging.Level;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.ExitStatusException;
 import org.apache.tools.ant.taskdefs.optional.testing.BuildTimeoutException;
+import org.cloudifysource.dsl.cloud.ScriptLanguages;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
+import org.cloudifysource.esc.installer.EnvironmentFileBuilder;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.util.Utils;
@@ -36,7 +35,6 @@ import org.cloudifysource.esc.util.Utils;
  */
 public class SshExecutor implements RemoteExecutor {
 
-
 	private static final java.util.logging.Logger logger =
 			java.util.logging.Logger.getLogger(SshExecutor.class.getName());
 
@@ -45,7 +43,10 @@ public class SshExecutor implements RemoteExecutor {
 			final long endTimeMillis)
 			throws InstallerException, TimeoutException, InterruptedException {
 
-		final String fullCommand = "chmod +x " + scriptPath + ";" + scriptPath;
+		final String fullCommand =
+				(details.getScriptLanguage() == ScriptLanguages.LINUX_SHELL ? "chmod +x " + scriptPath + ";"
+						+ scriptPath : ("cmd.exe /c " + EnvironmentFileBuilder.normalizeCygwinPath(scriptPath))
+						.replace("\\", "\\\\"));
 
 		// TODO - replace Ant based ssh command implementation with sshj
 		try {

@@ -28,6 +28,8 @@ import org.cloudifysource.dsl.cloud.ScriptLanguages;
 
 public class EnvironmentFileBuilder {
 
+	private static final String CYGDRIVE = "/cygdrive/";
+
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(EnvironmentFileBuilder.class.getName());
 
@@ -61,6 +63,13 @@ public class EnvironmentFileBuilder {
 
 	}
 
+	private String normalizeWindowsPaths(final String original) {
+		final String cifsNormalized = normalizeCifsPath(original);
+		final String cygwinNormalized = normalizeCygwinPath(cifsNormalized);
+		return cygwinNormalized;
+
+	}
+
 	/****************
 	 * Given a path of the type /C$/PATH - indicating an absolute cifs path, returns /PATH. If the string does not
 	 * match, returns the original unmodified string.
@@ -87,6 +96,44 @@ public class EnvironmentFileBuilder {
 		return str;
 	}
 
+	/********
+	 * Normalizes a cygwin path to a standard windows path, where a cygwin path is any string that starts with
+	 * '/cygwin/'. Other strings are not changed.
+	 *
+	 * @param str
+	 *            the original value.
+	 * @return the normalized string.
+	 */
+	public static String normalizeCygwinPath(final String str) {
+		if (str == null) {
+			return null;
+		}
+		if (!str.startsWith(CYGDRIVE)) {
+			return str;
+		}
+
+		final String pathWithoutCygdrive = str.substring(CYGDRIVE.length());
+
+		final String pathWithDriveLetter = pathWithoutCygdrive.replaceFirst("/", ":/");
+		final String pathWithBackslash = pathWithDriveLetter.replace("/", "\\");
+
+		return pathWithBackslash;
+	}
+
+	/********
+	 * same as org.cloudifysource.esc.installer.EnvironmentFileBuilder.exportVar(String, String, boolean) with append
+	 * field set to false.
+	 *
+	 * @param name
+	 *            name of env var.
+	 * @param value
+	 *            value of env var.
+	 * @return he builder.
+	 */
+	public EnvironmentFileBuilder exportVar(final String name, final String value) {
+		return exportVar(name, value, false);
+	}
+
 	/*********
 	 * Adds an environment variable to the command line.
 	 *
@@ -94,14 +141,19 @@ public class EnvironmentFileBuilder {
 	 *            variable name.
 	 * @param value
 	 *            variable value.
+	 * @param append
+	 *            true if the variable value should be appended to the current one, false otherwise.
 	 * @return this.
 	 */
-	public EnvironmentFileBuilder exportVar(final String name, final String value) {
+	public EnvironmentFileBuilder exportVar(final String name, final String value, final boolean append) {
 
-		logger.fine("exporting var: " + name + " with value " + value);
 		String actualValue = value;
 		if (value == null) {
 			actualValue = "";
+		}
+
+		if (append) {
+			actualValue = appendValue(name, value);
 		}
 
 		switch (this.scriptLanguage) {
@@ -118,7 +170,7 @@ public class EnvironmentFileBuilder {
 			// If the value of a variable includes an ampersand, it will cause the command to
 			// be interpreted as two different commands. To avoid this, escape the ampersand with a caret
 			// and wrap the entire command with double quotes. Yes, that is how batch files do it.
-			String normalizedValue = normalizeCifsPath(actualValue);
+			String normalizedValue = normalizeWindowsPaths(actualValue);
 			boolean includesAmpersand = false;
 			if (normalizedValue.contains("&") || normalizedValue.contains("%")) {
 				normalizedValue = normalizedValue.replace("&", "^&");
@@ -141,6 +193,21 @@ public class EnvironmentFileBuilder {
 
 		sb.append(newline);
 		return this;
+	}
+
+	private String appendValue(final String name, final String value) {
+		switch (this.scriptLanguage) {
+		case LINUX_SHELL:
+			return "${" + name + "} " + value;
+
+		case WINDOWS_BATCH:
+
+			return "%" + name + "% " + value;
+
+		default:
+			throw new IllegalArgumentException("Unsupported script language: " + this.scriptLanguage);
+		}
+
 	}
 
 	@Override

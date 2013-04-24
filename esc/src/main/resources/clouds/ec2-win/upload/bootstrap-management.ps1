@@ -91,6 +91,11 @@ CD $ENV:WORKING_HOME_DIRECTORY
 $workDirectory= (Get-Location).Path
 $parentDirectory = Split-Path -parent $workDirectory
 
+# If directory is top level, the parent will be the drive letter with an extra backslash character
+if($parentDirectory.endsWith("\")) {
+	$parentDirectory = $parentDirectory.Substring(0, $parentDirectory.Length-1)
+}
+
 $javaZip = "$parentDirectory\java.zip"
 $javaDir = "$parentDirectory\java"
 

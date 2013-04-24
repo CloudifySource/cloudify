@@ -204,6 +204,11 @@ public class AgentlessInstaller {
 		// this is the right way to get the target, but the naming is off.
 		final String targetHost = details.isConnectedToPrivateIp() ? details.getPrivateIp() : details.getPublicIp();
 
+		if (StringUtils.isBlank(targetHost)) {
+			throw new InstallerException("Target host is blank. Connect to private: "
+					+ details.isConnectedToPrivateIp() + ", Private IP: " + details.getPrivateIp() + ", Public IP: "
+					+ details.getPublicIp() + ". Details: " + details);
+		}
 		final int port = Utils.getFileTransferPort(details.getInstallerConfiguration(), details.getFileTransferMode());
 
 		publishEvent("attempting_to_access_vm", targetHost);
@@ -377,11 +382,11 @@ public class AgentlessInstaller {
 	private String getScriptFileName(final InstallationDetails details) {
 		final String scriptFileName;
 
-		switch (details.getRemoteExecutionMode()) {
-		case WINRM:
+		switch (details.getScriptLanguage()) {
+		case WINDOWS_BATCH:
 			scriptFileName = POWERSHELL_STARTUP_SCRIPT_NAME;
 			break;
-		case SSH:
+		case LINUX_SHELL:
 			scriptFileName = LINUX_STARTUP_SCRIPT_NAME;
 			break;
 		default:

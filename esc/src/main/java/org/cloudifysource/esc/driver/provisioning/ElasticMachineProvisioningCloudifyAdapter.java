@@ -25,6 +25,7 @@ import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
+import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
@@ -34,6 +35,7 @@ import org.cloudifysource.esc.driver.provisioning.storage.BaseStorageDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.RemoteStorageProvisioningDriverAdapter;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningDriver;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
+import org.cloudifysource.esc.installer.EnvironmentFileBuilder;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.util.CalcUtils;
@@ -666,12 +668,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		logger = java.util.logging.Logger
 				.getLogger(ElasticMachineProvisioningCloudifyAdapter.class.getName());
 
-		final String cloudConfigDirectoryPath =
-				properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION_DIRECTORY);
-		if (cloudConfigDirectoryPath == null) {
-			logger.severe("Missing cloud configuration property. Properties are: " + this.properties);
-			throw new IllegalArgumentException("Cloud configuration directory was not set!");
-		}
+		final String cloudConfigDirectoryPath = findCloudConfigDirectoryPath();
 
 		try {
 			final String cloudOverridesPerService = config.getCloudOverridesPerService();
@@ -723,7 +720,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				// checks if a service level configuration exists. If so, save the configuration to local file and pass
 				// to cloud driver.
 				handleServiceCloudConfiguration();
-				this.cloudifyProvisioning.setConfig(cloud, cloudTemplateName, false, serviceName, 
+				this.cloudifyProvisioning.setConfig(cloud, cloudTemplateName, false, serviceName,
 						false /*performValidation*/);
 
 				String storageClassName = this.cloud.getConfiguration().getStorageClassName();
@@ -762,6 +759,20 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					+ ": " + e.getMessage(), e);
 		}
 
+	}
+
+	private String findCloudConfigDirectoryPath() {
+		String cloudConfigDirectoryPath =
+				properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION_DIRECTORY);
+		if (cloudConfigDirectoryPath == null) {
+			logger.severe("Missing cloud configuration property. Properties are: " + this.properties);
+			throw new IllegalArgumentException("Cloud configuration directory was not set!");
+		}
+
+		if(ServiceUtils.isWindows()) {
+			cloudConfigDirectoryPath = EnvironmentFileBuilder.normalizeCygwinPath(cloudConfigDirectoryPath);
+		}
+		return cloudConfigDirectoryPath;
 	}
 
 	private void addTemplatesToCloud(final File cloudConfigDirectory) {
@@ -904,7 +915,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			final ElasticGridServiceAgentProvisioningProgressChangedEventListener agentEventListener) {
 		this.agentEventListener = agentEventListener;
 	}
-	
+
 	/**
 	 * Clears the list of machines provisioned by any provisioning driver.
 	 * This method should be used for testing purposes
