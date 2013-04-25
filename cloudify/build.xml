@@ -470,9 +470,9 @@
 	<target name="update.latest.cloudify.downloadable.packages" if="publish.cloudify.build">
 		<property name="latest.zip.link" value="cloudify.latest.zip" />
 		<property name="latest.tar.gz.link" value="cloudify.latest.tar.gz" />
-		<copy file= "${build.repository.path}/${cloudify}/${cloudify.version}/${build.prefix}${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" tofile="${build.repository.path}/${cloudify}/${cloudify.version}/${latest.zip.link}" overwrite="true" />
+		<copy verbose="true" file= "${build.repository.path}/${cloudify}/${cloudify.version}/${build.prefix}${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" tofile="${build.repository.path}/${cloudify}/${cloudify.version}/${latest.zip.link}" overwrite="true" />
 		
-		<copy file="${build.repository.path}/${cloudify}/${cloudify.version}/${build.prefix}${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.tar.gz" tofile="${build.repository.path}/${cloudify}/${cloudify.version}/${latest.tar.gz.link}" overwrite="true" />
+		<copy verbose="true" file="${build.repository.path}/${cloudify}/${cloudify.version}/${build.prefix}${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.tar.gz" tofile="${build.repository.path}/${cloudify}/${cloudify.version}/${latest.tar.gz.link}" overwrite="true" />
 		
 		
 	</target>
