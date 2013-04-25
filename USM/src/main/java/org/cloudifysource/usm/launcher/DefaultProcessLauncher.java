@@ -304,7 +304,12 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		envVarsList.add("LOOKUP_LOCATORS_PROP");
 		envVarsList.add("LOOKUP_GROUPS_PROP");
 		envVarsList.add("RMI_OPTIONS");
-		envVarsList.add("GS_LOGGING_CONFIG_FILE_PROP");
+
+		// The GS logging configuration uses a custom JDK logger
+		// JDK logging expects loggers to be available in the system classloader, but groovy loads
+		// classpath entries into the GroovyClassLoader whoe parent is the System class loader.
+		// See more details at CLOUDIFY-1694
+		// envVarsList.add("GS_LOGGING_CONFIG_FILE_PROP");
 
 		groovyCommandParams.addAll(convertEnvVarsToSysPropsList(envVarsList));
 
