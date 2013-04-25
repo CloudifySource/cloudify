@@ -464,14 +464,17 @@
 	   <copy todir="${build.repository.path}/${gs.version}/${build.prefix}${gs.build.number}">
 			<fileset dir="${releases.dir}/${build.prefix}${gs.build.number}"/>
 	   </copy>
-		<ant target="update.latest.links" />
+		<ant target="update.latest.cloudify.downloadable.packages" />
    	</target>
 
-	<target name="update.latest.links" if="publish.cloudify.build">
+	<target name="update.latest.cloudify.downloadable.packages" if="publish.cloudify.build">
 		<property name="latest.zip.link" value="cloudify.latest.zip" />
 		<property name="latest.tar.gz.link" value="cloudify.latest.tar.gz" />
-		<symlink link="${build.repository.path}/${cloudify}/${cloudify.version}/${latest.zip.link}" resource="${build.repository.path}/${cloudify}/${cloudify.version}/${build.prefix}${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" overwrite="true"/>
-		<symlink link="${build.repository.path}/${cloudify}/${cloudify.version}/${latest.tar.gz.link}" resource="${build.repository.path}/${cloudify}/${cloudify.version}/${build.prefix}${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.tar.gz" overwrite="true"/>
+		<copy file= "${build.repository.path}/${cloudify}/${cloudify.version}/${build.prefix}${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" tofile="${build.repository.path}/${cloudify}/${cloudify.version}/${latest.zip.link}" overwrite="true" />
+		
+		<copy file="${build.repository.path}/${cloudify}/${cloudify.version}/${build.prefix}${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.tar.gz" tofile="${build.repository.path}/${cloudify}/${cloudify.version}/${latest.tar.gz.link}" overwrite="true" />
+		
+		
 	</target>
 	
 	<target name="publish.cloudify.jars.to.maven.repository"  if="publish.cloudify.build">
