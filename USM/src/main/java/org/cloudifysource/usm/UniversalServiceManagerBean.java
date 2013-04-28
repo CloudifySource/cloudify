@@ -12,30 +12,9 @@
  *******************************************************************************/
 package org.cloudifysource.usm;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
+import com.gigaspaces.client.ChangeSet;
+import com.gigaspaces.internal.sigar.SigarHolder;
+import com.j_spaces.kernel.Environment;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -70,11 +49,7 @@ import org.openspaces.core.cluster.MemberAliveIndicator;
 import org.openspaces.core.properties.BeanLevelProperties;
 import org.openspaces.core.properties.BeanLevelPropertiesAware;
 import org.openspaces.pu.container.support.ResourceApplicationContext;
-import org.openspaces.pu.service.InvocableService;
-import org.openspaces.pu.service.ServiceDetails;
-import org.openspaces.pu.service.ServiceDetailsProvider;
-import org.openspaces.pu.service.ServiceMonitors;
-import org.openspaces.pu.service.ServiceMonitorsProvider;
+import org.openspaces.pu.service.*;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -82,9 +57,21 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import com.gigaspaces.client.ChangeSet;
-import com.gigaspaces.internal.sigar.SigarHolder;
-import com.j_spaces.kernel.Environment;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+
+import java.net.*;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**********
  * The main component of the USM project - this is the bean that runs the lifecycle of a service, monitors it and
@@ -239,7 +226,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 			try {
 				deAllocateStorageSync();
 			} catch (final Exception e) {
-                getUsmLifecycleBean().log("Failed de-allocating storage volume. this may cause a leak : " + ExceptionUtils.getRootCauseMessage(e));
+                getUsmLifecycleBean().log("Failed de-allocating storage volume. this may cause a leak : "
+                        + ExceptionUtils.getRootCauseMessage(e));
 				logger.log(Level.WARNING, "Failed to deallocate storage: "
 						+ e.getMessage(), e);
 			}
@@ -356,7 +344,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 							+ serviceVolume.getState());
 					switch (serviceVolume.getState()) {
 
-					case CREATED: {
+					case CREATED :
 						getUsmLifecycleBean().log("Attaching volume to device " + storageTemplate.getDeviceName());
 						storage.attachVolume(serviceVolume.getId(), storageTemplate.getDeviceName());
 						getUsmLifecycleBean().log(
@@ -365,23 +353,26 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 						getUsmLifecycleBean().log("Mounting volume to " + storageTemplate.getPath());
 						storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
 						break;
-					}
-					case ATTACHED: {
+
+					case ATTACHED :
 						getUsmLifecycleBean().log("Attaching volume to device " + storageTemplate.getDeviceName());
 						storage.format(storageTemplate.getDeviceName(), storageTemplate.getFileSystemType());
 						getUsmLifecycleBean().log(
 								"Formatting volume to filesystem " + storageTemplate.getFileSystemType());
 						storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
 						break;
-					}
-					case FORMATTED: {
+
+					case FORMATTED :
 						getUsmLifecycleBean().log(
 								"Formatting volume to filesystem " + storageTemplate.getFileSystemType());
 						storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
-					}
-					case MOUNTED: {
+
+					case MOUNTED :
 						break;
-					}
+
+                    default :
+                        throw new IllegalStateException("Unexpected state of service volume : "
+                                + serviceVolume.getState());
 					}
 				}
 			} catch (final Exception e) {
@@ -419,7 +410,9 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 				final ServiceVolume serviceVolume =
 						getServiceVolumeFromSpace(getUsmLifecycleBean().getConfiguration().getServiceContext());
 				if (serviceVolume == null) {
-					logger.fine("Could not find a volume for this service in the management space. this probably means there was a problem during volume creation, or it has already been de-allocated");
+					logger.fine("Could not find a volume for this service in the management space. "
+                            + "this probably means there was a problem during volume creation, "
+                            + "or it has already been de-allocated");
 				} else {
 					getUsmLifecycleBean().log("De-allocating storage");
 					logger.fine("Detected an existing volume for this service upon de-allocation. found in state : "
@@ -429,7 +422,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 					logger.fine("Storage will be deleted = " + deleteStorage);
 					switch (serviceVolume.getState()) {
 
-					case MOUNTED: {
+					case MOUNTED :
                         getUsmLifecycleBean().log("Freezing filesystem mounted on " + template.getPath());
                         storage.freezefs(template.getPath());
                         getUsmLifecycleBean().log("Unmounting volume from " + template.getPath());
@@ -441,8 +434,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 							storage.deleteVolume(serviceVolume.getId());
 						}
 						break;
-					}
-					case ATTACHED: {
+
+					case ATTACHED :
 						getUsmLifecycleBean().log("Detaching volume from  " + serviceVolume.getDevice());
 						storage.detachVolume(serviceVolume.getId());
 						if (deleteStorage) {
@@ -450,8 +443,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 							storage.deleteVolume(serviceVolume.getId());
 						}
 						break;
-					}
-					case FORMATTED: {
+
+					case FORMATTED :
 						getUsmLifecycleBean().log("Detaching volume from  " + serviceVolume.getDevice());
 						storage.detachVolume(serviceVolume.getId());
 						if (deleteStorage) {
@@ -459,14 +452,18 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 							storage.deleteVolume(serviceVolume.getId());
 						}
 						break;
-					}
-					case CREATED: {
+
+					case CREATED :
 						if (deleteStorage) {
 							getUsmLifecycleBean().log("Deleting volume with id " + serviceVolume.getId());
 							storage.deleteVolume(serviceVolume.getId());
 						}
 						break;
-					}
+
+                    default :
+                        throw new IllegalStateException("Unexpected state of service volume : "
+                            + serviceVolume.getState());
+
 					}
 				}
 			} catch (final Exception e) {
