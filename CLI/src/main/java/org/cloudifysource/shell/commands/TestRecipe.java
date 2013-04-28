@@ -36,6 +36,7 @@ import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.cloudifysource.dsl.Service;
@@ -44,6 +45,7 @@ import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
+import org.cloudifysource.dsl.utils.RecipePathResolver;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 import org.openspaces.pu.container.integrated.IntegratedProcessingUnitContainer;
@@ -54,14 +56,14 @@ import com.j_spaces.kernel.Environment;
 /**
  * @author rafi, barakm
  * @since 2.0.0
- * 
+ *
  *        Tests a recipe.
- * 
+ *
  *        Required arguments: recipe - Path to recipe folder or packaged zip file
- * 
+ *
  *        Optional arguments: recipeTimeout - Number of seconds that the recipe should run, before shutdown is invoked
  *        (default: 30). serviceFileName - Name of the service file in the recipe folder, if not using the default.
- * 
+ *
  *        Command syntax: test-recipe [recipeTimeout] [serviceFileName] recipe
  */
 @Command(scope = "cloudify", name = "test-recipe", description = "tests a recipe")
@@ -91,7 +93,7 @@ public class TestRecipe extends AbstractGSCommand {
 
 	/**
 	 * Create a full classpath, including the existing classpath and additional paths to Jars and service files.
-	 * 
+	 *
 	 * @param serviceFolder
 	 *            The folder of the current service
 	 * @return A full classpath
@@ -136,7 +138,7 @@ public class TestRecipe extends AbstractGSCommand {
 	/**
 	 * Returns the directory (as a File object) if it exists. If the directory is not found in the given location or is
 	 * not a directory - an IllegalStateException is thrown.
-	 * 
+	 *
 	 * @param dirName
 	 *            Directory name, relative to the home directory
 	 * @return Directory as a File object.
@@ -160,11 +162,20 @@ public class TestRecipe extends AbstractGSCommand {
 	protected Object doExecute()
 			throws CLIException {
 
+		final RecipePathResolver pathResolver = new RecipePathResolver();
+		File actualRecipeFolder = null;
+		if (pathResolver.resolveService(this.recipeFolder)) {
+			actualRecipeFolder = pathResolver.getResolved();
+		} else {
+			throw new CLIStatusException("service_file_doesnt_exist",
+					StringUtils.join(pathResolver.getPathsLooked().toArray(), ", "));
+		}
+
 		File serviceFolder = null;
 
 		try {
 			// First Package the recipe using the regular packager
-			final File packagedRecipe = packageRecipe();
+			final File packagedRecipe = packageRecipe(actualRecipeFolder);
 
 			// Then unzip the package in a temp location
 			serviceFolder = createServiceFolder(packagedRecipe);
@@ -226,7 +237,7 @@ public class TestRecipe extends AbstractGSCommand {
 
 	/**
 	 * Gets the java home folder through the process ID of this process.
-	 * 
+	 *
 	 * @return The path to the java folder
 	 * @throws CLIException
 	 *             Reporting a failure to retrieve the java home directory
@@ -252,7 +263,7 @@ public class TestRecipe extends AbstractGSCommand {
 
 	/**
 	 * Verifies the service configuration is valid.
-	 * 
+	 *
 	 * @param serviceFolder
 	 *            The Folder holding the service configuration files
 	 * @throws CLIException
@@ -294,7 +305,7 @@ public class TestRecipe extends AbstractGSCommand {
 
 		/**
 		 * Constructor.
-		 * 
+		 *
 		 * @param reader
 		 *            This is the source text will be read from before filtering and possibly printing it.
 		 * @param verbose
@@ -339,7 +350,7 @@ public class TestRecipe extends AbstractGSCommand {
 	/**
 	 * Execute a command line in with a given map of environment settings. The execution outupt is filtered unless
 	 * verbose is set to true.
-	 * 
+	 *
 	 * @param cmdLine
 	 *            The command to execute
 	 * @param env
@@ -388,7 +399,7 @@ public class TestRecipe extends AbstractGSCommand {
 
 	/**
 	 * Extracts the given file to a service folder.
-	 * 
+	 *
 	 * @param packagedRecipe
 	 *            The file to extract
 	 * @return The service folder
@@ -405,28 +416,30 @@ public class TestRecipe extends AbstractGSCommand {
 
 	/**
 	 * Packages the recipe folder. If the recipe folder is a file, verifies it is a zip or a jar.
-	 * 
+	 * @param actualRecipeFolder
+	 *
 	 * @return Packaged recipe folder
 	 * @throws CLIException
 	 *             Reporting missing recipe folder, wrong file type or failure to pack the folder
 	 */
-	private File packageRecipe()
+	private File packageRecipe(final File actualRecipeFolder)
 			throws CLIException {
-		if (!recipeFolder.exists()) {
+		if (!actualRecipeFolder.exists()) {
 			throw new CLIStatusException(
-					"service_file_doesnt_exist", recipeFolder.getAbsolutePath(), this.serviceFileName);
+					"service_file_doesnt_exist", actualRecipeFolder.getAbsolutePath(), this.serviceFileName);
 		}
-		if (recipeFolder.isFile()) {
-			if (recipeFolder.getName().endsWith(
-					".zip") || recipeFolder.getName().endsWith(
+
+		if (actualRecipeFolder.isFile()) {
+			if (actualRecipeFolder.getName().endsWith(
+					".zip") || actualRecipeFolder.getName().endsWith(
 					".jar")) {
-				return recipeFolder;
+				return actualRecipeFolder;
 			}
-			throw new CLIStatusException("not_jar_or_zip", recipeFolder.getAbsolutePath(), this.serviceFileName);
+			throw new CLIStatusException("not_jar_or_zip", actualRecipeFolder.getAbsolutePath(), this.serviceFileName);
 		}
 
 		// it's a folder
-		File dslDirOrFile = recipeFolder;
+		File dslDirOrFile = actualRecipeFolder;
 
 		if (serviceFileName != null) {
 			// use non default service file
@@ -437,7 +450,7 @@ public class TestRecipe extends AbstractGSCommand {
 
 	/**
 	 * Packages the recipe files and other required files in a zip.
-	 * 
+	 *
 	 * @param recipeDirOrFile
 	 *            The recipe service DSL file or containing folder
 	 * @return A zip file
@@ -459,7 +472,7 @@ public class TestRecipe extends AbstractGSCommand {
 
 	/**
 	 * Create a complete command line, including path and arguments.
-	 * 
+	 *
 	 * @return Configured command line, ready for execution
 	 */
 	private CommandLine createCommandLine() {
@@ -488,7 +501,7 @@ public class TestRecipe extends AbstractGSCommand {
 
 	/**
 	 * Gets java path via sigar from the current process.
-	 * 
+	 *
 	 * @return java path
 	 */
 	private String getJavaPath() {
@@ -503,7 +516,7 @@ public class TestRecipe extends AbstractGSCommand {
 
 	/**
 	 * Creates a temporary folder.
-	 * 
+	 *
 	 * @return Temporary folder
 	 * @throws IOException
 	 *             Reporting a failure to create the folder
@@ -537,7 +550,7 @@ public class TestRecipe extends AbstractGSCommand {
 
 	/**
 	 * Unzips a given file.
-	 * 
+	 *
 	 * @param inputFile
 	 *            The zip file to extract
 	 * @return The new folder, containing the extracted content of the zip file
@@ -587,7 +600,7 @@ public class TestRecipe extends AbstractGSCommand {
 
 	/***********
 	 * Workaround accessor to prevent eclipse clean up from turning the timeout field to a final field.
-	 * 
+	 *
 	 * @param timeout
 	 *            .
 	 */
