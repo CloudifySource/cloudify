@@ -262,11 +262,11 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 						}
 					}
 				}
-				
+
 				if (!isDone) {
 					publishEvent(null);
 				}
-				
+
 				return isDone;
 			}
 		});
@@ -275,8 +275,10 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 		final URL url = getWebProcessingUnitURL(agent, getProcessingUnit(), isSecureConnection);
 		final String serviceNameCapital = StringUtils.capitalize(serviceName);
 		final String returnMessage = ShellUtils.getMessageBundle().getString("web_service_available_at");
-		logger.fine(returnMessage);
-		publishEvent(MessageFormat.format(returnMessage, serviceNameCapital, url));
+		final String formattedMessage = MessageFormat.format(returnMessage, serviceNameCapital, url);
+		logger.fine(formattedMessage);
+
+		publishEvent(formattedMessage);
 		return url;
 	}
 
