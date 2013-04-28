@@ -180,7 +180,7 @@ public final class VolumeUtils {
 			executor.setStreamHandler(streamHandler);
 			logger.info("Executing commandLine : '" + commandLine + "'");
 			executor.execute(CommandLine.parse(commandLine));
-			logger.info("Execution completed succesfully. Process output was : " + outAndErr.getOutput());
+			logger.info("Execution completed successfully. Process output was : " + outAndErr.getOutput());
 		} catch (final Exception e) {
 			if (watchdog.killedProcess()) {
 				throw new TimeoutException("Timed out while executing commandLine : '" + commandLine + "'");
