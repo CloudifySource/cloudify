@@ -934,7 +934,7 @@ public class CloudGridAgentBootstrapper {
 		} catch (IOException e) {
 			System.out.println("Failed to validate Cloudify URL: " + cloudifyUrl);
 			validationContext.validationEventEnd(ValidationResultType.WARNING);
-			logger.info("Failed to validate Cloudify URL: " + cloudifyUrl);
+			logger.info("Failed to validate Cloudify URL:  " + cloudifyUrl);
 		}
 	}
 	
