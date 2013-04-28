@@ -1432,6 +1432,10 @@ public class LocalhostGridAgentBootstrapper {
 			if (nicAddress != null) {
 				environment.put(CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVATE_IP, nicAddress);
 				environment.put(CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP, nicAddress);
+
+				environment.put(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, nicAddress);
+				environment.put(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, nicAddress);
+
 			}
 		}
 
