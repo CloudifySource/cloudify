@@ -38,6 +38,7 @@ import javax.annotation.PreDestroy;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.cloudifysource.dsl.LifecycleEvents;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.cloud.storage.ServiceVolume;
@@ -238,7 +239,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 			try {
 				deAllocateStorageSync();
 			} catch (final Exception e) {
-                getUsmLifecycleBean().log("Failed de-allocating storage volume. this may cause a leak : " + e.getMessage());
+                getUsmLifecycleBean().log("Failed de-allocating storage volume. this may cause a leak : " + ExceptionUtils.getRootCauseMessage(e));
 				logger.log(Level.WARNING, "Failed to deallocate storage: "
 						+ e.getMessage(), e);
 			}
@@ -429,8 +430,10 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 					switch (serviceVolume.getState()) {
 
 					case MOUNTED: {
-						getUsmLifecycleBean().log("Unmounting volume from " + template.getPath());
-						storage.unmount(serviceVolume.getDevice());
+                        getUsmLifecycleBean().log("Freezing filesystem mounted on " + template.getPath());
+                        storage.freezefs(template.getPath());
+                        getUsmLifecycleBean().log("Unmounting volume from " + template.getPath());
+                        storage.unmount(serviceVolume.getDevice());
 						getUsmLifecycleBean().log("Detaching volume from  " + serviceVolume.getDevice());
 						storage.detachVolume(serviceVolume.getId());
 						if (deleteStorage) {

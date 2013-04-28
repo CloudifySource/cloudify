@@ -58,6 +58,7 @@ public final class VolumeUtils {
 	private static final long MOUNT_TIMEOUT = 30 * 1000;
 	private static final long FORMAT_TIMEOUT = 5 * 60 * 1000;
 	private static final long UNMOUNT_TIMEOUT = 15 * 1000;
+    private static final long FREEZE_TIMEOUT = 15 * 1000;
 	
 	private static final long TEN_SECONDS = 10 * 1000;
 	
@@ -136,8 +137,16 @@ public final class VolumeUtils {
 			throws LocalStorageOperationException, TimeoutException {
 		format(device, fileSystem, FORMAT_TIMEOUT);
 	}
-	
-	private static void checkFileSystemSupported(final String fileSystem) throws LocalStorageOperationException {
+
+    /**
+     * @see {@link StorageFacade#freezefs(String)}.
+     * @param path .
+     */
+    public static void freezefs(final String path) throws TimeoutException, LocalStorageOperationException {
+        executeCommandLine("sudo fsfreeze --freeze " + USER_HOME + path, FREEZE_TIMEOUT);
+    }
+
+    private static void checkFileSystemSupported(final String fileSystem) throws LocalStorageOperationException {
 		
 		FileSystem[] fileSystemList = null;
 		try {
@@ -182,8 +191,8 @@ public final class VolumeUtils {
 					+ ". Process output was : " + outAndErr.getOutput(), e);
 		}
 	}
-	
-	/**
+
+    /**
 	 * Logs process output to the logger.
 	 * @author elip
 	 *

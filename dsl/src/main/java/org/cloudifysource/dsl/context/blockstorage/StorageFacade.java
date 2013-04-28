@@ -150,6 +150,13 @@ public interface StorageFacade {
 			throws LocalStorageOperationException, TimeoutException;
 
     /**
+     * Freezes the file system mounted on the given path.
+     * halts new access to the filesystem and creates a stable image on disk.
+     * @param path
+     */
+    void freezefs(final String path) throws TimeoutException, LocalStorageOperationException;
+
+    /**
      * get the storage template defined in the cloud driver.
      * @param templateName - the template name.
      * @return {@link StorageTemplate}.
