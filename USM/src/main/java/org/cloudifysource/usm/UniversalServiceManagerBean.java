@@ -1446,9 +1446,19 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 				.get(commandName);
 
 		if (customCommand == null) {
-			throw new IllegalArgumentException("Command: " + commandName
-					+ " does not exist in service: " + service.getName());
+			logger.warning("Custom Command: " + commandName
+					+ " does not exist in service: " + this.clusterName);
+
+			result.put(CloudifyConstants.INVOCATION_RESPONSE_STATUS,
+					false);
+			result.put(CloudifyConstants.INVOCATION_RESPONSE_EXCEPTION,
+					"No such Custom Command: " + commandName);
+			result.put(CloudifyConstants.INVOCATION_RESPONSE_RESULT,
+					"No such Custom Command: " + commandName);
+			return;
+
 		}
+
 
 		try {
 
