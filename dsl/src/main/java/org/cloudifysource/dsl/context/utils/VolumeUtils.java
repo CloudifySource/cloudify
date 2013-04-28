@@ -52,7 +52,6 @@ public final class VolumeUtils {
 	
 	private static final Logger logger = Logger.getLogger(VolumeUtils.class.getName());
 
-	private static final String USER_HOME = System.getProperty("user.home");
 	private static final String USER_NAME = System.getProperty("user.name");	
 		
 	private static final long MOUNT_TIMEOUT = 30 * 1000;
@@ -94,9 +93,12 @@ public final class VolumeUtils {
 	 */
 	public static void mount(final String device, final String path, final long timeoutInMillis) 
 			throws LocalStorageOperationException, TimeoutException {
-		File devicePath = new File(USER_HOME, path);
-		devicePath.mkdirs();
-		executeCommandLine("sudo mount " + device + " " + USER_HOME + path, timeoutInMillis);
+		File devicePath = new File(path);
+        boolean mkdirs = devicePath.mkdirs();
+        if (!mkdirs) {
+            throw new LocalStorageOperationException("Failed creating directories in path " + path);
+        }
+        executeCommandLine("sudo mount " + device + " " + path, timeoutInMillis);
 		executeCommandLine("sudo chown " + USER_NAME + " " + devicePath.getAbsolutePath(), TEN_SECONDS);
 	}
 
@@ -143,12 +145,12 @@ public final class VolumeUtils {
      * @param path .
      */
     public static void freezefs(final String path) throws TimeoutException, LocalStorageOperationException {
-        executeCommandLine("sudo fsfreeze --freeze " + USER_HOME + path, FREEZE_TIMEOUT);
+        executeCommandLine("sudo fsfreeze --freeze " + path, FREEZE_TIMEOUT);
     }
 
     private static void checkFileSystemSupported(final String fileSystem) throws LocalStorageOperationException {
 		
-		FileSystem[] fileSystemList = null;
+		FileSystem[] fileSystemList;
 		try {
 			Sigar sigar = SigarHolder.getSigar();
 			fileSystemList = sigar.getFileSystemList();
