@@ -22,8 +22,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -34,7 +37,13 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpHead;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.dsl.cloud.ScriptLanguages;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
@@ -43,12 +52,17 @@ import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ManagementLocator;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
+import org.cloudifysource.esc.driver.provisioning.ProvisioningDriverBootstrapValidation;
 import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
+import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
 import org.cloudifysource.esc.driver.provisioning.jclouds.ManagementWebServiceInstaller;
+import org.cloudifysource.esc.driver.provisioning.validation.ValidationMessageType;
+import org.cloudifysource.esc.driver.provisioning.validation.ValidationResultType;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
+import org.cloudifysource.esc.shell.ValidationContextImpl;
 import org.cloudifysource.esc.shell.listener.CliAgentlessInstallerListener;
 import org.cloudifysource.esc.shell.listener.CliProvisioningDriverListener;
 import org.cloudifysource.esc.util.CalcUtils;
@@ -489,10 +503,26 @@ public class CloudGridAgentBootstrapper {
 		}
 
 		provisioning.addListener(new CliProvisioningDriverListener());
+		
 		final String serviceName = null;
+		ValidationContext validationContext = new ValidationContextImpl();
+		
 		try {
-			provisioning.setConfig(cloud, cloud.getConfiguration().getManagementMachineTemplate(), true, serviceName, 
-					performValidation);	
+			
+			if (performValidation) {
+				validateCloudifyUrls(validationContext);
+			}
+			
+			provisioning.setConfig(cloud, cloud.getConfiguration().getManagementMachineTemplate(), 
+					true /*isManagement*/, serviceName);
+			
+			if (performValidation && provisioning instanceof ProvisioningDriverBootstrapValidation) {
+				validationContext.validationEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
+						ShellUtils.getFormattedMessage(CloudifyErrorMessages.EVENT_VALIDATE_CLOUD_CONFIG.getName()));
+				((ProvisioningDriverBootstrapValidation) provisioning).validateCloudConfiguration(validationContext);
+				validationContext.validationEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
+						ShellUtils.getFormattedMessage(CloudifyErrorMessages.EVENT_CLOUD_CONFIG_VALIDATED.getName()));
+			}
 		} catch (CloudProvisioningException e) {
 			throw new CLIException(e.getMessage(), e);
 		}
@@ -861,11 +891,61 @@ public class CloudGridAgentBootstrapper {
 	public MachineDetails[] getCloudManagers() throws CLIException {
 		createProvisioningDriver(false /*performValidation*/);
 		return locateManagementMachines();
-
 	}
 
 	public void setExistingManagersFile(final File existingManagersFile) {
 		this.existingManagersFile = existingManagersFile;
+	}
+	
+	private void validateCloudifyUrls(final ValidationContext validationContext) throws CloudProvisioningException {
+		final String baseCloudifyUrl = cloud.getProvider().getCloudifyUrl();
+		Set<String> scriptLanguages = getScriptLanguages();
+		
+		if (scriptLanguages.contains(ScriptLanguages.LINUX_SHELL.toString())) {
+			validateUrl(baseCloudifyUrl + ".tar.gz", validationContext);
+		}
+		
+		if (scriptLanguages.contains(ScriptLanguages.WINDOWS_BATCH.toString())) {
+			validateUrl(baseCloudifyUrl + ".zip", validationContext);
+		}
+	}
+	
+	private void validateUrl(final String cloudifyUrl, final ValidationContext validationContext) 
+			throws CloudProvisioningException {
 
+		DefaultHttpClient httpClient = new DefaultHttpClient();
+		
+		HttpHead httpMethod = new HttpHead(cloudifyUrl);
+		try {
+			validationContext.validationOngoingEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
+					ShellUtils.getFormattedMessage(CloudifyErrorMessages.EVENT_VALIDATING_CLOUDIFY_URL.getName(),
+							cloudifyUrl));
+			HttpResponse response = httpClient.execute(httpMethod);
+			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+				validationContext.validationEventEnd(ValidationResultType.ERROR);
+				logger.warning("Failed to validate Cloudify URL: " + cloudifyUrl);
+				throw new CloudProvisioningException("Invalid cloudify URL: " + cloudifyUrl);
+			}
+			validationContext.validationEventEnd(ValidationResultType.OK);
+		} catch (ClientProtocolException e) {
+			System.out.println("Failed to validate Cloudify URL: " + cloudifyUrl);
+			validationContext.validationEventEnd(ValidationResultType.WARNING);
+			logger.info("Failed to validate Cloudify URL: " + cloudifyUrl);
+		} catch (IOException e) {
+			System.out.println("Failed to validate Cloudify URL: " + cloudifyUrl);
+			validationContext.validationEventEnd(ValidationResultType.WARNING);
+			logger.info("Failed to validate Cloudify URL: " + cloudifyUrl);
+		}
+	}
+	
+	private Set<String> getScriptLanguages() {
+		Set<String> langs = new HashSet<String>();
+		
+		for (Entry<String, ComputeTemplate> entry : cloud.getCloudCompute().getTemplates().entrySet()) {
+			ComputeTemplate template = entry.getValue();
+			langs.add(template.getScriptLanguage().toString());
+		}
+		
+		return langs;
 	}
 }

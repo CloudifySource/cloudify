@@ -55,8 +55,7 @@ public class ParseByonCloudNodesTest {
 
 		ByonProvisioningDriver driver = new ByonProvisioningDriver();
 		driver.setProvisioningDriverClassContext(new DefaultProvisioningDriverClassContext());
-		driver.setConfig(cloud, cloud.getCloudCompute().getTemplates().keySet().iterator().next(), true, "test", 
-				true /*performValidation*/);
+		driver.setConfig(cloud, cloud.getCloudCompute().getTemplates().keySet().iterator().next(), true, "test");
 
 		Cloud modifiedCloud = driver.getCloud();
 

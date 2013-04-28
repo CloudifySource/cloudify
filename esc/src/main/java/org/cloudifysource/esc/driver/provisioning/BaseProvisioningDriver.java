@@ -17,9 +17,12 @@ package org.cloudifysource.esc.driver.provisioning;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -35,7 +38,6 @@ import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.jclouds.util.CredentialUtils;
@@ -45,7 +47,8 @@ import org.openspaces.admin.Admin;
  * @author noak
  * @since 2.0.1
  */
-public abstract class BaseProvisioningDriver implements ProvisioningDriver, ProvisioningDriverClassContextAware {
+public abstract class BaseProvisioningDriver implements ProvisioningDriver, ProvisioningDriverClassContextAware, 
+		ProvisioningDriverBootstrapValidation {
 
 	protected static final int MULTIPLE_SHUTDOWN_REQUEST_IGNORE_TIMEOUT = 120000;
 	protected static final int WAIT_THREAD_SLEEP_MILLIS = 10000;
@@ -84,7 +87,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	 *            Cloud object to use
 	 */
 	protected abstract void initDeployer(final Cloud cloud);
-
+	
 	@Override
 	public void setProvisioningDriverClassContext(final ProvisioningDriverClassContext context) {
 		this.context = context;
@@ -109,18 +112,12 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 
 	@Override
 	public void setConfig(final Cloud cloud, final String cloudTemplateName, final boolean management, 
-			final String serviceName, final boolean performValidation) throws CloudProvisioningException {
+			final String serviceName) throws CloudProvisioningException {
 
 		this.cloud = cloud;
 		this.cloudTemplateName = cloudTemplateName;
 		this.management = management;
 		this.cloudName = cloud.getName();
-		
-		if (management && performValidation) {
-			publishEvent(CloudifyErrorMessages.EVENT_ATTEMPT_TO_VALIDATE_CLOUD_CONFIG.getName());
-			validateCloudConfiguration();
-			publishEvent(CloudifyErrorMessages.EVENT_CLOUD_CONFIG_VALIDATED.getName());
-		}
 		
 		publishEvent(EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
 		initDeployer(cloud);
@@ -146,12 +143,6 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 
 		initCleanRemoteOnStart(cloud);
 	}
-	
-	/**
-	 * Cloud-specific validations called after setConfig and before machines are allocated.
-	 * @throws CloudProvisioningException Indicates invalid configuration
-	 */
-	protected void validateCloudConfiguration() throws CloudProvisioningException { }
 
 
 	private void initCleanRemoteOnStart(final Cloud cloud) {
@@ -280,38 +271,6 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	}
 
 	
-	/**
-	 * Publish an ongoing provisioning event occurred for the listeners registered on
-	 * this class.
-	 *
-	 * @param eventName
-	 *            The name of the event (must be in the message bundle)
-	 * @param args
-	 *            Arguments that complement the event message
-	 */
-	protected void publishOngoingEvent(final String eventName, final Object... args) {
-		for (final ProvisioningDriverListener listener : this.eventsListenersList) {
-			listener.onProvisioningOngoingEvent(eventName, args);
-		}
-	}
-	
-	/**
-	 * Publish a provisioning event ended and it's status for the listeners registered
-	 * on this class.
-	 *
-	 *            
-	 * @param isSuccessful
-	 * 			Indicates event success or failure. If true - the text will be colored green, otherwise red
-	 * @param message
-	 * 			The message to print
-	 */
-	protected void publishEventEnd(final boolean isSuccessful, final String message) {
-		for (final ProvisioningDriverListener listener : this.eventsListenersList) {
-			listener.onProvisioningEventEnd(isSuccessful, message);
-		}
-	}
-	
-
 	/*********
 	 * Created a machine details with basic settings from the given cloud
 	 * template.
@@ -410,6 +369,33 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 			}
 		}
 	}
+	
+	/**
+	 * returns the message as it appears in the DefaultProvisioningDriver message bundle.
+	 *
+	 * @param messageBundle
+	 *            The message bundle containing the specified message
+	 * @param msgName
+	 *            the message key as it is defined in the message bundle.
+	 * @param arguments
+	 *            the message arguments
+	 * @return the formatted message according to the message key.
+	 */
+	protected static String getFormattedMessage(final ResourceBundle messageBundle, final String msgName, 
+			final Object... arguments) {
+		final String message = messageBundle.getString(msgName);
+		if (message == null) {
+			logger.warning("Missing resource in messages resource bundle: " + msgName);
+			return msgName;
+		}
+		try {
+			return MessageFormat.format(message, arguments);
+		} catch (final IllegalArgumentException e) {
+			logger.fine("Failed to format message: " + msgName + " with format: "
+					+ message + " and arguments: " + Arrays.toString(arguments));
+			return msgName;
+		}
+	}
 
 	protected abstract MachineDetails createServer(String serverName, long endTime,
 			ComputeTemplate template) throws CloudProvisioningException, TimeoutException;
@@ -417,4 +403,4 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	protected abstract void handleProvisioningFailure(int numberOfManagementMachines,
 			int numberOfErrors, Exception firstCreationException, MachineDetails[] createdManagementMachines)
 					throws CloudProvisioningException;
-	}
+}

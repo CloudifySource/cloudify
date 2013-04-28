@@ -47,6 +47,7 @@ public abstract class CloudDriverSupport implements ProvisioningDriver {
 	protected String templateName;
 	protected ComputeTemplate template;
 
+	
 	// maps ip to time when last shut down request for that machine was sent
 	private final Map<String, Long> stoppingMachines = new ConcurrentHashMap<String, Long>();
 
@@ -64,6 +65,7 @@ public abstract class CloudDriverSupport implements ProvisioningDriver {
 		this.singleThreadedAdmin = admin;
 	}
 
+	
 	/***********
 	 * Returns a multithreaded admin instance, which can be used for blocking operations without blocking the shared
 	 * Admin instance provided by the ESM. The method is synchronized to prevent several threads initializing the multi
@@ -95,7 +97,7 @@ public abstract class CloudDriverSupport implements ProvisioningDriver {
 
 	@Override
 	public void setConfig(final Cloud cloud, final String templateName, final boolean management, 
-			final String serviceName, final boolean performValidation) {
+			final String serviceName) {
 
 		this.cloud = cloud;
 		this.management = management;
@@ -104,10 +106,6 @@ public abstract class CloudDriverSupport implements ProvisioningDriver {
 		if (this.cloud.getCloudCompute().getTemplates().isEmpty()) {
 			throw new IllegalArgumentException("No templates defined for this cloud");
 		}
-		
-		if (management && performValidation) {
-			// TODO implement validations
-		}		
 
 		// TODO - add automatic validation rules to the DSL Pojos!
 		if (StringUtils.isBlank(this.templateName)) {

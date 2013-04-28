@@ -33,6 +33,7 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
+import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
 import org.cloudifysource.esc.util.IPUtils;
 
 /**
@@ -123,12 +124,18 @@ public class DynamicByonProvisioningDriver extends BaseProvisioningDriver {
 	}
 
 	@Override
-	protected void initDeployer(Cloud cloud) {
+	protected void initDeployer(final Cloud cloud) {
+		// TODO Auto-generated method stub
+	}
+	
+	@Override
+	public void validateCloudConfiguration(final ValidationContext validationContext) 
+			throws CloudProvisioningException {
 		// TODO Auto-generated method stub
 	}
 
 	@Override
-	protected MachineDetails createServer(String serverName, long endTime, ComputeTemplate template)
+	protected MachineDetails createServer(final String serverName, final long endTime, final ComputeTemplate template)
 			throws CloudProvisioningException, TimeoutException {
 
 		String ip;

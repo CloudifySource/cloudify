@@ -85,7 +85,7 @@ public final class ShellUtils {
 	}
 
 	/**
-	 * returns the message as it appears in the message bundle.
+	 * returns the message as it appears in the default message bundle.
 	 *
 	 * @param msgName
 	 *            the message key as it is defined in the message bundle.
@@ -94,8 +94,24 @@ public final class ShellUtils {
 	 * @return the formatted message according to the message key.
 	 */
 	public static String getFormattedMessage(final String msgName, final Object... arguments) {
+		return getFormattedMessage(getMessageBundle(), msgName, arguments);
+	}
+	
+	/**
+	 * returns the message as it appears in the given message bundle.
+	 *
+	 * @param messageBundle
+	 *            the message bundle that holds the message.
+	 * @param msgName
+	 *            the message key as it is defined in the message bundle.
+	 * @param arguments
+	 *            the message arguments
+	 * @return the formatted message according to the message key.
+	 */
+	public static String getFormattedMessage(final ResourceBundle messageBundle, final String msgName, 
+			final Object... arguments) {
 
-		final String message = getMessageBundle().getString(msgName);
+		final String message = messageBundle.getString(msgName);
 		if (message == null) {
 			logger.warning("Missing resource in messages resource bundle: " + msgName);
 			return msgName;

@@ -39,7 +39,7 @@ public class LocalCloudProvisioningDriver implements ProvisioningDriver {
 
 	@Override
 	public void setConfig(final Cloud cloud, final String cloudTemplate, final boolean management, 
-			final String serviceName, final boolean performValidations) {
+			final String serviceName) {
 		this.lookupGroups = cloud.getConfiguration().getLookupGroups();
 		this.nicAddress = cloud.getConfiguration().getNicAddress();
 
@@ -173,4 +173,5 @@ public class LocalCloudProvisioningDriver implements ProvisioningDriver {
 	public Object getComputeContext() {
 		return null;
 	}
+
 }

@@ -17,26 +17,21 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Properties;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
-import org.cloudifysource.dsl.cloud.ScriptLanguages;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
-import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
@@ -45,6 +40,9 @@ import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ManagementLocator;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
+import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
+import org.cloudifysource.esc.driver.provisioning.validation.ValidationMessageType;
+import org.cloudifysource.esc.driver.provisioning.validation.ValidationResultType;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.jclouds.JCloudsDeployer;
 import org.cloudifysource.esc.util.JCloudsUtils;
@@ -87,8 +85,9 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	private static final String OPENSTACK_API = "openstack-nova";
 	private static final String CLOUDSTACK = "cloudstack";
 	private static final String ENDPOINT_OVERRIDE = "jclouds.endpoint";
-	private static final String VALIDATION_SUCCESS_MESSAGE = " [OK]";
-	private static final String VALIDATION_FAILURE_MESSAGE = " [Error]";
+	
+	//TODO: should it be volatile?
+	private static ResourceBundle defaultProvisioningDriverMessageBundle;
 	
 	private JCloudsDeployer deployer;
 
@@ -634,8 +633,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		final Properties props = new Properties();
 		props.putAll(cloudTemplate.getOverrides());
 
-		deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud
-				.getUser().getUser(), cloud.getUser().getApiKey(), props);
+		deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),  
+				cloud.getUser().getApiKey(), props);
 
 		deployer.setImageId(cloudTemplate.getImageId());
 		deployer.setMinRamMegabytes(cloudTemplate.getMachineMemoryMB());
@@ -667,15 +666,15 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 	
 	@Override
-	protected void validateCloudConfiguration() throws CloudProvisioningException {
+	public void validateCloudConfiguration(final ValidationContext validationContext) 
+			throws CloudProvisioningException {
 		// 1. Provider/API name
 		// 2. Authentication to the cloud
 		// 3. Image IDs
 		// 4. Hardware IDs
 		// 5. Location IDs
-		// 6. Cloudify download URL
-		// 7. Security groups
-		// 8. Key-pair names (TODO: finger-print check)
+		// 6. Security groups
+		// 7. Key-pair names (TODO: finger-print check)
 		// TODO : move the security groups to the Template section (instead of  custom map), 
 		// it is now supported by jclouds.
 
@@ -684,41 +683,44 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		boolean endpointRequired = false;
 		
 		try {
-			publishOngoingEvent(CloudifyErrorMessages.EVENT_VALIDATING_PROVIDER_OR_API_NAME.getName(), 
-					providerName);
+			validationContext.validationOngoingEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE, 
+					getFormattedMessage("validating_provider_or_api_name", providerName));
 			ProviderMetadata providerMetadata = Providers.withId(providerName);
 			ApiMetadata apiMetadata = providerMetadata.getApiMetadata();
 			apiId = apiMetadata.getId();
-			publishEventEnd(true, VALIDATION_SUCCESS_MESSAGE);
+			validationContext.validationEventEnd(ValidationResultType.OK);
 		} catch (NoSuchElementException e) {
 			//there is no jclouds Provider by that name, this could be the name of an API used in a private cloud
 			try {
 				ApiMetadata apiMetadata = Apis.withId(providerName);
 				apiId = apiMetadata.getId();
 				endpointRequired = true;
-				publishEventEnd(true, VALIDATION_SUCCESS_MESSAGE);
+				validationContext.validationEventEnd(ValidationResultType.OK);
 			} catch (NoSuchElementException ex) {
-				publishEventEnd(false, VALIDATION_FAILURE_MESSAGE);
+				validationContext.validationEventEnd(ValidationResultType.ERROR);
 				throw new CloudProvisioningException("Provider not supported: " + providerName, ex);
 			}
 		}
-		
-		validateCloudifyUrls(cloud.getProvider().getCloudifyUrl());
-		validateComputeTemplates(endpointRequired, apiId);
+		validateComputeTemplates(endpointRequired, apiId, validationContext);
 	}
 
 	
-	private void validateComputeTemplates(final boolean endpointRequired, final String apiId) 
-			throws CloudProvisioningException {
+	private void validateComputeTemplates(final boolean endpointRequired, final String apiId, 
+			final ValidationContext validationContext) throws CloudProvisioningException {
 		
-		JCloudsDeployer effectiveDeployer = null;
+		JCloudsDeployer deployer = null;
 		String templateName = "";
+		String imageId = "";
+		String hardwareId = "";
+		String locationId = "";
 		
 		try {
-			publishEvent(CloudifyErrorMessages.EVENT_VALIDATING_ALL_TEMPLATES.getName());
+			validationContext.validationEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
+					getFormattedMessage("validating_all_templates"));			
 			for (Entry<String, ComputeTemplate> entry : cloud.getCloudCompute().getTemplates().entrySet()) {
 				templateName = entry.getKey();
-				publishEvent(CloudifyErrorMessages.EVENT_VALIDATING_TEMPLATE.getName(), templateName);
+				validationContext.validationEvent(ValidationMessageType.GROUP_VALIDATION_MESSAGE,
+						getFormattedMessage("validating_template", templateName));
 				ComputeTemplate template = entry.getValue();
 				String endpoint = getEndpoint(template);
 				if (endpointRequired && StringUtils.isBlank(endpoint)) {
@@ -727,54 +729,61 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 				}
 				
 				try {
-					publishOngoingEvent(CloudifyErrorMessages.EVENT_VALIDATING_CLOUD_CREDENTIALS.getName());
+					validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE, 
+							getFormattedMessage("validating_cloud_credentials"));
 					final Properties templateProps = new Properties();
 					Map<String, Object> templateOverrides = template.getOverrides();
 					templateProps.putAll(templateOverrides);
 					logger.fine("Creating a new cloud deployer");
-					effectiveDeployer = new JCloudsDeployer(cloud.getProvider().getProvider(), 
-							cloud.getUser().getUser(), cloud.getUser().getApiKey(), templateProps);
-					publishEventEnd(true, VALIDATION_SUCCESS_MESSAGE);
+					deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),
+							cloud.getUser().getApiKey(), templateProps);
+					validationContext.validationEventEnd(ValidationResultType.OK);
 				} catch (IOException e) {
-					closeDeployer(effectiveDeployer);
-					publishEventEnd(false, VALIDATION_FAILURE_MESSAGE);
+					closeDeployer(deployer);
+					validationContext.validationEventEnd(ValidationResultType.ERROR);
 					throw new CloudProvisioningException("Authentication to the cloud failed");
 				}
-					
-				effectiveDeployer.setImageId(template.getImageId());
-				effectiveDeployer.setHardwareId(template.getHardwareId());
-				effectiveDeployer.setExtraOptions(template.getOptions());
+				
+				imageId = template.getImageId();
+				hardwareId = template.getHardwareId();
+				locationId = template.getLocationId();
+				
+				deployer.setImageId(imageId);
+				deployer.setHardwareId(hardwareId);
+				deployer.setExtraOptions(template.getOptions());
 				// TODO: check this memory validation
-				// effectiveDeployer.setMinRamMegabytes(template.getMachineMemoryMB());
+				// deployer.setMinRamMegabytes(template.getMachineMemoryMB());
 				try {
-					publishOngoingEvent(
-							CloudifyErrorMessages.EVENT_VALIDATING_IMAGE_HARDWARE_LOCATION_COMBINATION.getName(),
-							template.getImageId() == null ? "" : template.getImageId(),
-									template.getHardwareId() == null ? "" : template.getHardwareId(),
-											template.getLocationId() == null ? "" : template.getLocationId());
+					 
+					validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+							getFormattedMessage("validating_image_hardware_location_combination",
+								imageId == null ? "" : imageId, hardwareId == null ? "" : hardwareId, 
+									locationId == null ? "" : locationId));
 					// calling JCloudsDeployer.getTemplate effectively tests the above configuration through jclouds
-					effectiveDeployer.getTemplate(template.getLocationId());
-					publishEventEnd(true, VALIDATION_SUCCESS_MESSAGE);
+					deployer.getTemplate(locationId);
+					validationContext.validationEventEnd(ValidationResultType.OK);
 				} catch (Exception ex) {
-					publishEventEnd(false, VALIDATION_FAILURE_MESSAGE);
+					validationContext.validationEventEnd(ValidationResultType.ERROR);
 					throw new CloudProvisioningException("Invalid template configuration: " + ex.getMessage(), ex);
 				}
 				
 				if (isKnownAPI(apiId)) {
-					validateSecurityGroupsForTemplate(template, apiId, effectiveDeployer.getContext());
-					validateKeyPairForTemplate(template, apiId, effectiveDeployer.getContext());
+					validateSecurityGroupsForTemplate(template, apiId, deployer.getContext(), validationContext);
+					validateKeyPairForTemplate(template, apiId, deployer.getContext(), validationContext);
 				}
-				publishOngoingEvent(CloudifyErrorMessages.EVENT_TEMPLATE_VALIDATED.getName(), templateName);
-				publishEventEnd(true, VALIDATION_SUCCESS_MESSAGE);
-				closeDeployer(effectiveDeployer);
+				validationContext.validationOngoingEvent(ValidationMessageType.GROUP_VALIDATION_MESSAGE,
+						getFormattedMessage("template_validated", templateName));
+				validationContext.validationEventEnd(ValidationResultType.OK);
+				closeDeployer(deployer);
 			}
 		} finally {
-			closeDeployer(effectiveDeployer);
+			closeDeployer(deployer);
 		}
 	}
 	
 	private void validateSecurityGroupsForTemplate(final ComputeTemplate template, final String apiId, 
-			final ComputeServiceContext computeServiceContext) throws CloudProvisioningException {
+			final ComputeServiceContext computeServiceContext, final ValidationContext validationContext) 
+					throws CloudProvisioningException {
 		
 		String locationId = template.getLocationId();
 		if (StringUtils.isBlank(locationId) && apiId.equalsIgnoreCase(OPENSTACK_API)) {
@@ -798,13 +807,13 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 					try {
 						
 						if (securityGroupsArr.length == 1) {
-							publishOngoingEvent(CloudifyErrorMessages.EVENT_VALIDATING_SECURITY_GROUP.getName(), 
-									securityGroupsArr[0]);
+							validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+									getFormattedMessage("validating_security_group", securityGroupsArr[0]));
 						} else {
-							publishOngoingEvent(CloudifyErrorMessages.EVENT_VALIDATING_SECURITY_GROUPS.getName(), 
-									org.cloudifysource.esc.util.StringUtils.arrayToString(securityGroupsArr, ", "));
+							validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+								getFormattedMessage("validating_security_groups", 
+									org.cloudifysource.esc.util.StringUtils.arrayToString(securityGroupsArr, ", ")));
 						}
-
 						
 						if (apiId.equalsIgnoreCase(EC2_API)) {
 							RestContext<EC2Client, EC2AsyncClient> unwrapped = computeServiceContext.unwrap();
@@ -825,9 +834,9 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 							// api validations not supported yet
 						}
 						
-						publishEventEnd(true, VALIDATION_SUCCESS_MESSAGE);
+						validationContext.validationEventEnd(ValidationResultType.OK);
 					} catch (Exception ex) {
-						publishEventEnd(false, VALIDATION_FAILURE_MESSAGE);
+						validationContext.validationEventEnd(ValidationResultType.ERROR);
 						throw new CloudProvisioningException("Invalid security groups configuration: " 
 								+ ex.getMessage(), ex);
 					}
@@ -839,7 +848,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 	
 	private void validateKeyPairForTemplate(final ComputeTemplate template, final String apiId, 
-			final ComputeServiceContext computeServiceContext) throws CloudProvisioningException {
+			final ComputeServiceContext computeServiceContext, final ValidationContext validationContext) 
+					throws CloudProvisioningException {
 		
 		String locationId = template.getLocationId();
 		if (StringUtils.isBlank(locationId) && apiId.equalsIgnoreCase(OPENSTACK_API)) {
@@ -864,8 +874,9 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			String keyPairString = (String) keyPairObj;
 			if (StringUtils.isNotBlank(keyPairString)) {
 				try {
-					publishOngoingEvent(CloudifyErrorMessages.EVENT_VALIDATING_KEY_PAIR.getName(), keyPairString);
-
+					validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+							getFormattedMessage("validating_key_pair", keyPairString));
+					
 					if (apiId.equalsIgnoreCase(EC2_API)) {
 						validateEC2KeyPair(computeServiceContext, locationId, keyPairString);
 					} else if (apiId.equalsIgnoreCase(OPENSTACK_API)) {
@@ -881,9 +892,9 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 						// api validations not supported yet
 					}
 					
-					publishEventEnd(true, VALIDATION_SUCCESS_MESSAGE);
+					validationContext.validationEventEnd(ValidationResultType.OK);
 				} catch (Exception ex) {
-					publishEventEnd(false, VALIDATION_FAILURE_MESSAGE);
+					validationContext.validationEventEnd(ValidationResultType.ERROR);
 					throw new CloudProvisioningException("Invalid key-pair configuration: " + ex.getMessage(), ex);
 				}
 			}
@@ -978,42 +989,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		}
 	}
 	
-	private void validateCloudifyUrls(final String baseCloudifyUrl) throws CloudProvisioningException {
-		Set<String> scriptLanguages = getScriptLanguages();
-		
-		if (scriptLanguages.contains(ScriptLanguages.LINUX_SHELL.toString())) {
-			validateUrl(baseCloudifyUrl + ".tar.gz");
-		}
-		
-		if (scriptLanguages.contains(ScriptLanguages.WINDOWS_BATCH.toString())) {
-			validateUrl(baseCloudifyUrl + ".zip");
-		}
-	}
-	
-	private void validateUrl(final String cloudifyUrl) throws CloudProvisioningException {
-
-		DefaultHttpClient httpClient = new DefaultHttpClient();
-		
-		HttpHead httpMethod = new HttpHead(cloudifyUrl);
-		try {
-			publishOngoingEvent(CloudifyErrorMessages.EVENT_VALIDATING_CLOUDIFY_URL.getName(), cloudifyUrl);
-			HttpResponse response = httpClient.execute(httpMethod);
-			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-				publishEventEnd(false, VALIDATION_FAILURE_MESSAGE);
-				throw new CloudProvisioningException("Invalid cloudify URL: " + cloudifyUrl);
-			}
-			publishEventEnd(true, VALIDATION_SUCCESS_MESSAGE);
-		} catch (ClientProtocolException e) {
-			System.out.println("Failed to validate Cloudify URL: " + cloudifyUrl);
-			logger.info("Failed to validate Cloudify URL: " + cloudifyUrl);
-			e.printStackTrace();
-		} catch (IOException e) {
-			System.out.println("Failed to validate Cloudify URL: " + cloudifyUrl);
-			logger.info("Failed to validate Cloudify URL: " + cloudifyUrl);
-			e.printStackTrace();
-		}
-	}
-	
 	
 	private String getEndpoint(final ComputeTemplate template) {
 		String endpoint = null;
@@ -1056,16 +1031,32 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		logger.fine("region: " + region);		
 		return region;
 	}
+
 	
-	private Set<String> getScriptLanguages() {
-		Set<String> langs = new HashSet<String>();
-		
-		for (Entry<String, ComputeTemplate> entry : cloud.getCloudCompute().getTemplates().entrySet()) {
-			ComputeTemplate template = entry.getValue();
-			langs.add(template.getScriptLanguage().toString());
+	/**
+	 * returns the message as it appears in the DefaultProvisioningDriver message bundle.
+	 *
+	 * @param msgName
+	 *            the message key as it is defined in the message bundle.
+	 * @param arguments
+	 *            the message arguments
+	 * @return the formatted message according to the message key.
+	 */
+	protected static String getFormattedMessage(final String msgName, final Object... arguments) {
+		return getFormattedMessage(getDefaultProvisioningDriverMessageBundle(), msgName, arguments);
+	}
+	
+	
+	/**
+	 * Returns the message bundle of this cloud driver.
+	 * @return the message bundle of this cloud driver.
+	 */
+	protected static ResourceBundle getDefaultProvisioningDriverMessageBundle() {
+		if (defaultProvisioningDriverMessageBundle == null) {
+			defaultProvisioningDriverMessageBundle = ResourceBundle.getBundle("DefaultProvisioningDriverMessages",
+					Locale.getDefault());
 		}
-		
-		return langs;
+		return defaultProvisioningDriverMessageBundle;
 	}
 
 }

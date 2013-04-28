@@ -42,6 +42,7 @@ import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ManagementLocator;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
+import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
 import org.cloudifysource.esc.util.FileUtils;
 import org.cloudifysource.esc.util.IPUtils;
 import org.cloudifysource.esc.util.Utils;
@@ -95,7 +96,6 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 						(List<Map<Object, Object>>) customSettings.get(CLOUD_NODES_LIST);
 
 				nodesList = convertToStringMap(originalNodesList);
-
 			}
 			if (nodesList == null) {
 				publishEvent(CloudifyErrorMessages.MISSING_NODES_LIST.getName(), templateName);
@@ -661,6 +661,12 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	public Object getComputeContext() {
 		return null;
 	}
+	
+	@Override
+	public void validateCloudConfiguration(final ValidationContext validationContext) 
+			throws CloudProvisioningException {
+		// TODO Auto-generated method stub
+	}
 
 	@Override
 	public MachineDetails[] getExistingManagementServers() throws CloudProvisioningException {
@@ -712,5 +718,6 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		
 		md.setKeyFile(keyFile);
 	}
+
 
 }

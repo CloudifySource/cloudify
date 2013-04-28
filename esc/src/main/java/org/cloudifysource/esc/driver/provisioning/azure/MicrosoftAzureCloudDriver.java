@@ -24,7 +24,14 @@ import org.cloudifysource.esc.driver.provisioning.azure.client.CreatePersistentV
 import org.cloudifysource.esc.driver.provisioning.azure.client.MicrosoftAzureException;
 import org.cloudifysource.esc.driver.provisioning.azure.client.MicrosoftAzureRestClient;
 import org.cloudifysource.esc.driver.provisioning.azure.client.RoleDetails;
-import org.cloudifysource.esc.driver.provisioning.azure.model.*;
+import org.cloudifysource.esc.driver.provisioning.azure.model.AttachedTo;
+import org.cloudifysource.esc.driver.provisioning.azure.model.Deployment;
+import org.cloudifysource.esc.driver.provisioning.azure.model.Disk;
+import org.cloudifysource.esc.driver.provisioning.azure.model.Disks;
+import org.cloudifysource.esc.driver.provisioning.azure.model.HostedService;
+import org.cloudifysource.esc.driver.provisioning.azure.model.HostedServices;
+import org.cloudifysource.esc.driver.provisioning.azure.model.InputEndpoint;
+import org.cloudifysource.esc.driver.provisioning.azure.model.InputEndpoints;
 
 /***************************************************************************************
  * A custom Cloud Driver implementation for provisioning machines on Azure.
@@ -114,9 +121,9 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	@SuppressWarnings("unchecked")
 	@Override
 	public void setConfig(final Cloud cloud, final String templateName, final boolean management, 
-			final String serviceName, final boolean performValidations) {
+			final String serviceName) {
 		
-		super.setConfig(cloud, templateName, management, serviceName, performValidations);
+		super.setConfig(cloud, templateName, management, serviceName);
 
 		// Per template properties
 		this.availabilitySet = (String) this.template.getCustom().get(
@@ -700,4 +707,5 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	public Object getComputeContext() {
 		return null;
 	}
+
 }
