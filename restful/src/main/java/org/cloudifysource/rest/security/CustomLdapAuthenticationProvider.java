@@ -182,7 +182,7 @@ public class CustomLdapAuthenticationProvider implements AuthenticationProvider 
             return createSuccessfulAuthentication(userToken, extendedUserDetails);
             
         } catch (PasswordPolicyException ppe) {
-            // The only reason a ppolicy exception can occur during a bind is that the account is locked.
+            // The only reason a policy exception can occur during a bind is that the account is locked.
             throw new LockedException(messages.getMessage(ppe.getStatus().getErrorCode(),
                     ppe.getStatus().getDefaultMessage()));
         } catch (UsernameNotFoundException notFound) {
