@@ -238,7 +238,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 			try {
 				deAllocateStorageSync();
 			} catch (final Exception e) {
-				logger.log(Level.SEVERE, "Failed to deallocate storage: "
+                getUsmLifecycleBean().log("Failed de-allocating storage volume. this may cause a leak : " + e.getMessage());
+				logger.log(Level.WARNING, "Failed to deallocate storage: "
 						+ e.getMessage(), e);
 			}
 
