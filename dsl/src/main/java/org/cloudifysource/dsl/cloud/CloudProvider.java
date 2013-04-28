@@ -216,7 +216,7 @@ public class CloudProvider {
 			return String.format(cloudifyUrlPattern, productUri, editionUrlVariable);
 		}
 	}
-	
+
 	@DSLValidation
 	void validateProviderName(final DSLValidationContext validationContext)
 			throws DSLValidationException {
@@ -225,43 +225,43 @@ public class CloudProvider {
 			throw new DSLValidationException("Provider cannot be empty");
 		}
 	}
-	
+
 	@DSLValidation
 	void validateCloudifyUrl(final DSLValidationContext validationContext)
 			throws DSLValidationException {
-		
+
 		/*String[] schema = {"http"};
 		UrlValidator urlValidator = new UrlValidator(schema);
 		if (!urlValidator.isValid(cloudifyUrl)) {
 			throw new DSLValidationException("Invalid cloudify url: \"" + cloudifyUrl + "\"");
 		}*/
-		
+
 		try {
 	        new URI(cloudifyUrl);
 		} catch (URISyntaxException e) {
 			throw new DSLValidationException("Invalid cloudify url: \"" + cloudifyUrl + "\"");
 		}
-		
-		//TODO request "head" to see if the url is accessible. If not - warning.		
+
+		//TODO request "head" to see if the url is accessible. If not - warning.
 	}
-	
+
 	@DSLValidation
 	void validateNumberOfManagementMachines(final DSLValidationContext validationContext)
 			throws DSLValidationException {
 
 		if (numberOfManagementMachines != 1 && numberOfManagementMachines != 2) {
-			throw new DSLValidationException("Invalid numberOfManagementMachines: \"" + numberOfManagementMachines 
+			throw new DSLValidationException("Invalid numberOfManagementMachines: \"" + numberOfManagementMachines
 					+ "\". Valid values are 1 or 2");
 		}
-		
+
 		//TODO request "head" to see if the url is accessible. If not - warning.
 	}
-	
+
 	@DSLValidation
 	void validateSshLoggingLevel(final DSLValidationContext validationContext)
 			throws DSLValidationException {
 
-		if (!sshLoggingLevel.matches("INFO|FINE|WARNING|DEBUG")) {
+		if (!sshLoggingLevel.matches("INFO|FINE|FINER|FINEST|WARNING|DEBUG")) {
 			throw new DSLValidationException("sshLoggingLevel \"" + sshLoggingLevel + "\" is invalid, "
 					+ "supported values are: INFO, FINE, FINER, FINEST, WARNING, DEBUG");
 		}
