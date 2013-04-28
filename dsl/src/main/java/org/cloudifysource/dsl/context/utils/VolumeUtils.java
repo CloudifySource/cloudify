@@ -71,7 +71,7 @@ public final class VolumeUtils {
 	 */
 	public static void unmount(final String device, final long timeoutInMillis) 
 			throws LocalStorageOperationException, TimeoutException {
-		executeCommandLine("sudo umount -d -v -l " + device, timeoutInMillis);
+		executeCommandLine("sudo umount -d -v -l -f " + device, timeoutInMillis);
 	}
 
 	/**
