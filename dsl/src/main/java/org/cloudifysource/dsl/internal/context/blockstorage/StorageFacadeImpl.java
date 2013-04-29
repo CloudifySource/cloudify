@@ -155,16 +155,6 @@ public class StorageFacadeImpl implements StorageFacade {
 	}
 
     @Override
-    public void freezefs(final String path)
-            throws TimeoutException, LocalStorageOperationException {
-        validateNotWindows();
-        if (!serviceContext.isPrivileged()) {
-            throw new IllegalStateException("Cannot freezefs when not running in privileged mode");
-        }
-        VolumeUtils.freezefs(path);
-    }
-
-    @Override
     public StorageTemplate getTemplate(final String templateName) {
         return remoteStorageProvisioningDriver.getTemplate(templateName);
     }

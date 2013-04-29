@@ -422,11 +422,9 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 					logger.fine("Storage will be deleted = " + deleteStorage);
 					switch (serviceVolume.getState()) {
 
-					case MOUNTED :
-                        getUsmLifecycleBean().log("Freezing filesystem mounted on " + template.getPath());
-                        storage.freezefs(template.getPath());
-                        getUsmLifecycleBean().log("Unmounting volume from " + template.getPath());
-                        storage.unmount(serviceVolume.getDevice());
+					case MOUNTED:
+						getUsmLifecycleBean().log("Unmounting volume from " + template.getPath());
+						storage.unmount(serviceVolume.getDevice());
 						getUsmLifecycleBean().log("Detaching volume from  " + serviceVolume.getDevice());
 						storage.detachVolume(serviceVolume.getId());
 						if (deleteStorage) {
