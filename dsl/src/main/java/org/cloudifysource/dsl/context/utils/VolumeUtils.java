@@ -88,10 +88,7 @@ public final class VolumeUtils {
 	public static void mount(final String device, final String path, final long timeoutInMillis) 
 			throws LocalStorageOperationException, TimeoutException {
 		File devicePath = new File(path);
-        boolean mkdirs = devicePath.mkdirs();
-        if (!mkdirs) {
-            throw new LocalStorageOperationException("Failed creating directories in path " + path);
-        }
+        executeCommandLine("sudo mkdir " + path, TEN_SECONDS);
         executeCommandLine("sudo mount " + device + " " + path, timeoutInMillis);
 		executeCommandLine("sudo chown " + USER_NAME + " " + devicePath.getAbsolutePath(), TEN_SECONDS);
 	}
