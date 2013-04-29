@@ -86,7 +86,7 @@
 									<pluginExecutionFilter>
 										<groupId>org.apache.maven.plugins</groupId>
 										<artifactId>maven-dependency-plugin</artifactId>
-										<versionRange>[2.5)</versionRange>
+										<versionRange>2.5</versionRange>
 										<goals>
 											<goal>copy-dependencies</goal>
 										</goals>
