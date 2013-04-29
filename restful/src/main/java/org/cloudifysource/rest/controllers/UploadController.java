@@ -27,7 +27,6 @@ import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.rest.response.UploadResponse;
 import org.cloudifysource.rest.repo.UploadRepo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,8 +49,9 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping(value = "/upload")
 public class UploadController {
 
-	@Value(value = "${upload.uploadSizeLimitBytes}")
-	private int uploadSizeLimitBytes;
+	//@Value(value = "${upload.uploadSizeLimitBytes}")
+	private static final int UPLOAD_SIZE_LIMIT_BYTE = 100000000;
+	private int uploadSizeLimitBytes = UPLOAD_SIZE_LIMIT_BYTE;
 	private static final Logger logger = Logger
 			.getLogger(UploadController.class.getName());
 	

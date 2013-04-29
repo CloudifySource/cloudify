@@ -20,6 +20,7 @@ import java.util.Map;
 import org.cloudifysource.rest.controllers.AttributesController;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -33,7 +34,7 @@ import org.springframework.web.method.HandlerMethod;
  * 
  * @author noak
  */
-//@Ignore
+@Ignore
 // Swap the default JUnit4 with the spring specific SpringJUnit4ClassRunner.
 // This will allow spring to inject the application context
 @RunWith(SpringJUnit4ClassRunner.class)
