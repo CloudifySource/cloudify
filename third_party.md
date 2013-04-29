@@ -5,7 +5,7 @@ GIGASPACES CLOUDIFY SOFTWARE  - OPEN SOURCE AND THIRD PARTY COMPONENTS - Cloudif
 |--------------|--------------|--------------|
 |ant|1.8.4|[Apache2.0](http://ant.apache.org/)|
 |asm|1.5.3|[BSD like](http://asm.objectweb.org/doc/tutorial.html)|
-|Ccombo|2|[MIT or GPL2.0](http://christsam.blogspot.com/2011/05/ccombo-v20.html   )|
+|Ccombo|2|[MIT](http://christsam.blogspot.com/2011/05/ccombo-v20.html   )|
 |cglib|2.2.0|[Apache 2.0 + dep]()|
 |Code Mirror|2.21|[MIT](http://codemirror.net/)|
 |Commons Logging|1.1.1|[Apache2.0](http://jakarta.apache.org/commons/logging/)|
@@ -43,14 +43,14 @@ GIGASPACES CLOUDIFY SOFTWARE  - OPEN SOURCE AND THIRD PARTY COMPONENTS - Cloudif
 |Jini|2.0.1|[Apache2.0](http://www.sun.com/software/jini/)|
 |JMS|1.1|[Sun Public License 1.0](http://java.sun.com/products/jms/)|
 |JOI - Java Object Inspector|3.5.2|[CPL1.0](http://www.programmers-friend.org/JOI/ )|
-|jQuery|1.6.4/1.7.1/1.4.4|[MIT or GPL2.0](http://jquery.com/)|
+|jQuery|1.6.4/1.7.1/1.4.4|[MIT](http://jquery.com/)|
 |jsch|0.144-1|[BSD like](http://www.jcraft.com/jsch/)|
 |karaf|2.2.5|[Apache2.0](http://karaf.apache.org/)|
 |log4j|1.2|[Apache2.0](http://logging.apache.org/log4j/1.2/)|
 |Mime4J|0.6|[Apache2.0](http://james.apache.org/mime4j/)|
 |Raphael – JavaScript Vector Library|1.5.2|[MIT](http://raphaeljs.com )|
 |rio|3.2|[Apache2.0](http://www.rio-project.org/index.html)|
-|SexyCombo|2.1.3|[MIT or GPL2.0](http://code.google.com/p/sexy-combo/)|
+|SexyCombo|2.1.3|[MIT](http://code.google.com/p/sexy-combo/)|
 |sigar|1.6.5|[Apache2.0](http://support.hyperic.com/display/SIGAR/Home)|
 |GWT Simile timeline|1.5.1|[Apache2.0](http://code.google.com/p/gwtsimiletimeline/)|
 |Simile timeline|2.4.0|[BSD](http://www.simile-widgets.org/timeline/)|
