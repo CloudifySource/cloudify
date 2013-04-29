@@ -55,7 +55,7 @@ public class UploadControllerTest extends ControllerTest {
 			+ "resources" + File.separator + "upload";
 	private static final String TEST_FILE_PATH =  UPLOAD_RESOURCES_PATH + File.separator + "test.txt";
 
-	private static final String UPLOADED_FILE_NAME = "upload.txt";
+	private static final String UPLOADED_FILE_NAME = "upload.zip";
 	private static final String UPLOAD_URI = "/upload/" + UPLOADED_FILE_NAME;
 	
 	private HashMap<String, HashMap<RequestMethod, HandlerMethod>> controllerMapping;

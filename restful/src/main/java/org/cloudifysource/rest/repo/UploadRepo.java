@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.rest.controllers.RestErrorException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,9 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class UploadRepo {
 //	@Value(value = "${upload.cleanupTimeoutSeconds}")
 	private int cleanupTimeoutSeconds = CloudifyConstants.DEFAULT_UPLOAD_TIMEOUT_SECOND;
-	// load from property, default to tempdir
-	private static final File DEFAULT_UPLOAD_BASE_DIR = new File(System.getProperty("java.io.tmpdir"));
-	private File baseDir = DEFAULT_UPLOAD_BASE_DIR;
+	private File baseDir = new File(CloudifyConstants.TEMP_FOLDER);
 	private ScheduledExecutorService executor;
 	private File restUploadDir;
 
@@ -101,26 +100,31 @@ public class UploadRepo {
 	 * @param multipartFile
 	 *          The file to upload.
 	 * @return the uploaded key.
+	 * @throws RestErrorException if the file doesn't end with zip.
 	 * @throws IOException .
 	 */
-	public String put(final String fileName, final MultipartFile multipartFile) throws IOException {
+	public String put(final String fileName, final MultipartFile multipartFile) throws IOException, RestErrorException {
 		final String dirName = UUID.randomUUID().toString();
 		final File srcDir = new File(restUploadDir, dirName);
 		srcDir.mkdirs();
 		String name = fileName == null ? multipartFile.getOriginalFilename() : fileName;
 		final File storedFile = new File(srcDir, name);
 		copyMultipartFileToLocalFile(multipartFile, storedFile);
+		if (!storedFile.getName().endsWith(CloudifyConstants.PERMITTED_EXTENSION)) {
+			throw new RestErrorException("Uploaded file's extension must be " 
+					+ CloudifyConstants.PERMITTED_EXTENSION, storedFile.getAbsolutePath());
+		}
 		return dirName;
 	}
 
 	/**
 	 * Gets the file stored in a directory with the given name (uploadDirName).
 	 * 
-	 * @param uploadDirName
+	 * @param key
 	 *            - the name of the upload file's directory.
 	 * @return the suitable file or null if a file with that name doesn't exist.
 	 */
-	public File get(final String uploadDirName) {
+	public File get(final String key) {
 		if (restUploadDir == null || !restUploadDir.exists()) {
 			return null;
 		}
@@ -129,7 +133,7 @@ public class UploadRepo {
 
 			@Override
 			public boolean accept(final File dir, final String name) {
-				return name.equals(uploadDirName);
+				return name.equals(key);
 			}
 		});
 		if (files != null && files.length > 0) {

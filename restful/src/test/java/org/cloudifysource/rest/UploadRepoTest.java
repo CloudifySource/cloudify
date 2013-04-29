@@ -17,11 +17,14 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
+import java.util.zip.ZipFile;
 
 import junit.framework.Assert;
 
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.packaging.ZipUtils;
+import org.cloudifysource.rest.controllers.RestErrorException;
 import org.cloudifysource.rest.repo.UploadRepo;
 import org.junit.After;
 import org.junit.Before;
@@ -39,7 +42,10 @@ public class UploadRepoTest {
 
 	private UploadRepo repo;
 	private static final int CLEANUP_TIMEOUT_SECONDS = 3;
-	private static final String TEST_FILE_PATH = "src/test/resources/upload/test.txt";
+	private static final String TEST_FILE_NAME = "test.txt";
+	private static final String TEST_FILE_PATH = "src/test/resources/upload/test.zip";
+	private static final String TXT_EXTENSION_TEST_FILE_PATH = "src/test/resources/upload/" + TEST_FILE_NAME;
+	private static final String RAR_EXTENSION_TEST_FILE_PATH = "src/test/resources/upload/test.rar";
 	
 	@Before
 	public void init() throws IOException {
@@ -59,7 +65,7 @@ public class UploadRepoTest {
 		return mockMultipartFile;
 	}
 
-	private String putTest(final File testFile) throws IOException {
+	private String putTest(final File testFile) throws IOException, RestErrorException {
 		final MultipartFile multiFile = createNewMultiFile(testFile);
 		String dirName = null;
 		try {
@@ -75,21 +81,36 @@ public class UploadRepoTest {
 		Assert.assertNotNull(uploadedFile);
 		// file expected to be a file and not a directory.
 		Assert.assertTrue(uploadedFile.isFile());
+		// unzip file
+		Assert.assertTrue(uploadedFile.getName().endsWith(CloudifyConstants.PERMITTED_EXTENSION));
+		File tempDir = new File(new File(CloudifyConstants.TEMP_FOLDER), "tempDir");
+		tempDir.mkdirs();
+		tempDir.deleteOnExit();
+		File zipCopyFile = File.createTempFile("test", ".zip", tempDir);
+		FileUtils.copyFile(uploadedFile, zipCopyFile);
+		ZipUtils.unzip(zipCopyFile, tempDir);
+		File unzippedFile = new File(tempDir, TEST_FILE_NAME);
+		unzippedFile.deleteOnExit();
 		// check file name and content
-		Assert.assertEquals(expectedFile.getName(), uploadedFile.getName());
-		FileUtils.contentEquals(expectedFile, uploadedFile);
+		Assert.assertEquals(expectedFile.getName(), unzippedFile.getName());
+		FileUtils.contentEquals(expectedFile, unzippedFile);
+		ZipFile zipFile = new ZipFile(zipCopyFile);
+		zipFile.close();
 	}
-
+	
+	
 	@Test
 	public void putAndGetTest() throws IOException {
-		final byte[] testFileContent = { 1, 2, 3 };
-		File file = new File("testFile");
-		file.deleteOnExit();
-		FileUtils.writeByteArrayToFile(file, testFileContent);
-		final String dirName = putTest(file);
+		File file = new File(TEST_FILE_PATH);
+		String dirName = null;
+		try {
+			dirName = putTest(file);
+		} catch (RestErrorException e) {
+			fail(e.getMessage());
+		}
 		Assert.assertNotNull(dirName);
 		final File uploadedFile = repo.get(dirName);
-		assertUploadedFile(file, uploadedFile);
+		assertUploadedFile(new File(TXT_EXTENSION_TEST_FILE_PATH), uploadedFile);
 	}
 
 	@Test
@@ -99,12 +120,21 @@ public class UploadRepoTest {
 	}
 
 	@Test
+	public void testtest() {
+	}
+	
+	@Test
 	public void getTimoutedFile() throws InterruptedException, IOException {
 		repo.resetTimeout(CLEANUP_TIMEOUT_SECONDS);
 		File file = new File(TEST_FILE_PATH);
-		final String dirName = putTest(file);
+		String dirName = null;
+		try {
+			dirName = putTest(file);
+		} catch (RestErrorException e) {
+			fail(e.getMessage());
+		}
 		File uploadedFile = repo.get(dirName);
-		assertUploadedFile(file, uploadedFile);
+		assertUploadedFile(new File(TXT_EXTENSION_TEST_FILE_PATH), uploadedFile);
 		
 		// wait until the file is deleted.
 		Thread.sleep(repo.getCleanupTimeoutSeconds() * 2000);
@@ -114,5 +144,24 @@ public class UploadRepoTest {
 		Assert.assertTrue(restUploadDir.isDirectory());
 		file = repo.get(dirName);
 		Assert.assertNull(file);
+	}
+	
+	@Test
+	public void wrongFileExtension() throws IOException {
+		try {
+			final String dirName = putTest(new File(TXT_EXTENSION_TEST_FILE_PATH));
+			fail("Wrong file extension (" + TXT_EXTENSION_TEST_FILE_PATH + "), expected RestErrorException. " +
+					"Uploaded file's folder name is " + dirName);
+		} catch (RestErrorException e) {
+			
+		}
+		try {
+			final String dirName = putTest(new File(RAR_EXTENSION_TEST_FILE_PATH));
+			fail("Wrong file extension (" + RAR_EXTENSION_TEST_FILE_PATH + "), expected RestErrorException. " +
+					"Uploaded file's folder name is " + dirName);
+		} catch (RestErrorException e) {
+			
+		}
+
 	}
 }

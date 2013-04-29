@@ -369,6 +369,8 @@ public final class CloudifyConstants {
 	/*******
 	 *  Upload file constants.
 	 */
+	// load from property, default to tempdir
+	public static final String PERMITTED_EXTENSION = ".zip";
 	public static final String UPLOAD_FILE_PARAM_NAME = "file";
 	public static final String UPLOADS_FOLDER_NAME = "restUploads";
 	public static final int DEFAULT_UPLOAD_TIMEOUT_SECOND = 300;
