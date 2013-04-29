@@ -111,24 +111,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
     private StorageProvisioningDriver storageProvisioning;
 
 
-    private static Admin getGlobalAdminInstance(final Admin esmAdminInstance) {
-		synchronized (GLOBAL_ADMIN_MUTEX) {
-			if (globalAdminInstance == null) {
-				// create admin clone from esm instance
-				final AdminFactory factory = new AdminFactory();
-				for (final String group : esmAdminInstance.getGroups()) {
-					factory.addGroup(group);
-				}
-				for (final LookupLocator locator : esmAdminInstance.getLocators()) {
-					factory.addLocator(locator.getHost() + ":" + locator.getPort());
-				}
-				globalAdminInstance = factory.createAdmin();
-			}
-
-			return globalAdminInstance;
-		}
-	}
-
 	private ProvisioningDriver cloudifyProvisioning;
 	private Admin originalESMAdmin;
 	private Cloud cloud;
@@ -144,6 +126,27 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private ElasticMachineProvisioningProgressChangedEventListener machineEventListener;
 	private ElasticGridServiceAgentProvisioningProgressChangedEventListener agentEventListener;
 
+    private Admin getGlobalAdminInstance(final Admin esmAdminInstance) throws InterruptedException {
+		synchronized (GLOBAL_ADMIN_MUTEX) {
+			if (globalAdminInstance == null) {
+				// create admin clone from esm instance
+				final AdminFactory factory = new AdminFactory();
+				for (final String group : esmAdminInstance.getGroups()) {
+					factory.addGroup(group);
+				}
+				for (final LookupLocator locator : esmAdminInstance.getLocators()) {
+					factory.addLocator(locator.getHost() + ":" + locator.getPort());
+				}
+				globalAdminInstance = factory.createAdmin();
+				//wait a few seconds to allow the admin object to get synched
+				logger.info("waiting for admin object to sync: " + cloud.getConfiguration().getAdminLoadingTime() 
+						+ " seconds");
+				Thread.sleep(cloud.getConfiguration().getAdminLoadingTime() * MILLISECONDS_IN_SECOND);
+			}
+
+			return globalAdminInstance;
+		}
+	}
 
 	@Override
 	public boolean isStartMachineSupported() {

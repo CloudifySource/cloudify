@@ -86,8 +86,6 @@ public class ByonDeployer {
 			final List<Map<String, String>> nodesList) throws Exception {
 		final List<CustomNode> resolvedNodes = new ArrayList<CustomNode>();
 		final List<CustomNode> unresolvedNodes = new ArrayList<CustomNode>();
-		logger.info("addNodesList: adding node list of " + templateName
-				+ " to ByonDeployer, node list: " + nodesList);
 
 		// parse the given nodes list
 		List<CustomNode> parsedNodes = parseCloudNodes(nodesList);
@@ -112,8 +110,7 @@ public class ByonDeployer {
 		}
 
 		// avoid duplicate machines in different templates (compare by IP)
-		final Set<String> duplicateNodes = getDuplicateIPs(getAllNodes(),
-				parsedNodes);
+		final Set<String> duplicateNodes = getDuplicateIPs(getAllNodes(), parsedNodes);
 		if (duplicateNodes.size() > 0) {
 			throw new CloudProvisioningException(
 					"Failed to add nodes for template \""
@@ -122,7 +119,9 @@ public class ByonDeployer {
 							+ " some IP addresses were already defined by a different template: "
 							+ Arrays.toString(duplicateNodes.toArray()));
 		}
-
+		
+		logger.info("addNodesList: adding node list of " + templateName + " to ByonDeployer, node list: " 
+				+ parsedNodes);
 		setInitialPoolsForTemplate(templateName, resolvedNodes, unresolvedNodes);
 	}
 
@@ -254,20 +253,24 @@ public class ByonDeployer {
 					"Failed to set allocated servers. \"" + templateName
 							+ "\" is not a known template.");
 		}
-		final List<CustomNode> freeNodesPool = templateLists
-				.get(NODES_LIST_FREE);
-		final List<CustomNode> allocatedNodesPool = templateLists
-				.get(NODES_LIST_ALLOCATED);
+		final List<CustomNode> freeNodesPool = templateLists.get(NODES_LIST_FREE);
+		final List<CustomNode> allocatedNodesPool = templateLists.get(NODES_LIST_ALLOCATED);
 
 		for (final String ipAddress : ipAddresses) {
+			logger.log(Level.INFO, "Looking for " + ipAddress + " in the pool of \"free\" machines");
 			for (final CustomNode node : freeNodesPool) {
-				if (StringUtils.isNotBlank(node.getResolvedIP())
-						&& node.getResolvedIP().equalsIgnoreCase(ipAddress)) {
-					freeNodesPool.remove(node);
-					if (!allocatedNodesPool.contains(node)) {
-						allocatedNodesPool.add(node);
+				if (StringUtils.isNotBlank(node.getResolvedIP())) {
+					if (node.getResolvedIP().equalsIgnoreCase(ipAddress)) {
+						freeNodesPool.remove(node);
+						if (!allocatedNodesPool.contains(node)) {
+							allocatedNodesPool.add(node);
+						}
+						logger.log(Level.INFO, "Marking " + node.getPrivateIP() + " (" + ipAddress + ")"
+								+ " as \"allocated\"");
+						break;
 					}
-					break;
+				} else {
+					logger.log(Level.INFO, "Host " + node.getPrivateIP() + " is not resolved to an IP address");
 				}
 			}
 		}

@@ -215,7 +215,8 @@ public class CustomNodeImpl implements CustomNode {
 	public String toString() {
 		return "[id=" + getId() + ", providerId=" + getProviderId() + ", group=" + getGroup() + ", nodeName="
 				+ getNodeName() + ", loginPort=" + getLoginPort() + ", privateAddresses=" + getPrivateIP()
-				+ ", publicAddresses=" + getPublicIP() + ", username=" + getUsername() + "]";
+				+ ", publicAddresses=" + getPublicIP() + ", resolvedAddresses=" + getResolvedIP() + ", username=" 
+				+ getUsername() + "]";
 	}
 
 	@Override
