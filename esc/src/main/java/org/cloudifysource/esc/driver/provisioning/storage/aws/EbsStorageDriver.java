@@ -202,7 +202,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 				try {
 					logger.fine("Detaching volume with id " + volumeId + " from machine with id " 
 										+ nodeMetadata.getId());
-					this.ebsClient.detachVolumeInRegion(this.region, volumeId, true, 
+					this.ebsClient.detachVolumeInRegion(this.region, volumeId, false,
 							DetachVolumeOptions.Builder.fromInstance(nodeMetadata.getProviderId()));
 				} catch (Exception e) {
 					logger.log(Level.WARNING, "Failed detaching node with id " + volumeId
