@@ -302,7 +302,6 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		}
 	}
 	
-	@SuppressWarnings("cast")
 	@Override
 	public void setComputeContext(final Object computeContext)
 			throws StorageProvisioningException {
@@ -311,7 +310,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 					+ "expecting context of type: " + AWSEC2ComputeServiceContext.class.getName());
 		}
 		logger.fine("Setting compute context for storage driver");
-		this.context = (AWSEC2ComputeServiceContext) context;
+		this.context = (AWSEC2ComputeServiceContext) computeContext;
 	}
 
 	private TagApi getTagsApi() {
