@@ -210,7 +210,13 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 					throw new StorageProvisioningException("Failed detaching node with id " + volumeId
 							+ " Reason: " + e.getMessage(), e);
 				}
-				waitForVolumeToReachStatus(Status.AVAILABLE, end, volumeId);
+                try {
+				    waitForVolumeToReachStatus(Status.AVAILABLE, end, volumeId);
+                } catch (final TimeoutException e) {
+                    logger.warning("Timed out while waiting for volume[" + volumeId + "] to "
+                            + "become available after detachment. this may cause this volume to leak");
+                    throw e;
+                }
 				return;
 			}
 		}
