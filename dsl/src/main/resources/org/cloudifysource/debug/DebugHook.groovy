@@ -101,8 +101,8 @@ debug() {
     if [[ -z \"\\\$SERVICE\" ]]; then
         \\ls -1 ~/.gigaspaces/debug_sessions
     else
-    	if [[ -r \"~/.gigaspaces/debug_sessions/\\\$SERVICE/.debugrc\" ]]; then
-        	SERVICEDIR=\"\\\$(cat ~/.gigaspaces/debug_sessions/\\\$SERVICE)\"
+        SERVICEDIR=\"\\\$(cat ~/.gigaspaces/debug_sessions/\\\$SERVICE)\"
+    	if [[ -r \"\\\$SERVICEDIR/.debugrc\" ]]; then
         	bash --rcfile \\\$SERVICEDIR/.debugrc
     	else
     		echo \"Couldn't find a debug session for service \$SERVICE\"
@@ -111,6 +111,12 @@ debug() {
 }
 EOS
 fi
+
+function debug-run() {
+    cd \"\$SERVICEDIR\"
+    sh \$SERVICEDIR/.debug_target
+    return \$?
+}
 """)
 		//The contents of additional bash files that will be created for the debug environment:
 	   this.waitForFinishLoop = ("""\
@@ -286,10 +292,10 @@ env JAVA_OPTS=\"\${JAVA_DEBUG_OPTS}\" \$DEBUG_TARGET
 				 debugScriptContents += this.waitForFinishLoop
 				 break
 			 case "after":
-				 debugScriptContents += './$@ \n' + this.waitForFinishLoop
+				 debugScriptContents += 'debug-run \n' + this.waitForFinishLoop
 				 break
 			 case "onError":
-				 debugScriptContents += './$@ && exit 0 \n' + this.waitForFinishLoop
+				 debugScriptContents += 'debug-run && exit 0 \n' + this.waitForFinishLoop
 				 break
 			 default:
 				 throw new RuntimeException("Unrecognized debug mode (${this.debugMode}), please use one of: 'instead', 'after' or 'onError'")
