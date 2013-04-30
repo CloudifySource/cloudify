@@ -4,22 +4,11 @@
 # This script starts a Gigaspaces agent for use with the Gigaspaces
 # Cloudify. The agent will function as management depending on the value of $GSA_MODE
 #
-# The file structure of the installation is as follows:
-# $BASE_DIR - determined by the remote directory field of the template for the current machine.
-# 	|
-#	+ config - Cloud configuration files and bootstrap script will be uploaded here. On a management machine,
-#				this will include the cloud file and all template related files. On an agent machine,
-#				this will include only the files from the upload folder of the machine's cloud template.
-#	+ temp - temporary files are placed here. It is safe to delete this folder after the agent starts.
-#	+ java - The JDK that will run cloudify is placed here
-#   + cloudify - The cloudify installation is placed here.
-#
 # Parameters the should be exported beforehand:
 # 	$LUS_IP_ADDRESS - Ip of the head node that runs a LUS and ESM. May be my IP. (Required)
 #   $GSA_MODE - 'agent' if this node should join an already running node. Otherwise, any value.
 #	$NO_WEB_SERVICES - 'true' if web-services (rest, webui) should not be deployed (only if GSA_MODE != 'agent')
 #   $MACHINE_IP_ADDRESS - The IP of this server (Useful if multiple NICs exist)
-#	$MACHINE_ZONES - This is required if this is not a management machine
 # 	$WORKING_HOME_DIRECTORY - This is where the files were copied to (cloudify installation, etc..)
 #	$GIGASPACES_LINK - If this url is found, it will be downloaded to $WORKING_HOME_DIRECTORY/gigaspaces.zip
 #	$GIGASPACES_OVERRIDES_LINK - If this url is found, it will be downloaded and unzipped into the same location as cloudify
@@ -28,14 +17,12 @@
 #	$GIGASPACES_CLOUD_IMAGE_ID - If set, indicates the image ID for this machine.
 #	$GIGASPACES_CLOUD_HARDWARE_ID - If set, indicates the hardware ID for this machine.
 #	$PASSWORD - the machine password
-#	$GIGASPACES_AGENT_ENV_JAVA_URL - Optional. URL where the JDK installer can be downloaded. Defaults to the
-#										cloudify file repository
 #############################################################################
 
 # args:
 # $1 the error code of the last command (should be explicitly passed)
 # $2 the message to print in case of an error
-# 
+#
 # an error message is printed and the script exists with the provided error code
 function error_exit {
 	echo "$2 : error code: $1"
@@ -44,7 +31,7 @@ function error_exit {
 
 # args:
 # $1 the error code of the last command (should be explicitly passed)
-# $2 the message to print in case of an error 
+# $2 the message to print in case of an error
 # $3 the threshold to exit on
 #
 # if (last_error_code [$1]) >= (threshold [$3]) the provided message[$2] is printed and the script
@@ -55,17 +42,43 @@ function error_exit_on_level {
 	fi
 }
 
-## Set uup the directories
-TEMP_DIR = $BASE_DIR/temp
-JAVA_DIR = $BASE_DIR/java
-CLOUDIFY_DIR = $BASE_DIR/cloudify
-CONFIG_DIR = $BASE_DIR/config
+# args:
+# $1 the name of the script. must be located in the upload folder.
+function run_script {
+    FULL_PATH_TO_SCRIPT="$WORKING_HOME_DIRECTORY/$1.sh"
+    if [ -f $FULL_PATH_TO_SCRIPT ]; then
+        chmod +x $FULL_PATH_TO_SCRIPT
+        echo Running script $FULL_PATH_TO_SCRIPT
+        $FULL_PATH_TO_SCRIPT
+        RETVAL=$?
+        if [ $RETVAL -ne 0 ]; then
+          error_exit $RETVAL "Failed running $1 script"
+        fi
+    fi
+}
 
-rm -rf $JAVA_DIR/*
-rm -rf $CLOUDIFY_DIR/*
-rm -rf $TEMP_DIR/*
+echo Checking script path
+SCRIPT=`readlink -f $0`
+SCRIPTPATH=`dirname $SCRIPT`
+echo script path is $SCRIPTPATH
 
-mkdir TEMP_DIR
+
+if [ -f ${SCRIPTPATH}/cloudify_env.sh ]; then
+	ENV_FILE_PATH=${SCRIPTPATH}/cloudify_env.sh
+else
+	if [ -f ${SCRIPTPATH}/../cloudify_env.sh ]; then
+		ENV_FILE_PATH=${SCRIPTPATH}/../cloudify_env.sh
+	else
+		echo Cloudify environment file not found! Bootstrapping cannot proceed!
+		exit 105
+	fi
+
+fi
+
+source ${ENV_FILE_PATH}
+
+# Execute pre-bootstrap customization script if exists
+run_script "pre-bootstrap"
 
 JAVA_32_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-i586.bin"
 JAVA_64_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-x64.bin"
@@ -78,97 +91,89 @@ if [ -z "$GIGASPACES_AGENT_ENV_JAVA_URL" ]; then
 		export GIGASPACES_AGENT_ENV_JAVA_URL=$JAVA_32_URL
 	elif [ "$ARCH" = "x86_64" ]; then
 		export GIGASPACES_AGENT_ENV_JAVA_URL=$JAVA_64_URL
-	else 
+	else
 		echo Unknown architecture -- $ARCH -- defaulting to 32 bit JDK
 		export GIGASPACES_AGENT_ENV_JAVA_URL=$JAVA_32_URL
 	fi
-	
-fi  
 
-# in some cases, it is easier to just push the java installer over ssh
-# Use in conjunction with the NO_INSTALL value to skip downloading a JDK.
-if [ -f "$CONFIG_DIR/java.bin"]; then
-	cp $CONFIG_DIR/java.bin $TEMP_DIR/java.bin
 fi
 
 if [ "$GIGASPACES_AGENT_ENV_JAVA_URL" = "NO_INSTALL" ]; then
 	echo "JDK will not be installed"
 else
-	echo Previous JAVA_HOME value -- $JAVA_HOME 
+	echo Previous JAVA_HOME value -- $JAVA_HOME
 	export GIGASPACES_ORIGINAL_JAVA_HOME=$JAVA_HOME
 
-	echo Downloading JDK from $GIGASPACES_AGENT_ENV_JAVA_URL    
-	wget -q -O $TEMP_DIR/java.bin $GIGASPACES_AGENT_ENV_JAVA_URL
-	chmod +x $TEMP_DIR/java.bin
-	echo -e "\n" > $TEMP_DIR/input.txt
-	mkdir $JAVA_DIR
-	cd $JAVA_DIR
-	
+	echo Downloading JDK from $GIGASPACES_AGENT_ENV_JAVA_URL
+	wget -q -O $WORKING_HOME_DIRECTORY/java.bin $GIGASPACES_AGENT_ENV_JAVA_URL || error_exit $? "Failed downloading Java installation from $GIGASPACES_AGENT_ENV_JAVA_URL"
+	chmod +x $WORKING_HOME_DIRECTORY/java.bin
+	echo -e "\n" > $WORKING_HOME_DIRECTORY/input.txt
+	rm -rf ~/java || error_exit $? "Failed removing old java installation directory"
+	mkdir ~/java
+	cd ~/java
+
 	echo Installing JDK
-	$TEMP_DIR/java.bin < $TEMP_DIR/input.txt > /dev/null
-	mv $JAVA_DIR/*/* $JAVA_DIR || error_exit $? "Failed moving JDK installation"
-    export JAVA_HOME=$JAVA_DIR
-fi  
+	$WORKING_HOME_DIRECTORY/java.bin < $WORKING_HOME_DIRECTORY/input.txt > /dev/null
+	mv ~/java/*/* ~/java || error_exit $? "Failed moving JDK installation"
+	rm -f $WORKING_HOME_DIRECTORY/input.txt
+    export JAVA_HOME=~/java
+fi
 
 export EXT_JAVA_OPTIONS="-Dcom.gs.multicast.enabled=false"
 
-# in some cases, it is easier to just push the cloudify installation over ssh
-# Use in conjunction with setting the cloudify url to an enpty string to skip downloading cloudify.
-if [ -f "$CONFIG_DIR/cloudify.tar.gz"]; then
-	cp $CONFIG_DIR/cloudify.tar.gz $TEMP_DIR/cloudify.tar.gz
-fi
-
 if [ ! -z "$GIGASPACES_LINK" ]; then
 	echo Downloading cloudify installation from $GIGASPACES_LINK.tar.gz
-	wget -q $GIGASPACES_LINK.tar.gz -O $TEMP_DIR/cloudify.tar.gz || error_exit $? "Failed downloading cloudify installation"
-fi
-
-if [ -f "$CONFIG_DIR/cloudify_overrides.tar.gz"]; then
-	cp $CONFIG_DIR/cloudify_overrides.tar.gz $TEMP_DIR/cloudify_overrides.tar.gz
+	wget -q $GIGASPACES_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz || error_exit $? "Failed downloading cloudify installation"
 fi
 
 if [ ! -z "$GIGASPACES_OVERRIDES_LINK" ]; then
 	echo Downloading cloudify overrides from $GIGASPACES_OVERRIDES_LINK.tar.gz
-	wget -q $GIGASPACES_OVERRIDES_LINK.tar.gz -O $TEMP_DIR/cloudify_overrides.tar.gz || error_exit $? "Failed downloading cloudify overrides"
+	wget -q $GIGASPACES_OVERRIDES_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz || error_exit $? "Failed downloading cloudify overrides"
 fi
 
-mkdir $CLOUDIFY_DIR || error_exit $? "Failed creating cloudify directory"
-	
-# 2 is the error level threshold. 1 means only warnings
-# this is needed for testing purposes on zip files created on the windows platform 
-tar xfz $TEMP_DIR/cloudify.tar.gz -C $CLOUDIFY_DIR || error_exit_on_level $? "Failed extracting cloudify installation" 2 
+# Todo: Check this condition
+if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -nt ~/gigaspaces ]; then
+	rm -rf ~/gigaspaces || error_exit $? "Failed removing old gigaspaces directory"
+	mkdir ~/gigaspaces || error_exit $? "Failed creating gigaspaces directory"
 
-chmod +x $CLOUDIFY_DIR/bin/* || error_exit $? "Failed changing permissions in cloudify installion"
-chmod +x $CLOUDIFY_DIR/tools/cli/* || error_exit $? "Failed changing permissions in cloudify installion"
-mv $CLOUDIFY_DIR/*/* $CLOUDIFY_DIR || error_exit $? "Failed moving cloudify installation"
-	
-if [ ! -z "$GIGASPACES_OVERRIDES_LINK" ]; then
-	echo Copying overrides into cloudify distribution
-	tar xfz $TEMP_DIR/gigaspaces_overrides.tar.gz -C $CLOUDIFY_DIR || error_exit_on_level $? "Failed extracting cloudify overrides" 2
+	# 2 is the error level threshold. 1 means only warnings
+	# this is needed for testing purposes on zip files created on the windows platform
+	tar xfz $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -C ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify installation" 2
+
+	# Todo: consider removing this line
+	chmod -R 777 ~/gigaspaces || error_exit $? "Failed changing permissions in cloudify installion"
+	mv ~/gigaspaces/*/* ~/gigaspaces || error_exit $? "Failed moving cloudify installation"
+
+	if [ ! -z "$GIGASPACES_OVERRIDES_LINK" ]; then
+		echo Copying overrides into cloudify distribution
+		tar xfz $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz -C ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify overrides" 2
+	fi
 fi
 
 # if an overrides directory exists, copy it into the cloudify distribution
 if [ -d $WORKING_HOME_DIRECTORY/cloudify-overrides ]; then
-	cp -rf $WORKING_HOME_DIRECTORY/cloudify-overrides/* $CLOUDIFY_DIR
+	cp -rf $WORKING_HOME_DIRECTORY/cloudify-overrides/* ~/gigaspaces
 fi
 
 # UPDATE SETENV SCRIPT...
 echo Updating environment script
-cd $CLOUDIFY_DIR/bin || error_exit $? "Failed changing directory to bin directory"
+cd ~/gigaspaces/bin || error_exit $? "Failed changing directory to bin directory"
 
+sed -i "2i . ${ENV_FILE_PATH}" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "2i export NIC_ADDR=$MACHINE_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "2i export LOOKUPLOCATORS=$LUS_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "2i export GIGASPACES_CLOUD_IMAGE_ID=$GIGASPACES_CLOUD_IMAGE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "2i export GIGASPACES_CLOUD_HARDWARE_ID=$GIGASPACES_CLOUD_HARDWARE_ID" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "2i export PATH=$JAVA_HOME/bin:$PATH" setenv.sh || error_exit $? "Failed updating setenv.sh"
 sed -i "2i export JAVA_HOME=$JAVA_HOME" setenv.sh || error_exit $? "Failed updating setenv.sh"
 
-# security config properties
 
-sed -i "2i export SPRING_PROFILES_ACTIVE=$SPRING_PROFILES_ACTIVE" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "2i export SPRING_SECURITY_CONFIG_FILE=$SPRING_SECURITY_CONFIG_FILE" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "2i export KEYSTORE_FILE=$KEYSTORE_FILE" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "2i export KEYSTORE_KEY=$KEYSTORE_KEY" setenv.sh || error_exit $? "Failed updating setenv.sh"
+# START AGENT ALONE OR WITH MANAGEMENT
+if [ -f nohup.out ]; then
+  rm nohup.out
+fi
+
+if [ -f nohup.out ]; then
+   error_exit 1 "Failed to remove nohup.out Probably used by another process"
+fi
 
 # Privileged mode handling
 if [ "$GIGASPACES_AGENT_ENV_PRIVILEGED" = "true" ]; then
@@ -180,7 +185,7 @@ if [ "$GIGASPACES_AGENT_ENV_PRIVILEGED" = "true" ]; then
 	else
 		sudo -n ls > /dev/null || error_exit_on_level $? "Current user is not a sudoer, or requires a password for sudo" 1
 	fi
-	
+
 	# now modify sudoers configuration to allow execution without tty
 	grep -i ubuntu /proc/version > /dev/null
 	if [ "$?" -eq "0" ]; then
@@ -208,28 +213,15 @@ fi
 if [ ! -z "$GIGASPACES_AGENT_ENV_INIT_COMMAND" ]; then
 	echo Executing initialization command
 	cd $WORKING_HOME_DIRECTORY
-	$SHELL -c $GIGASPACES_AGENT_ENV_INIT_COMMAND
+	$GIGASPACES_AGENT_ENV_INIT_COMMAND
 fi
 
-cd $CLOUDIFY_DIR/tools/cli || error_exit $? "Failed changing directory to cli directory"
-
-# START AGENT ALONE OR WITH MANAGEMENT
-if [ -f nohup.out ]; then
-  rm nohup.out
-fi
-
-if [ -f nohup.out ]; then
-   error_exit 1 "Failed to remove nohup.out Probably used by another process"
-fi
+cd ~/gigaspaces/tools/cli || error_exit $? "Failed changing directory to cli directory"
 
 START_COMMAND_ARGS="-timeout 30 --verbose -auto-shutdown"
 if [ "$GSA_MODE" = "agent" ]; then
 	ERRMSG="Failed starting agent"
 	START_COMMAND="start-agent"
-	# Check if there any zones to start the agent with
-	if [ ! -z "$MACHINE_ZONES" ]; then
-		START_COMMAND_ARGS="${START_COMMAND_ARGS} -zone ${MACHINE_ZONES}"
-	fi	
 else
 	ERRMSG="Failed starting management services"
 	START_COMMAND="start-management"
@@ -237,9 +229,12 @@ else
 	if [ "$NO_WEB_SERVICES" = "true" ]; then
 		START_COMMAND_ARGS="${START_COMMAND_ARGS} -no-web-services -no-management-space"
 	fi
-fi	
+fi
 
-nohup ./cloudify.sh $START_COMMAND $START_COMMAND_ARGS	
+# Execute post-bootstrap customization script if exists
+run_script "post-bootstrap"
+
+nohup ./cloudify.sh $START_COMMAND $START_COMMAND_ARGS
 
 RETVAL=$?
 echo cat nohup.out
