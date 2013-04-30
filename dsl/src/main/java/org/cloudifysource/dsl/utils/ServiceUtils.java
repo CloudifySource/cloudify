@@ -27,6 +27,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.tools.download.ResourceDownloader;
+import org.cloudifysource.dsl.internal.tools.download.ResourceDownloadFacade;
+import org.cloudifysource.dsl.internal.tools.download.ResourceDownloadFacadeImpl;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 import org.hyperic.sigar.ptql.ProcessFinder;
@@ -205,6 +208,17 @@ public final class ServiceUtils {
 				connection.disconnect();
 			}
 		}
+	}
+	
+	/**
+	 * returns an implementation of a {@link org.cloudifysource.dsl.internal.tools.download.ResourceDownloadFacade}
+	 * this utility exposed different get implementation and verification options.
+	 *  
+	 * @return
+	 * 		a new ResourceDownloaderFacade implementation.
+	 */
+	public static ResourceDownloadFacade getDownloadUtil() {
+		return new ResourceDownloadFacadeImpl(new ResourceDownloader());
 	}
 
 	/************
