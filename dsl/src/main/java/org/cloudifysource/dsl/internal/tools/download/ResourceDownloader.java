@@ -203,7 +203,7 @@ public class ResourceDownloader {
     			}
     		} catch (ResourceDownloadException e) {
     			logger.log(Level.WARNING, "Failed downloading resource on attempt " + attempt
-    					+ ". Reason was " + e.getMessage(), e);
+    					+ ". Reason was " + e.getMessage());
     			if (attempt == numberOfRetries) {
     				throw e;
     			}
