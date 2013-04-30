@@ -104,11 +104,12 @@ public class ResourceDownloadFacadeImpl implements ResourceDownloadFacade {
 		} catch (MalformedURLException e) {
 			throw new ResourceDownloadException("Failed initializing resource downloader.", e);
 		}
-
+		long timeoutInMillis = unit.toMillis(timeout);
+		
 		this.resourceDownloader.setUrl(downloadUrl);
 		this.resourceDownloader.setHashUrl(hashDownloadUrl);
 		this.resourceDownloader.setResourceDest(fileDestination);
-		this.resourceDownloader.setTimeoutInMillis(timeout);
+		this.resourceDownloader.setTimeoutInMillis(timeoutInMillis);
 		this.resourceDownloader.setSkipExisting(skipExisting);
 	}
 }
