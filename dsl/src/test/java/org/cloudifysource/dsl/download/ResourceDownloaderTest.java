@@ -183,7 +183,7 @@ public class ResourceDownloaderTest {
 		final File hashFile = new File(RESOURCE_FOLDER, hashFileName);
 		
 		downloader.setFormat(new MessageFormat("{0}"));
-		downloader.setDestFile(resourceFile);
+		downloader.setResourceDest(resourceFile);
 		//Expecting not to throw exception.
 		downloader.verifyResourceChecksum(hashFile);
 	}

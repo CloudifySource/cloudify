@@ -20,7 +20,6 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.MessageFormat;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -79,12 +78,12 @@ public class ResourceDownloader {
 		return this.resourceUrl;
 	}
 
-	public void setDestFile(final File resourceDest) {
+	public void setResourceDest(final File resourceDest) {
 		this.resourceDest = resourceDest;
 		
 	}
 
-	public File getDestFile() {
+	public File getResourceDest() {
 		return this.resourceDest;
 	}
 	
@@ -97,8 +96,8 @@ public class ResourceDownloader {
 		return this.hashUrl;
 	}
 
-	public void setTimeout(final long timeout, final TimeUnit unit) {
-		this.timeoutInMillis = unit.toMillis(timeout);
+	public void setTimeoutInMillis(final long timeout) {
+		this.timeoutInMillis = timeout;
 	}
 
 	public long getTimeoutInMillis() {
@@ -176,7 +175,9 @@ public class ResourceDownloader {
 	/**
 	 * 
 	 * @throws ResourceDownloadException
+	 * 			if download fails.
 	 * @throws TimeoutException
+	 * 			if timeout exceeded.
 	 */
     public void download()
     			throws ResourceDownloadException, TimeoutException {

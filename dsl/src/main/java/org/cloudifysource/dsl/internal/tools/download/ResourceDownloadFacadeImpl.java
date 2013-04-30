@@ -107,8 +107,8 @@ public class ResourceDownloadFacadeImpl implements ResourceDownloadFacade {
 
 		this.resourceDownloader.setUrl(downloadUrl);
 		this.resourceDownloader.setHashUrl(hashDownloadUrl);
-		this.resourceDownloader.setDestFile(fileDestination);
-		this.resourceDownloader.setTimeout(timeout, unit);
+		this.resourceDownloader.setResourceDest(fileDestination);
+		this.resourceDownloader.setTimeoutInMillis(timeout);
 		this.resourceDownloader.setSkipExisting(skipExisting);
 	}
 }
