@@ -918,7 +918,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		String region = JCloudsUtils.getEC2region(ec2Client, locationId);
 		Set<KeyPair> foundKeyPairs = ec2KeyPairClient.describeKeyPairsInRegion(region, keyPairName);
 		if (foundKeyPairs == null || foundKeyPairs.size() == 0 || foundKeyPairs.iterator().next() == null) {
-			throw new CloudProvisioningException("Invalid key-pair name: " + keyPairName);
+			throw new CloudProvisioningException(
+				"Key pair \"" + keyPairName + "\" is invalid or in the wrong availability zone");
 		}
 	}
 
@@ -929,7 +930,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		Predicate<org.jclouds.openstack.nova.v2_0.domain.KeyPair> keyPairNamePredicate =
 			org.jclouds.openstack.nova.v2_0.predicates.KeyPairPredicates.nameEquals(keyPairName);
 		if (!keyPairApi.list().anyMatch(keyPairNamePredicate)) {
-			throw new CloudProvisioningException("Invalid key-pair name: " + keyPairName);
+			throw new CloudProvisioningException(
+					"Key pair \"" + keyPairName + "\" is invalid or in the wrong availability zone");
 		}
 	}
 
