@@ -47,8 +47,11 @@ import org.openspaces.admin.gsa.GSAReservationId;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.gsa.GridServiceAgents;
 import org.openspaces.admin.gsa.events.ElasticGridServiceAgentProvisioningProgressChangedEventListener;
+import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.internal.gsa.InternalGridServiceAgent;
 import org.openspaces.admin.machine.events.ElasticMachineProvisioningProgressChangedEventListener;
+import org.openspaces.admin.pu.ProcessingUnit;
+import org.openspaces.admin.pu.ProcessingUnitInstance;
 import org.openspaces.admin.pu.elastic.ElasticMachineProvisioningConfig;
 import org.openspaces.admin.zone.config.ExactZonesConfig;
 import org.openspaces.admin.zone.config.ExactZonesConfigurer;
@@ -126,11 +129,12 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private ElasticMachineProvisioningProgressChangedEventListener machineEventListener;
 	private ElasticGridServiceAgentProvisioningProgressChangedEventListener agentEventListener;
 
-    private Admin getGlobalAdminInstance(final Admin esmAdminInstance) throws InterruptedException {
+    private Admin getGlobalAdminInstance(final Admin esmAdminInstance) throws InterruptedException, ElasticMachineProvisioningException {
 		synchronized (GLOBAL_ADMIN_MUTEX) {
 			if (globalAdminInstance == null) {
 				// create admin clone from esm instance
 				final AdminFactory factory = new AdminFactory();
+                factory.useDaemonThreads(true);
 				for (final String group : esmAdminInstance.getGroups()) {
 					factory.addGroup(group);
 				}
@@ -138,17 +142,69 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					factory.addLocator(locator.getHost() + ":" + locator.getPort());
 				}
 				globalAdminInstance = factory.createAdmin();
-				//wait a few seconds to allow the admin object to get synched
-				logger.info("waiting for admin object to sync: " + cloud.getConfiguration().getAdminLoadingTime() 
-						+ " seconds");
-				Thread.sleep(cloud.getConfiguration().getAdminLoadingTime() * MILLISECONDS_IN_SECOND);
+
+                // sync the newly created admin with the original admin passed on from the ESM.
+                waitForAgentsToBeDiscovered(esmAdminInstance, globalAdminInstance);
 			}
 
 			return globalAdminInstance;
 		}
 	}
 
-	@Override
+    private void waitForAgentsToBeDiscovered(final Admin esmAdminInstance, final Admin globalAdminInstance) throws InterruptedException, ElasticMachineProvisioningException {
+
+        final long endTime = System.currentTimeMillis() + cloud.getConfiguration().getAdminLoadingTime() * MILLISECONDS_IN_SECOND;
+        boolean esmAdminOk = false;
+        final Map<String, GridServiceContainer> undiscoveredAgentsContianersPerProcessingUnitInstanceName =
+                new HashMap<String, GridServiceContainer>();
+
+        while (System.currentTimeMillis() < endTime) {
+
+            if (!esmAdminOk) {
+                // Validate all agents have been discovered in the original esm admin.
+                for (ProcessingUnit pu : esmAdminInstance.getProcessingUnits()) {
+                    for (ProcessingUnitInstance instance : pu.getInstances()) {
+                        GridServiceContainer container = instance.getGridServiceContainer();
+                        if (container.getAgentId() != -1 && container.getGridServiceAgent() == null) {
+                            undiscoveredAgentsContianersPerProcessingUnitInstanceName.put(instance.getProcessingUnitInstanceName(), container);
+                        }
+                    }
+                }
+                if (undiscoveredAgentsContianersPerProcessingUnitInstanceName.isEmpty()) {
+                    esmAdminOk = true;
+                } else {
+                    logger.fine("Detected containers who's agent was not discovered yet");
+                    logContainers(undiscoveredAgentsContianersPerProcessingUnitInstanceName);
+                    logger.fine("Sleeping for 5 seconds");
+                    Thread.sleep(5000);
+                }
+            } else {
+                // Make sure all the agents from the esm admin are discovered in the new admin.
+                // this is the admin instance we pass on to the cloud driver to do state recovery.
+                Set<String> esmAdminAgentUids = esmAdminInstance.getGridServiceAgents().getUids().keySet();
+                Set<String> globalAdminAgentUids = globalAdminInstance.getGridServiceAgents().getUids().keySet();
+                if (!esmAdminAgentUids.equals(globalAdminAgentUids)) {
+                    logger.fine("Agents discovered by global admin instance are not "
+                            + "equal to the ones from the esm admin. Sleeping for 5 seconds");
+                    Thread.sleep(5000);
+
+                }
+            }
+        }
+        throw new ElasticMachineProvisioningException("Cannot start a new machine when the admin has not been synced properly");
+
+    }
+
+    private void logContainers(final Map<String, GridServiceContainer> undiscoveredAgentsContainersPerProcessingUnitInstanceName) {
+        for (Map.Entry<String, GridServiceContainer> entry : undiscoveredAgentsContainersPerProcessingUnitInstanceName.entrySet()) {
+            final GridServiceContainer container = entry.getValue();
+            final String processingUnitInstanceName = entry.getKey();
+            logger.fine("GridServiceContainer[uid=" + container.getUid() + "] agentId=[" + container.getAgentId()
+                    + "] processingUnitInstanceName=[" + processingUnitInstanceName + "]");
+        }
+    }
+
+    @Override
 	public boolean isStartMachineSupported() {
 		return true;
 	}
