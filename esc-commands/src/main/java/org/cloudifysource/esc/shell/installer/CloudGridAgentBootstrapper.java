@@ -685,6 +685,7 @@ public class CloudGridAgentBootstrapper {
 				.newFixedThreadPool(numOfManagementMachines);
 
 		final BootstrapLogsFilters bootstrapLogs = new BootstrapLogsFilters(verbose);
+		
 		try {
 
 			bootstrapLogs.applyLogFilters();
@@ -928,13 +929,15 @@ public class CloudGridAgentBootstrapper {
 			}
 			validationContext.validationEventEnd(ValidationResultType.OK);
 		} catch (ClientProtocolException e) {
-			System.out.println("Failed to validate Cloudify URL: " + cloudifyUrl);
+			validationContext.validationOngoingEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
+					" Unable to validate URL");
 			validationContext.validationEventEnd(ValidationResultType.WARNING);
-			logger.info("Failed to validate Cloudify URL: " + cloudifyUrl);
+			logger.fine("Failed to validate Cloudify URL: " + cloudifyUrl);
 		} catch (IOException e) {
-			System.out.println("Failed to validate Cloudify URL: " + cloudifyUrl);
+			validationContext.validationOngoingEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
+					" Unable to validate URL");
 			validationContext.validationEventEnd(ValidationResultType.WARNING);
-			logger.info("Failed to validate Cloudify URL:  " + cloudifyUrl);
+			logger.fine("Failed to validate Cloudify URL: " + cloudifyUrl);
 		}
 	}
 	
