@@ -17,7 +17,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Logger;
 
 /**
  *  This class implements the {@link org.cloudifysource.dsl.internal.tools.download.ResourceDownloadFacade}
