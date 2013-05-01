@@ -17,7 +17,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -32,9 +31,6 @@ import java.util.logging.Logger;
  */
 public class ResourceDownloadFacadeImpl implements ResourceDownloadFacade {
 
-	private static final Logger logger = Logger
-			.getLogger(ResourceDownloadFacadeImpl.class.getName());
-	
 	private final long DEFAULT_DOWNLOAD_TIMEOUT_MILLIS = 600000;
 	private final boolean DEFAULT_SKIP_EXISTING = true;
 
@@ -84,7 +80,6 @@ public class ResourceDownloadFacadeImpl implements ResourceDownloadFacade {
 	public void get(final String urlString, final String fileDest, final boolean skipExisting,
 			final String hashUrl, final long timeout, final TimeUnit unit)
 					throws ResourceDownloadException, TimeoutException {
-		logger.log(Level.INFO, "Starting download from " + urlString);
 		initRecourceDownloader(urlString, fileDest, skipExisting, hashUrl, timeout, unit);
 		start();
 	}
@@ -92,20 +87,22 @@ public class ResourceDownloadFacadeImpl implements ResourceDownloadFacade {
 	private void initRecourceDownloader(final String urlString, final String fileDest, 
 			final boolean skipExisting, final String hashUrl, final long timeout, final TimeUnit unit) 
 					throws ResourceDownloadException {
-		
 		URL downloadUrl = null;
 		URL hashDownloadUrl = null;
-		File fileDestination = new File(fileDest);
+		final File fileDestination = new File(fileDest);
 		try {
 			downloadUrl = new URL(urlString);
-			if (hashUrl != null) {
-				hashDownloadUrl = new URL(hashUrl);
-			}
 		} catch (MalformedURLException e) {
-			throw new ResourceDownloadException("Failed initializing resource downloader.", e);
+			throw new ResourceDownloadException("Failed constructing url " + urlString, e);
 		}
-		long timeoutInMillis = unit.toMillis(timeout);
-		
+		if (hashUrl != null) {
+			try {
+				hashDownloadUrl = new URL(hashUrl);
+			} catch (MalformedURLException e) {
+				throw new ResourceDownloadException("Failed constructing url " + hashUrl, e);
+			}
+		}
+		final long timeoutInMillis = unit.toMillis(timeout);
 		this.resourceDownloader.setUrl(downloadUrl);
 		this.resourceDownloader.setHashUrl(hashDownloadUrl);
 		this.resourceDownloader.setResourceDest(fileDestination);
