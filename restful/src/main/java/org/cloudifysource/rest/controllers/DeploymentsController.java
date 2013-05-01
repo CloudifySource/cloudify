@@ -1,26 +1,40 @@
 /*******************************************************************************
  * Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.rest.controllers;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.cloudifysource.dsl.ComputeDetails;
+import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
+import org.cloudifysource.dsl.internal.DSLException;
+import org.cloudifysource.dsl.internal.DSLUtils;
+import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.internal.packaging.Packager;
+import org.cloudifysource.dsl.internal.packaging.PackagingException;
+import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
 import org.cloudifysource.dsl.rest.request.SetApplicationAttributesRequest;
 import org.cloudifysource.dsl.rest.request.SetServiceAttributesRequest;
 import org.cloudifysource.dsl.rest.request.SetServiceInstanceAttributesRequest;
@@ -31,6 +45,7 @@ import org.cloudifysource.dsl.rest.response.DeleteServiceInstanceAttributeRespon
 import org.cloudifysource.dsl.rest.response.GetApplicationAttributesResponse;
 import org.cloudifysource.dsl.rest.response.GetServiceAttributesResponse;
 import org.cloudifysource.dsl.rest.response.GetServiceInstanceAttributesResponse;
+import org.cloudifysource.dsl.rest.response.InstallServiceResponse;
 import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.dsl.rest.response.ServiceDetails;
 import org.cloudifysource.dsl.rest.response.ServiceInstanceDetails;
@@ -38,10 +53,17 @@ import org.cloudifysource.dsl.rest.response.ServiceInstanceMetricsData;
 import org.cloudifysource.dsl.rest.response.ServiceInstanceMetricsResponse;
 import org.cloudifysource.dsl.rest.response.ServiceMetricsResponse;
 import org.cloudifysource.dsl.utils.ServiceUtils;
+import org.cloudifysource.rest.RestConfiguration;
 import org.cloudifysource.rest.interceptors.ApiVersionValidationAndRestResponseBuilderInterceptor;
+import org.cloudifysource.rest.repo.UploadRepo;
+import org.cloudifysource.rest.util.IsolationUtils;
+import org.cloudifysource.rest.validators.InstallServiceValidationContext;
+import org.cloudifysource.rest.validators.InstallServiceValidator;
+import org.cloudifysource.restclient.StringUtils;
 import org.openspaces.admin.application.Application;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,16 +71,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
- * This controller is responsible for retrieving information about deployments.
- * It is also the entry point for deploying services and application. <br>
+ * This controller is responsible for retrieving information about deployments. It is also the entry point for deploying
+ * services and application. <br>
  * <br>
- * The response body will always return in a JSON representation of the
- * {@link Response} Object. <br>
- * A controller method may return the {@link Response} Object directly. in this
- * case this return value will be used as the response body. Otherwise, an
- * implicit wrapping will occur. the return value will be inserted into
- * {@code Response#setResponse(Object)}. other fields of the {@link Response}
- * object will be filled with default values. <br>
+ * The response body will always return in a JSON representation of the {@link Response} Object. <br>
+ * A controller method may return the {@link Response} Object directly. in this case this return value will be used as
+ * the response body. Otherwise, an implicit wrapping will occur. the return value will be inserted into
+ * {@code Response#setResponse(Object)}. other fields of the {@link Response} object will be filled with default values. <br>
  * <h1>Important</h1> {@code @ResponseBody} annotations are not permitted. <br>
  * <br>
  * <h1>Possible return values</h1> 200 - OK<br>
@@ -79,32 +98,38 @@ public class DeploymentsController extends BaseRestContoller {
 	private static final Logger logger = Logger
 			.getLogger(DeploymentsController.class.getName());
 
+	@Autowired
+	private UploadRepo repo;
+
+	@Autowired
+	private RestConfiguration restConfig;
+
+	@Autowired
+	private final InstallServiceValidator[] installServiceValidators = new InstallServiceValidator[0];
+
 	/**
-	 * This method provides metadata about a service belonging to a specific
-	 * application.
+	 * This method provides metadata about a service belonging to a specific application.
 	 * 
 	 * @param appName
 	 *            - the application name the service belongs to.
 	 * @param serviceName
 	 *            - the service name.
-	 * @return - A {@link ServiceDetails} instance containing various metadata
-	 *         about the service.
+	 * @return - A {@link ServiceDetails} instance containing various metadata about the service.
 	 * @throws RestErrorException
-	 *             - In case an error happened while trying to retrieve the
-	 *             service.
+	 *             - In case an error happened while trying to retrieve the service.
 	 */
 	@RequestMapping(value = "/{appName}/service/{serviceName}/metadata", method = RequestMethod.GET)
 	public ServiceDetails getServiceDetails(@PathVariable final String appName,
 			@PathVariable final String serviceName) throws RestErrorException {
 
-		Application application = admin.getApplications().waitFor(appName,
+		final Application application = admin.getApplications().waitFor(appName,
 				DEFAULT_ADMIN_WAITING_TIMEOUT, TimeUnit.SECONDS);
 		if (application == null) {
 			throw new RestErrorException(
 					CloudifyMessageKeys.APPLICATION_WAIT_TIMEOUT.getName(),
 					appName, DEFAULT_ADMIN_WAITING_TIMEOUT, TimeUnit.SECONDS);
 		}
-		ProcessingUnit processingUnit = application.getProcessingUnits()
+		final ProcessingUnit processingUnit = application.getProcessingUnits()
 				.waitFor(ServiceUtils.getAbsolutePUName(appName, serviceName),
 						DEFAULT_ADMIN_WAITING_TIMEOUT, TimeUnit.SECONDS);
 		if (processingUnit == null) {
@@ -114,14 +139,14 @@ public class DeploymentsController extends BaseRestContoller {
 					TimeUnit.SECONDS);
 		}
 
-		ServiceDetails serviceDetails = new ServiceDetails();
+		final ServiceDetails serviceDetails = new ServiceDetails();
 		serviceDetails.setName(serviceName);
 		serviceDetails.setApplicationName(appName);
 		serviceDetails
 				.setNumberOfInstances(processingUnit.getInstances().length);
 
-		List<String> instanceNaems = new ArrayList<String>();
-		for (ProcessingUnitInstance instance : processingUnit.getInstances()) {
+		final List<String> instanceNaems = new ArrayList<String>();
+		for (final ProcessingUnitInstance instance : processingUnit.getInstances()) {
 			instanceNaems.add(instance.getProcessingUnitInstanceName());
 		}
 		serviceDetails.setInstanceNames(instanceNaems);
@@ -130,14 +155,14 @@ public class DeploymentsController extends BaseRestContoller {
 	}
 
 	/**
-	 * This method sets the given attributes to the application scope. Note that
-	 * this action is Update or write. so the given attribute may not pre-exist.
+	 * This method sets the given attributes to the application scope. Note that this action is Update or write. so the
+	 * given attribute may not pre-exist.
 	 * 
 	 * @param appName
 	 *            - the application name.
 	 * @param attributesRequest
-	 *            - An instance of {@link SetApplicationAttributesRequest} (as
-	 *            JSON) that holds the requested attributes.
+	 *            - An instance of {@link SetApplicationAttributesRequest} (as JSON) that holds the requested
+	 *            attributes.
 	 * @throws RestErrorException
 	 *             rest error exception
 	 */
@@ -171,8 +196,7 @@ public class DeploymentsController extends BaseRestContoller {
 	 *            - the instance id.
 	 * @param attributeName
 	 *            - the required attribute to delete.
-	 * @return - A {@link DeleteServiceInstanceAttributeResponse} instance  it holds the
-	 *         deleted attribute previous value
+	 * @return - A {@link DeleteServiceInstanceAttributeResponse} instance it holds the deleted attribute previous value
 	 * @throws RestErrorException
 	 *             rest error exception when application , service not exist
 	 */
@@ -196,11 +220,11 @@ public class DeploymentsController extends BaseRestContoller {
 		}
 
 		// get delete attribute returned previous value
-		Object previous = deleteAttribute(appName, serviceName, instanceId,
+		final Object previous = deleteAttribute(appName, serviceName, instanceId,
 				attributeName);
 
 		// create response object
-		DeleteServiceInstanceAttributeResponse siar = new DeleteServiceInstanceAttributeResponse();
+		final DeleteServiceInstanceAttributeResponse siar = new DeleteServiceInstanceAttributeResponse();
 		// set previous value
 		siar.setPreviousValue(previous);
 		// return response object
@@ -208,10 +232,8 @@ public class DeploymentsController extends BaseRestContoller {
 
 	}
 
-
 	/******
-	 * get service instance details. provides metadata about an instance with
-	 * given application , service name
+	 * get service instance details. provides metadata about an instance with given application , service name
 	 * 
 	 * @param appName
 	 *            the application name
@@ -230,14 +252,14 @@ public class DeploymentsController extends BaseRestContoller {
 			@PathVariable final Integer instanceId) throws RestErrorException {
 
 		// get processingUnit instance
-		ProcessingUnitInstance pui = getServiceInstance(appName, serviceName,
+		final ProcessingUnitInstance pui = getServiceInstance(appName, serviceName,
 				instanceId);
 
 		// get USM details
-		org.openspaces.pu.service.ServiceDetails usmDetails = pui
+		final org.openspaces.pu.service.ServiceDetails usmDetails = pui
 				.getServiceDetailsByServiceId("USM");
 		// get attributes details
-		Map<String, Object> puiAttributes = usmDetails.getAttributes();
+		final Map<String, Object> puiAttributes = usmDetails.getAttributes();
 
 		// get private ,public IP
 		final String privateIp = getServiceInstanceEnvVarible(pui,
@@ -256,7 +278,7 @@ public class DeploymentsController extends BaseRestContoller {
 				CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME);
 
 		// return new instance
-		ServiceInstanceDetails sid = new ServiceInstanceDetails();
+		final ServiceInstanceDetails sid = new ServiceInstanceDetails();
 		// set service instance details
 		sid.setApplicationName(appName);
 		sid.setServiceName(serviceName);
@@ -292,12 +314,137 @@ public class DeploymentsController extends BaseRestContoller {
 	 * Installs an service.
 	 * 
 	 * @param appName
+	 *            the application name.
+	 * @param serviceName
 	 *            the service name.
-	 * @return
+	 * @param request
+	 *            the install-service request.
+	 * @return {@link InstallServiceResponse} contains the lifecycleEventContainerID.
+	 * @throws RestErrorException .
 	 */
-	@RequestMapping(value = "/{appName}/services", method = RequestMethod.POST)
-	public void installService(@PathVariable final String appName) {
-		throwUnsupported();
+	@RequestMapping(value = "/{appName}/services/{serviceName}", method = RequestMethod.POST)
+	public InstallServiceResponse installService(
+			@PathVariable final String appName,
+			@PathVariable final String serviceName,
+			final InstallServiceRequest request) throws RestErrorException {
+
+		final String absolutePuName = ServiceUtils.getAbsolutePUName(appName, serviceName);
+
+		final File srcFile = repo.get(request.getUploadKey());
+		File serviceDir = null;
+		try {
+			// unzip srcFile into a new directory named absolutePuName under baseDir.
+			serviceDir = ServiceReader.extractProjectFileToDir(srcFile, absolutePuName, repo.getBaseDir());
+		} catch (final IOException e1) {
+			// TODO Add error massage. 
+			throw new RestErrorException("");
+		}
+
+		File editSrcFile = srcFile;
+		
+		mergeOverridesWithProperties(request, serviceDir);
+	
+		try {
+			editSrcFile = Packager.createZipFile("temp", serviceDir);
+		} catch (IOException e1) {
+			// TODO Add error massage. 
+			throw new RestErrorException("");
+		}
+		
+		// Use service reader to read the service
+		Service service = null;
+		try {
+			service = ServiceReader.readService(editSrcFile);
+		} catch (final DSLException e) {
+			// TODO Add error massage. 
+			throw new RestErrorException("");
+		} catch (final PackagingException e) {
+			// TODO Add error massage. 
+			throw new RestErrorException("");
+		}
+
+		// update template name
+		String templateName = getTempalteNameFromService(service);
+
+		// TODO update/create props file
+		
+		// validate
+		validateInstallService(absolutePuName, request, service, templateName);
+
+		// TODO call doDeploy
+		
+		InstallServiceResponse installServiceResponse = new InstallServiceResponse();
+		String lifecycleEventContainerID = "";
+		// TODO update lifecycleEventContainerID
+		installServiceResponse.setLifecycleEventContainerID(lifecycleEventContainerID);
+		return installServiceResponse;
+
+	}
+
+	private String getTempalteNameFromService(final Service service) {
+		String templateName = null;
+		final ComputeDetails compute = service.getCompute();
+		if (compute != null) {
+			templateName = compute.getTemplate();
+		}
+		if (templateName == null) {
+			if (IsolationUtils.isGlobal(service) && IsolationUtils.isUseManagement(service)) {
+				templateName = restConfig.getDefaultTemplateName();
+			}
+			templateName = restConfig.getDefaultTemplateName();
+		}
+		return templateName;
+	}
+
+	private void mergeOverridesWithProperties(final InstallServiceRequest request, final File serviceDir) 
+			throws RestErrorException {
+		String serviceOverrides = request.getServiceOverrides();
+		// check if merge is necessary
+		if (StringUtils.notEmpty(serviceOverrides)) {
+			// get properties file from working directory
+			final File workingProjectDir = new File(serviceDir, "ext");
+			final String propertiesFileName = 
+					DSLUtils.getPropertiesFileName(workingProjectDir, DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
+			final File servicePropertiesFile = new File(workingProjectDir, propertiesFileName);
+			// load properties
+			Properties serviceProperties = new Properties();
+			FileInputStream inStream;
+			try {
+				// create new properties file if needed
+				if (!servicePropertiesFile.exists()) {
+					servicePropertiesFile.createNewFile();
+				}
+				inStream = new FileInputStream(servicePropertiesFile);
+				serviceProperties.load(inStream);
+				// add/update properties from overrides
+				String[] serviceOverridesProeprties = serviceOverrides.split(",");
+				for (String keyValuePairStr : serviceOverridesProeprties) {
+					String[] keyValuePair = keyValuePairStr.split("=");
+					serviceProperties.setProperty(keyValuePair[0].trim(), keyValuePair[1].trim());
+				}
+				// store
+				serviceProperties.store(new FileOutputStream(servicePropertiesFile), null);
+			} catch (FileNotFoundException e2) {
+				// TODO Add error massage. 
+				throw new RestErrorException("");
+			} catch (IOException e) {
+				// TODO Add error massage. 
+				throw new RestErrorException("");
+			}
+		}
+	}
+
+	private void validateInstallService(final String absolutePuName, final InstallServiceRequest request,
+			final Service service, final String templateName) throws RestErrorException {
+		final InstallServiceValidationContext validationContext = new InstallServiceValidationContext();
+		validationContext.setAbsolutePuName(absolutePuName);
+		validationContext.setCloud(restConfig.getCloud());
+		validationContext.setRequest(request);
+		validationContext.setService(service);
+		validationContext.setTemplateName(templateName);
+		for (final InstallServiceValidator validator : installServiceValidators) {
+			validator.validate(validationContext);
+		}
 	}
 
 	/******
@@ -388,8 +535,7 @@ public class DeploymentsController extends BaseRestContoller {
 	 * @param attributeName
 	 *            the attribute name
 	 * @param updateApplicationAttributeRequest
-	 *            update application attribute request
-	 *            {@link updateApplicationAttributeRequest}
+	 *            update application attribute request {@link updateApplicationAttributeRequest}
 	 */
 	@RequestMapping(value = "/{appName}/attributes/{attributeName}", method = RequestMethod.PUT)
 	public void updateApplicationAttribute(
@@ -405,8 +551,7 @@ public class DeploymentsController extends BaseRestContoller {
 	 * 
 	 * @param appName
 	 *            the application name
-	 * @return {@link ApplicationAttributesResponse} application attribute
-	 *         response
+	 * @return {@link ApplicationAttributesResponse} application attribute response
 	 * @throws RestErrorException
 	 *             when application not exist
 	 */
@@ -423,10 +568,10 @@ public class DeploymentsController extends BaseRestContoller {
 		}
 
 		// get attributes
-		Map<String, Object> attributes = getAttributes(appName, null, null);
+		final Map<String, Object> attributes = getAttributes(appName, null, null);
 
 		// create response object
-		GetApplicationAttributesResponse aar = new GetApplicationAttributesResponse();
+		final GetApplicationAttributesResponse aar = new GetApplicationAttributesResponse();
 		// set attributes
 		aar.setAttributes(attributes);
 		return aar;
@@ -458,11 +603,11 @@ public class DeploymentsController extends BaseRestContoller {
 					+ attributeName + " of application " + appName);
 		}
 
-		// delete attribute returned previous value 
-		Object previousValue = deleteAttribute(appName, null,
+		// delete attribute returned previous value
+		final Object previousValue = deleteAttribute(appName, null,
 				null, attributeName);
 
-		DeleteApplicationAttributeResponse daar = new DeleteApplicationAttributeResponse();
+		final DeleteApplicationAttributeResponse daar = new DeleteApplicationAttributeResponse();
 		daar.setPreviousValue(previousValue);
 
 		return daar;
@@ -496,11 +641,11 @@ public class DeploymentsController extends BaseRestContoller {
 		}
 
 		// get attributes
-		Map<String, Object> attributes = getAttributes(appName, serviceName,
+		final Map<String, Object> attributes = getAttributes(appName, serviceName,
 				null);
 
 		// create response object
-		GetServiceAttributesResponse sar = new GetServiceAttributesResponse();
+		final GetServiceAttributesResponse sar = new GetServiceAttributesResponse();
 		// set attributes
 		sar.setAttributes(attributes);
 		// return response object
@@ -576,8 +721,7 @@ public class DeploymentsController extends BaseRestContoller {
 	 *            attribute name to delete
 	 * @return {@link DeleteServiceAttributeResponse}
 	 * @throws RestErrorException
-	 *             when attribute name is empty,null  or application name
-	 *             ,service not exist
+	 *             when attribute name is empty,null or application name ,service not exist
 	 */
 	@RequestMapping(value = "/{appName}/service/{serviceName}/attributes/{attributeName}", method = RequestMethod.DELETE)
 	public DeleteServiceAttributeResponse deleteServiceAttribute(
@@ -597,13 +741,13 @@ public class DeploymentsController extends BaseRestContoller {
 					+ " of application " + appName);
 		}
 
-		// get delete attribute returned previous value 
-		Object previous = deleteAttribute(appName,
+		// get delete attribute returned previous value
+		final Object previous = deleteAttribute(appName,
 				serviceName, null, attributeName);
 
 		// create response object
-		DeleteServiceAttributeResponse sar = new DeleteServiceAttributeResponse();
-		// set previous value 
+		final DeleteServiceAttributeResponse sar = new DeleteServiceAttributeResponse();
+		// set previous value
 		sar.setPreviousValue(previous);
 		// return response object
 		return sar;
@@ -642,10 +786,10 @@ public class DeploymentsController extends BaseRestContoller {
 		}
 
 		// get attributes
-		Map<String, Object> attributes = getAttributes(appName, serviceName,
+		final Map<String, Object> attributes = getAttributes(appName, serviceName,
 				instanceId);
 		// create response object
-		GetServiceInstanceAttributesResponse siar = new GetServiceInstanceAttributesResponse();
+		final GetServiceInstanceAttributesResponse siar = new GetServiceInstanceAttributesResponse();
 		// set attributes
 		siar.setAttributes(attributes);
 		// return response object
@@ -736,15 +880,16 @@ public class DeploymentsController extends BaseRestContoller {
 			@PathVariable final String serviceName) throws RestErrorException {
 
 		// service instances metrics data
-		List<ServiceInstanceMetricsData> serviceInstanceMetricsDatas = new ArrayList<ServiceInstanceMetricsData>();
+		final List<ServiceInstanceMetricsData> serviceInstanceMetricsDatas =
+				new ArrayList<ServiceInstanceMetricsData>();
 
 		// get service
-		ProcessingUnit service = getService(appName, serviceName);
+		final ProcessingUnit service = getService(appName, serviceName);
 
 		// set metrics for every instance
-		for (ProcessingUnitInstance serviceInstance : service.getInstances()) {
+		for (final ProcessingUnitInstance serviceInstance : service.getInstances()) {
 
-			Map<String, Object> metrics = serviceInstance.getStatistics()
+			final Map<String, Object> metrics = serviceInstance.getStatistics()
 					.getMonitors().get("USM").getMonitors();
 			serviceInstanceMetricsDatas.add(new ServiceInstanceMetricsData(
 					serviceInstance.getInstanceId(), metrics));
@@ -752,7 +897,7 @@ public class DeploymentsController extends BaseRestContoller {
 		}
 
 		// create response instance
-		ServiceMetricsResponse smr = new ServiceMetricsResponse();
+		final ServiceMetricsResponse smr = new ServiceMetricsResponse();
 		smr.setAppName(appName);
 		smr.setServiceInstaceMetricsData(serviceInstanceMetricsDatas);
 		smr.setServiceName(serviceName);
@@ -770,8 +915,7 @@ public class DeploymentsController extends BaseRestContoller {
 	 *            the service name
 	 * @param instanceId
 	 *            the instance name
-	 * @return ServiceInstanceMetricsResponse
-	 *         {@link ServiceInstanceMetricsResponse}
+	 * @return ServiceInstanceMetricsResponse {@link ServiceInstanceMetricsResponse}
 	 * @throws RestErrorException
 	 *             rest error exception
 	 */
@@ -782,18 +926,18 @@ public class DeploymentsController extends BaseRestContoller {
 			@PathVariable final Integer instanceId) throws RestErrorException {
 
 		// get service instance
-		ProcessingUnitInstance serviceInstance = getServiceInstance(appName,
+		final ProcessingUnitInstance serviceInstance = getServiceInstance(appName,
 				serviceName, instanceId);
 
 		// get metrics data
-		Map<String, Object> metrics = serviceInstance.getStatistics()
+		final Map<String, Object> metrics = serviceInstance.getStatistics()
 				.getMonitors().get("USM").getMonitors();
 
-		ServiceInstanceMetricsData serviceInstanceMetricsData = new ServiceInstanceMetricsData(
+		final ServiceInstanceMetricsData serviceInstanceMetricsData = new ServiceInstanceMetricsData(
 				instanceId, metrics);
 
 		// create response object
-		ServiceInstanceMetricsResponse simr = new ServiceInstanceMetricsResponse();
+		final ServiceInstanceMetricsResponse simr = new ServiceInstanceMetricsResponse();
 
 		// set response data
 		simr.setAppName(appName);
@@ -864,6 +1008,14 @@ public class DeploymentsController extends BaseRestContoller {
 	public void getServiceAlerts(@PathVariable final String appName,
 			@PathVariable final String serviceName) {
 		throwUnsupported();
+	}
+
+	public UploadRepo getRepo() {
+		return repo;
+	}
+
+	public void setRepo(final UploadRepo repo) {
+		this.repo = repo;
 	}
 
 }
