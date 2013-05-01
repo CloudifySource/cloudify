@@ -61,16 +61,32 @@ public final class ServiceReader {
 	 */
 	public static File extractProjectFile(final File projectZipFile)
 			throws IOException {
-
+		return extractProjectFileToDir(projectZipFile, "gs_usm_", null);
+	}
+	
+	/**
+	 * 
+	 * @param zipFile 
+	 * 			The file to unzip.
+	 * @param projectDirName 
+	 * 			The name of the project directory.
+	 * @param parentDir 
+	 * 			The directory in which the projectDir is to be created, 
+	 * 			or null if the default temporary-file directory is to be used.
+	 * @return
+	 * @throws IOException
+	 */
+	public static File extractProjectFileToDir(final File zipFile, final String projectDirName, 
+			final File parentDir) throws IOException {
 		File destFolder = null;
-		destFolder = File.createTempFile("gs_usm_", "");
+		destFolder = File.createTempFile(projectDirName, "", parentDir);
 		FileUtils.forceDelete(destFolder);
 		FileUtils.forceMkdir(destFolder);
 
-		ZipUtils.unzip(projectZipFile, destFolder);
+		ZipUtils.unzip(zipFile, destFolder);
 
 		return destFolder;
-
+		
 	}
 
 	/**

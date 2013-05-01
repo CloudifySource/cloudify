@@ -33,7 +33,6 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Component
 public class UploadRepo {
-//	@Value(value = "${upload.cleanupTimeoutSeconds}")
 	private int cleanupTimeoutSeconds = CloudifyConstants.DEFAULT_UPLOAD_TIMEOUT_SECOND;
 	private File baseDir = new File(CloudifyConstants.TEMP_FOLDER);
 	private ScheduledExecutorService executor;

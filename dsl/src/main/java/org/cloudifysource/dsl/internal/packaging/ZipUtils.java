@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.dsl.internal.packaging;
 
@@ -48,9 +45,12 @@ public final class ZipUtils {
 	/***********
 	 * Zips a single source file into the given file.
 	 * 
-	 * @param sourceFile the file to zip.
-	 * @param zipfile the zip file to create.
-	 * @throws IOException in case of an error.
+	 * @param sourceFile
+	 *            the file to zip.
+	 * @param zipfile
+	 *            the zip file to create.
+	 * @throws IOException
+	 *             in case of an error.
 	 */
 	public static void zipSingleFile(final File sourceFile, final File zipfile)
 			throws IOException {
@@ -82,9 +82,12 @@ public final class ZipUtils {
 	/***********
 	 * Zips a directory into the given file.
 	 * 
-	 * @param directory the directory to zip.
-	 * @param zipfile the zip file to create.
-	 * @throws IOException in case of an error.
+	 * @param directory
+	 *            the directory to zip.
+	 * @param zipfile
+	 *            the zip file to create.
+	 * @throws IOException
+	 *             in case of an error.
 	 */
 	public static void zip(final File directory, final File zipfile)
 			throws IOException {
@@ -122,49 +125,59 @@ public final class ZipUtils {
 	/*************
 	 * Unzip the given zip file into the specified directory.
 	 * 
-	 * @param zipfile the zip file.
-	 * @param directory the target directory.
+	 * @param zipfile
+	 *            the zip file.
+	 * @param directory
+	 *            the target directory.
 	 * @throws IOException .
 	 */
 	public static void unzip(final File zipfile, final File directory)
 			throws IOException {
 		final ZipFile zfile = new ZipFile(zipfile);
-		final Enumeration<? extends ZipEntry> entries = zfile.entries();
-		while (entries.hasMoreElements()) {
-			final ZipEntry entry = entries.nextElement();
-			final File file = new File(directory, entry.getName());
-			if (entry.isDirectory()) {
-				final boolean mkdirs = file.mkdirs();
-				if (!mkdirs) {
-					zfile.close();
-					throw new IllegalStateException("cant create dir" + file.getAbsolutePath());
-				}
-			} else {
-				if (!file.getParentFile().exists()) {
-					final boolean mkdirs = file.getParentFile().mkdirs();
+		try {
+			final Enumeration<? extends ZipEntry> entries = zfile.entries();
+			while (entries.hasMoreElements()) {
+				final ZipEntry entry = entries.nextElement();
+				final File file = new File(directory, entry.getName());
+				if (entry.isDirectory()) {
+					final boolean mkdirs = file.mkdirs();
 					if (!mkdirs) {
 						zfile.close();
-						throw new IllegalStateException("cant create dir" + file.getParentFile().getAbsolutePath());
+						throw new IllegalStateException("cant create dir" + file.getAbsolutePath());
+					}
+				} else {
+					if (!file.getParentFile().exists()) {
+						final boolean mkdirs = file.getParentFile().mkdirs();
+						if (!mkdirs) {
+							zfile.close();
+							throw new IllegalStateException("cant create dir" + file.getParentFile().getAbsolutePath());
+						}
+					}
+					final InputStream in = zfile.getInputStream(entry);
+					try {
+						copy(in, file);
+					} finally {
+						in.close();
 					}
 				}
-				final InputStream in = zfile.getInputStream(entry);
-				try {
-					copy(in, file);
-				} finally {
-					in.close();
-				}
 			}
+		} finally {
+			zfile.close();
 		}
 	}
 
 	/***************
-	 * Unzips a specific entry from a zip file to a temporary directory. 
+	 * Unzips a specific entry from a zip file to a temporary directory.
 	 * 
-	 * @param zipfile the zip file.
-	 * @param entryName the entry to unzip.
-	 * @param fileName the file name of the created file, which will be placed in a directory.
+	 * @param zipfile
+	 *            the zip file.
+	 * @param entryName
+	 *            the entry to unzip.
+	 * @param fileName
+	 *            the file name of the created file, which will be placed in a directory.
 	 * @return the unzipped file matching the entry, or null if the entry name was not found.
-	 * @throws IOException if an error occured.
+	 * @throws IOException
+	 *             if an error occured.
 	 * 
 	 */
 	public static File unzipEntry(final File zipfile, final String entryName, final String fileName)
