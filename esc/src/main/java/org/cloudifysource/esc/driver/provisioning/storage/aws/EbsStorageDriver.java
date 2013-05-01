@@ -15,16 +15,13 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.storage.aws;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.IOException;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
+import com.google.common.base.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
@@ -33,11 +30,13 @@ import org.cloudifysource.esc.driver.provisioning.storage.BaseStorageDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.storage.VolumeDetails;
+import org.cloudifysource.esc.jclouds.JCloudsDeployer;
 import org.cloudifysource.esc.util.JCloudsUtils;
 import org.jclouds.ContextBuilder;
 import org.jclouds.aws.ec2.compute.AWSEC2ComputeServiceContext;
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.ComputeServiceContext;
+import org.jclouds.compute.domain.ComputeMetadata;
 import org.jclouds.compute.domain.Hardware;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.ec2.EC2ApiMetadata;
@@ -85,18 +84,29 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 	private ElasticBlockStoreClient ebsClient;
 	private TagApi tagApi;
 	private ComputeTemplate computeTemplate;
+    private JCloudsDeployer deployer;
 
 	
 	@Override
 	public void setConfig(final Cloud cloud, final String computeTemplateName) {
 		this.cloud = cloud;
 		this.computeTemplate = cloud.getCloudCompute().getTemplates().get(computeTemplateName);
-		this.initContext();
-		this.initRegion();
-		this.initEbsClient();
-	}
+		initContext();
+		initRegion();
+		initEbsClient();
+        try {
+            initDeployer();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed initializing JCloudsDeployer : " + e.getMessage());
+        }
+    }
 
-	private void initRegion() {
+    private void initDeployer() throws IOException {
+        this.deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),
+                cloud.getUser().getApiKey(), new Properties());
+    }
+
+    private void initRegion() {
 		String locationId = this.computeTemplate.getLocationId();
 		RestContext<EC2Client, EC2AsyncClient> unwrapped = this.context.unwrap();
 		try {
@@ -124,19 +134,19 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		}
 		Volume volume = null;
 		try {
-			logger.fine("creating new volume in availability zone " + availabilityZone + " of size " + size);
+			logger.fine("Creating new volume in availability zone " + availabilityZone + " of size " + size);
 			volume = this.ebsClient.createVolumeInAvailabilityZone(availabilityZone, size);
 
 			String volumeId = volume.getId();
 			logger.fine("Waiting for volume to become available.");
 			waitForVolumeToReachStatus(Status.AVAILABLE, end, volumeId);
 			
-			logger.fine("naming created volume with id " + volumeId);
+			logger.fine("Naming created volume with id " + volumeId);
 			TagApi tagApi = getTagsApi();
 			Map<String, String> tagsMap = createTagsMap(templateName);
 			tagApi.applyToResources(tagsMap, Arrays.asList(volumeId));
 			logger.fine("Volume created successfully. volume id is: " + volumeId);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			if (volume != null) {
 				handleExceptionAfterVolumeCreated(volume.getId());
 			}
@@ -148,17 +158,14 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 						+ availabilityZone + "Reason: " + e.getMessage(), e);				
 			}
 		}
-		VolumeDetails volumeDetails = createVolumeDetails(volume);
-		return volumeDetails;
+		return createVolumeDetails(volume);
 	}
 
 	private void handleExceptionAfterVolumeCreated(final String volumeId) {
 		try {
 			deleteVolume(volumeId);
 		} catch (Exception e) {
-			logger.log(
-					Level.WARNING,
-					"Volume Provisioning failed. "
+			logger.log(Level.WARNING, "Volume Provisioning failed. "
 							+ "An error was encountered while trying to delete the new volume ( "
 							+ volumeId + "). Error was: " + e.getMessage(), e);
 		}
@@ -171,20 +178,14 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 			StorageProvisioningException {
 
 		final long end = System.currentTimeMillis() + timeUnit.toMillis(duration);
-		Set<String> machineVolumeIds = getMachineVolumeIds(ip);
-		if (machineVolumeIds.contains(volumeId)) {
-			throw new StorageProvisioningException("Volume already attached to machine with ip " + ip);
-		}
-		NodeMetadata nodeMetadata = getNodeMetadata(ip);
+		NodeMetadata nodeMetadata = deployer.getServerWithIP(ip);
 		try {
 			String instanceId = nodeMetadata.getProviderId();
 			logger.log(Level.FINE, "Attaching volume with id " + volumeId 
-					+ " to machine instance with id " + instanceId);
+					+ " to machine with id " + instanceId);
 			this.ebsClient.attachVolumeInRegion(this.region, 
 					volumeId, instanceId, device);
-			
-		} catch (Exception e) {
-			logger.warning("Failed attaching volume to machine. Reason: " + e.getMessage());
+		} catch (final Exception e) {
 			throw new StorageProvisioningException("Failed attaching volume to machine. Reason: " + e.getMessage(), e);
 		}
 		waitForVolumeToReachStatus(Status.IN_USE, end, volumeId);
@@ -195,35 +196,26 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 			final TimeUnit timeUnit) throws TimeoutException, StorageProvisioningException {
 		
 		final long end = System.currentTimeMillis() + timeUnit.toMillis(duration);
-		NodeMetadata nodeMetadata = getNodeMetadata(ip);
-		Set<VolumeDetails> listVolumes = listVolumes(ip, duration, timeUnit);
-		for (VolumeDetails volumeDetails : listVolumes) {
-			if (volumeDetails.getId().equals(volumeId)) {
-				try {
-					logger.fine("Detaching volume with id " + volumeId + " from machine with id " 
-										+ nodeMetadata.getId());
-					this.ebsClient.detachVolumeInRegion(this.region, volumeId, false,
-							DetachVolumeOptions.Builder.fromInstance(nodeMetadata.getProviderId()));
-				} catch (Exception e) {
-					logger.log(Level.WARNING, "Failed detaching node with id " + volumeId
-							+ " Reason: " + e.getMessage(), e);
-					throw new StorageProvisioningException("Failed detaching node with id " + volumeId
-							+ " Reason: " + e.getMessage(), e);
-				}
-                try {
-				    waitForVolumeToReachStatus(Status.AVAILABLE, end, volumeId);
-                } catch (final TimeoutException e) {
-                    logger.warning("Timed out while waiting for volume[" + volumeId + "] to "
-                            + "become available after detachment. this may cause this volume to leak");
-                    throw e;
-                }
-				return;
-			}
-		}
-		logger.warning("Volume with ID " + volumeId + " does not exist.");
-		throw new IllegalStateException("Volume with ID " + volumeId 
-							+ " does not exist in elastic block store.");
+		NodeMetadata nodeMetadata = deployer.getServerWithIP(ip);
 
+        try {
+            logger.fine("Detaching volume with id " + volumeId + " from machine with id "
+                                + nodeMetadata.getId());
+            this.ebsClient.detachVolumeInRegion(this.region, volumeId, false,
+                    DetachVolumeOptions.Builder.fromInstance(nodeMetadata.getProviderId()));
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Failed detaching node with id " + volumeId
+                    + " Reason: " + e.getMessage(), e);
+            throw new StorageProvisioningException("Failed detaching node with id " + volumeId
+                    + " Reason: " + e.getMessage(), e);
+        }
+        try {
+            waitForVolumeToReachStatus(Status.AVAILABLE, end, volumeId);
+        } catch (final TimeoutException e) {
+            logger.warning("Timed out while waiting for volume[" + volumeId + "] to "
+                    + "become available after detachment. this may cause this volume to leak");
+            throw e;
+        }
 	}
 
 	@Override
@@ -235,7 +227,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 			// according to the documentation, the volume should stay
 			// in 'deleting' status for a few minutes. 
 			waitForVolumeToReachStatus(Status.DELETING, end, volumeId);
-		} catch (StorageProvisioningException e) {
+		} catch (final StorageProvisioningException e) {
 			// Volume was not found. Do nothing.
 		}
 		logger.fine("volume with id " + volumeId + " deleted successfully");
@@ -244,9 +236,9 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 	private void deleteVolume(final String volumeId)
 			throws StorageProvisioningException {
 		try {
-			logger.fine("deleting volume with id " + volumeId);
+			logger.fine("Deleting volume with id " + volumeId);
 			this.ebsClient.deleteVolumeInRegion(this.region, volumeId);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			logger.log(Level.WARNING, "Failed deleting volume with ID " + volumeId 
 					+ " Reason: " + e.getMessage());
 			throw new StorageProvisioningException("Failed deleting volume with ID " + volumeId 
@@ -394,7 +386,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 	public Set<String> getMachineVolumeIds(final String ip) 
 					throws StorageProvisioningException {
 		
-		NodeMetadata nodeMetadata = getNodeMetadata(ip);
+		NodeMetadata nodeMetadata = deployer.getServerWithIP(ip);
 		Hardware nodeHardware = nodeMetadata.getHardware();
 		List<? extends org.jclouds.compute.domain.Volume> machineVolumes = nodeHardware.getVolumes();
 		Set<String> machineVolumeIds = new HashSet<String>();
@@ -432,34 +424,5 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
             }
 		}
 		throw new TimeoutException("Timed out waiting for storage status to become " + status.toString());
-	}
-	
-	@SuppressWarnings("unchecked")
-	private NodeMetadata getNodeMetadata(final String ip) 
-			throws StorageProvisioningException {
-		NodeMetadata node = null;
-		Set<? extends NodeMetadata> nodesList;
-		ComputeService computeService;
-		try {
-			computeService = this.context.getComputeService();
-			nodesList = (Set<? extends NodeMetadata>) computeService.listNodes();
-		} catch (Exception e) {
-			logger.warning("Failed listing available nodes. Reason: " + e.getMessage());
-			throw new StorageProvisioningException("Failed listing available nodes. Reason: " + e.getMessage(), e);
-		}
-		logger.log(Level.FINE, "searching for node with matching ip " + ip + " in servers list");
-		for (NodeMetadata nodeMetadata : nodesList) {
-			if (nodeMetadata.getPrivateAddresses().contains(ip) || nodeMetadata.getPublicAddresses().contains(ip)) {
-				node = nodeMetadata;
-				logger.fine("Found volume with matching ip in servers list");
-				break;
-			}
-		}
-		if (node == null) {
-			logger.warning("Could not find machine with matching ip: " + ip);
-			throw new IllegalStateException("Could not find machine with matching ip: " + ip);
-		}
-		logger.log(Level.FINE, "found node with matching ip. Node id is " + node.getId());
-		return node;
 	}
 }
