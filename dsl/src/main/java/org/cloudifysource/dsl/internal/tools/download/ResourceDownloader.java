@@ -23,7 +23,6 @@ import java.text.MessageFormat;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
@@ -33,9 +32,12 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 /**
- * This class implements the {@link org.cloudifysource.dsl.internal.tools.download.ResourceDownloader}
- * The class enables download of resources and resource validation using 
- * {@link org.cloudifysource.dsl.internal.tools.download.ChecksumVerifier}
+ * This class enables resource download and resource verification using the 
+ * VerifyChecksum class {@link org.cloudifysource.dsl.internal.tools.download.ChecksumVerifier}
+ * Supported checksum algorithms include md5, sha1, sha256, sha384 and sha512,
+ * See enum {@link org.cloudifysource.dsl.internal.tools.download.ChecksumVerifier.ChecksumAlgorithm}
+ * The default hash message format used to extract the hash message from the hash file is of the form {0} *{1}
+ * i.e 'hash string *some string'. The file hash output will be compared against the {0} index.   
  * 
  * @author adaml
  * @since 2.6.0
@@ -46,6 +48,8 @@ public class ResourceDownloader {
 	//big buffer
 	private final int BUFFER_SIZE = 100 * 1024;
 
+	private final long DEFAULT_DOWNLOAD_TIMEOUT_MILLIS = 600000;
+	
 	private final int DEFAULT_NUMBER_OF_RETRIES = 3;
 	
 	private static final Logger logger = Logger
@@ -58,7 +62,7 @@ public class ResourceDownloader {
 	//destination where the resource file will be saved
 	private File resourceDest;
 	
-	private long timeoutInMillis;
+	private long timeoutInMillis = DEFAULT_DOWNLOAD_TIMEOUT_MILLIS;
 
 	private String userName;
 
@@ -68,6 +72,7 @@ public class ResourceDownloader {
 	
 	private boolean skipExisting;
 
+	//the hash message format.
 	private MessageFormat format = new MessageFormat("{0} *{1}");
 
 	public void setUrl(final URL urlString) {
@@ -113,12 +118,12 @@ public class ResourceDownloader {
 		this.password = password;
 	}
 	
-	public void setNumRetries(final int numberOfRetries) {
+	public void setNumberOfRetries(final int numberOfRetries) {
 		this.numberOfRetries = numberOfRetries;
 		
 	}
 
-	public int getNumRetries() {
+	public int getNumberOfRetries() {
 		return this.numberOfRetries;
 	}
 

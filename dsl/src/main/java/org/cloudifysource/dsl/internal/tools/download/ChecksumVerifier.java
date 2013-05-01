@@ -31,8 +31,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * This class implements the {@link org.cloudifysource.dsl.internal.tools.download.ChecksumVerifier}
- * it is used to validate a file's checksum against a validation hash file containing the valid checksum.
+ * This class is used to validate a file's checksum against a validation hash file containing the valid checksum.
+ * Checksum algorithms include md5, sha1, sha256, sha384 and sha512.
  * 
  * @author adaml
  * @since 2.6.0
