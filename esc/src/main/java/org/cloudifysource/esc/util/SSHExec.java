@@ -361,9 +361,9 @@ public class SSHExec extends SSHBase {
                 // but there doesn't seem to be a way to detect it.
                 int ec = channel.getExitStatus();
                 if (ec != 0) {
-                    String msg = "Remote command failed with exit status " + ec + "\noutput:\n" + out.toString();
+                    String msg = "Remote command execution failed with exit status " + ec + "\noutput:\n" + out.toString();
                     if (getFailonerror()) {
-                        throw new ExitStatusException(msg,ec);
+                        throw new ExitStatusException(msg, ec);
                     } else {
                         log(msg, Project.MSG_ERR);
                     }

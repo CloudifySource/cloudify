@@ -34,6 +34,8 @@ import org.cloudifysource.esc.util.Utils;
  * @since 2.5.0
  */
 public class SshExecutor implements RemoteExecutor {
+	
+	private static final int CUSTOM_ERR_CODE = 255;
 
 	private static final java.util.logging.Logger logger =
 			java.util.logging.Logger.getLogger(SshExecutor.class.getName());
@@ -56,20 +58,26 @@ public class SshExecutor implements RemoteExecutor {
 		} catch (final BuildException e) {
 			// There really should be a better way to check that this is a
 			// timeout
-			logger.log(Level.FINE, "The remote boostrap command failed with error: " + e.getMessage()
+			logger.log(Level.FINE, "The SSH execution failed with error: " + e.getMessage()
 					+ ". The command that failed to execute is : " + fullCommand, e);
 
 			if (e instanceof BuildTimeoutException) {
 				final TimeoutException ex =
-						new TimeoutException("Remote bootstrap command failed to execute: " + e.getMessage());
+						new TimeoutException("SSH execution failed: " + e.getMessage());
 				ex.initCause(e);
 				throw ex;
 			} else if (e instanceof ExitStatusException) {
 				final ExitStatusException ex = (ExitStatusException) e;
 				final int ec = ex.getStatus();
-				throw new InstallerException("Remote bootstrap command failed with exit code: " + ec, e);
+
+				if (ec == 0 || ec == CUSTOM_ERR_CODE) {
+					throw new InstallerException("SSH execution failed with exit code: " + ec, e);	
+				} else {
+					throw new InstallerException("SSH execution failed with exit code: " + ec + ", message: " 
+							+ BootstrapScriptErrors.getMessageByErrorCode(ec), e);					
+				}
 			} else {
-				throw new InstallerException("Remote bootstrap command failed to execute.", e);
+				throw new InstallerException("SSH execution failed.", e);
 			}
 		}
 
