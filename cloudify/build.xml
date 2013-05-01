@@ -280,13 +280,40 @@
 	            <fileset dir="${esc-commands.local.copy}/target" includes="esc-commands.jar" excludes=".svn"/>
 	        </copy>
 
+            <echo message="Copy CLOUDIFY clouds to distribution"/>
             <mkdir dir="@{installation.dir}/clouds/"/>
 	        <copy todir="@{installation.dir}/clouds/" overwrite="true">
 	          <fileset dir="${esc.local.copy}/src/main/resources/clouds" includes="**/*" excludes=".svn"/>
 	        </copy>
+
+            <echo message="Copying bootstrap-management script to all clouds"/>
+            <dirset dir="@{installation.dir}/clouds" id="cloud.dirs">
+                <include name="*"/>
+            </dirset>
+            <script language="javascript">
+
+                var dirs = project.getReference("cloud.dirs").toString().split(";");
+                <![CDATA[
+
+                        for (var i = 0; i < dirs.length; i++) {
+                            project.setProperty("current.cloud", dirs[i]);
+                            project.executeTarget("copy-bootstrap-script-to-cloud");
+                        }
+
+                ]]>
+
+            </script>
 		</sequential>
     </macrodef>
-	
+
+    <target name="copy-bootstrap-script-to-cloud">
+
+        <copy todir="@{installation.dir}/clouds/${current.cloud}/upload" overwrite="true">
+            <file name="${esc.local.copy}/src/main/resources/general/bootstrap-management.sh"/>
+        </copy>
+
+    </target>
+
 	<target name="fetch.recipes.cloudify" if="recipes.available">
 		<echo message="Create and Copy recipes component for Cloudify"/>
 		<exec executable="${mvn.executable}" dir="${recipes.local.copy}">
