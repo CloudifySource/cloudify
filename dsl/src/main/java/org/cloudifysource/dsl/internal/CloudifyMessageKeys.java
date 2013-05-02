@@ -30,8 +30,10 @@ public enum CloudifyMessageKeys {
 	
 	ZONE_PARAMETER_MISSING("zone_parameter_is_missing"),
 	
-	OVERRIDES_LENGTH_LIMIT_EXCEEDED("overrides_string_length_limit_exceeded"),
-	
+	SERVICE_OVERRIDES_LENGTH_LIMIT_EXCEEDED("service_overrides_string_length_limit_exceeded"),
+
+	CLOUD_OVERRIDES_SIZE_LIMIT_EXCEEDED("cloud_overrides_size_limit_exceeded"),
+
 	VALIDATOR_REQUEST_MISSING("validator_is_missing_install_service_request_instance"),
 	
 	VALIDATOR_CLOUD_MISSING("validator_is_missing_cloud_instance"),

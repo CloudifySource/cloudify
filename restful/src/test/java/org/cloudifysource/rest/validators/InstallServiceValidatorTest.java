@@ -15,12 +15,13 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
+import java.io.File;
+
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
 import org.cloudifysource.rest.controllers.RestErrorException;
-import org.cloudifysource.rest.security.CustomPermissionEvaluator;
 import org.junit.Assert;
 
 /**
@@ -30,17 +31,19 @@ import org.junit.Assert;
  */
 public abstract class InstallServiceValidatorTest {
 	
-	public abstract InstallServiceValidator getValidatorInstance(Object optionalValidatorParam);
+	public abstract InstallServiceValidator getValidatorInstance();
 	
-	public void testValidator(final InstallServiceRequest request, final Cloud cloud, final Service service,
-			final boolean shouldFail, final CloudifyMessageKeys exceptionCause, 
-			final CustomPermissionEvaluator permissionEvaluator, final Object optionalValidatorParam) {
+	public void testValidator(final InstallServiceRequest request, final Cloud cloud, final Service service, 
+			final String templateName, final File cloudOverridesFile, 
+			final boolean shouldFail, final CloudifyMessageKeys exceptionCause) {
 		
-		final InstallServiceValidator validator = getValidatorInstance(optionalValidatorParam);
+		final InstallServiceValidator validator = getValidatorInstance();
 		InstallServiceValidationContext validationContext = new InstallServiceValidationContext();
 		validationContext.setRequest(request);
 		validationContext.setCloud(cloud);
 		validationContext.setService(service);
+		validationContext.setCloudConfiguration(cloudOverridesFile);
+		validationContext.setTemplateName(templateName);
 		try {
 			validator.validate(validationContext);
 			if (shouldFail) {
@@ -57,25 +60,29 @@ public abstract class InstallServiceValidatorTest {
 
 	public void testValidator(final InstallServiceRequest request, final Cloud cloud, final Service service,
 			final boolean shouldFail, final CloudifyMessageKeys exceptionCause) {
-		testValidator(request, cloud, service, shouldFail, exceptionCause, null, null);
+		testValidator(request, cloud, service, null, null, shouldFail, exceptionCause);
 	}
 	
 	public void testValidator(final InstallServiceRequest request, final CloudifyMessageKeys exceptionCause) {
-		testValidator(request, null, null, true, exceptionCause);
+		testValidator(request, null, null, null, null, true, exceptionCause);
 	}
 	
-	public void testValidator(final InstallServiceRequest request, final CloudifyMessageKeys exceptionCause, 
-			final Object optionalValidatorParam) {
-		testValidator(request, null, null, true, exceptionCause, null, optionalValidatorParam);
+	public void testValidator(final File cloudOverridesFile, final CloudifyMessageKeys exceptionCause) {
+		testValidator(null, null, null, null, cloudOverridesFile, true, exceptionCause);
 	}
 
 	public void testValidator(final Cloud cloud, final Service service, final CloudifyMessageKeys exceptionCause) {
-		testValidator(null, cloud, service, true, exceptionCause);
+		testValidator(null, cloud, service, null, null, true, exceptionCause);
+	}
+	
+	public void testValidator(final Cloud cloud, final Service service, final String templateName, 
+			final CloudifyMessageKeys exceptionCause) {
+		testValidator(null, cloud, service, templateName, null, true, exceptionCause);
 	}
 	
 	public void testValidator(final Cloud cloud, final Service service, 
 			final boolean shouldFail, final CloudifyMessageKeys exceptionCause) {
-		testValidator(null, cloud, service, shouldFail, exceptionCause);
+		testValidator(null, cloud, service, null, null, shouldFail, exceptionCause);
 	}
 	
 }

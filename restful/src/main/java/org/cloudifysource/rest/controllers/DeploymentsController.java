@@ -13,18 +13,16 @@
 package org.cloudifysource.rest.controllers;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.ComputeDetails;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -32,6 +30,7 @@ import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.internal.packaging.FileAppender;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
@@ -46,7 +45,6 @@ import org.cloudifysource.dsl.rest.response.GetApplicationAttributesResponse;
 import org.cloudifysource.dsl.rest.response.GetServiceAttributesResponse;
 import org.cloudifysource.dsl.rest.response.GetServiceInstanceAttributesResponse;
 import org.cloudifysource.dsl.rest.response.InstallServiceResponse;
-import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.dsl.rest.response.ServiceDetails;
 import org.cloudifysource.dsl.rest.response.ServiceInstanceDetails;
 import org.cloudifysource.dsl.rest.response.ServiceInstanceMetricsData;
@@ -54,12 +52,11 @@ import org.cloudifysource.dsl.rest.response.ServiceInstanceMetricsResponse;
 import org.cloudifysource.dsl.rest.response.ServiceMetricsResponse;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.rest.RestConfiguration;
-import org.cloudifysource.rest.interceptors.ApiVersionValidationAndRestResponseBuilderInterceptor;
 import org.cloudifysource.rest.repo.UploadRepo;
+import org.cloudifysource.rest.security.CustomPermissionEvaluator;
 import org.cloudifysource.rest.util.IsolationUtils;
 import org.cloudifysource.rest.validators.InstallServiceValidationContext;
 import org.cloudifysource.rest.validators.InstallServiceValidator;
-import org.cloudifysource.restclient.StringUtils;
 import org.openspaces.admin.application.Application;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
@@ -75,9 +72,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
  * services and application. <br>
  * <br>
  * The response body will always return in a JSON representation of the {@link Response} Object. <br>
- * A controller method may return the {@link Response} Object directly. in this case this return value will be used as
- * the response body. Otherwise, an implicit wrapping will occur. the return value will be inserted into
- * {@code Response#setResponse(Object)}. other fields of the {@link Response} object will be filled with default values. <br>
+ * A controller method may return the {@link Response} Object directly. 
+ * in this case this return value will be used as the response body. 
+ * Otherwise, an implicit wrapping will occur. 
+ * the return value will be inserted into {@code Response#setResponse(Object)}. 
+ * other fields of the {@link Response} object will be filled with default values. <br>
  * <h1>Important</h1> {@code @ResponseBody} annotations are not permitted. <br>
  * <br>
  * <h1>Possible return values</h1> 200 - OK<br>
@@ -107,6 +106,9 @@ public class DeploymentsController extends BaseRestContoller {
 	@Autowired
 	private final InstallServiceValidator[] installServiceValidators = new InstallServiceValidator[0];
 
+	@Autowired(required = false)
+	private CustomPermissionEvaluator permissionEvaluator;
+	
 	/**
 	 * This method provides metadata about a service belonging to a specific application.
 	 * 
@@ -245,7 +247,8 @@ public class DeploymentsController extends BaseRestContoller {
 	 * @throws RestErrorException
 	 *             when application , service or service instance not exist
 	 */
-	@RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/metadata", method = RequestMethod.GET)
+	@RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/metadata", 
+			method = RequestMethod.GET)
 	public ServiceInstanceDetails getServiceInstanceDetails(
 			@PathVariable final String appName,
 			@PathVariable final String serviceName,
@@ -342,7 +345,12 @@ public class DeploymentsController extends BaseRestContoller {
 
 		File editSrcFile = srcFile;
 		
-		mergeOverridesWithProperties(request, serviceDir);
+		try {
+			mergeOverridesWithProperties(request, serviceDir);
+		} catch (IOException e2) {
+			// TODO Add error massage. 
+			throw new RestErrorException("");
+		}
 	
 		try {
 			editSrcFile = Packager.createZipFile("temp", serviceDir);
@@ -366,10 +374,22 @@ public class DeploymentsController extends BaseRestContoller {
 		// update template name
 		String templateName = getTempalteNameFromService(service);
 
-		// TODO update/create props file
-		
 		// validate
 		validateInstallService(absolutePuName, request, service, templateName);
+		
+		// TODO update/create props file
+		
+		// TODO use repo to get cloudOverrides
+		
+		// update effective authGroups
+		String effectiveAuthGroups = request.getAuthGroups();
+		if (StringUtils.isBlank(effectiveAuthGroups)) {
+			if (permissionEvaluator != null) {
+				effectiveAuthGroups = permissionEvaluator.getUserAuthGroupsString();
+			} else {
+				effectiveAuthGroups = "";
+			}
+		}
 
 		// TODO call doDeploy
 		
@@ -397,39 +417,33 @@ public class DeploymentsController extends BaseRestContoller {
 	}
 
 	private void mergeOverridesWithProperties(final InstallServiceRequest request, final File serviceDir) 
-			throws RestErrorException {
+			throws RestErrorException, IOException {
 		String serviceOverrides = request.getServiceOverrides();
+		File applicationProeprtiesFile = request.getApplicationPropertiesFile();
 		// check if merge is necessary
-		if (StringUtils.notEmpty(serviceOverrides)) {
+		if (!StringUtils.isBlank(serviceOverrides) || applicationProeprtiesFile != null) {
 			// get properties file from working directory
 			final File workingProjectDir = new File(serviceDir, "ext");
 			final String propertiesFileName = 
 					DSLUtils.getPropertiesFileName(workingProjectDir, DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
 			final File servicePropertiesFile = new File(workingProjectDir, propertiesFileName);
-			// load properties
-			Properties serviceProperties = new Properties();
-			FileInputStream inStream;
+			final File finalPropertiesFile = File.createTempFile("finalPropertiesFile", ".properties");
 			try {
-				// create new properties file if needed
-				if (!servicePropertiesFile.exists()) {
-					servicePropertiesFile.createNewFile();
+				FileAppender appender = new FileAppender(finalPropertiesFile);
+				if (applicationProeprtiesFile != null && applicationProeprtiesFile.exists()) {
+					appender.append("application proeprties file", applicationProeprtiesFile);
 				}
-				inStream = new FileInputStream(servicePropertiesFile);
-				serviceProperties.load(inStream);
-				// add/update properties from overrides
-				String[] serviceOverridesProeprties = serviceOverrides.split(",");
-				for (String keyValuePairStr : serviceOverridesProeprties) {
-					String[] keyValuePair = keyValuePairStr.split("=");
-					serviceProperties.setProperty(keyValuePair[0].trim(), keyValuePair[1].trim());
+				if (servicePropertiesFile.exists()) {
+					appender.append("service proeprties file", servicePropertiesFile);
 				}
-				// store
-				serviceProperties.store(new FileOutputStream(servicePropertiesFile), null);
-			} catch (FileNotFoundException e2) {
-				// TODO Add error massage. 
-				throw new RestErrorException("");
-			} catch (IOException e) {
-				// TODO Add error massage. 
-				throw new RestErrorException("");
+				if (!StringUtils.isBlank(serviceOverrides)) {
+					serviceOverrides = serviceOverrides.replaceAll(",", FileAppender.LINE_SEPARATOR);
+					appender.append("service overrides file", serviceOverrides);
+				}
+				appender.flush();
+				FileUtils.copyFile(finalPropertiesFile, servicePropertiesFile);
+			} finally {
+				finalPropertiesFile.delete();
 			}
 		}
 	}

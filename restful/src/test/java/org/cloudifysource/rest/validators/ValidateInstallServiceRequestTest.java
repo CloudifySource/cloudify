@@ -17,9 +17,12 @@ package org.cloudifysource.rest.validators;
 
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
+import org.junit.Before;
 import org.junit.Test;
 
 public class ValidateInstallServiceRequestTest extends InstallServiceValidatorTest {
+	
+	private ValidateInstallServiceRequest validator;
 	
 	private static final String UPLOAD_KEY = "key";
 	private static final String CLOUD_CONFIG_UPLOAD_KEY = "cloud_config_key";
@@ -29,6 +32,10 @@ public class ValidateInstallServiceRequestTest extends InstallServiceValidatorTe
 	private static final String SERVICE_OVERRIDES = "";
 	private static final Long OVERRIDES_MAX_LENGTH = new Long(3);
 	
+	@Before
+	public void initValidator() {
+		validator = new ValidateInstallServiceRequest();
+	}
 
 	@Test
 	public void testMissingUploadKey() {
@@ -45,7 +52,8 @@ public class ValidateInstallServiceRequestTest extends InstallServiceValidatorTe
 				UPLOAD_KEY /* uploadKey */, CLOUD_CONFIG_UPLOAD_KEY /* cloudConfigUploadKey */, 
 				AUTH_GROUP /* authGroups */, SELF_HEALING /* selfHealing */, 
 				"a = b" /* cloudOverrides */, SERVICE_OVERRIDES /* serviceOverrides */);
-		testValidator(request, CloudifyMessageKeys.OVERRIDES_LENGTH_LIMIT_EXCEEDED, OVERRIDES_MAX_LENGTH);
+		validator.setOverrdiesMaxLength(OVERRIDES_MAX_LENGTH);
+		testValidator(request, CloudifyMessageKeys.SERVICE_OVERRIDES_LENGTH_LIMIT_EXCEEDED);
 	}
 	
 	@Test
@@ -54,7 +62,8 @@ public class ValidateInstallServiceRequestTest extends InstallServiceValidatorTe
 				UPLOAD_KEY /* uploadKey */, CLOUD_CONFIG_UPLOAD_KEY /* cloudConfigUploadKey */, 
 				AUTH_GROUP /* authGroups */, SELF_HEALING /* selfHealing */, 
 				CLOUD_OVERRIDES /* cloudOverrides */, "a = b" /* serviceOverrides */);
-		testValidator(request, CloudifyMessageKeys.OVERRIDES_LENGTH_LIMIT_EXCEEDED, OVERRIDES_MAX_LENGTH);
+		validator.setOverrdiesMaxLength(OVERRIDES_MAX_LENGTH);
+		testValidator(request, CloudifyMessageKeys.SERVICE_OVERRIDES_LENGTH_LIMIT_EXCEEDED);
 	}
 
 	private InstallServiceRequest buildRequest(
@@ -72,11 +81,7 @@ public class ValidateInstallServiceRequestTest extends InstallServiceValidatorTe
 	}
 
 	@Override
-	public InstallServiceValidator getValidatorInstance(final Object optionalValidatorParam) {
-		ValidateInstallServiceRequest validator = new ValidateInstallServiceRequest();
-		if (optionalValidatorParam != null) {
-			validator.setOverrdiesMaxLength((Long) optionalValidatorParam);
-		}
+	public InstallServiceValidator getValidatorInstance() {
 		return validator;
 	}
 

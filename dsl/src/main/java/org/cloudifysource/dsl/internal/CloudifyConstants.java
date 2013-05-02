@@ -15,6 +15,8 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.internal;
 
+import org.apache.commons.io.FileUtils;
+
 import com.gigaspaces.internal.license.LicenseManagerVerifier;
 
 /*********************
@@ -387,6 +389,10 @@ public final class CloudifyConstants {
 	public static final int DEFAULT_UPLOAD_SIZE_LIMIT_BYTES = 100 * 1000 * 1000;
 	
 	// CHECKSTYLE:ON
+	
+	// install-service validators
+	public static final long SERVICE_OVERRIDES_FILE_LENGTH_LIMIT_KB = 20 * FileUtils.ONE_KB;
+	public static final long CLOUD_OVERRIDES_FILE_LENGTH_LIMIT_KB = 10 * FileUtils.ONE_KB;
 }
 
 
