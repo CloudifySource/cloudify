@@ -15,6 +15,8 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.rest.request;
 
+import java.io.File;
+
 
 /**
  * Represents a request to install-service command via the REST Gateway.
@@ -31,6 +33,7 @@ public class InstallServiceRequest {
 	private Boolean selfHealing = true;
 	private String cloudOverrides;
 	private String serviceOverrides;
+	private File applicationPropertiesFile;
 	
 	public String getUploadKey() {
 		return uploadKey;
@@ -67,5 +70,11 @@ public class InstallServiceRequest {
 	}
 	public void setServiceOverrides(String serviceOverrides) {
 		this.serviceOverrides = serviceOverrides;
+	}
+	public File getApplicationPropertiesFile() {
+		return applicationPropertiesFile;
+	}
+	public void setApplicationPropertiesFile(File applicationPropertiesFile) {
+		this.applicationPropertiesFile = applicationPropertiesFile;
 	}	
 }

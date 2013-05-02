@@ -15,6 +15,8 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
+import java.io.File;
+
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
@@ -31,6 +33,7 @@ public class InstallServiceValidationContext {
 	private Cloud cloud;
 	private Service service;
 	private InstallServiceRequest request;
+	private File cloudConfiguration;
 
 	public String getAbsolutePuName() {
 		return absolutePuName;
@@ -68,6 +71,14 @@ public class InstallServiceValidationContext {
 
 	public void setRequest(final InstallServiceRequest request) {
 		this.request = request;
+	}
+
+	public File getCloudConfiguration() {
+		return cloudConfiguration;
+	}
+
+	public void setCloudConfiguration(File cloudConfiguration) {
+		this.cloudConfiguration = cloudConfiguration;
 	}
 
 }

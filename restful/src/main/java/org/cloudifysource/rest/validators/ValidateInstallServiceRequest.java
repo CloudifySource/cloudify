@@ -15,7 +15,7 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
-import org.apache.commons.io.FileUtils;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
 import org.cloudifysource.rest.controllers.RestErrorException;
@@ -30,12 +30,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ValidateInstallServiceRequest implements InstallServiceValidator {
 
-	/**
-	 * 
-	 */
-	private static final int OVERRIDES_LENGTH_KB = 20;
-	private static final long DEFAULT_OVERRIDES_MAX_LENGTH = (OVERRIDES_LENGTH_KB * FileUtils.ONE_KB) / Character.SIZE;
-	private long overrdiesMaxLength = DEFAULT_OVERRIDES_MAX_LENGTH;
+	private long overrdiesMaxLength = CloudifyConstants.SERVICE_OVERRIDES_FILE_LENGTH_LIMIT_KB;
 
 
 	@Override
@@ -52,11 +47,11 @@ public class ValidateInstallServiceRequest implements InstallServiceValidator {
 
 		String cloudOverrides = request.getCloudOverrides();
 		if (cloudOverrides.length() > overrdiesMaxLength) {
-			throw new RestErrorException(CloudifyMessageKeys.OVERRIDES_LENGTH_LIMIT_EXCEEDED.getName(), absolutePuName);
+			throw new RestErrorException(CloudifyMessageKeys.SERVICE_OVERRIDES_LENGTH_LIMIT_EXCEEDED.getName(), absolutePuName);
 		}
 		String serviceOverrides = request.getServiceOverrides();
 		if (serviceOverrides.length() > overrdiesMaxLength) {
-			throw new RestErrorException(CloudifyMessageKeys.OVERRIDES_LENGTH_LIMIT_EXCEEDED.getName(), absolutePuName);
+			throw new RestErrorException(CloudifyMessageKeys.SERVICE_OVERRIDES_LENGTH_LIMIT_EXCEEDED.getName(), absolutePuName);
 		}
 
 		String authGroups = request.getAuthGroups();
