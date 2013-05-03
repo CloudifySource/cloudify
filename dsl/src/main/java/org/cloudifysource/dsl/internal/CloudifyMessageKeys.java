@@ -48,7 +48,16 @@ public enum CloudifyMessageKeys {
 	
 	NOT_ALL_GSM_INSTANCES_RUNNING("not_all_gsm_instances_running"), 
 	
-	INSUFFICIENT_MEMORY("insufficient_memory");
+	INSUFFICIENT_MEMORY("insufficient_memory"),
+	
+	FAILED_TO_EXTRACT_PROJECT_FILE("failed_to_extract_service_project_file"),
+	
+	FAILED_TO_MERGE_OVERRIDES("failed_to_merge_overrides_with_properties"),
+	
+	FAILED_TO_READ_SERVICE("failed_to_read_service"),
+	
+	FAILED_TO_READ_SERVICE_CLOUD_CONFIGURATION("failed_to_read_service_cloud_configuration");
+	
 	
 	private final String name;
 	
