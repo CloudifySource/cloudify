@@ -25,7 +25,7 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 		allowRootNode = false, parent = "cloud")
 public class CloudConfiguration {
 
-	private short adminLoadingTime = 5;		//admin object loading time (in seconds), defaults to 5 seconds.
+	private short adminLoadingTimeInSeconds = 60;		//admin object loading time (in seconds), defaults to 60 seconds.
 	
 	/*******
 	 * The default cloud driver name.
@@ -151,12 +151,12 @@ public class CloudConfiguration {
 		this.managementStorageTemplate = managementStorageTemplate;
 	}
 
-	public short getAdminLoadingTime() {
-		return adminLoadingTime;
+	public short getAdminLoadingTimeInSeconds() {
+		return adminLoadingTimeInSeconds;
 	}
 
-	public void setAdminLoadingTime(short adminLoadingTime) {
-		this.adminLoadingTime = adminLoadingTime;
+	public void setAdminLoadingTimeInSeconds(short adminLoadingTimeInSeconds) {
+		this.adminLoadingTimeInSeconds = adminLoadingTimeInSeconds;
 	}
 	
 }

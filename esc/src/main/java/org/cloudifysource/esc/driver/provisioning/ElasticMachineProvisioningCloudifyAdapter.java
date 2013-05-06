@@ -153,41 +153,42 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
     private void waitForAgentsToBeDiscovered(final Admin esmAdminInstance, final Admin globalAdminInstance) throws InterruptedException, ElasticMachineProvisioningException {
 
-        final long endTime = System.currentTimeMillis() + cloud.getConfiguration().getAdminLoadingTime() * MILLISECONDS_IN_SECOND;
+        final long endTime = System.currentTimeMillis() + cloud.getConfiguration().getAdminLoadingTimeInSeconds() * MILLISECONDS_IN_SECOND;
         boolean esmAdminOk = false;
-        final Map<String, GridServiceContainer> undiscoveredAgentsContianersPerProcessingUnitInstanceName =
-                new HashMap<String, GridServiceContainer>();
+        Map<String, GridServiceContainer> undiscoveredAgentsContianersPerProcessingUnitInstanceName;
 
         while (System.currentTimeMillis() < endTime) {
 
             if (!esmAdminOk) {
                 // Validate all agents have been discovered in the original esm admin.
-                for (ProcessingUnit pu : esmAdminInstance.getProcessingUnits()) {
-                    for (ProcessingUnitInstance instance : pu.getInstances()) {
-                        GridServiceContainer container = instance.getGridServiceContainer();
-                        if (container.getAgentId() != -1 && container.getGridServiceAgent() == null) {
-                            undiscoveredAgentsContianersPerProcessingUnitInstanceName.put(instance.getProcessingUnitInstanceName(), container);
-                        }
-                    }
-                }
+                undiscoveredAgentsContianersPerProcessingUnitInstanceName = getUndiscoveredAgentsContianersPerProcessingUnitInstanceName(esmAdminInstance);
                 if (undiscoveredAgentsContianersPerProcessingUnitInstanceName.isEmpty()) {
                     esmAdminOk = true;
                 } else {
-                    logger.fine("Detected containers who's agent was not discovered yet");
-                    logContainers(undiscoveredAgentsContianersPerProcessingUnitInstanceName);
-                    logger.fine("Sleeping for 5 seconds");
+                    logger.info("Detected containers who's agent was not discovered yet : " + logContainers(undiscoveredAgentsContianersPerProcessingUnitInstanceName));
+                    logger.info("Sleeping for 5 seconds");
                     Thread.sleep(5000);
                 }
             } else {
                 // Make sure all the agents from the esm admin are discovered in the new admin.
                 // this is the admin instance we pass on to the cloud driver to do state recovery.
-                Set<String> esmAdminAgentUids = esmAdminInstance.getGridServiceAgents().getUids().keySet();
-                Set<String> globalAdminAgentUids = globalAdminInstance.getGridServiceAgents().getUids().keySet();
-                if (!esmAdminAgentUids.equals(globalAdminAgentUids)) {
-                    logger.fine("Agents discovered by global admin instance are not "
-                            + "equal to the ones from the esm admin. Sleeping for 5 seconds");
-                    Thread.sleep(5000);
-
+                Set<String> esmAdminAgentUids = new HashSet<String>(esmAdminInstance.getGridServiceAgents().getUids().keySet()); // admin returns un-modifiable collections
+                Set<String> globalAdminAgentUids = new HashSet<String>(globalAdminInstance.getGridServiceAgents().getUids().keySet()); // admin returns un-modifiable collections
+                if (globalAdminAgentUids.size() > esmAdminAgentUids.size()) {
+                    globalAdminAgentUids.removeAll(esmAdminAgentUids);
+                    throw new IllegalStateException("Detected agents that are discovered in the cloud driver admin but not in the esm admin : "
+                            + globalAdminAgentUids);
+                } else { // esmAdminAgentUids >= globalAdminAgentUids
+                    esmAdminAgentUids.removeAll(globalAdminAgentUids);
+                    if (esmAdminAgentUids.isEmpty()) {
+                        // this means the two sets are equal
+                        logger.fine("Cloud driver admin has discovered all agents that were discovered by the esm admin. and nothing else. Machine provisioning may continue");
+                        return;
+                    } else {
+                        logger.info("Detected agents that are discovered in the esm admin but not in the cloud driver admin : "
+                                + esmAdminAgentUids + " . Sleeping for 5 seconds to wait for agent discovery");
+                        Thread.sleep(5000);
+                    }
                 }
             }
         }
@@ -195,13 +196,30 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
     }
 
-    private void logContainers(final Map<String, GridServiceContainer> undiscoveredAgentsContainersPerProcessingUnitInstanceName) {
+    private Map<String, GridServiceContainer> getUndiscoveredAgentsContianersPerProcessingUnitInstanceName(final Admin admin) {
+        final Map<String, GridServiceContainer> undiscoveredAgentsContianersPerProcessingUnitInstanceName =
+                new HashMap<String, GridServiceContainer>();
+        for (ProcessingUnit pu : admin.getProcessingUnits()) {
+            for (ProcessingUnitInstance instance : pu.getInstances()) {
+                GridServiceContainer container = instance.getGridServiceContainer();
+                if (container.getAgentId() != -1 && container.getGridServiceAgent() == null) {
+                    undiscoveredAgentsContianersPerProcessingUnitInstanceName.put(instance.getProcessingUnitInstanceName(), container);
+                }
+            }
+        }
+        return undiscoveredAgentsContianersPerProcessingUnitInstanceName;
+    }
+
+    private String logContainers(final Map<String, GridServiceContainer> undiscoveredAgentsContainersPerProcessingUnitInstanceName) {
+        StringBuilder builder = new StringBuilder();
         for (Map.Entry<String, GridServiceContainer> entry : undiscoveredAgentsContainersPerProcessingUnitInstanceName.entrySet()) {
             final GridServiceContainer container = entry.getValue();
             final String processingUnitInstanceName = entry.getKey();
-            logger.fine("GridServiceContainer[uid=" + container.getUid() + "] agentId=[" + container.getAgentId()
+            builder.append("GridServiceContainer[uid=" + container.getUid() + "] agentId=[" + container.getAgentId()
                     + "] processingUnitInstanceName=[" + processingUnitInstanceName + "]");
+            builder.append(",");
         }
+        return builder.toString();
     }
 
     @Override
