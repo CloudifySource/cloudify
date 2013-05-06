@@ -120,9 +120,7 @@ public class ByonDeployer {
 							+ " some IP addresses were already defined by a different template: "
 							+ Arrays.toString(duplicateNodes.toArray()));
 		}
-		
-		logger.info("addNodesList: adding node list of " + templateName + " to ByonDeployer, node list: " 
-				+ parsedNodes);
+
 		setInitialPoolsForTemplate(templateName, resolvedNodes, unresolvedNodes);
 	}
 
@@ -622,6 +620,7 @@ public class ByonDeployer {
 			final List<Map<String, String>> nodesMapList)
 			throws CloudProvisioningException {
 
+        logger.info("Parsing cloud nodes from configuration file");
 		final List<CustomNode> cloudNodes = new ArrayList<CustomNode>();
 
 		for (final Map<String, String> nodeMap : nodesMapList) {
@@ -654,6 +653,7 @@ public class ByonDeployer {
 			}
 		}
 
+        logger.info("Parsed cloud nodes = " + StringUtils.join(cloudNodes, ","));
 		return cloudNodes;
 	}
 

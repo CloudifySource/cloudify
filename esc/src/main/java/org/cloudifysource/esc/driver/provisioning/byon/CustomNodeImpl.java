@@ -218,13 +218,21 @@ public class CustomNodeImpl implements CustomNode {
 		this.loginPort = loginPort;
 	}
 
-	@Override
-	public String toString() {
-		return "[id=" + getId() + ", providerId=" + getProviderId() + ", group=" + getGroup() + ", nodeName="
-				+ getNodeName() + ", loginPort=" + getLoginPort() + ", privateAddresses=" + getPrivateIP()
-				+ ", publicAddresses=" + getPublicIP() + ", username="
-				+ getUsername() + "]";
-	}
+    @Override
+    public String toString() {
+        return "CustomNode{" +
+                "providerId='" + providerId + '\'' +
+                ", id='" + id + '\'' +
+                ", privateIp='" + privateIp + '\'' +
+                ", hostName='" + hostName + '\'' +
+                ", nodeName='" + nodeName + '\'' +
+                ", group='" + group + '\'' +
+                ", username='" + username + '\'' +
+                ", credential='" + credential + '\'' +
+                ", keyFile='" + keyFile + '\'' +
+                ", loginPort=" + loginPort +
+                '}';
+    }
 
     @Override
     public int hashCode() {
