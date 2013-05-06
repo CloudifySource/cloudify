@@ -265,7 +265,7 @@ public class CustomNodeImpl implements CustomNode {
             if (getPrivateIp().equals(other.getPrivateIp())) return true;
         }
         if (StringUtils.isNotBlank(getHostName())) {
-            if (getHostName().equals(other.getHostName())) return true;
+            if (getHostName().equalsIgnoreCase(other.getHostName())) return true;
         }
         return false;
 	}
