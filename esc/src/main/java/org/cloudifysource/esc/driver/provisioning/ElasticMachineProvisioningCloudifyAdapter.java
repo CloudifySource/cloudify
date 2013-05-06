@@ -170,25 +170,24 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
                     Thread.sleep(5000);
                 }
             } else {
+                Set<String> esmAdminAgentUids = esmAdminInstance.getGridServiceAgents().getUids().keySet();
+                Set<String> globalAdminAgentUids = globalAdminInstance.getGridServiceAgents().getUids().keySet();
+
                 // Make sure all the agents from the esm admin are discovered in the new admin.
                 // this is the admin instance we pass on to the cloud driver to do state recovery.
-                Set<String> esmAdminAgentUids = new HashSet<String>(esmAdminInstance.getGridServiceAgents().getUids().keySet()); // admin returns un-modifiable collections
-                Set<String> globalAdminAgentUids = new HashSet<String>(globalAdminInstance.getGridServiceAgents().getUids().keySet()); // admin returns un-modifiable collections
-                if (globalAdminAgentUids.size() > esmAdminAgentUids.size()) {
-                    globalAdminAgentUids.removeAll(esmAdminAgentUids);
-                    throw new IllegalStateException("Detected agents that are discovered in the cloud driver admin but not in the esm admin : "
-                            + globalAdminAgentUids);
-                } else { // esmAdminAgentUids >= globalAdminAgentUids
-                    esmAdminAgentUids.removeAll(globalAdminAgentUids);
-                    if (esmAdminAgentUids.isEmpty()) {
-                        // this means the two sets are equal
-                        logger.fine("Cloud driver admin has discovered all agents that were discovered by the esm admin. and nothing else. Machine provisioning may continue");
-                        return;
-                    } else {
-                        logger.info("Detected agents that are discovered in the esm admin but not in the cloud driver admin : "
-                                + esmAdminAgentUids + " . Sleeping for 5 seconds to wait for agent discovery");
-                        Thread.sleep(5000);
+                Set<String> agentsNotDiscoveredInGlobalAdminInstance = new HashSet<String>();
+                for (String agentUid : esmAdminAgentUids) {
+                    if (!globalAdminAgentUids.contains(agentUid)) {
+                        agentsNotDiscoveredInGlobalAdminInstance.add(agentUid);
                     }
+                }
+                if (agentsNotDiscoveredInGlobalAdminInstance.isEmpty()) {
+                    logger.fine("All agents discovered by esm admin are discovered by cloud driver admin. Machine provisioning will continue.");
+                    return;
+                } else {
+                    logger.info("Detected agents that are discovered in the esm admin but not in the cloud driver admin : "
+                            + agentsNotDiscoveredInGlobalAdminInstance + " . Waiting 5 seconds for agent discovery");
+                    Thread.sleep(5000);
                 }
             }
         }
