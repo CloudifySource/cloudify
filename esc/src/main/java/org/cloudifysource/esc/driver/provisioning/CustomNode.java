@@ -28,6 +28,8 @@ public interface CustomNode {
 	 */
 	String getProviderId();
 
+    String getHostName();
+
 	/**
 	 * 
 	 * A means to uniquely address this resource within a provider. For example, if the namespace of a node or
@@ -77,21 +79,10 @@ public interface CustomNode {
 	 * @return The private IP address as a {@link String}
 	 */
 	String getPrivateIP();
-	
-	/**
-	 * Sets the resolved IP address (always an IP address, not a host).
-	 * 
-	 * @param resolvedIP
-	 *            the resolved IP address (always an IP address, not a host).
-	 */
-	void setResolvedIP(String resolvedIP);
-	
-	/**
-	 * Gets the resolved IP address (always an IP address, not a host).
-	 * 
-	 * @return The resolved IP address as a {@link String}
-	 */
-	String getResolvedIP();
+
+    void setPrivateIp(final String privateIpd);
+
+    void setHostName(final String hostName);
 
 	/**
 	 * Sets the node name.

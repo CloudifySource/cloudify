@@ -277,6 +277,21 @@ public final class IPUtils {
 			}
 		}
 	}
+
+    public static String resolveIpToHostName(String ip) throws UnknownHostException {
+
+        String[] chars = ip.split("\\.");
+
+        byte[] add = new byte[chars.length];
+        for (int j = 0 ; j < chars.length ; j++) {
+            add[j] =(byte) ((int) Integer.valueOf(chars[j]));
+        }
+        InetAddress byAddress = InetAddress.getByAddress(add);
+        String hostName = byAddress.getHostName();
+        return hostName;
+
+
+    }
 	
 	/**
 	 * Resolves the host name and returns its IP address.
@@ -287,12 +302,8 @@ public final class IPUtils {
 	 * @throws UnknownHostException
 	 *             Indicates the host doesn't represent an available network object
 	 */
-	public static String resolveHostName(final String hostName)  throws UnknownHostException {
-
-		InetAddress address = null;
-		address = InetAddress.getByName(hostName);
-
-		return address.getHostAddress();
+	public static String resolveHostNameToIp(final String hostName) throws UnknownHostException {
+        return InetAddress.getByName(hostName).getHostAddress();
 	}
 
 }

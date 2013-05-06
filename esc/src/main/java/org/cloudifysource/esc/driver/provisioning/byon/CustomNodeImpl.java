@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.byon;
 
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.esc.driver.provisioning.CustomNode;
 
 /**
@@ -32,9 +33,19 @@ public class CustomNodeImpl implements CustomNode {
 
 	private String providerId;
 	private String id;
-	// TODO : Support public IP
-	private String ipAddress;
-	private String resolvedIpAddress;
+
+    // TODO : Support public IP
+	private String privateIp;
+
+    public String getHostName() {
+        return hostName;
+    }
+
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
+    }
+
+    private String hostName;
 	private String nodeName;
 	private String group;
 	private String username;
@@ -50,7 +61,7 @@ public class CustomNodeImpl implements CustomNode {
 	 *            The cloud provider (e.g. EC2, BYON)
 	 * @param id
 	 *            A unique ID for the node
-	 * @param ipAddress
+	 * @param privateIp
 	 *            The node's IP address or host name
 	 * @param username
 	 *            The username required to access the node
@@ -59,9 +70,11 @@ public class CustomNodeImpl implements CustomNode {
 	 * @param keyFile
 	 *            The private key file required to access the node  (optional)
 	 */
-	public CustomNodeImpl(final String providerId, final String id, final String ipAddress, final String username,
+	public CustomNodeImpl(final String providerId, final String id, final String privateIp,
+                          final String hostName,
+                          final String username,
 			final String credential, final String keyFile) {
-		this(providerId, id, ipAddress, username, credential, keyFile, ""/* nodeName */);
+		this(providerId, id, privateIp, hostName, username, credential, keyFile, ""/* nodeName */);
 	}
 
 	/**
@@ -71,7 +84,7 @@ public class CustomNodeImpl implements CustomNode {
 	 *            The cloud provider (e.g. EC2, BYON)
 	 * @param id
 	 *            A unique ID for the node
-	 * @param ipAddress
+	 * @param privateIp
 	 *            The node's IP address
 	 * @param username
 	 *            The username required to access the node
@@ -82,16 +95,27 @@ public class CustomNodeImpl implements CustomNode {
 	 * @param nodeName
 	 *            A unique logical name for the node, optional.
 	 */
-	public CustomNodeImpl(final String providerId, final String id, final String ipAddress, final String username,
+	public CustomNodeImpl(final String providerId, final String id, final String privateIp,
+                          final String hostName,
+                          final String username,
 			final String credential, final String keyFile, final String nodeName) {
 		this.providerId = providerId;
 		this.id = id;
-		this.ipAddress = ipAddress;
+        this.hostName = hostName;
+		this.privateIp = privateIp;
 		this.username = username;
 		this.credential = credential;
 		this.keyFile = keyFile;
 		this.nodeName = nodeName;
 	}
+
+    public String getPrivateIp() {
+        return privateIp;
+    }
+
+    public void setPrivateIp(String privateIp) {
+        this.privateIp = privateIp;
+    }
 
 	/**
 	 * {@inheritDoc}
@@ -178,24 +202,7 @@ public class CustomNodeImpl implements CustomNode {
 	 */
 	@Override
 	public String getPrivateIP() {
-		return ipAddress;
-	}
-
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void setResolvedIP(final String resolvedIP) {
-		this.resolvedIpAddress = resolvedIP;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public String getResolvedIP() {
-		return resolvedIpAddress;
+		return privateIp;
 	}
 
 	/**
@@ -215,27 +222,26 @@ public class CustomNodeImpl implements CustomNode {
 	public String toString() {
 		return "[id=" + getId() + ", providerId=" + getProviderId() + ", group=" + getGroup() + ", nodeName="
 				+ getNodeName() + ", loginPort=" + getLoginPort() + ", privateAddresses=" + getPrivateIP()
-				+ ", publicAddresses=" + getPublicIP() + ", resolvedAddresses=" + getResolvedIP() + ", username=" 
+				+ ", publicAddresses=" + getPublicIP() + ", username="
 				+ getUsername() + "]";
 	}
 
-	@Override
-	public int hashCode() {
-		// Ignore these constants - they are only used to calculate a hashcode.
-		//CHECKSTYLE:OFF
-		final int prime = 31;
-		int result = 7;
-		//CHECKSTYLE:ON
-		result = prime * result + getLoginPort();
-		result = prime * result + (getPrivateIP() == null ? 0 : getPrivateIP().hashCode());
-		result = prime * result + (getPublicIP() == null ? 0 : getPublicIP().hashCode());
-		result = prime * result + (providerId == null ? 0 : providerId.hashCode());
-		result = prime * result + (nodeName == null ? 0 : nodeName.hashCode());
-		result = prime * result + (group == null ? 0 : group.hashCode());
-		return (prime * result + (username == null ? 0 : username.hashCode()));
-	}
+    @Override
+    public int hashCode() {
+        int result = providerId != null ? providerId.hashCode() : 0;
+        result = 31 * result + (id != null ? id.hashCode() : 0);
+        result = 31 * result + (privateIp != null ? privateIp.hashCode() : 0);
+        result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
+        result = 31 * result + (nodeName != null ? nodeName.hashCode() : 0);
+        result = 31 * result + (group != null ? group.hashCode() : 0);
+        result = 31 * result + (username != null ? username.hashCode() : 0);
+        result = 31 * result + (credential != null ? credential.hashCode() : 0);
+        result = 31 * result + (keyFile != null ? keyFile.hashCode() : 0);
+        result = 31 * result + loginPort;
+        return result;
+    }
 
-	@Override
+    @Override
 	public boolean equals(final Object obj) {
 		if (obj == null) {
 			return false;
@@ -247,52 +253,13 @@ public class CustomNodeImpl implements CustomNode {
 			return false;
 		}
 		final CustomNodeImpl other = (CustomNodeImpl) obj;
-		if (getLoginPort() != other.getLoginPort()) {
-			return false;
-		}
-		if (getPrivateIP() == null) {
-			if (other.getPrivateIP() != null) {
-				return false;
-			}
-		} else if (!getPrivateIP().equalsIgnoreCase(other.getPrivateIP())) {
-			return false;
-		}
-		if (getPublicIP() == null) {
-			if (other.getPublicIP() != null) {
-				return false;
-			}
-		} else if (!getPublicIP().equalsIgnoreCase(other.getPublicIP())) {
-			return false;
-		}
-		if (getProviderId() == null) {
-			if (other.getProviderId() != null) {
-				return false;
-			}
-		} else if (!getProviderId().equalsIgnoreCase(other.getProviderId())) {
-			return false;
-		}
-		if (getNodeName() == null) {
-			if (other.getNodeName() != null) {
-				return false;
-			}
-		} else if (!getNodeName().equalsIgnoreCase(other.getNodeName())) {
-			return false;
-		}
-		if (getGroup() == null) {
-			if (other.getGroup() != null) {
-				return false;
-			}
-		} else if (!getGroup().equalsIgnoreCase(other.getGroup())) {
-			return false;
-		}
-		if (getUsername() == null) {
-			if (other.getUsername() != null) {
-				return false;
-			}
-		} else if (!getUsername().equalsIgnoreCase(other.getUsername())) {
-			return false;
-		}
-		return true;
+        if (StringUtils.isNotBlank(getPrivateIp())) {
+            if (getPrivateIp().equals(other.getPrivateIp())) return true;
+        }
+        if (StringUtils.isNotBlank(getHostName())) {
+            if (getHostName().equals(other.getHostName())) return true;
+        }
+        return false;
 	}
 
 }

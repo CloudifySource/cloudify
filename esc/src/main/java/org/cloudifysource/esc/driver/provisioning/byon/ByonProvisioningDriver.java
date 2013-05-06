@@ -84,9 +84,6 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	@SuppressWarnings("unchecked")
 	private void addTemplatesToDeployer(final ByonDeployer deployer, final Map<String, ComputeTemplate> templatesMap)
 			throws Exception {
-		logger.info("addTempaltesToDeployer - adding the following tempaltes to the deployer: "
-				+ templatesMap.keySet());
-
 		List<Map<String, String>> nodesList = null;
 		for (final String templateName : templatesMap.keySet()) {
 			final Map<String, Object> customSettings = cloud.getCloudCompute()
@@ -421,7 +418,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 		for (final CustomNode customNode : managementServers) {
 			try {
-				stopAgentAndWait(cloud.getProvider().getNumberOfManagementMachines(), customNode.getResolvedIP());
+				stopAgentAndWait(cloud.getProvider().getNumberOfManagementMachines(), customNode.getPrivateIP());
 			} catch (final Exception e) {
 				publishEvent("prov_failed_to_stop_management_machine");
 				throw new CloudProvisioningException(e);

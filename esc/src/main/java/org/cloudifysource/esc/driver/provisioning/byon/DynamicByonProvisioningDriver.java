@@ -159,12 +159,12 @@ public class DynamicByonProvisioningDriver extends BaseProvisioningDriver {
 				template.getUsername(), template.getPassword(), template.getKeyFile(), serverName);
 
 		try {
-			String resolvedIP = IPUtils.resolveHostName(customNode.getPrivateIP());
-			customNode.setResolvedIP(resolvedIP);
+			String resolvedIP = IPUtils.resolveHostNameToIp(customNode.getPrivateIP());
+			customNode.setPrivateIp(resolvedIP);
 			if (template.getRemoteExecution() == RemoteExecutionModes.WINRM) {
 				customNode.setLoginPort(RemoteExecutionModes.WINRM.getDefaultPort());
 			}
-			IPUtils.validateConnection(customNode.getResolvedIP(), customNode.getLoginPort());
+			IPUtils.validateConnection(customNode.getPrivateIp(), customNode.getLoginPort());
 		} catch (Exception e) {
 			logger.log(
 					Level.INFO,

@@ -12,6 +12,7 @@
  ******************************************************************************/
 package org.cloudifysource.esc.byon;
 
+import java.net.UnknownHostException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -96,11 +97,11 @@ public class ByonDeployer {
 		// comparison from this point on
 		for (CustomNode node : parsedNodes) {
 			try {
-				node.setResolvedIP(IPUtils.resolveHostName(node.getPrivateIP()));
+				node.setPrivateIp(IPUtils.resolveHostNameToIp(node.getPrivateIP()));
 				if (template.getRemoteExecution() == RemoteExecutionModes.WINRM) {
 					node.setLoginPort(RemoteExecutionModes.WINRM.getDefaultPort());
 				}
-				IPUtils.validateConnection(node.getResolvedIP(),
+				IPUtils.validateConnection(node.getPrivateIP(),
 						node.getLoginPort());
 				resolvedNodes.add(node);
 			} catch (final Exception ex) {
@@ -171,17 +172,32 @@ public class ByonDeployer {
 		CustomNode node = null;
 		if (!freeNodesPool.isEmpty()) {
 			node = freeNodesPool.iterator().next();
-			// if this node is indeed not allocated, test the connectivity to
-			// it.
+			// if this node is indeed not allocated, test the connectivity to it.
 			// if we can't connect to it - move it to the invalid pool,
 			// otherwise - allocate it.
 			if (!allocatedNodesPool.contains(node)) {
 				try {
-					// verify this node is still resolvable and reachable
-					String resolvedIP = IPUtils.resolveHostName(node
-							.getPrivateIP());
-					node.setResolvedIP(resolvedIP);
-					IPUtils.validateConnection(node.getResolvedIP(),
+
+                    // one of these may be null if the host was unreachable during bootstrap.
+                    // this doesnt mean we cant use it, since now it may be ok.
+                    // we just need to populate the fields correctly.
+                    String privateIP = node.getPrivateIP();
+                    String hostName = node.getHostName();
+                    if (StringUtils.isBlank(privateIP)) {
+                        // this means the host name is not blank.
+                        // try to resolve it
+                        privateIP = IPUtils.resolveHostNameToIp(hostName);
+                    }
+                    if (StringUtils.isBlank(hostName)) {
+                        // this means the ip address is not blank.
+                        // try to resolve it
+                        hostName = IPUtils.resolveIpToHostName(privateIP);
+                    }
+
+
+					node.setPrivateIp(privateIP);
+                    node.setHostName(hostName);
+					IPUtils.validateConnection(node.getPrivateIP(),
 							node.getLoginPort());
 					allocatedNodesPool.add(node);
 					freeNodesPool.remove(node);
@@ -206,8 +222,8 @@ public class ByonDeployer {
 		} else {
 			for (CustomNode currentNode : invalidNodesPool) {
 				try {
-					String resolvedIP = IPUtils.resolveHostName(currentNode.getPrivateIP());
-					currentNode.setResolvedIP(resolvedIP);
+					String resolvedIP = IPUtils.resolveHostNameToIp(currentNode.getPrivateIP());
+					currentNode.setPrivateIp(resolvedIP);
 					IPUtils.validateConnection(currentNode.getPrivateIP(), currentNode.getLoginPort());
 					if (!allocatedNodesPool.contains(currentNode)) {
 						allocatedNodesPool.add(currentNode);
@@ -259,8 +275,8 @@ public class ByonDeployer {
 		for (final String ipAddress : ipAddresses) {
 			logger.log(Level.INFO, "Looking for " + ipAddress + " in the pool of \"free\" machines");
 			for (final CustomNode node : freeNodesPool) {
-				if (StringUtils.isNotBlank(node.getResolvedIP())) {
-					if (node.getResolvedIP().equalsIgnoreCase(ipAddress)) {
+				if (StringUtils.isNotBlank(node.getPrivateIP())) {
+					if (node.getPrivateIP().equalsIgnoreCase(ipAddress)) {
 						freeNodesPool.remove(node);
 						if (!allocatedNodesPool.contains(node)) {
 							allocatedNodesPool.add(node);
@@ -407,8 +423,8 @@ public class ByonDeployer {
 		CustomNode selectedNode = null;
 
 		for (final CustomNode node : getAllNodesByTemplateName(templateName)) {
-			if ((StringUtils.isNotBlank(node.getResolvedIP()) && node
-					.getResolvedIP().equalsIgnoreCase(ipAddress))
+			if ((StringUtils.isNotBlank(node.getPrivateIP()) && node
+					.getPrivateIP().equalsIgnoreCase(ipAddress))
 					|| (StringUtils.isNotBlank(node.getPrivateIP()) && node
 							.getPrivateIP().equalsIgnoreCase(ipAddress))) {
 				selectedNode = node;
@@ -702,17 +718,6 @@ public class ByonDeployer {
 	 */
 	private CustomNode parseOneNode(final Map<String, String> nodeMap) {
 
-		// It was decided not to validate the connection to the host at this
-		// stage. commected out.
-
-		/*
-		 * String host = nodeMap.get(CLOUD_NODE_HOST_LIST); // validate the IP if (!IPUtils.validateIPAddress(host)) {
-		 * // maybe this is a host name try { host = IPUtils.resolveHostName(host); } catch (final Exception e) { throw
-		 * new CloudProvisioningException("Invalid host name or address: " + host); }
-		 *
-		 * if (!IPUtils.validateIPAddress(host)) { throw new CloudProvisioningException("Invalid host name or address: "
-		 * + host); } }
-		 */
 
 		// Handle the edge case scenario where a host-list defines a single node
 		String nodeId = nodeMap.get(CLOUD_NODE_ID);
@@ -720,8 +725,31 @@ public class ByonDeployer {
 			nodeId = MessageFormat.format(nodeId, 1);
 		}
 
-		return new CustomNodeImpl(PROVIDER_ID, nodeId.trim(),
-				nodeMap.get(CLOUD_NODE_HOST_LIST).trim(), nodeMap.get(CLOUD_NODE_USERNAME),
+        String host = nodeMap.get(CLOUD_NODE_HOST_LIST).trim();
+        String ip = "";
+        String hostName = "";
+        if (IPUtils.validateIPAddress(host)) {
+            // the host is an ip address
+            ip = host;
+            try {
+                hostName = IPUtils.resolveIpToHostName(host);
+            } catch (UnknownHostException e) {
+                // the machine is not reachable yet. this is fine for now.
+                logger.warning("Could not resolve ip to host name : " + host + " . this machine is not reachable");
+            }
+        } else {
+            // the host is a host name
+            try {
+                ip = IPUtils.resolveHostNameToIp(host);
+            } catch (UnknownHostException e) {
+                // the machine is not reachable yet. this is fine for now.
+                logger.warning("Could not resolve host name to ip : " + host + " . this machine is not reachable");
+            }
+            hostName = host;
+        }
+
+        return new CustomNodeImpl(PROVIDER_ID, nodeId.trim(),
+                ip, hostName, nodeMap.get(CLOUD_NODE_USERNAME),
 				nodeMap.get(CLOUD_NODE_CREDENTIAL), nodeMap.get(CLOUD_NODE_KEY_FILE), nodeId.trim());
 	}
 
@@ -786,7 +814,15 @@ public class ByonDeployer {
 			}
 
 			// create a new node
-			cloudNodes.add(new CustomNodeImpl(PROVIDER_ID, currnentId, ip,
+            String hostName = null;
+            try {
+                hostName = IPUtils.resolveIpToHostName(ip);
+            } catch (UnknownHostException e) {
+                // the machine is not reachable yet. this is fine for now.
+                logger.warning("Could not resolve ip to host name : " + ip + " . this machine is not reachable");
+
+            }
+            cloudNodes.add(new CustomNodeImpl(PROVIDER_ID, currnentId, ip, hostName,
 					nodeMap.get(CLOUD_NODE_USERNAME), nodeMap.get(CLOUD_NODE_CREDENTIAL),
 					nodeMap.get(CLOUD_NODE_KEY_FILE), currnentId));
 
@@ -836,10 +872,10 @@ public class ByonDeployer {
 		String currnentId;
 
 		final String nodeId = nodeMap.get(CLOUD_NODE_ID).trim();
-		final String ipList = nodeMap.get(CLOUD_NODE_HOST_LIST).trim();
+		final String hostsList = nodeMap.get(CLOUD_NODE_HOST_LIST).trim();
 
-		final String[] ipsArr = ipList.split(",");
-		if (ipsArr.length > 1) {
+		final String[] hosts = hostsList.split(",");
+		if (hosts.length > 1) {
 			if (isIdTemplate(nodeId)) {
 				useIdAsTemplate = true;
 			} else {
@@ -847,19 +883,10 @@ public class ByonDeployer {
 			}
 		}
 
-		for (String ip : ipsArr) {
+		for (String host : hosts) {
 
 			// validate the IP
-			ip = ip.trim();
-
-			/*
-			 * if (!IPUtils.validateIPAddress(ip)) { // maybe this is a host name try { ip =
-			 * IPUtils.resolveHostName(ip); } catch (final Exception e) { throw new
-			 * CloudProvisioningException("Invalid or unreachable IP address: " + ip); }
-			 *
-			 * if (!IPUtils.validateIPAddress(ip)) { throw new
-			 * CloudProvisioningException("Invalid or unreachable IP address: " + ip); } }
-			 */
+			host = host.trim();
 
 			// set the id
 			if (useIdAsTemplate) {
@@ -871,8 +898,30 @@ public class ByonDeployer {
 				currnentId = nodeId;
 			}
 
+            String ip = "";
+            String hostName = "";
+            if (IPUtils.validateIPAddress(host)) {
+                // the host is an ip address
+                ip = host;
+                try {
+                    hostName = IPUtils.resolveIpToHostName(host);
+                } catch (UnknownHostException e) {
+                    // the machine is not reachable yet. this is fine for now.
+                    logger.warning("Could not resolve ip to host name : " + host + " . this machine is not reachable");
+                }
+            } else {
+                // the host is a host name
+                try {
+                    ip = IPUtils.resolveHostNameToIp(host);
+                } catch (UnknownHostException e) {
+                    // the machine is not reachable yet. this is fine for now.
+                    logger.warning("Could not resolve host name to ip : " + host + " . this machine is not reachable");
+                }
+                hostName = host;
+            }
+
 			// create a new node
-			cloudNodes.add(new CustomNodeImpl(PROVIDER_ID, currnentId, ip,
+			cloudNodes.add(new CustomNodeImpl(PROVIDER_ID, currnentId, ip, hostName,
 					nodeMap.get(CLOUD_NODE_USERNAME), nodeMap.get(CLOUD_NODE_CREDENTIAL),
 					nodeMap.get(CLOUD_NODE_KEY_FILE), currnentId));
 
@@ -933,9 +982,9 @@ public class ByonDeployer {
 
 		for (final CustomNode newNode : newNodes) {
 			for (final CustomNode oldNode : oldNodes) {
-				if (oldNode.getResolvedIP().equalsIgnoreCase(
-						newNode.getResolvedIP())) {
-					existingIPs.add(oldNode.getResolvedIP());
+				if (oldNode.getPrivateIP().equalsIgnoreCase(
+                        newNode.getPrivateIP())) {
+					existingIPs.add(oldNode.getPrivateIP());
 					break;
 				}
 			}
