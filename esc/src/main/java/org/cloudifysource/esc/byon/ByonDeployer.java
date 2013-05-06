@@ -620,7 +620,6 @@ public class ByonDeployer {
 			final List<Map<String, String>> nodesMapList)
 			throws CloudProvisioningException {
 
-        logger.info("Parsing cloud nodes from configuration file");
 		final List<CustomNode> cloudNodes = new ArrayList<CustomNode>();
 
 		for (final Map<String, String> nodeMap : nodesMapList) {
@@ -653,7 +652,6 @@ public class ByonDeployer {
 			}
 		}
 
-        logger.info("Parsed cloud nodes = " + StringUtils.join(cloudNodes, ","));
 		return cloudNodes;
 	}
 
