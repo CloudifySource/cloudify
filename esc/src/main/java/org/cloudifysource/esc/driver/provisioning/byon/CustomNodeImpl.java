@@ -70,10 +70,13 @@ public class CustomNodeImpl implements CustomNode {
 	 * @param keyFile
 	 *            The private key file required to access the node  (optional)
 	 */
-	public CustomNodeImpl(final String providerId, final String id, final String privateIp,
+	public CustomNodeImpl(final String providerId,
+                          final String id,
+                          final String privateIp,
                           final String hostName,
                           final String username,
-			final String credential, final String keyFile) {
+			              final String credential,
+                          final String keyFile) {
 		this(providerId, id, privateIp, hostName, username, credential, keyFile, ""/* nodeName */);
 	}
 
@@ -95,10 +98,14 @@ public class CustomNodeImpl implements CustomNode {
 	 * @param nodeName
 	 *            A unique logical name for the node, optional.
 	 */
-	public CustomNodeImpl(final String providerId, final String id, final String privateIp,
+	public CustomNodeImpl(final String providerId,
+                          final String id,
+                          final String privateIp,
                           final String hostName,
                           final String username,
-			final String credential, final String keyFile, final String nodeName) {
+			              final String credential,
+                          final String keyFile,
+                          final String nodeName) {
 		this.providerId = providerId;
 		this.id = id;
         this.hostName = hostName;
