@@ -43,7 +43,7 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
 
 	@GigaSpaceContext(name = "gigaSpace")
 	private GigaSpace gigaSpace;
-
+	
 	@Override
 	public RestConfiguration getObject() throws Exception {
 		config = new RestConfiguration();
@@ -71,6 +71,7 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
 			config.setManagementTemplateName(managementTemplateName);
 			config.setManagementTemplate(cloudCompute.getTemplates().get(managementTemplateName));
 			config.setCloud(cloud);
+			config.setTemporaryFolderPath(CloudifyConstants.REST_FOLDER);
 		} else {
 			logger.info("Service Controller is running in local cloud mode");
 		}

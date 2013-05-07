@@ -72,9 +72,9 @@ public class ValidateInstallServiceRequestTest extends InstallServiceValidatorTe
 			final String serviceOverrides) {
 		final InstallServiceRequest request = new InstallServiceRequest();
 		request.setAuthGroups(authGroups);
-		request.setCloudOverrides(cloudOverrides);
+		request.setCloudOverridesUploadKey(cloudOverrides);
 		request.setSelfHealing(selfHealing);
-		request.setServiceOverrides(serviceOverrides);
+		request.setServiceOverridesUploadKey(serviceOverrides);
 		request.setUploadKey(uploadKey);
 		request.setCloudConfigurationUploadKey(cloudConfigUploadKey);
 		return request;

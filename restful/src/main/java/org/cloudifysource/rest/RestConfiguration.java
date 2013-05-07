@@ -33,7 +33,8 @@ public class RestConfiguration {
 	private ComputeTemplate managementTemplate;
 	private String managementTemplateName;
 	private final AtomicInteger lastTemplateFileNum = new AtomicInteger(0);
-
+	private String temporaryFolderPath;
+	
 	public Cloud getCloud() {
 		return cloud;
 	}
@@ -78,12 +79,20 @@ public class RestConfiguration {
 		return managementTemplateName;
 	}
 	
-	public void setManagementTemplateName(String managementTemplateName) {
+	public void setManagementTemplateName(final String managementTemplateName) {
 		this.managementTemplateName = managementTemplateName;
 	}
 
 	public AtomicInteger getLastTemplateFileNum() {
 		return lastTemplateFileNum;
+	}
+
+	public String getTemporaryFolderPath() {
+		return temporaryFolderPath;
+	}
+
+	public void setTemporaryFolderPath(final String temporaryFolderPath) {
+		this.temporaryFolderPath = temporaryFolderPath;
 	}
 
 }

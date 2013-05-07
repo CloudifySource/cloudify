@@ -15,11 +15,13 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
+import org.cloudifysource.dsl.internal.DSLErrorMessageException;
+import org.cloudifysource.dsl.internal.debug.DebugUtils;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
 import org.cloudifysource.rest.controllers.RestErrorException;
-import org.cloudifysource.restclient.StringUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -41,21 +43,28 @@ public class ValidateInstallServiceRequest implements InstallServiceValidator {
 			throw new RestErrorException(CloudifyMessageKeys.VALIDATOR_REQUEST_MISSING.getName(), absolutePuName);
 		}
 		String uploadKey = request.getUploadKey();
-		if (!StringUtils.notEmpty(uploadKey)) {
+		if (!StringUtils.isBlank(uploadKey)) {
 			throw new RestErrorException(CloudifyMessageKeys.UPLOAD_KEY_PARAMETER_MISSING.getName(), absolutePuName);
 		}
 
-		String cloudOverrides = request.getCloudOverrides();
+		String cloudOverrides = request.getCloudOverridesUploadKey();
 		if (cloudOverrides.length() > overrdiesMaxLength) {
-			throw new RestErrorException(CloudifyMessageKeys.SERVICE_OVERRIDES_LENGTH_LIMIT_EXCEEDED.getName(), absolutePuName);
+			throw new RestErrorException(CloudifyMessageKeys.SERVICE_OVERRIDES_LENGTH_LIMIT_EXCEEDED.getName(), 
+					absolutePuName);
 		}
-		String serviceOverrides = request.getServiceOverrides();
+		String serviceOverrides = request.getServiceOverridesUploadKey();
 		if (serviceOverrides.length() > overrdiesMaxLength) {
-			throw new RestErrorException(CloudifyMessageKeys.SERVICE_OVERRIDES_LENGTH_LIMIT_EXCEEDED.getName(), absolutePuName);
+			throw new RestErrorException(CloudifyMessageKeys.SERVICE_OVERRIDES_LENGTH_LIMIT_EXCEEDED.getName(), 
+					absolutePuName);
 		}
 
-		String authGroups = request.getAuthGroups();
-		
+		boolean debugAll = request.isDebugAll();
+		String debugEvents = request.getDebugEvents();
+		try {
+			DebugUtils.validateDebugSettings(debugAll, debugEvents, request.getDebugMode());
+			} catch (DSLErrorMessageException e) {
+				throw new RestErrorException(e.getErrorMessage().getName(), e.getArgs());
+			}
 	}
 
 

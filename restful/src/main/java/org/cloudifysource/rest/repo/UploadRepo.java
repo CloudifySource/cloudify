@@ -34,7 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Component
 public class UploadRepo {
 	private int cleanupTimeoutSeconds = CloudifyConstants.DEFAULT_UPLOAD_TIMEOUT_SECOND;
-	private File baseDir = new File(CloudifyConstants.TEMP_FOLDER);
+	private File baseDir = new File(CloudifyConstants.REST_FOLDER);
 	private ScheduledExecutorService executor;
 	private File restUploadDir;
 
@@ -124,7 +124,7 @@ public class UploadRepo {
 	 * @return the suitable file or null if a file with that name doesn't exist.
 	 */
 	public File get(final String key) {
-		if (restUploadDir == null || !restUploadDir.exists()) {
+		if (key == null || restUploadDir == null || !restUploadDir.exists()) {
 			return null;
 		}
 
