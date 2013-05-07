@@ -15,6 +15,8 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.internal;
 
+import java.io.File;
+
 import org.apache.commons.io.FileUtils;
 
 import com.gigaspaces.internal.license.LicenseManagerVerifier;
@@ -187,6 +189,7 @@ public final class CloudifyConstants {
 	public static final String SERVICE_EXTERNAL_FOLDER = "/ext/";
 	public static final String SERVICE_CLOUD_CONFIGURATION_FILE_NAME = "__Cloud_Configuration.zip";
 	public static final String TEMP_FOLDER = System.getProperty("java.io.tmpdir");
+	public static final String REST_FOLDER = TEMP_FOLDER + File.separator + "Cloudify";
 
 
 	/***************
@@ -388,11 +391,14 @@ public final class CloudifyConstants {
 	public static final int DEFAULT_UPLOAD_TIMEOUT_SECOND = 300;
 	public static final int DEFAULT_UPLOAD_SIZE_LIMIT_BYTES = 100 * 1000 * 1000;
 	
-	// CHECKSTYLE:ON
-	
 	// install-service validators
 	public static final long SERVICE_OVERRIDES_FILE_LENGTH_LIMIT_KB = 20 * FileUtils.ONE_KB;
 	public static final long CLOUD_OVERRIDES_FILE_LENGTH_LIMIT_KB = 10 * FileUtils.ONE_KB;
+	
+	// install-service constants
+	public static final String EXTRACTED_FILES_FOLDER = "extracted";	
+	
+	// CHECKSTYLE:ON
 }
 
 

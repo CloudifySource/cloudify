@@ -26,6 +26,8 @@ public enum CloudifyMessageKeys {
 	
 	UPLOAD_FAILED("failed_to_upload_file"),
 	
+	WRONG_UPLOAD_KEY("wrong_upload_key"),
+	
 	UPLOAD_KEY_PARAMETER_MISSING("upload_key_is_missing"),
 	
 	ZONE_PARAMETER_MISSING("zone_parameter_is_missing"),
@@ -56,8 +58,11 @@ public enum CloudifyMessageKeys {
 	
 	FAILED_TO_READ_SERVICE("failed_to_read_service"),
 	
-	FAILED_TO_READ_SERVICE_CLOUD_CONFIGURATION("failed_to_read_service_cloud_configuration");
+	FAILED_TO_READ_SERVICE_CLOUD_CONFIGURATION("failed_to_read_service_cloud_configuration"), 
 	
+	WRONG_SERVICE_CLOUD_CONFIGURATION_UPLOAD_KEY("wrong_service_cloud_configuration_upload_key"),
+	
+	WRONG_CLOUD_OVERRIDES_UPLOAD_KEY("wrong_cloud_overrides_upload_key");
 	
 	private final String name;
 	

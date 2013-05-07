@@ -22,13 +22,13 @@ package org.cloudifysource.dsl.rest.response;
  *
  */
 public class InstallServiceResponse {
-	private String lifecycleEventContainerID = "";
+	private String deploymentID = "";
 
-	public String getLifecycleEventContainerID() {
-		return lifecycleEventContainerID;
+	public String getDeploymentID() {
+		return deploymentID;
 	}
 
-	public void setLifecycleEventContainerID(String lifecycleEventContainerID) {
-		this.lifecycleEventContainerID = lifecycleEventContainerID;
+	public void setDeploymentID(String deploymentID) {
+		this.deploymentID = deploymentID;
 	}
 }
