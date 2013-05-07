@@ -287,10 +287,15 @@ public final class IPUtils {
             add[j] =(byte) ((int) Integer.valueOf(chars[j]));
         }
         InetAddress byAddress = InetAddress.getByAddress(add);
-        String hostName = byAddress.getHostName();
-        return hostName;
-
-
+        try {
+            if (byAddress.isReachable(DEFAULT_CONNECTION_TIMEOUT * 1000)) {
+                return byAddress.getHostName();
+            } else {
+                return null;
+            }
+        } catch (IOException e) {
+            return null; // not reachable
+        }
     }
 	
 	/**
@@ -303,7 +308,16 @@ public final class IPUtils {
 	 *             Indicates the host doesn't represent an available network object
 	 */
 	public static String resolveHostNameToIp(final String hostName) throws UnknownHostException {
-        return InetAddress.getByName(hostName).getHostAddress();
+        InetAddress byName = InetAddress.getByName(hostName);
+        try {
+            if (byName.isReachable(DEFAULT_CONNECTION_TIMEOUT * 1000)) {
+                return byName.getHostAddress();
+            } else {
+                return null;
+            }
+        } catch (IOException e) {
+            return null; // not reachable
+        }
 	}
 
 }

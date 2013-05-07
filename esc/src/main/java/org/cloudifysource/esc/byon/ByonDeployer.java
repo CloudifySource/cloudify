@@ -97,7 +97,7 @@ public class ByonDeployer {
 		// comparison from this point on
 		for (CustomNode node : parsedNodes) {
 			try {
-				node.setPrivateIp(IPUtils.resolveHostNameToIp(node.getPrivateIP()));
+                node.resolve();
 				if (template.getRemoteExecution() == RemoteExecutionModes.WINRM) {
 					node.setLoginPort(RemoteExecutionModes.WINRM.getDefaultPort());
 				}
@@ -124,7 +124,7 @@ public class ByonDeployer {
 		setInitialPoolsForTemplate(templateName, resolvedNodes, unresolvedNodes);
 	}
 
-	/**
+    /**
 	 * Creates a server (AKA a machine or a node) with the assigned logical name. The server is taken from the list of
 	 * free nodes, unless this list is exhausted. If all there are no free nodes available, the invalid nodes are
 	 * checked for SSH connection, and if a connection can be established - the node is used.
@@ -175,26 +175,7 @@ public class ByonDeployer {
 			// otherwise - allocate it.
 			if (!allocatedNodesPool.contains(node)) {
 				try {
-
-                    // one of these may be null if the host was unreachable during bootstrap.
-                    // this doesnt mean we cant use it, since now it may be ok.
-                    // we just need to populate the fields correctly.
-                    String privateIP = node.getPrivateIP();
-                    String hostName = node.getHostName();
-                    if (StringUtils.isBlank(privateIP)) {
-                        // this means the host name is not blank.
-                        // try to resolve it
-                        privateIP = IPUtils.resolveHostNameToIp(hostName);
-                    }
-                    if (StringUtils.isBlank(hostName)) {
-                        // this means the ip address is not blank.
-                        // try to resolve it
-                        hostName = IPUtils.resolveIpToHostName(privateIP);
-                    }
-
-
-					node.setPrivateIp(privateIP);
-                    node.setHostName(hostName);
+                    node.resolve();
 					IPUtils.validateConnection(node.getPrivateIP(),
 							node.getLoginPort());
 					allocatedNodesPool.add(node);
@@ -220,8 +201,7 @@ public class ByonDeployer {
 		} else {
 			for (CustomNode currentNode : invalidNodesPool) {
 				try {
-					String resolvedIP = IPUtils.resolveHostNameToIp(currentNode.getPrivateIP());
-					currentNode.setPrivateIp(resolvedIP);
+                    currentNode.resolve();
 					IPUtils.validateConnection(currentNode.getPrivateIP(), currentNode.getLoginPort());
 					if (!allocatedNodesPool.contains(currentNode)) {
 						allocatedNodesPool.add(currentNode);
@@ -724,25 +704,12 @@ public class ByonDeployer {
 		}
 
         String host = nodeMap.get(CLOUD_NODE_HOST_LIST).trim();
-        String ip = "";
-        String hostName = "";
+        String ip = null;
+        String hostName = null;
         if (IPUtils.validateIPAddress(host)) {
             // the host is an ip address
             ip = host;
-            try {
-                hostName = IPUtils.resolveIpToHostName(host);
-            } catch (UnknownHostException e) {
-                // the machine is not reachable yet. this is fine for now.
-                logger.warning("Could not resolve ip to host name : " + host + " . this machine is not reachable");
-            }
         } else {
-            // the host is a host name
-            try {
-                ip = IPUtils.resolveHostNameToIp(host);
-            } catch (UnknownHostException e) {
-                // the machine is not reachable yet. this is fine for now.
-                logger.warning("Could not resolve host name to ip : " + host + " . this machine is not reachable");
-            }
             hostName = host;
         }
 
@@ -811,16 +778,7 @@ public class ByonDeployer {
 				currnentId = nodeId;
 			}
 
-			// create a new node
-            String hostName = null;
-            try {
-                hostName = IPUtils.resolveIpToHostName(ip);
-            } catch (UnknownHostException e) {
-                // the machine is not reachable yet. this is fine for now.
-                logger.warning("Could not resolve ip to host name : " + ip + " . this machine is not reachable");
-
-            }
-            cloudNodes.add(new CustomNodeImpl(PROVIDER_ID, currnentId, ip, hostName,
+            cloudNodes.add(new CustomNodeImpl(PROVIDER_ID, currnentId, ip, null,
 					nodeMap.get(CLOUD_NODE_USERNAME), nodeMap.get(CLOUD_NODE_CREDENTIAL),
 					nodeMap.get(CLOUD_NODE_KEY_FILE), currnentId));
 
@@ -896,25 +854,12 @@ public class ByonDeployer {
 				currnentId = nodeId;
 			}
 
-            String ip = "";
-            String hostName = "";
+            String ip = null;
+            String hostName = null;
             if (IPUtils.validateIPAddress(host)) {
                 // the host is an ip address
                 ip = host;
-                try {
-                    hostName = IPUtils.resolveIpToHostName(host);
-                } catch (UnknownHostException e) {
-                    // the machine is not reachable yet. this is fine for now.
-                    logger.warning("Could not resolve ip to host name : " + host + " . this machine is not reachable");
-                }
             } else {
-                // the host is a host name
-                try {
-                    ip = IPUtils.resolveHostNameToIp(host);
-                } catch (UnknownHostException e) {
-                    // the machine is not reachable yet. this is fine for now.
-                    logger.warning("Could not resolve host name to ip : " + host + " . this machine is not reachable");
-                }
                 hostName = host;
             }
 

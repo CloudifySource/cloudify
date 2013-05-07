@@ -155,12 +155,11 @@ public class DynamicByonProvisioningDriver extends BaseProvisioningDriver {
 
 	private MachineDetails createMachine(String serverName,
 			ComputeTemplate template, String ip) throws CloudProvisioningException {
-		final CustomNodeImpl customNode = new CustomNodeImpl(PROVIDER_ID, serverName, ip,
+		final CustomNodeImpl customNode = new CustomNodeImpl(PROVIDER_ID, serverName, ip, null,
 				template.getUsername(), template.getPassword(), template.getKeyFile(), serverName);
 
 		try {
-			String resolvedIP = IPUtils.resolveHostNameToIp(customNode.getPrivateIP());
-			customNode.setPrivateIp(resolvedIP);
+            customNode.resolve();
 			if (template.getRemoteExecution() == RemoteExecutionModes.WINRM) {
 				customNode.setLoginPort(RemoteExecutionModes.WINRM.getDefaultPort());
 			}

@@ -15,6 +15,8 @@
  ******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
+import java.net.UnknownHostException;
+
 /**
  * Interface for a custom cloud node, used for example by the BYON cloud driver.
  * 
@@ -80,9 +82,12 @@ public interface CustomNode {
 	 */
 	String getPrivateIP();
 
-    void setPrivateIp(final String privateIpd);
-
-    void setHostName(final String hostName);
+    /**
+     * Resolve the addresses of this node. this method should populate the privateIp and hostName fields of the node
+     * with the resolved value as defined in the network.
+     * @throws UnknownHostException
+     */
+    void resolve() throws UnknownHostException;
 
 	/**
 	 * Sets the node name.

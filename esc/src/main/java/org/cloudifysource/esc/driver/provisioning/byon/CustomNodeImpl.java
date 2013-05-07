@@ -17,6 +17,9 @@ package org.cloudifysource.esc.driver.provisioning.byon;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.esc.driver.provisioning.CustomNode;
+import org.cloudifysource.esc.util.IPUtils;
+
+import java.net.UnknownHostException;
 
 /**
  * Implementation for a custom cloud node, used for example by the BYON cloud driver.
@@ -53,32 +56,6 @@ public class CustomNodeImpl implements CustomNode {
 	private String keyFile;		// private key file
 
 	private int loginPort = DEFAULT_LOGIN_PORT;
-
-	/**
-	 * Constructor.
-	 *
-	 * @param providerId
-	 *            The cloud provider (e.g. EC2, BYON)
-	 * @param id
-	 *            A unique ID for the node
-	 * @param privateIp
-	 *            The node's IP address or host name
-	 * @param username
-	 *            The username required to access the node
-	 * @param credential
-	 *            The password required to access the node (optional)
-	 * @param keyFile
-	 *            The private key file required to access the node  (optional)
-	 */
-	public CustomNodeImpl(final String providerId,
-                          final String id,
-                          final String privateIp,
-                          final String hostName,
-                          final String username,
-			              final String credential,
-                          final String keyFile) {
-		this(providerId, id, privateIp, hostName, username, credential, keyFile, ""/* nodeName */);
-	}
 
 	/**
 	 * Constructor.
@@ -212,7 +189,19 @@ public class CustomNodeImpl implements CustomNode {
 		return privateIp;
 	}
 
-	/**
+    @Override
+    public void resolve() throws UnknownHostException {
+        String hostName = getHostName();
+        String ip = getPrivateIp();
+        if (StringUtils.isBlank(ip)) {
+            setPrivateIp(IPUtils.resolveHostNameToIp(hostName));
+        }
+        if (StringUtils.isBlank(hostName)) {
+            setHostName(IPUtils.resolveIpToHostName(ip));
+        }
+    }
+
+    /**
 	 * {@inheritDoc}
 	 */
 	@Override
