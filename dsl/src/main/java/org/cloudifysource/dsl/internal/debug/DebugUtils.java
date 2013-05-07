@@ -15,6 +15,7 @@ package org.cloudifysource.dsl.internal.debug;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.LifecycleEvents;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLErrorMessageException;
@@ -50,20 +51,22 @@ public final class DebugUtils {
 	public static void validateDebugSettings(final boolean debugAll, final String debugEvents,
 			final String debugModeString) throws DSLErrorMessageException {
 
-		if (!debugAll && debugEvents == null) {
+		if (!debugAll && StringUtils.isBlank(debugEvents)) {
 			return; // nothing to validate
 		}
 
-		if (debugAll && debugEvents != null) {
+		if (debugAll && !StringUtils.isBlank(debugEvents)) {
 			throw new DSLErrorMessageException(CloudifyErrorMessages.DEBUG_EVENTS_AND_ALL_SET);
 		}
 
-		DebugModes mode = DebugModes.nameOf(debugModeString);
-		if (mode == null) {
-			throw new DSLErrorMessageException(CloudifyErrorMessages.DEBUG_UNKNOWN_MODE, debugModeString,
-					DebugModes.getNames().toString());
+		if (debugModeString != null) {
+			DebugModes mode = DebugModes.nameOf(debugModeString);
+			if (mode == null) {
+				throw new DSLErrorMessageException(CloudifyErrorMessages.DEBUG_UNKNOWN_MODE, debugModeString,
+						DebugModes.getNames().toString());
+			}
 		}
-
+		
 		if (debugEvents != null) {
 			final String[] parts = debugEvents.split(",");
 			final Set<LifecycleEvents> debugEventsSet = new HashSet<LifecycleEvents>();
